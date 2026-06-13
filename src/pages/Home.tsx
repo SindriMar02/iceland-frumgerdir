@@ -92,7 +92,7 @@ export default function Home() {
               are design proposals, not the businesses’ real websites. All copy, prices and reviews
               are illustrative samples. Photography via Unsplash placeholders.
             </p>
-            <p className="mt-3 text-xs text-white/35">Hugmynd og hönnun · sindri@klubbr.is</p>
+            <p className="mt-3 text-xs text-white/35">Hugmynd og hönnun · sindrimar02@gmail.com</p>
           </div>
         </Reveal>
       </div>
