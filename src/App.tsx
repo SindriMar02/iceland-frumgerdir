@@ -8,6 +8,7 @@ const DaeliFarm = lazy(() => import('./pages/DaeliFarm'))
 const Eldhestar = lazy(() => import('./pages/Eldhestar'))
 const GuesthouseCarina = lazy(() => import('./pages/GuesthouseCarina'))
 const GJTravel = lazy(() => import('./pages/GJTravel'))
+const Fimm = lazy(() => import('./pages/Fimm'))
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/eldhestar" element={<Eldhestar />} />
             <Route path="/guesthouse-carina" element={<GuesthouseCarina />} />
             <Route path="/gj-travel" element={<GJTravel />} />
+            <Route path="/fimm" element={<Fimm />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

@@ -8,6 +8,7 @@
   --font-editorial: "Playfair Display", Georgia, serif;  /* Guesthouse Carina */
   --font-survey: "Instrument Serif", Georgia, serif;     /* GJ Travel — Landmæling */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 
   /* GJ Travel "Landmæling" survey-sheet system — paper, ink, one plotted line */
@@ -23,6 +24,16 @@
   /* Motion tokens — lines draw, plates settle, numbers roll */
   --ease-plotter: cubic-bezier(0.65, 0, 0.35, 1);  /* mechanical line drawing */
   --ease-plate: cubic-bezier(0.22, 1, 0.36, 1);    /* photo plates & entrances */
+
+  /* FIMM — the opportunity thesis: a dark "intelligence" canvas where latent
+     (amber) energy resolves into realized (mint) potential. */
+  --color-fimm-bg: #08090c;       /* near-black cool ground */
+  --color-fimm-panel: #0f1318;    /* raised panels & cards */
+  --color-fimm-hi: #f3f6f8;       /* high-emphasis text */
+  --color-fimm-mid: #aab2bd;      /* body text */
+  --color-fimm-low: #7c8693;      /* labels & captions — AA (≥4.5:1) on bg AND raised panels */
+  --color-fimm-signal: #ffb23e;   /* latent energy — the through-accent */
+  --color-fimm-rise: #5fe0bf;     /* realized potential — future state */
 }
 
 html {

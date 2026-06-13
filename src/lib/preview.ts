@@ -33,3 +33,25 @@ export function brandOffsetClass(): string {
 export function setThemeColor(color: string): void {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color)
 }
+
+/**
+ * Toggle a robots noindex directive for routes that should not be indexed
+ * (the FIMM opportunity thesis names unconsented third parties). Returns a
+ * cleanup that restores indexing — call from a useEffect.
+ */
+export function setNoindex(on: boolean): () => void {
+  const name = 'robots'
+  let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)
+  const created = !tag
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.name = name
+    document.head.appendChild(tag)
+  }
+  const prev = tag.content
+  tag.content = on ? 'noindex, nofollow' : 'index, follow'
+  return () => {
+    if (created) tag?.remove()
+    else if (tag) tag.content = prev
+  }
+}

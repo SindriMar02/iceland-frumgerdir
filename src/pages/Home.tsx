@@ -1,13 +1,25 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, MapPin, Send } from 'lucide-react'
+import { ArrowUpRight, LineChart, MapPin, Send } from 'lucide-react'
 import { companies } from '../data/companies'
 import { Img } from '../components/Img'
 import { Reveal } from '../components/Reveal'
 import { markGalleryVisit, setThemeColor } from '../lib/preview'
 
+// The opportunity thesis names unconsented businesses, so it is surfaced only
+// to Sindri's own entry (root with ?tools) — never on the public root.
+function toolsEnabled(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).has('tools')
+  } catch {
+    return false
+  }
+}
+
 export default function Home() {
+  const showTools = toolsEnabled()
+
   useEffect(() => {
     document.title = 'Iceland Redesign Prototypes'
     setThemeColor('#0b0e13')
@@ -84,8 +96,37 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Opportunity thesis — Sindri's private strategy artifact (?tools only) */}
+        {showTools && (
+          <Reveal className="mt-12">
+            <Link
+              to="/fimm"
+              className="group flex items-center justify-between gap-4 rounded-[2rem] border border-amber-400/25 bg-amber-400/[0.06] p-6 transition-colors hover:border-amber-400/50 md:p-8"
+            >
+              <div className="flex items-center gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-amber-400/15 text-amber-300">
+                  <LineChart className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-[11px] font-semibold tracking-[0.2em] text-amber-300/80 uppercase">
+                    Private · opportunity thesis
+                  </p>
+                  <h2 className="mt-1 font-tall text-2xl font-light text-white">FIMM — the five next leads</h2>
+                  <p className="mt-1 max-w-md text-sm text-white/55">
+                    The strategic case behind the next five businesses — positioning, the opportunity map and a
+                    transformation roadmap. Not linked publicly.
+                  </p>
+                </div>
+              </div>
+              <span className="hidden shrink-0 rounded-full border border-white/20 p-3 transition-all duration-300 group-hover:rotate-45 group-hover:border-amber-300 group-hover:bg-amber-300 group-hover:text-slate-950 sm:block">
+                <ArrowUpRight className="h-5 w-5" />
+              </span>
+            </Link>
+          </Reveal>
+        )}
+
         {/* Footer note */}
-        <Reveal className="mt-20">
+        <Reveal className="mt-12">
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center md:p-10">
             <p className="text-sm leading-relaxed text-white/55">
               <strong className="text-white/80">Prototype only — redesign concepts.</strong> These
