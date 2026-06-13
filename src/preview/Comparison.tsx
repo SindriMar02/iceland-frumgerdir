@@ -259,7 +259,11 @@ export default function Comparison() {
             className="mt-9 flex items-center justify-center"
           >
             <a
-              href="#dæmi"
+              href="#examples"
+              onClick={(e) => {
+                e.preventDefault()
+                document.getElementById('examples')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
               className="group inline-flex items-center gap-2 rounded-full bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-slate-700"
             >
               Skoða dæmi
@@ -270,7 +274,7 @@ export default function Comparison() {
       </section>
 
       {/* Examples */}
-      <section id="dæmi" className="mx-auto max-w-6xl px-5 pb-24 md:px-8">
+      <section id="examples" className="mx-auto max-w-6xl px-5 pb-24 md:px-8">
         {/* Device toggle */}
         <div className="sticky top-[57px] z-40 -mx-5 mb-10 flex items-center justify-center gap-3 bg-white/85 px-5 py-3 backdrop-blur-md md:top-[61px]">
           <span className="text-xs font-medium text-slate-400">Forskoðun:</span>
