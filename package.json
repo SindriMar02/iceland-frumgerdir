@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "cp dist/index.html dist/404.html && for r in ice-tourism daeli-farm eldhestar guesthouse-carina gj-travel fimm; do mkdir -p \"dist/$r\" && cp dist/index.html \"dist/$r/index.html\"; done",
+    "postbuild": "cp dist/index.html dist/404.html && for r in ice-tourism daeli-farm eldhestar guesthouse-carina gj-travel admin/previews preview/erpsstadir preview/tjoruhusid preview/ektafiskur preview/kaffihornid preview/seakayak; do mkdir -p \"dist/$r\" && cp dist/index.html \"dist/$r/index.html\"; done",
     "lint": "eslint .",
     "preview": "vite preview"
   },

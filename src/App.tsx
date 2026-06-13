@@ -8,7 +8,14 @@ const DaeliFarm = lazy(() => import('./pages/DaeliFarm'))
 const Eldhestar = lazy(() => import('./pages/Eldhestar'))
 const GuesthouseCarina = lazy(() => import('./pages/GuesthouseCarina'))
 const GJTravel = lazy(() => import('./pages/GJTravel'))
-const Fimm = lazy(() => import('./pages/Fimm'))
+
+// Five independent redesign projects (new client engagements)
+const AdminPreviews = lazy(() => import('./preview/AdminPreviews'))
+const ErpsstadirPage = lazy(() => import('./preview/erpsstadir/Page'))
+const TjoruhusidPage = lazy(() => import('./preview/tjoruhusid/Page'))
+const EktafiskurPage = lazy(() => import('./preview/ektafiskur/Page'))
+const KaffiHornidPage = lazy(() => import('./preview/kaffihornid/Page'))
+const SeaKayakPage = lazy(() => import('./preview/seakayak/Page'))
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
@@ -42,7 +49,13 @@ export default function App() {
             <Route path="/eldhestar" element={<Eldhestar />} />
             <Route path="/guesthouse-carina" element={<GuesthouseCarina />} />
             <Route path="/gj-travel" element={<GJTravel />} />
-            <Route path="/fimm" element={<Fimm />} />
+            {/* Five independent redesign projects + internal dashboard */}
+            <Route path="/admin/previews" element={<AdminPreviews />} />
+            <Route path="/preview/erpsstadir" element={<ErpsstadirPage />} />
+            <Route path="/preview/tjoruhusid" element={<TjoruhusidPage />} />
+            <Route path="/preview/ektafiskur" element={<EktafiskurPage />} />
+            <Route path="/preview/kaffihornid" element={<KaffiHornidPage />} />
+            <Route path="/preview/seakayak" element={<SeaKayakPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

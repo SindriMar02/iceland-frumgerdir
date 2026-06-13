@@ -13,6 +13,25 @@ direction — these are **concept mockups for outreach**, not the businesses' re
 | `/guesthouse-carina` | [guesthousecarina.is](https://guesthousecarina.is) | Boutique basecamp · direct-booking focus |
 | `/gj-travel` | [gjtravel.is](https://gjtravel.is) | Legacy operator · Swiss-grid Nordic confidence |
 
+### Batch two — five independent redesign projects
+
+A second set, each treated as a **standalone client engagement** (its own creative direction,
+design system and `/preview/<company>` route). Reviewed internally from a private dashboard at
+`/admin/previews` (gated + noindexed; reach it from the gallery with `?tools`, or `/admin/previews?tools`).
+
+| Route | Business | Creative direction |
+| --- | --- | --- |
+| `/preview/erpsstadir` | [erpsstadir.is](https://erpsstadir.is) — creamery, Dalir | The Tasting Room · warm cream parlour |
+| `/preview/tjoruhusid` | [tjoruhusid.is](https://www.tjoruhusid.is) — seafood, Ísafjörður | The Catch & The Room · candlelit timber |
+| `/preview/ektafiskur` | [ektafiskur.is](https://www.ektafiskur.is) — saltfish, Hauganes | The Salt House · clean Nordic maritime |
+| `/preview/kaffihornid` | [kaffihornid.is](https://kaffihornid.is) — café, Höfn | The Warm Corner · cozy harbour café |
+| `/preview/seakayak` | [kajak.is](https://www.kajak.is) — sea kayak, Stokkseyri | Still Water · calm coastal, conversion-first |
+
+Each project's audit, positioning and personalized Icelandic outreach email live in
+`src/preview/companies.ts`; the per-page code lives in `src/preview/<slug>/`. The preview pages
+are public/owner-safe (send an owner their `/preview/<slug>` link); the back-to-dashboard chip and
+the outreach modal only appear in your own (gallery/`?tools`) session.
+
 **Stack:** React 18 · TypeScript · Tailwind CSS v4 · Framer Motion · Lucide icons · React Router.
 No backend. Images are Unsplash placeholder URLs with graceful gradient fallbacks.
 
