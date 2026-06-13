@@ -95,7 +95,7 @@ export default function GJTravel() {
           href="#book"
           className="hidden border border-gj-ink px-5 py-2.5 font-grotesk text-sm font-semibold transition-colors hover:bg-gj-ink hover:text-gj-paper md:inline-flex"
         >
-          Plot your route
+          Enquire
         </a>
       </header>
 
