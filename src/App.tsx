@@ -16,6 +16,7 @@ const TjoruhusidPage = lazy(() => import('./preview/tjoruhusid/Page'))
 const EktafiskurPage = lazy(() => import('./preview/ektafiskur/Page'))
 const KaffiHornidPage = lazy(() => import('./preview/kaffihornid/Page'))
 const SeaKayakPage = lazy(() => import('./preview/seakayak/Page'))
+const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="/preview/ektafiskur" element={<EktafiskurPage />} />
             <Route path="/preview/kaffihornid" element={<KaffiHornidPage />} />
             <Route path="/preview/seakayak" element={<SeaKayakPage />} />
+            <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
