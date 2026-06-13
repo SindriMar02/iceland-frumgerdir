@@ -1,17 +1,6 @@
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
-import {
-  ArrowRight,
-  Briefcase,
-  Bus,
-  Clock,
-  Leaf,
-  Map,
-  Phone,
-  ShieldCheck,
-  Star,
-  Users,
-} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { ArrowDown, ArrowRight, Phone } from 'lucide-react'
 import { getCompany } from '../data/companies'
 import { brandOffsetClass, setThemeColor } from '../lib/preview'
 import { Img } from '../components/Img'
@@ -19,385 +8,352 @@ import { Reveal } from '../components/Reveal'
 import { SendPreview } from '../components/SendPreview'
 import { StickyCta } from '../components/StickyCta'
 import { BackChip, ProtoFooter, WantRedesign } from '../components/Proto'
+import { SurveyChrome } from './gj/SurveyChrome'
+import { CrossingLedger } from './gj/CrossingLedger'
+import { RouteAtlas } from './gj/RouteAtlas'
+import { FleetRegister } from './gj/FleetRegister'
+import { LOGBOOK } from './gj/data'
 
 const company = getCompany('gj-travel')
 
-const TIMELINE = [
-  ['1929', 'Guðmundur Jónasson begins driving Iceland’s first mountain routes.'],
-  ['1950s', 'Pioneering glacier and highland crossings, years before the bridges came.'],
-  ['1970s', 'A full coach fleet takes travellers where ordinary buses cannot go.'],
-  ['1990s', 'Incoming agency for the world — groups, guides, multiple languages.'],
-  ['2010s', 'Greenland and the Faroe Islands join the map.'],
-  ['Today', 'Modern fleet, greener journeys, the same standards.'],
-]
+const PARTY = ['1–9', '10–24', '25–63'] as const
+const SEASON = ['Summer', 'Winter', 'Aurora'] as const
+const TERRITORY = ['Iceland', 'Iceland + Greenland'] as const
 
-const SERVICES = [
-  {
-    num: '01',
-    icon: Map,
-    title: 'Day tours',
-    desc: 'Golden Circle, south coast, northern lights — classic routes run with uncommon care.',
-  },
-  {
-    num: '02',
-    icon: Bus,
-    title: 'Grand journeys',
-    desc: 'Multi-day guided tours around the ring road, the Westfjords and beyond, summer and winter.',
-  },
-  {
-    num: '03',
-    icon: Users,
-    title: 'Private & groups',
-    desc: 'Tailored itineraries with your own guide and coach — in English, German, Spanish or Portuguese.',
-  },
-  {
-    num: '04',
-    icon: Briefcase,
-    title: 'Meetings & incentives',
-    desc: 'Conferences and corporate travel handled end to end — transfers, venues, contingencies.',
-  },
-]
-
-const TOURS = [
-  {
-    title: 'Golden Circle Classic',
-    meta: 'Day tour · from Reykjavík',
-    desc: 'Þingvellir, Geysir and Gullfoss with a guide who has driven this road a thousand times and still loves it.',
-    price: 'from 13.900 kr.',
-    img: 'https://images.unsplash.com/photo-1476610182048-b716b8518aae?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    title: 'Grand Tour of Iceland',
-    meta: '8 days · ring road',
-    desc: 'The whole country in one unhurried loop — glaciers, fjords, whale country and the geothermal north.',
-    price: 'from 349.000 kr.',
-    img: 'https://images.unsplash.com/photo-1500043357865-c6b8827edf10?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    title: 'Winter Lights & Ice',
-    meta: '5 days · Sep – Apr',
-    desc: 'Ice caves, frozen waterfalls and aurora hunting with drivers trained for Icelandic winters.',
-    price: 'from 215.000 kr.',
-    img: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=1200&auto=format&fit=crop',
-  },
-]
-
-const QUOTES = [
-  {
-    text: 'We brought 42 colleagues from three countries. Every transfer, every meal, every contingency was already handled before we thought to ask.',
-    name: 'Event organiser · corporate group, Germany',
-  },
-  {
-    text: 'Our driver-guide had been doing highland routes for 30 years. You cannot buy that kind of calm when a storm rolls in.',
-    name: 'Robert & Ellen · 8-day grand tour',
-  },
-  {
-    text: 'Booked late, changed dates twice, got a personal reply within the hour each time. Old-school service, modern speed.',
-    name: 'Priya S. · winter package',
-  },
-]
+function ChipGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string
+  options: readonly T[]
+  value: T
+  onChange: (v: T) => void
+}) {
+  return (
+    <div>
+      <p className="font-grotesk text-[11px] font-medium tracking-[0.22em] text-gj-lichen uppercase">{label}</p>
+      <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={label}>
+        {options.map((opt) => (
+          <button
+            key={opt}
+            aria-pressed={value === opt}
+            onClick={() => onChange(opt)}
+            className={`border px-4 py-2 font-grotesk text-sm transition-colors duration-200 focus-visible:outline-gj-ink ${
+              value === opt
+                ? 'border-gj-ink bg-gj-ink text-gj-paper'
+                : 'border-gj-ink/30 text-gj-ink/75 hover:border-gj-ink hover:text-gj-ink'
+            }`}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function GJTravel() {
+  const { scrollY } = useScroll()
+  const compassRotate = useTransform(scrollY, [0, 700], [0, 180])
+  const [party, setParty] = useState<(typeof PARTY)[number]>('10–24')
+  const [season, setSeason] = useState<(typeof SEASON)[number]>('Summer')
+  const [territory, setTerritory] = useState<(typeof TERRITORY)[number]>('Iceland')
+
   useEffect(() => {
     document.title = 'GJ Travel — Redesign Concept'
-    setThemeColor('#ffffff')
+    setThemeColor('#edf0ef')
   }, [])
 
+  const mailto = `mailto:gjtravel@gjtravel.is?subject=${encodeURIComponent(
+    `Route enquiry — ${party} travellers — ${season}`,
+  )}&body=${encodeURIComponent(`Party size: ${party}\nSeason: ${season}\nTerritory: ${territory}\nPreferred dates:\n`)}`
+
   return (
-    <div className="min-h-screen bg-white font-sans text-[#10243e]">
+    <div className="relative min-h-screen bg-gj-paper font-sans text-gj-ink">
       <BackChip />
       <SendPreview company={company} />
+      <SurveyChrome />
       <StickyCta
-        label="Iceland’s veteran tour operator"
-        button="Plan a trip"
+        label="GJ Travel · surveyed since 1931"
+        button="Plot your route"
         href="#book"
-        buttonClassName="bg-[#0b2545] text-white shadow-[#0b2545]/30"
+        buttonClassName="bg-gj-ink text-gj-paper shadow-gj-ink/25 focus-visible:outline-gj-ink"
+        barClassName="bg-gj-paper/90 text-gj-ink border-t border-gj-ink/15"
       />
 
-      {/* Top rule + nav */}
-      <div className="h-1.5 bg-[#0b2545]" />
-      <header className="mx-auto flex max-w-6xl items-center justify-between border-b border-slate-200 px-5 py-5 md:px-8">
+      {/* Nav */}
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-5 py-6 md:px-10">
         <div className={`${brandOffsetClass()} flex items-baseline gap-3`}>
-          <span className="text-lg font-extrabold tracking-tight">GJ TRAVEL</span>
-          <span className="hidden text-[11px] tracking-[0.22em] text-slate-500 uppercase md:inline">
-            Guðmundur Jónasson Travel · Iceland
+          <span className="font-grotesk text-lg font-bold tracking-[0.08em]">GJ TRAVEL</span>
+          <span className="hidden font-grotesk text-[10px] tracking-[0.26em] text-gj-lichen uppercase md:inline">
+            Guðmundur Jónasson Travel · est. 1931
           </span>
         </div>
         <a
           href="#book"
-          className="hidden rounded-full bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#163a66] md:inline-flex"
+          className="hidden border border-gj-ink px-5 py-2.5 font-grotesk text-sm font-semibold transition-colors hover:bg-gj-ink hover:text-gj-paper md:inline-flex"
         >
-          Plan a trip
+          Plot your route
         </a>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-5 pt-12 pb-20 md:px-8 md:pt-20 md:pb-28">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
+      {/* SHEET I — THE APPROACH */}
+      <section aria-labelledby="hero-h" className="relative px-5 pt-6 pb-20 md:px-10 md:pt-10 md:pb-28">
+        <div className="mx-auto grid max-w-6xl items-end gap-12 lg:grid-cols-12">
+          <div className="lg:col-span-7">
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.6 }}
-              className="flex items-center gap-4"
+              transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="font-grotesk text-[11px] font-medium tracking-[0.22em] text-gj-lichen uppercase"
             >
-              <span className="h-px w-10 bg-[#b08d57]" />
-              <p className="text-[11px] font-semibold tracking-[0.3em] text-[#8a6a3b] uppercase">
-                Iceland · Greenland · Faroe Islands
-              </p>
-            </motion.div>
+              Sheet I — The Approach · A survey of Iceland & Greenland
+            </motion.p>
             <motion.h1
-              initial={{ opacity: 0, y: 24 }}
+              id="hero-h"
+              initial={{ opacity: 0, y: 22 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.7 }}
-              className="mt-6 text-5xl leading-[1.02] font-extrabold tracking-tight text-balance md:text-6xl lg:text-7xl"
+              transition={{ delay: 0.25, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-5 font-survey text-[clamp(2.9rem,8.5vw,6.2rem)] leading-[0.98] text-balance"
             >
-              Iceland, organised <span className="text-[#b08d57]">properly.</span>
+              Ninety-five years of <em className="text-gj-cobalt italic">reading the land</em>
             </motion.h1>
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.7 }}
-              className="mt-6 max-w-md text-base leading-relaxed text-slate-600 md:text-lg"
+              transition={{ delay: 0.42, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-6 max-w-xl text-[15px] leading-relaxed text-gj-ink/70 md:text-lg"
             >
-              Day tours, grand journeys and group travel from the operator that has been on
-              Iceland’s roads since 1929 — with its own fleet and its own standards.
+              Escorted journeys across Iceland and Greenland by the country’s oldest tour operator —
+              plotted, provisioned and driven by people who learned the rivers before the bridges
+              came.
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.7 }}
-              className="mt-9 flex flex-col gap-3 sm:flex-row"
+              transition={{ delay: 0.58, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-9 flex flex-wrap items-center gap-5"
             >
               <a
-                href="#tours"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#0b2545] px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-[#0b2545]/20 transition-all hover:-translate-y-0.5 hover:bg-[#163a66]"
+                href="#book"
+                className="group inline-flex items-center gap-2 bg-gj-vermilion px-8 py-4 font-grotesk text-sm font-bold tracking-[0.06em] text-white uppercase transition-colors hover:bg-[color-mix(in_oklab,var(--color-gj-vermilion),black_12%)] focus-visible:outline-gj-ink"
               >
-                Explore tours
+                Plot your route
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
               <a
-                href="#book"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-8 py-4 text-sm font-semibold transition-colors hover:border-[#0b2545] hover:bg-slate-50"
+                href="#atlas"
+                className="inline-flex items-center gap-2 font-grotesk text-sm font-semibold text-gj-ink underline decoration-gj-cobalt decoration-2 underline-offset-4 transition-colors hover:text-gj-cobalt"
               >
-                Plan group travel
+                Open the atlas
+                <ArrowDown className="h-4 w-4" />
               </a>
             </motion.div>
             <motion.ul
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.7 }}
-              className="mt-9 flex flex-wrap gap-2"
+              className="mt-10 flex flex-wrap gap-x-6 gap-y-2 font-grotesk text-[10px] font-medium tracking-[0.22em] text-gj-lichen uppercase"
             >
-              {['IATA', 'USTOA', 'SAF', 'Safe Travel certified'].map((c) => (
-                <li
-                  key={c}
-                  className="rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[11px] font-semibold tracking-wide text-slate-500 uppercase"
-                >
+              {['Est. 1931', 'IATA', 'USTOA', 'SAF', 'Responsible Tourism Award 2025'].map((c) => (
+                <li key={c} className="flex items-center gap-2">
+                  <span aria-hidden className="h-1 w-1 bg-gj-cobalt" />
                   {c}
                 </li>
               ))}
             </motion.ul>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.35, duration: 0.8 }}
-            className="relative"
+          {/* Mounted survey plate */}
+          <motion.figure
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:col-span-5"
           >
-            <div className="overflow-hidden rounded-3xl">
-              <Img
-                src="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?q=80&w=1400&auto=format&fit=crop"
-                srcSet="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?q=80&w=828&auto=format&fit=crop 828w, https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?q=80&w=1400&auto=format&fit=crop 1400w"
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                alt="A snow-capped peak rising over open Icelandic moorland"
-                className="aspect-[4/5] w-full object-cover md:aspect-[3/2] lg:aspect-[5/6]"
-                loading="eager"
-                fetchpriority="high"
-                fallbackClassName="bg-gradient-to-br from-slate-300 via-slate-400 to-[#0b2545]"
-              />
-            </div>
-            <div className="absolute -bottom-5 -left-3 rounded-2xl border-l-4 border-[#b08d57] bg-white px-6 py-4 shadow-xl md:-left-8">
-              <p className="font-grotesk text-3xl font-bold text-[#0b2545]">97</p>
-              <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">
-                years on the road
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Timeline */}
-      <section className="bg-[#0b2545] py-24 text-white md:py-32">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <Reveal className="flex flex-wrap items-end justify-between gap-6">
-            <h2 className="text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
-              A century in the making
-            </h2>
-            <p className="inline-flex items-center gap-2 text-sm text-white/60">Scroll sideways<ArrowRight className="h-4 w-4" /></p>
-          </Reveal>
-        </div>
-        <div className="scrollbar-none mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-pl-5 px-5 pb-4 md:scroll-pl-[max(2rem,calc((100vw-72rem)/2+2rem))] md:px-[max(2rem,calc((100vw-72rem)/2+2rem))]">
-          {TIMELINE.map(([year, text]) => (
-            <article
-              key={year}
-              className="w-[78vw] max-w-[330px] shrink-0 snap-start rounded-2xl border border-white/10 bg-white/[0.05] p-7 transition-colors hover:border-[#b08d57]/60"
-            >
-              <p className="font-grotesk text-4xl font-bold text-[#d8b478]">{year}</p>
-              <div className="mt-4 h-px w-12 bg-[#b08d57]" />
-              <p className="mt-4 text-sm leading-relaxed text-white/75">{text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-        <Reveal>
-          <p className="text-[11px] font-semibold tracking-[0.3em] text-[#8a6a3b] uppercase">What we do</p>
-          <h2 className="mt-4 max-w-xl text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
-            Four ways to see the north
-          </h2>
-        </Reveal>
-        <div className="mt-14 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-          {SERVICES.map((s, i) => (
-            <Reveal key={s.num} delay={i * 0.08}>
-              <div className="group border-t-2 border-slate-200 pt-6 transition-colors hover:border-[#b08d57]">
-                <div className="flex items-center justify-between">
-                  <span className="font-grotesk text-sm font-bold text-slate-300 transition-colors group-hover:text-[#b08d57]">
-                    {s.num}
-                  </span>
-                  <s.icon className="h-5 w-5 text-[#0b2545]" />
-                </div>
-                <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-slate-600">{s.desc}</p>
+            <div className="border border-gj-ink/30 bg-gj-paper2 p-3">
+              <div className="flex items-center justify-between pb-2 font-grotesk text-[9px] tracking-[0.22em] text-gj-lichen uppercase tabular-nums">
+                <span>Plate 01 — The interior, morning fog</span>
+                <span>64°N</span>
               </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Stats / why */}
-      <section className="bg-slate-50 py-24 md:py-32">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <div className="grid items-center gap-14 lg:grid-cols-2">
-            <div>
-              <Reveal>
-                <p className="text-[11px] font-semibold tracking-[0.3em] text-[#8a6a3b] uppercase">Why GJ Travel</p>
-                <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
-                  Experience is the one thing you can’t improvise
-                </h2>
-                <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
-                  Weather turns, roads close, plans shift — and a company that has crossed unbridged
-                  glacier rivers simply does not panic. That calm is what you’re really booking.
-                </p>
-              </Reveal>
-              <Reveal delay={0.12}>
-                <ul className="mt-8 space-y-3.5 text-sm font-medium">
-                  {[
-                    { icon: Bus, label: 'Own fleet — 3-seaters to 63-seat coaches, highland 4x4s, one beloved antique bus' },
-                    { icon: ShieldCheck, label: 'Licensed, certified and insured to international standards' },
-                    { icon: Users, label: 'Guides in English, German, Spanish & Portuguese' },
-                    { icon: Leaf, label: 'Carbon offsetting through the Katla reforestation project' },
-                  ].map((item) => (
-                    <li key={item.label} className="flex items-start gap-3">
-                      <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-[#b08d57]" />
-                      {item.label}
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
+              <div className="overflow-hidden border border-gj-ink/20">
+                <Img
+                  src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1400&auto=format&fit=crop"
+                  srcSet="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=828&auto=format&fit=crop 828w, https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1400&auto=format&fit=crop 1400w"
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  alt="Fog drifting across layered Icelandic highland ridges"
+                  className="aspect-[4/5] w-full object-cover object-[50%_72%] saturate-[0.9] lg:aspect-[4/4.6]"
+                  loading="eager"
+                  fetchpriority="high"
+                  fallbackClassName="bg-gradient-to-b from-[#aebbb6] to-[#3c4a47]"
+                />
+              </div>
+              <figcaption className="flex items-center justify-between pt-2 font-grotesk text-[9px] tracking-[0.22em] text-gj-lichen uppercase">
+                <span>Surveyed continuously since 1931</span>
+                <span aria-hidden className="text-gj-cobalt">●</span>
+              </figcaption>
             </div>
-            <div className="grid grid-cols-2 gap-5">
-              {[
-                ['1929', 'year established'],
-                ['63', 'seats in the largest coach'],
-                ['3', 'countries served'],
-                ['4.9★', 'TripAdvisor rating'],
-              ].map(([big, small], i) => (
-                <Reveal key={small} delay={i * 0.07}>
-                  <div className="rounded-2xl border border-slate-200 bg-white p-7 text-center transition-colors duration-300 hover:border-[#b08d57]">
-                    <p className="font-grotesk text-4xl font-bold text-[#0b2545] md:text-5xl">{big}</p>
-                    <p className="mt-2 text-[11px] font-semibold tracking-[0.14em] text-slate-500 uppercase">{small}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
+          </motion.figure>
         </div>
+
+        {/* Compass scroll cue */}
+        <motion.div
+          aria-hidden
+          style={{ rotate: compassRotate }}
+          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 md:block"
+        >
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <circle cx="13" cy="13" r="12" stroke="var(--color-gj-ink)" strokeOpacity="0.3" />
+            <path d="M13 4 L16 14 H10 Z" fill="var(--color-gj-cobalt)" />
+            <path d="M13 22 L10 14 H16 Z" fill="none" stroke="var(--color-gj-ink)" strokeOpacity="0.4" />
+          </svg>
+        </motion.div>
       </section>
 
-      {/* Featured tours */}
-      <section id="tours" className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-        <Reveal className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.3em] text-[#8a6a3b] uppercase">Featured departures</p>
-            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-balance md:text-5xl">Start with the classics</h2>
-          </div>
-          <p className="max-w-xs text-sm leading-relaxed text-slate-500">
-            Fixed departures year-round, or any of them rebuilt privately for your group.
-          </p>
-        </Reveal>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {TOURS.map((t, i) => (
-            <Reveal key={t.title} delay={i * 0.08}>
-              <a
-                href="#book"
-                className="group block h-full overflow-hidden rounded-3xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
-              >
-                <div className="relative overflow-hidden">
-                  <Img
-                    src={t.img}
-                    alt={t.title}
-                    className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
-                    fallbackClassName="bg-gradient-to-br from-slate-300 to-[#0b2545]"
-                  />
-                  <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-[#0b2545]/85 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md">
-                    <Clock className="h-3 w-3 text-[#d8b478]" />
-                    {t.meta}
-                  </span>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold">{t.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{t.desc}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="font-grotesk text-sm font-bold text-[#0b2545]">{t.price}</span>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#8a6a3b] transition-all group-hover:gap-3">
-                      View tour <ArrowRight className="h-4 w-4" />
-                    </span>
-                  </div>
-                </div>
-              </a>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+      {/* SHEET II — heritage scrub */}
+      <CrossingLedger />
 
-      {/* Testimonials */}
-      <section className="bg-slate-50 py-24 md:py-32">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
+      {/* SHEET III — the atlas */}
+      <RouteAtlas />
+
+      {/* NIGHT PLATE — the one inverted breath */}
+      <section aria-label="Aurora interlude" className="relative overflow-hidden bg-gj-night py-36 md:py-48">
+        <Img
+          src="https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=2000&auto=format&fit=crop"
+          alt="Green aurora curling over the ice lagoon at night"
+          className="absolute inset-0 h-full w-full object-cover opacity-70"
+          fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#0c2b22] to-[#0e1314]"
+        />
+        <div aria-hidden className="absolute inset-6 border border-white/20" />
+        {/* centered scrim keeps caption legible over any aurora region */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_center,rgba(14,19,20,0.72),transparent_72%)]"
+        />
+        <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <Reveal>
-            <p className="text-center text-[11px] font-semibold tracking-[0.3em] text-[#8a6a3b] uppercase">
-              In their words
+            <p className="font-grotesk text-[10px] font-medium tracking-[0.3em] text-white/90 uppercase">
+              Night plate · aurora season Sep – Apr
             </p>
-            <h2 className="mt-4 text-center text-3xl font-extrabold tracking-tight text-balance md:text-5xl">
-              Trusted by travellers & planners
+            <p className="mt-6 font-survey text-4xl leading-tight text-white text-balance italic md:text-6xl">
+              Some roads are best read in the dark.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* SHEET IV — fleet register */}
+      <FleetRegister />
+
+      {/* SHEET V — THE CONTOUR OF CARE */}
+      <section id="care" aria-labelledby="care-h" className="relative overflow-hidden bg-gj-paper px-5 py-24 md:px-10 md:py-32">
+        <svg
+          aria-hidden
+          viewBox="0 0 1200 400"
+          preserveAspectRatio="xMidYMax slice"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-64 w-full opacity-[0.12]"
+        >
+          {[0, 1, 2, 3, 4].map((i) => (
+            <motion.path
+              key={i}
+              d={`M-20 ${360 - i * 42} C200 ${330 - i * 40} 420 ${390 - i * 46} 640 ${344 - i * 42} C860 ${300 - i * 38} 1040 ${360 - i * 44} 1220 ${320 - i * 40}`}
+              fill="none"
+              stroke="var(--color-gj-ink)"
+              strokeWidth="1.5"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 1.4, delay: i * 0.12, ease: [0.65, 0, 0.35, 1] }}
+            />
+          ))}
+        </svg>
+
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
+          <div>
+            <Reveal>
+              <p className="font-grotesk text-[11px] font-medium tracking-[0.22em] text-gj-lichen uppercase">
+                Sheet V — The Contour of Care
+              </p>
+              <h2 id="care-h" className="mt-3 font-survey text-4xl text-gj-ink text-balance md:text-6xl">
+                Tracks only in snow
+              </h2>
+              <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-gj-ink/70 md:text-base">
+                A company that has watched the same glaciers since 1931 takes their retreat
+                personally. Every departure is carbon-offset through the Katla reforestation
+                project; routes, group sizes and idle hours are engineered to leave the land as
+                surveyed.
+              </p>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <ul className="mt-8 space-y-3 border-t border-gj-ink/15 pt-6">
+                {[
+                  ['Katla project', 'Carbon offset on every departure, audited annually'],
+                  ['Fleet discipline', 'Modern engines, full loads, no idling policy'],
+                  ['Licensed & bonded', 'IATA · USTOA · SAF — legend marks of record'],
+                ].map(([term, detail]) => (
+                  <li key={term} className="flex gap-5 text-sm">
+                    <span className="w-32 shrink-0 font-grotesk text-xs font-medium tracking-[0.14em] text-gj-cobalt uppercase">
+                      {term}
+                    </span>
+                    <span className="text-gj-ink/75">{detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
+
+          {/* Award cartouche */}
+          <div className="flex justify-center lg:justify-end">
+            <motion.div
+              initial={{ opacity: 0, scale: 1.06, rotate: -1 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: -2 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+              className="border-2 border-gj-vermilion p-2"
+              role="img"
+              aria-label="Responsible Tourism Award 2025"
+            >
+              <div className="flex aspect-square w-64 flex-col items-center justify-center gap-3 border border-gj-vermilion px-6 text-center md:w-72">
+                <span aria-hidden className="font-survey text-4xl text-gj-vermilion">✳</span>
+                <p className="font-grotesk text-[11px] font-bold tracking-[0.3em] text-gj-vermilion-ink uppercase">
+                  Responsible
+                  <br />
+                  Tourism Award
+                </p>
+                <p className="font-survey text-6xl text-gj-vermilion tabular-nums">2025</p>
+                <p className="font-grotesk text-[9px] tracking-[0.22em] text-gj-vermilion-ink uppercase">
+                  Awarded · held with both hands
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* MARGIN NOTES — the logbook */}
+      <section aria-labelledby="log-h" className="bg-gj-paper2 px-5 py-24 md:px-10 md:py-32">
+        <div className="mx-auto max-w-6xl">
+          <Reveal>
+            <p className="font-grotesk text-[11px] font-medium tracking-[0.22em] text-gj-lichen uppercase">
+              Margin notes
+            </p>
+            <h2 id="log-h" className="mt-3 font-survey text-4xl text-gj-ink md:text-6xl">
+              From the field log
             </h2>
           </Reveal>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {QUOTES.map((q, i) => (
-              <Reveal key={q.name} delay={i * 0.1}>
-                <figure className="h-full rounded-3xl border border-slate-200 bg-white p-7">
-                  <div role="img" aria-label="Rated 5 out of 5" className="flex gap-1 text-[#b08d57]">
-                    {Array.from({ length: 5 }).map((_, s) => (
-                      <Star key={s} className="h-3.5 w-3.5 fill-current" />
-                    ))}
-                  </div>
-                  <blockquote className="mt-4 text-sm leading-relaxed text-slate-700">“{q.text}”</blockquote>
-                  <figcaption className="mt-4 text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                    {q.name}
+          <div className="mt-12 grid gap-10 md:grid-cols-3">
+            {LOGBOOK.map((entry, i) => (
+              <Reveal key={entry.stamp} delay={i * 0.1}>
+                <figure className="border-t-2 border-gj-ink pt-5">
+                  <figcaption className="font-grotesk text-[10px] font-medium tracking-[0.22em] text-gj-cobalt uppercase tabular-nums">
+                    {entry.stamp}
                   </figcaption>
+                  <blockquote className="mt-4 font-survey text-xl leading-snug text-gj-ink md:text-[1.35rem]">
+                    “{entry.quote}”
+                  </blockquote>
+                  <p className="mt-4 font-grotesk text-xs tracking-[0.14em] text-gj-lichen uppercase">{entry.name}</p>
                 </figure>
               </Reveal>
             ))}
@@ -405,72 +361,62 @@ export default function GJTravel() {
         </div>
       </section>
 
-      {/* Atmosphere */}
-      <section className="relative overflow-hidden py-32 md:py-44">
-        <Img
-          src="https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=2000&auto=format&fit=crop"
-          alt="Moss-covered river canyon in the Icelandic interior"
-          className="absolute inset-0 h-full w-full object-cover"
-          fallbackClassName="absolute inset-0 bg-gradient-to-br from-slate-500 via-[#1d3b5c] to-[#0b2545]"
-        />
-        <div className="absolute inset-0 bg-[#0b2545]/75" />
-        <div className="relative z-10 mx-auto max-w-4xl px-5 text-center text-white">
+      {/* SHEET VI — PLOT YOUR ROUTE */}
+      <section id="book" aria-labelledby="book-h" className="bg-gj-paper px-5 py-24 md:px-10 md:py-32">
+        <div className="mx-auto max-w-4xl">
           <Reveal>
-            <h2 className="text-3xl leading-tight font-extrabold tracking-tight text-balance md:text-6xl">
-              The highlands taught us everything.
+            <div className="flex items-center gap-3">
+              <span aria-hidden className="relative flex h-4 w-4 items-center justify-center">
+                <span className="absolute h-4 w-4 rounded-full border border-gj-vermilion" />
+                <span className="h-1.5 w-1.5 rounded-full bg-gj-vermilion" />
+              </span>
+              <p className="font-grotesk text-[11px] font-bold tracking-[0.3em] text-gj-vermilion-ink uppercase">
+                Sheet VI — You Are Here
+              </p>
+            </div>
+            <h2 id="book-h" className="mt-4 font-survey text-4xl text-gj-ink text-balance md:text-6xl">
+              Plot your route
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/85">
-              Before the bridges, before GPS, GJ drivers were crossing glacier rivers with
-              travellers aboard. Ninety-seven years later, that knowledge rides with every tour.
+            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-gj-ink/70 md:text-base">
+              Three marks and we draw the rest. A fast, personal reply has been the GJ trademark
+              since 1931.
             </p>
           </Reveal>
-        </div>
-      </section>
 
-      {/* Final CTA */}
-      <section id="book" className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-        <Reveal>
-          <div className="grid overflow-hidden rounded-[2.5rem] bg-[#0b2545] text-white md:grid-cols-2">
-            <div className="p-9 md:p-14">
-              <p className="text-[11px] font-semibold tracking-[0.3em] text-[#d8b478] uppercase">Start planning</p>
-              <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-balance md:text-4xl">
-                Plan with people who’ve seen it all
-              </h2>
-              <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
-                Tell us who’s travelling and when. A fast, personal reply has been the GJ trademark
-                since 1929.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Reveal delay={0.1}>
+            <div className="mt-10 space-y-7 border border-gj-ink/25 bg-gj-paper2 p-7 md:p-10">
+              <ChipGroup label="Party size" options={PARTY} value={party} onChange={setParty} />
+              <ChipGroup label="Season" options={SEASON} value={season} onChange={setSeason} />
+              <ChipGroup label="Territory" options={TERRITORY} value={territory} onChange={setTerritory} />
+
+              <div className="flex flex-col gap-3 border-t border-gj-ink/15 pt-7 sm:flex-row sm:items-center">
                 <a
-                  href="mailto:gjtravel@gjtravel.is?subject=Group%20proposal%20request&body=Group%20size%3A%0ADates%3A%0AInterests%3A"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#b08d57] px-8 py-4 text-sm font-semibold text-[#0b2545] transition-all hover:-translate-y-0.5 hover:bg-[#c9a86d]"
+                  href={mailto}
+                  className="group inline-flex items-center justify-center gap-2 bg-gj-vermilion px-8 py-4 font-grotesk text-sm font-bold tracking-[0.06em] text-white uppercase transition-colors hover:bg-[color-mix(in_oklab,var(--color-gj-vermilion),black_12%)] focus-visible:outline-gj-ink"
                 >
-                  Request a proposal
+                  Dispatch enquiry
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </a>
                 <a
                   href="tel:+3545205200"
-                  className="font-grotesk inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-4 text-sm font-semibold transition-colors hover:bg-white/10"
+                  className="inline-flex items-center justify-center gap-2 border border-gj-ink/30 px-8 py-4 font-grotesk text-sm font-semibold text-gj-ink transition-colors hover:border-gj-ink"
                 >
                   <Phone className="h-4 w-4" />
                   +354 520 5200
                 </a>
               </div>
+              <p className="font-grotesk text-[10px] tracking-[0.22em] text-gj-lichen uppercase">
+                Composes an email — nothing sent until you press send
+              </p>
             </div>
-            <div className="relative hidden md:block">
-              <Img
-                src="https://images.unsplash.com/photo-1483347756197-71ef80e95f73?q=80&w=1200&auto=format&fit=crop"
-                alt="Northern lights over Iceland"
-                className="absolute inset-0 h-full w-full object-cover"
-                fallbackClassName="absolute inset-0 bg-gradient-to-br from-emerald-900 to-[#0b2545]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0b2545] to-transparent" />
-            </div>
-          </div>
-        </Reveal>
+          </Reveal>
+        </div>
       </section>
 
-      <WantRedesign company={company} accentClassName="bg-[#0b2545] text-white hover:bg-[#163a66]" />
+      <WantRedesign
+        company={company}
+        accentClassName="bg-gj-vermilion text-white hover:bg-[color-mix(in_oklab,var(--color-gj-vermilion),black_12%)] focus-visible:outline-gj-ink"
+      />
       <ProtoFooter company={company} />
     </div>
   )

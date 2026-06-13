@@ -6,8 +6,23 @@
   --font-tall: "Cormorant Garamond", Georgia, serif;     /* Ice Tourism */
   --font-poster: "Anton", Impact, sans-serif;            /* Eldhestar */
   --font-editorial: "Playfair Display", Georgia, serif;  /* Guesthouse Carina */
+  --font-survey: "Instrument Serif", Georgia, serif;     /* GJ Travel — Landmæling */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* GJ Travel "Landmæling" survey-sheet system — paper, ink, one plotted line */
+  --color-gj-paper: #edf0ef;      /* glacier paper ground */
+  --color-gj-paper2: #e2e7e5;     /* fog paper, cards & tinted sheets */
+  --color-gj-ink: #14191b;        /* basalt ink — type & line work */
+  --color-gj-cobalt: #2547d0;     /* fjord cobalt — the Through-Line; line & text only */
+  --color-gj-vermilion: #c73e1d;  /* benchmark vermilion — ceremony, <2% coverage */
+  --color-gj-vermilion-ink: #a23217; /* darkened for small caps — AA (~6:1) on paper */
+  --color-gj-lichen: #5b6663;     /* graticule labels & captions — AA on paper */
+  --color-gj-night: #0e1314;      /* the Night Plate ground */
+
+  /* Motion tokens — lines draw, plates settle, numbers roll */
+  --ease-plotter: cubic-bezier(0.65, 0, 0.35, 1);  /* mechanical line drawing */
+  --ease-plate: cubic-bezier(0.22, 1, 0.36, 1);    /* photo plates & entrances */
 }
 
 html {
@@ -21,10 +36,14 @@ body {
 }
 
 /* Visible-but-quiet keyboard focus that adapts to each brand's ink color.
-   Zero-specificity so pages can override with focus-visible: utilities. */
-:where(a, button, input, textarea, [tabindex]):focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
+   In @layer base so per-element `focus-visible:outline-*` utilities (which
+   live in @layer utilities) can override the colour where currentColor would
+   be invisible — e.g. white text on a filled button over a light page. */
+@layer base {
+  :where(a, button, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
 }
 
 /* Hide scrollbars on horizontal snap rails while keeping them scrollable */

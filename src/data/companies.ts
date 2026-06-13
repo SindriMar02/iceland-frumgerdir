@@ -92,12 +92,12 @@ export const companies: Company[] = [
     name: 'GJ Travel',
     location: 'Kópavogur',
     currentUrl: 'https://gjtravel.is',
-    concept: 'Ninety Years North',
-    mood: 'Professional · Nordic · polished',
+    concept: 'Landmæling — The Living Survey',
+    mood: 'Precise · archival · arctic',
     cardImage:
       'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?q=80&w=1200&auto=format&fit=crop',
     cardDescription:
-      'Nine decades of Icelandic touring, redesigned with Swiss-grid confidence — a legacy operator that finally looks like one.',
+      'Iceland’s oldest tour operator as one continuous survey sheet — a scrubbed 1931→2026 ledger, a plotted route atlas, and a fleet drawn in blueprint ink.',
     preview: {
       previewUrlPlaceholder: 'https://sindrimar02.github.io/iceland-frumgerdir/gj-travel',
     },
