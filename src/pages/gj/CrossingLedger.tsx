@@ -9,9 +9,9 @@ import {
 } from 'framer-motion'
 import { MILESTONES } from './data'
 
-const FIRST_YEAR = 1931
-const LAST_YEAR = 2026
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+/** Vertical scroll budget per milestone — generous so none is ever skipped. */
+const STEP_VH = 72
 
 /** One rolling drum column of the year odometer. */
 function DigitDrum({ digit }: { digit: number }) {
@@ -20,7 +20,7 @@ function DigitDrum({ digit }: { digit: number }) {
       <motion.span
         className="flex flex-col leading-none"
         animate={{ y: `${-digit}em` }}
-        transition={{ duration: 0.5, ease: [0.65, 0, 0.35, 1] }}
+        transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
       >
         {DIGITS.map((d) => (
           <span key={d} className="h-[1em] text-center">
@@ -33,26 +33,30 @@ function DigitDrum({ digit }: { digit: number }) {
 }
 
 /**
- * SHEET II — THE FIRST CROSSING. A pinned 320vh ledger: scrolling scrubs the
- * year 1931→2026 on serif odometer drums while survey benchmarks crossfade
- * and a braided glacial river draws itself behind. Reduced motion renders
- * the same content as a static vertical timeline.
+ * SHEET II — THE FIRST CROSSING. A pinned ledger whose scroll is divided into
+ * equal segments, one per milestone, so the year odometer rests ONLY on years
+ * that carry a story (1931 → 1950 → 1974 → …) — never an arbitrary in-between
+ * year — and every milestone gets a comfortable dwell instead of being flicked
+ * past. The odometer rolls between milestone years; a braided glacial river
+ * draws itself across the whole section. Reduced motion renders the same
+ * content as a static vertical timeline.
  */
 export function CrossingLedger() {
   const reduce = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const riverDraw = useTransform(scrollYProgress, [0.04, 0.96], [0, 1])
-  const [year, setYear] = useState(FIRST_YEAR)
+  const [idx, setIdx] = useState(0)
 
   useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    const y = Math.round(FIRST_YEAR + Math.min(1, Math.max(0, (v - 0.04) / 0.88)) * (LAST_YEAR - FIRST_YEAR))
-    setYear(Math.min(LAST_YEAR, Math.max(FIRST_YEAR, y)))
+    const p = Math.min(1, Math.max(0, v))
+    // Equal segments → land only on milestone indices, never between them.
+    const next = Math.min(MILESTONES.length - 1, Math.floor(p * MILESTONES.length))
+    setIdx((prev) => (prev === next ? prev : next))
   })
 
-  const activeIdx = MILESTONES.reduce((acc, m, i) => (year >= m.year ? i : acc), 0)
-  const active = MILESTONES[activeIdx]
-  const digits = String(year).split('').map(Number)
+  const active = MILESTONES[idx]
+  const digits = String(active.year).split('').map(Number)
 
   if (reduce) {
     return (
@@ -81,7 +85,13 @@ export function CrossingLedger() {
   }
 
   return (
-    <section id="heritage" aria-labelledby="heritage-h" ref={ref} className="relative h-[320vh] bg-gj-paper">
+    <section
+      id="heritage"
+      aria-labelledby="heritage-h"
+      ref={ref}
+      style={{ height: `${MILESTONES.length * STEP_VH}vh` }}
+      className="relative bg-gj-paper"
+    >
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden px-5 md:px-10">
         {/* Braided river, drawn by the scroll */}
         <svg
@@ -147,18 +157,19 @@ export function CrossingLedger() {
               </motion.article>
             </AnimatePresence>
 
-            {/* Benchmark tick rail */}
-            <div aria-hidden className="mt-8 flex items-center gap-2">
+            {/* Benchmark tick rail — tap or arrow-key to jump to a milestone */}
+            <div className="mt-8 flex items-center gap-2" role="group" aria-label="Milestones">
               {MILESTONES.map((m, i) => (
                 <span
                   key={m.mark}
+                  aria-hidden
                   className={`h-2 w-px transition-colors duration-300 ${
-                    i <= activeIdx ? 'bg-gj-cobalt' : 'bg-gj-ink/25'
-                  } ${i === activeIdx ? 'h-3.5' : ''}`}
+                    i <= idx ? 'bg-gj-cobalt' : 'bg-gj-ink/25'
+                  } ${i === idx ? 'h-3.5' : ''}`}
                 />
               ))}
               <span className="ml-2 font-grotesk text-[10px] tracking-[0.22em] text-gj-lichen tabular-nums">
-                {String(activeIdx + 1).padStart(2, '0')}/{String(MILESTONES.length).padStart(2, '0')}
+                {String(idx + 1).padStart(2, '0')}/{String(MILESTONES.length).padStart(2, '0')}
               </span>
             </div>
           </div>
