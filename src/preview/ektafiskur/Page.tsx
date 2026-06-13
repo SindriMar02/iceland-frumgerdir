@@ -105,7 +105,7 @@ export default function Page() {
 
             <Reveal delay={0.08}>
               <h1 className="mt-6 max-w-3xl font-display text-[clamp(2rem,9vw,2.6rem)] leading-[0.98] font-semibold tracking-tight text-white sm:text-6xl md:text-7xl">
-                Saltaður með höndum
+                Handsaltaður
                 <span className="block text-[#e7d5ab]">síðan 1940.</span>
               </h1>
             </Reveal>
@@ -113,7 +113,7 @@ export default function Page() {
             <Reveal delay={0.16}>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
                 Hand-salted Icelandic cod from a tiny northern village. Eighty-five
-                years of bacalao, harðfiskur and provenance you can taste — now in a
+                years of saltfiskur, bacalao and provenance you can taste — now in a
                 webshop that finally works.
               </p>
             </Reveal>
@@ -207,30 +207,23 @@ export default function Page() {
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {PRODUCTS.map((p, i) => (
                 <Reveal key={p.id} delay={i * 0.06}>
-                  <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#15212a]/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#15212a]/10">
-                    <div className="relative aspect-[4/5] overflow-hidden">
-                      <Img
-                        src={p.img}
-                        alt={p.alt}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        fallbackClassName="bg-gradient-to-br from-[#1f5673] to-[#15212a]"
-                      />
-                      <span className="absolute top-3 left-3 rounded-full bg-white/90 px-2.5 py-1 font-grotesk text-[10px] font-semibold tracking-[0.14em] text-[#1f5673] uppercase backdrop-blur-sm">
-                        {p.is}
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col p-5">
-                      <h3 className="font-grotesk text-lg font-bold tracking-tight text-[#15212a]">
+                  <article className="group flex h-full flex-col rounded-2xl border border-[#15212a]/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#15212a]/10">
+                    <div className="border-b border-[#15212a]/10 bg-[#eef2f3] px-5 py-5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-grotesk text-[10px] font-semibold tracking-[0.18em] text-[#1f5673] uppercase">
+                          {p.is}
+                        </span>
+                        <span aria-hidden className="h-px w-8 bg-[#b3924f]" />
+                      </div>
+                      <h3 className="mt-3 font-display text-xl font-semibold tracking-tight text-[#15212a]">
                         {p.name}
                       </h3>
-                      <p className="mt-2 flex-1 text-sm leading-relaxed text-[#15212a]/65">
-                        {p.blurb}
-                      </p>
+                    </div>
+                    <div className="flex flex-1 flex-col p-5">
+                      <p className="flex-1 text-sm leading-relaxed text-[#15212a]/70">{p.blurb}</p>
                       <div className="mt-4 flex items-center justify-between border-t border-[#15212a]/10 pt-4">
                         <div>
-                          <p className="font-grotesk text-base font-bold text-[#15212a]">
-                            {p.price}
-                          </p>
+                          <p className="font-grotesk text-base font-bold text-[#15212a]">{p.price}</p>
                           <p className="mt-0.5 text-[11px] text-[#15212a]/65">{p.weight}</p>
                         </div>
                         <span className="flex items-center gap-1 font-grotesk text-[10px] font-semibold tracking-[0.1em] text-[#8a6d2f] uppercase">

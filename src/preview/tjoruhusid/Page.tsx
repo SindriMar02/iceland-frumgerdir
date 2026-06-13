@@ -553,7 +553,7 @@ export default function Page() {
             </Reveal>
             <Reveal delay={0.08}>
               <p lang="is" className="mt-6 font-tall text-2xl text-[#d98a3d] italic md:text-3xl">
-                Komdu áður en pönnurnar koma af hellunni
+                Komdu meðan pönnurnar eru heitar
               </p>
             </Reveal>
             <Reveal delay={0.16}>

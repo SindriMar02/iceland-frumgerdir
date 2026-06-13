@@ -97,7 +97,7 @@ export default function Page() {
               <h1 className="mt-5 max-w-3xl font-display text-[2.6rem] leading-[1.02] font-semibold text-[#fbf6ec] md:text-7xl">
                 Beint úr fjósinu,
                 <br />
-                <span className="text-[#e0a43a]">í brauðformið þitt.</span>
+                <span className="text-[#e0a43a]">í ísinn þinn.</span>
               </h1>
             </Reveal>
             <Reveal delay={0.16}>
@@ -133,7 +133,7 @@ export default function Page() {
             <Reveal>
               <div>
                 <p className="flex items-center gap-2 font-mono text-xs font-medium tracking-[0.2em] uppercase" style={{ color: BERRY_TEXT }}>
-                  <ScoopMark /> Í dag á búðinni
+                  <ScoopMark /> Í dag í búðinni
                 </p>
                 <h2 className="mt-3 font-display text-4xl font-semibold md:text-5xl">What’s churning today</h2>
               </div>
@@ -220,7 +220,7 @@ export default function Page() {
             <div className="px-5 py-20 md:px-12 md:py-28 lg:px-16">
               <Reveal>
                 <p className="flex items-center gap-2 font-mono text-xs font-medium tracking-[0.2em] text-[#e0a43a] uppercase">
-                  <ScoopMark /> Frá kú til könnu
+                  <ScoopMark /> Frá kúnum okkar
                 </p>
                 <h2 className="mt-3 font-display text-4xl font-semibold md:text-5xl">From cow to cone</h2>
               </Reveal>

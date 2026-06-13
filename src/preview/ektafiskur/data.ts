@@ -44,25 +44,25 @@ export const PRODUCTS: Product[] = [
     ships: 'We export worldwide',
   },
   {
-    id: 'hardfiskur',
-    name: 'Harðfiskur',
-    is: 'Dried fish',
-    blurb: 'Wind-dried in the clean northern air. Iceland’s oldest snack — pull a piece, add a knife-tip of butter.',
-    weight: '120 g · pouch',
-    price: '1.890 kr.',
+    id: 'utvatnadur',
+    name: 'Útvatnaður saltfiskur',
+    is: 'Ready to cook',
+    blurb: 'The classic cure, already soaked and rinsed for you — straight into the pan or the pot, no overnight wait.',
+    weight: '600 g · desalted fillet',
+    price: '2.890 kr.',
     img: `${IMG}photo-1510130387422-82bed34b37e9${Q_CARD}`,
-    alt: 'Fresh fish resting on weathered wood, ready for drying',
+    alt: '',
     ships: 'Ships within Iceland',
   },
   {
     id: 'gjafakassi',
     name: 'Gjafakassi',
     is: 'The gift box',
-    blurb: 'Saltfiskur, bacalao and harðfiskur in a stamped wooden crate — the whole Salt House, boxed.',
+    blurb: 'Saltfiskur, bacalao and útvatnaður saltfiskur in a stamped wooden crate — the whole Salt House, boxed.',
     weight: 'Curated · 3 items',
     price: '7.490 kr.',
     img: `${IMG}photo-1580476262798-bddd9f4b7369${Q_CARD}`,
-    alt: 'Plated cooked white fish with garnish on a ceramic dish',
+    alt: '',
     ships: 'We export worldwide',
   },
 ]
@@ -75,7 +75,7 @@ export interface Mark {
 
 export const MARKS: Mark[] = [
   { k: '1940', label: 'Síðan', detail: 'Founded in Hauganes, hand-salting cod for eighty-five years.' },
-  { k: '100%', label: 'Hand-salted', detail: 'No shortcuts, no machines — cured by hand, batch by batch.' },
+  { k: '100%', label: 'Fiskur', detail: 'No ice glaze, no machines — just fish, hand-salted batch by batch.' },
   { k: '65°N', label: 'North Atlantic', detail: 'Wild cod from the cold, clean waters off the north coast.' },
 ]
 
@@ -86,7 +86,7 @@ export interface ShopStep {
 }
 
 export const SHOP_STEPS: ShopStep[] = [
-  { n: '01', title: 'Choose your cure', body: 'Saltfiskur, bacalao, harðfiskur or the full gift box — all in one clean shop.' },
+  { n: '01', title: 'Choose your cure', body: 'Saltfiskur, bacalao, útvatnaður or the full gift box — all in one clean shop.' },
   { n: '02', title: 'Pay in two clicks', body: 'A modern, bilingual checkout. No accounts, no friction, no faxes.' },
   { n: '03', title: 'We pack & ship', body: 'Vacuum-sealed and stamped. Within Iceland, or exported to your door.' },
 ]

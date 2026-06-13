@@ -174,7 +174,7 @@ export default function Page() {
             Stokkseyri · South Iceland · since 1995
           </motion.p>
 
-          <h1 className="mt-5 max-w-3xl font-grotesk text-[12vw] leading-[0.95] font-semibold tracking-tight text-balance sm:text-6xl md:text-7xl lg:text-[5.5rem]">
+          <h1 className="mt-5 max-w-3xl font-grotesk text-[12vw] leading-[1.06] font-semibold tracking-tight text-balance sm:text-6xl md:text-7xl lg:text-[5.5rem]">
             <motion.span
               lang="is"
               initial={{ opacity: 0, y: 30 }}
@@ -189,7 +189,7 @@ export default function Page() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.42, duration: 0.75 }}
-              className="block bg-gradient-to-r from-[#5fd0e6] to-[#2aa7c4] bg-clip-text text-transparent forced-colors:text-[#5fd0e6] forced-colors:[-webkit-text-fill-color:currentColor]"
+              className="block bg-gradient-to-r from-[#5fd0e6] to-[#2aa7c4] bg-clip-text pb-[0.12em] text-transparent forced-colors:text-[#5fd0e6] forced-colors:[-webkit-text-fill-color:currentColor]"
             >
               þrjátíu ár.
             </motion.span>

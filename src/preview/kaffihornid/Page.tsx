@@ -185,7 +185,7 @@ export default function Page() {
                   className="block"
                   lang="is"
                 >
-                  Hornið hans
+                  Hornið á Höfn
                 </motion.span>
                 <motion.span
                   initial={{ opacity: 0, y: 24 }}
@@ -194,7 +194,7 @@ export default function Page() {
                   className="block text-[#c5612f]"
                   lang="is"
                 >
-                  Hafnar síðan 1999
+                  síðan 1999
                 </motion.span>
               </h1>
 
@@ -249,7 +249,7 @@ export default function Page() {
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-[#6fa3b0]" aria-hidden="true" />
-                  Hafnarbraut 11
+                  Hafnarbraut 42
                 </span>
               </motion.div>
             </div>
@@ -564,7 +564,7 @@ export default function Page() {
                 </dl>
                 <p className="mt-5 flex items-start gap-2 rounded-2xl bg-[#fff7ec] px-4 py-3 text-xs leading-relaxed text-[#6f6055]">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#6fa3b0]" aria-hidden="true" />
-                  Hafnarbraut 11, 780 Höfn í Hornafirði — by the harbour, under the glacier.
+                  Hafnarbraut 42, 780 Höfn í Hornafirði — by the harbour, under the glacier.
                 </p>
               </div>
             </Reveal>
