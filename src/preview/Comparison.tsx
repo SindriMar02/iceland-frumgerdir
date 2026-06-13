@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowDown, ArrowUpRight, ExternalLink, Monitor, Smartphone } from 'lucide-react'
 import { Reveal } from '../components/Reveal'
@@ -23,7 +23,8 @@ interface CmpItem {
   route: string
   currentUrl: string
   /** whether to attempt a live iframe of the original (else a respectful card) */
-  beforeMode: 'iframe' | 'card'
+  /** screenshot filename in public/before/<slug>.jpg */
+  slug: string
   improved: string
   accent: string
 }
@@ -34,7 +35,7 @@ const ITEMS: CmpItem[] = [
     industry: 'Veitingahús',
     route: 'preview/tjoruhusid',
     currentUrl: 'https://www.tjoruhusid.is',
-    beforeMode: 'iframe',
+    slug: 'tjoruhusid',
     improved:
       'Sterkari fyrsta sýn, skýrari framsetning á matnum og hlaðborðinu, og einfaldari leið til að bóka borð — allt í betri upplifun í síma.',
     accent: '#d98a3d',
@@ -44,7 +45,7 @@ const ITEMS: CmpItem[] = [
     industry: 'Matvælaframleiðsla',
     route: 'preview/erpsstadir',
     currentUrl: 'https://erpsstadir.is',
-    beforeMode: 'card',
+    slug: 'erpsstadir',
     improved:
       'Skýrari upplýsingar um opnunartíma og vörur, sterkari fyrsta sýn og betri framsetning á sögunni á bak við ísinn.',
     accent: '#e0a43a',
@@ -54,7 +55,7 @@ const ITEMS: CmpItem[] = [
     industry: 'Ferðaþjónusta',
     route: 'gj-travel',
     currentUrl: 'https://gjtravel.is',
-    beforeMode: 'iframe',
+    slug: 'gjtravel',
     improved:
       'Sterkari fyrsta sýn, betri framsetning á níutíu ára sögu fyrirtækisins og einfaldari leið fyrir hópa að senda fyrirspurn.',
     accent: '#c73e1d',
@@ -64,7 +65,7 @@ const ITEMS: CmpItem[] = [
     industry: 'Upplifun',
     route: 'eldhestar',
     currentUrl: 'https://eldhestar.is',
-    beforeMode: 'card',
+    slug: 'eldhestar',
     improved:
       'Betri framsetning á upplifuninni sjálfri, sterkari fyrsta sýn og einfaldari bókunarleið beint á forsíðunni.',
     accent: '#e2502a',
@@ -74,7 +75,7 @@ const ITEMS: CmpItem[] = [
     industry: 'Gisting',
     route: 'guesthouse-carina',
     currentUrl: 'https://guesthousecarina.is',
-    beforeMode: 'iframe',
+    slug: 'guesthousecarina',
     improved:
       'Hlýrri og persónulegri framsetning, betri upplifun í síma og einfaldari leið fyrir gesti að bóka beint.',
     accent: '#1f4e5b',
@@ -141,26 +142,18 @@ function AfterFrame({ item, device }: { item: CmpItem; device: Device }) {
   )
 }
 
-/** "Fyrir" — live original where framing is allowed, else a respectful card. */
+/**
+ * "Fyrir" — a self-hosted screenshot of the live original site (reliable on
+ * every site, including those that block iframing). Falls back to a respectful
+ * card only if the image itself fails to load.
+ */
 function BeforeFrame({ item, device }: { item: CmpItem; device: Device }) {
   const dom = domainOf(item.currentUrl)
-  const [status, setStatus] = useState<'loading' | 'ok' | 'fail'>(
-    item.beforeMode === 'iframe' ? 'loading' : 'fail',
-  )
-  const timer = useRef<number>()
-
-  useEffect(() => {
-    if (item.beforeMode !== 'iframe') return
-    setStatus('loading')
-    timer.current = window.setTimeout(() => setStatus((s) => (s === 'ok' ? s : 'fail')), 4500)
-    return () => window.clearTimeout(timer.current)
-  }, [item.beforeMode, item.currentUrl])
-
-  const showCard = status === 'fail'
+  const [failed, setFailed] = useState(false)
 
   return (
     <FrameChrome label="Núverandi vefur" url={dom} device={device}>
-      {showCard ? (
+      {failed ? (
         <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
           <span className="font-mono text-xs tracking-[0.2em] text-slate-400 uppercase">Núverandi vefur</span>
           <p className="font-grotesk text-xl font-semibold text-slate-700">{dom}</p>
@@ -178,23 +171,35 @@ function BeforeFrame({ item, device }: { item: CmpItem; device: Device }) {
           </a>
         </div>
       ) : (
-        <>
-          {status === 'loading' && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-50">
-              <span className="font-mono text-xs tracking-[0.2em] text-slate-400 uppercase">Hleð inn…</span>
-            </div>
-          )}
-          <iframe
-            src={item.currentUrl}
-            title={`Núverandi vefur — ${item.name}`}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            onLoad={() => setStatus('ok')}
-            className="h-full w-full border-0 bg-white"
-          />
-        </>
+        <img
+          src={`${BASE}before/${item.slug}.jpg`}
+          alt={`Skjáskot af núverandi vef ${item.name}`}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-cover object-top"
+        />
       )}
     </FrameChrome>
+  )
+}
+
+/** A clear "open in a new tab" button shown under each preview pane. */
+function OpenButton({ href, label, accent }: { href: string; label: string; accent?: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      style={accent ? { backgroundColor: accent } : undefined}
+      className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all hover:-translate-y-0.5 ${
+        accent
+          ? 'text-white'
+          : 'border border-slate-300 text-slate-700 hover:border-slate-900 hover:text-slate-900'
+      }`}
+    >
+      {label}
+      <ExternalLink className="h-3.5 w-3.5" />
+    </a>
   )
 }
 
@@ -307,40 +312,30 @@ export default function Comparison() {
             <Reveal key={item.route} delay={i * 0.04}>
               <article className="scroll-mt-32">
                 {/* Heading */}
-                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <span
-                      className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.14em] uppercase"
-                      style={{ backgroundColor: `${item.accent}1a`, color: item.accent }}
-                    >
-                      {item.industry}
-                    </span>
-                    <h2 className="mt-3 font-grotesk text-3xl font-bold tracking-tight md:text-4xl">{item.name}</h2>
-                    <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-600">{item.improved}</p>
-                  </div>
-                  <a
-                    href={`${BASE}${item.route}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group inline-flex shrink-0 items-center gap-2 self-start rounded-full px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 md:self-auto"
-                    style={{ backgroundColor: item.accent }}
+                <div>
+                  <span
+                    className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.14em] uppercase"
+                    style={{ backgroundColor: `${item.accent}1a`, color: item.accent }}
                   >
-                    Opna frumgerð
-                    <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
+                    {item.industry}
+                  </span>
+                  <h2 className="mt-3 font-grotesk text-3xl font-bold tracking-tight md:text-4xl">{item.name}</h2>
+                  <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-600">{item.improved}</p>
                 </div>
 
                 {/* Fyrir / Eftir */}
-                <div className="mt-7 grid items-stretch gap-5 lg:grid-cols-2 lg:gap-6">
-                  <div className="relative">
+                <div className="mt-7 grid items-start gap-5 lg:grid-cols-2 lg:gap-6">
+                  <div className="flex flex-col">
                     <span className="mb-2 inline-block font-grotesk text-sm font-bold text-slate-400">Fyrir</span>
                     <BeforeFrame item={item} device={device} />
+                    <OpenButton href={item.currentUrl} label="Opna núverandi vef" />
                   </div>
-                  <div className="relative">
+                  <div className="flex flex-col">
                     <span className="mb-2 inline-flex items-center gap-1.5 font-grotesk text-sm font-bold" style={{ color: item.accent }}>
                       Eftir
                     </span>
                     <AfterFrame item={item} device={device} />
+                    <OpenButton href={`${BASE}${item.route}`} label="Opna frumgerð" accent={item.accent} />
                   </div>
                 </div>
               </article>
