@@ -81,19 +81,21 @@ export const PREVIEW_COMPANIES: PreviewCompany[] = [
     positioning:
       'Iceland’s most characterful small-batch creamery — the reason to pull off Route 60. The site should make the product mouth-watering and the visit effortless.',
     outreach: {
-      subject: 'Rjómabúið Erpsstaðir — frumgerð að nýrri vefsíðu',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Rjómabúið Erpsstaðir',
       body: `Góðan dag,
 
-Sindri heiti ég og hanna vefsíður fyrir íslensk matvæla- og ferðaþjónustufyrirtæki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu og matvælaframleiðslu.
 
-Ég er mikill aðdáandi þess sem þið gerið á Erpsstöðum — ekta býli, alvöru ís og „Kjaftæði“ sem fólk keyrir út af leiðinni fyrir. Það eina sem vantar er vefur sem gerir vörunni og staðnum sömu skil; eins og er er aðeins stutt myndbandsforsíða og engar upplýsingar um opnun, verð eða hvað er í boði hverju sinni.
+Ég er mikill aðdáandi þess sem þið gerið á Erpsstöðum. Ekta býli, alvöru ís og Kjaftæðið sem fólk keyrir út af leiðinni fyrir. Það eina sem mig vantaði að sjá var vefsíða sem stendur undir vörunni, því eins og staðan er í dag er aðeins stutt myndbandsforsíða og engar upplýsingar um opnunartíma, verð eða hvað er í boði hverju sinni.
 
-Ég tók mig því til og hannaði frumgerð að nýrri forsíðu — ykkur að kostnaðarlausu og án skuldbindingar.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hún er hér og virkar vel í síma:
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld: að ferðafólk finni ykkur, viti hvenær er opið og fái vatn í munninn áður en það kemur. Ef ykkur líst vel á gæti ég klárað vefinn í heild. Ef ekki, vona ég samt að þetta veiti smá innblástur.
+Hugmyndin er einföld. Að ferðafólk finni ykkur, viti hvenær er opið og fái vatn í munninn áður en það kemur við. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
 
 ${SIGN}`,
     },
@@ -134,19 +136,19 @@ ${SIGN}`,
     positioning:
       'Not a restaurant you find — one you make a pilgrimage to. The site should feel like stepping into the candlelit room, and make booking the only thing left to do.',
     outreach: {
-      subject: 'Tjöruhúsið — frumgerð að nýrri vefsíðu',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Tjöruhúsið',
       body: `Góðan dag,
 
-Sindri heiti ég og hanna vefsíður fyrir íslensk veitinga- og ferðaþjónustufyrirtæki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús og ferðaþjónustu.
 
-Ég verð að viðurkenna að ég er hrifinn af Tjöruhúsinu — andrúmsloftið í gamla húsinu og fiskhlaðborðið eru í sérflokki, og umsagnirnar tala sínu máli. Núverandi vefsíða nær hins vegar ekki að miðla neinu af þessu; hún er bara ein textasíða. Ég skil vel að markaðssetning sé ekki ástríða ykkar — þess vegna gerði ég þetta sjálfur.
+Ég verð að viðurkenna að ég er mikill aðdáandi Tjöruhússins. Stemningin í gamla húsinu og fiskhlaðborðið eru í sérflokki, og umsagnirnar tala sínu máli. Núverandi vefsíða nær hins vegar engan veginn að fanga þetta, enda er hún bara ein textasíða. Ég skil vel að markaðssetning sé ekki það sem brennur á ykkur, og þess vegna ákvað ég að gera þetta sjálfur.
 
-Ég hannaði frumgerð að nýrri forsíðu, ykkur að kostnaðarlausu og án nokkurrar skuldbindingar.
+Ég hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hún er hér og virkar vel í síma:
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Markmiðið er að gestir finni stemninguna áður en þeir koma — og eigi auðvelt með að bóka borð. Ef ykkur líst vel væri gaman að heyra í ykkur. Ef ekki er það að sjálfsögðu allt í lagi.
+Markmiðið er að gestir finni stemninguna áður en þeir koma, og eigi auðvelt með að bóka borð. Ef ykkur líst vel á þetta væri gaman að heyra í ykkur, en annars er það að sjálfsögðu allt í lagi.
 
 ${SIGN}`,
     },
@@ -187,19 +189,19 @@ ${SIGN}`,
     positioning:
       'A heritage Icelandic seafood house, not a fish stall — provenance, craft and export. The site should look as considered as the product and sell in two clicks.',
     outreach: {
-      subject: 'Ektafiskur — frumgerð að nýrri vefsíðu',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Ektafisk',
       body: `Góðan dag,
 
-Sindri heiti ég og hanna vefsíður fyrir íslensk matvæla- og ferðaþjónustufyrirtæki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk matvælafyrirtæki og ferðaþjónustu.
 
-Saga Ektafisks frá 1940 er nokkuð sem fá fyrirtæki geta státað af — handsaltaður fiskur, vefverslun og Baccalá Bar á sama stað. Mér fannst núverandi vefsíða ekki gera þessari arfleifð né vörunni nógu hátt undir höfði; hún er heldur þung og dagsett, og vefverslunin mætti vera einfaldari.
+Saga Ektafisks frá 1940 er eitthvað sem fá fyrirtæki geta státað af. Handsaltaður fiskur, vefverslun og Baccalá Bar á sama stað. Mér fannst núverandi vefsíða ekki gera þessari arfleifð eða vörunni nógu hátt undir höfði, enda er hún orðin nokkuð þung og gamaldags, og vefverslunin mætti vera mun einfaldari.
 
-Ég hannaði því frumgerð að nýrri forsíðu, ykkur að kostnaðarlausu og án skuldbindingar.
+Ég settist því niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hún er hér og virkar vel í síma:
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er að láta 80 ára söguna njóta sín, gera vefverslunina lipra og kynna Baccalá Bar betur. Ef ykkur líst vel á stefnuna gæti ég klárað vefinn. Ef ekki er það að sjálfsögðu í góðu.
+Hugmyndin er að láta áttatíu ára söguna njóta sín, gera vefverslunina lipra og kynna Baccalá Bar betur fyrir ferðafólki. Ef ykkur líst vel á stefnuna gæti ég klárað vefinn í heild, en ef ekki er það að sjálfsögðu í góðu.
 
 ${SIGN}`,
     },
@@ -240,19 +242,19 @@ ${SIGN}`,
     positioning:
       'The dependable, warm corner of Höfn — langoustine, coffee and a glacier view. The site should be the easiest table to find and book from the road.',
     outreach: {
-      subject: 'Kaffi Hornið — frumgerð að nýrri vefsíðu',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Kaffi Hornið',
       body: `Góðan dag,
 
-Sindri heiti ég og hanna vefsíður fyrir íslensk veitinga- og ferðaþjónustufyrirtæki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús og ferðaþjónustu.
 
-Kaffi Hornið hefur verið fastur punktur á Höfn frá 1999 og humarinn ykkar er rómaður — en núverandi vefsíða er því miður dagsett (enn merkt 2018) og virkar illa í síma, þar sem flestir ferðamenn fletta ykkur upp á leiðinni.
+Kaffi Hornið hefur verið fastur punktur á Höfn frá 1999 og humarinn ykkar er rómaður. Núverandi vefsíða er hins vegar orðin nokkuð gömul, hún er enn merkt árinu 2018 og virkar illa í síma, en það er einmitt þar sem flestir ferðamenn fletta ykkur upp á leiðinni.
 
-Ég tók mig til og hannaði frumgerð að nýrri forsíðu, ykkur að kostnaðarlausu og án skuldbindingar.
+Ég ákvað því að hanna frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hún er hér og virkar vel í síma:
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Áherslan er á einfaldan, hraðan vef sem sýnir matseðilinn, opnunartíma og humarinn — og gerir gestum auðvelt að finna ykkur og bóka borð. Ef ykkur líst vel væri gaman að heyra í ykkur. Annars, engin pressa.
+Áherslan er á einfaldan og hraðan vef sem sýnir matseðilinn, opnunartíma og humarinn, og gerir gestum auðvelt að finna ykkur og bóka borð. Ef ykkur líst vel á þetta væri gaman að heyra í ykkur, en annars er engin pressa.
 
 ${SIGN}`,
     },
@@ -293,19 +295,19 @@ ${SIGN}`,
     positioning:
       'The calm, expert way onto Icelandic water — thirty years of it, a short drive from the capital. The site should build trust fast and make booking frictionless.',
     outreach: {
-      subject: 'Sea Kayak Iceland — frumgerð að nýrri vefsíðu',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Kayakferðir',
       body: `Góðan dag,
 
-Sindri heiti ég og hanna vefsíður fyrir íslensk ferðaþjónustufyrirtæki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk ferðaþjónustufyrirtæki.
 
-Þið hafið boðið upp á kajakferðir frá Stokkseyri í þrjá áratugi og umsagnirnar eru frábærar — en núverandi vefsíða nýtir hvorki reynsluna né traustið sem þið hafið áunnið ykkur, og bókunarferlið mætti vera mun einfaldara.
+Þið hafið boðið upp á kajakferðir frá Stokkseyri í þrjá áratugi og umsagnirnar eru frábærar. Núverandi vefsíða nýtir hins vegar hvorki alla þá reynslu né traustið sem þið hafið áunnið ykkur, og bókunarferlið mætti vera mun einfaldara.
 
-Ég hannaði frumgerð að nýrri forsíðu, ykkur að kostnaðarlausu og án nokkurrar skuldbindingar.
+Ég hannaði því frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hún er hér og virkar vel í síma:
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Áherslan er á að byggja traust strax (30 ár, öryggi) og gera gestum auðvelt að bóka ferð á örfáum sekúndum — sérstaklega þeim sem eru á leið um Suðurströndina. Ef ykkur líst vel á gæti ég klárað vefinn. Annars er það líka allt í lagi.
+Áherslan er á að byggja traust strax, með þrjátíu ára reynslu og öryggi í forgrunni, og að gera gestum auðvelt að bóka ferð á örfáum sekúndum. Það á sérstaklega við um þá sem eru á leið um Suðurströndina. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars er það líka allt í lagi.
 
 ${SIGN}`,
     },
