@@ -35,7 +35,7 @@ export const companies: Company[] = [
     cardDescription:
       'A licensed Reykjavík DMC repositioned as a premium private expedition operator — cinematic ice, glass surfaces, quiet confidence.',
     preview: {
-      previewUrlPlaceholder: 'https://your-site.example/ice-tourism',
+      previewUrlPlaceholder: 'https://sindrimar02.github.io/iceland-frumgerdir/ice-tourism',
     },
   },
   {
@@ -51,7 +51,7 @@ export const companies: Company[] = [
     cardDescription:
       'A family farm stay told like a storybook — cream paper, warm serifs, polaroid moments. You feel the valley before you book it.',
     preview: {
-      previewUrlPlaceholder: 'https://your-site.example/daeli-farm',
+      previewUrlPlaceholder: 'https://sindrimar02.github.io/iceland-frumgerdir/daeli-farm',
     },
   },
   {
@@ -67,7 +67,7 @@ export const companies: Company[] = [
     cardDescription:
       'Iceland’s volcano horses as a once-in-a-lifetime ride — poster typography, ember accents, a thousand years of breed heritage.',
     preview: {
-      previewUrlPlaceholder: 'https://your-site.example/eldhestar',
+      previewUrlPlaceholder: 'https://sindrimar02.github.io/iceland-frumgerdir/eldhestar',
     },
   },
   {
@@ -83,7 +83,7 @@ export const companies: Company[] = [
     cardDescription:
       'A 14-room guesthouse five minutes from the black beach, repositioned as a boutique stay that out-converts its own OTA listings.',
     preview: {
-      previewUrlPlaceholder: 'https://your-site.example/guesthouse-carina',
+      previewUrlPlaceholder: 'https://sindrimar02.github.io/iceland-frumgerdir/guesthouse-carina',
     },
   },
   {
@@ -99,7 +99,7 @@ export const companies: Company[] = [
     cardDescription:
       'Nine decades of Icelandic touring, redesigned with Swiss-grid confidence — a legacy operator that finally looks like one.',
     preview: {
-      previewUrlPlaceholder: 'https://your-site.example/gj-travel',
+      previewUrlPlaceholder: 'https://sindrimar02.github.io/iceland-frumgerdir/gj-travel',
     },
   },
 ]

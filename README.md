@@ -33,6 +33,27 @@ npm run preview  # serve the production build locally
 
 ## Deploy
 
+### GitHub Pages (live now — zero-config)
+
+The repo deploys automatically: every push to `main` runs
+[.github/workflows/deploy.yml](.github/workflows/deploy.yml) and publishes to
+
+**https://sindrimar02.github.io/iceland-frumgerdir/**
+
+| Prototype | Owner link |
+| --- | --- |
+| Ice Tourism | https://sindrimar02.github.io/iceland-frumgerdir/ice-tourism |
+| Dæli Farm | https://sindrimar02.github.io/iceland-frumgerdir/daeli-farm |
+| Eldhestar | https://sindrimar02.github.io/iceland-frumgerdir/eldhestar |
+| Guesthouse Carina | https://sindrimar02.github.io/iceland-frumgerdir/guesthouse-carina |
+| GJ Travel | https://sindrimar02.github.io/iceland-frumgerdir/gj-travel |
+
+To update the live site: edit, commit, `git push`. Note the repo is **public**
+(free-plan requirement for Pages) — the outreach email texts in
+`src/data/outreach.ts` are visible there, though never in the page bundle owners load.
+A custom domain (e.g. `frumgerdir.klubbr.is`) can be added under the repo's
+Pages settings with one CNAME record.
+
 ### Vercel
 
 ```bash
