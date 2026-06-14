@@ -6,6 +6,9 @@ import { fromGallery, markGalleryVisit, setNoindex, setThemeColor } from '../lib
 import { Img } from '../components/Img'
 import { PREVIEW_COMPANIES } from './companies'
 
+// Weider is pitched separately and is never listed in the public showcase or here.
+const PROJECTS = PREVIEW_COMPANIES.filter((c) => c.slug !== 'weider')
+
 /**
  * /admin/previews — internal review dashboard for the five independent
  * redesign projects. Gated (redirects unless fromGallery/?tools), noindexed.
@@ -59,10 +62,10 @@ export default function AdminPreviews() {
 
         {/* Status strip */}
         <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 border-y border-white/10 py-4 font-grotesk text-xs tracking-wide text-white/50 uppercase">
-          <span><span className="text-white">{PREVIEW_COMPANIES.length}</span> projects</span>
+          <span><span className="text-white">{PROJECTS.length}</span> projects</span>
           <span className="inline-flex items-center gap-1.5">
             <Check className="h-3.5 w-3.5 text-emerald-400" />
-            <span className="text-white">{PREVIEW_COMPANIES.length}</span> concepts ready
+            <span className="text-white">{PROJECTS.length}</span> concepts ready
           </span>
           <span>5 regions · 5 sectors · 5 design systems</span>
         </div>
@@ -70,7 +73,7 @@ export default function AdminPreviews() {
         {/* Presentation mode — big launch tiles */}
         {present ? (
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {PREVIEW_COMPANIES.map((c) => (
+            {PROJECTS.map((c) => (
               <Link
                 key={c.slug}
                 to={c.route}
@@ -99,7 +102,7 @@ export default function AdminPreviews() {
         ) : (
           /* Review mode — project cards with audit */
           <div className="mt-10 space-y-5">
-            {PREVIEW_COMPANIES.map((c, i) => (
+            {PROJECTS.map((c, i) => (
               <motion.article
                 key={c.slug}
                 initial={{ opacity: 0, y: 16 }}
