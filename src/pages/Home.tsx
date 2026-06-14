@@ -21,7 +21,7 @@ export default function Home() {
   const showTools = toolsEnabled()
 
   useEffect(() => {
-    document.title = 'Iceland Redesign Prototypes'
+    document.title = 'Endurhannanir'
     setThemeColor('#0b0e13')
     markGalleryVisit()
   }, [])

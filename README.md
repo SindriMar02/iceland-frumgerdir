@@ -1,6 +1,6 @@
-# Iceland Redesign Prototypes
+# Endurhannanir
 
-Five interactive landing-page redesign concepts for Icelandic tourism businesses, built as a
+Interactive landing-page redesign concepts for Icelandic businesses, built as a
 single Vite + React + TypeScript app. Each prototype is a deliberately different creative
 direction — these are **concept mockups for outreach**, not the businesses' real websites.
 
