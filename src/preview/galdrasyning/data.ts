@@ -9,7 +9,10 @@
  * The stave paths are stylised, original line drawings inspired by the visual
  * grammar of galdrastafir (a central axis with symmetric arms and terminals) —
  * they are decorative motifs, not reproductions of any specific historical
- * stave. Drawn with a stroke-dashoffset "inscribe" animation.
+ * stave. For that reason they carry GENERIC role-names (Verndarstafur,
+ * Heillatákn …) rather than the famous canonical names (Vegvísir, Ægishjálmur),
+ * whose exact shapes a folklore curator would recognise. Drawn with a
+ * stroke-dashoffset "inscribe" animation.
  */
 
 /** Single moody atmospheric band photo (Unsplash id). */
@@ -23,16 +26,26 @@ export interface Stave {
   gloss: string
   /** SVG path data, all within the 120×120 box */
   paths: string[]
+  /**
+   * Index into `paths` of the single most defining stroke — re-traced on hover
+   * so the mark feels freshly inscribed. Defaults to 0 when omitted.
+   */
+  signatureStroke?: number
 }
 
 /**
- * Four original stave motifs. Each is built on a symmetric cross/axis the way
- * historical galdrastafir are, so they read as ceremonial line-work.
+ * Four original stave MOTIFS. These are deliberately NOT given the famous
+ * canonical names (Vegvísir, Ægishjálmur …): the paths are stylised, original
+ * line-drawings in the visual grammar of galdrastafir, so labelling them with
+ * specific historical names would assert shapes a curator knows to be wrong.
+ * Instead they carry honest, generic role-names — "drawn after the tradition
+ * of galdrastafir" — matching what they actually are.
  */
 export const STAVES: Stave[] = [
   {
-    name: 'Vegvísir',
-    gloss: 'Leiðarstafur — átti að vísa veginn í óveðri og villu.',
+    name: 'Verndarstafur',
+    gloss: 'Varnartákn — slíkir stafir áttu að verja gegn illu og óförum.',
+    signatureStroke: 2,
     paths: [
       'M60 8 V112',
       'M8 60 H112',
@@ -49,8 +62,9 @@ export const STAVES: Stave[] = [
     ],
   },
   {
-    name: 'Ægishjálmur',
-    gloss: 'Óttastafur — borinn til verndar og hugrekkis.',
+    name: 'Óttastafur',
+    gloss: 'Hugrekkistákn — borið til styrks og verndar í háska.',
+    signatureStroke: 0,
     paths: [
       'M60 60 V14',
       'M60 60 V106',
@@ -67,8 +81,9 @@ export const STAVES: Stave[] = [
     ],
   },
   {
-    name: 'Lukkustafur',
-    gloss: 'Heillastafur — ristur til gæfu og góðs gengis.',
+    name: 'Heillatákn',
+    gloss: 'Gæfustafur — ristur til heilla og góðs gengis.',
+    signatureStroke: 0,
     paths: [
       'M60 10 V110',
       'M30 30 L90 90',
@@ -80,8 +95,9 @@ export const STAVES: Stave[] = [
     ],
   },
   {
-    name: 'Þjófastafur',
-    gloss: 'Stuldarstafur — átti að standa þjóf að verki.',
+    name: 'Þjófatákn',
+    gloss: 'Leitarstafur — átti að koma upp um þjóf og þýfi.',
+    signatureStroke: 0,
     paths: [
       'M60 12 V108',
       'M24 36 H96',
@@ -102,6 +118,8 @@ export interface Exhibit {
   kicker: string
   title: string
   body: string
+  /** Index into STAVES for the small glyph that marks this card. */
+  stave: number
 }
 
 export const EXHIBITS: Exhibit[] = [
@@ -109,37 +127,60 @@ export const EXHIBITS: Exhibit[] = [
     kicker: 'Sýningin',
     title: 'Stafirnir og bækurnar',
     body: 'Ristir galdrastafir, eftirgerðir galdrabóka og munir sem segja sögu þess tíma þegar fólk trúði því að orð og tákn gætu beygt veröldina. Hver stafur átti sitt hlutverk — til verndar, gæfu eða hefndar.',
+    stave: 0,
   },
   {
     kicker: 'Munir',
     title: 'Nábrókin',
     body: 'Þekktasti og umtalaðasti gripur safnsins er eftirgerð af nábrók — buxum sem þjóðsagan segir að ættu að draga að sér peninga. Hún er sýnd af virðingu sem heimild um forna þjóðtrú, ekki sem hryllingur.',
+    stave: 2,
   },
   {
     kicker: 'Stemning',
     title: 'Hálfrökkur og kertaljós',
     body: 'Sýningin er sögð í hálfrökkri. Textinn er borinn fram með alúð: þetta er menningararfur og harmsaga fólks, ekki tjaldabúð. Þú gengur hægt, lest og hlustar.',
+    stave: 1,
   },
 ]
 
 /** Practical visit facts — SAMPLE/typical, disclaimed in footer. */
-export const SITES = [
+export interface Site {
+  name: string
+  role: string
+  desc: string
+  /** Google Maps search URL for this specific site. */
+  mapUrl: string
+}
+
+export const SITES: Site[] = [
   {
     name: 'Hólmavík',
     role: 'Aðalsýning og Kaffi Galdur',
     desc: 'Sjálf galdrasýningin, safnbúð og kaffihúsið Kaffi Galdur niðri við höfnina í Hólmavík.',
+    mapUrl:
+      'https://www.google.com/maps/search/?api=1&query=Galdras%C3%BDning+%C3%A1+Str%C3%B6ndum+H%C3%B3lmav%C3%ADk',
   },
   {
     name: 'Bjarnarfjörður',
     role: 'Kotbýli kuklarans',
     desc: 'Endurgert torfbýli norðar á Ströndum þar sem sögð er saga galdramannsins og daglegs lífs á 17. öld.',
+    mapUrl:
+      'https://www.google.com/maps/search/?api=1&query=Kotb%C3%BDli+kuklarans+Bjarnarfj%C3%B6r%C3%B0ur+Strandir',
   },
 ]
 
+/**
+ * Opening hours, matched to the real museum: open daily year-round, with a
+ * later winter start. Disclaimed as sample timing in the footer.
+ */
 export const HOURS = [
-  { when: 'Sumar (jún–ágú)', time: 'Daglega 10–18' },
-  { when: 'Vetur (sep–maí)', time: 'Eftir samkomulagi' },
+  { when: 'Sumar (15. maí–30. sep)', time: 'Daglega 10–18' },
+  { when: 'Vetur (1. okt–14. maí)', time: 'Daglega 12–18' },
 ]
+
+/** Sample contact phone — typical/illustrative, disclaimed like the prices. */
+export const PHONE = '451 3525'
+export const PHONE_TEL = '+3544513525'
 
 export interface Ticket {
   name: string
@@ -152,6 +193,3 @@ export const TICKETS: Ticket[] = [
   { name: 'Eldri borgarar & námsmenn', price: '1.900 kr.', note: 'Gegn framvísun skírteinis' },
   { name: 'Börn (yngri en 14 ára)', price: 'Frítt', note: 'Í fylgd með fullorðnum' },
 ]
-
-/** Google Maps link to Hólmavík main museum. */
-export const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=Galdras%C3%BDning+%C3%A1+Str%C3%B6ndum+H%C3%B3lmav%C3%ADk'

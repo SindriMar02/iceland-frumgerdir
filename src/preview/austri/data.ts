@@ -1,7 +1,9 @@
 /**
  * "Fjallabjór" — content for the Austri Brugghús redesign concept.
  * East Iceland in a glass: every beer is named after an Austurland landmark,
- * and selecting one swaps the page's accent colour to that beer's tone.
+ * and selecting one repaints the whole page in that beer's colour — pale straw
+ * for the lager, deep espresso for the porter — so the palette tells the beer's
+ * story, not just "amber".
  *
  * Tasting notes, ABV and prices are illustrative sample data (a real brewery
  * supplies the live tap list). The shared footer disclaims this.
@@ -32,10 +34,27 @@ export interface Beer {
   tags: string[]
   /** Sample tasting note, Icelandic */
   notes: string
-  /** Per-beer accent that swaps the page colour */
+  /** Optional, true-fact highlight shown on the spotlight card (no disclaimer needed) */
+  brag?: string
+  /**
+   * Per-beer accent that repaints the page. The set spans the real beer
+   * spectrum — straw gold (lager) -> amber/rust (IPAs) -> deep cool brown
+   * (porter) — so the re-tint visibly changes the page's character.
+   */
   accent: string
   /** A lighter tint of the accent for small text on the dark ground (AA-safe) */
   accentSoft: string
+  /**
+   * How far the page ground should cool/darken for this beer (0 = no shift,
+   * 1 = deepest). Drives the per-beer body tint behind the foam-coloured
+   * content so a porter pulls the page darker than a pale lager.
+   */
+  ground: number
+  /**
+   * Normalised landmark "skyline" — peak heights 0..1 used to draw a bespoke
+   * contour/peak silhouette per beer so the landmark is *felt*, not just named.
+   */
+  ridge: number[]
 }
 
 export const BEERS: Beer[] = [
@@ -49,8 +68,10 @@ export const BEERS: Beer[] = [
     tags: ['Sítrus', 'Furunálar'],
     notes:
       'Gullin IPA með þéttum humlailmi — greipaldin og furunálar fremst, fylgt eftir af mjúkri maltsætu og þurrum, beiskum endi sem kallar á annan sopa.',
-    accent: '#d99524',
-    accentSoft: '#f0bd6e',
+    accent: '#e0a32e',
+    accentSoft: '#f3c66e',
+    ground: 0.18,
+    ridge: [0.18, 0.34, 0.52, 0.88, 0.46, 0.62, 0.3, 0.2],
   },
   {
     name: 'Slöttur',
@@ -62,8 +83,10 @@ export const BEERS: Beer[] = [
     tags: ['Karamella', 'Brauð'],
     notes:
       'Sígildur enskur bitter — ristað brauð og karamella, hóflega beiskur og einstaklega drekkanlegur. Sá sem þú pantar aftur, kvöld eftir kvöld.',
-    accent: '#c8772b',
-    accentSoft: '#e89f5c',
+    accent: '#c87a2a',
+    accentSoft: '#e8a25c',
+    ground: 0.34,
+    ridge: [0.22, 0.4, 0.66, 0.5, 0.78, 0.42, 0.34, 0.24],
   },
   {
     name: 'Skessa',
@@ -72,11 +95,14 @@ export const BEERS: Beer[] = [
     ibu: '70',
     landmark: 'Skessugarður',
     landmarkNote: 'náttúrulegur grjótgarður á Jökuldal',
-    tags: ['Mangó', 'Trjákvoða'],
+    tags: ['Wasabi', 'Mangó'],
     notes:
-      'Stór og þykkur tvöfaldur IPA — suðrænir ávextir, mangó og ferskja velta yfir trjákvoðukenndan kjarna. Hlýr og kraftmikill, en ótrúlega mjúkur miðað við styrk.',
+      'Stór og kraftmikill tvöfaldur IPA með ferskt íslenskt wasabi — suðrænn mangó og ferskja velta fram, og wasabi-ið skilur eftir hlýja, óvænta sting. Frægasti bjórinn okkar.',
+    brag: 'Bruggaður með fersku íslensku wasabi',
     accent: '#e0633a',
-    accentSoft: '#f0936e',
+    accentSoft: '#f3946e',
+    ground: 0.42,
+    ridge: [0.3, 0.58, 0.9, 0.64, 0.86, 0.5, 0.4, 0.28],
   },
   {
     name: 'Lagarfljót',
@@ -87,9 +113,11 @@ export const BEERS: Beer[] = [
     landmarkNote: 'vatnið langa við Egilsstaði',
     tags: ['Kornbrauð', 'Tær'],
     notes:
-      'Tær og svalandi lager bruggaður með byggi frá Vallanesi — milt kornbrauð, fínleg humlabeiskja og hreinn, þurr endi. Bjórinn fyrir alla.',
-    accent: '#c9a23f',
-    accentSoft: '#e6c873',
+      'Tær og svalandi lager — milt kornbrauð, fínleg humlabeiskja og hreinn, þurr endi. Ljósastur og léttastur í línunni; bjórinn fyrir alla.',
+    accent: '#e8c34a',
+    accentSoft: '#f4dd86',
+    ground: 0.06,
+    ridge: [0.12, 0.18, 0.26, 0.2, 0.3, 0.22, 0.16, 0.12],
   },
   {
     name: 'Snæfell',
@@ -101,8 +129,10 @@ export const BEERS: Beer[] = [
     tags: ['Kaffi', 'Súkkulaði'],
     notes:
       'Dökkur og hlýjandi porter — ristað kaffi, dökkt súkkulaði og vottur af lakkrís. Fyllir munninn án þess að verða þungur. Vetrarbjórinn úr fjöllunum.',
-    accent: '#bf7638',
-    accentSoft: '#d99a63',
+    accent: '#a96a3e',
+    accentSoft: '#cf9462',
+    ground: 0.92,
+    ridge: [0.36, 0.6, 0.82, 0.96, 0.72, 0.84, 0.5, 0.34],
   },
 ]
 
@@ -143,7 +173,7 @@ export const STOCKISTS: Stockist[] = [
   {
     name: 'Askur Taproom & Pizzeria',
     where: 'Við brugghúsið, Egilsstöðum',
-    detail: 'Öll tap-lína Austra á krana, ásamt eldbökuðum pizzum. Hjarta brugghússins.',
+    detail: 'Öll kranalína Austra á krana, ásamt eldbökuðum pizzum. Hjarta brugghússins.',
   },
   {
     name: 'Vök Baths',

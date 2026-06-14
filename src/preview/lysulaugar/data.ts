@@ -1,16 +1,19 @@
 /**
  * Lýsulaugar — "Græna lindin" content model.
  * Sample/illustrative copy (prices, tips) per the disclaimer; the green
- * carbonated mineral water itself is real and presented truthfully.
+ * mineral water itself is real and presented truthfully — it is steinefnaríkt
+ * jarðhitavatn rich in green chlorella algae (klórella), NOT carbonated.
  */
 
 const UNS = (id: string, w: number) =>
   `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
 
 export const IMG = {
-  heroId: 'photo-1549193308-7c895560f8e2',
-  wellnessA: UNS('photo-1508869184489-1b42faa950b0', 1280),
-  wellnessB: UNS('photo-1519320993082-43a535317ddc', 1280),
+  /* Luminous green mineral / algae water — the brand's one ownable thing.
+     (Was a brown Hverir/Mývatn-style mudpot; swapped to green water.) */
+  heroId: 'photo-1505159940484-eb2b9f2588e2',
+  wellnessA: UNS('photo-1576013551627-0cc20b96c2a7', 1280),
+  wellnessB: UNS('photo-1507652313519-d4e9174996dd', 1280),
   mossA: UNS('photo-1604239195402-62924edcbc13', 1280),
   mossB: UNS('photo-1730012066338-d544cf255500', 1280),
   farm: UNS('photo-1609894851180-7be27983da7d', 1280),
@@ -22,19 +25,43 @@ export const WATER: { label: string; title: string; body: string }[] = [
     label: '01',
     title: 'Grænt af náttúrunnar hendi',
     body:
-      'Vatnið fær sinn græna blæ frá steinefnum og þörungum í berginu. Engin litarefni, ekkert klór — bara lindin eins og hún kemur upp.',
+      'Græni liturinn kemur frá klórellu — grænþörungum sem þrífast í steinefnaríku jarðhitavatninu. Engin litarefni, ekkert klór — bara lindin eins og hún kemur upp.',
   },
   {
     label: '02',
-    title: 'Steinefnaríkt og kolsýrt',
+    title: 'Steinefnaríkt og þörungagrænt',
     body:
-      'Náttúrulega kolsýrt jarðhitavatn með sínum sérstaka, græna blæ, mettað steinefnum úr eldfjallaberginu undir Snæfellsjökli. Mjúkt á húð og ólíkt öllu öðru.',
+      'Jarðhitavatn mettað steinefnum úr eldfjallaberginu undir Snæfellsjökli, með sínum sérstaka, græna blæ frá þörungunum. Mjúkt á húð og ólíkt öllu öðru.',
   },
   {
     label: '03',
     title: 'Róandi og hægt',
     body:
-      'Volg laug, kyrrð og útsýni til jökulsins. Hér er enginn troðningur — bara hægur tími til að slaka á og anda að sér.',
+      'Volg laug um 38°C, kyrrð og útsýni til jökulsins. Hér er enginn troðningur — bara hægur tími til að slaka á og anda að sér.',
+  },
+]
+
+/** Real facilities — concrete proof, not just mood. */
+export const FACILITIES: { label: string; value: string; note: string }[] = [
+  {
+    label: 'Aðallaugin',
+    value: '~38°C',
+    note: 'Græna steinefnalindin sjálf — volg og mjúk.',
+  },
+  {
+    label: 'Heitir pottar',
+    value: 'Tveir',
+    note: 'Til viðbótar við aðallaugina.',
+  },
+  {
+    label: 'Kaldur pottur',
+    value: 'Ískelda',
+    note: 'Fyrir þá sem vilja skella sér í kalt á eftir.',
+  },
+  {
+    label: 'Á staðnum',
+    value: 'Kaffihús',
+    note: 'Lítið kaffihús; allt endurnýjað 2019.',
   },
 ]
 
@@ -43,13 +70,14 @@ export const VISIT = {
   season: '15. maí – 31. ágúst',
   daily: '11:00 – 21:00',
   prices: [
-    { who: 'Fullorðnir', price: '1.500 kr.' },
-    { who: 'Börn (6–15 ára)', price: '800 kr.' },
-    { who: 'Yngri en 6 ára', price: 'Frítt' },
+    { who: 'Fullorðnir', price: '1.800 kr.' },
+    { who: 'Börn (10–17 ára)', price: '500 kr.' },
+    { who: 'Yngri en 10 ára', price: 'Frítt' },
   ],
-  address: 'Lýsuhóll, 356 Snæfellsbær',
-  mapUrl: 'https://www.google.com/maps/search/?api=1&query=Lýsuhóll+Snæfellsnes',
-  phone: '+354 435 6716',
+  address: 'Lýsuhóll, Staðarsveit, 356 Snæfellsbær',
+  /* Precise coordinate pin (64.8414, -23.2140) instead of a text search */
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=64.8414%2C-23.2140',
+  phone: '+354 433 9917',
   email: 'lysulaugar@snb.is',
 }
 
@@ -57,7 +85,7 @@ export const VISIT = {
 export const TIPS: { title: string; body: string }[] = [
   {
     title: 'Búningsklefar og sturta',
-    body: 'Búningsklefar fyrir alla og heitar sturtur á staðnum. Sturtu er skylt að nota fyrir bað, eins og venja er á Íslandi.',
+    body: 'Búningsklefar fyrir alla og heitar sturtur á staðnum. Skylt er að fara í sturtu (án sundfata) fyrir bað, eins og venja er á Íslandi.',
   },
   {
     title: 'Handklæði og sundföt',

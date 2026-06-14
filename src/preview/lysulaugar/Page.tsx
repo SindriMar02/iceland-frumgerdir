@@ -5,7 +5,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
-import { IMG, WATER, VISIT, TIPS } from './data'
+import { IMG, WATER, FACILITIES, VISIT, TIPS } from './data'
 
 const company = getPreviewCompany('lysulaugar')
 
@@ -24,7 +24,11 @@ const HERO_SRCSET = [828, 1280, 2000]
 
 const EASE = [0.22, 0.61, 0.36, 1] as const
 
-/** Soft, slow scroll reveal — our own (not the shared Reveal). */
+/**
+ * Soft, slow scroll reveal — our own (not the shared Reveal).
+ * Deliberately calm: rises once, settles, and never re-triggers. The page
+ * "barely moves; the water keeps glowing."
+ */
 function Rise({
   children,
   delay = 0,
@@ -65,8 +69,8 @@ function LeafMark({ className }: { className?: string }) {
 const NAV = [
   { href: '#laugin', label: 'Laugin' },
   { href: '#vatnid', label: 'Vatnið' },
+  { href: '#adstada', label: 'Aðstaða' },
   { href: '#heimsokn', label: 'Heimsókn' },
-  { href: '#opnunartimi', label: 'Opnunartími' },
 ]
 
 export default function Page() {
@@ -75,8 +79,6 @@ export default function Page() {
   const heroImgRef = useRef<HTMLDivElement>(null)
   const heroSectionRef = useRef<HTMLElement>(null)
 
-  /* Manual, passive parallax for the hero photo (no Framer useScroll —
-     environment throttles rAF). Disabled under reduced motion. */
   useEffect(() => {
     document.title = 'Lýsulaugar — Græna lindin (hugmynd)'
     const onScrollBar = () => setShowBar(window.scrollY > 520)
@@ -85,6 +87,10 @@ export default function Page() {
     return () => window.removeEventListener('scroll', onScrollBar)
   }, [])
 
+  /* Near-static hold for the hero photo — a very gentle settle, not a travel
+     parallax. The "motion" of this surface lives in the water, not the page.
+     Manual passive scroll listener writing transform synchronously (Framer
+     useScroll does not update in this preview). Disabled under reduced motion. */
   useEffect(() => {
     if (reduce) return
     let ticking = false
@@ -94,10 +100,10 @@ export default function Page() {
       const el = heroImgRef.current
       if (!sec || !el) return
       const rect = sec.getBoundingClientRect()
-      // Only while the hero is on/near screen
       if (rect.bottom < 0 || rect.top > window.innerHeight) return
-      const shift = Math.max(-60, Math.min(60, -rect.top * 0.12))
-      el.style.transform = `translate3d(0, ${shift}px, 0) scale(1.12)`
+      // Very small drift (0.05) — the page is meant to feel almost motionless.
+      const shift = Math.max(-26, Math.min(26, -rect.top * 0.05))
+      el.style.transform = `translate3d(0, ${shift}px, 0) scale(1.08)`
     }
     const onScroll = () => {
       if (ticking) return
@@ -146,48 +152,78 @@ export default function Page() {
                 </li>
               ))}
             </ul>
-            <a
-              href="#heimsokn"
-              lang="is"
-              className="rounded-full bg-[#2f6b4f] px-4 py-2.5 text-sm font-semibold text-[#f6f2e8] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16352a]"
-            >
+            <WetButton href="#heimsokn" lang="is" variant="moss" size="sm">
               Plana heimsókn
-            </a>
+            </WetButton>
           </div>
         </nav>
       </header>
 
       <main>
-        {/* ── HERO: the calm green water ──────────────────── */}
+        {/* ── HERO: the calm, luminous GREEN water ───────────
+            The hero IS green mineral water. We render the luminous water
+            surface (layered green gradients) and carry the caustic-shimmer
+            signature on it, so the brand hook and the signature are the same
+            thing. A real photo sits underneath at low opacity purely as
+            organic texture/depth — never dictating the scene. */}
         <section ref={heroSectionRef} className="relative overflow-hidden">
-          {/* Real steam photo, far back */}
           <div className="absolute inset-0">
-            <div ref={heroImgRef} className="h-full w-full will-change-transform">
+            {/* Base: the green mineral-water surface itself */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(120% 90% at 30% 18%, #4fa473 0%, ${ALGAE} 26%, ${MOSS} 58%, ${INK} 100%)`,
+              }}
+              aria-hidden="true"
+            />
+            {/* Real water photo as faint texture only, with a slow settle.
+                Masked so it fades to nothing at the top — the literal lake
+                scene dissolves into pure mineral-green water. */}
+            <div ref={heroImgRef} className="absolute inset-0 will-change-transform">
               <Img
                 src={HERO}
                 srcSet={HERO_SRCSET}
                 sizes="100vw"
-                alt="Gufa rís af jarðhitavatni í kyrru landslagi"
-                className="h-full w-full object-cover"
-                fallbackClassName="bg-gradient-to-br from-[#3f8f63] via-[#2f6b4f] to-[#16352a]"
+                alt="Græn, steinefnarík náttúrulaug með kyrru vatnsborði"
+                className="h-full w-full object-cover opacity-30 mix-blend-overlay"
+                style={{
+                  WebkitMaskImage:
+                    'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 38%, rgba(0,0,0,0.15) 78%, transparent 100%)',
+                  maskImage:
+                    'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 38%, rgba(0,0,0,0.15) 78%, transparent 100%)',
+                }}
+                fallbackClassName="bg-transparent"
                 fetchpriority="high"
                 loading="eager"
               />
             </div>
-            {/* Green wash over the honest photo — we render the green, not fake it */}
+            {/* Deepen + unify into unmistakable mineral green */}
             <div
               className="absolute inset-0 mix-blend-multiply"
               style={{
-                background: `linear-gradient(150deg, ${ALGAE} 0%, ${MOSS} 55%, ${INK} 100%)`,
-                opacity: 0.62,
+                background: `linear-gradient(155deg, ${ALGAE} 0%, ${MOSS} 50%, ${INK} 100%)`,
+                opacity: 0.55,
               }}
               aria-hidden="true"
             />
+            {/* Luminous algae-light core — the water glowing from within */}
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(70% 55% at 34% 30%, ${ALGAE_LIGHT}40 0%, transparent 62%)`,
+              }}
+              aria-hidden="true"
+              animate={reduce ? undefined : { opacity: [0.55, 0.85, 0.55] }}
+              transition={reduce ? undefined : { duration: 15, ease: 'easeInOut', repeat: Infinity }}
+            />
+            {/* THE SIGNATURE: caustic shimmer — sunlight refracting through
+                green mineral water. The one motion no other surface has. */}
+            <Caustics reduce={!!reduce} />
             {/* Readability scrim toward the bottom where text sits */}
             <div
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(to top, ${INK}f2 0%, ${INK}99 32%, transparent 72%)`,
+                background: `linear-gradient(to top, ${INK}f2 0%, ${INK}a8 30%, ${INK}33 60%, transparent 80%)`,
               }}
               aria-hidden="true"
             />
@@ -195,19 +231,14 @@ export default function Page() {
           </div>
 
           <div className="relative mx-auto flex min-h-[92vh] max-w-6xl flex-col justify-end px-5 pt-32 pb-14 md:px-8 md:pb-24">
-            {/* Floating rounded "pool" with the slow living gradient */}
-            <Rise y={18}>
-              <PoolGlass reduce={!!reduce} />
-            </Rise>
-
             <motion.span
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
-              className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 font-mono text-[11px] font-medium tracking-[0.14em] text-[#f6f2e8] uppercase ring-1 ring-white/25 backdrop-blur-sm"
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-[#16352a]/55 px-3.5 py-1.5 font-mono text-[11px] font-medium tracking-[0.14em] text-[#f6f2e8] uppercase ring-1 ring-white/30 backdrop-blur-sm"
             >
               <LeafMark className="h-3.5 w-3.5 text-[#bfe6cf]" />
-              Snæfellsnes · steinefnaríkt vatn · opið yfir sumarið
+              Snæfellsnes · steinefnaríkt grænt vatn
             </motion.span>
 
             <motion.h1
@@ -225,29 +256,39 @@ export default function Page() {
               transition={{ duration: 0.95, delay: 0.2, ease: EASE }}
               className="mt-5 max-w-xl text-base leading-relaxed text-[#f6f2e8]/90 md:text-lg"
             >
-              Sjaldgæf, græn steinefnalind á bæ undir Snæfellsjökli. Volgt, kolsýrt vatn,
+              Sjaldgæf, græn steinefnalind á bæ undir Snæfellsjökli. Volgt, steinefnaríkt vatn,
               kyrrð og hægur tími — rólega andstæðan við fjölmennu böðin.
             </motion.p>
+
+            {/* Season + hours surfaced immediately for the passing traveller */}
+            <motion.div
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.95, delay: 0.28, ease: EASE }}
+              className="mt-6 flex flex-wrap items-center gap-2.5"
+            >
+              {['15. maí – 31. ágúst', 'opið daglega 11–21', '~38°C laug'].map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-full bg-[#16352a]/45 px-3 py-1.5 font-mono text-[10px] tracking-[0.12em] text-[#bfe6cf] uppercase ring-1 ring-[#bfe6cf]/25 backdrop-blur-sm"
+                >
+                  {chip}
+                </span>
+              ))}
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 22 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.95, delay: 0.32, ease: EASE }}
+              transition={{ duration: 0.95, delay: 0.4, ease: EASE }}
               className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
             >
-              <a
-                href="#heimsokn"
-                lang="is"
-                className="inline-flex items-center justify-center rounded-full bg-[#f6f2e8] px-6 py-3.5 text-sm font-semibold text-[#16352a] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfe6cf]"
-              >
-                Plana heimsókn
-              </a>
-              <a
-                href="#vatnid"
-                className="inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold text-[#f6f2e8] ring-1 ring-white/40 backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfe6cf]"
-              >
-                Um vatnið
-              </a>
+              <WetButton href="#heimsokn" lang="is" variant="cream" size="lg">
+                Sjá opnunartíma og verð
+              </WetButton>
+              <WetButton href="#vatnid" variant="ghost" size="lg">
+                Um grænu lindina
+              </WetButton>
             </motion.div>
           </div>
         </section>
@@ -278,7 +319,7 @@ export default function Page() {
                   <dl className="mt-9 grid grid-cols-3 gap-4 border-t border-[#16352a]/12 pt-7">
                     {[
                       ['Staðsetning', 'Lýsuhóll'],
-                      ['Vatnið', 'Grænt & kolsýrt'],
+                      ['Vatnið', 'Grænt & steinefnaríkt'],
                       ['Andrúmsloft', 'Rólegt'],
                     ].map(([k, v]) => (
                       <div key={k}>
@@ -317,10 +358,11 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── VATNIÐ: the green carbonated mineral water ───── */}
+        {/* ── VATNIÐ: the green mineral water ──────────────── */}
         <section id="vatnid" className="relative scroll-mt-20 overflow-hidden bg-[#16352a] text-[#f6f2e8]">
-          {/* faint living-green field behind */}
+          {/* faint living-green field + caustic light behind */}
           <GreenField reduce={!!reduce} />
+          <Caustics reduce={!!reduce} band />
           <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
             <div className="max-w-2xl">
               <Rise>
@@ -335,8 +377,9 @@ export default function Page() {
               </Rise>
               <Rise delay={0.1}>
                 <p className="mt-5 text-[1.05rem] leading-relaxed text-[#f6f2e8]/85">
-                  Steinefnaríkt og náttúrulega kolsýrt jarðhitavatn með sínum sérstaka, græna blæ.
-                  Mjúkt, volgt og róandi — það er hér sem Lýsulaugar skera sig úr.
+                  Steinefnaríkt jarðhitavatn með sínum sérstaka, græna blæ — liturinn kemur frá
+                  klórellu, grænþörungum sem þrífast í lindinni. Mjúkt, volgt og róandi; það er hér
+                  sem Lýsulaugar skera sig úr.
                 </p>
               </Rise>
             </div>
@@ -344,13 +387,7 @@ export default function Page() {
             <div className="mt-14 grid gap-6 md:grid-cols-3">
               {WATER.map((w, i) => (
                 <Rise key={w.label} delay={0.08 * i} y={30}>
-                  <article className="flex h-full flex-col rounded-[1.8rem] bg-[#f6f2e8]/[0.06] p-7 ring-1 ring-[#bfe6cf]/15 backdrop-blur-sm">
-                    <span className="font-mono text-xs tracking-[0.16em] text-[#bfe6cf]">{w.label}</span>
-                    <h3 className="mt-4 font-newsreader text-[1.4rem] leading-snug text-[#f6f2e8]">
-                      {w.title}
-                    </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-[#f6f2e8]/80">{w.body}</p>
-                  </article>
+                  <WaterCard label={w.label} title={w.title} body={w.body} reduce={!!reduce} />
                 </Rise>
               ))}
             </div>
@@ -364,8 +401,54 @@ export default function Page() {
           </div>
         </section>
 
+        {/* ── AÐSTAÐA: real facilities (the proof) ─────────── */}
+        <section id="adstada" className="relative scroll-mt-20 bg-[#e7dfce]">
+          <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
+            <div className="grid items-end gap-10 md:grid-cols-12 md:gap-12">
+              <div className="md:col-span-5">
+                <Rise>
+                  <p className="font-mono text-[11px] font-medium tracking-[0.2em] text-[#2f6b4f] uppercase">
+                    Aðstaða
+                  </p>
+                </Rise>
+                <Rise delay={0.05}>
+                  <h2 className="mt-4 font-newsreader text-[2.1rem] leading-[1.12] font-medium text-[#16352a] md:text-[3rem]">
+                    Lítil laug, <span className="italic">raunveruleg aðstaða</span>
+                  </h2>
+                </Rise>
+                <Rise delay={0.1}>
+                  <p className="mt-5 text-[1.02rem] leading-relaxed text-[#16352a]/75">
+                    Aðstaðan var öll endurnýjuð árið 2019: aðallaugin með grænu steinefnalindinni um
+                    38°C, tveir heitir pottar, köld ískelda fyrir þá sem þora, og lítið kaffihús þar
+                    sem þú getur sest niður á eftir.
+                  </p>
+                </Rise>
+              </div>
+
+              {/* Number-led facility cards — vertical-rule treatment, not glass boxes */}
+              <div className="md:col-span-7">
+                <Rise delay={0.08} y={30}>
+                  <dl className="grid grid-cols-2 gap-x-8 gap-y-8 sm:gap-x-12">
+                    {FACILITIES.map((f) => (
+                      <div key={f.label} className="border-l-2 border-[#2f6b4f]/35 pl-4">
+                        <dt className="font-mono text-[10px] tracking-[0.16em] text-[#2f6b4f] uppercase">
+                          {f.label}
+                        </dt>
+                        <dd className="mt-1.5 font-newsreader text-[2rem] leading-none text-[#16352a]">
+                          {f.value}
+                        </dd>
+                        <dd className="mt-2 text-sm leading-relaxed text-[#16352a]/70">{f.note}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </Rise>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── STAÐURINN: the setting / farm ────────────────── */}
-        <section className="relative bg-[#e7dfce]">
+        <section className="relative bg-[#f6f2e8]">
           <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
             <div className="grid items-end gap-10 md:grid-cols-12 md:gap-12">
               <div className="md:col-span-5">
@@ -381,9 +464,9 @@ export default function Page() {
                 </Rise>
                 <Rise delay={0.1}>
                   <p className="mt-5 text-[1.02rem] leading-relaxed text-[#16352a]/75">
-                    Lýsulaugar standa á starfandi bæ við Lýsuhól, þar sem hraunið er klætt mjúkum mosa
-                    og Snæfellsjökull gnæfir yfir. Það er landið sjálft sem gefur tóninn: hægan,
-                    jarðbundinn og kyrran.
+                    Lýsulaugar standa á starfandi bæ við Lýsuhól í Staðarsveit, þar sem hraunið er
+                    klætt mjúkum mosa og Snæfellsjökull gnæfir yfir. Það er landið sjálft sem gefur
+                    tóninn: hægan, jarðbundinn og kyrran.
                   </p>
                 </Rise>
               </div>
@@ -423,8 +506,8 @@ export default function Page() {
         </section>
 
         {/* ── HEIMSÓKN / OPNUNARTÍMI: the practical block ───── */}
-        <section id="heimsokn" className="scroll-mt-20 bg-[#f6f2e8]">
-          <div id="opnunartimi" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
+        <section id="heimsokn" className="scroll-mt-20 bg-[#e7dfce]">
+          <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
             <Rise>
               <p className="font-mono text-[11px] font-medium tracking-[0.2em] text-[#2f6b4f] uppercase">
                 Heimsókn · Opnunartími
@@ -436,7 +519,23 @@ export default function Page() {
               </h2>
             </Rise>
 
-            <div className="mt-12 grid gap-6 lg:grid-cols-12">
+            {/* Quick reassurance chips pulled up near the action */}
+            <Rise delay={0.1}>
+              <ul className="mt-7 flex flex-wrap gap-2.5">
+                {['Tekið við korti', 'Sturta skyld fyrir bað', 'Ekki hægt að bóka — komdu við', 'Fjölskylduvænt'].map(
+                  (chip) => (
+                    <li
+                      key={chip}
+                      className="rounded-full bg-[#16352a]/8 px-3.5 py-1.5 text-xs font-medium text-[#16352a]/75 ring-1 ring-[#16352a]/10"
+                    >
+                      {chip}
+                    </li>
+                  ),
+                )}
+              </ul>
+            </Rise>
+
+            <div className="mt-10 grid gap-6 lg:grid-cols-12">
               {/* Season + hours */}
               <Rise y={28} className="lg:col-span-5">
                 <div className="flex h-full flex-col gap-7 rounded-[2rem] bg-[#16352a] p-8 text-[#f6f2e8] md:p-9">
@@ -460,7 +559,7 @@ export default function Page() {
 
               {/* Prices */}
               <Rise delay={0.07} y={28} className="lg:col-span-3">
-                <div className="flex h-full flex-col rounded-[2rem] bg-[#e7dfce] p-8 ring-1 ring-[#16352a]/8">
+                <div className="flex h-full flex-col rounded-[2rem] bg-white p-8 ring-1 ring-[#16352a]/8">
                   <p className="font-mono text-[10px] tracking-[0.16em] text-[#2f6b4f] uppercase">
                     Aðgangseyrir
                   </p>
@@ -491,18 +590,12 @@ export default function Page() {
                     Sunnanvert Snæfellsnes, skammt frá Lýsuhóli. Skiltað af þjóðvegi.
                   </p>
                   <div className="mt-5 flex flex-col gap-2.5">
-                    <a
-                      href={VISIT.mapUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      lang="is"
-                      className="inline-flex items-center justify-center rounded-full bg-[#2f6b4f] px-5 py-3 text-sm font-semibold text-[#f6f2e8] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16352a]"
-                    >
+                    <WetButton href={VISIT.mapUrl} external lang="is" variant="moss" size="sm">
                       Finna á korti
-                    </a>
+                    </WetButton>
                     <a
                       href={`tel:${VISIT.phone.replace(/\s/g, '')}`}
-                      className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-[#16352a] ring-1 ring-[#16352a]/20 transition-colors hover:bg-[#16352a]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6b4f]"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-[#16352a] ring-1 ring-[#16352a]/20 transition-colors hover:bg-[#16352a]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6b4f]"
                     >
                       Hringja · {VISIT.phone}
                     </a>
@@ -514,7 +607,7 @@ export default function Page() {
         </section>
 
         {/* ── GOTT AÐ VITA: practical tips ─────────────────── */}
-        <section className="bg-[#e7dfce]">
+        <section className="bg-[#f6f2e8]">
           <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
             <Rise>
               <p className="font-mono text-[11px] font-medium tracking-[0.2em] text-[#2f6b4f] uppercase">
@@ -545,6 +638,7 @@ export default function Page() {
         {/* ── FINAL CTA ────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-[#16352a] text-[#f6f2e8]">
           <GreenField reduce={!!reduce} subtle />
+          <Caustics reduce={!!reduce} band />
           <div className="relative mx-auto max-w-4xl px-5 py-24 text-center md:px-8 md:py-32">
             <Rise>
               <LeafMark className="mx-auto h-8 w-8 text-[#bfe6cf]" />
@@ -556,27 +650,18 @@ export default function Page() {
             </Rise>
             <Rise delay={0.1}>
               <p className="mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-[#f6f2e8]/85">
-                Opið yfir sumarið, 11:00–21:00. Áttu leið um Snæfellsnes? Stoppaðu, andaðu og leyfðu
-                deginum að hægja á sér.
+                Opið 15. maí–31. ágúst, daglega 11–21. Áttu leið um Snæfellsnes? Stoppaðu, andaðu og
+                leyfðu deginum að hægja á sér.
               </p>
             </Rise>
             <Rise delay={0.16}>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <a
-                  href={VISIT.mapUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  lang="is"
-                  className="inline-flex items-center justify-center rounded-full bg-[#f6f2e8] px-7 py-3.5 text-sm font-semibold text-[#16352a] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfe6cf]"
-                >
-                  Plana heimsókn
-                </a>
-                <a
-                  href={`mailto:${VISIT.email}`}
-                  className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-semibold text-[#f6f2e8] ring-1 ring-white/40 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfe6cf]"
-                >
+                <WetButton href={VISIT.mapUrl} external lang="is" variant="cream" size="lg">
+                  Finna á korti
+                </WetButton>
+                <WetButton href={`mailto:${VISIT.email}`} variant="ghost" size="lg">
                   Hafa samband
-                </a>
+                </WetButton>
               </div>
             </Rise>
           </div>
@@ -592,9 +677,9 @@ export default function Page() {
         <a
           href="#heimsokn"
           lang="is"
-          className="flex w-full items-center justify-center rounded-full bg-[#2f6b4f] px-5 py-3 text-sm font-semibold text-[#f6f2e8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16352a]"
+          className="flex min-h-[44px] w-full items-center justify-center rounded-full bg-[#2f6b4f] px-5 py-3 text-sm font-semibold text-[#f6f2e8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16352a]"
         >
-          Plana heimsókn · Opnunartími
+          Opnunartími og verð
         </a>
       </div>
 
@@ -603,35 +688,119 @@ export default function Page() {
   )
 }
 
+/* ── Liquid CTA ───────────────────────────────────────────── */
+
+/**
+ * A button that behaves like water: on hover a soft radial "wet sheen"
+ * drifts across the surface (~600ms) and the fill deepens one step, paired
+ * with a small lift so it reads as surface tension, not a mechanical pop.
+ * Reduced motion keeps the lift/colour but skips the travelling sheen.
+ */
+function WetButton({
+  href,
+  children,
+  variant,
+  size,
+  external = false,
+  lang,
+}: {
+  href: string
+  children: ReactNode
+  variant: 'moss' | 'cream' | 'ghost'
+  size: 'sm' | 'lg'
+  external?: boolean
+  lang?: string
+}) {
+  const reduce = useReducedMotion()
+  const [hover, setHover] = useState(false)
+
+  const sizeCx =
+    size === 'lg' ? 'px-6 py-3.5 text-sm' : 'px-5 py-3 text-sm'
+  const base =
+    'group relative inline-flex min-h-[44px] items-center justify-center overflow-hidden rounded-full font-semibold transition-[transform,background-color,box-shadow,color] duration-300 hover:-translate-y-0.5'
+
+  const variantCx =
+    variant === 'moss'
+      ? 'bg-[#2f6b4f] text-[#f6f2e8] hover:bg-[#27593f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16352a]'
+      : variant === 'cream'
+        ? 'bg-[#f6f2e8] text-[#16352a] shadow-lg shadow-black/30 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfe6cf]'
+        : 'text-[#f6f2e8] ring-1 ring-white/40 backdrop-blur-sm hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfe6cf]'
+
+  // Sheen tint adapts to button luminance so it always reads as wet light.
+  const sheen =
+    variant === 'cream'
+      ? 'rgba(63,143,99,0.30)'
+      : 'rgba(255,255,255,0.45)'
+
+  return (
+    <a
+      href={href}
+      lang={lang}
+      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={`${base} ${sizeCx} ${variantCx}`}
+    >
+      {!reduce && (
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={false}
+          animate={hover ? { x: ['-60%', '60%'], opacity: [0, 1, 0] } : { opacity: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          style={{
+            background: `radial-gradient(40% 120% at 0% 50%, ${sheen} 0%, transparent 70%)`,
+          }}
+        />
+      )}
+      <span className="relative">{children}</span>
+    </a>
+  )
+}
+
 /* ── Signature pieces ─────────────────────────────────────── */
 
 /**
- * The floating rounded "pool" — a glassy lozenge with a slow living green
- * gradient/ripple. Static under reduced motion.
+ * THE SIGNATURE: a continuous, slow CAUSTIC SHIMMER — layered very-low-opacity
+ * light bands that drift and overlap, evoking sunlight refracting through
+ * green mineral water. Multiple offset layers at different durations so the
+ * pattern never visibly repeats. This is the one motion no other surface has:
+ * organic light on water, not movement of objects.
+ *
+ * `band` = tuned for dark sections (uses light algae bands).
+ * Fully removed under reduced motion (a still luminous-green wash remains
+ * from the underlying gradients).
  */
-function PoolGlass({ reduce }: { reduce: boolean }) {
+function Caustics({ reduce, band = false }: { reduce: boolean; band?: boolean }) {
+  if (reduce) return null
+  const tint = band ? ALGAE_LIGHT : CREAM
+  // Three offset light-band layers, each a soft diagonal stripe gradient that
+  // drifts on a different long loop. Opacity breathes so highlights overlap.
+  const layers: { dur: number; x: [string, string]; op: [number, number, number]; angle: number }[] = [
+    { dur: 13, x: ['-8%', '8%'], op: [0.0, band ? 0.1 : 0.16, 0.0], angle: 18 },
+    { dur: 19, x: ['6%', '-6%'], op: [0.0, band ? 0.08 : 0.13, 0.0], angle: -24 },
+    { dur: 9, x: ['-5%', '5%'], op: [0.0, band ? 0.07 : 0.1, 0.0], angle: 8 },
+  ]
   return (
-    <div
-      className="mb-9 h-24 w-full max-w-md overflow-hidden rounded-[5rem] ring-1 ring-white/30 backdrop-blur-sm md:h-28"
-      aria-hidden="true"
-    >
-      <motion.div
-        className="h-full w-[200%]"
-        style={{
-          background: `linear-gradient(100deg, ${ALGAE} 0%, ${MOSS} 26%, #2a7e58 50%, ${MOSS} 74%, ${ALGAE} 100%)`,
-          backgroundSize: '50% 100%',
-        }}
-        animate={reduce ? undefined : { x: ['0%', '-50%'] }}
-        transition={
-          reduce ? undefined : { duration: 18, ease: 'linear', repeat: Infinity }
-        }
-      />
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {layers.map((l, i) => (
+        <motion.div
+          key={i}
+          className="absolute -inset-x-[20%] -inset-y-[10%]"
+          style={{
+            background: `repeating-linear-gradient(${l.angle}deg, transparent 0px, transparent 60px, ${tint} 110px, transparent 170px, transparent 240px)`,
+            mixBlendMode: 'soft-light',
+          }}
+          animate={{ x: l.x, opacity: l.op }}
+          transition={{ duration: l.dur, ease: 'easeInOut', repeat: Infinity, delay: i * 1.6 }}
+        />
+      ))}
     </div>
   )
 }
 
 /**
- * Two slow concentric "ripples" drifting up over the hero photo — calming,
+ * Two slow concentric "ripples" drifting up over the hero water — calming,
  * very low opacity. Gated off under reduced motion.
  */
 function GreenRipple({ reduce }: { reduce: boolean }) {
@@ -660,8 +829,9 @@ function GreenRipple({ reduce }: { reduce: boolean }) {
 }
 
 /**
- * A faint, slow-drifting green radial field for dark sections — subtle
- * organic motion. Static (single gradient) under reduced motion.
+ * A faint, slow-drifting green radial field for dark sections — a 12–16s
+ * opacity+hue "breath" so the green looks alive and mineral. Static (single
+ * gradient) under reduced motion.
  */
 function GreenField({ reduce, subtle = false }: { reduce: boolean; subtle?: boolean }) {
   const base = (
@@ -685,5 +855,50 @@ function GreenField({ reduce, subtle = false }: { reduce: boolean; subtle?: bool
       animate={{ opacity: subtle ? [0.4, 0.6, 0.4] : [0.55, 0.8, 0.55] }}
       transition={{ duration: 14, ease: 'easeInOut', repeat: Infinity }}
     />
+  )
+}
+
+/**
+ * Vatnið water card — gets a faint INNER GLOW brightening on hover (ring +
+ * background lighten) rather than a lift/scale, so it feels like surface
+ * tension catching light. Honours reduced motion via CSS transitions only.
+ */
+function WaterCard({
+  label,
+  title,
+  body,
+  reduce,
+}: {
+  label: string
+  title: string
+  body: string
+  reduce: boolean
+}) {
+  const [hover, setHover] = useState(false)
+  return (
+    <article
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[1.8rem] bg-[#f6f2e8]/[0.06] p-7 ring-1 ring-[#bfe6cf]/15 backdrop-blur-sm transition-[background-color,box-shadow] duration-500 hover:bg-[#f6f2e8]/[0.1] hover:ring-[#bfe6cf]/35"
+    >
+      {/* inner glow that breathes brighter on hover */}
+      {!reduce && (
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={false}
+          animate={{ opacity: hover ? 0.5 : 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          style={{
+            background: `radial-gradient(70% 60% at 50% 0%, ${ALGAE_LIGHT}33 0%, transparent 70%)`,
+          }}
+        />
+      )}
+      <span className="relative font-mono text-xs tracking-[0.16em] text-[#bfe6cf]">{label}</span>
+      <h3 className="relative mt-4 font-newsreader text-[1.4rem] leading-snug text-[#f6f2e8]">
+        {title}
+      </h3>
+      <p className="relative mt-3 text-sm leading-relaxed text-[#f6f2e8]/80">{body}</p>
+    </article>
   )
 }

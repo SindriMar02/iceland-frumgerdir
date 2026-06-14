@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
-import { Clock, ExternalLink, Flame, MapPin, Ticket } from 'lucide-react'
+import {
+  motion,
+  useAnimationControls,
+  useReducedMotion,
+  type Transition,
+} from 'framer-motion'
+import { Clock, ExternalLink, Flame, MapPin, Phone, Ticket } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -10,7 +15,8 @@ import {
   ATMO_ID,
   EXHIBITS,
   HOURS,
-  MAP_URL,
+  PHONE,
+  PHONE_TEL,
   SITES,
   STAVES,
   TICKETS,
@@ -25,7 +31,17 @@ const atmoSrcSet = [828, 1280, 2000]
   .map((w) => `${U}${ATMO_ID}?q=80&w=${w}&auto=format&fit=crop ${w}w`)
   .join(', ')
 
+/** Engraver's carve easing — slow, deliberate, never bouncy. */
 const EASE = [0.22, 1, 0.36, 1] as const
+
+/**
+ * "Kindle" flicker — a tiny, asymmetric candle-flame opacity shimmer used on
+ * hover. Low amplitude (never dips far), quick, as if a flame moved past the
+ * gold. Shared by CTAs, the map link and stave cards so the whole surface
+ * reacts to touch the same way: light, not motion.
+ */
+const KINDLE_KEYFRAMES = [1, 0.9, 1, 0.95, 1]
+const KINDLE_TRANSITION: Transition = { duration: 0.42, ease: 'easeInOut' }
 
 /** Ticket-enquiry mailto with a pre-filled, editable Icelandic template. */
 function ticketMailto() {
@@ -77,9 +93,19 @@ function FadeUp({
 
 /**
  * SIGNATURE: a galdrastafur that "inscribes" itself — every stroke draws on
- * with a stroke-dashoffset animation when scrolled into view. Under reduced
- * motion the stave is shown fully drawn (no animation). whileInView is
- * IntersectionObserver-based, which works in this environment.
+ * with a stroke-dashoffset animation when scrolled into view, over a faint
+ * engraved groove that is already present (so the gold nib appears to be
+ * carving into existing shadow). Under reduced motion the stave is shown fully
+ * drawn (no animation). whileInView is IntersectionObserver-based, which works
+ * in this environment.
+ *
+ * Elevations in this pass:
+ *  - `onInscribed`: fired as the LAST stroke completes its draw-on, so a parent
+ *    (the hero) can brighten the candle glow in time with the inscription —
+ *    "the act of inscribing lights the room."
+ *  - `interactive`: on hover/focus the single most defining stroke re-traces
+ *    (a quick pathLength redraw) and the whole gold line kindles (flicker),
+ *    so the mark feels alive. No translate, no scale.
  */
 function InscribeStave({
   stave,
@@ -88,6 +114,9 @@ function InscribeStave({
   className,
   duration = 1.8,
   decorative = false,
+  onInscribed,
+  interactive = false,
+  hovered = false,
 }: {
   stave: Stave
   size?: number
@@ -96,8 +125,31 @@ function InscribeStave({
   duration?: number
   /** Purely ornamental instances are hidden from assistive tech. */
   decorative?: boolean
+  /** Called once when the final stroke finishes inscribing (not under reduce). */
+  onInscribed?: () => void
+  /** Enable the hover re-trace of the signature stroke. */
+  interactive?: boolean
+  /** Driven by the parent card's hover/focus state. */
+  hovered?: boolean
 }) {
   const reduce = useReducedMotion()
+  const lastIndex = stave.paths.length - 1
+  const sigIndex = stave.signatureStroke ?? 0
+  // Re-trace token: bumping it restarts the signature stroke's draw.
+  const retrace = useAnimationControls()
+  const kindling = interactive && hovered && !reduce
+
+  useEffect(() => {
+    if (reduce || !interactive) return
+    if (hovered) {
+      retrace.set({ pathLength: 0 })
+      retrace.start({
+        pathLength: 1,
+        transition: { duration: 0.5, ease: EASE },
+      })
+    }
+  }, [hovered, interactive, reduce, retrace])
+
   return (
     <svg
       viewBox="0 0 120 120"
@@ -106,7 +158,7 @@ function InscribeStave({
       className={className}
       {...(decorative
         ? { 'aria-hidden': true }
-        : { role: 'img', 'aria-label': `Ristur galdrastafur: ${stave.name}` })}
+        : { role: 'img', 'aria-label': `Teiknaður galdrastafur: ${stave.name}` })}
     >
       {/* faint engraved shadow underneath, always visible */}
       <g
@@ -124,53 +176,227 @@ function InscribeStave({
         ))}
       </g>
       {/* the glowing gold line that inscribes itself */}
-      <g
+      <motion.g
         stroke="#d4af52"
         strokeWidth={strokeWidth}
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
+        // whole-line kindle flicker on hover (no movement, just light). Only
+        // attach an opacity animation while actively kindling — otherwise leave
+        // a plain attribute so framer never reads an undefined SVG base.
+        {...(kindling
+          ? { animate: { opacity: KINDLE_KEYFRAMES }, transition: KINDLE_TRANSITION }
+          : { opacity: 1 })}
       >
-        {stave.paths.map((d, i) => (
-          <motion.path
-            key={i}
-            d={d}
-            initial={reduce ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-            whileInView={{ pathLength: 1, opacity: 1 }}
-            viewport={{ once: true, margin: '-10% 0px' }}
-            transition={{
-              pathLength: { duration, ease: EASE, delay: i * 0.07 },
-              opacity: { duration: 0.25, delay: i * 0.07 },
-            }}
-          />
-        ))}
-      </g>
+        {stave.paths.map((d, i) => {
+          const isSig = interactive && i === sigIndex
+          // pathLength is the carve; opacity stays a static attribute (animating
+          // SVG-path opacity makes framer read an undefined base → console warn).
+          return (
+            <motion.path
+              key={i}
+              d={d}
+              initial={reduce ? { pathLength: 1 } : { pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true, margin: '-10% 0px' }}
+              transition={{ pathLength: { duration, ease: EASE, delay: i * 0.07 } }}
+              onAnimationComplete={
+                i === lastIndex && onInscribed && !reduce ? onInscribed : undefined
+              }
+              // signature stroke is also bound to the hover re-trace controls
+              {...(isSig ? { animate: retrace } : {})}
+            />
+          )
+        })}
+      </motion.g>
     </svg>
   )
 }
 
 /**
- * Candlelight radial glow behind the hero. Gentle opacity/scale pulse;
- * gated to static when the visitor prefers reduced motion.
+ * Candlelight radial glow. A single breathing flame (6.5s opacity+scale pulse)
+ * that, on the hero, can be briefly BRIGHTENED in time with stave-stroke
+ * completion via `flare` — so inscribing the rune literally lights the room.
+ * Gated to static under reduced motion.
  */
-function CandleGlow() {
+function CandleGlow({
+  className = 'left-1/2 top-[34%] h-[78vw] w-[78vw] max-h-[640px] max-w-[640px]',
+  flare = 0,
+}: {
+  /** Position/size utility classes for this glow instance. */
+  className?: string
+  /** Bumped externally to pulse a brief brightening flare. */
+  flare?: number
+}) {
   const reduce = useReducedMotion()
+  const controls = useAnimationControls()
+
+  // Brief brightening flare, layered on top of the steady breathing pulse.
+  useEffect(() => {
+    if (reduce || flare === 0) return
+    controls.start({
+      opacity: [1, 1.18, 1],
+      scale: [1.0, 1.06, 1.0],
+      transition: { duration: 0.9, ease: 'easeOut' },
+    })
+  }, [flare, reduce, controls])
+
   return (
-    <motion.div
+    <div
       aria-hidden="true"
-      className="pointer-events-none absolute left-1/2 top-[34%] -z-10 h-[78vw] w-[78vw] max-h-[640px] max-w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-      style={{
-        background:
-          'radial-gradient(circle at center, rgba(212,175,82,0.32) 0%, rgba(176,138,52,0.16) 38%, rgba(110,33,32,0.10) 62%, rgba(12,10,8,0) 78%)',
-      }}
-      initial={false}
-      animate={reduce ? { opacity: 0.9 } : { opacity: [0.78, 1, 0.78], scale: [1, 1.045, 1] }}
-      transition={
-        reduce
-          ? undefined
-          : { duration: 6.5, ease: 'easeInOut', repeat: Infinity }
-      }
-    />
+      className={`pointer-events-none absolute -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full ${className}`}
+    >
+      {/* steady breathing flame */}
+      <motion.div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background:
+            'radial-gradient(circle at center, rgba(212,175,82,0.32) 0%, rgba(176,138,52,0.16) 38%, rgba(110,33,32,0.10) 62%, rgba(12,10,8,0) 78%)',
+        }}
+        initial={false}
+        animate={reduce ? { opacity: 0.9 } : { opacity: [0.78, 1, 0.78], scale: [1, 1.045, 1] }}
+        transition={reduce ? undefined : { duration: 6.5, ease: 'easeInOut', repeat: Infinity }}
+      />
+      {/* flare layer that brightens as strokes complete */}
+      {!reduce && (
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background:
+              'radial-gradient(circle at center, rgba(212,175,82,0.22) 0%, rgba(212,175,82,0.08) 40%, rgba(12,10,8,0) 70%)',
+          }}
+          initial={{ opacity: 0, scale: 1 }}
+          animate={controls}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * KindleLink — a CTA / link that "kindles" on hover/focus: the gold warms and
+ * a faint candle-flicker plays across it. No scale, no lift, no shadow-pop.
+ * Renders an <a>; passes through the usual anchor props.
+ */
+function KindleLink({
+  href,
+  children,
+  className,
+  target,
+  rel,
+  tabIndex,
+  ariaHidden,
+  flame = 'dark',
+}: {
+  href: string
+  children: ReactNode
+  className?: string
+  target?: string
+  rel?: string
+  tabIndex?: number
+  ariaHidden?: boolean
+  /** 'dark' = gold-filled button (ink on gold); 'light' = outline on dark. */
+  flame?: 'dark' | 'light'
+}) {
+  const reduce = useReducedMotion()
+  const [lit, setLit] = useState(false)
+  const kindle = lit && !reduce
+  return (
+    <motion.a
+      href={href}
+      target={target}
+      rel={rel}
+      tabIndex={tabIndex}
+      aria-hidden={ariaHidden}
+      className={className}
+      onHoverStart={() => setLit(true)}
+      onHoverEnd={() => setLit(false)}
+      onFocus={() => setLit(true)}
+      onBlur={() => setLit(false)}
+      style={{ opacity: 1 }}
+      {...(kindle
+        ? {
+            animate: {
+              opacity: flame === 'dark' ? [1, 0.94, 1, 0.97, 1] : KINDLE_KEYFRAMES,
+            },
+            transition: KINDLE_TRANSITION,
+          }
+        : {})}
+    >
+      {children}
+    </motion.a>
+  )
+}
+
+/**
+ * Stave gallery card — the stave inscribes on scroll, then re-traces its
+ * signature stroke and kindles when the card is hovered/focused. Border warms
+ * to gold on hover (no lift, no scale — light, not motion).
+ */
+function StaveGalleryCard({ stave, delay }: { stave: Stave; delay: number }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <FadeUp
+      as="li"
+      delay={delay}
+      className="group flex flex-col items-center rounded-lg border border-[#b08a34]/18 bg-[#100c08] px-3 py-6 text-center transition-colors duration-500 hover:border-[#d4af52]/55 focus-within:border-[#d4af52]/55"
+    >
+      <div
+        tabIndex={0}
+        role="group"
+        aria-label={stave.name}
+        className="flex flex-col items-center rounded-md outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d4af52]"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
+      >
+        <InscribeStave
+          stave={stave}
+          size={92}
+          strokeWidth={2.4}
+          duration={1.9}
+          interactive
+          hovered={hovered}
+        />
+        <h3 className="mt-4 font-cinzel text-[0.92rem] text-[#e8d9b8]">{stave.name}</h3>
+        <p className="mt-1.5 text-[0.74rem] leading-snug text-[#d8cab0]/60">{stave.gloss}</p>
+      </div>
+    </FadeUp>
+  )
+}
+
+/** Parchment stave aside in the SAGAN section — inscribes, then re-traces. */
+function StaveAside({ stave }: { stave: Stave }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      tabIndex={0}
+      role="group"
+      aria-label={stave.name}
+      className={`relative w-full rounded-lg border border-[#b08a34]/25 p-7 outline-none transition-colors duration-500 hover:border-[#6e2120]/45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52] ${PARCHMENT}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+    >
+      <div className="flex justify-center">
+        <InscribeStave
+          stave={stave}
+          size={150}
+          strokeWidth={2.4}
+          duration={2.2}
+          interactive
+          hovered={hovered}
+          className="[&_path]:[stroke:#3a2614]"
+        />
+      </div>
+      <figcaption className="mt-5 text-center">
+        <p className="font-cinzel text-base text-[#3a2614]">{stave.name}</p>
+        <p className="mt-1.5 text-[0.82rem] leading-snug text-[#5a4326]">{stave.gloss}</p>
+      </figcaption>
+    </div>
   )
 }
 
@@ -212,8 +438,16 @@ export default function Page() {
     { href: '#midar', label: 'Miðar' },
   ]
 
+  // Glow flares: bumped when a hero / final-CTA stave finishes inscribing, so
+  // the candlelight visibly brightens as the rune is carved.
+  const [heroFlare, setHeroFlare] = useState(0)
+  const [finalFlare, setFinalFlare] = useState(0)
+
   return (
-    <div className="min-h-screen bg-[#0c0a08] font-sans text-[#d8cab0] antialiased selection:bg-[#b08a34]/40">
+    <div
+      lang="is"
+      className="min-h-screen bg-[#0c0a08] font-sans text-[#d8cab0] antialiased selection:bg-[#b08a34]/40"
+    >
       <PreviewChrome company={company} />
 
       {/* ---------------- NAV ---------------- */}
@@ -242,21 +476,22 @@ export default function Page() {
             ))}
           </ul>
 
-          <a
+          <KindleLink
             href="#midar"
-            className="rounded-full border border-[#b08a34]/50 bg-[#b08a34]/10 px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[#e8d9b8] transition-colors hover:bg-[#b08a34]/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
+            flame="light"
+            className="rounded-full border border-[#b08a34]/50 bg-[#b08a34]/10 px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[#e8d9b8] transition-colors hover:bg-[#b08a34]/25 hover:border-[#d4af52]/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
           >
             Kaupa miða
-          </a>
+          </KindleLink>
         </nav>
       </header>
 
       {/* ---------------- HERO ---------------- */}
       <section
         id="top"
-        className="relative overflow-hidden px-5 pb-20 pt-16 sm:pt-24 md:pb-28"
+        className="grain relative overflow-hidden px-5 pb-20 pt-16 sm:pt-24 md:pb-28"
       >
-        <CandleGlow />
+        <CandleGlow flare={heroFlare} />
         {/* vignette top + bottom to seat the glow */}
         <div
           aria-hidden="true"
@@ -276,10 +511,17 @@ export default function Page() {
             transition={{ duration: 1, ease: EASE, delay: 0.1 }}
             className="mb-8"
           >
-            <InscribeStave stave={STAVES[0]} size={132} strokeWidth={2.2} duration={2.4} decorative />
+            <InscribeStave
+              stave={STAVES[0]}
+              size={132}
+              strokeWidth={2.2}
+              duration={2.4}
+              decorative
+              onInscribed={() => setHeroFlare((n) => n + 1)}
+            />
           </motion.div>
 
-          <h1 className="font-cinzel text-[2rem] font-semibold leading-[1.18] text-[#efe2c4] [text-wrap:balance] sm:text-5xl sm:leading-[1.14] md:text-6xl md:leading-[1.12]">
+          <h1 className="font-cinzel text-[2rem] font-semibold leading-[1.22] tracking-[0.01em] text-[#efe2c4] [text-wrap:balance] sm:text-5xl sm:leading-[1.18] md:text-6xl md:leading-[1.16]">
             Galdrasýning
             <span className="block pt-2 text-[#d4af52]">á Ströndum</span>
           </h1>
@@ -292,26 +534,28 @@ export default function Page() {
           </FadeUp>
 
           <FadeUp
-            delay={0.25}
+            delay={0.32}
             className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
           >
-            <a
+            <KindleLink
               href="#midar"
+              flame="dark"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b08a34] px-7 py-3.5 font-mono text-[0.74rem] uppercase tracking-[0.14em] text-[#0c0a08] transition-colors hover:bg-[#d4af52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
             >
               <Ticket className="h-4 w-4" aria-hidden="true" />
               Kaupa miða
-            </a>
-            <a
+            </KindleLink>
+            <KindleLink
               href="#heimsokn"
+              flame="light"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8cab0]/25 px-7 py-3.5 font-mono text-[0.74rem] uppercase tracking-[0.14em] text-[#d8cab0]/90 transition-colors hover:border-[#d4af52]/60 hover:text-[#d4af52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
             >
               <Clock className="h-4 w-4" aria-hidden="true" />
               Opnunartími
-            </a>
+            </KindleLink>
           </FadeUp>
 
-          <FadeUp delay={0.35} className="mt-10 flex flex-wrap items-center justify-center gap-2.5">
+          <FadeUp delay={0.42} className="mt-10 flex flex-wrap items-center justify-center gap-2.5">
             {['Hólmavík', 'Strandir', 'Vestfirðir'].map((chip) => (
               <span
                 key={chip}
@@ -330,7 +574,7 @@ export default function Page() {
           src={atmoSrc}
           srcSet={atmoSrcSet}
           sizes="100vw"
-          alt="Stemningsmynd í hálfrökkri"
+          alt="Mynd í hálfrökkri"
           loading="eager"
           fetchpriority="high"
           className="h-[44vh] min-h-[300px] w-full object-cover sm:h-[52vh]"
@@ -344,10 +588,11 @@ export default function Page() {
         <div className="absolute inset-0 flex items-center justify-center px-6">
           <FadeUp className="max-w-2xl text-center">
             <p className="font-cinzel text-xl leading-[1.5] text-[#efe2c4] sm:text-2xl sm:leading-[1.5]">
-              „Sá sem kann að rista rétt, ræður meiru en sverð og spjót.“
+              Til var öld þegar fólk trúði því að rétt ristur stafur réði meiru
+              en sverð og spjót.
             </p>
             <p className="mt-4 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-[#d4af52]/80">
-              Úr íslenskri þjóðtrú
+              Galdrasýning á Ströndum
             </p>
           </FadeUp>
         </div>
@@ -376,10 +621,10 @@ export default function Page() {
               </FadeUp>
               <FadeUp as="div" delay={0.05}>
                 <p>
-                  Galdrabrennurnar — ofsóknir gegn meintum galdramönnum — kostuðu á annan tug
-                  manna lífið hér á landi á 17. öld. Ólíkt því sem þekktist í Evrópu voru það
-                  nær eingöngu karlar sem brenndir voru á báli. Þetta er harmsaga raunverulegs
-                  fólks, og hún er sögð hér af alúð og virðingu.
+                  Galdrabrennurnar — ofsóknir gegn meintum galdramönnum — kostuðu rúmlega
+                  tuttugu manns lífið hér á landi á 17. öld. Ólíkt því sem þekktist í Evrópu voru
+                  það nær eingöngu karlar sem brenndir voru á báli. Þetta er harmsaga
+                  raunverulegs fólks, og hún er sögð hér af alúð og virðingu.
                 </p>
               </FadeUp>
               <FadeUp as="div" delay={0.1}>
@@ -391,32 +636,16 @@ export default function Page() {
               </FadeUp>
             </div>
 
-            {/* stave aside that inscribes itself */}
+            {/* stave aside that inscribes itself, then re-traces on hover */}
             <FadeUp as="figure" className="flex flex-col items-center">
-              <div className={`relative w-full rounded-lg border border-[#b08a34]/25 p-7 ${PARCHMENT}`}>
-                <div className="flex justify-center">
-                  <InscribeStave
-                    stave={STAVES[1]}
-                    size={150}
-                    strokeWidth={2.4}
-                    duration={2.2}
-                    className="[&_path]:[stroke:#3a2614]"
-                  />
-                </div>
-                <figcaption className="mt-5 text-center">
-                  <p className="font-cinzel text-base text-[#3a2614]">{STAVES[1].name}</p>
-                  <p className="mt-1.5 text-[0.82rem] leading-snug text-[#5a4326]">
-                    {STAVES[1].gloss}
-                  </p>
-                </figcaption>
-              </div>
+              <StaveAside stave={STAVES[1]} />
             </FadeUp>
           </div>
         </div>
       </section>
 
       {/* ---------------- SÝNINGIN ---------------- */}
-      <section id="syningin" className="relative border-y border-[#b08a34]/12 bg-[#0a0806] px-5 py-20 md:py-28">
+      <section id="syningin" className="grain relative border-y border-[#b08a34]/12 bg-[#0a0806] px-5 py-20 md:py-28">
         <div className="mx-auto max-w-5xl">
           <FadeUp className="mb-14 max-w-2xl">
             <p className="mb-3 font-mono text-[0.7rem] uppercase tracking-[0.28em] text-[#d4af52]/85">
@@ -434,20 +663,11 @@ export default function Page() {
           {/* drawn stave gallery */}
           <ul className="mb-16 grid grid-cols-2 gap-5 sm:grid-cols-4 sm:gap-6">
             {STAVES.map((s, i) => (
-              <FadeUp
-                as="li"
-                key={s.name}
-                delay={i * 0.08}
-                className="flex flex-col items-center rounded-lg border border-[#b08a34]/18 bg-[#100c08] px-3 py-6 text-center"
-              >
-                <InscribeStave stave={s} size={92} strokeWidth={2.4} duration={1.9} />
-                <h3 className="mt-4 font-cinzel text-[0.92rem] text-[#e8d9b8]">{s.name}</h3>
-                <p className="mt-1.5 text-[0.74rem] leading-snug text-[#d8cab0]/60">{s.gloss}</p>
-              </FadeUp>
+              <StaveGalleryCard key={s.name} stave={s} delay={i * 0.08} />
             ))}
           </ul>
 
-          {/* exhibit copy, typography-led */}
+          {/* exhibit copy, typography-led — each card marked by a small inscribing glyph */}
           <div className="grid gap-px overflow-hidden rounded-lg border border-[#b08a34]/15 bg-[#b08a34]/10 sm:grid-cols-3">
             {EXHIBITS.map((ex, i) => (
               <FadeUp
@@ -455,12 +675,26 @@ export default function Page() {
                 delay={i * 0.08}
                 className="bg-[#0c0a08] p-6 sm:p-7"
               >
-                <p className="font-mono text-[0.64rem] uppercase tracking-[0.2em] text-[#d4af52]/80">
-                  {ex.kicker}
-                </p>
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-mono text-[0.64rem] uppercase tracking-[0.2em] text-[#d4af52]/80">
+                    {ex.kicker}
+                  </p>
+                  <InscribeStave
+                    stave={STAVES[ex.stave]}
+                    size={34}
+                    strokeWidth={3}
+                    duration={1.5}
+                    decorative
+                    className="-mt-1 shrink-0 opacity-70"
+                  />
+                </div>
                 <h3 className="mt-2 font-cinzel text-lg leading-[1.3] text-[#e8d9b8]">
                   {ex.title}
                 </h3>
+                <span
+                  aria-hidden="true"
+                  className="mt-3 block h-px w-10 bg-gradient-to-r from-[#d4af52]/70 to-transparent"
+                />
                 <p className="mt-3 text-[0.88rem] leading-relaxed text-[#d8cab0]/75">{ex.body}</p>
               </FadeUp>
             ))}
@@ -487,11 +721,11 @@ export default function Page() {
                 <FadeUp
                   key={site.name}
                   delay={i * 0.08}
-                  className="rounded-lg border border-[#b08a34]/20 bg-[#100c08] p-6"
+                  className="rounded-lg border border-[#b08a34]/20 bg-[#100c08] p-6 transition-colors duration-500 hover:border-[#b08a34]/40"
                 >
                   <div className="flex items-start gap-3">
                     <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af52]" aria-hidden="true" />
-                    <div>
+                    <div className="min-w-0">
                       <h3 className="font-cinzel text-lg text-[#e8d9b8]">{site.name}</h3>
                       <p className="mt-0.5 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-[#d4af52]/75">
                         {site.role}
@@ -499,6 +733,17 @@ export default function Page() {
                       <p className="mt-2.5 text-[0.9rem] leading-relaxed text-[#d8cab0]/80">
                         {site.desc}
                       </p>
+                      <KindleLink
+                        href={site.mapUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        flame="light"
+                        className="mt-3.5 inline-flex items-center gap-1.5 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-[#d4af52]/90 transition-colors hover:text-[#d4af52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
+                      >
+                        <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                        Finna á korti
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      </KindleLink>
                     </div>
                   </div>
                 </FadeUp>
@@ -532,13 +777,13 @@ export default function Page() {
                       className="flex items-baseline justify-between gap-4 border-b border-[#3a2614]/15 pb-3 last:border-0 last:pb-0"
                     >
                       <dt className="text-[0.9rem] text-[#3a2614]">{h.when}</dt>
-                      <dd className="font-mono text-[0.82rem] font-bold text-[#5a3a1a]">{h.time}</dd>
+                      <dd className="font-mono text-[0.82rem] font-bold text-[#3a2614]">{h.time}</dd>
                     </div>
                   ))}
                 </dl>
-                <p className="mt-4 text-[0.76rem] leading-snug text-[#5a4326]">
-                  Tímar eru sýnishorn. Utan sumars er best að hafa samband og bóka heimsókn
-                  fyrirfram.
+                <p className="mt-4 text-[0.76rem] leading-snug text-[#4a3318]">
+                  Tímar eru sýnishorn. Best er að hafa samband og staðfesta opnun yfir
+                  háveturinn.
                 </p>
               </FadeUp>
 
@@ -548,16 +793,18 @@ export default function Page() {
                   Hólmavík er á þjóðvegi 61, um 230 km frá Reykjavík. Sýningin er niðri við
                   höfnina og auðfundin í þorpinu. Kotbýlið er norðar í Bjarnarfirði.
                 </p>
-                <a
-                  href={MAP_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#b08a34]/45 px-5 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[#e8d9b8] transition-colors hover:bg-[#b08a34]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
+                <p className="mt-4 text-[0.84rem] leading-relaxed text-[#d8cab0]/65">
+                  Galdrasýningin er rótgróinn áfangastaður á Ströndum og fær reglulega lof
+                  ferðamanna og umfjöllun í ferðahandbókum.
+                </p>
+                <KindleLink
+                  href={`tel:${PHONE_TEL}`}
+                  flame="light"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#b08a34]/45 px-5 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[#e8d9b8] transition-colors hover:bg-[#b08a34]/20 hover:border-[#d4af52]/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
                 >
-                  <MapPin className="h-4 w-4" aria-hidden="true" />
-                  Finna á korti
-                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
+                  <Phone className="h-4 w-4" aria-hidden="true" />
+                  Sími {PHONE}
+                </KindleLink>
               </FadeUp>
             </div>
           </div>
@@ -565,7 +812,7 @@ export default function Page() {
       </section>
 
       {/* ---------------- MIÐAR ---------------- */}
-      <section id="midar" className="relative border-t border-[#b08a34]/12 bg-[#0a0806] px-5 py-20 md:py-28">
+      <section id="midar" className="grain relative border-t border-[#b08a34]/12 bg-[#0a0806] px-5 py-20 md:py-28">
         <div className="mx-auto max-w-4xl">
           <FadeUp className="mb-12 text-center">
             <p className="mb-3 font-mono text-[0.7rem] uppercase tracking-[0.28em] text-[#d4af52]/85">
@@ -582,7 +829,7 @@ export default function Page() {
                 as="li"
                 key={t.name}
                 delay={i * 0.08}
-                className="flex flex-col rounded-lg border border-[#b08a34]/25 bg-[#100c08] p-6 text-center"
+                className="flex flex-col rounded-lg border border-[#b08a34]/25 bg-[#100c08] p-6 text-center transition-colors duration-500 hover:border-[#d4af52]/45"
               >
                 <h3 className="font-cinzel text-[1.05rem] leading-snug text-[#e8d9b8]">{t.name}</h3>
                 <p className="mt-4 font-cinzel text-3xl text-[#d4af52]">{t.price}</p>
@@ -592,13 +839,14 @@ export default function Page() {
           </ul>
 
           <FadeUp className="mt-10 flex flex-col items-center gap-4">
-            <a
+            <KindleLink
               href={ticketMailto()}
+              flame="dark"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b08a34] px-9 py-4 font-mono text-[0.78rem] uppercase tracking-[0.14em] text-[#0c0a08] transition-colors hover:bg-[#d4af52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
             >
               <Ticket className="h-4 w-4" aria-hidden="true" />
-              Kaupa miða
-            </a>
+              Senda fyrirspurn
+            </KindleLink>
             <p className="max-w-md text-center text-[0.78rem] leading-snug text-[#d8cab0]/70">
               Verð eru sýnishorn. Sendu okkur fyrirspurn og við staðfestum dagsetningu og
               fjölda — eða borgaðu á staðnum við komu.
@@ -608,18 +856,22 @@ export default function Page() {
       </section>
 
       {/* ---------------- FINAL CTA ---------------- */}
-      <section className="relative overflow-hidden px-5 py-24 text-center md:py-32">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[60vw] w-[60vw] max-h-[480px] max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{
-            background:
-              'radial-gradient(circle at center, rgba(176,138,52,0.22) 0%, rgba(110,33,32,0.10) 50%, rgba(12,10,8,0) 75%)',
-          }}
+      <section className="grain relative overflow-hidden px-5 py-24 text-center md:py-32">
+        {/* the same breathing candle carries through to the close */}
+        <CandleGlow
+          flare={finalFlare}
+          className="left-1/2 top-1/2 h-[60vw] w-[60vw] max-h-[480px] max-w-[480px]"
         />
         <FadeUp className="mx-auto max-w-2xl">
           <div className="mb-8 flex justify-center">
-            <InscribeStave stave={STAVES[2]} size={110} strokeWidth={2.2} duration={2.2} decorative />
+            <InscribeStave
+              stave={STAVES[2]}
+              size={110}
+              strokeWidth={2.2}
+              duration={2.2}
+              decorative
+              onInscribed={() => setFinalFlare((n) => n + 1)}
+            />
           </div>
           <h2 className="font-cinzel text-[1.6rem] leading-[1.28] text-[#efe2c4] sm:text-4xl sm:leading-[1.24]">
             Stígðu inn í rökkrið
@@ -629,19 +881,21 @@ export default function Page() {
             Galdrasýningin bíður á Strandaleiðinni.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
+            <KindleLink
               href="#midar"
+              flame="dark"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b08a34] px-8 py-3.5 font-mono text-[0.76rem] uppercase tracking-[0.14em] text-[#0c0a08] transition-colors hover:bg-[#d4af52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
             >
               <Ticket className="h-4 w-4" aria-hidden="true" />
               Kaupa miða
-            </a>
-            <a
+            </KindleLink>
+            <KindleLink
               href={`mailto:${company.ownerEmail}`}
+              flame="light"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8cab0]/25 px-8 py-3.5 font-mono text-[0.76rem] uppercase tracking-[0.14em] text-[#d8cab0]/90 transition-colors hover:border-[#d4af52]/60 hover:text-[#d4af52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af52]"
             >
               Hafa samband
-            </a>
+            </KindleLink>
           </div>
         </FadeUp>
       </section>
@@ -660,7 +914,7 @@ export default function Page() {
               Galdrasýning á Ströndum
             </p>
             <p className="truncate font-mono text-[0.64rem] uppercase tracking-[0.1em] text-[#d8cab0]/70">
-              Sumar daglega 10–18
+              Opið daglega · Hólmavík
             </p>
           </div>
           <a

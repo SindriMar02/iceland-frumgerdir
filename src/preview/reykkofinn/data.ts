@@ -1,23 +1,28 @@
 /**
  * Reykkofinn / Litla sveitabúðin — "Reykur úr hrauninu" content model.
- * A lava-field smokehouse & farm shop at Hella in Mývatnssveit.
+ * Sauðfjárbændur á Hellu í Mývatnssveit: heimareykt hangikjöt og lambakjöt,
+ * fullunnið og selt beint frá býli. Reyktur silungur er hliðarvara.
+ * Tagline búsins: "Heimareykt — bragðsins vegna!"
  * Sample prices/copy only (disclaimed in the shared footer).
  */
 
-const IMG = 'https://images.unsplash.com/'
-const Q_CARD = '?q=80&w=1100&auto=format&fit=crop'
+/** Real tagline of the farm (hangikjot.is). */
+export const TAGLINE = 'Heimareykt — bragðsins vegna!'
 
-/** Hero — smoked salmon/char, dark. */
-export const HERO_ID = 'photo-1763062550082-2c9f94096abb'
+/** Phone — real numbers for the farm. 848 4237 primary, 896 4237 secondary. */
+export const PHONE_PRIMARY = '848 4237'
+export const PHONE_SECONDARY = '896 4237'
 
-/** Process / place imagery (Unsplash ids supplied in the brief). */
+/**
+ * Hero — atmospheric lava + rising smoke ("Reykur úr hrauninu") rather than a
+ * single species photo, so no product is misrepresented. The hero sells the
+ * place and the smoke, not a fish; hangikjöt + lambakjöt lead the grid below.
+ */
+export const HERO_ID = 'photo-1582721478779-0ae163c05a60' // glowing lava + rising smoke
+
+/** Place imagery — only verified, authentic Mývatn shots are used. */
 export const IMGS = {
-  board: 'photo-1546970361-407ddc8053fc', // smoked board / platter
-  smoking: 'photo-1777798343565-50a5c7959013', // smoking process
-  hanging: 'photo-1737690526913-6ad06bc04340', // fish hanging in smoke
-  lava: 'photo-1582721478779-0ae163c05a60', // lava field
-  lake: 'photo-1655536103884-206fc6837a4a', // Lake Mývatn
-  sign: 'photo-1576501161309-37635f837061', // farm-shop sign
+  lake: 'photo-1655536103884-206fc6837a4a', // Lake Mývatn with pseudo-craters
 } as const
 
 export interface Product {
@@ -27,41 +32,46 @@ export interface Product {
   weight: string
   price: string
   cta: string
-  /** photoLight tiles render a typographic card instead of a stock photo */
-  photoLight?: boolean
-  img?: string
-  alt?: string
+  /** flagship tiles get the largest, most prominent treatment */
+  flagship?: boolean
+  /** short uppercase tag shown on the photo-light tiles */
+  tag?: string
 }
 
+/**
+ * Hierarchy fix: hangikjöt is the flagship (first + biggest), lambakjöt
+ * second, reyktur silungur a supporting third. The two products that
+ * previously had un-usable stock photos are now premium photo-light tiles
+ * — the pattern the review called the best card on the page.
+ */
 export const PRODUCTS: Product[] = [
-  {
-    id: 'reyktur',
-    name: 'Reyktur silungur',
-    line: 'Villtur Mývatnssilungur, hægreyktur yfir birki í hraunkofanum.',
-    weight: '200 g · heil flök',
-    price: '1.890 kr.',
-    cta: 'Panta',
-    img: `${IMG}${HERO_ID}${Q_CARD}`,
-    alt: 'Reykt silungsflök í dökkri lýsingu, glansandi yfirborð',
-  },
-  {
-    id: 'grafinn',
-    name: 'Grafinn silungur',
-    line: 'Mildur, grafinn í salti, sykri og dilli — borinn fram þunnskorinn.',
-    weight: '150 g · sneitt',
-    price: '1.690 kr.',
-    cta: 'Panta',
-    img: `${IMG}${IMGS.board}${Q_CARD}`,
-    alt: 'Reykt og grafinn fiskur á dökku skurðarbretti með kryddi',
-  },
   {
     id: 'hangikjot',
     name: 'Hangikjöt',
-    line: 'Birkireykt að gömlum sið — selt eftir vigt í sveitabúðinni um hátíðar.',
-    weight: 'Eftir vigt · árstíðabundið',
+    line: 'Heimareykt yfir íslensku birki að gömlum sið. Hjartað í búðinni okkar — fullunnið beint frá býli.',
+    weight: 'Heilt, hálft eða eftir vigt',
     price: 'frá 4.200 kr./kg',
-    cta: 'Spyrja um framboð',
-    photoLight: true,
+    cta: 'Panta hangikjöt',
+    flagship: true,
+    tag: 'Beint frá býli',
+  },
+  {
+    id: 'lambakjot',
+    name: 'Lambakjöt',
+    line: 'Lamb af eigin fé, alið á heiðum Mývatnssveitar. Heilt og hálft skrokk, eða einstakir bitar.',
+    weight: 'Heilt / hálft skrokk · eftir vigt',
+    price: 'frá 1.890 kr./kg',
+    cta: 'Panta lambakjöt',
+    tag: 'Af eigin fé',
+  },
+  {
+    id: 'reyktur',
+    name: 'Reyktur silungur',
+    line: 'Heimareyktur silungur, hægt yfir birki í kofanum. Tilbúinn á brauðið — fáanlegur eftir árstíð.',
+    weight: '200 g · heil flök',
+    price: '1.890 kr.',
+    cta: 'Panta silung',
+    tag: 'Árstíðabundið',
   },
 ]
 
@@ -71,22 +81,22 @@ export interface Step {
   body: string
 }
 
-/** "Frá vatni að borði" — lake → smokehouse → table. */
+/** "Svona pantar þú" — the honest ordering path (no fake cart). */
 export const FLOW: Step[] = [
   {
     n: '01',
-    title: 'Úr vatninu',
-    body: 'Villtur silungur úr tæru Mývatni — handflakaður samdægurs á búinu.',
+    title: 'Hafðu samband',
+    body: 'Hringdu eða sendu okkur tölvupóst og segðu hvað þig vantar — hangikjöt, lambakjöt eða silung.',
   },
   {
     n: '02',
-    title: 'Í reykkofann',
-    body: 'Hægreyktur yfir íslensku birki í kofanum úti í hrauninu, lágum hita.',
+    title: 'Við reykjum og pökkum',
+    body: 'Við fullvinnum vöruna heima á Hellu, vigtum og pökkum fyrir þig — beint frá býli.',
   },
   {
     n: '03',
-    title: 'Á borðið',
-    body: 'Pakkað í sveitabúðinni — tilbúið á brauðið eða sent heim til þín.',
+    title: 'Sækja eða senda',
+    body: 'Náðu í pöntunina í sveitabúðinni við hringveginn, eða við sendum heim innanlands.',
   },
 ]
 
@@ -96,8 +106,9 @@ export interface Spec {
   detail: string
 }
 
+/** Defensible claims only — no "villtur úr Mývatni" overclaim. */
 export const SPECS: Spec[] = [
   { k: 'Birki', label: 'Reykur', detail: 'Aðeins íslenskt birki — engin gerviefni, enginn flýtir.' },
-  { k: 'Villt', label: 'Hráefni', detail: 'Silungur úr Mývatni, ekki eldisfiskur úr keri.' },
-  { k: '65°N', label: 'Mývatnssveit', detail: 'Reykt í hrauninu við vatnið, í Norðurlandi eystra.' },
+  { k: 'Heima', label: 'Vinnsla', detail: 'Fullunnið og reykt heima á Hellu, selt beint frá býli.' },
+  { k: '65°N', label: 'Mývatnssveit', detail: 'Búið okkar stendur í hrauninu við vatnið, á Norðurlandi eystra.' },
 ]
