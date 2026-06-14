@@ -11,6 +11,7 @@ const GJTravel = lazy(() => import('./pages/GJTravel'))
 
 // Five independent redesign projects (new client engagements)
 const AdminPreviews = lazy(() => import('./preview/AdminPreviews'))
+const Outreach = lazy(() => import('./pages/Outreach'))
 const ErpsstadirPage = lazy(() => import('./preview/erpsstadir/Page'))
 const TjoruhusidPage = lazy(() => import('./preview/tjoruhusid/Page'))
 const EktafiskurPage = lazy(() => import('./preview/ektafiskur/Page'))
@@ -59,6 +60,7 @@ export default function App() {
             <Route path="/gj-travel" element={<GJTravel />} />
             {/* Five independent redesign projects + internal dashboard */}
             <Route path="/admin/previews" element={<AdminPreviews />} />
+            <Route path="/outreach" element={<Outreach />} />
             <Route path="/preview/erpsstadir" element={<ErpsstadirPage />} />
             <Route path="/preview/tjoruhusid" element={<TjoruhusidPage />} />
             <Route path="/preview/ektafiskur" element={<EktafiskurPage />} />
