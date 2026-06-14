@@ -17,6 +17,12 @@ const EktafiskurPage = lazy(() => import('./preview/ektafiskur/Page'))
 const KaffiHornidPage = lazy(() => import('./preview/kaffihornid/Page'))
 const SeaKayakPage = lazy(() => import('./preview/seakayak/Page'))
 const WeiderPage = lazy(() => import('./preview/weider/Page'))
+// Batch 3 — five new redesigns
+const AustriPage = lazy(() => import('./preview/austri/Page'))
+const LysulaugarPage = lazy(() => import('./preview/lysulaugar/Page'))
+const HespaPage = lazy(() => import('./preview/hespa/Page'))
+const ReykkofinnPage = lazy(() => import('./preview/reykkofinn/Page'))
+const GaldrasyningPage = lazy(() => import('./preview/galdrasyning/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -59,6 +65,11 @@ export default function App() {
             <Route path="/preview/kaffihornid" element={<KaffiHornidPage />} />
             <Route path="/preview/seakayak" element={<SeaKayakPage />} />
             <Route path="/preview/weider" element={<WeiderPage />} />
+            <Route path="/preview/austri" element={<AustriPage />} />
+            <Route path="/preview/lysulaugar" element={<LysulaugarPage />} />
+            <Route path="/preview/hespa" element={<HespaPage />} />
+            <Route path="/preview/reykkofinn" element={<ReykkofinnPage />} />
+            <Route path="/preview/galdrasyning" element={<GaldrasyningPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
