@@ -662,6 +662,275 @@ Hugmyndin er að láta dulúðina og söguna njóta sín og gera gestum auðvelt
 ${SIGN}`,
     },
   },
+
+  /* ----------------------------------------------------------------- */
+  /* Batch 4 — five new independent redesigns (each its own direction). */
+  /* ----------------------------------------------------------------- */
+  {
+    slug: 'saudarkroksbakari',
+    route: '/preview/saudarkroksbakari',
+    name: 'Sauðárkróksbakarí',
+    sector: 'Heritage bakery',
+    location: 'Sauðárkrókur, Skagafjörður',
+    region: 'North',
+    established: 'Síðan 1880',
+    currentUrl: 'https://www.saudarkroksbakari.net',
+    ownerEmail: 'saudarkroksbakari@gmail.com',
+    concept: 'Bakað síðan 1880',
+    conceptTagline: 'A 140-year town bakery as a warm dawn-to-day broadsheet — the ovens are still lit.',
+    accent: '#b06a2c',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Eitt elsta bakarí landsins, bakað á sama stað við Aðalgötu síðan 1880',
+        'Sterkar umsagnir og Travelers’ Choice á Tripadvisor (4,7 stjörnur)',
+        'Hjarta gamla bæjarins á Sauðárkróki og fast stopp ferðafólks',
+      ],
+      weaknesses: [
+        'Lénið saudarkroksbakari.net er útrunnið og vísar nú á erlenda sölusíðu',
+        'Engin virk vefsíða: enginn matseðill, opnunartími, kort eða sími sem virkar',
+        '140 ára sagan og sterku umsagnirnar hvergi kynntar',
+      ],
+      opportunities: [
+        'Ná aftur sýnileika með opnunartíma, korti og síma sem hægt er að ýta á',
+        'Segja 140 ára söguna sem enginn stórmarkaður á',
+        'Hröð forsíða í síma fyrir ferðafólk í Skagafirði',
+      ],
+    },
+    positioning:
+      'Eitt elsta bakarí Íslands, nánast ósýnilegt á netinu eftir að lénið rann út. Frumgerðin á að koma því aftur á kortið og láta 140 ára söguna njóta sín.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Sauðárkróksbakarí',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Sauðárkróksbakarí er eitt elsta bakarí landsins og sú saga á sér fáa líka. Þegar ég ætlaði að skoða vefsíðuna ykkar tók ég eftir að lénið saudarkroksbakari.net er ekki lengur virkt, svo gestir sem leita að ykkur eða smella á hlekk frá Tripadvisor lenda á annarri síðu. Það getur kostað ykkur heimsóknir á hverjum degi.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu sem sýnir söguna, opnunartíma, vörurnar og hvar ykkur er að finna. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á þetta getum við spjallað og fundið sanngjarnt verð. Ef ekki er ekkert mál, og ég vona að þetta veiti ykkur smá innblástur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'reykjavikdistillery',
+    route: '/preview/reykjavikdistillery',
+    name: '64° Reykjavik Distillery',
+    sector: 'Craft distillery',
+    location: 'Hafnarfjörður',
+    region: 'Capital',
+    established: 'Síðan 2009',
+    currentUrl: 'https://reykjavikdistillery.is',
+    ownerEmail: 'info@reykjavikdistillery.is',
+    concept: '64°08′N',
+    conceptTagline: 'Foraged Icelandic botanicals plotted on the latitude they grew on — wild to glass.',
+    accent: '#4f8a64',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1514218953589-2d7d37efd2dc?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Fjölskyldurekið örbrugghús frá 2009, fyrsta sinnar tegundar á Íslandi',
+        'Sterk saga: jurtir tíndar í íslenskri náttúru, frá villtu í glas',
+        'Selt á 60+ stöðum, í Fríhöfninni og um borð hjá Icelandair og Play',
+      ],
+      weaknesses: [
+        'Engin verð og engin bein leið til að kaupa vörurnar',
+        'Tæknilega úrelt (PHP 7.0), enginn H1, engin lýsigögn, læstur aðdráttur í síma',
+        'Bragðlýsingar, styrkur og flöskustærðir vantar á vörurnar',
+      ],
+      opportunities: [
+        'Setja vörurnar, bragðið og verðið í forgrunn með skýrri kaupleið',
+        'Segja jurtasöguna (64° = breiddargráða Reykjavíkur) sem fáir keppa við',
+        'Opna á heimsóknir og smakk í brugghúsinu í Hafnarfirði',
+      ],
+    },
+    positioning:
+      'Verðlaunavert íslenskt handverk sem felur sína bestu sögu. Frumgerðin plottar hverja jurt á breiddargráðu sína og gerir bragðið og kaupin augljós.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir 64° Reykjavik Distillery',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Það sem þið gerið hjá 64° Reykjavik Distillery er fallegt handverk, íslenskar jurtir tíndar í náttúrunni og settar í flösku. Þegar ég skoðaði vefsíðuna tók ég eftir að hvergi sjást verð á vörunum og engin bein leið er til að kaupa þær, sem getur orðið til þess að áhugasamir gestir hætta við áður en þeir komast lengra.
+
+Mér fannst sagan og vörurnar eiga skilið betri umgjörð, svo ég hannaði frumgerð að nýrri vefsíðu sem setur jurtirnar og bragðið í forgrunn. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á þetta getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'beffatours',
+    route: '/preview/beffatours',
+    name: 'Beffa Tours',
+    sector: 'Whale watching',
+    location: 'Bíldudalur, Arnarfjörður',
+    region: 'Westfjords',
+    established: 'Síðan 2018',
+    currentUrl: 'https://beffatours.is',
+    ownerEmail: 'info@harbourinn.is',
+    concept: 'Sjö sæti á Arnarfirði',
+    conceptTagline: 'Just seven guests on a 9-metre boat under the Westfjords Alps — stillness as the product.',
+    accent: '#2c6b80',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Náin upplifun: einn 9 metra bátur, mest sjö gestir í einu',
+        'Arnarfjörður undir Vestfjarðaölpunum, hnúfubakar algengastir',
+        'Fjölskyldurekið frá 2018, heimamenn sem þekkja fjörðinn',
+      ],
+      weaknesses: [
+        'Engin netbókun og engin verð, aðeins tölvupóstur',
+        'Tölvupóstur fer á annað fyrirtæki (harbourinn.is) og einkanetfang',
+        'Tvítekinn titill, ekkert sitemap og lítið efni fyrir leitarvélar',
+      ],
+      opportunities: [
+        'Bein bókun með dagsetningu og sætum sýndum (sjö sæti = eftirsókn)',
+        'Segja söguna um nándina sem stóru bátarnir geta ekki boðið',
+        'Skýr verð, brottfarir og hvað fylgir, fyrir farsímann',
+      ],
+    },
+    positioning:
+      'Sjaldgæf, náin hvalaskoðun sem tapar bókunum í tölvupóstshlekk. Frumgerðin selur kyrrðina og gerir bókun á sæti einfalda.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Beffa Tours',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenska ferðaþjónustu.
+
+Beffa Tours býður upp á eitthvað sjaldgæft, hvalaskoðun á Arnarfirði með aðeins sjö gestum í einu. Þegar ég skoðaði vefsíðuna tók ég eftir að ekki er hægt að bóka ferð beint og verð koma hvergi fram, svo gestir sem vilja bóka utan opnunartíma eða erlendis frá leita oft annað þar sem svarið fæst strax.
+
+Mér fannst upplifunin eiga skilið sterkari umgjörð, svo ég hannaði frumgerð að nýrri vefsíðu sem kynnir ferðina og gerir bókun einfalda. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á þetta getum við talað um sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'kogga',
+    route: '/preview/kogga',
+    name: 'Kogga',
+    sector: 'Ceramic studio & gallery',
+    location: 'Vesturgata 5, Reykjavík',
+    region: 'Capital',
+    established: 'Í 40 ár',
+    currentUrl: 'https://www.kogga.is',
+    ownerEmail: 'kogga@kogga.is',
+    concept: 'Innlegg',
+    conceptTagline: 'A 40-year studio built on inlaid porcelain — fragments that assemble into form.',
+    accent: '#8f3b2e',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Kolbrún Björgólfsdóttir, fjörutíu ára ferill og eigin innlagstækni',
+        'Rauða húsið við Vesturgötu 5, vinnustofa og galarí undir sama þaki',
+        'Einstök verk sem sameina postulín og steinleir, innblásin af landinu',
+      ],
+      weaknesses: [
+        'Engin verð sjást þegar flett er verkunum, engin stærð eða saga',
+        'Engir opnunartímar, ekkert kort og engin lýsigögn',
+        'Útlit óbreytt frá 2016, stendur ekki undir gæðum verkanna',
+      ],
+      opportunities: [
+        'Sýna verkin eins og á safni, með verði, stærð og sögu hvers stykkis',
+        'Bjóða heimsókn í vinnustofuna með opnunartíma og korti',
+        'Segja söguna á bak við innlagstæknina sem fólk man eftir',
+      ],
+    },
+    positioning:
+      'Keramík í safngæðaflokki seld á síðu sem felur verðið og söguna. Frumgerðin setur verkin á stall og gerir bæði kaup og heimsókn einföld.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Koggu',
+      body: `Sæl Kolbrún,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenskt handverk og listafólk.
+
+Keramíkverkin þín og innlagstæknin sem þú hefur þróað í fjörutíu ár eru einstök, og rauða húsið við Vesturgötu er staður sem fólk man eftir. Þegar ég skoðaði vefsíðuna tók ég eftir að gestir sjá ekki verð þegar þeir fletta verkunum og opnunartímar koma hvergi fram, sem getur valdið því að áhugasamir kaupendur og gestir gefist upp.
+
+Mér fannst verkin eiga skilið umgjörð í sínum gæðaflokki, svo ég hannaði frumgerð að nýrri vefsíðu þar sem verkin og sagan fá að njóta sín. Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef þér líst vel á þetta getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'haafell',
+    route: '/preview/haafell',
+    name: 'Háafell Geitfjársetur',
+    sector: 'Goat farm & conservation',
+    location: 'Hvítársíða, Borgarfjörður',
+    region: 'West',
+    established: 'Síðan 1989',
+    currentUrl: 'https://www.geitur.is',
+    ownerEmail: 'geitur@geitur.is',
+    concept: 'Síðasta hjörðin',
+    conceptTagline: 'The only Icelandic goat farm, telling a 1,100-year breed back from the brink.',
+    accent: '#5f7138',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1524024973431-2ad916746881?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Eina geitfjársetrið á Íslandi, lykilbýli í björgun íslensku geitarinnar',
+        'Sterk saga: forn stofn frá landnámi sem stóð frammi fyrir útrýmingu',
+        'Heimsóknir, geitaafurðir og einlæg saga sem fólk tengir við',
+      ],
+      weaknesses: [
+        'Aðeins á íslensku, engin enska fyrir erlenda gesti',
+        'Pöntunarhlekkur á vörur virkar ekki, enginn H1 og engin lýsigögn',
+        'Þrjár tómar síður í sitemap og rangur bær í titli (Borgarnes)',
+      ],
+      opportunities: [
+        'Tvítyngd síða (íslenska og enska) fyrir ferðafólk á Vesturlandi',
+        'Segja verndunarsöguna sterkt og sýna opnunartíma, verð og kort',
+        'Eigin vöruhluti í stað brotins pöntunarhlekks',
+      ],
+    },
+    positioning:
+      'Ótrúleg verndunarsaga sem síðan kemur ekki til skila. Frumgerðin segir söguna á tveimur tungumálum og gerir heimsókn og kaup auðveld.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Háafell Geitfjársetur',
+      body: `Sæl Jóhanna,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og ferðamannastaði.
+
+Háafell er einstakur staður, eina geitfjársetrið á landinu og saga íslensku geitarinnar sem þið hafið bjargað frá útrýmingu. Þegar ég skoðaði vefsíðuna tók ég eftir að hún er aðeins á íslensku og að hlekkurinn til að panta vörur virkar ekki, svo erlendir gestir og þeir sem vilja versla komast ekki alla leið.
+
+Mér fannst sagan ykkar eiga skilið að heyrast, svo ég hannaði frumgerð að nýrri vefsíðu á íslensku og ensku sem segir söguna, sýnir opnunartíma og verð og gerir heimsókn auðvelda. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á þetta getum við talað um sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {

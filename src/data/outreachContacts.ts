@@ -1,18 +1,14 @@
 /**
- * Outreach system for the 5 newest redesigns (batch 3).
+ * Outreach system for the 5 newest redesigns (batch 4):
+ * Sauðárkróksbakarí, 64° Reykjavik Distillery, Beffa Tours, Kogga, Háafell.
  *
- * Separate from src/data/outreach.ts (which holds the batch-1 tourism emails used
- * by the SendPreview modal). This file is the single source for the internal
- * /outreach dashboard + OUTREACH.md.
+ * Single source for the internal /outreach dashboard + OUTREACH.md. Every email
+ * below was confirmed on a public source (sourceUrl) on 2026-06-21; none are
+ * guessed. No private personal data. Nothing here is sent automatically — this
+ * is for review and manual sending only.
  *
- * RULES honoured: every email below was seen verbatim on the company's own public
- * site (sourceUrl); none are guessed. No private personal data. Austri has no
- * reliably-transcribable email, so its contactUrl is the official Instagram and
- * the phone is given for reference. Weider is excluded. Nothing here is sent
- * automatically; this is for review and manual sending only.
- *
- * The signature phone is left as the literal placeholder "[símanúmer]" because
- * Sindri's number is not on file; fill it before sending.
+ * (The earlier batch-3 contacts — Austri, Lýsulaugar, Hespa, Reykkofinn,
+ * Galdrasýning — still live in git history and in src/preview/companies.ts.)
  */
 
 export type Confidence = 'high' | 'medium' | 'low'
@@ -44,223 +40,211 @@ export interface OutreachContact {
 const PREVIEW = 'https://sindrimar02.github.io/iceland-frumgerdir/preview'
 
 const SIGN = `Bestu kveðjur,
-
-Sindri Már Sigurðsson
-[símanúmer]
+Sindri
 sindrimar02@gmail.com`
 
 const SIGN_SHORT = `Bestu kveðjur,
-Sindri Már Sigurðsson`
+Sindri`
 
 export const OUTREACH_CONTACTS: OutreachContact[] = [
   {
-    id: 'austri',
-    companyName: 'Austri Brugghús',
+    id: 'saudarkroksbakari',
+    companyName: 'Sauðárkróksbakarí',
     contactName: '',
     contactRole: '',
-    email: '',
-    phone: '456 7898',
-    contactUrl: 'https://www.instagram.com/austribrugghus/',
-    confidence: 'low',
-    sourceUrl: 'https://austurland.is/framleidandi/austri-brugghus/',
-    previewUrl: `${PREVIEW}/austri`,
-    subject: 'Hugmynd að nýrri vefsíðu fyrir Austra Brugghús',
+    email: 'saudarkroksbakari@gmail.com',
+    phone: '455 5000',
+    contactUrl: '',
+    confidence: 'medium',
+    sourceUrl: 'https://www.finna.is/fyrirtaeki/D7B5Ae/saudarkroksbakari',
+    previewUrl: `${PREVIEW}/saudarkroksbakari`,
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Sauðárkróksbakarí',
     emailBody: `Góðan dag,
 
-Ég heiti Sindri Már og ég hanna og smíða vefsíður fyrir íslensk fyrirtæki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Mér finnst virkilega skemmtilegt það sem þið hafið byggt upp fyrir austan, fyrsta brugghús Austfjarða, og ekki síst hvernig bjórarnir eru nefndir eftir fjöllunum og kennileitunum í kring. Það er saga sem á heima á vef.
+Sauðárkróksbakarí er eitt elsta bakarí landsins og sú saga á sér fáa líka. Þegar ég ætlaði að skoða vefsíðuna ykkar tók ég eftir að lénið saudarkroksbakari.net er ekki lengur virkt, svo gestir sem leita að ykkur eða smella á hlekk frá Tripadvisor lenda á annarri síðu. Það getur kostað ykkur heimsóknir á hverjum degi.
 
-Ég tók mér það bessaleyfi að setja saman litla frumgerð að nýrri vefsíðu fyrir ykkur, því mér fannst vörumerkið og sagan eiga skilið að njóta sín á netinu.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu sem sýnir söguna, opnunartíma, vörurnar og hvar ykkur er að finna. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hana má skoða hér:
-${PREVIEW}/austri
+Hana má skoða hér, og hún virkar vel í síma:
+${PREVIEW}/saudarkroksbakari
 
-Hugmyndin er einföld. Að fólk finni ykkur, kynnist sögunni á bak við hvern bjór og sjái auðveldlega hvar hægt er að smakka hann. Síðan er hönnuð til að líta vel út í síma og gefa sterka fyrstu sýn.
-
-Þetta er að sjálfsögðu alveg skuldbindingarlaust, en ef ykkur líst vel á hugmyndina væri mjög gaman að heyra frá ykkur.
+Ef ykkur líst vel á þetta getum við spjallað og fundið sanngjarnt verð. Ef ekki er ekkert mál, og ég vona að þetta veiti ykkur smá innblástur.
 
 ${SIGN}`,
-    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Austra',
+    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Sauðárkróksbakarí',
     followUpBody: `Góðan dag,
 
-Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir Austra og vildi forvitnast hvort þið hefðuð náð að líta á hana.
+Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir Sauðárkróksbakarí og vildi forvitnast hvort þið hefðuð náð að líta á hana.
 
 Hér er hlekkurinn aftur ef hann fór framhjá ykkur:
-${PREVIEW}/austri
+${PREVIEW}/saudarkroksbakari
 
 Engin pressa, mér þætti einfaldlega vænt um að heyra hvað ykkur fannst.
 
 ${SIGN_SHORT}`,
     notes:
-      'Ekkert staðfest netfang. Netfangsreitur á austurland.is gaf þrjár ólíkar útgáfur við lestur (sala@/info@/austri@), svo ekkert var skráð. Netfang er líklega til á léninu @austribrugghus.is. Besta leiðin er Instagram skilaboð (@austribrugghus) eða sími 456 7898. Staðfestu netfangið handvirkt áður en sent er.',
+      'Lénið saudarkroksbakari.net er útrunnið (vísar á sölusíðu). Gmail-netfangið er skráð í fyrirtækjaskrám (finna.is) og á Tripadvisor sem tengiliður bakaríisins, svo það er virka leiðin. Sími 455 5000, Aðalgata 5, 550 Sauðárkrókur.',
   },
   {
-    id: 'lysulaugar',
-    companyName: 'Lýsulaugar',
+    id: 'reykjavikdistillery',
+    companyName: '64° Reykjavik Distillery',
     contactName: '',
     contactRole: '',
-    email: 'lysulaugar@snb.is',
-    phone: '+354 433 9917',
-    contactUrl: 'https://www.facebook.com/lysulaugar',
-    confidence: 'high',
-    sourceUrl: 'https://lysulaugar.is',
-    previewUrl: `${PREVIEW}/lysulaugar`,
-    subject: 'Hugmynd að nýrri vefsíðu fyrir Lýsulaugar',
-    emailBody: `Góðan dag,
-
-Ég heiti Sindri Már og ég hanna og smíða vefsíður fyrir íslensk fyrirtæki.
-
-Lýsulaugar eru sannarlega sérstakar. Græna steinefnavatnið ykkar á sér fáa líka og umhverfið undir Snæfellsjökli er einstakt. Þetta er staður sem fólk man eftir.
-
-Ég tók mér það bessaleyfi að setja saman litla frumgerð að nýrri vefsíðu fyrir ykkur, því mér fannst upplifunin eiga skilið að sjást betur á netinu.
-
-Hana má skoða hér:
-${PREVIEW}/lysulaugar
-
-Markmiðið er að láta vatnið og náttúruna njóta sín, og um leið gera gestum auðvelt að sjá opnunartíma, verð og hvernig á að finna ykkur. Síðan er hönnuð til að virka vel í síma, þar sem flestir fletta ykkur upp á leiðinni.
-
-Þetta er að sjálfsögðu alveg skuldbindingarlaust, en ef ykkur líst vel á hugmyndina væri mjög gaman að heyra frá ykkur.
-
-${SIGN}`,
-    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Lýsulaugar',
-    followUpBody: `Góðan dag,
-
-Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir Lýsulaugar og vildi forvitnast hvort þið hefðuð náð að líta á hana.
-
-Hér er hlekkurinn aftur ef hann fór framhjá ykkur:
-${PREVIEW}/lysulaugar
-
-Engin pressa, mér þætti einfaldlega vænt um að heyra hvað ykkur fannst.
-
-${SIGN_SHORT}`,
-    notes:
-      'Netfangið lysulaugar@snb.is er í síðufæti á lysulaugar.is (lénið @snb.is, líklega sameiginlegt Snæfellsbæjarlén). Almennt netfang fyrirtækisins, enginn eigandi nafngreindur á síðunni. Sími +354 433 9917.',
-  },
-  {
-    id: 'hespa',
-    companyName: 'Hespa (Hespuhúsið)',
-    contactName: 'Guðrún Bjarnadóttir',
-    contactRole: 'Eigandi og jurtalitari',
-    email: 'hespa@hespa.is',
-    phone: '+354 865 2910',
+    email: 'info@reykjavikdistillery.is',
+    phone: '+354 519 3838',
     contactUrl: '',
     confidence: 'high',
-    sourceUrl: 'https://hespa.is/en/hespuhusid',
-    previewUrl: `${PREVIEW}/hespa`,
-    subject: 'Hugmynd að nýrri vefsíðu fyrir Hespu',
-    emailBody: `Sæl Guðrún,
+    sourceUrl: 'https://reykjavikdistillery.is',
+    previewUrl: `${PREVIEW}/reykjavikdistillery`,
+    subject: 'Hugmynd að nýrri vefsíðu fyrir 64° Reykjavik Distillery',
+    emailBody: `Góðan dag,
 
-Ég heiti Sindri Már og ég hanna og smíða vefsíður fyrir íslensk fyrirtæki og handverksfólk.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Jurtalitaða ullin þín er einstaklega falleg og það er heillandi saga að litirnir komi beint úr íslenskri náttúru. Handverk af þessu tagi á sannarlega skilið fallega umgjörð.
+Það sem þið gerið hjá 64° Reykjavik Distillery er fallegt handverk, íslenskar jurtir tíndar í náttúrunni og settar í flösku. Þegar ég skoðaði vefsíðuna tók ég eftir að hvergi sjást verð á vörunum og engin bein leið er til að kaupa þær, sem getur orðið til þess að áhugasamir gestir hætta við áður en þeir komast lengra.
 
-Ég tók mér það bessaleyfi að setja saman litla frumgerð að nýrri vefsíðu fyrir Hespu, þar sem litirnir sjálfir fá að vera í aðalhlutverki.
+Mér fannst sagan og vörurnar eiga skilið betri umgjörð, svo ég hannaði frumgerð að nýrri vefsíðu sem setur jurtirnar og bragðið í forgrunn. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hana má skoða hér:
-${PREVIEW}/hespa
+Hana má skoða hér, og hún virkar vel í síma:
+${PREVIEW}/reykjavikdistillery
 
-Hugmyndin er að segja söguna á bak við litunina, sýna garnið eins vel og það á skilið, og gera fólki auðvelt að versla beint hjá þér. Síðan virkar líka vel í síma.
-
-Þetta er að sjálfsögðu alveg skuldbindingarlaust, en ef þér líst vel á hugmyndina væri mjög gaman að heyra frá þér.
+Ef ykkur líst vel á þetta getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
 
 ${SIGN}`,
-    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Hespu',
-    followUpBody: `Sæl Guðrún,
+    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir 64° Reykjavik Distillery',
+    followUpBody: `Góðan dag,
 
-Ég sendi þér um daginn litla frumgerð að nýrri vefsíðu fyrir Hespu og vildi forvitnast hvort þú hefðir náð að líta á hana.
+Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir 64° Reykjavik Distillery og vildi forvitnast hvort þið hefðuð náð að líta á hana.
+
+Hér er hlekkurinn aftur ef hann fór framhjá ykkur:
+${PREVIEW}/reykjavikdistillery
+
+Engin pressa, mér þætti einfaldlega vænt um að heyra hvað ykkur fannst.
+
+${SIGN_SHORT}`,
+    notes:
+      'Netfangið info@reykjavikdistillery.is er í Contact-hluta á reykjavikdistillery.is. Fjölskyldurekið, enginn einstaklingur nafngreindur. Sími +354 519 3838, Lónsbraut 6, 220 Hafnarfjörður.',
+  },
+  {
+    id: 'beffatours',
+    companyName: 'Beffa Tours',
+    contactName: '',
+    contactRole: '',
+    email: 'info@harbourinn.is',
+    phone: '+354 855 5006',
+    contactUrl: 'https://beffatours.is',
+    confidence: 'high',
+    sourceUrl: 'https://beffatours.is',
+    previewUrl: `${PREVIEW}/beffatours`,
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Beffa Tours',
+    emailBody: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenska ferðaþjónustu.
+
+Beffa Tours býður upp á eitthvað sjaldgæft, hvalaskoðun á Arnarfirði með aðeins sjö gestum í einu. Þegar ég skoðaði vefsíðuna tók ég eftir að ekki er hægt að bóka ferð beint og verð koma hvergi fram, svo gestir sem vilja bóka utan opnunartíma eða erlendis frá leita oft annað þar sem svarið fæst strax.
+
+Mér fannst upplifunin eiga skilið sterkari umgjörð, svo ég hannaði frumgerð að nýrri vefsíðu sem kynnir ferðina og gerir bókun einfalda. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+${PREVIEW}/beffatours
+
+Ef ykkur líst vel á þetta getum við talað um sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Beffa Tours',
+    followUpBody: `Góðan dag,
+
+Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir Beffa Tours og vildi forvitnast hvort þið hefðuð náð að líta á hana.
+
+Hér er hlekkurinn aftur ef hann fór framhjá ykkur:
+${PREVIEW}/beffatours
+
+Engin pressa, mér þætti einfaldlega vænt um að heyra hvað ykkur fannst.
+
+${SIGN_SHORT}`,
+    notes:
+      'info@harbourinn.is er eina netfangið á beffatours.is (notað í öllum bókunarhnöppum og síðufæti). Bókanir fara í gegnum Harbour Inn (rekstraraðila), svo netfangið er á því léni. Sími +354 855 5006, Dalbraut 1, 465 Bíldudalur.',
+  },
+  {
+    id: 'kogga',
+    companyName: 'Kogga',
+    contactName: 'Kolbrún Björgólfsdóttir',
+    contactRole: 'Eigandi og keramíklistakona',
+    email: 'kogga@kogga.is',
+    phone: '+354 552 6036',
+    contactUrl: '',
+    confidence: 'high',
+    sourceUrl: 'https://www.kogga.is/contact',
+    previewUrl: `${PREVIEW}/kogga`,
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Koggu',
+    emailBody: `Sæl Kolbrún,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenskt handverk og listafólk.
+
+Keramíkverkin þín og innlagstæknin sem þú hefur þróað í fjörutíu ár eru einstök, og rauða húsið við Vesturgötu er staður sem fólk man eftir. Þegar ég skoðaði vefsíðuna tók ég eftir að gestir sjá ekki verð þegar þeir fletta verkunum og opnunartímar koma hvergi fram, sem getur valdið því að áhugasamir kaupendur og gestir gefist upp.
+
+Mér fannst verkin eiga skilið umgjörð í sínum gæðaflokki, svo ég hannaði frumgerð að nýrri vefsíðu þar sem verkin og sagan fá að njóta sín. Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér, og hún virkar vel í síma:
+${PREVIEW}/kogga
+
+Ef þér líst vel á þetta getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Koggu',
+    followUpBody: `Sæl Kolbrún,
+
+Ég sendi þér um daginn litla frumgerð að nýrri vefsíðu fyrir Koggu og vildi forvitnast hvort þú hefðir náð að líta á hana.
 
 Hér er hlekkurinn aftur ef hann fór framhjá þér:
-${PREVIEW}/hespa
+${PREVIEW}/kogga
 
 Engin pressa, mér þætti einfaldlega vænt um að heyra hvað þér fannst.
 
 ${SIGN_SHORT}`,
     notes:
-      'Netfangið hespa@hespa.is er á hespa.is og ensku síðunni /en/hespuhusid (bæði eigenda- og almennt netfang, þar sem þetta er eins manns vinnustofa). Guðrún Bjarnadóttir er jurtalitari og eigandi. Ávarpað í eintölu og með nafni. Sími +354 865 2910.',
+      'Netfangið kogga@kogga.is er á contact-síðu kogga.is. Kolbrún Björgólfsdóttir er eigandi og listakona, ávarpað með nafni og í eintölu. Sími +354 552 6036, gsm +354 899 2772, Vesturgata 5, 101 Reykjavík.',
   },
   {
-    id: 'reykkofinn',
-    companyName: 'Reykkofinn (Litla sveitabúðin)',
-    contactName: '',
-    contactRole: '',
-    email: 'hella@hangikjot.is',
-    phone: '848 4237',
+    id: 'haafell',
+    companyName: 'Háafell Geitfjársetur',
+    contactName: 'Jóhanna B. Þorvaldsdóttir',
+    contactRole: 'Ábúandi',
+    email: 'geitur@geitur.is',
+    phone: '+354 790 1548',
     contactUrl: '',
     confidence: 'high',
-    sourceUrl: 'https://www.hangikjot.is/is/litla-sveitabudin',
-    previewUrl: `${PREVIEW}/reykkofinn`,
-    subject: 'Hugmynd að nýrri vefsíðu fyrir Reykkofann',
-    emailBody: `Góðan dag,
+    sourceUrl: 'https://www.geitur.is',
+    previewUrl: `${PREVIEW}/haafell`,
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Háafell Geitfjársetur',
+    emailBody: `Sæl Jóhanna,
 
-Ég heiti Sindri Már og ég hanna og smíða vefsíður fyrir íslensk matvælafyrirtæki og sveitabúðir.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og ferðamannastaði.
 
-Heimareykt hangikjöt og lambakjöt beint frá býli á Hellu er nákvæmlega sú saga sem fólk vill heyra, og reyktur silungur þegar vel viðrar setur punktinn yfir i-ið. Þetta er ekta og það skilar sér.
+Háafell er einstakur staður, eina geitfjársetrið á landinu og saga íslensku geitarinnar sem þið hafið bjargað frá útrýmingu. Þegar ég skoðaði vefsíðuna tók ég eftir að hún er aðeins á íslensku og að hlekkurinn til að panta vörur virkar ekki, svo erlendir gestir og þeir sem vilja versla komast ekki alla leið.
 
-Ég tók mér það bessaleyfi að setja saman litla frumgerð að nýrri vefsíðu fyrir ykkur, því mér fannst hráefnið og heimavinnslan eiga skilið að njóta sín á netinu.
+Mér fannst sagan ykkar eiga skilið að heyrast, svo ég hannaði frumgerð að nýrri vefsíðu á íslensku og ensku sem segir söguna, sýnir opnunartíma og verð og gerir heimsókn auðvelda. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hana má skoða hér:
-${PREVIEW}/reykkofinn
+Hana má skoða hér, og hún virkar vel í síma:
+${PREVIEW}/haafell
 
-Markmiðið er að láta söguna og afurðirnar njóta sín, og gera fólki einfalt að panta eða koma við í sveitabúðinni. Síðan er hönnuð til að virka vel í síma.
-
-Þetta er að sjálfsögðu alveg skuldbindingarlaust, en ef ykkur líst vel á hugmyndina væri mjög gaman að heyra frá ykkur.
+Ef ykkur líst vel á þetta getum við talað um sanngjarnt verð. Ef ekki er ekkert mál.
 
 ${SIGN}`,
-    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Reykkofann',
-    followUpBody: `Góðan dag,
+    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Háafell',
+    followUpBody: `Sæl Jóhanna,
 
-Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir Reykkofann og vildi forvitnast hvort þið hefðuð náð að líta á hana.
+Ég sendi ykkur um daginn litla frumgerð að nýrri vefsíðu fyrir Háafell og vildi forvitnast hvort þið hefðuð náð að líta á hana.
 
 Hér er hlekkurinn aftur ef hann fór framhjá ykkur:
-${PREVIEW}/reykkofinn
+${PREVIEW}/haafell
 
 Engin pressa, mér þætti einfaldlega vænt um að heyra hvað ykkur fannst.
 
 ${SIGN_SHORT}`,
     notes:
-      'Netfangið hella@hangikjot.is er á hangikjot.is (forsíða, Litla sveitabúðin og um-okkur síður). Almennt netfang, enginn eigandi nafngreindur í texta síðunnar (vefleit nefndi nöfn en þau sáust ekki á síðunni sjálfri, svo þau eru ekki skráð). Símar 848 4237 og 896 4237.',
-  },
-  {
-    id: 'galdrasyning',
-    companyName: 'Galdrasýning á Ströndum',
-    contactName: 'Anna Björg Þórarinsdóttir',
-    contactRole: 'Framkvæmdastjóri, Strandagaldur ses.',
-    email: 'galdrasyning@holmavik.is',
-    phone: '+354 897 6525',
-    contactUrl: '',
-    confidence: 'high',
-    sourceUrl: 'https://www.galdrasyning.is/um-okkur',
-    previewUrl: `${PREVIEW}/galdrasyning`,
-    subject: 'Hugmynd að nýrri vefsíðu fyrir Galdrasýninguna',
-    emailBody: `Sæl Anna Björg,
-
-Ég heiti Sindri Már og ég hanna og smíða vefsíður fyrir íslensk fyrirtæki og söfn.
-
-Galdrasýningin á Ströndum er einstök. Það er fátt sem fangar íslenska þjóðtrú og sögu galdramanna eins vel, og staðsetningin á Hólmavík gerir hana enn eftirminnilegri.
-
-Ég tók mér það bessaleyfi að setja saman litla frumgerð að nýrri vefsíðu fyrir sýninguna, því mér fannst dulúðin og sagan eiga skilið sterka umgjörð á netinu.
-
-Hana má skoða hér:
-${PREVIEW}/galdrasyning
-
-Hugmyndin er að láta stemninguna njóta sín strax á forsíðunni, og um leið gera gestum auðvelt að sjá opnunartíma og finna leiðina að miðakaupum. Síðan er hönnuð til að virka vel í síma.
-
-Þetta er að sjálfsögðu alveg skuldbindingarlaust, en ef þér líst vel á hugmyndina væri mjög gaman að heyra frá þér.
-
-${SIGN}`,
-    followUpSubject: 'Stutt eftirfylgni, vefsíða fyrir Galdrasýninguna',
-    followUpBody: `Sæl Anna Björg,
-
-Ég sendi þér um daginn litla frumgerð að nýrri vefsíðu fyrir Galdrasýninguna og vildi forvitnast hvort þú hefðir náð að líta á hana.
-
-Hér er hlekkurinn aftur ef hann fór framhjá þér:
-${PREVIEW}/galdrasyning
-
-Engin pressa, mér þætti einfaldlega vænt um að heyra hvað þér fannst.
-
-${SIGN_SHORT}`,
-    notes:
-      'Netfangið galdrasyning@holmavik.is er á galdrasyning.is (forsíða og um-okkur). Anna Björg Þórarinsdóttir er framkvæmdastjóri (Strandagaldur ses.). Persónulegt Gmail hennar er einnig birt á um-okkur síðunni en hér er valið opinbera safnsnetfangið frekar en einkanetfang. Aðalsími +354 897 6525.',
+      'Netfangið geitur@geitur.is er í „Hafa samband“ á geitur.is. Jóhanna B. Þorvaldsdóttir er ábúandi, ávarpað með nafni. Sími +354 790 1548, Háafell, Hvítársíða, 320 Reykholt.',
   },
 ]
