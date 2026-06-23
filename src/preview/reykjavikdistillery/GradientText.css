@@ -5,8 +5,8 @@
   position: relative;
   display: inline-block;
   overflow: visible;
-  padding-bottom: 0.15em;
-  margin-bottom: -0.15em;
+  padding-bottom: 0.35em;
+  margin-bottom: -0.35em;
 }
 
 /* Optional pill border variant — only used when showBorder is set. */
@@ -41,6 +41,7 @@
   display: inline-block;
   position: relative;
   z-index: 2;
+  padding-bottom: 0.35em;   /* extend the gradient box to cover descenders */
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
