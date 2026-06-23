@@ -114,3 +114,43 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* Lenis smooth scroll (used by the 64° Distillery "wild to glass" journey) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* 64° Distillery — hero entrance. Pure CSS (time-based, self-completing) so it
+   never traps the hero invisible the way a JS/rAF mount animation can. Base
+   state is visible; only runs when motion is allowed. */
+@keyframes rd-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Only animates once JS marks the hero ready (tab visible). Without the
+     [data-rd-play] ancestor the children sit at their natural opacity:1, so a
+     background-tab load (where CSS animations pause) is never trapped hidden. */
+  [data-rd-play] .rd-enter {
+    animation: rd-enter 0.7s cubic-bezier(0.21, 0.65, 0.36, 1) var(--rd-d, 0ms) both;
+  }
+}

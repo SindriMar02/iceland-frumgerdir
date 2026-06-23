@@ -1,209 +1,259 @@
 /**
- * 64°08′N — Breiddargráða (The Latitude)
+ * 64° Reykjavik Distillery — "Frá villtu í glas"
  *
- * Content model for the foraging-map spirit selector. Every spirit owns a
- * botanical coordinate plotted on a stylised latitude grid + abstract Iceland
- * coastline. Selecting a spirit glides a crosshair to its (x, y), crossfades
- * the page accent to the botanical colour, and rolls a Space Mono coordinate
- * readout into view.
+ * Creative direction: a dark, cinematic spirits-house. The page is a single
+ * descent — from the wild Icelandic highland, through the forage and the
+ * copper still, down into the glass and the real bottles.
  *
- * HONESTY: company facts (founded 2009, address, phone, real product names,
- * 64° = Reykjavík's latitude ~64.1°N) are real and public. ABV, prices, bottle
- * sizes, harvest seasons, visit availability and the botanical coordinates are
- * SAMPLE / illustrative ("til skýringar") and disclaimed on the page + in the
- * shared footer. No awards or accolades are claimed.
+ * HONESTY (standing rule): company facts are real and public — founded 2009,
+ * first Icelandic micro-distillery of its kind, family-run, foraged & naturally
+ * infused Icelandic botanicals, small-batch distillation in Hafnarfjörður
+ * (Lónsbraut 6), sold via Vínbúðin / Fríhöfnin / Nammi.is / 60+ bars /
+ * Icelandair & Play, the "presented by the elf Benedikt" origin story, and the
+ * real product names + bottle photography (sourced from reykjavikdistillery.is).
+ * SAMPLE / "sýnishorn" (disclaimed on the page): tasting notes, prices, harvest
+ * seasons, and most ABV/sizes — except where a real bottle label states them
+ * (Einiberja 43% vol, Katla 40% vol, 1 L). No awards or accolades are claimed.
+ * Atmospheric landscape/pour imagery is placeholder pending final photography.
  */
 
+/** Public-asset base — resolves to '/' in dev and '/iceland-frumgerdir/' in prod. */
+export const ASSET = `${import.meta.env.BASE_URL}reykjavikdistillery/`
+
 export interface Spirit {
-  /** Stable id used for ARIA + reticle targeting */
+  /** Stable id (ARIA + keys) */
   id: string
-  /** Product name (real) */
+  /** Real product name */
   name: string
   /** Category, Icelandic */
-  type: string
-  /** Sample ABV, e.g. "40% vol" — marked sample on the page */
-  abv: string
-  /** Lead botanical, Icelandic */
+  category: string
+  /** Lead botanical / character, Icelandic */
   botanical: string
-  /** Where that botanical is foraged (atmospheric, sample) */
-  source: string
-  /** Short place label for the readout block (sample) */
-  place: string
-  /** Harvest window, Icelandic (sample / illustrative) */
-  season: string
-  /** Sample tasting notes */
-  notes: string
-  /** Three short palate descriptors for the tasting strip (sample) */
-  palate: [string, string, string]
-  /** Sample price in ISK */
-  price: number
-  /** Bottle size */
+  /** ABV — real where the label states it, else sample */
+  abv: string
+  /** Bottle size — real where known, else sample */
   size: string
-  /** Botanical accent hex (page accent crossfades to this) */
-  accent: string
-  /** WCAG-AA-safe light tint of the accent for small text on the dark ground */
-  tint: string
-  /** Plotted coordinate on the SVG map viewBox (0..400 x, 0..520 y) */
-  x: number
-  y: number
-  /** Mono coordinate readout, e.g. "64°08′N · 21°56′V" */
-  coord: string
+  /** Sample price, ISK */
+  price: number
+  /** Sample tasting line, Icelandic */
+  note: string
+  /** Bottle photograph (real, from reykjavikdistillery.is) */
+  img: string
+  /** Subtle per-spirit accent used only for a hairline + label tint */
+  tone: string
+  /** Featured in the larger top row of the showcase */
+  feature?: boolean
 }
 
-/** Six spirits chosen for the selector; the rest are listed in COLLECTION. */
+const B = `${ASSET}bottles/`
+
+/** The real range, with real photography. Specs marked sample except noted. */
 export const SPIRITS: Spirit[] = [
   {
-    id: 'einiber',
+    id: 'einiberja',
     name: 'Einiberja Gin',
-    type: 'London Dry gin',
-    abv: '44% vol',
+    category: 'Handtínt gin',
     botanical: 'Einiber',
-    source: 'Tínt í lyngmóum á Reykjanesi',
-    place: 'Reykjanes',
-    season: 'Sept–okt',
-    notes: 'Þurrt og bjart. Einiber fremst, sítrusbörkur og angan af fjallagrösum í lokin.',
-    palate: ['Einiber', 'Sítrus', 'Fjallagrös'],
+    abv: '43% vol',
+    size: '200 ml',
     price: 8990,
-    size: '500 ml',
-    accent: '#4f8a64',
-    tint: '#8fc7a3',
-    x: 198,
-    y: 236,
-    coord: '64°08′N · 21°56′V',
-  },
-  {
-    id: 'angelica',
-    name: 'Angelica Hvönn',
-    type: 'Jurtagin',
-    abv: '42% vol',
-    botanical: 'Ætihvönn',
-    source: 'Skorin við árbakka í Borgarfirði',
-    place: 'Borgarfjörður',
-    season: 'Júlí–ágúst',
-    notes: 'Jarðbundið og kryddað. Hvönn, engifer og þurr rótarkeimur sem situr lengi.',
-    palate: ['Hvönn', 'Engifer', 'Rót'],
-    price: 9490,
-    size: '500 ml',
-    accent: '#8a9a5b',
-    tint: '#c2cf93',
-    x: 156,
-    y: 178,
-    coord: '64°33′N · 21°46′V',
-  },
-  {
-    id: 'rabarbari',
-    name: '64° Rhubarb Gin',
-    type: 'Rabarbara-líkjör',
-    abv: '20% vol',
-    botanical: 'Rabarbari',
-    source: 'Úr görðum í Hafnarfirði',
-    place: 'Hafnarfjörður',
-    season: 'Júní–júlí',
-    notes: 'Sætt og sýrt í senn. Bleikur rabarbari, jarðarber og mjúk vanilla undir.',
-    palate: ['Rabarbari', 'Jarðarber', 'Vanilla'],
-    price: 7490,
-    size: '500 ml',
-    accent: '#b0566a',
-    tint: '#e09aa8',
-    x: 232,
-    y: 268,
-    coord: '64°04′N · 21°57′V',
-  },
-  {
-    id: 'kraekiber',
-    name: 'Crowberry Líkjör',
-    type: 'Berjalíkjör',
-    abv: '21% vol',
-    botanical: 'Krækiber',
-    source: 'Handtínt í Þórsmörk',
-    place: 'Þórsmörk',
-    season: 'Ágúst–sept',
-    notes: 'Dökkt og safaríkt. Krækiber, bláber og keimur af lyngi og haustkvöldi.',
-    palate: ['Krækiber', 'Bláber', 'Lyng'],
-    price: 7290,
-    size: '500 ml',
-    accent: '#6a4f86',
-    tint: '#b9a0d8',
-    x: 286,
-    y: 318,
-    coord: '63°41′N · 19°37′V',
-  },
-  {
-    id: 'dill',
-    name: 'Dill Akvavit',
-    type: 'Akvavit',
-    abv: '38% vol',
-    botanical: 'Dill',
-    source: 'Ræktað og þurrkað í Mosfellsdal',
-    place: 'Mosfellsdalur',
-    season: 'Júlí–ágúst',
-    notes: 'Hreint og grænt. Dill og kúmen fremst, fennel og salt sjávarloft í lokin.',
-    palate: ['Dill', 'Kúmen', 'Sjávarsalt'],
-    price: 8490,
-    size: '500 ml',
-    accent: '#5f9e7a',
-    tint: '#93cfae',
-    x: 178,
-    y: 206,
-    coord: '64°10′N · 21°41′V',
+    note: 'Þurrt og bjart. Einiber fremst, sítrusbörkur og íslensk fjallagrös í lokin.',
+    img: `${B}einiberja-gin.jpg`,
+    tone: '#8fc7a3',
+    feature: true,
   },
   {
     id: 'brennivin',
     name: 'Brennivín',
-    type: 'Akvavit',
-    abv: '40% vol',
+    category: 'Akvavit',
     botanical: 'Kúmen',
-    source: 'Kúmen tínt í Viðey',
-    place: 'Viðey',
-    season: 'Ágúst',
-    notes: 'Klassískt og þurrt. Kúmen og rúgur, anís í miðjunni og langur, beinn endir.',
-    palate: ['Kúmen', 'Rúgur', 'Anís'],
+    abv: '40% vol',
+    size: '200 ml',
     price: 6990,
-    size: '500 ml',
-    accent: '#c79a4e',
-    tint: '#e6c684',
-    x: 214,
-    y: 222,
-    coord: '64°09′N · 21°51′V',
+    note: 'Klassískt og þurrt. Kúmen og rúgur, anís í miðju og langur, beinn endir.',
+    img: `${B}brennivin.jpg`,
+    tone: '#cfd8a6',
+    feature: true,
+  },
+  {
+    id: 'katla',
+    name: 'Katla Vodka',
+    category: 'Íslenskt vodka',
+    botanical: 'Sexfaldað eimað',
+    abv: '40% vol',
+    size: '1 L',
+    price: 9490,
+    note: 'Mjúkt og hreint. Íslenskt vatn, silkimjúkur endir, gerð fyrir kokteilinn.',
+    img: `${B}katla-vodka.jpg`,
+    tone: '#cdb6b0',
+    feature: true,
+  },
+  {
+    id: 'angelica',
+    name: 'Angelica',
+    category: 'Jurtagin',
+    botanical: 'Ætihvönn',
+    abv: '42% vol',
+    size: '200 ml',
+    price: 9490,
+    note: 'Jarðbundið og kryddað. Hvönn og engifer, þurr rótarkeimur sem situr lengi.',
+    img: `${B}angelica.jpg`,
+    tone: '#c2cf93',
+  },
+  {
+    id: 'angelica-pink',
+    name: 'Angelica Pink Gin',
+    category: 'Jurtagin',
+    botanical: 'Ætihvönn og ber',
+    abv: '42% vol',
+    size: '200 ml',
+    price: 9490,
+    note: 'Hvönn mætir berjum. Mjúk sæta, blómailmur og bleikur litur úr náttúrunni.',
+    img: `${B}angelica-pink.jpg`,
+    tone: '#e0a7bb',
+  },
+  {
+    id: 'crowberry',
+    name: 'Crowberry',
+    category: 'Berjalíkjör',
+    botanical: 'Krækiber',
+    abv: '21% vol',
+    size: '200 ml',
+    price: 7290,
+    note: 'Dökkt og safaríkt. Krækiber og lyng, keimur af haustkvöldi á heiðinni.',
+    img: `${B}crowberry.jpg`,
+    tone: '#b9a0d8',
+  },
+  {
+    id: 'blueberry',
+    name: 'Blueberry',
+    category: 'Berjalíkjör',
+    botanical: 'Bláber',
+    abv: '21% vol',
+    size: '200 ml',
+    price: 7290,
+    note: 'Sætt og mjúkt. Íslensk bláber, fyllt og rúnnt, jafnvægi af sýru og sætu.',
+    img: `${B}blueberry.jpg`,
+    tone: '#9db4e0',
+  },
+  {
+    id: 'uliginosum',
+    name: 'Uliginosum Blueberry',
+    category: 'Berjalíkjör',
+    botanical: 'Aðalbláber',
+    abv: '21% vol',
+    size: '200 ml',
+    price: 7490,
+    note: 'Dýpra og villtara en bláber. Aðalbláber með dökkum, þéttum berjakeimi.',
+    img: `${B}blueberry-2.jpg`,
+    tone: '#8f9fd6',
+  },
+  {
+    id: 'rabarbara',
+    name: 'Rabarbara',
+    category: 'Líkjör',
+    botanical: 'Rabarbari',
+    abv: '20% vol',
+    size: '200 ml',
+    price: 7490,
+    note: 'Sætt og sýrt í senn. Bleikur rabarbari, jarðarber og mjúk vanilla undir.',
+    img: `${B}rabarbara.jpg`,
+    tone: '#e09aa8',
+  },
+  {
+    id: 'rhubarb',
+    name: '64° Rhubarb Gin',
+    category: 'Rabarbara-gin',
+    botanical: 'Rabarbari',
+    abv: '40% vol',
+    size: '200 ml',
+    price: 8490,
+    note: 'Gin og rabarbari saman. Einiber undir, ferskur garðrabarbari yfir.',
+    img: `${B}rhubarb.jpg`,
+    tone: '#e3a3ac',
+  },
+  {
+    id: 'dill',
+    name: 'Dill',
+    category: 'Akvavit',
+    botanical: 'Dill',
+    abv: '38% vol',
+    size: '200 ml',
+    price: 8490,
+    note: 'Hreint og grænt. Dill og kúmen fremst, fennel og salt sjávarloft í lokin.',
+    img: `${B}dill.jpg`,
+    tone: '#93cfae',
+  },
+  {
+    id: 'lundey',
+    name: 'Lundey',
+    category: 'Jurtagin',
+    botanical: 'Íslenskar jurtir',
+    abv: '40% vol',
+    size: '200 ml',
+    price: 8990,
+    note: 'Blanda íslenskra jurta. Mjúkt, kryddað og ávalt, kennt við eyjuna Lundey.',
+    img: `${B}lundey.jpg`,
+    tone: '#9bd0c4',
   },
 ]
 
-/** The fuller range, listed below the selector (names real). */
-export const COLLECTION: { name: string; type: string }[] = [
-  { name: 'Katla Vodka', type: 'Vodka' },
-  { name: 'Angelica Pink Gin', type: 'Jurtagin' },
-  { name: 'Blueberry Líkjör', type: 'Aðalbláber' },
-  { name: 'Bilberry Líkjör', type: 'Bláber' },
-  { name: 'Lundey', type: 'Jurtalíkjör' },
-  { name: 'Rhubarb Líkjör', type: 'Rabarbari' },
+/** The cinematic descent — beats of the "wild to glass" journey. */
+export interface Beat {
+  id: string
+  eyebrow: string
+  title: string
+  body: string
+  /** Background / specimen image */
+  img: string
+  /** Alt text (empty string => decorative) */
+  alt: string
+  /** 'land' full-bleed photo · 'specimen' framed light panel · 'schematic' inverted blueprint */
+  kind: 'land' | 'specimen' | 'schematic'
+  /** Honest note shown small on the beat (e.g. placeholder imagery) */
+  tag?: string
+}
+
+export const BEATS: Beat[] = [
+  {
+    id: 'land',
+    eyebrow: '64°N — Stutta sumarið',
+    title: 'Allt byrjar í náttúrunni',
+    body: 'Á örfáum vikum íslensks sumars taka jurtir og ber við sér. Það er glugginn. Þá er tínt, áður en birtan dvínar og landið lokar sér aftur.',
+    img: `${ASSET}hero.png`,
+    alt: 'Krækiber á íslenskri heiði undir norðurljósum og kvöldsólinni',
+    kind: 'land',
+  },
+  {
+    id: 'forage',
+    eyebrow: 'Tínt í höndunum',
+    title: 'Jurtin ræður ferðinni',
+    body: 'Einiber, ætihvönn, kúmen, krækiber og rabarbari. Hvert hráefni er handtínt og sjálfbært sótt, hvert á sínum stað og sínum tíma.',
+    img: `${ASSET}process/topview.jpg`,
+    alt: 'Handtíndar íslenskar jurtir og krydd: steinmortél, kúmen og þurrkuð hvönn',
+    kind: 'specimen',
+  },
+  {
+    id: 'still',
+    eyebrow: 'Eimað í litlum lotum',
+    title: 'Kopar, eldur, þolinmæði',
+    body: 'Náttúruleg ídeyfing og eiming í litlum lotum í Hafnarfirði, síðan 2009. Hver jurt fær sinn tíma og sína hitastýringu. Fyrsta íslenska örbrugghúsið sinnar tegundar.',
+    img: `${ASSET}process/hand-sketch.jpg`,
+    alt: 'Teikning af eimingartæki, handgerð skissa',
+    kind: 'schematic',
+  },
 ]
 
-/** Foraging → glass, four steps. */
-export const PROCESS: { k: string; t: string; d: string }[] = [
-  {
-    k: '01',
-    t: 'Tína',
-    d: 'Jurtir og ber eru handtínd í íslenskri náttúru, hvert á sinni breiddargráðu og sínum árstíma.',
-  },
-  {
-    k: '02',
-    t: 'Þurrka',
-    d: 'Uppskeran er þurrkuð hægt svo ilmurinn og olíurnar haldist óskaddaðar fyrir eimingu.',
-  },
-  {
-    k: '03',
-    t: 'Eima',
-    d: 'Eimað í litlum lotum í kopareimi. Hver jurt fær sinn tíma og sína hitastýringu.',
-  },
-  {
-    k: '04',
-    t: 'Átöppun',
-    d: 'Handfyllt og merkt í Hafnarfirði. Hver lota ber sína breiddargráðu á miðanum.',
-  },
-]
+/** Where to buy — clearest path first. */
+export interface BuyPlace {
+  name: string
+  detail: string
+  tag: string
+  href?: string
+  cta?: string
+}
 
-/** Where to buy, with the clearest path first. */
-export const BUY: { name: string; detail: string; tag: string; href?: string; cta?: string }[] = [
+export const BUY: BuyPlace[] = [
   {
     name: 'Nammi.is',
     detail: 'Vefverslun með sendingu um allt land og til útlanda. Skýrasta leiðin að flösku heim að dyrum.',
@@ -212,8 +262,13 @@ export const BUY: { name: string; detail: string; tag: string; href?: string; ct
     cta: 'Versla á netinu',
   },
   {
+    name: 'Vínbúðin',
+    detail: 'Fáanlegt í völdum Vínbúðum ÁTVR um land allt.',
+    tag: 'Verslun',
+  },
+  {
     name: 'Fríhöfnin',
-    detail: 'Tollfrjálst í Leifsstöð, bæði við komu og brottför. Oft besta verðið.',
+    detail: 'Tollfrjálst í Leifsstöð, við komu og brottför. Oft besta verðið.',
     tag: 'Leifsstöð',
   },
   {
@@ -228,13 +283,18 @@ export const BUY: { name: string; detail: string; tag: string; href?: string; ct
   },
 ]
 
-/** Distillery facts for the visit/map section. */
+/** Distillery facts for the visit section (all real). */
 export const DISTILLERY = {
   addr: 'Lónsbraut 6, 220 Hafnarfjörður',
   tel: '+354 519 3838',
   telHref: 'tel:+3545193838',
   email: 'info@reykjavikdistillery.is',
-  lat: 64.06,
-  lng: -21.95,
-  coord: '64°04′N · 21°57′V',
+  since: '2009',
+  tagline: 'The Original from Iceland',
+}
+
+/** The real, charming origin story — a small footnote, not the whole concept. */
+export const ELF = {
+  line: 'Sagan segir að aðferðirnar hafi verið kynntar brugghúsinu af álfinum Benedikt.',
+  toast: 'Skál — og lengi lifi álfurinn.',
 }

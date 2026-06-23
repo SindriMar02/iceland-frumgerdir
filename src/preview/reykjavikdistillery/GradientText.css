@@ -1,0 +1,48 @@
+/* Ported from react-bits GradientText (JS-CSS), tuned for INLINE headline use:
+   the stock component is a centered, blurred "badge"; here it is a plain inline
+   span whose text is clipped to an animated brand gradient. */
+.animated-gradient-text {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+  padding-bottom: 0.15em;
+  margin-bottom: -0.15em;
+}
+
+/* Optional pill border variant — only used when showBorder is set. */
+.animated-gradient-text.with-border {
+  overflow: hidden;
+  border-radius: 1.25rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.gradient-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.gradient-overlay::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  transform: translate(-50%, -50%);
+  border-radius: inherit;
+  background-color: #120f17;
+  z-index: -1;
+}
+
+.text-content {
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent; /* Safari needs this for the clip to show */
+}

@@ -1,39 +1,58 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, Crosshair, MapPin, Move, Phone, ShoppingBag } from 'lucide-react'
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { useReducedMotion } from 'framer-motion'
+import Lenis from 'lenis'
+import { ArrowDown, ArrowUpRight, Mail, MapPin, Phone, ShoppingBag } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { BUY, COLLECTION, DISTILLERY, PROCESS, SPIRITS } from './data'
+import { ASSET, BEATS, BUY, DISTILLERY, ELF, SPIRITS } from './data'
+import LiquidEther from './LiquidEther'
+import GradientText from './GradientText'
+import type { Beat, Spirit } from './data'
 
 const company = getPreviewCompany('reykjavikdistillery')
 
-const U = 'https://images.unsplash.com/'
-/** photo-1514218953589-2d7d37efd2dc — moody pour of clear spirit (verified 200). Atmospheric only. */
-const POUR = 'photo-1514218953589-2d7d37efd2dc'
-/** photo-1469474968028-56623f02e42e — wild northern landscape at dusk (verified 200). */
-const WILD = 'photo-1469474968028-56623f02e42e'
+/* Stable reference — prevents remount on scroll. Palette maps low→high velocity.
+   Stops must be near-luminous: the shader multiplies by velocity magnitude (0..1),
+   so dark stops vanish. Gradient: violet night → crowberry → aurora teal → amber flame. */
+const LIQUID_COLORS = ['#3d1f6e', '#7b52c4', '#2d9e7e', '#74c9a8', '#c8881e', '#f0a83a', '#ffe0ad']
 
-const GROUND = '#0b0f0e'
-const FROST = '#eef2f0'
-const MUTED = '#9fb0a8'
+/* Brand gradient for the hero emphasis word "í glasið" — candlelight amber sweeping
+   through cream and a whisper of aurora teal, echoing the ether palette. Module-level
+   so the array reference is stable across the hero's per-scroll re-renders. */
+const GLASS_GRADIENT = ['#f0a83a', '#ffe0ad', '#e9b86a', '#74c9a8', '#f0a83a']
 
-/** Map viewBox — single source of truth so SVG + HTML overlay stay locked. */
-const MAP_W = 400
-const MAP_H = 520
+/* --- Palette ------------------------------------------------------------- */
+const GROUND = '#0a0b0a' // basalt near-black
+const SURFACE = '#121210' // opaque card surface — sits above the fixed ether so it never bleeds through
+const AMBER = '#c8881e' // candlelight amber — CTA fill (black text)
+const AMBER_GLOW = '#e9b86a' // light amber — small text / labels on dark (AA)
+const BONE = '#f1ede3' // warm light — body type
+const MUTED = '#a7a094' // warm taupe — secondary copy (AA on ground)
 
-/** Format an ISK price with the locale thousands separator. */
+/* --- Small helpers ------------------------------------------------------- */
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 const kr = (n: number) => `${n.toLocaleString('is-IS')} kr`
 
+const hexToRgb = (h: string): [number, number, number] => {
+  const n = parseInt(h.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+/** Linear blend between two hex colours, returns an rgb() string. */
+const mix = (a: string, b: string, t: number) => {
+  const ca = hexToRgb(a)
+  const cb = hexToRgb(b)
+  const c = ca.map((v, i) => Math.round(v + (cb[i] - v) * clamp(t, 0, 1)))
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`
+}
+
 /* ---------------------------------------------------------------------------
-   One-shot reveal that NEVER traps content invisible. Default state is fully
-   visible; if IntersectionObserver + motion are available (and motion is not
-   reduced) it starts slightly translated/transparent and settles once. A
-   backgrounded tab that never fires the observer simply shows the visible
-   fallback — no rAF dependency for legibility.
+   One-shot reveal that NEVER traps content invisible. Visible by default; if
+   IO + motion are available it starts translated/transparent and settles once.
+   A backgrounded tab that never fires the observer simply shows the fallback.
 --------------------------------------------------------------------------- */
 function useReveal<T extends HTMLElement = HTMLElement>(reduce: boolean | null) {
   const ref = useRef<T>(null)
@@ -50,7 +69,7 @@ function useReveal<T extends HTMLElement = HTMLElement>(reduce: boolean | null) 
           io.disconnect()
         }
       },
-      { rootMargin: '-60px' },
+      { rootMargin: '-12% 0px' },
     )
     io.observe(el)
     return () => io.disconnect()
@@ -58,238 +77,548 @@ function useReveal<T extends HTMLElement = HTMLElement>(reduce: boolean | null) 
   return { ref, shown }
 }
 
-/* ---------------------------------------------------------------------------
-   Rolling Space Mono coordinate readout. Each glyph springs in on change so
-   the lock reads like a mechanical counter settling. Tabular figures keep the
-   width steady. Degrades to static text under reduced motion.
---------------------------------------------------------------------------- */
-function CoordReadout({ value, tint, reduce }: { value: string; tint: string; reduce: boolean | null }) {
-  if (reduce) {
-    return (
-      <span className="font-mono text-sm tabular-nums tracking-tight" style={{ color: tint }}>
-        {value}
-      </span>
-    )
-  }
+/* Reusable scroll-reveal wrapper. Fades + lifts its children in once they enter
+   the viewport, using the default-visible useReveal hook (never traps content
+   hidden) and a CSS transition (not framer). Stagger with `delay`. */
+function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+  const reduce = useReducedMotion()
+  const { ref, shown } = useReveal<HTMLDivElement>(reduce)
   return (
-    <span aria-hidden="true" className="inline-flex font-mono text-sm tabular-nums tracking-tight" style={{ color: tint }}>
-      {value.split('').map((ch, i) => (
-        <span key={`${i}-${ch}`} className="inline-block overflow-hidden">
-          <motion.span
-            className="inline-block"
-            initial={{ y: '0.9em', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 520, damping: 30, delay: i * 0.016 }}
-            key={`${value}-${i}`}
-          >
-            {ch === ' ' ? ' ' : ch}
-          </motion.span>
-        </span>
-      ))}
-    </span>
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: shown ? 1 : 0,
+        transform: shown ? 'none' : 'translateY(22px)',
+        transition: reduce ? undefined : 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.21, 0.65, 0.36, 1)',
+        transitionDelay: `${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
   )
 }
 
 /* ---------------------------------------------------------------------------
-   The signature: a foraging map. A static graticule grid + abstract Iceland
-   coastline with every spirit plotted. A crosshair reticle springs (transform
-   only) to the selected botanical's coordinate; a label tag rides with it so
-   the map is self-explanatory. Keyboard accessible (radiogroup, roving
-   tabindex, Arrow/Home/End, aria-checked). Selecting crossfades the page
-   accent + rolls the readout. The grid is drawn at full opacity so it is never
-   gated on an animation frame.
---------------------------------------------------------------------------- */
-function ForagingMap({
-  index,
-  setIndex,
-  accent,
-  tint,
-  reduce,
-}: {
-  index: number
-  setIndex: (i: number) => void
-  accent: string
-  tint: string
-  reduce: boolean | null
-}) {
-  const active = SPIRITS[index]
-  const dotRefs = useRef<(HTMLButtonElement | null)[]>([])
+   Scroll driver. Lenis gives buttery smooth scroll; we read the scroll value
+   from Lenis's own 'scroll' event (lenis.scroll) so every scroll-linked
+   transform tracks it exactly — never framer useScroll, which pins at 0 in the
+   backgrounded preview. Under reduced motion Lenis is off and we fall back to a
+   passive window 'scroll' listener. Returns the live scrollY, the scrollable
+   height, and the Lenis ref (for the collection rail's jump-to). */
+function useScrollDriver(reduce: boolean | null) {
+  const [scrollY, setScrollY] = useState(0)
+  const [docH, setDocH] = useState(1)
+  const lenisRef = useRef<Lenis | null>(null)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const measure = () => setDocH(Math.max(1, document.documentElement.scrollHeight - window.innerHeight))
+    measure()
+    const settle = window.setTimeout(measure, 500)
+    window.addEventListener('resize', measure)
 
-  // Keep the active label tag inside the frame: flip it to the left when the
-  // point sits in the right third so it never clips the edge.
-  const labelLeft = active.x > MAP_W * 0.62
-  const labelHigh = active.y < MAP_H * 0.16
+    let lenis: Lenis | null = null
+    let raf = 0
+    let onWin: (() => void) | null = null
 
-  const onKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    let next = index
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (index + 1) % SPIRITS.length
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (index - 1 + SPIRITS.length) % SPIRITS.length
-    else if (e.key === 'Home') next = 0
-    else if (e.key === 'End') next = SPIRITS.length - 1
-    else return
-    e.preventDefault()
-    setIndex(next)
-    dotRefs.current[next]?.focus()
-  }
+    if (!reduce) {
+      lenis = new Lenis({ duration: 1.15, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
+      lenisRef.current = lenis
+      if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
+      lenis.on('scroll', () => setScrollY(lenis ? lenis.scroll : 0))
+      const loop = (time: number) => {
+        lenis?.raf(time)
+        raf = requestAnimationFrame(loop)
+      }
+      raf = requestAnimationFrame(loop)
+    } else {
+      onWin = () => setScrollY(window.scrollY || window.pageYOffset)
+      onWin()
+      window.addEventListener('scroll', onWin, { passive: true })
+    }
 
+    return () => {
+      window.clearTimeout(settle)
+      window.removeEventListener('resize', measure)
+      if (onWin) window.removeEventListener('scroll', onWin)
+      if (lenis) {
+        cancelAnimationFrame(raf)
+        lenis.destroy()
+        lenisRef.current = null
+      }
+    }
+  }, [reduce])
+  return { scrollY, docH, lenisRef }
+}
+
+/* --- Fixed temperature backdrop: cools at the top, warms toward the still -- */
+function TemperatureBackdrop({ t }: { t: number }) {
+  // base basalt warms very slightly; the glow shifts aurora-green -> amber
+  const base = mix('#0a0b0a', '#0b0a07', t)
+  const glow = mix('#74c9a8', '#c8881e', t)
+  const alpha = 0.06 + 0.1 * t
   return (
     <div
-      role="radiogroup"
-      aria-label="Veldu eimingu á korti yfir Ísland"
-      onKeyDown={onKey}
-      className="relative w-full select-none overflow-hidden rounded-2xl border border-white/12 bg-[#080b0a]"
-      style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 -z-10"
+      style={{
+        background: `radial-gradient(125% 80% at 50% -8%, ${glow.replace('rgb', 'rgba').replace(')', `, ${alpha})`)}, transparent 58%), ${base}`,
+      }}
+    />
+  )
+}
+
+/* --- The thread: a hairline that fills with amber as you descend ---------- */
+function Thread({ progress }: { progress: number }) {
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed left-4 top-0 z-30 hidden h-screen w-px md:block">
+      <div className="absolute inset-0 bg-white/10" />
+      <div className="absolute inset-x-0 top-0 origin-top" style={{ height: '100%', transform: `scaleY(${progress})`, background: `linear-gradient(${AMBER_GLOW}, ${AMBER})` }} />
+      <div className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full" style={{ top: `calc(${progress * 100}% - 3px)`, background: AMBER_GLOW, boxShadow: `0 0 10px ${AMBER}` }} />
+    </div>
+  )
+}
+
+/* --- Slim top nav with the real 64° mark --------------------------------- */
+function TopNav({ scrolled }: { scrolled: boolean }) {
+  return (
+    <nav
+      className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-3.5 transition-colors duration-500 md:px-10"
+      style={{ background: scrolled ? 'rgba(10,11,10,0.72)' : 'transparent', backdropFilter: scrolled ? 'blur(10px)' : 'none' }}
     >
-      {/* Corner registration ticks — survey-instrument feel */}
-      <span aria-hidden="true" className="pointer-events-none absolute left-3 top-3 z-10 h-3 w-3 border-l border-t border-white/30" />
-      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-3 z-10 h-3 w-3 border-r border-t border-white/30" />
-
-      {/* SVG + interactive overlay share ONE box so percentage hit-targets map
-          exactly onto the SVG coordinates (the chrome bar is a sibling below). */}
-      <div className="relative">
-      <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="block w-full" aria-hidden="true" role="presentation">
-        {/* Graticule — STATIC hairlines at full opacity (never animation-gated) */}
-        {Array.from({ length: 9 }).map((_, i) => (
-          <line key={`h${i}`} x1={16} x2={384} y1={20 + i * 60} y2={20 + i * 60} stroke="#ffffff" strokeOpacity={0.06} strokeWidth={1} />
-        ))}
-        {Array.from({ length: 7 }).map((_, i) => (
-          <line key={`v${i}`} y1={16} y2={504} x1={16 + i * 61.3} x2={16 + i * 61.3} stroke="#ffffff" strokeOpacity={0.06} strokeWidth={1} />
-        ))}
-
-        {/* The 64° parallel — the brand line, emphasised, crossfades with accent */}
-        <line x1={16} x2={384} y1={224} y2={224} stroke={tint} strokeOpacity={0.4} strokeDasharray="2 5" strokeWidth={1} style={{ transition: 'stroke 0.6s ease' }} />
-        <text x={20} y={218} fill={tint} fillOpacity={0.75} fontSize={9} fontFamily="'Space Mono', monospace" style={{ transition: 'fill 0.6s ease' }}>
-          64°N
-        </text>
-
-        {/* Abstract Iceland coastline — illustrative, STATIC, accent-tinted fill */}
-        <path
-          d="M70 150 C 96 120, 150 116, 184 132 C 214 146, 236 130, 268 140 C 308 152, 332 178, 320 210 C 312 234, 336 250, 330 280 C 322 318, 278 332, 240 326 C 206 320, 178 344, 144 332 C 104 318, 78 286, 84 250 C 88 224, 60 206, 70 178 Z"
-          fill={accent}
-          fillOpacity={0.08}
-          stroke={accent}
-          strokeOpacity={0.55}
-          strokeWidth={1.5}
-          style={{ transition: 'fill 0.6s ease, stroke 0.6s ease' }}
-        />
-
-        {/* Quiet survey rings on every plotted point */}
-        {SPIRITS.map((s, i) => (
-          <circle key={`ring-${s.id}`} cx={s.x} cy={s.y} r={i === index ? 9 : 4} fill="none" stroke="#ffffff" strokeOpacity={0.14} strokeWidth={1} />
-        ))}
-
-        {/* Survey line from the 64° origin to the active point */}
-        <motion.line
-          x1={214}
-          y1={224}
-          stroke={tint}
-          strokeOpacity={0.3}
-          strokeWidth={1}
-          strokeDasharray="2 4"
-          initial={false}
-          animate={{ x2: active.x, y2: active.y }}
-          transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 220, damping: 24, mass: 0.7 }}
-          style={{ transition: 'stroke 0.6s ease' }}
-        />
-
-        {/* The reticle — springs (transform only) to the active coordinate */}
-        <motion.g
-          initial={false}
-          animate={{ x: active.x, y: active.y }}
-          transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 220, damping: 22, mass: 0.7 }}
-        >
-          {!reduce && (
-            <motion.circle
-              r={16}
-              fill="none"
-              stroke={tint}
-              strokeWidth={1}
-              animate={{ r: [16, 22, 16], opacity: [0.55, 0, 0.55] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
-            />
-          )}
-          <circle r={16} fill="none" stroke={tint} strokeWidth={1.5} strokeOpacity={0.9} style={{ transition: 'stroke 0.6s ease' }} />
-          <circle r={3.4} fill={tint} style={{ transition: 'fill 0.6s ease' }} />
-          <line x1={-24} x2={-19} y1={0} y2={0} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-          <line x1={19} x2={24} y1={0} y2={0} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-          <line x1={0} x2={0} y1={-24} y2={-19} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-          <line x1={0} x2={0} y1={19} y2={24} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-          {/* Botanical label rides with the reticle (transform-only, no layout) */}
-          <text
-            x={labelLeft ? -26 : 26}
-            y={labelHigh ? 22 : 4}
-            textAnchor={labelLeft ? 'end' : 'start'}
-            fontSize={11}
-            letterSpacing={0.6}
-            fontFamily="'Space Mono', monospace"
-            fill={tint}
-            style={{ transition: 'fill 0.6s ease', textTransform: 'uppercase' }}
-          >
-            {active.botanical.toUpperCase()}
-          </text>
-        </motion.g>
-      </svg>
-
-      {/* Interactive plotted points layered over the SVG via percentage positions */}
-      <div className="pointer-events-none absolute inset-0">
-        {SPIRITS.map((s, i) => {
-          const selected = i === index
-          return (
-            <button
-              key={s.id}
-              ref={(el) => {
-                dotRefs.current[i] = el
-              }}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setIndex(i)}
-              aria-label={`${s.name}. ${s.botanical}, ${s.place}. ${s.coord}`}
-              className="pointer-events-auto absolute grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080b0a]"
-              style={{
-                left: `${(s.x / MAP_W) * 100}%`,
-                top: `${(s.y / MAP_H) * 100}%`,
-                // @ts-expect-error CSS var for the focus ring colour
-                '--tw-ring-color': s.tint,
-              }}
-            >
-              <span
-                className="block rounded-full transition-all duration-300"
-                style={{
-                  width: selected ? 15 : 9,
-                  height: selected ? 15 : 9,
-                  background: s.accent,
-                  boxShadow: selected ? `0 0 0 4px ${s.accent}33, 0 0 20px ${s.accent}cc` : `0 0 0 1px ${s.accent}55`,
-                }}
-              />
-            </button>
-          )
-        })}
-      </div>
-      </div>
-
-      {/* Map chrome: hint + live readout */}
-      <div className="relative z-10 flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-white/55">
-          <Move size={12} aria-hidden="true" /> Veldu punkt
+      <a href="#top" className="flex items-center gap-2.5" aria-label="64° Reykjavik Distillery">
+        <img src={`${ASSET}brand/logo-small.png`} alt="" aria-hidden="true" className="h-7 w-7 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+        <span className="font-display text-[15px] font-semibold tracking-tight text-[#f1ede3]">
+          64<span style={{ color: AMBER_GLOW }}>°</span> Reykjavik Distillery
         </span>
-        <div aria-live="polite" className="min-w-0 text-right">
-          <CoordReadout value={active.coord} tint={tint} reduce={reduce} />
+      </a>
+      <div className="hidden items-center gap-7 sm:flex">
+        <a href="#eimingarnar" className="text-[13px] font-medium text-white/65 transition-colors hover:text-white">Eimingarnar</a>
+        <a href="#ferdin" className="text-[13px] font-medium text-white/65 transition-colors hover:text-white">Ferðin</a>
+        <a
+          href="#kaupa"
+          className="inline-flex min-h-[40px] items-center gap-2 rounded-full px-4 text-[13px] font-bold text-[#0a0b0a] transition-opacity hover:opacity-90"
+          style={{ background: AMBER }}
+        >
+          Hvar á að kaupa
+        </a>
+      </div>
+    </nav>
+  )
+}
+
+/* --- Hero ----------------------------------------------------------------- */
+function Hero() {
+  // Arm the staggered entrance only once the tab is actually visible. Default
+  // state is fully visible, so a background-tab load is never trapped hidden
+  // (CSS animations pause in hidden tabs); it simply plays on focus.
+  const reduce = useReducedMotion()
+  const [play, setPlay] = useState(false)
+  useLayoutEffect(() => {
+    if (reduce || typeof document === 'undefined') return
+    if (document.visibilityState === 'visible') {
+      setPlay(true)
+      return
+    }
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        setPlay(true)
+        document.removeEventListener('visibilitychange', onVis)
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [reduce])
+
+  return (
+    <header id="top" className="relative flex min-h-[94svh] flex-col justify-end overflow-hidden px-5 pb-14 pt-28 md:px-10 md:pb-20">
+      <div className="relative z-10 mx-auto w-full max-w-5xl" {...(play ? { 'data-rd-play': '' } : {})}>
+        <p className="rd-enter font-sans text-[11px] font-semibold uppercase tracking-[0.16em] sm:tracking-[0.32em] sm:text-xs" style={{ color: AMBER_GLOW, ['--rd-d' as string]: '60ms' } as CSSProperties}>
+          The Original from Iceland · Síðan 2009
+        </p>
+        <h1 className="rd-enter mt-5 max-w-3xl font-display text-[clamp(2.6rem,8.5vw,6rem)] font-medium leading-[1.0] tracking-[-0.018em] text-[#f4f1ea]" style={{ ['--rd-d' as string]: '150ms' } as CSSProperties}>
+          Úr villtri náttúru,
+          <br />
+          <GradientText className="italic" colors={GLASS_GRADIENT} animationSpeed={7}>
+            í glasið.
+          </GradientText>
+        </h1>
+        <p className="rd-enter mt-6 max-w-xl text-base leading-relaxed sm:text-lg" style={{ color: BONE, ['--rd-d' as string]: '260ms' } as CSSProperties}>
+          Handtíndar íslenskar jurtir og ber, eimuð í litlum lotum í Hafnarfirði. Fyrsta íslenska örbrugghúsið sinnar tegundar.
+        </p>
+        <div className="rd-enter mt-9 flex flex-wrap items-center gap-3" style={{ ['--rd-d' as string]: '360ms' } as CSSProperties}>
+          <a
+            href="#eimingarnar"
+            className="inline-flex min-h-[52px] items-center gap-2 rounded-full px-7 text-sm font-bold text-[#0a0b0a] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0b0a]"
+            style={{ background: AMBER, ['--tw-ring-color' as string]: AMBER_GLOW } as CSSProperties}
+          >
+            Skoða eimingarnar <ArrowDown size={16} aria-hidden="true" />
+          </a>
+          <a
+            href="#ferdin"
+            className="inline-flex min-h-[52px] items-center gap-2 rounded-full border border-white/25 px-7 text-sm font-semibold text-[#f1ede3] outline-none transition-colors hover:border-white/50 focus-visible:ring-2 focus-visible:ring-white/50"
+            style={{ background: SURFACE }}
+          >
+            Frá villtu í glas
+          </a>
         </div>
+      </div>
+    </header>
+  )
+}
+
+/* --- A journey beat ------------------------------------------------------- */
+function JourneyBeat({ beat, scrollY, reduce, index }: { beat: Beat; scrollY: number; reduce: boolean | null; index: number }) {
+  const wrap = useRef<HTMLDivElement>(null)
+  const [top, setTop] = useState(0)
+  const reveal = useReveal<HTMLDivElement>(reduce)
+
+  useEffect(() => {
+    const measure = () => setTop(wrap.current ? wrap.current.offsetTop : 0)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  const rel = scrollY - top + (typeof window !== 'undefined' ? window.innerHeight : 800)
+  const shift = reduce ? 0 : clamp(rel * 0.04, -50, 50)
+  const flip = index % 2 === 1
+
+  return (
+    <div ref={wrap} className="relative px-5 py-16 md:px-10 md:py-28">
+      <div className={`mx-auto grid max-w-5xl items-center gap-8 md:gap-14 lg:grid-cols-2 ${flip ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+        {/* Media */}
+        <div
+          ref={reveal.ref}
+          className="relative transition-all duration-700 ease-out"
+          style={{ opacity: reveal.shown ? 1 : 0, transform: reveal.shown ? 'none' : 'translateY(22px)' }}
+        >
+          {beat.kind === 'land' && (
+            <figure className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 sm:aspect-[3/2] lg:aspect-[4/5]">
+              <Img src={beat.img} alt={beat.alt} className="h-full w-full object-cover" style={{ transform: `translate3d(0, ${-shift}px, 0) scale(1.12)` }} />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, transparent 50%, rgba(10,11,10,0.7))' }} aria-hidden="true" />
+              {beat.tag && (
+                <figcaption className="absolute bottom-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/65 backdrop-blur-sm">
+                  {beat.tag}
+                </figcaption>
+              )}
+            </figure>
+          )}
+
+          {beat.kind === 'specimen' && (
+            <figure className="relative overflow-hidden rounded-2xl border border-white/10" style={{ background: 'radial-gradient(120% 90% at 50% 35%, #f3f1ec, #d9d6cf)' }}>
+              <Img src={beat.img} alt={beat.alt} className="h-full w-full object-cover mix-blend-multiply" />
+              <span className="absolute right-3 top-3 font-sans text-[10px] uppercase tracking-[0.16em] text-black/40">Foraged · Ísland</span>
+            </figure>
+          )}
+
+          {beat.kind === 'schematic' && (
+            <figure className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-white/10 bg-[#0c0d0c]">
+              <Img src={beat.img} alt={beat.alt} className="h-full w-full object-cover" style={{ filter: 'invert(1) brightness(1.18) contrast(1.06) sepia(0.24) hue-rotate(-6deg)', objectPosition: '72% center' }} />
+              <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 100% at 72% 50%, rgba(200,136,30,0.12), transparent 62%)' }} aria-hidden="true" />
+              <span className="absolute right-3 top-3 font-sans text-[10px] uppercase tracking-[0.16em]" style={{ color: AMBER_GLOW }}>Kopareimi · est. 2009</span>
+            </figure>
+          )}
+        </div>
+
+        {/* Copy */}
+        <Reveal delay={120}>
+          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.26em]" style={{ color: AMBER_GLOW }}>
+            {String(index + 1).padStart(2, '0')} — {beat.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-md font-display text-[clamp(1.9rem,5vw,3.1rem)] font-medium leading-[1.04] tracking-[-0.015em] text-[#f4f1ea]">
+            {beat.title}
+          </h2>
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed sm:text-base" style={{ color: MUTED }}>
+            {beat.body}
+          </p>
+        </Reveal>
       </div>
     </div>
   )
 }
 
-/* ------------------------------------------------------------------------- */
-function MobileCTA({ accent }: { accent: string }) {
+/* --- The Collection: a pinned, cinematic one-bottle-at-a-time reveal ------
+   The signature moment. A sticky full-viewport stage; scrolling the tall
+   parent crossfades a giant cut-out bottle through the whole range, the
+   ambient glow shifts to each spirit's colour, and an oversized index counts
+   up behind it. Driven by the passive scrollY (verifiable; survives the
+   preview rAF freeze). Keyboard users step the range via the numbered rail. */
+function bottleCutout(s: Spirit) {
+  return s.img.replace('/bottles/', '/bottles/cutout/').replace('.jpg', '.png')
+}
+
+function Collection({ scrollY, reduce, jumpTo }: { scrollY: number; reduce: boolean | null; jumpTo: (y: number) => void }) {
+  const wrapRef = useRef<HTMLElement>(null)
+  const [box, setBox] = useState({ top: 0, height: 1 })
+  useEffect(() => {
+    const measure = () => {
+      const el = wrapRef.current
+      if (el) setBox({ top: el.offsetTop, height: el.offsetHeight })
+    }
+    measure()
+    const t = window.setTimeout(measure, 400)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.clearTimeout(t)
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
+
+  const N = SPIRITS.length
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800
+  const local = clamp((scrollY - box.top) / Math.max(1, box.height - vh), 0, 1)
+  const f = local * (N - 1)
+  const index = Math.min(N - 1, Math.max(0, Math.round(f)))
+  const active = SPIRITS[index]
+  const lo = Math.floor(f)
+  const hi = Math.min(N - 1, lo + 1)
+  const glow = mix(SPIRITS[lo].tone, SPIRITS[hi].tone, f - lo)
+  const float = reduce ? 0 : Math.sin(scrollY / 240) * 8
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#0b0f0e]/95 px-4 pt-3 pb-[max(0.8rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
+    <section ref={wrapRef} id="eimingarnar" aria-label="Eimingarnar — úrvalið" style={{ height: `${N * 44}vh` }} className="relative">
+      <div className="sticky top-0 flex h-svh items-center overflow-hidden">
+        {/* ambient tone glow, crossfading between spirits */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(58% 56% at 50% 48%, ${glow}26, transparent 70%)` }} />
+        {/* oversized index numeral behind everything */}
+        <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[54%] font-display text-[44vw] font-medium leading-none text-white/[0.035] md:text-[30vw]">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+
+        {/* section label (keeps heading order: h2 here, spirit name as h3) */}
+        <div className="absolute left-5 top-6 md:left-10 md:top-8">
+          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.28em]" style={{ color: AMBER_GLOW }}>Úrvalið</p>
+          <h2 className="mt-1 font-display text-lg font-medium text-[#f4f1ea]">Eimingarnar</h2>
+        </div>
+
+        <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-2 px-6 md:grid-cols-12 md:gap-6 md:px-10">
+          {/* Giant bottle, crossfading */}
+          <div className="relative order-1 flex h-[40svh] items-end justify-center md:order-none md:col-span-5 md:h-[80svh]">
+            {/* coloured backlight so the bottle (esp. clear spirits) glows off the dark */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(42% 46% at 50% 44%, ${active.tone}40, transparent 70%)`, transition: reduce ? 'none' : 'background 0.5s ease' }} />
+            {SPIRITS.map((s, i) => (
+              <img
+                key={s.id}
+                src={bottleCutout(s)}
+                alt={i === index ? `${s.name} flaska` : ''}
+                aria-hidden={i !== index}
+                loading={i < 3 ? 'eager' : 'lazy'}
+                decoding="async"
+                className="absolute bottom-0 left-1/2 h-full w-auto max-w-[90%] object-contain object-bottom"
+                style={{
+                  opacity: i === index ? 1 : 0,
+                  transition: reduce ? 'none' : 'opacity 0.55s ease',
+                  transform: i === index ? `translate3d(-50%, ${float}px, 0)` : 'translate3d(-50%, 0, 0)',
+                  filter: 'drop-shadow(0 26px 38px rgba(0,0,0,0.6))',
+                }}
+              />
+            ))}
+            {/* floor shadow */}
+            <div aria-hidden="true" className="absolute bottom-1 left-1/2 h-5 w-2/3 -translate-x-1/2 rounded-[50%]" style={{ background: 'radial-gradient(closest-side, rgba(0,0,0,0.6), transparent)' }} />
+          </div>
+
+          {/* Detail */}
+          <div className="relative order-2 md:order-none md:col-span-7 md:pl-6">
+            <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: active.tone }}>{active.category}</p>
+            <h3 className="mt-2 font-display text-[clamp(2.4rem,6.5vw,5rem)] font-medium leading-[0.96] tracking-[-0.02em] text-[#f4f1ea]">{active.name}</h3>
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed sm:text-base" style={{ color: MUTED }}>{active.note}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 font-sans text-sm tabular-nums" style={{ color: BONE }}>
+              <span>{active.botanical}</span>
+              <span aria-hidden="true" className="opacity-30">·</span>
+              <span>{active.abv}</span>
+              <span aria-hidden="true" className="opacity-30">·</span>
+              <span>{active.size}</span>
+            </div>
+            <div className="mt-7 flex flex-wrap items-center gap-4">
+              <span className="font-display text-2xl" style={{ color: AMBER_GLOW }}>{kr(active.price)}</span>
+              <a href="#kaupa" className="inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-bold text-[#0a0b0a] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0b0a]" style={{ background: AMBER, ['--tw-ring-color' as string]: AMBER_GLOW } as CSSProperties}>
+                Hvar á að kaupa <ArrowUpRight size={15} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Numbered rail (desktop) — also the keyboard path through the range */}
+        <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 flex-col items-end gap-2.5 md:flex">
+          {SPIRITS.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => jumpTo(box.top + (i / (N - 1)) * (box.height - vh) + 4)}
+              className="group flex items-center gap-2 outline-none focus-visible:opacity-100"
+              aria-label={`Sýna ${s.name}`}
+              aria-current={i === index ? 'true' : undefined}
+            >
+              <span className="font-sans text-[10px] tabular-nums transition-colors" style={{ color: i === index ? AMBER_GLOW : 'rgba(255,255,255,0.32)' }}>{String(i + 1).padStart(2, '0')}</span>
+              <span className="h-px transition-all duration-300" style={{ width: i === index ? 22 : 9, background: i === index ? AMBER_GLOW : 'rgba(255,255,255,0.32)' }} />
+            </button>
+          ))}
+        </div>
+
+        {/* progress dots (mobile) */}
+        <div className="absolute bottom-24 left-1/2 flex -translate-x-1/2 items-center gap-1.5 md:hidden">
+          {SPIRITS.map((s, i) => (
+            <span key={s.id} className="h-1 rounded-full transition-all duration-300" style={{ width: i === index ? 18 : 6, background: i === index ? AMBER_GLOW : 'rgba(255,255,255,0.28)' }} />
+          ))}
+        </div>
+
+        {/* honesty line — hidden on mobile where it sits behind the sticky CTA bar */}
+        <p className="absolute bottom-6 left-5 right-5 mx-auto hidden max-w-md text-center font-sans text-[10px] leading-relaxed sm:block md:left-10 md:right-auto md:text-left" style={{ color: 'rgba(167,160,148,0.55)' }}>
+          Raunverulegar vörur og merki. Bragð, verð og stærðir eru sýnishorn.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* --- Where to buy --------------------------------------------------------- */
+const BuySection = memo(function BuySection() {
+  return (
+    <section id="kaupa" aria-labelledby="kaupa-h" className="px-5 py-16 md:px-10 md:py-24">
+      <div className="mx-auto max-w-5xl">
+        <Reveal>
+          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.26em]" style={{ color: AMBER_GLOW }}>Hvar á að kaupa</p>
+          <h2 id="kaupa-h" className="mt-3 font-display text-[clamp(2rem,5.5vw,3.4rem)] font-medium leading-[1.02] tracking-[-0.015em] text-[#f4f1ea]">
+            Versla 64°
+          </h2>
+        </Reveal>
+        {(() => {
+          const [primary, ...rest] = BUY
+          return (
+            <Reveal delay={120} className="mt-10 grid gap-5 lg:grid-cols-12">
+              {/* Featured: the online store — the clearest path to a bottle */}
+              <div
+                className="relative flex flex-col justify-between gap-8 overflow-hidden rounded-3xl border p-7 md:p-9 lg:col-span-5"
+                style={{ borderColor: 'rgba(200,136,30,0.32)', background: `linear-gradient(155deg, rgba(200,136,30,0.16), rgba(255,255,255,0.015) 58%), ${SURFACE}` }}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag size={15} style={{ color: AMBER_GLOW }} aria-hidden="true" />
+                    <span className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: AMBER_GLOW }}>
+                      {primary.tag} · skýrasta leiðin
+                    </span>
+                  </div>
+                  <h3 className="mt-4 font-display text-[clamp(1.8rem,3.5vw,2.4rem)] font-medium tracking-tight text-[#f4f1ea]">{primary.name}</h3>
+                  <p className="mt-3 max-w-sm text-[15px] leading-relaxed" style={{ color: MUTED }}>{primary.detail}</p>
+                </div>
+                {primary.href && (
+                  <a
+                    href={primary.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-[52px] w-fit items-center gap-2 rounded-full px-7 text-sm font-bold text-[#0a0b0a] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0b0a]"
+                    style={{ background: AMBER, ['--tw-ring-color' as string]: AMBER_GLOW } as CSSProperties}
+                  >
+                    {primary.cta} <ArrowUpRight size={15} aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+
+              {/* The physical stockists — a clean divided list, no orphan card */}
+              <div className="lg:col-span-7">
+                <p className="mb-3 px-1 font-sans text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: 'rgba(167,160,148,0.8)' }}>
+                  Einnig fáanlegt
+                </p>
+                <ul className="divide-y divide-white/8 overflow-hidden rounded-3xl border border-white/10" style={{ background: SURFACE }}>
+                  {rest.map((b) => (
+                    <li key={b.name} className="flex flex-col gap-1.5 p-5 transition-colors hover:bg-white/[0.025] sm:flex-row sm:items-baseline sm:gap-5 md:p-6">
+                      <span className="shrink-0 pt-0.5 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] sm:w-28" style={{ color: AMBER_GLOW }}>{b.tag}</span>
+                      <div>
+                        <h3 className="font-display text-lg font-medium tracking-tight text-[#f4f1ea]">{b.name}</h3>
+                        <p className="mt-1 text-[13px] leading-relaxed" style={{ color: MUTED }}>{b.detail}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          )
+        })()}
+      </div>
+    </section>
+  )
+})
+
+/* --- Visit + elf footnote ------------------------------------------------- */
+const VisitSection = memo(function VisitSection() {
+  return (
+    <section id="ferdin" aria-labelledby="visit-h" className="px-5 pb-20 pt-4 md:px-10 md:pb-28">
+      <Reveal className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-white/10">
+        <div className="grid lg:grid-cols-2">
+          <div className="relative p-7 md:p-10" style={{ background: SURFACE }}>
+            <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.26em]" style={{ color: AMBER_GLOW }}>Heimsókn og smakk</p>
+            <h2 id="visit-h" className="mt-3 font-display text-[clamp(1.8rem,5vw,2.7rem)] font-medium leading-[1.04] tracking-[-0.015em] text-[#f4f1ea]">
+              Komdu í brugghúsið
+            </h2>
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed" style={{ color: MUTED }}>
+              Brugghúsið stendur við Lónsbraut í Hafnarfirði. Við bjóðum upp á smökkun á eimingunum eftir samkomulagi. Hringdu og við finnum tíma.
+            </p>
+            <dl className="mt-7 space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin size={18} style={{ color: AMBER_GLOW }} aria-hidden="true" className="mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wide" style={{ color: MUTED }}>Heimilisfang</dt>
+                  <dd className="mt-0.5 text-[15px] text-[#f1ede3]">{DISTILLERY.addr}</dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone size={18} style={{ color: AMBER_GLOW }} aria-hidden="true" className="mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wide" style={{ color: MUTED }}>Sími</dt>
+                  <dd className="mt-0.5">
+                    <a href={DISTILLERY.telHref} className="text-[15px] tabular-nums underline-offset-4 hover:underline" style={{ color: AMBER_GLOW }}>{DISTILLERY.tel}</a>
+                  </dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Mail size={18} style={{ color: AMBER_GLOW }} aria-hidden="true" className="mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wide" style={{ color: MUTED }}>Netfang</dt>
+                  <dd className="mt-0.5">
+                    <a href={`mailto:${DISTILLERY.email}`} className="text-[15px] underline-offset-4 hover:underline" style={{ color: AMBER_GLOW }}>{DISTILLERY.email}</a>
+                  </dd>
+                </div>
+              </div>
+            </dl>
+            <a
+              href={DISTILLERY.telHref}
+              className="mt-8 inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-bold text-[#0a0b0a] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0b0a]"
+              style={{ background: AMBER, ['--tw-ring-color' as string]: AMBER_GLOW } as CSSProperties}
+            >
+              <Phone size={16} aria-hidden="true" /> Bóka smökkun
+            </a>
+          </div>
+
+          {/* Elf footnote — the real, charming origin story */}
+          <div className="relative flex flex-col justify-center gap-5 border-t border-white/10 p-7 md:p-10 lg:border-l lg:border-t-0" style={{ background: `radial-gradient(120% 100% at 80% 0%, rgba(200,136,30,0.12), transparent 60%), ${SURFACE}` }}>
+            <img src={`${ASSET}brand/logo.png`} alt="64° Reykjavik Distillery" className="h-12 w-12 object-contain" style={{ filter: 'brightness(0) invert(1)', opacity: 0.85 }} />
+            <p className="font-display text-[clamp(1.4rem,3.5vw,1.9rem)] font-medium italic leading-snug text-[#f1ede3]">
+              “{ELF.line}”
+            </p>
+            <p className="font-sans text-sm font-semibold uppercase tracking-[0.2em]" style={{ color: AMBER_GLOW }}>{ELF.toast}</p>
+            <p className="text-[12px] leading-relaxed" style={{ color: 'rgba(167,160,148,0.7)' }}>
+              {DISTILLERY.tagline} · {DISTILLERY.addr}
+            </p>
+          </div>
+        </div>
+      </Reveal>
+
+      <p className="mx-auto mt-6 max-w-5xl text-[11px] leading-relaxed" style={{ color: 'rgba(167,160,148,0.6)' }}>
+        Vörumyndir og merki © Reykjavik Distillery. Stemnings- og landslagsmyndir eru sýnishorn.
+      </p>
+    </section>
+  )
+})
+
+/* --- Mobile sticky CTA ---------------------------------------------------- */
+function MobileCTA() {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#0a0b0a]/95 px-4 pt-3 pb-[max(0.8rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
       <a
         href="#kaupa"
-        className="flex min-h-[48px] items-center justify-center gap-2 rounded-full px-5 text-sm font-bold text-[#0b0f0e] transition-opacity hover:opacity-90"
-        style={{ background: accent, transition: 'background-color 0.6s ease' }}
+        className="flex min-h-[48px] items-center justify-center gap-2 rounded-full px-5 text-sm font-bold text-[#0a0b0a] transition-opacity hover:opacity-90"
+        style={{ background: AMBER }}
       >
         <ShoppingBag size={17} aria-hidden="true" /> Hvar á að kaupa
       </a>
@@ -300,457 +629,77 @@ function MobileCTA({ accent }: { accent: string }) {
 /* ------------------------------------------------------------------------- */
 export default function Page() {
   const reduce = useReducedMotion()
-  const [index, setIndex] = useState(0)
-  const active = SPIRITS[index]
-  const accent = active.accent
-  const tint = active.tint
+  const { scrollY, docH, lenisRef } = useScrollDriver(reduce)
+  const jumpTo = useCallback((y: number) => {
+    const l = lenisRef.current
+    if (l) l.scrollTo(y)
+    else window.scrollTo({ top: y })
+  }, [lenisRef])
 
-  // Manual passive scroll listener — drives a thin progress hairline + a tiny
-  // parallax on the hero coordinate stamp. No framer useScroll (it pins at 0).
-  const [scrollY, setScrollY] = useState(0)
-  const [docH, setDocH] = useState(1)
+  const progress = useMemo(() => clamp(scrollY / docH, 0, 1), [scrollY, docH])
+  // temperature ramps over the journey portion (top ~58% of the page)
+  const temp = useMemo(() => clamp(progress / 0.42, 0, 1), [progress])
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY)
-    const measure = () => setDocH(Math.max(1, document.documentElement.scrollHeight - window.innerHeight))
-    measure()
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', measure)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', measure)
-    }
+    document.title = '64° Reykjavik Distillery — Frá villtu í glas'
   }, [])
-  const progress = useMemo(() => Math.min(1, Math.max(0, scrollY / docH)), [scrollY, docH])
-  const heroShift = reduce ? 0 : Math.min(36, scrollY * 0.05)
-
-  const steps = useReveal<HTMLOListElement>(reduce)
-
   useEffect(() => {
-    document.title = '64° Reykjavik Distillery'
-  }, [])
-
-  // Crossfade the mobile browser chrome to match the selected botanical.
-  useEffect(() => {
-    setThemeColor(accent)
+    setThemeColor(GROUND)
     return () => setThemeColor(GROUND)
-  }, [accent])
-
-  const select = useCallback((i: number) => setIndex(i), [])
+  }, [])
 
   return (
-    <div
-      className="min-h-screen font-sans antialiased"
-      style={{ background: GROUND, color: FROST, transition: 'background-color 0.6s ease' }}
-    >
-      <PreviewChrome company={company} />
-      <MobileCTA accent={accent} />
+    <div className="min-h-screen font-sans antialiased" style={{ background: GROUND, color: BONE, isolation: 'isolate' }}>
+      <TemperatureBackdrop t={temp} />
 
-      {/* Scroll progress hairline */}
-      <div className="fixed inset-x-0 top-0 z-40 h-px" aria-hidden="true">
-        <div className="h-full origin-left" style={{ background: tint, transform: `scaleX(${progress})`, transition: 'background-color 0.6s ease' }} />
+      {/* Full-viewport fluid, fixed BEHIND all content. Skipped entirely under
+          prefers-reduced-motion — the page reads well without it and we avoid
+          loading Three.js (the WebGL renderer) for users who opt out of motion. */}
+      {!reduce && (
+        <div className="pointer-events-none fixed inset-0 -z-[1]">
+          <LiquidEther
+            colors={LIQUID_COLORS}
+            mouseForce={42}
+            cursorSize={172}
+            autoSpeed={0.4}
+            autoIntensity={2.3}
+            autoResumeDelay={500}
+            resolution={0.5}
+            dt={0.011}
+            isViscous
+            viscous={18}
+            iterationsViscous={28}
+            takeoverDuration={0.5}
+            autoRampDuration={0.9}
+          />
+        </div>
+      )}
+
+      <PreviewChrome company={company} />
+      <MobileCTA />
+      <Thread progress={progress} />
+
+      {/* scroll progress hairline */}
+      <div className="fixed inset-x-0 top-0 z-50 h-px" aria-hidden="true">
+        <div className="h-full origin-left" style={{ background: AMBER, transform: `scaleX(${progress})` }} />
       </div>
 
-      {/* ===== HERO ===== */}
-      <header className="relative overflow-hidden px-5 pt-24 pb-16 md:px-10 md:pt-32 md:pb-24">
-        {/* faint graticule backdrop */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px)',
-            backgroundSize: '56px 56px',
-            maskImage: 'radial-gradient(ellipse 92% 72% at 50% 32%, black, transparent 80%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 92% 72% at 50% 32%, black, transparent 80%)',
-          }}
-        />
-        <div className="relative mx-auto max-w-5xl">
-          <div className="flex items-center gap-3" style={{ transform: `translateY(${-heroShift}px)` }}>
-            <Crosshair size={16} style={{ color: tint, transition: 'color 0.6s ease' }} aria-hidden="true" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.28em] sm:text-xs" style={{ color: tint, transition: 'color 0.6s ease' }}>
-              64°08′N · Breiddargráða
-            </span>
-          </div>
+      <TopNav scrolled={scrollY > 60} />
+      <Hero />
 
-          <h1 className="mt-6 font-syne text-[clamp(2rem,8.6vw,4.8rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.01em]">
-            64° Reykjavik
-            <br />
-            <span style={{ color: tint, transition: 'color 0.6s ease' }}>Distillery</span>
-          </h1>
-
-          <p className="mt-6 max-w-xl text-base leading-relaxed sm:text-lg" style={{ color: MUTED }}>
-            Handtínt úr íslenskri náttúru, frá villtu í glas. Hver jurt á sinni breiddargráðu, hver lota eimuð í Hafnarfirði síðan 2009.
+      <section id="ferdin-anchor" aria-label="Frá villtu í glas">
+        <Reveal className="px-5 pt-14 text-center md:pt-20">
+          <p className="mx-auto max-w-md font-display text-[clamp(1.1rem,2.6vw,1.5rem)] italic leading-snug" style={{ color: MUTED }}>
+            Þrjú skref frá íslenskri heiði í flöskuna þína.
           </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href="#kortid"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-bold text-[#0b0f0e] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f0e]"
-              style={{ background: accent, transition: 'background-color 0.6s ease', ['--tw-ring-color' as string]: tint } as CSSProperties}
-            >
-              Skoða vörurnar <ArrowDown size={16} aria-hidden="true" />
-            </a>
-            <a
-              href="#kaupa"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-full border border-white/20 px-6 text-sm font-semibold text-[#eef2f0] outline-none transition-colors hover:border-white/40 focus-visible:ring-2 focus-visible:ring-white/50"
-            >
-              Hvar á að kaupa
-            </a>
-          </div>
-
-          {/* Hero composition: a framed coordinate plate beside an atmospheric pour */}
-          <div className="mt-12 grid gap-4 sm:mt-14 sm:grid-cols-[1.25fr,1fr] sm:gap-5">
-            {/* Stat plate */}
-            <dl className="grid grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-              {[
-                ['64.1°N', 'Breiddargráða Reykjavíkur'],
-                ['2009', 'Fyrsta örbrugghúsið'],
-                ['100%', 'Íslenskar jurtir'],
-              ].map(([big, small], i) => (
-                <div key={small} className={`px-3 py-5 sm:px-4 ${i > 0 ? 'border-l border-white/10' : ''}`}>
-                  <dt className="font-mono text-xl font-bold tabular-nums sm:text-2xl" style={{ color: tint, transition: 'color 0.6s ease' }}>
-                    {big}
-                  </dt>
-                  <dd className="mt-1.5 text-[11px] leading-snug" style={{ color: MUTED }}>
-                    {small}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            {/* Atmospheric pour, framed with a coordinate caption so the panel reads intentional */}
-            <figure className="relative overflow-hidden rounded-2xl border border-white/10">
-              <div className="aspect-[5/4] sm:aspect-auto sm:h-full">
-                <Img
-                  src={`${U}${POUR}?q=80&w=900&auto=format&fit=crop`}
-                  alt="Tær eiming hellt í glas, andrúmsmynd"
-                  className="h-full w-full object-cover opacity-85"
-                  fetchpriority="high"
-                />
-              </div>
-              <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 35%, ${GROUND} 100%)` }} aria-hidden="true" />
-              <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-3 pb-3 font-mono text-[10px] uppercase tracking-[0.16em]">
-                <span className="text-white/60">Wild → glass</span>
-                <span style={{ color: tint, transition: 'color 0.6s ease' }}>64°N</span>
-              </figcaption>
-            </figure>
-          </div>
-        </div>
-      </header>
-
-      {/* ===== SIGNATURE: FORAGING MAP SELECTOR ===== */}
-      <section id="kortid" aria-labelledby="kortid-h" className="px-5 py-16 md:px-10 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <span className="font-mono text-xs uppercase tracking-[0.22em]" style={{ color: tint, transition: 'color 0.6s ease' }}>
-            Foraging map
-          </span>
-          <h2 id="kortid-h" className="mt-2 max-w-2xl font-syne text-[clamp(1.8rem,6vw,3.1rem)] font-bold uppercase leading-[0.95] tracking-tight">
-            Plottað á jurtina
-          </h2>
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed" style={{ color: MUTED }}>
-            Veldu eimingu á kortinu. Krosshárið læsist á breiddargráðu jurtarinnar, hnitin rúlla fram og litur síðunnar tekur lit hennar. Notaðu örvalyklana eða smelltu á punkt.
-          </p>
-
-          <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr,1fr]">
-            {/* The map */}
-            <ForagingMap index={index} setIndex={select} accent={accent} tint={tint} reduce={reduce} />
-
-            {/* Tasting card — updates on lock */}
-            <div className="flex flex-col">
-              <AnimatePresence mode="wait">
-                <motion.article
-                  key={active.id}
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: 0.4, ease: [0.21, 0.65, 0.36, 1] }}
-                  className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border p-6 md:p-8"
-                  style={{ borderColor: `${accent}55`, background: `linear-gradient(160deg, ${accent}16, transparent 62%)` }}
-                >
-                  {/* faint plate code top-right */}
-                  <span aria-hidden="true" className="absolute right-5 top-5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
-                    No. {String(index + 1).padStart(2, '0')} / {String(SPIRITS.length).padStart(2, '0')}
-                  </span>
-
-                  <span className="font-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: tint }}>
-                    {active.botanical}
-                  </span>
-
-                  <h3 className="mt-2 font-syne text-[clamp(1.6rem,7vw,2.5rem)] font-bold uppercase leading-[0.95] tracking-tight">
-                    {active.name}
-                  </h3>
-                  <p className="mt-2 text-sm" style={{ color: MUTED }}>
-                    {active.type} · {active.size}
-                  </p>
-
-                  {/* palate descriptors */}
-                  <ul className="mt-5 flex flex-wrap gap-2" aria-label="Bragðtónar">
-                    {active.palate.map((p) => (
-                      <li
-                        key={p}
-                        className="rounded-full border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide"
-                        style={{ borderColor: `${accent}44`, color: tint, background: `${accent}12` }}
-                      >
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <p className="mt-5 text-[15px] leading-relaxed text-[#dfe6e2]">{active.notes}</p>
-
-                  <p className="mt-4 flex items-center gap-2 text-[13px]" style={{ color: MUTED }}>
-                    <MapPin size={13} style={{ color: tint }} aria-hidden="true" />
-                    {active.source}
-                  </p>
-
-                  {/* readout block */}
-                  <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-white/10 pt-5">
-                    <div>
-                      <dt className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>
-                        Styrkur
-                      </dt>
-                      <dd className="mt-1 font-mono text-base tabular-nums" style={{ color: tint }}>
-                        {active.abv}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>
-                        Uppskera
-                      </dt>
-                      <dd className="mt-1 font-mono text-base" style={{ color: tint }}>
-                        {active.season}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>
-                        Verð · sýnishorn
-                      </dt>
-                      <dd className="mt-1 font-mono text-base tabular-nums" style={{ color: tint }}>
-                        {kr(active.price)}
-                      </dd>
-                    </div>
-                  </dl>
-
-                  <a
-                    href="#kaupa"
-                    className="mt-6 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full px-5 text-sm font-bold text-[#0b0f0e] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f0e]"
-                    style={{ background: accent, ['--tw-ring-color' as string]: tint } as CSSProperties}
-                  >
-                    Hvar á að kaupa <ArrowUpRight size={15} aria-hidden="true" />
-                  </a>
-                </motion.article>
-              </AnimatePresence>
-
-              {/* Quick-pick chips — mirror the map for mouse/touch (map is the a11y control) */}
-              <div className="mt-4 flex flex-wrap gap-2" aria-hidden="true">
-                {SPIRITS.map((s, i) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setIndex(i)}
-                    className="rounded-full border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wide transition-colors"
-                    style={
-                      i === index
-                        ? { borderColor: s.accent, color: s.tint, background: `${s.accent}1f` }
-                        : { borderColor: 'rgba(255,255,255,0.14)', color: MUTED }
-                    }
-                  >
-                    {s.botanical}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Fuller range */}
-          <div className="mt-14">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
-              Einnig í úrvalinu
-            </p>
-            <ul className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/[0.08] sm:grid-cols-3">
-              {COLLECTION.map((c) => (
-                <li key={c.name} className="bg-[#0b0f0e] px-4 py-4">
-                  <p className="font-syne text-sm font-semibold uppercase tracking-tight">{c.name}</p>
-                  <p className="mt-1 text-[12px]" style={{ color: MUTED }}>
-                    {c.type}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <p className="mt-5 max-w-2xl font-mono text-[11px] leading-relaxed" style={{ color: 'rgba(159,176,168,0.72)' }}>
-            Styrkur, verð, flöskustærðir, uppskerutími og hnit eru sýnishorn (sample) og til skýringar. Vörunöfnin eru raunveruleg.
-          </p>
-        </div>
+        </Reveal>
+        {BEATS.map((b, i) => (
+          <JourneyBeat key={b.id} beat={b} scrollY={scrollY} reduce={reduce} index={i} />
+        ))}
       </section>
 
-      {/* ===== FROM WILD TO GLASS ===== */}
-      <section aria-labelledby="ferli-h" className="relative px-5 py-16 md:px-10 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <span className="font-mono text-xs uppercase tracking-[0.22em]" style={{ color: tint, transition: 'color 0.6s ease' }}>
-            Frá villtu í glas
-          </span>
-          <h2 id="ferli-h" className="mt-2 font-syne text-[clamp(1.8rem,6vw,3.1rem)] font-bold uppercase leading-[0.95] tracking-tight">
-            Fjögur skref
-          </h2>
-
-          <ol ref={steps.ref} className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/[0.08] sm:grid-cols-2 lg:grid-cols-4">
-            {PROCESS.map((p, i) => (
-              <li
-                key={p.k}
-                className="relative bg-[#0b0f0e] px-5 py-7 transition-all duration-700 ease-out"
-                style={{
-                  opacity: steps.shown ? 1 : 0,
-                  transform: steps.shown ? 'none' : 'translateY(16px)',
-                  transitionDelay: `${i * 70}ms`,
-                }}
-              >
-                <span className="font-mono text-xs tabular-nums" style={{ color: tint, transition: 'color 0.6s ease' }}>
-                  {p.k}
-                </span>
-                <h3 className="mt-3 font-syne text-xl font-bold uppercase tracking-tight">{p.t}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed" style={{ color: MUTED }}>
-                  {p.d}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* ===== WHERE TO BUY ===== */}
-      <section id="kaupa" aria-labelledby="kaupa-h" className="px-5 py-16 md:px-10 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <span className="font-mono text-xs uppercase tracking-[0.22em]" style={{ color: tint, transition: 'color 0.6s ease' }}>
-            Hvar á að kaupa
-          </span>
-          <h2 id="kaupa-h" className="mt-2 font-syne text-[clamp(1.8rem,6vw,3.1rem)] font-bold uppercase leading-[0.95] tracking-tight">
-            Versla 64°
-          </h2>
-
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            {BUY.map((b) => (
-              <div
-                key={b.name}
-                className="flex flex-col justify-between gap-5 rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-white/20"
-              >
-                <div>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em]" style={{ color: tint, transition: 'color 0.6s ease' }}>
-                    {b.tag}
-                  </span>
-                  <h3 className="mt-2 font-syne text-xl font-semibold uppercase tracking-tight">{b.name}</h3>
-                  <p className="mt-2 text-[14px] leading-relaxed" style={{ color: MUTED }}>
-                    {b.detail}
-                  </p>
-                </div>
-                {b.href ? (
-                  <a
-                    href={b.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full px-5 text-sm font-bold text-[#0b0f0e] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f0e]"
-                    style={{ background: accent, transition: 'background-color 0.6s ease', ['--tw-ring-color' as string]: tint } as CSSProperties}
-                  >
-                    {b.cta} <ArrowUpRight size={15} aria-hidden="true" />
-                  </a>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== VISIT / TASTING — designed map section ===== */}
-      <section aria-labelledby="heimsokn-h" className="px-5 pb-28 pt-4 md:px-10 md:pb-24">
-        <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-white/10">
-          <div className="grid lg:grid-cols-2">
-            {/* Left: copy */}
-            <div className="relative p-7 md:p-10">
-              <span className="font-mono text-xs uppercase tracking-[0.22em]" style={{ color: tint, transition: 'color 0.6s ease' }}>
-                Heimsókn og smakk
-              </span>
-              <h2 id="heimsokn-h" className="mt-2 font-syne text-[clamp(1.7rem,5.4vw,2.6rem)] font-bold uppercase leading-[0.95] tracking-tight">
-                Komdu í brugghúsið
-              </h2>
-              <p className="mt-4 max-w-md text-[15px] leading-relaxed" style={{ color: MUTED }}>
-                Brugghúsið stendur við Lónsbraut í Hafnarfirði. Við bjóðum upp á smökkun á jurtaeimingunum eftir samkomulagi (sýnishorn af framboði). Hringdu og við finnum tíma.
-              </p>
-
-              <dl className="mt-7 space-y-4">
-                <div className="flex items-start gap-3">
-                  <MapPin size={18} style={{ color: tint }} aria-hidden="true" className="mt-0.5 shrink-0" />
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide" style={{ color: MUTED }}>
-                      Heimilisfang
-                    </dt>
-                    <dd className="mt-0.5 text-[15px]">{DISTILLERY.addr}</dd>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Phone size={18} style={{ color: tint }} aria-hidden="true" className="mt-0.5 shrink-0" />
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide" style={{ color: MUTED }}>
-                      Sími
-                    </dt>
-                    <dd className="mt-0.5">
-                      <a href={DISTILLERY.telHref} className="font-mono text-[15px] tabular-nums underline-offset-4 hover:underline" style={{ color: tint }}>
-                        {DISTILLERY.tel}
-                      </a>
-                    </dd>
-                  </div>
-                </div>
-              </dl>
-
-              <a
-                href={DISTILLERY.telHref}
-                className="mt-8 inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-bold text-[#0b0f0e] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f0e]"
-                style={{ background: accent, transition: 'background-color 0.6s ease', ['--tw-ring-color' as string]: tint } as CSSProperties}
-              >
-                <Phone size={16} aria-hidden="true" /> Bóka smökkun
-              </a>
-            </div>
-
-            {/* Right: designed map panel */}
-            <div className="relative min-h-[300px] border-t border-white/10 lg:border-l lg:border-t-0">
-              <Img
-                src={`${U}${WILD}?q=80&w=1100&auto=format&fit=crop`}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover opacity-25"
-              />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${GROUND}cc, ${accent}22)`, transition: 'background-color 0.6s ease' }} aria-hidden="true" />
-              <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full" aria-hidden="true" role="presentation">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <line key={`mh${i}`} x1={0} x2={400} y1={i * 60} y2={i * 60} stroke="#ffffff" strokeOpacity={0.07} />
-                ))}
-                {Array.from({ length: 7 }).map((_, i) => (
-                  <line key={`mv${i}`} y1={0} y2={300} x1={i * 66.6} x2={i * 66.6} stroke="#ffffff" strokeOpacity={0.07} />
-                ))}
-                {/* pin */}
-                <g transform="translate(206 150)">
-                  <circle r={26} fill="none" stroke={tint} strokeWidth={1} strokeOpacity={0.5} style={{ transition: 'stroke 0.6s ease' }} />
-                  <circle r={5} fill={accent} style={{ transition: 'fill 0.6s ease' }} />
-                  <line x1={-34} x2={-30} y1={0} y2={0} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-                  <line x1={30} x2={34} y1={0} y2={0} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-                  <line x1={0} x2={0} y1={-34} y2={-30} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-                  <line x1={0} x2={0} y1={30} y2={34} stroke={tint} strokeWidth={1.5} style={{ transition: 'stroke 0.6s ease' }} />
-                </g>
-              </svg>
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">Hafnarfjörður</span>
-                <span className="font-mono text-[13px] tabular-nums" style={{ color: tint, transition: 'color 0.6s ease' }}>
-                  {DISTILLERY.coord}
-                </span>
-              </div>
-              <span className="absolute right-4 top-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
-                til skýringar
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Collection scrollY={scrollY} reduce={reduce} jumpTo={jumpTo} />
+      <BuySection />
+      <VisitSection />
 
       <PreviewFooter company={company} />
     </div>
