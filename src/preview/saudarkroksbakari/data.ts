@@ -1,125 +1,181 @@
 /**
- * Sample content for the Sauðárkróksbakarí redesign concept ("Bakað síðan 1880").
+ * Sample content for the Sauðárkróksbakarí redesign — "Dögun í Skagafirði"
+ * (Daybreak): a dark 4am oven that scrolls into the bright marble counter.
  *
- * HONESTY: opening hours, prices and review quotes are SAMPLE data — the shared
- * PreviewFooter disclaims this on every page. Verified facts only: founded ~1880,
- * Aðalgata 5 (550 Sauðárkrókur), phone +354 455 5000, 40 seats in & out,
- * Tripadvisor 4,7 + Travelers' Choice (real). No invented baker names or awards.
+ * HONESTY: opening hours, prices and review wording are SAMPLE data — the shared
+ * PreviewFooter disclaims this on every page, and prices are labelled "sýnishorn".
+ *
+ * Products shown are FACT-CHECKED — only items sourced to THIS bakery via reviews
+ * (Tripadvisor / HappyCow) or its own service description appear here:
+ *   • snúður in three glazes (chocolate / caramel / sugar) — the signature, vegan
+ *   • pink-iced donut (bleikur kleinuhringur) — a specifically reviewed item
+ *   • Nutella-filled langjón-style "Nutellastöng" — a named house original
+ *   • Danish-style rúgbrauð + homemade breads
+ *   • vegan croissant, soup of the day, coffee (oat milk available)
+ * Deliberately DROPPED (no source ties them to this bakery): kransakaka, hálfmánar,
+ * lakkrístoppar, randalín, marengs, vínarbrauð-as-a-named-star. Do not re-add without
+ * a real source. Vegan/oat-milk shown as "í boði" (available), never guaranteed.
+ *
+ * Verified facts: founded ~1880 (one of the oldest bakeries in Iceland), rebuilt
+ * after a fire in 1979, Aðalgata 5 (550 Sauðárkrókur), phone +354 455 5000, ~40
+ * seats in & out, Tripadvisor 4,7 + Travelers' Choice.
  */
 
-export interface BakeCategory {
+/** Local image folder (drop Seedream 4.5 photos here — see IMAGE-PROMPTS.md). */
+const IMG_BASE = `${import.meta.env.BASE_URL}saudarkroksbakari/`
+
+/** Named image slots used outside the product gallery. */
+export const IMG = {
+  /** Hero: macro of the chocolate snúður swirl, spotlit in the dark (full-bleed). */
+  heroSwirl: `${IMG_BASE}hero-swirl.jpg`,
+  heroSwirlWide: `${IMG_BASE}hero-swirl-wide.jpg`,
+  /** Dark chapter: baker sliding loaves into the glowing 1880 oven. */
+  ovenHands: `${IMG_BASE}oven-hands.jpg`,
+  /** Bright chapter: the real interior — white marble + pine, morning light. */
+  interiorMarble: `${IMG_BASE}interior-marble.jpg`,
+  /** Bright chapter: latte with oat milk, on marble by the window. */
+  coffee: `${IMG_BASE}kaffi.jpg`,
+} as const
+
+export interface Product {
   id: string
-  /** Icelandic category name */
+  /** Icelandic name */
   name: string
   /** English gloss for travellers */
   en: string
-  /** One warm line of description */
+  /** One warm line */
   blurb: string
-  /** Sample price label, e.g. "frá 690 kr" */
+  /** Machined spec line (mono) — glaze / style / note */
+  spec: string
+  /** Sample price label, e.g. "frá 450 kr" */
   price: string
-  /** A representative item, for the steam-card */
-  pick: string
-  /** Does this card carry the steam-rise signature? (still warm) */
-  steams: boolean
-  /** Sample "out of the oven at" time — drives the board's warmth read. */
-  oven: string
+  /** Optional small tag, e.g. "Vinsælast", "Vegan", "Hússérstaða" */
+  tag?: string
+  /** Local product photo (4:5) */
+  img: string
+  /** Honest descriptive alt */
+  alt: string
 }
 
-/** "Heitt úr ofninum" — what they bake. Sample prices in kr, sample oven times. */
-export const BAKES: BakeCategory[] = [
+/**
+ * The bright "counter" gallery — fact-checked items only, signature snúður first.
+ * Order reads like the real case: the snúður trio, the pink donut, the house
+ * original, the heritage rye, a vegan option, then coffee.
+ */
+export const PRODUCTS: Product[] = [
   {
-    id: 'braud',
-    name: 'Brauð',
-    en: 'Breads',
-    blurb: 'Súrdeig, rúgbrauð og fjallabrauð, hnoðuð og bökuð á staðnum frá fyrstu birtu.',
-    price: 'frá 690 kr',
-    pick: 'Rúgbrauð úr ofninum',
-    steams: true,
-    oven: '06:40',
+    id: 'snudur-sukkuladi',
+    name: 'Snúður með súkkulaði',
+    en: 'Chocolate-glazed cinnamon bun',
+    blurb: 'Það sem bakaríið er þekktast fyrir: mjúkur snúður undir stökkri súkkulaðihúð.',
+    spec: 'Súkkulaðiglassúr · til í vegan',
+    price: 'frá 450 kr',
+    tag: 'Vinsælast',
+    img: `${IMG_BASE}snudur-sukkuladi.jpg`,
+    alt: 'Snúður með glansandi dökkri súkkulaðihúð á ljósu marmaraborði',
   },
   {
-    id: 'vinarbraud',
-    name: 'Vínarbrauð',
-    en: 'Pastries',
-    blurb: 'Smjördeig sem flagnar í lögum, snúðar og kruðerí beint úr ofninum.',
-    price: 'frá 420 kr',
-    pick: 'Kanilsnúður',
-    steams: true,
-    oven: '07:10',
+    id: 'snudur-karamellu',
+    name: 'Snúður með karamellu',
+    en: 'Caramel-glazed cinnamon bun',
+    blurb: 'Sami mjúki snúðurinn, vafinn í glansandi karamellu sem mörgum þykir sú besta.',
+    spec: 'Karamelluglassúr · til í vegan',
+    price: 'frá 450 kr',
+    img: `${IMG_BASE}snudur-karamellu.jpg`,
+    alt: 'Snúður með gljáandi ljósbrúnni karamelluhúð á marmaraborði',
   },
   {
-    id: 'smakokur',
-    name: 'Smákökur',
-    en: 'Cookies',
-    blurb: 'Bakaðar eftir gömlum uppskriftum: hálfmánar, perlur og lakkrístoppar.',
-    price: 'frá 290 kr',
-    pick: 'Hálfmánar',
-    steams: false,
-    oven: '08:00',
+    id: 'snudur-sykur',
+    name: 'Snúður með sykri',
+    en: 'Sugar-glazed cinnamon bun',
+    blurb: 'Klassíski snúðurinn með ljósum sykurglassúr, eins og hann hefur alltaf verið.',
+    spec: 'Sykurglassúr · til í vegan',
+    price: 'frá 450 kr',
+    img: `${IMG_BASE}snudur-sykur.jpg`,
+    alt: 'Snúður með ljósum, hálfgagnsæjum sykurglassúr á marmaraborði',
   },
   {
-    id: 'kokur',
-    name: 'Kökur',
-    en: 'Cakes',
-    blurb: 'Rjómatertur, marengs og randalín fyrir stór og smá tilefni.',
-    price: 'frá 750 kr',
-    pick: 'Randalín',
-    steams: false,
-    oven: '08:30',
+    id: 'kleinuhringur-bleikur',
+    name: 'Bleikur kleinuhringur',
+    en: 'Pink-iced donut',
+    blurb: 'Bleik glassúrhúð yfir mjúkum hring, uppáhald margra í morgunsárið.',
+    spec: 'Bleikur glassúr',
+    price: 'frá 390 kr',
+    tag: 'Litríkt',
+    img: `${IMG_BASE}kleinuhringur-bleikur.jpg`,
+    alt: 'Kleinuhringur með glansandi bleikri glassúrhúð á marmaraborði',
   },
   {
-    id: 'supa',
-    name: 'Súpa dagsins',
-    en: 'Soup of the day',
-    blurb: 'Heit súpa með nýbökuðu brauði, soðin ný á hverjum degi fyrir hádegið.',
-    price: '1.690 kr',
-    pick: 'Súpa með brauði',
-    steams: true,
-    oven: '11:30',
+    id: 'nutellastong',
+    name: 'Nutellastöng',
+    en: 'Nutella-filled pastry',
+    blurb: 'Löng smjördeigsstöng fyllt með Nutella í stað vanillukrems. Sannkölluð hússérstaða.',
+    spec: 'Heimagerð · í anda langjóns',
+    price: 'frá 590 kr',
+    tag: 'Hússérstaða',
+    img: `${IMG_BASE}nutellastong.jpg`,
+    alt: 'Löng gyllt smjördeigsstöng fyllt með Nutella, skorin svo fyllingin sést',
+  },
+  {
+    id: 'rugbraud',
+    name: 'Danskt rúgbrauð',
+    en: 'Danish-style rye bread',
+    blurb: 'Þétt og dökkt rúgbrauð, bakað á staðnum eftir gamalli hefð.',
+    spec: 'Heimabakað · dökkt',
+    price: 'frá 890 kr',
+    img: `${IMG_BASE}rugbraud.jpg`,
+    alt: 'Dökkt danskt rúgbrauð, ein þykk sneið skorin frá, á marmaraborði',
+  },
+  {
+    id: 'vegan-croissant',
+    name: 'Vegan croissant',
+    en: 'Vegan croissant',
+    blurb: 'Laufþunnt deig í mörgum lögum, með jurtaosti og grænmeti. Tilvalið í hádeginu.',
+    spec: 'Vegan · heitt eða kalt',
+    price: 'frá 790 kr',
+    tag: 'Vegan',
+    img: `${IMG_BASE}vegan-croissant.jpg`,
+    alt: 'Vegan croissant með jurtaosti og grænmeti, lögin sjást í skurðinum',
   },
   {
     id: 'kaffi',
     name: 'Kaffi',
     en: 'Coffee',
-    blurb: 'Vel lagað kaffi, te og kakó til að setjast niður með í hlýjunni.',
-    price: 'frá 490 kr',
-    pick: 'Kaffi og með því',
-    steams: true,
-    oven: 'allan daginn',
+    blurb: 'Cappuccino eða latte, með haframjólk ef þú vilt, til að setjast niður með.',
+    spec: 'Haframjólk í boði',
+    price: 'frá 590 kr',
+    img: `${IMG_BASE}kaffi.jpg`,
+    alt: 'Latte með mjólkurlist í einföldum bolla á marmaraborði við glugga',
   },
 ]
 
-export interface HeritageStat {
-  /** Big number / token */
-  value: string
-  /** Small label below */
-  label: string
-}
-
-/** Heritage device: the 1880 numbers. */
-export const HERITAGE_STATS: HeritageStat[] = [
-  { value: '1880', label: 'Bakað frá' },
-  { value: '146 ár', label: 'Á sama stað' },
-  { value: '40', label: 'Sæti inni og úti' },
-  { value: '4,7', label: 'Stjörnur á Tripadvisor' },
-]
-
 export interface TimelineEntry {
-  /** Year token */
   year: string
-  /** Short Icelandic note */
   note: string
 }
 
 /**
- * The 1880 heritage timeline — anchored by two verified facts (founded ~1880;
- * still standing today). The middle line is a gentle, non-specific framing of
- * "generations of bakers", not an invented dated event.
+ * The 1880 lineage — kept to facts the bakery itself records: founded ~1880,
+ * rebuilt after the 1979 fire, still on the same corner. No invented dated events
+ * (the once-listed 1938 building date is dropped — not independently verified).
  */
 export const TIMELINE: TimelineEntry[] = [
   { year: '1880', note: 'Ofninn er kveiktur við Aðalgötu. Eitt elsta bakarí landsins verður til.' },
-  { year: 'Kynslóð', note: 'Sama horn, sama handverk. Uppskriftirnar ganga áfram, hús úr húsi.' },
-  { year: 'Í dag', note: 'Vefurinn rann úr gildi, en ofninn er enn heitur á hverjum morgni.' },
+  { year: '1979', note: 'Eldur kemur upp í húsinu. Það er endurreist og ofninn kveiktur á ný.' },
+  { year: 'Í dag', note: 'Enn bakað á sama horni á hverjum morgni, með Travelers’ Choice á Tripadvisor.' },
+]
+
+export interface HeritageStat {
+  value: string
+  label: string
+}
+
+/** The 1880 numbers — all verified or simply true. */
+export const HERITAGE_STATS: HeritageStat[] = [
+  { value: '1880', label: 'Bakað frá' },
+  { value: '146', label: 'Ár á sama horni' },
+  { value: '4,7', label: 'Stjörnur á Tripadvisor' },
+  { value: '40', label: 'Sæti inni og úti' },
 ]
 
 export interface Review {
@@ -128,21 +184,25 @@ export interface Review {
   meta: string
 }
 
-/** Trust quotes — SAMPLE wording, disclaimed in the footer. */
+/**
+ * Trust quotes — SAMPLE wording, disclaimed in the footer, but grounded in the
+ * real sentiment found while fact-checking (best cinnamon bun in Iceland, the
+ * pink donut + oat-milk latte, the Danish rye, everything homemade).
+ */
 export const REVIEWS: Review[] = [
   {
-    quote: 'Besta rúgbrauð sem ég hef smakkað á Íslandi. Við stoppum alltaf þegar við keyrum norður.',
-    author: 'Gestur úr Skagafirði',
-    meta: 'Sýnishorn af umsögn',
-  },
-  {
-    quote: 'Hlýlegt og notalegt, ilmurinn tekur á móti þér í dyrunum. Snúðarnir eru ennþá volgir.',
+    quote: 'Besti snúður sem við höfum smakkað á Íslandi — ofnheitur með stökku súkkulaði ofan á.',
     author: 'Ferðalangur á leið norður',
     meta: 'Sýnishorn af umsögn',
   },
   {
-    quote: 'Gamalt bakarí með sál. Súpa dagsins og nýbakað brauð gerðu daginn okkar í Skagafirði.',
+    quote: 'Bleikur kleinuhringur í morgunmat og latte með haframjólk. Fullkomið stopp í Skagafirði.',
     author: 'Gestur á sumardegi',
+    meta: 'Sýnishorn af umsögn',
+  },
+  {
+    quote: 'Danska rúgbrauðið er virkilega gott og allt heimabakað. Gamalt bakarí með sál.',
+    author: 'Gestur úr héraði',
     meta: 'Sýnishorn af umsögn',
   },
 ]
@@ -161,7 +221,7 @@ export interface DayHours {
 
 /** SAMPLE opening hours — marked as sýnishorn on the page + disclaimed in footer. */
 export const HOURS: DayHours[] = [
-  { day: 'Mánudaga til föstudaga', hours: '7:30 – 17:30', days: [1, 2, 3, 4, 5], open: 7 * 60 + 30, close: 17 * 60 + 30 },
+  { day: 'Mánudaga til föstudaga', hours: '7:30 – 18:00', days: [1, 2, 3, 4, 5], open: 7 * 60 + 30, close: 18 * 60 },
   { day: 'Laugardaga', hours: '8:00 – 16:00', days: [6], open: 8 * 60, close: 16 * 60 },
   { day: 'Sunnudaga', hours: '9:00 – 16:00', days: [0], open: 9 * 60, close: 16 * 60 },
 ]
@@ -169,7 +229,7 @@ export const HOURS: DayHours[] = [
 /** The day's reasons, shown as a small rotating "still warm" ticker line. */
 export const FRESH_LINE: string[] = [
   'Ofninn er kveiktur',
-  'Brauðið kemur heitt út',
+  'Snúðar beint úr ofninum',
   'Súpa dagsins í hádeginu',
   'Kaffi á könnunni',
 ]

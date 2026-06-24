@@ -1,0 +1,39 @@
+.bk-curved-loop-jacket {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.bk-curved-loop-svg {
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  width: 100%;
+  aspect-ratio: 100 / 8;
+  overflow: visible;
+  display: block;
+  font-size: 1.75rem;
+  fill: rgba(181, 114, 46, 0.55);
+  font-family: 'Gloock', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.bk-curved-loop-svg-amber {
+  fill: #B5722E;
+  font-style: normal;
+  font-size: 1.2rem;
+}
+
+/* The SVG renders inside a fixed viewBox (0 0 1440 120), so its text scales down
+   with the viewport — on a phone it shrinks to ~0.26x and becomes unreadable.
+   Bump the user-unit font-size on narrow screens to keep the marquee legible.
+   Desktop (>720px) is untouched. */
+@media (max-width: 720px) {
+  .bk-curved-loop-svg { font-size: 3.2rem; }
+}
+@media (max-width: 480px) {
+  .bk-curved-loop-svg { font-size: 4.8rem; }
+}
