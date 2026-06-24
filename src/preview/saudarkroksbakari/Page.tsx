@@ -293,6 +293,77 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
   )
 }
 
+/* The nav item that opens the hours panel instead of scroll-navigating. */
+const HOURS_HREF = '#bakery-opnunartimar'
+
+/* ── Opening-hours panel (shared by desktop dropdown + mobile accordion) ── */
+function HoursPanel({ lang }: { lang: Lang }) {
+  const status = getOpenStatus(lang)
+  return (
+    <div>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '4px 12px', borderRadius: 9999, background: status.open ? 'rgba(86,101,79,0.12)' : 'rgba(120,60,60,0.1)', marginBottom: 16 }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: status.open ? SAGE : '#8B3A3A', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.02em', color: status.open ? SAGE : '#8B3A3A' }}>{status.label}</span>
+      </div>
+      <dl style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: 0, padding: 0 }}>
+        {HOURS_BILINGUAL.map((h, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 28 }}>
+            <dt style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(26,15,6,0.5)', whiteSpace: 'nowrap' }}>{h.day[lang]}</dt>
+            <dd style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: ESPRESSO, whiteSpace: 'nowrap', margin: 0 }}>{h.time}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  )
+}
+
+/* ── Desktop nav: hover-to-open hours dropdown (no navigation) ─────────── */
+function NavHoursDropdown({ label, lang }: { label: string; lang: Lang }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div
+      style={{ position: 'relative' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="bakery-nav-link"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: open ? ESPRESSO : 'rgba(26,15,6,0.5)', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', transition: 'color 0.2s' }}
+      >
+        {label}
+        <motion.svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+          animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} style={{ display: 'block' }}>
+          <polyline points="6 9 12 15 18 9" />
+        </motion.svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            /* x:'-50%' goes through Framer (not the style transform, which Framer
+               overrides for y/scale) so the panel stays centered under the trigger */
+            initial={{ opacity: 0, y: 6, scale: 0.97, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+            exit={{ opacity: 0, y: 6, scale: 0.97, x: '-50%' }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: 'absolute', top: '100%', left: '50%', paddingTop: 16, transformOrigin: 'top center', zIndex: 60 }}
+          >
+            {/* transparent paddingTop above bridges the gap so the hover doesn't drop */}
+            <div style={{ background: CARD_BG, border: '1px solid rgba(26,15,6,0.08)', borderRadius: 16, boxShadow: '0 18px 44px -22px rgba(26,15,6,0.4)', padding: '20px 24px', minWidth: 230 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: AMBER, margin: '0 0 14px' }}>{label}</p>
+              <HoursPanel lang={lang} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 /* ── Mobile menu ────────────────────────────────────────────────────── */
 function MobileMenu({ open, onClose, links, lang, onToggleLang }: {
   open: boolean
@@ -301,6 +372,10 @@ function MobileMenu({ open, onClose, links, lang, onToggleLang }: {
   lang: Lang
   onToggleLang: () => void
 }) {
+  const [hoursOpen, setHoursOpen] = useState(false)
+  /* collapse the hours accordion whenever the menu closes */
+  useEffect(() => { if (!open) setHoursOpen(false) }, [open])
+
   /* lock background scroll + Escape to close while open */
   useEffect(() => {
     if (!open) return
@@ -341,19 +416,62 @@ function MobileMenu({ open, onClose, links, lang, onToggleLang }: {
 
           {/* Links — staggered in, collapse away with the circle on exit */}
           <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(10px,2.4vh,22px)', padding: '0 clamp(24px,6vw,40px)' }}>
-            {links.map((l, i) => (
-              <motion.a
-                key={l.href}
-                href={l.href}
-                onClick={onClose}
-                initial={{ opacity: 0, y: 26 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.16 + i * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(2.2rem,11vw,3.4rem)', lineHeight: 1.04, letterSpacing: '-0.02em', color: ESPRESSO, textDecoration: 'none' }}
-              >
-                {l.label}
-              </motion.a>
-            ))}
+            {links.map((l, i) => {
+              const delay = 0.16 + i * 0.07
+              const linkFont = { fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(2.2rem,11vw,3.4rem)', lineHeight: 1.04, letterSpacing: '-0.02em', color: ESPRESSO }
+              /* Opening hours taps open an inline accordion instead of navigating. */
+              if (l.href === HOURS_HREF) {
+                return (
+                  <motion.div
+                    key={l.href}
+                    initial={{ opacity: 0, y: 26 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setHoursOpen((v) => !v)}
+                      aria-expanded={hoursOpen}
+                      style={{ ...linkFont, display: 'flex', alignItems: 'center', gap: 14, width: '100%', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      {l.label}
+                      <motion.svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                        animate={{ rotate: hoursOpen ? 180 : 0 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} style={{ flexShrink: 0 }}>
+                        <polyline points="6 9 12 15 18 9" />
+                      </motion.svg>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {hoursOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                          style={{ overflow: 'hidden' }}
+                        >
+                          <div style={{ padding: '18px 2px 6px' }}>
+                            <HoursPanel lang={lang} />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )
+              }
+              return (
+                <motion.a
+                  key={l.href}
+                  href={l.href}
+                  onClick={onClose}
+                  initial={{ opacity: 0, y: 26 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ ...linkFont, textDecoration: 'none' }}
+                >
+                  {l.label}
+                </motion.a>
+              )
+            })}
           </nav>
 
           {/* Footer — phone + language toggle */}
@@ -647,7 +765,9 @@ export default function Page() {
           </a>
           <div className="bk-nav-links" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
             {navLinks.map(({ href, label }) => (
-              <a key={href} href={href} className="bakery-nav-link" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: 'rgba(26,15,6,0.5)', textDecoration: 'none', transition: 'color 0.2s' }}>{label}</a>
+              href === HOURS_HREF
+                ? <NavHoursDropdown key={href} label={label} lang={lang} />
+                : <a key={href} href={href} className="bakery-nav-link" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: 'rgba(26,15,6,0.5)', textDecoration: 'none', transition: 'color 0.2s' }}>{label}</a>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
