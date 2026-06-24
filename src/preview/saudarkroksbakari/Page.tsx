@@ -253,15 +253,18 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
         background: 'radial-gradient(ellipse at center, transparent 30%, rgba(20,8,2,0.42) 100%)',
       }} />
 
-      {/* Logo — multiply blend makes white PNG bg vanish against white splash */}
+      {/* Logo — multiply blend makes the white image bg vanish against the white
+          splash. Fade in with opacity + blur + scale ONLY: any brightness < 1 would
+          darken that white bg to grey and reveal a rectangular box mid-fade, so it's
+          deliberately omitted to keep the edges seamless at every frame. */}
       <motion.div
         style={{
           position: 'relative', zIndex: 1,
           width: 'clamp(160px,28vw,240px)',
           mixBlendMode: 'multiply' as const,
         }}
-        initial={{ opacity: 0, scale: 1.06, filter: 'blur(6px) brightness(0.6)' }}
-        animate={{ opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)' }}
+        initial={{ opacity: 0, scale: 1.06, filter: 'blur(6px)' }}
+        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: 1.4, ease: [0.25, 0, 0.35, 1] }}
       >
         <img
