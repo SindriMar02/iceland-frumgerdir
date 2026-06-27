@@ -5,7 +5,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
-import { fromGallery, setThemeColor } from '../../lib/preview'
+import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
   ARCHIPELAGO,
@@ -1065,14 +1065,12 @@ export default function EyjatoursPage() {
   const [guests, setGuests] = useState(2)
   const [date, setDate] = useState('2026-07-14')
   const [shownTotal, setShownTotal] = useState(TOURS[0].price * 2)
-  const [showFloat, setShowFloat] = useState(false)
 
   useParallax()
 
   useEffect(() => {
     document.title = 'Eyjatours · Puffin & Volcano Tours, Vestmannaeyjar'
     setThemeColor(INK)
-    setShowFloat(!fromGallery()) // owners get the floating CTA; Sindri gets the gated tools
     return () => setThemeColor('#0a1320')
   }, [])
 
@@ -1158,16 +1156,6 @@ export default function EyjatoursPage() {
         </main>
         <MarketingFooter />
         <PreviewFooter company={company} />
-
-        {showFloat && (
-          <a
-            href="#book"
-            className="fixed bottom-[18px] right-[18px] z-[95] flex items-center gap-2 rounded-full px-[22px] py-3.5 font-familjen text-[15px] font-600 no-underline"
-            style={{ background: CORAL_BTN, color: INKTX, boxShadow: '0 12px 30px rgba(12,42,49,.4)' }}
-          >
-            Book a tour
-          </a>
-        )}
       </div>
     </div>
   )
