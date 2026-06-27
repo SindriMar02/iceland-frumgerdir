@@ -985,6 +985,60 @@ Ef ykkur líst vel á þetta getum við fundið sanngjarnt verð. Ef ekki er ekk
 ${SIGN}`,
     },
   },
+  {
+    slug: 'eyjatours',
+    route: '/preview/eyjatours',
+    name: 'Eyjatours',
+    sector: 'Puffin & volcano boat tours',
+    location: 'Heimaey, Vestmannaeyjar',
+    region: 'South',
+    established: 'Est. ~2012',
+    currentUrl: 'https://www.eyjatours.com',
+    ownerEmail: 'eyjatours@eyjatours.is',
+    concept: 'Puffins & Fire',
+    conceptTagline:
+      'A cinematic island world — the world’s great puffin colony, the volcano that nearly won in 1973, and one local guide.',
+    accent: '#E5573E',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1612564148954-59545876eaa0?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Top-rated puffin and volcano tours, a charismatic local guide (Ebbi)',
+        'A genuinely world-class story: a million puffins and the 1973 Eldfell eruption',
+        'A short ferry from the mainland, in easy reach of the south-coast route',
+      ],
+      weaknesses: [
+        'No real online booking, only a static "Book Now" link and email',
+        'Duplicated navigation and a broken footer year, with no prices anywhere',
+        'Low-resolution graphics and grunge overlays undercut a stunning subject',
+      ],
+      opportunities: [
+        'A clean booking request flow (tour, date, guests, live price) on the page',
+        'Let the puffins, the eruption and the archipelago carry the design',
+        'One coherent brand built around their own puffin logo, fast on mobile',
+      ],
+    },
+    positioning:
+      'The number-one tour on one of the world’s great puffin islands, held back by a cluttered, booking-less site. The redesign turns the island’s story into an experience and makes booking with Ebbi effortless.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Eyjatours',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenska ferðaþjónustu.
+
+Ég kynnti mér ferðirnar ykkar í Vestmannaeyjum og hreifst af þeim. Lundabyggðin og sagan af gosinu 1973 eru engu lík, og það skín í gegn hvað þið þekkið eyjuna vel. Þegar ég skoðaði vefsíðuna tók ég samt eftir að erfitt er að bóka ferð beint, verð koma hvergi fram og útlitið nýtur sín ekki sem skyldi. Erlendir gestir sem vilja bóka strax leita því oft annað.
+
+Mér fannst eyjan og ferðirnar eiga skilið sterkari umgjörð, svo ég settist niður og hannaði frumgerð að nýrri vefsíðu. Hún setur lundann, gosið og ferðirnar í forgrunn og gerir bókun einfalda. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að ferðafólk finni ykkur, sjái hvað er í boði og geti bókað strax. Ef ykkur líst vel á þetta gætum við klárað vefinn í heild, en ef ekki er það engin pressa.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {

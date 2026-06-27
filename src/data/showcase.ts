@@ -42,6 +42,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
     blurb: 'Leiðangrar, ferðir, böð og söfn þar sem fyrsta sýn og einfalt bókunar- eða heimsóknarferli skipta öllu.',
     items: [
       {
+        route: '/preview/eyjatours',
+        name: 'Eyjatours',
+        sector: 'Lundaferðir',
+        location: 'Vestmannaeyjar',
+        blurb: 'Lundinn, gosið 1973 og eyjan sjálf sett fram sem kvikmyndaleg upplifun með einfaldri bókun.',
+        image: img('photo-1612564148954-59545876eaa0'),
+        accent: '#E5573E',
+      },
+      {
         route: '/gj-travel',
         name: 'GJ Travel',
         sector: 'Ferðaskrifstofa',
