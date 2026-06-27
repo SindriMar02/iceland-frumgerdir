@@ -944,7 +944,7 @@ ${SIGN}`,
     concept: 'Þar sem hestar og álfar hittast',
     conceptTagline:
       'A luminous North-Iceland riding world along the longest fjord — folklore, the herd, and the changing northern light, with booking made simple.',
-    accent: '#a9641f',
+    accent: '#a9572f',
     dark: false,
     status: 'Concept ready',
     thumb: 'https://images.unsplash.com/photo-1575137224377-9af9b69676cb?q=80&w=1200&auto=format&fit=crop',

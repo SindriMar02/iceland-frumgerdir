@@ -39,18 +39,19 @@ import {
 
 const company = getPreviewCompany('polarhestar')
 
-/* ── Palette — luminous North: fjord mist, basalt, low-sun amber, dusk slate ── */
-const MIST = '#EDEAE2' // canvas
-const PAPER = '#F7F4ED' // cards
-const INK = '#23282A'
-const BODY = '#3D4447'
-const AMBER = '#B5712B' // bright accent — large display + decorative icons only
-const AMBER_TX = '#8F5417' // amber-as-text on light grounds (AA ≥4.5 on mist & paper)
-const AMBER_FILL = '#9A5A1E' // amber button fill behind white text (AA ≥4.5 with white)
-const AMBER_HI = '#E0A24A' // amber on dark grounds
-const SLATE = '#3C5A63'
-const TWILIGHT = '#1C2A2E' // dark section ground
-const TWILIGHT2 = '#243439'
+/* ── Palette — Heath & Saddle: bone, deep pine, terracotta, basalt ── */
+const MIST = '#EEE7DA' // bone — warm light ground
+const PAPER = '#F6F1E6' // lighter card on bone
+const INK = '#1E2420' // basalt near-black (green-tinted) — text on light
+const BODY = '#434A41' // warm green-grey body text on light
+const CLAY = '#B0572E' // terracotta — bright accent, decorative icons, tints
+const CLAY_TX = '#8E4623' // terracotta as text on light grounds (AA ≥4.5)
+const CLAY_FILL = '#A9572F' // terracotta button fill behind white text (~5:1)
+const CLAY_HI = '#E4B074' // warm tan-gold — accent on dark grounds
+const SLATE = '#5E6A4C' // moss green — secondary text/icons on light (AA)
+const TWILIGHT = '#20352B' // deep pine green — feature band ground
+const TWILIGHT2 = '#2B463A' // pine card / active tab on dark
+const BASALT = '#161B19' // darkest ground — seasons + final CTA
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
 const u = (id: string, w = 1600) =>
@@ -101,7 +102,7 @@ function Eyebrow({ children, on = 'light' }: { children: ReactNode; on?: 'light'
   return (
     <p
       className="font-hanken text-[0.72rem] font-semibold tracking-[0.24em] uppercase"
-      style={{ color: on === 'dark' ? AMBER_HI : AMBER_TX }}
+      style={{ color: on === 'dark' ? CLAY_HI : CLAY_TX }}
     >
       {children}
     </p>
@@ -134,7 +135,7 @@ function Booking({
     <div className="mb-3 flex items-center gap-2">
       <span
         className="grid h-6 w-6 place-items-center rounded-full font-hanken text-xs font-bold text-white"
-        style={{ background: AMBER_FILL }}
+        style={{ background: CLAY_FILL }}
         aria-hidden="true"
       >
         {n}
@@ -207,7 +208,7 @@ function Booking({
       <div className="p-6 md:p-8">
         {done ? (
           <div className="flex h-full flex-col items-start justify-center">
-            <span className="grid h-12 w-12 place-items-center rounded-full" style={{ background: AMBER_FILL }}>
+            <span className="grid h-12 w-12 place-items-center rounded-full" style={{ background: CLAY_FILL }}>
               <Check className="h-6 w-6 text-white" />
             </span>
             <h3 className="mt-4 font-spectral text-2xl" style={{ color: INK }}>
@@ -238,7 +239,7 @@ function Booking({
               type="button"
               onClick={() => setDone(false)}
               className="mt-5 font-hanken text-sm font-semibold underline underline-offset-4"
-              style={{ color: AMBER_TX }}
+              style={{ color: CLAY_TX }}
             >
               {t.bookAgain}
             </button>
@@ -277,7 +278,7 @@ function Booking({
             <label className="mb-5 block">
               <span className="sr-only">{t.dateLabel}</span>
               <div className="flex items-center gap-2 rounded-xl border px-3.5 py-3" style={{ borderColor: '#0000001f', background: MIST }}>
-                <Calendar className="h-4 w-4 shrink-0" style={{ color: AMBER_TX }} aria-hidden="true" />
+                <Calendar className="h-4 w-4 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
                 <input
                   type="date"
                   value={date}
@@ -315,7 +316,7 @@ function Booking({
               <button
                 type="submit"
                 className="inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
-                style={{ background: AMBER_FILL }}
+                style={{ background: CLAY_FILL }}
               >
                 {t.confirmBtn}
                 <ArrowRight className="h-4 w-4" />
@@ -375,12 +376,12 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
           aria-hidden="true"
         />
         <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
-          <p className="font-hanken text-xs font-semibold tracking-[0.24em] uppercase" style={{ color: AMBER_HI }}>
+          <p className="font-hanken text-xs font-semibold tracking-[0.24em] uppercase" style={{ color: CLAY_HI }}>
             {season.kicker[lang]}
           </p>
           <h3 className="mt-1 font-spectral text-3xl text-white md:text-5xl">{season.name[lang]}</h3>
           <p className="mt-2 max-w-xl font-hanken text-sm leading-relaxed text-white/85 md:text-base">{season.line[lang]}</p>
-          <p className="mt-3 inline-flex items-center gap-1.5 font-hanken text-sm font-medium" style={{ color: AMBER_HI }}>
+          <p className="mt-3 inline-flex items-center gap-1.5 font-hanken text-sm font-medium" style={{ color: CLAY_HI }}>
             <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
             {season.tour[lang]}
           </p>
@@ -458,7 +459,7 @@ export default function PolarHestarPage() {
         .ph-card-img{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
         .ph-card:hover .ph-card-img{transform:scale(1.05)}
         .ph-root :focus-visible{outline:2px solid #1C2A2E;outline-offset:2px;border-radius:4px}
-        .ph-dark :focus-visible{outline-color:#E0A24A}
+        .ph-dark :focus-visible{outline-color:#E4B074}
         @media (prefers-reduced-motion: reduce){
           .ph-reveal{opacity:1;transform:none;filter:none;transition:none}
           .ph-hero-rise{animation:none}
@@ -511,7 +512,7 @@ export default function PolarHestarPage() {
               type="button"
               onClick={() => goBook(bookTour)}
               className="hidden rounded-full px-4 py-2 font-hanken text-sm font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5 sm:inline-flex"
-              style={{ background: AMBER_FILL }}
+              style={{ background: CLAY_FILL }}
             >
               {t.nav.cta}
             </button>
@@ -545,7 +546,7 @@ export default function PolarHestarPage() {
           <h1 className="ph-hero-rise mt-4 max-w-4xl font-spectral text-[2.6rem] leading-[1.04] text-white md:text-7xl" style={{ animationDelay: '60ms' }}>
             {t.heroH1a}
             <br />
-            <span className="italic" style={{ color: AMBER_HI }}>
+            <span className="italic" style={{ color: CLAY_HI }}>
               {t.heroH1b}
             </span>
           </h1>
@@ -576,7 +577,7 @@ export default function PolarHestarPage() {
             <Stat value={`${STATS.horses}`} label={t.statHorses} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
             <div className="flex items-center gap-2" role="img" aria-label={lang === 'is' ? `${STATS.rating} af 5 á Tripadvisor` : `${STATS.rating} out of 5 on Tripadvisor`}>
-              <Star className="h-4 w-4 fill-current" style={{ color: AMBER_HI }} aria-hidden="true" />
+              <Star className="h-4 w-4 fill-current" style={{ color: CLAY_HI }} aria-hidden="true" />
               <span className="font-spectral text-2xl text-white">{STATS.rating}</span>
               <span className="font-hanken text-xs text-white/70">
                 {STATS.reviews} {t.statRating}
@@ -617,10 +618,11 @@ export default function PolarHestarPage() {
         </div>
       </section>
 
-      {/* ── PULL QUOTE (the folkloric line) ─────────────────────────────── */}
-      <section className="px-5 pb-8 md:pb-14">
+      {/* ── PULL QUOTE (folkloric line) — deep-pine feature band ─────────── */}
+      <section className="ph-dark px-5 py-20 md:py-28" style={{ background: TWILIGHT }}>
         <Reveal className="mx-auto max-w-4xl text-center">
-          <p className="font-spectral text-3xl leading-snug italic md:text-5xl" style={{ color: INK }}>
+          <span className="mx-auto mb-6 block h-px w-16" style={{ background: CLAY_HI }} aria-hidden="true" />
+          <p className="font-spectral text-3xl leading-snug italic text-white md:text-5xl">
             {t.storyQuote}
           </p>
         </Reveal>
@@ -675,22 +677,22 @@ export default function PolarHestarPage() {
 
         <Reveal className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1.5">
           <p className="inline-flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
-            <Check className="h-3.5 w-3.5" style={{ color: AMBER_TX }} aria-hidden="true" />
+            <Check className="h-3.5 w-3.5" style={{ color: CLAY_TX }} aria-hidden="true" />
             {t.childNote}
           </p>
           <p className="inline-flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
-            <Check className="h-3.5 w-3.5" style={{ color: AMBER_TX }} aria-hidden="true" />
+            <Check className="h-3.5 w-3.5" style={{ color: CLAY_TX }} aria-hidden="true" />
             {t.weightNote}
           </p>
         </Reveal>
       </section>
 
       {/* ── BOOKING ─────────────────────────────────────────────────────── */}
-      <section id="boka" ref={bookingRef} className="scroll-mt-20 px-5 py-16 md:py-24">
+      <section id="boka" ref={bookingRef} className="ph-dark scroll-mt-20 px-5 py-16 md:py-24" style={{ background: TWILIGHT }}>
         <div className="mx-auto max-w-5xl">
           <Reveal className="mb-8 text-center">
-            <Eyebrow>{t.bookEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
+            <Eyebrow on="dark">{t.bookEyebrow}</Eyebrow>
+            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
               {t.bookH2}
             </h2>
           </Reveal>
@@ -701,7 +703,7 @@ export default function PolarHestarPage() {
       </section>
 
       {/* ── SEASONS (signature) ─────────────────────────────────────────── */}
-      <section id="arstidir" className="ph-dark scroll-mt-20" style={{ background: TWILIGHT }}>
+      <section id="arstidir" className="ph-dark scroll-mt-20" style={{ background: BASALT }}>
         <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
           <Reveal className="mb-8 max-w-2xl">
             <Eyebrow on="dark">{t.seasonsEyebrow}</Eyebrow>
@@ -748,7 +750,7 @@ export default function PolarHestarPage() {
                   />
                 </div>
                 <div className="p-5">
-                  <p className="font-hanken text-[0.7rem] font-semibold tracking-[0.18em] uppercase" style={{ color: AMBER_TX }}>
+                  <p className="font-hanken text-[0.7rem] font-semibold tracking-[0.18em] uppercase" style={{ color: CLAY_TX }}>
                     {t.multiDay}
                   </p>
                   <h3 className="mt-1.5 font-spectral text-xl leading-snug" style={{ color: INK }}>
@@ -760,7 +762,7 @@ export default function PolarHestarPage() {
                   <a
                     href={`mailto:${EMAIL}?subject=${encodeURIComponent(tour.name)}`}
                     className="mt-3 inline-flex items-center gap-1 font-hanken text-sm font-semibold transition-colors"
-                    style={{ color: AMBER_TX }}
+                    style={{ color: CLAY_TX }}
                   >
                     {t.enquireBtn}
                     <ChevronRight className="h-4 w-4" />
@@ -773,18 +775,18 @@ export default function PolarHestarPage() {
       </section>
 
       {/* ── TRUST / REVIEWS / FAMILY ────────────────────────────────────── */}
-      <section className="px-5 py-16 md:py-24" style={{ background: PAPER }}>
+      <section className="ph-dark px-5 py-16 md:py-24" style={{ background: TWILIGHT }}>
         <div className="mx-auto max-w-6xl">
           <Reveal className="mb-10 text-center">
-            <Eyebrow>{t.trustEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
+            <Eyebrow on="dark">{t.trustEyebrow}</Eyebrow>
+            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
               {t.trustH2}
             </h2>
             <div className="mt-4 flex items-center justify-center gap-2" role="img" aria-label={lang === 'is' ? `${STATS.rating} af 5` : `${STATS.rating} out of 5`}>
               {[0, 1, 2, 3, 4].map((s) => (
-                <Star key={s} className="h-5 w-5 fill-current" style={{ color: AMBER }} aria-hidden="true" />
+                <Star key={s} className="h-5 w-5 fill-current" style={{ color: CLAY_HI }} aria-hidden="true" />
               ))}
-              <span className="ml-2 font-hanken text-sm" style={{ color: BODY }}>
+              <span className="ml-2 font-hanken text-sm" style={{ color: MIST }}>
                 {t.trustBody}
               </span>
             </div>
@@ -794,7 +796,7 @@ export default function PolarHestarPage() {
             {REVIEWS.map((r, i) => (
               <Reveal key={i} delay={i * 80}>
                 <figure className="flex h-full flex-col rounded-[22px] p-6" style={{ background: MIST }}>
-                  <Quote className="h-6 w-6" style={{ color: AMBER }} aria-hidden="true" />
+                  <Quote className="h-6 w-6" style={{ color: CLAY }} aria-hidden="true" />
                   <blockquote className="mt-3 flex-1 font-spectral text-lg leading-relaxed italic" style={{ color: INK }}>
                     {r.quote[lang]}
                   </blockquote>
@@ -851,7 +853,7 @@ export default function PolarHestarPage() {
                   <p className="font-spectral text-lg" style={{ color: INK }}>
                     {item.name[lang]}
                   </p>
-                  <p className="mt-0.5 font-hanken text-sm font-semibold" style={{ color: AMBER_TX }}>
+                  <p className="mt-0.5 font-hanken text-sm font-semibold" style={{ color: CLAY_TX }}>
                     {isk(item.price)}
                   </p>
                 </div>
@@ -902,7 +904,7 @@ export default function PolarHestarPage() {
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
-                  style={{ background: AMBER_FILL }}
+                  style={{ background: CLAY_FILL }}
                 >
                   <MapPin className="h-4 w-4" />
                   {t.mapsBtn}
@@ -950,7 +952,7 @@ export default function PolarHestarPage() {
           alt={lang === 'is' ? 'Hross á gylltum haga við sólarlag' : 'Horses in a golden meadow at sunset'}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${TWILIGHT}cc, ${TWILIGHT}e6)` }} />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${BASALT}cc, ${BASALT}e6)` }} />
         <div className="relative mx-auto max-w-3xl px-5 py-24 text-center md:py-32">
           <Reveal>
             <h2 className="font-spectral text-4xl leading-tight text-white md:text-6xl">{t.ctaH2}</h2>
@@ -986,7 +988,7 @@ export default function PolarHestarPage() {
           type="button"
           onClick={() => goBook(bookTour)}
           className="flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg"
-          style={{ background: AMBER_FILL }}
+          style={{ background: CLAY_FILL }}
         >
           {t.stickyBook}
           <ArrowRight className="h-4 w-4" />
@@ -1032,7 +1034,7 @@ function TourCard({ tour, lang, t, onBook }: { tour: Tour; lang: Lang; t: typeof
       </div>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center gap-2">
-          <span className="rounded-full px-2.5 py-1 font-hanken text-[0.68rem] font-semibold" style={{ background: `${AMBER}1f`, color: AMBER_TX }}>
+          <span className="rounded-full px-2.5 py-1 font-hanken text-[0.68rem] font-semibold" style={{ background: `${CLAY}1f`, color: CLAY_TX }}>
             {tour.level[lang]}
           </span>
           <span className="font-hanken text-xs" style={{ color: SLATE }}>
@@ -1072,7 +1074,7 @@ function TourCard({ tour, lang, t, onBook }: { tour: Tour; lang: Lang; t: typeof
 function InfoRow({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
     <div className="flex gap-3">
-      <span className="mt-0.5 shrink-0" style={{ color: AMBER_TX }} aria-hidden="true">
+      <span className="mt-0.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true">
         {icon}
       </span>
       <div>

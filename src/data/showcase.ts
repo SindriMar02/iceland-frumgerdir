@@ -111,7 +111,7 @@ export const SHOWCASE: ShowcaseGroup[] = [
         location: 'Grenivík, Eyjafjörður',
         blurb: 'Fjörutíu ára hestaferðir við lengsta fjörð landsins, með 160 hrossum í norðlenskri birtu og beinni bókun á reiðtúr.',
         image: img('photo-1575137224377-9af9b69676cb'),
-        accent: '#a9641f',
+        accent: '#a9572f',
       },
     ],
   },
