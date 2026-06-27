@@ -1027,14 +1027,16 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska ferðaþjónustu.
 
-Ég kynnti mér ferðirnar ykkar í Vestmannaeyjum og hreifst af þeim. Lundabyggðin og sagan af gosinu 1973 eru engu lík, og það skín í gegn hvað þið þekkið eyjuna vel. Þegar ég skoðaði vefsíðuna tók ég samt eftir að erfitt er að bóka ferð beint, verð koma hvergi fram og útlitið nýtur sín ekki sem skyldi. Erlendir gestir sem vilja bóka strax leita því oft annað.
+Ég kynnti mér Eyjatours og ferðirnar ykkar í Vestmannaeyjum og var virkilega hrifinn. Lundabyggðin, sagan af gosinu 1973 og þekkingin ykkar á eyjunni er nokkuð sem fáir geta boðið upp á. Þegar ég skoðaði vefsíðuna fannst mér hún samt ekki gera þessu nógu góð skil. Það er erfitt að bóka ferð beint, verð koma hvergi fram og útlitið er orðið svolítið gamaldags. Erlendir gestir sem vilja bóka strax gefast stundum upp og leita annað.
 
-Mér fannst eyjan og ferðirnar eiga skilið sterkari umgjörð, svo ég settist niður og hannaði frumgerð að nýrri vefsíðu. Hún setur lundann, gosið og ferðirnar í forgrunn og gerir bókun einfalda. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og gerði litla frumgerð að nýrri forsíðu, bara handa ykkur til að skoða. Þetta kostar ekki neitt og því fylgir engin skuldbinding.
 
-Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+Á henni er hægt að velja ferð, dagsetningu og fjölda og senda bókunarbeiðni í örfáum skrefum. Verð eru sýnileg, sagan af lundanum og gosinu er í forgrunni, það fylgir kort af eyjunum og síðan virkar vel í síma.
+
+Hana má skoða hér hvenær sem er:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að ferðafólk finni ykkur, sjái hvað er í boði og geti bókað strax. Ef ykkur líst vel á þetta gætum við klárað vefinn í heild, en ef ekki er það engin pressa.
+Þetta er aðeins hugmynd og sýnishorn, en ef ykkur líst vel á gæti ég klárað vefinn í heild. Ef ekki er það að sjálfsögðu allt í lagi og engin pressa. Mér þætti samt vænt um að heyra hvað ykkur finnst.
 
 ${SIGN}`,
     },
