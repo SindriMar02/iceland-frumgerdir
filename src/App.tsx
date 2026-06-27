@@ -30,6 +30,7 @@ const ReykjavikDistilleryPage = lazy(() => import('./preview/reykjavikdistillery
 const BeffaToursPage = lazy(() => import('./preview/beffatours/Page'))
 const KoggaPage = lazy(() => import('./preview/kogga/Page'))
 const HaafellPage = lazy(() => import('./preview/haafell/Page'))
+const PolarHestarPage = lazy(() => import('./preview/polarhestar/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -83,6 +84,7 @@ export default function App() {
             <Route path="/preview/beffatours" element={<BeffaToursPage />} />
             <Route path="/preview/kogga" element={<KoggaPage />} />
             <Route path="/preview/haafell" element={<HaafellPage />} />
+            <Route path="/preview/polarhestar" element={<PolarHestarPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
