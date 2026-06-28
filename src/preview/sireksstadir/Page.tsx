@@ -318,7 +318,7 @@ function StickyNav({ onRequest }: { onRequest: () => void }) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
         <button
           onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth' })}
-          className={`font-ranade text-[17px] font-medium tracking-[-0.01em] ${FOCUS}`}
+          className={`font-spectral text-[17px] font-medium tracking-[-0.01em] ${FOCUS}`}
           style={{ color: INK }}
         >
           Síreksstaðir
@@ -392,9 +392,9 @@ function Hero({ onRequest }: { onRequest: () => void }) {
             {PLACE.overline}
           </p>
           <h1
-            className="m-0 mt-7 font-ranade font-medium"
+            className="m-0 mt-7 font-spectral font-semibold"
             style={{
-              fontSize: 'clamp(2.3rem,5.6vw,4.4rem)',
+              fontSize: 'clamp(2.6rem,6.5vw,5.2rem)',
               lineHeight: 1.04,
               letterSpacing: '-0.02em',
               color: INK,
@@ -403,7 +403,7 @@ function Hero({ onRequest }: { onRequest: () => void }) {
             {PLACE.lede.map((line, i) => (
               <span
                 key={line}
-                className={`sk-rise block${i === 1 ? ' md:ml-[clamp(0px,3vw,2.6rem)]' : ''}`}
+                className="sk-rise block"
                 style={{ ['--d' as string]: `${180 + i * 90}ms` }}
               >
                 {line}
@@ -445,7 +445,7 @@ function Hero({ onRequest }: { onRequest: () => void }) {
           >
             {TRUST.map((t) => (
               <div key={t.label}>
-                <div className="font-ranade text-[19px] font-medium leading-none" style={{ color: INK }}>
+                <div className="font-spectral text-[19px] font-medium leading-none" style={{ color: INK }}>
                   {t.value}
                 </div>
                 <div className="mt-1.5 font-sans text-[11px] leading-tight" style={{ color: MUTED }}>
@@ -493,7 +493,7 @@ function Hero({ onRequest }: { onRequest: () => void }) {
           />
           <div className="sk-mist pointer-events-none absolute inset-0" aria-hidden />
         </div>
-        <figcaption className="px-6 pt-3 font-ranade text-[13px] italic" style={{ color: MUTED }}>
+        <figcaption className="px-6 pt-3 font-spectral text-[13px] italic" style={{ color: MUTED }}>
           {PLACE.caption}
         </figcaption>
       </figure>
@@ -521,7 +521,7 @@ function Story() {
           >
             <Overline>{STORY.overline}</Overline>
             <h2
-              className="mt-5 font-ranade font-medium"
+              className="mt-5 font-spectral font-medium"
               style={{ color: INK, fontSize: 'clamp(2rem,3.8vw,3rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}
             >
               {STORY.heading}
@@ -534,7 +534,7 @@ function Story() {
             <dl className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-[12px] sm:grid-cols-3" style={{ background: SAGE }}>
               {STORY.facts.map((f) => (
                 <div key={f.value} className="px-5 py-4" style={{ background: GROUND }}>
-                  <dt className="font-ranade text-[16px] font-medium leading-tight" style={{ color: INK }}>
+                  <dt className="font-spectral text-[16px] font-medium leading-tight" style={{ color: INK }}>
                     {f.value}
                   </dt>
                   <dd className="mt-1 font-sans text-[12.5px] leading-snug" style={{ color: MUTED }}>
@@ -564,7 +564,7 @@ function Story() {
               />
             </div>
             <blockquote
-              className="absolute bottom-5 left-3 m-0 max-w-[19rem] rounded-[12px] px-6 py-5 font-ranade text-[clamp(1.25rem,2.1vw,1.65rem)] italic leading-[1.24] md:-left-10"
+              className="absolute bottom-5 left-3 m-0 max-w-[19rem] rounded-[12px] px-6 py-5 font-spectral text-[clamp(1.25rem,2.1vw,1.65rem)] italic leading-[1.24] md:-left-10"
               style={{
                 color: INK,
                 background: 'rgba(243,241,235,.94)',
@@ -660,7 +660,7 @@ function CottageCard({ c, onChoose, offset }: { c: Cottage; onChoose: (u: string
       </div>
 
       <figcaption className="flex flex-1 flex-col p-6 pt-5">
-        <h3 className="font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(1.6rem,2.6vw,2.1rem)', lineHeight: 1.06 }}>
+        <h3 className="font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(1.6rem,2.6vw,2.1rem)', lineHeight: 1.06 }}>
           {c.name}
         </h3>
         <p className="mt-3 font-sans text-[15px] leading-[1.6]" style={{ color: MUTED }}>
@@ -716,7 +716,7 @@ function Rooms({ onChoose }: { onChoose: (unit: string) => void }) {
         </Reveal>
         <Reveal delay={70}>
           <h2
-            className="mt-5 max-w-[760px] font-ranade font-medium"
+            className="mt-5 max-w-[760px] font-spectral font-medium"
             style={{ color: INK, fontSize: 'clamp(2.2rem,4.4vw,3.4rem)', lineHeight: 1.04, letterSpacing: '-0.015em' }}
           >
             Seven rooms and two cottages, plainly told.
@@ -737,7 +737,7 @@ function Rooms({ onChoose }: { onChoose: (unit: string) => void }) {
           </figure>
           <div className="flex flex-col justify-center rounded-[16px] p-7" style={{ background: SURFACE }}>
             <Overline>{GUESTHOUSE.overline}</Overline>
-            <h3 className="mt-4 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(1.6rem,2.4vw,2rem)', lineHeight: 1.1 }}>
+            <h3 className="mt-4 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(1.6rem,2.4vw,2rem)', lineHeight: 1.1 }}>
               {GUESTHOUSE.name}
             </h3>
             <p className="mt-3.5 font-sans text-[15px] leading-[1.6]" style={{ color: MUTED }}>
@@ -789,7 +789,7 @@ function Amenities() {
             <Overline>What’s included</Overline>
           </Reveal>
           <Reveal delay={70}>
-            <h2 className="mt-5 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(1.9rem,3.4vw,2.7rem)', lineHeight: 1.08, letterSpacing: '-0.015em' }}>
+            <h2 className="mt-5 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(1.9rem,3.4vw,2.7rem)', lineHeight: 1.08, letterSpacing: '-0.015em' }}>
               The plain comforts of a farm that has hosted people a long time.
             </h2>
           </Reveal>
@@ -833,7 +833,7 @@ function FarmTable() {
             }}
           >
             <Overline>{TABLE.overline}</Overline>
-            <h2 className="mt-5 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(2rem,3.6vw,3rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}>
+            <h2 className="mt-5 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(2rem,3.6vw,3rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}>
               {TABLE.name}
             </h2>
             <p className="mt-5 max-w-[420px] font-sans text-[16px] leading-[1.65]" style={{ color: MUTED }}>
@@ -869,7 +869,7 @@ function FarmTable() {
               />
             </div>
             <blockquote
-              className="absolute bottom-6 left-3 m-0 max-w-[19rem] rounded-[12px] px-6 py-5 font-ranade text-[clamp(1.3rem,2.2vw,1.75rem)] italic leading-[1.22] md:-left-10"
+              className="absolute bottom-6 left-3 m-0 max-w-[19rem] rounded-[12px] px-6 py-5 font-spectral text-[clamp(1.3rem,2.2vw,1.75rem)] italic leading-[1.22] md:-left-10"
               style={{
                 color: INK,
                 background: 'rgba(243,241,235,.94)',
@@ -926,7 +926,7 @@ function Valley() {
               <Overline>Out the door</Overline>
             </Reveal>
             <Reveal delay={70}>
-              <h2 className="mt-5 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(2.1rem,4vw,3.2rem)', lineHeight: 1.05, letterSpacing: '-0.015em' }}>
+              <h2 className="mt-5 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(2.1rem,4vw,3.2rem)', lineHeight: 1.05, letterSpacing: '-0.015em' }}>
                 The valley is the thing you came for.
               </h2>
             </Reveal>
@@ -960,7 +960,7 @@ function Valley() {
                 <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'rgba(243,241,235,.92)' }}>
                   {e.overline}
                 </span>
-                <h3 className="mt-2 font-ranade font-medium" style={{ color: '#FBF8F3', fontSize: 'clamp(1.3rem,2vw,1.7rem)', lineHeight: 1.12 }}>
+                <h3 className="mt-2 font-spectral font-medium" style={{ color: '#FBF8F3', fontSize: 'clamp(1.3rem,2vw,1.7rem)', lineHeight: 1.12 }}>
                   {e.title}
                 </h3>
                 <p className="mt-2 max-w-[40ch] font-sans text-[13.5px] leading-[1.55]" style={{ color: 'rgba(243,241,235,.95)' }}>
@@ -974,7 +974,7 @@ function Valley() {
         {/* stillness note — quiet closing line for the band */}
         <Reveal delay={120} className="mt-6 rounded-[16px] p-7 md:p-9" style={{ background: GROUND }}>
           <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:gap-8">
-            <h3 className="shrink-0 font-ranade text-[clamp(1.4rem,2.4vw,1.9rem)] font-medium italic" style={{ color: INK }}>
+            <h3 className="shrink-0 font-spectral text-[clamp(1.4rem,2.4vw,1.9rem)] font-medium italic" style={{ color: INK }}>
               {STILLNESS_NOTE.title}
             </h3>
             <p className="max-w-[52ch] font-sans text-[15.5px] leading-[1.6]" style={{ color: MUTED }}>
@@ -1009,7 +1009,7 @@ function GuestWords() {
           </span>
         </Reveal>
         <Reveal delay={80}>
-          <blockquote className="mx-auto mt-7 max-w-[40rem] font-ranade text-[clamp(1.6rem,3.2vw,2.6rem)] italic leading-[1.2]" style={{ color: '#FBF8F3' }}>
+          <blockquote className="mx-auto mt-7 max-w-[40rem] font-spectral text-[clamp(1.6rem,3.2vw,2.6rem)] italic leading-[1.2]" style={{ color: '#FBF8F3' }}>
             “{GUEST.quote}”
           </blockquote>
         </Reveal>
@@ -1021,7 +1021,7 @@ function GuestWords() {
         <div className="mx-auto mt-12 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
           {GUEST.scores.map((s, i) => (
             <Reveal key={s.label} delay={i * 80} y={16}>
-              <div className="font-ranade text-[clamp(1.7rem,3vw,2.3rem)] font-medium leading-none" style={{ color: '#FBF8F3' }}>
+              <div className="font-spectral text-[clamp(1.7rem,3vw,2.3rem)] font-medium leading-none" style={{ color: '#FBF8F3' }}>
                 {s.value}
               </div>
               <div className="mt-2 font-sans text-[13px] font-semibold" style={{ color: 'rgba(243,241,235,.92)' }}>
@@ -1152,7 +1152,7 @@ function FindUs() {
             <Overline>{FIND.overline}</Overline>
           </Reveal>
           <Reveal delay={70}>
-            <h2 className="mt-5 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(2rem,3.8vw,3rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}>
+            <h2 className="mt-5 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(2rem,3.8vw,3rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}>
               {FIND.heading}
             </h2>
           </Reveal>
@@ -1228,7 +1228,7 @@ function FindUs() {
               <Overline>Before you come</Overline>
             </Reveal>
             <Reveal delay={70}>
-              <h3 className="mt-5 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(1.6rem,2.6vw,2.2rem)', lineHeight: 1.1 }}>
+              <h3 className="mt-5 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(1.6rem,2.6vw,2.2rem)', lineHeight: 1.1 }}>
                 Know before you go.
               </h3>
             </Reveal>
@@ -1277,7 +1277,7 @@ function Stay({ unit, setUnit }: { unit: string; setUnit: (u: string) => void })
           <aside className="relative flex flex-col">
             <div className="p-7 md:p-9">
               <Overline>{STAY.panelOverline}</Overline>
-              <h2 className="mt-5 font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(1.9rem,3.2vw,2.6rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}>
+              <h2 className="mt-5 font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(1.9rem,3.2vw,2.6rem)', lineHeight: 1.06, letterSpacing: '-0.015em' }}>
                 {STAY.name}
               </h2>
               <p className="mt-4 font-sans text-[15px] leading-[1.65]" style={{ color: MUTED }}>
@@ -1311,7 +1311,7 @@ function Stay({ unit, setUnit }: { unit: string; setUnit: (u: string) => void })
             {sent ? (
               <Reveal className="py-10 text-center">
                 <Overline>Request sent</Overline>
-                <p className="mx-auto mt-6 max-w-[26rem] font-ranade font-medium" style={{ color: INK, fontSize: 'clamp(1.7rem,3vw,2.4rem)', lineHeight: 1.12 }}>
+                <p className="mx-auto mt-6 max-w-[26rem] font-spectral font-medium" style={{ color: INK, fontSize: 'clamp(1.7rem,3vw,2.4rem)', lineHeight: 1.12 }}>
                   {STAY.confirmation}
                 </p>
                 <p className="mt-5 font-sans text-[15px]" style={{ color: MUTED }}>
@@ -1425,7 +1425,7 @@ function Closing({ onRequest }: { onRequest: () => void }) {
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(38,40,42,.62), rgba(38,40,42,.8))' }} aria-hidden />
       <div className="relative mx-auto max-w-3xl px-6 py-[clamp(96px,15vw,180px)] text-center">
         <h2
-          className="font-ranade font-medium"
+          className="font-spectral font-medium"
           style={{
             color: '#FBF8F3',
             fontSize: 'clamp(2.4rem,6vw,4.5rem)',
