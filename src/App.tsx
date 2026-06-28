@@ -32,6 +32,12 @@ const KoggaPage = lazy(() => import('./preview/kogga/Page'))
 const HaafellPage = lazy(() => import('./preview/haafell/Page'))
 const PolarHestarPage = lazy(() => import('./preview/polarhestar/Page'))
 const EyjatoursPage = lazy(() => import('./preview/eyjatours/Page'))
+// Batch 5 — five new redesigns (scout round 5)
+const FischerseturPage = lazy(() => import('./preview/fischersetur/Page'))
+const EdinborgPage = lazy(() => import('./preview/edinborg/Page'))
+const BrunastadirPage = lazy(() => import('./preview/brunastadir/Page'))
+const GlacierParadisePage = lazy(() => import('./preview/glacierparadise/Page'))
+const SireksstadirPage = lazy(() => import('./preview/sireksstadir/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -87,6 +93,11 @@ export default function App() {
             <Route path="/preview/haafell" element={<HaafellPage />} />
             <Route path="/preview/polarhestar" element={<PolarHestarPage />} />
             <Route path="/preview/eyjatours" element={<EyjatoursPage />} />
+            <Route path="/preview/fischersetur" element={<FischerseturPage />} />
+            <Route path="/preview/edinborg" element={<EdinborgPage />} />
+            <Route path="/preview/brunastadir" element={<BrunastadirPage />} />
+            <Route path="/preview/glacierparadise" element={<GlacierParadisePage />} />
+            <Route path="/preview/sireksstadir" element={<SireksstadirPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

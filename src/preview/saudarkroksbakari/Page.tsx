@@ -5,7 +5,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { HOURS, IMG, PRODUCTS, VISIT } from './data'
+import { CATERING_PLATTERS, DIETARY, HOURS, IMG, MENU, PRODUCTS, SOCIAL, VISIT } from './data'
 import { ExpandMap } from './ExpandMap'
 import CurvedLoop from '../../components/CurvedLoop'
 
@@ -29,7 +29,7 @@ type Lang = 'is' | 'en'
 
 const COPY = {
   is: {
-    navLink0: 'Úr ofninum', navLink1: 'Sagan', navLink2: 'Heimsókn', navCta: 'Heimsókn',
+    navLink1: 'Sagan', navLink2: 'Heimsókn', navCta: 'Heimsókn',
     eyebrow: 'Bakarí · Sauðárkrókur · Ísland',
     heroH1a: 'bakað af alúð', heroH1b: 'alla daga', heroH1c: '',
     heroBody: 'Ástríða fyrir bakstri í meira en öld.',
@@ -53,9 +53,20 @@ const COPY = {
     footerAddress: 'Staður', footerHours: 'Opnunartímar', footerContact: 'Samband',
     footerCopy: '© 2026 Sauðárkróksbakarí', footerTagline: 'handverk frá 1880',
     closedBadge: 'Lokað núna',
+    /* ── added sections ── */
+    navMenu: 'Matseðill', navCatering: 'Veislur',
+    menuEyebrow: 'Matseðill', menuH2: 'allt sem kemur úr ofninum',
+    menuNote: 'Verð eru sýnishorn · V merkir vegan',
+    catEyebrow: 'Veislur & hópar', catH2: 'bakkelsi fyrir stærri stundir',
+    catBody: 'Fundur, afmæli eða erfidrykkja — við tökum saman bakka af snúðum, brauði og kruðeríi fyrir hópinn. Láttu okkur vita með fyrirvara og við stillum bakkann eftir tilefninu.',
+    catNote: 'Pantanir með a.m.k. dags fyrirvara', catCall: 'Hringja · 455 5000', catEmail: 'Senda fyrirspurn',
+    catBar: 'Veldu bakka eða fáðu sérsniðið tilboð',
+    socialEyebrow: 'Instagram', socialH2: 'daglegt brauð, mynd fyrir mynd',
+    socialBody: 'Ferskt úr ofninum á hverjum morgni. Fylgdu okkur og sjáðu hvað er á borðinu í dag.',
+    socialCta: 'Fylgjast með',
   },
   en: {
-    navLink0: 'From the Oven', navLink1: 'Our Story', navLink2: 'Visit Us', navCta: 'Visit',
+    navLink1: 'Our Story', navLink2: 'Visit Us', navCta: 'Visit',
     eyebrow: 'Bakery · Sauðárkrókur · Iceland',
     heroH1a: 'baked with care', heroH1b: 'every day', heroH1c: '',
     heroBody: 'A passion for baking, kept alive for more than a century.',
@@ -79,6 +90,17 @@ const COPY = {
     footerAddress: 'Address', footerHours: 'Opening hours', footerContact: 'Contact',
     footerCopy: '© 2026 Sauðárkróksbakarí', footerTagline: 'craft since 1880',
     closedBadge: 'Closed now',
+    /* ── added sections ── */
+    navMenu: 'Menu', navCatering: 'Catering',
+    menuEyebrow: 'Menu', menuH2: 'everything from the oven',
+    menuNote: 'Prices are samples · V marks vegan',
+    catEyebrow: 'Catering & groups', catH2: 'pastries for bigger moments',
+    catBody: 'A meeting, a birthday, a reception — we\'ll put together a platter of buns, bread and pastries for the whole group. Let us know ahead of time and we\'ll match it to the occasion.',
+    catNote: 'Orders with at least a day\'s notice', catCall: 'Call · 455 5000', catEmail: 'Send an enquiry',
+    catBar: 'Pick a platter or get a tailored quote',
+    socialEyebrow: 'Instagram', socialH2: 'daily bread, frame by frame',
+    socialBody: 'Fresh from the oven every morning. Follow along and see what\'s on the counter today.',
+    socialCta: 'Follow along',
   },
 } as const
 
@@ -131,6 +153,20 @@ function getOpenStatus(lang: Lang): { open: boolean; label: string } {
 
 /* ── Shimmer fallback for image slots ─────────────────────────────── */
 const SHIMMER_CLASS = 'w-full h-full bakery-shimmer'
+
+/* ── Inline glyphs (stroke = currentColor, so they take the parent's color) ── */
+const DIET_ICONS = [
+  /* leaf — vegan */
+  <svg key="leaf" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 4 13C4 8 9 4 20 4c0 7-4 14-9 14z" /><path d="M4 20s2-6 7-9" /></svg>,
+  /* cup — oat milk */
+  <svg key="cup" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z" /><path d="M16 9h2a3 3 0 0 1 0 6h-2" /><path d="M8 2.5v2M11.5 2.5v2" /></svg>,
+  /* info — allergies */
+  <svg key="info" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>,
+]
+/* Factory (not a shared element) so each render site gets its own instance. */
+const igGlyph = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="3" width="18" height="18" rx="5.2" /><circle cx="12" cy="12" r="4" /><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none" /></svg>
+)
 
 /* ── Keyframe + scoped CSS ─────────────────────────────────────────── */
 const PAGE_STYLES = `
@@ -215,6 +251,14 @@ const PAGE_STYLES = `
     .bk-visit-outer { grid-template-columns: 1fr !important; }
     .bk-info-cards { grid-template-columns: 1fr !important; }
     .bk-footer-cols { grid-template-columns: 1fr !important; gap: 40px !important; }
+  }
+
+  /* ── Added sections: menu / dietary / catering / instagram ── */
+  @media (max-width: 720px) {
+    .bk-menu-cols { grid-template-columns: 1fr !important; gap: 32px !important; }
+    .bk-diet-band { grid-template-columns: 1fr !important; }
+    .bk-veisla-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+    .bk-insta-grid { grid-template-columns: 1fr !important; }
   }
 `
 
@@ -516,12 +560,15 @@ export default function Page() {
 
   const c = COPY[lang]
   const openStatus = getOpenStatus(lang)
+  /* Desktop nav: Menu · Catering · Story · Hours(▾). "Heimsókn" lives in the CTA. */
   const navLinks = [
-    { href: '#bakery-bordid', label: c.navLink0 },
+    { href: '#bakery-matsedill', label: c.navMenu },
+    { href: '#bakery-veislur', label: c.navCatering },
     { href: '#bakery-sagan', label: c.navLink1 },
     { href: '#bakery-opnunartimar', label: c.navLink3 },
-    { href: '#bakery-finna', label: c.navLink2 },
   ]
+  /* Mobile menu also lists Heimsókn explicitly (no header CTA on mobile). */
+  const mobileLinks = [...navLinks, { href: '#bakery-finna', label: c.navLink2 }]
 
   /* theme color */
   useEffect(() => {
@@ -800,7 +847,7 @@ export default function Page() {
         <MobileMenu
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
-          links={navLinks}
+          links={mobileLinks}
           lang={lang}
           onToggleLang={() => setLang((l) => l === 'is' ? 'en' : 'is')}
         />
@@ -970,6 +1017,76 @@ export default function Page() {
           </div>
         </section>
 
+        {/* ── MENU ─────────────────────────────────────────────── */}
+        {/* Deliberately NOT another photo grid (Products already is one). This is a
+            letterpress-style editorial menu card — reads like a fine bakery's printed
+            list, which keeps it original and "expensive" while staying on-palette. */}
+        <section id="bakery-matsedill" style={{ background: CREAM, padding: 'clamp(80px,12vw,160px) clamp(20px,5vw,72px)' }}>
+          <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+            {/* Centered header with flanking amber rules */}
+            <div data-bk-reveal style={{ textAlign: 'center', marginBottom: 'clamp(44px,7vw,80px)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+                <div style={{ width: 36, height: 1, background: AMBER }} />
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: AMBER, margin: 0 }}>{c.menuEyebrow}</p>
+                <div style={{ width: 36, height: 1, background: AMBER }} />
+              </div>
+              <h2 style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(2rem,5vw,4rem)', lineHeight: 1.02, letterSpacing: '-0.025em', color: ESPRESSO, fontWeight: 400, margin: 0 }}>{c.menuH2}</h2>
+            </div>
+
+            {/* The menu card */}
+            <div data-bk-reveal style={{ position: 'relative', background: CARD_BG, border: '1px solid rgba(26,15,6,0.08)', borderRadius: 28, boxShadow: '0 34px 90px -56px rgba(26,15,6,0.5)', padding: 'clamp(30px,5vw,68px)' }}>
+              {/* Inner amber hairline — the "printed card" detail */}
+              <div aria-hidden style={{ position: 'absolute', inset: 'clamp(10px,1.4vw,18px)', border: '1px solid rgba(181,114,46,0.18)', borderRadius: 18, pointerEvents: 'none' }} />
+
+              <div className="bk-menu-cols" style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(34px,5vw,72px) clamp(40px,6vw,88px)' }}>
+                {MENU.map((cat) => (
+                  <div key={cat.is}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid rgba(26,15,6,0.12)' }}>
+                      <h3 style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(1.2rem,2vw,1.6rem)', lineHeight: 1.1, letterSpacing: '-0.015em', color: ESPRESSO, fontWeight: 400, margin: 0 }}>{cat[lang]}</h3>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: AMBER, whiteSpace: 'nowrap', flexShrink: 0 }}>{cat.kicker[lang]}</span>
+                    </div>
+                    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {cat.items.map((it) => (
+                        <li key={it.is}>
+                          {/* flex-end keeps the dotted leader joined to the name's LAST line
+                              and the price when a long name wraps (common on mobile) */}
+                          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: ESPRESSO, lineHeight: 1.3, minWidth: 0 }}>{it[lang]}</span>
+                            {it.v && (
+                              <span role="img" aria-label={lang === 'is' ? 'Vegan réttur' : 'Vegan'} title="Vegan" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: 5, background: 'rgba(86,101,79,0.16)', color: SAGE, fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, lineHeight: 1, flexShrink: 0, marginBottom: 2 }}>V</span>
+                            )}
+                            {/* dotted leader */}
+                            <span aria-hidden style={{ flex: 1, borderBottom: '1px dotted rgba(26,15,6,0.28)', transform: 'translateY(-5px)', minWidth: 12 }} />
+                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, color: AMBER, whiteSpace: 'nowrap', flexShrink: 0 }}>{it.price}</span>
+                          </div>
+                          {it.note && (
+                            <span style={{ display: 'block', marginTop: 3, fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontStyle: 'italic', color: 'rgba(26,15,6,0.4)' }}>{it.note[lang]}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <p style={{ position: 'relative', textAlign: 'center', margin: 'clamp(28px,4vw,44px) 0 0', fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: '0.02em', color: 'rgba(26,15,6,0.36)' }}>{c.menuNote}</p>
+            </div>
+
+            {/* Dietary strip */}
+            <div data-bk-reveal data-bk-delay="0.08" className="bk-diet-band" style={{ marginTop: 'clamp(18px,2.5vw,26px)', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
+              {DIETARY.map((d, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: WARM_CREAM, borderRadius: 18, padding: '18px 22px' }}>
+                  <span style={{ flexShrink: 0, color: AMBER, display: 'flex' }}>{DIET_ICONS[i]}</span>
+                  <div>
+                    <p style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: '1.05rem', color: ESPRESSO, fontWeight: 400, margin: '0 0 2px', lineHeight: 1.1 }}>{lang === 'is' ? d.is : d.en}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: 'rgba(26,15,6,0.45)', margin: 0 }}>{lang === 'is' ? d.sub.is : d.sub.en}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── HERITAGE ─────────────────────────────────────────── */}
         <section id="bakery-sagan" style={{ background: WARM_CREAM, padding: 'clamp(80px,12vw,160px) clamp(20px,5vw,72px)', position: 'relative', overflow: 'hidden' }}>
           {/* Background watermark */}
@@ -1037,6 +1154,121 @@ export default function Page() {
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'rgba(26,15,6,0.36)', margin: 0 }}>{r.meta[lang]}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── INSTAGRAM ────────────────────────────────────────── */}
+        {/* Not a generic 6-up widget — an editorial "follow" band that reuses the two
+            real product photos as pinned prints, so it never shows placeholders. */}
+        <section id="bakery-instagram" style={{ background: WARM_CREAM, padding: 'clamp(80px,12vw,160px) clamp(20px,5vw,72px)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div className="bk-insta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(40px,6vw,88px)', alignItems: 'center' }}>
+              <div data-bk-reveal>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <span style={{ color: AMBER, display: 'flex' }}>{igGlyph()}</span>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: AMBER, margin: 0 }}>{c.socialEyebrow}</p>
+                </div>
+                <h2 style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(1.8rem,4vw,3.2rem)', lineHeight: 1.05, letterSpacing: '-0.02em', color: ESPRESSO, fontWeight: 400, margin: '0 0 22px' }}>{c.socialH2}</h2>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 300, lineHeight: 1.8, color: 'rgba(26,15,6,0.56)', margin: '0 0 32px', maxWidth: 420 }}>{c.socialBody}</p>
+                <a href={SOCIAL.url} target="_blank" rel="noopener noreferrer" className="bakery-cta-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: CREAM, background: AMBER, padding: '14px 28px', borderRadius: 9999, textDecoration: 'none', transition: 'all 0.3s', minHeight: 44 }}>
+                  <span style={{ display: 'flex' }}>{igGlyph()}</span>
+                  {SOCIAL.handle}
+                </a>
+              </div>
+              {/* Pinned prints — both real webp photos, slightly rotated, straighten on hover */}
+              <div data-bk-reveal data-bk-delay="0.1" className="bk-insta-photos" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {[
+                  { src: 'chocolate-swirl.webp', rot: -4, mt: 0, alt: { is: 'Snúður með súkkulaði', en: 'Chocolate-glazed cinnamon bun' } },
+                  { src: 'cinnamon-roll.webp', rot: 5, mt: 36, alt: { is: 'Kanilsnúður beint úr ofninum', en: 'Cinnamon roll fresh from the oven' } },
+                ].map((t, i) => (
+                  <motion.div
+                    key={t.src}
+                    style={{ rotate: t.rot, marginTop: t.mt, marginLeft: i === 1 ? -28 : 0, width: 'clamp(150px,42%,250px)', background: CARD_BG, padding: 12, borderRadius: 14, boxShadow: '0 24px 50px -28px rgba(26,15,6,0.5)', zIndex: i }}
+                    whileHover={{ rotate: 0, y: -8, zIndex: 5, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
+                  >
+                    <div style={{ aspectRatio: '1/1', borderRadius: 6, overflow: 'hidden', background: '#fff' }}>
+                      <Img src={`${BK_ASSETS}${t.src}`} alt={t.alt[lang]} className="w-full h-full object-cover" fallbackClassName={SHIMMER_CLASS} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CATERING ─────────────────────────────────────────── */}
+        {/* Platter "package" cards — reads unmistakably as catering for groups and
+            mirrors the menu/product card language. The middle (featured) card is the
+            espresso accent, so the drama is kept but now lives inside a real card. */}
+        <section id="bakery-veislur" style={{ background: CREAM, padding: 'clamp(80px,12vw,160px) clamp(20px,5vw,72px)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            {/* Centered header */}
+            <div data-bk-reveal style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto clamp(40px,6vw,72px)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+                <div style={{ width: 36, height: 1, background: AMBER }} />
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: AMBER, margin: 0 }}>{c.catEyebrow}</p>
+                <div style={{ width: 36, height: 1, background: AMBER }} />
+              </div>
+              <h2 style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(2rem,5vw,4rem)', lineHeight: 1.02, letterSpacing: '-0.025em', color: ESPRESSO, fontWeight: 400, margin: '0 0 20px' }}>{c.catH2}</h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 300, lineHeight: 1.75, color: 'rgba(26,15,6,0.56)', margin: 0 }}>{c.catBody}</p>
+            </div>
+
+            {/* Platter cards */}
+            <div className="bk-veisla-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 'clamp(18px,2.5vw,28px)', alignItems: 'stretch' }}>
+              {CATERING_PLATTERS.map((p, i) => {
+                const dark = !!p.featured
+                const ink = dark ? CREAM : ESPRESSO
+                const muted = dark ? 'rgba(250,244,232,0.62)' : 'rgba(26,15,6,0.5)'
+                return (
+                  <div
+                    key={p.name.is}
+                    data-bk-reveal
+                    data-bk-delay={String((i * 0.08).toFixed(2))}
+                    style={{
+                      position: 'relative', display: 'flex', flexDirection: 'column',
+                      background: dark ? ESPRESSO : CARD_BG,
+                      border: dark ? '1px solid rgba(181,114,46,0.3)' : '1px solid rgba(26,15,6,0.08)',
+                      borderRadius: 24,
+                      padding: 'clamp(26px,3vw,38px)',
+                      boxShadow: dark ? '0 34px 80px -40px rgba(26,15,6,0.65)' : '0 18px 44px -30px rgba(26,15,6,0.4)',
+                    }}
+                  >
+                    {dark && (
+                      <span style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: ESPRESSO, background: AMBER, padding: '6px 16px', borderRadius: 9999 }}>{lang === 'is' ? 'Vinsælast' : 'Most popular'}</span>
+                    )}
+                    {/* serving size — a people icon makes "for groups" explicit */}
+                    <div style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 7, padding: '5px 12px', borderRadius: 9999, background: dark ? 'rgba(250,244,232,0.1)' : 'rgba(181,114,46,0.1)', marginBottom: 20 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
+                        <circle cx="9" cy="7" r="3" />
+                        <path d="M22 19v-1a4 4 0 0 0-3-3.87" />
+                        <path d="M16 4.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '0.02em', color: dark ? 'rgba(250,244,232,0.85)' : AMBER_DARK }}>{p.serves[lang]}</span>
+                    </div>
+                    <h3 style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(1.4rem,2.4vw,1.85rem)', lineHeight: 1.08, letterSpacing: '-0.02em', color: ink, fontWeight: 400, margin: '0 0 12px' }}>{p.name[lang]}</h3>
+                    <p style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 300, lineHeight: 1.65, color: muted, margin: '0 0 24px' }}>{p.includes[lang]}</p>
+                    <div style={{ height: 1, background: dark ? 'rgba(250,244,232,0.14)' : 'rgba(26,15,6,0.1)', margin: '0 0 16px' }} />
+                    <p style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: '1.35rem', color: AMBER, fontWeight: 400, margin: 0 }}>{p.price[lang]}</p>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Order bar — lead time + the single primary call/email action */}
+            <div data-bk-reveal data-bk-delay="0.12" className="bk-veisla-bar" style={{ marginTop: 'clamp(24px,3.5vw,40px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(16px,3vw,32px)', flexWrap: 'wrap', background: WARM_CREAM, borderRadius: 22, padding: 'clamp(22px,3vw,32px) clamp(26px,4vw,44px)' }}>
+              <div>
+                <p style={{ fontFamily: "'Gloock', Georgia, serif", fontSize: 'clamp(1.15rem,2vw,1.5rem)', lineHeight: 1.15, color: ESPRESSO, fontWeight: 400, margin: '0 0 8px' }}>{c.catBar}</p>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: AMBER, flexShrink: 0 }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, color: 'rgba(26,15,6,0.5)' }}>{c.catNote}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                <a href={`tel:${VISIT.tel}`} className="bakery-cta-pill" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: CREAM, background: AMBER, padding: '15px 34px', borderRadius: 9999, textDecoration: 'none', transition: 'all 0.3s', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{c.catCall}</a>
+                <a href={`mailto:${VISIT.email}`} className="bakery-phone-link" style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 400, color: 'rgba(26,15,6,0.5)', textDecoration: 'none', transition: 'color 0.2s' }}>{c.catEmail} →</a>
+              </div>
             </div>
           </div>
         </section>

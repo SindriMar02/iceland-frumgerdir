@@ -243,3 +243,125 @@ export const VISIT = {
   telLabel: '455 5000',
   email: 'saudarkroksbakari@gmail.com',
 } as const
+
+/**
+ * FULL MENU — same HONESTY rule as PRODUCTS above. Only items sourced to THIS
+ * bakery (its reviews / its own service description) appear: the snúður trio
+ * (vegan available), the pink donut, the Nutella house-original, Danish rye +
+ * home-baked breads, the vegan croissant, soup of the day, and coffee with oat
+ * milk. Nothing new is invented. Prices are SAMPLE (sýnishorn) and disclaimed on
+ * the page + in the shared footer. `v` marks items the bakery is sourced as
+ * offering vegan; the latte carries an oat-milk note rather than a vegan mark
+ * (a plain latte is dairy unless the oat-milk swap is taken).
+ */
+export interface MenuItem {
+  /** Icelandic name */
+  is: string
+  /** English gloss */
+  en: string
+  /** Sample price label, or a word like "dagsins" */
+  price: string
+  /** Optional small qualifier under the name */
+  note?: { is: string; en: string }
+  /** Sourced as available vegan */
+  v?: boolean
+}
+export interface MenuCategory {
+  is: string
+  en: string
+  /** Tiny amber kicker shown beside the category name */
+  kicker: { is: string; en: string }
+  items: MenuItem[]
+}
+export const MENU: MenuCategory[] = [
+  {
+    is: 'Snúðar & sætabrauð', en: 'Buns & sweet pastries',
+    kicker: { is: 'beint úr ofninum', en: 'straight from the oven' },
+    items: [
+      { is: 'Snúður með súkkulaði', en: 'Chocolate-glazed cinnamon bun', price: 'frá 450 kr', note: { is: 'til í vegan', en: 'vegan available' }, v: true },
+      { is: 'Snúður með karamellu', en: 'Caramel-glazed cinnamon bun', price: 'frá 450 kr', note: { is: 'til í vegan', en: 'vegan available' }, v: true },
+      { is: 'Snúður með sykri', en: 'Sugar-glazed cinnamon bun', price: 'frá 450 kr', note: { is: 'til í vegan', en: 'vegan available' }, v: true },
+      { is: 'Bleikur kleinuhringur', en: 'Pink-iced donut', price: 'frá 390 kr' },
+      { is: 'Nutellastöng', en: 'Nutella-filled pastry', price: 'frá 590 kr' },
+    ],
+  },
+  {
+    is: 'Brauð', en: 'Breads',
+    kicker: { is: 'bakað á staðnum', en: 'baked on site' },
+    items: [
+      { is: 'Danskt rúgbrauð', en: 'Danish-style rye bread', price: 'frá 890 kr' },
+      { is: 'Heimabökuð brauð', en: 'Home-baked breads', price: 'dagsins', note: { is: 'eftir framboði', en: 'as available' } },
+    ],
+  },
+  {
+    is: 'Salt & hádegi', en: 'Savoury & lunch',
+    kicker: { is: 'um miðjan dag', en: 'around midday' },
+    items: [
+      { is: 'Vegan croissant', en: 'Vegan croissant', price: 'frá 790 kr', note: { is: 'heitt eða kalt', en: 'hot or cold' }, v: true },
+      { is: 'Súpa dagsins', en: 'Soup of the day', price: 'frá 1.290 kr', note: { is: 'með brauði', en: 'with bread' } },
+    ],
+  },
+  {
+    is: 'Kaffi & drykkir', en: 'Coffee & drinks',
+    kicker: { is: 'á könnunni', en: 'always on' },
+    items: [
+      { is: 'Espresso', en: 'Espresso', price: 'frá 390 kr' },
+      { is: 'Cappuccino', en: 'Cappuccino', price: 'frá 590 kr' },
+      { is: 'Latte', en: 'Latte', price: 'frá 590 kr', note: { is: 'haframjólk í boði', en: 'oat milk available' } },
+    ],
+  },
+]
+
+/** Dietary cues — only what the bakery is actually sourced as offering. */
+export const DIETARY = [
+  { is: 'Vegan í boði', en: 'Vegan options', sub: { is: 'snúðar og croissant', en: 'buns & croissant' } },
+  { is: 'Haframjólk', en: 'Oat milk', sub: { is: 'í kaffið þitt', en: 'for your coffee' } },
+  { is: 'Ofnæmi?', en: 'Allergies?', sub: { is: 'spyrðu starfsfólkið', en: 'just ask our staff' } },
+] as const
+
+/**
+ * Social — handle + url are SAMPLE PLACEHOLDERS (the url is derived from the handle
+ * so the two stay consistent). CONFIRM the bakery's real Instagram handle and point
+ * `url` at the actual profile before this goes live to the public.
+ */
+export const SOCIAL = {
+  handle: '@saudarkroksbakari',
+  url: 'https://www.instagram.com/saudarkroksbakari',
+} as const
+
+/**
+ * Catering platters — SAMPLE packages (names, serving sizes and prices are
+ * sýnishorn, disclaimed in the shared footer). The CONTENTS only reference items
+ * actually sourced to this bakery (snúðar, kleinuhringir, brauð, danskt rúgbrauð,
+ * bakkelsi, kaffi). No invented products. The bespoke "Veislubakki" is by quote.
+ */
+export interface CateringPlatter {
+  name: { is: string; en: string }
+  /** Group size cue, e.g. "fyrir 8–10" */
+  serves: { is: string; en: string }
+  includes: { is: string; en: string }
+  /** Sample price, or "verðtilboð" / "by quote" for the bespoke one */
+  price: { is: string; en: string }
+  featured?: boolean
+}
+export const CATERING_PLATTERS: CateringPlatter[] = [
+  {
+    name: { is: 'Morgunbakki', en: 'Morning platter' },
+    serves: { is: 'fyrir 8–10', en: 'serves 8–10' },
+    includes: { is: 'Snúðar, bleikir kleinuhringir og nýbakað brauð með smjöri.', en: 'Cinnamon buns, pink donuts and fresh bread with butter.' },
+    price: { is: 'frá 6.900 kr', en: 'from 6,900 kr' },
+  },
+  {
+    name: { is: 'Kaffihlaðborð', en: 'Coffee spread' },
+    serves: { is: 'fyrir 12–20', en: 'serves 12–20' },
+    includes: { is: 'Blandað bakkelsi, danskt rúgbrauð og nýlagað kaffi á könnunni.', en: 'Mixed pastries, Danish rye and fresh coffee on tap.' },
+    price: { is: 'frá 1.190 kr á mann', en: 'from 1,190 kr pp' },
+    featured: true,
+  },
+  {
+    name: { is: 'Veislubakki', en: 'Event platter' },
+    serves: { is: 'stærri hópar', en: 'larger groups' },
+    includes: { is: 'Sniðið að tilefninu — sætt, salt og kaffi eftir óskum.', en: 'Tailored to the occasion — sweet, savoury and coffee to taste.' },
+    price: { is: 'verðtilboð', en: 'by quote' },
+  },
+]

@@ -1041,6 +1041,281 @@ Hana má skoða hér hvenær sem er:
 ${SIGN}`,
     },
   },
+  {
+    slug: 'fischersetur',
+    route: '/preview/fischersetur',
+    name: 'Bobby Fischer Center',
+    sector: 'Chess museum',
+    location: 'Selfoss, South Iceland',
+    region: 'South',
+    established: 'Opened 2013',
+    currentUrl: 'https://www.fischersetur.is',
+    ownerEmail: 'fischersetur@gmail.com',
+    concept: 'Match of the Century',
+    conceptTagline: 'The board is the interface — scroll-replay the 1972 Reykjavík championship in ink and bone, no stock photos.',
+    accent: '#3FA7D6',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1633365087123-b3f2c305769a?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'World-famous subject — the 1972 Fischer and Spassky “Match of the Century” in Reykjavík',
+        'The first chess museum in the Nordic countries',
+        'Fischer is buried minutes away at Laugardælir — a real reason to stop',
+      ],
+      weaknesses: [
+        'A free 2013 template with no mobile viewport — barely usable on a phone',
+        'Live placeholder lorem-ipsum text and broken character encoding',
+        'No real story, hours or map a visitor can act on',
+      ],
+      opportunities: [
+        'Turn the 1972 match into an interactive, scrollable centrepiece',
+        'Mobile-first hours, admission and map for Ring Road travellers',
+        'A reverent, distinctive identity worthy of the subject',
+      ],
+    },
+    positioning:
+      'The world remembers the 1972 match; the museum that keeps it deserves a site visitors can play through. Make the chessboard the interface and the practical visit effortless.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Fischersetur',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og söfn.
+
+Ég hef lengi haft mikinn áhuga á sögu einvígisins 1972 og fannst frábært að sjá að það á sitt eigið safn á Selfossi. Það eina sem ég staldraði við var vefsíðan, því eins og hún er í dag opnast hún illa í síma og erfitt er að sjá opnunartíma, verð og hvar safnið er.
+
+Mér fannst það synd fyrir svona merkilegt efni, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þar er einvígið sjálft gert að upplifun sem fólk getur spilað sig í gegnum. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta er aðeins hugmynd og sýnishorn af nokkrum köflum, en ef ykkur líst vel á gæti ég klárað vefinn í heild. Ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'edinborg',
+    route: '/preview/edinborg',
+    name: 'Edinborg Bistró',
+    sector: 'Harbour bistro',
+    location: 'Ísafjörður, Westfjords',
+    region: 'Westfjords',
+    established: 'House from 1907',
+    currentUrl: 'https://edinborgbistro.is',
+    ownerEmail: 'bistro@edinborgbistro.is',
+    concept: 'A Bistro Told in Courses',
+    conceptTagline: 'The menu as the hero — a self-setting letterpress bill of fare in the 1907 harbour house; slate, ecru and oxblood.',
+    accent: '#6E1F2B',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1687706418918-1c95d829b478?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Lands in the landmark 1907 Edinborg house on the Ísafjörður harbour',
+        'Strong reviews across platforms (RestaurantGuru around 4.7)',
+        'A real destination in the Westfjords hub',
+      ],
+      weaknesses: [
+        'No working website at all — the domain shows a blank placeholder',
+        'A visitor who finds them online gets no menu, hours or location',
+        'Everything lives on Facebook, invisible to a quick search',
+      ],
+      opportunities: [
+        'Put a real, beautiful menu on the domain they already own',
+        'Clear hours, map and contact for travellers in town',
+        'Tell the Edinborg-house heritage that makes the room unique',
+      ],
+    },
+    positioning:
+      'A beloved harbour bistro with no website is leaving travellers at a blank page. Give the 1907 house one elegant page where the menu itself is the experience.',
+    outreach: {
+      subject: 'Hugmynd að vefsíðu fyrir Edinborg Bistró',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í veitingum og ferðaþjónustu.
+
+Ég er mikill aðdáandi þess sem þið gerið í Edinborgarhúsinu og heyri eingöngu gott af staðnum. Það eina sem ég fann ekki var vefsíða, því þegar maður leitar að ykkur á netinu birtist auð síða og hvorki matseðill, opnunartími né staðsetning.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að vefsíðu fyrir ykkur þar sem matseðillinn sjálfur er aðalatriðið og sagan af húsinu fær að njóta sín. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta er aðeins hugmynd og sýnishorn, en ef ykkur líst vel á gæti ég klárað vefinn í heild og sett hann inn á lénið sem þið eigið nú þegar.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'brunastadir',
+    route: '/preview/brunastadir',
+    name: 'Brúnastaðir',
+    sector: 'Farmhouse cheese',
+    location: 'Fljót, Skagafjörður',
+    region: 'North',
+    established: 'Verðlaunabú 2025',
+    currentUrl: 'https://brunastadir.is',
+    ownerEmail: 'brunastadir@brunastadir.is',
+    concept: 'The Rind Library',
+    conceptTagline: 'Iceland’s only farm-made cheese, shown like a terroir archive — Brúnó on the plate, the closed loop as proof.',
+    accent: '#8A4B22',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1654184729393-e9d3b8c589c5?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'The only farm in Iceland making cheese on its own land',
+        'Won the Icelandic Agricultural Award 2025; Embla Nordic nomination',
+        'A genuinely unique closed-loop product — Brúnó, washed in local IPA',
+      ],
+      weaknesses: [
+        'Stock WordPress with tiny, compressed product thumbnails',
+        'No storytelling for a one-of-a-kind product',
+        'Awards and the farm story are buried or absent',
+      ],
+      opportunities: [
+        'Present each cheese like a labelled specimen with real photography',
+        'Tell the pasture-to-wheel closed loop no supermarket can',
+        'Surface the awards and bring farm-shop visitors in',
+      ],
+    },
+    positioning:
+      'A national-award farmhouse cheese deserves more than thumbnail soup. Treat the cheese as the hero and the provenance as the proof.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Brúnastaði',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í matvælaframleiðslu.
+
+Ég kolféll fyrir því sem þið gerið á Brúnastöðum, eina býlinu á Íslandi sem framleiðir ost á eigin landi, og óska ykkur til hamingju með Búnaðarverðlaunin. Það eina sem ég staldraði við var vefsíðan, því myndirnar af ostunum eru mjög smáar og sagan á bak við vöruna kemst ekki til skila.
+
+Mér fannst það synd fyrir svona einstaka vöru, svo ég settist niður og hannaði frumgerð að nýrri forsíðu þar sem hver ostur fær að njóta sín og leiðin frá haga til hjóls er sögð. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta er aðeins hugmynd og sýnishorn, en ef ykkur líst vel á gæti ég klárað vefinn í heild. Ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'glacierparadise',
+    route: '/preview/glacierparadise',
+    name: 'Glacier Paradise',
+    sector: 'Glacier tours',
+    location: 'Arnarstapi, Snæfellsnes',
+    region: 'West',
+    established: 'Síðan 2022',
+    currentUrl: 'https://glacierparadise.is',
+    ownerEmail: '',
+    concept: 'The Ascent',
+    conceptTagline: 'Scrolling is ascending — a living altimeter climbs Snæfellsjökull to a booking where the price is finally visible.',
+    accent: '#7FC8E8',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1576635862964-c1a01be402ff?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Snow-cat tours up Snæfellsjökull — Jules Verne’s legendary glacier',
+        'Third-generation family guides with 20+ years on the ice',
+        'Entirely reliant on online discovery — a strong site moves the needle',
+      ],
+      weaknesses: [
+        'The homepage has no booking button and no email anywhere',
+        'Prices are buried on inner pages',
+        'No clear contact path for a remote, no-walk-up operator',
+      ],
+      opportunities: [
+        'Make the ascent the experience and end it on an obvious booking',
+        'Put the price and a clear reserve action above the fold',
+        'Add a real contact block and credible trust signals',
+      ],
+    },
+    positioning:
+      'A remote glacier operator that lives entirely on online discovery cannot afford a homepage with no way to book. Turn the climb into the story and the booking into the destination.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Glacier Paradise',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
+
+Mér líst virkilega vel á ferðirnar ykkar upp á Snæfellsjökul og þá fjölskyldusögu sem býr að baki. Það eina sem ég staldraði við var vefsíðan, því á forsíðunni er hvorki bókunarhnappur, verð né netfang, og ég held að þið séuð að missa af bókunum þess vegna.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu þar sem öll ferðin upp á jökulinn verður að upplifun og endar á skýrri bókun með sýnilegu verði. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta er aðeins hugmynd og sýnishorn, en ef ykkur líst vel á gæti ég klárað vefinn í heild.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'sireksstadir',
+    route: '/preview/sireksstadir',
+    name: 'Síreksstaðir',
+    sector: 'Farm-stay & cottages',
+    location: 'Vopnafjörður, East Iceland',
+    region: 'East',
+    established: 'Fjölskyldubú',
+    currentUrl: 'https://sireksstadir.is',
+    ownerEmail: 'sirek@sireksstadir.is',
+    concept: 'Stillness in Sunnudalur',
+    conceptTagline: 'Arrival into stillness — the glen as interface, honest prices, and a request to stay that reads like a note to the family.',
+    accent: '#A6593C',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1765871319901-0aaafe3f1a2a?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'A genuinely remote, quiet East-Iceland farm-stay with its own restaurant',
+        'Booking.com 8.3 with standout staff scores',
+        'Real, repeat guests who rely on online discovery',
+      ],
+      weaknesses: [
+        'A broken hero carousel with overlapping, unreadable slides',
+        'The cottages page has no photos and two identical, copy-pasted descriptions',
+        'No prices anywhere and no real booking path',
+      ],
+      opportunities: [
+        'Replace the broken carousel with one calm, oriented arrival',
+        'Give each cottage real photos, distinct copy and a clear price',
+        'Add a simple request-to-book that carries the chosen unit through',
+      ],
+    },
+    positioning:
+      'A calm, remote farm-stay is being sold by a broken carousel and a photo-less cottages page. Let the glen’s stillness be the design and make staying effortless.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Síreksstaði',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu og gistingu.
+
+Mér líst virkilega vel á staðinn ykkar inn af Sunnudal og þá kyrrð sem þið bjóðið gestum. Það eina sem ég staldraði við var vefsíðan, því forsíðan birtist brotin, myndir af sumarhúsunum vantar og hvergi er hægt að sjá verð eða bóka.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu þar sem kyrrðin í dalnum fær að ráða, hvert hús fær sínar eigin myndir og verð, og einföld bókunarbeiðni kemur í stað brotinnar síðu. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta er aðeins hugmynd og sýnishorn, en ef ykkur líst vel á gæti ég klárað vefinn í heild.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {
