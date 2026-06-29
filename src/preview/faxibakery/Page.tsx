@@ -74,7 +74,7 @@ const PAGE_CSS = `
   .faxi-navlink:hover { color:${MOSS}; }
 
   .faxi-ig { transition:background .25s ${EASE}, color .25s ${EASE}, border-color .25s ${EASE}; }
-  .faxi-ig:hover { background:${INK}; color:${CREAM_LIGHT}; border-color:${INK}; }
+  .faxi-ig:hover { background:${MOSS}; color:${CREAM_LIGHT}; border-color:${MOSS}; }
 
   .faxi-cta-primary { transition:background .25s ${EASE}; }
   .faxi-cta-primary:hover { background:${MOSS}; }
