@@ -1425,14 +1425,14 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús og ferðaþjónustu.
 
-Sagan ykkar í Gamla fjósinu er einmitt það sem fólk fellur fyrir. Eigið nautakjöt beint af bænum, gamalt fjós undir Eyjafjöllum og Eldfjallasúpa sem fólk talar um. Mér fannst núverandi vefsíða ekki gera þessari sögu nógu hátt undir höfði, matseðillinn endurtekur sig nokkrum sinnum, myndirnar eru fáar og það er ekki einfalt að sjá hvenær er opið eða bóka borð.
+Sagan ykkar í Gamla fjósinu er einmitt það sem fólk fellur fyrir. Eigið nautakjöt beint af bænum, gamalt fjós undir Eyjafjöllum og Eldfjallasúpa sem fólk talar um. Mér fannst þó núverandi vefsíða ekki gera þessari sögu nógu hátt undir höfði. Matseðillinn endurtekur sig nokkrum sinnum á síðunni, myndirnar eru fáar og litlar, og það er ekki alveg einfalt að sjá hvenær er opið eða hvernig maður bókar borð.
 
-Ég settist því niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur, þar sem ég reyndi að laga einmitt þessi atriði. Sagan og hráefnið fá að njóta sín efst, matseðillinn er einn og skýr með flipum eftir flokkum, stórar myndir gera réttina girnilega og Eldfjallasúpan fær sitt eigið pláss. Svo eru opnunartímar á hreinu og einfalt að bóka borð. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að láta hráefnið og staðinn njóta sín, gera matseðilinn girnilegan og skýran og hafa opnunartíma og borðabókun á hreinu. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur innblástur.
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur.
 
 Endilega heyrið í mér ef þetta kveikir í ykkur.
 

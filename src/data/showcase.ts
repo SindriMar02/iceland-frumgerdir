@@ -194,6 +194,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
         image: img('photo-1765871319901-0aaafe3f1a2a'),
         accent: '#A6593C',
       },
+      {
+        route: '/preview/kirkjubaer',
+        name: 'Kirkjubær II Camping',
+        sector: 'Tjaldsvæði & sumarhús',
+        location: 'Kirkjubæjarklaustur',
+        blurb: 'Tjaldsvæði á leið að austurlandi með sumarhús, hlýjan velkomin og lifandi árstíðastöðu, hannað fyrir beinan gestabókun.',
+        image: local('kirkjubaer/hero-glacier.jpg'),
+        accent: '#2f4a39',
+      },
     ],
   },
   {
