@@ -26,6 +26,9 @@
   --font-geist: "Geist", system-ui, sans-serif;               /* Glacier Paradise — technical display/body */
   --font-geistmono: "Geist Mono", ui-monospace, monospace;    /* Glacier / Fischer — instrument & notation voice */
   --font-ranade: "Ranade", Georgia, serif;                    /* Síreksstaðir — literary serif */
+  --font-marcellus: "Marcellus", Georgia, serif;              /* Caves of Hella — Roman-inscriptional, carved-in-stone */
+  --font-bitter: "Bitter", Georgia, serif;                    /* Gamla Fjósið — warm farmhouse slab */
+  --font-chillax: "Chillax", system-ui, sans-serif;           /* Faxi Bakery — rounded, friendly bakery display */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;

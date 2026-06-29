@@ -34,6 +34,8 @@ export interface ShowcaseGroup {
 }
 
 const img = (id: string) => `https://images.unsplash.com/${id}?q=80&w=1200&auto=format&fit=crop`
+/** Base-path-aware local asset (custom photography under public/<slug>/). */
+const local = (p: string) => `${import.meta.env.BASE_URL}${p}`
 
 export const SHOWCASE: ShowcaseGroup[] = [
   {
@@ -140,6 +142,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
         image: img('photo-1576635862964-c1a01be402ff'),
         accent: '#4E9CC0',
       },
+      {
+        route: '/preview/cavesofhella',
+        name: 'Caves of Hella',
+        sector: 'Hellaferðir',
+        location: 'Hella',
+        blurb: 'Manngerðir hellar á Ægissíðu settir fram sem kvikmyndaleg ferð niður í myrkrið, með tímabókun í forgrunni.',
+        image: local('cavesofhella/hero.jpg'),
+        accent: '#c8862f',
+      },
     ],
   },
   {
@@ -243,6 +254,24 @@ export const SHOWCASE: ShowcaseGroup[] = [
         blurb: 'Matseðillinn sjálfur í aðalhlutverki í gamla Edinborgarhúsinu frá 1907 við höfnina, með opnunartíma og borðabókun.',
         image: img('photo-1687706418918-1c95d829b478'),
         accent: '#6E1F2B',
+      },
+      {
+        route: '/preview/gamlafjosid',
+        name: 'Gamla Fjósið',
+        sector: 'Veitingahús',
+        location: 'Undir Eyjafjöllum',
+        blurb: 'Eigið nautakjöt undir Eyjafjöllum og Eldfjallasúpan í aðalhlutverki, með skýrum matseðli og borðabókun.',
+        image: local('gamlafjosid/hero.jpg'),
+        accent: '#c2410c',
+      },
+      {
+        route: '/preview/faxibakery',
+        name: 'Faxi Bakery',
+        sector: 'Bakarí & kaffihús',
+        location: 'Undir Eyjafjöllum',
+        blurb: 'Bakarí við þjóðveg 1 byggt frá grunni í kringum nýbakaða snúða og útsýnið yfir Eyjafjallajökul.',
+        image: local('faxibakery/hero.jpg'),
+        accent: '#c98a2e',
       },
     ],
   },

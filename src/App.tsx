@@ -38,6 +38,10 @@ const EdinborgPage = lazy(() => import('./preview/edinborg/Page'))
 const BrunastadirPage = lazy(() => import('./preview/brunastadir/Page'))
 const GlacierParadisePage = lazy(() => import('./preview/glacierparadise/Page'))
 const SireksstadirPage = lazy(() => import('./preview/sireksstadir/Page'))
+// Batch 6 — three South-Iceland builds (under Eyjafjallajökull)
+const CavesOfHellaPage = lazy(() => import('./preview/cavesofhella/Page'))
+const GamlaFjosidPage = lazy(() => import('./preview/gamlafjosid/Page'))
+const FaxiBakeryPage = lazy(() => import('./preview/faxibakery/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -98,6 +102,9 @@ export default function App() {
             <Route path="/preview/brunastadir" element={<BrunastadirPage />} />
             <Route path="/preview/glacierparadise" element={<GlacierParadisePage />} />
             <Route path="/preview/sireksstadir" element={<SireksstadirPage />} />
+            <Route path="/preview/cavesofhella" element={<CavesOfHellaPage />} />
+            <Route path="/preview/gamlafjosid" element={<GamlaFjosidPage />} />
+            <Route path="/preview/faxibakery" element={<FaxiBakeryPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

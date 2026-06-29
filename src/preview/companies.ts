@@ -1316,6 +1316,190 @@ Endilega heyrið í mér ef þetta kveikir í ykkur.
 ${SIGN}`,
     },
   },
+
+  {
+    // WHY: an extraordinary subject (twelve man-made caves with carved crosses,
+    // possibly older than the settlement) on a generic Wix template with almost
+    // no imagery and booking buried in a menu. OPPORTUNITY: a cinematic, immersive
+    // "descent" with timed-tour booking first. CUSTOMER: self-driving tourists on
+    // the South Coast — the caves sit on the Ring Road, an hour from Reykjavík.
+    slug: 'cavesofhella',
+    route: '/preview/cavesofhella',
+    name: 'Caves of Hella',
+    sector: 'Hellaferðir',
+    location: 'Ægissíða, Hella',
+    region: 'South',
+    established: 'Manngerðir hellar',
+    currentUrl: 'https://cavesofhella.is',
+    ownerEmail: 'info@cavesofhella.is',
+    concept: 'Niður í myrkrið',
+    conceptTagline:
+      'Iceland’s hidden underworld — a cinematic scroll-descent into man-made caves that may predate the settlement.',
+    accent: '#9a5b1e',
+    dark: true,
+    status: 'Concept ready',
+    thumb: import.meta.env.BASE_URL + 'cavesofhella/hero.jpg',
+    audit: {
+      strengths: [
+        'A genuinely rare subject — twelve man-made caves with crosses and carvings, possibly pre-settlement',
+        'Right on the Ring Road, an hour from Reykjavík, with daily guided tours in English',
+        'Clear pricing and a real booking system already in place',
+      ],
+      weaknesses: [
+        'A generic Wix template that conveys none of the mystery or atmosphere',
+        'Almost no photography for what is, fundamentally, a visual attraction',
+        'Booking and tour times are buried in a menu rather than front and centre',
+      ],
+      opportunities: [
+        'Make the visitor feel the descent into the underworld before they arrive',
+        'Showcase each named cave (Fjóshellir, Kirkjuhellir, Hlöðuhellir, Lambhellir)',
+        'Put “pick a time and book” one tap away',
+      ],
+    },
+    positioning:
+      'Iceland’s oldest standing archaeological mystery deserves a site that feels like stepping underground. The redesign trades a flat template for a cinematic descent — candlelight, carved stone, the named caves — with timed-tour booking as the hero.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Caves of Hella',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk ferðaþjónustufyrirtæki.
+
+Hellarnir á Ægissíðu eru með því magnaðasta sem ég hef rekist á. Manngerðir hellar sem gætu verið eldri en sjálft landnámið, með krossum og útskurði í veggjunum, eru saga sem fólk vill upplifa. Mér fannst núverandi vefsíða ekki ná að fanga þá dulúð, myndirnar eru fáar og það er ekki alveg augljóst hvernig maður bókar ferð.
+
+Ég ákvað því að hanna frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er að gestir finni strax fyrir leyndardómnum sem býr í hellunum, sjái þá með eigin augum og geti bókað ferð á örfáum sekúndum. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+
+  {
+    // WHY: a wonderful farm-to-table story (own free-range beef, an old cowshed
+    // under Eyjafjallajökull, since 1999, the Eldfjallasúpa) lost on a cluttered,
+    // dated template with duplicate menus, a price typo and weak imagery.
+    // CUSTOMER: travellers on the South Coast and Icelanders who make the trip.
+    slug: 'gamlafjosid',
+    route: '/preview/gamlafjosid',
+    name: 'Gamla Fjósið',
+    sector: 'Veitingahús',
+    location: 'Hvassafell, undir Eyjafjöllum',
+    region: 'South',
+    established: 'Síðan 1999',
+    currentUrl: 'https://gamlafjosid.is',
+    ownerEmail: 'info@gamlafjosid.is',
+    concept: 'Eldur, gras og nautakjöt',
+    conceptTagline:
+      'The Old Cowshed — own-farm beef under a volcano, a farm-to-plate story told warm and whole.',
+    accent: '#9a3f12',
+    dark: false,
+    status: 'Concept ready',
+    thumb: import.meta.env.BASE_URL + 'gamlafjosid/hero.jpg',
+    audit: {
+      strengths: [
+        'An enviable story — their own free-range beef, garden vegetables and daily bread',
+        'A working farm in a converted cowshed right under Eyjafjallajökull, since 1999',
+        'A signature people remember (the Eldfjallasúpa / Volcano Soup)',
+      ],
+      weaknesses: [
+        'A dated template with duplicate menus and navigation repeated down the page',
+        'A real price typo (Kr. 1.1.210) and weak, placeholder-feeling imagery',
+        'Seasonal closing and table booking are buried and slightly contradictory',
+      ],
+      opportunities: [
+        'Lead with the farm-to-plate provenance and the volcano setting',
+        'A single, photographed, scannable menu with the Volcano Soup featured',
+        'Clear hours and season, and an easy table booking',
+      ],
+    },
+    positioning:
+      'The food and the farm are the story; the current site hides both. The redesign leads with own-farm beef under Eyjafjallajökull, a warm photographed menu around the Eldfjallasúpa, and clear hours and booking.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Gamla fjósið',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús og ferðaþjónustu.
+
+Sagan ykkar í Gamla fjósinu er einmitt það sem fólk fellur fyrir. Eigið nautakjöt beint af bænum, gamalt fjós undir Eyjafjöllum og Eldfjallasúpa sem fólk talar um. Mér fannst núverandi vefsíða ekki gera þessari sögu nógu hátt undir höfði, matseðillinn endurtekur sig nokkrum sinnum, myndirnar eru fáar og það er ekki einfalt að sjá hvenær er opið eða bóka borð.
+
+Ég settist því niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að láta hráefnið og staðinn njóta sín, gera matseðilinn girnilegan og skýran og hafa opnunartíma og borðabókun á hreinu. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+
+  {
+    // WHY: a beloved roadside bakery (fresh cinnamon rolls hourly, real espresso,
+    // a clear view of Eyjafjallajökull) with NO website at all — designed from
+    // scratch. CUSTOMER: self-driving tourists on the Ring Road between Hvolsvöllur
+    // and Vík. Contact is Instagram @faxi_bakery_ / phone (no public email found).
+    slug: 'faxibakery',
+    route: '/preview/faxibakery',
+    name: 'Faxi Bakery',
+    sector: 'Bakarí & kaffihús',
+    location: 'Undir Eyjafjöllum, þjóðvegur 1',
+    region: 'South',
+    established: 'Bakarí og kaffihús',
+    currentUrl: 'https://www.instagram.com/faxi_bakery_',
+    ownerEmail: '',
+    concept: 'Nýbakað, með útsýni',
+    conceptTagline:
+      'Fresh-baked, with a view — a roadside bakery brand built from scratch around the hourly cinnamon roll and the volcano on the horizon.',
+    accent: '#b23a48',
+    dark: false,
+    status: 'Concept ready',
+    thumb: import.meta.env.BASE_URL + 'faxibakery/hero.jpg',
+    audit: {
+      strengths: [
+        'A signature ritual people love — fresh cinnamon rolls baked every hour',
+        'A postcard setting right on the Ring Road, looking at Eyjafjallajökull',
+        'Real espresso, gluten-free options and an open kitchen you can watch',
+      ],
+      weaknesses: [
+        'No website at all — passing travellers cannot find hours, menu or a reason to stop',
+        'Discovery lives only on third-party review sites and Instagram',
+        'No way to see the offering before driving past',
+      ],
+      opportunities: [
+        'Build a real brand and first impression from the ground up',
+        'Make the hourly cinnamon roll and the volcano view the hook',
+        'Put hours, menu and location where road-trippers will actually look',
+      ],
+    },
+    positioning:
+      'A bakery this good with no website is invisible to the travellers driving past it. Built from scratch, the brand turns the hourly cinnamon roll and the Eyjafjallajökull view into a reason to stop — with hours, menu and location front and centre.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Faxi Bakery',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk bakarí og kaffihús.
+
+Ég kom auga á Faxi Bakery og heillaðist strax. Nýbakaðir snúðar á hverjum klukkutíma, alvöru kaffi og útsýni yfir Eyjafjallajökul er nákvæmlega svona stopp sem ferðafólk elskar á leiðinni austur. Það eina sem ég fann ekki var vefsíða, svo fólk sem keyrir framhjá hefur enga leið til að sjá opnunartíma, hvað er í boði eða af hverju það ætti að stoppa.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að forsíðu fyrir ykkur frá grunni. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er að ferðafólk finni ykkur áður en það keyrir framhjá, fái vatn í munninn og viti hvenær er opið. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {
