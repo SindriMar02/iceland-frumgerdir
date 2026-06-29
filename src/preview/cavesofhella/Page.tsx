@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
+import ScrollStack, { ScrollStackItem } from '../../components/ScrollStack'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
@@ -800,95 +801,52 @@ export default function CavesOfHellaPage() {
             </p>
           </Reveal>
 
-          {/* Cave 1 — full width feature */}
-          <Reveal>
-            <div className="mb-8 grid grid-cols-1 lg:grid-cols-5 gap-0 rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(232,226,210,0.07)' }}>
-              <div className="lg:col-span-3 relative" style={{ minHeight: 320 }}>
-                <Img
-                  src={CAVES[0].img}
-                  alt={CAVES[0].alt}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#1a1813] to-[#0b0b0d]"
-                />
-              </div>
-              <div
-                className="lg:col-span-2 flex flex-col justify-center p-8 md:p-10"
-                style={{ background: 'rgba(21,20,15,0.98)' }}
-              >
-                <p className="font-mono text-[11px] tracking-[0.22em] uppercase mb-3" style={{ color: C.amber }}>
-                  {CAVES[0].nameEn}
-                </p>
-                <h3 className="font-marcellus text-2xl md:text-3xl mb-4" style={{ color: C.bone }}>
-                  {CAVES[0].nameIs}
-                </h3>
-                <p className="font-sans text-sm leading-relaxed" style={{ color: 'rgba(232,226,210,0.62)' }}>
-                  {CAVES[0].tagline}
-                </p>
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Caves 2 & 3 — side by side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {CAVES.slice(1, 3).map((cave, i) => (
-              <Reveal key={cave.nameIs} delay={i * 0.1}>
-                <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(232,226,210,0.07)' }}>
-                  <div className="relative" style={{ aspectRatio: '16/10' }}>
-                    <Img
-                      src={cave.img}
-                      alt={cave.alt}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#1a1813] to-[#0b0b0d]"
-                    />
-                  </div>
-                  <div className="p-6" style={{ background: 'rgba(21,20,15,0.98)' }}>
-                    <p className="font-mono text-[11px] tracking-[0.22em] uppercase mb-2" style={{ color: C.amber }}>
+          {/* Cave-by-cave gallery — cards pin and stack into a deck as you scroll */}
+          <ScrollStack itemDistance={70} itemStackDistance={24} itemScale={0.035} baseScale={0.88} stackPosition="16%" scaleEndPosition="6%">
+            {CAVES.map((cave, i) => (
+              <ScrollStackItem key={cave.nameIs}>
+                <div
+                  className="relative h-[60vh] min-h-[380px] w-full overflow-hidden rounded-[28px]"
+                  style={{ border: '1px solid rgba(232,226,210,0.10)', boxShadow: '0 40px 90px -40px rgba(0,0,0,0.85)' }}
+                >
+                  <Img
+                    src={cave.img}
+                    alt={cave.alt}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#221d16] via-[#15120d] to-[#0b0b0d]"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(180deg, rgba(11,11,13,0.12) 0%, rgba(11,11,13,0.5) 52%, rgba(11,11,13,0.93) 100%)' }}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-6 right-7 font-marcellus text-5xl md:text-6xl"
+                    style={{ color: 'rgba(232,226,210,0.16)' }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 p-8 md:p-12">
+                    <p className="font-mono text-[11px] tracking-[0.22em] uppercase mb-3" style={{ color: C.amber }}>
                       {cave.nameEn}
                     </p>
-                    <h3 className="font-marcellus text-xl mb-2" style={{ color: C.bone }}>
+                    <h3 className="font-marcellus text-3xl md:text-5xl mb-3" style={{ color: C.bone }}>
                       {cave.nameIs}
                     </h3>
-                    {cave.note && (
-                      <p className="font-mono text-[10px] tracking-wide mb-2" style={{ color: C.amberDeep }}>
+                    {'note' in cave && cave.note ? (
+                      <p className="font-mono text-[10px] tracking-wide mb-3" style={{ color: C.amberDeep }}>
                         {cave.note}
                       </p>
-                    )}
-                    <p className="font-sans text-sm leading-relaxed" style={{ color: 'rgba(232,226,210,0.62)' }}>
+                    ) : null}
+                    <p className="font-sans text-sm md:text-base leading-relaxed max-w-xl" style={{ color: 'rgba(232,226,210,0.74)' }}>
                       {cave.tagline}
                     </p>
                   </div>
                 </div>
-              </Reveal>
+              </ScrollStackItem>
             ))}
-          </div>
-
-          {/* Cave 4 — offset right strip */}
-          <Reveal>
-            <div
-              className="ml-0 md:ml-auto md:w-4/5 rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
-              style={{ border: '1px solid rgba(232,226,210,0.07)' }}
-            >
-              <div className="p-8 flex flex-col justify-center order-2 md:order-1" style={{ background: 'rgba(21,20,15,0.98)' }}>
-                <p className="font-mono text-[11px] tracking-[0.22em] uppercase mb-3" style={{ color: C.amber }}>
-                  {CAVES[3].nameEn}
-                </p>
-                <h3 className="font-marcellus text-2xl mb-3" style={{ color: C.bone }}>
-                  {CAVES[3].nameIs}
-                </h3>
-                <p className="font-sans text-sm leading-relaxed" style={{ color: 'rgba(232,226,210,0.62)' }}>
-                  {CAVES[3].tagline}
-                </p>
-              </div>
-              <div className="relative order-1 md:order-2" style={{ minHeight: 240 }}>
-                <Img
-                  src={CAVES[3].img}
-                  alt={CAVES[3].alt}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#1a1813] to-[#0b0b0d]"
-                />
-              </div>
-            </div>
-          </Reveal>
+          </ScrollStack>
         </div>
       </section>
 
