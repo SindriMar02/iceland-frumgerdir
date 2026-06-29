@@ -27,16 +27,19 @@ import { IMAGES, FALLBACK, MENU, STATS, VISIT } from './data'
 
 const company = getPreviewCompany('faxibakery')
 
-// ── Design tokens (from handoff) ─────────────────────────────────────────────
-const CREAM = '#ECE3D1' // page base
-const CREAM_LIGHT = '#F6F0E3' // surfaces / text on dark
+// ── Design tokens ────────────────────────────────────────────────────────────
+// Cream is sampled EXACTLY from the hero photo's own background edge (#F0E4CF),
+// so the page and the crisp photo are the same tone — the photo's rectangular
+// edges dissolve into the page with no feather and no visible seam.
+const CREAM = '#F1E4CE' // page base — the photo's background cream, exactly
+const CREAM_LIGHT = '#FAF3E4' // surfaces / text on dark (light warm tint of cream)
 const INK = '#1B1712' // volcanic near-black
 const MOSS = '#4C5A41' // moss green
 const MOSS_LIGHT = '#A7B197' // muted labels on dark
 const SAND = '#D7CDB6' // muted labels on moss
 const CARAMEL = '#C2773A' // warm script accent
-const HERO_GRADIENT =
-  'radial-gradient(120% 90% at 50% 8%, #F2EADA 0%, #E7DCC4 46%, #DCCEAF 100%)'
+// Flat cream behind the hero, identical to the photo background.
+const HERO_BG = CREAM
 const IG = 'https://www.instagram.com/faxi_bakery_/'
 // Full weight-axis Bricolage for the TextPressure headline (variable wght 200–800).
 const BRICOLAGE_VF =
@@ -50,6 +53,7 @@ const STEAM = { warmth: '#FBE6C6', opacity: 0.18, spread: 520, speed: 1, wisps: 
 // ── Scoped CSS — keyframes + hover states (handoff uses :hover / style-hover) ──
 const PAGE_CSS = `
   .faxi-page ::selection { background:${MOSS}; color:${CREAM_LIGHT}; }
+  .faxi-headline { letter-spacing:-.03em; display:flex !important; justify-content:center; align-items:baseline; }
 
   @keyframes faxi-steamA {
     0%   { opacity:0; transform:translate(0,8px) scaleX(.65) scaleY(.85); }
@@ -92,7 +96,10 @@ const PAGE_CSS = `
     .faxi-stat-strip { grid-template-columns:repeat(2,1fr) !important; row-gap:30px !important; }
   }
   @media (max-width:560px) {
+    .faxi-nav { grid-template-columns:auto 1fr !important; }
     .faxi-nav-links { display:none !important; }
+    .faxi-herofoot { flex-direction:column; align-items:flex-start !important; gap:12px; }
+    .faxi-hours { text-align:left !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     .faxi-card { transition:none; }
@@ -254,11 +261,12 @@ export default function FaxiBakeryPage() {
           display: 'flex',
           flexDirection: 'column',
           padding: '26px clamp(20px,4vw,56px) 0',
-          background: HERO_GRADIENT,
+          background: HERO_BG,
         }}
       >
         {/* nav */}
         <nav
+          className="faxi-nav"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr auto 1fr',
@@ -304,30 +312,31 @@ export default function FaxiBakeryPage() {
 
         {/* headline */}
         <div style={{ textAlign: 'center', marginTop: 'clamp(10px,2vh,22px)', position: 'relative', zIndex: 4 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(12px,2.2vw,30px)' }}>
-            <span style={{ height: 2, width: 'clamp(20px,4.5vw,80px)', flexShrink: 0, background: '#1B171255' }} />
-            {reduced ? (
-              <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(42px,9vw,138px)', lineHeight: 0.82, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>CINNAMON ROLL</h1>
-            ) : (
-              // TextPressure (react-bits): letters near the cursor bulge in weight,
-              // using the brand Bricolage variable font. Pointer-driven, not autoplay.
-              <div style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 'min(92vw,900px)', height: 'clamp(54px,9.2vw,132px)' }}>
+          {reduced ? (
+            <h1 className="faxi-headline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(40px,9vw,132px)', lineHeight: 0.9, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>CINNAMON ROLL</h1>
+          ) : (
+            // TextPressure (react-bits): the headline keeps the original bold
+            // Bricolage weight; letters near the cursor "press" by scaling up.
+            <div style={{ width: 'min(67vw,900px)', margin: '0 auto', height: 'clamp(46px,8.4vw,122px)' }}>
                 <TextPressure
                   text={'CINNAMON ROLL'}
                   fontFamily="Bricolage Grotesque"
                   fontUrl={BRICOLAGE_VF}
+                  className="faxi-headline"
                   flex={false}
                   width={false}
                   weight
                   italic={false}
                   alpha={false}
+                  minWeight={800}
+                  maxWeight={0}
+                  scaleAmount={1.3}
+                  initialFromCenter={false}
                   textColor={INK}
-                  minFontSize={40}
+                  minFontSize={36}
                 />
-              </div>
-            )}
-            <span style={{ height: 2, width: 'clamp(20px,4.5vw,80px)', flexShrink: 0, background: '#1B171255' }} />
-          </div>
+            </div>
+          )}
           <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(30px,6vw,86px)', color: MOSS, lineHeight: 0.7, marginTop: '-.06em', transform: 'rotate(-3deg)' }}>fresh, every hour</div>
         </div>
 
@@ -342,9 +351,9 @@ export default function FaxiBakeryPage() {
           {/* steam */}
           <Steam reduced={reduced} />
 
-          {/* hero photo — sits on its own cream ground, feathered into the page.
-              The inner layer carries the scroll-linked spin; the circular feather
-              mask is rotation-invariant, so the seamless blend is preserved. */}
+          {/* hero photo — crisp, unfeathered. Its own cream background is the
+              exact same tone as the page (CREAM), so the square edges dissolve
+              into the page while the bun stays sharp. */}
           <div
             style={{
               position: 'absolute',
@@ -361,11 +370,8 @@ export default function FaxiBakeryPage() {
                 rotate: reduced ? 0 : rollSpin,
                 scale: reduced ? 1 : rollScale,
                 y: reduced ? 0 : rollLift,
+                transformOrigin: '50% 46%',
                 willChange: 'transform',
-                // Feather the photo's flat-cream ground completely away — only the
-                // bun and a soft halo survive, so it sits on the page with no seam.
-                WebkitMaskImage: 'radial-gradient(circle closest-side at 50% 46%, #000 0%, #000 78%, rgba(0,0,0,0) 99%)',
-                maskImage: 'radial-gradient(circle closest-side at 50% 46%, #000 0%, #000 78%, rgba(0,0,0,0) 99%)',
               }}
             >
               <img
@@ -380,12 +386,12 @@ export default function FaxiBakeryPage() {
         </div>
 
         {/* hero footer row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, padding: '0 0 26px', position: 'relative', zIndex: 4 }}>
+        <div className="faxi-herofoot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, padding: '0 0 26px', position: 'relative', zIndex: 4 }}>
           <div style={{ maxWidth: 340 }}>
             <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>A bakery with unregular stuff.</div>
             <div style={{ fontSize: 13.5, color: '#1B1712aa', marginTop: 7, lineHeight: 1.45 }}>Pulled off Route 1 in Hvolsvöllur, under the Eyjafjallajökull volcano. Nice coffee, cool setup.</div>
           </div>
-          <div style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, letterSpacing: '.1em', color: MOSS, textTransform: 'uppercase', lineHeight: 1.6 }}>
+          <div className="faxi-hours" style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, letterSpacing: '.1em', color: MOSS, textTransform: 'uppercase', lineHeight: 1.6, whiteSpace: 'nowrap' }}>
             Open every day<br />9 — 8
           </div>
         </div>
@@ -450,7 +456,7 @@ export default function FaxiBakeryPage() {
             {MENU.map((item) => (
               <div key={item.slotId} data-reveal style={revealInit(reduced, 0, 0.8)}>
                 <div className="faxi-card" style={{ background: CREAM_LIGHT, borderRadius: 20, overflow: 'hidden', border: '1px solid #1B17120F', cursor: 'pointer' }}>
-                  <div style={{ position: 'relative', aspectRatio: '5 / 4', overflow: 'hidden', background: '#E4D9C2' }}>
+                  <div style={{ position: 'relative', aspectRatio: '5 / 4', overflow: 'hidden', background: '#E5D5BA' }}>
                     <Img src={item.img} alt={item.shot} fallbackClassName={item.fallback} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     {item.tag && (
                       <span style={{ position: 'absolute', top: 12, left: 12, background: INK, color: CREAM_LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 11px', borderRadius: 100 }}>{item.tag}</span>

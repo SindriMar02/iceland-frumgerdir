@@ -28,8 +28,8 @@ export const IMAGES = {
 
 /** Warm gradient fallbacks so a dead URL never breaks the layout. */
 export const FALLBACK = {
-  cream:   'bg-gradient-to-br from-[#ECE3D1] to-[#DCCEAF]',
-  card:    'bg-gradient-to-br from-[#E4D9C2] to-[#d8c8a6]',
+  cream:   'bg-gradient-to-br from-[#F1E4CE] to-[#E6D2B8]',
+  card:    'bg-gradient-to-br from-[#E5D5BA] to-[#d6c4a0]',
   volcano: 'bg-gradient-to-br from-[#b8cfd8] to-[#8faab5]',
   moss:    'bg-gradient-to-br from-[#5b6a4e] to-[#3c4733]',
   ink:     'bg-gradient-to-br from-[#2a241d] to-[#1B1712]',

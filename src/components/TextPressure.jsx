@@ -31,6 +31,16 @@ const TextPressure = ({
   italic = true,
   alpha = false,
 
+  // Weight range fed to the variable font (far = minWeight, near = minWeight+maxWeight).
+  minWeight = 100,
+  maxWeight = 900,
+  // Per-letter proximity scale (1 = off). Lets the headline keep a constant
+  // bold weight while still "pressing" — letters near the cursor scale up.
+  scaleAmount = 1,
+  // When false, the pointer starts "away" so the text rests at its base
+  // weight/scale (uniform) until the user actually moves over it.
+  initialFromCenter = true,
+
   flex = true,
   stroke = false,
   scale = false,
@@ -70,8 +80,14 @@ const TextPressure = ({
 
     if (containerRef.current) {
       const { left, top, width, height } = containerRef.current.getBoundingClientRect();
-      mouseRef.current.x = left + width / 2;
-      mouseRef.current.y = top + height / 2;
+      if (initialFromCenter) {
+        mouseRef.current.x = left + width / 2;
+        mouseRef.current.y = top + height / 2;
+      } else {
+        // Park the pointer far away so the text rests uniform until hovered.
+        mouseRef.current.x = -9999;
+        mouseRef.current.y = -9999;
+      }
       cursorRef.current.x = mouseRef.current.x;
       cursorRef.current.y = mouseRef.current.y;
     }
@@ -135,7 +151,7 @@ const TextPressure = ({
           const d = dist(mouseRef.current, charCenter);
 
           const wdth = width ? Math.floor(getAttr(d, maxDist, 5, 200)) : 100;
-          const wght = weight ? Math.floor(getAttr(d, maxDist, 100, 900)) : 400;
+          const wght = weight ? Math.floor(getAttr(d, maxDist, minWeight, maxWeight)) : 400;
           const italVal = italic ? getAttr(d, maxDist, 0, 1).toFixed(2) : 0;
           const alphaVal = alpha ? getAttr(d, maxDist, 0, 1).toFixed(2) : 1;
 
@@ -147,6 +163,14 @@ const TextPressure = ({
           if (alpha && span.style.opacity !== alphaVal) {
             span.style.opacity = alphaVal;
           }
+          if (scaleAmount > 1) {
+            const s = 1 + (scaleAmount - 1) * Math.max(0, 1 - d / maxDist);
+            const newTransform = `scale(${s.toFixed(3)})`;
+            if (span.style.transform !== newTransform) {
+              span.style.transform = newTransform;
+              span.style.transformOrigin = 'center 72%';
+            }
+          }
         });
       }
 
@@ -155,7 +179,7 @@ const TextPressure = ({
 
     animate();
     return () => cancelAnimationFrame(rafId);
-  }, [width, weight, italic, alpha]);
+  }, [width, weight, italic, alpha, minWeight, maxWeight, scaleAmount]);
 
   const styleElement = useMemo(() => {
     return (
