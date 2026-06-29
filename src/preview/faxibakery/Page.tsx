@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -214,6 +214,18 @@ export default function FaxiBakeryPage() {
     return () => io.disconnect()
   }, [reduced])
 
+  // Scroll-linked spin: the cinnamon roll is a spiral, so as the hero scrolls
+  // past it slowly turns (scrubbed to scroll position) and eases up a touch.
+  const heroRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const rollSpin = useSpring(useTransform(scrollYProgress, [0, 1], [0, 214]), {
+    stiffness: 90,
+    damping: 22,
+    mass: 0.4,
+  })
+  const rollScale = useTransform(scrollYProgress, [0, 1], [1, 1.07])
+  const rollLift = useTransform(scrollYProgress, [0, 1], [0, -36])
+
   return (
     <div
       ref={rootRef}
@@ -231,6 +243,7 @@ export default function FaxiBakeryPage() {
 
       {/* ===================== HERO ===================== */}
       <section
+        ref={heroRef}
         style={{
           position: 'relative',
           minHeight: '100vh',
@@ -306,7 +319,9 @@ export default function FaxiBakeryPage() {
           {/* steam */}
           <Steam reduced={reduced} />
 
-          {/* hero photo — sits on its own cream ground, feathered into the page */}
+          {/* hero photo — sits on its own cream ground, feathered into the page.
+              The inner layer carries the scroll-linked spin; the circular feather
+              mask is rotation-invariant, so the seamless blend is preserved. */}
           <div
             style={{
               position: 'absolute',
@@ -314,21 +329,30 @@ export default function FaxiBakeryPage() {
               bottom: 0,
               transform: 'translateX(-50%)',
               width: 'clamp(250px,37vw,460px)',
-              aspectRatio: '1 / 1',
               zIndex: 1,
-              // Feather the photo's flat-cream ground completely away — only the
-              // bun and a soft halo survive, so it sits on the page with no seam.
-              WebkitMaskImage: 'radial-gradient(circle closest-side at 50% 46%, #000 0%, #000 78%, rgba(0,0,0,0) 99%)',
-              maskImage: 'radial-gradient(circle closest-side at 50% 46%, #000 0%, #000 78%, rgba(0,0,0,0) 99%)',
             }}
           >
-            <img
-              src={IMAGES.hero}
-              alt="A single cinnamon roll, fresh from the oven — golden laminated layers dusted with cinnamon sugar"
-              decoding="async"
-              {...{ fetchpriority: 'high' }}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
+            <motion.div
+              style={{
+                aspectRatio: '1 / 1',
+                rotate: reduced ? 0 : rollSpin,
+                scale: reduced ? 1 : rollScale,
+                y: reduced ? 0 : rollLift,
+                willChange: 'transform',
+                // Feather the photo's flat-cream ground completely away — only the
+                // bun and a soft halo survive, so it sits on the page with no seam.
+                WebkitMaskImage: 'radial-gradient(circle closest-side at 50% 46%, #000 0%, #000 78%, rgba(0,0,0,0) 99%)',
+                maskImage: 'radial-gradient(circle closest-side at 50% 46%, #000 0%, #000 78%, rgba(0,0,0,0) 99%)',
+              }}
+            >
+              <img
+                src={IMAGES.hero}
+                alt="A single cinnamon roll, fresh from the oven — golden laminated layers dusted with cinnamon sugar"
+                decoding="async"
+                {...{ fetchpriority: 'high' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </motion.div>
           </div>
         </div>
 
