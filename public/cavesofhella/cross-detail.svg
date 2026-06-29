@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#1d1812"/>
+      <stop offset="1" stop-color="#0f0d09"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="26%" r="62%">
+      <stop offset="0" stop-color="#D99A3E" stop-opacity="0.20"/>
+      <stop offset="0.5" stop-color="#9A5B1E" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#9A5B1E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg)"/>
+  <rect width="800" height="1000" fill="url(#glow)"/>
+  <rect x="16" y="16" width="768" height="968" rx="24" fill="none" stroke="#9A5B1E" stroke-opacity="0.45" stroke-width="1.5"/>
+  
+  <g transform="translate(400, 340)">
+    <rect x="-15" y="-95" width="30" height="180" rx="4" fill="#D99A3E" fill-opacity="0.30"/>
+    <rect x="-58" y="-52" width="116" height="30" rx="4" fill="#D99A3E" fill-opacity="0.30"/>
+    <rect x="-15" y="-95" width="30" height="180" rx="4" fill="none" stroke="#D99A3E" stroke-opacity="0.55" stroke-width="1.5"/>
+    <rect x="-58" y="-52" width="116" height="30" rx="4" fill="none" stroke="#D99A3E" stroke-opacity="0.55" stroke-width="1.5"/></g>
+  <text x="400" y="560" text-anchor="middle" font-family="ui-monospace, 'Courier New', monospace" font-size="16" letter-spacing="3" fill="#D99A3E" fill-opacity="0.85">KIRKJUHELLIR</text>
+  <text x="400" y="640" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#E8E2D2" fill-opacity="0.88">Carved cross</text>
+  <text x="400" y="710" text-anchor="middle" font-family="ui-monospace, 'Courier New', monospace" font-size="14" letter-spacing="2" fill="#E8E2D2" fill-opacity="0.4">MYND VÆNTANLEG</text>
+</svg>

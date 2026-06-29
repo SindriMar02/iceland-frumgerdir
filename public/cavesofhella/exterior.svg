@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="750" viewBox="0 0 1000 750" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#1d1812"/>
+      <stop offset="1" stop-color="#0f0d09"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="26%" r="62%">
+      <stop offset="0" stop-color="#D99A3E" stop-opacity="0.20"/>
+      <stop offset="0.5" stop-color="#9A5B1E" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#9A5B1E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1000" height="750" fill="url(#bg)"/>
+  <rect width="1000" height="750" fill="url(#glow)"/>
+  <rect x="16" y="16" width="968" height="718" rx="24" fill="none" stroke="#9A5B1E" stroke-opacity="0.45" stroke-width="1.5"/>
+  
+  <g transform="translate(500, 240)">
+    <path d="M-92,92 L-92,-6 A92,92 0 0 1 92,-6 L92,92"
+          fill="#D99A3E" fill-opacity="0.10" stroke="#D99A3E" stroke-opacity="0.55" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M-58,92 L-58,2 A58,58 0 0 1 58,2 L58,92"
+          fill="#0f0d09" fill-opacity="0.55" stroke="#9A5B1E" stroke-opacity="0.4" stroke-width="1.5"/>
+    <line x1="-120" y1="92" x2="120" y2="92" stroke="#D99A3E" stroke-opacity="0.4" stroke-width="1.5"/></g>
+  <text x="500" y="405" text-anchor="middle" font-family="ui-monospace, 'Courier New', monospace" font-size="20" letter-spacing="3" fill="#D99A3E" fill-opacity="0.85">RANGÁ PLAINS</text>
+  <text x="500" y="465" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#E8E2D2" fill-opacity="0.88">Cave entrance</text>
+  <text x="500" y="517.5" text-anchor="middle" font-family="ui-monospace, 'Courier New', monospace" font-size="18" letter-spacing="2" fill="#E8E2D2" fill-opacity="0.4">MYND VÆNTANLEG</text>
+</svg>

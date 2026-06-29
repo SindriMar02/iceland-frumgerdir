@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#1d1812"/>
+      <stop offset="1" stop-color="#0f0d09"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="26%" r="62%">
+      <stop offset="0" stop-color="#D99A3E" stop-opacity="0.20"/>
+      <stop offset="0.5" stop-color="#9A5B1E" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#9A5B1E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="750" height="1000" fill="url(#bg)"/>
+  <rect width="750" height="1000" fill="url(#glow)"/>
+  <rect x="16" y="16" width="718" height="968" rx="24" fill="none" stroke="#9A5B1E" stroke-opacity="0.45" stroke-width="1.5"/>
+  
+  <g transform="translate(375, 330)">
+    <rect x="-28" y="-18" width="56" height="120" rx="8" fill="#E8E2D2" fill-opacity="0.16" stroke="#D99A3E" stroke-opacity="0.45" stroke-width="1.5"/>
+    <rect x="-2" y="-46" width="4" height="30" fill="#9A5B1E" fill-opacity="0.7"/>
+    <path d="M0,-110 C26,-74 18,-40 0,-40 C-18,-40 -26,-74 0,-110 Z" fill="#D99A3E" fill-opacity="0.42" stroke="#D99A3E" stroke-opacity="0.6" stroke-width="1.5"/>
+    <ellipse cx="0" cy="102" rx="44" ry="9" fill="#D99A3E" fill-opacity="0.12"/></g>
+  <text x="375" y="550" text-anchor="middle" font-family="ui-monospace, 'Courier New', monospace" font-size="15" letter-spacing="3" fill="#D99A3E" fill-opacity="0.85">INSIDE THE CAVE</text>
+  <text x="375" y="630" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="44" fill="#E8E2D2" fill-opacity="0.88">Candlelight</text>
+  <text x="375" y="700" text-anchor="middle" font-family="ui-monospace, 'Courier New', monospace" font-size="13" letter-spacing="2" fill="#E8E2D2" fill-opacity="0.4">MYND VÆNTANLEG</text>
+</svg>

@@ -89,7 +89,17 @@ const ScrollStack = ({
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      const cardTop = getElementOffset(card);
+      // Reuse last frame's transform — lastTransformsRef always mirrors the
+      // current DOM state (we only skip a write when nothing changed).
+      const lastTransform = lastTransformsRef.current.get(i);
+      // In window-scroll mode getBoundingClientRect() already reflects the
+      // translateY we wrote last frame. Subtract it to recover the card's TRUE
+      // layout offset; otherwise cardTop feeds back into translateY and the card
+      // oscillates between two positions every frame — the jitter/stutter that
+      // appears the moment a card pins to the back of the stack.
+      const appliedTranslateY =
+        useWindowScroll && lastTransform ? lastTransform.translateY : 0;
+      const cardTop = getElementOffset(card) - appliedTranslateY;
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
@@ -104,7 +114,10 @@ const ScrollStack = ({
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = getElementOffset(cardsRef.current[j]);
+          const jLast = lastTransformsRef.current.get(j);
+          const jCardTop =
+            getElementOffset(cardsRef.current[j]) -
+            (useWindowScroll && jLast ? jLast.translateY : 0);
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) {
             topCardIndex = j;
@@ -133,7 +146,6 @@ const ScrollStack = ({
         blur: Math.round(blur * 100) / 100
       };
 
-      const lastTransform = lastTransformsRef.current.get(i);
       const hasChanged =
         !lastTransform ||
         Math.abs(lastTransform.translateY - newTransform.translateY) > 0.1 ||

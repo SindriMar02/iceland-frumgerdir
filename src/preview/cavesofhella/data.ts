@@ -18,14 +18,18 @@ const IMG = (f: string) => `${import.meta.env.BASE_URL}cavesofhella/${f}`
 
 export const IMAGES = {
   hero: IMG('hero.jpg'),
+  // chamber1 still feeds the dark descent background; missing .jpg → cinematic
+  // gradient fallback, which is intentional there. Real photo: drop chamber-1.jpg.
   chamber1: IMG('chamber-1.jpg'),
   chamber2: IMG('chamber-2.jpg'),
   chamber3: IMG('chamber-3.jpg'),
   chamber4: IMG('chamber-4.jpg'),
-  crossDetail: IMG('cross-detail.jpg'),
-  seatDetail: IMG('seat-detail.jpg'),
-  candlelight: IMG('candlelight.jpg'),
-  exterior: IMG('exterior.jpg'),
+  // Until real photography lands, these point at on-brand placeholder cards
+  // (public/cavesofhella/*.svg). Swap each back to the .jpg when shots arrive.
+  crossDetail: IMG('cross-detail.svg'),
+  seatDetail: IMG('seat-detail.svg'),
+  candlelight: IMG('candlelight.svg'),
+  exterior: IMG('exterior.svg'),
 } as const
 
 // ---------------------------------------------------------------------------
@@ -80,21 +84,21 @@ export const CAVES: Cave[] = [
     nameIs: 'Fjóshellir',
     nameEn: 'The Byre Cave',
     tagline: 'The most celebrated of the twelve. Wide enough to shelter a congregation, or a herd.',
-    img: IMG('chamber-1.jpg'),
+    img: IMG('cave-1.svg'),
     alt: 'Interior of Fjóshellir, the largest and most celebrated of the caves at Aegissida',
   },
   {
     nameIs: 'Kirkjuhellir',
     nameEn: 'The Church Cave',
     tagline: 'A perfectly rounded ceiling carved with care. The cross here is the clearest of all the marks.',
-    img: IMG('chamber-2.jpg'),
+    img: IMG('cave-2.svg'),
     alt: 'Kirkjuhellir with its distinctive rounded ceiling and carved cross',
   },
   {
     nameIs: 'Hlöðuhellir',
     nameEn: 'The Hearth Cave',
     tagline: 'One of Iceland’s largest man-made caves. A 25-metre tunnel connects it to its neighbour Lambhellir.',
-    img: IMG('chamber-3.jpg'),
+    img: IMG('cave-3.svg'),
     alt: 'The tunnel passage connecting Hloduhellir and Lambhellir caves',
     note: '25 m passage to Lambhellir',
   },
@@ -102,7 +106,7 @@ export const CAVES: Cave[] = [
     nameIs: 'Lambhellir',
     nameEn: 'The Lamb Cave',
     tagline: 'Reached through the tunnel from Hlöðuhellir. A smaller chamber that rewards the walk.',
-    img: IMG('chamber-4.jpg'),
+    img: IMG('cave-4.svg'),
     alt: 'The intimate interior of Lambhellir, reached via the connecting tunnel',
   },
 ] as const
