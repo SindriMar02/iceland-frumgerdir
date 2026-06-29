@@ -187,6 +187,21 @@ export const MENU: MenuGroup[] = [
   },
 ]
 
+// ─── MENU GALLERY (the scrollable dish carousel — photographed dishes only) ───
+export interface GalleryItem {
+  image: string
+  text: string
+}
+
+export const MENU_GALLERY: GalleryItem[] = [
+  { image: IMAGES.soup, text: 'Eldfjallasúpa · 3.490 kr' },
+  { image: IMAGES.beef, text: 'Beef Tenderloin · 7.890 kr' },
+  { image: IMAGES.burger, text: 'Country Burger · 3.490 kr' },
+  { image: IMAGES.cod, text: 'Oven-Baked Cod · 5.190 kr' },
+  { image: IMAGES.bread, text: 'Bread Basket · 1.640 kr' },
+  { image: IMAGES.dessert, text: 'Cake of the Day · 1.490 kr' },
+]
+
 // ─── REVIEWS ─────────────────────────────────────────────────────────────────
 
 export interface Quote {

@@ -12,7 +12,8 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { IMAGES, MENU, PROVENANCE, QUOTES, TIME_SLOTS } from './data'
+import CircularGallery from '../../components/CircularGallery'
+import { IMAGES, MENU, MENU_GALLERY, PROVENANCE, QUOTES, TIME_SLOTS } from './data'
 
 const company = getPreviewCompany('gamlafjosid')
 
@@ -519,6 +520,24 @@ function MenuSection() {
           </p>
         </Reveal>
 
+        {/* Scrollable dish gallery — drag, scroll, or arrow keys */}
+        <Reveal delay={0.1}>
+          <div className="relative mt-10 h-[420px] sm:h-[500px] md:h-[580px]" style={{ touchAction: 'pan-y' }}>
+            <CircularGallery
+              items={MENU_GALLERY}
+              bend={2.5}
+              textColor="#2A211A"
+              borderRadius={0.06}
+              font="600 30px Bitter"
+              scrollSpeed={2.2}
+              scrollEase={0.05}
+            />
+          </div>
+          <p className="mt-4 text-center font-mono text-xs uppercase tracking-[0.15em]" style={{ color: `${ESPRESSO}99` }}>
+            Drag · scroll · arrow keys — full menu below
+          </p>
+        </Reveal>
+
         {/* Tab strip */}
         <Reveal delay={0.1}>
           <div className="mt-10 flex flex-wrap gap-2">
@@ -554,17 +573,7 @@ function MenuSection() {
                 border: `1px solid ${ESPRESSO}12`,
               }}
             >
-              {item.img && (
-                <div className="h-40 overflow-hidden">
-                  <Img
-                    src={item.img}
-                    alt={item.alt ?? item.name}
-                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                    fallbackClassName={`h-full w-full ${item.fallback ?? 'bg-gradient-to-br from-[#c2906c] to-[#7a5030]'}`}
-                  />
-                </div>
-              )}
-              <div className="p-4">
+              <div className="p-5">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-bitter text-base font-bold leading-tight" style={{ color: ESPRESSO }}>
                     {item.name}
