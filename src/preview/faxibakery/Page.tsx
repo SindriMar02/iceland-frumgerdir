@@ -181,6 +181,12 @@ const revealInit = (reduced: boolean, delay = 0, dur = 0.9) =>
 export default function FaxiBakeryPage() {
   const reduced = useReducedMotion() ?? false
   const rootRef = useRef<HTMLDivElement>(null)
+  // Scroll-spin glitches on mobile: momentum scrolling fires rapid events and the
+  // spring "chases" then snaps when the hero scrolls off. Static image on touch.
+  const isTouchDevice = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(hover:none)').matches,
+    [],
+  )
 
   // Live "fresh in" countdown to the top of the next hour.
   const [now, setNow] = useState(() => Date.now())
@@ -364,24 +370,36 @@ export default function FaxiBakeryPage() {
               zIndex: 1,
             }}
           >
-            <motion.div
-              style={{
-                aspectRatio: '1 / 1',
-                rotate: reduced ? 0 : rollSpin,
-                scale: reduced ? 1 : rollScale,
-                y: reduced ? 0 : rollLift,
-                transformOrigin: '50% 46%',
-                willChange: 'transform',
-              }}
-            >
-              <img
-                src={IMAGES.hero}
-                alt="A single cinnamon roll, fresh from the oven — golden laminated layers dusted with cinnamon sugar"
-                decoding="async"
-                {...{ fetchpriority: 'high' }}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-            </motion.div>
+            {isTouchDevice || reduced ? (
+              <div style={{ aspectRatio: '1 / 1', transformOrigin: '50% 46%' }}>
+                <img
+                  src={IMAGES.hero}
+                  alt="A single cinnamon roll, fresh from the oven — golden laminated layers dusted with cinnamon sugar"
+                  decoding="async"
+                  {...{ fetchpriority: 'high' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+            ) : (
+              <motion.div
+                style={{
+                  aspectRatio: '1 / 1',
+                  rotate: rollSpin,
+                  scale: rollScale,
+                  y: rollLift,
+                  transformOrigin: '50% 46%',
+                  willChange: 'transform',
+                }}
+              >
+                <img
+                  src={IMAGES.hero}
+                  alt="A single cinnamon roll, fresh from the oven — golden laminated layers dusted with cinnamon sugar"
+                  decoding="async"
+                  {...{ fetchpriority: 'high' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </motion.div>
+            )}
           </div>
         </div>
 
