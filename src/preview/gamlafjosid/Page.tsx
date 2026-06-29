@@ -13,7 +13,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
 import CircularGallery from '../../components/CircularGallery'
-import { IMAGES, MENU, MENU_GALLERY, PROVENANCE, QUOTES, TIME_SLOTS } from './data'
+import { IMAGES, MENU, MENU_GALLERY, MENU_GALLERY_ITEMS, PROVENANCE, QUOTES, TIME_SLOTS } from './data'
 
 const company = getPreviewCompany('gamlafjosid')
 
@@ -498,6 +498,7 @@ function VolcanoSoup() {
 // ─── MENU ────────────────────────────────────────────────────────────────────
 function MenuSection() {
   const [activeGroup, setActiveGroup] = useState(0)
+  const [activeDish, setActiveDish] = useState(0)
 
   return (
     <section
@@ -520,21 +521,44 @@ function MenuSection() {
           </p>
         </Reveal>
 
-        {/* Scrollable dish gallery — drag, scroll, or arrow keys */}
+        {/* Scrollable dish gallery — drag or arrow keys; details update below */}
         <Reveal delay={0.1}>
           <div className="relative mt-10 h-[420px] sm:h-[500px] md:h-[580px]" style={{ touchAction: 'pan-y' }}>
             <CircularGallery
-              items={MENU_GALLERY}
+              items={MENU_GALLERY_ITEMS}
               bend={2.5}
               textColor="#2A211A"
               borderRadius={0.06}
               font="600 30px Bitter"
               scrollSpeed={2.2}
               scrollEase={0.05}
+              onActiveChange={setActiveDish}
             />
           </div>
-          <p className="mt-4 text-center font-mono text-xs uppercase tracking-[0.15em]" style={{ color: `${ESPRESSO}99` }}>
-            Drag · scroll · arrow keys — full menu below
+
+          {/* Live details for the dish currently centred in the gallery */}
+          <motion.div
+            key={activeDish}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.21, 0.65, 0.36, 1] }}
+            className="mx-auto mt-6 max-w-2xl px-4 text-center"
+          >
+            <div className="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+              <h3 className="font-bitter text-2xl font-bold md:text-3xl" style={{ color: ESPRESSO }}>
+                {(MENU_GALLERY[activeDish] ?? MENU_GALLERY[0]).name}
+              </h3>
+              <span className="font-mono text-sm font-semibold" style={{ color: EMBER_TEXT }}>
+                {(MENU_GALLERY[activeDish] ?? MENU_GALLERY[0]).price}
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed md:text-base" style={{ color: `${ESPRESSO}cc` }}>
+              {(MENU_GALLERY[activeDish] ?? MENU_GALLERY[0]).desc}
+            </p>
+          </motion.div>
+
+          <p className="mt-5 text-center font-mono text-xs uppercase tracking-[0.15em]" style={{ color: `${ESPRESSO}80` }}>
+            Drag or use the arrow keys · full menu below
           </p>
         </Reveal>
 

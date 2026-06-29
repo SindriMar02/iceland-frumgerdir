@@ -391,13 +391,16 @@ class App {
       borderRadius = 0,
       font = 'bold 30px Figtree',
       scrollSpeed = 2,
-      scrollEase = 0.05
+      scrollEase = 0.05,
+      onActiveChange = () => {}
     } = {}
   ) {
     document.documentElement.classList.remove('no-js');
     this.container = container;
     this.scrollSpeed = scrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
+    this.onActiveChange = onActiveChange;
+    this.activeIndex = -1;
     this.onCheckDebounce = debounce(this.onCheck, 200);
     this.createRenderer();
     this.createCamera();
@@ -448,6 +451,7 @@ class App {
       { image: `https://picsum.photos/seed/12/800/600?grayscale`, text: 'Palm Trees' }
     ];
     const galleryItems = items && items.length ? items : defaultItems;
+    this.itemsLength = galleryItems.length;
     this.mediasImages = galleryItems.concat(galleryItems);
     this.medias = this.mediasImages.map((data, index) => {
       return new Media({
@@ -538,6 +542,11 @@ class App {
     }
   }
   update() {
+    // Self-heal a 0-width init (mounted before layout settled): re-measure as
+    // soon as the container actually has a width, so the canvas is never blank.
+    if ((!this.screen || !this.screen.width) && this.container && this.container.clientWidth > 0) {
+      this.onResize();
+    }
     this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
     if (this.medias) {
@@ -545,23 +554,35 @@ class App {
     }
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
+
+    // Report the centred item (mapped back to the original, un-duplicated list)
+    // so the host page can show details for whichever dish is in focus.
+    if (this.medias && this.medias[0] && this.itemsLength) {
+      const itemWidth = this.medias[0].width;
+      if (itemWidth) {
+        const len = this.itemsLength;
+        const idx = ((Math.round(this.scroll.current / itemWidth) % len) + len) % len;
+        if (idx !== this.activeIndex) {
+          this.activeIndex = idx;
+          this.onActiveChange(idx);
+        }
+      }
+    }
+
     this.raf = window.requestAnimationFrame(this.update.bind(this));
   }
   addEventListeners() {
     this.boundOnResize = this.onResize.bind(this);
-    this.boundOnWheel = this.onWheel.bind(this);
     this.boundOnTouchDown = this.onTouchDown.bind(this);
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
     this.boundOnKeyDown = this.onKeyDown.bind(this);
 
     window.addEventListener('resize', this.boundOnResize);
-    // Scope the "initiate" gestures (wheel / drag-start) to the gallery element
-    // so scrolling or dragging elsewhere on the page never moves it. Move/up
-    // stay on window so a drag that leaves the element is still tracked.
+    // Drag + keyboard only — wheel is intentionally NOT bound, so scrolling the
+    // page (vertical wheel) never moves the carousel. Drag-start is scoped to the
+    // gallery element; move/up stay on window so a drag that leaves it is tracked.
     const el = this.container;
-    el.addEventListener('mousewheel', this.boundOnWheel, { passive: true });
-    el.addEventListener('wheel', this.boundOnWheel, { passive: true });
     el.addEventListener('mousedown', this.boundOnTouchDown);
     window.addEventListener('mousemove', this.boundOnTouchMove);
     window.addEventListener('mouseup', this.boundOnTouchUp);
@@ -575,8 +596,6 @@ class App {
     window.cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.boundOnResize);
     const el = this.container;
-    el?.removeEventListener('mousewheel', this.boundOnWheel);
-    el?.removeEventListener('wheel', this.boundOnWheel);
     el?.removeEventListener('mousedown', this.boundOnTouchDown);
     window.removeEventListener('mousemove', this.boundOnTouchMove);
     window.removeEventListener('mouseup', this.boundOnTouchUp);
@@ -601,9 +620,14 @@ export default function CircularGallery({
   font = 'bold 30px Figtree',
   fontUrl = undefined,
   scrollSpeed = 2,
-  scrollEase = 0.05
+  scrollEase = 0.05,
+  onActiveChange = (_index) => {}
 }) {
   const containerRef = useRef(null);
+  // Keep the latest callback in a ref so passing a new function each render
+  // never tears down and rebuilds the WebGL scene.
+  const onActiveChangeRef = useRef(onActiveChange);
+  onActiveChangeRef.current = onActiveChange;
   useEffect(() => {
     if (!containerRef.current) return;
     let app;
@@ -618,7 +642,8 @@ export default function CircularGallery({
         borderRadius,
         font: resolvedFont,
         scrollSpeed,
-        scrollEase
+        scrollEase,
+        onActiveChange: idx => onActiveChangeRef.current(idx)
       });
       // Size the WebGL canvas to the container, robust to init timing and
       // responsive layout changes (the component otherwise only re-measures on

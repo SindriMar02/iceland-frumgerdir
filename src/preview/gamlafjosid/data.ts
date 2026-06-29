@@ -188,19 +188,54 @@ export const MENU: MenuGroup[] = [
 ]
 
 // ─── MENU GALLERY (the scrollable dish carousel — photographed dishes only) ───
-export interface GalleryItem {
+export interface GalleryDish {
   image: string
-  text: string
+  name:  string
+  price: string
+  desc:  string
 }
 
-export const MENU_GALLERY: GalleryItem[] = [
-  { image: IMAGES.soup, text: 'Eldfjallasúpa · 3.490 kr' },
-  { image: IMAGES.beef, text: 'Beef Tenderloin · 7.890 kr' },
-  { image: IMAGES.burger, text: 'Country Burger · 3.490 kr' },
-  { image: IMAGES.cod, text: 'Oven-Baked Cod · 5.190 kr' },
-  { image: IMAGES.bread, text: 'Bread Basket · 1.640 kr' },
-  { image: IMAGES.dessert, text: 'Cake of the Day · 1.490 kr' },
+export const MENU_GALLERY: GalleryDish[] = [
+  {
+    image: IMAGES.soup,
+    name:  'Eldfjallasúpa',
+    price: '3.490 kr.',
+    desc:  'Our volcano soup — a hearty beef and root-vegetable broth, slow-simmered all day and served with bread baked this morning.',
+  },
+  {
+    image: IMAGES.beef,
+    name:  'Beef Tenderloin',
+    price: '7.890 kr.',
+    desc:  '200g of our own free-range beef, raised on the farm under Eyjafjallajökull, with potatoes, seasonal vegetables and a cheese-pepper sauce.',
+  },
+  {
+    image: IMAGES.burger,
+    name:  'Country Burger',
+    price: '3.490 kr.',
+    desc:  'A 140g patty of our own beef with cheese, salad, tomato and cucumber in a toasted bun. Simple, generous, honest.',
+  },
+  {
+    image: IMAGES.cod,
+    name:  'Oven-Baked Cod',
+    price: '5.190 kr.',
+    desc:  'Day-fresh Icelandic cod baked in lemon butter and finished with herbs picked from the garden out back.',
+  },
+  {
+    image: IMAGES.bread,
+    name:  'Bread Basket',
+    price: '1.640 kr.',
+    desc:  'Sourdough and dark rye, baked fresh in the kitchen every single morning and served warm with farm butter.',
+  },
+  {
+    image: IMAGES.dessert,
+    name:  'Cake of the Day',
+    price: '1.490 kr.',
+    desc:  'A rotating homemade cake — ask your server what came out of the oven today. There is always something.',
+  },
 ]
+
+/** Stable {image,text} list for the WebGL gallery (labels show the dish name). */
+export const MENU_GALLERY_ITEMS = MENU_GALLERY.map((d) => ({ image: d.image, text: d.name }))
 
 // ─── REVIEWS ─────────────────────────────────────────────────────────────────
 
