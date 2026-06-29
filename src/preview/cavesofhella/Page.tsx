@@ -802,7 +802,7 @@ export default function CavesOfHellaPage() {
           </Reveal>
 
           {/* Cave-by-cave gallery — cards pin and stack into a deck as you scroll */}
-          <ScrollStack itemDistance={70} itemStackDistance={24} itemScale={0.035} baseScale={0.88} stackPosition="16%" scaleEndPosition="6%">
+          <ScrollStack useWindowScroll itemDistance={70} itemStackDistance={24} itemScale={0.035} baseScale={0.88} stackPosition="16%" scaleEndPosition="6%">
             {CAVES.map((cave, i) => (
               <ScrollStackItem key={cave.nameIs}>
                 <div

@@ -1,0 +1,34 @@
+/*
+ * react-bits ScrollStack — adapted for window-scroll integration in this app.
+ * The scroller is a normal flow container (the PAGE scrolls, not an inner box),
+ * and each card is a transparent structural wrapper: visuals come from the
+ * child passed to <ScrollStackItem>. Only the transform machinery lives here.
+ */
+.scroll-stack-scroller {
+  position: relative;
+  width: 100%;
+}
+
+.scroll-stack-inner {
+  /* release room so the deck holds while scrolling, then lets go cleanly */
+  padding-bottom: 28vh;
+}
+
+.scroll-stack-card-wrapper {
+  position: relative;
+}
+
+.scroll-stack-card {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  transform-origin: top center;
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.scroll-stack-end {
+  width: 100%;
+  height: 1px;
+}
