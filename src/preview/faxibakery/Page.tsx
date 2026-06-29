@@ -287,12 +287,12 @@ export default function FaxiBakeryPage() {
 
         {/* headline */}
         <div style={{ textAlign: 'center', marginTop: 'clamp(10px,2vh,22px)', position: 'relative', zIndex: 4 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(14px,3vw,40px)' }}>
-            <span style={{ height: 2, width: 'clamp(28px,7vw,120px)', background: '#1B171255' }} />
-            <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(58px,13.5vw,210px)', lineHeight: 0.82, letterSpacing: '-.035em', margin: 0, color: INK }}>CINNAMON</h1>
-            <span style={{ height: 2, width: 'clamp(28px,7vw,120px)', background: '#1B171255' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(12px,2.2vw,30px)' }}>
+            <span style={{ height: 2, width: 'clamp(20px,4.5vw,80px)', flexShrink: 0, background: '#1B171255' }} />
+            <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(42px,9vw,138px)', lineHeight: 0.82, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>CINNAMON ROLL</h1>
+            <span style={{ height: 2, width: 'clamp(20px,4.5vw,80px)', flexShrink: 0, background: '#1B171255' }} />
           </div>
-          <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(30px,6vw,86px)', color: CARAMEL, lineHeight: 0.7, marginTop: '-.18em', transform: 'rotate(-3deg)' }}>fresh, every hour</div>
+          <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(30px,6vw,86px)', color: MOSS, lineHeight: 0.7, marginTop: '-.06em', transform: 'rotate(-3deg)' }}>fresh, every hour</div>
         </div>
 
         {/* roll stage */}
@@ -313,7 +313,7 @@ export default function FaxiBakeryPage() {
               left: '50%',
               bottom: 0,
               transform: 'translateX(-50%)',
-              width: 'clamp(300px,45vw,560px)',
+              width: 'clamp(250px,37vw,460px)',
               aspectRatio: '1 / 1',
               zIndex: 1,
               // Feather the photo's flat-cream ground completely away — only the
