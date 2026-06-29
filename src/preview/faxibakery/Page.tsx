@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { Img } from '../../components/Img'
+import TextPressure from '../../components/TextPressure'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
@@ -37,6 +38,9 @@ const CARAMEL = '#C2773A' // warm script accent
 const HERO_GRADIENT =
   'radial-gradient(120% 90% at 50% 8%, #F2EADA 0%, #E7DCC4 46%, #DCCEAF 100%)'
 const IG = 'https://www.instagram.com/faxi_bakery_/'
+// Full weight-axis Bricolage for the TextPressure headline (variable wght 200–800).
+const BRICOLAGE_VF =
+  'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap'
 
 const EASE = 'cubic-bezier(.16,.84,.44,1)'
 
@@ -302,7 +306,26 @@ export default function FaxiBakeryPage() {
         <div style={{ textAlign: 'center', marginTop: 'clamp(10px,2vh,22px)', position: 'relative', zIndex: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(12px,2.2vw,30px)' }}>
             <span style={{ height: 2, width: 'clamp(20px,4.5vw,80px)', flexShrink: 0, background: '#1B171255' }} />
-            <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(42px,9vw,138px)', lineHeight: 0.82, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>CINNAMON ROLL</h1>
+            {reduced ? (
+              <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(42px,9vw,138px)', lineHeight: 0.82, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>CINNAMON ROLL</h1>
+            ) : (
+              // TextPressure (react-bits): letters near the cursor bulge in weight,
+              // using the brand Bricolage variable font. Pointer-driven, not autoplay.
+              <div style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 'min(92vw,900px)', height: 'clamp(54px,9.2vw,132px)' }}>
+                <TextPressure
+                  text={'CINNAMON ROLL'}
+                  fontFamily="Bricolage Grotesque"
+                  fontUrl={BRICOLAGE_VF}
+                  flex={false}
+                  width={false}
+                  weight
+                  italic={false}
+                  alpha={false}
+                  textColor={INK}
+                  minFontSize={40}
+                />
+              </div>
+            )}
             <span style={{ height: 2, width: 'clamp(20px,4.5vw,80px)', flexShrink: 0, background: '#1B171255' }} />
           </div>
           <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(30px,6vw,86px)', color: MOSS, lineHeight: 0.7, marginTop: '-.06em', transform: 'rotate(-3deg)' }}>fresh, every hour</div>
