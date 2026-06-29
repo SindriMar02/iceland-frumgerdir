@@ -4,19 +4,20 @@
  * All data sourced from gamlafjosid.is; prices verified; reviews are sample.
  */
 
-const IMG = (f: string) => `${import.meta.env.BASE_URL}gamlafjosid/${f}`
+// Sourced + visually vetted from Unsplash (honest, category-matched, sample imagery).
+const u = (id: string, w = 1280) => `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
 
 export const IMAGES = {
-  hero:     IMG('hero.jpg'),
-  soup:     IMG('soup.jpg'),
-  beef:     IMG('beef.jpg'),
-  burger:   IMG('burger.jpg'),
-  cod:      IMG('cod.jpg'),
-  dessert:  IMG('dessert.jpg'),
-  interior: IMG('interior.jpg'),
-  cattle:   IMG('cattle.jpg'),
-  bread:    IMG('bread.jpg'),
-  farm:     IMG('farm.jpg'),
+  hero:     u('photo-1507807823252-1870c299a391', 1920), // Icelandic farm beneath a snow-capped mountain
+  soup:     u('photo-1608500218861-01091cdc501e', 1100), // hearty beef & vegetable stew
+  beef:     u('photo-1644704265419-96ddaf628e71', 1100), // grilled steak with vegetables + wine
+  burger:   u('photo-1508736793122-f516e3ba5569', 1100), // cheeseburger on wood
+  cod:      u('photo-1733554080207-754bfedf4864', 1100), // plated white fish with vegetables
+  dessert:  u('photo-1763208384514-9b8531d62ee6', 1100), // slice of rich dark cake
+  interior: u('photo-1743793055911-52e19beba5d8', 1600), // warm table set by a window
+  cattle:   u('photo-1757977158831-98c915f2429a', 1280), // cattle grazing green pasture
+  bread:    u('photo-1589367920969-ab8e050bbb04', 1100), // rustic crusty loaf
+  farm:     u('photo-1637354895830-a26021dfa658', 1280), // green Icelandic field under a mountain
 }
 
 // ─── PROVENANCE TRAIL ───────────────────────────────────────────────────────

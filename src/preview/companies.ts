@@ -1399,7 +1399,7 @@ ${SIGN}`,
     accent: '#9a3f12',
     dark: false,
     status: 'Concept ready',
-    thumb: import.meta.env.BASE_URL + 'gamlafjosid/hero.jpg',
+    thumb: 'https://images.unsplash.com/photo-1507807823252-1870c299a391?q=80&w=1200&auto=format&fit=crop',
     audit: {
       strengths: [
         'An enviable story — their own free-range beef, garden vegetables and daily bread',

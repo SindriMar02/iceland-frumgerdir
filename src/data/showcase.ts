@@ -261,7 +261,7 @@ export const SHOWCASE: ShowcaseGroup[] = [
         sector: 'Veitingahús',
         location: 'Undir Eyjafjöllum',
         blurb: 'Eigið nautakjöt undir Eyjafjöllum og Eldfjallasúpan í aðalhlutverki, með skýrum matseðli og borðabókun.',
-        image: local('gamlafjosid/hero.jpg'),
+        image: img('photo-1507807823252-1870c299a391'),
         accent: '#c2410c',
       },
       {
