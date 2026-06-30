@@ -55,6 +55,11 @@ const PAGE_CSS = `
   .faxi-page ::selection { background:${MOSS}; color:${CREAM_LIGHT}; }
   .faxi-headline { letter-spacing:-.03em; display:flex !important; justify-content:center; align-items:baseline; }
 
+  /* Hero height: svh (small viewport) stays constant when an in-app browser's
+     toolbar collapses on scroll — vh would resize and snap the bottom-anchored
+     roll up and down (the Instagram browser bug). vh first as the fallback. */
+  .faxi-hero { min-height:100vh; min-height:100svh; }
+
   @keyframes faxi-steamA {
     0%   { opacity:0; transform:translate(0,8px) scaleX(.65) scaleY(.85); }
     14%  { opacity:1; }
@@ -261,9 +266,9 @@ export default function FaxiBakeryPage() {
       {/* ===================== HERO ===================== */}
       <section
         ref={heroRef}
+        className="faxi-hero"
         style={{
           position: 'relative',
-          minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
           padding: '26px clamp(20px,4vw,56px) 0',
