@@ -84,27 +84,27 @@ const PAGE_CSS = `
   .kb-langbtn { position:relative; background:none; border:none; color:var(--nav); cursor:pointer; padding:2px 1px; font:600 12.5px ${BODY}; opacity:.62; transition:opacity .25s ease; }
   .kb-langbtn:hover { opacity:1; }
   .kb-hcta { transition:background .3s ease,color .3s ease; }
-  .kb-hcta:hover { background:var(--nav); color:${FOREST}; }
+  .kb-hcta:hover { background:${FOREST}; color:#fff; border-color:${FOREST}; }
 
   /* buttons */
   .kb-btn { display:inline-flex; align-items:center; gap:9px; border-radius:999px; font-weight:600; cursor:pointer; border:none; transition:background .3s ease, transform .3s ease, color .3s ease; }
   .kb-btn:hover { transform:translateY(-2px); }
   .kb-btn-clay { background:${CLAY_BTN}; color:#fff; }
   .kb-btn-clay:hover { background:${CLAY_BTN_HOVER}; transform:translateY(-2px); }
-  .kb-btn-forest { background:${FOREST}; color:${PAPER}; }
-  .kb-btn-forest:hover { background:${FOREST_DEEP_SEC}; transform:translateY(-2px); }
+  .kb-btn-forest { background:${FOREST}; color:#fff; }
+  .kb-btn-forest:hover { background:${FOREST_DEEP_SEC}; color:#fff; transform:translateY(-2px); }
   .kb-btn-ghost-dark { background:rgba(246,241,230,.1); color:${CREAM_TEXT}; border:1.5px solid rgba(246,241,230,.55); backdrop-filter:blur(6px); }
   .kb-btn-ghost-dark:hover { background:rgba(246,241,230,.22); transform:translateY(-2px); }
-  .kb-btn-ghost-ink { border:1.5px solid rgba(40,36,29,.3); color:${INK}; background:transparent; }
-  .kb-btn-ghost-ink:hover { background:${INK}; color:${PAPER}; }
+  .kb-btn-ghost-ink { border:1.5px solid rgba(40,36,29,.65); color:${INK}; background:rgba(40,36,29,.06); }
+  .kb-btn-ghost-ink:hover { background:${INK}; color:#fff; }
   .kb-btn-ghost-cream { border:1.5px solid rgba(233,239,226,.4); color:#e9efe2; background:transparent; }
   .kb-btn-ghost-cream:hover { background:rgba(233,239,226,.12); }
   .kb-btn-ghost-clay { background:rgba(255,248,239,.15); border:1.5px solid rgba(255,248,239,.6); color:${CREAM_TEXT}; }
   .kb-btn-ghost-clay:hover { background:rgba(255,248,239,.26); }
   .kb-btn-lime { background:${LIME}; color:#1f2e14; }
   .kb-btn-lime:hover { background:#c8d35f; }
-  .kb-pill { display:inline-flex; align-items:center; gap:7px; padding:11px 18px; border-radius:999px; background:${FOREST}; color:${PAPER}; font:600 14px ${BODY}; transition:transform .25s ease,background .3s ease; }
-  .kb-pill:hover { background:${FOREST_DEEP_SEC}; transform:translateY(-2px); }
+  .kb-pill { display:inline-flex; align-items:center; gap:7px; padding:11px 18px; border-radius:999px; background:${FOREST}; color:#fff; font:600 14px ${BODY}; transition:transform .25s ease,background .3s ease; }
+  .kb-pill:hover { background:${FOREST_DEEP_SEC}; color:#fff; transform:translateY(-2px); }
 
   /* facility tile */
   .kb-fac { display:flex; flex-direction:column; align-items:center; text-align:center; gap:13px; padding:24px 12px; background:${PAPER_ALT}; border-radius:18px; transition:transform .35s ease,background .35s ease; }
@@ -450,7 +450,7 @@ export default function KirkjubaerPage() {
               </a>
             ))}
           </nav>
-          <a href={`tel:${LINKS.tel}`} style={{ marginTop: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: 16, borderRadius: 999, background: FOREST, color: PAPER, font: `600 16px ${BODY}` }}>
+          <a href={`tel:${LINKS.tel}`} style={{ marginTop: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: 16, borderRadius: 999, background: FOREST, color: '#fff', font: `600 16px ${BODY}` }}>
             {C.t.call} · {LINKS.telDisplay}
           </a>
         </div>
@@ -744,7 +744,7 @@ function Home({
           <h2 data-reveal className="kb-reveal" style={{ fontFamily: DISP, fontWeight: 800, fontSize: 'clamp(34px,6vw,76px)', lineHeight: 1, letterSpacing: '-.025em', margin: 0 }}>{c.ctaTitle}</h2>
           <p data-reveal data-reveal-delay="90" className="kb-reveal" style={{ margin: '22px auto 0', maxWidth: '54ch', fontSize: 'clamp(16px,1.5vw,19px)', lineHeight: 1.65, color: 'rgba(255,248,239,.9)' }}>{c.ctaBody}</p>
           <div data-reveal data-reveal-delay="160" className="kb-reveal" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, marginTop: 34 }}>
-            <a className="kb-btn" href={LINKS.airbnbHost} target="_blank" rel="noopener noreferrer" style={{ background: FOREST_DEEP_SEC, color: PAPER, padding: '16px 30px', fontSize: 15.5 }}>
+            <a className="kb-btn" href={LINKS.airbnbHost} target="_blank" rel="noopener noreferrer" style={{ background: FOREST_DEEP_SEC, color: '#fff', padding: '16px 30px', fontSize: 15.5 }}>
               {t.bookCottage} ↗
             </a>
             <a className="kb-btn kb-btn-ghost-clay" href={`tel:${LINKS.tel}`} style={{ padding: '16px 30px', fontSize: 15.5 }}>
@@ -968,7 +968,7 @@ function Prices({ C }: { C: ReturnType<typeof getContent> }) {
             <h2 style={{ fontFamily: DISP, fontWeight: 700, fontSize: 'clamp(24px,3vw,36px)', margin: 0, letterSpacing: '-.01em' }}>{c.cotRentTitle}</h2>
             <p style={{ margin: '12px 0 0', fontSize: 16, lineHeight: 1.6, color: 'rgba(255,248,239,.92)' }}>{c.cotRentBody}</p>
           </div>
-          <a className="kb-btn" href={LINKS.airbnbHost} target="_blank" rel="noopener noreferrer" style={{ background: FOREST_DEEP_SEC, color: PAPER, padding: '16px 30px', fontSize: 15.5, whiteSpace: 'nowrap' }}>
+          <a className="kb-btn" href={LINKS.airbnbHost} target="_blank" rel="noopener noreferrer" style={{ background: FOREST_DEEP_SEC, color: '#fff', padding: '16px 30px', fontSize: 15.5, whiteSpace: 'nowrap' }}>
             {t.bookNow} ↗
           </a>
         </div>
