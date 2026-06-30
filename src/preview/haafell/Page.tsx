@@ -366,16 +366,25 @@ function LineageLine({ lang }: { lang: Lang }) {
       </svg>
 
       {/* era marks under the line, aligned to their x-position on the curve.
-          First/last anchor to the edge (not centred) so labels never clip. */}
-      <div className="relative mt-2 h-12 sm:h-11" aria-hidden="true">
+          First/last anchor to the edge (not centred) so labels never clip.
+          On narrow screens odd-index marks (1700, 1989) drop to a second row. */}
+      <style>{`
+        .haafell-mark-stagger { top: 0; }
+        @media (max-width: 639px) {
+          .haafell-mark-stagger { top: 1.75rem; }
+          .haafell-marks-wrap { height: 5rem !important; }
+        }
+      `}</style>
+      <div className="haafell-marks-wrap relative mt-2 h-12 sm:h-11" aria-hidden="true">
         {STORY.marks.map((m, i) => {
           const first = i === 0
           const last = i === STORY.marks.length - 1
+          const stagger = !first && !last && i % 2 === 1
           const leftPct = (PAD.l + ERA_X[i] * PLOT_W) / VB_W * 100
           return (
             <div
               key={m.year}
-              className={`absolute top-0 ${first ? 'text-left' : last ? '-translate-x-full text-right' : '-translate-x-1/2 text-center'}`}
+              className={`absolute ${stagger ? 'haafell-mark-stagger' : 'top-0'} ${first ? 'text-left' : last ? '-translate-x-full text-right' : '-translate-x-1/2 text-center'}`}
               style={{ left: `${leftPct}%` }}
             >
               <span className="block font-mono text-[10px] tracking-wide" style={{ color: EARTH }}>
