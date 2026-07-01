@@ -1548,11 +1548,11 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk bakarí og kaffihús.
 
-Ég rakst á GK Bakarí og varð hissa að sjá hvað þið standið ykkur vel, 4,7 í einkunn og fullt af frábærum umsögnum, en samt eruð þið hvergi að finna nema á Facebook, Instagram og í gegnum Wolt. Fólk sem er að leita að góðu bakaríi á Selfossi hefur enga alvöru síðu til að skoða áður en það kemur við.
+Ég rakst á GK Bakarí og varð hissa að sjá hvað þið standið ykkur vel, 4,7 í einkunn og fullt af frábærum umsögnum, en samt eruð þið hvergi að finna nema á Facebook, Instagram og í gegnum Wolt. Fólk sem er að leita að góðu bakaríi á Selfossi hefur því enga alvöru síðu til að skoða áður en það kemur við.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að vefsíðu sem segir söguna ykkar, tveggja vina sem opnuðu bakarí í heimabæ Kjartans, og sýnir matseðilinn og opnunartímann skýrt. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri vefsíðu fyrir ykkur. Hún segir söguna ykkar, tveggja vina sem opnuðu bakarí í heimabæ Kjartans, og sýnir matseðilinn og opnunartímann skýrt. Þið getið ekki bara skoðað hana heldur líka prófað hana sjálf, til dæmis notað pöntunarhnappinn sem fer beint inn á Wolt. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
-Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+Hana má skoða og prófa hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég samt að þetta veiti ykkur smá innblástur.
