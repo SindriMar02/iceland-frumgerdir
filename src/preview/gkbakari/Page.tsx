@@ -77,25 +77,37 @@ const PAGE_CSS = `
     100% { opacity:0; transform:translate(-9px,-142px) scaleX(2) scaleY(1.4); }
   }
 
-  .gk-navlink { color:${INK}; text-decoration:none; transition:color .2s ${EASE}; }
+  /* NOTE: the buttons carry inline color/background styles, so every hover
+     override below needs !important to actually win — without it the hovers
+     silently never apply (inline styles beat class selectors). */
+
+  .gk-navlink { color:${INK}; text-decoration:none; transition:color .2s ${EASE}; position:relative; padding-bottom:3px; }
+  .gk-navlink::after { content:''; position:absolute; left:0; right:100%; bottom:0; height:2px; border-radius:2px; background:${MOSS}; transition:right .25s ${EASE}; }
   .gk-navlink:hover { color:${MOSS}; }
+  .gk-navlink:hover::after { right:0; }
 
-  .gk-fb { transition:background .25s ${EASE}, color .25s ${EASE}, border-color .25s ${EASE}; }
-  .gk-fb:hover { background:${MOSS}; color:${CREAM_LIGHT}; border-color:${MOSS}; }
+  .gk-fb { transition:background .25s ${EASE}, color .25s ${EASE}, border-color .25s ${EASE}, transform .25s ${EASE}, box-shadow .25s ${EASE}; }
+  .gk-fb:hover { background:${MOSS} !important; color:#fff !important; border-color:${MOSS} !important; transform:translateY(-2px); box-shadow:0 8px 20px #4C5A4133; }
+  .gk-fb span { transition:transform .25s ${EASE}; }
+  .gk-fb:hover span { transform:translate(2px,-2px); }
 
-  .gk-cta-primary { transition:background .25s ${EASE}; }
-  .gk-cta-primary:hover { background:${MOSS}; }
-  .gk-cta-ghost { transition:background .25s ${EASE}, border-color .25s ${EASE}; }
-  .gk-cta-ghost:hover { background:#fff; border-color:${INK}; }
+  .gk-cta-primary { transition:background .25s ${EASE}, transform .25s ${EASE}, box-shadow .25s ${EASE}; }
+  .gk-cta-primary:hover { background:${MOSS} !important; transform:translateY(-2px); box-shadow:0 14px 34px #4C5A4140 !important; }
+  .gk-cta-ghost { transition:background .25s ${EASE}, border-color .25s ${EASE}, transform .25s ${EASE}, box-shadow .25s ${EASE}; }
+  .gk-cta-ghost:hover { background:#fff !important; border-color:${INK} !important; transform:translateY(-2px); box-shadow:0 10px 24px #1B171218; }
 
   .gk-card { transition:transform .8s ${EASE}, box-shadow .8s ${EASE}; will-change:transform; }
   .gk-card:hover { transform:translateY(-6px); box-shadow:0 22px 44px #1B171218; }
+  .gk-card img { transition:transform .9s ${EASE}; }
+  .gk-card:hover img { transform:scale(1.05); }
 
-  .gk-visit-cta { transition:background .25s ${EASE}, color .25s ${EASE}; }
-  .gk-visit-cta:hover { background:${CARAMEL}; color:#fff; }
+  .gk-visit-cta { transition:background .25s ${EASE}, color .25s ${EASE}, transform .25s ${EASE}, box-shadow .25s ${EASE}; }
+  .gk-visit-cta:hover { background:${CARAMEL} !important; color:#fff !important; transform:translateY(-2px); box-shadow:0 12px 26px #1B171240; }
+  .gk-visit-cta span { transition:transform .25s ${EASE}; }
+  .gk-visit-cta:hover span { transform:translate(2px,-2px); }
 
   .gk-footer-link { transition:color .2s ${EASE}; }
-  .gk-footer-link:hover { color:${CARAMEL}; }
+  .gk-footer-link:hover { color:${CARAMEL} !important; }
 
   @media (max-width:860px) {
     .gk-story-grid, .gk-visit-grid { grid-template-columns:1fr !important; }
@@ -121,7 +133,11 @@ const PAGE_CSS = `
     .gk-card-tag { top:8px !important; left:8px !important; font-size:9.5px !important; padding:5px 9px !important; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .gk-card { transition:none; }
+    .gk-card, .gk-card img, .gk-fb, .gk-fb span, .gk-cta-primary, .gk-cta-ghost,
+    .gk-visit-cta, .gk-visit-cta span, .gk-navlink, .gk-navlink::after { transition:none; }
+    .gk-card:hover { transform:none; }
+    .gk-card:hover img { transform:none; }
+    .gk-fb:hover, .gk-cta-primary:hover, .gk-cta-ghost:hover, .gk-visit-cta:hover { transform:none; }
   }
 `
 
