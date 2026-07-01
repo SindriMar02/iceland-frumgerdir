@@ -103,8 +103,9 @@ const PAGE_CSS = `
     .gk-stat-strip { grid-template-columns:repeat(2,1fr) !important; row-gap:30px !important; }
   }
   @media (max-width:560px) {
-    .gk-nav { grid-template-columns:auto 1fr !important; }
-    .gk-nav-links { display:none !important; }
+    /* Nav: logo + Facebook pill on the first row, the three tabs centered below */
+    .gk-nav { grid-template-columns:auto 1fr !important; row-gap:14px; }
+    .gk-nav-links { order:1; grid-column:1 / -1; justify-content:center; gap:24px !important; font-size:14px !important; }
     .gk-herofoot { flex-direction:column; align-items:flex-start !important; gap:12px; }
     .gk-hours { text-align:left !important; }
     .gk-hero-ctas { flex-direction:column; gap:10px; }
