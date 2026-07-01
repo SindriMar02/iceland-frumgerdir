@@ -65,15 +65,7 @@ export const HERO = {
     is: 'Hér býr íslenska geitin, fornn landnámsstofn sem stóð frammi fyrir útrýmingu. Á Háafelli höfum við haldið hjörðinni lifandi og bjóðum þér að hitta hana.',
     en: 'Home of the Icelandic goat, an ancient settlement-era breed that came close to vanishing. At Háafell we have kept the herd alive, and we would love you to meet it.',
   } satisfies LocPair,
-  badge: { is: 'Komdu og heilsaðu', en: 'Come say hello' } satisfies LocPair,
   imageAlt: { is: 'Geit á grænu túni', en: 'A goat standing in green pasture' } satisfies LocPair,
-  scrollHint: { is: 'Fylgdu línunni niður', en: 'Follow the line down' } satisfies LocPair,
-  // tiny at-a-glance facts under the hero CTAs
-  facts: [
-    { is: 'Síðan 1989', en: 'Since 1989' },
-    { is: 'Opið á sumrin', en: 'Open in summer' },
-    { is: 'Vinaleg við gesti', en: 'Friendly to visitors' },
-  ] satisfies LocPair[],
 }
 
 /* ── The conservation story + lineage line ─────────────────────────── */
@@ -163,10 +155,10 @@ export const VISIT = {
   } satisfies LocPair,
   hoursTitle: { is: 'Opnunartími', en: 'Opening hours' } satisfies LocPair,
   hoursMain: {
-    is: '1. júní – 31. ágúst',
-    en: '1 June – 31 August',
+    is: '1. júní til 31. ágúst',
+    en: '1 June to 31 August',
   } satisfies LocPair,
-  hoursTime: { is: '11:00 – 18:00, alla daga', en: '11:00 – 18:00, daily' } satisfies LocPair,
+  hoursTime: { is: 'Kl. 11 til 18, alla daga', en: '11:00 to 18:00, daily' } satisfies LocPair,
   hoursNote: {
     is: 'Aðrir tímar eftir samkomulagi. Hafðu samband.',
     en: 'Other times by arrangement. Get in touch.',
@@ -178,7 +170,7 @@ export const VISIT = {
   } satisfies LocPair,
   prices: [
     { who: { is: 'Fullorðnir', en: 'Adults' }, amount: '1.800 kr' },
-    { who: { is: 'Börn 7–17 ára', en: 'Children 7–17' }, amount: '950 kr' },
+    { who: { is: 'Börn 7 til 17 ára', en: 'Children 7 to 17' }, amount: '950 kr' },
   ] satisfies { who: LocPair; amount: string }[],
   getThereTitle: { is: 'Hvernig á að komast', en: 'How to get there' } satisfies LocPair,
   getThereBody: {
@@ -205,8 +197,8 @@ export interface Product {
   price: string
   /** Short tactile description. */
   desc: LocPair
-  /** SVG glyph key the page renders. */
-  glyph: 'cheese' | 'soap' | 'sausage' | 'wheel'
+  /** Card ground tint the page renders (typographic cards, no fake product photos). */
+  tint: 'meadow' | 'straw' | 'ceramic' | 'spruce'
 }
 
 export const SHOP = {
@@ -228,7 +220,7 @@ export const SHOP = {
         is: 'Mjúkur, rjómakenndur geitaostur úr mjólk hjarðarinnar.',
         en: 'A soft, creamy goat cheese made from the herd’s own milk.',
       },
-      glyph: 'cheese',
+      tint: 'meadow',
     },
     {
       name: 'Geitabreki',
@@ -238,7 +230,7 @@ export const SHOP = {
         is: 'Þéttari ostur með karakter, þroskaður á búinu.',
         en: 'A firmer cheese with character, aged here on the farm.',
       },
-      glyph: 'wheel',
+      tint: 'straw',
     },
     {
       name: 'Kiðaskinn sápur',
@@ -248,7 +240,7 @@ export const SHOP = {
         is: 'Mild handsápa úr geitamjólk, góð fyrir viðkvæma húð.',
         en: 'A mild goat-milk soap, kind to sensitive skin.',
       },
-      glyph: 'soap',
+      tint: 'ceramic',
     },
     {
       name: 'Geitapylsur',
@@ -258,7 +250,7 @@ export const SHOP = {
         is: 'Bragðmiklar pylsur úr geitakjöti, gerðar í höndunum.',
         en: 'Rich, hand-made sausages of goat meat.',
       },
-      glyph: 'sausage',
+      tint: 'spruce',
     },
   ] satisfies Product[],
   orderCta: { is: 'Senda pöntunarfyrirspurn', en: 'Send an order enquiry' } satisfies LocPair,
@@ -274,7 +266,7 @@ export const SHOP = {
 
 export const TRUST = {
   line: {
-    is: 'Eina býli sinnar tegundar á Íslandi. Síðan 1989.',
+    is: 'Eina býlið sinnar tegundar á Íslandi. Síðan 1989.',
     en: 'The only farm of its kind in Iceland. Since 1989.',
   } satisfies LocPair,
   sub: {

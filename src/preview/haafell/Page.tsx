@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import type { CSSProperties, ReactNode } from 'react'
 import { ArrowRight, Clock, Mail, MapPin, Phone, Ticket } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
@@ -8,7 +7,6 @@ import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import {
   FARM,
-  FARM_ID,
   FARM_SECTION,
   HERO,
   HERO_ID,
@@ -24,28 +22,86 @@ import type { Lang, LocPair, Product } from './data'
 
 const company = getPreviewCompany('haafell')
 
-/* ── Warm earthy palette (the brief) ───────────────────────────────── */
-const CREAM = '#f4ede0' // milk cream ground
-const STRAW = '#d9b779' // hay / straw
-const GREEN = '#5f7138' // pasture green (accent)
-const BARN = '#9a4730' // barn red (secondary warm)
-const EARTH = '#6b4a2f' // earth
-const INK = '#2b2419' // text
+/* ────────────────────────────────────────────────────────────────────
+   FARM ALMANAC design system.
+   Type: Telma (warm flare serif, display) + Cabinet Grotesk (body/UI) —
+   self-hosted kits under public/fonts. Surfaces follow a color-block
+   chapter rhythm: oat-paper canvas → deep spruce story band → paper →
+   meadow wash → paper → spruce closing bookend. Signature geometry is
+   the arch (stable door / chapel window) on key imagery; buttons are
+   full pills. The lineage line is the page's centerpiece, drawn in hay
+   gold on the dark band.
+   ──────────────────────────────────────────────────────────────────── */
+
+const PAPER = '#f4f0e6' // oat paper canvas
+const SPRUCE = '#22372b' // deep spruce (story band)
+const SPRUCE_DEEP = '#182a1f' // closing bookend
+const PASTURE = '#5f7138' // pasture green accent (CTAs, links)
+const MEADOW = '#e7ebd9' // pale meadow wash surface
+const STRAW = '#d9b779' // hay gold (chart line, dark-band CTA)
+const BARN = '#9a4730' // barn red (tagline, warm moments)
+const BARN_SOFT = '#e0906d' // danger notes on dark ground
+const INK = '#20281e' // green-black ink
+const CREAM = '#f6f2e7' // text on dark ground
+
+const FONTS = `${import.meta.env.BASE_URL}fonts`
+/** Telma is a calligraphic script serif — reserved for BRAND VOICE moments
+ *  only (masthead, nav mark, the farmers' signature, closing line). All
+ *  structural headings run Cabinet Grotesk Extrabold. */
+const SCRIPT = "'Telma-Bold', 'Bricolage Grotesque', serif"
+const SCRIPT_BLACK = "'Telma-Black', 'Bricolage Grotesque', serif"
+const HEADING = "'CabinetGrotesk-Extrabold', 'Hanken Grotesk', system-ui, sans-serif"
+const BODY = "'CabinetGrotesk-Regular', 'Hanken Grotesk', system-ui, sans-serif"
+const BODY_MED = "'CabinetGrotesk-Medium', 'Hanken Grotesk', system-ui, sans-serif"
+const BODY_BOLD = "'CabinetGrotesk-Bold', 'Hanken Grotesk', system-ui, sans-serif"
 
 const Q = '&auto=format&fit=crop'
 
 /** Pick the active language string from a bilingual pair. */
 const L = (p: LocPair, lang: Lang) => p[lang]
 
-/* ────────────────────────────────────────────────────────────────────
-   Motion language — "the herd settles". Everything rises a touch and
-   eases in; nothing slides or springs harshly. The SIGNATURE is the
-   lineage line (see <LineageLine/>), a single continuous path that
-   draws as you scroll: steady for centuries, a frightening near-flat
-   crash, then a hopeful climb back. Reduced motion shows it complete.
-   ──────────────────────────────────────────────────────────────────── */
+const PAGE_CSS = `
+@import url('${FONTS}/telma/css/telma.css');
+@import url('${FONTS}/cabinet-grotesk/css/cabinet-grotesk.css');
 
-const EASE = [0.16, 0.78, 0.3, 1] as const
+.haafell-page { font-family: ${BODY}; }
+.haafell-pill { transition: transform .22s cubic-bezier(.22,.9,.28,1), box-shadow .22s cubic-bezier(.22,.9,.28,1), background-color .22s ease, color .22s ease; }
+.haafell-pill:hover { transform: translateY(-2px); }
+.haafell-pill:active { transform: scale(.97); }
+.haafell-cta-primary:hover { background: ${SPRUCE} !important; box-shadow: 0 14px 30px -14px ${SPRUCE}; }
+.haafell-cta-straw:hover { background: ${CREAM} !important; }
+.haafell-navlink { position: relative; transition: color .2s ease; }
+.haafell-navlink::after { content: ''; position: absolute; left: 0; right: 100%; bottom: -3px; height: 2px; background: ${PASTURE}; transition: right .25s cubic-bezier(.22,.9,.28,1); }
+.haafell-navlink:hover::after { right: 0; }
+.haafell-arch { border-radius: 999px 999px 22px 22px; }
+.haafell-frame img { transition: transform .8s cubic-bezier(.22,.9,.28,1); }
+@media (hover: hover) and (pointer: fine) {
+  .haafell-frame:hover img { transform: scale(1.04); }
+}
+/* Rise reveal — CSS transitions sample by wall-clock time, so a throttled
+   or frame-starved renderer can never freeze content mid-fade. */
+.haafell-rise { opacity: 0; transform: translateY(var(--rise-y, 18px)); transition: opacity .75s cubic-bezier(.22,.9,.28,1), transform .75s cubic-bezier(.22,.9,.28,1); }
+.haafell-rise.is-in { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .haafell-pill, .haafell-pill:hover, .haafell-pill:active { transform: none; transition: none; }
+  .haafell-frame img, .haafell-frame:hover img { transform: none; transition: none; }
+  .haafell-navlink::after { transition: none; }
+  .haafell-rise { opacity: 1; transform: none; transition: none; }
+}
+`
+
+/* ── Reduced-motion preference (no framer dependency) ──────────────── */
+
+function useReducedMotion() {
+  const [reduce] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
+  return reduce
+}
+
+/* ── Gentle rise-in — IntersectionObserver toggles a class; the actual
+      motion is a pure CSS transition (see .haafell-rise) so content can
+      never be stuck invisible by a frame-starved renderer. ───────────── */
 
 function Rise({
   children,
@@ -58,117 +114,53 @@ function Rise({
   delay?: number
   y?: number
   className?: string
-  /** Above-the-fold content: animate on mount and never gate opacity on rAF
-      (a stalled background tab would otherwise leave the hero invisible). */
+  /** Above-the-fold content: reveal on mount, not on scroll. */
   onMount?: boolean
 }) {
-  const reduce = useReducedMotion()
-  const trigger = onMount
-    ? { animate: { opacity: 1, y: 0 } }
-    : { whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-10% 0px -8% 0px' } }
+  const ref = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(false)
+
+  useEffect(() => {
+    if (onMount) {
+      // setTimeout (not rAF) so the flip happens even when frames stall.
+      const t = window.setTimeout(() => setInView(true), 30)
+      return () => window.clearTimeout(t)
+    }
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setInView(true)
+      return
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setInView(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '-8% 0px -6% 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [onMount])
+
   return (
-    <motion.div
-      className={className}
-      initial={reduce ? { opacity: 1, y: 0 } : onMount ? { opacity: 1, y } : { opacity: 0, y }}
-      {...trigger}
-      transition={{ duration: 0.7, ease: EASE, delay }}
+    <div
+      ref={ref}
+      className={`haafell-rise${inView ? ' is-in' : ''}${className ? ` ${className}` : ''}`}
+      style={{ '--rise-y': `${y}px`, transitionDelay: delay ? `${delay}s` : undefined } as CSSProperties}
     >
       {children}
-    </motion.div>
-  )
-}
-
-/* ── A small friendly goat that gently peeks / bobs (decorative) ───── */
-
-function GoatPeek({ flip = false, color = GREEN, className = 'h-12 w-12' }: { flip?: boolean; color?: string; className?: string }) {
-  const reduce = useReducedMotion()
-  return (
-    <motion.svg
-      viewBox="0 0 64 64"
-      className={className}
-      aria-hidden="true"
-      style={{ transform: flip ? 'scaleX(-1)' : undefined }}
-      initial={reduce ? false : { y: 0, rotate: 0 }}
-      animate={reduce ? undefined : { y: [0, -3, 0], rotate: [0, -2, 0] }}
-      transition={reduce ? undefined : { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
-    >
-      {/* head */}
-      <path
-        d="M20 30c0-9 5-15 12-15s12 6 12 15c0 8-5 14-12 14s-12-6-12-14z"
-        fill={CREAM}
-        stroke={color}
-        strokeWidth="2.4"
-      />
-      {/* ears */}
-      <path d="M20 28c-6-2-9 0-10 4 4 2 8 1 11-1z" fill={CREAM} stroke={color} strokeWidth="2.2" />
-      <path d="M44 28c6-2 9 0 10 4-4 2-8 1-11-1z" fill={CREAM} stroke={color} strokeWidth="2.2" />
-      {/* horns */}
-      <path d="M26 16c-2-5-1-9 1-11M38 16c2-5 1-9-1-11" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
-      {/* eyes */}
-      <circle cx="27" cy="31" r="2.1" fill={INK} />
-      <circle cx="37" cy="31" r="2.1" fill={INK} />
-      {/* nose + smile */}
-      <path d="M29 39h6" stroke={INK} strokeWidth="2" strokeLinecap="round" />
-      <path d="M28 36q4 3 8 0" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
-      {/* beard */}
-      <path d="M32 43c0 4-1 7-2 9 2-1 3-3 4-5 0 2 0 3-1 5 2-2 3-5 3-9z" fill={STRAW} />
-    </motion.svg>
-  )
-}
-
-/* ── Product glyphs (no stock food photos — warm SVG marks) ────────── */
-
-function ProductGlyph({ kind }: { kind: Product['glyph'] }) {
-  const common = { fill: 'none', stroke: EARTH, strokeWidth: 2.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  return (
-    <svg viewBox="0 0 56 56" className="h-11 w-11" aria-hidden="true">
-      {kind === 'cheese' && (
-        <>
-          <path d="M8 38l34-16 6 10-34 16z" fill={STRAW} stroke={EARTH} strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M8 38l34-16" {...common} />
-          <circle cx="20" cy="32" r="2.2" fill={CREAM} />
-          <circle cx="30" cy="30" r="1.8" fill={CREAM} />
-          <circle cx="26" cy="37" r="1.6" fill={CREAM} />
-        </>
-      )}
-      {kind === 'wheel' && (
-        <>
-          <ellipse cx="28" cy="22" rx="18" ry="7" fill={STRAW} stroke={EARTH} strokeWidth="2.2" />
-          <path d="M10 22v10c0 3.9 8 7 18 7s18-3.1 18-7V22" {...common} />
-          <path d="M22 26l4 4 4-6 4 5" {...common} />
-        </>
-      )}
-      {kind === 'soap' && (
-        <>
-          <rect x="12" y="18" width="32" height="22" rx="6" fill={CREAM} stroke={EARTH} strokeWidth="2.2" />
-          <path d="M18 24q10-4 20 0" {...common} />
-          <circle cx="24" cy="14" r="2.2" fill={CREAM} stroke={EARTH} strokeWidth="1.8" />
-          <circle cx="34" cy="12" r="1.8" fill={CREAM} stroke={EARTH} strokeWidth="1.8" />
-        </>
-      )}
-      {kind === 'sausage' && (
-        <>
-          <path d="M14 16c12-2 26 12 24 24-2 8-10 4-16-2S6 18 14 16z" fill={BARN} stroke={EARTH} strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M12 14l-3-3M44 44l3 3" {...common} />
-        </>
-      )}
-    </svg>
+    </div>
   )
 }
 
 /* ── SIGNATURE: the lineage / survival line ────────────────────────────
-   The emotional centerpiece. A single continuous SVG path plotted like a
-   population chart: a long steady plateau across the centuries, a sharp
-   crash into a barn-red "near extinction" danger band, then a hopeful
-   climb back. The draw (stroke-dashoffset) is driven by a MANUAL passive
-   scroll listener tracking the figure's travel through the viewport,
-   remapped so the line completes while the chart is comfortably in view
-   (not only after scrolling past). Reduced motion renders it fully drawn,
-   static, with both captions visible.
-
-   Geometry: viewBox 0..1000 (x = time) by 0..300 (y; lower y = higher
-   population). Plot area is inset by PAD on every side so axis labels,
-   gridlines and the danger band have room.
+   A population curve drawn as you scroll: a long steady plateau, a crash
+   into the near-extinction band, then the climb back. Staged on the dark
+   spruce band and drawn in hay gold. The draw is driven by a manual
+   passive scroll listener (rAF-throttled); reduced motion renders it
+   fully drawn and static. Labelled as illustrative in the UI (honesty).
    ──────────────────────────────────────────────────────────────────── */
 
 const VB_W = 1000
@@ -177,18 +169,13 @@ const PAD = { l: 92, r: 28, t: 26, b: 30 }
 const PLOT_W = VB_W - PAD.l - PAD.r
 const PLOT_H = VB_H - PAD.t - PAD.b
 
-// Helpers map a 0..1 time / population value into plot coordinates.
 const px = (t: number) => PAD.l + t * PLOT_W
 const py = (pop: number) => PAD.t + (1 - pop) * PLOT_H
 
-// Era anchors as {time 0..1, population 0..1}. The crash bottoms out in the
-// danger band (~0.14) then recovers to a hopeful but honest mid level.
 const ERA_X = [0.0, 0.46, 0.64, 0.78, 1.0]
 const ERA_POP = [0.8, 0.82, 0.14, 0.3, 0.62]
 
-// Smooth path through the era anchors (gentle Catmull-Rom-ish curve, hand
-// tuned so the plateau reads flat, the crash reads sharp and the rise reads
-// hopeful). Built once at module scope.
+// Smooth Catmull-Rom-ish path through the era anchors, built once.
 const LINE_D = (() => {
   const pts = ERA_X.map((t, i) => [px(t), py(ERA_POP[i])] as const)
   let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`
@@ -206,10 +193,9 @@ const LINE_D = (() => {
   return d
 })()
 
-// Danger band spans the dip around the trough era.
 const DANGER_X0 = px(0.55)
 const DANGER_X1 = px(0.72)
-const DANGER_TOP = py(0.26) // threshold line — below this = danger
+const DANGER_TOP = py(0.26)
 
 function LineageLine({ lang }: { lang: Lang }) {
   const reduce = useReducedMotion()
@@ -219,17 +205,13 @@ function LineageLine({ lang }: { lang: Lang }) {
   const [progress, setProgress] = useState(reduce ? 1 : 0)
   const ticking = useRef(false)
 
-  // Measure the path once it mounts (and if the language flip remounts text
-  // around it, the length is stable so this stays correct).
   useEffect(() => {
     const p = pathRef.current
     if (p) setLen(p.getTotalLength())
   }, [])
 
-  // Manual passive scroll listener. raw = how far the figure has travelled
-  // from first entering the viewport bottom to leaving the top. We remap a
-  // comfortable middle window [0.18 .. 0.72] to [0 .. 1] so the line finishes
-  // drawing while it sits centred on screen, then holds.
+  // Remap the figure's viewport travel [0.18 .. 0.72] → [0 .. 1] so the
+  // line completes while the chart sits comfortably in view, then holds.
   useEffect(() => {
     if (reduce) {
       setProgress(1)
@@ -262,15 +244,12 @@ function LineageLine({ lang }: { lang: Lang }) {
   }, [reduce])
 
   const dashOffset = len ? len * (1 - progress) : 0
-  // Marker rides the tip of the drawn line.
   const tip = pathRef.current && len ? pathRef.current.getPointAtLength(len * progress) : null
-
-  // Captions fade in as the draw passes their time position.
   const troughIn = reduce || progress > 0.62
   const riseIn = reduce || progress > 0.9
 
   return (
-    <div ref={wrapRef} className="relative mt-10 md:mt-14">
+    <div ref={wrapRef} className="relative mt-12 md:mt-16">
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="block w-full overflow-visible"
@@ -283,39 +262,36 @@ function LineageLine({ lang }: { lang: Lang }) {
       >
         <defs>
           <linearGradient id="haafell-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={GREEN} stopOpacity="0.20" />
-            <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
+            <stop offset="0%" stopColor={STRAW} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={STRAW} stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* horizontal gridlines */}
         {[0, 0.25, 0.5, 0.75, 1].map((g) => (
-          <line key={g} x1={PAD.l} x2={VB_W - PAD.r} y1={py(g)} y2={py(g)} stroke={EARTH} strokeOpacity="0.1" strokeWidth="1" />
+          <line key={g} x1={PAD.l} x2={VB_W - PAD.r} y1={py(g)} y2={py(g)} stroke={CREAM} strokeOpacity="0.09" strokeWidth="1" />
         ))}
 
-        {/* population axis hint (vertical) */}
-        <text x={26} y={py(0.5)} fill={EARTH} fillOpacity="0.8" fontSize="15" fontWeight="600"
-          transform={`rotate(-90 26 ${py(0.5)})`} textAnchor="middle" style={{ fontFamily: 'inherit' }}>
+        <text x={26} y={py(0.5)} fill={CREAM} fillOpacity="0.72" fontSize="15" fontFamily={BODY_MED}
+          transform={`rotate(-90 26 ${py(0.5)})`} textAnchor="middle">
           {L(STORY.axisLabel, lang)}
         </text>
-        <text x={PAD.l - 12} y={py(0.96)} fill={EARTH} fillOpacity="0.55" fontSize="13" textAnchor="end">
+        <text x={PAD.l - 12} y={py(0.96)} fill={CREAM} fillOpacity="0.5" fontSize="13" fontFamily={BODY} textAnchor="end">
           {L(STORY.axisHigh, lang)}
         </text>
-        <text x={PAD.l - 12} y={py(0.06) + 4} fill={EARTH} fillOpacity="0.55" fontSize="13" textAnchor="end">
+        <text x={PAD.l - 12} y={py(0.06) + 4} fill={CREAM} fillOpacity="0.5" fontSize="13" fontFamily={BODY} textAnchor="end">
           {L(STORY.axisLow, lang)}
         </text>
 
         {/* near-extinction danger band */}
-        <rect x={DANGER_X0} y={DANGER_TOP} width={DANGER_X1 - DANGER_X0} height={VB_H - PAD.b - DANGER_TOP} fill={BARN} opacity="0.07" />
-        <line x1={DANGER_X0} x2={DANGER_X1} y1={DANGER_TOP} y2={DANGER_TOP} stroke={BARN} strokeOpacity="0.45" strokeWidth="1.4" strokeDasharray="4 5" />
-        <text x={(DANGER_X0 + DANGER_X1) / 2} y={DANGER_TOP - 8} fill={BARN} fontSize="13" fontWeight="700" textAnchor="middle" letterSpacing="0.04em">
+        <rect x={DANGER_X0} y={DANGER_TOP} width={DANGER_X1 - DANGER_X0} height={VB_H - PAD.b - DANGER_TOP} fill={BARN_SOFT} opacity="0.08" />
+        <line x1={DANGER_X0} x2={DANGER_X1} y1={DANGER_TOP} y2={DANGER_TOP} stroke={BARN_SOFT} strokeOpacity="0.55" strokeWidth="1.4" strokeDasharray="4 5" />
+        <text x={(DANGER_X0 + DANGER_X1) / 2} y={DANGER_TOP - 8} fill={BARN_SOFT} fontSize="13" fontFamily={BODY_BOLD} textAnchor="middle" letterSpacing="0.02em">
           {L(STORY.dangerLabel, lang)}
         </text>
 
         {/* faint full guide so the line has a ghost before it draws */}
-        <path d={LINE_D} fill="none" stroke={EARTH} strokeOpacity="0.12" strokeWidth="2.5" strokeLinecap="round" />
+        <path d={LINE_D} fill="none" stroke={CREAM} strokeOpacity="0.14" strokeWidth="2.5" strokeLinecap="round" />
 
-        {/* soft area fill under the drawn portion (clipped to the dash draw via opacity on progress) */}
         <path
           d={`${LINE_D} L ${px(1)} ${py(0)} L ${px(0)} ${py(0)} Z`}
           fill="url(#haafell-fill)"
@@ -327,8 +303,8 @@ function LineageLine({ lang }: { lang: Lang }) {
           ref={pathRef}
           d={LINE_D}
           fill="none"
-          stroke={GREEN}
-          strokeWidth="3.6"
+          stroke={STRAW}
+          strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
           style={{
@@ -337,37 +313,30 @@ function LineageLine({ lang }: { lang: Lang }) {
           }}
         />
 
-        {/* era anchor dots (always present, subtle) */}
         {ERA_X.map((t, i) => (
-          <circle key={t} cx={px(t)} cy={py(ERA_POP[i])} r="3.4" fill={CREAM} stroke={EARTH} strokeOpacity="0.4" strokeWidth="1.4" />
+          <circle key={t} cx={px(t)} cy={py(ERA_POP[i])} r="3.6" fill={SPRUCE} stroke={CREAM} strokeOpacity="0.55" strokeWidth="1.6" />
         ))}
 
-        {/* moving tip dot with a soft halo while drawing */}
         {tip && progress > 0.01 && progress < 0.999 && (
           <>
-            {!reduce && <circle cx={tip.x} cy={tip.y} r="11" fill={GREEN} opacity="0.18" />}
-            <circle cx={tip.x} cy={tip.y} r="6.5" fill={GREEN} stroke={CREAM} strokeWidth="2.6" />
+            {!reduce && <circle cx={tip.x} cy={tip.y} r="11" fill={STRAW} opacity="0.22" />}
+            <circle cx={tip.x} cy={tip.y} r="6.5" fill={STRAW} stroke={SPRUCE} strokeWidth="2.6" />
           </>
         )}
 
-        {/* floating caption near the trough */}
         <g style={{ opacity: troughIn ? 1 : 0, transition: 'opacity .5s ease' }}>
-          <text x={px(0.635)} y={py(0.14) + 30} fill={BARN} fontSize="14" fontWeight="600" textAnchor="middle">
+          <text x={px(0.635)} y={py(0.14) + 30} fill={BARN_SOFT} fontSize="14" fontFamily={BODY_MED} textAnchor="middle">
             {L(STORY.troughNote, lang)}
           </text>
         </g>
-        {/* floating caption near the rise — anchored to the right edge so the
-            longer English string grows leftward into the plot, never past it. */}
         <g style={{ opacity: riseIn ? 1 : 0, transition: 'opacity .5s ease' }}>
-          <text x={px(0.99)} y={py(0.62) - 16} fill={GREEN} fontSize="14" fontWeight="600" textAnchor="end">
+          <text x={px(0.99)} y={py(0.62) - 16} fill={STRAW} fontSize="14" fontFamily={BODY_MED} textAnchor="end">
             {L(STORY.riseNote, lang)}
           </text>
         </g>
       </svg>
 
-      {/* era marks under the line, aligned to their x-position on the curve.
-          First/last anchor to the edge (not centred) so labels never clip.
-          On narrow screens odd-index marks (1700, 1989) drop to a second row. */}
+      {/* era marks under the line, aligned to their x-position on the curve */}
       <style>{`
         .haafell-mark-stagger { top: 0; }
         @media (max-width: 639px) {
@@ -375,7 +344,7 @@ function LineageLine({ lang }: { lang: Lang }) {
           .haafell-marks-wrap { height: 5rem !important; }
         }
       `}</style>
-      <div className="haafell-marks-wrap relative mt-2 h-12 sm:h-11" aria-hidden="true">
+      <div className="haafell-marks-wrap relative mt-3 h-12 sm:h-11" aria-hidden="true">
         {STORY.marks.map((m, i) => {
           const first = i === 0
           const last = i === STORY.marks.length - 1
@@ -387,17 +356,16 @@ function LineageLine({ lang }: { lang: Lang }) {
               className={`absolute ${stagger ? 'haafell-mark-stagger' : 'top-0'} ${first ? 'text-left' : last ? '-translate-x-full text-right' : '-translate-x-1/2 text-center'}`}
               style={{ left: `${leftPct}%` }}
             >
-              <span className="block font-mono text-[10px] tracking-wide" style={{ color: EARTH }}>
+              <span className="block text-[11px]" style={{ color: STRAW, fontFamily: BODY_BOLD }}>
                 {m.year}
               </span>
-              <span className="mt-0.5 block max-w-[5.5rem] text-[10px] leading-tight font-medium sm:text-[11px]" style={{ color: INK }}>
+              <span className="mt-0.5 block max-w-[5.5rem] text-[10px] leading-tight sm:text-[11px]" style={{ color: `${CREAM}b8`, fontFamily: BODY_MED }}>
                 {L(m.t, lang)}
               </span>
             </div>
           )
         })}
       </div>
-      {/* screen-reader era list (the absolute layout above is decorative) */}
       <ul className="sr-only" lang={lang}>
         {STORY.marks.map((m) => (
           <li key={m.year}>
@@ -405,19 +373,24 @@ function LineageLine({ lang }: { lang: Lang }) {
           </li>
         ))}
       </ul>
+
+      {/* honesty caption — the chart is illustrative, not exact figures */}
+      <p className="mt-6 text-center text-[12px]" style={{ color: `${CREAM}80` }}>
+        {L(STORY.timelineLabel, lang)}
+      </p>
     </div>
   )
 }
 
-/* ── Language toggle (real accessible control) ─────────────────────── */
+/* ── Language toggle ───────────────────────────────────────────────── */
 
 function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
   return (
     <div
       role="group"
       aria-label={L(UI.toggleLabel, lang)}
-      className="inline-flex items-center rounded-full p-0.5 text-xs font-semibold"
-      style={{ background: '#ffffffcc', boxShadow: `inset 0 0 0 1px ${EARTH}33` }}
+      className="inline-flex items-center rounded-full p-0.5 text-xs"
+      style={{ background: '#ffffffb8', boxShadow: `inset 0 0 0 1px ${INK}26`, fontFamily: BODY_BOLD }}
     >
       {(['is', 'en'] as const).map((code) => {
         const active = lang === code
@@ -427,10 +400,10 @@ function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void 
             type="button"
             onClick={() => setLang(code)}
             aria-pressed={active}
-            className="min-h-[36px] rounded-full px-3 py-1.5 uppercase tracking-wide transition-colors focus-visible:outline-2"
+            className="haafell-pill min-h-[36px] rounded-full px-3 py-1.5 uppercase tracking-wide focus-visible:outline-2"
             style={{
-              background: active ? GREEN : 'transparent',
-              color: active ? '#fff' : EARTH,
+              background: active ? PASTURE : 'transparent',
+              color: active ? '#fff' : INK,
             }}
             lang={code}
           >
@@ -441,6 +414,15 @@ function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void 
       })}
     </div>
   )
+}
+
+/* ── Product card (typographic, honest — no fake product photos) ───── */
+
+const TINTS: Record<Product['tint'], { bg: string; name: string; body: string; price: string }> = {
+  meadow: { bg: MEADOW, name: INK, body: `${INK}b8`, price: PASTURE },
+  straw: { bg: '#efe3c6', name: INK, body: `${INK}b8`, price: BARN },
+  ceramic: { bg: '#ece7db', name: INK, body: `${INK}b8`, price: PASTURE },
+  spruce: { bg: SPRUCE, name: CREAM, body: `${CREAM}b8`, price: STRAW },
 }
 
 /* ────────────────────────────────────────────────────────────────────
@@ -458,7 +440,6 @@ export default function Page() {
     document.title = 'Háafell Geitfjársetur'
   }, [])
 
-  // Reflect the active language on <html lang> for AT, restore on unmount.
   useEffect(() => {
     const prev = document.documentElement.lang
     document.documentElement.lang = lang
@@ -467,9 +448,8 @@ export default function Page() {
     }
   }, [lang])
 
-  // Mobile sticky CTA + a gentle transform-only hero parallax — both from a
-  // single manual passive scroll listener (no Framer scroll values for
-  // load-bearing UI; parallax is purely decorative and skipped when reduced).
+  // Mobile sticky CTA + transform-only hero drift from one rAF-throttled
+  // passive listener (decorative; skipped when reduced).
   useEffect(() => {
     const onScroll = () => {
       if (ticking.current) return
@@ -477,7 +457,7 @@ export default function Page() {
       requestAnimationFrame(() => {
         const y = window.scrollY
         setShowBar(y > 640)
-        if (!reduce) setHeroShift(Math.min(48, y * 0.06))
+        if (!reduce) setHeroShift(Math.min(44, y * 0.05))
         ticking.current = false
       })
     }
@@ -495,47 +475,48 @@ export default function Page() {
 
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Háafell Geitfjársetur, Hvítársíða')}`
 
+  const h2Style: CSSProperties = {
+    fontFamily: HEADING,
+    color: INK,
+    fontSize: 'clamp(2.1rem, 5vw, 3.3rem)',
+    lineHeight: 1.06,
+    letterSpacing: '-0.01em',
+  }
+
   return (
     <div
       id="top"
       lang={lang}
-      className="min-h-screen font-sans antialiased"
-      style={{ background: CREAM, color: INK }}
+      className="haafell-page min-h-screen antialiased"
+      style={{ background: PAPER, color: INK }}
     >
       <PreviewChrome company={company} />
+      <style>{PAGE_CSS}</style>
 
       {/* skip link */}
       <a
         href="#story"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[70] focus:rounded-full focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
-        style={{ background: GREEN }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[70] focus:rounded-full focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+        style={{ background: PASTURE, fontFamily: BODY_BOLD }}
       >
         {L(UI.skipToContent, lang)}
       </a>
 
-      {/* paper grain + warm vignette ground */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          backgroundImage: `radial-gradient(120% 80% at 50% -10%, ${STRAW}22, transparent 55%), radial-gradient(100% 60% at 100% 100%, ${GREEN}14, transparent 60%)`,
-        }}
-      />
-
       {/* ── Header / nav ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b backdrop-blur-md" style={{ borderColor: `${EARTH}1f`, background: `${CREAM}d9` }}>
-        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 md:px-8">
+      <header className="sticky top-0 z-40 border-b backdrop-blur-md" style={{ borderColor: `${INK}1c`, background: `${PAPER}e0` }}>
+        <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3 md:px-8">
           <a href="#top" className="flex items-baseline gap-2 rounded focus-visible:outline-2">
-            <span className="font-bricolage text-lg font-bold tracking-tight" style={{ color: INK }}>
+            <span className="text-[22px]" style={{ fontFamily: SCRIPT, color: INK }}>
               Háafell
             </span>
-            <span className="hidden font-mono text-[10px] tracking-[0.18em] uppercase sm:inline" style={{ color: GREEN }} lang="is">
-              · Geitfjársetur
+            <span className="hidden text-[11px] tracking-[0.14em] uppercase sm:inline" style={{ color: PASTURE, fontFamily: BODY_BOLD }} lang="is">
+              Geitfjársetur
             </span>
           </a>
-          <div className="hidden items-center gap-6 md:flex">
+          {/* on mobile the links drop to a second, full-width centered row */}
+          <div className="order-3 flex w-full items-center justify-center gap-6 md:order-none md:w-auto md:justify-start md:gap-7">
             {nav.map((n) => (
-              <a key={n.href} href={n.href} className="rounded text-sm font-medium transition-colors hover:opacity-70 focus-visible:outline-2" style={{ color: INK }}>
+              <a key={n.href} href={n.href} className="haafell-navlink rounded text-[14px] focus-visible:outline-2 md:text-[15px]" style={{ color: INK, fontFamily: BODY_MED }}>
                 {L(n.label, lang)}
               </a>
             ))}
@@ -544,8 +525,8 @@ export default function Page() {
             <LangToggle lang={lang} setLang={setLang} />
             <a
               href="#visit"
-              className="hidden min-h-[40px] items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 focus-visible:outline-2 sm:inline-flex"
-              style={{ background: GREEN }}
+              className="haafell-pill haafell-cta-primary hidden min-h-[40px] items-center gap-1.5 rounded-full px-4 text-sm text-white focus-visible:outline-2 sm:inline-flex"
+              style={{ background: PASTURE, fontFamily: BODY_BOLD }}
             >
               {L(UI.planVisit, lang)}
             </a>
@@ -553,198 +534,166 @@ export default function Page() {
         </nav>
       </header>
 
-      <main className="relative z-10">
-        {/* ── HERO ──────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden">
-          <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 pt-12 pb-10 md:grid-cols-[1.05fr_0.95fr] md:gap-12 md:px-8 md:pt-20 md:pb-16">
-            <div>
+      <main className="relative z-10 overflow-x-clip">
+        {/* ── HERO — editorial split, arch-framed portrait ───────── */}
+        <section className="relative">
+          <div className="mx-auto grid max-w-6xl items-end gap-10 px-5 pt-10 pb-14 md:grid-cols-[1.1fr_0.9fr] md:gap-14 md:px-8 md:pt-16 md:pb-20">
+            <div className="pb-2 md:pb-10">
               <Rise onMount>
-                <p className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold tracking-wide" style={{ background: `${GREEN}1a`, color: GREEN }}>
-                  <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: GREEN }} aria-hidden="true" />
+                <p className="text-[15px]" style={{ color: PASTURE, fontFamily: BODY_BOLD }}>
                   {L(HERO.eyebrow, lang)}
                 </p>
               </Rise>
               <Rise delay={0.06} onMount>
-                <h1 className="mt-5 font-bricolage font-bold leading-[0.98] tracking-tight" style={{ color: INK, fontSize: 'clamp(2.6rem, 9vw, 4.6rem)' }}>
+                <h1
+                  className="mt-4"
+                  style={{
+                    fontFamily: SCRIPT_BLACK,
+                    color: INK,
+                    fontSize: 'clamp(2.6rem, 8.5vw, 5.6rem)',
+                    lineHeight: 1.02,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
                   Háafell
-                  <span className="block" style={{ color: GREEN }}>
+                  <span className="block" style={{ color: PASTURE }}>
                     Geitfjársetur
                   </span>
                 </h1>
               </Rise>
               <Rise delay={0.12} onMount>
-                <p className="mt-5 max-w-md font-bricolage font-medium leading-snug" style={{ color: BARN, fontSize: 'clamp(1.25rem, 4.5vw, 1.5rem)' }}>
+                <p className="mt-6 max-w-md" style={{ color: BARN, fontFamily: HEADING, fontSize: 'clamp(1.3rem, 3.6vw, 1.6rem)', lineHeight: 1.25 }}>
                   {L(HERO.tagline, lang)}
                 </p>
               </Rise>
               <Rise delay={0.18} onMount>
-                <p className="mt-4 max-w-md text-[15px] leading-relaxed" style={{ color: `${INK}cc` }}>
+                <p className="mt-4 max-w-md text-[16px] leading-relaxed" style={{ color: `${INK}d0` }}>
                   {L(HERO.lede, lang)}
                 </p>
               </Rise>
               <Rise delay={0.24} onMount>
-                <div className="mt-7 flex flex-wrap items-center gap-3">
+                <div className="mt-8 flex flex-wrap items-center gap-4">
                   <a
                     href="#visit"
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 focus-visible:outline-2"
-                    style={{ background: GREEN }}
+                    className="haafell-pill haafell-cta-primary inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-7 text-[15px] text-white focus-visible:outline-2"
+                    style={{ background: PASTURE, fontFamily: BODY_BOLD, boxShadow: `0 12px 26px -14px ${SPRUCE}` }}
                   >
                     {L(UI.planVisit, lang)}
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                   </a>
                   <a
                     href="#story"
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors hover:opacity-70 focus-visible:outline-2"
-                    style={{ color: EARTH, boxShadow: `inset 0 0 0 1.5px ${EARTH}40` }}
+                    className="haafell-navlink rounded text-[15px] focus-visible:outline-2"
+                    style={{ color: INK, fontFamily: BODY_BOLD }}
                   >
                     {L(UI.nav.story, lang)}
                   </a>
                 </div>
               </Rise>
-              <Rise delay={0.3} onMount>
-                <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-medium" style={{ color: `${INK}b3` }}>
-                  {HERO.facts.map((f) => (
-                    <li key={f.en} className="flex items-center gap-2">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: STRAW }} aria-hidden="true" />
-                      {L(f, lang)}
-                    </li>
-                  ))}
-                </ul>
-              </Rise>
             </div>
 
-            {/* hero image — atmospheric goat in pasture (gentle transform-only parallax) */}
-            <Rise delay={0.12} y={26} onMount>
-              <div className="relative">
-                <div
-                  className="overflow-hidden rounded-[26px] shadow-xl"
-                  style={{ boxShadow: `0 24px 60px -28px ${EARTH}99`, transform: `translate3d(0, ${-heroShift}px, 0)`, willChange: 'transform' }}
-                >
-                  <Img
-                    src={`https://images.unsplash.com/${HERO_ID}?w=1100&q=80${Q}`}
-                    alt={L(HERO.imageAlt, lang)}
-                    className="aspect-[4/5] w-full object-cover"
-                    fetchpriority="high"
-                    fallbackClassName="bg-gradient-to-br from-[#d9b779] to-[#5f7138]"
-                  />
-                </div>
-                {/* friendly peeking goat badge — nudges on hover (decorative) */}
-                <motion.div
-                  className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 shadow-lg"
-                  style={{ boxShadow: `0 12px 30px -16px ${EARTH}` }}
-                  whileHover={reduce ? undefined : { y: -3, rotate: -1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-                >
-                  <GoatPeek />
-                  <span className="pr-1 text-xs font-semibold leading-tight" style={{ color: INK }}>
-                    {L(HERO.badge, lang)}
-                  </span>
-                </motion.div>
+            {/* arch-framed hero portrait with a gentle upward drift */}
+            <Rise delay={0.1} y={30} onMount>
+              <div
+                className="haafell-frame haafell-arch relative mx-auto w-full max-w-[440px] overflow-hidden"
+                style={{
+                  boxShadow: `0 30px 70px -34px ${SPRUCE}cc`,
+                  transform: `translate3d(0, ${-heroShift}px, 0)`,
+                  willChange: 'transform',
+                }}
+              >
+                <Img
+                  src={`https://images.unsplash.com/${HERO_ID}?w=1100&q=80${Q}`}
+                  alt={L(HERO.imageAlt, lang)}
+                  className="aspect-[3/4] w-full object-cover"
+                  fetchpriority="high"
+                  fallbackClassName="bg-gradient-to-b from-[#d9b779] to-[#5f7138]"
+                />
               </div>
             </Rise>
           </div>
-
-          {/* scroll hint */}
-          <div className="mx-auto max-w-6xl px-5 pb-6 md:px-8" aria-hidden="true">
-            <p className="font-mono text-[11px] tracking-[0.2em] uppercase" style={{ color: `${EARTH}99` }}>
-              ↓ {L(HERO.scrollHint, lang)}
-            </p>
-          </div>
         </section>
 
-        {/* ── STORY + LINEAGE LINE ──────────────────────────────── */}
-        <section id="story" className="scroll-mt-20 border-y" style={{ borderColor: `${EARTH}1a`, background: `${STRAW}1f` }}>
-          <div className="mx-auto max-w-5xl px-5 py-16 md:px-8 md:py-24">
+        {/* ── STORY — the dark spruce chapter with the lineage line ── */}
+        <section id="story" className="scroll-mt-20" style={{ background: SPRUCE }}>
+          <div className="mx-auto max-w-5xl px-5 py-20 md:px-8 md:py-32">
             <Rise>
-              <p className="font-mono text-xs tracking-[0.22em] uppercase" style={{ color: GREEN }}>
-                {L(STORY.kicker, lang)}
-              </p>
-              <h2 className="mt-3 max-w-2xl font-bricolage font-bold leading-[1.04] tracking-tight" style={{ color: INK, fontSize: 'clamp(1.85rem, 6vw, 3rem)' }}>
+              <h2
+                className="max-w-3xl"
+                style={{
+                  fontFamily: HEADING,
+                  color: CREAM,
+                  fontSize: 'clamp(2.3rem, 6vw, 3.8rem)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.01em',
+                }}
+              >
                 {L(STORY.heading, lang)}
               </h2>
             </Rise>
 
-            <div className="mt-8 grid gap-6 md:grid-cols-3">
-              {STORY.paras.map((p, i) => (
-                <Rise key={i} delay={i * 0.08}>
-                  <p className="text-[15px] leading-relaxed" style={{ color: `${INK}d9` }}>
-                    {L(p, lang)}
-                  </p>
-                </Rise>
-              ))}
+            <div className="mt-10 grid gap-8 md:grid-cols-[1.2fr_1fr] md:gap-14">
+              <Rise delay={0.06}>
+                <p className="text-[17px] leading-relaxed" style={{ color: `${CREAM}e6` }}>
+                  {L(STORY.paras[0], lang)}
+                </p>
+              </Rise>
+              <div className="space-y-6">
+                {STORY.paras.slice(1).map((p, i) => (
+                  <Rise key={i} delay={0.12 + i * 0.06}>
+                    <p className="text-[15px] leading-relaxed" style={{ color: `${CREAM}bf` }}>
+                      {L(p, lang)}
+                    </p>
+                  </Rise>
+                ))}
+              </div>
             </div>
 
-            {/* the signature line */}
-            <Rise delay={0.1}>
-              <div className="mt-10 flex items-center gap-2 md:mt-12">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: GREEN }} aria-hidden="true" />
-                <span className="font-mono text-[10px] tracking-[0.18em] uppercase" style={{ color: `${EARTH}b3` }}>
-                  {L(STORY.timelineLabel, lang)}
-                </span>
-              </div>
-            </Rise>
             <LineageLine lang={lang} />
           </div>
         </section>
 
-        {/* ── MEET THE FARM ─────────────────────────────────────── */}
+        {/* ── FARM — the people, asymmetric arch composition ───────── */}
         <section id="farm" className="scroll-mt-20">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:gap-14 md:px-8 md:py-24">
-            <Rise y={24}>
-              <div className="grid grid-cols-5 grid-rows-5 gap-3">
-                <div className="col-span-3 row-span-5 overflow-hidden rounded-[22px] shadow-lg" style={{ boxShadow: `0 18px 44px -24px ${EARTH}` }}>
-                  <Img
-                    src={`https://images.unsplash.com/${KID_ID}?w=800&q=80${Q}`}
-                    alt={L(FARM_SECTION.imageAlt, lang)}
-                    className="h-full min-h-[280px] w-full object-cover"
-                    fallbackClassName="bg-gradient-to-br from-[#d9b779] to-[#6b4a2f]"
-                  />
-                </div>
-                <div className="col-span-2 row-span-5 overflow-hidden rounded-[22px] shadow-lg" style={{ boxShadow: `0 18px 44px -24px ${EARTH}` }}>
-                  <Img
-                    src={`https://images.unsplash.com/${FARM_ID}?w=700&q=80${Q}`}
-                    alt={L(FARM_SECTION.imageAlt2, lang)}
-                    className="h-full min-h-[280px] w-full object-cover"
-                    fallbackClassName="bg-gradient-to-br from-[#9a4730] to-[#6b4a2f]"
-                  />
-                </div>
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-20 md:grid-cols-[0.95fr_1.05fr] md:gap-16 md:px-8 md:py-32">
+            <Rise y={26}>
+              <div className="haafell-frame haafell-arch mx-auto max-w-[420px] overflow-hidden" style={{ boxShadow: `0 26px 60px -30px ${SPRUCE}bb` }}>
+                <Img
+                  src={`https://images.unsplash.com/${KID_ID}?w=800&q=80${Q}`}
+                  alt={L(FARM_SECTION.imageAlt, lang)}
+                  className="aspect-[3/4] w-full object-cover"
+                  fallbackClassName="bg-gradient-to-b from-[#d9b779] to-[#5f7138]"
+                />
               </div>
             </Rise>
 
             <div>
               <Rise>
-                <p className="font-mono text-xs tracking-[0.22em] uppercase" style={{ color: GREEN }}>
-                  {L(FARM_SECTION.kicker, lang)}
-                </p>
-                <h2 className="mt-3 font-bricolage font-bold leading-[1.05] tracking-tight" style={{ color: INK, fontSize: 'clamp(1.85rem, 5vw, 2.25rem)' }}>
-                  {L(FARM_SECTION.heading, lang)}
-                </h2>
+                <h2 style={h2Style}>{L(FARM_SECTION.heading, lang)}</h2>
               </Rise>
               {FARM_SECTION.body.map((p, i) => (
                 <Rise key={i} delay={0.06 + i * 0.06}>
-                  <p className="mt-4 text-[15px] leading-relaxed" style={{ color: `${INK}d9` }}>
+                  <p className="mt-5 max-w-[58ch] text-[16px] leading-relaxed" style={{ color: `${INK}d0` }}>
                     {L(p, lang)}
                   </p>
                 </Rise>
               ))}
               <Rise delay={0.2}>
-                <p className="mt-5 text-sm">
-                  <span className="font-mono text-[10px] tracking-[0.18em] uppercase" style={{ color: `${EARTH}99` }}>
-                    {L(FARM_SECTION.ownersLabel, lang)}
-                  </span>
-                  <span className="mt-0.5 block font-semibold" style={{ color: EARTH }} lang="is">
+                <p className="mt-6 text-[15px]">
+                  <span style={{ color: `${INK}8c`, fontFamily: BODY_MED }}>{L(FARM_SECTION.ownersLabel, lang)}</span>
+                  <span className="mt-0.5 block text-[17px]" style={{ color: PASTURE, fontFamily: SCRIPT }} lang="is">
                     {FARM.owners}
                   </span>
                 </p>
               </Rise>
               <Rise delay={0.26}>
-                <dl className="mt-7 grid grid-cols-3 gap-3">
+                <dl className="mt-8 flex divide-x border-t pt-6" style={{ borderColor: `${INK}1f` }}>
                   {FARM_SECTION.stats.map((s) => (
-                    <div key={s.v} className="rounded-2xl bg-white/70 px-3 py-4 text-center" style={{ boxShadow: `inset 0 0 0 1px ${EARTH}1f` }}>
-                      <dt className="font-bricolage text-2xl font-bold" style={{ color: GREEN }}>
+                    <div key={s.v} className="flex-1 px-4 first:pl-0 last:pr-0" style={{ borderColor: `${INK}1f` }}>
+                      <dt className="text-[26px] leading-none" style={{ fontFamily: HEADING, color: INK }}>
                         {s.v}
                       </dt>
-                      <dd className="mt-1 text-[11px] leading-tight font-medium" style={{ color: `${INK}b3` }}>
+                      <dd className="mt-1.5 text-[12.5px] leading-snug" style={{ color: `${INK}a6`, fontFamily: BODY_MED }}>
                         {L(s.t, lang)}
                       </dd>
                     </div>
@@ -755,176 +704,162 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── VISIT PLANNER ─────────────────────────────────────── */}
-        <section
-          id="visit"
-          className="scroll-mt-20 border-y"
-          style={{ borderColor: `${EARTH}1a`, background: `${GREEN}10` }}
-        >
-          <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+        {/* ── VISIT — almanac spread on the meadow wash ────────────── */}
+        <section id="visit" className="scroll-mt-20" style={{ background: MEADOW }}>
+          <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-32">
             <Rise>
-              <p className="font-mono text-xs tracking-[0.22em] uppercase" style={{ color: GREEN }}>
-                {L(VISIT.kicker, lang)}
-              </p>
-              <h2 className="mt-3 font-bricolage font-bold leading-[1.05] tracking-tight" style={{ color: INK, fontSize: 'clamp(1.85rem, 6vw, 3rem)' }}>
-                {L(VISIT.heading, lang)}
-              </h2>
-              <p className="mt-3 max-w-xl text-[15px] leading-relaxed" style={{ color: `${INK}cc` }}>
+              <h2 style={h2Style}>{L(VISIT.heading, lang)}</h2>
+              <p className="mt-4 max-w-xl text-[16px] leading-relaxed" style={{ color: `${INK}cc` }}>
                 {L(VISIT.intro, lang)}
               </p>
             </Rise>
 
-            <div className="mt-9 grid gap-5 md:grid-cols-3">
-              {/* Hours */}
-              <Rise>
-                <div className="flex h-full flex-col rounded-3xl bg-white/80 p-6 shadow-sm" style={{ boxShadow: `inset 0 0 0 1px ${EARTH}1a` }}>
-                  <Clock className="h-6 w-6" style={{ color: GREEN }} aria-hidden="true" />
-                  <h3 className="mt-4 font-bricolage text-lg font-bold" style={{ color: INK }}>
-                    {L(VISIT.hoursTitle, lang)}
-                  </h3>
-                  <p className="mt-2 font-semibold" style={{ color: EARTH }}>
-                    {L(VISIT.hoursMain, lang)}
-                  </p>
-                  <p className="text-[15px]" style={{ color: `${INK}cc` }}>
-                    {L(VISIT.hoursTime, lang)}
-                  </p>
-                  <p className="mt-3 text-[13px] leading-relaxed" style={{ color: `${INK}99` }}>
-                    {L(VISIT.hoursNote, lang)}
-                  </p>
-                </div>
-              </Rise>
+            <div className="mt-12 grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
+              {/* the almanac list */}
+              <div className="divide-y" style={{ borderColor: `${INK}1f` }}>
+                <Rise>
+                  <div className="flex gap-4 pb-7">
+                    <Clock className="mt-1 h-5 w-5 shrink-0" strokeWidth={1.5} style={{ color: PASTURE }} aria-hidden="true" />
+                    <div>
+                      <h3 className="text-[19px]" style={{ fontFamily: HEADING, color: INK }}>
+                        {L(VISIT.hoursTitle, lang)}
+                      </h3>
+                      <p className="mt-1.5 text-[15.5px]" style={{ color: INK, fontFamily: BODY_MED }}>
+                        {L(VISIT.hoursMain, lang)} · {L(VISIT.hoursTime, lang)}
+                      </p>
+                      <p className="mt-1.5 text-[13.5px] leading-relaxed" style={{ color: `${INK}99` }}>
+                        {L(VISIT.hoursNote, lang)}
+                      </p>
+                    </div>
+                  </div>
+                </Rise>
+                <Rise delay={0.06}>
+                  <div className="flex gap-4 py-7">
+                    <Ticket className="mt-1 h-5 w-5 shrink-0" strokeWidth={1.5} style={{ color: PASTURE }} aria-hidden="true" />
+                    <div className="flex-1">
+                      <h3 className="text-[19px]" style={{ fontFamily: HEADING, color: INK }}>
+                        {L(VISIT.priceTitle, lang)}
+                      </h3>
+                      <ul className="mt-2 max-w-xs space-y-1.5">
+                        {VISIT.prices.map((p) => (
+                          <li key={p.amount} className="flex items-baseline justify-between gap-4">
+                            <span className="text-[15px]" style={{ color: `${INK}cc` }}>
+                              {L(p.who, lang)}
+                            </span>
+                            <span className="text-[17px]" style={{ fontFamily: HEADING, color: INK }}>
+                              {p.amount}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-2.5 text-[13px] leading-relaxed" style={{ color: `${INK}99` }}>
+                        {L(VISIT.priceFoot, lang)}
+                      </p>
+                    </div>
+                  </div>
+                </Rise>
+                <Rise delay={0.12}>
+                  <div className="flex gap-4 pt-7">
+                    <MapPin className="mt-1 h-5 w-5 shrink-0" strokeWidth={1.5} style={{ color: PASTURE }} aria-hidden="true" />
+                    <div>
+                      <h3 className="text-[19px]" style={{ fontFamily: HEADING, color: INK }}>
+                        {L(VISIT.getThereTitle, lang)}
+                      </h3>
+                      <address className="mt-1.5 text-[15.5px] not-italic" style={{ color: INK, fontFamily: BODY_MED }} lang="is">
+                        {FARM.addressLines.join(', ')}
+                      </address>
+                      <p className="mt-1.5 text-[13.5px] leading-relaxed" style={{ color: `${INK}99` }}>
+                        {L(VISIT.getThereBody, lang)}
+                      </p>
+                    </div>
+                  </div>
+                </Rise>
+              </div>
 
-              {/* Admission */}
+              {/* designed route map — origin → via towns → Háafell pin */}
               <Rise delay={0.08}>
-                <div className="flex h-full flex-col rounded-3xl bg-white/80 p-6 shadow-sm" style={{ boxShadow: `inset 0 0 0 1px ${EARTH}1a` }}>
-                  <Ticket className="h-6 w-6" style={{ color: GREEN }} aria-hidden="true" />
-                  <h3 className="mt-4 font-bricolage text-lg font-bold" style={{ color: INK }}>
-                    {L(VISIT.priceTitle, lang)}
-                  </h3>
-                  <ul className="mt-3 space-y-2">
-                    {VISIT.prices.map((p) => (
-                      <li key={p.amount} className="flex items-baseline justify-between gap-3 border-b pb-2 last:border-0" style={{ borderColor: `${EARTH}1a` }}>
-                        <span className="text-[15px]" style={{ color: `${INK}cc` }}>
-                          {L(p.who, lang)}
-                        </span>
-                        <span className="font-bricolage text-lg font-bold" style={{ color: INK }}>
-                          {p.amount}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-3 text-[12px] leading-relaxed" style={{ color: `${INK}99` }}>
-                    {L(VISIT.priceFoot, lang)}
-                  </p>
-                </div>
-              </Rise>
+                <a
+                  href={mapsHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block h-full overflow-hidden rounded-[22px] focus-visible:outline-2"
+                  style={{ boxShadow: `inset 0 0 0 1px ${INK}1f`, background: PAPER }}
+                  aria-label={`${L(VISIT.openInMaps, lang)}: ${FARM.addressLines.join(', ')}`}
+                >
+                  <div className="relative h-full min-h-[340px] w-full">
+                    {/* Portrait atlas-page map: the journey reads upward, out of
+                        town and into Hvítársíða. viewBox is near-square so the
+                        route never crops inside the tall panel. */}
+                    <svg viewBox="0 0 1000 950" className="absolute inset-0 h-full w-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+                      <rect width="1000" height="950" fill={`${PASTURE}0f`} />
+                      {[140, 300, 460, 620, 780].map((y, i) => (
+                        <path
+                          key={y}
+                          d={`M0 ${y} C 220 ${y - 34 - i * 4}, 460 ${y + 30}, 680 ${y - 22}, 1000 ${y + 14}`}
+                          fill="none"
+                          stroke={INK}
+                          strokeOpacity="0.1"
+                          strokeWidth="2"
+                        />
+                      ))}
+                      <path d="M-20 900 C 240 880, 420 910, 640 860 C 800 824, 900 840, 1020 800" fill="none" stroke={PASTURE} strokeOpacity="0.28" strokeWidth="9" strokeLinecap="round" />
+                      {/* the route: Reykjavík (bottom left) → Háafell (top right) */}
+                      <path d="M150 750 C 300 690, 390 610, 500 520 C 620 410, 700 300, 830 180" fill="none" stroke={STRAW} strokeWidth="11" strokeLinecap="round" />
+                      <path d="M150 750 C 300 690, 390 610, 500 520 C 620 410, 700 300, 830 180" fill="none" stroke={INK} strokeOpacity="0.4" strokeWidth="2.4" strokeDasharray="3 14" strokeLinecap="round" />
 
-              {/* Get there */}
-              <Rise delay={0.16}>
-                <div className="flex h-full flex-col rounded-3xl bg-white/80 p-6 shadow-sm" style={{ boxShadow: `inset 0 0 0 1px ${EARTH}1a` }}>
-                  <MapPin className="h-6 w-6" style={{ color: GREEN }} aria-hidden="true" />
-                  <h3 className="mt-4 font-bricolage text-lg font-bold" style={{ color: INK }}>
-                    {L(VISIT.getThereTitle, lang)}
-                  </h3>
-                  <address className="mt-2 text-[15px] leading-snug not-italic" style={{ color: `${INK}cc` }} lang="is">
-                    {FARM.addressLines.join(', ')}
-                  </address>
-                  <p className="mt-2 text-[13px] leading-relaxed" style={{ color: `${INK}99` }}>
-                    {L(VISIT.getThereBody, lang)}
-                  </p>
-                </div>
+                      <circle cx="150" cy="750" r="10" fill={PAPER} stroke={INK} strokeWidth="3.5" />
+                      <g transform="translate(150 750)">
+                        <rect x="22" y="-21" rx="17" ry="17" width="156" height="42" fill="#ffffffe6" />
+                        <text x="41" y="7" fill={INK} fontSize="21" fontFamily={BODY_BOLD}>{L(VISIT.routeFrom, lang)}</text>
+                      </g>
+
+                      <circle cx="500" cy="520" r="7.5" fill={PAPER} stroke={INK} strokeWidth="3" />
+                      <text x="530" y="528" fill={`${INK}b3`} fontSize="19" fontFamily={BODY_MED}>
+                        {L(VISIT.routeVia, lang)}
+                      </text>
+
+                      {/* destination pin — outer <g> positions, inner <g> lifts on hover */}
+                      <g transform="translate(830 180)">
+                        <g className="origin-center transition-transform duration-300 group-hover:[transform:translateY(-4px)]">
+                          <circle cx="0" cy="0" r="24" fill={SPRUCE} />
+                          <circle cx="0" cy="0" r="24" fill="none" stroke={STRAW} strokeOpacity="0.7" strokeWidth="3" />
+                          <circle cx="0" cy="0" r="7" fill={STRAW} />
+                          <rect x="-52" y="32" rx="15" ry="15" width="104" height="36" fill="#ffffffe6" />
+                          <text x="0" y="57" fill={INK} fontSize="21" fontFamily={BODY_BOLD} textAnchor="middle">Háafell</text>
+                        </g>
+                      </g>
+                    </svg>
+
+                    <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[11.5px]" style={{ color: INK, fontFamily: BODY_MED }}>
+                      <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
+                      {L(VISIT.mapNote, lang)} · {L(FARM.driveFromReykjavik, lang)}
+                    </div>
+                    <div className="absolute bottom-3 right-3 hidden items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-[11.5px] transition-colors group-hover:bg-white sm:flex" style={{ color: PASTURE, fontFamily: BODY_BOLD }}>
+                      {L(VISIT.openInMaps, lang)}
+                      <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+                    </div>
+                  </div>
+                </a>
               </Rise>
             </div>
 
-            {/* designed route map — origin → via towns → Háafell pin */}
-            <Rise delay={0.1}>
-              <a
-                href={mapsHref}
-                target="_blank"
-                rel="noreferrer"
-                className="group mt-5 block overflow-hidden rounded-3xl focus-visible:outline-2"
-                style={{ boxShadow: `inset 0 0 0 1px ${EARTH}1a` }}
-                aria-label={`${L(VISIT.openInMaps, lang)}: ${FARM.addressLines.join(', ')}`}
-              >
-                <div className="relative h-52 w-full sm:h-60" style={{ background: `${STRAW}33` }}>
-                  {/* Markers live INSIDE the SVG so they track the road exactly
-                      at every width (the container is sliced to cover). */}
-                  <svg viewBox="0 0 1000 240" className="absolute inset-0 h-full w-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
-                    <rect width="1000" height="240" fill={`${GREEN}12`} />
-                    {/* terrain contours */}
-                    {[44, 92, 140, 188].map((y, i) => (
-                      <path
-                        key={y}
-                        d={`M0 ${y} C 220 ${y - 20 - i * 3}, 460 ${y + 18}, 680 ${y - 12}, 1000 ${y + 8}`}
-                        fill="none"
-                        stroke={EARTH}
-                        strokeOpacity="0.14"
-                        strokeWidth="1.4"
-                      />
-                    ))}
-                    {/* a river hint */}
-                    <path d="M-20 210 C 200 200, 320 220, 520 196 C 700 176, 820 188, 1020 168" fill="none" stroke={GREEN} strokeOpacity="0.2" strokeWidth="5" strokeLinecap="round" />
-                    {/* the route: Reykjavík (left) → Háafell (right) */}
-                    <path d="M120 196 C 320 176, 430 150, 560 120 C 680 92, 770 78, 856 64" fill="none" stroke={STRAW} strokeWidth="7" strokeLinecap="round" />
-                    <path d="M120 196 C 320 176, 430 150, 560 120 C 680 92, 770 78, 856 64" fill="none" stroke={EARTH} strokeOpacity="0.45" strokeWidth="1.6" strokeDasharray="2 8" strokeLinecap="round" />
-
-                    {/* origin marker + label (Reykjavík) */}
-                    <circle cx="120" cy="196" r="6" fill={CREAM} stroke={EARTH} strokeWidth="2.4" />
-                    <g transform="translate(120 196)">
-                      <rect x="14" y="-13" rx="11" ry="11" width="96" height="26" fill="#ffffffe6" />
-                      <text x="26" y="4" fill={EARTH} fontSize="13" fontWeight="700">{L(VISIT.routeFrom, lang)}</text>
-                    </g>
-
-                    {/* via waypoint + label (Borgarnes / Reykholt) */}
-                    <circle cx="560" cy="120" r="4.5" fill={CREAM} stroke={EARTH} strokeWidth="2" />
-                    <text x="560" y="104" fill={`${INK}b3`} fontSize="12" fontWeight="500" textAnchor="middle">
-                      {L(VISIT.routeVia, lang)}
-                    </text>
-
-                    {/* destination pin (Háafell) — anchored at the road end.
-                        Outer <g> positions via attribute; inner <g> does the
-                        hover lift via CSS so the two transforms don't clash. */}
-                    <g transform="translate(856 64)">
-                      <g className="origin-center transition-transform duration-300 group-hover:[transform:translateY(-3px)]">
-                        <circle cx="0" cy="0" r="15" fill={BARN} />
-                        <circle cx="0" cy="0" r="15" fill="none" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="2" />
-                        <circle cx="0" cy="0" r="4.5" fill="#fff" />
-                        <rect x="-30" y="20" rx="9" ry="9" width="60" height="22" fill="#ffffffe6" />
-                        <text x="0" y="35" fill={INK} fontSize="13" fontWeight="700" textAnchor="middle">Háafell</text>
-                      </g>
-                    </g>
-                  </svg>
-
-                  {/* legend / open-in-maps affordance */}
-                  <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-[11px] font-semibold" style={{ color: EARTH }}>
-                    <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                    {L(VISIT.mapNote, lang)} · {L(FARM.driveFromReykjavik, lang)}
-                  </div>
-                  <div className="absolute bottom-3 right-3 hidden items-center gap-1 rounded-full bg-white/85 px-3 py-1.5 text-[11px] font-semibold transition-colors group-hover:bg-white sm:flex" style={{ color: GREEN }}>
-                    {L(VISIT.openInMaps, lang)}
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </div>
-                </div>
-              </a>
-            </Rise>
-
             {/* contact actions */}
             <Rise delay={0.12}>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={`tel:${FARM.phoneTel}`}
-                  className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 focus-visible:outline-2"
-                  style={{ background: GREEN }}
+                  className="haafell-pill haafell-cta-primary inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full px-5 text-[15px] text-white focus-visible:outline-2"
+                  style={{ background: PASTURE, fontFamily: BODY_BOLD }}
                 >
-                  <Phone className="h-4 w-4" aria-hidden="true" />
+                  <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                   {L(VISIT.callLabel, lang)} · {FARM.phoneHuman}
                 </a>
                 <a
                   href={`mailto:${FARM.email}`}
-                  className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors hover:opacity-70 focus-visible:outline-2"
-                  style={{ color: EARTH, boxShadow: `inset 0 0 0 1.5px ${EARTH}40` }}
+                  className="haafell-pill inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full px-5 text-[15px] focus-visible:outline-2"
+                  style={{ color: INK, boxShadow: `inset 0 0 0 1.5px ${INK}59`, fontFamily: BODY_BOLD }}
                 >
-                  <Mail className="h-4 w-4" aria-hidden="true" />
+                  <Mail className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                   {L(VISIT.emailLabel, lang)} · {FARM.email}
                 </a>
               </div>
@@ -932,101 +867,93 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── SHOP ──────────────────────────────────────────────── */}
+        {/* ── SHOP — typographic farm-shop shelf ───────────────────── */}
         <section id="shop" className="scroll-mt-20">
-          <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+          <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-32">
             <Rise>
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="font-mono text-xs tracking-[0.22em] uppercase" style={{ color: GREEN }}>
-                    {L(SHOP.kicker, lang)}
-                  </p>
-                  <h2 className="mt-3 font-bricolage font-bold leading-[1.05] tracking-tight" style={{ color: INK, fontSize: 'clamp(1.85rem, 6vw, 3rem)' }}>
-                    {L(SHOP.heading, lang)}
-                  </h2>
-                </div>
-                <p className="max-w-sm text-[15px] leading-relaxed" style={{ color: BARN }}>
-                  {L(SHOP.mission, lang)}
-                </p>
-              </div>
+              <h2 style={h2Style}>{L(SHOP.heading, lang)}</h2>
+              <p className="mt-4 max-w-xl text-[16px] leading-relaxed" style={{ color: BARN, fontFamily: BODY_MED }}>
+                {L(SHOP.mission, lang)}
+              </p>
             </Rise>
 
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {SHOP.products.map((p, i) => (
-                <Rise key={p.name} delay={i * 0.06} y={22}>
-                  <article className="flex h-full flex-col rounded-3xl bg-white/80 p-5 shadow-sm transition-transform hover:-translate-y-1" style={{ boxShadow: `inset 0 0 0 1px ${EARTH}1a` }}>
-                    <div className="relative flex items-center justify-center rounded-2xl py-6" style={{ background: `${STRAW}2e` }}>
-                      <ProductGlyph kind={p.glyph} />
-                      <span className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide" style={{ background: `${GREEN}1f`, color: GREEN }}>
-                        {L(SHOP.supportsTag, lang)}
-                      </span>
-                    </div>
-                    <h3 className="mt-4 font-bricolage text-lg leading-tight font-bold" style={{ color: INK }} lang="is">
-                      {p.name}
-                    </h3>
-                    <p className="mt-0.5 text-xs font-medium tracking-wide uppercase" style={{ color: GREEN }}>
-                      {L(p.gloss, lang)}
-                    </p>
-                    <p className="mt-2 flex-1 text-[13px] leading-relaxed" style={{ color: `${INK}b3` }}>
-                      {L(p.desc, lang)}
-                    </p>
-                    <p className="mt-3 font-bricolage text-xl font-bold" style={{ color: BARN }}>
-                      {p.price}
-                    </p>
-                  </article>
-                </Rise>
-              ))}
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {SHOP.products.map((p, i) => {
+                const t = TINTS[p.tint]
+                return (
+                  <Rise key={p.name} delay={i * 0.06} y={22}>
+                    <article
+                      className="haafell-pill flex h-full min-h-[240px] flex-col justify-between rounded-[22px] p-6"
+                      style={{ background: t.bg }}
+                    >
+                      <div>
+                        <h3 className="text-[24px] leading-[1.1]" style={{ fontFamily: HEADING, color: t.name }} lang="is">
+                          {p.name}
+                        </h3>
+                        <p className="mt-1 text-[12.5px]" style={{ color: t.price, fontFamily: BODY_BOLD }}>
+                          {L(p.gloss, lang)}
+                        </p>
+                        <p className="mt-3 text-[13.5px] leading-relaxed" style={{ color: t.body }}>
+                          {L(p.desc, lang)}
+                        </p>
+                      </div>
+                      <p className="mt-5 text-[22px]" style={{ fontFamily: HEADING, color: t.name }}>
+                        {p.price}
+                      </p>
+                    </article>
+                  </Rise>
+                )
+              })}
             </div>
 
-            {/* order intent — replaces the broken third-party link */}
+            {/* order intent + sample-price honesty note */}
             <Rise delay={0.1}>
-              <div className="mt-8 flex flex-col items-start gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between" style={{ background: `${GREEN}12`, boxShadow: `inset 0 0 0 1px ${GREEN}33` }}>
+              <div className="mt-8 flex flex-col items-start gap-4 rounded-[22px] p-6 sm:flex-row sm:items-center sm:justify-between" style={{ background: `${PASTURE}14`, boxShadow: `inset 0 0 0 1px ${PASTURE}33` }}>
                 <p className="max-w-md text-[14px] leading-relaxed" style={{ color: `${INK}cc` }}>
-                  <span className="font-semibold" style={{ color: EARTH }}>{L(SHOP.priceNote, lang)}.</span>{' '}
+                  <span style={{ fontFamily: BODY_BOLD, color: INK }}>{L(SHOP.priceNote, lang)}.</span>{' '}
                   {L(SHOP.orderNote, lang)}
                 </p>
                 <a
                   href={`mailto:${FARM.email}?subject=${encodeURIComponent(L(SHOP.orderSubject, lang))}`}
-                  className="inline-flex min-h-[48px] shrink-0 items-center gap-2 rounded-full px-6 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 focus-visible:outline-2"
-                  style={{ background: GREEN }}
+                  className="haafell-pill haafell-cta-primary inline-flex min-h-[50px] shrink-0 items-center gap-2 rounded-full px-6 text-[15px] text-white focus-visible:outline-2"
+                  style={{ background: PASTURE, fontFamily: BODY_BOLD }}
                 >
                   {L(SHOP.orderCta, lang)}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </a>
               </div>
             </Rise>
           </div>
         </section>
 
-        {/* ── TRUST / CLOSING BAND ──────────────────────────────── */}
-        <section className="relative overflow-hidden" style={{ background: INK }}>
+        {/* ── CLOSING — the dark bookend ────────────────────────────── */}
+        <section className="relative overflow-hidden" style={{ background: SPRUCE_DEEP }}>
           <Img
             src={`https://images.unsplash.com/${LAND_ID}?w=1400&q=70${Q}`}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover opacity-25"
-            fallbackClassName="bg-gradient-to-br from-[#2b2419] to-[#5f7138]"
+            className="absolute inset-0 h-full w-full object-cover opacity-20"
+            fallbackClassName="bg-gradient-to-br from-[#182a1f] to-[#22372b]"
           />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${INK}cc, ${INK}f2)` }} aria-hidden="true" />
-          <div className="relative mx-auto max-w-4xl px-5 py-20 text-center md:px-8 md:py-28">
+          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${SPRUCE_DEEP}d9, ${SPRUCE_DEEP}f5)` }} aria-hidden="true" />
+          <div className="relative mx-auto max-w-4xl px-5 py-24 text-center md:px-8 md:py-36">
             <Rise>
-              <div className="mx-auto mb-6 flex w-fit items-center gap-1">
-                <GoatPeek color={STRAW} />
-                <GoatPeek flip color={STRAW} />
-              </div>
-              <h2 className="mx-auto max-w-2xl font-bricolage font-bold leading-[1.08] tracking-tight text-white" style={{ fontSize: 'clamp(1.85rem, 6vw, 3rem)' }}>
+              <h2
+                className="mx-auto max-w-2xl"
+                style={{ fontFamily: SCRIPT, color: CREAM, fontSize: 'clamp(2.1rem, 5.6vw, 3.4rem)', lineHeight: 1.08 }}
+              >
                 {L(TRUST.line, lang)}
               </h2>
-              <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed" style={{ color: '#ffffffcc' }}>
+              <p className="mx-auto mt-5 max-w-md text-[16px] leading-relaxed" style={{ color: `${CREAM}cc` }}>
                 {L(TRUST.sub, lang)}
               </p>
               <a
                 href="#visit"
-                className="mt-8 inline-flex min-h-[52px] items-center gap-2 rounded-full px-7 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline-2"
-                style={{ background: STRAW, color: INK }}
+                className="haafell-pill haafell-cta-straw mt-9 inline-flex min-h-[54px] items-center gap-2.5 rounded-full px-8 text-[15px] focus-visible:outline-2"
+                style={{ background: STRAW, color: INK, fontFamily: BODY_BOLD }}
               >
                 {L(UI.planVisit, lang)}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
               </a>
             </Rise>
           </div>
@@ -1043,10 +970,10 @@ export default function Page() {
         <a
           href="#visit"
           tabIndex={showBar ? 0 : -1}
-          className="mr-[5.5rem] flex min-h-[52px] items-center justify-center gap-2 rounded-full px-6 text-sm font-bold text-white shadow-xl focus-visible:outline-2"
-          style={{ background: GREEN, boxShadow: `0 12px 30px -10px ${EARTH}` }}
+          className="mr-[5.5rem] flex min-h-[52px] items-center justify-center gap-2 rounded-full px-6 text-sm text-white shadow-xl focus-visible:outline-2"
+          style={{ background: PASTURE, fontFamily: BODY_BOLD, boxShadow: `0 12px 30px -10px ${SPRUCE}` }}
         >
-          <MapPin className="h-4 w-4" aria-hidden="true" />
+          <MapPin className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
           {L(UI.planVisit, lang)}
         </a>
       </div>
