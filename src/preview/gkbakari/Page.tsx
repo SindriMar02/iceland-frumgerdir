@@ -282,19 +282,15 @@ export default function GkBakariPage() {
             <a href="#story" className="gk-navlink">Story</a>
             <a href="#visit" className="gk-navlink">Visit</a>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img
               src={LOGO}
-              alt="GK Bakarí logo — a gold hand-drawn cinnamon roll behind a GK monogram"
-              width={46}
-              height={46}
+              alt="GK Bakarí — a gold hand-drawn cinnamon roll behind a GK monogram"
+              width={66}
+              height={66}
               decoding="async"
-              style={{ width: 46, height: 46, borderRadius: '50%', display: 'block', boxShadow: '0 4px 14px #1B171226', border: '2px solid #FAF3E4' }}
+              style={{ width: 66, height: 66, borderRadius: '50%', display: 'block', boxShadow: '0 5px 16px #1B171229', border: '2.5px solid #FAF3E4' }}
             />
-            <div style={{ textAlign: 'left', lineHeight: 0.9 }}>
-              <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: '-.02em' }}>GK</div>
-              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.32em', color: MOSS, marginTop: 3 }}>BAKARÍ&nbsp;·&nbsp;SELFOSS</div>
-            </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, alignItems: 'center' }}>
             <a
