@@ -107,6 +107,8 @@ const PAGE_CSS = `
     .gk-nav-links { display:none !important; }
     .gk-herofoot { flex-direction:column; align-items:flex-start !important; gap:12px; }
     .gk-hours { text-align:left !important; }
+    .gk-hero-ctas { flex-direction:column; gap:10px; }
+    .gk-hero-ctas a { font-size:15px !important; padding:13px 26px !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     .gk-card { transition:none; }
@@ -366,9 +368,9 @@ export default function GkBakariPage() {
         </div>
 
         <div style={{ position: 'relative', flex: 1, minHeight: 'clamp(320px,46vh,560px)', marginTop: 'clamp(14px,2vh,26px)' }}>
-          <div style={{ position: 'absolute', top: '6%', left: '50%', transform: 'translateX(-50%)', zIndex: 4, display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <a href={VISIT.wolt} target="_blank" rel="noreferrer" className="gk-cta-primary" style={{ background: INK, color: CREAM_LIGHT, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, boxShadow: '0 10px 30px #1B171233' }}>Pantaðu á Wolt</a>
-            <a href="#menu" className="gk-cta-ghost" style={{ background: '#FFFFFFcc', color: INK, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, border: '1.5px solid #1B171222', backdropFilter: 'blur(4px)' }}>Skoðaðu matseðilinn</a>
+          <div className="gk-hero-ctas" style={{ position: 'absolute', top: '6%', left: '50%', transform: 'translateX(-50%)', zIndex: 4, display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', width: 'max-content', maxWidth: 'calc(100vw - 40px)' }}>
+            <a href={VISIT.wolt} target="_blank" rel="noreferrer" className="gk-cta-primary" style={{ background: INK, color: CREAM_LIGHT, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, boxShadow: '0 10px 30px #1B171233', whiteSpace: 'nowrap' }}>Pantaðu á Wolt</a>
+            <a href="#menu" className="gk-cta-ghost" style={{ background: '#FFFFFFcc', color: INK, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, border: '1.5px solid #1B171222', backdropFilter: 'blur(4px)', whiteSpace: 'nowrap' }}>Skoðaðu matseðilinn</a>
           </div>
 
           <Steam reduced={reduced} />
