@@ -320,8 +320,8 @@ function HeroSignature() {
             <div className="mb-[clamp(28px,5vw,60px)] h-px w-full" style={{ background: C.rule }} />
 
             <div
-              className="grid items-center"
-              style={{ gridTemplateColumns: 'minmax(280px,0.92fr) minmax(300px,1.08fr)', gap: 'clamp(34px,5vw,76px)' }}
+              className="grid grid-cols-1 items-center md:[grid-template-columns:minmax(280px,0.92fr)_minmax(300px,1.08fr)]"
+              style={{ gap: 'clamp(34px,5vw,76px)' }}
             >
               {/* LEFT — wordmark + eyebrow + CTAs + stat chips */}
               <div className="hs-rise" style={{ ['--d' as string]: '40ms' }}>
@@ -679,13 +679,13 @@ function ProvenanceStrip() {
                       }}
                     />
                     <div
-                      className="grid items-center"
-                      style={{
-                        gridTemplateColumns: feature
-                          ? 'minmax(280px,1.5fr) minmax(260px,1fr)'
-                          : 'repeat(auto-fit,minmax(280px,1fr))',
-                        gap: 'clamp(24px,4vw,56px)',
-                      }}
+                      className={
+                        'grid items-center grid-cols-1' +
+                        (feature
+                          ? ' md:[grid-template-columns:minmax(280px,1.5fr)_minmax(260px,1fr)]'
+                          : ' md:[grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]')
+                      }
+                      style={{ gap: 'clamp(24px,4vw,56px)' }}
                     >
                       <div className={flip && !feature ? 'md:order-2' : ''}>
                         <StagePhoto s={s} ratio={feature ? 'aspect-[16/10]' : 'aspect-[4/3]'} />
@@ -815,8 +815,8 @@ function Library() {
 
         {/* FEATURED Brúnó (≈2x) + staggered shelf of three */}
         <div
-          className="mt-[clamp(40px,5.5vw,64px)] grid items-start"
-          style={{ gridTemplateColumns: 'minmax(300px,1.05fr) minmax(280px,1.35fr)', gap: 'clamp(28px,4vw,52px)' }}
+          className="mt-[clamp(40px,5.5vw,64px)] grid grid-cols-1 items-start md:[grid-template-columns:minmax(300px,1.05fr)_minmax(280px,1.35fr)]"
+          style={{ gap: 'clamp(28px,4vw,52px)' }}
         >
           {/* Featured Brúnó */}
           <Reveal y={30} dur={1}>
@@ -925,8 +925,8 @@ function Pairings() {
         </Reveal>
 
         <div
-          className="mt-[clamp(40px,5.5vw,64px)] grid items-start"
-          style={{ gridTemplateColumns: 'minmax(280px,1fr) minmax(300px,1.15fr)', gap: 'clamp(28px,4vw,52px)' }}
+          className="mt-[clamp(40px,5.5vw,64px)] grid grid-cols-1 items-start md:[grid-template-columns:minmax(280px,1fr)_minmax(300px,1.15fr)]"
+          style={{ gap: 'clamp(28px,4vw,52px)' }}
         >
           {/* LARGE board feature */}
           <Reveal y={30} dur={1}>
