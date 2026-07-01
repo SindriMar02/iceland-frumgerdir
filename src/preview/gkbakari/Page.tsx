@@ -180,13 +180,13 @@ function openStatus(now: number) {
   const mins = d.getUTCHours() * 60 + d.getUTCMinutes()
   const today = HOURS_BY_DAY[day]
   if (mins >= today.open && mins < today.close) {
-    return { open: true, label: `Open now — closes ${fmtHM(today.close)}` }
+    return { open: true, label: `Opið núna — lokum kl. ${fmtHM(today.close)}` }
   }
   if (mins < today.open) {
-    return { open: false, label: `Closed — opens today at ${fmtHM(today.open)}` }
+    return { open: false, label: `Lokað — opnum kl. ${fmtHM(today.open)} í dag` }
   }
   const tomorrow = HOURS_BY_DAY[(day + 1) % 7]
-  return { open: false, label: `Closed — opens tomorrow at ${fmtHM(tomorrow.open)}` }
+  return { open: false, label: `Lokað — opnum á morgun kl. ${fmtHM(tomorrow.open)}` }
 }
 
 export default function GkBakariPage() {
@@ -240,7 +240,7 @@ export default function GkBakariPage() {
     <div
       ref={rootRef}
       className="gk-page"
-      lang="en"
+      lang="is"
       style={{
         fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
         color: INK,
@@ -278,14 +278,14 @@ export default function GkBakariPage() {
             className="gk-nav-links"
             style={{ display: 'flex', gap: 26, alignItems: 'center', fontSize: 15, fontWeight: 600, letterSpacing: '.01em' }}
           >
-            <a href="#menu" className="gk-navlink">Menu</a>
-            <a href="#story" className="gk-navlink">Story</a>
-            <a href="#visit" className="gk-navlink">Visit</a>
+            <a href="#menu" className="gk-navlink">Matseðill</a>
+            <a href="#story" className="gk-navlink">Sagan</a>
+            <a href="#visit" className="gk-navlink">Heimsókn</a>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img
               src={LOGO}
-              alt="GK Bakarí — a gold hand-drawn cinnamon roll behind a GK monogram"
+              alt="Merki GK Bakarís — gullteiknaður kanilsnúður á bak við GK stafina"
               width={66}
               height={66}
               decoding="async"
@@ -349,13 +349,13 @@ export default function GkBakariPage() {
                 />
             </div>
           )}
-          <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(28px,5.4vw,74px)', color: MOSS, lineHeight: 0.7, marginTop: '-.06em', transform: 'rotate(-3deg)' }}>freshly baked, freshly ground</div>
+          <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(28px,5.4vw,74px)', color: MOSS, lineHeight: 0.7, marginTop: '-.06em', transform: 'rotate(-3deg)' }}>nýbakað og nýmalað</div>
         </div>
 
         <div style={{ position: 'relative', flex: 1, minHeight: 'clamp(320px,46vh,560px)', marginTop: 'clamp(14px,2vh,26px)' }}>
           <div style={{ position: 'absolute', top: '6%', left: '50%', transform: 'translateX(-50%)', zIndex: 4, display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <a href={VISIT.wolt} target="_blank" rel="noreferrer" className="gk-cta-primary" style={{ background: INK, color: CREAM_LIGHT, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, boxShadow: '0 10px 30px #1B171233' }}>Order ahead on Wolt</a>
-            <a href="#menu" className="gk-cta-ghost" style={{ background: '#FFFFFFcc', color: INK, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, border: '1.5px solid #1B171222', backdropFilter: 'blur(4px)' }}>See the menu</a>
+            <a href={VISIT.wolt} target="_blank" rel="noreferrer" className="gk-cta-primary" style={{ background: INK, color: CREAM_LIGHT, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, boxShadow: '0 10px 30px #1B171233' }}>Pantaðu á Wolt</a>
+            <a href="#menu" className="gk-cta-ghost" style={{ background: '#FFFFFFcc', color: INK, textDecoration: 'none', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 100, border: '1.5px solid #1B171222', backdropFilter: 'blur(4px)' }}>Skoðaðu matseðilinn</a>
           </div>
 
           <Steam reduced={reduced} />
@@ -385,7 +385,7 @@ export default function GkBakariPage() {
             >
               <img
                 src={IMAGES.hero}
-                alt="A single cinnamon roll (kanilsnúður), fresh from the oven — golden laminated layers dusted with cinnamon sugar"
+                alt="Nýbakaður kanilsnúður — gyllt, flögótt lög með kanilsykri"
                 decoding="async"
                 {...{ fetchpriority: 'high' }}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -396,8 +396,8 @@ export default function GkBakariPage() {
 
         <div className="gk-herofoot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, padding: '0 0 26px', position: 'relative', zIndex: 4 }}>
           <div style={{ maxWidth: 340 }}>
-            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>Baked in Selfoss, for Selfoss.</div>
-            <div style={{ fontSize: 13.5, color: '#1B1712aa', marginTop: 7, lineHeight: 1.45 }}>On Austurvegur, right where the Ring Road runs through town. Fresh bread from seven, coffee ground for every cup, and a seat if you want to stay.</div>
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>Bakað á Selfossi, fyrir Selfoss.</div>
+            <div style={{ fontSize: 13.5, color: '#1B1712aa', marginTop: 7, lineHeight: 1.45 }}>Á Austurvegi, þar sem hringvegurinn liggur í gegnum bæinn. Nýbakað brauð frá klukkan sjö, kaffið malað fyrir hvern bolla og sæti ef þig langar að staldra við.</div>
           </div>
           <div className="gk-hours" style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, letterSpacing: '.1em', color: MOSS, textTransform: 'uppercase', lineHeight: 1.6, whiteSpace: 'nowrap' }}>
             {VISIT.hoursLines.map((l) => <div key={l}>{l}</div>)}
@@ -409,27 +409,27 @@ export default function GkBakariPage() {
       <section id="story" style={{ background: INK, color: CREAM_LIGHT, padding: 'clamp(70px,11vh,140px) clamp(20px,4vw,72px)' }}>
         <div data-reveal style={{ ...revealInit(reduced), maxWidth: 1240, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', color: MOSS_LIGHT, textTransform: 'uppercase' }}>
-            <span style={{ width: 34, height: 1.5, background: MOSS_LIGHT }} />The Story
+            <span style={{ width: 34, height: 1.5, background: MOSS_LIGHT }} />Sagan
           </div>
           <div className="gk-story-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 'clamp(28px,5vw,80px)', alignItems: 'center', marginTop: 34 }}>
             <div>
               <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1, letterSpacing: '-.025em', margin: 0 }}>
-                A gathering place,<br />baked by <span style={{ color: CARAMEL }}>two friends</span>.
+                Samkomustaður,<br />bakaður af <span style={{ color: CARAMEL }}>tveimur vinum</span>.
               </h2>
               <p style={{ fontSize: 'clamp(15px,1.3vw,18px)', lineHeight: 1.65, color: '#F6F0E3cc', maxWidth: '48ch', margin: '24px 0 0' }}>
-                Guðmundur baked at Brauð &amp; Co in Reykjavík. Kjartan learned his craft in an IKEA bakery. In January 2020 we opened our own doors in{' '}
-                <em style={{ fontStyle: 'normal', color: '#fff', borderBottom: `2px solid ${CARAMEL}` }}>Kjartan's hometown of Selfoss</em> — not just a bakery, but the gathering place a town like this deserves.
+                Guðmundur bakaði hjá Brauð &amp; Co í Reykjavík. Kjartan lærði handverkið í bakaríi IKEA. Í janúar 2020 opnuðum við dyrnar í{' '}
+                <em style={{ fontStyle: 'normal', color: '#fff', borderBottom: `2px solid ${CARAMEL}` }}>heimabæ Kjartans, Selfossi</em> — ekki bara bakarí, heldur samkomustaðinn sem svona bær á skilið.
               </p>
               <p style={{ fontSize: 'clamp(15px,1.3vw,18px)', lineHeight: 1.65, color: '#F6F0E3cc', maxWidth: '48ch', margin: '18px 0 0' }}>
-                Traditional Icelandic bakes next to real espresso and a daily pot of soup, with ingredients from South Iceland producers like Korngrís and Ártangi.
+                Hefðbundið íslenskt bakkelsi við hliðina á alvöru espressó og heitri súpu dagsins, með hráefni frá sunnlenskum framleiðendum eins og Korngrís og Ártanga.
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ aspectRatio: '4 / 5', borderRadius: 20, overflow: 'hidden' }}>
-                <Img src={IMAGES.hands} alt="A baker's hands shaping a ball of dough on a floured counter" fallbackClassName={FALLBACK.card} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <Img src={IMAGES.hands} alt="Hendur bakara móta deig á hveitistráðu borði" fallbackClassName={FALLBACK.card} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
               <div style={{ aspectRatio: '16 / 10', borderRadius: 20, overflow: 'hidden' }}>
-                <Img src={IMAGES.counter} alt="A wood-framed glass bakery case with handwritten labels" fallbackClassName={FALLBACK.card} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <Img src={IMAGES.counter} alt="Búðarborð bakarís með gleri og handskrifuðum miðum" fallbackClassName={FALLBACK.card} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
             </div>
           </div>
@@ -451,11 +451,11 @@ export default function GkBakariPage() {
           <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 18 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', color: MOSS, textTransform: 'uppercase' }}>
-                <span style={{ width: 34, height: 1.5, background: MOSS }} />From the case
+                <span style={{ width: 34, height: 1.5, background: MOSS }} />Úr ofninum
               </div>
-              <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1, letterSpacing: '-.025em', margin: '14px 0 0' }}>Today's good stuff</h2>
+              <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1, letterSpacing: '-.025em', margin: '14px 0 0' }}>Gotterí dagsins</h2>
             </div>
-            <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 600, fontSize: 24, color: '#1B1712aa', transform: 'rotate(-1.5deg)', maxWidth: 300, textAlign: 'right' }}>prices in króna · order ahead on Wolt</div>
+            <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 600, fontSize: 24, color: '#1B1712aa', transform: 'rotate(-1.5deg)', maxWidth: 300, textAlign: 'right' }}>verð í krónum · pantaðu fyrirfram á Wolt</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(266px,1fr))', gap: 22, marginTop: 48 }}>
@@ -495,33 +495,33 @@ export default function GkBakariPage() {
         <div data-reveal className="gk-visit-grid" style={{ ...revealInit(reduced), maxWidth: 1240, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(28px,5vw,72px)', alignItems: 'center' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', color: SAND, textTransform: 'uppercase' }}>
-              <span style={{ width: 34, height: 1.5, background: SAND }} />Visit
+              <span style={{ width: 34, height: 1.5, background: SAND }} />Heimsókn
             </div>
-            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,66px)', lineHeight: 1, letterSpacing: '-.025em', margin: '16px 0 0' }}>Right on the way<br />through town.</h2>
+            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,66px)', lineHeight: 1, letterSpacing: '-.025em', margin: '16px 0 0' }}>Beint á leiðinni<br />í gegnum bæinn.</h2>
             <div style={{ marginTop: 30, display: 'grid', gap: 18, maxWidth: 420 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid #F6F0E322', paddingBottom: 14 }}>
-                <span style={{ color: SAND, fontSize: 14 }}>Where</span>
+                <span style={{ color: SAND, fontSize: 14 }}>Hvar</span>
                 <span style={{ fontWeight: 600, textAlign: 'right', whiteSpace: 'pre-line' }}>{VISIT.where}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid #F6F0E322', paddingBottom: 14 }}>
-                <span style={{ color: SAND, fontSize: 14 }}>Hours</span>
+                <span style={{ color: SAND, fontSize: 14 }}>Opnunartími</span>
                 <span style={{ fontWeight: 600, textAlign: 'right' }}>{VISIT.hoursLines.map((l) => <div key={l}>{l}</div>)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid #F6F0E322', paddingBottom: 14 }}>
-                <span style={{ color: SAND, fontSize: 14 }}>Call</span>
+                <span style={{ color: SAND, fontSize: 14 }}>Sími</span>
                 <a href={`tel:${VISIT.callHref}`} style={{ fontWeight: 600, textAlign: 'right', color: CREAM_LIGHT, textDecoration: 'none' }}>{VISIT.call}</a>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-                <span style={{ color: SAND, fontSize: 14 }}>Email</span>
+                <span style={{ color: SAND, fontSize: 14 }}>Netfang</span>
                 <a href={`mailto:${VISIT.email}`} style={{ fontWeight: 600, textAlign: 'right', color: CREAM_LIGHT, textDecoration: 'none' }}>{VISIT.email}</a>
               </div>
             </div>
             <a href={VISIT.wolt} target="_blank" rel="noreferrer" className="gk-visit-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 30, background: CREAM_LIGHT, color: INK, textDecoration: 'none', fontWeight: 700, fontSize: 15, padding: '15px 28px', borderRadius: 100 }}>
-              Order for delivery on Wolt <span>↗</span>
+              Pantaðu heimsendingu á Wolt <span>↗</span>
             </a>
           </div>
           <div className="gk-visit-img" style={{ aspectRatio: '1 / 1', borderRadius: 24, overflow: 'hidden' }}>
-            <Img src={IMAGES.visit} alt="A tray of fresh cinnamon rolls, flat-lay" fallbackClassName={FALLBACK.moss} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <Img src={IMAGES.visit} alt="Bakki af nýbökuðum kanilsnúðum, séð ofan frá" fallbackClassName={FALLBACK.moss} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         </div>
       </section>
@@ -544,7 +544,7 @@ export default function GkBakariPage() {
               GK <span style={{ color: MOSS_LIGHT, fontWeight: 600, fontSize: 13, letterSpacing: '.2em' }}>BAKARÍ · SELFOSS</span>
             </div>
           </div>
-          <div style={{ fontSize: 13, color: '#F6F0E388' }}>Freshly baked, freshly ground and freshly awakened · Austurvegur 31b, Selfoss · ©2026</div>
+          <div style={{ fontSize: 13, color: '#F6F0E388' }}>Nýbakað, nýmalað og nývaknað · Austurvegur 31b, Selfoss · ©2026</div>
           <a href={FB} target="_blank" rel="noreferrer" className="gk-footer-link" style={{ color: CREAM_LIGHT, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>{VISIT.facebookHandle} ↗</a>
         </div>
       </footer>
