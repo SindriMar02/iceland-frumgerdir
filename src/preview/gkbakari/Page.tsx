@@ -1,10 +1,12 @@
 /**
  * GK Bakarí — single-page landing.
  *
- * Reuses the Faxi Bakery Café design system verbatim (volcanic-black / moss-green
- * / cream palette, Bricolage Grotesque display + Caveat script + Hanken Grotesk
- * body, TextPressure headline, steam, scroll-linked hero motion, IntersectionObserver
- * reveals) — content rebuilt from GK Bakarí's own real, sourced facts:
+ * Reuses the Faxi Bakery Café design system (volcanic-black / moss-green / cream
+ * palette, TextPressure headline, steam, scroll-linked hero motion,
+ * IntersectionObserver reveals) with GK's own type stack chosen by Sindri from
+ * the font-library kits: Britney Ultra (display) + Dancing Script (script
+ * accents) + Cabinet Grotesk Variable (body), self-hosted in public/fonts/.
+ * Content rebuilt from GK Bakarí's own real, sourced facts:
  *   - Live "open now / closes at" status computed from their real weekly hours
  *     (replaces Faxi's "next batch in MM:SS", which was specific to a verified
  *     hourly-bake claim this bakery doesn't make)
@@ -37,15 +39,26 @@ const SAND = '#D7CDB6'
 const CARAMEL = '#C2773A'
 const HERO_BG = CREAM
 const FB = VISIT.facebook
-const BRICOLAGE_VF =
-  'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap'
+
+// Self-hosted font kits (font-library), page-scoped via @import in PAGE_CSS.
+// Sindri's picks: Britney Ultra (display), Dancing Script (script accents),
+// Cabinet Grotesk Variable (body — wght axis 100–900 so fontWeight styles work).
+const FONTS_BASE = `${import.meta.env.BASE_URL}fonts`
+const BRITNEY_CSS = `${FONTS_BASE}/britney/css/britney.css`
+const DISPLAY = "'Britney-Ultra', 'Bricolage Grotesque', sans-serif"
+const SCRIPT = "'DancingScript-Bold', 'Caveat', cursive"
+const BODY = "'CabinetGrotesk-Variable', 'Hanken Grotesk', system-ui, sans-serif"
 
 const EASE = 'cubic-bezier(.16,.84,.44,1)'
 const STEAM = { warmth: '#FBE6C6', opacity: 0.18, spread: 520, speed: 1, wisps: 9 }
 
 const PAGE_CSS = `
+  @import url('${FONTS_BASE}/britney/css/britney.css');
+  @import url('${FONTS_BASE}/dancing-script/css/dancing-script.css');
+  @import url('${FONTS_BASE}/cabinet-grotesk/css/cabinet-grotesk.css');
+
   .gk-page ::selection { background:${MOSS}; color:${CREAM_LIGHT}; }
-  .gk-headline { letter-spacing:-.03em; display:flex !important; justify-content:center; align-items:baseline; }
+  .gk-headline { letter-spacing:0; display:flex !important; justify-content:center; align-items:baseline; }
 
   .gk-hero { min-height:100vh; min-height:100svh; }
 
@@ -242,7 +255,7 @@ export default function GkBakariPage() {
       className="gk-page"
       lang="is"
       style={{
-        fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
+        fontFamily: BODY,
         color: INK,
         background: CREAM,
         overflowX: 'hidden',
@@ -324,24 +337,24 @@ export default function GkBakariPage() {
 
         <div style={{ textAlign: 'center', marginTop: 'clamp(10px,2vh,22px)', position: 'relative', zIndex: 4 }}>
           {reduced ? (
-            <h1 className="gk-headline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(40px,9vw,132px)', lineHeight: 0.9, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>KANILSNÚÐUR</h1>
+            <h1 className="gk-headline" style={{ fontFamily: DISPLAY, fontSize: 'clamp(40px,9vw,132px)', lineHeight: 0.9, margin: 0, color: INK, whiteSpace: 'nowrap' }}>KANILSNÚÐUR</h1>
           ) : (
-            /* TextPressure sizes glyphs at containerW/(chars/2); KANILSNÚÐUR is 11
-               chars vs Faxi's 13, so the container is scaled by 11/13 to keep the
-               rendered glyph size (and the height clamp) identical to the design. */
-            <div style={{ width: 'min(57vw,760px)', margin: '0 auto', height: 'clamp(46px,8.4vw,122px)' }}>
+            /* TextPressure sizes glyphs at containerW/(chars/2). Britney Ultra is a
+               condensed face, so the container is widened (vs the Bricolage tuning)
+               to keep the headline's visual mass. The press-on-hover effect is the
+               per-letter scale (scaleAmount), which is font-agnostic — the weight
+               morph is off since Britney-Ultra is a single static weight. */
+            <div style={{ width: 'min(54vw,720px)', margin: '0 auto', height: 'clamp(48px,9vw,132px)' }}>
                 <TextPressure
                   text={'KANILSNÚÐUR'}
-                  fontFamily="Bricolage Grotesque"
-                  fontUrl={BRICOLAGE_VF}
+                  fontFamily="Britney-Ultra"
+                  fontUrl={BRITNEY_CSS}
                   className="gk-headline"
                   flex={false}
                   width={false}
-                  weight
+                  weight={false}
                   italic={false}
                   alpha={false}
-                  minWeight={800}
-                  maxWeight={0}
                   scaleAmount={1.3}
                   initialFromCenter={false}
                   textColor={INK}
@@ -349,7 +362,7 @@ export default function GkBakariPage() {
                 />
             </div>
           )}
-          <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 'clamp(28px,5.4vw,74px)', color: MOSS, lineHeight: 0.7, marginTop: '-.06em', transform: 'rotate(-3deg)' }}>nýbakað og nýmalað</div>
+          <div style={{ fontFamily: SCRIPT, fontSize: 'clamp(28px,5.4vw,74px)', color: MOSS, lineHeight: 0.8, marginTop: '-.04em', transform: 'rotate(-3deg)' }}>nýbakað og nýmalað</div>
         </div>
 
         <div style={{ position: 'relative', flex: 1, minHeight: 'clamp(320px,46vh,560px)', marginTop: 'clamp(14px,2vh,26px)' }}>
@@ -396,7 +409,7 @@ export default function GkBakariPage() {
 
         <div className="gk-herofoot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, padding: '0 0 26px', position: 'relative', zIndex: 4 }}>
           <div style={{ maxWidth: 340 }}>
-            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>Bakað á Selfossi, fyrir Selfoss.</div>
+            <div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>Bakað á Selfossi, fyrir Selfoss.</div>
             <div style={{ fontSize: 13.5, color: '#1B1712aa', marginTop: 7, lineHeight: 1.45 }}>Á Austurvegi, þar sem hringvegurinn liggur í gegnum bæinn. Nýbakað brauð frá klukkan sjö, kaffið malað fyrir hvern bolla og sæti ef þig langar að staldra við.</div>
           </div>
           <div className="gk-hours" style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, letterSpacing: '.1em', color: MOSS, textTransform: 'uppercase', lineHeight: 1.6, whiteSpace: 'nowrap' }}>
@@ -413,7 +426,7 @@ export default function GkBakariPage() {
           </div>
           <div className="gk-story-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 'clamp(28px,5vw,80px)', alignItems: 'center', marginTop: 34 }}>
             <div>
-              <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1, letterSpacing: '-.025em', margin: 0 }}>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1.02, letterSpacing: 0, margin: 0 }}>
                 Samkomustaður,<br />bakaður af <span style={{ color: CARAMEL }}>tveimur vinum</span>.
               </h2>
               <p style={{ fontSize: 'clamp(15px,1.3vw,18px)', lineHeight: 1.65, color: '#F6F0E3cc', maxWidth: '48ch', margin: '24px 0 0' }}>
@@ -437,7 +450,7 @@ export default function GkBakariPage() {
           <div data-reveal className="gk-stat-strip" style={{ ...revealInit(reduced, 0.15), display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, marginTop: 'clamp(48px,7vh,90px)', borderTop: '1px solid #F6F0E322', paddingTop: 36 }}>
             {STATS.map((s) => (
               <div key={s.caption}>
-                <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(30px,4vw,52px)', letterSpacing: '-.02em' }}>{s.value}</div>
+                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(30px,4vw,52px)', letterSpacing: 0 }}>{s.value}</div>
                 <div style={{ fontSize: 13, color: MOSS_LIGHT, marginTop: 4 }}>{s.caption}</div>
               </div>
             ))}
@@ -453,9 +466,9 @@ export default function GkBakariPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', color: MOSS, textTransform: 'uppercase' }}>
                 <span style={{ width: 34, height: 1.5, background: MOSS }} />Úr ofninum
               </div>
-              <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1, letterSpacing: '-.025em', margin: '14px 0 0' }}>Gotterí dagsins</h2>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,68px)', lineHeight: 1.02, letterSpacing: 0, margin: '14px 0 0' }}>Gotterí dagsins</h2>
             </div>
-            <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 600, fontSize: 24, color: '#1B1712aa', transform: 'rotate(-1.5deg)', maxWidth: 300, textAlign: 'right' }}>verð í krónum · pantaðu fyrirfram á Wolt</div>
+            <div style={{ fontFamily: SCRIPT, fontSize: 22, color: '#1B1712aa', transform: 'rotate(-1.5deg)', maxWidth: 300, textAlign: 'right' }}>verð í krónum · pantaðu fyrirfram á Wolt</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(266px,1fr))', gap: 22, marginTop: 48 }}>
@@ -467,7 +480,7 @@ export default function GkBakariPage() {
                       <Img src={item.img} alt={item.shot} fallbackClassName={item.fallback} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     ) : (
                       <div className={item.fallback} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 40, color: CREAM_LIGHT, letterSpacing: '-.02em', opacity: 0.9 }}>
+                        <span style={{ fontFamily: DISPLAY, fontSize: 40, color: CREAM_LIGHT, letterSpacing: 0, opacity: 0.9 }}>
                           {item.name.charAt(0)}
                         </span>
                       </div>
@@ -478,7 +491,7 @@ export default function GkBakariPage() {
                   </div>
                   <div style={{ padding: '18px 18px 20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-                      <h3 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 18.5, lineHeight: 1.12, letterSpacing: '-.01em', margin: 0 }}>{item.name}</h3>
+                      <h3 style={{ fontFamily: BODY, fontWeight: 800, fontSize: 18.5, lineHeight: 1.12, letterSpacing: '-.01em', margin: 0 }}>{item.name}</h3>
                       <span style={{ fontWeight: 700, fontSize: 15, color: MOSS, whiteSpace: 'nowrap' }}>{item.price}</span>
                     </div>
                     <p style={{ fontSize: 13.5, lineHeight: 1.5, color: '#1B1712aa', margin: '9px 0 0' }}>{item.desc}</p>
@@ -497,7 +510,7 @@ export default function GkBakariPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', color: SAND, textTransform: 'uppercase' }}>
               <span style={{ width: 34, height: 1.5, background: SAND }} />Heimsókn
             </div>
-            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,66px)', lineHeight: 1, letterSpacing: '-.025em', margin: '16px 0 0' }}>Beint á leiðinni<br />í gegnum bæinn.</h2>
+            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,66px)', lineHeight: 1.02, letterSpacing: 0, margin: '16px 0 0' }}>Beint á leiðinni<br />í gegnum bæinn.</h2>
             <div style={{ marginTop: 30, display: 'grid', gap: 18, maxWidth: 420 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid #F6F0E322', paddingBottom: 14 }}>
                 <span style={{ color: SAND, fontSize: 14 }}>Hvar</span>
@@ -540,7 +553,7 @@ export default function GkBakariPage() {
               decoding="async"
               style={{ width: 38, height: 38, borderRadius: '50%', display: 'block', border: '1.5px solid #F6F0E326' }}
             />
-            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: '-.02em' }}>
+            <div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 24, letterSpacing: '-.02em' }}>
               GK <span style={{ color: MOSS_LIGHT, fontWeight: 600, fontSize: 13, letterSpacing: '.2em' }}>BAKARÍ · SELFOSS</span>
             </div>
           </div>
