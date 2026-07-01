@@ -109,6 +109,15 @@ const PAGE_CSS = `
     .gk-hours { text-align:left !important; }
     .gk-hero-ctas { flex-direction:column; gap:10px; }
     .gk-hero-ctas a { font-size:15px !important; padding:13px 26px !important; }
+
+    /* Menu: keep two cards side by side on phones instead of one huge column */
+    .gk-menu-grid { grid-template-columns:repeat(2,1fr) !important; gap:12px !important; }
+    .gk-card-pad { padding:12px 12px 14px !important; }
+    .gk-card-head { flex-direction:column; align-items:flex-start !important; gap:3px !important; }
+    .gk-card-name { font-size:15px !important; }
+    .gk-card-price { font-size:13.5px !important; }
+    .gk-card-desc { font-size:12px !important; line-height:1.45 !important; margin-top:6px !important; }
+    .gk-card-tag { top:8px !important; left:8px !important; font-size:9.5px !important; padding:5px 9px !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     .gk-card { transition:none; }
@@ -473,10 +482,10 @@ export default function GkBakariPage() {
             <div style={{ fontFamily: SCRIPT, fontSize: 22, color: '#1B1712aa', transform: 'rotate(-1.5deg)', maxWidth: 300, textAlign: 'right' }}>verð í krónum · pantaðu fyrirfram á Wolt</div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(266px,1fr))', gap: 22, marginTop: 48 }}>
+          <div className="gk-menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(266px,1fr))', gap: 22, marginTop: 48 }}>
             {MENU.map((item) => (
               <div key={item.slotId} data-reveal style={revealInit(reduced, 0, 0.8)}>
-                <div className="gk-card" style={{ background: CREAM_LIGHT, borderRadius: 20, overflow: 'hidden', border: '1px solid #1B17120F', cursor: 'pointer' }}>
+                <div className="gk-card" style={{ background: CREAM_LIGHT, borderRadius: 20, overflow: 'hidden', border: '1px solid #1B17120F', cursor: 'pointer', height: '100%' }}>
                   <div style={{ position: 'relative', aspectRatio: '5 / 4', overflow: 'hidden', background: '#E5D5BA' }}>
                     {item.img ? (
                       <Img src={item.img} alt={item.shot} fallbackClassName={item.fallback} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -488,15 +497,15 @@ export default function GkBakariPage() {
                       </div>
                     )}
                     {item.tag && (
-                      <span style={{ position: 'absolute', top: 12, left: 12, background: INK, color: CREAM_LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 11px', borderRadius: 100 }}>{item.tag}</span>
+                      <span className="gk-card-tag" style={{ position: 'absolute', top: 12, left: 12, background: INK, color: CREAM_LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 11px', borderRadius: 100 }}>{item.tag}</span>
                     )}
                   </div>
-                  <div style={{ padding: '18px 18px 20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-                      <h3 style={{ fontFamily: BODY, fontWeight: 800, fontSize: 18.5, lineHeight: 1.12, letterSpacing: '-.01em', margin: 0 }}>{item.name}</h3>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: MOSS, whiteSpace: 'nowrap' }}>{item.price}</span>
+                  <div className="gk-card-pad" style={{ padding: '18px 18px 20px' }}>
+                    <div className="gk-card-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                      <h3 className="gk-card-name" style={{ fontFamily: BODY, fontWeight: 800, fontSize: 18.5, lineHeight: 1.12, letterSpacing: '-.01em', margin: 0 }}>{item.name}</h3>
+                      <span className="gk-card-price" style={{ fontWeight: 700, fontSize: 15, color: MOSS, whiteSpace: 'nowrap' }}>{item.price}</span>
                     </div>
-                    <p style={{ fontSize: 13.5, lineHeight: 1.5, color: '#1B1712aa', margin: '9px 0 0' }}>{item.desc}</p>
+                    <p className="gk-card-desc" style={{ fontSize: 13.5, lineHeight: 1.5, color: '#1B1712aa', margin: '9px 0 0' }}>{item.desc}</p>
                   </div>
                 </div>
               </div>
