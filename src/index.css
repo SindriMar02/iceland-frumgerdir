@@ -29,6 +29,8 @@
   --font-marcellus: "Marcellus", Georgia, serif;              /* Caves of Hella — Roman-inscriptional, carved-in-stone */
   --font-bitter: "Bitter", Georgia, serif;                    /* Gamla Fjósið — warm farmhouse slab */
   --font-chillax: "Chillax", system-ui, sans-serif;           /* Faxi Bakery — rounded, friendly bakery display */
+  --font-stardom: "Stardom", Georgia, serif;                  /* Vínland Guesthouse — bold decorative wordmark */
+  --font-melodrama: "Melodrama", Georgia, serif;              /* Guesthouse Vellir — high-contrast editorial wordmark */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -54,6 +56,31 @@
   font-family: "Tryst";
   src: url("./assets/fonts/Tryst-Regular.otf") format("opentype");
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Vínland Guesthouse — Stardom, the giant overlapping wordmark (single weight) */
+@font-face {
+  font-family: "Stardom";
+  src: url("./assets/fonts/Stardom-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Guesthouse Vellir — Melodrama, the giant overlapping wordmark */
+@font-face {
+  font-family: "Melodrama";
+  src: url("./assets/fonts/Melodrama-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Melodrama";
+  src: url("./assets/fonts/Melodrama-Bold.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }

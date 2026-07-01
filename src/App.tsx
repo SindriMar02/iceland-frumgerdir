@@ -43,6 +43,9 @@ const CavesOfHellaPage = lazy(() => import('./preview/cavesofhella/Page'))
 const GamlaFjosidPage = lazy(() => import('./preview/gamlafjosid/Page'))
 const FaxiBakeryPage = lazy(() => import('./preview/faxibakery/Page'))
 const KirkjubaerPage = lazy(() => import('./preview/kirkjubaer/Page'))
+// Scout round 6 — two rural farm guesthouses (shared "Mutafova" editorial DNA)
+const VinlandPage = lazy(() => import('./preview/vinland/Page'))
+const VellirPage = lazy(() => import('./preview/vellir/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -107,6 +110,8 @@ export default function App() {
             <Route path="/preview/gamlafjosid" element={<GamlaFjosidPage />} />
             <Route path="/preview/faxibakery" element={<FaxiBakeryPage />} />
             <Route path="/preview/kirkjubaer" element={<KirkjubaerPage />} />
+            <Route path="/preview/vinland" element={<VinlandPage />} />
+            <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
