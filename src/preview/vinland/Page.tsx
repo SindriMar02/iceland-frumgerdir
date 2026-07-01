@@ -232,6 +232,59 @@ function useParallax(strength = 0.08) {
   return ref
 }
 
+/* ── Photo — a photograph "develops into focus" as it scrolls into view:
+   blurred + slightly oversized → sharp + settled. Tracks its own visibility
+   (for images inside a per-item map where no shared `shown` is available).
+   Releases its inline transform/filter once settled so .vl-zoom:hover can
+   still take over the scale afterward (same fix as Reveal, same reason). */
+function Photo({
+  src,
+  srcSet,
+  sizes,
+  alt,
+  className,
+  fallbackClassName,
+  fetchpriority,
+}: {
+  src: string
+  srcSet?: string
+  sizes?: string
+  alt: string
+  className?: string
+  fallbackClassName?: string
+  fetchpriority?: 'high' | 'low' | 'auto'
+}) {
+  const { ref, shown } = useInView(0.15)
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    if (!shown || prefersReduced()) return
+    const t = window.setTimeout(() => setSettled(true), 1300)
+    return () => window.clearTimeout(t)
+  }, [shown])
+  return (
+    <div ref={ref} className="overflow-hidden">
+      <Img
+        src={src}
+        srcSet={srcSet}
+        sizes={sizes}
+        alt={alt}
+        fetchpriority={fetchpriority}
+        className={className}
+        style={
+          settled || prefersReduced()
+            ? undefined
+            : {
+                filter: shown ? 'blur(0px)' : 'blur(16px)',
+                transform: shown ? 'scale(1)' : 'scale(1.15)',
+                transition: 'filter 1.1s cubic-bezier(.2,.7,.2,1), transform 1.2s cubic-bezier(.2,.7,.2,1)',
+              }
+        }
+        fallbackClassName={fallbackClassName}
+      />
+    </div>
+  )
+}
+
 /* ── Small-caps overline — tracked label, rust hairline ──────────────────── */
 function Overline({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
   return (
@@ -492,7 +545,11 @@ function Hero({ onBook }: { onBook: () => void }) {
                 alt={HERO_PHOTO.alt}
                 fetchpriority="high"
                 className="block aspect-[16/10] w-full object-cover md:aspect-[16/10]"
-                style={{ transform: 'scale(1.12)' }}
+                style={{
+                  transform: 'scale(1.12)',
+                  filter: shown || prefersReduced() ? 'blur(0px)' : 'blur(18px)',
+                  transition: 'filter 1.3s cubic-bezier(.2,.7,.2,1) .1s',
+                }}
                 fallbackClassName="bg-gradient-to-br from-[#c98a5c] to-[#7a4a2c]"
               />
             </div>
@@ -568,6 +625,14 @@ function Hero({ onBook }: { onBook: () => void }) {
 /* ══════════════════════════════════════════════════════════════════════ */
 function RiverBand() {
   const { ref, shown } = useInView(0.15)
+  // After the entrance scale-in settles, hand off to a slow continuous drift —
+  // the river never quite sits still, echoing the hero's parallax "river" motif.
+  const [breathing, setBreathing] = useState(false)
+  useEffect(() => {
+    if (!shown || prefersReduced()) return
+    const t = window.setTimeout(() => setBreathing(true), 1500)
+    return () => window.clearTimeout(t)
+  }, [shown])
   return (
     <div ref={ref} className="relative w-full overflow-hidden" style={{ background: INK }}>
       <Img
@@ -575,8 +640,14 @@ function RiverBand() {
         srcSet={srcSet(IMG.river)}
         sizes="100vw"
         alt="A mossy Icelandic river winding through a canyon (indicative — Lagarfljót area)"
-        className="block aspect-[21/7] w-full object-cover transition-transform duration-[1400ms] ease-out"
-        style={{ transform: shown ? 'scale(1)' : 'scale(1.06)' }}
+        className={`block aspect-[21/7] w-full object-cover ${
+          breathing ? 'vl-river-breathe' : 'transition-transform duration-[1400ms] ease-out'
+        }`}
+        style={{
+          filter: shown || prefersReduced() ? 'blur(0px)' : 'blur(14px)',
+          transition: breathing ? undefined : 'filter 1.2s ease-out, transform 1.4s ease-out',
+          ...(breathing ? {} : { transform: shown ? 'scale(1)' : 'scale(1.06)' }),
+        }}
         fallbackClassName="bg-gradient-to-br from-[#4a6a5c] to-[#1c2a24]"
       />
       <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(35,31,28,.1), rgba(35,31,28,.28))' }} aria-hidden />
@@ -620,6 +691,14 @@ function FeatureBlock({
   const textColor = dark ? CREAM : INK
   const mutedColor = dark ? 'rgba(246,241,233,.72)' : MUTED
   const ease = 'cubic-bezier(.2,.7,.2,1)'
+  // Photo entrance (blur+scale) needs its own inline transform briefly, then
+  // must release it so group-hover:scale can take over — same fix as Reveal.
+  const [photoSettled, setPhotoSettled] = useState(false)
+  useEffect(() => {
+    if (!shown || prefersReduced()) return
+    const t = window.setTimeout(() => setPhotoSettled(true), 1300)
+    return () => window.clearTimeout(t)
+  }, [shown])
   return (
     <section id={id} style={{ background: ground }} className="py-[clamp(56px,8vw,104px)]">
       <div ref={ref} className="mx-auto max-w-[1280px] px-5 sm:px-8">
@@ -641,6 +720,15 @@ function FeatureBlock({
               sizes="(max-width:768px) 100vw, 48vw"
               alt={imageAlt}
               className="block aspect-[4/3] w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06]"
+              style={
+                photoSettled || prefersReduced()
+                  ? undefined
+                  : {
+                      filter: shown ? 'blur(0px)' : 'blur(16px)',
+                      transform: shown ? 'scale(1)' : 'scale(1.13)',
+                      transition: `filter 1.1s ${ease}, transform 1.2s ${ease}`,
+                    }
+              }
               fallbackClassName="bg-gradient-to-br from-[#c9b79a] to-[#7a6a4f]"
             />
           </figure>
@@ -742,7 +830,7 @@ function Nearby() {
               style={{ background: 'rgba(246,241,233,.05)', border: `1px solid ${HAIRLINE_ON_INK}` }}
             >
               {n.image ? (
-                <Img
+                <Photo
                   src={u(IMG[n.image], 900)}
                   alt={n.imageAlt ?? ''}
                   className="block aspect-[16/10] w-full object-cover"
@@ -1068,8 +1156,11 @@ export default function VinlandPage() {
         .vl-zoom img { transition:transform .6s cubic-bezier(.2,.7,.2,1); }
         .vl-zoom:hover img { transform:scale(1.06); }
 
+        .vl-river-breathe { animation:vl-river-breathe 22s ease-in-out infinite alternate; }
+        @keyframes vl-river-breathe { from { transform:scale(1) translateY(0); } to { transform:scale(1.045) translateY(-1%); } }
+
         @media (prefers-reduced-motion: reduce) {
-          .vl-card, .vl-card:hover, .vl-arrow, .vl-zoom img { transition:none !important; transform:none !important; }
+          .vl-card, .vl-card:hover, .vl-arrow, .vl-zoom img, .vl-river-breathe { transition:none !important; animation:none !important; transform:none !important; }
         }
       `}</style>
       <div id="vl-root">

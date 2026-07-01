@@ -173,6 +173,59 @@ function useInView(threshold = 0.2) {
   return { ref, shown }
 }
 
+/* ── Photo — a photograph "develops into focus" as it scrolls into view:
+   blurred + slightly oversized → sharp + settled. Tracks its own visibility
+   (for images inside a per-item map where no shared `shown` is available).
+   Releases its inline transform/filter once settled so .vl-zoom:hover can
+   still take over the scale afterward (same fix as Reveal, same reason). */
+function Photo({
+  src,
+  srcSet,
+  sizes,
+  alt,
+  className,
+  fallbackClassName,
+  fetchpriority,
+}: {
+  src: string
+  srcSet?: string
+  sizes?: string
+  alt: string
+  className?: string
+  fallbackClassName?: string
+  fetchpriority?: 'high' | 'low' | 'auto'
+}) {
+  const { ref, shown } = useInView(0.15)
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    if (!shown || prefersReduced()) return
+    const t = window.setTimeout(() => setSettled(true), 1300)
+    return () => window.clearTimeout(t)
+  }, [shown])
+  return (
+    <div ref={ref} className="overflow-hidden">
+      <Img
+        src={src}
+        srcSet={srcSet}
+        sizes={sizes}
+        alt={alt}
+        fetchpriority={fetchpriority}
+        className={className}
+        style={
+          settled || prefersReduced()
+            ? undefined
+            : {
+                filter: shown ? 'blur(0px)' : 'blur(16px)',
+                transform: shown ? 'scale(1)' : 'scale(1.15)',
+                transition: 'filter 1.1s cubic-bezier(.2,.7,.2,1), transform 1.2s cubic-bezier(.2,.7,.2,1)',
+              }
+        }
+        fallbackClassName={fallbackClassName}
+      />
+    </div>
+  )
+}
+
 /* ── CountUp — animates a numeric string ("3.7/5", "7.5/10", "8.2") once it
    enters view; non-numeric strings ("Family-run") pass straight through. */
 function CountUp({ value, durationMs = 900 }: { value: string; durationMs?: number }) {
@@ -437,6 +490,19 @@ function TopNav({ onRequest }: { onRequest: () => void }) {
 /*  "Vellir" wordmark signature (the one unmissable moment of the page)     */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Hero({ onRequest }: { onRequest: () => void }) {
+  // The hero photo is always in view on load (no scroll-in needed), so its
+  // "develops into focus" entrance is mount-triggered rather than IO-driven.
+  // Once it settles, hand off to the continuous ken-burns loop.
+  const [photoIn, setPhotoIn] = useState(false)
+  const [photoSettled, setPhotoSettled] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setPhotoIn(true))
+    const t = prefersReduced() ? undefined : window.setTimeout(() => setPhotoSettled(true), 1400)
+    return () => {
+      cancelAnimationFrame(raf)
+      if (t) window.clearTimeout(t)
+    }
+  }, [])
   return (
     <header id="top" className="relative min-h-[100svh] overflow-x-clip" style={{ background: GROUND, color: INK }}>
       {/* full-height two-panel: content left, full-bleed image right */}
@@ -494,7 +560,16 @@ function Hero({ onRequest }: { onRequest: () => void }) {
             src={IMG.exterior}
             alt={PLACE.caption}
             fetchpriority="high"
-            className="vl-kenburns absolute inset-0 h-full w-full object-cover"
+            className={`absolute inset-0 h-full w-full object-cover ${photoSettled ? 'vl-kenburns' : ''}`}
+            style={
+              photoSettled || prefersReduced()
+                ? undefined
+                : {
+                    filter: photoIn ? 'blur(0px)' : 'blur(20px)',
+                    transform: photoIn ? 'scale(1.02)' : 'scale(1.16)',
+                    transition: 'filter 1.3s cubic-bezier(.2,.7,.2,1), transform 1.4s cubic-bezier(.2,.7,.2,1)',
+                  }
+            }
             fallbackClassName="bg-gradient-to-br from-[#cfc6ad] to-[#8c8470]"
           />
         </figure>
@@ -557,7 +632,7 @@ function RoomCard({ r, delay }: { r: RoomType; delay: number }) {
   return (
     <Reveal as="figure" delay={delay} y={20} className="vl-card m-0 flex flex-col overflow-hidden rounded-[4px]" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
       <div className="vl-zoom relative">
-        <Img
+        <Photo
           src={IMG[r.image]}
           alt={r.imageAlt}
           className="block aspect-[4/3] w-full object-cover"
@@ -647,6 +722,12 @@ function Rooms({ onChoose }: { onChoose: (unit: string) => void }) {
 function Cottages({ onChoose }: { onChoose: (unit: string) => void }) {
   const { ref, shown } = useInView(0.2)
   const ease = 'cubic-bezier(.2,.7,.2,1)'
+  const [photoSettled, setPhotoSettled] = useState(false)
+  useEffect(() => {
+    if (!shown || prefersReduced()) return
+    const t = window.setTimeout(() => setPhotoSettled(true), 1300)
+    return () => window.clearTimeout(t)
+  }, [shown])
   return (
     <section id="cottages" style={{ background: DEEP }} className="py-[clamp(64px,9vw,116px)]">
       <div ref={ref} className="mx-auto max-w-6xl px-5 md:px-8">
@@ -689,6 +770,15 @@ function Cottages({ onChoose }: { onChoose: (unit: string) => void }) {
               src={IMG.cottages}
               alt={COTTAGES.imageAlt}
               className="block aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
+              style={
+                photoSettled || prefersReduced()
+                  ? undefined
+                  : {
+                      filter: shown ? 'blur(0px)' : 'blur(16px)',
+                      transform: shown ? 'scale(1)' : 'scale(1.13)',
+                      transition: `filter 1.1s ${ease}, transform 1.2s ${ease}`,
+                    }
+              }
               fallbackClassName="bg-gradient-to-br from-[#5a6f63] to-[#22302a]"
             />
           </div>
@@ -708,7 +798,7 @@ function PeturseyAndNearby() {
         {/* Pétursey feature */}
         <div className="grid items-center gap-x-12 gap-y-8 md:grid-cols-[52fr_48fr]">
           <Reveal as="figure" className="vl-zoom m-0 overflow-hidden rounded-[4px] md:order-2">
-            <Img
+            <Photo
               src={u(UIMG[PETURSEY.image])}
               srcSet={srcSet(UIMG[PETURSEY.image])}
               sizes="(max-width:768px) 100vw, 50vw"
@@ -747,7 +837,7 @@ function PeturseyAndNearby() {
           <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {NEARBY.map((n, i) => (
               <Reveal key={n.name} delay={i * 80} y={18} as="figure" className="vl-card vl-zoom m-0 overflow-hidden rounded-[4px]" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
-                <Img
+                <Photo
                   src={u(UIMG[n.image], 1200)}
                   srcSet={srcSet(UIMG[n.image])}
                   sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
@@ -783,6 +873,12 @@ function PeturseyAndNearby() {
 function Restaurant() {
   const { ref, shown } = useInView(0.2)
   const ease = 'cubic-bezier(.2,.7,.2,1)'
+  const [photoSettled, setPhotoSettled] = useState(false)
+  useEffect(() => {
+    if (!shown || prefersReduced()) return
+    const t = window.setTimeout(() => setPhotoSettled(true), 1300)
+    return () => window.clearTimeout(t)
+  }, [shown])
   return (
     <section style={{ background: GROUND }} className="py-[clamp(56px,8vw,100px)]">
       <div ref={ref} className="mx-auto max-w-6xl px-5 md:px-8">
@@ -831,6 +927,15 @@ function Restaurant() {
               src={IMG[RESTAURANT.image]}
               alt={RESTAURANT.imageAlt}
               className="block aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
+              style={
+                photoSettled || prefersReduced()
+                  ? undefined
+                  : {
+                      filter: shown ? 'blur(0px)' : 'blur(16px)',
+                      transform: shown ? 'scale(1)' : 'scale(1.13)',
+                      transition: `filter 1.1s ${ease}, transform 1.2s ${ease}`,
+                    }
+              }
               fallbackClassName="bg-gradient-to-br from-[#c9bfa3] to-[#7b7259]"
             />
           </div>
@@ -844,18 +949,39 @@ function Restaurant() {
 /*  THE FARM — sheep/horses/poultry, horse-riding, dogs welcome              */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Farm() {
+  // The image breathes continuously once settled — Vellir's second atmosphere
+  // shot alongside the hero's ken-burns, tracked independently of the
+  // figure's own Reveal fade (which covers the gradient + caption too).
+  const { ref: imgRef, shown: imgShown } = useInView(0.2)
+  const [breathing, setBreathing] = useState(false)
+  useEffect(() => {
+    if (!imgShown || prefersReduced()) return
+    const t = window.setTimeout(() => setBreathing(true), 1400)
+    return () => window.clearTimeout(t)
+  }, [imgShown])
   return (
     <section style={{ background: GROUND }} className="pb-[clamp(56px,8vw,100px)]">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <Reveal as="figure" className="vl-zoom relative m-0 overflow-hidden rounded-[4px]">
-          <Img
-            src={u(UIMG[FARM.image], 1800)}
-            srcSet={srcSet(UIMG[FARM.image])}
-            sizes="100vw"
-            alt={FARM.imageAlt}
-            className="block aspect-[16/9] w-full object-cover sm:aspect-[21/8]"
-            fallbackClassName="bg-gradient-to-br from-[#7c8a5e] to-[#33402a]"
-          />
+          <div ref={imgRef}>
+            <Img
+              src={u(UIMG[FARM.image], 1800)}
+              srcSet={srcSet(UIMG[FARM.image])}
+              sizes="100vw"
+              alt={FARM.imageAlt}
+              className={`block aspect-[16/9] w-full object-cover sm:aspect-[21/8] ${breathing ? 'vl-farm-breathe' : ''}`}
+              style={
+                breathing
+                  ? undefined
+                  : {
+                      filter: imgShown || prefersReduced() ? 'blur(0px)' : 'blur(14px)',
+                      transform: imgShown ? 'scale(1)' : 'scale(1.08)',
+                      transition: 'filter 1.2s ease-out, transform 1.4s ease-out',
+                    }
+              }
+              fallbackClassName="bg-gradient-to-br from-[#7c8a5e] to-[#33402a]"
+            />
+          </div>
           <div
             className="pointer-events-none absolute inset-0"
             style={{ background: 'linear-gradient(90deg, rgba(28,26,23,.66) 0%, rgba(28,26,23,.28) 42%, rgba(28,26,23,0) 64%)' }}
@@ -1146,7 +1272,7 @@ function FindUs() {
               <MapPanel />
             </Reveal>
             <Reveal delay={90} as="figure" className="vl-zoom m-0 overflow-hidden rounded-[4px]">
-              <Img
+              <Photo
                 src={IMG[FIND.roadImage]}
                 alt={FIND.roadAlt}
                 className="block aspect-[16/8] w-full object-cover"
@@ -1495,9 +1621,11 @@ export default function VellirPage() {
              scroll-tied parallax drift. Always-on, never scroll-dependent. */
           .vl-kenburns { animation: vl-kenburns 16s ease-in-out infinite alternate; }
           @keyframes vl-kenburns { from { transform:scale(1); } to { transform:scale(1.07) translate(-1%,1%); } }
+          .vl-farm-breathe { animation: vl-farm-breathe 20s ease-in-out infinite alternate; }
+          @keyframes vl-farm-breathe { from { transform:scale(1) translateX(0); } to { transform:scale(1.04) translateX(-1%); } }
         }
         @media (prefers-reduced-motion: reduce) {
-          .vl-card, .vl-card:hover, .vl-arrow, .vl-zoom img { transition:none !important; transform:none !important; }
+          .vl-card, .vl-card:hover, .vl-arrow, .vl-zoom img, .vl-farm-breathe { transition:none !important; animation:none !important; transform:none !important; }
         }
       `}</style>
       <div id="vl-root">
