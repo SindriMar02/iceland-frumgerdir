@@ -259,16 +259,9 @@ function Nav({ onBook }: { onBook: () => void }) {
       <nav aria-label="Main" className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
         <button
           onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth' })}
-          className={`flex items-center gap-2 font-sans text-[16px] font-extrabold tracking-[-0.01em] ${FOCUS}`}
-          style={{ color: INK }}
+          className={FOCUS}
+          style={{ fontFamily: "'Stardom', Georgia, serif", color: RUST, fontSize: '25px', lineHeight: 1 }}
         >
-          <span
-            className="grid h-7 w-7 place-items-center rounded-full font-sans text-[12px] font-extrabold"
-            style={{ background: INK, color: CREAM }}
-            aria-hidden
-          >
-            V
-          </span>
           Vínland
         </button>
 
