@@ -42,6 +42,7 @@ const CREAM = '#F6F1E9'
 const INK = '#231F1C'
 const MUTED = '#5C5650'
 const RUST = '#B8431C'
+const RUST_HOVER = '#9A3714' // darker rust — hover state on rust-filled buttons
 const RUST_TINT = '#D97A4E' // rust-on-dark only
 const HAIRLINE = 'rgba(35,31,28,.14)'
 const HAIRLINE_ON_INK = 'rgba(246,241,233,.16)'
@@ -83,6 +84,10 @@ function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
+  // Once the entrance fade visually finishes, stop forcing transform/transition
+  // inline — hand full control to the element's own classes (e.g. .vl-card's
+  // hover lift) instead of permanently pinning transform:none via inline style.
+  const [settled, setSettled] = useState(false)
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -107,17 +112,26 @@ function Reveal({
       window.clearTimeout(t)
     }
   }, [])
+  useEffect(() => {
+    if (!shown) return
+    const t = window.setTimeout(() => setSettled(true), dur * 1000 + delay + 80)
+    return () => window.clearTimeout(t)
+  }, [shown, dur, delay])
   const Tag = as
   return (
     <Tag
       ref={ref as never}
       className={className}
-      style={{
-        ...style,
-        opacity: shown ? 1 : 0,
-        transform: shown ? 'none' : `translateY(${y}px)`,
-        transition: `opacity ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms, transform ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms`,
-      }}
+      style={
+        settled
+          ? { ...style, opacity: 1 }
+          : {
+              ...style,
+              opacity: shown ? 1 : 0,
+              transform: shown ? 'none' : `translateY(${y}px)`,
+              transition: `opacity ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms, transform ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms`,
+            }
+      }
     >
       {children}
     </Tag>
@@ -152,6 +166,70 @@ function useInView(threshold = 0.2) {
     }
   }, [threshold])
   return { ref, shown }
+}
+
+/* ── CountUp — animates a numeric string ("4.3", "8.1", "177") once it enters
+   view; passes non-numeric strings ("#1", "Since 2018") straight through. */
+function CountUp({ value, durationMs = 900 }: { value: string; durationMs?: number }) {
+  const { ref, shown } = useInView(0.4)
+  const match = value.match(/^(-?\d+(?:\.\d+)?)(.*)$/)
+  const [display, setDisplay] = useState(match ? '0' + match[2] : value)
+  useEffect(() => {
+    if (!shown || !match || prefersReduced()) {
+      if (match) setDisplay(value)
+      return
+    }
+    const target = parseFloat(match[1])
+    const decimals = (match[1].split('.')[1] || '').length
+    const suffix = match[2]
+    const start = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / durationMs)
+      const eased = 1 - Math.pow(1 - p, 3)
+      setDisplay(`${(target * eased).toFixed(decimals)}${suffix}`)
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown])
+  return (
+    <span ref={ref} className="tabular-nums">
+      {display}
+    </span>
+  )
+}
+
+/* ── useParallax — a continuous, always-on scroll-linked drift (not gated by
+   IO reveal state). Kept to a small px range; the "river" signature detail. */
+function useParallax(strength = 0.08) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (prefersReduced()) return
+    let raf = 0
+    const update = () => {
+      const el = ref.current
+      if (el) {
+        const r = el.getBoundingClientRect()
+        const center = r.top + r.height / 2 - window.innerHeight / 2
+        el.style.setProperty('--parallax', `${(-center * strength).toFixed(1)}px`)
+      }
+      raf = 0
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [strength])
+  return ref
 }
 
 /* ── Small-caps overline — tracked label, rust hairline ──────────────────── */
@@ -270,7 +348,7 @@ function Nav({ onBook }: { onBook: () => void }) {
             <button
               key={n.id}
               onClick={() => go(n.id)}
-              className={`font-sans text-[13.5px] font-semibold transition-colors hover:opacity-70 ${FOCUS}`}
+              className={`vl-navlink font-sans text-[13.5px] font-semibold ${FOCUS}`}
               style={{ color: INK }}
             >
               {n.label}
@@ -281,24 +359,24 @@ function Nav({ onBook }: { onBook: () => void }) {
         <div className="hidden items-center gap-5 md:flex">
           <a
             href={PHONE_HREF}
-            className={`font-sans text-[12px] font-semibold uppercase tracking-[0.1em] transition-opacity hover:opacity-70 ${FOCUS}`}
+            className={`vl-navlink font-sans text-[12px] font-semibold uppercase tracking-[0.1em] ${FOCUS}`}
             style={{ color: MUTED }}
           >
             {PHONE}
           </a>
           <a
             href={`mailto:${EMAIL}`}
-            className={`font-sans text-[12px] font-semibold uppercase tracking-[0.1em] transition-opacity hover:opacity-70 ${FOCUS}`}
+            className={`vl-navlink font-sans text-[12px] font-semibold uppercase tracking-[0.1em] ${FOCUS}`}
             style={{ color: MUTED }}
           >
             Email
           </a>
           <button
             onClick={onBook}
-            className={`font-sans text-[13px] font-extrabold uppercase tracking-[0.12em] transition-opacity hover:opacity-75 ${FOCUS}`}
+            className={`vl-arrow-btn font-sans text-[13px] font-extrabold uppercase tracking-[0.12em] transition-opacity hover:opacity-80 ${FOCUS}`}
             style={{ color: RUST }}
           >
-            Book →
+            Book <span className="vl-arrow">→</span>
           </button>
         </div>
 
@@ -368,6 +446,7 @@ function Nav({ onBook }: { onBook: () => void }) {
 /* ══════════════════════════════════════════════════════════════════════ */
 function Hero({ onBook }: { onBook: () => void }) {
   const { ref, shown } = useInView(0.1)
+  const parallaxRef = useParallax(0.05)
   return (
     <header id="stay-hero" className="relative" style={{ background: CREAM }}>
       <div id="top" className="absolute -top-24" aria-hidden />
@@ -407,13 +486,16 @@ function Hero({ onBook }: { onBook: () => void }) {
           style={{ gridArea: 'pic', paddingBottom: 'clamp(34px,5.5vw,66px)', opacity: shown ? 1 : 0, transition: 'opacity .7s cubic-bezier(.2,.7,.2,1)' }}
         >
           <div className="overflow-hidden rounded-[6px]">
-            <Img
-              src={HERO_PHOTO.src}
-              alt={HERO_PHOTO.alt}
-              fetchpriority="high"
-              className="block aspect-[16/10] w-full object-cover md:aspect-[16/10]"
-              fallbackClassName="bg-gradient-to-br from-[#c98a5c] to-[#7a4a2c]"
-            />
+            <div ref={parallaxRef} style={{ transform: 'translateY(calc(var(--parallax, 0px) * 0.4))' }}>
+              <Img
+                src={HERO_PHOTO.src}
+                alt={HERO_PHOTO.alt}
+                fetchpriority="high"
+                className="block aspect-[16/10] w-full object-cover md:aspect-[16/10]"
+                style={{ transform: 'scale(1.12)' }}
+                fallbackClassName="bg-gradient-to-br from-[#c98a5c] to-[#7a4a2c]"
+              />
+            </div>
           </div>
           <div
             aria-hidden
@@ -454,10 +536,10 @@ function Hero({ onBook }: { onBook: () => void }) {
               </a>
               <button
                 onClick={onBook}
-                className={`inline-flex min-h-[40px] items-center gap-1.5 font-sans text-[13px] font-extrabold uppercase tracking-[0.1em] underline-offset-[6px] transition-opacity hover:underline hover:opacity-75 ${FOCUS}`}
+                className={`vl-arrow-btn inline-flex min-h-[40px] items-center gap-1.5 font-sans text-[13px] font-extrabold uppercase tracking-[0.1em] underline-offset-[6px] transition-opacity hover:underline hover:opacity-75 ${FOCUS}`}
                 style={{ color: RUST }}
               >
-                Send inquiry →
+                Send inquiry <span className="vl-arrow">→</span>
               </button>
             </div>
           </Reveal>
@@ -466,7 +548,7 @@ function Hero({ onBook }: { onBook: () => void }) {
               {TRUST.map((t) => (
                 <div key={t.label}>
                   <div className="font-sans text-[19px] font-extrabold leading-none" style={{ color: INK }}>
-                    {t.value}
+                    <CountUp value={t.value} />
                   </div>
                   <div className="mt-1 font-sans text-[11px] leading-tight" style={{ color: MUTED }}>
                     {t.label}
@@ -543,19 +625,22 @@ function FeatureBlock({
       <div ref={ref} className="mx-auto max-w-[1280px] px-5 sm:px-8">
         <div className={`grid items-center gap-x-12 gap-y-9 md:grid-cols-2 ${reverse ? 'md:[&>*:first-child]:order-2' : ''}`}>
           <figure
-            className="group relative m-0 overflow-hidden rounded-[6px]"
+            className="group relative m-0 overflow-hidden rounded-[6px] transition-shadow duration-500"
             style={{
               opacity: shown ? 1 : 0,
               transform: shown ? 'none' : 'translateY(16px)',
-              transition: `opacity .65s ${ease}, transform .65s ${ease}`,
+              transition: `opacity .65s ${ease}, transform .65s ${ease}, box-shadow .5s ease`,
+              boxShadow: '0 0 0 rgba(35,31,28,0)',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 20px 44px rgba(35,31,28,.16)')}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 0 0 rgba(35,31,28,0)')}
           >
             <Img
               src={u(IMG[image], 1500)}
               srcSet={srcSet(IMG[image])}
               sizes="(max-width:768px) 100vw, 48vw"
               alt={imageAlt}
-              className="block aspect-[4/3] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.035]"
+              className="block aspect-[4/3] w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06]"
               fallbackClassName="bg-gradient-to-br from-[#c9b79a] to-[#7a6a4f]"
             />
           </figure>
@@ -578,11 +663,16 @@ function FeatureBlock({
               {body}
             </p>
             <ul className="mt-6 grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2">
-              {specs.map((s) => (
+              {specs.map((s, i) => (
                 <li
                   key={s}
                   className="flex items-center gap-2.5 font-sans text-[13.5px] font-semibold"
-                  style={{ color: textColor }}
+                  style={{
+                    color: textColor,
+                    opacity: shown ? 1 : 0,
+                    transform: shown ? 'none' : 'translateX(-8px)',
+                    transition: `opacity .45s ${ease} ${200 + i * 60}ms, transform .45s ${ease} ${200 + i * 60}ms`,
+                  }}
                 >
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dark ? RUST_TINT : RUST }} aria-hidden />
                   {s}
@@ -605,9 +695,11 @@ function Amenities() {
       <div className="mx-auto max-w-[1280px] px-5 py-10 sm:px-8">
         <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-5">
           {AMENITIES.map((a, i) => (
-            <Reveal key={a.title} delay={i * 60} y={12} className="flex flex-col items-start gap-2.5">
-              <Glyph name={a.icon} />
-              <span className="font-sans text-[13px] font-semibold leading-tight" style={{ color: INK }}>
+            <Reveal key={a.title} delay={i * 60} y={12} className="group flex flex-col items-start gap-2.5">
+              <span className="transition-transform duration-300 group-hover:scale-[1.15] group-hover:-translate-y-0.5">
+                <Glyph name={a.icon} />
+              </span>
+              <span className="font-sans text-[13px] font-semibold leading-tight transition-colors duration-300 group-hover:opacity-70" style={{ color: INK }}>
                 {a.title}
               </span>
             </Reveal>
@@ -646,7 +738,7 @@ function Nearby() {
               delay={i * 70}
               y={16}
               as="figure"
-              className="m-0 flex flex-col overflow-hidden rounded-[10px]"
+              className="vl-card vl-zoom m-0 flex flex-col overflow-hidden rounded-[10px]"
               style={{ background: 'rgba(246,241,233,.05)', border: `1px solid ${HAIRLINE_ON_INK}` }}
             >
               {n.image ? (
@@ -707,7 +799,7 @@ function GuestWords() {
 
         <div className="mt-11 grid gap-6 md:grid-cols-3">
           {GUEST_QUOTES.map((g, i) => (
-            <Reveal key={g.attribution} delay={i * 80} y={18} as="figure" className="m-0 flex flex-col rounded-[10px] p-7" style={{ background: '#FFFFFF', border: `1px solid ${HAIRLINE}` }}>
+            <Reveal key={g.attribution} delay={i * 80} y={18} as="figure" className="vl-card m-0 flex flex-col rounded-[10px] p-7" style={{ background: '#FFFFFF', border: `1px solid ${HAIRLINE}` }}>
               <span className="font-sans text-[34px] font-extrabold leading-none" style={{ color: RUST }} aria-hidden>
                 “
               </span>
@@ -727,13 +819,13 @@ function GuestWords() {
             { brand: 'Tripadvisor', s: SCORES.tripadvisor },
             { brand: 'Booking.com', s: SCORES.booking },
           ].map((b, i) => (
-            <Reveal key={b.brand} delay={i * 90} y={16} className="rounded-[10px] p-7" style={{ background: CREAM, border: `1px solid ${HAIRLINE}` }}>
+            <Reveal key={b.brand} delay={i * 90} y={16} className="vl-card rounded-[10px] p-7" style={{ background: CREAM, border: `1px solid ${HAIRLINE}` }}>
               <div className="flex items-baseline justify-between gap-4">
                 <span className="font-sans text-[14px] font-extrabold uppercase tracking-[0.08em]" style={{ color: INK }}>
                   {b.brand}
                 </span>
                 <span className="font-sans text-[26px] font-extrabold leading-none" style={{ color: RUST }}>
-                  {b.s.value}
+                  <CountUp value={b.s.value} />
                   <span className="ml-1 font-sans text-[13px] font-semibold" style={{ color: MUTED }}>
                     {b.s.of}
                   </span>
@@ -748,7 +840,7 @@ function GuestWords() {
                   <div key={c.label} className="flex items-center justify-between gap-2 font-sans text-[12.5px]">
                     <span style={{ color: MUTED }}>{c.label}</span>
                     <span className="font-bold tabular-nums" style={{ color: INK }}>
-                      {c.value}
+                      <CountUp value={c.value} durationMs={700} />
                     </span>
                   </div>
                 ))}
@@ -783,7 +875,7 @@ function FindUs() {
                 {FIND.body}
               </p>
             </Reveal>
-            <Reveal delay={160} className="mt-6 rounded-[10px] p-5" style={{ background: '#FFFFFF', border: `1px solid ${HAIRLINE}` }}>
+            <Reveal delay={160} className="vl-card mt-6 rounded-[10px] p-5" style={{ background: '#FFFFFF', border: `1px solid ${HAIRLINE}` }}>
               <div className="font-sans text-[14px] font-bold" style={{ color: INK }}>
                 {FIND.address}
               </div>
@@ -791,17 +883,21 @@ function FindUs() {
                 href={FIND.mapHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 font-sans text-[13px] font-extrabold uppercase tracking-[0.08em] transition-transform active:scale-[0.98] ${FOCUS}`}
+                className={`vl-cta vl-arrow-btn mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 py-2.5 font-sans text-[13px] font-extrabold uppercase tracking-[0.08em] active:scale-[0.98] ${FOCUS}`}
                 style={{ background: RUST, color: '#FFFFFF' }}
               >
-                Open in maps ↗
+                Open in maps <span className="vl-arrow">↗</span>
               </a>
             </Reveal>
           </div>
 
           <Reveal delay={100} className="flex flex-col gap-px overflow-hidden rounded-[10px]" style={{ background: HAIRLINE }}>
             {FIND.drives.map((d) => (
-              <div key={d.from} className="flex items-center justify-between gap-4 px-6 py-4.5" style={{ background: '#FFFFFF' }}>
+              <div
+                key={d.from}
+                className="flex items-center justify-between gap-4 px-6 py-4.5 transition-colors duration-300 hover:bg-[#FBF7F1]"
+                style={{ background: '#FFFFFF' }}
+              >
                 <div>
                   <div className="font-sans text-[14.5px] font-bold" style={{ color: INK }}>
                     {d.from}
@@ -849,14 +945,14 @@ function Stay() {
           <Reveal delay={140} className="flex flex-col gap-4">
             <a
               href={STAY.bookHref}
-              className={`inline-flex min-h-[52px] items-center justify-center rounded-full px-7 font-sans text-[15px] font-extrabold uppercase tracking-[0.08em] transition-transform active:scale-[0.98] ${FOCUS_ON_INK}`}
+              className={`vl-cta inline-flex min-h-[52px] items-center justify-center rounded-full px-7 font-sans text-[15px] font-extrabold uppercase tracking-[0.08em] active:scale-[0.98] ${FOCUS_ON_INK}`}
               style={{ background: RUST, color: '#FFFFFF' }}
             >
               {STAY.bookLabel}
             </a>
             <a
               href={`mailto:${EMAIL}`}
-              className={`inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border px-7 font-sans text-[15px] font-bold transition-colors hover:bg-white/5 ${FOCUS_ON_INK}`}
+              className={`inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border px-7 font-sans text-[15px] font-bold transition-colors duration-300 hover:bg-white/5 hover:border-white/30 ${FOCUS_ON_INK}`}
               style={{ borderColor: HAIRLINE_ON_INK, color: CREAM }}
             >
               {STAY.inquiryLabel}
@@ -910,13 +1006,15 @@ function Closing({ onBook }: { onBook: () => void }) {
         </p>
         <button
           onClick={onBook}
-          className={`mt-8 inline-flex min-h-[48px] items-center rounded-full px-8 font-sans text-[14.5px] font-extrabold uppercase tracking-[0.08em] transition-transform active:scale-[0.98] ${FOCUS}`}
+          className={`vl-cta mt-8 inline-flex min-h-[48px] items-center rounded-full px-8 font-sans text-[14.5px] font-extrabold uppercase tracking-[0.08em] ${FOCUS}`}
           style={{
             background: RUST,
             color: '#FFFFFF',
             opacity: shown ? 1 : 0,
             transform: shown ? 'none' : 'translateY(16px)',
-            transition: `opacity .65s ${ease} .16s, transform .65s ${ease} .16s`,
+            transition: shown
+              ? 'background-color .25s ease, transform .15s ease'
+              : `opacity .65s ${ease} .16s, transform .65s ${ease} .16s`,
           }}
         >
           Check availability
@@ -944,6 +1042,35 @@ export default function VinlandPage() {
     <div className="overflow-x-hidden font-sans" style={{ background: CREAM, color: INK }}>
       <style>{`
         #vl-root ::selection { background:${RUST}; color:#FFFFFF; }
+
+        .vl-navlink { position:relative; }
+        .vl-navlink::after {
+          content:''; position:absolute; left:0; right:100%; bottom:-3px; height:1.5px;
+          background:${RUST}; transition:right .28s cubic-bezier(.2,.7,.2,1);
+        }
+        .vl-navlink:hover::after { right:0; }
+
+        .vl-card { transition:transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s cubic-bezier(.2,.7,.2,1), border-color .4s ease; }
+        /* !important: Reveal-wrapped cards carry an inline transform (and
+           sometimes an inline border shorthand) that would otherwise win
+           over this hover rule — a stylesheet !important is the one case
+           that legitimately beats a plain (non-important) inline style. */
+        .vl-card:hover { transform:translateY(-5px) !important; box-shadow:0 20px 44px rgba(35,31,28,.14); border-color:${RUST}55 !important; }
+
+        .vl-arrow { display:inline-block; transition:transform .3s cubic-bezier(.2,.7,.2,1); }
+        .vl-arrow-btn:hover .vl-arrow { transform:translateX(4px); }
+
+        .vl-cta { transition:background-color .25s ease, transform .15s ease; }
+        .vl-cta:hover { background-color:${RUST_HOVER} !important; }
+        .vl-cta:active { transform:scale(.98); }
+
+        .vl-zoom { overflow:hidden; }
+        .vl-zoom img { transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+        .vl-zoom:hover img { transform:scale(1.06); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .vl-card, .vl-card:hover, .vl-arrow, .vl-zoom img { transition:none !important; transform:none !important; }
+        }
       `}</style>
       <div id="vl-root">
         <PreviewChrome company={company} />

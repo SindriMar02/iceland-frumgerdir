@@ -46,6 +46,7 @@ const SURFACE = '#FFFFFF' // pure white card surface (subtle lift off cream)
 const INK = '#1C1A17' // near-black ink text
 const MUTED = '#5B5650' // warm ink-grey for secondary copy
 const ACCENT = '#3D5A6C' // cool slate-blue — the ONE accent, used sparingly
+const ACCENT_HOVER = '#2E4552' // darker slate — hover state on accent-filled buttons
 const ACCENT_TINT = '#8FAEBE' // lightened slate, for small accents on dark bands
 const DEEP = '#243A45' // deep slate-ink alternating section band
 const HAIRLINE = 'rgba(28,26,23,.12)' // ink hairline on cream
@@ -88,6 +89,10 @@ function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
+  // Once the entrance fade visually finishes, stop forcing transform/transition
+  // inline — hand full control to the element's own classes (e.g. .vl-card's
+  // hover lift) instead of permanently pinning transform:none via inline style.
+  const [settled, setSettled] = useState(false)
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -112,17 +117,26 @@ function Reveal({
       window.clearTimeout(t)
     }
   }, [])
+  useEffect(() => {
+    if (!shown) return
+    const t = window.setTimeout(() => setSettled(true), dur * 1000 + delay + 80)
+    return () => window.clearTimeout(t)
+  }, [shown, dur, delay])
   const Tag = as
   return (
     <Tag
       ref={ref as never}
       className={className}
-      style={{
-        ...style,
-        opacity: shown ? 1 : 0,
-        transform: shown ? 'none' : `translateY(${y}px)`,
-        transition: `opacity ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms, transform ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms`,
-      }}
+      style={
+        settled
+          ? { ...style, opacity: 1 }
+          : {
+              ...style,
+              opacity: shown ? 1 : 0,
+              transform: shown ? 'none' : `translateY(${y}px)`,
+              transition: `opacity ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms, transform ${dur}s cubic-bezier(.2,.7,.2,1) ${delay}ms`,
+            }
+      }
     >
       {children}
     </Tag>
@@ -157,6 +171,39 @@ function useInView(threshold = 0.2) {
     }
   }, [threshold])
   return { ref, shown }
+}
+
+/* ── CountUp — animates a numeric string ("3.7/5", "7.5/10", "8.2") once it
+   enters view; non-numeric strings ("Family-run") pass straight through. */
+function CountUp({ value, durationMs = 900 }: { value: string; durationMs?: number }) {
+  const { ref, shown } = useInView(0.4)
+  const match = value.match(/^(-?\d+(?:\.\d+)?)(.*)$/)
+  const [display, setDisplay] = useState(match ? '0' + match[2] : value)
+  useEffect(() => {
+    if (!shown || !match || prefersReduced()) {
+      if (match) setDisplay(value)
+      return
+    }
+    const target = parseFloat(match[1])
+    const decimals = (match[1].split('.')[1] || '').length
+    const suffix = match[2]
+    const start = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / durationMs)
+      const eased = 1 - Math.pow(1 - p, 3)
+      setDisplay(`${(target * eased).toFixed(decimals)}${suffix}`)
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown])
+  return (
+    <span ref={ref} className="tabular-nums">
+      {display}
+    </span>
+  )
 }
 
 /* ── Overline — thin accent rule + tracked small-caps label ──────────────── */
@@ -298,7 +345,7 @@ function TopNav({ onRequest }: { onRequest: () => void }) {
             <button
               key={n.id}
               onClick={() => go(n.id)}
-              className={`font-sans text-[13.5px] font-medium transition-colors hover:opacity-70 ${FOCUS}`}
+              className={`vl-navlink font-sans text-[13.5px] font-medium ${FOCUS}`}
               style={{ color: INK }}
             >
               {n.label}
@@ -309,21 +356,21 @@ function TopNav({ onRequest }: { onRequest: () => void }) {
         <div className="hidden items-center gap-5 md:flex">
           <a
             href={PHONE_HREF}
-            className={`font-sans text-[13px] font-medium tracking-[0.02em] transition-opacity hover:opacity-70 ${FOCUS}`}
+            className={`vl-navlink font-sans text-[13px] font-medium tracking-[0.02em] ${FOCUS}`}
             style={{ color: MUTED }}
           >
             {PHONE}
           </a>
           <a
             href={`mailto:${EMAIL}`}
-            className={`font-sans text-[13px] font-medium underline-offset-[4px] transition-opacity hover:underline hover:opacity-70 ${FOCUS}`}
+            className={`vl-navlink font-sans text-[13px] font-medium ${FOCUS}`}
             style={{ color: MUTED }}
           >
             Email
           </a>
           <button
             onClick={onRequest}
-            className={`font-sans text-[13px] font-bold uppercase tracking-[0.1em] underline-offset-[5px] hover:underline ${FOCUS}`}
+            className={`vl-arrow-btn font-sans text-[13px] font-bold uppercase tracking-[0.1em] transition-opacity hover:opacity-80 ${FOCUS}`}
             style={{ color: ACCENT }}
           >
             Book
@@ -427,11 +474,11 @@ function Hero({ onRequest }: { onRequest: () => void }) {
               </a>
               <button
                 onClick={onRequest}
-                className={`inline-flex items-center gap-2 font-sans text-[13px] font-bold uppercase tracking-[0.1em] underline-offset-[5px] hover:underline ${FOCUS}`}
+                className={`vl-arrow-btn inline-flex items-center gap-2 font-sans text-[13px] font-bold uppercase tracking-[0.1em] underline-offset-[5px] hover:underline ${FOCUS}`}
                 style={{ color: ACCENT }}
               >
                 Send inquiry
-                <svg width="13" height="11" viewBox="0 0 14 12" fill="none" aria-hidden>
+                <svg className="vl-arrow" width="13" height="11" viewBox="0 0 14 12" fill="none" aria-hidden>
                   <path d="M1 6h12M8 1l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
@@ -439,13 +486,15 @@ function Hero({ onRequest }: { onRequest: () => void }) {
           </Reveal>
         </div>
 
-        {/* RIGHT — full-bleed property photo filling the panel to the viewport edge */}
+        {/* RIGHT — full-bleed property photo, breathing with a slow continuous
+            ken-burns creep (Vellir's ambient signature — distinct from the
+            sibling build's scroll-tied parallax). */}
         <figure className="relative m-0 min-h-[30svh] overflow-hidden md:min-h-0">
           <Img
             src={IMG.exterior}
             alt={PLACE.caption}
             fetchpriority="high"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="vl-kenburns absolute inset-0 h-full w-full object-cover"
             fallbackClassName="bg-gradient-to-br from-[#cfc6ad] to-[#8c8470]"
           />
         </figure>
@@ -488,7 +537,7 @@ function TrustStrip() {
           {TRUST.map((t, i) => (
             <Reveal key={t.label} delay={i * 70} y={14}>
               <div className="font-sans text-[1.6rem] font-extrabold leading-none tracking-[-0.01em]" style={{ color: '#FFFFFF' }}>
-                {t.value}
+                <CountUp value={t.value} />
               </div>
               <div className="mt-2 font-sans text-[11.5px] font-medium uppercase tracking-[0.06em] leading-tight" style={{ color: ACCENT_TINT }}>
                 {t.label}
@@ -506,12 +555,12 @@ function TrustStrip() {
 /* ══════════════════════════════════════════════════════════════════════ */
 function RoomCard({ r, delay }: { r: RoomType; delay: number }) {
   return (
-    <Reveal as="figure" delay={delay} y={20} className="m-0 flex flex-col overflow-hidden rounded-[4px]" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
-      <div className="relative overflow-hidden">
+    <Reveal as="figure" delay={delay} y={20} className="vl-card m-0 flex flex-col overflow-hidden rounded-[4px]" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
+      <div className="vl-zoom relative">
         <Img
           src={IMG[r.image]}
           alt={r.imageAlt}
-          className="block aspect-[4/3] w-full object-cover transition-transform duration-500 hover:scale-[1.04]"
+          className="block aspect-[4/3] w-full object-cover"
           fallbackClassName="bg-gradient-to-br from-[#cfc6ad] to-[#8c8470]"
         />
         <span
@@ -621,7 +670,7 @@ function Cottages({ onChoose }: { onChoose: (unit: string) => void }) {
             </p>
             <button
               onClick={() => onChoose('cottage')}
-              className={`mt-7 inline-flex min-h-[44px] items-center rounded-full px-6 py-3 font-sans text-[13.5px] font-bold uppercase tracking-[0.08em] transition-transform active:scale-[0.98] ${FOCUS_ON_DARK}`}
+              className={`vl-cta mt-7 inline-flex min-h-[44px] items-center rounded-full px-6 py-3 font-sans text-[13.5px] font-bold uppercase tracking-[0.08em] active:scale-[0.98] ${FOCUS_ON_DARK}`}
               style={{ background: ACCENT, color: '#FFFFFF' }}
             >
               Ask about the cottages
@@ -629,7 +678,7 @@ function Cottages({ onChoose }: { onChoose: (unit: string) => void }) {
           </div>
 
           <div
-            className="overflow-hidden rounded-[4px]"
+            className="vl-zoom overflow-hidden rounded-[4px]"
             style={{
               opacity: shown ? 1 : 0,
               transform: shown ? 'translateX(0)' : 'translateX(20px)',
@@ -658,7 +707,7 @@ function PeturseyAndNearby() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         {/* Pétursey feature */}
         <div className="grid items-center gap-x-12 gap-y-8 md:grid-cols-[52fr_48fr]">
-          <Reveal as="figure" className="m-0 overflow-hidden rounded-[4px] md:order-2">
+          <Reveal as="figure" className="vl-zoom m-0 overflow-hidden rounded-[4px] md:order-2">
             <Img
               src={u(UIMG[PETURSEY.image])}
               srcSet={srcSet(UIMG[PETURSEY.image])}
@@ -697,7 +746,7 @@ function PeturseyAndNearby() {
           </Reveal>
           <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {NEARBY.map((n, i) => (
-              <Reveal key={n.name} delay={i * 80} y={18} as="figure" className="m-0 overflow-hidden rounded-[4px]" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
+              <Reveal key={n.name} delay={i * 80} y={18} as="figure" className="vl-card vl-zoom m-0 overflow-hidden rounded-[4px]" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
                 <Img
                   src={u(UIMG[n.image], 1200)}
                   srcSet={srcSet(UIMG[n.image])}
@@ -753,8 +802,17 @@ function Restaurant() {
               {RESTAURANT.body}
             </p>
             <ul className="mt-6 flex flex-col gap-3">
-              {RESTAURANT.notes.map((n) => (
-                <li key={n} className="flex items-start gap-2.5 font-sans text-[14px] font-medium" style={{ color: INK }}>
+              {RESTAURANT.notes.map((n, i) => (
+                <li
+                  key={n}
+                  className="flex items-start gap-2.5 font-sans text-[14px] font-medium"
+                  style={{
+                    color: INK,
+                    opacity: shown ? 1 : 0,
+                    transform: shown ? 'none' : 'translateX(-8px)',
+                    transition: `opacity .45s ${ease} ${200 + i * 70}ms, transform .45s ${ease} ${200 + i * 70}ms`,
+                  }}
+                >
                   <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: ACCENT }} aria-hidden />
                   {n}
                 </li>
@@ -762,7 +820,7 @@ function Restaurant() {
             </ul>
           </div>
           <div
-            className="overflow-hidden rounded-[4px]"
+            className="vl-zoom overflow-hidden rounded-[4px]"
             style={{
               opacity: shown ? 1 : 0,
               transform: shown ? 'translateX(0)' : 'translateX(20px)',
@@ -789,7 +847,7 @@ function Farm() {
   return (
     <section style={{ background: GROUND }} className="pb-[clamp(56px,8vw,100px)]">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <Reveal as="figure" className="relative m-0 overflow-hidden rounded-[4px]">
+        <Reveal as="figure" className="vl-zoom relative m-0 overflow-hidden rounded-[4px]">
           <Img
             src={u(UIMG[FARM.image], 1800)}
             srcSet={srcSet(UIMG[FARM.image])}
@@ -835,8 +893,16 @@ function Amenities() {
         </Reveal>
         <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-[6px] sm:grid-cols-4" style={{ background: HAIRLINE }}>
           {AMENITIES.map((a, i) => (
-            <Reveal key={a.title} delay={i * 55} y={14} className="flex flex-col gap-3 p-5 md:p-6" style={{ background: SURFACE }}>
-              <Glyph name={a.icon} />
+            <Reveal
+              key={a.title}
+              delay={i * 55}
+              y={14}
+              className="group flex flex-col gap-3 p-5 transition-colors duration-300 hover:bg-[#EDE7D8] md:p-6"
+              style={{ background: SURFACE }}
+            >
+              <span className="inline-block transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+                <Glyph name={a.icon} />
+              </span>
               <div>
                 <div className="font-sans text-[14px] font-bold" style={{ color: INK }}>
                   {a.title}
@@ -881,7 +947,7 @@ function GuestWords() {
           {GUEST.scores.map((s, i) => (
             <Reveal key={s.label} delay={i * 70} y={14}>
               <div className="font-sans text-[clamp(1.7rem,3vw,2.3rem)] font-extrabold leading-none" style={{ color: '#FFFFFF' }}>
-                {s.value}
+                <CountUp value={s.value} />
               </div>
               <div className="mt-2 font-sans text-[13px] font-bold" style={{ color: ACCENT_TINT }}>
                 {s.label}
@@ -896,7 +962,7 @@ function GuestWords() {
         {/* quotes */}
         <div className="mt-14 grid gap-6 md:grid-cols-2">
           {GUEST_QUOTES.map((q, i) => (
-            <Reveal key={q.attribution} delay={i * 90} y={18} className="rounded-[4px] p-6 md:p-7" style={{ background: 'rgba(244,239,230,.06)', border: '1px solid rgba(244,239,230,.14)' }}>
+            <Reveal key={q.attribution} delay={i * 90} y={18} className="vl-card rounded-[4px] p-6 md:p-7" style={{ background: 'rgba(244,239,230,.06)', border: '1px solid rgba(244,239,230,.14)' }}>
               <p className="font-sans text-[15.5px] italic leading-[1.55]" style={{ color: 'rgba(244,239,230,.95)' }}>
                 “{q.quote}”
               </p>
@@ -922,7 +988,7 @@ function GuestWords() {
             {GUEST.categoryScores.map((c) => (
               <div key={c.label}>
                 <div className="font-sans text-[1.15rem] font-extrabold tabular-nums" style={{ color: '#FFFFFF' }}>
-                  {c.value.toFixed(1)}
+                  <CountUp value={c.value.toFixed(1)} durationMs={700} />
                 </div>
                 <div className="mt-1 font-sans text-[11px] leading-tight" style={{ color: 'rgba(244,239,230,.7)' }}>
                   {c.label}
@@ -1006,16 +1072,28 @@ function MapPanel() {
 
 function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   const bodyRef = useRef<HTMLDivElement>(null)
+  const [hover, setHover] = useState(false)
   return (
     <div className="border-t" style={{ borderColor: HAIRLINE }}>
       <h3 className="m-0">
-        <button onClick={onToggle} aria-expanded={open} className={`flex w-full items-center justify-between gap-4 py-5 text-left ${FOCUS}`}>
-          <span className="font-sans text-[15.5px] font-semibold" style={{ color: INK }}>
+        <button
+          onClick={onToggle}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          aria-expanded={open}
+          className={`flex w-full items-center justify-between gap-4 py-5 text-left ${FOCUS}`}
+        >
+          <span className="font-sans text-[15.5px] font-semibold transition-opacity duration-300" style={{ color: INK, opacity: hover ? 0.7 : 1 }}>
             {q}
           </span>
           <span
             className="grid h-7 w-7 shrink-0 place-items-center rounded-full"
-            style={{ background: GROUND, color: ACCENT, transition: 'transform .3s ease', transform: open ? 'rotate(45deg)' : 'none' }}
+            style={{
+              background: GROUND,
+              color: ACCENT,
+              transition: 'transform .3s ease',
+              transform: `${open ? 'rotate(45deg) ' : ''}scale(${hover ? 1.1 : 1})`,
+            }}
             aria-hidden
           >
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -1067,7 +1145,7 @@ function FindUs() {
             <Reveal>
               <MapPanel />
             </Reveal>
-            <Reveal delay={90} as="figure" className="m-0 overflow-hidden rounded-[4px]">
+            <Reveal delay={90} as="figure" className="vl-zoom m-0 overflow-hidden rounded-[4px]">
               <Img
                 src={IMG[FIND.roadImage]}
                 alt={FIND.roadAlt}
@@ -1077,7 +1155,7 @@ function FindUs() {
             </Reveal>
           </div>
 
-          <Reveal delay={120} className="flex flex-col rounded-[6px] p-6 md:p-7" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
+          <Reveal delay={120} className="vl-card flex flex-col rounded-[6px] p-6 md:p-7" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
             <div className="font-sans text-[14px] leading-[1.6]" style={{ color: INK }}>
               <div className="font-bold">{FIND.address}</div>
               <a href={`mailto:${EMAIL}`} className={`mt-1 inline-block underline-offset-[4px] hover:underline ${FOCUS}`} style={{ color: ACCENT }}>
@@ -1093,14 +1171,18 @@ function FindUs() {
               href={FIND.mapHref}
               target="_blank"
               rel="noopener noreferrer"
-              className={`mt-5 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full px-5 py-2.5 font-sans text-[13.5px] font-bold uppercase tracking-[0.06em] transition-transform active:scale-[0.98] ${FOCUS}`}
+              className={`vl-cta vl-arrow-btn mt-5 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full px-5 py-2.5 font-sans text-[13.5px] font-bold uppercase tracking-[0.06em] active:scale-[0.98] ${FOCUS}`}
               style={{ background: ACCENT, color: '#FFFFFF' }}
             >
-              Open in maps ↗
+              Open in maps <span className="vl-arrow">↗</span>
             </a>
             <div className="mt-7 flex flex-col gap-px overflow-hidden rounded-[6px]" style={{ background: HAIRLINE }}>
               {FIND.drives.map((d) => (
-                <div key={d.from} className="flex items-center justify-between gap-4 px-4 py-3.5" style={{ background: SURFACE }}>
+                <div
+                  key={d.from}
+                  className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors duration-300 hover:bg-[#EDE7D8]"
+                  style={{ background: SURFACE }}
+                >
                   <div>
                     <div className="font-sans text-[13.5px] font-semibold" style={{ color: INK }}>
                       from {d.from}
@@ -1238,13 +1320,13 @@ function Stay({ unit, setUnit }: { unit: string; setUnit: (u: string) => void })
                     <div>
                       <span className={labelCls} style={{ color: MUTED }}>Guests</span>
                       <div className="flex items-center justify-between rounded-[6px] px-2 py-1.5" style={{ border: `1px solid rgba(28,26,23,.22)`, background: '#FFFFFF' }}>
-                        <button type="button" onClick={() => setParty(Math.max(1, party - 1))} disabled={party <= 1} aria-label="Fewer guests" className={`grid h-11 w-11 place-items-center rounded-[5px] text-[20px] leading-none transition-opacity disabled:opacity-35 ${FOCUS}`} style={{ background: GROUND, color: INK }}>
+                        <button type="button" onClick={() => setParty(Math.max(1, party - 1))} disabled={party <= 1} aria-label="Fewer guests" className={`grid h-11 w-11 place-items-center rounded-[5px] text-[20px] leading-none transition-all duration-150 hover:not-disabled:bg-[#E1DCCC] active:not-disabled:scale-90 disabled:opacity-35 ${FOCUS}`} style={{ background: GROUND, color: INK }}>
                           −
                         </button>
                         <span className="font-sans text-[17px] font-bold tabular-nums" style={{ color: INK }}>
                           {party}
                         </span>
-                        <button type="button" onClick={() => setParty(Math.min(8, party + 1))} disabled={party >= 8} aria-label="More guests" className={`grid h-11 w-11 place-items-center rounded-[5px] text-[20px] leading-none transition-opacity disabled:opacity-35 ${FOCUS}`} style={{ background: GROUND, color: INK }}>
+                        <button type="button" onClick={() => setParty(Math.min(8, party + 1))} disabled={party >= 8} aria-label="More guests" className={`grid h-11 w-11 place-items-center rounded-[5px] text-[20px] leading-none transition-all duration-150 hover:not-disabled:bg-[#E1DCCC] active:not-disabled:scale-90 disabled:opacity-35 ${FOCUS}`} style={{ background: GROUND, color: INK }}>
                           +
                         </button>
                       </div>
@@ -1273,7 +1355,7 @@ function Stay({ unit, setUnit }: { unit: string; setUnit: (u: string) => void })
                     <textarea className={field} style={{ ...fieldStyle, minHeight: 96, resize: 'vertical' }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Dietary needs, arrival time, a question…" />
                   </label>
 
-                  <button type="submit" className={`mt-1 w-full rounded-[6px] py-4 font-sans text-[15.5px] font-bold uppercase tracking-[0.04em] transition-transform active:scale-[0.99] ${FOCUS}`} style={{ background: ACCENT, color: '#FFFFFF' }}>
+                  <button type="submit" className={`vl-cta mt-1 w-full rounded-[6px] py-4 font-sans text-[15.5px] font-bold uppercase tracking-[0.04em] active:scale-[0.99] ${FOCUS}`} style={{ background: ACCENT, color: '#FFFFFF' }}>
                     Send inquiry
                   </button>
                   <p className="text-center font-sans text-[12px]" style={{ color: MUTED }}>
@@ -1332,13 +1414,15 @@ function Closing({ onRequest }: { onRequest: () => void }) {
         </p>
         <button
           onClick={onRequest}
-          className={`mt-9 inline-flex min-h-[48px] items-center rounded-full px-8 py-4 font-sans text-[15.5px] font-bold uppercase tracking-[0.06em] transition-transform active:scale-[0.98] ${FOCUS_ON_DARK}`}
+          className={`vl-cta mt-9 inline-flex min-h-[48px] items-center rounded-full px-8 py-4 font-sans text-[15.5px] font-bold uppercase tracking-[0.06em] ${FOCUS_ON_DARK}`}
           style={{
             background: ACCENT,
             color: '#FFFFFF',
             opacity: shown ? 1 : 0,
             transform: shown ? 'none' : 'translateY(18px)',
-            transition: `opacity .7s ${ease} .18s, transform .7s ${ease} .18s`,
+            transition: shown
+              ? 'background-color .25s ease, transform .15s ease'
+              : `opacity .7s ${ease} .18s, transform .7s ${ease} .18s`,
           }}
         >
           Check availability
@@ -1372,6 +1456,33 @@ export default function VellirPage() {
     <div className="font-sans overflow-x-hidden" style={{ background: GROUND, color: INK }}>
       <style>{`
         #vl-root ::selection { background:${ACCENT}; color:#FFFFFF; }
+
+        .vl-navlink { position:relative; }
+        .vl-navlink::after {
+          content:''; position:absolute; left:0; right:100%; bottom:-3px; height:1.5px;
+          background:${ACCENT}; transition:right .28s cubic-bezier(.2,.7,.2,1);
+        }
+        .vl-navlink:hover::after { right:0; }
+
+        /* Distinct from the sibling build: cards SCALE + glow rather than lift. */
+        .vl-card { transition:transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s cubic-bezier(.2,.7,.2,1), border-color .4s ease; }
+        /* !important: Reveal-wrapped cards carry an inline transform (and
+           sometimes an inline border shorthand) that would otherwise win
+           over this hover rule — a stylesheet !important is the one case
+           that legitimately beats a plain (non-important) inline style. */
+        .vl-card:hover { transform:scale(1.015) !important; box-shadow:0 18px 40px rgba(28,26,23,.13); border-color:${ACCENT}66 !important; }
+
+        .vl-arrow { display:inline-block; transition:transform .3s cubic-bezier(.2,.7,.2,1); }
+        .vl-arrow-btn:hover .vl-arrow { transform:translateX(4px); }
+
+        .vl-cta { transition:background-color .25s ease, transform .15s ease; }
+        .vl-cta:hover { background-color:${ACCENT_HOVER} !important; }
+        .vl-cta:active { transform:scale(.98); }
+
+        .vl-zoom { overflow:hidden; }
+        .vl-zoom img { transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+        .vl-zoom:hover img { transform:scale(1.06); }
+
         @media (prefers-reduced-motion: no-preference) {
           .vl-settle { animation: vl-settle 1.4s cubic-bezier(.2,.7,.2,1) both; }
           @keyframes vl-settle { from { transform:scale(1.06); } to { transform:scale(1); } }
@@ -1379,6 +1490,14 @@ export default function VellirPage() {
           @keyframes vl-drop { 0% { transform: translateY(-14px) scale(.6); opacity:0; } 60% { opacity:1; } 100% { transform: translateY(0) scale(1); opacity:1; } }
           .vl-ripple { animation: vl-ripple 1.6s ease-out .4s 1 both; }
           @keyframes vl-ripple { 0% { r:7; opacity:.7; } 100% { r:26; opacity:0; } }
+          /* Vellir's ambient signature: the full-bleed hero photo breathes with a
+             slow, continuous ken-burns creep — distinct from the sibling build's
+             scroll-tied parallax drift. Always-on, never scroll-dependent. */
+          .vl-kenburns { animation: vl-kenburns 16s ease-in-out infinite alternate; }
+          @keyframes vl-kenburns { from { transform:scale(1); } to { transform:scale(1.07) translate(-1%,1%); } }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .vl-card, .vl-card:hover, .vl-arrow, .vl-zoom img { transition:none !important; transform:none !important; }
         }
       `}</style>
       <div id="vl-root">
