@@ -247,6 +247,10 @@ function HeroSignature() {
   // where the thread + secondary wedge are md:block-hidden). Phones then get a
   // clean tall-but-not-pinned hero instead of a 165vh sticky stage.
   const [compact, setCompact] = useState(false)
+  // On mobile there's no scroll-pin to cross-fade Specimen/Provenance, so a tap
+  // flips between them — keeps the label card the same compact height as the
+  // desktop version instead of stacking both and overrunning the photo.
+  const [labelTab, setLabelTab] = useState<'specimen' | 'provenance'>('specimen')
 
   // Keep `compact` in sync if the viewport is resized across the 768px line.
   useEffect(() => {
@@ -462,7 +466,10 @@ function HeroSignature() {
                     </div>
                   </div>
 
-                  {/* hand-set label card overlapping the lower-left edge */}
+                  {/* hand-set label card overlapping the lower-left edge — on
+                      mobile a tap flips Specimen/Provenance instead of stacking
+                      both, so the card keeps the same compact footprint over
+                      the photo as the desktop scroll-cross-fade version */}
                   <div
                     className="absolute -bottom-7 left-0 z-[4] w-[min(310px,84%)] rounded-[8px] sm:-left-7"
                     style={{
@@ -479,21 +486,44 @@ function HeroSignature() {
                     </div>
                     <div className="mx-5 mt-3 h-px" style={{ background: C.rule }} />
 
-                    <div className="relative px-5 pb-5 pt-3" style={{ minHeight: compact ? undefined : '152px' }}>
+                    {compact && (
+                      <div className="flex gap-2 px-5 pt-3" role="tablist" aria-label="Label detail">
+                        {(['specimen', 'provenance'] as const).map((tab) => (
+                          <button
+                            key={tab}
+                            type="button"
+                            role="tab"
+                            aria-selected={labelTab === tab}
+                            onClick={() => setLabelTab(tab)}
+                            className="rounded-full px-3 py-1 font-manrope text-[10px] font-semibold uppercase tracking-[0.08em] transition-colors"
+                            style={
+                              labelTab === tab
+                                ? { background: C.ink, color: C.surface }
+                                : { background: 'transparent', color: C.muted, border: `1px solid ${C.rule}` }
+                            }
+                          >
+                            {tab === 'specimen' ? 'Specimen' : 'Provenance'}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="relative px-5 pb-5 pt-3" style={{ minHeight: '152px' }}>
                       <LabelRows
                         innerRef={specRef}
                         heading="Specimen"
+                        showHeading={!compact}
                         rows={SPEC_ROWS}
-                        startOpacity={1}
-                        absolute={false}
+                        startOpacity={compact ? (labelTab === 'specimen' ? 1 : 0) : 1}
+                        absolute={compact}
                       />
-                      {compact && <div className="my-3 h-px" style={{ background: C.rule }} />}
                       <LabelRows
                         innerRef={provRef}
                         heading="Provenance"
+                        showHeading={!compact}
                         rows={PROVENANCE_ROWS}
-                        startOpacity={compact ? 1 : 0}
-                        absolute={!compact}
+                        startOpacity={compact ? (labelTab === 'provenance' ? 1 : 0) : 0}
+                        absolute={true}
                       />
                     </div>
                   </div>
@@ -519,12 +549,14 @@ function HeroSignature() {
 function LabelRows({
   innerRef,
   heading,
+  showHeading = true,
   rows,
   startOpacity,
   absolute,
 }: {
   innerRef: React.RefObject<HTMLDivElement>
   heading: string
+  showHeading?: boolean
   rows: readonly { k: string; v: string }[]
   startOpacity: number
   absolute: boolean
@@ -538,9 +570,11 @@ function LabelRows({
         transition: 'opacity .25s linear',
       }}
     >
-      <Caps color={C.pasture} className="block mb-2.5">
-        {heading}
-      </Caps>
+      {showHeading && (
+        <Caps color={C.pasture} className="block mb-2.5">
+          {heading}
+        </Caps>
+      )}
       <dl className="m-0 flex flex-col gap-1.5">
         {rows.map((r) => (
           <div key={r.k} className="flex items-baseline justify-between gap-3">
