@@ -15,13 +15,11 @@ export const PHONE_HREF = 'tel:+3548932989'
 
 export const PLACE = {
   overline: 'Fellabær · Egilsstaðir · Austurland',
-  /* ALL-CAPS, plain-spoken, multi-line value statement — left-aligned. */
+  /* Compact all-caps value line — three short lines, fits beside the photo. */
   headline: [
     'SIX ROOMS, A COTTAGE',
-    'AND CAMPING PODS BY',
-    'THE RING ROAD, RIGHT',
-    'ACROSS THE RIVER FROM',
-    'EGILSSTAÐIR.',
+    'AND CAMPING PODS,',
+    'RIGHT BY THE RING ROAD.',
   ],
   caption: 'Vínland, on the Fellabær side of Lagarfljót · real property photo',
   practical:

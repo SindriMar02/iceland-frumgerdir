@@ -391,79 +391,32 @@ function TopNav({ onRequest }: { onRequest: () => void }) {
 /* ══════════════════════════════════════════════════════════════════════ */
 function Hero({ onRequest }: { onRequest: () => void }) {
   return (
-    <header id="top" className="relative overflow-x-clip" style={{ background: GROUND, color: INK }}>
-      <div className="mx-auto max-w-6xl px-5 pb-0 pt-[clamp(96px,16vw,140px)] md:px-8">
-        {/* Headline block */}
-        <Reveal>
-          <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em]" style={{ color: ACCENT }}>
-            {PLACE.overline}
-          </p>
-        </Reveal>
-        <h1
-          className="m-0 mt-5 max-w-[18ch] font-sans font-extrabold uppercase"
-          style={{ fontSize: 'clamp(2.1rem,6.4vw,4.4rem)', lineHeight: 1.02, letterSpacing: '-0.01em', color: INK }}
-        >
-          {PLACE.headline.map((line, i) => (
-            <Reveal key={line} as="div" delay={80 + i * 90} y={16}>
-              {line}
-            </Reveal>
-          ))}
-        </h1>
-
-        {/* Asymmetric two-column block: photo + practical copy */}
-        <div className="mt-12 grid gap-x-10 gap-y-8 md:mt-16 md:grid-cols-[58fr_42fr] md:items-end">
-          {/* Photo (grounded documentary proportions, not full-bleed cinematic).
-              The caption sits ABOVE the photo (a small kicker), and the giant
-              wordmark bleeds freely below the photo onto open cream ground —
-              so neither ever collides with legible text, at any viewport
-              width. The wordmark is positioned relative to THIS figure only,
-              so it always overlaps the photo, never the copy column beside
-              or below it. */}
-          <Reveal delay={140} as="figure" className="relative z-0 m-0">
-            <figcaption className="mb-2.5 font-sans text-[12px] italic" style={{ color: MUTED }}>
-              {PLACE.caption}
-            </figcaption>
-            <div className="overflow-hidden rounded-[4px]" style={{ background: '#D9D2C2' }}>
-              <Img
-                src={IMG.exterior}
-                alt={PLACE.caption}
-                fetchpriority="high"
-                className="block aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
-                fallbackClassName="bg-gradient-to-br from-[#cfc6ad] to-[#8c8470]"
-              />
-            </div>
-
-            {/* THE SIGNATURE — giant serif wordmark overlapping the photo onto
-                cream. Scoped to the figure's own box (not the 2-col grid), so
-                it bleeds past the photo's bottom edge onto open ground below,
-                clear of any other text at every breakpoint. */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute left-0 right-0 z-10 select-none"
-              style={{ bottom: 'clamp(-2.4rem,-6vw,-1rem)' }}
-            >
-              <span
-                className="block"
-                style={{
-                  fontFamily: "'Melodrama', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(3.6rem,13vw,9.5rem)',
-                  lineHeight: 0.86,
-                  color: ACCENT,
-                  letterSpacing: '-0.01em',
-                  textShadow: '0 1px 0 rgba(244,239,230,.4)',
-                }}
-              >
-                Vellir
-              </span>
-            </div>
+    <header id="top" className="relative min-h-[100svh] overflow-x-clip" style={{ background: GROUND, color: INK }}>
+      {/* full-height two-panel: content left, full-bleed image right */}
+      <div className="grid md:min-h-[100svh] md:grid-cols-[1fr_1.02fr]">
+        {/* LEFT — content, vertically centred; bottom padding reserves the wordmark band */}
+        <div className="relative z-10 flex flex-col justify-center px-5 pb-[clamp(72px,11vh,120px)] pt-[clamp(80px,13vh,104px)] sm:px-8 md:pb-[clamp(120px,17vh,190px)] md:pl-[max(2rem,calc((100vw-1152px)/2))] md:pr-14">
+          <Reveal>
+            <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em]" style={{ color: ACCENT }}>
+              {PLACE.overline}
+            </p>
           </Reveal>
-
-          {/* Practical copy column */}
-          <Reveal delay={200} className="md:pb-9">
-            <p className="font-sans text-[12px] font-semibold uppercase leading-[1.7] tracking-[0.12em]" style={{ color: MUTED }}>
+          <h1
+            className="m-0 mt-5 max-w-[27ch] font-sans font-extrabold uppercase"
+            style={{ fontSize: 'clamp(1.5rem,2.7vw,2.35rem)', lineHeight: 1.08, letterSpacing: '-0.01em', color: INK }}
+          >
+            {PLACE.headline.map((line, i) => (
+              <Reveal key={line} as="div" delay={80 + i * 90} y={16}>
+                {line}
+              </Reveal>
+            ))}
+          </h1>
+          <Reveal delay={260}>
+            <p className="mt-6 max-w-[46ch] font-sans text-[13.5px] leading-[1.62]" style={{ color: MUTED }}>
               {PLACE.copy}
             </p>
+          </Reveal>
+          <Reveal delay={310}>
             <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3">
               <a
                 href={PHONE_HREF}
@@ -486,8 +439,39 @@ function Hero({ onRequest }: { onRequest: () => void }) {
           </Reveal>
         </div>
 
-        {/* spacer so the overlapping wordmark has room to breathe before the next section */}
-        <div style={{ height: 'clamp(48px,8vw,96px)' }} aria-hidden />
+        {/* RIGHT — full-bleed property photo filling the panel to the viewport edge */}
+        <figure className="relative m-0 min-h-[30svh] overflow-hidden md:min-h-0">
+          <Img
+            src={IMG.exterior}
+            alt={PLACE.caption}
+            fetchpriority="high"
+            className="absolute inset-0 h-full w-full object-cover"
+            fallbackClassName="bg-gradient-to-br from-[#cfc6ad] to-[#8c8470]"
+          />
+        </figure>
+      </div>
+
+      {/* THE SIGNATURE — giant Melodrama wordmark on the baseline, crossing from
+          the cream content onto the photo's lower-left. A different treatment
+          from the sibling build (there the wordmark tucks under a framed photo). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-[clamp(1.25rem,4vh,3rem)] left-0 z-20 select-none whitespace-nowrap px-5 sm:px-8 md:px-0 md:left-[max(2rem,calc((100vw-1152px)/2))]"
+      >
+        <span
+          className="block"
+          style={{
+            fontFamily: "'Melodrama', serif",
+            fontWeight: 700,
+            fontSize: 'clamp(3rem,14vw,11rem)',
+            lineHeight: 0.82,
+            color: ACCENT,
+            letterSpacing: '-0.015em',
+            textShadow: '0 2px 12px rgba(28,26,23,.30)',
+          }}
+        >
+          Vellir
+        </span>
       </div>
     </header>
   )

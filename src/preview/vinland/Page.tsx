@@ -378,23 +378,27 @@ function Hero({ onBook }: { onBook: () => void }) {
   return (
     <header id="stay-hero" className="relative" style={{ background: CREAM }}>
       <div id="top" className="absolute -top-24" aria-hidden />
-      <div className="mx-auto max-w-[1280px] px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
-        <Reveal>
+      <style>{`
+        .vl-hero{display:grid;grid-template-columns:1fr;grid-template-areas:"over" "head" "pic" "info";column-gap:3rem;row-gap:1rem;align-content:center;min-height:calc(100svh - 61px)}
+        .vl-pic img{max-height:42vh}
+        @media(min-width:768px){
+          .vl-hero{grid-template-columns:53fr 47fr;grid-template-areas:"over over" "pic head" "pic info";row-gap:1.4rem}
+          .vl-pic img{max-height:none}
+        }
+      `}</style>
+      <div ref={ref} className="vl-hero mx-auto max-w-[1200px] px-5 py-5 sm:px-8 sm:py-8">
+        {/* overline */}
+        <Reveal style={{ gridArea: 'over' }}>
           <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em]" style={{ color: MUTED }}>
             {PLACE.overline}
           </p>
         </Reveal>
 
-        <Reveal delay={70}>
+        {/* compact headline */}
+        <Reveal delay={70} style={{ gridArea: 'head' }}>
           <h1
-            className="m-0 mt-5 font-sans font-extrabold uppercase"
-            style={{
-              color: INK,
-              fontSize: 'clamp(2.1rem,5.6vw,4.4rem)',
-              lineHeight: 1.02,
-              letterSpacing: '-0.015em',
-              maxWidth: '16ch',
-            }}
+            className="m-0 font-sans font-extrabold uppercase"
+            style={{ color: INK, fontSize: 'clamp(1.5rem,2.6vw,2.3rem)', lineHeight: 1.07, letterSpacing: '-0.015em', maxWidth: '18ch' }}
           >
             {PLACE.headline.map((line) => (
               <span key={line} className="block">
@@ -403,102 +407,81 @@ function Hero({ onBook }: { onBook: () => void }) {
             ))}
           </h1>
         </Reveal>
-      </div>
 
-      {/* asymmetric block: photo (left) + signature wordmark overlap, then practical copy (right) */}
-      <div ref={ref} className="mx-auto max-w-[1280px] px-5 sm:px-8">
-        <div className="grid gap-x-10 gap-y-8 md:grid-cols-[58fr_42fr] md:items-end">
-          {/* LEFT — real photo block, wordmark overlaps its bottom edge */}
-          <div className="relative" style={{ paddingBottom: 'clamp(48px,9vw,96px)' }}>
-            <p className="mb-2 font-sans text-[11px] italic" style={{ color: MUTED }}>
-              {PLACE.caption}
-            </p>
-            <figure
-              className="relative m-0 overflow-hidden rounded-[6px]"
-              style={{
-                opacity: shown ? 1 : 0,
-                transition: 'opacity .7s cubic-bezier(.2,.7,.2,1)',
-              }}
-            >
-              <Img
-                src={HERO_PHOTO.src}
-                alt={HERO_PHOTO.alt}
-                fetchpriority="high"
-                className="block aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
-                fallbackClassName="bg-gradient-to-br from-[#c98a5c] to-[#7a4a2c]"
-              />
-            </figure>
-            {/* SIGNATURE — giant Stardom wordmark, breaks out onto the cream ground */}
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-start px-1 sm:-bottom-2"
-              style={{
-                opacity: shown ? 1 : 0,
-                transform: shown ? 'translateY(0)' : 'translateY(18px)',
-                transition: 'opacity .8s cubic-bezier(.2,.7,.2,1) .15s, transform .8s cubic-bezier(.2,.7,.2,1) .15s',
-              }}
-              aria-hidden
-            >
-              <span
-                style={{
-                  fontFamily: "'Stardom', Georgia, serif",
-                  color: RUST,
-                  fontSize: 'clamp(2.6rem,13vw,11rem)',
-                  lineHeight: 0.85,
-                  letterSpacing: '-0.01em',
-                  textShadow: '0 2px 28px rgba(35,31,28,.18)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Vínland
-              </span>
-            </div>
+        {/* photo + signature wordmark bleeding off its bottom edge */}
+        <figure
+          className="vl-pic relative m-0"
+          style={{ gridArea: 'pic', paddingBottom: 'clamp(34px,5.5vw,66px)', opacity: shown ? 1 : 0, transition: 'opacity .7s cubic-bezier(.2,.7,.2,1)' }}
+        >
+          <div className="overflow-hidden rounded-[6px]">
+            <Img
+              src={HERO_PHOTO.src}
+              alt={HERO_PHOTO.alt}
+              fetchpriority="high"
+              className="block aspect-[16/10] w-full object-cover md:aspect-[16/10]"
+              fallbackClassName="bg-gradient-to-br from-[#c98a5c] to-[#7a4a2c]"
+            />
           </div>
-
-          {/* RIGHT — tracked small-caps practical copy + phone + send inquiry */}
-          <Reveal delay={140} className="pb-2 md:pb-3">
-            <p
-              className="font-sans text-[13.5px] uppercase leading-[1.85] tracking-[0.04em]"
-              style={{ color: MUTED }}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-start"
+            style={{
+              opacity: shown ? 1 : 0,
+              transform: shown ? 'translateY(0)' : 'translateY(16px)',
+              transition: 'opacity .8s cubic-bezier(.2,.7,.2,1) .15s, transform .8s cubic-bezier(.2,.7,.2,1) .15s',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "'Stardom', Georgia, serif",
+                color: RUST,
+                fontSize: 'clamp(2.3rem,8vw,6rem)',
+                lineHeight: 0.85,
+                letterSpacing: '-0.01em',
+                textShadow: '0 2px 24px rgba(35,31,28,.16)',
+                whiteSpace: 'nowrap',
+              }}
             >
+              Vínland
+            </span>
+          </div>
+        </figure>
+
+        {/* practical copy + phone + inquiry + compact trust */}
+        <div style={{ gridArea: 'info' }} className="md:self-center">
+          <Reveal delay={130}>
+            <p className="font-sans text-[13.5px] leading-[1.62]" style={{ color: MUTED }}>
               {PLACE.practical}
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4">
-              <a
-                href={PHONE_HREF}
-                className={`font-sans text-[16px] font-bold ${FOCUS}`}
-                style={{ color: INK }}
-              >
+          </Reveal>
+          <Reveal delay={175}>
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <a href={PHONE_HREF} className={`font-sans text-[15.5px] font-bold ${FOCUS}`} style={{ color: INK }}>
                 {PHONE}
               </a>
               <button
                 onClick={onBook}
-                className={`inline-flex min-h-[44px] items-center gap-1.5 font-sans text-[13px] font-extrabold uppercase tracking-[0.1em] underline-offset-[6px] transition-opacity hover:underline hover:opacity-75 ${FOCUS}`}
+                className={`inline-flex min-h-[40px] items-center gap-1.5 font-sans text-[13px] font-extrabold uppercase tracking-[0.1em] underline-offset-[6px] transition-opacity hover:underline hover:opacity-75 ${FOCUS}`}
                 style={{ color: RUST }}
               >
                 Send inquiry →
               </button>
             </div>
           </Reveal>
-        </div>
-
-        <p className="mt-3 font-sans text-[11px] italic sm:hidden" style={{ color: MUTED }}>
-          {PLACE.caption}
-        </p>
-      </div>
-
-      {/* trust strip — directly under the hero block */}
-      <div className="mt-12 border-t sm:mt-16" style={{ borderColor: HAIRLINE }}>
-        <div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-x-6 gap-y-6 px-5 py-8 sm:grid-cols-4 sm:px-8">
-          {TRUST.map((t, i) => (
-            <Reveal key={t.label} delay={i * 70} y={14}>
-              <div className="font-sans text-[22px] font-extrabold leading-none" style={{ color: INK }}>
-                {t.value}
-              </div>
-              <div className="mt-1.5 font-sans text-[11.5px] leading-tight" style={{ color: MUTED }}>
-                {t.label}
-              </div>
-            </Reveal>
-          ))}
+          <Reveal delay={215}>
+            <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-4 border-t pt-5" style={{ borderColor: HAIRLINE }}>
+              {TRUST.map((t) => (
+                <div key={t.label}>
+                  <div className="font-sans text-[19px] font-extrabold leading-none" style={{ color: INK }}>
+                    {t.value}
+                  </div>
+                  <div className="mt-1 font-sans text-[11px] leading-tight" style={{ color: MUTED }}>
+                    {t.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </div>
     </header>

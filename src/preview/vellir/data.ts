@@ -15,8 +15,8 @@ export const PHONE_HREF = 'tel:+3544871312'
 
 export const PLACE = {
   overline: 'Mýrdalur · 871 Vík · South Iceland',
-  // ALL-CAPS, plain-spoken, multi-line value-proposition headline
-  headline: ['9 ROOMS AND 2 COTTAGES', 'UNDER THE MOUNTAIN PÉTURSEY.', 'BETWEEN THE GLACIER AND THE SEA.'],
+  // Compact all-caps value line — three short lines beside the image column
+  headline: ['NINE ROOMS, TWO COTTAGES,', 'UNDER PÉTURSEY —', 'BETWEEN GLACIER AND SEA.'],
   caption: 'The guesthouse at Vellir, under the cliffs of Pétursey (verified property photo)',
   copy:
     'A working family farm fifteen minutes off the Ring Road, set under the cliffs of Pétursey. Nine rooms in the main house, two private cottages in the meadow, and the south coast on every side: Sólheimajökull, Dyrhólaey, Skógafoss and Reynisfjara are all a short drive away.',
