@@ -46,6 +46,8 @@ const KirkjubaerPage = lazy(() => import('./preview/kirkjubaer/Page'))
 // Scout round 6 — two rural farm guesthouses (shared "Mutafova" editorial DNA)
 const VinlandPage = lazy(() => import('./preview/vinland/Page'))
 const VellirPage = lazy(() => import('./preview/vellir/Page'))
+// Scout round 7 — bakeries; reuses the Faxi Bakery Café design system
+const GkBakariPage = lazy(() => import('./preview/gkbakari/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -112,6 +114,7 @@ export default function App() {
             <Route path="/preview/kirkjubaer" element={<KirkjubaerPage />} />
             <Route path="/preview/vinland" element={<VinlandPage />} />
             <Route path="/preview/vellir" element={<VellirPage />} />
+            <Route path="/preview/gkbakari" element={<GkBakariPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

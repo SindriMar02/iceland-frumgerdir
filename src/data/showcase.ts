@@ -282,6 +282,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
         image: local('faxibakery/hero.jpg'),
         accent: '#c98a2e',
       },
+      {
+        route: '/preview/gkbakari',
+        name: 'GK Bakarí',
+        sector: 'Bakarí & kaffihús',
+        location: 'Selfoss',
+        blurb: 'Rómað bakarí tveggja vina á Selfossi, með 4,7 í einkunn en enga vefsíðu, byggt frá grunni um söguna og matseðilinn þeirra.',
+        image: img('photo-1686207855146-c3ffe2166d40'),
+        accent: '#C2773A',
+      },
     ],
   },
   {
