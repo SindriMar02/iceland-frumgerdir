@@ -23,7 +23,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { IMAGES, FALLBACK, MENU, STATS, HOURS_BY_DAY, VISIT } from './data'
+import { IMAGES, FALLBACK, LOGO, MENU, STATS, HOURS_BY_DAY, VISIT } from './data'
 
 const company = getPreviewCompany('gkbakari')
 
@@ -282,9 +282,19 @@ export default function GkBakariPage() {
             <a href="#story" className="gk-navlink">Story</a>
             <a href="#visit" className="gk-navlink">Visit</a>
           </div>
-          <div style={{ textAlign: 'center', lineHeight: 0.9 }}>
-            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 30, letterSpacing: '-.02em' }}>GK</div>
-            <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.42em', color: MOSS, marginTop: 3 }}>BAKARÍ&nbsp;·&nbsp;SELFOSS</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <img
+              src={LOGO}
+              alt="GK Bakarí logo — a gold hand-drawn cinnamon roll behind a GK monogram"
+              width={46}
+              height={46}
+              decoding="async"
+              style={{ width: 46, height: 46, borderRadius: '50%', display: 'block', boxShadow: '0 4px 14px #1B171226', border: '2px solid #FAF3E4' }}
+            />
+            <div style={{ textAlign: 'left', lineHeight: 0.9 }}>
+              <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: '-.02em' }}>GK</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.32em', color: MOSS, marginTop: 3 }}>BAKARÍ&nbsp;·&nbsp;SELFOSS</div>
+            </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, alignItems: 'center' }}>
             <a
@@ -318,11 +328,14 @@ export default function GkBakariPage() {
 
         <div style={{ textAlign: 'center', marginTop: 'clamp(10px,2vh,22px)', position: 'relative', zIndex: 4 }}>
           {reduced ? (
-            <h1 className="gk-headline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(40px,9vw,132px)', lineHeight: 0.9, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>CINNAMON ROLL</h1>
+            <h1 className="gk-headline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(40px,9vw,132px)', lineHeight: 0.9, letterSpacing: '-.035em', margin: 0, color: INK, whiteSpace: 'nowrap' }}>KANILSNÚÐUR</h1>
           ) : (
-            <div style={{ width: 'min(67vw,900px)', margin: '0 auto', height: 'clamp(46px,8.4vw,122px)' }}>
+            /* TextPressure sizes glyphs at containerW/(chars/2); KANILSNÚÐUR is 11
+               chars vs Faxi's 13, so the container is scaled by 11/13 to keep the
+               rendered glyph size (and the height clamp) identical to the design. */
+            <div style={{ width: 'min(57vw,760px)', margin: '0 auto', height: 'clamp(46px,8.4vw,122px)' }}>
                 <TextPressure
-                  text={'CINNAMON ROLL'}
+                  text={'KANILSNÚÐUR'}
                   fontFamily="Bricolage Grotesque"
                   fontUrl={BRICOLAGE_VF}
                   className="gk-headline"
@@ -351,6 +364,9 @@ export default function GkBakariPage() {
 
           <Steam reduced={reduced} />
 
+          {/* hero photo — crisp, unfeathered. Its own cream background is the
+              exact same tone as the page (CREAM), so the square edges dissolve
+              into the page while the roll stays sharp. */}
           <div
             style={{
               position: 'absolute',
@@ -369,15 +385,11 @@ export default function GkBakariPage() {
                 y: reduced ? 0 : rollLift,
                 transformOrigin: '50% 46%',
                 willChange: 'transform',
-                borderRadius: 28,
-                overflow: 'hidden',
-                boxShadow: '0 30px 70px -20px #1B171240',
               }}
             >
-              <Img
+              <img
                 src={IMAGES.hero}
-                alt="Glossy iced cinnamon rolls (kanilsnúður), fresh on a cooling rack"
-                fallbackClassName={FALLBACK.card}
+                alt="A single cinnamon roll (kanilsnúður), fresh from the oven — golden laminated layers dusted with cinnamon sugar"
                 decoding="async"
                 {...{ fetchpriority: 'high' }}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -388,8 +400,8 @@ export default function GkBakariPage() {
 
         <div className="gk-herofoot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, padding: '0 0 26px', position: 'relative', zIndex: 4 }}>
           <div style={{ maxWidth: 340 }}>
-            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>Selfoss's own neighborhood bakery.</div>
-            <div style={{ fontSize: 13.5, color: '#1B1712aa', marginTop: 7, lineHeight: 1.45 }}>On Austurvegur, a few minutes off Route 1. Real espresso, fresh bread, and a seat if you want to stay.</div>
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(18px,2vw,23px)', lineHeight: 1.05, letterSpacing: '-.01em' }}>Baked in Selfoss, for Selfoss.</div>
+            <div style={{ fontSize: 13.5, color: '#1B1712aa', marginTop: 7, lineHeight: 1.45 }}>On Austurvegur, right where the Ring Road runs through town. Fresh bread from seven, coffee ground for every cup, and a seat if you want to stay.</div>
           </div>
           <div className="gk-hours" style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, letterSpacing: '.1em', color: MOSS, textTransform: 'uppercase', lineHeight: 1.6, whiteSpace: 'nowrap' }}>
             {VISIT.hoursLines.map((l) => <div key={l}>{l}</div>)}
@@ -409,11 +421,11 @@ export default function GkBakariPage() {
                 A gathering place,<br />baked by <span style={{ color: CARAMEL }}>two friends</span>.
               </h2>
               <p style={{ fontSize: 'clamp(15px,1.3vw,18px)', lineHeight: 1.65, color: '#F6F0E3cc', maxWidth: '48ch', margin: '24px 0 0' }}>
-                Guðmundur trained at Brauð &amp; Co in Reykjavík. Kjartan learned his trade in an IKEA bakery. In late 2019 the two friends opened their own place in{' '}
-                <em style={{ fontStyle: 'normal', color: '#fff', borderBottom: `2px solid ${CARAMEL}` }}>Kjartan's hometown of Selfoss</em> — not just a bakery, but the kind of gathering place a town like this deserves.
+                Guðmundur baked at Brauð &amp; Co in Reykjavík. Kjartan learned his craft in an IKEA bakery. In January 2020 we opened our own doors in{' '}
+                <em style={{ fontStyle: 'normal', color: '#fff', borderBottom: `2px solid ${CARAMEL}` }}>Kjartan's hometown of Selfoss</em> — not just a bakery, but the gathering place a town like this deserves.
               </p>
               <p style={{ fontSize: 'clamp(15px,1.3vw,18px)', lineHeight: 1.65, color: '#F6F0E3cc', maxWidth: '48ch', margin: '18px 0 0' }}>
-                Traditional Icelandic bakes sit alongside real espresso and daily soup, with ingredients sourced from South Iceland producers like Korngrís and Ártangi.
+                Traditional Icelandic bakes next to real espresso and a daily pot of soup, with ingredients from South Iceland producers like Korngrís and Ártangi.
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -489,7 +501,7 @@ export default function GkBakariPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', color: SAND, textTransform: 'uppercase' }}>
               <span style={{ width: 34, height: 1.5, background: SAND }} />Visit
             </div>
-            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,66px)', lineHeight: 1, letterSpacing: '-.025em', margin: '16px 0 0' }}>Come by<br />Austurvegur.</h2>
+            <h2 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 'clamp(34px,4.6vw,66px)', lineHeight: 1, letterSpacing: '-.025em', margin: '16px 0 0' }}>Right on the way<br />through town.</h2>
             <div style={{ marginTop: 30, display: 'grid', gap: 18, maxWidth: 420 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid #F6F0E322', paddingBottom: 14 }}>
                 <span style={{ color: SAND, fontSize: 14 }}>Where</span>
@@ -521,10 +533,22 @@ export default function GkBakariPage() {
       {/* ===================== FOOTER ===================== */}
       <footer style={{ background: INK, color: CREAM_LIGHT, padding: '46px clamp(20px,4vw,72px)' }}>
         <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: '-.02em' }}>
-            GK <span style={{ color: MOSS_LIGHT, fontWeight: 600, fontSize: 13, letterSpacing: '.2em' }}>BAKARÍ · SELFOSS</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img
+              src={LOGO}
+              alt=""
+              aria-hidden="true"
+              width={38}
+              height={38}
+              loading="lazy"
+              decoding="async"
+              style={{ width: 38, height: 38, borderRadius: '50%', display: 'block', border: '1.5px solid #F6F0E326' }}
+            />
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: '-.02em' }}>
+              GK <span style={{ color: MOSS_LIGHT, fontWeight: 600, fontSize: 13, letterSpacing: '.2em' }}>BAKARÍ · SELFOSS</span>
+            </div>
           </div>
-          <div style={{ fontSize: 13, color: '#F6F0E388' }}>Selfoss's own neighborhood bakery · Iceland · ©2026</div>
+          <div style={{ fontSize: 13, color: '#F6F0E388' }}>Freshly baked, freshly ground and freshly awakened · Austurvegur 31b, Selfoss · ©2026</div>
           <a href={FB} target="_blank" rel="noreferrer" className="gk-footer-link" style={{ color: CREAM_LIGHT, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>{VISIT.facebookHandle} ↗</a>
         </div>
       </footer>
