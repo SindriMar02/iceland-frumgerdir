@@ -25,8 +25,8 @@ export interface ShopProduct {
 }
 
 export interface HeroSlide extends ShopProduct {
-  /** 'photo' = full-bleed lifestyle photo; 'stage' = cutout on lit stage */
-  layout: 'photo' | 'stage'
+  /** responsive candidates for the full-bleed image */
+  srcSet: string
   blurb: string
   badge?: string
 }
@@ -41,9 +41,17 @@ export interface CategoryTile {
   photo: boolean
 }
 
-/** Shopify CDN image transform — same URLs keep working inside Liquid. */
+export interface DealProduct extends ShopProduct {
+  /**
+   * Styled scene shot (composited from the store's own product photo).
+   * When absent the card stages the raw cutout on a lit plinth instead.
+   */
+  scene?: string
+}
+
+/** Shopify CDN image transform — no-op for local theme assets. */
 export const cdn = (src: string, width: number) =>
-  `${src}${src.includes('?') ? '&' : '?'}width=${width}`
+  src.startsWith('http') ? `${src}${src.includes('?') ? '&' : '?'}width=${width}` : src
 
 /** "795.000 kr." — Icelandic dot separators, locale-independent. */
 export const kr = (n: number) => `${n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} kr.`
@@ -53,65 +61,76 @@ export const productUrl = (handle: string) => `https://heitirpottar.is/products/
 const F = 'https://heitirpottar.is/cdn/shop/files'
 const S = 'https://cdn.shopify.com/s/files/1/0765/8206/0351/files'
 
+/**
+ * Local scene shots: the store's own product photos composited into
+ * night scenes (Higgsfield, product geometry untouched), optimized JPGs
+ * in public/heitirpottar/. In the Liquid migration these become theme
+ * assets ({{ 'iris-hero.jpg' | asset_img_url }}).
+ */
+const pub = (file: string) => `${import.meta.env.BASE_URL}heitirpottar/${file}`
+
 /* ---------------------------------------------------------------- hero */
+
+const queenImg = `${S}/IMG_0753.jpg?v=1774555823`
+const thingvellirImg = `${S}/Foto_SiimSolman_008.jpg?v=1774088031`
 
 export const HERO_SLIDES: HeroSlide[] = [
   {
-    layout: 'photo',
     handle: 'agust-forpontun-queen-pakki',
     title: 'Queen pakkinn',
     type: 'Hitaveituskel',
     price: 695000,
     compareAtPrice: 873000,
-    image: `${S}/IMG_0753.jpg?v=1774555823`,
+    image: cdn(queenImg, 1600),
+    srcSet: `${cdn(queenImg, 828)} 828w, ${cdn(queenImg, 1280)} 1280w, ${cdn(queenImg, 2000)} 2000w`,
     alt: 'Queen hitaveituskel í notkun í kvöldbirtu með kertaljósum',
     blurb: 'Mest selda skelin í áratug, nú á pakkatilboði. Afgreidd í ágúst.',
     badge: 'Forpöntun',
   },
   {
-    layout: 'stage',
     handle: 'iris',
     title: 'IRIS',
     type: 'Rafmagnspottur',
     price: 795000,
     compareAtPrice: 990000,
-    image: `${S}/IrisD_1.png?v=1774284583`,
-    alt: 'IRIS rafmagnspottur, dökk skel séð ofan frá',
+    image: pub('iris-hero.jpg'),
+    srcSet: `${pub('iris-hero-md.jpg')} 1200w, ${pub('iris-hero.jpg')} 2000w`,
+    alt: 'IRIS rafmagnspottur rjúkandi á dimmum palli í snjó við hlið húss',
     blurb: '3ja manna pottur með tveimur legubekkjum, hljóðkerfi og Bluetooth.',
     badge: 'Tilboð',
   },
   {
-    layout: 'photo',
     handle: 'thingvellir',
     title: 'Þingvellir',
     type: 'Saunahús',
     price: 6050000,
     compareAtPrice: null,
-    image: `${S}/Foto_SiimSolman_008.jpg?v=1774088031`,
+    image: cdn(thingvellirImg, 1600),
+    srcSet: `${cdn(thingvellirImg, 828)} 828w, ${cdn(thingvellirImg, 1280)} 1280w, ${cdn(thingvellirImg, 2000)} 2000w`,
     alt: 'Þingvellir saunahús upplýst í snjó að kvöldi til',
     blurb: 'Flaggskipið. Fjögurra metra saunahús fyrir þá sem gera hámarkskröfur.',
   },
   {
-    layout: 'stage',
     handle: 'vaentanlegt-ice-queen-kaldi-pottur-plug-play',
     title: 'IceQueen Plug&Play',
     type: 'Kaldur pottur',
     price: 299000,
     compareAtPrice: 420000,
-    image: `${S}/Icequeen_3_-Photoroom_f2ce38fa-7c87-430f-889e-629d6e61bd12.png?v=1768779522`,
-    alt: 'IceQueen kaldur pottur, svört trefjaglerskel',
+    image: pub('icequeen-hero.jpg'),
+    srcSet: `${pub('icequeen-hero-md.jpg')} 1200w, ${pub('icequeen-hero.jpg')} 2000w`,
+    alt: 'IceQueen kaldur pottur á steinhellum í snjó undir norðurljósum',
     blurb: 'Hannaður fyrir íslenskar aðstæður. Nýtist sem kaldur eða heitur pottur.',
     badge: 'Tilboð',
   },
   {
-    layout: 'stage',
     handle: 'forpontun-fbg-481',
     title: 'FBG-481',
     type: 'Infrarauður inniklefi',
     price: 449490,
     compareAtPrice: 530400,
-    image: `${S}/FBG-481_2_-Photoroom.png?v=1774266764`,
-    alt: 'FBG-481 infrarauður inniklefi úr ljósum viði',
+    image: pub('fbg481-hero.jpg'),
+    srcSet: `${pub('fbg481-hero-md.jpg')} 1200w, ${pub('fbg481-hero.jpg')} 2000w`,
+    alt: 'FBG-481 infrarauður inniklefi lýsir upp dimmt heimilisrými',
     blurb: '4ra manna inniklefi með A, B og C bylgjutíðni. Ný sending komin.',
     badge: 'Ný sending',
   },
@@ -140,17 +159,17 @@ export const CATEGORIES: CategoryTile[] = [
     title: 'Kaldir pottar',
     note: 'IceQueen og Vastera',
     url: 'https://heitirpottar.is/collections/kaldir-pottar',
-    image: `${S}/Icequeen_3_-Photoroom_f2ce38fa-7c87-430f-889e-629d6e61bd12.png?v=1768779522`,
-    alt: 'IceQueen kaldur pottur',
-    photo: false,
+    image: pub('icequeen-hero-md.jpg'),
+    alt: 'IceQueen kaldur pottur í snjó undir norðurljósum',
+    photo: true,
   },
   {
     title: 'Infrared',
     note: 'Inniklefar með A, B og C tíðni',
     url: 'https://heitirpottar.is/collections/infrared-inniklefar',
-    image: `${S}/FBG-2R7_1_-Photoroom.png?v=1755621724`,
-    alt: 'Infrarauður inniklefi með rauðljósum',
-    photo: false,
+    image: pub('fbg2r7-card.jpg'),
+    alt: 'Infrarauður inniklefi með rauðljósum í dimmu rými',
+    photo: true,
   },
   {
     title: 'Aukahlutir',
@@ -172,7 +191,7 @@ export const CATEGORIES: CategoryTile[] = [
 
 /* --------------------------------------------------------------- deals */
 
-export const DEALS: ShopProduct[] = [
+export const DEALS: DealProduct[] = [
   {
     handle: 'dill-aldarinnar-b-skel-summit-pottalok',
     title: 'B-Skel Summit + pottalok',
@@ -180,7 +199,7 @@ export const DEALS: ShopProduct[] = [
     price: 420000,
     compareAtPrice: 750000,
     image: `${S}/SUMMITSkelhvit-Photoroom.png?v=1779098823`,
-    alt: 'Hvít Summit hitaveituskel fyrir sex',
+    alt: 'Hvít Summit hitaveituskel fyrir sex, B-vara',
   },
   {
     handle: 'iris',
@@ -189,7 +208,8 @@ export const DEALS: ShopProduct[] = [
     price: 795000,
     compareAtPrice: 990000,
     image: `${S}/IrisD_1.png?v=1774284583`,
-    alt: 'IRIS rafmagnspottur með tveimur legubekkjum',
+    scene: pub('iris-card.jpg'),
+    alt: 'IRIS rafmagnspottur rjúkandi á dimmum palli í snjó',
   },
   {
     handle: 'san-marino',
@@ -198,7 +218,8 @@ export const DEALS: ShopProduct[] = [
     price: 795000,
     compareAtPrice: 990000,
     image: `${S}/SanMarino_1_-Photoroom_1_6e85bc74-d162-4d92-a954-5bc47d98f65b.png?v=1774270516`,
-    alt: 'San Marino rafmagnspottur, hvít skel',
+    scene: pub('sanmarino-card.jpg'),
+    alt: 'San Marino rafmagnspottur á palli í snjókomu undir ljósaseríu',
   },
   {
     handle: 'forpontun-fbg-481',
@@ -207,7 +228,8 @@ export const DEALS: ShopProduct[] = [
     price: 449490,
     compareAtPrice: 530400,
     image: `${S}/FBG-481_2_-Photoroom.png?v=1774266764`,
-    alt: 'FBG-481 infrarauður inniklefi fyrir fjóra',
+    scene: pub('fbg481-card.jpg'),
+    alt: 'FBG-481 infrarauður inniklefi lýsir upp dimmt rými',
   },
   {
     handle: 'forpontun-frb-033lv',
@@ -216,7 +238,8 @@ export const DEALS: ShopProduct[] = [
     price: 345490,
     compareAtPrice: 420900,
     image: `${S}/FRB-033LV_2_-Photoroom.png?v=1755945871`,
-    alt: 'Infrarauður hornklefi úr ljósum viði',
+    scene: pub('hornklefi-card.jpg'),
+    alt: 'Infrarauður hornklefi glóir í horni á dimmu rými',
   },
   {
     handle: 'forpontun-frb-2r7',
@@ -225,7 +248,8 @@ export const DEALS: ShopProduct[] = [
     price: 325490,
     compareAtPrice: 376400,
     image: `${S}/FBG-2R7_1_-Photoroom.png?v=1755621724`,
-    alt: 'FBG-2R7 inniklefi með rauðljósum',
+    scene: pub('fbg2r7-card.jpg'),
+    alt: 'FBG-2R7 inniklefi með rauðljósum í dimmu rými',
   },
   {
     handle: 'forpontun-frb-3r8',
@@ -234,15 +258,21 @@ export const DEALS: ShopProduct[] = [
     price: 343490,
     compareAtPrice: 393900,
     image: `${S}/FRB-3R8_1_-Photoroom.png?v=1755622326`,
-    alt: 'FRB-3R8 inniklefi fyrir tvo til þrjá',
+    scene: pub('frb3r8-card.jpg'),
+    alt: 'FRB-3R8 inniklefi með gulu gleri í dimmu rými',
   },
 ]
 
 /* ----------------------------------------------------------- hitaveita */
 
 export const HITAVEITA_IMAGE = {
-  src: `${S}/Completely_from_above_4k_202601231121_d84eadb0-dc83-4055-8f4b-83df322e64b5.jpg?v=1779106230`,
-  alt: 'Heitur pottur á palli í garði, séð beint ofan frá',
+  src: pub('summitskel-hitaveita.jpg'),
+  alt: 'Marmaragrá hitaveituskel felld ofan í dimman pall, gufa yfir vatninu',
+}
+
+export const STEAM_IMAGE = {
+  src: pub('steam-band.jpg'),
+  alt: 'Gufa stígur upp af heitu vatni í íslenskri vetrarnótt',
 }
 
 export const HITAVEITA_TUBS: ShopProduct[] = [

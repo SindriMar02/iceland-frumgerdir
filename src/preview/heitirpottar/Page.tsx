@@ -21,6 +21,7 @@ import {
   SAUNA_IMAGES,
   SHOWROOM_IMAGE,
   SOCIALS,
+  STEAM_IMAGE,
   cdn,
   kr,
   productUrl,
@@ -140,48 +141,22 @@ function HeroSlideshow() {
             className="absolute inset-0 transition-opacity duration-[900ms]"
             style={{ opacity: active ? 1 : 0, transitionTimingFunction: EASE }}
           >
-            {s.layout === 'photo' ? (
-              <>
-                <Img
-                  src={cdn(s.image, 1600)}
-                  srcSet={`${cdn(s.image, 828)} 828w, ${cdn(s.image, 1280)} 1280w, ${cdn(s.image, 2000)} 2000w`}
-                  sizes="100vw"
-                  alt={s.alt}
-                  fetchpriority={idx === 0 ? 'high' : undefined}
-                  loading={idx === 0 ? 'eager' : 'lazy'}
-                  className="h-full w-full object-cover"
-                  style={{
-                    transform: active && !reduce ? 'scale(1)' : 'scale(1.06)',
-                    transition: 'transform 7s linear',
-                  }}
-                  fallbackClassName="bg-gradient-to-br from-[#2A241E] to-[#141210]"
-                />
-                <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#141210] via-[#141210]/45 to-[#141210]/15" />
-                <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#141210]/70 via-transparent to-transparent" />
-              </>
-            ) : (
-              <div className="relative h-full w-full">
-                <div
-                  aria-hidden
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      'radial-gradient(90% 55% at 72% 88%, rgba(240,123,60,0.16), transparent 65%), radial-gradient(60% 40% at 30% 10%, rgba(243,238,231,0.05), transparent 70%)',
-                  }}
-                />
-                <div className="absolute inset-x-0 bottom-[22vh] flex justify-center px-6 md:bottom-[16vh] md:justify-end md:pr-[10vw]">
-                  <Img
-                    src={cdn(s.image, 1100)}
-                    alt={s.alt}
-                    loading="lazy"
-                    className="max-h-[34vh] w-auto max-w-full object-contain md:max-h-[52vh] md:max-w-[44vw]"
-                    style={{ filter: 'drop-shadow(0 44px 56px rgba(0,0,0,0.55))' }}
-                    fallbackClassName="h-64 w-80 rounded-2xl bg-gradient-to-br from-[#2A241E] to-[#141210]"
-                  />
-                </div>
-                <div aria-hidden className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[#141210] via-[#141210]/65 to-transparent md:h-44 md:via-transparent" />
-              </div>
-            )}
+            <Img
+              src={s.image}
+              srcSet={s.srcSet}
+              sizes="100vw"
+              alt={s.alt}
+              fetchpriority={idx === 0 ? 'high' : undefined}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              className="h-full w-full object-cover"
+              style={{
+                transform: active && !reduce ? 'scale(1)' : 'scale(1.06)',
+                transition: 'transform 7s linear',
+              }}
+              fallbackClassName="bg-gradient-to-br from-[#2A241E] to-[#141210]"
+            />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#141210] via-[#141210]/45 to-[#141210]/15" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#141210]/70 via-transparent to-transparent" />
           </div>
         )
       })}
@@ -395,38 +370,79 @@ function DealsRail() {
                 href={productUrl(p.handle)}
                 target="_blank"
                 rel="noreferrer"
-                className="group relative w-[264px] shrink-0 snap-start rounded-2xl bg-[#1D1A17] p-5 transition-colors duration-300 hover:bg-[#242019] sm:w-[288px]"
+                className="group relative w-[272px] shrink-0 snap-start overflow-hidden rounded-2xl bg-[#1D1A17] transition-colors duration-300 hover:bg-[#242019] sm:w-[300px]"
               >
                 {pct > 0 && (
-                  <span className="absolute left-5 top-5 z-10 rounded-full bg-[#F07B3C] px-2.5 py-1 text-[12px] font-bold tabular-nums text-[#141210]">
+                  <span className="absolute left-4 top-4 z-10 rounded-full bg-[#F07B3C] px-2.5 py-1 text-[12px] font-bold tabular-nums text-[#141210]">
                     -{pct}%
                   </span>
                 )}
-                <div className="flex h-44 items-center justify-center">
-                  <Img
-                    src={cdn(p.image, 560)}
-                    alt={p.alt}
-                    className="max-h-full w-auto max-w-full object-contain transition-transform duration-700 group-hover:scale-[1.05]"
-                    style={{ transitionTimingFunction: EASE, filter: 'drop-shadow(0 18px 22px rgba(0,0,0,0.4))' }}
-                    fallbackClassName="h-32 w-44 rounded-xl bg-gradient-to-br from-[#2A241E] to-[#141210]"
-                  />
-                </div>
-                <p className="mt-5 text-[11.5px] font-semibold uppercase tracking-[0.16em] text-[#A79E92]">{p.type}</p>
-                <h3 className="mt-1 text-[16px] font-bold text-[#F3EEE7]">{p.title}</h3>
-                <p className="mt-2 flex items-baseline gap-2.5">
-                  <span className="text-[17px] font-bold tabular-nums text-[#F5A579]">{kr(p.price)}</span>
-                  {p.compareAtPrice && (
-                    <span className="text-[13px] tabular-nums text-[#A79E92]">
-                      <span className="sr-only">Áður </span>
-                      <s>{kr(p.compareAtPrice)}</s>
-                    </span>
+                <div className="relative h-48 overflow-hidden">
+                  {p.scene ? (
+                    <Img
+                      src={p.scene}
+                      alt={p.alt}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                      style={{ transitionTimingFunction: EASE }}
+                      fallbackClassName="h-full w-full bg-gradient-to-br from-[#2A241E] to-[#141210]"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-full items-center justify-center p-6"
+                      style={{
+                        background:
+                          'radial-gradient(70% 60% at 50% 92%, rgba(240,123,60,0.14), transparent 70%)',
+                      }}
+                    >
+                      <Img
+                        src={cdn(p.image, 560)}
+                        alt={p.alt}
+                        className="max-h-full w-auto max-w-full object-contain transition-transform duration-700 group-hover:scale-[1.05]"
+                        style={{ transitionTimingFunction: EASE, filter: 'drop-shadow(0 18px 22px rgba(0,0,0,0.45))' }}
+                        fallbackClassName="h-32 w-44 rounded-xl bg-gradient-to-br from-[#2A241E] to-[#141210]"
+                      />
+                    </div>
                   )}
-                </p>
+                </div>
+                <div className="p-5 pt-4">
+                  <p className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-[#A79E92]">{p.type}</p>
+                  <h3 className="mt-1 text-[16px] font-bold text-[#F3EEE7]">{p.title}</h3>
+                  <p className="mt-2 flex items-baseline gap-2.5">
+                    <span className="text-[17px] font-bold tabular-nums text-[#F5A579]">{kr(p.price)}</span>
+                    {p.compareAtPrice && (
+                      <span className="text-[13px] tabular-nums text-[#A79E92]">
+                        <span className="sr-only">Áður </span>
+                        <s>{kr(p.compareAtPrice)}</s>
+                      </span>
+                    )}
+                  </p>
+                </div>
               </a>
             )
           })}
         </div>
       </Reveal>
+    </section>
+  )
+}
+
+function SteamBand() {
+  return (
+    <section className="relative overflow-hidden">
+      <Img
+        src={STEAM_IMAGE.src}
+        alt={STEAM_IMAGE.alt}
+        className="absolute inset-0 h-full w-full object-cover"
+        fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#2A241E] to-[#141210]"
+      />
+      <div aria-hidden className="absolute inset-0 bg-[#141210]/35" />
+      <div className="relative mx-auto flex min-h-[38vh] max-w-[1400px] items-center justify-center px-5 py-24 md:min-h-[46vh] md:px-10">
+        <Reveal>
+          <p className="text-center font-['Clash_Display',sans-serif] text-3xl font-semibold tracking-[-0.02em] text-[#F3EEE7] md:text-5xl">
+            Fjörutíu gráður, allan ársins hring.
+          </p>
+        </Reveal>
+      </div>
     </section>
   )
 }
@@ -727,6 +743,7 @@ export default function HeitirpottarPage() {
       <main className="overflow-x-clip">
         <Categories />
         <DealsRail />
+        <SteamBand />
         <Hitaveita />
         <Saunahus />
         <InfraredBand />

@@ -17,8 +17,8 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
         <strong className={dark ? 'text-white/80' : 'text-neutral-600'}>
           Frumgerð — hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.
         </strong>{' '}
-        Allur texti, verð og umsagnir eru sýnishorn (prototype only — redesign concept). Myndir frá Unsplash eða af
-        núverandi vef fyrirtækisins. Núverandi vefsíða:{' '}
+        Allur texti, verð og umsagnir eru sýnishorn (prototype only — redesign concept). Myndir frá Unsplash, af
+        núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess. Núverandi vefsíða:{' '}
         <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
           {company.currentUrl.replace('https://', '').replace('www.', '')}
         </a>
