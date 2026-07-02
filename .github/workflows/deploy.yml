@@ -41,7 +41,34 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url || steps.deployment_retry2.outputs.page_url }}
     steps:
+      # The Pages deployment API occasionally hard-fails a clean, uncontested
+      # deployment on its very first status check ("Deployment failed, try
+      # again later") with no useful detail — a genuine backend flake, not
+      # something caused by our workflow. actions/deploy-pages doesn't retry
+      # a hard failure itself, so retry it here automatically instead of
+      # requiring a human to push another commit. Only the last attempt is
+      # allowed to actually fail the job.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Wait before retry
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+
+      - id: deployment_retry
+        name: Retry deploy (transient Pages API failure)
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Wait before final retry
+        if: steps.deployment.outcome == 'failure' && steps.deployment_retry.outcome == 'failure'
+        run: sleep 40
+
+      - id: deployment_retry2
+        name: Final retry (second transient failure)
+        if: steps.deployment.outcome == 'failure' && steps.deployment_retry.outcome == 'failure'
         uses: actions/deploy-pages@v4
