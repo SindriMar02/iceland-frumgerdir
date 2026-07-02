@@ -1761,7 +1761,7 @@ ${SIGN}`,
     region: 'Capital',
     established: 'Est. 2004',
     currentUrl: 'https://heitirpottar.is',
-    ownerEmail: 'heitirpottar@heitirpottar.is',
+    ownerEmail: 'kristjan@heitirpottar.is',
     concept: 'Gufa',
     conceptTagline:
       'A basalt-black digital showroom at dusk: a full-bleed timed product slideshow with real prices and discounts, their own night photography finally doing the selling, one ember accent. Every section maps 1:1 to a Shopify Liquid section.',
@@ -1791,7 +1791,7 @@ ${SIGN}`,
       'The best-known pottar store in Iceland sells showroom-class products through a stock template. Give the store a digital showroom at dusk, built from its own night photography and real prices, architected so every section drops straight into their existing Shopify as a custom Liquid theme.',
     outreach: {
       subject: 'Hugmynd að nýrri vefsíðu fyrir Heitirpottar.is',
-      body: `Góðan dag,
+      body: `Sæll Kristján,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenskar verslanir og þjónustufyrirtæki.
 
