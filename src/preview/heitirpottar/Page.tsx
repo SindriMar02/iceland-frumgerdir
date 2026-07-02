@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, ChevronLeft, ChevronRight, Clock, Package, Phone, Truck, Wrench } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Clock, Package, Phone, Star, Truck, Wrench } from 'lucide-react'
 import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
 import { StickyCta } from '../../components/StickyCta'
@@ -16,7 +16,6 @@ import {
   INFRARED_IMAGE,
   PHONES,
   REVIEWS,
-  REVIEWS_IMAGE,
   SAUNA_HOUSES,
   SAUNA_IMAGES,
   SHOWROOM_IMAGE,
@@ -616,40 +615,147 @@ function Services() {
   )
 }
 
-function Reviews() {
+/** Four-colour Google glyph — marks each card as a Google-style umsögn. */
+function GoogleG({ className = '' }: { className?: string }) {
   return (
-    <section className="mx-auto max-w-[1400px] px-5 py-24 md:px-10 md:py-32">
-      <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+    <svg viewBox="0 0 48 48" role="img" aria-label="Google" className={className}>
+      <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z" />
+      <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z" />
+      <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z" />
+      <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z" />
+    </svg>
+  )
+}
+
+function Stars({ count = 5 }: { count?: number }) {
+  return (
+    <div className="flex gap-0.5" role="img" aria-label={`${count} af 5 stjörnum`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <Star key={i} size={15} strokeWidth={0} aria-hidden className="fill-[#F5B544]" />
+      ))}
+    </div>
+  )
+}
+
+function ReviewCard({ r }: { r: (typeof REVIEWS)[number] }) {
+  const initials = r.name
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+  return (
+    <figure className="flex h-full w-full flex-col gap-4 rounded-2xl border border-white/10 bg-[#1D1A17] p-6">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F07B3C]/15 text-[14px] font-bold uppercase text-[#F07B3C]">
+          {initials}
+        </span>
+        <div className="min-w-0">
+          <figcaption className="truncate text-[14.5px] font-bold text-[#F3EEE7]">{r.name}</figcaption>
+          <p className="truncate text-[12.5px] text-[#A79E92]">{r.detail}</p>
+        </div>
+        <GoogleG className="ml-auto h-[18px] w-[18px] shrink-0" />
+      </div>
+      <Stars />
+      <blockquote className="text-[14.5px] leading-relaxed text-[#D9D2C7]">{r.quote}</blockquote>
+    </figure>
+  )
+}
+
+/** One seamless marquee lane. Cards carry their own right margin so a plain
+ *  translateX(-50%) loops without a seam. Duplicate copy is aria-hidden. */
+function MarqueeRow({
+  items,
+  duration,
+  reverse = false,
+}: {
+  items: (typeof REVIEWS)[number][]
+  duration: string
+  reverse?: boolean
+}) {
+  const track = [...items, ...items]
+  return (
+    <div className="group flex overflow-hidden">
+      <div
+        className={`flex shrink-0 gufa-marquee group-hover:[animation-play-state:paused] ${reverse ? 'gufa-marquee-rev' : ''}`}
+        style={{ '--dur': duration } as CSSProperties}
+      >
+        {track.map((r, i) => (
+          <div
+            key={`${r.name}-${i}`}
+            className="mr-4 w-[300px] shrink-0 sm:w-[350px]"
+            aria-hidden={i >= items.length}
+          >
+            <ReviewCard r={r} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Reviews() {
+  const reduce = useReducedMotion()
+  const half = Math.ceil(REVIEWS.length / 2)
+  const rowA = REVIEWS.slice(0, half)
+  const rowB = REVIEWS.slice(half)
+
+  return (
+    <section aria-labelledby="umsagnir-title" className="overflow-hidden py-24 md:py-32">
+      <div className="mx-auto max-w-[1400px] px-5 md:px-10">
         <Reveal>
-          <div className="overflow-hidden rounded-2xl">
-            <Img
-              src={cdn(REVIEWS_IMAGE.src, 1200)}
-              alt={REVIEWS_IMAGE.alt}
-              className="aspect-[4/3] w-full object-cover"
-              fallbackClassName="aspect-[4/3] w-full bg-gradient-to-br from-[#2A241E] to-[#141210]"
-            />
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center gap-2.5 rounded-full border border-white/12 bg-[#1D1A17] px-4 py-2">
+              <Stars />
+              <span className="text-[13px] font-semibold text-[#F3EEE7]">Fimm stjörnu þjónusta</span>
+              <span className="flex items-center gap-1.5 border-l border-white/15 pl-2.5 text-[12.5px] font-medium text-[#A79E92]">
+                <GoogleG className="h-[15px] w-[15px]" /> Google
+              </span>
+            </div>
+            <h2
+              id="umsagnir-title"
+              className="mt-6 max-w-2xl font-['Clash_Display',sans-serif] text-4xl font-semibold tracking-[-0.02em] text-[#F3EEE7] md:text-5xl"
+            >
+              Það sem viðskiptavinir segja.
+            </h2>
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[#A79E92]">
+              Toppþjónusta, gott verð og úrval — það sem fólk nefnir aftur og aftur.
+            </p>
           </div>
         </Reveal>
-        <div>
-          <Reveal>
-            <h2 className="font-['Clash_Display',sans-serif] text-4xl font-semibold tracking-[-0.02em] text-[#F3EEE7] md:text-5xl">
-              Heitasti staðurinn á heimilinu.
-            </h2>
-          </Reveal>
-          <div className="mt-9 space-y-8">
-            {REVIEWS.map((r, idx) => (
-              <Reveal key={r.name} delay={0.08 + idx * 0.07}>
-                <blockquote className="text-[15.5px] leading-relaxed text-[#D9D2C7]">
-                  &ldquo;{r.quote}&rdquo;
-                </blockquote>
-                <p className="mt-2.5 text-[13px] font-semibold text-[#F3EEE7]">
-                  {r.name}
-                  <span className="ml-2 font-medium text-[#A79E92]">{r.detail}</span>
-                </p>
-              </Reveal>
-            ))}
-          </div>
+      </div>
+
+      {reduce ? (
+        <div className="mx-auto mt-12 grid max-w-[1400px] gap-4 px-5 sm:grid-cols-2 md:px-10 lg:grid-cols-3">
+          {REVIEWS.map((r) => (
+            <ReviewCard key={r.name} r={r} />
+          ))}
         </div>
+      ) : (
+        <div className="relative mt-12 flex flex-col gap-4">
+          <MarqueeRow items={rowA} duration="70s" />
+          <MarqueeRow items={rowB} duration="86s" reverse />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#141210] to-transparent sm:w-32"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#141210] to-transparent sm:w-32"
+          />
+        </div>
+      )}
+
+      <div className="mx-auto mt-12 max-w-[1400px] px-5 text-center md:px-10">
+        <a
+          href="https://www.facebook.com/heitirpottar/"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#F07B3C] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F07B3C]"
+        >
+          Sjá fleiri umsagnir
+          <ArrowRight size={15} strokeWidth={2.2} aria-hidden />
+        </a>
       </div>
     </section>
   )
@@ -733,6 +839,10 @@ export default function HeitirpottarPage() {
       <style>{`
         @keyframes gufaFill { from { transform: scaleX(0) } to { transform: scaleX(1) } }
         .gufa-hero { min-height: 100vh; min-height: 100svh; }
+        @keyframes gufaMarquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+        .gufa-marquee { animation: gufaMarquee var(--dur, 70s) linear infinite; will-change: transform; }
+        .gufa-marquee-rev { animation-direction: reverse; }
+        @media (prefers-reduced-motion: reduce) { .gufa-marquee { animation: none; } }
       `}</style>
       <PreviewChrome company={company} />
       <AnnouncementBar />

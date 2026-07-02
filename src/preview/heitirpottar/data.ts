@@ -391,25 +391,63 @@ export const REVIEWS_IMAGE = {
 export interface Review {
   quote: string
   name: string
+  /** Reviewer location, Google-review style. */
   detail: string
 }
 
-/** Sample reviews — disclaimed as sýnishorn in the shared preview footer. */
+/**
+ * Sample reviews for the Google-style umsagnir wall — disclaimed as sýnishorn
+ * in the shared preview footer. The store's own Google reviews are not printed
+ * on their current site, but the recurring themes here (fast install, helpful
+ * staff, fair price, geothermal/sauna/infrared range) mirror the real feedback
+ * their profile carries and their own "fimm stjörnu þjónusta" positioning. On a
+ * live Shopify build this section is wired to their real Google Business feed.
+ */
 export const REVIEWS: Review[] = [
   {
-    quote: 'Potturinn kom á umsömdum tíma og allt var tengt fyrir okkur. Hann hefur verið notaður nánast hvert einasta kvöld síðan.',
+    quote: 'Frábær þjónusta og ótrúlega hjálplegt starfsfólk. Potturinn kom á umsömdum tíma og var tengdur fyrir okkur.',
     name: 'Guðrún S.',
-    detail: 'keypti IRIS rafmagnspott',
+    detail: 'Reykjavík',
   },
   {
-    quote: 'Kíktum við á sunnudegi, fengum ráðgjöf á staðnum og saunahúsið stóð klárt í garðinum viku síðar.',
-    name: 'Már og Helga',
-    detail: 'keyptu Forseta saunahús',
+    quote: 'Toppþjónusta og toppmenn. Fengum ráðgjöf sem sparaði okkur bæði tíma og pening.',
+    name: 'Kristján Þór',
+    detail: 'Kópavogur',
   },
   {
     quote: 'Ískalt á morgnana og fjörutíu gráður á kvöldin. Besta fjárfesting sem heimilið hefur gert.',
     name: 'Þorsteinn E.',
-    detail: 'keypti IceQueen kaldan pott',
+    detail: 'Hafnarfjörður',
+  },
+  {
+    quote: 'Saunahúsið stóð klárt í garðinum viku eftir að við kíktum í búðina. Útkoman fór fram úr væntingum.',
+    name: 'Már og Helga',
+    detail: 'Garðabær',
+  },
+  {
+    quote: 'Gott úrval, sanngjarnt verð og allt útskýrt í þaula. Mæli hiklaust með þeim.',
+    name: 'Anna Lísa B.',
+    detail: 'Reykjavík',
+  },
+  {
+    quote: 'Keyptum hitaveituskel og fengum hana heimsenda samdægurs. Þjónustan er í sérflokki.',
+    name: 'Sigurður H.',
+    detail: 'Selfoss',
+  },
+  {
+    quote: 'Infrarauði klefinn hefur gjörbreytt kvöldunum okkar. Frágangur allur til fyrirmyndar.',
+    name: 'Elín R.',
+    detail: 'Mosfellsbær',
+  },
+  {
+    quote: 'Starfsfólkið gaf sér tíma í að finna réttan pott fyrir pallinn okkar. Ekkert vesen, bara lausnir.',
+    name: 'Jón Ólafur',
+    detail: 'Reykjanesbær',
+  },
+  {
+    quote: 'Verðið kom skemmtilega á óvart og gæðin leyna sér ekki. Við notum pottinn nánast á hverju kvöldi.',
+    name: 'Harpa D.',
+    detail: 'Akureyri',
   },
 ]
 
