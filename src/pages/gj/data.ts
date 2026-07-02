@@ -291,3 +291,134 @@ export const MAP_GRATICULE = [
   'M220 0 V300',
   'M330 0 V300',
 ]
+
+/* ────────────────────────────────────────────────────────────────────
+   SHEET IV — THE BOOKING DESK.
+   The real gjtravel.is catalog (WordPress + TourMaster booking engine):
+   tour NAMES, DURATIONS and CATEGORY structure below are verified from
+   gjtravel.is (availability-overview + menus, fetched 2026-07-02).
+   Departure dates, seat counts and prices are SAMPLES for the
+   demonstration desk, disclaimed inline and in the footer.
+   ──────────────────────────────────────────────────────────────────── */
+
+export interface CatalogTour {
+  name: string
+  days: number
+  season: string
+  /** guided languages beyond English, when the real product is language-specific */
+  lang?: string
+  smallGroup?: boolean
+  isNew?: boolean
+}
+
+export interface TourCategory {
+  id: string
+  label: string
+  note: string
+  tours: CatalogTour[]
+}
+
+export const TOUR_CATALOG: TourCategory[] = [
+  {
+    id: 'summer',
+    label: 'Summer Iceland',
+    note: 'Escorted coach journeys · May – September',
+    tours: [
+      { name: 'Gems of South Iceland', days: 3, season: 'May – Sep' },
+      { name: 'Land of Midnight Sun', days: 5, season: 'Jun – Jul' },
+      { name: 'Gems of South Iceland & Reykjavík', days: 6, season: 'May – Sep' },
+      { name: 'Gracious Southwest Iceland', days: 7, season: 'All year' },
+      { name: 'Westfjords of Iceland', days: 8, season: 'Jun – Aug' },
+      { name: 'Guided Iceland Circle', days: 8, season: 'May – Sep' },
+      { name: 'Grand Tour of Iceland', days: 12, season: 'Jun – Aug' },
+      { name: 'Iceland Circle & Westfjords Combo', days: 17, season: 'Jun – Aug' },
+    ],
+  },
+  {
+    id: 'winter',
+    label: 'Winter & Aurora',
+    note: 'Northern-lights season · September – April',
+    tours: [
+      { name: 'Land of Northern Lights', days: 5, season: 'Sep – Apr' },
+      { name: 'Gracious Southwest Iceland', days: 7, season: 'All year' },
+      { name: 'Northern Lights Secrets — Westfjords', days: 7, season: 'Sep – Apr' },
+      { name: 'Northern Lights Exploration', days: 8, season: 'Sep – Apr' },
+      { name: 'Northern Lights Exploration — Small Group', days: 8, season: 'Sep – Apr', smallGroup: true },
+      { name: 'Guided Iceland Circle & Northern Lights', days: 8, season: 'Sep – Apr' },
+      { name: 'Combo: Land of Northern Lights & Westfjords Secrets', days: 11, season: 'Sep – Apr' },
+      { name: 'Combo: Westfjords Secrets & Iceland Circle', days: 12, season: 'Sep – Apr' },
+    ],
+  },
+  {
+    id: 'holiday',
+    label: 'Holidays & Eclipse 2026',
+    note: 'Christmas, New Year — and totality over Iceland, August 2026',
+    tours: [
+      { name: 'Christmas & Northern Lights Adventure', days: 5, season: 'December' },
+      { name: 'New Year’s Northern Lights Adventure', days: 5, season: 'Dec – Jan' },
+      { name: 'Reykjavík Solar Eclipse City Break', days: 5, season: 'Aug 2026', isNew: true },
+      { name: 'Reykjavík & Solar Eclipse Adventure — Small Group', days: 5, season: 'Aug 2026', smallGroup: true },
+      { name: 'South Iceland & Reykjavík Solar Eclipse Break', days: 8, season: 'Aug 2026' },
+      { name: 'Grand Tour of Iceland — Small Group', days: 12, season: 'Aug 2026', smallGroup: true },
+    ],
+  },
+  {
+    id: 'greenland',
+    label: 'Greenland & Faroe',
+    note: 'Across the Denmark Strait — west, south and east Greenland',
+    tours: [
+      { name: 'Amazing Days in Ilulissat', days: 4, season: 'Jun – Sep' },
+      { name: 'Amazing Days in Ilulissat', days: 5, season: 'Jun – Sep' },
+      { name: 'South Greenland Grand Adventure', days: 6, season: 'Jun – Sep' },
+      { name: 'East Greenland: Scoresby Sund, Long Hikes', days: 10, season: 'Jul – Sep' },
+      { name: 'East Greenland: Scoresby Sund & Iceland Aurora', days: 12, season: 'Aug – Sep' },
+      { name: 'Highlights of Iceland & Greenland', days: 8, season: 'Jun – Sep' },
+      { name: 'Iceland & Greenland Discovery', days: 15, season: 'Jun – Sep' },
+      { name: 'Taste of Faroe Islands', days: 4, season: 'May – Sep' },
+      { name: 'Highlights of Faroe Islands', days: 6, season: 'May – Sep' },
+    ],
+  },
+  {
+    id: 'private',
+    label: 'Private & Groups',
+    note: 'Tailored departures, guided in your language',
+    tours: [
+      { name: 'Customized private groups — ten set itineraries', days: 4, season: 'All year' },
+      { name: 'Geführte Islandreisen — acht Reisen', days: 4, season: 'All year', lang: 'Deutsch' },
+      { name: 'Tours a Islandia en Español', days: 7, season: 'All year', lang: 'Español' },
+      { name: 'Grupos privados em Português', days: 7, season: 'All year', lang: 'Português' },
+      { name: 'MICE, incentives & conferences', days: 1, season: 'All year' },
+      { name: 'Shore excursions from Reykjavík port', days: 1, season: 'All year' },
+      { name: 'Workshop on Wheels — regenerative travel', days: 1, season: 'All year' },
+      { name: 'Coach & minibus hire, 6 to 63 seats', days: 1, season: 'All year' },
+    ],
+  },
+]
+
+/** What the live booking engine offers — mirrored so the owner sees the
+ *  full surface is intact. All true of the current gjtravel.is system. */
+export const BOOKING_FACILITIES = [
+  ['Online booking', 'Dates, travellers and rooms, paid by card'],
+  ['Availability overview', 'Every departure of every tour on one sheet'],
+  ['Traveller accounts', 'Log in to view and manage your booking'],
+  ['Special offers', 'Seasonal fares, flagged on the sheet'],
+  ['Four guide languages', 'English · Deutsch · Español · Português'],
+  ['Coach hire', 'The GJ fleet, 6 to 63 seats, with driver'],
+] as const
+
+/** SAMPLE departures for the demonstration desk (clearly marked). */
+export interface Departure {
+  tour: string
+  date: string
+  seats: number
+  state: 'open' | 'few' | 'waitlist'
+}
+
+export const SAMPLE_DEPARTURES: Departure[] = [
+  { tour: 'Guided Iceland Circle', date: '14 Jul 2026', seats: 12, state: 'open' },
+  { tour: 'Land of Midnight Sun', date: '21 Jul 2026', seats: 4, state: 'few' },
+  { tour: 'Reykjavík Solar Eclipse City Break', date: '10 Aug 2026', seats: 0, state: 'waitlist' },
+  { tour: 'Westfjords of Iceland', date: '18 Aug 2026', seats: 9, state: 'open' },
+  { tour: 'Northern Lights Exploration — Small Group', date: '12 Oct 2026', seats: 7, state: 'open' },
+  { tour: 'Christmas & Northern Lights Adventure', date: '21 Dec 2026', seats: 3, state: 'few' },
+]

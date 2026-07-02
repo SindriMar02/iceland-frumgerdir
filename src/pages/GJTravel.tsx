@@ -11,6 +11,7 @@ import { BackChip, ProtoFooter, WantRedesign } from '../components/Proto'
 import { SurveyChrome } from './gj/SurveyChrome'
 import { CrossingLedger } from './gj/CrossingLedger'
 import { RouteAtlas } from './gj/RouteAtlas'
+import { BookingDesk } from './gj/BookingDesk'
 import { FleetRegister } from './gj/FleetRegister'
 import { LOGBOOK } from './gj/data'
 
@@ -77,8 +78,8 @@ export default function GJTravel() {
       <SurveyChrome />
       <StickyCta
         label="GJ Travel · surveyed since 1931"
-        button="Plot your route"
-        href="#book"
+        button="Book a departure"
+        href="#desk"
         buttonClassName="bg-gj-ink text-gj-paper shadow-gj-ink/25 focus-visible:outline-gj-ink"
         barClassName="bg-gj-paper/90 text-gj-ink border-t border-gj-ink/15"
       />
@@ -91,12 +92,20 @@ export default function GJTravel() {
             Guðmundur Jónasson Travel · est. 1931
           </span>
         </div>
-        <a
-          href="#book"
-          className="hidden border border-gj-ink px-5 py-2.5 font-grotesk text-sm font-semibold transition-colors hover:bg-gj-ink hover:text-gj-paper md:inline-flex"
-        >
-          Enquire
-        </a>
+        <div className="hidden items-center gap-3 md:flex">
+          <a
+            href="#desk"
+            className="border border-gj-ink bg-gj-ink px-5 py-2.5 font-grotesk text-sm font-semibold text-gj-paper transition-colors hover:bg-transparent hover:text-gj-ink"
+          >
+            Tours & booking
+          </a>
+          <a
+            href="#book"
+            className="border border-gj-ink px-5 py-2.5 font-grotesk text-sm font-semibold transition-colors hover:bg-gj-ink hover:text-gj-paper"
+          >
+            Enquire
+          </a>
+        </div>
       </header>
 
       {/* SHEET I — THE APPROACH */}
@@ -137,10 +146,10 @@ export default function GJTravel() {
               className="mt-9 flex flex-wrap items-center gap-5"
             >
               <a
-                href="#book"
+                href="#desk"
                 className="group inline-flex items-center gap-2 bg-gj-vermilion px-8 py-4 font-grotesk text-sm font-bold tracking-[0.06em] text-white uppercase transition-colors hover:bg-[color-mix(in_oklab,var(--color-gj-vermilion),black_12%)] focus-visible:outline-gj-ink"
               >
-                Plot your route
+                Book a departure
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
               <a
@@ -217,6 +226,9 @@ export default function GJTravel() {
 
       {/* SHEET III — the atlas */}
       <RouteAtlas />
+
+      {/* SHEET IV — the booking desk (full catalog + booking flow) */}
+      <BookingDesk />
 
       {/* NIGHT PLATE — the one inverted breath */}
       <section aria-label="Aurora interlude" className="relative overflow-hidden bg-gj-night py-36 md:py-48">
