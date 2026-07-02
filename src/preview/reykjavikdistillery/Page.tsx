@@ -554,7 +554,9 @@ function Collection({ subscribe, reduce, jumpTo }: { subscribe: Subscribe; reduc
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <span className="font-display text-2xl" style={{ color: AMBER_GLOW }}>{kr(active.price)}</span>
-              <a href="#kaupa" className="inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-bold text-[#0a0b0a] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0b0a]" style={{ background: AMBER, ['--tw-ring-color' as string]: AMBER_GLOW } as CSSProperties}>
+              {/* the sticky MobileCTA bar already covers this action on phones — showing it twice is
+                  what was crowding the mobile page dots, so this pill is desktop-only */}
+              <a href="#kaupa" className="hidden min-h-[48px] items-center gap-2 rounded-full px-6 text-sm font-bold text-[#0a0b0a] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0b0a] md:inline-flex" style={{ background: AMBER, ['--tw-ring-color' as string]: AMBER_GLOW } as CSSProperties}>
                 Hvar á að kaupa <ArrowUpRight size={15} aria-hidden="true" />
               </a>
             </div>
@@ -578,8 +580,9 @@ function Collection({ subscribe, reduce, jumpTo }: { subscribe: Subscribe; reduc
           ))}
         </div>
 
-        {/* progress dots (mobile) */}
-        <div className="absolute bottom-24 left-1/2 flex -translate-x-1/2 items-center gap-1.5 md:hidden">
+        {/* progress dots (mobile) — parked under the section label, clear of both the
+            per-bottle CTA and the sticky MobileCTA bar so nothing crowds it at the bottom */}
+        <div className="absolute left-1/2 top-24 flex -translate-x-1/2 items-center gap-1.5 md:hidden">
           {SPIRITS.map((s, i) => (
             <span key={s.id} className="h-1 rounded-full transition-all duration-300" style={{ width: i === index ? 18 : 6, background: i === index ? AMBER_GLOW : 'rgba(255,255,255,0.28)' }} />
           ))}
