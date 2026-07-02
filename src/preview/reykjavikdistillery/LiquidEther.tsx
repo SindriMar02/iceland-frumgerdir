@@ -60,6 +60,15 @@ export default function LiquidEther({
   useEffect(() => {
     if (!mountRef.current) return
 
+    /* hasTouch: any touchscreen — touch gestures are almost always SCROLLING on
+       a page where this runs as a fixed full-page background, so feeding them
+       into the sim smears violent force streaks under the finger. Skip touch
+       input entirely and let the auto driver keep the fluid alive.
+       coarse: phone/tablet-class device — gets a cheaper sim (lower res, DPR,
+       iterations) since frames drop exactly when the compositor is busiest. */
+    const hasTouch = (navigator.maxTouchPoints || 0) > 0
+    const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+
     function makePaletteTexture(stops: string[]) {
       let arr: string[]
       if (Array.isArray(stops) && stops.length > 0) {
@@ -99,9 +108,14 @@ export default function LiquidEther({
       clock: THREE.Clock | null = null
       init(container: HTMLElement) {
         this.container = container
-        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+        // A soft fluid wash gains nothing above ~1.5x DPR; rendering at 2x
+        // costs ~78% more fragment work for an invisible difference. Phones
+        // get 1.25 — their screens are small and their GPUs busiest on scroll.
+        this.pixelRatio = Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.5)
         this.resize()
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+        // antialias off: the output is two fullscreen quads — MSAA has no
+        // edges to smooth here and only taxes the default framebuffer.
+        this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' })
         this.renderer.autoClear = false
         this.renderer.setClearColor(new THREE.Color(0x000000), 0)
         this.renderer.setPixelRatio(this.pixelRatio)
@@ -158,9 +172,12 @@ export default function LiquidEther({
         if (!defaultView) return
         this.listenerTarget = defaultView
         this.listenerTarget.addEventListener('mousemove', this._onMouseMove)
-        this.listenerTarget.addEventListener('touchstart', this._onTouchStart, { passive: true })
-        this.listenerTarget.addEventListener('touchmove', this._onTouchMove, { passive: true })
-        this.listenerTarget.addEventListener('touchend', this._onTouchEnd)
+        if (!hasTouch) {
+          // Touch gestures are scrolling, not painting — see note at effect top.
+          this.listenerTarget.addEventListener('touchstart', this._onTouchStart, { passive: true })
+          this.listenerTarget.addEventListener('touchmove', this._onTouchMove, { passive: true })
+          this.listenerTarget.addEventListener('touchend', this._onTouchEnd)
+        }
         if (this.docTarget) this.docTarget.addEventListener('mouseleave', this._onDocumentLeave)
       }
       dispose() {
@@ -702,8 +719,9 @@ export default function LiquidEther({
       }
       init() { this.calcSize(); this.createAllFBO(); this.createShaderPass() }
       getFloatType() {
-        const isIOS = /(iPad|iPhone|iPod)/i.test(navigator.userAgent)
-        return isIOS ? THREE.HalfFloatType : THREE.FloatType
+        // Half float everywhere (not just iOS): velocity/pressure fields don't
+        // need fp32 precision, and it halves FBO memory bandwidth per pass.
+        return THREE.HalfFloatType
       }
       createAllFBO() {
         const type = this.getFloatType()
@@ -785,7 +803,8 @@ export default function LiquidEther({
         this.init()
         this._loop = this.loop.bind(this)
         this._resize = this.resize.bind(this)
-        window.addEventListener('resize', this._resize)
+        // No window 'resize' listener: the ResizeObserver on the container
+        // covers every real size change AND filters the mobile URL-bar noise.
         this._onVisibility = () => {
           if (document.hidden) { this.pause() }
           else if (isVisibleRef.current) { this.start() }
@@ -806,7 +825,6 @@ export default function LiquidEther({
       }
       dispose() {
         try {
-          window.removeEventListener('resize', this._resize)
           document.removeEventListener('visibilitychange', this._onVisibility)
           Mouse.dispose()
           if (Common.renderer) {
@@ -833,8 +851,21 @@ export default function LiquidEther({
       const sim = webglRef.current.output?.simulation
       if (!sim) return
       const prevRes = sim.options.resolution
-      Object.assign(sim.options, { mouse_force: mouseForce, cursor_size: cursorSize, isViscous, viscous, iterations_viscous: iterationsViscous, iterations_poisson: iterationsPoisson, dt, BFECC, resolution, isBounce })
-      if (resolution !== prevRes) sim.resize()
+      Object.assign(sim.options, {
+        mouse_force: mouseForce,
+        cursor_size: cursorSize,
+        isViscous,
+        viscous,
+        // Phone-class devices run a ~25% cheaper solve — invisible in a
+        // blurred background wash, decisive for scroll frame budget.
+        iterations_viscous: coarse ? Math.max(12, Math.round(iterationsViscous * 0.75)) : iterationsViscous,
+        iterations_poisson: coarse ? Math.max(14, Math.round(iterationsPoisson * 0.75)) : iterationsPoisson,
+        dt,
+        BFECC,
+        resolution: coarse ? resolution * 0.75 : resolution,
+        isBounce,
+      })
+      if (sim.options.resolution !== prevRes) sim.resize()
     }
     applyOptionsFromProps()
     webgl.start()
@@ -849,8 +880,26 @@ export default function LiquidEther({
     io.observe(container)
     intersectionObserverRef.current = io
 
+    /* On touch browsers the collapsing URL bar fires height-only resizes on
+       every scroll direction change; resizing the sim's framebuffers mid-scroll
+       visibly resets the fluid (the "glitch"). Ignore small height-only shifts
+       there — real rotations/splits change width or move height far past the
+       browser-chrome range. */
+    let lastW = 0
+    let lastH = 0
     const ro = new ResizeObserver(() => {
       if (!webglRef.current) return
+      const rect = container.getBoundingClientRect()
+      const w = Math.floor(rect.width)
+      const h = Math.floor(rect.height)
+      if (lastW === 0 && lastH === 0) {
+        lastW = w
+        lastH = h
+        return
+      }
+      if (hasTouch && w === lastW && Math.abs(h - lastH) < 180) return
+      lastW = w
+      lastH = h
       if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current)
       resizeRafRef.current = requestAnimationFrame(() => { if (!webglRef.current) return; webglRef.current.resize() })
     })
@@ -871,8 +920,22 @@ export default function LiquidEther({
     if (!webgl) return
     const sim = webgl.output?.simulation
     if (!sim) return
+    // Mirror the coarse-pointer scaling from the init effect — this effect
+    // also runs on mount and must not overwrite the cheaper mobile solve.
+    const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
     const prevRes = sim.options.resolution
-    Object.assign(sim.options, { mouse_force: mouseForce, cursor_size: cursorSize, isViscous, viscous, iterations_viscous: iterationsViscous, iterations_poisson: iterationsPoisson, dt, BFECC, resolution, isBounce })
+    Object.assign(sim.options, {
+      mouse_force: mouseForce,
+      cursor_size: cursorSize,
+      isViscous,
+      viscous,
+      iterations_viscous: coarse ? Math.max(12, Math.round(iterationsViscous * 0.75)) : iterationsViscous,
+      iterations_poisson: coarse ? Math.max(14, Math.round(iterationsPoisson * 0.75)) : iterationsPoisson,
+      dt,
+      BFECC,
+      resolution: coarse ? resolution * 0.75 : resolution,
+      isBounce,
+    })
     if (webgl.autoDriver) {
       webgl.autoDriver.enabled = autoDemo
       webgl.autoDriver.speed = autoSpeed
@@ -883,7 +946,7 @@ export default function LiquidEther({
         webgl.autoDriver.mouse.takeoverDuration = takeoverDuration
       }
     }
-    if (resolution !== prevRes) sim.resize()
+    if (sim.options.resolution !== prevRes) sim.resize()
   }, [mouseForce, cursorSize, isViscous, viscous, iterationsViscous, iterationsPoisson, dt, BFECC, resolution, isBounce, autoDemo, autoSpeed, autoIntensity, takeoverDuration, autoResumeDelay, autoRampDuration])
 
   return <div ref={mountRef} className={`liquid-ether-container ${className || ''}`} style={style} />

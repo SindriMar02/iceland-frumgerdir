@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import Lenis from 'lenis'
@@ -22,7 +22,7 @@ const LIQUID_COLORS = ['#3d1f6e', '#7b52c4', '#2d9e7e', '#74c9a8', '#c8881e', '#
 
 /* Brand gradient for the hero emphasis word "í glasið" — candlelight amber sweeping
    through cream and a whisper of aurora teal, echoing the ether palette. Module-level
-   so the array reference is stable across the hero's per-scroll re-renders. */
+   so the array reference is stable across renders. */
 const GLASS_GRADIENT = ['#f0a83a', '#ffe0ad', '#e9b86a', '#74c9a8', '#f0a83a']
 
 /* --- Palette ------------------------------------------------------------- */
@@ -36,18 +36,6 @@ const MUTED = '#a7a094' // warm taupe — secondary copy (AA on ground)
 /* --- Small helpers ------------------------------------------------------- */
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 const kr = (n: number) => `${n.toLocaleString('is-IS')} kr`
-
-const hexToRgb = (h: string): [number, number, number] => {
-  const n = parseInt(h.slice(1), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-/** Linear blend between two hex colours, returns an rgb() string. */
-const mix = (a: string, b: string, t: number) => {
-  const ca = hexToRgb(a)
-  const cb = hexToRgb(b)
-  const c = ca.map((v, i) => Math.round(v + (cb[i] - v) * clamp(t, 0, 1)))
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`
-}
 
 /* ---------------------------------------------------------------------------
    One-shot reveal that NEVER traps content invisible. Visible by default; if
@@ -100,19 +88,30 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
 }
 
 /* ---------------------------------------------------------------------------
-   Scroll driver. Lenis gives buttery smooth scroll; we read the scroll value
-   from Lenis's own 'scroll' event (lenis.scroll) so every scroll-linked
-   transform tracks it exactly — never framer useScroll, which pins at 0 in the
-   backgrounded preview. Under reduced motion Lenis is off and we fall back to a
-   passive window 'scroll' listener. Returns the live scrollY, the scrollable
-   height, and the Lenis ref (for the collection rail's jump-to). */
+   Scroll driver. Lenis gives buttery smooth scroll; scroll-linked visuals
+   SUBSCRIBE to it and write styles straight to the DOM. The scroll position
+   never enters React state, so scrolling re-renders nothing — the single
+   biggest jank source in the previous version (a full page-tree render per
+   scrolled pixel). Under reduced motion Lenis is off and we fall back to a
+   passive window 'scroll' listener. Discrete UI (nav background, active
+   bottle) still uses state, but only flips when the value actually changes.
+--------------------------------------------------------------------------- */
+type ScrollListener = (y: number, docH: number) => void
+type Subscribe = (l: ScrollListener) => () => void
+
 function useScrollDriver(reduce: boolean | null) {
-  const [scrollY, setScrollY] = useState(0)
-  const [docH, setDocH] = useState(1)
+  const listenersRef = useRef<Set<ScrollListener>>(new Set())
+  const posRef = useRef({ y: 0, docH: 1 })
   const lenisRef = useRef<Lenis | null>(null)
+
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const measure = () => setDocH(Math.max(1, document.documentElement.scrollHeight - window.innerHeight))
+    const pos = posRef.current
+    const emit = () => listenersRef.current.forEach((l) => l(pos.y, pos.docH))
+    const measure = () => {
+      pos.docH = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+      emit()
+    }
     measure()
     const settle = window.setTimeout(measure, 500)
     window.addEventListener('resize', measure)
@@ -125,14 +124,22 @@ function useScrollDriver(reduce: boolean | null) {
       lenis = new Lenis({ duration: 1.15, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
       lenisRef.current = lenis
       if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
-      lenis.on('scroll', () => setScrollY(lenis ? lenis.scroll : 0))
+      pos.y = lenis.scroll
+      emit()
+      lenis.on('scroll', () => {
+        pos.y = lenis ? lenis.scroll : 0
+        emit()
+      })
       const loop = (time: number) => {
         lenis?.raf(time)
         raf = requestAnimationFrame(loop)
       }
       raf = requestAnimationFrame(loop)
     } else {
-      onWin = () => setScrollY(window.scrollY || window.pageYOffset)
+      onWin = () => {
+        pos.y = window.scrollY || window.pageYOffset
+        emit()
+      }
       onWin()
       window.addEventListener('scroll', onWin, { passive: true })
     }
@@ -148,39 +155,106 @@ function useScrollDriver(reduce: boolean | null) {
       }
     }
   }, [reduce])
-  return { scrollY, docH, lenisRef }
+
+  const subscribe = useCallback<Subscribe>((l) => {
+    listenersRef.current.add(l)
+    l(posRef.current.y, posRef.current.docH)
+    return () => {
+      listenersRef.current.delete(l)
+    }
+  }, [])
+
+  return { subscribe, lenisRef }
 }
 
-/* --- Fixed temperature backdrop: cools at the top, warms toward the still -- */
-function TemperatureBackdrop({ t }: { t: number }) {
-  // base basalt warms very slightly; the glow shifts aurora-green -> amber
-  const base = mix('#0a0b0a', '#0b0a07', t)
-  const glow = mix('#74c9a8', '#c8881e', t)
-  const alpha = 0.06 + 0.1 * t
+/* --- Fixed temperature backdrop: cools at the top, warms toward the still --
+   Two STATIC gradient layers; scroll crossfades the warm one in via opacity
+   (compositor-only) instead of rebuilding a full-viewport gradient string per
+   frame, which forced a full-screen repaint on every scroll tick. */
+function TemperatureBackdrop({ subscribe }: { subscribe: Subscribe }) {
+  const warmRef = useRef<HTMLDivElement>(null)
+  useEffect(
+    () =>
+      subscribe((y, docH) => {
+        const t = clamp(y / docH / 0.42, 0, 1)
+        if (warmRef.current) warmRef.current.style.opacity = t.toFixed(3)
+      }),
+    [subscribe],
+  )
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 -z-10"
-      style={{
-        background: `radial-gradient(125% 80% at 50% -8%, ${glow.replace('rgb', 'rgba').replace(')', `, ${alpha})`)}, transparent 58%), ${base}`,
-      }}
-    />
-  )
-}
-
-/* --- The thread: a hairline that fills with amber as you descend ---------- */
-function Thread({ progress }: { progress: number }) {
-  return (
-    <div aria-hidden="true" className="pointer-events-none fixed left-4 top-0 z-30 hidden h-screen w-px md:block">
-      <div className="absolute inset-0 bg-white/10" />
-      <div className="absolute inset-x-0 top-0 origin-top" style={{ height: '100%', transform: `scaleY(${progress})`, background: `linear-gradient(${AMBER_GLOW}, ${AMBER})` }} />
-      <div className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full" style={{ top: `calc(${progress * 100}% - 3px)`, background: AMBER_GLOW, boxShadow: `0 0 10px ${AMBER}` }} />
+      style={{ background: 'radial-gradient(125% 80% at 50% -8%, rgba(116,201,168,0.06), transparent 58%), #0a0b0a' }}
+    >
+      <div
+        ref={warmRef}
+        className="absolute inset-0"
+        style={{
+          opacity: 0,
+          willChange: 'opacity',
+          background: 'radial-gradient(125% 80% at 50% -8%, rgba(200,136,30,0.16), transparent 58%), #0b0a07',
+        }}
+      />
     </div>
   )
 }
 
-/* --- Slim top nav with the real 64° mark --------------------------------- */
-function TopNav({ scrolled }: { scrolled: boolean }) {
+/* --- The thread: a hairline that fills with amber as you descend ----------
+   Fill scales and the dot rides a transform — no per-frame layout writes. */
+function Thread({ subscribe }: { subscribe: Subscribe }) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const fillRef = useRef<HTMLDivElement>(null)
+  const dotRef = useRef<HTMLDivElement>(null)
+  useEffect(
+    () =>
+      subscribe((y, docH) => {
+        const p = clamp(y / docH, 0, 1)
+        if (fillRef.current) fillRef.current.style.transform = `scaleY(${p})`
+        const h = wrapRef.current ? wrapRef.current.clientHeight : 0
+        if (dotRef.current) dotRef.current.style.transform = `translate3d(-50%, ${p * h - 3}px, 0)`
+      }),
+    [subscribe],
+  )
+  return (
+    <div ref={wrapRef} aria-hidden="true" className="pointer-events-none fixed left-4 top-0 z-30 hidden h-screen w-px md:block">
+      <div className="absolute inset-0 bg-white/10" />
+      <div
+        ref={fillRef}
+        className="absolute inset-x-0 top-0 h-full origin-top"
+        style={{ transform: 'scaleY(0)', willChange: 'transform', background: `linear-gradient(${AMBER_GLOW}, ${AMBER})` }}
+      />
+      <div
+        ref={dotRef}
+        className="absolute left-1/2 top-0 h-1.5 w-1.5 rounded-full"
+        style={{ transform: 'translate3d(-50%, -3px, 0)', willChange: 'transform', background: AMBER_GLOW, boxShadow: `0 0 10px ${AMBER}` }}
+      />
+    </div>
+  )
+}
+
+/* --- Scroll progress hairline along the very top edge --------------------- */
+function ProgressBar({ subscribe }: { subscribe: Subscribe }) {
+  const barRef = useRef<HTMLDivElement>(null)
+  useEffect(
+    () =>
+      subscribe((y, docH) => {
+        if (barRef.current) barRef.current.style.transform = `scaleX(${clamp(y / docH, 0, 1)})`
+      }),
+    [subscribe],
+  )
+  return (
+    <div className="fixed inset-x-0 top-0 z-50 h-px" aria-hidden="true">
+      <div ref={barRef} className="h-full origin-left" style={{ background: AMBER, transform: 'scaleX(0)', willChange: 'transform' }} />
+    </div>
+  )
+}
+
+/* --- Slim top nav with the real 64° mark ----------------------------------
+   Subscribes itself; state only flips when the 60px threshold is crossed. */
+function TopNav({ subscribe }: { subscribe: Subscribe }) {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => subscribe((y) => setScrolled(y > 60)), [subscribe])
   return (
     <nav
       className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-3.5 transition-colors duration-500 md:px-10"
@@ -267,21 +341,39 @@ function Hero() {
   )
 }
 
-/* --- A journey beat ------------------------------------------------------- */
-function JourneyBeat({ beat, scrollY, reduce, index }: { beat: Beat; scrollY: number; reduce: boolean | null; index: number }) {
+/* --- A journey beat --------------------------------------------------------
+   Parallax drift is written straight to a wrapper div from the scroll driver;
+   the beat itself never re-renders while scrolling. */
+function JourneyBeat({ beat, subscribe, reduce, index }: { beat: Beat; subscribe: Subscribe; reduce: boolean | null; index: number }) {
   const wrap = useRef<HTMLDivElement>(null)
-  const [top, setTop] = useState(0)
+  const parallaxRef = useRef<HTMLDivElement>(null)
   const reveal = useReveal<HTMLDivElement>(reduce)
 
   useEffect(() => {
-    const measure = () => setTop(wrap.current ? wrap.current.offsetTop : 0)
+    if (reduce || beat.kind !== 'land') return
+    let top = 0
+    let vh = window.innerHeight
+    const measure = () => {
+      top = wrap.current ? wrap.current.offsetTop : 0
+      vh = window.innerHeight
+    }
     measure()
+    const settle = window.setTimeout(measure, 500)
     window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [])
+    let last = NaN
+    const unsub = subscribe((y) => {
+      const shift = clamp((y - top + vh) * 0.04, -50, 50)
+      if (shift === last || !parallaxRef.current) return
+      last = shift
+      parallaxRef.current.style.transform = `translate3d(0, ${-shift}px, 0)`
+    })
+    return () => {
+      window.clearTimeout(settle)
+      window.removeEventListener('resize', measure)
+      unsub()
+    }
+  }, [subscribe, reduce, beat.kind])
 
-  const rel = scrollY - top + (typeof window !== 'undefined' ? window.innerHeight : 800)
-  const shift = reduce ? 0 : clamp(rel * 0.04, -50, 50)
   const flip = index % 2 === 1
 
   return (
@@ -295,7 +387,9 @@ function JourneyBeat({ beat, scrollY, reduce, index }: { beat: Beat; scrollY: nu
         >
           {beat.kind === 'land' && (
             <figure className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 sm:aspect-[3/2] lg:aspect-[4/5]">
-              <Img src={beat.img} alt={beat.alt} className="h-full w-full object-cover" style={{ transform: `translate3d(0, ${-shift}px, 0) scale(1.12)` }} />
+              <div ref={parallaxRef} className="h-full w-full" style={reduce ? undefined : { willChange: 'transform' }}>
+                <Img src={beat.img} alt={beat.alt} className="h-full w-full object-cover" style={{ transform: 'scale(1.12)' }} />
+              </div>
               <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, transparent 50%, rgba(10,11,10,0.7))' }} aria-hidden="true" />
               {beat.tag && (
                 <figcaption className="absolute bottom-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/65 backdrop-blur-sm">
@@ -342,45 +436,62 @@ function JourneyBeat({ beat, scrollY, reduce, index }: { beat: Beat; scrollY: nu
    The signature moment. A sticky full-viewport stage; scrolling the tall
    parent crossfades a giant cut-out bottle through the whole range, the
    ambient glow shifts to each spirit's colour, and an oversized index counts
-   up behind it. Driven by the passive scrollY (verifiable; survives the
-   preview rAF freeze). Keyboard users step the range via the numbered rail. */
+   up behind it. The scroll subscription only computes the active INDEX —
+   state changes ~11 times across the whole scroll instead of every frame,
+   and every crossfade (glow, backlight, bottle) is a CSS opacity transition
+   the compositor runs for free. The bottle's idle float is a CSS keyframe
+   (rd-float) instead of a scroll-linked sine. Keyboard users step the range
+   via the numbered rail. */
 function bottleCutout(s: Spirit) {
   return s.img.replace('/bottles/', '/bottles/cutout/').replace('.jpg', '.png')
 }
 
-function Collection({ scrollY, reduce, jumpTo }: { scrollY: number; reduce: boolean | null; jumpTo: (y: number) => void }) {
+function Collection({ subscribe, reduce, jumpTo }: { subscribe: Subscribe; reduce: boolean | null; jumpTo: (y: number) => void }) {
   const wrapRef = useRef<HTMLElement>(null)
-  const [box, setBox] = useState({ top: 0, height: 1 })
+  const boxRef = useRef({ top: 0, height: 1 })
+  const [index, setIndex] = useState(0)
+
+  const N = SPIRITS.length
+
   useEffect(() => {
     const measure = () => {
       const el = wrapRef.current
-      if (el) setBox({ top: el.offsetTop, height: el.offsetHeight })
+      if (el) boxRef.current = { top: el.offsetTop, height: el.offsetHeight }
     }
     measure()
     const t = window.setTimeout(measure, 400)
     window.addEventListener('resize', measure)
+    const unsub = subscribe((y) => {
+      const box = boxRef.current
+      const vh = window.innerHeight
+      const local = clamp((y - box.top) / Math.max(1, box.height - vh), 0, 1)
+      const i = Math.round(local * (N - 1))
+      setIndex((prev) => (prev === i ? prev : i))
+    })
     return () => {
       window.clearTimeout(t)
       window.removeEventListener('resize', measure)
+      unsub()
     }
-  }, [])
+  }, [subscribe, N])
 
-  const N = SPIRITS.length
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 800
-  const local = clamp((scrollY - box.top) / Math.max(1, box.height - vh), 0, 1)
-  const f = local * (N - 1)
-  const index = Math.min(N - 1, Math.max(0, Math.round(f)))
   const active = SPIRITS[index]
-  const lo = Math.floor(f)
-  const hi = Math.min(N - 1, lo + 1)
-  const glow = mix(SPIRITS[lo].tone, SPIRITS[hi].tone, f - lo)
-  const float = reduce ? 0 : Math.sin(scrollY / 240) * 8
+  const fade = reduce ? 'none' : 'opacity 0.55s ease'
+  const fadeGlow = reduce ? 'none' : 'opacity 0.6s ease'
 
   return (
     <section ref={wrapRef} id="eimingarnar" aria-label="Eimingarnar — úrvalið" style={{ height: `${N * 44}vh` }} className="relative">
       <div className="sticky top-0 flex h-svh items-center overflow-hidden">
-        {/* ambient tone glow, crossfading between spirits */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(58% 56% at 50% 48%, ${glow}26, transparent 70%)` }} />
+        {/* ambient tone glow — one static layer per spirit, crossfaded by opacity */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          {SPIRITS.map((s, i) => (
+            <div
+              key={s.id}
+              className="absolute inset-0"
+              style={{ opacity: i === index ? 1 : 0, transition: fadeGlow, background: `radial-gradient(58% 56% at 50% 48%, ${s.tone}26, transparent 70%)` }}
+            />
+          ))}
+        </div>
         {/* oversized index numeral behind everything */}
         <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[54%] font-display text-[44vw] font-medium leading-none text-white/[0.035] md:text-[30vw]">
           {String(index + 1).padStart(2, '0')}
@@ -396,24 +507,35 @@ function Collection({ scrollY, reduce, jumpTo }: { scrollY: number; reduce: bool
           {/* Giant bottle, crossfading */}
           <div className="relative order-1 flex h-[40svh] items-end justify-center md:order-none md:col-span-5 md:h-[80svh]">
             {/* coloured backlight so the bottle (esp. clear spirits) glows off the dark */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(42% 46% at 50% 44%, ${active.tone}40, transparent 70%)`, transition: reduce ? 'none' : 'background 0.5s ease' }} />
-            {SPIRITS.map((s, i) => (
-              <img
-                key={s.id}
-                src={bottleCutout(s)}
-                alt={i === index ? `${s.name} flaska` : ''}
-                aria-hidden={i !== index}
-                loading={i < 3 ? 'eager' : 'lazy'}
-                decoding="async"
-                className="absolute bottom-0 left-1/2 h-full w-auto max-w-[90%] object-contain object-bottom"
-                style={{
-                  opacity: i === index ? 1 : 0,
-                  transition: reduce ? 'none' : 'opacity 0.55s ease',
-                  transform: i === index ? `translate3d(-50%, ${float}px, 0)` : 'translate3d(-50%, 0, 0)',
-                  filter: 'drop-shadow(0 26px 38px rgba(0,0,0,0.6))',
-                }}
-              />
-            ))}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+              {SPIRITS.map((s, i) => (
+                <div
+                  key={s.id}
+                  className="absolute inset-0"
+                  style={{ opacity: i === index ? 1 : 0, transition: fadeGlow, background: `radial-gradient(42% 46% at 50% 44%, ${s.tone}40, transparent 70%)` }}
+                />
+              ))}
+            </div>
+            {/* idle float lives on this wrapper as a compositor-only keyframe */}
+            <div className={`absolute inset-0 ${reduce ? '' : 'rd-float'}`}>
+              {SPIRITS.map((s, i) => (
+                <img
+                  key={s.id}
+                  src={bottleCutout(s)}
+                  alt={i === index ? `${s.name} flaska` : ''}
+                  aria-hidden={i !== index}
+                  loading={i < 3 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  className="absolute bottom-0 left-1/2 h-full w-auto max-w-[90%] object-contain object-bottom"
+                  style={{
+                    opacity: i === index ? 1 : 0,
+                    transition: fade,
+                    transform: 'translate3d(-50%, 0, 0)',
+                    filter: 'drop-shadow(0 26px 38px rgba(0,0,0,0.6))',
+                  }}
+                />
+              ))}
+            </div>
             {/* floor shadow */}
             <div aria-hidden="true" className="absolute bottom-1 left-1/2 h-5 w-2/3 -translate-x-1/2 rounded-[50%]" style={{ background: 'radial-gradient(closest-side, rgba(0,0,0,0.6), transparent)' }} />
           </div>
@@ -445,7 +567,7 @@ function Collection({ scrollY, reduce, jumpTo }: { scrollY: number; reduce: bool
             <button
               key={s.id}
               type="button"
-              onClick={() => jumpTo(box.top + (i / (N - 1)) * (box.height - vh) + 4)}
+              onClick={() => jumpTo(boxRef.current.top + (i / (N - 1)) * (boxRef.current.height - window.innerHeight) + 4)}
               className="group flex items-center gap-2 outline-none focus-visible:opacity-100"
               aria-label={`Sýna ${s.name}`}
               aria-current={i === index ? 'true' : undefined}
@@ -629,16 +751,13 @@ function MobileCTA() {
 /* ------------------------------------------------------------------------- */
 export default function Page() {
   const reduce = useReducedMotion()
-  const { scrollY, docH, lenisRef } = useScrollDriver(reduce)
+  const { subscribe, lenisRef } = useScrollDriver(reduce)
   const jumpTo = useCallback((y: number) => {
     const l = lenisRef.current
     if (l) l.scrollTo(y)
     else window.scrollTo({ top: y })
   }, [lenisRef])
 
-  const progress = useMemo(() => clamp(scrollY / docH, 0, 1), [scrollY, docH])
-  // temperature ramps over the journey portion (top ~58% of the page)
-  const temp = useMemo(() => clamp(progress / 0.42, 0, 1), [progress])
   useEffect(() => {
     document.title = '64° Reykjavik Distillery — Frá villtu í glas'
   }, [])
@@ -649,13 +768,16 @@ export default function Page() {
 
   return (
     <div className="min-h-screen font-sans antialiased" style={{ background: GROUND, color: BONE, isolation: 'isolate' }}>
-      <TemperatureBackdrop t={temp} />
+      <TemperatureBackdrop subscribe={subscribe} />
 
-      {/* Full-viewport fluid, fixed BEHIND all content. Skipped entirely under
+      {/* Full-viewport fluid, fixed BEHIND all content. Sized with 100lvh (the
+          LARGEST viewport) so the collapsing mobile URL bar never changes the
+          container's height — a resize here rebuilds the sim's framebuffers and
+          visibly glitches the fluid mid-scroll. Skipped entirely under
           prefers-reduced-motion — the page reads well without it and we avoid
           loading Three.js (the WebGL renderer) for users who opt out of motion. */}
       {!reduce && (
-        <div className="pointer-events-none fixed inset-0 -z-[1]">
+        <div className="pointer-events-none fixed inset-x-0 top-0 -z-[1] h-[100lvh]">
           <LiquidEther
             colors={LIQUID_COLORS}
             mouseForce={42}
@@ -667,7 +789,8 @@ export default function Page() {
             dt={0.011}
             isViscous
             viscous={18}
-            iterationsViscous={28}
+            iterationsViscous={20}
+            iterationsPoisson={24}
             takeoverDuration={0.5}
             autoRampDuration={0.9}
           />
@@ -676,14 +799,10 @@ export default function Page() {
 
       <PreviewChrome company={company} />
       <MobileCTA />
-      <Thread progress={progress} />
+      <Thread subscribe={subscribe} />
+      <ProgressBar subscribe={subscribe} />
 
-      {/* scroll progress hairline */}
-      <div className="fixed inset-x-0 top-0 z-50 h-px" aria-hidden="true">
-        <div className="h-full origin-left" style={{ background: AMBER, transform: `scaleX(${progress})` }} />
-      </div>
-
-      <TopNav scrolled={scrollY > 60} />
+      <TopNav subscribe={subscribe} />
       <Hero />
 
       <section id="ferdin-anchor" aria-label="Frá villtu í glas">
@@ -693,11 +812,11 @@ export default function Page() {
           </p>
         </Reveal>
         {BEATS.map((b, i) => (
-          <JourneyBeat key={b.id} beat={b} scrollY={scrollY} reduce={reduce} index={i} />
+          <JourneyBeat key={b.id} beat={b} subscribe={subscribe} reduce={reduce} index={i} />
         ))}
       </section>
 
-      <Collection scrollY={scrollY} reduce={reduce} jumpTo={jumpTo} />
+      <Collection subscribe={subscribe} reduce={reduce} jumpTo={jumpTo} />
       <BuySection />
       <VisitSection />
 
