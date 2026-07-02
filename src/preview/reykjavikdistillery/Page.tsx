@@ -788,7 +788,7 @@ export default function Page() {
             colors={LIQUID_COLORS}
             mouseForce={42}
             cursorSize={172}
-            autoSpeed={0.4}
+            autoSpeed={0.15}
             autoIntensity={2.3}
             autoResumeDelay={500}
             resolution={0.5}
@@ -798,7 +798,7 @@ export default function Page() {
             iterationsViscous={20}
             iterationsPoisson={24}
             takeoverDuration={0.5}
-            autoRampDuration={0.9}
+            autoRampDuration={1.4}
           />
         </div>
       )}
