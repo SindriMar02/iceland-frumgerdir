@@ -39,20 +39,21 @@ import {
 
 const company = getPreviewCompany('polarhestar')
 
-/* ── Palette — Heath & Saddle: bone, deep pine, terracotta, basalt ── */
-const MIST = '#EEE7DA' // bone — warm light ground
-const PAPER = '#F6F1E6' // lighter card on bone
-const INK = '#1E2420' // basalt near-black (green-tinted) — text on light
-const BODY = '#434A41' // warm green-grey body text on light
-const CLAY = '#B0572E' // terracotta — bright accent, decorative icons, tints
-const CLAY_TX = '#8E4623' // terracotta as text on light grounds (AA ≥4.5)
-const CLAY_FILL = '#A9572F' // terracotta button fill behind white text (~5:1)
-const CLAY_HI = '#E4B074' // warm tan-gold — accent on dark grounds
-const SLATE = '#5E6A4C' // moss green — secondary text/icons on light (AA)
-const TWILIGHT = '#20352B' // deep pine green — feature band ground
-const NIGHT = '#151A36' // polar-night navy (from the logo's #202070) — seasons + final CTA
-const NIGHT2 = '#232B52' // navy card / active tab on night ground
-const ICE = '#9BD8F3' // logo ice-blue — accents on night ground only
+/* ── Palette — Polar North, built from the logo: glacier white, the logo's
+      navy #202070, fjord blue from its gradient, ice-blue highlights ── */
+const MIST = '#EDF1F7' // glacier white — cool light ground
+const PAPER = '#F7FAFC' // lighter icy card
+const INK = '#161B3C' // deep navy ink — text on light
+const BODY = '#3D4565' // slate-navy body text on light
+const CLAY = '#3B8FD4' // fjord blue — bright accent, decorative icons, tints
+const CLAY_TX = '#2160A6' // fjord blue as text on light grounds (AA ≥4.5)
+const CLAY_FILL = '#202070' // the logo navy itself — button fill behind white text
+const CLAY_HI = '#9BD8F3' // logo ice-blue — accent on dark grounds
+const SLATE = '#57608A' // cool slate — secondary text/icons on light (AA)
+const TWILIGHT = '#1D2456' // deep indigo — feature band ground
+const NIGHT = '#111530' // darkest polar night — seasons + final CTA
+const NIGHT2 = '#252D5E' // navy card / active tab on night ground
+const ICE = '#9BD8F3' // logo ice-blue (alias of CLAY_HI on night sections)
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 
@@ -277,7 +278,7 @@ function Booking({
   )
 
   return (
-    <div className="grid gap-0 overflow-hidden rounded-[28px] shadow-[0_30px_70px_-30px_rgba(28,42,46,0.5)] md:grid-cols-2" style={{ background: PAPER }}>
+    <div className="grid gap-0 overflow-hidden rounded-[28px] shadow-[0_30px_70px_-30px_rgba(18,23,56,0.5)] md:grid-cols-2" style={{ background: PAPER }}>
       {/* image side */}
       <div className="relative min-h-[240px] overflow-hidden md:min-h-full">
         <Img
@@ -586,8 +587,8 @@ export default function PolarHestarPage() {
         .ph-proc:hover .ph-track{animation-play-state:paused}
         .ph-track>div:nth-child(odd){margin-top:14px}
         .ph-card:hover .ph-card-img{transform:scale(1.05)}
-        .ph-root :focus-visible{outline:2px solid #1C2A2E;outline-offset:2px;border-radius:4px}
-        .ph-dark :focus-visible{outline-color:#E4B074}
+        .ph-root :focus-visible{outline:2px solid #202070;outline-offset:2px;border-radius:4px}
+        .ph-dark :focus-visible{outline-color:#9BD8F3}
         @media (prefers-reduced-motion: reduce){
           .ph-reveal{opacity:1;transform:none;filter:none;transition:none}
           .ph-hero-rise,.ph-line-i,.ph-drift,.ph-tick{animation:none}
@@ -605,7 +606,7 @@ export default function PolarHestarPage() {
         className="fixed inset-x-0 top-0 z-40 transition-all duration-300"
         style={{
           background: scrolled ? `${MIST}fa` : 'transparent',
-          boxShadow: scrolled ? '0 1px 0 rgba(35,40,42,0.08)' : 'none',
+          boxShadow: scrolled ? '0 1px 0 rgba(22,27,60,0.08)' : 'none',
           backdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
       >
@@ -639,7 +640,7 @@ export default function PolarHestarPage() {
               className="rounded-full border px-3 py-2 font-hanken text-xs font-semibold transition-colors"
               style={{
                 color: scrolled ? INK : '#fff',
-                borderColor: scrolled ? '#23282a33' : '#ffffff66',
+                borderColor: scrolled ? '#1a205233' : '#ffffff66',
               }}
               aria-label={lang === 'is' ? 'Switch to English' : 'Skipta yfir á íslensku'}
             >
@@ -674,7 +675,7 @@ export default function PolarHestarPage() {
         />
         <div
           className="absolute inset-0"
-          style={{ background: `linear-gradient(180deg, rgba(20,26,28,0.5) 0%, rgba(20,26,28,0.15) 32%, rgba(20,26,28,0.35) 62%, rgba(20,26,28,0.85) 100%)` }}
+          style={{ background: `linear-gradient(180deg, rgba(13,16,40,0.5) 0%, rgba(13,16,40,0.15) 32%, rgba(13,16,40,0.35) 62%, rgba(13,16,40,0.85) 100%)` }}
         />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
           <p className="ph-hero-rise font-hanken text-xs font-semibold tracking-[0.24em] text-white/80 uppercase" style={{ animationDelay: '0ms' }}>
@@ -748,7 +749,7 @@ export default function PolarHestarPage() {
           </Reveal>
           <Reveal delay={120}>
             <figure className="relative">
-              <div className="overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(28,42,46,0.45)]">
+              <div className="overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(18,23,56,0.45)]">
                 <Img
                   src={u(IMG.story, 1100)}
                   srcSet={srcSet(IMG.story)}
@@ -999,7 +1000,7 @@ export default function PolarHestarPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           {SHOP.map((item, i) => (
             <Reveal key={i} delay={i * 70}>
-              <div className="flex h-full items-center justify-between gap-4 rounded-2xl border p-5" style={{ borderColor: '#23282a1a', background: PAPER }}>
+              <div className="flex h-full items-center justify-between gap-4 rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: PAPER }}>
                 <div>
                   <p className="font-spectral text-lg" style={{ color: INK }}>
                     {item.name[lang]}
@@ -1063,7 +1064,7 @@ export default function PolarHestarPage() {
                 <a
                   href={PHONE_HREF}
                   className="inline-flex items-center gap-2 rounded-full border px-5 py-3 font-hanken text-sm font-semibold transition-colors hover:bg-black/5"
-                  style={{ borderColor: '#23282a33', color: INK }}
+                  style={{ borderColor: '#1a205233', color: INK }}
                 >
                   <Phone className="h-4 w-4" />
                   {t.callBtn}
@@ -1071,7 +1072,7 @@ export default function PolarHestarPage() {
                 <a
                   href={`mailto:${EMAIL}`}
                   className="inline-flex items-center gap-2 rounded-full border px-5 py-3 font-hanken text-sm font-semibold transition-colors hover:bg-black/5"
-                  style={{ borderColor: '#23282a33', color: INK }}
+                  style={{ borderColor: '#1a205233', color: INK }}
                 >
                   <Mail className="h-4 w-4" />
                   {t.emailBtn}
@@ -1145,7 +1146,7 @@ export default function PolarHestarPage() {
       <PreviewFooter company={company} />
 
       {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 md:hidden" style={{ background: `${MIST}f5`, borderColor: '#23282a1f', backdropFilter: 'blur(8px)' }}>
+      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 md:hidden" style={{ background: `${MIST}f5`, borderColor: '#1a20521f', backdropFilter: 'blur(8px)' }}>
         <button
           type="button"
           onClick={() => goBook(bookTour)}
@@ -1158,7 +1159,7 @@ export default function PolarHestarPage() {
         <a
           href={PHONE_HREF}
           className="grid h-12 w-12 shrink-0 place-items-center rounded-full border"
-          style={{ borderColor: '#23282a33', color: INK }}
+          style={{ borderColor: '#1a205233', color: INK }}
           aria-label={t.callBtn}
         >
           <Phone className="h-5 w-5" />
@@ -1182,7 +1183,7 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
 
 function TourCard({ tour, lang, t, onBook }: { tour: Tour; lang: Lang; t: typeof COPY['is']; onBook: () => void }) {
   return (
-    <article className="ph-card flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_18px_40px_-28px_rgba(28,42,46,0.55)]" style={{ background: PAPER }}>
+    <article className="ph-card flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_18px_40px_-28px_rgba(18,23,56,0.55)]" style={{ background: PAPER }}>
       <div className="aspect-[4/3] overflow-hidden">
         <img
           src={u(tour.image, 700)}
