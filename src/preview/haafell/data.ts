@@ -186,6 +186,54 @@ export const VISIT = {
   mapNote: { is: 'Staðsetning til skýringar', en: 'Approximate location' } satisfies LocPair,
 }
 
+/* ── Booking (request form + live open status) ─────────────────────── */
+
+/** Numeric admission prices for the live total (same figures as VISIT.prices). */
+export const BOOKING_PRICES = { adult: 1800, child: 950 } as const
+
+export const BOOKING = {
+  title: { is: 'Bóka heimsókn', en: 'Book a visit' } satisfies LocPair,
+  intro: {
+    is: 'Veldu dag og hópstærð og sendu okkur fyrirspurn. Við svörum persónulega og staðfestum.',
+    en: 'Pick a day and your party size and send us a request. We reply personally to confirm.',
+  } satisfies LocPair,
+  dateLabel: { is: 'Dagsetning', en: 'Date' } satisfies LocPair,
+  adultsLabel: { is: 'Fullorðnir', en: 'Adults' } satisfies LocPair,
+  childrenLabel: { is: 'Börn 7 til 17 ára', en: 'Children 7 to 17' } satisfies LocPair,
+  nameLabel: { is: 'Nafn', en: 'Name' } satisfies LocPair,
+  contactLabel: { is: 'Sími eða netfang', en: 'Phone or email' } satisfies LocPair,
+  decrease: { is: 'Fækka', en: 'Fewer' } satisfies LocPair,
+  increase: { is: 'Fjölga', en: 'More' } satisfies LocPair,
+  summaryTitle: { is: 'Heimsóknin þín', en: 'Your visit' } satisfies LocPair,
+  totalLabel: { is: 'Áætlað verð', en: 'Estimated total' } satisfies LocPair,
+  totalNote: {
+    is: 'Greitt á staðnum, engin fyrirframgreiðsla.',
+    en: 'Paid on site, no prepayment.',
+  } satisfies LocPair,
+  submit: { is: 'Senda bókunarfyrirspurn', en: 'Send booking request' } satisfies LocPair,
+  mailNote: {
+    is: 'Fyrirspurnin opnast í póstforritinu þínu og við staðfestum um hæl.',
+    en: 'The request opens in your email app and we confirm right away.',
+  } satisfies LocPair,
+  altContact: { is: 'Frekar að tala við okkur?', en: 'Rather talk to us?' } satisfies LocPair,
+  subject: { is: 'Bókunarfyrirspurn, Háafell', en: 'Booking request, Háafell' } satisfies LocPair,
+  mailLines: {
+    date: { is: 'Dagsetning', en: 'Date' },
+    adults: { is: 'Fullorðnir', en: 'Adults' },
+    children: { is: 'Börn 7 til 17 ára', en: 'Children 7 to 17' },
+    name: { is: 'Nafn', en: 'Name' },
+    contact: { is: 'Sími eða netfang', en: 'Phone or email' },
+    total: { is: 'Áætlað verð, greitt á staðnum', en: 'Estimated total, paid on site' },
+  } satisfies Record<string, LocPair>,
+  // Live open-status chip (summer season 1 June – 31 Aug, 11:00–18:00 daily)
+  status: {
+    open: { is: 'Opið núna · til 18:00', en: 'Open now · until 18:00' },
+    opensToday: { is: 'Opnar kl. 11 í dag', en: 'Opens at 11:00 today' },
+    opensTomorrow: { is: 'Opnar kl. 11 á morgun', en: 'Opens at 11:00 tomorrow' },
+    offSeason: { is: 'Utan sumaropnunar · eftir samkomulagi', en: 'Off-season · visits by arrangement' },
+  } satisfies Record<string, LocPair>,
+}
+
 /* ── Shop ──────────────────────────────────────────────────────────── */
 
 export interface Product {

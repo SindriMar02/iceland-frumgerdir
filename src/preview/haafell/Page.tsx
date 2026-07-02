@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
-import { ArrowRight, Clock, Mail, MapPin, Phone, Ticket } from 'lucide-react'
+import type { CSSProperties, FormEvent, ReactNode } from 'react'
+import { ArrowRight, Clock, MapPin, Ticket } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import {
+  BOOKING,
+  BOOKING_PRICES,
   FARM,
   FARM_SECTION,
   HERO,
@@ -27,8 +29,8 @@ const company = getPreviewCompany('haafell')
    Type: Telma (warm flare serif, display) + Cabinet Grotesk (body/UI) —
    self-hosted kits under public/fonts. Surfaces follow a color-block
    chapter rhythm: oat-paper canvas → deep spruce story band → paper →
-   meadow wash → paper → spruce closing bookend. Signature geometry is
-   the arch (stable door / chapel window) on key imagery; buttons are
+   meadow wash → paper → spruce closing bookend. Key imagery sits in
+   softly rounded frames; buttons are
    full pills. The lineage line is the page's centerpiece, drawn in hay
    gold on the dark band.
    ──────────────────────────────────────────────────────────────────── */
@@ -73,8 +75,15 @@ const PAGE_CSS = `
 .haafell-navlink { position: relative; transition: color .2s ease; }
 .haafell-navlink::after { content: ''; position: absolute; left: 0; right: 100%; bottom: -3px; height: 2px; background: ${PASTURE}; transition: right .25s cubic-bezier(.22,.9,.28,1); }
 .haafell-navlink:hover::after { right: 0; }
-.haafell-arch { border-radius: 999px 999px 22px 22px; }
 .haafell-frame img { transition: transform .8s cubic-bezier(.22,.9,.28,1); }
+.haafell-dot { animation: haafell-pulse 2.4s ease-in-out infinite; }
+@keyframes haafell-pulse { 0%, 100% { box-shadow: 0 0 0 0 ${PASTURE}52; } 50% { box-shadow: 0 0 0 7px transparent; } }
+.haafell-step { width: 34px; height: 34px; border-radius: 999px; background: ${PASTURE}1f; color: ${INK}; font-size: 19px; line-height: 1; font-family: ${BODY_BOLD}; transition: background-color .15s ease, transform .15s ease; }
+.haafell-step:hover:not(:disabled) { background: ${PASTURE}38; }
+.haafell-step:active:not(:disabled) { transform: scale(.92); }
+.haafell-step:disabled { opacity: .35; }
+.haafell-input { background: #fff; box-shadow: inset 0 0 0 1.5px ${INK}26; color: ${INK}; font-family: ${BODY_MED}; }
+.haafell-input:focus-visible, .haafell-step:focus-visible { outline: 2px solid ${PASTURE}; outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) {
   .haafell-frame:hover img { transform: scale(1.04); }
 }
@@ -85,6 +94,8 @@ const PAGE_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .haafell-pill, .haafell-pill:hover, .haafell-pill:active { transform: none; transition: none; }
   .haafell-frame img, .haafell-frame:hover img { transform: none; transition: none; }
+  .haafell-dot { animation: none; }
+  .haafell-step, .haafell-step:active:not(:disabled) { transform: none; transition: none; }
   .haafell-navlink::after { transition: none; }
   .haafell-rise { opacity: 1; transform: none; transition: none; }
 }
@@ -425,6 +436,280 @@ const TINTS: Record<Product['tint'], { bg: string; name: string; body: string; p
   spruce: { bg: SPRUCE, name: CREAM, body: `${CREAM}b8`, price: STRAW },
 }
 
+/* ── Live open-status chip ──────────────────────────────────────────
+   Season: 1 June – 31 August, 11:00–18:00 daily, computed in farm time
+   (Atlantic/Reykjavik). Off-season shows "by arrangement" — matching
+   VISIT.hoursNote — rather than a cold "closed". ───────────────────── */
+
+type OpenState = 'open' | 'today' | 'tomorrow' | 'off'
+
+function stateFor(month: number, hour: number): OpenState {
+  if (month < 6 || month > 8) return 'off'
+  if (hour >= 11 && hour < 18) return 'open'
+  return hour < 11 ? 'today' : 'tomorrow'
+}
+
+function getOpenState(): OpenState {
+  const now = new Date()
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Atlantic/Reykjavik',
+      month: 'numeric',
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }).formatToParts(now)
+    const month = Number(parts.find((p) => p.type === 'month')?.value)
+    const hour = Number(parts.find((p) => p.type === 'hour')?.value)
+    if (Number.isNaN(month) || Number.isNaN(hour)) throw new Error('parts')
+    return stateFor(month, hour)
+  } catch {
+    // visitor-local time as a fallback — close enough for a status hint
+    return stateFor(now.getMonth() + 1, now.getHours())
+  }
+}
+
+function OpenChip({ lang }: { lang: Lang }) {
+  const [state] = useState<OpenState>(getOpenState)
+  const label =
+    state === 'open'
+      ? BOOKING.status.open
+      : state === 'today'
+        ? BOOKING.status.opensToday
+        : state === 'tomorrow'
+          ? BOOKING.status.opensTomorrow
+          : BOOKING.status.offSeason
+  const dot = state === 'open' ? PASTURE : state === 'off' ? BARN : STRAW
+  return (
+    <span
+      className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px]"
+      style={{ background: '#ffffffcc', boxShadow: `inset 0 0 0 1px ${INK}21`, color: INK, fontFamily: BODY_MED }}
+    >
+      <span
+        aria-hidden="true"
+        className={state === 'open' ? 'haafell-dot' : undefined}
+        style={{ width: 8, height: 8, borderRadius: 999, background: dot, flexShrink: 0 }}
+      />
+      {L(label, lang)}
+    </span>
+  )
+}
+
+/* ── Booking request card ───────────────────────────────────────────
+   Date + party-size steppers with a live price total; submit opens a
+   pre-filled email to the farm (no backend in the prototype, and the
+   card says so honestly). Admission stays paid-on-site. ────────────── */
+
+function Stepper({
+  label,
+  value,
+  setValue,
+  min,
+  lang,
+}: {
+  label: string
+  value: number
+  setValue: (n: number) => void
+  min: number
+  lang: Lang
+}) {
+  return (
+    <div
+      className="flex min-h-[52px] items-center justify-between gap-3 rounded-[14px] py-2 pl-4 pr-2"
+      style={{ background: '#fff', boxShadow: `inset 0 0 0 1.5px ${INK}26` }}
+    >
+      <span className="text-[14.5px] leading-tight" style={{ fontFamily: BODY_MED, color: INK }}>
+        {label}
+      </span>
+      <div className="flex items-center gap-0.5">
+        <button
+          type="button"
+          className="haafell-step"
+          aria-label={`${L(BOOKING.decrease, lang)}: ${label}`}
+          onClick={() => setValue(Math.max(min, value - 1))}
+          disabled={value <= min}
+        >
+          −
+        </button>
+        <span className="w-8 text-center text-[17px]" style={{ fontFamily: HEADING, color: INK }}>
+          {value}
+        </span>
+        <button
+          type="button"
+          className="haafell-step"
+          aria-label={`${L(BOOKING.increase, lang)}: ${label}`}
+          onClick={() => setValue(Math.min(30, value + 1))}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function BookingCard({ lang }: { lang: Lang }) {
+  const [date, setDate] = useState('')
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
+  const [name, setName] = useState('')
+  const [contact, setContact] = useState('')
+
+  const total = adults * BOOKING_PRICES.adult + children * BOOKING_PRICES.child
+  // manual grouping — is-IS locale data is missing in some environments
+  const fmt = (n: number) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'is' ? '.' : ',')} kr`
+  const today = new Date().toISOString().slice(0, 10)
+
+  const labelStyle: CSSProperties = { fontFamily: BODY_BOLD, color: `${INK}99` }
+
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const M = BOOKING.mailLines
+    const body = [
+      `${L(M.date, lang)}: ${date}`,
+      `${L(M.adults, lang)}: ${adults}`,
+      `${L(M.children, lang)}: ${children}`,
+      `${L(M.name, lang)}: ${name}`,
+      `${L(M.contact, lang)}: ${contact}`,
+      `${L(M.total, lang)}: ${fmt(total)}`,
+    ].join('\n')
+    window.location.href = `mailto:${FARM.email}?subject=${encodeURIComponent(L(BOOKING.subject, lang))}&body=${encodeURIComponent(body)}`
+  }
+
+  return (
+    <div
+      id="boka"
+      className="mt-14 scroll-mt-24 overflow-hidden rounded-[26px]"
+      style={{ background: PAPER, boxShadow: `0 26px 64px -38px ${SPRUCE}bb` }}
+    >
+      <form onSubmit={onSubmit} className="grid md:grid-cols-[1.05fr_0.95fr]">
+        {/* left: the request */}
+        <div className="p-6 sm:p-8 md:p-10">
+          <h3 className="text-[26px]" style={{ fontFamily: HEADING, color: INK }}>
+            {L(BOOKING.title, lang)}
+          </h3>
+          <p className="mt-2 max-w-md text-[14.5px] leading-relaxed" style={{ color: `${INK}b3` }}>
+            {L(BOOKING.intro, lang)}
+          </p>
+
+          <div className="mt-7 space-y-4">
+            <div>
+              <label htmlFor="boka-date" className="mb-1.5 block text-[13px]" style={labelStyle}>
+                {L(BOOKING.dateLabel, lang)}
+              </label>
+              <input
+                id="boka-date"
+                type="date"
+                required
+                min={today}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="haafell-input min-h-[52px] w-full appearance-none rounded-[14px] px-4 text-[15px]"
+              />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Stepper label={L(BOOKING.adultsLabel, lang)} value={adults} setValue={setAdults} min={1} lang={lang} />
+              <Stepper label={L(BOOKING.childrenLabel, lang)} value={children} setValue={setChildren} min={0} lang={lang} />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="boka-name" className="mb-1.5 block text-[13px]" style={labelStyle}>
+                  {L(BOOKING.nameLabel, lang)}
+                </label>
+                <input
+                  id="boka-name"
+                  type="text"
+                  required
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="haafell-input min-h-[52px] w-full rounded-[14px] px-4 text-[15px]"
+                />
+              </div>
+              <div>
+                <label htmlFor="boka-contact" className="mb-1.5 block text-[13px]" style={labelStyle}>
+                  {L(BOOKING.contactLabel, lang)}
+                </label>
+                <input
+                  id="boka-contact"
+                  type="text"
+                  required
+                  autoComplete="tel"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  className="haafell-input min-h-[52px] w-full rounded-[14px] px-4 text-[15px]"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* right: live summary + submit, on the dark spruce ground */}
+        <div className="flex flex-col justify-between p-6 sm:p-8 md:p-10" style={{ background: SPRUCE }}>
+          <div>
+            <p className="text-[13px] uppercase tracking-[0.12em]" style={{ color: `${CREAM}8c`, fontFamily: BODY_BOLD }}>
+              {L(BOOKING.summaryTitle, lang)}
+            </p>
+            <dl className="mt-5 space-y-3" aria-live="polite">
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-[15px]" style={{ color: `${CREAM}cc` }}>
+                  {adults} × {L(BOOKING.adultsLabel, lang)}
+                </dt>
+                <dd className="text-[16px]" style={{ fontFamily: HEADING, color: CREAM }}>
+                  {fmt(adults * BOOKING_PRICES.adult)}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-[15px]" style={{ color: `${CREAM}cc` }}>
+                  {children} × {L(BOOKING.childrenLabel, lang)}
+                </dt>
+                <dd className="text-[16px]" style={{ fontFamily: HEADING, color: CREAM }}>
+                  {fmt(children * BOOKING_PRICES.child)}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-t pt-4" style={{ borderColor: `${CREAM}26` }}>
+                <dt className="text-[15px]" style={{ color: CREAM, fontFamily: BODY_BOLD }}>
+                  {L(BOOKING.totalLabel, lang)}
+                </dt>
+                <dd className="text-[26px] leading-none" style={{ fontFamily: HEADING, color: STRAW }}>
+                  {fmt(total)}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-2 text-right text-[12.5px]" style={{ color: `${CREAM}8c` }}>
+              {L(BOOKING.totalNote, lang)}
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <button
+              type="submit"
+              className="haafell-pill haafell-cta-straw inline-flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-full px-7 text-[15px] focus-visible:outline-2"
+              style={{ background: STRAW, color: INK, fontFamily: BODY_BOLD }}
+            >
+              {L(BOOKING.submit, lang)}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </button>
+            <p className="mt-3 text-center text-[12.5px] leading-relaxed" style={{ color: `${CREAM}8c` }}>
+              {L(BOOKING.mailNote, lang)}
+            </p>
+            <p className="mt-5 text-center text-[13.5px]" style={{ color: `${CREAM}b8` }}>
+              {L(BOOKING.altContact, lang)}{' '}
+              <a href={`tel:${FARM.phoneTel}`} className="rounded underline underline-offset-4 focus-visible:outline-2" style={{ color: CREAM, fontFamily: BODY_BOLD }}>
+                {L(VISIT.callLabel, lang)}
+              </a>
+              {' · '}
+              <a href={`mailto:${FARM.email}`} className="rounded underline underline-offset-4 focus-visible:outline-2" style={{ color: CREAM, fontFamily: BODY_BOLD }}>
+                {L(VISIT.emailLabel, lang)}
+              </a>
+            </p>
+          </div>
+        </div>
+      </form>
+    </div>
+  )
+}
+
 /* ────────────────────────────────────────────────────────────────────
    PAGE
    ──────────────────────────────────────────────────────────────────── */
@@ -535,7 +820,7 @@ export default function Page() {
       </header>
 
       <main className="relative z-10 overflow-x-clip">
-        {/* ── HERO — editorial split, arch-framed portrait ───────── */}
+        {/* ── HERO — editorial split, rounded portrait ───────────── */}
         <section className="relative">
           <div className="mx-auto grid max-w-6xl items-end gap-10 px-5 pt-10 pb-14 md:grid-cols-[1.1fr_0.9fr] md:gap-14 md:px-8 md:pt-16 md:pb-20">
             <div className="pb-2 md:pb-10">
@@ -589,13 +874,16 @@ export default function Page() {
                     {L(UI.nav.story, lang)}
                   </a>
                 </div>
+                <div className="mt-5">
+                  <OpenChip lang={lang} />
+                </div>
               </Rise>
             </div>
 
-            {/* arch-framed hero portrait with a gentle upward drift */}
+            {/* rounded hero portrait with a gentle upward drift */}
             <Rise delay={0.1} y={30} onMount>
               <div
-                className="haafell-frame haafell-arch relative mx-auto w-full max-w-[440px] overflow-hidden"
+                className="haafell-frame relative mx-auto w-full max-w-[440px] overflow-hidden rounded-[22px]"
                 style={{
                   boxShadow: `0 30px 70px -34px ${SPRUCE}cc`,
                   transform: `translate3d(0, ${-heroShift}px, 0)`,
@@ -603,7 +891,7 @@ export default function Page() {
                 }}
               >
                 <Img
-                  src={`https://images.unsplash.com/${HERO_ID}?w=1100&q=80${Q}`}
+                  src={`https://images.unsplash.com/${HERO_ID}?w=880&q=75${Q}`}
                   alt={L(HERO.imageAlt, lang)}
                   className="aspect-[3/4] w-full object-cover"
                   fetchpriority="high"
@@ -653,11 +941,11 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── FARM — the people, asymmetric arch composition ───────── */}
+        {/* ── FARM — the people, asymmetric composition ────────────── */}
         <section id="farm" className="scroll-mt-20">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-20 md:grid-cols-[0.95fr_1.05fr] md:gap-16 md:px-8 md:py-32">
             <Rise y={26}>
-              <div className="haafell-frame haafell-arch mx-auto max-w-[420px] overflow-hidden" style={{ boxShadow: `0 26px 60px -30px ${SPRUCE}bb` }}>
+              <div className="haafell-frame mx-auto max-w-[420px] overflow-hidden rounded-[22px]" style={{ boxShadow: `0 26px 60px -30px ${SPRUCE}bb` }}>
                 <Img
                   src={`https://images.unsplash.com/${KID_ID}?w=800&q=80${Q}`}
                   alt={L(FARM_SECTION.imageAlt, lang)}
@@ -730,6 +1018,9 @@ export default function Page() {
                       <p className="mt-1.5 text-[13.5px] leading-relaxed" style={{ color: `${INK}99` }}>
                         {L(VISIT.hoursNote, lang)}
                       </p>
+                      <div className="mt-3">
+                        <OpenChip lang={lang} />
+                      </div>
                     </div>
                   </div>
                 </Rise>
@@ -843,26 +1134,9 @@ export default function Page() {
               </Rise>
             </div>
 
-            {/* contact actions */}
+            {/* booking request card (call/email live inside it as the fallback) */}
             <Rise delay={0.12}>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={`tel:${FARM.phoneTel}`}
-                  className="haafell-pill haafell-cta-primary inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full px-5 text-[15px] text-white focus-visible:outline-2"
-                  style={{ background: PASTURE, fontFamily: BODY_BOLD }}
-                >
-                  <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-                  {L(VISIT.callLabel, lang)} · {FARM.phoneHuman}
-                </a>
-                <a
-                  href={`mailto:${FARM.email}`}
-                  className="haafell-pill inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full px-5 text-[15px] focus-visible:outline-2"
-                  style={{ color: INK, boxShadow: `inset 0 0 0 1.5px ${INK}59`, fontFamily: BODY_BOLD }}
-                >
-                  <Mail className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-                  {L(VISIT.emailLabel, lang)} · {FARM.email}
-                </a>
-              </div>
+              <BookingCard lang={lang} />
             </Rise>
           </div>
         </section>
@@ -968,13 +1242,13 @@ export default function Page() {
         aria-hidden={!showBar}
       >
         <a
-          href="#visit"
+          href="#boka"
           tabIndex={showBar ? 0 : -1}
           className="mr-[5.5rem] flex min-h-[52px] items-center justify-center gap-2 rounded-full px-6 text-sm text-white shadow-xl focus-visible:outline-2"
           style={{ background: PASTURE, fontFamily: BODY_BOLD, boxShadow: `0 12px 30px -10px ${SPRUCE}` }}
         >
-          <MapPin className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-          {L(UI.planVisit, lang)}
+          <Ticket className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+          {L(BOOKING.title, lang)}
         </a>
       </div>
 
