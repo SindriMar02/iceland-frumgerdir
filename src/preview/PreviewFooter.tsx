@@ -10,15 +10,15 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
     <footer
       lang="is"
       className={`px-5 pt-10 pb-28 text-center text-xs leading-relaxed md:pb-10 ${
-        dark ? 'bg-black text-white/40' : 'bg-neutral-50 text-neutral-400'
+        dark ? 'bg-black text-white/60' : 'bg-neutral-50 text-neutral-400'
       }`}
     >
       <p className="mx-auto max-w-2xl">
-        <strong className={dark ? 'text-white/60' : 'text-neutral-600'}>
+        <strong className={dark ? 'text-white/80' : 'text-neutral-600'}>
           Frumgerð — hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.
         </strong>{' '}
-        Allur texti, verð og umsagnir eru sýnishorn (prototype only — redesign concept). Myndir frá Unsplash.
-        Núverandi vefsíða:{' '}
+        Allur texti, verð og umsagnir eru sýnishorn (prototype only — redesign concept). Myndir frá Unsplash eða af
+        núverandi vef fyrirtækisins. Núverandi vefsíða:{' '}
         <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
           {company.currentUrl.replace('https://', '').replace('www.', '')}
         </a>

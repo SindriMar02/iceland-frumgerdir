@@ -17,7 +17,7 @@ const CurvedLoop: FC<CurvedLoopProps> = ({
   interactive = true,
 }) => {
   const text = useMemo(() => {
-    const hasTrailing = /\s| $/.test(marqueeText)
+    const hasTrailing = /\s|\u00A0$/.test(marqueeText)
     return (hasTrailing ? marqueeText.replace(/\s+$/, '') : marqueeText) + ' '
   }, [marqueeText])
 

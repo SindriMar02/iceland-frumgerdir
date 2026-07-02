@@ -9,6 +9,12 @@ interface StickyCtaProps {
   buttonClassName: string
   /** Tailwind classes for the bar background */
   barClassName?: string
+  /**
+   * Selector of the section that retires the bar when visible. Defaults to
+   * `href` when that is an in-page anchor; set explicitly when `href` is an
+   * external action (tel:/mailto:) so the bar still steps aside.
+   */
+  watchTarget?: string
 }
 
 /**
@@ -22,6 +28,7 @@ export function StickyCta({
   href,
   buttonClassName,
   barClassName = 'bg-white/85 text-slate-900 border-t border-slate-200/80',
+  watchTarget,
 }: StickyCtaProps) {
   const [pastHero, setPastHero] = useState(false)
   const [atTarget, setAtTarget] = useState(false)
@@ -34,15 +41,16 @@ export function StickyCta({
   }, [])
 
   useEffect(() => {
-    if (!href.startsWith('#')) return
-    const target = document.querySelector(href)
+    const selector = watchTarget ?? (href.startsWith('#') ? href : null)
+    if (!selector) return
+    const target = document.querySelector(selector)
     if (!target) return
     const io = new IntersectionObserver(([entry]) => setAtTarget(entry.isIntersecting), {
       rootMargin: '0px 0px -15% 0px',
     })
     io.observe(target)
     return () => io.disconnect()
-  }, [href])
+  }, [href, watchTarget])
 
   return (
     <AnimatePresence>

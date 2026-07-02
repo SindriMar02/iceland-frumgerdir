@@ -48,6 +48,8 @@ const VinlandPage = lazy(() => import('./preview/vinland/Page'))
 const VellirPage = lazy(() => import('./preview/vellir/Page'))
 // Scout round 7 — bakeries; reuses the Faxi Bakery Café design system
 const GkBakariPage = lazy(() => import('./preview/gkbakari/Page'))
+// Standalone lead — e-commerce showroom redesign (Shopify-migratable)
+const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -115,6 +117,7 @@ export default function App() {
             <Route path="/preview/vinland" element={<VinlandPage />} />
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/gkbakari" element={<GkBakariPage />} />
+            <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
