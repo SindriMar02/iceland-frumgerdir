@@ -516,8 +516,11 @@ function Collection({ subscribe, reduce, jumpTo }: { subscribe: Subscribe; reduc
                 />
               ))}
             </div>
-            {/* idle float lives on this wrapper as a compositor-only keyframe */}
-            <div className={`absolute inset-0 ${reduce ? '' : 'rd-float'}`}>
+            {/* idle float lives on this wrapper as a compositor-only keyframe. Bottom is
+                inset (not flush) so the floor shadow below has room to sit under the
+                bottle instead of drawing across its base — the cutout PNGs fill their
+                frame edge-to-edge, so inset-0 left zero room for a shadow to live in. */}
+            <div className={`absolute inset-x-0 top-0 bottom-8 ${reduce ? '' : 'rd-float'}`}>
               {SPIRITS.map((s, i) => (
                 <img
                   key={s.id}
