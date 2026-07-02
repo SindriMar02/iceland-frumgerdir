@@ -668,8 +668,8 @@ export default function PolarHestarPage() {
           loading="eager"
           alt={
             lang === 'is'
-              ? 'Íslensk hross með ljósan fax fyrir framan þokuhulin fjöll á Norðurlandi'
-              : 'Icelandic horses with pale manes before mist-wrapped North Iceland mountains'
+              ? 'Íslensk hross á vetrarhaga fyrir framan snæviþakið fjall og fjörð'
+              : 'Icelandic horses on a winter pasture before a snow-capped mountain and fjord'
           }
           className="kenburns absolute inset-0 h-full w-full object-cover"
         />
@@ -1101,10 +1101,10 @@ export default function PolarHestarPage() {
           src={u(IMG.ctaBand, 1800)}
           srcSet={srcSet(IMG.ctaBand)}
           sizes="100vw"
-          alt={lang === 'is' ? 'Hross á gylltum haga við sólarlag' : 'Horses in a golden meadow at sunset'}
+          alt={lang === 'is' ? 'Hross undir þrumuveðurshimni á hraunlendi' : 'Horses under a stormy sky on lava-field terrain'}
           className="ph-drift absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${NIGHT}cc, ${NIGHT}e8)` }} />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${NIGHT}59, ${NIGHT}c4)` }} />
         <div className="relative mx-auto max-w-3xl px-5 py-24 text-center md:py-32">
           <Reveal>
             <img

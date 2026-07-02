@@ -27,12 +27,12 @@ export const STATS = { founded: 1985, years: 40, horses: 160, rating: '4,9', rev
 
 /* ── Verified imagery (genuine Icelandic horses / North Iceland) ───────── */
 export const IMG = {
-  hero: 'photo-1460999158988-6f0380f81f4d', // three horses, misty mountain
+  hero: 'photo-1501879779179-4576bae71d8d', // herd before a blue-grey snow mountain + fjord (Iceland)
   story: 'photo-1640892171250-2ef1c6f3b742', // white horse in mist — folklore
   booking: 'photo-1482779665037-990b5b461e91', // two horses nuzzling
   location: 'photo-1519092437326-bfd121eb53ae', // fjord road + water
   family: 'photo-1637354897876-b7df1d687628', // two riders, soft light
-  ctaBand: 'photo-1557705635-f991896fd5ee', // herd, golden field
+  ctaBand: 'photo-1778182967509-cc80b0faa2e3', // three horses under a stormy grey-blue sky, Grindavík
   procession: [
     'photo-1566251037378-5e04e3bec343',
     'photo-1463790323425-d6f5456869d7',
