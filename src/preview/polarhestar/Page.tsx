@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import {
   ArrowRight,
@@ -50,20 +50,24 @@ const CLAY_FILL = '#A9572F' // terracotta button fill behind white text (~5:1)
 const CLAY_HI = '#E4B074' // warm tan-gold — accent on dark grounds
 const SLATE = '#5E6A4C' // moss green — secondary text/icons on light (AA)
 const TWILIGHT = '#20352B' // deep pine green — feature band ground
-const TWILIGHT2 = '#2B463A' // pine card / active tab on dark
-const BASALT = '#161B19' // darkest ground — seasons + final CTA
+const NIGHT = '#151A36' // polar-night navy (from the logo's #202070) — seasons + final CTA
+const NIGHT2 = '#232B52' // navy card / active tab on night ground
+const ICE = '#9BD8F3' // logo ice-blue — accents on night ground only
+
+const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
 const u = (id: string, w = 1600) =>
   `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
 const srcSet = (id: string) => `${u(id, 828)} 828w, ${u(id, 1280)} 1280w, ${u(id, 2000)} 2000w`
 const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
-const fmtDate = (iso: string, lang: Lang) =>
-  new Intl.DateTimeFormat(lang === 'is' ? 'is-IS' : 'en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(iso + 'T00:00:00'))
+// hand-rolled for IS — Chrome's is-IS locale data is unreliable (falls back to English)
+const MONTHS_IS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember']
+const fmtDate = (iso: string, lang: Lang) => {
+  const d = new Date(iso + 'T00:00:00')
+  if (lang === 'is') return `${d.getDate()}. ${MONTHS_IS[d.getMonth()]} ${d.getFullYear()}`
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
+}
 const isoDay = (d: Date) =>
   new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 
@@ -98,14 +102,98 @@ function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; 
 }
 
 /* ── Eyebrow label (tracked small-caps grotesque) ─────────────────────── */
-function Eyebrow({ children, on = 'light' }: { children: ReactNode; on?: 'light' | 'dark' }) {
+function Eyebrow({ children, on = 'light', tint }: { children: ReactNode; on?: 'light' | 'dark'; tint?: string }) {
   return (
     <p
       className="font-hanken text-[0.72rem] font-semibold tracking-[0.24em] uppercase"
-      style={{ color: on === 'dark' ? CLAY_HI : CLAY_TX }}
+      style={{ color: tint ?? (on === 'dark' ? CLAY_HI : CLAY_TX) }}
     >
       {children}
     </p>
+  )
+}
+
+/* ── Word-mask rise — words climb out of overflow masks; driven by the
+      nearest .ph-reveal ancestor's data-show, so it shares its failsafe ── */
+function MaskWords({ text, stagger = 45, base = 0 }: { text: string; stagger?: number; base?: number }) {
+  return (
+    <>
+      {text.split(' ').map((w, i, arr) => (
+        <Fragment key={`${w}-${i}`}>
+          <span className="ph-w">
+            <span className="ph-wi" style={{ transitionDelay: `${base + i * stagger}ms` }}>
+              {w}
+            </span>
+          </span>
+          {i < arr.length - 1 ? ' ' : null}
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+/* ── Count-up — time-sampled (can't freeze mid-count) + hard failsafe ──── */
+function CountUp({
+  to,
+  decimals = 0,
+  lang,
+  duration = 1600,
+}: {
+  to: number
+  decimals?: number
+  lang: Lang
+  duration?: number
+}) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [val, setVal] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setVal(to)
+      return
+    }
+    let raf = 0
+    let started = false
+    const run = () => {
+      const t0 = performance.now()
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - t0) / duration)
+        setVal(to * (1 - Math.pow(1 - p, 3)))
+        if (p < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && !started) {
+          started = true
+          run()
+          io.disconnect()
+        }
+      },
+      { threshold: 0.3 },
+    )
+    io.observe(el)
+    const failsafe = window.setTimeout(() => {
+      if (!started) {
+        started = true
+        setVal(to)
+      }
+    }, 2200)
+    return () => {
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      window.clearTimeout(failsafe)
+    }
+  }, [to, duration])
+  // Intl 'is-IS' falls back to a dot in some Chromes — force the Icelandic comma
+  const fixed = val.toFixed(decimals)
+  const txt = lang === 'is' ? fixed.replace('.', ',') : fixed
+  return (
+    <span ref={ref} className="tabular-nums">
+      {txt}
+    </span>
   )
 }
 
@@ -195,7 +283,7 @@ function Booking({
         <Img
           src={u(IMG.booking, 1000)}
           alt={lang === 'is' ? 'Tveir íslenskir hestar á beit' : 'Two Icelandic horses grazing'}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="ph-drift absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${TWILIGHT}cc, transparent 70%)` }} />
         <div className="relative p-6 md:p-8">
@@ -310,7 +398,9 @@ function Booking({
                   {t.totalLabel}
                 </p>
                 <p className="font-spectral text-3xl" style={{ color: INK }}>
-                  {isk(total)}
+                  <span key={total} className="ph-tick">
+                    {isk(total)}
+                  </span>
                 </p>
               </div>
               <button
@@ -364,12 +454,12 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
                 ? `Íslenskir hestar — ${s.name.is.toLowerCase()}`
                 : `Icelandic horses — ${s.name.en.toLowerCase()}`
             }
-            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out"
-            style={{ opacity: i === active ? 1 : 0 }}
+            className="ph-season-img absolute inset-0 h-full w-full object-cover"
+            style={{ opacity: i === active ? 1 : 0, transform: i === active ? 'scale(1)' : 'scale(1.06)' }}
           />
         ))}
         {/* legibility + season glow */}
-        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${TWILIGHT}22 0%, transparent 30%, ${TWILIGHT}e6 100%)` }} />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${NIGHT}22 0%, transparent 30%, ${NIGHT}e6 100%)` }} />
         <div
           className="pointer-events-none absolute inset-0 transition-colors duration-700"
           style={{ background: `radial-gradient(80% 60% at 50% 12%, ${season.glow}33, transparent 60%)` }}
@@ -406,8 +496,8 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
               onClick={() => setActive(i)}
               className="group rounded-2xl border px-3 py-3 text-left transition-all"
               style={{
-                background: on ? TWILIGHT2 : 'transparent',
-                borderColor: on ? '#ffffff26' : '#ffffff14',
+                background: on ? NIGHT2 : 'transparent',
+                borderColor: on ? '#9BD8F340' : '#ffffff14',
               }}
             >
               <span className="block font-spectral text-lg text-white md:text-xl">{s.name[lang]}</span>
@@ -451,19 +541,62 @@ export default function PolarHestarPage() {
     <div lang={lang} style={{ background: MIST, color: BODY }} className="ph-root min-h-screen overflow-x-hidden font-hanken antialiased">
       {/* scoped motion + theme */}
       <style>{`
-        .ph-reveal{opacity:0;transform:translateY(20px);filter:blur(6px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s ease}
+        .ph-reveal{opacity:0;transform:translateY(16px);filter:blur(6px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s ease}
         .ph-reveal[data-show="true"]{opacity:1;transform:none;filter:none}
         .ph-hero-rise{animation:phHeroRise .9s cubic-bezier(.2,.7,.2,1) both}
         @keyframes phHeroRise{from{transform:translateY(18px)}to{transform:none}}
+
+        /* hero line masks — the two H1 lines climb out on load */
+        .ph-line{display:block;overflow:hidden;padding:.03em .12em .16em .05em;margin:0 -.12em -.16em -.05em}
+        .ph-line-i{display:inline-block;transform:translateY(115%);animation:phLineUp 1.1s cubic-bezier(.2,.7,.2,1) forwards}
+        @keyframes phLineUp{to{transform:none}}
+
+        /* word masks — driven by the ancestor reveal */
+        .ph-w{display:inline-block;overflow:hidden;vertical-align:bottom;padding:.02em .1em .15em .04em;margin:0 -.1em -.15em -.04em}
+        .ph-wi{display:inline-block;transform:translateY(112%);transition:transform .85s cubic-bezier(.2,.7,.2,1)}
+        .ph-reveal[data-show="true"] .ph-wi{transform:none}
+
+        /* images settle from a slight zoom as they reveal */
+        .ph-reveal .ph-live{transform:scale(1.1);transition:transform 1.4s cubic-bezier(.2,.7,.2,1)}
+        .ph-reveal[data-show="true"] .ph-live{transform:scale(1)}
+        .ph-reveal .ph-card-img{transform:scale(1.08)}
+        .ph-reveal[data-show="true"] .ph-card-img{transform:scale(1)}
+        .ph-reveal[data-show="true"] .ph-card:hover .ph-card-img{transform:scale(1.05)}
+        .ph-card-img{transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+
+        /* slow ambient drift for full-bleed band images */
+        .ph-drift{animation:phDrift 26s ease-in-out infinite alternate}
+        @keyframes phDrift{from{transform:scale(1.06) translateY(-1.2%)}to{transform:scale(1.12) translateY(1.2%)}}
+
+        /* season panel images breathe in on each switch */
+        .ph-season-img{transition:opacity .7s ease-out,transform 1.6s cubic-bezier(.2,.7,.2,1)}
+
+        /* trust stars pop in, staggered */
+        .ph-star{opacity:0;transform:scale(.3);transition:opacity .45s ease,transform .6s cubic-bezier(.34,1.56,.64,1)}
+        .ph-reveal[data-show="true"] .ph-star{opacity:1;transform:scale(1)}
+
+        /* the rule above the pull quote draws itself */
+        .ph-rule{width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1) .15s}
+        .ph-reveal[data-show="true"] .ph-rule{width:4rem}
+
+        /* live total ticks when the price changes */
+        .ph-tick{display:inline-block;animation:phTick .45s cubic-bezier(.2,.7,.2,1)}
+        @keyframes phTick{0%{transform:scale(1.07)}100%{transform:none}}
+
         .ph-proc:hover .ph-track{animation-play-state:paused}
-        .ph-card-img{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+        .ph-track>div:nth-child(odd){margin-top:14px}
         .ph-card:hover .ph-card-img{transform:scale(1.05)}
         .ph-root :focus-visible{outline:2px solid #1C2A2E;outline-offset:2px;border-radius:4px}
         .ph-dark :focus-visible{outline-color:#E4B074}
         @media (prefers-reduced-motion: reduce){
           .ph-reveal{opacity:1;transform:none;filter:none;transition:none}
-          .ph-hero-rise{animation:none}
-          .ph-card-img{transition:none}
+          .ph-hero-rise,.ph-line-i,.ph-drift,.ph-tick{animation:none}
+          .ph-line-i{transform:none}
+          .ph-wi{transform:none;transition:none}
+          .ph-reveal .ph-live,.ph-reveal .ph-card-img{transform:none;transition:none}
+          .ph-star{opacity:1;transform:none;transition:none}
+          .ph-rule{width:4rem;transition:none}
+          .ph-card-img,.ph-season-img{transition:none}
         }
       `}</style>
 
@@ -471,18 +604,22 @@ export default function PolarHestarPage() {
       <header
         className="fixed inset-x-0 top-0 z-40 transition-all duration-300"
         style={{
-          background: scrolled ? `${MIST}f2` : 'transparent',
+          background: scrolled ? `${MIST}fa` : 'transparent',
           boxShadow: scrolled ? '0 1px 0 rgba(35,40,42,0.08)' : 'none',
           backdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
-          <a
-            href="#top"
-            className="font-spectral text-lg font-semibold tracking-tight transition-colors md:text-xl"
-            style={{ color: scrolled ? INK : '#fff' }}
-          >
-            Pólar&nbsp;Hestar
+          <a href="#top" className="shrink-0" aria-label="Pólar Hestar">
+            <img
+              src={LOGO}
+              alt="Pólar Hestar"
+              className="w-auto transition-all duration-300"
+              style={{
+                height: scrolled ? '2.6rem' : '3.25rem',
+                filter: scrolled ? 'none' : 'drop-shadow(0 3px 10px rgba(10,14,40,0.35))',
+              }}
+            />
           </a>
           <nav className="hidden items-center gap-7 md:flex" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
             {[
@@ -543,11 +680,16 @@ export default function PolarHestarPage() {
           <p className="ph-hero-rise font-hanken text-xs font-semibold tracking-[0.24em] text-white/80 uppercase" style={{ animationDelay: '0ms' }}>
             {t.heroEyebrow}
           </p>
-          <h1 className="ph-hero-rise mt-4 max-w-4xl font-spectral text-[2.6rem] leading-[1.04] text-white md:text-7xl" style={{ animationDelay: '60ms' }}>
-            {t.heroH1a}
-            <br />
-            <span className="italic" style={{ color: CLAY_HI }}>
-              {t.heroH1b}
+          <h1 className="mt-4 max-w-4xl font-spectral text-[2.6rem] leading-[1.04] text-white md:text-7xl">
+            <span className="ph-line">
+              <span className="ph-line-i" style={{ animationDelay: '100ms' }}>
+                {t.heroH1a}
+              </span>
+            </span>
+            <span className="ph-line">
+              <span className="ph-line-i italic" style={{ animationDelay: '240ms', color: CLAY_HI }}>
+                {t.heroH1b}
+              </span>
             </span>
           </h1>
           <p className="ph-hero-rise mt-5 max-w-xl font-hanken text-base leading-relaxed text-white/90 md:text-lg" style={{ animationDelay: '120ms' }}>
@@ -572,13 +714,15 @@ export default function PolarHestarPage() {
             </a>
           </div>
           <div className="ph-hero-rise mt-9 flex flex-wrap items-center gap-x-7 gap-y-3" style={{ animationDelay: '240ms' }}>
-            <Stat value={`${STATS.years}`} label={t.statYears} />
+            <Stat value={<CountUp to={STATS.years} lang={lang} />} label={t.statYears} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
-            <Stat value={`${STATS.horses}`} label={t.statHorses} />
+            <Stat value={<CountUp to={STATS.horses} lang={lang} duration={2000} />} label={t.statHorses} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
             <div className="flex items-center gap-2" role="img" aria-label={lang === 'is' ? `${STATS.rating} af 5 á Tripadvisor` : `${STATS.rating} out of 5 on Tripadvisor`}>
               <Star className="h-4 w-4 fill-current" style={{ color: CLAY_HI }} aria-hidden="true" />
-              <span className="font-spectral text-2xl text-white">{STATS.rating}</span>
+              <span className="font-spectral text-2xl text-white">
+                <CountUp to={4.9} decimals={1} lang={lang} duration={2200} />
+              </span>
               <span className="font-hanken text-xs text-white/70">
                 {STATS.reviews} {t.statRating}
               </span>
@@ -593,7 +737,7 @@ export default function PolarHestarPage() {
           <Reveal>
             <Eyebrow>{t.storyEyebrow}</Eyebrow>
             <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
-              {t.storyH2}
+              <MaskWords text={t.storyH2} />
             </h2>
             <p className="mt-5 font-hanken text-base leading-relaxed" style={{ color: BODY }}>
               {t.storyP1}
@@ -610,7 +754,7 @@ export default function PolarHestarPage() {
                   srcSet={srcSet(IMG.story)}
                   sizes="(max-width: 768px) 100vw, 540px"
                   alt={lang === 'is' ? 'Hvítur íslenskur hestur í þoku' : 'A white Icelandic horse in the mist'}
-                  className="aspect-[4/5] w-full object-cover"
+                  className="ph-live aspect-[4/5] w-full object-cover"
                 />
               </div>
             </figure>
@@ -621,9 +765,9 @@ export default function PolarHestarPage() {
       {/* ── PULL QUOTE (folkloric line) — deep-pine feature band ─────────── */}
       <section className="ph-dark px-5 py-20 md:py-28" style={{ background: TWILIGHT }}>
         <Reveal className="mx-auto max-w-4xl text-center">
-          <span className="mx-auto mb-6 block h-px w-16" style={{ background: CLAY_HI }} aria-hidden="true" />
+          <span className="ph-rule mx-auto mb-6 block h-px" style={{ background: CLAY_HI }} aria-hidden="true" />
           <p className="font-spectral text-3xl leading-snug italic text-white md:text-5xl">
-            {t.storyQuote}
+            <MaskWords text={t.storyQuote} stagger={70} base={150} />
           </p>
         </Reveal>
       </section>
@@ -634,7 +778,7 @@ export default function PolarHestarPage() {
           <Eyebrow>{t.procEyebrow}</Eyebrow>
           <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <h2 className="max-w-xl font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
-              {t.procH2}
+              <MaskWords text={t.procH2} />
             </h2>
             <p className="max-w-md font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
               {t.procBody}
@@ -660,7 +804,7 @@ export default function PolarHestarPage() {
         <Reveal>
           <Eyebrow>{t.toursEyebrow}</Eyebrow>
           <h2 className="mt-3 max-w-2xl font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
-            {t.toursH2}
+            <MaskWords text={t.toursH2} />
           </h2>
           <p className="mt-4 max-w-2xl font-hanken text-base leading-relaxed" style={{ color: BODY }}>
             {t.toursBody}
@@ -693,7 +837,7 @@ export default function PolarHestarPage() {
           <Reveal className="mb-8 text-center">
             <Eyebrow on="dark">{t.bookEyebrow}</Eyebrow>
             <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
-              {t.bookH2}
+              <MaskWords text={t.bookH2} />
             </h2>
           </Reveal>
           <Reveal>
@@ -703,11 +847,13 @@ export default function PolarHestarPage() {
       </section>
 
       {/* ── SEASONS (signature) ─────────────────────────────────────────── */}
-      <section id="arstidir" className="ph-dark scroll-mt-20" style={{ background: BASALT }}>
+      <section id="arstidir" className="ph-dark scroll-mt-20" style={{ background: NIGHT }}>
         <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
           <Reveal className="mb-8 max-w-2xl">
-            <Eyebrow on="dark">{t.seasonsEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">{t.seasonsH2}</h2>
+            <Eyebrow tint={ICE}>{t.seasonsEyebrow}</Eyebrow>
+            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
+              <MaskWords text={t.seasonsH2} />
+            </h2>
             <p className="mt-4 font-hanken text-base leading-relaxed text-white/75">{t.seasonsBody}</p>
           </Reveal>
           <Reveal>
@@ -722,7 +868,7 @@ export default function PolarHestarPage() {
           <div className="max-w-xl">
             <Eyebrow>{t.longEyebrow}</Eyebrow>
             <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
-              {t.longH2}
+              <MaskWords text={t.longH2} />
             </h2>
           </div>
           <p className="max-w-sm font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
@@ -780,11 +926,16 @@ export default function PolarHestarPage() {
           <Reveal className="mb-10 text-center">
             <Eyebrow on="dark">{t.trustEyebrow}</Eyebrow>
             <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
-              {t.trustH2}
+              <MaskWords text={t.trustH2} />
             </h2>
             <div className="mt-4 flex items-center justify-center gap-2" role="img" aria-label={lang === 'is' ? `${STATS.rating} af 5` : `${STATS.rating} out of 5`}>
               {[0, 1, 2, 3, 4].map((s) => (
-                <Star key={s} className="h-5 w-5 fill-current" style={{ color: CLAY_HI }} aria-hidden="true" />
+                <Star
+                  key={s}
+                  className="ph-star h-5 w-5 fill-current"
+                  style={{ color: CLAY_HI, transitionDelay: `${300 + s * 110}ms` }}
+                  aria-hidden="true"
+                />
               ))}
               <span className="ml-2 font-hanken text-sm" style={{ color: MIST }}>
                 {t.trustBody}
@@ -826,7 +977,7 @@ export default function PolarHestarPage() {
                   srcSet={srcSet(IMG.family)}
                   sizes="(max-width: 768px) 100vw, 540px"
                   alt={lang === 'is' ? 'Tveir knapar á íslenskum hestum í norðlensku landslagi' : 'Two riders on Icelandic horses in a northern landscape'}
-                  className="h-full w-full object-cover"
+                  className="ph-live h-full w-full object-cover"
                 />
               </div>
             </div>
@@ -936,7 +1087,7 @@ export default function PolarHestarPage() {
                 srcSet={srcSet(IMG.location)}
                 sizes="(max-width: 768px) 100vw, 540px"
                 alt={lang === 'is' ? 'Vegur meðfram firði á Norðurlandi' : 'A road along a fjord in North Iceland'}
-                className="h-full w-full object-cover"
+                className="ph-live h-full w-full object-cover"
               />
             </div>
           </Reveal>
@@ -950,12 +1101,23 @@ export default function PolarHestarPage() {
           srcSet={srcSet(IMG.ctaBand)}
           sizes="100vw"
           alt={lang === 'is' ? 'Hross á gylltum haga við sólarlag' : 'Horses in a golden meadow at sunset'}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="ph-drift absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${BASALT}cc, ${BASALT}e6)` }} />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${NIGHT}cc, ${NIGHT}e8)` }} />
         <div className="relative mx-auto max-w-3xl px-5 py-24 text-center md:py-32">
           <Reveal>
-            <h2 className="font-spectral text-4xl leading-tight text-white md:text-6xl">{t.ctaH2}</h2>
+            <img
+              src={LOGO}
+              alt=""
+              aria-hidden="true"
+              className="mx-auto mb-8 h-20 w-auto md:h-24"
+              style={{ filter: 'drop-shadow(0 6px 18px rgba(10,14,40,0.45))' }}
+              loading="lazy"
+              decoding="async"
+            />
+            <h2 className="font-spectral text-4xl leading-tight text-white md:text-6xl">
+              <MaskWords text={t.ctaH2} />
+            </h2>
             <p className="mx-auto mt-4 max-w-xl font-hanken text-base text-white/85 md:text-lg">{t.ctaBody}</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <button
@@ -1009,7 +1171,7 @@ export default function PolarHestarPage() {
 }
 
 /* ── small presentational helpers ─────────────────────────────────────── */
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ value, label }: { value: ReactNode; label: string }) {
   return (
     <div className="flex items-baseline gap-2">
       <span className="font-spectral text-2xl text-white">{value}</span>

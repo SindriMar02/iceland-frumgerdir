@@ -210,7 +210,8 @@ export const SEASONS: Season[] = [
     },
     tour: { is: 'Ferð: Frostrósir', en: 'Tour: Frostrósir' },
     image: 'photo-1774018538486-49f5a51cd63f',
-    glow: '#6f8794',
+    glow: '#7ccdec', // logo ice-blue — winter light
+
   },
 ]
 
