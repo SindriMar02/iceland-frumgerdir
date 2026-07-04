@@ -55,40 +55,6 @@ export const BEDS = [
   },
 ]
 
-/** K11 destination programs — the salon's own selling point, verbatim destinations */
-export const DESTINATIONS = [
-  {
-    id: 'capri',
-    name: 'Capri',
-    time: 'Sólarupprás',
-    line: 'Mjúk morgunbirta yfir Miðjarðarhafinu, róleg byrjun á deginum.',
-    sunX: 24,
-    sunY: 56,
-    sky: ['#1B0F12', '#4A1E28', '#A34E45', '#E8946A'],
-    glow: '#F2A985',
-  },
-  {
-    id: 'hawaii',
-    name: 'Hawaii',
-    time: 'Hámarkssólskin',
-    line: 'Hádegissólin í algleymingi, bjartasta stilling dagsins.',
-    sunX: 72,
-    sunY: 24,
-    sky: ['#160E06', '#4A2C0E', '#B4741F', '#FFC65C'],
-    glow: '#FFD27A',
-  },
-  {
-    id: 'hamptons',
-    name: 'Hamptons',
-    time: 'Mjúkt sólsetur',
-    line: 'Koparlitað kvöldljós við ströndina, hlýjasti endir dagsins.',
-    sunX: 78,
-    sunY: 62,
-    sky: ['#140D0C', '#3D1D14', '#8E4520', '#E58A4B'],
-    glow: '#F09B5E',
-  },
-] as const
-
 export interface PriceRow {
   label: string
   minutes: string

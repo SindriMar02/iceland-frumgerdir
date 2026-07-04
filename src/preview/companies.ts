@@ -1875,7 +1875,7 @@ ${SIGN}`,
     ownerEmail: 'saelan@saelan.is',
     concept: 'Gullni tíminn',
     conceptTagline:
-      'Golden hour trapped indoors: a dark brand world built from the original logo (sun yellow, signal red, Stardom serif wordmark) where the K11 destination programs (Capri, Hawaii, Hamptons) become the interactive signature moment.',
+      'Golden hour trapped indoors: a dark brand world built from the original logo (sun yellow, signal red, Stardom serif wordmark) where their own amber bed photography carries the show.',
     accent: '#F7C331',
     dark: true,
     status: 'Concept ready',
@@ -1893,7 +1893,7 @@ ${SIGN}`,
       ],
       opportunities: [
         'Eitt heildstætt gyllt útlit byggt á þeirra eigin myndum í stað sniðmátsmynda',
-        'K11 áfangastaðirnir (Capri, Hawaii, Hamptons) sem gagnvirkt augnablik sem enginn annar getur átt',
+        'Sagan frá 2002 og endurkoman í Faxafenið sögð upphátt, það byggir upp traust eftir lokanirnar',
         'Verðskráin og áskriftarskilmálarnir settir fram heiðarlega, traustið er söluvaran eftir endurkomuna',
       ],
     },
@@ -1907,7 +1907,7 @@ ${SIGN}`,
 
 Til hamingju með endurkomuna í Faxafenið, bekkirnir eru greinilega á heimsmælikvarða og spraytanklefinn er sá eini sinnar tegundar á landinu. Þegar ég skoðaði vefsíðuna tók ég samt eftir því að hún stendur tækjunum langt að baki: titillinn er bara eitt orð svo Google veit varla af ykkur, myndirnar eru að mestu úr erlendu sniðmáti frekar en ykkar eigin, og síðan er þung í síma.
 
-Ég settist því niður og hannaði frumgerð að nýjum vef í kringum ykkar eigin myndir og alvöru verð. Áfangastaðastillingarnar í K11, Capri, Hawaii og Hamptons, fá að vera stjarnan, verðskráin er loksins læsileg á augabragði og bókunin á Noona er alltaf innan seilingar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Ég settist því niður og hannaði frumgerð að nýjum vef í kringum ykkar eigin myndir og alvöru verð. Bekkirnir ykkar fá að vera stjarnan, verðskráin er loksins læsileg á augabragði og bókunin á Noona er alltaf innan seilingar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Frumgerðina má skoða hér, hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]

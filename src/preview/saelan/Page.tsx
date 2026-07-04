@@ -8,7 +8,6 @@ import {
   ADDRESS,
   BEDS,
   CARDS,
-  DESTINATIONS,
   EMAIL,
   FACTS,
   IMG,
@@ -119,9 +118,7 @@ function GoldCta({ href, children, big = false }: { href: string; children: Reac
 }
 
 export default function SaelanPage() {
-  const [dest, setDest] = useState<(typeof DESTINATIONS)[number]['id']>('hawaii')
   const [tab, setTab] = useState<'day' | 'morning' | 'k11'>('day')
-  const active = DESTINATIONS.find((d) => d.id === dest)!
 
   useEffect(() => {
     setThemeColor(GROUND)
@@ -156,17 +153,6 @@ export default function SaelanPage() {
       <style>{`
         .sn-reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(0.32,0.72,0,1)}
         .sn-reveal[data-in="true"]{opacity:1;transform:none}
-        .sn-breathe{animation:snBreathe 7s ease-in-out infinite alternate}
-        @keyframes snBreathe{from{opacity:.72;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
-        .sn-rays{animation:snRays 90s linear infinite}
-        @keyframes snRays{to{transform:rotate(360deg)}}
-        .sn-scene{animation:snScene 1s cubic-bezier(0.32,0.72,0,1) both}
-        @keyframes snScene{from{opacity:0}to{opacity:1}}
-        .sn-scene-sun{left:max(var(--sx), 58%);top:46%;transform:translate(-50%,-50%);animation:snSun 1.2s cubic-bezier(0.32,0.72,0,1) both}
-        @media (min-width: 768px){.sn-scene-sun{left:var(--sx);top:var(--sy)}}
-        @keyframes snSun{from{opacity:0;transform:translate(-50%,-46%)}to{opacity:1;transform:translate(-50%,-50%)}}
-        .sn-destname{animation:snName .9s cubic-bezier(0.32,0.72,0,1) both}
-        @keyframes snName{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
         .sn-float{transition:transform .45s cubic-bezier(0.32,0.72,0,1)}
         .sn-float:hover{transform:translateY(-6px)}
         .sn-img{transition:transform 1.2s cubic-bezier(0.32,0.72,0,1)}
@@ -179,7 +165,7 @@ export default function SaelanPage() {
         @media (prefers-reduced-motion: reduce){
           .sn-root *,.sn-root *::before,.sn-root *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
           .sn-reveal{opacity:1;transform:none;transition:none}
-          .sn-breathe,.sn-destname,.sn-tick,.sn-rays{animation:none}
+          .sn-tick{animation:none}
                   }
       `}</style>
 
@@ -229,22 +215,6 @@ export default function SaelanPage() {
           />
           <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${GROUND}cc 0%, transparent 40%, ${GROUND} 96%)` }} />
           <div className="absolute inset-0 md:hidden" style={{ background: `${GROUND}66` }} />
-        </div>
-        {/* the sun, breathing, with the logo's ray burst turning slowly behind it */}
-        <div aria-hidden="true" className="sn-breathe absolute top-[-12%] right-[-10%] h-[34rem] w-[34rem] md:h-[44rem] md:w-[44rem]">
-          <div className="absolute inset-0" style={{ background: `radial-gradient(circle, ${GOLD}52 0%, ${EMBER}24 38%, transparent 68%)` }} />
-          <div
-            className="sn-rays absolute inset-[8%]"
-            style={{
-              background: `repeating-conic-gradient(${RED}2e 0deg 7deg, transparent 7deg 24deg)`,
-              WebkitMaskImage: 'radial-gradient(circle, transparent 30%, black 34%, black 52%, transparent 62%)',
-              maskImage: 'radial-gradient(circle, transparent 30%, black 34%, black 52%, transparent 62%)',
-            }}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full md:h-60 md:w-60"
-            style={{ background: `radial-gradient(circle at 40% 35%, #FFEDBC, ${GOLD} 52%, ${EMBER} 100%)` }}
-          />
         </div>
         <div className="relative mx-auto w-full max-w-[1200px] px-5 pt-24 pb-16 md:px-8">
           <div className="max-w-2xl">
@@ -333,74 +303,6 @@ export default function SaelanPage() {
                   </ul>
                 </Reveal>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── WOW — Veldu áfangastaðinn: the K11 destination programs ─────── */}
-      <section className="relative flex min-h-[100svh] flex-col justify-between overflow-hidden">
-        {/* one scene at a time; a key change dips to dark and fades the new sun in */}
-        <div key={active.id} aria-hidden="true" className="sn-scene absolute inset-0">
-          <div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(180deg, ${active.sky[0]} 0%, ${active.sky[1]} 42%, ${active.sky[2]} 74%, ${active.sky[3]} 100%)` }}
-          />
-          <div
-            className="sn-scene-sun absolute h-[22rem] w-[22rem] md:h-[42rem] md:w-[42rem]"
-            style={{ '--sx': `${active.sunX}%`, '--sy': `${active.sunY}%` } as React.CSSProperties}
-          >
-            <div className="absolute inset-0" style={{ background: `radial-gradient(circle, ${active.glow}5c 0%, ${active.glow}21 40%, transparent 68%)` }} />
-            <div
-              className="absolute top-1/2 left-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full md:h-72 md:w-72"
-              style={{ background: `radial-gradient(circle at 42% 36%, #FFF3CE, ${active.glow} 55%, ${active.sky[3]} 100%)` }}
-            />
-          </div>
-          {/* sea horizon, deep enough to carry the destination name */}
-          <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: `linear-gradient(180deg, ${active.sky[0]}00, ${active.sky[0]}cc 55%, ${GROUND})` }} />
-          {/* soft shade behind the top-left header so copy survives every sun position */}
-          <div className="absolute inset-0" style={{ background: `radial-gradient(58% 48% at 18% 16%, ${GROUND}a6, transparent 70%)` }} />
-        </div>
-
-        <div className="relative mx-auto w-full max-w-[1200px] px-5 pt-28 md:px-8 md:pt-36">
-          <Reveal>
-            <p className="text-xs tracking-[0.18em] uppercase" style={{ color: '#FFF3CEd9', fontFamily: SANS_BOLD }}>
-              K11 Air Loft
-            </p>
-            <h2 className="mt-3 max-w-md text-4xl leading-[1.06] md:text-6xl" style={{ fontFamily: DISPLAY, color: '#FFF8E8' }}>
-              Veldu þér áfangastað
-            </h2>
-            <p className="mt-4 max-w-lg text-lg leading-relaxed" style={{ color: '#FFF3CEd9' }}>
-              K11 bekkurinn breytir tímanum í stutta utanlandsferð. Þrjár stillingar, þrjár sólir.
-            </p>
-          </Reveal>
-        </div>
-
-        <div className="relative mx-auto w-full max-w-[1200px] px-5 pb-16 md:px-8 md:pb-24">
-          <div aria-live="polite">
-            <p key={active.id} className="sn-destname text-[clamp(3.5rem,12vw,9rem)] leading-none" style={{ fontFamily: DISPLAY_BOLD, color: '#FFF8E8' }}>
-              {active.name}
-            </p>
-          </div>
-          <p key={`${active.id}-line`} className="sn-destname mt-3 max-w-md text-lg leading-relaxed" style={{ color: '#FFF3CE', animationDelay: '90ms' }}>
-            <span style={{ fontFamily: SANS_BOLD, color: '#FFF8E8' }}>{active.time}.</span> {active.line}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-2" role="group" aria-label="Áfangastaðir K11 bekkjarins">
-            {DESTINATIONS.map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => setDest(d.id)}
-                aria-pressed={d.id === dest}
-                className="rounded-full border px-5 py-3 text-sm transition-all duration-300 active:scale-[0.97]"
-                style={
-                  d.id === dest
-                    ? { background: '#FFF8E8', borderColor: '#FFF8E8', color: '#241505', fontFamily: SANS_BOLD }
-                    : { borderColor: '#FFF8E866', color: '#FFF8E8', fontFamily: SANS_MED, background: '#00000026' }
-                }
-              >
-                {d.name}
-              </button>
             ))}
           </div>
         </div>
