@@ -50,6 +50,7 @@ const VellirPage = lazy(() => import('./preview/vellir/Page'))
 const GkBakariPage = lazy(() => import('./preview/gkbakari/Page'))
 // Standalone lead — e-commerce showroom redesign (Shopify-migratable)
 const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
+const SportsolPage = lazy(() => import('./preview/sportsol/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -118,6 +119,7 @@ export default function App() {
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/gkbakari" element={<GkBakariPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
+            <Route path="/preview/sportsol" element={<SportsolPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
