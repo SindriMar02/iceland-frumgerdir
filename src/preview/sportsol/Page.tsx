@@ -39,13 +39,17 @@ const DUSK = '#220B26' // the single dark chapter (infrared) + final band ground
 const HAIR = '#30103122' // hairline on light
 
 const BASE = import.meta.env.BASE_URL
-const DISPLAY = "'Britney-Ultra', 'Britney-Bold', sans-serif"
-const DISPLAY_BOLD = "'Britney-Bold', sans-serif"
+const DISPLAY = "'Panchang-Extrabold', system-ui, sans-serif"
+const DISPLAY_BOLD = "'Panchang-Semibold', system-ui, sans-serif"
 const SANS = "'Bonny-Regular', system-ui, sans-serif"
 const SANS_MED = "'Bonny-Medium', system-ui, sans-serif"
 const SANS_BOLD = "'Bonny-Bold', system-ui, sans-serif"
 
 const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
+
+/* Hero backdrop from Higgsfield (web app, unlimited model) — paste the
+   imported asset URL here; null keeps the gradient sky. */
+const HERO_MEDIA: { type: 'image' | 'video'; src: string } | null = null
 
 /* ── IO reveal — CSS owns the motion; a failsafe means nothing can stick ── */
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
@@ -78,46 +82,6 @@ function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; 
       {children}
     </div>
   )
-}
-
-/* ── The sun that follows your scroll through the hero sky ─────────────── */
-function useHeroSun(heroRef: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const hero = heroRef.current
-    if (!hero) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) {
-      hero.style.setProperty('--sun', '0.5')
-      return
-    }
-    let range = 1
-    const measure = () => {
-      range = Math.max(1, hero.offsetHeight - window.innerHeight * 0.25)
-    }
-    measure()
-    // Synchronous handler: reads scrollY, writes one CSS var (deduped). rAF
-    // loops are throttled to death in headless/preview renderers; this never is.
-    let last = ''
-    const apply = () => {
-      const p = Math.min(1, Math.max(0, window.scrollY / range))
-      const v = p.toFixed(4)
-      if (v === last) return
-      last = v
-      hero.style.setProperty('--sun', v)
-    }
-    const onResize = () => {
-      measure()
-      last = ''
-      apply()
-    }
-    apply()
-    window.addEventListener('scroll', apply, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', apply)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [heroRef])
 }
 
 /* ── The sunbed — press the switch and the tubes ignite, violet light
@@ -179,7 +143,7 @@ function Sunbed() {
     <section id="upplifunin" className="scroll-mt-24 py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <Reveal className="mx-auto mb-10 max-w-2xl text-center">
-          <h2 className="text-4xl md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+          <h2 className="text-3xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
             Fimmtán mínútur af sumri
           </h2>
           <p className="mt-4 text-lg" style={{ color: BODY }}>
@@ -235,7 +199,7 @@ function Sunbed() {
                       {clock}
                       <span style={{ color: '#C9B0D6', fontFamily: SANS_MED }}>· fimmtán mínútur á hraðspólun</span>
                     </p>
-                    <p className="mx-auto mt-6 max-w-md text-3xl leading-snug md:text-5xl" style={{ fontFamily: DISPLAY, color: '#FFF6EC', textShadow: '0 2px 30px rgba(24,7,34,0.55)' }}>
+                    <p className="mx-auto mt-6 max-w-lg text-2xl leading-snug md:text-4xl" style={{ fontFamily: DISPLAY, color: '#FFF6EC', textShadow: '0 2px 30px rgba(24,7,34,0.55)' }}>
                       Svona byrjar hver tími.
                     </p>
                     <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -434,9 +398,6 @@ function Faq() {
 
 /* ── Page ──────────────────────────────────────────────────────────────── */
 export default function SportsolPage() {
-  const heroRef = useRef<HTMLElement | null>(null)
-  useHeroSun(heroRef)
-
   useEffect(() => {
     document.title = 'Sportsól | Sólbaðsstofa í Kópavogi og Grafarvogi'
     setThemeColor(SUNWHITE)
@@ -484,7 +445,7 @@ export default function SportsolPage() {
 
   return (
     <div className="ss-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: SUNWHITE, color: BODY, fontFamily: SANS }}>
-      <link rel="stylesheet" href={`${BASE}fonts/britney/css/britney.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/panchang/css/panchang.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/bonny/css/bonny.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
@@ -495,8 +456,6 @@ export default function SportsolPage() {
         @keyframes ssRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
         .ss-tick{animation:ssTick .4s cubic-bezier(0.32,0.72,0,1)}
         @keyframes ssTick{0%{transform:translateY(6px);opacity:0}100%{transform:none;opacity:1}}
-        .ss-sun-disc{transform:translate(calc(var(--sun,0) * 46vw), calc(var(--sun,0) * var(--sun,0) * 34svh - var(--sun,0) * 40svh));transition:transform .12s linear}
-        .ss-sky{opacity:calc(1 - var(--sun,0) * 0.55);transition:opacity .12s linear}
         .ss-ember{animation:ssEmber 5s ease-in-out infinite alternate}
         @keyframes ssEmber{from{opacity:.55;transform:scale(.96)}to{opacity:.9;transform:scale(1.04)}}
         .ss-float{transition:transform .45s cubic-bezier(0.32,0.72,0,1),box-shadow .45s ease}
@@ -571,21 +530,29 @@ export default function SportsolPage() {
       </header>
 
       {/* ── HERO — the sun rises over the fold as you scroll ───────────── */}
-      <section id="top" ref={heroRef} className="relative flex min-h-[100svh] items-end overflow-hidden" style={{ '--sun': 0 } as React.CSSProperties}>
-        {/* sky: dawn gradient that brightens as the sun climbs */}
+      <section id="top" className="relative flex min-h-[100svh] items-end overflow-hidden">
+        {/* sky — replaced by the Higgsfield backdrop when HERO_MEDIA is set */}
         <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${SUNWHITE} 0%, #FFEFD8 40%, #FFDDC2 72%, #FFC9B0 100%)` }} />
-        <div className="ss-sky absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${CORAL}30 75%, ${PINK}2e 100%)` }} />
-        {/* the sun */}
-        <div aria-hidden="true" className="ss-sun-disc absolute top-[58%] left-[-30%] h-36 w-36 rounded-full sm:left-[-5%] md:h-64 md:w-64" style={{ background: `radial-gradient(circle at 38% 34%, #FFE9A8, ${GOLD} 55%, ${CORAL} 100%)`, boxShadow: `0 0 90px 30px ${GOLD}66, 0 0 220px 90px ${CORAL}33`, willChange: 'transform' }} />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${CORAL}30 75%, ${PINK}2e 100%)` }} />
+        {HERO_MEDIA ? (
+          HERO_MEDIA.type === 'video' ? (
+            <video className="absolute inset-0 h-full w-full object-cover" src={HERO_MEDIA.src} autoPlay muted loop playsInline aria-hidden="true" />
+          ) : (
+            <img className="absolute inset-0 h-full w-full object-cover" src={HERO_MEDIA.src} alt="" aria-hidden="true" />
+          )
+        ) : null}
+        {HERO_MEDIA ? (
+          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${SUNWHITE}d9 0%, transparent 45%, rgba(26,10,32,0.35) 100%)` }} />
+        ) : null}
         {/* horizon line */}
         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px" style={{ background: HAIR }} />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pt-24 pb-28 md:px-8 md:pb-20">
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             <p className="ss-rise inline-flex items-center rounded-full border px-3.5 py-1.5 text-[0.8rem] tracking-[0.02em]" style={{ borderColor: HAIR, color: PINK_TX, fontFamily: SANS_BOLD, background: '#FFFDF7aa' }}>
               Sólbaðsstofur í Kópavogi og Grafarvogi
             </p>
-            <h1 className="ss-rise mt-5 text-[3.4rem] leading-[1.02] md:text-[5.6rem]" style={{ fontFamily: DISPLAY, color: INK, animationDelay: '80ms' }}>
+            <h1 className="ss-rise mt-5 max-w-4xl text-[2.3rem] leading-[1.06] md:text-[3.4rem]" style={{ fontFamily: DISPLAY, color: INK, animationDelay: '80ms' }}>
               Komdu í ljós.
               <br />
               <span style={{ color: PINK_DEEP }}>Frá 299 kr. á dag.</span>
@@ -640,7 +607,7 @@ export default function SportsolPage() {
       <section id="verdskra" className="scroll-mt-24 py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-4xl md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-3xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
               Klukkan ræður verðinu
             </h2>
             <p className="mt-4 text-lg" style={{ color: BODY }}>
@@ -655,7 +622,7 @@ export default function SportsolPage() {
       <section id="askrift" className="scroll-mt-24 border-t py-24 md:py-32" style={{ borderColor: HAIR, background: '#FFF3E2' }}>
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <Reveal className="max-w-3xl">
-            <h2 className="text-4xl leading-[1.04] md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-3xl leading-[1.06] md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
               Ljós á hverjum degi, <span style={{ color: PINK }}>fyrir minna en kaffibolla</span>
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-relaxed" style={{ color: BODY }}>
@@ -679,7 +646,7 @@ export default function SportsolPage() {
                       {p.name}
                     </h3>
                     <p className="mt-4 flex items-baseline gap-2">
-                      <span className="text-4xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
+                      <span className="text-3xl md:text-4xl" style={{ fontFamily: DISPLAY, color: INK }}>
                         {isk(p.price)}
                       </span>
                       <span className="text-sm" style={{ color: BODY }}>
@@ -720,7 +687,7 @@ export default function SportsolPage() {
       <section id="bekkirnir" className="scroll-mt-24 py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <Reveal className="mb-10 max-w-2xl">
-            <h2 className="text-4xl md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-3xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
               Hvaða bekkur hentar þér?
             </h2>
             <p className="mt-4 text-lg" style={{ color: BODY }}>
@@ -750,7 +717,7 @@ export default function SportsolPage() {
                         </span>
                       ))}
                     </div>
-                    <h3 className="mt-5 text-3xl leading-[1.05]" style={{ fontFamily: DISPLAY, color: dark ? '#FFF3EA' : INK }}>
+                    <h3 className="mt-5 text-2xl leading-[1.1]" style={{ fontFamily: DISPLAY, color: dark ? '#FFF3EA' : INK }}>
                       {b.name}
                     </h3>
                     <p className="mt-3 text-sm leading-relaxed" style={{ color: dark ? '#EFC9BC' : BODY }}>
@@ -775,7 +742,7 @@ export default function SportsolPage() {
             <p className="inline-flex rounded-full border px-3.5 py-1.5 text-[0.7rem] tracking-[0.16em] uppercase" style={{ borderColor: '#ffffff2b', color: '#FF9E7A', fontFamily: SANS_BOLD }}>
               American M7 í Hamraborg
             </p>
-            <h2 className="mt-5 text-4xl leading-[1.04] md:text-6xl" style={{ fontFamily: DISPLAY, color: '#FFF3EA' }}>
+            <h2 className="mt-5 text-3xl leading-[1.06] md:text-5xl" style={{ fontFamily: DISPLAY, color: '#FFF3EA' }}>
               Infrared, <span style={{ color: '#FF9E7A' }}>fimmtán mínútur af hlýju</span>
             </h2>
             <p className="mt-5 max-w-md text-lg leading-relaxed" style={{ color: '#EFC9BC' }}>
@@ -820,7 +787,7 @@ export default function SportsolPage() {
                 <p className="text-sm tracking-[0.2em] uppercase text-white" style={{ fontFamily: SANS_BOLD }}>
                   Frelsi
                 </p>
-                <p className="mt-8 text-5xl text-white" style={{ fontFamily: DISPLAY }}>
+                <p className="mt-8 text-4xl text-white" style={{ fontFamily: DISPLAY }}>
                   {isk(FRELSI.credit)}
                 </p>
                 <p className="mt-1 text-white" style={{ fontFamily: SANS_MED }}>
@@ -833,7 +800,7 @@ export default function SportsolPage() {
             </figure>
           </Reveal>
           <Reveal delay={100} className="order-1 md:order-2">
-            <h2 className="text-4xl leading-[1.04] md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-3xl leading-[1.06] md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
               Frelsi: inneign sem <span style={{ color: PINK }}>rennur aldrei út</span>
             </h2>
             <ul className="mt-7 space-y-3">
@@ -857,7 +824,7 @@ export default function SportsolPage() {
       <section id="stofurnar" className="scroll-mt-24 border-t py-24 md:py-32" style={{ borderColor: HAIR, background: '#FFF3E2' }}>
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <Reveal className="mb-10 max-w-2xl">
-            <h2 className="text-4xl md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-3xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
               Tvær stofur, í Kópavogi og Grafarvogi
             </h2>
           </Reveal>
@@ -868,7 +835,7 @@ export default function SportsolPage() {
                   <div className="flex h-full flex-col rounded-[calc(2rem-0.375rem)] p-7" style={{ background: CARD }}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-3xl" style={{ fontFamily: DISPLAY, color: INK }}>
+                        <h3 className="text-2xl" style={{ fontFamily: DISPLAY, color: INK }}>
                           {l.name}
                         </h3>
                         <p className="mt-1" style={{ color: BODY }}>
@@ -964,7 +931,7 @@ export default function SportsolPage() {
       <section className="border-t py-24 md:py-32" style={{ borderColor: HAIR }}>
         <div className="mx-auto max-w-3xl px-5 md:px-8">
           <Reveal className="mb-8">
-            <h2 className="text-4xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-3xl md:text-4xl" style={{ fontFamily: DISPLAY, color: INK }}>
               Spurt og svarað
             </h2>
           </Reveal>
@@ -980,7 +947,7 @@ export default function SportsolPage() {
         <div aria-hidden="true" className="absolute bottom-[-7rem] left-1/2 h-56 w-56 -translate-x-1/2 rounded-full" style={{ background: `radial-gradient(circle at 40% 30%, #FFE9A8, ${GOLD} 50%, ${CORAL})`, boxShadow: `0 0 140px 50px ${CORAL}55` }} />
         <div className="relative mx-auto max-w-3xl px-5 py-28 text-center md:py-36">
           <Reveal>
-            <h2 className="text-5xl leading-[1.02] md:text-7xl" style={{ fontFamily: DISPLAY, color: '#FFF3EA' }}>
+            <h2 className="text-4xl leading-[1.05] md:text-6xl" style={{ fontFamily: DISPLAY, color: '#FFF3EA' }}>
               Sólin bíður
             </h2>
             <p className="mx-auto mt-5 max-w-md text-lg" style={{ color: '#EFC9BC' }}>
