@@ -30,26 +30,44 @@ const SUNWHITE = '#FFF8EE' // warm light ground
 const CARD = '#FFFDF7' // inner card surface
 const INK = '#301031' // deep plum ink — text on light (ties to the pink brand)
 const BODY = '#5C4260' // plum-grey body text (AA on sun-white)
-const PINK = '#E13B8D' // Sportsól brand pink — the one accent
-const PINK_TX = '#B01F6A' // pink as small text on light (AA)
-const PINK_DEEP = '#C42979' // pink button fill behind white text
+const PINK = '#F810F0' // the logo's neon fuchsia — large/decorative only (3.1:1)
+const PINK_TX = '#A6009F' // fuchsia as small text on light (6.4:1)
+const PINK_DEEP = '#B500AE' // fuchsia button fill behind white text (5.9:1)
 const GOLD = '#FFB53C' // sun gradient stop (decorative only)
 const CORAL = '#FF7752' // sun gradient stop (decorative only)
-const DUSK = '#220B26' // the single dark chapter (infrared) + final band ground
+const DUSK = '#170623' // UV room — hero, infrared chapter, final band
+const UVROOM = '#12051C' // deepest room shade behind the tubes
 const HAIR = '#30103122' // hairline on light
 
 const BASE = import.meta.env.BASE_URL
-const DISPLAY = "'Panchang-Extrabold', system-ui, sans-serif"
-const DISPLAY_BOLD = "'Panchang-Semibold', system-ui, sans-serif"
-const SANS = "'Bonny-Regular', system-ui, sans-serif"
-const SANS_MED = "'Bonny-Medium', system-ui, sans-serif"
-const SANS_BOLD = "'Bonny-Bold', system-ui, sans-serif"
+const DISPLAY = "'CabinetGrotesk-Extrabold', system-ui, sans-serif"
+const DISPLAY_BOLD = "'CabinetGrotesk-Bold', system-ui, sans-serif"
+const SANS = "'CabinetGrotesk-Regular', system-ui, sans-serif"
+const SANS_MED = "'CabinetGrotesk-Medium', system-ui, sans-serif"
+const SANS_BOLD = "'CabinetGrotesk-Bold', system-ui, sans-serif"
 
 const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
 
-/* Hero backdrop from Higgsfield (web app, unlimited model) — paste the
-   imported asset URL here; null keeps the gradient sky. */
-const HERO_MEDIA: { type: 'image' | 'video'; src: string } | null = null
+const LOGO = `${BASE}sportsol/logo.png`
+
+/* 14 tubes: staggered ignition + individual hum cycles; tube 5 is the
+   slightly faulty one that takes longest to strike */
+const UV_TUBES = [
+  { ignite: 0.2, hum: 9.1, humDelay: 3.2 },
+  { ignite: 0.9, hum: 7.4, humDelay: 5.1 },
+  { ignite: 0.5, hum: 11.3, humDelay: 2.4 },
+  { ignite: 1.4, hum: 8.2, humDelay: 6.3 },
+  { ignite: 0.7, hum: 10.6, humDelay: 4.7 },
+  { ignite: 2.3, hum: 5.9, humDelay: 2.9 },
+  { ignite: 0.35, hum: 9.8, humDelay: 7.2 },
+  { ignite: 1.1, hum: 8.8, humDelay: 3.8 },
+  { ignite: 0.6, hum: 12.1, humDelay: 5.6 },
+  { ignite: 1.7, hum: 7.9, humDelay: 2.2 },
+  { ignite: 0.45, hum: 10.2, humDelay: 6.8 },
+  { ignite: 1.25, hum: 9.4, humDelay: 4.1 },
+  { ignite: 0.85, hum: 8.5, humDelay: 3.5 },
+  { ignite: 1.55, hum: 11.7, humDelay: 5.9 },
+]
 
 /* ── IO reveal — CSS owns the motion; a failsafe means nothing can stick ── */
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
@@ -81,157 +99,6 @@ function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; 
     <div ref={ref} data-in={on} className={`ss-reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
     </div>
-  )
-}
-
-/* ── The sunbed — press the switch and the tubes ignite, violet light
-      first, then the warmth. The page's product, made physical. ───────── */
-const TUBES = 12
-
-function Sunbed() {
-  const [state, setState] = useState<'off' | 'igniting' | 'on'>('off')
-  const [clock, setClock] = useState('15:00')
-  const bedRef = useRef<HTMLDivElement>(null)
-
-  const ignite = () => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) {
-      setState('on')
-      setClock('15:00')
-      return
-    }
-    setState('igniting')
-    window.setTimeout(() => setState('on'), 2100)
-  }
-  const off = () => {
-    setState('off')
-    setClock('15:00')
-  }
-
-  /* 15 minutes, fast-forwarded into 15 seconds — elapsed-based so a
-     throttled tab self-corrects instead of drifting */
-  useEffect(() => {
-    if (state !== 'on') return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const t0 = performance.now()
-    const id = window.setInterval(() => {
-      const left = Math.max(0, 900 - ((performance.now() - t0) / 15000) * 900)
-      const m = Math.floor(left / 60)
-      const sec = Math.floor(left % 60)
-      setClock(`${m}:${String(sec).padStart(2, '0')}`)
-      if (left <= 0) window.clearInterval(id)
-    }, 250)
-    return () => window.clearInterval(id)
-  }, [state])
-
-  /* warm cursor spot while the lights are on (fine pointers only) */
-  useEffect(() => {
-    const bed = bedRef.current
-    if (!bed || state !== 'on') return
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    const move = (e: PointerEvent) => {
-      const r = bed.getBoundingClientRect()
-      bed.style.setProperty('--bx', `${e.clientX - r.left}px`)
-      bed.style.setProperty('--by', `${e.clientY - r.top}px`)
-    }
-    bed.addEventListener('pointermove', move, { passive: true })
-    return () => bed.removeEventListener('pointermove', move)
-  }, [state])
-
-  const lit = state !== 'off'
-  return (
-    <section id="upplifunin" className="scroll-mt-24 py-24 md:py-32">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <Reveal className="mx-auto mb-10 max-w-2xl text-center">
-          <h2 className="text-3xl md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
-            Fimmtán mínútur af sumri
-          </h2>
-          <p className="mt-4 text-lg" style={{ color: BODY }}>
-            Kveiktu á ljósunum og finndu hvernig bekkurinn tekur á móti þér.
-          </p>
-        </Reveal>
-
-        <Reveal>
-          <div
-            ref={bedRef}
-            data-lit={state}
-            className="ss-bed relative overflow-hidden rounded-[3rem] p-2 transition-shadow duration-1000"
-            style={{
-              background: DUSK,
-              boxShadow: lit
-                ? '0 60px 160px -40px rgba(151,107,255,0.55), 0 30px 90px -30px rgba(255,119,82,0.4)'
-                : '0 40px 90px -50px rgba(48,16,49,0.6)',
-            }}
-          >
-            <div className="relative overflow-hidden rounded-[calc(3rem-0.5rem)] px-5 py-14 md:px-10 md:py-20" style={{ background: '#180722' }}>
-              {/* the tubes */}
-              <div className="absolute inset-x-6 top-6 bottom-6 flex justify-between gap-2 md:inset-x-12" aria-hidden="true">
-                {Array.from({ length: TUBES }, (_, i) => (
-                  <span key={i} className="ss-tube h-full w-2.5 rounded-full md:w-3.5" style={{ animationDelay: `${i * 0.14}s` }} />
-                ))}
-              </div>
-              {/* warm wash after ignition */}
-              <div aria-hidden="true" className="ss-bed-warm pointer-events-none absolute inset-0" />
-              {/* cursor warmth */}
-              <div aria-hidden="true" className="ss-bed-spot pointer-events-none absolute inset-0" />
-
-              <div className="relative z-10 flex min-h-[16rem] flex-col items-center justify-center text-center md:min-h-[20rem]">
-                {state === 'off' ? (
-                  <>
-                    <p className="max-w-xs text-sm" style={{ color: '#B9A3C4', fontFamily: SANS_MED }}>
-                      Bekkurinn er tilbúinn.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={ignite}
-                      className="mt-5 inline-flex items-center rounded-full px-7 py-4 text-base transition duration-300 hover:brightness-[1.05] active:scale-[0.98] active:duration-150"
-                      style={{ background: '#FFF3EA', color: DUSK, fontFamily: SANS_BOLD }}
-                    >
-                      Kveikja á ljósunum
-                    </button>
-                  </>
-                ) : (
-                  <div className="ss-bed-msg">
-                    <p
-                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm tabular-nums"
-                      style={{ background: 'rgba(24,7,34,0.55)', color: '#FFE9DD', fontFamily: SANS_BOLD, backdropFilter: 'blur(4px)' }}
-                    >
-                      {clock}
-                      <span style={{ color: '#C9B0D6', fontFamily: SANS_MED }}>· fimmtán mínútur á hraðspólun</span>
-                    </p>
-                    <p className="mx-auto mt-6 max-w-lg text-2xl leading-snug md:text-4xl" style={{ fontFamily: DISPLAY, color: '#FFF6EC', textShadow: '0 2px 30px rgba(24,7,34,0.55)' }}>
-                      Svona byrjar hver tími.
-                    </p>
-                    <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                      <a
-                        href={NOONA}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center rounded-full px-6 py-3.5 text-base text-white transition duration-300 hover:brightness-[1.06] active:scale-[0.98] active:duration-150"
-                        style={{ background: PINK_DEEP, fontFamily: SANS_BOLD }}
-                      >
-                        Bóka þinn tíma
-                      </a>
-                      <button
-                        type="button"
-                        onClick={off}
-                        className="inline-flex items-center rounded-full border px-5 py-3 text-sm transition duration-300 hover:bg-white/10"
-                        style={{ borderColor: 'rgba(255,243,234,0.35)', color: '#FFE9DD', fontFamily: SANS_BOLD }}
-                      >
-                        Slökkva
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <span className="sr-only" role="status">
-                {state === 'off' ? 'Ljósin eru slökkt' : 'Ljósin eru kveikt'}
-              </span>
-            </div>
-          </div>
-        </Reveal>
-      </div>
-    </section>
   )
 }
 
@@ -445,8 +312,7 @@ export default function SportsolPage() {
 
   return (
     <div className="ss-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: SUNWHITE, color: BODY, fontFamily: SANS }}>
-      <link rel="stylesheet" href={`${BASE}fonts/panchang/css/panchang.css`} />
-      <link rel="stylesheet" href={`${BASE}fonts/bonny/css/bonny.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
       <style>{`
@@ -460,15 +326,9 @@ export default function SportsolPage() {
         @keyframes ssEmber{from{opacity:.55;transform:scale(.96)}to{opacity:.9;transform:scale(1.04)}}
         .ss-float{transition:transform .45s cubic-bezier(0.32,0.72,0,1),box-shadow .45s ease}
         .ss-float:hover{transform:translateY(-6px);box-shadow:0 24px 48px -26px rgba(48,16,49,.32)}
-        .ss-tube{background:linear-gradient(180deg,#2A1240,#3A1D55 45%,#2A1240);opacity:.5;transition:opacity .6s ease}
-        .ss-bed[data-lit="igniting"] .ss-tube{animation:ssIgnite 1.1s steps(1,end) forwards}
-        .ss-bed[data-lit="on"] .ss-tube{background:linear-gradient(180deg,#CDB6FF,#FFFFFF 48%,#CDB6FF);opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8),0 0 60px 18px rgba(151,107,255,.45)}
-        @keyframes ssIgnite{0%{background:linear-gradient(180deg,#2A1240,#3A1D55 45%,#2A1240);opacity:.5;box-shadow:none}18%{background:linear-gradient(180deg,#CDB6FF,#fff 48%,#CDB6FF);opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8)}26%{opacity:.25;box-shadow:none}38%{opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8)}52%{opacity:.45;box-shadow:none}100%{background:linear-gradient(180deg,#CDB6FF,#FFFFFF 48%,#CDB6FF);opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8),0 0 60px 18px rgba(151,107,255,.45)}}
-        .ss-bed-warm{opacity:0;background:radial-gradient(120% 100% at 50% 100%,rgba(255,119,82,.4),rgba(255,181,60,.18) 45%,transparent 70%);transition:opacity 1.4s ease .9s}
-        .ss-bed[data-lit="on"] .ss-bed-warm{opacity:1}
-        .ss-bed-spot{opacity:0;background:radial-gradient(220px circle at var(--bx,50%) var(--by,50%),rgba(255,214,150,.28),transparent 65%);transition:opacity .8s ease}
-        .ss-bed[data-lit="on"] .ss-bed-spot{opacity:1}
-        .ss-bed-msg{animation:ssRise .8s cubic-bezier(0.32,0.72,0,1) both .5s}
+        .uv-tube{will-change:opacity;background:linear-gradient(180deg,#D9C2FF,#FFFFFF 50%,#D9C2FF);box-shadow:0 0 16px 3px rgba(190,150,255,.75),0 0 55px 16px rgba(158,102,255,.4),0 0 120px 40px rgba(248,16,240,.14);opacity:0;animation:uvStrike 1.9s steps(1,end) both,uvHum var(--hum,9s) steps(1,end) var(--humd,3s) infinite}
+        @keyframes uvStrike{0%{opacity:.04}9%{opacity:.55}12%{opacity:.08}21%{opacity:.85}26%{opacity:.12}33%{opacity:.06}41%{opacity:1}52%{opacity:.3}58%{opacity:1}74%{opacity:.55}79%,100%{opacity:1}}
+        @keyframes uvHum{0%,90.6%{opacity:1}91%{opacity:.78}91.5%{opacity:1}94.8%{opacity:.92}95.1%{opacity:1}97.6%{opacity:.85}97.9%,100%{opacity:1}}
         .ss-faq summary::-webkit-details-marker{display:none}
         .ss-faq[open]>p{animation:ssFaqIn .4s cubic-bezier(0.32,0.72,0,1)}
         @keyframes ssFaqIn{from{opacity:0;transform:translateY(-6px)}}
@@ -478,8 +338,8 @@ export default function SportsolPage() {
         @media (prefers-reduced-motion: reduce){
           .ss-root *,.ss-root *::before,.ss-root *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
           .ss-reveal{opacity:1;transform:none;transition:none}
-          .ss-rise,.ss-tick,.ss-bed-msg{animation:none}
-          .ss-bed[data-lit="igniting"] .ss-tube{animation:none;background:linear-gradient(180deg,#CDB6FF,#FFFFFF 48%,#CDB6FF);opacity:1}
+          .ss-rise,.ss-tick{animation:none}
+          .uv-tube{animation:none;opacity:1}
           .ss-ember{animation:none;opacity:.7}
           .ss-float,.ss-float:hover{transition:none;transform:none}
         }
@@ -491,10 +351,8 @@ export default function SportsolPage() {
           className="mx-auto flex w-full max-w-3xl items-center justify-between rounded-full border py-2 pr-2 pl-5"
           style={{ background: '#FFF8EEe6', borderColor: HAIR, backdropFilter: 'blur(14px)', boxShadow: '0 18px 40px -24px rgba(48,16,49,0.35)' }}
         >
-          <a href="#top" className="flex items-baseline gap-1.5" aria-label="Sportsól">
-            <span className="text-xl leading-none" style={{ fontFamily: DISPLAY, color: PINK }}>
-              Sportsól
-            </span>
+          <a href="#top" className="shrink-0" aria-label="Sportsól">
+            <img src={LOGO} alt="Sportsól" className="h-9 w-auto md:h-10" />
           </a>
           <nav className="hidden items-center gap-5 text-sm md:flex" style={{ fontFamily: SANS_MED }} aria-label="Valmynd">
             <a href="#verdskra" className="transition-colors duration-300 hover:text-[#B01F6A]" style={{ color: INK }}>
@@ -529,35 +387,35 @@ export default function SportsolPage() {
         </div>
       </header>
 
-      {/* ── HERO — the sun rises over the fold as you scroll ───────────── */}
-      <section id="top" className="relative flex min-h-[100svh] items-end overflow-hidden">
-        {/* sky — replaced by the Higgsfield backdrop when HERO_MEDIA is set */}
-        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${SUNWHITE} 0%, #FFEFD8 40%, #FFDDC2 72%, #FFC9B0 100%)` }} />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${CORAL}30 75%, ${PINK}2e 100%)` }} />
-        {HERO_MEDIA ? (
-          HERO_MEDIA.type === 'video' ? (
-            <video className="absolute inset-0 h-full w-full object-cover" src={HERO_MEDIA.src} autoPlay muted loop playsInline aria-hidden="true" />
-          ) : (
-            <img className="absolute inset-0 h-full w-full object-cover" src={HERO_MEDIA.src} alt="" aria-hidden="true" />
-          )
-        ) : null}
-        {HERO_MEDIA ? (
-          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${SUNWHITE}d9 0%, transparent 45%, rgba(26,10,32,0.35) 100%)` }} />
-        ) : null}
-        {/* horizon line */}
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px" style={{ background: HAIR }} />
+      {/* ── HERO — the UV room: tubes ignite on load and hum forever ────── */}
+      <section id="top" className="relative flex min-h-[100svh] items-end overflow-hidden" style={{ background: UVROOM }}>
+        {/* violet bloom behind the tubes */}
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: `radial-gradient(120% 90% at 50% 0%, #2E1046 0%, transparent 60%), radial-gradient(120% 80% at 50% 110%, ${PINK}14 0%, transparent 55%)` }} />
+        {/* the tube wall */}
+        <div aria-hidden="true" className="absolute inset-x-4 top-0 bottom-0 flex justify-between gap-2 md:inset-x-10">
+          {UV_TUBES.map((t, i) => (
+            <span
+              key={i}
+              className="uv-tube h-full w-2 rounded-full md:w-3"
+              style={{ animationDelay: `${t.ignite}s`, ['--hum' as string]: `${t.hum}s`, ['--humd' as string]: `${t.humDelay}s` } as React.CSSProperties}
+            />
+          ))}
+        </div>
+        {/* legibility scrim over the text side */}
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: `linear-gradient(90deg, ${UVROOM}f0 0%, ${UVROOM}b8 42%, ${UVROOM}30 70%, transparent 100%)` }} />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px" style={{ background: '#ffffff14' }} />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pt-24 pb-28 md:px-8 md:pb-20">
           <div className="max-w-4xl">
-            <p className="ss-rise inline-flex items-center rounded-full border px-3.5 py-1.5 text-[0.8rem] tracking-[0.02em]" style={{ borderColor: HAIR, color: PINK_TX, fontFamily: SANS_BOLD, background: '#FFFDF7aa' }}>
+            <p className="ss-rise inline-flex items-center rounded-full border px-3.5 py-1.5 text-[0.8rem] tracking-[0.02em]" style={{ borderColor: '#ffffff2e', color: '#F3B8EF', fontFamily: SANS_BOLD, background: '#12051C99' }}>
               Sólbaðsstofur í Kópavogi og Grafarvogi
             </p>
-            <h1 className="ss-rise mt-5 max-w-4xl text-[2.3rem] leading-[1.06] md:text-[3.4rem]" style={{ fontFamily: DISPLAY, color: INK, animationDelay: '80ms' }}>
+            <h1 className="ss-rise mt-5 max-w-4xl text-[2.6rem] leading-[1.04] md:text-[4.4rem]" style={{ fontFamily: DISPLAY, color: '#FFF6EC', animationDelay: '80ms' }}>
               Komdu í ljós.
               <br />
-              <span style={{ color: PINK_DEEP }}>Frá 299 kr. á dag.</span>
+              <span style={{ color: '#FF6BF7' }}>Frá 299 kr. á dag.</span>
             </h1>
-            <p className="ss-rise mt-6 max-w-md text-lg leading-relaxed" style={{ color: BODY, animationDelay: '160ms' }}>
+            <p className="ss-rise mt-6 max-w-md text-lg leading-relaxed" style={{ color: '#E9D9F2', animationDelay: '160ms' }}>
               Nýir bekkir í báðum stofum. Áskrift eða stakir tímar, bókað á Noona.
             </p>
             <div className="ss-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: '240ms' }}>
@@ -565,7 +423,7 @@ export default function SportsolPage() {
                 href={NOONA}
                 target="_blank"
                 rel="noreferrer"
-                className="group inline-flex items-center gap-2.5 rounded-full py-3 pr-3 pl-6 text-base text-white shadow-xl transition duration-300 hover:brightness-[1.06] active:scale-[0.98] active:duration-150"
+                className="group inline-flex items-center gap-2.5 rounded-full py-3 pr-3 pl-6 text-base text-white shadow-xl transition duration-300 hover:brightness-[1.08] active:scale-[0.98] active:duration-150"
                 style={{ background: PINK_DEEP, fontFamily: SANS_BOLD }}
               >
                 Bóka tíma
@@ -573,7 +431,7 @@ export default function SportsolPage() {
                   ↗
                 </span>
               </a>
-              <a href="#verdskra" className="inline-flex items-center rounded-full border px-6 py-3.5 text-base transition-colors duration-300 hover:bg-[#3010310d]" style={{ borderColor: '#30103140', color: INK, fontFamily: SANS_BOLD }}>
+              <a href="#verdskra" className="inline-flex items-center rounded-full border px-6 py-3.5 text-base transition-colors duration-300 hover:bg-white/10" style={{ borderColor: '#ffffff45', color: '#FFF6EC', fontFamily: SANS_BOLD }}>
                 Sjá verðskrá
               </a>
             </div>
@@ -600,8 +458,6 @@ export default function SportsolPage() {
           ))}
         </div>
       </section>
-
-      <Sunbed />
 
       {/* ── VERÐSKRÁ ────────────────────────────────────────────────────── */}
       <section id="verdskra" className="scroll-mt-24 py-24 md:py-32">
