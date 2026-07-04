@@ -120,6 +120,157 @@ function useHeroSun(heroRef: React.RefObject<HTMLElement | null>) {
   }, [heroRef])
 }
 
+/* ── The sunbed — press the switch and the tubes ignite, violet light
+      first, then the warmth. The page's product, made physical. ───────── */
+const TUBES = 12
+
+function Sunbed() {
+  const [state, setState] = useState<'off' | 'igniting' | 'on'>('off')
+  const [clock, setClock] = useState('15:00')
+  const bedRef = useRef<HTMLDivElement>(null)
+
+  const ignite = () => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      setState('on')
+      setClock('15:00')
+      return
+    }
+    setState('igniting')
+    window.setTimeout(() => setState('on'), 2100)
+  }
+  const off = () => {
+    setState('off')
+    setClock('15:00')
+  }
+
+  /* 15 minutes, fast-forwarded into 15 seconds — elapsed-based so a
+     throttled tab self-corrects instead of drifting */
+  useEffect(() => {
+    if (state !== 'on') return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t0 = performance.now()
+    const id = window.setInterval(() => {
+      const left = Math.max(0, 900 - ((performance.now() - t0) / 15000) * 900)
+      const m = Math.floor(left / 60)
+      const sec = Math.floor(left % 60)
+      setClock(`${m}:${String(sec).padStart(2, '0')}`)
+      if (left <= 0) window.clearInterval(id)
+    }, 250)
+    return () => window.clearInterval(id)
+  }, [state])
+
+  /* warm cursor spot while the lights are on (fine pointers only) */
+  useEffect(() => {
+    const bed = bedRef.current
+    if (!bed || state !== 'on') return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const move = (e: PointerEvent) => {
+      const r = bed.getBoundingClientRect()
+      bed.style.setProperty('--bx', `${e.clientX - r.left}px`)
+      bed.style.setProperty('--by', `${e.clientY - r.top}px`)
+    }
+    bed.addEventListener('pointermove', move, { passive: true })
+    return () => bed.removeEventListener('pointermove', move)
+  }, [state])
+
+  const lit = state !== 'off'
+  return (
+    <section id="upplifunin" className="scroll-mt-24 py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-5 md:px-8">
+        <Reveal className="mx-auto mb-10 max-w-2xl text-center">
+          <h2 className="text-4xl md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            Fimmtán mínútur af sumri
+          </h2>
+          <p className="mt-4 text-lg" style={{ color: BODY }}>
+            Kveiktu á ljósunum og finndu hvernig bekkurinn tekur á móti þér.
+          </p>
+        </Reveal>
+
+        <Reveal>
+          <div
+            ref={bedRef}
+            data-lit={state}
+            className="ss-bed relative overflow-hidden rounded-[3rem] p-2 transition-shadow duration-1000"
+            style={{
+              background: DUSK,
+              boxShadow: lit
+                ? '0 60px 160px -40px rgba(151,107,255,0.55), 0 30px 90px -30px rgba(255,119,82,0.4)'
+                : '0 40px 90px -50px rgba(48,16,49,0.6)',
+            }}
+          >
+            <div className="relative overflow-hidden rounded-[calc(3rem-0.5rem)] px-5 py-14 md:px-10 md:py-20" style={{ background: '#180722' }}>
+              {/* the tubes */}
+              <div className="absolute inset-x-6 top-6 bottom-6 flex justify-between gap-2 md:inset-x-12" aria-hidden="true">
+                {Array.from({ length: TUBES }, (_, i) => (
+                  <span key={i} className="ss-tube h-full w-2.5 rounded-full md:w-3.5" style={{ animationDelay: `${i * 0.14}s` }} />
+                ))}
+              </div>
+              {/* warm wash after ignition */}
+              <div aria-hidden="true" className="ss-bed-warm pointer-events-none absolute inset-0" />
+              {/* cursor warmth */}
+              <div aria-hidden="true" className="ss-bed-spot pointer-events-none absolute inset-0" />
+
+              <div className="relative z-10 flex min-h-[16rem] flex-col items-center justify-center text-center md:min-h-[20rem]">
+                {state === 'off' ? (
+                  <>
+                    <p className="max-w-xs text-sm" style={{ color: '#B9A3C4', fontFamily: SANS_MED }}>
+                      Bekkurinn er tilbúinn.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={ignite}
+                      className="mt-5 inline-flex items-center rounded-full px-7 py-4 text-base transition duration-300 hover:brightness-[1.05] active:scale-[0.98] active:duration-150"
+                      style={{ background: '#FFF3EA', color: DUSK, fontFamily: SANS_BOLD }}
+                    >
+                      Kveikja á ljósunum
+                    </button>
+                  </>
+                ) : (
+                  <div className="ss-bed-msg">
+                    <p
+                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm tabular-nums"
+                      style={{ background: 'rgba(24,7,34,0.55)', color: '#FFE9DD', fontFamily: SANS_BOLD, backdropFilter: 'blur(4px)' }}
+                    >
+                      {clock}
+                      <span style={{ color: '#C9B0D6', fontFamily: SANS_MED }}>· fimmtán mínútur á hraðspólun</span>
+                    </p>
+                    <p className="mx-auto mt-6 max-w-md text-3xl leading-snug md:text-5xl" style={{ fontFamily: DISPLAY, color: '#FFF6EC', textShadow: '0 2px 30px rgba(24,7,34,0.55)' }}>
+                      Svona byrjar hver tími.
+                    </p>
+                    <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+                      <a
+                        href={NOONA}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center rounded-full px-6 py-3.5 text-base text-white transition duration-300 hover:brightness-[1.06] active:scale-[0.98] active:duration-150"
+                        style={{ background: PINK_DEEP, fontFamily: SANS_BOLD }}
+                      >
+                        Bóka þinn tíma
+                      </a>
+                      <button
+                        type="button"
+                        onClick={off}
+                        className="inline-flex items-center rounded-full border px-5 py-3 text-sm transition duration-300 hover:bg-white/10"
+                        style={{ borderColor: 'rgba(255,243,234,0.35)', color: '#FFE9DD', fontFamily: SANS_BOLD }}
+                      >
+                        Slökkva
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <span className="sr-only" role="status">
+                {state === 'off' ? 'Ljósin eru slökkt' : 'Ljósin eru kveikt'}
+              </span>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
 /* ── Verðskrá — the day has two prices; a sun dial picks the column ────── */
 function PriceBoard() {
   const [slot, setSlot] = useState<'morning' | 'day'>(() => (new Date().getHours() < 14 ? 'morning' : 'day'))
@@ -350,6 +501,15 @@ export default function SportsolPage() {
         @keyframes ssEmber{from{opacity:.55;transform:scale(.96)}to{opacity:.9;transform:scale(1.04)}}
         .ss-float{transition:transform .45s cubic-bezier(0.32,0.72,0,1),box-shadow .45s ease}
         .ss-float:hover{transform:translateY(-6px);box-shadow:0 24px 48px -26px rgba(48,16,49,.32)}
+        .ss-tube{background:linear-gradient(180deg,#2A1240,#3A1D55 45%,#2A1240);opacity:.5;transition:opacity .6s ease}
+        .ss-bed[data-lit="igniting"] .ss-tube{animation:ssIgnite 1.1s steps(1,end) forwards}
+        .ss-bed[data-lit="on"] .ss-tube{background:linear-gradient(180deg,#CDB6FF,#FFFFFF 48%,#CDB6FF);opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8),0 0 60px 18px rgba(151,107,255,.45)}
+        @keyframes ssIgnite{0%{background:linear-gradient(180deg,#2A1240,#3A1D55 45%,#2A1240);opacity:.5;box-shadow:none}18%{background:linear-gradient(180deg,#CDB6FF,#fff 48%,#CDB6FF);opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8)}26%{opacity:.25;box-shadow:none}38%{opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8)}52%{opacity:.45;box-shadow:none}100%{background:linear-gradient(180deg,#CDB6FF,#FFFFFF 48%,#CDB6FF);opacity:1;box-shadow:0 0 18px 4px rgba(178,142,255,.8),0 0 60px 18px rgba(151,107,255,.45)}}
+        .ss-bed-warm{opacity:0;background:radial-gradient(120% 100% at 50% 100%,rgba(255,119,82,.4),rgba(255,181,60,.18) 45%,transparent 70%);transition:opacity 1.4s ease .9s}
+        .ss-bed[data-lit="on"] .ss-bed-warm{opacity:1}
+        .ss-bed-spot{opacity:0;background:radial-gradient(220px circle at var(--bx,50%) var(--by,50%),rgba(255,214,150,.28),transparent 65%);transition:opacity .8s ease}
+        .ss-bed[data-lit="on"] .ss-bed-spot{opacity:1}
+        .ss-bed-msg{animation:ssRise .8s cubic-bezier(0.32,0.72,0,1) both .5s}
         .ss-faq summary::-webkit-details-marker{display:none}
         .ss-faq[open]>p{animation:ssFaqIn .4s cubic-bezier(0.32,0.72,0,1)}
         @keyframes ssFaqIn{from{opacity:0;transform:translateY(-6px)}}
@@ -359,7 +519,8 @@ export default function SportsolPage() {
         @media (prefers-reduced-motion: reduce){
           .ss-root *,.ss-root *::before,.ss-root *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
           .ss-reveal{opacity:1;transform:none;transition:none}
-          .ss-rise,.ss-tick{animation:none}
+          .ss-rise,.ss-tick,.ss-bed-msg{animation:none}
+          .ss-bed[data-lit="igniting"] .ss-tube{animation:none;background:linear-gradient(180deg,#CDB6FF,#FFFFFF 48%,#CDB6FF);opacity:1}
           .ss-ember{animation:none;opacity:.7}
           .ss-float,.ss-float:hover{transition:none;transform:none}
         }
@@ -472,6 +633,8 @@ export default function SportsolPage() {
           ))}
         </div>
       </section>
+
+      <Sunbed />
 
       {/* ── VERÐSKRÁ ────────────────────────────────────────────────────── */}
       <section id="verdskra" className="scroll-mt-24 py-24 md:py-32">
