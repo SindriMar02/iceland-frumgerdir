@@ -43,13 +43,11 @@ const HAIR = '#F9F1DF1f' // hairline on dark
 const GOLD = '#F7C331' // the accent: logo sun yellow
 const GOLD_SOFT = '#FFD97A' // yellow for small text on dark (AA)
 const GOLD_DEEP = '#E0A21F' // gradient stop
-const EMBER = '#E2601C' // sun edge (decorative gradient stop only)
 const RED = '#E8402F' // logo signal red, large display text + wordmark only
 const BRONZE = '#8A5A31' // spraytan chapter tint (same warm family)
 
 const BASE = import.meta.env.BASE_URL
 const DISPLAY = "'Stardom', Georgia, serif"
-const DISPLAY_BOLD = "'Stardom', Georgia, serif"
 const SANS = "'CabinetGrotesk-Regular', system-ui, sans-serif"
 const SANS_MED = "'CabinetGrotesk-Medium', system-ui, sans-serif"
 const SANS_BOLD = "'CabinetGrotesk-Bold', system-ui, sans-serif"
