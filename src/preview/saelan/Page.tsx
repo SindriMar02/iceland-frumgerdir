@@ -192,6 +192,18 @@ function MenuRow({ label, sub, price, dim = false }: { label: string; sub?: stri
   )
 }
 
+/* ── Little ray-sun glyph for the print ribbon ────────────────────────── */
+function RibbonSun() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={SUN} aria-hidden="true" className="shrink-0">
+      <circle cx="12" cy="12" r="5" />
+      <g stroke={SUN} strokeWidth="2" strokeLinecap="round">
+        <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
+      </g>
+    </svg>
+  )
+}
+
 /* ── Photo scrap — taped-in print, slightly off-square ─────────────────── */
 function Scrap({ src, alt, rotate = -2, className = '' }: { src: string; alt: string; rotate?: number; className?: string }) {
   return (
@@ -246,8 +258,8 @@ export default function SaelanPage() {
         .sn-stamp{transition:transform .15s ease,box-shadow .15s ease}
         .sn-stamp:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 ${INK}}
         .sn-stamp:active{transform:translate(5px,5px);box-shadow:0 0 0 ${INK}}
-        .sn-marquee{animation:snMarquee 26s linear infinite}
-        @keyframes snMarquee{to{transform:translateX(-50%)}}
+        .sn-marquee{animation:snMarquee 40s linear infinite;will-change:transform;transform:translateZ(0);backface-visibility:hidden}
+        @keyframes snMarquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
         .sn-ticket{transition:transform .35s cubic-bezier(0.22,1,0.36,1)}
         .sn-ticket:hover{transform:rotate(0.5deg) translateY(-4px)}
         .sn-seal{transform:rotate(-10deg);transition:transform .35s cubic-bezier(0.34,1.4,0.5,1)}
@@ -362,30 +374,17 @@ export default function SaelanPage() {
             </a>
           </div>
         </div>
-        {/* print ribbon: the one marquee */}
+        {/* print ribbon: one seamless marquee. Spacing baked into each unit so
+            the -50% loop never seams; duplicated wide enough to fill any screen. */}
         <div className="overflow-hidden border-y-2 py-3" style={{ borderColor: INK, background: RED }} aria-hidden="true">
-          <div className="sn-marquee flex w-max gap-10 whitespace-nowrap">
-            {Array.from({ length: 2 }, (_, half) => (
-              <div key={half} className="flex gap-10">
-                {Array.from({ length: 6 }, (_, i) => (
-                  <span key={i} className="flex items-center gap-10 text-xl uppercase" style={{ fontFamily: POSTER, color: PAPER }}>
-                    Sólbaðsstofan Sælan
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill={SUN} aria-hidden="true">
-                      <circle cx="12" cy="12" r="5" />
-                      <g stroke={SUN} strokeWidth="2" strokeLinecap="round">
-                        <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
-                      </g>
-                    </svg>
-                    Faxafen 10
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill={SUN} aria-hidden="true">
-                      <circle cx="12" cy="12" r="5" />
-                      <g stroke={SUN} strokeWidth="2" strokeLinecap="round">
-                        <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
-                      </g>
-                    </svg>
-                  </span>
-                ))}
-              </div>
+          <div className="sn-marquee flex w-max whitespace-nowrap">
+            {Array.from({ length: 20 }, (_, i) => (
+              <span key={i} className="flex items-center gap-9 pr-9 text-xl uppercase" style={{ fontFamily: POSTER, color: PAPER }}>
+                Sólbaðsstofan Sælan
+                <RibbonSun />
+                Faxafen 10
+                <RibbonSun />
+              </span>
             ))}
           </div>
         </div>
