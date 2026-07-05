@@ -21,8 +21,8 @@ import {
   PRODUCTS,
   REPEAT_PORTAL,
   SAFETY,
-  SOCIAL,
   SKIN_TYPES,
+  SOCIAL,
   SPRAY,
   STORY,
   TIMES,
@@ -30,31 +30,27 @@ import {
 
 const company = getPreviewCompany('saelan')
 
-/* ── Palette — Gullni tíminn, drawn from the original Sælan logo: the yellow
-      sun, the signal-red serif wordmark, the black pyramid. One dark theme;
-      yellow is the interactive accent, red is reserved for the brand voice
-      (wordmark + one emphasis per section, large text only). ── */
-const GROUND = '#171210' // warm near-black ground (logo black, warmed)
-const PANEL = '#201813' // raised section panel
-const CARD = '#281E16' // card surface
-const INK = '#F9F1DF' // warm ivory headings
-const BODY = '#D1BFA3' // warm sand body text (AA on the dark ground)
-const HAIR = '#F9F1DF1f' // hairline on dark
-const GOLD = '#F7C331' // the accent: logo sun yellow
-const GOLD_SOFT = '#FFD97A' // yellow for small text on dark (AA)
-const GOLD_DEEP = '#E0A21F' // gradient stop
-const RED = '#E8402F' // logo signal red, large display text + wordmark only
-const BRONZE = '#8A5A31' // spraytan chapter tint (same warm family)
+/* ── Sólplakat — a silkscreened solarium poster. The page IS the logo's
+      sun yellow; red and warm ink are the two print colors. One black
+      plate (Spraytan.is, the sub-brand) breaks the run on purpose. ── */
+const SUN = '#F3C11B' // the drenched ground: logo sun yellow
+const INK = '#211B0E' // warm print black, text and rules
+const RED = '#C9301C' // logo signal red, display type 24px+ only
+const PAPER = '#F8F1DF' // cream paper scraps: tickets, cards, photos
+const PLATE = '#1B160C' // the single dark plate (Spraytan chapter)
+const PLATE_INK = '#F2E8D2' // ink on the dark plate
 
 const BASE = import.meta.env.BASE_URL
-const DISPLAY = "'Stardom', Georgia, serif"
+const POSTER = "'Tanker-Regular', 'CabinetGrotesk-Black', sans-serif"
+const WORDMARK = "'Stardom', Georgia, serif"
 const SANS = "'CabinetGrotesk-Regular', system-ui, sans-serif"
 const SANS_MED = "'CabinetGrotesk-Medium', system-ui, sans-serif"
 const SANS_BOLD = "'CabinetGrotesk-Bold', system-ui, sans-serif"
+const MONO = "'Space Mono', monospace"
 
 const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
 
-/* ── IO reveal — CSS owns the motion; failsafe timer means nothing sticks ── */
+/* ── IO reveal — a quick stamp-in; failsafe timer means nothing sticks ── */
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const [on, setOn] = useState(false)
@@ -87,39 +83,160 @@ function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; 
   )
 }
 
-/* ── Gold pill CTA with the nested arrow chip ─────────────────────────── */
-function GoldCta({ href, children, big = false }: { href: string; children: ReactNode; big?: boolean }) {
+/* ── Stamp button — flat print block with a hard offset shadow ─────────── */
+function Stamp({
+  href,
+  children,
+  red = false,
+  onPlate = false,
+}: {
+  href: string
+  children: ReactNode
+  red?: boolean
+  onPlate?: boolean
+}) {
+  const edge = onPlate ? PLATE_INK : INK
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className={`group inline-flex items-center gap-2.5 rounded-full transition duration-300 hover:brightness-105 active:scale-[0.98] active:duration-150 ${
-        big ? 'py-3 pr-3 pl-7 text-lg' : 'py-2.5 pr-2 pl-5 text-sm'
-      }`}
-      style={{ background: `linear-gradient(160deg, ${GOLD_SOFT}, ${GOLD} 55%, ${GOLD_DEEP})`, color: GROUND, fontFamily: SANS_BOLD }}
+      className="sn-stamp inline-flex items-center px-7 py-4 text-base tracking-[0.06em] uppercase"
+      style={{
+        background: red ? RED : SUN,
+        color: red ? PAPER : INK,
+        border: `2px solid ${edge}`,
+        boxShadow: `5px 5px 0 ${edge}`,
+        fontFamily: SANS_BOLD,
+      }}
     >
       {children}
-      <span
-        className={`grid place-items-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${
-          big ? 'h-9 w-9' : 'h-7 w-7'
-        }`}
-        style={{ background: `${GROUND}1f` }}
-        aria-hidden="true"
-      >
-        <svg width={big ? 16 : 13} height={big ? 16 : 13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 17 17 7M9 7h8v8" />
-        </svg>
-      </span>
     </a>
   )
 }
 
+/* ── The sun path — drag the sun across the day, prices follow ─────────── */
+function SunDial({ hour, setHour }: { hour: number; setHour: (h: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const dragging = useRef(false)
+
+  const hourFromEvent = (clientX: number) => {
+    const el = ref.current
+    if (!el) return hour
+    const r = el.getBoundingClientRect()
+    const t = Math.min(1, Math.max(0, (clientX - r.left) / r.width))
+    return Math.round(10 + t * 13)
+  }
+
+  const onPointer = (e: React.PointerEvent) => {
+    if (e.type === 'pointerdown') {
+      dragging.current = true
+      try {
+        ;(e.target as Element).setPointerCapture?.(e.pointerId)
+      } catch {
+        /* synthetic or already-released pointer */
+      }
+    }
+    if (e.type === 'pointermove' && !dragging.current) return
+    if (e.type === 'pointerup' || e.type === 'pointercancel') {
+      dragging.current = false
+      return
+    }
+    setHour(hourFromEvent(e.clientX))
+  }
+
+  // sun position along a flat arc: t 0..1 -> x across, y dips at the edges
+  const t = (hour - 10) / 13
+  const x = 6 + t * 88 // percent
+  const y = 78 - Math.sin(t * Math.PI) * 58 // percent
+
+  return (
+    <div
+      ref={ref}
+      className="relative h-56 w-full cursor-ew-resize touch-none select-none md:h-72"
+      onPointerDown={onPointer}
+      onPointerMove={onPointer}
+      onPointerUp={onPointer}
+      onPointerCancel={onPointer}
+      role="slider"
+      aria-label="Tími dags"
+      aria-valuemin={10}
+      aria-valuemax={23}
+      aria-valuenow={hour}
+      aria-valuetext={`Klukkan ${hour}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowLeft') setHour(Math.max(10, hour - 1))
+        if (e.key === 'ArrowRight') setHour(Math.min(23, hour + 1))
+      }}
+    >
+      {/* the arc, drawn as a dotted print path */}
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M 6 78 Q 50 -14 94 78" fill="none" stroke={INK} strokeWidth="0.8" strokeDasharray="0.2 2.4" strokeLinecap="round" />
+        {/* the 14:00 boundary tick between morgunverð and dagverð */}
+        <line x1="37.5" y1="34" x2="40" y2="42" stroke={INK} strokeWidth="0.8" />
+      </svg>
+      {/* zone words along the path */}
+      <span className="absolute top-[56%] left-[10%] text-xs tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: INK }}>
+        10:00
+      </span>
+      <span className="absolute top-[56%] right-[10%] text-xs tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: INK }}>
+        23:00
+      </span>
+      {/* the draggable sun: a flat red-ringed disc like the logo */}
+      <div
+        className="sn-sundisc absolute grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full md:h-20 md:w-20"
+        style={{ left: `${x}%`, top: `${y}%`, background: SUN, border: `3px solid ${RED}`, boxShadow: `4px 4px 0 ${INK}` }}
+        aria-hidden="true"
+      >
+        <span className="text-lg md:text-xl" style={{ fontFamily: POSTER, color: INK }}>
+          {hour}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/* ── Dotted-leader price line, straight off a printed menu ─────────────── */
+function MenuRow({ label, sub, price, dim = false }: { label: string; sub?: string; price: string; dim?: boolean }) {
+  return (
+    <div className="flex items-baseline gap-3 py-3" style={{ opacity: dim ? 0.42 : 1, transition: 'opacity .35s ease' }}>
+      <span className="shrink-0 text-lg md:text-xl" style={{ fontFamily: SANS_MED, color: INK }}>
+        {label}
+        {sub ? (
+          <span className="ml-2 text-sm" style={{ fontFamily: MONO }}>
+            {sub}
+          </span>
+        ) : null}
+      </span>
+      <span aria-hidden="true" className="min-w-6 flex-1 border-b-2 border-dotted" style={{ borderColor: `${INK}66`, transform: 'translateY(-4px)' }} />
+      <span className="shrink-0 text-lg whitespace-nowrap md:text-xl" style={{ fontFamily: MONO, color: INK }}>
+        {price}
+      </span>
+    </div>
+  )
+}
+
+/* ── Photo scrap — taped-in print, slightly off-square ─────────────────── */
+function Scrap({ src, alt, rotate = -2, className = '' }: { src: string; alt: string; rotate?: number; className?: string }) {
+  return (
+    <figure className={`relative ${className}`} style={{ transform: `rotate(${rotate}deg)` }}>
+      <div className="p-2 pb-3" style={{ background: PAPER, boxShadow: `6px 6px 0 ${INK}` }}>
+        <img src={src} alt={alt} loading="lazy" className="block w-full object-cover" />
+      </div>
+      {/* tape strips */}
+      <span aria-hidden="true" className="absolute -top-3 left-6 h-6 w-16 -rotate-6" style={{ background: `${PAPER}b8`, border: `1px solid ${INK}22` }} />
+      <span aria-hidden="true" className="absolute -top-3 right-6 h-6 w-16 rotate-3" style={{ background: `${PAPER}b8`, border: `1px solid ${INK}22` }} />
+    </figure>
+  )
+}
+
 export default function SaelanPage() {
-  const [tab, setTab] = useState<'day' | 'morning' | 'k11'>('day')
+  const [hour, setHour] = useState(12)
+  const morning = hour < 14
 
   useEffect(() => {
-    setThemeColor(GROUND)
+    setThemeColor(SUN)
   }, [])
 
   const jsonLd = useMemo(
@@ -144,154 +261,158 @@ export default function SaelanPage() {
   )
 
   return (
-    <div className="sn-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: GROUND, color: BODY, fontFamily: SANS }}>
+    <div className="sn-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: SUN, color: INK, fontFamily: SANS }}>
+      <link rel="stylesheet" href={`${BASE}fonts/tanker/css/tanker.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
       <style>{`
-        .sn-reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(0.32,0.72,0,1)}
+        .sn-reveal{opacity:0;transform:translateY(14px) scale(.995);transition:opacity .5s ease,transform .5s cubic-bezier(0.22,1,0.36,1)}
         .sn-reveal[data-in="true"]{opacity:1;transform:none}
-        .sn-float{transition:transform .45s cubic-bezier(0.32,0.72,0,1)}
-        .sn-float:hover{transform:translateY(-6px)}
-        .sn-img{transition:transform 1.2s cubic-bezier(0.32,0.72,0,1)}
-        .sn-imgwrap:hover .sn-img{transform:scale(1.045)}
-        .sn-tick{animation:snTick .4s cubic-bezier(0.32,0.72,0,1)}
-        @keyframes snTick{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
-        .sn-snap{scrollbar-width:none}
-        .sn-snap::-webkit-scrollbar{display:none}
-        .sn-root :focus-visible{outline:2px solid ${GOLD};outline-offset:3px}
+        .sn-stamp{transition:transform .15s ease,box-shadow .15s ease}
+        .sn-stamp:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 ${INK}}
+        .sn-stamp:active{transform:translate(5px,5px);box-shadow:0 0 0 ${INK}}
+        .sn-marquee{animation:snMarquee 26s linear infinite}
+        @keyframes snMarquee{to{transform:translateX(-50%)}}
+        .sn-sundisc{transition:left .25s cubic-bezier(0.22,1,0.36,1),top .25s cubic-bezier(0.22,1,0.36,1)}
+        .sn-punch{transition:background .25s ease}
+        .sn-card:hover .sn-punch{background:${INK}}
+        .sn-scrapimg{transition:transform .4s cubic-bezier(0.22,1,0.36,1)}
+        .sn-root :focus-visible{outline:3px solid ${RED};outline-offset:3px}
         @media (prefers-reduced-motion: reduce){
           .sn-root *,.sn-root *::before,.sn-root *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
           .sn-reveal{opacity:1;transform:none;transition:none}
-          .sn-tick{animation:none}
-                  }
+          .sn-marquee{animation:none}
+        }
       `}</style>
 
-      {/* ── Seamless header — no bar, links sit directly on the hero ───── */}
+      {/* ── Seamless header on the poster ───────────────────────────────── */}
       <header className="absolute inset-x-0 top-0 z-40">
-        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-5 py-6 md:px-8 md:py-7">
-          <a href="#top" className="text-2xl leading-none" style={{ fontFamily: DISPLAY, color: RED }} aria-label="Sælan">
+        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 py-5 md:px-8">
+          <a href="#top" className="text-3xl leading-none" style={{ fontFamily: WORDMARK, color: RED }} aria-label="Sælan">
             Sælan
           </a>
-          <nav className="hidden items-center gap-8 text-base md:flex" style={{ fontFamily: SANS_MED }} aria-label="Valmynd">
-            <a href="#bekkirnir" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: INK }}>
+          <nav className="hidden items-center gap-8 text-base md:flex" style={{ fontFamily: SANS_BOLD }} aria-label="Valmynd">
+            <a href="#bekkirnir" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Bekkirnir
             </a>
-            <a href="#verdskra" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: INK }}>
+            <a href="#verdskra" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Verðskrá
             </a>
-            <a href="#askrift" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: INK }}>
+            <a href="#askrift" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Áskrift
             </a>
-            <a href="#spraytan" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: INK }}>
+            <a href="#spraytan" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Spraytan
             </a>
           </nav>
-          <GoldCta href={NOONA}>Bóka tíma</GoldCta>
+          <Stamp href={NOONA} red>
+            Bóka tíma
+          </Stamp>
         </div>
       </header>
 
-      {/* ── HERO — golden hour trapped indoors: real amber bed photo + sun ── */}
-      <section id="top" className="relative flex min-h-[100svh] items-center overflow-hidden">
-        {/* real photo: their Ergoline glowing amber, masked into the dark left */}
-        <div aria-hidden="true" className="absolute inset-y-0 right-0 w-full md:w-[62%]">
+      {/* ── HERO — the poster itself ────────────────────────────────────── */}
+      <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
+        <div className="mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
+          {/* the original logo, worn like a sticker over the headline corner */}
           <img
-            src={IMG.bedGlow}
-            alt=""
-            width={1276}
-            height={1600}
-            fetchPriority="high"
-            className="h-full w-full object-cover"
-            style={{
-              WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, black 45%)',
-              maskImage: 'linear-gradient(90deg, transparent 0%, black 45%)',
-              opacity: 0.9,
-            }}
+            src={IMG.logo}
+            alt="Upprunalega Sælan merkið, gul sól og pýramídi"
+            width={512}
+            height={512}
+            className="absolute top-24 right-[6%] h-28 w-auto rotate-6 md:top-28 md:h-44"
           />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${GROUND}cc 0%, transparent 40%, ${GROUND} 96%)` }} />
-          <div className="absolute inset-0 md:hidden" style={{ background: `${GROUND}66` }} />
-        </div>
-        <div className="relative mx-auto w-full max-w-[1200px] px-5 pt-24 pb-16 md:px-8">
-          <div className="max-w-2xl">
-            <h1
-              className="sn-reveal text-[clamp(2.9rem,8.4vw,5.6rem)] leading-[1.02] text-balance"
-              data-in="true"
-              style={{ fontFamily: DISPLAY, color: INK }}
-            >
-              Alltaf sól{' '}
-              <span className="block" style={{ color: GOLD }}>
-                og sæla.
-              </span>
-            </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed" style={{ color: BODY }}>
-              Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós. Faxafen 10, Reykjavík.
+          <h1 className="text-[clamp(4.2rem,15.5vw,14rem)] leading-[0.86] uppercase" style={{ fontFamily: POSTER, color: INK }}>
+            Alltaf sól
+            <span className="block" style={{ color: RED }}>
+              og sæla
+            </span>
+          </h1>
+          <div className="mt-8 flex flex-wrap items-end justify-between gap-8">
+            <p className="max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED }}>
+              Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <GoldCta href={NOONA} big>
+            <div className="flex flex-wrap items-center gap-6">
+              <Stamp href={NOONA} red>
                 Bóka tíma
-              </GoldCta>
-              <a
-                href="#verdskra"
-                className="inline-flex items-center rounded-full border px-7 py-3.5 text-lg transition-colors duration-300 hover:bg-white/5"
-                style={{ borderColor: `${INK}3d`, color: INK, fontFamily: SANS_MED }}
-              >
+              </Stamp>
+              <a href="#verdskra" className="text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
                 Sjá verðskrá
               </a>
             </div>
           </div>
         </div>
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px" style={{ background: HAIR }} />
+        {/* print ribbon: the one marquee */}
+        <div className="overflow-hidden border-y-2 py-3" style={{ borderColor: INK, background: RED }} aria-hidden="true">
+          <div className="sn-marquee flex w-max gap-10 whitespace-nowrap">
+            {Array.from({ length: 2 }, (_, half) => (
+              <div key={half} className="flex gap-10">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <span key={i} className="flex items-center gap-10 text-xl uppercase" style={{ fontFamily: POSTER, color: PAPER }}>
+                    Sólbaðsstofan Sælan
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill={SUN} aria-hidden="true">
+                      <circle cx="12" cy="12" r="5" />
+                      <g stroke={SUN} strokeWidth="2" strokeLinecap="round">
+                        <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
+                      </g>
+                    </svg>
+                    Faxafen 10
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill={SUN} aria-hidden="true">
+                      <circle cx="12" cy="12" r="5" />
+                      <g stroke={SUN} strokeWidth="2" strokeLinecap="round">
+                        <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
+                      </g>
+                    </svg>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* ── Fact band — the honest reopening story in three beats ───────── */}
-      <section className="relative">
-        <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-y-8 px-5 py-16 sm:grid-cols-3 md:px-8 md:py-20">
+      {/* ── Fact lines — three stamped facts, no cards ──────────────────── */}
+      <section className="border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto grid max-w-[1280px] grid-cols-1 divide-y-2 px-5 sm:grid-cols-3 sm:divide-x-2 sm:divide-y-0 md:px-8" style={{ borderColor: INK }}>
           {FACTS.map((f, i) => (
-            <Reveal key={f.big} delay={i * 90} className="flex flex-col items-start gap-2 sm:items-center sm:text-center">
-              <span className="text-3xl md:text-4xl" style={{ fontFamily: DISPLAY, color: GOLD_SOFT }}>
+            <Reveal key={f.big} delay={i * 80} className="py-8 sm:px-6 sm:first:pl-0 sm:last:pr-0">
+              <p className="text-4xl uppercase md:text-5xl" style={{ fontFamily: POSTER, color: i === 1 ? RED : INK }}>
                 {f.big}
-              </span>
-              <span className="max-w-[22ch] text-sm leading-snug" style={{ color: BODY }}>
+              </p>
+              <p className="mt-1 text-base" style={{ fontFamily: SANS_MED }}>
                 {f.small}
-              </span>
+              </p>
             </Reveal>
           ))}
         </div>
       </section>
 
-      {/* ── Bekkirnir — the two machines, told like hardware ────────────── */}
-      <section id="bekkirnir" className="relative scroll-mt-24" style={{ background: PANEL }}>
-        <div className="mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
+      {/* ── Bekkirnir — two poster panels ───────────────────────────────── */}
+      <section id="bekkirnir" className="scroll-mt-20 border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
           <Reveal>
-            <h2 className="max-w-3xl text-4xl leading-[1.04] tracking-[-0.02em] md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
-              Bekkirnir okkar
+            <h2 className="text-5xl leading-[0.92] uppercase md:text-7xl" style={{ fontFamily: POSTER }}>
+              Bekkirnir
             </h2>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed">
-              Tveir af fremstu ljósabekkjum heims standa í Faxafeninu, báðir glænýir og báðir með kælingu.
-            </p>
           </Reveal>
-          <div className="mt-14 flex flex-col gap-20 md:gap-28">
+          <div className="mt-14 flex flex-col gap-20">
             {BEDS.map((bed, i) => (
-              <div key={bed.id} className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
+              <div key={bed.id} className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
                 <Reveal className={i % 2 ? 'md:order-2' : ''}>
-                  {/* double bezel photo frame */}
-                  <div className="sn-imgwrap rounded-[24px] border p-1.5" style={{ background: `${INK}0a`, borderColor: HAIR }}>
-                    <div className="overflow-hidden rounded-[18px]">
-                      <img src={bed.image} alt={bed.alt} loading="lazy" className="sn-img aspect-[4/3] w-full object-cover" />
-                    </div>
-                  </div>
+                  <Scrap src={bed.image} alt={bed.alt} rotate={i % 2 ? 2 : -2} />
                 </Reveal>
-                <Reveal delay={120} className={i % 2 ? 'md:order-1' : ''}>
-                  <p className="text-sm" style={{ color: GOLD_SOFT, fontFamily: SANS_BOLD }}>
+                <Reveal delay={100} className={i % 2 ? 'md:order-1' : ''}>
+                  <p className="text-sm tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: RED }}>
                     {bed.claim}
                   </p>
-                  <h3 className="mt-3 text-3xl leading-tight tracking-[-0.01em] md:text-4xl" style={{ fontFamily: DISPLAY, color: INK }}>
+                  <h3 className="mt-2 text-4xl leading-[0.95] uppercase md:text-5xl" style={{ fontFamily: POSTER }}>
                     {bed.name}
                   </h3>
-                  <p className="mt-4 max-w-lg leading-relaxed">{bed.body}</p>
-                  <ul className="mt-6 flex flex-wrap gap-2">
+                  <p className="mt-4 max-w-lg text-lg leading-relaxed">{bed.body}</p>
+                  <ul className="mt-6 flex flex-col border-t-2" style={{ borderColor: INK }}>
                     {bed.specs.map((s) => (
-                      <li key={s} className="rounded-full border px-3.5 py-1.5 text-sm" style={{ borderColor: HAIR, color: INK, fontFamily: SANS_MED }}>
+                      <li key={s} className="border-b py-2.5 text-base" style={{ borderColor: `${INK}33`, fontFamily: SANS_MED }}>
                         {s}
                       </li>
                     ))}
@@ -303,183 +424,164 @@ export default function SaelanPage() {
         </div>
       </section>
 
-      {/* ── Verðskrá — one designed price list instead of a photo of one ── */}
-      <section id="verdskra" className="relative scroll-mt-24">
-        <div className="mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
+      {/* ── Verðskrá — drag the sun, the menu follows ───────────────────── */}
+      <section id="verdskra" className="scroll-mt-20 border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
           <Reveal>
-            <h2 className="text-4xl leading-[1.04] tracking-[-0.02em] md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="text-5xl leading-[0.92] uppercase md:text-7xl" style={{ fontFamily: POSTER }}>
               Verðskrá
             </h2>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed">
-              Morgunverð gildir frá 10 til 14 og dagverð frá 14 til 23.
+            <p className="mt-4 max-w-lg text-lg leading-snug" style={{ fontFamily: SANS_MED }}>
+              Dragðu sólina yfir daginn. Morgunverð gildir frá 10 til 14, dagverð frá 14 til 23.
             </p>
           </Reveal>
 
-          <Reveal delay={100}>
-            <div className="mt-10 inline-flex flex-wrap gap-1 rounded-full border p-1" style={{ borderColor: HAIR, background: PANEL }} role="group" aria-label="Verðflokkar">
-              {(
-                [
-                  ['day', 'Dagverð'],
-                  ['morning', 'Morgunverð'],
-                  ['k11', 'K11 Air Loft'],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTab(id)}
-                  aria-pressed={tab === id}
-                  className="rounded-full px-5 py-3 text-sm transition-all duration-300 active:scale-[0.97]"
-                  style={
-                    tab === id
-                      ? { background: GOLD, color: GROUND, fontFamily: SANS_BOLD }
-                      : { color: INK, fontFamily: SANS_MED }
-                  }
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          <Reveal delay={80}>
+            <SunDial hour={hour} setHour={setHour} />
           </Reveal>
 
-          {tab !== 'k11' ? (
-            <div key={tab} className="sn-tick mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-              <div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {TIMES.map((row) => (
-                    <div key={row.label + row.minutes} className="sn-float flex items-baseline justify-between gap-4 rounded-[18px] border px-5 py-4" style={{ borderColor: HAIR, background: CARD }}>
-                      <div>
-                        <p className="text-base" style={{ color: INK, fontFamily: SANS_MED }}>
-                          {row.label}
-                        </p>
-                        <p className="text-sm" style={{ color: GOLD_SOFT }}>
-                          {row.minutes}
-                        </p>
-                      </div>
-                      <p className="text-xl whitespace-nowrap" style={{ fontFamily: DISPLAY, color: INK }}>
-                        {isk(tab === 'day' ? row.day : row.morning)}
-                      </p>
-                    </div>
-                  ))}
-                  <div className="flex items-baseline justify-between gap-4 rounded-[18px] border border-dashed px-5 py-4" style={{ borderColor: `${GOLD}47` }}>
-                    <p className="text-base" style={{ color: INK, fontFamily: SANS_MED }}>
-                      Öryrkjar
-                    </p>
-                    <p className="text-xl whitespace-nowrap" style={{ fontFamily: DISPLAY, color: GOLD_SOFT }}>
-                      10% afsláttur
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-lg" style={{ color: INK, fontFamily: SANS_BOLD }}>
-                  Tímakort
+          <div className="mt-4 grid gap-12 lg:grid-cols-[1.35fr_1fr] lg:gap-20">
+            <div>
+              <div className="flex items-baseline justify-between border-b-2 pb-3" style={{ borderColor: INK }}>
+                <p className="text-3xl uppercase md:text-4xl" style={{ fontFamily: POSTER, color: RED }} aria-live="polite">
+                  {morning ? 'Morgunverð' : 'Dagverð'}
                 </p>
-                <div className="mt-3 flex flex-col gap-2">
-                  {CARDS.map((c) => (
-                    <div key={c.label} className="flex items-baseline justify-between rounded-[18px] border px-5 py-4" style={{ borderColor: HAIR }}>
-                      <p style={{ color: INK, fontFamily: SANS_MED }}>{c.label}</p>
-                      <p className="text-xl" style={{ fontFamily: DISPLAY, color: GOLD_SOFT }}>
-                        {isk(tab === 'day' ? c.day : c.morning)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6">
-                  <GoldCta href={NOONA}>Bóka tíma</GoldCta>
-                </div>
+                <p className="text-sm" style={{ fontFamily: MONO }}>
+                  {morning ? 'kl. 10 til 14' : 'kl. 14 til 23'}
+                </p>
+              </div>
+              <div className="mt-2">
+                {TIMES.map((row) => (
+                  <MenuRow key={row.label + row.minutes} label={row.label} sub={row.minutes} price={isk(morning ? row.morning : row.day)} />
+                ))}
+                <MenuRow label="Öryrkjar" price="10% afsláttur" />
+              </div>
+              <div className="mt-8">
+                <Stamp href={NOONA} red>
+                  Bóka tíma
+                </Stamp>
               </div>
             </div>
-          ) : (
-            <div key="k11" className="sn-tick mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-              <div className="grid gap-2">
+
+            <div>
+              <div className="flex items-baseline justify-between border-b-2 pb-3" style={{ borderColor: INK }}>
+                <p className="text-3xl uppercase md:text-4xl" style={{ fontFamily: POSTER }}>
+                  K11 Air Loft
+                </p>
+                <p className="text-sm" style={{ fontFamily: MONO }}>
+                  FULL LED
+                </p>
+              </div>
+              <div className="mt-2">
                 {K11_PRICES.map((row) => (
-                  <div key={row.label} className="sn-float flex items-baseline justify-between gap-4 rounded-[18px] border px-5 py-4" style={{ borderColor: HAIR, background: CARD }}>
-                    <div>
-                      <p className="text-base" style={{ color: INK, fontFamily: SANS_MED }}>
-                        {row.label}
-                      </p>
-                      <p className="text-sm" style={{ color: GOLD_SOFT }}>
-                        {row.minutes} · FULL LED
-                      </p>
-                    </div>
-                    <p className="text-xl whitespace-nowrap" style={{ fontFamily: DISPLAY, color: INK }}>
-                      {isk(row.price)}
-                    </p>
-                  </div>
+                  <MenuRow key={row.label} label={row.label} sub={row.minutes} price={isk(row.price)} />
                 ))}
               </div>
-              <div>
-                <p className="max-w-sm leading-relaxed">
-                  Flottasti ljósabekkur í heimi, með Capri, Hawaii og Hamptons stillingunum. Verðin hér gilda um FULL LED tímana í K11.
-                </p>
-                <div className="mt-6">
-                  <GoldCta href={NOONA}>Bóka tíma</GoldCta>
-                </div>
-              </div>
+              <p className="mt-6 max-w-sm text-base leading-relaxed">
+                Flottasti ljósabekkur í heimi, með Capri, Hawaii og Hamptons stillingunum. Sama verð allan daginn.
+              </p>
             </div>
-          )}
+          </div>
         </div>
       </section>
 
-      {/* ── Áskrift — two plans, terms stated up front ───────────────────── */}
-      <section id="askrift" className="relative scroll-mt-24" style={{ background: PANEL }}>
-        <div className="mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
-          <div className="grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
+      {/* ── Tímakort — punch cards on the counter ───────────────────────── */}
+      <section className="border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
+          <Reveal>
+            <h2 className="text-5xl leading-[0.92] uppercase md:text-7xl" style={{ fontFamily: POSTER }}>
+              Tímakort
+            </h2>
+            <p className="mt-4 max-w-md text-lg leading-snug" style={{ fontFamily: SANS_MED }}>
+              Klippikort eins og þau eiga að vera. Morgunkortin eru ódýrari.
+            </p>
+          </Reveal>
+          <div className="mt-12 grid gap-8 md:grid-cols-3 md:gap-6">
+            {CARDS.map((c, i) => {
+              const punches = [5, 10, 15][i]
+              return (
+                <Reveal key={c.label} delay={i * 90}>
+                  <div
+                    className="sn-card p-6"
+                    style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `6px 6px 0 ${INK}`, transform: `rotate(${[-1.5, 1, -0.5][i]}deg)` }}
+                  >
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-3xl uppercase" style={{ fontFamily: POSTER }}>
+                        {c.label}
+                      </p>
+                      <span className="text-xs tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: RED }}>
+                        Sælan
+                      </span>
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-2" aria-hidden="true">
+                      {Array.from({ length: punches }, (_, p) => (
+                        <span
+                          key={p}
+                          className="sn-punch inline-block h-5 w-5 rounded-full"
+                          style={{ border: `2px solid ${INK}`, transitionDelay: `${p * 45}ms` }}
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-6 flex items-baseline justify-between border-t-2 pt-4" style={{ borderColor: INK }}>
+                      <span className="text-sm" style={{ fontFamily: MONO }}>
+                        dagur {isk(c.day)}
+                      </span>
+                      <span className="text-sm" style={{ fontFamily: MONO, color: RED }}>
+                        morgunn {isk(c.morning)}
+                      </span>
+                    </div>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Áskrift — the membership, fine print up front ───────────────── */}
+      <section id="askrift" className="scroll-mt-20 border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
             <Reveal>
-              <h2 className="text-4xl leading-[1.04] tracking-[-0.02em] md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+              <h2 className="text-5xl leading-[0.92] uppercase md:text-7xl" style={{ fontFamily: POSTER }}>
                 Áskrift í ljós
               </h2>
-              <p className="mt-4 max-w-md text-lg leading-relaxed">
+              <p className="mt-4 max-w-md text-lg leading-snug" style={{ fontFamily: SANS_MED }}>
                 Eitt fast verð á mánuði og þú getur komið einu sinni á dag, allt árið um kring.
               </p>
-              <ul className="mt-8 flex flex-col gap-3">
+              <ul className="mt-8 flex max-w-md flex-col border-t-2" style={{ borderColor: INK }}>
                 {PLAN_TERMS.map((t) => (
-                  <li key={t} className="flex items-start gap-3 text-base leading-snug">
-                    <span aria-hidden="true" className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full" style={{ background: `${GOLD}26`, color: GOLD_SOFT }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                    <span style={{ color: INK }}>{t}</span>
+                  <li key={t} className="border-b py-3 text-base leading-snug" style={{ borderColor: `${INK}33` }}>
+                    {t}
                   </li>
                 ))}
               </ul>
-              <p className="mt-6 text-sm leading-relaxed" style={{ color: BODY }}>
+              <p className="mt-4 max-w-md text-sm leading-relaxed">
                 Áskriftinni er stjórnað í{' '}
-                <a href={REPEAT_PORTAL} target="_blank" rel="noreferrer" className="underline underline-offset-2 transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: INK }}>
+                <a href={REPEAT_PORTAL} target="_blank" rel="noreferrer" className="underline underline-offset-2" style={{ color: INK, fontFamily: SANS_BOLD }}>
                   vefgátt Repeat
                 </a>
                 , þar segirðu líka upp.
               </p>
             </Reveal>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-8">
               {PLANS.map((p, i) => (
-                <Reveal key={p.id} delay={i * 110}>
-                  {/* double bezel plan card */}
-                  <div className="rounded-[24px] border p-1.5" style={{ background: `${INK}0a`, borderColor: HAIR }}>
-                    <div className="flex h-full flex-col rounded-[18px] px-6 py-7" style={{ background: CARD }}>
-                      <p className="text-sm" style={{ color: GOLD_SOFT, fontFamily: SANS_BOLD }}>
-                        {p.binding}
-                      </p>
-                      <p className="mt-4 text-4xl" style={{ fontFamily: DISPLAY, color: INK }}>
+                <Reveal key={p.id} delay={i * 100}>
+                  <div className="p-7" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `6px 6px 0 ${INK}`, transform: `rotate(${i ? 0.8 : -0.8}deg)` }}>
+                    <div className="flex flex-wrap items-baseline justify-between gap-3">
+                      <p className="text-4xl uppercase md:text-5xl" style={{ fontFamily: POSTER, color: RED }}>
                         {isk(p.price)}
                       </p>
-                      <p className="text-sm" style={{ color: BODY }}>
+                      <p className="text-sm" style={{ fontFamily: MONO }}>
                         á mánuði
                       </p>
-                      <p className="mt-4 flex-1 text-base leading-relaxed" style={{ color: BODY }}>
-                        {p.pitch}
-                      </p>
-                      <a
-                        href={p.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-6 inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm transition-colors duration-300 hover:bg-white/5 active:scale-[0.98]"
-                        style={{ borderColor: `${GOLD}59`, color: GOLD_SOFT, fontFamily: SANS_BOLD }}
-                      >
-                        Koma í áskrift
-                      </a>
+                    </div>
+                    <p className="mt-2 text-base" style={{ fontFamily: SANS_BOLD }}>
+                      {p.binding}
+                    </p>
+                    <p className="mt-2 max-w-md text-base leading-relaxed">{p.pitch}</p>
+                    <div className="mt-6">
+                      <Stamp href={p.href}>Koma í áskrift</Stamp>
                     </div>
                   </div>
                 </Reveal>
@@ -489,139 +591,122 @@ export default function SaelanPage() {
         </div>
       </section>
 
-      {/* ── Spraytan.is — the sub-brand chapter, bronze light ───────────── */}
-      <section id="spraytan" className="relative scroll-mt-24 overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0" style={{ background: `radial-gradient(120% 90% at 85% 0%, ${BRONZE}40, transparent 55%)` }} />
-        <div className="relative mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
+      {/* ── Spraytan.is — the one dark plate, the sub-brand ─────────────── */}
+      <section id="spraytan" className="scroll-mt-20 border-b-2" style={{ borderColor: INK, background: PLATE, color: PLATE_INK }}>
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
           <Reveal>
-            <p className="text-xs tracking-[0.18em] uppercase" style={{ color: GOLD_SOFT, fontFamily: SANS_BOLD }}>
+            <p className="text-sm tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: SUN }}>
               Spraytan.is
             </p>
-            <h2 className="mt-3 max-w-3xl text-4xl leading-[1.04] tracking-[-0.02em] md:text-6xl" style={{ fontFamily: DISPLAY, color: INK }}>
+            <h2 className="mt-3 max-w-4xl text-5xl leading-[0.92] uppercase md:text-7xl" style={{ fontFamily: POSTER, color: PLATE_INK }}>
               {SPRAY.claim}
             </h2>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed">{SPRAY.intro}</p>
-          </Reveal>
-
-          <Reveal delay={110}>
-            <div className="sn-snap mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible">
-              {SPRAY.solutions.map((s) => (
-                <div key={s.name} className="sn-float w-[260px] shrink-0 snap-start rounded-[18px] border px-6 py-7 sm:w-[290px] lg:w-auto" style={{ borderColor: HAIR, background: CARD }}>
-                  <span aria-hidden="true" className="block h-12 w-12 rounded-full" style={{ background: `radial-gradient(circle at 38% 32%, ${s.tone}, #1c1006)`, boxShadow: `0 8px 24px -8px ${s.tone}99` }} />
-                  <p className="mt-5 text-2xl" style={{ fontFamily: DISPLAY, color: INK }}>
-                    {s.name}
-                  </p>
-                  <p className="mt-2 text-base leading-relaxed" style={{ color: BODY }}>
-                    {s.line}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-sm" style={{ color: BODY }}>
-              {SPRAY.levels}.
+            <p className="mt-5 max-w-xl text-lg leading-relaxed" style={{ color: `${PLATE_INK}d9` }}>
+              {SPRAY.intro}
             </p>
           </Reveal>
 
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {SPRAY.prices.map((p, i) => (
-              <Reveal key={p.label} delay={i * 90}>
-                <div className="flex h-full flex-col justify-between rounded-[18px] border px-6 py-6" style={{ borderColor: HAIR }}>
-                  <p className="text-base leading-snug" style={{ color: INK, fontFamily: SANS_MED }}>
-                    {p.label}
-                  </p>
-                  <p className="mt-3 text-2xl" style={{ fontFamily: DISPLAY, color: GOLD_SOFT }}>
-                    {isk(p.price)}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-            <Reveal delay={180}>
-              <div className="flex h-full flex-col justify-between rounded-[18px] border px-6 py-6" style={{ borderColor: `${GOLD}59`, background: `${GOLD}0d` }}>
-                <div className="flex flex-col gap-2">
-                  {SPRAY.cards.map((c) => (
-                    <p key={c.label} className="flex items-baseline justify-between gap-3 text-base" style={{ color: INK, fontFamily: SANS_MED }}>
-                      <span>
-                        {c.label} <span style={{ color: GOLD_SOFT }}>({c.discount})</span>
-                      </span>
-                      <span style={{ fontFamily: DISPLAY }}>{isk(c.price)}</span>
-                    </p>
-                  ))}
-                </div>
-                <p className="mt-3 text-sm" style={{ color: BODY }}>
+          <div className="mt-14 grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+            <Reveal delay={80}>
+              <ul className="flex flex-col border-t-2" style={{ borderColor: `${PLATE_INK}66` }}>
+                {SPRAY.solutions.map((s) => (
+                  <li key={s.name} className="flex items-center gap-5 border-b py-4" style={{ borderColor: `${PLATE_INK}2e` }}>
+                    <span aria-hidden="true" className="h-10 w-10 shrink-0 rounded-full" style={{ background: s.tone, border: `2px solid ${PLATE_INK}` }} />
+                    <div>
+                      <p className="text-2xl uppercase" style={{ fontFamily: POSTER, color: PLATE_INK }}>
+                        {s.name}
+                      </p>
+                      <p className="text-base leading-snug" style={{ color: `${PLATE_INK}c4` }}>
+                        {s.line}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-sm" style={{ fontFamily: MONO, color: `${PLATE_INK}a8` }}>
+                {SPRAY.levels}.
+              </p>
+            </Reveal>
+
+            <Reveal delay={140}>
+              <div>
+                {SPRAY.prices.map((p) => (
+                  <div key={p.label} className="flex items-baseline gap-3 py-3">
+                    <span className="shrink-0 text-lg" style={{ fontFamily: SANS_MED, color: PLATE_INK }}>
+                      {p.label}
+                    </span>
+                    <span aria-hidden="true" className="min-w-6 flex-1 border-b-2 border-dotted" style={{ borderColor: `${PLATE_INK}55`, transform: 'translateY(-4px)' }} />
+                    <span className="shrink-0 text-lg whitespace-nowrap" style={{ fontFamily: MONO, color: SUN }}>
+                      {isk(p.price)}
+                    </span>
+                  </div>
+                ))}
+                {SPRAY.cards.map((c) => (
+                  <div key={c.label} className="flex items-baseline gap-3 py-3">
+                    <span className="shrink-0 text-lg" style={{ fontFamily: SANS_MED, color: PLATE_INK }}>
+                      {c.label} <span style={{ fontFamily: MONO, fontSize: '0.8em', color: `${PLATE_INK}a8` }}>({c.discount})</span>
+                    </span>
+                    <span aria-hidden="true" className="min-w-6 flex-1 border-b-2 border-dotted" style={{ borderColor: `${PLATE_INK}55`, transform: 'translateY(-4px)' }} />
+                    <span className="shrink-0 text-lg whitespace-nowrap" style={{ fontFamily: MONO, color: SUN }}>
+                      {isk(c.price)}
+                    </span>
+                  </div>
+                ))}
+                <p className="mt-3 text-sm" style={{ color: `${PLATE_INK}a8` }}>
                   {SPRAY.cardsNote}.
                 </p>
+                <div className="mt-8">
+                  <Stamp href={NOONA} onPlate>
+                    Bóka tíma
+                  </Stamp>
+                </div>
               </div>
             </Reveal>
           </div>
-
-          <Reveal delay={120}>
-            <div className="mt-10">
-              <GoldCta href={NOONA} big>
-                Bóka tíma
-              </GoldCta>
-            </div>
-          </Reveal>
         </div>
       </section>
 
-      {/* ── Vörur + húðin — retail brands and honest guidance in one band ── */}
-      <section className="relative" style={{ background: PANEL }}>
-        <div className="mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
-          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
+      {/* ── Vörur + húðin — counter goods and the honest chart ──────────── */}
+      <section className="border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
+          <div className="grid items-center gap-12 md:grid-cols-[1fr_1.1fr] md:gap-16">
             <Reveal>
-              <h2 className="text-3xl leading-[1.06] tracking-[-0.01em] md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
+              <h2 className="text-4xl leading-[0.95] uppercase md:text-6xl" style={{ fontFamily: POSTER }}>
                 {PRODUCTS.headline}
               </h2>
               <p className="mt-4 max-w-lg text-lg leading-relaxed">{PRODUCTS.body}</p>
             </Reveal>
-            <Reveal delay={120}>
-              <div className="grid grid-cols-2 gap-3">
-                {[IMG.products7suns, IMG.products7suns2].map((src, i) => (
-                  <div
-                    key={src}
-                    className={`sn-imgwrap overflow-hidden rounded-[18px] border ${i ? 'mt-8 md:rotate-2' : 'md:-rotate-2'}`}
-                    style={{ borderColor: HAIR }}
-                  >
-                    <img
-                      src={src}
-                      alt={i ? 'Ljós 7Suns brúnkukrem í Sælunni' : 'Dökk 7Suns brúnkukrem í Sælunni'}
-                      loading="lazy"
-                      className="sn-img aspect-[4/5] w-full object-cover"
-                    />
-                  </div>
-                ))}
+            <Reveal delay={100}>
+              <div className="grid grid-cols-2 gap-6">
+                <Scrap src={IMG.products7suns} alt="Dökk 7Suns brúnkukrem í Sælunni" rotate={-2.5} />
+                <Scrap src={IMG.products7suns2} alt="Ljós 7Suns brúnkukrem í Sælunni" rotate={2} className="mt-10" />
               </div>
             </Reveal>
           </div>
 
-          <div className="mt-24 md:mt-32">
+          <div className="mt-24">
             <Reveal>
-              <h2 className="text-3xl leading-[1.06] tracking-[-0.01em] md:text-5xl" style={{ fontFamily: DISPLAY, color: INK }}>
+              <h2 className="text-4xl leading-[0.95] uppercase md:text-6xl" style={{ fontFamily: POSTER }}>
                 Húðin þín ræður tímanum
               </h2>
-              <p className="mt-4 max-w-xl text-lg leading-relaxed">
+              <p className="mt-4 max-w-lg text-lg leading-snug" style={{ fontFamily: SANS_MED }}>
                 Ráðlagður tími er viðmið, byrjaðu á styttri tíma og finndu þinn takt.
               </p>
             </Reveal>
-            <div className="mt-10 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {SKIN_TYPES.map((s, i) => (
-                <Reveal key={s.skin} delay={i * 80}>
-                  <div className="flex h-full flex-col rounded-[18px] border px-5 py-5" style={{ borderColor: HAIR, background: CARD }}>
-                    <p className="text-2xl" style={{ fontFamily: DISPLAY, color: GOLD_SOFT }}>
+            <Reveal delay={80}>
+              <div className="mt-10 border-t-2" style={{ borderColor: INK }}>
+                {SKIN_TYPES.map((s) => (
+                  <div key={s.skin} className="grid items-baseline gap-1 border-b py-4 sm:grid-cols-[1fr_auto]" style={{ borderColor: `${INK}33` }}>
+                    <p className="text-lg" style={{ fontFamily: SANS_MED }}>
+                      {s.skin} <span className="text-base" style={{ fontFamily: SANS }}>({s.hair.toLowerCase()})</span>
+                    </p>
+                    <p className="text-xl uppercase sm:text-right" style={{ fontFamily: POSTER, color: RED }}>
                       {s.minutes}
                     </p>
-                    <p className="mt-2 text-base leading-snug" style={{ color: INK, fontFamily: SANS_MED }}>
-                      {s.skin}
-                    </p>
-                    <p className="mt-1 text-sm" style={{ color: BODY }}>
-                      {s.hair}
-                    </p>
                   </div>
-                </Reveal>
-              ))}
-            </div>
-            <Reveal delay={120}>
-              <p className="mt-6 max-w-2xl text-sm leading-relaxed" style={{ color: BODY }}>
+                ))}
+              </div>
+              <p className="mt-5 max-w-2xl text-sm leading-relaxed">
                 {SAFETY.join('. ')}. Útfjólublá geislun getur skaðað augu og húð og ákveðin lyf og snyrtivörur geta aukið ljósnæmi.
               </p>
             </Reveal>
@@ -629,59 +714,62 @@ export default function SaelanPage() {
         </div>
       </section>
 
-      {/* ── Sagan + staðurinn — storefront, address, final CTA ──────────── */}
-      <section id="stadurinn" className="relative overflow-hidden">
-        <div className="mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
-          <div className="grid items-center gap-10 md:grid-cols-[1fr_1.1fr] md:gap-16">
+      {/* ── Sagan + staðurinn — the sign is back in the window ──────────── */}
+      <section id="stadurinn" className="relative">
+        <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
+          <div className="grid items-center gap-12 md:grid-cols-[1fr_1.15fr] md:gap-16">
             <Reveal>
-              <div className="sn-imgwrap rounded-[24px] border p-1.5" style={{ background: `${INK}0a`, borderColor: HAIR }}>
-                <div className="overflow-hidden rounded-[18px]">
-                  <img src={IMG.storefront} alt="Skilti Sælunnar í glugganum í Faxafeni 10" loading="lazy" className="sn-img aspect-[4/5] w-full object-cover" />
-                </div>
-              </div>
+              <Scrap src={IMG.storefront} alt="Skilti Sælunnar í glugganum í Faxafeni 10" rotate={-1.5} />
             </Reveal>
-            <Reveal delay={120}>
-              <img src={IMG.logo} alt="Upprunalega Sælan merkið, gul sól og pýramídi" loading="lazy" className="h-24 w-auto md:h-28" />
-              <h2 className="mt-6 text-3xl leading-[1.06] md:text-5xl text-balance" style={{ fontFamily: DISPLAY, color: INK }}>
+            <Reveal delay={100}>
+              <h2 className="max-w-xl text-4xl leading-[0.95] uppercase md:text-6xl" style={{ fontFamily: POSTER }}>
                 {STORY.headline}
               </h2>
               <p className="mt-5 max-w-xl text-lg leading-relaxed">{STORY.body}</p>
-              <div className="mt-8 flex flex-col gap-1.5 text-lg" style={{ color: INK, fontFamily: SANS_MED }}>
-                <a href={MAPS} target="_blank" rel="noreferrer" className="w-fit underline-offset-4 transition-colors duration-300 hover:text-[#FFD97A] hover:underline">
-                  {ADDRESS.street}, {ADDRESS.town}
+              <div className="mt-8 max-w-md border-t-2" style={{ borderColor: INK }}>
+                <a href={MAPS} target="_blank" rel="noreferrer" className="flex items-baseline justify-between border-b py-3 underline-offset-4 hover:underline" style={{ borderColor: `${INK}33`, color: INK, fontFamily: SANS_MED }}>
+                  <span>{ADDRESS.street}</span>
+                  <span style={{ fontFamily: MONO, fontSize: '0.9rem' }}>{ADDRESS.town}</span>
                 </a>
-                <p style={{ color: BODY, fontFamily: SANS }}>{ADDRESS.hours}</p>
-                <a href={PHONE_HREF} className="w-fit transition-colors duration-300 hover:text-[#FFD97A]">
-                  s. {PHONE_DISPLAY}
+                <div className="flex items-baseline justify-between border-b py-3" style={{ borderColor: `${INK}33`, fontFamily: SANS_MED }}>
+                  <span>Opið</span>
+                  <span style={{ fontFamily: MONO, fontSize: '0.9rem' }}>til 23:00</span>
+                </div>
+                <a href={PHONE_HREF} className="flex items-baseline justify-between border-b py-3 underline-offset-4 hover:underline" style={{ borderColor: `${INK}33`, color: INK, fontFamily: SANS_MED }}>
+                  <span>Sími</span>
+                  <span style={{ fontFamily: MONO, fontSize: '0.9rem' }}>{PHONE_DISPLAY}</span>
                 </a>
-                <a href={`mailto:${EMAIL}`} className="w-fit transition-colors duration-300 hover:text-[#FFD97A]">
-                  {EMAIL}
+                <a href={`mailto:${EMAIL}`} className="flex items-baseline justify-between border-b py-3 underline-offset-4 hover:underline" style={{ borderColor: `${INK}33`, color: INK, fontFamily: SANS_MED }}>
+                  <span>Netfang</span>
+                  <span style={{ fontFamily: MONO, fontSize: '0.9rem' }}>{EMAIL}</span>
                 </a>
               </div>
               <div className="mt-9">
-                <GoldCta href={NOONA} big>
+                <Stamp href={NOONA} red>
                   Bóka tíma
-                </GoldCta>
+                </Stamp>
               </div>
             </Reveal>
           </div>
         </div>
 
-        {/* site footer strip */}
-        <div className="border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-4 px-5 py-8 text-sm sm:flex-row sm:items-center md:px-8">
-            <p style={{ fontFamily: DISPLAY, color: INK }}>Sælan</p>
-            <div className="flex flex-wrap gap-5" style={{ fontFamily: SANS_MED }}>
-              <a href={REPEAT_PORTAL} target="_blank" rel="noreferrer" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: BODY }}>
+        {/* colophon */}
+        <div className="border-t-2" style={{ borderColor: INK }}>
+          <div className="mx-auto flex max-w-[1280px] flex-col items-start justify-between gap-4 px-5 py-7 text-sm sm:flex-row sm:items-center md:px-8">
+            <p className="text-2xl" style={{ fontFamily: WORDMARK, color: RED }}>
+              Sælan
+            </p>
+            <div className="flex flex-wrap gap-6" style={{ fontFamily: MONO }}>
+              <a href={REPEAT_PORTAL} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline" style={{ color: INK }}>
                 Mín áskrift
               </a>
-              <a href={SOCIAL.facebook} target="_blank" rel="noreferrer" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: BODY }}>
+              <a href={SOCIAL.facebook} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline" style={{ color: INK }}>
                 Facebook
               </a>
-              <a href={SOCIAL.instagram} target="_blank" rel="noreferrer" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: BODY }}>
+              <a href={SOCIAL.instagram} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline" style={{ color: INK }}>
                 Instagram
               </a>
-              <a href={SOCIAL.instagramSpray} target="_blank" rel="noreferrer" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: BODY }}>
+              <a href={SOCIAL.instagramSpray} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline" style={{ color: INK }}>
                 Spraytan.is
               </a>
             </div>
@@ -692,12 +780,18 @@ export default function SaelanPage() {
       <PreviewFooter company={company} />
 
       {/* ── Mobile sticky CTA ───────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 md:hidden" style={{ background: `${GROUND}f0`, borderColor: HAIR, backdropFilter: 'blur(10px)' }}>
-        <a href={NOONA} target="_blank" rel="noreferrer" className="flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm" style={{ background: GOLD, color: GROUND, fontFamily: SANS_BOLD }}>
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t-2 p-3 md:hidden" style={{ background: SUN, borderColor: INK }}>
+        <a
+          href={NOONA}
+          target="_blank"
+          rel="noreferrer"
+          className="flex flex-1 items-center justify-center px-5 py-3.5 text-sm tracking-[0.06em] uppercase"
+          style={{ background: RED, color: PAPER, border: `2px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, fontFamily: SANS_BOLD }}
+        >
           Bóka tíma
         </a>
-        <a href={PHONE_HREF} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border" style={{ borderColor: HAIR, color: INK }} aria-label="Hringja í Sæluna">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <a href={PHONE_HREF} className="grid h-12 w-12 shrink-0 place-items-center" style={{ border: `2px solid ${INK}`, color: INK, background: SUN }} aria-label="Hringja í Sæluna">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
         </a>
