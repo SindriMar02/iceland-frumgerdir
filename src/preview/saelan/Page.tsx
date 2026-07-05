@@ -33,10 +33,11 @@ const company = getPreviewCompany('saelan')
 /* ── Sólplakat — a silkscreened solarium poster. The page IS the logo's
       sun yellow; red and warm ink are the two print colors. One black
       plate (Spraytan.is, the sub-brand) breaks the run on purpose. ── */
-const SUN = '#F3C11B' // the drenched ground: logo sun yellow
+const PAGE = '#F3EBD6' // warm cream paper, the page ground
+const SUN = '#F3C11B' // logo sun yellow, accents only (stamps, the hop sun)
 const INK = '#211B0E' // warm print black, text and rules
 const RED = '#C9301C' // logo signal red, display type 24px+ only
-const PAPER = '#F8F1DF' // cream paper scraps: tickets, cards, photos
+const PAPER = '#FBF6EA' // lighter paper: tickets, cards, photo mounts
 const PLATE = '#1B160C' // the single dark plate (Spraytan chapter)
 const PLATE_INK = '#F2E8D2' // ink on the dark plate
 
@@ -153,7 +154,7 @@ function SunToggle({ morning, setMorning }: { morning: boolean; setMorning: (m: 
               aria-pressed={active}
               className="sn-toggle flex-col px-7 py-3.5 text-left"
               style={{
-                background: active ? RED : SUN,
+                background: active ? RED : PAPER,
                 color: active ? PAPER : INK,
                 border: `2px solid ${INK}`,
                 marginLeft: isMorning ? 0 : -2,
@@ -205,15 +206,12 @@ function RibbonSun() {
 }
 
 /* ── Photo scrap — taped-in print, slightly off-square ─────────────────── */
-function Scrap({ src, alt, rotate = -2, className = '' }: { src: string; alt: string; rotate?: number; className?: string }) {
+function Scrap({ src, alt, className = '' }: { src: string; alt: string; className?: string }) {
   return (
-    <figure className={`relative ${className}`} style={{ transform: `rotate(${rotate}deg)` }}>
-      <div className="p-2 pb-3" style={{ background: PAPER, boxShadow: `6px 6px 0 ${INK}` }}>
+    <figure className={`relative ${className}`}>
+      <div className="border-2 p-2 pb-3" style={{ background: PAPER, borderColor: INK, boxShadow: `6px 6px 0 ${INK}` }}>
         <img src={src} alt={alt} loading="lazy" className="block w-full object-cover" />
       </div>
-      {/* tape strips */}
-      <span aria-hidden="true" className="absolute -top-3 left-6 h-6 w-16 -rotate-6" style={{ background: `${PAPER}b8`, border: `1px solid ${INK}22` }} />
-      <span aria-hidden="true" className="absolute -top-3 right-6 h-6 w-16 rotate-3" style={{ background: `${PAPER}b8`, border: `1px solid ${INK}22` }} />
     </figure>
   )
 }
@@ -222,7 +220,7 @@ export default function SaelanPage() {
   const [morning, setMorning] = useState(true)
 
   useEffect(() => {
-    setThemeColor(SUN)
+    setThemeColor(PAGE)
   }, [])
 
   const jsonLd = useMemo(
@@ -247,7 +245,7 @@ export default function SaelanPage() {
   )
 
   return (
-    <div className="sn-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: SUN, color: INK, fontFamily: SANS }}>
+    <div className="sn-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: PAGE, color: INK, fontFamily: SANS }}>
       <link rel="stylesheet" href={`${BASE}fonts/tanker/css/tanker.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <script type="application/ld+json">{jsonLd}</script>
@@ -326,7 +324,7 @@ export default function SaelanPage() {
             {/* the value ticket: subscription math as a promo poster card */}
             <a
               href="#askrift"
-              className="sn-ticket relative block rotate-2 focus-visible:outline-offset-8 lg:mb-2"
+              className="sn-ticket relative block focus-visible:outline-offset-8 lg:mb-2"
               aria-label="Áskrift í ljós, 7.990 krónur á mánuði, borgar sig frá fjórðu heimsókn"
             >
               {/* starburst seal */}
@@ -418,7 +416,7 @@ export default function SaelanPage() {
             {BEDS.map((bed, i) => (
               <div key={bed.id} className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
                 <Reveal className={i % 2 ? 'md:order-2' : ''}>
-                  <Scrap src={bed.image} alt={bed.alt} rotate={i % 2 ? 2 : -2} />
+                  <Scrap src={bed.image} alt={bed.alt} />
                 </Reveal>
                 <Reveal delay={100} className={i % 2 ? 'md:order-1' : ''}>
                   <p className="text-sm tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: RED }}>
@@ -523,7 +521,7 @@ export default function SaelanPage() {
                 <Reveal key={c.label} delay={i * 90}>
                   <div
                     className="sn-card p-6"
-                    style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `6px 6px 0 ${INK}`, transform: `rotate(${[-1.5, 1, -0.5][i]}deg)` }}
+                    style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `6px 6px 0 ${INK}` }}
                   >
                     <div className="flex items-baseline justify-between">
                       <p className="text-3xl uppercase" style={{ fontFamily: POSTER }}>
@@ -587,7 +585,7 @@ export default function SaelanPage() {
             <div className="flex flex-col gap-8">
               {PLANS.map((p, i) => (
                 <Reveal key={p.id} delay={i * 100}>
-                  <div className="p-7" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `6px 6px 0 ${INK}`, transform: `rotate(${i ? 0.8 : -0.8}deg)` }}>
+                  <div className="p-7" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `6px 6px 0 ${INK}` }}>
                     <div className="flex flex-wrap items-baseline justify-between gap-3">
                       <p className="text-4xl uppercase md:text-5xl" style={{ fontFamily: POSTER, color: RED }}>
                         {isk(p.price)}
@@ -698,8 +696,8 @@ export default function SaelanPage() {
             </Reveal>
             <Reveal delay={100}>
               <div className="grid grid-cols-2 gap-6">
-                <Scrap src={IMG.products7suns} alt="Dökk 7Suns brúnkukrem í Sælunni" rotate={-2.5} />
-                <Scrap src={IMG.products7suns2} alt="Ljós 7Suns brúnkukrem í Sælunni" rotate={2} className="mt-10" />
+                <Scrap src={IMG.products7suns} alt="Dökk 7Suns brúnkukrem í Sælunni" />
+                <Scrap src={IMG.products7suns2} alt="Ljós 7Suns brúnkukrem í Sælunni" className="mt-10" />
               </div>
             </Reveal>
           </div>
@@ -739,7 +737,7 @@ export default function SaelanPage() {
         <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
           <div className="grid items-center gap-12 md:grid-cols-[1fr_1.15fr] md:gap-16">
             <Reveal>
-              <Scrap src={IMG.storefront} alt="Skilti Sælunnar í glugganum í Faxafeni 10" rotate={-1.5} />
+              <Scrap src={IMG.storefront} alt="Skilti Sælunnar í glugganum í Faxafeni 10" />
             </Reveal>
             <Reveal delay={100}>
               <h2 className="max-w-xl text-4xl leading-[0.95] uppercase md:text-6xl" style={{ fontFamily: POSTER }}>
@@ -800,7 +798,7 @@ export default function SaelanPage() {
       <PreviewFooter company={company} />
 
       {/* ── Mobile sticky CTA ───────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t-2 p-3 md:hidden" style={{ background: SUN, borderColor: INK }}>
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t-2 p-3 md:hidden" style={{ background: PAGE, borderColor: INK }}>
         <a
           href={NOONA}
           target="_blank"
@@ -810,7 +808,7 @@ export default function SaelanPage() {
         >
           Bóka tíma
         </a>
-        <a href={PHONE_HREF} className="grid h-12 w-12 shrink-0 place-items-center" style={{ border: `2px solid ${INK}`, color: INK, background: SUN }} aria-label="Hringja í Sæluna">
+        <a href={PHONE_HREF} className="grid h-12 w-12 shrink-0 place-items-center" style={{ border: `2px solid ${INK}`, color: INK, background: PAPER }} aria-label="Hringja í Sæluna">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
