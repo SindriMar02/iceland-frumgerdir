@@ -167,16 +167,13 @@ export default function SaelanPage() {
                   }
       `}</style>
 
-      {/* ── Floating pill nav ─────────────────────────────────────────── */}
-      <header className="fixed inset-x-0 top-4 z-40 px-4">
-        <div
-          className="mx-auto flex w-full max-w-3xl items-center justify-between rounded-full border py-2 pr-2 pl-5"
-          style={{ background: `${GROUND}e0`, borderColor: HAIR, backdropFilter: 'blur(14px)', boxShadow: '0 18px 44px -24px rgba(0,0,0,0.8)' }}
-        >
+      {/* ── Seamless header — no bar, links sit directly on the hero ───── */}
+      <header className="absolute inset-x-0 top-0 z-40">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-5 py-6 md:px-8 md:py-7">
           <a href="#top" className="text-2xl leading-none" style={{ fontFamily: DISPLAY, color: RED }} aria-label="Sælan">
             Sælan
           </a>
-          <nav className="hidden items-center gap-5 text-sm md:flex" style={{ fontFamily: SANS_MED }} aria-label="Valmynd">
+          <nav className="hidden items-center gap-8 text-base md:flex" style={{ fontFamily: SANS_MED }} aria-label="Valmynd">
             <a href="#bekkirnir" className="transition-colors duration-300 hover:text-[#FFD97A]" style={{ color: INK }}>
               Bekkirnir
             </a>
