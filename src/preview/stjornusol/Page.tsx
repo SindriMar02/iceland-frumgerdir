@@ -403,8 +403,8 @@ export default function StjornusolPage() {
             <p className="sv-rise m-0 text-[12px] font-medium tracking-[.3em]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.15s' }}>
               SÓLBAÐSSTOFA Í HAFNARFIRÐI · SÍÐAN {FOUNDED}
             </p>
-            <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(52px, 9.5vw, 128px)', lineHeight: 0.98, letterSpacing: '.005em', color: TXT, maxWidth: '11ch', animationDelay: '.3s' }}>
-              Vélin er vöknuð.
+            <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(52px, 9.5vw, 128px)', lineHeight: 0.98, letterSpacing: '.005em', color: TXT, maxWidth: '13ch', animationDelay: '.3s' }}>
+              Næsta kynslóð sólbaða.
             </h1>
             <p className="sv-rise mt-6 mb-0 max-w-[46ch] text-[17px] leading-[1.6] md:text-[19px]" style={{ color: BODY_T, animationDelay: '.5s' }}>
               K11 Air Loft er kominn í Fjarðargötu 17. ALL LED bekkur með SunFinity ljósatækni, Loft Infinity speglum og kælingu fyrir líkama og andlit.
