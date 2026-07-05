@@ -1917,6 +1917,60 @@ Ef ykkur líst vel á hana getum við fundið sanngjarnt verð. Ef ekki, þá er
 ${SIGN}`,
     },
   },
+  {
+    slug: 'stjornusol',
+    route: '/preview/stjornusol',
+    name: 'Stjörnusól',
+    sector: 'Sólbaðsstofa',
+    location: 'Fjarðargata 17, Hafnarfjörður',
+    region: 'Capital',
+    established: 'Síðan 1979',
+    currentUrl: 'https://solbadsstofa.is',
+    ownerEmail: '',
+    concept: 'Mjúka stjarnan',
+    conceptTagline:
+      'A soft-pink UV room where the price itself strikes to life: dark neon chapters for the light, a blush morning chapter for the two-rate verðskrá, K11 Air Loft as the star.',
+    accent: '#CA1D64',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1519677584237-752f8853252e?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Rótgróin stofa í hjarta Hafnarfjarðar, starfandi síðan 1979',
+        'Nýjasti bekkurinn, K11 Air Loft frá KBL, ALL LED með áfangastaðaprógrömmum',
+        'Netbókun á Noona og tímaskipt verðskrá sem verðlaunar morgungesti',
+      ],
+      weaknesses: [
+        'WordPress vefur með litla hönnun, verðskráin flöt tafla og K11 síðan enn merkt „kemur í janúar 2025"',
+        'Enginn opnunartími sýnilegur á vefnum og engin verðsaga á forsíðu',
+        'Ekkert netfang birt og bókunarhnappurinn týnist í valmyndinni',
+      ],
+      opportunities: [
+        'Láta ljósin sjálf segja söguna: verðið kviknar eins og perurnar í bekknum',
+        'Morgunverð og dagverð sem lifandi samanburður með sparnaði á hverri línu',
+        'K11 Air Loft sem stjarna vefsins með sínum raunverulegu áfangastöðum',
+      ],
+    },
+    positioning:
+      'Elsta sólbaðsstofa Hafnarfjarðar með splunkunýjan flaggskipsbekk en vef sem segir hvorki verð né opnunartíma. Frumgerðin gerir ljósið að aðalatriðinu og tímaskipta verðið að leik.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Stjörnusól',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Stjörnusól hefur verið til síðan 1979 og er nú með einn flottasta bekk landsins, K11 Air Loft. Þegar ég skoðaði vefsíðuna ykkar tók ég eftir að hún endurspeglar það ekki: verðskráin er flöt tafla, opnunartíminn kemur hvergi fram og K11 síðan segir enn að bekkurinn sé væntanlegur í janúar 2025.
+
+Ég hannaði því frumgerð að nýjum vef þar sem ljósin sjálf segja söguna: verðið kviknar á skjánum eins og perur í bekk, morgunverð og dagverð skiptast með einum smelli og K11 Air Loft fær sviðið sem hann á skilið. Bókunin á Noona er alltaf innan seilingar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Frumgerðina má skoða hér, hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {
