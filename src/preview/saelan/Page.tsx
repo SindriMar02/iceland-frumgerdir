@@ -115,83 +115,58 @@ function Stamp({
   )
 }
 
-/* ── The sun path — drag the sun across the day, prices follow ─────────── */
-function SunDial({ hour, setHour }: { hour: number; setHour: (h: number) => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const dragging = useRef(false)
-
-  const hourFromEvent = (clientX: number) => {
-    const el = ref.current
-    if (!el) return hour
-    const r = el.getBoundingClientRect()
-    const t = Math.min(1, Math.max(0, (clientX - r.left) / r.width))
-    return Math.round(10 + t * 13)
-  }
-
-  const onPointer = (e: React.PointerEvent) => {
-    if (e.type === 'pointerdown') {
-      dragging.current = true
-      try {
-        ;(e.target as Element).setPointerCapture?.(e.pointerId)
-      } catch {
-        /* synthetic or already-released pointer */
-      }
-    }
-    if (e.type === 'pointermove' && !dragging.current) return
-    if (e.type === 'pointerup' || e.type === 'pointercancel') {
-      dragging.current = false
-      return
-    }
-    setHour(hourFromEvent(e.clientX))
-  }
-
-  // sun position along a flat arc: t 0..1 -> x across, y dips at the edges
-  const t = (hour - 10) / 13
-  const x = 6 + t * 88 // percent
-  const y = 78 - Math.sin(t * Math.PI) * 58 // percent
-
+/* ── Morning or day — two plain buttons; the sun hops over the active one ── */
+function SunToggle({ morning, setMorning }: { morning: boolean; setMorning: (m: boolean) => void }) {
   return (
-    <div
-      ref={ref}
-      className="relative h-56 w-full cursor-ew-resize touch-none select-none md:h-72"
-      onPointerDown={onPointer}
-      onPointerMove={onPointer}
-      onPointerUp={onPointer}
-      onPointerCancel={onPointer}
-      role="slider"
-      aria-label="Tími dags"
-      aria-valuemin={10}
-      aria-valuemax={23}
-      aria-valuenow={hour}
-      aria-valuetext={`Klukkan ${hour}`}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'ArrowLeft') setHour(Math.max(10, hour - 1))
-        if (e.key === 'ArrowRight') setHour(Math.min(23, hour + 1))
-      }}
-    >
-      {/* the arc, drawn as a dotted print path */}
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M 6 78 Q 50 -14 94 78" fill="none" stroke={INK} strokeWidth="0.8" strokeDasharray="0.2 2.4" strokeLinecap="round" />
-        {/* the 14:00 boundary tick between morgunverð and dagverð */}
-        <line x1="37.5" y1="34" x2="40" y2="42" stroke={INK} strokeWidth="0.8" />
-      </svg>
-      {/* zone words along the path */}
-      <span className="absolute top-[56%] left-[10%] text-xs tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: INK }}>
-        10:00
-      </span>
-      <span className="absolute top-[56%] right-[10%] text-xs tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: INK }}>
-        23:00
-      </span>
-      {/* the draggable sun: a flat red-ringed disc like the logo */}
+    <div className="relative inline-block pt-14" role="group" aria-label="Verðflokkur eftir tíma dags">
+      {/* the sun, gliding over whichever half of the day is chosen */}
       <div
-        className="sn-sundisc absolute grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full md:h-20 md:w-20"
-        style={{ left: `${x}%`, top: `${y}%`, background: SUN, border: `3px solid ${RED}`, boxShadow: `4px 4px 0 ${INK}` }}
+        className="sn-sunhop pointer-events-none absolute top-0 grid h-12 w-12 place-items-center rounded-full"
+        style={{
+          left: morning ? 'calc(25% - 1.5rem)' : 'calc(75% - 1.5rem)',
+          background: SUN,
+          border: `3px solid ${RED}`,
+          boxShadow: `4px 4px 0 ${INK}`,
+        }}
         aria-hidden="true"
       >
-        <span className="text-lg md:text-xl" style={{ fontFamily: POSTER, color: INK }}>
-          {hour}
-        </span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill={RED} aria-hidden="true">
+          <circle cx="12" cy="12" r="5" />
+          <g stroke={RED} strokeWidth="2" strokeLinecap="round">
+            <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
+          </g>
+        </svg>
+      </div>
+      <div className="flex">
+        {(
+          [
+            [true, 'Morgunverð', 'kl. 10 til 14'],
+            [false, 'Dagverð', 'kl. 14 til 23'],
+          ] as const
+        ).map(([isMorning, label, hours]) => {
+          const active = morning === isMorning
+          return (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setMorning(isMorning)}
+              aria-pressed={active}
+              className="sn-toggle flex-col px-7 py-3.5 text-left"
+              style={{
+                background: active ? RED : SUN,
+                color: active ? PAPER : INK,
+                border: `2px solid ${INK}`,
+                marginLeft: isMorning ? 0 : -2,
+                fontFamily: SANS_BOLD,
+              }}
+            >
+              <span className="block text-base tracking-[0.06em] uppercase">{label}</span>
+              <span className="block text-xs" style={{ fontFamily: MONO, opacity: 0.85 }}>
+                {hours}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
@@ -232,8 +207,7 @@ function Scrap({ src, alt, rotate = -2, className = '' }: { src: string; alt: st
 }
 
 export default function SaelanPage() {
-  const [hour, setHour] = useState(12)
-  const morning = hour < 14
+  const [morning, setMorning] = useState(true)
 
   useEffect(() => {
     setThemeColor(SUN)
@@ -274,7 +248,9 @@ export default function SaelanPage() {
         .sn-stamp:active{transform:translate(5px,5px);box-shadow:0 0 0 ${INK}}
         .sn-marquee{animation:snMarquee 26s linear infinite}
         @keyframes snMarquee{to{transform:translateX(-50%)}}
-        .sn-sundisc{transition:left .25s cubic-bezier(0.22,1,0.36,1),top .25s cubic-bezier(0.22,1,0.36,1)}
+        .sn-sunhop{transition:left .5s cubic-bezier(0.34,1.3,0.5,1)}
+        .sn-toggle{transition:background .2s ease,color .2s ease}
+        .sn-toggle:active{transform:translate(1px,1px)}
         .sn-punch{transition:background .25s ease}
         .sn-card:hover .sn-punch{background:${INK}}
         .sn-scrapimg{transition:transform .4s cubic-bezier(0.22,1,0.36,1)}
@@ -289,8 +265,8 @@ export default function SaelanPage() {
       {/* ── Seamless header on the poster ───────────────────────────────── */}
       <header className="absolute inset-x-0 top-0 z-40">
         <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 py-5 md:px-8">
-          <a href="#top" className="text-3xl leading-none" style={{ fontFamily: WORDMARK, color: RED }} aria-label="Sælan">
-            Sælan
+          <a href="#top" className="block" aria-label="Sólbaðsstofan Sælan">
+            <img src={IMG.logo} alt="Sólbaðsstofan Sælan" width={512} height={512} className="h-16 w-auto md:h-20" />
           </a>
           <nav className="hidden items-center gap-8 text-base md:flex" style={{ fontFamily: SANS_BOLD }} aria-label="Valmynd">
             <a href="#bekkirnir" className="underline-offset-4 hover:underline" style={{ color: INK }}>
@@ -315,14 +291,6 @@ export default function SaelanPage() {
       {/* ── HERO — the poster itself ────────────────────────────────────── */}
       <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
         <div className="mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
-          {/* the original logo, worn like a sticker over the headline corner */}
-          <img
-            src={IMG.logo}
-            alt="Upprunalega Sælan merkið, gul sól og pýramídi"
-            width={512}
-            height={512}
-            className="absolute top-24 right-[6%] h-28 w-auto rotate-6 md:top-28 md:h-44"
-          />
           <h1 className="text-[clamp(4.2rem,15.5vw,14rem)] leading-[0.86] uppercase" style={{ fontFamily: POSTER, color: INK }}>
             Alltaf sól
             <span className="block" style={{ color: RED }}>
@@ -432,12 +400,14 @@ export default function SaelanPage() {
               Verðskrá
             </h2>
             <p className="mt-4 max-w-lg text-lg leading-snug" style={{ fontFamily: SANS_MED }}>
-              Dragðu sólina yfir daginn. Morgunverð gildir frá 10 til 14, dagverð frá 14 til 23.
+              Morgunverð gildir frá 10 til 14 og dagverð frá 14 til 23, sólin fylgir þér.
             </p>
           </Reveal>
 
           <Reveal delay={80}>
-            <SunDial hour={hour} setHour={setHour} />
+            <div className="mt-10">
+              <SunToggle morning={morning} setMorning={setMorning} />
+            </div>
           </Reveal>
 
           <div className="mt-4 grid gap-12 lg:grid-cols-[1.35fr_1fr] lg:gap-20">
