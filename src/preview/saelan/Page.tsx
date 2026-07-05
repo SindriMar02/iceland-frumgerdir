@@ -276,23 +276,24 @@ export default function SaelanPage() {
         }
       `}</style>
 
-      {/* ── Seamless header on the poster ───────────────────────────────── */}
+      {/* ── Seamless header on the photo ────────────────────────────────── */}
       <header className="absolute inset-x-0 top-0 z-40">
         <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 py-5 md:px-8">
-          <a href="#top" className="block" aria-label="Sólbaðsstofan Sælan">
-            <img src={IMG.logo} alt="Sólbaðsstofan Sælan" width={512} height={512} className="h-16 w-auto md:h-20" />
+          {/* the logo rides on a paper sticker so it reads on the photo */}
+          <a href="#top" className="block border-2 px-2.5 py-1.5" style={{ background: PAPER, borderColor: INK, boxShadow: `4px 4px 0 ${INK}` }} aria-label="Sólbaðsstofan Sælan">
+            <img src={IMG.logo} alt="Sólbaðsstofan Sælan" width={512} height={512} className="h-12 w-auto md:h-16" />
           </a>
           <nav className="hidden items-center gap-8 text-base md:flex" style={{ fontFamily: SANS_BOLD }} aria-label="Valmynd">
-            <a href="#bekkirnir" className="underline-offset-4 hover:underline" style={{ color: INK }}>
+            <a href="#bekkirnir" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
               Bekkirnir
             </a>
-            <a href="#verdskra" className="underline-offset-4 hover:underline" style={{ color: INK }}>
+            <a href="#verdskra" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
               Verðskrá
             </a>
-            <a href="#askrift" className="underline-offset-4 hover:underline" style={{ color: INK }}>
+            <a href="#askrift" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
               Áskrift
             </a>
-            <a href="#spraytan" className="underline-offset-4 hover:underline" style={{ color: INK }}>
+            <a href="#spraytan" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
               Spraytan
             </a>
           </nav>
@@ -302,21 +303,34 @@ export default function SaelanPage() {
         </div>
       </header>
 
-      {/* ── HERO — the poster itself, with the áskrift ticket taped on ──── */}
+      {/* ── HERO — their own amber bed photo, full bleed under the poster ── */}
       <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
-        <div className="mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
+        <img
+          src={IMG.bedGlow}
+          alt=""
+          width={1276}
+          height={1600}
+          fetchPriority="high"
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden="true"
+        />
+        {/* ink scrims: top for the nav, bottom-left for the headline */}
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${INK}b3 0%, ${INK}33 26%, transparent 48%)` }} />
+        <div aria-hidden="true" className="absolute inset-0" style={{ background: `linear-gradient(10deg, ${INK}e6 0%, ${INK}8c 38%, transparent 70%)` }} />
+
+        <div className="relative mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
           <div className="grid items-end gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
             <div>
-              <h1 className="text-[clamp(3.6rem,11.5vw,10.5rem)] leading-[0.86] uppercase" style={{ fontFamily: POSTER, color: INK }}>
-                Alltaf sól
-                <span className="block" style={{ color: RED }}>
-                  og sæla
+              <h1 className="text-[clamp(3.4rem,10.5vw,9.5rem)] leading-[0.88] uppercase" style={{ fontFamily: POSTER, color: PAPER }}>
+                Gerðu þér
+                <span className="block" style={{ color: SUN }}>
+                  glaðan dag
                 </span>
               </h1>
-              <p className="mt-7 max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED }}>
-                Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
+              <p className="mt-6 max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED, color: PAPER }}>
+                Alla daga. Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
               </p>
-              <a href="#verdskra" className="mt-5 inline-block text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
+              <a href="#verdskra" className="mt-5 inline-block text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: PAPER }}>
                 Sjá verðskrá
               </a>
             </div>
