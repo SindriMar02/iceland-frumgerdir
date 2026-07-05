@@ -45,7 +45,7 @@ const PLATE = '#262038' // the single deep plate (Spraytan chapter)
 const PLATE_INK = '#F1EDFA' // ink on the dark plate
 
 const BASE = import.meta.env.BASE_URL
-const DISPLAY = "'Zina-Regular', 'CabinetGrotesk-Bold', sans-serif"
+const DISPLAY = "'ClashDisplay-Semibold', 'CabinetGrotesk-Bold', sans-serif"
 const SANS = "'CabinetGrotesk-Regular', system-ui, sans-serif"
 const SANS_MED = "'CabinetGrotesk-Medium', system-ui, sans-serif"
 const SANS_BOLD = "'CabinetGrotesk-Bold', system-ui, sans-serif"
@@ -248,7 +248,7 @@ export default function SaelanPage() {
 
   return (
     <div className="sn-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: BG, color: BODY, fontFamily: SANS }}>
-      <link rel="stylesheet" href={`${BASE}fonts/zina/css/zina.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/clash-display/css/clash-display.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
@@ -266,13 +266,11 @@ export default function SaelanPage() {
         .sn-img{transition:transform 1s cubic-bezier(0.22,1,0.36,1)}
         .sn-imgwrap:hover .sn-img{transform:scale(1.04)}
         .sn-bed{transform:translate3d(0,calc(var(--p,0)*-150px),0) scale(calc(1 + var(--p,0)*0.14)) rotate(calc(var(--p,0)*-4deg));will-change:transform}
-        .sn-orb{transform:translate(-50%,-50%) translate3d(0,calc(var(--p,0)*90px),0)}
         .sn-root :focus-visible{outline:3px solid ${CORAL};outline-offset:3px}
         @media (prefers-reduced-motion: reduce){
           .sn-root *,.sn-root *::before,.sn-root *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
           .sn-reveal{opacity:1;transform:none;transition:none}
           .sn-bed{transform:none}
-          .sn-orb{transform:translate(-50%,-50%)}
         }
       `}</style>
 
@@ -300,7 +298,7 @@ export default function SaelanPage() {
         </div>
       </header>
 
-      {/* ── HERO — just the bed, riding the scroll ──────────────────────── */}
+      {/* ── HERO — the bed left, headline and the áskrift ticket right ──── */}
       <section id="top" ref={heroRef} className="relative flex min-h-[100svh] flex-col overflow-hidden" style={{ '--p': 0 } as React.CSSProperties}>
         {/* UV light: two big soft gradient orbs, pure paint */}
         <div
@@ -314,33 +312,71 @@ export default function SaelanPage() {
           style={{ background: `radial-gradient(circle, ${SUNY}40 0%, ${CORAL}1f 48%, transparent 72%)` }}
         />
 
-        <div className="relative mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-5 pt-28 md:px-8">
-          <h1 className="text-center text-[clamp(3rem,8vw,7rem)] leading-[1.02]" style={{ fontFamily: DISPLAY, color: INK }}>
-            Gerðu þér <span style={{ color: CORAL }}>glaðan dag</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-lg text-center text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED, color: INK }}>
-            Alla daga. Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
-          </p>
+        <div className="relative mx-auto flex w-full max-w-[1280px] flex-1 flex-col justify-center px-5 pt-28 pb-12 md:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+            {/* the bed they actually run, lifting toward you as you scroll */}
+            <div className="relative flex items-center justify-center">
+              <img
+                src={IMG.bedPrestige}
+                alt="Ergoline Prestige 1400 ljósabekkurinn"
+                width={480}
+                height={396}
+                fetchPriority="high"
+                className="sn-bed relative w-full max-w-[34rem]"
+                style={{ filter: 'drop-shadow(0 26px 22px rgba(38,33,46,0.25))' }}
+              />
+            </div>
 
-          {/* the bed they actually run, lifting toward you as you scroll */}
-          <div className="relative flex flex-1 items-center justify-center py-10">
-            <span
-              aria-hidden="true"
-              className="sn-orb absolute top-1/2 left-1/2 h-[19rem] w-[19rem] rounded-full md:h-[27rem] md:w-[27rem]"
-              style={{
-                background: `radial-gradient(circle at 40% 32%, #FFE9A8, ${SUNY} 55%, ${CORAL})`,
-                boxShadow: '0 30px 60px -30px rgba(242,107,58,0.5)',
-              }}
-            />
-            <img
-              src={IMG.bedPrestige}
-              alt="Ergoline Prestige 1400 ljósabekkurinn"
-              width={480}
-              height={396}
-              fetchPriority="high"
-              className="sn-bed relative w-full max-w-[32rem]"
-              style={{ filter: 'drop-shadow(0 26px 22px rgba(38,33,46,0.28))' }}
-            />
+            <div>
+              <h1 className="text-[clamp(2.7rem,5.4vw,4.8rem)] leading-[1.04]" style={{ fontFamily: DISPLAY, color: INK }}>
+                Gerðu þér <span style={{ color: CORAL }}>glaðan dag</span>
+              </h1>
+              <p className="mt-4 max-w-md text-lg leading-snug" style={{ fontFamily: SANS_MED, color: INK }}>
+                Alla daga. Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
+              </p>
+
+              {/* the subscription, priced right where the eye lands */}
+              <a
+                href="#askrift"
+                className="sn-ticket relative mt-10 block focus-visible:outline-offset-8"
+                aria-label="Áskrift í ljós, 7.990 krónur á mánuði, borgar sig frá fjórðu heimsókn"
+              >
+                <span
+                  aria-hidden="true"
+                  className="sn-seal absolute -top-9 -right-3 z-10 grid h-24 w-24 place-items-center rounded-full text-center md:-top-11 md:-right-5 md:h-28 md:w-28"
+                  style={{ background: CORAL, boxShadow: '0 14px 30px -12px rgba(242,107,58,0.7)' }}
+                >
+                  <span className="px-3 text-[10px] leading-tight md:text-[11px]" style={{ fontFamily: SANS_BOLD, color: '#FFF6EF' }}>
+                    Borgar sig frá 4. heimsókn
+                  </span>
+                </span>
+
+                <span className="block rounded-[24px] p-6 md:p-7" style={{ background: SURF, border: `1px solid ${INK}14`, boxShadow: CARD_SHADOW }}>
+                  <span className="flex items-baseline justify-between gap-4">
+                    <span className="text-xl md:text-2xl" style={{ fontFamily: DISPLAY, color: INK }}>
+                      Áskrift í ljós
+                    </span>
+                    <span className="text-xs tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: CORAL }}>
+                      Sælan
+                    </span>
+                  </span>
+                  <span className="mt-2 block text-5xl md:text-6xl" style={{ fontFamily: DISPLAY, color: CORAL }}>
+                    7.990 kr
+                  </span>
+                  <span className="block text-sm" style={{ fontFamily: MONO, color: BODY }}>
+                    á mánuði
+                  </span>
+                  <span className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-4" style={{ borderColor: `${INK}0f` }}>
+                    <span className="inline-flex items-center rounded-full px-5 py-3 text-sm" style={{ background: CORAL, color: INK, fontFamily: SANS_BOLD }}>
+                      Koma í áskrift
+                    </span>
+                    <span className="text-[11px]" style={{ fontFamily: MONO, color: BODY }}>
+                      m.v. stakan tíma á 2.590 kr.
+                    </span>
+                  </span>
+                </span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -524,18 +560,7 @@ export default function SaelanPage() {
             <div className="flex flex-col gap-6">
               {PLANS.map((p, i) => (
                 <Reveal key={p.id} delay={i * 100}>
-                  <div className="relative rounded-[24px] p-7" style={{ background: SURF, border: `1px solid ${INK}14`, boxShadow: CARD_SHADOW }}>
-                    {i === 0 ? (
-                      <span
-                        aria-hidden="true"
-                        className="sn-seal absolute -top-10 -right-3 z-10 grid h-24 w-24 place-items-center rounded-full text-center md:-top-12 md:-right-5 md:h-28 md:w-28"
-                        style={{ background: CORAL, boxShadow: '0 14px 30px -12px rgba(242,107,58,0.7)' }}
-                      >
-                        <span className="px-3 text-[10px] leading-tight md:text-[11px]" style={{ fontFamily: SANS_BOLD, color: '#FFF6EF' }}>
-                          Borgar sig frá 4. heimsókn
-                        </span>
-                      </span>
-                    ) : null}
+                  <div className="rounded-[24px] p-7" style={{ background: SURF, border: `1px solid ${INK}14`, boxShadow: CARD_SHADOW }}>
                     <div className="flex flex-wrap items-baseline justify-between gap-3">
                       <p className="text-4xl md:text-5xl" style={{ fontFamily: DISPLAY, color: CORAL }}>
                         {isk(p.price)}
@@ -548,13 +573,8 @@ export default function SaelanPage() {
                       {p.binding}
                     </p>
                     <p className="mt-2 max-w-md text-base leading-relaxed">{p.pitch}</p>
-                    <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                    <div className="mt-6">
                       <Soft href={p.href}>Koma í áskrift</Soft>
-                      {i === 0 ? (
-                        <span className="text-[11px]" style={{ fontFamily: MONO, color: BODY }}>
-                          m.v. stakan tíma á 2.590 kr.
-                        </span>
-                      ) : null}
                     </div>
                   </div>
                 </Reveal>
