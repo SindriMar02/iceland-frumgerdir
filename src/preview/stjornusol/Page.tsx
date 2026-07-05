@@ -66,53 +66,41 @@ const PANELS: Panel[] = [
   { id: 'base', left: 26.5, top: 83.6, width: 47.0, height: 7.2, delay: 2.7, kind: 'field' },
 ]
 
-const PANEL_ART: Record<Panel['kind'], React.CSSProperties> = {
-  field: {
-    background:
-      'radial-gradient(circle, rgba(226,214,255,.8) 0.7px, transparent 1.4px) 0 0 / 8px 8px, radial-gradient(120% 140% at 50% 30%, rgba(143,121,255,.6), rgba(96,70,214,.42) 65%, rgba(76,52,180,.3))',
-    boxShadow: '0 0 46px 14px rgba(140,105,255,.28)',
-    borderRadius: 4,
-  },
-  bar: {
-    background:
-      'radial-gradient(circle, rgba(255,181,60,.8) 0 1.6px, transparent 2.6px) 12px 50% / 44px 44px, radial-gradient(circle, rgba(200,175,255,.75) 0.8px, transparent 1.5px) 0 0 / 7px 7px, radial-gradient(100% 140% at 50% 50%, rgba(140,110,250,.62), rgba(94,64,210,.45) 70%)',
-    boxShadow: '0 0 38px 11px rgba(140,105,255,.32), 0 2px 14px 2px rgba(232,53,126,.22), 0 -2px 14px 2px rgba(232,53,126,.22)',
-    borderRadius: 6,
-  },
-  deck: {
-    background: 'radial-gradient(80% 120% at 50% 40%, rgba(196,90,235,.3), rgba(120,60,220,.16) 55%, transparent 80%)',
-    filter: 'blur(3px)',
-  },
-  base: {
-    background:
-      'radial-gradient(circle, rgba(226,214,255,.75) 0.7px, transparent 1.4px) 0 0 / 8px 8px, radial-gradient(130% 160% at 50% 100%, rgba(140,108,250,.6), rgba(94,64,210,.4) 65%)',
-    boxShadow: '0 0 46px 14px rgba(140,105,255,.26)',
-    borderRadius: 4,
-  },
-}
-
 function K11Relight({ on }: { on: boolean }) {
   return (
     <div aria-hidden="true" className="absolute inset-0" data-lit={on}>
+      {/* staged wake: each panel is a clipped window revealing the lit frame */}
       {PANELS.map((p) => (
         <div
           key={p.id}
-          className="sv-panel absolute mix-blend-screen"
+          className="sv-panel absolute overflow-hidden"
           style={{
             left: `${p.left}%`,
             top: `${p.top}%`,
             width: `${p.width}%`,
             height: `${p.height}%`,
             clipPath: p.clip,
-            ...PANEL_ART[p.kind],
             ['--pd' as string]: `${p.delay}s`,
-            ['--hd' as string]: `${7.5 + (p.delay * 7) % 4.6}s`,
           } as React.CSSProperties}
-        />
+        >
+          <img
+            src={`${A}k11-on.webp`}
+            alt=""
+            className="absolute"
+            style={{
+              width: `${(100 / p.width) * 100}%`,
+              height: `${(100 / p.height) * 100}%`,
+              left: `${(-p.left / p.width) * 100}%`,
+              top: `${(-p.top / p.height) * 100}%`,
+              maxWidth: 'none',
+            }}
+          />
+        </div>
       ))}
-      {/* room responds: violet bloom + floor reflection */}
-      <div className="sv-room absolute inset-0 mix-blend-screen" style={{ background: 'radial-gradient(58% 52% at 50% 46%, rgba(120,90,255,.17), transparent 70%)', ['--pd' as string]: '3s' } as React.CSSProperties} />
-      <div className="sv-room absolute mix-blend-screen" style={{ left: '20%', top: '90%', width: '60%', height: '10%', background: 'radial-gradient(50% 100% at 50% 100%, rgba(140,105,255,.35), transparent 75%)', filter: 'blur(5px)', ['--pd' as string]: '3.1s' } as React.CSSProperties} />
+      {/* the full lit frame unifies the baked bloom, reflections and spill,
+          then hums globally; a clipped veil gives bar2 a faulty-driver blink */}
+      <img src={`${A}k11-on.webp`} alt="" className="sv-onfull absolute inset-0 h-full w-full" style={{ maxWidth: 'none' }} />
+      <div className="sv-blink absolute" style={{ left: '29.6%', top: '53%', width: '40.6%', height: '7.4%', background: '#0A090C', borderRadius: 6 }} />
     </div>
   )
 }
@@ -250,7 +238,7 @@ export default function StjornusolPage() {
         url: 'https://solbadsstofa.is',
         telephone: '+3545557272',
         foundingDate: FOUNDED,
-        image: `${A}k11-off.webp`,
+        image: `${A}k11-on.webp`,
         address: { '@type': 'PostalAddress', streetAddress: ADDRESS, postalCode: '220', addressLocality: 'Hafnarfjörður', addressCountry: 'IS' },
         openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '10:00', closes: '22:00' }],
         priceRange: '2.190 kr. til 32.900 kr.',
@@ -285,9 +273,12 @@ export default function StjornusolPage() {
         @keyframes svHum{0%,91%{opacity:1}91.6%{opacity:.82}92.1%{opacity:1}95.4%{opacity:.9}95.8%{opacity:1}98.1%{opacity:.86}98.5%,100%{opacity:1}}
         @keyframes svRoom{from{opacity:0}to{opacity:1}}
         .sv-panel{opacity:0;will-change:opacity}
-        [data-lit="true"] .sv-panel{animation:svWake 1.4s steps(1,end) var(--pd,0s) both, svHum var(--hd,9s) steps(1,end) calc(var(--pd,0s) + 2.2s) infinite}
-        .sv-room{opacity:0}
-        [data-lit="true"] .sv-room{animation:svRoom 1.6s ease var(--pd,3s) both}
+        [data-lit="true"] .sv-panel{animation:svWake 1.4s steps(1,end) var(--pd,0s) both}
+        .sv-onfull{opacity:0;will-change:opacity}
+        [data-lit="true"] .sv-onfull{animation:svRoom .9s ease 2.9s both, svHum 11s steps(1,end) 5s infinite}
+        .sv-blink{opacity:0}
+        [data-lit="true"] .sv-blink{animation:svBlink 13s steps(1,end) 7s infinite}
+        @keyframes svBlink{0%,93.2%{opacity:0}93.6%{opacity:.32}94%{opacity:0}96.4%{opacity:.18}96.8%,100%{opacity:0}}
         .sv-r{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s ${EASE}}
         .sv-r[data-in="true"]{opacity:1;transform:none}
         .sv-rise{animation:svRise 1s ${EASE} both}
@@ -310,8 +301,8 @@ export default function StjornusolPage() {
         @keyframes svSpin{to{transform:rotate(360deg)}}
         @keyframes svBadge{0%,86%{opacity:1}88%{opacity:.4}90%{opacity:1}94%{opacity:.7}96%,100%{opacity:1}}
         @media (prefers-reduced-motion: reduce){
-          .sv-panel{animation:none !important;opacity:1 !important;clip-path:inset(0) !important}
-          .sv-room{animation:none !important;opacity:1 !important}
+          .sv-panel,.sv-blink{animation:none !important;opacity:0 !important}
+          .sv-onfull{animation:none !important;opacity:1 !important}
           .sv-r{opacity:1;transform:none;transition:none}
           .sv-rise{animation:none}
           .sv-ticker{animation:none}
