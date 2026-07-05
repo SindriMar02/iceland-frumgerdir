@@ -272,9 +272,12 @@ export default function StjornusolPage() {
         @keyframes svWake{0%{opacity:0;clip-path:inset(0 100% 0 0)}10%{opacity:.35;clip-path:inset(0 100% 0 0)}16%{opacity:.12}26%{opacity:.85;clip-path:inset(0 55% 0 0)}38%{opacity:.3}52%{opacity:1;clip-path:inset(0 12% 0 0)}70%,100%{opacity:1;clip-path:inset(0 0 0 0)}}
         @keyframes svHum{0%,91%{opacity:1}91.6%{opacity:.82}92.1%{opacity:1}95.4%{opacity:.9}95.8%{opacity:1}98.1%{opacity:.86}98.5%,100%{opacity:1}}
         @keyframes svRoom{from{opacity:0}to{opacity:1}}
-        .sv-panel{opacity:0;will-change:opacity}
+        .sv-panel{opacity:0;will-change:opacity;transition:opacity .5s ease}
+        .sv-onfull{transition:opacity .5s ease}
         [data-lit="true"] .sv-panel{animation:svWake 1.4s steps(1,end) var(--pd,0s) both}
         .sv-onfull{opacity:0;will-change:opacity}
+        .sv-power{transition:background .35s ease, border-color .35s ease}
+        .sv-power .sv-knob{transition:transform .4s cubic-bezier(.32,.72,0,1), background .35s ease, box-shadow .35s ease}
         [data-lit="true"] .sv-onfull{animation:svRoom .9s ease 2.9s both, svHum 11s steps(1,end) 5s infinite}
         .sv-blink{opacity:0}
         [data-lit="true"] .sv-blink{animation:svBlink 13s steps(1,end) 7s infinite}
@@ -418,6 +421,31 @@ export default function StjornusolPage() {
               MORGUNVERÐ ALLA DAGA FYRIR KL. 14 · FRÁ 2.190 KR.
             </p>
           </div>
+
+          {/* the machine's own power switch */}
+          <div className="sv-rise absolute right-4 bottom-24 z-10 md:right-9 md:bottom-10" style={{ animationDelay: '1s' }}>
+            <button
+              type="button"
+              aria-pressed={lit}
+              onClick={() => setLit(!lit)}
+              className="sv-power flex cursor-pointer items-center gap-3 rounded-full border py-2 pr-2 pl-4"
+              style={{ background: 'rgba(12,11,14,.72)', borderColor: lit ? 'rgba(211,199,178,.4)' : HAIR, backdropFilter: 'blur(10px)' }}
+            >
+              <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO }}>
+                {lit ? 'LJÓSIN Á' : 'LJÓSIN AF'}
+              </span>
+              <span aria-hidden="true" className="relative inline-block h-6 w-11 rounded-full" style={{ background: lit ? 'rgba(232,53,126,.28)' : 'rgba(244,239,230,.1)', border: '1px solid rgba(244,239,230,.18)' }}>
+                <span
+                  className="sv-knob absolute top-[2px] left-[2px] h-[18px] w-[18px] rounded-full"
+                  style={{
+                    transform: lit ? 'translateX(20px)' : 'none',
+                    background: lit ? MAGENTA : '#6E6659',
+                    boxShadow: lit ? '0 0 12px 2px rgba(232,53,126,.65)' : 'none',
+                  }}
+                />
+              </span>
+            </button>
+          </div>
         </section>
 
         {/* ══ SPEC TICKER ════════════════════════════════════════════════ */}
@@ -451,60 +479,55 @@ export default function StjornusolPage() {
               </h2>
             </Reveal>
 
-            <div className="mt-12 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-              {/* the sky */}
-              <Reveal className="relative">
-                <div className="relative overflow-clip rounded-[22px]" style={{ border: `1px solid ${HAIR}`, aspectRatio: '4 / 3', background: OBSIDIAN2 }}>
-                  {DESTINATIONS.map((x, i) => (
-                    <div key={x.id} className="sv-sky absolute inset-0" style={{ background: SKY[x.id], opacity: dest === i ? 1 : 0 }} />
-                  ))}
-                  {/* the travelling sun */}
-                  <div aria-hidden="true" className="sv-sunarc absolute left-1/2 -translate-x-1/2 rounded-full" style={{ top: SUN_Y[d.id], width: 74, height: 74, background: 'radial-gradient(circle at 38% 32%, #FFF3D2, #FFC46B 55%, #F08556)', boxShadow: '0 0 60px 18px rgba(255,196,107,.5), 0 0 140px 60px rgba(240,133,86,.25)' }} />
-                  <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.55))' }} />
-                  <div className="absolute right-5 bottom-4 left-5 flex items-end justify-between gap-3">
-                    <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(22px, 3vw, 34px)', color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>
-                      {d.title}
-                    </p>
-                    <p className="m-0 text-[26px] md:text-[34px]" style={{ fontFamily: MONO, color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>
-                      {d.lat}
-                    </p>
-                  </div>
-                </div>
-              </Reveal>
-
-              {/* the program list */}
-              <Reveal delay={100} className="flex flex-col justify-center gap-3">
+            <Reveal className="mt-10">
+              <div className="relative overflow-clip rounded-[22px]" style={{ border: `1px solid ${HAIR}`, aspectRatio: '16 / 10', background: OBSIDIAN2, maxHeight: '30rem', width: '100%' }}>
                 {DESTINATIONS.map((x, i) => (
-                  <button
-                    key={x.id}
-                    type="button"
-                    aria-pressed={dest === i}
-                    onClick={() => setDest(i)}
-                    className="cursor-pointer rounded-[18px] border p-5 text-left transition-all duration-300"
-                    style={{
-                      background: dest === i ? 'rgba(211,199,178,.08)' : 'transparent',
-                      borderColor: dest === i ? 'rgba(211,199,178,.4)' : HAIR,
-                      fontFamily: HANKEN,
-                    }}
-                  >
-                    <span className="flex items-baseline justify-between gap-3">
-                      <span className="text-[19px] font-bold" style={{ color: dest === i ? TXT : BODY_T }}>
-                        {x.title}
-                      </span>
-                      <span className="rounded-full border px-3 py-1 text-[11px] font-bold tracking-[.08em] whitespace-nowrap" style={{ borderColor: 'rgba(232,53,126,.45)', color: MAGENTA }}>
-                        {x.chip}
-                      </span>
-                    </span>
-                    <span className="mt-1.5 block text-sm" style={{ color: CHAMP_DIM }}>
-                      {x.body}
-                    </span>
-                  </button>
+                  <div key={x.id} className="sv-sky absolute inset-0" style={{ background: SKY[x.id], opacity: dest === i ? 1 : 0 }} />
                 ))}
-                <p className="m-0 mt-2 text-[13px]" style={{ color: CHAMP_DIM }}>
-                  Áfangastaðirnir eru innbyggð prógrömm í K11 Air Loft. Bókanlegur á Noona.
-                </p>
-              </Reveal>
-            </div>
+                <div aria-hidden="true" className="sv-sunarc absolute left-1/2 -translate-x-1/2 rounded-full" style={{ top: SUN_Y[d.id], width: 64, height: 64, background: 'radial-gradient(circle at 38% 32%, #FFF3D2, #FFC46B 55%, #F08556)', boxShadow: '0 0 60px 18px rgba(255,196,107,.5), 0 0 140px 60px rgba(240,133,86,.25)' }} />
+                <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.78))' }} />
+
+                <div className="absolute top-4 right-5 left-5 flex items-start justify-between gap-3">
+                  <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(19px, 2.4vw, 28px)', color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>
+                    {d.title}
+                  </p>
+                  <p className="m-0 text-[18px] md:text-[24px]" style={{ fontFamily: MONO, color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>
+                    {d.lat}
+                  </p>
+                </div>
+
+                <div className="absolute right-4 bottom-4 left-4 md:right-6 md:bottom-5 md:left-6">
+                  <div className="inline-flex flex-wrap gap-1.5 rounded-full p-1.5" style={{ background: 'rgba(10,9,12,.55)', border: '1px solid rgba(244,239,230,.16)', backdropFilter: 'blur(10px)' }}>
+                    {DESTINATIONS.map((x, i) => (
+                      <button
+                        key={x.id}
+                        type="button"
+                        aria-pressed={dest === i}
+                        onClick={() => setDest(i)}
+                        className="cursor-pointer rounded-full border-none px-3.5 py-2 text-[12px] font-bold tracking-[.06em] transition-all duration-300"
+                        style={{
+                          background: dest === i ? 'rgba(244,239,230,.14)' : 'transparent',
+                          color: dest === i ? '#FFF9EF' : 'rgba(244,239,230,.55)',
+                          boxShadow: dest === i ? 'inset 0 0 0 1px rgba(211,199,178,.45)' : 'none',
+                          fontFamily: MONO,
+                        }}
+                      >
+                        {x.id === 'capri' ? 'CAPRI' : x.id === 'hawaii' ? 'HAWAII' : 'HAMPTONS'}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2.5 mb-0 flex flex-wrap items-center gap-2.5 text-[13px]" style={{ color: 'rgba(244,239,230,.85)', textShadow: '0 1px 14px rgba(0,0,0,.6)' }}>
+                    <span className="rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-[.06em]" style={{ borderColor: 'rgba(232,53,126,.55)', color: '#FF8FBC' }}>
+                      {d.chip}
+                    </span>
+                    {d.body}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
+                Áfangastaðirnir eru innbyggð prógrömm í K11 Air Loft. Bókanlegur á Noona.
+              </p>
+            </Reveal>
           </div>
         </section>
 
