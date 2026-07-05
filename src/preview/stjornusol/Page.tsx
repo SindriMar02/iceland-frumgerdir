@@ -144,7 +144,12 @@ const SKY: Record<string, string> = {
   hawaii: 'linear-gradient(180deg, #0E2247 0%, #2B5C9E 45%, #7FB2D9 78%, #F7E9B8 100%)',
   hamptons: 'linear-gradient(180deg, #191026 0%, #55284E 40%, #B14A67 70%, #E88B54 100%)',
 }
-const SUN_Y: Record<string, string> = { capri: '72%', hawaii: '30%', hamptons: '84%' }
+/* sun altitude + colour per program: composed, not animated across the sky */
+const SUN: Record<string, { top: string; core: string; halo: string }> = {
+  capri: { top: '58%', core: '#FFE9C4', halo: 'rgba(255,176,107,.55)' },
+  hawaii: { top: '22%', core: '#FFF6DC', halo: 'rgba(255,224,150,.6)' },
+  hamptons: { top: '74%', core: '#FFD9A8', halo: 'rgba(240,133,86,.55)' },
+}
 
 export default function StjornusolPage() {
   const [lit, setLit] = useState(false)
@@ -249,7 +254,6 @@ export default function StjornusolPage() {
   )
 
   const morgun = slot === 'morgun'
-  const d = DESTINATIONS[dest]
 
   const cta = (extra?: React.CSSProperties): React.CSSProperties => ({
     background: MAGENTA_DEEP,
@@ -296,8 +300,9 @@ export default function StjornusolPage() {
         .sv-ticker{animation:svTicker 36s linear infinite}
         .sv-row{transition:transform .35s ${EASE}, background .35s ease}
         .sv-row:hover{transform:translateX(8px)}
-        .sv-sunarc{transition:top 1.1s ${EASE}, background .9s ease}
-        .sv-sky{transition:opacity 1s ease}
+        .sv-slat{transition:flex .65s ${EASE}, box-shadow .4s ease}
+        @keyframes svBreathe{from{transform:translate(-50%,-50%) scale(1);opacity:.85}to{transform:translate(-50%,-50%) scale(1.12);opacity:1}}
+        .sv-sunglow{animation:svBreathe 5.5s ease-in-out infinite alternate}
         .sv-roll{transition:transform .55s cubic-bezier(.6,.1,.2,1)}
         .sv-peek-card{transition:opacity .28s ease, transform .32s ${EASE}}
         .sv-peek-img{transition:opacity .25s ease}
@@ -309,6 +314,8 @@ export default function StjornusolPage() {
           .sv-r{opacity:1;transform:none;transition:none}
           .sv-rise{animation:none}
           .sv-ticker{animation:none}
+          .sv-slat{transition:none}
+          .sv-sunglow{animation:none}
           .sv-roll{transition:none !important}
           .sv-spin{animation:none !important}
         }
@@ -465,68 +472,82 @@ export default function StjornusolPage() {
           </div>
         </section>
 
-        {/* ══ ÁFANGASTAÐIR — pick your sky ═══════════════════════════════ */}
-        <section id="afangastadir" className="relative scroll-mt-20" style={{ padding: 'clamp(90px, 12vw, 150px) 0' }}>
+        {/* ══ ÁFANGASTAÐIR — three skies as expanding slats ══════════════ */}
+        <section id="afangastadir" className="relative scroll-mt-20" style={{ padding: 'clamp(70px, 9vw, 110px) 0' }}>
           <div className="mx-auto max-w-[1180px] px-5 md:px-9">
             <Reveal>
               <p className="m-0 mb-4 text-[12px] tracking-[.3em]" style={{ color: MAGENTA, fontFamily: MONO }}>
                 SUNCONTROL · ÞÚ VELUR ÁFANGASTAÐ
               </p>
             </Reveal>
-            <Reveal>
-              <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(40px, 6.5vw, 84px)', lineHeight: 1.02, color: TXT }}>
-                Þrír himnar, einn bekkur.
-              </h2>
-            </Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+              <Reveal>
+                <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(34px, 5vw, 64px)', lineHeight: 1.02, color: TXT }}>
+                  Þrír himnar, einn bekkur.
+                </h2>
+              </Reveal>
+              <Reveal delay={80}>
+                <p className="m-0 text-[13px]" style={{ color: CHAMP_DIM }}>
+                  Innbyggð prógrömm í K11 Air Loft. Bókanleg á Noona.
+                </p>
+              </Reveal>
+            </div>
 
-            <Reveal className="mt-10">
-              <div className="relative overflow-clip rounded-[22px]" style={{ border: `1px solid ${HAIR}`, aspectRatio: '16 / 10', background: OBSIDIAN2, maxHeight: '30rem', width: '100%' }}>
-                {DESTINATIONS.map((x, i) => (
-                  <div key={x.id} className="sv-sky absolute inset-0" style={{ background: SKY[x.id], opacity: dest === i ? 1 : 0 }} />
-                ))}
-                <div aria-hidden="true" className="sv-sunarc absolute left-1/2 -translate-x-1/2 rounded-full" style={{ top: SUN_Y[d.id], width: 64, height: 64, background: 'radial-gradient(circle at 38% 32%, #FFF3D2, #FFC46B 55%, #F08556)', boxShadow: '0 0 60px 18px rgba(255,196,107,.5), 0 0 140px 60px rgba(240,133,86,.25)' }} />
-                <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.78))' }} />
+            <Reveal className="mt-7">
+              <div className="flex h-[26rem] flex-col gap-2 md:h-[17rem] md:flex-row">
+                {DESTINATIONS.map((x, i) => {
+                  const on = dest === i
+                  return (
+                    <button
+                      key={x.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => setDest(i)}
+                      className="sv-slat relative cursor-pointer overflow-clip rounded-[18px] border-none p-0 text-left"
+                      style={{ flex: on ? '3.2 1 0%' : '1 1 0%', background: SKY[x.id], boxShadow: on ? 'inset 0 0 0 1px rgba(211,199,178,.4)' : 'inset 0 0 0 1px rgba(211,199,178,.14)' }}
+                    >
+                      {/* the sun: hot core, twin halos, atmosphere band, reflection */}
+                      <span aria-hidden="true" className="absolute inset-0">
+                        <span className="sv-sunwrap absolute left-1/2" style={{ top: SUN[x.id].top }}>
+                          <span className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 130, height: 130, background: `radial-gradient(circle, ${SUN[x.id].halo} 0%, transparent 66%)`, filter: 'blur(6px)' }} />
+                          <span className="sv-sunglow absolute -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 74, height: 74, background: `radial-gradient(circle, ${SUN[x.id].halo} 0%, transparent 70%)` }} />
+                          <span className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 30, height: 30, background: `radial-gradient(circle at 42% 36%, #FFFDF4, ${SUN[x.id].core} 55%, transparent 78%)` }} />
+                        </span>
+                        {/* atmosphere haze at the horizon line */}
+                        <span className="absolute right-0 left-0" style={{ top: `calc(${SUN[x.id].top} + 8%)`, height: '18%', background: `linear-gradient(180deg, transparent, ${SUN[x.id].halo.replace('.55', '.18').replace('.6', '.18')} 45%, transparent)`, filter: 'blur(10px)' }} />
+                        {/* reflection */}
+                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2" style={{ width: 90, height: '26%', background: `linear-gradient(180deg, ${SUN[x.id].halo.replace('.55', '.28').replace('.6', '.28')}, transparent)`, filter: 'blur(8px)' }} />
+                        <span className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.72))' }} />
+                      </span>
 
-                <div className="absolute top-4 right-5 left-5 flex items-start justify-between gap-3">
-                  <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(19px, 2.4vw, 28px)', color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>
-                    {d.title}
-                  </p>
-                  <p className="m-0 text-[18px] md:text-[24px]" style={{ fontFamily: MONO, color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.5)' }}>
-                    {d.lat}
-                  </p>
-                </div>
+                      {/* collapsed: vertical mono label (desktop) / short label (mobile) */}
+                      <span className="absolute inset-0 flex items-end p-4 transition-opacity duration-300 md:items-start md:p-5" style={{ opacity: on ? 0 : 1, pointerEvents: 'none' }}>
+                        <span className="text-[12px] font-bold tracking-[.22em] whitespace-nowrap md:[writing-mode:vertical-rl]" style={{ color: 'rgba(244,239,230,.85)', fontFamily: MONO, textShadow: '0 1px 12px rgba(0,0,0,.6)' }}>
+                          {x.id === 'capri' ? 'CAPRI' : x.id === 'hawaii' ? 'HAWAII' : 'HAMPTONS'} · {x.lat}
+                        </span>
+                      </span>
 
-                <div className="absolute right-4 bottom-4 left-4 md:right-6 md:bottom-5 md:left-6">
-                  <div className="inline-flex flex-wrap gap-1.5 rounded-full p-1.5" style={{ background: 'rgba(10,9,12,.55)', border: '1px solid rgba(244,239,230,.16)', backdropFilter: 'blur(10px)' }}>
-                    {DESTINATIONS.map((x, i) => (
-                      <button
-                        key={x.id}
-                        type="button"
-                        aria-pressed={dest === i}
-                        onClick={() => setDest(i)}
-                        className="cursor-pointer rounded-full border-none px-3.5 py-2 text-[12px] font-bold tracking-[.06em] transition-all duration-300"
-                        style={{
-                          background: dest === i ? 'rgba(244,239,230,.14)' : 'transparent',
-                          color: dest === i ? '#FFF9EF' : 'rgba(244,239,230,.55)',
-                          boxShadow: dest === i ? 'inset 0 0 0 1px rgba(211,199,178,.45)' : 'none',
-                          fontFamily: MONO,
-                        }}
-                      >
-                        {x.id === 'capri' ? 'CAPRI' : x.id === 'hawaii' ? 'HAWAII' : 'HAMPTONS'}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-2.5 mb-0 flex flex-wrap items-center gap-2.5 text-[13px]" style={{ color: 'rgba(244,239,230,.85)', textShadow: '0 1px 14px rgba(0,0,0,.6)' }}>
-                    <span className="rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-[.06em]" style={{ borderColor: 'rgba(232,53,126,.55)', color: '#FF8FBC' }}>
-                      {d.chip}
-                    </span>
-                    {d.body}
-                  </p>
-                </div>
+                      {/* selected: full program card */}
+                      <span className="absolute right-4 bottom-4 left-4 transition-opacity duration-500 md:right-6 md:bottom-5 md:left-6" style={{ opacity: on ? 1 : 0, transitionDelay: on ? '.25s' : '0s', pointerEvents: 'none' }}>
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="block" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(19px, 2.4vw, 27px)', color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.55)' }}>
+                            {x.title}
+                          </span>
+                          <span className="text-[16px] whitespace-nowrap md:text-[20px]" style={{ fontFamily: MONO, color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.55)' }}>
+                            {x.lat}
+                          </span>
+                        </span>
+                        <span className="mt-1.5 flex flex-wrap items-center gap-2.5 text-[13px]" style={{ color: 'rgba(244,239,230,.88)', textShadow: '0 1px 14px rgba(0,0,0,.6)' }}>
+                          <span className="rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-[.06em]" style={{ borderColor: 'rgba(232,53,126,.55)', color: '#FF8FBC' }}>
+                            {x.chip}
+                          </span>
+                          {x.body}
+                        </span>
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
-              <p className="mt-3 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
-                Áfangastaðirnir eru innbyggð prógrömm í K11 Air Loft. Bókanlegur á Noona.
-              </p>
             </Reveal>
           </div>
         </section>
