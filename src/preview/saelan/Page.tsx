@@ -193,18 +193,6 @@ function MenuRow({ label, sub, price, dim = false }: { label: string; sub?: stri
   )
 }
 
-/* ── Little ray-sun glyph for the print ribbon ────────────────────────── */
-function RibbonSun() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={SUN} aria-hidden="true" className="shrink-0">
-      <circle cx="12" cy="12" r="5" />
-      <g stroke={SUN} strokeWidth="2" strokeLinecap="round">
-        <path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M19.8 4.2 17 7M7 17l-2.8 2.8" />
-      </g>
-    </svg>
-  )
-}
-
 /* ── Photo scrap — taped-in print, slightly off-square ─────────────────── */
 function Scrap({ src, alt, className = '' }: { src: string; alt: string; className?: string }) {
   return (
@@ -256,8 +244,6 @@ export default function SaelanPage() {
         .sn-stamp{transition:transform .15s ease,box-shadow .15s ease}
         .sn-stamp:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 ${INK}}
         .sn-stamp:active{transform:translate(5px,5px);box-shadow:0 0 0 ${INK}}
-        .sn-marquee{animation:snMarquee 40s linear infinite;will-change:transform;transform:translateZ(0);backface-visibility:hidden}
-        @keyframes snMarquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
         .sn-ticket{transition:transform .35s cubic-bezier(0.22,1,0.36,1)}
         .sn-ticket:hover{transform:rotate(0.5deg) translateY(-4px)}
         .sn-seal{transform:rotate(-10deg);transition:transform .35s cubic-bezier(0.34,1.4,0.5,1)}
@@ -272,7 +258,6 @@ export default function SaelanPage() {
         @media (prefers-reduced-motion: reduce){
           .sn-root *,.sn-root *::before,.sn-root *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
           .sn-reveal{opacity:1;transform:none;transition:none}
-          .sn-marquee{animation:none}
         }
       `}</style>
 
@@ -302,21 +287,60 @@ export default function SaelanPage() {
         </div>
       </header>
 
-      {/* ── HERO — the Prestige 1400 cutout in front of the brand sun ────── */}
-      <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
-        <div className="relative mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
-          <h1 className="text-[clamp(3.2rem,9.5vw,8.5rem)] leading-[0.88] uppercase" style={{ fontFamily: POSTER, color: INK }}>
-            Gerðu þér{' '}
-            <span style={{ color: RED }}>glaðan dag</span>
-          </h1>
+      {/* ── HERO — the bed takes over, huge and bleeding off the right ───── */}
+      <section id="top" className="relative flex min-h-[100svh] items-center overflow-hidden border-b-2" style={{ borderColor: INK }}>
+        <div className="mx-auto w-full max-w-[1280px] px-5 pt-24 pb-10 md:px-8 md:pt-20">
+          <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-2">
+            {/* content, left */}
+            <div className="relative z-10">
+              <h1 className="text-[clamp(3.4rem,8.4vw,8rem)] leading-[0.84] uppercase" style={{ fontFamily: POSTER, color: INK }}>
+                Gerðu þér{' '}
+                <span style={{ color: RED }}>glaðan dag</span>
+              </h1>
+              <p className="mt-6 max-w-sm text-lg leading-snug" style={{ fontFamily: SANS_MED, color: INK }}>
+                Alla daga. Nýjustu ljósabekkir, sjálfvirkt spraytan og áskrift í ljós.
+              </p>
 
-          <div className="mt-8 grid items-end gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
-            {/* the bed they actually run, in front of a flat brand sun */}
+              {/* the offer, shrunk to a small stamped sticker */}
+              <a
+                href="#askrift"
+                className="sn-ticket relative mt-9 inline-flex items-center gap-5 border-2 py-3 pr-4 pl-5"
+                style={{ background: PAPER, borderColor: INK, boxShadow: `6px 6px 0 ${INK}` }}
+                aria-label="Áskrift í ljós, 7.990 krónur á mánuði, borgar sig frá fjórðu heimsókn"
+              >
+                <span>
+                  <span className="block text-[11px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: RED }}>
+                    Áskrift · borgar sig frá 4. heimsókn
+                  </span>
+                  <span className="mt-0.5 flex items-baseline gap-2">
+                    <span className="text-3xl uppercase md:text-4xl" style={{ fontFamily: POSTER, color: INK }}>
+                      7.990 kr
+                    </span>
+                    <span className="text-sm" style={{ fontFamily: MONO, color: `${INK}99` }}>
+                      /mán
+                    </span>
+                  </span>
+                </span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center" style={{ background: RED, color: PAPER, border: `2px solid ${INK}` }} aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </a>
+
+              <div className="mt-5">
+                <a href="#verdskra" className="text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
+                  Sjá verðskrá
+                </a>
+              </div>
+            </div>
+
+            {/* the bed, oversized, bleeding off the right edge */}
             <div className="relative">
               <span
                 aria-hidden="true"
-                className="absolute top-1/2 left-1/2 h-[19rem] w-[19rem] -translate-x-1/2 -translate-y-[58%] rounded-full md:h-[26rem] md:w-[26rem]"
-                style={{ background: SUN, border: `2px solid ${INK}` }}
+                className="absolute top-1/2 left-1/2 h-[22rem] w-[22rem] -translate-x-[46%] -translate-y-1/2 rounded-full sm:h-[30rem] sm:w-[30rem] lg:left-[40%] lg:h-[38rem] lg:w-[38rem]"
+                style={{ background: SUN, border: `2px solid ${INK}`, boxShadow: `0 0 0 1.25rem ${SUN}40` }}
               />
               <img
                 src={IMG.bedPrestige}
@@ -324,86 +348,13 @@ export default function SaelanPage() {
                 width={480}
                 height={396}
                 fetchPriority="high"
-                className="relative mx-auto w-full max-w-[30rem]"
-                style={{ filter: `drop-shadow(8px 8px 0 ${INK}40)` }}
+                className="relative mx-auto block w-[112%] max-w-none translate-x-[4%] sm:w-[104%] lg:w-[128%] lg:translate-x-[16%]"
+                style={{ filter: `drop-shadow(12px 14px 0 ${INK}2e)` }}
               />
-              <p className="relative mt-2 text-center text-xs tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: INK }}>
+              <p className="relative mt-1 text-right text-[11px] tracking-[0.12em] uppercase lg:mr-[-8%]" style={{ fontFamily: MONO, color: `${INK}88` }}>
                 Ergoline Prestige 1400
               </p>
             </div>
-
-            <div>
-              <p className="max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED, color: INK }}>
-                Alla daga. Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
-              </p>
-              <a href="#verdskra" className="mt-4 mb-8 inline-block text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
-                Sjá verðskrá
-              </a>
-
-            {/* the value ticket: subscription math as a promo poster card */}
-            <a
-              href="#askrift"
-              className="sn-ticket relative block focus-visible:outline-offset-8 lg:mb-2"
-              aria-label="Áskrift í ljós, 7.990 krónur á mánuði, borgar sig frá fjórðu heimsókn"
-            >
-              {/* starburst seal */}
-              <span aria-hidden="true" className="sn-seal absolute -top-12 -right-6 z-10 grid h-32 w-32 place-items-center md:-right-10 md:h-36 md:w-36">
-                <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
-                  <polygon
-                    points="50,2 58,14 72,8 74,23 89,22 84,36 98,42 87,52 96,64 81,66 83,81 69,77 64,92 52,83 41,95 34,81 20,85 22,70 7,68 15,56 3,47 17,41 12,26 27,27 28,12 41,19"
-                    fill={RED}
-                    stroke={INK}
-                    strokeWidth="1.6"
-                  />
-                </svg>
-                <span className="relative px-4 text-center text-[11px] leading-tight tracking-[0.04em] uppercase md:text-xs" style={{ fontFamily: SANS_BOLD, color: PAPER }}>
-                  Borgar sig frá 4. heimsókn
-                </span>
-              </span>
-
-              <span className="block border-2 p-6 md:p-7" style={{ background: PAPER, borderColor: INK, boxShadow: `7px 7px 0 ${INK}` }}>
-                <span className="flex items-baseline justify-between gap-4">
-                  <span className="text-2xl uppercase md:text-3xl" style={{ fontFamily: POSTER, color: INK }}>
-                    Áskrift í ljós
-                  </span>
-                  <span className="text-xs tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: RED }}>
-                    Sælan
-                  </span>
-                </span>
-                <span className="mt-4 block text-6xl uppercase md:text-7xl" style={{ fontFamily: POSTER, color: RED }}>
-                  7.990 kr
-                </span>
-                <span className="block text-sm" style={{ fontFamily: MONO, color: INK }}>
-                  á mánuði
-                </span>
-                <span className="mt-4 block border-t-2 border-dashed pt-4 text-base leading-snug" style={{ borderColor: `${INK}55`, fontFamily: SANS_MED, color: INK }}>
-                  Sól einu sinni á dag, allt árið um kring. Hreint handklæði fylgir alltaf.
-                </span>
-                <span className="mt-4 flex items-center justify-between gap-4">
-                  <span className="inline-flex items-center px-5 py-3 text-sm tracking-[0.06em] uppercase" style={{ background: RED, color: PAPER, border: `2px solid ${INK}`, fontFamily: SANS_BOLD }}>
-                    Koma í áskrift
-                  </span>
-                  <span className="text-[11px]" style={{ fontFamily: MONO, color: `${INK}99` }}>
-                    m.v. stakan tíma á 2.590 kr.
-                  </span>
-                </span>
-              </span>
-            </a>
-            </div>
-          </div>
-        </div>
-        {/* print ribbon: one seamless marquee. Spacing baked into each unit so
-            the -50% loop never seams; duplicated wide enough to fill any screen. */}
-        <div className="overflow-hidden border-y-2 py-3" style={{ borderColor: INK, background: RED }} aria-hidden="true">
-          <div className="sn-marquee flex w-max whitespace-nowrap">
-            {Array.from({ length: 20 }, (_, i) => (
-              <span key={i} className="flex items-center gap-9 pr-9 text-xl uppercase" style={{ fontFamily: POSTER, color: PAPER }}>
-                Sólbaðsstofan Sælan
-                <RibbonSun />
-                Faxafen 10
-                <RibbonSun />
-              </span>
-            ))}
           </div>
         </div>
       </section>
