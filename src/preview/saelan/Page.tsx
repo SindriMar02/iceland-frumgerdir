@@ -248,6 +248,10 @@ export default function SaelanPage() {
         .sn-stamp:active{transform:translate(5px,5px);box-shadow:0 0 0 ${INK}}
         .sn-marquee{animation:snMarquee 26s linear infinite}
         @keyframes snMarquee{to{transform:translateX(-50%)}}
+        .sn-ticket{transition:transform .35s cubic-bezier(0.22,1,0.36,1)}
+        .sn-ticket:hover{transform:rotate(0.5deg) translateY(-4px)}
+        .sn-seal{transform:rotate(-10deg);transition:transform .35s cubic-bezier(0.34,1.4,0.5,1)}
+        .sn-ticket:hover .sn-seal{transform:rotate(-2deg) scale(1.06)}
         .sn-sunhop{transition:left .5s cubic-bezier(0.34,1.3,0.5,1)}
         .sn-toggle{transition:background .2s ease,color .2s ease}
         .sn-toggle:active{transform:translate(1px,1px)}
@@ -288,27 +292,74 @@ export default function SaelanPage() {
         </div>
       </header>
 
-      {/* ── HERO — the poster itself ────────────────────────────────────── */}
+      {/* ── HERO — the poster itself, with the áskrift ticket taped on ──── */}
       <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
         <div className="mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
-          <h1 className="text-[clamp(4.2rem,15.5vw,14rem)] leading-[0.86] uppercase" style={{ fontFamily: POSTER, color: INK }}>
-            Alltaf sól
-            <span className="block" style={{ color: RED }}>
-              og sæla
-            </span>
-          </h1>
-          <div className="mt-8 flex flex-wrap items-end justify-between gap-8">
-            <p className="max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED }}>
-              Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
-            </p>
-            <div className="flex flex-wrap items-center gap-6">
-              <Stamp href={NOONA} red>
-                Bóka tíma
-              </Stamp>
-              <a href="#verdskra" className="text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
+          <div className="grid items-end gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
+            <div>
+              <h1 className="text-[clamp(3.6rem,11.5vw,10.5rem)] leading-[0.86] uppercase" style={{ fontFamily: POSTER, color: INK }}>
+                Alltaf sól
+                <span className="block" style={{ color: RED }}>
+                  og sæla
+                </span>
+              </h1>
+              <p className="mt-7 max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED }}>
+                Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
+              </p>
+              <a href="#verdskra" className="mt-5 inline-block text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
                 Sjá verðskrá
               </a>
             </div>
+
+            {/* the value ticket: subscription math as a promo poster card */}
+            <a
+              href="#askrift"
+              className="sn-ticket relative block rotate-2 focus-visible:outline-offset-8 lg:mb-2"
+              aria-label="Áskrift í ljós, 7.990 krónur á mánuði, borgar sig frá fjórðu heimsókn"
+            >
+              {/* starburst seal */}
+              <span aria-hidden="true" className="sn-seal absolute -top-12 -right-6 z-10 grid h-32 w-32 place-items-center md:-right-10 md:h-36 md:w-36">
+                <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
+                  <polygon
+                    points="50,2 58,14 72,8 74,23 89,22 84,36 98,42 87,52 96,64 81,66 83,81 69,77 64,92 52,83 41,95 34,81 20,85 22,70 7,68 15,56 3,47 17,41 12,26 27,27 28,12 41,19"
+                    fill={RED}
+                    stroke={INK}
+                    strokeWidth="1.6"
+                  />
+                </svg>
+                <span className="relative px-4 text-center text-[11px] leading-tight tracking-[0.04em] uppercase md:text-xs" style={{ fontFamily: SANS_BOLD, color: PAPER }}>
+                  Borgar sig frá 4. heimsókn
+                </span>
+              </span>
+
+              <span className="block border-2 p-6 md:p-7" style={{ background: PAPER, borderColor: INK, boxShadow: `7px 7px 0 ${INK}` }}>
+                <span className="flex items-baseline justify-between gap-4">
+                  <span className="text-2xl uppercase md:text-3xl" style={{ fontFamily: POSTER, color: INK }}>
+                    Áskrift í ljós
+                  </span>
+                  <span className="text-xs tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: RED }}>
+                    Sælan
+                  </span>
+                </span>
+                <span className="mt-4 block text-6xl uppercase md:text-7xl" style={{ fontFamily: POSTER, color: RED }}>
+                  7.990 kr
+                </span>
+                <span className="block text-sm" style={{ fontFamily: MONO, color: INK }}>
+                  á mánuði
+                </span>
+                <span className="mt-4 block border-t-2 border-dashed pt-4 text-base leading-snug" style={{ borderColor: `${INK}55`, fontFamily: SANS_MED, color: INK }}>
+                  Sól einu sinni á dag, allt árið um kring. Hreint handklæði fylgir alltaf.
+                </span>
+                <span className="mt-4 flex items-center justify-between gap-4">
+                  <span className="inline-flex items-center px-5 py-3 text-sm tracking-[0.06em] uppercase" style={{ background: RED, color: PAPER, border: `2px solid ${INK}`, fontFamily: SANS_BOLD }}>
+                    Koma í áskrift
+                  </span>
+                  <span className="text-[11px]" style={{ fontFamily: MONO, color: `${INK}99` }}>
+                    m.v. stakan tíma á 2.590 kr.
+                  </span>
+                </span>
+              </span>
+            </a>
           </div>
         </div>
         {/* print ribbon: the one marquee */}
