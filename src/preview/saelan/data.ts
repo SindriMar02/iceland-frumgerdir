@@ -24,9 +24,11 @@ export const SOCIAL = {
 const ASSET = `${import.meta.env.BASE_URL}img/saelan/`
 export const IMG = {
   logo: `${ASSET}logo.png`,
+  bedK11: `${ASSET}bed-k11.png`, // KBL K11 Air Loft, official product cutout (transparent)
+  bedK11Room: `${ASSET}bed-k11-room.jpg`, // K11 Air Loft, dark studio 3/4 view
   bedPrestige: `${ASSET}bed-prestige.png`,
-  bedGlow: `${ASSET}bed-ergoline.jpg`,
-  bedGlow2: `${ASSET}bed-led.jpg`,
+  bedGlow: `${ASSET}bed-ergoline.jpg`, // real salon photo of their Ergoline (amber neon)
+  bedGlow2: `${ASSET}bed-led.jpg`, // real salon photo of their Ergoline (blue/purple LED)
   storefront: `${ASSET}storefront.jpg`,
   products7suns: `${ASSET}products-7suns.jpg`,
   products7suns2: `${ASSET}products-7suns-2.jpg`,
@@ -41,8 +43,8 @@ export const BEDS = [
     body:
       'SunControl leyfir þér að sérsníða brúnkuna og SunFinity LED tæknin skilar 26% meira UVA og 33% meira UVB á andlit og háls. Loft Infinity speglar og kæling fyrir andlit og líkama gera tímann að hreinni slökun.',
     specs: ['ALL LED', 'SunControl sérsníðing', '+26% UVA á andlit', 'Kæling fyrir andlit og líkama'],
-    image: IMG.bedGlow2,
-    alt: 'Ljósabekkur í mjúkri LED lýsingu í Sælunni',
+    image: IMG.bedK11Room,
+    alt: 'KBL K11 Air Loft ljósabekkurinn',
   },
   {
     id: 'prestige',

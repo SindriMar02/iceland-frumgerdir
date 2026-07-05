@@ -287,10 +287,10 @@ export default function SaelanPage() {
         </div>
       </header>
 
-      {/* ── HERO — the bed takes over, huge and bleeding off the right ───── */}
+      {/* ── HERO — the flagship K11 bed, contained, on the brand sun ────── */}
       <section id="top" className="relative flex min-h-[100svh] items-center overflow-hidden border-b-2" style={{ borderColor: INK }}>
         <div className="mx-auto w-full max-w-[1280px] px-5 pt-24 pb-10 md:px-8 md:pt-20">
-          <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-2">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-10">
             {/* content, left */}
             <div className="relative z-10">
               <h1 className="text-[clamp(3.4rem,8.4vw,8rem)] leading-[0.84] uppercase" style={{ fontFamily: POSTER, color: INK }}>
@@ -335,24 +335,26 @@ export default function SaelanPage() {
               </div>
             </div>
 
-            {/* the bed, oversized, bleeding off the right edge */}
-            <div className="relative">
-              <span
-                aria-hidden="true"
-                className="absolute top-1/2 left-1/2 h-[22rem] w-[22rem] -translate-x-[46%] -translate-y-1/2 rounded-full sm:h-[30rem] sm:w-[30rem] lg:left-[40%] lg:h-[38rem] lg:w-[38rem]"
-                style={{ background: SUN, border: `2px solid ${INK}`, boxShadow: `0 0 0 1.25rem ${SUN}40` }}
-              />
-              <img
-                src={IMG.bedPrestige}
-                alt="Ergoline Prestige 1400 ljósabekkurinn"
-                width={480}
-                height={396}
-                fetchPriority="high"
-                className="relative mx-auto block w-[112%] max-w-none translate-x-[4%] sm:w-[104%] lg:w-[128%] lg:translate-x-[16%]"
-                style={{ filter: `drop-shadow(12px 14px 0 ${INK}2e)` }}
-              />
-              <p className="relative mt-1 text-right text-[11px] tracking-[0.12em] uppercase lg:mr-[-8%]" style={{ fontFamily: MONO, color: `${INK}88` }}>
-                Ergoline Prestige 1400
+            {/* the flagship bed, contained, floating on the brand sun */}
+            <div className="relative flex flex-col items-center">
+              <div className="relative flex w-full items-center justify-center">
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1/2 left-1/2 h-[20rem] w-[20rem] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[27rem] sm:w-[27rem] lg:h-[31rem] lg:w-[31rem]"
+                  style={{ background: SUN, border: `2px solid ${INK}`, boxShadow: `0 0 0 1.25rem ${SUN}40` }}
+                />
+                <img
+                  src={IMG.bedK11}
+                  alt="KBL K11 Air Loft ljósabekkurinn"
+                  width={1400}
+                  height={877}
+                  fetchPriority="high"
+                  className="relative block w-full max-w-[38rem]"
+                  style={{ filter: `drop-shadow(10px 12px 16px ${INK}33)` }}
+                />
+              </div>
+              <p className="mt-3 text-center text-[11px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: `${INK}88` }}>
+                KBL K11 Air Loft
               </p>
             </div>
           </div>
