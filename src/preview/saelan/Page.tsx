@@ -276,24 +276,23 @@ export default function SaelanPage() {
         }
       `}</style>
 
-      {/* ── Seamless header on the photo ────────────────────────────────── */}
+      {/* ── Seamless header on the poster ───────────────────────────────── */}
       <header className="absolute inset-x-0 top-0 z-40">
         <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 py-5 md:px-8">
-          {/* the logo rides on a paper sticker so it reads on the photo */}
-          <a href="#top" className="block border-2 px-2.5 py-1.5" style={{ background: PAPER, borderColor: INK, boxShadow: `4px 4px 0 ${INK}` }} aria-label="Sólbaðsstofan Sælan">
-            <img src={IMG.logo} alt="Sólbaðsstofan Sælan" width={512} height={512} className="h-12 w-auto md:h-16" />
+          <a href="#top" className="block" aria-label="Sólbaðsstofan Sælan">
+            <img src={IMG.logo} alt="Sólbaðsstofan Sælan" width={512} height={512} className="h-16 w-auto md:h-20" />
           </a>
           <nav className="hidden items-center gap-8 text-base md:flex" style={{ fontFamily: SANS_BOLD }} aria-label="Valmynd">
-            <a href="#bekkirnir" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
+            <a href="#bekkirnir" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Bekkirnir
             </a>
-            <a href="#verdskra" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
+            <a href="#verdskra" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Verðskrá
             </a>
-            <a href="#askrift" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
+            <a href="#askrift" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Áskrift
             </a>
-            <a href="#spraytan" className="underline-offset-4 hover:underline" style={{ color: PAPER }}>
+            <a href="#spraytan" className="underline-offset-4 hover:underline" style={{ color: INK }}>
               Spraytan
             </a>
           </nav>
@@ -303,37 +302,43 @@ export default function SaelanPage() {
         </div>
       </header>
 
-      {/* ── HERO — their own amber bed photo, full bleed under the poster ── */}
+      {/* ── HERO — the Prestige 1400 cutout in front of the brand sun ────── */}
       <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
-        <img
-          src={IMG.bedGlow}
-          alt=""
-          width={1276}
-          height={1600}
-          fetchPriority="high"
-          className="absolute inset-0 h-full w-full object-cover"
-          aria-hidden="true"
-        />
-        {/* ink scrims: top for the nav, bottom-left for the headline */}
-        <div aria-hidden="true" className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${INK}b3 0%, ${INK}33 26%, transparent 48%)` }} />
-        <div aria-hidden="true" className="absolute inset-0" style={{ background: `linear-gradient(10deg, ${INK}e6 0%, ${INK}8c 38%, transparent 70%)` }} />
-
         <div className="relative mx-auto w-full max-w-[1280px] px-5 pt-28 pb-10 md:px-8 md:pb-14">
-          <div className="grid items-end gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
+          <h1 className="text-[clamp(3.2rem,9.5vw,8.5rem)] leading-[0.88] uppercase" style={{ fontFamily: POSTER, color: INK }}>
+            Gerðu þér{' '}
+            <span style={{ color: RED }}>glaðan dag</span>
+          </h1>
+
+          <div className="mt-8 grid items-end gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+            {/* the bed they actually run, in front of a flat brand sun */}
+            <div className="relative">
+              <span
+                aria-hidden="true"
+                className="absolute top-1/2 left-1/2 h-[19rem] w-[19rem] -translate-x-1/2 -translate-y-[58%] rounded-full md:h-[26rem] md:w-[26rem]"
+                style={{ background: SUN, border: `2px solid ${INK}` }}
+              />
+              <img
+                src={IMG.bedPrestige}
+                alt="Ergoline Prestige 1400 ljósabekkurinn"
+                width={480}
+                height={396}
+                fetchPriority="high"
+                className="relative mx-auto w-full max-w-[30rem]"
+                style={{ filter: `drop-shadow(8px 8px 0 ${INK}40)` }}
+              />
+              <p className="relative mt-2 text-center text-xs tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: INK }}>
+                Ergoline Prestige 1400
+              </p>
+            </div>
+
             <div>
-              <h1 className="text-[clamp(3.4rem,10.5vw,9.5rem)] leading-[0.88] uppercase" style={{ fontFamily: POSTER, color: PAPER }}>
-                Gerðu þér
-                <span className="block" style={{ color: SUN }}>
-                  glaðan dag
-                </span>
-              </h1>
-              <p className="mt-6 max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED, color: PAPER }}>
+              <p className="max-w-md text-lg leading-snug md:text-xl" style={{ fontFamily: SANS_MED, color: INK }}>
                 Alla daga. Nýjustu ljósabekkir frá Ergoline og KBL, sjálfvirkt spraytan og áskrift í ljós.
               </p>
-              <a href="#verdskra" className="mt-5 inline-block text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: PAPER }}>
+              <a href="#verdskra" className="mt-4 mb-8 inline-block text-base underline underline-offset-4" style={{ fontFamily: SANS_BOLD, color: INK }}>
                 Sjá verðskrá
               </a>
-            </div>
 
             {/* the value ticket: subscription math as a promo poster card */}
             <a
@@ -384,6 +389,7 @@ export default function SaelanPage() {
                 </span>
               </span>
             </a>
+            </div>
           </div>
         </div>
         {/* print ribbon: one seamless marquee. Spacing baked into each unit so

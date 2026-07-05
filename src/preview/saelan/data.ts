@@ -24,6 +24,7 @@ export const SOCIAL = {
 const ASSET = `${import.meta.env.BASE_URL}img/saelan/`
 export const IMG = {
   logo: `${ASSET}logo.png`,
+  bedPrestige: `${ASSET}bed-prestige.png`,
   bedGlow: `${ASSET}bed-ergoline.jpg`,
   bedGlow2: `${ASSET}bed-led.jpg`,
   storefront: `${ASSET}storefront.jpg`,
