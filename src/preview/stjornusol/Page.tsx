@@ -542,9 +542,9 @@ export default function StjornusolPage() {
             <div className="flex flex-wrap items-end justify-between gap-6">
               <Reveal>
                 <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(40px, 6.5vw, 84px)', lineHeight: 1.02, color: TXT }}>
-                  Sami tími,
+                  Mættu fyrr.
                   <br />
-                  tvö verð.
+                  Sparaðu meira.
                 </h2>
               </Reveal>
               <Reveal delay={80} className="text-right">
@@ -651,7 +651,7 @@ export default function StjornusolPage() {
             </Reveal>
             <Reveal>
               <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(40px, 6.5vw, 84px)', lineHeight: 1.02, color: TXT }}>
-                Fjórir bekkir, eitt ljós.
+                Veldu vél sem hentar þér.
               </h2>
             </Reveal>
             <div className="mt-10">
