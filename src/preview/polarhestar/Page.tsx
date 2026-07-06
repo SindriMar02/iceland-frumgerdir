@@ -988,11 +988,12 @@ function PolarHestarPageInner() {
                     className={`${navLink} ph-navlink inline-flex items-center gap-1`}
                     data-active={on}
                     style={{ color }}
+                    onClick={(e) => e.currentTarget.blur()} // don't let the click leave the menu stuck open
                   >
                     {item.label}
                     <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180" aria-hidden="true" />
                   </a>
-                  <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 translate-y-1 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                  <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
                     <div
                       className="min-w-[12rem] rounded-2xl border p-2 shadow-[0_20px_44px_-24px_rgba(18,23,56,0.5)]"
                       style={{ background: '#ffffff', borderColor: '#1a20521a' }}
