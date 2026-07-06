@@ -881,6 +881,12 @@ function PolarHestarPageInner() {
         .ph-navlink::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:1px;background:currentColor;opacity:.85;transform:scaleX(0);transform-origin:left;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
         .ph-navlink:hover::after,.ph-navlink[data-active="true"]::after{transform:scaleX(1)}
 
+        /* header dropdown items — fjord-blue hover with a sliding arrow */
+        .ph-dd-item{display:flex;align-items:center;justify-content:space-between;gap:.75rem;border-radius:.75rem;padding:.6rem .85rem;color:#3D4565;transition:background-color .2s ease,color .2s ease}
+        .ph-dd-item:hover{background:#3B8FD414;color:#2160A6}
+        .ph-dd-arrow{opacity:0;transform:translateX(-5px);transition:opacity .2s ease,transform .2s ease;color:#2160A6}
+        .ph-dd-item:hover .ph-dd-arrow{opacity:1;transform:none}
+
         /* Þokan — mist veil on language switch */
         .ph-veil{opacity:0;background:#EDF1F73d;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);transition:opacity .22s cubic-bezier(.2,.7,.2,1)}
         .ph-veil[data-on="true"]{opacity:1;transition-duration:.13s}
@@ -991,21 +997,22 @@ function PolarHestarPageInner() {
                     onClick={(e) => e.currentTarget.blur()} // don't let the click leave the menu stuck open
                   >
                     {item.label}
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180" aria-hidden="true" />
+                    <ChevronDown className="h-3 w-3 opacity-70 transition-transform duration-300 group-hover:rotate-180" aria-hidden="true" />
                   </a>
-                  <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                  <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-3 opacity-0 transition-all duration-300 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
                     <div
-                      className="min-w-[12rem] rounded-2xl border p-2 shadow-[0_20px_44px_-24px_rgba(18,23,56,0.5)]"
-                      style={{ background: '#ffffff', borderColor: '#1a20521a' }}
+                      className="min-w-[13rem] rounded-2xl p-1.5 shadow-[0_2px_8px_-3px_rgba(18,23,56,0.15),0_24px_48px_-24px_rgba(18,23,56,0.55)] ring-1 ring-[#161B3C14] backdrop-blur-xl"
+                      style={{ background: 'rgba(247,250,252,0.85)' }}
                     >
                       {item.kids.map(([h, sub]) => (
                         <a
                           key={h}
                           href={h}
-                          className="block rounded-xl px-3 py-2 font-hanken text-sm font-medium transition-colors hover:bg-black/5"
-                          style={{ color: INK }}
+                          onClick={(e) => e.currentTarget.blur()}
+                          className="ph-dd-item font-hanken text-sm font-medium"
                         >
                           {sub}
+                          <ChevronRight className="ph-dd-arrow h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         </a>
                       ))}
                     </div>
