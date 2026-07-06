@@ -10,7 +10,7 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
     <footer
       lang="is"
       className={`px-5 pt-10 pb-28 text-center text-xs leading-relaxed md:pb-10 ${
-        dark ? 'bg-black text-white/60' : 'bg-neutral-50 text-neutral-400'
+        dark ? 'bg-black text-white/60' : 'bg-neutral-50 text-neutral-500'
       }`}
     >
       <p className="mx-auto max-w-2xl">

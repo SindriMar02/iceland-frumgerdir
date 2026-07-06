@@ -6,6 +6,7 @@ import {
   Check,
   ChevronRight,
   Clock,
+  Facebook,
   Mail,
   MapPin,
   Minus,
@@ -19,23 +20,9 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import {
-  ADDRESS,
-  COPY,
-  EMAIL,
-  IMG,
-  type Lang,
-  LONG_TOURS,
-  MAPS_HREF,
-  PHONE_DISPLAY,
-  PHONE_HREF,
-  REVIEWS,
-  SEASONS,
-  SHOP,
-  SHORT_TOURS,
-  STATS,
-  type Tour,
-} from './data'
+import { COPY, type Lang } from './data'
+import { stegaClean } from '@sanity/client/stega'
+import { SiteContentProvider, useSiteContent, type TourX } from './sanity'
 
 const company = getPreviewCompany('polarhestar')
 
@@ -57,18 +44,22 @@ const ICE = '#9BD8F3' // logo ice-blue (alias of CLAY_HI on night sections)
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 
+const LANGS: Lang[] = ['is', 'en', 'de']
+const LANG_NAMES: Record<Lang, string> = { is: 'Íslenska', en: 'English', de: 'Deutsch' }
+
 /* ── helpers ──────────────────────────────────────────────────────────── */
-const u = (id: string, w = 1600) =>
-  `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
-const srcSet = (id: string) => `${u(id, 828)} 828w, ${u(id, 1280)} 1280w, ${u(id, 2000)} 2000w`
 const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
 // hand-rolled for IS — Chrome's is-IS locale data is unreliable (falls back to English)
 const MONTHS_IS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember']
 const fmtDate = (iso: string, lang: Lang) => {
   const d = new Date(iso + 'T00:00:00')
+  if (!iso || Number.isNaN(d.getTime())) return '' // mid-typing/cleared input must never throw
   if (lang === 'is') return `${d.getDate()}. ${MONTHS_IS[d.getMonth()]} ${d.getFullYear()}`
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
+  const locale = lang === 'de' ? 'de-DE' : 'en-GB'
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
 }
+/** Trilingual inline pick for tiny UI strings that don't live in COPY. */
+const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const isoDay = (d: Date) =>
   new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 
@@ -190,7 +181,7 @@ function CountUp({
   }, [to, duration])
   // Intl 'is-IS' falls back to a dot in some Chromes — force the Icelandic comma
   const fixed = val.toFixed(decimals)
-  const txt = lang === 'is' ? fixed.replace('.', ',') : fixed
+  const txt = lang === 'en' ? fixed : fixed.replace('.', ',') // is + de use decimal comma
   return (
     <span ref={ref} className="tabular-nums">
       {txt}
@@ -199,6 +190,67 @@ function CountUp({
 }
 
 /* ── Booking panel — the flaw-fixing centrepiece (date with year, live price) ── */
+/* Module scope (not inside Booking) so React keeps identity across renders —
+   inline declarations remounted on every keystroke and dropped keyboard focus. */
+const Step = ({ n, label }: { n: number; label: string }) => (
+  <div className="mb-3 flex items-center gap-2">
+    <span
+      className="grid h-6 w-6 place-items-center rounded-full font-hanken text-xs font-bold text-white"
+      style={{ background: CLAY_FILL }}
+      aria-hidden="true"
+    >
+      {n}
+    </span>
+    <span className="font-hanken text-sm font-semibold" style={{ color: INK }}>
+      {label}
+    </span>
+  </div>
+)
+
+const Stepper = ({
+  label,
+  value,
+  set,
+  min,
+  lang,
+}: {
+  label: string
+  value: number
+  set: (n: number) => void
+  min: number
+  lang: Lang
+}) => (
+  <div className="flex items-center justify-between gap-3 py-2">
+    <span className="font-hanken text-sm" style={{ color: BODY }}>
+      {label}
+    </span>
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => set(Math.max(min, value - 1))}
+        disabled={value <= min}
+        aria-label={`${label}: ${tri(lang, 'fækka', 'decrease', 'weniger')}`}
+        className="grid h-11 w-11 place-items-center rounded-full border transition-colors disabled:opacity-30"
+        style={{ borderColor: '#0000001f', color: INK }}
+      >
+        <Minus className="h-4 w-4" />
+      </button>
+      <span className="w-5 text-center font-hanken text-base font-semibold tabular-nums" style={{ color: INK }}>
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => set(Math.min(10, value + 1))}
+        aria-label={`${label}: ${tri(lang, 'fjölga', 'increase', 'mehr')}`}
+        className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-black/5"
+        style={{ borderColor: '#0000001f', color: INK }}
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+    </div>
+  </div>
+)
+
 function Booking({
   t,
   lang,
@@ -210,83 +262,80 @@ function Booking({
   selectedId: string
   onSelect: (id: string) => void
 }) {
+  const { SHORT_TOURS, BOOKING_EMAIL, PHONE_DISPLAY, PHONE_HREF, PICS, CHILD_DISCOUNT } = useSiteContent()
   const tour = SHORT_TOURS.find((x) => x.id === selectedId) ?? SHORT_TOURS[0]
   const today = new Date()
   const [date, setDate] = useState(() => isoDay(new Date(today.getTime() + 7 * 864e5)))
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
   const [done, setDone] = useState(false)
+  const doneHeadRef = useRef<HTMLHeadingElement>(null)
+  useEffect(() => {
+    if (done) doneHeadRef.current?.focus() // announce + anchor keyboard users on success
+  }, [done])
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [note, setNote] = useState('')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
 
-  const childPrice = Math.max(tour.price - 2000, 0)
+  const childPrice = Math.max(tour.price - CHILD_DISCOUNT, 0)
   const total = tour.price * adults + childPrice * children
 
-  const Step = ({ n, label }: { n: number; label: string }) => (
-    <div className="mb-3 flex items-center gap-2">
-      <span
-        className="grid h-6 w-6 place-items-center rounded-full font-hanken text-xs font-bold text-white"
-        style={{ background: CLAY_FILL }}
-        aria-hidden="true"
-      >
-        {n}
-      </span>
-      <span className="font-hanken text-sm font-semibold" style={{ color: INK }}>
-        {label}
-      </span>
-    </div>
-  )
-
-  const Stepper = ({
-    label,
-    value,
-    set,
-    min,
-  }: {
-    label: string
-    value: number
-    set: (n: number) => void
-    min: number
-  }) => (
-    <div className="flex items-center justify-between gap-3 py-2">
-      <span className="font-hanken text-sm" style={{ color: BODY }}>
-        {label}
-      </span>
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => set(Math.max(min, value - 1))}
-          disabled={value <= min}
-          aria-label={`${label}: ${lang === 'is' ? 'fækka' : 'decrease'}`}
-          className="grid h-11 w-11 place-items-center rounded-full border transition-colors disabled:opacity-30"
-          style={{ borderColor: '#0000001f', color: INK }}
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <span className="w-5 text-center font-hanken text-base font-semibold tabular-nums" style={{ color: INK }}>
-          {value}
-        </span>
-        <button
-          type="button"
-          onClick={() => set(Math.min(10, value + 1))}
-          aria-label={`${label}: ${lang === 'is' ? 'fjölga' : 'increase'}`}
-          className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-black/5"
-          style={{ borderColor: '#0000001f', color: INK }}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  )
+  /** Real booking request → the owner's booking inbox (FormSubmit relay). */
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (status === 'sending') return
+    setStatus('sending')
+    try {
+      const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(BOOKING_EMAIL)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: `Bókunarbeiðni: ${stegaClean(tour.name.is)} · ${date}`,
+          _template: 'table',
+          _replyto: email,
+          _honey: '', // spam honeypot
+          'Ferð': `${stegaClean(tour.name.is)} (${stegaClean(tour.meta.is)})`,
+          'Dagsetning': date,
+          'Fullorðnir': String(adults),
+          'Börn (12 og yngri)': String(children),
+          'Áætlað verð': isk(total),
+          'Nafn': name,
+          'Netfang': email,
+          'Sími': phone || '—',
+          'Skilaboð': note || '—',
+          'Tungumál gests': LANG_NAMES[lang],
+        }),
+      })
+      const json = (await res.json().catch(() => null)) as { success?: string | boolean } | null
+      if (res.ok && json && String(json.success) === 'true') {
+        setStatus('idle')
+        setDone(true)
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    }
+  }
 
   return (
     <div className="grid gap-0 overflow-hidden rounded-[28px] shadow-[0_30px_70px_-30px_rgba(18,23,56,0.5)] md:grid-cols-2" style={{ background: PAPER }}>
       {/* image side */}
       <div className="relative min-h-[240px] overflow-hidden md:min-h-full">
         <Img
-          src={u(IMG.booking, 1000)}
-          alt={lang === 'is' ? 'Tveir íslenskir hestar á beit' : 'Two Icelandic horses grazing'}
+          src={PICS.booking.src}
+          srcSet={PICS.booking.srcSet}
+          sizes="(max-width: 768px) 100vw, 520px"
+          alt={
+            PICS.booking.alt ??
+            tri(lang, 'Tveir íslenskir hestar á beit', 'Two Icelandic horses grazing', 'Zwei grasende Islandpferde')
+          }
           className="ph-drift absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: PICS.booking.pos }}
         />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${TWILIGHT}cc, transparent 70%)` }} />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${TWILIGHT}e6, ${TWILIGHT}b3 55%, ${TWILIGHT}80 100%)` }} />
         <div className="relative p-6 md:p-8">
           <p className="max-w-[15rem] font-spectral text-2xl leading-snug text-white md:text-3xl">{t.bookPanelLine}</p>
           <p className="mt-2 max-w-[15rem] font-hanken text-sm text-white/85">{t.bookBody}</p>
@@ -296,11 +345,11 @@ function Booking({
       {/* form side */}
       <div className="p-6 md:p-8">
         {done ? (
-          <div className="flex h-full flex-col items-start justify-center">
+          <div role="status" className="flex h-full flex-col items-start justify-center">
             <span className="grid h-12 w-12 place-items-center rounded-full" style={{ background: CLAY_FILL }}>
               <Check className="h-6 w-6 text-white" />
             </span>
-            <h3 className="mt-4 font-spectral text-2xl" style={{ color: INK }}>
+            <h3 ref={doneHeadRef} tabIndex={-1} className="mt-4 font-spectral text-2xl outline-none" style={{ color: INK }}>
               {t.confirmedTitle}
             </h3>
             <p className="mt-2 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
@@ -314,10 +363,12 @@ function Booking({
               <div className="flex justify-between gap-4">
                 <dt style={{ color: BODY }}>
                   {adults}{' '}
-                  {lang === 'is' ? (adults === 1 ? 'fullorðinn' : 'fullorðnir') : adults === 1 ? 'adult' : 'adults'}
+                  {adults === 1
+                    ? tri(lang, 'fullorðinn', 'adult', 'Erwachsener')
+                    : tri(lang, 'fullorðnir', 'adults', 'Erwachsene')}
                   {children > 0
                     ? ` · ${children} ${
-                        lang === 'is' ? (children === 1 ? 'barn' : 'börn') : children === 1 ? 'child' : 'children'
+                        children === 1 ? tri(lang, 'barn', 'child', 'Kind') : tri(lang, 'börn', 'children', 'Kinder')
                       }`
                     : ''}
                 </dt>
@@ -334,12 +385,7 @@ function Booking({
             </button>
           </div>
         ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              setDone(true)
-            }}
-          >
+          <form onSubmit={submit}>
             <Step n={1} label={t.stepTour} />
             <div className="mb-5 flex flex-wrap gap-2">
               {SHORT_TOURS.map((x) => {
@@ -370,6 +416,7 @@ function Booking({
                 <Calendar className="h-4 w-4 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
                 <input
                   type="date"
+                  required
                   value={date}
                   min={isoDay(today)}
                   onChange={(e) => setDate(e.target.value)}
@@ -384,12 +431,75 @@ function Booking({
 
             <Step n={3} label={t.stepRiders} />
             <div className="divide-y" style={{ borderColor: '#0000000f' }}>
-              <Stepper label={t.adults} value={adults} set={setAdults} min={1} />
-              <Stepper label={t.children} value={children} set={setChildren} min={0} />
+              <Stepper label={t.adults} value={adults} set={setAdults} min={1} lang={lang} />
+              <Stepper label={t.children} value={children} set={setChildren} min={0} lang={lang} />
             </div>
             {children > 0 && (
               <p className="mt-2 font-hanken text-xs" style={{ color: SLATE }}>
                 {t.childDiscountApplied}
+              </p>
+            )}
+
+            <div className="mt-5">
+              <Step n={4} label={t.stepContact} />
+              <div className="space-y-2.5">
+                <label className="block">
+                  <span className="sr-only">{t.nameLabel}</span>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t.nameLabel}
+                    className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
+                    style={{ borderColor: '#0000001f', background: MIST, color: INK }}
+                  />
+                </label>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="sr-only">{t.emailLabel}</span>
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t.emailLabel}
+                      className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
+                      style={{ borderColor: '#0000001f', background: MIST, color: INK }}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="sr-only">{t.phoneLabel}</span>
+                    <input
+                      type="tel"
+                      autoComplete="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder={t.phoneLabel}
+                      className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
+                      style={{ borderColor: '#0000001f', background: MIST, color: INK }}
+                    />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="sr-only">{t.noteLabel}</span>
+                  <textarea
+                    rows={2}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder={t.noteLabel}
+                    className="w-full resize-none rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
+                    style={{ borderColor: '#0000001f', background: MIST, color: INK }}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {status === 'error' && (
+              <p role="alert" className="mt-3 rounded-xl px-3.5 py-2.5 font-hanken text-xs leading-relaxed" style={{ background: '#FBE9E9', color: '#8C2B2B' }}>
+                {t.errorText} <a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
               </p>
             )}
 
@@ -406,11 +516,12 @@ function Booking({
               </div>
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
+                disabled={status === 'sending'}
+                className="inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
                 style={{ background: CLAY_FILL }}
               >
-                {t.confirmBtn}
-                <ArrowRight className="h-4 w-4" />
+                {status === 'sending' ? t.sendingBtn : t.confirmBtn}
+                <ArrowRight className={`h-4 w-4 ${status === 'sending' ? 'animate-pulse' : ''}`} />
               </button>
             </div>
           </form>
@@ -422,6 +533,7 @@ function Booking({
 
 /* ── Seasons — signature "Ljós Norðursins" switcher ───────────────────── */
 function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
+  const { SEASONS } = useSiteContent()
   const [active, setActive] = useState(0)
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const season = SEASONS[active]
@@ -447,16 +559,20 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
         {SEASONS.map((s, i) => (
           <Img
             key={s.id}
-            src={u(s.image, 1800)}
-            srcSet={srcSet(s.image)}
+            src={s.pic.src}
+            srcSet={s.pic.srcSet}
             sizes="(max-width: 1100px) 100vw, 1100px"
             alt={
-              lang === 'is'
-                ? `Íslenskir hestar — ${s.name.is.toLowerCase()}`
-                : `Icelandic horses — ${s.name.en.toLowerCase()}`
+              s.pic.alt ??
+              tri(
+                lang,
+                `Íslenskir hestar — ${s.name.is.toLowerCase()}`,
+                `Icelandic horses — ${s.name.en.toLowerCase()}`,
+                `Islandpferde — ${s.name.de.toLowerCase()}`,
+              )
             }
             className="ph-season-img absolute inset-0 h-full w-full object-cover"
-            style={{ opacity: i === active ? 1 : 0, transform: i === active ? 'scale(1)' : 'scale(1.06)' }}
+            style={{ opacity: i === active ? 1 : 0, transform: i === active ? 'scale(1)' : 'scale(1.06)', objectPosition: s.pic.pos }}
           />
         ))}
         {/* legibility + season glow */}
@@ -512,7 +628,11 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
 }
 
 /* ── Page ─────────────────────────────────────────────────────────────── */
-export default function PolarHestarPage() {
+function PolarHestarPageInner() {
+  const {
+    COPY, SHORT_TOURS, LONG_TOURS, REVIEWS, SHOP, STATS, GTK, FARM, GALLERY, PICS,
+    ADDRESS, EMAIL, FACEBOOK, MAPS_HREF, PHONE_DISPLAY, PHONE_HREF,
+  } = useSiteContent()
   const [lang, setLang] = useState<Lang>('is')
   const [scrolled, setScrolled] = useState(false)
   const [bookTour, setBookTour] = useState(SHORT_TOURS[0].id)
@@ -520,9 +640,14 @@ export default function PolarHestarPage() {
   const bookingRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    document.title = 'Pólar Hestar — hestaferðir við Eyjafjörð'
+    document.title = tri(
+      lang,
+      'Pólar Hestar — hestaferðir við Eyjafjörð',
+      'Pólar Hestar — riding tours in North Iceland',
+      'Pólar Hestar — Reittouren in Nordisland',
+    )
     setThemeColor(MIST)
-  }, [])
+  }, [lang])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -533,7 +658,8 @@ export default function PolarHestarPage() {
 
   const goBook = (id: string) => {
     setBookTour(id)
-    bookingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    bookingRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }
 
   const navLink = 'font-hanken text-sm font-medium transition-colors'
@@ -603,7 +729,7 @@ export default function PolarHestarPage() {
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <header
-        className="fixed inset-x-0 top-0 z-40 transition-all duration-300"
+        className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${scrolled ? '' : 'ph-dark'}`}
         style={{
           background: scrolled ? `${MIST}fa` : 'transparent',
           boxShadow: scrolled ? '0 1px 0 rgba(22,27,60,0.08)' : 'none',
@@ -622,10 +748,11 @@ export default function PolarHestarPage() {
               }}
             />
           </a>
-          <nav className="hidden items-center gap-7 md:flex" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
+          <nav className="hidden items-center gap-7 md:flex" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
             {[
               ['#ferdir', t.nav.tours],
               ['#arstidir', t.nav.seasons],
+              ['#gott', t.nav.info],
               ['#heimsokn', t.nav.visit],
             ].map(([href, label]) => (
               <a key={href} href={href} className={navLink} style={{ color: scrolled ? BODY : '#ffffffe6' }}>
@@ -634,18 +761,33 @@ export default function PolarHestarPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLang(lang === 'is' ? 'en' : 'is')}
-              className="rounded-full border px-3 py-2 font-hanken text-xs font-semibold transition-colors"
-              style={{
-                color: scrolled ? INK : '#fff',
-                borderColor: scrolled ? '#1a205233' : '#ffffff66',
-              }}
-              aria-label={lang === 'is' ? 'Switch to English' : 'Skipta yfir á íslensku'}
+            <div
+              role="group"
+              aria-label={lang === 'is' ? 'Tungumál' : lang === 'de' ? 'Sprache' : 'Language'}
+              className="flex overflow-hidden rounded-full border font-hanken text-[0.7rem] font-semibold"
+              style={{ borderColor: scrolled ? '#1a205233' : '#ffffff66' }}
             >
-              {t.langBtn}
-            </button>
+              {LANGS.map((code) => {
+                const active = lang === code
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setLang(code)}
+                    aria-pressed={active}
+                    aria-label={LANG_NAMES[code]}
+                    className="px-3 py-2.5 uppercase tracking-wide transition-colors"
+                    style={
+                      active
+                        ? { background: scrolled ? INK : '#ffffff', color: scrolled ? MIST : INK }
+                        : { color: scrolled ? BODY : '#ffffffd9' }
+                    }
+                  >
+                    {code}
+                  </button>
+                )
+              })}
+            </div>
             <button
               type="button"
               onClick={() => goBook(bookTour)}
@@ -659,23 +801,28 @@ export default function PolarHestarPage() {
       </header>
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <section id="top" className="relative flex min-h-[100svh] items-end overflow-hidden">
+      <section id="top" className="ph-dark relative flex min-h-[100svh] items-end overflow-hidden">
         <Img
-          src={u(IMG.hero, 2000)}
-          srcSet={srcSet(IMG.hero)}
+          src={PICS.hero.src}
+          srcSet={PICS.hero.srcSet}
           sizes="100vw"
           fetchpriority="high"
           loading="eager"
           alt={
-            lang === 'is'
-              ? 'Íslensk hross á vetrarhaga fyrir framan snæviþakið fjall og fjörð'
-              : 'Icelandic horses on a winter pasture before a snow-capped mountain and fjord'
+            PICS.hero.alt ??
+            tri(
+              lang,
+              'Íslensk hross á vetrarhaga fyrir framan snæviþakið fjall og fjörð',
+              'Icelandic horses on a winter pasture before a snow-capped mountain and fjord',
+              'Islandpferde auf der Winterweide vor schneebedecktem Berg und Fjord',
+            )
           }
           className="kenburns absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: PICS.hero.pos }}
         />
         <div
           className="absolute inset-0"
-          style={{ background: `linear-gradient(180deg, rgba(13,16,40,0.5) 0%, rgba(13,16,40,0.15) 32%, rgba(13,16,40,0.35) 62%, rgba(13,16,40,0.85) 100%)` }}
+          style={{ background: `linear-gradient(180deg, rgba(13,16,40,0.5) 0%, rgba(13,16,40,0.35) 32%, rgba(13,16,40,0.5) 62%, rgba(13,16,40,0.85) 100%)` }}
         />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
           <p className="ph-hero-rise font-hanken text-xs font-semibold tracking-[0.24em] text-white/80 uppercase" style={{ animationDelay: '0ms' }}>
@@ -719,10 +866,11 @@ export default function PolarHestarPage() {
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
             <Stat value={<CountUp to={STATS.horses} lang={lang} duration={2000} />} label={t.statHorses} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
-            <div className="flex items-center gap-2" role="img" aria-label={lang === 'is' ? `${STATS.rating} af 5 á Tripadvisor` : `${STATS.rating} out of 5 on Tripadvisor`}>
+            <div className="flex items-center gap-2">
               <Star className="h-4 w-4 fill-current" style={{ color: CLAY_HI }} aria-hidden="true" />
               <span className="font-spectral text-2xl text-white">
-                <CountUp to={4.9} decimals={1} lang={lang} duration={2200} />
+                <CountUp to={parseFloat(stegaClean(STATS.rating).replace(',', '.')) || 4.9} decimals={1} lang={lang} duration={2200} />
+                <span className="sr-only">{tri(lang, ' af 5', ' out of 5', ' von 5')}</span>
               </span>
               <span className="font-hanken text-xs text-white/70">
                 {STATS.reviews} {t.statRating}
@@ -751,11 +899,15 @@ export default function PolarHestarPage() {
             <figure className="relative">
               <div className="overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(18,23,56,0.45)]">
                 <Img
-                  src={u(IMG.story, 1100)}
-                  srcSet={srcSet(IMG.story)}
+                  src={PICS.story.src}
+                  srcSet={PICS.story.srcSet}
                   sizes="(max-width: 768px) 100vw, 540px"
-                  alt={lang === 'is' ? 'Hvítur íslenskur hestur í þoku' : 'A white Icelandic horse in the mist'}
+                  alt={
+                    PICS.story.alt ??
+                    tri(lang, 'Hvítur íslenskur hestur í þoku', 'A white Icelandic horse in the mist', 'Ein weißes Islandpferd im Nebel')
+                  }
                   className="ph-live aspect-[4/5] w-full object-cover"
+                  style={{ objectPosition: PICS.story.pos }}
                 />
               </div>
             </figure>
@@ -788,9 +940,9 @@ export default function PolarHestarPage() {
         </Reveal>
         <div className="ph-proc relative overflow-hidden" aria-hidden="true">
           <div className="ph-track animate-marquee flex w-max gap-4">
-            {[...IMG.procession, ...IMG.procession].map((id, i) => (
+            {[...GALLERY, ...GALLERY].map((g, i) => (
               <div key={i} className="h-48 w-36 shrink-0 overflow-hidden rounded-2xl md:h-60 md:w-44" style={{ background: PAPER }}>
-                <img src={u(id, 400)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                <img src={g.src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: g.pos }} />
               </div>
             ))}
           </div>
@@ -812,7 +964,7 @@ export default function PolarHestarPage() {
           </p>
         </Reveal>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SHORT_TOURS.map((tour, i) => (
             <Reveal key={tour.id} delay={i * 80}>
               <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} />
@@ -883,31 +1035,36 @@ export default function PolarHestarPage() {
               <article className="ph-card group h-full overflow-hidden rounded-[24px]" style={{ background: PAPER }}>
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
-                    src={u(tour.image, 800)}
-                    srcSet={`${u(tour.image, 600)} 600w, ${u(tour.image, 900)} 900w`}
+                    src={tour.pic.src}
+                    srcSet={tour.pic.srcSet}
                     sizes="(max-width: 768px) 80vw, 360px"
                     alt={
-                      lang === 'is'
-                        ? `Íslenskt landslag — ${tour.name}`
-                        : `Icelandic landscape — ${tour.name}`
+                      tour.pic.alt ??
+                      tri(
+                        lang,
+                        `Íslenskt landslag — ${tour.name.is}`,
+                        `Icelandic landscape — ${tour.name.en}`,
+                        `Isländische Landschaft — ${tour.name.de}`,
+                      )
                     }
                     loading="lazy"
                     decoding="async"
                     className="ph-card-img h-full w-full object-cover"
+                    style={{ objectPosition: tour.pic.pos }}
                   />
                 </div>
                 <div className="p-5">
-                  <p className="font-hanken text-[0.7rem] font-semibold tracking-[0.18em] uppercase" style={{ color: CLAY_TX }}>
-                    {t.multiDay}
+                  <p className="font-hanken text-[0.7rem] font-semibold tracking-[0.14em] uppercase" style={{ color: CLAY_TX }}>
+                    {tour.meta[lang]}
                   </p>
                   <h3 className="mt-1.5 font-spectral text-xl leading-snug" style={{ color: INK }}>
-                    {tour.name}
+                    {tour.name[lang]}
                   </h3>
                   <p className="mt-2 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
                     {tour.blurb[lang]}
                   </p>
                   <a
-                    href={`mailto:${EMAIL}?subject=${encodeURIComponent(tour.name)}`}
+                    href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}`}
                     className="mt-3 inline-flex items-center gap-1 font-hanken text-sm font-semibold transition-colors"
                     style={{ color: CLAY_TX }}
                   >
@@ -921,6 +1078,35 @@ export default function PolarHestarPage() {
         </div>
       </section>
 
+      {/* ── GOOD TO KNOW — the practical facts from their info pages ────── */}
+      <section id="gott" className="scroll-mt-20 px-5 py-16 md:py-20" style={{ background: PAPER }}>
+        <div className="mx-auto max-w-6xl">
+          <Reveal className="mb-8 max-w-2xl">
+            <Eyebrow>{GTK.eyebrow[lang]}</Eyebrow>
+            <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
+              <MaskWords text={GTK.heading[lang]} />
+            </h2>
+            <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+              {GTK.body[lang]}
+            </p>
+          </Reveal>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {GTK.items.map((item, i) => (
+              <Reveal key={i} delay={i * 60}>
+                <div className="h-full rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: MIST }}>
+                  <p className="font-spectral text-lg" style={{ color: INK }}>
+                    {item.title[lang]}
+                  </p>
+                  <p className="mt-1.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+                    {item.body[lang]}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── TRUST / REVIEWS / FAMILY ────────────────────────────────────── */}
       <section className="ph-dark px-5 py-16 md:py-24" style={{ background: TWILIGHT }}>
         <div className="mx-auto max-w-6xl">
@@ -929,15 +1115,21 @@ export default function PolarHestarPage() {
             <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
               <MaskWords text={t.trustH2} />
             </h2>
-            <div className="mt-4 flex items-center justify-center gap-2" role="img" aria-label={lang === 'is' ? `${STATS.rating} af 5` : `${STATS.rating} out of 5`}>
-              {[0, 1, 2, 3, 4].map((s) => (
-                <Star
-                  key={s}
-                  className="ph-star h-5 w-5 fill-current"
-                  style={{ color: CLAY_HI, transitionDelay: `${300 + s * 110}ms` }}
-                  aria-hidden="true"
-                />
-              ))}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <span
+                className="flex items-center gap-2"
+                role="img"
+                aria-label={tri(lang, `${STATS.rating} af 5`, `${STATS.rating} out of 5`, `${STATS.rating} von 5`)}
+              >
+                {[0, 1, 2, 3, 4].map((s) => (
+                  <Star
+                    key={s}
+                    className="ph-star h-5 w-5 fill-current"
+                    style={{ color: CLAY_HI, transitionDelay: `${300 + s * 110}ms` }}
+                    aria-hidden="true"
+                  />
+                ))}
+              </span>
               <span className="ml-2 font-hanken text-sm" style={{ color: MIST }}>
                 {t.trustBody}
               </span>
@@ -974,11 +1166,20 @@ export default function PolarHestarPage() {
               </div>
               <div className="order-1 h-56 overflow-hidden md:order-2 md:h-full">
                 <Img
-                  src={u(IMG.family, 1000)}
-                  srcSet={srcSet(IMG.family)}
+                  src={PICS.family.src}
+                  srcSet={PICS.family.srcSet}
                   sizes="(max-width: 768px) 100vw, 540px"
-                  alt={lang === 'is' ? 'Tveir knapar á íslenskum hestum í norðlensku landslagi' : 'Two riders on Icelandic horses in a northern landscape'}
+                  alt={
+                    PICS.family.alt ??
+                    tri(
+                      lang,
+                      'Tveir knapar á íslenskum hestum í norðlensku landslagi',
+                      'Two riders on Icelandic horses in a northern landscape',
+                      'Zwei Reiter auf Islandpferden in nordischer Landschaft',
+                    )
+                  }
                   className="ph-live h-full w-full object-cover"
+                  style={{ objectPosition: PICS.family.pos }}
                 />
               </div>
             </div>
@@ -986,8 +1187,36 @@ export default function PolarHestarPage() {
         </div>
       </section>
 
+      {/* ── AT THE FARM — accommodation, animals, minigolf, stewardship ─── */}
+      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+        <Reveal className="mb-8 max-w-2xl">
+          <Eyebrow>{FARM.eyebrow[lang]}</Eyebrow>
+          <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
+            <MaskWords text={FARM.heading[lang]} />
+          </h2>
+          <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+            {FARM.body[lang]}
+          </p>
+        </Reveal>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {FARM.items.map((item, i) => (
+            <Reveal key={i} delay={i * 60}>
+              <div className="h-full rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: PAPER }}>
+                <p className="font-spectral text-lg" style={{ color: INK }}>
+                  {item.title[lang]}
+                </p>
+                <p className="mt-1.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+                  {item.body[lang]}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ── SHOP (photo-light) — fixes the dead-end shop ─────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+      <section className="px-5 py-16 md:py-20" style={{ background: PAPER }}>
+        <div className="mx-auto max-w-6xl md:px-3">
         <Reveal className="mb-8 max-w-xl">
           <Eyebrow>{t.shopEyebrow}</Eyebrow>
           <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
@@ -1000,17 +1229,17 @@ export default function PolarHestarPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           {SHOP.map((item, i) => (
             <Reveal key={i} delay={i * 70}>
-              <div className="flex h-full items-center justify-between gap-4 rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: PAPER }}>
+              <div className="flex h-full items-center justify-between gap-4 rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: MIST }}>
                 <div>
                   <p className="font-spectral text-lg" style={{ color: INK }}>
                     {item.name[lang]}
                   </p>
                   <p className="mt-0.5 font-hanken text-sm font-semibold" style={{ color: CLAY_TX }}>
-                    {isk(item.price)}
+                    {item.from ? `${tri(lang, 'frá', 'from', 'ab')} ${isk(item.price)}` : isk(item.price)}
                   </p>
                 </div>
                 <a
-                  href={`mailto:${EMAIL}?subject=${encodeURIComponent(item.name[lang])}`}
+                  href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(item.name[lang]))}`}
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white transition-transform hover:-translate-y-0.5"
                   style={{ background: INK }}
                   aria-label={`${t.orderBtn}: ${item.name[lang]}`}
@@ -1020,6 +1249,7 @@ export default function PolarHestarPage() {
               </div>
             </Reveal>
           ))}
+        </div>
         </div>
       </section>
 
@@ -1043,7 +1273,7 @@ export default function PolarHestarPage() {
                 <InfoRow icon={<Clock className="h-5 w-5" />} label={t.seasonLabel}>
                   {t.seasonInfo}
                 </InfoRow>
-                <InfoRow icon={<Phone className="h-5 w-5" />} label={lang === 'is' ? 'Sími' : 'Phone'}>
+                <InfoRow icon={<Phone className="h-5 w-5" />} label={tri(lang, 'Sími', 'Phone', 'Telefon')}>
                   <a href={PHONE_HREF} className="underline underline-offset-4" style={{ color: INK }}>
                     {PHONE_DISPLAY}
                   </a>
@@ -1077,6 +1307,16 @@ export default function PolarHestarPage() {
                   <Mail className="h-4 w-4" />
                   {t.emailBtn}
                 </a>
+                <a
+                  href={FACEBOOK}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border px-5 py-3 font-hanken text-sm font-semibold transition-colors hover:bg-black/5"
+                  style={{ borderColor: '#1a205233', color: INK }}
+                >
+                  <Facebook className="h-4 w-4" />
+                  Facebook
+                </a>
               </div>
             </div>
           </Reveal>
@@ -1084,11 +1324,15 @@ export default function PolarHestarPage() {
           <Reveal delay={120} className="flex">
             <div className="min-h-[280px] w-full overflow-hidden rounded-[28px]">
               <Img
-                src={u(IMG.location, 1100)}
-                srcSet={srcSet(IMG.location)}
+                src={PICS.location.src}
+                srcSet={PICS.location.srcSet}
                 sizes="(max-width: 768px) 100vw, 540px"
-                alt={lang === 'is' ? 'Vegur meðfram firði á Norðurlandi' : 'A road along a fjord in North Iceland'}
+                alt={
+                  PICS.location.alt ??
+                  tri(lang, 'Vegur meðfram firði á Norðurlandi', 'A road along a fjord in North Iceland', 'Eine Straße am Fjord in Nordisland')
+                }
                 className="ph-live h-full w-full object-cover"
+                style={{ objectPosition: PICS.location.pos }}
               />
             </div>
           </Reveal>
@@ -1098,11 +1342,15 @@ export default function PolarHestarPage() {
       {/* ── FINAL CTA ───────────────────────────────────────────────────── */}
       <section className="ph-dark relative overflow-hidden">
         <Img
-          src={u(IMG.ctaBand, 1800)}
-          srcSet={srcSet(IMG.ctaBand)}
+          src={PICS.ctaBand.src}
+          srcSet={PICS.ctaBand.srcSet}
           sizes="100vw"
-          alt={lang === 'is' ? 'Hross undir þrumuveðurshimni á hraunlendi' : 'Horses under a stormy sky on lava-field terrain'}
+          alt={
+            PICS.ctaBand.alt ??
+            tri(lang, 'Hross undir þrumuveðurshimni á hraunlendi', 'Horses under a stormy sky on lava-field terrain', 'Pferde unter Gewitterhimmel auf Lavaland')
+          }
           className="ph-drift absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: PICS.ctaBand.pos }}
         />
         <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${NIGHT}59, ${NIGHT}c4)` }} />
         <div className="relative mx-auto max-w-3xl px-5 py-24 text-center md:py-32">
@@ -1146,7 +1394,7 @@ export default function PolarHestarPage() {
       <PreviewFooter company={company} />
 
       {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 md:hidden" style={{ background: `${MIST}f5`, borderColor: '#1a20521f', backdropFilter: 'blur(8px)' }}>
+      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden" style={{ background: `${MIST}f5`, borderColor: '#1a20521f', backdropFilter: 'blur(8px)' }}>
         <button
           type="button"
           onClick={() => goBook(bookTour)}
@@ -1171,6 +1419,14 @@ export default function PolarHestarPage() {
   )
 }
 
+export default function PolarHestarPage() {
+  return (
+    <SiteContentProvider>
+      <PolarHestarPageInner />
+    </SiteContentProvider>
+  )
+}
+
 /* ── small presentational helpers ─────────────────────────────────────── */
 function Stat({ value, label }: { value: ReactNode; label: string }) {
   return (
@@ -1181,18 +1437,22 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
   )
 }
 
-function TourCard({ tour, lang, t, onBook }: { tour: Tour; lang: Lang; t: typeof COPY['is']; onBook: () => void }) {
+function TourCard({ tour, lang, t, onBook }: { tour: TourX; lang: Lang; t: typeof COPY['is']; onBook: () => void }) {
   return (
     <article className="ph-card flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_18px_40px_-28px_rgba(18,23,56,0.55)]" style={{ background: PAPER }}>
       <div className="aspect-[4/3] overflow-hidden">
         <img
-          src={u(tour.image, 700)}
-          srcSet={`${u(tour.image, 500)} 500w, ${u(tour.image, 800)} 800w`}
-          sizes="(max-width: 640px) 100vw, 280px"
-          alt={lang === 'is' ? `${tour.name.is} — íslenskir hestar` : `${tour.name.en} — Icelandic horses`}
+          src={tour.pic.src}
+          srcSet={tour.pic.srcSet}
+          sizes="(max-width: 640px) 100vw, 360px"
+          alt={
+            tour.pic.alt ??
+            tri(lang, `${tour.name.is} — íslenskir hestar`, `${tour.name.en} — Icelandic horses`, `${tour.name.de} — Islandpferde`)
+          }
           loading="lazy"
           decoding="async"
           className="ph-card-img h-full w-full object-cover"
+          style={{ objectPosition: tour.pic.pos }}
         />
       </div>
       <div className="flex flex-1 flex-col p-5">
