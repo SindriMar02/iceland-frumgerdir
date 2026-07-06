@@ -1994,7 +1994,7 @@ ${SIGN}`,
     ownerEmail: 'passionreykjavik@simnet.is',
     concept: 'PASSION',
     conceptTagline:
-      'Their own gold-serif and burgundy-brushstroke identity, finally given a home: a dark, elegant, English-first page where the brushstroke draws itself across the wordmark.',
+      'Their own gold-serif identity, finally given a home: a dark, elegant, English-first page where the flagship Cinnabon turns slowly under the NÝBAKAÐ headline as you scroll.',
     accent: '#C8A877',
     dark: true,
     status: 'Concept ready',

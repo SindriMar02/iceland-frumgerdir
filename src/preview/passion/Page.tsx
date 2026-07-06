@@ -9,9 +9,12 @@
  * own build preloads). Elegant register: no steam, no spinning food, no pill
  * buttons, no arrow chips.
  *
- * Signature: a burgundy brushstroke that draws itself across the PASSION
- * headline on load (CSS dashoffset animation, time-based — never gates text
- * visibility; static under reduced motion).
+ * Signature: the flagship Cinnabon photographed on a flat #111111 ground
+ * (Higgsfield asset — see IMAGE-PROMPTS.md) sits bottom-center of the hero
+ * and slowly turns/lifts as the hero scrolls past (GK-style scroll spin,
+ * framer useScroll + useSpring, transform-only; static under reduced motion).
+ * Until the image lands in public/passion/hero-cinnabon.jpg the slot renders
+ * an invisible fallback so the hero reads as purely typographic.
  *
  * Motion rules per project lessons: hero starts visible (no JS-gated
  * opacity), reveals are IntersectionObserver + CSS transitions (no framer
@@ -23,6 +26,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
@@ -32,6 +37,7 @@ import {
   type Lang,
   LOGO,
   CINNABON_IMG,
+  HERO_IMG,
   LINKS,
   HOURS_BY_DAY,
   FEATURE,
@@ -68,13 +74,6 @@ const PAGE_CSS = `
   }
 
   .pn-hero { min-height:100svh; }
-
-  /* Brushstroke self-draw. pathLength=1 normalises the dash values. */
-  @keyframes pn-draw { to { stroke-dashoffset:0; } }
-  .pn-brush {
-    stroke-dasharray:1; stroke-dashoffset:1;
-    animation:pn-draw 1.7s ${EASE} .45s forwards;
-  }
 
   @keyframes pn-rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
   .pn-enter { animation:pn-rise .9s ${EASE} both; }
@@ -133,7 +132,6 @@ const PAGE_CSS = `
     .pn-herofoot { flex-direction:column; align-items:flex-start !important; gap:10px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .pn-brush { animation:none; stroke-dashoffset:0; }
     .pn-enter, .pn-enter-2, .pn-enter-3 { animation:none; }
     .pn-card, .pn-cta, .pn-feature-img img { transition:none; }
     .pn-card:hover, .pn-cta:active { transform:none; }
@@ -265,6 +263,17 @@ export default function PassionPage() {
     return () => io.disconnect()
   }, [reduced, lang])
 
+  // Scroll-linked spin: the hero Cinnabon slowly turns as the hero scrolls past.
+  const heroRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const rollSpin = useSpring(useTransform(scrollYProgress, [0, 1], [0, 214]), {
+    stiffness: 90,
+    damping: 22,
+    mass: 0.4,
+  })
+  const rollScale = useTransform(scrollYProgress, [0, 1], [1, 1.07])
+  const rollLift = useTransform(scrollYProgress, [0, 1], [0, -36])
+
   const sectionPad = 'clamp(84px,12vh,150px) clamp(20px,4.5vw,72px)'
   const wrap = { maxWidth: 1180, margin: '0 auto' } as const
 
@@ -285,6 +294,7 @@ export default function PassionPage() {
 
       {/* ===================== HERO ===================== */}
       <section
+        ref={heroRef}
         className="pn-hero"
         style={{
           position: 'relative',
@@ -339,13 +349,11 @@ export default function PassionPage() {
 
         <div
           style={{
-            flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center',
-            padding: 'clamp(28px,5vh,60px) 0',
+            padding: 'clamp(22px,4vh,48px) 0 0',
             position: 'relative',
             zIndex: 2,
           }}
@@ -376,52 +384,24 @@ export default function PassionPage() {
             {status.label}
           </div>
 
-          <div style={{ position: 'relative', marginTop: 'clamp(18px,3.5vh,38px)' }}>
-            {/* The brand brushstroke, drawing itself through the wordmark */}
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 900 460"
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%,-40%) rotate(-2deg)',
-                width: 'min(72vw, 700px)',
-                height: 'auto',
-                pointerEvents: 'none',
-              }}
-            >
-              <path
-                className="pn-brush"
-                pathLength={1}
-                d="M64 396 C 250 330, 470 250, 600 172 C 650 142, 688 110, 666 92 C 646 76, 614 102, 628 132 C 644 164, 718 158, 798 120"
-                fill="none"
-                stroke={BRUSH}
-                strokeWidth={13}
-                strokeLinecap="round"
-                opacity={0.9}
-              />
-            </svg>
-            <h1
-              className="pn-enter-2"
-              style={{
-                fontFamily: DISPLAY,
-                fontWeight: 700,
-                fontSize: 'clamp(54px, 12.5vw, 158px)',
-                lineHeight: 1,
-                letterSpacing: '.12em',
-                margin: 0,
-                paddingLeft: '.12em', // optical balance for the tracking
-                background: `linear-gradient(180deg, ${GOLD_LIGHT} 8%, ${GOLD} 55%, #A98C5F 100%)`,
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-                position: 'relative',
-              }}
-            >
-              PASSION
-            </h1>
-          </div>
+          <h1
+            className="pn-enter-2"
+            style={{
+              fontFamily: DISPLAY,
+              fontWeight: 700,
+              fontSize: 'clamp(52px, 11.5vw, 142px)',
+              lineHeight: 1,
+              letterSpacing: '.1em',
+              margin: 'clamp(14px,3vh,32px) 0 0',
+              paddingLeft: '.1em', // optical balance for the tracking
+              background: `linear-gradient(180deg, ${GOLD_LIGHT} 8%, ${GOLD} 55%, #A98C5F 100%)`,
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            NÝBAKAÐ
+          </h1>
 
           <p
             className="pn-enter-3"
@@ -452,6 +432,39 @@ export default function PassionPage() {
             <a href="#menu" className="pn-cta pn-cta-ghost">
               {t.ctaCounter}
             </a>
+          </div>
+        </div>
+
+        {/* The flagship Cinnabon on a #111111-matched ground — its square edges
+            dissolve into the page while the roll stays sharp. Turns gently as
+            the hero scrolls past (GK-style scroll spin). */}
+        <div style={{ position: 'relative', flex: 1, minHeight: 'clamp(280px,38vh,480px)', marginTop: 'clamp(10px,2vh,20px)', zIndex: 1 }}>
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: 0,
+              transform: 'translateX(-50%)',
+              width: 'clamp(240px,32vw,430px)',
+            }}
+          >
+            <motion.div
+              style={{
+                aspectRatio: '1 / 1',
+                rotate: reduced ? 0 : rollSpin,
+                scale: reduced ? 1 : rollScale,
+                y: reduced ? 0 : rollLift,
+                transformOrigin: '50% 50%',
+                willChange: 'transform',
+              }}
+            >
+              <Img
+                src={HERO_IMG}
+                alt={lang === 'en' ? 'The Passion Cinnabon, freshly glazed, photographed from above' : 'Cinnabon frá Passion, nýgljáður, myndaður ofan frá'}
+                fallbackClassName="bg-transparent"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </motion.div>
           </div>
         </div>
 

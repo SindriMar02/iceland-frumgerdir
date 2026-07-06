@@ -34,6 +34,9 @@ export type Lang = 'en' | 'is'
 
 export const LOGO = `${import.meta.env.BASE_URL}passion/brand/logo.png`
 export const CINNABON_IMG = `${import.meta.env.BASE_URL}passion/cinnabon.jpg`
+/** Hero Cinnabon on a flat #111111 ground — Higgsfield asset, see IMAGE-PROMPTS.md.
+ *  Until the file exists the hero slot renders an invisible fallback. */
+export const HERO_IMG = `${import.meta.env.BASE_URL}passion/hero-cinnabon.jpg`
 
 export const LINKS = {
   wolt: 'https://wolt.com/en/isl/reykjavik/venue/passion-bakari',
@@ -202,7 +205,7 @@ export const T = {
     statusOpen: (t: string) => `Open now, we close at ${t}`,
     statusOpensToday: (t: string) => `Closed, we open at ${t} today`,
     statusOpensTomorrow: (t: string) => `Closed, we open tomorrow at ${t}`,
-    heroSub: 'Family-run artisan bakery in Reykjavík.',
+    heroSub: 'Freshly baked. A family-run artisan bakery in Reykjavík.',
     heroLine: 'Sourdough, pastries, cakes and coffee, baked with real passion at Álfheimar 6.',
     ctaCounter: 'See the counter',
     hoursShort: ['Mon to Fri 7:30 to 17', 'Sat 8 to 16, Sun 9 to 16'],
