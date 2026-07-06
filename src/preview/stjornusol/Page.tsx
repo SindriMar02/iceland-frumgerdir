@@ -160,6 +160,15 @@ const SKY: Record<string, string> = {
   hamptons: 'linear-gradient(180deg, #191026 0%, #55284E 40%, #B14A67 70%, #E88B54 100%)',
 }
 
+const NAV_LINKS = [
+  ['#k11', 'K11'],
+  ['#afangastadir', 'ÁFANGASTAÐIR'],
+  ['#verdskra', 'VERÐSKRÁ'],
+  ['#velarnar', 'VÉLARNAR'],
+  ['#kremin', 'KREMIN'],
+  ['#stofan', 'STOFAN'],
+] as const
+
 /* Peau d'Or film strip — the salon's own promo photos from solbadsstofa.is */
 const KREM = ['krem-01.webp', 'krem-02.webp', 'krem-03.webp', 'krem-04.webp', 'krem-05.webp', 'krem-06.webp', 'krem-07.webp']
 const KREM_ALT = [
@@ -180,6 +189,7 @@ export default function StjornusolPage() {
   const [dest, setDest] = useState(0)
   const [peek, setPeek] = useState(0)
   const [openBed, setOpenBed] = useState<string | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [barHidden, setBarHidden] = useState(false)
   const progFill = useRef<HTMLDivElement>(null)
   const peekEl = useRef<HTMLDivElement>(null)
@@ -203,6 +213,21 @@ export default function StjornusolPage() {
       else if (meta) meta.content = prev
     }
   }, [])
+
+  /* menu open: lock scroll + close on Escape */
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [menuOpen])
 
   /* the machine wakes shortly after load */
   useEffect(() => {
@@ -312,6 +337,8 @@ export default function StjornusolPage() {
         .sv-r[data-in="true"]{opacity:1;transform:none}
         .sv-rise{animation:svRise 1s ${EASE} both}
         @keyframes svRise{from{opacity:0;transform:translateY(26px)}}
+        .sv-bar{transition:top .35s ${EASE}, transform .35s ${EASE}}
+        .sv-mlink:active{opacity:.75}
         .sv-nav{position:relative}
         .sv-nav::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;border-radius:1px;background:linear-gradient(90deg,${CHAMPAGNE},${MAGENTA});transform:scaleX(0);transform-origin:100% 50%;transition:transform .35s ${EASE}}
         .sv-nav:hover::after,.sv-nav:focus-visible::after{transform:scaleX(1);transform-origin:0 50%}
@@ -355,6 +382,8 @@ export default function StjornusolPage() {
           .sv-fade{animation:none}
           .sv-roll{transition:none !important}
           .sv-nav::after{transition:none}
+          .sv-bar{transition:none}
+          .sv-mlink{transition:none !important}
           .sv-film{animation:none}
           .sv-film-dup{display:none}
           .sv-filmwrap{overflow-x:auto;-webkit-mask-image:none;mask-image:none}
@@ -382,25 +411,63 @@ export default function StjornusolPage() {
           <img src={`${A}logo.png`} alt="Stjörnusól" className="h-6 w-auto md:h-7" />
         </a>
         <nav className="hidden items-center gap-6 text-[13px] font-semibold tracking-[.14em] md:flex" aria-label="Valmynd">
-          {(
-            [
-              ['#k11', 'K11'],
-              ['#afangastadir', 'ÁFANGASTAÐIR'],
-              ['#verdskra', 'VERÐSKRÁ'],
-              ['#velarnar', 'VÉLARNAR'],
-              ['#kremin', 'KREMIN'],
-              ['#stofan', 'STOFAN'],
-            ] as const
-          ).map(([href, label]) => (
+          {NAV_LINKS.map(([href, label]) => (
             <a key={href} href={href} className="sv-nav no-underline transition-colors duration-300 hover:text-[#F4EFE6]" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
               {label}
             </a>
           ))}
         </nav>
-        <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta" style={cta({ fontSize: 15, padding: '11px 24px' })}>
+        <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta hidden md:inline-block" style={cta({ fontSize: 15, padding: '11px 24px' })}>
           Bóka tíma
         </a>
+        <button
+          type="button"
+          aria-expanded={menuOpen}
+          aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="relative -mr-2 grid h-11 w-11 cursor-pointer place-items-center border-0 bg-transparent p-0 md:hidden"
+        >
+          <span aria-hidden="true" className="relative block h-[14px] w-[22px]">
+            <span className="sv-bar absolute left-0 block h-[1.5px] w-full" style={{ top: menuOpen ? 6.25 : 1, background: TXT, transform: menuOpen ? 'rotate(45deg)' : 'none' }} />
+            <span className="sv-bar absolute left-0 block h-[1.5px] w-full" style={{ top: menuOpen ? 6.25 : 11.5, background: TXT, transform: menuOpen ? 'rotate(-45deg)' : 'none' }} />
+          </span>
+        </button>
       </header>
+
+      {/* ── mobile menu overlay ───────────────────────────────────────── */}
+      <div className="fixed inset-0 z-[58] md:hidden" style={{ pointerEvents: menuOpen ? 'auto' : 'none' }} aria-hidden={!menuOpen}>
+        <div className="absolute inset-0" style={{ background: 'rgba(10,9,12,.97)', backdropFilter: 'blur(14px)', opacity: menuOpen ? 1 : 0, transition: 'opacity .45s ease' }} />
+        <nav className="relative flex h-full flex-col justify-center px-7" aria-label="Valmynd">
+          {NAV_LINKS.map(([href, label], i) => (
+            <a
+              key={href}
+              href={href}
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={() => setMenuOpen(false)}
+              className="sv-mlink flex items-baseline gap-4 border-b py-[18px] no-underline"
+              style={{
+                borderColor: HAIR,
+                opacity: menuOpen ? 1 : 0,
+                transform: menuOpen ? 'none' : 'translateY(22px)',
+                transition: `opacity .5s ease ${menuOpen ? 0.08 + i * 0.055 : 0}s, transform .55s ${EASE} ${menuOpen ? 0.08 + i * 0.055 : 0}s`,
+              }}
+            >
+              <span className="text-[11px]" style={{ fontFamily: MONO, color: MAGENTA }}>
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(28px, 7.6vw, 34px)', color: TXT, lineHeight: 1.1 }}>
+                {label.charAt(0) + label.slice(1).toLowerCase()}
+              </span>
+            </a>
+          ))}
+          <p
+            className="m-0 pt-7 text-[12px] tracking-[.22em]"
+            style={{ fontFamily: MONO, color: CHAMP_DIM, opacity: menuOpen ? 1 : 0, transition: `opacity .5s ease ${menuOpen ? 0.08 + NAV_LINKS.length * 0.055 : 0}s` }}
+          >
+            {PHONE_DISPLAY} · {ADDRESS.toUpperCase()}
+          </p>
+        </nav>
+      </div>
 
       {/* ── bed peek follower ─────────────────────────────────────────── */}
       <div ref={peekEl} aria-hidden="true" className="sv-peek pointer-events-none fixed top-0 left-0 z-[48]" style={{ width: 'min(300px, 34vw)', aspectRatio: '4 / 3', transform: 'translate3d(-500px,-500px,0)', willChange: 'transform' }}>
@@ -483,25 +550,28 @@ export default function StjornusolPage() {
               {/* caption + the machine's own power switch */}
               <div className="mt-1 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 md:px-2">
                 <p className="m-0 text-[12px] tracking-[.24em]" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
-                  K11 AIR LOFT · FJARÐARGATA 17
+                  K11 AIR LOFT
                 </p>
-                <button
-                  type="button"
-                  aria-pressed={lit}
-                  onClick={() => setLit(!lit)}
-                  className="sv-power flex cursor-pointer items-center gap-3 rounded-[4px] border py-2 pr-2 pl-3.5"
-                  style={{ background: 'rgba(17,16,21,.85)', borderColor: lit ? 'rgba(211,199,178,.4)' : HAIR }}
-                >
-                  <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO }}>
+                <button type="button" aria-pressed={lit} onClick={() => setLit(!lit)} className="sv-power flex cursor-pointer items-center gap-3 border-0 bg-transparent p-0">
+                  <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO, transition: 'color .35s ease' }}>
                     {lit ? 'LJÓSIN Á' : 'LJÓSIN AF'}
                   </span>
-                  <span aria-hidden="true" className="relative inline-block h-6 w-11 rounded-[3px]" style={{ background: lit ? 'rgba(232,53,126,.28)' : 'rgba(244,239,230,.1)', border: '1px solid rgba(244,239,230,.18)' }}>
+                  <span
+                    aria-hidden="true"
+                    className="relative inline-block h-[22px] w-[42px] rounded-[4px]"
+                    style={{
+                      background: lit ? `linear-gradient(135deg, ${MAGENTA_DEEP}, ${MAGENTA})` : 'rgba(244,239,230,.08)',
+                      border: `1px solid ${lit ? 'rgba(232,53,126,.55)' : 'rgba(244,239,230,.16)'}`,
+                      boxShadow: lit ? '0 0 18px rgba(232,53,126,.35), inset 0 1px 0 rgba(255,255,255,.18)' : 'inset 0 1px 2px rgba(0,0,0,.4)',
+                      transition: 'background .45s ease, border-color .45s ease, box-shadow .45s ease',
+                    }}
+                  >
                     <span
-                      className="sv-knob absolute top-[2px] left-[2px] h-[18px] w-[18px] rounded-[2px]"
+                      className="sv-knob absolute top-[2px] left-[2px] h-[16px] w-[16px] rounded-[2.5px]"
                       style={{
-                        transform: lit ? 'translateX(20px)' : 'none',
-                        background: lit ? MAGENTA : '#6E6659',
-                        boxShadow: lit ? '0 0 12px 2px rgba(232,53,126,.65)' : 'none',
+                        transform: lit ? 'translateX(22px)' : 'none',
+                        background: lit ? '#FFF6EE' : '#6E6659',
+                        boxShadow: lit ? '0 1px 6px rgba(0,0,0,.35)' : 'none',
                       }}
                     />
                   </span>
