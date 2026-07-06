@@ -1,28 +1,26 @@
 /**
  * Passion Reykjavík — single-page landing (English-first, IS toggle).
  *
- * Structure borrowed from the GK Bakarí skeleton (hero with live open/closed
- * status → menu → colour feature band → story + stats → visit → footer) but
- * re-skinned entirely in Passion's OWN brand: near-black #111 ground (their
- * current site background), antique-gold serif display, deep-burgundy
- * brushstroke (their logo's mark), Lusitana + Source Serif (the fonts their
- * own build preloads). Elegant register: no steam, no spinning food, no pill
- * buttons, no arrow chips.
+ * CONCEPT: "The Passion Menu" — the page is set like a fine printed menu /
+ * broadsheet, deliberately NOT the hero→product-cards→stats→review-columns→
+ * visit-cards template shared by the Sauðárkróksbakarí and GK builds. It is
+ * type-led: a masthead cover, a gold marquee of the day's bakes, an editorial
+ * menu with dotted price leaders (no card grid), one oversized burgundy
+ * statement (the sourdough-passion quote), a bollur "board", a single giant
+ * featured review, and a tight visit strip.
  *
- * Signature: the flagship Cinnabon photographed on a flat #111111 ground
- * (Higgsfield asset — see IMAGE-PROMPTS.md) sits bottom-center of the hero
- * and slowly turns/lifts as the hero scrolls past (GK-style scroll spin,
- * framer useScroll + useSpring, transform-only; static under reduced motion).
- * Until the image lands in public/passion/hero-cinnabon.jpg the slot renders
- * an invisible fallback so the hero reads as purely typographic.
+ * Brand is theirs: near-black #111 ground, antique-gold serif, deep burgundy,
+ * ivory. Lusitana (display) + Source Serif 4 (body) — the fonts their own
+ * unfinished build preloads.
  *
- * Motion rules per project lessons: hero starts visible (no JS-gated
- * opacity), reveals are IntersectionObserver + CSS transitions (no framer
- * whileInView), everything transform/opacity only.
+ * Signature motion: the flagship Cinnabon (tightly cropped on a flat #111
+ * ground) is a medallion that bleeds off the cover's right edge and turns as
+ * the hero scrolls past (framer useScroll + useSpring). Transform-only; static
+ * under reduced motion. Hero starts visible; section reveals are
+ * IntersectionObserver + CSS transitions (no framer whileInView).
  *
- * Radius system (documented lock): controls 4px, frames/cards 14px (inner 9px).
- * Photography: ONE real image (the existing cinnamon-roll plate). All other
- * slots are labelled placeholder frames for HD shots to come.
+ * Radius lock: controls 4px, frames 12px. Photography: one real photo (the
+ * Cinnabon); a small "coming soon" gallery holds labelled placeholder frames.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -36,7 +34,6 @@ import {
   T,
   type Lang,
   LOGO,
-  CINNABON_IMG,
   HERO_IMG,
   LINKS,
   HOURS_BY_DAY,
@@ -53,7 +50,6 @@ const INK = '#111111'
 const INK_WARM = '#161311'
 const INK_DEEP = '#0B0A09'
 const BURGUNDY = '#5C1C1F'
-const BRUSH = '#722930' // burgundy lifted one step so the stroke reads on ink
 const GOLD = '#C8A877'
 const GOLD_LIGHT = '#EED3AA'
 const IVORY = '#F3EAD3'
@@ -64,8 +60,14 @@ const HAIR_SOFT = 'rgba(238,211,170,.1)'
 
 const DISPLAY = "'Lusitana', Georgia, serif"
 const BODY = "'Source Serif 4', 'Source Serif Pro', Georgia, serif"
-
 const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)'
+
+const GOLD_TEXT = {
+  background: `linear-gradient(180deg, ${GOLD_LIGHT} 6%, ${GOLD} 58%, #A98C5F 100%)`,
+  WebkitBackgroundClip: 'text',
+  backgroundClip: 'text',
+  color: 'transparent',
+} as const
 
 const PAGE_CSS = `
   .pn-page ::selection { background:${BURGUNDY}; color:${IVORY}; }
@@ -73,17 +75,18 @@ const PAGE_CSS = `
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px;
   }
 
-  .pn-hero { min-height:100svh; }
+  .pn-cover { min-height:100svh; }
 
   @keyframes pn-rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
-  .pn-enter { animation:pn-rise .9s ${EASE} both; }
-  .pn-enter-2 { animation:pn-rise .9s ${EASE} .18s both; }
-  .pn-enter-3 { animation:pn-rise .9s ${EASE} .32s both; }
+  .pn-enter  { animation:pn-rise .9s ${EASE} both; }
+  .pn-enter-2 { animation:pn-rise .9s ${EASE} .14s both; }
+  .pn-enter-3 { animation:pn-rise .9s ${EASE} .26s both; }
+  .pn-enter-4 { animation:pn-rise .9s ${EASE} .38s both; }
 
-  .pn-navlink {
-    color:${DIM}; text-decoration:none; font-size:14.5px;
-    transition:color .2s ${EASE};
-  }
+  @keyframes pn-marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  .pn-marquee-track { display:flex; width:max-content; animation:pn-marquee 34s linear infinite; }
+
+  .pn-navlink { color:${DIM}; text-decoration:none; font-size:14.5px; transition:color .2s ${EASE}; }
   .pn-navlink:hover { color:${GOLD_LIGHT}; }
 
   .pn-cta {
@@ -97,51 +100,47 @@ const PAGE_CSS = `
   .pn-cta-ghost { background:transparent; color:${IVORY}; border:1px solid rgba(238,211,170,.34); }
   .pn-cta-ghost:hover { border-color:${GOLD}; background:rgba(238,211,170,.05); }
 
-  .pn-lang {
-    background:none; border:none; cursor:pointer; padding:4px 7px;
-    font-family:${BODY}; font-size:13px; letter-spacing:.08em; color:${FAINT};
-    transition:color .2s ${EASE}; border-radius:4px;
-  }
+  .pn-lang { background:none; border:none; cursor:pointer; padding:4px 7px; font-family:${BODY};
+    font-size:13px; letter-spacing:.08em; color:${FAINT}; transition:color .2s ${EASE}; border-radius:4px; }
   .pn-lang[aria-pressed="true"] { color:${GOLD_LIGHT}; }
   .pn-lang:hover { color:${IVORY}; }
 
-  .pn-card {
-    transition:transform .6s ${EASE}, border-color .6s ${EASE};
-  }
-  .pn-card:hover { transform:translateY(-5px); border-color:rgba(238,211,170,.28) !important; }
-  .pn-feature-img img { transition:transform 1.1s ${EASE}; }
-  .pn-feature-img:hover img { transform:scale(1.04); }
+  /* Editorial menu rows with dotted price leaders */
+  .pn-row { transition:color .2s ${EASE}; }
+  .pn-row:hover .pn-row-name { color:${GOLD_LIGHT}; }
+  .pn-leader { flex:1; align-self:center; height:0; border-bottom:1.5px dotted rgba(238,211,170,.32); margin:0 4px; transform:translateY(2px); }
 
-  .pn-footlink { color:${DIM}; text-decoration:none; transition:color .2s ${EASE}; }
-  .pn-footlink:hover { color:${GOLD_LIGHT}; }
+  .pn-foot-link { color:${DIM}; text-decoration:none; transition:color .2s ${EASE}; }
+  .pn-foot-link:hover { color:${GOLD_LIGHT}; }
 
-  @media (max-width:900px) {
-    .pn-grid-2, .pn-story-grid, .pn-visit-grid, .pn-vegan-grid { grid-template-columns:1fr !important; }
-    .pn-menu-grid { grid-template-columns:repeat(2,1fr) !important; }
-    .pn-bollur-cols { columns:1 !important; }
-    .pn-stats { grid-template-columns:repeat(2,1fr) !important; row-gap:28px !important; }
-    .pn-reviews { grid-template-columns:1fr !important; }
-    .pn-reviews > figure { margin-top:0 !important; }
-    /* Hero: image on top, copy below, single column */
-    .pn-hero-grid { grid-template-columns:1fr !important; justify-items:center; text-align:center; gap:20px !important; }
-    .pn-hero-copy { display:flex; flex-direction:column; align-items:center; }
-    .pn-hero-copy p { max-width:44ch !important; }
-    .pn-hero-ctas { justify-content:center; }
-    .pn-hero-art { order:-1; }
-    .pn-hero-art > div { width:min(66vw,300px) !important; }
+  .pn-medallion { position:absolute; top:50%; right:clamp(-140px,-4vw,-40px); transform:translateY(-50%);
+    width:clamp(320px,42vw,600px); z-index:1; pointer-events:none; }
+
+  @media (max-width:980px) {
+    .pn-cover-grid { grid-template-columns:1fr !important; }
+    .pn-medallion { position:static !important; transform:none !important; width:min(64vw,300px) !important;
+      margin:6px auto 0; order:-1; }
+    .pn-cover-copy { text-align:center; align-items:center !important; }
+    .pn-cover-meta { justify-content:center !important; }
+    .pn-cover-ctas { justify-content:center !important; }
+    .pn-menu-cols { grid-template-columns:1fr !important; }
+    .pn-feature { grid-template-columns:1fr !important; }
+    .pn-bollur-grid { grid-template-columns:1fr !important; }
+    .pn-gallery { grid-template-columns:repeat(3,1fr) !important; }
+    .pn-visit-grid { grid-template-columns:1fr !important; }
+    .pn-vegan-grid { grid-template-columns:1fr !important; }
   }
-  @media (max-width:600px) {
-    .pn-nav { grid-template-columns:auto 1fr !important; row-gap:14px; }
-    .pn-nav-left { order:1; grid-column:1 / -1; justify-content:center; }
-    .pn-nav-cta { display:none !important; }
-    .pn-menu-grid { grid-template-columns:1fr !important; }
-    .pn-hero-ctas { flex-direction:column; align-items:stretch; }
-    .pn-herofoot { flex-direction:column; align-items:flex-start !important; gap:10px; }
+  @media (max-width:620px) {
+    .pn-nav-links { display:none !important; }
+    .pn-cover-ctas { flex-direction:column; align-items:stretch; }
+    .pn-gallery { grid-template-columns:1fr !important; }
+    .pn-cover-meta { flex-direction:column; gap:6px !important; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .pn-enter, .pn-enter-2, .pn-enter-3 { animation:none; }
-    .pn-card, .pn-cta, .pn-feature-img img { transition:none; }
-    .pn-card:hover, .pn-cta:active { transform:none; }
+    .pn-enter, .pn-enter-2, .pn-enter-3, .pn-enter-4 { animation:none; }
+    .pn-marquee-track { animation:none; }
+    .pn-cta { transition:none; }
+    .pn-cta:active { transform:none; }
   }
 `
 
@@ -169,32 +168,16 @@ const revealInit = (reduced: boolean, delay = 0) =>
         transition: `opacity .95s ${EASE} ${delay}s, transform .95s ${EASE} ${delay}s`,
       }
 
-/** Labelled placeholder frame — where the owner's HD photography will live. */
-function PhotoSlot({
-  label,
-  initial,
-  ratio = '5 / 4',
-}: {
-  label: string
-  initial: string
-  ratio?: string
-}) {
+/** Small labelled placeholder frame for HD photography still to come. */
+function PhotoSlot({ label, initial, ratio = '3 / 4' }: { label: string; initial: string; ratio?: string }) {
   return (
-    <div
-      style={{
-        aspectRatio: ratio,
-        borderRadius: 14,
-        border: `1px solid ${HAIR}`,
-        background: 'rgba(243,234,211,.03)',
-        padding: 5,
-      }}
-    >
+    <div style={{ aspectRatio: ratio, borderRadius: 12, border: `1px solid ${HAIR}`, background: 'rgba(243,234,211,.03)', padding: 5 }}>
       <div
         aria-hidden="true"
         style={{
           height: '100%',
-          borderRadius: 9,
-          border: `1px dashed rgba(238,211,170,.22)`,
+          borderRadius: 8,
+          border: '1px dashed rgba(238,211,170,.22)',
           background: 'linear-gradient(160deg, #1D1712 0%, #120F0B 100%)',
           display: 'flex',
           flexDirection: 'column',
@@ -204,22 +187,25 @@ function PhotoSlot({
           padding: 14,
         }}
       >
-        <span style={{ fontFamily: DISPLAY, fontSize: 44, lineHeight: 1, color: GOLD, opacity: 0.32 }}>
-          {initial}
-        </span>
-        <span
-          style={{
-            fontSize: 10.5,
-            fontWeight: 600,
-            letterSpacing: '.16em',
-            textTransform: 'uppercase',
-            color: FAINT,
-            textAlign: 'center',
-          }}
-        >
+        <span style={{ fontFamily: DISPLAY, fontSize: 40, lineHeight: 1, color: GOLD, opacity: 0.3 }}>{initial}</span>
+        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.16em', textTransform: 'uppercase', color: FAINT, textAlign: 'center' }}>
           {label}
         </span>
       </div>
+    </div>
+  )
+}
+
+/** Menu section header: a hairline rule with an eyebrow + the section title. */
+function SectionRule({ eyebrow, title, reduced }: { eyebrow: string; title: string; reduced: boolean }) {
+  return (
+    <div data-reveal style={revealInit(reduced)}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{eyebrow}</span>
+      </div>
+      <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>
+        {title}
+      </h2>
     </div>
   )
 }
@@ -270,18 +256,16 @@ export default function PassionPage() {
     return () => io.disconnect()
   }, [reduced, lang])
 
-  // Scroll-linked spin: the hero Cinnabon slowly turns as the hero scrolls past.
+  // Scroll-linked spin on the hero medallion.
   const heroRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  const rollSpin = useSpring(useTransform(scrollYProgress, [0, 1], [0, 214]), {
-    stiffness: 90,
-    damping: 22,
-    mass: 0.4,
-  })
-  const rollScale = useTransform(scrollYProgress, [0, 1], [1, 1.07])
-  const rollLift = useTransform(scrollYProgress, [0, 1], [0, -36])
+  const rollSpin = useSpring(useTransform(scrollYProgress, [0, 1], [0, 200]), { stiffness: 90, damping: 22, mass: 0.4 })
+  const rollScale = useTransform(scrollYProgress, [0, 1], [1, 1.06])
 
-  const sectionPad = 'clamp(84px,12vh,150px) clamp(20px,4.5vw,72px)'
+  // The marquee of the day's bakes (product names are their real Icelandic names).
+  const marqueeItems = useMemo(() => [FEATURE.name, ...MENU.map((m) => m.name), 'Bollur', 'Vegan croissant', 'Súrdeigsbrauð'], [])
+
+  const sectionPad = 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)'
   const wrap = { maxWidth: 1180, margin: '0 auto' } as const
 
   return (
@@ -289,653 +273,262 @@ export default function PassionPage() {
       ref={rootRef}
       className="pn-page"
       lang={lang}
-      style={{
-        fontFamily: BODY,
-        color: IVORY,
-        background: INK,
-        overflowX: 'hidden',
-        WebkitFontSmoothing: 'antialiased',
-      }}
+      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
     >
       <style>{PAGE_CSS}</style>
 
-      {/* ===================== HERO ===================== */}
-      <section
-        ref={heroRef}
-        className="pn-hero"
-        style={{
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '24px clamp(20px,4.5vw,72px) 0',
-          background: INK,
-        }}
-      >
-        <nav
-          className="pn-nav"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
-            alignItems: 'center',
-            gap: 16,
-            position: 'relative',
-            zIndex: 5,
-          }}
-        >
-          <div className="pn-nav-left" style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+      {/* ===================== MASTHEAD ===================== */}
+      <header style={{ position: 'relative', zIndex: 5, padding: '20px clamp(20px,4.5vw,72px) 0' }}>
+        <div style={{ ...wrap, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
+          <img src={LOGO} alt="Passion Reykjavík" width={100} height={62} decoding="async" style={{ width: 100, height: 'auto', display: 'block' }} />
+          <nav className="pn-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
             <a href="#menu" className="pn-navlink">{t.navMenu}</a>
             <a href="#bollur" className="pn-navlink">{t.navBollur}</a>
             <a href="#story" className="pn-navlink">{t.navStory}</a>
             <a href="#visit" className="pn-navlink">{t.navVisit}</a>
-          </div>
-          <img
-            src={LOGO}
-            alt="Passion Reykjavík"
-            width={104}
-            height={64}
-            decoding="async"
-            style={{ width: 104, height: 'auto', display: 'block' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
+          </nav>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2 }}>
               <button className="pn-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
               <span aria-hidden="true" style={{ color: FAINT, alignSelf: 'center' }}>/</span>
               <button className="pn-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
             </div>
-            <a
-              href={LINKS.wolt}
-              target="_blank"
-              rel="noreferrer"
-              className="pn-cta pn-cta-ghost pn-nav-cta"
-              style={{ padding: '10px 20px', fontSize: 14 }}
-            >
-              {t.orderWolt}
-            </a>
           </div>
-        </nav>
+        </div>
+      </header>
 
-        {/* Asymmetric split: type on the left, the flagship Cinnabon on the
-            right (turns as the hero scrolls past). The roll sits on a
-            #111111-matched ground so its square edges dissolve into the page. */}
-        <div
-          className="pn-hero-grid"
-          style={{
-            flex: 1,
-            width: '100%',
-            maxWidth: 1180,
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0,1.02fr) minmax(0,.98fr)',
-            alignItems: 'center',
-            gap: 'clamp(24px,4vw,64px)',
-            padding: 'clamp(20px,3vh,40px) 0',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <div className="pn-hero-copy">
-            <div
-              className="pn-enter"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
-                fontSize: 12.5,
-                fontWeight: 600,
-                letterSpacing: '.18em',
-                textTransform: 'uppercase',
-                color: GOLD,
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: status.open ? '#8FA876' : GOLD,
-                  boxShadow: status.open ? '0 0 0 4px rgba(143,168,118,.15)' : '0 0 0 4px rgba(200,168,119,.12)',
-                }}
-              />
-              {status.label}
-            </div>
-
-            <h1
-              className="pn-enter-2"
-              style={{
-                fontFamily: DISPLAY,
-                fontWeight: 700,
-                fontSize: 'clamp(46px, 6vw, 104px)',
-                lineHeight: 0.98,
-                letterSpacing: '.03em',
-                margin: 'clamp(14px,2.5vh,26px) 0 0',
-                background: `linear-gradient(180deg, ${GOLD_LIGHT} 8%, ${GOLD} 55%, #A98C5F 100%)`,
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              NÝBAKAÐ
-            </h1>
-
-            <p
-              className="pn-enter-3"
-              style={{
-                fontStyle: 'italic',
-                fontSize: 'clamp(17px, 1.7vw, 21px)',
-                color: IVORY,
-                margin: 'clamp(16px,2.5vh,24px) 0 0',
-                lineHeight: 1.5,
-                maxWidth: '30ch',
-              }}
-            >
-              {t.heroSub}
-            </p>
-            <p
-              className="pn-enter-3"
-              style={{ fontSize: 'clamp(14.5px,1.2vw,16px)', color: DIM, margin: '12px 0 0', maxWidth: '42ch', lineHeight: 1.6 }}
-            >
-              {t.heroLine}
-            </p>
-
-            <div
-              className="pn-hero-ctas pn-enter-3"
-              style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}
-            >
-              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-cta pn-cta-gold">
-                {t.orderWolt}
-              </a>
-              <a href="#menu" className="pn-cta pn-cta-ghost">
-                {t.ctaCounter}
-              </a>
-            </div>
-          </div>
-
-          <div className="pn-hero-art" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <motion.div
-              style={{
-                width: 'min(100%, 440px)',
-                aspectRatio: '1 / 1',
-                rotate: reduced ? 0 : rollSpin,
-                scale: reduced ? 1 : rollScale,
-                y: reduced ? 0 : rollLift,
-                transformOrigin: '50% 50%',
-                willChange: 'transform',
-              }}
-            >
+      {/* ===================== COVER ===================== */}
+      <section ref={heroRef} className="pn-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
+        <div className="pn-cover-grid" style={{ ...wrap, flex: 1, width: '100%', display: 'grid', gridTemplateColumns: '1fr', alignItems: 'center', position: 'relative', padding: 'clamp(24px,5vh,56px) 0' }}>
+          {/* the medallion bleeds off the right edge on desktop, sits on top on mobile */}
+          <div className="pn-medallion pn-enter-3">
+            <motion.div style={{ aspectRatio: '1 / 1', rotate: reduced ? 0 : rollSpin, scale: reduced ? 1 : rollScale, transformOrigin: '50% 50%', willChange: 'transform' }}>
               <Img
                 src={HERO_IMG}
-                alt={lang === 'en' ? 'The Passion Cinnabon, freshly glazed, photographed from above' : 'Cinnabon frá Passion, nýgljáður, myndaður ofan frá'}
+                alt={lang === 'en' ? 'The Passion Cinnabon, freshly glazed, from above' : 'Cinnabon frá Passion, nýgljáður, ofan frá'}
                 fallbackClassName="bg-transparent"
                 style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
               />
             </motion.div>
           </div>
+
+          <div className="pn-cover-copy" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 720, position: 'relative', zIndex: 2 }}>
+            <div className="pn-cover-meta pn-enter" style={{ display: 'flex', gap: 18, alignItems: 'center', fontSize: 12.5, letterSpacing: '.14em', textTransform: 'uppercase', color: FAINT, flexWrap: 'wrap' }}>
+              <span>{t.footerTag}</span>
+              <span aria-hidden="true" style={{ width: 4, height: 4, borderRadius: '50%', background: GOLD }} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: GOLD }}>
+                <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: status.open ? '#8FA876' : GOLD }} />
+                {status.label}
+              </span>
+            </div>
+
+            <h1 className="pn-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(58px, 12vw, 168px)', lineHeight: 0.94, letterSpacing: '.01em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
+              NÝBAKAÐ
+            </h1>
+
+            <p className="pn-enter-3" style={{ fontStyle: 'italic', fontSize: 'clamp(17px,1.9vw,23px)', color: IVORY, margin: 'clamp(16px,2.5vh,24px) 0 0', lineHeight: 1.5, maxWidth: '32ch' }}>
+              {t.heroSub}
+            </p>
+            <p className="pn-enter-3" style={{ fontSize: 'clamp(14.5px,1.2vw,16px)', color: DIM, margin: '12px 0 0', maxWidth: '40ch', lineHeight: 1.6 }}>
+              {t.heroLine}
+            </p>
+
+            <div className="pn-cover-ctas pn-enter-4" style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
+              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-cta pn-cta-gold">{t.orderWolt}</a>
+              <a href="#menu" className="pn-cta pn-cta-ghost">{t.ctaCounter}</a>
+            </div>
+          </div>
         </div>
 
-        <div
-          className="pn-herofoot"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 16,
-            padding: '18px 0 22px',
-            borderTop: `1px solid ${HAIR_SOFT}`,
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <span style={{ fontSize: 13.5, color: DIM }}>{t.mainName}</span>
-          <span style={{ fontSize: 13.5, color: DIM, textAlign: 'right' }}>
-            {t.hoursShort[0]} · {t.hoursShort[1]}
-          </span>
+        {/* gold marquee of the day's bakes — the one kinetic strip on the page */}
+        <div style={{ borderTop: `1px solid ${HAIR}`, borderBottom: `1px solid ${HAIR}`, padding: '18px 0', overflow: 'hidden', position: 'relative', zIndex: 2 }}>
+          <div className="pn-marquee-track" aria-hidden="true">
+            {[0, 1].map((dup) => (
+              <div key={dup} style={{ display: 'flex', alignItems: 'center' }}>
+                {marqueeItems.map((it, i) => (
+                  <span key={`${dup}-${i}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <span style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2.4vw,30px)', color: i % 2 ? GOLD : GOLD_LIGHT, padding: '0 26px' }}>{it}</span>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, opacity: 0.6 }} />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ===================== FROM THE OVEN ===================== */}
+      {/* ===================== THE MENU ===================== */}
       <section id="menu" style={{ background: INK_WARM, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={revealInit(reduced)}>
-            <h2
-              style={{
-                fontFamily: DISPLAY,
-                fontWeight: 400,
-                fontSize: 'clamp(34px,4.4vw,58px)',
-                lineHeight: 1.05,
-                margin: 0,
-                color: GOLD_LIGHT,
-              }}
-            >
-              {t.ovenTitle}
-            </h2>
-            <p style={{ fontSize: 16, color: DIM, margin: '14px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>
-              {t.ovenIntro}
-            </p>
-          </div>
+          <SectionRule eyebrow={t.menuMasthead} title={t.ovenTitle} reduced={reduced} />
+          <p data-reveal style={{ ...revealInit(reduced, 0.05), fontSize: 16, color: DIM, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
 
-          {/* Feature: the one real photo we have (Cinnabon) */}
-          <div
-            data-reveal
-            className="pn-grid-2"
-            style={{
-              ...revealInit(reduced, 0.1),
-              display: 'grid',
-              gridTemplateColumns: '1fr 1.1fr',
-              gap: 'clamp(24px,4vw,56px)',
-              alignItems: 'center',
-              marginTop: 'clamp(40px,6vh,64px)',
-            }}
-          >
-            <div
-              className="pn-feature-img"
-              style={{
-                borderRadius: 14,
-                border: `1px solid ${HAIR}`,
-                padding: 5,
-                background: 'rgba(243,234,211,.03)',
-              }}
-            >
-              <div style={{ borderRadius: 9, overflow: 'hidden', aspectRatio: '1 / 1' }}>
-                <img
-                  src={CINNABON_IMG}
-                  alt={lang === 'en' ? 'The Passion Cinnabon, freshly glazed on a cream plate' : 'Cinnabon frá Passion, nýgljáður á ljósum diski'}
-                  loading="lazy"
-                  decoding="async"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              </div>
+          {/* Featured: the one real photo, the house favourite */}
+          <div className="pn-feature" data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 'clamp(24px,4vw,56px)', alignItems: 'center', marginTop: 'clamp(40px,6vh,68px)' }}>
+            <div style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', background: INK }}>
+              <Img
+                src={HERO_IMG}
+                alt={lang === 'en' ? 'The Passion Cinnabon' : 'Cinnabon frá Passion'}
+                fallbackClassName="bg-transparent"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-                <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(28px,3vw,40px)', margin: 0, color: IVORY }}>
-                  {FEATURE.name}
-                </h3>
-                <span style={{ fontSize: 19, fontWeight: 600, color: GOLD }}>{FEATURE.price}</span>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: GOLD }}>{t.featuredLabel}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
+                <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,3.4vw,46px)', margin: 0, color: IVORY }}>{FEATURE.name}</h3>
+                <span style={{ fontSize: 20, fontWeight: 600, color: GOLD }}>{FEATURE.price}</span>
               </div>
-              <p style={{ fontSize: 17, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '44ch' }}>
-                {FEATURE.desc[lang]}
-              </p>
-              <p style={{ fontSize: 13.5, lineHeight: 1.6, color: FAINT, margin: '22px 0 0', maxWidth: '44ch', fontStyle: 'italic' }}>
-                {t.photoNote}
-              </p>
+              <p style={{ fontSize: 17, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '42ch' }}>{FEATURE.desc[lang]}</p>
             </div>
           </div>
 
-          {/* Grid: verified items, placeholder frames for HD photography */}
-          <div
-            className="pn-menu-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3,1fr)',
-              gap: 20,
-              marginTop: 'clamp(36px,5vh,56px)',
-            }}
-          >
-            {MENU.map((item, i) => (
-              <div key={item.name} data-reveal style={revealInit(reduced, Math.min(i * 0.06, 0.3))}>
-                <div
-                  className="pn-card"
-                  style={{
-                    background: 'rgba(243,234,211,.03)',
-                    border: `1px solid ${HAIR_SOFT}`,
-                    borderRadius: 14,
-                    padding: 14,
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 14,
-                  }}
-                >
-                  <div style={{ position: 'relative' }}>
-                    <PhotoSlot label={t.placeholder} initial={item.name.charAt(0)} />
+          {/* the menu, as an editorial list with dotted price leaders */}
+          <div className="pn-menu-cols" data-reveal style={{ ...revealInit(reduced, 0.12), display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 'clamp(40px,6vw,88px)', rowGap: 0, marginTop: 'clamp(44px,7vh,72px)' }}>
+            {MENU.map((item) => (
+              <div key={item.name} className="pn-row" style={{ padding: '20px 0', borderBottom: `1px solid ${HAIR_SOFT}` }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span className="pn-row-name" style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,25px)', color: IVORY, transition: `color .2s ${EASE}` }}>
+                    {item.name}
                     {item.tag && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: 12,
-                          left: 12,
-                          background: BURGUNDY,
-                          color: IVORY,
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          letterSpacing: '.1em',
-                          textTransform: 'uppercase',
-                          padding: '5px 10px',
-                          borderRadius: 4,
-                        }}
-                      >
+                      <span style={{ fontFamily: BODY, fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: GOLD_LIGHT, background: BURGUNDY, padding: '3px 8px', borderRadius: 4, marginLeft: 12, verticalAlign: 'middle' }}>
                         {item.tag[lang]}
                       </span>
                     )}
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
-                      <h3 style={{ fontFamily: BODY, fontWeight: 600, fontSize: 17, lineHeight: 1.25, margin: 0, color: IVORY }}>
-                        {item.name}
-                      </h3>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: GOLD, whiteSpace: 'nowrap' }}>{item.price}</span>
-                    </div>
-                    <p style={{ fontSize: 14, lineHeight: 1.55, color: DIM, margin: '8px 0 0' }}>{item.desc[lang]}</p>
-                  </div>
+                  </span>
+                  <span className="pn-leader" aria-hidden="true" />
+                  <span style={{ fontSize: 16, fontWeight: 600, color: GOLD, whiteSpace: 'nowrap' }}>{item.price}</span>
                 </div>
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: DIM, margin: '8px 0 0', maxWidth: '46ch' }}>{item.desc[lang]}</p>
               </div>
             ))}
+          </div>
+
+          {/* photography-coming gallery: keeps the "HD photos land here" promise, minimal */}
+          <div data-reveal style={{ ...revealInit(reduced, 0.16), marginTop: 'clamp(52px,8vh,84px)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+              <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(22px,2.4vw,30px)', margin: 0, color: GOLD_LIGHT }}>{t.galleryTitle}</h3>
+              <span style={{ fontSize: 13, color: FAINT, fontStyle: 'italic', maxWidth: '40ch', textAlign: 'right' }}>{t.photoNote}</span>
+            </div>
+            <div className="pn-gallery" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginTop: 22 }}>
+              {['Ostaslaufa', 'Vegan croissant', 'Snúður', 'Súrdeig'].map((label, i) => (
+                <PhotoSlot key={label} label={t.placeholder} initial={label.charAt(0)} ratio={i % 2 ? '3 / 4' : '4 / 5'} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ===================== BOLLUR (burgundy band) ===================== */}
-      <section id="bollur" style={{ background: BURGUNDY, padding: sectionPad }}>
+      {/* ===================== STATEMENT (burgundy) ===================== */}
+      <section id="story" style={{ background: BURGUNDY, padding: 'clamp(96px,15vh,180px) clamp(20px,4.5vw,72px)' }}>
+        <div style={{ maxWidth: 980, margin: '0 auto' }}>
+          <div data-reveal style={{ ...revealInit(reduced), fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD_LIGHT }}>
+            {t.navStory}
+          </div>
+          <blockquote data-reveal style={{ ...revealInit(reduced, 0.08), fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5.4vw,76px)', lineHeight: 1.12, letterSpacing: '.005em', color: IVORY, margin: '24px 0 0' }}>
+            “{t.storyQuote}”
+          </blockquote>
+          <div data-reveal style={{ ...revealInit(reduced, 0.14), fontSize: 14, color: 'rgba(243,234,211,.7)', marginTop: 22 }}>{t.storyQuoteWho}</div>
+
+          <div data-reveal style={{ ...revealInit(reduced, 0.2), display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(24px,4vw,64px)', marginTop: 'clamp(48px,7vh,88px)', maxWidth: 820 }} className="pn-vegan-grid">
+            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{t.storyP1}</p>
+            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{t.storyP2}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== BOLLUR BOARD ===================== */}
+      <section id="bollur" style={{ background: INK_DEEP, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={{ ...revealInit(reduced), maxWidth: 640 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '.22em',
-                textTransform: 'uppercase',
-                color: GOLD_LIGHT,
-              }}
-            >
-              {t.bollurKicker}
+          <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
+            <div style={{ maxWidth: 620 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.bollurKicker}</div>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT }}>{t.bollurTitle}</h2>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0' }}>{t.bollurIntro}</p>
             </div>
-            <h2
-              style={{
-                fontFamily: DISPLAY,
-                fontWeight: 400,
-                fontSize: 'clamp(36px,4.8vw,64px)',
-                lineHeight: 1.04,
-                margin: '16px 0 0',
-                color: IVORY,
-              }}
-            >
-              {t.bollurTitle}
-            </h2>
-            <p style={{ fontSize: 16.5, lineHeight: 1.7, color: 'rgba(243,234,211,.82)', margin: '18px 0 0' }}>
-              {t.bollurIntro}
-            </p>
-            <p style={{ fontSize: 16, fontWeight: 600, color: GOLD_LIGHT, margin: '16px 0 0' }}>
-              {t.bollurPrice}
-            </p>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: GOLD_LIGHT }}>{t.bollurPrice}</div>
+              <div style={{ fontSize: 13.5, color: FAINT, marginTop: 6, fontStyle: 'italic', maxWidth: '30ch' }}>{t.bollurSeason}</div>
+            </div>
           </div>
 
-          <div
-            data-reveal
-            className="pn-bollur-cols"
-            style={{
-              ...revealInit(reduced, 0.12),
-              columns: 2,
-              columnGap: 'clamp(32px,5vw,72px)',
-              marginTop: 'clamp(36px,5vh,56px)',
-            }}
-          >
+          <div className="pn-bollur-grid" data-reveal style={{ ...revealInit(reduced, 0.12), display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 'clamp(40px,6vw,88px)', marginTop: 'clamp(36px,5vh,56px)' }}>
             {BOLLUR.map((b) => (
-              <div
-                key={b.name}
-                style={{
-                  breakInside: 'avoid',
-                  padding: '13px 0',
-                  borderBottom: '1px solid rgba(243,234,211,.14)',
-                }}
-              >
-                <div style={{ fontFamily: DISPLAY, fontSize: 18.5, color: GOLD_LIGHT, lineHeight: 1.3 }}>{b.name}</div>
-                <div style={{ fontSize: 13.5, color: 'rgba(243,234,211,.66)', marginTop: 3, lineHeight: 1.5 }}>
-                  {b.filling[lang]}
-                </div>
+              <div key={b.name} style={{ padding: '14px 0', borderBottom: '1px solid rgba(243,234,211,.1)' }}>
+                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(18px,1.8vw,22px)', color: GOLD_LIGHT, lineHeight: 1.3 }}>{b.name}</div>
+                <div style={{ fontSize: 13.5, color: DIM, marginTop: 3, lineHeight: 1.5 }}>{b.filling[lang]}</div>
               </div>
             ))}
           </div>
-
-          <div
-            data-reveal
-            style={{
-              ...revealInit(reduced, 0.2),
-              display: 'flex',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 12,
-              marginTop: 26,
-            }}
-          >
-            <span style={{ fontSize: 14, color: 'rgba(243,234,211,.72)' }}>{t.bollurBulk}</span>
-            <span style={{ fontSize: 14, fontStyle: 'italic', color: 'rgba(243,234,211,.55)' }}>{t.bollurSeason}</span>
-          </div>
+          <div data-reveal style={{ ...revealInit(reduced, 0.2), fontSize: 14, color: FAINT, marginTop: 24 }}>{t.bollurBulk}</div>
         </div>
       </section>
 
-      {/* ===================== VEGAN ===================== */}
-      <section style={{ background: INK, padding: sectionPad }}>
-        <div
-          data-reveal
-          className="pn-vegan-grid"
-          style={{
-            ...revealInit(reduced),
-            ...wrap,
-            display: 'grid',
-            gridTemplateColumns: '1.2fr .8fr',
-            gap: 'clamp(28px,5vw,80px)',
-            alignItems: 'center',
-          }}
-        >
-          <figure style={{ margin: 0 }}>
-            <blockquote
-              style={{
-                margin: 0,
-                fontFamily: DISPLAY,
-                fontSize: 'clamp(24px,3vw,38px)',
-                lineHeight: 1.32,
-                color: GOLD_LIGHT,
-              }}
-            >
-              “{t.veganQuote}”
-            </blockquote>
-            <figcaption style={{ fontSize: 14, color: FAINT, marginTop: 18 }}>{t.veganWho}</figcaption>
-          </figure>
-          <div>
-            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(26px,2.8vw,36px)', margin: 0, color: IVORY }}>
-              {t.veganTitle}
-            </h2>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '14px 0 0' }}>{t.veganBody}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== STORY ===================== */}
-      <section id="story" style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: sectionPad }}>
-        <div style={wrap}>
-          <div
-            className="pn-story-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.05fr .95fr',
-              gap: 'clamp(28px,5vw,76px)',
-              alignItems: 'center',
-            }}
-          >
-            <div data-reveal style={revealInit(reduced)}>
-              <h2
-                style={{
-                  fontFamily: DISPLAY,
-                  fontWeight: 400,
-                  fontSize: 'clamp(34px,4.2vw,56px)',
-                  lineHeight: 1.08,
-                  margin: 0,
-                  color: GOLD_LIGHT,
-                  whiteSpace: 'pre-line',
-                }}
-              >
-                {t.storyTitle}
-              </h2>
-              <p style={{ fontSize: 16.5, lineHeight: 1.75, color: DIM, margin: '24px 0 0', maxWidth: '52ch' }}>{t.storyP1}</p>
-              <p style={{ fontSize: 16.5, lineHeight: 1.75, color: DIM, margin: '14px 0 0', maxWidth: '52ch' }}>{t.storyP2}</p>
-              <figure style={{ margin: '28px 0 0', paddingLeft: 18, borderLeft: `2px solid ${BRUSH}` }}>
-                <blockquote style={{ margin: 0, fontStyle: 'italic', fontSize: 18, lineHeight: 1.55, color: IVORY }}>
-                  “{t.storyQuote}”
-                </blockquote>
-                <figcaption style={{ fontSize: 13.5, color: FAINT, marginTop: 8 }}>{t.storyQuoteWho}</figcaption>
-              </figure>
-            </div>
-            <div data-reveal style={revealInit(reduced, 0.12)}>
-              <PhotoSlot label={t.interiorLabel} initial="P" ratio="4 / 5" />
-            </div>
-          </div>
-
-          <div
-            data-reveal
-            className="pn-stats"
-            style={{
-              ...revealInit(reduced, 0.15),
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4,1fr)',
-              gap: 20,
-              marginTop: 'clamp(52px,8vh,92px)',
-              borderTop: `1px solid ${HAIR_SOFT}`,
-              paddingTop: 38,
-            }}
-          >
-            {t.stats.map((s) => (
-              <div key={s.caption}>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(30px,3.6vw,48px)', color: GOLD }}>{s.value}</div>
-                <div style={{ fontSize: 13.5, color: DIM, marginTop: 6, lineHeight: 1.5 }}>{s.caption}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== REVIEWS ===================== */}
+      {/* ===================== VEGAN + ONE BIG REVIEW ===================== */}
       <section style={{ background: INK_WARM, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,3.6vw,46px)', margin: 0, color: GOLD_LIGHT }}>
-              {t.reviewsTitle}
-            </h2>
-            <span style={{ fontSize: 13.5, color: FAINT }}>{t.reviewsNote}</span>
+          <div className="pn-vegan-grid" data-reveal style={{ ...revealInit(reduced), display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 'clamp(28px,5vw,80px)', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>Vegan</div>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(28px,3.2vw,42px)', margin: '16px 0 0', color: GOLD_LIGHT }}>{t.veganTitle}</h2>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0' }}>{t.veganBody}</p>
+            </div>
+            <figure style={{ margin: 0, borderLeft: `2px solid ${GOLD}`, paddingLeft: 'clamp(20px,3vw,40px)' }}>
+              <blockquote style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(26px,3.4vw,46px)', lineHeight: 1.28, color: IVORY }}>
+                “{t.veganQuote}”
+              </blockquote>
+              <figcaption style={{ fontSize: 14, color: FAINT, marginTop: 18 }}>{t.veganWho}</figcaption>
+            </figure>
           </div>
-          <div
-            className="pn-reviews"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(24px,3.5vw,48px)', marginTop: 'clamp(36px,5vh,54px)' }}
-          >
-            {REVIEWS.map((r, i) => (
-              <figure
-                key={r.who}
-                data-reveal
-                style={{
-                  ...revealInit(reduced, i * 0.08),
-                  margin: 0,
-                  marginTop: i === 1 ? 36 : 0,
-                  paddingLeft: 18,
-                  borderLeft: `1px solid ${HAIR}`,
-                }}
-              >
-                <blockquote style={{ margin: 0, fontSize: 16.5, lineHeight: 1.65, color: IVORY }}>“{r.quote}”</blockquote>
-                <figcaption style={{ fontSize: 13.5, color: FAINT, marginTop: 14 }}>
-                  {r.who}, {r.when[lang]}
-                </figcaption>
+
+          {/* the other two reviews, quiet, in one line */}
+          <div data-reveal style={{ ...revealInit(reduced, 0.12), display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(24px,4vw,64px)', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)' }} className="pn-vegan-grid">
+            {REVIEWS.filter((r) => r.who !== 'Mia D').slice(0, 2).map((r) => (
+              <figure key={r.who} style={{ margin: 0 }}>
+                <blockquote style={{ margin: 0, fontSize: 16.5, lineHeight: 1.65, color: 'rgba(243,234,211,.82)' }}>“{r.quote}”</blockquote>
+                <figcaption style={{ fontSize: 13.5, color: FAINT, marginTop: 12 }}>{r.who}, {r.when[lang]}</figcaption>
               </figure>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===================== VISIT ===================== */}
+      {/* ===================== VISIT STRIP ===================== */}
       <section id="visit" style={{ background: INK, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={revealInit(reduced)}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.22em', textTransform: 'uppercase', color: GOLD }}>
-              {t.visitKicker}
-            </div>
-            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.2vw,56px)', margin: '14px 0 0', color: GOLD_LIGHT }}>
-              {t.visitTitle}
-            </h2>
-          </div>
-
-          <div
-            className="pn-visit-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.15fr .85fr',
-              gap: 'clamp(24px,4vw,56px)',
-              marginTop: 'clamp(36px,5vh,56px)',
-              alignItems: 'stretch',
-            }}
-          >
-            <div
-              data-reveal
-              style={{
-                ...revealInit(reduced, 0.08),
-                border: `1px solid ${HAIR}`,
-                borderRadius: 14,
-                padding: 'clamp(24px,3vw,40px)',
-                background: 'rgba(243,234,211,.03)',
-              }}
-            >
-              <div style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>
-                {t.mainLabel}
-              </div>
-              <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,30px)', color: IVORY, marginTop: 10 }}>{t.mainName}</div>
-              <div style={{ marginTop: 24, display: 'grid', gap: 15 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 13 }}>
-                  <span style={{ color: FAINT, fontSize: 14 }}>{t.rowHours}</span>
-                  <span style={{ fontSize: 14.5, textAlign: 'right', color: DIM }}>
-                    {t.hoursRows.map((l) => (
-                      <span key={l} style={{ display: 'block' }}>{l}</span>
-                    ))}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 13 }}>
-                  <span style={{ color: FAINT, fontSize: 14 }}>{t.rowPhone}</span>
-                  <a href={`tel:${LINKS.phone}`} className="pn-footlink" style={{ fontSize: 14.5, fontWeight: 600 }}>
-                    {LINKS.phoneLabel}
-                  </a>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-                  <span style={{ color: FAINT, fontSize: 14 }}>{t.rowEmail}</span>
-                  <a href={`mailto:${LINKS.email}`} className="pn-footlink" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>
-                    {LINKS.email}
-                  </a>
-                </div>
-              </div>
+          <div className="pn-visit-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,5vw,80px)', alignItems: 'start' }}>
+            <div data-reveal style={revealInit(reduced)}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD, borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>{t.visitKicker}</div>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT }}>{t.visitTitle}</h2>
+              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-cta pn-cta-gold" style={{ marginTop: 'clamp(24px,4vh,36px)' }}>{t.orderWolt}</a>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div
-                data-reveal
-                style={{
-                  ...revealInit(reduced, 0.14),
-                  border: `1px solid ${HAIR}`,
-                  borderRadius: 14,
-                  padding: 'clamp(22px,2.6vw,32px)',
-                  background: 'rgba(243,234,211,.03)',
-                  flex: 1,
-                }}
-              >
-                <div style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>
-                  {t.counterLabel}
+            <div data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gap: 26 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.mainLabel}</div>
+                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 8 }}>{t.mainName}</div>
+                <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
+                  {t.hoursRows.map((l) => (
+                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
+                      <span>{l.split(/\s(.+)/)[0]}</span>
+                      <span style={{ color: IVORY }}>{l.split(/\s(.+)/)[1]}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
+                    <span style={{ fontSize: 14.5, color: DIM }}>{t.rowPhone}</span>
+                    <a href={`tel:${LINKS.phone}`} className="pn-foot-link" style={{ fontSize: 14.5, fontWeight: 600 }}>{LINKS.phoneLabel}</a>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                    <span style={{ fontSize: 14.5, color: DIM }}>{t.rowEmail}</span>
+                    <a href={`mailto:${LINKS.email}`} className="pn-foot-link" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>{LINKS.email}</a>
+                  </div>
                 </div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,25px)', color: IVORY, marginTop: 10 }}>{t.counterName}</div>
-                <p style={{ fontSize: 14.5, lineHeight: 1.6, color: DIM, margin: '10px 0 0' }}>{t.counterNote}</p>
               </div>
-              <div
-                data-reveal
-                style={{
-                  ...revealInit(reduced, 0.2),
-                  borderRadius: 14,
-                  padding: 'clamp(22px,2.6vw,32px)',
-                  background: BURGUNDY,
-                }}
-              >
-                <p style={{ fontSize: 15, lineHeight: 1.6, color: 'rgba(243,234,211,.85)', margin: 0 }}>{t.deliveryNote}</p>
-                <a
-                  href={LINKS.wolt}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="pn-cta pn-cta-gold"
-                  style={{ marginTop: 18 }}
-                >
-                  {t.orderWolt}
-                </a>
+              <div style={{ borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.counterLabel}</div>
+                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,24px)', color: IVORY, marginTop: 8 }}>{t.counterName}</div>
+                <p style={{ fontSize: 14, color: DIM, margin: '8px 0 0', lineHeight: 1.6 }}>{t.counterNote}</p>
               </div>
             </div>
           </div>
@@ -944,16 +537,7 @@ export default function PassionPage() {
 
       {/* ===================== FOOTER ===================== */}
       <footer style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: '52px clamp(20px,4.5vw,72px)' }}>
-        <div
-          style={{
-            ...wrap,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 22,
-          }}
-        >
+        <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 22 }}>
           <div>
             <img src={LOGO} alt="" aria-hidden="true" width={92} height={56} loading="lazy" decoding="async" style={{ width: 92, height: 'auto', display: 'block' }} />
             <div style={{ fontSize: 13, color: FAINT, marginTop: 10 }}>{t.footerTag}</div>
@@ -961,9 +545,9 @@ export default function PassionPage() {
           <div style={{ fontSize: 13.5, color: DIM, lineHeight: 1.8, textAlign: 'right' }}>
             <div>{t.mainName} · {LINKS.phoneLabel}</div>
             <div style={{ display: 'flex', gap: 18, justifyContent: 'flex-end', marginTop: 6 }}>
-              <a href={LINKS.instagram} target="_blank" rel="noreferrer" className="pn-footlink">Instagram</a>
-              <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="pn-footlink">Facebook</a>
-              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-footlink">Wolt</a>
+              <a href={LINKS.instagram} target="_blank" rel="noreferrer" className="pn-foot-link">Instagram</a>
+              <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="pn-foot-link">Facebook</a>
+              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-foot-link">Wolt</a>
             </div>
           </div>
         </div>
