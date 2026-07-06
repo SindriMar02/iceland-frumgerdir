@@ -290,6 +290,9 @@ export default function StjornusolPage() {
         .sv-r[data-in="true"]{opacity:1;transform:none}
         .sv-rise{animation:svRise 1s ${EASE} both}
         @keyframes svRise{from{opacity:0;transform:translateY(26px)}}
+        .sv-nav{position:relative}
+        .sv-nav::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;border-radius:1px;background:linear-gradient(90deg,${CHAMPAGNE},${MAGENTA});transform:scaleX(0);transform-origin:100% 50%;transition:transform .35s ${EASE}}
+        .sv-nav:hover::after,.sv-nav:focus-visible::after{transform:scaleX(1);transform-origin:0 50%}
         .sv-cta{transition:transform .3s ${EASE}, box-shadow .3s ease, filter .25s ease}
         .sv-cta:hover{transform:translateY(-3px);filter:brightness(1.1)}
         .sv-cta:active{transform:scale(.97)}
@@ -307,6 +310,11 @@ export default function StjornusolPage() {
         .sv-peek-card{transition:opacity .28s ease, transform .32s ${EASE}}
         .sv-peek-img{transition:opacity .25s ease}
         @keyframes svBadge{0%,86%{opacity:1}88%{opacity:.4}90%{opacity:1}94%{opacity:.7}96%,100%{opacity:1}}
+        @media (hover: none), (pointer: coarse){
+          .sv-peek{display:none}
+          .sv-hint{display:none}
+          .sv-row:hover{transform:none}
+        }
         @media (prefers-reduced-motion: reduce){
           .sv-panel,.sv-blink{animation:none !important;opacity:0 !important}
           .sv-onfull{animation:none !important;opacity:1 !important}
@@ -316,6 +324,7 @@ export default function StjornusolPage() {
           .sv-slat{transition:none}
           .sv-sunglow{animation:none}
           .sv-roll{transition:none !important}
+          .sv-nav::after{transition:none}
         }
       `}</style>
 
@@ -348,7 +357,7 @@ export default function StjornusolPage() {
               ['#stofan', 'STOFAN'],
             ] as const
           ).map(([href, label]) => (
-            <a key={href} href={href} className="no-underline transition-colors duration-300 hover:text-[#F4EFE6]" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
+            <a key={href} href={href} className="sv-nav no-underline transition-colors duration-300 hover:text-[#F4EFE6]" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
               {label}
             </a>
           ))}
@@ -359,7 +368,7 @@ export default function StjornusolPage() {
       </header>
 
       {/* ── bed peek follower ─────────────────────────────────────────── */}
-      <div ref={peekEl} aria-hidden="true" className="pointer-events-none fixed top-0 left-0 z-[48]" style={{ width: 'min(300px, 34vw)', aspectRatio: '4 / 3', transform: 'translate3d(-500px,-500px,0)', willChange: 'transform' }}>
+      <div ref={peekEl} aria-hidden="true" className="sv-peek pointer-events-none fixed top-0 left-0 z-[48]" style={{ width: 'min(300px, 34vw)', aspectRatio: '4 / 3', transform: 'translate3d(-500px,-500px,0)', willChange: 'transform' }}>
         <div className="sv-peek-card absolute inset-0 overflow-clip rounded-[14px]" style={{ border: `1px solid ${HAIR}`, boxShadow: '0 30px 70px rgba(0,0,0,.7)', background: OBSIDIAN2, opacity: peek ? 1 : 0, transform: peek ? 'scale(1)' : 'scale(.9)' }}>
           {BEDS.map((b, i) => (
             <img key={b.id} src={`${A}${b.image}`} alt="" className="sv-peek-img absolute inset-0 h-full w-full object-cover" style={{ opacity: peek === i + 1 ? 1 : 0 }} />
@@ -369,7 +378,7 @@ export default function StjornusolPage() {
 
       {/* ── sticky booking bar ────────────────────────────────────────── */}
       <div
-        className="fixed right-0 left-0 z-[55] mx-auto flex gap-2 rounded-full p-2"
+        className="fixed right-0 left-0 z-[55] mx-auto flex gap-2 rounded-full p-2 md:hidden"
         style={{
           bottom: 'calc(10px + env(safe-area-inset-bottom, 0px))',
           width: 'min(calc(100% - 24px), 400px)',
@@ -396,12 +405,12 @@ export default function StjornusolPage() {
         <section id="k11" className="relative flex min-h-[100svh] items-end overflow-clip" style={{ background: OBSIDIAN }}>
           <div className="absolute inset-0 overflow-hidden">
             <div className="sv-stage absolute" style={{ top: '50%', left: '62%', transform: 'translate(-62%, -50%)', height: '100%', aspectRatio: '2688 / 1520', minWidth: '100%' }}>
-              <img src={`${A}k11-off.webp`} alt="KBL K11 Air Loft ljósabekkur í dimmum sal" className="absolute inset-0 h-full w-full" fetchPriority="high" />
+              <img src={`${A}k11-off.webp`} alt="KBL K11 Air Loft ljósabekkur í dimmum sal" className="absolute inset-0 h-full w-full" {...({ fetchpriority: 'high' } as React.ImgHTMLAttributes<HTMLImageElement>)} />
               <K11Relight on={lit} />
             </div>
             {/* legibility scrims */}
             <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(10,9,12,.9) 0%, rgba(10,9,12,.55) 34%, rgba(10,9,12,.08) 62%, transparent 100%)' }} />
-            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2/5" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.88))' }} />
+            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5 md:h-2/5" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.88))' }} />
           </div>
 
           <div className="relative z-10 mx-auto w-full max-w-[1240px] px-5 pt-28 pb-24 md:px-9 md:pb-28">
@@ -425,31 +434,31 @@ export default function StjornusolPage() {
             <p className="sv-rise mt-7 mb-0 text-[13px]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.8s' }}>
               MORGUNVERÐ ALLA DAGA FYRIR KL. 14 · FRÁ 2.190 KR.
             </p>
-          </div>
 
-          {/* the machine's own power switch */}
-          <div className="sv-rise absolute right-4 bottom-24 z-10 md:right-9 md:bottom-10" style={{ animationDelay: '1s' }}>
-            <button
-              type="button"
-              aria-pressed={lit}
-              onClick={() => setLit(!lit)}
-              className="sv-power flex cursor-pointer items-center gap-3 rounded-full border py-2 pr-2 pl-4"
-              style={{ background: 'rgba(12,11,14,.72)', borderColor: lit ? 'rgba(211,199,178,.4)' : HAIR, backdropFilter: 'blur(10px)' }}
-            >
-              <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO }}>
-                {lit ? 'LJÓSIN Á' : 'LJÓSIN AF'}
-              </span>
-              <span aria-hidden="true" className="relative inline-block h-6 w-11 rounded-full" style={{ background: lit ? 'rgba(232,53,126,.28)' : 'rgba(244,239,230,.1)', border: '1px solid rgba(244,239,230,.18)' }}>
-                <span
-                  className="sv-knob absolute top-[2px] left-[2px] h-[18px] w-[18px] rounded-full"
-                  style={{
-                    transform: lit ? 'translateX(20px)' : 'none',
-                    background: lit ? MAGENTA : '#6E6659',
-                    boxShadow: lit ? '0 0 12px 2px rgba(232,53,126,.65)' : 'none',
-                  }}
-                />
-              </span>
-            </button>
+            {/* the machine's own power switch */}
+            <div className="sv-rise mt-6 md:absolute md:right-9 md:bottom-10 md:mt-0" style={{ animationDelay: '1s' }}>
+              <button
+                type="button"
+                aria-pressed={lit}
+                onClick={() => setLit(!lit)}
+                className="sv-power flex cursor-pointer items-center gap-3 rounded-full border py-2 pr-2 pl-4"
+                style={{ background: 'rgba(12,11,14,.72)', borderColor: lit ? 'rgba(211,199,178,.4)' : HAIR, backdropFilter: 'blur(10px)' }}
+              >
+                <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO }}>
+                  {lit ? 'LJÓSIN Á' : 'LJÓSIN AF'}
+                </span>
+                <span aria-hidden="true" className="relative inline-block h-6 w-11 rounded-full" style={{ background: lit ? 'rgba(232,53,126,.28)' : 'rgba(244,239,230,.1)', border: '1px solid rgba(244,239,230,.18)' }}>
+                  <span
+                    className="sv-knob absolute top-[2px] left-[2px] h-[18px] w-[18px] rounded-full"
+                    style={{
+                      transform: lit ? 'translateX(20px)' : 'none',
+                      background: lit ? MAGENTA : '#6E6659',
+                      boxShadow: lit ? '0 0 12px 2px rgba(232,53,126,.65)' : 'none',
+                    }}
+                  />
+                </span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -481,7 +490,8 @@ export default function StjornusolPage() {
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
               <Reveal>
                 <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(34px, 5vw, 64px)', lineHeight: 1.02, color: TXT }}>
-                  Þrjár upplifanir. Einn bekkur.
+                  Þrjár upplifanir.
+                  <br className="md:hidden" /> Einn bekkur.
                 </h2>
               </Reveal>
               <Reveal delay={80}>
@@ -566,7 +576,7 @@ export default function StjornusolPage() {
                   Sparaðu meira.
                 </h2>
               </Reveal>
-              <Reveal delay={80} className="text-right">
+              <Reveal delay={80} className="text-left md:text-right">
                 <p className="m-0 text-sm leading-[1.6]" style={{ color: CHAMP_DIM }}>
                   Morgunverð gildir alla daga frá kl. 10 til 14.
                 </p>
@@ -579,7 +589,7 @@ export default function StjornusolPage() {
             {/* the control panel */}
             <Reveal className="mt-10">
               <div className="rounded-[26px] p-2" style={{ background: 'rgba(211,199,178,.06)', border: `1px solid ${HAIR}` }}>
-                <div className="rounded-[calc(26px-8px)] p-6 md:p-9" style={{ background: OBSIDIAN, boxShadow: 'inset 0 1px 0 rgba(244,239,230,.06)' }}>
+                <div className="rounded-[calc(26px-8px)] p-4 py-6 md:p-9" style={{ background: OBSIDIAN, boxShadow: 'inset 0 1px 0 rgba(244,239,230,.06)' }}>
                   {/* rocker switch */}
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="relative inline-flex rounded-full p-[5px]" style={{ background: 'rgba(211,199,178,.08)', border: `1px solid ${HAIR}`, minWidth: 'min(100%, 400px)' }}>
@@ -611,25 +621,17 @@ export default function StjornusolPage() {
                         {PRICES.filter((p) => p.group === group).map((p, i, arr) => {
                           const gi = PRICES.findIndex((x) => x.id === p.id)
                           return (
-                            <div key={p.id} className="grid items-center" style={{ gridTemplateColumns: 'minmax(0,1fr) auto', gap: '8px 18px', padding: '17px 4px', borderTop: `1px solid ${HAIR}`, borderBottom: group === 'kort' && i === arr.length - 1 ? `1px solid ${HAIR}` : undefined }}>
-                              <div>
-                                <p className="m-0 font-bold" style={{ fontSize: 'clamp(17px, 2.3vw, 20px)', color: TXT }}>
-                                  {p.name}
-                                  {p.minutes ? (
-                                    <span className="text-sm font-medium" style={{ color: CHAMP_DIM }}>
-                                      {' '}
-                                      · {p.minutes}
-                                    </span>
-                                  ) : null}
-                                </p>
-                                <p className="mt-1 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
-                                  Morgunverð {p.morning} · Dagverð {p.day}
-                                  <span className="ml-2.5 font-bold" style={{ color: MAGENTA, opacity: morgun ? 1 : 0.25, transition: 'opacity .4s ease' }}>
-                                    þú sparar {p.saves}
+                            <div key={p.id} className="grid grid-cols-1 items-center gap-x-[18px] gap-y-1.5 md:grid-cols-[minmax(0,1fr)_auto]" style={{ padding: '17px 4px', borderTop: `1px solid ${HAIR}`, borderBottom: group === 'kort' && i === arr.length - 1 ? `1px solid ${HAIR}` : undefined }}>
+                              <p className="m-0 font-bold" style={{ fontSize: 'clamp(17px, 2.3vw, 20px)', color: TXT }}>
+                                {p.name}
+                                {p.minutes ? (
+                                  <span className="text-sm font-medium" style={{ color: CHAMP_DIM }}>
+                                    {' '}
+                                    · {p.minutes}
                                   </span>
-                                </p>
-                              </div>
-                              <div className="overflow-hidden text-right" style={{ height: '1.2em', fontSize: 'clamp(26px, 4.4vw, 40px)', fontFamily: MONO, fontWeight: 500, color: CHAMPAGNE }}>
+                                ) : null}
+                              </p>
+                              <div className="overflow-hidden text-left md:row-span-2 md:self-center md:text-right" style={{ height: '1.2em', fontSize: 'clamp(30px, 8.6vw, 40px)', fontFamily: MONO, fontWeight: 500, color: CHAMPAGNE }}>
                                 <div className="sv-roll" style={{ transform: morgun ? 'translateY(0)' : 'translateY(-1.2em)', transitionDelay: `${gi * 0.06}s` }}>
                                   <span className="block" style={{ height: '1.2em', lineHeight: '1.2em' }}>
                                     {p.morning}
@@ -639,6 +641,12 @@ export default function StjornusolPage() {
                                   </span>
                                 </div>
                               </div>
+                              <p className="m-0 text-[13px] leading-[1.55]" style={{ color: CHAMP_DIM }}>
+                                Morgunverð {p.morning} · Dagverð {p.day}
+                                <span className="ml-2.5 inline-block font-bold whitespace-nowrap" style={{ color: MAGENTA, opacity: morgun ? 1 : 0.25, transition: 'opacity .4s ease' }}>
+                                  þú sparar {p.saves}
+                                </span>
+                              </p>
                             </div>
                           )
                         })}
@@ -650,7 +658,7 @@ export default function StjornusolPage() {
                     <p className="m-0 text-sm" style={{ color: CHAMP_DIM }}>
                       K11 Air Loft er bókanlegur á Noona. Bókun fer fram á Noona.
                     </p>
-                    <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta" style={cta({ fontSize: 16, padding: '15px 34px' })}>
+                    <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta w-full text-center md:w-auto" style={cta({ fontSize: 16, padding: '15px 34px' })}>
                       Bóka tíma
                     </a>
                   </div>
@@ -680,15 +688,27 @@ export default function StjornusolPage() {
                     <p className="m-0 text-sm" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
                       {String(i + 1).padStart(2, '0')}
                     </p>
-                    <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(24px, 4.4vw, 46px)', color: TXT, lineHeight: 1.06 }}>
-                      {b.name}
-                    </p>
+                    <div>
+                      <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(24px, 4.4vw, 46px)', color: TXT, lineHeight: 1.06 }}>
+                        {b.name}
+                      </p>
+                      {b.maker ? (
+                        <p className="mt-1 mb-0 text-[13px] md:hidden" style={{ color: CHAMP_DIM }}>
+                          {b.maker}
+                        </p>
+                      ) : (
+                        <a href="#k11" className="mt-2 inline-flex items-center gap-[7px] rounded-full text-[12px] font-bold no-underline md:hidden" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '6px 12px' }}>
+                          stjarnan okkar<span aria-hidden="true">↑</span>
+                        </a>
+                      )}
+                    </div>
+                    <img src={`${A}${b.image}`} alt="" aria-hidden="true" loading="lazy" className="w-[86px] rounded-[10px] md:hidden" style={{ border: `1px solid ${HAIR}` }} />
                     {b.maker ? (
-                      <p className="m-0 text-sm" style={{ color: CHAMP_DIM }}>
+                      <p className="m-0 hidden text-sm md:block" style={{ color: CHAMP_DIM }}>
                         {b.maker}
                       </p>
                     ) : (
-                      <a href="#k11" className="inline-flex items-center gap-[7px] rounded-full text-[13px] font-bold no-underline transition-colors duration-300 hover:bg-[rgba(232,53,126,.12)]" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '9px 16px' }}>
+                      <a href="#k11" className="hidden items-center gap-[7px] rounded-full text-[13px] font-bold no-underline transition-colors duration-300 hover:bg-[rgba(232,53,126,.12)] md:inline-flex" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '9px 16px' }}>
                         stjarnan okkar<span aria-hidden="true">↑</span>
                       </a>
                     )}
@@ -697,7 +717,7 @@ export default function StjornusolPage() {
               ))}
             </div>
             <Reveal>
-              <p className="mt-5 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
+              <p className="sv-hint mt-5 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
                 Renndu músinni yfir bekk til að sjá hann.
               </p>
             </Reveal>
