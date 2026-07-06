@@ -35,6 +35,7 @@ import {
   type Lang,
   LOGO,
   HERO_IMG,
+  FEATURE_IMG,
   LINKS,
   HOURS_BY_DAY,
   FEATURE,
@@ -367,11 +368,13 @@ export default function PassionPage() {
 
           {/* Featured: the one real photo, the house favourite */}
           <div className="pn-feature" data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 'clamp(24px,4vw,56px)', alignItems: 'center', marginTop: 'clamp(40px,6vh,68px)' }}>
+            {/* Shot 2: the Cinnabon torn open (IMAGE-PROMPTS.md). Until the file
+                lands, the dashed placeholder frame communicates the photo slot. */}
             <div style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', background: INK }}>
               <Img
-                src={HERO_IMG}
-                alt={lang === 'en' ? 'The Passion Cinnabon' : 'Cinnabon frá Passion'}
-                fallbackClassName="bg-transparent"
+                src={FEATURE_IMG}
+                alt={lang === 'en' ? 'A Passion Cinnabon torn open, showing the soft layered interior' : 'Cinnabon frá Passion rifinn í sundur, mjúk lögin sjást'}
+                fallbackClassName="bg-gradient-to-br from-[#1D1712] to-[#120F0B] border border-dashed border-[#EED3AA38] rounded-[8px]"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
             </div>

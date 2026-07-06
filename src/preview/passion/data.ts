@@ -34,9 +34,12 @@ export type Lang = 'en' | 'is'
 
 export const LOGO = `${import.meta.env.BASE_URL}passion/brand/logo.png`
 export const CINNABON_IMG = `${import.meta.env.BASE_URL}passion/cinnabon.jpg`
-/** Hero Cinnabon on a flat #111111 ground — Higgsfield asset, see IMAGE-PROMPTS.md.
- *  Until the file exists the hero slot renders an invisible fallback. */
+/** Hero Cinnabon on a flat #131313 ground — Higgsfield asset, see IMAGE-PROMPTS.md. */
 export const HERO_IMG = `${import.meta.env.BASE_URL}passion/hero-cinnabon.jpg`
+/** Second shot for the menu feature: the Cinnabon torn open, side angle, same
+ *  flat #131313 ground — Higgsfield asset, see IMAGE-PROMPTS.md shot 2.
+ *  Until the file exists the card shows a labelled placeholder frame. */
+export const FEATURE_IMG = `${import.meta.env.BASE_URL}passion/feature-cinnabon.jpg`
 
 export const LINKS = {
   wolt: 'https://wolt.com/en/isl/reykjavik/venue/passion-bakari',
