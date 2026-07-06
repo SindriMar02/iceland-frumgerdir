@@ -122,6 +122,13 @@ const PAGE_CSS = `
     .pn-stats { grid-template-columns:repeat(2,1fr) !important; row-gap:28px !important; }
     .pn-reviews { grid-template-columns:1fr !important; }
     .pn-reviews > figure { margin-top:0 !important; }
+    /* Hero: image on top, copy below, single column */
+    .pn-hero-grid { grid-template-columns:1fr !important; justify-items:center; text-align:center; gap:20px !important; }
+    .pn-hero-copy { display:flex; flex-direction:column; align-items:center; }
+    .pn-hero-copy p { max-width:44ch !important; }
+    .pn-hero-ctas { justify-content:center; }
+    .pn-hero-art { order:-1; }
+    .pn-hero-art > div { width:min(66vw,300px) !important; }
   }
   @media (max-width:600px) {
     .pn-nav { grid-template-columns:auto 1fr !important; row-gap:14px; }
@@ -347,109 +354,107 @@ export default function PassionPage() {
           </div>
         </nav>
 
+        {/* Asymmetric split: type on the left, the flagship Cinnabon on the
+            right (turns as the hero scrolls past). The roll sits on a
+            #111111-matched ground so its square edges dissolve into the page. */}
         <div
+          className="pn-hero-grid"
           style={{
-            display: 'flex',
-            flexDirection: 'column',
+            flex: 1,
+            width: '100%',
+            maxWidth: 1180,
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0,1.02fr) minmax(0,.98fr)',
             alignItems: 'center',
-            textAlign: 'center',
-            padding: 'clamp(22px,4vh,48px) 0 0',
+            gap: 'clamp(24px,4vw,64px)',
+            padding: 'clamp(20px,3vh,40px) 0',
             position: 'relative',
             zIndex: 2,
           }}
         >
-          <div
-            className="pn-enter"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              fontSize: 12.5,
-              fontWeight: 600,
-              letterSpacing: '.18em',
-              textTransform: 'uppercase',
-              color: GOLD,
-            }}
-          >
-            <span
-              aria-hidden="true"
+          <div className="pn-hero-copy">
+            <div
+              className="pn-enter"
               style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: status.open ? '#8FA876' : GOLD,
-                boxShadow: status.open ? '0 0 0 4px rgba(143,168,118,.15)' : '0 0 0 4px rgba(200,168,119,.12)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                fontSize: 12.5,
+                fontWeight: 600,
+                letterSpacing: '.18em',
+                textTransform: 'uppercase',
+                color: GOLD,
               }}
-            />
-            {status.label}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: status.open ? '#8FA876' : GOLD,
+                  boxShadow: status.open ? '0 0 0 4px rgba(143,168,118,.15)' : '0 0 0 4px rgba(200,168,119,.12)',
+                }}
+              />
+              {status.label}
+            </div>
+
+            <h1
+              className="pn-enter-2"
+              style={{
+                fontFamily: DISPLAY,
+                fontWeight: 700,
+                fontSize: 'clamp(46px, 6vw, 104px)',
+                lineHeight: 0.98,
+                letterSpacing: '.03em',
+                margin: 'clamp(14px,2.5vh,26px) 0 0',
+                background: `linear-gradient(180deg, ${GOLD_LIGHT} 8%, ${GOLD} 55%, #A98C5F 100%)`,
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
+              NÝBAKAÐ
+            </h1>
+
+            <p
+              className="pn-enter-3"
+              style={{
+                fontStyle: 'italic',
+                fontSize: 'clamp(17px, 1.7vw, 21px)',
+                color: IVORY,
+                margin: 'clamp(16px,2.5vh,24px) 0 0',
+                lineHeight: 1.5,
+                maxWidth: '30ch',
+              }}
+            >
+              {t.heroSub}
+            </p>
+            <p
+              className="pn-enter-3"
+              style={{ fontSize: 'clamp(14.5px,1.2vw,16px)', color: DIM, margin: '12px 0 0', maxWidth: '42ch', lineHeight: 1.6 }}
+            >
+              {t.heroLine}
+            </p>
+
+            <div
+              className="pn-hero-ctas pn-enter-3"
+              style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}
+            >
+              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-cta pn-cta-gold">
+                {t.orderWolt}
+              </a>
+              <a href="#menu" className="pn-cta pn-cta-ghost">
+                {t.ctaCounter}
+              </a>
+            </div>
           </div>
 
-          <h1
-            className="pn-enter-2"
-            style={{
-              fontFamily: DISPLAY,
-              fontWeight: 700,
-              fontSize: 'clamp(52px, 11.5vw, 142px)',
-              lineHeight: 1,
-              letterSpacing: '.1em',
-              margin: 'clamp(14px,3vh,32px) 0 0',
-              paddingLeft: '.1em', // optical balance for the tracking
-              background: `linear-gradient(180deg, ${GOLD_LIGHT} 8%, ${GOLD} 55%, #A98C5F 100%)`,
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
-            NÝBAKAÐ
-          </h1>
-
-          <p
-            className="pn-enter-3"
-            style={{
-              fontStyle: 'italic',
-              fontSize: 'clamp(17px, 2vw, 22px)',
-              color: IVORY,
-              margin: 'clamp(16px,2.5vh,26px) 0 0',
-              lineHeight: 1.5,
-            }}
-          >
-            {t.heroSub}
-          </p>
-          <p
-            className="pn-enter-3"
-            style={{ fontSize: 'clamp(14.5px,1.4vw,16.5px)', color: DIM, margin: '10px 0 0', maxWidth: '46ch', lineHeight: 1.6 }}
-          >
-            {t.heroLine}
-          </p>
-
-          <div
-            className="pn-hero-ctas pn-enter-3"
-            style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,4vh,40px)', justifyContent: 'center' }}
-          >
-            <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="pn-cta pn-cta-gold">
-              {t.orderWolt}
-            </a>
-            <a href="#menu" className="pn-cta pn-cta-ghost">
-              {t.ctaCounter}
-            </a>
-          </div>
-        </div>
-
-        {/* The flagship Cinnabon on a #111111-matched ground — its square edges
-            dissolve into the page while the roll stays sharp. Turns gently as
-            the hero scrolls past (GK-style scroll spin). */}
-        <div style={{ position: 'relative', flex: 1, minHeight: 'clamp(280px,38vh,480px)', marginTop: 'clamp(10px,2vh,20px)', zIndex: 1 }}>
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              bottom: 0,
-              transform: 'translateX(-50%)',
-              width: 'clamp(240px,32vw,430px)',
-            }}
-          >
+          <div className="pn-hero-art" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <motion.div
               style={{
+                width: 'min(100%, 440px)',
                 aspectRatio: '1 / 1',
                 rotate: reduced ? 0 : rollSpin,
                 scale: reduced ? 1 : rollScale,
@@ -462,7 +467,7 @@ export default function PassionPage() {
                 src={HERO_IMG}
                 alt={lang === 'en' ? 'The Passion Cinnabon, freshly glazed, photographed from above' : 'Cinnabon frá Passion, nýgljáður, myndaður ofan frá'}
                 fallbackClassName="bg-transparent"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
               />
             </motion.div>
           </div>
