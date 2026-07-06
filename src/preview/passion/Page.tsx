@@ -65,6 +65,13 @@ const DISPLAY = "'Lusitana', Georgia, serif"
 const BODY = "'Source Serif 4', 'Source Serif Pro', Georgia, serif"
 const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)'
 
+// Feather the feature photo's edges into the page ground (its own background is
+// a moody gradient, not flat #131313). Two intersecting linear fades = a soft
+// rectangular vignette that dissolves all four edges.
+const FEATURE_FEATHER =
+  'linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%), ' +
+  'linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%)'
+
 const GOLD_TEXT = {
   background: `linear-gradient(180deg, ${GOLD_LIGHT} 6%, ${GOLD} 58%, #A98C5F 100%)`,
   WebkitBackgroundClip: 'text',
@@ -369,14 +376,26 @@ export default function PassionPage() {
 
           {/* Featured: the one real photo, the house favourite */}
           <div className="pn-feature" data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 'clamp(24px,4vw,56px)', alignItems: 'center', marginTop: 'clamp(40px,6vh,68px)' }}>
-            {/* Shot 2: the Cinnabon torn open (IMAGE-PROMPTS.md). Until the file
-                lands, the dashed placeholder frame communicates the photo slot. */}
-            <div style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1 / 1', background: INK }}>
+            {/* Shot 2: the Cinnabon torn open (IMAGE-PROMPTS.md). Its own
+                background is a moody gradient (not flat #131313), so the photo
+                edges are FEATHERED into the page ground rather than framed in a
+                hard box — it dissolves like the hero. Until the file lands, the
+                dashed placeholder frame communicates the photo slot. */}
+            <div style={{ aspectRatio: '1 / 1', background: INK }}>
               <Img
                 src={FEATURE_IMG}
                 alt={lang === 'en' ? 'A Passion Cinnabon torn open, showing the soft layered interior' : 'Cinnabon frá Passion rifinn í sundur, mjúk lögin sjást'}
                 fallbackClassName="bg-gradient-to-br from-[#1D1712] to-[#120F0B] border border-dashed border-[#EED3AA38] rounded-[8px]"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  WebkitMaskImage: FEATURE_FEATHER,
+                  maskImage: FEATURE_FEATHER,
+                  WebkitMaskComposite: 'source-in',
+                  maskComposite: 'intersect',
+                }}
               />
             </div>
             <div>
