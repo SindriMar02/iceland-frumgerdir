@@ -46,7 +46,9 @@ import {
 const company = getPreviewCompany('passion')
 
 // ── Brand tokens (sampled from their own logo + site) ───────────────────────
-const INK = '#111111'
+// #131313 = the exact flattened background of the Higgsfield Cinnabon shot —
+// the page ground matches it so the photo edges dissolve invisibly.
+const INK = '#131313'
 const INK_WARM = '#161311'
 const INK_DEEP = '#0B0A09'
 const BURGUNDY = '#5C1C1F'
@@ -313,17 +315,15 @@ export default function PassionPage() {
           </div>
 
           <div className="pn-cover-copy" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 720, position: 'relative', zIndex: 2 }}>
-            <div className="pn-cover-meta pn-enter" style={{ display: 'flex', gap: 18, alignItems: 'center', fontSize: 12.5, letterSpacing: '.14em', textTransform: 'uppercase', color: FAINT, flexWrap: 'wrap' }}>
-              <span>{t.footerTag}</span>
-              <span aria-hidden="true" style={{ width: 4, height: 4, borderRadius: '50%', background: GOLD }} />
+            <div className="pn-cover-meta pn-enter" style={{ display: 'flex', gap: 18, alignItems: 'center', fontSize: 12.5, letterSpacing: '.14em', textTransform: 'uppercase', flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: GOLD }}>
                 <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: status.open ? '#8FA876' : GOLD }} />
                 {status.label}
               </span>
             </div>
 
-            <h1 className="pn-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(58px, 12vw, 168px)', lineHeight: 0.94, letterSpacing: '.01em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
-              NÝBAKAÐ
+            <h1 className="pn-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(54px, 10.5vw, 148px)', lineHeight: 0.96, letterSpacing: '.01em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
+              {t.heroTitle}
             </h1>
 
             <p className="pn-enter-3" style={{ fontStyle: 'italic', fontSize: 'clamp(17px,1.9vw,23px)', color: IVORY, margin: 'clamp(16px,2.5vh,24px) 0 0', lineHeight: 1.5, maxWidth: '32ch' }}>
@@ -357,8 +357,10 @@ export default function PassionPage() {
         </div>
       </section>
 
-      {/* ===================== THE MENU ===================== */}
-      <section id="menu" style={{ background: INK_WARM, padding: sectionPad }}>
+      {/* ===================== THE MENU =====================
+          Ground stays INK: the featured Cinnabon photo lives here and its
+          baked #131313 background must dissolve into the section. */}
+      <section id="menu" style={{ background: INK, borderTop: `1px solid ${HAIR_SOFT}`, padding: sectionPad }}>
         <div style={wrap}>
           <SectionRule eyebrow={t.menuMasthead} title={t.ovenTitle} reduced={reduced} />
           <p data-reveal style={{ ...revealInit(reduced, 0.05), fontSize: 16, color: DIM, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
