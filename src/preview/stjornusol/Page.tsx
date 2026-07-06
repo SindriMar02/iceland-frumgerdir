@@ -35,8 +35,8 @@ const HAIR = 'rgba(211,199,178,.16)' // champagne hairline; LED violet + amber l
 
 const BASE = import.meta.env.BASE_URL
 const A = `${BASE}stjornusol/`
-const DISPLAY = "'Melodrama-Semibold', Georgia, serif"
-const DISPLAY_MED = "'Melodrama-Medium', Georgia, serif"
+const DISPLAY = "'Fraunces-SemiBold', Georgia, serif"
+const DISPLAY_MED = "'Fraunces-Regular', Georgia, serif"
 const HANKEN = "'Hanken Grotesk', system-ui, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, monospace"
 const EASE = 'cubic-bezier(.32,.72,0,1)'
@@ -279,7 +279,7 @@ export default function StjornusolPage() {
 
   return (
     <div className="sv-root min-h-screen antialiased" style={{ background: OBSIDIAN, color: BODY_T, fontFamily: HANKEN, overflowX: 'clip' }}>
-      <link rel="stylesheet" href={`${BASE}fonts/melodrama/css/melodrama.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/fraunces/css/fraunces.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
       <style>{`

@@ -1,0 +1,30 @@
+/**
+* @license
+*
+* Font Family: Fraunces
+* Designed by: Undercase Type
+* URL: https://github.com/undercasetype/Fraunces
+* Licensed under the SIL Open Font License, Version 1.1
+*
+* Fraunces Regular (72pt optical size, display-tuned)
+* Fraunces SemiBold (72pt optical size, display-tuned)
+*
+*/
+@font-face {
+  font-family: 'Fraunces-Regular';
+  src: url('../fonts/Fraunces-Regular.woff2') format('woff2'),
+       url('../fonts/Fraunces-Regular.woff') format('woff'),
+       url('../fonts/Fraunces-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Fraunces-SemiBold';
+  src: url('../fonts/Fraunces-SemiBold.woff2') format('woff2'),
+       url('../fonts/Fraunces-SemiBold.woff') format('woff'),
+       url('../fonts/Fraunces-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
