@@ -50,6 +50,7 @@ const VellirPage = lazy(() => import('./preview/vellir/Page'))
 const GkBakariPage = lazy(() => import('./preview/gkbakari/Page'))
 // Standalone lead — e-commerce showroom redesign (Shopify-migratable)
 const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
+const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
 const SportsolPage = lazy(() => import('./preview/sportsol/Page'))
 const StjornusolPage = lazy(() => import('./preview/stjornusol/Page'))
 const SaelanPage = lazy(() => import('./preview/saelan/Page'))
@@ -121,6 +122,7 @@ export default function App() {
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/gkbakari" element={<GkBakariPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
+            <Route path="/preview/heitirpottar/lager" element={<HeitirpottarStock />} />
             <Route path="/preview/sportsol" element={<SportsolPage />} />
             <Route path="/preview/stjornusol" element={<StjornusolPage />} />
             <Route path="/preview/saelan" element={<SaelanPage />} />

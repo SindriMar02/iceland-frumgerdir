@@ -468,3 +468,310 @@ export const SOCIALS = [
   { label: 'TikTok', url: 'https://www.tiktok.com/@heitirpottar' },
   { label: 'YouTube', url: 'https://www.youtube.com/channel/UCJLVTOWYIc6azaEunPPf2vw' },
 ]
+
+/* ------------------------------------------------ lagerstaða (stock control)
+ * Owner-facing back office for /preview/heitirpottar/lager.
+ * Kristján's stock already lives in Shopify but isn't tracked per location, so
+ * there is no single view of "how much of everything do we have". This models
+ * exactly that unified view. Product names, categories and unit prices are REAL
+ * (from heitirpottar.is); the ON-HAND / INCOMING quantities are sýnishorn.
+ * In production each `warehouse` / `shop` number reads live from a Shopify
+ * InventoryLevel (one per Location) via the Admin API — no data reshaping.
+ */
+
+export type StockStatus = 'ok' | 'low' | 'out' | 'incoming'
+
+export interface StockItem {
+  sku: string
+  title: string
+  /** Icelandic category label, doubles as the group tag in the table. */
+  category: string
+  handle: string
+  /** unit price in ISK (real) */
+  price: number
+  /** on hand at the warehouse location (Lager · Fosshálsi 13) */
+  warehouse: number
+  /** on hand on the shop floor / display (Verslun) */
+  shop: number
+  /** units on an open purchase order (Væntanlegt) */
+  incoming: number
+  /** low-stock threshold — surfaces the reorder alert */
+  reorder: number
+  /** real product cutout; absent items render a category icon tile */
+  image?: string
+}
+
+/** Derived, single source of truth for a row's state. */
+export function stockStatus(i: StockItem): StockStatus {
+  const available = i.warehouse + i.shop
+  if (available === 0) return i.incoming > 0 ? 'incoming' : 'out'
+  if (available <= i.reorder) return 'low'
+  return 'ok'
+}
+
+export const STOCK_LOCATIONS = ['Lager · Fosshálsi 13', 'Verslun'] as const
+
+export const INVENTORY: StockItem[] = [
+  {
+    sku: 'SKEL-QUEEN',
+    title: 'Queen pakkinn',
+    category: 'Hitaveituskeljar',
+    handle: 'agust-forpontun-queen-pakki',
+    price: 695000,
+    warehouse: 0,
+    shop: 0,
+    incoming: 12,
+    reorder: 2,
+    image: `${S}/IMG_0753.jpg?v=1774555823`,
+  },
+  {
+    sku: 'SKEL-SUMMIT-B',
+    title: 'B-Skel Summit + pottalok',
+    category: 'Hitaveituskeljar',
+    handle: 'dill-aldarinnar-b-skel-summit-pottalok',
+    price: 420000,
+    warehouse: 1,
+    shop: 0,
+    incoming: 0,
+    reorder: 1,
+    image: `${S}/SUMMITSkelhvit-Photoroom.png?v=1779098823`,
+  },
+  {
+    sku: 'POT-IRIS',
+    title: 'IRIS',
+    category: 'Rafmagnspottar',
+    handle: 'iris',
+    price: 795000,
+    warehouse: 3,
+    shop: 1,
+    incoming: 6,
+    reorder: 2,
+    image: `${S}/IrisD_1.png?v=1774284583`,
+  },
+  {
+    sku: 'POT-SANMARINO',
+    title: 'San Marino',
+    category: 'Rafmagnspottar',
+    handle: 'san-marino',
+    price: 795000,
+    warehouse: 1,
+    shop: 1,
+    incoming: 0,
+    reorder: 2,
+    image: `${S}/SanMarino_1_-Photoroom_1_6e85bc74-d162-4d92-a954-5bc47d98f65b.png?v=1774270516`,
+  },
+  {
+    sku: 'POT-TIMBERWOLF',
+    title: 'Timberwolf',
+    category: 'Hitaveitupottar',
+    handle: 'timberwolf-hitaveitupottur-hvitur',
+    price: 950000,
+    warehouse: 2,
+    shop: 0,
+    incoming: 3,
+    reorder: 1,
+  },
+  {
+    sku: 'POT-EAGLE',
+    title: 'Eagle',
+    category: 'Hitaveitupottar',
+    handle: 'eagle-hitaveitupottur-dakota',
+    price: 1280000,
+    warehouse: 0,
+    shop: 1,
+    incoming: 0,
+    reorder: 1,
+  },
+  {
+    sku: 'POT-MUSTANG',
+    title: 'Mustang',
+    category: 'Hitaveitupottar',
+    handle: 'mustang-hitaveitupottur-dakota',
+    price: 1330000,
+    warehouse: 2,
+    shop: 0,
+    incoming: 0,
+    reorder: 1,
+  },
+  {
+    sku: 'POT-SUMMIT',
+    title: 'Summit',
+    category: 'Hitaveitupottar',
+    handle: 'summit-hitaveitupottur-dakota-1',
+    price: 1330000,
+    warehouse: 0,
+    shop: 0,
+    incoming: 4,
+    reorder: 1,
+  },
+  {
+    sku: 'KALD-ICEQUEEN',
+    title: 'IceQueen Plug&Play',
+    category: 'Kaldir pottar',
+    handle: 'vaentanlegt-ice-queen-kaldi-pottur-plug-play',
+    price: 299000,
+    warehouse: 5,
+    shop: 2,
+    incoming: 10,
+    reorder: 3,
+    image: `${import.meta.env.BASE_URL}heitirpottar/icequeen-hero-md.jpg`,
+  },
+  {
+    sku: 'SAU-FORSETI',
+    title: 'Forseti',
+    category: 'Saunahús',
+    handle: 'forseti',
+    price: 1700000,
+    warehouse: 1,
+    shop: 0,
+    incoming: 0,
+    reorder: 1,
+  },
+  {
+    sku: 'SAU-ALTHINGI',
+    title: 'Alþingi',
+    category: 'Saunahús',
+    handle: 'althingi-saunahus',
+    price: 1910000,
+    warehouse: 0,
+    shop: 1,
+    incoming: 2,
+    reorder: 1,
+  },
+  {
+    sku: 'SAU-ALTHINGI-VER',
+    title: 'Alþingi með verönd',
+    category: 'Saunahús',
+    handle: 'althingi-med-verond',
+    price: 2180000,
+    warehouse: 0,
+    shop: 0,
+    incoming: 1,
+    reorder: 1,
+  },
+  {
+    sku: 'SAU-BESSASTADIR',
+    title: 'Bessastaðir',
+    category: 'Saunahús',
+    handle: 'bessastadir-1',
+    price: 3450000,
+    warehouse: 0,
+    shop: 0,
+    incoming: 0,
+    reorder: 1,
+  },
+  {
+    sku: 'SAU-THINGVELLIR',
+    title: 'Þingvellir',
+    category: 'Saunahús',
+    handle: 'thingvellir',
+    price: 6050000,
+    warehouse: 0,
+    shop: 1,
+    incoming: 0,
+    reorder: 1,
+  },
+  {
+    sku: 'INF-FBG481',
+    title: 'FBG-481',
+    category: 'Infrarauðt',
+    handle: 'forpontun-fbg-481',
+    price: 449490,
+    warehouse: 6,
+    shop: 1,
+    incoming: 0,
+    reorder: 2,
+    image: `${S}/FBG-481_2_-Photoroom.png?v=1774266764`,
+  },
+  {
+    sku: 'INF-FRB033',
+    title: 'Hornklefi FRB-0033LV',
+    category: 'Infrarauðt',
+    handle: 'forpontun-frb-033lv',
+    price: 345490,
+    warehouse: 4,
+    shop: 1,
+    incoming: 0,
+    reorder: 2,
+    image: `${S}/FRB-033LV_2_-Photoroom.png?v=1755945871`,
+  },
+  {
+    sku: 'INF-FBG2R7',
+    title: 'FBG-2R7 + Red Light',
+    category: 'Infrarauðt',
+    handle: 'forpontun-frb-2r7',
+    price: 325490,
+    warehouse: 3,
+    shop: 0,
+    incoming: 0,
+    reorder: 2,
+    image: `${S}/FBG-2R7_1_-Photoroom.png?v=1755621724`,
+  },
+  {
+    sku: 'INF-FRB3R8',
+    title: 'FRB-3R8',
+    category: 'Infrarauðt',
+    handle: 'forpontun-frb-3r8',
+    price: 343490,
+    warehouse: 2,
+    shop: 0,
+    incoming: 0,
+    reorder: 2,
+    image: `${S}/FRB-3R8_1_-Photoroom.png?v=1755622326`,
+  },
+  {
+    sku: 'AUK-POTTALOK',
+    title: 'Pottalok, sérsniðið',
+    category: 'Aukahlutir',
+    handle: 'aukahlutir',
+    price: 89900,
+    warehouse: 14,
+    shop: 3,
+    incoming: 20,
+    reorder: 5,
+  },
+  {
+    sku: 'AUK-STEINAR',
+    title: 'Saunasteinar, 20 kg',
+    category: 'Aukahlutir',
+    handle: 'aukahlutir',
+    price: 6900,
+    warehouse: 38,
+    shop: 6,
+    incoming: 0,
+    reorder: 10,
+  },
+  {
+    sku: 'AUK-HREINSI',
+    title: 'Klórlaust hreinsiefni',
+    category: 'Aukahlutir',
+    handle: 'aukahlutir',
+    price: 4900,
+    warehouse: 0,
+    shop: 4,
+    incoming: 48,
+    reorder: 12,
+  },
+  {
+    sku: 'AUK-SIUR',
+    title: 'Filter og síur',
+    category: 'Aukahlutir',
+    handle: 'aukahlutir',
+    price: 8900,
+    warehouse: 22,
+    shop: 8,
+    incoming: 0,
+    reorder: 10,
+  },
+  {
+    sku: 'AUK-ILMUR',
+    title: 'Ilmkjarnaolíur',
+    category: 'Aukahlutir',
+    handle: 'aukahlutir',
+    price: 3900,
+    warehouse: 5,
+    shop: 2,
+    incoming: 0,
+    reorder: 8,
+  },
+]
