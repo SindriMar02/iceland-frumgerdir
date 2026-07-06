@@ -151,6 +151,18 @@ const SUN: Record<string, { top: string; core: string; halo: string }> = {
   hamptons: { top: '74%', core: '#FFD9A8', halo: 'rgba(240,133,86,.55)' },
 }
 
+/* Peau d'Or film strip — the salon's own promo photos from solbadsstofa.is */
+const KREM = ['krem-01.webp', 'krem-02.webp', 'krem-03.webp', 'krem-04.webp', 'krem-05.webp', 'krem-06.webp', 'krem-07.webp']
+const KREM_ALT = [
+  'Í ljósabekknum hjá Stjörnusól',
+  'Peau d’Or krem í sólbaði',
+  'Peau d’Or krem, gyllt túpa',
+  'Peau d’Or krem fyrir sólbað',
+  'Peau d’Or Pure Men krem',
+  'Peau d’Or Ibiza Black krem',
+  'Peau d’Or Satin Noir krem',
+]
+
 export default function StjornusolPage() {
   const [lit, setLit] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -309,11 +321,22 @@ export default function StjornusolPage() {
         .sv-roll{transition:transform .55s cubic-bezier(.6,.1,.2,1)}
         .sv-peek-card{transition:opacity .28s ease, transform .32s ${EASE}}
         .sv-peek-img{transition:opacity .25s ease}
+        .sv-filmwrap{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+        @keyframes svFilm{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 8px))}}
+        .sv-film{animation:svFilm 60s linear infinite}
+        .sv-film:hover{animation-play-state:paused}
+        .sv-frame img{filter:saturate(.82) brightness(.94) contrast(1.03);transition:filter .5s ease,transform .6s ${EASE}}
+        .sv-frame:hover img{filter:none;transform:scale(1.045)}
         @keyframes svBadge{0%,86%{opacity:1}88%{opacity:.4}90%{opacity:1}94%{opacity:.7}96%,100%{opacity:1}}
         @media (hover: none), (pointer: coarse){
           .sv-peek{display:none}
           .sv-hint{display:none}
           .sv-row:hover{transform:none}
+          .sv-filmwrap{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
+          .sv-filmwrap::-webkit-scrollbar{display:none}
+          .sv-film{animation:none;padding:0 20px}
+          .sv-film-dup{display:none}
+          .sv-frame img{filter:none}
         }
         @media (prefers-reduced-motion: reduce){
           .sv-panel,.sv-blink{animation:none !important;opacity:0 !important}
@@ -325,6 +348,10 @@ export default function StjornusolPage() {
           .sv-sunglow{animation:none}
           .sv-roll{transition:none !important}
           .sv-nav::after{transition:none}
+          .sv-film{animation:none}
+          .sv-film-dup{display:none}
+          .sv-filmwrap{overflow-x:auto;-webkit-mask-image:none;mask-image:none}
+          .sv-frame img{filter:none;transition:none}
         }
       `}</style>
 
@@ -354,6 +381,7 @@ export default function StjornusolPage() {
               ['#afangastadir', 'ÁFANGASTAÐIR'],
               ['#verdskra', 'VERÐSKRÁ'],
               ['#velarnar', 'VÉLARNAR'],
+              ['#kremin', 'KREMIN'],
               ['#stofan', 'STOFAN'],
             ] as const
           ).map(([href, label]) => (
@@ -722,6 +750,44 @@ export default function StjornusolPage() {
               </p>
             </Reveal>
           </div>
+        </section>
+
+        {/* ══ KREMIN — Peau d'Or film strip, real photos from the salon ══ */}
+        <section id="kremin" className="scroll-mt-20 overflow-clip" style={{ padding: '0 0 clamp(90px, 12vw, 150px)' }}>
+          <div className="mx-auto max-w-[1180px] px-5 md:px-9">
+            <Reveal>
+              <p className="m-0 mb-4 text-[12px] tracking-[.3em]" style={{ color: MAGENTA, fontFamily: MONO }}>
+                KREMIN · PEAU D’OR
+              </p>
+            </Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-3">
+              <Reveal>
+                <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(38px, 6vw, 76px)', lineHeight: 1.02, color: TXT }}>
+                  Ljóminn fylgir þér heim.
+                </h2>
+              </Reveal>
+              <Reveal delay={80}>
+                <p className="m-0 max-w-[44ch] text-[15px] leading-[1.65]" style={{ color: CHAMP_DIM }}>
+                  Við mælum með kremunum frá Peau d’Or fyrir dýpri og jafnari lit. Satin Noir, Ibiza Black, Pure Men og fleiri. Spurðu okkur í afgreiðslunni.
+                </p>
+              </Reveal>
+            </div>
+          </div>
+          <Reveal className="mt-10">
+            <div className="sv-filmwrap">
+              <div className="sv-film flex w-max gap-4">
+                {[0, 1].map((k) => (
+                  <div key={k} className={`flex gap-4 ${k === 1 ? 'sv-film-dup' : ''}`} aria-hidden={k === 1}>
+                    {KREM.map((f, i) => (
+                      <div key={f} className="sv-frame w-[240px] flex-none overflow-clip rounded-[14px] md:w-[300px]" style={{ aspectRatio: '4 / 5', border: `1px solid ${HAIR}`, background: OBSIDIAN2 }}>
+                        <img src={`${A}krem/${f}`} alt={k === 0 ? KREM_ALT[i] : ''} loading="lazy" className="h-full w-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Reveal>
         </section>
 
         {/* ══ STOFAN + finale + footer ═══════════════════════════════════ */}
