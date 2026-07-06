@@ -335,28 +335,22 @@ export default function SaelanPage() {
               </div>
             </div>
 
-            {/* the flagship bed, contained, floating on the brand sun */}
-            <div className="relative flex flex-col items-center">
-              <div className="relative flex w-full items-center justify-center">
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 left-1/2 h-[20rem] w-[20rem] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[27rem] sm:w-[27rem] lg:h-[31rem] lg:w-[31rem]"
-                  style={{ background: SUN, border: `2px solid ${INK}`, boxShadow: `0 0 0 1.25rem ${SUN}40` }}
-                />
+            {/* the bed in use, framed like a print in the window */}
+            <figure className="relative">
+              <div className="border-2 p-2 pb-3" style={{ background: PAPER, borderColor: INK, boxShadow: `10px 10px 0 ${INK}` }}>
                 <img
-                  src={IMG.bedK11}
-                  alt="KBL K11 Air Loft ljósabekkurinn"
+                  src={IMG.bedLifestyle}
+                  alt="Slökun í ljósabekk hjá Sælunni"
                   width={1400}
-                  height={877}
+                  height={988}
                   fetchPriority="high"
-                  className="relative block w-full max-w-[38rem]"
-                  style={{ filter: `drop-shadow(10px 12px 16px ${INK}33)` }}
+                  className="block aspect-[4/3] w-full object-cover"
                 />
+                <figcaption className="mt-2 text-center text-[11px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: `${INK}88` }}>
+                  Ergoline Prestige 1400
+                </figcaption>
               </div>
-              <p className="mt-3 text-center text-[11px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: `${INK}88` }}>
-                KBL K11 Air Loft
-              </p>
-            </div>
+            </figure>
           </div>
         </div>
       </section>

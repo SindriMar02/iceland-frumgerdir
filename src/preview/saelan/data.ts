@@ -24,6 +24,7 @@ export const SOCIAL = {
 const ASSET = `${import.meta.env.BASE_URL}img/saelan/`
 export const IMG = {
   logo: `${ASSET}logo.png`,
+  bedLifestyle: `${ASSET}bed-lifestyle.jpg`, // Ergoline Prestige 1400 lifestyle shot (hero)
   bedK11: `${ASSET}bed-k11.png`, // KBL K11 Air Loft, official product cutout (transparent)
   bedK11Room: `${ASSET}bed-k11-room.jpg`, // K11 Air Loft, dark studio 3/4 view
   bedPrestige: `${ASSET}bed-prestige.png`,
