@@ -43,9 +43,11 @@ const EASE = 'cubic-bezier(.32,.72,0,1)'
 
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/* ── LED relight of the Higgsfield render — each panel is a masked light
-      layer over the OFF photo; panels wake in sequence, then shimmer.
-      Regions are % of the 2688x1520 frame. ──────────────────────────── */
+/* ── LED relight of the Higgsfield render — each panel is a soft-masked
+      window over the OFF photo revealing the lit frame; panels strike in
+      sequence (opacity flicker only, no geometric wipes), then the full
+      lit frame unifies bloom and spill. Regions are % of the 2688x1520
+      frame; windows are padded and feathered so no seam is ever hard. ── */
 interface Panel {
   id: string
   left: number
@@ -53,54 +55,67 @@ interface Panel {
   width: number
   height: number
   delay: number
-  kind: 'field' | 'bar' | 'deck' | 'base'
-  clip?: string
 }
 
 const PANELS: Panel[] = [
-  { id: 'canopy', left: 28.2, top: 9.6, width: 43.6, height: 5.6, delay: 0.4, kind: 'field', clip: 'polygon(3% 0%, 97% 0%, 100% 100%, 0% 100%)' },
-  { id: 'bar1', left: 29.2, top: 40.2, width: 39.0, height: 7.6, delay: 1.15, kind: 'bar' },
-  { id: 'bar2', left: 29.6, top: 53.0, width: 40.6, height: 7.4, delay: 1.8, kind: 'bar' },
-  { id: 'deck', left: 26.0, top: 63.2, width: 48.0, height: 9.5, delay: 2.5, kind: 'deck' },
-  { id: 'strip', left: 28.6, top: 75.6, width: 42.8, height: 5.2, delay: 2.3, kind: 'field' },
-  { id: 'base', left: 26.5, top: 83.6, width: 47.0, height: 7.2, delay: 2.7, kind: 'field' },
+  { id: 'canopy', left: 28.2, top: 9.6, width: 43.6, height: 5.6, delay: 0.4 },
+  { id: 'bar1', left: 29.2, top: 40.2, width: 39.0, height: 7.6, delay: 1.15 },
+  { id: 'bar2', left: 29.6, top: 53.0, width: 40.6, height: 7.4, delay: 1.8 },
+  { id: 'deck', left: 26.0, top: 63.2, width: 48.0, height: 9.5, delay: 2.5 },
+  { id: 'strip', left: 28.6, top: 75.6, width: 42.8, height: 5.2, delay: 2.3 },
+  { id: 'base', left: 26.5, top: 83.6, width: 47.0, height: 7.2, delay: 2.7 },
 ]
 
+const FEATHER = 'radial-gradient(100% 100% at 50% 50%, #000 40%, transparent 96%)'
+
+/* window inflated so the feathered falloff lives in room pixels */
+const PAD_X = 2.4
+const PAD_Y = 2.0
+
+function softWindow(l: number, t: number, w: number, h: number): { box: React.CSSProperties; img: React.CSSProperties } {
+  const L = l - PAD_X
+  const T = t - PAD_Y
+  const W = w + PAD_X * 2
+  const H = h + PAD_Y * 2
+  return {
+    box: {
+      left: `${L}%`,
+      top: `${T}%`,
+      width: `${W}%`,
+      height: `${H}%`,
+      WebkitMaskImage: FEATHER,
+      maskImage: FEATHER,
+    },
+    img: {
+      width: `${(100 / W) * 100}%`,
+      height: `${(100 / H) * 100}%`,
+      left: `${(-L / W) * 100}%`,
+      top: `${(-T / H) * 100}%`,
+      maxWidth: 'none',
+    },
+  }
+}
+
 function K11Relight({ on }: { on: boolean }) {
+  const blink = softWindow(29.6, 53.0, 40.6, 7.4)
   return (
     <div aria-hidden="true" className="absolute inset-0" data-lit={on}>
-      {/* staged wake: each panel is a clipped window revealing the lit frame */}
-      {PANELS.map((p) => (
-        <div
-          key={p.id}
-          className="sv-panel absolute overflow-hidden"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: `${p.width}%`,
-            height: `${p.height}%`,
-            clipPath: p.clip,
-            ['--pd' as string]: `${p.delay}s`,
-          } as React.CSSProperties}
-        >
-          <img
-            src={`${A}k11-on.webp`}
-            alt=""
-            className="absolute"
-            style={{
-              width: `${(100 / p.width) * 100}%`,
-              height: `${(100 / p.height) * 100}%`,
-              left: `${(-p.left / p.width) * 100}%`,
-              top: `${(-p.top / p.height) * 100}%`,
-              maxWidth: 'none',
-            }}
-          />
-        </div>
-      ))}
+      {/* staged strike: each feathered window flickers up to the lit frame */}
+      {PANELS.map((p) => {
+        const win = softWindow(p.left, p.top, p.width, p.height)
+        return (
+          <div key={p.id} className="sv-panel absolute overflow-hidden" style={{ ...win.box, ['--pd' as string]: `${p.delay}s` } as React.CSSProperties}>
+            <img src={`${A}k11-on.webp`} alt="" className="absolute" style={win.img} />
+          </div>
+        )
+      })}
       {/* the full lit frame unifies the baked bloom, reflections and spill,
-          then hums globally; a clipped veil gives bar2 a faulty-driver blink */}
+          then hums globally */}
       <img src={`${A}k11-on.webp`} alt="" className="sv-onfull absolute inset-0 h-full w-full" style={{ maxWidth: 'none' }} />
-      <div className="sv-blink absolute" style={{ left: '29.6%', top: '53%', width: '40.6%', height: '7.4%', background: '#0A090C', borderRadius: 6 }} />
+      {/* faulty-driver blink: bar2 briefly reverts to its true unlit pixels */}
+      <div className="sv-blink absolute overflow-hidden" style={blink.box}>
+        <img src={`${A}k11-off.webp`} alt="" className="absolute" style={blink.img} />
+      </div>
     </div>
   )
 }
@@ -164,6 +179,7 @@ export default function StjornusolPage() {
   const [nowSlot, setNowSlot] = useState<'morgun' | 'dag'>('morgun')
   const [dest, setDest] = useState(0)
   const [peek, setPeek] = useState(0)
+  const [openBed, setOpenBed] = useState<string | null>(null)
   const [barHidden, setBarHidden] = useState(false)
   const progFill = useRef<HTMLDivElement>(null)
   const peekEl = useRef<HTMLDivElement>(null)
@@ -279,7 +295,7 @@ export default function StjornusolPage() {
       <style>{`
         .sv-root ::selection{background:${MAGENTA_DEEP};color:#FFF6EE}
         .sv-root :focus-visible{outline:3px solid ${MAGENTA};outline-offset:3px}
-        @keyframes svWake{0%{opacity:0;clip-path:inset(0 100% 0 0)}10%{opacity:.35;clip-path:inset(0 100% 0 0)}16%{opacity:.12}26%{opacity:.85;clip-path:inset(0 55% 0 0)}38%{opacity:.3}52%{opacity:1;clip-path:inset(0 12% 0 0)}70%,100%{opacity:1;clip-path:inset(0 0 0 0)}}
+        @keyframes svWake{0%{opacity:0}9%{opacity:.4}15%{opacity:.08}24%{opacity:.85}34%{opacity:.26}46%{opacity:1}58%{opacity:.55}66%,100%{opacity:1}}
         @keyframes svHum{0%,91%{opacity:1}91.6%{opacity:.82}92.1%{opacity:1}95.4%{opacity:.9}95.8%{opacity:1}98.1%{opacity:.86}98.5%,100%{opacity:1}}
         @keyframes svRoom{from{opacity:0}to{opacity:1}}
         .sv-panel{opacity:0;will-change:opacity;transition:opacity .5s ease}
@@ -291,7 +307,7 @@ export default function StjornusolPage() {
         [data-lit="true"] .sv-onfull{animation:svRoom .9s ease 2.9s both, svHum 11s steps(1,end) 5s infinite}
         .sv-blink{opacity:0}
         [data-lit="true"] .sv-blink{animation:svBlink 13s steps(1,end) 7s infinite}
-        @keyframes svBlink{0%,93.2%{opacity:0}93.6%{opacity:.32}94%{opacity:0}96.4%{opacity:.18}96.8%,100%{opacity:0}}
+        @keyframes svBlink{0%,93.2%{opacity:0}93.6%{opacity:.9}94%{opacity:0}96.4%{opacity:.55}96.8%,100%{opacity:0}}
         .sv-r{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s ${EASE}}
         .sv-r[data-in="true"]{opacity:1;transform:none}
         .sv-rise{animation:svRise 1s ${EASE} both}
@@ -318,9 +334,11 @@ export default function StjornusolPage() {
         .sv-frame img{filter:saturate(.82) brightness(.94) contrast(1.03);transition:filter .5s ease,transform .6s ${EASE}}
         .sv-frame:hover img{filter:none;transform:scale(1.045)}
         @keyframes svBadge{0%,86%{opacity:1}88%{opacity:.4}90%{opacity:1}94%{opacity:.7}96%,100%{opacity:1}}
+        .sv-touchhint{display:none}
         @media (hover: none), (pointer: coarse){
           .sv-peek{display:none}
           .sv-hint{display:none}
+          .sv-touchhint{display:block}
           .sv-row:hover{transform:none}
           .sv-filmwrap{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
           .sv-filmwrap::-webkit-scrollbar{display:none}
@@ -429,8 +447,8 @@ export default function StjornusolPage() {
               <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(46px, 6.4vw, 92px)', lineHeight: 1, letterSpacing: '.005em', color: TXT, maxWidth: '12ch', animationDelay: '.3s' }}>
                 Næsta kynslóð sólbaða.
               </h1>
-              <p className="sv-rise mt-6 mb-0 max-w-[44ch] text-[16px] leading-[1.65] md:text-[18px]" style={{ color: BODY_T, animationDelay: '.5s' }}>
-                K11 Air Loft er kominn í Fjarðargötu 17. ALL LED bekkur með SunFinity ljósatækni, Loft Infinity speglum og kælingu fyrir líkama og andlit.
+              <p className="sv-rise mt-6 mb-0 max-w-[38ch] text-[16px] leading-[1.65] md:text-[18px]" style={{ color: BODY_T, animationDelay: '.5s' }}>
+                K11 Air Loft er kominn í Fjarðargötu 17.
               </p>
               <div className="sv-rise mt-9 flex flex-wrap items-center gap-x-7 gap-y-4" style={{ animationDelay: '.68s' }}>
                 <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta" style={cta({ fontSize: 16, padding: '17px 36px', boxShadow: '0 16px 44px rgba(194,24,95,.35)' })}>
@@ -440,9 +458,6 @@ export default function StjornusolPage() {
                   Sjá verðskrá
                 </a>
               </div>
-              <p className="sv-rise mt-8 mb-0 text-[13px]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.8s' }}>
-                MORGUNVERÐ ALLA DAGA FYRIR KL. 14 · FRÁ 2.190 KR.
-              </p>
             </div>
 
             {/* right: the machine, cropped in and dissolving into the page */}
@@ -704,43 +719,80 @@ export default function StjornusolPage() {
               </h2>
             </Reveal>
             <div className="mt-10">
-              {BEDS.map((b, i) => (
-                <Reveal key={b.id}>
-                  <div className="sv-row grid items-center gap-4" onMouseEnter={() => setPeek(i + 1)} onMouseLeave={() => setPeek(0)} style={{ gridTemplateColumns: 'clamp(34px, 5vw, 56px) minmax(0,1fr) auto', padding: 'clamp(20px, 3.4vw, 30px) 4px', borderTop: `1px solid ${HAIR}`, borderBottom: i === BEDS.length - 1 ? `1px solid ${HAIR}` : undefined }}>
-                    <p className="m-0 text-sm" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
-                      {String(i + 1).padStart(2, '0')}
-                    </p>
-                    <div>
-                      <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(24px, 4.4vw, 46px)', color: TXT, lineHeight: 1.06 }}>
-                        {b.name}
-                      </p>
-                      {b.maker ? (
-                        <p className="mt-1 mb-0 text-[13px] md:hidden" style={{ color: CHAMP_DIM }}>
-                          {b.maker}
+              {BEDS.map((b, i) => {
+                const open = openBed === b.id
+                return (
+                  <Reveal key={b.id}>
+                    <div style={{ borderTop: `1px solid ${HAIR}`, borderBottom: i === BEDS.length - 1 ? `1px solid ${HAIR}` : undefined }}>
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        aria-controls={`bed-${b.id}`}
+                        onClick={() => setOpenBed(open ? null : b.id)}
+                        onMouseEnter={() => setPeek(i + 1)}
+                        onMouseLeave={() => setPeek(0)}
+                        className="sv-row grid w-full cursor-pointer items-center gap-4 border-0 bg-transparent text-left"
+                        style={{ gridTemplateColumns: 'clamp(34px, 5vw, 56px) minmax(0,1fr) auto', padding: 'clamp(18px, 3vw, 26px) 4px', fontFamily: HANKEN }}
+                      >
+                        <p className="m-0 text-sm" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
+                          {String(i + 1).padStart(2, '0')}
                         </p>
-                      ) : (
-                        <a href="#k11" className="mt-2 inline-flex items-center gap-[7px] rounded-[3px] text-[12px] font-bold no-underline md:hidden" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '6px 12px' }}>
-                          stjarnan okkar<span aria-hidden="true">↑</span>
-                        </a>
-                      )}
+                        <div>
+                          <p className="m-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(24px, 4.4vw, 46px)', color: TXT, lineHeight: 1.06 }}>
+                            {b.name}
+                          </p>
+                          {b.maker ? (
+                            <p className="mt-1 mb-0 text-[13px] md:hidden" style={{ color: CHAMP_DIM }}>
+                              {b.maker}
+                            </p>
+                          ) : (
+                            <span className="mt-2 inline-flex items-center rounded-[3px] text-[12px] font-bold md:hidden" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '6px 12px' }}>
+                              stjarnan okkar
+                            </span>
+                          )}
+                        </div>
+                        <img src={`${A}${b.image}`} alt="" aria-hidden="true" loading="lazy" className="w-[86px] rounded-[10px] md:hidden" style={{ border: `1px solid ${HAIR}` }} />
+                        <span className="hidden items-center gap-5 md:flex">
+                          {b.maker ? (
+                            <span className="text-sm" style={{ color: CHAMP_DIM }}>
+                              {b.maker}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-[3px] text-[13px] font-bold" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '9px 16px' }}>
+                              stjarnan okkar
+                            </span>
+                          )}
+                          <span aria-hidden="true" className="text-[22px] leading-none" style={{ fontFamily: MONO, color: open ? CHAMPAGNE : CHAMP_DIM, transform: open ? 'rotate(45deg)' : 'none', transition: `transform .35s ${EASE}, color .3s ease` }}>
+                            +
+                          </span>
+                        </span>
+                      </button>
+                      <div id={`bed-${b.id}`} className="grid" style={{ gridTemplateRows: open ? '1fr' : '0fr', transition: `grid-template-rows .5s ${EASE}` }}>
+                        <div className="overflow-hidden">
+                          <p className="m-0 max-w-[58ch] text-[14px] leading-[1.65] md:text-[15px]" style={{ color: BODY_T, padding: '0 4px 22px calc(clamp(34px, 5vw, 56px) + 16px)' }}>
+                            {b.blurb}
+                            {b.id === 'k11' ? (
+                              <>
+                                {' '}
+                                <a href="#k11" className="font-semibold whitespace-nowrap" style={{ color: CHAMPAGNE, textDecorationColor: 'rgba(211,199,178,.4)' }}>
+                                  Kveiktu á honum ↑
+                                </a>
+                              </>
+                            ) : null}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <img src={`${A}${b.image}`} alt="" aria-hidden="true" loading="lazy" className="w-[86px] rounded-[10px] md:hidden" style={{ border: `1px solid ${HAIR}` }} />
-                    {b.maker ? (
-                      <p className="m-0 hidden text-sm md:block" style={{ color: CHAMP_DIM }}>
-                        {b.maker}
-                      </p>
-                    ) : (
-                      <a href="#k11" className="hidden items-center gap-[7px] rounded-[3px] text-[13px] font-bold no-underline transition-colors duration-300 hover:bg-[rgba(232,53,126,.12)] md:inline-flex" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '9px 16px' }}>
-                        stjarnan okkar<span aria-hidden="true">↑</span>
-                      </a>
-                    )}
-                  </div>
-                </Reveal>
-              ))}
+                  </Reveal>
+                )
+              })}
             </div>
             <Reveal>
               <p className="sv-hint mt-5 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
-                Renndu músinni yfir bekk til að sjá hann.
+                Renndu músinni yfir bekk til að sjá hann. Smelltu fyrir nánari upplýsingar.
+              </p>
+              <p className="sv-touchhint mt-5 mb-0 text-[13px]" style={{ color: CHAMP_DIM }}>
+                Smelltu á bekk fyrir nánari upplýsingar.
               </p>
             </Reveal>
           </div>

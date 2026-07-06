@@ -54,20 +54,23 @@ export const DESTINATIONS: Destination[] = [
   { id: 'hamptons', title: 'Sólsetur í Hamptons', lat: '40,9°N', body: 'Fyrir viðkvæmari húð og þá sem koma sjaldnar.', chip: 'viðkvæm sól' },
 ]
 
-/* ── Bekkirnir — verified solbadsstofa.is forsíða ──────────────────────── */
+/* ── Bekkirnir — verified solbadsstofa.is forsíða. Blurbs: K11 from their
+      /k11-air-loft/ page; others kept to maker-level facts only (the old
+      site has no per-bed detail pages). ───────────────────────────────── */
 
 export interface Bed {
   id: string
   name: string
   maker?: string
   image: string
+  blurb: string
 }
 
 export const BEDS: Bed[] = [
-  { id: 'megasun5600', name: 'Megasun 5600 Ultra Power', maker: 'frá megaSun', image: 'beds/megasun-5600.jpg' },
-  { id: 'x10', name: 'Luxura X10', maker: 'frá Luxura', image: 'beds/luxura-x10.jpg' },
-  { id: 'megasun6800', name: 'Megasun 6800', maker: 'frá megaSun', image: 'beds/megasun-6800.jpg' },
-  { id: 'k11', name: 'K11 Air Loft', image: 'beds/k11.jpg' },
+  { id: 'megasun5600', name: 'Megasun 5600 Ultra Power', maker: 'frá megaSun', image: 'beds/megasun-5600.jpg', blurb: 'Kraftmikill bekkur frá þýska framleiðandanum megaSun með Ultra Power lampauppsetningu.' },
+  { id: 'x10', name: 'Luxura X10', maker: 'frá Luxura', image: 'beds/luxura-x10.jpg', blurb: 'Hágæða bekkur frá hollenska framleiðandanum Luxura, hannaður með þægindi í fyrirrúmi.' },
+  { id: 'megasun6800', name: 'Megasun 6800', maker: 'frá megaSun', image: 'beds/megasun-6800.jpg', blurb: 'Stór og vel búinn bekkur úr efstu línu megaSun.' },
+  { id: 'k11', name: 'K11 Air Loft', image: 'beds/k11.jpg', blurb: 'ALL LED bekkur með SunFinity ljósatækni, Loft Infinity speglum og kælingu fyrir líkama og andlit. Þrjú innbyggð SunControl prógrömm.' },
 ]
 
 /* ── Hero h1 glyphs: "Frá 2.190 kr." with per-glyph strike/hum delays ──── */
