@@ -306,7 +306,6 @@ export default function StjornusolPage() {
         .sv-roll{transition:transform .55s cubic-bezier(.6,.1,.2,1)}
         .sv-peek-card{transition:opacity .28s ease, transform .32s ${EASE}}
         .sv-peek-img{transition:opacity .25s ease}
-        @keyframes svSpin{to{transform:rotate(360deg)}}
         @keyframes svBadge{0%,86%{opacity:1}88%{opacity:.4}90%{opacity:1}94%{opacity:.7}96%,100%{opacity:1}}
         @media (prefers-reduced-motion: reduce){
           .sv-panel,.sv-blink{animation:none !important;opacity:0 !important}
@@ -317,7 +316,6 @@ export default function StjornusolPage() {
           .sv-slat{transition:none}
           .sv-sunglow{animation:none}
           .sv-roll{transition:none !important}
-          .sv-spin{animation:none !important}
         }
       `}</style>
 
@@ -483,7 +481,7 @@ export default function StjornusolPage() {
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
               <Reveal>
                 <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(34px, 5vw, 64px)', lineHeight: 1.02, color: TXT }}>
-                  Þrír himnar, einn bekkur.
+                  Þrjár upplifanir. Einn bekkur.
                 </h2>
               </Reveal>
               <Reveal delay={80}>
@@ -708,18 +706,6 @@ export default function StjornusolPage() {
 
         {/* ══ STOFAN + finale + footer ═══════════════════════════════════ */}
         <section id="stofan" className="relative scroll-mt-20 overflow-clip" style={{ background: OBSIDIAN2, padding: 'clamp(90px, 12vw, 150px) 0 0' }}>
-          <span aria-hidden="true" className="sv-spin pointer-events-none absolute" style={{ right: '-8vw', top: '4%', width: '34vw', height: '34vw', animation: 'svSpin 100s linear infinite' }}>
-            <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
-              <g fill="rgba(232,53,126,.07)">
-                {[0, 90, 180, 270].map((r) => (
-                  <rect key={r} x="11" y="0" width="2" height="9" rx="1" transform={`rotate(${r} 12 12)`} />
-                ))}
-                {[45, 135, 225, 315].map((r) => (
-                  <rect key={r} x="11" y="3" width="2" height="6" rx="1" transform={`rotate(${r} 12 12)`} />
-                ))}
-              </g>
-            </svg>
-          </span>
           <div className="relative mx-auto max-w-[1180px] px-5 md:px-9">
             <Reveal>
               <p className="m-0 mb-4 text-[12px] tracking-[.3em]" style={{ color: MAGENTA, fontFamily: MONO }}>
