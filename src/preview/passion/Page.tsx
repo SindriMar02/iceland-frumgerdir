@@ -214,7 +214,8 @@ function SectionRule({ eyebrow, title, reduced }: { eyebrow: string; title: stri
 }
 
 export default function PassionPage() {
-  const [lang, setLang] = useState<Lang>('en')
+  // Default to Icelandic on first load; tourists flip to EN with the toggle.
+  const [lang, setLang] = useState<Lang>('is')
   const t = T[lang]
   const rootRef = useRef<HTMLDivElement>(null)
   const [reduced, setReduced] = useState(false)

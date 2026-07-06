@@ -2024,16 +2024,16 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk bakarí og kaffihús.
 
-Ég er mikill aðdáandi þess sem þið gerið í Álfheimum. Þið eruð með 4,8 í einkunn á TripAdvisor og fólk skrifar heilu lofræðurnar um vegan croissantin og Cinnabon snúðana ykkar. En þegar það slær inn passionreykjavik.is tekur á móti því síða sem segir að vefurinn sé í vinnslu, og hún hefur sagt það ansi lengi.
+Ég rakst á Passion Reykjavík um daginn og heillaðist af því sem þið gerið. Þið eruð með frábært orðspor, 4,8 í einkunn á TripAdvisor, og fólk talar sérstaklega vel um vegan bakkelsið og Cinnabon snúðana ykkar. Þegar ég ætlaði svo að skoða vefsíðuna ykkar fann ég hins vegar hvergi almennilega síðu með upplýsingum, því passionreykjavik.is sýnir aðeins skilaboð um að vefurinn sé í vinnslu.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Hún notar merkið ykkar og litina úr því, er á ensku fyrir ferðafólk með íslensku í einum smelli, sýnir verðin eins og þau birtast á Wolt og segir frá bollunum og vegan úrvalinu. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd fyrir svona gott bakarí, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Myndirnar eru það eina sem vantar. Ég setti merkt pláss fyrir ljósmyndir af vörunum ykkar sem við gætum bætt við saman. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars er engin pressa.
+Síðan notar merkið ykkar og litina úr því. Hún er á ensku fyrir ferðafólk með íslensku í einum smelli, og sýnir matseðilinn, verðin eins og þau birtast á Wolt, bollurnar og vegan úrvalið. Það eina sem vantar eru ljósmyndir af vörunum ykkar, og ég merkti staðina þar sem þær gætu farið.
 
-Endilega heyrið í mér ef þetta kveikir í ykkur.
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur. Endilega heyrið í mér ef þetta kveikir í ykkur.
 
 ${SIGN}`,
     },
