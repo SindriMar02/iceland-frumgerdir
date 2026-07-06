@@ -47,6 +47,14 @@ const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 const LANGS: Lang[] = ['is', 'en', 'de']
 const LANG_NAMES: Record<Lang, string> = { is: 'Íslenska', en: 'English', de: 'Deutsch' }
 
+/* The herd walks in a 4-step size rhythm — tall mare, small foal, wide grazer, medium. */
+const HERD_RHYTHM = [
+  'h-52 w-40 md:h-64 md:w-48',
+  'mt-6 h-40 w-32 md:mt-10 md:h-48 md:w-36',
+  'h-48 w-56 md:h-56 md:w-72',
+  'mt-3 h-44 w-36 md:mt-5 md:h-60 md:w-44',
+]
+
 /* ── helpers ──────────────────────────────────────────────────────────── */
 const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
 // hand-rolled for IS — Chrome's is-IS locale data is unreliable (falls back to English)
@@ -219,7 +227,13 @@ const Stepper = ({
   set: (n: number) => void
   min: number
   lang: Lang
-}) => (
+}) => {
+  const prev = useRef(value)
+  const dir = value >= prev.current ? 1 : -1
+  useEffect(() => {
+    prev.current = value
+  }, [value])
+  return (
   <div className="flex items-center justify-between gap-3 py-2">
     <span className="font-hanken text-sm" style={{ color: BODY }}>
       {label}
@@ -235,8 +249,8 @@ const Stepper = ({
       >
         <Minus className="h-4 w-4" />
       </button>
-      <span className="w-5 text-center font-hanken text-base font-semibold tabular-nums" style={{ color: INK }}>
-        {value}
+      <span className="ph-numwrap w-5 text-center font-hanken text-base font-semibold tabular-nums" style={{ color: INK }}>
+        <span key={value} className={dir > 0 ? 'ph-num-up' : 'ph-num-dn'}>{value}</span>
       </span>
       <button
         type="button"
@@ -249,7 +263,8 @@ const Stepper = ({
       </button>
     </div>
   </div>
-)
+  )
+}
 
 function Booking({
   t,
@@ -281,6 +296,9 @@ function Booking({
 
   const childPrice = Math.max(tour.price - CHILD_DISCOUNT, 0)
   const total = tour.price * adults + childPrice * children
+  // seasonal tours: whisper, never block — the owner may make exceptions
+  const chosenMonth = date ? new Date(date + 'T00:00:00').getMonth() + 1 : 0
+  const offSeason = !!tour.months?.length && chosenMonth > 0 && !tour.months.includes(chosenMonth)
 
   /** Real booking request → the owner's booking inbox (FormSubmit relay). */
   const submit = async (e: React.FormEvent) => {
@@ -321,7 +339,7 @@ function Booking({
   }
 
   return (
-    <div className="grid gap-0 overflow-hidden rounded-[28px] shadow-[0_30px_70px_-30px_rgba(18,23,56,0.5)] md:grid-cols-2" style={{ background: PAPER }}>
+    <div className="grid gap-0 overflow-hidden rounded-[28px] shadow-[0_2px_4px_rgba(9,12,36,0.2),0_16px_32px_-16px_rgba(9,12,36,0.35),0_48px_96px_-40px_rgba(9,12,36,0.55)] ring-1 ring-white/10 md:grid-cols-2" style={{ background: PAPER }}>
       {/* image side */}
       <div className="relative min-h-[240px] overflow-hidden md:min-h-full">
         <Img
@@ -346,16 +364,16 @@ function Booking({
       <div className="p-6 md:p-8">
         {done ? (
           <div role="status" className="flex h-full flex-col items-start justify-center">
-            <span className="grid h-12 w-12 place-items-center rounded-full" style={{ background: CLAY_FILL }}>
+            <span className="ph-pop grid h-12 w-12 place-items-center rounded-full" style={{ background: CLAY_FILL }}>
               <Check className="h-6 w-6 text-white" />
             </span>
-            <h3 ref={doneHeadRef} tabIndex={-1} className="mt-4 font-spectral text-2xl outline-none" style={{ color: INK }}>
+            <h3 ref={doneHeadRef} tabIndex={-1} className="ph-up mt-4 font-spectral text-2xl outline-none" style={{ color: INK, animationDelay: '60ms' }}>
               {t.confirmedTitle}
             </h3>
-            <p className="mt-2 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+            <p className="ph-up mt-2 font-hanken text-sm leading-relaxed" style={{ color: BODY, animationDelay: '100ms' }}>
               {t.confirmedBody}
             </p>
-            <dl className="mt-5 w-full space-y-1.5 rounded-2xl p-4 font-hanken text-sm" style={{ background: MIST, color: INK }}>
+            <dl className="ph-up mt-5 w-full space-y-1.5 rounded-2xl p-4 font-hanken text-sm" style={{ background: MIST, color: INK, animationDelay: '140ms' }}>
               <div className="flex justify-between gap-4">
                 <dt style={{ color: BODY }}>{tour.name[lang]}</dt>
                 <dd className="font-semibold">{fmtDate(date, lang)}</dd>
@@ -378,8 +396,8 @@ function Booking({
             <button
               type="button"
               onClick={() => setDone(false)}
-              className="mt-5 font-hanken text-sm font-semibold underline underline-offset-4"
-              style={{ color: CLAY_TX }}
+              className="ph-up mt-5 font-hanken text-sm font-semibold underline underline-offset-4"
+              style={{ color: CLAY_TX, animationDelay: '180ms' }}
             >
               {t.bookAgain}
             </button>
@@ -408,6 +426,12 @@ function Booking({
                 )
               })}
             </div>
+            <p key={tour.id} className="ph-tick -mt-2 mb-5 font-hanken text-sm" style={{ color: INK }}>
+              <span className="font-semibold">{tour.name[lang]}</span>
+              <span style={{ color: SLATE }}>
+                {' '}· {tour.meta[lang]} · {isk(tour.price)} {t.perPerson}
+              </span>
+            </p>
 
             <Step n={2} label={t.stepDate} />
             <label className="mb-5 block">
@@ -427,6 +451,16 @@ function Booking({
               <span className="mt-1.5 block font-hanken text-xs" style={{ color: SLATE }}>
                 {fmtDate(date, lang)}
               </span>
+              {offSeason && (
+                <span role="status" className="mt-1.5 block font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
+                  {tri(
+                    lang,
+                    `${stegaClean(tour.name.is)} er árstíðabundin ferð (${stegaClean(tour.meta.is)}). Veldu dag innan tímabilsins eða aðra ferð.`,
+                    `${stegaClean(tour.name.en)} runs seasonally (${stegaClean(tour.meta.en)}). Pick a date in that window, or another tour.`,
+                    `${stegaClean(tour.name.de)} findet saisonal statt (${stegaClean(tour.meta.de)}). Wählen Sie ein Datum in diesem Zeitraum oder eine andere Tour.`,
+                  )}
+                </span>
+              )}
             </label>
 
             <Step n={3} label={t.stepRiders} />
@@ -434,12 +468,6 @@ function Booking({
               <Stepper label={t.adults} value={adults} set={setAdults} min={1} lang={lang} />
               <Stepper label={t.children} value={children} set={setChildren} min={0} lang={lang} />
             </div>
-            {children > 0 && (
-              <p className="mt-2 font-hanken text-xs" style={{ color: SLATE }}>
-                {t.childDiscountApplied}
-              </p>
-            )}
-
             <div className="mt-5">
               <Step n={4} label={t.stepContact} />
               <div className="space-y-2.5">
@@ -508,22 +536,42 @@ function Booking({
                 <p className="font-hanken text-xs tracking-wide uppercase" style={{ color: SLATE }}>
                   {t.totalLabel}
                 </p>
+                {children > 0 && (
+                  <p className="font-hanken text-xs tabular-nums" style={{ color: SLATE }}>
+                    {adults} × {isk(tour.price)} · {children} × {isk(childPrice)}
+                  </p>
+                )}
                 <p className="font-spectral text-3xl" style={{ color: INK }}>
                   <span key={total} className="ph-tick">
                     {isk(total)}
                   </span>
                 </p>
+                {children > 0 && (
+                  <p className="font-hanken text-xs" style={{ color: SLATE }}>
+                    {t.childDiscountApplied}
+                  </p>
+                )}
               </div>
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
+                data-busy={status === 'sending'}
+                className="ph-cta-send inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
                 style={{ background: CLAY_FILL }}
               >
                 {status === 'sending' ? t.sendingBtn : t.confirmBtn}
-                <ArrowRight className={`h-4 w-4 ${status === 'sending' ? 'animate-pulse' : ''}`} />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
+            <p className="mt-3 flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
+              <Check className="h-3.5 w-3.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
+              {tri(
+                lang,
+                'Engin greiðsla núna — við staðfestum persónulega innan sólarhrings.',
+                'No payment now — we confirm personally within a day.',
+                'Keine Zahlung jetzt — wir bestätigen persönlich innerhalb eines Tages.',
+              )}
+            </p>
           </form>
         )}
       </div>
@@ -536,6 +584,10 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
   const { SEASONS } = useSiteContent()
   const [active, setActive] = useState(0)
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const firstMount = useRef(true)
+  useEffect(() => {
+    firstMount.current = false
+  }, [])
   const season = SEASONS[active]
   const onTabKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     let next = active
@@ -549,7 +601,16 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
     tabRefs.current[next]?.focus()
   }
   return (
-    <div>
+    <div className="relative">
+      {/* the season's light floods the whole room, not just the panel */}
+      {SEASONS.map((s, i) => (
+        <div
+          key={s.id}
+          aria-hidden="true"
+          className="ph-glow pointer-events-none absolute -inset-x-24 -top-44 h-96"
+          style={{ opacity: i === active ? 1 : 0, background: `radial-gradient(60% 100% at 50% 0%, ${s.glow}1f, transparent 70%)` }}
+        />
+      ))}
       <div
         role="tabpanel"
         id="season-panel"
@@ -575,20 +636,37 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
             style={{ opacity: i === active ? 1 : 0, transform: i === active ? 'scale(1)' : 'scale(1.06)', objectPosition: s.pic.pos }}
           />
         ))}
-        {/* legibility + season glow */}
+        {/* legibility scrim + season glow (stacked layers: gradients can't
+            transition, opacity can — the light truly dissolves between seasons) */}
         <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${NIGHT}22 0%, transparent 30%, ${NIGHT}e6 100%)` }} />
-        <div
-          className="pointer-events-none absolute inset-0 transition-colors duration-700"
-          style={{ background: `radial-gradient(80% 60% at 50% 12%, ${season.glow}33, transparent 60%)` }}
-          aria-hidden="true"
-        />
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
-          <p className="font-hanken text-xs font-semibold tracking-[0.24em] uppercase" style={{ color: CLAY_HI }}>
+        {SEASONS.map((s, i) => (
+          <div
+            key={s.id}
+            aria-hidden="true"
+            className="ph-glow pointer-events-none absolute inset-0"
+            style={{ opacity: i === active ? 1 : 0, background: `radial-gradient(80% 60% at 50% 12%, ${s.glow}33, transparent 60%)` }}
+          />
+        ))}
+        <div key={season.id} className="absolute inset-x-0 bottom-0 p-6 md:p-10">
+          <p
+            className={`font-hanken text-xs font-semibold tracking-[0.24em] uppercase ${firstMount.current ? '' : 'ph-cap'}`}
+            style={{ color: CLAY_HI }}
+          >
             {season.kicker[lang]}
           </p>
-          <h3 className="mt-1 font-spectral text-3xl text-white md:text-5xl">{season.name[lang]}</h3>
-          <p className="mt-2 max-w-xl font-hanken text-sm leading-relaxed text-white/85 md:text-base">{season.line[lang]}</p>
-          <p className="mt-3 inline-flex items-center gap-1.5 font-hanken text-sm font-medium" style={{ color: CLAY_HI }}>
+          <h3 className={`mt-1 font-spectral text-3xl text-white md:text-5xl ${firstMount.current ? '' : 'ph-cap'}`} style={{ animationDelay: '50ms' }}>
+            {season.name[lang]}
+          </h3>
+          <p
+            className={`mt-2 max-w-xl font-hanken text-sm leading-relaxed text-white/85 md:text-base ${firstMount.current ? '' : 'ph-cap'}`}
+            style={{ animationDelay: '100ms' }}
+          >
+            {season.line[lang]}
+          </p>
+          <p
+            className={`mt-3 inline-flex items-center gap-1.5 font-hanken text-sm font-medium ${firstMount.current ? '' : 'ph-cap'}`}
+            style={{ color: CLAY_HI, animationDelay: '150ms' }}
+          >
             <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
             {season.tour[lang]}
           </p>
@@ -614,7 +692,8 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
               className="group rounded-2xl border px-3 py-3 text-left transition-all"
               style={{
                 background: on ? NIGHT2 : 'transparent',
-                borderColor: on ? '#9BD8F340' : '#ffffff14',
+                borderColor: on ? `${s.glow}55` : '#ffffff14',
+                boxShadow: on ? `0 10px 30px -12px ${s.glow}40, inset 0 1px 0 ${CLAY_HI}1a` : 'none',
               }}
             >
               <span className="block font-spectral text-lg text-white md:text-xl">{s.name[lang]}</span>
@@ -633,11 +712,77 @@ function PolarHestarPageInner() {
     COPY, SHORT_TOURS, LONG_TOURS, REVIEWS, SHOP, STATS, GTK, FARM, GALLERY, PICS,
     ADDRESS, EMAIL, FACEBOOK, MAPS_HREF, PHONE_DISPLAY, PHONE_HREF,
   } = useSiteContent()
-  const [lang, setLang] = useState<Lang>('is')
+  // First visit: greet guests in their own language (exact match, else EN;
+  // Icelandic only for is-browsers). A manual choice persists and always wins.
+  const [lang, setLang] = useState<Lang>(() => {
+    try {
+      const saved = localStorage.getItem('ph-lang') as Lang | null
+      if (saved && LANGS.includes(saved)) return saved
+      const nav = (navigator.languages ?? [navigator.language]).map((l) => l.slice(0, 2))
+      return nav.find((l): l is Lang => LANGS.includes(l as Lang)) ?? 'en'
+    } catch {
+      return 'is'
+    }
+  })
   const [scrolled, setScrolled] = useState(false)
+  const [barOn, setBarOn] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [activeSec, setActiveSec] = useState('')
+  const [veil, setVeil] = useState(false)
+  const pendingLang = useRef<Lang | null>(null)
   const [bookTour, setBookTour] = useState(SHORT_TOURS[0].id)
   const t = COPY[lang]
+  const minPrice = Math.min(...SHORT_TOURS.map((x) => x.price))
   const bookingRef = useRef<HTMLDivElement>(null)
+
+  /** Þokan — the language changes behind a breath of glacier mist. */
+  const switchLang = (code: Lang) => {
+    if (code === lang) return
+    try { localStorage.setItem('ph-lang', code) } catch { /* private mode */ }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setLang(code)
+      return
+    }
+    pendingLang.current = code
+    setVeil(true)
+    window.setTimeout(() => {
+      if (pendingLang.current) setLang(pendingLang.current)
+      pendingLang.current = null
+      window.setTimeout(() => setVeil(false), 40)
+    }, 130)
+  }
+
+  // Scroll-spy: the nav underline follows the section under the reading line.
+  useEffect(() => {
+    const ids = ['ferdir', 'arstidir', 'gott', 'heimsokn']
+    const io = new IntersectionObserver(
+      (es) => {
+        es.forEach((e) => {
+          if (e.isIntersecting) setActiveSec((e.target as HTMLElement).id)
+        })
+      },
+      { rootMargin: '-40% 0px -55% 0px' },
+    )
+    ids.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) io.observe(el)
+    })
+    return () => io.disconnect()
+  }, [])
+
+  // Mobile menu: lock scroll, close on Escape.
+  useEffect(() => {
+    if (!menuOpen) return
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
 
   useEffect(() => {
     document.title = tri(
@@ -650,7 +795,10 @@ function PolarHestarPageInner() {
   }, [lang])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40)
+      setBarOn(window.scrollY > window.innerHeight * 0.6)
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -711,10 +859,60 @@ function PolarHestarPageInner() {
         @keyframes phTick{0%{transform:scale(1.07)}100%{transform:none}}
 
         .ph-proc:hover .ph-track{animation-play-state:paused}
-        .ph-track>div:nth-child(odd){margin-top:14px}
+        .ph-proc .animate-marquee{animation-duration:48s}
+        .ph-horse img{transition:filter .7s ease}
+        .ph-horse:hover img{filter:saturate(1) contrast(1.03) brightness(1.01)}
         .ph-card:hover .ph-card-img{transform:scale(1.05)}
-        .ph-root :focus-visible{outline:2px solid #202070;outline-offset:2px;border-radius:4px}
+
+        /* glacier grade — one cool world for every CMS photo; touch returns warmth */
+        .ph-root img{filter:saturate(.9) contrast(1.03) brightness(1.01)}
+        .ph-root .ph-logo{filter:none}
+        .ph-card:hover .ph-card-img{filter:saturate(1) contrast(1.03) brightness(1.01)}
+
+        /* micro-craft: selection, underlines, focus (no border-radius — outlines follow the pill) */
+        .ph-root ::selection{background:#9BD8F3;color:#161B3C}
+        .ph-root a{text-underline-offset:4px;text-decoration-thickness:1px}
+        .ph-root :focus-visible{outline:2px solid #202070;outline-offset:3px}
         .ph-dark :focus-visible{outline-color:#9BD8F3}
+
+        /* nav underline — hover draws it, scroll-spy holds it */
+        .ph-navlink{position:relative}
+        .ph-navlink::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:1px;background:currentColor;opacity:.85;transform:scaleX(0);transform-origin:left;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+        .ph-navlink:hover::after,.ph-navlink[data-active="true"]::after{transform:scaleX(1)}
+
+        /* Þokan — mist veil on language switch */
+        .ph-veil{opacity:0;background:#EDF1F73d;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);transition:opacity .22s cubic-bezier(.2,.7,.2,1)}
+        .ph-veil[data-on="true"]{opacity:1;transition-duration:.13s}
+
+        /* seasons — glow layers crossfade (gradients can't transition; opacity can) */
+        .ph-glow{transition:opacity .9s ease}
+        .ph-cap{opacity:0;transform:translateY(12px);animation:phCap .5s cubic-bezier(.2,.7,.2,1) forwards}
+        @keyframes phCap{to{opacity:1;transform:none}}
+
+        /* booking success choreography */
+        .ph-pop{opacity:0;transform:scale(.5);animation:phPop .45s cubic-bezier(.34,1.56,.64,1) forwards}
+        @keyframes phPop{to{opacity:1;transform:scale(1)}}
+        .ph-up{opacity:0;transform:translateY(10px);animation:phUp .35s cubic-bezier(.2,.7,.2,1) forwards}
+        @keyframes phUp{to{opacity:1;transform:none}}
+
+        /* stepper digit roll */
+        .ph-numwrap{display:inline-block;overflow:hidden;line-height:1.2}
+        .ph-num-up,.ph-num-dn{display:inline-block;animation-duration:.18s;animation-timing-function:cubic-bezier(.2,.7,.2,1);animation-fill-mode:both}
+        .ph-num-up{animation-name:phNumUp}.ph-num-dn{animation-name:phNumDn}
+        @keyframes phNumUp{from{transform:translateY(65%);opacity:0}}
+        @keyframes phNumDn{from{transform:translateY(-65%);opacity:0}}
+
+        /* confirm button in-flight light sweep */
+        .ph-cta-send{position:relative;overflow:hidden}
+        .ph-cta-send[data-busy="true"]::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);transform:translateX(-100%);animation:phSweep 1.1s linear infinite}
+        @keyframes phSweep{to{transform:translateX(100%)}}
+
+        /* mobile sticky bar earns its entrance */
+        .ph-bar{transform:translateY(110%);transition:transform .32s cubic-bezier(.2,.7,.2,1)}
+        .ph-bar[data-on="true"]{transform:none}
+
+        /* dawn — dark bands brighten from dusk as they clear (rides .ph-reveal) */
+        .ph-reveal.ph-dawn{filter:blur(6px) brightness(.72)}
         @media (prefers-reduced-motion: reduce){
           .ph-reveal{opacity:1;transform:none;filter:none;transition:none}
           .ph-hero-rise,.ph-line-i,.ph-drift,.ph-tick{animation:none}
@@ -724,6 +922,11 @@ function PolarHestarPageInner() {
           .ph-star{opacity:1;transform:none;transition:none}
           .ph-rule{width:4rem;transition:none}
           .ph-card-img,.ph-season-img{transition:none}
+          .ph-veil,.ph-cap,.ph-pop,.ph-up,.ph-num-up,.ph-num-dn,.ph-cta-send[data-busy="true"]::after{animation:none}
+          .ph-cap,.ph-pop,.ph-up{opacity:1;transform:none}
+          .ph-bar,.ph-navlink::after{transition:none}
+          .ph-bar{transform:none}
+          .ph-horse img{transition:none}
         }
       `}</style>
 
@@ -755,7 +958,13 @@ function PolarHestarPageInner() {
               ['#gott', t.nav.info],
               ['#heimsokn', t.nav.visit],
             ].map(([href, label]) => (
-              <a key={href} href={href} className={navLink} style={{ color: scrolled ? BODY : '#ffffffe6' }}>
+              <a
+                key={href}
+                href={href}
+                className={`${navLink} ph-navlink`}
+                data-active={href === '#' + activeSec}
+                style={{ color: scrolled ? BODY : '#ffffffe6' }}
+              >
                 {label}
               </a>
             ))}
@@ -773,7 +982,7 @@ function PolarHestarPageInner() {
                   <button
                     key={code}
                     type="button"
-                    onClick={() => setLang(code)}
+                    onClick={() => switchLang(code)}
                     aria-pressed={active}
                     aria-label={LANG_NAMES[code]}
                     className="px-3 py-2.5 uppercase tracking-wide transition-colors"
@@ -796,12 +1005,88 @@ function PolarHestarPageInner() {
             >
               {t.nav.cta}
             </button>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              aria-expanded={menuOpen}
+              aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
+              className="grid h-11 w-11 place-items-center md:hidden"
+              style={{ color: scrolled ? INK : '#fff' }}
+            >
+              <span className="flex w-5 flex-col gap-1.5" aria-hidden="true">
+                <span className="block h-px w-full bg-current" />
+                <span className="block h-px w-full bg-current" />
+              </span>
+            </button>
           </div>
         </div>
       </header>
 
+      {/* ── MOBILE MENU — polar night panel ─────────────────────────────── */}
+      {menuOpen && (
+        <div className="ph-dark fixed inset-0 z-50 flex flex-col p-6 md:hidden" style={{ background: NIGHT }}>
+          <div className="flex items-center justify-between">
+            <img src={LOGO} alt="Pólar Hestar" className="h-10 w-auto" />
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setMenuOpen(false)}
+              aria-label={tri(lang, 'Loka', 'Close', 'Schließen')}
+              className="grid h-11 w-11 place-items-center rounded-full border text-white"
+              style={{ borderColor: '#ffffff33' }}
+            >
+              <span className="relative block h-4 w-4" aria-hidden="true">
+                <span className="absolute top-1/2 left-0 block h-px w-full rotate-45 bg-current" />
+                <span className="absolute top-1/2 left-0 block h-px w-full -rotate-45 bg-current" />
+              </span>
+            </button>
+          </div>
+          <nav className="mt-12 flex flex-col" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
+            {[
+              ['#ferdir', t.nav.tours],
+              ['#arstidir', t.nav.seasons],
+              ['#gott', t.nav.info],
+              ['#heimsokn', t.nav.visit],
+            ].map(([href, label], i) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                className="border-b py-5 font-spectral text-3xl text-white"
+                style={{ borderColor: '#ffffff14' }}
+              >
+                <span className="mr-4 font-hanken text-xs" style={{ color: CLAY_HI }}>
+                  0{i + 1}
+                </span>
+                {label}
+              </a>
+            ))}
+          </nav>
+          <div className="mt-auto space-y-4 pb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false)
+                goBook(bookTour)
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 font-hanken text-sm font-semibold text-white"
+              style={{ background: CLAY_FILL }}
+            >
+              {t.nav.cta}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <a href={PHONE_HREF} className="block text-center font-hanken text-sm" style={{ color: CLAY_HI }}>
+              {PHONE_DISPLAY}
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Þokan — mist veil for language switches */}
+      <div aria-hidden="true" className="ph-veil pointer-events-none fixed inset-0 z-[60]" data-on={veil} />
+
       {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <section id="top" className="ph-dark relative flex min-h-[100svh] items-end overflow-hidden">
+      <section id="top" className="ph-dark grain relative flex min-h-[100svh] items-end overflow-hidden">
         <Img
           src={PICS.hero.src}
           srcSet={PICS.hero.srcSet}
@@ -824,11 +1109,17 @@ function PolarHestarPageInner() {
           className="absolute inset-0"
           style={{ background: `linear-gradient(180deg, rgba(13,16,40,0.5) 0%, rgba(13,16,40,0.35) 32%, rgba(13,16,40,0.5) 62%, rgba(13,16,40,0.85) 100%)` }}
         />
+        {/* mist-dissolve — the photo melts into the story section below */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-12 md:h-24"
+          style={{ background: `linear-gradient(180deg, transparent, ${MIST})` }}
+        />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
           <p className="ph-hero-rise font-hanken text-xs font-semibold tracking-[0.24em] text-white/80 uppercase" style={{ animationDelay: '0ms' }}>
             {t.heroEyebrow}
           </p>
-          <h1 className="mt-4 max-w-4xl font-spectral text-[2.6rem] leading-[1.04] text-white md:text-7xl">
+          <h1 className="mt-4 max-w-4xl font-spectral text-[clamp(2.6rem,7vw,4.5rem)] leading-[1.04] text-white">
             <span className="ph-line">
               <span className="ph-line-i" style={{ animationDelay: '100ms' }}>
                 {t.heroH1a}
@@ -866,16 +1157,10 @@ function PolarHestarPageInner() {
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
             <Stat value={<CountUp to={STATS.horses} lang={lang} duration={2000} />} label={t.statHorses} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 fill-current" style={{ color: CLAY_HI }} aria-hidden="true" />
-              <span className="font-spectral text-2xl text-white">
-                <CountUp to={parseFloat(stegaClean(STATS.rating).replace(',', '.')) || 4.9} decimals={1} lang={lang} duration={2200} />
-                <span className="sr-only">{tri(lang, ' af 5', ' out of 5', ' von 5')}</span>
-              </span>
-              <span className="font-hanken text-xs text-white/70">
-                {STATS.reviews} {t.statRating}
-              </span>
-            </div>
+            <Stat
+              value={<span className="font-spectral text-2xl text-white">{isk(minPrice)}</span>}
+              label={tri(lang, 'verð frá · allt árið', 'from · open all year', 'ab · ganzjährig')}
+            />
           </div>
         </div>
       </section>
@@ -885,7 +1170,7 @@ function PolarHestarPageInner() {
         <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
           <Reveal>
             <Eyebrow>{t.storyEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
+            <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
               <MaskWords text={t.storyH2} />
             </h2>
             <p className="mt-5 font-hanken text-base leading-relaxed" style={{ color: BODY }}>
@@ -897,7 +1182,7 @@ function PolarHestarPageInner() {
           </Reveal>
           <Reveal delay={120}>
             <figure className="relative">
-              <div className="overflow-hidden rounded-[28px] shadow-[0_30px_60px_-30px_rgba(18,23,56,0.45)]">
+              <div className="overflow-hidden rounded-[28px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f]">
                 <Img
                   src={PICS.story.src}
                   srcSet={PICS.story.srcSet}
@@ -916,10 +1201,23 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── PULL QUOTE (folkloric line) — deep-pine feature band ─────────── */}
-      <section className="ph-dark px-5 py-20 md:py-28" style={{ background: TWILIGHT }}>
-        <Reveal className="mx-auto max-w-4xl text-center">
-          <span className="ph-rule mx-auto mb-6 block h-px" style={{ background: CLAY_HI }} aria-hidden="true" />
-          <p className="font-spectral text-3xl leading-snug italic text-white md:text-5xl">
+      <section
+        className="ph-dark relative overflow-hidden px-5 py-24 md:py-36"
+        style={{
+          background: `radial-gradient(90rem 16rem at 50% -6rem, ${CLAY_HI}12, transparent 70%), ${TWILIGHT}`,
+          boxShadow: `inset 0 1px 0 ${CLAY_HI}2b`,
+        }}
+      >
+        <Reveal className="ph-dawn relative mx-auto max-w-5xl text-center">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 font-spectral leading-none select-none text-[8rem] md:-top-14 md:text-[13rem]"
+            style={{ color: `${CLAY_HI}12` }}
+          >
+            “
+          </span>
+          <span className="ph-rule mx-auto mb-8 block h-px" style={{ background: CLAY_HI }} aria-hidden="true" />
+          <p className="font-spectral text-[clamp(2.2rem,5.5vw,4.25rem)] leading-[1.15] italic text-white">
             <MaskWords text={t.storyQuote} stagger={70} base={150} />
           </p>
         </Reveal>
@@ -928,9 +1226,8 @@ function PolarHestarPageInner() {
       {/* ── HERD PROCESSION (signature) ─────────────────────────────────── */}
       <section className="py-16 md:py-24">
         <Reveal className="mx-auto mb-8 max-w-6xl px-5 md:px-8">
-          <Eyebrow>{t.procEyebrow}</Eyebrow>
           <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <h2 className="max-w-xl font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
+            <h2 className="max-w-xl font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
               <MaskWords text={t.procH2} />
             </h2>
             <p className="max-w-md font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
@@ -939,12 +1236,16 @@ function PolarHestarPageInner() {
           </div>
         </Reveal>
         <div className="ph-proc relative overflow-hidden" aria-hidden="true">
-          <div className="ph-track animate-marquee flex w-max gap-4">
-            {[...GALLERY, ...GALLERY].map((g, i) => (
-              <div key={i} className="h-48 w-36 shrink-0 overflow-hidden rounded-2xl md:h-60 md:w-44" style={{ background: PAPER }}>
-                <img src={g.src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: g.pos }} />
-              </div>
-            ))}
+          <div className="ph-track animate-marquee flex w-max items-start gap-4">
+            {[...GALLERY, ...GALLERY].map((g, i) => {
+              // both track halves must style identically for a seamless -50% loop
+              const k = i % GALLERY.length
+              return (
+                <div key={i} className={`ph-horse shrink-0 overflow-hidden rounded-2xl ${HERD_RHYTHM[k % 4]}`} style={{ background: PAPER }}>
+                  <img src={g.src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: g.pos }} />
+                </div>
+              )
+            })}
           </div>
           {/* edge fades */}
           <div className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-28" style={{ background: `linear-gradient(90deg, ${MIST}, transparent)` }} />
@@ -956,7 +1257,7 @@ function PolarHestarPageInner() {
       <section id="ferdir" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:px-8 md:py-24">
         <Reveal>
           <Eyebrow>{t.toursEyebrow}</Eyebrow>
-          <h2 className="mt-3 max-w-2xl font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
+          <h2 className="mt-3 max-w-2xl font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
             <MaskWords text={t.toursH2} />
           </h2>
           <p className="mt-4 max-w-2xl font-hanken text-base leading-relaxed" style={{ color: BODY }}>
@@ -985,11 +1286,19 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── BOOKING ─────────────────────────────────────────────────────── */}
-      <section id="boka" ref={bookingRef} className="ph-dark scroll-mt-20 px-5 py-16 md:py-24" style={{ background: TWILIGHT }}>
+      <section
+        id="boka"
+        ref={bookingRef}
+        className="ph-dark scroll-mt-20 px-5 py-16 md:py-24"
+        style={{
+          background: `radial-gradient(90rem 16rem at 50% -6rem, ${CLAY_HI}12, transparent 70%), ${TWILIGHT}`,
+          boxShadow: `inset 0 1px 0 ${CLAY_HI}2b`,
+        }}
+      >
         <div className="mx-auto max-w-5xl">
           <Reveal className="mb-8 text-center">
             <Eyebrow on="dark">{t.bookEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
+            <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight text-white">
               <MaskWords text={t.bookH2} />
             </h2>
           </Reveal>
@@ -1000,11 +1309,15 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── SEASONS (signature) ─────────────────────────────────────────── */}
-      <section id="arstidir" className="ph-dark scroll-mt-20" style={{ background: NIGHT }}>
+      <section
+        id="arstidir"
+        className="ph-dark grain relative scroll-mt-20 overflow-hidden"
+        style={{ background: NIGHT, boxShadow: `inset 0 1px 0 ${CLAY_HI}2b` }}
+      >
         <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
           <Reveal className="mb-8 max-w-2xl">
             <Eyebrow tint={ICE}>{t.seasonsEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
+            <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight text-white">
               <MaskWords text={t.seasonsH2} />
             </h2>
             <p className="mt-4 font-hanken text-base leading-relaxed text-white/75">{t.seasonsBody}</p>
@@ -1020,12 +1333,18 @@ function PolarHestarPageInner() {
         <Reveal className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-xl">
             <Eyebrow>{t.longEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-5xl" style={{ color: INK }}>
+            <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
               <MaskWords text={t.longH2} />
             </h2>
           </div>
           <p className="max-w-sm font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-            {t.longBody}
+            {t.longBody}{' '}
+            <span className="mt-1 block">
+              {tri(lang, 'eða skrifaðu beint á', 'or write directly to', 'oder schreiben Sie direkt an')}{' '}
+              <a href={`mailto:${EMAIL}`} className="font-semibold underline underline-offset-4" style={{ color: CLAY_TX }}>
+                {EMAIL}
+              </a>
+            </span>
           </p>
         </Reveal>
 
@@ -1064,7 +1383,14 @@ function PolarHestarPageInner() {
                     {tour.blurb[lang]}
                   </p>
                   <a
-                    href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}`}
+                    href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}&body=${encodeURIComponent(
+                      tri(
+                        lang,
+                        `Ferð: ${stegaClean(tour.name.is)}\nÓskatímabil:\nFjöldi knapa:\nReynsla af hestamennsku:\n`,
+                        `Tour: ${stegaClean(tour.name.en)}\nPreferred dates:\nNumber of riders:\nRiding experience:\n`,
+                        `Tour: ${stegaClean(tour.name.de)}\nWunschzeitraum:\nAnzahl Reiter:\nReiterfahrung:\n`,
+                      ),
+                    )}`}
                     className="mt-3 inline-flex items-center gap-1 font-hanken text-sm font-semibold transition-colors"
                     style={{ color: CLAY_TX }}
                   >
@@ -1082,8 +1408,7 @@ function PolarHestarPageInner() {
       <section id="gott" className="scroll-mt-20 px-5 py-16 md:py-20" style={{ background: PAPER }}>
         <div className="mx-auto max-w-6xl">
           <Reveal className="mb-8 max-w-2xl">
-            <Eyebrow>{GTK.eyebrow[lang]}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
+            <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
               <MaskWords text={GTK.heading[lang]} />
             </h2>
             <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
@@ -1107,12 +1432,44 @@ function PolarHestarPageInner() {
         </div>
       </section>
 
+      {/* ── AT THE FARM — the practical zone continues, quieter (rows, not cards) */}
+      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+        <Reveal className="mb-8 max-w-2xl">
+          <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
+            <MaskWords text={FARM.heading[lang]} />
+          </h2>
+          <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+            {FARM.body[lang]}
+          </p>
+        </Reveal>
+        <div className="grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+          {FARM.items.map((item, i) => (
+            <Reveal key={i} delay={i * 60}>
+              <div className="border-t pt-4" style={{ borderColor: '#1a205226' }}>
+                <p className="font-spectral text-lg" style={{ color: INK }}>
+                  {item.title[lang]}
+                </p>
+                <p className="mt-1.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+                  {item.body[lang]}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ── TRUST / REVIEWS / FAMILY ────────────────────────────────────── */}
-      <section className="ph-dark px-5 py-16 md:py-24" style={{ background: TWILIGHT }}>
+      <section
+        className="ph-dark px-5 py-16 md:py-24"
+        style={{
+          background: `radial-gradient(90rem 16rem at 50% -6rem, ${CLAY_HI}12, transparent 70%), ${TWILIGHT}`,
+          boxShadow: `inset 0 1px 0 ${CLAY_HI}2b`,
+        }}
+      >
         <div className="mx-auto max-w-6xl">
-          <Reveal className="mb-10 text-center">
+          <Reveal className="ph-dawn mb-10 text-center">
             <Eyebrow on="dark">{t.trustEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-3xl leading-tight text-white md:text-5xl">
+            <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight text-white">
               <MaskWords text={t.trustH2} />
             </h2>
             <div className="mt-4 flex items-center justify-center gap-2">
@@ -1187,39 +1544,11 @@ function PolarHestarPageInner() {
         </div>
       </section>
 
-      {/* ── AT THE FARM — accommodation, animals, minigolf, stewardship ─── */}
-      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
-        <Reveal className="mb-8 max-w-2xl">
-          <Eyebrow>{FARM.eyebrow[lang]}</Eyebrow>
-          <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
-            <MaskWords text={FARM.heading[lang]} />
-          </h2>
-          <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-            {FARM.body[lang]}
-          </p>
-        </Reveal>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FARM.items.map((item, i) => (
-            <Reveal key={i} delay={i * 60}>
-              <div className="h-full rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: PAPER }}>
-                <p className="font-spectral text-lg" style={{ color: INK }}>
-                  {item.title[lang]}
-                </p>
-                <p className="mt-1.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-                  {item.body[lang]}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
       {/* ── SHOP (photo-light) — fixes the dead-end shop ─────────────────── */}
       <section className="px-5 py-16 md:py-20" style={{ background: PAPER }}>
         <div className="mx-auto max-w-6xl md:px-3">
         <Reveal className="mb-8 max-w-xl">
-          <Eyebrow>{t.shopEyebrow}</Eyebrow>
-          <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
+          <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
             {t.shopH2}
           </h2>
           <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
@@ -1258,8 +1587,7 @@ function PolarHestarPageInner() {
         <div className="mx-auto grid max-w-6xl items-stretch gap-6 overflow-hidden md:grid-cols-2">
           <Reveal className="flex">
             <div className="flex w-full flex-col justify-center rounded-[28px] p-7 md:p-10" style={{ background: PAPER }}>
-              <Eyebrow>{t.visitEyebrow}</Eyebrow>
-              <h2 className="mt-3 font-spectral text-3xl leading-tight md:text-4xl" style={{ color: INK }}>
+              <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
                 {t.visitH2}
               </h2>
 
@@ -1340,7 +1668,7 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── FINAL CTA ───────────────────────────────────────────────────── */}
-      <section className="ph-dark relative overflow-hidden">
+      <section className="ph-dark grain relative overflow-hidden">
         <Img
           src={PICS.ctaBand.src}
           srcSet={PICS.ctaBand.srcSet}
@@ -1364,7 +1692,7 @@ function PolarHestarPageInner() {
               loading="lazy"
               decoding="async"
             />
-            <h2 className="font-spectral text-4xl leading-tight text-white md:text-6xl">
+            <h2 className="font-spectral text-[clamp(2.4rem,5.5vw,3.9rem)] leading-tight text-white">
               <MaskWords text={t.ctaH2} />
             </h2>
             <p className="mx-auto mt-4 max-w-xl font-hanken text-base text-white/85 md:text-lg">{t.ctaBody}</p>
@@ -1394,7 +1722,7 @@ function PolarHestarPageInner() {
       <PreviewFooter company={company} />
 
       {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden" style={{ background: `${MIST}f5`, borderColor: '#1a20521f', backdropFilter: 'blur(8px)' }}>
+      <div data-on={barOn} className="ph-bar fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden" style={{ background: `${MIST}f5`, borderColor: '#1a20521f', backdropFilter: 'blur(8px)' }}>
         <button
           type="button"
           onClick={() => goBook(bookTour)}
@@ -1439,7 +1767,7 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
 
 function TourCard({ tour, lang, t, onBook }: { tour: TourX; lang: Lang; t: typeof COPY['is']; onBook: () => void }) {
   return (
-    <article className="ph-card flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_18px_40px_-28px_rgba(18,23,56,0.55)]" style={{ background: PAPER }}>
+    <article className="ph-card flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f]" style={{ background: PAPER }}>
       <div className="aspect-[4/3] overflow-hidden">
         <img
           src={tour.pic.src}

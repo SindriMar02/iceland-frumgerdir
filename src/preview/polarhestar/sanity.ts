@@ -175,7 +175,7 @@ const QUERY = `{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
-  "tours": *[_type=="tour"]|order(order asc){_id, name, duration, level, price, blurb, image ${IMG_PRJ}},
+  "tours": *[_type=="tour"]|order(order asc){_id, name, duration, level, price, months, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
   "longTours": *[_type=="longTour"]|order(order asc){_id, name, meta, blurb, image ${IMG_PRJ}},
   "reviews": *[_type=="review"]|order(name asc){_id, quote, name, origin},
@@ -221,6 +221,7 @@ function merge(raw: any): SiteContent {
           price: typeof d.price === 'number' ? d.price : fb.price,
           image: fb.image,
           blurb: l3(d.blurb, fb.blurb),
+          months: Array.isArray(d.months) && d.months.length ? d.months : fb.months,
           pic: mkPic(d.image, fb.image),
         }
       })

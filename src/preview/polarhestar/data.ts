@@ -59,6 +59,8 @@ export interface Tour {
   price: number // full 2026 price, ISK; children up to 12 pay 2.000 less
   image: string
   blurb: L3
+  /** Months (1–12) the tour runs; empty/undefined = all year. Drives the booking-date hint. */
+  months?: number[]
 }
 
 export const SHORT_TOURS: Tour[] = [
@@ -107,6 +109,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: '1½ klukkustund · nóv–apríl', en: '1½ hours · Nov–Apr', de: '1½ Stunden · Nov–Apr' },
     level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
     price: 12500,
+    months: [11, 12, 1, 2, 3, 4],
     image: 'photo-1774018538486-49f5a51cd63f',
     blurb: {
       is: 'Vel klædd í kuldagalla njótum við reiðtúrs í átt að Eyjafirði í tæru vetrarlofti. Vetrarsólin gefur oft dulúðugt andrúmsloft og heimagerðar kökur og heitir drykkir bíða heima.',
@@ -120,6 +123,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: 'Reiðtúr og mínígolf · jún–ágú', en: 'Ride & minigolf · Jun–Aug', de: 'Reiten & Minigolf · Jun–Aug' },
     level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
     price: 13500,
+    months: [6, 7, 8],
     image: 'photo-1452698325353-b90e60289e87',
     blurb: {
       is: 'Riðið er í einn og hálfan tíma meðfram ánni Gljúfurá og eftir hestaferðina er innifalið að skreppa á mínígolfvöllinn okkar, sex brautir sem allar tengjast Íslandi og umhverfinu.',
