@@ -35,8 +35,8 @@ const HAIR = 'rgba(211,199,178,.16)' // champagne hairline; LED violet + amber l
 
 const BASE = import.meta.env.BASE_URL
 const A = `${BASE}stjornusol/`
-const DISPLAY = "'Paquito-Medium', Georgia, serif"
-const DISPLAY_MED = "'Paquito-Regular', Georgia, serif"
+const DISPLAY = "'Tanker-Regular', 'Arial Narrow', sans-serif"
+const DISPLAY_MED = "'Tanker-Regular', 'Arial Narrow', sans-serif"
 const HANKEN = "'Hanken Grotesk', system-ui, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, monospace"
 const EASE = 'cubic-bezier(.32,.72,0,1)'
@@ -314,7 +314,7 @@ export default function StjornusolPage() {
 
   return (
     <div className="sv-root min-h-screen antialiased" style={{ background: OBSIDIAN, color: BODY_T, fontFamily: HANKEN, overflowX: 'clip' }}>
-      <link rel="stylesheet" href={`${BASE}fonts/paquito/css/paquito.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/tanker/css/tanker.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
       <style>{`
@@ -511,7 +511,7 @@ export default function StjornusolPage() {
               <p className="sv-rise m-0 text-[12px] font-medium tracking-[.3em]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.15s' }}>
                 SÓLBAÐSSTOFA Í HAFNARFIRÐI · SÍÐAN {FOUNDED}
               </p>
-              <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(46px, 6.4vw, 92px)', lineHeight: 1, letterSpacing: '.005em', color: TXT, maxWidth: '12ch', animationDelay: '.3s' }}>
+              <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(58px, 7.4vw, 122px)', lineHeight: 0.98, letterSpacing: '.012em', color: TXT, maxWidth: '14ch', animationDelay: '.3s' }}>
                 Næsta kynslóð sólbaða.
               </h1>
               <p className="sv-rise mt-6 mb-0 max-w-[38ch] text-[16px] leading-[1.65] md:text-[18px]" style={{ color: BODY_T, animationDelay: '.5s' }}>
