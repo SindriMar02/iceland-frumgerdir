@@ -42,7 +42,7 @@ const PLATE = '#1B160C' // the single dark plate (Spraytan chapter)
 const PLATE_INK = '#F2E8D2' // ink on the dark plate
 
 const BASE = import.meta.env.BASE_URL
-const POSTER = "'Tanker-Regular', 'CabinetGrotesk-Black', sans-serif"
+const POSTER = "'BebasNeue-Regular', 'CabinetGrotesk-Black', sans-serif"
 const WORDMARK = "'Stardom', Georgia, serif"
 const SANS = "'CabinetGrotesk-Regular', system-ui, sans-serif"
 const SANS_MED = "'CabinetGrotesk-Medium', system-ui, sans-serif"
@@ -234,7 +234,7 @@ export default function SaelanPage() {
 
   return (
     <div className="sn-root min-h-screen overflow-x-hidden pb-[4.5rem] antialiased md:pb-0" style={{ background: PAGE, color: INK, fontFamily: SANS }}>
-      <link rel="stylesheet" href={`${BASE}fonts/tanker/css/tanker.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/bebas-neue/css/bebas-neue.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <script type="application/ld+json">{jsonLd}</script>
 
