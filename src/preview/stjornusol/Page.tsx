@@ -144,12 +144,6 @@ const SKY: Record<string, string> = {
   hawaii: 'linear-gradient(180deg, #0E2247 0%, #2B5C9E 45%, #7FB2D9 78%, #F7E9B8 100%)',
   hamptons: 'linear-gradient(180deg, #191026 0%, #55284E 40%, #B14A67 70%, #E88B54 100%)',
 }
-/* sun altitude + colour per program: composed, not animated across the sky */
-const SUN: Record<string, { top: string; core: string; halo: string }> = {
-  capri: { top: '58%', core: '#FFE9C4', halo: 'rgba(255,176,107,.55)' },
-  hawaii: { top: '22%', core: '#FFF6DC', halo: 'rgba(255,224,150,.6)' },
-  hamptons: { top: '74%', core: '#FFD9A8', halo: 'rgba(240,133,86,.55)' },
-}
 
 /* Peau d'Or film strip — the salon's own promo photos from solbadsstofa.is */
 const KREM = ['krem-01.webp', 'krem-02.webp', 'krem-03.webp', 'krem-04.webp', 'krem-05.webp', 'krem-06.webp', 'krem-07.webp']
@@ -272,7 +266,7 @@ export default function StjornusolPage() {
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 700,
-    borderRadius: 999,
+    borderRadius: 3,
     fontFamily: HANKEN,
     ...extra,
   })
@@ -308,16 +302,12 @@ export default function StjornusolPage() {
         .sv-cta{transition:transform .3s ${EASE}, box-shadow .3s ease, filter .25s ease}
         .sv-cta:hover{transform:translateY(-3px);filter:brightness(1.1)}
         .sv-cta:active{transform:scale(.97)}
-        .sv-ghost{transition:background .3s ease, transform .3s ${EASE}}
-        .sv-ghost:hover{background:rgba(244,239,230,.08);transform:translateY(-2px)}
-        .sv-ghost:active{transform:scale(.97)}
         @keyframes svTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .sv-ticker{animation:svTicker 36s linear infinite}
         .sv-row{transition:transform .35s ${EASE}, background .35s ease}
         .sv-row:hover{transform:translateX(8px)}
-        .sv-slat{transition:flex .65s ${EASE}, box-shadow .4s ease}
-        @keyframes svBreathe{from{transform:translate(-50%,-50%) scale(1);opacity:.85}to{transform:translate(-50%,-50%) scale(1.12);opacity:1}}
-        .sv-sunglow{animation:svBreathe 5.5s ease-in-out infinite alternate}
+        @keyframes svFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+        .sv-fade{animation:svFade .35s ease both}
         .sv-roll{transition:transform .55s cubic-bezier(.6,.1,.2,1)}
         .sv-peek-card{transition:opacity .28s ease, transform .32s ${EASE}}
         .sv-peek-img{transition:opacity .25s ease}
@@ -344,8 +334,7 @@ export default function StjornusolPage() {
           .sv-r{opacity:1;transform:none;transition:none}
           .sv-rise{animation:none}
           .sv-ticker{animation:none}
-          .sv-slat{transition:none}
-          .sv-sunglow{animation:none}
+          .sv-fade{animation:none}
           .sv-roll{transition:none !important}
           .sv-nav::after{transition:none}
           .sv-film{animation:none}
@@ -406,7 +395,7 @@ export default function StjornusolPage() {
 
       {/* ── sticky booking bar ────────────────────────────────────────── */}
       <div
-        className="fixed right-0 left-0 z-[55] mx-auto flex gap-2 rounded-full p-2 md:hidden"
+        className="fixed right-0 left-0 z-[55] mx-auto flex gap-2 rounded-[10px] p-2 md:hidden"
         style={{
           bottom: 'calc(10px + env(safe-area-inset-bottom, 0px))',
           width: 'min(calc(100% - 24px), 400px)',
@@ -418,7 +407,7 @@ export default function StjornusolPage() {
           transition: `transform .5s ${EASE}`,
         }}
       >
-        <a href={PHONE_HREF} aria-label={`Hringja í ${PHONE_DISPLAY}`} className="grid h-[50px] w-[50px] flex-none place-items-center rounded-full no-underline" style={{ background: 'rgba(244,239,230,.08)', border: '1px solid rgba(244,239,230,.14)', color: TXT }}>
+        <a href={PHONE_HREF} aria-label={`Hringja í ${PHONE_DISPLAY}`} className="grid h-[50px] w-[50px] flex-none place-items-center rounded-[7px] no-underline" style={{ background: 'rgba(244,239,230,.08)', border: '1px solid rgba(244,239,230,.14)', color: TXT }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           </svg>
@@ -429,63 +418,76 @@ export default function StjornusolPage() {
       </div>
 
       <main id="top">
-        {/* ══ HERO — the machine wakes ═══════════════════════════════════ */}
-        <section id="k11" className="relative flex min-h-[100svh] items-end overflow-clip" style={{ background: OBSIDIAN }}>
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="sv-stage absolute" style={{ top: '50%', left: '62%', transform: 'translate(-62%, -50%)', height: '100%', aspectRatio: '2688 / 1520', minWidth: '100%' }}>
-              <img src={`${A}k11-off.webp`} alt="KBL K11 Air Loft ljósabekkur í dimmum sal" className="absolute inset-0 h-full w-full" {...({ fetchpriority: 'high' } as React.ImgHTMLAttributes<HTMLImageElement>)} />
-              <K11Relight on={lit} />
+        {/* ══ HERO — copy left, the machine floating in the dark right ═══ */}
+        <section id="k11" className="relative flex min-h-[100svh] items-center overflow-clip" style={{ background: OBSIDIAN }}>
+          <div className="mx-auto grid w-full max-w-[1400px] items-center gap-x-10 gap-y-8 px-5 pt-24 pb-14 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:px-9 md:pt-28 md:pb-16">
+            {/* left: clean copy, off the photo */}
+            <div>
+              <p className="sv-rise m-0 text-[12px] font-medium tracking-[.3em]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.15s' }}>
+                SÓLBAÐSSTOFA Í HAFNARFIRÐI · SÍÐAN {FOUNDED}
+              </p>
+              <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(46px, 6.4vw, 92px)', lineHeight: 1, letterSpacing: '.005em', color: TXT, maxWidth: '12ch', animationDelay: '.3s' }}>
+                Næsta kynslóð sólbaða.
+              </h1>
+              <p className="sv-rise mt-6 mb-0 max-w-[44ch] text-[16px] leading-[1.65] md:text-[18px]" style={{ color: BODY_T, animationDelay: '.5s' }}>
+                K11 Air Loft er kominn í Fjarðargötu 17. ALL LED bekkur með SunFinity ljósatækni, Loft Infinity speglum og kælingu fyrir líkama og andlit.
+              </p>
+              <div className="sv-rise mt-9 flex flex-wrap items-center gap-x-7 gap-y-4" style={{ animationDelay: '.68s' }}>
+                <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta" style={cta({ fontSize: 16, padding: '17px 36px', boxShadow: '0 16px 44px rgba(194,24,95,.35)' })}>
+                  Bóka tíma
+                </a>
+                <a href="#verdskra" className="pb-1 text-[15px] font-semibold no-underline" style={{ color: TXT, borderBottom: '1px solid rgba(244,239,230,.4)' }}>
+                  Sjá verðskrá
+                </a>
+              </div>
+              <p className="sv-rise mt-8 mb-0 text-[13px]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.8s' }}>
+                MORGUNVERÐ ALLA DAGA FYRIR KL. 14 · FRÁ 2.190 KR.
+              </p>
             </div>
-            {/* legibility scrims */}
-            <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(10,9,12,.9) 0%, rgba(10,9,12,.55) 34%, rgba(10,9,12,.08) 62%, transparent 100%)' }} />
-            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5 md:h-2/5" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.88))' }} />
-          </div>
 
-          <div className="relative z-10 mx-auto w-full max-w-[1240px] px-5 pt-28 pb-24 md:px-9 md:pb-28">
-            <p className="sv-rise m-0 text-[12px] font-medium tracking-[.3em]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.15s' }}>
-              SÓLBAÐSSTOFA Í HAFNARFIRÐI · SÍÐAN {FOUNDED}
-            </p>
-            <h1 className="sv-rise mt-5 mb-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(52px, 9.5vw, 128px)', lineHeight: 0.98, letterSpacing: '.005em', color: TXT, maxWidth: '13ch', animationDelay: '.3s' }}>
-              Næsta kynslóð sólbaða.
-            </h1>
-            <p className="sv-rise mt-6 mb-0 max-w-[46ch] text-[17px] leading-[1.6] md:text-[19px]" style={{ color: BODY_T, animationDelay: '.5s' }}>
-              K11 Air Loft er kominn í Fjarðargötu 17. ALL LED bekkur með SunFinity ljósatækni, Loft Infinity speglum og kælingu fyrir líkama og andlit.
-            </p>
-            <div className="sv-rise mt-9 flex flex-wrap items-center gap-3.5" style={{ animationDelay: '.68s' }}>
-              <a href={NOONA} target="_blank" rel="noreferrer" className="sv-cta" style={cta({ fontSize: 17, padding: '18px 40px', boxShadow: '0 16px 44px rgba(194,24,95,.4)' })}>
-                Bóka tíma
-              </a>
-              <a href="#verdskra" className="sv-ghost rounded-full font-semibold no-underline" style={{ color: TXT, fontSize: 16, padding: '17px 28px', border: '1px solid rgba(244,239,230,.26)' }}>
-                Sjá verðskrá
-              </a>
-            </div>
-            <p className="sv-rise mt-7 mb-0 text-[13px]" style={{ color: CHAMP_DIM, fontFamily: MONO, animationDelay: '.8s' }}>
-              MORGUNVERÐ ALLA DAGA FYRIR KL. 14 · FRÁ 2.190 KR.
-            </p>
-
-            {/* the machine's own power switch */}
-            <div className="sv-rise mt-6 md:absolute md:right-9 md:bottom-10 md:mt-0" style={{ animationDelay: '1s' }}>
-              <button
-                type="button"
-                aria-pressed={lit}
-                onClick={() => setLit(!lit)}
-                className="sv-power flex cursor-pointer items-center gap-3 rounded-full border py-2 pr-2 pl-4"
-                style={{ background: 'rgba(12,11,14,.72)', borderColor: lit ? 'rgba(211,199,178,.4)' : HAIR, backdropFilter: 'blur(10px)' }}
+            {/* right: the machine, cropped in and dissolving into the page */}
+            <div className="sv-rise" style={{ animationDelay: '.45s' }}>
+              <div
+                className="relative w-full overflow-hidden"
+                style={{
+                  aspectRatio: '4 / 3.1',
+                  WebkitMaskImage: 'radial-gradient(52% 52% at 50% 50%, #000 52%, transparent 94%)',
+                  maskImage: 'radial-gradient(52% 52% at 50% 50%, #000 52%, transparent 94%)',
+                }}
               >
-                <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO }}>
-                  {lit ? 'LJÓSIN Á' : 'LJÓSIN AF'}
-                </span>
-                <span aria-hidden="true" className="relative inline-block h-6 w-11 rounded-full" style={{ background: lit ? 'rgba(232,53,126,.28)' : 'rgba(244,239,230,.1)', border: '1px solid rgba(244,239,230,.18)' }}>
-                  <span
-                    className="sv-knob absolute top-[2px] left-[2px] h-[18px] w-[18px] rounded-full"
-                    style={{
-                      transform: lit ? 'translateX(20px)' : 'none',
-                      background: lit ? MAGENTA : '#6E6659',
-                      boxShadow: lit ? '0 0 12px 2px rgba(232,53,126,.65)' : 'none',
-                    }}
-                  />
-                </span>
-              </button>
+                <div className="sv-stage absolute top-1/2 left-[-19%] w-[138%] -translate-y-1/2" style={{ aspectRatio: '2688 / 1520' }}>
+                  <img src={`${A}k11-off.webp`} alt="KBL K11 Air Loft ljósabekkur í dimmum sal" className="absolute inset-0 h-full w-full" {...({ fetchpriority: 'high' } as React.ImgHTMLAttributes<HTMLImageElement>)} />
+                  <K11Relight on={lit} />
+                </div>
+              </div>
+
+              {/* caption + the machine's own power switch */}
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 md:px-2">
+                <p className="m-0 text-[12px] tracking-[.24em]" style={{ color: CHAMP_DIM, fontFamily: MONO }}>
+                  K11 AIR LOFT · FJARÐARGATA 17
+                </p>
+                <button
+                  type="button"
+                  aria-pressed={lit}
+                  onClick={() => setLit(!lit)}
+                  className="sv-power flex cursor-pointer items-center gap-3 rounded-[4px] border py-2 pr-2 pl-3.5"
+                  style={{ background: 'rgba(17,16,21,.85)', borderColor: lit ? 'rgba(211,199,178,.4)' : HAIR }}
+                >
+                  <span className="text-[11px] tracking-[.22em]" style={{ color: lit ? CHAMPAGNE : CHAMP_DIM, fontFamily: MONO }}>
+                    {lit ? 'LJÓSIN Á' : 'LJÓSIN AF'}
+                  </span>
+                  <span aria-hidden="true" className="relative inline-block h-6 w-11 rounded-[3px]" style={{ background: lit ? 'rgba(232,53,126,.28)' : 'rgba(244,239,230,.1)', border: '1px solid rgba(244,239,230,.18)' }}>
+                    <span
+                      className="sv-knob absolute top-[2px] left-[2px] h-[18px] w-[18px] rounded-[2px]"
+                      style={{
+                        transform: lit ? 'translateX(20px)' : 'none',
+                        background: lit ? MAGENTA : '#6E6659',
+                        boxShadow: lit ? '0 0 12px 2px rgba(232,53,126,.65)' : 'none',
+                      }}
+                    />
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -507,82 +509,66 @@ export default function StjornusolPage() {
           </div>
         </section>
 
-        {/* ══ ÁFANGASTAÐIR — three skies as expanding slats ══════════════ */}
-        <section id="afangastadir" className="relative scroll-mt-20" style={{ padding: 'clamp(70px, 9vw, 110px) 0' }}>
+        {/* ══ SUNCONTROL — compact console strip ═════════════════════════ */}
+        <section id="afangastadir" className="scroll-mt-20" style={{ padding: 'clamp(52px, 7vw, 84px) 0' }}>
           <div className="mx-auto max-w-[1180px] px-5 md:px-9">
             <Reveal>
-              <p className="m-0 mb-4 text-[12px] tracking-[.3em]" style={{ color: MAGENTA, fontFamily: MONO }}>
-                SUNCONTROL · ÞÚ VELUR ÁFANGASTAÐ
-              </p>
-            </Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-              <Reveal>
-                <h2 className="m-0" style={{ fontFamily: DISPLAY, fontSize: 'clamp(34px, 5vw, 64px)', lineHeight: 1.02, color: TXT }}>
-                  Þrjár upplifanir.
-                  <br className="md:hidden" /> Einn bekkur.
-                </h2>
-              </Reveal>
-              <Reveal delay={80}>
-                <p className="m-0 text-[13px]" style={{ color: CHAMP_DIM }}>
-                  Innbyggð prógrömm í K11 Air Loft. Bókanleg á Noona.
-                </p>
-              </Reveal>
-            </div>
+              <div className="rounded-[8px] border" style={{ borderColor: HAIR, background: OBSIDIAN2, padding: 'clamp(20px, 3vw, 28px)' }}>
+                <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+                  <div>
+                    <p className="m-0 text-[11px] tracking-[.28em]" style={{ color: MAGENTA, fontFamily: MONO }}>
+                      SUNCONTROL · ÞÚ VELUR ÁFANGASTAÐ
+                    </p>
+                    <p className="mt-1.5 mb-0" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(20px, 2.6vw, 26px)', color: TXT }}>
+                      Þrjár upplifanir. Einn bekkur.
+                    </p>
+                  </div>
+                  <div className="flex w-full overflow-hidden rounded-[4px] border md:w-auto" style={{ borderColor: HAIR }} role="group" aria-label="SunControl prógrömm">
+                    {DESTINATIONS.map((x, i) => {
+                      const on = dest === i
+                      return (
+                        <button
+                          key={x.id}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() => setDest(i)}
+                          className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 border-0 px-1 py-3 text-[11px] font-bold tracking-[.1em] md:flex-none md:justify-start md:gap-2.5 md:px-4 md:text-[12px] md:tracking-[.18em]"
+                          style={{
+                            fontFamily: MONO,
+                            color: on ? TXT : CHAMP_DIM,
+                            background: on ? 'rgba(244,239,230,.09)' : 'transparent',
+                            borderLeft: i > 0 ? `1px solid ${HAIR}` : 'none',
+                            transition: 'background .3s ease, color .3s ease',
+                          }}
+                        >
+                          <span aria-hidden="true" className="h-[12px] w-[12px] flex-none rounded-[2px] md:h-[14px] md:w-[14px]" style={{ background: SKY[x.id], boxShadow: on ? 'inset 0 0 0 1px rgba(244,239,230,.5)' : 'inset 0 0 0 1px rgba(244,239,230,.18)' }} />
+                          {x.id === 'capri' ? 'CAPRI' : x.id === 'hawaii' ? 'HAWAII' : 'HAMPTONS'}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
 
-            <Reveal className="mt-7">
-              <div className="flex h-[26rem] flex-col gap-2 md:h-[17rem] md:flex-row">
-                {DESTINATIONS.map((x, i) => {
-                  const on = dest === i
+                {(() => {
+                  const d = DESTINATIONS[dest]
                   return (
-                    <button
-                      key={x.id}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => setDest(i)}
-                      className="sv-slat relative cursor-pointer overflow-clip rounded-[18px] border-none p-0 text-left"
-                      style={{ flex: on ? '3.2 1 0%' : '1 1 0%', background: SKY[x.id], boxShadow: on ? 'inset 0 0 0 1px rgba(211,199,178,.4)' : 'inset 0 0 0 1px rgba(211,199,178,.14)' }}
-                    >
-                      {/* the sun: hot core, twin halos, atmosphere band, reflection */}
-                      <span aria-hidden="true" className="absolute inset-0">
-                        <span className="sv-sunwrap absolute left-1/2" style={{ top: SUN[x.id].top }}>
-                          <span className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 130, height: 130, background: `radial-gradient(circle, ${SUN[x.id].halo} 0%, transparent 66%)`, filter: 'blur(6px)' }} />
-                          <span className="sv-sunglow absolute -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 74, height: 74, background: `radial-gradient(circle, ${SUN[x.id].halo} 0%, transparent 70%)` }} />
-                          <span className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 30, height: 30, background: `radial-gradient(circle at 42% 36%, #FFFDF4, ${SUN[x.id].core} 55%, transparent 78%)` }} />
-                        </span>
-                        {/* atmosphere haze at the horizon line */}
-                        <span className="absolute right-0 left-0" style={{ top: `calc(${SUN[x.id].top} + 8%)`, height: '18%', background: `linear-gradient(180deg, transparent, ${SUN[x.id].halo.replace('.55', '.18').replace('.6', '.18')} 45%, transparent)`, filter: 'blur(10px)' }} />
-                        {/* reflection */}
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2" style={{ width: 90, height: '26%', background: `linear-gradient(180deg, ${SUN[x.id].halo.replace('.55', '.28').replace('.6', '.28')}, transparent)`, filter: 'blur(8px)' }} />
-                        <span className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'linear-gradient(180deg, transparent, rgba(10,9,12,.72))' }} />
+                    <div key={d.id} className="sv-fade mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1.5 border-t pt-4" style={{ borderColor: HAIR }}>
+                      <span style={{ fontFamily: DISPLAY_MED, fontSize: 18, color: TXT }}>{d.title}</span>
+                      <span className="text-[13px]" style={{ fontFamily: MONO, color: CHAMP_DIM }}>
+                        {d.lat}
                       </span>
-
-                      {/* collapsed: vertical mono label (desktop) / short label (mobile) */}
-                      <span className="absolute inset-0 flex items-end p-4 transition-opacity duration-300 md:items-start md:p-5" style={{ opacity: on ? 0 : 1, pointerEvents: 'none' }}>
-                        <span className="text-[12px] font-bold tracking-[.22em] whitespace-nowrap md:[writing-mode:vertical-rl]" style={{ color: 'rgba(244,239,230,.85)', fontFamily: MONO, textShadow: '0 1px 12px rgba(0,0,0,.6)' }}>
-                          {x.id === 'capri' ? 'CAPRI' : x.id === 'hawaii' ? 'HAWAII' : 'HAMPTONS'} · {x.lat}
-                        </span>
+                      <span className="rounded-[3px] border px-2 py-0.5 text-[11px] font-bold tracking-[.06em]" style={{ borderColor: 'rgba(232,53,126,.5)', color: '#FF8FBC' }}>
+                        {d.chip}
                       </span>
-
-                      {/* selected: full program card */}
-                      <span className="absolute right-4 bottom-4 left-4 transition-opacity duration-500 md:right-6 md:bottom-5 md:left-6" style={{ opacity: on ? 1 : 0, transitionDelay: on ? '.25s' : '0s', pointerEvents: 'none' }}>
-                        <span className="flex items-baseline justify-between gap-3">
-                          <span className="block" style={{ fontFamily: DISPLAY_MED, fontSize: 'clamp(19px, 2.4vw, 27px)', color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.55)' }}>
-                            {x.title}
-                          </span>
-                          <span className="text-[16px] whitespace-nowrap md:text-[20px]" style={{ fontFamily: MONO, color: '#FFF9EF', textShadow: '0 2px 24px rgba(0,0,0,.55)' }}>
-                            {x.lat}
-                          </span>
-                        </span>
-                        <span className="mt-1.5 flex flex-wrap items-center gap-2.5 text-[13px]" style={{ color: 'rgba(244,239,230,.88)', textShadow: '0 1px 14px rgba(0,0,0,.6)' }}>
-                          <span className="rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-[.06em]" style={{ borderColor: 'rgba(232,53,126,.55)', color: '#FF8FBC' }}>
-                            {x.chip}
-                          </span>
-                          {x.body}
-                        </span>
+                      <span className="text-[14px]" style={{ color: BODY_T }}>
+                        {d.body}
                       </span>
-                    </button>
+                      <span className="text-[12px] md:ml-auto" style={{ color: CHAMP_DIM }}>
+                        Innbyggt í K11 Air Loft · Bókanlegt á Noona
+                      </span>
+                    </div>
                   )
-                })}
+                })()}
               </div>
             </Reveal>
           </div>
@@ -620,15 +606,15 @@ export default function StjornusolPage() {
                 <div className="rounded-[calc(26px-8px)] p-4 py-6 md:p-9" style={{ background: OBSIDIAN, boxShadow: 'inset 0 1px 0 rgba(244,239,230,.06)' }}>
                   {/* rocker switch */}
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="relative inline-flex rounded-full p-[5px]" style={{ background: 'rgba(211,199,178,.08)', border: `1px solid ${HAIR}`, minWidth: 'min(100%, 400px)' }}>
-                      <span aria-hidden="true" className="absolute rounded-full" style={{ top: 5, bottom: 5, left: 5, width: 'calc(50% - 10px)', background: 'rgba(244,239,230,.12)', border: '1px solid rgba(211,199,178,.45)', boxShadow: `0 0 24px rgba(179,156,255,.25)`, transform: morgun ? 'translateX(0)' : 'translateX(calc(100% + 10px))', transition: `transform .45s ${EASE}` }} />
+                    <div className="relative inline-flex rounded-[6px] p-[5px]" style={{ background: 'rgba(211,199,178,.08)', border: `1px solid ${HAIR}`, minWidth: 'min(100%, 400px)' }}>
+                      <span aria-hidden="true" className="absolute rounded-[4px]" style={{ top: 5, bottom: 5, left: 5, width: 'calc(50% - 10px)', background: 'rgba(244,239,230,.12)', border: '1px solid rgba(211,199,178,.45)', boxShadow: `0 0 24px rgba(179,156,255,.25)`, transform: morgun ? 'translateX(0)' : 'translateX(calc(100% + 10px))', transition: `transform .45s ${EASE}` }} />
                       {(
                         [
                           ['morgun', 'Morgunverð'],
                           ['dag', 'Dagverð'],
                         ] as const
                       ).map(([id, label]) => (
-                        <button key={id} type="button" aria-pressed={slot === id} onClick={() => setSlot(id)} className="relative z-[1] inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border-none bg-transparent font-bold" style={{ fontFamily: HANKEN, fontSize: 15, padding: '13px 14px', color: slot === id ? TXT : CHAMP_DIM, transition: 'color .3s ease' }}>
+                        <button key={id} type="button" aria-pressed={slot === id} onClick={() => setSlot(id)} className="relative z-[1] inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[4px] border-none bg-transparent font-bold" style={{ fontFamily: HANKEN, fontSize: 15, padding: '13px 14px', color: slot === id ? TXT : CHAMP_DIM, transition: 'color .3s ease' }}>
                           {label}
                           {nowSlot === id ? <span className="h-[7px] w-[7px] rounded-full" style={{ background: MAGENTA, boxShadow: `0 0 10px 2px rgba(232,53,126,.6)`, animation: 'svBadge 6s steps(1,end) infinite' }} title="gildir núna" /> : null}
                         </button>
@@ -639,17 +625,17 @@ export default function StjornusolPage() {
                     </p>
                   </div>
 
-                  {/* ledger rows */}
-                  <div className="mt-8">
+                  {/* ledger: single tíma column beside kort column on desktop */}
+                  <div className="mt-8 grid gap-x-14 md:grid-cols-2">
                     {(['stakir', 'kort'] as const).map((group) => (
-                      <div key={group}>
-                        <p className="text-[11px] font-semibold tracking-[.26em]" style={{ margin: group === 'kort' ? '26px 0 4px' : '0 0 4px', color: MAGENTA, fontFamily: MONO }}>
+                      <div key={group} className={group === 'kort' ? 'mt-7 md:mt-0' : ''}>
+                        <p className="m-0 mb-1 text-[11px] font-semibold tracking-[.26em]" style={{ color: MAGENTA, fontFamily: MONO }}>
                           {group === 'stakir' ? 'STAKIR TÍMAR' : 'KORT'}
                         </p>
                         {PRICES.filter((p) => p.group === group).map((p, i, arr) => {
                           const gi = PRICES.findIndex((x) => x.id === p.id)
                           return (
-                            <div key={p.id} className="grid grid-cols-1 items-center gap-x-[18px] gap-y-1.5 md:grid-cols-[minmax(0,1fr)_auto]" style={{ padding: '17px 4px', borderTop: `1px solid ${HAIR}`, borderBottom: group === 'kort' && i === arr.length - 1 ? `1px solid ${HAIR}` : undefined }}>
+                            <div key={p.id} className="grid grid-cols-1 items-center gap-x-[18px] gap-y-1.5 md:grid-cols-[minmax(0,1fr)_auto]" style={{ padding: '17px 4px', borderTop: `1px solid ${HAIR}`, borderBottom: i === arr.length - 1 ? `1px solid ${HAIR}` : undefined }}>
                               <p className="m-0 font-bold" style={{ fontSize: 'clamp(17px, 2.3vw, 20px)', color: TXT }}>
                                 {p.name}
                                 {p.minutes ? (
@@ -659,7 +645,7 @@ export default function StjornusolPage() {
                                   </span>
                                 ) : null}
                               </p>
-                              <div className="overflow-hidden text-left md:row-span-2 md:self-center md:text-right" style={{ height: '1.2em', fontSize: 'clamp(30px, 8.6vw, 40px)', fontFamily: MONO, fontWeight: 500, color: CHAMPAGNE }}>
+                              <div className="overflow-hidden text-left md:row-span-2 md:self-center md:text-right" style={{ height: '1.2em', fontSize: 'clamp(30px, 8.6vw, 36px)', fontFamily: MONO, fontWeight: 500, color: CHAMPAGNE }}>
                                 <div className="sv-roll" style={{ transform: morgun ? 'translateY(0)' : 'translateY(-1.2em)', transitionDelay: `${gi * 0.06}s` }}>
                                   <span className="block" style={{ height: '1.2em', lineHeight: '1.2em' }}>
                                     {p.morning}
@@ -670,7 +656,8 @@ export default function StjornusolPage() {
                                 </div>
                               </div>
                               <p className="m-0 text-[13px] leading-[1.55]" style={{ color: CHAMP_DIM }}>
-                                Morgunverð {p.morning} · Dagverð {p.day}
+                                <span className="whitespace-nowrap">Morgunverð {p.morning}</span> ·{' '}
+                                <span className="whitespace-nowrap">Dagverð {p.day}</span>
                                 <span className="ml-2.5 inline-block font-bold whitespace-nowrap" style={{ color: MAGENTA, opacity: morgun ? 1 : 0.25, transition: 'opacity .4s ease' }}>
                                   þú sparar {p.saves}
                                 </span>
@@ -725,7 +712,7 @@ export default function StjornusolPage() {
                           {b.maker}
                         </p>
                       ) : (
-                        <a href="#k11" className="mt-2 inline-flex items-center gap-[7px] rounded-full text-[12px] font-bold no-underline md:hidden" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '6px 12px' }}>
+                        <a href="#k11" className="mt-2 inline-flex items-center gap-[7px] rounded-[3px] text-[12px] font-bold no-underline md:hidden" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '6px 12px' }}>
                           stjarnan okkar<span aria-hidden="true">↑</span>
                         </a>
                       )}
@@ -736,7 +723,7 @@ export default function StjornusolPage() {
                         {b.maker}
                       </p>
                     ) : (
-                      <a href="#k11" className="hidden items-center gap-[7px] rounded-full text-[13px] font-bold no-underline transition-colors duration-300 hover:bg-[rgba(232,53,126,.12)] md:inline-flex" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '9px 16px' }}>
+                      <a href="#k11" className="hidden items-center gap-[7px] rounded-[3px] text-[13px] font-bold no-underline transition-colors duration-300 hover:bg-[rgba(232,53,126,.12)] md:inline-flex" style={{ color: MAGENTA, border: '1px solid rgba(232,53,126,.4)', padding: '9px 16px' }}>
                         stjarnan okkar<span aria-hidden="true">↑</span>
                       </a>
                     )}
