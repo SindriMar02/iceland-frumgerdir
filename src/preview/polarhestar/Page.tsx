@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Calendar,
   Check,
+  ChevronDown,
   ChevronRight,
   Clock,
   Facebook,
@@ -754,7 +755,7 @@ function PolarHestarPageInner() {
 
   // Scroll-spy: the nav underline follows the section under the reading line.
   useEffect(() => {
-    const ids = ['ferdir', 'arstidir', 'gott', 'heimsokn']
+    const ids = ['ferdir', 'boka', 'arstidir', 'lengri', 'gott', 'baer', 'bud', 'heimsokn']
     const io = new IntersectionObserver(
       (es) => {
         es.forEach((e) => {
@@ -910,9 +911,6 @@ function PolarHestarPageInner() {
         /* mobile sticky bar earns its entrance */
         .ph-bar{transform:translateY(110%);transition:transform .32s cubic-bezier(.2,.7,.2,1)}
         .ph-bar[data-on="true"]{transform:none}
-
-        /* dawn — dark bands brighten from dusk as they clear (rides .ph-reveal) */
-        .ph-reveal.ph-dawn{filter:blur(6px) brightness(.72)}
         @media (prefers-reduced-motion: reduce){
           .ph-reveal{opacity:1;transform:none;filter:none;transition:none}
           .ph-hero-rise,.ph-line-i,.ph-drift,.ph-tick{animation:none}
@@ -951,23 +949,69 @@ function PolarHestarPageInner() {
               }}
             />
           </a>
-          <nav className="hidden items-center gap-7 md:flex" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
+          <nav className="hidden items-center gap-6 md:flex" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
             {[
-              ['#ferdir', t.nav.tours],
-              ['#arstidir', t.nav.seasons],
-              ['#gott', t.nav.info],
-              ['#heimsokn', t.nav.visit],
-            ].map(([href, label]) => (
-              <a
-                key={href}
-                href={href}
-                className={`${navLink} ph-navlink`}
-                data-active={href === '#' + activeSec}
-                style={{ color: scrolled ? BODY : '#ffffffe6' }}
-              >
-                {label}
-              </a>
-            ))}
+              {
+                href: '#ferdir',
+                label: t.nav.tours,
+                kids: [
+                  ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
+                  ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
+                  ['#boka', tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')],
+                ] as [string, string][],
+              },
+              { href: '#arstidir', label: t.nav.seasons },
+              {
+                href: '#gott',
+                label: t.nav.info,
+                kids: [
+                  ['#gott', tri(lang, 'Gott að vita', 'Good to know', 'Gut zu wissen')],
+                  ['#baer', tri(lang, 'Á bænum', 'At the farm', 'Auf dem Hof')],
+                  ['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')],
+                ] as [string, string][],
+              },
+              { href: '#heimsokn', label: t.nav.visit },
+            ].map((item) => {
+              const on = item.href === '#' + activeSec || !!item.kids?.some(([h]) => h === '#' + activeSec)
+              const color = scrolled ? BODY : '#ffffffe6'
+              if (!item.kids) {
+                return (
+                  <a key={item.href} href={item.href} className={`${navLink} ph-navlink`} data-active={on} style={{ color }}>
+                    {item.label}
+                  </a>
+                )
+              }
+              return (
+                <div key={item.href} className="group relative">
+                  <a
+                    href={item.href}
+                    className={`${navLink} ph-navlink inline-flex items-center gap-1`}
+                    data-active={on}
+                    style={{ color }}
+                  >
+                    {item.label}
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180" aria-hidden="true" />
+                  </a>
+                  <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 translate-y-1 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                    <div
+                      className="min-w-[12rem] rounded-2xl border p-2 shadow-[0_20px_44px_-24px_rgba(18,23,56,0.5)]"
+                      style={{ background: '#ffffff', borderColor: '#1a20521a' }}
+                    >
+                      {item.kids.map(([h, sub]) => (
+                        <a
+                          key={h}
+                          href={h}
+                          className="block rounded-xl px-3 py-2 font-hanken text-sm font-medium transition-colors hover:bg-black/5"
+                          style={{ color: INK }}
+                        >
+                          {sub}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </nav>
           <div className="flex items-center gap-2">
             <div
@@ -1109,12 +1153,6 @@ function PolarHestarPageInner() {
           className="absolute inset-0"
           style={{ background: `linear-gradient(180deg, rgba(13,16,40,0.5) 0%, rgba(13,16,40,0.35) 32%, rgba(13,16,40,0.5) 62%, rgba(13,16,40,0.85) 100%)` }}
         />
-        {/* mist-dissolve — the photo melts into the story section below */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-12 md:h-24"
-          style={{ background: `linear-gradient(180deg, transparent, ${MIST})` }}
-        />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
           <p className="ph-hero-rise font-hanken text-xs font-semibold tracking-[0.24em] text-white/80 uppercase" style={{ animationDelay: '0ms' }}>
             {t.heroEyebrow}
@@ -1208,7 +1246,7 @@ function PolarHestarPageInner() {
           boxShadow: `inset 0 1px 0 ${CLAY_HI}2b`,
         }}
       >
-        <Reveal className="ph-dawn relative mx-auto max-w-5xl text-center">
+        <Reveal className="relative mx-auto max-w-5xl text-center">
           <span
             aria-hidden="true"
             className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 font-spectral leading-none select-none text-[8rem] md:-top-14 md:text-[13rem]"
@@ -1329,7 +1367,7 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── LONG TOURS ──────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
+      <section id="lengri" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
         <Reveal className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-xl">
             <Eyebrow>{t.longEyebrow}</Eyebrow>
@@ -1433,7 +1471,7 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── AT THE FARM — the practical zone continues, quieter (rows, not cards) */}
-      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+      <section id="baer" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mb-8 max-w-2xl">
           <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
             <MaskWords text={FARM.heading[lang]} />
@@ -1467,7 +1505,7 @@ function PolarHestarPageInner() {
         }}
       >
         <div className="mx-auto max-w-6xl">
-          <Reveal className="ph-dawn mb-10 text-center">
+          <Reveal className="mb-10 text-center">
             <Eyebrow on="dark">{t.trustEyebrow}</Eyebrow>
             <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight text-white">
               <MaskWords text={t.trustH2} />
@@ -1545,7 +1583,7 @@ function PolarHestarPageInner() {
       </section>
 
       {/* ── SHOP (photo-light) — fixes the dead-end shop ─────────────────── */}
-      <section className="px-5 py-16 md:py-20" style={{ background: PAPER }}>
+      <section id="bud" className="scroll-mt-20 px-5 py-16 md:py-20" style={{ background: PAPER }}>
         <div className="mx-auto max-w-6xl md:px-3">
         <Reveal className="mb-8 max-w-xl">
           <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
