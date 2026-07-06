@@ -291,6 +291,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
         image: img('photo-1686207855146-c3ffe2166d40'),
         accent: '#C2773A',
       },
+      {
+        route: '/preview/passion',
+        name: 'Passion Reykjavík',
+        sector: 'Bakarí & kaffihús',
+        location: 'Reykjavík',
+        blurb: 'Fjölskyldubakarí með 4,8 í einkunn en forsíðu sem hefur sagt "í vinnslu" í meira en tvö ár, endurhannað í þeirra eigin gyllta og vínrauða merki.',
+        image: local('passion/cinnabon.jpg'),
+        accent: '#C8A877',
+      },
     ],
   },
   {

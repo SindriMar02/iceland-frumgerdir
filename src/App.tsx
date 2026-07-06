@@ -48,6 +48,8 @@ const VinlandPage = lazy(() => import('./preview/vinland/Page'))
 const VellirPage = lazy(() => import('./preview/vellir/Page'))
 // Scout round 7 — bakeries; reuses the Faxi Bakery Café design system
 const GkBakariPage = lazy(() => import('./preview/gkbakari/Page'))
+// Bakery scout round 8 — Passion Reykjavík (GK skeleton, their own dark-gold brand)
+const PassionPage = lazy(() => import('./preview/passion/Page'))
 // Standalone lead — e-commerce showroom redesign (Shopify-migratable)
 const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
 const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
@@ -121,6 +123,7 @@ export default function App() {
             <Route path="/preview/vinland" element={<VinlandPage />} />
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/gkbakari" element={<GkBakariPage />} />
+            <Route path="/preview/passion" element={<PassionPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
             <Route path="/preview/heitirpottar/lager" element={<HeitirpottarStock />} />
             <Route path="/preview/sportsol" element={<SportsolPage />} />
