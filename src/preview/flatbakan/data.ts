@@ -27,7 +27,7 @@ export const IMG = {
   dodlada: `${A}pizza-dodlada.jpg`,
   sterka: `${A}pizza-sterka.jpg`,
   peppada: `${A}pizza-peppada.jpg`,
-  ingredientsBg: `${A}fb-ingredients-bg.webp`, // scattered real ingredients, bg removed + pre-blurred
+  ingredientsBg: `${A}fb-ingredients-bg-2.webp`, // scattered real ingredients, bg removed + pre-blurred
 }
 
 /**
