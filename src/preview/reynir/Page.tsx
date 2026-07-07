@@ -278,29 +278,36 @@ export default function ReynirPage() {
   const { scrollY } = useScroll()
   // Spring-smooth the scroll value so the medallion glides at 60fps instead of
   // stepping with throttled scroll events.
-  const smoothY = useSpring(scrollY, { stiffness: 130, damping: 30, mass: 0.5 })
-  const travelTransform = useTransform(smoothY, (y) => {
+  const smoothY = useSpring(scrollY, { stiffness: 170, damping: 34, mass: 0.5 })
+  // Two inputs: SMOOTHED scroll drives the descent (a 60fps glide); RAW scroll
+  // drives the locked phase so the medallion sits EXACTLY on the product slot and
+  // scrolls with the page (no floaty lag). Passing the slot again (scrolling back
+  // up past settleY) re-enters the travel branch and it glides back to the hero.
+  const travelTransform = useTransform([smoothY, scrollY], (latest) => {
+    const [sy, ry] = latest as number[]
     const a = anchorRef.current
     if (!a) return 'translate3d(-9999px,-9999px,0)'
-    const p = Math.min(Math.max(y / a.settleY, 0), 1)
-    const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 // easeInOutCubic
     let cx: number
     let cy: number
     let size: number
-    if (y <= a.settleY) {
+    let r: number
+    if (ry >= a.settleY) {
+      // LOCKED into the product slot — exact, moves 1:1 with the page.
+      cx = a.featCX
+      cy = a.featTop + a.featSize / 2 - ry
+      size = a.featSize
+      r = 300
+    } else {
+      // Travelling hero → slot, spring-smoothed glide.
+      const p = Math.min(Math.max(sy / a.settleY, 0), 1)
+      const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 // easeInOutCubic
       cx = a.heroCX + (a.featCX - a.heroCX) * e
       cy = a.heroCY + (a.featEndCY - a.heroCY) * e
       size = a.heroSize + (a.featSize - a.heroSize) * e
-    } else {
-      cx = a.featCX
-      cy = a.featTop + a.featSize / 2 - y // track the slot as it scrolls past
-      size = a.featSize
+      r = e * 300
     }
     const s = size / MED_BASE
-    const tx = cx - MED_BASE / 2
-    const ty = cy - MED_BASE / 2
-    const r = e * 300
-    return `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${s.toFixed(4)}) rotate(${r.toFixed(1)}deg)`
+    return `translate3d(${(cx - MED_BASE / 2).toFixed(1)}px, ${(cy - MED_BASE / 2).toFixed(1)}px, 0) scale(${s.toFixed(4)}) rotate(${r.toFixed(1)}deg)`
   })
 
   const marqueeItems = useMemo(
