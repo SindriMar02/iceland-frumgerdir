@@ -17,13 +17,13 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { T, type Lang, type MenuItem, LOGO, HERO_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES } from './data'
+import { T, type Lang, type MenuItem, LOGO, HERO_IMG, FEATURE_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES } from './data'
 
 const company = getPreviewCompany('reynir')
 
@@ -111,6 +111,9 @@ const PAGE_CSS = `
     .rb-cover-meta { justify-content:center !important; }
     .rb-cover-ctas { justify-content:center !important; }
     .rb-menu-cols { grid-template-columns:1fr !important; }
+    .rb-feature { grid-template-columns:1fr !important; }
+    .rb-feature-art { order:-1; }
+    .rb-feature-art > div { width:min(62vw,280px) !important; }
     .rb-bread-grid { grid-template-columns:1fr !important; }
     .rb-catering-grid { grid-template-columns:1fr !important; }
     .rb-visit-grid { grid-template-columns:1fr !important; }
@@ -225,6 +228,13 @@ export default function ReynirPage() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.08])
 
+  // Scroll-driven spin on the featured pistachio snúður medallion (same as
+  // Passion's hero Cinnabon: rotate + scale as the section passes through view).
+  const featRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress: featProg } = useScroll({ target: featRef, offset: ['start end', 'end start'] })
+  const featSpin = useSpring(useTransform(featProg, [0, 1], [-40, 180]), { stiffness: 90, damping: 22, mass: 0.4 })
+  const featScale = useTransform(featProg, [0, 1], [0.94, 1.08])
+
   const marqueeItems = useMemo(
     () => ['Vínarbrauð', 'Súrdeigsbrauð', 'Snúður', 'Kanillengja', 'Pistasíusnúður', 'Kleina', 'Rúgbrauð', 'Skúffukaka'],
     [],
@@ -337,14 +347,53 @@ export default function ReynirPage() {
             <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
           </div>
 
-          {/* featured item — type-led (their standout pistachio Danish) */}
-          <div data-reveal style={{ ...revealInit(reduced, 0.1), marginTop: 'clamp(40px,6vh,68px)', borderTop: `1px solid ${HAIR_SOFT}`, borderBottom: `1px solid ${HAIR_SOFT}`, padding: 'clamp(28px,4vh,44px) 0' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: GOLD }}>{t.featuredLabel}</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, flexWrap: 'wrap', marginTop: 14 }}>
-              <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5vw,68px)', margin: 0, ...GOLD_TEXT }}>{FEATURE.name}</h3>
-              <span style={{ fontSize: 22, fontWeight: 600, color: GOLD }}>{FEATURE.price}</span>
+          {/* featured item — the signature pistachio snúður, its medallion
+              spinning on scroll (same animation as the Passion hero Cinnabon).
+              The photo sits on a flat #131313 ground so it dissolves into the
+              page; invisible fallback until the Higgsfield shot lands. */}
+          <div
+            ref={featRef}
+            data-reveal
+            className="rb-feature"
+            style={{
+              ...revealInit(reduced, 0.1),
+              marginTop: 'clamp(40px,6vh,68px)',
+              borderTop: `1px solid ${HAIR_SOFT}`,
+              borderBottom: `1px solid ${HAIR_SOFT}`,
+              padding: 'clamp(32px,5vh,52px) 0',
+              display: 'grid',
+              gridTemplateColumns: '1fr 0.85fr',
+              gap: 'clamp(24px,4vw,64px)',
+              alignItems: 'center',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: GOLD }}>{t.featuredLabel}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, flexWrap: 'wrap', marginTop: 14 }}>
+                <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5vw,64px)', margin: 0, ...GOLD_TEXT }}>{FEATURE.name}</h3>
+                <span style={{ fontSize: 22, fontWeight: 600, color: GOLD }}>{FEATURE.price}</span>
+              </div>
+              <p style={{ fontSize: 17, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '46ch' }}>{FEATURE.desc[lang]}</p>
             </div>
-            <p style={{ fontSize: 17, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '52ch' }}>{FEATURE.desc[lang]}</p>
+            <div className="rb-feature-art" style={{ display: 'flex', justifyContent: 'center' }}>
+              <motion.div
+                style={{
+                  width: 'min(100%, 380px)',
+                  aspectRatio: '1 / 1',
+                  rotate: reduced ? 0 : featSpin,
+                  scale: reduced ? 1 : featScale,
+                  transformOrigin: '50% 50%',
+                  willChange: 'transform',
+                }}
+              >
+                <Img
+                  src={FEATURE_IMG}
+                  alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios, from above' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum, ofan frá'}
+                  fallbackClassName="bg-transparent"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                />
+              </motion.div>
+            </div>
           </div>
 
           {/* the menu, as an editorial list with dotted price leaders */}
