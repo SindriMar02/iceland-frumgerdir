@@ -16,14 +16,13 @@
  * a medallion). Section reveals are IntersectionObserver + CSS transitions.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { Img } from '../../components/Img'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { T, type Lang, type MenuItem, LOGO, HERO_IMG, FEATURE_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES } from './data'
+import { T, type Lang, type MenuItem, LOGO, FEATURE_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES } from './data'
 
 const company = getPreviewCompany('reynir')
 
@@ -43,12 +42,8 @@ const HAIR_SOFT = 'rgba(238,211,170,.1)'
 const DISPLAY = "'Lusitana', Georgia, serif"
 const BODY = "'Source Serif 4', 'Source Serif Pro', Georgia, serif"
 const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)'
-
-// Feather the cover photo into the ground: fade the left edge (into the copy)
-// and the top+bottom, let the right bleed off the viewport.
-const HERO_FEATHER =
-  'linear-gradient(to right, transparent 0, #000 30%, #000 100%), ' +
-  'linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%)'
+/** Base box size of the travelling pistachio medallion (scaled via transform). */
+const MED_BASE = 440
 
 const GOLD_TEXT = {
   background: `linear-gradient(180deg, ${GOLD_LIGHT} 6%, ${GOLD} 58%, #A98C5F 100%)`,
@@ -100,13 +95,12 @@ const PAGE_CSS = `
   .rb-foot-link { color:${DIM}; text-decoration:none; transition:color .2s ${EASE}; }
   .rb-foot-link:hover { color:${GOLD_LIGHT}; }
 
-  .rb-cover-art { position:absolute; top:0; right:clamp(-120px,-4vw,-40px); height:100%;
-    width:clamp(360px,50vw,760px); z-index:1; pointer-events:none; display:flex; align-items:center; }
+  .rb-cover-art { position:absolute; top:50%; right:clamp(-30px,0vw,20px); transform:translateY(-50%);
+    width:clamp(300px,40vw,${MED_BASE}px); z-index:1; pointer-events:none; display:flex; align-items:center; justify-content:center; }
 
   @media (max-width:980px) {
     .rb-cover-grid { grid-template-columns:1fr !important; }
-    .rb-cover-art { position:static !important; width:100% !important; height:auto !important; order:-1; margin-bottom:8px; }
-    .rb-cover-art img { max-height:34vh; }
+    .rb-cover-art { position:static !important; transform:none !important; width:min(62vw,300px) !important; order:-1; margin:0 auto 8px; }
     .rb-cover-copy { text-align:center; align-items:center !important; }
     .rb-cover-meta { justify-content:center !important; }
     .rb-cover-ctas { justify-content:center !important; }
@@ -223,17 +217,88 @@ export default function ReynirPage() {
     return () => io.disconnect()
   }, [reduced, lang])
 
-  // Gentle scroll-scale on the cover photo (no rotation — it is a scene).
-  const heroRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.08])
+  // ── "Follows you down": the pistachio medallion starts as the hero image and,
+  // as you scroll, travels down (rotating, shrinking) and settles into the
+  // featured-product slot. ONE fixed element, driven purely by page scroll
+  // (transform-only, GPU). Desktop + motion only; small screens / reduced-motion
+  // show the pistachio statically in both the hero and the feature slot.
+  const featPlaceRef = useRef<HTMLDivElement>(null)
+  const anchorRef = useRef<{
+    heroCX: number; heroCY: number; heroSize: number
+    featCX: number; featTop: number; featSize: number; featEndCY: number; settleY: number
+  } | null>(null)
+  const [travelReady, setTravelReady] = useState(false)
+  const [enableTravel, setEnableTravel] = useState(false)
 
-  // Scroll-driven spin on the featured pistachio snúður medallion (same as
-  // Passion's hero Cinnabon: rotate + scale as the section passes through view).
-  const featRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress: featProg } = useScroll({ target: featRef, offset: ['start end', 'end start'] })
-  const featSpin = useSpring(useTransform(featProg, [0, 1], [-40, 180]), { stiffness: 90, damping: 22, mass: 0.4 })
-  const featScale = useTransform(featProg, [0, 1], [0.94, 1.08])
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 900px)')
+    const upd = () => setEnableTravel(!reduced && mq.matches)
+    upd()
+    mq.addEventListener('change', upd)
+    return () => mq.removeEventListener('change', upd)
+  }, [reduced])
+
+  useLayoutEffect(() => {
+    if (!enableTravel) {
+      anchorRef.current = null
+      setTravelReady(false)
+      return
+    }
+    const measure = () => {
+      const f = featPlaceRef.current
+      if (!f) return
+      const sy = window.scrollY
+      const sx = window.scrollX
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const fr = f.getBoundingClientRect()
+      // Hero start: big, centered-right in the viewport (bleeds slightly off).
+      const heroSize = Math.min(vw * 0.42, 460)
+      const heroCX = vw - heroSize * 0.45
+      const heroCY = vh * 0.5
+      const featSize = fr.width
+      const featTop = fr.top + sy
+      const featCX = fr.left + sx + featSize / 2
+      const settleY = Math.max(1, featTop + featSize / 2 - vh * 0.46)
+      const featEndCY = featTop + featSize / 2 - settleY // viewport center when settled (≈ 0.46·vh)
+      anchorRef.current = { heroCX, heroCY, heroSize, featCX, featTop, featSize, featEndCY, settleY }
+      setTravelReady(true)
+    }
+    measure()
+    const t1 = window.setTimeout(measure, 300)
+    const t2 = window.setTimeout(measure, 900)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+      window.removeEventListener('resize', measure)
+    }
+  }, [enableTravel, lang])
+
+  const { scrollY } = useScroll()
+  const travelTransform = useTransform(scrollY, (y) => {
+    const a = anchorRef.current
+    if (!a) return 'translate3d(-9999px,-9999px,0)'
+    const p = Math.min(Math.max(y / a.settleY, 0), 1)
+    const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 // easeInOutCubic
+    let cx: number
+    let cy: number
+    let size: number
+    if (y <= a.settleY) {
+      cx = a.heroCX + (a.featCX - a.heroCX) * e
+      cy = a.heroCY + (a.featEndCY - a.heroCY) * e
+      size = a.heroSize + (a.featSize - a.heroSize) * e
+    } else {
+      cx = a.featCX
+      cy = a.featTop + a.featSize / 2 - y // track the slot as it scrolls past
+      size = a.featSize
+    }
+    const s = size / MED_BASE
+    const tx = cx - MED_BASE / 2
+    const ty = cy - MED_BASE / 2
+    const r = e * 300
+    return `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${s.toFixed(4)}) rotate(${r.toFixed(1)}deg)`
+  })
 
   const marqueeItems = useMemo(
     () => ['Vínarbrauð', 'Súrdeigsbrauð', 'Snúður', 'Kanillengja', 'Pistasíusnúður', 'Kleina', 'Rúgbrauð', 'Skúffukaka'],
@@ -273,26 +338,21 @@ export default function ReynirPage() {
       </header>
 
       {/* ===================== COVER ===================== */}
-      <section ref={heroRef} className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
+      <section className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
         <div className="rb-cover-grid" style={{ ...wrap, flex: 1, width: '100%', display: 'grid', gridTemplateColumns: '1fr', alignItems: 'center', position: 'relative', padding: 'clamp(24px,5vh,56px) 0' }}>
-          {/* their real heritage dough photo, bleeding off the right, feathered */}
+          {/* the pistachio snúður starts here. On desktop it's an invisible sizer
+              (the fixed travelling medallion overlays it and then scrolls down to
+              the featured slot); on mobile / reduced-motion it's a static image. */}
           <div className="rb-cover-art rb-enter-3">
-            <motion.div style={{ width: '100%', scale: reduced ? 1 : heroScale, willChange: 'transform' }}>
-              <Img
-                src={HERO_IMG}
-                alt={lang === 'en' ? 'Hands shaping loaves of dough at Reynir bakari' : 'Hendur móta brauðdeig í Reynir bakara'}
-                fallbackClassName="bg-transparent"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  WebkitMaskImage: HERO_FEATHER,
-                  maskImage: HERO_FEATHER,
-                  WebkitMaskComposite: 'source-in',
-                  maskComposite: 'intersect',
-                }}
+            {enableTravel ? (
+              <div aria-hidden="true" style={{ width: '100%', aspectRatio: '1 / 1' }} />
+            ) : (
+              <img
+                src={FEATURE_IMG}
+                alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum'}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
               />
-            </motion.div>
+            )}
           </div>
 
           <div className="rb-cover-copy" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 640, position: 'relative', zIndex: 2 }}>
@@ -347,12 +407,11 @@ export default function ReynirPage() {
             <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
           </div>
 
-          {/* featured item — the signature pistachio snúður, its medallion
-              spinning on scroll (same animation as the Passion hero Cinnabon).
-              The photo sits on a flat #131313 ground so it dissolves into the
-              page; invisible fallback until the Higgsfield shot lands. */}
+          {/* featured item — the signature pistachio snúður. Its medallion is the
+              one that started in the hero and travelled down here on scroll; this
+              slot is the landing place (an invisible sizer the fixed medallion
+              settles onto). On mobile / reduced-motion it's a static image. */}
           <div
-            ref={featRef}
             data-reveal
             className="rb-feature"
             style={{
@@ -376,23 +435,15 @@ export default function ReynirPage() {
               <p style={{ fontSize: 17, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '46ch' }}>{FEATURE.desc[lang]}</p>
             </div>
             <div className="rb-feature-art" style={{ display: 'flex', justifyContent: 'center' }}>
-              <motion.div
-                style={{
-                  width: 'min(100%, 380px)',
-                  aspectRatio: '1 / 1',
-                  rotate: reduced ? 0 : featSpin,
-                  scale: reduced ? 1 : featScale,
-                  transformOrigin: '50% 50%',
-                  willChange: 'transform',
-                }}
-              >
-                <Img
-                  src={FEATURE_IMG}
-                  alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios, from above' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum, ofan frá'}
-                  fallbackClassName="bg-transparent"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                />
-              </motion.div>
+              <div ref={featPlaceRef} style={{ width: 'min(100%, 380px)', aspectRatio: '1 / 1' }}>
+                {!enableTravel && (
+                  <img
+                    src={FEATURE_IMG}
+                    alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios, from above' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum, ofan frá'}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -544,6 +595,30 @@ export default function ReynirPage() {
           </div>
         </div>
       </footer>
+
+      {/* the travelling pistachio medallion — fixed to the viewport, its
+          transform driven by scroll (hero → featured slot). Desktop + motion. */}
+      {enableTravel && (
+        <motion.div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: MED_BASE,
+            height: MED_BASE,
+            transformOrigin: '50% 50%',
+            transform: travelTransform,
+            zIndex: 3,
+            pointerEvents: 'none',
+            willChange: 'transform',
+            opacity: travelReady ? 1 : 0,
+            transition: 'opacity .45s ease',
+          }}
+        >
+          <img src={FEATURE_IMG} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+        </motion.div>
+      )}
 
       <PreviewChrome company={company} />
       <PreviewFooter company={company} />
