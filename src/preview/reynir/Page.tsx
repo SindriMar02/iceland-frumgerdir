@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
@@ -229,6 +229,9 @@ export default function ReynirPage() {
   } | null>(null)
   const [travelReady, setTravelReady] = useState(false)
   const [enableTravel, setEnableTravel] = useState(false)
+  // true once the medallion has arrived at the product slot — then a REAL in-flow
+  // image takes over (native scroll = rock-solid lock, no fixed-element swim).
+  const [settled, setSettled] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 900px)')
@@ -278,36 +281,27 @@ export default function ReynirPage() {
   const { scrollY } = useScroll()
   // Spring-smooth the scroll value so the medallion glides at 60fps instead of
   // stepping with throttled scroll events.
-  const smoothY = useSpring(scrollY, { stiffness: 170, damping: 34, mass: 0.5 })
-  // Two inputs: SMOOTHED scroll drives the descent (a 60fps glide); RAW scroll
-  // drives the locked phase so the medallion sits EXACTLY on the product slot and
-  // scrolls with the page (no floaty lag). Passing the slot again (scrolling back
-  // up past settleY) re-enters the travel branch and it glides back to the hero.
-  const travelTransform = useTransform([smoothY, scrollY], (latest) => {
-    const [sy, ry] = latest as number[]
+  // Spring-smooth the scroll so the descent glides (and doesn't step on a mouse
+  // wheel, which arrives in chunks). Overdamped = no wobble.
+  const smoothY = useSpring(scrollY, { stiffness: 150, damping: 34, mass: 0.6 })
+  const travelTransform = useTransform(smoothY, (y) => {
     const a = anchorRef.current
     if (!a) return 'translate3d(-9999px,-9999px,0)'
-    let cx: number
-    let cy: number
-    let size: number
-    let r: number
-    if (ry >= a.settleY) {
-      // LOCKED into the product slot — exact, moves 1:1 with the page.
-      cx = a.featCX
-      cy = a.featTop + a.featSize / 2 - ry
-      size = a.featSize
-      r = 300
-    } else {
-      // Travelling hero → slot, spring-smoothed glide.
-      const p = Math.min(Math.max(sy / a.settleY, 0), 1)
-      const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 // easeInOutCubic
-      cx = a.heroCX + (a.featCX - a.heroCX) * e
-      cy = a.heroCY + (a.featEndCY - a.heroCY) * e
-      size = a.heroSize + (a.featSize - a.heroSize) * e
-      r = e * 300
-    }
+    const p = Math.min(Math.max(y / a.settleY, 0), 1)
+    const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 // easeInOutCubic
+    const cx = a.heroCX + (a.featCX - a.heroCX) * e
+    const cy = a.heroCY + (a.featEndCY - a.heroCY) * e
+    const size = a.heroSize + (a.featSize - a.heroSize) * e
     const s = size / MED_BASE
+    const r = e * 360 // one clean full turn, lands upright to match the resting image
     return `translate3d(${(cx - MED_BASE / 2).toFixed(1)}px, ${(cy - MED_BASE / 2).toFixed(1)}px, 0) scale(${s.toFixed(4)}) rotate(${r.toFixed(1)}deg)`
+  })
+  // Hand off to the in-flow resting image once the descent has arrived (with a
+  // little hysteresis so it can't flicker exactly at the boundary).
+  useMotionValueEvent(smoothY, 'change', (y) => {
+    const a = anchorRef.current
+    if (!a) return
+    setSettled((prev) => (prev ? y > a.settleY - 40 : y >= a.settleY))
   })
 
   const marqueeItems = useMemo(
@@ -446,13 +440,22 @@ export default function ReynirPage() {
             </div>
             <div className="rb-feature-art" style={{ display: 'flex', justifyContent: 'center' }}>
               <div ref={featPlaceRef} style={{ width: 'min(100%, 380px)', aspectRatio: '1 / 1' }}>
-                {!enableTravel && (
-                  <img
-                    src={FEATURE_IMG}
-                    alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios, from above' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum, ofan frá'}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                  />
-                )}
+                {/* The RESTING image, in normal flow — it scrolls natively with the
+                    page (perfectly locked). On desktop it fades in once the
+                    travelling medallion has arrived (crossfade hides the hand-off);
+                    on mobile / reduced-motion it is simply always shown. */}
+                <img
+                  src={FEATURE_IMG}
+                  alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios, from above' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum, ofan frá'}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    display: 'block',
+                    opacity: enableTravel ? (settled ? 1 : 0) : 1,
+                    transition: enableTravel ? 'opacity .2s ease' : undefined,
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -624,8 +627,8 @@ export default function ReynirPage() {
             zIndex: 1,
             pointerEvents: 'none',
             willChange: 'transform',
-            opacity: travelReady ? 1 : 0,
-            transition: 'opacity .45s ease',
+            opacity: travelReady && !settled ? 1 : 0,
+            transition: 'opacity .2s ease',
           }}
         >
           <img src={FEATURE_IMG} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
