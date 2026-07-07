@@ -34,6 +34,9 @@ export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
  *  cutout via corner floodfill — see IMAGE-PROMPTS.md). Transparent so only the
  *  bun rotates as it travels, with no square/ghost background behind it. */
 export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.webp`
+/** Torn-open, gooey pistachio snúður (Higgsfield) — the framed product shot in
+ *  the featured slot. */
+export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-torn.jpg`
 
 export const LINKS = {
   order: 'https://www.aha.is/veitingar/reynir-bakari',

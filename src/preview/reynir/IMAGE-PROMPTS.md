@@ -40,3 +40,34 @@ an off-axis shadow looks wrong mid-rotation).
 2. Verify in-browser that the image edges decode rgb(19,19,19) == page ground.
 3. The featured "Pistasíusnúður" medallion picks it up automatically and spins
    on scroll. Commit `public/reynir/pistasiusnudur.jpg` + deploy.
+
+---
+
+# Shot 2 (fallback) — torn-open pistachio snúður (static product image)
+
+If the travelling-medallion animation doesn't feel premium enough on real
+devices, drop the motion and use a rich static "hero product" shot instead:
+the same pistachio snúður, TORN OPEN and gooey/mouth-watering, on the same
+flat #131313 ground. Same generation rules (web app, unlimited, NOT the MCP).
+
+## Prompt (Seedream 4.5 / Recraft utility, 1:1, 4K)
+
+> Ultra realistic close-up food photograph of a pistachio cinnamon roll (snúður)
+> torn and pulled apart into two halves, revealing a soft, steaming, layered
+> interior. Golden-brown laminated spiral dough, pale green pistachio glaze
+> oozing and stretching in glossy sticky strands between the two halves, gooey
+> pistachio cream, chopped green pistachios, warm steam rising, moist tender
+> crumb catching the light. One half lifted slightly away so the melting strands
+> stretch between them. Fresh from the oven, indulgent and mouth-watering.
+> Background is a seamless flat solid near-black, exact hex #131313, completely
+> uniform edge to edge, no texture, no gradient, no props, no plate. Soft warm
+> directional key light, gentle gold rim light, appetizing highlights on the
+> glaze. Premium dark food photography, extremely sharp, slight shallow depth of
+> field, three-quarter angle, square 1:1.
+
+## After generating (paste the URL to Claude)
+- It's a STATIC product image (no rotation), so no even-shadow constraint.
+- Flatten the background to exact #131313 (Passion recipe) OR feather the edges
+  into the page, so it blends into the product slot.
+- If we drop the animation: hero shows the top-down bun (static), the featured
+  "Pistasíusnúður" slot shows this torn-open shot. Simple, premium, no motion.
