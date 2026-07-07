@@ -300,6 +300,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
         image: local('passion/cinnabon.jpg'),
         accent: '#C8A877',
       },
+      {
+        route: '/preview/reynir',
+        name: 'Reynir bakari',
+        sector: 'Bakarí & kaffihús',
+        location: 'Kópavogur',
+        blurb: 'Fjölskyldubakarí í Kópavogi síðan 1994 með gamla Wix síðu, endurhannað í hlýja gyllta forsíðu með sögunni þeirra og raunverulegum matseðli.',
+        image: local('reynir/hero-dough.jpg'),
+        accent: '#C8A877',
+      },
     ],
   },
   {
