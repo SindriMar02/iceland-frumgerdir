@@ -851,10 +851,6 @@ function PolarHestarPageInner() {
         .ph-star{opacity:0;transform:scale(.3);transition:opacity .45s ease,transform .6s cubic-bezier(.34,1.56,.64,1)}
         .ph-reveal[data-show="true"] .ph-star{opacity:1;transform:scale(1)}
 
-        /* the rule above the pull quote draws itself */
-        .ph-rule{width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1) .15s}
-        .ph-reveal[data-show="true"] .ph-rule{width:4rem}
-
         /* live total ticks when the price changes */
         .ph-tick{display:inline-block;animation:phTick .45s cubic-bezier(.2,.7,.2,1)}
         @keyframes phTick{0%{transform:scale(1.07)}100%{transform:none}}
@@ -924,7 +920,6 @@ function PolarHestarPageInner() {
           .ph-wi{transform:none;transition:none}
           .ph-reveal .ph-live,.ph-reveal .ph-card-img{transform:none;transition:none}
           .ph-star{opacity:1;transform:none;transition:none}
-          .ph-rule{width:4rem;transition:none}
           .ph-card-img,.ph-season-img{transition:none}
           .ph-veil,.ph-cap,.ph-pop,.ph-up,.ph-num-up,.ph-num-dn,.ph-cta-send[data-busy="true"]::after{animation:none}
           .ph-cap,.ph-pop,.ph-up{opacity:1;transform:none}
@@ -1262,7 +1257,6 @@ function PolarHestarPageInner() {
           >
             “
           </span>
-          <span className="ph-rule mx-auto mb-8 block h-px" style={{ background: CLAY_HI }} aria-hidden="true" />
           <p className="font-spectral text-[clamp(2.2rem,5.5vw,4.25rem)] leading-[1.15] italic text-white">
             <MaskWords text={t.storyQuote} stagger={70} base={150} />
           </p>
@@ -1299,36 +1293,151 @@ function PolarHestarPageInner() {
         </div>
       </section>
 
-      {/* ── SHORT TOURS ─────────────────────────────────────────────────── */}
+      {/* ── TOURS — short + long, one journey through everything on offer ─── */}
       <section id="ferdir" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:px-8 md:py-24">
-        <Reveal>
-          <Eyebrow>{t.toursEyebrow}</Eyebrow>
-          <h2 className="mt-3 max-w-2xl font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
+        <Reveal className="max-w-2xl">
+          <Eyebrow>{tri(lang, 'Ferðirnar okkar', 'Our rides', 'Unsere Touren')}</Eyebrow>
+          <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
             <MaskWords text={t.toursH2} />
           </h2>
-          <p className="mt-4 max-w-2xl font-hanken text-base leading-relaxed" style={{ color: BODY }}>
+          <p className="mt-4 font-hanken text-base leading-relaxed" style={{ color: BODY }}>
+            {tri(
+              lang,
+              'Tvær leiðir til að kynnast íslenska hestinum: klukkutíma reiðtúrar allt árið, eða margra daga ævintýri um óbyggðir Norðurlands.',
+              'Two ways to meet the Icelandic horse: hour-long rides all year, or multi-day journeys across the wilds of North Iceland.',
+              'Zwei Wege, das Islandpferd kennenzulernen: einstündige Ritte das ganze Jahr oder mehrtägige Touren durch Nordislands Wildnis.',
+            )}
+          </p>
+        </Reveal>
+
+        {/* Tier 1 — by the hour, all year */}
+        <div className="mt-12">
+          <Reveal className="flex items-baseline justify-between gap-4 border-b border-[#161B3C14] pb-3">
+            <h3 className="font-spectral text-[clamp(1.4rem,1rem+1.3vw,1.9rem)] leading-tight" style={{ color: INK }}>
+              {t.toursEyebrow}
+            </h3>
+            <span className="shrink-0 font-hanken text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: CLAY_TX }}>
+              {tri(lang, 'Allt árið', 'All year', 'Ganzjährig')}
+            </span>
+          </Reveal>
+          <p className="mt-4 max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
             {t.toursBody}
           </p>
-        </Reveal>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {SHORT_TOURS.map((tour, i) => (
-            <Reveal key={tour.id} delay={i * 80}>
-              <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} />
-            </Reveal>
-          ))}
+          <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {SHORT_TOURS.map((tour, i) => (
+              <Reveal key={tour.id} delay={i * 70}>
+                <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} />
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-1.5">
+            <p className="inline-flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
+              <Check className="h-3.5 w-3.5" style={{ color: CLAY_TX }} aria-hidden="true" />
+              {t.childNote}
+            </p>
+            <p className="inline-flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
+              <Check className="h-3.5 w-3.5" style={{ color: CLAY_TX }} aria-hidden="true" />
+              {t.weightNote}
+            </p>
+          </Reveal>
         </div>
 
-        <Reveal className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1.5">
-          <p className="inline-flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
-            <Check className="h-3.5 w-3.5" style={{ color: CLAY_TX }} aria-hidden="true" />
-            {t.childNote}
+        {/* Tier 2 — multi-day journeys */}
+        <div id="lengri" className="mt-16 scroll-mt-20 md:mt-24">
+          <Reveal className="flex flex-col gap-4 border-b border-[#161B3C14] pb-3 md:flex-row md:items-baseline md:justify-between">
+            <div className="flex items-baseline gap-3">
+              <h3 className="font-spectral text-[clamp(1.4rem,1rem+1.3vw,1.9rem)] leading-tight" style={{ color: INK }}>
+                {t.longEyebrow}
+              </h3>
+              <span className="shrink-0 font-hanken text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: CLAY_TX }}>
+                {tri(lang, 'Júní–sept', 'Jun–Sep', 'Juni–Sept')}
+              </span>
+            </div>
+            <p className="font-hanken text-sm leading-relaxed md:text-right" style={{ color: SLATE }}>
+              {tri(lang, 'Spurningar? Skrifaðu á', 'Questions? Write to', 'Fragen? Schreiben Sie an')}{' '}
+              <a href={`mailto:${EMAIL}`} className="font-semibold underline underline-offset-4" style={{ color: CLAY_TX }}>
+                {EMAIL}
+              </a>
+            </p>
+          </Reveal>
+          <p className="mt-4 max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+            {t.longBody}
           </p>
-          <p className="inline-flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
-            <Check className="h-3.5 w-3.5" style={{ color: CLAY_TX }} aria-hidden="true" />
-            {t.weightNote}
-          </p>
-        </Reveal>
+
+          <div className="mt-7 flex flex-col gap-5">
+            {LONG_TOURS.map((tour, i) => (
+              <Reveal key={tour.id} delay={i * 50}>
+                <article
+                  className={`ph-card group flex flex-col overflow-hidden rounded-[24px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f] md:min-h-[16rem] ${
+                    i % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'
+                  }`}
+                  style={{ background: PAPER }}
+                >
+                  <div className="relative overflow-hidden md:w-[42%]">
+                    <img
+                      src={tour.pic.src}
+                      srcSet={tour.pic.srcSet}
+                      sizes="(max-width: 768px) 100vw, 460px"
+                      alt={
+                        tour.pic.alt ??
+                        tri(
+                          lang,
+                          `Íslenskt landslag — ${tour.name.is}`,
+                          `Icelandic landscape — ${tour.name.en}`,
+                          `Isländische Landschaft — ${tour.name.de}`,
+                        )
+                      }
+                      loading="lazy"
+                      decoding="async"
+                      className="ph-card-img h-56 w-full object-cover md:absolute md:inset-0 md:h-full"
+                      style={{ objectPosition: tour.pic.pos }}
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-center gap-3 p-6 md:p-8">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {tour.meta[lang].split(' · ').map((part, j) => (
+                        <span
+                          key={j}
+                          className="rounded-full px-2.5 py-1 font-hanken text-[0.72rem] font-semibold"
+                          style={
+                            part.includes('€')
+                              ? { background: `${CLAY}1f`, color: CLAY_TX }
+                              : { background: `${INK}0d`, color: SLATE }
+                          }
+                        >
+                          {part}
+                        </span>
+                      ))}
+                    </div>
+                    <h3 className="font-spectral text-2xl leading-snug" style={{ color: INK }}>
+                      {tour.name[lang]}
+                    </h3>
+                    <p className="max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+                      {tour.blurb[lang]}
+                    </p>
+                    <a
+                      href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}&body=${encodeURIComponent(
+                        tri(
+                          lang,
+                          `Ferð: ${stegaClean(tour.name.is)}\nÓskatímabil:\nFjöldi knapa:\nReynsla af hestamennsku:\n`,
+                          `Tour: ${stegaClean(tour.name.en)}\nPreferred dates:\nNumber of riders:\nRiding experience:\n`,
+                          `Tour: ${stegaClean(tour.name.de)}\nWunschzeitraum:\nAnzahl Reiter:\nReiterfahrung:\n`,
+                        ),
+                      )}`}
+                      className="mt-1 inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors"
+                      style={{ color: CLAY_TX }}
+                    >
+                      {t.enquireBtn}
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ── BOOKING ─────────────────────────────────────────────────────── */}
@@ -1371,82 +1480,6 @@ function PolarHestarPageInner() {
           <Reveal>
             <SeasonSwitcher t={t} lang={lang} />
           </Reveal>
-        </div>
-      </section>
-
-      {/* ── LONG TOURS ──────────────────────────────────────────────────── */}
-      <section id="lengri" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
-        <Reveal className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-xl">
-            <Eyebrow>{t.longEyebrow}</Eyebrow>
-            <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
-              <MaskWords text={t.longH2} />
-            </h2>
-          </div>
-          <p className="max-w-sm font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-            {t.longBody}{' '}
-            <span className="mt-1 block">
-              {tri(lang, 'eða skrifaðu beint á', 'or write directly to', 'oder schreiben Sie direkt an')}{' '}
-              <a href={`mailto:${EMAIL}`} className="font-semibold underline underline-offset-4" style={{ color: CLAY_TX }}>
-                {EMAIL}
-              </a>
-            </span>
-          </p>
-        </Reveal>
-
-        <div className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 lg:grid-cols-3">
-          {LONG_TOURS.map((tour, i) => (
-            <Reveal key={tour.id} delay={i * 60} className="w-[78%] shrink-0 snap-start sm:w-[46%] md:w-auto">
-              <article className="ph-card group h-full overflow-hidden rounded-[24px]" style={{ background: PAPER }}>
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={tour.pic.src}
-                    srcSet={tour.pic.srcSet}
-                    sizes="(max-width: 768px) 80vw, 360px"
-                    alt={
-                      tour.pic.alt ??
-                      tri(
-                        lang,
-                        `Íslenskt landslag — ${tour.name.is}`,
-                        `Icelandic landscape — ${tour.name.en}`,
-                        `Isländische Landschaft — ${tour.name.de}`,
-                      )
-                    }
-                    loading="lazy"
-                    decoding="async"
-                    className="ph-card-img h-full w-full object-cover"
-                    style={{ objectPosition: tour.pic.pos }}
-                  />
-                </div>
-                <div className="p-5">
-                  <p className="font-hanken text-[0.7rem] font-semibold tracking-[0.14em] uppercase" style={{ color: CLAY_TX }}>
-                    {tour.meta[lang]}
-                  </p>
-                  <h3 className="mt-1.5 font-spectral text-xl leading-snug" style={{ color: INK }}>
-                    {tour.name[lang]}
-                  </h3>
-                  <p className="mt-2 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-                    {tour.blurb[lang]}
-                  </p>
-                  <a
-                    href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}&body=${encodeURIComponent(
-                      tri(
-                        lang,
-                        `Ferð: ${stegaClean(tour.name.is)}\nÓskatímabil:\nFjöldi knapa:\nReynsla af hestamennsku:\n`,
-                        `Tour: ${stegaClean(tour.name.en)}\nPreferred dates:\nNumber of riders:\nRiding experience:\n`,
-                        `Tour: ${stegaClean(tour.name.de)}\nWunschzeitraum:\nAnzahl Reiter:\nReiterfahrung:\n`,
-                      ),
-                    )}`}
-                    className="mt-3 inline-flex items-center gap-1 font-hanken text-sm font-semibold transition-colors"
-                    style={{ color: CLAY_TX }}
-                  >
-                    {t.enquireBtn}
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                </div>
-              </article>
-            </Reveal>
-          ))}
         </div>
       </section>
 
