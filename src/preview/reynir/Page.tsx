@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
@@ -276,7 +276,10 @@ export default function ReynirPage() {
   }, [enableTravel, lang])
 
   const { scrollY } = useScroll()
-  const travelTransform = useTransform(scrollY, (y) => {
+  // Spring-smooth the scroll value so the medallion glides at 60fps instead of
+  // stepping with throttled scroll events.
+  const smoothY = useSpring(scrollY, { stiffness: 130, damping: 30, mass: 0.5 })
+  const travelTransform = useTransform(smoothY, (y) => {
     const a = anchorRef.current
     if (!a) return 'translate3d(-9999px,-9999px,0)'
     const p = Math.min(Math.max(y / a.settleY, 0), 1)
