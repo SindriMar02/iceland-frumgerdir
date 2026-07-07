@@ -72,6 +72,23 @@ const PAGE_CSS = `
   @keyframes rb-hero-spin { to { transform:rotate(360deg); } }
   .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%; }
 
+  /* ── intro loader: the gold script writes itself on, as if piped ──────────── */
+  .rb-intro { position:fixed; inset:0; z-index:9999; background:${INK};
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    animation:rb-intro-out .6s cubic-bezier(.7,0,.2,1) 1.55s forwards; }
+  .rb-intro-logo { position:relative; width:min(74vw,400px); }
+  .rb-intro-logo img { width:100%; height:auto; display:block; }
+  .rb-intro-draw { clip-path:inset(0 100% 0 0);
+    animation:rb-draw 1.3s cubic-bezier(.5,.05,.2,1) .2s forwards; }
+  .rb-intro-tip { position:absolute; top:50%; left:0; width:11px; height:11px; margin:-5.5px 0 0 -5.5px;
+    border-radius:50%; opacity:0; pointer-events:none;
+    background:radial-gradient(circle, ${GOLD_LIGHT} 0%, ${GOLD} 52%, transparent 74%);
+    box-shadow:0 0 18px 5px rgba(200,168,119,.5);
+    animation:rb-tip 1.3s cubic-bezier(.5,.05,.2,1) .2s forwards; }
+  @keyframes rb-draw { to { clip-path:inset(0 0 0 0); } }
+  @keyframes rb-tip { 0% { left:0%; opacity:0; } 9% { opacity:1; } 86% { opacity:1; } 100% { left:100%; opacity:0; } }
+  @keyframes rb-intro-out { to { opacity:0; visibility:hidden; } }
+
   .rb-navlink { color:${DIM}; text-decoration:none; font-size:14.5px; transition:color .2s ${EASE}; }
   .rb-navlink:hover { color:${GOLD_LIGHT}; }
 
@@ -200,6 +217,17 @@ export default function ReynirPage() {
     setThemeColor(INK)
   }, [])
 
+  // Intro loader: the gold script writes itself on, as if piped. Plays on
+  // mount; skips entirely for reduced-motion; click anywhere to dismiss early.
+  const [intro, setIntro] = useState(
+    () => !(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+  )
+  useEffect(() => {
+    if (!intro) return
+    const id = window.setTimeout(() => setIntro(false), 2150)
+    return () => window.clearTimeout(id)
+  }, [intro])
+
   useEffect(() => {
     if (reduced) return
     const root = rootRef.current
@@ -237,6 +265,15 @@ export default function ReynirPage() {
       style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
     >
       <style>{PAGE_CSS}</style>
+
+      {intro && (
+        <div className="rb-intro" onClick={() => setIntro(false)} aria-hidden="true">
+          <div className="rb-intro-logo">
+            <img className="rb-intro-draw" src={LOGO} alt="" decoding="async" />
+            <span className="rb-intro-tip" />
+          </div>
+        </div>
+      )}
 
       {/* ===================== MASTHEAD ===================== */}
       <header style={{ position: 'relative', zIndex: 5, padding: '20px clamp(20px,4.5vw,72px) 0' }}>
