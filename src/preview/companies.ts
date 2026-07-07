@@ -2100,6 +2100,183 @@ Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona 
 ${SIGN}`,
     },
   },
+  {
+    // Rakarastofa Björns og Kjartans — Austurvegur 4, Selfoss. Family barbershop
+    // founded 1948 by Gísli Sigurðsson. 6 named barbers, Noona booking, ~2.500 FB
+    // likes. Current site = a single-page free WordPress.com page (one paragraph,
+    // one vintage photo, a WP.com comment form). Sindri's own build (Sindri took
+    // over the design after an earlier agent's version was scrapped). Concept
+    // "Klippt síðan 1948": warm bone paper, barber-red + pole-navy, engraved Zina
+    // display, the real 1948-era archival photo, and a spinning barber pole as the
+    // signature. PRICES are sýnishorn (none published anywhere).
+    slug: 'rakarastofa',
+    route: '/preview/rakarastofa',
+    name: 'Rakarastofa Björns og Kjartans',
+    sector: 'Rakarastofa',
+    location: 'Austurvegur 4, Selfoss',
+    region: 'South',
+    established: 'Rakarastofa Björns og Kjartans, stofnuð 1948',
+    currentUrl: 'https://rakarastofan.is',
+    ownerEmail: 'rakarastofa@gmail.com',
+    concept: 'Klippt síðan 1948',
+    conceptTagline:
+      'A dark, cinematic, modern barbershop: warm charcoal and off-white with one muted barber-red, Fraunces display, full-bleed photography carrying the hero, and the real 1948 archival photo as the heritage anchor. Motion is a slow ken-burns, gentle parallax and smooth reveals.',
+    accent: '#C24B36',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://rakarastofan.is/wp-content/uploads/2023/03/39086604_2526530124027605_8273819462801555456_n.jpg',
+    audit: {
+      strengths: [
+        'Rótgróin rakarastofa á Selfossi, stofnuð 1948, með dyggan hóp fastagesta og sterka Facebook nærveru',
+        'Sex rakarar og netbókun á Noona þegar til staðar',
+        'Ekta saga og gömul ljósmynd úr stofunni sem enginn keppinautur á',
+      ],
+      weaknesses: [
+        'Vefurinn er ein síða á ókeypis WordPress.com, ein málsgrein, ein mynd og athugasemdareitur sem á ekki heima á rakarastofu',
+        'Engin verðskrá, engin þjónustulýsing og ekkert kort',
+        'Ekkert skipulagt gagnamerki, illfinnanleg á Google fyrir klippingu á Selfossi',
+      ],
+      opportunities: [
+        'Gera 1948 arfleifðina að aðalatriðinu með gömlu myndinni og sögunni',
+        'Læsileg verðskrá og skýr Noona bókun í stað einnar málsgreinar',
+        'LocalBusiness gögn svo stofan finnist þegar fólk leitar að rakara á Suðurlandi',
+      ],
+    },
+    positioning:
+      'Ein elsta rakarastofa Suðurlands með ósvikna sögu frá 1948 en vef sem er ein málsgrein á ókeypis WordPress síðu. Frumgerðin gerir arfleifðina að aðalatriðinu, sýnir verðskrána skýrt og setur Noona bókunina í öndvegi, með snúandi rakarastaur sem einkennismerki. Öll verð eru sýnishorn.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Rakarastofu Björns og Kjartans',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Þið eruð með eina elstu rakarastofu Suðurlands, klippt á Selfossi allt frá 1948, og eigið ykkur dyggan hóp fastagesta. Þegar ég skoðaði vefsíðuna ykkar fannst mér hún samt ekki gera sögunni skil, hún er ein málsgrein á einfaldri WordPress síðu, engin verðskrá og engin leið að sjá hvað þið bjóðið.
+
+Ég hannaði því frumgerð að nýjum vef þar sem arfleifðin frá 1948 fær sviðið, gamla myndin og sagan, læsileg verðskrá og Noona bókunin alltaf innan seilingar. Verðin á frumgerðinni eru sýnishorn sem þið staðfestið. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Frumgerðina má skoða hér, hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
+  {
+    // Sólbaðsstofan Ársól — Hrísholt 17, Selfoss. 4× Luxura X7 + infrared sauna
+    // + massage chair (verified from their Noona profile). Open daily 11–22.
+    // No website (Facebook + Noona only). Prices are sýnishorn.
+    slug: 'arsol',
+    route: '/preview/arsol',
+    name: 'Sólbaðsstofan Ársól',
+    sector: 'Sólbaðsstofa',
+    location: 'Hrísholt 17, Selfoss',
+    region: 'South',
+    established: 'Sólbaðsstofan Ársól, á Selfossi frá 2020',
+    currentUrl: 'https://noona.app/arsol',
+    ownerEmail: 'Solbadsstofanarsol@gmail.com',
+    concept: 'Ársól',
+    conceptTagline:
+      'A silkscreen sun-poster for Selfoss in the Sælan magazine language but its own sunset-to-UV colourway: four Luxura X7 beds as numbered plates and a printed skin-type sun-dial that tells you your minutes.',
+    accent: '#E0672A',
+    dark: false,
+    status: 'Concept ready',
+    thumb:
+      'https://res.cloudinary.com/timatal-ehf/image/upload/v1719837848/companyCoverImages/ajtjvlu5xbk2hhkbe2nz.jpg',
+    audit: {
+      strengths: [
+        'Fjórir nýir Luxura X7 bekkir með nýjustu tækni, infrarauður saunaklefi og nuddstóll',
+        'Opið alla daga frá 11 til 22 og netbókun á Noona',
+        'Rótgróin á Selfossi með dyggan hóp fastagesta, yfir 1.200 fylgjendur á Noona',
+      ],
+      weaknesses: [
+        'Engin eiginleg vefsíða til, aðeins Facebook síða og bókunarsíða á Noona',
+        'Hvergi hægt að sjá bekki, verð eða opnunartíma án þess að fara inn í bókunarferlið',
+        'Ósýnileg á Google þegar fólk á Suðurlandi leitar að ljósum og sólbekk',
+      ],
+      opportunities: [
+        'Fyrsta alvöru vefsíðan: bekkirnir, verð og opnunartími á augabragði',
+        'Verðskrá og húðgerðar-leiðbeiningar sem hönnuð sólarplaköt í stað falinna Noona lista',
+        'LocalBusiness gögn svo Ársól finnist á Google fyrir Selfoss og nágrenni',
+      ],
+    },
+    positioning:
+      'Rótgróin sólbaðsstofa á Selfossi með fjóra glænýja Luxura X7 bekki en enga vefsíðu, bara Facebook og Noona. Frumgerðin er sólarplakat sem sýnir bekkina, gerir verðskrána læsilega og setur húðgerðar-leiðbeiningarnar og Noona bókunina í öndvegi. Öll verð eru sýnishorn sem staðfest yrðu með stofunni.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Ársól',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Þið eruð með fjóra glænýja Luxura X7 bekki, infrarauðan saunaklefa og nuddstól, opið alla daga og dyggan hóp fastagesta. Þegar ég leitaði að Ársól á netinu fann ég samt bara Facebook síðu og bókun á Noona, enga eiginlega vefsíðu þar sem sést hvað þið bjóðið, hvað það kostar eða hvenær er opið.
+
+Ég hannaði því frumgerð að nýjum vef í anda sólarplakats: bekkirnir fá sviðið, verðskráin verður læsileg og einföld, húðgerðar-leiðbeiningar hjálpa fólki að velja réttan tíma og bókunin á Noona er alltaf innan seilingar. Verðin á frumgerðinni eru sýnishorn sem þið staðfestið. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Frumgerðina má skoða hér, hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
+  {
+    // Strýtan Dive Center — Hjalteyri, Eyjafjörður. Since 2010, Erlendur Bogason.
+    // Geothermal hydrothermal-chimney diving. Concept "Niður að strýtunni": a
+    // scroll-driven WebGL descent + a request-a-dive mailto flow (no online booking).
+    slug: 'strytan',
+    route: '/preview/strytan',
+    name: 'Strýtan Dive Center',
+    sector: 'Köfun og upplifun',
+    location: 'Hjalteyri, Eyjafjörður',
+    region: 'North',
+    established: 'Strýtan Dive Center, frá 2010',
+    currentUrl: 'https://strytan.is',
+    ownerEmail: 'strytan@strytan.is',
+    concept: 'Niður að strýtunni',
+    conceptTagline:
+      'A scroll-driven descent into Eyjafjörður: the page sinks from the silver surface down through the blue to the glowing hydrothermal chimney, an original animated world built around their real teal-chimney logo.',
+    accent: '#2CA6B7',
+    dark: true,
+    status: 'Concept ready',
+    thumb: import.meta.env.BASE_URL + 'strytan/thumb.jpg',
+    audit: {
+      strengths: [
+        'Einstök upplifun á heimsvísu: köfun við jarðhitastrýtur sem finnast hvergi annars staðar í boði fyrir sportkafara',
+        'Erlendur Bogason, frumkvöðull og rannsóknarkafari, hefur kafað strýturnar frá 2010 og átti þátt í friðlýsingu þeirra',
+        'Framúrskarandi umsagnir á TripAdvisor og samstarf við Háskólann á Akureyri og Íslenskar orkurannsóknir',
+      ],
+      weaknesses: [
+        'Vefurinn er frá miðjum síðasta áratug, engin netbókun og hvergi verð',
+        'Neðansjávarmyndirnar, sem eru sjálf söluvaran, birtast varla og engin sterk myndræn frásögn er til staðar',
+        'Ekkert skipulagt gagnamerki og enskur ferðamaður fær litla leiðsögn um hvernig eigi að bóka',
+      ],
+      opportunities: [
+        'Gera sjálfa niðurköfunina að upplifun á vefnum: síðan sekkur niður að glóandi strýtunni',
+        'Skýrt bókunarferli fyrir hverja köfun og hvert námskeið í stað almenns netfangs',
+        'Segja rannsóknar- og friðlýsingarsöguna sem enginn keppinautur á',
+      ],
+    },
+    positioning:
+      'Heimsþekkt köfun við jarðhitastrýtur en vefur sem sýnir hvorki upplifunina né verð. Frumgerðin gerir sjálfa niðurköfunina að hreyfingu á vefnum, frá silfruðu yfirborði niður í bláma að glóandi strýtunni, og gefur gestum skýra leið til að óska eftir köfun.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Strýtuna',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Köfunin ykkar við jarðhitastrýturnar í Eyjafirði er einstök á heimsvísu og umsagnirnar tala sínu máli. Þegar ég skoðaði vefinn ykkar fannst mér hann samt ekki gera upplifuninni skil: neðansjávarmyndirnar sjást varla, hvergi er hægt að sjá verð og ferðamaður sem vill bóka fær bara almennt netfang.
+
+Mér fannst þetta svo spennandi að ég hannaði frumgerð að nýjum vef þar sem sjálf niðurköfunin verður upplifun: síðan sekkur með þér frá yfirborðinu niður í bláma að glóandi strýtunni, sagan um rannsóknirnar og friðlýsinguna fær pláss og gestir geta óskað eftir köfun með nokkrum smellum. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Frumgerðina má skoða hér:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {

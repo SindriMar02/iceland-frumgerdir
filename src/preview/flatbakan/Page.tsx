@@ -84,7 +84,8 @@ export default function FlatbakanPage() {
   // the fixed ingredients backdrop drifts gently with the pointer - eased, small, never reveals an edge
   useEffect(() => {
     const el = bgRef.current
-    if (!el || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return
+    const track = trackRef.current
+    if (!el || !track || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return
     const AMOUNT = 16
     const target = { x: 0, y: 0 }
     const cur = { x: 0, y: 0 }
@@ -94,25 +95,37 @@ export default function FlatbakanPage() {
     }
     window.addEventListener('mousemove', onMove, { passive: true })
     let raf = 0
-    let running = true
+    let heroVisible = true
+    let pageVisible = !document.hidden
     const loop = () => {
       cur.x += (target.x - cur.x) * 0.045
       cur.y += (target.y - cur.y) * 0.045
       el.style.transform = `translate3d(${(-cur.x * AMOUNT).toFixed(1)}px, ${(-cur.y * AMOUNT).toFixed(1)}px, 0)`
-      if (running) raf = requestAnimationFrame(loop)
+      raf = requestAnimationFrame(loop)
     }
-    raf = requestAnimationFrame(loop)
+    const tryStart = () => { if (heroVisible && pageVisible && raf === 0) raf = requestAnimationFrame(loop) }
+    const tryStop = () => { if (raf !== 0) { cancelAnimationFrame(raf); raf = 0 } }
+    if (import.meta.env.DEV) (window as unknown as { __fbParallaxRunning?: () => unknown }).__fbParallaxRunning = () => ({ raf, heroVisible, pageVisible })
+    // this backdrop is position:fixed, always covering the viewport, but sits BEHIND the opaque
+    // .fb-frame - once the pinned hero (.fb-track) scrolls fully past, the frame covers it
+    // completely and animating it is pure wasted work for the rest of the time a visitor spends
+    // browsing the menu/footer (most of their time on the page). Same pattern as Grainient.
+    const io = new IntersectionObserver(([entry]) => {
+      heroVisible = entry.isIntersecting
+      heroVisible ? tryStart() : tryStop()
+    }, { threshold: 0 })
+    io.observe(track)
     const onVis = () => {
-      running = !document.hidden
-      if (running) raf = requestAnimationFrame(loop)
-      else cancelAnimationFrame(raf)
+      pageVisible = !document.hidden
+      pageVisible ? tryStart() : tryStop()
     }
     document.addEventListener('visibilitychange', onVis)
+    tryStart()
     return () => {
-      running = false
+      tryStop()
       window.removeEventListener('mousemove', onMove)
       document.removeEventListener('visibilitychange', onVis)
-      cancelAnimationFrame(raf)
+      io.disconnect()
     }
   }, [])
 
@@ -139,6 +152,29 @@ export default function FlatbakanPage() {
     const SPREAD_MAX = 0.10                // peak radial spread of the fast fan-out, as a fraction of pizza width
     const DRIFT_MAX = 0.06                 // extra slow continued drift added AFTER the fan-out, same units
 
+    // Cached layout geometry - pizza/panta/track are all pinned/fixed for the ENTIRE scroll
+    // sequence (the pizza's rect CENTER is rotation-invariant under its own transform:rotate,
+    // panta is position:fixed, track's own box doesn't depend on the animation) - only a real
+    // viewport resize can change any of this. Reading it every scroll frame (as before) forces a
+    // synchronous style/layout flush on every tick because the previous frame's setProperty calls
+    // just dirtied the tree - measured ~1ms/call here (~200x the cost of the same reads done with
+    // no pending writes) versus ~0.005ms once uncoupled from the hot path. Recompute only on mount
+    // + resize; place()/update() below never touch the DOM to read, only to write.
+    let vh = 0, trackTop = 0, span = 1, S = 0, pcx = 0, pcy = 0, bcx = 0, btnTop = 0
+    const measure = () => {
+      vh = window.innerHeight || 800
+      trackTop = track.offsetTop
+      span = Math.max(1, track.offsetHeight - vh)
+      const pr = pizza.getBoundingClientRect()
+      const br = panta.getBoundingClientRect()
+      S = pizza.offsetWidth                                  // true diameter (rotation-invariant)
+      pcx = (pr.left + pr.right) / 2                          // bbox centre is preserved under rotation
+      pcy = (pr.top + pr.bottom) / 2
+      bcx = br.left + br.width / 2
+      btnTop = br.top
+    }
+    measure()
+
     let raf = 0
     const place = (seq: number) => {
       const spin = easeIO(clamp((seq - SPIN_A) / (SPIN_B - SPIN_A))) * TURNS
@@ -152,16 +188,12 @@ export default function FlatbakanPage() {
 
       // slice geometry - the traveller is `position:fixed` (viewport-relative, rendered as a root
       // sibling so it can never be trapped in a lower stacking context than the corner button), so
-      // every coordinate here is plain viewport px - no stage-local conversion needed.
-      const pr = pizza.getBoundingClientRect()
-      const br = panta.getBoundingClientRect()
-      const S = pizza.offsetWidth                            // true diameter (rotation-invariant)
+      // every coordinate here is plain viewport px - no stage-local conversion needed. S/pcx/pcy/
+      // bcx/btnTop come from measure() above, not read here (see comment there).
       const spr = (spread * SPREAD_MAX + drift * DRIFT_MAX) * S
       s.setProperty('--spin', spin.toFixed(2))
       s.setProperty('--cut', cut.toFixed(3))
       s.setProperty('--spread', spr.toFixed(1) + 'px')       // drives the 7 CSS slices
-      const pcx = (pr.left + pr.right) / 2                   // bbox centre is preserved under rotation
-      const pcy = (pr.top + pr.bottom) / 2
       const ang = spin * Math.PI / 180
       const vx = SLICE_GEO.cx * S + TRAVELLER_VEC.ux * spr   // traveller fans out with the others...
       const vy = SLICE_GEO.cy * S + TRAVELLER_VEC.uy * spr
@@ -171,8 +203,6 @@ export default function FlatbakanPage() {
       // rests ABOVE it (only a small overlap onto the button's top edge, never covering the label).
       // wDrop/OVERLAP must match .fb-corner-slice's CSS exactly, so the JS flight ends EXACTLY where
       // the static idle-animated garnish sits - no jump at the handoff.
-      const bcx = br.left + br.width / 2
-      const btnTop = br.top
       const wPizza = SLICE_GEO.w * S
       const wDrop = 56
       const hDrop = wDrop / 0.689                           // slice crop aspect (326x473)
@@ -200,16 +230,22 @@ export default function FlatbakanPage() {
     let y = 0
     const update = () => {
       raf = 0
-      const vh = window.innerHeight || 800
-      const span = Math.max(1, track.offsetHeight - vh)
-      const seq = clamp((y - track.offsetTop) / span)
+      const seq = clamp((y - trackTop) / span)
       s.setProperty('--seq', seq.toFixed(3))
       place(seq)
     }
     const onTick = () => { if (!raf) raf = requestAnimationFrame(update) }
+    const onResize = () => { measure(); onTick() }
 
     const lenis = new Lenis({ duration: 1.3, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
-    if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
+    if (import.meta.env.DEV) {
+      // debug-only: bypass the rAF-batched onTick for direct/synchronous verification (harness
+      // preview tabs throttle rAF unreliably - see redesign-playbook memory)
+      (window as unknown as { __lenis?: Lenis; __fbUpdate?: () => void; __fbMeasure?: () => void; __fbGeo?: unknown }).__lenis = lenis
+      ;(window as unknown as { __fbUpdate?: () => void }).__fbUpdate = update
+      ;(window as unknown as { __fbMeasure?: () => void }).__fbMeasure = measure
+      ;(window as unknown as { __fbGeo?: unknown }).__fbGeo = { get: () => ({ vh, trackTop, span, S, pcx, pcy, bcx, btnTop }) }
+    }
     y = lenis.scroll
     lenis.on('scroll', () => { y = lenis.scroll; onTick() })
     let lenisRaf = 0
@@ -217,9 +253,16 @@ export default function FlatbakanPage() {
     lenisRaf = requestAnimationFrame(loop)
 
     update()
-    window.addEventListener('resize', onTick)
+    window.addEventListener('resize', onResize)
+    // the corner button's width depends on webfont-rendered text ("Panta núna" in CabinetGrotesk)
+    // - measure() above can run before that font swaps in (FOUT), caching a fallback-font width
+    // and landing the slice a few px off target. Re-measure once fonts are actually ready to
+    // correct for that; harmless no-op if they were already loaded by the time we got here.
+    let cancelled = false
+    document.fonts.ready.then(() => { if (!cancelled) { measure(); onTick() } })
     return () => {
-      window.removeEventListener('resize', onTick)
+      cancelled = true
+      window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
       cancelAnimationFrame(lenisRaf)
       lenis.destroy()
@@ -462,14 +505,18 @@ const CSS = `
   background:radial-gradient(circle,rgba(120,60,0,.26),rgba(120,60,0,0) 66%);filter:blur(4px)}
 .fb-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 20px 30px rgba(90,45,0,.30))}
 .fb-whole{opacity:calc(1 - var(--cut,0))}
-.fb-sl{opacity:var(--cut,0);transform:translate(calc(var(--ux,0) * var(--spread,0px)),calc(var(--uy,0) * var(--spread,0px)))}
+/* will-change:transform promotes each of the 7 slices to its own compositor layer, so the
+   per-frame --spread transform is a cheap GPU move instead of re-rasterizing the drop-shadow
+   filter from .fb-layer on every tick (filter+transform together are expensive to redo). */
+.fb-sl{opacity:var(--cut,0);will-change:transform;
+  transform:translate(calc(var(--ux,0) * var(--spread,0px)),calc(var(--uy,0) * var(--spread,0px)))}
 
 /* the travelling slice - position:fixed (viewport px, JS-driven), rendered as a root sibling of
    .fb-sticky-panta so z-index:55 is compared DIRECTLY against its z-index:50 and always wins - it
    can never end up trapped inside a lower stacking context and disappear behind the button
    mid-flight. Fades out as it hands off to the static landed garnish on the corner button. */
 .fb-slice{position:fixed;left:0;top:0;z-index:55;width:var(--slw,180px);height:auto;pointer-events:none;
-  opacity:calc(var(--cut,0) * (1 - var(--armed,0)));
+  opacity:calc(var(--cut,0) * (1 - var(--armed,0)));will-change:transform;
   transform:translate(var(--slx,0),var(--sly,0)) translate(-50%,-50%) rotate(var(--slr,0));
   filter:drop-shadow(0 16px 24px rgba(90,45,0,.42))}
 

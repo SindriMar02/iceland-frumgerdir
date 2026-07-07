@@ -1,6 +1,10 @@
 import { Suspense, lazy, useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
+
+// Eager (not lazy): the universal fallback must always be available, even if a
+// route chunk is stale or 404s. It names no client and never links to the hub.
+import NotFound from './pages/NotFound'
 
 const Home = lazy(() => import('./pages/Home'))
 const IceTourism = lazy(() => import('./pages/IceTourism'))
@@ -48,6 +52,7 @@ const VinlandPage = lazy(() => import('./preview/vinland/Page'))
 const VellirPage = lazy(() => import('./preview/vellir/Page'))
 // Scout round 7 — bakeries; reuses the Faxi Bakery Café design system
 const GkBakariPage = lazy(() => import('./preview/gkbakari/Page'))
+const RakarastofaPage = lazy(() => import('./preview/rakarastofa/Page'))
 // Bakery scout round 8 — Passion Reykjavík (GK skeleton, their own dark-gold brand)
 const PassionPage = lazy(() => import('./preview/passion/Page'))
 // Reynir bakari — clones the Passion design + palette, re-skinned to their brand
@@ -58,6 +63,8 @@ const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
 const SportsolPage = lazy(() => import('./preview/sportsol/Page'))
 const StjornusolPage = lazy(() => import('./preview/stjornusol/Page'))
 const SaelanPage = lazy(() => import('./preview/saelan/Page'))
+const ArsolPage = lazy(() => import('./preview/arsol/Page'))
+const StrytanPage = lazy(() => import('./preview/strytan/Page'))
 // Concept — Barna- og fjölskyldustofa "Öruggt skjól" (warm umbrella, per-centre pages)
 const BofsPage = lazy(() => import('./preview/bofs/Page'))
 const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
@@ -79,6 +86,24 @@ function ScrollToTop() {
   return null
 }
 
+/** Sindri's private hub flag, read from the URL (same check the hub itself uses). */
+function toolsEnabled(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).has('tools')
+  } catch {
+    return false
+  }
+}
+
+/**
+ * The hub root is private. With ?tools it shows Sindri's full project
+ * catalogue; without it, the neutral page — so a business owner who strips
+ * their own preview link down to the root can never see the other businesses.
+ */
+function RootRoute() {
+  return toolsEnabled() ? <Home /> : <NotFound />
+}
+
 // Router must agree with Vite's base when deployed under a subpath
 const BASE = import.meta.env.BASE_URL
 const basename = BASE === '/' ? undefined : BASE.replace(/\/$/, '')
@@ -90,7 +115,7 @@ export default function App() {
         <ScrollToTop />
         <Suspense fallback={null}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/ice-tourism" element={<IceTourism />} />
             <Route path="/daeli-farm" element={<DaeliFarm />} />
             <Route path="/eldhestar" element={<Eldhestar />} />
@@ -129,6 +154,7 @@ export default function App() {
             <Route path="/preview/vinland" element={<VinlandPage />} />
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/gkbakari" element={<GkBakariPage />} />
+            <Route path="/preview/rakarastofa" element={<RakarastofaPage />} />
             <Route path="/preview/passion" element={<PassionPage />} />
             <Route path="/preview/reynir" element={<ReynirPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
@@ -136,11 +162,15 @@ export default function App() {
             <Route path="/preview/sportsol" element={<SportsolPage />} />
             <Route path="/preview/stjornusol" element={<StjornusolPage />} />
             <Route path="/preview/saelan" element={<SaelanPage />} />
+            <Route path="/preview/arsol" element={<ArsolPage />} />
+            <Route path="/preview/strytan" element={<StrytanPage />} />
             <Route path="/preview/bofs" element={<BofsPage />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
             <Route path="/preview/flatbakan" element={<FlatbakanPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Unknown/stale routes → neutral page. NEVER redirect to the
+                catalogue: that is exactly how owners ended up seeing it. */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
