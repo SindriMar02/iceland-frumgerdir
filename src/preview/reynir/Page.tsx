@@ -68,6 +68,10 @@ const PAGE_CSS = `
   @keyframes rb-marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .rb-marquee-track { display:flex; width:max-content; animation:rb-marquee 36s linear infinite; }
 
+  /* the hero pistachio turns slowly and smoothly, in place */
+  @keyframes rb-hero-spin { to { transform:rotate(360deg); } }
+  .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%; }
+
   .rb-navlink { color:${DIM}; text-decoration:none; font-size:14.5px; transition:color .2s ${EASE}; }
   .rb-navlink:hover { color:${GOLD_LIGHT}; }
 
@@ -119,6 +123,7 @@ const PAGE_CSS = `
   @media (prefers-reduced-motion: reduce) {
     .rb-enter, .rb-enter-2, .rb-enter-3, .rb-enter-4 { animation:none; }
     .rb-marquee-track { animation:none; }
+    .rb-hero-spin { animation:none; }
     .rb-cta { transition:none; }
     .rb-cta:active { transform:none; }
   }
@@ -256,9 +261,11 @@ export default function ReynirPage() {
       {/* ===================== COVER ===================== */}
       <section className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
         <div className="rb-cover-grid" style={{ ...wrap, flex: 1, width: '100%', display: 'grid', gridTemplateColumns: '1fr', alignItems: 'center', position: 'relative', padding: 'clamp(24px,5vh,56px) 0' }}>
-          {/* the pistachio snúður, a transparent cutout floating on the dark hero */}
+          {/* the pistachio snúður, a transparent cutout floating on the dark hero,
+              turning slowly and smoothly in place */}
           <div className="rb-cover-art rb-enter-3">
             <img
+              className="rb-hero-spin"
               src={FEATURE_IMG}
               alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum'}
               style={{ width: '100%', height: 'auto', display: 'block' }}
