@@ -1,0 +1,46 @@
+/* Flatbakan brand faces — the studio's own licensed webfonts, self-hosted for the
+   redesign prototype (identical type to flatbakan.is, so the owner recognises the brand).
+   Display: Horndon Becker (vintage Americana). Body/UI: All Round Gothic (rounded humanist).
+   Accent: Fontjek (brush marker, small stamps only — lacks Þ, never set Þ-words in it).
+   Accent (hero "sneið" word): Arkipelago, an inky brush script from the studio's curated font
+   library (~/Design fonts/, Awwwards free-fonts collection) — not part of Flatbakan's own kit,
+   chosen for the redesign hero specifically. Full Icelandic glyph coverage verified (incl. ð/Þ
+   and all accented vowels), no restrictions like Fontjek's. */
+
+@font-face {
+  font-family: 'HorndonBecker';
+  src: url('../fonts/HordonBecker.woff2') format('woff2'),
+       url('../fonts/HordonBecker.woff') format('woff'),
+       url('../fonts/HordonBecker.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AllRoundGothic';
+  src: url('../fonts/AllRoundGothic.woff2') format('woff2'),
+       url('../fonts/AllRoundGothic.woff') format('woff'),
+       url('../fonts/AllRoundGothic.ttf') format('truetype');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fontjek';
+  src: url('../fonts/FontJek.woff2') format('woff2'),
+       url('../fonts/FontJek.woff') format('woff'),
+       url('../fonts/FontJek.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Arkipelago';
+  src: url('../fonts/Arkipelago.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

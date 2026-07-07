@@ -58,6 +58,10 @@ const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
 const SportsolPage = lazy(() => import('./preview/sportsol/Page'))
 const StjornusolPage = lazy(() => import('./preview/stjornusol/Page'))
 const SaelanPage = lazy(() => import('./preview/saelan/Page'))
+// Concept — Barna- og fjölskyldustofa "Öruggt skjól" (warm umbrella, per-centre pages)
+const BofsPage = lazy(() => import('./preview/bofs/Page'))
+const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
+const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -132,6 +136,9 @@ export default function App() {
             <Route path="/preview/sportsol" element={<SportsolPage />} />
             <Route path="/preview/stjornusol" element={<StjornusolPage />} />
             <Route path="/preview/saelan" element={<SaelanPage />} />
+            <Route path="/preview/bofs" element={<BofsPage />} />
+            <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
+            <Route path="/preview/flatbakan" element={<FlatbakanPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

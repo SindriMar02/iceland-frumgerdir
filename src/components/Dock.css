@@ -1,0 +1,65 @@
+.dock-outer {
+  margin: 0 0.5rem;
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+}
+
+.dock-panel {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  width: fit-content;
+  gap: 1rem;
+  border-radius: 1rem;
+  background-color: #120F17;
+  border: 1px solid #222;
+  padding: 0 0.5rem 0.5rem;
+}
+
+.dock-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: #120F17;
+  border: 1px solid #222;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  outline: none;
+}
+
+.dock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* icon + a permanent caption below it (not a hover-only tooltip) - the slot is a fixed height
+   (the max magnification size) so the icon can grow/shrink on hover without shifting the caption */
+.dock-item-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dock-item-slot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.dock-caption {
+  font-size: 0.7rem;
+  line-height: 1;
+  white-space: nowrap;
+  color: #aaa;
+  pointer-events: none;
+}
