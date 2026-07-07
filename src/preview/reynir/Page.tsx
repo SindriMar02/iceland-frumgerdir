@@ -596,8 +596,10 @@ export default function ReynirPage() {
         </div>
       </footer>
 
-      {/* the travelling pistachio medallion — fixed to the viewport, its
-          transform driven by scroll (hero → featured slot). Desktop + motion. */}
+      {/* the travelling pistachio medallion — a transparent cutout fixed to the
+          viewport, its transform driven by scroll (hero → featured slot). z-index
+          1 keeps it UNDER the hero headline/copy (z2) while over the section
+          grounds. Desktop + motion only. */}
       {enableTravel && (
         <motion.div
           aria-hidden="true"
@@ -609,7 +611,7 @@ export default function ReynirPage() {
             height: MED_BASE,
             transformOrigin: '50% 50%',
             transform: travelTransform,
-            zIndex: 3,
+            zIndex: 1,
             pointerEvents: 'none',
             willChange: 'transform',
             opacity: travelReady ? 1 : 0,

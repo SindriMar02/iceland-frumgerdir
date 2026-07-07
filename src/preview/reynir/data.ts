@@ -30,10 +30,10 @@ export type Lang = 'en' | 'is'
 export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo.png`
 /** Real B&W "hands shaping dough" photo from their own site, warm-toned. */
 export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
-/** Pistachio snúður on a flat #131313 ground — Higgsfield asset, see
- *  IMAGE-PROMPTS.md. Spins on scroll in the featured slot (Passion-style).
- *  Until the file lands the medallion renders an invisible fallback. */
-export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.jpg`
+/** Pistachio snúður, cut out to a TRANSPARENT background (Higgsfield asset,
+ *  cutout via corner floodfill — see IMAGE-PROMPTS.md). Transparent so only the
+ *  bun rotates as it travels, with no square/ghost background behind it. */
+export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.webp`
 
 export const LINKS = {
   order: 'https://www.aha.is/veitingar/reynir-bakari',
