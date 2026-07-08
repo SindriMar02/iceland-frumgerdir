@@ -92,14 +92,16 @@ export default function FlatbakanPage() {
   const bgRef = useRef<HTMLImageElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // iOS safe-area chrome colour: theme-color + html/body background are what colour the strips
-  // behind the status bar and home indicator (viewport-fit=cover, which would let content actually
-  // PAINT into those strips, was tried and dropped - it's unproven anywhere else in this codebase
-  // and setting it from JS after mount is unreliable on iOS besides). Kept matched to what's on
-  // screen instead: ORANGE while the pinned hero fills the viewport (its edges are flat orange, so
-  // the strips read as the hero continuing under the system UI), CREAM once the framed site scrolls
-  // up, via an IntersectionObserver on a thin top-of-viewport band. Doesn't move any content.
-  // html/body are shared across the SPA, so restored on unmount.
+  // iOS safe-area handling, two layers:
+  // 1. .fb-edge-bleed strips (CSS, rendered below) - the REAL fix. Cover mode (baked into this
+  //    route's own static HTML - see package.json's postbuild) lets them paint into the notch/
+  //    home-indicator strips; heroActive controls whether they're shown at all.
+  // 2. theme-color + html/body background - a fallback for the (unlikely, but real) case a device
+  //    ignores cover mode entirely, so the bars are at least colour-matched instead of some default.
+  // Both driven by the same signal: ORANGE/shown while the pinned hero fills the viewport, CREAM/
+  // hidden once the framed site scrolls up, via an IntersectionObserver on a thin top-of-viewport
+  // band. Neither moves any content. html/body are shared across the SPA, so restored on unmount.
+  const [heroActive, setHeroActive] = useState(true)
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
     const html = document.documentElement
@@ -117,7 +119,10 @@ export default function FlatbakanPage() {
       // effective root = the top ~8% of the viewport (status-bar band). isIntersecting flips true
       // the moment the cream frame rises into it, false again when scrolled back up to the hero.
       io = new IntersectionObserver(
-        ([e]) => paint(e.isIntersecting ? CREAM : ORANGE),
+        ([e]) => {
+          paint(e.isIntersecting ? CREAM : ORANGE)
+          setHeroActive(!e.isIntersecting)
+        },
         { rootMargin: '0px 0px -92% 0px' },
       )
       io.observe(frame)
@@ -494,6 +499,12 @@ export default function FlatbakanPage() {
           ring. Unmounted shortly after (overlayMounted) so its animations don't run behind the site. */}
       {overlayMounted && <FlatbakanLoading visible={!assetsReady} progress={loadProgress} />}
 
+      {/* real safe-area bleed under the iOS status bar + home indicator - see .fb-edge-bleed CSS.
+          Root-level siblings (NOT nested in .fb-stage-pin) so its overflow:hidden can never clip
+          them; position:fixed themselves too, so they have zero layout footprint of their own. */}
+      <div className="fb-edge-bleed fb-edge-top" data-show={heroActive} aria-hidden />
+      <div className="fb-edge-bleed fb-edge-bottom" data-show={heroActive} aria-hidden />
+
       {/* fixed backdrop - real scattered ingredients, bg removed + blurred, drifts with the pointer */}
       <div className="fb-bgwrap" aria-hidden>
         <img ref={bgRef} src={IMG.ingredientsBg} alt="" className="fb-bgimg" draggable={false} />
@@ -698,18 +709,34 @@ const CSS = `
 .fb-track{position:relative;z-index:2;height:240svh}
 /* viewport-fit=cover is baked statically into THIS route's own built index.html (see the postbuild
    step in package.json - a targeted perl substitution on dist/preview/flatbakan/index.html only,
-   every other route's copy is untouched) rather than set from JS after mount, which iOS does not
-   reliably honour. With cover active at first paint, height:100svh spans the true full screen, so
-   the hero's own orange fills behind the status bar + home indicator for real - not a colour patch,
-   the actual hero. The extra top/bottom padding then keeps the nav and hero copy exactly where they
-   were, clear of the notch/indicator. env(...) is 0 on every other route (no cover there), so this
-   is a no-op elsewhere. */
+   every other route's copy is untouched). This box is deliberately left completely alone, though -
+   svh is SPECIFICALLY DEFINED to track the small/safe viewport, not the full physical screen, so it
+   does NOT grow under cover mode the way plain vh historically did. Resizing this box to compensate
+   would desync it from window.innerHeight, which the pinned intro's JS geometry (measure() above)
+   depends on being exactly one viewport tall - not worth that risk. The real safe-area bleed is
+   handled by the separate .fb-edge-bleed strips below instead (position:fixed, zero layout
+   footprint, can never touch this box's own math). */
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
-  display:flex;flex-direction:column;
-  padding:calc(clamp(1rem,2.4vw,1.8rem) + env(safe-area-inset-top)) clamp(1rem,3vw,2.4rem) calc(clamp(1.4rem,3vw,2.2rem) + env(safe-area-inset-bottom))}
+  display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
    else in the stage - z-index:0 first in DOM so nav/copy/pizza (all z-index>=2) paint above it */
 .fb-grain-hero{position:absolute;inset:0;z-index:0;pointer-events:none}
+
+/* Real safe-area bleed: two thin bars, sized exactly to the notch/home-indicator strips, filled
+   with a static gradient approximating the Grainient shader's own colour blend (color1/color2/color3
+   below) - a second live WebGL instance for a ~40px sliver mostly covered by system icons isn't
+   worth the GPU cost, and the missing grain/warp animation is imperceptible at that size. position:
+   fixed so these have ZERO layout footprint (unlike the earlier sticky+negative-margin attempt,
+   which didn't collapse the way it does in theory once a real safe-area inset was involved and
+   painted a full-screen band instead) - can never affect .fb-track/.fb-stage-pin's own geometry.
+   Visibility is driven by the same IntersectionObserver that switches the chrome colour (mount
+   effect) - shown while the hero is the active section, hidden once the cream frame scrolls up, so
+   they never show through the wrong (cream/ink) section. env(...) is 0 without cover mode, so
+   height collapses to 0 and these are invisible everywhere else. */
+.fb-edge-bleed{position:fixed;left:0;right:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.fb-edge-bleed[data-show="true"]{opacity:1}
+.fb-edge-top{top:0;height:env(safe-area-inset-top);background:linear-gradient(180deg,#F6B663,${ORANGE})}
+.fb-edge-bottom{bottom:0;height:env(safe-area-inset-bottom);background:linear-gradient(0deg,#C17D23,${ORANGE})}
 
 .fb-nav{position:relative;z-index:6;width:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .fb-nav-grp{display:flex;gap:.6rem}
