@@ -152,24 +152,31 @@ export default function FlatbakanPage() {
     const SPREAD_MAX = 0.10                // peak radial spread of the fast fan-out, as a fraction of pizza width
     const DRIFT_MAX = 0.06                 // extra slow continued drift added AFTER the fan-out, same units
 
-    // Cached layout geometry - pizza/panta/track are all pinned/fixed for the ENTIRE scroll
-    // sequence (the pizza's rect CENTER is rotation-invariant under its own transform:rotate,
-    // panta is position:fixed, track's own box doesn't depend on the animation) - only a real
-    // viewport resize can change any of this. Reading it every scroll frame (as before) forces a
+    // Cached layout geometry - constant for the ENTIRE pinned sequence, so we read it here (mount +
+    // resize) instead of every scroll frame. Reading it per-frame (as the original did) forces a
     // synchronous style/layout flush on every tick because the previous frame's setProperty calls
-    // just dirtied the tree - measured ~1ms/call here (~200x the cost of the same reads done with
-    // no pending writes) versus ~0.005ms once uncoupled from the hot path. Recompute only on mount
-    // + resize; place()/update() below never touch the DOM to read, only to write.
+    // just dirtied the tree - measured ~1ms/call here (~200x the cost of the same reads with no
+    // pending writes). place()/update() below never read the DOM, only write.
+    //
+    // CRITICAL: the pizza centre is cached RELATIVE TO THE STICKY STAGE (subtract the stage's own
+    // rect), NOT as a viewport-absolute coordinate. Both rects scroll together so their difference
+    // is constant AND equals the pizza's on-screen position while the stage is pinned at top:0 -
+    // making this correct no matter what scroll position measure() runs at. Caching the raw
+    // viewport centre was a bug: measure() also fires on `resize`, and a mobile URL-bar collapse
+    // fires one mid-scroll, which cached the pizza's scrolled-away (negative) Y and launched the
+    // traveller slice from far above the screen ("dropping from the sky"). panta is position:fixed
+    // so its rect is already viewport-stable.
     let vh = 0, trackTop = 0, span = 1, S = 0, pcx = 0, pcy = 0, bcx = 0, btnTop = 0
     const measure = () => {
       vh = window.innerHeight || 800
       trackTop = track.offsetTop
       span = Math.max(1, track.offsetHeight - vh)
       const pr = pizza.getBoundingClientRect()
+      const sr = stage.getBoundingClientRect()
       const br = panta.getBoundingClientRect()
       S = pizza.offsetWidth                                  // true diameter (rotation-invariant)
-      pcx = (pr.left + pr.right) / 2                          // bbox centre is preserved under rotation
-      pcy = (pr.top + pr.bottom) / 2
+      pcx = (pr.left + pr.right) / 2 - sr.left               // pizza centre relative to the pinned stage
+      pcy = (pr.top + pr.bottom) / 2 - sr.top
       bcx = br.left + br.width / 2
       btnTop = br.top
     }
@@ -634,7 +641,9 @@ const CSS = `
 
 /* ---- responsive ---- */
 @media (max-width:860px){
-  .fb-frame{margin:0 .6rem .6rem;border-width:6px}
+  /* fill the width minus a tight gutter and CENTER (auto margins). The base rule's max-width:90vw
+     left slack that a fixed .6rem left margin pushed off-centre, so override max-width here too. */
+  .fb-frame{max-width:calc(100vw - 1.2rem);margin:0 auto .6rem;border-width:6px}
   .fb-cards,.fb-truck,.fb-visit{grid-template-columns:1fr}
   .fb-nav{gap:.5rem}
   .fb-pizza{width:min(85vw,385px)}
