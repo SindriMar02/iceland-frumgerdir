@@ -3,6 +3,7 @@ import Lenis from 'lenis'
 import { Percent, Pizza, Leaf, UtensilsCrossed, CupSoda, Gift, Tag } from 'lucide-react'
 import Dock from '../../components/Dock'
 import FlatbakanLoading from './Loading'
+import { setThemeColor } from '../../lib/preview'
 import {
   ORDER, PHONE_DISPLAY, PHONE_HREF, EMAIL, MAPS, SOCIAL, IMG, SLICE_GEO, SLICES, TRAVELLER_VEC, HERO_ORANGE,
   FEATURED, MENU_LINKS, HOURS, TRUCK, STORY, KAERLEIKS, AWARD, ADDRESS,
@@ -89,6 +90,26 @@ export default function FlatbakanPage() {
   const pizzaRef = useRef<HTMLDivElement>(null)
   const pantaRef = useRef<HTMLAnchorElement>(null)
   const bgRef = useRef<HTMLImageElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Every other prototype in this repo sets its own title + mobile-browser-chrome tint on mount
+  // (see lib/preview.ts) - flatbakan had neither, so in-app browsers (Mail, etc.) fell back to
+  // sampling the page's own rendered colour for their toolbar tint, which is the hero's ORANGE for
+  // as long as .fb-stage-pin is pinned/near the top - and then stayed stuck on that colour even once
+  // scrolled well past it into the cream-framed site. Setting an explicit theme-color pins the
+  // chrome to the site's actual dominant background instead of an arbitrary sampled one.
+  useEffect(() => {
+    document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
+    setThemeColor(CREAM)
+  }, [])
+
+  // close the mobile menu on Escape; scoped to only listen while it's actually open
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   // Loading gate. The overlay stays up until EVERYTHING a visitor sees the instant they land is
   // genuinely ready - not just this component's JS chunk. Landing on a half-warmed page is what
@@ -444,7 +465,19 @@ export default function FlatbakanPage() {
               <Pill href="#matsedill" ext={false}>Matseðill</Pill>
               <Pill href={ORDER} solid>Panta</Pill>
             </div>
+            <button type="button" className="fb-burger" data-open={menuOpen} aria-expanded={menuOpen}
+              aria-controls="fb-mmenu" aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+              onClick={() => setMenuOpen((v) => !v)}>
+              <span className="fb-burger-lines"><span /><span /><span /></span>
+            </button>
           </header>
+          <div className="fb-mbackdrop" data-open={menuOpen} aria-hidden onClick={() => setMenuOpen(false)} />
+          <nav id="fb-mmenu" className="fb-mmenu" data-open={menuOpen} aria-label="Aðalvalmynd" aria-hidden={!menuOpen}>
+            <a href="#top" onClick={() => setMenuOpen(false)}>Heim</a>
+            <a href="#sagan" onClick={() => setMenuOpen(false)}>Um okkur</a>
+            <a href="#matsedill" onClick={() => setMenuOpen(false)}>Matseðill</a>
+            <a href={ORDER} target="_blank" rel="noreferrer" className="fb-mmenu-cta" onClick={() => setMenuOpen(false)}>Panta núna</a>
+          </nav>
 
           <div className="fb-hero-mid">
             <div className="fb-hero-word" aria-hidden>FLATBAKAN</div>
@@ -615,6 +648,50 @@ const CSS = `
 .fb-badge{width:64px;height:64px;border-radius:50%;background:${INK};display:flex;align-items:center;justify-content:center;
   flex:0 0 auto;box-shadow:0 8px 20px -8px rgba(28,18,8,.55)}
 .fb-badge img{width:80%;height:80%;object-fit:contain;filter:brightness(0) invert(1)}
+/* Logo is pulled out of the flex flow and centred on the header itself, not on the two flanking
+   pill groups - so it stays dead-centre even when those groups don't hold equal weight (e.g. one
+   group loses a pill at a breakpoint, or the mobile burger button sits alone on one side). */
+.fb-nav .fb-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+
+/* ---- mobile hamburger + dropdown (replaces the pill nav below 520px) ---- */
+.fb-burger{display:none;position:relative;z-index:8;width:44px;height:44px;flex:0 0 auto;padding:0;
+  align-items:center;justify-content:center;background:${CREAM_LT};border:1.5px solid ${INK};
+  border-radius:50%;box-shadow:2px 2px 0 ${INK};cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.fb-burger:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 ${INK}}
+.fb-burger:active{transform:translate(0,0);box-shadow:1px 1px 0 ${INK}}
+.fb-burger-lines{position:relative;width:18px;height:13px}
+.fb-burger-lines span{position:absolute;left:0;width:100%;height:2px;border-radius:2px;background:${INK};
+  transition:top .3s cubic-bezier(.65,0,.35,1),transform .3s cubic-bezier(.65,0,.35,1),opacity .2s ease}
+.fb-burger-lines span:nth-child(1){top:0}
+.fb-burger-lines span:nth-child(2){top:5.5px}
+.fb-burger-lines span:nth-child(3){top:11px}
+.fb-burger[data-open="true"] .fb-burger-lines span:nth-child(1){top:5.5px;transform:rotate(45deg)}
+.fb-burger[data-open="true"] .fb-burger-lines span:nth-child(2){opacity:0;transform:scaleX(0)}
+.fb-burger[data-open="true"] .fb-burger-lines span:nth-child(3){top:5.5px;transform:rotate(-45deg)}
+
+.fb-mbackdrop{display:none;position:fixed;inset:0;z-index:59;background:rgba(28,18,8,.28);
+  opacity:0;pointer-events:none;transition:opacity .3s ease}
+.fb-mbackdrop[data-open="true"]{opacity:1;pointer-events:auto}
+
+/* dropdown reveal is a clip-path wipe (not scaleY) so the border/shadow never distorts mid-transition -
+   it genuinely unrolls from the header like a menu flap, each link cascading in a beat after the last */
+.fb-mmenu{display:none;position:fixed;left:clamp(1rem,3vw,2.4rem);right:clamp(1rem,3vw,2.4rem);
+  top:calc(clamp(1rem,2.4vw,1.8rem) + 64px + .6rem);z-index:60;flex-direction:column;gap:.35rem;
+  padding:.7rem;background:${CREAM_LT};border:2px solid ${INK};border-radius:20px;box-shadow:5px 5px 0 ${INK};
+  clip-path:inset(0 0 100% 0 round 20px);transform:translateY(-6px);opacity:0;pointer-events:none;
+  transition:clip-path .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1),opacity .28s ease}
+.fb-mmenu[data-open="true"]{clip-path:inset(0 0 0% 0 round 20px);transform:none;opacity:1;pointer-events:auto}
+.fb-mmenu a{font-family:${SANS};font-weight:700;font-size:1.05rem;color:${INK};text-decoration:none;
+  padding:.75rem .9rem;border-radius:12px;opacity:0;transform:translateY(-8px);
+  transition:background .15s ease,opacity .38s ease .1s,transform .38s cubic-bezier(.22,1,.36,1) .1s}
+.fb-mmenu a:active{background:rgba(28,18,8,.07)}
+.fb-mmenu[data-open="true"] a{opacity:1;transform:none}
+.fb-mmenu[data-open="true"] a:nth-child(1){transition-delay:.06s}
+.fb-mmenu[data-open="true"] a:nth-child(2){transition-delay:.11s}
+.fb-mmenu[data-open="true"] a:nth-child(3){transition-delay:.16s}
+.fb-mmenu[data-open="true"] a:nth-child(4){transition-delay:.21s}
+.fb-mmenu a.fb-mmenu-cta{background:${RED};color:${CREAM_LT};text-align:center;margin-top:.15rem;
+  font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:.92rem}
 
 /* the hero content's half of the "arrive": it sits very slightly enlarged behind the orange
    loading screen and eases down to rest as that screen lifts away, so the hero reads as settling
@@ -801,9 +878,10 @@ const CSS = `
   .fb-sec-head{flex-direction:column;align-items:flex-start}
 }
 @media (max-width:520px){
-  .fb-nav-grp{gap:.4rem}
-  .fb-pill{padding:.45rem .8rem;font-size:.8rem}
-  .fb-nav-grp .fb-pill:first-child{display:none}
+  .fb-nav-grp{display:none}
+  .fb-burger{display:flex}
+  .fb-mbackdrop{display:block}
+  .fb-mmenu{display:flex}
 }
 @media (prefers-reduced-motion:reduce){
   .fb-track{height:100svh}
