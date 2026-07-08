@@ -140,12 +140,13 @@ export default function FlatbakanPage() {
     return () => window.clearTimeout(t)
   }, [assetsReady])
 
-  // the fixed ingredients backdrop drifts gently with the pointer - eased, small, never reveals an edge
+  // the fixed ingredients backdrop drifts gently with the pointer - the scattered toppings shift a
+  // touch as you move the mouse. It shows through the side gutters of the centred .fb-frame across
+  // the whole menu/story/footer, so it's on screen for most of the visit.
   useEffect(() => {
     const el = bgRef.current
-    const track = trackRef.current
-    if (!el || !track || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return
-    const AMOUNT = 16
+    if (!el || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return
+    const AMOUNT = 18                    // < the .fb-bgwrap -24px inset, so the drift never bares an edge
     const target = { x: 0, y: 0 }
     const cur = { x: 0, y: 0 }
     const onMove = (e: MouseEvent) => {
@@ -154,26 +155,19 @@ export default function FlatbakanPage() {
     }
     window.addEventListener('mousemove', onMove, { passive: true })
     let raf = 0
-    let heroVisible = true
     let pageVisible = !document.hidden
     const loop = () => {
-      cur.x += (target.x - cur.x) * 0.045
-      cur.y += (target.y - cur.y) * 0.045
+      cur.x += (target.x - cur.x) * 0.05
+      cur.y += (target.y - cur.y) * 0.05
       el.style.transform = `translate3d(${(-cur.x * AMOUNT).toFixed(1)}px, ${(-cur.y * AMOUNT).toFixed(1)}px, 0)`
       raf = requestAnimationFrame(loop)
     }
-    const tryStart = () => { if (heroVisible && pageVisible && raf === 0) raf = requestAnimationFrame(loop) }
+    const tryStart = () => { if (pageVisible && raf === 0) raf = requestAnimationFrame(loop) }
     const tryStop = () => { if (raf !== 0) { cancelAnimationFrame(raf); raf = 0 } }
-    if (import.meta.env.DEV) (window as unknown as { __fbParallaxRunning?: () => unknown }).__fbParallaxRunning = () => ({ raf, heroVisible, pageVisible })
-    // this backdrop is position:fixed, always covering the viewport, but sits BEHIND the opaque
-    // .fb-frame - once the pinned hero (.fb-track) scrolls fully past, the frame covers it
-    // completely and animating it is pure wasted work for the rest of the time a visitor spends
-    // browsing the menu/footer (most of their time on the page). Same pattern as Grainient.
-    const io = new IntersectionObserver(([entry]) => {
-      heroVisible = entry.isIntersecting
-      heroVisible ? tryStart() : tryStop()
-    }, { threshold: 0 })
-    io.observe(track)
+    // Only pause for a genuinely hidden tab. (The previous version also gated on the HERO being on
+    // screen, which was backwards: during the hero the backdrop is hidden behind the opaque orange
+    // stage, and once you scroll into the framed section - where the backdrop actually shows - that
+    // gate PAUSED the drift. So the pointer parallax was effectively never visible. Fixed.)
     const onVis = () => {
       pageVisible = !document.hidden
       pageVisible ? tryStart() : tryStop()
@@ -184,7 +178,6 @@ export default function FlatbakanPage() {
       tryStop()
       window.removeEventListener('mousemove', onMove)
       document.removeEventListener('visibilitychange', onVis)
-      io.disconnect()
     }
   }, [])
 
@@ -241,7 +234,6 @@ export default function FlatbakanPage() {
     }
     measure()
 
-    let raf = 0
     const place = (seq: number) => {
       const spin = easeIO(clamp((seq - SPIN_A) / (SPIN_B - SPIN_A))) * TURNS
       const cut = clamp((seq - CUT_A) / (CUT_B - CUT_A))
@@ -306,20 +298,10 @@ export default function FlatbakanPage() {
     // hands off exactly where the animation left - so the very next scroll moves the actual page.
     type Phase = 'idle' | 'playing' | 'released'
     let phase: Phase = 'idle'
-    let y = 0
-
-    // scroll-linked path - drives the sequence from real scroll position, but ONLY once released;
-    // while 'idle'/'playing' this is a safe no-op guard against any stray scroll/resize callback
-    // clobbering the autonomous tween's own --seq writes.
-    const update = () => {
-      raf = 0
-      if (phase !== 'released') return
-      const seq = clamp((y - trackTop) / span)
-      s.setProperty('--seq', seq.toFixed(3))
-      place(seq)
-    }
-    const onTick = () => { if (!raf) raf = requestAnimationFrame(update) }
-    const onResize = () => { measure(); onTick() }
+    // Recompute cached geometry on resize (matters only before the intro is triggered; the trigger
+    // re-measures too). There is deliberately NO scroll-linked "update" - the intro is autonomous
+    // and time-driven, then frozen; the finished sequence is never re-driven by scroll position.
+    const onResize = () => { measure() }
 
     // duration matches the repo's other Lenis pages (bofs 1.1, reykjavikdistillery 1.15) - this
     // page was an outlier at 1.3s, which reads as extra input lag on top of trackpad momentum.
@@ -327,14 +309,11 @@ export default function FlatbakanPage() {
     if (import.meta.env.DEV) {
       // debug-only: bypass the rAF-batched onTick for direct/synchronous verification (harness
       // preview tabs throttle rAF unreliably - see redesign-playbook memory)
-      (window as unknown as { __lenis?: Lenis; __fbUpdate?: () => void; __fbMeasure?: () => void; __fbGeo?: unknown; __fbPhase?: () => Phase; __fbPlay?: () => void }).__lenis = lenis
-      ;(window as unknown as { __fbUpdate?: () => void }).__fbUpdate = update
+      (window as unknown as { __lenis?: Lenis; __fbMeasure?: () => void; __fbGeo?: unknown; __fbPhase?: () => Phase; __fbPlay?: () => void }).__lenis = lenis
       ;(window as unknown as { __fbMeasure?: () => void }).__fbMeasure = measure
       ;(window as unknown as { __fbGeo?: unknown }).__fbGeo = { get: () => ({ vh, trackTop, span, S, pcx, pcy, bcx, btnTop }) }
       ;(window as unknown as { __fbPhase?: () => Phase }).__fbPhase = () => phase
     }
-    y = lenis.scroll
-    lenis.on('scroll', () => { y = lenis.scroll; onTick() })
     let lenisRaf = 0
     const loop = (time: number) => { lenis.raf(time); lenisRaf = requestAnimationFrame(loop) }
     lenisRaf = requestAnimationFrame(loop)
@@ -356,13 +335,19 @@ export default function FlatbakanPage() {
       s.setProperty('--seq', t.toFixed(3))
       place(t)
       if (t < 1) { playRaf = requestAnimationFrame(playTick); return }
+      // intro complete: freeze at the landed state and collapse the pinned timeline to a single
+      // screen, so the rest of the page scrolls normally from here. The finished sequence is NEVER
+      // re-driven by scroll position again - that scroll-scrub is exactly what let a big scroll rush
+      // it, a small one stall short of the end, and scrolling back up run it in reverse. We stayed
+      // locked at the very top the whole time, so there is no scroll snap: the frozen hero simply
+      // sits at the top with the real content directly below, and the next scroll moves the page.
       phase = 'released'
       window.removeEventListener('wheel', onTrigger)
       window.removeEventListener('touchmove', onTrigger)
-      const target = trackTop + span
-      y = target
+      track.style.height = '100svh'
+      place(1)
+      s.setProperty('--seq', '1.000')
       lenis.start()
-      lenis.scrollTo(target, { immediate: true })
     }
     const onTrigger = (e: Event) => {
       if (phase !== 'idle') { if (e.cancelable) e.preventDefault(); return }
@@ -383,13 +368,12 @@ export default function FlatbakanPage() {
     // and landing the slice a few px off target. Re-measure once fonts are actually ready to
     // correct for that; harmless no-op if they were already loaded by the time we got here.
     let cancelled = false
-    document.fonts.ready.then(() => { if (!cancelled) { measure(); onTick() } })
+    document.fonts.ready.then(() => { if (!cancelled) measure() })
     return () => {
       cancelled = true
       window.removeEventListener('wheel', onTrigger)
       window.removeEventListener('touchmove', onTrigger)
       window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
       if (playRaf) cancelAnimationFrame(playRaf)
       cancelAnimationFrame(lenisRaf)
       lenis.destroy()
