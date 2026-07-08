@@ -280,16 +280,20 @@ export default function FlatbakanPage() {
     const loop = (time: number) => { lenis.raf(time); lenisRaf = requestAnimationFrame(loop) }
     lenisRaf = requestAnimationFrame(loop)
 
-    const PLAY_MS = 2400 // total time for the whole one-flick sequence - tuned for a premium,
-    // unhurried reveal that still feels immediate (not laggy) on the trigger flick itself
+    const PLAY_MS = 3400 // total time for the whole one-flick sequence - long enough that the
+    // deceleration into the landing reads as deliberate, not rushed
+    // outer time->seq shape is ease-OUT (fast pickup, gentle tail), NOT ease-in-out: an eased-IN
+    // start was tried and measured to be worse, not better - place() already has its own SPIN_A
+    // dead-zone (nothing rotates until raw seq passes 0.06), and layering a slow-start outer curve
+    // on top of that pushed the first visible motion out to ~800ms, which reads as exactly the
+    // "did my scroll even register?" dead air this is meant to fix. Reusing the same easeOut
+    // cubic place() already uses for the spread phase gets seq past that threshold in ~70ms
+    // (instant feedback the trigger landed) while still decelerating smoothly into the finish.
     let playRaf = 0
     let playStart = 0
     const playTick = (time: number) => {
       if (!playStart) playStart = time
-      // linear time->seq: place() already applies its own per-phase easing (ease-in-out spin,
-      // ease-out spread, ease-in-out separation) to whatever seq it's handed - layering a SECOND
-      // outer easing curve on top would double-ease and blur those already-tuned curves.
-      const t = clamp((time - playStart) / PLAY_MS)
+      const t = easeOut(clamp((time - playStart) / PLAY_MS))
       s.setProperty('--seq', t.toFixed(3))
       place(t)
       if (t < 1) { playRaf = requestAnimationFrame(playTick); return }
@@ -304,6 +308,7 @@ export default function FlatbakanPage() {
     const onTrigger = (e: Event) => {
       if (phase !== 'idle') { if (e.cancelable) e.preventDefault(); return }
       if (e.cancelable) e.preventDefault()
+      measure() // defensive re-measure right before playing, in case anything shifted since mount
       phase = 'playing'
       playStart = 0
       playRaf = requestAnimationFrame(playTick)
