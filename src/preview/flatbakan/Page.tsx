@@ -128,6 +128,18 @@ export default function FlatbakanPage() {
     return () => { alive = false; window.clearTimeout(failsafe) }
   }, [mark])
 
+  // Fully UNMOUNT the loading overlay a beat after it finishes fading out. Left mounted at
+  // opacity:0 (the old behaviour), its pulsing glow + ring + badge keep running their CSS
+  // animations forever - continuous compositor work behind the live site for a fully invisible
+  // element. That lingering cost is a real source of the "lag after landing"; removing the node
+  // stops it dead. Delay covers the .62s fade with margin.
+  const [overlayMounted, setOverlayMounted] = useState(true)
+  useEffect(() => {
+    if (!assetsReady) return
+    const t = window.setTimeout(() => setOverlayMounted(false), 780)
+    return () => window.clearTimeout(t)
+  }, [assetsReady])
+
   // the fixed ingredients backdrop drifts gently with the pointer - eased, small, never reveals an edge
   useEffect(() => {
     const el = bgRef.current
@@ -385,15 +397,16 @@ export default function FlatbakanPage() {
   }, [])
 
   return (
-    <div ref={rootRef} className="fb-root" style={{ background: CREAM, color: INK, fontFamily: SANS }}>
+    <div ref={rootRef} className="fb-root" data-revealed={assetsReady ? '' : undefined} style={{ background: CREAM, color: INK, fontFamily: SANS }}>
       <link rel="stylesheet" href={`${BASE}fonts/clash-display/css/clash-display.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <style>{CSS}</style>
 
       {/* same component App.tsx shows as this route's Suspense fallback - stays up until fonts,
-          images AND the grain shader's first frame are ready, then fades onto a fully-painted
-          hero (no font swap, no image pop-in, no grain flash). progress drives the ring. */}
-      <FlatbakanLoading visible={!assetsReady} progress={loadProgress} />
+          images AND the grain shader's first frame are ready, then eases up + fades onto a
+          fully-painted hero (no font swap, no image pop-in, no grain flash). progress drives the
+          ring. Unmounted shortly after (overlayMounted) so its animations don't run behind the site. */}
+      {overlayMounted && <FlatbakanLoading visible={!assetsReady} progress={loadProgress} />}
 
       {/* fixed backdrop - real scattered ingredients, bg removed + blurred, drifts with the pointer */}
       <div className="fb-bgwrap" aria-hidden>
@@ -597,7 +610,14 @@ const CSS = `
   flex:0 0 auto;box-shadow:0 8px 20px -8px rgba(28,18,8,.55)}
 .fb-badge img{width:80%;height:80%;object-fit:contain;filter:brightness(0) invert(1)}
 
-.fb-hero-mid{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:0}
+/* the hero content's half of the "arrive": it sits very slightly enlarged behind the orange
+   loading screen and eases down to rest as that screen lifts away, so the hero reads as settling
+   into focus rather than hard-cutting in. Pure transform (GPU compositor) - and the scroll
+   sequence re-measures on its own trigger (see onTrigger), so this transient scale never poisons
+   the pinned-pizza geometry. Longer than the overlay's own fade so you see it finish settling. */
+.fb-hero-mid{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:0;
+  transform:scale(1.05);transform-origin:50% 42%;transition:transform 1.05s cubic-bezier(.16,.72,.12,1);will-change:transform}
+.fb-root[data-revealed] .fb-hero-mid{transform:none}
 .fb-hero-word{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;
   font-family:${DISPLAY};font-weight:700;font-size:clamp(3.6rem,13vw,11.5rem);line-height:1;color:rgba(150,80,6,.20);
   letter-spacing:.01em;white-space:nowrap;text-transform:uppercase}
@@ -788,5 +808,7 @@ const CSS = `
      size and break the layout. */
   .fb-scrollcue{display:none}
   .fb-corner-slice{animation:none}
+  /* no scale-settle reveal for reduced-motion - hero is simply at rest */
+  .fb-hero-mid{transform:none;transition:none}
 }
 `

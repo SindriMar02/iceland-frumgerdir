@@ -23,6 +23,7 @@ export default function FlatbakanLoading({ visible = true, progress }: { visible
   // a minimum visible arc so the ring never looks empty/broken at the very start of a real load
   const shown = determinate ? Math.max(0.06, p) : 0.28
   const dashoffset = C * (1 - shown)
+  const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion:reduce)').matches
 
   return (
     <div
@@ -32,15 +33,22 @@ export default function FlatbakanLoading({ visible = true, progress }: { visible
         background: '#F19C2C', // exact hero orange - the fade reveals the real hero underneath
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.7rem',
         opacity: visible ? 1 : 0,
+        // on lift, the orange screen eases UP toward the viewer as it dissolves - the "curtain
+        // pulling back" half of the arrive; the hero underneath settles in to meet it (Page.tsx).
+        transform: visible || reduce ? 'none' : 'scale(1.06)',
+        transformOrigin: '50% 46%',
         pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity .5s ease',
+        transition: reduce ? 'opacity .35s ease' : 'opacity .62s ease, transform .72s cubic-bezier(.32,0,.22,1)',
+        willChange: 'opacity, transform',
       }}
     >
       <style>{`
         .fb-load-core{position:relative;width:132px;height:132px;display:grid;place-items:center}
+        /* soft radial gradient carries the glow - no filter:blur (that composited every frame,
+           including through the whole fade-out, for no visible gain over the gradient's own falloff) */
         .fb-load-glow{position:absolute;width:170%;height:170%;border-radius:50%;
-          background:radial-gradient(circle,rgba(255,224,158,.75),rgba(255,180,90,0) 66%);
-          filter:blur(7px);animation:fbLoadGlow 2.2s ease-in-out infinite}
+          background:radial-gradient(circle,rgba(255,224,158,.7),rgba(255,180,90,0) 68%);
+          animation:fbLoadGlow 2.2s ease-in-out infinite}
         .fb-load-ring{position:absolute;inset:0}
         .fb-load-ring--spin{animation:fbLoadSpin 1.05s linear infinite;transform-origin:66px 66px}
         .fb-load-badge{position:relative;width:78px;height:78px;border-radius:50%;background:#1C1712;
