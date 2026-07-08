@@ -43,7 +43,10 @@ const CHARCOAL = '#443C34'
 // Exact solid orange both pizza images are generated on, so the cutouts have no seam.
 const ORANGE = HERO_ORANGE
 
-const DISPLAY = "'ClashDisplay-Variable', 'ClashDisplay-Bold', system-ui, sans-serif"
+// The studio's own licensed display face, self-hosted from flatbakan.is (public/fonts/flatbakan) -
+// matches the real site's h1/h2 headline type exactly, weight 400 only (no bold cut exists, so
+// headline hierarchy comes from size, same as the source site - see the font-weight:400 below).
+const DISPLAY = "'HorndonBecker', Georgia, serif"
 const SANS = "'CabinetGrotesk-Variable', 'CabinetGrotesk-Regular', system-ui, sans-serif"
 
 /* ------------------------------------------------------------------ Reveal */
@@ -401,7 +404,7 @@ export default function FlatbakanPage() {
 
   return (
     <div ref={rootRef} className="fb-root" data-revealed={assetsReady ? '' : undefined} style={{ background: CREAM, color: INK, fontFamily: SANS }}>
-      <link rel="stylesheet" href={`${BASE}fonts/clash-display/css/clash-display.css`} />
+      <link rel="stylesheet" href={`${BASE}fonts/flatbakan/css/flatbakan.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <style>{CSS}</style>
 
@@ -622,10 +625,10 @@ const CSS = `
   transform:scale(1.05);transform-origin:50% 42%;transition:transform 1.05s cubic-bezier(.16,.72,.12,1);will-change:transform}
 .fb-root[data-revealed] .fb-hero-mid{transform:none}
 .fb-hero-word{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;
-  font-family:${DISPLAY};font-weight:700;font-size:clamp(3.6rem,13vw,11.5rem);line-height:1;color:rgba(150,80,6,.20);
+  font-family:${DISPLAY};font-weight:400;font-size:clamp(3.6rem,13vw,11.5rem);line-height:1;color:rgba(150,80,6,.20);
   letter-spacing:.01em;white-space:nowrap;text-transform:uppercase}
 .fb-hero-copy{position:relative;z-index:3;text-align:center;pointer-events:none;margin-top:clamp(.6rem,3vh,2.4rem)}
-.fb-h1{font-family:${DISPLAY};font-weight:600;font-size:clamp(2.4rem,6vw,4.6rem);line-height:.92;letter-spacing:-.02em;margin:0;color:${INK}}
+.fb-h1{font-family:${DISPLAY};font-weight:400;font-size:clamp(2.4rem,6vw,4.6rem);line-height:.92;letter-spacing:-.02em;margin:0;color:${INK}}
 /* "sneið" - fun inky brush-script accent word set in Arkipelago (from the studio's curated font
    library, full Icelandic glyph coverage incl. ð verified - see flatbakan.css comment). Same RED
    as the CTA buttons (.fb-sticky-panta / "Allur matseðillinn"), not a separate accent color, no
@@ -639,7 +642,7 @@ const CSS = `
    echoing the dashed award-stamp motif used later at .fb-award (promise here, proof there). */
 .fb-claim{display:inline-flex;align-items:center;gap:.4rem;margin-top:.9rem;padding:.5rem 1.15rem;
   background:${CREAM_LT};border:1.5px dashed ${RED};border-radius:999px;transform:rotate(-1.5deg);
-  font-family:${DISPLAY};font-weight:600;font-size:.82rem;letter-spacing:.03em;text-transform:uppercase;
+  font-family:${DISPLAY};font-weight:400;font-size:.82rem;letter-spacing:.03em;text-transform:uppercase;
   color:${RED};box-shadow:0 8px 18px -10px rgba(28,18,8,.45)}
 .fb-claim-star{font-size:.85em;line-height:1}
 
@@ -721,7 +724,7 @@ const CSS = `
 /* ---- framed website ---- */
 .fb-frame{position:relative;z-index:1;max-width:min(1360px,90vw);margin:0 auto clamp(.9rem,2vw,1.6rem);background:${CREAM};
   border:9px solid ${INK};border-radius:clamp(24px,3vw,40px);overflow:clip;box-shadow:0 40px 90px -50px rgba(28,18,8,.6)}
-.fb-h2{font-family:${DISPLAY};font-weight:600;font-size:clamp(1.9rem,3.6vw,3rem);line-height:.98;letter-spacing:-.015em;margin:0}
+.fb-h2{font-family:${DISPLAY};font-weight:400;font-size:clamp(1.9rem,3.6vw,3rem);line-height:.98;letter-spacing:-.015em;margin:0}
 .fb-body{font-size:1.04rem;line-height:1.6;color:${MUTE};max-width:56ch}
 
 .fb-sec{padding:clamp(3rem,6vw,5.5rem) clamp(1.2rem,4vw,3.5rem)}
@@ -737,8 +740,8 @@ const CSS = `
   font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;padding:.32rem .7rem;border-radius:999px;border:1.5px solid ${INK}}
 .fb-card-body{display:flex;flex-direction:column;flex:1;padding:1.2rem 1.3rem 1.4rem}
 .fb-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
-.fb-card-top h3{font-family:${DISPLAY};font-weight:600;font-size:1.4rem;margin:0;letter-spacing:-.01em}
-.fb-price{font-family:${DISPLAY};font-weight:600;font-size:1.3rem;color:${RED};white-space:nowrap}
+.fb-card-top h3{font-family:${DISPLAY};font-weight:400;font-size:1.4rem;margin:0;letter-spacing:-.01em}
+.fb-price{font-family:${DISPLAY};font-weight:400;font-size:1.3rem;color:${RED};white-space:nowrap}
 .fb-price em{font-family:${SANS};font-size:.62em;font-style:normal;color:${MUTE}}
 .fb-card-body p{font-size:.9rem;line-height:1.45;color:${MUTE};margin:.5rem 0 0;min-height:2.9em;
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
@@ -756,7 +759,7 @@ const CSS = `
 .fb-band{background:${CREAM_LT};border-top:2px solid ${INK};border-bottom:2px solid ${INK}}
 .fb-story{max-width:760px;margin:0 auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.2rem}
 .fb-award{display:inline-flex;flex-direction:column;padding:.7rem 1.3rem;border:1.5px dashed ${RED};border-radius:14px}
-.fb-award-t{font-family:${DISPLAY};font-weight:600;color:${RED}}
+.fb-award-t{font-family:${DISPLAY};font-weight:400;color:${RED}}
 .fb-award-s{font-size:.82rem;color:${MUTE}}
 
 .fb-truck{background:${ORANGE};border-top:2px solid ${INK};border-bottom:2px solid ${INK};
@@ -764,11 +767,11 @@ const CSS = `
 .fb-truck-lede{font-size:1.05rem;line-height:1.5;color:rgba(28,18,8,.82);margin:1rem 0 1.6rem;max-width:32ch}
 .fb-pkgs{display:grid;gap:1.2rem}
 .fb-pkg{background:${CREAM_LT};border:2px solid ${INK};border-radius:18px;padding:1.3rem 1.4rem;box-shadow:4px 4px 0 ${INK}}
-.fb-pkg h3{font-family:${DISPLAY};font-weight:600;font-size:1.5rem;margin:0}
+.fb-pkg h3{font-family:${DISPLAY};font-weight:400;font-size:1.5rem;margin:0}
 .fb-pkg p{font-size:.9rem;line-height:1.4;color:${MUTE};margin:.4rem 0 .9rem}
 .fb-rate{display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;border-top:1px solid rgba(28,23,18,.14);font-size:.95rem}
 .fb-rate em{font-style:normal;color:${MUTE};font-size:.8rem}
-.fb-rate-p{font-family:${DISPLAY};font-weight:600;color:${RED};white-space:nowrap}
+.fb-rate-p{font-family:${DISPLAY};font-weight:400;color:${RED};white-space:nowrap}
 
 .fb-visit{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,4vw,3rem);align-items:center}
 .fb-visit-cta{display:flex;gap:.8rem;margin-top:1.4rem;flex-wrap:wrap}
