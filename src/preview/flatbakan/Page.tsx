@@ -672,8 +672,17 @@ const CSS = `
 
 /* ---- pinned opener ---- */
 .fb-track{position:relative;z-index:2;height:240svh}
+/* viewport-fit=cover is baked statically into THIS route's own built index.html (see the postbuild
+   step in package.json - a targeted perl substitution on dist/preview/flatbakan/index.html only,
+   every other route's copy is untouched) rather than set from JS after mount, which iOS does not
+   reliably honour. With cover active at first paint, height:100svh spans the true full screen, so
+   the hero's own orange fills behind the status bar + home indicator for real - not a colour patch,
+   the actual hero. The extra top/bottom padding then keeps the nav and hero copy exactly where they
+   were, clear of the notch/indicator. env(...) is 0 on every other route (no cover there), so this
+   is a no-op elsewhere. */
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
-  display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
+  display:flex;flex-direction:column;
+  padding:calc(clamp(1rem,2.4vw,1.8rem) + env(safe-area-inset-top)) clamp(1rem,3vw,2.4rem) calc(clamp(1.4rem,3vw,2.2rem) + env(safe-area-inset-bottom))}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
    else in the stage - z-index:0 first in DOM so nav/copy/pizza (all z-index>=2) paint above it */
 .fb-grain-hero{position:absolute;inset:0;z-index:0;pointer-events:none}
@@ -813,8 +822,11 @@ const CSS = `
 .fb-chip:hover{background:${INK};color:${CREAM_LT}}
 
 /* fixed corner order CTA - always visible; the flying slice's landing target. Once it lands,
-   a static garnish crossfades in on top and idles there gently for the rest of the scroll. */
-.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);bottom:clamp(.9rem,2.4vw,1.5rem);
+   a static garnish crossfades in on top and idles there gently for the rest of the scroll.
+   +env(safe-area-inset-bottom): under cover mode a fixed element measures from the true screen
+   edge, under the home indicator, so this lifts it back to where it always sat; 0 elsewhere. */
+.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);
+  bottom:calc(clamp(.9rem,2.4vw,1.5rem) + env(safe-area-inset-bottom));
   display:inline-flex;align-items:center;justify-content:center;
   background:${RED};color:${CREAM_LT};font-family:${SANS};font-weight:700;text-transform:uppercase;letter-spacing:.05em;
   font-size:.82rem;padding:.85rem 1.4rem;border-radius:14px;border:2px solid ${INK};box-shadow:3px 3px 0 ${INK};
