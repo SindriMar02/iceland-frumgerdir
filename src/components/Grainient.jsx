@@ -127,7 +127,11 @@ const Grainient = ({
   color1 = '#FF9FFC',
   color2 = '#5227FF',
   color3 = '#B497CF',
-  className = ''
+  className = '',
+  // perf knobs: cap the backing-store DPR (a soft grain texture doesn't need 2x on retina -
+  // 1 is ~4x cheaper) and cap the render rate (an ambient texture is imperceptible at 30fps).
+  maxDpr = 2,
+  fps = 0
 }) => {
   const containerRef = useRef(null);
 
@@ -140,7 +144,7 @@ const Grainient = ({
       webgl: 2,
       alpha: true,
       antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2)
+      dpr: Math.min(window.devicePixelRatio || 1, maxDpr)
     });
 
     const gl = renderer.gl;
@@ -204,10 +208,14 @@ const Grainient = ({
     let isPageVisible = !document.hidden;
     const t0 = performance.now();
 
+    const minDt = fps > 0 ? 1000 / fps : 0;
+    let last = 0;
     const loop = t => {
+      raf = requestAnimationFrame(loop);
+      if (t - last < minDt) return;              // frame-rate cap (ambient texture, 30fps is plenty)
+      last = t;
       program.uniforms.iTime.value = (t - t0) * 0.001;
       renderer.render({ scene: mesh });
-      raf = requestAnimationFrame(loop);
     };
 
     const tryStart = () => {

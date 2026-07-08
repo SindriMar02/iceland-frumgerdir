@@ -291,6 +291,7 @@ export default function FlatbakanPage() {
               color1="#F6B663" color2={ORANGE} color3="#C17D23"
               contrast={0.9} saturation={0.85} grainAmount={0.05} grainScale={2.2}
               warpAmplitude={20} warpFrequency={3} timeSpeed={0.08} zoom={1.1}
+              maxDpr={1} fps={30}
             />
           </Suspense>
           <header className="fb-nav">
@@ -503,7 +504,7 @@ const CSS = `
   transform:translate(-50%,-50%) rotate(calc(var(--spin,0)*1deg));transform-origin:50% 50%;z-index:2;will-change:transform}
 .fb-glow{position:absolute;left:50%;top:52%;width:82%;height:82%;transform:translate(-50%,-50%);border-radius:50%;
   background:radial-gradient(circle,rgba(120,60,0,.26),rgba(120,60,0,0) 66%);filter:blur(4px)}
-.fb-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 20px 30px rgba(90,45,0,.30))}
+.fb-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 18px rgba(90,45,0,.30))}
 .fb-whole{opacity:calc(1 - var(--cut,0))}
 /* will-change:transform promotes each of the 7 slices to its own compositor layer, so the
    per-frame --spread transform is a cheap GPU move instead of re-rasterizing the drop-shadow
