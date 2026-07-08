@@ -625,16 +625,15 @@ const CSS = `
   transform:scale(1.05);transform-origin:50% 42%;transition:transform 1.05s cubic-bezier(.16,.72,.12,1);will-change:transform}
 .fb-root[data-revealed] .fb-hero-mid{transform:none}
 .fb-hero-word{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;
-  font-family:${DISPLAY};font-weight:400;font-size:clamp(3.6rem,13vw,11.5rem);line-height:1;color:rgba(150,80,6,.20);
+  font-family:${DISPLAY};font-weight:400;font-size:clamp(5.5rem,21vw,19rem);line-height:1;color:rgba(150,80,6,.20);
   letter-spacing:.01em;white-space:nowrap;text-transform:uppercase}
 .fb-hero-copy{position:relative;z-index:3;text-align:center;pointer-events:none;margin-top:clamp(.6rem,3vh,2.4rem)}
 .fb-h1{font-family:${DISPLAY};font-weight:400;font-size:clamp(2.4rem,6vw,4.6rem);line-height:.92;letter-spacing:-.02em;margin:0;color:${INK}}
-/* "sneið" - fun inky brush-script accent word set in Arkipelago (from the studio's curated font
-   library, full Icelandic glyph coverage incl. ð verified - see flatbakan.css comment). Same RED
-   as the CTA buttons (.fb-sticky-panta / "Allur matseðillinn"), not a separate accent color, no
-   gradient. line-height is loose and overflow is never clipped since Arkipelago's tall
-   ascenders/descenders (esp. the "ð" flick) sit outside a tight line-box. */
-.fb-sneid{font-family:'Arkipelago',cursive;font-weight:400;font-size:1.5em;line-height:1.3;
+/* "sneið" - accent word set in the same HorndonBecker headline face as .fb-h1, just italicised
+   (synthetic slant - the face only ships one upright style) and rotated a touch, so it reads as
+   a flourish off the headline rather than a second typeface. Same RED as the CTA buttons
+   (.fb-sticky-panta / "Allur matseðillinn"), not a separate accent color, no gradient. */
+.fb-sneid{font-family:${DISPLAY};font-style:italic;font-weight:400;font-size:1.15em;line-height:1.3;
   display:inline-block;transform:rotate(-3deg);color:${RED};
   text-shadow:0 1px 0 rgba(28,17,8,.55),0 3px 16px rgba(28,17,8,.3)}
 .fb-lede{font-size:clamp(1rem,1.4vw,1.16rem);line-height:1.5;color:rgba(28,18,8,.82);max-width:40ch;margin:.85rem auto 0}
