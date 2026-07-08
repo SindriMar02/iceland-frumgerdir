@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import Lenis from 'lenis'
 import { Percent, Pizza, Leaf, UtensilsCrossed, CupSoda, Gift, Tag } from 'lucide-react'
 import Dock from '../../components/Dock'
+import FlatbakanLoading from './Loading'
 import {
   ORDER, PHONE_DISPLAY, PHONE_HREF, EMAIL, MAPS, SOCIAL, IMG, SLICE_GEO, SLICES, TRAVELLER_VEC, HERO_ORANGE,
   FEATURED, MENU_LINKS, HOURS, TRUCK, STORY, KAERLEIKS, AWARD, ADDRESS,
@@ -85,6 +86,29 @@ export default function FlatbakanPage() {
   const pizzaRef = useRef<HTMLDivElement>(null)
   const pantaRef = useRef<HTMLAnchorElement>(null)
   const bgRef = useRef<HTMLImageElement>(null)
+
+  // gates the loading overlay's fade-out - stays true (overlay visible) until the custom webfonts
+  // AND the hero pizza image are actually ready, not just until this component's JS chunk has
+  // loaded. Those fonts are self-hosted and only get discovered once this component renders (the
+  // sitewide Fontshare CDN preload in index.html registers a DIFFERENT font-family name, so it
+  // doesn't help here - see the flatbakan font-face rules below), so without this gate the real
+  // content would flash in system-font-then-swap right after the loading screen disappears -
+  // trading one glitch for a smaller one instead of actually fixing it. Deliberately its own
+  // separate effect/state, not threaded into the scroll-driving effect below, so it can't affect
+  // that effect's carefully-tuned behavior.
+  const [assetsReady, setAssetsReady] = useState(false)
+  useEffect(() => {
+    let settled = false
+    const finish = () => { if (!settled) { settled = true; setAssetsReady(true) } }
+    const img = new Image()
+    img.src = IMG.whole
+    const imgReady = img.decode().catch(() => {}) // swallow - a failed decode shouldn't block the reveal
+    const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve()
+    Promise.all([fontsReady, imgReady]).then(finish)
+    // never trap the visitor behind the loading screen if a resource stalls
+    const failsafe = window.setTimeout(finish, 4000)
+    return () => { settled = true; window.clearTimeout(failsafe) }
+  }, [])
 
   // the fixed ingredients backdrop drifts gently with the pointer - eased, small, never reveals an edge
   useEffect(() => {
@@ -347,6 +371,11 @@ export default function FlatbakanPage() {
       <link rel="stylesheet" href={`${BASE}fonts/clash-display/css/clash-display.css`} />
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <style>{CSS}</style>
+
+      {/* same component App.tsx shows as this route's Suspense fallback - stays up until fonts +
+          the hero image are ready, then fades to reveal a hero that's already fully correct
+          (no flash of fallback-font text, no image pop-in right after the loading screen). */}
+      <FlatbakanLoading visible={!assetsReady} />
 
       {/* fixed backdrop - real scattered ingredients, bg removed + blurred, drifts with the pointer */}
       <div className="fb-bgwrap" aria-hidden>

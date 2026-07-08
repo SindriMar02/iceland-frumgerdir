@@ -5,6 +5,9 @@ import { MotionConfig } from 'framer-motion'
 // Eager (not lazy): the universal fallback must always be available, even if a
 // route chunk is stale or 404s. It names no client and never links to the hub.
 import NotFound from './pages/NotFound'
+// Eager: shown as this route's OWN Suspense fallback while its chunk downloads, so it must be
+// available synchronously - a lazy-loaded fallback can't render before its own chunk has loaded.
+import FlatbakanLoading from './preview/flatbakan/Loading'
 
 const Home = lazy(() => import('./pages/Home'))
 const IceTourism = lazy(() => import('./pages/IceTourism'))
@@ -166,7 +169,9 @@ export default function App() {
             <Route path="/preview/strytan" element={<StrytanPage />} />
             <Route path="/preview/bofs" element={<BofsPage />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
-            <Route path="/preview/flatbakan" element={<FlatbakanPage />} />
+            {/* own nested Suspense (not the outer fallback=null) so a slow chunk fetch shows a
+                branded loading screen instead of a blank flash - see Loading.tsx */}
+            <Route path="/preview/flatbakan" element={<Suspense fallback={<FlatbakanLoading />}><FlatbakanPage /></Suspense>} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
