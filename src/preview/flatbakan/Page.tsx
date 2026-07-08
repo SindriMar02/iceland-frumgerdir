@@ -100,6 +100,13 @@ export default function FlatbakanPage() {
   // style (see WebKit's "say goodbye to your web app's white bars" - safe-area colour extension).
   // Neither was ever set here, so it fell back to whatever WebKit auto-samples, landing on the
   // hero's orange. html/body are shared across every route in this SPA, so set + restore them.
+  // Also opt this route into viewport-fit=cover so the hero's own background can actually paint
+  // behind the status bar/home-indicator (env(safe-area-inset-*) resolves to 0 without it - the
+  // browser reserves that space and nothing can draw there at all). Scoped to this page only
+  // (the meta tag is shared by the whole SPA) and restored on unmount. The .fb-safe-bleed layer
+  // (see CSS) is the thing that actually paints into the freed-up space - it's a fully separate,
+  // zero-net-height decorative element, NOT a resize of .fb-stage-pin itself, specifically so nothing
+  // here can perturb the pinned intro's live-measured geometry (place()/measure() above).
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
     setThemeColor(CREAM)
@@ -108,9 +115,15 @@ export default function FlatbakanPage() {
     const prevBodyBg = document.body.style.backgroundColor
     html.style.backgroundColor = CREAM
     document.body.style.backgroundColor = CREAM
+    const vpMeta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
+    const prevViewport = vpMeta?.content ?? null
+    if (vpMeta && prevViewport && !/viewport-fit/.test(prevViewport)) {
+      vpMeta.content = `${prevViewport}, viewport-fit=cover`
+    }
     return () => {
       html.style.backgroundColor = prevHtmlBg
       document.body.style.backgroundColor = prevBodyBg
+      if (vpMeta && prevViewport) vpMeta.content = prevViewport
     }
   }, [])
 
@@ -453,6 +466,11 @@ export default function FlatbakanPage() {
 
       {/* ================================================= pinned pizza opener */}
       <div ref={trackRef} className="fb-track">
+        {/* purely decorative colour bleed into the iOS status-bar/home-indicator safe areas (see the
+            mount effect above for the viewport-fit=cover toggle this depends on) - a separate sticky
+            sibling, NOT a resize of .fb-stage-pin itself, so it can never affect that box's own
+            geometry or the pinned intro's live-measured math. Inert (0-sized) everywhere else. */}
+        <div className="fb-safe-bleed" aria-hidden />
         <div ref={stageRef} className="fb-stage-pin">
           {/* subtle living backdrop - tones stay within the SAME orange hue as the flat fallback
               background beneath it, so the pizza's exact-colour-matted cutout never shows a seam */}
@@ -648,6 +666,15 @@ const CSS = `
 
 /* ---- pinned opener ---- */
 .fb-track{position:relative;z-index:2;height:240svh}
+/* Zero-net-height: occupies height:H in flow, then cancels it with an equal negative margin, so it
+   contributes NOTHING to .fb-track's own offsetHeight (the pinned intro's scroll-span math reads
+   that directly - see measure() in the effect above). Sticky with the SAME top:0 as .fb-stage-pin
+   so the two pin/unpin in lockstep automatically, no JS coordination needed. Bleeds env(0) = 0px
+   everywhere viewport-fit=cover isn't active, so this is fully inert on every other page/route. */
+.fb-safe-bleed{position:sticky;top:calc(-1 * env(safe-area-inset-top));
+  height:calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+  margin-bottom:calc(-100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  background:${ORANGE};pointer-events:none;z-index:0}
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
   display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
@@ -790,7 +817,12 @@ const CSS = `
 
 /* fixed corner order CTA - always visible; the flying slice's landing target. Once it lands,
    a static garnish crossfades in on top and idles there gently for the rest of the scroll. */
-.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);bottom:clamp(.9rem,2.4vw,1.5rem);
+/* +env(safe-area-inset-bottom): viewport-fit=cover (toggled on for this page - see the mount effect)
+   makes position:fixed measure from the TRUE screen edge, under the home indicator, instead of the
+   browser's own safe inset - without this the button would drift down toward/under it. Adds 0px
+   everywhere the toggle isn't active, so its on-screen position is unchanged from before. */
+.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);
+  bottom:calc(clamp(.9rem,2.4vw,1.5rem) + env(safe-area-inset-bottom));
   display:inline-flex;align-items:center;justify-content:center;
   background:${RED};color:${CREAM_LT};font-family:${SANS};font-weight:700;text-transform:uppercase;letter-spacing:.05em;
   font-size:.82rem;padding:.85rem 1.4rem;border-radius:14px;border:2px solid ${INK};box-shadow:3px 3px 0 ${INK};
