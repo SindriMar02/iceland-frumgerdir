@@ -92,15 +92,26 @@ export default function FlatbakanPage() {
   const bgRef = useRef<HTMLImageElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Every other prototype in this repo sets its own title + mobile-browser-chrome tint on mount
-  // (see lib/preview.ts) - flatbakan had neither, so in-app browsers (Mail, etc.) fell back to
-  // sampling the page's own rendered colour for their toolbar tint, which is the hero's ORANGE for
-  // as long as .fb-stage-pin is pinned/near the top - and then stayed stuck on that colour even once
-  // scrolled well past it into the cream-framed site. Setting an explicit theme-color pins the
-  // chrome to the site's actual dominant background instead of an arbitrary sampled one.
+  // Every other prototype in this repo sets its own title + meta theme-color on mount (see
+  // lib/preview.ts) - flatbakan had neither, so that's added for consistency. But the actual
+  // top/bottom colour bleed into iOS's status-bar/home-indicator safe areas (what shows behind
+  // them in in-app browsers like Mail) is a SEPARATE WebKit mechanism from theme-color: it reads
+  // the real CSS background-color of <html>/<body>, not the meta tag or any inner div's inline
+  // style (see WebKit's "say goodbye to your web app's white bars" - safe-area colour extension).
+  // Neither was ever set here, so it fell back to whatever WebKit auto-samples, landing on the
+  // hero's orange. html/body are shared across every route in this SPA, so set + restore them.
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
     setThemeColor(CREAM)
+    const html = document.documentElement
+    const prevHtmlBg = html.style.backgroundColor
+    const prevBodyBg = document.body.style.backgroundColor
+    html.style.backgroundColor = CREAM
+    document.body.style.backgroundColor = CREAM
+    return () => {
+      html.style.backgroundColor = prevHtmlBg
+      document.body.style.backgroundColor = prevBodyBg
+    }
   }, [])
 
   // close the mobile menu on Escape; scoped to only listen while it's actually open
