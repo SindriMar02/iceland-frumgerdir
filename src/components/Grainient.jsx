@@ -131,9 +131,16 @@ const Grainient = ({
   // perf knobs: cap the backing-store DPR (a soft grain texture doesn't need 2x on retina -
   // 1 is ~4x cheaper) and cap the render rate (an ambient texture is imperceptible at 30fps).
   maxDpr = 2,
-  fps = 0
+  fps = 0,
+  // fires exactly once, right after the shader compiles and paints its first frame - lets a parent
+  // hold a loading screen up until the WebGL backdrop is actually on screen (no pop-in on reveal).
+  onReady
 }) => {
   const containerRef = useRef(null);
+  // held in a ref so effect 1 (which runs once) always calls the latest callback without needing
+  // onReady in its dep array - onReady is typically an inline arrow, unstable across renders.
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   // Effect 1: build WebGL context once, pause when offscreen / tab hidden
   useEffect(() => {
@@ -202,6 +209,9 @@ const Grainient = ({
     const ro = new ResizeObserver(setSize);
     ro.observe(container);
     setSize();
+    // first frame drawn (shader compiled + rendered synchronously above). Fired here, not from the
+    // rAF loop, so it still resolves when the tab is backgrounded (loop is gated on page visibility).
+    onReadyRef.current?.();
 
     let raf = 0;
     let isVisible = true;

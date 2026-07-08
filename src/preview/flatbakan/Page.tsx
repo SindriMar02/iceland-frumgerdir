@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import Lenis from 'lenis'
 import { Percent, Pizza, Leaf, UtensilsCrossed, CupSoda, Gift, Tag } from 'lucide-react'
 import Dock from '../../components/Dock'
@@ -87,28 +87,46 @@ export default function FlatbakanPage() {
   const pantaRef = useRef<HTMLAnchorElement>(null)
   const bgRef = useRef<HTMLImageElement>(null)
 
-  // gates the loading overlay's fade-out - stays true (overlay visible) until the custom webfonts
-  // AND the hero pizza image are actually ready, not just until this component's JS chunk has
-  // loaded. Those fonts are self-hosted and only get discovered once this component renders (the
-  // sitewide Fontshare CDN preload in index.html registers a DIFFERENT font-family name, so it
-  // doesn't help here - see the flatbakan font-face rules below), so without this gate the real
-  // content would flash in system-font-then-swap right after the loading screen disappears -
-  // trading one glitch for a smaller one instead of actually fixing it. Deliberately its own
-  // separate effect/state, not threaded into the scroll-driving effect below, so it can't affect
-  // that effect's carefully-tuned behavior.
-  const [assetsReady, setAssetsReady] = useState(false)
+  // Loading gate. The overlay stays up until EVERYTHING a visitor sees the instant they land is
+  // genuinely ready - not just this component's JS chunk. Landing on a half-warmed page is what
+  // caused the residual "glitch": the self-hosted brand fonts (only discovered once this component
+  // renders - the index.html Fontshare preload registers different family names), the hero pizza +
+  // fixed ingredient backdrop images, the logo, AND the lazy WebGL grain shader's first painted
+  // frame all resolve at slightly different times, so revealing on the earliest of them let the
+  // rest pop/swap in afterwards. Gating on ALL of them means the reveal is a fade onto a page
+  // that's already 100% painted - nothing left to load into view. The 8 explode slices are warmed
+  // too (so the scroll sequence can't hitch on an undecoded image) but do NOT gate the reveal:
+  // they're offscreen until the user scrolls, so decoding them shouldn't delay landing.
+  // GRAIN_KEY readiness is signalled by <Grainient onReady>. Own state/effect, fully decoupled
+  // from the scroll-driving effect below.
+  const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'bg', 'logo', 'grain'] as const, [])
+  const [ready, setReady] = useState<Record<string, boolean>>({})
+  const [forced, setForced] = useState(false)
+  const mark = useCallback((k: string) => setReady((r) => (r[k] ? r : { ...r, [k]: true })), [])
+  const readyCount = GATE_KEYS.reduce((n, k) => n + (ready[k] ? 1 : 0), 0)
+  const assetsReady = forced || readyCount === GATE_KEYS.length
+  const loadProgress = forced ? 1 : readyCount / GATE_KEYS.length
+
   useEffect(() => {
-    let settled = false
-    const finish = () => { if (!settled) { settled = true; setAssetsReady(true) } }
-    const img = new Image()
-    img.src = IMG.whole
-    const imgReady = img.decode().catch(() => {}) // swallow - a failed decode shouldn't block the reveal
-    const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve()
-    Promise.all([fontsReady, imgReady]).then(finish)
-    // never trap the visitor behind the loading screen if a resource stalls
-    const failsafe = window.setTimeout(finish, 4000)
-    return () => { settled = true; window.clearTimeout(failsafe) }
-  }, [])
+    let alive = true
+    const safeMark = (k: string) => { if (alive) mark(k) }
+    const warm = (src: string, key?: string) => {
+      const im = new Image()
+      im.src = src
+      im.decode().catch(() => {}).finally(() => { if (key) safeMark(key) })
+    }
+    ;(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => safeMark('fonts'))
+    warm(IMG.whole, 'hero')
+    warm(IMG.ingredientsBg, 'bg')
+    warm(IMG.logoBadge, 'logo')
+    // non-blocking: warm the explode slices + traveller so the spin sequence never hits an
+    // undecoded image, but don't hold the reveal on them (they're offscreen until scroll)
+    SLICES.forEach((sl) => warm(sl.img))
+    warm(IMG.slice)
+    // never trap a visitor behind the loader if a resource (or the WebGL context) stalls
+    const failsafe = window.setTimeout(() => { if (alive) setForced(true) }, 4500)
+    return () => { alive = false; window.clearTimeout(failsafe) }
+  }, [mark])
 
   // the fixed ingredients backdrop drifts gently with the pointer - eased, small, never reveals an edge
   useEffect(() => {
@@ -372,10 +390,10 @@ export default function FlatbakanPage() {
       <link rel="stylesheet" href={`${BASE}fonts/cabinet-grotesk/css/cabinet-grotesk.css`} />
       <style>{CSS}</style>
 
-      {/* same component App.tsx shows as this route's Suspense fallback - stays up until fonts +
-          the hero image are ready, then fades to reveal a hero that's already fully correct
-          (no flash of fallback-font text, no image pop-in right after the loading screen). */}
-      <FlatbakanLoading visible={!assetsReady} />
+      {/* same component App.tsx shows as this route's Suspense fallback - stays up until fonts,
+          images AND the grain shader's first frame are ready, then fades onto a fully-painted
+          hero (no font swap, no image pop-in, no grain flash). progress drives the ring. */}
+      <FlatbakanLoading visible={!assetsReady} progress={loadProgress} />
 
       {/* fixed backdrop - real scattered ingredients, bg removed + blurred, drifts with the pointer */}
       <div className="fb-bgwrap" aria-hidden>
@@ -394,6 +412,7 @@ export default function FlatbakanPage() {
               contrast={0.9} saturation={0.85} grainAmount={0.05} grainScale={2.2}
               warpAmplitude={20} warpFrequency={3} timeSpeed={0.08} zoom={1.1}
               maxDpr={1} fps={30}
+              onReady={() => mark('grain')}
             />
           </Suspense>
           <header className="fb-nav">
