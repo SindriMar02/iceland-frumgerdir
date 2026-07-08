@@ -92,39 +92,44 @@ export default function FlatbakanPage() {
   const bgRef = useRef<HTMLImageElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Every other prototype in this repo sets its own title + meta theme-color on mount (see
-  // lib/preview.ts) - flatbakan had neither, so that's added for consistency. But the actual
-  // top/bottom colour bleed into iOS's status-bar/home-indicator safe areas (what shows behind
-  // them in in-app browsers like Mail) is a SEPARATE WebKit mechanism from theme-color: it reads
-  // the real CSS background-color of <html>/<body>, not the meta tag or any inner div's inline
-  // style (see WebKit's "say goodbye to your web app's white bars" - safe-area colour extension).
-  // Neither was ever set here, so it fell back to whatever WebKit auto-samples, landing on the
-  // hero's orange. html/body are shared across every route in this SPA, so set + restore them.
-  // Also opt this route into viewport-fit=cover so the hero's own background can actually paint
-  // behind the status bar/home-indicator (env(safe-area-inset-*) resolves to 0 without it - the
-  // browser reserves that space and nothing can draw there at all). With cover on, .fb-stage-pin's
-  // own height:100svh spans the FULL screen edge-to-edge, so its orange simply fills those areas -
-  // no extra bleed element needed. The stage's top/bottom padding then adds the safe-area insets
-  // back (see CSS) so the nav and hero copy stay exactly where they were, just with orange behind
-  // the system bars. Scoped to this page only (the meta tag is shared by the whole SPA), restored
-  // on unmount.
+  // iOS safe-area colour (the "randomly orange" bands): in an in-app browser (Mail etc.) the strip
+  // behind the status bar is painted from the theme-color meta tag, and the strip behind the home
+  // indicator from the <html>/<body> background-color. Web content CANNOT draw into those reserved
+  // strips at all without viewport-fit=cover - and cover set from JS after mount is unreliable on
+  // iOS (the viewport meta is only parsed at first paint), so that route is a dead end here.
+  //
+  // Instead we just keep those two chrome colours matched to whatever is actually at the top/bottom
+  // of the screen, driven by scroll: ORANGE while the pinned hero fills the viewport (its edges are
+  // already flat orange, so the bands read as the hero continuing under the system UI), then CREAM
+  // once you're into the framed site. No layout changes at all - nothing moves, we only recolour
+  // the browser chrome. An IntersectionObserver watches a thin band at the very top of the viewport;
+  // when the cream .fb-frame reaches it, we switch. html/body are shared across the SPA, so restore.
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
-    setThemeColor(CREAM)
     const html = document.documentElement
     const prevHtmlBg = html.style.backgroundColor
     const prevBodyBg = document.body.style.backgroundColor
-    html.style.backgroundColor = CREAM
-    document.body.style.backgroundColor = CREAM
-    const vpMeta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
-    const prevViewport = vpMeta?.content ?? null
-    if (vpMeta && prevViewport && !/viewport-fit/.test(prevViewport)) {
-      vpMeta.content = `${prevViewport}, viewport-fit=cover`
+    const paint = (c: string) => {
+      setThemeColor(c)
+      html.style.backgroundColor = c
+      document.body.style.backgroundColor = c
+    }
+    paint(ORANGE) // the hero is what you land on
+    const frame = rootRef.current?.querySelector('.fb-frame')
+    let io: IntersectionObserver | undefined
+    if (frame) {
+      // effective root = the top ~8% of the viewport (status-bar band). isIntersecting flips true
+      // the moment the cream frame rises into it, false again when scrolled back up to the hero.
+      io = new IntersectionObserver(
+        ([e]) => paint(e.isIntersecting ? CREAM : ORANGE),
+        { rootMargin: '0px 0px -92% 0px' },
+      )
+      io.observe(frame)
     }
     return () => {
+      io?.disconnect()
       html.style.backgroundColor = prevHtmlBg
       document.body.style.backgroundColor = prevBodyBg
-      if (vpMeta && prevViewport) vpMeta.content = prevViewport
     }
   }, [])
 
@@ -662,15 +667,8 @@ const CSS = `
 
 /* ---- pinned opener ---- */
 .fb-track{position:relative;z-index:2;height:240svh}
-/* height:100svh already spans the full screen edge-to-edge once viewport-fit=cover is active (the
-   mount effect toggles it on for this route), so the orange fills behind the status bar + home
-   indicator for free - no separate bleed layer. The top/bottom padding just adds the safe-area
-   insets back so the nav and hero copy sit exactly where they did before (box-sizing:border-box
-   keeps the element itself exactly 100svh - the insets eat into the content box, they don't grow
-   it). env(...) is 0 wherever cover mode isn't active, so this is unchanged on every other page. */
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
-  display:flex;flex-direction:column;
-  padding:calc(clamp(1rem,2.4vw,1.8rem) + env(safe-area-inset-top)) clamp(1rem,3vw,2.4rem) calc(clamp(1.4rem,3vw,2.2rem) + env(safe-area-inset-bottom))}
+  display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
    else in the stage - z-index:0 first in DOM so nav/copy/pizza (all z-index>=2) paint above it */
 .fb-grain-hero{position:absolute;inset:0;z-index:0;pointer-events:none}
@@ -811,12 +809,7 @@ const CSS = `
 
 /* fixed corner order CTA - always visible; the flying slice's landing target. Once it lands,
    a static garnish crossfades in on top and idles there gently for the rest of the scroll. */
-/* +env(safe-area-inset-bottom): viewport-fit=cover (toggled on for this page - see the mount effect)
-   makes position:fixed measure from the TRUE screen edge, under the home indicator, instead of the
-   browser's own safe inset - without this the button would drift down toward/under it. Adds 0px
-   everywhere the toggle isn't active, so its on-screen position is unchanged from before. */
-.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);
-  bottom:calc(clamp(.9rem,2.4vw,1.5rem) + env(safe-area-inset-bottom));
+.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);bottom:clamp(.9rem,2.4vw,1.5rem);
   display:inline-flex;align-items:center;justify-content:center;
   background:${RED};color:${CREAM_LT};font-family:${SANS};font-weight:700;text-transform:uppercase;letter-spacing:.05em;
   font-size:.82rem;padding:.85rem 1.4rem;border-radius:14px;border:2px solid ${INK};box-shadow:3px 3px 0 ${INK};
