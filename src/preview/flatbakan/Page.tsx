@@ -34,6 +34,11 @@ const INK = '#1C1712'
 const CREAM_LT = '#FCF5E7'
 const RED = '#C8371C'
 const MUTE = 'rgba(28,23,18,0.6)'
+// The solid nav pills (Heim/Panta) sit on a hard offset box-shadow drawn in INK for the "sticker"
+// 3D pop used throughout this page - filling the pill with that SAME ink made the fill and its own
+// shadow indistinguishable, so the offset read as a flat, edgeless black blob instead of a raised
+// button. A visibly lighter dark grey keeps the "solid/dark" pill variant but restores the edge.
+const CHARCOAL = '#443C34'
 // Exact solid orange both pizza images are generated on, so the cutouts have no seam.
 const ORANGE = HERO_ORANGE
 
@@ -66,7 +71,7 @@ function Pill({ children, href = ORDER, active = false, ext = true, solid = fals
   const isDark = active || solid
   return (
     <a href={href} {...(ext ? { target: '_blank', rel: 'noreferrer' } : {})} className="fb-pill"
-      style={{ background: isDark ? INK : 'rgba(252,245,231,.9)', color: isDark ? CREAM_LT : INK, borderColor: INK }}>
+      style={{ background: isDark ? CHARCOAL : 'rgba(252,245,231,.9)', color: isDark ? CREAM_LT : INK, borderColor: INK }}>
       {children}
     </a>
   )
