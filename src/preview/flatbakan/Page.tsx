@@ -231,12 +231,30 @@ export default function FlatbakanPage() {
 
     // reduced motion: no pin, no spin - a clean, still, intact hero, corner CTA always visible
     if (reduce) { track.style.height = '100svh'; place(0); return }
+    place(0)
+    s.setProperty('--seq', '0.000')
 
-    // Lenis - buttery smooth scroll; our scroll-linked pizza sequence subscribes to its
-    // (smoothed) position instead of the raw native scroll, same pattern used elsewhere in this repo.
+    // ---- one-flick autoplay -------------------------------------------------------------
+    // A 240svh scroll-scrubbed sequence necessarily "halts" between individual wheel flicks -
+    // momentum always decays to zero between gestures, no matter how Lenis is tuned, because the
+    // whole point of a scrub is that physical scroll distance IS the timeline. Instead: the first
+    // scroll/swipe input is captured as a TRIGGER (not applied to the page), which plays the whole
+    // spin->cut->spread->separate sequence as one autonomous, time-driven rAF tween - genuinely
+    // continuous, not stitched from scroll deltas. Real scrolling stays fully locked (lenis.stop()
+    // reliably preventDefaults wheel+touch - confirmed against the installed Lenis source, both
+    // event types share one handler gated on isStopped) until the tween finishes, then the real
+    // scroll position is snapped to match the now-fully-played visual state and normal scrolling
+    // hands off exactly where the animation left - so the very next scroll moves the actual page.
+    type Phase = 'idle' | 'playing' | 'released'
+    let phase: Phase = 'idle'
     let y = 0
+
+    // scroll-linked path - drives the sequence from real scroll position, but ONLY once released;
+    // while 'idle'/'playing' this is a safe no-op guard against any stray scroll/resize callback
+    // clobbering the autonomous tween's own --seq writes.
     const update = () => {
       raf = 0
+      if (phase !== 'released') return
       const seq = clamp((y - trackTop) / span)
       s.setProperty('--seq', seq.toFixed(3))
       place(seq)
@@ -250,10 +268,11 @@ export default function FlatbakanPage() {
     if (import.meta.env.DEV) {
       // debug-only: bypass the rAF-batched onTick for direct/synchronous verification (harness
       // preview tabs throttle rAF unreliably - see redesign-playbook memory)
-      (window as unknown as { __lenis?: Lenis; __fbUpdate?: () => void; __fbMeasure?: () => void; __fbGeo?: unknown }).__lenis = lenis
+      (window as unknown as { __lenis?: Lenis; __fbUpdate?: () => void; __fbMeasure?: () => void; __fbGeo?: unknown; __fbPhase?: () => Phase; __fbPlay?: () => void }).__lenis = lenis
       ;(window as unknown as { __fbUpdate?: () => void }).__fbUpdate = update
       ;(window as unknown as { __fbMeasure?: () => void }).__fbMeasure = measure
       ;(window as unknown as { __fbGeo?: unknown }).__fbGeo = { get: () => ({ vh, trackTop, span, S, pcx, pcy, bcx, btnTop }) }
+      ;(window as unknown as { __fbPhase?: () => Phase }).__fbPhase = () => phase
     }
     y = lenis.scroll
     lenis.on('scroll', () => { y = lenis.scroll; onTick() })
@@ -261,7 +280,39 @@ export default function FlatbakanPage() {
     const loop = (time: number) => { lenis.raf(time); lenisRaf = requestAnimationFrame(loop) }
     lenisRaf = requestAnimationFrame(loop)
 
-    update()
+    const PLAY_MS = 2400 // total time for the whole one-flick sequence - tuned for a premium,
+    // unhurried reveal that still feels immediate (not laggy) on the trigger flick itself
+    let playRaf = 0
+    let playStart = 0
+    const playTick = (time: number) => {
+      if (!playStart) playStart = time
+      // linear time->seq: place() already applies its own per-phase easing (ease-in-out spin,
+      // ease-out spread, ease-in-out separation) to whatever seq it's handed - layering a SECOND
+      // outer easing curve on top would double-ease and blur those already-tuned curves.
+      const t = clamp((time - playStart) / PLAY_MS)
+      s.setProperty('--seq', t.toFixed(3))
+      place(t)
+      if (t < 1) { playRaf = requestAnimationFrame(playTick); return }
+      phase = 'released'
+      window.removeEventListener('wheel', onTrigger)
+      window.removeEventListener('touchmove', onTrigger)
+      const target = trackTop + span
+      y = target
+      lenis.start()
+      lenis.scrollTo(target, { immediate: true })
+    }
+    const onTrigger = (e: Event) => {
+      if (phase !== 'idle') { if (e.cancelable) e.preventDefault(); return }
+      if (e.cancelable) e.preventDefault()
+      phase = 'playing'
+      playStart = 0
+      playRaf = requestAnimationFrame(playTick)
+    }
+    if (import.meta.env.DEV) (window as unknown as { __fbPlay?: () => void }).__fbPlay = () => onTrigger(new Event('debug', { cancelable: false }))
+
+    lenis.stop()
+    window.addEventListener('wheel', onTrigger, { passive: false })
+    window.addEventListener('touchmove', onTrigger, { passive: false })
     window.addEventListener('resize', onResize)
     // the corner button's width depends on webfont-rendered text ("Panta núna" in CabinetGrotesk)
     // - measure() above can run before that font swaps in (FOUT), caching a fallback-font width
@@ -271,8 +322,11 @@ export default function FlatbakanPage() {
     document.fonts.ready.then(() => { if (!cancelled) { measure(); onTick() } })
     return () => {
       cancelled = true
+      window.removeEventListener('wheel', onTrigger)
+      window.removeEventListener('touchmove', onTrigger)
       window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
+      if (playRaf) cancelAnimationFrame(playRaf)
       cancelAnimationFrame(lenisRaf)
       lenis.destroy()
     }
