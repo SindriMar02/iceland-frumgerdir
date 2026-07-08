@@ -92,21 +92,14 @@ export default function FlatbakanPage() {
   const bgRef = useRef<HTMLImageElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // iOS safe-area handling - two complementary layers so the top/bottom system-bar strips are always
-  // right, whether or not the device honours cover mode:
-  //
-  // 1. viewport-fit=cover: lets the hero's own background actually PAINT into the status-bar and
-  //    home-indicator strips (without it env(safe-area-inset-*) is 0 and web content can't draw
-  //    there at all). With cover on, .fb-stage-pin's height:100svh spans the full screen edge-to-edge
-  //    so its orange fills those strips for free; the stage's safe-area padding (see CSS) then keeps
-  //    the nav + Panta button clear of the notch/indicator. Set on the shared viewport meta scoped to
-  //    this route, restored on unmount.
-  // 2. scroll-driven chrome colour: theme-color + html/body background are the ONLY thing that colours
-  //    those strips when cover mode isn't active (JS-set cover can be ignored on iOS), so we also keep
-  //    them matched to what's on screen - ORANGE while the pinned hero fills the viewport (its edges
-  //    are flat orange, so the strips read as the hero continuing under the system UI), CREAM once the
-  //    framed site scrolls up. An IntersectionObserver on a thin top-of-viewport band does the switch.
-  // Neither moves any content; html/body are shared across the SPA, so both are restored on unmount.
+  // iOS safe-area chrome colour: theme-color + html/body background are what colour the strips
+  // behind the status bar and home indicator (viewport-fit=cover, which would let content actually
+  // PAINT into those strips, was tried and dropped - it's unproven anywhere else in this codebase
+  // and setting it from JS after mount is unreliable on iOS besides). Kept matched to what's on
+  // screen instead: ORANGE while the pinned hero fills the viewport (its edges are flat orange, so
+  // the strips read as the hero continuing under the system UI), CREAM once the framed site scrolls
+  // up, via an IntersectionObserver on a thin top-of-viewport band. Doesn't move any content.
+  // html/body are shared across the SPA, so restored on unmount.
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
     const html = document.documentElement
@@ -118,11 +111,6 @@ export default function FlatbakanPage() {
       document.body.style.backgroundColor = c
     }
     paint(ORANGE) // the hero is what you land on
-    const vpMeta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
-    const prevViewport = vpMeta?.content ?? null
-    if (vpMeta && prevViewport && !/viewport-fit/.test(prevViewport)) {
-      vpMeta.content = `${prevViewport}, viewport-fit=cover`
-    }
     const frame = rootRef.current?.querySelector('.fb-frame')
     let io: IntersectionObserver | undefined
     if (frame) {
@@ -138,7 +126,6 @@ export default function FlatbakanPage() {
       io?.disconnect()
       html.style.backgroundColor = prevHtmlBg
       document.body.style.backgroundColor = prevBodyBg
-      if (vpMeta && prevViewport) vpMeta.content = prevViewport
     }
   }, [])
 
@@ -413,9 +400,18 @@ export default function FlatbakanPage() {
       s.setProperty('--seq', '1.000')
       lenis.start()
     }
+    // touchmove is deliberately excluded from our own preventDefault: Lenis's own internal handler
+    // already preventDefaults touch once stopped (confirmed by reading its source - see the comment
+    // above lenis.stop()), so ours was a redundant SECOND interception, continuously, for the whole
+    // ~3.4s intro. That sustained double-swallow of the live touch-gesture stream is the one thing
+    // genuinely unique to this page (grep the repo - no other page preventDefaults touchmove at the
+    // window level) and turned out to be what left iOS Safari's own toolbar colour/visibility state
+    // stuck, independent of theme-color/background-colour - which is why none of those fixes helped.
+    // wheel and keydown still need it here (Lenis doesn't intercept keyboard scrolling at all, and
+    // wheel has no analogous mobile-chrome-gesture concern).
     const onTrigger = (e: Event) => {
-      if (phase !== 'idle') { if (e.cancelable) e.preventDefault(); return }
-      if (e.cancelable) e.preventDefault()
+      if (e.type !== 'touchmove' && e.cancelable) e.preventDefault()
+      if (phase !== 'idle') return
       measure() // defensive re-measure right before playing, in case anything shifted since mount
       phase = 'playing'
       playStart = 0
@@ -441,7 +437,7 @@ export default function FlatbakanPage() {
 
     lenis.stop()
     window.addEventListener('wheel', onTrigger, { passive: false })
-    window.addEventListener('touchmove', onTrigger, { passive: false })
+    window.addEventListener('touchmove', onTrigger, { passive: true })
     window.addEventListener('keydown', onKeyTrigger)
     window.addEventListener('resize', onResize)
     // the corner button's width depends on webfont-rendered text ("Panta núna" in CabinetGrotesk)
@@ -676,15 +672,8 @@ const CSS = `
 
 /* ---- pinned opener ---- */
 .fb-track{position:relative;z-index:2;height:240svh}
-/* height:100svh spans the full screen edge-to-edge once viewport-fit=cover is active (mount effect
-   toggles it on for this route), so the orange fills behind the status bar + home indicator. The
-   top/bottom padding adds the safe-area insets back so the nav and hero copy stay exactly where they
-   were - box-sizing:border-box keeps the element itself 100svh, the insets shrink the content box
-   rather than growing it. env(...) is 0 wherever cover mode isn't active, so this is unchanged
-   there (the scroll-driven chrome colour handles the strips in that case). */
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
-  display:flex;flex-direction:column;
-  padding:calc(clamp(1rem,2.4vw,1.8rem) + env(safe-area-inset-top)) clamp(1rem,3vw,2.4rem) calc(clamp(1.4rem,3vw,2.2rem) + env(safe-area-inset-bottom))}
+  display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
    else in the stage - z-index:0 first in DOM so nav/copy/pizza (all z-index>=2) paint above it */
 .fb-grain-hero{position:absolute;inset:0;z-index:0;pointer-events:none}
@@ -825,11 +814,7 @@ const CSS = `
 
 /* fixed corner order CTA - always visible; the flying slice's landing target. Once it lands,
    a static garnish crossfades in on top and idles there gently for the rest of the scroll. */
-/* +env(safe-area-inset-bottom): under viewport-fit=cover a fixed element measures from the true
-   screen edge (under the home indicator), so this lifts it clear; adds 0 when cover isn't active,
-   leaving its position unchanged. */
-.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);
-  bottom:calc(clamp(.9rem,2.4vw,1.5rem) + env(safe-area-inset-bottom));
+.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);bottom:clamp(.9rem,2.4vw,1.5rem);
   display:inline-flex;align-items:center;justify-content:center;
   background:${RED};color:${CREAM_LT};font-family:${SANS};font-weight:700;text-transform:uppercase;letter-spacing:.05em;
   font-size:.82rem;padding:.85rem 1.4rem;border-radius:14px;border:2px solid ${INK};box-shadow:3px 3px 0 ${INK};
