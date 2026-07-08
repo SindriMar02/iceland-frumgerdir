@@ -732,8 +732,14 @@ const CSS = `
    Visibility is driven by the same IntersectionObserver that switches the chrome colour (mount
    effect) - shown while the hero is the active section, hidden once the cream frame scrolls up, so
    they never show through the wrong (cream/ink) section. env(...) is 0 without cover mode, so
-   height collapses to 0 and these are invisible everywhere else. */
-.fb-edge-bleed{position:fixed;left:0;right:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .25s ease}
+   height collapses to 0 and these are invisible everywhere else.
+   z-index:3, NOT 1: .fb-track (below) is itself position:relative;z-index:2, which makes it a
+   stacking context of its own - EVERYTHING painted inside it (.fb-stage-pin's opaque orange
+   included) paints as one unit at that z-index:2 slot from the outside, regardless of any
+   z-index set on individual descendants. A z-index of 1 here lost to that 2 and was completely
+   invisible in practice - proved via elementFromPoint() against the real built app, not just
+   reasoned about. Must be > 2 to actually paint above .fb-track's content. */
+.fb-edge-bleed{position:fixed;left:0;right:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .fb-edge-bleed[data-show="true"]{opacity:1}
 .fb-edge-top{top:0;height:env(safe-area-inset-top);background:linear-gradient(180deg,#F6B663,${ORANGE})}
 .fb-edge-bottom{bottom:0;height:env(safe-area-inset-bottom);background:linear-gradient(0deg,#C17D23,${ORANGE})}
