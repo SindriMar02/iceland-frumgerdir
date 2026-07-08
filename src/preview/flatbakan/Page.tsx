@@ -379,9 +379,29 @@ export default function FlatbakanPage() {
     // (instant feedback the trigger landed) while still decelerating smoothly into the finish.
     let playRaf = 0
     let playStart = 0
+    // impatient-user speed-up: each extra scroll/flick WHILE the intro is already playing multiplies
+    // playback speed instead of being ignored, so two flicks noticeably hurries it along and lets
+    // scrolling continue sooner - this is a genuine live-updating rate change (re-anchoring playStart
+    // so `elapsed*speed` is continuous at the instant of the boost), not a jump-cut to a later frame,
+    // so the choreography still plays through, just faster. BOOST_COOLDOWN collapses one continuous
+    // gesture's rapid-fire wheel/touchmove events into a single boost, so a single sustained flick
+    // doesn't runaway-accelerate on its own - only genuinely separate scroll attempts count.
+    let speed = 1
+    let lastBoostAt = 0
+    const BOOST_COOLDOWN = 220
+    const SPEED_STEP = 2.1
+    const SPEED_MAX = 6
+    const boost = (time: number) => {
+      if (time - lastBoostAt < BOOST_COOLDOWN) return
+      lastBoostAt = time
+      if (speed >= SPEED_MAX) return
+      const elapsedBefore = (time - playStart) * speed
+      speed = Math.min(SPEED_MAX, speed * SPEED_STEP)
+      playStart = time - elapsedBefore / speed
+    }
     const playTick = (time: number) => {
       if (!playStart) playStart = time
-      const t = easeOut(clamp((time - playStart) / PLAY_MS))
+      const t = easeOut(clamp(((time - playStart) * speed) / PLAY_MS))
       s.setProperty('--seq', t.toFixed(3))
       place(t)
       if (t < 1) { playRaf = requestAnimationFrame(playTick); return }
@@ -411,10 +431,14 @@ export default function FlatbakanPage() {
     // wheel has no analogous mobile-chrome-gesture concern).
     const onTrigger = (e: Event) => {
       if (e.type !== 'touchmove' && e.cancelable) e.preventDefault()
-      if (phase !== 'idle') return
+      // by the time phase is anything but 'idle' it can only be 'playing' here - the listeners this
+      // handler is attached to are removed the instant playTick reaches 'released' (below), so a
+      // second scroll/flick mid-playback speeds the sequence up rather than being silently dropped.
+      if (phase !== 'idle') { boost(performance.now()); return }
       measure() // defensive re-measure right before playing, in case anything shifted since mount
       phase = 'playing'
       playStart = 0
+      speed = 1
       playRaf = requestAnimationFrame(playTick)
     }
     // native keyboard scrolling is a code path Lenis's stop() doesn't touch (confirmed by reading
