@@ -166,12 +166,19 @@ body {
   }
 }
 
-/* Lenis smooth scroll (used by the 64° Distillery "wild to glass" journey) */
+/* Lenis smooth scroll (used by the 64° Distillery "wild to glass" journey, bofs, flatbakan) */
 html.lenis,
 html.lenis body {
   height: auto;
 }
-.lenis.lenis-smooth {
+/* Cancel the native CSS smooth-scroll the moment Lenis mounts, not only while it's mid-animation.
+   Lenis (1.3.x) only adds the "lenis-smooth" modifier while isScrolling === "smooth" - a transient
+   state during an active animated scroll - so `.lenis.lenis-smooth` misses the start of every
+   gesture and any idle-time programmatic scroll, during which the browser's own scroll-behavior:
+   smooth (set globally on html above) fights Lenis's rAF-driven easing with a second, independent
+   easing pass on top - the double-smoothing reads as sluggish input delay. The base "lenis" class
+   is present for Lenis's whole mounted lifetime, so target that instead (matches Lenis's own docs). */
+.lenis {
   scroll-behavior: auto !important;
 }
 .lenis.lenis-smooth [data-lenis-prevent] {

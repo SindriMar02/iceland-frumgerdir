@@ -244,7 +244,9 @@ export default function FlatbakanPage() {
     const onTick = () => { if (!raf) raf = requestAnimationFrame(update) }
     const onResize = () => { measure(); onTick() }
 
-    const lenis = new Lenis({ duration: 1.3, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
+    // duration matches the repo's other Lenis pages (bofs 1.1, reykjavikdistillery 1.15) - this
+    // page was an outlier at 1.3s, which reads as extra input lag on top of trackpad momentum.
+    const lenis = new Lenis({ duration: 1.15, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
     if (import.meta.env.DEV) {
       // debug-only: bypass the rAF-batched onTick for direct/synchronous verification (harness
       // preview tabs throttle rAF unreliably - see redesign-playbook memory)
@@ -506,9 +508,21 @@ const CSS = `
   color:${RED};box-shadow:0 8px 18px -10px rgba(28,18,8,.45)}
 .fb-claim-star{font-size:.85em;line-height:1}
 
-/* pizza layers - whole cross-fades into the spaced cut body, both spinning together */
-.fb-pizza{position:absolute;top:60%;left:50%;width:min(60vw,465px);aspect-ratio:1;
-  transform:translate(-50%,-50%) rotate(calc(var(--spin,0)*1deg));transform-origin:50% 50%;z-index:2;will-change:transform}
+/* pizza layers - whole cross-fades into the spaced cut body, both spinning together.
+   A normal (non-absolute) flex child with margin:auto, NOT a fixed top:60% anchor - the old fixed
+   percentage was tuned for a 2-line hero-copy block and silently started overlapping the claim
+   badge once a 3rd line was added, since it never accounted for the copy block's real height.
+   margin:auto in a column flex container centers the pizza in whatever space is left BELOW
+   hero-copy, however tall that content happens to be - correct by construction, not tuning. */
+/* the 3rd min() term bounds pizza height by whatever's actually left in the 100svh stage after
+   nav + hero-copy + padding + a real gap - without it, on shorter/wider viewports hero-copy plus
+   a full 465px pizza can simply exceed the available box, leaving margin:auto nothing to
+   distribute (auto margins can't invent space that isn't there). The max(220px, ...) floor matters
+   on genuinely short viewports (e.g. phones in landscape, ~400px tall): the calc() term alone goes
+   NEGATIVE there, and min() picking a negative width clamps to 0 - the pizza vanished entirely
+   until this floor was added. 220px keeps it a real, clearly visible hero image even then. */
+.fb-pizza{position:relative;width:min(60vw,465px,max(220px,calc(100svh - 26rem)));aspect-ratio:1;margin:auto;
+  transform:rotate(calc(var(--spin,0)*1deg));transform-origin:50% 50%;z-index:2;will-change:transform}
 .fb-glow{position:absolute;left:50%;top:52%;width:82%;height:82%;transform:translate(-50%,-50%);border-radius:50%;
   background:radial-gradient(circle,rgba(120,60,0,.26),rgba(120,60,0,0) 66%);filter:blur(4px)}
 .fb-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 18px rgba(90,45,0,.30))}
@@ -656,7 +670,10 @@ const CSS = `
 }
 @media (prefers-reduced-motion:reduce){
   .fb-track{height:100svh}
-  .fb-pizza{transform:translate(-50%,-50%)!important}
+  /* pizza is a flow layout child now (margin:auto), not translate-anchored - --spin already
+     resolves to 0 here (place(0) never enters the spin window), so no override is needed to
+     hold it still; forcing the OLD translate(-50%,-50%) would now shift it by half its own
+     size and break the layout. */
   .fb-scrollcue{display:none}
   .fb-corner-slice{animation:none}
 }
