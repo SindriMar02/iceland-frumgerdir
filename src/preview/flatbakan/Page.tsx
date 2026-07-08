@@ -344,6 +344,7 @@ export default function FlatbakanPage() {
       phase = 'released'
       window.removeEventListener('wheel', onTrigger)
       window.removeEventListener('touchmove', onTrigger)
+      window.removeEventListener('keydown', onKeyTrigger)
       track.style.height = '100svh'
       place(1)
       s.setProperty('--seq', '1.000')
@@ -357,11 +358,28 @@ export default function FlatbakanPage() {
       playStart = 0
       playRaf = requestAnimationFrame(playTick)
     }
+    // native keyboard scrolling is a code path Lenis's stop() doesn't touch (confirmed by reading
+    // its source) - space/arrow/page/home/end all move the document scroll position directly,
+    // bypassing the wheel/touch lock entirely. Treat the same set of keys as a trigger, but only
+    // when nothing else on the page already claimed the keystroke (defaultPrevented - covers the
+    // Dock's own Enter/Space activation) or the target is an actual form control.
+    const SCROLL_KEYS = new Set([' ', 'Spacebar', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'End', 'Home'])
+    const isFormTarget = (t: EventTarget | null) => {
+      if (!(t instanceof HTMLElement)) return false
+      const tag = t.tagName
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t.isContentEditable
+    }
+    const onKeyTrigger = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return
+      if (!SCROLL_KEYS.has(e.key) || isFormTarget(e.target)) return
+      onTrigger(e)
+    }
     if (import.meta.env.DEV) (window as unknown as { __fbPlay?: () => void }).__fbPlay = () => onTrigger(new Event('debug', { cancelable: false }))
 
     lenis.stop()
     window.addEventListener('wheel', onTrigger, { passive: false })
     window.addEventListener('touchmove', onTrigger, { passive: false })
+    window.addEventListener('keydown', onKeyTrigger)
     window.addEventListener('resize', onResize)
     // the corner button's width depends on webfont-rendered text ("Panta núna" in CabinetGrotesk)
     // - measure() above can run before that font swaps in (FOUT), caching a fallback-font width
@@ -373,6 +391,7 @@ export default function FlatbakanPage() {
       cancelled = true
       window.removeEventListener('wheel', onTrigger)
       window.removeEventListener('touchmove', onTrigger)
+      window.removeEventListener('keydown', onKeyTrigger)
       window.removeEventListener('resize', onResize)
       if (playRaf) cancelAnimationFrame(playRaf)
       cancelAnimationFrame(lenisRaf)
