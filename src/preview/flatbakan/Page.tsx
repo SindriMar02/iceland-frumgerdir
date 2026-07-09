@@ -92,33 +92,26 @@ export default function FlatbakanPage() {
   const bgRef = useRef<HTMLImageElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // iOS safe-area handling: ONLY .fb-edge-top (JSX below) - a real fixed element sized to
-  // env(safe-area-inset-top), coloured to match the hero, genuinely mounted/unmounted (not just
-  // restyled) between orange and cream as the hero enters/leaves view. There is deliberately NO
-  // bottom equivalent and NO html/body background-colour override anymore. Per Sindri: the bottom
-  // strip (where the compact URL bar sits) should show nothing at all - the page itself, same as
-  // every other normal site - not a colour-matched patch. Two things both had to go to get that:
-  // 1. the old .fb-edge-bottom element (removed outright), and
-  // 2. setting html/body background-color, which is Safari's own DOCUMENTED FALLBACK for the
-  //    bottom strip when no qualifying fixed/sticky element exists there - even with the strip
-  //    gone, leaving body's background orange would have kept the bottom bar stuck exactly the
-  //    same way, just via a different code path. Only setThemeColor (the meta tag) remains as a
-  //    harmless legacy nicety for pre-Safari-26 versions - it can't cause a body-fallback colour
-  //    since it isn't the body's actual background.
-  const [heroActive, setHeroActive] = useState(true)
+  // iOS safe-area handling. THE fix, after ~11 wrong attempts at various "colour the bar" tricks:
+  // this page is now just a NORMAL page - no viewport-fit=cover (removed from package.json's
+  // postbuild), no fixed colour strips, no html/body background override. The persistent orange
+  // bottom bar was never a chrome-tint problem: it was the fixed, full-viewport, opaque orange
+  // ingredients backdrop (.fb-bgwrap - position:fixed) painting into the home-indicator safe area,
+  // which viewport-fit=cover had opened up. A fixed backdrop doesn't scroll, so it showed a constant
+  // orange there at every scroll position - something no ordinary website has. With cover gone the
+  // fixed backdrop is clipped to the safe viewport again, the home-indicator/URL-bar band reverts to
+  // the browser's normal translucent-over-content behaviour, and .fb-bgwrap is additionally bounded
+  // so it can never define the bottom screen edge (see its CSS). setThemeColor stays as a harmless
+  // nicety - it tints the toolbar on Android Chrome / pre-Safari-26 iOS (Safari 26 ignores it), and
+  // can't cause a bottom bar since it isn't a real element's background.
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
     setThemeColor(ORANGE) // the hero is what you land on
     const frame = rootRef.current?.querySelector('.fb-frame')
     let io: IntersectionObserver | undefined
     if (frame) {
-      // effective root = the top ~8% of the viewport (status-bar band). isIntersecting flips true
-      // the moment the cream frame rises into it, false again when scrolled back up to the hero.
       io = new IntersectionObserver(
-        ([e]) => {
-          setThemeColor(e.isIntersecting ? CREAM : ORANGE)
-          setHeroActive(!e.isIntersecting)
-        },
+        ([e]) => setThemeColor(e.isIntersecting ? CREAM : ORANGE),
         { rootMargin: '0px 0px -92% 0px' },
       )
       io.observe(frame)
@@ -493,25 +486,6 @@ export default function FlatbakanPage() {
           ring. Unmounted shortly after (overlayMounted) so its animations don't run behind the site. */}
       {overlayMounted && <FlatbakanLoading visible={!assetsReady} progress={loadProgress} />}
 
-      {/* Real safe-area bleed under the iOS status bar ONLY - no bottom equivalent, see the mount
-          effect above for why. Root-level sibling (NOT nested in .fb-stage-pin) so its
-          overflow:hidden can never clip it; position:fixed itself too, so it has zero layout
-          footprint of its own. GENUINELY mounted/unmounted (not just opacity-toggled, and NOT just
-          a className swap on a reused node) - Safari's edge-colour sampling is computed once at
-          paint time and does not re-evaluate a mutated style property on an element it already
-          sampled, only when a NEW qualifying element actually appears in the render tree. Confirmed
-          two ways this has to be a REAL new DOM node: (1) the colour stayed stuck on the hero's
-          orange even well after scrolling past it with an opacity-toggle version; (2) a plain
-          ternary swapping className between two branches at the same tree position doesn't work
-          either - verified via a marker property on the DOM node that React was reusing the SAME
-          node and just patching its class, which is exactly the "mutate an existing element" case
-          that doesn't re-trigger sampling. The key props below are load-bearing, not decorative -
-          they're what forces React to treat the two branches as different elements and actually
-          unmount/remount across them. */}
-      {heroActive
-        ? <div key="edge-top-orange" className="fb-edge-bleed fb-edge-top" aria-hidden />
-        : <div key="edge-top-cream" className="fb-edge-bleed fb-edge-top fb-edge-cream" aria-hidden />}
-
       {/* fixed backdrop - real scattered ingredients, bg removed + blurred, drifts with the pointer */}
       <div className="fb-bgwrap" aria-hidden>
         <img ref={bgRef} src={IMG.ingredientsBg} alt="" className="fb-bgimg" draggable={false} />
@@ -708,54 +682,23 @@ const CSS = `
   src:url('${BASE}fonts/flatbakan/fonts/Arkipelago.otf') format('opentype')}
 .fb-root{position:relative;min-height:100vh;overflow-x:clip}
 
-/* fixed ingredients backdrop - sits behind the frame + hero, drifts with the pointer (JS) */
-.fb-bgwrap{position:fixed;inset:-24px;z-index:0;overflow:hidden;pointer-events:none}
+/* fixed ingredients backdrop - sits behind the frame + hero, drifts with the pointer (JS).
+   Bounded so it NEVER defines the bottom screen edge: top:-24px + height:calc(100svh + 24px) means
+   its bottom sits at the bottom of the safe viewport, never lower - so the compact iOS URL bar has
+   the normal scrolling page (cream .fb-root) beneath it, not this fixed opaque orange plane. That
+   fixed-plane-under-the-URL-bar was the entire "persistent orange bottom strip" bug: a non-scrolling
+   backdrop is the one thing an ordinary site doesn't have there. 24px below-fold headroom stays well
+   clear of the 18px pointer-drift (see AMOUNT in the effect above), so the drift never bares an edge. */
+.fb-bgwrap{position:fixed;top:-24px;left:-24px;right:-24px;height:calc(100svh + 24px);z-index:0;overflow:hidden;pointer-events:none}
 .fb-bgimg{width:100%;height:100%;object-fit:cover;display:block;will-change:transform}
 
 /* ---- pinned opener ---- */
 .fb-track{position:relative;z-index:2;height:240svh}
-/* viewport-fit=cover is baked statically into THIS route's own built index.html (see the postbuild
-   step in package.json - a targeted perl substitution on dist/preview/flatbakan/index.html only,
-   every other route's copy is untouched). This box is deliberately left completely alone, though -
-   svh is SPECIFICALLY DEFINED to track the small/safe viewport, not the full physical screen, so it
-   does NOT grow under cover mode the way plain vh historically did. Resizing this box to compensate
-   would desync it from window.innerHeight, which the pinned intro's JS geometry (measure() above)
-   depends on being exactly one viewport tall - not worth that risk. The real safe-area bleed is
-   handled by the separate .fb-edge-bleed strips below instead (position:fixed, zero layout
-   footprint, can never touch this box's own math). */
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
   display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
    else in the stage - z-index:0 first in DOM so nav/copy/pizza (all z-index>=2) paint above it */
 .fb-grain-hero{position:absolute;inset:0;z-index:0;pointer-events:none}
-
-/* Real safe-area bleed: two thin bars, sized exactly to the notch/home-indicator strips, filled
-   with a static gradient approximating the Grainient shader's own colour blend (color1/color2/color3
-   below) - a second live WebGL instance for a ~40px sliver mostly covered by system icons isn't
-   worth the GPU cost, and the missing grain/warp animation is imperceptible at that size. position:
-   fixed so these have ZERO layout footprint (unlike the earlier sticky+negative-margin attempt,
-   which didn't collapse the way it does in theory once a real safe-area inset was involved and
-   painted a full-screen band instead) - can never affect .fb-track/.fb-stage-pin's own geometry.
-   Visibility is driven by the same IntersectionObserver that switches the chrome colour (mount
-   effect) - shown while the hero is the active section, hidden once the cream frame scrolls up, so
-   they never show through the wrong (cream/ink) section. env(...) is 0 without cover mode, so
-   height collapses to 0 and these are invisible everywhere else.
-   z-index:3, NOT 1: .fb-track (below) is itself position:relative;z-index:2, which makes it a
-   stacking context of its own - EVERYTHING painted inside it (.fb-stage-pin's opaque orange
-   included) paints as one unit at that z-index:2 slot from the outside, regardless of any
-   z-index set on individual descendants. A z-index of 1 here lost to that 2 and was completely
-   invisible in practice - proved via elementFromPoint() against the real built app, not just
-   reasoned about. Must be > 2 to actually paint above .fb-track's content. */
-.fb-edge-bleed{position:fixed;left:0;right:0;z-index:3;pointer-events:none}
-/* background-color set explicitly, separately from the gradient: Safari 26's edge-sampling reads
-   the background-color PROPERTY specifically (per current research on its tinting algorithm) - the
-   background shorthand alone leaves background-color at its default transparent while the
-   gradient lives only in background-image, which the sampler may not read at all. Confirmed via
-   computed style on the real built app: backgroundColor was rgba(0,0,0,0) despite a visible
-   gradient. Setting both makes this robust regardless of which property Safari actually inspects -
-   a real viewer still sees the gradient (background-image paints over background-color). */
-.fb-edge-top{top:0;height:env(safe-area-inset-top);background-color:${ORANGE};background-image:linear-gradient(180deg,#F6B663,${ORANGE})}
-.fb-edge-cream.fb-edge-top{background-color:${CREAM};background-image:none}
 
 .fb-nav{position:relative;z-index:6;width:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .fb-nav-grp{display:flex;gap:.6rem}
@@ -892,11 +835,8 @@ const CSS = `
 .fb-chip:hover{background:${INK};color:${CREAM_LT}}
 
 /* fixed corner order CTA - always visible; the flying slice's landing target. Once it lands,
-   a static garnish crossfades in on top and idles there gently for the rest of the scroll.
-   +env(safe-area-inset-bottom): under cover mode a fixed element measures from the true screen
-   edge, under the home indicator, so this lifts it back to where it always sat; 0 elsewhere. */
-.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);
-  bottom:calc(clamp(.9rem,2.4vw,1.5rem) + env(safe-area-inset-bottom));
+   a static garnish crossfades in on top and idles there gently for the rest of the scroll. */
+.fb-sticky-panta{position:fixed;z-index:50;right:clamp(.9rem,2.4vw,1.6rem);bottom:clamp(.9rem,2.4vw,1.5rem);
   display:inline-flex;align-items:center;justify-content:center;
   background:${RED};color:${CREAM_LT};font-family:${SANS};font-weight:700;text-transform:uppercase;letter-spacing:.05em;
   font-size:.82rem;padding:.85rem 1.4rem;border-radius:14px;border:2px solid ${INK};box-shadow:3px 3px 0 ${INK};
