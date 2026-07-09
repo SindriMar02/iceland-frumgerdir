@@ -371,6 +371,7 @@ export default function FlatbakanPage() {
     // (instant feedback the trigger landed) while still decelerating smoothly into the finish.
     let playRaf = 0
     let playStart = 0
+    let releaseFailsafe = 0
     // impatient-user speed-up: each extra scroll/flick WHILE the intro is already playing multiplies
     // playback speed instead of being ignored, so two flicks noticeably hurries it along and lets
     // scrolling continue sooner - this is a genuine live-updating rate change (re-anchoring playStart
@@ -391,12 +392,18 @@ export default function FlatbakanPage() {
       speed = Math.min(SPEED_MAX, speed * SPEED_STEP)
       playStart = time - elapsedBefore / speed
     }
-    const playTick = (time: number) => {
-      if (!playStart) playStart = time
-      const t = easeOut(clamp(((time - playStart) * speed) / PLAY_MS))
-      s.setProperty('--seq', t.toFixed(3))
-      place(t)
-      if (t < 1) { playRaf = requestAnimationFrame(playTick); return }
+    // release() is the ONLY path that ever unlocks scrolling (removes the wheel/touch/keydown
+    // listeners and calls lenis.start()) - traced end-to-end per Sindri's audit request, this used
+    // to be reachable EXCLUSIVELY from playTick's t>=1 branch, with zero timeout/watchdog anywhere
+    // in this effect. If that rAF loop ever failed to reach completion for ANY reason (a stalled/
+    // throttled rAF, a backgrounded tab mid-gesture, anything) the page would stay scroll-locked at
+    // the hero PERMANENTLY, with no recovery path - the single most severe class of bug this page
+    // could ship, and one that would look identical to every "orange never goes away" symptom
+    // reported this session regardless of any CSS/colour fix, since the user would never actually
+    // reach the section those fixes touched. Named + guarded (idempotent - safe if both the normal
+    // rAF path and the failsafe timeout below fire close together) so it can be called from both.
+    const release = () => {
+      if (phase === 'released') return
       // intro complete: freeze at the landed state and collapse the pinned timeline to a single
       // screen, so the rest of the page scrolls normally from here. The finished sequence is NEVER
       // re-driven by scroll position again - that scroll-scrub is exactly what let a big scroll rush
@@ -407,10 +414,19 @@ export default function FlatbakanPage() {
       window.removeEventListener('wheel', onTrigger)
       window.removeEventListener('touchmove', onTrigger)
       window.removeEventListener('keydown', onKeyTrigger)
+      window.clearTimeout(releaseFailsafe)
       track.style.height = '100svh'
       place(1)
       s.setProperty('--seq', '1.000')
       lenis.start()
+    }
+    const playTick = (time: number) => {
+      if (!playStart) playStart = time
+      const t = easeOut(clamp(((time - playStart) * speed) / PLAY_MS))
+      s.setProperty('--seq', t.toFixed(3))
+      place(t)
+      if (t < 1) { playRaf = requestAnimationFrame(playTick); return }
+      release()
     }
     // touchmove is deliberately excluded from our own preventDefault: Lenis's own internal handler
     // already preventDefaults touch once stopped (confirmed by reading its source - see the comment
@@ -432,6 +448,12 @@ export default function FlatbakanPage() {
       playStart = 0
       speed = 1
       playRaf = requestAnimationFrame(playTick)
+      // failsafe: force-release the scroll lock even if the rAF loop somehow never reaches
+      // completion (see the comment on release() above). PLAY_MS is 3400ms; 2x is a generous
+      // margin - boosting only ever shortens real completion time, never lengthens it, so this
+      // stays a safe upper bound regardless of how many extra flicks speed things up.
+      window.clearTimeout(releaseFailsafe)
+      releaseFailsafe = window.setTimeout(release, PLAY_MS * 2)
     }
     // native keyboard scrolling is a code path Lenis's stop() doesn't touch (confirmed by reading
     // its source) - space/arrow/page/home/end all move the document scroll position directly,
@@ -468,6 +490,7 @@ export default function FlatbakanPage() {
       window.removeEventListener('touchmove', onTrigger)
       window.removeEventListener('keydown', onKeyTrigger)
       window.removeEventListener('resize', onResize)
+      window.clearTimeout(releaseFailsafe)
       if (playRaf) cancelAnimationFrame(playRaf)
       cancelAnimationFrame(lenisRaf)
       lenis.destroy()
