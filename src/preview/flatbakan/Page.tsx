@@ -741,8 +741,15 @@ const CSS = `
    reasoned about. Must be > 2 to actually paint above .fb-track's content. */
 .fb-edge-bleed{position:fixed;left:0;right:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .fb-edge-bleed[data-show="true"]{opacity:1}
-.fb-edge-top{top:0;height:env(safe-area-inset-top);background:linear-gradient(180deg,#F6B663,${ORANGE})}
-.fb-edge-bottom{bottom:0;height:env(safe-area-inset-bottom);background:linear-gradient(0deg,#C17D23,${ORANGE})}
+/* background-color set explicitly, separately from the gradient: Safari 26's edge-sampling reads
+   the background-color PROPERTY specifically (per current research on its tinting algorithm) - the
+   background shorthand alone leaves background-color at its default transparent while the
+   gradient lives only in background-image, which the sampler may not read at all. Confirmed via
+   computed style on the real built app: backgroundColor was rgba(0,0,0,0) despite a visible
+   gradient. Setting both makes this robust regardless of which property Safari actually inspects -
+   a real viewer still sees the gradient (background-image paints over background-color). */
+.fb-edge-top{top:0;height:env(safe-area-inset-top);background-color:${ORANGE};background-image:linear-gradient(180deg,#F6B663,${ORANGE})}
+.fb-edge-bottom{bottom:0;height:env(safe-area-inset-bottom);background-color:${ORANGE};background-image:linear-gradient(0deg,#C17D23,${ORANGE})}
 
 .fb-nav{position:relative;z-index:6;width:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .fb-nav-grp{display:flex;gap:.6rem}
