@@ -92,28 +92,23 @@ export default function FlatbakanPage() {
   const bgRef = useRef<HTMLImageElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // iOS safe-area handling, two layers:
-  // 1. .fb-edge-bleed strips (JSX below) - the REAL fix. Cover mode (baked into this route's own
-  //    static HTML - see package.json's postbuild) lets them paint into the notch/home-indicator
-  //    strips; heroActive picks which COLOUR VARIANT is actually mounted (see the JSX below for
-  //    why this has to be a real mount/unmount swap, not a style mutation on a persistent node).
-  // 2. theme-color + html/body background - a fallback for the (unlikely, but real) case a device
-  //    ignores cover mode entirely, so the bars are at least colour-matched instead of some default.
-  // Both driven by the same signal: ORANGE while the pinned hero fills the viewport, CREAM once the
-  // framed site scrolls up, via an IntersectionObserver on a thin top-of-viewport band. Neither
-  // moves any content. html/body are shared across the SPA, so restored on unmount.
+  // iOS safe-area handling: ONLY .fb-edge-top (JSX below) - a real fixed element sized to
+  // env(safe-area-inset-top), coloured to match the hero, genuinely mounted/unmounted (not just
+  // restyled) between orange and cream as the hero enters/leaves view. There is deliberately NO
+  // bottom equivalent and NO html/body background-colour override anymore. Per Sindri: the bottom
+  // strip (where the compact URL bar sits) should show nothing at all - the page itself, same as
+  // every other normal site - not a colour-matched patch. Two things both had to go to get that:
+  // 1. the old .fb-edge-bottom element (removed outright), and
+  // 2. setting html/body background-color, which is Safari's own DOCUMENTED FALLBACK for the
+  //    bottom strip when no qualifying fixed/sticky element exists there - even with the strip
+  //    gone, leaving body's background orange would have kept the bottom bar stuck exactly the
+  //    same way, just via a different code path. Only setThemeColor (the meta tag) remains as a
+  //    harmless legacy nicety for pre-Safari-26 versions - it can't cause a body-fallback colour
+  //    since it isn't the body's actual background.
   const [heroActive, setHeroActive] = useState(true)
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
-    const html = document.documentElement
-    const prevHtmlBg = html.style.backgroundColor
-    const prevBodyBg = document.body.style.backgroundColor
-    const paint = (c: string) => {
-      setThemeColor(c)
-      html.style.backgroundColor = c
-      document.body.style.backgroundColor = c
-    }
-    paint(ORANGE) // the hero is what you land on
+    setThemeColor(ORANGE) // the hero is what you land on
     const frame = rootRef.current?.querySelector('.fb-frame')
     let io: IntersectionObserver | undefined
     if (frame) {
@@ -121,7 +116,7 @@ export default function FlatbakanPage() {
       // the moment the cream frame rises into it, false again when scrolled back up to the hero.
       io = new IntersectionObserver(
         ([e]) => {
-          paint(e.isIntersecting ? CREAM : ORANGE)
+          setThemeColor(e.isIntersecting ? CREAM : ORANGE)
           setHeroActive(!e.isIntersecting)
         },
         { rootMargin: '0px 0px -92% 0px' },
@@ -130,8 +125,6 @@ export default function FlatbakanPage() {
     }
     return () => {
       io?.disconnect()
-      html.style.backgroundColor = prevHtmlBg
-      document.body.style.backgroundColor = prevBodyBg
     }
   }, [])
 
@@ -500,31 +493,24 @@ export default function FlatbakanPage() {
           ring. Unmounted shortly after (overlayMounted) so its animations don't run behind the site. */}
       {overlayMounted && <FlatbakanLoading visible={!assetsReady} progress={loadProgress} />}
 
-      {/* real safe-area bleed under the iOS status bar + home indicator - see .fb-edge-bleed CSS.
-          Root-level siblings (NOT nested in .fb-stage-pin) so its overflow:hidden can never clip
-          them; position:fixed themselves too, so they have zero layout footprint of their own.
-          GENUINELY mounted/unmounted (not just opacity-toggled, and NOT just a className swap on a
-          reused node) - Safari's edge-colour sampling is computed once at paint time and does not
-          re-evaluate a mutated style property on an element it already sampled, only when a NEW
-          qualifying element actually appears in the render tree. Confirmed two ways this has to be
-          a REAL new DOM node: (1) the colour was staying stuck on the hero's orange even well after
-          scrolling past it with the old opacity-toggle version; (2) tried a plain ternary swapping
-          className between two branches at the same tree position first - verified via a marker
-          property on the DOM node that React was reusing the SAME node and just patching its class,
-          which is exactly the "mutate an existing element" case that doesn't re-trigger sampling.
-          The `key` props below are load-bearing, not decorative - they're what forces React to
-          treat the two branches as different elements and actually unmount/remount across them. */}
-      {heroActive ? (
-        <>
-          <div key="edge-top-orange" className="fb-edge-bleed fb-edge-top" aria-hidden />
-          <div key="edge-bottom-orange" className="fb-edge-bleed fb-edge-bottom" aria-hidden />
-        </>
-      ) : (
-        <>
-          <div key="edge-top-cream" className="fb-edge-bleed fb-edge-top fb-edge-cream" aria-hidden />
-          <div key="edge-bottom-cream" className="fb-edge-bleed fb-edge-bottom fb-edge-cream" aria-hidden />
-        </>
-      )}
+      {/* Real safe-area bleed under the iOS status bar ONLY - no bottom equivalent, see the mount
+          effect above for why. Root-level sibling (NOT nested in .fb-stage-pin) so its
+          overflow:hidden can never clip it; position:fixed itself too, so it has zero layout
+          footprint of its own. GENUINELY mounted/unmounted (not just opacity-toggled, and NOT just
+          a className swap on a reused node) - Safari's edge-colour sampling is computed once at
+          paint time and does not re-evaluate a mutated style property on an element it already
+          sampled, only when a NEW qualifying element actually appears in the render tree. Confirmed
+          two ways this has to be a REAL new DOM node: (1) the colour stayed stuck on the hero's
+          orange even well after scrolling past it with an opacity-toggle version; (2) a plain
+          ternary swapping className between two branches at the same tree position doesn't work
+          either - verified via a marker property on the DOM node that React was reusing the SAME
+          node and just patching its class, which is exactly the "mutate an existing element" case
+          that doesn't re-trigger sampling. The key props below are load-bearing, not decorative -
+          they're what forces React to treat the two branches as different elements and actually
+          unmount/remount across them. */}
+      {heroActive
+        ? <div key="edge-top-orange" className="fb-edge-bleed fb-edge-top" aria-hidden />
+        : <div key="edge-top-cream" className="fb-edge-bleed fb-edge-top fb-edge-cream" aria-hidden />}
 
       {/* fixed backdrop - real scattered ingredients, bg removed + blurred, drifts with the pointer */}
       <div className="fb-bgwrap" aria-hidden>
@@ -769,8 +755,7 @@ const CSS = `
    gradient. Setting both makes this robust regardless of which property Safari actually inspects -
    a real viewer still sees the gradient (background-image paints over background-color). */
 .fb-edge-top{top:0;height:env(safe-area-inset-top);background-color:${ORANGE};background-image:linear-gradient(180deg,#F6B663,${ORANGE})}
-.fb-edge-bottom{bottom:0;height:env(safe-area-inset-bottom);background-color:${ORANGE};background-image:linear-gradient(0deg,#C17D23,${ORANGE})}
-.fb-edge-cream.fb-edge-top,.fb-edge-cream.fb-edge-bottom{background-color:${CREAM};background-image:none}
+.fb-edge-cream.fb-edge-top{background-color:${CREAM};background-image:none}
 
 .fb-nav{position:relative;z-index:6;width:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .fb-nav-grp{display:flex;gap:.6rem}
