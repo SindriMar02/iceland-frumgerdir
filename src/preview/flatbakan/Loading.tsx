@@ -30,10 +30,14 @@ export default function FlatbakanLoading({ visible = true, progress }: { visible
       aria-hidden="true"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        background: '#F19C2C', // exact hero orange - the fade reveals the real hero underneath
+        // White loading screen (was the hero orange). During the split-second load this fixed plane
+        // fills the viewport, so its colour is what paints the top + bottom screen bands on iOS -
+        // orange there read as "orange strips" at the edges. White keeps those bands white/neutral;
+        // it then fades to reveal the orange hero underneath (a clean white -> orange curtain).
+        background: '#FFFFFF',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.7rem',
         opacity: visible ? 1 : 0,
-        // on lift, the orange screen eases UP toward the viewer as it dissolves - the "curtain
+        // on lift, the white screen eases UP toward the viewer as it dissolves - the "curtain
         // pulling back" half of the arrive; the hero underneath settles in to meet it (Page.tsx).
         transform: visible || reduce ? 'none' : 'scale(1.06)',
         transformOrigin: '50% 46%',
@@ -47,7 +51,7 @@ export default function FlatbakanLoading({ visible = true, progress }: { visible
         /* soft radial gradient carries the glow - no filter:blur (that composited every frame,
            including through the whole fade-out, for no visible gain over the gradient's own falloff) */
         .fb-load-glow{position:absolute;width:170%;height:170%;border-radius:50%;
-          background:radial-gradient(circle,rgba(255,224,158,.7),rgba(255,180,90,0) 68%);
+          background:radial-gradient(circle,rgba(255,214,150,.4),rgba(255,190,110,0) 66%);
           animation:fbLoadGlow 2.2s ease-in-out infinite}
         .fb-load-ring{position:absolute;inset:0}
         .fb-load-ring--spin{animation:fbLoadSpin 1.05s linear infinite;transform-origin:66px 66px}

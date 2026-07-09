@@ -103,22 +103,10 @@ export default function FlatbakanPage() {
   // the browser's normal translucent-over-content behaviour, and .fb-bgwrap is additionally bounded
   // so it can never define the bottom screen edge (see its CSS). setThemeColor stays as a harmless
   // nicety - it tints the toolbar on Android Chrome / pre-Safari-26 iOS (Safari 26 ignores it), and
-  // can't cause a bottom bar since it isn't a real element's background.
+  // can't cause a bottom bar since it isn't a real element's background. (theme-color handoff is in
+  // its own assetsReady-gated effect below, so the toolbar stays WHITE during the load screen.)
   useEffect(() => {
     document.title = 'Flatbakan — Steinbökuð súrdeigspizza í Kópavogi'
-    setThemeColor(ORANGE) // the hero is what you land on
-    const frame = rootRef.current?.querySelector('.fb-frame')
-    let io: IntersectionObserver | undefined
-    if (frame) {
-      io = new IntersectionObserver(
-        ([e]) => setThemeColor(e.isIntersecting ? CREAM : ORANGE),
-        { rootMargin: '0px 0px -92% 0px' },
-      )
-      io.observe(frame)
-    }
-    return () => {
-      io?.disconnect()
-    }
   }, [])
 
   // close the mobile menu on Escape; scoped to only listen while it's actually open
@@ -180,6 +168,24 @@ export default function FlatbakanPage() {
     if (!assetsReady) return
     const t = window.setTimeout(() => setOverlayMounted(false), 780)
     return () => window.clearTimeout(t)
+  }, [assetsReady])
+
+  // theme-color handoff. While the loading screen is up it is WHITE (matching the white overlay), so
+  // the iOS toolbar / top+bottom bands stay white through the split-second load instead of flashing
+  // orange. The instant assets are ready (the overlay begins lifting to reveal the hero) it becomes
+  // the hero orange, and once the framed cream content scrolls in the IntersectionObserver flips it
+  // to cream. Gated on assetsReady (declared above) so this MUST live below that declaration.
+  useEffect(() => {
+    if (!assetsReady) { setThemeColor('#ffffff'); return }
+    setThemeColor(ORANGE)
+    const frame = rootRef.current?.querySelector('.fb-frame')
+    if (!frame) return
+    const io = new IntersectionObserver(
+      ([e]) => setThemeColor(e.isIntersecting ? CREAM : ORANGE),
+      { rootMargin: '0px 0px -92% 0px' },
+    )
+    io.observe(frame)
+    return () => io.disconnect()
   }, [assetsReady])
 
   // the fixed ingredients backdrop drifts gently with the pointer - the scattered toppings shift a
