@@ -683,13 +683,17 @@ const CSS = `
 .fb-root{position:relative;min-height:100vh;overflow-x:clip}
 
 /* fixed ingredients backdrop - sits behind the frame + hero, drifts with the pointer (JS).
-   Bounded so it NEVER defines the bottom screen edge: top:-24px + height:calc(100svh + 24px) means
-   its bottom sits at the bottom of the safe viewport, never lower - so the compact iOS URL bar has
-   the normal scrolling page (cream .fb-root) beneath it, not this fixed opaque orange plane. That
-   fixed-plane-under-the-URL-bar was the entire "persistent orange bottom strip" bug: a non-scrolling
-   backdrop is the one thing an ordinary site doesn't have there. 24px below-fold headroom stays well
-   clear of the 18px pointer-drift (see AMOUNT in the effect above), so the drift never bares an edge. */
-.fb-bgwrap{position:fixed;top:-24px;left:-24px;right:-24px;height:calc(100svh + 24px);z-index:0;overflow:hidden;pointer-events:none}
+   This position:fixed, opaque, orange plane was the entire "persistent orange bottom strip" bug on
+   iOS: a fixed backdrop doesn't scroll, so it shows a CONSTANT orange behind the compact iOS URL bar
+   / home indicator, and Safari, finding an opaque fixed element pinned to the bottom edge, paints the
+   toolbar as an opaque tinted bar instead of the normal translucent-over-scrolling-content. No
+   ordinary site has a fixed full-screen backdrop there - which is exactly why this happened on no
+   other website. It is hidden entirely on phones (see the max-width:860px block below) so the page is
+   structurally a NORMAL page at the bottom edge: the cream scrolling .fb-root/.fb-frame sits under the
+   URL bar and the bar goes translucent, matching the original site. The cost on mobile is nil - the
+   frame's side gutters there are only ~0.6rem, so this subtle texture was barely visible anyway; the
+   hero is unaffected (the orange .fb-stage-pin + grain shader paint over this backdrop regardless). */
+.fb-bgwrap{position:fixed;inset:-24px;z-index:0;overflow:hidden;pointer-events:none}
 .fb-bgimg{width:100%;height:100%;object-fit:cover;display:block;will-change:transform}
 
 /* ---- pinned opener ---- */
@@ -929,6 +933,11 @@ const CSS = `
   /* fill the width minus a tight gutter and CENTER (auto margins). The base rule's max-width:90vw
      left slack that a fixed .6rem left margin pushed off-centre, so override max-width here too. */
   .fb-frame{max-width:calc(100vw - 1.2rem);margin:0 auto .6rem;border-width:6px}
+  /* kill the fixed orange backdrop on phones - it was the opaque fixed plane under the iOS URL bar
+     that produced the persistent orange bottom strip (see .fb-bgwrap note above). With it gone the
+     bottom edge is the normal cream scrolling page, so the URL bar goes translucent like any site.
+     Barely visible at these gutter widths anyway; the hero's own orange stage/grain still paint. */
+  .fb-bgwrap{display:none}
   .fb-cards,.fb-truck,.fb-visit{grid-template-columns:1fr}
   .fb-nav{gap:.5rem}
   .fb-pizza{width:min(85vw,385px)}
