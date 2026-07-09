@@ -697,7 +697,17 @@ const CSS = `
 .fb-bgimg{width:100%;height:100%;object-fit:cover;display:block;will-change:transform}
 
 /* ---- pinned opener ---- */
-.fb-track{position:relative;z-index:2;height:240svh}
+/* height:100svh, NOT the old 240svh: flatbakan was the ONLY page in the project with a >100vh
+   scroll-jack "runway" here. That was vestigial - a leftover from an old scroll-SCRUBBED intro. The
+   current intro is a time-based autoplay that locks scrolling and plays IN PLACE, so it needs no
+   extra scroll height (the only value derived from the runway, span, is dev-debug-only). The old
+   240svh relied on JS (track.style.height='100svh' on intro completion) to collapse it afterward;
+   when that collapse didn't fire/complete, the page was ~140svh taller than its content, the next
+   section didn't begin right after the hero, and the fixed backdrop showed through the dead space -
+   the "extra orange space / page taller than content" bug. At 100svh the hero is exactly one
+   viewport and the menu begins immediately after it, like every other (normal-flow) redesign; the
+   autoplay still plays identically (scroll-locked, in place) and the JS collapse is now a no-op. */
+.fb-track{position:relative;z-index:2;height:100svh}
 .fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
   display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
