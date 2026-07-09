@@ -188,3 +188,50 @@ export const FACTS = [
 ]
 
 export const SHIPPING_THRESHOLD = 15000
+
+/* ── Unified product catalogue ─────────────────────────────────────────────
+   One list the shop grid AND the sorcerer both draw from, so a prescription
+   always resolves to a real, buyable item. Names + prices are the real
+   catalogue values from seidkarlinn.is (sýnishorn per the shared footer, since
+   list prices drift). `blurb` is descriptive only — NO medical claims. */
+export type ProductCat = 'te' | 'hunang' | 'sveppir' | 'frost' | 'hud' | 'faeda'
+
+export interface Product {
+  id: string
+  name: string
+  format: string
+  price: number
+  cat: ProductCat
+  blurb: string
+}
+
+export const PRODUCTS: Product[] = [
+  // Te-galdrar (the spell teas)
+  { id: 'svefngaldur', name: 'Svefngaldur', format: '100g te', price: 2990, cat: 'te', blurb: 'Mild jurtablanda fyrir kvöldið, hluti af galdra-te línunni.' },
+  { id: 'draumagaldur', name: 'Draumagaldur', format: '100g te', price: 2990, cat: 'te', blurb: 'Jurtablanda fyrir rólega nótt.' },
+  { id: 'hjartagaldur', name: 'Hjartagaldur', format: '100g te', price: 2990, cat: 'te', blurb: 'Jurtablanda til daglegrar notkunar, til að finna ró.' },
+  { id: 'kvennagaldur', name: 'Kvennagaldur', format: '100g te', price: 2690, cat: 'te', blurb: 'Netla, hafrastrá og hindberjalauf, sett saman með konur í huga.' },
+  { id: 'blodrugaldur', name: 'Blöðrugaldur', format: '100g te', price: 2690, cat: 'te', blurb: 'Jurtablanda til daglegrar notkunar.' },
+  // Sveppir & rætur (mushroom tinctures)
+  { id: 'cordyceps', name: 'Cordyceps 20% Cordyfresh', format: '30ml dropar', price: 5990, cat: 'sveppir', blurb: 'Sveppatinktúra, dropar í drykkinn eða morgunmatinn.' },
+  { id: 'lionsmane', name: 'Lions Mane 20% Cordyfresh', format: '30ml dropar', price: 5990, cat: 'sveppir', blurb: 'Tinktúra unnin úr Lions Mane sveppnum.' },
+  { id: 'reishi', name: 'Reishi 20% Cordyfresh', format: '30ml dropar', price: 5990, cat: 'sveppir', blurb: 'Tinktúra unnin úr Reishi sveppnum, gjarnan tekin á kvöldin.' },
+  { id: 'chaga', name: 'Chaga 50% Cordyfresh', format: '30ml dropar', price: 11990, cat: 'sveppir', blurb: 'Sterk Chaga tinktúra úr birkisveppnum.' },
+  // Hunang & frjó (honey + bee products)
+  { id: 'villibloma', name: 'Hrátt Villiblóma Hunang', format: '1kg', price: 6490, cat: 'hunang', blurb: 'Óunnið, hrátt villiblómahunang.' },
+  { id: 'hafjalla', name: 'Háfjallahunang', format: '1kg', price: 8490, cat: 'hunang', blurb: 'Hrátt hunang af hálendinu, óunnið.' },
+  { id: 'byflugnafrjo', name: 'Býflugnafrjó', format: '240g', price: 3990, cat: 'hunang', blurb: 'Frjókorn safnað af býflugum, út á skyrið eða í boostið.' },
+  { id: 'propolis', name: 'Propolis Tincture', format: '30ml', price: 4100, cat: 'hunang', blurb: 'Propolis dropar úr býflugnabúinu.' },
+  // Húð & hár
+  { id: 'cbd-oil', name: 'CBD Skin Oil', format: '30ml', price: 9990, cat: 'hud', blurb: 'Húðolía með CBD, sativa eða indica.' },
+  { id: 'batana', name: 'Batana Næring', format: 'hárnæring', price: 7990, cat: 'hud', blurb: 'Batana næring fyrir hárið.' },
+  // Frostþurrkað
+  { id: 'blaber', name: 'Frostþurrkuð Bláber', format: '250g', price: 6203, cat: 'frost', blurb: 'Frostþurrkuð ber til að narta í eða út á morgunmatinn.' },
+  // Fæðubótarefni
+  { id: 'd3k2', name: 'Ultimate D3+K2', format: 'dropar', price: 6550, cat: 'faeda', blurb: 'D-vítamín með K2, hugsað fyrir íslenska skammdegið.' },
+  { id: 'glysin', name: 'Glýsín ProHealth', format: '120 hylki', price: 4590, cat: 'faeda', blurb: 'Amínósýra í hylkjum.' },
+]
+
+export function getProduct(id: string): Product | undefined {
+  return PRODUCTS.find((p) => p.id === id)
+}
