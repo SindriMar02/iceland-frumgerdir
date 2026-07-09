@@ -47,7 +47,7 @@ export interface Intent {
 const INTENTS: Intent[] = [
   {
     id: 'svefn',
-    keys: ['svefn', 'sofa', 'sef ekki', 'sef illa', 'andvaka', 'vaka', 'sofna', 'naettur', 'threyttur a morgnana', 'vakna', 'sofuleysi'],
+    keys: ['svefn', 'sofa', 'sofn', 'sef illa', 'sef ekki', 'andvaka', 'vaka', 'vakna', 'svefnleys', 'sofuleys'],
     productId: 'svefngaldur',
     replies: [
       'Svefninn flýr marga um þessar mundir. Þegar hugurinn neitar að þagna á kvöldin er gott að eiga sér lítinn sið fyrir háttinn. Ég rétti þér {vara} — þú lætur teið standa í heitu vatni meðan þú leggur daginn frá þér. Enginn galdur í raun, heldur gömul ró í bolla.',
@@ -57,7 +57,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'draumar',
-    keys: ['draum', 'draema', 'martrod', 'martraed', 'dreymir', 'draumfarir'],
+    keys: ['draum', 'dreym', 'martr'],
     productId: 'draumagaldur',
     replies: [
       'Svo þig fýsir að muna draumana þína. Forfeður okkar lásu í þá og margir sofa enn með blað við rúmið. {vara} er kvöldblanda fyrir rólega nótt — bruggaðu þér bolla, andaðu djúpt og leyfðu huganum að reika. Hvað hann sýnir þér er þitt.',
@@ -66,7 +66,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'ro',
-    keys: ['kvidi', 'kvidin', 'stress', 'streita', 'ahyggjur', 'ro', 'slokun', 'slaka', 'spenna', 'spenntur', 'oroi', 'nidur', 'hugurinn a fullu', 'of mikid ad gera', 'hradur hugur'],
+    keys: ['kvid', 'streit', 'stress', 'ahyggj', 'slaka', 'slokun', 'spenn', 'oro', 'roleg', 'finna ro', 'vil ro', 'undir alagi', 'of mikid ad gera', 'hugurinn a fullu', 'hradur hugur'],
     productId: 'hjartagaldur',
     replies: [
       'Hugurinn á fullri ferð og hjartað með. Ég þekki það. Ég rétti þér {vara} — daglegt te sem margir taka sér stund með þegar allt er á iði. Þú sest, heldur um bollann og andar. Ekki lækning, heldur andrými.',
@@ -76,7 +76,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'kvenheilsa',
-    keys: ['kona', 'konur', 'kven', 'tur', 'tidir', 'blaedingar', 'hormon', 'tidahvorf', 'kvenheilsa', 'legid'],
+    keys: ['kona', 'konur', 'kven', ' tur', 'tidi', 'tidahvorf', 'blaeding', 'hormon', 'legid'],
     productId: 'kvennagaldur',
     replies: [
       'Fyrir þetta á ég sérstaka blöndu. {vara} er sett saman með konur í huga — netla, hafrastrá og hindberjalauf, jarðbundið te til daglegrar notkunar. Gömul lauf sem konur hafa bruggað lengur en nokkur man.',
@@ -85,7 +85,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'jafnvaegi',
-    keys: ['melting', 'magi', 'maginn', 'jafnvaegi', 'thembdur', 'meltingu', 'garnir', 'uppthemba'],
+    keys: ['melting', 'magi', 'maga', 'jafnvaeg', 'themb', 'garn', 'i maganum'],
     productId: 'blodrugaldur',
     replies: [
       'Þegar innra jafnvægið riðlast finnur maður það alls staðar. {vara} er jurtablanda til daglegrar notkunar — bolli eftir mat, hægt og rólega. Náttúran vinnur best þegar henni er ekki flýtt.',
@@ -94,7 +94,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'orka',
-    keys: ['orka', 'orku', 'threyta', 'threyttur', 'threklaus', 'slen', 'urvinda', 'utkeyrdur', 'orkulaus', 'buinn a thvi', 'engin orka', 'lufi'],
+    keys: ['ork', 'threyt', 'threk', 'slen', 'urvinda', 'utkeyrd', 'uttaugad', 'a nulli', 'engin orka', 'buin a thvi', 'buinn a thvi'],
     productId: 'cordyceps',
     replies: [
       'Þreytan sem sefur ekki af sér — hana þekkja margir í skammdeginu. Ég rétti þér {vara}, dropa úr sveppnum sem fjallgöngufólk hefur lengi haft í hávegum. Nokkrir dropar í morgundrykkinn og þú finnur þinn eigin takt. Engin kraftaverk, bara náttúra.',
@@ -103,7 +103,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'einbeiting',
-    keys: ['einbeiting', 'einbeita', 'fokus', 'heilathoka', 'minni', 'gleymi', 'utan vid mig', 'utan vid sig', 'hausinn i thoku', 'skyr hugsun', 'heili'],
+    keys: ['einbeit', 'fokus', 'heilathok', 'minni', 'gleym', 'thoku', 'man ekki', 'man illa', 'gloppott', 'utan vid mig', 'utan vid sig', 'skyr hugsun'],
     productId: 'lionsmane',
     replies: [
       'Hugurinn í þoku, ekki satt? {vara} er tinktúra úr sveppnum sem sumir kalla „makka minnisins“ — dropar í teið eða kaffið á morgnana. Ég lofa engu, en margir sverja fyrir skýrari daga.',
@@ -112,7 +112,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'onaemi',
-    keys: ['onaemi', 'kvef', 'kvef', 'halsbolga', 'veikur', 'veik', 'pest', 'flensa', 'vorn', 'hosti', 'kvefadur', 'ad verda veikur', 'verjast'],
+    keys: ['onaem', 'kvef', 'halsbolg', 'veik', 'pest', 'flens', 'vorn', 'verj', 'host', 'ad verda veik', 'immun'],
     productId: 'propolis',
     replies: [
       'Þegar pestir ganga er gott að styðja við sig. Ég rétti þér {vara} — dropar beint úr býflugnabúinu, gömul vörn sem býflugurnar sjálfar treysta á. Nokkrir dropar í heitt vatn með hunangi. Ég er enginn læknir, en náttúran á sín ráð.',
@@ -121,7 +121,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'hud',
-    keys: ['hud', 'thurr hud', 'exem', 'thurrk', 'hudin', 'klaedi', 'utbrot', 'thurra hud'],
+    keys: ['hud', 'exem', 'thurr', 'kladi', 'utbrot', 'psoriasis'],
     productId: 'cbd-oil',
     replies: [
       'Íslenskur vetur fer illa með húðina, þar er engum blöðum um að fletta. Ég rétti þér {vara} — húðolíu sem þú berð á þar sem þarf, kvölds og morgna. Mild og einföld, eins og húðin kann best að meta.',
@@ -130,7 +130,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'har',
-    keys: ['har', 'harid', 'harvoxtur', 'harlos', 'hargaedi', 'thunnt har', 'flasa'],
+    keys: [' har', 'harid', 'harvoxt', 'harlos', 'hargaed', 'flasa', 'harnaering'],
     productId: 'batana',
     replies: [
       'Fyrir hárið á ég {vara} — næringu sem hefur ferðast langt að og margir sverja fyrir. Berðu í, gefðu því tíma og reglu. Hárið vex á sínum hraða, ekki okkar.',
@@ -138,7 +138,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'vetur',
-    keys: ['d vitamin', 'vitamin', 'skammdegi', 'sol', 'solarleysi', 'myrkur', 'vetur', 'depurd', 'daufur', 'thungt skap', 'skap', 'nott og myrkur'],
+    keys: ['d vitamin', 'vitamin', 'skammdeg', 'solarleys', ' sol', 'myrk', 'vetur', 'vetr', 'depur', 'thunglynd', 'thungt skap', 'daufur'],
     productId: 'd3k2',
     replies: [
       'Sólin lætur á sér standa marga mánuði hér og það finna allir. {vara} er D-vítamín með K2, hugsað einmitt fyrir íslenska skammdegið. Fáir dropar á dag þegar sólin gefur ekki sitt. Ég er enginn læknir, en þetta veit hver Íslendingur.',
@@ -147,7 +147,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'snarl',
-    keys: ['snarl', 'nammi', 'saetindi', 'saett', 'hollt snarl', 'millimal', 'ad narta', 'ber', 'avextir', 'skyrid'],
+    keys: ['snarl', 'nammi', 'saetind', 'saett', 'hollt snarl', 'millimal', 'narta', 'avext', 'frostthurrk', 'berin', 'a skyrid'],
     productId: 'blaber',
     replies: [
       'Löngun í eitthvað sætt en gott? Ég rétti þér {vara} — ber sem eru þurrkuð við frost svo bragðið og liturinn haldast. Nartaðu beint úr pokanum eða stráðu yfir skyrið. Náttúrunnar eigin nammi.',
@@ -156,7 +156,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'gjof',
-    keys: ['gjof', 'gjafir', 'afmaeli', 'jol', 'gefa', 'pakki', 'handa vini', 'handa mommu'],
+    keys: ['gjof', 'gjaf', 'afmael', 'jola', 'jolin', 'gefa', 'pakk', 'handa '],
     productId: 'villibloma',
     replies: [
       'Gjöf úr náttúrunni klikkar sjaldan. Ég rétti þér {vara} — krukku af hráu, óunnu hunangi. Fátt er persónulegra en að gefa eitthvað sem jörðin sjálf bjó til. Ég get líka bent þér á gjafaöskjurnar okkar ef þig vantar meira.',
@@ -164,7 +164,7 @@ const INTENTS: Intent[] = [
   },
   {
     id: 'almenn',
-    keys: ['heilsa', 'almennt', 'byrja', 'nytt', 'veit ekki', 'hvad maelir thu med', 'eitthvad gott', 'hvar byrja eg', 'bara skoda'],
+    keys: ['heilsa', 'almennt', 'byrja', 'veit ekki', 'veit ekkert', 'maelir thu med', 'eitthvad gott', 'bara skoda', 'hvar byrja'],
     productId: 'villibloma',
     replies: [
       'Ef þú veist ekki hvar á að byrja, þá byrjaðu á hunangi. {vara} er hjartað í búðinni — hrátt, óunnið, skeið á dag út í teið eða beint af skeiðinni. Þaðan getum við fundið meira, segðu mér bara meira um þig.',
