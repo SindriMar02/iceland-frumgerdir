@@ -68,6 +68,8 @@ const StjornusolPage = lazy(() => import('./preview/stjornusol/Page'))
 const SaelanPage = lazy(() => import('./preview/saelan/Page'))
 const ArsolPage = lazy(() => import('./preview/arsol/Page'))
 const StrytanPage = lazy(() => import('./preview/strytan/Page'))
+// Seiðkarlinn — natural-products apothecary, "Galdrabókin" concept
+const SeidkarlinnPage = lazy(() => import('./preview/seidkarlinn/Page'))
 // Concept — Barna- og fjölskyldustofa "Öruggt skjól" (warm umbrella, per-centre pages)
 const BofsPage = lazy(() => import('./preview/bofs/Page'))
 const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
@@ -167,6 +169,7 @@ export default function App() {
             <Route path="/preview/saelan" element={<SaelanPage />} />
             <Route path="/preview/arsol" element={<ArsolPage />} />
             <Route path="/preview/strytan" element={<StrytanPage />} />
+            <Route path="/preview/seidkarlinn" element={<SeidkarlinnPage />} />
             <Route path="/preview/bofs" element={<BofsPage />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
             {/* own nested Suspense (not the outer fallback=null) so a slow chunk fetch shows a

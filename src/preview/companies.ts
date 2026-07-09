@@ -2277,6 +2277,65 @@ Ef ykkur líst vel á getum við fundið sanngjarnt verð. Ef ekki er ekkert má
 ${SIGN}`,
     },
   },
+  {
+    // Seiðkarlinn — Faxafen 14, Reykjavík. Shopify store, 100+ SKUs: the
+    // "galdur" herbal tea line, raw honey, Cordyfresh mushroom tinctures,
+    // freeze-dried fruit, CBD skincare, supplements. Owner email confirmed
+    // on their Facebook About page (not published on-site). Prices are real
+    // list prices at research time, sýnishorn per shared footer.
+    slug: 'seidkarlinn',
+    route: '/preview/seidkarlinn',
+    name: 'Seiðkarlinn',
+    sector: 'Náttúruvörur',
+    location: 'Faxafen 14, Reykjavík',
+    region: 'Capital',
+    established: 'Seiðkarlinn ehf., starfrækt frá 2023',
+    currentUrl: 'https://seidkarlinn.is',
+    ownerEmail: 'seidkarlinn@seidkarlinn.is',
+    concept: 'Galdrabókin',
+    conceptTagline:
+      'A warm Nordic apothecary built entirely from what the client already owns: the name (Seiðkarlinn = the sorcerer) and their own "galdur" (spell) tea line. Parchment cream, near-black ink, one rust accent, one honey-amber accent, Gloock display serif. Signature: "Veldu þinn galdur", a click-driven spell-matching ritual that maps a one-word need straight to a real product. Honeycomb-hex chapter grid, dotted-leader recipe cards, a working sample cart.',
+    accent: '#9C4A1F',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=600&q=70&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Alvöru vöruúrval á Shopify: hrátt hunang, sveppatinktúrur, frostþurrkaðir ávextir, jurtate og fleira — allt á lager með rauntímaverði',
+        'Nafnið sjálft (Seiðkarlinn) og "galdur"-vörulínan (Kvennagaldur, Svefngaldur, Draumagaldur o.fl.) eru þegar til sem einstakt eignarmerki',
+        'Alvöru verslun í Faxafeni 14 með sækja-í-verslun valkosti, ekki eingöngu netverslun',
+      ],
+      weaknesses: [
+        'Sjálfgefið Shopify-þema (Dawn): engin forsíðumynd, beint í vörulista, svart og hvítt',
+        '"Um okkur" er níutíu orð af almennum frösum — engin saga, engin mynd, ekkert sem útskýrir nafnið',
+        'Ekkert samband milli nafnsins/galdra-vörulínunnar og hönnunarinnar sjálfrar; ekkert netfang sýnilegt á vefnum sjálfum (aðeins tengiliðaform)',
+      ],
+      opportunities: [
+        'Byggja alla upplifunina á því sem er þegar til: galdra-teið verður að gagnvirkri "veldu þinn galdur" leið að réttri vöru',
+        'Hunangið, sveppatinktúrurnar og frostþurrkaði ávöxturinn gefa sterkt sjónrænt tungumál (hunangsseimur, gler, kraft-pappír) sem núverandi þemað hunsar með öllu',
+        'Faxafen-verslunin er ónýtt traust — engin mynd, ekkert kort, engin hvatning til að koma við',
+      ],
+    },
+    positioning:
+      'Ung náttúruvöruverslun með óvenju sterkt nafn og vöruúrval (heilsusveppir, hrátt hunang, frostþurrkaðir ávextir, jurtate nefnt eftir göldrum) falið á bak við sjálfgefið, sögulaust Shopify-þema. Frumgerðin gerir galdra-nafnið að skipulagsreglu alls vefsins í stað skreytingar: kaflaskipt eins og bók, með gagnvirkri leið til að finna réttan "galdur" og alvöru körfu. Öll verð eru sýnishorn frá rannsóknartíma.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Seiðkarlinn',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Þið eruð með einstaklega skemmtilegt nafn og vöruúrval, hrátt hunang, sveppatinktúrur, frostþurrkaða ávexti og heila te-línu sem heitir í höfuðið á göldrum, Svefngaldur, Draumagaldur og fleiri. Þegar ég skoðaði vefsíðuna ykkar fannst mér hún samt ekki nýta þetta neitt, hún er sjálfgefið verslunarþema, svarthvít, án myndar og án sögu.
+
+Ég hannaði því frumgerð að nýjum vef sem byggir alla upplifunina á því sem þið eigið nú þegar, nafninu og galdra-vörulínunni, með köflum eins og í bók og gagnvirkri leið þar sem gestur velur eitt orð og fær réttu jurtablönduna. Allt efni og verð á frumgerðinni eru sýnishorn sem þið staðfestið.
+
+Frumgerðina má skoða hér, hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Ef ykkur líst vel á getum við fundið sanngjarnt verð. Ef ekki er ekkert mál.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {
