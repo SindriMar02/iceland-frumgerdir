@@ -40,8 +40,12 @@ export function u(url: string, w: number, q = 80) {
   return `${url}?w=${w}&q=${q}&auto=format&fit=crop`
 }
 
+/** Icelandic thousands separator is a period ("2.690 kr."), not a comma —
+ *  formatted by hand rather than via toLocaleString('is-IS'), since some
+ *  runtimes silently fall back to en-GB (comma) grouping when their ICU
+ *  data doesn't include the is-IS locale. */
 export function isk(n: number) {
-  return `${n.toLocaleString('is-IS')} kr.`
+  return `${Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} kr.`
 }
 
 export const HERO = {
