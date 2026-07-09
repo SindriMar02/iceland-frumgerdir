@@ -404,17 +404,20 @@ export default function FlatbakanPage() {
     // rAF path and the failsafe timeout below fire close together) so it can be called from both.
     const release = () => {
       if (phase === 'released') return
-      // intro complete: freeze at the landed state and collapse the pinned timeline to a single
-      // screen, so the rest of the page scrolls normally from here. The finished sequence is NEVER
-      // re-driven by scroll position again - that scroll-scrub is exactly what let a big scroll rush
-      // it, a small one stall short of the end, and scrolling back up run it in reverse. We stayed
-      // locked at the very top the whole time, so there is no scroll snap: the frozen hero simply
-      // sits at the top with the real content directly below, and the next scroll moves the page.
+      // intro complete: freeze at the landed state and hand scrolling back. The hero is now a plain
+      // normal-flow block (.fb-stage-pin is position:relative - see its CSS), so there is nothing to
+      // "collapse": the frozen hero simply sits as the first screen with the real content directly
+      // below, and the next scroll moves the page. The finished sequence is NEVER re-driven by scroll
+      // position again - that old scroll-scrub is exactly what let a big scroll rush it, a small one
+      // stall short of the end, and scrolling back up run it in reverse. We stayed locked at the very
+      // top the whole time, so there is no scroll snap.
       phase = 'released'
       window.removeEventListener('wheel', onTrigger)
       window.removeEventListener('touchmove', onTrigger)
       window.removeEventListener('keydown', onKeyTrigger)
       window.clearTimeout(releaseFailsafe)
+      // track height is already 100svh in CSS; re-asserting it here is a harmless no-op kept only so
+      // reduced-motion / any future runway change still funnels through one place.
       track.style.height = '100svh'
       place(1)
       s.setProperty('--seq', '1.000')
@@ -719,19 +722,27 @@ const CSS = `
 .fb-bgwrap{position:fixed;inset:-24px;z-index:0;overflow:hidden;pointer-events:none}
 .fb-bgimg{width:100%;height:100%;object-fit:cover;display:block;will-change:transform}
 
-/* ---- pinned opener ---- */
-/* height:100svh, NOT the old 240svh: flatbakan was the ONLY page in the project with a >100vh
-   scroll-jack "runway" here. That was vestigial - a leftover from an old scroll-SCRUBBED intro. The
-   current intro is a time-based autoplay that locks scrolling and plays IN PLACE, so it needs no
-   extra scroll height (the only value derived from the runway, span, is dev-debug-only). The old
-   240svh relied on JS (track.style.height='100svh' on intro completion) to collapse it afterward;
-   when that collapse didn't fire/complete, the page was ~140svh taller than its content, the next
-   section didn't begin right after the hero, and the fixed backdrop showed through the dead space -
-   the "extra orange space / page taller than content" bug. At 100svh the hero is exactly one
-   viewport and the menu begins immediately after it, like every other (normal-flow) redesign; the
-   autoplay still plays identically (scroll-locked, in place) and the JS collapse is now a no-op. */
+/* ---- hero opener (NORMAL FLOW - no longer pinned) ---- */
+/* ROOT-CAUSE FIX (2026-07-09): the hero is now a plain normal-flow block, exactly like every other
+   redesign's hero (cf. saudarkroksbakari, a normal-flow section at min-height:100vh, position
+   relative). It used to be a position:sticky stage inside a track - the LAST surviving piece of an
+   old scroll-SCRUBBED intro (the 240svh scroll-jack runway was the other piece, already removed).
+   The current intro is a time-driven autoplay that LOCKS scrolling and plays IN PLACE at scroll 0,
+   so it never uses scroll position and never needed a sticky/pin at all: measured, the sticky had
+   ZERO travel (track height == stage height) and released the instant you scrolled - functionally
+   inert on desktop. But it was the ONE structural thing unique to flatbakan among all redesigns that
+   stayed position:sticky on MOBILE (brunastadir disables its sticky hero on phones; cavesofhella's
+   sticky has a real 220vh spacer). On iOS Safari a position:sticky viewport-height element is
+   re-evaluated against the viewport on every URL-bar show/hide, so the hero box kept being recomputed
+   as the toolbar animated during scroll - which is what made this page (and only this page) fail to
+   scroll seamlessly into the next section and leave a dead band, where normal-flow pages never do.
+   release()'s track.style.height='100svh' never fixed this because it only re-asserted a height that
+   was already set - it never took the hero OUT of the sticky scaffold. Making .fb-stage-pin
+   position:relative returns it to normal document flow while keeping the containing block for its
+   absolutely-positioned children (grain/badge/hero-word/scrollcue). The intro is byte-identical:
+   scroll-locked at 0, a relative box and a zero-travel sticky box render at the exact same place. */
 .fb-track{position:relative;z-index:2;height:100svh}
-.fb-stage-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:${ORANGE};
+.fb-stage-pin{position:relative;height:100svh;overflow:hidden;background:${ORANGE};
   display:flex;flex-direction:column;padding:clamp(1rem,2.4vw,1.8rem) clamp(1rem,3vw,2.4rem) clamp(1.4rem,3vw,2.2rem)}
 /* sits on the flat orange fallback (kept as a safety net if the canvas fails), behind everything
    else in the stage - z-index:0 first in DOM so nav/copy/pizza (all z-index>=2) paint above it */
