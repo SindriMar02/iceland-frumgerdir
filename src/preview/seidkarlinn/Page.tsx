@@ -67,6 +67,15 @@ const CSS = `
   100% { opacity: 1; transform: none; }
 }
 .gk-laid { opacity: 0; animation: gkLay .7s cubic-bezier(.22,.8,.34,1.12) forwards; }
+/* organic drift — the laid products breathe on the sheet, slow + smooth. Three
+   variants + per-instance --fd/--fdl so nothing moves in lockstep. Applied to
+   a wrapper INSIDE the gk-laid drop so it composes without fighting it. */
+@keyframes gkFloatA { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(1.6deg); } }
+@keyframes gkFloatB { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-21px) rotate(-2deg); } }
+@keyframes gkFloatC { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(13px) rotate(-1.4deg); } }
+.gk-fa { animation: gkFloatA var(--fd, 8s) ease-in-out var(--fdl, 0s) infinite; }
+.gk-fb { animation: gkFloatB var(--fd, 9s) ease-in-out var(--fdl, 0s) infinite; }
+.gk-fc { animation: gkFloatC var(--fd, 7.5s) ease-in-out var(--fdl, 0s) infinite; }
 .gk-stave path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.2s cubic-bezier(.5,.05,.3,1); }
 .gk-stave.inked path { stroke-dashoffset: 0; }
 @keyframes gkStamp {
@@ -253,6 +262,17 @@ const TEA_INTENT: Record<string, string> = {
   blodrugaldur: 'Fyrir jafnvægi',
 }
 
+/* The hero cluster — real natural products laid on the sheet and left to drift.
+   Positioning lives on the outer wrapper; the drop-in and the float loop are
+   nested inside so their transforms never fight the -translate-x-1/2 centering. */
+const HERO_FLOATS = [
+  { id: 'kvennagaldur', pos: 'left-1/2 bottom-0 -translate-x-1/2 z-20', size: 'h-56 md:h-80', rot: -2, drop: 1.5, fl: 'gk-fa', fd: '8.5s', fdl: '2s', alt: 'Kvennagaldur te í kraftpappírspoka' },
+  { id: 'villibloma', pos: 'left-0 bottom-1 z-30', size: 'h-36 md:h-56', rot: 5, drop: 1.66, fl: 'gk-fb', fd: '9.5s', fdl: '2.3s', alt: 'Hrátt Villiblóma Hunang í krukku' },
+  { id: 'byflugnafrjo', pos: 'right-0 bottom-8 z-10', size: 'h-32 md:h-52', rot: -5, drop: 1.8, fl: 'gk-fc', fd: '8s', fdl: '2.1s', alt: 'Býflugnafrjó í krukku' },
+  { id: 'blaber', pos: 'left-10 top-2 z-30', size: 'h-24 md:h-36', rot: -6, drop: 1.92, fl: 'gk-fc', fd: '9s', fdl: '2.4s', alt: 'Frostþurrkuð bláber í krukku' },
+  { id: 'propolis', pos: 'right-20 top-4 z-40', size: 'h-24 md:h-32', rot: 8, drop: 2, fl: 'gk-fa', fd: '7s', fdl: '2.5s', alt: 'Propolis dropar í glerflösku' },
+]
+
 export default function Page() {
   const reduce = useReducedMotion()
   const [scrolled, setScrolled] = useState(false)
@@ -397,24 +417,24 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="relative mx-auto w-full max-w-sm md:max-w-none">
-              <Stave variant={0} inked className="absolute inset-x-0 top-1/2 mx-auto h-[115%] w-auto -translate-y-1/2 opacity-[0.09]" />
-              <div className="relative flex items-end justify-center">
-                {/* photos are objects, not print: they land on the sheet after
-                    the roller has passed (wrapper animates so the imgs keep
-                    their resting rotation + hover transition) */}
-                <div className={`relative z-10 -mr-10 ${reduce ? '' : 'gk-laid'}`} style={{ animationDelay: '1.72s' }}>
-                  <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang í krukku, vörumynd Seiðkarlsins" className="gk-cut h-44 w-auto object-contain md:h-56" style={{ transform: 'rotate(3deg)' }} fallbackClassName="opacity-0" />
+            {/* a cluster of their real, natural products — laid on the printed
+                sheet, then left to drift. Nothing is print here; it's produce. */}
+            <div className="relative mx-auto h-[340px] w-full max-w-sm md:h-[430px] md:max-w-none">
+              {HERO_FLOATS.map((f) => (
+                <div key={f.id} className={`absolute ${f.pos}`}>
+                  <div className={reduce ? undefined : 'gk-laid'} style={{ animationDelay: `${f.drop}s` }}>
+                    <div className={reduce ? undefined : f.fl} style={{ ['--fd' as string]: f.fd, ['--fdl' as string]: f.fdl }}>
+                      <Img
+                        src={productImg(f.id)}
+                        alt={`${f.alt} — vörumynd Seiðkarlsins`}
+                        className={`gk-cut ${f.size} w-auto object-contain drop-shadow-[0_20px_28px_rgba(21,19,16,0.18)]`}
+                        style={{ transform: `rotate(${f.rot}deg)` }}
+                        fallbackClassName="opacity-0"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className={reduce ? undefined : 'gk-laid'} style={{ animationDelay: '1.58s' }}>
-                  <Img src={productImg('kvennagaldur')} alt="Kvennagaldur te í kraftpappírspoka, vörumynd Seiðkarlsins" className="gk-cut h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fetchpriority="high" fallbackClassName="opacity-0" />
-                </div>
-              </div>
-              <div className="mt-6 border-t pt-3" style={{ borderColor: INK }}>
-                <p className="text-[10.5px] leading-relaxed tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                  Mynd 1 — Kvennagaldur 100g · netla, hafrastrá, hindberjalauf · {isk(kvenna.price)}
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
