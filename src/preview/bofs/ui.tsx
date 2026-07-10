@@ -6,8 +6,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import Lenis from 'lenis'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
 import { HomeArt } from './illustrations'
 import { Reveal } from '../../components/Reveal'
@@ -46,33 +45,17 @@ export const asset = (f: string) => `${import.meta.env.BASE_URL}bofs/${f}`
 /** The real, official Barna- og fjölskyldustofa emblem. */
 export const LOGO = asset('bofs-logo.png')
 
-/* ── smooth scroll ────────────────────────────────────────────────────── */
+/* ── scrolling ────────────────────────────────────────────────────────── */
 
-/**
- * Site-wide smooth scroll. This is the exact, unmodified Lenis recipe used
- * on every other page in this repo (reykjavikdistillery, polarhestar, and
- * the rest) — same options, same raf loop, no custom lerp tuning, no
- * anchor-click interception. Do not deviate from this without confirming
- * the change against a working reference page first.
+/*
+ * NO LENIS ON THESE PAGES — measured decision, do not reintroduce.
+ * A live profiler in Sindri's own Chrome showed the page renders at a
+ * locked 58 to 60 fps in every section with every suspect toggled, yet
+ * scrolling still felt laggy: the latency was Lenis's wheel interception
+ * replacing native trackpad inertia with interpolation. Scrolling here is
+ * fully native; anchors glide via the global html scroll-behavior smooth
+ * rule in index.css and the scroll-mt-24 offsets on every section target.
  */
-export function useSmoothScroll() {
-  const reduce = useReducedMotion()
-  useEffect(() => {
-    if (reduce) return
-    const lenis = new Lenis({ duration: 1.15, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
-    if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
-    let raf = 0
-    const loop = (t: number) => {
-      lenis.raf(t)
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
-    return () => {
-      cancelAnimationFrame(raf)
-      lenis.destroy()
-    }
-  }, [reduce])
-}
 
 /* ── language ─────────────────────────────────────────────────────────── */
 

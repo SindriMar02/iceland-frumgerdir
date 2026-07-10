@@ -10,7 +10,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, Button, C, Footer, Header, useLang, useSmoothScroll, Arrow } from './ui'
+import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
 import { HomeArt, ValleyScene, WaveDivider } from './illustrations'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
 
@@ -18,8 +18,6 @@ export default function BofsCentre() {
   const { slug = '' } = useParams()
   const [, , pick] = useLang()
   const service = serviceBySlug(slug)
-
-  useSmoothScroll()
 
   useEffect(() => {
     if (service) {

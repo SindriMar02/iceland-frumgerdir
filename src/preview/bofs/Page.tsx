@@ -19,7 +19,6 @@ import {
   SectionHead,
   ServiceCard,
   useLang,
-  useSmoothScroll,
   Arrow,
 } from './ui'
 import { ValleyScene, ValueIcon, WaveDivider } from './illustrations'
@@ -34,8 +33,6 @@ export default function BofsPage() {
     document.title = 'Öruggt skjól | Barna- og fjölskyldustofa'
     setThemeColor(C.cream)
   }, [])
-
-  useSmoothScroll()
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const valleyY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 120])
