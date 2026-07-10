@@ -2292,10 +2292,10 @@ ${SIGN}`,
     established: 'Seiðkarlinn ehf., starfrækt frá 2023',
     currentUrl: 'https://seidkarlinn.is',
     ownerEmail: 'seidkarlinn@seidkarlinn.is',
-    concept: 'Galdrabókin',
+    concept: 'Úr jörðinni',
     conceptTagline:
-      'A warm Nordic apothecary built entirely from what the client already owns: the name (Seiðkarlinn = the sorcerer) and their own "galdur" (spell) tea line. Parchment cream, near-black ink, one rust accent, one honey-amber accent, Gloock display serif. Signature: "Veldu þinn galdur", a click-driven spell-matching ritual that maps a one-word need straight to a real product. Honeycomb-hex chapter grid, dotted-leader recipe cards, a working sample cart.',
-    accent: '#9C4A1F',
+      'A living, organic botanical catalogue: warm bone ground, moss ink, honey amber, Fraunces display with italic botanical accents. Morphing blob image masks, drifting pollen motes, a botanical marquee, a vine that draws itself, and inset amber/forest feature bands. Still a real store: filterable animated 18-product grid with a working sample cart, and the Kvennagaldur ritual (their own verified ingredients and brew) as the editorial centerpiece.',
+    accent: '#3E5732',
     dark: false,
     status: 'Concept ready',
     thumb: 'https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=600&q=70&auto=format&fit=crop',
@@ -2311,13 +2311,13 @@ ${SIGN}`,
         'Ekkert samband milli nafnsins/galdra-vörulínunnar og hönnunarinnar sjálfrar; ekkert netfang sýnilegt á vefnum sjálfum (aðeins tengiliðaform)',
       ],
       opportunities: [
-        'Byggja alla upplifunina á því sem er þegar til: galdra-teið verður að gagnvirkri "veldu þinn galdur" leið að réttri vöru',
+        'Gera vöruúrvalið sjálft að upplifun: lífræn form og hreyfing, te-línan þeirra sem ritstýrður miðpunktur og hunangið sem sjónrænt hjarta',
         'Hunangið, sveppatinktúrurnar og frostþurrkaði ávöxturinn gefa sterkt sjónrænt tungumál (hunangsseimur, gler, kraft-pappír) sem núverandi þemað hunsar með öllu',
         'Faxafen-verslunin er ónýtt traust — engin mynd, ekkert kort, engin hvatning til að koma við',
       ],
     },
     positioning:
-      'Ung náttúruvöruverslun með óvenju sterkt nafn og vöruúrval (heilsusveppir, hrátt hunang, frostþurrkaðir ávextir, jurtate nefnt eftir göldrum) falið á bak við sjálfgefið, sögulaust Shopify-þema. Frumgerðin gerir galdra-nafnið að skipulagsreglu alls vefsins í stað skreytingar: kaflaskipt eins og bók, með gagnvirkri leið til að finna réttan "galdur" og alvöru körfu. Öll verð eru sýnishorn frá rannsóknartíma.',
+      'Ung náttúruvöruverslun með óvenju sterkt nafn og vöruúrval (heilsusveppir, hrátt hunang, frostþurrkaðir ávextir, jurtate nefnt eftir göldrum) falið á bak við sjálfgefið, sögulaust Shopify-þema. Frumgerðin færir vörurnar í lifandi, lífrænan búning: mjúk form sem anda, hreyfing eins og gróður, síanlegt vöruúrval með alvöru körfu og te-línan þeirra sem ritstýrður miðpunktur. Öll verð eru sýnishorn frá rannsóknartíma.',
     outreach: {
       subject: 'Hugmynd að nýrri vefsíðu fyrir Seiðkarlinn',
       body: `Góðan dag,
@@ -2326,7 +2326,7 @@ ${SIGN}`,
 
 Þið eruð með einstaklega skemmtilegt nafn og vöruúrval, hrátt hunang, sveppatinktúrur, frostþurrkaða ávexti og heila te-línu sem heitir í höfuðið á göldrum, Svefngaldur, Draumagaldur og fleiri. Þegar ég skoðaði vefsíðuna ykkar fannst mér hún samt ekki nýta þetta neitt, hún er sjálfgefið verslunarþema, svarthvít, án myndar og án sögu.
 
-Ég hannaði því frumgerð að nýjum vef sem byggir alla upplifunina á því sem þið eigið nú þegar, nafninu og galdra-vörulínunni, með köflum eins og í bók og gagnvirkri leið þar sem gestur velur eitt orð og fær réttu jurtablönduna. Allt efni og verð á frumgerðinni eru sýnishorn sem þið staðfestið.
+Ég hannaði því frumgerð að nýjum vef í hlýjum og lífrænum stíl þar sem vörurnar ykkar fá að njóta sín, með körfu, vöruflokkum og sérstökum kafla um te-línuna ykkar. Allt efni og verð á frumgerðinni eru sýnishorn sem þið staðfestið.
 
 Frumgerðina má skoða hér, hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]

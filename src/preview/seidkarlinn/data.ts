@@ -49,11 +49,11 @@ export function isk(n: number) {
 }
 
 export const HERO = {
-  eyebrow: 'Seiðkarlinn · Náttúruvörur í Reykjavík',
-  headline: 'Hvað ef bætiefni væru galdrar?',
-  sub: 'Hjá Seiðkarlinum eru te, hunang og sveppir blönduð í daglega siði — hráefni beint úr náttúrunni, ekkert flókið.',
-  ctaPrimary: 'Finndu þinn galdur',
-  ctaSecondary: 'Skoða vörur',
+  eyebrow: 'Seiðkarlinn · Náttúruvörur · Faxafen 14',
+  headline: 'Allt sem jörðin gefur.',
+  sub: 'Hrátt hunang, galdra-te, heilsusveppir og frostþurrkaðir ávextir. Vandlega valið og án óþarfa aukefna.',
+  ctaPrimary: 'Skoða vörurnar',
+  ctaSecondary: 'Búðin okkar',
 }
 
 export interface GaldurTea {
@@ -111,20 +111,6 @@ export const GALDUR_TEAS: GaldurTea[] = [
     desc: 'Jurtablanda til daglegrar notkunar, hluti af galdra-te línu Seiðkarlsins.',
     brew: '1 tsk í bolla af heitu vatni. Látið standa 5–10 mín.',
   },
-]
-
-export interface QuizOption {
-  key: string
-  label: string
-  match: string // GaldurTea slug
-}
-
-export const QUIZ: QuizOption[] = [
-  { key: 'svefn', label: 'Svefn', match: 'svefngaldur' },
-  { key: 'draumar', label: 'Draumar', match: 'draumagaldur' },
-  { key: 'hjarta', label: 'Hjarta og ró', match: 'hjartagaldur' },
-  { key: 'konur', label: 'Kvenheilsa', match: 'kvennagaldur' },
-  { key: 'jafnvaegi', label: 'Jafnvægi', match: 'blodrugaldur' },
 ]
 
 export const HONEY = [
