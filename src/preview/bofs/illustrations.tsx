@@ -2,124 +2,107 @@
  * Öruggt skjól — custom warm illustration system (inline SVG).
  *
  * Everything here is hand-built vector art so it stays crisp, themeable and
- * animatable — and costs zero image credits. Ambient motion (drifting clouds,
- * a breathing sun, twinkling windows) is driven by CSS keyframes defined once
- * in ui.tsx, referenced here by class name.
+ * animatable — and costs zero image credits.
+ *
+ * PERFORMANCE CONTRACT: browsers cannot composite transforms on elements
+ * INSIDE an svg, so anything that animates forever (sun, clouds, birds) must
+ * be its own top-level <svg> element moved with plain CSS transforms. The
+ * terrain svg stays fully static: painted once, cached as a single GPU
+ * texture, then only translated by the hero parallax. Never put an infinite
+ * animation back inside the terrain or scrolling drops to CPU repaints.
  */
 
 import type { CSSProperties } from 'react'
 
-/* ── little building blocks ───────────────────────────────────────────── */
+/* ── little building blocks (static, inside the terrain svg) ──────────── */
 
-function Cloud({ x, y, s = 1, o = 1, delay = 0, dur = 46 }: { x: number; y: number; s?: number; o?: number; delay?: number; dur?: number }) {
-  return (
-    <g
-      className="bofs-drift"
-      style={{ transformOrigin: `${x}px ${y}px`, animationDuration: `${dur}s`, animationDelay: `${delay}s`, opacity: o }}
-    >
-      <g transform={`translate(${x} ${y}) scale(${s})`}>
-        <path
-          d="M0 12c0-7 6-12 13-12 4 0 8 2 10 5 2-2 5-3 8-3 7 0 12 5 12 11 0 1 0 2-1 3H-1c-1-2 1-4 1-4z"
-          fill="#FFFFFF"
-          opacity="0.9"
-        />
-        <ellipse cx="20" cy="16" rx="30" ry="7" fill="#FFFFFF" opacity="0.55" />
-      </g>
-    </g>
-  )
-}
-
-function Bird({ x, y, s = 1, delay = 0 }: { x: number; y: number; s?: number; delay?: number }) {
-  return (
-    <path
-      className="bofs-fly"
-      style={{ animationDelay: `${delay}s` }}
-      transform={`translate(${x} ${y}) scale(${s})`}
-      d="M0 4C3 0 5 0 7 3 9 0 11 0 14 4"
-      fill="none"
-      stroke="#7A5A48"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      opacity="0.5"
-    />
-  )
-}
-
-/** A cozy little house with a glowing window. */
-function House({
-  x,
-  y,
-  s = 1,
-  wall,
-  roof,
-  glow = '#FFDf9E',
-  twinkle = 0,
-}: {
-  x: number
-  y: number
-  s?: number
-  wall: string
-  roof: string
-  glow?: string
-  twinkle?: number
-}) {
+/** A cozy little house with a warmly lit (static) window. */
+function House({ x, y, s = 1, wall, roof, glow = '#FFDf9E' }: { x: number; y: number; s?: number; wall: string; roof: string; glow?: string }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
       <ellipse cx="20" cy="53" rx="26" ry="5" fill="#000" opacity="0.06" />
       <rect x="4" y="22" width="32" height="30" rx="4" fill={wall} />
       <path d="M0 24 20 6 40 24Z" fill={roof} />
-      <rect
-        className="bofs-twinkle"
-        style={{ animationDelay: `${twinkle}s`, transformOrigin: '20px 36px' }}
-        x="14"
-        y="30"
-        width="12"
-        height="12"
-        rx="2.5"
-        fill={glow}
-      />
+      <rect x="14" y="30" width="12" height="12" rx="2.5" fill={glow} />
       <rect x="14" y="30" width="12" height="12" rx="2.5" fill="none" stroke={roof} strokeWidth="1.4" opacity="0.5" />
       <line x1="20" y1="30" x2="20" y2="42" stroke={roof} strokeWidth="1" opacity="0.5" />
     </g>
   )
 }
 
-function Tree({ x, y, s = 1, delay = 0, c = '#6E9E6E' }: { x: number; y: number; s?: number; delay?: number; c?: string }) {
+function Tree({ x, y, s = 1, c = '#6E9E6E' }: { x: number; y: number; s?: number; c?: string }) {
   return (
-    <g className="bofs-sway" style={{ transformOrigin: `${x}px ${y + 40}px`, animationDelay: `${delay}s` }}>
-      <g transform={`translate(${x} ${y}) scale(${s})`}>
-        <rect x="8" y="26" width="4" height="16" rx="2" fill="#8A6A54" />
-        <circle cx="10" cy="18" r="14" fill={c} />
-        <circle cx="10" cy="18" r="14" fill="#FFFFFF" opacity="0.08" />
-      </g>
+    <g transform={`translate(${x} ${y}) scale(${s})`}>
+      <rect x="8" y="26" width="4" height="16" rx="2" fill="#8A6A54" />
+      <circle cx="10" cy="18" r="14" fill={c} />
+      <circle cx="10" cy="18" r="14" fill="#FFFFFF" opacity="0.08" />
     </g>
+  )
+}
+
+/* ── ambient movers (each one a composited HTML-level element) ────────── */
+
+function SunGlyph({ style }: { style?: CSSProperties }) {
+  return (
+    <svg className="bofs-breathe absolute" style={{ willChange: 'transform', ...style }} viewBox="0 0 320 320" aria-hidden="true">
+      <defs>
+        <radialGradient id="sunGlowHtml" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#FFE7A8" stopOpacity="0.9" />
+          <stop offset="1" stopColor="#FFE7A8" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="160" cy="160" r="150" fill="url(#sunGlowHtml)" />
+      <circle cx="160" cy="160" r="58" fill="#FFD37A" />
+      <circle cx="160" cy="160" r="58" fill="#FFFFFF" opacity="0.12" />
+    </svg>
+  )
+}
+
+function CloudGlyph({ top, width, opacity = 0.9, dur, delay }: { top: string; width: string; opacity?: number; dur: number; delay: number }) {
+  return (
+    <svg
+      className="bofs-drift absolute left-0"
+      style={{ top, width, opacity, animationDuration: `${dur}s`, animationDelay: `${delay}s`, willChange: 'transform' }}
+      viewBox="-10 -1 62 26"
+      aria-hidden="true"
+    >
+      <path d="M0 12c0-7 6-12 13-12 4 0 8 2 10 5 2-2 5-3 8-3 7 0 12 5 12 11 0 1 0 2-1 3H-1c-1-2 1-4 1-4z" fill="#FFFFFF" opacity="0.9" />
+      <ellipse cx="20" cy="16" rx="30" ry="7" fill="#FFFFFF" opacity="0.55" />
+    </svg>
+  )
+}
+
+function BirdsGlyph({ style }: { style?: CSSProperties }) {
+  return (
+    <svg className="bofs-fly absolute" style={{ willChange: 'transform', ...style }} viewBox="0 0 96 40" aria-hidden="true">
+      <g fill="none" stroke="#7A5A48" strokeWidth="1.6" strokeLinecap="round" opacity="0.5">
+        <path d="M0 12C3.6 7.2 6 7.2 8.4 10.8 10.8 7.2 13.2 7.2 16.8 12" />
+        <path d="M40 34C42.7 30.4 44.5 30.4 46.3 33.1 48.1 30.4 49.9 30.4 52.6 34" transform="scale(0.9)" />
+        <path d="M74 6C77 2 79 2 81 5 83 2 85 2 88 6" />
+      </g>
+    </svg>
   )
 }
 
 /* ── The hero: a valley that breathes ─────────────────────────────────── */
 
-export function ValleyScene({ className, style }: { className?: string; style?: CSSProperties }) {
+export function ValleyScene({ className, style, ambient = true }: { className?: string; style?: CSSProperties; ambient?: boolean }) {
   return (
-    <svg
-      className={className}
-      style={style}
-      viewBox="0 0 1440 760"
-      preserveAspectRatio="xMidYMax slice"
-      role="img"
-      aria-label=""
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <div className={`pointer-events-none ${className ?? ''}`} style={style} aria-hidden="true">
+      {/* static terrain: painted once, never repainted while scrolling */}
+      <svg
+        className="absolute inset-0 h-full w-full"
+        viewBox="0 0 1440 760"
+        preserveAspectRatio="xMidYMax slice"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
       <defs>
         <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#FBE7CE" />
           <stop offset="0.5" stopColor="#FBEEDC" />
           <stop offset="1" stopColor="#FAF3E7" />
         </linearGradient>
-        <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#FFE7A8" stopOpacity="0.9" />
-          <stop offset="1" stopColor="#FFE7A8" stopOpacity="0" />
-        </radialGradient>
         <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#CFE0C7" />
           <stop offset="1" stopColor="#C2D8BC" />
@@ -140,23 +123,6 @@ export function ValleyScene({ className, style }: { className?: string; style?: 
 
       {/* sky */}
       <rect x="0" y="0" width="1440" height="760" fill="url(#sky)" />
-
-      {/* sun */}
-      <g className="bofs-breathe" style={{ transformOrigin: '1120px 200px' }}>
-        <circle cx="1120" cy="200" r="150" fill="url(#sunGlow)" />
-        <circle cx="1120" cy="200" r="58" fill="#FFD37A" />
-        <circle cx="1120" cy="200" r="58" fill="#FFFFFF" opacity="0.12" />
-      </g>
-
-      {/* clouds */}
-      <Cloud x={180} y={120} s={1.6} o={0.95} dur={54} />
-      <Cloud x={620} y={90} s={1.1} o={0.8} delay={-8} dur={64} />
-      <Cloud x={980} y={150} s={1.3} o={0.85} delay={-20} dur={72} />
-
-      {/* birds */}
-      <Bird x={430} y={180} s={1.2} />
-      <Bird x={470} y={200} s={0.9} delay={-2} />
-      <Bird x={505} y={172} s={1} delay={-4} />
 
       {/* far hills */}
       <path d="M0 470 Q 360 380 760 452 T 1440 430 V760 H0Z" fill="url(#hillFar)" />
@@ -185,21 +151,33 @@ export function ValleyScene({ className, style }: { className?: string; style?: 
       <path d="M0 640 Q 500 560 980 630 T 1440 610 V760 H0Z" fill="url(#hillNear)" />
 
       {/* houses tucked along the hills */}
-      <House x={190} y={470} s={1.15} wall="#F4E6D2" roof="#D9744E" twinkle={0} />
-      <House x={1090} y={480} s={1} wall="#F4E6D2" roof="#5E97B8" twinkle={-1.4} />
-      <House x={560} y={430} s={0.86} wall="#F6ECDD" roof="#6E9E6E" twinkle={-2.2} />
-      <House x={880} y={452} s={0.78} wall="#F6ECDD" roof="#D98895" twinkle={-0.7} glow="#FFE7B0" />
+      <House x={190} y={470} s={1.15} wall="#F4E6D2" roof="#D9744E" />
+      <House x={1090} y={480} s={1} wall="#F4E6D2" roof="#5E97B8" />
+      <House x={560} y={430} s={0.86} wall="#F6ECDD" roof="#6E9E6E" />
+      <House x={880} y={452} s={0.78} wall="#F6ECDD" roof="#D98895" glow="#FFE7B0" />
 
       {/* the "hero" home at the top of the path */}
-      <House x={676} y={392} s={1.5} wall="#FBF1E2" roof="#E0A94F" twinkle={-0.3} glow="#FFE39A" />
+      <House x={676} y={392} s={1.5} wall="#FBF1E2" roof="#E0A94F" glow="#FFE39A" />
 
       {/* foreground trees + bushes */}
       <Tree x={70} y={600} s={1.5} c="#6E9E6E" />
-      <Tree x={1300} y={590} s={1.7} c="#6E9E6E" delay={-1.5} />
-      <Tree x={1210} y={640} s={1.1} c="#7CA972" delay={-0.8} />
+      <Tree x={1300} y={590} s={1.7} c="#6E9E6E" />
+      <Tree x={1210} y={640} s={1.1} c="#7CA972" />
       <ellipse cx="360" cy="720" rx="150" ry="34" fill="#6B9663" opacity="0.55" />
       <ellipse cx="1050" cy="726" rx="180" ry="36" fill="#6B9663" opacity="0.5" />
-    </svg>
+      </svg>
+
+      {/* ambient sky movers: composited, GPU-only motion above the sky */}
+      {ambient && (
+        <div className="absolute inset-0 overflow-hidden">
+          <SunGlyph style={{ right: '5%', top: '6%', width: 'clamp(170px, 22vw, 320px)' }} />
+          <CloudGlyph top="12%" width="clamp(90px, 9vw, 130px)" dur={54} delay={-6} />
+          <CloudGlyph top="7%" width="clamp(64px, 6.5vw, 92px)" opacity={0.8} dur={64} delay={-30} />
+          <CloudGlyph top="17%" width="clamp(76px, 7.5vw, 108px)" opacity={0.85} dur={72} delay={-52} />
+          <BirdsGlyph style={{ left: '28%', top: '22%', width: 'clamp(64px, 6vw, 96px)' }} />
+        </div>
+      )}
+    </div>
   )
 }
 

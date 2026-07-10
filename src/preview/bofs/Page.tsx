@@ -57,13 +57,13 @@ export default function BofsPage() {
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         <section ref={heroRef} className="relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden">
           {/* valley backdrop */}
-          <motion.div style={{ y: valleyY }} className="pointer-events-none absolute inset-0 -z-10">
+          <motion.div style={{ y: valleyY, willChange: 'transform' }} className="pointer-events-none absolute inset-0 -z-10">
             <ValleyScene className="absolute inset-x-0 bottom-0 h-full w-full" />
             {/* legibility veil over the upper sky */}
             <div className="absolute inset-x-0 top-0 h-1/2" style={{ background: `linear-gradient(${C.cream}, rgba(251,243,231,0))` }} />
           </motion.div>
 
-          <motion.div style={{ y: contentY, opacity: contentOpacity }} className="mx-auto w-full max-w-6xl px-5 pt-28 pb-40 sm:px-8">
+          <motion.div style={{ y: contentY, opacity: contentOpacity, willChange: 'transform, opacity' }} className="mx-auto w-full max-w-6xl px-5 pt-28 pb-40 sm:px-8">
             <div className="max-w-2xl">
               <Reveal y={16}>
                 <span className="bofs-hand text-[26px] leading-none" style={{ color: C.clayText }}>

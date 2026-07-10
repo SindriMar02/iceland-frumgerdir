@@ -58,9 +58,10 @@ export function useSmoothScroll() {
   const reduce = useReducedMotion()
   useEffect(() => {
     if (reduce) return
+    // Lerp mode over duration mode: each frame eases toward the target, the
+    // classic Lenis butter, and it degrades gracefully when frames are tight.
     const lenis = new Lenis({
-      duration: 1.45,
-      easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)),
+      lerp: 0.09,
       smoothWheel: true,
       touchMultiplier: 1.4,
     })
@@ -78,7 +79,7 @@ export function useSmoothScroll() {
       const el = document.querySelector<HTMLElement>(hash)
       if (!el) return
       e.preventDefault()
-      lenis.scrollTo(el, { offset: -88, duration: 1.7 })
+      lenis.scrollTo(el, { offset: -88, duration: 1.4, easing: (x: number) => Math.min(1, 1.001 - Math.pow(2, -10 * x)) })
     }
     document.addEventListener('click', onClick)
 
@@ -148,7 +149,7 @@ export function BofsStyles() {
       .bofs-root a { color:inherit; }
       .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:14px; }
 
-      @keyframes bofsDrift { from { transform:translateX(-40px) } to { transform:translateX(1500px) } }
+      @keyframes bofsDrift { from { transform:translateX(-16vw) } to { transform:translateX(116vw) } }
       @keyframes bofsBreathe { 0%,100% { transform:scale(1); opacity:1 } 50% { transform:scale(1.05); opacity:.92 } }
       @keyframes bofsTwinkle { 0%,100% { opacity:1 } 50% { opacity:.55 } }
       @keyframes bofsSway { 0%,100% { transform:rotate(-2deg) } 50% { transform:rotate(2deg) } }
@@ -156,13 +157,13 @@ export function BofsStyles() {
       @keyframes bofsBeat { 0%,100% { transform:scale(1) } 25% { transform:scale(1.08) } 40% { transform:scale(1) } }
       @keyframes bofsFloat { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-9px) } }
 
-      .bofs-drift { animation:bofsDrift linear infinite; }
-      .bofs-breathe { animation:bofsBreathe 7s ease-in-out infinite; }
+      .bofs-drift { animation:bofsDrift linear infinite; will-change:transform; }
+      .bofs-breathe { animation:bofsBreathe 7s ease-in-out infinite; will-change:transform; }
       .bofs-twinkle { animation:bofsTwinkle 5.5s ease-in-out infinite; }
       .bofs-sway { animation:bofsSway 8s ease-in-out infinite; }
-      .bofs-fly { animation:bofsFly 14s ease-in-out infinite; }
+      .bofs-fly { animation:bofsFly 14s ease-in-out infinite; will-change:transform; }
       .bofs-beat { animation:bofsBeat 4s ease-in-out infinite; }
-      .bofs-float { animation:bofsFloat 6s ease-in-out infinite; }
+      .bofs-float { animation:bofsFloat 6s ease-in-out infinite; will-change:transform; }
 
       @media (prefers-reduced-motion: reduce) {
         .bofs-drift,.bofs-breathe,.bofs-twinkle,.bofs-sway,.bofs-fly,.bofs-beat,.bofs-float { animation:none !important; }
@@ -329,10 +330,12 @@ export function Header() {
           maxWidth: 'min(1120px, calc(100% - 24px))',
           marginLeft: 'auto',
           marginRight: 'auto',
-          background: scrolled ? 'rgba(251,243,231,.82)' : 'rgba(251,243,231,.35)',
+          background: scrolled ? 'rgba(251,243,231,.88)' : 'rgba(251,243,231,.35)',
           boxShadow: scrolled ? `0 12px 34px -20px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}` : 'none',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
+          // backdrop blur re-samples the page every scrolled frame; keep it
+          // off over the hero and modest once the bar needs it
+          backdropFilter: scrolled ? 'blur(10px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
       >
         <Link to="/preview/bofs" className="bofs-focus shrink-0 rounded-2xl" aria-label="Barna- og fjölskyldustofa">
