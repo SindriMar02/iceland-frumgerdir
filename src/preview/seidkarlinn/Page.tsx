@@ -266,11 +266,11 @@ const TEA_INTENT: Record<string, string> = {
    Positioning lives on the outer wrapper; the drop-in and the float loop are
    nested inside so their transforms never fight the -translate-x-1/2 centering. */
 const HERO_FLOATS = [
-  { id: 'kvennagaldur', pos: 'left-1/2 bottom-0 -translate-x-1/2 z-20', size: 'h-56 md:h-80', rot: -2, drop: 1.5, fl: 'gk-fa', fd: '8.5s', fdl: '2s', alt: 'Kvennagaldur te í kraftpappírspoka' },
-  { id: 'villibloma', pos: 'left-0 bottom-1 z-30', size: 'h-36 md:h-56', rot: 5, drop: 1.66, fl: 'gk-fb', fd: '9.5s', fdl: '2.3s', alt: 'Hrátt Villiblóma Hunang í krukku' },
-  { id: 'byflugnafrjo', pos: 'right-0 bottom-8 z-10', size: 'h-32 md:h-52', rot: -5, drop: 1.8, fl: 'gk-fc', fd: '8s', fdl: '2.1s', alt: 'Býflugnafrjó í krukku' },
-  { id: 'blaber', pos: 'left-10 top-2 z-30', size: 'h-24 md:h-36', rot: -6, drop: 1.92, fl: 'gk-fc', fd: '9s', fdl: '2.4s', alt: 'Frostþurrkuð bláber í krukku' },
-  { id: 'propolis', pos: 'right-20 top-4 z-40', size: 'h-24 md:h-32', rot: 8, drop: 2, fl: 'gk-fa', fd: '7s', fdl: '2.5s', alt: 'Propolis dropar í glerflösku' },
+  { id: 'kvennagaldur', pos: 'left-1/2 bottom-0 -translate-x-1/2 z-20', size: 'h-56 md:h-80', rot: -2, drop: 1.5, fl: 'gk-fa', fd: '8.5s', fdl: '2s', px: 14, alt: 'Kvennagaldur te í kraftpappírspoka' },
+  { id: 'villibloma', pos: 'left-0 bottom-1 z-30', size: 'h-36 md:h-56', rot: 5, drop: 1.66, fl: 'gk-fb', fd: '9.5s', fdl: '2.3s', px: 22, alt: 'Hrátt Villiblóma Hunang í krukku' },
+  { id: 'byflugnafrjo', pos: 'right-0 bottom-8 z-10', size: 'h-32 md:h-52', rot: -5, drop: 1.8, fl: 'gk-fc', fd: '8s', fdl: '2.1s', px: 20, alt: 'Býflugnafrjó í krukku' },
+  { id: 'blaber', pos: 'left-10 top-2 z-30', size: 'h-24 md:h-36', rot: -6, drop: 1.92, fl: 'gk-fc', fd: '9s', fdl: '2.4s', px: 30, alt: 'Frostþurrkuð bláber í krukku' },
+  { id: 'propolis', pos: 'right-20 top-4 z-40', size: 'h-24 md:h-32', rot: 8, drop: 2, fl: 'gk-fa', fd: '7s', fdl: '2.5s', px: 34, alt: 'Propolis dropar í glerflösku' },
 ]
 
 export default function Page() {
@@ -282,6 +282,31 @@ export default function Page() {
   const [justAdded, setJustAdded] = useState<string | null>(null)
   const [checkoutNote, setCheckoutNote] = useState(false)
   const addedTimer = useRef<number>()
+  const heroRef = useRef<HTMLElement>(null)
+  const floatBoxRef = useRef<HTMLDivElement>(null)
+
+  /* Pointer parallax for the hero cluster — writes normalized cursor offset to
+     CSS vars on the container; each product reads them with its own depth
+     factor and eases toward the target (transition on the parallax layer). No
+     rAF/state per move: the write is synchronous + cheap, verifiable, smooth. */
+  function onHeroPointer(e: React.PointerEvent) {
+    if (e.pointerType !== 'mouse') return
+    const el = heroRef.current
+    const box = floatBoxRef.current
+    if (!el || !box) return
+    const r = el.getBoundingClientRect()
+    const mx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2)))
+    const my = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2)))
+    box.style.setProperty('--mx', mx.toFixed(3))
+    box.style.setProperty('--my', my.toFixed(3))
+  }
+  function resetHeroPointer() {
+    const box = floatBoxRef.current
+    if (box) {
+      box.style.setProperty('--mx', '0')
+      box.style.setProperty('--my', '0')
+    }
+  }
 
   const teaInk = useInkOnView<HTMLDivElement>()
   const ledgerInk = useInkOnView<HTMLDivElement>()
@@ -372,7 +397,13 @@ export default function Page() {
       </header>
 
       {/* ── Masthead + hero: printed by the roller in one sweep ──────────── */}
-      <section id="top" className="relative overflow-hidden">
+      <section
+        id="top"
+        ref={heroRef}
+        onPointerMove={reduce ? undefined : onHeroPointer}
+        onPointerLeave={reduce ? undefined : resetHeroPointer}
+        className="relative overflow-hidden"
+      >
         <div>
           <div className="mx-auto max-w-6xl px-5 md:px-8">
             <div className="flex items-center justify-between gap-3 py-2.5 text-[10px] tracking-[0.16em] uppercase md:text-[11px]" style={{ fontFamily: MONO, color: MUT }}>
@@ -418,19 +449,28 @@ export default function Page() {
             </div>
 
             {/* a cluster of their real, natural products — laid on the printed
-                sheet, then left to drift. Nothing is print here; it's produce. */}
-            <div className="relative mx-auto h-[340px] w-full max-w-sm md:h-[430px] md:max-w-none">
+                sheet, drifting on their own AND parallaxing toward the cursor.
+                Layers: position → pointer-parallax → drop-in → float → rotate. */}
+            <div ref={floatBoxRef} className="relative mx-auto h-[340px] w-full max-w-sm md:h-[430px] md:max-w-none">
               {HERO_FLOATS.map((f) => (
                 <div key={f.id} className={`absolute ${f.pos}`}>
-                  <div className={reduce ? undefined : 'gk-laid'} style={{ animationDelay: `${f.drop}s` }}>
-                    <div className={reduce ? undefined : f.fl} style={{ ['--fd' as string]: f.fd, ['--fdl' as string]: f.fdl }}>
-                      <Img
-                        src={productImg(f.id)}
-                        alt={`${f.alt} — vörumynd Seiðkarlsins`}
-                        className={`gk-cut ${f.size} w-auto object-contain drop-shadow-[0_20px_28px_rgba(21,19,16,0.18)]`}
-                        style={{ transform: `rotate(${f.rot}deg)` }}
-                        fallbackClassName="opacity-0"
-                      />
+                  <div
+                    style={
+                      reduce
+                        ? undefined
+                        : { transform: `translate3d(calc(var(--mx,0) * ${f.px}px), calc(var(--my,0) * ${Math.round(f.px * 0.7)}px), 0)`, transition: 'transform .5s cubic-bezier(.2,.7,.2,1)', willChange: 'transform' }
+                    }
+                  >
+                    <div className={reduce ? undefined : 'gk-laid'} style={{ animationDelay: `${f.drop}s` }}>
+                      <div className={reduce ? undefined : f.fl} style={{ ['--fd' as string]: f.fd, ['--fdl' as string]: f.fdl }}>
+                        <Img
+                          src={productImg(f.id)}
+                          alt={`${f.alt} — vörumynd Seiðkarlsins`}
+                          className={`gk-cut ${f.size} w-auto object-contain drop-shadow-[0_20px_28px_rgba(21,19,16,0.18)]`}
+                          style={{ transform: `rotate(${f.rot}deg)` }}
+                          fallbackClassName="opacity-0"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
