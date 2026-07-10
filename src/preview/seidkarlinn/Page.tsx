@@ -51,10 +51,22 @@ const MONO = "'Space Mono', ui-monospace, monospace"
 const CSS = `
 @keyframes gkIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .gk-in { opacity: 0; animation: gkIn .8s cubic-bezier(.22,.8,.3,1) forwards; }
-@keyframes gkRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.gk-rule { transform-origin: left center; transform: scaleX(0); animation: gkRule 1.2s cubic-bezier(.6,.05,.2,1) forwards; }
-@keyframes gkDraw { to { stroke-dashoffset: 0; } }
-.gk-hero-stave path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: gkDraw 1.4s cubic-bezier(.5,.05,.3,1) forwards; }
+/* THE PRESS PRINTS THE PAGE — a blank paper sheet with the ink bar riding its
+   top edge slides down off the landing, printing the broadsheet in its wake.
+   transform+opacity only, so it composites (and stays verifiable) everywhere.
+   The product photos are not print: they drop onto the finished sheet after. */
+@keyframes gkPress {
+  0% { transform: translateY(0); opacity: 1; }
+  96% { opacity: 1; }
+  100% { transform: translateY(101%); opacity: 0; }
+}
+.gk-press-sheet { animation: gkPress 1.5s cubic-bezier(.6,.05,.4,.95) .15s forwards; }
+@keyframes gkLay {
+  0% { opacity: 0; transform: translateY(-32px) rotate(-3deg) scale(1.05); }
+  55% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+.gk-laid { opacity: 0; animation: gkLay .7s cubic-bezier(.22,.8,.34,1.12) forwards; }
 .gk-stave path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.2s cubic-bezier(.5,.05,.3,1); }
 .gk-stave.inked path { stroke-dashoffset: 0; }
 @keyframes gkStamp {
@@ -102,33 +114,12 @@ const STAVE_PATHS: string[][] = [
   ['M50 10 V90', 'M28 32 H72', 'M28 66 H72', 'M28 32 l-5 -6 M72 32 l5 -6', 'M28 66 l-5 6 M72 66 l5 6', 'M42 48 h16'],
 ]
 
-function Stave({ variant, inked, className, hero, color = INK }: { variant: number; inked?: boolean; className?: string; hero?: boolean; color?: string }) {
+function Stave({ variant, inked, className, color = INK }: { variant: number; inked?: boolean; className?: string; color?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={`${hero ? 'gk-hero-stave' : 'gk-stave'} ${inked ? 'inked' : ''} ${className ?? ''}`} aria-hidden="true">
+    <svg viewBox="0 0 100 100" className={`gk-stave ${inked ? 'inked' : ''} ${className ?? ''}`} aria-hidden="true">
       {STAVE_PATHS[variant].map((d, i) => (
-        <path key={d} d={d} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" pathLength={1} style={{ transitionDelay: hero ? undefined : `${i * 0.12}s`, animationDelay: hero ? `${0.3 + i * 0.16}s` : undefined }} />
+        <path key={d} d={d} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" pathLength={1} style={{ transitionDelay: `${i * 0.12}s` }} />
       ))}
-    </svg>
-  )
-}
-
-/** Circular rubber-stamp mark, set from their name — decorative print artifact. */
-function RoundStamp({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 120 120" className={className} aria-hidden="true" style={{ color: RED }}>
-      <defs>
-        <path id="gk-stamp-arc" d="M60 12 a48 48 0 1 1 -0.01 0" fill="none" />
-      </defs>
-      <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeWidth="2.4" opacity="0.9" />
-      <circle cx="60" cy="60" r="38" fill="none" stroke="currentColor" strokeWidth="1.4" opacity="0.9" />
-      <text fontSize="11.5" letterSpacing="2.6" fill="currentColor" style={{ fontFamily: MONO }}>
-        <textPath href="#gk-stamp-arc" startOffset="0">
-          SEIÐKARLINN · REYKJAVÍK · NÁTTÚRUVÖRUR ·
-        </textPath>
-      </text>
-      <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-        <path d="M60 44 V76 M50 54 H70 M50 54 l-4 -4 M70 54 l4 -4 M54 68 h12" fill="none" />
-      </g>
     </svg>
   )
 }
@@ -360,65 +351,82 @@ export default function Page() {
         </div>
       </header>
 
-      {/* ── Masthead ─────────────────────────────────────────────────────── */}
-      <section id="top" className="relative">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <div className="gk-in flex items-center justify-between gap-3 py-2.5 text-[10px] tracking-[0.16em] uppercase md:text-[11px]" style={{ fontFamily: MONO, color: MUT, animationDelay: '.05s' }}>
-            <span>{HERO.datelineLeft}</span>
-            <span className="hidden sm:inline">Galdraskrá · Nr. 1</span>
-            <span>{HERO.datelineRight}</span>
-          </div>
-          <div className="gk-rule h-px w-full" style={{ background: INK, animationDelay: '.1s' }} />
-          <div className="gk-in flex justify-center py-7 md:py-9" style={{ animationDelay: '.2s' }}>
-            <img src={LOGO} alt="Seiðkarlinn" className="h-10 w-auto md:h-14" />
-          </div>
-          <div className="gk-rule h-[3px] w-full" style={{ background: INK, animationDelay: '.25s' }} />
-        </div>
-
-        {/* hero spread */}
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-10 pb-14 md:grid-cols-[7fr_5fr] md:gap-8 md:px-8 md:pt-14 md:pb-20">
-          <div>
-            <h1 className="gk-in text-[clamp(2.9rem,7.2vw,5.6rem)] leading-[1.02] tracking-tight text-balance" style={{ fontFamily: DISPLAY, animationDelay: '.35s' }}>
-              {HERO.headline}
-            </h1>
-            <p className="gk-in mt-6 max-w-xl text-lg leading-relaxed" style={{ color: MUT, animationDelay: '.5s' }}>
-              {HERO.sub}
-            </p>
-            <div className="gk-in mt-9 flex flex-wrap items-center gap-4" style={{ animationDelay: '.62s' }}>
-              <a
-                href="#verdskra"
-                className="gk-btn px-6 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
-                style={{ fontFamily: MONO, background: RED, color: PAPER, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
-              >
-                {HERO.ctaPrimary}
-              </a>
-              <a
-                href="#budin"
-                className="gk-btn px-6 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
-                style={{ fontFamily: MONO, color: INK, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
-              >
-                {HERO.ctaSecondary}
-              </a>
+      {/* ── Masthead + hero: printed by the roller in one sweep ──────────── */}
+      <section id="top" className="relative overflow-hidden">
+        <div>
+          <div className="mx-auto max-w-6xl px-5 md:px-8">
+            <div className="flex items-center justify-between gap-3 py-2.5 text-[10px] tracking-[0.16em] uppercase md:text-[11px]" style={{ fontFamily: MONO, color: MUT }}>
+              <span>{HERO.datelineLeft}</span>
+              <span className="hidden sm:inline">Galdraskrá · Nr. 1</span>
+              <span>{HERO.datelineRight}</span>
             </div>
-            <p className="gk-in mt-8 text-[11px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT, animationDelay: '.74s' }}>
-              Frí sending á næstu DROPP stöð yfir {isk(SHIPPING_THRESHOLD)}
-            </p>
+            <div className="h-px w-full" style={{ background: INK }} />
+            <div className="flex justify-center py-7 md:py-9">
+              <img src={LOGO} alt="Seiðkarlinn" className="h-10 w-auto md:h-14" />
+            </div>
+            <div className="h-[3px] w-full" style={{ background: INK }} />
           </div>
 
-          <div className="gk-in relative mx-auto w-full max-w-sm md:max-w-none" style={{ animationDelay: '.45s' }}>
-            <Stave variant={0} hero className="absolute inset-x-0 top-1/2 mx-auto h-[115%] w-auto -translate-y-1/2 opacity-[0.09]" />
-            <div className="relative flex items-end justify-center">
-              <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang í krukku, vörumynd Seiðkarlsins" className="gk-cut relative z-10 -mr-10 h-44 w-auto object-contain md:h-56" style={{ transform: 'rotate(3deg)' }} fallbackClassName="opacity-0" />
-              <Img src={productImg('kvennagaldur')} alt="Kvennagaldur te í kraftpappírspoka, vörumynd Seiðkarlsins" className="gk-cut relative h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fetchpriority="high" fallbackClassName="opacity-0" />
-              <RoundStamp className="absolute -top-4 right-0 z-20 h-24 w-24 md:-right-4 md:h-28 md:w-28" />
-            </div>
-            <div className="mt-6 border-t pt-3" style={{ borderColor: INK }}>
-              <p className="text-[10.5px] leading-relaxed tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                Mynd 1 — Kvennagaldur 100g · netla, hafrastrá, hindberjalauf · {isk(kvenna.price)}
+          {/* hero spread */}
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-10 pb-14 md:grid-cols-[7fr_5fr] md:gap-8 md:px-8 md:pt-14 md:pb-20">
+            <div>
+              <h1 className="text-[clamp(2.9rem,7.2vw,5.6rem)] leading-[1.02] tracking-tight text-balance" style={{ fontFamily: DISPLAY }}>
+                {HERO.headline}
+              </h1>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed" style={{ color: MUT }}>
+                {HERO.sub}
+              </p>
+              <div className="mt-9 flex flex-wrap items-center gap-4">
+                <a
+                  href="#verdskra"
+                  className="gk-btn px-6 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
+                  style={{ fontFamily: MONO, background: RED, color: PAPER, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
+                >
+                  {HERO.ctaPrimary}
+                </a>
+                <a
+                  href="#budin"
+                  className="gk-btn px-6 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
+                  style={{ fontFamily: MONO, color: INK, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
+                >
+                  {HERO.ctaSecondary}
+                </a>
+              </div>
+              <p className="mt-8 text-[11px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                Frí sending á næstu DROPP stöð yfir {isk(SHIPPING_THRESHOLD)}
               </p>
             </div>
+
+            <div className="relative mx-auto w-full max-w-sm md:max-w-none">
+              <Stave variant={0} inked className="absolute inset-x-0 top-1/2 mx-auto h-[115%] w-auto -translate-y-1/2 opacity-[0.09]" />
+              <div className="relative flex items-end justify-center">
+                {/* photos are objects, not print: they land on the sheet after
+                    the roller has passed (wrapper animates so the imgs keep
+                    their resting rotation + hover transition) */}
+                <div className={`relative z-10 -mr-10 ${reduce ? '' : 'gk-laid'}`} style={{ animationDelay: '1.72s' }}>
+                  <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang í krukku, vörumynd Seiðkarlsins" className="gk-cut h-44 w-auto object-contain md:h-56" style={{ transform: 'rotate(3deg)' }} fallbackClassName="opacity-0" />
+                </div>
+                <div className={reduce ? undefined : 'gk-laid'} style={{ animationDelay: '1.58s' }}>
+                  <Img src={productImg('kvennagaldur')} alt="Kvennagaldur te í kraftpappírspoka, vörumynd Seiðkarlsins" className="gk-cut h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fetchpriority="high" fallbackClassName="opacity-0" />
+                </div>
+              </div>
+              <div className="mt-6 border-t pt-3" style={{ borderColor: INK }}>
+                <p className="text-[10.5px] leading-relaxed tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                  Mynd 1 — Kvennagaldur 100g · netla, hafrastrá, hindberjalauf · {isk(kvenna.price)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* the blank sheet + ink bar that "prints" the section as it slides off */}
+        {!reduce && (
+          <div
+            aria-hidden="true"
+            className="gk-press-sheet pointer-events-none absolute inset-0 z-30"
+            style={{ background: PAPER, borderTop: `5px solid ${INK}`, boxShadow: '0 -4px 14px rgba(21,19,16,0.28)' }}
+          />
+        )}
       </section>
 
       {/* ── I. Galdra-te — the specimen plate ────────────────────────────── */}
@@ -493,7 +501,6 @@ export default function Page() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 md:grid-cols-[5fr_7fr] md:gap-14 md:px-8">
           <div className="relative mx-auto">
             <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang 1kg, krukka með striga yfir lokinu" className="gk-cut h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fallbackClassName="opacity-0" />
-            <RoundStamp className="absolute -right-6 bottom-2 h-24 w-24" />
           </div>
           <div>
             <p className="max-w-lg text-lg leading-relaxed" style={{ color: MUT }}>
