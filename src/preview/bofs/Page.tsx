@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useRef } from 'react'
-import Lenis from 'lenis'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
@@ -20,6 +19,7 @@ import {
   SectionHead,
   ServiceCard,
   useLang,
+  useSmoothScroll,
   Arrow,
 } from './ui'
 import { ValleyScene, ValueIcon, WaveDivider } from './illustrations'
@@ -31,26 +31,11 @@ export default function BofsPage() {
   const heroRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    document.title = 'Barna- og fjölskyldustofa — Öruggt skjól'
+    document.title = 'Öruggt skjól | Barna- og fjölskyldustofa'
     setThemeColor(C.cream)
   }, [])
 
-  // Buttery smooth scroll (skipped under reduced-motion).
-  useEffect(() => {
-    if (reduce) return
-    const lenis = new Lenis({ duration: 1.1, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
-    if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
-    let raf = 0
-    const loop = (t: number) => {
-      lenis.raf(t)
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
-    return () => {
-      cancelAnimationFrame(raf)
-      lenis.destroy()
-    }
-  }, [reduce])
+  useSmoothScroll()
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const valleyY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 120])
@@ -143,7 +128,7 @@ export default function BofsPage() {
             <Reveal delay={0.12}>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 {[
-                  { n: '9', l: pick({ is: 'úrræði á einum stað', en: 'services in one place' }) },
+                  { n: '8', l: pick({ is: 'úrræði á einum stað', en: 'services in one place' }) },
                   { n: '112', l: pick({ is: 'ef það er neyð', en: 'if it’s an emergency' }) },
                   { n: 'frá 2022', l: pick({ is: 'í þjónustu um allt land', en: 'serving all of Iceland' }) },
                 ].map((s) => (
@@ -168,8 +153,8 @@ export default function BofsPage() {
               eyebrow={pick({ is: 'Það sem við stöndum fyrir', en: 'What we stand for' })}
               title={pick({ is: 'Fjögur einföld loforð', en: 'Four simple promises' })}
               lead={pick({
-                is: 'Allt sem við gerum hvílir á þessu — sama hvaða úrræði á í hlut.',
-                en: 'Everything we do rests on these — whichever service is involved.',
+                is: 'Allt sem við gerum hvílir á þessu, sama hvaða úrræði á í hlut.',
+                en: 'Everything we do rests on these, whichever service is involved.',
               })}
             />
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -351,8 +336,8 @@ export default function BofsPage() {
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-[17px] leading-relaxed" style={{ color: C.body }}>
                 {pick({
-                  is: 'Þú þarft ekki að vita nafnið á rétta úrræðinu. Hafðu samband við barnavernd í þínu sveitarfélagi — við tökum við þaðan.',
-                  en: 'You don’t need to know the name of the right service. Contact child protection in your municipality — we take it from there.',
+                  is: 'Þú þarft ekki að vita nafnið á rétta úrræðinu. Hafðu samband við barnavernd í þínu sveitarfélagi og við tökum við þaðan.',
+                  en: 'You do not need to know the name of the right service. Contact child protection in your municipality and we take it from there.',
                 })}
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

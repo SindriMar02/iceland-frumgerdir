@@ -6,7 +6,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import Lenis from 'lenis'
 import { ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
 import { HomeArt } from './illustrations'
 import { Reveal } from '../../components/Reveal'
@@ -44,6 +45,54 @@ export const FONT = { display: DISPLAY, body: BODY, hand: HAND }
 export const asset = (f: string) => `${import.meta.env.BASE_URL}bofs/${f}`
 /** The real, official Barna- og fjölskyldustofa emblem. */
 export const LOGO = asset('bofs-logo.png')
+
+/* ── smooth scroll ────────────────────────────────────────────────────── */
+
+/**
+ * Site-wide buttery scroll, shared by the landing page and every centre
+ * page. Long expo-out glide, and in-page anchor links ride the same easing
+ * instead of jumping. Skipped entirely under reduced motion; '#main' is
+ * left native so the skip link keeps its instant keyboard behaviour.
+ */
+export function useSmoothScroll() {
+  const reduce = useReducedMotion()
+  useEffect(() => {
+    if (reduce) return
+    const lenis = new Lenis({
+      duration: 1.45,
+      easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)),
+      smoothWheel: true,
+      touchMultiplier: 1.4,
+    })
+    if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
+
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement).closest?.('a[href*="#"]')
+      if (!a) return
+      const href = a.getAttribute('href') ?? ''
+      const hashAt = href.indexOf('#')
+      const hash = href.slice(hashAt)
+      if (hash === '#' || hash === '#main') return
+      const path = href.slice(0, hashAt)
+      if (path && path !== window.location.pathname) return // cross-page: let the router handle it
+      const el = document.querySelector<HTMLElement>(hash)
+      if (!el) return
+      e.preventDefault()
+      lenis.scrollTo(el, { offset: -88, duration: 1.7 })
+    }
+    document.addEventListener('click', onClick)
+
+    let raf = requestAnimationFrame(function loop(t) {
+      lenis.raf(t)
+      raf = requestAnimationFrame(loop)
+    })
+    return () => {
+      cancelAnimationFrame(raf)
+      document.removeEventListener('click', onClick)
+      lenis.destroy()
+    }
+  }, [reduce])
+}
 
 /* ── language ─────────────────────────────────────────────────────────── */
 
@@ -90,6 +139,8 @@ export function useLang(): [Lang, (l: Lang) => void, (v: L) => string] {
 export function BofsStyles() {
   return (
     <style>{`
+      html.lenis, html.lenis body { height: auto; }
+      .lenis.lenis-smooth { scroll-behavior: auto !important; }
       .bofs-root { background:${C.cream}; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
       .bofs-root ::selection { background:${C.terra}; color:#fff; }
       .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; letter-spacing:-0.02em; line-height:1.02; }
@@ -461,9 +512,7 @@ export function Footer() {
               })}
             </span>
           </p>
-          <p>
-            {pick(UI.rights)} · SNDR Studio · {ORG.established}→2026
-          </p>
+          <p>{pick(UI.rights)} · SNDR Studio · 2026</p>
         </div>
       </div>
     </footer>

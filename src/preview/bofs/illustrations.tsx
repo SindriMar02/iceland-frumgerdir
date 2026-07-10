@@ -210,7 +210,6 @@ export type ArtKey =
   | 'blonduhlid'
   | 'bjargey'
   | 'laekjarbakki'
-  | 'fannafold'
   | 'barnahus'
   | 'mst'
   | 'sok'
@@ -277,12 +276,6 @@ export function HomeArt({ art, hue, hueSoft, className }: { art: ArtKey; hue: st
       {art === 'laekjarbakki' && (
         // rolling countryside mounds
         <path d="M116 150 q22 -22 44 0" fill={hue} opacity="0.4" />
-      )}
-      {art === 'fannafold' && (
-        // a bridge arc
-        <g stroke={hue} strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.7">
-          <path d="M120 150 q22 -26 44 0" />
-        </g>
       )}
       {art === 'barnahus' && (
         // a big heart sheltering the window

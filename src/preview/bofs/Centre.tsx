@@ -1,6 +1,7 @@
 /**
  * Öruggt skjól — per-centre / per-service page (shared template).
- * Renders any of the 9 services from the URL slug.
+ * Renders any of the 8 services from the URL slug; unknown slugs
+ * (including the retired Fannafold) redirect to the hub.
  */
 
 import { useEffect } from 'react'
@@ -9,7 +10,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
+import { asset, BofsStyles, Button, C, Footer, Header, useLang, useSmoothScroll, Arrow } from './ui'
 import { HomeArt, ValleyScene, WaveDivider } from './illustrations'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
 
@@ -18,9 +19,11 @@ export default function BofsCentre() {
   const [, , pick] = useLang()
   const service = serviceBySlug(slug)
 
+  useSmoothScroll()
+
   useEffect(() => {
     if (service) {
-      document.title = `${service.name} — Barna- og fjölskyldustofa`
+      document.title = `${service.name} | Barna- og fjölskyldustofa`
       setThemeColor(service.hueSoft)
     }
   }, [service])
