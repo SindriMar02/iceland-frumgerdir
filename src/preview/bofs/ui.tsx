@@ -49,47 +49,26 @@ export const LOGO = asset('bofs-logo.png')
 /* ── smooth scroll ────────────────────────────────────────────────────── */
 
 /**
- * Site-wide buttery scroll, shared by the landing page and every centre
- * page. Long expo-out glide, and in-page anchor links ride the same easing
- * instead of jumping. Skipped entirely under reduced motion; '#main' is
- * left native so the skip link keeps its instant keyboard behaviour.
+ * Site-wide smooth scroll. This is the exact, unmodified Lenis recipe used
+ * on every other page in this repo (reykjavikdistillery, polarhestar, and
+ * the rest) — same options, same raf loop, no custom lerp tuning, no
+ * anchor-click interception. Do not deviate from this without confirming
+ * the change against a working reference page first.
  */
 export function useSmoothScroll() {
   const reduce = useReducedMotion()
   useEffect(() => {
     if (reduce) return
-    // Lerp mode over duration mode: each frame eases toward the target, the
-    // classic Lenis butter, and it degrades gracefully when frames are tight.
-    const lenis = new Lenis({
-      lerp: 0.09,
-      smoothWheel: true,
-      touchMultiplier: 1.4,
-    })
+    const lenis = new Lenis({ duration: 1.15, easing: (x) => Math.min(1, 1.001 - Math.pow(2, -10 * x)), smoothWheel: true })
     if (import.meta.env.DEV) (window as unknown as { __lenis?: Lenis }).__lenis = lenis
-
-    const onClick = (e: MouseEvent) => {
-      const a = (e.target as HTMLElement).closest?.('a[href*="#"]')
-      if (!a) return
-      const href = a.getAttribute('href') ?? ''
-      const hashAt = href.indexOf('#')
-      const hash = href.slice(hashAt)
-      if (hash === '#' || hash === '#main') return
-      const path = href.slice(0, hashAt)
-      if (path && path !== window.location.pathname) return // cross-page: let the router handle it
-      const el = document.querySelector<HTMLElement>(hash)
-      if (!el) return
-      e.preventDefault()
-      lenis.scrollTo(el, { offset: -88, duration: 1.4, easing: (x: number) => Math.min(1, 1.001 - Math.pow(2, -10 * x)) })
-    }
-    document.addEventListener('click', onClick)
-
-    let raf = requestAnimationFrame(function loop(t) {
+    let raf = 0
+    const loop = (t: number) => {
       lenis.raf(t)
       raf = requestAnimationFrame(loop)
-    })
+    }
+    raf = requestAnimationFrame(loop)
     return () => {
       cancelAnimationFrame(raf)
-      document.removeEventListener('click', onClick)
       lenis.destroy()
     }
   }, [reduce])
@@ -140,8 +119,6 @@ export function useLang(): [Lang, (l: Lang) => void, (v: L) => string] {
 export function BofsStyles() {
   return (
     <style>{`
-      html.lenis, html.lenis body { height: auto; }
-      .lenis.lenis-smooth { scroll-behavior: auto !important; }
       .bofs-root { background:${C.cream}; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
       .bofs-root ::selection { background:${C.terra}; color:#fff; }
       .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; letter-spacing:-0.02em; line-height:1.02; }
