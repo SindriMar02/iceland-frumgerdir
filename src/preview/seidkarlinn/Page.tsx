@@ -285,28 +285,51 @@ export default function Page() {
   const heroRef = useRef<HTMLElement>(null)
   const floatBoxRef = useRef<HTMLDivElement>(null)
 
-  /* Pointer parallax for the hero cluster — writes normalized cursor offset to
-     CSS vars on the container; each product reads them with its own depth
-     factor and eases toward the target (transition on the parallax layer). No
-     rAF/state per move: the write is synchronous + cheap, verifiable, smooth. */
+  /* Pointer parallax for the hero cluster. EASING LIVES IN JS, NOT CSS: a
+     CSS `transition` on transform, combined with writing --mx/--my on every
+     pointermove (far more often than the transition can finish), makes the
+     browser keep abandoning the in-flight animation and restarting the curve
+     from wherever it is — that's what reads as jittering/glitching. Instead:
+     pointermove only updates a target ref; one rAF loop lerps a "current"
+     value toward it each frame and writes the vars with no CSS transition —
+     the per-frame lerp IS the smoothing, and it can't fight itself. */
+  const pointerTarget = useRef({ x: 0, y: 0 })
+  const pointerCurrent = useRef({ x: 0, y: 0 })
+  const pointerRaf = useRef<number>()
+
+  function stepPointer() {
+    const box = floatBoxRef.current
+    const t = pointerTarget.current
+    const c = pointerCurrent.current
+    c.x += (t.x - c.x) * 0.1
+    c.y += (t.y - c.y) * 0.1
+    box?.style.setProperty('--mx', c.x.toFixed(4))
+    box?.style.setProperty('--my', c.y.toFixed(4))
+    if (Math.abs(t.x - c.x) > 0.0008 || Math.abs(t.y - c.y) > 0.0008) {
+      pointerRaf.current = requestAnimationFrame(stepPointer)
+    } else {
+      pointerRaf.current = undefined
+    }
+  }
+  function ensurePointerLoop() {
+    if (pointerRaf.current === undefined) pointerRaf.current = requestAnimationFrame(stepPointer)
+  }
   function onHeroPointer(e: React.PointerEvent) {
     if (e.pointerType !== 'mouse') return
     const el = heroRef.current
-    const box = floatBoxRef.current
-    if (!el || !box) return
+    if (!el) return
     const r = el.getBoundingClientRect()
-    const mx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2)))
-    const my = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2)))
-    box.style.setProperty('--mx', mx.toFixed(3))
-    box.style.setProperty('--my', my.toFixed(3))
+    pointerTarget.current = {
+      x: Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2))),
+      y: Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2))),
+    }
+    ensurePointerLoop()
   }
   function resetHeroPointer() {
-    const box = floatBoxRef.current
-    if (box) {
-      box.style.setProperty('--mx', '0')
-      box.style.setProperty('--my', '0')
-    }
+    pointerTarget.current = { x: 0, y: 0 }
+    ensurePointerLoop()
   }
+  useEffect(() => () => { if (pointerRaf.current !== undefined) cancelAnimationFrame(pointerRaf.current) }, [])
 
   const teaInk = useInkOnView<HTMLDivElement>()
   const ledgerInk = useInkOnView<HTMLDivElement>()
@@ -458,7 +481,7 @@ export default function Page() {
                     style={
                       reduce
                         ? undefined
-                        : { transform: `translate3d(calc(var(--mx,0) * ${f.px}px), calc(var(--my,0) * ${Math.round(f.px * 0.7)}px), 0)`, transition: 'transform .5s cubic-bezier(.2,.7,.2,1)', willChange: 'transform' }
+                        : { transform: `translate3d(calc(var(--mx,0) * ${f.px}px), calc(var(--my,0) * ${Math.round(f.px * 0.7)}px), 0)`, willChange: 'transform' }
                     }
                   >
                     <div className={reduce ? undefined : 'gk-laid'} style={{ animationDelay: `${f.drop}s` }}>
