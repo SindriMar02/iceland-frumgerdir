@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { Facebook, Instagram, Mail, MapPin, Phone, ShoppingBag, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { Img } from '../../components/Img'
-import { Reveal } from '../../components/Reveal'
 import {
   ADDRESS,
   EMAIL,
@@ -14,8 +13,8 @@ import {
   FACTS,
   GALDUR_TEAS,
   HERO,
-  IMG,
   INSTAGRAM,
+  LOGO,
   MAPS,
   PHONE_DISPLAY,
   PHONE_HREF,
@@ -25,315 +24,129 @@ import {
   STORY,
   getProduct,
   isk,
-  u,
+  productImg,
 } from './data'
 import type { Product, ProductCat } from './data'
 
 const company = getPreviewCompany('seidkarlinn')
 
-/* ── Úr jörðinni — a living, organic botanical catalogue. Warm bone ground,
-      moss ink, honey amber. Everything soft: morphing blob image masks,
-      drifting pollen, a botanical marquee, a vine that grows itself. The shop
-      stays a real shop: filterable grid, visible prices, working cart. ───── */
-const BONE = '#F4EFE3'
-const CARD = '#FFFDF6'
-const CREAM2 = '#ECE4D2'
-const SAGE = '#E7EBD8'
-const INK = '#232819'
-const MUT = '#565B45'
-const HAIR = 'rgba(35,40,25,0.14)'
-const HAIR_HI = 'rgba(35,40,25,0.26)'
-const MOSS = '#3E5732'
-const HONEY_GOLD = '#C98A2A'
-const CLAY = '#8F4C22' // AA as 12px-bold eyebrow on the amber band and as the badge fill
-const FOREST = '#232A1C'
-const BONE_ON_DARK = 'rgba(244,239,227,0.92)'
-const MUT_ON_DARK = 'rgba(244,239,227,0.7)'
+/* ── Galdraskráin — the sorcerer's price-sheet as a printed broadside.
+      Built from THEIR assets: the boxed wordmark is the masthead, their
+      white-background product photography sits on the paper as multiply-blend
+      cutouts, and the motion identity is INSCRIPTION: rules draw themselves,
+      staves self-inscribe, stamps thump. Ink on paper, one stamp red.
+      No pills, no cards, no cream. ─────────────────────────────────────── */
+const PAPER = '#F6F4EE'
+const INK = '#151310'
+const RED = '#9E2B20'
+const HAIR = 'rgba(21,19,16,0.16)'
+const HAIR_MID = 'rgba(21,19,16,0.4)'
+const MUT = 'rgba(21,19,16,0.62)'
+const PAPER_MUT = 'rgba(246,244,238,0.66)'
 
-const DISPLAY = "'Fraunces', Georgia, serif"
-const BODY = "'Hanken Grotesk', system-ui, sans-serif"
-
-const BLOB_A = '58% 42% 55% 45% / 48% 55% 45% 52%'
-const BLOB_B = '45% 55% 52% 48% / 55% 45% 55% 45%'
-
-function srcset(url: string) {
-  return `${u(url, 828)} 828w, ${u(url, 1280)} 1280w, ${u(url, 2000)} 2000w`
-}
+const DISPLAY = "'Oranienbaum', 'Times New Roman', serif"
+const BODY = "'Source Serif 4', Georgia, serif"
+const MONO = "'Space Mono', ui-monospace, monospace"
 
 const CSS = `
-@keyframes skIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-.sk-in { opacity: 0; animation: skIn .85s cubic-bezier(.22,.8,.3,1) forwards; }
-@keyframes skBlob {
-  0%, 100% { border-radius: ${BLOB_A}; }
-  40% { border-radius: ${BLOB_B}; }
-  70% { border-radius: 52% 48% 42% 58% / 45% 56% 44% 55%; }
+@keyframes gkIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.gk-in { opacity: 0; animation: gkIn .8s cubic-bezier(.22,.8,.3,1) forwards; }
+@keyframes gkRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.gk-rule { transform-origin: left center; transform: scaleX(0); animation: gkRule 1.2s cubic-bezier(.6,.05,.2,1) forwards; }
+@keyframes gkDraw { to { stroke-dashoffset: 0; } }
+.gk-hero-stave path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: gkDraw 1.4s cubic-bezier(.5,.05,.3,1) forwards; }
+.gk-stave path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.2s cubic-bezier(.5,.05,.3,1); }
+.gk-stave.inked path { stroke-dashoffset: 0; }
+@keyframes gkStamp {
+  0% { opacity: 0; transform: scale(1.7) rotate(-11deg); }
+  62% { opacity: 1; transform: scale(.94) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
 }
-.sk-live .sk-blob { animation: skBlob 18s ease-in-out infinite; }
-@keyframes skBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-.sk-live .sk-breathe { animation: skBreathe 10s ease-in-out infinite; }
-@keyframes skFloat { from { transform: translateY(-7px); } to { transform: translateY(9px); } }
-.sk-live .sk-float { animation: skFloat 7s ease-in-out infinite alternate; }
-@keyframes skMarq { to { transform: translateX(-50%); } }
-.sk-live .sk-marq-inner { animation: skMarq 40s linear infinite; }
-@keyframes skPollen {
-  0% { transform: translateY(0); opacity: 0; }
-  8% { opacity: .5; }
-  80% { opacity: .2; }
-  100% { transform: translateY(-72vh); opacity: 0; }
-}
-.sk-live .sk-pollen { animation: skPollen var(--dur, 12s) linear infinite; animation-delay: var(--delay, 0s); }
-@keyframes skDriftA { from { transform: translate(0,0) scale(1); } to { transform: translate(-5vmax, 6vmax) scale(1.15); } }
-@keyframes skDriftB { from { transform: translate(0,0) scale(1); } to { transform: translate(6vmax, -5vmax) scale(1.1); } }
-.sk-live .sk-drift-a { animation: skDriftA 26s ease-in-out infinite alternate; }
-.sk-live .sk-drift-b { animation: skDriftB 32s ease-in-out infinite alternate; }
-.sk-card { transition: transform .35s cubic-bezier(.22,.8,.3,1), box-shadow .35s ease; }
-.sk-card:hover { transform: translateY(-5px); box-shadow: 0 24px 44px -26px rgba(35,40,25,.38); }
-.sk-icon { transition: transform .35s ease; }
-.sk-card:hover .sk-icon { transform: rotate(-8deg) scale(1.08); }
-.sk-vine-path { transition: stroke-dashoffset 2.4s cubic-bezier(.4,0,.2,1) .15s; }
-.sk-vine-leaf { transition: opacity .8s ease, transform .8s ease; }
+.gk-stamped { animation: gkStamp .38s cubic-bezier(.2,1,.4,1) forwards; }
+.gk-btn { transition: transform .14s ease, box-shadow .14s ease, background .2s ease, color .2s ease; }
+.gk-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--sh); }
+.gk-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--sh); }
+.gk-row { transition: background .25s ease; }
+.gk-row:hover { background: rgba(21,19,16,0.035); }
+.gk-row .gk-leader { transition: border-color .25s ease; }
+.gk-row:hover .gk-leader { border-color: rgba(21,19,16,0.55); }
+.gk-cut { transition: transform .4s cubic-bezier(.22,.8,.3,1); }
+.gk-cut:hover { transform: rotate(0deg) scale(1.02); }
 `
 
-type IconT = (p: { className?: string }) => JSX.Element
-
-function IconLeaf({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M20 4c-8 0-14 5-14 13 0 1.5.3 2.5.3 2.5S7 19 8 12C9.5 6 14 4 20 4Z" />
-      <path d="M6.5 19.5 18 6" />
-    </svg>
-  )
-}
-function IconDroplet({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M12 3s6 7 6 11.5A6 6 0 0 1 6 14.5C6 10 12 3 12 3Z" />
-    </svg>
-  )
-}
-function IconMushroom({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M4 11c0-4 3.5-7 8-7s8 3 8 7c-2-1-5-1.5-8-1.5S6 10 4 11Z" />
-      <path d="M10 11v6a2 2 0 0 0 4 0v-6" />
-    </svg>
-  )
-}
-function IconSnow({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M12 2v20M4 7l16 10M20 7 4 17M2 12h20" />
-    </svg>
-  )
-}
-function IconFlower({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <circle cx="12" cy="12" r="2.6" />
-      <path d="M12 9.4V4.5M12 19.5v-4.9M9.4 12H4.5M19.5 12h-4.9M14 10l3.4-3.4M6.6 17.4 10 14M14 14l3.4 3.4M6.6 6.6 10 10" />
-    </svg>
-  )
-}
-function IconCapsule({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-30 12 12)" />
-      <path d="M9 10.8 15 13.2" />
-    </svg>
-  )
-}
-
-const CAT_ICON: Record<ProductCat, IconT> = {
-  te: IconLeaf,
-  hunang: IconDroplet,
-  sveppir: IconMushroom,
-  frost: IconSnow,
-  hud: IconFlower,
-  faeda: IconCapsule,
-}
-const CAT_LABEL: Record<ProductCat, string> = {
-  te: 'Te-galdur',
-  hunang: 'Hunang & frjó',
-  sveppir: 'Sveppir',
-  frost: 'Frostþurrkað',
-  hud: 'Húð & hár',
-  faeda: 'Fæðubót',
-}
-
-const FILTERS: { key: ProductCat | 'allt'; label: string }[] = [
-  { key: 'allt', label: 'Allt' },
-  { key: 'te', label: 'Te-galdrar' },
-  { key: 'hunang', label: 'Hunang & frjó' },
-  { key: 'sveppir', label: 'Sveppir' },
-  { key: 'frost', label: 'Frostþurrkað' },
-  { key: 'hud', label: 'Húð & hár' },
-  { key: 'faeda', label: 'Fæðubótarefni' },
+/* ── Hand-drawn staves in the style of the old Icelandic magical staves —
+      original drawings (never claimed as historical), used as the catalogue's
+      chapter marks. pathLength=1 lets CSS inscribe them. ─────────────────── */
+const STAVE_PATHS: string[][] = [
+  // 0 — hero stave (elaborate)
+  [
+    'M50 6 V94',
+    'M26 26 H74',
+    'M18 50 H82',
+    'M26 74 H74',
+    'M26 26 l-6 -7 M26 26 l-6 7 M74 26 l6 -7 M74 26 l6 7',
+    'M18 50 l-7 -6 M18 50 l-7 6 M82 50 l7 -6 M82 50 l7 6',
+    'M26 74 l-6 -7 M26 74 l-6 7 M74 74 l6 -7 M74 74 l6 7',
+    'M50 6 m-4 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0',
+    'M50 94 m-4 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0',
+  ],
+  // 1 — te
+  ['M50 10 V90', 'M30 34 H70', 'M36 58 H64', 'M30 34 l-5 -6 M70 34 l5 -6', 'M50 90 l-8 -8 M50 90 l8 -8'],
+  // 2 — hunang
+  ['M50 10 V90', 'M28 40 H72', 'M28 40 l-5 6 M72 40 l5 6', 'M50 10 l-7 7 M50 10 l7 7', 'M40 68 h20 l-10 14 z'],
+  // 3 — sveppir
+  ['M50 12 V88', 'M32 30 H68', 'M26 52 H74', 'M32 74 H68', 'M50 12 m-3 0 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0'],
+  // 4 — um / colophon
+  ['M50 10 V90', 'M30 50 H70', 'M30 50 l-6 -6 M30 50 l-6 6 M70 50 l6 -6 M70 50 l6 6', 'M38 24 H62', 'M38 76 H62'],
+  // 5 — búðin
+  ['M50 10 V90', 'M28 32 H72', 'M28 66 H72', 'M28 32 l-5 -6 M72 32 l5 -6', 'M28 66 l-5 6 M72 66 l5 6', 'M42 48 h16'],
 ]
 
-const MARQUEE = ['Netla', 'Hindberjalauf', 'Hafrastrá', 'Hrátt hunang', 'Býflugnafrjó', 'Propolis', 'Reishi', 'Chaga', 'Cordyceps', 'Lions Mane', 'Bláber', 'Mangó', 'Shilajit', 'Kakó']
-
-const POLLEN = [
-  { left: '6%', delay: '0s', size: 5, dur: '13s', color: MOSS },
-  { left: '18%', delay: '2.6s', size: 4, dur: '11s', color: HONEY_GOLD },
-  { left: '31%', delay: '5.2s', size: 6, dur: '14s', color: MOSS },
-  { left: '47%', delay: '1.4s', size: 4, dur: '12s', color: HONEY_GOLD },
-  { left: '63%', delay: '3.8s', size: 5, dur: '15s', color: MOSS },
-  { left: '74%', delay: '6.6s', size: 4, dur: '11.5s', color: HONEY_GOLD },
-  { left: '86%', delay: '0.9s', size: 6, dur: '13.5s', color: MOSS },
-  { left: '93%', delay: '4.5s', size: 4, dur: '12.5s', color: HONEY_GOLD },
-]
-
-/** A vine that draws itself when scrolled into view (IO + CSS, no rAF). */
-function Vine({ grown }: { grown: boolean }) {
-  const leaves = [
-    { d: 'M52 118 C 42 114, 38 106, 40 98 C 50 100, 54 108, 52 118Z', delay: 0.9 },
-    { d: 'M68 92 C 78 88, 82 80, 80 72 C 70 74, 66 82, 68 92Z', delay: 1.2 },
-    { d: 'M50 62 C 40 58, 36 50, 38 42 C 48 44, 52 52, 50 62Z', delay: 1.5 },
-    { d: 'M66 36 C 76 32, 80 24, 78 16 C 68 18, 64 26, 66 36Z', delay: 1.8 },
-  ]
+function Stave({ variant, inked, className, hero, color = INK }: { variant: number; inked?: boolean; className?: string; hero?: boolean; color?: string }) {
   return (
-    <svg viewBox="0 0 120 160" className="h-36 w-auto" aria-hidden="true">
-      <path
-        d="M60 156 C 56 128, 68 112, 60 88 C 52 66, 66 46, 58 22 C 56 15, 58 8, 60 4"
-        fill="none"
-        stroke={MOSS}
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        pathLength={1}
-        strokeDasharray={1}
-        strokeDashoffset={grown ? 0 : 1}
-        className="sk-vine-path"
-      />
-      {leaves.map((l) => (
-        <path
-          key={l.d}
-          d={l.d}
-          fill={MOSS}
-          opacity={grown ? 0.85 : 0}
-          className="sk-vine-leaf"
-          style={{ transitionDelay: `${l.delay}s`, transform: grown ? 'scale(1)' : 'scale(0.6)', transformOrigin: '60px 80px' }}
-        />
+    <svg viewBox="0 0 100 100" className={`${hero ? 'gk-hero-stave' : 'gk-stave'} ${inked ? 'inked' : ''} ${className ?? ''}`} aria-hidden="true">
+      {STAVE_PATHS[variant].map((d, i) => (
+        <path key={d} d={d} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" pathLength={1} style={{ transitionDelay: hero ? undefined : `${i * 0.12}s`, animationDelay: hero ? `${0.3 + i * 0.16}s` : undefined }} />
       ))}
     </svg>
   )
 }
 
-interface CartItem {
-  key: string
-  name: string
-  price: number
-  qty: number
-}
-
-function ProductCard({ product, onAdd, added }: { product: Product; onAdd: () => void; added: boolean }) {
-  const Icon = CAT_ICON[product.cat]
+/** Circular rubber-stamp mark, set from their name — decorative print artifact. */
+function RoundStamp({ className }: { className?: string }) {
   return (
-    <div className="sk-card flex h-full flex-col justify-between rounded-[26px] border p-5" style={{ borderColor: HAIR, background: CARD }}>
-      <div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="sk-icon grid h-10 w-10 place-items-center" style={{ background: 'rgba(62,87,50,0.1)', color: MOSS, borderRadius: BLOB_A }}>
-            <Icon className="h-[18px] w-[18px]" />
-          </span>
-          <span className="text-[11px] font-semibold tracking-[0.14em] uppercase" style={{ color: MUT }}>
-            {CAT_LABEL[product.cat]}
-          </span>
-        </div>
-        <h3 className="mt-4 text-xl leading-snug" style={{ fontFamily: DISPLAY, color: INK, fontWeight: 500 }}>
-          {product.name}
-        </h3>
-        <p className="mt-1 text-sm" style={{ color: MUT }}>
-          {product.format}
-        </p>
-      </div>
-      <div className="mt-5 flex items-center justify-between gap-2 border-t pt-4" style={{ borderColor: HAIR }}>
-        <span className="text-[15px] font-bold tabular-nums" style={{ color: INK }}>
-          {isk(product.price)}
-        </span>
-        <button
-          onClick={onAdd}
-          aria-label={`Bæta ${product.name} í körfu`}
-          className="min-h-11 rounded-full px-4 text-[13px] font-semibold transition-colors"
-          style={{ background: added ? MOSS : INK, color: BONE, outlineColor: INK }}
-        >
-          {added ? 'Í körfunni ✓' : 'Bæta í körfu'}
-        </button>
-      </div>
-    </div>
+    <svg viewBox="0 0 120 120" className={className} aria-hidden="true" style={{ color: RED }}>
+      <defs>
+        <path id="gk-stamp-arc" d="M60 12 a48 48 0 1 1 -0.01 0" fill="none" />
+      </defs>
+      <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeWidth="2.4" opacity="0.9" />
+      <circle cx="60" cy="60" r="38" fill="none" stroke="currentColor" strokeWidth="1.4" opacity="0.9" />
+      <text fontSize="11.5" letterSpacing="2.6" fill="currentColor" style={{ fontFamily: MONO }}>
+        <textPath href="#gk-stamp-arc" startOffset="0">
+          SEIÐKARLINN · REYKJAVÍK · NÁTTÚRUVÖRUR ·
+        </textPath>
+      </text>
+      <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <path d="M60 44 V76 M50 54 H70 M50 54 l-4 -4 M70 54 l4 -4 M54 68 h12" fill="none" />
+      </g>
+    </svg>
   )
 }
 
-function DottedRow({ product, dark, onAdd, added }: { product: Product; dark?: boolean; onAdd: () => void; added: boolean }) {
-  return (
-    <div className="flex items-center gap-3 py-3.5">
-      <div className="min-w-0">
-        <p className="truncate text-lg leading-snug" style={{ fontFamily: DISPLAY, color: dark ? BONE_ON_DARK : INK, fontWeight: 500 }}>
-          {product.name}
-        </p>
-        <p className="text-xs" style={{ color: dark ? MUT_ON_DARK : 'rgba(35,40,25,0.68)' }}>
-          {product.format}
-        </p>
-      </div>
-      <span className="mx-1 flex-1 border-b border-dotted" style={{ borderColor: dark ? 'rgba(244,239,227,0.35)' : 'rgba(35,40,25,0.35)' }} />
-      <span className="shrink-0 text-[15px] font-bold tabular-nums" style={{ color: dark ? BONE_ON_DARK : INK }}>
-        {isk(product.price)}
-      </span>
-      <button
-        onClick={onAdd}
-        aria-label={`Bæta ${product.name} í körfu`}
-        className="min-h-11 shrink-0 rounded-full px-4 text-[13px] font-semibold transition-colors"
-        style={
-          dark
-            ? { background: added ? BONE : HONEY_GOLD, color: FOREST, outlineColor: HONEY_GOLD }
-            : { background: added ? MOSS : INK, color: BONE, outlineColor: INK }
-        }
-      >
-        {added ? '✓' : 'Bæta við'}
-      </button>
-    </div>
-  )
-}
-
-export default function Page() {
-  const reduce = useReducedMotion()
-  const [scrolled, setScrolled] = useState(false)
-  const [filter, setFilter] = useState<ProductCat | 'allt'>('allt')
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [cartOpen, setCartOpen] = useState(false)
-  const [justAdded, setJustAdded] = useState<string | null>(null)
-  const [checkoutNote, setCheckoutNote] = useState(false)
-  const [vineGrown, setVineGrown] = useState(false)
-
-  const addedTimer = useRef<number>()
-  const vineRef = useRef<HTMLDivElement>(null)
-
+/** Rect-check on scroll + timed re-checks (IO + rAF stall in throttled tabs). */
+function useInkOnView<T extends HTMLElement>(threshold = 0.8) {
+  const ref = useRef<T>(null)
+  const [inked, setInked] = useState(false)
   useEffect(() => {
-    document.title = 'Seiðkarlinn · frumgerð að nýjum vef'
-    setThemeColor(BONE)
-  }, [])
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  useEffect(() => () => window.clearTimeout(addedTimer.current), [])
-
-  // Synchronous rect check on scroll (IO callbacks can stall in throttled
-  // tabs — same fix as the bakery reveals), plus a few timed re-checks after
-  // mount so restored-scroll loads and throttled tabs still grow the vine.
-  // The rect condition gates every path, so nothing fires off-screen.
-  useEffect(() => {
-    let grown = false
+    let done = false
     const check = () => {
-      if (grown) return
-      const el = vineRef.current
+      if (done) return
+      const el = ref.current
       if (!el) return
       const r = el.getBoundingClientRect()
-      if (r.top < window.innerHeight * 0.78 && r.bottom > 0) {
-        grown = true
-        setVineGrown(true)
+      if (r.top < window.innerHeight * threshold && r.bottom > 0) {
+        done = true
+        setInked(true)
         window.removeEventListener('scroll', check)
       }
     }
@@ -346,7 +159,139 @@ export default function Page() {
       window.clearInterval(iv)
       window.clearTimeout(stop)
     }
+  }, [threshold])
+  return { ref, inked }
+}
+
+function SectionHead({ roman, title, note, stave, inked, innerRef }: { roman: string; title: string; note?: string; stave: number; inked: boolean; innerRef: React.Ref<HTMLDivElement> }) {
+  return (
+    <div ref={innerRef}>
+      <div className="h-px w-full" style={{ background: INK }} />
+      <div className="mx-auto flex max-w-6xl items-end justify-between gap-4 px-5 pt-5 pb-8 md:px-8">
+        <div className="flex items-baseline gap-4 md:gap-6">
+          <span className="text-4xl leading-none md:text-6xl" style={{ fontFamily: DISPLAY }}>
+            {roman}.
+          </span>
+          <h2 className="text-3xl leading-none tracking-tight md:text-5xl" style={{ fontFamily: DISPLAY }}>
+            {title}
+          </h2>
+        </div>
+        <div className="flex items-center gap-4">
+          {note && (
+            <p className="hidden text-[11px] tracking-[0.14em] uppercase md:block" style={{ fontFamily: MONO, color: MUT }}>
+              {note}
+            </p>
+          )}
+          <Stave variant={stave} inked={inked} className="h-10 w-10 md:h-12 md:w-12" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface CartItem {
+  key: string
+  name: string
+  price: number
+  qty: number
+}
+
+function StampButton({ added, onClick, label, dark, ariaLabel }: { added: boolean; onClick: () => void; label?: string; dark?: boolean; ariaLabel: string }) {
+  const sh = dark ? PAPER : INK
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={`gk-btn shrink-0 px-3.5 py-2.5 text-[11px] font-bold tracking-[0.14em] uppercase ${added ? 'gk-stamped' : ''}`}
+      style={{
+        fontFamily: MONO,
+        border: `1.5px solid ${dark ? PAPER : INK}`,
+        boxShadow: `3px 3px 0 ${sh}`,
+        background: added ? (dark ? PAPER : INK) : 'transparent',
+        color: added ? (dark ? INK : PAPER) : dark ? PAPER : INK,
+        outlineColor: dark ? PAPER : INK,
+        ['--sh' as string]: sh,
+      }}
+    >
+      {added ? 'Í körfunni' : (label ?? 'Í körfu')}
+    </button>
+  )
+}
+
+function LedgerRow({ nr, product, onAdd, added, dark }: { nr: string; product: Product; onAdd: () => void; added: boolean; dark?: boolean }) {
+  return (
+    <div className="gk-row flex items-center gap-3 border-b px-1 py-3 md:gap-5 md:px-2" style={{ borderColor: dark ? 'rgba(246,244,238,0.22)' : HAIR }}>
+      <span className="w-7 shrink-0 text-[11px]" style={{ fontFamily: MONO, color: dark ? PAPER_MUT : MUT }}>
+        {nr}
+      </span>
+      <span className={`grid h-14 w-14 shrink-0 place-items-center ${dark ? 'border' : ''}`} style={dark ? { background: '#fff', borderColor: 'rgba(246,244,238,0.4)' } : undefined}>
+        <Img src={productImg(product.id)} alt={product.name} className="h-14 w-14 object-contain" fallbackClassName="opacity-0" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-lg leading-tight md:text-xl" style={{ fontFamily: DISPLAY, color: dark ? PAPER : INK }}>
+          {product.name}
+        </p>
+        <p className="text-[10.5px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: dark ? PAPER_MUT : MUT }}>
+          {product.format}
+        </p>
+      </div>
+      <span className="gk-leader mx-1 hidden flex-1 border-b border-dotted sm:block" style={{ borderColor: dark ? 'rgba(246,244,238,0.35)' : 'rgba(21,19,16,0.3)' }} />
+      <span className="ml-auto shrink-0 text-[15px] font-bold sm:ml-0" style={{ fontFamily: MONO, color: dark ? PAPER : INK }}>
+        {isk(product.price)}
+      </span>
+      <StampButton added={added} onClick={onAdd} dark={dark} ariaLabel={`Bæta ${product.name} í körfu`} />
+    </div>
+  )
+}
+
+const FILTERS: { key: ProductCat | 'allt'; label: string }[] = [
+  { key: 'allt', label: 'Allt' },
+  { key: 'te', label: 'Te-galdrar' },
+  { key: 'hunang', label: 'Hunang & frjó' },
+  { key: 'sveppir', label: 'Sveppir' },
+  { key: 'frost', label: 'Frostþurrkað' },
+  { key: 'hud', label: 'Húð & hár' },
+  { key: 'faeda', label: 'Fæðubót' },
+]
+
+const TEA_INTENT: Record<string, string> = {
+  kvennagaldur: 'Fyrir konur',
+  svefngaldur: 'Fyrir svefninn',
+  draumagaldur: 'Fyrir nóttina',
+  hjartagaldur: 'Fyrir ró',
+  blodrugaldur: 'Fyrir jafnvægi',
+}
+
+export default function Page() {
+  const reduce = useReducedMotion()
+  const [scrolled, setScrolled] = useState(false)
+  const [filter, setFilter] = useState<ProductCat | 'allt'>('allt')
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [cartOpen, setCartOpen] = useState(false)
+  const [justAdded, setJustAdded] = useState<string | null>(null)
+  const [checkoutNote, setCheckoutNote] = useState(false)
+  const addedTimer = useRef<number>()
+
+  const teaInk = useInkOnView<HTMLDivElement>()
+  const ledgerInk = useInkOnView<HTMLDivElement>()
+  const honeyInk = useInkOnView<HTMLDivElement>()
+  const sveppirInk = useInkOnView<HTMLDivElement>()
+  const umInk = useInkOnView<HTMLDivElement>()
+  const budInk = useInkOnView<HTMLDivElement>()
+
+  useEffect(() => {
+    document.title = 'Seiðkarlinn · frumgerð að nýjum vef'
+    setThemeColor(PAPER)
   }, [])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 480)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => () => window.clearTimeout(addedTimer.current), [])
 
   useEffect(() => {
     if (!cartOpen) return
@@ -359,453 +304,356 @@ export default function Page() {
     }
   }, [cartOpen])
 
-  function addToCart(key: string, name: string, price: number) {
+  function addToCart(p: Product) {
     setCart((prev) => {
-      const found = prev.find((i) => i.key === key)
-      if (found) return prev.map((i) => (i.key === key ? { ...i, qty: i.qty + 1 } : i))
-      return [...prev, { key, name, price, qty: 1 }]
+      const found = prev.find((i) => i.key === p.id)
+      if (found) return prev.map((i) => (i.key === p.id ? { ...i, qty: i.qty + 1 } : i))
+      return [...prev, { key: p.id, name: p.name, price: p.price, qty: 1 }]
     })
-    setJustAdded(key)
+    setJustAdded(p.id)
     window.clearTimeout(addedTimer.current)
-    addedTimer.current = window.setTimeout(() => setJustAdded(null), 1400)
+    addedTimer.current = window.setTimeout(() => setJustAdded(null), 1600)
   }
   function removeFromCart(key: string) {
     setCart((prev) => prev.filter((i) => i.key !== key))
   }
-  const add = (p: Product) => () => addToCart(p.id, p.name, p.price)
 
   const cartCount = cart.reduce((s, i) => s + i.qty, 0)
   const cartTotal = cart.reduce((s, i) => s + i.qty * i.price, 0)
   const cartLabel = `Karfa, ${cartCount} ${cartCount === 1 ? 'vara' : 'vörur'}`
 
   const filtered = filter === 'allt' ? PRODUCTS : PRODUCTS.filter((p) => p.cat === filter)
-  const kvenna = GALDUR_TEAS.find((t) => t.slug === 'kvennagaldur')!
-  const kvennaProduct = getProduct('kvennagaldur')!
-  const honeyRows = [getProduct('villibloma')!, getProduct('hafjalla')!, getProduct('byflugnafrjo')!]
+  const nrOf = (p: Product) => String(PRODUCTS.indexOf(p) + 1).padStart(2, '0')
+
+  const teas = GALDUR_TEAS
+  const kvenna = teas[0]
+  const honeyRows = [getProduct('villibloma')!, getProduct('hafjalla')!, getProduct('byflugnafrjo')!, getProduct('propolis')!]
   const tinctureRows = [getProduct('reishi')!, getProduct('chaga')!, getProduct('cordyceps')!, getProduct('lionsmane')!]
 
   return (
-    <div lang="is" className={`min-h-screen overflow-x-hidden antialiased ${reduce ? '' : 'sk-live'}`} style={{ background: BONE, color: INK, fontFamily: BODY }}>
+    <div lang="is" className="min-h-screen overflow-x-hidden antialiased" style={{ background: PAPER, color: INK, fontFamily: BODY }}>
       <style>{CSS}</style>
 
-      {/* ── Header — seamless over the hero, bone once scrolled ──────────── */}
+      {/* ── Slim bar, slides in once the masthead has scrolled away ──────── */}
       <header
-        className="fixed inset-x-0 top-0 z-40 transition-colors duration-300"
-        style={{ background: scrolled ? 'rgba(244,239,227,0.92)' : 'transparent', backdropFilter: scrolled ? 'blur(10px)' : 'none', borderBottom: `1px solid ${scrolled ? HAIR : 'transparent'}` }}
+        className="fixed inset-x-0 top-0 z-40 border-b transition-transform duration-300"
+        style={{ background: PAPER, borderColor: INK, transform: scrolled ? 'translateY(0)' : 'translateY(-105%)' }}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
-          <a href="#top" className="text-xl" style={{ fontFamily: DISPLAY, fontWeight: 600, color: INK }}>
-            Seiðkarlinn
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-2.5 md:px-8">
+          <a href="#top" aria-label="Efst á síðu">
+            <img src={LOGO} alt="Seiðkarlinn" className="h-5 w-auto md:h-6" />
           </a>
-          <nav className="hidden items-center gap-8 text-sm font-semibold md:flex" style={{ color: INK }}>
-            <a href="#vorur" className="transition-opacity hover:opacity-60">
-              Vörurnar
+          <nav className="hidden items-center gap-6 text-[11px] font-bold tracking-[0.14em] uppercase md:flex" style={{ fontFamily: MONO }}>
+            <a href="#verdskra" className="hover:underline">
+              Verðskráin
             </a>
-            <a href="#um" className="transition-opacity hover:opacity-60">
-              Um okkur
+            <a href="#hunang" className="hover:underline">
+              Hunangið
             </a>
-            <a href="#verslunin" className="transition-opacity hover:opacity-60">
+            <a href="#budin" className="hover:underline">
               Búðin
             </a>
           </nav>
-          <button onClick={() => setCartOpen(true)} aria-label={cartLabel} className="relative grid h-11 w-11 place-items-center rounded-full transition-colors hover:bg-black/5" style={{ color: INK }}>
-            <ShoppingBag className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 grid h-4.5 w-4.5 place-items-center rounded-full text-[10px] font-bold" style={{ background: CLAY, color: BONE }}>
-                {cartCount}
-              </span>
-            )}
+          <button onClick={() => setCartOpen(true)} aria-label={cartLabel} className="border-[1.5px] px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] uppercase" style={{ fontFamily: MONO, borderColor: INK, color: INK, outlineColor: INK }}>
+            Karfa <span style={{ color: RED }}>[{cartCount}]</span>
           </button>
         </div>
       </header>
 
-      {/* ── Hero — airy, breathing, alive ────────────────────────────────── */}
-      <section id="top" className="relative flex min-h-[92svh] items-center overflow-hidden px-5 pt-28 pb-16 md:px-8">
-        <div aria-hidden="true" className="sk-drift-a pointer-events-none absolute -top-40 -left-40 h-[34rem] w-[34rem] rounded-full opacity-60" style={{ background: 'radial-gradient(circle, rgba(62,87,50,0.12), transparent 65%)' }} />
-        <div aria-hidden="true" className="sk-drift-b pointer-events-none absolute -right-48 -bottom-48 h-[38rem] w-[38rem] rounded-full opacity-70" style={{ background: 'radial-gradient(circle, rgba(201,138,42,0.13), transparent 65%)' }} />
-        {!reduce &&
-          POLLEN.map((p) => (
-            <span
-              key={p.left}
-              aria-hidden="true"
-              className="sk-pollen pointer-events-none absolute bottom-0 rounded-full"
-              style={{ left: p.left, width: p.size, height: p.size, background: p.color, opacity: 0, ['--dur' as string]: p.dur, ['--delay' as string]: p.delay }}
-            />
-          ))}
+      {/* ── Masthead ─────────────────────────────────────────────────────── */}
+      <section id="top" className="relative">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
+          <div className="gk-in flex items-center justify-between gap-3 py-2.5 text-[10px] tracking-[0.16em] uppercase md:text-[11px]" style={{ fontFamily: MONO, color: MUT, animationDelay: '.05s' }}>
+            <span>{HERO.datelineLeft}</span>
+            <span className="hidden sm:inline">Galdraskrá · Nr. 1</span>
+            <span>{HERO.datelineRight}</span>
+          </div>
+          <div className="gk-rule h-px w-full" style={{ background: INK, animationDelay: '.1s' }} />
+          <div className="gk-in flex justify-center py-7 md:py-9" style={{ animationDelay: '.2s' }}>
+            <img src={LOGO} alt="Seiðkarlinn" className="h-10 w-auto md:h-14" />
+          </div>
+          <div className="gk-rule h-[3px] w-full" style={{ background: INK, animationDelay: '.25s' }} />
+        </div>
 
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 md:grid-cols-2 md:gap-10">
+        {/* hero spread */}
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-10 pb-14 md:grid-cols-[7fr_5fr] md:gap-8 md:px-8 md:pt-14 md:pb-20">
           <div>
-            <p className="sk-in text-xs font-bold tracking-[0.22em] uppercase" style={{ color: MOSS, animationDelay: '.05s' }}>
-              {HERO.eyebrow}
-            </p>
-            <h1 className="mt-5 text-[clamp(2.9rem,7vw,5.4rem)] leading-[1.04] text-balance" style={{ fontFamily: DISPLAY, fontWeight: 500, color: INK }}>
-              <span className="sk-in inline-block" style={{ animationDelay: '.12s' }}>
-                Allt sem
-              </span>{' '}
-              <em className="sk-in inline-block" style={{ animationDelay: '.24s', color: MOSS }}>
-                jörðin
-              </em>{' '}
-              <span className="sk-in inline-block" style={{ animationDelay: '.36s' }}>
-                gefur.
-              </span>
+            <h1 className="gk-in text-[clamp(2.9rem,7.2vw,5.6rem)] leading-[1.02] tracking-tight text-balance" style={{ fontFamily: DISPLAY, animationDelay: '.35s' }}>
+              {HERO.headline}
             </h1>
-            <p className="sk-in mt-6 max-w-md text-lg leading-relaxed" style={{ color: MUT, animationDelay: '.5s' }}>
+            <p className="gk-in mt-6 max-w-xl text-lg leading-relaxed" style={{ color: MUT, animationDelay: '.5s' }}>
               {HERO.sub}
             </p>
-            <div className="sk-in mt-9 flex flex-wrap items-center gap-3" style={{ animationDelay: '.64s' }}>
-              <a href="#vorur" className="inline-flex min-h-12 items-center rounded-full px-7 text-[15px] font-semibold transition-transform hover:scale-[1.03]" style={{ background: INK, color: BONE, outlineColor: INK }}>
+            <div className="gk-in mt-9 flex flex-wrap items-center gap-4" style={{ animationDelay: '.62s' }}>
+              <a
+                href="#verdskra"
+                className="gk-btn px-6 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
+                style={{ fontFamily: MONO, background: RED, color: PAPER, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
+              >
                 {HERO.ctaPrimary}
               </a>
-              <a href="#verslunin" className="inline-flex min-h-12 items-center rounded-full border px-7 text-[15px] font-semibold transition-colors hover:bg-black/5" style={{ borderColor: HAIR_HI, color: INK }}>
+              <a
+                href="#budin"
+                className="gk-btn px-6 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
+                style={{ fontFamily: MONO, color: INK, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
+              >
                 {HERO.ctaSecondary}
               </a>
             </div>
-            <p className="sk-in mt-7 text-sm" style={{ color: MUT, animationDelay: '.78s' }}>
+            <p className="gk-in mt-8 text-[11px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT, animationDelay: '.74s' }}>
               Frí sending á næstu DROPP stöð yfir {isk(SHIPPING_THRESHOLD)}
             </p>
           </div>
 
-          <div className="sk-in relative mx-auto w-full max-w-md md:max-w-none" style={{ animationDelay: '.3s' }}>
-            <div className="sk-blob relative aspect-square overflow-hidden" style={{ borderRadius: BLOB_A, boxShadow: '0 44px 90px -44px rgba(35,40,25,0.45)' }}>
-              <Img
-                src={u(IMG.jars, 1200)}
-                srcSet={srcset(IMG.jars)}
-                sizes="(min-width: 768px) 44vw, 92vw"
-                fetchpriority="high"
-                alt="Þurrkaðar jurtir og blóm í opnum glerkrukkum á tréborði"
-                className="sk-breathe h-full w-full object-cover"
-                fallbackClassName="bg-gradient-to-br from-[#d9d2bd] to-[#a9a284]"
-              />
+          <div className="gk-in relative mx-auto w-full max-w-sm md:max-w-none" style={{ animationDelay: '.45s' }}>
+            <Stave variant={0} hero className="absolute inset-x-0 top-1/2 mx-auto h-[115%] w-auto -translate-y-1/2 opacity-[0.09]" />
+            <div className="relative flex items-end justify-center">
+              <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang í krukku, vörumynd Seiðkarlsins" className="gk-cut relative z-10 -mr-10 h-44 w-auto object-contain md:h-56" style={{ transform: 'rotate(3deg)' }} fallbackClassName="opacity-0" />
+              <Img src={productImg('kvennagaldur')} alt="Kvennagaldur te í kraftpappírspoka, vörumynd Seiðkarlsins" className="gk-cut relative h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fetchpriority="high" fallbackClassName="opacity-0" />
+              <RoundStamp className="absolute -top-4 right-0 z-20 h-24 w-24 md:-right-4 md:h-28 md:w-28" />
             </div>
-            <div className="sk-float absolute -bottom-8 -left-4 h-28 w-28 overflow-hidden border-4 md:-left-10 md:h-36 md:w-36" style={{ borderRadius: BLOB_B, borderColor: BONE, boxShadow: '0 22px 44px -22px rgba(35,40,25,0.4)' }}>
-              <Img src={u(IMG.honeycomb, 400)} alt="" aria-hidden="true" className="h-full w-full object-cover" />
-            </div>
-            <div className="sk-float absolute -top-6 -right-3 h-24 w-24 overflow-hidden border-4 md:-right-8 md:h-32 md:w-32" style={{ borderRadius: BLOB_A, borderColor: BONE, boxShadow: '0 22px 44px -22px rgba(35,40,25,0.4)', animationDelay: '1.6s' }}>
-              <Img src={u(IMG.driedFruit2, 400)} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+            <div className="mt-6 border-t pt-3" style={{ borderColor: INK }}>
+              <p className="text-[10.5px] leading-relaxed tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                Mynd 1 — Kvennagaldur 100g · netla, hafrastrá, hindberjalauf · {isk(kvenna.price)}
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Botanical marquee ────────────────────────────────────────────── */}
-      <section aria-hidden="true" className="overflow-hidden border-y py-5" style={{ borderColor: HAIR }}>
-        <div className="sk-marq-inner flex w-max">
-          {[0, 1].map((copy) => (
-            <div key={copy} className="flex items-center gap-10 pr-10">
-              {MARQUEE.map((m) => (
-                <span key={`${copy}-${m}`} className="flex items-center gap-10 whitespace-nowrap">
-                  <em className="text-xl" style={{ fontFamily: DISPLAY, color: 'rgba(35,40,25,0.6)' }}>
-                    {m}
-                  </em>
-                  <span style={{ color: 'rgba(62,87,50,0.5)' }}>✦</span>
-                </span>
-              ))}
-            </div>
-          ))}
+      {/* ── I. Galdra-te — the specimen plate ────────────────────────────── */}
+      <section className="scroll-mt-14">
+        <SectionHead roman="I" title="Galdra-te" note="Fimm blöndur · 100g pokar" stave={1} inked={teaInk.inked} innerRef={teaInk.ref} />
+        <div className="mx-auto max-w-6xl px-5 pb-6 md:px-8">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-5 md:gap-x-0 md:divide-x" style={{ ['--tw-divide-opacity' as string]: 1 }}>
+            {teas.map((t, i) => {
+              const p = getProduct(t.slug)!
+              return (
+                <div key={t.slug} className="flex flex-col items-center px-2 text-center md:px-5" style={{ borderColor: HAIR }}>
+                  <Img src={productImg(t.slug)} alt={`${t.name}, kraftpappírspoki — vörumynd Seiðkarlsins`} className="gk-cut h-40 w-auto object-contain md:h-48" style={{ transform: `rotate(${[-2, 1.5, -1, 2, -1.5][i]}deg)` }} fallbackClassName="opacity-0" />
+                  <p className="mt-4 text-[10px] font-bold tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: RED }}>
+                    {TEA_INTENT[t.slug]}
+                  </p>
+                  <h3 className="mt-1.5 text-2xl leading-none" style={{ fontFamily: DISPLAY }}>
+                    {t.name}
+                  </h3>
+                  <p className="mt-2 text-[13px] font-bold" style={{ fontFamily: MONO }}>
+                    {isk(t.price)}
+                  </p>
+                  <div className="mt-3">
+                    <StampButton added={justAdded === t.slug} onClick={() => addToCart(p)} ariaLabel={`Bæta ${t.name} í körfu`} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <p className="mt-10 border-t py-3 text-center text-[10.5px] tracking-[0.16em] uppercase" style={{ fontFamily: MONO, color: MUT, borderColor: HAIR }}>
+            Notkun — {kvenna.brew} · Innihald af vörusíðum Seiðkarlsins
+          </p>
         </div>
       </section>
 
-      {/* ── The shop — filterable, animated, a real store ────────────────── */}
-      <section id="vorur" className="scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
-        <div className="mx-auto max-w-7xl">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: MOSS }}>
-                  Vörurnar
-                </p>
-                <h2 className="mt-3 text-[clamp(2rem,4.4vw,3.2rem)] leading-tight" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>
-                  Veldu af hillunni
-                </h2>
-              </div>
-              <p className="text-sm" style={{ color: MUT }}>
-                {PRODUCTS.length} vörur · verð af vef Seiðkarlsins
-              </p>
-            </div>
-          </Reveal>
-
-          <Reveal className="mt-8">
-            <div className="flex flex-wrap gap-2">
-              {FILTERS.map((f) => {
-                const count = f.key === 'allt' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === f.key).length
-                const active = filter === f.key
-                return (
-                  <button
-                    key={f.key}
-                    onClick={() => setFilter(f.key)}
-                    aria-pressed={active}
-                    className="min-h-11 rounded-full border px-4 text-[13.5px] font-semibold transition-all"
-                    style={{
-                      background: active ? INK : 'transparent',
-                      color: active ? BONE : INK,
-                      borderColor: active ? INK : HAIR_HI,
-                      outlineColor: INK,
-                    }}
-                  >
-                    {f.label} <span style={{ opacity: 0.55 }}>{count}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </Reveal>
-
-          {/* Keyed by filter: swaps re-run the CSS stagger — no rAF, instant
-              unmounts, works even in throttled tabs. */}
-          <div key={filter} className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-5 lg:grid-cols-4">
+      {/* ── II. Verðskráin — the full ledger ─────────────────────────────── */}
+      <section id="verdskra" className="scroll-mt-14">
+        <SectionHead roman="II" title="Verðskráin" note={`${PRODUCTS.length} vörur skráðar`} stave={3} inked={ledgerInk.inked} innerRef={ledgerInk.ref} />
+        <div className="mx-auto max-w-6xl px-5 pb-16 md:px-8">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 border-b pb-3" style={{ borderColor: INK }}>
+            {FILTERS.map((f) => {
+              const count = f.key === 'allt' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === f.key).length
+              const active = filter === f.key
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  aria-pressed={active}
+                  className="py-1.5 text-[11px] font-bold tracking-[0.16em] uppercase transition-colors"
+                  style={{ fontFamily: MONO, color: active ? RED : MUT, boxShadow: active ? `0 2px 0 ${RED}` : 'none', outlineColor: INK }}
+                >
+                  {f.label} ({count})
+                </button>
+              )
+            })}
+          </div>
+          <div key={filter}>
             {filtered.map((p, i) => (
-              <div key={p.id} className="sk-in h-full" style={{ animationDelay: `${Math.min(i * 0.05, 0.55)}s` }}>
-                <ProductCard product={p} onAdd={add(p)} added={justAdded === p.id} />
+              <div key={p.id} className="gk-in" style={{ animationDelay: `${Math.min(i * 0.045, 0.5)}s` }}>
+                <LedgerRow nr={nrOf(p)} product={p} onAdd={() => addToCart(p)} added={justAdded === p.id} />
+              </div>
+            ))}
+          </div>
+          <p className="pt-4 text-[10.5px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+            Verð af vef Seiðkarlsins · sýnishorn, sjá fyrirvara neðst
+          </p>
+        </div>
+      </section>
+
+      {/* ── III. Hunangið ─────────────────────────────────────────────────── */}
+      <section id="hunang" className="scroll-mt-14">
+        <SectionHead roman="III" title="Hunangið" note="Hrátt og óunnið" stave={2} inked={honeyInk.inked} innerRef={honeyInk.ref} />
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 md:grid-cols-[5fr_7fr] md:gap-14 md:px-8">
+          <div className="relative mx-auto">
+            <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang 1kg, krukka með striga yfir lokinu" className="gk-cut h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fallbackClassName="opacity-0" />
+            <RoundStamp className="absolute -right-6 bottom-2 h-24 w-24" />
+          </div>
+          <div>
+            <p className="max-w-lg text-lg leading-relaxed" style={{ color: MUT }}>
+              Villiblóma, háfjalla og rósmarín, ásamt býflugnafrjói og propolis úr sama búi. Krukkurnar koma bundnar striga, eins og þær eiga að vera.
+            </p>
+            <div className="mt-6">
+              {honeyRows.map((p) => (
+                <LedgerRow key={p.id} nr={nrOf(p)} product={p} onAdd={() => addToCart(p)} added={justAdded === p.id} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── IV. Sveppir & rætur — the ink page ───────────────────────────── */}
+      <section className="scroll-mt-14" style={{ background: INK }}>
+        <div ref={sveppirInk.ref}>
+          <div className="mx-auto flex max-w-6xl items-end justify-between gap-4 px-5 pt-6 pb-8 md:px-8">
+            <div className="flex items-baseline gap-4 md:gap-6">
+              <span className="text-4xl leading-none md:text-6xl" style={{ fontFamily: DISPLAY, color: PAPER }}>
+                IV.
+              </span>
+              <h2 className="text-3xl leading-none tracking-tight md:text-5xl" style={{ fontFamily: DISPLAY, color: PAPER }}>
+                Sveppir & rætur
+              </h2>
+            </div>
+            <Stave variant={3} inked={sveppirInk.inked} className="h-10 w-10 md:h-12 md:w-12" color={PAPER} />
+          </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-5 pb-6 md:px-8">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+            {tinctureRows.map((p) => (
+              <figure key={p.id} className="border p-3" style={{ borderColor: 'rgba(246,244,238,0.35)', background: '#fff' }}>
+                <Img src={productImg(p.id)} alt={`${p.name} — vörumynd Seiðkarlsins`} className="mx-auto h-40 w-auto object-contain md:h-48" fallbackClassName="opacity-0" />
+                <figcaption className="mt-2 border-t pt-2 text-center text-[10px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: INK, borderColor: HAIR }}>
+                  {p.name}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="mt-8 pb-12">
+            {tinctureRows.map((p) => (
+              <LedgerRow key={p.id} nr={nrOf(p)} product={p} onAdd={() => addToCart(p)} added={justAdded === p.id} dark />
+            ))}
+            <p className="pt-4 text-[10.5px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: PAPER_MUT }}>
+              Cordyfresh tinktúrur · dropar í drykkinn
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── V. Um Seiðkarlinn — the colophon ─────────────────────────────── */}
+      <section id="um" className="scroll-mt-14">
+        <SectionHead roman="V" title="Um Seiðkarlinn" note="Kólófón" stave={4} inked={umInk.inked} innerRef={umInk.ref} />
+        <div className="mx-auto max-w-3xl px-5 pb-12 md:px-8">
+          <p className="text-xl leading-relaxed md:text-2xl" style={{ fontFamily: BODY }}>
+            <span className="float-left mt-1 mr-3 text-[4.6rem] leading-[0.78] md:text-[5.8rem]" style={{ fontFamily: DISPLAY, color: RED }} aria-hidden="true">
+              S
+            </span>
+            <span className="sr-only">S</span>
+            {STORY.body.slice(1)}
+          </p>
+          <div className="mt-10 grid grid-cols-3 border-y" style={{ borderColor: INK }}>
+            {FACTS.map((f, i) => (
+              <div key={f.small} className={`py-4 text-center ${i > 0 ? 'border-l' : ''}`} style={{ borderColor: HAIR }}>
+                <p className="text-2xl md:text-3xl" style={{ fontFamily: DISPLAY }}>
+                  {f.big}
+                </p>
+                <p className="mt-1 text-[10px] tracking-[0.16em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                  {f.small}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Kvennagaldur ritual — their own verified recipe as the centerpiece ── */}
-      <section className="px-5 py-20 md:px-8 md:py-28" style={{ background: SAGE }}>
-        <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2 md:gap-16">
-          <Reveal>
-            <div className="relative mx-auto max-w-sm md:max-w-none">
-              <div className="sk-blob relative aspect-[4/5] overflow-hidden" style={{ borderRadius: BLOB_B, boxShadow: '0 40px 80px -40px rgba(35,40,25,0.4)' }}>
-                <Img src={u(IMG.teaPour, 1000)} srcSet={srcset(IMG.teaPour)} sizes="(min-width: 768px) 42vw, 88vw" alt="Te hellt úr tekatli í bolla" className="sk-breathe h-full w-full object-cover" />
-              </div>
-              <div className="absolute inset-x-0 -bottom-7 flex justify-center gap-2 md:justify-start md:pl-6">
-                {(kvenna.ingredients ?? []).map((ing, i) => (
-                  <span
-                    key={ing}
-                    className="sk-float rounded-full border px-3.5 py-2 text-[13px] font-semibold shadow-sm"
-                    style={{ background: CARD, borderColor: HAIR, color: INK, rotate: `${[-2.5, 1.5, -1][i]}deg`, animationDelay: `${i * 0.9}s` }}
-                  >
-                    {ing}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: MOSS }}>
-              Kvennagaldur · te-galdur
-            </p>
-            <h2 className="mt-3 text-[clamp(2rem,4.4vw,3.2rem)] leading-tight text-balance" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>
-              Þrjár jurtir. Ekkert annað.
-            </h2>
-            <p className="mt-5 max-w-md text-base leading-relaxed" style={{ color: MUT }}>
-              Netla, hafrastrá og hindberjalauf, jarðbundið te til daglegrar notkunar, sett saman með konur í huga. Innihald og notkun eins og á vörusíðu Seiðkarlsins.
-            </p>
-            <ol className="mt-8 max-w-md">
-              {['Ein teskeið í bolla', 'Heitt vatn yfir', 'Látið standa í 5 til 10 mínútur'].map((step, i) => (
-                <li key={step} className="flex items-baseline gap-4 border-t py-4" style={{ borderColor: 'rgba(35,40,25,0.16)' }}>
-                  <em className="text-xl" style={{ fontFamily: DISPLAY, color: MOSS }}>
-                    0{i + 1}
-                  </em>
-                  <span className="text-base font-medium">{step}</span>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-8 flex items-center justify-between gap-3 rounded-3xl border p-5" style={{ background: CARD, borderColor: HAIR }}>
-              <div>
-                <p className="text-lg" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>
-                  {kvennaProduct.name}
-                </p>
-                <p className="text-sm" style={{ color: MUT }}>
-                  {kvennaProduct.format} · {isk(kvennaProduct.price)}
-                </p>
-              </div>
-              <button
-                onClick={add(kvennaProduct)}
-                aria-label={`Bæta ${kvennaProduct.name} í körfu`}
-                className="min-h-11 shrink-0 rounded-full px-5 text-[13.5px] font-semibold transition-colors"
-                style={{ background: justAdded === kvennaProduct.id ? MOSS : INK, color: BONE, outlineColor: INK }}
-              >
-                {justAdded === kvennaProduct.id ? 'Í körfunni ✓' : 'Bæta í körfu'}
-              </button>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ── Honey band — inset amber ─────────────────────────────────────── */}
-      <section className="px-4 py-16 md:px-8 md:py-20">
-        <Reveal>
-          <div className="mx-auto max-w-7xl overflow-hidden rounded-[40px] px-6 py-14 md:px-14 md:py-20" style={{ background: 'linear-gradient(160deg, #F6E9CC, #EDD59F)' }}>
-            <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
-              <div>
-                <p className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: CLAY }}>
-                  Hunangið
-                </p>
-                <h2 className="mt-3 text-[clamp(2rem,4.4vw,3.2rem)] leading-tight" style={{ fontFamily: DISPLAY, fontWeight: 500, color: INK }}>
-                  Beint úr búinu
-                </h2>
-                <p className="mt-4 max-w-md text-base leading-relaxed" style={{ color: 'rgba(35,40,25,0.78)' }}>
-                  Hrátt og óunnið hunang, villiblóma, háfjalla og rósmarín, ásamt býflugnafrjói og propolis úr sama búi.
-                </p>
-                <div className="mt-6">
-                  {honeyRows.map((p) => (
-                    <DottedRow key={p.id} product={p} onAdd={add(p)} added={justAdded === p.id} />
-                  ))}
-                </div>
-              </div>
-              <div className="sk-blob relative mx-auto aspect-square w-full max-w-sm overflow-hidden" style={{ borderRadius: BLOB_A, boxShadow: '0 40px 80px -40px rgba(90,60,10,0.5)' }}>
-                <Img src={u(IMG.honeycomb, 1000)} srcSet={srcset(IMG.honeycomb)} sizes="(min-width: 768px) 38vw, 88vw" alt="Hrátt hunang í vaxkambi í nærmynd" className="sk-breathe h-full w-full object-cover" />
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* ── Story + growing vine ─────────────────────────────────────────── */}
-      <section id="um" className="scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <div ref={vineRef} className="flex justify-center">
-            <Vine grown={vineGrown} />
-          </div>
-          <Reveal>
-            <p className="mt-6 text-xs font-bold tracking-[0.22em] uppercase" style={{ color: MOSS }}>
-              {STORY.eyebrow}
-            </p>
-            <h2 className="mt-4 text-[clamp(2rem,4.6vw,3.4rem)] leading-[1.12] text-balance" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>
-              {STORY.headline}
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed" style={{ color: MUT }}>
-              {STORY.body}
-            </p>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <div className="mx-auto mt-12 grid max-w-xl grid-cols-3 gap-4 border-t pt-8" style={{ borderColor: HAIR }}>
-              {FACTS.map((f) => (
-                <div key={f.small}>
-                  <p className="text-2xl" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>
-                    {f.big}
-                  </p>
-                  <p className="mt-1 text-xs" style={{ color: MUT }}>
-                    {f.small}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ── Mushroom band — inset deep forest ────────────────────────────── */}
-      <section className="px-4 py-4 md:px-8">
-        <Reveal>
-          <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[40px] px-6 py-14 md:px-14 md:py-20" style={{ background: FOREST }}>
-            {!reduce &&
-              POLLEN.slice(0, 5).map((p) => (
-                <span
-                  key={`f-${p.left}`}
-                  aria-hidden="true"
-                  className="sk-pollen pointer-events-none absolute bottom-0 rounded-full"
-                  style={{ left: p.left, width: 4, height: 4, background: HONEY_GOLD, opacity: 0, ['--dur' as string]: p.dur, ['--delay' as string]: p.delay }}
-                />
-              ))}
-            <div className="relative grid items-center gap-10 md:grid-cols-2 md:gap-16">
-              <div className="sk-blob relative order-2 mx-auto aspect-square w-full max-w-sm overflow-hidden md:order-1" style={{ borderRadius: BLOB_B, boxShadow: '0 40px 80px -40px rgba(0,0,0,0.6)' }}>
-                <Img src={u(IMG.tincture, 1000)} srcSet={srcset(IMG.tincture)} sizes="(min-width: 768px) 38vw, 88vw" alt="Brún glerflaska með dropateljara" className="sk-breathe h-full w-full object-cover" />
-              </div>
-              <div className="order-1 md:order-2">
-                <p className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: HONEY_GOLD }}>
-                  Tinktúrur
-                </p>
-                <h2 className="mt-3 text-[clamp(2rem,4.4vw,3.2rem)] leading-tight" style={{ fontFamily: DISPLAY, fontWeight: 500, color: BONE_ON_DARK }}>
-                  Sveppir og rætur
-                </h2>
-                <p className="mt-4 max-w-md text-base leading-relaxed" style={{ color: MUT_ON_DARK }}>
-                  Tinktúrur unnar úr heilsusveppum, Reishi, Chaga, Cordyceps og Lions Mane. Nokkrir dropar í drykkinn.
-                </p>
-                <div className="mt-6">
-                  {tinctureRows.map((p) => (
-                    <DottedRow key={p.id} product={p} dark onAdd={add(p)} added={justAdded === p.id} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* ── Store ────────────────────────────────────────────────────────── */}
-      <section id="verslunin" className="scroll-mt-20 px-5 py-20 md:px-8 md:py-28" style={{ background: CREAM2 }}>
-        <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-16">
-          <Reveal>
-            <p className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: MOSS }}>
-              Verslunin
-            </p>
-            <h2 className="mt-3 text-[clamp(2rem,4.4vw,3.2rem)] leading-tight" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>
-              {STORE.headline}
-            </h2>
-            <p className="mt-5 max-w-md text-base leading-relaxed" style={{ color: MUT }}>
+      {/* ── VI. Búðin — the imprint ──────────────────────────────────────── */}
+      <section id="budin" className="scroll-mt-14">
+        <SectionHead roman="VI" title="Búðin í Faxafeni" note="Afgreiðsla & samband" stave={5} inked={budInk.inked} innerRef={budInk.ref} />
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 pb-16 md:grid-cols-2 md:gap-14 md:px-8">
+          <div>
+            <p className="max-w-md text-lg leading-relaxed" style={{ color: MUT }}>
               {STORE.body}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href={MAPS} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-2 rounded-full px-6 text-sm font-semibold transition-transform hover:scale-[1.02]" style={{ background: INK, color: BONE, outlineColor: INK }}>
-                <MapPin className="h-4 w-4" /> {ADDRESS.street}, {ADDRESS.town}
-              </a>
-              <a href={PHONE_HREF} className="inline-flex min-h-12 items-center gap-2 rounded-full border px-6 text-sm font-semibold transition-colors hover:bg-black/5" style={{ borderColor: HAIR_HI, color: INK }}>
-                <Phone className="h-4 w-4" /> {PHONE_DISPLAY}
-              </a>
-              <a href={`mailto:${EMAIL}`} className="inline-flex min-h-12 items-center gap-2 rounded-full border px-6 text-sm font-semibold transition-colors hover:bg-black/5" style={{ borderColor: HAIR_HI, color: INK }}>
-                <Mail className="h-4 w-4" /> Senda línu
-              </a>
+            <div className="mt-7 space-y-3 text-[13px] tracking-[0.08em] uppercase" style={{ fontFamily: MONO }}>
+              <p>
+                <span style={{ color: MUT }}>Heimilisfang — </span>
+                <a href={MAPS} target="_blank" rel="noreferrer" className="font-bold underline underline-offset-4" style={{ outlineColor: INK }}>
+                  {ADDRESS.street}, {ADDRESS.town}
+                </a>
+              </p>
+              <p>
+                <span style={{ color: MUT }}>Sími — </span>
+                <a href={PHONE_HREF} className="font-bold underline underline-offset-4" style={{ outlineColor: INK }}>
+                  {PHONE_DISPLAY}
+                </a>
+              </p>
+              <p>
+                <span style={{ color: MUT }}>Netfang — </span>
+                <a href={`mailto:${EMAIL}`} className="font-bold underline underline-offset-4" style={{ outlineColor: INK }}>
+                  {EMAIL}
+                </a>
+              </p>
+              <p>
+                <span style={{ color: MUT }}>Samfélag — </span>
+                <a href={FACEBOOK} target="_blank" rel="noreferrer" className="font-bold underline underline-offset-4" style={{ outlineColor: INK }}>
+                  Facebook
+                </a>{' '}
+                ·{' '}
+                <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="font-bold underline underline-offset-4" style={{ outlineColor: INK }}>
+                  Instagram
+                </a>
+              </p>
             </div>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <div className="sk-blob relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden" style={{ borderRadius: BLOB_A, boxShadow: '0 40px 80px -40px rgba(35,40,25,0.4)' }}>
-              <Img src={u(IMG.shelf, 1000)} srcSet={srcset(IMG.shelf)} sizes="(min-width: 768px) 40vw, 88vw" alt="Krukkur í röðum á tréhillum" className="sk-breathe h-full w-full object-cover" />
-            </div>
-          </Reveal>
+          </div>
+          <div className="self-center border-[1.5px] border-dashed p-6 md:p-8" style={{ borderColor: INK }}>
+            <p className="text-[10px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: RED }}>
+              Afhendingarmiði
+            </p>
+            <p className="mt-3 text-2xl leading-snug" style={{ fontFamily: DISPLAY }}>
+              Sæktu pöntunina í verslun
+            </p>
+            <p className="mt-2 text-[12px] leading-relaxed tracking-[0.08em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+              Venjulega tilbúið á 24 klst · {ADDRESS.street}, {ADDRESS.town}
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ── Final line ───────────────────────────────────────────────────── */}
-      <section className="px-5 py-24 text-center md:px-8 md:py-32">
-        <Reveal>
-          <p className="mx-auto max-w-3xl text-[clamp(1.7rem,4.4vw,3.1rem)] leading-[1.2] text-balance italic" style={{ fontFamily: DISPLAY, fontWeight: 500, color: INK }}>
-            „Það besta sem náttúran hefur upp á að bjóða.“
-          </p>
-          <p className="mt-4 text-sm" style={{ color: MUT }}>
+      {/* ── Closing line ─────────────────────────────────────────────────── */}
+      <section className="border-t" style={{ borderColor: INK }}>
+        <div className="mx-auto max-w-3xl px-5 py-16 text-center md:px-8 md:py-24">
+          <p className="text-[clamp(1.6rem,4.2vw,2.8rem)] leading-[1.25] text-balance italic">„Það besta sem náttúran hefur upp á að bjóða.“</p>
+          <p className="mt-3 text-[10.5px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
             Úr orðum Seiðkarlsins sjálfs
           </p>
-          <a href="#vorur" className="mt-9 inline-flex min-h-12 items-center rounded-full px-8 text-[15px] font-semibold transition-transform hover:scale-[1.03]" style={{ background: MOSS, color: BONE, outlineColor: MOSS }}>
-            Skoða vörurnar
+          <a
+            href="#verdskra"
+            className="gk-btn mt-9 inline-block px-7 py-3.5 text-[12px] font-bold tracking-[0.16em] uppercase"
+            style={{ fontFamily: MONO, background: INK, color: PAPER, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${RED}`, outlineColor: INK, ['--sh' as string]: RED }}
+          >
+            Aftur í verðskrána
           </a>
-        </Reveal>
-      </section>
-
-      {/* ── Trust strip ──────────────────────────────────────────────────── */}
-      <section className="border-t px-5 py-8 md:px-8" style={{ borderColor: HAIR }}>
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 text-sm" style={{ color: MUT }}>
-          <p>Frí sending á næstu DROPP stöð fyrir pantanir yfir {isk(SHIPPING_THRESHOLD)}</p>
-          <div className="flex items-center gap-4">
-            <a href={FACEBOOK} target="_blank" rel="noreferrer" aria-label="Facebook" style={{ color: MUT }}>
-              <Facebook className="h-4 w-4" />
-            </a>
-            <a href={INSTAGRAM} target="_blank" rel="noreferrer" aria-label="Instagram" style={{ color: MUT }}>
-              <Instagram className="h-4 w-4" />
-            </a>
-          </div>
         </div>
       </section>
 
       <PreviewFooter company={company} />
 
-      {/* ── Mobile sticky CTA ────────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t p-3 md:hidden" style={{ background: 'rgba(244,239,227,0.97)', backdropFilter: 'blur(10px)', borderColor: HAIR }}>
-        <a href="#vorur" className="flex min-h-12 flex-1 items-center justify-center rounded-full px-5 text-[13.5px] font-semibold" style={{ background: INK, color: BONE, outlineColor: INK }}>
-          Skoða vörurnar
+      {/* ── Mobile sticky bar ────────────────────────────────────────────── */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-stretch gap-3 border-t-[1.5px] p-3 md:hidden" style={{ background: PAPER, borderColor: INK }}>
+        <a href="#verdskra" className="flex flex-1 items-center justify-center py-3 text-[12px] font-bold tracking-[0.16em] uppercase" style={{ fontFamily: MONO, background: INK, color: PAPER, outlineColor: INK }}>
+          Verðskráin
         </a>
-        <button onClick={() => setCartOpen(true)} aria-label={cartLabel} className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full border" style={{ borderColor: HAIR_HI, color: INK }}>
-          <ShoppingBag className="h-5 w-5" />
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold" style={{ background: CLAY, color: BONE }}>
-              {cartCount}
-            </span>
-          )}
+        <button onClick={() => setCartOpen(true)} aria-label={cartLabel} className="border-[1.5px] px-4 text-[12px] font-bold tracking-[0.1em] uppercase" style={{ fontFamily: MONO, borderColor: INK, color: INK, outlineColor: INK }}>
+          [{cartCount}]
         </button>
       </div>
 
-      {/* ── Cart drawer ──────────────────────────────────────────────────── */}
+      {/* ── Pöntunarseðill — the order slip ──────────────────────────────── */}
       <AnimatePresence>
         {cartOpen && (
           <>
@@ -813,41 +661,44 @@ export default function Page() {
             <motion.aside
               role="dialog"
               aria-modal="true"
-              aria-label="Karfa"
-              className="fixed inset-y-0 right-0 z-[75] flex w-full max-w-sm flex-col"
-              style={{ background: BONE }}
+              aria-label="Pöntunarseðill"
+              className="fixed inset-y-0 right-0 z-[75] flex w-full max-w-sm flex-col border-l-2 border-dashed"
+              style={{ background: PAPER, borderColor: INK }}
               initial={{ x: reduce ? 0 : '100%' }}
               animate={{ x: 0 }}
               exit={{ x: reduce ? 0 : '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             >
-              <div className="flex items-center justify-between border-b p-5" style={{ borderColor: HAIR }}>
-                <h2 className="text-xl" style={{ fontFamily: DISPLAY, fontWeight: 500, color: INK }}>
-                  Karfan þín
+              <div className="flex items-center justify-between border-b-2 p-5" style={{ borderColor: INK }}>
+                <h2 className="text-[13px] font-bold tracking-[0.22em] uppercase" style={{ fontFamily: MONO }}>
+                  Pöntunarseðill
                 </h2>
-                <button onClick={() => setCartOpen(false)} aria-label="Loka körfu" className="rounded-full p-2 transition-colors hover:bg-black/5" style={{ color: INK }}>
+                <button onClick={() => setCartOpen(false)} aria-label="Loka körfu" className="p-1.5" style={{ color: INK, outlineColor: INK }}>
                   <X className="h-5 w-5" />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-5">
                 {cart.length === 0 ? (
-                  <p className="text-sm" style={{ color: MUT }}>
-                    Karfan er tóm. Byrjaðu á hunanginu eða galdra-teinu.
+                  <p className="text-[12px] leading-relaxed tracking-[0.06em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                    Seðillinn er auður. Byrjaðu á galdra-teinu eða hunanginu.
                   </p>
                 ) : (
-                  <ul className="space-y-4">
+                  <ul>
                     {cart.map((item) => (
-                      <li key={item.key} className="flex items-center justify-between gap-3 border-b pb-4" style={{ borderColor: HAIR }}>
-                        <div>
-                          <p className="font-semibold" style={{ color: INK }}>
+                      <li key={item.key} className="flex items-baseline gap-2 border-b border-dotted py-3" style={{ borderColor: HAIR_MID }}>
+                        <div className="min-w-0">
+                          <p className="truncate text-[13px] font-bold tracking-[0.04em] uppercase" style={{ fontFamily: MONO }}>
                             {item.name}
                           </p>
-                          <p className="text-xs" style={{ color: MUT }}>
+                          <p className="text-[11px]" style={{ fontFamily: MONO, color: MUT }}>
                             {item.qty} × {isk(item.price)}
                           </p>
                         </div>
-                        <button onClick={() => removeFromCart(item.key)} aria-label={`Fjarlægja ${item.name}`} className="text-xs underline underline-offset-2" style={{ color: MUT }}>
-                          Fjarlægja
+                        <span className="ml-auto text-[13px] font-bold" style={{ fontFamily: MONO }}>
+                          {isk(item.qty * item.price)}
+                        </span>
+                        <button onClick={() => removeFromCart(item.key)} aria-label={`Fjarlægja ${item.name}`} className="text-[11px] underline underline-offset-2" style={{ fontFamily: MONO, color: RED, outlineColor: INK }}>
+                          ×
                         </button>
                       </li>
                     ))}
@@ -855,16 +706,20 @@ export default function Page() {
                 )}
               </div>
               {cart.length > 0 && (
-                <div className="border-t p-5" style={{ borderColor: HAIR }}>
-                  <div className="flex items-center justify-between text-base font-bold" style={{ color: INK }}>
+                <div className="border-t-4 border-double p-5" style={{ borderColor: INK }}>
+                  <div className="flex items-center justify-between text-[14px] font-bold tracking-[0.1em] uppercase" style={{ fontFamily: MONO }}>
                     <span>Samtals</span>
-                    <span className="tabular-nums">{isk(cartTotal)}</span>
+                    <span>{isk(cartTotal)}</span>
                   </div>
-                  <button onClick={() => setCheckoutNote(true)} className="mt-4 min-h-12 w-full rounded-full text-sm font-semibold" style={{ background: INK, color: BONE, outlineColor: INK }}>
+                  <button
+                    onClick={() => setCheckoutNote(true)}
+                    className="gk-btn mt-4 w-full py-3.5 text-[12px] font-bold tracking-[0.18em] uppercase"
+                    style={{ fontFamily: MONO, background: RED, color: PAPER, border: `1.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, outlineColor: INK, ['--sh' as string]: INK }}
+                  >
                     Ganga frá pöntun
                   </button>
                   {checkoutNote && (
-                    <p className="mt-3 text-xs" style={{ color: MUT }}>
+                    <p className="mt-3 text-[11px] leading-relaxed" style={{ fontFamily: MONO, color: MUT }}>
                       Þetta er frumgerð, engin raunveruleg greiðsla fer hér fram.
                     </p>
                   )}

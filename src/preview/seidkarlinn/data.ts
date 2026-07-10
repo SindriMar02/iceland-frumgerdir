@@ -19,25 +19,14 @@ export const FACEBOOK = 'https://www.facebook.com/seidkarlinn'
 export const INSTAGRAM = 'https://www.instagram.com/seidkarlinn'
 export const ADDRESS = { street: 'Faxafen 14', town: '108 Reykjavík' }
 
-/** Verified, visually-vetted Unsplash photos (contact-sheet checked — no
- *  premium_photo ids, no mismatched subjects, e.g. dropped a "frozen berries"
- *  candidate for the freeze-dried section because it read as frost/fresh,
- *  not dried). */
-export const IMG = {
-  hero: 'https://images.unsplash.com/photo-1545840716-c82e9eec6930', // real apothecary shopfront: amber bottles, jars, dried herbs
-  jars: 'https://images.unsplash.com/photo-1696238980212-f8f562290c81', // glass jars of dried herbs on rustic wood
-  bundle: 'https://images.unsplash.com/photo-1627744514030-28d5c0170fba', // dried herb bundle tied with twine
-  honeycomb: 'https://images.unsplash.com/photo-1626285094816-39f688104ce0', // raw honeycomb macro
-  tincture: 'https://images.unsplash.com/photo-1608571424266-edeb9bbefdec', // amber glass dropper bottle
-  driedFruit: 'https://images.unsplash.com/photo-1772986833202-05c95cc1d793', // dried cranberries
-  driedFruit2: 'https://images.unsplash.com/photo-1647945387141-387b88af06fd', // dried citrus + produce
-  teaPour: 'https://images.unsplash.com/photo-1543668722-97d99b5825c5', // teapot pouring into cup
-  shelf: 'https://images.unsplash.com/photo-1781595452212-a1db01b664ce', // jars on wooden shelving
-}
-
-/** Unsplash dynamic resize helper. */
-export function u(url: string, w: number, q = 80) {
-  return `${url}?w=${w}&q=${q}&auto=format&fit=crop`
+/** THEIR OWN assets: the boxed wordmark + real product photography, pulled
+ *  from seidkarlinn.is (Shopify CDN), contact-sheet vetted, flood-filled to
+ *  transparent-background WebP cutouts and self-hosted under
+ *  public/seidkarlinn/ — so they sit on any ground like printed cutouts. */
+const ASSET = `${import.meta.env.BASE_URL}seidkarlinn/`
+export const LOGO = `${ASSET}logo-cut.png`
+export function productImg(id: string) {
+  return `${ASSET}${id}.webp`
 }
 
 /** Icelandic thousands separator is a period ("2.690 kr."), not a comma —
@@ -49,11 +38,12 @@ export function isk(n: number) {
 }
 
 export const HERO = {
-  eyebrow: 'Seiðkarlinn · Náttúruvörur · Faxafen 14',
-  headline: 'Allt sem jörðin gefur.',
-  sub: 'Hrátt hunang, galdra-te, heilsusveppir og frostþurrkaðir ávextir. Vandlega valið og án óþarfa aukefna.',
-  ctaPrimary: 'Skoða vörurnar',
-  ctaSecondary: 'Búðin okkar',
+  datelineLeft: 'Stofnað 2023 · Reykjavík',
+  datelineRight: 'Verð af vef Seiðkarlsins',
+  headline: 'Jurtir, hunang og aðrir galdrar.',
+  sub: 'Náttúruvörur, valdar vandlega og án óþarfa aukefna. Te-lína nefnd eftir göldrum, hrátt hunang, heilsusveppir og fleira, allt á einum stað í Faxafeni 14.',
+  ctaPrimary: 'Skoða verðskrána',
+  ctaSecondary: 'Búðin',
 }
 
 export interface GaldurTea {
@@ -111,49 +101,6 @@ export const GALDUR_TEAS: GaldurTea[] = [
     desc: 'Jurtablanda til daglegrar notkunar, hluti af galdra-te línu Seiðkarlsins.',
     brew: '1 tsk í bolla af heitu vatni. Látið standa 5–10 mín.',
   },
-]
-
-export const HONEY = [
-  { name: 'Hrátt Villiblóma Hunang', size: '1kg', price: 6490 },
-  { name: 'Háfjallahunang', size: '1kg', price: 8490 },
-  { name: 'Hrátt Rósmarin Hunang', size: '1kg', price: 6490 },
-  { name: 'Appelsínu Hrátt Hunang', size: '1kg', price: 6490 },
-  { name: 'Timíanblóma Hunang', size: '1kg', price: 6490 },
-  { name: 'Býflugnafrjó', size: '240g', price: 3990 },
-]
-
-export const TINCTURES = [
-  { name: 'Reishi 20%', size: '30ml', price: 5990 },
-  { name: 'Chaga 50%', size: '30ml', price: 11990 },
-  { name: 'Cordyceps 20%', size: '30ml', price: 5990 },
-  { name: 'Lions Mane 20%', size: '30ml', price: 5990 },
-]
-
-export const FREEZE_DRIED = [
-  { name: 'Hindber', size: '150g', price: 4410 },
-  { name: 'Bláber', size: '250g', price: 6203 },
-  { name: 'Mangó', size: '250g', price: 4226 },
-  { name: 'Ananas', size: '250g', price: 5145 },
-  { name: 'Sólber', size: '250g', price: 4410 },
-  { name: 'Rifsber', size: '200g', price: 3307 },
-]
-
-export interface Chapter {
-  key: string
-  roman: string
-  name: string
-  desc: string
-  count: number
-  img: string
-}
-
-export const CHAPTERS: Chapter[] = [
-  { key: 'te', roman: 'I', name: 'Te-galdrar', desc: 'Jurtablöndur nefndar eftir því sem þær gera.', count: GALDUR_TEAS.length, img: IMG.jars },
-  { key: 'hunang', roman: 'II', name: 'Hunang & frjó', desc: 'Hrátt hunang og býflugnaafurðir.', count: HONEY.length, img: IMG.honeycomb },
-  { key: 'sveppir', roman: 'III', name: 'Sveppir & rætur', desc: 'Tinktúrur unnar úr heilsusveppum.', count: TINCTURES.length, img: IMG.tincture },
-  { key: 'frost', roman: 'IV', name: 'Frostþurrkað', desc: 'Ávextir og ber, þurrkuð við frost.', count: FREEZE_DRIED.length, img: IMG.driedFruit },
-  { key: 'hud', roman: 'V', name: 'Húð & hár', desc: 'CBD-olíur, sjampó og handáburður.', count: 10, img: IMG.bundle },
-  { key: 'faeda', roman: 'VI', name: 'Fæðubótarefni', desc: 'Glýsín, D3+K2 og astaxanthín.', count: 5, img: IMG.shelf },
 ]
 
 export const STORY = {
