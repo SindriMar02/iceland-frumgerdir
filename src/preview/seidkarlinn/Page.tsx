@@ -220,15 +220,21 @@ function StampButton({ added, onClick, label, dark, ariaLabel }: { added: boolea
 
 function LedgerRow({ nr, product, onAdd, added, dark }: { nr: string; product: Product; onAdd: () => void; added: boolean; dark?: boolean }) {
   return (
-    <div className="gk-row flex items-center gap-3 border-b px-1 py-3 md:gap-5 md:px-2" style={{ borderColor: dark ? 'rgba(246,244,238,0.22)' : HAIR }}>
+    <div
+      className="gk-row flex flex-wrap items-center gap-x-3 gap-y-2.5 border-b px-3 py-3.5 sm:flex-nowrap sm:gap-5 md:px-3"
+      style={{ borderColor: dark ? 'rgba(246,244,238,0.22)' : HAIR }}
+    >
       <span className="w-7 shrink-0 text-[11px]" style={{ fontFamily: MONO, color: dark ? PAPER_MUT : MUT }}>
         {nr}
       </span>
       <span className={`grid h-14 w-14 shrink-0 place-items-center ${dark ? 'border' : ''}`} style={dark ? { background: '#fff', borderColor: 'rgba(246,244,238,0.4)' } : undefined}>
         <Img src={productImg(product.id)} alt={product.name} className="h-14 w-14 object-contain" fallbackClassName="opacity-0" />
       </span>
-      <div className="min-w-0">
-        <p className="truncate text-lg leading-tight md:text-xl" style={{ fontFamily: DISPLAY, color: dark ? PAPER : INK }}>
+      {/* min-width forces this block to always claim real room, which is what
+          pushes price+button onto their own line below sm — never a 1-letter
+          truncated name fighting a button for the same 300px. */}
+      <div className="min-w-36 flex-1 basis-40">
+        <p className="text-lg leading-tight sm:truncate md:text-xl" style={{ fontFamily: DISPLAY, color: dark ? PAPER : INK }}>
           {product.name}
         </p>
         <p className="text-[10.5px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: dark ? PAPER_MUT : MUT }}>
@@ -236,10 +242,14 @@ function LedgerRow({ nr, product, onAdd, added, dark }: { nr: string; product: P
         </p>
       </div>
       <span className="gk-leader mx-1 hidden flex-1 border-b border-dotted sm:block" style={{ borderColor: dark ? 'rgba(246,244,238,0.35)' : 'rgba(21,19,16,0.3)' }} />
-      <span className="ml-auto shrink-0 text-[15px] font-bold sm:ml-0" style={{ fontFamily: MONO, color: dark ? PAPER : INK }}>
-        {isk(product.price)}
-      </span>
-      <StampButton added={added} onClick={onAdd} dark={dark} ariaLabel={`Bæta ${product.name} í körfu`} />
+      {/* price + button move as ONE unit — on their own wrapped line on
+          mobile (right-aligned via ml-auto), inline after the leader on sm+. */}
+      <div className="ml-auto flex shrink-0 items-center gap-3">
+        <span className="text-[15px] font-bold tabular-nums" style={{ fontFamily: MONO, color: dark ? PAPER : INK }}>
+          {isk(product.price)}
+        </span>
+        <StampButton added={added} onClick={onAdd} dark={dark} ariaLabel={`Bæta ${product.name} í körfu`} />
+      </div>
     </div>
   )
 }
@@ -442,7 +452,7 @@ export default function Page() {
           </div>
 
           {/* hero spread */}
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-10 pb-14 md:grid-cols-[7fr_5fr] md:gap-8 md:px-8 md:pt-14 md:pb-20">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-5 pt-10 pb-14 md:grid-cols-[7fr_5fr] md:gap-8 md:px-8 md:pt-14 md:pb-20">
             <div>
               <h1 className="text-[clamp(2.9rem,7.2vw,5.6rem)] leading-[1.02] tracking-tight text-balance" style={{ fontFamily: DISPLAY }}>
                 {HERO.headline}
@@ -581,7 +591,7 @@ export default function Page() {
       {/* ── III. Hunangið ─────────────────────────────────────────────────── */}
       <section id="hunang" className="scroll-mt-14">
         <SectionHead roman="III" title="Hunangið" note="Hrátt og óunnið" stave={2} inked={honeyInk.inked} innerRef={honeyInk.ref} />
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 md:grid-cols-[5fr_7fr] md:gap-14 md:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-5 pb-16 md:grid-cols-[5fr_7fr] md:gap-14 md:px-8">
           <div className="relative mx-auto">
             <Img src={productImg('villibloma')} alt="Hrátt Villiblóma Hunang 1kg, krukka með striga yfir lokinu" className="gk-cut h-72 w-auto object-contain md:h-96" style={{ transform: 'rotate(-2deg)' }} fallbackClassName="opacity-0" />
           </div>
@@ -664,7 +674,7 @@ export default function Page() {
       {/* ── VI. Búðin — the imprint ──────────────────────────────────────── */}
       <section id="budin" className="scroll-mt-14">
         <SectionHead roman="VI" title="Búðin í Faxafeni" note="Afgreiðsla & samband" stave={5} inked={budInk.inked} innerRef={budInk.ref} />
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 pb-16 md:grid-cols-2 md:gap-14 md:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 pb-16 md:grid-cols-2 md:gap-14 md:px-8">
           <div>
             <p className="max-w-md text-lg leading-relaxed" style={{ color: MUT }}>
               {STORE.body}
