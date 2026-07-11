@@ -382,17 +382,28 @@ export default function FlatbakanPage() {
     // playback speed instead of being ignored, so two flicks noticeably hurries it along and lets
     // scrolling continue sooner - this is a genuine live-updating rate change (re-anchoring playStart
     // so `elapsed*speed` is continuous at the instant of the boost), not a jump-cut to a later frame,
-    // so the choreography still plays through, just faster. BOOST_COOLDOWN collapses one continuous
-    // gesture's rapid-fire wheel/touchmove events into a single boost, so a single sustained flick
-    // doesn't runaway-accelerate on its own - only genuinely separate scroll attempts count.
+    // so the choreography still plays through, just faster.
+    //
+    // A "new flick" is detected by a GAP OF INPUT SILENCE, not by a cooldown since the last boost.
+    // The original BOOST_COOLDOWN=220ms version only rate-limited boosts, but one macOS trackpad
+    // flick streams momentum wheel events for 1-2s (and one finger-drag streams touchmove the same
+    // way), so a single ordinary gesture cleared the cooldown repeatedly and runaway-accelerated the
+    // intro to the 6x cap within ~700ms - the whole 3.4s sequence played in about a second ("spins
+    // way too fast"). Within one gesture, consecutive events are ~16-100ms apart even deep into the
+    // momentum tail; only a genuinely separate flick arrives after a real pause. So: every input
+    // updates lastInputAt, and only an event arriving after GESTURE_GAP of silence counts as a
+    // deliberate extra flick. Missing a boost (two flicks in extremely quick succession reading as
+    // one) is benign - the intro just plays at normal speed - whereas the old failure mode broke the
+    // entire choreography on every scroll.
     let speed = 1
-    let lastBoostAt = 0
-    const BOOST_COOLDOWN = 220
+    let lastInputAt = 0
+    const GESTURE_GAP = 300
     const SPEED_STEP = 2.1
     const SPEED_MAX = 6
     const boost = (time: number) => {
-      if (time - lastBoostAt < BOOST_COOLDOWN) return
-      lastBoostAt = time
+      const gap = time - lastInputAt
+      lastInputAt = time
+      if (gap < GESTURE_GAP) return // momentum/drag tail of the same gesture, not a new flick
       if (speed >= SPEED_MAX) return
       const elapsedBefore = (time - playStart) * speed
       speed = Math.min(SPEED_MAX, speed * SPEED_STEP)
@@ -456,6 +467,9 @@ export default function FlatbakanPage() {
       phase = 'playing'
       playStart = 0
       speed = 1
+      // seed the gesture-gap tracker with the trigger itself, so the triggering flick's own
+      // momentum tail (first follow-up event ~16ms away, vs lastInputAt's initial 0) can't boost
+      lastInputAt = performance.now()
       playRaf = requestAnimationFrame(playTick)
       // failsafe: force-release the scroll lock even if the rAF loop somehow never reaches
       // completion (see the comment on release() above). PLAY_MS is 3400ms; 2x is a generous
@@ -480,7 +494,13 @@ export default function FlatbakanPage() {
       if (!SCROLL_KEYS.has(e.key) || isFormTarget(e.target)) return
       onTrigger(e)
     }
-    if (import.meta.env.DEV) (window as unknown as { __fbPlay?: () => void }).__fbPlay = () => onTrigger(new Event('debug', { cancelable: false }))
+    if (import.meta.env.DEV) {
+      (window as unknown as { __fbPlay?: () => void }).__fbPlay = () => onTrigger(new Event('debug', { cancelable: false }))
+      // deterministic testing of the gesture-gap boost logic (preview-tab timers throttle too hard
+      // for real-time event simulation): drive boost() with explicit timestamps, read speed back
+      ;(window as unknown as { __fbBoost?: (t: number) => void }).__fbBoost = boost
+      ;(window as unknown as { __fbSpeed?: () => number }).__fbSpeed = () => speed
+    }
 
     lenis.stop()
     window.addEventListener('wheel', onTrigger, { passive: false })
