@@ -11,6 +11,7 @@ import FlatbakanLoading from './preview/flatbakan/Loading'
 import EldofninnLoading from './preview/eldofninn/Loading'
 import PizzasmidjanLoading from './preview/pizzasmidjan/Loading'
 import AskurLoading from './preview/askur/Loading'
+import SmariholmLoading from './preview/smariholm/Loading'
 
 const Home = lazy(() => import('./pages/Home'))
 const IceTourism = lazy(() => import('./pages/IceTourism'))
@@ -83,6 +84,8 @@ const EldofninnPage = lazy(() => import('./preview/eldofninn/Page'))
 const PizzasmidjanPage = lazy(() => import('./preview/pizzasmidjan/Page'))
 // Askur Pizzeria (Egilsstaðir) — same template, DARK reskin to their black/white brand
 const AskurPage = lazy(() => import('./preview/askur/Page'))
+// Prolan Bílaryðvörn Hjá Smára Hólm (Hafnarfjörður) — "Brynja" concept, own build (not a clone)
+const SmariholmPage = lazy(() => import('./preview/smariholm/Page'))
 // Bílageirinn — Reykjanesbær auto body shop, "True Line" aviation-precision concept
 const BilageirinnPage = lazy(() => import('./preview/bilageirinn/Page'))
 // Prentverk Selfoss — print shop, "Yfirprent" two-colour overprint concept
@@ -195,6 +198,7 @@ export default function App() {
             <Route path="/preview/eldofninn" element={<Suspense fallback={<EldofninnLoading />}><EldofninnPage /></Suspense>} />
             <Route path="/preview/pizzasmidjan" element={<Suspense fallback={<PizzasmidjanLoading />}><PizzasmidjanPage /></Suspense>} />
             <Route path="/preview/askur" element={<Suspense fallback={<AskurLoading />}><AskurPage /></Suspense>} />
+            <Route path="/preview/smariholm" element={<Suspense fallback={<SmariholmLoading />}><SmariholmPage /></Suspense>} />
             <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
             <Route path="/preview/prentverk" element={<PrentverkPage />} />
             <Route path="/preview/geisli" element={<GeisliPage />} />
