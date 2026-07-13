@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
 import { HomeArt } from './illustrations'
 import { Reveal } from '../../components/Reveal'
+import { SndrBadge } from '../SndrBadge'
 
 /* ── palette ──────────────────────────────────────────────────────────── */
 
@@ -475,7 +476,10 @@ export function Footer() {
               })}
             </span>
           </p>
-          <p>{pick(UI.rights)} · SNDR Studio · 2026</p>
+          <div className="flex items-center gap-3">
+            <p>{pick(UI.rights)} · 2026</p>
+            <SndrBadge dark />
+          </div>
         </div>
       </div>
     </footer>

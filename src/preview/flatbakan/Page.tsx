@@ -4,6 +4,7 @@ import { Percent, Pizza, Leaf, UtensilsCrossed, CupSoda, Gift, Tag } from 'lucid
 import Dock from '../../components/Dock'
 import FlatbakanLoading from './Loading'
 import { setThemeColor } from '../../lib/preview'
+import { SndrBadge } from '../SndrBadge'
 import {
   ORDER, PHONE_DISPLAY, PHONE_HREF, EMAIL, MAPS, SOCIAL, IMG, SLICE_GEO, SLICES, TRAVELLER_VEC, HERO_ORANGE,
   FEATURED, MENU_LINKS, HOURS, TRUCK, STORY, KAERLEIKS, AWARD, ADDRESS,
@@ -705,6 +706,9 @@ export default function FlatbakanPage() {
           <div className="fb-foot-bottom">
             <span>Frumgerð í hönnun, sýnishorn, ekki opinber vefur Flatbökunnar.</span>
             <span>Keyrir á upsell.is</span>
+          </div>
+          <div className="fb-foot-bottom">
+            <SndrBadge dark />
           </div>
         </footer>
       </div>

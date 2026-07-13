@@ -1,8 +1,11 @@
 import type { PreviewCompany } from './companies'
+import { SndrBadge } from './SndrBadge'
 
 /**
  * Shared disclaimer footer for every preview. Theme-aware via the company's
  * `dark` flag; otherwise visually quiet so each page's own design carries it.
+ * The SNDR Studio badge lives here so every prototype (past and future)
+ * carries the same credit mark from one shared edit.
  */
 export function PreviewFooter({ company }: { company: PreviewCompany }) {
   const dark = company.dark
@@ -29,6 +32,9 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
           sindrimar02@gmail.com
         </a>
       </p>
+      <div className={`mx-auto mt-6 flex justify-center border-t pt-6 ${dark ? 'border-white/10' : 'border-neutral-200'}`}>
+        <SndrBadge dark={dark} />
+      </div>
     </footer>
   )
 }
