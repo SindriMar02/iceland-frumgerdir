@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
+import Lenis from 'lenis'
 import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
@@ -135,6 +136,42 @@ function Greek({ lines = 5, color = 'rgba(35,31,32,0.24)' }: { lines?: number; c
   )
 }
 
+/** Photo reveal: clip wipes up while the image settles from a slight zoom.
+ *  `eager` plays on mount (for above-the-fold photos, which are already in
+ *  view at load so whileInView's IntersectionObserver never gets an "enter"
+ *  crossing to fire on — see the whileInView self-clip gotcha). Below-the-
+ *  fold photos use the default whileInView, scrolled into view normally. */
+function ClipPhoto({ src, alt, className, imgClassName, eager = false }: {
+  src: string; alt: string; className?: string; imgClassName?: string; eager?: boolean
+}) {
+  const ease = [0.16, 1, 0.3, 1] as const
+  const reveal = eager
+    ? { animate: { clipPath: 'inset(0 0 0% 0)' } }
+    : { whileInView: { clipPath: 'inset(0 0 0% 0)' }, viewport: { once: true, margin: '-80px' } }
+  const scaleReveal = eager
+    ? { animate: { scale: 1 } }
+    : { whileInView: { scale: 1 }, viewport: { once: true, margin: '-80px' } }
+  return (
+    <motion.div
+      className={`overflow-hidden ${className ?? ''}`}
+      initial={{ clipPath: 'inset(0 0 100% 0)' }}
+      {...reveal}
+      transition={{ duration: 1.05, ease }}
+    >
+      <motion.img
+        src={src}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        className={`h-full w-full object-cover ${imgClassName ?? ''}`}
+        initial={{ scale: 1.12 }}
+        {...scaleReveal}
+        transition={{ duration: 1.3, ease }}
+      />
+    </motion.div>
+  )
+}
+
 function CtaLink({ href, children, variant, className = '' }: {
   href: string; children: ReactNode; variant: 'red' | 'ink' | 'paper' | 'paperline'; className?: string
 }) {
@@ -170,6 +207,15 @@ export default function PrentverkPage() {
     const prev = meta.content
     meta.content = META.description
     return () => { meta.content = prev }
+  }, [])
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const lenis = new Lenis({ duration: 1.1 })
+    let raf = 0
+    const loop = (t: number) => { lenis.raf(t); raf = requestAnimationFrame(loop) }
+    raf = requestAnimationFrame(loop)
+    return () => { cancelAnimationFrame(raf); lenis.destroy() }
   }, [])
 
   return (
@@ -238,29 +284,42 @@ export default function PrentverkPage() {
       </header>
 
       <main id="efst">
-        {/* ── 1 · hero — the wordmark coming into register ─────────────────── */}
+        {/* ── 1 · hero — the wordmark coming into register, beside the press ── */}
         <section aria-label="Prentverk Selfoss" className="relative flex min-h-[calc(100svh-72px)] flex-col">
-          <div className="relative mx-auto flex w-full max-w-[1200px] flex-1 flex-col justify-center px-5 py-14 md:px-8 md:py-20">
+          <div className="relative mx-auto grid w-full max-w-[1200px] flex-1 gap-10 px-5 py-14 md:grid-cols-[1.15fr_0.85fr] md:items-center md:gap-12 md:px-8 md:py-20">
             <Crops color={GREY} inset={10} />
-            <p className="mb-6 text-[13px]" style={{ fontFamily: MONO, color: GREY_TEXT }}>
-              Prentsmiðja á Selfossi · síðan 2009
-            </p>
-            <h1 className="pv-display pv-balance m-0 text-[clamp(4rem,16.5vw,12.5rem)]">
-              <Register main={INK} ghost={RED} block>{HERO.linja1}</Register>
-              <Register main={RED} ghost={INK} delay={0.12} block>{HERO.linja2}</Register>
-            </h1>
-            <div className="mt-10 flex flex-col gap-8 md:mt-14 md:flex-row md:items-end md:justify-between">
-              <div className="max-w-[34rem]">
-                <p className="text-[clamp(1.25rem,2.4vw,1.6rem)] leading-snug" style={{ fontFamily: SANS_MED }}>
-                  {HERO.promise}
-                </p>
-                <p className="mt-3 text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>{HERO.sub}</p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <CtaLink href={PHONE_HREF} variant="red">Hringja í {PHONE_DISPLAY}</CtaLink>
-                <CtaLink href={`mailto:${EMAIL}`} variant="ink">{EMAIL}</CtaLink>
+            <div>
+              <p className="mb-6 text-[13px]" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                Prentsmiðja á Selfossi · síðan 2009
+              </p>
+              <h1 className="pv-display pv-balance m-0 text-[clamp(3.4rem,12.5vw,8.5rem)]">
+                <Register main={INK} ghost={RED} block>{HERO.linja1}</Register>
+                <Register main={RED} ghost={INK} delay={0.12} block>{HERO.linja2}</Register>
+              </h1>
+              <div className="mt-10 flex flex-col gap-8">
+                <div className="max-w-[34rem]">
+                  <p className="text-[clamp(1.25rem,2.4vw,1.6rem)] leading-snug" style={{ fontFamily: SANS_MED }}>
+                    {HERO.promise}
+                  </p>
+                  <p className="mt-3 text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>{HERO.sub}</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <CtaLink href={PHONE_HREF} variant="red">Hringja í {PHONE_DISPLAY}</CtaLink>
+                  <CtaLink href={`mailto:${EMAIL}`} variant="ink">{EMAIL}</CtaLink>
+                </div>
               </div>
             </div>
+            <figure className="m-0">
+              <ClipPhoto
+                src={`${BASE}${IMG.hero}`}
+                alt="Prentvél með litrófi af blekvölsum í gangi"
+                className="aspect-[3/4] md:aspect-[4/5]"
+                eager
+              />
+              <figcaption className="mt-3 text-[11.5px] tracking-[0.06em]" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                PRENTVERK Á FULLRI FERÐ
+              </figcaption>
+            </figure>
           </div>
           <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-4 px-5 pb-5 md:px-8"
             style={{ borderTop: `1px solid ${HAIR}` }}>
@@ -305,9 +364,18 @@ export default function PrentverkPage() {
           <h2 id="verkefni-h" className="pv-display pv-balance m-0 text-[clamp(2.6rem,7vw,5.5rem)]">
             <Register main={RED} ghost={INK} dx={6} dy={5}>{PORTFOLIO_HEADING}</Register>
           </h2>
-          <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>
-            {PORTFOLIO_INTRO}
-          </p>
+          <div className="mt-5 grid gap-8 md:grid-cols-[1fr_minmax(0,20rem)] md:items-start md:gap-12">
+            <p className="max-w-[62ch] text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>
+              {PORTFOLIO_INTRO}
+            </p>
+            <figure className="m-0 hidden md:block">
+              <ClipPhoto
+                src={`${BASE}${IMG.newspapers}`}
+                alt="Stakkur af prentuðum blöðum og bæklingum"
+                className="aspect-[4/3]"
+              />
+            </figure>
+          </div>
 
           <div className="relative mt-12 px-4 py-12 md:px-10 md:py-16" style={{ border: `1px solid ${HAIR}` }}>
             <Crops color={GREY} inset={-1} />
@@ -382,46 +450,65 @@ export default function PrentverkPage() {
           </div>
         </section>
 
-        {/* ── 4 · why local — red is structural, a full spot-colour plate ──── */}
-        <section aria-labelledby="why-h" className="pv-on-red" style={{ background: RED, color: PAPER }}>
-          <div className="mx-auto w-full max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
-            <h2 id="why-h" className="pv-display pv-balance m-0 text-[clamp(2.8rem,8.5vw,7rem)]">
-              <Register main={PAPER} ghost={INK} block>{WHY_HEADING_A}</Register>
-              <Register main={INK} ghost={PAPER} delay={0.1} block>{WHY_HEADING_B}</Register>
-            </h2>
-            <p className="mt-6 max-w-[56ch] text-[18px] leading-relaxed" style={{ fontFamily: SANS_MED }}>
-              {WHY_INTRO}
-            </p>
-            <div className="mt-14" style={{ borderTop: `1px solid ${HAIR_LT}` }}>
-              {WHY_POINTS.map((p) => (
-                <div key={p.title} className="grid gap-2 py-7 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] md:gap-10 md:py-8"
-                  style={{ borderBottom: `1px solid ${HAIR_LT}` }}>
-                  <h3 className="pv-display m-0 text-[clamp(1.5rem,3.6vw,2.3rem)]" style={{ color: PAPER }}>{p.title}</h3>
-                  <p className="m-0 max-w-[58ch] text-[17px] leading-relaxed" style={{ color: PAPER }}>{p.body}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-14 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <p className="m-0 text-[14px]" style={{ fontFamily: MONO, color: PAPER }}>
-                Beint samband, ekkert þjónustuver
+        {/* ── 4 · why local — red plate beside a real hand inking a plate ──── */}
+        <section aria-labelledby="why-h" className="pv-on-red relative overflow-hidden" style={{ background: RED, color: PAPER }}>
+          <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-5 py-20 md:grid-cols-[1.2fr_0.8fr] md:items-start md:gap-14 md:px-8 md:py-28">
+            <div>
+              <h2 id="why-h" className="pv-display pv-balance m-0 text-[clamp(2.6rem,7.5vw,6rem)]">
+                <Register main={PAPER} ghost={INK} block>{WHY_HEADING_A}</Register>
+                <Register main={INK} ghost={PAPER} delay={0.1} block>{WHY_HEADING_B}</Register>
+              </h2>
+              <p className="mt-6 max-w-[56ch] text-[18px] leading-relaxed" style={{ fontFamily: SANS_MED }}>
+                {WHY_INTRO}
               </p>
-              <a href={PHONE_HREF} className="pv-display inline-flex min-h-[44px] items-center text-[clamp(2.6rem,9vw,6rem)] leading-none"
-                style={{ color: INK, textDecorationColor: INK }}>
-                {PHONE_DISPLAY}
-              </a>
+              <div className="mt-14" style={{ borderTop: `1px solid ${HAIR_LT}` }}>
+                {WHY_POINTS.map((p) => (
+                  <div key={p.title} className="grid gap-2 py-7 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] md:gap-10 md:py-8"
+                    style={{ borderBottom: `1px solid ${HAIR_LT}` }}>
+                    <h3 className="pv-display m-0 text-[clamp(1.5rem,3.6vw,2.3rem)]" style={{ color: PAPER }}>{p.title}</h3>
+                    <p className="m-0 max-w-[58ch] text-[17px] leading-relaxed" style={{ color: PAPER }}>{p.body}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-14 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <p className="m-0 text-[14px]" style={{ fontFamily: MONO, color: PAPER }}>
+                  Beint samband, ekkert þjónustuver
+                </p>
+                <a href={PHONE_HREF} className="pv-display inline-flex min-h-[44px] items-center text-[clamp(2.6rem,9vw,6rem)] leading-none"
+                  style={{ color: INK, textDecorationColor: INK }}>
+                  {PHONE_DISPLAY}
+                </a>
+              </div>
             </div>
+            <figure className="m-0 hidden md:block">
+              <div className="sticky top-24">
+                <ClipPhoto
+                  src={`${BASE}${IMG.inkhand}`}
+                  alt="Hönd leggur rautt blek á prentplötu"
+                  className="aspect-[3/4]"
+                />
+                <figcaption className="mt-3 text-[11.5px] tracking-[0.06em]" style={{ fontFamily: MONO, color: PAPER_SOFT }}>
+                  HANDVERKIÐ Á BAK VIÐ HVERT VERK
+                </figcaption>
+              </div>
+            </figure>
           </div>
         </section>
 
         {/* ── 5 · the craft — from file to finished piece ──────────────────── */}
         <section id="ferlid" aria-labelledby="ferlid-h" className="mx-auto w-full max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
-          <div className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between">
-            <h2 id="ferlid-h" className="pv-display pv-balance m-0 max-w-[14ch] text-[clamp(2.6rem,7vw,5.5rem)]">
-              <Register main={INK} ghost={RED} dx={6} dy={5}>{PROCESS_HEADING}</Register>
-            </h2>
-            <p className="max-w-[34ch] text-[16px] leading-relaxed md:text-right" style={{ color: GREY_TEXT }}>
-              {PROCESS_INTRO}
-            </p>
+          <div className="mb-12 grid gap-8 md:mb-16 md:grid-cols-[1fr_minmax(0,15rem)] md:items-end md:gap-10">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <h2 id="ferlid-h" className="pv-display pv-balance m-0 max-w-[14ch] text-[clamp(2.6rem,7vw,5.5rem)]">
+                <Register main={INK} ghost={RED} dx={6} dy={5}>{PROCESS_HEADING}</Register>
+              </h2>
+              <p className="max-w-[34ch] text-[16px] leading-relaxed md:text-right" style={{ color: GREY_TEXT }}>
+                {PROCESS_INTRO}
+              </p>
+            </div>
+            <figure className="m-0 hidden md:block">
+              <ClipPhoto src={`${BASE}${IMG.paperstack}`} alt="Vifta af hvítum pappírsörkum" className="aspect-[4/3]" />
+            </figure>
           </div>
           <ol className="relative m-0 grid list-none gap-10 p-0 md:grid-cols-4 md:gap-8">
             <span aria-hidden className="absolute left-[5px] top-2 h-[calc(100%-16px)] w-px md:left-0 md:top-[5px] md:h-px md:w-full"

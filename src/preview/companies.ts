@@ -2378,16 +2378,16 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Sagan ykkar vakti athygli mína. Meistari í flugvélavirkjun sem byggir upp verkstæði frá grunni og reisir 810 fermetra sérhannað húsnæði í Grófinni. Viðurkennd þjónusta fyrir Toyota og Kia og samstarf við öll tryggingafélög landsins. Það geta fá verkstæði sagt svona sögu.
+Ég rakst á söguna ykkar og heillaðist alveg. Björn Steinar er meistari í flugvélavirkjun og byggði verkstæðið upp frá grunni, alla leið upp í sérhannað 810 fermetra húsnæði í Grófinni. Þið eruð með viðurkennda þjónustu fyrir Toyota og Kia og vinnið með öllum tryggingafélögum landsins. Svona bakgrunn og natni sér maður ekki oft.
 
-Vefsíðan ykkar segir hana því miður ekki. Forsíðan biður gesti enn um að setja upp Flash Player, sem hefur ekki virkað í neinum vafra síðan 2020, og síðan virkar illa í síma.
+Því miður finnst mér núverandi vefsíða ekki alveg gera þessari sögu skil. Forsíðan biður gesti enn um að setja upp Flash Player, sem hefur ekki virkað í neinum vafra síðan 2020, og hún virkar illa í síma.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að fólk sem lendir í tjóni finni ykkur, sjái hvað þið standið fyrir og geti haft samband strax. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Að fólk sem lendir í tjóni finni ykkur fljótt, sjái strax hvað þið standið fyrir og geti haft samband án fyrirhafnar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega heyrið í mér ef þetta kveikir í ykkur.
 

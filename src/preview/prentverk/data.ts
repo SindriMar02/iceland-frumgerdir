@@ -26,9 +26,21 @@ export const META = {
     'Prentverk Selfoss er prentsmiðja á Selfossi sem þjónar Suðurlandi öllu. Nafnspjöld, jólakort, bæklingar og félagsblöð síðan 2009. Sími 898 3877.',
 }
 
+/**
+ * Photography. logo/husid are real (harvested logo + já.is street view of
+ * their building). Their old site only carries 261×93 thumbnails, so the
+ * press/paper photos are vetted Unsplash: hero QRykXu51r_0 (offset press,
+ * ink rollers) · inkhand Y47w3a8uR94 (hand inking a plate) · newspapers
+ * H6eaxcGNQbU · paperstack tp0BLGIv4dU. None depict their actual shop floor,
+ * so no caption claims they do — captions describe the craft generically.
+ */
 export const IMG = {
   logo: 'preview/prentverk/logo.webp',
   husid: 'preview/prentverk/husid.webp',
+  hero: 'preview/prentverk/hero.webp',
+  inkhand: 'preview/prentverk/inkhand.webp',
+  newspapers: 'preview/prentverk/newspapers.webp',
+  paperstack: 'preview/prentverk/paperstack.webp',
 }
 
 export const NAV = [
