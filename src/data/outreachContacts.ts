@@ -40,11 +40,11 @@ export interface OutreachContact {
 const PREVIEW = 'https://sindrimar02.github.io/iceland-frumgerdir/preview'
 
 const SIGN = `Bestu kveðjur,
-Sindri
-sindrimar02@gmail.com`
+Sindri Már
+845 1758`
 
 const SIGN_SHORT = `Bestu kveðjur,
-Sindri`
+Sindri Már`
 
 export const OUTREACH_CONTACTS: OutreachContact[] = [
   {

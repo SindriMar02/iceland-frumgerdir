@@ -19,8 +19,8 @@ export interface OutreachEmail {
 }
 
 const SIGNATURE = `Bestu kveðjur,
-Sindri
-sindrimar02@gmail.com`
+Sindri Már
+845 1758`
 
 export const outreach: Record<string, OutreachEmail> = {
   'ice-tourism': {

@@ -74,6 +74,10 @@ const SeidkarlinnPage = lazy(() => import('./preview/seidkarlinn/Page'))
 const BofsPage = lazy(() => import('./preview/bofs/Page'))
 const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
+// Bílageirinn — Reykjanesbær auto body shop, "True Line" aviation-precision concept
+const BilageirinnPage = lazy(() => import('./preview/bilageirinn/Page'))
+// Prentverk Selfoss — print shop, "Yfirprent" two-colour overprint concept
+const PrentverkPage = lazy(() => import('./preview/prentverk/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -175,6 +179,8 @@ export default function App() {
             {/* own nested Suspense (not the outer fallback=null) so a slow chunk fetch shows a
                 branded loading screen instead of a blank flash - see Loading.tsx */}
             <Route path="/preview/flatbakan" element={<Suspense fallback={<FlatbakanLoading />}><FlatbakanPage /></Suspense>} />
+            <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
+            <Route path="/preview/prentverk" element={<PrentverkPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
