@@ -2348,9 +2348,9 @@ ${SIGN}`,
     ownerEmail: 'bilageirinn@bilageirinn.is',
     concept: 'True Line',
     conceptTagline:
-      'Aviation-trained precision for everyday cars. Blueprint calm, certified craft, measured repair.',
-    accent: '#14335E',
-    dark: false,
+      'Aviation-trained precision for everyday cars. Night-shift workshop cinema: one amber line drawn back into place.',
+    accent: '#E8A23D',
+    dark: true,
     status: 'Concept ready',
     thumb: 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?q=80&w=1200&auto=format&fit=crop',
     audit: {

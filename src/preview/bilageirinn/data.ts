@@ -37,13 +37,39 @@ export const HERO = {
   ctaSecondary: 'Skoða þjónustuna',
 }
 
-/** Instrument gauges under the hero — every value verified. */
-export const GAUGES = [
-  { value: '2003', label: 'Stofnár', angle: 34, delay: 0 },
-  { value: '810', unit: 'm²', label: 'Sérbyggt húsnæði', angle: 52, delay: 0.15 },
-  { value: '2', label: 'Viðurkennd vörumerki', angle: -38, delay: 0.3 },
-  { value: 'Öll', label: 'Tryggingafélögin', angle: 62, delay: 0.45 },
+/** Verified facts row — numbers count up on scroll into view. */
+export const FACTS = [
+  { num: 2003, pad: 4, suffix: '', label: 'Stofnár í Reykjanesbæ' },
+  { num: 810, pad: 3, suffix: ' m²', label: 'Sérbyggt húsnæði í Grófinni' },
+  { num: 2, pad: 1, suffix: '', label: 'Viðurkennd vörumerki' },
+  { num: null, pad: 0, text: 'Öll', suffix: '', label: 'Tryggingafélög landsins' },
 ]
+
+/**
+ * Photography. logo/toyota/kia are the real marks harvested from
+ * bilageirinn.is (they display the Toyota + Kia marks themselves).
+ * Workshop photos are vetted FREE Unsplash (their old site only carries
+ * 261×93 thumbnails; Unsplash+ premium ids are watermarked and banned):
+ * hero JvmFL2FEE8Q · booth S2DAAfQQF4g · retting G6sI_6B_FFY ·
+ * malun 2ssdrtw07dw · garage WbKt-WmdMf8 · lift FHrxSBfNzLw ·
+ * polish z6o7bOvvalU · wheel fILglZMbipM · brake nr-9yu-ERTM ·
+ * headlight VuYz3is9tPI.
+ * None depict their actual facility, so no caption claims they do.
+ */
+export const IMG = {
+  hero: `${ASSET}hero.webp`,
+  malun: `${ASSET}malun.webp`,
+  retting: `${ASSET}retting.webp`,
+  booth: `${ASSET}booth.webp`,
+  garage: `${ASSET}garage.webp`,
+  lift: `${ASSET}lift.webp`,
+  polish: `${ASSET}polish.webp`,
+  wheel: `${ASSET}wheel.webp`,
+  brake: `${ASSET}brake.webp`,
+  headlight: `${ASSET}headlight.webp`,
+  toyota: `${ASSET}toyota.png`,
+  kia: `${ASSET}kia.png`,
+}
 
 export const TRUST_STRIP = [
   'Síðan 2003',
