@@ -57,7 +57,7 @@ export const IMG = {
   },
 } as const
 
-export const LOGO = 'geisli/logo_geisli70t.png'
+export const LOGO = 'geisli/logo_geisli_clean.png'
 
 export const PHONE_DISPLAY = '462 1555'
 export const PHONE_HREF = 'tel:+3544621555'

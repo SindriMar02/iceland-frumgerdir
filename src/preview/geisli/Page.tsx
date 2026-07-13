@@ -296,8 +296,8 @@ export default function GeisliPage() {
       <header className="sticky top-0 z-50" style={{ background: IVORY, borderBottom: `1px solid ${HAIR}` }}>
         <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8">
           <a href="#efst" aria-label="Gleraugnasalan Geisli, efst á síðu" className="flex min-h-[44px] items-center">
-            {/* recovered vintage mark, 160x92 — must stay small, it cannot scale */}
-            <img src={`${BASE}${LOGO}`} alt="Gleraugnasalan Geisli" width={160} height={92} className="h-12 w-auto md:h-[54px]" />
+            {/* recovered vintage mark, cropped tight to content + smoothly upscaled (572x312, ratio-safe) */}
+            <img src={`${BASE}${LOGO}`} alt="Gleraugnasalan Geisli" width={572} height={312} className="h-14 w-auto md:h-16" />
           </a>
           <nav aria-label="Aðalvalmynd" className="hidden items-center gap-7 lg:flex">
             {NAV.map((n) => (

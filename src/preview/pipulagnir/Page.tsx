@@ -52,7 +52,25 @@ const company = getPreviewCompany('pipulagnir')
    white on red 8.76 · white on blue 9.03 · bone on near-black 16.38
    muted #5F5B54 on bone 6.04 · muted #A8A49C on near-black 7.38
    warm tint #E89B94 on dark 8.33 · cool tint #9CC6DA on dark 10.03
-   red-tint text #F0C9C7 on red 5.79 · blue-tint #BFD9E4 on blue 6.13 */
+   red-tint text #F0C9C7 on red 5.79 · blue-tint #BFD9E4 on blue 6.13
+
+   ELEVATION PASS V2 (2026-07-13) — new elements, no new colors introduced:
+   · rail wayfinding chip text: reuses white-on-red 8.76:1 / white-on-blue
+     9.03:1 above (already verified) — the chip's background is always the
+     rail's own current RED/BLUE, text always white.
+   · ghost section numerals (01-06): aria-hidden, decorative, no text
+     information conveyed (WCAG 1.4.3 doesn't apply to non-text decoration),
+     so no contrast ratio is claimed for the numeral itself. What matters is
+     that they never reduce the READING text's contrast: each numeral sits
+     at z-0 behind its heading (z-10, opaque solid ink/white per the ratios
+     above) so the heading is never visually blended with the numeral, and
+     opacity is kept low (ink 7% on bone, white 14% on red/blue, bone 10% on
+     dark) so even where they visually overlap non-text chrome it reads as a
+     faint watermark, not a competing shape.
+   · "the pour" wave overlay (Heat/Cold band tops): solid RED/BLUE, the
+     section's own already-verified background color — introduces no new
+     color pair, and settles behind/beside body copy (see PourEdge, sits
+     within each section's top padding zone, never under heading text). */
 const BONE = '#F4F2EE'
 const INK = '#1B1A18'
 const RED = '#921B1E'
@@ -72,6 +90,13 @@ const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 /* Icelandic caps (Í Á Ó Ú Ý Þ Æ Ö): open leading, normal tracking, no clip
    masks over headline glyphs anywhere on this page. */
 const H_DISPLAY = { fontFamily: DISPLAY, fontWeight: 800, fontStretch: '125%', letterSpacing: '0', lineHeight: 1.06 } as const
+/* Heat/Cold are the two full-bleed band headlines — pushed to a taller clamp
+   ceiling than the rest of the page's h2s (elevation pass, move 3). */
+const BAND_TITLE = { ...H_DISPLAY, fontSize: 'clamp(1.95rem, 4.8vw, 3.6rem)' } as const
+/* Hand-authored liquid-edge wave (move 2, "the pour"). Abstract texture, not
+   a diagram of a real object. x in %, y in px from the shape's own top. */
+const WAVE_CLIP =
+  'polygon(0% 44px,6% 26px,13% 50px,20% 22px,28% 46px,36% 16px,44% 42px,52% 20px,60% 48px,68% 18px,76% 44px,84% 24px,92% 50px,100% 28px,100% 100%,0% 100%)'
 
 const B = import.meta.env.BASE_URL
 const EASE = [0.23, 1, 0.32, 1] as const
@@ -94,6 +119,42 @@ const CSS = `
 @keyframes ps-heroZoom { from { transform: scale(1.1); } to { transform: scale(1); } }
 .ps-heroimg { animation: ps-heroZoom 2.6s cubic-bezier(0.23, 1, 0.32, 1) both; }
 @media (prefers-reduced-motion: reduce) { .ps-heroimg { animation: none; } }
+
+/* signature rail: always-on decorative liquid-flow texture inside the fill —
+   self-contained CSS loop, not scroll-linked, so it's texture, not fake data */
+@keyframes ps-railFlow { from { background-position: 0 0; } to { background-position: 0 -28px; } }
+.ps-rail-flow {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(180deg,
+    rgba(255,255,255,0.42) 0px, rgba(255,255,255,0.42) 2px,
+    transparent 2px, transparent 9px,
+    rgba(255,255,255,0.16) 9px, rgba(255,255,255,0.16) 11px,
+    transparent 11px, transparent 22px);
+  background-size: 100% 28px;
+  mix-blend-mode: overlay;
+  animation: ps-railFlow 2.1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .ps-rail-flow { animation: none; } }
+
+/* rail wayfinding chip — text on top of RED/BLUE (verified 8.76:1 / 9.03:1) */
+.ps-rail-chip {
+  position: absolute;
+  left: 18px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  color: #FFFFFF;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: background-color 0.45s ease, opacity 0.35s ease;
+}
+.ps-rail-chip-text {
+  display: inline-block;
+  font-family: ${MONO};
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
 `
 
 /* ───────────────────────── shared motion helpers ───────────────────────── */
@@ -122,12 +183,18 @@ function ClipImage({
   className,
   w = 1600,
   sizes,
+  gradeColor,
+  gradeOpacity,
 }: {
   id: string
   alt: string
   className?: string
   w?: number
   sizes?: string
+  /** photography color-grade (move 3): a low-opacity multiply tint tying the
+      photo to its section ground. Honest captions never change. */
+  gradeColor?: string
+  gradeOpacity?: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-90px' })
@@ -141,9 +208,12 @@ function ClipImage({
       className="h-full w-full object-cover"
     />
   )
-  if (reduced) return <div className={`overflow-hidden ${className ?? ''}`}>{img}</div>
+  const grade = gradeColor ? (
+    <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: gradeColor, mixBlendMode: 'multiply', opacity: gradeOpacity ?? 0.16 }} />
+  ) : null
+  if (reduced) return <div className={`relative overflow-hidden ${className ?? ''}`}>{img}{grade}</div>
   return (
-    <div ref={ref} className={`overflow-hidden ${className ?? ''}`}>
+    <div ref={ref} className={`relative overflow-hidden ${className ?? ''}`}>
       <motion.div
         className="h-full w-full"
         initial={{ clipPath: 'inset(0 0 100% 0)' }}
@@ -159,6 +229,131 @@ function ClipImage({
           {img}
         </motion.div>
       </motion.div>
+      {grade}
+    </div>
+  )
+}
+
+/** Varied choreography (move 3): the two Heat-band photos slide in from
+    opposite horizontal edges instead of clip-wiping like every other image
+    on the page. Same once-triggered useInView pattern as ClipImage. */
+function SlideImage({
+  id,
+  alt,
+  className,
+  w = 1600,
+  sizes,
+  from,
+  gradeColor,
+  gradeOpacity,
+}: {
+  id: string
+  alt: string
+  className?: string
+  w?: number
+  sizes?: string
+  from: 'left' | 'right'
+  gradeColor?: string
+  gradeOpacity?: number
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-90px' })
+  const reduced = useReducedMotion()
+  const img = (
+    <Img
+      src={u(id, w)}
+      srcSet={`${u(id, 828)} 828w, ${u(id, 1280)} 1280w, ${u(id, 2000)} 2000w`}
+      sizes={sizes ?? '(min-width: 768px) 50vw, 100vw'}
+      alt={alt}
+      className="h-full w-full object-cover"
+    />
+  )
+  const grade = gradeColor ? (
+    <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: gradeColor, mixBlendMode: 'multiply', opacity: gradeOpacity ?? 0.16 }} />
+  ) : null
+  if (reduced) return <div className={`relative overflow-hidden ${className ?? ''}`}>{img}{grade}</div>
+  const dx = from === 'left' ? -56 : 56
+  return (
+    <div ref={ref} className={`relative overflow-hidden ${className ?? ''}`}>
+      <motion.div
+        className="h-full w-full"
+        initial={{ opacity: 0, x: dx, scale: 1.06 }}
+        animate={inView ? { opacity: 1, x: 0, scale: 1 } : {}}
+        transition={{ duration: 1.1, ease: EASE }}
+      >
+        {img}
+      </motion.div>
+      {grade}
+    </div>
+  )
+}
+
+/** Editorial ghost numeral (move 3): a large ornamental outline/low-opacity
+    digit behind a major section heading. Purely navigational decoration —
+    aria-hidden, no data claim — so it sits BEHIND the heading (z-0 vs the
+    heading's z-10) and never competes with heading legibility. Uses a
+    tighter/bolder Archivo cut (900/75%) than the H_DISPLAY body headlines
+    (800/125%) since it's ornamental, not body type. */
+function GhostNum({ n, color }: { n: string; color: string }) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute -top-2 right-0 z-0 select-none leading-none md:-top-5"
+      style={{
+        fontFamily: DISPLAY,
+        fontWeight: 900,
+        fontStretch: '75%',
+        fontSize: 'clamp(4.2rem, 12vw, 8.5rem)',
+        color,
+      }}
+    >
+      {n}
+    </span>
+  )
+}
+
+/** "The pour" (move 2): a liquid-edge overlay at the top of the Heat/Cold
+    bands, hand-authored wave clip-path in the section's own color, bleeding
+    up into the previous section's bottom padding so the seam reads as a
+    poured edge instead of a flat color cut. Reveal is translateY, driven by
+    a synchronous passive scroll handler computing entrance progress as the
+    section nears the viewport — same mechanism family as TempRail. Once
+    fully revealed it settles (flag), never tracks scroll again. */
+function PourEdge({ id, color }: { id: string; color: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+  const settled = useRef(false)
+
+  useEffect(() => {
+    if (reduced) return
+    const el = document.getElementById(id)
+    if (!el) return
+    const onScroll = () => {
+      if (settled.current) return
+      const rect = el.getBoundingClientRect()
+      const vh = window.innerHeight
+      const start = vh * 0.94
+      const end = vh * 0.35
+      const p = Math.min(1, Math.max(0, (start - rect.top) / (start - end)))
+      const node = ref.current
+      if (node) node.style.transform = `translateY(${(1 - p) * -100}%)`
+      if (p >= 1) {
+        settled.current = true
+        window.removeEventListener('scroll', onScroll)
+      }
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [id, reduced])
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-x-0 z-[1]" style={{ top: -90, height: 190 }}>
+      <div
+        ref={ref}
+        className="h-full w-full"
+        style={{ background: color, clipPath: WAVE_CLIP, transform: reduced ? 'translateY(0)' : 'translateY(-100%)' }}
+      />
     </div>
   )
 }
@@ -198,22 +393,26 @@ function CountUp({ to, suffix }: { to: number; suffix: string }) {
    one synchronous passive scroll handler writing transform + background
    directly to the DOM (no Framer useScroll, no rAF loop, per the ledger). */
 
-const RAIL: { id: string; temp: 'hot' | 'cold' }[] = [
-  { id: 'efst', temp: 'hot' },
-  { id: 'tolur', temp: 'hot' },
-  { id: 'thjonusta', temp: 'cold' },
-  { id: 'golfhiti', temp: 'hot' },
-  { id: 'udakerfi', temp: 'cold' },
-  { id: 'um-okkur', temp: 'hot' },
-  { id: 'umsagnir', temp: 'cold' },
-  { id: 'hafa-samband', temp: 'hot' },
+const RAIL: { id: string; temp: 'hot' | 'cold'; label: string | null }[] = [
+  { id: 'efst', temp: 'hot', label: null },
+  { id: 'tolur', temp: 'hot', label: 'Fyrirtækið í tölum' },
+  { id: 'thjonusta', temp: 'cold', label: 'Þjónusta' },
+  { id: 'golfhiti', temp: 'hot', label: 'Gólfhiti' },
+  { id: 'udakerfi', temp: 'cold', label: 'Úðakerfi' },
+  { id: 'um-okkur', temp: 'hot', label: 'Um okkur' },
+  { id: 'umsagnir', temp: 'cold', label: 'Orð frá viðskiptavinum' },
+  { id: 'hafa-samband', temp: 'hot', label: 'Hafa samband' },
 ]
 
 function TempRail() {
   const fillRef = useRef<HTMLDivElement>(null)
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([])
+  const chipRef = useRef<HTMLDivElement>(null)
+  const chipTextRef = useRef<HTMLSpanElement>(null)
   const [positions, setPositions] = useState<number[]>([])
   const reduced = useReducedMotion()
+  const lastIndex = useRef(-1)
+  const fadeTimer = useRef<number | null>(null)
 
   useEffect(() => {
     let offsets: number[] = []
@@ -224,8 +423,12 @@ function TempRail() {
       const p = Math.min(1, Math.max(0, window.scrollY / scrollable))
       const probe = window.scrollY + window.innerHeight * 0.45
       let temp: 'hot' | 'cold' = 'hot'
+      let idx = 0
       for (let i = 0; i < offsets.length; i++) {
-        if (probe >= offsets[i]) temp = RAIL[i].temp
+        if (probe >= offsets[i]) {
+          temp = RAIL[i].temp
+          idx = i
+        }
       }
       const fill = fillRef.current
       if (fill) {
@@ -235,6 +438,35 @@ function TempRail() {
       for (let i = 0; i < dotRefs.current.length; i++) {
         const d = dotRefs.current[i]
         if (d) d.style.opacity = p >= (pct[i] ?? 0) - 0.002 ? '1' : '0.35'
+      }
+      /* wayfinding chip: rides the fill's leading edge (same p), cross-
+         fading its text only when the current section actually changes */
+      const chip = chipRef.current
+      if (chip) {
+        chip.style.top = `${p * 100}%`
+        chip.style.backgroundColor = temp === 'hot' ? RED : BLUE
+      }
+      if (idx !== lastIndex.current) {
+        lastIndex.current = idx
+        const label = RAIL[idx].label
+        if (fadeTimer.current) window.clearTimeout(fadeTimer.current)
+        if (!label) {
+          if (chip) chip.style.opacity = '0'
+        } else {
+          if (chip) chip.style.opacity = '1'
+          const textEl = chipTextRef.current
+          if (textEl) {
+            textEl.style.opacity = '0'
+            textEl.style.transform = 'translateX(-5px)'
+            fadeTimer.current = window.setTimeout(() => {
+              if (chipTextRef.current) {
+                chipTextRef.current.textContent = label
+                chipTextRef.current.style.opacity = '1'
+                chipTextRef.current.style.transform = 'translateX(0)'
+              }
+            }, 170)
+          }
+        }
       }
     }
 
@@ -256,6 +488,7 @@ function TempRail() {
     if (!reduced) window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       window.clearTimeout(t)
+      if (fadeTimer.current) window.clearTimeout(fadeTimer.current)
       window.removeEventListener('resize', measure)
       window.removeEventListener('load', measure)
       if (!reduced) window.removeEventListener('scroll', onScroll)
@@ -263,9 +496,17 @@ function TempRail() {
   }, [reduced])
 
   return (
-    <div aria-hidden className="pointer-events-none fixed bottom-0 left-2 top-0 z-40 w-[3px] md:left-4">
-      <div className="absolute inset-0" style={{ background: HAIR }} />
-      {!reduced && <div ref={fillRef} className="absolute inset-0 origin-top" style={{ background: RED, transform: 'scaleY(0)', transition: 'background-color 0.45s ease' }} />}
+    <div aria-hidden className="pointer-events-none fixed bottom-0 left-2 top-0 z-40 w-[6px] md:left-4 md:w-[11px]">
+      <div className="absolute inset-0 rounded-full" style={{ background: HAIR }} />
+      {!reduced && (
+        <div
+          ref={fillRef}
+          className="absolute inset-0 origin-top overflow-hidden rounded-full"
+          style={{ background: RED, transform: 'scaleY(0)', transition: 'background-color 0.45s ease' }}
+        >
+          <div aria-hidden className="ps-rail-flow" />
+        </div>
+      )}
       {positions.map((p, i) => (
         <span
           key={RAIL[i].id}
@@ -282,6 +523,28 @@ function TempRail() {
           }}
         />
       ))}
+      {!reduced && (
+        <div ref={chipRef} className="ps-rail-chip hidden md:block" style={{ background: RED, opacity: 0, transform: 'translateY(-50%)' }}>
+          <span ref={chipTextRef} className="ps-rail-chip-text" />
+        </div>
+      )}
+      {reduced && (
+        <div className="hidden md:block">
+          {positions.map((p, i) =>
+            RAIL[i].label ? (
+              <div
+                key={RAIL[i].id}
+                className="ps-rail-chip"
+                style={{ top: `${p * 100}%`, transform: 'translateY(-50%)', background: RAIL[i].temp === 'hot' ? RED : BLUE, opacity: 1 }}
+              >
+                <span className="ps-rail-chip-text" style={{ opacity: 1, transform: 'none' }}>
+                  {RAIL[i].label}
+                </span>
+              </div>
+            ) : null
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -333,6 +596,21 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 
 function Hero() {
   const reduced = useReducedMotion()
+  const parallaxRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (reduced) return
+    /* subtle parallax drift, layered on top of the ps-heroimg Ken Burns
+       load-in zoom (separate element so the two transforms never fight over
+       the same style.transform property); synchronous passive scroll write,
+       same technical contract as TempRail */
+    const onScroll = () => {
+      const y = Math.min(window.scrollY * 0.12, 120)
+      if (parallaxRef.current) parallaxRef.current.style.transform = `translateY(${y}px) scale(1.06)`
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [reduced])
   const enter = (delay: number) =>
     reduced
       ? {}
@@ -343,16 +621,18 @@ function Hero() {
         }
   return (
     <section id="efst" className="relative flex min-h-[100svh] items-end overflow-hidden" style={{ background: DARK }}>
-      <div className="absolute inset-0">
-        <Img
-          src={u(IMG.hero, 1280)}
-          srcSet={`${u(IMG.hero, 828)} 828w, ${u(IMG.hero, 1280)} 1280w, ${u(IMG.hero, 2000)} 2000w`}
-          sizes="100vw"
-          alt={HERO.alt}
-          loading="eager"
-          fetchpriority="high"
-          className="ps-heroimg h-full w-full object-cover"
-        />
+      <div className="absolute inset-0 overflow-hidden">
+        <div ref={parallaxRef} className="h-full w-full" style={reduced ? undefined : { transform: 'scale(1.06)', willChange: 'transform' }}>
+          <Img
+            src={u(IMG.hero, 1280)}
+            srcSet={`${u(IMG.hero, 828)} 828w, ${u(IMG.hero, 1280)} 1280w, ${u(IMG.hero, 2000)} 2000w`}
+            sizes="100vw"
+            alt={HERO.alt}
+            loading="eager"
+            fetchpriority="high"
+            className="ps-heroimg h-full w-full object-cover"
+          />
+        </div>
       </div>
       <div
         aria-hidden
@@ -374,7 +654,7 @@ function Hero() {
           {HERO.eyebrow}
         </motion.p>
         {/* open leading + zero tracking + no clip masks: Í Á Ó accents stay whole */}
-        <h1 className="max-w-5xl text-balance text-white" style={{ ...H_DISPLAY, fontSize: 'clamp(2.9rem, 9vw, 5.9rem)' }}>
+        <h1 className="max-w-5xl text-balance text-white" style={{ ...H_DISPLAY, fontSize: 'clamp(2.9rem, 9.5vw, 6.4rem)' }}>
           {[
             { t: HERO.headlineHot, c: WARM_TINT },
             { t: HERO.headlineAnd, c: '#FFFFFF' },
@@ -438,10 +718,15 @@ function ServiceIndex() {
   const s = SERVICES[active]
   return (
     <section id="thjonusta" className="mx-auto max-w-[1280px] scroll-mt-20 px-5 py-24 md:px-8 md:py-32">
+      <div className="relative">
+        <GhostNum n="01" color="rgba(27,26,24,0.07)" />
+        <Rise>
+          <h2 className="relative z-10 max-w-3xl text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
+            Öll lagnavinna á einum stað
+          </h2>
+        </Rise>
+      </div>
       <Rise>
-        <h2 className="max-w-3xl text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
-          Öll lagnavinna á einum stað
-        </h2>
         <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
           Sjö svið, sömu hendurnar. Veldu þjónustu til að sjá hvað hún nær yfir.
         </p>
@@ -526,20 +811,24 @@ function ServiceIndex() {
 /** Warm band. Full red ground, the HEITT half of the system. */
 function Heat() {
   return (
-    <section id="golfhiti" className="ps-dark scroll-mt-20" style={{ background: RED }}>
-      <div className="mx-auto grid max-w-[1280px] gap-12 px-5 py-24 md:grid-cols-[1.05fr_1fr] md:gap-16 md:px-8 md:py-32">
+    <section id="golfhiti" className="ps-dark relative scroll-mt-20" style={{ background: RED }}>
+      <PourEdge id="golfhiti" color={RED} />
+      <div className="relative mx-auto grid max-w-[1280px] gap-12 px-5 py-24 md:grid-cols-[1.05fr_1fr] md:gap-16 md:px-8 md:py-32">
         <div className="flex flex-col justify-center">
-          <Rise>
-            <h2 className="text-balance text-white" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
-              {HEAT.title}
-            </h2>
-            <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed text-white" style={{ fontFamily: BODY }}>
-              {HEAT.lead}
-            </p>
-            <p className="mt-4 max-w-[58ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: RED_TINT }}>
-              {HEAT.body}
-            </p>
-          </Rise>
+          <div className="relative">
+            <GhostNum n="02" color="rgba(255,255,255,0.14)" />
+            <Rise>
+              <h2 className="relative z-10 text-balance text-white" style={BAND_TITLE}>
+                {HEAT.title}
+              </h2>
+              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed text-white" style={{ fontFamily: BODY }}>
+                {HEAT.lead}
+              </p>
+              <p className="mt-4 max-w-[58ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: RED_TINT }}>
+                {HEAT.body}
+              </p>
+            </Rise>
+          </div>
           <ul className="mt-9 space-y-3">
             {HEAT.points.map((p, i) => (
               <Rise key={p} delay={0.1 + i * 0.08}>
@@ -553,13 +842,13 @@ function Heat() {
         </div>
         <div className="grid grid-cols-2 gap-4 md:gap-5">
           <figure className="col-span-2 md:col-span-1">
-            <ClipImage id={IMG[HEAT.imgA.img]} alt={HEAT.imgA.alt} className="aspect-[4/5] rounded-sm" w={1280} sizes="(min-width: 768px) 25vw, 100vw" />
+            <SlideImage id={IMG[HEAT.imgA.img]} alt={HEAT.imgA.alt} className="aspect-[4/5] rounded-sm" w={1280} sizes="(min-width: 768px) 25vw, 100vw" from="left" gradeColor={RED} gradeOpacity={0.16} />
             <figcaption className="mt-3 text-[12.5px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: RED_TINT }}>
               {HEAT.capA}
             </figcaption>
           </figure>
           <figure className="col-span-2 md:col-span-1 md:mt-14">
-            <ClipImage id={IMG[HEAT.imgB.img]} alt={HEAT.imgB.alt} className="aspect-[4/5] rounded-sm" w={1280} sizes="(min-width: 768px) 25vw, 100vw" />
+            <SlideImage id={IMG[HEAT.imgB.img]} alt={HEAT.imgB.alt} className="aspect-[4/5] rounded-sm" w={1280} sizes="(min-width: 768px) 25vw, 100vw" from="right" gradeColor={RED} gradeOpacity={0.16} />
             <figcaption className="mt-3 text-[12.5px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: RED_TINT }}>
               {HEAT.capB}
             </figcaption>
@@ -575,31 +864,38 @@ function Heat() {
 function Cold() {
   const reduced = useReducedMotion()
   return (
-    <section id="udakerfi" className="ps-dark relative scroll-mt-20 overflow-hidden" style={{ background: BLUE }}>
-      <motion.div
-        className="absolute inset-0"
-        initial={reduced ? false : { opacity: 0, scale: 1.06 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.6, ease: EASE }}
-      >
-        <Img
-          src={u(IMG[COLD.img], 1280)}
-          srcSet={`${u(IMG[COLD.img], 828)} 828w, ${u(IMG[COLD.img], 1280)} 1280w, ${u(IMG[COLD.img], 2000)} 2000w`}
-          sizes="100vw"
-          alt=""
-          loading="eager"
-          className="h-full w-full object-cover"
-        />
-      </motion.div>
-      <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(30,78,99,0.86)' }} />
+    <section id="udakerfi" className="ps-dark relative scroll-mt-20" style={{ background: BLUE }}>
+      {/* photo + scrim contained in their own overflow-hidden layer so the
+          pour overlay below (which bleeds upward into Heat's red) is not
+          clipped by it */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute inset-0"
+          initial={reduced ? false : { opacity: 0, scale: 1.06 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.6, ease: EASE }}
+        >
+          <Img
+            src={u(IMG[COLD.img], 1280)}
+            srcSet={`${u(IMG[COLD.img], 828)} 828w, ${u(IMG[COLD.img], 1280)} 1280w, ${u(IMG[COLD.img], 2000)} 2000w`}
+            sizes="100vw"
+            alt=""
+            loading="eager"
+            className="h-full w-full object-cover"
+          />
+        </motion.div>
+        <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(30,78,99,0.86)' }} />
+      </div>
+      <PourEdge id="udakerfi" color={BLUE} />
       <div className="relative mx-auto max-w-[1280px] px-5 py-28 md:px-8 md:py-40">
-        <div className="max-w-2xl">
+        <div className="relative max-w-2xl">
+          <GhostNum n="03" color="rgba(255,255,255,0.14)" />
           <Rise>
             {/* lighter than BLUE_TINT: AA-safe against the brightest photo pixels under the 0.86 scrim */}
             <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: '#D9E9F1' }}>
               Fyrirtæki og iðnaður
             </p>
-            <h2 className="mt-4 text-balance text-white" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
+            <h2 className="relative z-10 mt-4 text-balance text-white" style={BAND_TITLE}>
               {COLD.title}
             </h2>
             <p className="mt-6 text-[17px] leading-relaxed text-white" style={{ fontFamily: BODY }}>
@@ -633,17 +929,20 @@ function About() {
           </figcaption>
         </figure>
         <div className="flex flex-col justify-center">
-          <Rise>
-            <h2 className="text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
-              {ABOUT.title}
-            </h2>
-            <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-              {ABOUT.lead}
-            </p>
-            <p className="mt-4 max-w-[58ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-              {ABOUT.body}
-            </p>
-          </Rise>
+          <div className="relative">
+            <GhostNum n="04" color="rgba(27,26,24,0.07)" />
+            <Rise>
+              <h2 className="relative z-10 text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
+                {ABOUT.title}
+              </h2>
+              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+                {ABOUT.lead}
+              </p>
+              <p className="mt-4 max-w-[58ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+                {ABOUT.body}
+              </p>
+            </Rise>
+          </div>
           <Rise delay={0.12}>
             <div className="mt-9 flex flex-wrap gap-x-10 gap-y-5 border-t pt-7" style={{ borderColor: HAIR }}>
               <div>
@@ -689,14 +988,17 @@ function Reviews() {
   return (
     <section id="umsagnir" className="ps-dark scroll-mt-20" style={{ background: DARK }}>
       <div className="mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
-        <Rise>
-          <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: MUTD }}>
-            Sýnishorn af umsögnum
-          </p>
-          <h2 className="mt-4 max-w-2xl text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)', color: BONE }}>
-            Orð frá viðskiptavinum
-          </h2>
-        </Rise>
+        <div className="relative">
+          <GhostNum n="05" color="rgba(244,242,238,0.10)" />
+          <Rise>
+            <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: MUTD }}>
+              Sýnishorn af umsögnum
+            </p>
+            <h2 className="relative z-10 mt-4 max-w-2xl text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)', color: BONE }}>
+              Orð frá viðskiptavinum
+            </h2>
+          </Rise>
+        </div>
         <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-3 md:gap-8">
           {REVIEWS.map((r, i) => (
             <Rise key={r.name} delay={i * 0.1}>
@@ -738,14 +1040,17 @@ function Contact() {
     <section id="hafa-samband" className="scroll-mt-20 border-t" style={{ borderColor: HAIR }}>
       <div className="mx-auto grid max-w-[1280px] gap-14 px-5 py-24 md:grid-cols-[1.1fr_1fr] md:gap-20 md:px-8 md:py-32">
         <div>
-          <Rise>
-            <h2 className="text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
-              {CONTACT.title}
-            </h2>
-            <p className="mt-5 max-w-[54ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-              {CONTACT.body}
-            </p>
-          </Rise>
+          <div className="relative">
+            <GhostNum n="06" color="rgba(27,26,24,0.07)" />
+            <Rise>
+              <h2 className="relative z-10 text-balance" style={{ ...H_DISPLAY, fontSize: 'clamp(1.9rem, 4.2vw, 3.1rem)' }}>
+                {CONTACT.title}
+              </h2>
+              <p className="mt-5 max-w-[54ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+                {CONTACT.body}
+              </p>
+            </Rise>
+          </div>
           <Rise delay={0.1}>
             <a
               href={PHONE_HREF}
