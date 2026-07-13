@@ -2436,7 +2436,9 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Ég ætlaði að skoða þjónustuna ykkar á pvs.is en þar tekur núna aðeins á móti manni sjálfgefin WordPress uppsetning. Gamla síðan ykkar sýndi alvöru verk fyrir bæinn, nafnspjöld, jólakort og blöð fyrir félögin á svæðinu, en allt það er horfið af netinu.
+Ég kynnti mér verkin ykkar í gegnum árin og hreifst af þeim. Félagsblöð eins og Litli Bergþór, flugeldablaðið fyrir björgunarsveitina, nafnspjöld og jólakort fyrir fyrirtæki og félög um allt Suðurland. Svona samstarf við heimabyggðina í yfir áratug er ekki sjálfgefið.
+
+Því miður rakst ég á að núverandi vefsíða, pvs.is, sýnir þessa sögu ekki lengur. Þar tekur nú á móti manni sjálfgefin WordPress uppsetning með einni færslu frá því í janúar, og allt sem áður sýndi verkin ykkar er horfið.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
