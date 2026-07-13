@@ -432,71 +432,82 @@ export default function PrentverkPage() {
             {PORTFOLIO_INTRO}
           </p>
 
+          {/* every specimen shares one row height (aspect-ratio + h-full computes its
+              own width from that), centered in an even grid — true relative paper
+              proportions without the old bottom-aligned flex-wrap scatter */}
           <div className="relative mt-12 px-4 py-12 md:px-10 md:py-16" style={{ border: `1px solid ${HAIR}` }}>
             <Crops color={GREY} inset={-1} />
-            <div className="flex flex-wrap items-end justify-center gap-x-8 gap-y-12 md:gap-x-14">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-4 md:gap-x-8">
               {/* A4 félagsblað */}
-              <figure className="m-0 w-[13.5rem] md:w-[17rem]">
-                <div className="relative flex aspect-[210/297] flex-col p-[9%]"
-                  style={{ background: PAPER, border: `1px solid ${INK}`, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
-                  <span className="pv-display block text-[clamp(1.5rem,4.2vw,2.2rem)]" style={{ color: INK }}>Félagsblað</span>
-                  <span aria-hidden className="mt-[6%] block h-[3px] w-[38%]" style={{ background: RED }} />
-                  <span className="mt-[10%] block"><Greek lines={7} /></span>
-                  <span className="mt-auto inline-flex self-start px-[8%] py-[3%] text-[10px] tracking-[0.1em]"
-                    style={{ fontFamily: MONO_MED, background: RED, color: PAPER }}>1. TBL</span>
+              <figure className="m-0 flex flex-col items-center text-center">
+                <div className="flex h-52 w-full items-center justify-center md:h-64">
+                  <div className="relative flex max-h-full max-w-full aspect-[210/297] flex-col p-[9%]"
+                    style={{ background: PAPER, border: `1px solid ${INK}`, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
+                    <span className="pv-display block text-[clamp(1.1rem,2.4vw,1.6rem)]" style={{ color: INK }}>Félagsblað</span>
+                    <span aria-hidden className="mt-[6%] block h-[3px] w-[38%]" style={{ background: RED }} />
+                    <span className="mt-[10%] block"><Greek lines={7} /></span>
+                    <span className="mt-auto inline-flex self-start px-[8%] py-[3%] text-[9px] tracking-[0.1em]"
+                      style={{ fontFamily: MONO_MED, background: RED, color: PAPER }}>1. TBL</span>
+                  </div>
                 </div>
-                <figcaption className="mt-3 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                <figcaption className="mt-4 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
                   <span style={{ fontFamily: MONO_MED, color: INK }}>{SPECIMENS.felagsblad.caption}</span> · {SPECIMENS.felagsblad.format}
                   <span className="block">{SPECIMENS.felagsblad.desc}</span>
                 </figcaption>
               </figure>
 
               {/* A5 flugeldablað */}
-              <figure className="m-0 w-[17rem] md:w-[23rem]">
-                <div className="relative flex aspect-[210/148] flex-col justify-between p-[6%]"
-                  style={{ background: INK, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
-                  <span className="flex items-start justify-between">
-                    <Burst size={40} />
-                    <Burst size={26} color={PAPER} />
-                  </span>
-                  <span className="pv-display block text-[clamp(1.7rem,5vw,2.7rem)]" style={{ color: PAPER }}>
-                    Flugelda<span style={{ color: RED }}>blaðið</span>
-                  </span>
+              <figure className="m-0 flex flex-col items-center text-center">
+                <div className="flex h-52 w-full items-center justify-center md:h-64">
+                  <div className="relative flex max-h-full max-w-full aspect-[210/148] flex-col justify-between p-[6%]"
+                    style={{ background: INK, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
+                    <span className="flex items-start justify-between">
+                      <Burst size={34} />
+                      <Burst size={22} color={PAPER} />
+                    </span>
+                    <span className="pv-display block text-[clamp(1.2rem,3vw,1.9rem)]" style={{ color: PAPER }}>
+                      Flugelda<span style={{ color: RED }}>blaðið</span>
+                    </span>
+                  </div>
                 </div>
-                <figcaption className="mt-3 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                <figcaption className="mt-4 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
                   <span style={{ fontFamily: MONO_MED, color: INK }}>{SPECIMENS.flugeldablad.caption}</span> · {SPECIMENS.flugeldablad.format}
                   <span className="block">{SPECIMENS.flugeldablad.desc}</span>
                 </figcaption>
               </figure>
 
               {/* A6 jólakort */}
-              <figure className="m-0 w-[8.5rem] md:w-[10.5rem]">
-                <div className="relative flex aspect-[105/148] flex-col items-center justify-center gap-[8%] p-[10%] text-center"
-                  style={{ background: RED, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
-                  <Emblem size={26} ink={PAPER} red={INK} />
-                  <span className="pv-display block text-[clamp(1.15rem,3vw,1.6rem)]" style={{ color: PAPER }}>
-                    Gleðileg jól
-                  </span>
+              <figure className="m-0 flex flex-col items-center text-center">
+                <div className="flex h-52 w-full items-center justify-center md:h-64">
+                  <div className="relative flex max-h-full max-w-full aspect-[105/148] flex-col items-center justify-center gap-[8%] p-[10%] text-center"
+                    style={{ background: RED, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
+                    <Emblem size={22} ink={PAPER} red={INK} />
+                    <span className="pv-display block text-[clamp(0.95rem,2.2vw,1.3rem)]" style={{ color: PAPER }}>
+                      Gleðileg jól
+                    </span>
+                  </div>
                 </div>
-                <figcaption className="mt-3 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                <figcaption className="mt-4 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
                   <span style={{ fontFamily: MONO_MED, color: INK }}>{SPECIMENS.jolakort.caption}</span> · {SPECIMENS.jolakort.format}
                   <span className="block">{SPECIMENS.jolakort.desc}</span>
                 </figcaption>
               </figure>
 
               {/* nafnspjald */}
-              <figure className="m-0 w-[12rem] md:w-[13.5rem]">
-                <div className="relative flex aspect-[85/55] items-center gap-[6%] p-[7%]"
-                  style={{ background: PAPER, border: `1px solid ${INK}`, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
-                  <Emblem size={30} />
-                  <span className="min-w-0">
-                    <span className="pv-display block text-[15px] leading-tight" style={{ color: INK }}>Prentverk Selfoss</span>
-                    <span className="mt-[4%] block text-[9.5px] tracking-[0.04em]" style={{ fontFamily: MONO_MED, color: RED }}>
-                      898 3877 · pvs@pvs.is
+              <figure className="m-0 flex flex-col items-center text-center">
+                <div className="flex h-52 w-full items-center justify-center md:h-64">
+                  <div className="relative flex max-h-full max-w-full aspect-[85/55] items-center gap-[6%] p-[7%]"
+                    style={{ background: PAPER, border: `1px solid ${INK}`, boxShadow: `6px 6px 0 rgba(35,31,32,0.08)` }}>
+                    <Emblem size={26} />
+                    <span className="min-w-0 text-left">
+                      <span className="pv-display block text-[13px] leading-tight" style={{ color: INK }}>Prentverk Selfoss</span>
+                      <span className="mt-[4%] block text-[8.5px] tracking-[0.04em]" style={{ fontFamily: MONO_MED, color: RED }}>
+                        898 3877 · pvs@pvs.is
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </div>
-                <figcaption className="mt-3 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                <figcaption className="mt-4 text-[12px] leading-relaxed" style={{ fontFamily: MONO, color: GREY_TEXT }}>
                   <span style={{ fontFamily: MONO_MED, color: INK }}>{SPECIMENS.nafnspjald.caption}</span> · {SPECIMENS.nafnspjald.format}
                   <span className="block">{SPECIMENS.nafnspjald.desc}</span>
                 </figcaption>
