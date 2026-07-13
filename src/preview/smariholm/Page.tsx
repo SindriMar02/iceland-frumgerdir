@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import Lenis from 'lenis'
-import { useReducedMotion } from 'framer-motion'
-import { Mail, MapPin, Phone, ShieldCheck } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -144,6 +144,11 @@ const CSS = `
 .sh-coverage{list-style:none;margin-top:1.6rem;display:grid;gap:.65rem}
 .sh-coverage li{display:flex;align-items:center;gap:.7rem;font-family:${SANS};font-weight:500;font-size:.94rem}
 .sh-coverage svg{flex:none;color:${RUST}}
+.sh-how-photo{position:relative;margin-top:3rem;border-radius:4px;overflow:hidden;aspect-ratio:21/9;
+  box-shadow:0 24px 48px -24px rgba(24,20,15,.35)}
+.sh-how-photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(.25) contrast(1.05)}
+.sh-how-photo-cap{position:absolute;left:0;right:0;bottom:0;padding:.9rem 1.1rem;font-family:${SANS};font-size:.78rem;
+  color:${PAPER};background:linear-gradient(0deg,rgba(15,12,8,.72),transparent)}
 
 .sh-services-grid{display:grid;gap:1.5px;background:${HAIR};margin-top:3rem;border:1px solid ${HAIR};border-radius:4px;overflow:hidden}
 @media (min-width:700px){.sh-services-grid{grid-template-columns:1fr 1fr}}
@@ -160,11 +165,20 @@ const CSS = `
 .sh-craft-body p{font-family:${SANS};color:rgba(241,236,224,.8);font-size:1rem;line-height:1.6;margin-top:1.1rem}
 
 .sh-reviews{background:${PAPER}}
-.sh-review-grid{display:grid;gap:1.5rem;margin-top:3rem}
-@media (min-width:800px){.sh-review-grid{grid-template-columns:1fr 1fr}}
-.sh-review{background:${STEEL};border-radius:4px;padding:2rem;border-left:3px solid ${RUST}}
+.sh-carousel{margin-top:3rem;max-width:40rem}
+.sh-carousel-track{position:relative;min-height:12rem}
+@media (min-width:640px){.sh-carousel-track{min-height:9rem}}
+.sh-review{position:absolute;inset:0;background:${STEEL};border-radius:4px;padding:2rem;border-left:3px solid ${RUST}}
 .sh-review-quote{font-family:${SANS};font-size:1.02rem;line-height:1.55;color:${INK}}
 .sh-review-meta{font-family:${SANS};font-weight:700;font-size:.82rem;color:${MUTE};margin-top:1rem}
+.sh-carousel-controls{display:flex;align-items:center;gap:1.1rem;margin-top:1.5rem}
+.sh-carousel-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:1.5px solid ${HAIR};
+  color:${INK};flex:none;transition:border-color .15s ease,transform .15s ease}
+.sh-carousel-btn:hover{border-color:${RUST}}
+.sh-carousel-btn:active{transform:scale(.92)}
+.sh-carousel-dots{display:flex;gap:.5rem}
+.sh-carousel-dot{width:8px;height:8px;border-radius:50%;background:${HAIR};border:none;padding:0;transition:background .2s ease,transform .2s ease}
+.sh-carousel-dot.is-active{background:${RUST};transform:scale(1.3)}
 
 .sh-location{position:relative;background:${INK};color:${PAPER}}
 .sh-location-media{position:absolute;inset:0;opacity:.28}
@@ -300,6 +314,72 @@ function YearScrubber() {
       <div className="sh-scrub-labels">
         <span>0 ÁR</span>
         <span>{WARRANTY_YEARS} ÁR</span>
+      </div>
+    </div>
+  )
+}
+
+/* ── Reviews carousel: auto-rotates through the real Google reviews, pauses on
+      hover/focus and while a reduced-motion preference is set, always reachable
+      via dots + prev/next (never only auto-advancing). ────────────────────── */
+function ReviewCarousel() {
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const reduce = useReducedMotion()
+
+  useEffect(() => {
+    if (reduce || paused) return
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % REVIEWS.length), 5500)
+    return () => window.clearInterval(id)
+  }, [reduce, paused])
+
+  const go = (i: number) => setIndex(((i % REVIEWS.length) + REVIEWS.length) % REVIEWS.length)
+  const r = REVIEWS[index]
+
+  return (
+    <div
+      className="sh-carousel"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      <div className="sh-carousel-track" aria-live="polite">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={index}
+            className="sh-review"
+            initial={{ opacity: 0, x: reduce ? 0 : 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: reduce ? 0 : -18 }}
+            transition={{ duration: 0.4, ease: [0.21, 0.65, 0.36, 1] }}
+          >
+            <p className="sh-review-quote">“{r.quote}”</p>
+            <div className="sh-review-meta">
+              {r.name} · {r.date}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div className="sh-carousel-controls">
+        <button type="button" aria-label="Fyrri umsögn" className="sh-carousel-btn" onClick={() => go(index - 1)}>
+          <ChevronLeft size={18} />
+        </button>
+        <div className="sh-carousel-dots">
+          {REVIEWS.map((rv, i) => (
+            <button
+              key={rv.name}
+              type="button"
+              aria-label={`Umsögn ${i + 1} af ${REVIEWS.length}`}
+              aria-current={i === index}
+              className={`sh-carousel-dot${i === index ? ' is-active' : ''}`}
+              onClick={() => go(i)}
+            />
+          ))}
+        </div>
+        <button type="button" aria-label="Næsta umsögn" className="sh-carousel-btn" onClick={() => go(index + 1)}>
+          <ChevronRight size={18} />
+        </button>
       </div>
     </div>
   )
@@ -457,6 +537,12 @@ export default function SmariholmPage() {
               </ul>
             </Reveal>
           </div>
+          <Reveal delay={0.12}>
+            <div className="sh-how-photo">
+              <Img src={IMG.tools()} alt="Verkfæri á verkstæðisbekk" />
+              <div className="sh-how-photo-cap">Handverkið á bak við hverja meðferð — sama natni, sama yfirferð, í hvert sinn.</div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -507,18 +593,9 @@ export default function SmariholmPage() {
             </div>
             <h2 className="sh-h2">{REVIEW_COUNT} umsagnir á Google</h2>
           </Reveal>
-          <div className="sh-review-grid">
-            {REVIEWS.map((r, i) => (
-              <Reveal key={r.name} delay={0.05 * i}>
-                <div className="sh-review">
-                  <p className="sh-review-quote">“{r.quote}”</p>
-                  <div className="sh-review-meta">
-                    {r.name} · {r.date}
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          <Reveal delay={0.05}>
+            <ReviewCarousel />
+          </Reveal>
         </div>
       </section>
 

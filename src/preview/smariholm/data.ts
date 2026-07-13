@@ -17,16 +17,20 @@ export const ADDRESS = { street: 'Suðurhella 10', town: '221 Hafnarfjörður' }
 const U = (id: string, w: number) => `https://images.unsplash.com/photo-${id}?q=80&w=${w}&auto=format&fit=crop`
 
 /**
- * All four verified free-to-use (Unsplash License, non-premium) — vetted on a contact
+ * All five verified free-to-use (Unsplash License, non-premium) — vetted on a contact
  * sheet before use. hero/craft/climate are real workshop + Iceland-winter-road photography;
  * rust is a real weathered-metal detail used purely as illustrative texture, not a claim
- * about any specific vehicle.
+ * about any specific vehicle. tools is a real workbench detail shot for the "how it works"
+ * section (neither smariholm.com nor prolan.is has a single real product/application photo —
+ * every image on both is an AI-generated graphic — so this stays generic craft imagery
+ * rather than implying it depicts a specific PROLAN can or process).
  */
 export const IMG = {
   hero: (w = 2000) => U('1723099971299-3789db53604c', w),
   craft: (w = 1600) => U('1643700973089-baa86a1ab9ee', w),
   rust: (w = 1200) => U('1688701108480-0db760644684', w),
   climate: (w = 2000) => U('1751177204412-3e277708d81a', w),
+  tools: (w = 1400) => U('1745449064670-94bd0fc13df8', w),
 }
 
 export const HOURS = [
@@ -88,6 +92,21 @@ export const REVIEWS = [
     date: '11. mars 2026',
     quote:
       'Virkilega vönduð og góð þjónusta. Allar tímasetningar stóðust og augljóst að starfsfólk hafði metnað fyrir því að veita úrvals þjónustu. Við þurftum að færa til bókaðan tíma og var það lítið vandamál þrátt fyrir annríki.',
+  },
+  {
+    name: 'Haftor Hallsson',
+    date: '25. júlí 2022',
+    quote: 'Frábært efni.',
+  },
+  {
+    name: 'Jörgen Pétur Lange Gudjonsson',
+    date: '23. júlí 2024',
+    quote: 'Frábær.',
+  },
+  {
+    name: 'Kristinn Johann Olafsson',
+    date: '2. mars 2024',
+    quote: 'Góð þjónusta.',
   },
 ]
 export const REVIEW_COUNT = 14
