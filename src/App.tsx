@@ -9,6 +9,7 @@ import NotFound from './pages/NotFound'
 // available synchronously - a lazy-loaded fallback can't render before its own chunk has loaded.
 import FlatbakanLoading from './preview/flatbakan/Loading'
 import EldofninnLoading from './preview/eldofninn/Loading'
+import PizzasmidjanLoading from './preview/pizzasmidjan/Loading'
 
 const Home = lazy(() => import('./pages/Home'))
 const IceTourism = lazy(() => import('./pages/IceTourism'))
@@ -77,6 +78,8 @@ const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 // Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
 const EldofninnPage = lazy(() => import('./preview/eldofninn/Page'))
+// Pizzasmiðjan (Akureyri) — clones the same template, re-skinned to this brand
+const PizzasmidjanPage = lazy(() => import('./preview/pizzasmidjan/Page'))
 // Bílageirinn — Reykjanesbær auto body shop, "True Line" aviation-precision concept
 const BilageirinnPage = lazy(() => import('./preview/bilageirinn/Page'))
 // Prentverk Selfoss — print shop, "Yfirprent" two-colour overprint concept
@@ -183,6 +186,7 @@ export default function App() {
                 branded loading screen instead of a blank flash - see Loading.tsx */}
             <Route path="/preview/flatbakan" element={<Suspense fallback={<FlatbakanLoading />}><FlatbakanPage /></Suspense>} />
             <Route path="/preview/eldofninn" element={<Suspense fallback={<EldofninnLoading />}><EldofninnPage /></Suspense>} />
+            <Route path="/preview/pizzasmidjan" element={<Suspense fallback={<PizzasmidjanLoading />}><PizzasmidjanPage /></Suspense>} />
             <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
             <Route path="/preview/prentverk" element={<PrentverkPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />

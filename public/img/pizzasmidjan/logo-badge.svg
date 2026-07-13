@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Pizza-slice silhouette (echoes the slice icon on Pizzasmiðjan's own real dining-room wall art)
+       - rendered through .ps-badge's filter:brightness(0) invert(1), so only the SHAPE matters. -->
+  <!-- evenodd: the 3 pepperoni circles are true transparent holes punched out of the wedge (not
+       drawn on top in a second colour), so brightness(0)/invert(1) can't turn them white too. -->
+  <path fill-rule="evenodd" fill="#1C1712" d="M50 8 L92 88 Q50 104 8 88 Z
+    M50 40a6 6 0 100 12 6 6 0 000-12z
+    M34 61a5 5 0 100 10 5 5 0 000-10z
+    M64 64.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11z"/>
+</svg>
