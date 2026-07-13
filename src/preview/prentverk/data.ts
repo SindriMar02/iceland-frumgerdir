@@ -31,8 +31,11 @@ export const META = {
  * their building). Their old site only carries 261×93 thumbnails, so the
  * press/paper photos are vetted Unsplash: hero QRykXu51r_0 (offset press,
  * ink rollers) · inkhand Y47w3a8uR94 (hand inking a plate) · newspapers
- * H6eaxcGNQbU · paperstack tp0BLGIv4dU. None depict their actual shop floor,
- * so no caption claims they do — captions describe the craft generically.
+ * H6eaxcGNQbU · paperstack tp0BLGIv4dU · guillotine ASAni-6OvNM (paper
+ * cutter) · interior y5ikqY1_gLo (print shop floor) · redglove
+ * Di1e1Hnr1Us (hand at the rollers) · colorproof X16N5J0uRD4 (proof
+ * sheets). None depict their actual shop floor, so no caption claims
+ * they do — captions describe the craft generically.
  */
 export const IMG = {
   logo: 'preview/prentverk/logo.webp',
@@ -41,6 +44,10 @@ export const IMG = {
   inkhand: 'preview/prentverk/inkhand.webp',
   newspapers: 'preview/prentverk/newspapers.webp',
   paperstack: 'preview/prentverk/paperstack.webp',
+  guillotine: 'preview/prentverk/guillotine.webp',
+  interior: 'preview/prentverk/interior.webp',
+  redglove: 'preview/prentverk/redglove.webp',
+  colorproof: 'preview/prentverk/colorproof.webp',
 }
 
 export const NAV = [
@@ -48,6 +55,14 @@ export const NAV = [
   { label: 'Verkefni', href: '#verkefni' },
   { label: 'Ferlið', href: '#ferlid' },
   { label: 'Um okkur', href: '#um-okkur' },
+]
+
+/** Symmetric facts strip under the hero — every value verified. */
+export const FACTS = [
+  { value: '2009', label: 'Stofnár' },
+  { value: '2', label: 'Litir í vörumerkinu' },
+  { value: 'Alltaf', label: 'Próförk fyrir prentun' },
+  { value: 'Suðurland', label: 'Þjónustusvæði' },
 ]
 
 export const HERO = {

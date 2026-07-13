@@ -1,15 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Lenis from 'lenis'
-import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from 'framer-motion'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  ABOUT_BODY, ABOUT_FACTS, ABOUT_HEADING, ADDRESS, AREA_BODY, AREA_LINE_A, AREA_LINE_B,
+  ABOUT_BODY, ABOUT_HEADING, ADDRESS, AREA_BODY, AREA_LINE_A, AREA_LINE_B,
   CLOSING_LINE, CLOSING_SUB, CONTACT_HEADING_A, CONTACT_HEADING_B, CONTACT_PHOTO_CAPTION,
-  CONTACT_SUB, EMAIL, FAQ, FAQ_HEADING, FOOTER_CREDIT, HERO, HOURS_SHORT, IMG, JSON_LD,
+  CONTACT_SUB, EMAIL, FACTS, FAQ, FAQ_HEADING, FOOTER_CREDIT, HERO, HOURS_SHORT, IMG, JSON_LD,
   META, NAV, PHONE_DISPLAY, PHONE_HREF, PORTFOLIO_HEADING, PORTFOLIO_INTRO, PROCESS,
   PROCESS_HEADING, PROCESS_INTRO, SERVICES, SERVICES_HEADING, SERVICES_INTRO, SPECIMENS,
   WHY_HEADING_A, WHY_HEADING_B, WHY_INTRO, WHY_POINTS,
@@ -17,17 +17,18 @@ import {
 
 const company = getPreviewCompany('prentverk')
 
-/* ── YFIRPRENT — a two-colour print house, set like a piece of two-colour
-      print. Paper ground, spot red + ink black doing all the work. Display
-      type arrives as two misregistered colour separations that slide into
-      perfect register, like a press being dialed in. ── */
+/* ── YFIRPRENT v3 — same two-colour print house, restructured on the
+      Bílageirinn pattern: full-bleed photo moments carry the page (hero,
+      craft, contact), one functional split (the service index, which has
+      to be a split because it's interactive), everything else stacks in
+      clean single- or balanced-column rhythm. Eight real photographs. ── */
 
-const PAPER = '#FAFAF7' // true off-white paper, chroma near zero
-const RED = '#D1232A' // their sampled print red
-const INK = '#231F20' // their sampled ink black
-const GREY = '#8E8B88' // halftone grey — hairlines, marks, large mono labels only
-const GREY_TEXT = 'rgba(35,31,32,0.74)' // AA-safe secondary body on paper
-const PAPER_SOFT = 'rgba(250,250,247,0.78)' // AA-safe secondary body on ink/red
+const PAPER = '#FAFAF7'
+const RED = '#D1232A'
+const INK = '#231F20'
+const GREY = '#8E8B88'
+const GREY_TEXT = 'rgba(35,31,32,0.74)'
+const PAPER_SOFT = 'rgba(250,250,247,0.78)'
 
 const BASE = import.meta.env.BASE_URL
 const DISPLAY = "'Tanker-Regular', 'Arial Narrow', sans-serif"
@@ -37,19 +38,16 @@ const SANS_BOLD = "'CabinetGrotesk-Bold', system-ui, sans-serif"
 const MONO = "'GeistMono-Regular', ui-monospace, monospace"
 const MONO_MED = "'GeistMono-Medium', ui-monospace, monospace"
 
-const HAIR = 'rgba(35,31,32,0.16)' // ink hairline on paper
-const HAIR_LT = 'rgba(250,250,247,0.28)' // paper hairline on ink/red
+const HAIR = 'rgba(35,31,32,0.16)'
+const HAIR_LT = 'rgba(250,250,247,0.28)'
+const EASE = [0.16, 1, 0.3, 1] as const
 
 /* ─────────────────────────────────── the signature: coming into register ── */
-/** Two colour separations, misregistered by a few px, sliding into perfect
- *  register as they enter the viewport. Solid layers only — no blend modes
- *  (animated ancestors silently isolate them). Reduced motion = instant. */
 function Register({ children, main, ghost, dx = 9, dy = 7, delay = 0, block = false, style }: {
   children: ReactNode; main: string; ghost: string; dx?: number; dy?: number
   delay?: number; block?: boolean; style?: CSSProperties
 }) {
   const reduced = useReducedMotion()
-  const ease = [0.16, 1, 0.3, 1] as const
   const disp = block ? 'block' : 'inline-block'
   if (reduced) {
     return <span className={`relative ${disp}`} style={{ color: main, ...style }}>{children}</span>
@@ -63,7 +61,7 @@ function Register({ children, main, ghost, dx = 9, dy = 7, delay = 0, block = fa
         initial={{ x: -dx, y: dy }}
         whileInView={{ x: 0, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1.05, delay, ease }}
+        transition={{ duration: 1.05, delay, ease: EASE }}
       >
         {children}
       </motion.span>
@@ -73,7 +71,7 @@ function Register({ children, main, ghost, dx = 9, dy = 7, delay = 0, block = fa
         initial={{ x: dx * 0.55, y: -dy * 0.55 }}
         whileInView={{ x: 0, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1.05, delay, ease }}
+        transition={{ duration: 1.05, delay, ease: EASE }}
       >
         {children}
       </motion.span>
@@ -82,7 +80,6 @@ function Register({ children, main, ghost, dx = 9, dy = 7, delay = 0, block = fa
 }
 
 /* ─────────────────────────────────────────────── small print-trade pieces ── */
-/** Crop marks — four corner ticks, used sparingly (hero sheet, specimens, photo). */
 function Crops({ color = GREY, inset = 0 }: { color?: string; inset?: number }) {
   const s: CSSProperties = { position: 'absolute', width: 14, height: 14, pointerEvents: 'none' }
   const b = `1px solid ${color}`
@@ -109,7 +106,6 @@ function Emblem({ size = 36, ink = INK, red = RED }: { size?: number; ink?: stri
   )
 }
 
-/** Eight-spoke firework burst for the flugeldablað specimen. */
 function Burst({ size = 44, color = RED, className = '' }: { size?: number; color?: string; className?: string }) {
   const spokes = Array.from({ length: 8 }, (_, i) => {
     const a = (i * Math.PI) / 4
@@ -124,7 +120,6 @@ function Burst({ size = 44, color = RED, className = '' }: { size?: number; colo
   )
 }
 
-/** Greeked body text on the specimen sheets — grey halftone bars. */
 function Greek({ lines = 5, color = 'rgba(35,31,32,0.24)' }: { lines?: number; color?: string }) {
   return (
     <span aria-hidden className="block">
@@ -133,42 +128,6 @@ function Greek({ lines = 5, color = 'rgba(35,31,32,0.24)' }: { lines?: number; c
           style={{ background: color, width: i === lines - 1 ? '62%' : '100%' }} />
       ))}
     </span>
-  )
-}
-
-/** Photo reveal: clip wipes up while the image settles from a slight zoom.
- *  `eager` plays on mount (for above-the-fold photos, which are already in
- *  view at load so whileInView's IntersectionObserver never gets an "enter"
- *  crossing to fire on — see the whileInView self-clip gotcha). Below-the-
- *  fold photos use the default whileInView, scrolled into view normally. */
-function ClipPhoto({ src, alt, className, imgClassName, eager = false }: {
-  src: string; alt: string; className?: string; imgClassName?: string; eager?: boolean
-}) {
-  const ease = [0.16, 1, 0.3, 1] as const
-  const reveal = eager
-    ? { animate: { clipPath: 'inset(0 0 0% 0)' } }
-    : { whileInView: { clipPath: 'inset(0 0 0% 0)' }, viewport: { once: true, margin: '-80px' } }
-  const scaleReveal = eager
-    ? { animate: { scale: 1 } }
-    : { whileInView: { scale: 1 }, viewport: { once: true, margin: '-80px' } }
-  return (
-    <motion.div
-      className={`overflow-hidden ${className ?? ''}`}
-      initial={{ clipPath: 'inset(0 0 100% 0)' }}
-      {...reveal}
-      transition={{ duration: 1.05, ease }}
-    >
-      <motion.img
-        src={src}
-        alt={alt}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        className={`h-full w-full object-cover ${imgClassName ?? ''}`}
-        initial={{ scale: 1.12 }}
-        {...scaleReveal}
-        transition={{ duration: 1.3, ease }}
-      />
-    </motion.div>
   )
 }
 
@@ -186,6 +145,128 @@ function CtaLink({ href, children, variant, className = '' }: {
       style={{ fontFamily: SANS_BOLD, letterSpacing: '0.01em', ...styles[variant] }}>
       {children}
     </a>
+  )
+}
+
+/** Photo reveal: clip wipes up while the image settles from a slight zoom.
+ *  `eager` plays on mount (for above-the-fold photos, which are already in
+ *  view at load so whileInView's IntersectionObserver never gets an "enter"
+ *  crossing to fire on). Below-the-fold photos use whileInView as normal. */
+function ClipPhoto({ src, alt, className, imgClassName, eager = false }: {
+  src: string; alt: string; className?: string; imgClassName?: string; eager?: boolean
+}) {
+  const reveal = eager
+    ? { animate: { clipPath: 'inset(0 0 0% 0)' } }
+    : { whileInView: { clipPath: 'inset(0 0 0% 0)' }, viewport: { once: true, margin: '-80px' } }
+  const scaleReveal = eager
+    ? { animate: { scale: 1 } }
+    : { whileInView: { scale: 1 }, viewport: { once: true, margin: '-80px' } }
+  return (
+    <motion.div
+      className={`overflow-hidden ${className ?? ''}`}
+      initial={{ clipPath: 'inset(0 0 100% 0)' }}
+      {...reveal}
+      transition={{ duration: 1.05, ease: EASE }}
+    >
+      <motion.img
+        src={src}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        className={`h-full w-full object-cover ${imgClassName ?? ''}`}
+        initial={{ scale: 1.12 }}
+        {...scaleReveal}
+        transition={{ duration: 1.3, ease: EASE }}
+      />
+    </motion.div>
+  )
+}
+
+/* ─────────────────────────────────────────── the interactive service index ── */
+const SERVICE_IMGS = [IMG.paperstack, IMG.colorproof, IMG.guillotine, IMG.newspapers, IMG.redglove]
+const SERVICE_ALTS = [
+  'Vifta af hvítum pappírsörkum, tilbúnar í prentun',
+  'Litrófssönnunarörk með mörgum litum hlið við hlið',
+  'Pappír skorinn í rétta stærð í skurðarvél',
+  'Stakkur af prentuðum blöðum og bæklingum',
+  'Hönd í rauðum hanska við blekvalta prentvélar',
+]
+
+function ServiceIndex() {
+  const [active, setActive] = useState(0)
+  return (
+    <section id="thjonusta" aria-labelledby="thjonusta-h" className="mx-auto w-full max-w-[1200px] scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
+      <div className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between">
+        <h2 id="thjonusta-h" className="pv-display pv-balance m-0 max-w-[16ch] text-[clamp(2.6rem,7vw,5.5rem)]">
+          <Register main={INK} ghost={RED} dx={6} dy={5}>{SERVICES_HEADING}</Register>
+        </h2>
+        <p className="max-w-[38ch] text-[16px] leading-relaxed md:text-right" style={{ color: GREY_TEXT }}>
+          {SERVICES_INTRO}
+        </p>
+      </div>
+
+      <div className="grid gap-10 md:grid-cols-[1fr_1fr] md:gap-14">
+        <ul className="m-0 list-none p-0" style={{ borderTop: `1px solid ${HAIR}` }}>
+          {SERVICES.map((s, i) => {
+            const on = i === active
+            return (
+              <li key={s.name} style={{ borderBottom: `1px solid ${HAIR}` }}>
+                <button
+                  type="button"
+                  onClick={() => setActive(i)}
+                  onMouseEnter={() => setActive(i)}
+                  onFocus={() => setActive(i)}
+                  aria-expanded={on}
+                  className="group flex w-full items-baseline gap-4 py-6 text-left"
+                >
+                  <span aria-hidden className="pv-row-mark mt-1.5 inline-block h-[11px] w-[11px] shrink-0 self-start transition-colors duration-300"
+                    style={{ background: on ? RED : GREY }} />
+                  <span className="min-w-0 flex-1">
+                    <span className="pv-display block text-[clamp(1.5rem,3.6vw,2.3rem)] transition-transform duration-500 group-hover:translate-x-1.5"
+                      style={{ color: on ? INK : GREY_TEXT }}>
+                      {s.name}
+                    </span>
+                    <AnimatePresence initial={false}>
+                      {on && (
+                        <motion.span
+                          className="block overflow-hidden"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.4, ease: EASE }}
+                        >
+                          <span className="block max-w-[48ch] pt-2 text-[15px] leading-relaxed" style={{ color: GREY_TEXT }}>
+                            {s.desc}
+                          </span>
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+
+        <div className="relative aspect-[4/3] overflow-hidden md:aspect-auto md:min-h-[420px]">
+          <Crops color={PAPER_SOFT} inset={10} />
+          <AnimatePresence initial={false}>
+            <motion.img
+              key={active}
+              src={`${BASE}${SERVICE_IMGS[active]}`}
+              alt={SERVICE_ALTS[active]}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover"
+              initial={{ opacity: 0, scale: 1.06 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: EASE }}
+            />
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -236,11 +317,6 @@ export default function PrentverkPage() {
         .pv-navlink{position:relative;padding:6px 2px;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
         .pv-navlink::after{content:"";position:absolute;left:0;right:100%;bottom:8px;height:2px;background:${RED};transition:right .22s ease}
         .pv-navlink:hover::after{right:0}
-        .pv-row{transition:background .22s ease,color .22s ease}
-        .pv-row:hover{background:${INK}}
-        .pv-row:hover .pv-row-name{color:${PAPER}}
-        .pv-row:hover .pv-row-desc{color:${PAPER_SOFT}}
-        .pv-row:hover .pv-row-mark{background:${RED}}
         .pv-faq summary{cursor:pointer;list-style:none;min-height:44px}
         .pv-faq summary::-webkit-details-marker{display:none}
         .pv-faq summary .pv-faq-x{transition:transform .22s ease}
@@ -248,13 +324,15 @@ export default function PrentverkPage() {
         .pv-root :focus-visible{outline:3px solid ${RED};outline-offset:3px}
         .pv-on-red :focus-visible{outline-color:${INK}}
         .pv-on-ink :focus-visible{outline-color:${PAPER}}
+        @keyframes pv-heroZoom{from{transform:scale(1.1)}to{transform:scale(1)}}
+        .pv-heroimg{animation:pv-heroZoom 2.4s cubic-bezier(0.16,1,0.3,1) both}
         @media (prefers-reduced-motion: reduce){
           .pv-root *, .pv-root *::before, .pv-root *::after{
             transition-duration:.01ms!important;animation-duration:.01ms!important}
+          .pv-heroimg{animation:none}
         }
       `}</style>
 
-      {/* the press bar — a thin red line filling as the sheet runs through */}
       {!reduced && (
         <motion.div aria-hidden className="fixed inset-x-0 top-0 z-[60] h-[3px] origin-left"
           style={{ background: RED, scaleX: pressBar }} />
@@ -284,98 +362,75 @@ export default function PrentverkPage() {
       </header>
 
       <main id="efst">
-        {/* ── 1 · hero — the wordmark coming into register, beside the press ── */}
-        <section aria-label="Prentverk Selfoss" className="relative flex min-h-[calc(100svh-72px)] flex-col">
-          <div className="relative mx-auto grid w-full max-w-[1200px] flex-1 gap-10 px-5 py-14 md:grid-cols-[1.15fr_0.85fr] md:items-center md:gap-12 md:px-8 md:py-20">
-            <Crops color={GREY} inset={10} />
-            <div>
-              <p className="mb-6 text-[13px]" style={{ fontFamily: MONO, color: GREY_TEXT }}>
-                Prentsmiðja á Selfossi · síðan 2009
-              </p>
-              <h1 className="pv-display pv-balance m-0 text-[clamp(3.4rem,12.5vw,8.5rem)]">
-                <Register main={INK} ghost={RED} block>{HERO.linja1}</Register>
-                <Register main={RED} ghost={INK} delay={0.12} block>{HERO.linja2}</Register>
-              </h1>
-              <div className="mt-10 flex flex-col gap-8">
-                <div className="max-w-[34rem]">
-                  <p className="text-[clamp(1.25rem,2.4vw,1.6rem)] leading-snug" style={{ fontFamily: SANS_MED }}>
-                    {HERO.promise}
-                  </p>
-                  <p className="mt-3 text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>{HERO.sub}</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <CtaLink href={PHONE_HREF} variant="red">Hringja í {PHONE_DISPLAY}</CtaLink>
-                  <CtaLink href={`mailto:${EMAIL}`} variant="ink">{EMAIL}</CtaLink>
-                </div>
+        {/* ── 1 · hero — full-bleed press photo, wordmark coming into register ── */}
+        <section aria-label="Prentverk Selfoss" className="relative flex min-h-[calc(100svh-72px)] flex-col justify-end overflow-hidden">
+          <div className="absolute inset-0">
+            <img
+              src={`${BASE}${IMG.hero}`}
+              alt="Prentvél með litrófi af blekvölsum í gangi"
+              className="pv-heroimg h-full w-full object-cover"
+            />
+            <div aria-hidden className="absolute inset-0"
+              style={{ background: `linear-gradient(to top, rgba(20,17,17,0.92) 0%, rgba(20,17,17,0.8) 22%, rgba(20,17,17,0.35) 55%, rgba(20,17,17,0.08) 82%, transparent 100%)` }} />
+          </div>
+          <div className="relative mx-auto w-full max-w-[1200px] px-5 pb-14 pt-36 md:px-8 md:pb-20">
+            <Crops color={PAPER_SOFT} inset={10} />
+            <p className="mb-6 text-[13px]" style={{ fontFamily: MONO, color: PAPER_SOFT, textShadow: '0 1px 10px rgba(0,0,0,0.5)' }}>
+              Prentsmiðja á Selfossi · síðan 2009
+            </p>
+            <h1 className="pv-display pv-balance m-0 text-[clamp(3.6rem,13vw,10rem)]">
+              <Register main={PAPER} ghost={RED} block>{HERO.linja1}</Register>
+              <Register main={RED} ghost={PAPER} delay={0.12} block>{HERO.linja2}</Register>
+            </h1>
+            <div className="mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+              <div className="max-w-[34rem]">
+                <p className="text-[clamp(1.2rem,2.2vw,1.5rem)] leading-snug" style={{ fontFamily: SANS_MED, color: PAPER }}>
+                  {HERO.promise}
+                </p>
+                <p className="mt-3 text-[16px] leading-relaxed" style={{ color: PAPER_SOFT }}>{HERO.sub}</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <CtaLink href={PHONE_HREF} variant="red">Hringja í {PHONE_DISPLAY}</CtaLink>
+                <CtaLink href={`mailto:${EMAIL}`} variant="paperline">{EMAIL}</CtaLink>
               </div>
             </div>
-            <figure className="m-0">
-              <ClipPhoto
-                src={`${BASE}${IMG.hero}`}
-                alt="Prentvél með litrófi af blekvölsum í gangi"
-                className="aspect-[3/4] md:aspect-[4/5]"
-                eager
-              />
-              <figcaption className="mt-3 text-[11.5px] tracking-[0.06em]" style={{ fontFamily: MONO, color: GREY_TEXT }}>
-                PRENTVERK Á FULLRI FERÐ
-              </figcaption>
-            </figure>
-          </div>
-          <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-4 px-5 pb-5 md:px-8"
-            style={{ borderTop: `1px solid ${HAIR}` }}>
-            <p className="pt-4 text-[11px] tracking-[0.08em]" style={{ fontFamily: MONO, color: GREY_TEXT }}>
-              {HERO.specLine}
-            </p>
-            <div className="hidden pt-4 md:block"><Emblem size={30} /></div>
           </div>
         </section>
 
-        {/* ── 2 · services — a price list without the prices ───────────────── */}
-        <section id="thjonusta" aria-labelledby="thjonusta-h" className="mx-auto w-full max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
-          <div className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between">
-            <h2 id="thjonusta-h" className="pv-display pv-balance m-0 max-w-[16ch] text-[clamp(2.6rem,7vw,5.5rem)]">
-              <Register main={INK} ghost={RED} dx={6} dy={5}>{SERVICES_HEADING}</Register>
-            </h2>
-            <p className="max-w-[38ch] text-[16px] leading-relaxed md:text-right" style={{ color: GREY_TEXT }}>
-              {SERVICES_INTRO}
-            </p>
-          </div>
-          <ul className="m-0 list-none p-0" style={{ borderTop: `1px solid ${HAIR}` }}>
-            {SERVICES.map((s) => (
-              <li key={s.name} className="pv-row" style={{ borderBottom: `1px solid ${HAIR}` }}>
-                <div className="grid gap-2 px-2 py-7 md:grid-cols-[1.1fr_1fr] md:items-baseline md:gap-10 md:px-4 md:py-9">
-                  <span className="flex items-baseline gap-4">
-                    <span aria-hidden className="pv-row-mark inline-block h-[11px] w-[11px] shrink-0 self-center" style={{ background: RED }} />
-                    <span className="pv-display pv-row-name text-[clamp(1.7rem,4.6vw,3rem)]" style={{ color: INK }}>
-                      {s.name}
-                    </span>
-                  </span>
-                  <span className="pv-row-desc max-w-[52ch] text-[16px] leading-relaxed" style={{ color: GREY_TEXT }}>
-                    {s.desc}
-                  </span>
-                </div>
-              </li>
+        {/* ── 2 · trust marquee ──────────────────────────────────────────────── */}
+        <div className="border-b py-4" style={{ borderColor: HAIR }}>
+          <p className="mx-auto max-w-[1200px] px-5 text-center text-[11px] tracking-[0.08em] md:px-8" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+            {HERO.specLine}
+          </p>
+        </div>
+
+        {/* ── 3 · facts strip — symmetric, mono, no arbitrary asymmetry ──────── */}
+        <section aria-label="Staðreyndir" className="border-b" style={{ borderColor: HAIR }}>
+          <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-x-6 gap-y-10 px-5 py-14 md:grid-cols-4 md:px-8 md:py-16">
+            {FACTS.map((f) => (
+              <div key={f.label}>
+                <p className="pv-display" style={{ fontSize: 'clamp(1.4rem,2.6vw,1.9rem)', color: INK }}>
+                  {f.value}
+                </p>
+                <p className="mt-1 text-[11.5px] tracking-[0.08em] uppercase" style={{ fontFamily: MONO, color: GREY_TEXT }}>
+                  {f.label}
+                </p>
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
 
-        {/* ── 3 · portfolio — real job types at true relative paper sizes ──── */}
-        <section id="verkefni" aria-labelledby="verkefni-h" className="mx-auto w-full max-w-[1200px] px-5 pb-20 md:px-8 md:pb-28">
+        {/* ── 4 · service index — the one functional split, photo swaps live ── */}
+        <ServiceIndex />
+
+        {/* ── 5 · portfolio — real job types at true relative paper sizes ────── */}
+        <section id="verkefni" aria-labelledby="verkefni-h" className="mx-auto w-full max-w-[1200px] scroll-mt-20 px-5 pb-20 md:px-8 md:pb-28">
           <h2 id="verkefni-h" className="pv-display pv-balance m-0 text-[clamp(2.6rem,7vw,5.5rem)]">
             <Register main={RED} ghost={INK} dx={6} dy={5}>{PORTFOLIO_HEADING}</Register>
           </h2>
-          <div className="mt-5 grid gap-8 md:grid-cols-[1fr_minmax(0,20rem)] md:items-start md:gap-12">
-            <p className="max-w-[62ch] text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>
-              {PORTFOLIO_INTRO}
-            </p>
-            <figure className="m-0 hidden md:block">
-              <ClipPhoto
-                src={`${BASE}${IMG.newspapers}`}
-                alt="Stakkur af prentuðum blöðum og bæklingum"
-                className="aspect-[4/3]"
-              />
-            </figure>
-          </div>
+          <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ color: GREY_TEXT }}>
+            {PORTFOLIO_INTRO}
+          </p>
 
           <div className="relative mt-12 px-4 py-12 md:px-10 md:py-16" style={{ border: `1px solid ${HAIR}` }}>
             <Crops color={GREY} inset={-1} />
@@ -450,65 +505,49 @@ export default function PrentverkPage() {
           </div>
         </section>
 
-        {/* ── 4 · why local — red plate beside a real hand inking a plate ──── */}
-        <section aria-labelledby="why-h" className="pv-on-red relative overflow-hidden" style={{ background: RED, color: PAPER }}>
-          <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-5 py-20 md:grid-cols-[1.2fr_0.8fr] md:items-start md:gap-14 md:px-8 md:py-28">
-            <div>
-              <h2 id="why-h" className="pv-display pv-balance m-0 text-[clamp(2.6rem,7.5vw,6rem)]">
-                <Register main={PAPER} ghost={INK} block>{WHY_HEADING_A}</Register>
-                <Register main={INK} ghost={PAPER} delay={0.1} block>{WHY_HEADING_B}</Register>
+        {/* ── 6 · craft — full-bleed, the hand on the rollers ────────────────── */}
+        <section aria-labelledby="why-h" className="relative overflow-hidden">
+          <ClipPhoto
+            src={`${BASE}${IMG.inkhand}`}
+            alt="Hönd leggur rautt blek á prentplötu"
+            className="absolute inset-0"
+            imgClassName=""
+            eager
+          />
+          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(35,31,32,0.88) 0%, rgba(35,31,32,0.72) 42%, rgba(209,35,42,0.55) 100%)' }} />
+          <div className="pv-on-red relative mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
+            <div className="max-w-2xl">
+              <h2 id="why-h" className="pv-display pv-balance m-0 text-[clamp(2.6rem,7.5vw,6rem)]" style={{ color: PAPER }}>
+                {WHY_HEADING_A} {WHY_HEADING_B}
               </h2>
-              <p className="mt-6 max-w-[56ch] text-[18px] leading-relaxed" style={{ fontFamily: SANS_MED }}>
+              <p className="mt-6 max-w-[56ch] text-[18px] leading-relaxed" style={{ fontFamily: SANS_MED, color: PAPER }}>
                 {WHY_INTRO}
               </p>
-              <div className="mt-14" style={{ borderTop: `1px solid ${HAIR_LT}` }}>
+              <div className="mt-12 grid gap-8 sm:grid-cols-3">
                 {WHY_POINTS.map((p) => (
-                  <div key={p.title} className="grid gap-2 py-7 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] md:gap-10 md:py-8"
-                    style={{ borderBottom: `1px solid ${HAIR_LT}` }}>
-                    <h3 className="pv-display m-0 text-[clamp(1.5rem,3.6vw,2.3rem)]" style={{ color: PAPER }}>{p.title}</h3>
-                    <p className="m-0 max-w-[58ch] text-[17px] leading-relaxed" style={{ color: PAPER }}>{p.body}</p>
+                  <div key={p.title}>
+                    <h3 className="pv-display m-0 text-[clamp(1.2rem,2.4vw,1.6rem)]" style={{ color: PAPER }}>{p.title}</h3>
+                    <p className="m-0 mt-2 text-[15px] leading-relaxed" style={{ color: PAPER_SOFT }}>{p.body}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-14 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                <p className="m-0 text-[14px]" style={{ fontFamily: MONO, color: PAPER }}>
-                  Beint samband, ekkert þjónustuver
-                </p>
-                <a href={PHONE_HREF} className="pv-display inline-flex min-h-[44px] items-center text-[clamp(2.6rem,9vw,6rem)] leading-none"
-                  style={{ color: INK, textDecorationColor: INK }}>
-                  {PHONE_DISPLAY}
-                </a>
-              </div>
+              <a href={PHONE_HREF} className="pv-display mt-12 inline-flex min-h-[44px] items-center text-[clamp(2.2rem,7vw,4.5rem)] leading-none"
+                style={{ color: PAPER, textDecorationColor: PAPER }}>
+                {PHONE_DISPLAY}
+              </a>
             </div>
-            <figure className="m-0 hidden md:block">
-              <div className="sticky top-24">
-                <ClipPhoto
-                  src={`${BASE}${IMG.inkhand}`}
-                  alt="Hönd leggur rautt blek á prentplötu"
-                  className="aspect-[3/4]"
-                />
-                <figcaption className="mt-3 text-[11.5px] tracking-[0.06em]" style={{ fontFamily: MONO, color: PAPER_SOFT }}>
-                  HANDVERKIÐ Á BAK VIÐ HVERT VERK
-                </figcaption>
-              </div>
-            </figure>
           </div>
         </section>
 
-        {/* ── 5 · the craft — from file to finished piece ──────────────────── */}
-        <section id="ferlid" aria-labelledby="ferlid-h" className="mx-auto w-full max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
-          <div className="mb-12 grid gap-8 md:mb-16 md:grid-cols-[1fr_minmax(0,15rem)] md:items-end md:gap-10">
-            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <h2 id="ferlid-h" className="pv-display pv-balance m-0 max-w-[14ch] text-[clamp(2.6rem,7vw,5.5rem)]">
-                <Register main={INK} ghost={RED} dx={6} dy={5}>{PROCESS_HEADING}</Register>
-              </h2>
-              <p className="max-w-[34ch] text-[16px] leading-relaxed md:text-right" style={{ color: GREY_TEXT }}>
-                {PROCESS_INTRO}
-              </p>
-            </div>
-            <figure className="m-0 hidden md:block">
-              <ClipPhoto src={`${BASE}${IMG.paperstack}`} alt="Vifta af hvítum pappírsörkum" className="aspect-[4/3]" />
-            </figure>
+        {/* ── 7 · process ──────────────────────────────────────────────────── */}
+        <section id="ferlid" aria-labelledby="ferlid-h" className="mx-auto w-full max-w-[1200px] scroll-mt-20 px-5 py-20 md:px-8 md:py-28">
+          <div className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between">
+            <h2 id="ferlid-h" className="pv-display pv-balance m-0 max-w-[14ch] text-[clamp(2.6rem,7vw,5.5rem)]">
+              <Register main={INK} ghost={RED} dx={6} dy={5}>{PROCESS_HEADING}</Register>
+            </h2>
+            <p className="max-w-[34ch] text-[16px] leading-relaxed md:text-right" style={{ color: GREY_TEXT }}>
+              {PROCESS_INTRO}
+            </p>
           </div>
           <ol className="relative m-0 grid list-none gap-10 p-0 md:grid-cols-4 md:gap-8">
             <span aria-hidden className="absolute left-[5px] top-2 h-[calc(100%-16px)] w-px md:left-0 md:top-[5px] md:h-px md:w-full"
@@ -527,37 +566,30 @@ export default function PrentverkPage() {
           </ol>
         </section>
 
-        {/* ── 6 · about + colophon ─────────────────────────────────────────── */}
-        <section id="um-okkur" aria-labelledby="um-h" className="mx-auto w-full max-w-[1200px] px-5 pb-20 md:px-8 md:pb-28">
-          <div className="grid gap-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:gap-16">
+        {/* ── 8 · about — balanced split, text and a real interior photo ────── */}
+        <section id="um-okkur" aria-labelledby="um-h" className="mx-auto w-full max-w-[1200px] scroll-mt-20 px-5 pb-20 md:px-8 md:pb-28">
+          <div className="grid gap-12 md:grid-cols-2 md:gap-14">
             <div>
               <h2 id="um-h" className="pv-display pv-balance m-0 text-[clamp(2.6rem,7vw,5rem)]">
                 <Register main={INK} ghost={RED} dx={6} dy={5}>{ABOUT_HEADING}</Register>
               </h2>
               {ABOUT_BODY.map((p) => (
-                <p key={p.slice(0, 18)} className="mt-6 max-w-[62ch] text-[17px] leading-relaxed">{p}</p>
+                <p key={p.slice(0, 18)} className="mt-6 max-w-[58ch] text-[17px] leading-relaxed">{p}</p>
               ))}
-            </div>
-            <div className="self-end">
-              <div className="p-6 md:p-8" style={{ border: `1px solid ${INK}` }}>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="pv-display text-[1.3rem]" style={{ color: INK }}>Prentverk Selfoss ehf</span>
-                  <Emblem size={30} />
-                </div>
-                <ul className="m-0 mt-5 list-none p-0">
-                  {ABOUT_FACTS.map((f) => (
-                    <li key={f} className="py-2.5 text-[12.5px] tracking-[0.06em]"
-                      style={{ fontFamily: MONO, color: GREY_TEXT, borderTop: `1px solid ${HAIR}` }}>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-8 flex items-center gap-3">
+                <Emblem size={30} />
+                <span className="pv-display text-[1.2rem]" style={{ color: INK }}>Prentverk Selfoss ehf</span>
               </div>
             </div>
+            <ClipPhoto
+              src={`${BASE}${IMG.interior}`}
+              alt="Nútímalegt prentverkstæði með vélum og vinnusvæði"
+              className="aspect-[4/3] md:aspect-auto md:min-h-[420px]"
+            />
           </div>
         </section>
 
-        {/* ── 7 · service area — one loud typographic band ─────────────────── */}
+        {/* ── 9 · service area — one loud typographic band ─────────────────── */}
         <section aria-labelledby="svaedi-h" className="mx-auto w-full max-w-[1200px] px-5 pb-20 md:px-8 md:pb-28">
           <div className="py-14 md:py-20" style={{ borderTop: `1px solid ${HAIR}`, borderBottom: `1px solid ${HAIR}` }}>
             <h2 id="svaedi-h" className="pv-display pv-balance m-0 text-center text-[clamp(2.8rem,9.5vw,7.5rem)]">
@@ -570,7 +602,7 @@ export default function PrentverkPage() {
           </div>
         </section>
 
-        {/* ── 8 · FAQ ──────────────────────────────────────────────────────── */}
+        {/* ── 10 · FAQ ─────────────────────────────────────────────────────── */}
         <section aria-labelledby="faq-h" className="mx-auto w-full max-w-[820px] px-5 pb-20 md:px-8 md:pb-28">
           <h2 id="faq-h" className="pv-display pv-balance m-0 text-[clamp(2.2rem,6vw,4rem)]">
             <Register main={INK} ghost={RED} dx={5} dy={4}>{FAQ_HEADING}</Register>
@@ -588,43 +620,38 @@ export default function PrentverkPage() {
           </div>
         </section>
 
-        {/* ── 9 · contact — the ink plate ──────────────────────────────────── */}
-        <section id="samband" aria-labelledby="samband-h" className="pv-on-ink" style={{ background: INK, color: PAPER }}>
-          <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-5 py-20 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-center md:gap-16 md:px-8 md:py-28">
-            <div>
-              <h2 id="samband-h" className="pv-display pv-balance m-0 text-[clamp(3rem,10vw,7rem)]">
-                <Register main={PAPER} ghost={RED} block>{CONTACT_HEADING_A}</Register>
-                <Register main={RED} ghost={PAPER} delay={0.1} block>{CONTACT_HEADING_B}</Register>
-              </h2>
-              <p className="mt-6 max-w-[44ch] text-[17px] leading-relaxed" style={{ color: PAPER_SOFT }}>{CONTACT_SUB}</p>
-              <dl className="m-0 mt-10 grid gap-y-5 text-[16px]" style={{ borderTop: `1px solid ${HAIR_LT}` }}>
-                {[
-                  { t: 'Sími', d: <a href={PHONE_HREF} style={{ fontFamily: MONO_MED, color: PAPER }} className="inline-flex min-h-[44px] items-center text-[20px]">{PHONE_DISPLAY}</a> },
-                  { t: 'Netfang', d: <a href={`mailto:${EMAIL}`} style={{ fontFamily: MONO_MED, color: PAPER }} className="inline-flex min-h-[44px] items-center text-[20px]">{EMAIL}</a> },
-                  { t: 'Heimilisfang', d: <span style={{ color: PAPER }}>{ADDRESS}</span> },
-                  { t: 'Opnunartími', d: <span style={{ color: PAPER }}>{HOURS_SHORT}</span> },
-                ].map((r) => (
-                  <div key={r.t} className="grid grid-cols-[7.5rem_1fr] items-center gap-4 pt-4" style={{ borderBottom: `1px solid ${HAIR_LT}` }}>
-                    <dt className="text-[12px] tracking-[0.1em]" style={{ fontFamily: MONO, color: 'rgba(250,250,247,0.6)' }}>{r.t.toUpperCase()}</dt>
-                    <dd className="m-0 pb-4">{r.d}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-            <figure className="m-0">
-              <div className="relative">
-                <Crops color={PAPER_SOFT} inset={-9} />
-                <img src={`${BASE}${IMG.husid}`} alt={CONTACT_PHOTO_CAPTION} loading="lazy" width={1200} height={600}
-                  className="block w-full" style={{ filter: 'grayscale(1) contrast(1.06)', border: `1px solid ${HAIR_LT}` }} />
-              </div>
-              <figcaption className="mt-4 text-[12px] tracking-[0.06em]" style={{ fontFamily: MONO, color: 'rgba(250,250,247,0.6)' }}>
-                {CONTACT_PHOTO_CAPTION.toUpperCase()}
-              </figcaption>
-            </figure>
+        {/* ── 11 · contact — full-bleed, the real building ───────────────────── */}
+        <section id="samband" aria-labelledby="samband-h" className="pv-on-ink relative scroll-mt-20 overflow-hidden">
+          <ClipPhoto
+            src={`${BASE}${IMG.husid}`}
+            alt={CONTACT_PHOTO_CAPTION}
+            className="absolute inset-0"
+            imgClassName="grayscale contrast-[1.05]"
+            eager
+          />
+          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(35,31,32,0.55) 0%, rgba(35,31,32,0.88) 65%, rgba(35,31,32,0.96) 100%)' }} />
+          <div className="relative mx-auto w-full max-w-[1200px] px-5 py-24 md:px-8 md:py-36">
+            <h2 id="samband-h" className="pv-display pv-balance m-0 text-[clamp(3rem,10vw,7rem)]" style={{ color: PAPER }}>
+              {CONTACT_HEADING_A} {CONTACT_HEADING_B}
+            </h2>
+            <p className="mt-6 max-w-[44ch] text-[17px] leading-relaxed" style={{ color: PAPER_SOFT }}>{CONTACT_SUB}</p>
+            <dl className="m-0 mt-10 grid max-w-2xl gap-y-5 text-[16px] sm:grid-cols-2" style={{ borderTop: `1px solid ${HAIR_LT}` }}>
+              {[
+                { t: 'Sími', d: <a href={PHONE_HREF} style={{ fontFamily: MONO_MED, color: PAPER }} className="inline-flex min-h-[44px] items-center text-[20px]">{PHONE_DISPLAY}</a> },
+                { t: 'Netfang', d: <a href={`mailto:${EMAIL}`} style={{ fontFamily: MONO_MED, color: PAPER }} className="inline-flex min-h-[44px] items-center text-[20px]">{EMAIL}</a> },
+                { t: 'Heimilisfang', d: <span style={{ color: PAPER }}>{ADDRESS}</span> },
+                { t: 'Opnunartími', d: <span style={{ color: PAPER }}>{HOURS_SHORT}</span> },
+              ].map((r) => (
+                <div key={r.t} className="grid grid-cols-[7.5rem_1fr] items-center gap-4 pt-4" style={{ borderBottom: `1px solid ${HAIR_LT}` }}>
+                  <dt className="text-[12px] tracking-[0.1em]" style={{ fontFamily: MONO, color: 'rgba(250,250,247,0.6)' }}>{r.t.toUpperCase()}</dt>
+                  <dd className="m-0 pb-4">{r.d}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
-        {/* ── 10 · closing plate — full red ────────────────────────────────── */}
+        {/* ── 12 · closing plate — full red ────────────────────────────────── */}
         <section aria-label="Lokakall" className="pv-on-red" style={{ background: RED, color: PAPER }}>
           <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center px-5 py-20 text-center md:px-8 md:py-28">
             <h2 className="pv-display pv-balance m-0 text-[clamp(3.4rem,13vw,10rem)]">
