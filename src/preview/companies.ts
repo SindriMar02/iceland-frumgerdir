@@ -2452,6 +2452,125 @@ Endilega heyrið í mér ef þetta kveikir í ykkur.
 ${SIGN}`,
     },
   },
+  {
+    slug: 'geisli',
+    route: '/preview/geisli',
+    name: 'Gleraugnasalan Geisli',
+    sector: 'Optician',
+    location: 'Akureyri',
+    region: 'North',
+    established: 'Est. 1967',
+    currentUrl: 'https://gleraugu.is',
+    // gleraugu@internet.is is from the 2019 archived site footer (site now dead) — may
+    // bounce; verified phones: 462 1555 (Kaupangur). A "463 1455 Glerártorg" (2019 archive)
+    // and "569 1100" (directory) exist but are unverified — not used anywhere.
+    ownerEmail: 'gleraugu@internet.is',
+    concept: 'Gleraugu eru skart',
+    conceptTagline:
+      'Their own old tagline taken seriously: frames presented like jewelry, and the page performs the moment sight snaps into focus.',
+    accent: '#1F5C4D',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1540162875225-3f6b56d69fe8?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Family-run on Akureyri since 1967 — third generation, rare local trust',
+        'Two locations (Kaupangur and Glerártorg) with a real optometry service',
+        'A charming vintage logo and their own memorable tagline: Gleraugu eru skart',
+      ],
+      weaknesses: [
+        'gleraugu.is is down entirely (HTTP 500) — customers find nothing at all',
+        'The site was last maintained around 2016; no booking, no hours, no frames online',
+        'Only findable contact is a phone number buried in directories',
+      ],
+      opportunities: [
+        'A working site with hours, locations and panta-tíma is an instant leap from zero',
+        'Frames-as-jewelry presentation nobody in the region does',
+        'The 60-year, three-generation story is unused emotional gold',
+      ],
+    },
+    positioning:
+      'A beloved 59-year-old family optician whose website literally does not load. The redesign takes their own old tagline — Gleraugu eru skart — seriously: eyewear presented like jewelry, wrapped in the story of three generations helping Akureyri see clearly.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Geisla',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Ég kynnti mér söguna ykkar og fannst hún einstök. Gleraugnasala í fjölskyldunni á Akureyri síðan 1967, komin á þriðju kynslóð, með verslanir bæði í Kaupangi og á Glerártorgi. Svona rótgróið traust í heimabyggð er sjaldgæft.
+
+Því miður rakst ég á að vefsíðan ykkar, gleraugu.is, opnast ekki lengur. Þar birtist bara villa, þannig að fólk sem leitar að ykkur á netinu finnur hvorki opnunartíma né getur pantað tíma í sjónmælingu.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk finni ykkur á netinu, sjái hvenær er opið og geti pantað tíma án fyrirhafnar, og að umgjarðirnar fái að njóta sín eins og skartið sem þær eru. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'pipulagnir',
+    route: '/preview/pipulagnir',
+    name: 'Pípulagnir Suðurlands',
+    sector: 'Plumbing',
+    location: 'Selfoss, South Iceland',
+    region: 'South',
+    established: 'Est. 2000',
+    currentUrl: 'https://psud.is',
+    ownerEmail: 'psud@psud.is',
+    concept: 'Heitt og kalt',
+    conceptTagline:
+      'The red and blue tap markers every Icelandic household knows become the design system: warm and cool alternating like hot and cold water through a house.',
+    accent: '#921B1E',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1584774354932-62ceb99e6053?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        '26 years in business (VAT-registered June 2000), owner-led since founding',
+        'Creditinfo framúrskarandi rating — provable financial soundness',
+        'Real breadth: gólfhiti, úðakerfi, matvælaiðnaður, loftræsting, viðhald',
+      ],
+      weaknesses: [
+        'No opening hours, no contact form — a service business you cannot reach online',
+        'News section frozen at a single post from February 2023',
+        'One work photo on the whole site; the 26-year track record is invisible',
+      ],
+      opportunities: [
+        'A quote-request flow for the jobs they already do daily',
+        'Show the craft: floor heating and industrial piping as a visual story',
+        'Own "pípulagnir Selfoss / Suðurland" search — the field is open',
+      ],
+    },
+    positioning:
+      'A 26-year South-Iceland plumbing firm with provable financial soundness and real industrial capability, served by a site with one photo and no way to ask for a quote. The redesign turns the hot-and-cold duality of their daily work into a design system built on their own red and green mark.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Pípulagnir Suðurlands',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Ég kynnti mér fyrirtækið ykkar og það vakti athygli mína. Pípulagnir í 26 ár á Selfossi, allt frá gólfhita og úðakerfum upp í lagnir fyrir matvælaiðnað, og framúrskarandi einkunn hjá Creditinfo. Það segir sína sögu um traust og vönduð vinnubrögð.
+
+Því miður finnst mér vefsíðan ykkar ekki endurspegla þetta. Þar er hvorki hægt að sjá opnunartíma né senda fyrirspurn, aðeins ein mynd af verki, og nýjasta fréttin er frá því snemma árs 2023.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk á Suðurlandi finni ykkur, sjái strax hvað þið gerið og geti sent fyrirspurn um verk á augabragði. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {

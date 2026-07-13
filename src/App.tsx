@@ -84,6 +84,10 @@ const PizzasmidjanPage = lazy(() => import('./preview/pizzasmidjan/Page'))
 const BilageirinnPage = lazy(() => import('./preview/bilageirinn/Page'))
 // Prentverk Selfoss — print shop, "Yfirprent" two-colour overprint concept
 const PrentverkPage = lazy(() => import('./preview/prentverk/Page'))
+// Gleraugnasalan Geisli — Akureyri optician, "Gleraugu eru skart" jewelry-focus concept
+const GeisliPage = lazy(() => import('./preview/geisli/Page'))
+// Pípulagnir Suðurlands — Selfoss plumbing, "Heitt og kalt" tap-marker duality concept
+const PipulagnirPage = lazy(() => import('./preview/pipulagnir/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -189,6 +193,8 @@ export default function App() {
             <Route path="/preview/pizzasmidjan" element={<Suspense fallback={<PizzasmidjanLoading />}><PizzasmidjanPage /></Suspense>} />
             <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
             <Route path="/preview/prentverk" element={<PrentverkPage />} />
+            <Route path="/preview/geisli" element={<GeisliPage />} />
+            <Route path="/preview/pipulagnir" element={<PipulagnirPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
