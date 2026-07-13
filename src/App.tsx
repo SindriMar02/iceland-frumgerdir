@@ -8,6 +8,7 @@ import NotFound from './pages/NotFound'
 // Eager: shown as this route's OWN Suspense fallback while its chunk downloads, so it must be
 // available synchronously - a lazy-loaded fallback can't render before its own chunk has loaded.
 import FlatbakanLoading from './preview/flatbakan/Loading'
+import EldofninnLoading from './preview/eldofninn/Loading'
 
 const Home = lazy(() => import('./pages/Home'))
 const IceTourism = lazy(() => import('./pages/IceTourism'))
@@ -74,6 +75,8 @@ const SeidkarlinnPage = lazy(() => import('./preview/seidkarlinn/Page'))
 const BofsPage = lazy(() => import('./preview/bofs/Page'))
 const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
+// Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
+const EldofninnPage = lazy(() => import('./preview/eldofninn/Page'))
 // Bílageirinn — Reykjanesbær auto body shop, "True Line" aviation-precision concept
 const BilageirinnPage = lazy(() => import('./preview/bilageirinn/Page'))
 // Prentverk Selfoss — print shop, "Yfirprent" two-colour overprint concept
@@ -179,6 +182,7 @@ export default function App() {
             {/* own nested Suspense (not the outer fallback=null) so a slow chunk fetch shows a
                 branded loading screen instead of a blank flash - see Loading.tsx */}
             <Route path="/preview/flatbakan" element={<Suspense fallback={<FlatbakanLoading />}><FlatbakanPage /></Suspense>} />
+            <Route path="/preview/eldofninn" element={<Suspense fallback={<EldofninnLoading />}><EldofninnPage /></Suspense>} />
             <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
             <Route path="/preview/prentverk" element={<PrentverkPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
