@@ -54,15 +54,9 @@ const CSS = `
     from { transform: scale(1.12) translateY(-1.5%); }
     to   { transform: scale(1.0) translateY(0); }
   }
-  @keyframes bilas-ticker {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
   @media (prefers-reduced-motion: reduce) {
-    .bilas-kenburns, .bilas-ticker-track { animation: none !important; }
+    .bilas-kenburns { animation: none !important; }
   }
-  .bilas-rail::-webkit-scrollbar { display: none; }
-  .bilas-rail { scrollbar-width: none; }
 `
 
 /* ── shared reveal: content blocks rise in view; full-bleed backgrounds
@@ -346,40 +340,6 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         </motion.div>
       </div>
     </section>
-  )
-}
-
-/* ── live-inventory ticker: the one marquee, fed by the real price list ── */
-function Ticker() {
-  const reduce = useReducedMotion()
-  const items = CARS.map((c) => (
-    <span key={c.href} className="mx-8 inline-flex items-baseline gap-3 whitespace-nowrap">
-      <span className="text-[13px] uppercase tracking-[0.1em]" style={{ color: MUT, fontFamily: MONO }}>
-        {c.make} {c.model}
-      </span>
-      <span className="text-[13px]" style={{ color: XENON, fontFamily: MONO }}>
-        {fmtPrice(c)}
-      </span>
-    </span>
-  ))
-  return (
-    <div
-      className="overflow-hidden border-y py-3"
-      style={{ borderColor: HAIR, background: SURFACE }}
-      aria-label="Bílarnir á staðnum og verð þeirra"
-    >
-      {reduce ? (
-        <div className="bilas-rail overflow-x-auto">{items}</div>
-      ) : (
-        <div
-          className="bilas-ticker-track inline-flex w-max"
-          style={{ animation: 'bilas-ticker 70s linear infinite' }}
-        >
-          {items}
-          {items}
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -774,18 +734,29 @@ function Visit() {
 
           {STAFF.map((p, i) => (
             <Rise key={p.name} delay={0.1 + i * 0.08}>
-              <div className="flex h-full flex-col justify-between rounded-2xl border p-7" style={{ borderColor: HAIR }}>
-                <div>
-                  <div className="text-[24px] uppercase leading-tight" style={{ fontFamily: DISPLAY, color: INK }}>{p.name}</div>
-                  <div className="mt-2 text-[14px]" style={{ color: MUT, fontFamily: BODY }}>{p.role}</div>
+              <div className="flex h-full flex-col justify-between overflow-hidden rounded-2xl border" style={{ borderColor: HAIR }}>
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={p.photo}
+                    alt={`${p.name}, ${p.role} hjá Bílás`}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover object-top"
+                  />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,12,16,0.55), transparent 55%)' }} />
                 </div>
-                <div className="mt-10 flex flex-col gap-1">
-                  <a href={`mailto:${p.email}`} className="inline-flex items-center py-2 text-[14px] underline-offset-4 hover:underline" style={{ fontFamily: MONO, color: XENON }}>
-                    {p.email}
-                  </a>
-                  <a href={CONTACT.phoneHref} className="inline-flex items-center py-2 text-[14px]" style={{ fontFamily: MONO, color: MUT }}>
-                    s. {CONTACT.phoneDisplay}
-                  </a>
+                <div className="flex flex-1 flex-col justify-between p-7">
+                  <div>
+                    <div className="text-[24px] uppercase leading-tight" style={{ fontFamily: DISPLAY, color: INK }}>{p.name}</div>
+                    <div className="mt-2 text-[14px]" style={{ color: MUT, fontFamily: BODY }}>{p.role}</div>
+                  </div>
+                  <div className="mt-10 flex flex-col gap-1">
+                    <a href={`mailto:${p.email}`} className="inline-flex items-center py-2 text-[14px] underline-offset-4 hover:underline" style={{ fontFamily: MONO, color: XENON }}>
+                      {p.email}
+                    </a>
+                    <a href={CONTACT.phoneHref} className="inline-flex items-center py-2 text-[14px]" style={{ fontFamily: MONO, color: MUT }}>
+                      s. {CONTACT.phoneDisplay}
+                    </a>
+                  </div>
                 </div>
               </div>
             </Rise>
@@ -917,7 +888,6 @@ export default function Page() {
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero lenisRef={lenisRef} />
-        <Ticker />
         <Inventory />
         <Lot />
         <Fees />
