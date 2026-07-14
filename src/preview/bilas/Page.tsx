@@ -1314,9 +1314,9 @@ function Loader({ onFinish }: { onFinish: () => void }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
-      <div className="w-[260px] sm:w-[340px]">
+      <div className="w-[220px] sm:w-[260px]">
         <video
-          ref={(el) => { if (el) el.playbackRate = VIDEO_RATE }}
+          ref={(el) => { if (el) { el.muted = true; el.playbackRate = VIDEO_RATE; el.play().catch(() => setWordVisible(true)) } }}
           src="/media/bilas-loader-car.mp4"
           autoPlay
           muted
@@ -1327,16 +1327,15 @@ function Loader({ onFinish }: { onFinish: () => void }) {
           className="w-full mix-blend-screen"
         />
       </div>
-      {/* the wordmark, re-vectorised from the real logo at high resolution
-          (traced "Bílás" letterforms + set tagline, chrome-filled). Sized
-          and tucked to reassemble the original logo beneath the car. */}
+      {/* same lockup as the header (LOGO.src) — kept identical so mobile
+          browsers that skip/hide the video still land on the real logo */}
       <motion.img
-        src="/media/bilas-logo-wordmark-hd.png"
-        alt="Bílás – Bílasala Akraness"
+        src={LOGO.src}
+        alt={LOGO.alt}
         initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
         animate={wordVisible ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
         transition={{ duration: 0.7, ease: EASE }}
-        className="-mt-6 w-[188px] sm:-mt-8 sm:w-[246px]"
+        className="-mt-6 w-[160px] sm:-mt-8 sm:w-[200px]"
       />
     </motion.div>
   )
