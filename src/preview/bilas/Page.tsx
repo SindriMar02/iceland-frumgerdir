@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, ChevronDown, Info, MapPin, Phone, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Info, MapPin, Phone, Search, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -344,187 +344,165 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 }
 
 /* ── inventory browser: filters + odometer + the 24 real cars ── */
-type FuelFilter = 'allir' | 'bensin' | 'disel' | 'rafmagn' | 'hybrid' | 'tilbod'
+const MAKES = Array.from(new Set(CARS.map((c) => c.make))).sort()
 
-const FILTERS: { key: FuelFilter; label: string }[] = [
-  { key: 'allir', label: 'Allir' },
-  { key: 'bensin', label: 'Bensín' },
-  { key: 'disel', label: 'Dísel' },
-  { key: 'rafmagn', label: 'Rafmagn' },
-  { key: 'hybrid', label: 'Hybrid' },
-  { key: 'tilbod', label: 'Tilboð' },
-]
-
-function matches(c: Car, f: FuelFilter): boolean {
-  switch (f) {
-    case 'allir': return true
-    case 'bensin': return c.fuel === 'Bensín'
-    case 'disel': return c.fuel === 'Dísel'
-    case 'rafmagn': return c.fuel === 'Rafmagn'
-    case 'hybrid': return c.fuel.includes('/')
-    case 'tilbod': return c.tilbod
-  }
+function carSearchText(c: Car): string {
+  return [
+    c.make, c.model, c.fuel, c.gear ?? '', c.reg,
+    c.tilbod ? 'tilbo\u00f0' : '', c.anVsk ? '\u00e1n vsk' : '',
+  ].join(' ').toLowerCase()
 }
 
-const MAKES = Array.from(new Set(CARS.map((c) => c.make))).sort()
-type GearFilter = 'allir' | 'Sjálfskipting' | 'Beinskipting'
+const QUICK_PICKS = ['Rafmagn', 'D\u00edsel', 'Bens\u00edn', 'Sj\u00e1lfskipting', 'Beinskipting', 'Tilbo\u00f0']
 
-/* a single aesthetic "more filters" dropdown (make + price range + gearbox)
-   layered on top of the fuel chips + search box, closes on outside click */
-function FiltersDropdown({
-  make, setMake, gear, setGear, minPrice, setMinPrice, maxPrice, setMaxPrice,
-}: {
-  make: string
-  setMake: (v: string) => void
-  gear: GearFilter
-  setGear: (v: GearFilter) => void
-  minPrice: string
-  setMinPrice: (v: string) => void
-  maxPrice: string
-  setMaxPrice: (v: string) => void
-}) {
+/* the whole "search engine": one input, one dropdown with everything -
+   quick picks + every make when empty, live results (thumb+make+price)
+   once you type. Keyboard up/down/enter, closes on outside click/escape. */
+function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string) => void }) {
   const [open, setOpen] = useState(false)
+  const [hi, setHi] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const reduce = useReducedMotion()
-  const activeCount = (make !== 'allir' ? 1 : 0) + (gear !== 'allir' ? 1 : 0) + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0)
+
+  const q = query.trim().toLowerCase()
+  const tokens = q.split(/\s+/).filter(Boolean)
+  const results = useMemo(() => {
+    if (!tokens.length) return []
+    return CARS.filter((c) => tokens.every((t) => carSearchText(c).includes(t)))
+  }, [q])
+
+  useEffect(() => { setHi(0) }, [q])
 
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setOpen(false); inputRef.current?.blur(); return }
+      if (!results.length) return
+      if (e.key === 'ArrowDown') { e.preventDefault(); setHi((i) => Math.min(i + 1, results.length - 1)) }
+      if (e.key === 'ArrowUp') { e.preventDefault(); setHi((i) => Math.max(i - 1, 0)) }
+      if (e.key === 'Enter' && results[hi]) window.open(results[hi].href, '_blank', 'noreferrer')
+    }
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
     return () => {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
-  }, [open])
-
-  const reset = () => { setMake('allir'); setGear('allir'); setMinPrice(''); setMaxPrice('') }
+  }, [open, results, hi])
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((v) => !v)}
+      <Search size={17} className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2" style={{ color: MUT }} aria-hidden />
+      <input
+        ref={inputRef}
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => setOpen(true)}
+        placeholder="Leitaðu að teg., gerð, verði, eldsneyti..."
+        aria-label="Leita í bílunum á staðnum"
+        role="combobox"
         aria-expanded={open}
-        aria-haspopup="dialog"
-        className="flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] transition-[background-color,color,border-color,transform] duration-200 active:scale-[0.97]"
-        style={{
-          fontFamily: BODY,
-          background: activeCount ? XENON : 'transparent',
-          color: activeCount ? DARKINK : INK,
-          borderColor: activeCount ? XENON : HAIR,
-        }}
-      >
-        <SlidersHorizontal size={14} aria-hidden />
-        Fleiri síur
-        {activeCount > 0 && (
-          <span
-            className="flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none"
-            style={{ background: DARKINK, color: XENON, fontFamily: MONO }}
-          >
-            {activeCount}
-          </span>
-        )}
-        <ChevronDown size={14} className="transition-transform duration-200" style={{ transform: open ? 'rotate(180deg)' : 'none' }} aria-hidden />
-      </button>
+        aria-autocomplete="list"
+        className="w-full rounded-full border py-3 pl-11 pr-10 text-[14px] outline-none transition-colors duration-200"
+        style={{ background: SURFACE, borderColor: open ? XENON : HAIR, color: INK, fontFamily: BODY }}
+      />
+      {query && (
+        <button
+          onClick={() => { setQuery(''); inputRef.current?.focus() }}
+          aria-label="Hreinsa leit"
+          className="absolute right-3.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full"
+          style={{ color: MUT }}
+        >
+          <X size={15} aria-hidden />
+        </button>
+      )}
 
       <AnimatePresence>
         {open && (
           <motion.div
-            role="dialog"
-            aria-label="Fleiri síur"
-            initial={reduce ? false : { opacity: 0, y: -8, scale: 0.97 }}
+            role="listbox"
+            aria-label="Leitarniðurstöður"
+            initial={reduce ? false : { opacity: 0, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ duration: 0.18, ease: EASE }}
-            className="absolute left-0 top-[calc(100%+10px)] z-30 w-[300px] rounded-2xl border p-5"
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.16, ease: EASE }}
+            className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-[420px] overflow-y-auto rounded-2xl border p-3"
             style={{
-              background: 'rgba(18,21,28,0.92)',
+              background: 'rgba(18,21,28,0.96)',
               borderColor: HAIR,
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
             }}
           >
-            <label className="block text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-              Tegund
-            </label>
-            <select
-              value={make}
-              onChange={(e) => setMake(e.target.value)}
-              className="mt-2 w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none"
-              style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: BODY }}
-            >
-              <option value="allir">Allar tegundir</option>
-              {MAKES.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-
-            <label className="mt-5 block text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-              Verðbil (kr.)
-            </label>
-            <div className="mt-2 flex items-center gap-2">
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="Frá"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                aria-label="Verð frá, kr."
-                className="w-full min-w-0 rounded-lg border px-3 py-2.5 text-[14px] outline-none"
-                style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: MONO }}
-              />
-              <span style={{ color: MUT }} aria-hidden>–</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="Til"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                aria-label="Verð til, kr."
-                className="w-full min-w-0 rounded-lg border px-3 py-2.5 text-[14px] outline-none"
-                style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: MONO }}
-              />
-            </div>
-
-            <label className="mt-5 block text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-              Gírkassi
-            </label>
-            <div className="mt-2 flex gap-2">
-              {(['allir', 'Sjálfskipting', 'Beinskipting'] as const).map((g) => {
-                const gActive = gear === g
-                return (
-                  <button
-                    key={g}
-                    onClick={() => setGear(g)}
-                    aria-pressed={gActive}
-                    className="flex-1 rounded-lg border py-2 text-[13px] transition-colors duration-200"
-                    style={{
-                      background: gActive ? XENON : 'transparent',
-                      color: gActive ? DARKINK : INK,
-                      borderColor: gActive ? XENON : HAIR,
-                      fontFamily: BODY,
-                    }}
+            {!tokens.length ? (
+              <div className="p-2">
+                <div className="text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                  Fljótleg leit
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {QUICK_PICKS.map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setQuery(p)}
+                      className="rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-200"
+                      style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-5 text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                  Tegundir
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {MAKES.map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setQuery(m)}
+                      className="rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-200"
+                      style={{ borderColor: HAIR, color: MUT, fontFamily: BODY }}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : results.length ? (
+              <div className="flex flex-col gap-1">
+                {results.map((c, i) => (
+                  <a
+                    key={c.href}
+                    href={c.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    onMouseEnter={() => setHi(i)}
+                    className="flex items-center gap-3 rounded-xl p-2 transition-colors duration-150"
+                    style={{ background: i === hi ? 'rgba(143,198,255,0.14)' : 'transparent' }}
                   >
-                    {g === 'allir' ? 'Allir' : g}
-                  </button>
-                )
-              })}
-            </div>
-
-            {activeCount > 0 && (
-              <button
-                onClick={reset}
-                className="mt-5 w-full rounded-lg border py-2 text-[13px] transition-colors duration-200"
-                style={{ borderColor: HAIR, color: MUT, fontFamily: BODY }}
-              >
-                Núllstilla síur
-              </button>
+                    <img src={carImg(c.img, 200)} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[14px] uppercase" style={{ fontFamily: DISPLAY, color: INK }}>
+                        {c.make} <span style={{ color: MUT }}>{c.model}</span>
+                      </div>
+                      <div className="text-[12px]" style={{ fontFamily: MONO, color: MUT }}>
+                        {c.reg}{c.km ? ` · ${c.km}` : ''} · {c.fuel}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-[13px]" style={{ fontFamily: MONO, color: c.tilbod ? XENON : INK }}>
+                      {fmtPrice(c)}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="p-4 text-center text-[13px]" style={{ color: MUT, fontFamily: BODY }}>
+                Ekkert fannst fyrir „{query.trim()}“.
+              </p>
             )}
           </motion.div>
         )}
@@ -590,33 +568,17 @@ function CarCard({ car, index }: { car: Car; index: number }) {
 }
 
 function Inventory() {
-  const [filter, setFilter] = useState<FuelFilter>('allir')
   const [query, setQuery] = useState('')
-  const [make, setMake] = useState('allir')
-  const [gear, setGear] = useState<GearFilter>('allir')
-  const [minPrice, setMinPrice] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
   const [asc, setAsc] = useState(true)
   const [seen, setSeen] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
   const q = query.trim().toLowerCase()
-  const min = minPrice ? Number(minPrice) : null
-  const max = maxPrice ? Number(maxPrice) : null
   const cars = useMemo(() => {
-    const list = CARS.filter(
-      (c) =>
-        matches(c, filter) &&
-        (!q || `${c.make} ${c.model}`.toLowerCase().includes(q)) &&
-        (make === 'allir' || c.make === make) &&
-        (gear === 'allir' || c.gear === gear) &&
-        (min === null || c.priceNum >= min) &&
-        (max === null || c.priceNum <= max),
-    )
+    const tokens = q.split(/\s+/).filter(Boolean)
+    const list = CARS.filter((c) => tokens.every((t) => carSearchText(c).includes(t)))
     return [...list].sort((a, b) => (asc ? a.priceNum - b.priceNum : b.priceNum - a.priceNum))
-  }, [filter, asc, q, make, gear, min, max])
-
-  const moreFiltersActive = make !== 'allir' || gear !== 'allir' || minPrice !== '' || maxPrice !== ''
+  }, [q, asc])
 
   /* the odometer: counts the cars you have walked past. Synchronous scroll
      handler (rAF is throttled in embedded previews; this is verifiable). */
@@ -651,57 +613,19 @@ function Inventory() {
       </Rise>
 
       <Rise delay={0.1}>
-        <div className="relative mt-10 max-w-md">
-          <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: MUT }} aria-hidden />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Leita eftir tegund eða gerð, t.d. Volvo"
-            aria-label="Leita í bílunum á staðnum"
-            className="w-full rounded-full border py-3 pl-11 pr-4 text-[14px] outline-none transition-colors duration-200"
-            style={{ background: SURFACE, borderColor: HAIR, color: INK, fontFamily: BODY }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = XENON)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = HAIR)}
-          />
+        <div className="mt-10 max-w-md">
+          <SearchEngine query={query} setQuery={setQuery} />
         </div>
       </Rise>
 
       <Rise delay={0.15}>
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          {FILTERS.map((f) => {
-            const active = filter === f.key
-            const count = CARS.filter((c) => matches(c, f.key)).length
-            return (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                aria-pressed={active}
-                className="rounded-full border px-4 py-2 text-[13px] transition-[background-color,color,border-color,transform] duration-200 active:scale-[0.97]"
-                style={{
-                  fontFamily: BODY,
-                  background: active ? XENON : 'transparent',
-                  color: active ? DARKINK : INK,
-                  borderColor: active ? XENON : HAIR,
-                }}
-              >
-                {f.label} <span style={{ fontFamily: MONO, opacity: 0.75 }}>{count}</span>
-              </button>
-            )
-          })}
-          <FiltersDropdown
-            make={make}
-            setMake={setMake}
-            gear={gear}
-            setGear={setGear}
-            minPrice={minPrice}
-            setMinPrice={setMinPrice}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
-          />
+        <div className="mt-5 flex items-center justify-between gap-4">
+          <p className="text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
+            {cars.length} af {CARS.length} bílum
+          </p>
           <button
             onClick={() => setAsc((v) => !v)}
-            className="ml-auto rounded-full border px-4 py-2 text-[13px] transition-[border-color,transform] duration-200 active:scale-[0.97]"
+            className="rounded-full border px-4 py-2 text-[13px] transition-[border-color,transform] duration-200 active:scale-[0.97]"
             style={{ fontFamily: MONO, color: MUT, borderColor: HAIR }}
             aria-label={asc ? 'Raða eftir verði, lægsta fyrst' : 'Raða eftir verði, hæsta fyrst'}
           >
@@ -744,23 +668,16 @@ function Inventory() {
           <p className="text-[15px]" style={{ color: MUT, fontFamily: BODY }}>
             {q
               ? `Enginn bíll fannst fyrir „${query.trim()}“.`
-              : 'Enginn bíll passar við þessa síu núna.'}{' '}
+              : 'Enginn bíll á staðnum í augnablikinu.'}{' '}
             Hringdu í {CONTACT.phoneDisplay}, næsta sending gæti verið á leiðinni.
           </p>
-          {(q || filter !== 'allir' || moreFiltersActive) && (
+          {q && (
             <button
-              onClick={() => {
-                setQuery('')
-                setFilter('allir')
-                setMake('allir')
-                setGear('allir')
-                setMinPrice('')
-                setMaxPrice('')
-              }}
+              onClick={() => setQuery('')}
               className="mt-4 rounded-full border px-5 py-2 text-[13px] transition-colors duration-200"
               style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}
             >
-              Hreinsa leit og síur
+              Hreinsa leit
             </button>
           )}
         </div>
