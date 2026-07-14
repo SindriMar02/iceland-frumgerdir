@@ -222,11 +222,13 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             />
           )
         })}
-        {/* night-lot wash so the type owns the frame */}
+        {/* night-lot wash so the type owns the frame. Kept light at the very
+            top: a strong scrim there flattened the bright sky into a grey
+            band. Only a thin nav-legibility scrim survives up there. */}
         <div
           className="absolute inset-0"
           style={{
-            background: `linear-gradient(to top, ${BG} 4%, rgba(10,12,16,0.72) 34%, rgba(10,12,16,0.32) 62%, rgba(10,12,16,0.55) 100%)`,
+            background: `linear-gradient(to top, ${BG} 4%, rgba(10,12,16,0.72) 30%, rgba(10,12,16,0.16) 58%, rgba(10,12,16,0.22) 100%)`,
           }}
         />
       </div>
@@ -351,6 +353,16 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             </div>
           )}
         </motion.div>
+
+        <motion.p
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.1, ease: EASE }}
+          className="mt-5 text-[11px] uppercase tracking-[0.14em]"
+          style={{ fontFamily: MONO, color: MUT }}
+        >
+          {HOURS[0].d}: {HOURS[0].t} · Lokað um helgar
+        </motion.p>
       </div>
     </section>
   )
@@ -1148,6 +1160,10 @@ function StickyBar() {
       chroma-keyed off logo.png) reveals beneath at the original logo's
       proportions, so the end state assembles into the real Bílás logo.
       Body scroll locked while up. */
+/* the boomerang clip is 3.25s natively; played faster it still reads the
+   full glint-in/glint-out arc but the loader gets out of the way sooner */
+const VIDEO_RATE = 1.6
+
 function Loader({ onFinish }: { onFinish: () => void }) {
   const reduce = useReducedMotion()
   const [wordVisible, setWordVisible] = useState(reduce)
@@ -1160,17 +1176,19 @@ function Loader({ onFinish }: { onFinish: () => void }) {
 
   useEffect(() => {
     if (reduce) {
-      const t = setTimeout(onFinish, 1200)
+      const t = setTimeout(onFinish, 900)
       return () => clearTimeout(t)
     }
-    /* fallback in case the video's onEnded never fires (slow network etc.) */
-    const t = setTimeout(() => setWordVisible(true), 3400)
+    /* fallback in case the video's onEnded never fires (slow network etc.);
+       the video itself plays at 1.6x (see VIDEO_RATE below), so its real
+       runtime is ~2s, not the clip's native 3.25s. */
+    const t = setTimeout(() => setWordVisible(true), 2400)
     return () => clearTimeout(t)
   }, [reduce, onFinish])
 
   useEffect(() => {
     if (!wordVisible) return
-    const t = setTimeout(onFinish, 1300)
+    const t = setTimeout(onFinish, 650)
     return () => clearTimeout(t)
   }, [wordVisible, onFinish])
 
@@ -1197,6 +1215,7 @@ function Loader({ onFinish }: { onFinish: () => void }) {
     >
       <div className="w-[260px] sm:w-[340px]">
         <video
+          ref={(el) => { if (el) el.playbackRate = VIDEO_RATE }}
           src="/media/bilas-loader-car.mp4"
           autoPlay
           muted
