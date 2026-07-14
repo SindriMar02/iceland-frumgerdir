@@ -408,6 +408,17 @@ export default function HudflurPage() {
                   </Reveal>
                 ))}
               </div>
+
+              <Reveal delay={0.2} className="mt-14 block">
+                <figure className="m-0">
+                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
+                    <Img src={IMG.sketch.src} srcSet={IMG.sketch.srcSet} sizes="100vw" alt={IMG.sketch.alt} className="h-full w-full object-cover" />
+                  </div>
+                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
+                    {PROCESS.caption}
+                  </figcaption>
+                </figure>
+              </Reveal>
             </div>
           </section>
 
@@ -422,6 +433,14 @@ export default function HudflurPage() {
                 <p className="font-hanken mt-5 max-w-[42ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>
                   {CARE.intro}
                 </p>
+                <figure className="m-0 mt-8 max-w-[16rem]">
+                  <div className="aspect-[4/5] overflow-hidden">
+                    <Img src={IMG.aftercare.src} alt={IMG.aftercare.alt} className="h-full w-full object-cover" />
+                  </div>
+                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
+                    {CARE.caption}
+                  </figcaption>
+                </figure>
               </Reveal>
               <Reveal delay={0.1}>
                 <ul className="m-0 flex list-none flex-col gap-4 p-0">
@@ -489,6 +508,17 @@ export default function HudflurPage() {
                   </Reveal>
                 ))}
               </div>
+
+              <Reveal delay={0.16} className="mt-12 block">
+                <figure className="m-0">
+                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
+                    <Img src={IMG.lounge.src} srcSet={IMG.lounge.srcSet} sizes="100vw" alt={IMG.lounge.alt} className="h-full w-full object-cover" />
+                  </div>
+                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
+                    {REVIEWS.caption}
+                  </figcaption>
+                </figure>
+              </Reveal>
 
               <div id="heimsokn" aria-labelledby="heimsokn-h" className="mt-20 scroll-mt-24 md:mt-28">
                 <div className="grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-14">

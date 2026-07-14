@@ -31,6 +31,20 @@ export const IMG = {
     srcSet: `${u('photo-1760877611905-0f885a3ce551', 828)} 828w, ${u('photo-1760877611905-0f885a3ce551', 1280)} 1280w, ${u('photo-1760877611905-0f885a3ce551', 2000)} 2000w`,
     alt: 'Dimm og stílhrein vinnustofa með húðflúrstól',
   },
+  sketch: {
+    src: u('photo-1635183783375-98e857771351', 1200),
+    srcSet: `${u('photo-1635183783375-98e857771351', 828)} 828w, ${u('photo-1635183783375-98e857771351', 1200)} 1200w, ${u('photo-1635183783375-98e857771351', 2000)} 2000w`,
+    alt: 'Tattúveruð hönd teiknar hugmyndir í skissubók við skrifborð, svipmynd',
+  },
+  aftercare: {
+    src: u('photo-1712168044214-f5a272c23a5b', 1000),
+    alt: 'Ómerkt krem, sýnishorn af umhirðuvöru eftir húðflúr',
+  },
+  lounge: {
+    src: u('photo-1781925856343-c97d0d44f94c', 1400),
+    srcSet: `${u('photo-1781925856343-c97d0d44f94c', 828)} 828w, ${u('photo-1781925856343-c97d0d44f94c', 1400)} 1400w, ${u('photo-1781925856343-c97d0d44f94c', 2000)} 2000w`,
+    alt: 'Dimm og notaleg setustofa með sófa og römmuðum myndum á vegg, svipmynd',
+  },
   fineLine: {
     src: u('photo-1598816639574-47ef99da24fd', 1200),
     alt: 'Svarthvít nærmynd af fíngerðu línuverki á húð',
@@ -118,6 +132,7 @@ export const PROCESS = {
       body: 'Að lokinni vinnu færðu skýrar leiðbeiningar um umhirðu, svo verkið grói vel og haldi lit.',
     },
   ],
+  caption: 'Svipmynd — hugmynd tekur á sig mynd á blaði',
 } as const
 
 export const CARE = {
@@ -131,6 +146,7 @@ export const CARE = {
     'Forðastu sund, heita potta og beint sólarljós þar til verkið er alveg gróið.',
     'Ekki klóra eða krukka í hreistrið, láttu það losna af sjálfu sér.',
   ],
+  caption: 'Svipmynd — ilmlaust rakakrem',
 } as const
 
 export const REVIEWS = {
@@ -147,6 +163,7 @@ export const REVIEWS = {
       name: 'Sýnishorn umsagnar',
     },
   ],
+  caption: 'Svipmynd — andrúmsloft setustofu',
 } as const
 
 export const VISIT = {
