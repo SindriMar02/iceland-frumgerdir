@@ -161,7 +161,14 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     >
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 md:px-8">
         <a href="#efst" onClick={(e) => { e.preventDefault(); go('efst') }} aria-label="Bílás, efst á síðu">
-          <img src={LOGO.src} alt={LOGO.alt} className="h-10 w-auto" />
+          {/* drop-shadow, not a scrim: reads on any photo behind it without
+              putting a visible box around the logo */}
+          <img
+            src={LOGO.src}
+            alt={LOGO.alt}
+            className="h-10 w-auto"
+            style={{ filter: solid ? 'none' : 'drop-shadow(0 1px 5px rgba(0,0,0,0.65)) drop-shadow(0 0 14px rgba(0,0,0,0.35))' }}
+          />
         </a>
         <nav className="flex items-center gap-3 md:gap-6">
           {NAV_LINKS.map((l) => (
@@ -169,7 +176,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               key={l.id}
               onClick={() => go(l.id)}
               className="hidden text-[13px] tracking-[0.14em] uppercase md:block"
-              style={{ fontFamily: MONO, color: MUT }}
+              style={{ fontFamily: MONO, color: solid ? MUT : '#E4E9EF', textShadow: solid ? 'none' : '0 1px 5px rgba(0,0,0,0.75)' }}
             >
               {l.label}
             </button>
@@ -189,8 +196,14 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
-              className="flex h-11 w-11 items-center justify-center rounded-full border"
-              style={{ borderColor: HAIR, color: INK }}
+              className="flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-300"
+              style={{
+                background: solid || menuOpen ? 'transparent' : 'rgba(10,12,16,0.42)',
+                borderColor: solid || menuOpen ? HAIR : 'rgba(242,245,249,0.28)',
+                color: INK,
+                backdropFilter: solid || menuOpen ? 'none' : 'blur(10px)',
+                WebkitBackdropFilter: solid || menuOpen ? 'none' : 'blur(10px)',
+              }}
             >
               {menuOpen ? <X size={19} aria-hidden /> : <MenuIcon size={19} aria-hidden />}
             </button>
@@ -310,6 +323,14 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           style={{
             background: `linear-gradient(to top, ${BG} 4%, rgba(10,12,16,0.72) 30%, rgba(10,12,16,0.16) 58%, rgba(10,12,16,0.22) 100%)`,
           }}
+        />
+        {/* a second, tightly-contained vignette just for the fixed nav above
+            it: the wide wash alone isn't enough for the logo/links to read
+            against a bright sky. Short falloff (~140px) reads as a soft
+            vignette, not a flat band, and stays clear of the headline. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-36"
+          style={{ background: 'linear-gradient(to bottom, rgba(4,6,9,0.6), rgba(4,6,9,0.22) 60%, transparent)' }}
         />
       </div>
 
