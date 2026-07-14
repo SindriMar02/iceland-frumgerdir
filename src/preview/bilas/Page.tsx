@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, Check, ChevronDown, Info, MapPin, Phone, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Check, ChevronDown, Info, MapPin, Menu as MenuIcon, Phone, Search, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -59,15 +59,18 @@ const CSS = `
     .bilas-kenburns { animation: none !important; }
   }
   /* dual-handle range slider: two native inputs overlaid; only the thumbs
-     receive pointer events so both handles stay grabbable even overlapping */
-  .bilas-range { position: relative; height: 22px; }
+     receive pointer events so both handles stay grabbable even overlapping.
+     Touch zone is 40px tall (finger-friendly) even though the visible
+     track/thumb stay slim; touch-action:none stops iOS Safari from
+     fighting a near-vertical drag into a page-scroll gesture. */
+  .bilas-range { position: relative; height: 40px; }
   .bilas-range-track { position: absolute; left: 0; right: 0; top: 50%; height: 4px; transform: translateY(-50%); border-radius: 9999px; background: rgba(242,245,249,0.14); }
   .bilas-range-fill { position: absolute; top: 50%; height: 4px; transform: translateY(-50%); border-radius: 9999px; background: ${XENON}; }
-  .bilas-range input[type=range] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; background: transparent; pointer-events: none; -webkit-appearance: none; appearance: none; }
+  .bilas-range input[type=range] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; background: transparent; pointer-events: none; touch-action: none; -webkit-appearance: none; appearance: none; }
   .bilas-range input[type=range]:focus { outline: none; }
-  .bilas-range input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 18px; height: 18px; border-radius: 9999px; background: ${XENON}; border: 3px solid ${BG}; box-shadow: 0 1px 5px rgba(0,0,0,0.5); cursor: grab; transition: transform 0.15s ${`cubic-bezier(0.32,0.72,0,1)`}; }
+  .bilas-range input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 24px; height: 24px; border-radius: 9999px; background: ${XENON}; border: 3px solid ${BG}; box-shadow: 0 1px 5px rgba(0,0,0,0.5); cursor: grab; transition: transform 0.15s ${`cubic-bezier(0.32,0.72,0,1)`}; }
   .bilas-range input[type=range]::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.15); }
-  .bilas-range input[type=range]::-moz-range-thumb { pointer-events: auto; width: 18px; height: 18px; border: 3px solid ${BG}; border-radius: 9999px; background: ${XENON}; box-shadow: 0 1px 5px rgba(0,0,0,0.5); cursor: grab; }
+  .bilas-range input[type=range]::-moz-range-thumb { pointer-events: auto; width: 24px; height: 24px; border: 3px solid ${BG}; border-radius: 9999px; background: ${XENON}; box-shadow: 0 1px 5px rgba(0,0,0,0.5); cursor: grab; }
   .bilas-range input[type=range]::-moz-range-track { background: transparent; border: none; }
   .bilas-range input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid ${XENON}; outline-offset: 2px; }
 `
@@ -99,28 +102,56 @@ function Rise({
 }
 
 /* ── nav ── */
+const NAV_LINKS = [
+  { id: 'bilar', label: 'Bílarnir' },
+  { id: 'salan', label: 'Seljum þinn' },
+]
+
 function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   const [solid, setSolid] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion()
+
   useEffect(() => {
     const on = () => setSolid(window.scrollY > 40)
     on()
     window.addEventListener('scroll', on, { passive: true })
     return () => window.removeEventListener('scroll', on)
   }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onDoc = (e: MouseEvent | TouchEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('touchstart', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('touchstart', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+
   const go = (id: string) => {
+    setMenuOpen(false)
     const el = document.getElementById(id)
     if (!el) return
     if (lenisRef.current) lenisRef.current.scrollTo(el, { offset: -64 })
     else el.scrollIntoView()
   }
+
   return (
     <header
       className="fixed inset-x-0 top-0 z-40 transition-colors duration-500"
       style={{
-        background: solid ? 'rgba(10,12,16,0.82)' : 'transparent',
-        backdropFilter: solid ? 'blur(14px)' : 'none',
-        WebkitBackdropFilter: solid ? 'blur(14px)' : 'none',
-        borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
+        background: solid || menuOpen ? 'rgba(10,12,16,0.92)' : 'transparent',
+        backdropFilter: solid || menuOpen ? 'blur(14px)' : 'none',
+        WebkitBackdropFilter: solid || menuOpen ? 'blur(14px)' : 'none',
+        borderBottom: solid || menuOpen ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
     >
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 md:px-8">
@@ -128,20 +159,16 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <img src={LOGO.src} alt={LOGO.alt} className="h-10 w-auto" />
         </a>
         <nav className="flex items-center gap-3 md:gap-6">
-          <button
-            onClick={() => go('bilar')}
-            className="hidden text-[13px] tracking-[0.14em] uppercase md:block"
-            style={{ fontFamily: MONO, color: MUT }}
-          >
-            Bílarnir
-          </button>
-          <button
-            onClick={() => go('salan')}
-            className="hidden text-[13px] tracking-[0.14em] uppercase md:block"
-            style={{ fontFamily: MONO, color: MUT }}
-          >
-            Seljum þinn
-          </button>
+          {NAV_LINKS.map((l) => (
+            <button
+              key={l.id}
+              onClick={() => go(l.id)}
+              className="hidden text-[13px] tracking-[0.14em] uppercase md:block"
+              style={{ fontFamily: MONO, color: MUT }}
+            >
+              {l.label}
+            </button>
+          ))}
           <a
             href={CONTACT.phoneHref}
             className="flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium transition-transform duration-300 active:scale-[0.97]"
@@ -150,6 +177,49 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             <Phone size={14} aria-hidden />
             {CONTACT.phoneDisplay}
           </a>
+          {/* mobile menu: the two nav destinations are otherwise unreachable
+              on small screens (hidden md:block above has no fallback) */}
+          <div className="relative md:hidden" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+              className="flex h-11 w-11 items-center justify-center rounded-full border"
+              style={{ borderColor: HAIR, color: INK }}
+            >
+              {menuOpen ? <X size={19} aria-hidden /> : <MenuIcon size={19} aria-hidden />}
+            </button>
+            <AnimatePresence>
+              {menuOpen && (
+                <motion.div
+                  initial={reduce ? false : { opacity: 0, y: -8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                  transition={{ duration: 0.16, ease: EASE }}
+                  className="absolute right-0 top-[calc(100%+10px)] z-30 w-[190px] overflow-hidden rounded-2xl border"
+                  style={{ background: 'rgba(18,21,28,0.98)', borderColor: HAIR }}
+                >
+                  {NAV_LINKS.map((l) => (
+                    <button
+                      key={l.id}
+                      onClick={() => go(l.id)}
+                      className="block w-full px-5 py-3.5 text-left text-[14px]"
+                      style={{ fontFamily: BODY, color: INK, borderBottom: `1px solid ${HAIR}` }}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                  <a
+                    href={CONTACT.phoneHref}
+                    className="block w-full px-5 py-3.5 text-[14px]"
+                    style={{ fontFamily: BODY, color: XENON }}
+                  >
+                    Hringja í {CONTACT.phoneDisplay}
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </nav>
       </div>
     </header>
@@ -531,7 +601,7 @@ function FilterPanel({ filters, setFilters, resultCount }: { filters: Filters; s
         <button
           onClick={() => set('tilbod', !filters.tilbod)}
           aria-pressed={filters.tilbod}
-          className="flex items-center gap-2.5 rounded-full border py-2 pl-2 pr-4 text-[13px] transition-colors duration-200"
+          className="flex items-center gap-2.5 rounded-full border py-2.5 pl-2.5 pr-4 text-[13px] transition-colors duration-200"
           style={{ borderColor: filters.tilbod ? XENON : HAIR, color: INK, fontFamily: BODY }}
         >
           <span
@@ -818,7 +888,7 @@ function Inventory() {
           </p>
           <button
             onClick={() => setAsc((v) => !v)}
-            className="rounded-full border px-4 py-2 text-[13px] transition-[border-color,transform] duration-200 active:scale-[0.97]"
+            className="rounded-full border px-4 py-2.5 text-[13px] transition-[border-color,transform] duration-200 active:scale-[0.97]"
             style={{ fontFamily: MONO, color: MUT, borderColor: HAIR }}
             aria-label={asc ? 'Raða eftir verði, lægsta fyrst' : 'Raða eftir verði, hæsta fyrst'}
           >
@@ -1138,7 +1208,7 @@ function StickyBar() {
       className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t px-5 py-3 md:hidden"
       style={{ background: 'rgba(10,12,16,0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: HAIR }}
     >
-      <a href="#bilar" className="flex items-center py-2 text-[14px] font-medium" style={{ color: INK, fontFamily: BODY }}>
+      <a href="#bilar" className="flex items-center py-3 text-[14px] font-medium" style={{ color: INK, fontFamily: BODY }}>
         {CARS.length} bílar á staðnum
       </a>
       <a
