@@ -2740,7 +2740,7 @@ Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 
 Hugmyndin er einföld. Að fólk finni ykkur á netinu, sjái hvað þið bjóðið upp á og geti haft samband án fyrirhafnar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
-Endilega heyrið í mér ef þetta kveikir í ykkur.
+Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
     },
@@ -2796,7 +2796,7 @@ Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 
 Hugmyndin er einföld. Að fólk sjái hvað leynist í rauða húsinu áður en það keyrir framhjá, og að skálinn sjálfur fái að vera aðalsöguhetjan. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
-Endilega heyrið í mér ef þetta kveikir í ykkur.
+Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
     },
@@ -2852,7 +2852,7 @@ Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 
 Hugmyndin er einföld. Að búðin sjálf, andrúmsloftið og sagan þín, fái að vera í forgrunni, og að fólk geti keypt prent án vandræða. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
-Endilega heyrið í mér ef þetta kveikir í ykkur.
+Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
     },
