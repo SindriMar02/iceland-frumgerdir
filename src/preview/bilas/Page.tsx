@@ -1298,7 +1298,7 @@ function Loader({ onFinish }: { onFinish: () => void }) {
     return (
       <motion.div
         className="fixed inset-0 z-[100] flex items-center justify-center"
-        style={{ background: BG }}
+        style={{ background: '#000' }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
@@ -1310,11 +1310,11 @@ function Loader({ onFinish }: { onFinish: () => void }) {
   return (
     <motion.div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
-      style={{ background: BG }}
+      style={{ background: '#000' }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
-      <div className="w-[220px] sm:w-[260px]">
+      <div className="w-[260px] sm:w-[340px]">
         <video
           ref={(el) => { if (el) { el.muted = true; el.playbackRate = VIDEO_RATE; el.play().catch(() => setWordVisible(true)) } }}
           src={`${import.meta.env.BASE_URL}media/bilas-loader-car.mp4`}
@@ -1322,20 +1322,21 @@ function Loader({ onFinish }: { onFinish: () => void }) {
           muted
           playsInline
           onEnded={() => setWordVisible(true)}
-          /* screen-blend erases the video's black letterbox against the
-             page ground so only the white line-art shows */
+          /* the loader ground is true black to match the video's own black
+             frame; screen-blend erases any remaining letterbox edge */
           className="w-full mix-blend-screen"
         />
       </div>
-      {/* same lockup as the header (LOGO.src) — kept identical so mobile
-          browsers that skip/hide the video still land on the real logo */}
+      {/* the real "Bílás" wordmark (re-vectorised from the original logo),
+          tucked under the video's settled car so together they reassemble
+          the original lockup — no second car */}
       <motion.img
-        src={LOGO.src}
-        alt={LOGO.alt}
+        src={`${import.meta.env.BASE_URL}media/bilas-logo-wordmark-hd.png`}
+        alt="Bílás – Bílasala Akraness"
         initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
         animate={wordVisible ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
         transition={{ duration: 0.7, ease: EASE }}
-        className="-mt-6 w-[160px] sm:-mt-8 sm:w-[200px]"
+        className="-mt-6 w-[188px] sm:-mt-8 sm:w-[246px]"
       />
     </motion.div>
   )
