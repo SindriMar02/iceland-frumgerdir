@@ -112,7 +112,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     >
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 md:px-8">
         <a href="#efst" onClick={(e) => { e.preventDefault(); go('efst') }} aria-label="Bílás, efst á síðu">
-          <img src={LOGO.src} alt={LOGO.alt} className="h-9 w-auto rounded-[4px]" />
+          <img src={LOGO.src} alt={LOGO.alt} className="h-10 w-auto" />
         </a>
         <nav className="flex items-center gap-3 md:gap-6">
           <button

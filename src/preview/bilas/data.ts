@@ -70,7 +70,9 @@ export const HERO_SLIDES: Car[] = HERO_PICKS
 export const fmtPrice = (c: Car) =>
   `${c.priceNum.toLocaleString('de-DE')} kr.${c.anVsk ? ' án vsk.' : ''}`
 
-export const LOGO = { src: '/media/bilas-logo.png', alt: 'Bílás – Bílasala Akraness' }
+/* transparent version: chroma-keyed off the navy background of the real
+   bilas.is logo.png, so it sits directly on the page with no colour box */
+export const LOGO = { src: '/media/bilas-logo-transparent.png', alt: 'Bílás – Bílasala Akraness' }
 
 /* hero + section photography = the dealer's own car photos, hi-res */
 export const PHOTO = {
