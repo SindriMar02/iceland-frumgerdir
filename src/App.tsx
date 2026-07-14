@@ -97,6 +97,12 @@ const PrentverkPage = lazy(() => import('./preview/prentverk/Page'))
 const GeisliPage = lazy(() => import('./preview/geisli/Page'))
 // Pípulagnir Suðurlands — Selfoss plumbing, "Heitt og kalt" tap-marker duality concept
 const PipulagnirPage = lazy(() => import('./preview/pipulagnir/Page'))
+// Húðflúrstofa Norðurlands — Akureyri tattoo studio, "Fine Line" scroll-drawn ink concept
+const HudflurPage = lazy(() => import('./preview/hudflur/Page'))
+// UNA Local Product — Hvolsvöllur craft/gift shop, "Litla rauða húsið" red-hut concept
+const UnaPage = lazy(() => import('./preview/una/Page'))
+// Fótógrafí — Reykjavík photography shop, "Framköllun" darkroom-reveal concept
+const FotografiPage = lazy(() => import('./preview/fotografi/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -207,6 +213,9 @@ export default function App() {
             <Route path="/preview/prentverk" element={<PrentverkPage />} />
             <Route path="/preview/geisli" element={<GeisliPage />} />
             <Route path="/preview/pipulagnir" element={<PipulagnirPage />} />
+            <Route path="/preview/hudflur" element={<HudflurPage />} />
+            <Route path="/preview/una" element={<UnaPage />} />
+            <Route path="/preview/fotografi" element={<FotografiPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
