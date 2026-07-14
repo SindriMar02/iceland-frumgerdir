@@ -22,6 +22,7 @@ import {
   fmtPrice,
 } from './data'
 import type { Car } from './data'
+import { parseQuery, searchCars } from './search'
 
 const company = getPreviewCompany('bilas')
 
@@ -346,14 +347,14 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 /* ── inventory browser: filters + odometer + the 24 real cars ── */
 const MAKES = Array.from(new Set(CARS.map((c) => c.make))).sort()
 
-function carSearchText(c: Car): string {
-  return [
-    c.make, c.model, c.fuel, c.gear ?? '', c.reg,
-    c.tilbod ? 'tilbo\u00f0' : '', c.anVsk ? '\u00e1n vsk' : '',
-  ].join(' ').toLowerCase()
-}
-
-const QUICK_PICKS = ['Rafmagn', 'D\u00edsel', 'Bens\u00edn', 'Sj\u00e1lfskipting', 'Beinskipting', 'Tilbo\u00f0']
+/* quick picks double as live demos of the query language */
+const QUICK_PICKS = [
+  'Sj\u00e1lfskiptur d\u00edsel',
+  'Rafmagn undir 3m',
+  'Tilbo\u00f0 undir 2m',
+  '\u00c1rger\u00f0 eftir 2020',
+  'Beinskiptur bens\u00edn',
+]
 
 /* the whole "search engine": one input, one dropdown with everything -
    quick picks + every make when empty, live results (thumb+make+price)
@@ -365,12 +366,9 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
   const inputRef = useRef<HTMLInputElement>(null)
   const reduce = useReducedMotion()
 
-  const q = query.trim().toLowerCase()
-  const tokens = q.split(/\s+/).filter(Boolean)
-  const results = useMemo(() => {
-    if (!tokens.length) return []
-    return CARS.filter((c) => tokens.every((t) => carSearchText(c).includes(t)))
-  }, [q])
+  const q = query.trim()
+  const parsed = useMemo(() => parseQuery(q), [q])
+  const results = useMemo(() => (q ? searchCars(CARS, q).map((r) => r.car) : []), [q])
 
   useEffect(() => { setHi(0) }, [q])
 
@@ -439,7 +437,23 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
               WebkitBackdropFilter: 'blur(16px)',
             }}
           >
-            {!tokens.length ? (
+            {q && parsed.understood.length > 0 && (
+              <div className="mb-2 flex flex-wrap items-center gap-1.5 border-b px-2 pb-2.5 pt-1" style={{ borderColor: HAIR }}>
+                <span className="mr-1 text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                  Skilið sem
+                </span>
+                {parsed.understood.map((u) => (
+                  <span
+                    key={u}
+                    className="rounded-full px-2.5 py-1 text-[11px]"
+                    style={{ background: 'rgba(143,198,255,0.14)', color: XENON, fontFamily: MONO }}
+                  >
+                    {u}
+                  </span>
+                ))}
+              </div>
+            )}
+            {!q ? (
               <div className="p-2">
                 <div className="text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
                   Fljótleg leit
@@ -573,11 +587,10 @@ function Inventory() {
   const [seen, setSeen] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  const q = query.trim().toLowerCase()
+  const q = query.trim()
   const cars = useMemo(() => {
-    const tokens = q.split(/\s+/).filter(Boolean)
-    const list = CARS.filter((c) => tokens.every((t) => carSearchText(c).includes(t)))
-    return [...list].sort((a, b) => (asc ? a.priceNum - b.priceNum : b.priceNum - a.priceNum))
+    const list = q ? searchCars(CARS, q).map((r) => r.car) : [...CARS]
+    return list.sort((a, b) => (asc ? a.priceNum - b.priceNum : b.priceNum - a.priceNum))
   }, [q, asc])
 
   /* the odometer: counts the cars you have walked past. Synchronous scroll
