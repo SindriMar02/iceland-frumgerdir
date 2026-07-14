@@ -1302,7 +1302,7 @@ function Loader({ onFinish }: { onFinish: () => void }) {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <img src="/media/bilas-logo-hd.png" alt="Bílás – Bílasala Akraness" className="w-[220px]" />
+        <img src={LOGO.src} alt={LOGO.alt} className="w-[220px]" />
       </motion.div>
     )
   }
@@ -1317,7 +1317,7 @@ function Loader({ onFinish }: { onFinish: () => void }) {
       <div className="w-[220px] sm:w-[260px]">
         <video
           ref={(el) => { if (el) { el.muted = true; el.playbackRate = VIDEO_RATE; el.play().catch(() => setWordVisible(true)) } }}
-          src="/media/bilas-loader-car.mp4"
+          src={`${import.meta.env.BASE_URL}media/bilas-loader-car.mp4`}
           autoPlay
           muted
           playsInline

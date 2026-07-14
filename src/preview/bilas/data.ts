@@ -72,7 +72,7 @@ export const fmtPrice = (c: Car) =>
 
 /* transparent version: chroma-keyed off the navy background of the real
    bilas.is logo.png, so it sits directly on the page with no colour box */
-export const LOGO = { src: '/media/bilas-logo-hd.png', alt: 'Bílás – Bílasala Akraness' }
+export const LOGO = { src: `${import.meta.env.BASE_URL}media/bilas-logo-hd.png`, alt: 'Bílás – Bílasala Akraness' }
 
 /* hero + section photography = the dealer's own car photos, hi-res */
 export const PHOTO = {
@@ -101,8 +101,8 @@ export const CONTACT = {
 
 /* real staff photos, harvested from the "Starfsmenn" section of bilas.is */
 export const STAFF = [
-  { name: 'Alexander Þórsson', role: 'Eigandi og framkvæmdastjóri', email: 'alexander@bilas.is', photo: '/media/bilas-alexander.jpg' },
-  { name: 'Jón Haukur Pálmason', role: 'Sölumaður', email: 'jonhaukur@bilas.is', photo: '/media/bilas-jonhaukur.jpg' },
+  { name: 'Alexander Þórsson', role: 'Eigandi og framkvæmdastjóri', email: 'alexander@bilas.is', photo: `${import.meta.env.BASE_URL}media/bilas-alexander.jpg` },
+  { name: 'Jón Haukur Pálmason', role: 'Sölumaður', email: 'jonhaukur@bilas.is', photo: `${import.meta.env.BASE_URL}media/bilas-jonhaukur.jpg` },
 ]
 
 export const HOURS = [
