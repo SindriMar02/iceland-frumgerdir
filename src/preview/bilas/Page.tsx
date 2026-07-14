@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, Info, MapPin, Phone, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Check, ChevronDown, Info, MapPin, Phone, Search, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -22,7 +22,7 @@ import {
   fmtPrice,
 } from './data'
 import type { Car } from './data'
-import { norm, parseQuery, searchCars } from './search'
+import { carKm, parseQuery, searchCars } from './search'
 
 const company = getPreviewCompany('bilas')
 
@@ -58,6 +58,18 @@ const CSS = `
   @media (prefers-reduced-motion: reduce) {
     .bilas-kenburns { animation: none !important; }
   }
+  /* dual-handle range slider: two native inputs overlaid; only the thumbs
+     receive pointer events so both handles stay grabbable even overlapping */
+  .bilas-range { position: relative; height: 22px; }
+  .bilas-range-track { position: absolute; left: 0; right: 0; top: 50%; height: 4px; transform: translateY(-50%); border-radius: 9999px; background: rgba(242,245,249,0.14); }
+  .bilas-range-fill { position: absolute; top: 50%; height: 4px; transform: translateY(-50%); border-radius: 9999px; background: ${XENON}; }
+  .bilas-range input[type=range] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; background: transparent; pointer-events: none; -webkit-appearance: none; appearance: none; }
+  .bilas-range input[type=range]:focus { outline: none; }
+  .bilas-range input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 18px; height: 18px; border-radius: 9999px; background: ${XENON}; border: 3px solid ${BG}; box-shadow: 0 1px 5px rgba(0,0,0,0.5); cursor: grab; transition: transform 0.15s ${`cubic-bezier(0.32,0.72,0,1)`}; }
+  .bilas-range input[type=range]::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.15); }
+  .bilas-range input[type=range]::-moz-range-thumb { pointer-events: auto; width: 18px; height: 18px; border: 3px solid ${BG}; border-radius: 9999px; background: ${XENON}; box-shadow: 0 1px 5px rgba(0,0,0,0.5); cursor: grab; }
+  .bilas-range input[type=range]::-moz-range-track { background: transparent; border: none; }
+  .bilas-range input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid ${XENON}; outline-offset: 2px; }
 `
 
 /* ── shared reveal: content blocks rise in view; full-bleed backgrounds
@@ -347,69 +359,193 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 /* ── inventory browser: filters + odometer + the 24 real cars ── */
 const MAKES = Array.from(new Set(CARS.map((c) => c.make))).sort()
 
-/* structured browse facets. Each chip writes a canonical phrase into the
-   query (the engine parses it like typed text), so facets and free text
-   compose: "volvo" + click "Undir 3m" -> "volvo undir 3m". Groups are
-   mutually exclusive: picking a new price bracket replaces the old one. */
-type Facet = { label: string; phrase: string }
-const FACET_GROUPS: { title: string; facets: Facet[] }[] = [
-  {
-    title: 'Ver\u00f0',
-    facets: [
-      { label: 'Undir 1m', phrase: 'undir 1m' },
-      { label: '1-2m', phrase: '1-2m' },
-      { label: '2-3m', phrase: '2-3m' },
-      { label: 'Yfir 3m', phrase: 'yfir 3m' },
-    ],
-  },
-  {
-    title: '\u00c1rger\u00f0',
-    facets: [
-      { label: 'Fyrir 2015', phrase: '\u00e1rger\u00f0 fyrir 2015' },
-      { label: '2015-2020', phrase: '\u00e1rger\u00f0 2015-2020' },
-      { label: 'Eftir 2020', phrase: '\u00e1rger\u00f0 eftir 2020' },
-    ],
-  },
-  {
-    title: 'Akstur',
-    facets: [
-      { label: 'Undir 50 \u00fe.km', phrase: 'ekinn undir 50\u00fe' },
-      { label: '50-100 \u00fe.km', phrase: 'ekinn 50-100\u00fe' },
-      { label: '100-150 \u00fe.km', phrase: 'ekinn 100-150\u00fe' },
-      { label: 'Yfir 150 \u00fe.km', phrase: 'ekinn yfir 150\u00fe' },
-    ],
-  },
-  {
-    title: 'Eldsneyti',
-    facets: [
-      { label: 'Bens\u00edn', phrase: 'bens\u00edn' },
-      { label: 'D\u00edsel', phrase: 'd\u00edsel' },
-      { label: 'Rafmagn', phrase: 'rafmagn' },
-      { label: 'Hybrid', phrase: 'hybrid' },
-    ],
-  },
-  {
-    title: 'Skipting og kj\u00f6r',
-    facets: [
-      { label: 'Sj\u00e1lfskipting', phrase: 'sj\u00e1lfskiptur' },
-      { label: 'Beinskipting', phrase: 'beinskiptur' },
-      { label: 'Tilbo\u00f0', phrase: 'tilbo\u00f0' },
-    ],
-  },
-]
-
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
-function facetActive(query: string, phrase: string): boolean {
-  return new RegExp(`(^|\\s)${escapeRe(norm(phrase))}(\\s|$)`).test(norm(query))
+type Filters = {
+  price: [number, number]
+  year: [number, number]
+  km: [number, number]
+  make: string
+  fuel: string
+  gear: string
+  tilbod: boolean
 }
-function toggleFacet(query: string, group: Facet[], phrase: string): string {
-  const wasActive = facetActive(query, phrase)
-  let next = query
-  for (const f of group) {
-    next = next.replace(new RegExp(`(^|\\s)${escapeRe(f.phrase)}(?=\\s|$)`, 'gi'), ' ')
+
+/* data-driven slider bounds (rounded to friendly steps) */
+const carYear = (c: Car) => Number(c.reg.split('/')[1])
+const PRICE_MIN = Math.floor(Math.min(...CARS.map((c) => c.priceNum)) / 100000) * 100000
+const PRICE_MAX = Math.ceil(Math.max(...CARS.map((c) => c.priceNum)) / 100000) * 100000
+const YEAR_MIN = Math.min(...CARS.map(carYear))
+const YEAR_MAX = Math.max(...CARS.map(carYear))
+const KM_VALUES = CARS.map(carKm).filter((v): v is number => v !== null)
+const KM_MIN = 0
+const KM_MAX = Math.ceil(Math.max(...KM_VALUES) / 10000) * 10000
+
+const DEFAULT_FILTERS: Filters = {
+  price: [PRICE_MIN, PRICE_MAX],
+  year: [YEAR_MIN, YEAR_MAX],
+  km: [KM_MIN, KM_MAX],
+  make: '', fuel: '', gear: '', tilbod: false,
+}
+
+const FUELS = ['Bens\u00edn', 'D\u00edsel', 'Rafmagn', 'Hybrid']
+const GEARS = ['Sj\u00e1lfskipting', 'Beinskipting']
+
+function fuelMatch(c: Car, f: string): boolean {
+  if (f === 'Hybrid') return c.fuel.includes('/')
+  return c.fuel === f
+}
+
+/* applies the structured filters to a car (text search handled separately) */
+function passesFilters(c: Car, f: Filters): boolean {
+  if (f.price[0] > PRICE_MIN || f.price[1] < PRICE_MAX) {
+    if (c.priceNum < f.price[0] || c.priceNum > f.price[1]) return false
   }
-  next = next.replace(/\s+/g, ' ').trim()
-  return wasActive ? next : `${next} ${phrase}`.trim()
+  if (f.year[0] > YEAR_MIN || f.year[1] < YEAR_MAX) {
+    const y = carYear(c)
+    if (y < f.year[0] || y > f.year[1]) return false
+  }
+  if (f.km[0] > KM_MIN || f.km[1] < KM_MAX) {
+    const km = carKm(c)
+    if (km === null || km < f.km[0] || km > f.km[1]) return false
+  }
+  if (f.make && c.make !== f.make) return false
+  if (f.fuel && !fuelMatch(c, f.fuel)) return false
+  if (f.gear && c.gear !== f.gear) return false
+  if (f.tilbod && !c.tilbod) return false
+  return true
+}
+
+function filtersActive(f: Filters): boolean {
+  return (
+    f.price[0] > PRICE_MIN || f.price[1] < PRICE_MAX ||
+    f.year[0] > YEAR_MIN || f.year[1] < YEAR_MAX ||
+    f.km[0] > KM_MIN || f.km[1] < KM_MAX ||
+    Boolean(f.make || f.fuel || f.gear || f.tilbod)
+  )
+}
+
+const fmtM = (v: number) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1).replace('.', ',')}M` : `${Math.round(v / 1000)}\u00fe`)
+const fmtKmShort = (v: number) => `${Math.round(v / 1000)}\u00fe`
+
+/* dual-handle range slider (see .bilas-range CSS) */
+function RangeSlider({
+  min, max, step, value, onChange, format,
+}: {
+  min: number; max: number; step: number
+  value: [number, number]
+  onChange: (v: [number, number]) => void
+  format: (v: number) => string
+}) {
+  const [lo, hi] = value
+  const pct = (v: number) => ((v - min) / (max - min)) * 100
+  return (
+    <div className="bilas-range mt-3.5" aria-hidden={false}>
+      <div className="bilas-range-track" />
+      <div className="bilas-range-fill" style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }} />
+      <input
+        type="range" min={min} max={max} step={step} value={lo}
+        onChange={(e) => onChange([Math.min(Number(e.target.value), hi), hi])}
+        aria-label={`L\u00e1gmark: ${format(lo)}`}
+      />
+      <input
+        type="range" min={min} max={max} step={step} value={hi}
+        onChange={(e) => onChange([lo, Math.max(Number(e.target.value), lo)])}
+        aria-label={`H\u00e1mark: ${format(hi)}`}
+      />
+    </div>
+  )
+}
+
+/* styled native select with a chevron */
+function FilterSelect({
+  label, value, onChange, options, allLabel,
+}: {
+  label: string; value: string; onChange: (v: string) => void
+  options: string[]; allLabel: string
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>{label}</span>
+      <div className="relative mt-2">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={label}
+          className="w-full appearance-none rounded-xl border px-3.5 py-2.5 pr-9 text-[13px] outline-none transition-colors duration-200"
+          style={{ background: BG, borderColor: value ? XENON : HAIR, color: value ? INK : MUT, fontFamily: BODY }}
+        >
+          <option value="">{allLabel}</option>
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" style={{ color: MUT }} aria-hidden />
+      </div>
+    </label>
+  )
+}
+
+/* the aesthetic filter card: sliders for price/year/km, selects for the rest */
+function FilterPanel({ filters, setFilters, resultCount }: { filters: Filters; setFilters: (f: Filters) => void; resultCount: number }) {
+  const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setFilters({ ...filters, [k]: v })
+  const active = filtersActive(filters)
+  const sliders: { key: 'price' | 'year' | 'km'; label: string; min: number; max: number; step: number; format: (v: number) => string; readout: string }[] = [
+    { key: 'price', label: 'Ver\u00f0', min: PRICE_MIN, max: PRICE_MAX, step: 50000, format: fmtM, readout: `${fmtM(filters.price[0])} \u2013 ${fmtM(filters.price[1])} kr.` },
+    { key: 'year', label: '\u00c1rger\u00f0', min: YEAR_MIN, max: YEAR_MAX, step: 1, format: (v) => String(v), readout: `${filters.year[0]} \u2013 ${filters.year[1]}` },
+    { key: 'km', label: 'Akstur', min: KM_MIN, max: KM_MAX, step: 5000, format: fmtKmShort, readout: `${fmtKmShort(filters.km[0])} \u2013 ${fmtKmShort(filters.km[1])} km` },
+  ]
+  return (
+    <div className="rounded-2xl border p-5 md:p-6" style={{ background: SURFACE, borderColor: HAIR }}>
+      <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-3">
+        {sliders.map((s) => (
+          <div key={s.key}>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>{s.label}</span>
+              <span className="text-[12px] tabular-nums" style={{ fontFamily: MONO, color: INK }}>{s.readout}</span>
+            </div>
+            <RangeSlider
+              min={s.min} max={s.max} step={s.step} format={s.format}
+              value={filters[s.key]}
+              onChange={(v) => set(s.key, v)}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 border-t pt-6 sm:grid-cols-3" style={{ borderColor: HAIR }}>
+        <FilterSelect label="Tegund" value={filters.make} onChange={(v) => set('make', v)} options={MAKES} allLabel="Allar tegundir" />
+        <FilterSelect label="Eldsneyti" value={filters.fuel} onChange={(v) => set('fuel', v)} options={FUELS} allLabel="Allt eldsneyti" />
+        <FilterSelect label="Skipting" value={filters.gear} onChange={(v) => set('gear', v)} options={GEARS} allLabel="Allar skiptingar" />
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <button
+          onClick={() => set('tilbod', !filters.tilbod)}
+          aria-pressed={filters.tilbod}
+          className="flex items-center gap-2.5 rounded-full border py-2 pl-2 pr-4 text-[13px] transition-colors duration-200"
+          style={{ borderColor: filters.tilbod ? XENON : HAIR, color: INK, fontFamily: BODY }}
+        >
+          <span
+            className="flex h-5 w-5 items-center justify-center rounded-full transition-colors duration-200"
+            style={{ background: filters.tilbod ? XENON : 'transparent', border: filters.tilbod ? 'none' : `1px solid ${HAIR}` }}
+          >
+            {filters.tilbod && <Check size={13} style={{ color: DARKINK }} aria-hidden />}
+          </span>
+          Aðeins tilboð
+        </button>
+
+        <div className="flex items-center gap-4">
+          <span className="text-[13px] tabular-nums" style={{ fontFamily: MONO, color: MUT }}>{resultCount} bílar</span>
+          {active && (
+            <button
+              onClick={() => setFilters(DEFAULT_FILTERS)}
+              className="text-[13px] underline-offset-4 hover:underline"
+              style={{ fontFamily: BODY, color: XENON }}
+            >
+              Hreinsa síur
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /* the whole "search engine": one input, one dropdown with everything -
@@ -457,7 +593,7 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setOpen(true)}
-        placeholder="Leitaðu að teg., gerð, verði, eldsneyti..."
+        placeholder="Leitaðu að tegund eða gerð..."
         aria-label="Leita í bílunum á staðnum"
         role="combobox"
         aria-expanded={open}
@@ -477,7 +613,7 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
       )}
 
       <AnimatePresence>
-        {open && (
+        {open && q && (
           <motion.div
             role="listbox"
             aria-label="Leitarniðurstöður"
@@ -509,70 +645,6 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
                 ))}
               </div>
             )}
-            {/* structured browse: filter by price, age, km, fuel, gear, make */}
-            <div className="p-2">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {FACET_GROUPS.map((g) => (
-                  <div key={g.title}>
-                    <div className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-                      {g.title}
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {g.facets.map((f) => {
-                        const active = facetActive(query, f.phrase)
-                        const nextQuery = toggleFacet(query, g.facets, f.phrase)
-                        const count = active ? null : searchCars(CARS, nextQuery).length
-                        return (
-                          <button
-                            key={f.phrase}
-                            onClick={() => setQuery(nextQuery)}
-                            aria-pressed={active}
-                            disabled={!active && count === 0}
-                            className="rounded-full border px-3 py-1.5 text-[12px] transition-colors duration-200 disabled:opacity-35"
-                            style={{
-                              fontFamily: BODY,
-                              background: active ? XENON : 'transparent',
-                              color: active ? DARKINK : INK,
-                              borderColor: active ? XENON : HAIR,
-                            }}
-                          >
-                            {f.label}
-                            {count !== null && count > 0 && (
-                              <span className="ml-1.5" style={{ fontFamily: MONO, color: active ? DARKINK : MUT }}>{count}</span>
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-                    Tegund
-                  </div>
-                  <select
-                    value={MAKES.find((m) => facetActive(query, m)) ?? ''}
-                    onChange={(e) => {
-                      let next = query
-                      for (const m of MAKES) {
-                        next = next.replace(new RegExp(`(^|\\s)${escapeRe(m)}(?=\\s|$)`, 'gi'), ' ')
-                      }
-                      next = next.replace(/\s+/g, ' ').trim()
-                      setQuery(e.target.value ? `${next} ${e.target.value}`.trim() : next)
-                    }}
-                    aria-label="Velja tegund"
-                    className="mt-2 w-full rounded-lg border px-3 py-2 text-[13px] outline-none"
-                    style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: BODY }}
-                  >
-                    <option value="">Allar tegundir</option>
-                    {MAKES.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
             {q ? (results.length ? (
               <div className="mt-2 flex flex-col gap-1 border-t pt-2" style={{ borderColor: HAIR }}>
                 {results.map((c, i) => (
@@ -670,15 +742,18 @@ function CarCard({ car, index }: { car: Car; index: number }) {
 
 function Inventory() {
   const [query, setQuery] = useState('')
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [asc, setAsc] = useState(true)
   const [seen, setSeen] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
   const q = query.trim()
   const cars = useMemo(() => {
-    const list = q ? searchCars(CARS, q).map((r) => r.car) : [...CARS]
+    /* free-text search (if any) ∩ structured slider/select filters */
+    const textIds = q ? new Set(searchCars(CARS, q).map((r) => r.car.href)) : null
+    const list = CARS.filter((c) => (!textIds || textIds.has(c.href)) && passesFilters(c, filters))
     return list.sort((a, b) => (asc ? a.priceNum - b.priceNum : b.priceNum - a.priceNum))
-  }, [q, asc])
+  }, [q, asc, filters])
 
   /* the odometer: counts the cars you have walked past. Synchronous scroll
      handler (rAF is throttled in embedded previews; this is verifiable). */
@@ -719,7 +794,13 @@ function Inventory() {
       </Rise>
 
       <Rise delay={0.15}>
-        <div className="mt-5 flex items-center justify-between gap-4">
+        <div className="mt-5">
+          <FilterPanel filters={filters} setFilters={setFilters} resultCount={cars.length} />
+        </div>
+      </Rise>
+
+      <Rise delay={0.2}>
+        <div className="mt-6 flex items-center justify-between gap-4">
           <p className="text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
             {cars.length} af {CARS.length} bílum
           </p>
@@ -766,18 +847,18 @@ function Inventory() {
       {cars.length === 0 && (
         <div className="mt-16 text-center">
           <p className="text-[15px]" style={{ color: MUT, fontFamily: BODY }}>
-            {q
-              ? `Enginn bíll fannst fyrir „${query.trim()}“.`
+            {q || filtersActive(filters)
+              ? 'Enginn bíll passar við leitina.'
               : 'Enginn bíll á staðnum í augnablikinu.'}{' '}
             Hringdu í {CONTACT.phoneDisplay}, næsta sending gæti verið á leiðinni.
           </p>
-          {q && (
+          {(q || filtersActive(filters)) && (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => { setQuery(''); setFilters(DEFAULT_FILTERS) }}
               className="mt-4 rounded-full border px-5 py-2 text-[13px] transition-colors duration-200"
               style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}
             >
-              Hreinsa leit
+              Hreinsa leit og síur
             </button>
           )}
         </div>
