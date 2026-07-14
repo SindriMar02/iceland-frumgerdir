@@ -1102,7 +1102,7 @@ function Loader({ onFinish }: { onFinish: () => void }) {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <img src="/media/bilas-logo-transparent.png" alt="Bílás – Bílasala Akraness" className="w-[240px]" />
+        <img src="/media/bilas-logo-hd.png" alt="Bílás – Bílasala Akraness" className="w-[220px]" />
       </motion.div>
     )
   }
@@ -1126,18 +1126,16 @@ function Loader({ onFinish }: { onFinish: () => void }) {
           className="w-full mix-blend-screen"
         />
       </div>
-      {/* the real wordmark, sized/tucked to reassemble the original logo:
-          in logo.png the wordmark spans the same width as the car and
-          sits directly beneath it. The video frame letterboxes the car
-          to ~63% of its width, so the wordmark gets 63% of the same
-          wrapper and a negative top margin to close the letterbox gap. */}
+      {/* the wordmark, re-vectorised from the real logo at high resolution
+          (traced "Bílás" letterforms + set tagline, chrome-filled). Sized
+          and tucked to reassemble the original logo beneath the car. */}
       <motion.img
-        src="/media/bilas-logo-wordmark.png"
+        src="/media/bilas-logo-wordmark-hd.png"
         alt="Bílás – Bílasala Akraness"
         initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
         animate={wordVisible ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
         transition={{ duration: 0.7, ease: EASE }}
-        className="-mt-8 w-[164px] sm:-mt-10 sm:w-[214px]"
+        className="-mt-6 w-[188px] sm:-mt-8 sm:w-[246px]"
       />
     </motion.div>
   )

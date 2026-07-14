@@ -72,7 +72,7 @@ export const fmtPrice = (c: Car) =>
 
 /* transparent version: chroma-keyed off the navy background of the real
    bilas.is logo.png, so it sits directly on the page with no colour box */
-export const LOGO = { src: '/media/bilas-logo-transparent.png', alt: 'Bílás – Bílasala Akraness' }
+export const LOGO = { src: '/media/bilas-logo-hd.png', alt: 'Bílás – Bílasala Akraness' }
 
 /* hero + section photography = the dealer's own car photos, hi-res */
 export const PHOTO = {
