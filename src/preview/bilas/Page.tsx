@@ -22,7 +22,7 @@ import {
   fmtPrice,
 } from './data'
 import type { Car } from './data'
-import { parseQuery, searchCars } from './search'
+import { norm, parseQuery, searchCars } from './search'
 
 const company = getPreviewCompany('bilas')
 
@@ -347,14 +347,70 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 /* ── inventory browser: filters + odometer + the 24 real cars ── */
 const MAKES = Array.from(new Set(CARS.map((c) => c.make))).sort()
 
-/* quick picks double as live demos of the query language */
-const QUICK_PICKS = [
-  'Sj\u00e1lfskiptur d\u00edsel',
-  'Rafmagn undir 3m',
-  'Tilbo\u00f0 undir 2m',
-  '\u00c1rger\u00f0 eftir 2020',
-  'Beinskiptur bens\u00edn',
+/* structured browse facets. Each chip writes a canonical phrase into the
+   query (the engine parses it like typed text), so facets and free text
+   compose: "volvo" + click "Undir 3m" -> "volvo undir 3m". Groups are
+   mutually exclusive: picking a new price bracket replaces the old one. */
+type Facet = { label: string; phrase: string }
+const FACET_GROUPS: { title: string; facets: Facet[] }[] = [
+  {
+    title: 'Ver\u00f0',
+    facets: [
+      { label: 'Undir 1m', phrase: 'undir 1m' },
+      { label: '1-2m', phrase: '1-2m' },
+      { label: '2-3m', phrase: '2-3m' },
+      { label: 'Yfir 3m', phrase: 'yfir 3m' },
+    ],
+  },
+  {
+    title: '\u00c1rger\u00f0',
+    facets: [
+      { label: 'Fyrir 2015', phrase: '\u00e1rger\u00f0 fyrir 2015' },
+      { label: '2015-2020', phrase: '\u00e1rger\u00f0 2015-2020' },
+      { label: 'Eftir 2020', phrase: '\u00e1rger\u00f0 eftir 2020' },
+    ],
+  },
+  {
+    title: 'Akstur',
+    facets: [
+      { label: 'Undir 50 \u00fe.km', phrase: 'ekinn undir 50\u00fe' },
+      { label: '50-100 \u00fe.km', phrase: 'ekinn 50-100\u00fe' },
+      { label: '100-150 \u00fe.km', phrase: 'ekinn 100-150\u00fe' },
+      { label: 'Yfir 150 \u00fe.km', phrase: 'ekinn yfir 150\u00fe' },
+    ],
+  },
+  {
+    title: 'Eldsneyti',
+    facets: [
+      { label: 'Bens\u00edn', phrase: 'bens\u00edn' },
+      { label: 'D\u00edsel', phrase: 'd\u00edsel' },
+      { label: 'Rafmagn', phrase: 'rafmagn' },
+      { label: 'Hybrid', phrase: 'hybrid' },
+    ],
+  },
+  {
+    title: 'Skipting og kj\u00f6r',
+    facets: [
+      { label: 'Sj\u00e1lfskipting', phrase: 'sj\u00e1lfskiptur' },
+      { label: 'Beinskipting', phrase: 'beinskiptur' },
+      { label: 'Tilbo\u00f0', phrase: 'tilbo\u00f0' },
+    ],
+  },
 ]
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
+function facetActive(query: string, phrase: string): boolean {
+  return new RegExp(`(^|\\s)${escapeRe(norm(phrase))}(\\s|$)`).test(norm(query))
+}
+function toggleFacet(query: string, group: Facet[], phrase: string): string {
+  const wasActive = facetActive(query, phrase)
+  let next = query
+  for (const f of group) {
+    next = next.replace(new RegExp(`(^|\\s)${escapeRe(f.phrase)}(?=\\s|$)`, 'gi'), ' ')
+  }
+  next = next.replace(/\s+/g, ' ').trim()
+  return wasActive ? next : `${next} ${phrase}`.trim()
+}
 
 /* the whole "search engine": one input, one dropdown with everything -
    quick picks + every make when empty, live results (thumb+make+price)
@@ -429,7 +485,7 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: EASE }}
-            className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-[420px] overflow-y-auto rounded-2xl border p-3"
+            className="absolute left-0 top-[calc(100%+10px)] z-30 max-h-[540px] w-[min(88vw,560px)] overflow-y-auto rounded-2xl border p-3"
             style={{
               background: 'rgba(18,21,28,0.96)',
               borderColor: HAIR,
@@ -453,41 +509,72 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
                 ))}
               </div>
             )}
-            {!q ? (
-              <div className="p-2">
-                <div className="text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-                  Fljótleg leit
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {QUICK_PICKS.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setQuery(p)}
-                      className="rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-200"
-                      style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-5 text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
-                  Tegundir
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {MAKES.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setQuery(m)}
-                      className="rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-200"
-                      style={{ borderColor: HAIR, color: MUT, fontFamily: BODY }}
-                    >
-                      {m}
-                    </button>
-                  ))}
+            {/* structured browse: filter by price, age, km, fuel, gear, make */}
+            <div className="p-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {FACET_GROUPS.map((g) => (
+                  <div key={g.title}>
+                    <div className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                      {g.title}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {g.facets.map((f) => {
+                        const active = facetActive(query, f.phrase)
+                        const nextQuery = toggleFacet(query, g.facets, f.phrase)
+                        const count = active ? null : searchCars(CARS, nextQuery).length
+                        return (
+                          <button
+                            key={f.phrase}
+                            onClick={() => setQuery(nextQuery)}
+                            aria-pressed={active}
+                            disabled={!active && count === 0}
+                            className="rounded-full border px-3 py-1.5 text-[12px] transition-colors duration-200 disabled:opacity-35"
+                            style={{
+                              fontFamily: BODY,
+                              background: active ? XENON : 'transparent',
+                              color: active ? DARKINK : INK,
+                              borderColor: active ? XENON : HAIR,
+                            }}
+                          >
+                            {f.label}
+                            {count !== null && count > 0 && (
+                              <span className="ml-1.5" style={{ fontFamily: MONO, color: active ? DARKINK : MUT }}>{count}</span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                    Tegund
+                  </div>
+                  <select
+                    value={MAKES.find((m) => facetActive(query, m)) ?? ''}
+                    onChange={(e) => {
+                      let next = query
+                      for (const m of MAKES) {
+                        next = next.replace(new RegExp(`(^|\\s)${escapeRe(m)}(?=\\s|$)`, 'gi'), ' ')
+                      }
+                      next = next.replace(/\s+/g, ' ').trim()
+                      setQuery(e.target.value ? `${next} ${e.target.value}`.trim() : next)
+                    }}
+                    aria-label="Velja tegund"
+                    className="mt-2 w-full rounded-lg border px-3 py-2 text-[13px] outline-none"
+                    style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: BODY }}
+                  >
+                    <option value="">Allar tegundir</option>
+                    {MAKES.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            ) : results.length ? (
-              <div className="flex flex-col gap-1">
+            </div>
+
+            {q ? (results.length ? (
+              <div className="mt-2 flex flex-col gap-1 border-t pt-2" style={{ borderColor: HAIR }}>
                 {results.map((c, i) => (
                   <a
                     key={c.href}
@@ -517,7 +604,7 @@ function SearchEngine({ query, setQuery }: { query: string; setQuery: (v: string
               <p className="p-4 text-center text-[13px]" style={{ color: MUT, fontFamily: BODY }}>
                 Ekkert fannst fyrir „{query.trim()}“.
               </p>
-            )}
+            )) : null}
           </motion.div>
         )}
       </AnimatePresence>
