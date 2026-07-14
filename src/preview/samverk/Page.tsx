@@ -113,8 +113,17 @@ const CSS = `
 .sv-stat-label{font-family:${SANS};font-weight:700;font-size:.92rem;margin-top:.6rem;color:${INK}}
 .sv-story-body{font-family:${SANS};color:${MUTE};font-size:1.03rem;line-height:1.65;max-width:36rem}
 
-.sv-index-grid{display:grid;gap:3rem;margin-top:3rem}
-@media (min-width:900px){.sv-index-grid{grid-template-columns:.85fr 1.15fr;align-items:start}}
+/* Mobile: plain stack in DOM order (list, then pane, then description) so the
+   photo is visible right under the list you're tapping, not buried below a
+   paragraph of text. Desktop: named areas put the pane beside both. */
+.sv-index-grid{display:grid;gap:2rem;margin-top:3rem}
+@media (min-width:900px){
+  .sv-index-grid{grid-template-columns:.85fr 1.15fr;grid-template-areas:"list pane" "desc pane";
+    column-gap:4rem;row-gap:2.5rem;align-items:start}
+  .sv-index-col-list{grid-area:list}
+  .sv-index-col-pane{grid-area:pane}
+  .sv-index-col-desc{grid-area:desc}
+}
 .sv-index-list{list-style:none;display:grid;border-top:1px solid ${HAIR}}
 .sv-index-item{border-bottom:1px solid ${HAIR}}
 .sv-index-btn{display:flex;width:100%;align-items:center;justify-content:space-between;gap:1rem;
@@ -123,7 +132,7 @@ const CSS = `
 .sv-index-btn:hover{color:${INK}}
 .sv-index-item.is-active .sv-index-btn{color:${BLUE}}
 .sv-index-btn-num{font-family:${SANS};font-size:.78rem;color:${MUTE};font-weight:500}
-.sv-index-body{font-family:${SANS};color:${MUTE};font-size:.92rem;line-height:1.5;margin-top:3rem;max-width:34rem}
+.sv-index-body{font-family:${SANS};color:${MUTE};font-size:.92rem;line-height:1.5;max-width:34rem}
 .sv-chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.5rem}
 .sv-chip{font-family:${SANS};font-size:.82rem;font-weight:500;color:${MUTE};background:${PANEL};
   border:1px solid ${HAIR};border-radius:99px;padding:.4rem .9rem}
@@ -224,7 +233,7 @@ function ProductIndex() {
 
   return (
     <div className="sv-index-grid">
-      <div>
+      <div className="sv-index-col-list">
         <ul className="sv-index-list">
           {PRODUCTS.map((item, i) => (
             <li key={item.key} className={`sv-index-item${i === active ? ' is-active' : ''}`}>
@@ -235,6 +244,12 @@ function ProductIndex() {
             </li>
           ))}
         </ul>
+      </div>
+      <div className="sv-index-col-pane sv-pane">
+        <Img src={p.img} alt={p.name} />
+        <div className="sv-pane-cap">{p.name}</div>
+      </div>
+      <div className="sv-index-col-desc">
         <p className="sv-index-body">{p.body}</p>
         <div className="sv-chips">
           {MORE_PRODUCTS.map((m) => (
@@ -243,10 +258,6 @@ function ProductIndex() {
             </span>
           ))}
         </div>
-      </div>
-      <div className="sv-pane">
-        <Img src={p.img} alt={p.name} />
-        <div className="sv-pane-cap">{p.name}</div>
       </div>
     </div>
   )
