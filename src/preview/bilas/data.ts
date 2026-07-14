@@ -97,9 +97,10 @@ export const CONTACT = {
   kennitala: '670807-1180',
 }
 
+/* real staff photos, harvested from the "Starfsmenn" section of bilas.is */
 export const STAFF = [
-  { name: 'Alexander Þórsson', role: 'Eigandi og framkvæmdastjóri', email: 'alexander@bilas.is' },
-  { name: 'Jón Haukur Pálmason', role: 'Sölumaður', email: 'jonhaukur@bilas.is' },
+  { name: 'Alexander Þórsson', role: 'Eigandi og framkvæmdastjóri', email: 'alexander@bilas.is', photo: '/media/bilas-alexander.jpg' },
+  { name: 'Jón Haukur Pálmason', role: 'Sölumaður', email: 'jonhaukur@bilas.is', photo: '/media/bilas-jonhaukur.jpg' },
 ]
 
 export const HOURS = [
