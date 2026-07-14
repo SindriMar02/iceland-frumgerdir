@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, Info, MapPin, Phone, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, ChevronDown, Info, MapPin, Phone, Search, SlidersHorizontal, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -366,6 +366,173 @@ function matches(c: Car, f: FuelFilter): boolean {
   }
 }
 
+const MAKES = Array.from(new Set(CARS.map((c) => c.make))).sort()
+type GearFilter = 'allir' | 'Sjálfskipting' | 'Beinskipting'
+
+/* a single aesthetic "more filters" dropdown (make + price range + gearbox)
+   layered on top of the fuel chips + search box, closes on outside click */
+function FiltersDropdown({
+  make, setMake, gear, setGear, minPrice, setMinPrice, maxPrice, setMaxPrice,
+}: {
+  make: string
+  setMake: (v: string) => void
+  gear: GearFilter
+  setGear: (v: GearFilter) => void
+  minPrice: string
+  setMinPrice: (v: string) => void
+  maxPrice: string
+  setMaxPrice: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion()
+  const activeCount = (make !== 'allir' ? 1 : 0) + (gear !== 'allir' ? 1 : 0) + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0)
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const reset = () => { setMake('allir'); setGear('allir'); setMinPrice(''); setMaxPrice('') }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className="flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] transition-[background-color,color,border-color,transform] duration-200 active:scale-[0.97]"
+        style={{
+          fontFamily: BODY,
+          background: activeCount ? XENON : 'transparent',
+          color: activeCount ? DARKINK : INK,
+          borderColor: activeCount ? XENON : HAIR,
+        }}
+      >
+        <SlidersHorizontal size={14} aria-hidden />
+        Fleiri síur
+        {activeCount > 0 && (
+          <span
+            className="flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none"
+            style={{ background: DARKINK, color: XENON, fontFamily: MONO }}
+          >
+            {activeCount}
+          </span>
+        )}
+        <ChevronDown size={14} className="transition-transform duration-200" style={{ transform: open ? 'rotate(180deg)' : 'none' }} aria-hidden />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="dialog"
+            aria-label="Fleiri síur"
+            initial={reduce ? false : { opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: EASE }}
+            className="absolute left-0 top-[calc(100%+10px)] z-30 w-[300px] rounded-2xl border p-5"
+            style={{
+              background: 'rgba(18,21,28,0.92)',
+              borderColor: HAIR,
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+          >
+            <label className="block text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+              Tegund
+            </label>
+            <select
+              value={make}
+              onChange={(e) => setMake(e.target.value)}
+              className="mt-2 w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none"
+              style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: BODY }}
+            >
+              <option value="allir">Allar tegundir</option>
+              {MAKES.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+
+            <label className="mt-5 block text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+              Verðbil (kr.)
+            </label>
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Frá"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                aria-label="Verð frá, kr."
+                className="w-full min-w-0 rounded-lg border px-3 py-2.5 text-[14px] outline-none"
+                style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: MONO }}
+              />
+              <span style={{ color: MUT }} aria-hidden>–</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Til"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                aria-label="Verð til, kr."
+                className="w-full min-w-0 rounded-lg border px-3 py-2.5 text-[14px] outline-none"
+                style={{ background: BG, borderColor: HAIR, color: INK, fontFamily: MONO }}
+              />
+            </div>
+
+            <label className="mt-5 block text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+              Gírkassi
+            </label>
+            <div className="mt-2 flex gap-2">
+              {(['allir', 'Sjálfskipting', 'Beinskipting'] as const).map((g) => {
+                const gActive = gear === g
+                return (
+                  <button
+                    key={g}
+                    onClick={() => setGear(g)}
+                    aria-pressed={gActive}
+                    className="flex-1 rounded-lg border py-2 text-[13px] transition-colors duration-200"
+                    style={{
+                      background: gActive ? XENON : 'transparent',
+                      color: gActive ? DARKINK : INK,
+                      borderColor: gActive ? XENON : HAIR,
+                      fontFamily: BODY,
+                    }}
+                  >
+                    {g === 'allir' ? 'Allir' : g}
+                  </button>
+                )
+              })}
+            </div>
+
+            {activeCount > 0 && (
+              <button
+                onClick={reset}
+                className="mt-5 w-full rounded-lg border py-2 text-[13px] transition-colors duration-200"
+                style={{ borderColor: HAIR, color: MUT, fontFamily: BODY }}
+              >
+                Núllstilla síur
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 function CarCard({ car, index }: { car: Car; index: number }) {
   return (
     <motion.a
@@ -425,17 +592,31 @@ function CarCard({ car, index }: { car: Car; index: number }) {
 function Inventory() {
   const [filter, setFilter] = useState<FuelFilter>('allir')
   const [query, setQuery] = useState('')
+  const [make, setMake] = useState('allir')
+  const [gear, setGear] = useState<GearFilter>('allir')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
   const [asc, setAsc] = useState(true)
   const [seen, setSeen] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
   const q = query.trim().toLowerCase()
+  const min = minPrice ? Number(minPrice) : null
+  const max = maxPrice ? Number(maxPrice) : null
   const cars = useMemo(() => {
     const list = CARS.filter(
-      (c) => matches(c, filter) && (!q || `${c.make} ${c.model}`.toLowerCase().includes(q)),
+      (c) =>
+        matches(c, filter) &&
+        (!q || `${c.make} ${c.model}`.toLowerCase().includes(q)) &&
+        (make === 'allir' || c.make === make) &&
+        (gear === 'allir' || c.gear === gear) &&
+        (min === null || c.priceNum >= min) &&
+        (max === null || c.priceNum <= max),
     )
     return [...list].sort((a, b) => (asc ? a.priceNum - b.priceNum : b.priceNum - a.priceNum))
-  }, [filter, asc, q])
+  }, [filter, asc, q, make, gear, min, max])
+
+  const moreFiltersActive = make !== 'allir' || gear !== 'allir' || minPrice !== '' || maxPrice !== ''
 
   /* the odometer: counts the cars you have walked past. Synchronous scroll
      handler (rAF is throttled in embedded previews; this is verifiable). */
@@ -508,6 +689,16 @@ function Inventory() {
               </button>
             )
           })}
+          <FiltersDropdown
+            make={make}
+            setMake={setMake}
+            gear={gear}
+            setGear={setGear}
+            minPrice={minPrice}
+            setMinPrice={setMinPrice}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
+          />
           <button
             onClick={() => setAsc((v) => !v)}
             className="ml-auto rounded-full border px-4 py-2 text-[13px] transition-[border-color,transform] duration-200 active:scale-[0.97]"
@@ -556,13 +747,20 @@ function Inventory() {
               : 'Enginn bíll passar við þessa síu núna.'}{' '}
             Hringdu í {CONTACT.phoneDisplay}, næsta sending gæti verið á leiðinni.
           </p>
-          {(q || filter !== 'allir') && (
+          {(q || filter !== 'allir' || moreFiltersActive) && (
             <button
-              onClick={() => { setQuery(''); setFilter('allir') }}
+              onClick={() => {
+                setQuery('')
+                setFilter('allir')
+                setMake('allir')
+                setGear('allir')
+                setMinPrice('')
+                setMaxPrice('')
+              }}
               className="mt-4 rounded-full border px-5 py-2 text-[13px] transition-colors duration-200"
               style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}
             >
-              Hreinsa leit og síu
+              Hreinsa leit og síur
             </button>
           )}
         </div>
