@@ -975,8 +975,11 @@ function StickyBar() {
 
 /* ── the page ── */
 /* ── loading screen: the car boomerang (glint transforms in, then reverses
-      back out to the plain silhouette that matches the real logo) plays
-      once, then "BÍLÁS" reveals underneath. Body scroll locked while up. */
+      back out to the plain silhouette) plays once, then the REAL chrome
+      wordmark from the actual logo ("Bílás" + "Bílasala Akraness",
+      chroma-keyed off logo.png) reveals beneath at the original logo's
+      proportions, so the end state assembles into the real Bílás logo.
+      Body scroll locked while up. */
 function Loader({ onFinish }: { onFinish: () => void }) {
   const reduce = useReducedMotion()
   const [wordVisible, setWordVisible] = useState(reduce)
@@ -989,7 +992,7 @@ function Loader({ onFinish }: { onFinish: () => void }) {
 
   useEffect(() => {
     if (reduce) {
-      const t = setTimeout(onFinish, 900)
+      const t = setTimeout(onFinish, 1200)
       return () => clearTimeout(t)
     }
     /* fallback in case the video's onEnded never fires (slow network etc.) */
@@ -999,40 +1002,56 @@ function Loader({ onFinish }: { onFinish: () => void }) {
 
   useEffect(() => {
     if (!wordVisible) return
-    const t = setTimeout(onFinish, 1100)
+    const t = setTimeout(onFinish, 1300)
     return () => clearTimeout(t)
   }, [wordVisible, onFinish])
 
+  if (reduce) {
+    /* no motion: just show the complete original logo, then continue */
+    return (
+      <motion.div
+        className="fixed inset-0 z-[100] flex items-center justify-center"
+        style={{ background: BG }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <img src="/media/bilas-logo-transparent.png" alt="Bílás – Bílasala Akraness" className="w-[240px]" />
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
       style={{ background: BG }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
-      <div className="w-[220px] sm:w-[300px]">
-        {reduce ? (
-          <img src="/media/bilas-logo-car-hires.png" alt="" className="w-full" />
-        ) : (
-          <video
-            src="/media/bilas-loader-car.mp4"
-            autoPlay
-            muted
-            playsInline
-            onEnded={() => setWordVisible(true)}
-            className="w-full"
-          />
-        )}
+      <div className="w-[260px] sm:w-[340px]">
+        <video
+          src="/media/bilas-loader-car.mp4"
+          autoPlay
+          muted
+          playsInline
+          onEnded={() => setWordVisible(true)}
+          /* screen-blend erases the video's black letterbox against the
+             page ground so only the white line-art shows */
+          className="w-full mix-blend-screen"
+        />
       </div>
-      <motion.div
-        initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
+      {/* the real wordmark, sized/tucked to reassemble the original logo:
+          in logo.png the wordmark spans the same width as the car and
+          sits directly beneath it. The video frame letterboxes the car
+          to ~63% of its width, so the wordmark gets 63% of the same
+          wrapper and a negative top margin to close the letterbox gap. */}
+      <motion.img
+        src="/media/bilas-logo-wordmark.png"
+        alt="Bílás – Bílasala Akraness"
+        initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
         animate={wordVisible ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
         transition={{ duration: 0.7, ease: EASE }}
-        className="text-[clamp(2rem,7vw,3.4rem)] uppercase leading-none"
-        style={{ fontFamily: DISPLAY, color: INK }}
-      >
-        Bílás
-      </motion.div>
+        className="-mt-8 w-[164px] sm:-mt-10 sm:w-[214px]"
+      />
     </motion.div>
   )
 }
