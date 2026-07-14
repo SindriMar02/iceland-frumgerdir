@@ -961,8 +961,72 @@ function StickyBar() {
 }
 
 /* ── the page ── */
+/* ── loading screen: the car boomerang (glint transforms in, then reverses
+      back out to the plain silhouette that matches the real logo) plays
+      once, then "BÍLÁS" reveals underneath. Body scroll locked while up. */
+function Loader({ onFinish }: { onFinish: () => void }) {
+  const reduce = useReducedMotion()
+  const [wordVisible, setWordVisible] = useState(reduce)
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prevOverflow }
+  }, [])
+
+  useEffect(() => {
+    if (reduce) {
+      const t = setTimeout(onFinish, 900)
+      return () => clearTimeout(t)
+    }
+    /* fallback in case the video's onEnded never fires (slow network etc.) */
+    const t = setTimeout(() => setWordVisible(true), 3400)
+    return () => clearTimeout(t)
+  }, [reduce, onFinish])
+
+  useEffect(() => {
+    if (!wordVisible) return
+    const t = setTimeout(onFinish, 1100)
+    return () => clearTimeout(t)
+  }, [wordVisible, onFinish])
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5"
+      style={{ background: BG }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, ease: EASE }}
+    >
+      <div className="w-[220px] sm:w-[300px]">
+        {reduce ? (
+          <img src="/media/bilas-logo-car-hires.png" alt="" className="w-full" />
+        ) : (
+          <video
+            src="/media/bilas-loader-car.mp4"
+            autoPlay
+            muted
+            playsInline
+            onEnded={() => setWordVisible(true)}
+            className="w-full"
+          />
+        )}
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
+        animate={wordVisible ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
+        transition={{ duration: 0.7, ease: EASE }}
+        className="text-[clamp(2rem,7vw,3.4rem)] uppercase leading-none"
+        style={{ fontFamily: DISPLAY, color: INK }}
+      >
+        Bílás
+      </motion.div>
+    </motion.div>
+  )
+}
+
 export default function Page() {
   const lenisRef = useRef<Lenis | null>(null)
+  const [loaderDone, setLoaderDone] = useState(false)
 
   useEffect(() => {
     document.title = META.title
@@ -1000,6 +1064,9 @@ export default function Page() {
   return (
     <div className="bilas-page min-h-screen overflow-x-clip pb-16 antialiased md:pb-0" style={{ background: BG, color: INK, fontFamily: BODY }}>
       <style>{CSS}</style>
+      <AnimatePresence>
+        {!loaderDone && <Loader key="loader" onFinish={() => setLoaderDone(true)} />}
+      </AnimatePresence>
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero lenisRef={lenisRef} />
