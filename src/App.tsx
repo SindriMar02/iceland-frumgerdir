@@ -103,6 +103,8 @@ const HudflurPage = lazy(() => import('./preview/hudflur/Page'))
 const UnaPage = lazy(() => import('./preview/una/Page'))
 // Fótógrafí — Reykjavík photography shop, "Framköllun" darkroom-reveal concept
 const FotografiPage = lazy(() => import('./preview/fotografi/Page'))
+// Bílasalan Bílás — Akranes used-car dealer, "Á staðnum" live-lot concept
+const BilasPage = lazy(() => import('./preview/bilas/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -216,6 +218,7 @@ export default function App() {
             <Route path="/preview/hudflur" element={<HudflurPage />} />
             <Route path="/preview/una" element={<UnaPage />} />
             <Route path="/preview/fotografi" element={<FotografiPage />} />
+            <Route path="/preview/bilas" element={<BilasPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
