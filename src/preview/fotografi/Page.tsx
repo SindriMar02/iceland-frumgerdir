@@ -267,15 +267,24 @@ export default function FotografiPage() {
       <main id="efst">
         {/* ── 1 · hero — the develop-reveal signature, mount-triggered ─────── */}
         <section aria-label="Fótógrafí — Skólavörðustígur 22" className="relative flex min-h-[100svh] items-end overflow-hidden">
-          <DevelopImg
-            src={IMG.hero.src}
-            srcSet={IMG.hero.srcSet}
-            sizes="100vw"
-            alt={IMG.hero.alt}
-            trigger="mount"
-            priority
-            className="absolute inset-0 h-full w-full"
-          />
+          {/* Outer div owns the "fill the section" absolute positioning;
+              DevelopImg's own wrapper hardcodes `relative` (its internal glow
+              overlay needs that), so combining `relative` + `absolute` on the
+              SAME element let Tailwind's cascade order (.absolute defined
+              before .relative in the compiled sheet) silently pick `relative`
+              and collapse the hero image to a sliver — caught via a real
+              mobile screenshot + getBoundingClientRect, not guessed. */}
+          <div aria-hidden className="absolute inset-0">
+            <DevelopImg
+              src={IMG.hero.src}
+              srcSet={IMG.hero.srcSet}
+              sizes="100vw"
+              alt={IMG.hero.alt}
+              trigger="mount"
+              priority
+              className="h-full w-full"
+            />
+          </div>
           {/* scrim — bottom ≥0.82 opacity near the text block keeps effective
               contrast at the GROUND-pair ratios computed above */}
           <div
@@ -300,12 +309,48 @@ export default function FotografiPage() {
             <p className="mt-6 max-w-[50ch] text-[17px] leading-relaxed" style={{ color: PAPER }}>{HERO.sub}</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Cta href={VISIT.mapHref} variant="solid" external>{HERO.ctaPrimary}</Cta>
-              <Cta href="#safnid" variant="outlineLight">{HERO.ctaSecondary}</Cta>
+              <Cta href="#vorur" variant="outlineLight">{HERO.ctaSecondary}</Cta>
             </div>
           </div>
         </section>
 
-        {/* ── 2 · Söfnunin — 300 cameras + vinyl ──────────────────────────── */}
+        {/* ── divider — the one decorative aperture flourish ──────────────── */}
+        <div aria-hidden className="flex justify-center pt-4 pb-2" style={{ background: PAPER }}>
+          <Reveal y={12}>
+            <Aperture hole={PAPER} />
+          </Reveal>
+        </div>
+
+        {/* ── 2 · Vörur — the real offer, up front ─────────────────────────── */}
+        <section id="vorur" aria-labelledby="vorur-h" className="scroll-mt-24 px-5 pb-20 md:px-8 md:pb-28" style={{ background: PAPER }}>
+          <div className="mx-auto max-w-[1240px]">
+            <Reveal>
+              <p className="fk-mono text-[13px] tracking-[0.12em]" style={{ color: ACCENT }}>{PRODUCTS.eyebrow}</p>
+              <h2 id="vorur-h" className="fk-display fk-balance mt-3 max-w-[18ch] text-[clamp(2.1rem,5.2vw,3.8rem)]" style={{ color: GROUND }}>
+                {PRODUCTS.heading}
+              </h2>
+              <p className="mt-5 max-w-[60ch] text-[16.5px] leading-relaxed" style={{ color: MUTED_PAPER }}>{PRODUCTS.intro}</p>
+            </Reveal>
+
+            <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+              {PRODUCTS.items.map((p) => (
+                <Reveal key={p.frame}>
+                  <div className="h-full border p-6" style={{ borderColor: HAIR_PAPER }}>
+                    <p className="fk-mono text-[12px] tracking-[0.1em]" style={{ color: ACCENT }}>NR. {p.frame}</p>
+                    <h3 className="fk-display mt-3 text-[1.2rem]" style={{ color: GROUND }}>{p.title}</h3>
+                    <p className="mt-2 text-[14px] leading-relaxed" style={{ color: MUTED_PAPER }}>{p.body}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+
+            <p className="mt-10 max-w-[68ch] pl-4 text-[13.5px] leading-relaxed" style={{ color: MUTED_PAPER, borderLeft: `2px solid ${ACCENT}` }}>
+              {PRODUCTS.note}
+            </p>
+          </div>
+        </section>
+
+        {/* ── 3 · Söfnunin — 300 cameras + vinyl ──────────────────────────── */}
         <section id="safnid" aria-labelledby="safnid-h" className="scroll-mt-24 px-5 py-20 md:px-8 md:py-28">
           <div className="mx-auto max-w-[1240px]">
             <Reveal>
@@ -357,7 +402,7 @@ export default function FotografiPage() {
           </div>
         </section>
 
-        {/* ── 3 · Sagan — Ari's story ──────────────────────────────────────── */}
+        {/* ── 4 · Sagan — Ari's story ──────────────────────────────────────── */}
         <section id="sagan" aria-labelledby="sagan-h" className="scroll-mt-24 px-5 py-20 md:px-8 md:py-28" style={{ borderTop: `1px solid ${HAIR_DARK}` }}>
           <div className="mx-auto grid max-w-[1240px] items-center gap-12 md:grid-cols-[1fr_1.05fr] md:gap-16">
             <Reveal>
@@ -381,42 +426,6 @@ export default function FotografiPage() {
               />
               <figcaption className="mt-3 text-[13.5px]" style={{ color: MUTED_DARK }}>{STORY.imgCaption}</figcaption>
             </figure>
-          </div>
-        </section>
-
-        {/* ── divider — the one decorative aperture flourish ──────────────── */}
-        <div aria-hidden className="flex justify-center pt-4 pb-2" style={{ background: PAPER }}>
-          <Reveal y={12}>
-            <Aperture hole={PAPER} />
-          </Reveal>
-        </div>
-
-        {/* ── 4 · Vörur — cream contrast section ──────────────────────────── */}
-        <section id="vorur" aria-labelledby="vorur-h" className="scroll-mt-24 px-5 pb-20 md:px-8 md:pb-28" style={{ background: PAPER }}>
-          <div className="mx-auto max-w-[1240px]">
-            <Reveal>
-              <p className="fk-mono text-[13px] tracking-[0.12em]" style={{ color: ACCENT }}>{PRODUCTS.eyebrow}</p>
-              <h2 id="vorur-h" className="fk-display fk-balance mt-3 max-w-[18ch] text-[clamp(2.1rem,5.2vw,3.8rem)]" style={{ color: GROUND }}>
-                {PRODUCTS.heading}
-              </h2>
-              <p className="mt-5 max-w-[60ch] text-[16.5px] leading-relaxed" style={{ color: MUTED_PAPER }}>{PRODUCTS.intro}</p>
-            </Reveal>
-
-            <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-              {PRODUCTS.items.map((p) => (
-                <Reveal key={p.frame}>
-                  <div className="h-full border p-6" style={{ borderColor: HAIR_PAPER }}>
-                    <p className="fk-mono text-[12px] tracking-[0.1em]" style={{ color: ACCENT }}>NR. {p.frame}</p>
-                    <h3 className="fk-display mt-3 text-[1.2rem]" style={{ color: GROUND }}>{p.title}</h3>
-                    <p className="mt-2 text-[14px] leading-relaxed" style={{ color: MUTED_PAPER }}>{p.body}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-
-            <p className="mt-10 max-w-[68ch] pl-4 text-[13.5px] leading-relaxed" style={{ color: MUTED_PAPER, borderLeft: `2px solid ${ACCENT}` }}>
-              {PRODUCTS.note}
-            </p>
           </div>
         </section>
 

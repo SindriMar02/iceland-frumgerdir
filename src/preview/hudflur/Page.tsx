@@ -15,10 +15,18 @@
  * (never gated on a Framer mount/whileInView fire), per this project's rule
  * that a backgrounded preview tab freezes rAF/Framer mounts.
  *
- * Fonts: all three already loaded project-wide, no self-load needed —
- * Bricolage Grotesque (font-bricolage, display), Hanken Grotesk (font-hanken,
- * body), Space Mono (font-mono, labels/stats). Verified in index.html + the
- * @theme block in src/index.css before writing this file.
+ * Fonts: Space Grotesk (font-grotesk, display — swapped from the too-soft
+ * Bricolage Grotesque per Sindri's "look more like an actual tattoo parlor"
+ * note: a confident geometric grotesk pairs better against the real chrome
+ * heraldic logo than a rounded friendly face), Hanken Grotesk (font-hanken,
+ * body), Space Mono (font-mono, labels/stats). All already loaded
+ * project-wide, no self-load needed — verified in index.html + the @theme
+ * block in src/index.css before writing this file.
+ *
+ * Real logo: a chrome/silver heraldic shield-and-eagle mark recovered from
+ * the studio's own Facebook profile photo (public/hudflur/brand/logo.png,
+ * background keyed transparent). Anchors the header + a large low-opacity
+ * hero watermark.
  */
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
@@ -30,7 +38,7 @@ import { Reveal } from '../../components/Reveal'
 import { StickyCta } from '../../components/StickyCta'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { ABOUT, HERO, IMG, JSON_LD, META, NAV, REVIEWS, SERVICES, TRUST, VISIT } from './data'
+import { ABOUT, CARE, HERO, IMG, JSON_LD, LOGO, META, NAV, PROCESS, REVIEWS, SERVICES, TRUST, VISIT } from './data'
 
 const company = getPreviewCompany('hudflur')
 
@@ -64,6 +72,10 @@ const ACCENT = '#C22A2E'
 const ACCENT_TINT = '#D97577'
 const HAIR = 'rgba(241,238,233,0.14)'
 const HAIR_ACCENT = 'rgba(194,42,46,0.4)'
+/* Steel-silver, sampled from the real chrome logo — decorative only (icon
+ * strokes, hairlines, ghost numerals), never load-bearing text, so it
+ * doesn't need its own AA math: it's as light as OFFWHITE on this ground. */
+const SILVER = '#C7CBCE'
 
 const FACEBOOK_HREF = company.currentUrl
 const EMAIL_HREF = `mailto:${company.ownerEmail}`
@@ -252,8 +264,11 @@ export default function HudflurPage() {
       {/* ── header ────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b" style={{ background: 'rgba(13,13,15,0.85)', borderColor: HAIR, backdropFilter: 'blur(10px)' }}>
         <div className="mx-auto flex h-[72px] w-full max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8">
-          <a href="#efst" aria-label="Húðflúrstofa Norðurlands, efst á síðu" className="font-bricolage flex min-h-[44px] items-center text-[15.5px] font-semibold tracking-tight">
-            Húðflúrstofa <span style={{ color: ACCENT_TINT }}>Norðurlands</span>
+          <a href="#efst" aria-label="Húðflúrstofa Norðurlands, efst á síðu" className="flex min-h-[44px] items-center gap-2.5">
+            <img src={`${import.meta.env.BASE_URL}${LOGO}`} alt="" aria-hidden="true" className="h-8 w-auto md:h-9" width={64} height={90} />
+            <span className="font-grotesk text-[15.5px] font-semibold tracking-tight">
+              Húðflúrstofa <span style={{ color: ACCENT_TINT }}>Norðurlands</span>
+            </span>
           </a>
           <nav aria-label="Aðalvalmynd" className="hidden items-center gap-7 lg:flex">
             {NAV.map((n) => (
@@ -295,9 +310,19 @@ export default function HudflurPage() {
               />
             </div>
 
+            {/* ghost logo watermark — the real shield, low-opacity, desktop only */}
+            <img
+              src={`${import.meta.env.BASE_URL}${LOGO}`}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-16 top-1/2 hidden h-[130%] w-auto -translate-y-1/2 opacity-[0.09] lg:block"
+              width={503}
+              height={712}
+            />
+
             <div className="hf-hero-copy relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1240px] flex-col justify-center pl-9 pr-5 py-28 md:pl-16 md:pr-8">
               <Eyebrow>{HERO.eyebrow}</Eyebrow>
-              <h1 className="font-bricolage m-0 mt-5 max-w-[15ch] text-[clamp(2.6rem,8vw,5.2rem)] leading-[1.04]">
+              <h1 className="font-grotesk m-0 mt-5 max-w-[15ch] text-[clamp(2.6rem,8vw,5.2rem)] leading-[1.04]">
                 {HERO.line1}
                 <br />
                 <span style={{ color: ACCENT_TINT }}>{HERO.line2}</span>
@@ -318,7 +343,7 @@ export default function HudflurPage() {
             <div className={`${WRAP} grid grid-cols-1 gap-y-8 py-12 sm:grid-cols-3 sm:gap-x-8 md:py-16`}>
               {TRUST.map((t) => (
                 <Reveal key={t.label}>
-                  <p className="font-bricolage m-0 text-[clamp(2.4rem,4.5vw,3.4rem)]">{t.value}</p>
+                  <p className="font-grotesk m-0 text-[clamp(2.4rem,4.5vw,3.4rem)]">{t.value}</p>
                   <p className="font-mono m-0 mt-2 text-[12.5px] uppercase tracking-[0.08em]" style={{ color: MUTED }}>
                     {t.label}
                   </p>
@@ -327,11 +352,95 @@ export default function HudflurPage() {
             </div>
           </section>
 
-          {/* ── 3 · um stofuna ───────────────────────────────────────────────── */}
+          {/* ── 3 · þjónusta ──────────────────────────────────────────────── */}
+          <section id="thjonusta" aria-labelledby="thjonusta-h" className="scroll-mt-24" style={{ background: PANEL, borderTop: `1px solid ${HAIR}` }}>
+            <div className={`${WRAP} py-20 md:py-28`}>
+              <Reveal>
+                <h2 id="thjonusta-h" className="font-grotesk m-0 text-[clamp(2.2rem,5.5vw,3.6rem)]">{SERVICES.heading}</h2>
+                <p className="font-hanken mt-4 max-w-[50ch] text-[16.5px]" style={{ color: MUTED }}>{SERVICES.intro}</p>
+              </Reveal>
+
+              <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-10">
+                {SERVICES.items.map((s, i) => (
+                  <Reveal key={s.title} delay={i * 0.08}>
+                    <div className="pt-7" style={{ borderTop: `1px solid ${HAIR_ACCENT}` }}>
+                      <ServiceIcon kind={i === 0 ? 'tattoo' : 'piercing'} />
+                      <h3 className="font-grotesk mt-5 text-[1.5rem]">{s.title}</h3>
+                      <p className="font-hanken mt-3 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>{s.body}</p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+
+              <Reveal delay={0.2} className="mt-14 block">
+                <figure className="m-0">
+                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
+                    <Img src={IMG.inkCaps.src} alt={IMG.inkCaps.alt} className="h-full w-full object-cover" />
+                  </div>
+                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
+                    {SERVICES.caption}
+                  </figcaption>
+                </figure>
+              </Reveal>
+            </div>
+          </section>
+
+          {/* ── 4 · ferlið — how a session actually works ────────────────────── */}
+          <section id="ferlid" aria-labelledby="ferlid-h" className="scroll-mt-24">
+            <div className={`${WRAP} py-20 md:py-28`}>
+              <Reveal>
+                <Eyebrow>{PROCESS.eyebrow}</Eyebrow>
+                <h2 id="ferlid-h" className="font-grotesk m-0 mt-3 max-w-[16ch] text-[clamp(2.2rem,5.5vw,3.6rem)]">
+                  {PROCESS.heading}
+                </h2>
+              </Reveal>
+
+              <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+                {PROCESS.steps.map((s, i) => (
+                  <Reveal key={s.n} delay={i * 0.07}>
+                    <p className="font-grotesk m-0 text-[2.4rem] leading-none" style={{ color: SILVER, opacity: 0.5 }}>
+                      {s.n}
+                    </p>
+                    <h3 className="font-grotesk mt-3 text-[1.15rem]">{s.title}</h3>
+                    <p className="font-hanken mt-2 max-w-[32ch] text-[14.5px] leading-relaxed" style={{ color: MUTED }}>
+                      {s.body}
+                    </p>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ── 5 · umhirða — genuine, generic aftercare guidance ─────────────── */}
+          <section id="umhirda" aria-labelledby="umhirda-h" className="scroll-mt-24" style={{ background: PANEL, borderTop: `1px solid ${HAIR}` }}>
+            <div className={`${WRAP} grid gap-12 py-20 md:grid-cols-[1fr_1.05fr] md:items-start md:gap-16 md:py-28`}>
+              <Reveal>
+                <Eyebrow>{CARE.eyebrow}</Eyebrow>
+                <h2 id="umhirda-h" className="font-grotesk m-0 mt-3 max-w-[14ch] text-[clamp(2.2rem,5.5vw,3.6rem)] leading-tight">
+                  {CARE.heading}
+                </h2>
+                <p className="font-hanken mt-5 max-w-[42ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>
+                  {CARE.intro}
+                </p>
+              </Reveal>
+              <Reveal delay={0.1}>
+                <ul className="m-0 flex list-none flex-col gap-4 p-0">
+                  {CARE.items.map((item) => (
+                    <li key={item} className="flex gap-3 pt-4" style={{ borderTop: `1px solid ${HAIR}` }}>
+                      <span aria-hidden="true" className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: ACCENT_TINT }} />
+                      <p className="font-hanken m-0 text-[15.5px] leading-relaxed" style={{ color: OFFWHITE }}>{item}</p>
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+            </div>
+          </section>
+
+          {/* ── 6 · um stofuna ───────────────────────────────────────────────── */}
           <section id="um" aria-labelledby="um-h" className="scroll-mt-24">
             <div className={`${WRAP} grid gap-12 py-20 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14 md:py-28`}>
               <Reveal>
-                <h2 id="um-h" className="font-bricolage m-0 max-w-[14ch] text-[clamp(2.2rem,5.5vw,3.6rem)] leading-tight">
+                <h2 id="um-h" className="font-grotesk m-0 max-w-[14ch] text-[clamp(2.2rem,5.5vw,3.6rem)] leading-tight">
                   {ABOUT.heading}
                 </h2>
                 <p className="font-hanken mt-6 max-w-[52ch] text-[16.5px] leading-relaxed" style={{ color: MUTED }}>
@@ -360,44 +469,11 @@ export default function HudflurPage() {
             </div>
           </section>
 
-          {/* ── 4 · þjónusta ──────────────────────────────────────────────── */}
-          <section id="thjonusta" aria-labelledby="thjonusta-h" className="scroll-mt-24" style={{ background: PANEL, borderTop: `1px solid ${HAIR}` }}>
-            <div className={`${WRAP} py-20 md:py-28`}>
-              <Reveal>
-                <h2 id="thjonusta-h" className="font-bricolage m-0 text-[clamp(2.2rem,5.5vw,3.6rem)]">{SERVICES.heading}</h2>
-                <p className="font-hanken mt-4 max-w-[50ch] text-[16.5px]" style={{ color: MUTED }}>{SERVICES.intro}</p>
-              </Reveal>
-
-              <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-10">
-                {SERVICES.items.map((s, i) => (
-                  <Reveal key={s.title} delay={i * 0.08}>
-                    <div className="pt-7" style={{ borderTop: `1px solid ${HAIR_ACCENT}` }}>
-                      <ServiceIcon kind={i === 0 ? 'tattoo' : 'piercing'} />
-                      <h3 className="font-bricolage mt-5 text-[1.5rem]">{s.title}</h3>
-                      <p className="font-hanken mt-3 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>{s.body}</p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-
-              <Reveal delay={0.2} className="mt-14 block">
-                <figure className="m-0">
-                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
-                    <Img src={IMG.inkCaps.src} alt={IMG.inkCaps.alt} className="h-full w-full object-cover" />
-                  </div>
-                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                    {SERVICES.caption}
-                  </figcaption>
-                </figure>
-              </Reveal>
-            </div>
-          </section>
-
-          {/* ── 5 · umsagnir + heimsókn ──────────────────────────────────────── */}
+          {/* ── 7 · umsagnir + heimsókn ──────────────────────────────────────── */}
           <section id="umsagnir" aria-labelledby="umsagnir-h" className="scroll-mt-24">
             <div className={`${WRAP} py-20 md:py-28`}>
               <Reveal>
-                <h2 id="umsagnir-h" className="font-bricolage m-0 text-[clamp(2.2rem,5.5vw,3.4rem)]">{REVIEWS.heading}</h2>
+                <h2 id="umsagnir-h" className="font-grotesk m-0 text-[clamp(2.2rem,5.5vw,3.4rem)]">{REVIEWS.heading}</h2>
                 <p className="font-hanken mt-3 max-w-[62ch] text-[13.5px]" style={{ color: MUTED }}>{REVIEWS.disclaimer}</p>
               </Reveal>
 
@@ -405,7 +481,7 @@ export default function HudflurPage() {
                 {REVIEWS.items.map((r, i) => (
                   <Reveal key={r.quote} delay={i * 0.08}>
                     <blockquote className="m-0 pt-6" style={{ borderTop: `1px solid ${HAIR_ACCENT}` }}>
-                      <p className="font-bricolage m-0 text-[1.25rem] leading-snug">{r.quote}</p>
+                      <p className="font-grotesk m-0 text-[1.25rem] leading-snug">{r.quote}</p>
                       <footer className="font-mono mt-4 text-[12.5px] uppercase tracking-[0.06em]" style={{ color: ACCENT_TINT }}>
                         {r.name}
                       </footer>
@@ -417,10 +493,17 @@ export default function HudflurPage() {
               <div id="heimsokn" aria-labelledby="heimsokn-h" className="mt-20 scroll-mt-24 md:mt-28">
                 <div className="grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-14">
                   <Reveal>
-                    <h2 id="heimsokn-h" className="font-bricolage m-0 text-[clamp(2.2rem,5.5vw,3.4rem)]">{VISIT.heading}</h2>
-                    <h3 className="font-bricolage mt-6 text-[1.4rem]">{VISIT.name}</h3>
+                    <h2 id="heimsokn-h" className="font-grotesk m-0 text-[clamp(2.2rem,5.5vw,3.4rem)]">{VISIT.heading}</h2>
+                    <h3 className="font-grotesk mt-6 text-[1.4rem]">{VISIT.name}</h3>
                     <p className="font-hanken mt-2 text-[16px]" style={{ color: MUTED }}>{VISIT.address}</p>
-                    <p className="font-hanken mt-5 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>{VISIT.hoursNote}</p>
+
+                    <dl className="m-0 mt-7 max-w-[26rem]" style={{ borderTop: `1px solid ${HAIR}` }}>
+                      <div className="flex items-baseline justify-between gap-6 py-3" style={{ borderBottom: `1px solid ${HAIR}` }}>
+                        <dt className="font-hanken text-[14.5px]" style={{ color: MUTED }}>{VISIT.hoursLabel}</dt>
+                        <dd className="m-0 font-hanken text-[14.5px] font-semibold" style={{ color: OFFWHITE }}>{VISIT.hoursValue}</dd>
+                      </div>
+                    </dl>
+                    <p className="font-hanken mt-3 max-w-[46ch] text-[14.5px] leading-relaxed" style={{ color: MUTED }}>{VISIT.hoursNote}</p>
 
                     <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
                       <a href={VISIT.mapHref} target="_blank" rel="noreferrer" className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
@@ -429,13 +512,16 @@ export default function HudflurPage() {
                       <a href={FACEBOOK_HREF} target="_blank" rel="noreferrer" className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
                         Facebook
                       </a>
+                      <a href={VISIT.phoneHref} className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
+                        Sími {VISIT.phoneDisplay}
+                      </a>
                       <a href={EMAIL_HREF} className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
                         {company.ownerEmail}
                       </a>
                     </div>
 
                     <div className="mt-10 border-t pt-8" style={{ borderColor: HAIR }}>
-                      <p className="font-bricolage m-0 max-w-[18ch] text-[1.6rem]">{VISIT.closing.heading}</p>
+                      <p className="font-grotesk m-0 max-w-[18ch] text-[1.6rem]">{VISIT.closing.heading}</p>
                       <p className="font-hanken mt-2 max-w-[40ch] text-[15px]" style={{ color: MUTED }}>{VISIT.closing.body}</p>
                       <div className="mt-6">
                         <Cta href={FACEBOOK_HREF} variant="filled" external>Panta tíma</Cta>

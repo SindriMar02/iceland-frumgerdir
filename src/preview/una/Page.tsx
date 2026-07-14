@@ -124,7 +124,7 @@ function ExploreHut({ reduced }: { reduced: boolean }) {
       </Reveal>
 
       <div className="mt-10 grid gap-10 md:grid-cols-[0.95fr_1.15fr] md:items-center md:gap-12">
-        <div role="tablist" aria-label="Flokkar í búðinni" onKeyDown={onTabKey} className="flex flex-col gap-2.5">
+        <div role="tablist" aria-label="Flokkar í búðinni" onKeyDown={onTabKey} className="order-2 flex flex-col gap-2.5 md:order-1">
           {CATEGORIES.map((c, i) => {
             const on = i === active
             return (
@@ -159,8 +159,8 @@ function ExploreHut({ reduced }: { reduced: boolean }) {
           })}
         </div>
 
-        <div>
-          <ArchFrame className="aspect-[4/3] md:aspect-[16/12]">
+        <div className="order-1 md:order-2">
+          <ArchFrame className="aspect-[4/5] md:aspect-[16/12]">
             <div role="tabpanel" id="una-panel" aria-labelledby={`una-tab-${cat.id}`} className="relative h-full w-full">
               {CATEGORIES.map((c, i) => (
                 <motion.div
@@ -309,7 +309,7 @@ export default function UnaPage() {
           </motion.div>
 
           <div>
-            <ArchFrame className="aspect-[4/3] md:aspect-auto md:h-[min(72svh,660px)]">
+            <ArchFrame className="aspect-[3/4] md:aspect-auto md:h-[min(72svh,660px)]">
               <Img
                 src={IMG.countryside.src}
                 srcSet={IMG.countryside.srcSet}
@@ -437,7 +437,7 @@ export default function UnaPage() {
             </Reveal>
 
             <Reveal className="md:col-span-7" delay={0.05}>
-              <ArchFrame className="aspect-[16/10] md:aspect-[16/9]">
+              <ArchFrame className="aspect-[4/5] md:aspect-[16/9]">
                 <Img
                   src={IMG.countryside.src}
                   srcSet={IMG.countryside.srcSet}

@@ -1,10 +1,15 @@
 /* ── Húðflúrstofa Norðurlands · „Fine Line" ───────────────────────────────────
-   Verified facts only (per brief): est. 2011 (15 years by 2026), Gránufélagsgata 4,
+   Verified facts only: est. 2011 (15 years by 2026), Gránufélagsgata 4,
    Akureyri, 256 Facebook reviews at 88% recommend, ~2,300 Instagram followers,
-   NO current website (Facebook/Instagram only), contact hudflur@hudflur.net.
-   No phone number, no artist names, no specific tattoo styles were supplied —
-   none are invented here. No opening hours are posted anywhere today, so the
-   visit section says so honestly instead of fabricating a schedule.          */
+   phone +354 866 5757, contact hudflur@hudflur.net. Hours Mon-Sat 13:00-18:00,
+   sourced from glartent.com's business-directory mirror of their Facebook
+   listing (a second independent source, not their own site — they have none).
+   No artist names or specific tattoo styles were supplied — none invented.
+   Real logo (a chrome/silver heraldic shield-and-eagle mark) recovered from
+   their Facebook profile photo via the public graph.facebook.com/<id>/picture
+   endpoint, at public/hudflur/brand/logo.png (background keyed transparent).
+   Ferlið (process) and Umhirða (aftercare) are standard, generic tattoo-
+   industry practice, not studio-specific claims.                            */
 
 const u = (id: string, w: number) =>
   `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
@@ -32,16 +37,19 @@ export const IMG = {
   },
 } as const
 
+export const LOGO = 'hudflur/brand/logo.png'
+
 export const META = {
   title: 'Húðflúrstofa Norðurlands | Húðflúr og húðgötun á Akureyri',
   description:
-    'Húðflúrstofa Norðurlands hefur starfað á Akureyri frá 2011. Húðflúr eftir pöntun og húðgötun, byggt á fimmtán ára reynslu og trausti viðskiptavina — 88% mæla með stofunni.',
+    'Húðflúrstofa Norðurlands hefur starfað á Akureyri frá 2011. Húðflúr eftir pöntun og húðgötun, byggt á fimmtán ára reynslu og trausti viðskiptavina — 88% mæla með stofunni. Opið mán.-lau. 13-18.',
 }
 
 export const NAV = [
-  { label: 'Um okkur', href: '#um' },
   { label: 'Þjónusta', href: '#thjonusta' },
-  { label: 'Umsagnir', href: '#umsagnir' },
+  { label: 'Ferlið', href: '#ferlid' },
+  { label: 'Umhirða', href: '#umhirda' },
+  { label: 'Um okkur', href: '#um' },
   { label: 'Heimsókn', href: '#heimsokn' },
 ]
 
@@ -85,6 +93,46 @@ export const SERVICES = {
   caption: 'Svipmynd — litabakkar og áhöld',
 } as const
 
+export const PROCESS = {
+  eyebrow: 'Ferlið',
+  heading: 'Fjögur skref, engin pressa',
+  steps: [
+    {
+      n: '01',
+      title: 'Hugmynd',
+      body: 'Þú sendir hugmynd, tilvísun eða bara stærð og staðsetningu sem þú hefur í huga, á Facebook, Instagram eða í tölvupósti.',
+    },
+    {
+      n: '02',
+      title: 'Hönnun',
+      body: 'Áður en tími er bókaður er hönnunin unnin í samráði við þig, þangað til hún er tilbúin fyrir húðina.',
+    },
+    {
+      n: '03',
+      title: 'Tíminn sjálfur',
+      body: 'Unnið er í rólegu og hreinlegu umhverfi. Hvert verk fær þann tíma sem það þarf, ekkert flýtt.',
+    },
+    {
+      n: '04',
+      title: 'Gróandi',
+      body: 'Að lokinni vinnu færðu skýrar leiðbeiningar um umhirðu, svo verkið grói vel og haldi lit.',
+    },
+  ],
+} as const
+
+export const CARE = {
+  eyebrow: 'Umhirða',
+  heading: 'Eftir tímann',
+  intro: 'Almennar leiðbeiningar sem fylgja hverju verki, svo það grói vel.',
+  items: [
+    'Hafðu umbúðirnar á í þann tíma sem mælt er með eftir tímann.',
+    'Þvoðu svæðið varlega með ilmlausri sápu og volgu vatni.',
+    'Berðu þunnt lag af ilmlausu rakakremi á, nokkrum sinnum á dag.',
+    'Forðastu sund, heita potta og beint sólarljós þar til verkið er alveg gróið.',
+    'Ekki klóra eða krukka í hreistrið, láttu það losna af sjálfu sér.',
+  ],
+} as const
+
 export const REVIEWS = {
   heading: 'Umsagnir',
   disclaimer:
@@ -105,8 +153,11 @@ export const VISIT = {
   heading: 'Heimsókn',
   name: 'Húðflúrstofa Norðurlands',
   address: 'Gránufélagsgata 4, 600 Akureyri',
-  hoursNote:
-    'Enginn fastur opnunartími er birtur opinberlega í dag — pantaðu tíma með skilaboðum á Facebook/Instagram eða í tölvupósti, og fáðu svar milliliðalaust.',
+  hoursLabel: 'Opnunartími',
+  hoursValue: 'Mán.-lau. 13:00-18:00',
+  hoursNote: 'Pantaðu tíma með skilaboðum á Facebook/Instagram, í tölvupósti eða síma, og fáðu svar milliliðalaust.',
+  phoneDisplay: '866 5757',
+  phoneHref: 'tel:+3548665757',
   mapHref: `https://maps.google.com/?q=${encodeURIComponent('Gránufélagsgata 4, Akureyri')}`,
   closing: {
     heading: 'Tilbúin/n að panta tíma?',
@@ -121,6 +172,7 @@ export const JSON_LD = {
   name: 'Húðflúrstofa Norðurlands',
   foundingDate: '2011',
   email: 'hudflur@hudflur.net',
+  telephone: '+354 866 5757',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Gránufélagsgata 4',
@@ -129,5 +181,13 @@ export const JSON_LD = {
     addressCountry: 'IS',
   },
   areaServed: 'Akureyri',
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '13:00',
+      closes: '18:00',
+    },
+  ],
   sameAs: ['https://www.facebook.com/hudflurstofanordurlands/'],
 }

@@ -16,12 +16,16 @@ const srcSet3 = (id: string) =>
   `${u(id, 828)} 828w, ${u(id, 1280)} 1280w, ${u(id, 2000)} 2000w`
 
 export const IMG = {
-  /* framed black & white fine-art print — doubles as the "a photograph
-     developing" motif the hero's reveal effect plays out on */
+  /* Vestrahorn, svarthvít — a real, verified Icelandic landscape (confirmed
+     via the photo's own location tag). Replaces an earlier pick that
+     resolved to an aerial shot of Manhattan mislabeled as "a framed print" —
+     caught on review. This is the closest honest stand-in for "an Icelandic
+     landscape print, framed, ready to take home": the hero's develop-reveal
+     plays out on it, tying the signature motif directly to the real offer. */
   hero: {
-    src: u('photo-1589233166312-70b13fbefea5', 1280),
-    srcSet: srcSet3('photo-1589233166312-70b13fbefea5'),
-    alt: 'Innrömmuð svarthvít listljósmynd á vegg, sýnishorn af því sem prýðir búðina',
+    src: u('photo-1609780236825-671d3e459e7e', 1280),
+    srcSet: srcSet3('photo-1609780236825-671d3e459e7e'),
+    alt: 'Svarthvít landslagsljósmynd af Vestrahorni, römmuð upp sem sýnishorn af íslenskum prentum sem búðin selur',
   },
   cameraWall: {
     src: u('photo-1563298258-c9b0371b55cc', 1600),
@@ -54,18 +58,18 @@ export const META = {
 }
 
 export const NAV = [
+  { label: 'Vörur', href: '#vorur' },
   { label: 'Safnið', href: '#safnid' },
   { label: 'Sagan', href: '#sagan' },
-  { label: 'Vörur', href: '#vorur' },
   { label: 'Heimsókn', href: '#heimsokn' },
 ]
 
 export const HERO = {
   eyebrow: 'Framköllun · Skólavörðustígur 22 · síðan 2007',
-  heading: 'Myndavélar á veggjunum, vínyll í loftinu',
-  sub: 'Fótógrafí er búð og gallerí þar sem gamlar filmumyndavélar horfa niður af hverjum vegg og platan snýst í bakgrunni. Prentin, römmuðu myndirnar og kortin bíða þess að fara með þér heim.',
+  heading: 'Taktu Ísland heim í ramma.',
+  sub: 'Fótógrafí er lítil rauð búð þar sem gamlar filmumyndavélar horfa niður af hverjum vegg og platan snýst í bakgrunni. En það sem þú ferð með þér heim er alvöru íslensk ljósmynd, valin og römmuð á staðnum, ekki bara andrúmsloftið.',
   ctaPrimary: 'Fá leiðsögn',
-  ctaSecondary: 'Skoða safnið',
+  ctaSecondary: 'Skoða vörurnar',
   filmEdge: 'FÓTÓGRAFÍ · FRAMKÖLLUN · Nr. 22',
 }
 
@@ -94,9 +98,9 @@ export const STORY = {
 
 export const PRODUCTS = {
   eyebrow: 'Vörur',
-  heading: 'Það sem búðin selur',
+  heading: 'Frá veggnum okkar á vegginn þinn.',
   intro:
-    'Listljósmyndir, rammaðar myndir, striga-prent og smærri gjafavara, allt tengt myndinni og augnablikinu sem hún fangar.',
+    'Listljósmyndir af Íslandi, rammaðar myndir, striga prent og smærri gjafavara, allt valið af sömu alúð og fyllir veggina í búðinni sjálfri.',
   note: 'Í núverandi vefverslun klikkar greiðsluferlið oft og þarf að reyna aftur. Í fullbúinni útgáfu þessa vefjar væri það fyrsta sem yrði lagað — hér sýnum við hugmyndina að vörunum sjálfum, ekki virka kaupferð.',
   items: [
     { frame: '01', title: 'Listljósmyndaprent', body: 'Prent af völdum ljósmyndum, tilbúin til að hengja upp.' },
