@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
-import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, MapPin, Phone } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowDown, ArrowUpRight, Info, MapPin, Phone, Search, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -11,6 +11,7 @@ import {
   CARS,
   CONTACT,
   FEES,
+  HERO_SLIDES,
   HOURS,
   JSON_LD,
   LOGO,
@@ -148,10 +149,25 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   )
 }
 
-/* ── hero: the dealer's own Jaguar on the wet lot, poster type over it ── */
+/* ── hero: a slow, smooth crossfade through five real cars on the lot,
+      each with a minimal circular info button that reveals its specs
+      without ever leaving the hero or breaking the cinematic frame ── */
+const HERO_ROTATE_MS = 5500
+
 function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   const reduce = useReducedMotion()
-  /* no overflow masks here: Anton's uppercase Í/Á accents overshoot the em
+  const [index, setIndex] = useState(0)
+  const [infoOpen, setInfoOpen] = useState(false)
+  const slides = HERO_SLIDES.length ? HERO_SLIDES : [null]
+  const car = slides[index]
+
+  useEffect(() => {
+    if (reduce || infoOpen || slides.length < 2) return
+    const t = setInterval(() => setIndex((i) => (i + 1) % slides.length), HERO_ROTATE_MS)
+    return () => clearInterval(t)
+  }, [reduce, infoOpen, slides.length])
+
+  /* no overflow masks here: Anton\'s uppercase Í/Á accents overshoot the em
      box and masked lines clip or bleed them. A heavy rise + unblur reads
      just as cinematic and cannot clip a diacritic. */
   const line = (text: string, delay: number) =>
@@ -175,17 +191,30 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   }
   return (
     <section id="efst" className="relative flex min-h-[100svh] items-end overflow-hidden">
-      <div className="absolute inset-0" aria-hidden>
-        <img
-          src={carImg(PHOTO.heroJaguar, 1280)}
-          srcSet={`${carImg(PHOTO.heroJaguar, 640)} 640w, ${carImg(PHOTO.heroJaguar, 784)} 784w, ${carImg(PHOTO.heroJaguar, 1280)} 1280w`}
-          sizes="100vw"
-          alt=""
-          // @ts-expect-error React 18 DOM typings want the lowercase attribute
-          fetchpriority="high"
-          className="bilas-kenburns h-full w-full object-cover object-[62%_center]"
-          style={{ animation: reduce ? 'none' : 'bilas-kenburns 2.6s cubic-bezier(0.32,0.72,0,1) both' }}
-        />
+      <div className="absolute inset-0" aria-hidden={!car}>
+        {slides.map((s, i) => {
+          const src = s ? s.img : PHOTO.heroJaguar
+          const active = i === index
+          return (
+            <motion.img
+              key={s ? s.href : 'fallback'}
+              src={carImg(src, 1280)}
+              srcSet={`${carImg(src, 640)} 640w, ${carImg(src, 784)} 784w, ${carImg(src, 1280)} 1280w`}
+              sizes="100vw"
+              alt={s ? `${s.make} ${s.model}, á plani Bíláss` : ''}
+              // @ts-expect-error React 18 DOM typings want the lowercase attribute
+              fetchpriority={i === 0 ? 'high' : undefined}
+              loading={i === 0 ? undefined : 'lazy'}
+              className="bilas-kenburns absolute inset-0 h-full w-full object-cover object-[62%_center]"
+              style={{
+                animation: reduce || i !== 0 ? 'none' : 'bilas-kenburns 2.6s cubic-bezier(0.32,0.72,0,1) both',
+              }}
+              initial={false}
+              animate={{ opacity: active ? 1 : 0 }}
+              transition={{ duration: reduce ? 0.3 : 1.1, ease: EASE }}
+            />
+          )
+        })}
         {/* night-lot wash so the type owns the frame */}
         <div
           className="absolute inset-0"
@@ -195,15 +224,74 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         />
       </div>
 
+      {/* minimal info toggle for the car currently on screen */}
+      {car && (
+        <div className="absolute right-5 top-20 z-20 md:right-8 md:top-24">
+          <button
+            onClick={() => setInfoOpen((v) => !v)}
+            aria-expanded={infoOpen}
+            aria-label={infoOpen ? 'Loka upplýsingum um bílinn' : 'Sjá upplýsingar um bílinn á mynd'}
+            className="flex h-11 w-11 items-center justify-center rounded-full border transition-transform duration-200 active:scale-[0.94]"
+            style={{
+              background: 'rgba(10,12,16,0.42)',
+              borderColor: 'rgba(242,245,249,0.28)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              color: INK,
+            }}
+          >
+            {infoOpen ? <X size={18} aria-hidden /> : <Info size={18} aria-hidden />}
+          </button>
+
+          <AnimatePresence>
+            {infoOpen && (
+              <motion.div
+                initial={reduce ? false : { opacity: 0, y: -8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                transition={{ duration: 0.22, ease: EASE }}
+                className="absolute right-0 top-14 w-64 rounded-2xl border p-5"
+                style={{
+                  background: 'rgba(10,12,16,0.72)',
+                  borderColor: 'rgba(242,245,249,0.16)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                }}
+              >
+                <div className="text-[18px] uppercase leading-tight" style={{ fontFamily: DISPLAY, color: INK }}>
+                  {car.make} <span style={{ color: MUT }}>{car.model}</span>
+                </div>
+                <div className="mt-2 text-[12px]" style={{ fontFamily: MONO, color: MUT }}>
+                  {car.reg}{car.km ? ` · ${car.km}` : ''} · {car.fuel}
+                </div>
+                <div className="mt-3 text-[20px]" style={{ fontFamily: MONO, color: XENON }}>
+                  {fmtPrice(car)}
+                </div>
+                <a
+                  href={car.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 flex items-center gap-1.5 text-[13px] font-medium underline-offset-4 hover:underline"
+                  style={{ color: INK, fontFamily: BODY }}
+                >
+                  Skoða nánar
+                  <ArrowUpRight size={14} aria-hidden />
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-5 pb-16 pt-28 md:px-8 md:pb-20">
         <h1
           /* leading 1.16 minimum: Anton draws uppercase acutes (Í, Á) high
-             and detached, so at tighter leading line 2's Á accent reads as
+             and detached, so at tighter leading line 2\'s Á accent reads as
              a mark under line 1. Do not tighten this. */
           className="max-w-6xl text-[clamp(3rem,9vw,7.5rem)] uppercase leading-[1.16]"
           style={{ fontFamily: DISPLAY, color: INK }}
         >
-          {line('Næsti bíllinn þinn ', 0.15)}
+          {line('Næsti bíllinn þinn \u00a0', 0.15)}
           {line('er á staðnum.', 0.3)}
         </h1>
 
@@ -243,6 +331,18 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           >
             Hringja í {CONTACT.phoneDisplay}
           </a>
+
+          {slides.length > 1 && (
+            <div className="ml-auto flex items-center gap-2" aria-hidden>
+              {slides.map((s, i) => (
+                <span
+                  key={s ? s.href : i}
+                  className="h-1 rounded-full transition-[width,background-color] duration-500"
+                  style={{ width: i === index ? 22 : 8, background: i === index ? XENON : 'rgba(242,245,249,0.3)' }}
+                />
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
     </section>
@@ -364,14 +464,18 @@ function CarCard({ car, index }: { car: Car; index: number }) {
 
 function Inventory() {
   const [filter, setFilter] = useState<FuelFilter>('allir')
+  const [query, setQuery] = useState('')
   const [asc, setAsc] = useState(true)
   const [seen, setSeen] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
+  const q = query.trim().toLowerCase()
   const cars = useMemo(() => {
-    const list = CARS.filter((c) => matches(c, filter))
+    const list = CARS.filter(
+      (c) => matches(c, filter) && (!q || `${c.make} ${c.model}`.toLowerCase().includes(q)),
+    )
     return [...list].sort((a, b) => (asc ? a.priceNum - b.priceNum : b.priceNum - a.priceNum))
-  }, [filter, asc])
+  }, [filter, asc, q])
 
   /* the odometer: counts the cars you have walked past. Synchronous scroll
      handler (rAF is throttled in embedded previews; this is verifiable). */
@@ -406,7 +510,24 @@ function Inventory() {
       </Rise>
 
       <Rise delay={0.1}>
-        <div className="mt-10 flex flex-wrap items-center gap-2">
+        <div className="relative mt-10 max-w-md">
+          <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: MUT }} aria-hidden />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Leita eftir tegund eða gerð, t.d. Volvo"
+            aria-label="Leita í bílunum á staðnum"
+            className="w-full rounded-full border py-3 pl-11 pr-4 text-[14px] outline-none transition-colors duration-200"
+            style={{ background: SURFACE, borderColor: HAIR, color: INK, fontFamily: BODY }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = XENON)}
+            onBlur={(e) => (e.currentTarget.style.borderColor = HAIR)}
+          />
+        </div>
+      </Rise>
+
+      <Rise delay={0.15}>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
           {FILTERS.map((f) => {
             const active = filter === f.key
             const count = CARS.filter((c) => matches(c, f.key)).length
@@ -439,8 +560,8 @@ function Inventory() {
       </Rise>
 
       <div className="relative mt-12 lg:grid lg:grid-cols-[72px_1fr] lg:gap-10">
-        {/* the odometer rail */}
-        <div className="hidden lg:block">
+        {/* the odometer rail: hidden with zero results, nothing to count */}
+        <div className={cars.length ? 'hidden lg:block' : 'hidden'}>
           <div className="sticky top-28 select-none" aria-hidden>
             <div className="text-[11px] uppercase tracking-[0.22em]" style={{ fontFamily: MONO, color: MUT }}>
               Bíll
@@ -468,9 +589,23 @@ function Inventory() {
       </div>
 
       {cars.length === 0 && (
-        <p className="mt-16 text-center text-[15px]" style={{ color: MUT, fontFamily: BODY }}>
-          Enginn bíll passar við þessa síu núna. Hringdu í {CONTACT.phoneDisplay}, næsta sending gæti verið á leiðinni.
-        </p>
+        <div className="mt-16 text-center">
+          <p className="text-[15px]" style={{ color: MUT, fontFamily: BODY }}>
+            {q
+              ? `Enginn bíll fannst fyrir „${query.trim()}“.`
+              : 'Enginn bíll passar við þessa síu núna.'}{' '}
+            Hringdu í {CONTACT.phoneDisplay}, næsta sending gæti verið á leiðinni.
+          </p>
+          {(q || filter !== 'allir') && (
+            <button
+              onClick={() => { setQuery(''); setFilter('allir') }}
+              className="mt-4 rounded-full border px-5 py-2 text-[13px] transition-colors duration-200"
+              style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}
+            >
+              Hreinsa leit og síu
+            </button>
+          )}
+        </div>
       )}
     </section>
   )
