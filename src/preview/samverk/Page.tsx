@@ -42,17 +42,17 @@ const NAVY = '#153252'
 const HAIR = 'rgba(16,24,32,.12)'
 
 const BASE = import.meta.env.BASE_URL
-const DISPLAY = "'Panchang-Semibold', system-ui, sans-serif"
-const DISPLAY_BOLD = "'Panchang-Bold', system-ui, sans-serif"
+const DISPLAY = "'ClashDisplay-Semibold', system-ui, sans-serif"
+const DISPLAY_BOLD = "'ClashDisplay-Bold', system-ui, sans-serif"
 const SANS = "'Satoshi', system-ui, sans-serif"
 
 const CSS = `
-@font-face{font-family:'Panchang-Semibold';font-weight:600;font-style:normal;font-display:swap;
-  src:url('${BASE}fonts/panchang/fonts/Panchang-Semibold.woff2') format('woff2'),
-      url('${BASE}fonts/panchang/fonts/Panchang-Semibold.woff') format('woff')}
-@font-face{font-family:'Panchang-Bold';font-weight:700;font-style:normal;font-display:swap;
-  src:url('${BASE}fonts/panchang/fonts/Panchang-Bold.woff2') format('woff2'),
-      url('${BASE}fonts/panchang/fonts/Panchang-Bold.woff') format('woff')}
+@font-face{font-family:'ClashDisplay-Semibold';font-weight:600;font-style:normal;font-display:swap;
+  src:url('${BASE}fonts/clash-display/fonts/ClashDisplay-Semibold.woff2') format('woff2'),
+      url('${BASE}fonts/clash-display/fonts/ClashDisplay-Semibold.woff') format('woff')}
+@font-face{font-family:'ClashDisplay-Bold';font-weight:700;font-style:normal;font-display:swap;
+  src:url('${BASE}fonts/clash-display/fonts/ClashDisplay-Bold.woff2') format('woff2'),
+      url('${BASE}fonts/clash-display/fonts/ClashDisplay-Bold.woff') format('woff')}
 @font-face{font-family:'Satoshi';font-weight:400;font-style:normal;font-display:swap;
   src:url('${BASE}fonts/satoshi/Satoshi-Regular.woff2') format('woff2')}
 @font-face{font-family:'Satoshi';font-weight:500;font-style:normal;font-display:swap;
