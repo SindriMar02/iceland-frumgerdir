@@ -1268,6 +1268,7 @@ const VIDEO_RATE = 1.6
 function Loader({ onFinish }: { onFinish: () => void }) {
   const reduce = useReducedMotion()
   const [wordVisible, setWordVisible] = useState(reduce)
+  const videoInit = useRef(false)
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
@@ -1316,7 +1317,13 @@ function Loader({ onFinish }: { onFinish: () => void }) {
     >
       <div className="w-[260px] sm:w-[340px]">
         <video
-          ref={(el) => { if (el) { el.muted = true; el.playbackRate = VIDEO_RATE; el.play().catch(() => setWordVisible(true)) } }}
+          ref={(el) => {
+            if (!el || videoInit.current) return
+            videoInit.current = true
+            el.muted = true
+            el.playbackRate = VIDEO_RATE
+            el.play().catch(() => setWordVisible(true))
+          }}
           src={`${import.meta.env.BASE_URL}media/bilas-loader-car.mp4`}
           autoPlay
           muted
