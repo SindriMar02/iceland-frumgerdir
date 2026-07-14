@@ -51,9 +51,14 @@ const CSS = `
   .bilas-page a:focus-visible, .bilas-page button:focus-visible {
     outline: 2px solid ${XENON}; outline-offset: 3px; border-radius: 2px;
   }
+  /* the real dealer photos used in the hero all share the same overcast-sky
+     glare band across their top ~10% (baked into the source photos, not a
+     rendering bug). object-cover never crops that away on a tall mobile
+     viewport since the image's full height already fits, so every slide
+     bakes in a small permanent zoom + downward shift to crop it out. */
   @keyframes bilas-kenburns {
-    from { transform: scale(1.12) translateY(-1.5%); }
-    to   { transform: scale(1.0) translateY(0); }
+    from { transform: scale(1.24) translateY(-6%); }
+    to   { transform: scale(1.1) translateY(-4%); }
   }
   @media (prefers-reduced-motion: reduce) {
     .bilas-kenburns { animation: none !important; }
@@ -285,6 +290,11 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               className="bilas-kenburns absolute inset-0 h-full w-full object-cover object-[62%_center]"
               style={{
                 animation: reduce || i !== 0 ? 'none' : 'bilas-kenburns 2.6s cubic-bezier(0.32,0.72,0,1) both',
+                /* baseline crop for slides that never run the animation
+                   (reduced motion, or any slide after the first); matches
+                   the kenburns "to" keyframe so every slide crops the same
+                   top glare band out consistently */
+                transform: reduce || i !== 0 ? 'scale(1.1) translateY(-4%)' : undefined,
               }}
               initial={false}
               animate={{ opacity: active ? 1 : 0 }}
