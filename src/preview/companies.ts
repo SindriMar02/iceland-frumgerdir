@@ -2671,18 +2671,188 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Ég rakst á Samverk og komst að því að þið eruð bæði elsta og stærsta starfandi glerverksmiðja landsins, stofnuð 1969 af átta heimamönnum í Rangárþingi. Það er saga sem fá glerfyrirtæki geta státað af.
+Ég rakst á auglýsingu frá ykkur og ákvað í kjölfarið að skoða vefsíðuna ykkar. Þar komst ég að því að þið eruð bæði elsta og stærsta starfandi glerverksmiðja landsins, stofnuð 1969 af átta heimamönnum í Rangárþingi, og eigið margar mjög fínar myndir af ykkar eigin verkum, speglum, sturtugleri, glerveggjum og handriðum.
 
-Því miður finnst mér núverandi vefsíða ekki gera henni skil. Forsíðumyndin er stök birtingamynd sem á ekkert skylt við verksmiðjuna, á meðan mun betri myndir af ykkar eigin verkum, speglum, sturtugleri, glerveggjum og handriðum, liggja neðar á síðunni og fá litla athygli.
+Mér fannst samt eins og núverandi vefsíða gerði þessu ekki alveg nógu góð skil. Forsíðumyndin er stök birtingamynd sem tengist ekki verksmiðjunni sjálfri, á meðan þessar fínu myndir af ykkar eigin vinnu liggja neðar á síðunni og fá minni athygli en þær eiga skilið.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur, byggða á ykkar eigin myndum og lógói. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að fólk sjái strax hverju þið hafið áorkað síðan 1969 og finni fljótt þá vöru sem þau eru að leita að. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Helsti munurinn er sá að myndirnar af ykkar eigin verkum fá að njóta sín strax í upphafi í stað þess að liggja neðarlega á síðunni, sagan frá 1969 er sögð strax í fyrstu andránni, og vöruúrvalið er sett upp þannig að hægt er að smella á hverja vöru og sjá hana beint í stað þess að lesa bara upptalningu.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'hudflur',
+    route: '/preview/hudflur',
+    name: 'Húðflúrstofa Norðurlands',
+    sector: 'Húðflúrstofa',
+    location: 'Gránufélagsgata 4, Akureyri',
+    region: 'North',
+    established: 'Frá 2011',
+    currentUrl: 'https://www.facebook.com/hudflurstofanordurlands/',
+    ownerEmail: 'hudflur@hudflur.net',
+    concept: 'Fine Line',
+    conceptTagline:
+      'Fifteen years of steady hands in Akureyri, told as one continuous ink line drawn the length of the page.',
+    accent: '#C22A2E',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        '15 years operating in Akureyri with a loyal following',
+        '256 Facebook reviews at 88% recommend, an unusually strong track record for a single studio',
+        'Active, engaged Instagram (2,300+ followers)',
+      ],
+      weaknesses: [
+        'No website at all — everything lives on Facebook/Instagram',
+        'No way to see the studio, browse styles or request a booking without DMing',
+        'Zero presence in Google search for "tattoo Akureyri"',
+      ],
+      opportunities: [
+        'A clean, modern one-page site that finally gives 15 years of reputation a proper home',
+        'A simple style/service overview so people arrive knowing what to ask for',
+        'A direct booking-request path instead of cold DMs',
+      ],
+    },
+    positioning:
+      'Fifteen years of real work and an 88% recommend rate deserve more than a Facebook wall. The site should feel as considered and modern as the studio itself: dark, confident, understated.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Húðflúrstofu Norðurlands',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Ég rakst á Húðflúrstofu Norðurlands og sá að þið hafið verið starfandi á Akureyri í hátt í fimmtán ár, með frábærar umsagnir og virkan hóp fylgjenda á samfélagsmiðlum. Því miður fann ég enga vefsíðu, aðeins Facebook og Instagram, sem þýðir að fólk sem leitar að húðflúrstofu á Akureyri gæti auðveldlega misst af ykkur.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að vefsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk finni ykkur á netinu, sjái hvað þið bjóðið upp á og geti haft samband án fyrirhafnar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'una',
+    route: '/preview/una',
+    name: 'UNA Local Product',
+    sector: 'Handverks- og gjafavöruverslun',
+    location: 'Austurvegur 4, Hvolsvöllur',
+    region: 'South',
+    established: 'Frá 2015',
+    currentUrl: 'https://una-local-product.business.site',
+    ownerEmail: 'info@unalocalstore.com',
+    concept: 'Litla rauða húsið',
+    conceptTagline:
+      'One small red Nissen hut on the Ring Road, packed with everything a hundred local hands have made.',
+    accent: '#A5352B',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1601379327928-bedfaf9da2d0?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'A genuinely distinctive landmark: a red Nissen hut on the Ring Road since 2015',
+        'Family-run (Magnús & Rebekka) with strong local sourcing: over 100 local knitters',
+        '92% recommend on Facebook, well-reviewed on TripAdvisor',
+      ],
+      weaknesses: [
+        'No real website, just a bare, unstyled Google Business page',
+        'No sense of what is actually inside before visiting — the range of wool, food, jewelry and gifts is invisible online',
+        'An owner reply on TripAdvisor mentions wanting a proper website; it never arrived',
+      ],
+      opportunities: [
+        'Show the range (wool, food, jewelry, skincare) so travellers plan a stop, not a drive-by',
+        'Use the hut itself as the visual identity — it is genuinely memorable',
+        'A simple hours + map + "what is in the hut" page fixes almost everything',
+      ],
+    },
+    positioning:
+      'A real family shop inside a landmark red hut on the Golden Circle route, selling work from a hundred local hands, and none of it visible online. The site should make the hut itself the hero.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir UNA Local Product',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Ég kynnti mér búðina ykkar í rauða skálanum á Hvolsvelli og fannst hún einstök. Handverk frá yfir hundrað prjónakonum, íslensk matvara og gjafavara, allt í einu litlu og eftirminnilegu húsi við þjóðveginn. Því miður er núverandi vefsíða bara ómótuð Google síða, þannig að ferðafólk sem er að skipuleggja stopp á leiðinni sér ekkert af þessu fyrirfram.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk sjái hvað leynist í rauða húsinu áður en það keyrir framhjá, og að skálinn sjálfur fái að vera aðalsöguhetjan. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'fotografi',
+    route: '/preview/fotografi',
+    name: 'Fótógrafí',
+    sector: 'Ljósmyndavöruverslun og gallerí',
+    location: 'Skólavörðustígur 22, Reykjavík',
+    region: 'Capital',
+    established: 'Frá 2007',
+    currentUrl: 'https://www.fotografi.is',
+    ownerEmail: 'fotografi.iceland@gmail.com',
+    concept: 'Framköllun',
+    conceptTagline:
+      'A tiny red shop of vintage cameras and vinyl, told the way a photograph reveals itself in the developer tray.',
+    accent: '#B23327',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1563298258-c9b0371b55cc?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        '19 years in the same spot near Hallgrímskirkja, "the first of its kind in Iceland"',
+        'A genuinely unique inventory: 300+ vintage cameras on the walls, a 1960s-80s vinyl collection, fine-art prints',
+        'Owner-run by Ari Sigvaldason, a well-known independent story (left a 15-year career at RÚV to open it)',
+      ],
+      weaknesses: [
+        'Dated Squarespace-era template that undersells a genuinely one-of-a-kind shop',
+        'Reviewers report a buggy checkout that fails and needs retrying, a direct, quantifiable loss of print sales',
+        'No real sense of the 300-camera wall or the atmosphere before visiting',
+      ],
+      opportunities: [
+        "Let the shop's own atmosphere (cameras, vinyl, red walls) carry the design instead of a generic template",
+        'Fix the actual thing costing them money: a smooth, working print-checkout flow',
+        "Tell Ari's story, it is a strong, human reason to visit",
+      ],
+    },
+    positioning:
+      "One of Reykjavík's most singular little shops, undersold by a template site with a broken checkout. The site should feel like the shop itself: a print slowly resolving out of the developer tray.",
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Fótógrafí',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
+
+Ég kynnti mér Fótógrafí og fannst búðin einstök, gömlu myndavélarnar á veggjunum, vínylsafnið og prentin sem þið seljið. Þið hafið verið á sama stað við Skólavörðustíg í tæp tuttugu ár, sem er sjaldgæft og verðskuldar meira en núverandi vefsíða sýnir. Sumir sem hafa reynt að kaupa prent í gegnum síðuna segja að greiðsluferlið klikki og þurfi að reyna aftur, sem þýðir að þið eruð líklega að missa af sölu án þess að vita af því.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að búðin sjálf, andrúmsloftið og sagan þín, fái að vera í forgrunni, og að fólk geti keypt prent án vandræða. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega heyrið í mér ef þetta kveikir í ykkur.
 
 ${SIGN}`,
     },
