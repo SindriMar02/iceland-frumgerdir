@@ -52,6 +52,21 @@ export const CARS: Car[] = [
 
 export const carImg = (src: string, w: number) => `${src}&w=${w}`
 
+/* hero rotation: a hand-picked spread of body styles/colours from the real
+   stock (sedan, SUV, wagon, EV hatch) so the carousel reads as "the lot",
+   not five of the same silhouette. Pulled live from CARS, not hardcoded,
+   so price/km/specs never drift out of sync with the inventory below. */
+const HERO_PICKS: [string, string][] = [
+  ['JAGUAR', 'XF R-SPORT'],
+  ['AUDI', 'A5 SPORTBACK'],
+  ['LAND ROVER', 'DISCOVERY SPORT SE'],
+  ['MG', 'MG5 ELECTRIC LUXURY 61KWH'],
+  ['VOLVO', 'V40 CROSS COUNTRY'],
+]
+export const HERO_SLIDES: Car[] = HERO_PICKS
+  .map(([make, model]) => CARS.find((c) => c.make === make && c.model === model))
+  .filter((c): c is Car => Boolean(c))
+
 export const fmtPrice = (c: Car) =>
   `${c.priceNum.toLocaleString('de-DE')} kr.${c.anVsk ? ' án vsk.' : ''}`
 
