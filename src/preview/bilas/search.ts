@@ -51,6 +51,8 @@ export type Parsed = {
   yearMin: number | null
   yearMax: number | null
   yearExact: number | null
+  kmMin: number | null
+  kmMax: number | null
   /* human-readable chips: how the engine read the query */
   understood: string[]
 }
@@ -85,6 +87,7 @@ export function parseQuery(raw: string): Parsed {
   const p: Parsed = {
     terms: [], fuel: null, gear: null, tilbod: false, anVsk: false,
     priceMin: null, priceMax: null, yearMin: null, yearMax: null, yearExact: null,
+    kmMin: null, kmMax: null,
     understood: [],
   }
   if (!q.trim()) return p
@@ -94,7 +97,39 @@ export function parseQuery(raw: string): Parsed {
     if (m) { onMatch(m); q = q.replace(re, ' ') }
   }
 
-  /* price ranges first (most specific patterns first) */
+  /* km driven — BEFORE prices so "ekinn undir 100" isn't read as kr.
+     norm() folds þ→th, so "þ.km"/"þús" arrive as "th.km"/"thus". */
+  const KM_SUF = String.raw`\s*(?:th\.?km|thus\w*|th\b|km\b)?`
+  const toKm = (numStr: string): number => {
+    const n = parseFloat(numStr.replace(/\./g, '').replace(',', '.'))
+    if (Number.isNaN(n)) return NaN
+    return n <= 1000 ? Math.round(n * 1000) : Math.round(n)
+  }
+  const fmtKm = (n: number) => `${Math.round(n / 1000)} þ.km`
+  eat(new RegExp(String.raw`(?:ekinn|akstur)\s+${NUM}${KM_SUF}\s*(?:-|til)\s*${NUM}${KM_SUF}`), (m) => {
+    const a = toKm(m[1]); const b = toKm(m[2])
+    if (!Number.isNaN(a) && !Number.isNaN(b)) {
+      p.kmMin = Math.min(a, b); p.kmMax = Math.max(a, b)
+      p.understood.push(`ekinn ${fmtKm(p.kmMin)} - ${fmtKm(p.kmMax)}`)
+    }
+  })
+  eat(new RegExp(String.raw`(?:ekinn|akstur)\s+undir\s+${NUM}${KM_SUF}|undir\s+${NUM}\s*(?:th\.?km|thus\w*\s*km|km\b)`), (m) => {
+    const v = toKm(m[1] ?? m[2])
+    if (!Number.isNaN(v)) { p.kmMax = v; p.understood.push(`ekinn undir ${fmtKm(v)}`) }
+  })
+  eat(new RegExp(String.raw`(?:ekinn|akstur)\s+yfir\s+${NUM}${KM_SUF}|yfir\s+${NUM}\s*(?:th\.?km|thus\w*\s*km|km\b)`), (m) => {
+    const v = toKm(m[1] ?? m[2])
+    if (!Number.isNaN(v)) { p.kmMin = v; p.understood.push(`ekinn yfir ${fmtKm(v)}`) }
+  })
+
+  /* year RANGE before price ranges ("2015-2020" is years, not kr.) */
+  eat(/\b((?:19|20)\d{2})\s*(?:-|til)\s*((?:19|20)\d{2})\b/, (m) => {
+    p.yearMin = Math.min(Number(m[1]), Number(m[2]))
+    p.yearMax = Math.max(Number(m[1]), Number(m[2]))
+    p.understood.push(`árgerð ${p.yearMin}-${p.yearMax}`)
+  })
+
+  /* price ranges (most specific patterns first) */
   eat(new RegExp(String.raw`(?:milli\s+)?${NUM}${MILL}\s*(?:-|til)\s*${NUM}${MILL}(?:\s*kr\w*)?`), (m) => {
     const hasM = Boolean(m[2] || m[4])
     const a = toIsk(m[1], hasM); const b = toIsk(m[3], hasM)
@@ -137,7 +172,7 @@ export function parseQuery(raw: string): Parsed {
 
   /* filler words that carry no constraint of their own ("árgerð eftir
      2020" leaves a dangling "árgerð" once the year clause is consumed) */
-  const STOP = new Set(['argerd', 'arg', 'bill', 'bilar', 'bilinn', 'bila', 'kr', 'kronur', 'verd', 'og'])
+  const STOP = new Set(['argerd', 'arg', 'bill', 'bilar', 'bilinn', 'bila', 'kr', 'kronur', 'verd', 'og', 'ekinn', 'akstur', 'km'])
 
   /* remaining words: fuel/gear vocab (fuzzy), rest become text terms */
   for (const word of q.split(/\s+/).filter(Boolean)) {
@@ -159,6 +194,16 @@ export function parseQuery(raw: string): Parsed {
   return p
 }
 
+/* car km strings arrive as "235 þ.km" or "93.511 km"; null = unlisted */
+export function carKm(car: Car): number | null {
+  if (!car.km) return null
+  const m = car.km.match(/([\d.]+)\s*(þ)?/)
+  if (!m) return null
+  const n = parseFloat(m[1].replace(/\./g, m[2] ? ',' : '').replace(',', '.'))
+  if (Number.isNaN(n)) return null
+  return m[2] ? Math.round(n * 1000) : Math.round(parseFloat(m[1].replace(/\./g, '')))
+}
+
 /* score a car against parsed constraints; null = filtered out.
    makeTerms get OR semantics ("volvo vw" = either brand), all other
    text terms get AND semantics ("bmw x3" = both must match). */
@@ -173,6 +218,12 @@ export function scoreCar(car: Car, p: Parsed, makeTerms: string[] = [], textTerm
   if (p.yearExact !== null && year !== p.yearExact) return null
   if (p.yearMin !== null && year < p.yearMin) return null
   if (p.yearMax !== null && year > p.yearMax) return null
+  if (p.kmMin !== null || p.kmMax !== null) {
+    const km = carKm(car)
+    if (km === null) return null /* unlisted km can't satisfy a km filter */
+    if (p.kmMin !== null && km < p.kmMin) return null
+    if (p.kmMax !== null && km > p.kmMax) return null
+  }
 
   let score = 1
   const makeWords = norm(car.make).split(/[\s-]+/)
