@@ -364,11 +364,11 @@ export default function UnaPage() {
               <h2 id="umsagnir-h" className="font-display text-[clamp(2.2rem,5.5vw,3.6rem)]" style={{ color: INK }}>
                 {REVIEWS.heading}
               </h2>
-              <div className="text-right">
+              <div className="text-left md:text-right">
                 <p className="font-display text-[clamp(2.4rem,5vw,3.4rem)] leading-none" style={{ color: RED }}>
                   {REVIEWS.stat.value}
                 </p>
-                <p className="mt-1 text-[13.5px]" style={{ color: MUTED }}>
+                <p className="mt-1 max-w-[22ch] text-[13.5px]" style={{ color: MUTED }}>
                   {REVIEWS.stat.label}
                 </p>
               </div>
