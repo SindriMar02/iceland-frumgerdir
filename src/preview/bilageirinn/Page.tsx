@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import {
@@ -15,6 +15,7 @@ import { Check, MapPin, Phone, Send } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import BilageirinnLoading from './Loading'
 import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
@@ -1310,9 +1311,51 @@ export default function Page() {
     }
   }, [])
 
+  /* Loading gate: the overlay stays up until the hero photo, the logo, and the
+     self-hosted fonts are actually ready, so the fade lands on an already-painted
+     hero instead of visitors watching it pop in after the loader clears. */
+  const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'logo'] as const, [])
+  const [ready, setReady] = useState<Record<string, boolean>>({})
+  const [forced, setForced] = useState(false)
+  const mark = useCallback((k: string) => setReady(r => (r[k] ? r : { ...r, [k]: true })), [])
+  const readyCount = GATE_KEYS.reduce((n, k) => n + (ready[k] ? 1 : 0), 0)
+  const assetsReady = forced || readyCount === GATE_KEYS.length
+  const loadProgress = forced ? 1 : readyCount / GATE_KEYS.length
+
+  useEffect(() => {
+    let alive = true
+    const safeMark = (k: string) => {
+      if (alive) mark(k)
+    }
+    const warm = (src: string, key: string) => {
+      const im = new Image()
+      im.src = src
+      im.decode().catch(() => {}).finally(() => safeMark(key))
+    }
+    ;(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => safeMark('fonts'))
+    warm(IMG.hero, 'hero')
+    warm(LOGO, 'logo')
+    // never trap a visitor behind the loader if a resource stalls
+    const failsafe = window.setTimeout(() => {
+      if (alive) setForced(true)
+    }, 4000)
+    return () => {
+      alive = false
+      window.clearTimeout(failsafe)
+    }
+  }, [mark])
+
+  const [overlayMounted, setOverlayMounted] = useState(true)
+  useEffect(() => {
+    if (!assetsReady) return
+    const t = window.setTimeout(() => setOverlayMounted(false), 700)
+    return () => window.clearTimeout(t)
+  }, [assetsReady])
+
   return (
     <div className="bg-page min-h-screen antialiased" style={{ fontFamily: BODY }}>
       <style>{CSS}</style>
+      {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero />

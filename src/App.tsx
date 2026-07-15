@@ -13,6 +13,7 @@ import PizzasmidjanLoading from './preview/pizzasmidjan/Loading'
 import AskurLoading from './preview/askur/Loading'
 import SmariholmLoading from './preview/smariholm/Loading'
 import SamverkLoading from './preview/samverk/Loading'
+import BilageirinnLoading from './preview/bilageirinn/Loading'
 
 const Home = lazy(() => import('./pages/Home'))
 const IceTourism = lazy(() => import('./pages/IceTourism'))
@@ -215,7 +216,7 @@ export default function App() {
             <Route path="/preview/askur" element={<Suspense fallback={<AskurLoading />}><AskurPage /></Suspense>} />
             <Route path="/preview/smariholm" element={<Suspense fallback={<SmariholmLoading />}><SmariholmPage /></Suspense>} />
             <Route path="/preview/samverk" element={<Suspense fallback={<SamverkLoading />}><SamverkPage /></Suspense>} />
-            <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
+            <Route path="/preview/bilageirinn" element={<Suspense fallback={<BilageirinnLoading />}><BilageirinnPage /></Suspense>} />
             <Route path="/preview/bilageirinn/blueprint" element={<BilageirinnBlueprint />} />
             <Route path="/preview/bilageirinn/signal" element={<BilageirinnSignal />} />
             <Route path="/preview/bilageirinn/langlina" element={<BilageirinnLanglina />} />
