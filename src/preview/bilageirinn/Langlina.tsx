@@ -315,7 +315,7 @@ function Hero() {
 
   return (
     <section id="efst" className="relative z-[1] pt-[72px]">
-      <div className="mx-auto max-w-[1320px] px-5 pb-14 pt-16 md:px-8 md:pb-20 md:pt-24">
+      <div className="mx-auto max-w-[1320px] px-5 pb-6 pt-8 md:px-8 md:pb-8 md:pt-10">
         <motion.p
           className="text-[12px] tracking-[0.2em] uppercase"
           style={{ fontFamily: MONO, color: MUT }}
@@ -325,8 +325,8 @@ function Hero() {
         </motion.p>
 
         <motion.h1
-          className="mt-6 max-w-4xl text-balance"
-          style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(2.6rem, 7.6vw, 5.6rem)', lineHeight: 1.08, letterSpacing: '-0.015em' }}
+          className="mt-4 max-w-4xl text-balance"
+          style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(2.4rem, 6.6vw, 4.6rem)', lineHeight: 1.08, letterSpacing: '-0.015em' }}
           {...enter(0.1)}
         >
           <span style={{ color: INK }}>Aftur í rétta </span>
@@ -335,14 +335,14 @@ function Hero() {
         </motion.h1>
 
         <motion.p
-          className="mt-7 max-w-[46ch] text-[16.5px] leading-[1.7] md:text-[18px]"
+          className="mt-4 max-w-[52ch] text-[15px] leading-[1.6] md:text-[16.5px]"
           style={{ fontFamily: BODY, color: MUT }}
           {...enter(0.2)}
         >
           {HERO.sub}
         </motion.p>
 
-        <motion.div className="mt-8 flex flex-wrap items-center gap-4" {...enter(0.3)}>
+        <motion.div className="mt-5 flex flex-wrap items-center gap-4" {...enter(0.3)}>
           <a
             href={PHONE_HREF}
             className="cv-cta inline-flex min-h-12 items-center gap-2 rounded-sm px-6 text-[15px]"
@@ -366,9 +366,10 @@ function Hero() {
         </motion.div>
       </div>
 
-      {/* the one large, calm photo — cropped clean, no scrim, nothing sits on it */}
+      {/* the photo, brought up close under the text like the reference layout —
+          large, immediate, no scroll needed to see it */}
       <Reveal delay={0.1}>
-        <div className="relative h-[46vh] w-full overflow-hidden md:h-[62vh]">
+        <div className="relative h-[52vh] w-full overflow-hidden md:h-[68vh]">
           <Photo src={IMG.retting} alt="Réttingamaður vinnur yfirbyggingu bíls með höndunum" className="h-full w-full" kenBurns />
           <div
             className="absolute bottom-4 left-4 rounded-sm px-3 py-2 md:bottom-6 md:left-6"
