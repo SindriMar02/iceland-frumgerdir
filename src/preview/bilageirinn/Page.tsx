@@ -88,9 +88,20 @@ const CSS = `
 @keyframes bg-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .bg-marquee { animation: bg-marquee 46s linear infinite; }
 
+/* hero scan: one alignment pass over the photo on load, like a laser tool
+   finding the line before the headline commits to it */
+@keyframes bg-scan {
+  0% { transform: translateY(-40%); opacity: 0; }
+  12% { opacity: 1; }
+  82% { opacity: 1; }
+  100% { transform: translateY(1400%); opacity: 0; }
+}
+.bg-scanline { animation: bg-scan 2.2s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both; }
+
 @media (prefers-reduced-motion: reduce) {
   .bg-heroimg { animation: none; }
   .bg-marquee { animation: none; }
+  .bg-scanline { animation: none; display: none; }
 }
 `
 
@@ -222,6 +233,89 @@ function TrueLine({ className, delay = 0 }: { className?: string; delay?: number
   )
 }
 
+/** CABAS-style measurement overlay: crosshair points and the lines between
+    them draw onto a real photo as it enters view. Labels are generic
+    process terms only (no invented numbers/readings) — it visualizes HOW
+    a panel gets measured, never claims a specific result. */
+function MeasurePoints({ points }: { points: { x: number; y: number; label?: string }[] }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+  const reduced = useReducedMotion()
+  if (reduced) return null
+  return (
+    <div ref={ref} aria-hidden className="pointer-events-none absolute inset-0">
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {points.slice(1).map((p, i) => {
+          const prev = points[i]
+          return (
+            <motion.line
+              key={i}
+              x1={prev.x}
+              y1={prev.y}
+              x2={p.x}
+              y2={p.y}
+              stroke={AMBER}
+              strokeWidth={0.15}
+              strokeDasharray="1 1.4"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: inView ? 1 : 0, opacity: inView ? 0.85 : 0 }}
+              transition={{ duration: 0.9, ease: EASE, delay: 0.3 + i * 0.15 }}
+            />
+          )
+        })}
+      </svg>
+      {points.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute -translate-x-1/2 -translate-y-1/2"
+          style={{ left: `${p.x}%`, top: `${p.y}%` }}
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={{ opacity: inView ? 1 : 0, scale: inView ? 1 : 0.4 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.15 + i * 0.15 }}
+        >
+          <span
+            className="block h-2.5 w-2.5 rounded-full border"
+            style={{ borderColor: AMBER, background: 'rgba(232,162,61,0.18)' }}
+          />
+          {p.label && (
+            <span
+              className="absolute left-4 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] tracking-[0.14em] uppercase"
+              style={{ fontFamily: MONO, color: INK, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
+            >
+              {p.label}
+            </span>
+          )}
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+/** Aircraft-placard styled callout — sets the aviation-precision line in
+    STORY.lead ("hvert mál er mælt, hvert handtak skráð...") in its own
+    mono/hairline system, reusing only words already in the verified copy. */
+function SpecPlate() {
+  return (
+    <Rise delay={0.22}>
+      <div
+        className="mt-8 inline-flex flex-wrap items-center gap-x-4 gap-y-2 rounded-sm border px-5 py-3.5"
+        style={{ borderColor: HAIR, background: 'rgba(232,162,61,0.06)' }}
+      >
+        {['MÆLT', 'SKRÁÐ', 'STENST KRÖFUR'].map((w, i, arr) => (
+          <span key={w} className="flex items-center gap-x-4">
+            <span className="text-[12px] tracking-[0.18em]" style={{ fontFamily: MONO, color: AMBER }}>
+              {w}
+            </span>
+            {i < arr.length - 1 && (
+              <span aria-hidden className="h-3 w-px" style={{ background: HAIR }} />
+            )}
+          </span>
+        ))}
+      </div>
+    </Rise>
+  )
+}
+
 function CountUp({ to, pad, suffix }: { to: number; pad: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
@@ -319,6 +413,21 @@ function Hero() {
           className="bg-heroimg h-full w-full object-cover"
         />
       </motion.div>
+      {/* alignment scan: one pass down the photo on load, an instrument
+          finding the line before the headline commits to it — not a
+          generic wipe, the shop's actual method (measure, then correct) */}
+      {!reduced && (
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="bg-scanline absolute inset-x-0 top-0"
+            style={{
+              height: '2px',
+              background: AMBER,
+              boxShadow: `0 0 24px 3px rgba(232,162,61,0.65), 0 0 3px 1px ${AMBER}`,
+            }}
+          />
+        </div>
+      )}
       {/* scrim: readable headline zone without flattening the photo */}
       <div
         aria-hidden
@@ -456,6 +565,7 @@ function Story() {
               {STORY.body}
             </p>
           </Rise>
+          <SpecPlate />
         </div>
         <ClipImage
           src={IMG.booth}
@@ -663,11 +773,16 @@ function Claims() {
                 {INSURANCE.companies.join(' · ')}
               </p>
             </Rise>
-            <ClipImage
-              src={IMG.malun}
-              alt="Unnið við bíl í málningarklefa"
-              className="mt-12 hidden aspect-[4/3] rounded-sm md:block"
-            />
+            <div className="relative mt-12 hidden md:block">
+              <ClipImage src={IMG.malun} alt="Unnið við bíl í málningarklefa" className="aspect-[4/3] rounded-sm" />
+              <MeasurePoints
+                points={[
+                  { x: 22, y: 34, label: 'Mælipunktur' },
+                  { x: 58, y: 22, label: 'Viðmiðunarlína' },
+                  { x: 74, y: 58, label: 'Mælipunktur' },
+                ]}
+              />
+            </div>
           </div>
 
           {/* the claim's own line: fills as each step passes */}
@@ -687,23 +802,35 @@ function Claims() {
                     style={{ background: s.highlight ? AMBER : BG, border: `2px solid ${s.highlight ? AMBER : MUT}` }}
                   />
                   <Rise delay={i * 0.06}>
-                    <p className="text-[13px] tracking-[0.16em]" style={{ fontFamily: MONO, color: AMBER }}>
-                      {String(i + 1).padStart(2, '0')}
-                    </p>
-                    <h3 className="mt-2" style={{ fontFamily: EBOLD, fontSize: 'clamp(1.4rem, 2.4vw, 1.9rem)', letterSpacing: '-0.01em' }}>
-                      {s.title}
-                    </h3>
-                    <p className="mt-3 max-w-[52ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-                      {s.desc}
-                    </p>
-                    {s.highlight && (
-                      <p
-                        className="mt-4 inline-flex items-center rounded-sm px-3.5 py-2 text-[13.5px] font-semibold"
-                        style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
-                      >
-                        Innifalið hjá Bílageiranum
+                    <div
+                      className={s.highlight ? 'rounded-sm border p-5 md:p-6' : undefined}
+                      style={s.highlight ? { borderColor: 'rgba(232,162,61,0.4)', background: 'rgba(232,162,61,0.07)' } : undefined}
+                    >
+                      <p className="text-[13px] tracking-[0.16em]" style={{ fontFamily: MONO, color: AMBER }}>
+                        {String(i + 1).padStart(2, '0')}
                       </p>
-                    )}
+                      <h3
+                        className="mt-2"
+                        style={{
+                          fontFamily: EBOLD,
+                          fontSize: s.highlight ? 'clamp(1.6rem, 2.8vw, 2.2rem)' : 'clamp(1.4rem, 2.4vw, 1.9rem)',
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        {s.title}
+                      </h3>
+                      <p className="mt-3 max-w-[52ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+                        {s.desc}
+                      </p>
+                      {s.highlight && (
+                        <p
+                          className="mt-4 inline-flex items-center rounded-sm px-3.5 py-2 text-[13.5px] font-semibold"
+                          style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+                        >
+                          Innifalið hjá Bílageiranum
+                        </p>
+                      )}
+                    </div>
                   </Rise>
                 </li>
               ))}

@@ -91,6 +91,10 @@ const SmariholmPage = lazy(() => import('./preview/smariholm/Page'))
 const SamverkPage = lazy(() => import('./preview/samverk/Page'))
 // Bílageirinn — Reykjanesbær auto body shop, "True Line" aviation-precision concept
 const BilageirinnPage = lazy(() => import('./preview/bilageirinn/Page'))
+// Bílageirinn concept comparison — three alternate full builds (client chose to compare)
+const BilageirinnBlueprint = lazy(() => import('./preview/bilageirinn/Blueprint'))
+const BilageirinnSignal = lazy(() => import('./preview/bilageirinn/Signal'))
+const BilageirinnLanglina = lazy(() => import('./preview/bilageirinn/Langlina'))
 // Prentverk Selfoss — print shop, "Yfirprent" two-colour overprint concept
 const PrentverkPage = lazy(() => import('./preview/prentverk/Page'))
 // Gleraugnasalan Geisli — Akureyri optician, "Gleraugu eru skart" jewelry-focus concept
@@ -212,6 +216,9 @@ export default function App() {
             <Route path="/preview/smariholm" element={<Suspense fallback={<SmariholmLoading />}><SmariholmPage /></Suspense>} />
             <Route path="/preview/samverk" element={<Suspense fallback={<SamverkLoading />}><SamverkPage /></Suspense>} />
             <Route path="/preview/bilageirinn" element={<BilageirinnPage />} />
+            <Route path="/preview/bilageirinn/blueprint" element={<BilageirinnBlueprint />} />
+            <Route path="/preview/bilageirinn/signal" element={<BilageirinnSignal />} />
+            <Route path="/preview/bilageirinn/langlina" element={<BilageirinnLanglina />} />
             <Route path="/preview/prentverk" element={<PrentverkPage />} />
             <Route path="/preview/geisli" element={<GeisliPage />} />
             <Route path="/preview/pipulagnir" element={<PipulagnirPage />} />
