@@ -51,17 +51,25 @@ const company = getPreviewCompany('bilageirinn')
       your scroll, and finally levels off, perfectly horizontal, under the
       closing call. The line back in place is the entire argument. ─────── */
 
-const PAPER = '#EDE7DC'
-const PAPER2 = '#F3EFE6'
-const INK = '#2B2620' /* 12.6:1 on paper */
-const MUT = '#5C5347' /* 5.7:1 on paper */
-const PETROL = '#2B5A63' /* 5.9:1 on paper */
-const PETROL_DARK = '#22454C' /* the one dark chapter */
-const TINT = '#DCE6E4'
-const SAND = '#C7BEA9' /* hairlines only, never text */
-const INK_ON_DARK = '#EDE7DC' /* 9.1:1 on petrol-dark */
-const MUT_ON_DARK = 'rgba(237,231,220,0.74)'
-const HAIR_ON_DARK = 'rgba(237,231,220,0.22)'
+/* the whole page went dark at the client's request (2026-07-15): same warm
+   stone identity, read at dusk instead of daylight. PAPER is now the dark
+   ground, INK is the old paper tone doing duty as ink — exactly the swap
+   the one deliberately-dark chapter (Myndin) already proved works, just
+   generalized site-wide. PETROL_DARK/INK_ON_DARK/MUT_ON_DARK/HAIR_ON_DARK
+   are UNCHANGED from that proven chapter — kept as-is on purpose, so
+   Myndin now reads as a lighter, cooler slab within the dark page instead
+   of the one light-vs-dark contrast, still visibly its own chapter. */
+const PAPER = '#1C1712' /* warm near-black, not cold black */
+const PAPER2 = '#241D15' /* one step up: card/panel fill */
+const INK = '#EDE7DC' /* was PAPER; 14.9:1 on new PAPER */
+const MUT = '#B3A996' /* warm muted tan-grey; 7.6:1 on PAPER */
+const PETROL = '#7CB5C0' /* PETROL lightened for AA on dark ground; 7.8:1 on PAPER */
+const PETROL_DARK = '#22454C' /* the one proven dark chapter — untouched */
+const TINT = '#213C41' /* dark teal wash for the highlighted claim station */
+const SAND = 'rgba(237,231,220,0.28)' /* hairlines only, never text — low-alpha now, was opaque tan */
+const INK_ON_DARK = '#EDE7DC' /* unchanged; now equals INK, kept for Myndin's own reveal timing */
+const MUT_ON_DARK = 'rgba(237,231,220,0.74)' /* unchanged — Myndin's slightly quieter voice */
+const HAIR_ON_DARK = 'rgba(237,231,220,0.22)' /* unchanged */
 
 const SERIF = "'Fraunces', Georgia, 'Times New Roman', serif"
 const BODY = "'Satoshi', 'Helvetica Neue', Arial, sans-serif"
@@ -290,7 +298,7 @@ function Nav({ lenisRef, kafli }: { lenisRef: RefObject<Lenis | null>; kafli: st
     <motion.header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
       style={{
-        background: solid ? 'rgba(237,231,220,0.9)' : 'transparent',
+        background: solid ? 'rgba(28,23,18,0.9)' : 'transparent',
         backdropFilter: solid ? 'blur(12px)' : 'none',
         WebkitBackdropFilter: solid ? 'blur(12px)' : 'none',
         borderBottom: solid ? `1px solid ${SAND}` : '1px solid transparent',
@@ -307,7 +315,8 @@ function Nav({ lenisRef, kafli }: { lenisRef: RefObject<Lenis | null>; kafli: st
             else window.scrollTo({ top: 0, behavior: 'smooth' })
           }}
         >
-          <img src={LOGO} alt="Bílageirinn" className="h-8 w-auto" />
+          {/* the mark is dark linework on transparent — inverted so it reads on the new dark ground */}
+          <img src={LOGO} alt="Bílageirinn" className="h-8 w-auto" style={{ filter: 'invert(1) brightness(1.02)' }} />
         </a>
         <div className="flex items-center gap-4 md:gap-7">
           <AnimatePresence mode="wait">
@@ -347,6 +356,133 @@ function Nav({ lenisRef, kafli }: { lenisRef: RefObject<Lenis | null>; kafli: st
 
 /* ─────────────────────────── 0 · opening ─────────────────────────── */
 
+/** Full-bleed and slow, on purpose. Seven photos, one per service, cycling
+    behind the tagline like the workshop itself passing by — never faster
+    than the line's own patience. Same images/copy already vetted and
+    paired to SERVICES for the register below; nothing invented here. */
+const HERO_SLIDES = [
+  { img: IMG.retting, alt: 'Flötur yfirbyggingar varinn og unninn með höndunum', service: SERVICES[0] },
+  { img: IMG.malun, alt: 'Sprautuvinna í málningarklefa', service: SERVICES[1] },
+  { img: IMG.garage, alt: 'Verkstæðisgólf með bílum í viðgerð', service: SERVICES[2] },
+  { img: IMG.lift, alt: 'Unnið undir bíl á lyftu', service: SERVICES[3] },
+  { img: IMG.wheel, alt: 'Fjöðrunar- og hjólabúnaður í nærmynd', service: SERVICES[4] },
+  { img: IMG.headlight, alt: 'Aðalljós á dökkum bíl', service: SERVICES[5] },
+  { img: IMG.brake, alt: 'Bremsubúnaður skoðaður með hjólið af', service: SERVICES[6] },
+]
+const HERO_SLIDE_MS = 9000
+
+/** The hero's full-bleed backdrop: long cross-fades, a gentle scale drift —
+    the same slow-surfacing language as Photo/ll-kb, never a hard cut. Sits
+    behind the long line (z-0, line is z-[1]) so the line still draws over
+    the photo exactly as it drew over paper. Reduced motion: no
+    auto-advance, first photo static, controls still work. */
+function HeroCarousel() {
+  const [active, setActive] = useState(0)
+  const reduced = useReducedMotion()
+
+  useEffect(() => {
+    if (reduced) return
+    const t = setTimeout(() => setActive(a => (a + 1) % HERO_SLIDES.length), HERO_SLIDE_MS)
+    return () => clearTimeout(t)
+  }, [active, reduced])
+
+  const go = (i: number) => setActive(((i % HERO_SLIDES.length) + HERO_SLIDES.length) % HERO_SLIDES.length)
+  const slide = HERO_SLIDES[active]
+
+  return (
+    <div className="absolute inset-x-0 top-0 z-0 h-[100svh] overflow-hidden" style={{ background: PAPER }} role="region" aria-label="Þjónustan í myndum">
+      <div className="absolute inset-0">
+        {reduced ? (
+          <img src={slide.img} alt={slide.alt} loading="eager" decoding="async" className="h-full w-full object-cover" />
+        ) : (
+          <AnimatePresence initial={false}>
+            <motion.img
+              key={active}
+              src={slide.img}
+              alt={slide.alt}
+              loading="eager"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover"
+              initial={{ opacity: 0, scale: 1 }}
+              animate={{ opacity: 1, scale: 1.06, transition: { opacity: { duration: 2.2, ease: EASE }, scale: { duration: HERO_SLIDE_MS / 1000, ease: 'linear' } } }}
+              exit={{ opacity: 0, transition: { duration: 2, ease: EASE } }}
+            />
+          </AnimatePresence>
+        )}
+      </div>
+      {/* the scrim is the page's own dark tone — the photo, at dusk */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(to bottom, rgba(28,23,18,0.68) 0%, rgba(28,23,18,0.4) 32%, rgba(28,23,18,0.48) 62%, rgba(28,23,18,0.85) 100%)' }}
+      />
+      {/* quiet caption, chapter-mark vocabulary at hero scale */}
+      <div className="absolute left-5 top-24 md:left-8 md:top-28">
+        {reduced ? (
+          <p className="flex items-center gap-3 text-[11px] tracking-[0.24em] uppercase" style={{ fontFamily: MONO, color: INK }}>
+            <span aria-hidden className="inline-block h-[2px] w-8" style={{ background: PETROL }} />
+            {String(active + 1).padStart(2, '0')} · {slide.service.name}
+          </p>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={active}
+              className="flex items-center gap-3 text-[11px] tracking-[0.24em] uppercase"
+              style={{ fontFamily: MONO, color: INK }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <span aria-hidden className="inline-block h-[2px] w-8" style={{ background: PETROL }} />
+              {String(active + 1).padStart(2, '0')} · {slide.service.name}
+            </motion.p>
+          </AnimatePresence>
+        )}
+      </div>
+      {/* controls: thin line segments, never dots — the line's own vocabulary */}
+      <div className="absolute bottom-6 right-5 flex items-center gap-3 md:bottom-8 md:right-8" role="group" aria-label="Veldu þjónustu">
+        <button
+          type="button"
+          onClick={() => go(active - 1)}
+          className="flex min-h-11 min-w-11 items-center justify-center text-[15px]"
+          style={{ fontFamily: MONO, color: INK }}
+          aria-label="Fyrri þjónusta"
+        >
+          ‹
+        </button>
+        <div className="flex items-center gap-2.5">
+          {HERO_SLIDES.map((s, i) => (
+            <button
+              key={s.service.name}
+              type="button"
+              onClick={() => go(i)}
+              aria-label={s.service.name}
+              aria-current={i === active}
+              className="flex min-h-11 min-w-6 items-center justify-center"
+            >
+              <span
+                aria-hidden
+                className="block h-[2px] transition-all duration-500"
+                style={{ width: i === active ? '26px' : '12px', background: i === active ? INK : 'rgba(237,231,220,0.4)' }}
+              />
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => go(active + 1)}
+          className="flex min-h-11 min-w-11 items-center justify-center text-[15px]"
+          style={{ fontFamily: MONO, color: INK }}
+          aria-label="Næsta þjónusta"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function Opening() {
   const reduced = useReducedMotion()
   const enter = (delay: number) =>
@@ -374,6 +510,7 @@ function Opening() {
           fontSize: 'clamp(3rem, 10.5vw, 8rem)',
           lineHeight: 1.08,
           letterSpacing: '-0.015em',
+          textShadow: '0 4px 28px rgba(0,0,0,0.3)',
         }}
         {...enter(0.45)}
       >
@@ -535,7 +672,7 @@ function Flugskylid() {
               style={{ fontFamily: MONO, color: PETROL }}
             >
               <span aria-hidden className="inline-block h-[2px] w-10 md:w-16" style={{ background: PETROL }} />
-              <span className="px-3 py-2" style={{ background: 'rgba(237,231,220,0.92)' }}>
+              <span className="px-3 py-2" style={{ background: 'rgba(28,23,18,0.88)' }}>
                 Undirbúningur fyrir sprautun
               </span>
             </p>
@@ -709,7 +846,7 @@ function Thjonustan() {
                       >
                         {s.name}
                       </span>
-                      <span className="text-[10.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: on ? PETROL : SAND }}>
+                      <span className="text-[10.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: on ? PETROL : MUT }}>
                         {s.tag}
                       </span>
                     </span>
@@ -1157,6 +1294,7 @@ export default function Page() {
       <style>{CSS}</style>
       <Nav lenisRef={lenisRef} kafli={kafli} />
       <main className="relative">
+        <HeroCarousel />
         <LongLine progress={drawn} />
         <Opening />
         <Flugskylid />

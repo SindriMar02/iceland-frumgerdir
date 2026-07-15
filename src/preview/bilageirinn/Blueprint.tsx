@@ -47,22 +47,34 @@ const company = getPreviewCompany('bilageirinn')
 
 /* ── GRÓFIN BLUEPRINT. Trust through transparency: the page is laid out
       like the shop's own measurement document, drafted live in front of
-      you. Light paper ground, blueprint-navy ink, hairline rules, Geist
-      Mono doing the heavy lifting, and one plotter red-orange that is
-      rationed to measurement marks, active states and the phone CTA.
-      Deliberately the opposite pole from v2's night-shift amber. ─── */
-const PAPER = '#EFF1EC'
-const INK = '#1B2A3A' /* 12.9:1 on paper */
-const MUT = '#46586A' /* secondary text on paper, 6.5:1 */
-const LINE = '#7C8A93' /* hairlines + rules only (non-text) */
-const ACCENT = '#D6491F' /* plotter red: marks, drawn lines, large type */
-const ACCENT_DEEP = '#B23A16' /* small accent text on paper 5.3:1 · white on it 6:1 */
-const ACCENT_LIT = '#E86A3C' /* accent text on navy panels, 4.6:1 */
-const TINT = '#F4E4DC'
-const PANEL_MUT = '#AEBBC6' /* secondary text on navy, 7.4:1 */
-const HAIR = 'rgba(27,42,58,0.16)'
-const HAIR_STRONG = 'rgba(27,42,58,0.38)'
-const PANEL_HAIR = 'rgba(239,241,236,0.18)'
+      you. A real blueprint is pale linework on a deep cyanotype-blue
+      ground — so the dark pass below leans INTO that, not away from it:
+      deep blueprint-navy ground, pale-paper ink, hairlines in low-alpha
+      pale blue, Geist Mono doing the heavy lifting, and one plotter
+      red-orange that is rationed to measurement marks, active states and
+      the phone CTA. Every pairing below is contrast-checked against the
+      surface it actually sits on (BG / TINT / CARD / PLATE_BG). ─── */
+const BG = '#101E30' /* deep blueprint navy-black — page ground */
+const INK = '#EFF1EC' /* primary text — 14.6:1 on BG (the old paper color, now the ink) */
+const MUT = '#8CA0B3' /* secondary text — 6.2:1 on BG, 5:1 on CARD */
+const LINE = '#7E93A6' /* hairlines + rules only (non-text) */
+const ACCENT = '#D6491F' /* plotter red: marks, drawn lines, large type — 3.9:1 vs BG, non-text/large-text use only */
+const ACCENT_DEEP = '#CC4419' /* accent FILL only — CTA/button backgrounds. White text on it 4.8:1; fill itself 3.5:1 vs BG */
+const ACCENT_LIT = '#EE7A4C' /* accent TEXT wherever it sits on the dark ground — 6:1 on BG, 4.9:1 on CARD */
+const TINT = '#14253A' /* claims-flow band — one notch up from BG */
+const CARD = '#1B2F49' /* elevated card fill (claims cards, work-order card) — one notch up again */
+const PANEL_MUT = MUT /* alias kept so existing call sites still resolve */
+const HAIR = 'rgba(239,241,236,0.12)'
+const HAIR_STRONG = 'rgba(239,241,236,0.28)'
+const PANEL_HAIR = HAIR_STRONG /* alias — the old "dark panel" hairline is now the sitewide hairline */
+/* a few elements stay printed on paper on purpose — the wordmark, the
+   Toyota/Kia certification marks, the INNIFALIÐ ink stamp — echoing real
+   title-block nameplates pinned onto a blueprint. Kept independent of the
+   tokens above so their own colors stay legible regardless of page theme. */
+const PLATE_BG = 'rgba(239,241,236,0.96)'
+const PLATE_MUT = '#46586A' /* 6.5:1 on PLATE_BG */
+const PLATE_HAIR = 'rgba(27,42,58,0.16)'
+const ACCENT_PLATE = '#B23A16' /* 5.3:1 on the INNIFALIÐ stamp's paper-cream */
 
 const DISPLAY = "'CabinetGrotesk-Black', 'Arial Black', sans-serif"
 const EBOLD = "'CabinetGrotesk-Extrabold', 'Arial Black', sans-serif"
@@ -72,17 +84,9 @@ const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 const B = import.meta.env.BASE_URL
 const EASE = [0.23, 1, 0.32, 1] as const
 
-/* faint drafting grid — minor 28px, major every 140px */
+/* faint drafting grid — minor 28px, major every 140px. Pale lines on the
+   dark ground: literally how a real blueprint's grid reads. */
 const GRID_BG: CSSProperties = {
-  backgroundImage: [
-    `linear-gradient(rgba(27,42,58,0.05) 1px, transparent 1px)`,
-    `linear-gradient(90deg, rgba(27,42,58,0.05) 1px, transparent 1px)`,
-    `linear-gradient(rgba(27,42,58,0.09) 1px, transparent 1px)`,
-    `linear-gradient(90deg, rgba(27,42,58,0.09) 1px, transparent 1px)`,
-  ].join(', '),
-  backgroundSize: '28px 28px, 28px 28px, 140px 140px, 140px 140px',
-}
-const GRID_BG_DARK: CSSProperties = {
   backgroundImage: [
     `linear-gradient(rgba(239,241,236,0.045) 1px, transparent 1px)`,
     `linear-gradient(90deg, rgba(239,241,236,0.045) 1px, transparent 1px)`,
@@ -101,10 +105,10 @@ const CSS = `
 @font-face { font-family: 'CabinetGrotesk-Extrabold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff2') format('woff2'), url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff') format('woff'); font-weight: 800; font-style: normal; font-display: swap; }
 @font-face { font-family: 'CabinetGrotesk-Black'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Black.woff2') format('woff2'), url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Black.woff') format('woff'); font-weight: 900; font-style: normal; font-display: swap; }
 
-.bp-page { background: ${PAPER}; color: ${INK}; }
+.bp-page { background: ${BG}; color: ${INK}; }
 .bp-page ::selection { background: ${ACCENT}; color: #FFFFFF; }
 .bp-page a, .bp-page button { -webkit-tap-highlight-color: transparent; }
-.bp-page :focus-visible { outline: 2px solid ${ACCENT_DEEP}; outline-offset: 3px; }
+.bp-page :focus-visible { outline: 2px solid ${ACCENT}; outline-offset: 3px; }
 
 /* video-wall posters: near-still Ken Burns drift so the slots read as
    waiting instrument feeds, not as fake videos. Negative delays desync
@@ -356,7 +360,7 @@ function DraftFrame({
           style={{ fontFamily: MONO, color: MUT }}
         >
           <span>{label}</span>
-          <span aria-hidden style={{ color: ACCENT_DEEP }}>
+          <span aria-hidden style={{ color: ACCENT_LIT }}>
             +
           </span>
         </figcaption>
@@ -375,35 +379,21 @@ function DraftFrame({
 }
 
 /** Section header set like an engineering drawing title-block:
-    sheet number · sheet name — rule — headline. */
-function SheetHead({
-  sheet,
-  name,
-  title,
-  dark = false,
-}: {
-  sheet: string
-  name: string
-  title?: string
-  dark?: boolean
-}) {
+    sheet number · sheet name — rule — headline. The whole page is one
+    dark cyanotype sheet now, so every SheetHead uses the same ink —
+    there is no separate "light page" branch left to fork against. */
+function SheetHead({ sheet, name, title }: { sheet: string; name: string; title?: string }) {
   return (
     <Rise>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <p
-          className="text-[12px] uppercase tracking-[0.24em]"
-          style={{ fontFamily: MONO, color: dark ? ACCENT_LIT : ACCENT_DEEP }}
-        >
+        <p className="text-[12px] uppercase tracking-[0.24em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
           Blað {sheet} · {name}
         </p>
-        <p
-          className="hidden text-[11px] uppercase tracking-[0.18em] sm:block"
-          style={{ fontFamily: MONO, color: dark ? PANEL_MUT : MUT }}
-        >
+        <p className="hidden text-[11px] uppercase tracking-[0.18em] sm:block" style={{ fontFamily: MONO, color: MUT }}>
           Bílageirinn · Grófin 14a · 230 Reykjanesbær
         </p>
       </div>
-      <div className="mt-3 h-px" style={{ background: dark ? PANEL_HAIR : HAIR_STRONG }} />
+      <div className="mt-3 h-px" style={{ background: HAIR_STRONG }} />
       {title && (
         <h2
           className="mt-8 max-w-4xl text-balance"
@@ -412,7 +402,7 @@ function SheetHead({
             fontSize: 'clamp(2.1rem, 4.6vw, 3.6rem)',
             letterSpacing: '-0.02em',
             lineHeight: 1.06,
-            color: dark ? PAPER : INK,
+            color: INK,
           }}
         >
           {title}
@@ -469,7 +459,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     <motion.header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
       style={{
-        background: solid ? 'rgba(239,241,236,0.88)' : 'transparent',
+        background: solid ? 'rgba(16,30,48,0.82)' : 'transparent',
         backdropFilter: solid ? 'blur(14px)' : 'none',
         WebkitBackdropFilter: solid ? 'blur(14px)' : 'none',
         borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
@@ -480,9 +470,12 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     >
       <div className="mx-auto flex h-[68px] max-w-[1360px] items-center justify-between px-5 md:px-8">
         <a href="#efst" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label={`${NAME} — efst á síðu`}>
-          {/* the real wordmark is dark-on-transparent: it sits on this light
-              paper as printed, just nudged toward the ink navy */}
-          <img src={LOGO} alt={NAME} className="h-9 w-auto" style={{ filter: 'contrast(1.08)' }} />
+          {/* the real wordmark is dark ink on transparent, printed for a
+              light ground — mounted on its own small paper nameplate here
+              so it stays legible against the new dark cyanotype page */}
+          <span className="inline-flex items-center px-3 py-1.5" style={{ background: PLATE_BG }}>
+            <img src={LOGO} alt={NAME} className="h-8 w-auto" style={{ filter: 'contrast(1.08)' }} />
+          </span>
         </a>
         <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
           <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>
@@ -522,7 +515,9 @@ const SPECS: { k: string; v: string; href?: string }[] = [
 /** The live measurement plot over the hero photo: datum lines DRAW in
     (pathLength), crosshairs pop, mono labels type on. Generic process
     terms only — it shows HOW a panel gets measured, it never claims a
-    reading. Mount-timed with `animate` (in view at load). */
+    reading. Mount-timed with `animate` (in view at load), and re-keyed
+    per carousel slide so the machine visibly re-measures each photo.
+    Coordinates sit in the upper-right, clear of the headline column. */
 function HeroPlot() {
   const reduced = useReducedMotion()
   if (reduced) return null
@@ -534,17 +529,17 @@ function HeroPlot() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <motion.line x1="4" y1="64" x2="96" y2="64" stroke={ACCENT} strokeWidth="0.28" strokeDasharray="1.7 1.2" {...draw(0.55)} />
-        <motion.line x1="30" y1="16" x2="30" y2="90" stroke={ACCENT} strokeWidth="0.28" strokeDasharray="1.7 1.2" {...draw(0.75)} />
-        <motion.line x1="30" y1="64" x2="72" y2="34" stroke={PAPER} strokeWidth="0.2" {...draw(0.95)} />
+        <motion.line x1="40" y1="22" x2="96" y2="22" stroke={ACCENT} strokeWidth="0.28" strokeDasharray="1.7 1.2" {...draw(0.55)} />
+        <motion.line x1="82" y1="8" x2="82" y2="46" stroke={ACCENT} strokeWidth="0.28" strokeDasharray="1.7 1.2" {...draw(0.75)} />
+        <motion.line x1="82" y1="22" x2="58" y2="40" stroke={INK} strokeWidth="0.2" {...draw(0.95)} />
       </svg>
-      <CrossPoint x={30} y={64} label="MÆLIPUNKTUR A" delay={0.95} />
-      <CrossPoint x={72} y={34} label="MÆLIPUNKTUR B" delay={1.15} />
+      <CrossPoint x={82} y={22} label="MÆLIPUNKTUR A" delay={0.95} />
+      <CrossPoint x={58} y={40} label="MÆLIPUNKTUR B" delay={1.15} />
       <TypeOn
         text="VIÐMIÐUNARLÍNA"
         delay={1.05}
-        className="absolute left-[6%] top-[64%] mt-2 text-[10px] tracking-[0.2em]"
-        style={{ fontFamily: MONO, color: PAPER, textShadow: '0 1px 6px rgba(0,0,0,0.85)' }}
+        className="absolute left-[41%] top-[22%] mt-2 text-[10px] tracking-[0.2em]"
+        style={{ fontFamily: MONO, color: INK, textShadow: '0 1px 6px rgba(0,0,0,0.85)' }}
       />
     </div>
   )
@@ -568,18 +563,143 @@ function CrossPoint({ x, y, label, delay }: { x: number; y: number; label: strin
         text={label}
         delay={delay + 0.3}
         className="absolute left-4 top-2 whitespace-nowrap text-[10px] tracking-[0.2em]"
-        style={{ fontFamily: MONO, color: PAPER, textShadow: '0 1px 6px rgba(0,0,0,0.85)' }}
+        style={{ fontFamily: MONO, color: INK, textShadow: '0 1px 6px rgba(0,0,0,0.85)' }}
       />
     </div>
+  )
+}
+
+/** Which SERVICES entries get a hero slide, in display order, and which
+    photo/alt stands in for each — the exact same SERVICE_IMGS / SERVICE_ALTS
+    pairing the service index below already uses, so no photo-to-service
+    pairing is invented twice. Smurstöð has no photo of its own (its slot
+    is already spoken for by IMG.lift in the service index), so it sits
+    this carousel out. */
+const HERO_SLIDE_IDX = [0, 1, 2, 4, 5, 6]
+
+/** Ruler-tick slide index: a short pale tick per slide, the active one
+    tall and plotter-red — literally a ruler graduation used as a tab list. */
+function HeroTick({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      aria-label={label}
+      onClick={onClick}
+      className="group relative flex h-11 w-6 shrink-0 items-end justify-center"
+    >
+      <span
+        aria-hidden
+        className="block w-px transition-all duration-300"
+        style={{
+          height: active ? '22px' : '11px',
+          background: active ? ACCENT : 'rgba(239,241,236,0.45)',
+          opacity: active ? 1 : 0.8,
+        }}
+      />
+    </button>
+  )
+}
+
+function HeroArrow({ dir, onClick, label }: { dir: 'prev' | 'next'; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="inline-flex h-11 w-11 shrink-0 items-center justify-center border transition-colors duration-200"
+      style={{ borderColor: 'rgba(239,241,236,0.35)' }}
+    >
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+        <path
+          d={dir === 'prev' ? 'M9.5 2.5 3.5 7.5l6 5' : 'M5.5 2.5l6 5-6 5'}
+          stroke={INK}
+          strokeWidth="1.6"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        />
+      </svg>
+    </button>
   )
 }
 
 function Hero() {
   const reduced = useReducedMotion()
   const words = HERO.headline.split(' ') /* Aftur í rétta línu. */
+  const slides = HERO_SLIDE_IDX.map((idx, i) => ({
+    n: i + 1,
+    service: SERVICES[idx],
+    src: SERVICE_IMGS[idx],
+    alt: SERVICE_ALTS[idx],
+  }))
+  const count = slides.length
+  const [active, setActive] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (reduced || paused) return
+    const id = window.setInterval(() => setActive(a => (a + 1) % count), 5800)
+    return () => window.clearInterval(id)
+  }, [reduced, paused, count])
+
+  const go = (i: number) => setActive(((i % count) + count) % count)
+  const slide = slides[active]
+  const SLIDE_LABEL = `Mynd ${String(slide.n).padStart(2, '0')}`
+
   return (
-    <section id="efst" className="relative overflow-hidden pt-24 md:pt-28">
-      {/* the drafting grid fades in first — the machine wakes up */}
+    <section
+      id="efst"
+      className="relative min-h-[100svh] overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={e => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setPaused(false)
+      }}
+    >
+      {/* full-bleed carousel photo — the shop's own work, cycling */}
+      <div aria-hidden className="absolute inset-0">
+        {reduced ? (
+          <img src={slide.src} alt="" className="absolute inset-0 h-full w-full object-cover" loading="eager" decoding="async" />
+        ) : (
+          <AnimatePresence initial={false}>
+            <motion.img
+              key={active}
+              src={slide.src}
+              alt=""
+              loading={slide.n === 1 ? 'eager' : 'lazy'}
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover"
+              initial={{ opacity: 0, scale: 1.045 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.1, ease: EASE }}
+            />
+          </AnimatePresence>
+        )}
+      </div>
+      {/* the same photo, described properly, for screen readers — kept in
+          sync with the visible slide without duplicating the crossfade */}
+      <img src={slide.src} alt={slide.alt} className="sr-only" />
+
+      {/* scrim: heavier under the text column and along the bottom, so any
+          of the six photos stays legible under the overlaid copy */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(16,30,48,0.62) 0%, rgba(16,30,48,0.30) 30%, rgba(16,30,48,0.55) 62%, rgba(16,30,48,0.9) 100%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(100deg, rgba(16,30,48,0.82) 0%, rgba(16,30,48,0.32) 44%, rgba(16,30,48,0) 68%)' }}
+      />
+      {/* the drafting grid — faint pale lines on the dark ground */}
       {reduced ? (
         <div aria-hidden className="absolute inset-0" style={GRID_BG} />
       ) : (
@@ -592,29 +712,46 @@ function Hero() {
           transition={{ duration: 0.7 }}
         />
       )}
-      <div className="relative mx-auto flex min-h-[calc(100svh-7rem)] max-w-[1360px] flex-col justify-center px-5 pb-14 md:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr_190px] lg:gap-12">
-          {/* left: the title block and the headline */}
-          <div>
-            <Intro delay={0.15}>
-              <div className="inline-flex flex-wrap items-stretch border" style={{ borderColor: HAIR_STRONG }}>
-                {['BLAÐ 01', 'RÉTTINGAR · BÍLAMÁLUN · ÞJÓNUSTA', 'GRÓFIN 14A'].map((c, i, arr) => (
-                  <span
-                    key={c}
-                    className="px-3 py-2 text-[10.5px] uppercase tracking-[0.18em]"
-                    style={{
-                      fontFamily: MONO,
-                      color: i === 0 ? ACCENT_DEEP : MUT,
-                      borderRight: i < arr.length - 1 ? `1px solid ${HAIR_STRONG}` : 'none',
-                    }}
-                  >
-                    {c}
-                  </span>
-                ))}
-              </div>
-            </Intro>
-            {/* accented Icelandic caps: open leading, no clip masks, ever */}
-            <h1
+      {/* registration ticks at the sheet's own corners */}
+      <div aria-hidden className="pointer-events-none absolute inset-4 opacity-60 md:inset-6">
+        <CornerTicks color={INK} />
+      </div>
+      {!reduced && <HeroPlot key={active} />}
+      {/* content overlay */}
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1360px] flex-col justify-end px-5 pb-10 pt-32 md:px-8 md:pb-14 md:pt-36">
+        {/* title block: corner label + per-slide caption, in one */}
+        <Intro delay={0.15}>
+          <div className="inline-flex flex-wrap items-stretch border" style={{ borderColor: 'rgba(239,241,236,0.35)' }}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={active}
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="inline-flex"
+              >
+                <span
+                  className="px-3 py-2 text-[10.5px] uppercase tracking-[0.18em]"
+                  style={{ fontFamily: MONO, color: ACCENT_LIT, borderRight: '1px solid rgba(239,241,236,0.35)' }}
+                >
+                  {SLIDE_LABEL}
+                </span>
+                <span
+                  className="px-3 py-2 text-[10.5px] uppercase tracking-[0.18em]"
+                  style={{ fontFamily: MONO, color: INK, borderRight: '1px solid rgba(239,241,236,0.35)' }}
+                >
+                  {slide.service.name}
+                </span>
+                <span className="px-3 py-2 text-[10.5px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                  {slide.service.tag}
+                </span>
+              </motion.span>
+            </AnimatePresence>
+          </div>
+        </Intro>
+        {/* accented Icelandic caps: open leading, no clip masks, ever */}
+        <h1
               className="mt-8 max-w-2xl text-balance"
               style={{
                 fontFamily: DISPLAY,
@@ -657,7 +794,7 @@ function Hero() {
                 <a
                   href="#thjonusta"
                   className="inline-flex min-h-[52px] items-center border px-7 text-[16px] font-medium transition-transform duration-150 active:scale-[0.97]"
-                  style={{ borderColor: HAIR_STRONG, color: INK, fontFamily: BODY }}
+                  style={{ borderColor: 'rgba(239,241,236,0.5)', color: INK, fontFamily: BODY }}
                 >
                   {HERO.ctaSecondary}
                 </a>
@@ -668,78 +805,45 @@ function Hero() {
                 {HERO.cert}
               </p>
             </Intro>
-          </div>
-
-          {/* middle: the hero photo inside a drafting frame, measured live */}
-          <Intro delay={0.25} y={0}>
-            <DraftFrame label="MYND 01 · VINNUSTÖÐ" note="MÆLT · SKRÁÐ · STENST KRÖFUR">
-              <div className="relative aspect-[4/3] overflow-hidden lg:aspect-[5/6]">
-                {reduced ? (
-                  <img src={IMG.hero} alt="Neistaflug við málmvinnu á dimmu verkstæði" className="h-full w-full object-cover" />
-                ) : (
-                  <motion.img
-                    src={IMG.hero}
-                    alt="Neistaflug við málmvinnu á dimmu verkstæði"
-                    className="h-full w-full object-cover"
-                    initial={{ opacity: 0, scale: 1.06 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 1.4, ease: EASE, delay: 0.2 }}
-                  />
-                )}
-                <HeroPlot />
-              </div>
-            </DraftFrame>
-          </Intro>
-
-          {/* right: the spec side-panel, a drawing's title-block data */}
-          <div className="hidden self-center border-l pl-8 lg:block" style={{ borderColor: HAIR_STRONG }}>
-            <p className="text-[10.5px] uppercase tracking-[0.24em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
-              Tæknilýsing
-            </p>
-            {SPECS.map((s, i) => (
-              <Intro key={s.k} delay={1.9 + i * 0.08} y={8}>
-                <div className="border-b py-4" style={{ borderColor: HAIR }}>
-                  <p className="text-[10.5px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: MUT }}>
+        {/* bottom bar: spec readout (left) + carousel controls (right) */}
+        <Intro
+          delay={0.5}
+          className="mt-10 flex flex-col gap-6 border-t pt-6 md:mt-12 md:flex-row md:items-end md:justify-between"
+          style={{ borderColor: 'rgba(239,241,236,0.22)' }}
+        >
+          <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:overflow-visible md:px-0">
+            <div className="flex w-max">
+              {SPECS.map((s, i, arr) => (
+                <div
+                  key={s.k}
+                  className={`min-w-[128px] py-1 pr-5 ${i > 0 ? 'pl-5' : ''}`}
+                  style={{ borderRight: i < arr.length - 1 ? '1px solid rgba(239,241,236,0.22)' : 'none' }}
+                >
+                  <p className="text-[10px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: MUT }}>
                     {s.k}
                   </p>
                   {s.href ? (
-                    <a href={s.href} className="mt-1 inline-flex min-h-11 items-center text-[15px] font-medium" style={{ fontFamily: MONO, color: INK }}>
+                    <a href={s.href} className="mt-1 inline-flex min-h-11 items-center text-[14px] font-medium" style={{ fontFamily: MONO, color: INK }}>
                       {s.v}
                     </a>
                   ) : (
-                    <p className="mt-1 text-[15px] font-medium" style={{ fontFamily: MONO, color: INK }}>
+                    <p className="mt-1 text-[14px] font-medium" style={{ fontFamily: MONO, color: INK }}>
                       {s.v}
                     </p>
                   )}
                 </div>
-              </Intro>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* mobile/tablet: the spec panel as a horizontal scroll strip */}
-        <Intro delay={0.5} className="-mx-5 mt-10 overflow-x-auto border-y md:-mx-8 lg:hidden" style={{ borderColor: HAIR_STRONG }}>
-          <div className="flex w-max px-5 md:px-8">
-            {SPECS.map((s, i, arr) => (
-              <div
-                key={s.k}
-                className={`min-w-[150px] py-4 pr-6 ${i > 0 ? 'pl-6' : ''}`}
-                style={{ borderRight: i < arr.length - 1 ? `1px solid ${HAIR}` : 'none' }}
-              >
-                <p className="text-[10.5px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: MUT }}>
-                  {s.k}
-                </p>
-                {s.href ? (
-                  <a href={s.href} className="mt-1 inline-flex min-h-11 items-center text-[15px] font-medium" style={{ fontFamily: MONO, color: INK }}>
-                    {s.v}
-                  </a>
-                ) : (
-                  <p className="mt-1 text-[15px] font-medium" style={{ fontFamily: MONO, color: INK }}>
-                    {s.v}
-                  </p>
-                )}
-              </div>
-            ))}
+          <div className="flex items-center gap-3" role="tablist" aria-label="Þjónusta í hringrás">
+            <HeroArrow dir="prev" onClick={() => go(active - 1)} label="Fyrri þjónusta" />
+            <div className="flex items-end gap-1">
+              {slides.map((s, i) => (
+                <HeroTick key={s.service.name} active={i === active} label={s.service.name} onClick={() => go(i)} />
+              ))}
+            </div>
+            <HeroArrow dir="next" onClick={() => go(active + 1)} label="Næsta þjónusta" />
           </div>
         </Intro>
       </div>
@@ -804,7 +908,7 @@ function Timeline() {
   const stops = [0, 33.333, 66.667]
   return (
     <div ref={ref} className="mt-16 md:mt-24">
-      <p className="text-[11.5px] uppercase tracking-[0.22em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+      <p className="text-[11.5px] uppercase tracking-[0.22em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
         Mæld lína · 2003–2007
       </p>
       {/* desktop: the company history as a dimensioned drawing line */}
@@ -832,7 +936,7 @@ function Timeline() {
         <div className="grid grid-cols-3 gap-8 pt-6">
           {STORY.timeline.map((t, i) => (
             <Rise key={t.year} delay={i * 0.12}>
-              <p className="text-[16px] tabular-nums tracking-[0.1em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+              <p className="text-[16px] tabular-nums tracking-[0.1em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                 {t.year}
               </p>
               <p className="mt-2 max-w-[40ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
@@ -847,8 +951,8 @@ function Timeline() {
         {STORY.timeline.map((t, i) => (
           <Rise key={t.year} delay={i * 0.08}>
             <div className="relative">
-              <span aria-hidden className="absolute -left-[31px] top-1 block h-3 w-3 border-2" style={{ borderColor: ACCENT, background: PAPER }} />
-              <p className="text-[15px] tabular-nums tracking-[0.1em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+              <span aria-hidden className="absolute -left-[31px] top-1 block h-3 w-3 border-2" style={{ borderColor: ACCENT, background: BG }} />
+              <p className="text-[15px] tabular-nums tracking-[0.1em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                 {t.year}
               </p>
               <p className="mt-2 text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
@@ -873,7 +977,7 @@ function Story() {
             <div className="space-y-7">
               {ANNOT.map((a, i) => (
                 <div key={a}>
-                  <p className="text-[10.5px] tracking-[0.22em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+                  <p className="text-[10.5px] tracking-[0.22em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                     ATH. {i + 1}
                   </p>
                   <p className="mt-1.5 text-[12px] leading-relaxed tracking-[0.06em]" style={{ fontFamily: MONO, color: MUT }}>
@@ -947,7 +1051,7 @@ function ServiceRow({
         aria-expanded={on}
         className="flex w-full items-start gap-4 py-5 text-left md:gap-6 md:py-6"
       >
-        <span className="w-11 shrink-0 pt-[7px] text-[12.5px] tabular-nums" style={{ fontFamily: MONO, color: on ? ACCENT_DEEP : MUT }}>
+        <span className="w-11 shrink-0 pt-[7px] text-[12.5px] tabular-nums" style={{ fontFamily: MONO, color: on ? ACCENT_LIT : MUT }}>
           V-{String(i + 1).padStart(2, '0')}
         </span>
         {/* the work-order checkbox: the active row's check draws itself */}
@@ -1099,15 +1203,16 @@ function ClaimsFlow() {
           {CLAIM_STEPS.map((s, i) => {
             const card = (
               <motion.div
-                className="relative flex-1 bg-white p-6 md:p-7"
+                className="relative flex-1 p-6 md:p-7"
                 style={{
+                  background: CARD,
                   border: s.highlight ? `2px solid ${ACCENT}` : `1px solid ${HAIR_STRONG}`,
                 }}
                 initial={false}
                 animate={{ opacity: inView || reduced ? 1 : 0, y: inView || reduced ? 0 : 20 }}
                 transition={{ duration: reduced ? 0 : 0.6, ease: EASE, delay: reduced ? 0 : i * 0.28 }}
               >
-                <p className="text-[11.5px] tracking-[0.22em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+                <p className="text-[11.5px] tracking-[0.22em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                   STIG {String(i + 1).padStart(2, '0')}
                 </p>
                 <h3
@@ -1125,7 +1230,7 @@ function ClaimsFlow() {
                     className="absolute -right-2 -top-4 border-2 px-3 py-1.5 text-[13px] tracking-[0.24em] md:-right-3"
                     style={{
                       fontFamily: MONO,
-                      color: ACCENT_DEEP,
+                      color: ACCENT_PLATE,
                       borderColor: ACCENT,
                       background: 'rgba(244,228,220,0.92)',
                       rotate: '-7deg',
@@ -1160,10 +1265,10 @@ function ClaimsFlow() {
 
 function InsuranceBand() {
   return (
-    <section className="relative" style={{ background: INK }}>
-      <div aria-hidden className="absolute inset-0" style={GRID_BG_DARK} />
+    <section className="relative" style={{ background: BG }}>
+      <div aria-hidden className="absolute inset-0" style={GRID_BG} />
       <div className="relative mx-auto max-w-[1360px] px-5 py-20 md:px-8 md:py-28">
-        <SheetHead sheet="06" name="Tryggingar" title={INSURANCE.title} dark />
+        <SheetHead sheet="06" name="Tryggingar" title={INSURANCE.title} />
         <Rise delay={0.1}>
           <p className="mt-6 max-w-[62ch] text-[16.5px] leading-relaxed" style={{ fontFamily: BODY, color: PANEL_MUT }}>
             {INSURANCE.body}
@@ -1177,7 +1282,7 @@ function InsuranceBand() {
                 <p className="text-[12px] tabular-nums tracking-[0.2em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                   {String(i + 1).padStart(2, '0')}
                 </p>
-                <p className="mt-2 text-[15px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: PAPER }}>
+                <p className="mt-2 text-[15px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: INK }}>
                   {c}
                 </p>
               </div>
@@ -1221,7 +1326,7 @@ function VideoWall() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-3">
           {CLIPS.map((c, i) => (
             <Rise key={c.tag} delay={i * 0.06}>
-              <figure className="p-2 md:p-2.5" style={{ background: INK }}>
+              <figure className="p-2 md:p-2.5" style={{ background: BG }}>
                 <div className="relative aspect-video overflow-hidden">
                   {/* real footage drops in here later:
                       <video src={...} poster={c.src} muted loop playsInline autoPlay /> */}
@@ -1235,13 +1340,13 @@ function VideoWall() {
                   />
                   <span
                     className="absolute left-2 top-2 px-2 py-1 text-[10.5px] tracking-[0.18em]"
-                    style={{ fontFamily: MONO, color: PAPER, background: 'rgba(27,42,58,0.78)' }}
+                    style={{ fontFamily: MONO, color: INK, background: 'rgba(16,30,48,0.78)' }}
                   >
                     KLIPPA {String(i + 1).padStart(2, '0')}
                   </span>
                 </div>
                 <figcaption className="flex items-baseline justify-between px-1 pb-1 pt-2.5">
-                  <span className="text-[12px] tracking-[0.18em]" style={{ fontFamily: MONO, color: PAPER }}>
+                  <span className="text-[12px] tracking-[0.18em]" style={{ fontFamily: MONO, color: INK }}>
                     {c.tag}
                   </span>
                   <span className="text-[10px] tracking-[0.2em]" style={{ fontFamily: MONO, color: PANEL_MUT }}>
@@ -1275,7 +1380,7 @@ function Materials() {
               {CRAFT.points.map((p, i) => (
                 <Rise key={p} delay={i * 0.07}>
                   <div className="flex items-baseline gap-5 border-b py-4" style={{ borderColor: HAIR }}>
-                    <span className="text-[12px] tabular-nums" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+                    <span className="text-[12px] tabular-nums" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                       E-{String(i + 1).padStart(2, '0')}
                     </span>
                     <span className="text-[13.5px] uppercase tracking-[0.1em]" style={{ fontFamily: MONO, color: INK }}>
@@ -1310,14 +1415,14 @@ function Materials() {
                 { src: IMG.kia, alt: 'Kia' },
               ].map((m, i) => (
                 <Rise key={m.alt} delay={i * 0.1}>
-                  <div className="relative border bg-white" style={{ borderColor: HAIR_STRONG }}>
+                  <div className="relative border" style={{ background: PLATE_BG, borderColor: PLATE_HAIR }}>
                     <CornerTicks />
                     <div className="flex aspect-[4/3] items-center justify-center p-8">
                       <img src={m.src} alt={m.alt} loading="lazy" decoding="async" className="max-h-14 w-auto max-w-full object-contain md:max-h-16" />
                     </div>
                     <p
                       className="border-t px-4 py-2.5 text-[10.5px] uppercase tracking-[0.22em]"
-                      style={{ fontFamily: MONO, color: MUT, borderColor: HAIR }}
+                      style={{ fontFamily: MONO, color: PLATE_MUT, borderColor: PLATE_HAIR }}
                     >
                       Vottun · {m.alt}
                     </p>
@@ -1354,10 +1459,10 @@ function Workshop() {
 
           {/* the work order: everything needed to start a job, one card */}
           <Rise delay={0.1}>
-            <div className="relative border bg-white p-6 md:p-9" style={{ borderColor: HAIR_STRONG }}>
+            <div className="relative border p-6 md:p-9" style={{ background: CARD, borderColor: HAIR_STRONG }}>
               <CornerTicks />
               <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                <p className="text-[12px] uppercase tracking-[0.24em]" style={{ fontFamily: MONO, color: ACCENT_DEEP }}>
+                <p className="text-[12px] uppercase tracking-[0.24em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                   Verkbeiðni
                 </p>
                 <p className="text-[11px] uppercase tracking-[0.16em]" style={{ fontFamily: MONO, color: MUT }}>
@@ -1442,7 +1547,7 @@ function Workshop() {
                   className="mt-6 inline-block leading-none transition-transform duration-150 active:scale-[0.98]"
                   style={{
                     fontFamily: DISPLAY,
-                    color: ACCENT_DEEP,
+                    color: ACCENT_LIT,
                     fontSize: 'clamp(2.6rem, 8vw, 4.6rem)',
                     letterSpacing: '-0.02em',
                   }}
@@ -1470,7 +1575,7 @@ export default function Page() {
 
   useEffect(() => {
     document.title = SEO.title
-    setThemeColor(PAPER)
+    setThemeColor(BG)
     const meta = document.querySelector('meta[name="description"]')
     const prev = meta?.getAttribute('content') ?? ''
     meta?.setAttribute('content', SEO.description)

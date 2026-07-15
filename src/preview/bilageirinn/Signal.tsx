@@ -11,7 +11,7 @@ import {
   useTransform,
   useVelocity,
 } from 'framer-motion'
-import { MapPin, Phone } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MapPin, Phone } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -86,7 +86,8 @@ const CSS = `
 .sg-page a, .sg-page button { -webkit-tap-highlight-color: transparent; }
 .sg-page :focus-visible { outline: 3px solid ${YELLOW}; outline-offset: 3px; }
 
-/* hero video slot: the sparks photo breathes until real footage drops in */
+/* hero carousel slot: photos breathe and hard-wipe between each other
+   until real looping footage drops in */
 @keyframes sg-breathe { from { transform: scale(1); } to { transform: scale(1.06); } }
 .sg-breathe { animation: sg-breathe 16s ease-in-out infinite alternate; will-change: transform; }
 
@@ -252,27 +253,85 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   )
 }
 
+/* Act 1 · hero carousel slides: one vetted photo per service offering,
+   paired 1:1 with SERVICES entries (Smurstöð has no distinct photo of its
+   own, so its line stays text-only down in Act 5). Booth/garage are used
+   here — not malun/lift — specifically so this carousel and the Act 6
+   process reel never show the exact same frame. Alt text matches the
+   SERVICE_ALTS strings used later for the same photos. */
+const HERO_SLIDES = [
+  { img: IMG.retting, alt: 'Flötur yfirbyggingar unninn með höndunum', service: SERVICES[0] },
+  { img: IMG.booth, alt: 'Bíll afmarkaður með pappír í sprautuklefa', service: SERVICES[1] },
+  { img: IMG.garage, alt: 'Verkstæðisgólf með bílum í viðgerð', service: SERVICES[2] },
+  { img: IMG.wheel, alt: 'Fjöðrunar- og hjólabúnaður í nærmynd', service: SERVICES[4] },
+  { img: IMG.headlight, alt: 'Aðalljós á dökkum bíl', service: SERVICES[5] },
+  { img: IMG.brake, alt: 'Bremsubúnaður skoðaður með hjólið af', service: SERVICES[6] },
+]
+
 /* ── Act 1 · hero. Built as a video slot: full-bleed muted loop drops in
-      later; until then the sparks photo carries a slow perpetual breathe.
-      Headline slams in line by line — whole lines, no overflow masks,
-      because Í accents sit above Bebas cap height and masks decapitate
-      them. The yellow registration block stamps behind the final word. */
+      later; until then a carousel of vetted shop photos cycles behind the
+      headline, each one breathing, wiping to the next along the same 135°
+      diagonal as the hazard stripes. Headline slams in line by line —
+      whole lines, no overflow masks, because Í accents sit above Bebas cap
+      height and masks decapitate them. The yellow registration block
+      stamps behind the final word. */
 function Hero() {
   const reduced = useReducedMotion()
   const words = HERO.headline.split(' ') /* Aftur í rétta línu. */
   const lines = [words.slice(0, 2).join(' '), words[2], words[3]]
   const lineDelay = (i: number) => 0.3 + i * 0.17
   const stampDelay = lineDelay(2) + 0.28
+
+  /* carousel: `display` trails `active` — it only catches up once the
+     wipe finishes, so the base layer always holds the last fully-revealed
+     photo and the wipe never uncovers bare black. Under reduced motion the
+     base layer renders `active` directly and the wipe layer never mounts. */
+  const [active, setActive] = useState(0)
+  const [display, setDisplay] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const slide = HERO_SLIDES[active]
+  const go = (i: number) => setActive(((i % HERO_SLIDES.length) + HERO_SLIDES.length) % HERO_SLIDES.length)
+
+  useEffect(() => {
+    if (reduced || paused) return
+    const id = window.setTimeout(() => go(active + 1), 5600)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, reduced, paused])
+
   return (
-    <section id="efst" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
-      {/* video slot: swap this div's <img> for <video autoplay muted loop playsinline> when footage lands */}
-      <div aria-hidden={undefined} className="absolute inset-0 overflow-hidden">
+    <section
+      id="efst"
+      className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+      aria-roledescription="carousel"
+      aria-label="Ljósmyndir af þjónustu Bílageirans"
+    >
+      {/* video slot: swap this carousel for <video autoplay muted loop playsinline> when footage lands */}
+      <div className="absolute inset-0 overflow-hidden">
         <img
-          src={IMG.hero}
-          alt="Neistaflug við málmvinnu á dimmu verkstæði"
-          className="sg-breathe h-full w-full object-cover"
+          src={reduced ? slide.img : HERO_SLIDES[display].img}
+          alt={reduced ? slide.alt : HERO_SLIDES[display].alt}
+          className="sg-breathe absolute inset-0 h-full w-full object-cover"
           style={{ filter: 'brightness(0.62) contrast(1.05)' }}
         />
+        {!reduced && active !== display && (
+          <motion.img
+            key={active}
+            src={slide.img}
+            alt={slide.alt}
+            className="sg-breathe absolute inset-0 h-full w-full object-cover"
+            style={{ filter: 'brightness(0.62) contrast(1.05)' }}
+            initial={{ clipPath: WIPE_HIDDEN }}
+            animate={{ clipPath: WIPE_SHOWN }}
+            transition={{ duration: 0.85, ease: EASE }}
+            onAnimationComplete={() => setDisplay(active)}
+          />
+        )}
       </div>
       <div
         aria-hidden
@@ -281,13 +340,101 @@ function Hero() {
           background: `linear-gradient(to top, ${BLACK} 2%, rgba(12,12,12,0.82) 24%, rgba(12,12,12,0.28) 60%, rgba(12,12,12,0.62) 100%)`,
         }}
       />
-      {/* honest tag for the planned loop — no fake play button anywhere */}
-      <p
-        className="absolute right-4 top-[76px] z-10 text-right text-[10.5px] tracking-[0.2em] uppercase md:right-8 md:top-24"
-        style={{ fontFamily: MONO, color: MUT }}
-      >
-        Hetjumyndband · Lykkja · Væntanlegt úr Grófinni
-      </p>
+
+      {/* current-slide caption: mono hazard tag + Bebas service name */}
+      <div className="absolute left-4 top-[76px] z-10 max-w-[240px] md:left-8 md:top-24">
+        {reduced ? (
+          <>
+            <Tag text={slide.service.tag} />
+            <p
+              className="mt-2 uppercase"
+              style={{
+                fontFamily: DISPLAY,
+                color: PAPER,
+                fontSize: 'clamp(1.6rem, 3.4vw, 2.4rem)',
+                lineHeight: 1.08,
+                textShadow: '0 2px 14px rgba(0,0,0,0.7)',
+              }}
+            >
+              {slide.service.name}
+            </p>
+          </>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.32, ease: EASE }}
+            >
+              <Tag text={slide.service.tag} />
+              <p
+                className="mt-2 uppercase"
+                style={{
+                  fontFamily: DISPLAY,
+                  color: PAPER,
+                  fontSize: 'clamp(1.6rem, 3.4vw, 2.4rem)',
+                  lineHeight: 1.08,
+                  textShadow: '0 2px 14px rgba(0,0,0,0.7)',
+                }}
+              >
+                {slide.service.name}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* honest note for the planned loop, plus real carousel controls —
+          no fake play button anywhere */}
+      <div className="absolute right-4 top-[76px] z-10 flex flex-col items-end gap-3 md:right-8 md:top-24">
+        <p
+          className="text-right text-[10.5px] tracking-[0.2em] uppercase"
+          style={{ fontFamily: MONO, color: MUT }}
+        >
+          Ljósmyndir þjónustunnar · Sjálfvirk skipting · Myndband væntanlegt úr Grófinni
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => go(active - 1)}
+            aria-label="Fyrri mynd"
+            className="flex min-h-11 min-w-11 items-center justify-center border transition-colors duration-150"
+            style={{ borderColor: 'rgba(247,245,239,0.4)', color: PAPER }}
+          >
+            <ChevronLeft size={16} strokeWidth={2.4} aria-hidden />
+          </button>
+          <div className="flex items-center gap-0.5" role="tablist" aria-label="Veldu þjónustumynd">
+            {HERO_SLIDES.map((s, i) => (
+              <button
+                key={s.service.name}
+                type="button"
+                role="tab"
+                aria-selected={i === active}
+                aria-label={s.service.name}
+                onClick={() => go(i)}
+                className="flex min-h-11 min-w-8 items-center justify-center px-1"
+              >
+                <span
+                  aria-hidden
+                  className="h-[3px] w-6 transition-colors duration-200 md:w-8"
+                  style={{ background: i === active ? YELLOW : 'rgba(247,245,239,0.32)' }}
+                />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => go(active + 1)}
+            aria-label="Næsta mynd"
+            className="flex min-h-11 min-w-11 items-center justify-center border transition-colors duration-150"
+            style={{ borderColor: 'rgba(247,245,239,0.4)', color: PAPER }}
+          >
+            <ChevronRight size={16} strokeWidth={2.4} aria-hidden />
+          </button>
+        </div>
+      </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1380px] px-4 pb-12 pt-44 md:px-8 md:pb-16">
         <motion.p
