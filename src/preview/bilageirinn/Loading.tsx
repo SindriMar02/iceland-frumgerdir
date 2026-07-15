@@ -46,7 +46,7 @@ export default function BilageirinnLoading({
       }}
     >
       <style>{`
-        @font-face { font-family: 'CabinetGrotesk-Black'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Black.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'ClashDisplay-Bold'; src: url('${B}fonts/clash-display/fonts/ClashDisplay-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
         @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 
         .bgl-bg{position:absolute;inset:0;background-image:url('${B}preview/bilageirinn/loading-bg.webp');
@@ -88,7 +88,7 @@ export default function BilageirinnLoading({
         <video className="bgl-icon-video" src={`${B}preview/bilageirinn/logo-draw.mp4`} autoPlay muted playsInline disablePictureInPicture />
       )}
 
-      <p className="bgl-word" style={{ fontFamily: "'CabinetGrotesk-Black', 'Arial Black', sans-serif", fontWeight: 900, fontSize: '25px', color: '#F3F0EA', letterSpacing: '-0.01em' }}>
+      <p className="bgl-word" style={{ fontFamily: "'ClashDisplay-Bold', 'Arial Black', sans-serif", fontWeight: 700, fontSize: '25px', color: '#F3F0EA', letterSpacing: '-0.01em' }}>
         Bílageirinn
       </p>
       <p className="bgl-word-tag" style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 500, fontSize: '10px', letterSpacing: '0.2em', color: '#A9A399' }}>

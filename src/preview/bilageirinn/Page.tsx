@@ -58,8 +58,8 @@ const AMBER = '#E8A23D' /* 7.9:1 on BG */
 const DARKINK = '#131313' /* on amber: 7.8:1 */
 const HAIR = 'rgba(243,240,234,0.14)'
 
-const DISPLAY = "'CabinetGrotesk-Black', 'Arial Black', sans-serif"
-const EBOLD = "'CabinetGrotesk-Extrabold', 'Arial Black', sans-serif"
+const DISPLAY = "'ClashDisplay-Bold', 'Arial Black', sans-serif"
+const EBOLD = "'ClashDisplay-Semibold', 'Arial Black', sans-serif"
 const BODY = "'Satoshi', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
@@ -78,8 +78,8 @@ const CSS = `
 @font-face { font-family: 'Satoshi'; src: url('${B}fonts/satoshi/Satoshi-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'CabinetGrotesk-Extrabold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff2') format('woff2'), url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff') format('woff'); font-weight: 800; font-style: normal; font-display: swap; }
-@font-face { font-family: 'CabinetGrotesk-Black'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Black.woff2') format('woff2'), url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Black.woff') format('woff'); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ClashDisplay-Semibold'; src: url('${B}fonts/clash-display/fonts/ClashDisplay-Semibold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ClashDisplay-Bold'; src: url('${B}fonts/clash-display/fonts/ClashDisplay-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 
 .bg-page { background: ${BG}; color: ${INK}; }
 .bg-page ::selection { background: ${AMBER}; color: ${DARKINK}; }
