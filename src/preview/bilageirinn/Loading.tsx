@@ -14,7 +14,16 @@ import { LOGO } from './data'
  * atmosphere, not a second hero). The amber line under the logo is the site's own TrueLine motif,
  * reused here as the progress indicator instead of a generic spinner.
  */
-export default function BilageirinnLoading({ visible = true, progress }: { visible?: boolean; progress?: number }) {
+export default function BilageirinnLoading({
+  visible = true,
+  progress,
+  logoSrc = LOGO,
+}: {
+  visible?: boolean
+  progress?: number
+  /** Override for previewing a rebrand concept mark; defaults to the real logo. */
+  logoSrc?: string
+}) {
   const determinate = typeof progress === 'number'
   const p = determinate ? Math.max(0, Math.min(1, progress)) : 0
   const shown = determinate ? Math.max(0.08, p) : null
@@ -61,7 +70,7 @@ export default function BilageirinnLoading({ visible = true, progress }: { visib
       <div className="bgl-vignette" />
       <div className="bgl-glow" />
 
-      <img src={LOGO} alt="Bílageirinn" className="bgl-mark" draggable={false} />
+      <img src={logoSrc} alt="Bílageirinn" className="bgl-mark" draggable={false} />
 
       <div className="bgl-track">
         {determinate ? (

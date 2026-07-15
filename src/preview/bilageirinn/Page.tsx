@@ -30,7 +30,6 @@ import {
   HOURS,
   IMG,
   INSURANCE,
-  LOGO,
   LUBE_PHONE_DISPLAY,
   LUBE_PHONE_HREF,
   MAPS,
@@ -65,6 +64,10 @@ const BODY = "'Satoshi', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
 const B = import.meta.env.BASE_URL
+/* Rebrand-concept mark, previewed on v2 only per Sindri's 2026-07-15 request — NOT
+   the real logo.png (used everywhere else: nav on the other 3 concepts, footer,
+   loading screen default). Swap back to LOGO if the concept doesn't land. */
+const LOGO_CONCEPT = `${B}preview/bilageirinn/logo-concept.png`
 const EASE = [0.23, 1, 0.32, 1] as const
 
 const CSS = `
@@ -435,8 +438,11 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between px-5 md:px-8">
         <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label="Bílageirinn — efst á síðu">
-          {/* real wordmark, printed white onto the dark ground */}
-          <img src={LOGO} alt="Bílageirinn" className="h-9 w-auto" style={{ filter: 'brightness(0) invert(0.96)' }} />
+          {/* REBRAND CONCEPT PREVIEW, not the real mark — generated logo idea
+              being previewed here only, to pitch before touching the real
+              logo.png used everywhere else on the site. Already white on
+              transparent, no invert filter needed. */}
+          <img src={LOGO_CONCEPT} alt="Bílageirinn" className="h-12 w-auto" />
         </a>
         <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
           <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>Þjónusta</a>
@@ -1334,7 +1340,7 @@ export default function Page() {
     }
     ;(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => safeMark('fonts'))
     warm(IMG.hero, 'hero')
-    warm(LOGO, 'logo')
+    warm(LOGO_CONCEPT, 'logo')
     // never trap a visitor behind the loader if a resource stalls
     const failsafe = window.setTimeout(() => {
       if (alive) setForced(true)
@@ -1355,7 +1361,7 @@ export default function Page() {
   return (
     <div className="bg-page min-h-screen antialiased" style={{ fontFamily: BODY }}>
       <style>{CSS}</style>
-      {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
+      {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} logoSrc={LOGO_CONCEPT} />}
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero />
