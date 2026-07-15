@@ -106,6 +106,7 @@ const CSS = `
   .sg-breathe { animation: none; }
   .sg-marquee { animation: none; }
   .sg-pan { animation: none; }
+  .sg-page a, .sg-page button { transition: none !important; transform: none !important; }
 }
 `
 
@@ -219,7 +220,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -70 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
-  const link = 'hidden min-h-11 items-center px-3 text-[12.5px] tracking-[0.18em] uppercase md:inline-flex'
+  const link = 'hidden min-h-11 items-center px-3 text-[12.5px] tracking-[0.18em] uppercase transition-colors duration-150 hover:text-[#F4C400] md:inline-flex'
   return (
     <motion.header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-400"
@@ -227,12 +228,12 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         background: solid ? 'rgba(12,12,12,0.92)' : 'transparent',
         borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
-      initial={{ y: -70, opacity: 0 }}
+      initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: EASE, delay: 0.55 }}
+      transition={{ duration: 0.3, ease: EASE }}
     >
       <div className="mx-auto flex h-[66px] max-w-[1380px] items-center justify-between px-4 md:px-8">
-        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label="Bílageirinn, efst á síðu">
+        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center transition-opacity duration-150 hover:opacity-75" aria-label="Bílageirinn, efst á síðu">
           <img src={LOGO} alt="Bílageirinn" className="h-8 w-auto md:h-9" style={{ filter: 'brightness(0) invert(1)' }} />
         </a>
         <nav className="flex items-center gap-1" style={{ fontFamily: MONO, color: MUT }}>
@@ -241,7 +242,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <a href="#samband" onClick={go('#samband')} className={link}>Hafa samband</a>
           <a
             href={PHONE_HREF}
-            className="ml-2 inline-flex min-h-11 items-center gap-2 px-4 text-[15px] font-bold transition-transform duration-150 active:scale-[0.96]"
+            className="ml-2 inline-flex min-h-11 items-center gap-2 px-4 text-[15px] font-bold transition-transform duration-150 hover:scale-[1.04] active:scale-[0.96]"
             style={{ background: YELLOW, color: BLACK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.6} aria-hidden />
@@ -386,24 +387,19 @@ function Hero() {
         )}
       </div>
 
-      {/* honest note for the planned loop, plus real carousel controls —
-          no fake play button anywhere */}
-      <div className="absolute right-4 top-[76px] z-10 flex flex-col items-end gap-3 md:right-8 md:top-24">
-        <p
-          className="text-right text-[10.5px] tracking-[0.2em] uppercase"
-          style={{ fontFamily: MONO, color: MUT }}
-        >
-          Ljósmyndir þjónustunnar · Sjálfvirk skipting · Myndband væntanlegt úr Grófinni
-        </p>
+      {/* honest note for the planned loop, plus real carousel controls — no
+          fake play button anywhere. Bottom-anchored, clear of the nav band,
+          so it never reads as a second header row under the real one. */}
+      <div className="absolute bottom-10 right-4 z-10 flex flex-col items-end gap-2.5 md:bottom-14 md:right-8">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => go(active - 1)}
             aria-label="Fyrri mynd"
-            className="flex min-h-11 min-w-11 items-center justify-center border transition-colors duration-150"
+            className="group flex min-h-11 min-w-11 items-center justify-center border transition-colors duration-150 hover:border-current"
             style={{ borderColor: 'rgba(247,245,239,0.4)', color: PAPER }}
           >
-            <ChevronLeft size={16} strokeWidth={2.4} aria-hidden />
+            <ChevronLeft size={16} strokeWidth={2.4} aria-hidden className="transition-transform duration-200 group-hover:-translate-x-0.5" />
           </button>
           <div className="flex items-center gap-0.5" role="tablist" aria-label="Veldu þjónustumynd">
             {HERO_SLIDES.map((s, i) => (
@@ -414,11 +410,11 @@ function Hero() {
                 aria-selected={i === active}
                 aria-label={s.service.name}
                 onClick={() => go(i)}
-                className="flex min-h-11 min-w-8 items-center justify-center px-1"
+                className="group px-0.5 py-3"
               >
                 <span
                   aria-hidden
-                  className="h-[3px] w-6 transition-colors duration-200 md:w-8"
+                  className="block h-[3px] w-6 transition-all duration-200 md:w-8 group-hover:opacity-80"
                   style={{ background: i === active ? YELLOW : 'rgba(247,245,239,0.32)' }}
                 />
               </button>
@@ -428,12 +424,18 @@ function Hero() {
             type="button"
             onClick={() => go(active + 1)}
             aria-label="Næsta mynd"
-            className="flex min-h-11 min-w-11 items-center justify-center border transition-colors duration-150"
+            className="group flex min-h-11 min-w-11 items-center justify-center border transition-colors duration-150 hover:border-current"
             style={{ borderColor: 'rgba(247,245,239,0.4)', color: PAPER }}
           >
-            <ChevronRight size={16} strokeWidth={2.4} aria-hidden />
+            <ChevronRight size={16} strokeWidth={2.4} aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
+        <p
+          className="text-right text-[10px] tracking-[0.18em] uppercase"
+          style={{ fontFamily: MONO, color: MUT }}
+        >
+          Ljósmyndir þjónustunnar · Myndband væntanlegt úr Grófinni
+        </p>
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1380px] px-4 pb-12 pt-44 md:px-8 md:pb-16">
@@ -469,7 +471,7 @@ function Hero() {
                   {last && (
                     <motion.span
                       aria-hidden
-                      className="absolute -inset-x-4 inset-y-[0.06em] md:-inset-x-7"
+                      className="absolute -inset-x-4 -inset-y-2 md:-inset-x-7 md:-inset-y-3"
                       style={{ background: YELLOW }}
                       initial={reduced ? false : { opacity: 0, scale: 1.55 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -508,7 +510,7 @@ function Hero() {
         >
           <a
             href={PHONE_HREF}
-            className="inline-flex min-h-[56px] items-center gap-3 px-8 text-[17px] font-bold transition-transform duration-150 active:scale-[0.97] max-sm:w-full max-sm:justify-center"
+            className="inline-flex min-h-[56px] items-center gap-3 px-8 text-[17px] font-bold transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97] max-sm:w-full max-sm:justify-center"
             style={{ background: YELLOW, color: BLACK, fontFamily: BODY }}
           >
             <Phone size={18} strokeWidth={2.6} aria-hidden />
@@ -516,8 +518,8 @@ function Hero() {
           </a>
           <a
             href="#thjonusta"
-            className="inline-flex min-h-[56px] items-center border-2 px-8 text-[16px] font-medium transition-transform duration-150 active:scale-[0.97] max-sm:w-full max-sm:justify-center"
-            style={{ borderColor: 'rgba(247,245,239,0.5)', color: PAPER, fontFamily: BODY }}
+            className="inline-flex min-h-[56px] items-center border-2 border-[rgba(247,245,239,0.5)] px-8 text-[16px] font-medium text-[#F7F5EF] transition duration-150 hover:border-[#F4C400] hover:bg-[#F4C400] hover:text-[#0C0C0C] active:scale-[0.97] max-sm:w-full max-sm:justify-center"
+            style={{ fontFamily: BODY }}
           >
             {HERO.ctaSecondary}
           </a>
@@ -833,7 +835,7 @@ function ServiceIndex() {
           Smurstöðin svarar beint í{' '}
           <a
             href={LUBE_PHONE_HREF}
-            className="inline-flex min-h-11 items-center font-bold underline decoration-2 underline-offset-4"
+            className="inline-flex min-h-11 items-center font-bold underline decoration-2 underline-offset-4 transition-opacity duration-150 hover:opacity-75"
             style={{ color: YELLOW }}
           >
             {LUBE_PHONE_DISPLAY}
@@ -889,7 +891,7 @@ function ProcessReel() {
         {REEL.map((f, i) => (
           <figure key={f.cap} className="w-[80vw] max-w-[560px] shrink-0 snap-center md:snap-start">
             {/* film frame: sprocket holes top + bottom, pan inside */}
-            <div className="border" style={{ borderColor: HAIR }}>
+            <div className="border border-[rgba(247,245,239,0.16)] transition duration-150 hover:border-[#F4C400] hover:brightness-110">
               <div aria-hidden className="h-3.5 opacity-25" style={{ backgroundImage: SPROCKET }} />
               <div className="relative aspect-[16/10] overflow-hidden">
                 <img
@@ -1155,7 +1157,7 @@ function Contact() {
         <Slam delay={0.12}>
           <a
             href={PHONE_HREF}
-            className="mt-6 inline-block transition-transform duration-150 active:scale-[0.985] md:mt-8"
+            className="mt-6 inline-block transition-transform duration-150 hover:scale-[1.02] active:scale-[0.985] md:mt-8"
             style={{
               fontFamily: DISPLAY,
               color: YELLOW,
@@ -1200,7 +1202,7 @@ function Contact() {
               href={MAPS}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex min-h-11 items-center gap-2 font-medium underline decoration-1 underline-offset-4"
+              className="mt-3 inline-flex min-h-11 items-center gap-2 font-medium underline decoration-1 underline-offset-4 transition-opacity duration-150 hover:opacity-75"
               style={{ color: PAPER }}
             >
               <MapPin size={14} strokeWidth={2.4} aria-hidden />
@@ -1212,12 +1214,12 @@ function Contact() {
               Samband
             </p>
             <p className="mt-3 leading-relaxed" style={{ color: MUT }}>
-              <a href={`mailto:${EMAIL}`} className="inline-flex min-h-11 items-center underline decoration-1 underline-offset-4 break-all" style={{ color: PAPER }}>
+              <a href={`mailto:${EMAIL}`} className="inline-flex min-h-11 items-center underline decoration-1 underline-offset-4 break-all transition-opacity duration-150 hover:opacity-75" style={{ color: PAPER }}>
                 {EMAIL}
               </a>
               <br />
               Smurstöðin:{' '}
-              <a href={LUBE_PHONE_HREF} className="inline-flex min-h-11 items-center font-medium" style={{ color: PAPER }}>
+              <a href={LUBE_PHONE_HREF} className="inline-flex min-h-11 items-center font-medium transition-opacity duration-150 hover:opacity-75" style={{ color: PAPER }}>
                 {LUBE_PHONE_DISPLAY}
               </a>
             </p>
@@ -1290,10 +1292,12 @@ export default function Page() {
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero />
-        <Hazard />
         <Marquee />
         <Facts />
         <Story />
+        {/* hazard divider trimmed from 4 uses to 3 — kept only where it
+            stitches an actual black/paper act inversion, so it still reads
+            as a signature move and not a scroll tic */}
         <Hazard />
         <ServiceIndex />
         <ProcessReel />

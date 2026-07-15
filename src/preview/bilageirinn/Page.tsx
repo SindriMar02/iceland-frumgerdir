@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode, RefObject } from 'react'
+import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import {
   AnimatePresence,
@@ -11,7 +11,7 @@ import {
   useScroll,
   useTransform,
 } from 'framer-motion'
-import { MapPin, Phone } from 'lucide-react'
+import { Check, MapPin, Phone, Send } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -103,6 +103,64 @@ const CSS = `
   .bg-marquee { animation: none; }
   .bg-scanline { animation: none; display: none; }
 }
+
+/* hover micro-interactions — quick, restrained, precision-brand easing.
+   Kept separate from the entrance-motion system above: these only ever
+   run in response to pointer/focus, never delay first paint. */
+.bg-navlink { position: relative; transition: color 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-navlink::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 9px;
+  height: 1px;
+  background: ${AMBER};
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-navlink:hover, .bg-navlink:focus-visible { color: ${INK}; }
+.bg-navlink:hover::after, .bg-navlink:focus-visible::after { transform: scaleX(1); }
+
+.bg-cta-solid { transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-cta-solid:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(232,162,61,0.32); }
+.bg-cta-solid:active { transform: translateY(0) scale(0.97); }
+
+.bg-cta-outline { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-cta-outline:hover { border-color: ${INK}; background: rgba(243,240,234,0.08); transform: translateY(-2px); }
+.bg-cta-outline:active { transform: translateY(0) scale(0.97); }
+
+.bg-cta-display { display: inline-block; transition: filter 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-cta-display:hover { filter: brightness(1.15); transform: translateY(-2px); }
+.bg-cta-display:active { transform: translateY(0) scale(0.98); }
+
+.bg-link-hover { transition: color 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-link-hover:hover, .bg-link-hover:focus-visible { color: ${AMBER} !important; }
+
+/* contact form: sleek inputs on the dark card, amber focus, no browser chrome */
+.bg-field {
+  background: rgba(243,240,234,0.05);
+  border: 1px solid rgba(243,240,234,0.16);
+  color: ${INK};
+  transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-field::placeholder { color: ${MUT}; }
+.bg-field:hover { border-color: rgba(243,240,234,0.28); }
+.bg-field:focus { outline: none; border-color: ${AMBER}; background: rgba(243,240,234,0.08); }
+.bg-field:invalid[data-touched="true"] { border-color: rgba(224,110,110,0.7); }
+
+.bg-form-submit {
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
+}
+.bg-form-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(232,162,61,0.32); }
+.bg-form-submit:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.bg-form-submit:disabled { opacity: 0.6; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-navlink::after { transition: none; display: none; }
+  .bg-cta-solid:hover, .bg-cta-outline:hover, .bg-cta-display:hover, .bg-form-submit:hover { transform: none; }
+}
 `
 
 /* ───────────────────────── shared motion helpers ───────────────────────── */
@@ -140,7 +198,9 @@ function Rise({
   )
 }
 
-/** Image reveal: clip wipes upward while the photo settles from 1.14 → 1.
+/** Image reveal: a single clip-path wipe, nothing else moving at the same
+    time (the earlier version also scaled the photo 1.14 → 1 underneath the
+    wipe — two motions competing on one image — trimmed to just the wipe).
     The observer sits on an UNCLIPPED wrapper — IntersectionObserver never
     reports elements that clip/scale themselves to zero as visible. */
 function ClipImage({
@@ -172,17 +232,14 @@ function ClipImage({
         className="h-full w-full"
         initial={{ clipPath: 'inset(0 0 100% 0)' }}
         animate={{ clipPath: inView ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)' }}
-        transition={{ duration: 1.15, ease: EASE }}
+        transition={{ duration: 1, ease: EASE }}
       >
-        <motion.img
+        <img
           src={src}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           className={`h-full w-full object-cover ${imgClassName ?? ''}`}
-          initial={{ scale: 1.14 }}
-          animate={{ scale: inView ? 1 : 1.14 }}
-          transition={{ duration: 1.4, ease: EASE }}
         />
       </motion.div>
     </div>
@@ -361,9 +418,12 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -72 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
-  const link = 'hidden items-center min-h-11 px-3 text-[13px] tracking-[0.14em] uppercase md:inline-flex'
+  /* nav (incl. the phone CTA) renders fully visible from first paint —
+     a worried customer must never wait on an entrance animation to find
+     the number. Only the scroll-solid background transitions. */
+  const link = 'bg-navlink hidden items-center min-h-11 px-3 text-[13px] tracking-[0.14em] uppercase md:inline-flex'
   return (
-    <motion.header
+    <header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
       style={{
         background: solid ? 'rgba(13,14,16,0.86)' : 'transparent',
@@ -371,9 +431,6 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         WebkitBackdropFilter: solid ? 'blur(14px)' : 'none',
         borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
-      initial={{ y: -64, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.9, ease: EASE, delay: 0.5 }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between px-5 md:px-8">
         <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label="Bílageirinn — efst á síðu">
@@ -386,7 +443,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <a href="#verkstaedid" onClick={go('#verkstaedid')} className={link}>Verkstæðið</a>
           <a
             href={PHONE_HREF}
-            className="ml-2 inline-flex min-h-11 items-center gap-2 rounded-sm px-4 text-[14px] font-semibold"
+            className="bg-cta-solid ml-2 inline-flex min-h-11 items-center gap-2 rounded-sm px-4 text-[14px] font-semibold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
@@ -394,7 +451,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           </a>
         </nav>
       </div>
-    </motion.header>
+    </header>
   )
 }
 
@@ -440,9 +497,9 @@ function Hero() {
         <motion.p
           className="mb-5 text-[12.5px] tracking-[0.22em] uppercase"
           style={{ fontFamily: MONO, color: AMBER, textShadow: '0 1px 14px rgba(0,0,0,0.65)' }}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE, delay: 0.25 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
         >
           Réttingar · Bílamálun · Bílaþjónusta — Grófin 14a, Reykjanesbær
         </motion.p>
@@ -456,7 +513,7 @@ function Hero() {
                 className="inline-block"
                 initial={{ y: '110%' }}
                 animate={{ y: '0%' }}
-                transition={{ duration: 1, ease: EASE, delay: 0.35 + i * 0.09 }}
+                transition={{ duration: 0.6, ease: EASE, delay: 0.15 + i * 0.05 }}
               >
                 {w}
                 {i < words.length - 1 ? ' ' : ''}
@@ -471,26 +528,25 @@ function Hero() {
           style={{ background: AMBER }}
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 1.2, ease: EASE, delay: 0.95 }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.45 }}
         />
         <motion.p
           className="mt-6 max-w-xl text-[17px] leading-relaxed md:text-lg"
           style={{ fontFamily: BODY, color: INK }}
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: EASE, delay: 1.0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.3 }}
         >
           {HERO.sub}
         </motion.p>
-        <motion.div
-          className="mt-9 flex flex-wrap items-center gap-4"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: EASE, delay: 1.15 }}
-        >
+        {/* CTA row renders visible immediately — no entrance delay. A
+            worried customer must find and tap the phone number the
+            instant the page paints, not after the headline finishes
+            performing. */}
+        <div className="mt-9 flex flex-wrap items-center gap-4">
           <a
             href={PHONE_HREF}
-            className="inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold transition-transform duration-150 active:scale-[0.97]"
+            className="bg-cta-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={17} strokeWidth={2.4} aria-hidden />
@@ -498,18 +554,18 @@ function Hero() {
           </a>
           <a
             href="#thjonusta"
-            className="inline-flex min-h-[52px] items-center rounded-sm border px-7 text-[16px] font-medium transition-transform duration-150 active:scale-[0.97]"
+            className="bg-cta-outline inline-flex min-h-[52px] items-center rounded-sm border px-7 text-[16px] font-medium"
             style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
           >
             {HERO.ctaSecondary}
           </a>
-        </motion.div>
+        </div>
         <motion.p
           className="mt-8 text-[13px] tracking-[0.08em]"
           style={{ fontFamily: MONO, color: MUT }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.35 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
         >
           {HERO.cert}
         </motion.p>
@@ -657,7 +713,7 @@ function ServiceIndex() {
                 initial={{ opacity: 0, scale: 1.06 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.7, ease: EASE }}
+                transition={{ duration: 0.45, ease: EASE }}
               />
             </AnimatePresence>
             <div
@@ -685,17 +741,17 @@ function ServiceIndex() {
                   onMouseEnter={() => setActive(i)}
                   onFocus={() => setActive(i)}
                   aria-expanded={on}
-                  className="group flex w-full items-baseline gap-5 py-5 text-left md:py-6"
+                  className="group flex w-full cursor-pointer items-baseline gap-5 py-5 text-left md:py-6"
                 >
                   <span
-                    className="w-8 shrink-0 text-[13px] tabular-nums transition-colors duration-300"
+                    className="w-8 shrink-0 text-[13px] tabular-nums transition-colors duration-200"
                     style={{ fontFamily: MONO, color: on ? AMBER : MUT }}
                   >
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span
-                      className="block transition-transform duration-500 group-hover:translate-x-1.5"
+                      className="block transition-transform duration-200 group-hover:translate-x-1.5"
                       style={{
                         fontFamily: EBOLD,
                         fontSize: 'clamp(1.35rem, 2.6vw, 2rem)',
@@ -737,7 +793,7 @@ function ServiceIndex() {
           Smurstöðin svarar beint í{' '}
           <a
             href={LUBE_PHONE_HREF}
-            className="inline-flex min-h-11 items-center font-semibold underline decoration-1 underline-offset-4"
+            className="bg-link-hover inline-flex min-h-11 items-center font-semibold underline decoration-1 underline-offset-4"
             style={{ color: INK }}
           >
             {LUBE_PHONE_DISPLAY}
@@ -991,7 +1047,7 @@ function Workshop() {
                     href={MAPS}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 inline-flex min-h-11 items-center gap-2 text-[14.5px] font-semibold underline decoration-1 underline-offset-4"
+                    className="bg-link-hover mt-3 inline-flex min-h-11 items-center gap-2 text-[14.5px] font-semibold underline decoration-1 underline-offset-4"
                     style={{ fontFamily: BODY, color: INK }}
                   >
                     <MapPin size={15} strokeWidth={2.2} aria-hidden />
@@ -1007,49 +1063,200 @@ function Workshop() {
   )
 }
 
+/** Quick-message CTA: for anyone who'd rather write than call. Builds a
+    real mailto: (no backend to stand up for a prototype, and no third-party
+    form service to wire without asking first) so a submission is genuinely
+    functional today — opens the visitor's own mail app with everything
+    filled in, one tap from actually sending. The inline "sent" state gives
+    the instant feedback the interaction should feel like, without
+    pretending the message left before it has. */
+function ContactForm() {
+  const [name, setName] = useState('')
+  const [contact, setContact] = useState('')
+  const [message, setMessage] = useState('')
+  const [touched, setTouched] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+
+  const valid = name.trim().length > 1 && contact.trim().length > 2 && message.trim().length > 4
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    setTouched(true)
+    if (!valid || status === 'sending') return
+    setStatus('sending')
+    const subject = `Fyrirspurn af vefsíðu — ${name.trim()}`
+    const body = `Nafn: ${name.trim()}\nSími/netfang: ${contact.trim()}\n\n${message.trim()}`
+    const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.setTimeout(() => {
+      window.location.href = mailto
+      setStatus('sent')
+    }, 450)
+  }
+
+  const field = 'bg-field min-h-11 w-full rounded-sm px-3.5 py-2.5 text-[15px]'
+
+  return (
+    <div className="rounded-sm border p-6 text-left md:p-7" style={{ borderColor: HAIR, background: 'rgba(21,23,26,0.72)' }}>
+      <p className="text-[12px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
+        Frekar skrifa?
+      </p>
+      <h3 className="mt-2 text-[19px] font-bold" style={{ fontFamily: BODY, color: INK }}>
+        Sendu okkur línu
+      </h3>
+      <p className="mt-1.5 text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+        Fyrir almennar fyrirspurnir. Ef tjónið er nýtt eða brýnt, hringdu — það er hraðast.
+      </p>
+
+      <AnimatePresence mode="wait">
+        {status === 'sent' ? (
+          <motion.div
+            key="sent"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="mt-6 flex items-start gap-3 rounded-sm border py-4 px-4"
+            style={{ borderColor: 'rgba(232,162,61,0.35)', background: 'rgba(232,162,61,0.08)' }}
+          >
+            <Check size={18} strokeWidth={2.4} aria-hidden style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
+            <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+              Póstforritið þitt er að opnast með skilaboðunum tilbúnum — ýttu á senda þar til að klára.
+            </p>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="form"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onSubmit={onSubmit}
+            noValidate
+            className="mt-6 flex flex-col gap-3.5"
+          >
+            <div>
+              <label htmlFor="bg-name" className="mb-1.5 block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                Nafn
+              </label>
+              <input
+                id="bg-name"
+                type="text"
+                required
+                value={name}
+                onChange={e => setName(e.target.value)}
+                data-touched={touched}
+                placeholder="Jón Jónsson"
+                className={field}
+                style={{ fontFamily: BODY }}
+              />
+            </div>
+            <div>
+              <label htmlFor="bg-contact" className="mb-1.5 block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                Sími eða netfang
+              </label>
+              <input
+                id="bg-contact"
+                type="text"
+                required
+                value={contact}
+                onChange={e => setContact(e.target.value)}
+                data-touched={touched}
+                placeholder="dæmi@netfang.is"
+                className={field}
+                style={{ fontFamily: BODY }}
+              />
+            </div>
+            <div>
+              <label htmlFor="bg-message" className="mb-1.5 block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                Skilaboð
+              </label>
+              <textarea
+                id="bg-message"
+                required
+                rows={3}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                data-touched={touched}
+                placeholder="Segðu okkur hvað þú þarft..."
+                className={`${field} resize-none`}
+                style={{ fontFamily: BODY }}
+              />
+            </div>
+            {touched && !valid && (
+              <p className="text-[13px]" style={{ fontFamily: BODY, color: '#E06E6E' }}>
+                Fylltu út nafn, síma eða netfang, og stutt skilaboð.
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={status === 'sending'}
+              className="bg-form-submit mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-sm text-[15px] font-bold"
+              style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+            >
+              {status === 'sending' ? (
+                'Sendi...'
+              ) : (
+                <>
+                  <Send size={16} strokeWidth={2.4} aria-hidden />
+                  Senda skilaboð
+                </>
+              )}
+            </button>
+          </motion.form>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 function Contact() {
   return (
     <section id="hafa-samband" className="relative overflow-hidden border-t" style={{ borderColor: HAIR }}>
       <ParallaxImage src={IMG.headlight} alt="Aðalljós á dökkum bíl í myrkri" className="absolute inset-0" />
       <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(13,14,16,0.85)' }} />
-      <div className="relative mx-auto max-w-[1320px] px-5 py-28 text-center md:px-8 md:py-44">
-        <Rise>
-          <h2 className="text-balance" style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.2rem)', letterSpacing: '-0.02em' }}>
-            {CTA.title}
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-            {CTA.body}
-          </p>
-        </Rise>
-        <Rise delay={0.12}>
-          <a
-            href={PHONE_HREF}
-            className="mt-10 inline-block leading-none transition-transform duration-150 active:scale-[0.98]"
-            style={{ fontFamily: DISPLAY, color: AMBER, fontSize: 'clamp(3rem, 11vw, 6rem)', letterSpacing: '-0.02em' }}
-          >
-            {PHONE_DISPLAY}
-          </a>
-        </Rise>
-        <Rise delay={0.2}>
-          <div className="mt-8 flex flex-col items-center gap-1 text-[14px]" style={{ fontFamily: MONO, color: MUT }}>
-            <p>
-              Smurstöðin:{' '}
-              <a href={LUBE_PHONE_HREF} className="inline-flex min-h-11 items-center font-semibold" style={{ color: INK }}>
-                {LUBE_PHONE_DISPLAY}
-              </a>
-            </p>
-            <p>
+      <div className="relative mx-auto max-w-[1320px] px-5 py-28 md:px-8 md:py-40">
+        <div className="grid gap-14 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-16">
+          <div className="text-center md:text-left">
+            <Rise>
+              <h2 className="text-balance" style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.2rem)', letterSpacing: '-0.02em' }}>
+                {CTA.title}
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:mx-0" style={{ fontFamily: BODY, color: MUT }}>
+                {CTA.body}
+              </p>
+            </Rise>
+            <Rise delay={0.12}>
               <a
-                href={`mailto:${EMAIL}`}
-                className="inline-flex min-h-11 items-center underline decoration-1 underline-offset-4"
-                style={{ color: INK }}
+                href={PHONE_HREF}
+                className="bg-cta-display mt-10 leading-none"
+                style={{ fontFamily: DISPLAY, color: AMBER, fontSize: 'clamp(3rem, 9vw, 5.4rem)', letterSpacing: '-0.02em' }}
               >
-                {EMAIL}
+                {PHONE_DISPLAY}
               </a>
-            </p>
-            <p className="mt-1">Mán–fim 08:00–17:00 · Fös 08:00–15:00 · Lokað um helgar</p>
+            </Rise>
+            <Rise delay={0.2}>
+              <div className="mt-8 flex flex-col items-center gap-1 text-[14px] md:items-start" style={{ fontFamily: MONO, color: MUT }}>
+                <p>
+                  Smurstöðin:{' '}
+                  <a href={LUBE_PHONE_HREF} className="bg-link-hover inline-flex min-h-11 items-center font-semibold" style={{ color: INK }}>
+                    {LUBE_PHONE_DISPLAY}
+                  </a>
+                </p>
+                <p>
+                  <a
+                    href={`mailto:${EMAIL}`}
+                    className="bg-link-hover inline-flex min-h-11 items-center underline decoration-1 underline-offset-4"
+                    style={{ color: INK }}
+                  >
+                    {EMAIL}
+                  </a>
+                </p>
+                <p className="mt-1">Mán–fim 08:00–17:00 · Fös 08:00–15:00 · Lokað um helgar</p>
+              </div>
+            </Rise>
           </div>
-        </Rise>
+          <Rise delay={0.15}>
+            <ContactForm />
+          </Rise>
+        </div>
       </div>
     </section>
   )

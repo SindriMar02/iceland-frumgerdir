@@ -118,8 +118,51 @@ const CSS = `
 .bp-kenA { animation: bp-panA 44s ease-in-out infinite alternate; will-change: transform; }
 .bp-kenB { animation: bp-panB 52s ease-in-out infinite alternate; will-change: transform; }
 
+/* ── hover micro-interactions: hairline/measured-mark cues, kept quick
+      (150-250ms) and precise rather than playful. Base colors for any
+      property a hover rule needs to touch live here rather than inline,
+      since an inline style always wins over a stylesheet :hover rule. ─── */
+.bp-navlink { position: relative; color: ${MUT}; transition: color 200ms ease; }
+.bp-navlink::after {
+  content: ''; position: absolute; left: 0.75rem; right: 0.75rem; bottom: 11px; height: 1px;
+  background: ${ACCENT}; transform: scaleX(0); transform-origin: left; transition: transform 200ms ease;
+}
+.bp-navlink:hover, .bp-navlink:focus-visible { color: ${INK}; }
+.bp-navlink:hover::after, .bp-navlink:focus-visible::after { transform: scaleX(1); }
+
+.bp-cta-fill { background: ${ACCENT_DEEP}; transition: background-color 200ms ease; }
+.bp-cta-fill:hover, .bp-cta-fill:focus-visible { background-color: ${ACCENT}; }
+
+.bp-cta-outline { border-color: rgba(239,241,236,0.5); transition: border-color 200ms ease, background-color 200ms ease; }
+.bp-cta-outline:hover, .bp-cta-outline:focus-visible { border-color: ${ACCENT_LIT}; background-color: rgba(214,73,31,0.1); }
+
+.bp-hero-arrow { border-color: rgba(239,241,236,0.35); transition: border-color 200ms ease, background-color 200ms ease; }
+.bp-hero-arrow:hover, .bp-hero-arrow:focus-visible { border-color: ${ACCENT_LIT}; background-color: rgba(214,73,31,0.1); }
+
+.bp-tick:hover span, .bp-tick:focus-visible span { filter: brightness(1.4); }
+
+.bp-service-row::before {
+  content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 2px;
+  background: ${ACCENT}; transform: scaleY(0); transform-origin: center; transition: transform 200ms ease;
+}
+.bp-service-row:hover::before, .bp-service-row:focus-visible::before { transform: scaleY(1); }
+
+.bp-plate { border-color: ${PLATE_HAIR}; transition: border-color 200ms ease, transform 200ms ease; }
+.bp-plate:hover, .bp-plate:focus-within { border-color: ${ACCENT_PLATE}; transform: translateY(-3px); }
+
+.bp-underline-link { color: ${INK}; transition: color 200ms ease; }
+.bp-underline-link:hover, .bp-underline-link:focus-visible { color: ${ACCENT_LIT}; }
+
+.bp-phone-giant { color: ${ACCENT_LIT}; transition: color 200ms ease; }
+.bp-phone-giant:hover, .bp-phone-giant:focus-visible {
+  color: ${ACCENT}; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 10px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bp-kenA, .bp-kenB { animation: none; }
+  .bp-navlink::after, .bp-service-row::before, .bp-plate { transition: none; }
+  .bp-plate:hover, .bp-plate:focus-within { transform: none; }
+  .bp-tick:hover span, .bp-tick:focus-visible span { filter: none; }
 }
 `
 
@@ -193,44 +236,6 @@ function Intro({
     >
       {children}
     </motion.div>
-  )
-}
-
-/** Mono label that types on, character by character. Only used inside
-    aria-hidden overlay layers, so no screen-reader duplication. */
-function TypeOn({
-  text,
-  delay,
-  className,
-  style,
-}: {
-  text: string
-  delay: number
-  className?: string
-  style?: CSSProperties
-}) {
-  const reduced = useReducedMotion()
-  if (reduced) {
-    return (
-      <span className={className} style={style}>
-        {text}
-      </span>
-    )
-  }
-  return (
-    <span className={className} style={style}>
-      {text.split('').map((ch, i) => (
-        <motion.span
-          key={i}
-          className="inline-block whitespace-pre"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.02, delay: delay + i * 0.035 }}
-        >
-          {ch}
-        </motion.span>
-      ))}
-    </span>
   )
 }
 
@@ -464,33 +469,31 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         WebkitBackdropFilter: solid ? 'blur(14px)' : 'none',
         borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
-      initial={reduced ? false : { y: -64, opacity: 0 }}
+      initial={reduced ? false : { y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: EASE, delay: 0.4 }}
+      transition={{ duration: 0.5, ease: EASE }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1360px] items-center justify-between px-5 md:px-8">
         <a href="#efst" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label={`${NAME} — efst á síðu`}>
-          {/* the real wordmark is dark ink on transparent, printed for a
-              light ground — mounted on its own small paper nameplate here
-              so it stays legible against the new dark cyanotype page */}
-          <span className="inline-flex items-center px-3 py-1.5" style={{ background: PLATE_BG }}>
-            <img src={LOGO} alt={NAME} className="h-8 w-auto" style={{ filter: 'contrast(1.08)' }} />
-          </span>
+          {/* the real wordmark is dark ink on transparent, printed for a light
+              ground — forced to solid ink then inverted so it reads white on
+              the dark page directly, no background plate (matches Signal/Langlina) */}
+          <img src={LOGO} alt={NAME} className="h-8 w-auto" style={{ filter: 'brightness(0) invert(0.96)' }} />
         </a>
-        <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
-          <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>
+        <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO }}>
+          <a href="#thjonusta" onClick={go('#thjonusta')} className={`bp-navlink ${link}`}>
             Þjónusta
           </a>
-          <a href="#tjon" onClick={go('#tjon')} className={link}>
+          <a href="#tjon" onClick={go('#tjon')} className={`bp-navlink ${link}`}>
             Tjónaviðgerðir
           </a>
-          <a href="#verkstaedid" onClick={go('#verkstaedid')} className={link}>
+          <a href="#verkstaedid" onClick={go('#verkstaedid')} className={`bp-navlink ${link}`}>
             Verkstæðið
           </a>
           <a
             href={PHONE_HREF}
-            className="ml-2 inline-flex min-h-11 items-center gap-2 px-4 text-[14px] font-bold"
-            style={{ background: ACCENT_DEEP, color: '#FFFFFF', fontFamily: BODY }}
+            className="bp-cta-fill ml-2 inline-flex min-h-11 items-center gap-2 px-4 text-[14px] font-bold"
+            style={{ color: '#FFFFFF', fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
             {PHONE_DISPLAY}
@@ -512,62 +515,6 @@ const SPECS: { k: string; v: string; href?: string }[] = [
   { k: 'Sími', v: PHONE_DISPLAY, href: PHONE_HREF },
 ]
 
-/** The live measurement plot over the hero photo: datum lines DRAW in
-    (pathLength), crosshairs pop, mono labels type on. Generic process
-    terms only — it shows HOW a panel gets measured, it never claims a
-    reading. Mount-timed with `animate` (in view at load), and re-keyed
-    per carousel slide so the machine visibly re-measures each photo.
-    Coordinates sit in the upper-right, clear of the headline column. */
-function HeroPlot() {
-  const reduced = useReducedMotion()
-  if (reduced) return null
-  const draw = (delay: number) => ({
-    initial: { pathLength: 0, opacity: 0 },
-    animate: { pathLength: 1, opacity: 0.95 },
-    transition: { duration: 0.8, ease: EASE, delay },
-  })
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0">
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <motion.line x1="40" y1="22" x2="96" y2="22" stroke={ACCENT} strokeWidth="0.28" strokeDasharray="1.7 1.2" {...draw(0.55)} />
-        <motion.line x1="82" y1="8" x2="82" y2="46" stroke={ACCENT} strokeWidth="0.28" strokeDasharray="1.7 1.2" {...draw(0.75)} />
-        <motion.line x1="82" y1="22" x2="58" y2="40" stroke={INK} strokeWidth="0.2" {...draw(0.95)} />
-      </svg>
-      <CrossPoint x={82} y={22} label="MÆLIPUNKTUR A" delay={0.95} />
-      <CrossPoint x={58} y={40} label="MÆLIPUNKTUR B" delay={1.15} />
-      <TypeOn
-        text="VIÐMIÐUNARLÍNA"
-        delay={1.05}
-        className="absolute left-[41%] top-[22%] mt-2 text-[10px] tracking-[0.2em]"
-        style={{ fontFamily: MONO, color: INK, textShadow: '0 1px 6px rgba(0,0,0,0.85)' }}
-      />
-    </div>
-  )
-}
-
-function CrossPoint({ x, y, label, delay }: { x: number; y: number; label: string; delay: number }) {
-  return (
-    <div className="absolute" style={{ left: `${x}%`, top: `${y}%` }}>
-      <motion.span
-        className="block"
-        initial={{ opacity: 0, scale: 0.3 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: EASE, delay }}
-      >
-        <span className="relative block h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2" style={{ borderColor: ACCENT }}>
-          <span className="absolute left-1/2 top-1/2 h-[26px] w-px -translate-x-1/2 -translate-y-1/2" style={{ background: ACCENT }} />
-          <span className="absolute left-1/2 top-1/2 h-px w-[26px] -translate-x-1/2 -translate-y-1/2" style={{ background: ACCENT }} />
-        </span>
-      </motion.span>
-      <TypeOn
-        text={label}
-        delay={delay + 0.3}
-        className="absolute left-4 top-2 whitespace-nowrap text-[10px] tracking-[0.2em]"
-        style={{ fontFamily: MONO, color: INK, textShadow: '0 1px 6px rgba(0,0,0,0.85)' }}
-      />
-    </div>
-  )
-}
 
 /** Which SERVICES entries get a hero slide, in display order, and which
     photo/alt stands in for each — the exact same SERVICE_IMGS / SERVICE_ALTS
@@ -587,7 +534,7 @@ function HeroTick({ active, label, onClick }: { active: boolean; label: string; 
       aria-selected={active}
       aria-label={label}
       onClick={onClick}
-      className="group relative flex h-11 w-6 shrink-0 items-end justify-center"
+      className="bp-tick group relative flex h-11 w-6 shrink-0 items-end justify-center"
     >
       <span
         aria-hidden
@@ -608,8 +555,7 @@ function HeroArrow({ dir, onClick, label }: { dir: 'prev' | 'next'; onClick: () 
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="inline-flex h-11 w-11 shrink-0 items-center justify-center border transition-colors duration-200"
-      style={{ borderColor: 'rgba(239,241,236,0.35)' }}
+      className="bp-hero-arrow inline-flex h-11 w-11 shrink-0 items-center justify-center border transition-colors duration-200"
     >
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
         <path
@@ -624,9 +570,9 @@ function HeroArrow({ dir, onClick, label }: { dir: 'prev' | 'next'; onClick: () 
   )
 }
 
+
 function Hero() {
   const reduced = useReducedMotion()
-  const words = HERO.headline.split(' ') /* Aftur í rétta línu. */
   const slides = HERO_SLIDE_IDX.map((idx, i) => ({
     n: i + 1,
     service: SERVICES[idx],
@@ -712,15 +658,10 @@ function Hero() {
           transition={{ duration: 0.7 }}
         />
       )}
-      {/* registration ticks at the sheet's own corners */}
-      <div aria-hidden className="pointer-events-none absolute inset-4 opacity-60 md:inset-6">
-        <CornerTicks color={INK} />
-      </div>
-      {!reduced && <HeroPlot key={active} />}
       {/* content overlay */}
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1360px] flex-col justify-end px-5 pb-10 pt-32 md:px-8 md:pb-14 md:pt-36">
         {/* title block: corner label + per-slide caption, in one */}
-        <Intro delay={0.15}>
+        <Intro delay={0.1}>
           <div className="inline-flex flex-wrap items-stretch border" style={{ borderColor: 'rgba(239,241,236,0.35)' }}>
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
@@ -750,64 +691,56 @@ function Hero() {
             </AnimatePresence>
           </div>
         </Intro>
-        {/* accented Icelandic caps: open leading, no clip masks, ever */}
-        <h1
-              className="mt-8 max-w-2xl text-balance"
-              style={{
-                fontFamily: DISPLAY,
-                fontSize: 'clamp(2.9rem, 8vw, 5.4rem)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.05,
-                color: INK,
-              }}
-            >
-              {reduced
-                ? HERO.headline
-                : words.map((w, i) => (
-                    <motion.span
-                      key={i}
-                      className="inline-block"
-                      initial={{ opacity: 0, y: 18 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.7, ease: EASE, delay: 1.5 + i * 0.09 }}
-                    >
-                      {w}
-                      {i < words.length - 1 ? ' ' : ''}
-                    </motion.span>
-                  ))}
-            </h1>
-            <Intro delay={1.75}>
+        {/* accented Icelandic caps: open leading, no clip masks, ever.
+            One clean reveal for the whole headline — a per-word stagger
+            used to run here, but that was extra motion competing with the
+            title block, carousel and spec readout for no added clarity. */}
+        <Intro delay={0.2} className="mt-8">
+          <h1
+            className="max-w-2xl text-balance"
+            style={{
+              fontFamily: DISPLAY,
+              fontSize: 'clamp(2.9rem, 8vw, 5.4rem)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+              color: INK,
+            }}
+          >
+            {HERO.headline}
+          </h1>
+        </Intro>
+            <Intro delay={0.3}>
               <p className="mt-6 max-w-xl text-[17px] leading-relaxed md:text-lg" style={{ fontFamily: BODY, color: MUT }}>
                 {HERO.sub}
               </p>
             </Intro>
-            <Intro delay={1.9}>
+            <Intro delay={0.38}>
               <div className="mt-9 flex flex-wrap items-center gap-4">
                 <a
                   href={PHONE_HREF}
-                  className="inline-flex min-h-[52px] items-center gap-2.5 px-7 text-[16px] font-bold transition-transform duration-150 active:scale-[0.97]"
-                  style={{ background: ACCENT_DEEP, color: '#FFFFFF', fontFamily: BODY }}
+                  className="bp-cta-fill inline-flex min-h-[52px] items-center gap-2.5 px-7 text-[16px] font-bold transition-transform duration-150 active:scale-[0.97]"
+                  style={{ color: '#FFFFFF', fontFamily: BODY }}
                 >
                   <Phone size={17} strokeWidth={2.4} aria-hidden />
                   {HERO.ctaPrimary}
                 </a>
                 <a
                   href="#thjonusta"
-                  className="inline-flex min-h-[52px] items-center border px-7 text-[16px] font-medium transition-transform duration-150 active:scale-[0.97]"
-                  style={{ borderColor: 'rgba(239,241,236,0.5)', color: INK, fontFamily: BODY }}
+                  className="bp-cta-outline inline-flex min-h-[52px] items-center border px-7 text-[16px] font-medium transition-transform duration-150 active:scale-[0.97]"
+                  style={{ color: INK, fontFamily: BODY }}
                 >
                   {HERO.ctaSecondary}
                 </a>
               </div>
             </Intro>
-            <Intro delay={2.05}>
+            <Intro delay={0.46}>
               <p className="mt-8 text-[12.5px] uppercase tracking-[0.14em]" style={{ fontFamily: MONO, color: MUT }}>
                 {HERO.cert}
               </p>
             </Intro>
         {/* bottom bar: spec readout (left) + carousel controls (right) */}
         <Intro
-          delay={0.5}
+          delay={0.54}
           className="mt-10 flex flex-col gap-6 border-t pt-6 md:mt-12 md:flex-row md:items-end md:justify-between"
           style={{ borderColor: 'rgba(239,241,236,0.22)' }}
         >
@@ -1042,7 +975,7 @@ function ServiceRow({
   reduced: boolean
 }) {
   return (
-    <li className="border-b" style={{ borderColor: HAIR }}>
+    <li className="bp-service-row relative border-b" style={{ borderColor: HAIR }}>
       <button
         type="button"
         onClick={() => setActive(i)}
@@ -1415,8 +1348,7 @@ function Materials() {
                 { src: IMG.kia, alt: 'Kia' },
               ].map((m, i) => (
                 <Rise key={m.alt} delay={i * 0.1}>
-                  <div className="relative border" style={{ background: PLATE_BG, borderColor: PLATE_HAIR }}>
-                    <CornerTicks />
+                  <div className="bp-plate relative border" style={{ background: PLATE_BG }}>
                     <div className="flex aspect-[4/3] items-center justify-center p-8">
                       <img src={m.src} alt={m.alt} loading="lazy" decoding="async" className="max-h-14 w-auto max-w-full object-contain md:max-h-16" />
                     </div>
@@ -1460,7 +1392,6 @@ function Workshop() {
           {/* the work order: everything needed to start a job, one card */}
           <Rise delay={0.1}>
             <div className="relative border p-6 md:p-9" style={{ background: CARD, borderColor: HAIR_STRONG }}>
-              <CornerTicks />
               <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
                 <p className="text-[12px] uppercase tracking-[0.24em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
                   Verkbeiðni
@@ -1514,8 +1445,7 @@ function Workshop() {
                   Smurstöðin svarar beint í{' '}
                   <a
                     href={LUBE_PHONE_HREF}
-                    className="inline-flex min-h-11 items-center font-bold underline decoration-1 underline-offset-4"
-                    style={{ color: INK }}
+                    className="bp-underline-link inline-flex min-h-11 items-center font-bold underline decoration-1 underline-offset-4"
                   >
                     {LUBE_PHONE_DISPLAY}
                   </a>
@@ -1524,8 +1454,8 @@ function Workshop() {
                   href={MAPS}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-11 items-center gap-2 text-[13.5px] font-bold underline decoration-1 underline-offset-4"
-                  style={{ fontFamily: BODY, color: INK }}
+                  className="bp-underline-link inline-flex min-h-11 items-center gap-2 text-[13.5px] font-bold underline decoration-1 underline-offset-4"
+                  style={{ fontFamily: BODY }}
                 >
                   <MapPin size={15} strokeWidth={2.2} aria-hidden />
                   Opna í kortum
@@ -1544,10 +1474,9 @@ function Workshop() {
                 </p>
                 <a
                   href={PHONE_HREF}
-                  className="mt-6 inline-block leading-none transition-transform duration-150 active:scale-[0.98]"
+                  className="bp-phone-giant mt-6 inline-block leading-none transition-transform duration-150 active:scale-[0.98]"
                   style={{
                     fontFamily: DISPLAY,
-                    color: ACCENT_LIT,
                     fontSize: 'clamp(2.6rem, 8vw, 4.6rem)',
                     letterSpacing: '-0.02em',
                   }}
@@ -1555,7 +1484,7 @@ function Workshop() {
                   {PHONE_DISPLAY}
                 </a>
                 <p className="mt-4 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
-                  <a href={`mailto:${EMAIL}`} className="inline-flex min-h-11 items-center underline decoration-1 underline-offset-4" style={{ color: INK }}>
+                  <a href={`mailto:${EMAIL}`} className="bp-underline-link inline-flex min-h-11 items-center underline decoration-1 underline-offset-4">
                     {EMAIL}
                   </a>
                 </p>
