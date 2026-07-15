@@ -1361,7 +1361,14 @@ export default function Page() {
   return (
     <div className="bg-page min-h-screen antialiased" style={{ fontFamily: BODY }}>
       <style>{CSS}</style>
-      {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} logoSrc={LOGO_CONCEPT} />}
+      {overlayMounted && (
+        <BilageirinnLoading
+          visible={!assetsReady}
+          progress={loadProgress}
+          logoSrc={LOGO_CONCEPT}
+          logoVideoSrc={`${B}preview/bilageirinn/logo-draw.mp4`}
+        />
+      )}
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero />
