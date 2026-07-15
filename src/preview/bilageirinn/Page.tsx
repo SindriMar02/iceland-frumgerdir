@@ -64,10 +64,12 @@ const BODY = "'Satoshi', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
 const B = import.meta.env.BASE_URL
-/* Rebrand-concept mark, previewed on v2 only per Sindri's 2026-07-15 request — NOT
-   the real logo.png (used everywhere else: nav on the other 3 concepts, footer,
-   loading screen default). Swap back to LOGO if the concept doesn't land. */
-const LOGO_CONCEPT = `${B}preview/bilageirinn/logo-concept.png`
+/* Rebrand-concept icon, previewed on v2 only per Sindri's 2026-07-15 request — NOT
+   the real logo.png (used everywhere else: nav on the other 3 concepts, footer).
+   Background removed + cropped from a generated still; the wordmark is set as
+   real type elsewhere (never baked into the image — the generated art's own
+   text had a broken þ). Swap back to LOGO/the real nav markup if this doesn't land. */
+const ICON_CONCEPT = `${B}preview/bilageirinn/icon-concept.png`
 const EASE = [0.23, 1, 0.32, 1] as const
 
 const CSS = `
@@ -437,12 +439,16 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
       }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between px-5 md:px-8">
-        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label="Bílageirinn — efst á síðu">
-          {/* REBRAND CONCEPT PREVIEW, not the real mark — generated logo idea
-              being previewed here only, to pitch before touching the real
-              logo.png used everywhere else on the site. Already white on
-              transparent, no invert filter needed. */}
-          <img src={LOGO_CONCEPT} alt="Bílageirinn" className="h-12 w-auto" />
+        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center gap-2.5" aria-label="Bílageirinn — efst á síðu">
+          {/* REBRAND CONCEPT PREVIEW, not the real mark — icon closely matches
+              the real logo's own swoosh+headlight shape, previewed here only
+              to pitch before touching the real logo.png used everywhere else
+              on the site. Wordmark is real type, not baked into the image —
+              the generated art's own text had a broken þ. */}
+          <img src={ICON_CONCEPT} alt="" className="h-8 w-auto" style={{ filter: 'brightness(0) invert(0.96)' }} />
+          <span style={{ fontFamily: EBOLD, fontSize: '19px', fontWeight: 800, color: INK, letterSpacing: '-0.01em' }}>
+            Bílageirinn
+          </span>
         </a>
         <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
           <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>Þjónusta</a>
@@ -1317,15 +1323,22 @@ export default function Page() {
     }
   }, [])
 
-  /* Loading gate: the overlay stays up until the hero photo, the logo, and the
+  /* Loading gate: the overlay stays up until the hero photo, the icon, and the
      self-hosted fonts are actually ready, so the fade lands on an already-painted
-     hero instead of visitors watching it pop in after the loader clears. */
-  const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'logo'] as const, [])
+     hero instead of visitors watching it pop in after the loader clears. ALSO
+     enforced against a minimum visible time — on a fast connection (e.g. the
+     production CDN) every asset can resolve in under 200ms, which made the
+     first version of this screen invisible in practice. The floor is set just
+     past the icon-draw + wordmark sequence (~1.5s + settle) so the animation
+     is always actually seen, not so it drags — see MIN_VISIBLE_MS. */
+  const MIN_VISIBLE_MS = 1900
+  const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'icon'] as const, [])
   const [ready, setReady] = useState<Record<string, boolean>>({})
   const [forced, setForced] = useState(false)
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false)
   const mark = useCallback((k: string) => setReady(r => (r[k] ? r : { ...r, [k]: true })), [])
   const readyCount = GATE_KEYS.reduce((n, k) => n + (ready[k] ? 1 : 0), 0)
-  const assetsReady = forced || readyCount === GATE_KEYS.length
+  const assetsReady = (forced || readyCount === GATE_KEYS.length) && minTimeElapsed
   const loadProgress = forced ? 1 : readyCount / GATE_KEYS.length
 
   useEffect(() => {
@@ -1340,13 +1353,17 @@ export default function Page() {
     }
     ;(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => safeMark('fonts'))
     warm(IMG.hero, 'hero')
-    warm(LOGO_CONCEPT, 'logo')
+    warm(ICON_CONCEPT, 'icon')
+    const minTimer = window.setTimeout(() => {
+      if (alive) setMinTimeElapsed(true)
+    }, MIN_VISIBLE_MS)
     // never trap a visitor behind the loader if a resource stalls
     const failsafe = window.setTimeout(() => {
       if (alive) setForced(true)
-    }, 4000)
+    }, 4500)
     return () => {
       alive = false
+      window.clearTimeout(minTimer)
       window.clearTimeout(failsafe)
     }
   }, [mark])
@@ -1361,14 +1378,7 @@ export default function Page() {
   return (
     <div className="bg-page min-h-screen antialiased" style={{ fontFamily: BODY }}>
       <style>{CSS}</style>
-      {overlayMounted && (
-        <BilageirinnLoading
-          visible={!assetsReady}
-          progress={loadProgress}
-          logoSrc={LOGO_CONCEPT}
-          logoVideoSrc={`${B}preview/bilageirinn/logo-draw.mp4`}
-        />
-      )}
+      {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero />
