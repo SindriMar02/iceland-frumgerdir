@@ -80,7 +80,7 @@ export const CATEGORIES = [
     label: 'Matur',
     kicker: 'Beint frá býlum í nágrenninu',
     body:
-      'Sultur, hunang, salt, súrsað grænmeti og annað staðbundið sælgæti, auk frosins kjöts sem kemur beint frá býli til búðar.',
+      'Sultur, hunang, salt, súrsað grænmeti og annað staðbundið góðgæti, auk frosins kjöts sem kemur beint frá býli til búðar.',
     img: 'jam',
   },
   {

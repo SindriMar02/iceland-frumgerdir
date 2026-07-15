@@ -51,12 +51,15 @@ const HAIR = 'rgba(36,26,22,0.14)'
 const EASE = [0.16, 1, 0.3, 1] as const
 
 /* ── the arch — a Nissen-hut dome clipped from a rectangle. Straight side
-      walls for the bottom 70% of the box, a sine-curve dome for the top
-      30% (percentages, so it scales with whatever aspect ratio the frame
-      is given — used identically everywhere for one consistent shape). ── */
+      walls for the bottom ~42% of the box, a sine-curve dome for the top
+      ~58% (percentages, so it scales with whatever aspect ratio the frame
+      is given — used identically everywhere for one consistent shape).
+      Matches the real building: a full, rounded quonset arc, not a
+      shallow bridge — tuned against a reference photo of UNA's actual
+      red corrugated-steel hut.                                        ── */
 const ARCH_CLIP = (() => {
   const steps = 20
-  const domeH = 30
+  const domeH = 42
   const pts: string[] = ['0% 100%']
   for (let i = 0; i <= steps; i++) {
     const x = (i / steps) * 100
