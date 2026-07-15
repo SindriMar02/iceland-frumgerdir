@@ -1,4 +1,4 @@
-/* ── UNA Local Product · „Litla rauða húsið" ──────────────────────────────
+/* ── UNA Local Store · „Litla rauða húsið" ──────────────────────────────
    Facts (all verified, nothing else invented):
    Austurvegur 4, Hvolsvöllur (860) · frá 2015 · fjölskyldurekið af Magnúsi
    og Rebekku · rauður bragði/„bragginn" (bogadregið bárujárnsþak) við
@@ -43,7 +43,7 @@ export const IMG = {
 } as const
 
 export const META = {
-  title: 'UNA Local Product | Handverk og gjafir í rauðum bragga á Hvolsvelli',
+  title: 'UNA Local Store | Handverk og gjafir í rauðum bragga á Hvolsvelli',
   description:
     'Fjölskyldurekin gjafa- og handverksbúð í litlum rauðum bragga við þjóðveg 1 á Hvolsvelli. Lopapeysur frá yfir 100 prjónakonum, íslensk matvara, skart og gjafir síðan 2015.',
 }
@@ -56,7 +56,7 @@ export const NAV = [
 ] as const
 
 export const HERO = {
-  eyebrow: 'UNA Local Product · rauði bragginn á Hvolsvelli',
+  eyebrow: 'UNA Local Store · rauði bragginn á Hvolsvelli',
   title: 'Litla rauða húsið',
   titleLine2: 'við þjóðveginn.',
   sub:
@@ -105,7 +105,7 @@ export const HERITAGE = {
   eyebrow: 'Frá 2015',
   heading: 'Fjölskyldan á bak við bragga',
   body1:
-    'Magnús og Rebekka hafa rekið UNA Local Product síðan 2015, í sama litla rauða húsinu við þjóðveginn á Hvolsvelli. Húsið sjálft hýsti áður hluta af markaði bæjarins — nú er það fullt af handverki heimafólks.',
+    'Magnús og Rebekka hafa rekið UNA Local Store síðan 2015, í sama litla rauða húsinu við þjóðveginn á Hvolsvelli. Húsið sjálft hýsti áður hluta af markaði bæjarins — nú er það fullt af handverki heimafólks.',
   body2:
     'Yfir 100 prjónakonur um allt Suðurland prjóna lopapeysur og aðrar ullarvörur fyrir búðina, við hlið staðbundinnar matvöru, skarts og gjafavöru.',
 }
@@ -123,7 +123,7 @@ export const REVIEWS = {
 export const VISIT = {
   heading: 'Beint af þjóðvegi 1',
   intro:
-    'UNA Local Product stendur við þjóðveg 1, þar sem hann liggur í gegnum Hvolsvöll — tilvalið stopp á leiðinni um Suðurland.',
+    'UNA Local Store stendur við þjóðveg 1, þar sem hann liggur í gegnum Hvolsvöll — tilvalið stopp á leiðinni um Suðurland.',
   address: 'Austurvegur 4, 860 Hvolsvöllur',
   mapHref: 'https://maps.google.com/?q=Austurvegur+4,+860+Hvolsv%C3%B6llur',
   email: 'info@unalocalstore.com',
@@ -138,7 +138,7 @@ export const VISIT = {
 export const JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'Store',
-  name: 'UNA Local Product',
+  name: 'UNA Local Store',
   description: META.description,
   email: 'info@unalocalstore.com',
   address: {

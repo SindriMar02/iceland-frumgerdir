@@ -2748,7 +2748,7 @@ ${SIGN}`,
   {
     slug: 'una',
     route: '/preview/una',
-    name: 'UNA Local Product',
+    name: 'UNA Local Store',
     sector: 'Handverks- og gjafavöruverslun',
     location: 'Austurvegur 4, Hvolsvöllur',
     region: 'South',
@@ -2782,7 +2782,7 @@ ${SIGN}`,
     positioning:
       'A real family shop inside a landmark red hut on the Golden Circle route, selling work from a hundred local hands, and none of it visible online. The site should make the hut itself the hero.',
     outreach: {
-      subject: 'Hugmynd að nýrri vefsíðu fyrir UNA Local Product',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir UNA Local Store',
       body: `Góðan dag,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.

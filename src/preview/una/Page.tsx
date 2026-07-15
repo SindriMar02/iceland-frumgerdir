@@ -1,4 +1,4 @@
-/* ── UNA Local Product · „Litla rauða húsið" ──────────────────────────────
+/* ── UNA Local Store · „Litla rauða húsið" ──────────────────────────────
    Display face Fraunces (--font-display) + Hanken Grotesk (--font-hanken) —
    BOTH already globally loaded (index.html Google-Fonts link + index.css
    @theme), so no self-loaded <link> is needed on this page.
@@ -242,7 +242,7 @@ export default function UnaPage() {
       {/* ── header ───────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50" style={{ background: CREAM, borderBottom: `1px solid ${HAIR}` }}>
         <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8">
-          <a href="#efst" aria-label="UNA Local Product, efst á síðu" className="flex min-h-[44px] items-center gap-2.5">
+          <a href="#efst" aria-label="UNA Local Store, efst á síðu" className="flex min-h-[44px] items-center gap-2.5">
             <HutMark className="h-8 w-8" style={{ color: RED }} />
             <span className="font-display text-xl md:text-2xl" style={{ color: INK }}>
               UNA
@@ -406,7 +406,7 @@ export default function UnaPage() {
           <div className="mt-12 grid gap-12 md:grid-cols-12 md:gap-8">
             <Reveal className="md:col-span-5">
               <h3 className="font-display text-[1.7rem]" style={{ color: INK }}>
-                UNA Local Product
+                UNA Local Store
               </h3>
               <p className="mt-2 text-[16px]" style={{ color: MUTED }}>
                 {VISIT.address}
@@ -458,7 +458,7 @@ export default function UnaPage() {
       </main>
 
       <StickyCta
-        label="UNA Local Product · Hvolsvelli"
+        label="UNA Local Store · Hvolsvelli"
         button="Leiðarlýsing"
         href={VISIT.mapHref}
         buttonClassName="bg-[#A5352B] text-[#F3ECDF]"
