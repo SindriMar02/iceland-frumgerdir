@@ -11,7 +11,8 @@ import {
   useScroll,
   useTransform,
 } from 'framer-motion'
-import { Check, MapPin, Phone, Send } from 'lucide-react'
+import type { MotionValue } from 'framer-motion'
+import { BadgeCheck, Calendar, Car, Check, MapPin, Phone, Ruler, Send, ShieldCheck } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -90,6 +91,11 @@ const CSS = `
 @keyframes bg-heroZoom { from { transform: scale(1.12); } to { transform: scale(1); } }
 .bg-heroimg { animation: bg-heroZoom 2.6s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
+/* hero background crossfade: each frame drifts slowly the whole time it's
+   visible — a placeholder for real workshop video, not a static photo */
+@keyframes bg-hero-kb { from { transform: scale(1.08) translate(0, 0); } to { transform: scale(1.16) translate(-1%, -1%); } }
+.bg-hero-kb { animation: bg-hero-kb 7.5s linear both; }
+
 /* trust marquee — two aria-separated copies, constant speed */
 @keyframes bg-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .bg-marquee { animation: bg-marquee 46s linear infinite; }
@@ -106,6 +112,7 @@ const CSS = `
 
 @media (prefers-reduced-motion: reduce) {
   .bg-heroimg { animation: none; }
+  .bg-hero-kb { animation: none; }
   .bg-marquee { animation: none; }
   .bg-scanline { animation: none; display: none; }
 }
@@ -143,6 +150,18 @@ const CSS = `
 
 .bg-link-hover { transition: color 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-link-hover:hover, .bg-link-hover:focus-visible { color: ${AMBER} !important; }
+
+.bg-fact-card { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-fact-card:hover { border-color: rgba(232,162,61,0.4); background: rgba(232,162,61,0.05); }
+
+.bg-brand-plate { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-brand-plate:hover { border-color: rgba(232,162,61,0.4); }
+.bg-brand-plate img { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.bg-brand-plate:hover img { transform: scale(1.05); }
+
+/* fake a dark map theme with no API key: invert the light tiles, then
+   rotate hue back so roads/water read close to their normal colours */
+.bg-map-dark { filter: invert(92%) hue-rotate(180deg) contrast(0.86) brightness(0.94) saturate(0.65); }
 
 /* contact form: sleek inputs on the dark card, amber focus, no browser chrome */
 .bg-field {
@@ -468,20 +487,62 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   )
 }
 
+/** Background "footage" for the hero: a slow crossfade through real vetted
+    workshop photos with a continuous drift, standing in for real video of
+    the shop until that footage exists — same scrim/shadow system below
+    sits on top regardless, so swapping in a real <video> later is a
+    one-line change. Freezes on the first frame under reduced motion. */
+const HERO_BG_PHOTOS = [
+  { src: IMG.hero, alt: 'Neistaflug við málmvinnu á dimmu verkstæði' },
+  { src: IMG.booth, alt: 'Bíll afmarkaður og grunnaður í sprautuklefa' },
+  { src: IMG.garage, alt: 'Bílar á lyftum á dimmu verkstæðisgólfi' },
+]
+function HeroBackground({ reduced }: { reduced: boolean }) {
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    if (reduced) return
+    const id = window.setInterval(() => setActive(a => (a + 1) % HERO_BG_PHOTOS.length), 6500)
+    return () => window.clearInterval(id)
+  }, [reduced])
+  if (reduced) {
+    return (
+      <div className="absolute inset-0">
+        <img src={HERO_BG_PHOTOS[0].src} alt={HERO_BG_PHOTOS[0].alt} className="h-full w-full object-cover" />
+      </div>
+    )
+  }
+  return (
+    <div className="absolute inset-0">
+      <AnimatePresence initial={false}>
+        <motion.img
+          key={active}
+          src={HERO_BG_PHOTOS[active].src}
+          alt={HERO_BG_PHOTOS[active].alt}
+          className="bg-hero-kb absolute inset-0 h-full w-full object-cover"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.6, ease: 'linear' }}
+        />
+      </AnimatePresence>
+    </div>
+  )
+}
+
 function Hero() {
   const ref = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
-  const words = HERO.headline.split(' ') /* Aftur í rétta línu. */
+  /* New slogan (was: "Aftur í rétta línu.") — same true-line concept, new
+     phrasing: mælt (CABAS measurement) -> rétt (réttingar) -> í lagi (the
+     customer's actual outcome). Local to this page; data.ts's HERO.headline
+     stays the source of truth for the other three concepts. */
+  const words = 'Mælt. Rétt. Í lagi.'.split(' ')
   return (
     <section ref={ref} id="efst" className="relative flex min-h-[100svh] items-end overflow-hidden">
       <motion.div className="absolute inset-0" style={{ y: reduced ? 0 : y }}>
-        <img
-          src={IMG.hero}
-          alt="Neistaflug við málmvinnu á dimmu verkstæði"
-          className="bg-heroimg h-full w-full object-cover"
-        />
+        <HeroBackground reduced={!!reduced} />
       </motion.div>
       {/* alignment scan: one pass down the photo on load, an instrument
           finding the line before the headline commits to it — not a
@@ -498,18 +559,25 @@ function Hero() {
           />
         </div>
       )}
-      {/* scrim: readable headline zone without flattening the photo */}
+      {/* scrim + a top-down band for the nav — the background now cycles
+          through several photos, so legibility can't depend on any one of
+          them being conveniently dark exactly where the text sits */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to top, ${BG} 4%, rgba(13,14,16,0.84) 26%, rgba(13,14,16,0.34) 58%, rgba(13,14,16,0.74) 100%)`,
+          background: `linear-gradient(to top, ${BG} 4%, rgba(13,14,16,0.88) 24%, rgba(13,14,16,0.42) 56%, rgba(13,14,16,0.8) 100%)`,
         }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-40"
+        style={{ background: 'linear-gradient(to bottom, rgba(9,10,11,0.7), transparent)' }}
       />
       <div className="relative mx-auto w-full max-w-[1320px] px-5 pb-16 pt-40 md:px-8 md:pb-24">
         <motion.p
           className="mb-5 text-[12.5px] tracking-[0.22em] uppercase"
-          style={{ fontFamily: MONO, color: AMBER, textShadow: '0 1px 14px rgba(0,0,0,0.65)' }}
+          style={{ fontFamily: MONO, color: AMBER, textShadow: '0 2px 10px rgba(0,0,0,0.85)' }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
@@ -518,7 +586,12 @@ function Hero() {
         </motion.p>
         <h1
           className="max-w-6xl text-balance leading-[0.98]"
-          style={{ fontFamily: DISPLAY, fontSize: 'clamp(3rem, 9vw, 6rem)', letterSpacing: '-0.025em' }}
+          style={{
+            fontFamily: DISPLAY,
+            fontSize: 'clamp(3rem, 9vw, 6rem)',
+            letterSpacing: '-0.025em',
+            filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.6))',
+          }}
         >
           {words.map((w, i) => (
             <span key={i} className="inline-block overflow-hidden pb-1 align-top">
@@ -545,7 +618,7 @@ function Hero() {
         />
         <motion.p
           className="mt-6 max-w-xl text-[17px] leading-relaxed md:text-lg"
-          style={{ fontFamily: BODY, color: INK }}
+          style={{ fontFamily: BODY, color: INK, textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.3 }}
@@ -663,20 +736,30 @@ function Story() {
   )
 }
 
+const FACT_ICONS = [Calendar, Ruler, BadgeCheck, ShieldCheck]
+
 function Facts() {
   return (
     <section className="border-y" style={{ borderColor: HAIR, background: SURFACE }}>
-      <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-x-6 gap-y-12 px-5 py-16 md:grid-cols-4 md:px-8 md:py-20">
-        {FACTS.map((f, i) => (
-          <Rise key={f.label} delay={i * 0.08}>
-            <p style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(2.4rem, 5vw, 3.6rem)' }} className="leading-none tabular-nums">
-              {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
-            </p>
-            <p className="mt-3 text-[13px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-              {f.label}
-            </p>
-          </Rise>
-        ))}
+      <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-4 px-5 py-16 md:grid-cols-4 md:gap-5 md:px-8 md:py-20">
+        {FACTS.map((f, i) => {
+          const Icon = FACT_ICONS[i]
+          return (
+            <Rise key={f.label} delay={i * 0.08}>
+              <div className="bg-fact-card h-full rounded-sm border p-5 md:p-6" style={{ borderColor: HAIR }}>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: 'rgba(232,162,61,0.12)' }}>
+                  <Icon size={16} strokeWidth={2} style={{ color: AMBER }} aria-hidden />
+                </div>
+                <p style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(2.1rem, 4.4vw, 3.1rem)' }} className="mt-5 leading-none tabular-nums">
+                  {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
+                </p>
+                <p className="mt-3 text-[12.5px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                  {f.label}
+                </p>
+              </div>
+            </Rise>
+          )
+        })}
       </div>
     </section>
   )
@@ -817,6 +900,42 @@ function ServiceIndex() {
   )
 }
 
+/** The claim rail's own line: bent at the top, where the process starts
+    (tjón — the car is off its line), and it straightens as you scroll past
+    each step, landing dead straight — exactly overlaying the thin static
+    reference hairline beside it — by "Lánsbíll á meðan" (the repair is
+    done). Not a generic progress bar: it's the réttingar concept itself,
+    made literal. Dots stay individually positioned inside each <li> as
+    before (robust to variable step height); only the connector changes. */
+function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
+  const pathD = useTransform(scrollYProgress, v => {
+    const bend = 7 * (1 - Math.max(0, Math.min(1, v)))
+    const pts = [
+      [8 - bend, 0],
+      [8 + bend * 0.65, 34],
+      [8 - bend * 0.55, 67],
+      [8, 100],
+    ]
+    const mid = (a: number, b: number) => (a + b) / 2
+    return (
+      `M${pts[0][0]},${pts[0][1]} ` +
+      `C${pts[0][0]},${mid(pts[0][1], pts[1][1])} ${pts[1][0]},${mid(pts[0][1], pts[1][1])} ${pts[1][0]},${pts[1][1]} ` +
+      `C${pts[1][0]},${mid(pts[1][1], pts[2][1])} ${pts[2][0]},${mid(pts[1][1], pts[2][1])} ${pts[2][0]},${pts[2][1]} ` +
+      `C${pts[2][0]},${mid(pts[2][1], pts[3][1])} ${pts[3][0]},${mid(pts[2][1], pts[3][1])} ${pts[3][0]},${pts[3][1]}`
+    )
+  })
+  return (
+    <svg
+      aria-hidden
+      className="absolute bottom-2 left-[-3px] top-2 w-4 md:left-[-1px]"
+      viewBox="0 0 16 100"
+      preserveAspectRatio="none"
+    >
+      <motion.path d={pathD} fill="none" stroke={AMBER} strokeWidth="1.6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
 function Claims() {
   const railRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: railRef, offset: ['start 0.75', 'end 0.75'] })
@@ -854,14 +973,10 @@ function Claims() {
             </div>
           </div>
 
-          {/* the claim's own line: fills as each step passes */}
+          {/* the claim's own line: bent (tjón) -> straight (viðgerð lokið) */}
           <div ref={railRef} className="relative pl-8 md:pl-10">
             <div aria-hidden className="absolute bottom-2 left-[5px] top-2 w-px md:left-[7px]" style={{ background: HAIR }} />
-            <motion.div
-              aria-hidden
-              className="absolute bottom-2 left-[5px] top-2 w-px origin-top md:left-[7px]"
-              style={{ background: AMBER, scaleY: scrollYProgress }}
-            />
+            <ClaimLine scrollYProgress={scrollYProgress} />
             <ol className="space-y-12 md:space-y-16">
               {CLAIM_STEPS.map((s, i) => (
                 <li key={s.title} className="relative">
@@ -971,7 +1086,10 @@ function Brands() {
             </p>
           </Rise>
         </div>
-        {/* the marks as workshop signage plates */}
+        {/* the marks sit directly on the dark ground now — a plain white
+            plate behind them read as a leftover template default rather
+            than signage. A hairline frame + small mono label does the
+            "certified partner" framing instead. */}
         <div className="grid grid-cols-2 gap-4 md:gap-5">
           {[
             { src: IMG.toyota, alt: 'Toyota' },
@@ -979,10 +1097,13 @@ function Brands() {
           ].map((m, i) => (
             <Rise key={m.alt} delay={i * 0.1}>
               <div
-                className="flex aspect-[4/3] items-center justify-center rounded-sm p-8"
-                style={{ background: INK }}
+                className="bg-brand-plate flex aspect-[4/3] flex-col items-center justify-center gap-4 rounded-sm border p-8"
+                style={{ borderColor: HAIR, background: SURFACE }}
               >
-                <img src={m.src} alt={m.alt} loading="lazy" decoding="async" className="max-h-16 w-auto max-w-full object-contain md:max-h-20" />
+                <img src={m.src} alt={m.alt} loading="lazy" decoding="async" className="max-h-14 w-auto max-w-full object-contain md:max-h-16" />
+                <p className="text-[10.5px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                  Vottun · {m.alt}
+                </p>
               </div>
             </Rise>
           ))}
@@ -1056,21 +1177,74 @@ function Workshop() {
                     <br />
                     {ADDRESS.town}
                   </p>
-                  <a
-                    href={MAPS}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-link-hover mt-3 inline-flex min-h-11 items-center gap-2 text-[14.5px] font-semibold underline decoration-1 underline-offset-4"
-                    style={{ fontFamily: BODY, color: INK }}
-                  >
-                    <MapPin size={15} strokeWidth={2.2} aria-hidden />
-                    Opna í kortum
-                  </a>
+                  <p className="mt-3 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
+                    Kortið er hér fyrir neðan ↓
+                  </p>
                 </div>
               </div>
             </Rise>
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+/** Large embedded map, dark-mode styled via a CSS filter (no maps API key
+    needed for a static prototype — a well-established zero-setup trick:
+    invert the light tile colours so it reads as dark instead of a bright
+    rectangle punched into an otherwise dark page). Real interactivity
+    (pan/zoom/directions) still lives one tap away via the real Google
+    Maps link underneath. */
+function MapSection() {
+  const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(`${ADDRESS.street}, ${ADDRESS.town}`)}&z=16&output=embed`
+  return (
+    <section className="border-t" style={{ borderColor: HAIR }}>
+      <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
+        <Rise>
+          <p className="text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
+            Staðsetning
+          </p>
+          <h2
+            className="mt-4 text-balance"
+            style={{ fontFamily: EBOLD, fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '-0.02em', lineHeight: 1.06 }}
+          >
+            Finndu okkur í Grófinni
+          </h2>
+        </Rise>
+        <Rise delay={0.1}>
+          <div
+            className="relative mt-8 overflow-hidden rounded-sm border"
+            style={{ borderColor: HAIR, height: 'clamp(320px, 44vw, 480px)' }}
+          >
+            <iframe
+              title="Staðsetning Bílageirans á korti"
+              src={mapSrc}
+              className="bg-map-dark absolute inset-0 h-full w-full"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+            <div aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: `inset 0 0 0 1px ${HAIR}` }} />
+          </div>
+        </Rise>
+        <Rise delay={0.18}>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-[15px]" style={{ fontFamily: BODY, color: MUT }}>
+              <span style={{ color: INK }}>{ADDRESS.street}</span>, {ADDRESS.town}
+            </p>
+            <a
+              href={MAPS}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-link-hover inline-flex min-h-11 items-center gap-2 text-[14.5px] font-semibold underline decoration-1 underline-offset-4"
+              style={{ fontFamily: BODY, color: INK }}
+            >
+              <MapPin size={15} strokeWidth={2.2} aria-hidden />
+              Opna í Google Maps
+            </a>
+          </div>
+        </Rise>
       </div>
     </section>
   )
@@ -1083,23 +1257,36 @@ function Workshop() {
     filled in, one tap from actually sending. The inline "sent" state gives
     the instant feedback the interaction should feel like, without
     pretending the message left before it has. */
+/** Fields match what the shop actually needs to act on a request — a plate
+    number and a service category turn a vague "please contact me" into
+    something a work order can start from, the same way the phone call
+    already would. Service options reuse SERVICES verbatim, never invented. */
 function ContactForm() {
   const [name, setName] = useState('')
-  const [contact, setContact] = useState('')
+  const [phone, setPhone] = useState('')
+  const [plate, setPlate] = useState('')
+  const [service, setService] = useState('')
   const [message, setMessage] = useState('')
   const [touched, setTouched] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
 
-  const valid = name.trim().length > 1 && contact.trim().length > 2 && message.trim().length > 4
+  const valid = name.trim().length > 1 && phone.trim().length > 2 && service.length > 0
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
     setTouched(true)
     if (!valid || status === 'sending') return
     setStatus('sending')
-    const subject = `Fyrirspurn af vefsíðu — ${name.trim()}`
-    const body = `Nafn: ${name.trim()}\nSími/netfang: ${contact.trim()}\n\n${message.trim()}`
-    const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    const subject = `Fyrirspurn af vefsíðu — ${service} — ${name.trim()}`
+    const lines = [
+      `Nafn: ${name.trim()}`,
+      `Sími: ${phone.trim()}`,
+      `Bílnúmer: ${plate.trim() || '(ekki gefið upp)'}`,
+      `Tegund þjónustu: ${service}`,
+      '',
+      message.trim() || '(engin frekari lýsing)',
+    ]
+    const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`
     window.setTimeout(() => {
       window.location.href = mailto
       setStatus('sent')
@@ -1107,6 +1294,7 @@ function ContactForm() {
   }
 
   const field = 'bg-field min-h-11 w-full rounded-sm px-3.5 py-2.5 text-[15px]'
+  const label = 'mb-1.5 block text-[12px] tracking-[0.1em] uppercase'
 
   return (
     <div className="rounded-sm border p-6 text-left md:p-7" style={{ borderColor: HAIR, background: 'rgba(21,23,26,0.72)' }}>
@@ -1145,57 +1333,99 @@ function ContactForm() {
             noValidate
             className="mt-6 flex flex-col gap-3.5"
           >
-            <div>
-              <label htmlFor="bg-name" className="mb-1.5 block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                Nafn
-              </label>
-              <input
-                id="bg-name"
-                type="text"
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                data-touched={touched}
-                placeholder="Jón Jónsson"
-                className={field}
-                style={{ fontFamily: BODY }}
-              />
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <div>
+                <label htmlFor="bg-name" className={label} style={{ fontFamily: MONO, color: MUT }}>
+                  Nafn
+                </label>
+                <input
+                  id="bg-name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  data-touched={touched}
+                  placeholder="Jón Jónsson"
+                  className={field}
+                  style={{ fontFamily: BODY }}
+                />
+              </div>
+              <div>
+                <label htmlFor="bg-phone" className={label} style={{ fontFamily: MONO, color: MUT }}>
+                  Sími
+                </label>
+                <input
+                  id="bg-phone"
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  data-touched={touched}
+                  placeholder="d.d. 555 5555"
+                  className={field}
+                  style={{ fontFamily: BODY }}
+                />
+              </div>
+            </div>
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <div>
+                <label htmlFor="bg-plate" className={label} style={{ fontFamily: MONO, color: MUT }}>
+                  Bílnúmer <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>(valfrjálst)</span>
+                </label>
+                <div className="relative">
+                  <Car size={15} strokeWidth={2.2} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: MUT }} />
+                  <input
+                    id="bg-plate"
+                    type="text"
+                    value={plate}
+                    onChange={e => setPlate(e.target.value.toUpperCase())}
+                    placeholder="AB 123"
+                    className={`${field} pl-9`}
+                    style={{ fontFamily: MONO, letterSpacing: '0.06em' }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="bg-service" className={label} style={{ fontFamily: MONO, color: MUT }}>
+                  Tegund þjónustu
+                </label>
+                <select
+                  id="bg-service"
+                  required
+                  value={service}
+                  onChange={e => setService(e.target.value)}
+                  data-touched={touched}
+                  className={field}
+                  style={{ fontFamily: BODY, color: service ? INK : MUT }}
+                >
+                  <option value="" disabled>
+                    Veldu þjónustu
+                  </option>
+                  {SERVICES.map(s => (
+                    <option key={s.name} value={s.name} style={{ color: DARKINK }}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div>
-              <label htmlFor="bg-contact" className="mb-1.5 block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                Sími eða netfang
-              </label>
-              <input
-                id="bg-contact"
-                type="text"
-                required
-                value={contact}
-                onChange={e => setContact(e.target.value)}
-                data-touched={touched}
-                placeholder="dæmi@netfang.is"
-                className={field}
-                style={{ fontFamily: BODY }}
-              />
-            </div>
-            <div>
-              <label htmlFor="bg-message" className="mb-1.5 block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                Skilaboð
+              <label htmlFor="bg-message" className={label} style={{ fontFamily: MONO, color: MUT }}>
+                Nánar um erindið <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>(valfrjálst)</span>
               </label>
               <textarea
                 id="bg-message"
-                required
                 rows={3}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                data-touched={touched}
-                placeholder="Segðu okkur hvað þú þarft..."
+                placeholder="Segðu okkur hvað gerðist eða hvað þú þarft..."
                 className={`${field} resize-none`}
                 style={{ fontFamily: BODY }}
               />
             </div>
             {touched && !valid && (
               <p className="text-[13px]" style={{ fontFamily: BODY, color: '#E06E6E' }}>
-                Fylltu út nafn, síma eða netfang, og stutt skilaboð.
+                Fylltu út nafn, síma og veldu tegund þjónustu.
               </p>
             )}
             <button
@@ -1390,6 +1620,7 @@ export default function Page() {
         <Craft />
         <Brands />
         <Workshop />
+        <MapSection />
         <Contact />
       </main>
 
