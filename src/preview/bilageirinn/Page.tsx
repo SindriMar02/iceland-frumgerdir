@@ -13,7 +13,7 @@ import {
   useTransform,
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
-import { BadgeCheck, Calendar, Car, Check, MapPin, MessageCircle, Phone, Ruler, Send, ShieldCheck } from 'lucide-react'
+import { Car, Check, Copy, MapPin, MessageCircle, Phone, Send } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -88,14 +88,14 @@ const CSS = `
 .bg-page a, .bg-page button { -webkit-tap-highlight-color: transparent; }
 .bg-page :focus-visible { outline: 2px solid ${AMBER}; outline-offset: 3px; border-radius: 2px; }
 
-/* hero photo: slow settle-in on load; scrim keeps the headline zone dark */
-@keyframes bg-heroZoom { from { transform: scale(1.12); } to { transform: scale(1); } }
-.bg-heroimg { animation: bg-heroZoom 2.6s cubic-bezier(0.23, 1, 0.32, 1) both; }
-
 /* hero background crossfade: each frame drifts slowly the whole time it's
-   visible — a placeholder for real workshop video, not a static photo */
+   visible — a placeholder for real workshop video, not a static photo.
+   8.4s covers the 6.5s dwell + 1.6s fade with margin so motion never
+   freezes mid-crossfade; consecutive frames drift opposite directions. */
 @keyframes bg-hero-kb { from { transform: scale(1.08) translate(0, 0); } to { transform: scale(1.16) translate(-1%, -1%); } }
-.bg-hero-kb { animation: bg-hero-kb 7.5s linear both; }
+.bg-hero-kb { animation: bg-hero-kb 8.4s linear both; }
+@keyframes bg-hero-kb-alt { from { transform: scale(1.08) translate(0, 0); } to { transform: scale(1.16) translate(1%, -1%); } }
+.bg-hero-kb-alt { animation: bg-hero-kb-alt 8.4s linear both; }
 
 /* trust marquee — two aria-separated copies, constant speed */
 @keyframes bg-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -112,8 +112,8 @@ const CSS = `
 .bg-scanline { animation: bg-scan 2.2s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-heroimg { animation: none; }
   .bg-hero-kb { animation: none; }
+  .bg-hero-kb-alt { animation: none; }
   .bg-marquee { animation: none; }
   .bg-scanline { animation: none; display: none; }
 }
@@ -152,8 +152,8 @@ const CSS = `
 .bg-link-hover { transition: color 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-link-hover:hover, .bg-link-hover:focus-visible { color: ${AMBER} !important; }
 
-.bg-fact-card { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1); }
-.bg-fact-card:hover { border-color: rgba(232,162,61,0.4); background: rgba(232,162,61,0.05); }
+.bg-copybtn { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1); }
+.bg-copybtn:hover { border-color: ${AMBER}; color: ${AMBER}; }
 
 .bg-brand-plate { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-brand-plate:hover { border-color: rgba(232,162,61,0.4); }
@@ -190,6 +190,18 @@ const CSS = `
 `
 
 /* ───────────────────────── shared motion helpers ───────────────────────── */
+
+/** Section kicker: mono label with a short amber line segment carrying the
+    accent — full-amber text is rationed to the hero eyebrow, the numbers,
+    and actual actions so the accent reads as signal, not wallpaper. */
+function Kicker({ children }: { children: ReactNode }) {
+  return (
+    <p className="flex items-center gap-3 text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+      <span aria-hidden className="inline-block h-px w-5 shrink-0" style={{ background: AMBER }} />
+      {children}
+    </p>
+  )
+}
 
 function Rise({
   children,
@@ -498,13 +510,17 @@ const HERO_BG_PHOTOS = [
   { src: IMG.booth, alt: 'Bíll afmarkaður og grunnaður í sprautuklefa' },
   { src: IMG.garage, alt: 'Bílar á lyftum á dimmu verkstæðisgólfi' },
 ]
-function HeroBackground({ reduced }: { reduced: boolean }) {
+function HeroBackground({ reduced, running }: { reduced: boolean; running: boolean }) {
   const [active, setActive] = useState(0)
   useEffect(() => {
-    if (reduced) return
-    const id = window.setInterval(() => setActive(a => (a + 1) % HERO_BG_PHOTOS.length), 6500)
+    if (reduced || !running) return
+    const id = window.setInterval(() => {
+      // don't burn crossfades in a backgrounded tab
+      if (document.hidden) return
+      setActive(a => (a + 1) % HERO_BG_PHOTOS.length)
+    }, 6500)
     return () => window.clearInterval(id)
-  }, [reduced])
+  }, [reduced, running])
   if (reduced) {
     return (
       <div className="absolute inset-0">
@@ -519,7 +535,7 @@ function HeroBackground({ reduced }: { reduced: boolean }) {
           key={active}
           src={HERO_BG_PHOTOS[active].src}
           alt={HERO_BG_PHOTOS[active].alt}
-          className="bg-hero-kb absolute inset-0 h-full w-full object-cover"
+          className={`${active % 2 ? 'bg-hero-kb-alt' : 'bg-hero-kb'} absolute inset-0 h-full w-full object-cover`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -530,9 +546,10 @@ function HeroBackground({ reduced }: { reduced: boolean }) {
   )
 }
 
-function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
+function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
+  const heroInView = useInView(ref, { amount: 0.1 })
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
   /* New slogan (was: "Aftur í rétta línu.") — same true-line concept, new
@@ -540,22 +557,28 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
      customer's actual outcome). Local to this page; data.ts's HERO.headline
      stays the source of truth for the other three concepts. */
   const words = 'Mælt. Rétt. Í lagi.'.split(' ')
-  const goToContact = (e: React.MouseEvent) => {
+  const goTo = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    const el = document.querySelector('#hafa-samband')
+    const el = document.querySelector(hash)
     if (!el) return
     if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -72 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
+  /* Entrance choreography is gated on `start` (the loading overlay's
+     assetsReady handoff) — previously the whole sequence played hidden
+     behind the overlay and visitors landed on an already-settled page.
+     Reduced motion keeps the plain immediate render. */
+  const on = reduced || start
   return (
     <section ref={ref} id="efst" className="relative flex min-h-[100svh] items-end overflow-hidden">
       <motion.div className="absolute inset-0" style={{ y: reduced ? 0 : y }}>
-        <HeroBackground reduced={!!reduced} />
+        <HeroBackground reduced={!!reduced} running={on && heroInView} />
       </motion.div>
-      {/* alignment scan: one pass down the photo on load, an instrument
-          finding the line before the headline commits to it — not a
-          generic wipe, the shop's actual method (measure, then correct) */}
-      {!reduced && (
+      {/* alignment scan: one pass down the photo, an instrument finding the
+          line before the headline commits to it. Mounted only at handoff so
+          its animation clock starts when the overlay starts thinning — the
+          amber scan emerges through the fading loader. */}
+      {!reduced && start && (
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <div
             className="bg-scanline absolute inset-x-0 top-0"
@@ -587,7 +610,7 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           className="mb-5 text-[12.5px] tracking-[0.22em] uppercase"
           style={{ fontFamily: MONO, color: AMBER, textShadow: '0 2px 10px rgba(0,0,0,0.85)' }}
           initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
         >
           Réttingar · Bílamálun · Bílaþjónusta — Grófin 14a, Reykjanesbær
@@ -602,11 +625,13 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           }}
         >
           {words.map((w, i) => (
-            <span key={i} className="inline-block overflow-hidden pb-1 align-top">
+            /* pt/-mt pair keeps the mask box tall enough that Í's acute
+               never clips against the overflow-hidden edge */
+            <span key={i} className="-mt-2 inline-block overflow-hidden pb-1 pt-2 align-top">
               <motion.span
                 className="inline-block"
-                initial={{ y: '110%' }}
-                animate={{ y: '0%' }}
+                initial={{ y: '118%' }}
+                animate={on ? { y: '0%' } : { y: '118%' }}
                 transition={{ duration: 0.6, ease: EASE, delay: 0.15 + i * 0.05 }}
               >
                 {w}
@@ -621,50 +646,70 @@ function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           className="mt-5 h-[3px] max-w-xl origin-left"
           style={{ background: AMBER }}
           initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
+          animate={on ? { scaleX: 1 } : { scaleX: 0 }}
           transition={{ duration: 0.8, ease: EASE, delay: 0.45 }}
         />
         <motion.p
           className="mt-6 max-w-xl text-[17px] leading-relaxed md:text-lg"
           style={{ fontFamily: BODY, color: INK, textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}
           initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.3 }}
         >
           {HERO.sub}
         </motion.p>
-        {/* CTA row renders visible immediately — no entrance delay. The
-            phone number itself stays persistently visible in the nav
-            (found in under 5s regardless of what this button does), so
-            this primary CTA's job is routing intent, not being the only
-            way to call. */}
+        {/* CTA row renders visible immediately (no entrance gating) — a
+            worried crash customer must be able to act the instant the page
+            paints. Primary = the call, the business's stated fastest
+            channel ("hringdu — það er hraðast"); secondary routes to the
+            form; services stay one quiet text link + nav away. */}
         <div className="mt-9 flex flex-wrap items-center gap-4">
           <a
-            href="#hafa-samband"
-            onClick={goToContact}
+            href={PHONE_HREF}
             className="bg-cta-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
-            <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
+            <Phone size={17} strokeWidth={2.4} aria-hidden />
+            {HERO.ctaPrimary}
+          </a>
+          <a
+            href="#hafa-samband"
+            onClick={goTo('#hafa-samband')}
+            className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-sm border px-7 text-[16px] font-medium"
+            style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
+          >
+            <MessageCircle size={17} strokeWidth={2.2} aria-hidden />
             Hafðu samband
           </a>
           <a
             href="#thjonusta"
-            className="bg-cta-outline inline-flex min-h-[52px] items-center rounded-sm border px-7 text-[16px] font-medium"
-            style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
+            onClick={goTo('#thjonusta')}
+            className="bg-link-hover inline-flex min-h-11 items-center text-[15px] font-medium underline decoration-1 underline-offset-4"
+            style={{ color: INK, fontFamily: BODY, textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
           >
             {HERO.ctaSecondary}
           </a>
         </div>
-        <motion.p
-          className="mt-8 text-[13px] tracking-[0.08em]"
-          style={{ fontFamily: MONO, color: MUT }}
+        {/* proof row: the three verified differentiators readable before
+            the first scroll — text only, amber line-segment bullets, no
+            icons, so the hero stays spare */}
+        <motion.ul
+          className="mt-8 flex flex-col flex-wrap gap-x-7 gap-y-2 sm:flex-row sm:items-center"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={on ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          {HERO.cert}
-        </motion.p>
+          {[HERO.cert, 'Öll tryggingafélög og CABAS-tjónamat', 'Lánsbíll meðan á viðgerð stendur'].map(t => (
+            <li
+              key={t}
+              className="inline-flex items-center gap-2.5 text-[13px] tracking-[0.08em]"
+              style={{ fontFamily: MONO, color: MUT, textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
+            >
+              <span aria-hidden className="inline-block h-px w-4 shrink-0" style={{ background: AMBER }} />
+              {t}
+            </li>
+          ))}
+        </motion.ul>
       </div>
     </section>
   )
@@ -695,6 +740,73 @@ function Marquee() {
   )
 }
 
+/* The thesis sentence of STORY.body, lifted out as the page's second
+   typographic peak (split locally — data.ts stays canonical for the other
+   three concepts). */
+const BODY_SPLIT = STORY.body.indexOf('. ') + 1
+const THESIS = STORY.body.slice(0, BODY_SPLIT)
+const BODY_REST = STORY.body.slice(BODY_SPLIT + 1)
+
+/** Horizontal version of the bent-line vocabulary: bent while the quote
+    enters, dead straight by the time it holds center screen — the thesis
+    sentence ("your car has one true line") demonstrated by its own
+    underline. Same reactive-attribute pattern as ClaimLine. */
+function hBendPathD(v: number) {
+  const bend = 4 * (1 - Math.max(0, Math.min(1, v)))
+  const pts = [
+    [0, 6 - bend],
+    [34, 6 + bend * 0.65],
+    [67, 6 - bend * 0.55],
+    [100, 6],
+  ]
+  const mid = (a: number, b: number) => (a + b) / 2
+  return (
+    `M${pts[0][0]},${pts[0][1]} ` +
+    `C${mid(pts[0][0], pts[1][0])},${pts[0][1]} ${mid(pts[0][0], pts[1][0])},${pts[1][1]} ${pts[1][0]},${pts[1][1]} ` +
+    `C${mid(pts[1][0], pts[2][0])},${pts[1][1]} ${mid(pts[1][0], pts[2][0])},${pts[2][1]} ${pts[2][0]},${pts[2][1]} ` +
+    `C${mid(pts[2][0], pts[3][0])},${pts[2][1]} ${mid(pts[2][0], pts[3][0])},${pts[3][1]} ${pts[3][0]},${pts[3][1]}`
+  )
+}
+
+function LineQuote() {
+  const bandRef = useRef<HTMLDivElement>(null)
+  const pathRef = useRef<SVGPathElement>(null)
+  const reduced = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: bandRef, offset: ['start 0.9', 'center 0.5'] })
+  useMotionValueEvent(scrollYProgress, 'change', v => {
+    if (!reduced) pathRef.current?.setAttribute('d', hBendPathD(v))
+  })
+  return (
+    <div ref={bandRef} className="mt-20 md:mt-28">
+      <Rise>
+        <p
+          className="max-w-5xl text-balance"
+          style={{
+            fontFamily: DISPLAY,
+            fontSize: 'clamp(2.2rem, 6vw, 4.6rem)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.06,
+            color: INK,
+          }}
+        >
+          {THESIS}
+        </p>
+      </Rise>
+      <svg aria-hidden className="mt-8 h-[14px] w-full" viewBox="0 0 100 12" preserveAspectRatio="none">
+        <path
+          ref={pathRef}
+          d={reduced ? hBendPathD(1) : hBendPathD(0)}
+          fill="none"
+          stroke={AMBER}
+          strokeWidth="2"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </div>
+  )
+}
+
 function Story() {
   return (
     <section className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
@@ -714,7 +826,7 @@ function Story() {
               {STORY.lead}
             </p>
             <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-              {STORY.body}
+              {BODY_REST}
             </p>
           </Rise>
           <SpecPlate />
@@ -725,6 +837,9 @@ function Story() {
           className="aspect-[4/5] rounded-sm md:aspect-auto md:min-h-[540px]"
         />
       </div>
+
+      {/* the thesis, at display scale, proving itself on its own underline */}
+      <LineQuote />
 
       {/* the shop's own line through time */}
       <div className="mt-20 md:mt-28">
@@ -746,30 +861,73 @@ function Story() {
   )
 }
 
-const FACT_ICONS = [Calendar, Ruler, BadgeCheck, ShieldCheck]
+/** The facts band as an instrument readout hung on the true line: one amber
+    baseline drawn across the full width with a major tick above each value —
+    the numbers read like calibration marks on the shop's own measuring
+    bench instead of generic stat cards. Ticks are plain flex children (one
+    per column, centered), so they can't drift out of alignment with the
+    grid at any width. */
+function ReadoutLine() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const reduced = useReducedMotion()
+  const ticks = (
+    <div aria-hidden className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
+      {FACTS.map(f => (
+        <div key={f.label} className="flex justify-start">
+          <span className="block w-px" style={{ height: 12, background: AMBER }} />
+        </div>
+      ))}
+    </div>
+  )
+  if (reduced) {
+    return (
+      <div aria-hidden>
+        <div className="h-[2px] w-full" style={{ background: AMBER }} />
+        {ticks}
+      </div>
+    )
+  }
+  return (
+    <div ref={ref} aria-hidden>
+      <motion.div
+        className="h-[2px] w-full origin-left"
+        style={{ background: AMBER }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: inView ? 1 : 0 }}
+        transition={{ duration: 1.1, ease: EASE }}
+      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: inView ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: EASE, delay: 0.7 }}
+      >
+        {ticks}
+      </motion.div>
+    </div>
+  )
+}
 
 function Facts() {
   return (
     <section className="border-y" style={{ borderColor: HAIR, background: SURFACE }}>
-      <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-4 px-5 py-16 md:grid-cols-4 md:gap-5 md:px-8 md:py-20">
-        {FACTS.map((f, i) => {
-          const Icon = FACT_ICONS[i]
-          return (
+      <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
+        <ReadoutLine />
+        <div className="mt-6 grid grid-cols-2 gap-4 gap-y-10 md:grid-cols-4 md:gap-5">
+          {FACTS.map((f, i) => (
             <Rise key={f.label} delay={i * 0.08}>
-              <div className="bg-fact-card h-full rounded-sm border p-5 md:p-6" style={{ borderColor: HAIR }}>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: 'rgba(232,162,61,0.12)' }}>
-                  <Icon size={16} strokeWidth={2} style={{ color: AMBER }} aria-hidden />
-                </div>
-                <p style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(2.1rem, 4.4vw, 3.1rem)' }} className="mt-5 leading-none tabular-nums">
-                  {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
-                </p>
-                <p className="mt-3 text-[12.5px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                  {f.label}
-                </p>
-              </div>
+              <p
+                style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(2.2rem, 4.6vw, 3.4rem)', lineHeight: 1 }}
+                className="tabular-nums"
+              >
+                {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
+              </p>
+              <p className="mt-3 text-[12.5px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                {f.label}
+              </p>
             </Rise>
-          )
-        })}
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -790,12 +948,21 @@ const SERVICE_ALTS = [
 
 function ServiceIndex() {
   const [active, setActive] = useState(0)
+  /* 90ms hover-intent gate: skimming the cursor down the list no longer
+     churns through every row's photo crossfade + accordion — only a real
+     pause commits. Touch (click) and keyboard (focus) stay instant. */
+  const hoverTimer = useRef<number>(0)
+  const hoverTo = (i: number) => {
+    window.clearTimeout(hoverTimer.current)
+    hoverTimer.current = window.setTimeout(() => setActive(i), 90)
+  }
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), [])
   return (
     <section id="thjonusta" className="mx-auto max-w-[1320px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36">
       <Rise>
-        <p className="text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
+        <Kicker>
           Þjónustan í Grófinni
-        </p>
+        </Kicker>
         <h2
           className="mt-4 max-w-3xl text-balance"
           style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
@@ -843,8 +1010,12 @@ function ServiceIndex() {
               <li key={s.name} className="border-b" style={{ borderColor: HAIR }}>
                 <button
                   type="button"
-                  onClick={() => setActive(i)}
-                  onMouseEnter={() => setActive(i)}
+                  onClick={() => {
+                    window.clearTimeout(hoverTimer.current)
+                    setActive(i)
+                  }}
+                  onMouseEnter={() => hoverTo(i)}
+                  onMouseLeave={() => window.clearTimeout(hoverTimer.current)}
                   onFocus={() => setActive(i)}
                   aria-expanded={on}
                   className="group flex w-full cursor-pointer items-baseline gap-5 py-5 text-left md:py-6"
@@ -874,8 +1045,10 @@ function ServiceIndex() {
                           className="block overflow-hidden"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.45, ease: EASE }}
+                          /* close faster than open so at most one row is
+                             ever visibly mid-layout while browsing */
+                          exit={{ height: 0, opacity: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
+                          transition={{ duration: 0.4, ease: EASE }}
                         >
                           <span
                             className="block max-w-[52ch] pt-2.5 text-[15px] leading-relaxed"
@@ -895,7 +1068,16 @@ function ServiceIndex() {
       </div>
 
       <Rise delay={0.1}>
+        {/* self-pay reassurance where services are browsed — the fixed-quote
+            fact otherwise only appears deep in the claims rail */}
         <p className="mt-10 text-[14px]" style={{ fontFamily: BODY, color: MUT }}>
+          Greiðir þú sjálfur? Tjónið er metið í CABAS og þú færð{' '}
+          <span className="font-semibold" style={{ color: INK }}>
+            fast verðtilboð
+          </span>
+          .
+        </p>
+        <p className="mt-2 text-[14px]" style={{ fontFamily: BODY, color: MUT }}>
           Smurstöðin svarar beint í{' '}
           <a
             href={LUBE_PHONE_HREF}
@@ -935,13 +1117,14 @@ function bendPathD(v: number) {
 }
 function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
   const pathRef = useRef<SVGPathElement>(null)
+  const reduced = useReducedMotion()
   /* motion.path's `d` prop only picks up a MotionValue once, at mount — it
      doesn't subscribe the way style-based motion values do, so the shape
      rendered once and then never updated again on scroll. Subscribing to
      the raw scroll value and writing the attribute directly is the
      guaranteed-reactive way to animate a computed `d` string. */
   useMotionValueEvent(scrollYProgress, 'change', v => {
-    pathRef.current?.setAttribute('d', bendPathD(v))
+    if (!reduced) pathRef.current?.setAttribute('d', bendPathD(v))
   })
   return (
     <svg
@@ -950,7 +1133,16 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
       viewBox="0 0 16 100"
       preserveAspectRatio="none"
     >
-      <path ref={pathRef} d={bendPathD(scrollYProgress.get())} fill="none" stroke={AMBER} strokeWidth="1.6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      {/* reduced motion: the line renders already-true, no scroll morphing */}
+      <path
+        ref={pathRef}
+        d={reduced ? bendPathD(1) : bendPathD(scrollYProgress.get())}
+        fill="none"
+        stroke={AMBER}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   )
 }
@@ -964,9 +1156,9 @@ function Claims() {
         <div className="grid gap-14 md:grid-cols-[1fr_1.1fr] md:gap-20">
           <div>
             <Rise>
-              <p className="text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
+              <Kicker>
                 Tjónaviðgerðir
-              </p>
+              </Kicker>
               <h2
                 className="mt-4 text-balance"
                 style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
@@ -1038,6 +1230,37 @@ function Claims() {
                 </li>
               ))}
             </ol>
+
+            {/* mobile: the CABAS measurement demo — the page's best craft
+                proof — was desktop-only; here it closes the process as
+                evidence. aspect-video keeps the added scroll length modest. */}
+            <div className="relative mt-12 md:hidden">
+              <ClipImage src={IMG.malun} alt="Unnið við bíl í málningarklefa" className="aspect-video rounded-sm" />
+              <MeasurePoints
+                points={[
+                  { x: 22, y: 34, label: 'Mælipunktur' },
+                  { x: 58, y: 22, label: 'Viðmiðunarlína' },
+                  { x: 74, y: 58, label: 'Mælipunktur' },
+                ]}
+              />
+            </div>
+
+            {/* the rail's conclusion: peak persuasion (loaner car) gets an
+                action — one quiet tel link in the rail's own typography,
+                not a second CTA vocabulary */}
+            <Rise delay={0.1}>
+              <p className="mt-12 text-[16px]" style={{ fontFamily: BODY, color: MUT }}>
+                Byrjar allt á einu símtali:{' '}
+                <a
+                  href={PHONE_HREF}
+                  className="bg-link-hover inline-flex min-h-11 items-center gap-1.5 font-semibold underline decoration-1 underline-offset-4"
+                  style={{ color: INK }}
+                >
+                  <Phone size={14} strokeWidth={2.4} aria-hidden />
+                  {PHONE_DISPLAY}
+                </a>
+              </p>
+            </Rise>
           </div>
         </div>
       </div>
@@ -1088,9 +1311,9 @@ function Brands() {
       <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr] md:gap-20">
         <div>
           <Rise>
-            <p className="text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
+            <Kicker>
               Viðurkennt þjónustuverkstæði
-            </p>
+            </Kicker>
             <h2
               className="mt-4 text-balance"
               style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
@@ -1221,9 +1444,9 @@ function MapSection() {
     <section className="border-t" style={{ borderColor: HAIR }}>
       <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
         <Rise>
-          <p className="text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
+          <Kicker>
             Staðsetning
-          </p>
+          </Kicker>
           <h2
             className="mt-4 text-balance"
             style={{ fontFamily: EBOLD, fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '-0.02em', lineHeight: 1.06 }}
@@ -1288,6 +1511,8 @@ function ContactForm() {
   const [message, setMessage] = useState('')
   const [touched, setTouched] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const [composed, setComposed] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const valid = name.trim().length > 1 && phone.trim().length > 2 && service.length > 0
 
@@ -1305,11 +1530,22 @@ function ContactForm() {
       '',
       message.trim() || '(engin frekari lýsing)',
     ]
+    setComposed(`${subject}\n\n${lines.join('\n')}`)
     const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`
     window.setTimeout(() => {
       window.location.href = mailto
       setStatus('sent')
     }, 450)
+  }
+
+  const copyComposed = async () => {
+    try {
+      await navigator.clipboard.writeText(composed)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* clipboard denied: the mailto/email links right beside remain */
+    }
   }
 
   const field = 'bg-field min-h-11 w-full rounded-sm px-3.5 py-2.5 text-[15px]'
@@ -1334,13 +1570,56 @@ function ContactForm() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: EASE }}
-            className="mt-6 flex items-start gap-3 rounded-sm border py-4 px-4"
-            style={{ borderColor: 'rgba(232,162,61,0.35)', background: 'rgba(232,162,61,0.08)' }}
+            className="mt-6"
           >
-            <Check size={18} strokeWidth={2.4} aria-hidden style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
-            <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-              Póstforritið þitt er að opnast með skilaboðunum tilbúnum — ýttu á senda þar til að klára.
+            <div
+              className="flex items-start gap-3 rounded-sm border py-4 px-4"
+              style={{ borderColor: 'rgba(232,162,61,0.35)', background: 'rgba(232,162,61,0.08)' }}
+            >
+              <Check size={18} strokeWidth={2.4} aria-hidden style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
+              <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+                Póstforritið þitt er að opnast með skilaboðunum tilbúnum — ýttu á senda þar til að klára.
+              </p>
+            </div>
+            {/* recovery: on machines without a configured mail client the
+                mailto silently does nothing and the visitor would otherwise
+                be stranded on a false success */}
+            <p className="mt-5 text-[13px]" style={{ fontFamily: BODY, color: MUT }}>
+              Opnaðist ekkert póstforrit?
             </p>
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-2.5">
+              <button
+                type="button"
+                onClick={copyComposed}
+                className="bg-copybtn inline-flex min-h-11 items-center gap-2 rounded-sm border px-4 text-[13.5px] font-semibold"
+                style={{ borderColor: 'rgba(243,240,234,0.3)', color: INK, fontFamily: BODY }}
+              >
+                {copied ? <Check size={14} strokeWidth={2.4} aria-hidden /> : <Copy size={14} strokeWidth={2.2} aria-hidden />}
+                {copied ? 'Afritað' : 'Afrita skilaboðin'}
+              </button>
+              <a
+                href={`mailto:${EMAIL}`}
+                className="bg-link-hover inline-flex min-h-11 items-center text-[13.5px] underline decoration-1 underline-offset-4"
+                style={{ color: INK, fontFamily: BODY }}
+              >
+                {EMAIL}
+              </a>
+              <a
+                href={PHONE_HREF}
+                className="bg-link-hover inline-flex min-h-11 items-center text-[13.5px] font-semibold"
+                style={{ color: INK, fontFamily: BODY }}
+              >
+                Eða hringdu í {PHONE_DISPLAY}
+              </a>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatus('idle')}
+              className="bg-link-hover mt-3 inline-flex min-h-11 items-center text-[13px] underline decoration-1 underline-offset-4"
+              style={{ color: MUT, fontFamily: BODY }}
+            >
+              Til baka í formið
+            </button>
           </motion.div>
         ) : (
           <motion.form
@@ -1493,6 +1772,9 @@ function Contact() {
               >
                 {PHONE_DISPLAY}
               </a>
+              {/* the true line lands under the number — the concept arrives
+                  at the conversion moment */}
+              <TrueLine className="mx-auto mt-4 w-full max-w-md md:mx-0" delay={0.35} />
             </Rise>
             <Rise delay={0.2}>
               <div className="mt-8 flex flex-col items-center gap-1 text-[14px] md:items-start" style={{ fontFamily: MONO, color: MUT }}>
@@ -1535,22 +1817,46 @@ export default function Page() {
     const meta = document.querySelector('meta[name="description"]')
     const prev = meta?.getAttribute('content') ?? ''
     meta?.setAttribute('content', SEO.description)
+    /* the page is entirely Icelandic — declare it (helps search engines,
+       screen-reader pronunciation, and hyphenation) */
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = 'is'
 
     const ld = document.createElement('script')
     ld.type = 'application/ld+json'
+    /* everything below restates facts already in data.ts — geo coordinates
+       and sameAs profiles deliberately omitted (not verified) */
     ld.textContent = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'AutoBodyShop',
       name: 'Bílageirinn',
+      url: 'https://bilageirinn.is',
+      slogan: 'Mælt. Rétt. Í lagi.',
       telephone: '+354 421 6901',
       email: EMAIL,
       address: { '@type': 'PostalAddress', streetAddress: ADDRESS.street, addressLocality: 'Reykjanesbær', postalCode: '230', addressCountry: 'IS' },
       foundingDate: '2003',
+      areaServed: { '@type': 'City', name: 'Reykjanesbær' },
+      memberOf: { '@type': 'Organization', name: 'Bílgreinasambandið' },
+      openingHoursSpecification: [
+        { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'], opens: '08:00', closes: '17:00' },
+        { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Friday', opens: '08:00', closes: '15:00' },
+      ],
+      contactPoint: [
+        { '@type': 'ContactPoint', telephone: '+354 421 6901', name: 'Verkstæði' },
+        { '@type': 'ContactPoint', telephone: '+354 436 6901', name: 'Smurstöð' },
+      ],
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: 'Þjónusta',
+        itemListElement: SERVICES.map(s => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s.name } })),
+      },
     })
     document.head.appendChild(ld)
 
     return () => {
       meta?.setAttribute('content', prev)
+      document.documentElement.lang = prevLang
       ld.remove()
     }
   }, [])
@@ -1577,14 +1883,23 @@ export default function Page() {
      hero instead of visitors watching it pop in after the loader clears. ALSO
      enforced against a minimum visible time — on a fast connection (e.g. the
      production CDN) every asset can resolve in under 200ms, which made the
-     first version of this screen invisible in practice. The floor is set just
-     past the icon-draw + wordmark sequence (~1.5s + settle) so the animation
-     is always actually seen, not so it drags — see MIN_VISIBLE_MS. */
-  const MIN_VISIBLE_MS = 1900
+     first version of this screen invisible in practice. The floor covers the
+     icon-draw + wordmark sequence, but ONLY on the first visit of the session:
+     a return visitor who just wants the phone number gets a pure asset gate
+     that clears the instant everything's painted (long intros are banned;
+     the brand moment is worth one showing per session, not a recurring toll). */
+  const introSeen = useMemo(() => {
+    try {
+      return sessionStorage.getItem('bg-intro-seen') === '1'
+    } catch {
+      return false
+    }
+  }, [])
+  const MIN_VISIBLE_MS = introSeen ? 0 : 1900
   const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'icon'] as const, [])
   const [ready, setReady] = useState<Record<string, boolean>>({})
   const [forced, setForced] = useState(false)
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false)
+  const [minTimeElapsed, setMinTimeElapsed] = useState(MIN_VISIBLE_MS === 0)
   const mark = useCallback((k: string) => setReady(r => (r[k] ? r : { ...r, [k]: true })), [])
   const readyCount = GATE_KEYS.reduce((n, k) => n + (ready[k] ? 1 : 0), 0)
   const assetsReady = (forced || readyCount === GATE_KEYS.length) && minTimeElapsed
@@ -1609,17 +1924,22 @@ export default function Page() {
     // never trap a visitor behind the loader if a resource stalls
     const failsafe = window.setTimeout(() => {
       if (alive) setForced(true)
-    }, 4500)
+    }, introSeen ? 2500 : 4500)
     return () => {
       alive = false
       window.clearTimeout(minTimer)
       window.clearTimeout(failsafe)
     }
-  }, [mark])
+  }, [mark, MIN_VISIBLE_MS, introSeen])
 
   const [overlayMounted, setOverlayMounted] = useState(true)
   useEffect(() => {
     if (!assetsReady) return
+    try {
+      sessionStorage.setItem('bg-intro-seen', '1')
+    } catch {
+      /* private-mode storage failures just mean the intro replays */
+    }
     const t = window.setTimeout(() => setOverlayMounted(false), 700)
     return () => window.clearTimeout(t)
   }, [assetsReady])
@@ -1630,7 +1950,7 @@ export default function Page() {
       {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
       <Nav lenisRef={lenisRef} />
       <main>
-        <Hero lenisRef={lenisRef} />
+        <Hero lenisRef={lenisRef} start={assetsReady} />
         <Marquee />
         <Story />
         <Facts />

@@ -211,7 +211,7 @@ export const CTA = {
 }
 
 export const SEO = {
-  title: 'Bílageirinn — Réttingar, málun og þjónusta í Reykjanesbæ',
+  title: 'Réttingar, bílamálun og tjónaviðgerðir í Reykjanesbæ | Bílageirinn',
   description:
     'Bílageirinn í Reykjanesbæ: réttingar, bílamálun, smurstöð og almenn bílaþjónusta. Viðurkennt þjónustuverkstæði fyrir Toyota og Kia. CABAS-tjónamat, öll tryggingafélög og lánsbíll meðan á viðgerð stendur. Sími 421 6901.',
 }
