@@ -1164,10 +1164,13 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
 
 function Claims() {
   const railRef = useRef<HTMLDivElement>(null)
-  /* Straighten completes within ~0.6 viewport of scroll (rail top travelling
-     85% → 25% of the viewport) — fast enough that the eye catches the motion;
-     spread over the rail's full height it was too slow to register. */
-  const { scrollYProgress } = useScroll({ target: railRef, offset: ['start 0.85', 'start 0.25'] })
+  /* Coupled to the user's traversal of the rail itself: bent as the rail
+     enters, straightening WITH the scroll through the four steps, dead
+     straight exactly when the rail's end (the Lánsbíll card) comes fully
+     into view. An earlier version finished within the first 0.6 viewport —
+     technically animated, but already over before the user was reading the
+     steps, so it looked static again. */
+  const { scrollYProgress } = useScroll({ target: railRef, offset: ['start 0.8', 'end 0.9'] })
   return (
     <section id="tjon" className="scroll-mt-20 border-t" style={{ borderColor: HAIR, background: SURFACE }}>
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
