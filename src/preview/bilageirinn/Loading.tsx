@@ -57,12 +57,15 @@ export default function BilageirinnLoading({
           background:radial-gradient(circle,rgba(232,162,61,0.16),rgba(232,162,61,0) 68%);
           animation:bglGlow 2.4s ease-in-out infinite}
 
-        /* The video file is now CROPPED TO THE ICON itself (it used to be a
+        /* The video file is CROPPED TO THE ICON itself (it used to be a
            mostly-black frame with the icon at ~22% height — so sizing this
            element never visibly sized the icon, which is why every earlier
-           px bump changed nothing). Element height ~= icon height now, no
-           wrapper/mask needed. */
-        .bgl-icon-video{position:relative;height:clamp(120px,18vw,190px);width:auto;mix-blend-mode:screen}
+           px bump changed nothing). Element height ~= icon height now.
+           Transparency comes from a REAL alpha channel in the video files
+           (HEVC-alpha .mov for Safari, VP9-alpha .webm for Chrome/Firefox)
+           instead of mix-blend-mode, which WebKit is known to silently
+           ignore on <video> in some compositing paths. */
+        .bgl-icon-video{position:relative;height:clamp(120px,18vw,190px);width:auto}
         .bgl-icon-still{position:relative;height:clamp(120px,18vw,190px);width:auto;filter:brightness(0) invert(0.96)}
 
         .bgl-word{position:relative;margin-top:clamp(16px,2.4vw,26px);text-align:center;opacity:0;transform:translateY(10px);
@@ -90,7 +93,13 @@ export default function BilageirinnLoading({
       {reduced ? (
         <img src={`${B}preview/bilageirinn/icon-concept.png`} alt="" className="bgl-icon-still" draggable={false} />
       ) : (
-        <video className="bgl-icon-video" src={`${B}preview/bilageirinn/logo-draw.mp4`} autoPlay muted playsInline disablePictureInPicture />
+        <video className="bgl-icon-video" autoPlay muted playsInline disablePictureInPicture>
+          {/* Safari takes HEVC-alpha (rejects nothing silently — it simply
+              won't pick a source it can't decode); Chrome/Firefox reject
+              hvc1 and fall through to VP9-alpha webm. */}
+          <source src={`${B}preview/bilageirinn/logo-draw-alpha.mov`} type='video/mp4; codecs="hvc1"' />
+          <source src={`${B}preview/bilageirinn/logo-draw-alpha.webm`} type="video/webm" />
+        </video>
       )}
 
       <p className="bgl-word" style={{ fontFamily: "'ClashDisplay-Bold', 'Arial Black', sans-serif", fontWeight: 700, fontSize: 'clamp(30px, 4.4vw, 46px)', color: '#F3F0EA', letterSpacing: '-0.01em' }}>
