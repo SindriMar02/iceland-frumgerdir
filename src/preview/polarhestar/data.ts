@@ -78,7 +78,7 @@ export const SHORT_TOURS: Tour[] = [
     times: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
     image: 'photo-1589157467587-913a38bb3d9d',
     blurb: {
-      is: 'Tilvalin ferð til að prófa íslenska hestinn í fyrsta skipti. Frá Grýtubakka ríðum við að ánni Gljúfurá, meðfram henni og upp að fjallsrótum þar sem útsýnið er fallegt yfir Eyjafjörð.',
+      is: 'Tilvalin ferð til að prófa íslenska hestinn í fyrsta skipti. Frá Grýtubakka ríðum við að ánni Gljúfurá, meðfram henni og upp að fjallsrótum þar sem útsýnið yfir Eyjafjörð er fallegt.',
       en: 'The ideal tour for your first experience with the Icelandic horse. From Grýtubakki we ride towards the river Gljúfurá, along the riverside and up towards the mountains with a beautiful view over Eyjafjörður.',
       de: 'Der ideale Ritt für die erste Begegnung mit dem Islandpferd. Von Grýtubakki reiten wir zum Fluss Gljúfurá und entlang seines Flussbettes hinauf in die Berge, mit schönem Blick über den Eyjafjörður.',
     },
@@ -86,7 +86,7 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'moa-og-mela',
     name: { is: 'Yfir móa og mela', en: 'River & Mountains', de: 'Fluss & Berge' },
-    meta: { is: '2 klukkustundir · maí–okt', en: '2 hours · May–Oct', de: '2 Stunden · Mai–Okt' },
+    meta: { is: '2 klukkustundir · maí–okt', en: '2 hours · May–Oct', de: '2 Stunden · Mai–Okt.' },
     level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
     price: 15000,
     months: [5, 6, 7, 8, 9, 10],
@@ -94,14 +94,14 @@ export const SHORT_TOURS: Tour[] = [
     image: 'photo-1726579209496-ceac166f72df',
     blurb: {
       is: 'Vinsælasta stutta ferðin okkar. Riðið er meðfram Gljúfurá, yfir engi og móa, í áttina að Eyjafirði eða upp á heiðarbrún, allt eftir veðri og reynslu hópsins.',
-      en: 'Our most popular short tour. We ride along the river Gljúfurá, over green meadows and through moorland, towards Eyjafjörður or up towards the deserted peninsula of Fjörður, depending on weather and the group.',
+      en: 'Our most popular short tour. We ride along the river Gljúfurá, over green meadows and through moorland, towards Eyjafjörður or up towards the deserted peninsula of Fjörður, depending on the weather and the group.',
       de: 'Der beliebteste unserer kurzen Ritte. Wir reiten über grüne Wiesen entlang der Gljúfurá, durch Moorgebiete, Richtung Eyjafjörður oder hinauf in die Bergwelt der Halbinsel Fjörður.',
     },
   },
   {
     id: 'hofdahringur',
     name: { is: 'Höfðahringur', en: 'Fascinating Eyjafjörður', de: 'Faszination Eyjafjörður' },
-    meta: { is: '3 klukkustundir · maí–okt', en: '3 hours · May–Oct', de: '3 Stunden · Mai–Okt' },
+    meta: { is: '3 klukkustundir · maí–okt', en: '3 hours · May–Oct', de: '3 Stunden · Mai–Okt.' },
     level: { is: 'Fyrir alla · 8 ára+', en: 'All levels · age 8+', de: 'Alle Niveaus · ab 8' },
     price: 18000,
     months: [5, 6, 7, 8, 9, 10],
@@ -116,28 +116,28 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'frostrosir',
     name: { is: 'Frostrósir', en: 'Snowflakes & Frostroses', de: 'Schneeflocken & Frostrosen' },
-    meta: { is: '1½ klukkustund · nóv–apríl', en: '1½ hours · Nov–Apr', de: '1½ Stunden · Nov–Apr' },
+    meta: { is: '1½ klukkustund · nóv–apr', en: '1½ hours · Nov–Apr', de: '1½ Stunden · Nov.–Apr.' },
     level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
     price: 12500,
     months: [11, 12, 1, 2, 3, 4],
     image: 'photo-1774018538486-49f5a51cd63f',
     blurb: {
-      is: 'Vel klædd í kuldagalla njótum við reiðtúrs í átt að Eyjafirði í tæru vetrarlofti. Vetrarsólin gefur oft dulúðugt andrúmsloft og heimagerðar kökur og heitir drykkir bíða heima.',
-      en: 'Wrapped up warm, we ride towards Eyjafjörður through the crisp northern air. The special light of the winter sun gives this ride a mystic atmosphere, and homemade cakes and hot drinks warm you up back at the farm.',
+      is: 'Vel klædd í kuldagalla njótum við reiðtúrs í átt að Eyjafirði í tæru vetrarlofti. Vetrarsólin skapar oft dulúðugt andrúmsloft og heima bíða heimagerðar kökur og heitir drykkir.',
+      en: 'Wrapped up warm, we ride towards Eyjafjörður through the crisp northern air. The special light of the winter sun gives this ride a magical atmosphere, and homemade cakes and hot drinks warm you up back at the farm.',
       de: 'Warm eingepackt reiten wir durch die verschneite Landschaft Richtung Eyjafjörður. Das besondere Licht der Wintersonne verleiht diesem Ritt eine mystische Stimmung. Danach wärmen heiße Getränke und selbstgebackener Kuchen.',
     },
   },
   {
     id: 'sumarsaela',
     name: { is: 'Sumarsæla', en: 'Riding & Minigolf', de: 'Reiten & Minigolf' },
-    meta: { is: 'Reiðtúr og mínígolf · jún–ágú', en: 'Ride & minigolf · Jun–Aug', de: 'Reiten & Minigolf · Jun–Aug' },
+    meta: { is: 'Reiðtúr og mínígolf · jún–ágú', en: 'Ride & minigolf · Jun–Aug', de: 'Reiten & Minigolf · Juni–Aug.' },
     level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
     price: 13500,
     months: [6, 7, 8],
     image: 'photo-1452698325353-b90e60289e87',
     blurb: {
       is: 'Riðið er í einn og hálfan tíma meðfram ánni Gljúfurá og eftir hestaferðina er innifalið að skreppa á mínígolfvöllinn okkar, sex brautir sem allar tengjast Íslandi og umhverfinu. Lágmark tveir þátttakendur.',
-      en: 'A 1½ hour ride along the river Gljúfurá with a fantastic view over the fjord, followed by a round on our self-made minigolf course, six lanes each inspired by the farm and the Icelandic nature. Minimum two participants.',
+      en: 'A 1½-hour ride along the river Gljúfurá with a fantastic view over the fjord, followed by a round on our self-made minigolf course, six lanes, each inspired by the farm and Icelandic nature. Minimum two participants.',
       de: 'Ein anderthalbstündiger Ritt entlang der Gljúfurá mit herrlichem Blick über den Fjord und danach ein Turnier auf unserem selbstgebauten Minigolfplatz mit sechs Bahnen. Mindestens zwei Teilnehmer.',
     },
   },
@@ -162,9 +162,9 @@ export const LONG_TOURS: LongTour[] = [
     name: { is: 'Ring around the Midnightsun', en: 'Ring around the Midnightsun', de: 'Sommersonnenwende' },
     meta: { is: '7 dagar · 5 reiðdagar · júní · 1.950€', en: '7 days · 5 riding days · June · €1,950', de: '7 Tage · 5 Reittage · Juni · 1.950 €' },
     requirements: {
-      is: 'Lágmarksaldur 12 ára · hámark 14 knapar',
-      en: 'Minimum age 12 · max 14 riders',
-      de: 'Mindestalter 12 Jahre · max. 14 Reiter',
+      is: '12 ára+ · hámark 14 knapar',
+      en: 'Age 12+ · max 14 riders',
+      de: 'Ab 12 Jahren · max. 14 Reiter',
     },
     departures: {
       is: 'Brottfarir 2026: 5.–11. júní og 13.–19. júní (uppselt)',
@@ -173,7 +173,7 @@ export const LONG_TOURS: LongTour[] = [
     },
     image: 'photo-1626515406265-6d7395ece312',
     blurb: {
-      is: 'Bjartar nætur og vaknandi náttúra setja svip sinn á þessa ferð um sumarsólstöður. Riðið er um Fnjóskadal, Látraströnd og Fjörður, með útsýnisdegi við Mývatn og reiðtúr undir miðnætursól.',
+      is: 'Bjartar nætur og vaknandi náttúra setja svip sinn á þessa ferð um sumarsólstöður. Riðið er um Fnjóskadal, Látraströnd og Fjörður, með skoðunarferð við Mývatn og reiðtúr undir miðnætursól.',
       en: 'The scent of early summer, bright nights and awakening nature shape this tour around the solstice. We ride Fnjóskadalur, the coast of Látraströnd and Fjörður, with a sightseeing day at Mývatn and a ride under the midnight sun.',
       de: 'Der Duft des Frühsommers, helle Nächte und die erwachende Natur verleihen dieser Tour ihren besonderen Charakter. Wir reiten durch Fnjóskadalur, an der Küste Látraströnd und in Fjörður, mit Ausflugstag am Mývatn und Mitternachtsritt.',
     },
@@ -190,11 +190,11 @@ export const LONG_TOURS: LongTour[] = [
     departures: {
       is: 'Brottfarir 2026: 26. júní–3. júlí, 7.–14. júlí og 18.–25. júlí (uppselt)',
       en: 'Departures 2026: June 26–July 3, July 7–14 and July 18–25 (fully booked)',
-      de: 'Termine 2026: 26. Juni–3. Juli, 7.–14. Juli und 18.–25. Juli (ausgebucht)',
+      de: 'Termine 2026: 26. Juni – 3. Juli, 7.–14. Juli und 18.–25. Juli (ausgebucht)',
     },
     image: 'photo-1774281616625-9bfc1c9a2380',
     blurb: {
-      is: 'Klassíska ferðin okkar, riðin með frjálsri hjörð. Gamlar þjóðleiðir norðursins liggja að Goðafossi, svörtum sandfjörum, hraunbreiðum og Mývatni.',
+      is: 'Klassíska ferðin okkar, riðin með lausum hrossum. Gamlar þjóðleiðir norðursins liggja að Goðafossi, svörtum sandfjörum, hraunbreiðum og Mývatni.',
       en: 'Our classic, ridden with a free-running herd. The old trails of the North lead past the waterfall Goðafoss, black-sand beaches, lava fields and Lake Mývatn.',
       de: 'Unser Klassiker, geritten mit freilaufender Herde. Alte Pfade führen zum Wasserfall Goðafoss, zu schwarzen Stränden, Lavafeldern und zum See Mývatn.',
     },
@@ -202,7 +202,7 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'hidden-pearls',
     name: { is: 'Hidden Pearls of the North', en: 'Hidden Pearls of the North', de: 'Verborgene Schätze des Nordens' },
-    meta: { is: '9 dagar · 7 reiðdagar · júlí–ágúst · 2.800€', en: '9 days · 7 riding days · Jul–Aug · €2,800', de: '9 Tage · 7 Reittage · Juli–August · 2.800 €' },
+    meta: { is: '9 dagar · 7 reiðdagar · júlí–ágúst · 2.800€', en: '9 days · 7 riding days · July–August · €2,800', de: '9 Tage · 7 Reittage · Juli–August · 2.800 €' },
     requirements: {
       is: 'Fyrir vana knapa · 14 ára+',
       en: 'Experienced riders · age 14+',
@@ -211,12 +211,12 @@ export const LONG_TOURS: LongTour[] = [
     departures: {
       is: 'Brottfarir 2026: 29. júlí–6. ágúst og 9.–17. ágúst (uppselt)',
       en: 'Departures 2026: July 29–August 6 and August 9–17 (fully booked)',
-      de: 'Termine 2026: 29. Juli–6. August und 9.–17. August (ausgebucht)',
+      de: 'Termine 2026: 29. Juli – 6. August und 9.–17. August (ausgebucht)',
     },
     image: 'photo-1569077016386-8a8a27da502f',
     blurb: {
       is: 'Um Flateyjardal og Fjörður, óbyggðir og eyðibýli sem fáir sjá. Tvær kyrrlátar nætur í notalegum fjallaskála við Þönglabakka í Þorgeirsfirði.',
-      en: 'Through the valley of Flateyjardalur and the deserted peninsula of Fjörður few ever see, with two peaceful nights in a cozy mountain hut at Þönglabakki.',
+      en: 'Through the valley of Flateyjardalur and the deserted peninsula of Fjörður few ever see, with two peaceful nights in a cosy mountain hut at Þönglabakki.',
       de: 'Durch das windgepeitschte Tal Flateyjardalur und die verlassene Halbinsel Fjörður, mit zwei stillen Nächten in der Berghütte Þönglabakki.',
     },
   },
@@ -247,8 +247,8 @@ export const LONG_TOURS: LongTour[] = [
     },
     image: 'photo-1710179337706-f5e304f7740a',
     blurb: {
-      is: 'Um Fjörður-skagann eftir sögufrægu leiðunum sem við riðum fyrst árið 1985, með trússhest með í för og tvær nætur í fjallaskála.',
-      en: 'Across the peninsula of Fjörður on the historic trails we first rode in 1985, with a pack horse carrying the supplies and two peaceful nights in a mountain hut.',
+      is: 'Um Fjörður eftir sögufrægu leiðunum sem við riðum fyrst árið 1985, með trússhest með í för. Tvær nætur í fjallaskála.',
+      en: 'Across the peninsula of Fjörður on the historic trails we first rode in 1985, with a packhorse carrying the supplies and two peaceful nights in a mountain hut.',
       de: 'Über die historischen Wege der Halbinsel Fjörður, die wir 1985 zum ersten Mal beritten haben, mit Packpferd für die Vorräte und zwei Nächten in der Berghütte.',
     },
   },
@@ -326,7 +326,7 @@ export const REVIEWS: Review[] = [
   },
   {
     quote: {
-      is: 'Aldrei setið hest áður og leið samt fullkomlega örugg. Útsýnið yfir fjörðinn var ógleymanlegt.',
+      is: 'Aldrei setið hest áður og fannst ég samt fullkomlega örugg. Útsýnið yfir fjörðinn var ógleymanlegt.',
       en: 'I had never ridden before and still felt completely safe. The views over the fjord were unforgettable.',
       de: 'Ich saß zum ersten Mal auf einem Pferd und fühlte mich völlig sicher. Der Blick über den Fjord war unvergesslich.',
     },
@@ -352,10 +352,10 @@ export interface ShopItem {
 }
 
 export const SHOP: ShopItem[] = [
-  { name: { is: 'Buff með Pólar Hestar merki', en: 'Pólar Hestar buff', de: 'Pólar Hestar Buff' }, price: 1500 },
-  { name: { is: 'Handgerður jútupoki með tölti', en: 'Hand-crafted jute bag', de: 'Handgefertigte Jutetasche' }, price: 4500 },
+  { name: { is: 'Buff með merki Pólar Hesta', en: 'Pólar Hestar buff', de: 'Buff mit Pólar-Hestar-Logo' }, price: 1500 },
+  { name: { is: 'Handgerður jútupoki með tölti', en: 'Handcrafted jute bag', de: 'Handgefertigte Jutetasche' }, price: 4500 },
   { name: { is: 'Softshell-jakki', en: 'Softshell jacket', de: 'Softshell-Jacke' }, price: 10500 },
-  { name: { is: 'Lambskinn af bænum', en: 'Lamb skin from the farm', de: 'Lammfell vom Hof' }, price: 9000, from: true },
+  { name: { is: 'Lambskinn af bænum', en: 'Lambskin from the farm', de: 'Lammfell vom Hof' }, price: 9000, from: true },
 ]
 
 /* ── Gott að vita — the practical facts from their good-to-know pages ───── */
@@ -383,7 +383,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
     {
       title: { is: 'Persónuleg bókun', en: 'Personal booking', de: 'Persönliche Buchung' },
       body: {
-        is: 'Bókanir fara fram í beinu sambandi við okkur, í tölvupósti eða síma. Fyrir bókanir með stuttum fyrirvara er best að hringja.',
+        is: 'Bókanir fara fram beint hjá okkur, í tölvupósti eða síma. Fyrir bókanir með stuttum fyrirvara er best að hringja.',
         en: 'Bookings are made directly with us, by email or phone. For short-notice bookings, please phone rather than email.',
         de: 'Gebucht wird direkt bei uns, per E-Mail oder Telefon. Für kurzfristige Buchungen rufen Sie bitte an.',
       },
@@ -392,7 +392,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       title: { is: 'Greiðsla', en: 'Payment', de: 'Bezahlung' },
       body: {
         is: 'Engin greiðsla fer fram á netinu. Í lengri ferðum er 20% staðfestingargjald við bókun og eftirstöðvar greiðast tveimur vikum fyrir brottför.',
-        en: 'No payment happens online. Long tours carry a 20% deposit on booking, with the rest due two weeks before departure.',
+        en: 'No payment is taken online. Long tours require a 20% deposit on booking, with the rest due two weeks before departure.',
         de: 'Es wird nichts online bezahlt. Bei langen Touren bitten wir um 20 % Anzahlung, der Rest ist zwei Wochen vor Beginn fällig.',
       },
     },
@@ -400,7 +400,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       title: { is: 'Börn', en: 'Children', de: 'Kinder' },
       body: {
         is: 'Börn 12 ára og yngri greiða 2.000 kr. minna en fullt verð í öllum stuttum ferðum. Lágmarksaldur er 6 ára, 8 ára í þriggja tíma ferðinni.',
-        en: 'Children up to 12 pay 2,000 ISK less on every short tour. The minimum age is 6, and 8 for the three-hour tour.',
+        en: 'Children 12 and under pay 2,000 ISK less on every short tour. The minimum age is 6, and 8 for the three-hour tour.',
         de: 'Kinder bis 12 Jahre zahlen bei allen kurzen Ritten 2.000 ISK weniger. Das Mindestalter ist 6 Jahre, beim Drei-Stunden-Ritt 8 Jahre.',
       },
     },
@@ -408,8 +408,8 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       title: { is: 'Búnaður', en: 'Equipment', de: 'Ausrüstung' },
       body: {
         is: 'Við leggjum til reiðhjálma, hanska, regnföt og buff. Komdu í traustum skóm, klæddu þig í lögum og taktu mittistösku frekar en bakpoka. Í skálaferðum þarf svefnpoka. Hámarksþyngd knapa er 95 kg.',
-        en: 'We provide helmets, riding gloves, rain clothes and buffs. Come in sturdy shoes, dress in layers and bring a waist bag rather than a backpack. Hut tours require a sleeping bag. The maximum rider weight is 95 kg.',
-        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, kleiden Sie sich in Schichten und nehmen Sie eine Gürteltasche statt eines Rucksacks. Für Hüttentouren brauchen Sie einen Schlafsack. Das maximale Reitergewicht ist 95 kg.',
+        en: 'We provide helmets, riding gloves, rain gear and buffs. Come in sturdy shoes, dress in layers and bring a waist bag rather than a backpack. Hut tours require a sleeping bag. The maximum rider weight is 95 kg.',
+        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, kleiden Sie sich in Schichten und nehmen Sie eine kleine Bauchtasche statt eines Rucksacks. Für Hüttentouren brauchen Sie einen Schlafsack. Das maximale Reitergewicht ist 95 kg.',
       },
     },
     {
@@ -424,8 +424,8 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       title: { is: 'Afbókun', en: 'Cancellation', de: 'Stornierung' },
       body: {
         is: 'Í stuttum ferðum greiðist ferðin að fullu ef afbókað er með minna en 4 klst. fyrirvara. Í lengri ferðum er gjaldið 20% innan sex vikna, 50% innan þriggja vikna og fullt verð innan viku. Afbókanir berist í tölvupósti. Ferðatrygging er ekki innifalin og við mælum með henni.',
-        en: 'Short-tour cancellations with less than 4 hours notice are charged in full. For long tours the fee is 20% within six weeks, 50% within three weeks and the full price within one week. Cancellations should be made by email. Travel insurance is not included and we recommend it.',
-        de: 'Bei kurzen Ritten werden Stornierungen weniger als 4 Stunden vor Beginn voll berechnet. Bei langen Touren fallen 20 % innerhalb von sechs Wochen an, 50 % innerhalb von drei Wochen und der volle Preis innerhalb einer Woche. Stornierungen bitte per E-Mail. Eine Reiseversicherung ist nicht inbegriffen und wird empfohlen.',
+        en: 'Short-tour cancellations with less than four hours’ notice are charged in full. For long tours the fee is 20% within six weeks, 50% within three weeks and the full price within one week. Cancellations should be made by email. Travel insurance is not included and we recommend it.',
+        de: 'Bei kurzen Ritten werden Stornierungen weniger als 4 Stunden vor Beginn voll berechnet. Bei langen Touren fallen innerhalb von sechs Wochen 20 % an, innerhalb von drei Wochen 50 % und innerhalb einer Woche der volle Preis. Stornierungen bitte per E-Mail. Eine Reiseversicherung ist nicht inbegriffen und wird empfohlen.',
       },
     },
   ],
@@ -444,8 +444,8 @@ export const FARM: GoodToKnowData = {
     {
       title: { is: 'Gisting á bænum', en: 'Staying at the farm', de: 'Übernachten auf dem Hof' },
       body: {
-        is: 'Þrjú notaleg gestahús rúma allt að 26 gesti og máltíðir eru bornar fram í aðalhúsinu. Frá miðjum júní út september er gistingin fyrir ferðagesti okkar, en utan þess tímabils er hægt að bóka gistingu með morgunverði.',
-        en: 'Three cozy cottages sleep up to 26 guests, with meals served in the main building. From mid-June to the end of September the guest houses are for our riding-tour guests; off season, bed and breakfast stays are welcome.',
+        is: 'Þrjú notaleg gestahús rúma allt að 26 gesti og máltíðir eru bornar fram í aðalhúsinu. Frá miðjum júní og út september er gistingin fyrir ferðagesti okkar, en utan þess tímabils er hægt að bóka gistingu með morgunverði.',
+        en: 'Three cosy cottages sleep up to 26 guests, with meals served in the main building. From mid-June to the end of September the cottages are for our riding-tour guests; out of season, bed and breakfast stays are welcome.',
         de: 'Drei gemütliche Gästehäuser bieten Platz für bis zu 26 Gäste, die Mahlzeiten gibt es im Haupthaus. Von Mitte Juni bis Ende September sind die Häuser für unsere Reitgäste reserviert, in der Nebensaison ist Bed & Breakfast möglich.',
       },
     },
@@ -468,8 +468,8 @@ export const FARM: GoodToKnowData = {
     {
       title: { is: 'Mínígolf', en: 'Minigolf', de: 'Minigolf' },
       body: {
-        is: 'Sex heimagerðar brautir sem allar tengjast Íslandi og umhverfinu. Verð 1.500 kr. á mann, börn undir 12 ára borga helming. Innifalið fyrir gesti í lengri ferðum.',
-        en: 'Six self-made lanes, each tied to Iceland and the farm’s surroundings. 1,500 ISK per person, children under 12 pay half. Free for guests on our long tours.',
+        is: 'Sex heimagerðar brautir sem allar tengjast Íslandi og umhverfinu. Verð 1.500 kr. á mann, börn yngri en 12 ára borga helming. Innifalið fyrir gesti í lengri ferðum.',
+        en: 'Six self-made lanes, each tied to Iceland and the farm’s surroundings. 1,500 ISK per person; children under 12 pay half. Free for guests on our long tours.',
         de: 'Sechs selbstgebaute Bahnen, alle mit Bezug zu Island und der Umgebung. 1.500 ISK pro Person, Kinder unter 12 zahlen die Hälfte. Für Gäste der langen Touren inklusive.',
       },
     },
@@ -484,8 +484,8 @@ export const FARM: GoodToKnowData = {
     {
       title: { is: 'Sjálfbærni', en: 'Sustainability', de: 'Nachhaltigkeit' },
       body: {
-        is: 'Við hlífum landinu með því að hvíla reiðleiðir, flokkum allan úrgang, verslum íslenskt og sameinumst í ferðir. Leiðsögufólkið okkar lærir að lágmarka áhrif á náttúruna.',
-        en: 'We spare the land by resting trails, separate all waste, buy Icelandic groceries and combine transfers. Our guides learn to minimise their impact on nature.',
+        is: 'Við hlífum landinu með því að hvíla reiðleiðir, flokkum allan úrgang, verslum íslenskt og sameinum ferðir. Leiðsögufólkið okkar lærir að lágmarka áhrif á náttúruna.',
+        en: 'We spare the land by resting trails, separate all waste, buy Icelandic groceries and share transfers. Our guides learn to minimise their impact on nature.',
         de: 'Wir schonen die Wege, trennen unseren Abfall, kaufen isländische Produkte und bündeln Transfers. Unsere Guides lernen, ihren Einfluss auf die Natur gering zu halten.',
       },
     },
@@ -515,13 +515,13 @@ export const COPY = {
       'Landslagið í kringum bæinn okkar Grýtubakka býður upp á ógleymanlega reynslu, bæði fyrir reyndustu knapa og algjöra byrjendur. Fjölskyldan tekur á móti hverjum gesti.',
     storyQuote: '„Þar sem hestar og álfar hittast.“',
 
-    procH2: 'Hundrað og sextíu, hver með sinn karakter',
+    procH2: 'Hundrað og sextíu, hvert með sinn karakter',
     procBody:
-      'Íslenski hesturinn er fimur, viljugur og einstaklega traustur, með mjúka tölt-ganginn sem þú finnur hvergi annars staðar. Hjá okkur færðu hest sem hæfir þér.',
+      'Íslenski hesturinn er fimur, viljugur og einstaklega traustur, með mjúka töltganginn sem þú finnur hvergi annars staðar. Hjá okkur færðu hest sem hæfir þér.',
 
     toursZoneEyebrow: 'Ferðirnar okkar',
     toursZoneIntro:
-      'Tvær leiðir til að kynnast íslenska hestinum: klukkutíma reiðtúrar allt árið, eða margra daga ævintýri um óbyggðir Norðurlands.',
+      'Tvær leiðir til að kynnast íslenska hestinum: stuttir reiðtúrar allt árið eða margra daga ævintýri um óbyggðir Norðurlands.',
     toursEyebrow: 'Stuttar ferðir',
     toursBadge: 'Allt árið',
     toursH2: 'Reiðtúrar fyrir alla, allt árið',
@@ -559,7 +559,7 @@ export const COPY = {
     confirmedBody:
       'Bókunarbeiðnin er komin til okkar. Við staðfestum símleiðis eða í tölvupósti innan sólarhrings. Hlökkum til að sjá þig á Grýtubakka.',
     bookAgain: 'Bóka aðra ferð',
-    childDiscountApplied: 'Afsláttur barna innifalinn',
+    childDiscountApplied: 'Barnaafsláttur innifalinn',
 
     seasonsEyebrow: 'Ljós Norðursins',
     seasonsH2: 'Hver árstíð, sín birta',
@@ -574,7 +574,7 @@ export const COPY = {
 
     trustEyebrow: 'Umsagnir',
     trustH2: '4,9 stjörnur og Travelers’ Choice',
-    trustBody: '263 umsagnir á Tripadvisor og Travelers’ Choice verðlaunin.',
+    trustBody: '263 umsagnir á Tripadvisor og Travelers’ Choice-verðlaunin.',
     reviewsWord: 'umsagnir',
     familyTitle: 'Fjölskyldan á Grýtubakka',
     familyBody:
@@ -605,7 +605,7 @@ export const COPY = {
     heroH1a: 'Where horses',
     heroH1b: 'meet the elves',
     heroLede:
-      'For forty years we have shared the northern light with riders of every level, at our farm Grýtubakki by Iceland’s longest fjord.',
+      'For forty years we have shared the light of the north with riders of every level, at our farm Grýtubakki by Iceland’s longest fjord.',
     heroBook: 'Book a ride',
     heroTours: 'See the tours',
     statYears: 'years',
@@ -614,7 +614,7 @@ export const COPY = {
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
     storyH2: 'Forty years by the longest fjord',
     storyP1:
-      'Pólar Hestar has offered riding tours since 1985. It all began with a small herd of about 15 horses, and today around 160 horses live on the farm and we offer all kinds of rides.',
+      'Pólar Hestar has offered riding tours since 1985. It all began with a small herd of about 15 horses; today around 160 horses live on the farm and we offer all kinds of rides.',
     storyP2:
       'The landscape around our farm Grýtubakki makes for an unforgettable experience, for the most seasoned riders and complete beginners alike. The family welcomes every guest.',
     storyQuote: '“Where horses meet the elves.”',
@@ -625,12 +625,12 @@ export const COPY = {
 
     toursZoneEyebrow: 'Our rides',
     toursZoneIntro:
-      'Two ways to meet the Icelandic horse: hour-long rides all year, or multi-day journeys across the wilds of North Iceland.',
+      'Two ways to meet the Icelandic horse: short rides all year, or multi-day journeys across the wilds of North Iceland.',
     toursEyebrow: 'Short tours',
     toursBadge: 'All year',
     toursH2: 'Rides for everyone, all year',
     toursBody:
-      'In summer we offer one, two and three hour rides; in winter we saddle up for shorter rides through the snow. Coffee, tea, cocoa and home baking wait for you back at the farm.',
+      'In summer we offer one-, two- and three-hour rides; in winter we saddle up for shorter rides through the snow. Coffee, tea, cocoa and home baking wait for you back at the farm.',
     fromLabel: 'From',
     perPerson: 'per person',
     bookBtn: 'Book',
@@ -639,8 +639,8 @@ export const COPY = {
 
     bookEyebrow: 'Booking',
     bookH2: 'Send a booking request in seconds',
-    bookBody: 'Choose a tour, a date and your group, and send us the request. We confirm personally within a day.',
-    bookPanelLine: 'Seats are few and the good days fill up. Secure yours.',
+    bookBody: 'Choose a tour, a date and your group, and send us your request. We confirm personally within a day.',
+    bookPanelLine: 'Places are few and the good days fill up. Secure yours.',
     bookNoPay: 'No payment now. We confirm personally within a day.',
     stepTour: '1 · Choose a tour',
     stepDate: '2 · Choose a date',
@@ -672,7 +672,7 @@ export const COPY = {
     longBadge: 'June–Sept',
     longQuestions: 'Questions? Write to',
     longBody:
-      'From June to September we set out on longer tours across the wilds of North Iceland. Lodging, full board and the Akureyri transfer are included, and a 20% deposit secures your seat.',
+      'From June to September we set out on longer tours across the wilds of North Iceland. Lodging, full board and the Akureyri transfer are included, and a 20% deposit secures your place.',
     enquireBtn: 'Request a quote',
 
     trustEyebrow: 'Reviews',
@@ -681,18 +681,18 @@ export const COPY = {
     reviewsWord: 'reviews',
     familyTitle: 'The family at Grýtubakki',
     familyBody:
-      'Stefán, Juliane and Símon run Pólar Hestar with care and know every hill around. With us you are a guest, not a number.',
+      'Stefán, Juliane and Símon run Pólar Hestar with care and know every hill around here. With us you are a guest, not a number.',
 
-    shopH2: 'A small memory to take home',
-    shopBody: 'Hand-made and home-grown from the farm. Drop us a line and we will set it aside, shipping available.',
+    shopH2: 'A small keepsake to take home',
+    shopBody: 'Handmade and homegrown from the farm. Drop us a line and we will set it aside, shipping available.',
     orderBtn: 'Order by email',
 
     visitH2: 'Find us by the fjord',
     addressLabel: 'Address',
     gettingThereLabel: 'Getting there',
-    gettingThere: 'Road 83 toward Grenivík, about 35 km from Akureyri. Do not take the Vaðlaheiðargöng tunnel.',
+    gettingThere: 'Road 83 towards Grenivík, about 35 km from Akureyri. Do not take the Vaðlaheiðargöng tunnel.',
     seasonLabel: 'Opening',
-    seasonInfo: 'Short tours all year, every day. Long tours in summer. Booking by arrangement.',
+    seasonInfo: 'Short tours all year, every day. Long tours in summer. Advance booking required.',
     mapsBtn: 'Open in maps',
     callBtn: 'Call',
     emailBtn: 'Send an email',
@@ -724,11 +724,11 @@ export const COPY = {
 
     procH2: 'Hundertsechzig Pferde, jedes mit eigenem Charakter',
     procBody:
-      'Das Islandpferd ist trittsicher, willig und bemerkenswert gelassen, mit dem weichen Tölt, den es nur hier gibt. Bei uns bekommen Sie das Pferd, das zu Ihnen passt.',
+      'Das Islandpferd ist trittsicher, willig und bemerkenswert gelassen, mit dem weichen Tölt, den es sonst nirgends gibt. Bei uns bekommen Sie das Pferd, das zu Ihnen passt.',
 
     toursZoneEyebrow: 'Unsere Touren',
     toursZoneIntro:
-      'Zwei Wege, das Islandpferd kennenzulernen: einstündige Ritte das ganze Jahr oder mehrtägige Touren durch Nordislands Wildnis.',
+      'Zwei Wege, das Islandpferd kennenzulernen: kurze Ritte das ganze Jahr oder mehrtägige Touren durch Nordislands Wildnis.',
     toursEyebrow: 'Kurze Touren',
     toursBadge: 'Ganzjährig',
     toursH2: 'Ausritte für alle, das ganze Jahr',
@@ -745,10 +745,10 @@ export const COPY = {
     bookBody:
       'Wählen Sie Tour, Datum und Gruppe und senden Sie uns Ihre Anfrage. Wir bestätigen persönlich innerhalb eines Tages.',
     bookPanelLine: 'Die Plätze sind begrenzt und beliebte Termine schnell ausgebucht. Sichern Sie sich Ihren.',
-    bookNoPay: 'Keine Zahlung jetzt. Wir bestätigen persönlich innerhalb eines Tages.',
+    bookNoPay: 'Sie zahlen jetzt noch nichts. Wir bestätigen persönlich innerhalb eines Tages.',
     stepTour: '1 · Tour wählen',
     stepDate: '2 · Datum wählen',
-    timeLabel: 'Beginn',
+    timeLabel: 'Startzeit',
     stepRiders: '3 · Reiter',
     stepContact: '4 · Ihre Angaben',
     dateLabel: 'Datum',
@@ -764,7 +764,7 @@ export const COPY = {
     errorText: 'Die Anfrage konnte leider nicht gesendet werden. Versuchen Sie es erneut oder rufen Sie an:',
     confirmedTitle: 'Vielen Dank!',
     confirmedBody:
-      'Ihre Anfrage ist bei uns eingegangen. Wir bestätigen innerhalb eines Tages telefonisch oder per E-Mail. Wir freuen uns auf Sie auf Grýtubakki!',
+      'Ihre Anfrage ist bei uns eingegangen. Wir bestätigen innerhalb eines Tages telefonisch oder per E-Mail. Wir freuen uns auf Ihren Besuch auf Grýtubakki!',
     bookAgain: 'Weitere Tour buchen',
     childDiscountApplied: 'Kinderermäßigung enthalten',
 
@@ -774,7 +774,7 @@ export const COPY = {
       'Nordisland verändert sich mit dem Licht, und der Ritt mit ihm. Wählen Sie eine Jahreszeit und sehen Sie, was Sie erwartet.',
 
     longEyebrow: 'Lange Reittouren',
-    longBadge: 'Juni–Sept',
+    longBadge: 'Juni–Sept.',
     longQuestions: 'Fragen? Schreiben Sie an',
     longBody:
       'Von Juni bis September brechen wir zu längeren Touren durch die unberührte Natur Nordislands auf. Preise und Termine sind veröffentlicht, eine Anzahlung von 20 % sichert den Platz.',
@@ -803,7 +803,7 @@ export const COPY = {
     callBtn: 'Anrufen',
     emailBtn: 'E-Mail senden',
 
-    ctaH2: 'Kommen Sie im Norden in den Sattel',
+    ctaH2: 'Steigen Sie im Norden in den Sattel',
     ctaBody: 'Buchen Sie noch heute einen Ritt oder melden Sie sich bei uns. Wir antworten schnell.',
     stickyBook: 'Ritt buchen',
   },

@@ -58,7 +58,10 @@ const HERD_RHYTHM = [
 ]
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
-const isk = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
+const isk = (n: number, lang: Lang = 'is') =>
+  lang === 'en'
+    ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ISK'
+    : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
 // hand-rolled for IS — Chrome's is-IS locale data is unreliable (falls back to English)
 const MONTHS_IS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember']
 const fmtDate = (iso: string, lang: Lang) => {
@@ -472,7 +475,7 @@ function Booking({
           sizes="(max-width: 768px) 100vw, 520px"
           alt={
             PICS.booking.alt ??
-            tri(lang, 'Tveir íslenskir hestar á beit', 'Two Icelandic horses grazing', 'Zwei grasende Islandpferde')
+            tri(lang, 'Tveir íslenskir hestar að kljást', 'Two Icelandic horses nuzzling', 'Zwei sich beschnuppernde Islandpferde')
           }
           className="ph-drift absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: PICS.booking.pos }}
@@ -519,7 +522,7 @@ function Booking({
                       }`
                     : ''}
                 </dt>
-                <dd className="font-semibold">{isk(receipt?.total ?? total)}</dd>
+                <dd className="font-semibold">{isk(receipt?.total ?? total, lang)}</dd>
               </div>
             </dl>
             <button
@@ -558,7 +561,7 @@ function Booking({
             <p key={tour.id} className="ph-tick -mt-2 mb-5 font-hanken text-sm" style={{ color: INK }}>
               <span className="font-semibold">{tour.name[lang]}</span>
               <span style={{ color: SLATE }}>
-                {' '}· {tour.meta[lang]} · {isk(tour.price)} {t.perPerson}
+                {' '}· {tour.meta[lang]} · {isk(tour.price, lang)} {t.perPerson}
               </span>
             </p>
 
@@ -700,12 +703,12 @@ function Booking({
                 </p>
                 {children > 0 && (
                   <p className="font-hanken text-xs tabular-nums" style={{ color: SLATE }}>
-                    {adults} × {isk(tour.price)} · {children} × {isk(childPrice)}
+                    {adults} × {isk(tour.price, lang)} · {children} × {isk(childPrice, lang)}
                   </p>
                 )}
                 <p className="font-spectral text-3xl" style={{ color: INK }}>
                   <span key={total} className="ph-tick">
-                    {isk(total)}
+                    {isk(total, lang)}
                   </span>
                 </p>
                 {children > 0 && (
@@ -786,7 +789,7 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
                 lang,
                 `Íslenskir hestar (${s.name.is.toLowerCase()})`,
                 `Icelandic horses (${s.name.en.toLowerCase()})`,
-                `Islandpferde (${s.name.de.toLowerCase()})`,
+                `Islandpferde (${s.name.de})`,
               )
             }
             className="ph-season-img absolute inset-0 h-full w-full object-cover"
@@ -1343,7 +1346,7 @@ function PolarHestarPageInner() {
             tri(
               lang,
               'Íslensk hross á vetrarhaga fyrir framan snæviþakið fjall og fjörð',
-              'Icelandic horses on a winter pasture before a snow-capped mountain and fjord',
+              'Icelandic horses on a winter pasture in front of a snow-capped mountain and fjord',
               'Islandpferde auf der Winterweide vor schneebedecktem Berg und Fjord',
             )
           }
@@ -1397,7 +1400,7 @@ function PolarHestarPageInner() {
             <Stat value={<CountUp to={STATS.horses} lang={lang} duration={2000} />} label={t.statHorses} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
             <Stat
-              value={<span className="font-spectral text-2xl text-white">{isk(minPrice)}</span>}
+              value={<span className="font-spectral text-2xl text-white">{isk(minPrice, lang)}</span>}
               label={tri(lang, 'verð frá · allt árið', 'from · open all year', 'ab · ganzjährig')}
             />
           </div>
@@ -1865,7 +1868,7 @@ function PolarHestarPageInner() {
                     {item.name[lang]}
                   </p>
                   <p className="mt-0.5 font-hanken text-sm font-semibold" style={{ color: CLAY_TX }}>
-                    {item.from ? `${tri(lang, 'frá', 'from', 'ab')} ${isk(item.price)}` : isk(item.price)}
+                    {item.from ? `${tri(lang, 'frá', 'from', 'ab')} ${isk(item.price, lang)}` : isk(item.price, lang)}
                   </p>
                 </div>
                 <a
@@ -1986,7 +1989,7 @@ function PolarHestarPageInner() {
           sizes="100vw"
           alt={
             PICS.ctaBand.alt ??
-            tri(lang, 'Hross undir þrumuveðurshimni á hraunlendi', 'Horses under a stormy sky on lava-field terrain', 'Pferde unter Gewitterhimmel auf Lavaland')
+            tri(lang, 'Hross undir þrumuveðurshimni á hraunlendi', 'Horses under a stormy sky on a lava field', 'Pferde unter Gewitterhimmel auf Lavafeldern')
           }
           className="ph-drift absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: PICS.ctaBand.pos }}
@@ -2118,7 +2121,7 @@ function TourCard({ tour, lang, t, onBook }: { tour: TourX; lang: Lang; t: typeo
               {t.fromLabel}
             </p>
             <p className="font-spectral text-lg" style={{ color: INK }}>
-              {isk(tour.price)}
+              {isk(tour.price, lang)}
             </p>
           </div>
           <button
