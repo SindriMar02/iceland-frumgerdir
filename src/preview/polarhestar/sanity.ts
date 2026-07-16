@@ -42,12 +42,15 @@ import {
 } from './data'
 
 /* ── Preview detection ──────────────────────────────────────────────────── */
+const viewerToken = import.meta.env.VITE_SANITY_VIEWER_TOKEN as string | undefined
+/** Drafts mode needs the ?preview param, or a studio iframe AND a token —
+    a tokenless deployed build embedded anywhere must stay on published reads. */
 const isPreview =
   typeof window !== 'undefined' &&
-  (window.self !== window.top || new URLSearchParams(window.location.search).has('preview'))
+  (new URLSearchParams(window.location.search).has('preview') ||
+    (window.self !== window.top && !!viewerToken))
 
-const viewerToken = import.meta.env.VITE_SANITY_VIEWER_TOKEN as string | undefined
-const STUDIO_URL = 'http://localhost:3333'
+const STUDIO_URL = (import.meta.env.VITE_SANITY_STUDIO_URL as string | undefined) || 'http://localhost:3333'
 
 /** Field names whose values feed logic/attributes — keep stega out of them. */
 const STEGA_SKIP = new Set([
@@ -175,10 +178,10 @@ const QUERY = `{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
-  "tours": *[_type=="tour"]|order(order asc){_id, name, duration, level, price, months, blurb, image ${IMG_PRJ}},
+  "tours": *[_type=="tour"]|order(order asc){_id, name, duration, level, price, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
-  "longTours": *[_type=="longTour"]|order(order asc){_id, name, meta, blurb, image ${IMG_PRJ}},
-  "reviews": *[_type=="review"]|order(name asc){_id, quote, name, origin},
+  "longTours": *[_type=="longTour"]|order(order asc){_id, name, meta, requirements, departures, blurb, image ${IMG_PRJ}},
+  "reviews": *[_type=="review"]|order(coalesce(order, 100) asc, name asc){_id, quote, name, origin},
   "shop": *[_type=="shopItem"]|order(order asc){_id, name, price, from},
   "gtk": *[_type=="goodToKnow"][0]{eyebrow, heading, body, items[]{title, body}},
   "farm": *[_type=="farmSection"][0]{eyebrow, heading, body, items[]{title, body}},
@@ -186,22 +189,40 @@ const QUERY = `{
 }`
 
 type RawL3 = { is?: string; en?: string; de?: string } | null | undefined
+/** A published-but-empty CMS string must fall back, not blank the page. */
+const pick = (v: string | undefined, fb: string) => (v && v.trim() ? v : fb)
 /** Trilingual field: CMS value per language, falling back per language. */
-const l3 = (v: RawL3, fb: L3): L3 => ({ is: v?.is ?? fb.is, en: v?.en ?? fb.en, de: v?.de ?? fb.de })
+const l3 = (v: RawL3, fb: L3): L3 => ({ is: pick(v?.is, fb.is), en: pick(v?.en, fb.en), de: pick(v?.de, fb.de) })
+/** Owner-created docs have no bundled fallback: missing languages cascade to
+    the doc's own text instead of silently inheriting another item's copy. */
+const l3self = (v: RawL3): L3 => ({
+  is: (v?.is || v?.en || v?.de || '').trim(),
+  en: (v?.en || v?.is || v?.de || '').trim(),
+  de: (v?.de || v?.en || v?.is || '').trim(),
+})
+const optL3 = (v: RawL3, fb?: L3): L3 | undefined => {
+  const m = fb ? l3(v, fb) : l3self(v)
+  return m.is || m.en || m.de ? m : undefined
+}
 
 /** sectionsCopy field → COPY key (hero/story handled via their own docs). */
 const SECTION_MAP: Array<[string, keyof typeof COPY['is']]> = [
-  ['herdEyebrow', 'procEyebrow'], ['herdHeading', 'procH2'], ['herdBody', 'procBody'],
-  ['toursEyebrow', 'toursEyebrow'], ['toursHeading', 'toursH2'], ['toursBody', 'toursBody'],
+  ['herdHeading', 'procH2'], ['herdBody', 'procBody'],
+  ['toursSectionEyebrow', 'toursZoneEyebrow'], ['toursSectionIntro', 'toursZoneIntro'],
+  ['toursEyebrow', 'toursEyebrow'], ['toursBadge', 'toursBadge'],
+  ['toursHeading', 'toursH2'], ['toursBody', 'toursBody'],
   ['toursChildNote', 'childNote'], ['toursWeightNote', 'weightNote'],
   ['bookingEyebrow', 'bookEyebrow'], ['bookingHeading', 'bookH2'], ['bookingBody', 'bookBody'],
-  ['bookingPanelLine', 'bookPanelLine'],
+  ['bookingPanelLine', 'bookPanelLine'], ['bookingNoPay', 'bookNoPay'],
+  ['bookingConfirmedTitle', 'confirmedTitle'], ['bookingConfirmedBody', 'confirmedBody'],
+  ['bookingErrorText', 'errorText'],
   ['seasonsEyebrow', 'seasonsEyebrow'], ['seasonsHeading', 'seasonsH2'], ['seasonsBody', 'seasonsBody'],
-  ['longEyebrow', 'longEyebrow'], ['longHeading', 'longH2'], ['longBody', 'longBody'],
+  ['longEyebrow', 'longEyebrow'], ['longBadge', 'longBadge'],
+  ['longQuestions', 'longQuestions'], ['longBody', 'longBody'],
   ['trustEyebrow', 'trustEyebrow'], ['trustHeading', 'trustH2'], ['trustBody', 'trustBody'],
   ['trustFamilyTitle', 'familyTitle'], ['trustFamilyBody', 'familyBody'],
-  ['shopEyebrow', 'shopEyebrow'], ['shopHeading', 'shopH2'], ['shopBody', 'shopBody'],
-  ['visitEyebrow', 'visitEyebrow'], ['visitHeading', 'visitH2'],
+  ['shopHeading', 'shopH2'], ['shopBody', 'shopBody'],
+  ['visitHeading', 'visitH2'],
   ['visitGettingThere', 'gettingThere'], ['visitSeasonInfo', 'seasonInfo'],
   ['ctaHeading', 'ctaH2'], ['ctaBody', 'ctaBody'],
 ]
@@ -211,34 +232,41 @@ function merge(raw: any): SiteContent {
   const strip = (id: string) => String(id).replace(/^(tour|season|longtour|shopitem|review)-/, '')
 
   const tours: TourX[] = Array.isArray(raw?.tours) && raw.tours.length
-    ? raw.tours.map((d: any, i: number): TourX => {
-        const fb = SHORT_TOURS.find((t) => t.id === strip(d._id)) ?? SHORT_TOURS[i] ?? SHORT_TOURS[0]
-        return {
-          id: fb.id,
-          name: l3(d.name, fb.name),
-          meta: l3(d.duration, fb.meta),
-          level: l3(d.level, fb.level),
-          price: typeof d.price === 'number' ? d.price : fb.price,
-          image: fb.image,
-          blurb: l3(d.blurb, fb.blurb),
-          months: Array.isArray(d.months) && d.months.length ? d.months : fb.months,
-          pic: mkPic(d.image, fb.image),
-        }
-      })
+    ? raw.tours
+        .map((d: any): TourX => {
+          const fb = SHORT_TOURS.find((t) => t.id === strip(d._id))
+          return {
+            id: fb?.id ?? strip(d._id),
+            name: fb ? l3(d.name, fb.name) : l3self(d.name),
+            meta: fb ? l3(d.duration, fb.meta) : l3self(d.duration),
+            level: fb ? l3(d.level, fb.level) : l3self(d.level),
+            price: typeof d.price === 'number' ? d.price : (fb?.price ?? 0),
+            image: fb?.image ?? IMG.procession[0],
+            blurb: fb ? l3(d.blurb, fb.blurb) : l3self(d.blurb),
+            months: Array.isArray(d.months) && d.months.length ? d.months : fb?.months,
+            times: Array.isArray(d.times) && d.times.length ? d.times : fb?.times,
+            pic: mkPic(d.image, fb?.image ?? IMG.procession[0]),
+          }
+        })
+        .filter((t: TourX) => t.name.is || t.name.en || t.name.de)
     : FALLBACK.SHORT_TOURS
 
   const longTours: LongTourX[] = Array.isArray(raw?.longTours) && raw.longTours.length
-    ? raw.longTours.map((d: any, i: number): LongTourX => {
-        const fb = LONG_TOURS.find((t) => t.id === strip(d._id)) ?? LONG_TOURS[i] ?? LONG_TOURS[0]
-        return {
-          id: fb.id,
-          name: l3(d.name, fb.name),
-          meta: l3(d.meta, fb.meta),
-          image: fb.image,
-          blurb: l3(d.blurb, fb.blurb),
-          pic: mkPic(d.image, fb.image),
-        }
-      })
+    ? raw.longTours
+        .map((d: any): LongTourX => {
+          const fb = LONG_TOURS.find((t) => t.id === strip(d._id))
+          return {
+            id: fb?.id ?? strip(d._id),
+            name: fb ? l3(d.name, fb.name) : l3self(d.name),
+            meta: fb ? l3(d.meta, fb.meta) : l3self(d.meta),
+            requirements: optL3(d.requirements, fb?.requirements),
+            departures: optL3(d.departures, fb?.departures),
+            image: fb?.image ?? IMG.procession[0],
+            blurb: fb ? l3(d.blurb, fb.blurb) : l3self(d.blurb),
+            pic: mkPic(d.image, fb?.image ?? IMG.procession[0]),
+          }
+        })
+        .filter((t: LongTourX) => t.name.is || t.name.en || t.name.de)
     : FALLBACK.LONG_TOURS
 
   const seasons: SeasonX[] = Array.isArray(raw?.seasons) && raw.seasons.length
@@ -258,21 +286,19 @@ function merge(raw: any): SiteContent {
     : FALLBACK.SEASONS
 
   const reviews = Array.isArray(raw?.reviews) && raw.reviews.length
-    ? raw.reviews.map((d: any, i: number) => {
-        const fb = REVIEWS[i] ?? REVIEWS[0]
-        return { quote: l3(d.quote, fb.quote), name: d.name || fb.name, origin: l3(d.origin, fb.origin) }
-      })
+    ? raw.reviews
+        .map((d: any) => ({ quote: l3self(d.quote), name: String(d.name || ''), origin: l3self(d.origin) }))
+        .filter((r: { quote: L3; name: string }) => r.name && (r.quote.is || r.quote.en || r.quote.de))
     : REVIEWS
 
   const shop = Array.isArray(raw?.shop) && raw.shop.length
-    ? raw.shop.map((d: any, i: number) => {
-        const fb = SHOP[i] ?? SHOP[0]
-        return {
-          name: l3(d.name, fb.name),
-          price: typeof d.price === 'number' ? d.price : fb.price,
-          from: typeof d.from === 'boolean' ? d.from : fb.from,
-        }
-      })
+    ? raw.shop
+        .map((d: any) => ({
+          name: l3self(d.name),
+          price: typeof d.price === 'number' ? d.price : 0,
+          from: d.from === true,
+        }))
+        .filter((it: { name: L3 }) => it.name.is || it.name.en || it.name.de)
     : SHOP
 
   const gtk: GoodToKnowData = raw?.gtk
@@ -312,7 +338,6 @@ function merge(raw: any): SiteContent {
 
   const stats = raw?.settings?.stats
     ? {
-        founded: raw.settings.stats.founded ?? STATS.founded,
         years: raw.settings.stats.years ?? STATS.years,
         horses: raw.settings.stats.horses ?? STATS.horses,
         rating: raw.settings.stats.rating ?? STATS.rating,
@@ -327,20 +352,20 @@ function merge(raw: any): SiteContent {
   const over = (base: typeof COPY['is'], lang: 'is' | 'en' | 'de') => {
     const out: Record<string, unknown> = {
       ...base,
-      heroEyebrow: h?.eyebrow?.[lang] ?? base.heroEyebrow,
-      heroH1a: h?.headlineLine1?.[lang] ?? base.heroH1a,
-      heroH1b: h?.headlineLine2?.[lang] ?? base.heroH1b,
-      heroLede: h?.lede?.[lang] ?? base.heroLede,
-      storyEyebrow: s?.eyebrow?.[lang] ?? base.storyEyebrow,
-      storyH2: s?.heading?.[lang] ?? base.storyH2,
-      storyP1: s?.paragraph1?.[lang] ?? base.storyP1,
-      storyP2: s?.paragraph2?.[lang] ?? base.storyP2,
-      storyQuote: s?.quote?.[lang] ?? base.storyQuote,
+      heroEyebrow: pick(h?.eyebrow?.[lang], base.heroEyebrow),
+      heroH1a: pick(h?.headlineLine1?.[lang], base.heroH1a),
+      heroH1b: pick(h?.headlineLine2?.[lang], base.heroH1b),
+      heroLede: pick(h?.lede?.[lang], base.heroLede),
+      storyEyebrow: pick(s?.eyebrow?.[lang], base.storyEyebrow),
+      storyH2: pick(s?.heading?.[lang], base.storyH2),
+      storyP1: pick(s?.paragraph1?.[lang], base.storyP1),
+      storyP2: pick(s?.paragraph2?.[lang], base.storyP2),
+      storyQuote: pick(s?.quote?.[lang], base.storyQuote),
     }
     if (sc) {
       for (const [field, key] of SECTION_MAP) {
         const v = sc[field]?.[lang]
-        if (v) out[key] = v
+        if (v && String(v).trim()) out[key] = v
       }
     }
     return out as typeof COPY['is']

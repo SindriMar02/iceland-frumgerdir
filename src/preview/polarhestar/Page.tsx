@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Clock,
   Facebook,
+  Instagram,
   Mail,
   MapPin,
   Minus,
@@ -21,7 +22,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { COPY, type Lang } from './data'
+import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
 import { SiteContentProvider, useSiteContent, type TourX } from './sanity'
 
@@ -89,7 +90,11 @@ function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; 
       { rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
     )
     io.observe(el)
-    const t = window.setTimeout(() => setShown(true), 1400) // failsafe for throttled tabs
+    // Failsafe for throttled tabs/odd embeds: only force-show what should already
+    // be on screen — below-fold sections keep their scroll choreography.
+    const t = window.setTimeout(() => {
+      if (el.getBoundingClientRect().top < window.innerHeight * 1.25) setShown(true)
+    }, 1600)
     return () => {
       io.disconnect()
       window.clearTimeout(t)
@@ -111,6 +116,99 @@ function Eyebrow({ children, on = 'light', tint }: { children: ReactNode; on?: '
     >
       {children}
     </p>
+  )
+}
+
+/* ── Header dropdown — state-driven so hover, keyboard and touch all agree:
+      mouse hovers open it, focus keeps it open, Escape closes and restores
+      focus, and on touch the first tap opens instead of navigating ── */
+function NavDropdown({
+  href,
+  label,
+  kids,
+  on,
+  color,
+}: {
+  href: string
+  label: string
+  kids: [string, string][]
+  on: boolean
+  color: string
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLAnchorElement>(null)
+  const coarse = useRef(false)
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [open])
+  return (
+    <div
+      ref={wrapRef}
+      className="group relative"
+      data-open={open}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'mouse') setOpen(true)
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === 'mouse') setOpen(false)
+      }}
+      onFocus={() => setOpen(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setOpen(false)
+          triggerRef.current?.focus()
+        }
+      }}
+    >
+      <a
+        ref={triggerRef}
+        href={href}
+        className="ph-navlink inline-flex items-center gap-1 font-hanken text-sm font-medium transition-colors"
+        data-active={on}
+        style={{ color }}
+        aria-haspopup="true"
+        aria-expanded={open}
+        onPointerDown={(e) => {
+          coarse.current = e.pointerType !== 'mouse'
+        }}
+        onClick={(e) => {
+          if (coarse.current && !open) {
+            e.preventDefault() // first touch opens the menu instead of jumping away
+            setOpen(true)
+          } else {
+            setOpen(false)
+          }
+        }}
+      >
+        {label}
+        <ChevronDown
+          className="h-3 w-3 opacity-70 transition-transform duration-300 group-data-[open=true]:rotate-180"
+          aria-hidden="true"
+        />
+      </a>
+      <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-3 opacity-0 transition-all duration-300 ease-[cubic-bezier(.2,.7,.2,1)] group-data-[open=true]:visible group-data-[open=true]:translate-y-0 group-data-[open=true]:opacity-100">
+        <div
+          className="min-w-[13rem] rounded-2xl p-1.5 shadow-[0_2px_8px_-3px_rgba(18,23,56,0.15),0_24px_48px_-24px_rgba(18,23,56,0.55)] ring-1 ring-[#161B3C14] backdrop-blur-xl"
+          style={{ background: 'rgba(247,250,252,0.85)' }}
+        >
+          {kids.map(([h, sub]) => (
+            <a key={h} href={h} onClick={() => setOpen(false)} className="ph-dd-item font-hanken text-sm font-medium">
+              {sub}
+              <ChevronRight className="ph-dd-arrow h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -244,7 +342,7 @@ const Stepper = ({
         type="button"
         onClick={() => set(Math.max(min, value - 1))}
         disabled={value <= min}
-        aria-label={`${label}: ${tri(lang, 'fækka', 'decrease', 'weniger')}`}
+        aria-label={`${label}: ${tri(lang, 'fækka', 'decrease', 'verringern')}`}
         className="grid h-11 w-11 place-items-center rounded-full border transition-colors disabled:opacity-30"
         style={{ borderColor: '#0000001f', color: INK }}
       >
@@ -256,7 +354,7 @@ const Stepper = ({
       <button
         type="button"
         onClick={() => set(Math.min(10, value + 1))}
-        aria-label={`${label}: ${tri(lang, 'fjölga', 'increase', 'mehr')}`}
+        aria-label={`${label}: ${tri(lang, 'fjölga', 'increase', 'erhöhen')}`}
         className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-black/5"
         style={{ borderColor: '#0000001f', color: INK }}
       >
@@ -282,13 +380,30 @@ function Booking({
   const tour = SHORT_TOURS.find((x) => x.id === selectedId) ?? SHORT_TOURS[0]
   const today = new Date()
   const [date, setDate] = useState(() => isoDay(new Date(today.getTime() + 7 * 864e5)))
+  const [time, setTime] = useState<string | null>(tour.times?.[0] ?? null)
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
   const [done, setDone] = useState(false)
+  /** Frozen at the moment of a successful send, so later tour clicks can't rewrite the receipt. */
+  const [receipt, setReceipt] = useState<{
+    tourId: string
+    tourName: string
+    date: string
+    time: string | null
+    adults: number
+    children: number
+    total: number
+  } | null>(null)
   const doneHeadRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => {
     if (done) doneHeadRef.current?.focus() // announce + anchor keyboard users on success
   }, [done])
+  // Picking a different tour starts a fresh request (and keeps its published times valid)
+  useEffect(() => {
+    setTime(tour.times?.[0] ?? null)
+    setDone(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tour.id])
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -306,10 +421,14 @@ function Booking({
     e.preventDefault()
     if (status === 'sending') return
     setStatus('sending')
+    // a hung network must never leave the button stuck at "Sendi…"
+    const ctrl = new AbortController()
+    const kill = window.setTimeout(() => ctrl.abort(), 15000)
     try {
       const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(BOOKING_EMAIL)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        signal: ctrl.signal,
         body: JSON.stringify({
           _subject: `Bókunarbeiðni: ${stegaClean(tour.name.is)} · ${date}`,
           _template: 'table',
@@ -317,25 +436,29 @@ function Booking({
           _honey: '', // spam honeypot
           'Ferð': `${stegaClean(tour.name.is)} (${stegaClean(tour.meta.is)})`,
           'Dagsetning': date,
+          'Brottfarartími': time ?? 'Eftir samkomulagi',
           'Fullorðnir': String(adults),
           'Börn (12 og yngri)': String(children),
           'Áætlað verð': isk(total),
           'Nafn': name,
           'Netfang': email,
-          'Sími': phone || '—',
-          'Skilaboð': note || '—',
+          'Sími': phone || 'Ekki gefið upp',
+          'Skilaboð': note || 'Ekki gefið upp',
           'Tungumál gests': LANG_NAMES[lang],
         }),
       })
       const json = (await res.json().catch(() => null)) as { success?: string | boolean } | null
       if (res.ok && json && String(json.success) === 'true') {
         setStatus('idle')
+        setReceipt({ tourId: tour.id, tourName: stegaClean(tour.name[lang]), date, time, adults, children, total })
         setDone(true)
       } else {
         setStatus('error')
       }
     } catch {
       setStatus('error')
+    } finally {
+      window.clearTimeout(kill)
     }
   }
 
@@ -376,22 +499,27 @@ function Booking({
             </p>
             <dl className="ph-up mt-5 w-full space-y-1.5 rounded-2xl p-4 font-hanken text-sm" style={{ background: MIST, color: INK, animationDelay: '140ms' }}>
               <div className="flex justify-between gap-4">
-                <dt style={{ color: BODY }}>{tour.name[lang]}</dt>
-                <dd className="font-semibold">{fmtDate(date, lang)}</dd>
+                <dt style={{ color: BODY }}>{receipt?.tourName ?? tour.name[lang]}</dt>
+                <dd className="font-semibold">
+                  {fmtDate(receipt?.date ?? date, lang)}
+                  {receipt?.time ? ` · ${receipt.time}` : ''}
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt style={{ color: BODY }}>
-                  {adults}{' '}
-                  {adults === 1
+                  {receipt?.adults ?? adults}{' '}
+                  {(receipt?.adults ?? adults) === 1
                     ? tri(lang, 'fullorðinn', 'adult', 'Erwachsener')
                     : tri(lang, 'fullorðnir', 'adults', 'Erwachsene')}
-                  {children > 0
-                    ? ` · ${children} ${
-                        children === 1 ? tri(lang, 'barn', 'child', 'Kind') : tri(lang, 'börn', 'children', 'Kinder')
+                  {(receipt?.children ?? children) > 0
+                    ? ` · ${receipt?.children ?? children} ${
+                        (receipt?.children ?? children) === 1
+                          ? tri(lang, 'barn', 'child', 'Kind')
+                          : tri(lang, 'börn', 'children', 'Kinder')
                       }`
                     : ''}
                 </dt>
-                <dd className="font-semibold">{isk(total)}</dd>
+                <dd className="font-semibold">{isk(receipt?.total ?? total)}</dd>
               </div>
             </dl>
             <button
@@ -435,7 +563,7 @@ function Booking({
             </p>
 
             <Step n={2} label={t.stepDate} />
-            <label className="mb-5 block">
+            <label className={`block ${tour.times?.length ? 'mb-3' : 'mb-5'}`}>
               <span className="sr-only">{t.dateLabel}</span>
               <div className="flex items-center gap-2 rounded-xl border px-3.5 py-3" style={{ borderColor: '#0000001f', background: MIST }}>
                 <Calendar className="h-4 w-4 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
@@ -444,6 +572,7 @@ function Booking({
                   required
                   value={date}
                   min={isoDay(today)}
+                  max={isoDay(new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()))}
                   onChange={(e) => setDate(e.target.value)}
                   className="w-full bg-transparent font-hanken text-sm outline-none"
                   style={{ color: INK }}
@@ -463,6 +592,34 @@ function Booking({
                 </span>
               )}
             </label>
+            {!!tour.times?.length && (
+              <fieldset className="mb-5">
+                <legend className="mb-1.5 font-hanken text-xs tracking-wide uppercase" style={{ color: SLATE }}>
+                  {t.timeLabel}
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {tour.times.map((slot) => {
+                    const active = slot === time
+                    return (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setTime(slot)}
+                        aria-pressed={active}
+                        className="rounded-full border px-3.5 py-2 font-hanken text-sm font-medium tabular-nums transition-all"
+                        style={
+                          active
+                            ? { background: INK, color: MIST, borderColor: INK }
+                            : { background: 'transparent', color: BODY, borderColor: '#0000001f' }
+                        }
+                      >
+                        {slot}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+            )}
 
             <Step n={3} label={t.stepRiders} />
             <div className="divide-y" style={{ borderColor: '#0000000f' }}>
@@ -473,52 +630,56 @@ function Booking({
               <Step n={4} label={t.stepContact} />
               <div className="space-y-2.5">
                 <label className="block">
-                  <span className="sr-only">{t.nameLabel}</span>
+                  <span className="mb-1 block font-hanken text-xs font-medium" style={{ color: SLATE }}>
+                    {t.nameLabel}
+                  </span>
                   <input
                     type="text"
                     required
                     autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder={t.nameLabel}
                     className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
                     style={{ borderColor: '#0000001f', background: MIST, color: INK }}
                   />
                 </label>
                 <div className="grid gap-2.5 sm:grid-cols-2">
                   <label className="block">
-                    <span className="sr-only">{t.emailLabel}</span>
+                    <span className="mb-1 block font-hanken text-xs font-medium" style={{ color: SLATE }}>
+                      {t.emailLabel}
+                    </span>
                     <input
                       type="email"
                       required
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t.emailLabel}
                       className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
                       style={{ borderColor: '#0000001f', background: MIST, color: INK }}
                     />
                   </label>
                   <label className="block">
-                    <span className="sr-only">{t.phoneLabel}</span>
+                    <span className="mb-1 block font-hanken text-xs font-medium" style={{ color: SLATE }}>
+                      {t.phoneLabel}
+                    </span>
                     <input
                       type="tel"
                       autoComplete="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder={t.phoneLabel}
                       className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
                       style={{ borderColor: '#0000001f', background: MIST, color: INK }}
                     />
                   </label>
                 </div>
                 <label className="block">
-                  <span className="sr-only">{t.noteLabel}</span>
+                  <span className="mb-1 block font-hanken text-xs font-medium" style={{ color: SLATE }}>
+                    {t.noteLabel}
+                  </span>
                   <textarea
                     rows={2}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder={t.noteLabel}
                     className="w-full resize-none rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
                     style={{ borderColor: '#0000001f', background: MIST, color: INK }}
                   />
@@ -566,12 +727,7 @@ function Booking({
             </div>
             <p className="mt-3 flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
               <Check className="h-3.5 w-3.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
-              {tri(
-                lang,
-                'Engin greiðsla núna — við staðfestum persónulega innan sólarhrings.',
-                'No payment now — we confirm personally within a day.',
-                'Keine Zahlung jetzt — wir bestätigen persönlich innerhalb eines Tages.',
-              )}
+              {t.bookNoPay}
             </p>
           </form>
         )}
@@ -628,9 +784,9 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
               s.pic.alt ??
               tri(
                 lang,
-                `Íslenskir hestar — ${s.name.is.toLowerCase()}`,
-                `Icelandic horses — ${s.name.en.toLowerCase()}`,
-                `Islandpferde — ${s.name.de.toLowerCase()}`,
+                `Íslenskir hestar (${s.name.is.toLowerCase()})`,
+                `Icelandic horses (${s.name.en.toLowerCase()})`,
+                `Islandpferde (${s.name.de.toLowerCase()})`,
               )
             }
             className="ph-season-img absolute inset-0 h-full w-full object-cover"
@@ -771,12 +927,31 @@ function PolarHestarPageInner() {
     return () => io.disconnect()
   }, [])
 
-  // Mobile menu: lock scroll, close on Escape.
+  // Mobile menu: lock scroll, close on Escape, return focus to the hamburger.
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const menuWasOpen = useRef(false)
   useEffect(() => {
+    if (menuWasOpen.current && !menuOpen) menuBtnRef.current?.focus()
+    menuWasOpen.current = menuOpen
     if (!menuOpen) return
     document.body.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false)
+      if (e.key === 'Tab' && menuRef.current) {
+        // keep Tab inside the overlay — the page behind is visually gone
+        const focusables = menuRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+        if (!focusables.length) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -785,13 +960,41 @@ function PolarHestarPageInner() {
     }
   }, [menuOpen])
 
+  // Verified LocalBusiness JSON-LD so the page carries machine-readable NAP
+  useEffect(() => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name: 'Pólar Hestar',
+      description: 'Horse riding tours in North Iceland since 1985. Short rides and multi-day tours from the farm Grýtubakki II by Eyjafjörður.',
+      telephone: '+354 896 1879',
+      email: EMAIL,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Grýtubakki II',
+        addressLocality: 'Grenivík',
+        postalCode: '616',
+        addressCountry: 'IS',
+      },
+      sameAs: [FACEBOOK, INSTAGRAM, TRIPADVISOR],
+    })
+    document.head.appendChild(el)
+    return () => {
+      document.head.removeChild(el)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     document.title = tri(
       lang,
-      'Pólar Hestar — hestaferðir við Eyjafjörð',
-      'Pólar Hestar — riding tours in North Iceland',
-      'Pólar Hestar — Reittouren in Nordisland',
+      'Pólar Hestar · hestaferðir við Eyjafjörð',
+      'Pólar Hestar · riding tours in North Iceland',
+      'Pólar Hestar · Reittouren in Nordisland',
     )
+    document.documentElement.lang = lang
     setThemeColor(MIST)
   }, [lang])
 
@@ -929,6 +1132,15 @@ function PolarHestarPageInner() {
         }
       `}</style>
 
+      {/* skip link — first tab stop, jumps keyboard/AT users past the fixed header */}
+      <a
+        href="#efni"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70] focus:rounded-full focus:px-4 focus:py-2.5 focus:font-hanken focus:text-sm focus:font-semibold focus:text-white"
+        style={{ background: CLAY_FILL }}
+      >
+        {tri(lang, 'Beint í efni', 'Skip to content', 'Zum Inhalt springen')}
+      </a>
+
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <header
         className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${scrolled ? '' : 'ph-dark'}`}
@@ -938,7 +1150,13 @@ function PolarHestarPageInner() {
           backdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
+        {/* legibility scrim while the header floats over the photo — any CMS hero stays readable */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-28 transition-opacity duration-300"
+          style={{ background: 'linear-gradient(180deg, rgba(13,16,40,0.55), transparent)', opacity: scrolled ? 0 : 1 }}
+        />
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
           <a href="#top" className="shrink-0" aria-label="Pólar Hestar">
             <img
               src={LOGO}
@@ -982,38 +1200,7 @@ function PolarHestarPageInner() {
                   </a>
                 )
               }
-              return (
-                <div key={item.href} className="group relative">
-                  <a
-                    href={item.href}
-                    className={`${navLink} ph-navlink inline-flex items-center gap-1`}
-                    data-active={on}
-                    style={{ color }}
-                    onClick={(e) => e.currentTarget.blur()} // don't let the click leave the menu stuck open
-                  >
-                    {item.label}
-                    <ChevronDown className="h-3 w-3 opacity-70 transition-transform duration-300 group-hover:rotate-180" aria-hidden="true" />
-                  </a>
-                  <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-3 opacity-0 transition-all duration-300 ease-[cubic-bezier(.2,.7,.2,1)] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                    <div
-                      className="min-w-[13rem] rounded-2xl p-1.5 shadow-[0_2px_8px_-3px_rgba(18,23,56,0.15),0_24px_48px_-24px_rgba(18,23,56,0.55)] ring-1 ring-[#161B3C14] backdrop-blur-xl"
-                      style={{ background: 'rgba(247,250,252,0.85)' }}
-                    >
-                      {item.kids.map(([h, sub]) => (
-                        <a
-                          key={h}
-                          href={h}
-                          onClick={(e) => e.currentTarget.blur()}
-                          className="ph-dd-item font-hanken text-sm font-medium"
-                        >
-                          {sub}
-                          <ChevronRight className="ph-dd-arrow h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )
+              return <NavDropdown key={item.href} href={item.href} label={item.label} kids={item.kids} on={on} color={color} />
             })}
           </nav>
           <div className="flex items-center gap-2">
@@ -1032,7 +1219,7 @@ function PolarHestarPageInner() {
                     onClick={() => switchLang(code)}
                     aria-pressed={active}
                     aria-label={LANG_NAMES[code]}
-                    className="px-3 py-2.5 uppercase tracking-wide transition-colors"
+                    className="min-h-11 px-3 py-2.5 uppercase tracking-wide transition-colors md:min-h-0"
                     style={
                       active
                         ? { background: scrolled ? INK : '#ffffff', color: scrolled ? MIST : INK }
@@ -1053,6 +1240,7 @@ function PolarHestarPageInner() {
               {t.nav.cta}
             </button>
             <button
+              ref={menuBtnRef}
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-expanded={menuOpen}
@@ -1071,7 +1259,14 @@ function PolarHestarPageInner() {
 
       {/* ── MOBILE MENU — polar night panel ─────────────────────────────── */}
       {menuOpen && (
-        <div className="ph-dark fixed inset-0 z-50 flex flex-col p-6 md:hidden" style={{ background: NIGHT }}>
+        <div
+          ref={menuRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
+          className="ph-dark fixed inset-0 z-50 flex flex-col overflow-y-auto p-6 md:hidden"
+          style={{ background: NIGHT }}
+        >
           <div className="flex items-center justify-between">
             <img src={LOGO} alt="Pólar Hestar" className="h-10 w-auto" />
             <button
@@ -1088,18 +1283,20 @@ function PolarHestarPageInner() {
               </span>
             </button>
           </div>
-          <nav className="mt-12 flex flex-col" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
+          <nav className="mt-10 flex flex-col" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
             {[
-              ['#ferdir', t.nav.tours],
+              ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
+              ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
               ['#arstidir', t.nav.seasons],
               ['#gott', t.nav.info],
+              ['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')],
               ['#heimsokn', t.nav.visit],
             ].map(([href, label], i) => (
               <a
                 key={href}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className="border-b py-5 font-spectral text-3xl text-white"
+                className="border-b py-4 font-spectral text-[1.7rem] text-white"
                 style={{ borderColor: '#ffffff14' }}
               >
                 <span className="mr-4 font-hanken text-xs" style={{ color: CLAY_HI }}>
@@ -1133,6 +1330,7 @@ function PolarHestarPageInner() {
       <div aria-hidden="true" className="ph-veil pointer-events-none fixed inset-0 z-[60]" data-on={veil} />
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
+      <main id="efni">
       <section id="top" className="ph-dark grain relative flex min-h-[100svh] items-end overflow-hidden">
         <Img
           src={PICS.hero.src}
@@ -1282,7 +1480,16 @@ function PolarHestarPageInner() {
               const k = i % GALLERY.length
               return (
                 <div key={i} className={`ph-horse shrink-0 overflow-hidden rounded-2xl ${HERD_RHYTHM[k % 4]}`} style={{ background: PAPER }}>
-                  <img src={g.src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: g.pos }} />
+                  <img
+                    src={g.src}
+                    srcSet={g.srcSet}
+                    sizes="(max-width: 768px) 45vw, 288px"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: g.pos }}
+                  />
                 </div>
               )
             })}
@@ -1296,17 +1503,12 @@ function PolarHestarPageInner() {
       {/* ── TOURS — short + long, one journey through everything on offer ─── */}
       <section id="ferdir" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:px-8 md:py-24">
         <Reveal className="max-w-2xl">
-          <Eyebrow>{tri(lang, 'Ferðirnar okkar', 'Our rides', 'Unsere Touren')}</Eyebrow>
+          <Eyebrow>{t.toursZoneEyebrow}</Eyebrow>
           <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight" style={{ color: INK }}>
             <MaskWords text={t.toursH2} />
           </h2>
           <p className="mt-4 font-hanken text-base leading-relaxed" style={{ color: BODY }}>
-            {tri(
-              lang,
-              'Tvær leiðir til að kynnast íslenska hestinum: klukkutíma reiðtúrar allt árið, eða margra daga ævintýri um óbyggðir Norðurlands.',
-              'Two ways to meet the Icelandic horse: hour-long rides all year, or multi-day journeys across the wilds of North Iceland.',
-              'Zwei Wege, das Islandpferd kennenzulernen: einstündige Ritte das ganze Jahr oder mehrtägige Touren durch Nordislands Wildnis.',
-            )}
+            {t.toursZoneIntro}
           </p>
         </Reveal>
 
@@ -1317,7 +1519,7 @@ function PolarHestarPageInner() {
               {t.toursEyebrow}
             </h3>
             <span className="shrink-0 font-hanken text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: CLAY_TX }}>
-              {tri(lang, 'Allt árið', 'All year', 'Ganzjährig')}
+              {t.toursBadge}
             </span>
           </Reveal>
           <p className="mt-4 max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
@@ -1352,11 +1554,11 @@ function PolarHestarPageInner() {
                 {t.longEyebrow}
               </h3>
               <span className="shrink-0 font-hanken text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: CLAY_TX }}>
-                {tri(lang, 'Júní–sept', 'Jun–Sep', 'Juni–Sept')}
+                {t.longBadge}
               </span>
             </div>
             <p className="font-hanken text-sm leading-relaxed md:text-right" style={{ color: SLATE }}>
-              {tri(lang, 'Spurningar? Skrifaðu á', 'Questions? Write to', 'Fragen? Schreiben Sie an')}{' '}
+              {t.longQuestions}{' '}
               <a href={`mailto:${EMAIL}`} className="font-semibold underline underline-offset-4" style={{ color: CLAY_TX }}>
                 {EMAIL}
               </a>
@@ -1384,9 +1586,9 @@ function PolarHestarPageInner() {
                         tour.pic.alt ??
                         tri(
                           lang,
-                          `Íslenskt landslag — ${tour.name.is}`,
-                          `Icelandic landscape — ${tour.name.en}`,
-                          `Isländische Landschaft — ${tour.name.de}`,
+                          `Íslenskt landslag (${tour.name.is})`,
+                          `Icelandic landscape (${tour.name.en})`,
+                          `Isländische Landschaft (${tour.name.de})`,
                         )
                       }
                       loading="lazy"
@@ -1417,6 +1619,20 @@ function PolarHestarPageInner() {
                     <p className="max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
                       {tour.blurb[lang]}
                     </p>
+                    {(tour.requirements || tour.departures) && (
+                      <div className="flex flex-col gap-1 border-t pt-3" style={{ borderColor: '#161B3C12' }}>
+                        {tour.requirements && (
+                          <p className="font-hanken text-xs leading-relaxed" style={{ color: SLATE }}>
+                            {tour.requirements[lang]}
+                          </p>
+                        )}
+                        {tour.departures && (
+                          <p className="font-hanken text-xs leading-relaxed font-medium" style={{ color: CLAY_TX }}>
+                            {tour.departures[lang]}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <a
                       href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}&body=${encodeURIComponent(
                         tri(
@@ -1555,7 +1771,7 @@ function PolarHestarPageInner() {
               <span
                 className="flex items-center gap-2"
                 role="img"
-                aria-label={tri(lang, `${STATS.rating} af 5`, `${STATS.rating} out of 5`, `${STATS.rating} von 5`)}
+                aria-label={tri(lang, `${STATS.rating} af 5`, `${STATS.rating.replace(',', '.')} out of 5`, `${STATS.rating} von 5`)}
               >
                 {[0, 1, 2, 3, 4].map((s) => (
                   <Star
@@ -1566,9 +1782,15 @@ function PolarHestarPageInner() {
                   />
                 ))}
               </span>
-              <span className="ml-2 font-hanken text-sm" style={{ color: MIST }}>
+              <a
+                href={TRIPADVISOR}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-2 font-hanken text-sm underline decoration-white/35 underline-offset-4 transition-colors hover:decoration-white"
+                style={{ color: MIST }}
+              >
                 {t.trustBody}
-              </span>
+              </a>
             </div>
           </Reveal>
 
@@ -1724,6 +1946,16 @@ function PolarHestarPageInner() {
                   <Facebook className="h-4 w-4" />
                   Facebook
                 </a>
+                <a
+                  href={INSTAGRAM}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border px-5 py-3 font-hanken text-sm font-semibold transition-colors hover:bg-black/5"
+                  style={{ borderColor: '#1a205233', color: INK }}
+                >
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </a>
               </div>
             </div>
           </Reveal>
@@ -1797,8 +2029,11 @@ function PolarHestarPageInner() {
           </Reveal>
         </div>
       </section>
+      </main>
 
-      <PreviewFooter company={company} />
+      <div className="pb-20 md:pb-0">
+        <PreviewFooter company={company} />
+      </div>
 
       {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}
       <div data-on={barOn} className="ph-bar fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden" style={{ background: `${MIST}f5`, borderColor: '#1a20521f', backdropFilter: 'blur(8px)' }}>
@@ -1854,7 +2089,7 @@ function TourCard({ tour, lang, t, onBook }: { tour: TourX; lang: Lang; t: typeo
           sizes="(max-width: 640px) 100vw, 360px"
           alt={
             tour.pic.alt ??
-            tri(lang, `${tour.name.is} — íslenskir hestar`, `${tour.name.en} — Icelandic horses`, `${tour.name.de} — Islandpferde`)
+            tri(lang, `${tour.name.is} (íslenskir hestar)`, `${tour.name.en} (Icelandic horses)`, `${tour.name.de} (Islandpferde)`)
           }
           loading="lazy"
           decoding="async"
