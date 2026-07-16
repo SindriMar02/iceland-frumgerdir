@@ -7,12 +7,13 @@ import {
   motion,
   useInView,
   useMotionValue,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useTransform,
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
-import { BadgeCheck, Calendar, Car, Check, MapPin, Phone, Ruler, Send, ShieldCheck } from 'lucide-react'
+import { BadgeCheck, Calendar, Car, Check, MapPin, MessageCircle, Phone, Ruler, Send, ShieldCheck } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -529,7 +530,7 @@ function HeroBackground({ reduced }: { reduced: boolean }) {
   )
 }
 
-function Hero() {
+function Hero({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
@@ -539,6 +540,13 @@ function Hero() {
      customer's actual outcome). Local to this page; data.ts's HERO.headline
      stays the source of truth for the other three concepts. */
   const words = 'Mælt. Rétt. Í lagi.'.split(' ')
+  const goToContact = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const el = document.querySelector('#hafa-samband')
+    if (!el) return
+    if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -72 })
+    else el.scrollIntoView({ behavior: 'smooth' })
+  }
   return (
     <section ref={ref} id="efst" className="relative flex min-h-[100svh] items-end overflow-hidden">
       <motion.div className="absolute inset-0" style={{ y: reduced ? 0 : y }}>
@@ -625,18 +633,20 @@ function Hero() {
         >
           {HERO.sub}
         </motion.p>
-        {/* CTA row renders visible immediately — no entrance delay. A
-            worried customer must find and tap the phone number the
-            instant the page paints, not after the headline finishes
-            performing. */}
+        {/* CTA row renders visible immediately — no entrance delay. The
+            phone number itself stays persistently visible in the nav
+            (found in under 5s regardless of what this button does), so
+            this primary CTA's job is routing intent, not being the only
+            way to call. */}
         <div className="mt-9 flex flex-wrap items-center gap-4">
           <a
-            href={PHONE_HREF}
+            href="#hafa-samband"
+            onClick={goToContact}
             className="bg-cta-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
-            <Phone size={17} strokeWidth={2.4} aria-hidden />
-            {HERO.ctaPrimary}
+            <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
+            Hafðu samband
           </a>
           <a
             href="#thjonusta"
@@ -907,22 +917,31 @@ function ServiceIndex() {
     done). Not a generic progress bar: it's the réttingar concept itself,
     made literal. Dots stay individually positioned inside each <li> as
     before (robust to variable step height); only the connector changes. */
+function bendPathD(v: number) {
+  const bend = 7 * (1 - Math.max(0, Math.min(1, v)))
+  const pts = [
+    [8 - bend, 0],
+    [8 + bend * 0.65, 34],
+    [8 - bend * 0.55, 67],
+    [8, 100],
+  ]
+  const mid = (a: number, b: number) => (a + b) / 2
+  return (
+    `M${pts[0][0]},${pts[0][1]} ` +
+    `C${pts[0][0]},${mid(pts[0][1], pts[1][1])} ${pts[1][0]},${mid(pts[0][1], pts[1][1])} ${pts[1][0]},${pts[1][1]} ` +
+    `C${pts[1][0]},${mid(pts[1][1], pts[2][1])} ${pts[2][0]},${mid(pts[1][1], pts[2][1])} ${pts[2][0]},${pts[2][1]} ` +
+    `C${pts[2][0]},${mid(pts[2][1], pts[3][1])} ${pts[3][0]},${mid(pts[2][1], pts[3][1])} ${pts[3][0]},${pts[3][1]}`
+  )
+}
 function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
-  const pathD = useTransform(scrollYProgress, v => {
-    const bend = 7 * (1 - Math.max(0, Math.min(1, v)))
-    const pts = [
-      [8 - bend, 0],
-      [8 + bend * 0.65, 34],
-      [8 - bend * 0.55, 67],
-      [8, 100],
-    ]
-    const mid = (a: number, b: number) => (a + b) / 2
-    return (
-      `M${pts[0][0]},${pts[0][1]} ` +
-      `C${pts[0][0]},${mid(pts[0][1], pts[1][1])} ${pts[1][0]},${mid(pts[0][1], pts[1][1])} ${pts[1][0]},${pts[1][1]} ` +
-      `C${pts[1][0]},${mid(pts[1][1], pts[2][1])} ${pts[2][0]},${mid(pts[1][1], pts[2][1])} ${pts[2][0]},${pts[2][1]} ` +
-      `C${pts[2][0]},${mid(pts[2][1], pts[3][1])} ${pts[3][0]},${mid(pts[2][1], pts[3][1])} ${pts[3][0]},${pts[3][1]}`
-    )
+  const pathRef = useRef<SVGPathElement>(null)
+  /* motion.path's `d` prop only picks up a MotionValue once, at mount — it
+     doesn't subscribe the way style-based motion values do, so the shape
+     rendered once and then never updated again on scroll. Subscribing to
+     the raw scroll value and writing the attribute directly is the
+     guaranteed-reactive way to animate a computed `d` string. */
+  useMotionValueEvent(scrollYProgress, 'change', v => {
+    pathRef.current?.setAttribute('d', bendPathD(v))
   })
   return (
     <svg
@@ -931,7 +950,7 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
       viewBox="0 0 16 100"
       preserveAspectRatio="none"
     >
-      <motion.path d={pathD} fill="none" stroke={AMBER} strokeWidth="1.6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <path ref={pathRef} d={bendPathD(scrollYProgress.get())} fill="none" stroke={AMBER} strokeWidth="1.6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
     </svg>
   )
 }
@@ -1097,7 +1116,7 @@ function Brands() {
           ].map((m, i) => (
             <Rise key={m.alt} delay={i * 0.1}>
               <div
-                className="bg-brand-plate flex aspect-[4/3] flex-col items-center justify-center gap-4 rounded-sm border p-8"
+                className="bg-brand-plate flex h-[168px] flex-col items-center justify-center gap-4 rounded-sm border p-8 md:h-[192px]"
                 style={{ borderColor: HAIR, background: SURFACE }}
               >
                 <img src={m.src} alt={m.alt} loading="lazy" decoding="async" className="max-h-14 w-auto max-w-full object-contain md:max-h-16" />
@@ -1611,7 +1630,7 @@ export default function Page() {
       {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
       <Nav lenisRef={lenisRef} />
       <main>
-        <Hero />
+        <Hero lenisRef={lenisRef} />
         <Marquee />
         <Story />
         <Facts />
