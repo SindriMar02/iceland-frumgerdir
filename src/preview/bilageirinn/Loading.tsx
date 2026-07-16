@@ -53,20 +53,20 @@ export default function BilageirinnLoading({
           background-size:cover;background-position:center;opacity:.28}
         .bgl-vignette{position:absolute;inset:0;
           background:radial-gradient(ellipse at center,rgba(13,14,16,0.25) 0%,rgba(13,14,16,0.82) 62%,#0D0E10 100%)}
-        .bgl-glow{position:absolute;width:240px;height:240px;border-radius:50%;
-          background:radial-gradient(circle,rgba(232,162,61,0.14),rgba(232,162,61,0) 68%);
+        .bgl-glow{position:absolute;width:clamp(280px,42vw,460px);height:clamp(280px,42vw,460px);border-radius:50%;
+          background:radial-gradient(circle,rgba(232,162,61,0.16),rgba(232,162,61,0) 68%);
           animation:bglGlow 2.4s ease-in-out infinite}
 
-        .bgl-icon-video{position:relative;height:88px;width:auto;mix-blend-mode:screen}
-        .bgl-icon-still{position:relative;height:88px;width:auto;filter:brightness(0) invert(0.96)}
+        .bgl-icon-video{position:relative;height:clamp(110px,17vw,190px);width:auto;mix-blend-mode:screen}
+        .bgl-icon-still{position:relative;height:clamp(110px,17vw,190px);width:auto;filter:brightness(0) invert(0.96)}
 
-        .bgl-word{position:relative;margin-top:14px;text-align:center;opacity:0;transform:translateY(8px);
+        .bgl-word{position:relative;margin-top:clamp(16px,2.4vw,26px);text-align:center;opacity:0;transform:translateY(10px);
           animation:bglWordIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards;animation-delay:1.4s}
-        .bgl-word-tag{position:relative;margin-top:2px;text-align:center;opacity:0;transform:translateY(6px);
+        .bgl-word-tag{position:relative;margin-top:4px;text-align:center;opacity:0;transform:translateY(8px);
           animation:bglWordIn 0.45s cubic-bezier(0.22,1,0.36,1) forwards;animation-delay:1.55s}
         @keyframes bglWordIn{to{opacity:1;transform:translateY(0)}}
 
-        .bgl-track{position:relative;margin-top:20px;width:110px;height:2px;background:rgba(243,240,234,0.14);overflow:hidden}
+        .bgl-track{position:relative;margin-top:clamp(24px,3vw,32px);width:clamp(140px,16vw,190px);height:2px;background:rgba(243,240,234,0.14);overflow:hidden}
         .bgl-fill{position:absolute;inset:0;transform-origin:left;background:#E8A23D}
         .bgl-sweep{animation:bglSweep 1.4s cubic-bezier(0.65,0,0.35,1) infinite}
         @keyframes bglGlow{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:1;transform:scale(1.05)}}
@@ -88,10 +88,10 @@ export default function BilageirinnLoading({
         <video className="bgl-icon-video" src={`${B}preview/bilageirinn/logo-draw.mp4`} autoPlay muted playsInline disablePictureInPicture />
       )}
 
-      <p className="bgl-word" style={{ fontFamily: "'ClashDisplay-Bold', 'Arial Black', sans-serif", fontWeight: 700, fontSize: '25px', color: '#F3F0EA', letterSpacing: '-0.01em' }}>
+      <p className="bgl-word" style={{ fontFamily: "'ClashDisplay-Bold', 'Arial Black', sans-serif", fontWeight: 700, fontSize: 'clamp(30px, 4.4vw, 46px)', color: '#F3F0EA', letterSpacing: '-0.01em' }}>
         Bílageirinn
       </p>
-      <p className="bgl-word-tag" style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 500, fontSize: '10px', letterSpacing: '0.2em', color: '#A9A399' }}>
+      <p className="bgl-word-tag" style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 500, fontSize: 'clamp(11px, 1.4vw, 14px)', letterSpacing: '0.24em', color: '#A9A399' }}>
         BÍLAÞJÓNUSTA
       </p>
 
