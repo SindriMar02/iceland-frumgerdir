@@ -1133,9 +1133,23 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
      rendered once and then never updated again on scroll. Subscribing to
      the raw scroll value and writing the attribute directly is the
      guaranteed-reactive way to animate a computed `d` string. */
+  /* The line DRAWS with the scroll — its visible end is the user's own
+     position travelling down the rail, while the drawn part simultaneously
+     relaxes from bent to true. A full-height line that only changed shape
+     read as "already filled out"; the moving endpoint is what makes the
+     coupling to scroll unmistakable. The reveal is a userSpace clip rect,
+     NOT stroke-dashoffset: with vector-effect:non-scaling-stroke Chrome
+     computes dashes in screen space and ignores pathLength normalisation,
+     so a dash reveal renders as a repeating segment/gap pattern instead
+     of one growing line. Clipping is geometric and immune to that. */
+  const clipRef = useRef<SVGRectElement>(null)
   useMotionValueEvent(scrollYProgress, 'change', v => {
-    if (!reduced) pathRef.current?.setAttribute('d', bendPathD(v))
+    if (reduced) return
+    const c = Math.max(0, Math.min(1, v))
+    pathRef.current?.setAttribute('d', bendPathD(c))
+    clipRef.current?.setAttribute('height', String(100 * c))
   })
+  const v0 = reduced ? 1 : Math.max(0, Math.min(1, scrollYProgress.get()))
   return (
     <svg
       aria-hidden
@@ -1148,10 +1162,16 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
       viewBox="0 0 56 100"
       preserveAspectRatio="none"
     >
-      {/* reduced motion: the line renders already-true, no scroll morphing */}
+      <defs>
+        <clipPath id="bg-claimline-clip" clipPathUnits="userSpaceOnUse">
+          <rect ref={clipRef} x="-10" y="0" width="76" height={100 * v0} />
+        </clipPath>
+      </defs>
+      {/* reduced motion: the line renders already-true and fully drawn */}
       <path
         ref={pathRef}
-        d={reduced ? bendPathD(1) : bendPathD(scrollYProgress.get())}
+        d={bendPathD(v0)}
+        clipPath="url(#bg-claimline-clip)"
         fill="none"
         stroke={AMBER}
         strokeWidth="1.6"
