@@ -53,12 +53,12 @@ export default function BilageirinnLoading({
           background-size:cover;background-position:center;opacity:.28}
         .bgl-vignette{position:absolute;inset:0;
           background:radial-gradient(ellipse at center,rgba(13,14,16,0.25) 0%,rgba(13,14,16,0.82) 62%,#0D0E10 100%)}
-        .bgl-glow{position:absolute;width:260px;height:260px;border-radius:50%;
-          background:radial-gradient(circle,rgba(232,162,61,0.22),rgba(232,162,61,0) 68%);
+        .bgl-glow{position:absolute;width:240px;height:240px;border-radius:50%;
+          background:radial-gradient(circle,rgba(232,162,61,0.14),rgba(232,162,61,0) 68%);
           animation:bglGlow 2.4s ease-in-out infinite}
 
-        .bgl-icon-video{position:relative;height:52px;width:auto;mix-blend-mode:screen}
-        .bgl-icon-still{position:relative;height:52px;width:auto;filter:brightness(0) invert(0.96)}
+        .bgl-icon-video{position:relative;height:88px;width:auto;mix-blend-mode:screen}
+        .bgl-icon-still{position:relative;height:88px;width:auto;filter:brightness(0) invert(0.96)}
 
         .bgl-word{position:relative;margin-top:14px;text-align:center;opacity:0;transform:translateY(8px);
           animation:bglWordIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards;animation-delay:1.4s}
