@@ -660,32 +660,24 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
         </motion.p>
         {/* CTA row renders visible immediately (no entrance gating) — a
             worried crash customer must be able to act the instant the page
-            paints. Primary = the call, the business's stated fastest
-            channel ("hringdu — það er hraðast"); secondary routes to the
-            form; services stay one quiet text link + nav away. */}
+            paints. The call lives in the nav's persistent phone button, so
+            the hero doesn't repeat it: primary routes to the form,
+            secondary to the services. */}
         <div className="mt-9 flex flex-wrap items-center gap-4">
-          <a
-            href={PHONE_HREF}
-            className="bg-cta-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold"
-            style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
-          >
-            <Phone size={17} strokeWidth={2.4} aria-hidden />
-            {HERO.ctaPrimary}
-          </a>
           <a
             href="#hafa-samband"
             onClick={goTo('#hafa-samband')}
-            className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-sm border px-7 text-[16px] font-medium"
-            style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
+            className="bg-cta-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold"
+            style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
-            <MessageCircle size={17} strokeWidth={2.2} aria-hidden />
+            <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
             Hafðu samband
           </a>
           <a
             href="#thjonusta"
             onClick={goTo('#thjonusta')}
-            className="bg-link-hover inline-flex min-h-11 items-center text-[15px] font-medium underline decoration-1 underline-offset-4"
-            style={{ color: INK, fontFamily: BODY, textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
+            className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-sm border px-7 text-[16px] font-medium"
+            style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
           >
             {HERO.ctaSecondary}
           </a>
@@ -752,12 +744,14 @@ const BODY_REST = STORY.body.slice(BODY_SPLIT + 1)
     sentence ("your car has one true line") demonstrated by its own
     underline. Same reactive-attribute pattern as ClaimLine. */
 function hBendPathD(v: number) {
-  const bend = 4 * (1 - Math.max(0, Math.min(1, v)))
+  /* Same amplitude lesson as bendPathD: the wave must swing tens of px
+     (viewBox is 100×44, rendered ~44px tall) or the morph is invisible. */
+  const bend = 16 * (1 - Math.max(0, Math.min(1, v)))
   const pts = [
-    [0, 6 - bend],
-    [34, 6 + bend * 0.65],
-    [67, 6 - bend * 0.55],
-    [100, 6],
+    [0, 22 - bend],
+    [34, 22 + bend * 0.8],
+    [67, 22 - bend * 0.65],
+    [100, 22],
   ]
   const mid = (a: number, b: number) => (a + b) / 2
   return (
@@ -772,10 +766,23 @@ function LineQuote() {
   const bandRef = useRef<HTMLDivElement>(null)
   const pathRef = useRef<SVGPathElement>(null)
   const reduced = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: bandRef, offset: ['start 0.9', 'center 0.5'] })
-  useMotionValueEvent(scrollYProgress, 'change', v => {
-    if (!reduced) pathRef.current?.setAttribute('d', hBendPathD(v))
-  })
+  /* Time-based, triggered on entry — NOT scroll-coupled. The scroll-driven
+     version's measured range sat ~400px later than its offset asked for
+     (framer's target measurement, verified headless), so the line stayed
+     bent the whole time the quote was actually readable and only
+     straightened offscreen. A 1.6s straighten as it enters always runs,
+     always completes while the reader is looking at it. */
+  const inView = useInView(bandRef, { once: true, margin: '-30% 0px -30% 0px' })
+  useEffect(() => {
+    if (!inView || reduced) return
+    const controls = animate(0, 1, {
+      duration: 1.6,
+      ease: EASE,
+      delay: 0.2,
+      onUpdate: v => pathRef.current?.setAttribute('d', hBendPathD(v)),
+    })
+    return () => controls.stop()
+  }, [inView, reduced])
   return (
     <div ref={bandRef} className="mt-20 md:mt-28">
       <Rise>
@@ -792,7 +799,7 @@ function LineQuote() {
           {THESIS}
         </p>
       </Rise>
-      <svg aria-hidden className="mt-8 h-[14px] w-full" viewBox="0 0 100 12" preserveAspectRatio="none">
+      <svg aria-hidden className="pointer-events-none mt-6 h-[44px] w-full" viewBox="0 0 100 44" preserveAspectRatio="none">
         <path
           ref={pathRef}
           d={reduced ? hBendPathD(1) : hBendPathD(0)}
@@ -841,9 +848,8 @@ function Story() {
       {/* the thesis, at display scale, proving itself on its own underline */}
       <LineQuote />
 
-      {/* the shop's own line through time */}
+      {/* the shop's own line through time — LineQuote already closed with a line, so this needs none */}
       <div className="mt-20 md:mt-28">
-        <TrueLine className="mb-10 w-full opacity-80" />
         <div className="grid gap-10 md:grid-cols-3 md:gap-8">
           {STORY.timeline.map((t, i) => (
             <Rise key={t.year} delay={i * 0.12}>
@@ -1100,11 +1106,15 @@ function ServiceIndex() {
     made literal. Dots stay individually positioned inside each <li> as
     before (robust to variable step height); only the connector changes. */
 function bendPathD(v: number) {
-  const bend = 7 * (1 - Math.max(0, Math.min(1, v)))
+  /* Amplitude lives in tens of px, not single digits: the first version bowed
+     ±7px inside a 16px-wide svg over ~1.5 viewports of scroll and read as a
+     static line ("it does nothing, its stale"). The bow leans into the step
+     content (rightward), converging back onto the hairline. */
+  const bend = 1 - Math.max(0, Math.min(1, v))
   const pts = [
-    [8 - bend, 0],
-    [8 + bend * 0.65, 34],
-    [8 - bend * 0.55, 67],
+    [8 + 34 * bend, 0],
+    [8 - 5 * bend, 34],
+    [8 + 18 * bend, 67],
     [8, 100],
   ]
   const mid = (a: number, b: number) => (a + b) / 2
@@ -1129,8 +1139,13 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
   return (
     <svg
       aria-hidden
-      className="absolute bottom-2 left-[-3px] top-2 w-4 md:left-[-1px]"
-      viewBox="0 0 16 100"
+      /* h-[calc(...)] is load-bearing: an abs-positioned SVG is a REPLACED
+         element, so `top-2 bottom-2` alone does NOT stretch it — height
+         resolves from the viewBox aspect ratio (rendered a 100px sliver at
+         the rail top; the line "never animated" because 90% of it didn't
+         exist). Explicit height overrides the intrinsic ratio. */
+      className="pointer-events-none absolute left-[-3px] top-2 h-[calc(100%-16px)] w-14 md:left-[-1px]"
+      viewBox="0 0 56 100"
       preserveAspectRatio="none"
     >
       {/* reduced motion: the line renders already-true, no scroll morphing */}
@@ -1149,7 +1164,10 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
 
 function Claims() {
   const railRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: railRef, offset: ['start 0.75', 'end 0.75'] })
+  /* Straighten completes within ~0.6 viewport of scroll (rail top travelling
+     85% → 25% of the viewport) — fast enough that the eye catches the motion;
+     spread over the rail's full height it was too slow to register. */
+  const { scrollYProgress } = useScroll({ target: railRef, offset: ['start 0.85', 'start 0.25'] })
   return (
     <section id="tjon" className="scroll-mt-20 border-t" style={{ borderColor: HAIR, background: SURFACE }}>
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
