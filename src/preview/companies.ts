@@ -3011,14 +3011,14 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk matvælafyrirtæki.
 
-Ég kynnti mér Fisk Kompaní á Akureyri og sá að þið hafið vaxið jafnt og þétt síðan 2013, núna með tveimur verslunum og nýkeyptu reykhúsi á Ólafsfirði. Á fiskkompani.is hefur staðið „Opnum vefverslunina fljótlega!" í mörg ár, en verslunin opnaði aldrei.
+Ég kynnti mér Fisk Kompaní á Akureyri og sá að þið hafið vaxið jafnt og þétt síðan 2013, núna með tveimur verslunum og nýkeyptu reykhúsi á Ólafsfirði. Í dag tekur lykilorðssíða á móti þeim sem heimsækja fiskkompani.is, en vefverslunin er á leiðinni í loftið.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu með vefverslun fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að fólk geti loksins verslað hjá ykkur á netinu, séð báðar búðirnar og kynnst nýja reykhúsinu á Ólafsfirði. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Að fólk geti verslað hjá ykkur á netinu frá fyrsta degi, séð báðar búðirnar og kynnst nýja reykhúsinu á Ólafsfirði. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 

@@ -317,7 +317,7 @@ export const LOCATIONS = {
 /* ── Finale — the placeholder payoff (verbatim from the live Shopify
       placeholder, verified 2026-07-16) ───────────────────────────────── */
 export const FINALE = {
-  caption: 'Á fiskkompani.is hefur staðið í mörg ár:',
+  caption: 'Á fiskkompani.is stendur í dag:',
   before: 'Opnum vefverslunina fljótlega!',
   after: 'Vefverslunin er opin.',
   body: 'Þessi frumgerð sýnir hvernig loforðið gæti litið út. Fullkláruð vefverslun, byggð á alvöru borðinu ykkar og alvöru sögunni.',
