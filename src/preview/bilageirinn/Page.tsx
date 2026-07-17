@@ -550,13 +550,15 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
   const heroInView = useInView(ref, { amount: 0.1 })
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
-  /* Slogan history: "Aftur í rétta línu." -> "Mælt. Rétt. Í lagi." (read
-     as shop-process jargon) -> the owner's-eye promise. It's the second
-     half of the page's own thesis sentence ("...þá sem hann kom með úr
-     verksmiðjunni"), so the hero states the outcome and the story section
-     explains the mechanism. Local to this page; data.ts's HERO.headline
-     stays the source of truth for the other three concepts. */
-  const words = 'Eins og úr verksmiðjunni.'.split(' ')
+  /* Slogan: the collision-repair category's proven promise (CARSTAR
+     "where accidents UNHAPPEN", Caliber "restoring the rhythm of your
+     life") in native idiom — the accident gets erased. Deliberately NOT
+     "eins og nýr", which two competitors (Hjörtur, AutoCenter) already
+     lean on. History: "Aftur í rétta línu." -> "Mælt. Rétt. Í lagi."
+     (process jargon) -> "Eins og úr verksmiðjunni." (too close to the
+     eins-og-nýr cliché family). Local to this page; data.ts's
+     HERO.headline stays the source of truth for the other 3 concepts. */
+  const words = 'Eins og ekkert hefði í skorist.'.split(' ')
   const goTo = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     const el = document.querySelector(hash)
@@ -1877,7 +1879,7 @@ export default function Page() {
       '@type': 'AutoBodyShop',
       name: 'Bílageirinn',
       url: 'https://bilageirinn.is',
-      slogan: 'Eins og úr verksmiðjunni.',
+      slogan: 'Eins og ekkert hefði í skorist.',
       telephone: '+354 421 6901',
       email: EMAIL,
       address: { '@type': 'PostalAddress', streetAddress: ADDRESS.street, addressLocality: 'Reykjanesbær', postalCode: '230', addressCountry: 'IS' },
