@@ -2899,7 +2899,7 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
 
-Ég kynnti mér gistiheimilið ykkar á Seljavöllum og fannst staðurinn einstakur, alvöru sveitabær rétt við þjóðveginn með fjalla og jökulsýn, aðeins 72 kílómetra frá Jökulsárlóni. Vissuð þið að seljavellir.com skilar núna bara 404 villu? Hver einasti gestur sem gúglar ykkur endar því hjá Booking.com og borgar þeim þóknun sem ætti að vera ykkar.
+Ég kynnti mér gistiheimilið ykkar á Seljavöllum og fannst staðurinn einstakur, alvöru sveitabær rétt við þjóðveginn með útsýni yfir fjöll og jökla, aðeins 72 kílómetra frá Jökulsárlóni. Vissuð þið að seljavellir.com skilar núna bara 404 villu? Hver einasti gestur sem gúglar ykkur endar því hjá Booking.com og borgar þeim þóknun sem ætti að vera ykkar.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
@@ -3011,9 +3011,9 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk matvælafyrirtæki.
 
-Ég kynnti mér Fisk Kompaní á Akureyri og sá að þið hafið vaxið jafnt og þétt síðan 2013, núna með tveimur verslunum og nýkeyptu reykhúsi á Ólafsfirði. Á fiskkompani.is hefur staðið „Opnum vefverslunina fljótlega!" í mörg ár. Við tókum okkur til og kláruðum vefverslunina fyrir ykkur.
+Ég kynnti mér Fisk Kompaní á Akureyri og sá að þið hafið vaxið jafnt og þétt síðan 2013, núna með tveimur verslunum og nýkeyptu reykhúsi á Ólafsfirði. Á fiskkompani.is hefur staðið „Opnum vefverslunina fljótlega!" í mörg ár, en verslunin opnaði aldrei.
 
-Mér fannst það synd að síðan skyldi aldrei klárast, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu með vefverslun fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
