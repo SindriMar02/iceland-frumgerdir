@@ -550,11 +550,13 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
   const heroInView = useInView(ref, { amount: 0.1 })
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
-  /* New slogan (was: "Aftur í rétta línu.") — same true-line concept, new
-     phrasing: mælt (CABAS measurement) -> rétt (réttingar) -> í lagi (the
-     customer's actual outcome). Local to this page; data.ts's HERO.headline
+  /* Slogan history: "Aftur í rétta línu." -> "Mælt. Rétt. Í lagi." (read
+     as shop-process jargon) -> the owner's-eye promise. It's the second
+     half of the page's own thesis sentence ("...þá sem hann kom með úr
+     verksmiðjunni"), so the hero states the outcome and the story section
+     explains the mechanism. Local to this page; data.ts's HERO.headline
      stays the source of truth for the other three concepts. */
-  const words = 'Mælt. Rétt. Í lagi.'.split(' ')
+  const words = 'Eins og úr verksmiðjunni.'.split(' ')
   const goTo = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     const el = document.querySelector(hash)
@@ -1875,7 +1877,7 @@ export default function Page() {
       '@type': 'AutoBodyShop',
       name: 'Bílageirinn',
       url: 'https://bilageirinn.is',
-      slogan: 'Mælt. Rétt. Í lagi.',
+      slogan: 'Eins og úr verksmiðjunni.',
       telephone: '+354 421 6901',
       email: EMAIL,
       address: { '@type': 'PostalAddress', streetAddress: ADDRESS.street, addressLocality: 'Reykjanesbær', postalCode: '230', addressCountry: 'IS' },
