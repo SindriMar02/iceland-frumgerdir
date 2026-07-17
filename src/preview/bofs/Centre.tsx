@@ -12,6 +12,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
 import { HomeArt, ValleyScene, WaveDivider } from './illustrations'
+import { JourneyStrip, FosterSteps } from './sections'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
 
 export default function BofsCentre() {
@@ -95,16 +96,21 @@ export default function BofsCentre() {
           <WaveDivider color={C.cream} className="h-12 w-full" />
         </section>
 
+        {/* ── WHERE IN THE PROCESS ─────────────────────────────────────── */}
+        <section style={{ background: C.cream }}>
+          <JourneyStrip serviceName={service.name} hue={service.hue} />
+        </section>
+
         {/* ── BODY ─────────────────────────────────────────────────────── */}
         <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
+          <div className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:px-8">
             {photo && (
               <Reveal>
-                <figure className="mb-16 overflow-hidden rounded-[30px]" style={{ boxShadow: `0 34px 66px -46px rgba(58,44,34,.55)` }}>
+                <figure className="bofs-arch mb-16 overflow-hidden" style={{ boxShadow: `0 34px 66px -46px rgba(58,44,34,.55)` }}>
                   <Img
                     src={asset(photo.src)}
                     alt={pick(photo.alt)}
-                    className="h-[240px] w-full object-cover sm:h-[380px]"
+                    className="bofs-photo h-[260px] w-full object-cover sm:h-[420px]"
                     fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
                   />
                 </figure>
@@ -196,6 +202,9 @@ export default function BofsCentre() {
             </div>
           </div>
         </section>
+
+        {/* ── BECOMING A FOSTER PARENT (fostur only) ───────────────────── */}
+        {slug === 'fostur' && <FosterSteps />}
 
         {/* ── NEXT + BACK ──────────────────────────────────────────────── */}
         <section className="relative overflow-hidden" style={{ background: next.hueSoft }}>

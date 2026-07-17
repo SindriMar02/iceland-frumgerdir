@@ -3,11 +3,11 @@
  * footer, buttons, and the one-time ambient-motion stylesheet.
  */
 
-import { useCallback, useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
+import { motion, AnimatePresence, animate, useInView, useReducedMotion, type MotionValue } from 'framer-motion'
+import { CATEGORIES, ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
 import { HomeArt } from './illustrations'
 import { Reveal } from '../../components/Reveal'
 import { SndrBadge } from '../SndrBadge'
@@ -105,14 +105,38 @@ export function BofsStyles() {
     <style>{`
       .bofs-root { background:${C.cream}; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
       .bofs-root ::selection { background:${C.terra}; color:#fff; }
-      .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; letter-spacing:-0.02em; line-height:1.02; }
+      .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; letter-spacing:-0.02em; line-height:1.02; font-variation-settings:'opsz' 40; }
+      /* let the true display cut show at hero scale, stay sturdy on small titles */
+      .bofs-display-xl { font-variation-settings:'opsz' 96; }
+      .bofs-display-sm { font-variation-settings:'opsz' 18; letter-spacing:-0.01em; }
       .bofs-hand { font-family:${HAND}; }
+      /* long Icelandic compounds orphan easily; balance headings, pretty leads */
+      .bofs-balance { text-wrap:balance; }
+      .bofs-pretty { text-wrap:pretty; }
+      /* one statement style, reused as each page's single large gesture */
+      .bofs-statement { font-family:${DISPLAY}; color:${C.cocoa}; font-size:clamp(24px,3.6vw,38px); line-height:1.16; letter-spacing:-0.02em; font-variation-settings:'opsz' 64; }
+      .bofs-num { font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; }
       .bofs-root a { color:inherit; }
       .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:14px; }
+      .bofs-root .no-scrollbar { scrollbar-width:none; -ms-overflow-style:none; }
+      .bofs-root .no-scrollbar::-webkit-scrollbar { display:none; }
+
+      /* one photographic language: unify eleven photos into one shoot */
+      .bofs-photo { filter:saturate(.94) sepia(.05) contrast(.99); }
+      /* the doorway crop; at most one per page */
+      .bofs-arch { border-radius:999px 999px 30px 30px; }
+
+      /* micro-interaction craft: composited-only lifts, gated behind real hover */
+      .bofs-lift { transition:transform .2s ease-out, box-shadow .2s ease-out; }
+      .bofs-press { transition:transform .12s ease-out; }
+      .bofs-press:active { transform:scale(.985); }
+      @media (hover:hover) and (pointer:fine) {
+        .bofs-lift:hover { transform:translateY(-3px); }
+      }
 
       @keyframes bofsDrift { from { transform:translateX(-16vw) } to { transform:translateX(116vw) } }
       @keyframes bofsBreathe { 0%,100% { transform:scale(1); opacity:1 } 50% { transform:scale(1.05); opacity:.92 } }
-      @keyframes bofsTwinkle { 0%,100% { opacity:1 } 50% { opacity:.55 } }
+      @keyframes bofsTwinkle { 0%,100% { opacity:1 } 50% { opacity:.5 } }
       @keyframes bofsSway { 0%,100% { transform:rotate(-2deg) } 50% { transform:rotate(2deg) } }
       @keyframes bofsFly { 0% { transform:translate(0,0) } 50% { transform:translate(60px,-24px) } 100% { transform:translate(140px,10px) } }
       @keyframes bofsBeat { 0%,100% { transform:scale(1) } 25% { transform:scale(1.08) } 40% { transform:scale(1) } }
@@ -128,6 +152,7 @@ export function BofsStyles() {
 
       @media (prefers-reduced-motion: reduce) {
         .bofs-drift,.bofs-breathe,.bofs-twinkle,.bofs-sway,.bofs-fly,.bofs-beat,.bofs-float { animation:none !important; }
+        .bofs-faq { transition:none !important; }
       }
     `}</style>
   )
@@ -264,6 +289,8 @@ export function Header() {
   const [lang, setLang, pick] = useLang()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const [services, setServices] = useState(false)
+  const servicesRef = useRef<HTMLDivElement | null>(null)
   const { pathname } = useLocation()
   const onHome = pathname.endsWith('/preview/bofs') || pathname.endsWith('/preview/bofs/')
 
@@ -274,27 +301,49 @@ export function Header() {
     return () => window.removeEventListener('scroll', h)
   }, [])
 
+  // close both menus whenever the route changes
+  useEffect(() => {
+    setOpen(false)
+    setServices(false)
+  }, [pathname])
+
+  // dropdown: close on Escape or outside pointer
+  useEffect(() => {
+    if (!services) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setServices(false)
+    const onDown = (e: PointerEvent) => {
+      if (servicesRef.current && !servicesRef.current.contains(e.target as Node)) setServices(false)
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('pointerdown', onDown)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('pointerdown', onDown)
+    }
+  }, [services])
+
   const base = onHome ? '' : '/preview/bofs'
-  const links = [
-    { label: pick(UI.nav.homes), to: `${base}#heimili` },
-    { label: pick(UI.nav.services), to: `${base}#thjonusta` },
-    { label: pick(UI.nav.path), to: `${base}#path` },
+  const homes = SERVICES.filter((s) => s.category === 'heimili')
+  const thjonusta = SERVICES.filter((s) => s.category === 'thjonusta')
+  const pageLinks = [
+    { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
+    { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
+    { label: pick(UI.nav.report), to: `${base}#tilkynna` },
     { label: pick(UI.nav.help), to: `${base}#help` },
   ]
+  const isActive = (to: string) => pathname === to
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
-        className="mx-auto mt-3 flex max-w-6xl items-center justify-between gap-4 rounded-full px-3 py-2 pr-3 pl-4 transition-all duration-500 sm:mt-4"
+        className="mx-auto mt-3 flex items-center justify-between gap-4 rounded-full px-3 py-2 pr-3 pl-4 transition-all duration-500 sm:mt-4"
         style={{
           margin: '12px 12px 0',
-          maxWidth: 'min(1120px, calc(100% - 24px))',
+          maxWidth: 'min(1180px, calc(100% - 24px))',
           marginLeft: 'auto',
           marginRight: 'auto',
-          background: scrolled ? 'rgba(251,243,231,.88)' : 'rgba(251,243,231,.35)',
+          background: scrolled ? 'rgba(251,243,231,.9)' : 'rgba(251,243,231,.35)',
           boxShadow: scrolled ? `0 12px 34px -20px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}` : 'none',
-          // backdrop blur re-samples the page every scrolled frame; keep it
-          // off over the hero and modest once the bar needs it
           backdropFilter: scrolled ? 'blur(10px)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
@@ -303,13 +352,69 @@ export function Header() {
           <Wordmark />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
-          {links.map((l) => (
+        <nav className="hidden items-center gap-0.5 xl:flex">
+          <div className="relative" ref={servicesRef}>
+            <button
+              type="button"
+              className="bofs-focus flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
+              style={{ color: C.cocoa }}
+              aria-haspopup="true"
+              aria-expanded={services}
+              onClick={() => setServices((v) => !v)}
+            >
+              {pick(UI.nav.services)}
+              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style={{ transform: services ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease-out' }}>
+                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <AnimatePresence>
+              {services && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+                  style={{ transformOrigin: 'top left', background: 'rgba(251,243,231,.97)', boxShadow: `0 26px 54px -26px rgba(58,44,34,.55), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
+                  className="absolute left-0 top-[calc(100%+10px)] grid w-[520px] grid-cols-2 gap-1 rounded-3xl p-3"
+                >
+                  {[
+                    { title: pick(CATEGORIES[0].title), list: homes },
+                    { title: pick(CATEGORIES[1].title), list: thjonusta },
+                  ].map((col) => (
+                    <div key={col.title}>
+                      <span className="block px-3 pb-1 pt-2 text-[11.5px] font-bold uppercase tracking-[0.16em]" style={{ color: C.clayText }}>
+                        {col.title}
+                      </span>
+                      {col.list.map((s) => (
+                        <Link
+                          key={s.slug}
+                          to={`/preview/bofs/${s.slug}`}
+                          className="bofs-focus flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors hover:bg-white/70"
+                        >
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.hue }} />
+                          <span className="leading-tight">
+                            <span className="block text-[14.5px] font-semibold" style={{ color: C.cocoa }}>
+                              {s.name}
+                            </span>
+                            <span className="block text-[12px]" style={{ color: C.body }}>
+                              {pick(s.kind)}
+                            </span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {pageLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               className="bofs-focus rounded-full px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
-              style={{ color: C.cocoa }}
+              style={{ color: C.cocoa, background: isActive(l.to) ? 'rgba(255,255,255,.6)' : undefined }}
             >
               {l.label}
             </Link>
@@ -319,7 +424,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <a
             href="tel:112"
-            className="bofs-focus hidden items-center gap-1.5 rounded-full px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
+            className="bofs-focus bofs-press hidden items-center gap-1.5 rounded-full px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
             style={{ background: '#A83A24', color: '#fff' }}
           >
             <PhoneGlyph /> {pick(UI.emergencyChip)}
@@ -329,7 +434,7 @@ export function Header() {
           </span>
           <button
             type="button"
-            className="bofs-focus grid h-10 w-10 place-items-center rounded-full lg:hidden"
+            className="bofs-focus grid h-10 w-10 place-items-center rounded-full xl:hidden"
             style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
             aria-label="Menu"
             aria-expanded={open}
@@ -350,20 +455,38 @@ export function Header() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="mx-3 mt-2 overflow-hidden rounded-3xl p-2 lg:hidden"
-            style={{ background: 'rgba(251,243,231,.96)', boxShadow: `0 24px 48px -24px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
+            className="mx-3 mt-2 max-h-[80vh] overflow-y-auto rounded-3xl p-3 xl:hidden"
+            style={{ background: 'rgba(251,243,231,.97)', boxShadow: `0 24px 48px -24px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
           >
-            {links.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                onClick={() => setOpen(false)}
-                className="bofs-focus block rounded-2xl px-4 py-3 text-[16px] font-semibold hover:bg-white/70"
-                style={{ color: C.cocoa }}
-              >
-                {l.label}
-              </Link>
-            ))}
+            <MobileGroup label={pick({ is: 'Síður', en: 'Pages' })}>
+              {pageLinks.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  onClick={() => setOpen(false)}
+                  className="bofs-focus block rounded-2xl px-4 py-3 text-[16px] font-semibold hover:bg-white/70"
+                  style={{ color: C.cocoa }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </MobileGroup>
+            <MobileGroup label={pick(UI.nav.services)}>
+              <div className="grid grid-cols-2 gap-1">
+                {SERVICES.map((s) => (
+                  <Link
+                    key={s.slug}
+                    to={`/preview/bofs/${s.slug}`}
+                    onClick={() => setOpen(false)}
+                    className="bofs-focus flex items-center gap-2 rounded-2xl px-3 py-2.5 text-[14.5px] font-semibold hover:bg-white/70"
+                    style={{ color: C.cocoa }}
+                  >
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: s.hue }} />
+                    {s.name}
+                  </Link>
+                ))}
+              </div>
+            </MobileGroup>
             <a
               href="tel:112"
               onClick={() => setOpen(false)}
@@ -382,6 +505,17 @@ export function Header() {
         )}
       </AnimatePresence>
     </header>
+  )
+}
+
+function MobileGroup({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="mb-1">
+      <span className="block px-4 pb-1 pt-2 text-[11.5px] font-bold uppercase tracking-[0.16em]" style={{ color: C.clayText }}>
+        {label}
+      </span>
+      {children}
+    </div>
   )
 }
 
@@ -405,7 +539,7 @@ export function Footer() {
   return (
     <footer style={{ background: C.deep, color: C.deepText }}>
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr]">
           <div>
             <Wordmark onDeep />
             <p className="mt-4 max-w-xs text-[15px] leading-relaxed" style={{ color: 'rgba(246,232,213,.75)' }}>
@@ -445,6 +579,26 @@ export function Footer() {
 
           <div>
             <h4 className="mb-3 text-[13px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
+              {pick(UI.footerSite)}
+            </h4>
+            <ul className="space-y-2 text-[15px]">
+              {[
+                { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
+                { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
+                { label: pick(UI.nav.report), to: '/preview/bofs#tilkynna' },
+                { label: pick(UI.nav.help), to: '/preview/bofs#help' },
+              ].map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to} className="bofs-focus rounded transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.85)' }}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-3 text-[13px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
               {pick(UI.footerContact)}
             </h4>
             <ul className="space-y-2 text-[15px]" style={{ color: 'rgba(246,232,213,.85)' }}>
@@ -458,6 +612,9 @@ export function Footer() {
                 <a className="bofs-focus rounded hover:opacity-70" href={`mailto:${ORG.email}`}>
                   {ORG.email}
                 </a>
+              </li>
+              <li className="pt-1 text-[13.5px]" style={{ color: 'rgba(246,232,213,.6)' }}>
+                {pick(ORG.hours)}
               </li>
             </ul>
             <div className="mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-bold" style={{ background: '#A83A24', color: '#fff' }}>
@@ -551,16 +708,121 @@ export function ServiceCard({ service, index = 0 }: { service: Service; index?: 
           <span className="h-2 w-2 rounded-full" style={{ background: service.hue }} />
           {pick(service.kind)}
         </span>
-        <h3 className="bofs-display mt-3 text-[23px]">{service.name}</h3>
+        <h3 className="bofs-display bofs-display-sm mt-3 text-[23px]">{service.name}</h3>
         <p className="mt-2 flex-1 text-[15px] leading-relaxed" style={{ color: C.body }}>
           {pick(service.card)}
         </p>
-        <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-bold transition-transform duration-300 group-hover:gap-2.5" style={{ color: C.clayText }}>
+        <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: C.clayText }}>
           {pick(UI.exploreCentre)}
-          <Arrow />
+          <Arrow className="transition-transform duration-200 ease-out group-hover:translate-x-1" />
         </span>
       </Link>
     </Reveal>
+  )
+}
+
+/* ── count-up number (verified stats only) ────────────────────────────── */
+
+export function StatCountUp({ value, format = 'plain', className, style }: { value: number; format?: 'plain' | 'thousand'; className?: string; style?: CSSProperties }) {
+  const ref = useRef<HTMLSpanElement | null>(null)
+  const [lang] = useLang()
+  const inView = useInView(ref, { once: true, margin: '-70px' })
+  const reduce = useReducedMotion()
+  // Deterministic grouping: Icelandic thousands separator is a period, English a
+  // comma. Do it by hand; this Chrome's ICU mis-maps is-IS to a comma.
+  const sep = lang === 'is' ? '.' : ','
+  const fmt = useCallback((n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, sep), [sep])
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    if (reduce || !inView) {
+      if (reduce) node.textContent = fmt(value)
+      return
+    }
+    const controls = animate(0, value, {
+      duration: format === 'thousand' ? 1.4 : 1.1,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => {
+        node.textContent = fmt(v)
+      },
+    })
+    return () => controls.stop()
+  }, [inView, reduce, value, fmt, format])
+
+  return (
+    <span ref={ref} className={`bofs-num ${className ?? ''}`} style={style}>
+      {reduce ? fmt(value) : fmt(0)}
+    </span>
+  )
+}
+
+/* ── sticky scroll-spy sub-nav (shared by the two long pages) ─────────── */
+
+export function SubNav({ sections }: { sections: { id: string; label: string }[] }) {
+  const [active, setActive] = useState(sections[0]?.id ?? '')
+  const idKey = sections.map((s) => s.id).join('|')
+
+  useEffect(() => {
+    const els = sections.map((s) => document.getElementById(s.id)).filter(Boolean) as HTMLElement[]
+    if (!els.length) return
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+        if (visible[0]) setActive(visible[0].target.id)
+      },
+      { rootMargin: '-42% 0px -52% 0px', threshold: [0, 0.2, 0.5, 1] },
+    )
+    els.forEach((el) => obs.observe(el))
+    return () => obs.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idKey])
+
+  return (
+    <div className="sticky top-[84px] z-40 mx-auto max-w-6xl px-4">
+      <nav
+        className="no-scrollbar flex gap-1 overflow-x-auto rounded-full p-1.5"
+        style={{ background: 'rgba(251,243,231,.92)', boxShadow: `inset 0 0 0 1px ${C.line}, 0 12px 30px -22px rgba(58,44,34,.5)`, backdropFilter: 'blur(10px)' }}
+        aria-label="On this page"
+      >
+        {sections.map((s) => {
+          const on = active === s.id
+          return (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="bofs-focus relative shrink-0 rounded-full px-3.5 py-1.5 text-[13.5px] font-semibold transition-colors"
+              style={{ color: on ? '#FFF6EC' : C.body }}
+              aria-current={on ? 'true' : undefined}
+            >
+              {on && (
+                <motion.span
+                  layoutId="bofs-subnav"
+                  className="absolute inset-0 -z-10 rounded-full"
+                  style={{ background: C.clay }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+                />
+              )}
+              {s.label}
+            </a>
+          )
+        })}
+      </nav>
+    </div>
+  )
+}
+
+/* ── compositor-only scroll rail (the one scrubbed signature on kerfid) ── */
+
+export function ScrollRail({ progress, className }: { progress?: MotionValue<number>; className?: string }) {
+  return (
+    <div className={`overflow-hidden rounded-full ${className ?? ''}`} style={{ background: C.line }} aria-hidden="true">
+      {progress ? (
+        <motion.div className="h-full w-full origin-top rounded-full" style={{ background: C.clay, scaleY: progress }} />
+      ) : (
+        <div className="h-full w-full rounded-full" style={{ background: C.clay }} />
+      )}
+    </div>
   )
 }
 

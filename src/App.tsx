@@ -79,6 +79,8 @@ const SeidkarlinnPage = lazy(() => import('./preview/seidkarlinn/Page'))
 // Concept — Barna- og fjölskyldustofa "Öruggt skjól" (warm umbrella, per-centre pages)
 const BofsPage = lazy(() => import('./preview/bofs/Page'))
 const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
+const BofsKerfid = lazy(() => import('./preview/bofs/Kerfid'))
+const BofsUmStofnunina = lazy(() => import('./preview/bofs/UmStofnunina'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 // Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
 const EldofninnPage = lazy(() => import('./preview/eldofninn/Page'))
@@ -217,6 +219,8 @@ export default function App() {
             <Route path="/preview/strytan" element={<StrytanPage />} />
             <Route path="/preview/seidkarlinn" element={<SeidkarlinnPage />} />
             <Route path="/preview/bofs" element={<BofsPage />} />
+            <Route path="/preview/bofs/kerfid" element={<BofsKerfid />} />
+            <Route path="/preview/bofs/um-stofnunina" element={<BofsUmStofnunina />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
             {/* own nested Suspense (not the outer fallback=null) so a slow chunk fetch shows a
                 branded loading screen instead of a blank flash - see Loading.tsx */}
