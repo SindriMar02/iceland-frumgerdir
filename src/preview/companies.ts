@@ -2857,6 +2857,286 @@ Endilega látið mig vita ef þið hafið áhuga.
 ${SIGN}`,
     },
   },
+  {
+    slug: 'seljavellir',
+    route: '/preview/seljavellir',
+    name: 'Guesthouse Seljavellir',
+    sector: 'Guesthouse & farm dining',
+    location: 'Seljavellir, Höfn í Hornafirði',
+    region: 'East',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://seljavellir.com',
+    ownerEmail: 'reynirasg@gmail.com',
+    concept: 'Einn dagur á Seljavöllum',
+    conceptTagline:
+      'A full day at a working Hornafjörður farm guesthouse, from blue hour quiet to aurora over Vestrahorn, with the glacier view rooms and breakfast times a dead website could never show.',
+    accent: '#E8A33D',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1759675739458-6e5a4a60a117?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'Real, working farm guesthouse with mountain and glacier view rooms, 8 minutes from Höfn and 72 km from Jökulsárlón',
+        'Strong reputation: 8.6 "Fabulous" on Booking.com from over 2,000 reviews, ranked #3 of 21 B&Bs/inns in Höfn on Tripadvisor',
+        'Genuinely photogenic real assets: golden hour farmland panoramas, mountain view rooms, an active Facebook page with real guest photos',
+      ],
+      weaknesses: [
+        'seljavellir.com returns a live 404 on both http and https, with an expired SSL certificate and a derelict 2015 WordPress install underneath',
+        'Every booking runs through Booking.com, Expedia and Airbnb, so the guesthouse pays OTA commission on every reservation instead of taking direct bookings itself',
+        'Public contact is a personal Gmail address, and two different phone and email sets are floating around online with no owned site to state the facts once, clearly',
+      ],
+      opportunities: [
+        "Replace the dead domain with a photo led site that finally answers guests' practical questions on breakfast, check in and rooms in one place",
+        'Add a direct booking path to start pulling reservations back from OTA commission',
+        'Turn the real farm setting and glacier view rooms into the visual identity instead of leaving guests to piece it together from Booking.com',
+      ],
+    },
+    positioning:
+      'Guesthouse Seljavellir is a real, multi room family guesthouse on a working farm outside Höfn, eight minutes from town and seventy two kilometres from Jökulsárlón, with an 8.6 rating across more than two thousand Booking.com reviews. Its own domain has been a dead 404 for years since its old WordPress site lapsed, so every guest who searches for it lands on Booking.com or Expedia instead. The redesign gives the farm a real home online built around its own light, from blue hour to the aurora over Vestrahorn, with breakfast times, room rates and a direct booking path finally in one place.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Guesthouse Seljavellir',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
+
+Ég kynnti mér gistiheimilið ykkar á Seljavöllum og fannst staðurinn einstakur, alvöru sveitabær rétt við þjóðveginn með fjalla og jökulsýn, aðeins 72 kílómetra frá Jökulsárlóni. Vissuð þið að seljavellir.com skilar núna bara 404 villu? Hver einasti gestur sem gúglar ykkur endar því hjá Booking.com og borgar þeim þóknun sem ætti að vera ykkar.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að gestir sjái fjöllin, jöklana og bóndabæinn áður en þeir bóka, og geti pantað beint hjá ykkur í stað þess að fara alltaf í gegnum Booking.com. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'langaholt',
+    route: '/preview/langaholt',
+    name: 'Hotel Langaholt',
+    sector: 'Countryside hotel & restaurant',
+    location: 'Ytri-Görðum, Staðarsveit, Snæfellsnes',
+    region: 'West',
+    established: 'Frá 1978',
+    currentUrl: 'https://langaholt.is',
+    ownerEmail: 'langaholt@langaholt.is',
+    concept: 'Sjóndeildarhringurinn',
+    conceptTagline:
+      "A single unbroken Snæfellsnes horizon line runs the whole page, sky carrying the family's story since 1978 while the shore below carries real rooms, the daily catch and a nine hole links course.",
+    accent: '#C9A468',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://langaholt.is/wp-content/uploads/2019/01/Velkomion-1024x768.jpg',
+    audit: {
+      strengths: [
+        '48 year family run hotel, roughly 40 en suite rooms plus a 60 seat restaurant, bar and two lounges, ranked #1 hotel in Snæfellsbær on Tripadvisor',
+        'A genuine coastal setting with its own 9 hole links golf course built in 1997, a five minute walk to the beach and real seal watching nearby at Ytri Tunga',
+        'Kitchen sources fish straight from local Snæfellsnes fishermen, so the restaurant already has a strong, true story to tell',
+      ],
+      weaknesses: [
+        'langaholt.is still shows the footer copyright frozen at 2019, seven years out of date',
+        "Room and testimonial photos are broken, showing gray placeholder boxes instead of the hotel's own rooms",
+        'Booking is pushed entirely off the domain to a third party godo.is widget, so the hotel has no native booking flow of its own',
+      ],
+      opportunities: [
+        "Replace the broken photo boxes with the hotel's real, already photographed rooms and let guests actually see what they are booking",
+        "Bring booking back onto the hotel's own site instead of handing every guest off to a separate widget",
+        'Tell the real 48 year family story and the golf course and restaurant sourcing, assets almost no competitor in the area has',
+      ],
+    },
+    positioning:
+      "Hotel Langaholt is a genuine, 48 year old family run hotel on the Snæfellsnes coast, with roughly 40 en suite rooms, a 60 seat restaurant sourcing fish from local fishermen, and its own 9 hole links golf course, already rated the best hotel in Snæfellsbær. Its website has been frozen since 2019, with broken placeholder images where real room photos should be and booking pushed entirely off the domain to a third party widget. The redesign turns the coastline itself into the site's spine, an unbroken horizon line carrying the family's story above and the real rooms, kitchen and golf course below.",
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Hótel Langaholt',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
+
+Ég kynnti mér Hótel Langaholt og fannst frábært að þið hafið rekið staðinn í næstum fimmtíu ár, með eigin golfvelli og eldhúsi sem kaupir fiskinn beint af sjómönnum á Snæfellsnesi. Á langaholt.is stendur enn © 2019 og herbergin á besta hóteli Snæfellsbæjar birtast sem gráir kassar, á meðan Booking tekur þóknun af hverri einustu bókun.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að gestir sjái alvöru herbergin, ströndina og golfvöllinn áður en þeir bóka, og að fleiri bóki beint hjá ykkur í stað þess að borga Booking þóknun af hverri nóttu. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'fiskkompani',
+    route: '/preview/fiskkompani',
+    name: 'Fisk Kompaní',
+    sector: 'Fish & deli retail, two shops',
+    location: 'Kjarnagata 2 & Glerártorg, Akureyri',
+    region: 'North',
+    established: 'Frá 2013',
+    currentUrl: 'https://www.fiskkompani.is',
+    ownerEmail: 'fiskkompani@fiskkompani.is',
+    concept: 'Dagsins afli, loksins á netinu',
+    conceptTagline:
+      'The real fish counter in Akureyri, its own five year old "opening soon" placeholder finally paid off with a working shop, and the new Ólafsfjörður smokehouse story told in drifting smoke.',
+    accent: '#D9552B',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://veitingageirinn.is/wp-content/uploads/2023/02/opnun-fisk-kompani.jpg',
+    audit: {
+      strengths: [
+        'A real, growing business: two staffed shops in Akureyri plus an April 2026 acquisition of an Ólafsfjörður salmon and Arctic char smokehouse',
+        'Founded in 2013 by four local partners, over a decade of trading with roughly 8,400 Facebook followers and a loyal fresh fish and deli following',
+        'Genuinely photogenic counter and product displays, real opening day and press photography already exists to build from',
+      ],
+      weaknesses: [
+        'fiskkompani.is redirects to a password gated Shopify placeholder that has read "Opnum vefverslunina fljótlega" for years, with no products, photos or store info',
+        'The second location at Glerártorg is not represented anywhere on the domain at all',
+        'No online ordering exists despite the placeholder literally promising a web store',
+      ],
+      opportunities: [
+        'Finally deliver the web store the placeholder has promised for years, built around the real counter and both real shop locations',
+        'Tell the Ólafsfjörður smokehouse acquisition as a fresh, active growth story',
+        'Turn thousands of Facebook followers into a proper site people can actually shop from',
+      ],
+    },
+    positioning:
+      "Fisk Kompaní is a real, growing fish and deli retailer with two staffed shops in Akureyri and a fresh 2026 acquisition of a salmon and Arctic char smokehouse in Ólafsfjörður, built on over a decade of trading since 2013. Its own domain has redirected for years to a password gated Shopify placeholder promising an online store that never arrived, with no products, photos or even a mention of the second shop. The redesign finally finishes that promise: a real photo led shop built around the counter, both locations and the new smokehouse story.",
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Fisk Kompaní',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk matvælafyrirtæki.
+
+Ég kynnti mér Fisk Kompaní á Akureyri og sá að þið hafið vaxið jafnt og þétt síðan 2013, núna með tveimur verslunum og nýkeyptu reykhúsi á Ólafsfirði. Á fiskkompani.is hefur staðið „Opnum vefverslunina fljótlega!" í mörg ár. Við tókum okkur til og kláruðum vefverslunina fyrir ykkur.
+
+Mér fannst það synd að síðan skyldi aldrei klárast, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk geti loksins verslað hjá ykkur á netinu, séð báðar búðirnar og kynnst nýja reykhúsinu á Ólafsfirði. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'naustid',
+    route: '/preview/naustid',
+    name: 'Naustið',
+    sector: 'Seafood restaurant',
+    location: 'Ásgarðsvegur 1, Húsavík',
+    region: 'North',
+    established: 'Síðan um 2011',
+    currentUrl: 'https://www.facebook.com/naustid/',
+    ownerEmail: 'naustidfood@gmail.com',
+    concept: 'Gula húsið við höfnina',
+    conceptTagline:
+      "Húsavík's number one rated seafood restaurant approached the way every guest already finds it, across the harbour toward the bright yellow house, with the signature soup on the table by the time you arrive.",
+    accent: '#F0B429',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://visit-husavik.payload.is/api/media/file/Exterior%20PNG-2000x1125.png',
+    audit: {
+      strengths: [
+        'Ranked #1 of 13 restaurants in Húsavík on Tripadvisor with thousands of reviews, plus a 4.8 rating on Restaurant Guru',
+        'A genuinely distinctive, photogenic home: a bright yellow 1931 harbourside house called Sel, run by two sisters in law for over a decade',
+        'A real signature dish, the seafood soup, repeatedly named by reviewers as the reason people stop',
+      ],
+      weaknesses: [
+        "No independent website at all, já.is lists their official 'website' as literally a link to their Facebook page",
+        'No online menu, so a top rated destination restaurant has nowhere to show its own dish list or price range',
+        'No booking path beyond phone or walk in, despite being a stop on the busy Diamond Circle tourist route',
+      ],
+      opportunities: [
+        "Give Húsavík's #1 rated restaurant an actual home online, built around the real yellow house and the signature soup",
+        'Publish the real menu and hours once, on a page the owners control instead of Facebook',
+        'Add a simple reservation request path for the travellers already driving the Diamond Circle to find them',
+      ],
+    },
+    positioning:
+      "Naustið is Húsavík's top rated restaurant, run by two sisters in law for over a decade out of a bright yellow 1931 harbourside house, with a seafood soup that reviewers name again and again as the reason to stop. Their entire web presence today is a Facebook page, and já.is even lists it as their official website. The redesign gives them a real home online: the same walk every guest already takes across the harbour toward the yellow house, ending at a real menu, hours and a place to request a table.",
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Naustið',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús.
+
+Ég kynnti mér Naustið á Húsavík og sá að þið eruð í 1. sæti af 13 veitingastöðum á staðnum með yfir 2.500 umsagnir, sem er magnaður árangur. Samt er eina „vefsíðan" ykkar samkvæmt já.is einfaldlega hlekkur á Facebook.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk sjái gula húsið, matseðilinn og fiskisúpuna sem allir tala um, og geti sent inn borðapöntun beint til ykkar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'alfacafe',
+    route: '/preview/alfacafe',
+    name: 'Álfacafé',
+    sector: 'Seasonal café',
+    location: 'Bakkagerði, Borgarfjörður eystri',
+    region: 'East',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.facebook.com/alfacafe/',
+    ownerEmail: 'alfacafe@simnet.is',
+    concept: 'Á mörkum heima',
+    conceptTagline:
+      "A seasonal café standing at the literal threshold between the village of Bakkagerði and Álfaborg, home of Iceland's elf queen, finally telling visitors in one glance whether the door is open today.",
+    accent: '#C97A2E',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://img02.restaurantguru.com/cefc-ALFACAFE-Borgarfjor-ur-Eystri-dishes.jpg',
+    audit: {
+      strengths: [
+        'A beloved, top rated destination: 4.8 out of 5 from 422 Google reviews, ranked #1 restaurant in Borgarfjörður eystri',
+        "A genuinely distinctive setting, right beside Álfaborg, the hill of Icelandic elf folklore, and a short drive from the Hafnarhólmi puffin colony",
+        'A real signature dish, the fish soup, named specifically in review after review as the reason to make the long drive out',
+      ],
+      weaknesses: [
+        'No owned website exists at all, just a Facebook page and scattered directory listings',
+        'Opening hours conflict across sources, one lists a summer season and another lists year round hours, risking a wasted trip for a remote village hours from Reykjavík',
+        'Phone numbers differ across several directory listings with no single canonical source to trust',
+      ],
+      opportunities: [
+        "Give visitors one clear, always current answer to whether it is open today before they drive hours out",
+        'Let the real fish soup, waffles and elf folklore setting carry the page instead of scattered third party listings',
+        'Replace the conflicting phone numbers with one clear, correct contact',
+      ],
+    },
+    positioning:
+      "Álfacafé is a beloved seasonal café in the tiny village of Bakkagerði, sitting right beside Álfaborg, the hill where Icelandic folklore places the home of the elf queen, and rated 4.8 out of 5 across more than 400 Google reviews for its fish soup. It has no owned website at all, only a Facebook page and directory listings that openly disagree on its hours and phone number, a real risk for visitors driving hours each way. The redesign gives it one clear, honest home online: real hours, a real phone number, and the elf lore and puffins next door woven into the same page as the soup and the drive out.",
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Álfacafé',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús.
+
+Ég kynnti mér Álfacafé og sá að þið eruð með 4,8 stjörnur af 422 umsögnum á Google, sem er frábær árangur fyrir stað svona langt úti á landi. Á netinu stangast þó opnunartímarnir ykkar á milli síðna, og gestir sem keyra alla þessa leið enda stundum í óvissu um hvort opið sé.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að hver sem gúglar ykkur sjái strax hvort opið sé í dag, og kynnist fiskisúpunni, Álfaborg og lundunum í leiðinni. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
 ]
 
 export function getPreviewCompany(slug: string): PreviewCompany {
