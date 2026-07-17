@@ -155,10 +155,8 @@ const CSS = `
 .bg-copybtn { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-copybtn:hover { border-color: ${AMBER}; color: ${AMBER}; }
 
-.bg-brand-plate { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1); }
-.bg-brand-plate:hover { border-color: rgba(232,162,61,0.4); }
-.bg-brand-plate img { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
-.bg-brand-plate:hover img { transform: scale(1.05); }
+.bg-brand-mark img { opacity: 0.92; transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.bg-brand-mark:hover img { opacity: 1; transform: scale(1.04); }
 
 /* fake a dark map theme with no API key: invert the light tiles, then
    rotate hue back so roads/water read close to their normal colours */
@@ -1369,21 +1367,26 @@ function Brands() {
             </p>
           </Rise>
         </div>
-        {/* the marks sit directly on the dark ground now — a plain white
-            plate behind them read as a leftover template default rather
-            than signage. A hairline frame + small mono label does the
-            "certified partner" framing instead. */}
-        <div className="grid grid-cols-2 gap-4 md:gap-5">
+        {/* The marks float straight on the page ground — no plate, no
+            frame. They're the REAL Toyota/Kia alpha PNGs recolored to the
+            page ink with a CSS filter (their native red vanished into the
+            dark ground); counters are transparent so the silhouettes stay
+            true. */}
+        <div className="grid grid-cols-2 items-center gap-8 md:gap-10">
           {[
             { src: IMG.toyota, alt: 'Toyota' },
             { src: IMG.kia, alt: 'Kia' },
           ].map((m, i) => (
             <Rise key={m.alt} delay={i * 0.1}>
-              <div
-                className="bg-brand-plate flex h-[168px] flex-col items-center justify-center gap-4 rounded-sm border p-8 md:h-[192px]"
-                style={{ borderColor: HAIR, background: SURFACE }}
-              >
-                <img src={m.src} alt={m.alt} loading="lazy" decoding="async" className="max-h-14 w-auto max-w-full object-contain md:max-h-16" />
+              <div className="bg-brand-mark flex flex-col items-center gap-5">
+                <img
+                  src={m.src}
+                  alt={m.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-16 w-auto max-w-full object-contain md:h-20"
+                  style={{ filter: 'brightness(0) invert(0.94)' }}
+                />
                 <p className="text-[10.5px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
                   Vottun · {m.alt}
                 </p>
