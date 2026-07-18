@@ -79,6 +79,8 @@ const SeidkarlinnPage = lazy(() => import('./preview/seidkarlinn/Page'))
 // Concept — Barna- og fjölskyldustofa "Öruggt skjól" (warm umbrella, per-centre pages)
 const BofsPage = lazy(() => import('./preview/bofs/Page'))
 const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
+const BofsKerfid = lazy(() => import('./preview/bofs/Kerfid'))
+const BofsUmStofnunina = lazy(() => import('./preview/bofs/UmStofnunina'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 // Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
 const EldofninnPage = lazy(() => import('./preview/eldofninn/Page'))
@@ -120,6 +122,16 @@ const FiskkompaniPage = lazy(() => import('./preview/fiskkompani/Page'))
 const NaustidPage = lazy(() => import('./preview/naustid/Page'))
 // Álfacafé — Borgarfjörður eystri café, "Á mörkum heima" elf-lore-threshold concept
 const AlfacafePage = lazy(() => import('./preview/alfacafe/Page'))
+// Setberg Guesthouse — Höfn farm guesthouse, "Bærinn undir fjallinu" concept
+const SetbergPage = lazy(() => import('./preview/setberg/Page'))
+// Nýpugarðar — Mýrar farm guesthouse & dinner buffet, "Kvöldverðurinn á Mýrum" concept
+const NypugardarPage = lazy(() => import('./preview/nypugardar/Page'))
+// Litla-Hof — Öræfi farm guesthouse, "Hjá torfkirkjunni" concept
+const LitlahofPage = lazy(() => import('./preview/litlahof/Page'))
+// Saga Kayak — Vopnafjörður kayak & fishing tours, "Róið inn fjörðinn" concept
+const SagakayakPage = lazy(() => import('./preview/sagakayak/Page'))
+// Sauðakofinn á Fossnesi — Selfoss smokehouse & farm tourism, "Reykurinn í kofanum" concept
+const SaudakofinnPage = lazy(() => import('./preview/saudakofinn/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -217,6 +229,8 @@ export default function App() {
             <Route path="/preview/strytan" element={<StrytanPage />} />
             <Route path="/preview/seidkarlinn" element={<SeidkarlinnPage />} />
             <Route path="/preview/bofs" element={<BofsPage />} />
+            <Route path="/preview/bofs/kerfid" element={<BofsKerfid />} />
+            <Route path="/preview/bofs/um-stofnunina" element={<BofsUmStofnunina />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
             {/* own nested Suspense (not the outer fallback=null) so a slow chunk fetch shows a
                 branded loading screen instead of a blank flash - see Loading.tsx */}
@@ -242,6 +256,11 @@ export default function App() {
             <Route path="/preview/fiskkompani" element={<FiskkompaniPage />} />
             <Route path="/preview/naustid" element={<NaustidPage />} />
             <Route path="/preview/alfacafe" element={<AlfacafePage />} />
+            <Route path="/preview/setberg" element={<SetbergPage />} />
+            <Route path="/preview/nypugardar" element={<NypugardarPage />} />
+            <Route path="/preview/litlahof" element={<LitlahofPage />} />
+            <Route path="/preview/sagakayak" element={<SagakayakPage />} />
+            <Route path="/preview/saudakofinn" element={<SaudakofinnPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}

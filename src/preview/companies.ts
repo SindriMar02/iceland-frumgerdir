@@ -38,6 +38,19 @@ export interface PreviewCompany {
   /** One-paragraph positioning the redesign is built on */
   positioning: string
   outreach: { subject: string; body: string }
+  /**
+   * True when `currentUrl` is a third-party OTA/aggregator listing rather than
+   * a site the company actually owns/controls (e.g. a Booking.com hotel page).
+   * Changes the shared footer's wording so it never calls that link the
+   * company's "current website" — see [[feedback-fact-check-before-drafting]].
+   */
+  noOwnSite?: boolean
+  /**
+   * Set when this page's photos are the company's own real photography
+   * (not Unsplash stock) — suppresses the generic "Myndir frá Unsplash"
+   * footer line in favor of the page's own accurate photo-source disclosure.
+   */
+  ownPhotography?: boolean
 }
 
 const SIGN = `Bestu kveðjur,
@@ -3131,6 +3144,288 @@ Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
 Hugmyndin er einföld. Að hver sem gúglar ykkur sjái strax hvort opið sé í dag, og kynnist fiskisúpunni, Álfaborg og lundunum í leiðinni. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'setberg',
+    route: '/preview/setberg',
+    name: 'Setberg Guesthouse',
+    sector: 'Farm guesthouse',
+    location: 'Setbergi, Nesjum, 781 Höfn í Hornafirði',
+    region: 'East',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.booking.com/hotel/is/setberg-guesthouse.html',
+    noOwnSite: true,
+    ownerEmail: 'setberg1@gmail.com',
+    concept: 'Bærinn undir fjallinu',
+    conceptTagline:
+      'A 9.4-rated farm guesthouse under the East Iceland mountains, finally getting to introduce itself in its own voice instead of being spoken for by booking agents every time someone searches its name.',
+    accent: '#C97B45',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1581094987116-97a1b02c36d4?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        '9.4/10 on Booking.com across 280 verified reviews, with cleanliness, comfort and staff all scoring 9.8',
+        'A genuinely distinctive setting, a former sheep farm at the foot of the mountains near Höfn, run by host Stefán',
+        'A registered, active company (Setberg 1 ehf) with no bankruptcy or closure history found',
+      ],
+      weaknesses: [
+        'No real homepage of their own, only a generic third-party booking-widget microsite and OTA listings speak for them',
+        'Completely dependent on OTA commission, Booking.com, Airbnb, Expedia and Hotels.com all list the property with no direct-booking channel',
+        'Only public contact is a personal Gmail address, not a business email tied to any domain',
+      ],
+      opportunities: [
+        'Give the farm its first real chance to speak for itself online, instead of being described secondhand by booking agents',
+        'Capture direct bookings currently lost entirely to OTA commission',
+        'Own the search results for a Höfn farm guesthouse, a term every top result today sends to a third party',
+      ],
+    },
+    positioning:
+      'Setberg is a 9.4-rated farm guesthouse at the foot of the mountains near Höfn, with 280 reviews praising its cleanliness, comfort and staff, yet it has no real homepage speaking in its own voice, only a generic booking-widget microsite and OTA listings. Every search result today leads to a booking agent speaking on the farm’s behalf, and every stay pays a commission to a third party. The redesign gives Setberg its first real home online, a quiet, honest introduction in the farm’s own voice, with a direct path to book a room without the middleman.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Setberg',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
+
+Ég kynnti mér Setberg og sá að þið eruð með 9,4 í einkunn á Booking.com eftir 280 umsagnir, sem er frábær árangur. Samt á Setberg enga heimasíðu sem talar í eigin röddu, aðeins bókunarsíður sem tala fyrir ykkar hönd og taka þóknun af hverri bókun.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að Setberg fái loksins að kynna sig sjálft, í eigin röddu, í stað þess að bókunarsíður tali fyrir ykkur, og að gestir geti bókað beint hjá ykkur. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'nypugardar',
+    route: '/preview/nypugardar',
+    name: 'Nýpugarðar',
+    sector: 'Farm guesthouse & dinner buffet',
+    location: 'Nýpugörðum, Mýrar, Hornafjörður',
+    region: 'East',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.facebook.com/nypugardar/',
+    ownerEmail: 'nypu@simnet.is',
+    concept: 'Kvöldverðurinn á Mýrum',
+    conceptTagline:
+      'One evening at a working sheep and horse farm between Höfn and the glacier lagoon, arriving among the animals, watching the light fall on the ice, then sitting down to the lamb dinner buffet guests keep raving about.',
+    accent: '#D97D3D',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://cf.bstatic.com/xdata/images/hotel/max1280x900/10523864.jpg?k=2e21596f72fdae8178942f8e63817dfaa86ab9c4c383b883323636aad39aa600&o=',
+    audit: {
+      strengths: [
+        '8.8/10 on Booking.com across roughly 2,200 reviews, with the lamb dinner buffet named again and again as the reason to stop',
+        'A real working farm setting, about 600 sheep and 20 horses, with glacier and fjord views on the property',
+        'A registered, active company (Nýpugarðar ehf) with no adverse history found',
+      ],
+      weaknesses: [
+        'No website of their own at all, not even a weak one, just a Facebook page',
+        'Every booking runs through third-party OTAs, Booking.com, Guide to Iceland and Expedia, with no direct contact path of their own',
+        'Their only real presence, a Facebook page, shows no menu, photos or dinner buffet details to visitors',
+      ],
+      opportunities: [
+        'Turn thousands of glowing reviews and an 8.8 rating into an actual bookable, discoverable website',
+        'Let the lamb dinner buffet and the farm’s sheep, horses and glacier views carry the page instead of a bare Facebook post',
+        'Move guests from OTA-only bookings toward a direct path that keeps more of every stay on the farm',
+      ],
+    },
+    positioning:
+      'Nýpugarðar is a working sheep and horse farm between Höfn and Jökulsárlón, rated 8.8 on Booking.com across roughly 2,200 reviews, with guests repeatedly singling out the farm dinner buffet and lamb as the highlight of their stay. They have no website of their own at all, and their only real presence is a sparse Facebook page, so every booking runs through a third-party OTA. The redesign gives the farm a real home online built around one evening there, arriving among the animals, watching the glacier catch the light, then sitting down to the dinner guests already cannot stop talking about.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Nýpugarða',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu og matvælaframleiðslu.
+
+Ég kynnti mér Nýpugarða og sá að gestir hæla lambahlaðborðinu ykkar sérstaklega í umsögnum, enda eruð þið með 8,8 í einkunn á Booking.com eftir rúmlega 2.200 umsagnir. Samt er eina vefsvæðið ykkar í dag Facebook síða, og allar bókanir fara í gegnum Booking sem tekur þóknun af hverri þeirra.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að gestir upplifi kvöldið hjá ykkur áður en þeir mæta, sauðféð og hestana, jökulinn í kvöldsólinni og svo sjálft hlaðborðið, og geti bókað beint hjá ykkur í stað þess að fara í gegnum Booking. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'litlahof',
+    route: '/preview/litlahof',
+    name: 'Litla-Hof',
+    sector: 'Farm guesthouse',
+    location: 'Hof í Öræfum, near Skaftafell',
+    region: 'East',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.facebook.com/p/Litla-Hof-Guesthouse-100070911662749/',
+    ownPhotography: true,
+    ownerEmail: 'litlahof@simnet.is',
+    concept: 'Hjá torfkirkjunni',
+    conceptTagline:
+      'The same slow drive up to a small horse and sheep farm beside Iceland’s youngest turf church, under the shadow of Öræfajökull, that five star guests already describe in their reviews, told properly for the first time.',
+    accent: '#8B3A2B',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/316584266.jpg?k=63cca7a1c701066d6ee93caeee99a35f25b31682705f65747bbdc50d630ec39d&o=',
+    audit: {
+      strengths: [
+        '5 out of 5 on Tripadvisor, ranked #2 of 3 B&Bs in Hof, with guests calling the stay the favourite of their whole trip',
+        'A genuinely rare setting, a working horse and sheep farm beside Iceland’s youngest turf church, in the shadow of Öræfajökull',
+        'A registered, active company (Litla Hof ehf) with no adverse history found, and a confirmed horse breeding line carrying the farm’s name',
+      ],
+      weaknesses: [
+        'No owned website at all, entirely dependent on OTA middlemen, Booking.com, Agoda and heyiceland, for discovery and booking',
+        'Only contact path is a dated simnet.is email address and a phone number, no booking form of any kind',
+        'Nothing online conveys the working farm, the turf church next door or the mountain setting that guests keep mentioning',
+      ],
+      opportunities: [
+        'Turn a 5-star, "favourite of the trip" guesthouse into one that finally has its own home online',
+        'Tell the story no OTA listing tells, the turf church, the horse breeding line, the farm under Iceland’s highest peak',
+        'Add a direct booking path that keeps the margin OTAs currently take on every stay',
+      ],
+    },
+    positioning:
+      'Litla-Hof is a small working horse and sheep farm beside one of Iceland’s last turf churches, in the shadow of Öræfajökull, rated 5 out of 5 on Tripadvisor with guests calling it the favourite stop of their whole trip. It has no website of its own, only OTA listings and a thin Facebook page, and a dated simnet.is email address is the only way to reach them directly. The redesign turns the slow drive up to the farm that guests already describe in their reviews into a real page, the turf church, the horses, the mountain, and one clear way to book a stay.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Litla-Hof',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
+
+Ég kynnti mér Litla-Hof og sá að gestir gefa ykkur 5 stjörnur á Tripadvisor og kalla dvölina hápunkt ferðarinnar. Samt finnst Litla-Hof hvergi á netinu nema á bókunarsíðum annarra, því þið eigið enga eigin vefsíðu.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk sjái sömu rólegu leiðina heim að bænum sem gestir lýsa í umsögnum sínum, torfkirkjuna, hestana og fjallið, og geti spurst fyrir um gistingu beint hjá ykkur. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'sagakayak',
+    route: '/preview/sagakayak',
+    name: 'Saga Kayak',
+    sector: 'Kayak & fishing tours',
+    location: 'Lónabraut 5, Vopnafjörður',
+    region: 'East',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.instagram.com/sagakayak/',
+    ownerEmail: 'contact@sagakayak.is',
+    concept: 'Róið inn fjörðinn',
+    conceptTagline:
+      'A family-run kayak outfit on Vopnafjörður fjord, where the page itself follows the same paddle route out, from the dock to open water, that a real trip with them takes.',
+    accent: '#E8734F',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1724865054227-6a5f2449f856?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'An active, well-run Instagram presence, 326 followers and 64 posts, covering kayak, fishing and northern-lights trips across multiple seasons',
+        'A distinctive fjord setting in Vopnafjörður, with real photos of the owners and the boat launch already in hand',
+        'Still listed as a current operator on Visit Austurland’s official regional tourism site',
+      ],
+      weaknesses: [
+        'Their own domain, sagakayak.is, is a dead, password-protected placeholder that has never launched',
+        'No online booking system at all, trips are booked only by direct message, email or phone',
+        'The only pricing information anywhere is a photo of a hand-written price list on Instagram',
+      ],
+      opportunities: [
+        'Replace the dead placeholder domain with a real, bookable website built around the fjord and the family story',
+        'Turn the hand-written price list into clear, structured pricing for kayak, fishing and aurora trips',
+        'Capture travellers who plan and book online before they arrive, rather than relying on a chance direct message',
+      ],
+    },
+    positioning:
+      'Saga Kayak is a small, family-run kayak and fishing tour operator on Vopnafjörður fjord in East Iceland, active on Instagram across multiple seasons but with no real website of their own, their own domain is a password-protected placeholder that never launched. Every trip today is booked by direct message, email or phone, and the only pricing anywhere is a photo of a hand-written list. The redesign turns their real fjord setting and family story into a proper page, the same paddle out from the dock to open water that a real trip with them follows, ending at a clear way to book.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Saga Kayak',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk ferðaþjónustufyrirtæki.
+
+Ég kynnti mér Saga Kayak og sá að ferðirnar ykkar bókast í dag í gegnum skilaboð og síma. Ferðafólk sem skipuleggur fyrirfram á netinu bókar oftast hjá þeim sem sýna ferðir og verð beint á vefsíðu, og eigin lén ykkar, sagakayak.is, er ennþá óopnuð biðsíða.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk sjái fjörðinn, ferðirnar þrjár og verðin á augabragði, og geti sent inn bókunarbeiðni beint til ykkar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'saudakofinn',
+    route: '/preview/saudakofinn',
+    name: 'Sauðakofinn á Fossnesi',
+    sector: 'Smokehouse & farm tourism',
+    location: 'Fossnes, 804 Selfoss',
+    region: 'South',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.fossnes.is/saudakofinn/',
+    ownerEmail: 'sigrunfossnes@gmail.com',
+    concept: 'Reykurinn í kofanum',
+    conceptTagline:
+      'The old smoke shed and its slow, twice-smoked ritual set the whole page’s rhythm, opening on the meat and its price list within the first screen before the farm’s other real chapters, the guesthouse, the horses, the river, clear into view underneath.',
+    accent: '#A8481A',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://www.fossnes.is/wp-content/uploads/2013/02/Haust-2012-252.jpg',
+    audit: {
+      strengths: [
+        'A genuinely rare product, tvíreykt sauðakjöt (double-smoked wether meat), actively priced and updated for autumn 2025',
+        'A diversified real farm business, smokehouse, guesthouse, horses and fishing, all run from the same family farm',
+        'A registered member of the Icelandic Sheep Farmers Association (SSFM) with a confirmed kennitala and no adverse history',
+      ],
+      weaknesses: [
+        'The site is an early-2000s WordPress template, with the newest photos on the page still dated 2013',
+        'No online ordering of any kind, meat, guesthouse stays and fishing trips are all phone or email only',
+        'The whole multi-part farm business is spread across thin, sparsely written sub-pages with no mobile-friendly layout',
+      ],
+      opportunities: [
+        'Let the rare double-smoked product and its price list be seen clearly on a phone, not buried in a 2000s-era layout',
+        'Surface the farm’s other real assets, the guesthouse, the horses, the fishing, as one cohesive rural brand',
+        'Replace phone-and-email-only ordering with a simple way to see what is available and ask to buy or book',
+      ],
+    },
+    positioning:
+      'Sauðakofinn is a small family farm at Fossnes producing tvíreykt sauðakjöt, a rare double-smoked wether meat, alongside a guesthouse, horses and fishing, all confirmed still active with autumn 2025 pricing. Their entire online presence is a handful of thin pages on an early-2000s WordPress template, with no online ordering and photos dating back to 2013. The redesign puts the smoking ritual and the meat itself in the first screen, then slowly reveals the farm’s other chapters underneath, the same way real smoke clears to show what is there.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Sauðakofann á Fossnesi',
+      body: `Góðan dag Sigrún,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk matvælafyrirtæki og ferðaþjónustu.
+
+Ég kynnti mér Sauðakofann og sá að tvíreykta sauðahangikjötið ykkar á sér fastan aðdáendahóp. Samt er vefsíðan ykkar í dag gömul sniðmátssíða þar sem nýjustu myndirnar sem ég finn eru frá 2013, og erfitt er að sjá vörurnar, verðin og hvernig maður pantar.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að kjötið og verðskráin sjáist strax, og að hitt sem þið gerið á Fossnesi, gistingin, hestarnir og veiðin, fái sinn stað á sömu síðu. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 

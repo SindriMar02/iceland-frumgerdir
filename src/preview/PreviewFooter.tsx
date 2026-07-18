@@ -20,11 +20,25 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
         <strong className={dark ? 'text-white/80' : 'text-neutral-600'}>
           Frumgerð: hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.
         </strong>{' '}
-        Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept). Myndir frá Unsplash, af
-        núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess. Núverandi vefsíða:{' '}
-        <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
-          {company.currentUrl.replace('https://', '').replace('www.', '')}
-        </a>
+        Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept).{' '}
+        {company.ownPhotography
+          ? 'Ljósmyndir eru raunverulegar myndir af staðnum, ekki sýnishorn.'
+          : 'Myndir frá Unsplash, af núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess.'}{' '}
+        {company.noOwnSite ? (
+          <>
+            Fyrirtækið á enga eigin vefsíðu í dag. Núverandi bókunarsíða (ekki í eigu fyrirtækisins):{' '}
+            <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              {company.currentUrl.replace('https://', '').replace('www.', '')}
+            </a>
+          </>
+        ) : (
+          <>
+            Núverandi vefsíða:{' '}
+            <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              {company.currentUrl.replace('https://', '').replace('www.', '')}
+            </a>
+          </>
+        )}
       </p>
       <p className="mt-3">
         © 2026 · Hugmynd og hönnun:{' '}
