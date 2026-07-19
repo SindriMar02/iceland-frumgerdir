@@ -359,9 +359,9 @@ export default function Page() {
         <header className="relative z-10 flex items-center justify-between px-5 py-4 md:px-8" style={stage(0)}>
           <span className="flex items-center gap-3">
             <img
-              src={asset('logo-icon.png')}
+              src={asset('logo-original.png')}
               alt="Saga Kayak merkið"
-              className="h-10 w-10 rounded-full object-cover ring-1 ring-white/25"
+              className="h-9 w-auto object-contain"
             />
             <span className="font-display text-lg text-[#F2EFE9]">Saga Kayak</span>
           </span>
@@ -983,10 +983,10 @@ export default function Page() {
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <div className="flex flex-wrap items-center gap-4">
             <img
-              src={asset('logo-icon.png')}
+              src={asset('logo-original.png')}
               alt="Saga Kayak merkið"
               loading="lazy"
-              className="h-12 w-12 rounded-full object-cover ring-1 ring-white/20"
+              className="h-11 w-auto object-contain"
             />
             <div>
               <p className="font-display text-xl text-[#F2EFE9]">Saga Kayak</p>
