@@ -35,6 +35,7 @@
   --font-zodiak: "Zodiak", Georgia, serif;                    /* Geisli — gleraugu eru skart, jewelry serif */
   --font-stardom: "Stardom", Georgia, serif;                  /* Vínland Guesthouse — bold decorative wordmark */
   --font-melodrama: "Melodrama", Georgia, serif;              /* Guesthouse Vellir — high-contrast editorial wordmark */
+  --font-tropikal: "Tropikal", Georgia, serif;                /* Saga Kayak — warm vintage-expedition serif */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -84,6 +85,15 @@
 @font-face {
   font-family: "Melodrama";
   src: url("./assets/fonts/Melodrama-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Saga Kayak — Tropikal, trial vintage-expedition serif (font-fit only, license: personal+commercial, no attribution required, verified 2026-07-19 via designer's own Behance post) */
+@font-face {
+  font-family: "Tropikal";
+  src: url("./assets/fonts/Tropikal-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;

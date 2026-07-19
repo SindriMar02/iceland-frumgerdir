@@ -363,7 +363,7 @@ export default function Page() {
               alt="Saga Kayak merkið"
               className="h-9 w-auto object-contain"
             />
-            <span className="font-display text-lg text-[#F2EFE9]">Saga Kayak</span>
+            <span className="font-tropikal text-lg text-[#F2EFE9]">Saga Kayak</span>
           </span>
           <a href={PHONE_HREF} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-3 py-2.5 font-mono text-sm text-[#F2EFE9]/90 transition-colors hover:text-[#F2EFE9] ${FOCUS_DARK}`}>
             <Phone aria-hidden className="h-4 w-4" />
@@ -377,7 +377,7 @@ export default function Page() {
               Vopnafjörður · Austfirðir
             </p>
             <h1
-              className="mt-4 font-display text-[2.85rem] leading-[1.08] text-[#F2EFE9] sm:text-6xl lg:text-7xl"
+              className="mt-4 font-tropikal text-[3.3rem] leading-[1.05] text-[#F2EFE9] sm:text-7xl lg:text-8xl"
               style={stage(2)}
             >
               Róið inn <em className="italic text-[#E8734F]">fjörðinn</em>
@@ -458,7 +458,7 @@ export default function Page() {
         <section id="ferdir" className="bg-[#F5F0E8] pb-20 pt-20 md:pb-24 md:pt-28">
           <div className="mx-auto max-w-6xl px-6 md:px-8">
             <Reveal>
-              <h2 className="max-w-[16ch] font-display text-4xl leading-[1.12] md:text-6xl">
+              <h2 className="max-w-[16ch] font-tropikal text-4xl leading-[1.12] md:text-6xl">
                 Þrjár ferðir út á fjörðinn
               </h2>
               <p className="mt-4 max-w-[58ch] leading-relaxed text-[#55524A]">{PRICE_SOURCE}</p>
@@ -490,7 +490,7 @@ export default function Page() {
                       <span className="inline-flex rounded-full border border-[#4A5834]/35 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#4A5834]">
                         {t.stop} · {t.duration}
                       </span>
-                      <h3 className="mt-4 font-display text-2xl leading-[1.16] md:text-4xl">{t.name}</h3>
+                      <h3 className="mt-4 font-tropikal text-2xl leading-[1.16] md:text-4xl">{t.name}</h3>
                       <p className="mt-3 max-w-[52ch] leading-relaxed text-[#55524A]">{t.desc}</p>
                       <dl className="mt-6 grid max-w-md grid-cols-2 gap-6">
                         <div>
@@ -522,7 +522,7 @@ export default function Page() {
                         <span className="inline-flex rounded-full border border-[#B9C2C2]/40 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#B9C2C2]">
                           {TOURS[2].stop} · {TOURS[2].duration}
                         </span>
-                        <h3 className="mt-4 max-w-[18ch] font-display text-2xl leading-[1.16] text-[#F2EFE9] md:text-4xl">
+                        <h3 className="mt-4 max-w-[18ch] font-tropikal text-2xl leading-[1.16] text-[#F2EFE9] md:text-4xl">
                           {TOURS[2].name}
                         </h3>
                         <p className="mt-3 max-w-[48ch] leading-relaxed text-[#B9C2C2]">{TOURS[2].desc}</p>
@@ -585,7 +585,7 @@ export default function Page() {
               <div className="rounded-[10px] border border-[#2B2A26]/15 bg-white/60 p-7 md:p-10">
                 <div className="md:flex md:items-center md:justify-between md:gap-12">
                   <div className="max-w-[42ch]">
-                    <h2 className="font-display text-2xl leading-[1.16] md:text-3xl">Leiga án leiðsagnar</h2>
+                    <h2 className="font-tropikal text-2xl leading-[1.16] md:text-3xl">Leiga án leiðsagnar</h2>
                     <p className="mt-3 leading-relaxed text-[#55524A]">
                       Viltu bara bátinn? Við leigjum líka kayak og fatnað án leiðsagnar.
                     </p>
@@ -616,14 +616,14 @@ export default function Page() {
         <section className="relative bg-[#F5F0E8] pb-20 md:pb-28">
           <RouteDot className="left-[5px] top-10 md:left-[13px]" />
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-2 md:gap-16 md:px-8">
-            <div className="mx-auto md:max-w-[600px]">
+            <div className="mx-auto w-full md:max-w-[540px]">
               <Reveal
                 variant="clip"
-                className="relative aspect-square overflow-hidden rounded-[10px]"
+                className="relative aspect-[4/5] overflow-hidden rounded-[10px]"
                 innerClassName="relative"
               >
                 <Img
-                  src={asset('owners-sign-hq.jpg')}
+                  src={asset('owners-sign-full.jpg')}
                   alt="Fólkið á bak við Saga Kayak, hlæjandi fyrir framan handmálað Saga Kayak skilti"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -633,12 +633,12 @@ export default function Page() {
               </p>
             </div>
             <Reveal delay={0.08}>
-              <h2 className="max-w-[16ch] font-display text-3xl leading-[1.14] md:text-5xl">
+              <h2 className="max-w-[16ch] font-tropikal text-3xl leading-[1.14] md:text-5xl">
                 Lítið fjölskyldufyrirtæki við fjörðinn
               </h2>
               <p className="mt-5 max-w-[54ch] leading-relaxed text-[#55524A]">{STORY_BODY}</p>
               <figure className="mt-8">
-                <blockquote className="max-w-[36ch] font-display text-xl italic leading-[1.35] text-[#4A5834] md:text-2xl">
+                <blockquote className="max-w-[36ch] font-tropikal text-xl italic leading-[1.35] text-[#4A5834] md:text-2xl">
                   „{STORY_QUOTE}“
                 </blockquote>
                 <figcaption className="mt-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[#55524A]">
@@ -661,7 +661,7 @@ export default function Page() {
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#12181C]/85 via-[#12181C]/20 to-[#12181C]/25" />
           <div className="relative mx-auto w-full max-w-6xl px-6 pb-14 pt-44 md:px-8 md:pb-20">
             <Reveal>
-              <h2 className="font-display text-4xl leading-[1.12] text-[#F2EFE9] md:text-6xl">Vopnafjörður</h2>
+              <h2 className="font-tropikal text-4xl leading-[1.12] text-[#F2EFE9] md:text-6xl">Vopnafjörður</h2>
               <p className="mt-4 max-w-[50ch] leading-relaxed text-[#F2EFE9]/90">
                 Fjörður og byggð á Austurlandi. Af sjónum sést fjörðurinn frá allt öðru
                 sjónarhorni en af landi, og allar ferðir fara fram í firðinum og nágrenni hans.
@@ -683,7 +683,7 @@ export default function Page() {
           <div aria-hidden className="absolute inset-0 bg-[#12181C]/60" />
           <div className="relative mx-auto max-w-6xl px-6 md:px-8">
             <Reveal>
-              <h2 className="max-w-[16ch] font-display text-3xl leading-[1.14] text-[#F2EFE9] md:text-5xl">
+              <h2 className="max-w-[16ch] font-tropikal text-3xl leading-[1.14] text-[#F2EFE9] md:text-5xl">
                 Ein ferð, tvær árstíðir
               </h2>
               <p className="mt-4 max-w-[54ch] leading-relaxed text-[#B9C2C2]">
@@ -695,7 +695,7 @@ export default function Page() {
               <Reveal delay={0.05}>
                 <div className="h-full rounded-[10px] border border-white/10 bg-[#0E1418]/75 p-6 md:p-8">
                   <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9C2C2]">Bjartari mánuðirnir</p>
-                  <h3 className="mt-2 font-display text-2xl text-[#F2EFE9]">Veiðiferð</h3>
+                  <h3 className="mt-2 font-tropikal text-2xl text-[#F2EFE9]">Veiðiferð</h3>
                   <p className="mt-2 leading-relaxed text-[#B9C2C2]">
                     Róið út á fjörðinn og rennt fyrir fisk. Annar búnaður fylgir með.
                   </p>
@@ -704,7 +704,7 @@ export default function Page() {
               <Reveal delay={0.12}>
                 <div className="h-full rounded-[10px] border border-white/10 bg-[#0E1418]/75 p-6 md:p-8">
                   <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9C2C2]">Þegar dimmir</p>
-                  <h3 className="mt-2 font-display text-2xl text-[#F2EFE9]">Norðurljósaferð</h3>
+                  <h3 className="mt-2 font-tropikal text-2xl text-[#F2EFE9]">Norðurljósaferð</h3>
                   <p className="mt-2 leading-relaxed text-[#B9C2C2]">
                     Sama ferð róin í vetrarmyrkrinu þegar norðurljósin geta látið sjá sig.
                   </p>
@@ -731,7 +731,7 @@ export default function Page() {
         <section className="bg-[#F5F0E8] py-20 md:py-28">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-2 md:gap-16 md:px-8">
             <Reveal>
-              <h2 className="max-w-[14ch] font-display text-3xl leading-[1.14] md:text-5xl">
+              <h2 className="max-w-[14ch] font-tropikal text-3xl leading-[1.14] md:text-5xl">
                 Sérferðir fyrir hópinn þinn
               </h2>
               <p className="mt-5 max-w-[54ch] leading-relaxed text-[#55524A]">{CUSTOM_BODY}</p>
@@ -760,7 +760,7 @@ export default function Page() {
         <section className="border-t border-[#2B2A26]/10 bg-[#F5F0E8] py-20 md:py-24">
           <div className="mx-auto max-w-6xl px-6 md:px-8">
             <Reveal>
-              <h2 className="font-display text-3xl leading-[1.14] md:text-5xl">Hér erum við</h2>
+              <h2 className="font-tropikal text-3xl leading-[1.14] md:text-5xl">Hér erum við</h2>
               <p className="mt-3 max-w-[54ch] leading-relaxed text-[#55524A]">
                 Best er að ná í okkur í síma, með tölvupósti eða skilaboðum á Instagram.
               </p>
@@ -819,7 +819,7 @@ export default function Page() {
           <RouteDot className="route-dot-end left-[2px] top-24 md:left-[10px]" />
           <div className="mx-auto max-w-6xl px-6 md:px-8">
             <Reveal>
-              <h2 className="max-w-[15ch] font-display text-4xl leading-[1.12] md:text-6xl">
+              <h2 className="max-w-[15ch] font-tropikal text-4xl leading-[1.12] md:text-6xl">
                 Sendu bókunarbeiðni
               </h2>
               <p className="mt-4 max-w-[56ch] leading-relaxed text-[#55524A]">
@@ -837,7 +837,7 @@ export default function Page() {
                     <h3
                       ref={sentHeadingRef}
                       tabIndex={-1}
-                      className="font-display text-2xl outline-none"
+                      className="font-tropikal text-2xl outline-none"
                     >
                       Beiðnin er skráð
                     </h3>
@@ -989,7 +989,7 @@ export default function Page() {
               className="h-11 w-auto object-contain"
             />
             <div>
-              <p className="font-display text-xl text-[#F2EFE9]">Saga Kayak</p>
+              <p className="font-tropikal text-xl text-[#F2EFE9]">Saga Kayak</p>
               <p className="font-mono text-xs">{ADDRESS}</p>
             </div>
           </div>
