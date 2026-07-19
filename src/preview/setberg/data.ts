@@ -175,7 +175,7 @@ export const REVIEWS = {
   heading: 'Það sem gestir segja',
   scoreRange: '9,4',
   scoreOutOf: '/10',
-  countLine: '280 staðfestar umsagnir á Booking.com',
+  countLine: '279 staðfestar umsagnir á Booking.com',
   breakdown: 'Þrifnaður 9,8 · Þægindi 9,8 · Starfsfólk 9,8',
   languageNote: 'Umsagnirnar birtast á ensku, eins og gestirnir skrifuðu þær.',
 }

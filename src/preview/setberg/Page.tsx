@@ -476,7 +476,7 @@ export default function Page() {
             <span ref={scoreRef} className="text-xl font-bold" style={{ color: ACCENT }}>
               {reduce ? '9,4' : '0,0'}
             </span>
-            <span className="text-[#F4EEE0]/60"> /10 · Booking.com · 280 umsagnir</span>
+            <span className="text-[#F4EEE0]/60"> /10 · Booking.com · 279 umsagnir</span>
           </div>
         </section>
 

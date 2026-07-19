@@ -3193,7 +3193,7 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki í ferðaþjónustu.
 
-Ég kynnti mér Setberg og sá að þið eruð með 9,4 í einkunn á Booking.com eftir 280 umsagnir, sem er frábær árangur. Samt á Setberg enga heimasíðu sem talar í eigin röddu, aðeins bókunarsíður sem tala fyrir ykkar hönd og taka þóknun af hverri bókun.
+Ég kynnti mér Setberg og sá að þið eruð með 9,4 í einkunn á Booking.com eftir 279 umsagnir, sem er frábær árangur. Samt á Setberg enga heimasíðu sem talar í eigin röddu, aðeins bókunarsíður sem tala fyrir ykkar hönd og taka þóknun af hverri bókun.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
