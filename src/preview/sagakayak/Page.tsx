@@ -616,14 +616,14 @@ export default function Page() {
         <section className="relative bg-[#F5F0E8] pb-20 md:pb-28">
           <RouteDot className="left-[5px] top-10 md:left-[13px]" />
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-2 md:gap-16 md:px-8">
-            <div>
+            <div className="mx-auto md:max-w-[600px]">
               <Reveal
                 variant="clip"
                 className="relative aspect-square overflow-hidden rounded-[10px]"
                 innerClassName="relative"
               >
                 <Img
-                  src={asset('owners-sign.jpg')}
+                  src={asset('owners-sign-hq.jpg')}
                   alt="Fólkið á bak við Saga Kayak, hlæjandi fyrir framan handmálað Saga Kayak skilti"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
