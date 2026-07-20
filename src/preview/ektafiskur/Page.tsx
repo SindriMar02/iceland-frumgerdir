@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Anchor,
   ArrowUpRight,
@@ -21,9 +21,15 @@ const company = getPreviewCompany('ektafiskur')
 const HERO = `https://images.unsplash.com/${HERO_ID}`
 const Q = '&auto=format&fit=crop'
 
+const MOBILE_LINKS = [
+  { id: 'products', label: 'Vörur' },
+  { id: 'bar', label: 'Baccalá Bar' },
+]
+
 export default function Page() {
   const reduce = useReducedMotion()
   const [showBar, setShowBar] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setShowBar(window.scrollY > 620)
@@ -31,6 +37,38 @@ export default function Page() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Lock body scroll while the mobile menu is open.
+  useEffect(() => {
+    if (!menuOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [menuOpen])
+
+  // Escape closes the mobile menu.
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
+  // Close the menu first, then smooth-scroll to the target section.
+  const handleMobileNav = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    window.setTimeout(
+      () => {
+        document.getElementById(id)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+      },
+      reduce ? 0 : 300,
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f7f8] font-sans text-[#15212a] antialiased selection:bg-[#1f5673] selection:text-white">
@@ -71,9 +109,97 @@ export default function Page() {
               <ShoppingBag className="h-3.5 w-3.5" aria-hidden="true" />
               Vefverslun
             </a>
+
+            {/* Hamburger — mobile only. Two lines morph into an X. */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+              className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#15212a]/5 md:hidden"
+            >
+              <span className="relative block h-4 w-5" aria-hidden="true">
+                <motion.span
+                  className="absolute inset-x-0 block h-[2px] rounded-full bg-[#15212a]"
+                  animate={menuOpen ? { top: 7, rotate: 45 } : { top: 0, rotate: 0 }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
+                />
+                <motion.span
+                  className="absolute inset-x-0 block h-[2px] rounded-full bg-[#1f5673]"
+                  animate={menuOpen ? { top: 7, rotate: -45 } : { top: 14, rotate: 0 }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
+                />
+              </span>
+            </button>
           </div>
         </nav>
       </header>
+
+      {/* ── Mobile menu overlay ─────────────────────────────
+          Rendered as a SIBLING of <header>, not nested inside it: the
+          header's backdrop-blur creates a containing block for fixed
+          descendants, which would trap a fixed overlay inside its box.
+          z-[35] sits below the header (z-40) so the sticky bar — and the
+          hamburger button inside it — stays on top and clickable while
+          the panel is open, and above the mobile CTA bar (z-30). */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Valmynd"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduce ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.28, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed inset-0 z-[35] flex flex-col justify-between bg-[#f5f7f8] px-6 pt-28 pb-10 md:hidden"
+          >
+            <nav className="flex flex-1 flex-col justify-center" aria-label="Aðalvalmynd farsíma">
+              {MOBILE_LINKS.map((item, i) => (
+                <motion.a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => handleMobileNav(e, item.id)}
+                  initial={reduce ? false : { opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: reduce ? 0 : 0.45,
+                    delay: reduce ? 0 : 0.12 + i * 0.07,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="border-b border-[#15212a]/10 py-5 font-display text-4xl font-semibold tracking-tight text-[#15212a] first:pt-0"
+                >
+                  {item.label}
+                </motion.a>
+              ))}
+            </nav>
+
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: reduce ? 0 : 0.45,
+                delay: reduce ? 0 : 0.12 + MOBILE_LINKS.length * 0.07,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="flex flex-col items-center gap-5 pt-8"
+            >
+              <span aria-hidden="true" className="h-px w-10 bg-[#1f5673]" />
+              <a
+                href="#shop"
+                lang="is"
+                onClick={(e) => handleMobileNav(e, 'shop')}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#1f5673] px-7 py-4 font-grotesk text-sm font-semibold tracking-wide text-white shadow-lg shadow-[#1f5673]/25 transition-transform active:scale-[0.98]"
+              >
+                <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+                Vefverslun
+              </a>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main id="top">
         {/* ── HERO ──────────────────────────────────────── */}

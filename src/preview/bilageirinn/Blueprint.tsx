@@ -443,8 +443,15 @@ function RulerStrip() {
 
 /* ─────────────────────────────── nav ─────────────────────────────── */
 
+const MOBILE_MENU_ITEMS = [
+  { hash: '#thjonusta', label: 'Þjónusta' },
+  { hash: '#tjon', label: 'Tjónaviðgerðir' },
+  { hash: '#verkstaedid', label: 'Verkstæðið' },
+]
+
 function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   const [solid, setSolid] = useState(false)
+  const [open, setOpen] = useState(false)
   const reduced = useReducedMotion()
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 40)
@@ -459,48 +466,190 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -76 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
+  /* menu open: freeze the page behind it (Lenis + native scroll), Escape closes */
+  useEffect(() => {
+    if (!open) return
+    lenisRef.current?.stop()
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      lenisRef.current?.start()
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open, lenisRef])
+  const goMobile = (hash: string) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setOpen(false)
+    /* wait one frame so the scroll lock is released before Lenis scrolls */
+    requestAnimationFrame(() => {
+      const el = document.querySelector(hash)
+      if (!el) return
+      if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -76 })
+      else el.scrollIntoView({ behavior: 'smooth' })
+    })
+  }
   const link = 'hidden min-h-11 items-center px-3 text-[12.5px] uppercase tracking-[0.14em] md:inline-flex'
   return (
-    <motion.header
-      className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
-      style={{
-        background: solid ? 'rgba(16,30,48,0.82)' : 'transparent',
-        backdropFilter: solid ? 'blur(14px)' : 'none',
-        WebkitBackdropFilter: solid ? 'blur(14px)' : 'none',
-        borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
-      }}
-      initial={reduced ? false : { y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: EASE }}
-    >
-      <div className="mx-auto flex h-[68px] max-w-[1360px] items-center justify-between px-5 md:px-8">
-        <a href="#efst" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label={`${NAME} — efst á síðu`}>
-          {/* the real wordmark is dark ink on transparent, printed for a light
-              ground — forced to solid ink then inverted so it reads white on
-              the dark page directly, no background plate (matches Signal/Langlina) */}
-          <img src={LOGO} alt={NAME} className="h-8 w-auto" style={{ filter: 'brightness(0) invert(0.96)' }} />
-        </a>
-        <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO }}>
-          <a href="#thjonusta" onClick={go('#thjonusta')} className={`bp-navlink ${link}`}>
-            Þjónusta
+    <>
+      <motion.header
+        className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
+        style={{
+          background: solid || open ? 'rgba(16,30,48,0.92)' : 'transparent',
+          backdropFilter: solid || open ? 'blur(14px)' : 'none',
+          WebkitBackdropFilter: solid || open ? 'blur(14px)' : 'none',
+          borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
+        }}
+        initial={reduced ? false : { y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: EASE }}
+      >
+        <div className="mx-auto flex h-[68px] max-w-[1360px] items-center justify-between px-5 md:px-8">
+          <a href="#efst" onClick={go('#efst')} className="inline-flex min-h-11 items-center" aria-label={`${NAME} — efst á síðu`}>
+            {/* the real wordmark is dark ink on transparent, printed for a light
+                ground — forced to solid ink then inverted so it reads white on
+                the dark page directly, no background plate (matches Signal/Langlina) */}
+            <img src={LOGO} alt={NAME} className="h-8 w-auto" style={{ filter: 'brightness(0) invert(0.96)' }} />
           </a>
-          <a href="#tjon" onClick={go('#tjon')} className={`bp-navlink ${link}`}>
-            Tjónaviðgerðir
-          </a>
-          <a href="#verkstaedid" onClick={go('#verkstaedid')} className={`bp-navlink ${link}`}>
-            Verkstæðið
-          </a>
-          <a
-            href={PHONE_HREF}
-            className="bp-cta-fill ml-2 inline-flex min-h-11 items-center gap-2 px-4 text-[14px] font-bold"
-            style={{ color: '#FFFFFF', fontFamily: BODY }}
+          <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO }}>
+            <a href="#thjonusta" onClick={go('#thjonusta')} className={`bp-navlink ${link}`}>
+              Þjónusta
+            </a>
+            <a href="#tjon" onClick={go('#tjon')} className={`bp-navlink ${link}`}>
+              Tjónaviðgerðir
+            </a>
+            <a href="#verkstaedid" onClick={go('#verkstaedid')} className={`bp-navlink ${link}`}>
+              Verkstæðið
+            </a>
+            <a
+              href={PHONE_HREF}
+              className="bp-cta-fill ml-2 inline-flex min-h-11 items-center gap-2 px-4 text-[14px] font-bold"
+              style={{ color: '#FFFFFF', fontFamily: BODY }}
+            >
+              <Phone size={15} strokeWidth={2.2} aria-hidden />
+              {PHONE_DISPLAY}
+            </a>
+            {/* hamburger: two hairline strokes that morph into an X — the same
+                drafting-instrument snap the rest of the page uses, just given
+                to the one mechanical control on it */}
+            <button
+              type="button"
+              onClick={() => setOpen(o => !o)}
+              aria-expanded={open}
+              aria-label={open ? 'Loka valmynd' : 'Opna valmynd'}
+              className="relative ml-1 inline-flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
+            >
+              <span
+                aria-hidden
+                className="absolute h-[2px] w-[22px] transition-transform duration-300"
+                style={{
+                  background: ACCENT,
+                  transform: open ? 'rotate(45deg)' : 'translateY(-4px)',
+                  transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
+                }}
+              />
+              <span
+                aria-hidden
+                className="absolute h-[2px] w-[22px] transition-transform duration-300"
+                style={{
+                  background: INK,
+                  transform: open ? 'rotate(-45deg)' : 'translateY(4px)',
+                  transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
+                }}
+              />
+            </button>
+          </nav>
+        </div>
+      </motion.header>
+
+      {/* mobile menu: full-screen blueprint-navy overlay, rendered as a SIBLING
+          of the header, never inside it — the header's own backdrop-filter
+          makes it the containing block for fixed descendants, which would
+          collapse an in-header fixed overlay to the header's own box. */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="bp-menu"
+            initial={reduced ? { opacity: 1 } : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="fixed inset-0 z-40 flex flex-col overflow-y-auto pt-[68px] md:hidden"
+            style={{ background: BG }}
           >
-            <Phone size={15} strokeWidth={2.2} aria-hidden />
-            {PHONE_DISPLAY}
-          </a>
-        </nav>
-      </div>
-    </motion.header>
+            <div aria-hidden className="absolute inset-0" style={GRID_BG} />
+            <nav className="relative flex flex-1 flex-col justify-center gap-2 px-6 py-10">
+              <p className="mb-4 text-[11.5px] uppercase tracking-[0.24em]" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
+                Blað 00 · Valmynd
+              </p>
+              {MOBILE_MENU_ITEMS.map((item, i) => (
+                <div key={item.hash} className="overflow-hidden py-1">
+                  <motion.a
+                    href={item.hash}
+                    onClick={goMobile(item.hash)}
+                    className="flex items-baseline gap-4"
+                    initial={reduced ? undefined : { y: '110%' }}
+                    animate={{ y: '0%' }}
+                    exit={{ y: '110%', transition: { duration: 0.2, ease: 'easeIn', delay: (MOBILE_MENU_ITEMS.length - 1 - i) * 0.03 } }}
+                    transition={{ duration: 0.5, ease: EASE, delay: 0.08 + i * 0.06 }}
+                  >
+                    <span className="text-[14px] tabular-nums" style={{ fontFamily: MONO, color: ACCENT_LIT }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: DISPLAY,
+                        fontSize: 'clamp(2rem, 9vw, 2.8rem)',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.15,
+                        color: INK,
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </motion.a>
+                </div>
+              ))}
+              {/* one drawn hairline — the plotter completing a line, the same
+                  vocabulary the timeline and flow-connectors use elsewhere */}
+              <motion.div
+                aria-hidden
+                className="mt-6 h-[2px] w-24 origin-left"
+                style={{ background: ACCENT }}
+                initial={reduced ? undefined : { scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: EASE, delay: 0.32 }}
+              />
+            </nav>
+            <motion.div
+              className="relative flex items-center justify-between gap-4 border-t px-6 py-5"
+              style={{ borderColor: HAIR }}
+              initial={reduced ? undefined : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: EASE, delay: 0.3 }}
+            >
+              <p className="text-[11px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                {NAME}
+              </p>
+              <a
+                href={PHONE_HREF}
+                className="bp-cta-fill inline-flex min-h-11 items-center gap-2 px-4 text-[14px] font-bold"
+                style={{ color: '#FFFFFF', fontFamily: BODY }}
+              >
+                <Phone size={15} strokeWidth={2.2} aria-hidden />
+                {PHONE_DISPLAY}
+              </a>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 

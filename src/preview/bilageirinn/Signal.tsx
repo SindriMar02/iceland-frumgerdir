@@ -205,8 +205,18 @@ function Tag({ text, onPaper = false }: { text: string; onPaper?: boolean }) {
 
 /* ─────────────────────────────── sections ─────────────────────────────── */
 
+/* the 3 section links + Icelandic aria labels, shared by desktop nav and
+   the mobile overlay so the two never drift out of sync */
+const MENU_ITEMS = [
+  { hash: '#thjonusta', label: 'Þjónusta' },
+  { hash: '#tjon', label: 'Tjónaviðgerðir' },
+  { hash: '#samband', label: 'Hafa samband' },
+] as const
+
 function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   const [solid, setSolid] = useState(false)
+  const [open, setOpen] = useState(false)
+  const reduced = useReducedMotion()
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 40)
     onScroll()
@@ -220,13 +230,45 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -70 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
+  /* mobile links: close the overlay first, THEN scroll on the next frame —
+     scrolling while body is still overflow:hidden and Lenis is stopped
+     leaves the page mid-jump. */
+  const goMobile = (hash: string) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setOpen(false)
+    requestAnimationFrame(() => {
+      const el = document.querySelector(hash)
+      if (!el) return
+      if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -70 })
+      else el.scrollIntoView({ behavior: 'smooth' })
+    })
+  }
+
+  /* menu open: freeze the page behind it (Lenis + native scroll), Escape closes */
+  useEffect(() => {
+    if (!open) return
+    lenisRef.current?.stop()
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      lenisRef.current?.start()
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open, lenisRef])
+
   const link = 'hidden min-h-11 items-center px-3 text-[12.5px] tracking-[0.18em] uppercase transition-colors duration-150 hover:text-[#F4C400] md:inline-flex'
   return (
+    <>
     <motion.header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-400"
       style={{
-        background: solid ? 'rgba(12,12,12,0.92)' : 'transparent',
-        borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
+        background: solid || open ? 'rgba(12,12,12,0.92)' : 'transparent',
+        borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -248,9 +290,116 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             <Phone size={15} strokeWidth={2.6} aria-hidden />
             {PHONE_DISPLAY}
           </a>
+          {/* hamburger: two short lines in ink + hazard yellow, morphing to
+              an X — the one mechanical control on the page, so it gets the
+              page's two loudest colors rather than a third accent */}
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            aria-expanded={open}
+            aria-label={open ? 'Loka valmynd' : 'Opna valmynd'}
+            className="relative ml-1 inline-flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
+          >
+            <span
+              aria-hidden
+              className="absolute h-[2px] w-[22px]"
+              style={{
+                background: YELLOW,
+                transform: open ? 'rotate(45deg)' : 'translateY(-4px)',
+                transition: 'transform 300ms cubic-bezier(0.76,0,0.24,1)',
+              }}
+            />
+            <span
+              aria-hidden
+              className="absolute h-[2px] w-[22px]"
+              style={{
+                background: PAPER,
+                transform: open ? 'rotate(-45deg)' : 'translateY(4px)',
+                transition: 'transform 300ms cubic-bezier(0.76,0,0.24,1)',
+              }}
+            />
+          </button>
         </nav>
       </div>
     </motion.header>
+
+    {/* mobile menu overlay: rendered as a SIBLING of <header>, never inside
+        it — the header's solid-when-open background would otherwise make
+        it the containing block for a fixed descendant and collapse the
+        overlay to the header's own 66px box. Entrance reuses the page's own
+        135° hazard wipe (WIPE_HIDDEN → WIPE_SHOWN) instead of a plain fade,
+        plus a stripe edge along the hinge — the signature diagonal motif,
+        not a generic slide-down panel. */}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="signal-menu"
+          initial={reduced ? { clipPath: WIPE_SHOWN } : { clipPath: WIPE_HIDDEN }}
+          animate={{ clipPath: WIPE_SHOWN }}
+          exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
+          transition={{ duration: reduced ? 0 : 0.5, ease: EASE }}
+          className="fixed inset-0 z-40 flex flex-col overflow-y-auto pt-[66px] md:hidden"
+          style={{ background: BLACK }}
+        >
+          <div aria-hidden className="absolute inset-y-0 left-0 w-3" style={{ backgroundImage: STRIPES }} />
+
+          <nav className="flex flex-1 flex-col justify-center gap-2 px-8 py-10">
+            {MENU_ITEMS.map((item, i) => (
+              <div key={item.hash} className="overflow-hidden py-1">
+                <motion.a
+                  href={item.hash}
+                  onClick={goMobile(item.hash)}
+                  className="block uppercase"
+                  initial={reduced ? undefined : { y: '110%' }}
+                  animate={{ y: '0%' }}
+                  exit={{ y: '110%', transition: { duration: 0.2, ease: 'easeIn', delay: (MENU_ITEMS.length - 1 - i) * 0.03 } }}
+                  transition={{ duration: 0.5, ease: EASE, delay: 0.12 + i * 0.06 }}
+                  style={{
+                    fontFamily: DISPLAY,
+                    fontSize: 'clamp(2.6rem, 12vw, 4.6rem)',
+                    lineHeight: 1.1,
+                    color: PAPER,
+                  }}
+                >
+                  {item.label}
+                </motion.a>
+              </div>
+            ))}
+            <motion.div
+              aria-hidden
+              className="mt-6 h-[3px] w-24 origin-left"
+              style={{ background: YELLOW }}
+              initial={reduced ? undefined : { scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.34 }}
+            />
+          </nav>
+
+          <motion.div
+            className="flex items-center justify-between gap-4 border-t px-8 py-5"
+            style={{ borderColor: HAIR, fontFamily: MONO }}
+            initial={reduced ? undefined : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE, delay: 0.32 }}
+          >
+            <p className="text-[11px] tracking-[0.24em] uppercase" style={{ color: MUT }}>
+              {ADDRESS.street}
+            </p>
+            <a
+              href={PHONE_HREF}
+              className="inline-flex min-h-11 items-center gap-2 px-4 text-[15px] font-bold transition-transform duration-150 hover:scale-[1.04] active:scale-[0.96]"
+              style={{ background: YELLOW, color: BLACK, fontFamily: BODY }}
+            >
+              <Phone size={15} strokeWidth={2.6} aria-hidden />
+              {PHONE_DISPLAY}
+            </a>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   )
 }
 

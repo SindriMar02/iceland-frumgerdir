@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -29,6 +29,14 @@ function Flame({ className }: { className?: string }) {
     </svg>
   )
 }
+
+/** The four in-page section links, shared by the desktop nav and the mobile menu. */
+const NAV_LINKS = [
+  { id: 'ritual', label: 'The Ritual' },
+  { id: 'room', label: 'The Room' },
+  { id: 'catch', label: 'Tonight’s Catch' },
+  { id: 'finding', label: 'Finding It' },
+] as const
 
 /** Mobile-only sticky reservation bar; appears after the hero scrolls away. */
 function MobileBar() {
@@ -68,13 +76,61 @@ function MobileBar() {
 
 export default function Page() {
   const reduce = useReducedMotion()
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerH, setHeaderH] = useState(64)
+
+  // Keep the mobile overlay's top offset in sync with the real header height.
+  useEffect(() => {
+    const measure = () => {
+      if (headerRef.current) setHeaderH(headerRef.current.offsetHeight)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  // Lock body scroll while the mobile menu is open; close on Escape.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [mobileOpen])
+
+  // Mobile nav links close the menu first, then smooth-scroll to the section.
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault()
+    setMobileOpen(false)
+    window.setTimeout(
+      () => {
+        document.getElementById(id)?.scrollIntoView({
+          behavior: reduce ? 'auto' : 'smooth',
+          block: 'start',
+        })
+      },
+      reduce ? 0 : 320,
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#16110d] font-sans text-[#ece3d4] antialiased selection:bg-[#d98a3d] selection:text-[#16110d]">
       <PreviewChrome company={company} />
 
       {/* Sticky mini-nav */}
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-[#ece3d4]/8 bg-[#16110d]/80 backdrop-blur-md">
+      <header
+        ref={headerRef}
+        className={`fixed inset-x-0 top-0 z-30 border-b border-[#ece3d4]/8 transition-colors duration-300 ${
+          mobileOpen ? 'bg-[#16110d]' : 'bg-[#16110d]/80 backdrop-blur-md'
+        }`}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 md:px-8">
           <a href="#top" className="group flex items-center gap-2.5">
             <Flame className="h-4 w-4 text-[#d98a3d]" />
@@ -96,15 +152,110 @@ export default function Page() {
               Finding It
             </a>
           </nav>
+
+          {/* Mobile hamburger — two lines morphing to an X */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
+            aria-label={mobileOpen ? 'Loka valmynd' : 'Opna valmynd'}
+            className="relative -mr-2.5 flex h-11 w-11 items-center justify-center md:hidden"
+          >
+            <span aria-hidden="true" className="relative block h-4 w-6">
+              <span
+                className={`absolute left-0 top-0 h-[1.5px] w-6 rounded-full bg-[#ece3d4] transition-transform duration-300 motion-reduce:transition-none ${
+                  mobileOpen ? 'translate-y-[7px] rotate-45 bg-[#d98a3d]' : ''
+                }`}
+              />
+              <span
+                className={`absolute bottom-0 left-0 h-[1.5px] w-6 rounded-full bg-[#ece3d4] transition-transform duration-300 motion-reduce:transition-none ${
+                  mobileOpen ? '-translate-y-[7px] -rotate-45 bg-[#d98a3d]' : ''
+                }`}
+              />
+            </span>
+          </button>
+
           <a
             href="#book"
             lang="is"
-            className="rounded-full border border-[#d98a3d]/60 px-4 py-2 text-[13px] font-semibold tracking-wide text-[#d98a3d] transition-colors hover:bg-[#d98a3d] hover:text-[#16110d]"
+            className="hidden rounded-full border border-[#d98a3d]/60 px-4 py-2 text-[13px] font-semibold tracking-wide text-[#d98a3d] transition-colors hover:bg-[#d98a3d] hover:text-[#16110d] md:inline-block"
           >
             Bóka borð
           </a>
         </div>
       </header>
+
+      {/* Mobile menu overlay — sibling of <header>, not a descendant: the header's
+          backdrop-blur makes it a containing block for fixed descendants, so this
+          overlay is rendered outside it and sits at a lower z-index than the header
+          (which switches to a solid background while open) so the X stays visible. */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            key="mobile-nav"
+            id="mobile-nav"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Valmynd"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.25, ease: 'easeOut' }}
+            style={{ paddingTop: headerH }}
+            className="fixed inset-0 z-20 flex flex-col overflow-y-auto bg-[#16110d] bg-[radial-gradient(90%_60%_at_50%_0%,rgba(217,138,61,0.14),transparent_60%)] md:hidden"
+          >
+            <nav className="flex flex-1 flex-col justify-center gap-1 px-8">
+              {NAV_LINKS.map((l, i) => (
+                <div key={l.id} className="overflow-hidden">
+                  <motion.a
+                    href={`#${l.id}`}
+                    onClick={(e) => handleNavClick(e, l.id)}
+                    initial={{ y: '100%', opacity: 0 }}
+                    animate={{ y: '0%', opacity: 1 }}
+                    transition={{
+                      duration: reduce ? 0 : 0.55,
+                      delay: reduce ? 0 : 0.12 + i * 0.06,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="block py-2.5 font-editorial text-4xl tracking-tight text-[#ece3d4] transition-colors hover:text-[#d98a3d] sm:text-5xl"
+                  >
+                    {l.label}
+                  </motion.a>
+                </div>
+              ))}
+            </nav>
+
+            {/* Candle-warm detail: a thin rule drawing in, echoing the flame/rule
+                vocabulary used across the page's section markers. */}
+            <motion.div
+              aria-hidden="true"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: reduce ? 0 : 0.7, delay: reduce ? 0 : 0.45, ease: 'easeOut' }}
+              style={{ transformOrigin: 'left' }}
+              className="mx-8 h-px bg-gradient-to-r from-[#d98a3d]/70 via-[#d98a3d]/25 to-transparent"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.55 }}
+              className="px-8 pt-8"
+              style={{ paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom))' }}
+            >
+              <a
+                href="#book"
+                lang="is"
+                onClick={(e) => handleNavClick(e, 'book')}
+                className="block rounded-full bg-[#d98a3d] px-8 py-4 text-center text-base font-semibold tracking-wide text-[#16110d] shadow-xl shadow-black/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ece3d4]"
+              >
+                Bóka borð · Reserve
+              </a>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main id="top">
         {/* HERO */}

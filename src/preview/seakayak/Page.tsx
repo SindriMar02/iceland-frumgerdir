@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
 import {
   Anchor,
@@ -34,6 +34,12 @@ const TRUST = [
   { big: '#1', small: 'Activity in Stokkseyri' },
   { big: '4.8★', small: 'TripAdvisor rating' },
   { big: 'All', small: 'Levels welcome' },
+]
+
+const NAV_LINKS = [
+  { href: '#trips', label: 'Trips' },
+  { href: '#safety', label: 'Why us' },
+  { href: '#place', label: 'The place' },
 ]
 
 const SAFETY = [
@@ -107,10 +113,39 @@ function MobileBookBar() {
 
 export default function Page() {
   const reduce = useReducedMotion()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerH, setHeaderH] = useState(0)
 
   useEffect(() => {
     document.title = 'Sea Kayak Iceland — Still Water (Concept)'
   }, [])
+
+  // Track header height so the mobile overlay can pad below it.
+  useEffect(() => {
+    const measure = () => setHeaderH(headerRef.current?.offsetHeight ?? 0)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  // Lock body scroll and allow Escape to close while the mobile menu is open.
+  useEffect(() => {
+    if (!menuOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+
+  const closeMenu = () => setMenuOpen(false)
+  const menuDuration = reduce ? 'duration-0' : 'duration-300'
 
   return (
     <div className="min-h-screen scroll-smooth bg-[#0e1c22] font-sans text-[#eef4f5] antialiased">
@@ -118,7 +153,12 @@ export default function Page() {
       <MobileBookBar />
 
       {/* Sticky mini-nav */}
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-white/[0.06] bg-[#0e1c22]/80 backdrop-blur-md">
+      <header
+        ref={headerRef}
+        className={`fixed inset-x-0 top-0 z-30 border-b border-white/[0.06] backdrop-blur-md transition-colors ${menuDuration} ${
+          menuOpen ? 'bg-[#0e1c22]' : 'bg-[#0e1c22]/80'
+        }`}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 md:px-10">
           <a href="#top" className="flex items-center gap-2.5 pl-10 md:pl-12">
             <Anchor className="h-4.5 w-4.5 text-[#2aa7c4]" aria-hidden="true" />
@@ -126,7 +166,7 @@ export default function Page() {
               Sea Kayak Iceland
             </span>
           </a>
-          <nav className="flex items-center gap-7" aria-label="Primary">
+          <nav className="flex items-center gap-4 md:gap-7" aria-label="Primary">
             <a href="#trips" className="hidden text-sm text-[#9fc0c9] transition-colors hover:text-[#eef4f5] md:inline">
               Trips
             </a>
@@ -143,9 +183,92 @@ export default function Page() {
             >
               Bóka ferð
             </a>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+              className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#eef4f5] transition-colors hover:bg-white/5 md:hidden"
+            >
+              <span className="relative block h-4 w-5" aria-hidden="true">
+                <span
+                  className={`absolute inset-x-0 top-0 h-[2px] rounded-full bg-current transition-all ${menuDuration} ease-out ${
+                    menuOpen ? 'top-[7px] rotate-45' : ''
+                  }`}
+                />
+                <span
+                  className={`absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-current transition-all ${menuDuration} ease-out ${
+                    menuOpen ? 'bottom-[7px] -rotate-45' : ''
+                  }`}
+                />
+              </span>
+            </button>
           </nav>
         </div>
       </header>
+
+      {/* Mobile menu overlay — rendered as a header sibling (not nested inside it) so the
+          header's own backdrop-blur containing-block stays correct while this is open. */}
+      <div
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Valmynd"
+        style={{ paddingTop: headerH }}
+        className={`fixed inset-0 z-20 flex flex-col bg-[#0e1c22] transition-opacity ${menuDuration} md:hidden ${
+          menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        <nav aria-label="Valmynd farsíma" className="flex flex-1 flex-col justify-center px-8">
+          <ul>
+            {NAV_LINKS.map((l, i) => (
+              <li key={l.href} className="overflow-hidden py-1.5">
+                <a
+                  href={l.href}
+                  onClick={closeMenu}
+                  className={`block font-grotesk text-4xl font-semibold tracking-tight text-[#eef4f5] transition-all ease-out ${
+                    reduce ? 'duration-0' : 'duration-500'
+                  } ${menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
+                  style={{ transitionDelay: menuOpen && !reduce ? `${100 + i * 90}ms` : '0ms' }}
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <div
+            aria-hidden="true"
+            className={`mt-8 h-px w-16 bg-[#2aa7c4]/50 transition-opacity ${
+              reduce ? 'duration-0' : 'duration-500'
+            } ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+            style={{ transitionDelay: menuOpen && !reduce ? '380ms' : '0ms' }}
+          />
+          <p
+            className={`mt-4 text-[11px] font-semibold tracking-[0.34em] text-[#7fa3ad] uppercase transition-opacity ${
+              reduce ? 'duration-0' : 'duration-500'
+            } ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+            style={{ transitionDelay: menuOpen && !reduce ? '420ms' : '0ms' }}
+          >
+            Stokkseyri · síðan 1995
+          </p>
+        </nav>
+
+        <div className="px-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <a
+            href="#book"
+            lang="is"
+            onClick={closeMenu}
+            className={`flex w-full items-center justify-center gap-2 rounded-full bg-[#2aa7c4] px-8 py-4 text-base font-bold tracking-wide text-[#06141a] shadow-xl shadow-[#2aa7c4]/25 transition-all hover:bg-[#5fd0e6] ${
+              reduce ? 'duration-0' : 'duration-500'
+            } ${menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+            style={{ transitionDelay: menuOpen && !reduce ? '460ms' : '0ms' }}
+          >
+            Bóka ferð
+          </a>
+        </div>
+      </div>
 
       {/* Hero */}
       <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
