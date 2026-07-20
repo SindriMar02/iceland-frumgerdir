@@ -246,7 +246,7 @@ export default function Home() {
               Fyrir og eftir
             </Link>
             <a
-              href="mailto:sindri@klubbr.is?subject=Fyrirspurn%20um%20vefs%C3%AD%C3%B0u"
+              href="mailto:sindrimar02@gmail.com?subject=Fyrirspurn%20um%20vefs%C3%AD%C3%B0u"
               className="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-[#0b0e13] transition-colors hover:bg-white/85"
             >
               Hafa samband
@@ -450,7 +450,7 @@ export default function Home() {
 
             <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
               <a
-                href="mailto:sindri@klubbr.is?subject=Fyrirspurn%20um%20vefs%C3%AD%C3%B0u"
+                href="mailto:sindrimar02@gmail.com?subject=Fyrirspurn%20um%20vefs%C3%AD%C3%B0u"
                 className="inline-flex items-center gap-2 rounded-full bg-sky-300 px-6 py-3 font-semibold text-slate-950 transition-colors hover:bg-sky-200"
               >
                 Hafa samband
@@ -500,8 +500,8 @@ export default function Home() {
           </p>
           <p className="mt-4 text-xs text-white/35">
             Hugmynd og hönnun ·{' '}
-            <a href="mailto:sindri@klubbr.is" className="underline underline-offset-2 hover:text-white/60">
-              sindri@klubbr.is
+            <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2 hover:text-white/60">
+              sindrimar02@gmail.com
             </a>
           </p>
         </footer>

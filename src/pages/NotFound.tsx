@@ -34,12 +34,12 @@ export default function NotFound() {
           sendi þér réttan hlekk um hæl.
         </p>
         <a
-          href="mailto:sindri@klubbr.is?subject=Fors%C3%BDning%20%E2%80%94%20hlekkur%20virkar%20ekki"
+          href="mailto:sindrimar02@gmail.com?subject=Fors%C3%BDning%20%E2%80%94%20hlekkur%20virkar%20ekki"
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-sky-300 px-6 py-3 font-semibold text-slate-950 transition-colors hover:bg-sky-200"
         >
           Hafa samband
         </a>
-        <p className="mt-6 text-xs text-white/35">sindri@klubbr.is</p>
+        <p className="mt-6 text-xs text-white/35">sindrimar02@gmail.com</p>
       </main>
     </div>
   )
