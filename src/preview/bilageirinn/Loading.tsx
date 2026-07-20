@@ -1,19 +1,18 @@
 /**
- * Bílageirinn's loading screen. Used two ways, deliberately identical markup:
+ * Bílageirinn's loading screen — pure code, no media assets. Used two ways,
+ * deliberately identical markup:
  *   1. As the route's Suspense fallback (App.tsx), while the page's JS chunk downloads.
- *      No progress is known yet, so the amber line runs a slow ambient sweep instead of filling.
- *   2. As an overlay Page.tsx renders itself from the same instant, fading out only once the
- *      hero photo and fonts are actually ready AND a minimum display time has passed — so it
- *      never flashes invisibly-fast on a quick connection (a real bug found on the first version
- *      of this screen: real assets load fast enough off a CDN that the gate could resolve before
- *      the mark ever painted).
+ *      No progress is known yet, so the rule runs a slow ambient sweep instead of filling.
+ *   2. As an overlay Page.tsx renders itself from the same instant, fading out only once
+ *      the hero photo and fonts are actually ready AND a minimum display time has passed.
  *
- * The icon is a cropped, background-removed still from a generated draw-in clip (or the video
- * itself, muted, ~1.5s, mix-blend-mode:screen so its black backdrop disappears seamlessly into
- * this screen's own dark ground — no visible box). The wordmark is real HTML type, not the
- * source clip's own baked-in text: the generated text had a broken þ ("Bílapjónusta" instead of
- * "Bílaþjónusta") — a real font with a real Unicode þ sidesteps that category of bug entirely,
- * and reads crisp at any size instead of soft/AI-mushy.
+ * Concept: the shop's measuring rule. The wordmark rises and settles onto one
+ * amber line — a hairline rule with graduation ticks — and the line fills to
+ * true with the REAL asset progress (an honest meter, not a decorative one).
+ * Earlier versions used a generated draw-in video + photo backdrop; both are
+ * gone: the video needed per-browser alpha encodes and its icon shipped at
+ * 22% of frame height twice, and the photo read as murk under the vignette.
+ * Type + one line is the same vocabulary the hero itself opens with.
  */
 export default function BilageirinnLoading({
   visible = true,
@@ -28,6 +27,8 @@ export default function BilageirinnLoading({
   const B = import.meta.env.BASE_URL
   const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
+  const TICKS = 21
+
   return (
     <div
       aria-hidden="true"
@@ -37,7 +38,6 @@ export default function BilageirinnLoading({
         zIndex: 100,
         background: '#0D0E10',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         opacity: visible ? 1 : 0,
@@ -49,72 +49,65 @@ export default function BilageirinnLoading({
         @font-face { font-family: 'ClashDisplay-Bold'; src: url('${B}fonts/clash-display/fonts/ClashDisplay-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
         @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 
-        .bgl-bg{position:absolute;inset:0;background-image:url('${B}preview/bilageirinn/loading-bg.webp');
-          background-size:cover;background-position:center;opacity:.28}
-        .bgl-vignette{position:absolute;inset:0;
-          background:radial-gradient(ellipse at center,rgba(13,14,16,0.25) 0%,rgba(13,14,16,0.82) 62%,#0D0E10 100%)}
-        .bgl-glow{position:absolute;width:clamp(280px,42vw,460px);height:clamp(280px,42vw,460px);border-radius:50%;
-          background:radial-gradient(circle,rgba(232,162,61,0.16),rgba(232,162,61,0) 68%);
-          animation:bglGlow 2.4s ease-in-out infinite}
+        .bgl-stage{display:flex;flex-direction:column;align-items:center;width:min(84vw,600px)}
 
-        /* The video file is CROPPED TO THE ICON itself (it used to be a
-           mostly-black frame with the icon at ~22% height — so sizing this
-           element never visibly sized the icon, which is why every earlier
-           px bump changed nothing). Element height ~= icon height now.
-           Transparency comes from a REAL alpha channel in the video files
-           (HEVC-alpha .mov for Safari, VP9-alpha .webm for Chrome/Firefox)
-           instead of mix-blend-mode, which WebKit is known to silently
-           ignore on <video> in some compositing paths. */
-        .bgl-icon-video{position:relative;height:clamp(120px,18vw,190px);width:auto}
-        .bgl-icon-still{position:relative;height:clamp(120px,18vw,190px);width:auto;filter:brightness(0) invert(0.96)}
+        /* wordmark rises out of a mask, same move as the hero headline */
+        .bgl-mask{overflow:hidden;padding:0.14em 0.05em 0.08em}
+        .bgl-word{display:block;transform:translateY(118%);animation:bglRise 0.75s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
+          font-family:'ClashDisplay-Bold','Arial Black',sans-serif;font-weight:700;
+          font-size:clamp(38px,6.4vw,64px);letter-spacing:-0.02em;color:#F3F0EA;line-height:1}
+        @keyframes bglRise{to{transform:translateY(0)}}
 
-        .bgl-word{position:relative;margin-top:clamp(16px,2.4vw,26px);text-align:center;opacity:0;transform:translateY(10px);
-          animation:bglWordIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards;animation-delay:1.4s}
-        .bgl-word-tag{position:relative;margin-top:4px;text-align:center;opacity:0;transform:translateY(8px);
-          animation:bglWordIn 0.45s cubic-bezier(0.22,1,0.36,1) forwards;animation-delay:1.55s}
-        @keyframes bglWordIn{to{opacity:1;transform:translateY(0)}}
+        /* the measuring rule: one hairline, graduation ticks, amber fill */
+        .bgl-rule{position:relative;margin-top:clamp(22px,3.4vw,34px);width:100%;height:14px;opacity:0;
+          animation:bglIn 0.5s ease 0.5s forwards}
+        .bgl-rule-track{position:absolute;left:0;right:0;top:6px;height:2px;background:rgba(243,240,234,0.12)}
+        .bgl-rule-fill{position:absolute;left:0;right:0;top:6px;height:2px;background:#E8A23D;transform-origin:left}
+        .bgl-rule-sweep{animation:bglSweep 1.4s cubic-bezier(0.65,0,0.35,1) infinite}
+        .bgl-ticks{position:absolute;inset:0;display:flex;justify-content:space-between}
+        .bgl-tick{width:1px;height:6px;margin-top:8px;background:rgba(243,240,234,0.28)}
+        .bgl-tick.bgl-tick-major{height:14px;margin-top:0;background:rgba(243,240,234,0.4)}
 
-        .bgl-track{position:relative;margin-top:clamp(24px,3vw,32px);width:clamp(140px,16vw,190px);height:2px;background:rgba(243,240,234,0.14);overflow:hidden}
-        .bgl-fill{position:absolute;inset:0;transform-origin:left;background:#E8A23D}
-        .bgl-sweep{animation:bglSweep 1.4s cubic-bezier(0.65,0,0.35,1) infinite}
-        @keyframes bglGlow{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:1;transform:scale(1.05)}}
-        @keyframes bglSweep{0%{transform:translateX(-100%)}55%{transform:translateX(100%)}100%{transform:translateX(100%)}}
+        .bgl-tag{margin-top:clamp(16px,2.2vw,22px);opacity:0;animation:bglIn 0.5s ease 0.75s forwards;
+          font-family:'Geist Mono',ui-monospace,monospace;font-weight:500;
+          font-size:clamp(11px,1.3vw,13px);letter-spacing:0.26em;color:#A9A399;text-align:center}
+
+        @keyframes bglIn{to{opacity:1}}
+        @keyframes bglSweep{0%{transform:scaleX(0);transform-origin:left}
+          45%{transform:scaleX(1);transform-origin:left}
+          55%{transform:scaleX(1);transform-origin:right}
+          100%{transform:scaleX(0);transform-origin:right}}
+
         @media (prefers-reduced-motion: reduce){
-          .bgl-glow{animation:none}
-          .bgl-sweep{animation:none;transform:translateX(0);width:40%}
-          .bgl-word, .bgl-word-tag{animation:none;opacity:1;transform:none}
+          .bgl-word{animation:none;transform:none}
+          .bgl-rule,.bgl-tag{animation:none;opacity:1}
+          .bgl-rule-sweep{animation:none;transform:scaleX(1)}
         }
       `}</style>
 
-      <div className="bgl-bg" />
-      <div className="bgl-vignette" />
-      <div className="bgl-glow" />
+      <div className="bgl-stage">
+        <div className="bgl-mask">
+          <span className="bgl-word">Bílageirinn</span>
+        </div>
 
-      {reduced ? (
-        <img src={`${B}preview/bilageirinn/icon-concept.png`} alt="" className="bgl-icon-still" draggable={false} />
-      ) : (
-        <video className="bgl-icon-video" autoPlay muted playsInline disablePictureInPicture>
-          {/* Safari takes HEVC-alpha (rejects nothing silently — it simply
-              won't pick a source it can't decode); Chrome/Firefox reject
-              hvc1 and fall through to VP9-alpha webm. */}
-          <source src={`${B}preview/bilageirinn/logo-draw-alpha.mov`} type='video/mp4; codecs="hvc1"' />
-          <source src={`${B}preview/bilageirinn/logo-draw-alpha.webm`} type="video/webm" />
-        </video>
-      )}
+        <div className="bgl-rule">
+          <div className="bgl-ticks">
+            {Array.from({ length: TICKS }, (_, i) => (
+              <span key={i} className={`bgl-tick${i % 5 === 0 ? ' bgl-tick-major' : ''}`} />
+            ))}
+          </div>
+          <div className="bgl-rule-track" />
+          {determinate ? (
+            <div
+              className="bgl-rule-fill"
+              style={{ transform: `scaleX(${reduced ? 1 : shown})`, transition: 'transform 0.35s ease' }}
+            />
+          ) : (
+            <div className="bgl-rule-fill bgl-rule-sweep" />
+          )}
+        </div>
 
-      <p className="bgl-word" style={{ fontFamily: "'ClashDisplay-Bold', 'Arial Black', sans-serif", fontWeight: 700, fontSize: 'clamp(30px, 4.4vw, 46px)', color: '#F3F0EA', letterSpacing: '-0.01em' }}>
-        Bílageirinn
-      </p>
-      <p className="bgl-word-tag" style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 500, fontSize: 'clamp(11px, 1.4vw, 14px)', letterSpacing: '0.24em', color: '#A9A399' }}>
-        BÍLAÞJÓNUSTA
-      </p>
-
-      <div className="bgl-track">
-        {determinate ? (
-          <div className="bgl-fill" style={{ transform: `scaleX(${shown})`, transition: 'transform 0.35s ease' }} />
-        ) : (
-          <div className="bgl-fill bgl-sweep" style={{ width: '40%' }} />
-        )}
+        <p className="bgl-tag">BÍLAÞJÓNUSTA · GRÓFIN 14A</p>
       </div>
     </div>
   )
