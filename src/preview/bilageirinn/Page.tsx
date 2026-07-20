@@ -548,9 +548,12 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           {/* language toggle lives in the header on desktop; on mobile it
               moves inside the menu so the row stays three items */}
           <div className="hidden md:block">{langToggle(false)}</div>
+          {/* phone CTA is desktop-only in the header — on mobile it lives in
+              the hamburger menu's bottom bar, so the header row stays to
+              logo + burger and doesn't compete with the menu's own CTA */}
           <a
             href={PHONE_HREF}
-            className="bg-cta-solid ml-1 inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm px-3 text-[13px] font-semibold md:ml-2 md:gap-2 md:px-4 md:text-[14px]"
+            className="bg-cta-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-sm px-4 text-[14px] font-semibold md:inline-flex"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
