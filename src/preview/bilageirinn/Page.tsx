@@ -13,7 +13,7 @@ import {
   useTransform,
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
-import { Car, Check, Copy, MapPin, MessageCircle, Phone, Send } from 'lucide-react'
+import { ArrowRight, Car, Check, Copy, MapPin, MessageCircle, Phone, Send } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -130,6 +130,31 @@ const CSS = `
 .bg-cta-solid { transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-cta-solid:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(232,162,61,0.32); }
 .bg-cta-solid:active { transform: translateY(0) scale(0.97); }
+
+/* hero primary CTA: a small dark "ink" dot pools out from the left and
+   floods the amber pill dark, the same ground/ink inversion the whole page
+   is built on, while the label hands off to an arrow-out variant. */
+.bg-cta-invert { position: relative; overflow: hidden; }
+.bg-cta-invert .cta-label-a {
+  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 0.625rem;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-cta-invert:hover .cta-label-a { transform: translateX(14px); opacity: 0; }
+.bg-cta-invert .cta-label-b {
+  position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 0.625rem;
+  transform: translateX(-14px); opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-cta-invert:hover .cta-label-b { transform: translateX(0); opacity: 1; }
+.bg-cta-invert .cta-dot {
+  position: absolute; z-index: 1; left: 1.1rem; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 9999px;
+  transition: left 0.4s cubic-bezier(0.4,0,0.2,1), top 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1),
+    height 0.4s cubic-bezier(0.4,0,0.2,1), margin 0.4s cubic-bezier(0.4,0,0.2,1), border-radius 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-cta-invert:hover .cta-dot { left: 0; top: 0; width: 100%; height: 100%; margin-top: 0; border-radius: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .bg-cta-invert .cta-label-a, .bg-cta-invert .cta-label-b, .bg-cta-invert .cta-dot { transition: none; }
+}
 
 .bg-cta-outline { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-cta-outline:hover { border-color: ${INK}; background: rgba(243,240,234,0.08); transform: translateY(-2px); }
@@ -834,11 +859,18 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           <a
             href="#hafa-samband"
             onClick={goTo('#hafa-samband')}
-            className="bg-cta-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-sm px-7 text-[16px] font-bold"
+            className="bg-cta-invert group inline-flex min-h-[52px] items-center rounded-sm px-7 text-[16px] font-bold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
-            <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
-            {t.ui.contactCta}
+            <span aria-hidden className="cta-dot" style={{ background: DARKINK }} />
+            <span className="cta-label-a">
+              <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
+              {t.ui.contactCta}
+            </span>
+            <span aria-hidden className="cta-label-b" style={{ color: AMBER }}>
+              {t.ui.contactCta}
+              <ArrowRight size={17} strokeWidth={2.4} aria-hidden />
+            </span>
           </a>
           <a
             href="#thjonusta"
@@ -874,31 +906,6 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
   )
 }
 
-function Marquee() {
-  const { t: { trust } } = useT()
-  const row = (hidden: boolean) => (
-    <ul
-      aria-hidden={hidden || undefined}
-      className="flex shrink-0 items-center gap-12 pr-12 text-[13px] tracking-[0.2em] uppercase"
-      style={{ fontFamily: MONO, color: MUT }}
-    >
-      {trust.map(item => (
-        <li key={item} className="flex items-center gap-12 whitespace-nowrap">
-          <span>{item}</span>
-          <span aria-hidden style={{ color: AMBER }}>—</span>
-        </li>
-      ))}
-    </ul>
-  )
-  return (
-    <div className="overflow-hidden border-y py-5" style={{ borderColor: HAIR }} role="marquee">
-      <div className="bg-marquee flex w-max">
-        {row(false)}
-        {row(true)}
-      </div>
-    </div>
-  )
-}
 
 /* The thesis sentence of story.body, lifted out as the page's second
    typographic peak (split locally — data.ts stays canonical for the other
@@ -1128,8 +1135,51 @@ function ServiceIndex() {
     hoverTimer.current = window.setTimeout(() => setActive(i), 90)
   }
   useEffect(() => () => window.clearTimeout(hoverTimer.current), [])
+
+  /* Scroll-driven: the row closest to a fixed reading line advances the
+     active service (and its photo) as you scroll — this is the primary way
+     to browse on mobile, where there's no hover at all, and it also plays
+     nicely on desktop as a secondary path alongside hover/click. Distance
+     comparison (not IntersectionObserver ratios) because it needs to pick
+     the SINGLE closest row, not merely "some row is visible". Frozen
+     entirely while the section itself is off-screen so entering/leaving it
+     never snaps active back to the first row. */
+  const sectionRef = useRef<HTMLElement>(null)
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([])
+  useEffect(() => {
+    let raf = 0
+    const onScroll = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const section = sectionRef.current
+        if (!section) return
+        const sr = section.getBoundingClientRect()
+        if (sr.bottom < 0 || sr.top > window.innerHeight) return
+        const line = window.innerHeight * 0.42
+        let closest = -1
+        let closestDist = Infinity
+        itemRefs.current.forEach((el, i) => {
+          if (!el) return
+          const r = el.getBoundingClientRect()
+          const dist = Math.abs(r.top + r.height / 2 - line)
+          if (dist < closestDist) {
+            closestDist = dist
+            closest = i
+          }
+        })
+        if (closest !== -1) setActive(closest)
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
+
   return (
-    <section id="thjonusta" className="mx-auto max-w-[1320px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36">
+    <section ref={sectionRef} id="thjonusta" className="mx-auto max-w-[1320px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36">
       <Rise>
         <Kicker>
           {t.ui.servicesKicker}
@@ -1178,7 +1228,14 @@ function ServiceIndex() {
           {t.services.map((s, i) => {
             const on = i === active
             return (
-              <li key={s.name} className="border-b" style={{ borderColor: HAIR }}>
+              <li
+                key={s.name}
+                ref={el => {
+                  itemRefs.current[i] = el
+                }}
+                className="border-b"
+                style={{ borderColor: HAIR }}
+              >
                 <button
                   type="button"
                   onClick={() => {
@@ -2208,7 +2265,6 @@ export default function Page() {
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero lenisRef={lenisRef} start={assetsReady} />
-        <Marquee />
         <Story />
         <Facts />
         <ServiceIndex />
