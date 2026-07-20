@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import {
@@ -18,20 +18,13 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import BilageirinnLoading from './Loading'
+import { STRINGS, type Lang, type Strings } from './translations'
 import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
-  BRANDS,
-  CLAIM_STEPS,
-  CRAFT,
-  CTA,
   EMAIL,
-  FACILITY,
   FACTS,
-  HERO,
-  HOURS,
   IMG,
-  INSURANCE,
   LUBE_PHONE_DISPLAY,
   LUBE_PHONE_HREF,
   MAPS,
@@ -39,9 +32,6 @@ import {
   PHONE_HREF,
   SEO,
   SERVICES,
-  STORY,
-  TEAM,
-  TRUST_STRIP,
 } from './data'
 
 const company = getPreviewCompany('bilageirinn')
@@ -388,13 +378,14 @@ function MeasurePoints({ points }: { points: { x: number; y: number; label?: str
     STORY.lead ("hvert mál er mælt, hvert handtak skráð...") in its own
     mono/hairline system, reusing only words already in the verified copy. */
 function SpecPlate() {
+  const { t } = useT()
   return (
     <Rise delay={0.22}>
       <div
         className="mt-8 inline-flex flex-wrap items-center gap-x-4 gap-y-2 rounded-sm border px-5 py-3.5"
         style={{ borderColor: HAIR, background: 'rgba(232,162,61,0.06)' }}
       >
-        {['MÆLT', 'SKRÁÐ', 'STENST KRÖFUR'].map((w, i, arr) => (
+        {t.ui.specPlate.map((w, i, arr) => (
           <span key={w} className="flex items-center gap-x-4">
             <span className="text-[12px] tracking-[0.18em]" style={{ fontFamily: MONO, color: AMBER }}>
               {w}
@@ -437,9 +428,19 @@ function CountUp({ to, pad, suffix }: { to: number; pad: number; suffix: string 
   )
 }
 
+/* ─────────────────────────── language context ─────────────────────────── */
+
+const LangCtx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: Strings }>({
+  lang: 'is',
+  setLang: () => {},
+  t: STRINGS.is,
+})
+const useT = () => useContext(LangCtx)
+
 /* ─────────────────────────────── sections ─────────────────────────────── */
 
 function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
+  const { lang, setLang, t } = useT()
   const [solid, setSolid] = useState(false)
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 40)
@@ -469,7 +470,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
       }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between px-5 md:px-8">
-        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center gap-2.5" aria-label="Bílageirinn — efst á síðu">
+        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center gap-2.5" aria-label={t.ui.navTopAria}>
           {/* REBRAND CONCEPT PREVIEW, not the real mark — icon closely matches
               the real logo's own swoosh+headlight shape, previewed here only
               to pitch before touching the real logo.png used everywhere else
@@ -481,9 +482,27 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           </span>
         </a>
         <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
-          <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>Þjónusta</a>
-          <a href="#tjon" onClick={go('#tjon')} className={link}>Tjónaviðgerðir</a>
-          <a href="#verkstaedid" onClick={go('#verkstaedid')} className={link}>Verkstæðið</a>
+          <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>{t.ui.navServices}</a>
+          <a href="#tjon" onClick={go('#tjon')} className={link}>{t.ui.navClaims}</a>
+          <a href="#verkstaedid" onClick={go('#verkstaedid')} className={link}>{t.ui.navWorkshop}</a>
+          {/* language toggle: two real buttons, active one amber */}
+          <div className="ml-1 flex items-center gap-0.5 text-[12px] tracking-[0.1em]" style={{ fontFamily: MONO }}>
+            {(['is', 'en'] as const).map((l, i) => (
+              <span key={l} className="flex items-center">
+                {i > 0 && <span aria-hidden style={{ color: MUT, opacity: 0.5 }}>/</span>}
+                <button
+                  type="button"
+                  onClick={() => setLang(l)}
+                  aria-pressed={lang === l}
+                  aria-label={l === 'is' ? 'Íslenska' : 'English'}
+                  className="bg-navlink inline-flex min-h-11 items-center px-1.5 uppercase"
+                  style={{ color: lang === l ? AMBER : MUT, fontWeight: lang === l ? 600 : 400 }}
+                >
+                  {l}
+                </button>
+              </span>
+            ))}
+          </div>
           <a
             href={PHONE_HREF}
             className="bg-cta-solid ml-2 inline-flex min-h-11 items-center gap-2 rounded-sm px-4 text-[14px] font-semibold"
@@ -503,12 +522,9 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     the shop until that footage exists — same scrim/shadow system below
     sits on top regardless, so swapping in a real <video> later is a
     one-line change. Freezes on the first frame under reduced motion. */
-const HERO_BG_PHOTOS = [
-  { src: IMG.hero, alt: 'Neistaflug við málmvinnu á dimmu verkstæði' },
-  { src: IMG.booth, alt: 'Bíll afmarkaður og grunnaður í sprautuklefa' },
-  { src: IMG.garage, alt: 'Bílar á lyftum á dimmu verkstæðisgólfi' },
-]
+const HERO_BG_PHOTOS = [IMG.hero, IMG.booth, IMG.garage]
 function HeroBackground({ reduced, running }: { reduced: boolean; running: boolean }) {
+  const { t } = useT()
   const [active, setActive] = useState(0)
   useEffect(() => {
     if (reduced || !running) return
@@ -522,7 +538,7 @@ function HeroBackground({ reduced, running }: { reduced: boolean; running: boole
   if (reduced) {
     return (
       <div className="absolute inset-0">
-        <img src={HERO_BG_PHOTOS[0].src} alt={HERO_BG_PHOTOS[0].alt} className="h-full w-full object-cover" />
+        <img src={HERO_BG_PHOTOS[0]} alt={t.ui.heroAlts[0]} className="h-full w-full object-cover" />
       </div>
     )
   }
@@ -531,8 +547,8 @@ function HeroBackground({ reduced, running }: { reduced: boolean; running: boole
       <AnimatePresence initial={false}>
         <motion.img
           key={active}
-          src={HERO_BG_PHOTOS[active].src}
-          alt={HERO_BG_PHOTOS[active].alt}
+          src={HERO_BG_PHOTOS[active]}
+          alt={t.ui.heroAlts[active]}
           className={`${active % 2 ? 'bg-hero-kb-alt' : 'bg-hero-kb'} absolute inset-0 h-full w-full object-cover`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -558,7 +574,8 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
      (process jargon) -> "Eins og úr verksmiðjunni." (too close to the
      eins-og-nýr cliché family). Local to this page; data.ts's
      HERO.headline stays the source of truth for the other 3 concepts. */
-  const words = 'Eins og ekkert hefði í skorist.'.split(' ')
+  const { t } = useT()
+  const words = t.ui.slogan.split(' ')
   const goTo = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     const el = document.querySelector(hash)
@@ -615,7 +632,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
         >
-          Réttingar · Bílamálun · Bílaþjónusta — Grófin 14a, Reykjanesbær
+          {t.ui.heroKicker}
         </motion.p>
         <h1
           className="max-w-6xl text-balance leading-[0.98]"
@@ -658,7 +675,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.3 }}
         >
-          {HERO.sub}
+          {t.hero.sub}
         </motion.p>
         {/* CTA row renders visible immediately (no entrance gating) — a
             worried crash customer must be able to act the instant the page
@@ -673,7 +690,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
-            Hafðu samband
+            {t.ui.contactCta}
           </a>
           <a
             href="#thjonusta"
@@ -681,7 +698,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
             className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-sm border px-7 text-[16px] font-medium"
             style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
           >
-            {HERO.ctaSecondary}
+            {t.hero.ctaSecondary}
           </a>
         </div>
         {/* proof row: the three verified differentiators readable before
@@ -693,14 +710,14 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           animate={on ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          {[HERO.cert, 'Öll tryggingafélög og CABAS-tjónamat', 'Lánsbíll meðan á viðgerð stendur'].map(t => (
+          {t.ui.proofRow.map(item => (
             <li
-              key={t}
+              key={item}
               className="inline-flex items-center gap-2.5 text-[13px] tracking-[0.08em]"
               style={{ fontFamily: MONO, color: MUT, textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
             >
               <span aria-hidden className="inline-block h-px w-4 shrink-0" style={{ background: AMBER }} />
-              {t}
+              {item}
             </li>
           ))}
         </motion.ul>
@@ -710,15 +727,16 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
 }
 
 function Marquee() {
+  const { t: { trust } } = useT()
   const row = (hidden: boolean) => (
     <ul
       aria-hidden={hidden || undefined}
       className="flex shrink-0 items-center gap-12 pr-12 text-[13px] tracking-[0.2em] uppercase"
       style={{ fontFamily: MONO, color: MUT }}
     >
-      {TRUST_STRIP.map(t => (
-        <li key={t} className="flex items-center gap-12 whitespace-nowrap">
-          <span>{t}</span>
+      {trust.map(item => (
+        <li key={item} className="flex items-center gap-12 whitespace-nowrap">
+          <span>{item}</span>
           <span aria-hidden style={{ color: AMBER }}>—</span>
         </li>
       ))}
@@ -734,12 +752,14 @@ function Marquee() {
   )
 }
 
-/* The thesis sentence of STORY.body, lifted out as the page's second
+/* The thesis sentence of story.body, lifted out as the page's second
    typographic peak (split locally — data.ts stays canonical for the other
-   three concepts). */
-const BODY_SPLIT = STORY.body.indexOf('. ') + 1
-const THESIS = STORY.body.slice(0, BODY_SPLIT)
-const BODY_REST = STORY.body.slice(BODY_SPLIT + 1)
+   three concepts). Computed per language: both bodies open with the same
+   one-sentence thesis. */
+function splitBody(body: string) {
+  const at = body.indexOf('. ') + 1
+  return { thesis: body.slice(0, at), rest: body.slice(at + 1) }
+}
 
 /** Horizontal version of the bent-line vocabulary: bent while the quote
     enters, dead straight by the time it holds center screen — the thesis
@@ -765,6 +785,7 @@ function hBendPathD(v: number) {
 }
 
 function LineQuote() {
+  const { t } = useT()
   const bandRef = useRef<HTMLDivElement>(null)
   const pathRef = useRef<SVGPathElement>(null)
   const reduced = useReducedMotion()
@@ -798,7 +819,7 @@ function LineQuote() {
             color: INK,
           }}
         >
-          {THESIS}
+          {splitBody(t.story.body).thesis}
         </p>
       </Rise>
       <svg aria-hidden className="pointer-events-none mt-6 h-[44px] w-full" viewBox="0 0 100 44" preserveAspectRatio="none">
@@ -817,6 +838,7 @@ function LineQuote() {
 }
 
 function Story() {
+  const { t } = useT()
   return (
     <section className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
       <div className="grid gap-12 md:grid-cols-[1.05fr_1fr] md:gap-16">
@@ -826,23 +848,23 @@ function Story() {
               className="text-balance"
               style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
             >
-              {STORY.title}
+              {t.story.title}
             </h2>
           </Rise>
           <TrueLine className="mt-6 w-24" delay={0.15} />
           <Rise delay={0.1}>
             <p className="mt-7 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-              {STORY.lead}
+              {t.story.lead}
             </p>
             <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-              {BODY_REST}
+              {splitBody(t.story.body).rest}
             </p>
           </Rise>
           <SpecPlate />
         </div>
         <ClipImage
           src={IMG.booth}
-          alt="Bíll afmarkaður með pappír og grunnaður í sprautuklefa"
+          alt={t.ui.boothAlt}
           className="aspect-[4/5] rounded-sm md:aspect-auto md:min-h-[540px]"
         />
       </div>
@@ -853,13 +875,13 @@ function Story() {
       {/* the shop's own line through time — LineQuote already closed with a line, so this needs none */}
       <div className="mt-20 md:mt-28">
         <div className="grid gap-10 md:grid-cols-3 md:gap-8">
-          {STORY.timeline.map((t, i) => (
-            <Rise key={t.year} delay={i * 0.12}>
+          {t.story.timeline.map((item, i) => (
+            <Rise key={item.year} delay={i * 0.12}>
               <p style={{ fontFamily: MONO, color: AMBER }} className="text-[15px] tracking-[0.14em]">
-                {t.year}
+                {item.year}
               </p>
               <p className="mt-3 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-                {t.text}
+                {item.text}
               </p>
             </Rise>
           ))}
@@ -917,12 +939,13 @@ function ReadoutLine() {
 }
 
 function Facts() {
+  const { t } = useT()
   return (
     <section className="border-y" style={{ borderColor: HAIR, background: SURFACE }}>
       <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
         <ReadoutLine />
         <div className="mt-6 grid grid-cols-2 gap-4 gap-y-10 md:grid-cols-4 md:gap-5">
-          {FACTS.map((f, i) => (
+          {t.facts.map((f, i) => (
             <Rise key={f.label} delay={i * 0.08}>
               <p
                 style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(2.2rem, 4.6vw, 3.4rem)', lineHeight: 1 }}
@@ -944,17 +967,9 @@ function Facts() {
 /** Editorial service index: type-led rows on the left, one photo panel that
     crossfades per active service. On mobile the panel sits above the list. */
 const SERVICE_IMGS = [IMG.retting, IMG.malun, IMG.garage, IMG.lift, IMG.wheel, IMG.headlight, IMG.brake]
-const SERVICE_ALTS = [
-  'Flötur yfirbyggingar varinn og unninn með höndunum',
-  'Sprautuvinna í málningarklefa',
-  'Verkstæðisgólf með bílum í viðgerð',
-  'Unnið undir bíl á lyftu',
-  'Fjöðrunar- og hjólabúnaður í nærmynd',
-  'Aðalljós á dökkum bíl',
-  'Bremsubúnaður skoðaður með hjólið af',
-]
 
 function ServiceIndex() {
+  const { t } = useT()
   const [active, setActive] = useState(0)
   /* 90ms hover-intent gate: skimming the cursor down the list no longer
      churns through every row's photo crossfade + accordion — only a real
@@ -969,13 +984,13 @@ function ServiceIndex() {
     <section id="thjonusta" className="mx-auto max-w-[1320px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36">
       <Rise>
         <Kicker>
-          Þjónustan í Grófinni
+          {t.ui.servicesKicker}
         </Kicker>
         <h2
           className="mt-4 max-w-3xl text-balance"
           style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
         >
-          Allt undir sama þaki, frá tjóni að lokafrágangi
+          {t.ui.servicesTitle}
         </h2>
       </Rise>
 
@@ -987,7 +1002,7 @@ function ServiceIndex() {
               <motion.img
                 key={active}
                 src={SERVICE_IMGS[active]}
-                alt={SERVICE_ALTS[active]}
+                alt={t.ui.serviceAlts[active]}
                 loading="lazy"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
@@ -1006,13 +1021,13 @@ function ServiceIndex() {
               className="absolute bottom-4 left-5 text-[13px] tracking-[0.16em] uppercase"
               style={{ fontFamily: MONO, color: INK }}
             >
-              {SERVICES[active].tag}
+              {t.services[active].tag}
             </p>
           </div>
         </div>
 
         <ul className="border-t" style={{ borderColor: HAIR }}>
-          {SERVICES.map((s, i) => {
+          {t.services.map((s, i) => {
             const on = i === active
             return (
               <li key={s.name} className="border-b" style={{ borderColor: HAIR }}>
@@ -1079,14 +1094,14 @@ function ServiceIndex() {
         {/* self-pay reassurance where services are browsed — the fixed-quote
             fact otherwise only appears deep in the claims rail */}
         <p className="mt-10 text-[14px]" style={{ fontFamily: BODY, color: MUT }}>
-          Greiðir þú sjálfur? Tjónið er metið í CABAS og þú færð{' '}
+          {t.ui.selfPayPre}
           <span className="font-semibold" style={{ color: INK }}>
-            fast verðtilboð
+            {t.ui.selfPayBold}
           </span>
-          .
+          {t.ui.selfPayPost}
         </p>
         <p className="mt-2 text-[14px]" style={{ fontFamily: BODY, color: MUT }}>
-          Smurstöðin svarar beint í{' '}
+          {t.ui.lubeAnswers}{' '}
           <a
             href={LUBE_PHONE_HREF}
             className="bg-link-hover inline-flex min-h-11 items-center font-semibold underline decoration-1 underline-offset-4"
@@ -1185,6 +1200,7 @@ function ClaimLine({ scrollYProgress }: { scrollYProgress: MotionValue<number> }
 }
 
 function Claims() {
+  const { t } = useT()
   const railRef = useRef<HTMLDivElement>(null)
   /* Coupled to the user's traversal of the rail itself: bent as the rail
      enters, straightening WITH the scroll through the four steps, dead
@@ -1200,28 +1216,28 @@ function Claims() {
           <div>
             <Rise>
               <Kicker>
-                Tjónaviðgerðir
+                {t.ui.claimsKicker}
               </Kicker>
               <h2
                 className="mt-4 text-balance"
                 style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
               >
-                {INSURANCE.title}
+                {t.insurance.title}
               </h2>
               <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-                {INSURANCE.body}
+                {t.insurance.body}
               </p>
               <p className="mt-7 text-[13px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                {INSURANCE.companies.join(' · ')}
+                {t.insurance.companies.join(' · ')}
               </p>
             </Rise>
             <div className="relative mt-12 hidden md:block">
-              <ClipImage src={IMG.malun} alt="Unnið við bíl í málningarklefa" className="aspect-[4/3] rounded-sm" />
+              <ClipImage src={IMG.malun} alt={t.ui.paintAlt} className="aspect-[4/3] rounded-sm" />
               <MeasurePoints
                 points={[
-                  { x: 22, y: 34, label: 'Mælipunktur' },
-                  { x: 58, y: 22, label: 'Viðmiðunarlína' },
-                  { x: 74, y: 58, label: 'Mælipunktur' },
+                  { x: 22, y: 34, label: t.ui.measurePoint },
+                  { x: 58, y: 22, label: t.ui.referenceLine },
+                  { x: 74, y: 58, label: t.ui.measurePoint },
                 ]}
               />
             </div>
@@ -1232,7 +1248,7 @@ function Claims() {
             <div aria-hidden className="absolute bottom-2 left-[5px] top-2 w-px md:left-[7px]" style={{ background: HAIR }} />
             <ClaimLine scrollYProgress={scrollYProgress} />
             <ol className="space-y-12 md:space-y-16">
-              {CLAIM_STEPS.map((s, i) => (
+              {t.claimSteps.map((s, i) => (
                 <li key={s.title} className="relative">
                   <span
                     aria-hidden
@@ -1265,7 +1281,7 @@ function Claims() {
                           className="mt-4 inline-flex items-center rounded-sm px-3.5 py-2 text-[13.5px] font-semibold"
                           style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
                         >
-                          Innifalið hjá Bílageiranum
+                          {t.ui.includedBadge}
                         </p>
                       )}
                     </div>
@@ -1278,12 +1294,12 @@ function Claims() {
                 proof — was desktop-only; here it closes the process as
                 evidence. aspect-video keeps the added scroll length modest. */}
             <div className="relative mt-12 md:hidden">
-              <ClipImage src={IMG.malun} alt="Unnið við bíl í málningarklefa" className="aspect-video rounded-sm" />
+              <ClipImage src={IMG.malun} alt={t.ui.paintAlt} className="aspect-video rounded-sm" />
               <MeasurePoints
                 points={[
-                  { x: 22, y: 34, label: 'Mælipunktur' },
-                  { x: 58, y: 22, label: 'Viðmiðunarlína' },
-                  { x: 74, y: 58, label: 'Mælipunktur' },
+                  { x: 22, y: 34, label: t.ui.measurePoint },
+                  { x: 58, y: 22, label: t.ui.referenceLine },
+                  { x: 74, y: 58, label: t.ui.measurePoint },
                 ]}
               />
             </div>
@@ -1293,7 +1309,7 @@ function Claims() {
                 not a second CTA vocabulary */}
             <Rise delay={0.1}>
               <p className="mt-12 text-[16px]" style={{ fontFamily: BODY, color: MUT }}>
-                Byrjar allt á einu símtali:{' '}
+                {t.ui.claimsClose}{' '}
                 <a
                   href={PHONE_HREF}
                   className="bg-link-hover inline-flex min-h-11 items-center gap-1.5 font-semibold underline decoration-1 underline-offset-4"
@@ -1312,9 +1328,10 @@ function Claims() {
 }
 
 function Craft() {
+  const { t } = useT()
   return (
     <section className="relative overflow-hidden">
-      <ParallaxImage src={IMG.polish} alt="Lakk fægt á dökku húddi með fægivél" className="absolute inset-0" />
+      <ParallaxImage src={IMG.polish} alt={t.ui.polishAlt} className="absolute inset-0" />
       <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(13,14,16,0.78)' }} />
       <div className="relative mx-auto max-w-[1320px] px-5 py-28 md:px-8 md:py-44">
         <div className="max-w-2xl">
@@ -1323,17 +1340,17 @@ function Craft() {
               className="text-balance"
               style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
             >
-              {CRAFT.title}
+              {t.craft.title}
             </h2>
           </Rise>
           <TrueLine className="mt-6 w-24" delay={0.15} />
           <Rise delay={0.1}>
             <p className="mt-7 text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-              {CRAFT.body}
+              {t.craft.body}
             </p>
           </Rise>
           <ul className="mt-9 space-y-3">
-            {CRAFT.points.map((p, i) => (
+            {t.craft.points.map((p, i) => (
               <Rise key={p} delay={0.15 + i * 0.08}>
                 <li className="flex items-center gap-4 text-[15px]" style={{ fontFamily: MONO, color: INK }}>
                   <span aria-hidden className="h-px w-8" style={{ background: AMBER }} />
@@ -1349,25 +1366,26 @@ function Craft() {
 }
 
 function Brands() {
+  const { t } = useT()
   return (
     <section className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
       <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr] md:gap-20">
         <div>
           <Rise>
             <Kicker>
-              Viðurkennt þjónustuverkstæði
+              {t.ui.brandsKicker}
             </Kicker>
             <h2
               className="mt-4 text-balance"
               style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
             >
-              {BRANDS.title}
+              {t.brands.title}
             </h2>
             <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-              {BRANDS.body}
+              {t.brands.body}
             </p>
             <p className="mt-4 max-w-[58ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-              {BRANDS.note}
+              {t.brands.note}
             </p>
           </Rise>
         </div>
@@ -1392,7 +1410,7 @@ function Brands() {
                   style={{ filter: 'brightness(0) invert(0.94)' }}
                 />
                 <p className="text-[10.5px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                  Vottun · {m.alt}
+                  {t.ui.certLabel} · {m.alt}
                 </p>
               </div>
             </Rise>
@@ -1404,13 +1422,14 @@ function Brands() {
 }
 
 function Workshop() {
+  const { t } = useT()
   return (
     <section id="verkstaedid" className="scroll-mt-20 border-t" style={{ borderColor: HAIR }}>
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">
           <ClipImage
             src={IMG.garage}
-            alt="Bílar á lyftum á dimmu verkstæðisgólfi"
+            alt={t.ui.garageAlt}
             className="aspect-[4/3] rounded-sm md:aspect-auto md:min-h-[520px]"
           />
           <div className="flex flex-col justify-center">
@@ -1419,15 +1438,15 @@ function Workshop() {
                 className="text-balance"
                 style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
               >
-                {FACILITY.title}
+                {t.facility.title}
               </h2>
               <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-                {FACILITY.body}
+                {t.facility.body}
               </p>
             </Rise>
 
             <div className="mt-10 border-t" style={{ borderColor: HAIR }}>
-              {TEAM.map((p, i) => (
+              {t.team.map((p, i) => (
                 <Rise key={p.name} delay={i * 0.07}>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b py-4" style={{ borderColor: HAIR }}>
                     <p className="text-[16.5px] font-bold" style={{ fontFamily: BODY, color: INK }}>
@@ -1446,10 +1465,10 @@ function Workshop() {
               <div className="mt-9 grid gap-8 sm:grid-cols-2">
                 <div>
                   <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
-                    Opnunartími
+                    {t.ui.hoursLabel}
                   </p>
                   <ul className="mt-3 space-y-1.5 text-[15px]" style={{ fontFamily: BODY, color: MUT }}>
-                    {HOURS.map(h => (
+                    {t.hours.map(h => (
                       <li key={h.days}>
                         <span style={{ color: INK }}>{h.days}</span>
                         {'  '}
@@ -1460,7 +1479,7 @@ function Workshop() {
                 </div>
                 <div>
                   <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
-                    Staðsetning
+                    {t.ui.locationLabel}
                   </p>
                   <p className="mt-3 text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
                     <span style={{ color: INK }}>{ADDRESS.street}</span>
@@ -1468,7 +1487,7 @@ function Workshop() {
                     {ADDRESS.town}
                   </p>
                   <p className="mt-3 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
-                    Kortið er hér fyrir neðan ↓
+                    {t.ui.mapNote}
                   </p>
                 </div>
               </div>
@@ -1487,19 +1506,20 @@ function Workshop() {
     (pan/zoom/directions) still lives one tap away via the real Google
     Maps link underneath. */
 function MapSection() {
+  const { t } = useT()
   const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(`${ADDRESS.street}, ${ADDRESS.town}`)}&z=16&output=embed`
   return (
     <section className="border-t" style={{ borderColor: HAIR }}>
       <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
         <Rise>
           <Kicker>
-            Staðsetning
+            {t.ui.mapKicker}
           </Kicker>
           <h2
             className="mt-4 text-balance"
             style={{ fontFamily: EBOLD, fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '-0.02em', lineHeight: 1.06 }}
           >
-            Finndu okkur í Grófinni
+            {t.ui.mapTitle}
           </h2>
         </Rise>
         <Rise delay={0.1}>
@@ -1508,7 +1528,7 @@ function MapSection() {
             style={{ borderColor: HAIR, height: 'clamp(320px, 44vw, 480px)' }}
           >
             <iframe
-              title="Staðsetning Bílageirans á korti"
+              title={t.ui.mapIframeTitle}
               src={mapSrc}
               className="bg-map-dark absolute inset-0 h-full w-full"
               style={{ border: 0 }}
@@ -1531,7 +1551,7 @@ function MapSection() {
               style={{ fontFamily: BODY, color: INK }}
             >
               <MapPin size={15} strokeWidth={2.2} aria-hidden />
-              Opna í Google Maps
+              {t.ui.openMaps}
             </a>
           </div>
         </Rise>
@@ -1552,6 +1572,7 @@ function MapSection() {
     something a work order can start from, the same way the phone call
     already would. Service options reuse SERVICES verbatim, never invented. */
 function ContactForm() {
+  const { t } = useT()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [plate, setPlate] = useState('')
@@ -1569,14 +1590,14 @@ function ContactForm() {
     setTouched(true)
     if (!valid || status === 'sending') return
     setStatus('sending')
-    const subject = `Fyrirspurn af vefsíðu — ${service} — ${name.trim()}`
+    const subject = `${t.ui.mailSubject} · ${service} · ${name.trim()}`
     const lines = [
-      `Nafn: ${name.trim()}`,
-      `Sími: ${phone.trim()}`,
-      `Bílnúmer: ${plate.trim() || '(ekki gefið upp)'}`,
-      `Tegund þjónustu: ${service}`,
+      `${t.ui.mailName}: ${name.trim()}`,
+      `${t.ui.mailPhone}: ${phone.trim()}`,
+      `${t.ui.mailPlate}: ${plate.trim() || t.ui.mailNotProvided}`,
+      `${t.ui.mailService}: ${service}`,
       '',
-      message.trim() || '(engin frekari lýsing)',
+      message.trim() || t.ui.mailNoMessage,
     ]
     setComposed(`${subject}\n\n${lines.join('\n')}`)
     const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`
@@ -1602,13 +1623,13 @@ function ContactForm() {
   return (
     <div className="rounded-sm border p-6 text-left md:p-7" style={{ borderColor: HAIR, background: 'rgba(21,23,26,0.72)' }}>
       <p className="text-[12px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
-        Frekar skrifa?
+        {t.ui.formKicker}
       </p>
       <h3 className="mt-2 text-[19px] font-bold" style={{ fontFamily: BODY, color: INK }}>
-        Sendu okkur línu
+        {t.ui.formTitle}
       </h3>
       <p className="mt-1.5 text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-        Fyrir almennar fyrirspurnir. Ef tjónið er nýtt eða brýnt, hringdu — það er hraðast.
+        {t.ui.formIntro}
       </p>
 
       <AnimatePresence mode="wait">
@@ -1626,14 +1647,14 @@ function ContactForm() {
             >
               <Check size={18} strokeWidth={2.4} aria-hidden style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
               <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-                Póstforritið þitt er að opnast með skilaboðunum tilbúnum — ýttu á senda þar til að klára.
+                {t.ui.sentNotice}
               </p>
             </div>
             {/* recovery: on machines without a configured mail client the
                 mailto silently does nothing and the visitor would otherwise
                 be stranded on a false success */}
             <p className="mt-5 text-[13px]" style={{ fontFamily: BODY, color: MUT }}>
-              Opnaðist ekkert póstforrit?
+              {t.ui.recoveryQ}
             </p>
             <div className="mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-2.5">
               <button
@@ -1643,7 +1664,7 @@ function ContactForm() {
                 style={{ borderColor: 'rgba(243,240,234,0.3)', color: INK, fontFamily: BODY }}
               >
                 {copied ? <Check size={14} strokeWidth={2.4} aria-hidden /> : <Copy size={14} strokeWidth={2.2} aria-hidden />}
-                {copied ? 'Afritað' : 'Afrita skilaboðin'}
+                {copied ? t.ui.copied : t.ui.copyMsg}
               </button>
               <a
                 href={`mailto:${EMAIL}`}
@@ -1657,7 +1678,7 @@ function ContactForm() {
                 className="bg-link-hover inline-flex min-h-11 items-center text-[13.5px] font-semibold"
                 style={{ color: INK, fontFamily: BODY }}
               >
-                Eða hringdu í {PHONE_DISPLAY}
+                {t.ui.orCall} {PHONE_DISPLAY}
               </a>
             </div>
             <button
@@ -1666,7 +1687,7 @@ function ContactForm() {
               className="bg-link-hover mt-3 inline-flex min-h-11 items-center text-[13px] underline decoration-1 underline-offset-4"
               style={{ color: MUT, fontFamily: BODY }}
             >
-              Til baka í formið
+              {t.ui.backToForm}
             </button>
           </motion.div>
         ) : (
@@ -1682,7 +1703,7 @@ function ContactForm() {
             <div className="grid gap-3.5 sm:grid-cols-2">
               <div>
                 <label htmlFor="bg-name" className={label} style={{ fontFamily: MONO, color: MUT }}>
-                  Nafn
+                  {t.ui.fieldName}
                 </label>
                 <input
                   id="bg-name"
@@ -1691,14 +1712,14 @@ function ContactForm() {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   data-touched={touched}
-                  placeholder="Jón Jónsson"
+                  placeholder={t.ui.namePlaceholder}
                   className={field}
                   style={{ fontFamily: BODY }}
                 />
               </div>
               <div>
                 <label htmlFor="bg-phone" className={label} style={{ fontFamily: MONO, color: MUT }}>
-                  Sími
+                  {t.ui.fieldPhone}
                 </label>
                 <input
                   id="bg-phone"
@@ -1707,7 +1728,7 @@ function ContactForm() {
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   data-touched={touched}
-                  placeholder="d.d. 555 5555"
+                  placeholder={t.ui.phonePlaceholder}
                   className={field}
                   style={{ fontFamily: BODY }}
                 />
@@ -1716,7 +1737,7 @@ function ContactForm() {
             <div className="grid gap-3.5 sm:grid-cols-2">
               <div>
                 <label htmlFor="bg-plate" className={label} style={{ fontFamily: MONO, color: MUT }}>
-                  Bílnúmer <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>(valfrjálst)</span>
+                  {t.ui.fieldPlate} <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>{t.ui.optional}</span>
                 </label>
                 <div className="relative">
                   <Car size={15} strokeWidth={2.2} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: MUT }} />
@@ -1733,7 +1754,7 @@ function ContactForm() {
               </div>
               <div>
                 <label htmlFor="bg-service" className={label} style={{ fontFamily: MONO, color: MUT }}>
-                  Tegund þjónustu
+                  {t.ui.fieldService}
                 </label>
                 <select
                   id="bg-service"
@@ -1745,9 +1766,9 @@ function ContactForm() {
                   style={{ fontFamily: BODY, color: service ? INK : MUT }}
                 >
                   <option value="" disabled>
-                    Veldu þjónustu
+                    {t.ui.selectPlaceholder}
                   </option>
-                  {SERVICES.map(s => (
+                  {t.services.map(s => (
                     <option key={s.name} value={s.name} style={{ color: DARKINK }}>
                       {s.name}
                     </option>
@@ -1757,21 +1778,21 @@ function ContactForm() {
             </div>
             <div>
               <label htmlFor="bg-message" className={label} style={{ fontFamily: MONO, color: MUT }}>
-                Nánar um erindið <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>(valfrjálst)</span>
+                {t.ui.fieldMessage} <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>{t.ui.optional}</span>
               </label>
               <textarea
                 id="bg-message"
                 rows={3}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                placeholder="Segðu okkur hvað gerðist eða hvað þú þarft..."
+                placeholder={t.ui.messagePlaceholder}
                 className={`${field} resize-none`}
                 style={{ fontFamily: BODY }}
               />
             </div>
             {touched && !valid && (
               <p className="text-[13px]" style={{ fontFamily: BODY, color: '#E06E6E' }}>
-                Fylltu út nafn, síma og veldu tegund þjónustu.
+                {t.ui.formError}
               </p>
             )}
             <button
@@ -1781,11 +1802,11 @@ function ContactForm() {
               style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
             >
               {status === 'sending' ? (
-                'Sendi...'
+                t.ui.sending
               ) : (
                 <>
                   <Send size={16} strokeWidth={2.4} aria-hidden />
-                  Senda skilaboð
+                  {t.ui.submit}
                 </>
               )}
             </button>
@@ -1797,19 +1818,20 @@ function ContactForm() {
 }
 
 function Contact() {
+  const { t } = useT()
   return (
     <section id="hafa-samband" className="relative overflow-hidden border-t" style={{ borderColor: HAIR }}>
-      <ParallaxImage src={IMG.headlight} alt="Aðalljós á dökkum bíl í myrkri" className="absolute inset-0" />
+      <ParallaxImage src={IMG.headlight} alt={t.ui.headlightAlt} className="absolute inset-0" />
       <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(13,14,16,0.85)' }} />
       <div className="relative mx-auto max-w-[1320px] px-5 py-28 md:px-8 md:py-40">
         <div className="grid gap-14 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-16">
           <div className="text-center md:text-left">
             <Rise>
               <h2 className="text-balance" style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.2rem)', letterSpacing: '-0.02em' }}>
-                {CTA.title}
+                {t.cta.title}
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:mx-0" style={{ fontFamily: BODY, color: MUT }}>
-                {CTA.body}
+                {t.cta.body}
               </p>
             </Rise>
             <Rise delay={0.12}>
@@ -1827,7 +1849,7 @@ function Contact() {
             <Rise delay={0.2}>
               <div className="mt-8 flex flex-col items-center gap-1 text-[14px] md:items-start" style={{ fontFamily: MONO, color: MUT }}>
                 <p>
-                  Smurstöðin:{' '}
+                  {t.ui.lubeLabel}{' '}
                   <a href={LUBE_PHONE_HREF} className="bg-link-hover inline-flex min-h-11 items-center font-semibold" style={{ color: INK }}>
                     {LUBE_PHONE_DISPLAY}
                   </a>
@@ -1841,7 +1863,7 @@ function Contact() {
                     {EMAIL}
                   </a>
                 </p>
-                <p className="mt-1">Mán–fim 08:00–17:00 · Fös 08:00–15:00 · Lokað um helgar</p>
+                <p className="mt-1">{t.ui.hoursStrip}</p>
               </div>
             </Rise>
           </div>
@@ -1859,16 +1881,40 @@ function Contact() {
 export default function Page() {
   const lenisRef = useRef<Lenis | null>(null)
 
+  /* Icelandic is the original language; the EN toggle is client-side only.
+     The choice persists across visits, defaulting to IS. */
+  const [lang, setLangState] = useState<Lang>(() => {
+    try {
+      return localStorage.getItem('bg-lang') === 'en' ? 'en' : 'is'
+    } catch {
+      return 'is'
+    }
+  })
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l)
+    try {
+      localStorage.setItem('bg-lang', l)
+    } catch {
+      /* private mode: the toggle still works for this visit */
+    }
+  }, [])
+  const langValue = useMemo(() => ({ lang, setLang, t: STRINGS[lang] }), [lang, setLang])
+
+  /* declare the active language (screen-reader pronunciation, hyphenation) */
+  useEffect(() => {
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = lang
+    return () => {
+      document.documentElement.lang = prevLang
+    }
+  }, [lang])
+
   useEffect(() => {
     document.title = SEO.title
     setThemeColor(BG)
     const meta = document.querySelector('meta[name="description"]')
     const prev = meta?.getAttribute('content') ?? ''
     meta?.setAttribute('content', SEO.description)
-    /* the page is entirely Icelandic — declare it (helps search engines,
-       screen-reader pronunciation, and hyphenation) */
-    const prevLang = document.documentElement.lang
-    document.documentElement.lang = 'is'
 
     const ld = document.createElement('script')
     ld.type = 'application/ld+json'
@@ -1904,7 +1950,6 @@ export default function Page() {
 
     return () => {
       meta?.setAttribute('content', prev)
-      document.documentElement.lang = prevLang
       ld.remove()
     }
   }, [])
@@ -1993,6 +2038,7 @@ export default function Page() {
   }, [assetsReady])
 
   return (
+    <LangCtx.Provider value={langValue}>
     <div className="bg-page min-h-screen antialiased" style={{ fontFamily: BODY }}>
       <style>{CSS}</style>
       {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
@@ -2017,5 +2063,6 @@ export default function Page() {
       <PreviewFooter company={company} />
       <PreviewChrome company={company} />
     </div>
+    </LangCtx.Provider>
   )
 }
