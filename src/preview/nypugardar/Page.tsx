@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
 import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react'
@@ -232,12 +232,21 @@ function Eyebrow({
 }
 
 /* ── CTA — dark ink on amber (AA). */
-function BookLink({ children, className = '' }: { children: ReactNode; className?: string }) {
+function BookLink({
+  children,
+  className = '',
+  onClick,
+}: {
+  children: ReactNode
+  className?: string
+  onClick?: () => void
+}) {
   return (
     <a
       href={BOOKING_URL}
       target="_blank"
       rel="noreferrer"
+      onClick={onClick}
       className={`inline-flex items-center gap-2 bg-[#D97D3D] px-6 py-3.5 font-sans text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
     >
       {children}
@@ -255,12 +264,54 @@ export default function Page() {
   const barRef = useRef(false)
   const { scrollYProgress } = useScroll()
 
+  /* ── Mobile menu — hamburger state, measured nav height (so the overlay's
+   * padding-top lines up under the real nav bar), body-scroll lock + Escape. */
+  const [menuOpen, setMenuOpen] = useState(false)
+  const navRowRef = useRef<HTMLDivElement>(null)
+  const [navHeight, setNavHeight] = useState(84)
+
+  useEffect(() => {
+    const el = navRowRef.current
+    if (!el) return
+    const measure = () => setNavHeight(el.getBoundingClientRect().height)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+
   const register = useCallback((el: HTMLSpanElement) => {
     rules.current.add(el)
     return () => {
       rules.current.delete(el)
     }
   }, [])
+
+  /* Close the overlay first, then hand off to the browser's smooth scroll on
+   * the next frame — never both at once. */
+  const handleNavLinkClick = useCallback(
+    (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+      e.preventDefault()
+      setMenuOpen(false)
+      requestAnimationFrame(() => {
+        document.querySelector(href)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+      })
+    },
+    [reduced],
+  )
 
   /* The ONE signature: sky colour, eyebrow ink and every rule fill are derived
    * from the raw progress value inside this single callback — no sibling
@@ -362,7 +413,13 @@ export default function Page() {
       />
 
       {/* ── 1 · HERO — Arrival ─────────────────────────────────────────── */}
-      <header className="relative z-[1] flex min-h-[100svh] flex-col justify-end overflow-hidden">
+      {/* No explicit z-index here (z-auto): this box must NOT form its own
+       * stacking context, or it would trap the nav bar inside it and drag
+       * the whole hero above the mobile menu overlay along with it. Leaving
+       * it z-auto lets the nav bar's own z-40 rank above the overlay while
+       * the hero photo/copy (z-auto/5/10) stay ranked below it — see the
+       * overlay's comment right after </header>. */}
+      <header className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
         <Img
           src={IMG.hero}
           alt="Turf-roofed farm outbuilding and the red-roofed guesthouse at Nýpugarðar, a glacier tongue in the distance"
@@ -388,8 +445,18 @@ export default function Page() {
           className="absolute inset-x-0 top-0 z-[5] h-40 bg-gradient-to-b from-[#15130F]/75 to-transparent"
         />
 
-        <nav className="absolute inset-x-0 top-0 z-10" aria-label="Main">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8">
+        <nav
+          className="absolute inset-x-0 top-0 z-40"
+          aria-label="Main"
+          style={{
+            background: menuOpen ? GROUND : 'transparent',
+            transition: reduced ? 'none' : `background-color 0.3s ${EASE}`,
+          }}
+        >
+          <div
+            ref={navRowRef}
+            className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8"
+          >
             <a href="#top" className={`font-display text-xl tracking-tight ${FOCUS}`}>
               Nýpugarðar
             </a>
@@ -412,6 +479,33 @@ export default function Page() {
             >
               Check availability
             </a>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              className={`-mr-2.5 flex h-11 w-11 items-center justify-center md:hidden ${FOCUS}`}
+            >
+              <span aria-hidden="true" className="relative block h-4 w-6">
+                <span
+                  className="absolute left-0 top-0 block h-[2px] w-6 rounded-full"
+                  style={{
+                    background: menuOpen ? ACCENT : '#F4EEE2',
+                    transform: menuOpen ? 'translateY(7px) rotate(45deg)' : 'translateY(0) rotate(0deg)',
+                    transition: reduced ? 'none' : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
+                  }}
+                />
+                <span
+                  className="absolute bottom-0 left-0 block h-[2px] w-6 rounded-full"
+                  style={{
+                    background: menuOpen ? ACCENT : '#F4EEE2',
+                    transform: menuOpen ? 'translateY(-7px) rotate(-45deg)' : 'translateY(0) rotate(0deg)',
+                    transition: reduced ? 'none' : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
+                  }}
+                />
+              </span>
+            </button>
           </div>
         </nav>
 
@@ -445,6 +539,77 @@ export default function Page() {
           </div>
         </div>
       </header>
+
+      {/* ── Mobile menu overlay — a SIBLING of <header>, never nested inside
+       * it or <nav>. It is `fixed`, so it always sizes to the real viewport
+       * regardless of anything a scroll effect does to an ancestor (a
+       * transform/backdrop-filter on an ancestor would otherwise become the
+       * containing block for a fixed descendant and collapse it to zero).
+       * z-30 sits below the nav bar's z-40 (header itself is z-auto, so it
+       * can't drag the nav along with it) and above the hero photo/copy
+       * (z-auto/z-5/z-10), so the nav row — solid background, hamburger
+       * morphed into an X — stays visible and tappable on top of it while
+       * the hero underneath is fully hidden. */}
+      <div
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+        aria-hidden={!menuOpen}
+        className={`fixed inset-0 z-30 flex flex-col md:hidden ${menuOpen ? '' : 'pointer-events-none'}`}
+        style={{
+          background: GROUND,
+          paddingTop: navHeight,
+          opacity: menuOpen ? 1 : 0,
+          visibility: menuOpen ? 'visible' : 'hidden',
+          transition: reduced
+            ? 'none'
+            : menuOpen
+              ? `opacity 0.3s ${EASE}, visibility 0s`
+              : `opacity 0.3s ${EASE}, visibility 0s 0.3s`,
+        }}
+      >
+        <nav className="flex flex-1 flex-col justify-center px-6" aria-label="Mobile">
+          <ul className="space-y-1">
+            {NAV.map((n, i) => (
+              <li key={n.id} className="overflow-hidden">
+                <a
+                  href={`#${n.id}`}
+                  onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
+                  className={`block py-2 font-display text-[clamp(2.5rem,13vw,4.5rem)] font-medium leading-[1.1] tracking-tight text-[#F4EEE2] ${FOCUS}`}
+                  style={{
+                    transform: menuOpen || reduced ? 'translateY(0%)' : 'translateY(100%)',
+                    transition: reduced
+                      ? 'none'
+                      : `transform 0.6s ${EASE} ${menuOpen ? 60 + i * 60 : 0}ms`,
+                  }}
+                >
+                  {n.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <span
+            aria-hidden="true"
+            className="mt-8 block h-[2px] w-16 origin-left rounded-full"
+            style={{
+              background: ACCENT,
+              transform: menuOpen || reduced ? 'scaleX(1)' : 'scaleX(0)',
+              transition: reduced
+                ? 'none'
+                : `transform 0.5s ${EASE} ${menuOpen ? 60 + NAV.length * 60 : 0}ms`,
+            }}
+          />
+        </nav>
+        <div className="px-6 pb-[calc(1.75rem+env(safe-area-inset-bottom))] pt-4">
+          <BookLink
+            className="w-full justify-center py-4 text-base"
+            onClick={() => setMenuOpen(false)}
+          >
+            Check availability
+          </BookLink>
+        </div>
+      </div>
 
       <main className="relative z-[1]">
         {/* ── 2 · THE FARM — sheep ─────────────────────────────────────── */}
@@ -1002,7 +1167,9 @@ export default function Page() {
         </section>
       </main>
 
-      {/* Sticky mobile CTA — the booking path stays two taps away, always */}
+      {/* Sticky mobile CTA — the booking path stays two taps away, always.
+       * Hidden while the full-screen menu is open so it doesn't double up
+       * with the overlay's own "Check availability" button at the bottom. */}
       <div
         className="fixed inset-x-0 bottom-0 z-40 border-t md:hidden"
         style={{
@@ -1010,7 +1177,7 @@ export default function Page() {
           background: 'rgba(21,19,15,0.94)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
-          transform: barShown ? 'translateY(0)' : 'translateY(110%)',
+          transform: barShown && !menuOpen ? 'translateY(0)' : 'translateY(110%)',
           transition: reduced ? 'none' : `transform 0.5s ${EASE}`,
         }}
       >

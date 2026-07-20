@@ -1675,14 +1675,29 @@ function MapSection() {
             className="relative mt-8 overflow-hidden rounded-sm border"
             style={{ borderColor: HAIR, height: 'clamp(320px, 44vw, 480px)' }}
           >
-            <iframe
-              title={t.ui.mapIframeTitle}
-              src={mapSrc}
-              className="bg-map-dark absolute inset-0 h-full w-full"
-              style={{ border: 0 }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            {/* the dark-mode filter lives on this wrapper, not on the iframe
+                itself — a defensive habit for cross-origin iframes/video
+                (see the mix-blend-mode note elsewhere in this file), kept
+                even though it wasn't the actual bug here. */}
+            <div className="bg-map-dark absolute inset-0 h-full w-full">
+              {/* NOT loading="lazy": this section sits deep in the scroll,
+                  so the browser's native lazy-load scheduler defers the
+                  fetch until it decides the main thread has room — on this
+                  page that decision got starved by Lenis's continuous rAF
+                  loop and the other scroll-driven animations, so the map
+                  didn't even start loading until 6-10s after it entered
+                  view (measured: page.frames() stayed empty that whole
+                  time). A visitor never waits that long and just sees a
+                  blank box. Eager here trades a few KB of upfront request
+                  for the map actually being there when scrolled to. */}
+              <iframe
+                title={t.ui.mapIframeTitle}
+                src={mapSrc}
+                className="h-full w-full"
+                style={{ border: 0 }}
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
             <div aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: `inset 0 0 0 1px ${HAIR}` }} />
           </div>
         </Rise>

@@ -255,16 +255,39 @@ function GateLine({ containerRef }: { containerRef: RefObject<HTMLDivElement | n
   )
 }
 
-/* ── Nav — transparent over the hero, paper after scroll. ────────────────── */
+/* ── Nav — transparent over the hero, paper after scroll. Mobile gets a
+ * full-screen overlay menu rendered as a SIBLING of <nav> (not nested inside
+ * it): backdrop-filter on the nav makes it a containing block for fixed
+ * descendants, which would silently collapse a nested fixed overlay to the
+ * nav's own box. ───────────────────────────────────────────────────────── */
+const NAV_H = 72 // px — py-3.5 (2×14px) + the 44px mobile tap targets
+
 function TopNav() {
   const [scrolled, setScrolled] = useState(false)
+  const [open, setOpen] = useState(false)
+  const reduced = prefersReduced()
   useEffect(() => {
     const onScroll = () => setScrolled((window.scrollY || 0) > 40)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-  const ink = scrolled ? INK : GROUND
+  useEffect(() => {
+    if (!open) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+  const navOpaque = scrolled || open
+  const ink = navOpaque ? INK : GROUND
+  const focusCls = navOpaque ? FOCUS : FOCUS_LIGHT
   const go = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth' })
   }
@@ -275,61 +298,153 @@ function TopNav() {
     { id: 'umsagnir', label: 'Umsagnir' },
     { id: 'samband', label: 'Hafa samband' },
   ]
+  const navigate = (id: string) => {
+    setOpen(false)
+    requestAnimationFrame(() => go(id))
+  }
   return (
-    <nav
-      aria-label="Aðalvalmynd"
-      className="fixed inset-x-0 top-0 z-40"
-      style={{
-        background: scrolled ? 'rgba(244,241,233,.94)' : 'transparent',
-        borderBottom: `1px solid ${scrolled ? HAIRLINE : 'transparent'}`,
-        backdropFilter: scrolled ? 'blur(10px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(10px)' : 'none',
-        transition: 'background .35s ease, border-color .35s ease',
-      }}
-    >
-      {!scrolled && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-24"
-          style={{ background: 'linear-gradient(to bottom, rgba(32,36,31,.55), transparent)' }}
-        />
-      )}
-      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 md:px-8">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: prefersReduced() ? 'auto' : 'smooth' })}
-          className={`text-[19px] leading-none ${scrolled ? FOCUS : FOCUS_LIGHT}`}
-          style={{ fontFamily: TALL, fontWeight: 500, color: ink, letterSpacing: '.01em' }}
-        >
-          Litla-Hof
-        </button>
-        <div className="hidden items-center gap-7 md:flex">
-          {links.map((l) => (
-            <button
-              key={l.id}
-              onClick={() => go(l.id)}
-              className={`font-sans text-[13px] font-medium underline-offset-[5px] hover:underline ${scrolled ? FOCUS : FOCUS_LIGHT}`}
+    <>
+      <nav
+        aria-label="Aðalvalmynd"
+        className="fixed inset-x-0 top-0 z-40"
+        style={{
+          background: navOpaque ? 'rgba(244,241,233,.94)' : 'transparent',
+          borderBottom: `1px solid ${navOpaque ? HAIRLINE : 'transparent'}`,
+          backdropFilter: navOpaque ? 'blur(10px)' : 'none',
+          WebkitBackdropFilter: navOpaque ? 'blur(10px)' : 'none',
+          transition: 'background .35s ease, border-color .35s ease',
+        }}
+      >
+        {!navOpaque && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-24"
+            style={{ background: 'linear-gradient(to bottom, rgba(32,36,31,.55), transparent)' }}
+          />
+        )}
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 md:px-8">
+          <button
+            onClick={() => {
+              setOpen(false)
+              window.scrollTo({ top: 0, behavior: prefersReduced() ? 'auto' : 'smooth' })
+            }}
+            className={`text-[19px] leading-none ${focusCls}`}
+            style={{ fontFamily: TALL, fontWeight: 500, color: ink, letterSpacing: '.01em' }}
+          >
+            Litla-Hof
+          </button>
+          <div className="hidden items-center gap-7 md:flex">
+            {links.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => go(l.id)}
+                className={`font-sans text-[13px] font-medium underline-offset-[5px] hover:underline ${focusCls}`}
+                style={{ color: ink }}
+              >
+                {l.label}
+              </button>
+            ))}
+            <a href={PHONE_1_HREF} className={`font-mono text-[13px] ${focusCls}`} style={{ color: ink }}>
+              {PHONE_1}
+            </a>
+          </div>
+          <div className="flex items-center gap-2 md:hidden">
+            <a
+              href={PHONE_1_HREF}
+              className={`inline-flex min-h-[44px] items-center font-mono text-[13px] ${focusCls}`}
               style={{ color: ink }}
             >
-              {l.label}
+              {PHONE_1}
+            </a>
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              aria-controls="litlahof-mobile-menu"
+              aria-label={open ? 'Loka valmynd' : 'Opna valmynd'}
+              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center ${focusCls}`}
+            >
+              <span aria-hidden className="flex h-4 w-5 flex-col justify-between">
+                <span
+                  className="block h-[1.5px] w-full"
+                  style={{
+                    background: ink,
+                    transform: open ? 'translateY(7.25px) rotate(45deg)' : 'none',
+                    transition: reduced ? 'none' : `transform 300ms ${EASE}`,
+                  }}
+                />
+                <span
+                  className="block h-[1.5px] w-full"
+                  style={{
+                    background: ink,
+                    transform: open ? 'translateY(-7.25px) rotate(-45deg)' : 'none',
+                    transition: reduced ? 'none' : `transform 300ms ${EASE}`,
+                  }}
+                />
+              </span>
             </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Full-screen mobile menu — sibling of <nav>, not nested inside it. */}
+      <div
+        id="litlahof-mobile-menu"
+        aria-hidden={!open}
+        className="fixed inset-0 z-30 flex flex-col md:hidden"
+        style={{
+          paddingTop: NAV_H,
+          paddingBottom: 'calc(70px + env(safe-area-inset-bottom))',
+          background: GROUND,
+          opacity: open ? 1 : 0,
+          visibility: open ? 'visible' : 'hidden',
+          pointerEvents: open ? 'auto' : 'none',
+          transition: reduced ? 'none' : `opacity 320ms ${EASE}, visibility 0s linear ${open ? '0s' : '320ms'}`,
+        }}
+      >
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6">
+          {links.map((l, i) => (
+            <div key={l.id} className="overflow-hidden py-1.5">
+              <button
+                type="button"
+                onClick={() => navigate(l.id)}
+                className={`block text-left ${FOCUS}`}
+                style={{
+                  fontFamily: TALL,
+                  fontWeight: 400,
+                  fontSize: 'clamp(2rem,9vw,3.1rem)',
+                  lineHeight: 1.14,
+                  color: INK,
+                  transform: reduced ? 'none' : open ? 'translateY(0)' : 'translateY(105%)',
+                  transition: reduced ? 'none' : `transform 560ms ${EASE} ${open ? 60 + i * 60 : 0}ms`,
+                }}
+              >
+                {l.label}
+              </button>
+            </div>
           ))}
+        </div>
+        <div className="px-6">
+          <div
+            aria-hidden
+            className="h-[2px] w-16"
+            style={{
+              background: ACCENT,
+              transformOrigin: 'left',
+              transform: reduced ? 'scaleX(1)' : open ? 'scaleX(1)' : 'scaleX(0)',
+              transition: reduced ? 'none' : `transform 550ms ${EASE} ${open ? 320 : 0}ms`,
+            }}
+          />
           <a
             href={PHONE_1_HREF}
-            className={`font-mono text-[13px] ${scrolled ? FOCUS : FOCUS_LIGHT}`}
-            style={{ color: ink }}
+            className={`mt-6 inline-block font-mono text-[clamp(1.35rem,5.5vw,1.9rem)] ${FOCUS}`}
+            style={{ color: ACCENT }}
           >
             {PHONE_1}
           </a>
         </div>
-        <a
-          href={PHONE_1_HREF}
-          className={`inline-flex min-h-[44px] items-center font-mono text-[13px] md:hidden ${scrolled ? FOCUS : FOCUS_LIGHT}`}
-          style={{ color: ink }}
-        >
-          {PHONE_1}
-        </a>
       </div>
-    </nav>
+    </>
   )
 }
 

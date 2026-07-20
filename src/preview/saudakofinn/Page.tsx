@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Lenis from 'lenis'
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
@@ -75,6 +75,15 @@ const FOCUS_DARK =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F3EEE3]'
 const FOCUS_LIGHT =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#221D17]'
+
+/* Mobile menu links — mirrors the desktop nav (Verðskrá/Gisting/Hestar/Veiði/Samband) */
+const NAV_LINKS: { href: string; label: string }[] = [
+  { href: '#verdskra', label: 'Verðskrá' },
+  { href: '#gisting', label: 'Gisting' },
+  { href: '#hestar', label: 'Hestar' },
+  { href: '#veidi', label: 'Veiði' },
+  { href: '#samband', label: 'Samband' },
+]
 
 const prefersReduced = () =>
   typeof window !== 'undefined' &&
@@ -424,6 +433,43 @@ function CtaGhost({
 export default function Page() {
   const reduced = prefersReduced()
 
+  /* Mobile hamburger menu — fixes the md:flex nav links being invisible below
+   * the md breakpoint (only the phone chip survived). Overlay is rendered as
+   * a sibling of <header>, not a descendant, and <header> gets an explicit
+   * z-index (below) so it becomes its own stacking context: nav's z-10 stays
+   * confined to it instead of escaping to compete at the root against the
+   * overlay. That is what lets the header (solid CHARCOAL, collapsed to just
+   * the nav row while open) sit visibly above the full-screen overlay. */
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    const onResize = () => {
+      if (window.innerWidth >= 768) setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('resize', onResize)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [menuOpen])
+
+  /* Close first, then scroll on the next frame so the overlay's own unmount
+   * doesn't fight the scroll (and so reduced-motion gets an instant jump). */
+  const handleNavClick = (href: string) => {
+    setMenuOpen(false)
+    requestAnimationFrame(() => {
+      document.querySelector(href)?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth' })
+    })
+  }
+
   /* Lenis smooth scroll (brief: skipped entirely under reduced motion) */
   useEffect(() => {
     setThemeColor(CHARCOAL)
@@ -469,24 +515,32 @@ export default function Page() {
       <PreviewChrome company={company} />
 
       {/* ══ 1 · HERO — dark, Bæjargljúfur graded into charcoal ══ */}
-      <header className="relative flex min-h-[100svh] flex-col" style={{ background: CHARCOAL }}>
-        <div className="absolute inset-0" aria-hidden="true">
-          <Img
-            src={IMG.baejargljufur}
-            alt=""
-            loading="eager"
-            fetchpriority="high"
-            className="h-full w-full object-cover"
-            fallbackClassName="bg-gradient-to-b from-stone-700 to-stone-900"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(to bottom, rgba(36,32,27,.62) 0%, rgba(36,32,27,.4) 40%, rgba(36,32,27,.78) 78%, #24201B 100%)',
-            }}
-          />
-        </div>
+      <header
+        className={`relative z-40 flex flex-col ${menuOpen ? '' : 'min-h-[100svh]'}`}
+        style={{ background: CHARCOAL }}
+      >
+        {/* Hero image + hero copy fully unmount while the mobile menu is open:
+         * header then shrinks to just the nav row (solid CHARCOAL), which is
+         * what lets it stay visibly above the full-screen overlay below. */}
+        {!menuOpen && (
+          <div className="absolute inset-0" aria-hidden="true">
+            <Img
+              src={IMG.baejargljufur}
+              alt=""
+              loading="eager"
+              fetchpriority="high"
+              className="h-full w-full object-cover"
+              fallbackClassName="bg-gradient-to-b from-stone-700 to-stone-900"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(to bottom, rgba(36,32,27,.62) 0%, rgba(36,32,27,.4) 40%, rgba(36,32,27,.78) 78%, #24201B 100%)',
+              }}
+            />
+          </div>
+        )}
 
         {/* Nav */}
         <motion.nav
@@ -516,54 +570,155 @@ export default function Page() {
               Samband
             </a>
           </div>
-          <a
-            href={PHONE_1_HREF}
-            className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 py-2 text-[13.5px] font-semibold ${FOCUS_DARK}`}
-            style={{ borderColor: 'rgba(243,238,227,.35)', color: CREAM }}
-          >
-            <Phone size={14} aria-hidden="true" />
-            <span className="font-mono">{PHONE_1}</span>
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={PHONE_1_HREF}
+              className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 py-2 text-[13.5px] font-semibold ${FOCUS_DARK}`}
+              style={{ borderColor: 'rgba(243,238,227,.35)', color: CREAM }}
+            >
+              <Phone size={14} aria-hidden="true" />
+              <span className="font-mono">{PHONE_1}</span>
+            </a>
+
+            {/* Hamburger — two lines morphing into an X, CREAM → TAN on open */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+              className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full md:hidden ${FOCUS_DARK}`}
+            >
+              <span className="relative block h-4 w-5" aria-hidden="true">
+                <motion.span
+                  className="absolute left-0 top-0 block h-[2px] w-5 rounded-full"
+                  animate={{ rotate: menuOpen ? 45 : 0, y: menuOpen ? 7 : 0, background: menuOpen ? TAN : CREAM }}
+                  transition={{ duration: reduced ? 0 : 0.3, ease: EASE }}
+                />
+                <motion.span
+                  className="absolute bottom-0 left-0 block h-[2px] w-5 rounded-full"
+                  animate={{ rotate: menuOpen ? -45 : 0, y: menuOpen ? -7 : 0, background: menuOpen ? TAN : CREAM }}
+                  transition={{ duration: reduced ? 0 : 0.3, ease: EASE }}
+                />
+              </span>
+            </button>
+          </div>
         </motion.nav>
 
         {/* Hero copy */}
-        <div
-          id="top"
-          className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-end px-5 pb-16 pt-10 md:px-8 md:pb-24"
-        >
-          <motion.p
-            {...heroItem(0)}
-            className="m-0 font-mono text-[12px] font-bold uppercase tracking-[0.22em]"
-            style={{ color: TAN }}
+        {!menuOpen && (
+          <div
+            id="top"
+            className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-end px-5 pb-16 pt-10 md:px-8 md:pb-24"
           >
-            Fossnes í Skeiða- og Gnúpverjahreppi
-          </motion.p>
-          <motion.h1
-            {...heroItem(1)}
-            className="m-0 mt-4 font-display text-5xl font-medium leading-[1.08] sm:text-6xl md:text-8xl"
-            style={{ color: CREAM }}
-          >
-            Sauðakofinn
-          </motion.h1>
-          <motion.p
-            {...heroItem(2)}
-            className="m-0 mt-5 max-w-xl text-[17px] leading-relaxed md:text-lg"
-            style={{ color: MUTED_ON_DARK }}
-          >
-            Tvíreykt sauðakjöt úr reykhúsinu á fjallajörðinni Fossnesi. Pantað í síma eða með tölvupósti, beint frá
-            býli.
-          </motion.p>
-          <motion.div {...heroItem(3)} className="mt-9 flex flex-wrap items-center gap-3.5">
-            <CtaSolid href="#verdskra" dark>
-              Sjá verðskrá og panta
-            </CtaSolid>
-            <CtaGhost href={PHONE_2_HREF} dark>
-              <Phone size={16} aria-hidden="true" />
-              <span className="font-mono">{PHONE_2}</span>
-            </CtaGhost>
-          </motion.div>
-        </div>
+            <motion.p
+              {...heroItem(0)}
+              className="m-0 font-mono text-[12px] font-bold uppercase tracking-[0.22em]"
+              style={{ color: TAN }}
+            >
+              Fossnes í Skeiða- og Gnúpverjahreppi
+            </motion.p>
+            <motion.h1
+              {...heroItem(1)}
+              className="m-0 mt-4 font-display text-5xl font-medium leading-[1.08] sm:text-6xl md:text-8xl"
+              style={{ color: CREAM }}
+            >
+              Sauðakofinn
+            </motion.h1>
+            <motion.p
+              {...heroItem(2)}
+              className="m-0 mt-5 max-w-xl text-[17px] leading-relaxed md:text-lg"
+              style={{ color: MUTED_ON_DARK }}
+            >
+              Tvíreykt sauðakjöt úr reykhúsinu á fjallajörðinni Fossnesi. Pantað í síma eða með tölvupósti, beint frá
+              býli.
+            </motion.p>
+            <motion.div {...heroItem(3)} className="mt-9 flex flex-wrap items-center gap-3.5">
+              <CtaSolid href="#verdskra" dark>
+                Sjá verðskrá og panta
+              </CtaSolid>
+              <CtaGhost href={PHONE_2_HREF} dark>
+                <Phone size={16} aria-hidden="true" />
+                <span className="font-mono">{PHONE_2}</span>
+              </CtaGhost>
+            </motion.div>
+          </div>
+        )}
       </header>
+
+      {/* ══ Mobile menu overlay — a SIBLING of <header>, not nested inside it.
+       * Neither <header> nor its own ancestors use backdrop-blur/filter/
+       * transform (checked), so a fixed child would already stay viewport-
+       * relative here — sibling placement is kept anyway as the robust
+       * choice. z-30 sits below header's z-40 so the header, collapsed to
+       * just its solid-CHARCOAL nav row while open, stays visible above this
+       * panel with the X. pt-[84px] clears that collapsed nav row's own
+       * height (py-5 padding + the 44px tap targets inside it). ══ */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Valmynd"
+            className="fixed inset-0 z-30 flex flex-col pt-[84px] md:hidden"
+            style={{ background: CHARCOAL }}
+            initial={reduced ? {} : { opacity: 0 }}
+            animate={reduced ? {} : { opacity: 1 }}
+            exit={reduced ? {} : { opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.25, ease: EASE }}
+          >
+            <nav
+              className="flex flex-1 flex-col justify-between overflow-y-auto px-6 pb-10 pt-6"
+              aria-label="Valmynd farsíma"
+            >
+              <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                {NAV_LINKS.map((link, i) => (
+                  <li key={link.href} className="overflow-hidden">
+                    <motion.a
+                      href={link.href}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleNavClick(link.href)
+                      }}
+                      className={`block py-3 font-display text-4xl font-medium ${FOCUS_DARK}`}
+                      style={{ color: CREAM }}
+                      initial={reduced ? {} : { y: '100%' }}
+                      animate={reduced ? {} : { y: '0%' }}
+                      exit={reduced ? {} : { y: '100%' }}
+                      transition={{ duration: 0.55, ease: EASE, delay: reduced ? 0 : 0.1 + i * 0.06 }}
+                    >
+                      {link.label}
+                    </motion.a>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-10">
+                <motion.div
+                  className="h-px w-16 origin-left"
+                  style={{ background: TAN }}
+                  initial={reduced ? {} : { scaleX: 0 }}
+                  animate={reduced ? {} : { scaleX: 1 }}
+                  exit={reduced ? {} : { scaleX: 0 }}
+                  transition={{ duration: 0.5, ease: EASE, delay: reduced ? 0 : 0.42 }}
+                />
+                <motion.div
+                  initial={reduced ? {} : { opacity: 0, y: 12 }}
+                  animate={reduced ? {} : { opacity: 1, y: 0 }}
+                  exit={reduced ? {} : { opacity: 0, y: 8 }}
+                  transition={{ duration: 0.45, ease: EASE, delay: reduced ? 0 : 0.5 }}
+                >
+                  <CtaGhost href={PHONE_1_HREF} dark className="mt-6 w-full">
+                    <Phone size={16} aria-hidden="true" />
+                    <span className="font-mono">{PHONE_1}</span>
+                  </CtaGhost>
+                </motion.div>
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ══ 2 · SAUÐAKOFINN + VERÐSKRÁ — the smoke chapter, signature rail ══ */}
       <section
@@ -1157,9 +1312,10 @@ export default function Page() {
 
       <PreviewFooter company={company} />
 
-      {/* Sticky mobile CTA (brief: present throughout on mobile) */}
+      {/* Sticky mobile CTA (brief: present throughout on mobile; hidden while
+       * the full-screen menu — which has its own phone CTA — is open) */}
       <div
-        className="fixed inset-x-0 bottom-0 z-40 flex gap-2.5 px-4 pt-3 md:hidden"
+        className={`fixed inset-x-0 bottom-0 z-40 flex gap-2.5 px-4 pt-3 md:hidden ${menuOpen ? 'hidden' : ''}`}
         style={{
           background: 'rgba(27,23,19,.96)',
           borderTop: `1px solid ${HAIR_DARK}`,

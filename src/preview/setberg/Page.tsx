@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
-import { motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
@@ -300,6 +300,40 @@ export default function Page() {
   /* Rooms — the page's one functional split: the list drives the photo. */
   const [room, setRoom] = useState(0)
 
+  /* ── Mobile menu — full-screen overlay, sibling of <header> (see below:
+   * the header's backdrop-blur makes IT a containing block for `fixed`
+   * descendants, so the overlay cannot live inside it). ── */
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [menuOpen])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
+  const handleNavLinkClick = useCallback(
+    (id: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault()
+      setMenuOpen(false)
+      requestAnimationFrame(() => {
+        document.querySelector(`#${id}`)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+      })
+    },
+    [reduce],
+  )
+
   const heroItem = (i: number) =>
     reduce
       ? {}
@@ -326,7 +360,7 @@ export default function Page() {
         className="fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md"
         style={{
           borderColor: HAIRLINE,
-          background: 'rgba(28,35,30,.82)',
+          background: menuOpen ? GROUND : 'rgba(28,35,30,.82)',
           ...(reduce
             ? {}
             : {
@@ -356,16 +390,114 @@ export default function Page() {
               </a>
             ))}
           </nav>
-          <a
-            href={PHONE_HREF}
-            className={`flex min-h-[44px] items-center gap-2 rounded-[3px] px-4 py-2.5 text-sm font-semibold transition-transform duration-200 active:scale-[0.98] ${FOCUS}`}
-            style={{ background: ACCENT, color: GROUND }}
-          >
-            <Phone size={15} strokeWidth={2} aria-hidden="true" />
-            {PHONE}
-          </a>
+          <div className="flex items-center gap-1.5">
+            <a
+              href={PHONE_HREF}
+              className={`flex min-h-[44px] items-center gap-2 rounded-[3px] px-4 py-2.5 text-sm font-semibold transition-transform duration-200 active:scale-[0.98] ${FOCUS}`}
+              style={{ background: ACCENT, color: GROUND }}
+            >
+              <Phone size={15} strokeWidth={2} aria-hidden="true" />
+              {PHONE}
+            </a>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="setberg-mobile-menu"
+              aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+              className={`relative flex h-11 w-11 shrink-0 items-center justify-center md:hidden ${FOCUS}`}
+            >
+              <span className="relative block h-3.5 w-6">
+                <motion.span
+                  className="absolute inset-x-0 top-0 block h-[2px] rounded-full"
+                  style={{ background: INK }}
+                  animate={{ rotate: menuOpen ? 45 : 0, y: menuOpen ? 6 : 0 }}
+                  transition={{ duration: reduce ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                />
+                <motion.span
+                  className="absolute inset-x-0 bottom-0 block h-[2px] rounded-full"
+                  style={{ background: INK }}
+                  animate={{ rotate: menuOpen ? -45 : 0, y: menuOpen ? -6 : 0 }}
+                  transition={{ duration: reduce ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </span>
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* ── Mobile menu overlay — SIBLING of <header>, not a descendant: the
+       * header's backdrop-blur-md makes it a containing block for `position:
+       * fixed` descendants, so a fixed overlay nested inside it would
+       * collapse to the header's own box and paint nothing. z-index sits
+       * just below the header's (40) so the header — solid while open —
+       * stays visible with the X on top. ── */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            id="setberg-mobile-menu"
+            className="fixed inset-x-0 bottom-0 z-[39] flex flex-col md:hidden"
+            style={{ top: 0, paddingTop: '4rem', background: GROUND }}
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } }}
+            transition={{ duration: reduce ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <nav
+              aria-label="Farsímavalmynd"
+              className="flex flex-1 flex-col justify-between overflow-y-auto px-6 pb-10 pt-6"
+            >
+              <ul>
+                {NAV.map((n, i) => (
+                  <li
+                    key={n.id}
+                    className="overflow-hidden"
+                    style={{ borderTop: i === 0 ? 'none' : `1px solid ${HAIRLINE}` }}
+                  >
+                    <motion.a
+                      href={`#${n.id}`}
+                      onClick={handleNavLinkClick(n.id)}
+                      className={`font-poster block py-4 text-[clamp(2.4rem,11vw,3.75rem)] leading-[1.05] ${FOCUS}`}
+                      style={{ color: INK }}
+                      initial={reduce ? false : { y: '100%', opacity: 0 }}
+                      animate={{ y: '0%', opacity: 1 }}
+                      transition={{
+                        duration: reduce ? 0 : 0.6,
+                        delay: reduce ? 0 : 0.12 + i * 0.06,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                    >
+                      {n.label}
+                    </motion.a>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-10">
+                <motion.div
+                  aria-hidden="true"
+                  className="h-px w-full origin-left"
+                  style={{ background: ACCENT }}
+                  initial={reduce ? false : { scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: reduce ? 0 : 0.7, delay: reduce ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                />
+                <motion.a
+                  href={PHONE_HREF}
+                  className={`mt-6 flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-[3px] px-7 py-4 text-[1.05rem] font-semibold transition-transform duration-200 active:scale-[0.98] ${FOCUS}`}
+                  style={{ background: ACCENT, color: GROUND }}
+                  initial={reduce ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Phone size={18} strokeWidth={2} aria-hidden="true" />
+                  Hringja í {PHONE}
+                </motion.a>
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main id="efst">
         {/* ── 1. HERO — Þokan léttir ── */}
@@ -911,11 +1043,11 @@ export default function Page() {
         style={{
           borderColor: HAIRLINE,
           background: 'rgba(28,35,30,.9)',
-          transform: ctaOn ? 'translateY(0)' : 'translateY(110%)',
+          transform: ctaOn && !menuOpen ? 'translateY(0)' : 'translateY(110%)',
           transition: reduce ? 'none' : `transform 0.45s ${EASE}`,
-          pointerEvents: ctaOn ? 'auto' : 'none',
+          pointerEvents: ctaOn && !menuOpen ? 'auto' : 'none',
         }}
-        aria-hidden={ctaOn ? undefined : true}
+        aria-hidden={ctaOn && !menuOpen ? undefined : true}
       >
         <a
           href={PHONE_HREF}
