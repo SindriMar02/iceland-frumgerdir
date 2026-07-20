@@ -459,14 +459,72 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
      a worried customer must never wait on an entrance animation to find
      the number. Only the scroll-solid background transitions. */
   const link = 'bg-navlink hidden items-center min-h-11 px-3 text-[13px] tracking-[0.14em] uppercase md:inline-flex'
+  const [open, setOpen] = useState(false)
+  const reduced = useReducedMotion()
+  /* menu open: freeze the page behind it (Lenis + native scroll) */
+  useEffect(() => {
+    if (!open) return
+    lenisRef.current?.stop()
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      lenisRef.current?.start()
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open, lenisRef])
+  const goMobile = (hash: string) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setOpen(false)
+    /* wait one frame so the scroll lock is released before Lenis scrolls */
+    requestAnimationFrame(() => {
+      const el = document.querySelector(hash)
+      if (!el) return
+      if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -72 })
+      else el.scrollIntoView({ behavior: 'smooth' })
+    })
+  }
+  const menuItems = [
+    { hash: '#thjonusta', label: t.ui.navServices },
+    { hash: '#tjon', label: t.ui.navClaims },
+    { hash: '#verkstaedid', label: t.ui.navWorkshop },
+    { hash: '#hafa-samband', label: t.ui.contactCta },
+  ]
+  const langToggle = (large: boolean) => (
+    <div
+      className={`flex shrink-0 items-center ${large ? 'gap-1 text-[15px]' : 'gap-0.5 text-[12px] md:ml-1'} tracking-[0.1em]`}
+      style={{ fontFamily: MONO }}
+    >
+      {(['is', 'en'] as const).map((l, i) => (
+        <span key={l} className="flex items-center">
+          {i > 0 && <span aria-hidden style={{ color: MUT, opacity: 0.5 }}>/</span>}
+          <button
+            type="button"
+            onClick={() => setLang(l)}
+            aria-pressed={lang === l}
+            aria-label={l === 'is' ? 'Íslenska' : 'English'}
+            className={`bg-navlink inline-flex min-h-11 items-center uppercase ${large ? 'px-2' : 'px-1 md:px-1.5'}`}
+            style={{ color: lang === l ? AMBER : MUT, fontWeight: lang === l ? 600 : 400 }}
+          >
+            {l}
+          </button>
+        </span>
+      ))}
+    </div>
+  )
   return (
+    <>
     <header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
       style={{
-        background: solid ? 'rgba(13,14,16,0.86)' : 'transparent',
-        backdropFilter: solid ? 'blur(14px)' : 'none',
-        WebkitBackdropFilter: solid ? 'blur(14px)' : 'none',
-        borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
+        background: solid || open ? 'rgba(13,14,16,0.86)' : 'transparent',
+        backdropFilter: solid || open ? 'blur(14px)' : 'none',
+        WebkitBackdropFilter: solid || open ? 'blur(14px)' : 'none',
+        borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-3 px-4 md:px-8">
@@ -487,24 +545,9 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <a href="#thjonusta" onClick={go('#thjonusta')} className={link}>{t.ui.navServices}</a>
           <a href="#tjon" onClick={go('#tjon')} className={link}>{t.ui.navClaims}</a>
           <a href="#verkstaedid" onClick={go('#verkstaedid')} className={link}>{t.ui.navWorkshop}</a>
-          {/* language toggle: two real buttons, active one amber */}
-          <div className="flex shrink-0 items-center gap-0.5 text-[12px] tracking-[0.1em] md:ml-1" style={{ fontFamily: MONO }}>
-            {(['is', 'en'] as const).map((l, i) => (
-              <span key={l} className="flex items-center">
-                {i > 0 && <span aria-hidden style={{ color: MUT, opacity: 0.5 }}>/</span>}
-                <button
-                  type="button"
-                  onClick={() => setLang(l)}
-                  aria-pressed={lang === l}
-                  aria-label={l === 'is' ? 'Íslenska' : 'English'}
-                  className="bg-navlink inline-flex min-h-11 items-center px-1 uppercase md:px-1.5"
-                  style={{ color: lang === l ? AMBER : MUT, fontWeight: lang === l ? 600 : 400 }}
-                >
-                  {l}
-                </button>
-              </span>
-            ))}
-          </div>
+          {/* language toggle lives in the header on desktop; on mobile it
+              moves inside the menu so the row stays three items */}
+          <div className="hidden md:block">{langToggle(false)}</div>
           <a
             href={PHONE_HREF}
             className="bg-cta-solid ml-1 inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm px-3 text-[13px] font-semibold md:ml-2 md:gap-2 md:px-4 md:text-[14px]"
@@ -513,9 +556,109 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             <Phone size={15} strokeWidth={2.2} aria-hidden />
             {PHONE_DISPLAY}
           </a>
+          {/* hamburger: two lines that align into an X — the true-line
+              vocabulary applied to the one mechanical control on the page */}
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            aria-expanded={open}
+            aria-label={open ? t.ui.menuClose : t.ui.menuOpen}
+            className="relative ml-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
+          >
+            <span
+              aria-hidden
+              className="absolute h-[2px] w-[22px] transition-transform duration-300"
+              style={{
+                background: AMBER,
+                transform: open ? 'rotate(45deg)' : 'translateY(-4px)',
+                transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
+              }}
+            />
+            <span
+              aria-hidden
+              className="absolute h-[2px] w-[22px] transition-transform duration-300"
+              style={{
+                background: INK,
+                transform: open ? 'rotate(-45deg)' : 'translateY(4px)',
+                transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
+              }}
+            />
+          </button>
         </nav>
       </div>
     </header>
+
+    {/* mobile menu: full-screen coal overlay, links rise out of masks the
+        same way the hero headline does, one true line drawn beneath.
+        Rendered as a SIBLING of the header, never inside it: the header's
+        backdrop-filter makes it the containing block for fixed
+        descendants, which squeezed an in-header overlay to zero height. */}
+    <AnimatePresence>
+        {open && (
+          <motion.div
+            key="menu"
+            initial={reduced ? { opacity: 1 } : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="fixed inset-0 z-40 flex flex-col overflow-y-auto pt-[68px] md:hidden"
+            style={{ background: BG }}
+          >
+            <nav className="flex flex-1 flex-col justify-center gap-1 px-6 py-10">
+              {menuItems.map((item, i) => (
+                <div key={item.hash} className="overflow-hidden py-1">
+                  <motion.a
+                    href={item.hash}
+                    onClick={goMobile(item.hash)}
+                    className="block"
+                    initial={reduced ? undefined : { y: '110%' }}
+                    animate={{ y: '0%' }}
+                    exit={{ y: '110%', transition: { duration: 0.2, ease: 'easeIn', delay: (menuItems.length - 1 - i) * 0.03 } }}
+                    transition={{ duration: 0.5, ease: EASE, delay: 0.08 + i * 0.06 }}
+                    style={{
+                      fontFamily: EBOLD,
+                      fontSize: 'clamp(2rem, 9vw, 2.8rem)',
+                      letterSpacing: '-0.02em',
+                      color: INK,
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {item.label}
+                  </motion.a>
+                </div>
+              ))}
+              <motion.div
+                aria-hidden
+                className="mt-6 h-[3px] w-24 origin-left"
+                style={{ background: AMBER }}
+                initial={reduced ? undefined : { scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: EASE, delay: 0.32 }}
+              />
+            </nav>
+            <motion.div
+              className="flex items-center justify-between gap-4 border-t px-6 py-5"
+              style={{ borderColor: HAIR }}
+              initial={reduced ? undefined : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: EASE, delay: 0.3 }}
+            >
+              {langToggle(true)}
+              <a
+                href={PHONE_HREF}
+                className="bg-cta-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-sm px-4 text-[14px] font-semibold"
+                style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+              >
+                <Phone size={15} strokeWidth={2.2} aria-hidden />
+                {PHONE_DISPLAY}
+              </a>
+            </motion.div>
+          </motion.div>
+        )}
+    </AnimatePresence>
+    </>
   )
 }
 
