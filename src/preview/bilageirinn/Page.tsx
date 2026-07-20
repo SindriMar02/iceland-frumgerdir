@@ -469,15 +469,17 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         borderBottom: solid ? `1px solid ${HAIR}` : '1px solid transparent',
       }}
     >
-      <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between px-5 md:px-8">
-        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 items-center gap-2.5" aria-label={t.ui.navTopAria}>
+      <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-3 px-4 md:px-8">
+        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 shrink-0 items-center gap-2 md:gap-2.5" aria-label={t.ui.navTopAria}>
           {/* REBRAND CONCEPT PREVIEW, not the real mark — icon closely matches
               the real logo's own swoosh+headlight shape, previewed here only
               to pitch before touching the real logo.png used everywhere else
               on the site. Wordmark is real type, not baked into the image —
               the generated art's own text had a broken þ. */}
-          <img src={ICON_CONCEPT} alt="" className="h-8 w-auto" style={{ filter: 'brightness(0) invert(0.96)' }} />
-          <span style={{ fontFamily: EBOLD, fontSize: '19px', fontWeight: 800, color: INK, letterSpacing: '-0.01em' }}>
+          <img src={ICON_CONCEPT} alt="" className="h-7 w-auto md:h-8" style={{ filter: 'brightness(0) invert(0.96)' }} />
+          {/* clamp keeps the wordmark from colliding with the toggle on
+              narrow phones — the row is width-critical at 390px */}
+          <span style={{ fontFamily: EBOLD, fontSize: 'clamp(16px, 4.4vw, 19px)', fontWeight: 800, color: INK, letterSpacing: '-0.01em' }}>
             Bílageirinn
           </span>
         </a>
@@ -486,7 +488,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <a href="#tjon" onClick={go('#tjon')} className={link}>{t.ui.navClaims}</a>
           <a href="#verkstaedid" onClick={go('#verkstaedid')} className={link}>{t.ui.navWorkshop}</a>
           {/* language toggle: two real buttons, active one amber */}
-          <div className="ml-1 flex items-center gap-0.5 text-[12px] tracking-[0.1em]" style={{ fontFamily: MONO }}>
+          <div className="flex shrink-0 items-center gap-0.5 text-[12px] tracking-[0.1em] md:ml-1" style={{ fontFamily: MONO }}>
             {(['is', 'en'] as const).map((l, i) => (
               <span key={l} className="flex items-center">
                 {i > 0 && <span aria-hidden style={{ color: MUT, opacity: 0.5 }}>/</span>}
@@ -495,7 +497,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
                   onClick={() => setLang(l)}
                   aria-pressed={lang === l}
                   aria-label={l === 'is' ? 'Íslenska' : 'English'}
-                  className="bg-navlink inline-flex min-h-11 items-center px-1.5 uppercase"
+                  className="bg-navlink inline-flex min-h-11 items-center px-1 uppercase md:px-1.5"
                   style={{ color: lang === l ? AMBER : MUT, fontWeight: lang === l ? 600 : 400 }}
                 >
                   {l}
@@ -505,7 +507,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           </div>
           <a
             href={PHONE_HREF}
-            className="bg-cta-solid ml-2 inline-flex min-h-11 items-center gap-2 rounded-sm px-4 text-[14px] font-semibold"
+            className="bg-cta-solid ml-1 inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm px-3 text-[13px] font-semibold md:ml-2 md:gap-2 md:px-4 md:text-[14px]"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
