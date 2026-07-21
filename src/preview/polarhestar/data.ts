@@ -574,6 +574,7 @@ export const COPY = {
 
     galleryH2: 'Svipmyndir frá bænum',
     galleryBody: 'Úr myndasafni Pólar Hesta: hversdagurinn á Grýtubakka, ferðirnar og dýrin.',
+    galleryMore: 'Sjá fleiri myndir',
 
     trustEyebrow: 'Umsagnir',
     trustH2: '4,9 stjörnur og Travelers’ Choice',
@@ -680,6 +681,7 @@ export const COPY = {
 
     galleryH2: 'Snapshots from the farm',
     galleryBody: 'From the Pólar Hestar picture gallery: everyday life at Grýtubakki, the tours and the animals.',
+    galleryMore: 'Show more photos',
 
     trustEyebrow: 'Reviews',
     trustH2: '4.9 stars and Travelers’ Choice',
@@ -788,6 +790,7 @@ export const COPY = {
 
     galleryH2: 'Bilder vom Hof',
     galleryBody: 'Aus der Bildergalerie von Pólar Hestar: der Alltag auf Grýtubakki, die Touren und die Tiere.',
+    galleryMore: 'Mehr Bilder zeigen',
 
     trustEyebrow: 'Bewertungen',
     trustH2: '4,9 Sterne und Travelers’ Choice',

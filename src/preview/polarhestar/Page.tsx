@@ -24,7 +24,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
-import { SiteContentProvider, useSiteContent, type TourX } from './sanity'
+import { SiteContentProvider, useSiteContent, type Pic, type TourX } from './sanity'
 
 const company = getPreviewCompany('polarhestar')
 
@@ -210,6 +210,113 @@ function NavDropdown({
             </a>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Lightbox — tap a photo to see it whole: arrows, swipe, Escape ──── */
+function Lightbox({
+  photos,
+  index,
+  lang,
+  onClose,
+  onNav,
+}: {
+  photos: Pic[]
+  index: number
+  lang: Lang
+  onClose: () => void
+  onNav: (delta: number) => void
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const swipeX = useRef<number | null>(null)
+  useEffect(() => {
+    closeRef.current?.focus()
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      else if (e.key === 'ArrowRight') onNav(1)
+      else if (e.key === 'ArrowLeft') onNav(-1)
+      else if (e.key === 'Tab' && panelRef.current) {
+        const f = panelRef.current.querySelectorAll<HTMLElement>('button')
+        if (!f.length) return
+        const first = f[0]
+        const last = f[f.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose, onNav])
+
+  const photo = photos[index]
+  const btn =
+    'grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20'
+  return (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={tri(lang, 'Myndasafn', 'Gallery', 'Galerie')}
+      className="ph-lb fixed inset-0 z-[60] flex flex-col"
+      style={{ background: 'rgba(9,12,36,0.95)' }}
+      onPointerDown={(e) => {
+        swipeX.current = e.clientX
+      }}
+      onPointerUp={(e) => {
+        if (swipeX.current === null) return
+        const dx = e.clientX - swipeX.current
+        swipeX.current = null
+        if (Math.abs(dx) > 60) onNav(dx < 0 ? 1 : -1)
+      }}
+    >
+      <div className="flex items-center justify-between px-5 py-4">
+        <span className="font-hanken text-sm tabular-nums text-white/70">
+          {index + 1} / {photos.length}
+        </span>
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          className={btn}
+          aria-label={tri(lang, 'Loka', 'Close', 'Schließen')}
+        >
+          <span className="relative block h-4 w-4" aria-hidden="true">
+            <span className="absolute top-1/2 left-0 block h-px w-full rotate-45 bg-current" />
+            <span className="absolute top-1/2 left-0 block h-px w-full -rotate-45 bg-current" />
+          </span>
+        </button>
+      </div>
+      <div className="flex min-h-0 flex-1 items-center justify-center px-3 pb-3">
+        <img
+          key={index}
+          src={photo.src}
+          srcSet={photo.srcSet}
+          sizes="100vw"
+          alt=""
+          className="ph-lb-img max-h-full max-w-full rounded-lg object-contain"
+          draggable={false}
+        />
+      </div>
+      <div className="flex items-center justify-center gap-4 px-5 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <button type="button" onClick={() => onNav(-1)} className={btn} aria-label={tri(lang, 'Fyrri mynd', 'Previous photo', 'Vorheriges Bild')}>
+          <ChevronRight className="h-5 w-5 rotate-180" />
+        </button>
+        <button type="button" onClick={() => onNav(1)} className={btn} aria-label={tri(lang, 'Næsta mynd', 'Next photo', 'Nächstes Bild')}>
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
     </div>
   )
@@ -891,6 +998,8 @@ function PolarHestarPageInner() {
   const [veil, setVeil] = useState(false)
   const pendingLang = useRef<Lang | null>(null)
   const [bookTour, setBookTour] = useState(SHORT_TOURS[0].id)
+  const [shownPhotos, setShownPhotos] = useState(24)
+  const [lightbox, setLightbox] = useState<number | null>(null)
   const t = COPY[lang]
   const minPrice = Math.min(...SHORT_TOURS.map((x) => x.price))
   const bookingRef = useRef<HTMLDivElement>(null)
@@ -1106,6 +1215,14 @@ function PolarHestarPageInner() {
         .ph-menu-item{opacity:0;transform:translateY(14px);animation:phMenuItem .45s cubic-bezier(.2,.7,.2,1) forwards}
         @keyframes phMenuItem{to{opacity:1;transform:none}}
 
+        /* gallery tiles + lightbox */
+        .ph-tile-img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+        .ph-tile:hover .ph-tile-img{transform:scale(1.06)}
+        .ph-lb{animation:phLbIn .22s ease-out both}
+        @keyframes phLbIn{from{opacity:0}to{opacity:1}}
+        .ph-lb-img{animation:phLbImg .3s cubic-bezier(.2,.7,.2,1) both}
+        @keyframes phLbImg{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
+
         /* Þokan — mist veil on language switch */
         .ph-veil{opacity:0;background:#EDF1F73d;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);transition:opacity .22s cubic-bezier(.2,.7,.2,1)}
         .ph-veil[data-on="true"]{opacity:1;transition-duration:.13s}
@@ -1147,7 +1264,8 @@ function PolarHestarPageInner() {
           .ph-veil,.ph-cap,.ph-pop,.ph-up,.ph-num-up,.ph-num-dn,.ph-cta-send[data-busy="true"]::after{animation:none}
           .ph-cap,.ph-pop,.ph-up{opacity:1;transform:none}
           .ph-bar,.ph-navlink::after,.ph-burger-bar,.ph-langpill{transition:none}
-          .ph-menu,.ph-menu-item{animation:none}
+          .ph-menu,.ph-menu-item,.ph-lb,.ph-lb-img{animation:none}
+          .ph-tile-img{transition:none}
           .ph-menu-item{opacity:1;transform:none}
           .ph-bar{transform:none}
           .ph-horse img{transition:none}
@@ -1805,23 +1923,46 @@ function PolarHestarPageInner() {
               {t.galleryBody}
             </p>
           </Reveal>
-          <Reveal>
-            <div className="columns-2 gap-3 md:columns-3 lg:columns-4">
-              {GALLERY.map((g, i) => (
+          {/* Fixed-ratio tiles: every cell reserves its space before the photo
+              loads, so nothing reflows or hops as you scroll. */}
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-4">
+            {GALLERY.slice(0, shownPhotos).map((g, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setLightbox(i)}
+                aria-label={tri(lang, `Opna mynd ${i + 1}`, `Open photo ${i + 1}`, `Bild ${i + 1} öffnen`)}
+                className="ph-tile group relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-[#161B3C14] transition-shadow duration-300 hover:shadow-[0_10px_28px_-14px_rgba(22,27,60,0.45)]"
+                style={{ background: MIST }}
+              >
                 <img
-                  key={i}
                   src={g.src}
                   srcSet={g.srcSet}
-                  sizes="(max-width: 768px) 50vw, 300px"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   alt=""
                   loading="lazy"
                   decoding="async"
-                  className="mb-3 w-full rounded-xl"
+                  className="ph-tile-img h-full w-full object-cover"
                   style={{ objectPosition: g.pos }}
                 />
-              ))}
+              </button>
+            ))}
+          </div>
+          {shownPhotos < GALLERY.length && (
+            <div className="mt-8 text-center">
+              <button
+                type="button"
+                onClick={() => setShownPhotos((n) => n + 32)}
+                className="inline-flex items-center gap-2 rounded-full border px-6 py-3 font-hanken text-sm font-semibold transition-colors hover:bg-black/5"
+                style={{ borderColor: '#1a205233', color: INK }}
+              >
+                {t.galleryMore}
+                <span className="font-normal tabular-nums" style={{ color: SLATE }}>
+                  {shownPhotos} / {GALLERY.length}
+                </span>
+              </button>
             </div>
-          </Reveal>
+          )}
         </div>
       </section>
 
@@ -2127,6 +2268,16 @@ function PolarHestarPageInner() {
           <Phone className="h-5 w-5" />
         </a>
       </div>
+
+      {lightbox !== null && (
+        <Lightbox
+          photos={GALLERY}
+          index={lightbox}
+          lang={lang}
+          onClose={() => setLightbox(null)}
+          onNav={(d) => setLightbox((i) => (i === null ? i : (i + d + GALLERY.length) % GALLERY.length))}
+        />
+      )}
 
       <PreviewChrome company={company} />
     </div>
