@@ -130,6 +130,8 @@ const IS = {
     reviewsFacebook: '86% mæla með á Facebook',
     reviewsOpenGoogle: 'Sjá allar umsagnir á Google',
     reviewsTranslatedNote: 'þýdd umsögn',
+    readMore: 'Lesa meira',
+    readLess: 'Sýna minna',
     reviews: [
       {
         name: 'Sandra Winbush',
@@ -395,6 +397,8 @@ const EN: typeof IS = {
     reviewsFacebook: '86% recommend on Facebook',
     reviewsOpenGoogle: 'See all reviews on Google',
     reviewsTranslatedNote: 'translated review',
+    readMore: 'Read more',
+    readLess: 'Show less',
     reviews: [
       {
         name: 'Sandra Winbush',

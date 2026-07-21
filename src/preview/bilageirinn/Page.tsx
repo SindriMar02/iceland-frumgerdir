@@ -18,7 +18,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import BilageirinnLoading from './Loading'
-import { STRINGS, type Lang, type Strings } from './translations'
+import { STRINGS, type Lang, type Review, type Strings } from './translations'
 import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
@@ -1643,6 +1643,59 @@ function Brands() {
   )
 }
 
+/** One compact review card. Long quotes clamp to four lines with a
+    read-more toggle (the marquee already pauses on hover, so expanding in
+    place is stable to read); short ones stay small so several cards share
+    the viewport instead of two billboards. */
+function ReviewCard({ r, hidden }: { r: Review; hidden?: boolean }) {
+  const { t } = useT()
+  const [open, setOpen] = useState(false)
+  const long = r.quote.length > 130
+  return (
+    <li
+      className="flex w-[260px] shrink-0 flex-col rounded-sm border p-5 md:w-[292px]"
+      style={{ borderColor: HAIR, background: SURFACE }}
+    >
+      <p className="flex items-baseline justify-between gap-3">
+        <span className="text-[11px] tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }} aria-label="5 stjörnur">
+          ★★★★★
+        </span>
+        <span className="text-[10px] tracking-[0.16em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+          {r.source}
+        </span>
+      </p>
+      <p
+        className="mt-3 text-[13.5px] leading-relaxed"
+        style={{
+          fontFamily: BODY,
+          color: INK,
+          ...(long && !open
+            ? { display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }
+            : {}),
+        }}
+      >
+        &ldquo;{r.quote}&rdquo;
+      </p>
+      {long && (
+        <button
+          type="button"
+          tabIndex={hidden ? -1 : 0}
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className="bg-link-hover mt-1.5 min-h-8 self-start text-[12px] underline decoration-1 underline-offset-4"
+          style={{ fontFamily: BODY, color: MUT }}
+        >
+          {open ? t.ui.readLess : t.ui.readMore}
+        </button>
+      )}
+      <p className="mt-auto pt-4 text-[10.5px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+        {r.name}
+        {r.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}
+      </p>
+    </li>
+  )
+}
+
 /** Real, verbatim customer reviews (see translations.ts provenance note) as a
     drifting marquee — the row duplicates once for the seamless loop, the
     second copy aria-hidden. Reduced motion renders a static scrollable row. */
@@ -1650,27 +1703,9 @@ function Reviews() {
   const { t } = useT()
   const reduced = useReducedMotion()
   const row = (hidden: boolean) => (
-    <ul
-      aria-hidden={hidden || undefined}
-      className="flex shrink-0 items-stretch gap-5 pr-5"
-    >
+    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-start gap-4 pr-4">
       {t.ui.reviews.map(r => (
-        <li
-          key={r.name}
-          className="flex w-[320px] shrink-0 flex-col rounded-sm border p-6 md:w-[380px]"
-          style={{ borderColor: HAIR, background: SURFACE }}
-        >
-          <p className="text-[13px] tracking-[0.22em]" style={{ fontFamily: MONO, color: AMBER }} aria-label="5 stjörnur">
-            ★★★★★
-          </p>
-          <p className="mt-4 flex-1 text-[14.5px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-            &ldquo;{r.quote}&rdquo;
-          </p>
-          <p className="mt-5 text-[12px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-            {r.name} · {r.source}
-            {r.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}
-          </p>
-        </li>
+        <ReviewCard key={r.name} r={r} hidden={hidden} />
       ))}
     </ul>
   )
