@@ -50,12 +50,12 @@ const AMBER = '#E8A23D' /* 7.9:1 on BG */
 const DARKINK = '#131313' /* on amber: 7.8:1 */
 const HAIR = 'rgba(243,240,234,0.14)'
 
-/* Type system v2 (2026-07-21, was Clash Display + Satoshi): Panchang's
-   squared technical letterforms carry the instrument-panel voice at display
-   sizes, Geist Sans is the workshop-manual body, and Geist Mono stays as the
-   measurement voice — sans and mono from the same family, one system. */
-const DISPLAY = "'Panchang-Bold', 'Arial Black', sans-serif"
-const EBOLD = "'Panchang-Semibold', 'Arial Black', sans-serif"
+/* Type system v3 (2026-07-21): Cabinet Grotesk display (Panchang was
+   rejected as too big/wide the same day; Clash Display + Satoshi before
+   that) — narrower, characterful grotesk with full Icelandic glyphs. Geist
+   Sans body + Geist Mono measurement voice stay: sans and mono, one family. */
+const DISPLAY = "'CabinetGrotesk-Extrabold', 'Arial Black', sans-serif"
+const EBOLD = "'CabinetGrotesk-Bold', 'Arial Black', sans-serif"
 const BODY = "'Geist', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
@@ -74,8 +74,8 @@ const CSS = `
 @font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Panchang-Semibold'; src: url('${B}fonts/panchang/fonts/Panchang-Semibold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Panchang-Bold'; src: url('${B}fonts/panchang/fonts/Panchang-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'CabinetGrotesk-Bold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'CabinetGrotesk-Extrabold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
 
 .bg-page { background: ${BG}; color: ${INK}; }
 .bg-page ::selection { background: ${AMBER}; color: ${DARKINK}; }
