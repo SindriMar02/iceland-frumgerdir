@@ -145,19 +145,26 @@ const CSS = `
   position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 0.625rem;
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
 }
-.bg-cta-invert:hover .cta-label-a { transform: translateX(14px); opacity: 0; }
+.bg-cta-invert:hover .cta-label-a, .bg-cta-invert:focus-visible .cta-label-a { transform: translateX(14px); opacity: 0; }
 .bg-cta-invert .cta-label-b {
   position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 0.625rem;
   transform: translateX(-14px); opacity: 0;
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
 }
-.bg-cta-invert:hover .cta-label-b { transform: translateX(0); opacity: 1; }
+.bg-cta-invert:hover .cta-label-b, .bg-cta-invert:focus-visible .cta-label-b { transform: translateX(0); opacity: 1; }
+/* The dot floods by SCALING far past the button's bounds and letting the
+   pill's own overflow:hidden clip it. The first version grew width/height
+   to 100% instead, which only covers the pill if the child's clamped
+   border-radius matches the parent's exactly on every frame — any subpixel
+   or mid-transition difference left amber showing at the rounded caps.
+   Scaling overshoots, so full coverage is geometric, and it composites on
+   the GPU instead of animating layout. */
 .bg-cta-invert .cta-dot {
-  position: absolute; z-index: 1; left: 1.1rem; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 9999px;
-  transition: left 0.4s cubic-bezier(0.4,0,0.2,1), top 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1),
-    height 0.4s cubic-bezier(0.4,0,0.2,1), margin 0.4s cubic-bezier(0.4,0,0.2,1), border-radius 0.4s cubic-bezier(0.4,0,0.2,1);
+  position: absolute; z-index: 1; left: 1.1rem; top: 50%; width: 8px; height: 8px; margin-top: -4px;
+  border-radius: 9999px; transform: scale(1); transform-origin: center;
+  transition: transform 0.45s cubic-bezier(0.4,0,0.2,1);
 }
-.bg-cta-invert:hover .cta-dot { left: 0; top: 0; width: 100%; height: 100%; margin-top: 0; border-radius: 9999px; }
+.bg-cta-invert:hover .cta-dot, .bg-cta-invert:focus-visible .cta-dot { transform: scale(100); }
 @media (prefers-reduced-motion: reduce) {
   .bg-cta-invert .cta-label-a, .bg-cta-invert .cta-label-b, .bg-cta-invert .cta-dot { transition: none; }
 }
