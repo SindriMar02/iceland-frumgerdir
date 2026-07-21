@@ -52,13 +52,16 @@ const AMBER = '#E8A23D' /* 7.9:1 on BG */
 const DARKINK = '#131313' /* on amber: 7.8:1 */
 const HAIR = 'rgba(243,240,234,0.14)'
 
-/* Type system v3 (2026-07-21): Cabinet Grotesk display (Panchang was
-   rejected as too big/wide the same day; Clash Display + Satoshi before
-   that) — narrower, characterful grotesk with full Icelandic glyphs. Geist
-   Sans body + Geist Mono measurement voice stay: sans and mono, one family. */
-const DISPLAY = "'CabinetGrotesk-Extrabold', 'Arial Black', sans-serif"
-const EBOLD = "'CabinetGrotesk-Bold', 'Arial Black', sans-serif"
-const BODY = "'Geist', 'Helvetica Neue', Arial, sans-serif"
+/* Type system v4 (2026-07-21): the SNDR Studio pairing — Projekt Blackbird
+   display + Archia body + Geist Mono chrome. Blackbird ships no Icelandic;
+   SNDR extended its UPPERCASE set in-house but missed Æ, so this build adds
+   Æ composed from the font's own A and E (tools/build-blackbird-ae.py).
+   Blackbird still has no lowercase accents, which is why SNDR's rule is
+   "display stays UPPERCASE" — every display style here sets text-transform
+   accordingly. Earlier: Cabinet Grotesk, Panchang, Clash Display. */
+const DISPLAY = "'Projekt Blackbird', 'Arial Black', sans-serif"
+const EBOLD = "'Projekt Blackbird', 'Arial Black', sans-serif"
+const BODY = "'Archia', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
 const B = import.meta.env.BASE_URL
@@ -71,13 +74,10 @@ const ICON_CONCEPT = `${B}preview/bilageirinn/icon-concept.png`
 const EASE = [0.23, 1, 0.32, 1] as const
 
 const CSS = `
-@font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Archia'; src: url('${B}fonts/archia/Archia-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'CabinetGrotesk-Bold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
-@font-face { font-family: 'CabinetGrotesk-Extrabold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Projekt Blackbird'; src: url('${B}fonts/blackbird/ProjektBlackbirdIS-ext.otf') format('opentype'); font-weight: 400 700; font-style: normal; font-display: swap; }
 
 .bg-page { background: ${BG}; color: ${INK}; }
 .bg-page ::selection { background: ${AMBER}; color: ${DARKINK}; }
@@ -587,7 +587,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <img src={ICON_CONCEPT} alt="" className="h-7 w-auto md:h-8" style={{ filter: 'brightness(0) invert(0.96)' }} />
           {/* clamp keeps the wordmark from colliding with the toggle on
               narrow phones — the row is width-critical at 390px */}
-          <span style={{ fontFamily: EBOLD, fontSize: 'clamp(16px, 4.4vw, 19px)', fontWeight: 800, color: INK, letterSpacing: '-0.01em' }}>
+          <span style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(16px, 4.4vw, 19px)', fontWeight: 400, color: INK, letterSpacing: '0.02em' }}>
             Bílageirinn
           </span>
         </a>
@@ -669,7 +669,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
                     exit={{ y: '110%', transition: { duration: 0.2, ease: 'easeIn', delay: (menuItems.length - 1 - i) * 0.03 } }}
                     transition={{ duration: 0.5, ease: EASE, delay: 0.08 + i * 0.06 }}
                     style={{
-                      fontFamily: EBOLD,
+                      fontFamily: EBOLD, textTransform: 'uppercase',
                       fontSize: 'clamp(2rem, 9vw, 2.8rem)',
                       letterSpacing: '-0.02em',
                       color: INK,
@@ -835,9 +835,9 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
         <h1
           className="max-w-6xl text-balance leading-[0.98]"
           style={{
-            fontFamily: DISPLAY,
+            fontFamily: DISPLAY, textTransform: 'uppercase',
             fontSize: 'clamp(3rem, 9vw, 6rem)',
-            letterSpacing: '-0.025em',
+            letterSpacing: '0.005em',
             filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.6))',
           }}
         >
@@ -992,7 +992,7 @@ function LineQuote() {
         <p
           className="max-w-5xl text-balance"
           style={{
-            fontFamily: DISPLAY,
+            fontFamily: DISPLAY, textTransform: 'uppercase',
             fontSize: 'clamp(2.2rem, 6vw, 4.6rem)',
             letterSpacing: '-0.02em',
             lineHeight: 1.06,
@@ -1026,7 +1026,7 @@ function Story() {
           <Rise>
             <h2
               className="text-balance"
-              style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+              style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
             >
               {t.story.title}
             </h2>
@@ -1211,7 +1211,7 @@ function ServiceIndex() {
         </Kicker>
         <h2
           className="mt-4 max-w-3xl text-balance"
-          style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+          style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
         >
           {t.ui.servicesTitle}
         </h2>
@@ -1283,9 +1283,9 @@ function ServiceIndex() {
                     <span
                       className="block transition-transform duration-200 group-hover:translate-x-1.5"
                       style={{
-                        fontFamily: EBOLD,
+                        fontFamily: EBOLD, textTransform: 'uppercase',
                         fontSize: 'clamp(1.35rem, 2.6vw, 2rem)',
-                        letterSpacing: '-0.01em',
+                        letterSpacing: '0.02em',
                         color: on ? INK : MUT,
                         transitionProperty: 'transform, color',
                       }}
@@ -1450,7 +1450,7 @@ function Claims() {
               </Kicker>
               <h2
                 className="mt-4 text-balance"
-                style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+                style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
               >
                 {t.insurance.title}
               </h2>
@@ -1496,7 +1496,7 @@ function Claims() {
                       <h3
                         className="mt-2"
                         style={{
-                          fontFamily: EBOLD,
+                          fontFamily: EBOLD, textTransform: 'uppercase',
                           fontSize: s.highlight ? 'clamp(1.6rem, 2.8vw, 2.2rem)' : 'clamp(1.4rem, 2.4vw, 1.9rem)',
                           letterSpacing: '-0.01em',
                         }}
@@ -1568,7 +1568,7 @@ function Craft() {
           <Rise>
             <h2
               className="text-balance"
-              style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+              style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
             >
               {t.craft.title}
             </h2>
@@ -1607,7 +1607,7 @@ function Brands() {
             </Kicker>
             <h2
               className="mt-4 text-balance"
-              style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+              style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
             >
               {t.brands.title}
             </h2>
@@ -1724,7 +1724,7 @@ function Reviews() {
           <Kicker>{t.ui.reviewsKicker}</Kicker>
           <h2
             className="mt-4 text-balance"
-            style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+            style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
           >
             {t.ui.reviewsTitle}
           </h2>
@@ -1779,7 +1779,7 @@ function Workshop() {
             <Rise>
               <h2
                 className="text-balance"
-                style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+                style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
               >
                 {t.facility.title}
               </h2>
@@ -1860,7 +1860,7 @@ function MapSection() {
           </Kicker>
           <h2
             className="mt-4 text-balance"
-            style={{ fontFamily: EBOLD, fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '-0.02em', lineHeight: 1.06 }}
+            style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '0.005em', lineHeight: 1.08 }}
           >
             {t.ui.mapTitle}
           </h2>
@@ -2185,7 +2185,7 @@ function Contact() {
         <div className="grid gap-14 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-16">
           <div className="text-center md:text-left">
             <Rise>
-              <h2 className="text-balance" style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.2rem)', letterSpacing: '-0.02em' }}>
+              <h2 className="text-balance" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.2rem)', letterSpacing: '0.005em' }}>
                 {t.cta.title}
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:mx-0" style={{ fontFamily: BODY, color: MUT }}>
@@ -2196,7 +2196,7 @@ function Contact() {
               <a
                 href={PHONE_HREF}
                 className="bg-cta-display mt-10 leading-none"
-                style={{ fontFamily: DISPLAY, color: AMBER, fontSize: 'clamp(3rem, 9vw, 5.4rem)', letterSpacing: '-0.02em' }}
+                style={{ fontFamily: DISPLAY, textTransform: 'uppercase', color: AMBER, fontSize: 'clamp(3rem, 9vw, 5.4rem)', letterSpacing: '0.01em' }}
               >
                 {PHONE_DISPLAY}
               </a>

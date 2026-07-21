@@ -54,7 +54,7 @@ export default function BilageirinnLoading({
       }}
     >
       <style>{`
-        @font-face { font-family: 'CabinetGrotesk-Extrabold'; src: url('${B}fonts/cabinet-grotesk/fonts/CabinetGrotesk-Extrabold.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Projekt Blackbird'; src: url('${B}fonts/blackbird/ProjektBlackbirdIS-ext.otf') format('opentype'); font-weight: 400 700; font-style: normal; font-display: swap; }
         @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 
         .bgl-stage{display:flex;flex-direction:column;align-items:center;width:min(84vw,600px)}
@@ -74,8 +74,8 @@ export default function BilageirinnLoading({
         /* wordmark rises out of a mask, same move as the hero headline */
         .bgl-mask{overflow:hidden;padding:0.14em 0.05em 0.08em}
         .bgl-word{display:block;transform:translateY(118%);animation:bglRise 0.75s cubic-bezier(0.22,1,0.36,1) 0.55s forwards;
-          font-family:'CabinetGrotesk-Extrabold','Arial Black',sans-serif;font-weight:800;
-          font-size:clamp(38px,6.4vw,64px);letter-spacing:-0.02em;color:#F3F0EA;line-height:1}
+          font-family:'Projekt Blackbird','Arial Black',sans-serif;font-weight:400;text-transform:uppercase;
+          font-size:clamp(34px,5.6vw,56px);letter-spacing:0.02em;color:#F3F0EA;line-height:1}
         @keyframes bglRise{to{transform:translateY(0)}}
 
         /* the measuring rule: one hairline, graduation ticks, amber fill */
