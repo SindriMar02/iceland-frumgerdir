@@ -44,7 +44,7 @@ export default function BilageirinnLoading({
         position: 'fixed',
         inset: 0,
         zIndex: 100,
-        background: '#0D0E10',
+        background: '#0F0D0B',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

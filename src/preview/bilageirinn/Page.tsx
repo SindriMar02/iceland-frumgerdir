@@ -40,10 +40,12 @@ const company = getPreviewCompany('bilageirinn')
       damaged panel has exactly one correct line — but the page says it with
       the shop itself, not a diagram: night-shift booth photography, the
       real wordmark, and one amber line that keeps getting drawn back into
-      place as you scroll. Near-black ground, warm off-white ink, a single
-      amber accent borrowed from the booth lights in the photos. ─── */
-const BG = '#0D0E10'
-const SURFACE = '#15171A'
+      place as you scroll. Warm near-black ground, warm off-white
+      ink, a single amber accent borrowed from the booth lights. Geometry is
+      round throughout (2026-07-21): pill controls, generously radiused media
+      and cards — the softer counterpart to the precision the copy claims. ─── */
+const BG = '#0F0D0B'
+const SURFACE = '#1A1613'
 const INK = '#F3F0EA'
 const MUT = '#A9A399' /* 7:1 on BG */
 const AMBER = '#E8A23D' /* 7.9:1 on BG */
@@ -80,7 +82,7 @@ const CSS = `
 .bg-page { background: ${BG}; color: ${INK}; }
 .bg-page ::selection { background: ${AMBER}; color: ${DARKINK}; }
 .bg-page a, .bg-page button { -webkit-tap-highlight-color: transparent; }
-.bg-page :focus-visible { outline: 2px solid ${AMBER}; outline-offset: 3px; border-radius: 2px; }
+.bg-page :focus-visible { outline: 2px solid ${AMBER}; outline-offset: 3px; border-radius: 9999px; }
 
 /* hero background crossfade: each frame drifts slowly the whole time it's
    visible — a placeholder for real workshop video, not a static photo.
@@ -155,7 +157,7 @@ const CSS = `
   transition: left 0.4s cubic-bezier(0.4,0,0.2,1), top 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1),
     height 0.4s cubic-bezier(0.4,0,0.2,1), margin 0.4s cubic-bezier(0.4,0,0.2,1), border-radius 0.4s cubic-bezier(0.4,0,0.2,1);
 }
-.bg-cta-invert:hover .cta-dot { left: 0; top: 0; width: 100%; height: 100%; margin-top: 0; border-radius: 2px; }
+.bg-cta-invert:hover .cta-dot { left: 0; top: 0; width: 100%; height: 100%; margin-top: 0; border-radius: 9999px; }
 @media (prefers-reduced-motion: reduce) {
   .bg-cta-invert .cta-label-a, .bg-cta-invert .cta-label-b, .bg-cta-invert .cta-dot { transition: none; }
 }
@@ -173,6 +175,12 @@ const CSS = `
 
 .bg-copybtn { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-copybtn:hover { border-color: ${AMBER}; color: ${AMBER}; }
+
+/* round cards read flat on a near-black ground; one lit top edge plus a
+   deep soft drop gives them a physical lift without a visible box */
+.bg-soft {
+  box-shadow: inset 0 1px 0 rgba(243,240,234,0.06), 0 22px 44px -30px rgba(0,0,0,0.95);
+}
 
 .bg-brand-mark img { opacity: 0.92; transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1); }
 .bg-brand-mark:hover img { opacity: 1; transform: scale(1.04); }
@@ -424,7 +432,7 @@ function SpecPlate() {
   return (
     <Rise delay={0.22}>
       <div
-        className="mt-8 inline-flex flex-wrap items-center gap-x-4 gap-y-2 rounded-sm border px-5 py-3.5"
+        className="mt-8 inline-flex flex-wrap items-center gap-x-4 gap-y-2 rounded-full border px-6 py-3.5"
         style={{ borderColor: HAIR, background: 'rgba(232,162,61,0.06)' }}
       >
         {t.ui.specPlate.map((w, i, arr) => (
@@ -563,7 +571,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
     <header
       className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
       style={{
-        background: solid || open ? 'rgba(13,14,16,0.86)' : 'transparent',
+        background: solid || open ? 'rgba(15,13,11,0.86)' : 'transparent',
         backdropFilter: solid || open ? 'blur(14px)' : 'none',
         WebkitBackdropFilter: solid || open ? 'blur(14px)' : 'none',
         borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
@@ -595,7 +603,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               logo + burger and doesn't compete with the menu's own CTA */}
           <a
             href={PHONE_HREF}
-            className="bg-cta-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-sm px-4 text-[14px] font-semibold md:inline-flex"
+            className="bg-cta-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold md:inline-flex"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
@@ -693,7 +701,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               {langToggle(true)}
               <a
                 href={PHONE_HREF}
-                className="bg-cta-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-sm px-4 text-[14px] font-semibold"
+                className="bg-cta-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold"
                 style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
               >
                 <Phone size={15} strokeWidth={2.2} aria-hidden />
@@ -806,7 +814,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
         aria-hidden
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to top, ${BG} 4%, rgba(13,14,16,0.88) 24%, rgba(13,14,16,0.42) 56%, rgba(13,14,16,0.8) 100%)`,
+          background: `linear-gradient(to top, ${BG} 4%, rgba(15,13,11,0.88) 24%, rgba(15,13,11,0.42) 56%, rgba(15,13,11,0.8) 100%)`,
         }}
       />
       <div
@@ -876,7 +884,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           <a
             href="#hafa-samband"
             onClick={goTo('#hafa-samband')}
-            className="bg-cta-invert group inline-flex min-h-[52px] items-center rounded-sm px-7 text-[16px] font-bold"
+            className="bg-cta-invert group inline-flex min-h-[52px] items-center rounded-full px-8 text-[16px] font-bold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <span aria-hidden className="cta-dot" style={{ background: DARKINK }} />
@@ -892,7 +900,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           <a
             href="#thjonusta"
             onClick={goTo('#thjonusta')}
-            className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-sm border px-7 text-[16px] font-medium"
+            className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-full border px-8 text-[16px] font-medium"
             style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
           >
             {t.hero.ctaSecondary}
@@ -1037,7 +1045,7 @@ function Story() {
         <ClipImage
           src={IMG.booth}
           alt={t.ui.boothAlt}
-          className="aspect-[4/5] rounded-sm md:aspect-auto md:min-h-[540px]"
+          className="aspect-[4/5] rounded-[26px] md:aspect-auto md:min-h-[540px]"
         />
       </div>
 
@@ -1212,7 +1220,7 @@ function ServiceIndex() {
       <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-[1.15fr_1fr] md:gap-16">
         {/* photo panel — first on mobile so the tap result is visible */}
         <div className="order-first md:order-last">
-          <div className="relative aspect-video overflow-hidden rounded-sm md:sticky md:top-24 md:aspect-[4/5]">
+          <div className="relative aspect-video overflow-hidden rounded-[26px] md:sticky md:top-24 md:aspect-[4/5]">
             <AnimatePresence initial={false}>
               <motion.img
                 key={active}
@@ -1230,7 +1238,7 @@ function ServiceIndex() {
             <div
               aria-hidden
               className="absolute inset-x-0 bottom-0 h-24"
-              style={{ background: 'linear-gradient(to top, rgba(13,14,16,0.7), transparent)' }}
+              style={{ background: 'linear-gradient(to top, rgba(15,13,11,0.7), transparent)' }}
             />
             <p
               className="absolute bottom-4 left-5 text-[13px] tracking-[0.16em] uppercase"
@@ -1454,7 +1462,7 @@ function Claims() {
               </p>
             </Rise>
             <div className="relative mt-12 hidden md:block">
-              <ClipImage src={IMG.malun} alt={t.ui.paintAlt} className="aspect-[4/3] rounded-sm" />
+              <ClipImage src={IMG.malun} alt={t.ui.paintAlt} className="aspect-[4/3] rounded-[26px]" />
               <MeasurePoints
                 points={[
                   { x: 22, y: 34, label: t.ui.measurePoint },
@@ -1479,7 +1487,7 @@ function Claims() {
                   />
                   <Rise delay={i * 0.06}>
                     <div
-                      className={s.highlight ? 'rounded-sm border p-5 md:p-6' : undefined}
+                      className={s.highlight ? 'bg-soft rounded-[20px] border p-5 md:p-6' : undefined}
                       style={s.highlight ? { borderColor: 'rgba(232,162,61,0.4)', background: 'rgba(232,162,61,0.07)' } : undefined}
                     >
                       <p className="text-[13px] tracking-[0.16em]" style={{ fontFamily: MONO, color: AMBER }}>
@@ -1500,7 +1508,7 @@ function Claims() {
                       </p>
                       {s.highlight && (
                         <p
-                          className="mt-4 inline-flex items-center rounded-sm px-3.5 py-2 text-[13.5px] font-semibold"
+                          className="mt-4 inline-flex items-center rounded-full px-4 py-2 text-[13.5px] font-semibold"
                           style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
                         >
                           {t.ui.includedBadge}
@@ -1516,7 +1524,7 @@ function Claims() {
                 proof — was desktop-only; here it closes the process as
                 evidence. aspect-video keeps the added scroll length modest. */}
             <div className="relative mt-12 md:hidden">
-              <ClipImage src={IMG.malun} alt={t.ui.paintAlt} className="aspect-video rounded-sm" />
+              <ClipImage src={IMG.malun} alt={t.ui.paintAlt} className="aspect-video rounded-[26px]" />
               <MeasurePoints
                 points={[
                   { x: 22, y: 34, label: t.ui.measurePoint },
@@ -1554,7 +1562,7 @@ function Craft() {
   return (
     <section className="relative overflow-hidden">
       <ParallaxImage src={IMG.polish} alt={t.ui.polishAlt} className="absolute inset-0" />
-      <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(13,14,16,0.78)' }} />
+      <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(15,13,11,0.78)' }} />
       <div className="relative mx-auto max-w-[1320px] px-5 py-28 md:px-8 md:py-44">
         <div className="max-w-2xl">
           <Rise>
@@ -1653,7 +1661,7 @@ function ReviewCard({ r, hidden }: { r: Review; hidden?: boolean }) {
   const long = r.quote.length > 130
   return (
     <li
-      className="flex w-[260px] shrink-0 flex-col rounded-sm border p-5 md:w-[292px]"
+      className="bg-soft flex w-[260px] shrink-0 flex-col rounded-[20px] border p-5 md:w-[292px]"
       style={{ borderColor: HAIR, background: SURFACE }}
     >
       <p className="flex items-baseline justify-between gap-3">
@@ -1765,7 +1773,7 @@ function Workshop() {
           <ClipImage
             src={IMG.garage}
             alt={t.ui.garageAlt}
-            className="aspect-[4/3] rounded-sm md:aspect-auto md:min-h-[520px]"
+            className="aspect-[4/3] rounded-[26px] md:aspect-auto md:min-h-[520px]"
           />
           <div className="flex flex-col justify-center">
             <Rise>
@@ -1859,7 +1867,7 @@ function MapSection() {
         </Rise>
         <Rise delay={0.1}>
           <div
-            className="relative mt-8 overflow-hidden rounded-sm border"
+            className="relative mt-8 overflow-hidden rounded-[26px] border"
             style={{ borderColor: HAIR, height: 'clamp(320px, 44vw, 480px)' }}
           >
             {/* the dark-mode filter lives on this wrapper, not on the iframe
@@ -1967,11 +1975,11 @@ function ContactForm() {
     }
   }
 
-  const field = 'bg-field min-h-11 w-full rounded-sm px-3.5 py-2.5 text-[15px]'
+  const field = 'bg-field min-h-11 w-full px-4 py-2.5 text-[15px]'
   const label = 'mb-1.5 block text-[12px] tracking-[0.1em] uppercase'
 
   return (
-    <div className="rounded-sm border p-6 text-left md:p-7" style={{ borderColor: HAIR, background: 'rgba(21,23,26,0.72)' }}>
+    <div className="bg-soft rounded-[26px] border p-6 text-left md:p-7" style={{ borderColor: HAIR, background: 'rgba(26,22,19,0.72)' }}>
       <p className="text-[12px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
         {t.ui.formKicker}
       </p>
@@ -1992,7 +2000,7 @@ function ContactForm() {
             className="mt-6"
           >
             <div
-              className="flex items-start gap-3 rounded-sm border py-4 px-4"
+              className="flex items-start gap-3 rounded-[16px] border py-4 px-4"
               style={{ borderColor: 'rgba(232,162,61,0.35)', background: 'rgba(232,162,61,0.08)' }}
             >
               <Check size={18} strokeWidth={2.4} aria-hidden style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
@@ -2010,7 +2018,7 @@ function ContactForm() {
               <button
                 type="button"
                 onClick={copyComposed}
-                className="bg-copybtn inline-flex min-h-11 items-center gap-2 rounded-sm border px-4 text-[13.5px] font-semibold"
+                className="bg-copybtn inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-[13.5px] font-semibold"
                 style={{ borderColor: 'rgba(243,240,234,0.3)', color: INK, fontFamily: BODY }}
               >
                 {copied ? <Check size={14} strokeWidth={2.4} aria-hidden /> : <Copy size={14} strokeWidth={2.2} aria-hidden />}
@@ -2063,7 +2071,7 @@ function ContactForm() {
                   onChange={e => setName(e.target.value)}
                   data-touched={touched}
                   placeholder={t.ui.namePlaceholder}
-                  className={field}
+                  className={`${field} rounded-full`}
                   style={{ fontFamily: BODY }}
                 />
               </div>
@@ -2079,7 +2087,7 @@ function ContactForm() {
                   onChange={e => setPhone(e.target.value)}
                   data-touched={touched}
                   placeholder={t.ui.phonePlaceholder}
-                  className={field}
+                  className={`${field} rounded-full`}
                   style={{ fontFamily: BODY }}
                 />
               </div>
@@ -2097,7 +2105,7 @@ function ContactForm() {
                     value={plate}
                     onChange={e => setPlate(e.target.value.toUpperCase())}
                     placeholder="AB 123"
-                    className={`${field} pl-9`}
+                    className={`${field} rounded-full pl-10`}
                     style={{ fontFamily: MONO, letterSpacing: '0.06em' }}
                   />
                 </div>
@@ -2112,7 +2120,7 @@ function ContactForm() {
                   value={service}
                   onChange={e => setService(e.target.value)}
                   data-touched={touched}
-                  className={field}
+                  className={`${field} rounded-full`}
                   style={{ fontFamily: BODY, color: service ? INK : MUT }}
                 >
                   <option value="" disabled>
@@ -2136,7 +2144,7 @@ function ContactForm() {
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder={t.ui.messagePlaceholder}
-                className={`${field} resize-none`}
+                className={`${field} resize-none rounded-[20px]`}
                 style={{ fontFamily: BODY }}
               />
             </div>
@@ -2148,7 +2156,7 @@ function ContactForm() {
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="bg-form-submit mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-sm text-[15px] font-bold"
+              className="bg-form-submit mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full text-[15px] font-bold"
               style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
             >
               {status === 'sending' ? (
@@ -2172,7 +2180,7 @@ function Contact() {
   return (
     <section id="hafa-samband" className="relative overflow-hidden border-t" style={{ borderColor: HAIR }}>
       <ParallaxImage src={IMG.headlight} alt={t.ui.headlightAlt} className="absolute inset-0" />
-      <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(13,14,16,0.85)' }} />
+      <div aria-hidden className="absolute inset-0" style={{ background: 'rgba(15,13,11,0.85)' }} />
       <div className="relative mx-auto max-w-[1320px] px-5 py-28 md:px-8 md:py-40">
         <div className="grid gap-14 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-16">
           <div className="text-center md:text-left">
