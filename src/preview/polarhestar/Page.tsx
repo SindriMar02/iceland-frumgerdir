@@ -50,11 +50,17 @@ const LANGS: Lang[] = ['is', 'en', 'de']
 const LANG_NAMES: Record<Lang, string> = { is: 'Íslenska', en: 'English', de: 'Deutsch' }
 
 /* The herd walks in a 4-step size rhythm — tall mare, small foal, wide grazer, medium. */
+/**
+ * Four sizes the herd cycles through. Heights still vary (the skyline is the
+ * rhythm), but there are no top offsets: the row is laid out items-end so every
+ * photo shares one ground line. Widths stay in a tight band (md 44–64) because
+ * the old 36-vs-72 swing made neighbours read as unrelated tiles.
+ */
 const HERD_RHYTHM = [
-  'h-52 w-40 md:h-64 md:w-48',
-  'mt-6 h-40 w-32 md:mt-10 md:h-48 md:w-36',
-  'h-48 w-56 md:h-56 md:w-72',
-  'mt-3 h-44 w-36 md:mt-5 md:h-60 md:w-44',
+  'h-52 w-44 md:h-64 md:w-52',
+  'h-40 w-36 md:h-48 md:w-44',
+  'h-48 w-52 md:h-56 md:w-64',
+  'h-44 w-40 md:h-60 md:w-48',
 ]
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
@@ -641,6 +647,54 @@ const Stepper = ({
   )
 }
 
+/**
+ * The total settles instead of snapping: only the digits that actually changed
+ * roll, in the direction the price moved, reusing the stepper's own mask +
+ * slide (ph-numwrap / ph-num-up / ph-num-dn) rather than a second motion
+ * language. Runs on the FORMATTED string, so the grouping separator stays
+ * whatever isk() chose per language ('.' for is/de, ',' for en) and is never
+ * animated as if it were a digit. Reduced motion is already covered: the
+ * stylesheet kills ph-num-* animations, and fill-mode:both leaves each digit
+ * at its resting state, so the number simply snaps.
+ */
+function RollingAmount({ value, lang }: { value: number; lang: Lang }) {
+  const text = isk(value, lang)
+  const prev = useRef({ text, value })
+  const dir = value >= prev.current.value ? 1 : -1
+  const prevText = prev.current.text
+  useEffect(() => {
+    prev.current = { text, value }
+  }, [text, value])
+  // Compare right-aligned so the units column still lines up when the number
+  // gains or loses a place (9.500 → 19.000 rolls the one digit that moved,
+  // not the whole string shifted by one).
+  const pad = Math.max(0, text.length - prevText.length)
+  let order = 0
+  return (
+    <>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">
+        {text.split('').map((ch, i) => {
+          const before = i < pad ? null : prevText[i - pad]
+          // a space inside an inline-block mask collapses to zero width
+          if (ch === ' ' || before === ch) return <span key={`s${i}`}>{ch}</span>
+          const delay = order++ * 18
+          return (
+            <span key={`r${i}-${ch}`} className="ph-numwrap">
+              <span
+                className={dir > 0 ? 'ph-num-up' : 'ph-num-dn'}
+                style={{ animationDelay: `${delay}ms`, animationDuration: '.26s' }}
+              >
+                {ch}
+              </span>
+            </span>
+          )
+        })}
+      </span>
+    </>
+  )
+}
+
 function Booking({
   t,
   lang,
@@ -984,10 +1038,8 @@ function Booking({
                     {adults} × {isk(tour.price, lang)} · {children} × {isk(childPrice, lang)}
                   </p>
                 )}
-                <p className="font-spectral text-3xl" style={{ color: INK }}>
-                  <span key={total} className="ph-tick">
-                    {isk(total, lang)}
-                  </span>
+                <p className="font-spectral text-3xl tabular-nums" style={{ color: INK }}>
+                  <RollingAmount value={total} lang={lang} />
                 </p>
                 {children > 0 && (
                   <p className="font-hanken text-xs" style={{ color: SLATE }}>
@@ -1341,7 +1393,9 @@ function PolarHestarPageInner() {
         .ph-tick{display:inline-block;animation:phTick .45s cubic-bezier(.2,.7,.2,1)}
         @keyframes phTick{0%{transform:scale(1.07)}100%{transform:none}}
 
-        .ph-proc:hover .ph-track{animation-play-state:paused}
+        /* keyboard users need the same stop that hover gives; a moving target
+           you cannot halt is unusable now that each horse is a real control */
+        .ph-proc:hover .ph-track,.ph-proc:focus-within .ph-track{animation-play-state:paused}
         .ph-proc .animate-marquee{animation-duration:48s}
         .ph-horse img{transition:filter .7s ease}
         .ph-horse:hover img{filter:saturate(1) contrast(1.03) brightness(1.01)}
@@ -1440,6 +1494,10 @@ function PolarHestarPageInner() {
           .ph-menu-item{opacity:1;transform:none}
           .ph-bar{transform:none}
           .ph-horse img{transition:none}
+          /* the herd stands still: an endless auto-scroll is exactly what this
+             preference asks us to stop. Every photo is still reachable in the
+             gallery grid directly below. */
+          .ph-track{animation:none}
         }
       `}</style>
 
@@ -1803,13 +1861,31 @@ function PolarHestarPageInner() {
             </p>
           </div>
         </Reveal>
-        <div className="ph-proc relative overflow-hidden" aria-hidden="true">
-          <div className="ph-track animate-marquee flex w-max items-start gap-4">
+        {/* The herd walks a shared ground line (items-end): the sizes still vary,
+            but every photo shares a bottom edge, so the row reads as one
+            procession instead of scattered tiles. Each horse opens the same
+            lightbox the gallery below uses, on the same GALLERY index. */}
+        {/* py leaves room for the 2px/3px-offset focus ring, which the track's
+            own overflow-hidden would otherwise clip off the top and bottom */}
+        <div className="ph-proc relative overflow-hidden py-1.5">
+          <div className="ph-track animate-marquee flex w-max items-end gap-4">
             {[...GALLERY.slice(0, 12), ...GALLERY.slice(0, 12)].map((g, i) => {
               // both track halves must style identically for a seamless -50% loop
               const k = i % Math.min(GALLERY.length, 12)
+              const dup = i >= Math.min(GALLERY.length, 12)
               return (
-                <div key={i} className={`ph-horse shrink-0 overflow-hidden rounded-2xl ${HERD_RHYTHM[k % 4]}`} style={{ background: PAPER }}>
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setLightbox(k)}
+                  // the trailing clone is the same photo again: keep it out of
+                  // the tab order and off the screen-reader's list
+                  tabIndex={dup ? -1 : 0}
+                  aria-hidden={dup || undefined}
+                  aria-label={tri(lang, `Opna mynd ${k + 1}`, `Open photo ${k + 1}`, `Bild ${k + 1} öffnen`)}
+                  className={`ph-horse shrink-0 overflow-hidden rounded-2xl ${HERD_RHYTHM[k % 4]}`}
+                  style={{ background: PAPER }}
+                >
                   <img
                     src={g.src}
                     srcSet={g.srcSet}
@@ -1820,7 +1896,7 @@ function PolarHestarPageInner() {
                     className="h-full w-full object-cover"
                     style={{ objectPosition: g.pos }}
                   />
-                </div>
+                </button>
               )
             })}
           </div>
