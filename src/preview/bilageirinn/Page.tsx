@@ -151,19 +151,21 @@ const CSS = `
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 .bg-cta-invert:hover .cta-label-b, .bg-cta-invert:focus-visible .cta-label-b { transform: translateX(0); opacity: 1; }
-/* The dot floods by SCALING far past the button's bounds and letting the
-   pill's own overflow:hidden clip it. The first version grew width/height
-   to 100% instead, which only covers the pill if the child's clamped
-   border-radius matches the parent's exactly on every frame — any subpixel
-   or mid-transition difference left amber showing at the rounded caps.
-   Scaling overshoots, so full coverage is geometric, and it composites on
-   the GPU instead of animating layout. */
+/* The dot is a FULL-SIZE layer that inherits the pill's radius, revealed by
+   a circular clip-path — so it can never disagree with the button's shape,
+   and the hover radius is a PERCENTAGE (145% of the box) so it covers any
+   button width. Two earlier versions both failed at the rounded caps: one
+   grew width/height to 100% and relied on the child's clamped radius
+   matching the parent's exactly; the next scaled a small dot by a fixed
+   factor, which only reached ~400px and so left the far end amber on a
+   wide button. Percentages remove the size dependency entirely, and both
+   keyframes use the same unit so the interpolation is smooth everywhere. */
 .bg-cta-invert .cta-dot {
-  position: absolute; z-index: 1; left: 1.1rem; top: 50%; width: 8px; height: 8px; margin-top: -4px;
-  border-radius: 9999px; transform: scale(1); transform-origin: center;
-  transition: transform 0.45s cubic-bezier(0.4,0,0.2,1);
+  position: absolute; inset: 0; z-index: 1; border-radius: inherit;
+  clip-path: circle(2.6% at 1.45rem 50%);
+  transition: clip-path 0.45s cubic-bezier(0.4,0,0.2,1);
 }
-.bg-cta-invert:hover .cta-dot, .bg-cta-invert:focus-visible .cta-dot { transform: scale(100); }
+.bg-cta-invert:hover .cta-dot, .bg-cta-invert:focus-visible .cta-dot { clip-path: circle(145% at 1.45rem 50%); }
 @media (prefers-reduced-motion: reduce) {
   .bg-cta-invert .cta-label-a, .bg-cta-invert .cta-label-b, .bg-cta-invert .cta-dot { transition: none; }
 }
