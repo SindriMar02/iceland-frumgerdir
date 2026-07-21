@@ -1703,7 +1703,7 @@ function Reviews() {
   const { t } = useT()
   const reduced = useReducedMotion()
   const row = (hidden: boolean) => (
-    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-start gap-4 pr-4">
+    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-stretch gap-4 pr-4">
       {t.ui.reviews.map(r => (
         <ReviewCard key={r.name} r={r} hidden={hidden} />
       ))}
