@@ -18,7 +18,6 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import BilageirinnLoading from './Loading'
-import OptionWheel from '../../components/OptionWheel'
 import { STRINGS, type Lang, type Strings } from './translations'
 import { setThemeColor } from '../../lib/preview'
 import {
@@ -51,9 +50,13 @@ const AMBER = '#E8A23D' /* 7.9:1 on BG */
 const DARKINK = '#131313' /* on amber: 7.8:1 */
 const HAIR = 'rgba(243,240,234,0.14)'
 
-const DISPLAY = "'ClashDisplay-Bold', 'Arial Black', sans-serif"
-const EBOLD = "'ClashDisplay-Semibold', 'Arial Black', sans-serif"
-const BODY = "'Satoshi', 'Helvetica Neue', Arial, sans-serif"
+/* Type system v2 (2026-07-21, was Clash Display + Satoshi): Panchang's
+   squared technical letterforms carry the instrument-panel voice at display
+   sizes, Geist Sans is the workshop-manual body, and Geist Mono stays as the
+   measurement voice — sans and mono from the same family, one system. */
+const DISPLAY = "'Panchang-Bold', 'Arial Black', sans-serif"
+const EBOLD = "'Panchang-Semibold', 'Arial Black', sans-serif"
+const BODY = "'Geist', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
 const B = import.meta.env.BASE_URL
@@ -66,13 +69,13 @@ const ICON_CONCEPT = `${B}preview/bilageirinn/icon-concept.png`
 const EASE = [0.23, 1, 0.32, 1] as const
 
 const CSS = `
-@font-face { font-family: 'Satoshi'; src: url('${B}fonts/satoshi/Satoshi-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Satoshi'; src: url('${B}fonts/satoshi/Satoshi-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Satoshi'; src: url('${B}fonts/satoshi/Satoshi-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('${B}fonts/geist/Geist-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-@font-face { font-family: 'ClashDisplay-Semibold'; src: url('${B}fonts/clash-display/fonts/ClashDisplay-Semibold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
-@font-face { font-family: 'ClashDisplay-Bold'; src: url('${B}fonts/clash-display/fonts/ClashDisplay-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Panchang-Semibold'; src: url('${B}fonts/panchang/fonts/Panchang-Semibold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Panchang-Bold'; src: url('${B}fonts/panchang/fonts/Panchang-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 
 .bg-page { background: ${BG}; color: ${INK}; }
 .bg-page ::selection { background: ${AMBER}; color: ${DARKINK}; }
@@ -1138,8 +1141,7 @@ function Facts() {
 const SERVICE_IMGS = [IMG.retting, IMG.malun, IMG.garage, IMG.lift, IMG.wheel, IMG.headlight, IMG.brake]
 
 function ServiceIndex() {
-  const { t, lang } = useT()
-  const reduced = useReducedMotion()
+  const { t } = useT()
   const [active, setActive] = useState(0)
   /* 90ms hover-intent gate: skimming the cursor down the list no longer
      churns through every row's photo crossfade + accordion — only a real
@@ -1151,13 +1153,14 @@ function ServiceIndex() {
   }
   useEffect(() => () => window.clearTimeout(hoverTimer.current), [])
 
-  /* Scroll-driven, MOBILE ONLY: the row closest to a fixed reading line
-     advances the active service (and its photo) as you scroll — the primary
-     way to browse where there's no hover. On md+ the list is replaced by the
-     drag/scroll OptionWheel, which owns `active` there; letting this handler
-     run on desktop would fight the wheel (and measure the hidden list's
-     zero-size rects). Distance comparison (not IntersectionObserver ratios)
-     because it needs the SINGLE closest row, not "some row visible". */
+  /* Scroll-driven: the row closest to a fixed reading line advances the
+     active service (and its photo) as you scroll — this is the primary way
+     to browse on mobile, where there's no hover at all, and it also plays
+     nicely on desktop as a secondary path alongside hover/click. Distance
+     comparison (not IntersectionObserver ratios) because it needs to pick
+     the SINGLE closest row, not merely "some row is visible". Frozen
+     entirely while the section itself is off-screen so entering/leaving it
+     never snaps active back to the first row. */
   const sectionRef = useRef<HTMLElement>(null)
   const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   useEffect(() => {
@@ -1167,7 +1170,6 @@ function ServiceIndex() {
       raf = requestAnimationFrame(() => {
         const section = sectionRef.current
         if (!section) return
-        if (window.matchMedia('(min-width: 768px)').matches) return
         const sr = section.getBoundingClientRect()
         if (sr.bottom < 0 || sr.top > window.innerHeight) return
         const line = window.innerHeight * 0.42
@@ -1239,58 +1241,7 @@ function ServiceIndex() {
           </div>
         </div>
 
-        {/* md+: the option wheel — services flip past a fixed reading point
-            via scroll, drag, click or arrow keys (the component is a real
-            listbox). Amber lands on the selected name, matching the page's
-            "measured and true" accent logic. Keyed by lang so the wheel
-            re-measures when the labels swap language. */}
-        <div className="hidden md:block">
-          <div className="relative h-[440px]">
-            <OptionWheel
-              key={lang}
-              items={t.services.map(s => s.name)}
-              defaultSelected={active}
-              onChange={(i: number) => {
-                window.clearTimeout(hoverTimer.current)
-                setActive(i)
-              }}
-              textColor={MUT}
-              activeColor={AMBER}
-              side="left"
-              fontSize={2.1}
-              spacing={1.6}
-              curve={1}
-              tilt={5}
-              blur={1.4}
-              fade={0.22}
-              minOpacity={0.12}
-              smoothing={reduced ? 1 : 170}
-              inset={8}
-              loop={false}
-              draggable
-            />
-          </div>
-          <div className="mt-6 min-h-[96px] border-t pt-5" style={{ borderColor: HAIR }}>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={active}
-                initial={reduced ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                transition={{ duration: 0.3, ease: EASE }}
-              >
-                <p className="text-[13px] tracking-[0.16em]" style={{ fontFamily: MONO, color: AMBER }}>
-                  {String(active + 1).padStart(2, '0')} · {t.services[active].tag}
-                </p>
-                <p className="mt-2.5 max-w-[52ch] text-[15.5px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-                  {t.services[active].desc}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-
-        <ul className="border-t md:hidden" style={{ borderColor: HAIR }}>
+        <ul className="border-t" style={{ borderColor: HAIR }}>
           {t.services.map((s, i) => {
             const on = i === active
             return (
