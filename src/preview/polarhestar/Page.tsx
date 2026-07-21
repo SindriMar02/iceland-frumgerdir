@@ -1089,6 +1089,23 @@ function PolarHestarPageInner() {
         .ph-dd-arrow{opacity:0;transform:translateX(-5px);transition:opacity .2s ease,transform .2s ease;color:#2160A6}
         .ph-dd-item:hover .ph-dd-arrow{opacity:1;transform:none}
 
+        /* hamburger — two bars that fold into an X as the panel opens */
+        .ph-burger-bar{position:absolute;left:0;height:2px;width:100%;border-radius:2px;background:currentColor;transition:transform .38s cubic-bezier(.2,.7,.2,1),width .38s cubic-bezier(.2,.7,.2,1)}
+        .ph-burger-bar:nth-child(1){top:2px}
+        .ph-burger-bar:nth-child(2){bottom:2px}
+        .ph-burger:hover .ph-burger-bar:nth-child(2){width:62%}
+        .ph-burger[data-open="true"] .ph-burger-bar:nth-child(1){transform:translateY(3px) rotate(45deg)}
+        .ph-burger[data-open="true"] .ph-burger-bar:nth-child(2){transform:translateY(-3px) rotate(-45deg);width:100%}
+
+        /* language pill glides between the three languages */
+        .ph-langpill{transition:transform .42s cubic-bezier(.2,.7,.2,1),background-color .3s ease}
+
+        /* mobile panel fades up, its links follow in sequence */
+        .ph-menu{animation:phMenuIn .3s cubic-bezier(.2,.7,.2,1) both}
+        @keyframes phMenuIn{from{opacity:0}to{opacity:1}}
+        .ph-menu-item{opacity:0;transform:translateY(14px);animation:phMenuItem .45s cubic-bezier(.2,.7,.2,1) forwards}
+        @keyframes phMenuItem{to{opacity:1;transform:none}}
+
         /* Þokan — mist veil on language switch */
         .ph-veil{opacity:0;background:#EDF1F73d;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);transition:opacity .22s cubic-bezier(.2,.7,.2,1)}
         .ph-veil[data-on="true"]{opacity:1;transition-duration:.13s}
@@ -1129,7 +1146,9 @@ function PolarHestarPageInner() {
           .ph-card-img,.ph-season-img{transition:none}
           .ph-veil,.ph-cap,.ph-pop,.ph-up,.ph-num-up,.ph-num-dn,.ph-cta-send[data-busy="true"]::after{animation:none}
           .ph-cap,.ph-pop,.ph-up{opacity:1;transform:none}
-          .ph-bar,.ph-navlink::after{transition:none}
+          .ph-bar,.ph-navlink::after,.ph-burger-bar,.ph-langpill{transition:none}
+          .ph-menu,.ph-menu-item{animation:none}
+          .ph-menu-item{opacity:1;transform:none}
           .ph-bar{transform:none}
           .ph-horse img{transition:none}
         }
@@ -1211,9 +1230,23 @@ function PolarHestarPageInner() {
             <div
               role="group"
               aria-label={lang === 'is' ? 'Tungumál' : lang === 'de' ? 'Sprache' : 'Language'}
-              className="flex overflow-hidden rounded-full border font-hanken text-[0.7rem] font-semibold"
-              style={{ borderColor: scrolled ? '#1a205233' : '#ffffff66' }}
+              className="relative flex rounded-full border p-[3px] font-hanken text-[0.72rem] font-semibold backdrop-blur-sm transition-colors duration-300"
+              style={{
+                borderColor: scrolled ? '#1a205226' : '#ffffff59',
+                background: scrolled ? '#1a20520a' : '#ffffff1f',
+              }}
             >
+              {/* the pill glides to the chosen language instead of blinking between states */}
+              <span
+                aria-hidden="true"
+                className="ph-langpill pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] rounded-full"
+                style={{
+                  width: `calc((100% - 6px) / ${LANGS.length})`,
+                  transform: `translateX(${LANGS.indexOf(lang) * 100}%)`,
+                  background: scrolled ? INK : '#ffffff',
+                  boxShadow: scrolled ? '0 1px 3px rgba(22,27,60,0.28)' : '0 1px 4px rgba(10,14,40,0.22)',
+                }}
+              />
               {LANGS.map((code) => {
                 const active = lang === code
                 return (
@@ -1223,12 +1256,10 @@ function PolarHestarPageInner() {
                     onClick={() => switchLang(code)}
                     aria-pressed={active}
                     aria-label={LANG_NAMES[code]}
-                    className="min-h-11 px-3 py-2.5 uppercase tracking-wide transition-colors md:min-h-0"
-                    style={
-                      active
-                        ? { background: scrolled ? INK : '#ffffff', color: scrolled ? MIST : INK }
-                        : { color: scrolled ? BODY : '#ffffffd9' }
-                    }
+                    className="relative z-10 min-h-10 w-11 uppercase tracking-[0.1em] transition-colors duration-300 md:min-h-8 md:w-10"
+                    style={{
+                      color: active ? (scrolled ? MIST : INK) : scrolled ? BODY : '#ffffffd9',
+                    }}
                   >
                     {code}
                   </button>
@@ -1249,12 +1280,17 @@ function PolarHestarPageInner() {
               onClick={() => setMenuOpen(true)}
               aria-expanded={menuOpen}
               aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
-              className="grid h-11 w-11 place-items-center md:hidden"
-              style={{ color: scrolled ? INK : '#fff' }}
+              data-open={menuOpen}
+              className="ph-burger grid h-11 w-11 place-items-center rounded-full border transition-all duration-300 active:scale-90 md:hidden"
+              style={{
+                borderColor: scrolled ? '#1a205226' : '#ffffff59',
+                background: scrolled ? '#1a20520a' : '#ffffff1f',
+                color: scrolled ? INK : '#fff',
+              }}
             >
-              <span className="flex w-5 flex-col gap-1.5" aria-hidden="true">
-                <span className="block h-px w-full bg-current" />
-                <span className="block h-px w-full bg-current" />
+              <span className="relative block h-3 w-5" aria-hidden="true">
+                <span className="ph-burger-bar" />
+                <span className="ph-burger-bar" />
               </span>
             </button>
           </div>
@@ -1268,7 +1304,7 @@ function PolarHestarPageInner() {
           role="dialog"
           aria-modal="true"
           aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
-          className="ph-dark fixed inset-0 z-50 flex flex-col overflow-y-auto p-6 md:hidden"
+          className="ph-menu ph-dark fixed inset-0 z-50 flex flex-col overflow-y-auto p-6 md:hidden"
           style={{ background: NIGHT }}
         >
           <div className="flex items-center justify-between">
@@ -1301,8 +1337,8 @@ function PolarHestarPageInner() {
                 key={href}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className="border-b py-4 font-spectral text-[1.7rem] text-white"
-                style={{ borderColor: '#ffffff14' }}
+                className="ph-menu-item border-b py-4 font-spectral text-[1.7rem] text-white"
+                style={{ borderColor: '#ffffff14', animationDelay: `${70 + i * 45}ms` }}
               >
                 <span className="mr-4 font-hanken text-xs" style={{ color: CLAY_HI }}>
                   0{i + 1}
