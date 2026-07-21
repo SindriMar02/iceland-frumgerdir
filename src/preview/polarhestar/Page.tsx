@@ -406,6 +406,172 @@ function CountUp({
   )
 }
 
+/* ── Season calendar — days the chosen tour doesn't run are struck out and
+      unpickable, so an impossible date can't be requested in the first place ── */
+const WEEKDAYS: Record<Lang, string[]> = {
+  is: ['mán', 'þri', 'mið', 'fim', 'fös', 'lau', 'sun'],
+  en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  de: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+}
+const monthLabel = (d: Date, lang: Lang) =>
+  lang === 'is'
+    ? `${MONTHS_IS[d.getMonth()]} ${d.getFullYear()}`
+    : new Intl.DateTimeFormat(lang === 'de' ? 'de-DE' : 'en-GB', { month: 'long', year: 'numeric' }).format(d)
+
+/** First date on/after `from` that the tour actually runs (scans a year). */
+function nextValidDay(from: Date, months: number[] | undefined): Date {
+  if (!months?.length) return from
+  const d = new Date(from)
+  for (let i = 0; i < 400; i++) {
+    if (months.includes(d.getMonth() + 1)) return d
+    d.setDate(d.getDate() + 1)
+  }
+  return from
+}
+
+function SeasonCalendar({
+  value,
+  onChange,
+  months,
+  lang,
+  min,
+  max,
+}: {
+  value: string
+  onChange: (iso: string) => void
+  months?: number[]
+  lang: Lang
+  min: string
+  max: string
+}) {
+  const [view, setView] = useState(() => {
+    const d = new Date(value + 'T00:00:00')
+    return new Date(d.getFullYear(), d.getMonth(), 1)
+  })
+  const gridRef = useRef<HTMLDivElement>(null)
+  const moved = useRef(false)
+  // follow the selection when it jumps to another month (e.g. after a tour switch)
+  useEffect(() => {
+    const d = new Date(value + 'T00:00:00')
+    if (Number.isNaN(d.getTime())) return
+    setView((v) => (v.getFullYear() === d.getFullYear() && v.getMonth() === d.getMonth() ? v : new Date(d.getFullYear(), d.getMonth(), 1)))
+  }, [value])
+  // keep keyboard focus on the day the arrows landed on
+  useEffect(() => {
+    if (!moved.current) return
+    moved.current = false
+    gridRef.current?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus()
+  }, [value])
+
+  const y = view.getFullYear()
+  const m = view.getMonth()
+  const startDow = (new Date(y, m, 1).getDay() + 6) % 7 // Monday-first
+  const dayCount = new Date(y, m + 1, 0).getDate()
+  const todayIso = isoDay(new Date())
+
+  const state = (day: number) => {
+    const iso = isoDay(new Date(y, m, day))
+    const offSeason = !!months?.length && !months.includes(m + 1)
+    return { iso, offSeason, disabled: offSeason || iso < min || iso > max }
+  }
+  /** Step by `delta` days, skipping anything unpickable. */
+  const step = (delta: number) => {
+    const d = new Date(value + 'T00:00:00')
+    for (let i = 0; i < 400; i++) {
+      d.setDate(d.getDate() + delta)
+      const iso = isoDay(d)
+      if (iso < min || iso > max) return
+      if (!months?.length || months.includes(d.getMonth() + 1)) {
+        moved.current = true
+        onChange(iso)
+        return
+      }
+    }
+  }
+  const shiftMonth = (delta: number) => setView(new Date(y, m + delta, 1))
+  const prevBlocked = isoDay(new Date(y, m, 0)) < min
+  const nextBlocked = isoDay(new Date(y, m + 1, 1)) > max
+  const navBtn = 'grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-black/5 disabled:opacity-30 disabled:hover:bg-transparent'
+
+  return (
+    <div className="rounded-2xl border p-3" style={{ borderColor: '#0000001f', background: MIST }}>
+      <div className="mb-1 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => shiftMonth(-1)}
+          disabled={prevBlocked}
+          className={navBtn}
+          style={{ color: INK }}
+          aria-label={tri(lang, 'Fyrri mánuður', 'Previous month', 'Voriger Monat')}
+        >
+          <ChevronRight className="h-4 w-4 rotate-180" aria-hidden="true" />
+        </button>
+        <span aria-live="polite" className="font-hanken text-sm font-semibold" style={{ color: INK }}>
+          {monthLabel(view, lang)}
+        </span>
+        <button
+          type="button"
+          onClick={() => shiftMonth(1)}
+          disabled={nextBlocked}
+          className={navBtn}
+          style={{ color: INK }}
+          aria-label={tri(lang, 'Næsti mánuður', 'Next month', 'Nächster Monat')}
+        >
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+      <div
+        ref={gridRef}
+        role="grid"
+        aria-label={tri(lang, 'Veldu dagsetningu', 'Choose a date', 'Datum wählen')}
+        className="grid grid-cols-7 gap-1"
+        onKeyDown={(e) => {
+          const map: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }
+          if (!(e.key in map)) return
+          e.preventDefault()
+          step(map[e.key])
+        }}
+      >
+        {WEEKDAYS[lang].map((w) => (
+          <span key={w} aria-hidden="true" className="pb-1 text-center font-hanken text-[0.62rem] tracking-wide uppercase" style={{ color: SLATE }}>
+            {w}
+          </span>
+        ))}
+        {Array.from({ length: startDow }, (_, i) => (
+          <span key={`pad${i}`} />
+        ))}
+        {Array.from({ length: dayCount }, (_, i) => i + 1).map((day) => {
+          const { iso, offSeason, disabled } = state(day)
+          const selected = iso === value
+          return (
+            <button
+              key={day}
+              type="button"
+              role="gridcell"
+              aria-selected={selected}
+              aria-label={fmtDate(iso, lang)}
+              tabIndex={selected ? 0 : -1}
+              disabled={disabled}
+              onClick={() => onChange(iso)}
+              className="relative h-9 rounded-lg font-hanken text-sm tabular-nums transition-colors disabled:cursor-not-allowed enabled:hover:bg-black/5"
+              style={{
+                background: selected ? INK : 'transparent',
+                color: selected ? MIST : disabled ? '#161B3C7a' : BODY,
+                textDecoration: offSeason ? 'line-through' : 'none',
+              }}
+            >
+              {day}
+              {iso === todayIso && !selected && (
+                <span aria-hidden="true" className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full" style={{ background: CLAY_TX }} />
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 /* ── Booking panel — the flaw-fixing centrepiece (date with year, live price) ── */
 /* Module scope (not inside Booking) so React keeps identity across renders —
    inline declarations remounted on every keystroke and dropped keyboard focus. */
@@ -489,6 +655,8 @@ function Booking({
   const { SHORT_TOURS, BOOKING_EMAIL, PHONE_DISPLAY, PHONE_HREF, PICS, CHILD_DISCOUNT } = useSiteContent()
   const tour = SHORT_TOURS.find((x) => x.id === selectedId) ?? SHORT_TOURS[0]
   const today = new Date()
+  const minIso = isoDay(today)
+  const maxIso = isoDay(new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()))
   const [date, setDate] = useState(() => isoDay(new Date(today.getTime() + 7 * 864e5)))
   const [time, setTime] = useState<string | null>(tour.times?.[0] ?? null)
   const [adults, setAdults] = useState(1)
@@ -512,6 +680,15 @@ function Booking({
   useEffect(() => {
     setTime(tour.times?.[0] ?? null)
     setDone(false)
+    // a date the new tour can't run on is nudged forward to the first one it can
+    setDate((d) => {
+      const cur = new Date(d + 'T00:00:00')
+      if (Number.isNaN(cur.getTime()) || !tour.months?.length) return d
+      if (tour.months.includes(cur.getMonth() + 1)) return d
+      const ahead = isoDay(nextValidDay(cur, tour.months))
+      // a season that next opens beyond the bookable year restarts from today
+      return ahead > maxIso ? isoDay(nextValidDay(today, tour.months)) : ahead
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour.id])
   const [name, setName] = useState('')
@@ -522,9 +699,8 @@ function Booking({
 
   const childPrice = Math.max(tour.price - CHILD_DISCOUNT, 0)
   const total = tour.price * adults + childPrice * children
-  // seasonal tours: whisper, never block — the owner may make exceptions
-  const chosenMonth = date ? new Date(date + 'T00:00:00').getMonth() + 1 : 0
-  const offSeason = !!tour.months?.length && chosenMonth > 0 && !tour.months.includes(chosenMonth)
+  // seasonal tours are handled in the calendar itself: out-of-season days are
+  // struck out and unpickable, so an impossible date never reaches this form
 
   /** Real booking request → the owner's booking inbox (FormSubmit relay). */
   const submit = async (e: React.FormEvent) => {
@@ -673,35 +849,30 @@ function Booking({
             </p>
 
             <Step n={2} label={t.stepDate} />
-            <label className={`block ${tour.times?.length ? 'mb-3' : 'mb-5'}`}>
-              <span className="sr-only">{t.dateLabel}</span>
-              <div className="flex items-center gap-2 rounded-xl border px-3.5 py-3" style={{ borderColor: '#0000001f', background: MIST }}>
-                <Calendar className="h-4 w-4 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
-                <input
-                  type="date"
-                  required
-                  value={date}
-                  min={isoDay(today)}
-                  max={isoDay(new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()))}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-transparent font-hanken text-sm outline-none"
-                  style={{ color: INK }}
-                />
-              </div>
-              <span className="mt-1.5 block font-hanken text-xs" style={{ color: SLATE }}>
-                {fmtDate(date, lang)}
-              </span>
-              {offSeason && (
-                <span role="status" className="mt-1.5 block font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
+            <div className={tour.times?.length ? 'mb-3' : 'mb-5'}>
+              <SeasonCalendar
+                value={date}
+                onChange={setDate}
+                months={tour.months}
+                lang={lang}
+                min={minIso}
+                max={maxIso}
+              />
+              <p className="mt-2 flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
+                <Calendar className="h-3.5 w-3.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
+                <span style={{ color: INK }}>{fmtDate(date, lang)}</span>
+              </p>
+              {!!tour.months?.length && (
+                <p className="mt-1 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
                   {tri(
                     lang,
-                    `${stegaClean(tour.name.is)} er árstíðabundin ferð (${stegaClean(tour.meta.is)}). Veldu dag innan tímabilsins eða aðra ferð.`,
-                    `${stegaClean(tour.name.en)} runs seasonally (${stegaClean(tour.meta.en)}). Pick a date in that window, or another tour.`,
-                    `${stegaClean(tour.name.de)} findet saisonal statt (${stegaClean(tour.meta.de)}). Wählen Sie ein Datum in diesem Zeitraum oder eine andere Tour.`,
+                    `Árstíðabundin ferð: ${stegaClean(tour.meta.is)}. Dagar utan tímabils eru yfirstrikaðir.`,
+                    `Seasonal tour: ${stegaClean(tour.meta.en)}. Days outside the season are struck out.`,
+                    `Saisonale Tour: ${stegaClean(tour.meta.de)}. Tage außerhalb der Saison sind durchgestrichen.`,
                   )}
-                </span>
+                </p>
               )}
-            </label>
+            </div>
             {!!tour.times?.length && (
               <fieldset className="mb-5">
                 <legend className="mb-1.5 font-hanken text-xs tracking-wide uppercase" style={{ color: SLATE }}>
