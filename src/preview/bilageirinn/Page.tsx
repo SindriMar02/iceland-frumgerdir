@@ -133,31 +133,37 @@ const CSS = `
 .bg-navlink:hover::after, .bg-navlink:focus-visible::after { transform: scaleX(1); }
 
 /* ── one hover language for every button ──────────────────────────────
-   The page's own true line draws under the label, left to right, in the
-   button's own ink (currentColor), with a small tone shift for immediate
-   feedback. Replaces the radial ink-flood + label swap that was on the
-   hero CTA and the lift/glow that was on everything else.
-   Not a box-shadow wipe: an inset offset big enough to cover any width
-   also finishes in the first fraction of the transition, so it read as a
-   flat colour change rather than a sweep. A scaled line is width-relative
-   by construction, so it always takes the full duration to cross. */
+   A soft band of light glides across the button on hover — the look of a
+   booth light travelling over a freshly painted panel, which is the shop's
+   whole promise. It's a background-image gradient animated by
+   background-position, so it rides ABOVE the fill but BELOW the label with
+   no z-index juggling, follows the pill radius for free (backgrounds clip
+   to it), and the travel time is width-relative so it always crosses at the
+   same graceful pace. Paired with a feather-light rise + soft shadow.
+   (Solid buttons set backgroundColor, not the background shorthand, so this
+   image layer survives the inline style.) Earlier tries: radial ink-flood +
+   label swap, then a true-line underline — both replaced by this. */
 .bg-btn {
   position: relative;
-  transition: box-shadow 0.25s cubic-bezier(0.4,0,0.2,1), border-color 0.25s cubic-bezier(0.4,0,0.2,1);
+  background-repeat: no-repeat;
+  background-size: 220% 100%;
+  background-position: 118% 0;
+  transition: background-position 0.6s cubic-bezier(0.33,1,0.68,1),
+    transform 0.35s cubic-bezier(0.33,1,0.68,1), box-shadow 0.35s cubic-bezier(0.33,1,0.68,1),
+    border-color 0.3s cubic-bezier(0.4,0,0.2,1);
 }
-.bg-btn::after {
-  content: ''; position: absolute; left: 1.5rem; right: 1.5rem; bottom: 0.6rem; height: 2px;
-  background: currentColor; opacity: 0.85; transform: scaleX(0); transform-origin: left;
-  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+.bg-btn-solid { background-image: linear-gradient(100deg, transparent 32%, rgba(255,255,255,0.4) 50%, transparent 68%); }
+.bg-btn-ghost { background-image: linear-gradient(100deg, transparent 34%, rgba(243,240,234,0.16) 50%, transparent 66%); }
+.bg-btn:hover, .bg-btn:focus-visible { background-position: -18% 0; }
+.bg-btn-solid:hover, .bg-btn-solid:focus-visible {
+  transform: translateY(-1px); box-shadow: 0 10px 26px -12px rgba(232,162,61,0.65);
 }
-.bg-btn:hover::after, .bg-btn:focus-visible::after { transform: scaleX(1); }
-.bg-btn:active { transform: translateY(1px); }
-.bg-btn-solid:hover, .bg-btn-solid:focus-visible { box-shadow: inset 0 0 0 999px rgba(19,19,19,0.10); }
 .bg-btn-ghost:hover, .bg-btn-ghost:focus-visible {
-  box-shadow: inset 0 0 0 999px rgba(243,240,234,0.07); border-color: rgba(243,240,234,0.72);
+  transform: translateY(-1px); border-color: rgba(243,240,234,0.7);
+  box-shadow: 0 10px 26px -14px rgba(0,0,0,0.9);
 }
-.bg-btn:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
-.bg-btn:disabled::after { transform: scaleX(0); }
+.bg-btn:active { transform: translateY(0); transition-duration: 0.08s; }
+.bg-btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; background-position: 118% 0; }
 
 .bg-cta-display { display: inline-block; transition: filter 0.25s cubic-bezier(0.4,0,0.2,1); }
 .bg-cta-display:hover { filter: brightness(1.12); }
@@ -206,6 +212,7 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) {
   .bg-navlink::after { transition: none; display: none; }
   .bg-btn { transition: none; }
+  .bg-btn:hover, .bg-btn:focus-visible { background-position: 118% 0; transform: none; }
   .bg-btn:active { transform: none; }
 }
 `
@@ -602,7 +609,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           <a
             href={PHONE_HREF}
             className="bg-btn bg-btn-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold md:inline-flex"
-            style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+            style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
             {PHONE_DISPLAY}
@@ -700,7 +707,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               <a
                 href={PHONE_HREF}
                 className="bg-btn bg-btn-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold"
-                style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+                style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
               >
                 <Phone size={15} strokeWidth={2.2} aria-hidden />
                 {PHONE_DISPLAY}
@@ -886,7 +893,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
             href="#hafa-samband"
             onClick={goTo('#hafa-samband')}
             className="bg-btn bg-btn-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-8 text-[16px] font-bold"
-            style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+            style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
             {t.ui.contactCta}
@@ -1501,7 +1508,7 @@ function Claims() {
                       {s.highlight && (
                         <p
                           className="mt-4 inline-flex items-center rounded-full px-4 py-2 text-[13.5px] font-semibold"
-                          style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+                          style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
                         >
                           {t.ui.includedBadge}
                         </p>
@@ -2152,7 +2159,7 @@ function ContactForm() {
               type="submit"
               disabled={status === 'sending'}
               className="bg-btn bg-btn-solid mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full text-[15px] font-bold"
-              style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
+              style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
             >
               {status === 'sending' ? (
                 t.ui.sending
