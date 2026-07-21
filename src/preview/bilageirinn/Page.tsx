@@ -13,7 +13,7 @@ import {
   useTransform,
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
-import { ArrowRight, Car, Check, Copy, MapPin, MessageCircle, Phone, Send } from 'lucide-react'
+import { Car, Check, Copy, MapPin, MessageCircle, Phone, Send } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -132,57 +132,38 @@ const CSS = `
 .bg-navlink:hover, .bg-navlink:focus-visible { color: ${INK}; }
 .bg-navlink:hover::after, .bg-navlink:focus-visible::after { transform: scaleX(1); }
 
-.bg-cta-solid { transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1); }
-.bg-cta-solid:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(232,162,61,0.32); }
-.bg-cta-solid:active { transform: translateY(0) scale(0.97); }
+/* ── one hover language for every button ──────────────────────────────
+   The page's own true line draws under the label, left to right, in the
+   button's own ink (currentColor), with a small tone shift for immediate
+   feedback. Replaces the radial ink-flood + label swap that was on the
+   hero CTA and the lift/glow that was on everything else.
+   Not a box-shadow wipe: an inset offset big enough to cover any width
+   also finishes in the first fraction of the transition, so it read as a
+   flat colour change rather than a sweep. A scaled line is width-relative
+   by construction, so it always takes the full duration to cross. */
+.bg-btn {
+  position: relative;
+  transition: box-shadow 0.25s cubic-bezier(0.4,0,0.2,1), border-color 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-btn::after {
+  content: ''; position: absolute; left: 1.5rem; right: 1.5rem; bottom: 0.6rem; height: 2px;
+  background: currentColor; opacity: 0.85; transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.bg-btn:hover::after, .bg-btn:focus-visible::after { transform: scaleX(1); }
+.bg-btn:active { transform: translateY(1px); }
+.bg-btn-solid:hover, .bg-btn-solid:focus-visible { box-shadow: inset 0 0 0 999px rgba(19,19,19,0.10); }
+.bg-btn-ghost:hover, .bg-btn-ghost:focus-visible {
+  box-shadow: inset 0 0 0 999px rgba(243,240,234,0.07); border-color: rgba(243,240,234,0.72);
+}
+.bg-btn:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
+.bg-btn:disabled::after { transform: scaleX(0); }
 
-/* hero primary CTA: a small dark "ink" dot pools out from the left and
-   floods the amber pill dark, the same ground/ink inversion the whole page
-   is built on, while the label hands off to an arrow-out variant. */
-.bg-cta-invert { position: relative; overflow: hidden; }
-.bg-cta-invert .cta-label-a {
-  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 0.625rem;
-  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
-}
-.bg-cta-invert:hover .cta-label-a, .bg-cta-invert:focus-visible .cta-label-a { transform: translateX(14px); opacity: 0; }
-.bg-cta-invert .cta-label-b {
-  position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 0.625rem;
-  transform: translateX(-14px); opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
-}
-.bg-cta-invert:hover .cta-label-b, .bg-cta-invert:focus-visible .cta-label-b { transform: translateX(0); opacity: 1; }
-/* The dot is a FULL-SIZE layer that inherits the pill's radius, revealed by
-   a circular clip-path — so it can never disagree with the button's shape,
-   and the hover radius is a PERCENTAGE (145% of the box) so it covers any
-   button width. Two earlier versions both failed at the rounded caps: one
-   grew width/height to 100% and relied on the child's clamped radius
-   matching the parent's exactly; the next scaled a small dot by a fixed
-   factor, which only reached ~400px and so left the far end amber on a
-   wide button. Percentages remove the size dependency entirely, and both
-   keyframes use the same unit so the interpolation is smooth everywhere. */
-.bg-cta-invert .cta-dot {
-  position: absolute; inset: 0; z-index: 1; border-radius: inherit;
-  clip-path: circle(2.6% at 1.45rem 50%);
-  transition: clip-path 0.45s cubic-bezier(0.4,0,0.2,1);
-}
-.bg-cta-invert:hover .cta-dot, .bg-cta-invert:focus-visible .cta-dot { clip-path: circle(145% at 1.45rem 50%); }
-@media (prefers-reduced-motion: reduce) {
-  .bg-cta-invert .cta-label-a, .bg-cta-invert .cta-label-b, .bg-cta-invert .cta-dot { transition: none; }
-}
-
-.bg-cta-outline { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); }
-.bg-cta-outline:hover { border-color: ${INK}; background: rgba(243,240,234,0.08); transform: translateY(-2px); }
-.bg-cta-outline:active { transform: translateY(0) scale(0.97); }
-
-.bg-cta-display { display: inline-block; transition: filter 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); }
-.bg-cta-display:hover { filter: brightness(1.15); transform: translateY(-2px); }
-.bg-cta-display:active { transform: translateY(0) scale(0.98); }
+.bg-cta-display { display: inline-block; transition: filter 0.25s cubic-bezier(0.4,0,0.2,1); }
+.bg-cta-display:hover { filter: brightness(1.12); }
 
 .bg-link-hover { transition: color 0.2s cubic-bezier(0.4,0,0.2,1); }
 .bg-link-hover:hover, .bg-link-hover:focus-visible { color: ${AMBER} !important; }
-
-.bg-copybtn { transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1); }
-.bg-copybtn:hover { border-color: ${AMBER}; color: ${AMBER}; }
 
 /* round cards read flat on a near-black ground; one lit top edge plus a
    deep soft drop gives them a physical lift without a visible box */
@@ -222,16 +203,10 @@ const CSS = `
 .bg-field:focus { outline: none; border-color: ${AMBER}; background: rgba(243,240,234,0.08); }
 .bg-field:invalid[data-touched="true"] { border-color: rgba(224,110,110,0.7); }
 
-.bg-form-submit {
-  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
-}
-.bg-form-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(232,162,61,0.32); }
-.bg-form-submit:active:not(:disabled) { transform: translateY(0) scale(0.98); }
-.bg-form-submit:disabled { opacity: 0.6; cursor: default; }
-
 @media (prefers-reduced-motion: reduce) {
   .bg-navlink::after { transition: none; display: none; }
-  .bg-cta-solid:hover, .bg-cta-outline:hover, .bg-cta-display:hover, .bg-form-submit:hover { transform: none; }
+  .bg-btn { transition: none; }
+  .bg-btn:active { transform: none; }
 }
 `
 
@@ -626,7 +601,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               logo + burger and doesn't compete with the menu's own CTA */}
           <a
             href={PHONE_HREF}
-            className="bg-cta-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold md:inline-flex"
+            className="bg-btn bg-btn-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold md:inline-flex"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
@@ -724,7 +699,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               {langToggle(true)}
               <a
                 href={PHONE_HREF}
-                className="bg-cta-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold"
+                className="bg-btn bg-btn-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold"
                 style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
               >
                 <Phone size={15} strokeWidth={2.2} aria-hidden />
@@ -910,23 +885,16 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           <a
             href="#hafa-samband"
             onClick={goTo('#hafa-samband')}
-            className="bg-cta-invert group inline-flex min-h-[52px] items-center rounded-full px-8 text-[16px] font-bold"
+            className="bg-btn bg-btn-solid inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-8 text-[16px] font-bold"
             style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
           >
-            <span aria-hidden className="cta-dot" style={{ background: DARKINK }} />
-            <span className="cta-label-a">
-              <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
-              {t.ui.contactCta}
-            </span>
-            <span aria-hidden className="cta-label-b" style={{ color: AMBER }}>
-              {t.ui.contactCta}
-              <ArrowRight size={17} strokeWidth={2.4} aria-hidden />
-            </span>
+            <MessageCircle size={17} strokeWidth={2.4} aria-hidden />
+            {t.ui.contactCta}
           </a>
           <a
             href="#thjonusta"
             onClick={goTo('#thjonusta')}
-            className="bg-cta-outline inline-flex min-h-[52px] items-center gap-2.5 rounded-full border px-8 text-[16px] font-medium"
+            className="bg-btn bg-btn-ghost inline-flex min-h-[52px] items-center gap-2.5 rounded-full border px-8 text-[16px] font-medium"
             style={{ borderColor: 'rgba(243,240,234,0.4)', color: INK, fontFamily: BODY }}
           >
             {t.hero.ctaSecondary}
@@ -2045,7 +2013,7 @@ function ContactForm() {
               <button
                 type="button"
                 onClick={copyComposed}
-                className="bg-copybtn inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-[13.5px] font-semibold"
+                className="bg-btn bg-btn-ghost inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-[13.5px] font-semibold"
                 style={{ borderColor: 'rgba(243,240,234,0.3)', color: INK, fontFamily: BODY }}
               >
                 {copied ? <Check size={14} strokeWidth={2.4} aria-hidden /> : <Copy size={14} strokeWidth={2.2} aria-hidden />}
@@ -2183,7 +2151,7 @@ function ContactForm() {
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="bg-form-submit mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full text-[15px] font-bold"
+              className="bg-btn bg-btn-solid mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full text-[15px] font-bold"
               style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}
             >
               {status === 'sending' ? (
