@@ -35,7 +35,7 @@ export default function BilageirinnLoading({
      overlay instance (the only one that passes real progress). */
   const full = determinate
 
-  const TICKS = 21
+  const TICKS = 5 /* was 21 — the dense rule read busy at loader scale */
 
   return (
     <div
@@ -79,14 +79,13 @@ export default function BilageirinnLoading({
         @keyframes bglRise{to{transform:translateY(0)}}
 
         /* the measuring rule: one hairline, graduation ticks, amber fill */
-        .bgl-rule{position:relative;margin-top:clamp(22px,3.4vw,34px);width:100%;height:14px;opacity:0;
+        .bgl-rule{position:relative;margin-top:clamp(22px,3.4vw,34px);width:min(100%,320px);margin-left:auto;margin-right:auto;height:14px;opacity:0;
           animation:bglIn 0.5s ease 0.95s forwards}
         .bgl-rule-track{position:absolute;left:0;right:0;top:6px;height:2px;background:rgba(243,240,234,0.12)}
         .bgl-rule-fill{position:absolute;left:0;right:0;top:6px;height:2px;background:#E8A23D;transform-origin:left}
         .bgl-rule-sweep{animation:bglSweep 1.4s cubic-bezier(0.65,0,0.35,1) infinite}
         .bgl-ticks{position:absolute;inset:0;display:flex;justify-content:space-between}
-        .bgl-tick{width:1px;height:6px;margin-top:8px;background:rgba(243,240,234,0.28)}
-        .bgl-tick.bgl-tick-major{height:14px;margin-top:0;background:rgba(243,240,234,0.4)}
+        .bgl-tick{width:1px;height:5px;margin-top:9px;background:rgba(243,240,234,0.22)}
 
         .bgl-tag{margin-top:clamp(16px,2.2vw,22px);opacity:0;animation:bglIn 0.5s ease 1.15s forwards;
           font-family:'Geist Mono',ui-monospace,monospace;font-weight:500;
@@ -133,7 +132,7 @@ export default function BilageirinnLoading({
         <div className="bgl-rule">
           <div className="bgl-ticks">
             {Array.from({ length: TICKS }, (_, i) => (
-              <span key={i} className={`bgl-tick${i % 5 === 0 ? ' bgl-tick-major' : ''}`} />
+              <span key={i} className="bgl-tick" />
             ))}
           </div>
           <div className="bgl-rule-track" />

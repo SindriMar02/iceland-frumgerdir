@@ -54,6 +54,8 @@ const IS = {
   ui: {
     slogan: 'Eins og ekkert hefði í skorist.',
     heroKicker: 'Réttingar · Bílamálun · Bílaþjónusta · Grófin 14a, Reykjanesbær',
+    /* the full line wraps to three amber rows on a phone — too loud for a hero */
+    heroKickerShort: 'Réttingar · Bílamálun · Grófin 14a',
     proofRow: [
       'Viðurkennt þjónustuverkstæði fyrir Toyota og Kia',
       'Öll tryggingafélög og CABAS-tjónamat',
@@ -321,6 +323,7 @@ const EN: typeof IS = {
   ui: {
     slogan: 'As if it never happened.',
     heroKicker: 'Body repair · Paint · Car service · Grófin 14a, Reykjanesbær',
+    heroKickerShort: 'Body repair · Paint · Grófin 14a',
     proofRow: [
       'Authorized service center for Toyota and Kia',
       'All insurance companies and CABAS assessment',

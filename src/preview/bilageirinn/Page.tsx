@@ -23,7 +23,6 @@ import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
   EMAIL,
-  FACTS,
   IMG,
   LUBE_PHONE_DISPLAY,
   LUBE_PHONE_HREF,
@@ -327,6 +326,21 @@ function ClipImage({
       </motion.div>
     </div>
   )
+}
+
+/** True below md. Motion that reads as atmosphere on a large screen reads
+    as noise on a phone, so the hero's photo cycling, its Ken Burns drift,
+    the alignment scan and the reviews auto-marquee are all gated on this. */
+function useNarrow() {
+  const q = '(max-width: 767px)'
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia(q).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(q)
+    const on = () => setNarrow(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return narrow
 }
 
 /** Gentle vertical drift for photos while they cross the viewport. */
@@ -730,17 +744,18 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 const HERO_BG_PHOTOS = [IMG.hero, IMG.booth, IMG.garage]
 function HeroBackground({ reduced, running }: { reduced: boolean; running: boolean }) {
   const { t } = useT()
+  const narrow = useNarrow()
   const [active, setActive] = useState(0)
   useEffect(() => {
-    if (reduced || !running) return
+    if (reduced || narrow || !running) return
     const id = window.setInterval(() => {
       // don't burn crossfades in a backgrounded tab
       if (document.hidden) return
       setActive(a => (a + 1) % HERO_BG_PHOTOS.length)
     }, 6500)
     return () => window.clearInterval(id)
-  }, [reduced, running])
-  if (reduced) {
+  }, [reduced, narrow, running])
+  if (reduced || narrow) {
     return (
       <div className="absolute inset-0">
         <img src={HERO_BG_PHOTOS[0]} alt={t.ui.heroAlts[0]} className="h-full w-full object-cover" />
@@ -768,6 +783,7 @@ function HeroBackground({ reduced, running }: { reduced: boolean; running: boole
 function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
+  const narrow = useNarrow()
   const heroInView = useInView(ref, { amount: 0.1 })
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
@@ -802,7 +818,7 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           line before the headline commits to it. Mounted only at handoff so
           its animation clock starts when the overlay starts thinning — the
           amber scan emerges through the fading loader. */}
-      {!reduced && start && (
+      {!reduced && !narrow && start && (
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <div
             className="bg-scanline absolute inset-x-0 top-0"
@@ -837,7 +853,8 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
           transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
         >
-          {t.ui.heroKicker}
+          <span className="md:hidden">{t.ui.heroKickerShort}</span>
+          <span className="hidden md:inline">{t.ui.heroKicker}</span>
         </motion.p>
         <h1
           className="max-w-6xl text-balance leading-[0.98]"
@@ -1084,65 +1101,63 @@ function Story() {
     bench instead of generic stat cards. Ticks are plain flex children (one
     per column, centered), so they can't drift out of alignment with the
     grid at any width. */
-function ReadoutLine() {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
-  const reduced = useReducedMotion()
-  const ticks = (
-    <div aria-hidden className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
-      {FACTS.map(f => (
-        <div key={f.label} className="flex justify-start">
-          <span className="block w-px" style={{ height: 12, background: AMBER }} />
-        </div>
-      ))}
-    </div>
-  )
-  if (reduced) {
-    return (
-      <div aria-hidden>
-        <div className="h-[2px] w-full" style={{ background: AMBER }} />
-        {ticks}
-      </div>
-    )
-  }
-  return (
-    <div ref={ref} aria-hidden>
-      <motion.div
-        className="h-[2px] w-full origin-left"
-        style={{ background: AMBER }}
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: inView ? 1 : 0 }}
-        transition={{ duration: 1.1, ease: EASE }}
-      />
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: inView ? 1 : 0 }}
-        transition={{ duration: 0.5, ease: EASE, delay: 0.7 }}
-      >
-        {ticks}
-      </motion.div>
-    </div>
-  )
-}
-
+/** Facts, rebuilt on 21st.dev's "Bold Stats" structure (uilayout.contact):
+    one headline figure paired with a real photo of the thing it describes,
+    the rest demoted to a quiet row. Replaces the four-across numeral grid
+    with its amber tick rail, which read as a generic KPI strip. Same
+    verified numbers, same CountUp — only the hierarchy changed. On mobile
+    the secondary figures stack as number/label rows instead of squeezing
+    three columns of Icelandic labels across 390px. */
 function Facts() {
   const { t } = useT()
+  const lead = t.facts[1] /* 810 m² — the building the photo actually shows */
+  const rest = [t.facts[0], t.facts[2], t.facts[3]]
   return (
     <section className="border-y" style={{ borderColor: HAIR, background: SURFACE }}>
       <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
-        <ReadoutLine />
-        <div className="mt-6 grid grid-cols-2 gap-4 gap-y-10 md:grid-cols-4 md:gap-5">
-          {t.facts.map((f, i) => (
-            <Rise key={f.label} delay={i * 0.08}>
+        <Rise>
+          <div
+            className="flex flex-col gap-8 border-b pb-10 md:flex-row md:items-center md:justify-between md:gap-14 md:pb-12"
+            style={{ borderColor: HAIR }}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-6">
               <p
-                style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(2.2rem, 4.6vw, 3.4rem)', lineHeight: 1 }}
-                className="tabular-nums"
+                className="shrink-0 tabular-nums"
+                style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(3.2rem, 8vw, 5.2rem)', lineHeight: 0.95 }}
               >
-                {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
+                {lead.num !== null ? <CountUp to={lead.num} pad={lead.pad} suffix={lead.suffix} /> : lead.text}
               </p>
-              <p className="mt-3 text-[12.5px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                {f.label}
+              <p className="max-w-[26ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+                {lead.label}
               </p>
+            </div>
+            <ClipImage
+              src={IMG.garage}
+              alt={t.ui.garageAlt}
+              className="h-44 w-full shrink-0 rounded-[26px] md:h-52 md:w-[380px]"
+            />
+          </div>
+        </Rise>
+        <div className="mt-2 md:mt-12 md:grid md:grid-cols-3 md:gap-10">
+          {rest.map((f, i) => (
+            <Rise key={f.label} delay={i * 0.08}>
+              <div
+                className="flex items-baseline justify-between gap-5 border-b py-4 md:block md:border-0 md:py-0"
+                style={{ borderColor: HAIR }}
+              >
+                <p
+                  className="shrink-0 tabular-nums"
+                  style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(1.75rem, 4vw, 2.8rem)', lineHeight: 1 }}
+                >
+                  {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
+                </p>
+                <p
+                  className="text-right text-[11.5px] tracking-[0.12em] uppercase md:mt-3 md:text-left"
+                  style={{ fontFamily: MONO, color: MUT }}
+                >
+                  {f.label}
+                </p>
+              </div>
             </Rise>
           ))}
         </div>
@@ -1717,6 +1732,7 @@ function ReviewCard({ r, hidden }: { r: Review; hidden?: boolean }) {
 function Reviews() {
   const { t } = useT()
   const reduced = useReducedMotion()
+  const narrow = useNarrow()
   const row = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-stretch gap-4 pr-4">
       {t.ui.reviews.map(r => (
@@ -1756,7 +1772,9 @@ function Reviews() {
         </Rise>
       </div>
       <Rise delay={0.15}>
-        {reduced ? (
+        {reduced || narrow ? (
+          /* touch can't hover to pause a marquee, so it just moves at you —
+             swipe the row by hand instead */
           <div className="mt-10 overflow-x-auto px-5 md:px-8">{row(false)}</div>
         ) : (
           <div className="bg-rev-marquee mt-10 overflow-hidden">
@@ -2410,9 +2428,9 @@ export default function Page() {
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero lenisRef={lenisRef} start={assetsReady} />
+        <ServiceIndex />
         <Story />
         <Facts />
-        <ServiceIndex />
         <Claims />
         <Craft />
         <Brands />
