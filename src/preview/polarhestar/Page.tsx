@@ -1396,7 +1396,14 @@ function PolarHestarPageInner() {
         /* keyboard users need the same stop that hover gives; a moving target
            you cannot halt is unusable now that each horse is a real control */
         .ph-proc:hover .ph-track,.ph-proc:focus-within .ph-track{animation-play-state:paused}
-        .ph-proc .animate-marquee{animation-duration:48s}
+        /* Own keyframe, not the shared 'marquee' name: index.css has TWO
+           @keyframes marquee, and a shadcn @theme block's copy (translateX(
+           calc(-100% - var(--gap)))) wins globally and needs a --gap this
+           track never sets, which froze the loop. phHerd is page-local and
+           collision-proof. The track holds two copies of the herd, so -50%
+           lands exactly on the seam for a seamless loop. */
+        @keyframes phHerd{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        .ph-track{animation:phHerd 48s linear infinite}
         .ph-horse img{transition:filter .7s ease}
         .ph-horse:hover img{filter:saturate(1) contrast(1.03) brightness(1.01)}
         .ph-card:hover .ph-card-img{transform:scale(1.05)}
@@ -1868,7 +1875,7 @@ function PolarHestarPageInner() {
         {/* py leaves room for the 2px/3px-offset focus ring, which the track's
             own overflow-hidden would otherwise clip off the top and bottom */}
         <div className="ph-proc relative overflow-hidden py-1.5">
-          <div className="ph-track animate-marquee flex w-max items-end gap-4">
+          <div className="ph-track flex w-max items-end gap-4">
             {[...GALLERY.slice(0, 12), ...GALLERY.slice(0, 12)].map((g, i) => {
               // both track halves must style identically for a seamless -50% loop
               const k = i % Math.min(GALLERY.length, 12)
