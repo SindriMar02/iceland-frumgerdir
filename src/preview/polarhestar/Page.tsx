@@ -914,7 +914,7 @@ function PolarHestarPageInner() {
 
   // Scroll-spy: the nav underline follows the section under the reading line.
   useEffect(() => {
-    const ids = ['ferdir', 'boka', 'arstidir', 'lengri', 'gott', 'baer', 'bud', 'heimsokn']
+    const ids = ['ferdir', 'boka', 'arstidir', 'lengri', 'gott', 'baer', 'myndir', 'bud', 'heimsokn']
     const io = new IntersectionObserver(
       (es) => {
         es.forEach((e) => {
@@ -1189,6 +1189,7 @@ function PolarHestarPageInner() {
                 kids: [
                   ['#gott', tri(lang, 'Gott að vita', 'Good to know', 'Gut zu wissen')],
                   ['#baer', tri(lang, 'Á bænum', 'At the farm', 'Auf dem Hof')],
+                  ['#myndir', tri(lang, 'Myndasafn', 'Gallery', 'Galerie')],
                   ['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')],
                 ] as [string, string][],
               },
@@ -1292,6 +1293,7 @@ function PolarHestarPageInner() {
               ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
               ['#arstidir', t.nav.seasons],
               ['#gott', t.nav.info],
+              ['#myndir', tri(lang, 'Myndasafn', 'Gallery', 'Galerie')],
               ['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')],
               ['#heimsokn', t.nav.visit],
             ].map(([href, label], i) => (
@@ -1478,9 +1480,9 @@ function PolarHestarPageInner() {
         </Reveal>
         <div className="ph-proc relative overflow-hidden" aria-hidden="true">
           <div className="ph-track animate-marquee flex w-max items-start gap-4">
-            {[...GALLERY, ...GALLERY].map((g, i) => {
+            {[...GALLERY.slice(0, 12), ...GALLERY.slice(0, 12)].map((g, i) => {
               // both track halves must style identically for a seamless -50% loop
-              const k = i % GALLERY.length
+              const k = i % Math.min(GALLERY.length, 12)
               return (
                 <div key={i} className={`ph-horse shrink-0 overflow-hidden rounded-2xl ${HERD_RHYTHM[k % 4]}`} style={{ background: PAPER }}>
                   <img
@@ -1753,6 +1755,37 @@ function PolarHestarPageInner() {
               </div>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      {/* ── MYNDASAFN — the farm's own photo archive, every picture theirs ── */}
+      <section id="myndir" className="scroll-mt-20 px-5 py-16 md:py-20" style={{ background: PAPER }}>
+        <div className="mx-auto max-w-6xl">
+          <Reveal className="mb-8 max-w-2xl">
+            <h2 className="font-spectral text-[clamp(1.75rem,1rem+2.6vw,2.35rem)] leading-tight" style={{ color: INK }}>
+              <MaskWords text={t.galleryH2} />
+            </h2>
+            <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+              {t.galleryBody}
+            </p>
+          </Reveal>
+          <Reveal>
+            <div className="columns-2 gap-3 md:columns-3 lg:columns-4">
+              {GALLERY.map((g, i) => (
+                <img
+                  key={i}
+                  src={g.src}
+                  srcSet={g.srcSet}
+                  sizes="(max-width: 768px) 50vw, 300px"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="mb-3 w-full rounded-xl"
+                  style={{ objectPosition: g.pos }}
+                />
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 

@@ -572,6 +572,9 @@ export const COPY = {
       'Frá júní og fram í september leggjum við í lengri ferðir um óbyggðir Norðurlands. Gisting, fullt fæði og skutl frá Akureyri eru innifalin og 20% staðfestingargjald tryggir sætið.',
     enquireBtn: 'Fá tilboð',
 
+    galleryH2: 'Svipmyndir frá bænum',
+    galleryBody: 'Úr myndasafni Pólar Hesta: hversdagurinn á Grýtubakka, ferðirnar og dýrin.',
+
     trustEyebrow: 'Umsagnir',
     trustH2: '4,9 stjörnur og Travelers’ Choice',
     trustBody: '263 umsagnir á Tripadvisor og Travelers’ Choice-verðlaunin.',
@@ -674,6 +677,9 @@ export const COPY = {
     longBody:
       'From June to September we set out on longer tours across the wilds of North Iceland. Lodging, full board and the Akureyri transfer are included, and a 20% deposit secures your place.',
     enquireBtn: 'Request a quote',
+
+    galleryH2: 'Snapshots from the farm',
+    galleryBody: 'From the Pólar Hestar picture gallery: everyday life at Grýtubakki, the tours and the animals.',
 
     trustEyebrow: 'Reviews',
     trustH2: '4.9 stars and Travelers’ Choice',
@@ -779,6 +785,9 @@ export const COPY = {
     longBody:
       'Von Juni bis September brechen wir zu längeren Touren durch die unberührte Natur Nordislands auf. Preise und Termine sind veröffentlicht, eine Anzahlung von 20 % sichert den Platz.',
     enquireBtn: 'Angebot anfragen',
+
+    galleryH2: 'Bilder vom Hof',
+    galleryBody: 'Aus der Bildergalerie von Pólar Hestar: der Alltag auf Grýtubakki, die Touren und die Tiere.',
 
     trustEyebrow: 'Bewertungen',
     trustH2: '4,9 Sterne und Travelers’ Choice',

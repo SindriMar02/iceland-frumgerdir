@@ -219,6 +219,7 @@ const SECTION_MAP: Array<[string, keyof typeof COPY['is']]> = [
   ['seasonsEyebrow', 'seasonsEyebrow'], ['seasonsHeading', 'seasonsH2'], ['seasonsBody', 'seasonsBody'],
   ['longEyebrow', 'longEyebrow'], ['longBadge', 'longBadge'],
   ['longQuestions', 'longQuestions'], ['longBody', 'longBody'],
+  ['galleryHeading', 'galleryH2'], ['galleryBody', 'galleryBody'],
   ['trustEyebrow', 'trustEyebrow'], ['trustHeading', 'trustH2'], ['trustBody', 'trustBody'],
   ['trustFamilyTitle', 'familyTitle'], ['trustFamilyBody', 'familyBody'],
   ['shopHeading', 'shopH2'], ['shopBody', 'shopBody'],
