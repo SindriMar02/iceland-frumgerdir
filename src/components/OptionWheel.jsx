@@ -257,6 +257,10 @@ const OptionWheel = ({
   useEffect(
     () => () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      /* reset the handle or StrictMode's mount->unmount->remount leaves a
+         stale id here and startLoop() refuses to ever schedule again —
+         the wheel then renders every item stacked at the centre, untransformed */
+      rafRef.current = null;
       audioRef.current?.pause();
     },
     []

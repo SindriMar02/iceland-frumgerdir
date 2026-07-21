@@ -18,6 +18,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import BilageirinnLoading from './Loading'
+import OptionWheel from '../../components/OptionWheel'
 import { STRINGS, type Lang, type Strings } from './translations'
 import { setThemeColor } from '../../lib/preview'
 import {
@@ -176,6 +177,19 @@ const CSS = `
 /* fake a dark map theme with no API key: invert the light tiles, then
    rotate hue back so roads/water read close to their normal colours */
 .bg-map-dark { filter: invert(92%) hue-rotate(180deg) contrast(0.86) brightness(0.94) saturate(0.65); }
+
+/* reviews marquee: two identical rows drift left; the whole strip pauses
+   on hover so quotes stay readable the moment the cursor arrives */
+@keyframes bgRevScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.bg-rev-track { animation: bgRevScroll 55s linear infinite; }
+.bg-rev-marquee:hover .bg-rev-track { animation-play-state: paused; }
+.bg-rev-marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-rev-track { animation: none; }
+}
 
 /* contact form: sleek inputs on the dark card, amber focus, no browser chrome */
 .bg-field {
@@ -1124,7 +1138,8 @@ function Facts() {
 const SERVICE_IMGS = [IMG.retting, IMG.malun, IMG.garage, IMG.lift, IMG.wheel, IMG.headlight, IMG.brake]
 
 function ServiceIndex() {
-  const { t } = useT()
+  const { t, lang } = useT()
+  const reduced = useReducedMotion()
   const [active, setActive] = useState(0)
   /* 90ms hover-intent gate: skimming the cursor down the list no longer
      churns through every row's photo crossfade + accordion — only a real
@@ -1136,14 +1151,13 @@ function ServiceIndex() {
   }
   useEffect(() => () => window.clearTimeout(hoverTimer.current), [])
 
-  /* Scroll-driven: the row closest to a fixed reading line advances the
-     active service (and its photo) as you scroll — this is the primary way
-     to browse on mobile, where there's no hover at all, and it also plays
-     nicely on desktop as a secondary path alongside hover/click. Distance
-     comparison (not IntersectionObserver ratios) because it needs to pick
-     the SINGLE closest row, not merely "some row is visible". Frozen
-     entirely while the section itself is off-screen so entering/leaving it
-     never snaps active back to the first row. */
+  /* Scroll-driven, MOBILE ONLY: the row closest to a fixed reading line
+     advances the active service (and its photo) as you scroll — the primary
+     way to browse where there's no hover. On md+ the list is replaced by the
+     drag/scroll OptionWheel, which owns `active` there; letting this handler
+     run on desktop would fight the wheel (and measure the hidden list's
+     zero-size rects). Distance comparison (not IntersectionObserver ratios)
+     because it needs the SINGLE closest row, not "some row visible". */
   const sectionRef = useRef<HTMLElement>(null)
   const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   useEffect(() => {
@@ -1153,6 +1167,7 @@ function ServiceIndex() {
       raf = requestAnimationFrame(() => {
         const section = sectionRef.current
         if (!section) return
+        if (window.matchMedia('(min-width: 768px)').matches) return
         const sr = section.getBoundingClientRect()
         if (sr.bottom < 0 || sr.top > window.innerHeight) return
         const line = window.innerHeight * 0.42
@@ -1224,7 +1239,58 @@ function ServiceIndex() {
           </div>
         </div>
 
-        <ul className="border-t" style={{ borderColor: HAIR }}>
+        {/* md+: the option wheel — services flip past a fixed reading point
+            via scroll, drag, click or arrow keys (the component is a real
+            listbox). Amber lands on the selected name, matching the page's
+            "measured and true" accent logic. Keyed by lang so the wheel
+            re-measures when the labels swap language. */}
+        <div className="hidden md:block">
+          <div className="relative h-[440px]">
+            <OptionWheel
+              key={lang}
+              items={t.services.map(s => s.name)}
+              defaultSelected={active}
+              onChange={(i: number) => {
+                window.clearTimeout(hoverTimer.current)
+                setActive(i)
+              }}
+              textColor={MUT}
+              activeColor={AMBER}
+              side="left"
+              fontSize={2.1}
+              spacing={1.6}
+              curve={1}
+              tilt={5}
+              blur={1.4}
+              fade={0.22}
+              minOpacity={0.12}
+              smoothing={reduced ? 1 : 170}
+              inset={8}
+              loop={false}
+              draggable
+            />
+          </div>
+          <div className="mt-6 min-h-[96px] border-t pt-5" style={{ borderColor: HAIR }}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={active}
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <p className="text-[13px] tracking-[0.16em]" style={{ fontFamily: MONO, color: AMBER }}>
+                  {String(active + 1).padStart(2, '0')} · {t.services[active].tag}
+                </p>
+                <p className="mt-2.5 max-w-[52ch] text-[15.5px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+                  {t.services[active].desc}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <ul className="border-t md:hidden" style={{ borderColor: HAIR }}>
           {t.services.map((s, i) => {
             const on = i === active
             return (
@@ -1622,6 +1688,84 @@ function Brands() {
           ))}
         </div>
       </div>
+    </section>
+  )
+}
+
+/** Real, verbatim customer reviews (see translations.ts provenance note) as a
+    drifting marquee — the row duplicates once for the seamless loop, the
+    second copy aria-hidden. Reduced motion renders a static scrollable row. */
+function Reviews() {
+  const { t } = useT()
+  const reduced = useReducedMotion()
+  const row = (hidden: boolean) => (
+    <ul
+      aria-hidden={hidden || undefined}
+      className="flex shrink-0 items-stretch gap-5 pr-5"
+    >
+      {t.ui.reviews.map(r => (
+        <li
+          key={r.name}
+          className="flex w-[320px] shrink-0 flex-col rounded-sm border p-6 md:w-[380px]"
+          style={{ borderColor: HAIR, background: SURFACE }}
+        >
+          <p className="text-[13px] tracking-[0.22em]" style={{ fontFamily: MONO, color: AMBER }} aria-label="5 stjörnur">
+            ★★★★★
+          </p>
+          <p className="mt-4 flex-1 text-[14.5px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+            &ldquo;{r.quote}&rdquo;
+          </p>
+          <p className="mt-5 text-[12px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+            {r.name} · {r.source}
+            {r.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+  return (
+    <section className="overflow-hidden border-t py-24 md:py-32" style={{ borderColor: HAIR, background: BG }}>
+      <div className="mx-auto max-w-[1320px] px-5 md:px-8">
+        <Rise>
+          <Kicker>{t.ui.reviewsKicker}</Kicker>
+          <h2
+            className="mt-4 text-balance"
+            style={{ fontFamily: EBOLD, fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '-0.02em', lineHeight: 1.04 }}
+          >
+            {t.ui.reviewsTitle}
+          </h2>
+        </Rise>
+        <Rise delay={0.08}>
+          <div
+            className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-[13px] tracking-[0.1em] uppercase"
+            style={{ fontFamily: MONO, color: MUT }}
+          >
+            <span style={{ color: INK }}>{t.ui.reviewsGoogle}</span>
+            <span>{t.ui.reviewsFacebook}</span>
+            <a
+              href="https://www.google.com/maps/search/B%C3%ADlageirinn+ehf+Gr%C3%B3fin+14a+Reykjanesb%C3%A6"
+              target="_blank"
+              rel="noreferrer"
+              className="bg-link-hover inline-flex min-h-11 items-center underline decoration-1 underline-offset-4"
+              style={{ color: INK }}
+            >
+              {t.ui.reviewsOpenGoogle}
+            </a>
+          </div>
+        </Rise>
+      </div>
+      <Rise delay={0.15}>
+        {reduced ? (
+          <div className="mt-10 overflow-x-auto px-5 md:px-8">{row(false)}</div>
+        ) : (
+          <div className="bg-rev-marquee mt-10 overflow-hidden">
+            <div className="bg-rev-track flex w-max">
+              {row(false)}
+              {row(true)}
+            </div>
+          </div>
+        )}
+      </Rise>
     </section>
   )
 }
@@ -2271,6 +2415,7 @@ export default function Page() {
         <Claims />
         <Craft />
         <Brands />
+        <Reviews />
         <Workshop />
         <MapSection />
         <Contact />

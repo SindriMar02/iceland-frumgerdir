@@ -23,6 +23,20 @@ import {
 
 export type Lang = 'is' | 'en'
 
+/** Real customer reviews, captured verbatim 2026-07-21 from the shop's public
+ *  Google Maps listing (4.1/21 reviews; signed-in session, originals read with
+ *  hl=is so Icelandic quotes are the reviewers' own words) and Facebook page
+ *  (86% recommend, 6 reviews). Only 5-star/recommend entries with prose are
+ *  used. EN versions of Icelandic quotes are translations (marked in UI);
+ *  Lorena wrote in English originally. NEVER add a quote that can't be found
+ *  on the live listing. */
+export interface Review {
+  name: string
+  source: 'Google' | 'Facebook'
+  quote: string
+  translated?: boolean
+}
+
 const IS = {
   hero: HERO,
   story: STORY,
@@ -110,6 +124,51 @@ const IS = {
     headlightAlt: 'Aðalljós á dökkum bíl í myrkri',
     garageAlt: 'Bílar á lyftum á dimmu verkstæðisgólfi',
     boothAlt: 'Bíll afmarkaður með pappír og grunnaður í sprautuklefa',
+    reviewsKicker: 'Umsagnir',
+    reviewsTitle: 'Það sem viðskiptavinir segja',
+    reviewsGoogle: '4,1 af 5 · 21 umsögn á Google',
+    reviewsFacebook: '86% mæla með á Facebook',
+    reviewsOpenGoogle: 'Sjá allar umsagnir á Google',
+    reviewsTranslatedNote: 'þýdd umsögn',
+    reviews: [
+      {
+        name: 'Sandra Winbush',
+        source: 'Google',
+        quote: 'Fæ alltaf frábæra þjónustu frá þeim, get ekki mælt meira með þeim!',
+      },
+      {
+        name: 'Þorfinnur Kristinn Árnason',
+        source: 'Google',
+        quote: 'Topp þjónusta á sanngjörnu verði!',
+      },
+      {
+        name: 'Bjarney Kolbrún Garðarsdóttir',
+        source: 'Facebook',
+        quote:
+          'Lenti í vandræðum með bílinn minn á leiðinni frá Reykjavik og á flugvöllinn þar sem hann bilaði skyndilega. Náði að skila af mér flugfarþegunum og var svo heppin að ég náði á þetta verkstæði og betra viðmóti og þjónustu hef ég varla kynnst. Þeir löguðu bílinn og voru líka mjög sanngjarnir í verðlagningu.',
+      },
+      {
+        name: 'Kjartan Árni',
+        source: 'Google',
+        quote: 'Topp þjónusta, fljótir og vinalegir',
+      },
+      {
+        name: 'Lorena Vargas Ramos',
+        source: 'Google',
+        quote:
+          'Excellent service, I made the appointment and they fix on time the windshield, they fix papers with insurance you don’t paid anything in the moment and later I’ll receive the invoice for my insurance company.',
+      },
+      {
+        name: 'Atli Jóhannsson',
+        source: 'Google',
+        quote: 'Vönduð vinnubrögð',
+      },
+      {
+        name: 'Thorkell Halldorsson',
+        source: 'Google',
+        quote: 'Topp þjónusta',
+      },
+    ] as Review[],
     heroAlts: [
       'Neistaflug við málmvinnu á dimmu verkstæði',
       'Bíll afmarkaður og grunnaður í sprautuklefa',
@@ -330,6 +389,57 @@ const EN: typeof IS = {
     headlightAlt: 'Headlight on a dark car at night',
     garageAlt: 'Cars on lifts on a dark workshop floor',
     boothAlt: 'A car masked with paper and primed in a spray booth',
+    reviewsKicker: 'Reviews',
+    reviewsTitle: 'What customers say',
+    reviewsGoogle: '4.1 of 5 · 21 reviews on Google',
+    reviewsFacebook: '86% recommend on Facebook',
+    reviewsOpenGoogle: 'See all reviews on Google',
+    reviewsTranslatedNote: 'translated review',
+    reviews: [
+      {
+        name: 'Sandra Winbush',
+        source: 'Google',
+        quote: "Always get great service from them, can't recommend them more highly!",
+        translated: true,
+      },
+      {
+        name: 'Þorfinnur Kristinn Árnason',
+        source: 'Google',
+        quote: 'Top service at a reasonable price!',
+        translated: true,
+      },
+      {
+        name: 'Bjarney Kolbrún Garðarsdóttir',
+        source: 'Facebook',
+        quote:
+          'I ran into trouble with my car on the way from Reykjavík to the airport when it suddenly broke down. I managed to drop off my flight passengers and was lucky to reach this workshop, and I have rarely met better service or a better attitude. They fixed the car and were very fair on the price too.',
+        translated: true,
+      },
+      {
+        name: 'Kjartan Árni',
+        source: 'Google',
+        quote: 'Top service, fast and friendly',
+        translated: true,
+      },
+      {
+        name: 'Lorena Vargas Ramos',
+        source: 'Google',
+        quote:
+          'Excellent service, I made the appointment and they fix on time the windshield, they fix papers with insurance you don’t paid anything in the moment and later I’ll receive the invoice for my insurance company.',
+      },
+      {
+        name: 'Atli Jóhannsson',
+        source: 'Google',
+        quote: 'Quality work practices',
+        translated: true,
+      },
+      {
+        name: 'Thorkell Halldorsson',
+        source: 'Google',
+        quote: 'Top service',
+        translated: true,
+      },
+    ] as Review[],
     heroAlts: [
       'Sparks flying during metalwork in a dark workshop',
       'A car masked and primed in a spray booth',
