@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   /* Per-brand display faces — each prototype uses a different pairing */
   --font-display: "Fraunces", Georgia, serif;            /* Dæli Farm */
@@ -240,4 +242,46 @@ html.lenis body {
     animation: rd-float 3.2s ease-in-out infinite alternate;
     will-change: transform;
   }
+}
+
+@theme inline {
+  --animate-marquee: marquee var(--duration) linear infinite;
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand: var(--brand);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+
+    }
+
+  }
+
+}
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(240 10% 3.9%);
+  --brand: hsl(266 100% 50%);
+  --brand-foreground: hsl(270 100% 98%);
+  --muted: hsl(240 4.8% 95.9%);
+  --muted-foreground: hsl(240 3.8% 46.1%);
+
+}
+
+.dark {
+  --background: hsl(240 10% 3.9%);
+  --foreground: hsl(0 0% 98%);
+  --brand: hsl(266 70% 60%);
+  --brand-foreground: hsl(270 100% 98%);
+  --muted: hsl(240 3.7% 15.9%);
+  --muted-foreground: hsl(240 5% 64.9%);
+
 }

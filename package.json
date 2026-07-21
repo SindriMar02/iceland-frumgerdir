@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.2.3",
     "@sanity/client": "^7.23.0",
     "@sanity/image-url": "^1.2.0",
     "@sanity/visual-editing": "^2.15.4",
