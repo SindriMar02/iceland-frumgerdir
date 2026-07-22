@@ -132,6 +132,17 @@ const LitlahofPage = lazy(() => import('./preview/litlahof/Page'))
 const SagakayakPage = lazy(() => import('./preview/sagakayak/Page'))
 // Sauðakofinn á Fossnesi — Selfoss smokehouse & farm tourism, "Reykurinn í kofanum" concept
 const SaudakofinnPage = lazy(() => import('./preview/saudakofinn/Page'))
+// Scout round 10 — five new redesigns
+// Ljómalind Local Market — Borgarnes farmers/artisan co-op, "Beint frá héraðinu" concept
+const LjomalindPage = lazy(() => import('./preview/ljomalind/Page'))
+// Hótel Bjarkalundur — Westfjords historic hotel, "Hliðið að Vestfjörðum" concept
+const BjarkalundurPage = lazy(() => import('./preview/bjarkalundur/Page'))
+// Kauptún — Vopnafjörður village grocery, "Hjartað í þorpinu" concept
+const KauptunPage = lazy(() => import('./preview/kauptun/Page'))
+// Issi Fish & Chips — Reykjanes fish & chips, "Beint af bátnum" concept
+const IssiPage = lazy(() => import('./preview/issi/Page'))
+// Húnabúð — Blönduós café/flower/gift shop, "Þrennt undir einu þaki" concept
+const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 function ScrollToTop() {
@@ -261,6 +272,11 @@ export default function App() {
             <Route path="/preview/litlahof" element={<LitlahofPage />} />
             <Route path="/preview/sagakayak" element={<SagakayakPage />} />
             <Route path="/preview/saudakofinn" element={<SaudakofinnPage />} />
+            <Route path="/preview/ljomalind" element={<LjomalindPage />} />
+            <Route path="/preview/bjarkalundur" element={<BjarkalundurPage />} />
+            <Route path="/preview/kauptun" element={<KauptunPage />} />
+            <Route path="/preview/issi" element={<IssiPage />} />
+            <Route path="/preview/hunabud" element={<HunabudPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}

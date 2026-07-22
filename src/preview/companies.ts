@@ -51,6 +51,19 @@ export interface PreviewCompany {
    * footer line in favor of the page's own accurate photo-source disclosure.
    */
   ownPhotography?: boolean
+  /**
+   * Overrides the noun-phrase the footer uses for `currentUrl` when
+   * `noOwnSite` is set. Defaults to "Núverandi bókunarsíða (ekki í eigu
+   * fyrirtækisins)" — correct for an OTA listing (Booking.com), but wrong
+   * for e.g. a business's own Facebook page. See [[feedback-fact-check-before-drafting]].
+   */
+  currentLabel?: string
+  /**
+   * Overrides the footer's photo-provenance sentence entirely, for the rare
+   * page whose real mix (news photos, Wikimedia, etc.) matches neither the
+   * generic Unsplash line nor `ownPhotography`.
+   */
+  photoCredit?: string
 }
 
 const SIGN = `Bestu kveðjur,
@@ -3426,6 +3439,292 @@ Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
 Hugmyndin er einföld. Að kjötið og verðskráin sjáist strax, og að hitt sem þið gerið á Fossnesi, gistingin, hestarnir og veiðin, fái sinn stað á sömu síðu. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'ljomalind',
+    route: '/preview/ljomalind',
+    name: 'Ljómalind Local Market',
+    sector: 'Farmers & artisan co-op market',
+    location: 'Brúartorg 4, 310 Borgarnes',
+    region: 'West',
+    established: 'Síðan 2013',
+    currentUrl: 'https://www.ljomalind.is',
+    ownerEmail: 'ljomalind@ljomalind.is',
+    concept: 'Beint frá héraðinu',
+    conceptTagline:
+      'Every shelf on the market floor becomes a small map back to the farm or workshop that made it, wool, cheese, honey and pottery from real West Iceland producers, replacing a domain that today loads nothing but a bare hosting placeholder.',
+    accent: '#C4472A',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://images.unsplash.com/photo-1595279521754-4b0f9a6bb10b?q=80&w=1200&auto=format&fit=crop',
+    audit: {
+      strengths: [
+        'A 13-year-old market, opened 17 May 2013, run as a genuine co-op of around 70 local West Iceland producers selling wool, cheese, honey, pottery and preserves',
+        'A 4.0 out of 5 rating on TripAdvisor from 40 reviews, with dated 2025 visitor reviews still praising the real local products',
+        'Confirmed active today on West Iceland’s own tourism directories, west.is and ferdalag.is, and on já.is, all showing matching daily 10:00 to 18:00 hours',
+      ],
+      weaknesses: [
+        'Their own domain, ljomalind.is, loads nothing but a bare hosting-provider placeholder, and the older /en/ path now returns a 404',
+        'No product or vendor showcase anywhere online despite around 70 real producers selling inside the market',
+        'No booking or contact form on the owned domain, so all the real traffic value from TripAdvisor and the tourism boards dead-ends at a page with no content',
+      ],
+      opportunities: [
+        'Replace the placeholder with a warm, photo-led site that shows the market’s real shelves and the producers behind them',
+        'Turn the wall of hand-dyed wool, the Alrún capes and the jars of jam into a proper, browsable product index',
+        'Capture the tourist traffic already pointed at Ljómalind by west.is and TripAdvisor with a real destination instead of a dead end',
+      ],
+    },
+    positioning:
+      'Ljómalind is a 13-year-old co-op market in Borgarnes where around 70 West Iceland producers sell wool, cheese, honey, pottery and preserves under one roof, rated 4.0 on TripAdvisor and still listed as active on every regional tourism directory. Its own domain, ljomalind.is, currently loads nothing but a generic hosting placeholder, so none of that real activity is visible anywhere the business actually controls. The redesign turns the market’s real shelves into a living index of its producers, the same wall of wool and jam a visitor sees walking through the door, so the market finally has a front door of its own online.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Ljómalind',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenskar verslanir og ferðaþjónustu.
+
+Ég kynnti mér Ljómalind og sá að þið seljið vörur frá tugum framleiðenda í héraðinu, ull, osta, hunang, leirmuni og sultur, og eruð með 4,0 í einkunn á TripAdvisor. Samt er heimasíðan ykkar, ljomalind.is, í dag bara auð biðsíða frá hýsingaraðila, þannig að ekkert af þessu sést þar sem þið sjálf ráðið yfir.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk sjái hillurnar ykkar eins og þær eru í alvörunni, fullar af vörum frá alvöru framleiðendum, og viti strax hverjir standa á bak við þær. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'bjarkalundur',
+    route: '/preview/bjarkalundur',
+    name: 'Hótel Bjarkalundur',
+    sector: 'Historic hotel, restaurant & campsite',
+    location: 'Bjarkalundi, 381 Reykhólahreppur',
+    region: 'Westfjords',
+    established: 'Síðan 1947',
+    currentUrl: 'https://www.hotelbjarkalundur.is',
+    ownerEmail: 'info.hotelbjarkalundur@gmail.com',
+    concept: 'Hliðið að Vestfjörðum',
+    conceptTagline:
+      'The twin peaks of Vaðalfjöll and the hotel’s real forest-green lounges carry the arrival from road to gate to table, telling both the 1947 heritage and the fresh 2026 reopening as one continuous story instead of a Wix icon list.',
+    accent: '#B08A3E',
+    dark: true,
+    status: 'Concept ready',
+    thumb: 'https://static.wixstatic.com/media/3d6816_9fcd9dd021f5427fa264407d12d5094a~mv2.jpg',
+    ownPhotography: true,
+    audit: {
+      strengths: [
+        'Iceland’s oldest continuously built summer hotel, raised 1945 to 1947 at the foot of Vaðalfjöll, corroborated by Vísir (2016), mbl.is (2025) and the hotel’s own history page',
+        'A genuine 2026 relaunch, reopened 1 April 2026 under new owner Sigurður Friðriksson, confirmed by regional press and current 2026 pricing across Booking.com, Klook, Hotels.com and Expedia',
+        '128 reviews on Booking.com and a full set of amenities already running, restaurant, bar, café, garden, campsite and EV charger',
+      ],
+      weaknesses: [
+        'A mid-2010s Wix template with plain icon lists and a stacked photo gallery, the footer still shows a static, unmaintained “©2026 by Hotel Bjarkalundur” placeholder string',
+        'No room pricing or availability shown on the hotel’s own site, booking is handed off entirely to a separate portal, property.godo.is, with no visual continuity',
+        'Public contact is a personal Gmail address, info.hotelbjarkalundur@gmail.com, not a business-domain email, for a hotel with this much heritage',
+      ],
+      opportunities: [
+        'Tell the two-part story a Wix template cannot, the 1947 heritage and the fresh 2026 reopening, through real Westfjords photography instead of icon lists',
+        'Give the hotel a proper booking flow, or at least a designed handoff to the booking portal, instead of a bare external link',
+        'Rebuild search visibility from scratch under the new ownership with a business-domain email and a site that actually represents the property',
+      ],
+    },
+    positioning:
+      'Hótel Bjarkalundur is Iceland’s oldest continuously built summer hotel, raised at the foot of Vaðalfjöll in the Westfjords between 1945 and 1947, and freshly reopened on 1 April 2026 under new owner Sigurður Friðriksson. The hotel is genuinely and currently operating, bookable today across Booking.com, Klook, Hotels.com and Expedia, but its own site is a mid-2010s Wix template with no room pricing, an external booking handoff, and a personal Gmail contact address. The redesign carries the arrival from road to gate to table as one continuous story, the twin peaks outside, the forest-green lounges inside, telling both the 1947 heritage and the 2026 fresh start honestly.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Hótel Bjarkalundur',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk hótel og ferðaþjónustu.
+
+Ég kynnti mér Hótel Bjarkalundur og sá að þið eruð eitt elsta starfandi sumarhótel landsins, byggt 1945 til 1947 við rætur Vaðalfjalla, og opnuðuð aftur í apríl á þessu ári undir nýjum eigendum. Samt nær núverandi vefur ykkar hvorki að segja þessa sögu né sýna herbergin og veitingastaðinn eins og þau eiga skilið, öll bókun fer í gegnum utanaðkomandi kerfi og engin verð sjást á síðunni sjálfri.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að fólk sjái fjöllin, herbergin og salinn eins og þau eru í alvörunni, og finni strax leiðina að því að bóka. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'kauptun',
+    route: '/preview/kauptun',
+    name: 'Kauptún',
+    sector: 'Grocery & general store',
+    location: 'Hafnarbyggð 4, 690 Vopnafjörður',
+    region: 'East',
+    established: 'Síðan 1988',
+    currentUrl: 'https://www.facebook.com/Kauptun/',
+    noOwnSite: true,
+    currentLabel: 'Það er aðeins með Facebook-síðu',
+    photoCredit:
+      'Ljósmyndir eru fréttamyndir af versluninni og eigendum, myndir af Vopnafirði af Wikimedia Commons, og tvær sýnishornsmyndir frá Unsplash.',
+    ownerEmail: 'kauptun@kauptun.net',
+    concept: 'Hjartað í þorpinu',
+    conceptTagline:
+      'The one shop holding a 650-person fjord village together gets a real front door online, hours, fresh bakery and the everything’s-here feeling of walking through its actual doors, replacing a domain that has never resolved.',
+    accent: '#B8432A',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://austurfrett.is/images/allar_frettir/frettir/kaupt%C3%BAn.jpg',
+    audit: {
+      strengths: [
+        'The town’s only grocery store for around 650 residents in Vopnafjörður, confirmed active with current hours on the municipality’s own services page',
+        'A real rescue story, new owners Berghildur Fanney Oddsson Hauksdóttir and Eyjólfur Sigurðsson bought the store in 2020 to keep it open, backed by a 5.2 million ISK rural-store grant in 2021',
+        'Listed as an active Landsbankinn Aukakrónur rewards partner and confirmed active in both company registries, with no bankruptcy or closure history found',
+      ],
+      weaknesses: [
+        'No website exists at all, kauptun.net does not even resolve, it is only used as an email suffix',
+        'The only public digital footprint is directory listings on já.is and 1819.is, showing phone and fax as the most current contact channels',
+        'Instagram has a single post and 15 followers since the account was created, with no way anywhere to see hours, products or the bakery',
+      ],
+      opportunities: [
+        'Give the town’s only grocery store its first real front door online, hours, the in-house bakery, and how to reach it',
+        'Tell the 2020 rescue story honestly, a store that has to exist because the alternative is a 150 km drive for milk',
+        'Replace directory listings and a dormant Instagram with one warm, photo-led page for both locals and visitors passing through',
+      ],
+    },
+    positioning:
+      'Kauptún is the only grocery store serving roughly 650 residents in Vopnafjörður, in continuous operation since 1988 and kept open by a 2020 ownership rescue and a 2021 rural-store grant. The business has no website at all, kauptun.net does not even resolve, and its entire public footprint is a handful of directory listings and a nearly dormant Instagram account. The redesign gives the village’s one essential shop a real digital front door, hours, the in-house bakery, and the everything’s-here feeling of walking through its actual doors.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Kauptún',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenskar verslanir og fyrirtæki á landsbyggðinni.
+
+Ég kynnti mér Kauptún og sá að þið eruð verslunin sem heldur Vopnafirði gangandi, eina búðin í þorpinu. Samt finnst nánast ekkert um ykkur á netinu, hvorki opnunartími, bakkelsið né hvað er til hverju sinni, aðeins gamlar skráningar í símaskrá.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að hver sem er, hvort sem hann býr á Vopnafirði eða er á leiðinni þangað, sjái strax hvort opið sé og hvað er í búðinni. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'issi',
+    route: '/preview/issi',
+    name: 'Issi Fish & Chips',
+    sector: 'Fish & chips restaurant',
+    location: 'Fitjar 3, Njarðvík, Reykjanesbær',
+    region: 'Reykjanes',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://issi.is',
+    ownerEmail: 'issi@issi.is',
+    concept: 'Beint af bátnum',
+    conceptTagline:
+      'The real order window at dusk, the glow of the fryer and Þorbjörn’s boat rocking in the swell an hour up the coast carry the whole page, replacing a layout that leaves half the screen blank on desktop and overlaps text on phones.',
+    accent: '#E0B004',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://issi.is/wp-content/uploads/2021/04/issi_fitjar_snjor.jpg',
+    ownPhotography: true,
+    audit: {
+      strengths: [
+        'Named a 2026 finalist in the UK National Fish and Chip Awards’ International category, confirmed by Iceland Review, RÚV and fishfocus.co.uk in February and March 2026',
+        '1,183 reviews at 4.9 out of 5 on RestaurantGuru and 4.7 on Tripadvisor, ranked number 1 of 3 in Njarðvík, with continuing 2026 review activity',
+        'Real, characterful owner photography already in hand, the bearded chef, the glowing shop at night, fish mid-fry in the pan',
+      ],
+      weaknesses: [
+        'The site is fixed-width, not truly responsive, a 1600px desktop screen crams everything into a roughly 1000px column with a large blank dead zone beside it',
+        'On a real phone screen the same fixed-width container still does not reflow, and the tagline visually overlaps the logo and the menu icon',
+        'No phone number visible on the homepage itself, and no online ordering path beyond a single email for catering and events',
+      ],
+      opportunities: [
+        'Fix the responsive break properly so the site actually works on the phones most customers are using',
+        'Lead with the real photography and the 2026 award credibility instead of burying it in a broken layout',
+        'Add simple, self-editable menu and hours management across both locations',
+      ],
+    },
+    positioning:
+      'Issi Fish & Chips is a real, owner-operated fish and chips business in Njarðvík and Selfoss, a 2026 finalist in the UK National Fish and Chip Awards’ International category and rated 4.9 out of 5 across more than a thousand reviews. Their own site, issi.is, is fixed-width rather than responsive, leaving a large blank dead zone on desktop and overlapping text on phones, with no phone number on the homepage. The redesign leads with their real photography, the bearded owner at the order window, the glow of the fryer at dusk, and fixes the layout so the site works as well on a phone as the food does at the counter.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Issi Fish & Chips',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús.
+
+Ég kynnti mér Issi Fish & Chips og sá að þið eruð á meðal úrslitahafa á bresku fish and chips verðlaununum 2026 og með 4,9 í einkunn á RestaurantGuru. Samt er vefurinn ykkar með föstum ramma sem passar hvorki fyrir tölvuskjá né síma, á tölvu er stór auður flötur við hliðina á síðunni og í síma skarast textinn yfir merkið ykkar.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að myndirnar ykkar og matseðillinn fái loksins að njóta sín, og að fólk finni strax opnunartíma og staðsetningu í símanum. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+    },
+  },
+  {
+    slug: 'hunabud',
+    route: '/preview/hunabud',
+    name: 'Húnabúð',
+    sector: 'Café, flower shop & gift shop',
+    location: 'Norðurlandsvegur 4, 540 Blönduós',
+    region: 'North',
+    established: 'Fjölskyldurekið',
+    currentUrl: 'https://www.facebook.com/hunabudin/',
+    ownerEmail: 'hunabud@hunabud.net',
+    concept: 'Þrennt undir einu þaki',
+    conceptTagline:
+      'The building’s own three-part signage, coffee, flowers and gifts under one roof, becomes the whole page structure, replacing a dead domain and a thin Facebook page with no way to see hours or what is inside.',
+    accent: '#B5432E',
+    dark: false,
+    status: 'Concept ready',
+    thumb: 'https://itin-dev.wanderlogstatic.com/freeImage/6PM4N3opXL7Kl4i3YSOn8N8UXWHGteoK',
+    audit: {
+      strengths: [
+        'A genuinely rare three-in-one business, café, flower shop and gift shop, all under one roof in Blönduós, with all three services visible on the building’s own real signage',
+        'Confirmed operating into 2026, listed among the open venues at the Prjónagleðin knitting festival in June 2026, plus a 5-star Google review dated July 2025',
+        'A distinctive Ring Road stop with real, photogenic material already in hand, the storefront, the pastry case, the lopapeysur rack outside',
+      ],
+      weaknesses: [
+        'No website exists at all, the referenced domain hunabud.net is fully dead with no DNS record',
+        'The only presence is a Facebook page with essentially no scrapable content, no menu, no hours, no way to see what is inside',
+        'Some aggregators mislabel the listing “permanently closed”, with no owned web presence anywhere to correct that false signal',
+      ],
+      opportunities: [
+        'Give travellers on Route 1 a real way to confirm hours and see what is inside before they stop',
+        'Correct the false “permanently closed” signal with a real, current site the business actually controls',
+        'Show the three-in-one story, coffee, flowers and gifts, exactly as the building’s own signage already tells it',
+      ],
+    },
+    positioning:
+      'Húnabúð is a genuine three-in-one roadside stop in Blönduós, a café, flower shop and gift shop confirmed operating into 2026, most recently listed among the open venues at the June 2026 Prjónagleðin knitting festival. The business has no website at all, its referenced domain hunabud.net has no DNS record, and its only presence is a thin Facebook page, which has let some aggregators wrongly mark the listing as permanently closed. The redesign turns the building’s own signage, coffee and delicacies, flowers, gifts, into the whole page structure, giving Route 1 travellers a real way to see what is inside before they stop.',
+    outreach: {
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Húnabúð',
+      body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk kaffihús og verslanir.
+
+Ég kynnti mér Húnabúð og sá að þið sameinið kaffihús, blómabúð og gjafavöru undir einu þaki í Blönduósi, nákvæmlega eins og skiltið á húsinu segir. Samt sést það hvergi á netinu, engin heimasíða er til og eina ummerkið er lítil Facebook síða þar sem hvorki sést matseðill né opnunartími.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að ferðafólk á þjóðveginum sjái strax að hjá ykkur er kaffi, blóm og gjafir undir sama þaki, og viti hvenær er opið. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 

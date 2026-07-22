@@ -21,12 +21,14 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
           Frumgerð: hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.
         </strong>{' '}
         Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept).{' '}
-        {company.ownPhotography
-          ? 'Ljósmyndir eru raunverulegar myndir af staðnum, ekki sýnishorn.'
-          : 'Myndir frá Unsplash, af núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess.'}{' '}
+        {company.photoCredit
+          ? company.photoCredit
+          : company.ownPhotography
+            ? 'Ljósmyndir eru raunverulegar myndir af staðnum, ekki sýnishorn.'
+            : 'Myndir frá Unsplash, af núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess.'}{' '}
         {company.noOwnSite ? (
           <>
-            Fyrirtækið á enga eigin vefsíðu í dag. Núverandi bókunarsíða (ekki í eigu fyrirtækisins):{' '}
+            Fyrirtækið á enga eigin vefsíðu í dag. {company.currentLabel ?? 'Núverandi bókunarsíða (ekki í eigu fyrirtækisins)'}:{' '}
             <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
               {company.currentUrl.replace('https://', '').replace('www.', '')}
             </a>
