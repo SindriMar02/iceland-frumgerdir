@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import {
@@ -64,51 +64,13 @@ const BODY = "'Archia', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
 const B = import.meta.env.BASE_URL
+/* Rebrand-concept icon, previewed on v2 only per Sindri's 2026-07-15 request — NOT
+   the real logo.png (used everywhere else: nav on the other 3 concepts, footer).
+   Background removed + cropped from a generated still; the wordmark is set as
+   real type elsewhere (never baked into the image — the generated art's own
+   text had a broken þ). Swap back to LOGO/the real nav markup if this doesn't land. */
+const ICON_CONCEPT = `${B}preview/bilageirinn/icon-concept.png`
 const EASE = [0.23, 1, 0.32, 1] as const
-
-/* The mark — a faithful, modernised redraw of the REAL Bílageirinn logo
-   (2026-07-21), replacing the earlier abstract "concept" swoosh PNG. Same
-   anatomy as the shop's own logo.png: a solid front cabin, a thin roofline
-   that sweeps back into the rear fender, a prominent wheel with a glossy
-   dome, and the ground rule. Modernised as clean vector (crisp at any
-   size, recolourable) with the wheel's cream centre pushed warm to tie into
-   the site's amber. Traced from logo.png at 9× against a pixel grid.
-   `fill` colours the body/ring/rule; `baseline` adds the ground rule for
-   stacked lockups (nav uses a horizontal lockup, so it's off there). */
-function BilaMark({ className, fill = INK, baseline = false }: { className?: string; fill?: string; baseline?: boolean }) {
-  const uid = useId()
-  const g = `bila-dome-${uid}`
-  return (
-    <svg
-      className={className}
-      viewBox={baseline ? '0 0 102 60' : '16 1 70 44'}
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="Bílageirinn"
-    >
-      <defs>
-        <radialGradient id={g} cx="37%" cy="32%" r="75%">
-          <stop offset="0%" stopColor="#FCE9CB" />
-          <stop offset="42%" stopColor="#F1C57F" />
-          <stop offset="100%" stopColor="#D2963B" />
-        </radialGradient>
-      </defs>
-      {/* front cabin: sloped nose, beltline, wheel-arch cut */}
-      <path
-        fill={fill}
-        d="M20,31 L20.2,17 C20.3,15.4 21,14 22.6,13.7 L29.5,13.9 C30.2,15 30.4,16 30.5,17.2 L49,17.2 C49.6,21 47.4,26.6 44,30.6 L20,31 Z"
-      />
-      {/* roofline sweeping back into the rear fender over the wheel */}
-      <path
-        fill={fill}
-        d="M30.5,13.6 C39,6 49,3 57,3 C67,3 74.5,8.5 81.5,21 C77,13.8 71,11 63.5,11 C53,11 42.5,13.6 34.5,17.2 C33,15.8 31.7,14.6 30.5,13.6 Z"
-      />
-      <circle cx="63" cy="27.5" r="15" fill={fill} />
-      <circle cx="63" cy="28" r="9.6" fill={`url(#${g})`} />
-      {baseline && <rect x="4" y="55" width="94" height="3" rx="1.5" fill={fill} />}
-    </svg>
-  )
-}
 
 const CSS = `
 @font-face { font-family: 'Archia'; src: url('${B}fonts/archia/Archia-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
@@ -621,10 +583,13 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
       }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-3 px-4 md:px-8">
-        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 shrink-0 items-center gap-2.5 md:gap-3" aria-label={t.ui.navTopAria}>
-          {/* the real car mark, redrawn (BilaMark) — horizontal lockup, so no
-              baseline rule; wordmark is live type beside it */}
-          <BilaMark className="h-6 w-auto md:h-7" fill={INK} />
+        <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 shrink-0 items-center gap-2 md:gap-2.5" aria-label={t.ui.navTopAria}>
+          {/* REBRAND CONCEPT PREVIEW, not the real mark — icon closely matches
+              the real logo's own swoosh+headlight shape, previewed here only
+              to pitch before touching the real logo.png used everywhere else
+              on the site. Wordmark is real type, not baked into the image —
+              the generated art's own text had a broken þ. */}
+          <img src={ICON_CONCEPT} alt="" className="h-7 w-auto md:h-8" style={{ filter: 'brightness(0) invert(0.96)' }} />
           {/* clamp keeps the wordmark from colliding with the toggle on
               narrow phones — the row is width-critical at 390px */}
           <span style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(16px, 4.4vw, 19px)', fontWeight: 400, color: INK, letterSpacing: '0.02em' }}>
@@ -2384,8 +2349,7 @@ export default function Page() {
     }
   }, [])
   const MIN_VISIBLE_MS = introSeen ? 0 : 1900
-  /* 'icon' gate dropped — the mark is now inline SVG, nothing to preload */
-  const GATE_KEYS = useMemo(() => ['fonts', 'hero'] as const, [])
+  const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'icon'] as const, [])
   const [ready, setReady] = useState<Record<string, boolean>>({})
   const [forced, setForced] = useState(false)
   const [minTimeElapsed, setMinTimeElapsed] = useState(MIN_VISIBLE_MS === 0)
@@ -2406,6 +2370,7 @@ export default function Page() {
     }
     ;(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => safeMark('fonts'))
     warm(IMG.hero, 'hero')
+    warm(ICON_CONCEPT, 'icon')
     const minTimer = window.setTimeout(() => {
       if (alive) setMinTimeElapsed(true)
     }, MIN_VISIBLE_MS)
