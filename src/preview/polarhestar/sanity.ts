@@ -221,6 +221,7 @@ const SECTION_MAP: Array<[string, keyof typeof COPY['is']]> = [
   ['longQuestions', 'longQuestions'], ['longBody', 'longBody'],
   ['galleryHeading', 'galleryH2'], ['galleryBody', 'galleryBody'], ['galleryMore', 'galleryMore'],
   ['trustEyebrow', 'trustEyebrow'], ['trustHeading', 'trustH2'], ['trustBody', 'trustBody'],
+  ['trustCredLicensed', 'credLicensed'], ['trustCredAuthority', 'credAuthority'],
   ['trustFamilyTitle', 'familyTitle'], ['trustFamilyBody', 'familyBody'],
   ['shopHeading', 'shopH2'], ['shopBody', 'shopBody'],
   ['visitHeading', 'visitH2'],

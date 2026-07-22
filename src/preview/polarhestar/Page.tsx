@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import {
   ArrowRight,
+  BadgeCheck,
   Calendar,
   Check,
   ChevronDown,
@@ -2258,6 +2259,20 @@ function PolarHestarPageInner() {
               >
                 {t.trustBody}
               </a>
+            </div>
+            {/* Official credential — Ferðamálastofa licensed travel agency.
+                A sleek, text-forward take on their real footer badge, not the
+                waterfall clip-art seal they run today. */}
+            <div className="mt-6 flex items-center justify-center gap-2.5">
+              <BadgeCheck className="h-5 w-5 shrink-0" style={{ color: CLAY_HI }} aria-hidden="true" />
+              <span className="text-left">
+                <span className="block font-hanken text-sm font-semibold" style={{ color: MIST }}>
+                  {t.credLicensed}
+                </span>
+                <span className="block font-hanken text-xs" style={{ color: '#ffffffb3' }}>
+                  {t.credAuthority}
+                </span>
+              </span>
             </div>
           </Reveal>
 

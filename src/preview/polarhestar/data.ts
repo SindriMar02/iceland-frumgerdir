@@ -567,7 +567,7 @@ export const COPY = {
 
     longEyebrow: 'Lengri reiðferðir',
     longBadge: 'Júní–sept',
-    longQuestions: 'Spurningar? Skrifaðu á',
+    longQuestions: 'Spurningar? Sendu á',
     longBody:
       'Frá júní og fram í september leggjum við í lengri ferðir um óbyggðir Norðurlands. Gisting, fullt fæði og skutl frá Akureyri eru innifalin og 20% staðfestingargjald tryggir sætið.',
     enquireBtn: 'Fá tilboð',
@@ -579,6 +579,8 @@ export const COPY = {
     trustEyebrow: 'Umsagnir',
     trustH2: '4,9 stjörnur og Travelers’ Choice',
     trustBody: '263 umsagnir á Tripadvisor og Travelers’ Choice-verðlaunin.',
+    credLicensed: 'Löggilt ferðaskrifstofa',
+    credAuthority: 'Ferðamálastofa · leyfi nr. 2006-071',
     reviewsWord: 'umsagnir',
     familyTitle: 'Fjölskyldan á Grýtubakka',
     familyBody:
@@ -686,6 +688,8 @@ export const COPY = {
     trustEyebrow: 'Reviews',
     trustH2: '4.9 stars and Travelers’ Choice',
     trustBody: '263 reviews on Tripadvisor and the Travelers’ Choice award.',
+    credLicensed: 'Licensed travel agency',
+    credAuthority: 'Icelandic Tourist Board · licence no. 2006-071',
     reviewsWord: 'reviews',
     familyTitle: 'The family at Grýtubakki',
     familyBody:
@@ -795,6 +799,8 @@ export const COPY = {
     trustEyebrow: 'Bewertungen',
     trustH2: '4,9 Sterne und Travelers’ Choice',
     trustBody: '263 Bewertungen auf Tripadvisor und die Travelers’-Choice-Auszeichnung.',
+    credLicensed: 'Zugelassenes Reisebüro',
+    credAuthority: 'Icelandic Tourist Board · Lizenz Nr. 2006-071',
     reviewsWord: 'Bewertungen',
     familyTitle: 'Die Familie auf Grýtubakki',
     familyBody:
