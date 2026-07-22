@@ -14,6 +14,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
+import { VerticalCutReveal } from '../../components/ui/vertical-cut-reveal'
 import { setNoindex, setThemeColor } from '../../lib/preview'
 import {
   ACCENT,
@@ -198,56 +199,36 @@ function ClipImg({
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  ELEVATION 1 — Vertical Cut Reveal (21st.dev #18595), word-level,         */
-/*  mount-triggered, Fraunces, reduced-motion => instant. Accent-safe:       */
-/*  plain ease (no overshoot) so á/é never clip the wrapper top edge.        */
+/*  ELEVATION 1 — HeroCut renders the REAL 21st.dev Vertical Cut Reveal       */
+/*  (@danielpetho, id 884), vendored at src/components/ui. Reduced motion =>   */
+/*  static text; py-[0.2em] on its own clip wrapper clears á/é/ð safely.       */
 /* ══════════════════════════════════════════════════════════════════════ */
-function VerticalCutReveal({
+function HeroCut({
   text,
-  className = '',
-  wordClassName = '',
-  baseDelay = 0,
-  stagger = 0.05,
+  delay = 0,
+  italic = false,
 }: {
   text: string
-  className?: string
-  wordClassName?: string
-  baseDelay?: number
-  stagger?: number
+  delay?: number
+  italic?: boolean
 }) {
   const reduced = useReducedMotion()
-  const words = text.split(' ')
+  // Reduced motion: static heading, no wrapper spans (ledger #8).
+  if (reduced) return <span className={italic ? 'italic' : undefined}>{text}</span>
+  // The animation IS the 21st.dev component; we only feed it an overshoot-free
+  // tween and vertical padding on its own clip wrapper (wordLevelClassName) so
+  // tall Icelandic acutes never shear the top edge of the overflow clip.
   return (
-    <span className={className}>
-      <span className="sr-only">{text}</span>
-      <span aria-hidden="true">
-        {words.map((w, i) => (
-          <span
-            key={i}
-            className="inline-block overflow-hidden align-bottom"
-            // Extra top padding clears tall acutes (é/á in "héraðinu"/"frá")
-            // inside this overflow-hidden clip wrapper — verify in-browser at
-            // the clamp max; increase further (never reduce line-height) if
-            // still clipped.
-            style={{ paddingTop: '0.2em', paddingBottom: '0.16em' }}
-          >
-            <motion.span
-              className={`inline-block ${wordClassName}`}
-              initial={reduced ? false : { y: '115%' }}
-              animate={{ y: 0 }}
-              transition={{
-                duration: reduced ? 0 : 0.8,
-                delay: reduced ? 0 : baseDelay + i * stagger,
-                ease: [0.22, 0.61, 0.21, 1],
-              }}
-            >
-              {w}
-              {i < words.length - 1 ? ' ' : ''}
-            </motion.span>
-          </span>
-        ))}
-      </span>
-    </span>
+    <VerticalCutReveal
+      splitBy="words"
+      staggerDuration={0.06}
+      staggerFrom="first"
+      transition={{ duration: 0.8, ease: [0.22, 0.61, 0.21, 1], delay }}
+      containerClassName={italic ? 'italic' : ''}
+      wordLevelClassName="py-[0.2em]"
+    >
+      {text}
+    </VerticalCutReveal>
   )
 }
 
@@ -840,14 +821,8 @@ function Hero() {
         </Reveal>
 
         <h1 className="mt-4 font-display text-[clamp(3rem,10vw,7.5rem)] font-semibold leading-[1.02] text-[#F6F1E7]">
-          <VerticalCutReveal text="Beint frá" baseDelay={0.15} stagger={0.06} />
-          <br />
-          <VerticalCutReveal
-            text="héraðinu"
-            baseDelay={0.32}
-            stagger={0.06}
-            wordClassName="italic"
-          />
+          <HeroCut text="Beint frá" delay={0.15} />
+          <HeroCut text="héraðinu" delay={0.32} italic />
         </h1>
 
         <Reveal delay={620} y={16}>

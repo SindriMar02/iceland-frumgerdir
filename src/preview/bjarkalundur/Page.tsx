@@ -6,6 +6,7 @@ import { Phone, MapPin, ArrowUpRight, Menu, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import { TextSplitReveal } from '../../components/ui/text-split-reveal'
 import { setThemeColor } from '../../lib/preview'
 import {
   BOOKING_URL, PHONE_DISPLAY, PHONE_HREF, ADDRESS, MAP_EMBED, MAP_LINK,
@@ -161,34 +162,21 @@ function Label({ children, color = ACCENT }: { children: ReactNode; color?: stri
   )
 }
 
-/* ═══════════════════════ SplitLine — the gate (elevation, 21st.dev #19330) ══
-   Ported technique from animbits/text-split-reveal, adapted to Framer's stack
-   and this concept: two clip layers of the SAME full text open outward from a
-   central seam on mount, reading as a gate. Clip is horizontal only, so the
-   Icelandic Ð/Ö/Í accents are never vertically masked (brief D + ledger #23).
-   Reduced motion renders the text plainly and immediately. */
-function SplitLine({ text, delay = 0 }: { text: string; delay?: number }) {
-  const reduced = prefersReduced()
-  const [open, setOpen] = useState(reduced)
-  useEffect(() => {
-    if (reduced) return
-    const id = requestAnimationFrame(() => setOpen(true))
-    return () => cancelAnimationFrame(id)
-  }, [reduced])
-  if (reduced) return <span className="block">{text}</span>
+/* GateLine — the gate: the REAL 21st.dev Split Reveal Text (@animbits, id
+   19330), vendored at src/components/ui/text-split-reveal and rendered
+   as="span" so it nests in the semantic <h1>. Its clip is horizontal (inset
+   left/right) only, so the Icelandic Ð/Ö/Í in "Vestfjörðum" are never
+   vertically masked. Reduced motion renders the line plainly (see GateLine). */
+function GateLine({ text, delay = 0 }: { text: string; delay?: number }) {
+  // Reduced motion: static heading line, no animation (ledger #8).
+  if (prefersReduced()) return <span className="block">{text}</span>
+  // The REAL 21st.dev Split Reveal Text, rendered as a <span> so it stays valid
+  // inside the semantic <h1>. Its clip is horizontal (inset left/right) only, so
+  // the Icelandic Ð/Ö/Í in "Vestfjörðum" are never vertically masked. delay in ms.
   return (
-    <span aria-hidden className="relative block">
-      <span className="block" style={{
-        clipPath: open ? 'inset(0 50% 0 0)' : 'inset(0 50% 0 50%)',
-        opacity: open ? 1 : 0,
-        transition: `clip-path .95s ${EASE} ${delay}ms, opacity .5s ease ${delay}ms`,
-      }}>{text}</span>
-      <span className="absolute inset-0 block" style={{
-        clipPath: open ? 'inset(0 0 0 50%)' : 'inset(0 50% 0 50%)',
-        opacity: open ? 1 : 0,
-        transition: `clip-path .95s ${EASE} ${delay + 110}ms, opacity .5s ease ${delay + 110}ms`,
-      }}>{text}</span>
-    </span>
+    <TextSplitReveal as="span" className="block" duration={0.95} delay={delay / 1000} staggerDelay={0.11}>
+      {text}
+    </TextSplitReveal>
   )
 }
 
@@ -382,8 +370,8 @@ function Hero() {
         <h1 aria-label="Hliðið að Vestfjörðum"
           className="mt-4 font-display font-semibold text-[#F3EEE1]"
           style={{ fontSize: 'clamp(2.2rem, 9vw, 6.5rem)', lineHeight: 1.06, letterSpacing: '-0.01em' }}>
-          <SplitLine text={HERO.line1} delay={220} />
-          <SplitLine text={HERO.line2} delay={420} />
+          <GateLine text={HERO.line1} delay={220} />
+          <GateLine text={HERO.line2} delay={420} />
         </h1>
         <Reveal delay={760} className="mt-6 max-w-xl">
           <p className="font-sans text-[15px] leading-[1.7] md:text-[17px]" style={{ color: PARCH_SOFT }}>
