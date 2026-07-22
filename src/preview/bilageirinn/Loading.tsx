@@ -113,12 +113,21 @@ export default function BilageirinnLoading({
       <div className={`bgl-stage${full ? '' : ' bgl-lite'}`}>
         {full && (
           <div className="bgl-icon-wrap">
-            <img
-              className="bgl-icon"
-              src={`${B}preview/bilageirinn/icon-concept.png`}
-              alt=""
-              draggable={false}
-            />
+            {/* the real car mark (matches the nav), revealed by the amber
+                alignment scan — clip-path lives on .bgl-icon */}
+            <svg className="bgl-icon" viewBox="16 1 70 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <radialGradient id="bgl-dome" cx="37%" cy="32%" r="75%">
+                  <stop offset="0%" stopColor="#FCE9CB" />
+                  <stop offset="42%" stopColor="#F1C57F" />
+                  <stop offset="100%" stopColor="#D2963B" />
+                </radialGradient>
+              </defs>
+              <path fill="#F3F0EA" d="M20,31 L20.2,17 C20.3,15.4 21,14 22.6,13.7 L29.5,13.9 C30.2,15 30.4,16 30.5,17.2 L49,17.2 C49.6,21 47.4,26.6 44,30.6 L20,31 Z" />
+              <path fill="#F3F0EA" d="M30.5,13.6 C39,6 49,3 57,3 C67,3 74.5,8.5 81.5,21 C77,13.8 71,11 63.5,11 C53,11 42.5,13.6 34.5,17.2 C33,15.8 31.7,14.6 30.5,13.6 Z" />
+              <circle cx="63" cy="27.5" r="15" fill="#F3F0EA" />
+              <circle cx="63" cy="28" r="9.6" fill="url(#bgl-dome)" />
+            </svg>
             <span className="bgl-scan" />
           </div>
         )}
