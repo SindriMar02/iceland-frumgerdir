@@ -187,7 +187,7 @@ const CSS = `
 /* reviews marquee: two identical rows drift left; the whole strip pauses
    on hover so quotes stay readable the moment the cursor arrives */
 @keyframes bgRevScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.bg-rev-track { animation: bgRevScroll 55s linear infinite; }
+.bg-rev-track { animation: bgRevScroll 32s linear infinite; will-change: transform; }
 .bg-rev-marquee:hover .bg-rev-track { animation-play-state: paused; }
 .bg-rev-marquee {
   -webkit-mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
@@ -467,6 +467,7 @@ function CountUp({ to, pad, suffix }: { to: number; pad: number; suffix: string 
       ref.current.textContent = final
       return
     }
+    ref.current.textContent = String(0).padStart(pad, '0') + suffix
     const controls = animate(mv, to, {
       duration: 1.7,
       ease: EASE,
@@ -474,11 +475,24 @@ function CountUp({ to, pad, suffix }: { to: number; pad: number; suffix: string 
         if (ref.current) ref.current.textContent = String(Math.round(v)).padStart(pad, '0') + suffix
       },
     })
-    return () => controls.stop()
+    /* Failsafe: framer's animate() is rAF-driven, and the embedded preview
+       pane wedges rAF under Lenis — leaving the counter stuck at 0. If the
+       final value hasn't landed shortly after, snap to it so the number is
+       never wrong regardless of environment. */
+    const snap = window.setTimeout(() => {
+      if (ref.current && ref.current.textContent !== final) ref.current.textContent = final
+    }, 2100)
+    return () => {
+      controls.stop()
+      window.clearTimeout(snap)
+    }
   }, [inView, reduced, to, pad, suffix, mv, final])
+  /* Default to the REAL value, not 0 — so if the effect never runs (rAF
+     wedged, or inView never fires in a throttled context) the number is
+     still correct. The count-up is a progressive enhancement on top. */
   return (
     <span ref={ref} aria-label={final}>
-      {reduced || inView ? final : String(0).padStart(pad, '0') + suffix}
+      {final}
     </span>
   )
 }
