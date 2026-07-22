@@ -1,8 +1,12 @@
-/* Vendored verbatim from 21st.dev — @animbits/text-split-reveal (id 19330).
-   Paid component pulled via the 21st.dev MCP; imports resolve unchanged
-   (motion/react is provided by the installed `motion` v12 package). */
+/* Vendored from 21st.dev — @animbits/text-split-reveal (id 19330), pulled via
+   the 21st.dev MCP. One deliberate change from the source import: it ships
+   against `motion/react` (motion v12), but this app runs `framer-motion` v11
+   everywhere else. Importing the component's `motion` from the OTHER instance
+   left its mount animation stuck at `initial` in production (two motion
+   runtimes fighting over the rAF loop). Same library, identical API — pointing
+   it at framer-motion makes the reveal fire reliably. */
 "use client";
-import { motion, type HTMLMotionProps } from "motion/react";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 export interface TextSplitRevealProps extends Omit<
   HTMLMotionProps<"p">,
