@@ -62,6 +62,12 @@ const DISPLAY = "'Projekt Blackbird', 'Arial Black', sans-serif"
 const EBOLD = "'Projekt Blackbird', 'Arial Black', sans-serif"
 const BODY = "'Archia', 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
+/* The LOGO lockup only — chosen to match the real logo.png's heavy
+   neo-grotesque wordmark (Helvetica/Arial-Black character). Inter Black is
+   the closest self-hostable match; Arial/Helvetica are the system fallbacks
+   that the original literally resembles. Subset to just the logo's glyphs
+   (Inter-logo.woff2, ~8KB, variable so the tagline gets a lighter weight). */
+const LOGO = "'Inter Logo', 'Arial Black', 'Helvetica Neue', Arial, sans-serif"
 
 const B = import.meta.env.BASE_URL
 /* Rebrand-concept icon, previewed on v2 only per Sindri's 2026-07-15 request — NOT
@@ -73,6 +79,7 @@ const ICON_CONCEPT = `${B}preview/bilageirinn/icon-concept.png`
 const EASE = [0.23, 1, 0.32, 1] as const
 
 const CSS = `
+@font-face { font-family: 'Inter Logo'; src: url('${B}fonts/inter/Inter-logo.woff2') format('woff2'); font-weight: 400 900; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Archia'; src: url('${B}fonts/archia/Archia-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
@@ -604,10 +611,16 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
               on the site. Wordmark is real type, not baked into the image —
               the generated art's own text had a broken þ. */}
           <img src={ICON_CONCEPT} alt="" className="h-7 w-auto md:h-8" style={{ filter: 'brightness(0) invert(0.96)' }} />
-          {/* clamp keeps the wordmark from colliding with the toggle on
-              narrow phones — the row is width-critical at 390px */}
-          <span style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(16px, 4.4vw, 19px)', fontWeight: 400, color: INK, letterSpacing: '0.02em' }}>
-            Bílageirinn
+          {/* wordmark lockup matching the real logo: heavy mixed-case Inter
+              (neo-grotesque) with BÍLAÞJÓNUSTA right-aligned beneath, as on
+              logo.png. clamp keeps it from colliding with the toggle at 390px */}
+          <span className="flex flex-col leading-[0.9]">
+            <span style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(16px, 4.4vw, 20px)', color: INK, letterSpacing: '-0.015em' }}>
+              Bílageirinn
+            </span>
+            <span style={{ fontFamily: LOGO, fontWeight: 600, fontSize: 'clamp(6.5px, 1.7vw, 8px)', color: MUT, letterSpacing: '0.2em', alignSelf: 'flex-end', marginTop: '2px' }}>
+              BÍLAÞJÓNUSTA
+            </span>
           </span>
         </a>
         <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
