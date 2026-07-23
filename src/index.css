@@ -38,6 +38,10 @@
   --font-stardom: "Stardom", Georgia, serif;                  /* Vínland Guesthouse — bold decorative wordmark */
   --font-melodrama: "Melodrama", Georgia, serif;              /* Guesthouse Vellir — high-contrast editorial wordmark */
   --font-tropikal: "Tropikal", Georgia, serif;                /* Saga Kayak — warm vintage-expedition serif */
+  --font-boska: "Boska", Georgia, serif;                      /* KIDKA — wool-fashion display serif */
+  --font-author: "Author", system-ui, sans-serif;             /* KIDKA — warm humanist body */
+  --font-fragment: "Fragment Mono", ui-monospace, monospace;  /* KIDKA — care-label spec voice */
+  --font-arkipelago: "Arkipelago", cursive;                   /* KIDKA — handwritten margin notes */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -284,4 +288,57 @@ html.lenis body {
   --muted: hsl(240 3.7% 15.9%);
   --muted-foreground: hsl(240 5% 64.9%);
 
+}
+/* KIDKA — Boska display serif (FontShare, local; Icelandic ✓) */
+@font-face {
+  font-family: "Boska";
+  src: url("./assets/fonts/Boska-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Boska";
+  src: url("./assets/fonts/Boska-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+/* KIDKA — Author body (FontShare, local; Icelandic ✓) */
+@font-face {
+  font-family: "Author";
+  src: url("./assets/fonts/Author-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Author";
+  src: url("./assets/fonts/Author-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Author";
+  src: url("./assets/fonts/Author-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/* KIDKA — Fragment Mono spec labels (Google, local latin-ext ✓) */
+@font-face {
+  font-family: "Fragment Mono";
+  src: url("./assets/fonts/FragmentMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* KIDKA — Arkipelago handwritten notes (local otf; Icelandic ✓; decorative only) */
+@font-face {
+  font-family: "Arkipelago";
+  src: url("./assets/fonts/Arkipelago.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }

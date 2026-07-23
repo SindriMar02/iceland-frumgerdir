@@ -317,6 +317,15 @@ export const SHOWCASE: ShowcaseGroup[] = [
     blurb: 'Matvælaframleiðsla og handverk þar sem sagan, hráefnið og varan eru í forgrunni.',
     items: [
       {
+        route: '/preview/kidka',
+        name: 'KIDKA Wool Factory',
+        sector: 'Ullarverksmiðja',
+        location: 'Hvammstangi',
+        blurb: 'Prjónað þar sem þú getur horft á: eigin ljósmyndir, alvöru vörur og verksmiðjugagnsæi í forgrunni.',
+        image: 'https://kidka.com/wp-content/uploads/2025/04/CE3I3377-web-e1760354324225.jpg',
+        accent: '#8F3F1E',
+      },
+      {
         route: '/preview/ektafiskur',
         name: 'Ektafiskur',
         sector: 'Matvæli & Baccalá Bar',
