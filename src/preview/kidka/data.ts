@@ -274,71 +274,54 @@ export function chartCell(row: number, col: number): boolean {
   return d === k || d === k - 3
 }
 
-export interface Station {
-  id: string
-  /** chart coordinate label, e.g. "A1" */
-  coord: string
+export interface Stage {
+  /** stage number, 01..05 */
+  n: string
   title: string
   titleIs: string
   note: string
-  /** % box on the plan: left, top, width, height */
-  box: [number, number, number, number]
-  /** the visitor-facing hook, only on the window + shop */
+  /** highlighted line — only where KIDKA's own words carry it */
   hook?: string
 }
 
-/** Stages exactly as kidka.com/about-us describes them; the plan geometry
- *  is illustrative. */
-export const STATIONS: Station[] = [
+/**
+ * The five stages KIDKA describes, in order. These are STAGES, not rooms:
+ * an earlier version drew them as a factory floor plan, which invented the
+ * building's architecture (room sizes, adjacencies, a door, a walking route)
+ * — none of that is published anywhere. Removed 2026-07-23. Everything below
+ * is quoted or closely paraphrased from KIDKA's own copy.
+ */
+export const STAGES: Stage[] = [
   {
-    id: 'wool',
-    coord: 'A1',
-    title: 'The wool store',
+    n: '01',
+    title: 'Icelandic fleece',
     titleIs: 'Ullin',
-    note: '100% Icelandic sheep wool arrives and waits its turn. Nothing else goes into a KIDKA garment.',
-    box: [4, 8, 26, 36],
+    note: '100% Icelandic sheep wool. Nothing else goes into a KIDKA garment.',
   },
   {
-    id: 'wash',
-    coord: 'A2',
-    title: 'Washing & brushing',
+    n: '02',
+    title: 'Washed, brushed, steamed',
     titleIs: 'Þvottur',
-    note: 'Washing, brushing and steaming are what give the wool its softer, fluffier feel.',
-    box: [4, 50, 26, 40],
+    note: 'In their words: washing, brushing and steaming the wool "gives it a softer and fluffier texture than one is used from the hand-knitted pullovers".',
   },
   {
-    id: 'knit',
-    coord: 'B1',
-    title: 'The knitting hall',
-    titleIs: 'Prjónasalur',
-    note: 'The machines run here, on site, in Hvammstangi. This is the room the shop window looks into.',
-    box: [34, 8, 38, 52],
+    n: '03',
+    title: 'Knitted on the machines',
+    titleIs: 'Prjónað',
+    note: 'KIDKA sweaters, cardigans and accessories are knitted by knitting machines, in Hvammstangi. The factory has been running since 1972.',
   },
   {
-    id: 'finish',
-    coord: 'B2',
-    title: 'Finishing',
+    n: '04',
+    title: 'Finished and labelled',
     titleIs: 'Frágangur',
-    note: 'Linked, checked and labelled by hand before anything is folded.',
-    box: [34, 66, 38, 24],
+    note: 'Linked, checked and labelled before anything reaches the shelf.',
   },
   {
-    id: 'window',
-    coord: 'C1',
-    title: 'The viewing window',
-    titleIs: 'Glugginn',
-    note: 'The wall between the shop and the machines is glass.',
-    hook: 'Stand here and watch your sweater being made.',
-    box: [76, 8, 20, 40],
-  },
-  {
-    id: 'shop',
-    coord: 'C2',
+    n: '05',
     title: 'The factory shop',
     titleIs: 'Búðin',
-    note: 'Höfðabraut 34. Try it on, buy it at the source, or have it shipped worldwide from this same floor.',
-    hook: 'Five minutes off Route 1.',
-    box: [76, 54, 20, 36],
+    note: 'The shop adjoins the factory, and visitors say you can see it through the windows. Höfðabraut 34, five minutes off Route 1.',
+    hook: '"You are welcome to take a look at our factory and see it yourself."',
   },
 ]
 
@@ -347,6 +330,6 @@ export const SWATCH = [
   ['Fibre', '100% Icelandic sheep wool'],
   ['Made', 'Hvammstangi, North-West Iceland'],
   ['Process', 'Washed, brushed, steamed, knitted, linked'],
-  ['Since', 'Family-run by Irina & Kristinn since 2008'],
+  ['Since', 'Factory founded 1972; run by Irina Kamp & Kristinn Karlsson since 2008'],
   ['Ships', 'Worldwide, from the factory floor'],
 ] as const

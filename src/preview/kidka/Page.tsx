@@ -9,8 +9,8 @@
  * THE IDEA: Icelandic knitwear is designed on charted grids — every knitter
  * reads a chart. So the chart IS the interface. The page is drawn on a
  * stitch grid, the brand pattern is a real chart that knits itself stitch by
- * stitch, the factory is a PLAN you move through instead of a process strip,
- * and the products live in chart cells with coordinates.
+ * stitch, the five making stages fill that same chart in as you step through
+ * them, and the products live in chart cells with coordinates.
  *
  * References blended (Mobbin, 2026-07-23):
  *  - FREITAG's illustrated factory cutaway → the building AS the diagram
@@ -30,8 +30,10 @@
  * 4-up product card grid, dark process band with numbered steps, photo-split
  * story, 3 review cards, IO translateY fade as the through-line.
  *
- * HONESTY: the plan is labelled on the page as an illustrative diagram of the
- * stages KIDKA describes, not an architectural drawing. All photography,
+ * HONESTY: an earlier pass drew a factory FLOOR PLAN. Its architecture (room
+ * sizes, adjacencies, a door, a walking route) was invented — none of it is
+ * published anywhere — and a plan reads as documentation, so it was removed
+ * 2026-07-23. What remains is the sourced ORDER of the work. All photography,
  * product names and prices are KIDKA's own (see data.ts).
  *
  * AA (computed): ink #16141A on oat #EFE9DC 15.6:1 · oat on ink 15.6:1 ·
@@ -53,10 +55,10 @@ import {
   IMG,
   PRODUCTS,
   REVIEWS,
-  STATIONS,
+  STAGES,
   SWATCH,
   chartCell,
-  type Station,
+  type Stage,
 } from './data'
 
 const company = getPreviewCompany('kidka')
@@ -118,87 +120,44 @@ function ChartBand({
   )
 }
 
-/* ------------------------------------------------------------------- plan */
+/* ------------------------------------------------------------------ stages */
 
-function FactoryPlan({
-  active,
-  setActive,
-}: {
-  active: string
-  setActive: (id: string) => void
-}) {
+/** The pattern grows as you step through the stages: rows already "knitted"
+ *  are inked, the rest stay as ghosted grid. Replaces an earlier factory
+ *  floor plan whose architecture was invented — this makes no spatial claim
+ *  about the building, only about the order of the work. */
+function StageChart({ step, cell = 15 }: { step: number; cell?: number }) {
+  const repeats = 5
+  const cols = CHART_W * repeats
+  const knittedRows = Math.round(((step + 1) / STAGES.length) * CHART_H)
   return (
-    <div
-      className="relative w-full overflow-hidden rounded-[2px] border"
-      style={{ borderColor: C2.gridStrong, background: C2.oatDeep, aspectRatio: '16 / 9' }}
-    >
-      {/* the drawn plan — decorative; every room also exists as a real button */}
-      <svg viewBox="0 0 160 90" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        <defs>
-          <pattern id="kidka-grid" width="4" height="4" patternUnits="userSpaceOnUse">
-            <path d="M4 0H0V4" fill="none" stroke={C2.grid} strokeWidth="0.3" />
-          </pattern>
-        </defs>
-        <rect width="160" height="90" fill="url(#kidka-grid)" />
-        {/* outer shell */}
-        <rect x="4" y="4" width="152" height="82" fill="none" stroke={C2.ink} strokeWidth="0.9" />
-        {STATIONS.map((s) => {
-          const [l, t, w, h] = s.box
-          const on = active === s.id
-          return (
-            <g key={s.id}>
-              <rect
-                x={(l / 100) * 160}
-                y={(t / 100) * 90}
-                width={(w / 100) * 160}
-                height={(h / 100) * 90}
-                fill={on ? C2.dye : 'transparent'}
-                stroke={C2.ink}
-                strokeWidth="0.6"
-                style={{ transition: 'fill 220ms ease' }}
+    <div className="overflow-hidden" aria-hidden="true">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${cols}, ${cell}px)`,
+          gridAutoRows: `${cell}px`,
+          width: 'max-content',
+        }}
+      >
+        {Array.from({ length: CHART_H }).map((_, r) =>
+          Array.from({ length: cols }).map((__, c) => {
+            const on = chartCell(r, c % CHART_W)
+            const knitted = CHART_H - 1 - r < knittedRows
+            return (
+              <span
+                key={`${r}-${c}`}
+                style={{
+                  background: on ? C2.ink : 'transparent',
+                  outline: on ? 'none' : `0.5px solid ${C2.grid}`,
+                  opacity: on ? (knitted ? 1 : 0.12) : knitted ? 0.5 : 0.18,
+                  transition: 'opacity 420ms ease',
+                }}
               />
-              <text
-                x={(l / 100) * 160 + 2.5}
-                y={(t / 100) * 90 + 6}
-                fill={C2.ink}
-                style={{ font: '3.2px var(--font-servermono), monospace' }}
-              >
-                {s.coord}
-              </text>
-            </g>
-          )
-        })}
-        {/* the visitor's path: door → shop → window */}
-        <path
-          d="M150 78 L150 60 L128 60 L128 30"
-          fill="none"
-          stroke={C2.ink}
-          strokeWidth="0.7"
-          strokeDasharray="2 2"
-        />
-        <circle cx="150" cy="78" r="1.6" fill={C2.ink} />
-      </svg>
-
-      {/* accessible hotspots */}
-      {STATIONS.map((s) => {
-        const [l, t, w, h] = s.box
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => setActive(s.id)}
-            onMouseEnter={() => setActive(s.id)}
-            onFocus={() => setActive(s.id)}
-            aria-pressed={active === s.id}
-            className="absolute cursor-pointer"
-            style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%` }}
-          >
-            <span className="sr-only">
-              {s.title} ({s.titleIs}) — {s.note}
-            </span>
-          </button>
-        )
-      })}
+            )
+          }),
+        )}
+      </div>
     </div>
   )
 }
@@ -206,10 +165,10 @@ function FactoryPlan({
 /* --------------------------------------------------------------- component */
 
 export default function KidkaPage() {
-  const [active, setActive] = useState<string>('knit')
+  const [step, setStep] = useState(0)
   const [navOn, setNavOn] = useState(false)
   const bandRef = useRef<HTMLDivElement>(null)
-  const station: Station = STATIONS.find((s) => s.id === active) ?? STATIONS[2]
+  const stage: Stage = STAGES[step]
 
   useEffect(() => {
     setThemeColor(C2.oat)
@@ -309,9 +268,9 @@ export default function KidkaPage() {
                 </span>
               </h1>
               <p className="mt-7 max-w-[54ch] text-[1.05rem] leading-relaxed" style={{ color: C2.inkSoft }}>
-                We knit it ourselves, from Icelandic wool, on machines in Hvammstangi. The wall
-                between our shop and the knitting hall is glass, so you can stand there and watch
-                the row you are about to wear.
+                We knit it ourselves, from Icelandic wool, on machines in Hvammstangi, and have done
+                since 1972. The shop adjoins the factory, and you are welcome to look in and see
+                the work for yourself.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
@@ -349,64 +308,65 @@ export default function KidkaPage() {
           </div>
         </section>
 
-        {/* ---------------------------------------------------------- plan */}
+        {/* --------------------------------------------------------- stages */}
         <section id="plan" className="border-y" style={{ borderColor: C2.gridStrong, background: C2.oatDeep }}>
           <div className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
-                The floor, end to end
+                One row, start to finish
               </h2>
               <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
-                Tap a room · skýringarmynd
+                {stage.n} / 05 · {stage.titleIs.toUpperCase()}
               </p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] lg:gap-12">
-              <FactoryPlan active={active} setActive={setActive} />
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12">
+              <div className="flex flex-col justify-center border p-5" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
+                <StageChart step={step} />
+                <p className="mt-5 text-[0.75rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+                  The pattern fills in as the work moves along.
+                </p>
+              </div>
 
               <div className="flex flex-col">
-                <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
-                  {station.coord} / {station.titleIs.toUpperCase()}
-                </p>
-                <h3 className="mt-2 text-[1.8rem] leading-tight" style={{ fontFamily: FONT2.display }}>
-                  {station.title}
+                <h3 className="text-[1.8rem] leading-tight" style={{ fontFamily: FONT2.display }}>
+                  {stage.title}
                 </h3>
                 <p className="mt-3 text-[1rem] leading-relaxed" style={{ color: C2.inkSoft }}>
-                  {station.note}
+                  {stage.note}
                 </p>
-                {station.hook && (
+                {stage.hook && (
                   <p
-                    className="mt-4 inline-block self-start px-2 py-1 text-[1rem] font-bold"
+                    className="mt-4 self-start px-2 py-1 text-[1rem] font-bold"
                     style={{ background: C2.dye, color: C2.ink }}
                   >
-                    {station.hook}
+                    {stage.hook}
                   </p>
                 )}
 
-                {/* every room reachable as text, not only on the drawing */}
-                <ul className="mt-7 flex flex-wrap gap-2">
-                  {STATIONS.map((s) => (
-                    <li key={s.id}>
+                <ol className="mt-7 flex flex-col gap-1.5">
+                  {STAGES.map((s, i) => (
+                    <li key={s.n}>
                       <button
                         type="button"
-                        onClick={() => setActive(s.id)}
-                        aria-pressed={active === s.id}
-                        className="border px-3 py-1.5 text-[0.8rem]"
+                        onClick={() => setStep(i)}
+                        aria-current={i === step ? 'step' : undefined}
+                        className="flex w-full items-baseline gap-3 border px-3 py-2 text-left text-[0.88rem]"
                         style={{
-                          borderColor: C2.ink,
-                          background: active === s.id ? C2.ink : 'transparent',
-                          color: active === s.id ? C2.oat : C2.ink,
-                          fontFamily: FONT2.mono,
+                          borderColor: i === step ? C2.ink : C2.gridStrong,
+                          background: i === step ? C2.ink : 'transparent',
+                          color: i === step ? C2.oat : C2.ink,
                         }}
                       >
-                        {s.coord} {s.title}
+                        <span style={{ fontFamily: FONT2.mono }}>{s.n}</span>
+                        <span>{s.title}</span>
                       </button>
                     </li>
                   ))}
-                </ul>
+                </ol>
                 <p className="mt-5 text-[0.8rem] leading-relaxed" style={{ color: C2.inkSoft }}>
-                  An illustrative diagram of the stages KIDKA describes, not an architectural plan
-                  of the building.
+                  Stages and wording taken from KIDKA&rsquo;s own descriptions. We have not drawn the
+                  building itself.
                 </p>
               </div>
             </div>
