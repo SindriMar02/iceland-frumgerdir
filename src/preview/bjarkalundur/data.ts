@@ -75,8 +75,8 @@ export const VADALFJOLL = {
   title: 'Vaðalfjöll',
   body: 'Sex til sjö kílómetra fyrir norðan hótelið rísa Vaðalfjöll, tveir stapar úr storknuðu hrauni upp af Þorskafjarðarheiði. Af tindunum sést yfir Vestfirði, Breiðafjörð og Dali. Gönguleiðin að þeim byrjar við dyrnar á Bjarkalundi.',
   detailAlt: 'Nærmynd af öðrum stapa Vaðalfjalla, þar sem stuðlabergið sést greinilega, með grænni mosaþúfu í forgrunni.',
-  wideAlt: 'Vaðalfjöll rísa upp af heiðinni undir bláum himni, snjóskaflar í giljum.',
-  credit: 'Ljósmyndir af Vaðalfjöllum: Berserkur og ArniGael, Wikimedia Commons, CC BY-SA 4.0.',
+  wideAlt: 'Vaðalfjöll rísa upp af kjarri vaxinni heiðinni undir bláum himni og lítið hús stendur undir hlíðinni.',
+  credit: 'Ljósmyndir af Vaðalfjöllum: Hornstrandir1 og ArniGael, Wikimedia Commons, CC BY-SA 4.0.',
   waypoint: 'Bjarkalundur',
 }
 
