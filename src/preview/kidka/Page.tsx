@@ -40,7 +40,10 @@
  * ink on dye #E0A100 6.7:1 · ochre #7A5600 on oat 6.0:1.
  */
 import { useEffect, useRef, useState } from 'react'
+import Lenis from 'lenis'
 import { getPreviewCompany } from '../companies'
+import { DraggableContainer, GridBody, GridItem } from '../../components/InfiniteDragGallery'
+import { Yoke } from './Yoke'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -62,6 +65,12 @@ import {
 } from './data'
 
 const company = getPreviewCompany('kidka')
+
+/** The swatch wall: KIDKA's own photographs, repeated to tile the field. */
+const WALL: string[] = [
+  IMG.hero, IMG.story, IMG.band, IMG.yoke, IMG.poncho, IMG.blanket,
+  IMG.mittens, IMG.horse, ...PRODUCTS.map((p) => p.img),
+]
 
 /* ------------------------------------------------------------------ chart */
 
@@ -167,15 +176,35 @@ function StageChart({ step, cell = 15 }: { step: number; cell?: number }) {
 export default function KidkaPage() {
   const [step, setStep] = useState(0)
   const [navOn, setNavOn] = useState(false)
-  const bandRef = useRef<HTMLDivElement>(null)
+  const yokeWrapRef = useRef<HTMLDivElement>(null)
   const stage: Stage = STAGES[step]
 
   useEffect(() => {
     setThemeColor(C2.oat)
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    // Synchronous passive handler: nav flip + the yoke's scroll progress read
+    // off the pinned wrapper's own rect (same pattern as the Caves descent).
     const onScroll = () => setNavOn(window.scrollY > 24)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+
+    // Smooth scroll, off entirely under reduced motion.
+    let lenis: Lenis | null = null
+    let raf = 0
+    if (!reduce) {
+      lenis = new Lenis({ duration: 1.05, smoothWheel: true })
+      const loop = (time: number) => {
+        lenis?.raf(time)
+        raf = requestAnimationFrame(loop)
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+      lenis?.destroy()
+    }
   }, [])
 
   return (
@@ -237,74 +266,58 @@ export default function KidkaPage() {
           </div>
         </header>
 
-        {/* ---------------------------------------------------------- hero */}
-        <section id="top" className="mx-auto max-w-[1180px] px-5 pb-16 pt-10 lg:pb-24 lg:pt-16">
-          <div ref={bandRef} className="mb-10 overflow-hidden">
-            <ChartBand repeats={9} cell={13} />
-          </div>
+        {/* ------------------------------------------- hero: THE YOKE */}
+        <section id="top" ref={yokeWrapRef} className="relative" style={{ height: '260vh' }}>
+          <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
+            <div className="mx-auto grid w-full max-w-[1180px] items-center gap-6 px-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+              {/* copy — never gated on scroll or animation */}
+              <div className="relative z-10 order-2 lg:order-1">
+                <p
+                  className="mb-4 text-[0.72rem] uppercase sm:text-[0.78rem]"
+                  style={{ fontFamily: FONT2.mono, color: C2.ochre, letterSpacing: '0.14em' }}
+                >
+                  Ullarverksmiðjan KIDKA · Hvammstangi · síðan 1972
+                </p>
+                <h1
+                  className="text-[clamp(2.2rem,6vw,4.6rem)] leading-[0.95]"
+                  style={{ fontFamily: FONT2.display }}
+                >
+                  Knitted in the round,
+                  <br />
+                  <span className="inline-block px-2" style={{ background: C2.dye, color: C2.ink }}>
+                    in front of you.
+                  </span>
+                </h1>
+                <p className="mt-5 max-w-[46ch] text-[1rem] leading-relaxed" style={{ color: C2.inkSoft }}>
+                  A lopapeysa yoke grows ring by ring out from the neck. Ours grow on machines in
+                  Hvammstangi, from Icelandic wool, in a shop you can walk into and watch.
+                </p>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <a
+                    href="#chart"
+                    className="px-6 py-3.5 text-[0.95rem] font-bold"
+                    style={{ background: C2.ink, color: C2.oat }}
+                  >
+                    See the collection
+                  </a>
+                  <a
+                    href="#visit"
+                    className="border px-6 py-3.5 text-[0.95rem] font-bold"
+                    style={{ borderColor: C2.ink, color: C2.ink }}
+                  >
+                    Visit the shop
+                  </a>
+                </div>
+                <p className="mt-8 text-[0.72rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+                  ↓ keep scrolling — the yoke knits itself
+                </p>
+              </div>
 
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] lg:gap-14">
-            <div>
-              <p
-                className="mb-5 text-[0.78rem] uppercase"
-                style={{ fontFamily: FONT2.mono, color: C2.ochre, letterSpacing: '0.14em' }}
-              >
-                Ullarverksmiðjan KIDKA · Hvammstangi · síðan 2008 í fjölskyldueigu
-              </p>
-              <h1
-                className="text-[clamp(2.5rem,7vw,5.2rem)] leading-[0.95]"
-                style={{ fontFamily: FONT2.display }}
-              >
-                Every KIDKA sweater
-                <br />
-                starts as a chart
-                <br />
-                and ends
-                <span
-                  className="ml-3 inline-block px-2"
-                  style={{ background: C2.dye, color: C2.ink }}
-                >
-                  in your hands.
-                </span>
-              </h1>
-              <p className="mt-7 max-w-[54ch] text-[1.05rem] leading-relaxed" style={{ color: C2.inkSoft }}>
-                We knit it ourselves, from Icelandic wool, on machines in Hvammstangi, and have done
-                since 1972. The shop adjoins the factory, and you are welcome to look in and see
-                the work for yourself.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href="#chart"
-                  className="px-6 py-3.5 text-[0.95rem] font-bold"
-                  style={{ background: C2.ink, color: C2.oat }}
-                >
-                  See the collection
-                </a>
-                <a
-                  href="#plan"
-                  className="border px-6 py-3.5 text-[0.95rem] font-bold"
-                  style={{ borderColor: C2.ink, color: C2.ink }}
-                >
-                  Walk the factory floor
-                </a>
+              {/* the yoke */}
+              <div className="order-1 flex aspect-square w-full items-center justify-center lg:order-2 lg:aspect-auto lg:h-[76svh]">
+                <Yoke wrapRef={yokeWrapRef} />
               </div>
             </div>
-
-            {/* the swatch: material as image (Savor lesson), in a chart cell */}
-            <figure className="border p-2" style={{ borderColor: C2.gridStrong, background: C2.oatDeep }}>
-              <img
-                src={IMG.mittens}
-                alt="Grey patterned KIDKA wool mittens resting on wet pebbles"
-                className="aspect-[4/5] w-full object-cover"
-              />
-              <figcaption
-                className="flex items-center justify-between px-1 pt-2 text-[0.72rem]"
-                style={{ fontFamily: FONT2.mono, color: C2.ochre }}
-              >
-                <span>SWATCH / LOPI</span>
-                <span>100% ÍSL. ULL</span>
-              </figcaption>
-            </figure>
           </div>
         </section>
 
@@ -497,6 +510,35 @@ export default function KidkaPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------- the swatch wall */}
+        <section aria-labelledby="wall-h" className="border-y" style={{ borderColor: C2.gridStrong, background: C2.ink }}>
+          <div className="mx-auto flex max-w-[1180px] flex-wrap items-end justify-between gap-3 px-5 pb-6 pt-14">
+            <h2 id="wall-h" className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display, color: C2.oat }}>
+              The swatch wall
+            </h2>
+            <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.dye }}>
+              Drag it around · endless like the pattern
+            </p>
+          </div>
+          <div className="pb-14">
+            <DraggableContainer variant="masonry" height="72vh">
+              <GridBody>
+                {WALL.map((src, i) => (
+                  <GridItem key={`${src}-${i}`} className="relative h-40 w-28 md:h-72 md:w-52">
+                    <img
+                      src={src}
+                      alt=""
+                      aria-hidden="true"
+                      draggable={false}
+                      className="pointer-events-none absolute h-full w-full object-cover"
+                    />
+                  </GridItem>
+                ))}
+              </GridBody>
+            </DraggableContainer>
           </div>
         </section>
 
