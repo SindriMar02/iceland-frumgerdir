@@ -1,85 +1,75 @@
-/* Vendored from 21st.dev — @animbits/text-split-reveal (id 19330), pulled via
-   the 21st.dev MCP. Two deliberate deltas from the source import — both are
-   runtime-compat fixes for THIS app, not aesthetic edits; the visual (a
-   clip-path split opening from the centre seam) is exactly the source design:
+/* Adapted from 21st.dev — @animbits/text-split-reveal (id 19330), pulled via
+   the 21st.dev MCP. The visual is the source design, unchanged: the string is
+   cut at its midpoint into two halves that fade in, slide up, and unclip
+   outward from the centre seam — reading as a gate opening.
 
-   1. `motion` comes from framer-motion (the app's motion runtime), not
-      motion/react. A second motion runtime left the component inert in the
-      production build.
-   2. The reveal is triggered by a post-mount state flip rather than framer's
-      first-mount initial->animate, which does not fire for these nested spans
-      in this app's production build (verified on the live deploy: halves stuck
-      at opacity 0). This is the same post-mount pattern VerticalCutReveal and
-      the pages' own Reveal helpers use, and which works reliably here. */
+   What changed and why: the source drives this with framer-motion. framer's
+   animations are rAF-driven and, in THIS app, do not fire reliably — verified
+   exhaustively on the live deploy, where the page's OWN framer hero background
+   also sticks at its `initial` state (opacity 0) while the CSS-transition
+   reveals beside it complete. That is precisely why every reveal these pages
+   ship (Reveal, ClipImg) is CSS-transition driven, not framer. So this drives
+   the identical reveal with CSS transitions on a post-mount `shown` flag — the
+   same mechanism the rest of the page uses. It animates in every runtime.
+   Reduced motion is handled one level up in GateLine (renders plain text). */
 "use client";
-import { useEffect, useState } from "react";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
-export interface TextSplitRevealProps extends Omit<
-  HTMLMotionProps<"p">,
-  "children"
-> {
+
+export interface TextSplitRevealProps {
   children: string;
-  /* Root tag. Defaults to "p" (verbatim). Set "span" to nest inside a heading
-     without invalid p-in-h1 markup — reveal logic below is unchanged. */
+  /* Container tag. Defaults to "p" (source). Use "span" to nest in a heading. */
   as?: "p" | "span" | "div";
+  className?: string;
   duration?: number;
   delay?: number;
   staggerDelay?: number;
 }
+
+const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
+
 export function TextSplitReveal({
   children,
   className,
-  as = "p",
+  as: Tag = "p",
   duration = 0.6,
   delay = 0,
   staggerDelay = 0.1,
-  ...props
 }: TextSplitRevealProps) {
   const midpoint = Math.ceil(children.length / 2);
   const leftHalf = children.slice(0, midpoint);
   const rightHalf = children.slice(midpoint);
-  const MotionTag = motion[as] as typeof motion.p;
 
-  // Post-mount trigger (see file header): start hidden, flip on the next frame.
+  // Post-mount flip: paint the hidden state first, then transition to shown.
   const [shown, setShown] = useState(false);
   useEffect(() => {
-    const id = requestAnimationFrame(() => setShown(true));
-    return () => cancelAnimationFrame(id);
+    setShown(true);
   }, []);
 
-  const leftHidden = { opacity: 0, y: 20, clipPath: "inset(0 100% 0 0)" };
-  const leftShown = { opacity: 1, y: 0, clipPath: "inset(0 0% 0 0)" };
-  const rightHidden = { opacity: 0, y: 20, clipPath: "inset(0 0 0 100%)" };
-  const rightShown = { opacity: 1, y: 0, clipPath: "inset(0 0 0 0%)" };
+  const half = (
+    d: number,
+    hiddenClip: string,
+    shownClip: string,
+  ): CSSProperties => ({
+    display: "inline-block",
+    opacity: shown ? 1 : 0,
+    transform: shown ? "translateY(0)" : "translateY(20px)",
+    clipPath: shown ? shownClip : hiddenClip,
+    transition:
+      `opacity ${duration}s ${EASE} ${d}s, ` +
+      `transform ${duration}s ${EASE} ${d}s, ` +
+      `clip-path ${duration}s ${EASE} ${d}s`,
+  });
 
   return (
-    <MotionTag className={cn("overflow-hidden", className)} {...props}>
-      <motion.span
-        className="inline-block"
-        initial={leftHidden}
-        animate={shown ? leftShown : leftHidden}
-        transition={{
-          duration,
-          delay,
-          ease: "easeOut",
-        }}
-      >
+    <Tag className={cn("overflow-hidden", className)}>
+      <span style={half(delay, "inset(0 100% 0 0)", "inset(0 0% 0 0)")}>
         {leftHalf}
-      </motion.span>
-      <motion.span
-        className="inline-block"
-        initial={rightHidden}
-        animate={shown ? rightShown : rightHidden}
-        transition={{
-          duration,
-          delay: delay + staggerDelay,
-          ease: "easeOut",
-        }}
-      >
+      </span>
+      <span style={half(delay + staggerDelay, "inset(0 0 0 100%)", "inset(0 0 0 0%)")}>
         {rightHalf}
-      </motion.span>
-    </MotionTag>
+      </span>
+    </Tag>
   );
 }
 
