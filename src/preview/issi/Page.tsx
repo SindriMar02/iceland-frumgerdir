@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import Lenis from 'lenis'
+import { useReducedMotion } from 'framer-motion'
 import {
-  motion,
-  useScroll,
-  useTransform,
-  useMotionValueEvent,
-  useReducedMotion,
-} from 'framer-motion'
-import { Phone, MapPin, Clock, ArrowRight, Mail, ExternalLink, Star } from 'lucide-react'
+  Phone, MapPin, Clock, ArrowRight, Mail, ExternalLink, Star,
+} from 'lucide-react'
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -16,85 +12,93 @@ import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, PHONE_DISPLAY, PHONE_HREF, EMAIL, EMAIL_HREF, FACEBOOK, THORFISH, TRIPADVISOR,
-  LOCATIONS, MENU_HERO, MENU_LIST, PRICE_ESTIMATE, PRICE_SOURCE, REVIEWS, SOURCING_QUOTE,
+  LOCATIONS, MENU_HERO, MENU_LIST, PRICE_ESTIMATE, PRICE_SOURCE, REVIEWS, RATINGS, SOURCING_QUOTE,
 } from './data'
 
 const company = getPreviewCompany('issi')
 
-/* ISSI – Fish & Chips — "Beint af bátnum" redesign prototype.
-   Real client photography (issi.is media library, converted to WebP) carries every
-   section. The single scroll-linked signature is the top-of-viewport "sizzle" fryer
-   rail; everything else is mount-entrance + one-shot clip-path reveals. Honest copy:
-   award = finalist only, no invented prices, grandfather story attributed, phone
-   843 9333, no clean founding year. Facts/quotes all from the brief + dossier. */
+/* ISSI – Fish & Chips — "Beint af bátnum" redesign.
+   THE one dark page: deep dusk-petrol ground, warm newsprint text, chip-shop
+   yellow + fryer orange accents, newsprint panels for menu/card surfaces.
+   Signature: "Settu saman kassann" — a build-your-box menu explorer that
+   assembles the real product-cutout photography into a visual ISSI box as
+   the visitor picks a main, a size and optional meðlæti. Not a checkout —
+   the only price signal shown is the honest aggregator estimate from data.ts.
+   Every fact/quote/photo below is sourced only from data.ts + the brief. */
 
-/* ---- Palette (all pulled from the real photography, per brief) ---- */
-const CREAM = '#F7F2E7'
-const INK = '#1C1712'
-const GOLD = '#E0B004'
-const TEAL = '#0F3B36'
-const SLATE = '#3C4A55'
+/* ---- Palette (verified AA below) ---- */
+const DUSK = '#10262B' // ground — the shop glowing against night
+const NEWSPRINT = '#F4EFE2' // body text on dusk — ~12:1
+const PANEL = '#EDE6D4' // newsprint-off-white card surface
+const YELLOW = '#F2B705' // chip-shop yellow (brightened from their real #E0B004) — vs DUSK ≈ 8.7:1, safe at any size
+const ORANGE = '#E4571E' // fryer orange — vs DUSK ≈ 4.3:1, safe for large/bold text, icons, borders and UI outlines only (NOT small body text)
+const INK = DUSK // ink text on PANEL surfaces — ≈ 12.6:1
 
-/* ---- Type (all four app fonts, no fifth needed) ---- */
-const POSTER = 'var(--font-poster)' // Anton — hero impact only
-const DISPLAY = 'var(--font-display)' // Fraunces — headlines / pull-quotes
-const SANS = 'var(--font-sans)' // Inter — body / nav / buttons
-const MONO = 'var(--font-mono)' // Space Mono — factual labels
+/* ---- Type ---- */
+const DISPLAY = 'var(--font-clash)' // bold display — appetite/punch
+const BODY = 'var(--font-manrope)' // body/nav/buttons
+const MONO = 'var(--font-geistmono)' // prices/labels — newsprint voice
 
 const EASE = 'cubic-bezier(0.16,1,0.3,1)'
+/* Shared visible-focus ring for every interactive element (rounded-full
+   buttons already declare it inline; this constant keeps plain links and
+   the nav/burger controls consistent with the same treatment). */
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2B705] focus-visible:ring-offset-2 focus-visible:ring-offset-[#10262B]'
 
-/* Shared Lenis handle so CTAs can smooth-scroll to the menu. */
+/* Shared Lenis handle so nav/CTAs can smooth-scroll to a section. Offset
+   clears the fixed header (~72px) so the section heading never lands hidden
+   underneath it. */
 let lenisRef: Lenis | null = null
+const HEADER_CLEARANCE = 88
 function scrollToId(id: string) {
   const el = document.getElementById(id)
   if (!el) return
-  if (lenisRef) lenisRef.scrollTo(el, { offset: -12 })
-  else {
+  if (lenisRef) {
+    lenisRef.scrollTo(el, { offset: -HEADER_CLEARANCE })
+  } else {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_CLEARANCE
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
   }
 }
 
-/* ============================================================= Sizzle rail */
-/* The one scroll-linked signature: a 3px fryer-oil progress rail pinned to the
-   top edge. Only its WIDTH tracks scroll (no CSS transition on a scrubbed value).
-   The bubble shimmer animates independently via CSS background-position. In the
-   final 5% of scroll the gold fades to dusk-teal (day fryer -> night shop-glow),
-   written per-frame via useMotionValueEvent, never a CSS transition on the scroll
-   value. Omitted entirely under reduced motion. */
-function ch(a: number, b: number, t: number) {
-  return Math.round(a + (b - a) * t)
+const WRAP = 'mx-auto w-full max-w-[1440px] px-5 md:px-10 xl:px-16'
+
+/* ============================================================= Reveals
+   Two independent, non-framer entrance mechanisms (CSS transition driven —
+   framer-motion mount/state variants proved unreliable on this stack, so we
+   never gate opacity on framer's initial/animate props here):
+   - Rise: mount-triggered (hero, above the fold), one shared timer.
+   - FadeUp / PhotoClip: IntersectionObserver-triggered (everything below). */
+function useMountShown(reduce: boolean) {
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    if (reduce) { setShown(true); return }
+    const raf = requestAnimationFrame(() => setShown(true))
+    return () => cancelAnimationFrame(raf)
+  }, [reduce])
+  return shown
 }
-function goldToTeal(t: number) {
-  return `rgb(${ch(224, 15, t)},${ch(176, 59, t)},${ch(4, 54, t)})`
-}
-function SizzleRail() {
-  const reduce = useReducedMotion()
-  const { scrollYProgress } = useScroll()
-  const width = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
-  const fillRef = useRef<HTMLDivElement>(null)
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    const el = fillRef.current
-    if (!el) return
-    const t = v <= 0.95 ? 0 : (v - 0.95) / 0.05
-    el.style.backgroundColor = t <= 0 ? GOLD : goldToTeal(t)
-  })
-  if (reduce) return null
+
+function Rise({ shown, reduce, delay = 0, className = '', children }: {
+  shown: boolean; reduce: boolean; delay?: number; className?: string; children: ReactNode
+}) {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-[3px]" style={{ background: 'rgba(28,23,18,0.10)' }}>
-      <motion.div ref={fillRef} className="issi-sizzle h-full" style={{ width, backgroundColor: GOLD }} />
+    <div
+      className={className}
+      style={{
+        opacity: shown ? 1 : 0,
+        transform: shown ? 'none' : 'translateY(18px)',
+        transition: reduce ? 'none' : `opacity 640ms ${EASE} ${delay}ms, transform 700ms ${EASE} ${delay}ms`,
+      }}
+    >
+      {children}
     </div>
   )
 }
 
-/* ============================================================= Reveals */
-/* Clip-path reveal for standalone content images. The IntersectionObserver target
-   (outer) is NEVER transformed; only the inner element clips/scales (craft ledger
-   #7/#12). One-shot, so a CSS transition here is legal (not scroll-scrubbed). */
-function Reveal({ children, className = '', delay = 0, from = 'bottom' }: {
-  children: ReactNode; className?: string; delay?: number; from?: 'bottom' | 'left'
-}) {
-  const reduce = useReducedMotion()
+function FadeUp({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const reduce = useReducedMotion() ?? false
   const ref = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
   useEffect(() => {
@@ -108,16 +112,13 @@ function Reveal({ children, className = '', delay = 0, from = 'bottom' }: {
     io.observe(el)
     return () => io.disconnect()
   }, [reduce])
-  const hidden = from === 'left' ? 'inset(0 100% 0 0)' : 'inset(0 0 100% 0)'
   return (
     <div ref={ref} className={className}>
       <div
         style={{
-          height: '100%',
-          clipPath: shown ? 'inset(0 0 0 0)' : hidden,
-          transform: shown ? 'scale(1)' : 'scale(1.05)',
-          transition: reduce ? 'none' : `clip-path 860ms ${EASE} ${delay}ms, transform 1000ms ${EASE} ${delay}ms`,
-          willChange: 'clip-path, transform',
+          opacity: shown ? 1 : 0,
+          transform: shown ? 'none' : 'translateY(24px)',
+          transition: reduce ? 'none' : `opacity 700ms ${EASE} ${delay}ms, transform 760ms ${EASE} ${delay}ms`,
         }}
       >
         {children}
@@ -126,11 +127,10 @@ function Reveal({ children, className = '', delay = 0, from = 'bottom' }: {
   )
 }
 
-/* Text/element fade-up on scroll. Outer = untransformed IO target. */
-function FadeUp({ children, className = '', delay = 0 }: {
-  children: ReactNode; className?: string; delay?: number
-}) {
-  const reduce = useReducedMotion()
+/* Clip-path reveal for standalone content photos. Outer = untransformed IO
+   target; only the inner element clips/scales. */
+function PhotoClip({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const reduce = useReducedMotion() ?? false
   const ref = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
   useEffect(() => {
@@ -139,7 +139,7 @@ function FadeUp({ children, className = '', delay = 0 }: {
     if (!el) return
     const io = new IntersectionObserver(
       (es) => es.forEach((e) => { if (e.isIntersecting) { setShown(true); io.disconnect() } }),
-      { threshold: 0.18, rootMargin: '0px 0px -6% 0px' },
+      { threshold: 0.16, rootMargin: '0px 0px -8% 0px' },
     )
     io.observe(el)
     return () => io.disconnect()
@@ -148,9 +148,10 @@ function FadeUp({ children, className = '', delay = 0 }: {
     <div ref={ref} className={className}>
       <div
         style={{
-          opacity: shown ? 1 : 0,
-          transform: shown ? 'none' : 'translateY(22px)',
-          transition: reduce ? 'none' : `opacity 680ms ${EASE} ${delay}ms, transform 780ms ${EASE} ${delay}ms`,
+          height: '100%',
+          clipPath: shown ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
+          transform: shown ? 'scale(1)' : 'scale(1.06)',
+          transition: reduce ? 'none' : `clip-path 820ms ${EASE} ${delay}ms, transform 900ms ${EASE} ${delay}ms`,
         }}
       >
         {children}
@@ -159,14 +160,14 @@ function FadeUp({ children, className = '', delay = 0 }: {
   )
 }
 
-/* Small mono label chip. */
-function Tag({ children, tone = 'ink' }: { children: ReactNode; tone?: 'ink' | 'cream' | 'gold' }) {
+/* ============================================================= Small bits */
+function Tag({ children, tone = 'cream' }: { children: ReactNode; tone?: 'cream' | 'yellow' | 'ink' }) {
   const styles =
-    tone === 'cream'
-      ? { color: 'rgba(247,242,231,0.75)', border: '1px solid rgba(247,242,231,0.25)' }
-      : tone === 'gold'
-        ? { color: INK, background: GOLD }
-        : { color: 'rgba(28,23,18,0.60)', border: '1px solid rgba(28,23,18,0.18)' }
+    tone === 'yellow'
+      ? { color: INK, background: YELLOW }
+      : tone === 'ink'
+        ? { color: 'rgba(16,38,43,0.62)', border: `1px solid rgba(16,38,43,0.2)` }
+        : { color: 'rgba(244,239,226,0.78)', border: '1px solid rgba(244,239,226,0.26)' }
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.14em] uppercase"
@@ -177,35 +178,274 @@ function Tag({ children, tone = 'ink' }: { children: ReactNode; tone?: 'ink' | '
   )
 }
 
-/* ============================================================= Buttons */
-function GoldButton({ onClick, href, children }: { onClick?: () => void; href?: string; children: ReactNode }) {
+function PrimaryButton({ onClick, href, children }: { onClick?: () => void; href?: string; children: ReactNode }) {
   const cls =
-    'inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1C1712] focus-visible:ring-offset-2'
-  const style = { fontFamily: SANS, background: GOLD, color: INK }
+    'inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-bold transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2B705] focus-visible:ring-offset-2 focus-visible:ring-offset-[#10262B]'
+  const style = { fontFamily: BODY, background: YELLOW, color: INK }
   if (href) return <a href={href} className={cls} style={style}>{children}</a>
-  return <button onClick={onClick} className={cls} style={style}>{children}</button>
+  return <button type="button" onClick={onClick} className={cls} style={style}>{children}</button>
 }
-function GhostButton({ href, children, tone = 'ink' }: { href: string; children: ReactNode; tone?: 'ink' | 'cream' }) {
-  const border = tone === 'cream' ? 'rgba(247,242,231,0.55)' : 'rgba(28,23,18,0.35)'
-  const color = tone === 'cream' ? CREAM : INK
+function GhostButton({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a
       href={href}
-      className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2"
-      style={{ fontFamily: SANS, border: `1.5px solid ${border}`, color }}
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-bold transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2B705] focus-visible:ring-offset-2 focus-visible:ring-offset-[#10262B]"
+      style={{ fontFamily: BODY, border: '1.5px solid rgba(244,239,226,0.5)', color: NEWSPRINT }}
     >
       {children}
     </a>
   )
 }
 
+/* ============================================================= Build-a-box
+   Signature interaction: "Settu saman kassann". Radiogroup (main), radiogroup
+   (size, only when the item defines sizes) and a checkbox-group (meðlæti).
+   The three real product-cutout photos crossfade/scale to assemble a visual
+   box. Under reduced motion the crossfade/scale never runs; the underlying
+   controls are always real, readable text regardless of motion. */
+const SIZE_SCALE: Record<string, number> = { Lítill: 0.8, Miðlungs: 0.9, Stór: 1 }
+const EXTRA_NAMES = ['Gellur', 'Issapopp', 'Issa sósa', 'Drykkir']
+const EXTRAS = MENU_LIST.filter((m) => EXTRA_NAMES.includes(m.name))
+
+function radioKeyHandler(count: number, current: number, onMove: (next: number) => void) {
+  return (e: ReactKeyboardEvent<HTMLButtonElement>) => {
+    let next = current
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (current + 1) % count
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (current - 1 + count) % count
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = count - 1
+    else return
+    e.preventDefault()
+    onMove(next)
+  }
+}
+
+function RadioPill({ id, active, label, sub, onClick, onKeyDown, innerRef }: {
+  id: string; active: boolean; label: string; sub?: string
+  onClick: () => void; onKeyDown: (e: ReactKeyboardEvent<HTMLButtonElement>) => void
+  innerRef: (el: HTMLButtonElement | null) => void
+}) {
+  return (
+    <button
+      id={id}
+      ref={innerRef}
+      type="button"
+      role="radio"
+      aria-checked={active}
+      tabIndex={active ? 0 : -1}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      className="min-h-11 flex-1 rounded-2xl px-4 py-3 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2B705] focus-visible:ring-offset-2 focus-visible:ring-offset-[#10262B]"
+      style={{
+        background: active ? YELLOW : 'rgba(244,239,226,0.06)',
+        border: `1.5px solid ${active ? YELLOW : 'rgba(244,239,226,0.22)'}`,
+      }}
+    >
+      <span className="block text-base font-bold" style={{ fontFamily: BODY, color: active ? INK : NEWSPRINT }}>{label}</span>
+      {sub && (
+        <span className="mt-0.5 block text-[11px] uppercase tracking-wide" style={{ fontFamily: MONO, color: active ? 'rgba(16,38,43,0.7)' : 'rgba(244,239,226,0.55)' }}>
+          {sub}
+        </span>
+      )}
+    </button>
+  )
+}
+
+function TogglePill({ active, label, sub, onClick }: { active: boolean; label: string; sub: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={active}
+      onClick={onClick}
+      className="min-h-11 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2B705] focus-visible:ring-offset-2 focus-visible:ring-offset-[#10262B]"
+      style={{
+        background: active ? 'rgba(242,183,5,0.14)' : 'rgba(244,239,226,0.06)',
+        border: `1.5px solid ${active ? ORANGE : 'rgba(244,239,226,0.22)'}`,
+      }}
+    >
+      <span
+        aria-hidden
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+        style={{ background: active ? ORANGE : 'transparent', border: active ? 'none' : '1.5px solid rgba(244,239,226,0.4)', color: NEWSPRINT }}
+      >
+        {active ? '✓' : ''}
+      </span>
+      <span className="text-sm font-semibold" style={{ fontFamily: BODY, color: NEWSPRINT }}>{label}</span>
+      <span className="hidden text-[11px] sm:inline" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.55)' }}>{sub}</span>
+    </button>
+  )
+}
+
+function BuildABox({ reduce }: { reduce: boolean }) {
+  const [mainIndex, setMainIndex] = useState(0)
+  const [sizeIndex, setSizeIndex] = useState<number | null>(MENU_HERO[0].sizes.length ? 0 : null)
+  const [extras, setExtras] = useState<Set<string>>(new Set())
+  const mainRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const sizeRefs = useRef<Array<HTMLButtonElement | null>>([])
+
+  const mainItem = MENU_HERO[mainIndex]
+  const sizeLabel = sizeIndex !== null ? mainItem.sizes[sizeIndex] ?? null : null
+  const scale = sizeLabel ? SIZE_SCALE[sizeLabel] ?? 1 : 1
+  const extraList = Array.from(extras)
+  const issaborgari = MENU_LIST.find((m) => m.name === 'Issaborgari')
+
+  function selectMain(i: number) {
+    setMainIndex(i)
+    setSizeIndex(MENU_HERO[i].sizes.length ? 0 : null)
+    mainRefs.current[i]?.focus()
+  }
+  function selectSize(i: number) {
+    setSizeIndex(i)
+    sizeRefs.current[i]?.focus()
+  }
+  function toggleExtra(name: string) {
+    setExtras((prev) => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
+  }
+
+  const summary = `Í kassanum: ${sizeLabel ? `${sizeLabel} ` : ''}${mainItem.name}${extraList.length ? ` með ${extraList.join(', ')}` : ''}.`
+
+  return (
+    <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+      {/* ---- Controls ---- */}
+      <div>
+        <div>
+          <span className="text-[11px] font-bold tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: YELLOW }}>Skref 1 · Veldu aðalrétt</span>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row" role="radiogroup" aria-label="Veldu aðalrétt">
+            {MENU_HERO.map((it, i) => (
+              <RadioPill
+                key={it.name}
+                id={`issi-main-${i}`}
+                active={i === mainIndex}
+                label={it.name}
+                sub={it.note}
+                innerRef={(el) => { mainRefs.current[i] = el }}
+                onClick={() => selectMain(i)}
+                onKeyDown={radioKeyHandler(MENU_HERO.length, mainIndex, selectMain)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {mainItem.sizes.length > 0 && (
+          <div className="mt-8">
+            <span className="text-[11px] font-bold tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: YELLOW }}>Skref 2 · Veldu stærð</span>
+            <div className="mt-3 flex gap-2" role="radiogroup" aria-label="Veldu stærð">
+              {mainItem.sizes.map((s, i) => (
+                <RadioPill
+                  key={s}
+                  id={`issi-size-${i}`}
+                  active={i === sizeIndex}
+                  label={s}
+                  innerRef={(el) => { sizeRefs.current[i] = el }}
+                  onClick={() => selectSize(i)}
+                  onKeyDown={radioKeyHandler(mainItem.sizes.length, sizeIndex ?? 0, selectSize)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8">
+          <span className="text-[11px] font-bold tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: YELLOW }}>Skref 3 · Bæta við meðlæti (valfrjálst)</span>
+          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Bæta við meðlæti">
+            {EXTRAS.map((it) => (
+              <TogglePill key={it.name} active={extras.has(it.name)} label={it.name} sub={it.note} onClick={() => toggleExtra(it.name)} />
+            ))}
+          </div>
+          {issaborgari && (
+            <p className="mt-4 text-[13px]" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.55)' }}>
+              Einnig á boðstólum: {issaborgari.name}, {issaborgari.note}.
+            </p>
+          )}
+        </div>
+
+        <p aria-live="polite" className="sr-only">{summary}</p>
+
+        <div className="mt-9 rounded-2xl p-5" style={{ background: 'rgba(244,239,226,0.06)', border: '1px solid rgba(244,239,226,0.14)' }}>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-sm font-bold" style={{ fontFamily: MONO, color: NEWSPRINT }}>{PRICE_ESTIMATE}</span>
+            <span className="text-[11px]" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.55)' }}>({PRICE_SOURCE})</span>
+          </p>
+          <p className="mt-2 text-[13px]" style={{ color: 'rgba(244,239,226,0.62)' }}>
+            Þetta er matseðilskönnuður til að skoða samsetningar, ekki pöntunarkerfi. Hringdu til að panta.
+          </p>
+          <div className="mt-4">
+            <PrimaryButton href={PHONE_HREF}><Phone className="h-4 w-4" aria-hidden /> Hringja og panta</PrimaryButton>
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Assembled box ---- */}
+      <div className="flex flex-col items-center">
+        <div
+          className="relative aspect-square w-full max-w-sm overflow-hidden rounded-[28px]"
+          style={{ background: PANEL, border: '1px solid rgba(16,38,43,0.1)' }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{ background: 'radial-gradient(circle at 50% 42%, rgba(242,183,5,0.28) 0%, rgba(242,183,5,0) 62%)' }}
+          />
+          {MENU_HERO.map((it, i) => (
+            <div
+              key={it.name}
+              aria-hidden
+              className="absolute inset-0 flex items-center justify-center p-8"
+              style={{
+                opacity: i === mainIndex ? 1 : 0,
+                transform: i === mainIndex ? `scale(${scale})` : 'scale(0.92)',
+                transition: reduce ? 'none' : `opacity 420ms ${EASE}, transform 420ms ${EASE}`,
+              }}
+            >
+              <Img src={it.img} alt="" className="h-full w-full object-contain drop-shadow-2xl" />
+            </div>
+          ))}
+          <div className="absolute inset-x-0 bottom-0 flex flex-wrap justify-center gap-1.5 p-4">
+            {extraList.map((name) => (
+              <span
+                key={name}
+                className="is-chip-pop rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide"
+                style={{ fontFamily: MONO, background: INK, color: NEWSPRINT, animation: reduce ? 'none' : undefined }}
+              >
+                + {name}
+              </span>
+            ))}
+          </div>
+        </div>
+        <p className="mt-4 max-w-xs text-center text-[13px]" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.55)' }}>
+          Alveg eins og kassarnir sem koma yfir borðið, bara stafrænir.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 /* ============================================================= Page */
 export default function Page() {
-  const reduce = useReducedMotion()
+  const reduce = useReducedMotion() ?? false
+  const heroShown = useMountShown(reduce)
+  const [solid, setSolid] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const closeBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    document.title = 'ISSI – Fish & Chips · Beint af bátnum'
-    setThemeColor(CREAM)
+    document.title = 'ISSI Fish & Chips · Beint af bátnum'
+    setThemeColor(DUSK)
+  }, [])
+
+  // Header solidity after scrolling past the hero.
+  useEffect(() => {
+    const onScroll = () => setSolid((window.scrollY || 0) > 48)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Lenis smooth scroll (skipped entirely under reduced motion).
@@ -223,275 +463,385 @@ export default function Page() {
     }
   }, [reduce])
 
-  // Mount-triggered hero stagger (not scroll-linked). Accents keep headroom.
-  const heroWords = ['BEINT', 'AF', 'BÁTNUM']
+  // Mobile nav: body scroll lock + Lenis stop/start + Escape + focus into panel.
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+      lenisRef?.stop()
+      const raf = requestAnimationFrame(() => closeBtnRef.current?.focus())
+      const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+      window.addEventListener('keydown', onKey)
+      return () => {
+        cancelAnimationFrame(raf)
+        window.removeEventListener('keydown', onKey)
+      }
+    }
+    document.body.style.overflow = ''
+    if (!reduce) lenisRef?.start()
+    return undefined
+  }, [menuOpen, reduce])
+
+  function trapTab(e: ReactKeyboardEvent<HTMLDivElement>) {
+    if (e.key !== 'Tab') return
+    const els = overlayRef.current?.querySelectorAll<HTMLElement>('a[href],button')
+    if (!els?.length) return
+    const first = els[0]
+    const last = els[els.length - 1]
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+  }
+
+  function onNavTap(id: string) {
+    setMenuOpen(false)
+    document.body.style.overflow = ''
+    if (!reduce) lenisRef?.start()
+    scrollToId(id)
+  }
+
+  const NAV: { id: string; label: string }[] = [
+    { id: 'kassinn', label: 'Matseðill' },
+    { id: 'uppruni', label: 'Uppruni' },
+    { id: 'sagan', label: 'Sagan' },
+    { id: 'umsagnir', label: 'Umsagnir' },
+    { id: 'stadsetningar', label: 'Staðir' },
+  ]
 
   return (
-    <div style={{ background: CREAM, color: INK, fontFamily: SANS }} className="min-h-screen overflow-x-hidden">
-      {/* Sizzle-rail keyframes + bubble texture. */}
+    <div style={{ background: DUSK, color: NEWSPRINT, fontFamily: BODY }} className="min-h-screen overflow-x-hidden">
       <style>{`
-        .issi-sizzle {
-          background-image:
-            radial-gradient(circle at 18% 45%, rgba(255,255,255,0.6) 0 1px, transparent 1.6px),
-            radial-gradient(circle at 62% 60%, rgba(255,255,255,0.42) 0 1px, transparent 1.6px);
-          background-size: 20px 3px, 33px 3px;
-          animation: issi-bubble 6s linear infinite;
+        .is-bgphoto { animation: is-bg-in 1500ms cubic-bezier(.16,1,.3,1) both; }
+        @keyframes is-bg-in { from { transform: scale(1.08); } to { transform: scale(1); } }
+
+        .is-burger { position: relative; width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(244,239,226,.32); background: rgba(16,38,43,.35); }
+        .is-burger-bar { position: absolute; left: 12px; right: 12px; height: 2px; border-radius: 2px; background: ${YELLOW}; transition: transform 320ms cubic-bezier(.16,1,.3,1), opacity 200ms ease, background-color 320ms ease; }
+        .is-burger-bar:nth-child(1) { top: 15px; }
+        .is-burger-bar:nth-child(2) { top: 21px; }
+        .is-burger-bar:nth-child(3) { top: 27px; }
+        .is-burger.is-open .is-burger-bar { background: ${ORANGE}; }
+        .is-burger.is-open .is-burger-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .is-burger.is-open .is-burger-bar:nth-child(2) { opacity: 0; }
+        .is-burger.is-open .is-burger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+        .is-nav-overlay {
+          position: fixed; inset: 0; z-index: 60; background: ${DUSK};
+          display: flex; flex-direction: column; visibility: hidden; opacity: 0; transform: translateY(-14px);
+          transition: opacity 380ms cubic-bezier(.16,1,.3,1), transform 380ms cubic-bezier(.16,1,.3,1), visibility 0s linear 380ms;
         }
-        @keyframes issi-bubble {
-          from { background-position: 0 0, 0 0; }
-          to   { background-position: 20px 0, -33px 0; }
+        .is-nav-overlay.is-open { visibility: visible; opacity: 1; transform: translateY(0); transition: opacity 380ms cubic-bezier(.16,1,.3,1), transform 380ms cubic-bezier(.16,1,.3,1), visibility 0s; }
+        .is-nav-link { opacity: 0; transform: translateY(16px); transition: opacity 420ms cubic-bezier(.16,1,.3,1), transform 420ms cubic-bezier(.16,1,.3,1); }
+        .is-nav-overlay.is-open .is-nav-link:nth-child(1) { transition-delay: 70ms; }
+        .is-nav-overlay.is-open .is-nav-link:nth-child(2) { transition-delay: 120ms; }
+        .is-nav-overlay.is-open .is-nav-link:nth-child(3) { transition-delay: 170ms; }
+        .is-nav-overlay.is-open .is-nav-link:nth-child(4) { transition-delay: 220ms; }
+        .is-nav-overlay.is-open .is-nav-link:nth-child(5) { transition-delay: 270ms; }
+        .is-nav-overlay.is-open .is-nav-link { opacity: 1; transform: translateY(0); }
+
+        .is-chip-pop { animation: is-chip-in 260ms cubic-bezier(.16,1,.3,1) both; }
+        @keyframes is-chip-in { from { opacity: 0; transform: translateY(6px) scale(.9); } to { opacity: 1; transform: none; } }
+
+        @media (prefers-reduced-motion: reduce) {
+          .is-bgphoto { animation: none; }
+          .is-burger-bar { transition: none; }
+          .is-nav-overlay, .is-nav-link { transition: none !important; }
+          .is-chip-pop { animation: none; }
         }
-        @media (prefers-reduced-motion: reduce) { .issi-sizzle { animation: none; } }
       `}</style>
 
-      <SizzleRail />
-
-      {/* ---- Seamless header over the hero ---- */}
-      <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-5 pt-6 md:px-10 md:pt-8">
-        <a href="#top" onClick={(e) => { e.preventDefault(); scrollToId('top') }} className="select-none text-2xl leading-none tracking-tight text-white" style={{ fontFamily: POSTER, textShadow: '0 2px 18px rgba(0,0,0,0.5)' }}>
+      {/* ---- Header (fixed, transparent over hero then solid) ---- */}
+      <header
+        className="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-4 px-5 py-4 transition-colors duration-300 md:px-10"
+        style={{ background: solid || menuOpen ? 'rgba(16,38,43,0.88)' : 'transparent', backdropFilter: solid || menuOpen ? 'blur(10px)' : 'none', borderBottom: solid || menuOpen ? '1px solid rgba(244,239,226,0.1)' : '1px solid transparent' }}
+      >
+        <a
+          href="#top"
+          onClick={(e) => { e.preventDefault(); scrollToId('top') }}
+          className={`select-none text-2xl leading-none ${FOCUS}`}
+          style={{ fontFamily: DISPLAY, fontWeight: 700, color: NEWSPRINT }}
+        >
           ISSI
         </a>
-        <a href={PHONE_HREF} className="hidden items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/40 backdrop-blur-sm transition-colors hover:bg-white/10 md:inline-flex" style={{ fontFamily: SANS, background: 'rgba(20,15,10,0.28)' }}>
-          <Phone className="h-4 w-4" aria-hidden /> {PHONE_DISPLAY}
-        </a>
+
+        <nav className="hidden items-center gap-6 lg:flex" aria-label="Valmynd á síðu">
+          {NAV.map((n) => (
+            <a
+              key={n.id}
+              href={`#${n.id}`}
+              onClick={(e) => { e.preventDefault(); scrollToId(n.id) }}
+              className={`text-[13px] font-bold tracking-wide ${FOCUS}`}
+              style={{ fontFamily: BODY, color: NEWSPRINT }}
+            >
+              {n.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <a
+            href={PHONE_HREF}
+            className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-bold ring-1 ring-inset ring-white/25 sm:text-sm ${FOCUS}`}
+            style={{ fontFamily: MONO, color: NEWSPRINT }}
+          >
+            <Phone className="h-4 w-4 shrink-0" style={{ color: YELLOW }} aria-hidden /> {PHONE_DISPLAY}
+          </a>
+          <button
+            type="button"
+            className={`is-burger lg:hidden ${FOCUS}${menuOpen ? ' is-open' : ''}`}
+            aria-expanded={menuOpen}
+            aria-controls="issi-mobile-nav"
+            aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span className="is-burger-bar" />
+            <span className="is-burger-bar" />
+            <span className="is-burger-bar" />
+          </button>
+        </div>
       </header>
 
+      {/* ---- Full-screen mobile nav overlay (header sibling) ---- */}
+      <div
+        id="issi-mobile-nav"
+        ref={overlayRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Valmynd"
+        aria-hidden={!menuOpen}
+        onKeyDown={trapTab}
+        className={`is-nav-overlay${menuOpen ? ' is-open' : ''}`}
+      >
+        <div className="flex items-center justify-between px-5 pt-6 md:px-10">
+          <span style={{ fontFamily: DISPLAY, fontWeight: 700, color: NEWSPRINT }} className="text-2xl">ISSI</span>
+          <button ref={closeBtnRef} type="button" onClick={() => setMenuOpen(false)} aria-label="Loka valmynd" className={`is-burger is-open ${FOCUS}`}>
+            <span className="is-burger-bar" />
+            <span className="is-burger-bar" />
+            <span className="is-burger-bar" />
+          </button>
+        </div>
+        <nav className="mt-10 flex flex-1 flex-col gap-1 px-5 md:px-10" aria-label="Valmynd á síðu">
+          {NAV.map((n) => (
+            <a
+              key={n.id}
+              href={`#${n.id}`}
+              onClick={(e) => { e.preventDefault(); onNavTap(n.id) }}
+              className={`is-nav-link border-b py-4 text-[clamp(1.8rem,6vw,2.6rem)] ${FOCUS}`}
+              style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.15, color: NEWSPRINT, borderColor: 'rgba(244,239,226,0.14)' }}
+            >
+              {n.label}
+            </a>
+          ))}
+        </nav>
+        <div className="is-nav-link flex flex-col gap-3 px-5 pb-10 md:px-10">
+          <a href={PHONE_HREF} className={`inline-flex min-h-11 items-center gap-2 text-lg font-bold ${FOCUS}`} style={{ fontFamily: MONO, color: YELLOW }}>
+            <Phone className="h-5 w-5" aria-hidden /> {PHONE_DISPLAY}
+          </a>
+          <a href={EMAIL_HREF} className={`inline-flex min-h-11 items-center gap-2 text-sm ${FOCUS}`} style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.7)' }}>
+            <Mail className="h-4 w-4" aria-hidden /> {EMAIL}
+          </a>
+        </div>
+      </div>
+
       {/* ==================================================== 1 · HERO */}
-      <section id="top" className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
-        <motion.div
-          className="absolute inset-0"
-          initial={reduce ? false : { scale: 1.08 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-        >
+      <section id="top" className="relative flex min-h-[100svh] flex-col overflow-hidden">
+        <div className="is-bgphoto absolute inset-0">
           <Img
-            src={IMG('05_steiking_1720x920.webp')}
-            srcSet={`${IMG('05_steiking_1720x920-900.webp')} 900w, ${IMG('05_steiking_1720x920.webp')} 1720w`}
+            src={IMG('06_issi_fitjar_snjor.webp')}
+            srcSet={`${IMG('06_issi_fitjar_snjor-900.webp')} 900w, ${IMG('06_issi_fitjar_snjor.webp')} 1720w`}
             sizes="100vw"
             fetchpriority="high"
             loading="eager"
-            alt="Fiskur í deigi steiktur gullinn og freyðandi í heitri olíu á pönnu hjá ISSI."
+            alt="Hvíti ISSI kofinn á Fitjum að vetri til í rökkri, ljós skín út um gluggana."
             className="h-full w-full object-cover"
           />
-        </motion.div>
-        {/* Legibility scrim (bottom third). */}
-        <div className="absolute inset-0" aria-hidden style={{ background: 'linear-gradient(to top, rgba(20,15,10,0.92) 0%, rgba(20,15,10,0.55) 32%, rgba(20,15,10,0.12) 55%, rgba(20,15,10,0.28) 100%)' }} />
+        </div>
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(16,38,43,.62) 0%, rgba(16,38,43,.12) 24%, rgba(16,38,43,.10) 56%, rgba(16,38,43,.90) 100%)' }}
+        />
 
-        <div className="relative mx-auto w-full max-w-6xl px-5 pb-24 md:px-10 md:pb-20">
-          <motion.div initial={reduce ? false : 'hidden'} animate="show" variants={{ show: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } } }}>
-            <motion.div variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } } }}>
-              <span className="text-[12px] tracking-[0.22em] uppercase text-white/80" style={{ fontFamily: MONO }}>Fitjar 3 · Reykjanesbær</span>
-            </motion.div>
-
-            <h1 className="mt-4 flex flex-wrap gap-x-4 text-white" style={{ fontFamily: POSTER, lineHeight: 1.18 }}>
-              {heroWords.map((w) => (
-                <motion.span
-                  key={w}
-                  className="block text-[clamp(3.2rem,13vw,9.5rem)]"
-                  style={{ textShadow: '0 4px 30px rgba(0,0,0,0.45)' }}
-                  variants={{ hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0, transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] } } }}
-                >
-                  {w}
-                </motion.span>
-              ))}
-            </h1>
-
-            <motion.p
-              className="mt-5 max-w-xl text-lg text-white/90 md:text-xl"
-              style={{ fontFamily: DISPLAY }}
-              variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } } }}
-            >
-              Fiskur og franskar, steikt eftir pöntun. Sérvalinn og sjófrystur fiskur beint frá Þorbirni í Grindavík.
-            </motion.p>
-
-            <motion.div
-              className="mt-8 flex flex-wrap items-center gap-3"
-              variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } } }}
-            >
-              <GoldButton onClick={() => scrollToId('matsedill')}>Sjá matseðil <ArrowRight className="h-4 w-4" aria-hidden /></GoldButton>
-              <GhostButton href={PHONE_HREF} tone="cream"><Phone className="h-4 w-4" aria-hidden /> Hringja</GhostButton>
-              <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm text-white/85 ring-1 ring-white/30" style={{ fontFamily: MONO }}>
-                <Clock className="h-4 w-4" aria-hidden /> Opið alla daga 11–20
+        <div className="relative flex flex-1 flex-col justify-between pt-24 pb-10 md:pt-28">
+          {/* Credibility, up top */}
+          <Rise shown={heroShown} reduce={reduce} className={WRAP}>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold tracking-[0.1em] uppercase ring-1 ring-white/30" style={{ fontFamily: MONO, color: NEWSPRINT }}>
+                Tilnefnd til alþjóðlegra verðlauna · National Fish & Chip Awards 2026
               </span>
-            </motion.div>
-          </motion.div>
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold tracking-[0.1em] uppercase ring-1 ring-white/30" style={{ fontFamily: MONO, color: NEWSPRINT }}>
+                <Star className="h-3.5 w-3.5" style={{ color: YELLOW }} aria-hidden /> {RATINGS[0].value}/5 Google · {RATINGS[0].detail}
+              </span>
+            </div>
+          </Rise>
+
+          {/* Main hero content, anchored bottom */}
+          <div className={WRAP}>
+            <Rise shown={heroShown} reduce={reduce} delay={80}>
+              <span className="text-[12px] font-bold tracking-[0.24em] uppercase" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.75)' }}>
+                Fitjar 3 · Reykjanesbær &amp; Selfoss
+              </span>
+            </Rise>
+            <Rise shown={heroShown} reduce={reduce} delay={160}>
+              <h1
+                className="mt-4 text-[clamp(3rem,12vw,8.5rem)]"
+                style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.12, color: NEWSPRINT, textShadow: '0 6px 32px rgba(0,0,0,.4)' }}
+              >
+                Beint af bátnum
+              </h1>
+            </Rise>
+            <Rise shown={heroShown} reduce={reduce} delay={240} className="mt-5 max-w-xl">
+              <p className="text-lg md:text-xl" style={{ color: 'rgba(244,239,226,0.88)' }}>
+                Fiskur og franskar, steikt eftir pöntun. Sérvalinn og sjófrystur fiskur, alltaf ferskur í deigið.
+              </p>
+            </Rise>
+            <Rise shown={heroShown} reduce={reduce} delay={320} className="mt-8 flex flex-wrap items-center gap-3">
+              <PrimaryButton onClick={() => scrollToId('kassinn')}>Settu saman kassann <ArrowRight className="h-4 w-4" aria-hidden /></PrimaryButton>
+              <GhostButton href={PHONE_HREF}><Phone className="h-4 w-4" aria-hidden /> {PHONE_DISPLAY}</GhostButton>
+              <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm ring-1 ring-white/25" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.85)' }}>
+                <Clock className="h-4 w-4" aria-hidden /> Opið alla daga 11:00–20:00
+              </span>
+            </Rise>
+          </div>
         </div>
       </section>
 
       {/* ==================================================== 2 · TRUST STRIP */}
-      <section aria-label="Traust og viðurkenningar" style={{ background: INK, color: CREAM }}>
+      <section aria-label="Traust og viðurkenningar" style={{ borderTop: '1px solid rgba(244,239,226,0.1)', borderBottom: '1px solid rgba(244,239,226,0.1)' }}>
         <h2 className="sr-only">Traust og viðurkenningar</h2>
-        <div className="mx-auto grid max-w-6xl gap-x-8 gap-y-4 px-5 py-6 text-center md:grid-cols-3 md:px-10 md:text-left">
+        <div className={`${WRAP} grid gap-x-8 gap-y-4 py-6 text-center md:grid-cols-3 md:text-left`}>
           {[
-            { icon: true, t: '4,9/5 á Google · tæplega 1.200 umsagnir' },
-            { icon: false, t: 'Tilnefnd til alþjóðlegra verðlauna · National Fish & Chip Awards 2026' },
-            { icon: false, t: 'Allur fiskur frá Þorbirni í Grindavík' },
-          ].map((item, i) => (
-            <div key={item.t} className={`flex items-center justify-center gap-3 md:justify-start ${i < 2 ? 'md:border-r md:border-white/15' : ''}`}>
-              {item.icon && <Star className="h-4 w-4 shrink-0" style={{ color: GOLD }} aria-hidden />}
-              <p className="text-[13px] leading-snug tracking-wide" style={{ fontFamily: MONO, color: 'rgba(247,242,231,0.85)' }}>{item.t}</p>
+            `Tilnefnd 2026 · National Fish & Chip Awards, alþjóðlegi flokkurinn`,
+            `${RATINGS[0].value}/5 á ${RATINGS[0].platform} · ${RATINGS[0].detail}`,
+            `${RATINGS[1].value}/5 á ${RATINGS[1].platform} · ${RATINGS[1].detail}`,
+          ].map((t, i) => (
+            <div key={t} className={`flex items-center justify-center gap-3 md:justify-start ${i < 2 ? 'md:border-r md:border-white/10' : ''}`}>
+              <Star className="h-4 w-4 shrink-0" style={{ color: YELLOW }} aria-hidden />
+              <p className="text-[13px] leading-snug tracking-wide" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.85)' }}>{t}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ==================================================== 3 · MENU */}
-      <section id="matsedill" className="mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28">
+      {/* ==================================================== 3 · BUILD-YOUR-BOX (signature) */}
+      <section id="kassinn" className={`${WRAP} py-20 md:py-28`}>
         <FadeUp>
-          <Tag tone="gold">Matseðill</Tag>
-          <h2 className="mt-4 max-w-2xl text-[clamp(2rem,5vw,3.4rem)] leading-[1.08]" style={{ fontFamily: DISPLAY }}>
-            Fiskur, gellur og allt sem á að fylgja
+          <Tag tone="yellow">Settu saman kassann</Tag>
+          <h2 className="mt-4 max-w-2xl text-[clamp(2rem,5vw,3.6rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.12 }}>
+            Prófaðu þig áfram á matseðlinum
           </h2>
-          <p className="mt-4 max-w-xl text-lg" style={{ color: 'rgba(28,23,18,0.7)' }}>
-            Steikt þegar þú pantar, aldrei upphitað. Skammtarnir koma í kassa á dagblaðapappír, alveg eins og þeir eiga að gera.
+          <p className="mt-4 max-w-xl text-lg" style={{ color: 'rgba(244,239,226,0.72)' }}>
+            Veldu aðalrétt, stærð og meðlæti og sjáðu kassann þinn taka á sig mynd, alveg eins og hann kemur yfir borðið.
           </p>
         </FadeUp>
 
-        {/* Photographed hero items. */}
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {MENU_HERO.map((it, i) => (
-            <FadeUp key={it.name} delay={i * 80}>
-              <article className="group flex h-full flex-col rounded-3xl p-6 transition-shadow duration-300 hover:shadow-xl" style={{ background: '#FBF8F0', border: '1px solid rgba(28,23,18,0.08)' }}>
-                <div className="relative mx-auto aspect-[4/3] w-full max-w-[280px]">
-                  <Img src={it.img} alt={it.alt} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]" />
-                </div>
-                <h3 className="mt-4 text-2xl" style={{ fontFamily: DISPLAY }}>{it.name}</h3>
-                <p className="mt-1 text-sm" style={{ color: 'rgba(28,23,18,0.68)' }}>{it.note}</p>
-                {it.sizes.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {it.sizes.map((s) => (
-                      <span key={s} className="rounded-full px-2.5 py-1 text-[11px] tracking-wide uppercase" style={{ fontFamily: MONO, background: 'rgba(224,176,4,0.15)', color: INK }}>{s}</span>
-                    ))}
-                  </div>
-                )}
-              </article>
-            </FadeUp>
-          ))}
-        </div>
+        <FadeUp delay={80} className="mt-12">
+          <BuildABox reduce={reduce} />
+        </FadeUp>
 
-        {/* Remaining real items (no standalone photo) — typographic list. */}
-        <FadeUp delay={60}>
-          <ul className="mt-10 grid gap-x-10 gap-y-1 md:grid-cols-2">
+        <FadeUp delay={100} className="mt-14">
+          <h3 className="text-sm font-bold tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.55)' }}>Allur matseðillinn</h3>
+          <ul className="mt-4 grid gap-x-10 gap-y-1 md:grid-cols-2">
             {MENU_LIST.map((it) => (
-              <li key={it.name} className="flex items-baseline justify-between gap-4 border-b py-4" style={{ borderColor: 'rgba(28,23,18,0.10)' }}>
+              <li key={it.name} className="flex items-baseline justify-between gap-4 border-b py-4" style={{ borderColor: 'rgba(244,239,226,0.1)' }}>
                 <div>
-                  <span className="text-xl" style={{ fontFamily: DISPLAY }}>{it.name}</span>
-                  <span className="ml-3 text-sm" style={{ color: 'rgba(28,23,18,0.72)' }}>{it.note}</span>
+                  <span className="text-xl" style={{ fontFamily: DISPLAY, fontWeight: 700 }}>{it.name}</span>
+                  <span className="ml-3 text-sm" style={{ color: 'rgba(244,239,226,0.68)' }}>{it.note}</span>
                 </div>
-                {it.sizes && <span className="shrink-0 text-[12px]" style={{ fontFamily: MONO, color: 'rgba(28,23,18,0.72)' }}>{it.sizes}</span>}
+                {it.sizes && <span className="shrink-0 text-[12px]" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.62)' }}>{it.sizes}</span>}
               </li>
             ))}
           </ul>
         </FadeUp>
-
-        {/* Honest price signal — an estimate, footnoted, secondary to the food. */}
-        <FadeUp delay={80}>
-          <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="text-[13px]" style={{ fontFamily: MONO, color: INK }}>{PRICE_ESTIMATE}</span>
-            <span className="text-[11px]" style={{ fontFamily: MONO, color: 'rgba(28,23,18,0.72)' }}>({PRICE_SOURCE})</span>
-          </div>
-        </FadeUp>
       </section>
 
       {/* ==================================================== 4 · SOURCING (full-bleed) */}
-      <section aria-label="Fiskurinn okkar" className="relative overflow-hidden" style={{ background: SLATE }}>
-        {/* Full-bleed absolute background: rendered plainly, never self-clipped
-            or observer-revealed (craft-ledger #12). */}
-        <div className="absolute inset-0">
+      <section id="uppruni" aria-label="Fiskurinn okkar" className="relative overflow-hidden">
+        <div className="is-bgphoto absolute inset-0">
           <Img
             src={IMG('04_thorbjorn_7341.webp')}
             srcSet={`${IMG('04_thorbjorn_7341-900.webp')} 900w, ${IMG('04_thorbjorn_7341.webp')} 1720w`}
             sizes="100vw"
-            alt="Togarinn Ágúst GK-95 plægir í gegnum þunga norðuratlantshafsöldu."
+            alt="Togarinn Ágúst GK-95 plægir í gegnum þunga norður-atlantshafsöldu."
             className="h-full w-full object-cover"
           />
         </div>
-        <div className="absolute inset-0" aria-hidden style={{ background: 'linear-gradient(to right, rgba(15,20,26,0.86) 0%, rgba(15,20,26,0.55) 55%, rgba(15,20,26,0.30) 100%)' }} />
-        <div className="absolute inset-0 md:hidden" aria-hidden style={{ background: 'rgba(15,20,26,0.45)' }} />
-        <div className="relative mx-auto max-w-6xl px-5 py-24 md:px-10 md:py-36">
+        <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(16,38,43,.88) 0%, rgba(16,38,43,.55) 55%, rgba(16,38,43,.25) 100%)' }} />
+        <div className={`relative ${WRAP} py-24 md:py-36`}>
           <FadeUp className="max-w-2xl">
             <h2 className="sr-only">Fiskurinn okkar</h2>
             <Tag tone="cream">Fiskurinn okkar</Tag>
-            <blockquote className="mt-6 text-[clamp(1.7rem,4.2vw,3rem)] leading-[1.16] text-white" style={{ fontFamily: DISPLAY }}>
+            <blockquote className="mt-6 text-[clamp(1.7rem,4.2vw,3rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.16, color: NEWSPRINT }}>
               „{SOURCING_QUOTE}“
             </blockquote>
-            <p className="mt-6 max-w-lg text-[13px] leading-relaxed" style={{ fontFamily: MONO, color: 'rgba(247,242,231,0.7)' }}>
+            <p className="mt-6 max-w-lg text-[13px] leading-relaxed" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.7)' }}>
               Þorbjörn hf. heldur utan um rekjanleika aflans. Hægt er að fletta upp hvaðan fiskurinn kemur á{' '}
-              <a href={THORFISH} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-white">thorfish.is</a>.
+              <a href={THORFISH} target="_blank" rel="noreferrer" className={`underline underline-offset-2 hover:text-white ${FOCUS}`}>thorfish.is</a>.
             </p>
           </FadeUp>
         </div>
       </section>
 
-      {/* ==================================================== 5 · FRIED TO ORDER (asymmetric split) */}
-      <section aria-label="Steikt eftir pöntun" className="mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28">
-        <div className="grid items-center gap-10 md:grid-cols-[1.15fr_0.85fr] md:gap-14">
-          <Reveal from="left" className="overflow-hidden rounded-3xl">
+      {/* ==================================================== 5 · FRIED TO ORDER */}
+      <section aria-label="Steikt eftir pöntun" className={`${WRAP} py-20 md:py-28`}>
+        <div className="grid items-center gap-10 md:grid-cols-[1.1fr_0.9fr] md:gap-14">
+          <PhotoClip className="overflow-hidden rounded-3xl">
             <Img
               src={IMG('01_issi_1574_1720x920.webp')}
               alt="Tveir stökkir fiskbitar í deigi með frönskum og sósu í ISSI kassa á dagblaðapappír."
               className="aspect-[16/10] w-full object-cover"
             />
-          </Reveal>
+          </PhotoClip>
           <FadeUp>
-            <Tag tone="gold">Steikt eftir pöntun</Tag>
-            <h2 className="mt-4 text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1]" style={{ fontFamily: DISPLAY }}>
+            <Tag tone="yellow">Steikt eftir pöntun</Tag>
+            <h2 className="mt-4 text-[clamp(1.9rem,4.5vw,3rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.14 }}>
               Ekkert liggur tilbúið undir lampa
             </h2>
-            <p className="mt-4 text-lg" style={{ color: 'rgba(28,23,18,0.72)' }}>
-              Fiskurinn fer í deigið og á pönnuna þegar þú pantar. Þess vegna kemur hann stökkur og heitur í kassann, aldrei upphitaður úr frysti. Gestir taka eftir muninum.
-            </p>
-            <p className="mt-6 border-l-2 pl-4 text-[13px] leading-relaxed" style={{ borderColor: GOLD, fontFamily: MONO, color: 'rgba(28,23,18,0.68)' }}>
-              „The fish is done in front of your eyes.“<br />
-              <span style={{ color: 'rgba(28,23,18,0.72)' }}>umsögn á TripAdvisor</span>
+            <p className="mt-4 text-lg" style={{ color: 'rgba(244,239,226,0.75)' }}>
+              Fiskurinn fer í deigið og á pönnuna þegar þú pantar. Þess vegna kemur hann stökkur og heitur í kassann, aldrei upphitaður úr frysti.
             </p>
           </FadeUp>
         </div>
       </section>
 
       {/* ==================================================== 6 · STORY */}
-      <section aria-label="Issi og Hjördís" style={{ background: INK, color: CREAM }}>
-        <div className="mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28">
-          <Reveal className="overflow-hidden rounded-3xl">
-            <Img
-              src={IMG('03_issi_hjordis_1720x480.webp')}
-              alt="Issi með skegg og derhúfu vinnur í eldhúsinu ásamt Hjördísi við hlið sér."
-              className="aspect-[16/6] w-full object-cover"
-            />
-          </Reveal>
-          <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-16">
-            <FadeUp>
-              <Tag tone="cream">Issi &amp; Hjördís</Tag>
-              <h2 className="mt-4 text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1]" style={{ fontFamily: DISPLAY }}>
-                Fjölskyldurekið, frá fyrsta degi
-              </h2>
-            </FadeUp>
-            <FadeUp delay={80}>
-              <p className="text-lg" style={{ color: 'rgba(247,242,231,0.82)' }}>
-                Issi og Hjördís gengu saman í skóla í Grindavík, kynntust aftur á fullorðinsárum og hófu reksturinn saman. Þau byrjuðu með matarbíla árið 2007 og formfestu staðinn sem Tralla ehf árið 2016.
-              </p>
-              <p className="mt-5 text-[15px] leading-relaxed" style={{ color: 'rgba(247,242,231,0.62)' }}>
-                Issi segir að afi hans hafi rekið einn af fyrstu stöðunum á Íslandi sem seldu fisk og franskar, á Akureyri í kringum 1942, og selt breskum hermönnum. Sagan segir að staðurinn hafi síðar brunnið eftir að gleymdist að slökkva á pönnunni. Þetta er sagan sem fylgir nafninu, sögð eins og hún gengur í fjölskyldunni.
-              </p>
-            </FadeUp>
-          </div>
+      <section id="sagan" aria-label="Issi og Hjördís" className={`${WRAP} py-20 md:py-28`}>
+        <PhotoClip className="overflow-hidden rounded-3xl">
+          <Img
+            src={IMG('03_issi_hjordis_1720x480.webp')}
+            alt="Issi með skegg og derhúfu vinnur í eldhúsinu ásamt Hjördísi við hlið sér."
+            className="aspect-[16/6] w-full object-cover"
+          />
+        </PhotoClip>
+        <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-16">
+          <FadeUp>
+            <Tag tone="cream">Issi &amp; Hjördís</Tag>
+            <h2 className="mt-4 text-[clamp(1.9rem,4.5vw,3rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.14 }}>
+              Fjölskyldurekið, frá fyrsta degi
+            </h2>
+          </FadeUp>
+          <FadeUp delay={80}>
+            <p className="text-lg" style={{ color: 'rgba(244,239,226,0.82)' }}>
+              Issi og Hjördís gengu saman í skóla í Grindavík, kynntust aftur á fullorðinsárum og hófu reksturinn saman. Þau byrjuðu með matarbíla árið 2007 og formfestu staðinn sem Tralla ehf árið 2016.
+            </p>
+            <p className="mt-5 text-[15px] leading-relaxed" style={{ color: 'rgba(244,239,226,0.6)' }}>
+              Issi segir að afi hans hafi rekið einn af fyrstu stöðunum á Íslandi sem seldu fisk og franskar, á Akureyri í kringum 1942, og selt breskum hermönnum. Sagan segir að staðurinn hafi síðar brunnið eftir að gleymdist að slökkva á pönnunni. Þetta er sagan sem fylgir nafninu, sögð eins og hún gengur í fjölskyldunni.
+            </p>
+          </FadeUp>
         </div>
       </section>
 
       {/* ==================================================== 7 · REVIEWS */}
-      <section aria-label="Umsagnir" className="mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28">
+      <section id="umsagnir" aria-label="Umsagnir" className={`${WRAP} py-20 md:py-28`}>
         <FadeUp>
-          <Tag tone="gold">Umsagnir</Tag>
-          <h2 className="mt-4 text-[clamp(2rem,5vw,3.4rem)] leading-[1.08]" style={{ fontFamily: DISPLAY }}>
+          <Tag tone="yellow">Umsagnir</Tag>
+          <h2 className="mt-4 text-[clamp(2rem,5vw,3.4rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.12 }}>
             Fólk keyrir út á Reykjanes fyrir þetta
           </h2>
         </FadeUp>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {REVIEWS.map((r, i) => (
             <FadeUp key={r.author} delay={i * 80}>
-              <figure className="flex h-full flex-col rounded-3xl p-6" style={{ background: '#FBF8F0', border: '1px solid rgba(28,23,18,0.08)' }}>
-                <blockquote className="flex-1 text-[17px] leading-relaxed" style={{ fontFamily: DISPLAY }}>„{r.quote}“</blockquote>
-                <figcaption className="mt-5 border-t pt-4 text-[12px]" style={{ borderColor: 'rgba(28,23,18,0.10)', fontFamily: MONO, color: 'rgba(28,23,18,0.68)' }}>
+              <figure className="flex h-full flex-col rounded-3xl p-6" style={{ background: PANEL, border: '1px solid rgba(16,38,43,0.08)' }}>
+                <blockquote className="flex-1 text-[17px] leading-relaxed" style={{ fontFamily: DISPLAY, fontWeight: 600, color: INK }}>„{r.quote}“</blockquote>
+                <figcaption className="mt-5 border-t pt-4 text-[12px]" style={{ borderColor: 'rgba(16,38,43,0.1)', fontFamily: MONO, color: 'rgba(16,38,43,0.68)' }}>
                   <span className="block font-bold" style={{ color: INK }}>{r.author}</span>
                   {r.source}
                 </figcaption>
@@ -500,16 +850,15 @@ export default function Page() {
           ))}
         </div>
         <FadeUp delay={60}>
-          <a href={TRIPADVISOR} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-1.5 text-sm font-semibold underline underline-offset-4" style={{ fontFamily: SANS, color: INK }}>
+          <a href={TRIPADVISOR} target="_blank" rel="noreferrer" className={`mt-8 inline-flex items-center gap-1.5 text-sm font-bold underline underline-offset-4 ${FOCUS}`} style={{ fontFamily: BODY, color: NEWSPRINT }}>
             Lesa fleiri umsagnir á TripAdvisor <ExternalLink className="h-3.5 w-3.5" aria-hidden />
           </a>
         </FadeUp>
       </section>
 
       {/* ==================================================== 8 · CATERING (full-bleed) */}
-      <section aria-label="Á ferðinni" className="relative overflow-hidden" style={{ background: INK }}>
-        {/* Full-bleed absolute background: plain render (craft-ledger #12). */}
-        <div className="absolute inset-0">
+      <section aria-label="Á ferðinni" className="relative overflow-hidden">
+        <div className="is-bgphoto absolute inset-0">
           <Img
             src={IMG('08_DJI_0005-2_1720x920.webp')}
             srcSet={`${IMG('08_DJI_0005-2_1720x920-900.webp')} 900w, ${IMG('08_DJI_0005-2_1720x920.webp')} 1720w`}
@@ -518,100 +867,97 @@ export default function Page() {
             className="h-full w-full object-cover"
           />
         </div>
-        <div className="absolute inset-0" aria-hidden style={{ background: 'linear-gradient(to top, rgba(20,15,10,0.9) 0%, rgba(20,15,10,0.45) 50%, rgba(20,15,10,0.25) 100%)' }} />
-        <div className="relative mx-auto max-w-6xl px-5 py-24 text-center md:px-10 md:py-36">
+        <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(16,38,43,.92) 0%, rgba(16,38,43,.5) 48%, rgba(16,38,43,.25) 100%)' }} />
+        <div className={`relative ${WRAP} py-24 text-center md:py-36`}>
           <FadeUp className="mx-auto max-w-2xl">
             <Tag tone="cream">Á ferðinni</Tag>
-            <h2 className="mt-6 text-[clamp(2rem,5vw,3.6rem)] leading-[1.1] text-white" style={{ fontFamily: DISPLAY }}>
+            <h2 className="mt-6 text-[clamp(2rem,5vw,3.6rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.14, color: NEWSPRINT }}>
               ISSI kemur með veisluna til þín
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-lg text-white/85">
+            <p className="mx-auto mt-5 max-w-xl text-lg" style={{ color: 'rgba(244,239,226,0.85)' }}>
               Fiskur og franskar beint úr vagninum, hvar sem hentar. Sendu okkur línu ef þú ert að skipuleggja viðburð eða veislu.
             </p>
             <div className="mt-8 flex justify-center">
-              <GoldButton href={EMAIL_HREF}><Mail className="h-4 w-4" aria-hidden /> Senda fyrirspurn</GoldButton>
+              <PrimaryButton href={EMAIL_HREF}><Mail className="h-4 w-4" aria-hidden /> Senda fyrirspurn</PrimaryButton>
             </div>
           </FadeUp>
         </div>
       </section>
 
       {/* ==================================================== 9 · LOCATIONS */}
-      <section id="stadsetningar" aria-label="Finndu okkur" style={{ background: TEAL, color: CREAM }}>
-        <div className="mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28">
-          <FadeUp>
-            <Tag tone="cream">Finndu okkur</Tag>
-            <h2 className="mt-4 text-[clamp(2rem,5vw,3.4rem)] leading-[1.08]" style={{ fontFamily: DISPLAY }}>
-              Tveir staðir, sami fiskur
-            </h2>
-          </FadeUp>
-          <div className="mt-12 grid gap-8 md:grid-cols-2">
-            {LOCATIONS.map((loc, i) => (
-              <FadeUp key={loc.name} delay={i * 90}>
-                <article className="flex h-full flex-col overflow-hidden rounded-3xl" style={{ background: 'rgba(247,242,231,0.06)', border: '1px solid rgba(247,242,231,0.14)' }}>
-                  <Reveal className="overflow-hidden">
-                    <Img
-                      src={loc.img}
-                      srcSet={loc.imgMobile !== loc.img ? `${loc.imgMobile} 900w, ${loc.img} 1720w` : undefined}
-                      sizes="(min-width: 768px) 50vw, 100vw"
-                      alt={loc.alt}
-                      className="aspect-[16/10] w-full object-cover"
-                    />
-                  </Reveal>
-                  <div className="flex flex-1 flex-col p-6">
-                    <h3 className="text-2xl text-white" style={{ fontFamily: DISPLAY }}>{loc.name}</h3>
-                    <p className="mt-2 flex items-start gap-2 text-[15px]" style={{ color: 'rgba(247,242,231,0.85)' }}>
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: GOLD }} aria-hidden />
-                      <span>{loc.address}, {loc.place}</span>
-                    </p>
-                    <div className="mt-3 space-y-1">
-                      {loc.hours.map((h) => (
-                        <p key={h.label} className="flex items-center gap-2 text-[13px]" style={{ fontFamily: MONO, color: 'rgba(247,242,231,0.75)' }}>
-                          <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden /> {h.label} {h.value}
-                        </p>
-                      ))}
-                    </div>
-                    <div className="mt-5 overflow-hidden rounded-2xl" style={{ border: '1px solid rgba(247,242,231,0.14)' }}>
-                      <iframe
-                        title={`Kort: ISSI ${loc.name}`}
-                        src={loc.map}
-                        loading="eager"
-                        className="h-44 w-full"
-                        style={{ border: 0, filter: 'grayscale(0.2)' }}
-                        referrerPolicy="no-referrer-when-downgrade"
-                      />
-                    </div>
+      <section id="stadsetningar" aria-label="Finndu okkur" className={`${WRAP} py-20 md:py-28`}>
+        <FadeUp>
+          <Tag tone="yellow">Finndu okkur</Tag>
+          <h2 className="mt-4 text-[clamp(2rem,5vw,3.4rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.12 }}>
+            Tveir staðir, sami fiskur
+          </h2>
+        </FadeUp>
+        <div className="mt-12 grid gap-8 md:grid-cols-2">
+          {LOCATIONS.map((loc, i) => (
+            <FadeUp key={loc.name} delay={i * 90}>
+              <article className="flex h-full flex-col overflow-hidden rounded-3xl" style={{ background: PANEL, border: '1px solid rgba(16,38,43,0.08)' }}>
+                <PhotoClip className="overflow-hidden">
+                  <Img
+                    src={loc.img}
+                    srcSet={loc.imgMobile !== loc.img ? `${loc.imgMobile} 900w, ${loc.img} 1720w` : undefined}
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    alt={loc.alt}
+                    className="aspect-[16/10] w-full object-cover"
+                  />
+                </PhotoClip>
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="text-2xl" style={{ fontFamily: DISPLAY, fontWeight: 700, color: INK }}>{loc.name}</h3>
+                  <p className="mt-2 flex items-start gap-2 text-[15px]" style={{ color: 'rgba(16,38,43,0.78)' }}>
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: ORANGE }} aria-hidden />
+                    <span>{loc.address}, {loc.place}</span>
+                  </p>
+                  <div className="mt-3 space-y-1">
+                    {loc.hours.map((h) => (
+                      <p key={h.label} className="flex items-center gap-2 text-[13px]" style={{ fontFamily: MONO, color: 'rgba(16,38,43,0.68)' }}>
+                        <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden /> {h.label} {h.value}
+                      </p>
+                    ))}
                   </div>
-                </article>
-              </FadeUp>
-            ))}
-          </div>
-
-          {/* Big tap-to-call. */}
-          <FadeUp delay={80}>
-            <div className="mt-12 flex flex-col items-center gap-3 text-center">
-              <span className="text-[12px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: 'rgba(247,242,231,0.6)' }}>Hringdu og pantaðu</span>
-              <a href={PHONE_HREF} className="inline-flex items-center gap-3 text-[clamp(2.4rem,8vw,4.5rem)] leading-none text-white transition-opacity hover:opacity-80" style={{ fontFamily: POSTER }}>
-                <Phone className="h-8 w-8 md:h-10 md:w-10" style={{ color: GOLD }} aria-hidden /> {PHONE_DISPLAY}
-              </a>
-            </div>
-          </FadeUp>
+                  <div className="mt-5 overflow-hidden rounded-2xl" style={{ border: '1px solid rgba(16,38,43,0.12)' }}>
+                    <iframe
+                      title={`Kort: ISSI ${loc.name}`}
+                      src={loc.map}
+                      loading="eager"
+                      className="h-44 w-full"
+                      style={{ border: 0 }}
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                </div>
+              </article>
+            </FadeUp>
+          ))}
         </div>
+
+        <FadeUp delay={80}>
+          <div className="mt-12 flex flex-col items-center gap-3 text-center">
+            <span className="text-[12px] font-bold tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.6)' }}>Hringdu og pantaðu</span>
+            <a href={PHONE_HREF} className={`inline-flex items-center gap-3 text-[clamp(2.4rem,8vw,4.5rem)] ${FOCUS}`} style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.1, color: NEWSPRINT }}>
+              <Phone className="h-8 w-8 md:h-10 md:w-10" style={{ color: YELLOW }} aria-hidden /> {PHONE_DISPLAY}
+            </a>
+          </div>
+        </FadeUp>
       </section>
 
       {/* ==================================================== 10 · FINAL CTA */}
-      <section aria-label="Komdu við" style={{ background: INK, color: CREAM }}>
-        <div className="mx-auto max-w-6xl px-5 py-20 text-center md:px-10 md:py-28">
+      <section aria-label="Komdu við" style={{ borderTop: '1px solid rgba(244,239,226,0.1)' }}>
+        <div className={`${WRAP} py-20 text-center md:py-28`}>
           <FadeUp>
-            <h2 className="text-[clamp(2.4rem,7vw,5rem)] leading-[1.18]" style={{ fontFamily: POSTER }}>BEINT AF BÁTNUM</h2>
-            <p className="mx-auto mt-4 max-w-lg text-lg" style={{ color: 'rgba(247,242,231,0.75)' }}>
+            <h2 className="text-[clamp(2.4rem,7vw,5rem)]" style={{ fontFamily: DISPLAY, fontWeight: 700, lineHeight: 1.16, color: YELLOW }}>Beint af bátnum</h2>
+            <p className="mx-auto mt-4 max-w-lg text-lg" style={{ color: 'rgba(244,239,226,0.78)' }}>
               Fitjar 3 í Reykjanesbæ og við BYKO á Selfossi. Komdu við, hringdu eða sendu okkur línu.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <GoldButton href={PHONE_HREF}><Phone className="h-4 w-4" aria-hidden /> {PHONE_DISPLAY}</GoldButton>
-              <GhostButton href={EMAIL_HREF} tone="cream"><Mail className="h-4 w-4" aria-hidden /> {EMAIL}</GhostButton>
-              <GhostButton href={FACEBOOK} tone="cream">Facebook</GhostButton>
+              <PrimaryButton href={PHONE_HREF}><Phone className="h-4 w-4" aria-hidden /> {PHONE_DISPLAY}</PrimaryButton>
+              <GhostButton href={EMAIL_HREF}><Mail className="h-4 w-4" aria-hidden /> {EMAIL}</GhostButton>
+              <GhostButton href={FACEBOOK}>Facebook</GhostButton>
             </div>
-            <div className="mx-auto mt-10 grid max-w-lg gap-y-2 text-[13px] md:grid-cols-2" style={{ fontFamily: MONO, color: 'rgba(247,242,231,0.7)' }}>
+            <div className="mx-auto mt-10 grid max-w-lg gap-y-2 text-[13px] md:grid-cols-2" style={{ fontFamily: MONO, color: 'rgba(244,239,226,0.68)' }}>
               <p>Fitjar: alla daga 11:00–20:00</p>
               <p>Selfoss: virka daga 11:30–19:30, lau 11:30–19:00</p>
             </div>
@@ -620,11 +966,11 @@ export default function Page() {
       </section>
 
       {/* ---- Sticky mobile CTA bar (clears the PreviewChrome corner chips) ---- */}
-      <div className="fixed inset-x-0 bottom-0 z-50 flex gap-2 border-t p-3 md:hidden" style={{ background: 'rgba(28,23,18,0.96)', borderColor: 'rgba(247,242,231,0.14)', backdropFilter: 'blur(8px)' }}>
-        <a href={PHONE_HREF} className="flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold" style={{ fontFamily: SANS, background: GOLD, color: INK }}>
+      <div className="fixed inset-x-0 bottom-0 z-50 flex gap-2 border-t p-3 lg:hidden" style={{ background: 'rgba(16,38,43,0.96)', borderColor: 'rgba(244,239,226,0.14)', backdropFilter: 'blur(8px)' }}>
+        <a href={PHONE_HREF} className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-bold ${FOCUS}`} style={{ fontFamily: BODY, background: YELLOW, color: INK }}>
           <Phone className="h-4 w-4" aria-hidden /> Hringja
         </a>
-        <button onClick={() => scrollToId('matsedill')} className="flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold text-white ring-1 ring-white/40" style={{ fontFamily: SANS }}>
+        <button type="button" onClick={() => scrollToId('kassinn')} className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-bold ring-1 ring-white/40 ${FOCUS}`} style={{ fontFamily: BODY, color: NEWSPRINT }}>
           Matseðill
         </button>
       </div>
