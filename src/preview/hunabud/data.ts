@@ -1,5 +1,5 @@
 /**
- * Húnabúð / Bæjarblómið — "Þrennt undir einu þaki".
+ * Húnabúð / Bæjarblómið — "Þrír gluggar, eitt þak".
  *
  * A café + flower shop + gift shop in one roadside building at
  * Norðurlandsvegur 4, 540 Blönduós, on Route 1. The concept is literal: the
@@ -32,22 +32,28 @@ export const IMG = {
 
 export type ImgKey = keyof typeof IMG
 
-/* Palette — pulled from the real building and flowers (brief Part C). */
+/* Palette — the fresh, light pass. Ground is porcelain (brightest of the
+ * four redesigns); structural ink is the real signage pine green. Each of
+ * the three offerings gets its own tint, verified AA against porcelain:
+ * pine 10.4:1, coffee 7.6:1 (safe at any size), rose 3.5:1 (large text /
+ * fills only — roseDark 5.0:1 for small text), mustard 3.2:1 (large text /
+ * fills only — mustardDark 5.1:1 for small text). */
 export const C = {
-  ground: '#F4EEE0', // warm oat parchment
+  ground: '#FBFAF6', // porcelain
   ink: '#1E4433', // pine green (real signage lettering)
-  accent: '#B5432E', // terracotta (real support pillar)
-  accentLift: '#D8664A', // terracotta lightened for dark ground
-  rose: '#C97C68', // dusty rose (bouquets) — flower section
-  mustard: '#C99A3E', // butter/mustard (yarn) — gift section
-  inkSoft: 'rgba(30,68,51,0.80)',
+  coffee: '#6B4A2E', // café tint
+  rose: '#C0705C', // blóm tint (large text / fills)
+  roseDark: '#A8543F', // blóm tint, darkened for small text
+  mustard: '#B4842E', // gjafir tint (large text / fills)
+  mustardDark: '#8C6320', // gjafir tint, darkened for small text
+  inkSoft: 'rgba(30,68,51,0.78)',
   inkFaint: 'rgba(30,68,51,0.14)',
+  inkWash: 'rgba(30,68,51,0.06)',
 } as const
 
 export const FONT = {
-  display: "'Anton', Impact, sans-serif",
-  mono: "'Space Mono', ui-monospace, monospace",
-  body: "'Inter', system-ui, -apple-system, sans-serif",
+  display: 'var(--font-survey)', // Instrument Serif
+  body: 'var(--font-schibsted)', // Schibsted Grotesk
 } as const
 
 /* Contact + location (brief Part A). */
@@ -81,7 +87,7 @@ export const PILLARS: Pillar[] = [
     body:
       'Kaffi, súpa dagsins og heimabakaðar kökur eftir gömlum, heimafengnum uppskriftum. Setstu niður og fáðu þér bita.',
     cue: 'Kíktu á kökurnar',
-    tint: C.accent,
+    tint: C.coffee,
   },
   {
     key: 'florist',
@@ -162,3 +168,23 @@ export const HOURS = [
   { day: 'Laugardagur', time: '12:00–17:00' },
   { day: 'Sunnudagur', time: '12:00–16:00' },
 ]
+
+/* Same HOURS facts, structured for the indicative open/closed computation.
+ * days: JS Date#getDay() values (0 = Sunday .. 6 = Saturday). */
+export interface OpeningRule {
+  days: number[]
+  start: number // minutes from midnight
+  end: number
+  label: string
+}
+
+export const OPENING_SCHEDULE: OpeningRule[] = [
+  { days: [1, 2, 3, 4, 5], start: 10 * 60, end: 17 * 60, label: 'Mán–Fös 10–17' },
+  { days: [6], start: 12 * 60, end: 17 * 60, label: 'Lau 12–17' },
+  { days: [0], start: 12 * 60, end: 16 * 60, label: 'Sun 12–16' },
+]
+
+/* MUST accompany any "líklega opið/lokað núna" status shown to a visitor —
+ * hours conflict across directories and the shop runs a seasonal Ring Road
+ * schedule, so no hard live open/closed claim is ever made without this. */
+export const STATUS_CAVEAT = 'Skv. 1819.is. Opnunartími getur breyst yfir sumarið.'
