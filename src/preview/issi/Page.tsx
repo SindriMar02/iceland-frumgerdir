@@ -855,7 +855,8 @@ export default function Page() {
         </div>
         <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(12,15,14,.85) 0%, rgba(12,15,14,.2) 45%, rgba(12,15,14,.35) 100%)' }} />
         <div className={`relative ${WRAP} py-24 text-center md:py-36`}>
-          <FadeUp className="mx-auto max-w-2xl rounded-2xl px-6 py-8" style={{ background: 'rgba(12,15,14,0.62)', backdropFilter: 'blur(2px)' }}>
+          <FadeUp className="mx-auto max-w-2xl">
+            <div className="rounded-2xl px-6 py-8" style={{ background: 'rgba(12,15,14,0.62)', backdropFilter: 'blur(2px)' }}>
             <Tag tone="outline">Ljósið í kofanum</Tag>
             <h2 className="mt-6 text-[clamp(1.9rem,5vw,3.6rem)]" style={{ fontFamily: DISPLAY, fontWeight: 400, lineHeight: 1.16, color: MINT_GLOW, textShadow: '0 2px 24px rgba(12,15,14,0.85)' }}>
               Sama ljós, sama kofi, sama fiskur
@@ -863,6 +864,7 @@ export default function Page() {
             <p className="mx-auto mt-5 max-w-md text-[13px] tracking-wide" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.9)' }}>
               Fitjar 3 · þegar birtan dettur á
             </p>
+            </div>
           </FadeUp>
         </div>
       </section>
