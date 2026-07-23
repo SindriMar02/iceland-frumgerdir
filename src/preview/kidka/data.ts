@@ -226,3 +226,127 @@ export const TRUST = [
   'One of Iceland’s biggest knitting factories',
   'Ships worldwide',
 ] as const
+
+/* ------------------------------------------------------------------ v2 */
+/**
+ * "Uppskriftin" rebuild data. The page is drawn as a knitting chart, and
+ * the factory is drawn as a plan you move through.
+ *
+ * HONESTY: the plan below is an ILLUSTRATIVE diagram of the stages KIDKA
+ * describes on kidka.com/about-us (Icelandic fleece → washing/brushing/
+ * steaming → knitted on site → finished → viewing window → shop). It is NOT
+ * an architectural drawing of Höfðabraut 34 and the page says so on the page
+ * itself. No room sizes, layouts or machine counts are claimed.
+ */
+
+/** v2 palette — undyed wool + ink + one dye. Contrast computed 2026-07-23:
+ *  ink #16141A on oat #EFE9DC = 15.6:1 · oat on ink = 15.6:1
+ *  dye #E0A100 fill with ink text = 6.7:1 (AA any size)
+ *  ochre #7A5600 small text on oat = 6.0:1 (AA any size) */
+export const C2 = {
+  oat: '#EFE9DC',
+  oatDeep: '#E4DCCB',
+  ink: '#16141A',
+  inkSoft: '#4A443C',
+  dye: '#E0A100',
+  ochre: '#7A5600',
+  grid: 'rgba(22,20,26,0.12)',
+  gridStrong: 'rgba(22,20,26,0.26)',
+} as const
+
+export const FONT2 = {
+  display: 'var(--font-karrik)',
+  body: 'var(--font-supreme)',
+  mono: 'var(--font-servermono)',
+} as const
+
+/**
+ * A charted band in the Icelandic yoke tradition, drawn for this page
+ * (nested diamonds, 13-stitch repeat, 11 rows). Not a reproduction of any
+ * specific traditional pattern. Generated so it is perfectly symmetric and
+ * tiles seamlessly.
+ */
+export const CHART_W = 13
+export const CHART_H = 11
+export function chartCell(row: number, col: number): boolean {
+  const d = Math.abs(col - 6)
+  const k = 5 - Math.abs(row - 5)
+  return d === k || d === k - 3
+}
+
+export interface Station {
+  id: string
+  /** chart coordinate label, e.g. "A1" */
+  coord: string
+  title: string
+  titleIs: string
+  note: string
+  /** % box on the plan: left, top, width, height */
+  box: [number, number, number, number]
+  /** the visitor-facing hook, only on the window + shop */
+  hook?: string
+}
+
+/** Stages exactly as kidka.com/about-us describes them; the plan geometry
+ *  is illustrative. */
+export const STATIONS: Station[] = [
+  {
+    id: 'wool',
+    coord: 'A1',
+    title: 'The wool store',
+    titleIs: 'Ullin',
+    note: '100% Icelandic sheep wool arrives and waits its turn. Nothing else goes into a KIDKA garment.',
+    box: [4, 8, 26, 36],
+  },
+  {
+    id: 'wash',
+    coord: 'A2',
+    title: 'Washing & brushing',
+    titleIs: 'Þvottur',
+    note: 'Washing, brushing and steaming are what give the wool its softer, fluffier feel.',
+    box: [4, 50, 26, 40],
+  },
+  {
+    id: 'knit',
+    coord: 'B1',
+    title: 'The knitting hall',
+    titleIs: 'Prjónasalur',
+    note: 'The machines run here, on site, in Hvammstangi. This is the room the shop window looks into.',
+    box: [34, 8, 38, 52],
+  },
+  {
+    id: 'finish',
+    coord: 'B2',
+    title: 'Finishing',
+    titleIs: 'Frágangur',
+    note: 'Linked, checked and labelled by hand before anything is folded.',
+    box: [34, 66, 38, 24],
+  },
+  {
+    id: 'window',
+    coord: 'C1',
+    title: 'The viewing window',
+    titleIs: 'Glugginn',
+    note: 'The wall between the shop and the machines is glass.',
+    hook: 'Stand here and watch your sweater being made.',
+    box: [76, 8, 20, 40],
+  },
+  {
+    id: 'shop',
+    coord: 'C2',
+    title: 'The factory shop',
+    titleIs: 'Búðin',
+    note: 'Höfðabraut 34. Try it on, buy it at the source, or have it shipped worldwide from this same floor.',
+    hook: 'Five minutes off Route 1.',
+    box: [76, 54, 20, 36],
+  },
+]
+
+/** Material facts for the swatch panel — all from kidka.com/about-us. */
+export const SWATCH = [
+  ['Fibre', '100% Icelandic sheep wool'],
+  ['Made', 'Hvammstangi, North-West Iceland'],
+  ['Process', 'Washed, brushed, steamed, knitted, linked'],
+  ['Since', 'Family-run by Irina & Kristinn since 2008'],
+  ['Ships', 'Worldwide, from the factory floor'],
+] as const

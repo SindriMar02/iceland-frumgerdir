@@ -42,6 +42,9 @@
   --font-author: "Author", system-ui, sans-serif;             /* KIDKA — warm humanist body */
   --font-fragment: "Fragment Mono", ui-monospace, monospace;  /* KIDKA — care-label spec voice */
   --font-arkipelago: "Arkipelago", cursive;                   /* KIDKA — handwritten margin notes */
+  --font-karrik: "Karrik", Georgia, serif;                    /* KIDKA — raw grotesque, chart voice */
+  --font-supreme: "Supreme", system-ui, sans-serif;           /* KIDKA — body */
+  --font-servermono: "Server Mono", ui-monospace, monospace;  /* KIDKA — chart coordinates */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -342,3 +345,11 @@ html.lenis body {
   font-style: normal;
   font-display: swap;
 }
+
+/* KIDKA "Uppskriftin" — Karrik (raw grotesque), Supreme (body), Server Mono (chart labels).
+   All local FontShare/open files with full Icelandic coverage. */
+@font-face { font-family: "Karrik"; src: url("./assets/fonts/Karrik-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Karrik"; src: url("./assets/fonts/Karrik-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Server Mono"; src: url("./assets/fonts/ServerMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }

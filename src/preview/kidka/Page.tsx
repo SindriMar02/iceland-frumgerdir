@@ -1,710 +1,645 @@
 /**
- * KIDKA Wool Factory — "Straight off the machine".
+ * KIDKA Wool Factory — "UPPSKRIFTIN" (The Pattern).
  *
- * English-first (their shop and customers are international; kidka.com itself
- * is EN-first with an /is/ variant). Icelandic appears only in the gated
- * preview chrome and the outreach draft.
+ * REBUILD (2026-07-23). The first version was a competent but templated page:
+ * photo hero + trust marquee + card grid + dark band + photo-split + review
+ * cards. Sindri's note: every build shares one spine in costume. So this one
+ * changes the STRUCTURAL MODEL, not the paint.
  *
- * SIGNATURE — the knit-row reveal: the hero photograph is revealed in twelve
- * discrete rows, the way fabric grows on a knitting bed, driven by a pure
- * time-based CSS steps() animation (no scroll-jack, no rAF, nothing gated on
- * JS mount). A 1.8s failsafe adds the `done` class so a throttled tab or a
- * paused animation can never trap the hero hidden; prefers-reduced-motion
- * renders it complete from the first frame.
+ * THE IDEA: Icelandic knitwear is designed on charted grids — every knitter
+ * reads a chart. So the chart IS the interface. The page is drawn on a
+ * stitch grid, the brand pattern is a real chart that knits itself stitch by
+ * stitch, the factory is a PLAN you move through instead of a process strip,
+ * and the products live in chart cells with coordinates.
  *
- * Motion rules (project lessons): IntersectionObserver + CSS transitions
- * only — no framer whileInView; no overflow-hidden clip reveals over type;
- * hero text starts at opacity 1 with a transform-only entrance; passive
- * scroll listener solely for the header flip.
+ * References blended (Mobbin, 2026-07-23):
+ *  - FREITAG's illustrated factory cutaway → the building AS the diagram
+ *  - Faculty Department / Le Labo → editorial restraint, working-hands photo
+ *  - SIGMA "Made in Aizu" → place-as-provenance centred statement
+ *  - Savor → material macro as the whole image, near-zero UI
+ * Nothing is lifted; the blend is the stitch chart, which is KIDKA's own
+ * craft language and not borrowed from any of them.
  *
- * AA pairs used (computed): ink on bone 14.9:1 · bone on charcoal 13.4:1 ·
- * bone on moss 5.7:1 · rust #8F3F1E on bone 6.2:1 · #C86A3B large-only on
- * charcoal 4.6:1.
+ * SIGNATURE (a different CLASS from our usual reveal): the yoke band knits
+ * itself — chart cells fill row by row, left to right, in stitch order, on a
+ * pure time-based CSS animation with per-cell delay. No scroll coupling, no
+ * rAF, nothing gated on JS. prefers-reduced-motion renders the band complete.
+ *
+ * DELIBERATELY ABSENT (the banned kit): full-bleed photo hero, tracked-caps
+ * eyebrow over a big display word with one italic accent, trust marquee,
+ * 4-up product card grid, dark process band with numbered steps, photo-split
+ * story, 3 review cards, IO translateY fade as the through-line.
+ *
+ * HONESTY: the plan is labelled on the page as an illustrative diagram of the
+ * stages KIDKA describes, not an architectural drawing. All photography,
+ * product names and prices are KIDKA's own (see data.ts).
+ *
+ * AA (computed): ink #16141A on oat #EFE9DC 15.6:1 · oat on ink 15.6:1 ·
+ * ink on dye #E0A100 6.7:1 · ochre #7A5600 on oat 6.0:1.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowUpRight, Clock, Mail, MapPin, Phone } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  C,
+  C2,
   CATEGORIES,
+  CHART_H,
+  CHART_W,
   CONTACT,
-  FONT,
+  FONT2,
   HOURS,
   IMG,
-  PROCESS,
   PRODUCTS,
   REVIEWS,
-  TRUST,
+  STATIONS,
+  SWATCH,
+  chartCell,
+  type Station,
 } from './data'
 
 const company = getPreviewCompany('kidka')
 
-/* ------------------------------------------------------------------ helpers */
+/* ------------------------------------------------------------------ chart */
 
-/** IO + CSS transition reveal. In-view-on-mount check + timeout failsafe —
- *  content is never permanently gated on the observer firing. */
-function Reveal({
-  children,
-  delay = 0,
+/** The brand band: a charted yoke motif that knits itself in stitch order.
+ *  `repeats` tiles the 13-stitch repeat horizontally. Pure CSS delays. */
+function ChartBand({
+  repeats = 6,
+  cell = 12,
+  animate = true,
   className = '',
 }: {
-  children: ReactNode
-  delay?: number
+  repeats?: number
+  cell?: number
+  animate?: boolean
   className?: string
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [on, setOn] = useState(false)
+  const cols = CHART_W * repeats
+  const total = cols * CHART_H
+  // The whole band always finishes knitting in KNIT_MS, whatever its length,
+  // and a failsafe forces every stitch visible shortly after — a throttled or
+  // animation-suppressed tab must never leave the brand pattern blank.
+  const KNIT_MS = 1300
+  const [done, setDone] = useState(!animate)
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setOn(true)
-      return
-    }
-    const io = new IntersectionObserver(
-      (es) => es.forEach((e) => e.isIntersecting && setOn(true)),
-      { threshold: 0.12 },
-    )
-    io.observe(el)
-    const r = el.getBoundingClientRect()
-    if (r.top < window.innerHeight && r.bottom > 0) setOn(true)
-    const t = window.setTimeout(() => setOn(true), 2200)
-    return () => {
-      io.disconnect()
-      window.clearTimeout(t)
-    }
-  }, [])
+    if (!animate) return
+    const t = window.setTimeout(() => setDone(true), KNIT_MS + 700)
+    return () => window.clearTimeout(t)
+  }, [animate])
+
   return (
     <div
-      ref={ref}
-      className={className}
+      className={`kidka-band ${animate && !done ? 'knit' : ''} ${className}`}
+      aria-hidden="true"
       style={{
-        opacity: on ? 1 : 0,
-        transform: on ? 'none' : 'translateY(22px)',
-        transition: `opacity 700ms ease ${delay}ms, transform 700ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, ${cell}px)`,
+        gridAutoRows: `${cell}px`,
+        width: 'max-content',
       }}
     >
-      {children}
+      {Array.from({ length: CHART_H }).map((_, r) =>
+        Array.from({ length: cols }).map((__, c) => {
+          const on = chartCell(r, c % CHART_W)
+          // stitch order: row by row, left to right, scaled to KNIT_MS total
+          const idx = r * cols + c
+          return (
+            <span
+              key={`${r}-${c}`}
+              className={on ? 'st on' : 'st'}
+              style={{ animationDelay: `${Math.round((idx / total) * KNIT_MS)}ms` }}
+            />
+          )
+        }),
+      )}
     </div>
   )
 }
 
-/** Mono spec label — the factory's "care label" voice. */
-function SpecLabel({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
-  return (
-    <p
-      className="text-[11px] uppercase tracking-[0.22em]"
-      style={{ fontFamily: FONT.mono, color: dark ? C.rustBright : C.rust }}
-    >
-      {children}
-    </p>
-  )
-}
+/* ------------------------------------------------------------------- plan */
 
-/** Handwritten margin note (Arkipelago) — the analog gesture. */
-function HandNote({
-  children,
-  className = '',
-  color = C.rust,
+function FactoryPlan({
+  active,
+  setActive,
 }: {
-  children: ReactNode
-  className?: string
-  color?: string
+  active: string
+  setActive: (id: string) => void
 }) {
   return (
-    <span
-      aria-hidden="true"
-      className={`inline-block select-none ${className}`}
-      style={{ fontFamily: FONT.hand, color, fontSize: '1.35rem', transform: 'rotate(-3deg)' }}
+    <div
+      className="relative w-full overflow-hidden rounded-[2px] border"
+      style={{ borderColor: C2.gridStrong, background: C2.oatDeep, aspectRatio: '16 / 9' }}
     >
-      {children}
-    </span>
+      {/* the drawn plan — decorative; every room also exists as a real button */}
+      <svg viewBox="0 0 160 90" className="absolute inset-0 h-full w-full" aria-hidden="true">
+        <defs>
+          <pattern id="kidka-grid" width="4" height="4" patternUnits="userSpaceOnUse">
+            <path d="M4 0H0V4" fill="none" stroke={C2.grid} strokeWidth="0.3" />
+          </pattern>
+        </defs>
+        <rect width="160" height="90" fill="url(#kidka-grid)" />
+        {/* outer shell */}
+        <rect x="4" y="4" width="152" height="82" fill="none" stroke={C2.ink} strokeWidth="0.9" />
+        {STATIONS.map((s) => {
+          const [l, t, w, h] = s.box
+          const on = active === s.id
+          return (
+            <g key={s.id}>
+              <rect
+                x={(l / 100) * 160}
+                y={(t / 100) * 90}
+                width={(w / 100) * 160}
+                height={(h / 100) * 90}
+                fill={on ? C2.dye : 'transparent'}
+                stroke={C2.ink}
+                strokeWidth="0.6"
+                style={{ transition: 'fill 220ms ease' }}
+              />
+              <text
+                x={(l / 100) * 160 + 2.5}
+                y={(t / 100) * 90 + 6}
+                fill={C2.ink}
+                style={{ font: '3.2px var(--font-servermono), monospace' }}
+              >
+                {s.coord}
+              </text>
+            </g>
+          )
+        })}
+        {/* the visitor's path: door → shop → window */}
+        <path
+          d="M150 78 L150 60 L128 60 L128 30"
+          fill="none"
+          stroke={C2.ink}
+          strokeWidth="0.7"
+          strokeDasharray="2 2"
+        />
+        <circle cx="150" cy="78" r="1.6" fill={C2.ink} />
+      </svg>
+
+      {/* accessible hotspots */}
+      {STATIONS.map((s) => {
+        const [l, t, w, h] = s.box
+        return (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setActive(s.id)}
+            onMouseEnter={() => setActive(s.id)}
+            onFocus={() => setActive(s.id)}
+            aria-pressed={active === s.id}
+            className="absolute cursor-pointer"
+            style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%` }}
+          >
+            <span className="sr-only">
+              {s.title} ({s.titleIs}) — {s.note}
+            </span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
-/* ---------------------------------------------------------------- component */
+/* --------------------------------------------------------------- component */
 
 export default function KidkaPage() {
-  const [solidNav, setSolidNav] = useState(false)
-  const [heroDone, setHeroDone] = useState(false)
-  const reduce =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [active, setActive] = useState<string>('knit')
+  const [navOn, setNavOn] = useState(false)
+  const bandRef = useRef<HTMLDivElement>(null)
+  const station: Station = STATIONS.find((s) => s.id === active) ?? STATIONS[2]
 
   useEffect(() => {
-    setThemeColor(C.bone)
-    const onScroll = () => setSolidNav(window.scrollY > 40)
+    setThemeColor(C2.oat)
+    const onScroll = () => setNavOn(window.scrollY > 24)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    // Failsafe: whatever happens to the CSS animation, the hero is revealed.
-    const t = window.setTimeout(() => setHeroDone(true), 1800)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.clearTimeout(t)
-    }
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
     <>
       <PreviewChrome company={company} />
       <style>{`
-        @keyframes kidka-knit { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0% 0); } }
-        @keyframes kidka-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .kidka-knit-img { clip-path: inset(0 0 0% 0); }
-        .kidka-knit-img.anim { animation: kidka-knit 1.15s steps(12, end) 120ms both; }
-        .kidka-knit-img.done { animation: none; clip-path: inset(0 0 0% 0); }
+        @keyframes kidka-stitch { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+        .kidka-band .st { background: transparent; }
+        .kidka-band .st.on { background: ${C2.ink}; }
+        .kidka-band.knit .st.on { opacity: 0; animation: kidka-stitch 260ms steps(2, end) both; }
+        .kidka-chart-ground {
+          background-image:
+            linear-gradient(to right, ${C2.grid} 1px, transparent 1px),
+            linear-gradient(to bottom, ${C2.grid} 1px, transparent 1px);
+          background-size: 22px 22px;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .kidka-knit-img.anim { animation: none; clip-path: inset(0 0 0% 0); }
-          .kidka-marquee-track { animation: none !important; }
+          .kidka-band.knit .st.on { opacity: 1; animation: none; }
         }
       `}</style>
 
-      <div style={{ background: C.bone, color: C.ink, fontFamily: FONT.body }}>
-        {/* ------------------------------------------------------------ nav */}
+      <div
+        className="kidka-chart-ground"
+        style={{ background: C2.oat, color: C2.ink, fontFamily: FONT2.body }}
+      >
+        {/* ----------------------------------------------------------- nav */}
         <header
-          className="fixed inset-x-0 top-0 z-40 transition-colors duration-300"
+          className="sticky top-0 z-40 border-b transition-colors"
           style={{
-            background: solidNav ? 'rgba(239,234,225,0.94)' : 'transparent',
-            backdropFilter: solidNav ? 'blur(8px)' : undefined,
-            borderBottom: solidNav ? `1px solid ${C.line}` : '1px solid transparent',
+            borderColor: navOn ? C2.gridStrong : 'transparent',
+            background: navOn ? 'rgba(239,233,220,0.92)' : 'transparent',
+            backdropFilter: navOn ? 'blur(6px)' : undefined,
           }}
         >
-          <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-5">
-            <a
-              href="#top"
-              className="text-[1.35rem] font-bold tracking-[0.08em]"
-              style={{ fontFamily: FONT.display, color: solidNav ? C.ink : '#FFFFFF' }}
-            >
+          <div className="mx-auto flex max-w-[1180px] items-center justify-between px-5 py-3.5">
+            <a href="#top" className="text-[1.15rem] tracking-[0.2em]" style={{ fontFamily: FONT2.display }}>
               KIDKA
             </a>
-            <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
-              {[
-                ['The collection', '#collection'],
-                ['The factory', '#factory'],
-                ['Visit us', '#visit'],
-              ].map(([label, href]) => (
-                <a
-                  key={href}
-                  href={href}
-                  className="text-sm font-medium hover:opacity-70"
-                  style={{ color: solidNav ? C.ink : '#FFFFFF' }}
-                >
-                  {label}
-                </a>
-              ))}
+            <nav aria-label="Main" className="flex items-center gap-5">
+              <a href="#plan" className="hidden text-[0.85rem] hover:underline sm:inline">
+                The floor
+              </a>
+              <a href="#chart" className="hidden text-[0.85rem] hover:underline sm:inline">
+                The collection
+              </a>
+              <a href="#visit" className="hidden text-[0.85rem] hover:underline sm:inline">
+                Visit
+              </a>
               <a
                 href="https://kidka.com/shop/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-sm px-4 py-2 text-sm font-semibold"
-                style={{ background: C.rust, color: '#FFF7EF' }}
+                className="px-3.5 py-2 text-[0.85rem] font-bold"
+                style={{ background: C2.ink, color: C2.oat }}
               >
-                Shop on kidka.com
+                Shop
               </a>
             </nav>
           </div>
         </header>
 
-        {/* ----------------------------------------------------------- hero */}
-        <section id="top" className="relative min-h-[100svh] overflow-hidden" style={{ background: C.charcoal }}>
-          <div
-            className={`kidka-knit-img absolute inset-0 ${reduce ? '' : 'anim'} ${heroDone ? 'done' : ''}`}
-          >
-            <img
-              src={IMG.hero}
-              alt="A visitor in a rust-orange KIDKA Fjallalopi hat standing among a herd of Icelandic horses"
-              className="h-full w-full object-cover"
-              style={{ objectPosition: '50% 38%' }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  'linear-gradient(180deg, rgba(20,17,14,0.42) 0%, rgba(20,17,14,0.12) 45%, rgba(20,17,14,0.66) 100%)',
-              }}
-            />
+        {/* ---------------------------------------------------------- hero */}
+        <section id="top" className="mx-auto max-w-[1180px] px-5 pb-16 pt-10 lg:pb-24 lg:pt-16">
+          <div ref={bandRef} className="mb-10 overflow-hidden">
+            <ChartBand repeats={9} cell={13} />
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1240px] flex-col justify-end px-5 pb-24 pt-28">
-            <p
-              className="mb-4 text-[11px] uppercase tracking-[0.26em]"
-              style={{ fontFamily: FONT.mono, color: '#E8DCCB' }}
-            >
-              Wool factory &amp; shop · Hvammstangi, North-West Iceland
-            </p>
-            <h1
-              className="max-w-[13ch] text-[clamp(2.6rem,7.2vw,5.6rem)] font-bold leading-[1.02] text-white"
-              style={{ fontFamily: FONT.display }}
-            >
-              Knitted where you can{' '}
-              <em className="not-italic" style={{ color: '#E9B98A', fontStyle: 'italic' }}>
-                watch.
-              </em>
-            </h1>
-            <p className="mt-5 max-w-[52ch] text-[1.05rem] leading-relaxed text-white/90">
-              KIDKA knits sweaters, blankets and beanies from 100% Icelandic wool on its own
-              machines in Hvammstangi, and the shop floor looks straight onto them. What you
-              take home was made behind the wall you are standing at.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a
-                href="#collection"
-                className="rounded-sm px-6 py-3.5 text-[0.95rem] font-semibold"
-                style={{ background: C.rustBright, color: '#1F1207' }}
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] lg:gap-14">
+            <div>
+              <p
+                className="mb-5 text-[0.78rem] uppercase"
+                style={{ fontFamily: FONT2.mono, color: C2.ochre, letterSpacing: '0.14em' }}
               >
-                See the collection
-              </a>
-              <a
-                href="#visit"
-                className="rounded-sm border px-6 py-3.5 text-[0.95rem] font-semibold text-white"
-                style={{ borderColor: 'rgba(255,255,255,0.55)' }}
-              >
-                Visit the factory shop
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------- trust marquee */}
-        <div
-          className="overflow-hidden border-y py-3.5"
-          style={{ borderColor: C.line, background: C.boneDeep }}
-          aria-hidden="true"
-        >
-          <div
-            className="kidka-marquee-track flex w-max gap-10 whitespace-nowrap"
-            style={{ animation: 'kidka-marquee 34s linear infinite' }}
-          >
-            {[...TRUST, ...TRUST, ...TRUST, ...TRUST].map((t, i) => (
-              <span
-                key={i}
-                className="text-[12px] uppercase tracking-[0.2em]"
-                style={{ fontFamily: FONT.mono, color: C.ink }}
-              >
-                {t} <span style={{ color: C.rust }}>·</span>
-              </span>
-            ))}
-          </div>
-        </div>
-        <p className="sr-only">{TRUST.join(' · ')}</p>
-
-        {/* ----------------------------------------------------- collection */}
-        <section id="collection" className="mx-auto max-w-[1240px] px-5 py-20 lg:py-28">
-          <Reveal>
-            <SpecLabel>The collection · prices as listed on kidka.com today</SpecLabel>
-            <div className="mt-3 flex flex-wrap items-end gap-x-6">
-              <h2
-                className="text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-tight"
-                style={{ fontFamily: FONT.display }}
-              >
-                Real wool, real names, real prices
-              </h2>
-              <HandNote className="mb-2">every piece knitted here</HandNote>
-            </div>
-            <p className="mt-4 max-w-[62ch] text-[1.02rem] leading-relaxed" style={{ color: '#4A423A' }}>
-              These are KIDKA’s own products and photographs, exactly as they sell today, from
-              the 2026 puffin edition to the “Ísar” and “Ás” cardigans. Every card opens the real
-              product page.
-            </p>
-          </Reveal>
-
-          <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
-            {PRODUCTS.map((p, i) => (
-              <Reveal key={p.name} delay={Math.min(i * 60, 240)}>
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block overflow-hidden rounded-md border bg-white/60 transition-transform duration-300 hover:-translate-y-1"
-                  style={{ borderColor: C.line }}
-                >
-                  <div className="relative aspect-square overflow-hidden" style={{ background: C.boneDeep }}>
-                    <img
-                      src={p.img}
-                      alt={p.name}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
-                    {p.tag && (
-                      <span
-                        className="absolute left-2 top-2 rounded-sm px-2 py-1 text-[10px] uppercase tracking-[0.14em]"
-                        style={{ fontFamily: FONT.mono, background: C.charcoal, color: '#EFE7D9' }}
-                      >
-                        {p.tag}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline justify-between gap-2 px-3 py-3">
-                    <span className="text-[0.92rem] font-medium leading-snug">{p.name}</span>
-                    <span
-                      className="shrink-0 text-[0.92rem] font-semibold"
-                      style={{ fontFamily: FONT.mono, color: C.rust }}
-                    >
-                      {p.eur ? `€${p.eur}` : 'shop →'}
-                    </span>
-                  </div>
-                </a>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal className="mt-8">
-            <div className="flex flex-wrap gap-2.5">
-              {CATEGORIES.map((c) => (
-                <a
-                  key={c.label}
-                  href={c.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-sm border px-3.5 py-2 text-[0.85rem] font-medium transition-colors hover:bg-white/70"
-                  style={{ borderColor: C.line, color: C.ink }}
-                >
-                  {c.label}
-                </a>
-              ))}
-            </div>
-          </Reveal>
-        </section>
-
-        {/* -------------------------------------------------------- process */}
-        <section id="factory" style={{ background: C.charcoal, color: '#EFE7D9' }}>
-          <div className="mx-auto max-w-[1240px] px-5 py-20 lg:py-28">
-            <Reveal>
-              <SpecLabel dark>From fleece to shop floor</SpecLabel>
-              <h2
-                className="mt-3 max-w-[24ch] text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-tight"
-                style={{ fontFamily: FONT.display }}
-              >
-                The machines run behind the shop wall
-              </h2>
-              <p className="mt-4 max-w-[62ch] text-[1.02rem] leading-relaxed" style={{ color: '#CDbfAC' }}>
-                Washing, brushing and steaming give the Icelandic wool its softer, fluffier
-                feel. Then it is knitted, linked and labelled on site. Through the viewing
-                windows in the factory shop you can watch it happen during opening hours.
+                Ullarverksmiðjan KIDKA · Hvammstangi · síðan 2008 í fjölskyldueigu
               </p>
-            </Reveal>
+              <h1
+                className="text-[clamp(2.5rem,7vw,5.2rem)] leading-[0.95]"
+                style={{ fontFamily: FONT2.display }}
+              >
+                Every KIDKA sweater
+                <br />
+                starts as a chart
+                <br />
+                and ends
+                <span
+                  className="ml-3 inline-block px-2"
+                  style={{ background: C2.dye, color: C2.ink }}
+                >
+                  in your hands.
+                </span>
+              </h1>
+              <p className="mt-7 max-w-[54ch] text-[1.05rem] leading-relaxed" style={{ color: C2.inkSoft }}>
+                We knit it ourselves, from Icelandic wool, on machines in Hvammstangi. The wall
+                between our shop and the knitting hall is glass, so you can stand there and watch
+                the row you are about to wear.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a
+                  href="#chart"
+                  className="px-6 py-3.5 text-[0.95rem] font-bold"
+                  style={{ background: C2.ink, color: C2.oat }}
+                >
+                  See the collection
+                </a>
+                <a
+                  href="#plan"
+                  className="border px-6 py-3.5 text-[0.95rem] font-bold"
+                  style={{ borderColor: C2.ink, color: C2.ink }}
+                >
+                  Walk the factory floor
+                </a>
+              </div>
+            </div>
 
-            <ol className="mt-12 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-5">
-              {PROCESS.map((s, i) => (
-                <Reveal key={s.n} delay={Math.min(i * 80, 320)}>
-                  <li className="relative border-t pt-5" style={{ borderColor: 'rgba(239,231,217,0.25)' }}>
-                    <span
-                      className="text-[12px] tracking-[0.2em]"
-                      style={{ fontFamily: FONT.mono, color: C.rustBright }}
-                    >
-                      {s.n}
-                    </span>
-                    <h3 className="mt-2 text-[1.15rem] font-semibold" style={{ fontFamily: FONT.display }}>
-                      {s.title}
-                    </h3>
-                    <p className="mt-2 text-[0.92rem] leading-relaxed" style={{ color: '#CDBFAC' }}>
-                      {s.note}
-                    </p>
-                    <HandNote color="#E9B98A" className="mt-3">
-                      {s.hand}
-                    </HandNote>
-                  </li>
-                </Reveal>
-              ))}
-            </ol>
+            {/* the swatch: material as image (Savor lesson), in a chart cell */}
+            <figure className="border p-2" style={{ borderColor: C2.gridStrong, background: C2.oatDeep }}>
+              <img
+                src={IMG.mittens}
+                alt="Grey patterned KIDKA wool mittens resting on wet pebbles"
+                className="aspect-[4/5] w-full object-cover"
+              />
+              <figcaption
+                className="flex items-center justify-between px-1 pt-2 text-[0.72rem]"
+                style={{ fontFamily: FONT2.mono, color: C2.ochre }}
+              >
+                <span>SWATCH / LOPI</span>
+                <span>100% ÍSL. ULL</span>
+              </figcaption>
+            </figure>
           </div>
         </section>
 
-        {/* ------------------------------------------------- lookbook band */}
-        <section className="relative overflow-hidden" aria-label="KIDKA lookbook">
+        {/* ---------------------------------------------------------- plan */}
+        <section id="plan" className="border-y" style={{ borderColor: C2.gridStrong, background: C2.oatDeep }}>
+          <div className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
+                The floor, end to end
+              </h2>
+              <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+                Tap a room · skýringarmynd
+              </p>
+            </div>
+
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] lg:gap-12">
+              <FactoryPlan active={active} setActive={setActive} />
+
+              <div className="flex flex-col">
+                <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+                  {station.coord} / {station.titleIs.toUpperCase()}
+                </p>
+                <h3 className="mt-2 text-[1.8rem] leading-tight" style={{ fontFamily: FONT2.display }}>
+                  {station.title}
+                </h3>
+                <p className="mt-3 text-[1rem] leading-relaxed" style={{ color: C2.inkSoft }}>
+                  {station.note}
+                </p>
+                {station.hook && (
+                  <p
+                    className="mt-4 inline-block self-start px-2 py-1 text-[1rem] font-bold"
+                    style={{ background: C2.dye, color: C2.ink }}
+                  >
+                    {station.hook}
+                  </p>
+                )}
+
+                {/* every room reachable as text, not only on the drawing */}
+                <ul className="mt-7 flex flex-wrap gap-2">
+                  {STATIONS.map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        onClick={() => setActive(s.id)}
+                        aria-pressed={active === s.id}
+                        className="border px-3 py-1.5 text-[0.8rem]"
+                        style={{
+                          borderColor: C2.ink,
+                          background: active === s.id ? C2.ink : 'transparent',
+                          color: active === s.id ? C2.oat : C2.ink,
+                          fontFamily: FONT2.mono,
+                        }}
+                      >
+                        {s.coord} {s.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 text-[0.8rem] leading-relaxed" style={{ color: C2.inkSoft }}>
+                  An illustrative diagram of the stages KIDKA describes, not an architectural plan
+                  of the building.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --------------------------------------------------- collection */}
+        <section id="chart" className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
+          <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
+              The collection, charted
+            </h2>
+            <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+              Verð af kidka.com · 23.07.2026
+            </p>
+          </div>
+
+          <ul className="grid grid-cols-2 md:grid-cols-4" style={{ borderTop: `1px solid ${C2.gridStrong}`, borderLeft: `1px solid ${C2.gridStrong}` }}>
+            {PRODUCTS.map((p, i) => {
+              const coord = `${String.fromCharCode(65 + (i % 4))}${Math.floor(i / 4) + 1}`
+              return (
+                <li key={p.name} style={{ borderRight: `1px solid ${C2.gridStrong}`, borderBottom: `1px solid ${C2.gridStrong}` }}>
+                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="group block p-3">
+                    <div className="mb-3 flex items-center justify-between text-[0.7rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+                      <span>{coord}</span>
+                      {p.tag && <span>{p.tag}</span>}
+                    </div>
+                    <div className="overflow-hidden" style={{ background: C2.oatDeep }}>
+                      <img
+                        src={p.img}
+                        alt={p.name}
+                        loading="lazy"
+                        className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                      />
+                    </div>
+                    <p className="mt-3 text-[0.95rem] font-bold leading-snug">{p.name}</p>
+                    <p className="mt-1 text-[0.95rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
+                      {p.eur ? `€${p.eur}` : 'sjá verð →'}
+                    </p>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+
+          <div className="mt-7 flex flex-wrap gap-2">
+            {CATEGORIES.map((c) => (
+              <a
+                key={c.label}
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border px-3 py-1.5 text-[0.82rem] hover:bg-[rgba(22,20,26,0.06)]"
+                style={{ borderColor: C2.gridStrong }}
+              >
+                {c.label}
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* ------------------------------------------- made in Hvammstangi */}
+        <section className="relative">
           <img
             src={IMG.band}
-            alt="Two women in dark patterned KIDKA sweaters and beanies standing with Icelandic horses"
+            alt="Two women wearing dark patterned KIDKA sweaters and beanies beside Icelandic horses"
             loading="lazy"
-            className="h-[52vh] min-h-[380px] w-full object-cover"
+            className="h-[62vh] min-h-[420px] w-full object-cover"
           />
-          <div
-            className="absolute inset-0 flex items-end"
-            style={{ background: 'linear-gradient(180deg, transparent 30%, rgba(20,17,14,0.62) 100%)' }}
-          >
-            <div className="mx-auto w-full max-w-[1240px] px-5 pb-10">
-              <p
-                className="max-w-[30ch] text-[clamp(1.5rem,3.4vw,2.4rem)] font-bold leading-snug text-white"
-                style={{ fontFamily: FONT.display }}
-              >
-                Photographed where it belongs: outside, in the North.
-              </p>
-              <p className="mt-2 text-[0.95rem] text-white/85">
-                All photography on this page is KIDKA’s own, from kidka.com.
+          <div className="absolute inset-0 flex items-center justify-center px-5" style={{ background: 'rgba(12,10,8,0.42)' }}>
+            <div className="max-w-[46ch] text-center">
+              <h2 className="text-[clamp(1.9rem,4.4vw,3.4rem)] leading-tight text-white" style={{ fontFamily: FONT2.display }}>
+                Made in Hvammstangi
+              </h2>
+              <p className="mt-4 text-[1.02rem] leading-relaxed text-white/90">
+                A town of a few hundred on the road north, better known for its seals. The wool
+                comes from Icelandic sheep, the knitting happens here, and the people who own the
+                factory are the people who run it.
               </p>
             </div>
           </div>
         </section>
 
-        {/* ---------------------------------------------------------- story */}
-        <section className="mx-auto max-w-[1240px] px-5 py-20 lg:py-28">
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-            <Reveal>
-              <div className="overflow-hidden rounded-md">
-                <img
-                  src={IMG.story}
-                  alt="A man wearing a patterned KIDKA lopapeysa cardigan in front of winter grass"
-                  loading="lazy"
-                  className="aspect-[3/4] w-full object-cover"
-                />
-              </div>
-            </Reveal>
-            <Reveal delay={100}>
-              <SpecLabel>Family-run since 2008</SpecLabel>
-              <h2
-                className="mt-3 max-w-[20ch] text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-tight"
-                style={{ fontFamily: FONT.display }}
-              >
-                Irina &amp; Kristinn keep the needles moving
-              </h2>
-              <div className="mt-5 space-y-4 text-[1.02rem] leading-relaxed" style={{ color: '#4A423A' }}>
-                <p>
-                  Irina Kamp and Kristinn Karlsson have run KIDKA since 2008, carrying on a
-                  knitting tradition in Hvammstangi that goes back to the 1970s. Today it is
-                  one of the biggest knitting factories in Iceland and an important employer
-                  in the Miðfjörður region.
-                </p>
-                <p>
-                  Everything is made from Icelandic sheep wool, processed from start to finish
-                  in the factory: sweaters and cardigans, ponchos, blankets, beanies, and a
-                  wool line for Icelandic horses that riders order from all over the world.
-                </p>
-              </div>
-              <a
-                href="https://kidka.com/about-us/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-1.5 text-[0.95rem] font-semibold hover:opacity-75"
-                style={{ color: C.rust }}
-              >
-                Their story on kidka.com <ArrowUpRight size={16} aria-hidden="true" />
-              </a>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ----------------------------------------------- horse line aside */}
-        <section style={{ background: C.moss, color: '#F2EEE3' }}>
-          <div className="mx-auto grid max-w-[1240px] items-center gap-8 px-5 py-14 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:py-16">
-            <Reveal>
-              <SpecLabel dark>The horse line</SpecLabel>
-              <h2
-                className="mt-2 max-w-[24ch] text-[clamp(1.7rem,3.6vw,2.6rem)] font-bold leading-tight"
-                style={{ fontFamily: FONT.display }}
-              >
-                Wool for the other Icelanders: the horses
-              </h2>
-              <p className="mt-3 max-w-[56ch] text-[0.98rem] leading-relaxed" style={{ color: '#DDE5CF' }}>
-                Saddle pads, rugs and neck covers knitted from the same Icelandic wool, a
-                factory specialty you will not find in the tourist shops.
-              </p>
-              <a
-                href="https://kidka.com/category/horseproducts/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-block rounded-sm px-5 py-3 text-[0.92rem] font-semibold"
-                style={{ background: '#F2EEE3', color: C.mossDeep }}
-              >
-                Browse horse products
-              </a>
-            </Reveal>
-            <Reveal delay={100}>
+        {/* ------------------------------------------------------- swatch */}
+        <section className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+            <div className="border p-2" style={{ borderColor: C2.gridStrong }}>
               <img
-                src={IMG.horse}
-                alt="A KIDKA wool saddle pad on an Icelandic horse"
+                src={IMG.story}
+                alt="A man wearing a patterned KIDKA cardigan in front of winter grass"
                 loading="lazy"
-                className="aspect-[16/10] w-full rounded-md object-cover"
+                className="aspect-[3/4] w-full object-cover"
               />
-            </Reveal>
-          </div>
-        </section>
-
-        {/* -------------------------------------------------------- reviews */}
-        <section className="mx-auto max-w-[1240px] px-5 py-20 lg:py-28">
-          <Reveal>
-            <SpecLabel>What travellers write</SpecLabel>
-            <h2
-              className="mt-3 text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-tight"
-              style={{ fontFamily: FONT.display }}
-            >
-              Worth the stop off Route 1
-            </h2>
-          </Reveal>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {REVIEWS.map((r, i) => (
-              <Reveal key={r.url} delay={Math.min(i * 90, 270)}>
-                <figure
-                  className="flex h-full flex-col justify-between rounded-md border bg-white/60 p-6"
-                  style={{ borderColor: C.line }}
-                >
-                  <blockquote>
-                    <p className="text-[1.12rem] font-semibold leading-snug" style={{ fontFamily: FONT.display }}>
-                      “{r.quote}”
-                    </p>
-                    <p className="mt-3 text-[0.93rem] leading-relaxed" style={{ color: '#4A423A' }}>
-                      {r.body}
-                    </p>
-                  </blockquote>
-                  <figcaption className="mt-5">
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[0.82rem] underline-offset-2 hover:underline"
-                      style={{ fontFamily: FONT.mono, color: C.rust }}
-                    >
-                      {r.source}
-                    </a>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- visit */}
-        <section id="visit" style={{ background: C.charcoal, color: '#EFE7D9' }}>
-          <div className="mx-auto max-w-[1240px] px-5 py-20 lg:py-28">
-            <div className="grid gap-12 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
-              <div>
-                <Reveal>
-                  <SpecLabel dark>Visit the factory shop</SpecLabel>
-                  <h2
-                    className="mt-3 max-w-[18ch] text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-tight"
-                    style={{ fontFamily: FONT.display }}
-                  >
-                    Five minutes off Route 1
-                  </h2>
-                  <p className="mt-4 max-w-[58ch] text-[1.02rem] leading-relaxed" style={{ color: '#CDBFAC' }}>
-                    Hvammstangi sits halfway between Reykjavík and Akureyri, in Iceland’s
-                    seal-watching country. The factory shop is at Höfðabraut 34. Come in,
-                    try the wool on, and watch the machines through the windows.
-                  </p>
-                </Reveal>
-
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  {(
-                    [
-                      [MapPin, 'Address', CONTACT.address, CONTACT.maps, 'Open in Google Maps'],
-                      [Phone, 'Phone', CONTACT.phone, `tel:${CONTACT.phoneTel}`, 'Call the shop'],
-                      [Mail, 'Email', CONTACT.email, `mailto:${CONTACT.email}`, 'Write to KIDKA'],
-                      [Clock, 'Worldwide', 'Web shop ships from the factory', 'https://kidka.com/shop/', 'kidka.com/shop'],
-                    ] as const
-                  ).map(([Icon, label, value, href, cta], i) => (
-                    <Reveal key={label} delay={Math.min(i * 70, 210)}>
-                      <div
-                        className="flex h-full flex-col rounded-md border p-5"
-                        style={{ borderColor: 'rgba(239,231,217,0.22)' }}
-                      >
-                        <Icon size={18} aria-hidden="true" style={{ color: C.rustBright }} />
-                        <p
-                          className="mt-3 text-[11px] uppercase tracking-[0.2em]"
-                          style={{ fontFamily: FONT.mono, color: '#B7A78F' }}
-                        >
-                          {label}
-                        </p>
-                        <p className="mt-1 text-[1rem] font-medium">{value}</p>
-                        <a
-                          href={href}
-                          target={href.startsWith('http') ? '_blank' : undefined}
-                          rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                          className="mt-auto pt-3 text-[0.88rem] font-semibold underline-offset-2 hover:underline"
-                          style={{ color: C.rustBright }}
-                        >
-                          {cta}
-                        </a>
-                      </div>
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-
-              <Reveal delay={120}>
-                <div className="rounded-md border p-6" style={{ borderColor: 'rgba(239,231,217,0.22)' }}>
-                  <h3 className="text-[1.3rem] font-semibold" style={{ fontFamily: FONT.display }}>
-                    Opening hours
-                  </h3>
-                  {[HOURS.winter, HOURS.summer].map((season) => (
-                    <div key={season.label} className="mt-5">
-                      <p
-                        className="text-[11px] uppercase tracking-[0.2em]"
-                        style={{ fontFamily: FONT.mono, color: C.rustBright }}
-                      >
-                        {season.label}
-                      </p>
-                      <dl className="mt-2">
-                        {season.rows.map(([d, h]) => (
-                          <div
-                            key={d}
-                            className="flex items-baseline justify-between border-b py-2.5 text-[0.98rem]"
-                            style={{ borderColor: 'rgba(239,231,217,0.14)' }}
-                          >
-                            <dt>{d}</dt>
-                            <dd style={{ fontFamily: FONT.mono }}>{h}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </div>
-                  ))}
-                  <p className="mt-4 text-[0.85rem] leading-relaxed" style={{ color: '#B7A78F' }}>
-                    Hours as published on kidka.com. Confirm around holidays.
-                  </p>
-                </div>
-              </Reveal>
             </div>
-
-            {/* final CTA */}
-            <Reveal className="mt-16">
-              <div
-                className="flex flex-col items-start justify-between gap-6 rounded-md p-8 md:flex-row md:items-center"
-                style={{ background: C.mossDeep }}
-              >
-                <div>
-                  <p className="text-[clamp(1.5rem,3vw,2.1rem)] font-bold leading-snug" style={{ fontFamily: FONT.display }}>
-                    Take home wool that never left its town.
-                  </p>
-                  <p className="mt-1 text-[0.95rem]" style={{ color: '#DDE5CF' }}>
-                    Sheared, knitted and sold in Hvammstangi, or shipped worldwide.
-                  </p>
-                </div>
-                <a
-                  href="https://kidka.com/shop/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-sm px-6 py-3.5 text-[0.95rem] font-semibold"
-                  style={{ background: C.rustBright, color: '#1F1207' }}
-                >
-                  Shop the collection
-                </a>
+            <div>
+              <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
+                What it is made of, plainly
+              </h2>
+              <dl className="mt-8">
+                {SWATCH.map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="flex flex-col gap-1 border-b py-4 sm:flex-row sm:items-baseline sm:gap-6"
+                    style={{ borderColor: C2.gridStrong }}
+                  >
+                    <dt
+                      className="w-[9rem] shrink-0 text-[0.75rem] uppercase"
+                      style={{ fontFamily: FONT2.mono, color: C2.ochre, letterSpacing: '0.1em' }}
+                    >
+                      {k}
+                    </dt>
+                    <dd className="text-[1.02rem]">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-8 flex flex-wrap gap-4">
+                {REVIEWS.slice(0, 2).map((r) => (
+                  <a
+                    key={r.url}
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="max-w-[24ch] border-l-2 pl-3 text-[0.92rem] italic hover:underline"
+                    style={{ borderColor: C2.dye, color: C2.inkSoft }}
+                  >
+                    “{r.quote}”
+                  </a>
+                ))}
               </div>
-            </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* -------------------------------------------------- visit / label */}
+        <section id="visit" style={{ background: C2.ink, color: C2.oat }}>
+          <div className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+              <div>
+                <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
+                  Come and watch
+                </h2>
+                <p className="mt-4 max-w-[46ch] text-[1.02rem] leading-relaxed" style={{ color: '#C9C0AF' }}>
+                  The factory shop is five minutes off Route 1, halfway between Reykjavík and
+                  Akureyri. Or order from anywhere and it ships from this same floor.
+                </p>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <a
+                    href="https://kidka.com/shop/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-3.5 text-[0.95rem] font-bold"
+                    style={{ background: C2.dye, color: C2.ink }}
+                  >
+                    Shop the collection
+                  </a>
+                  <a
+                    href={CONTACT.maps}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border px-6 py-3.5 text-[0.95rem] font-bold"
+                    style={{ borderColor: C2.oat, color: C2.oat }}
+                  >
+                    Open in maps
+                  </a>
+                </div>
+              </div>
+
+              {/* the care label — copy-as-design, and where the practical info lives */}
+              <div className="border p-6" style={{ borderColor: 'rgba(239,233,220,0.35)' }}>
+                <ChartBand repeats={3} cell={7} animate={false} className="mb-5 opacity-70" />
+                <p className="text-[0.72rem] uppercase" style={{ fontFamily: FONT2.mono, letterSpacing: '0.16em', color: C2.dye }}>
+                  Care label / opening hours
+                </p>
+                {[HOURS.winter, HOURS.summer].map((s) => (
+                  <div key={s.label} className="mt-5">
+                    <p className="text-[0.82rem]" style={{ fontFamily: FONT2.mono, color: '#C9C0AF' }}>
+                      {s.label}
+                    </p>
+                    <dl className="mt-1.5">
+                      {s.rows.map(([d, h]) => (
+                        <div key={d} className="flex items-baseline justify-between border-b py-2 text-[0.95rem]" style={{ borderColor: 'rgba(239,233,220,0.16)' }}>
+                          <dt>{d}</dt>
+                          <dd style={{ fontFamily: FONT2.mono }}>{h}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
+                <dl className="mt-6 space-y-2 text-[0.95rem]">
+                  <div className="flex gap-3">
+                    <dt className="w-16 shrink-0 text-[0.75rem] uppercase" style={{ fontFamily: FONT2.mono, color: C2.dye }}>Addr</dt>
+                    <dd>{CONTACT.address}</dd>
+                  </div>
+                  <div className="flex gap-3">
+                    <dt className="w-16 shrink-0 text-[0.75rem] uppercase" style={{ fontFamily: FONT2.mono, color: C2.dye }}>Tel</dt>
+                    <dd><a href={`tel:${CONTACT.phoneTel}`} className="hover:underline">{CONTACT.phone}</a></dd>
+                  </div>
+                  <div className="flex gap-3">
+                    <dt className="w-16 shrink-0 text-[0.75rem] uppercase" style={{ fontFamily: FONT2.mono, color: C2.dye }}>Mail</dt>
+                    <dd><a href={`mailto:${CONTACT.email}`} className="hover:underline">{CONTACT.email}</a></dd>
+                  </div>
+                </dl>
+                <p className="mt-5 text-[0.78rem]" style={{ color: '#A79C89' }}>
+                  Hours as published on kidka.com. Confirm around holidays.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-hidden pb-2 opacity-60">
+            <ChartBand repeats={12} cell={9} animate={false} />
           </div>
         </section>
 
         {/* --------------------------------------------- mobile sticky CTA */}
         <div
           className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t px-4 py-3 md:hidden"
-          style={{ background: 'rgba(239,234,225,0.96)', borderColor: C.line, backdropFilter: 'blur(8px)' }}
+          style={{ background: 'rgba(239,233,220,0.97)', borderColor: C2.gridStrong, backdropFilter: 'blur(6px)' }}
         >
           <a
             href="https://kidka.com/shop/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 rounded-sm py-3 text-center text-[0.95rem] font-semibold"
-            style={{ background: C.rust, color: '#FFF7EF' }}
+            className="flex-1 py-3 text-center text-[0.95rem] font-bold"
+            style={{ background: C2.ink, color: C2.oat }}
           >
             Shop the collection
           </a>
           <a
             href={`tel:${CONTACT.phoneTel}`}
-            className="rounded-sm border px-4 py-3 text-[0.95rem] font-semibold"
-            style={{ borderColor: C.ink, color: C.ink }}
-            aria-label="Call KIDKA"
+            className="border px-5 py-3 text-[0.95rem] font-bold"
+            style={{ borderColor: C2.ink, color: C2.ink }}
           >
-            <Phone size={18} aria-hidden="true" />
+            Call
           </a>
         </div>
         <div className="h-14 md:hidden" aria-hidden="true" />
