@@ -3487,7 +3487,7 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenskar verslanir og ferðaþjónustu.
 
-Ég kynnti mér Ljómalind og sá að þið seljið vörur frá tugum framleiðenda í héraðinu, ull, osta, hunang, leirmuni og sultur, og eruð með 4,0 í einkunn á TripAdvisor. Samt er heimasíðan ykkar, ljomalind.is, í dag bara auð biðsíða frá hýsingaraðila, þannig að ekkert af þessu sést þar sem þið sjálf ráðið yfir.
+Ég kynnti mér Ljómalind og sá að þið seljið vörur frá tugum framleiðenda í héraðinu, ull, osta, hunang, leirmuni og sultur, og eruð með 4,0 í einkunn á TripAdvisor. Samt er heimasíðan ykkar, ljomalind.is, í dag aðeins auð biðsíða frá hýsingaraðila, þannig að ekkert af þessu sést á ykkar eigin vef.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
@@ -3539,12 +3539,12 @@ ${SIGN}`,
     positioning:
       'Hótel Bjarkalundur is Iceland’s oldest continuously built summer hotel, raised at the foot of Vaðalfjöll in the Westfjords between 1945 and 1947, and freshly reopened on 1 April 2026 under new owner Sigurður Friðriksson. The hotel is genuinely and currently operating, bookable today across Booking.com, Klook, Hotels.com and Expedia, but its own site is a mid-2010s Wix template with no room pricing, an external booking handoff, and a personal Gmail contact address. The redesign carries the arrival from road to gate to table as one continuous story, the twin peaks outside, the forest-green lounges inside, telling both the 1947 heritage and the 2026 fresh start honestly.',
     outreach: {
-      subject: 'Hugmynd að nýrri vefsíðu fyrir Hótel Bjarkalundur',
+      subject: 'Hugmynd að nýrri vefsíðu fyrir Hótel Bjarkalund',
       body: `Góðan dag,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk hótel og ferðaþjónustu.
 
-Ég kynnti mér Hótel Bjarkalundur og sá að þið eruð eitt elsta starfandi sumarhótel landsins, byggt 1945 til 1947 við rætur Vaðalfjalla, og opnuðuð aftur í apríl á þessu ári undir nýjum eigendum. Samt nær núverandi vefur ykkar hvorki að segja þessa sögu né sýna herbergin og veitingastaðinn eins og þau eiga skilið, öll bókun fer í gegnum utanaðkomandi kerfi og engin verð sjást á síðunni sjálfri.
+Ég kynnti mér Hótel Bjarkalund og sá að þið rekið eitt elsta starfandi sumarhótel landsins, byggt á árunum 1945 til 1947 við rætur Vaðalfjalla, og opnuðuð það aftur í apríl á þessu ári. Núverandi vefur nær samt hvorki að segja þessa sögu né að sýna herbergin og veitingastaðinn eins og þau eiga skilið, öll bókun fer í gegnum utanaðkomandi kerfi og engin verð sjást á síðunni sjálfri.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
@@ -3661,14 +3661,14 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús.
 
-Ég kynnti mér Issi Fish & Chips og sá að þið eruð á meðal úrslitahafa á bresku fish and chips verðlaununum 2026 og með 4,9 í einkunn á RestaurantGuru. Samt er vefurinn ykkar með föstum ramma sem passar hvorki fyrir tölvuskjá né síma, á tölvu er stór auður flötur við hliðina á síðunni og í síma skarast textinn yfir merkið ykkar.
+Ég kynnti mér Issi Fish & Chips og sá að þið komust í úrslit í alþjóðlegum flokki bresku fish and chips verðlaunanna 2026 og eruð með 4,9 í einkunn á Google. Vefurinn ykkar heldur samt ekki í við matinn, í símanum leggst textinn á forsíðunni yfir merkið ykkar og símanúmerið sést hvergi á síðunni.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að myndirnar ykkar og matseðillinn fái loksins að njóta sín, og að fólk finni strax opnunartíma og staðsetningu í símanum. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Að myndirnar ykkar og matseðillinn fái loksins að njóta sín, og að fólk finni strax símanúmerið, opnunartímann og staðsetninguna í símanum. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 
@@ -3717,7 +3717,7 @@ ${SIGN}`,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk kaffihús og verslanir.
 
-Ég kynnti mér Húnabúð og sá að þið sameinið kaffihús, blómabúð og gjafavöru undir einu þaki í Blönduósi, nákvæmlega eins og skiltið á húsinu segir. Samt sést það hvergi á netinu, engin heimasíða er til og eina ummerkið er lítil Facebook síða þar sem hvorki sést matseðill né opnunartími.
+Ég kynnti mér Húnabúð og sá að þið sameinið kaffihús, blómabúð og gjafavöru undir einu þaki á Blönduósi, nákvæmlega eins og skiltin á húsinu segja. Á netinu er samt hvergi hægt að sjá opnunartímann ykkar, matseðilinn eða það sem er í boði hverju sinni.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
