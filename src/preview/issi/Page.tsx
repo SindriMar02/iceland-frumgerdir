@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import Lenis from 'lenis'
-import { useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Phone, MapPin, Clock, ArrowRight, Mail, ExternalLink, Star,
+  Phone, MapPin, Clock, ArrowRight, Mail, ExternalLink, Star, Award, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
@@ -449,6 +449,116 @@ function OrderTicket({ reduce }: { reduce: boolean }) {
 }
 
 /* ============================================================= Page */
+/* ---- Reviews carousel: a spring card-stack adapted from educlopez/reviews-carousel
+   (21st.dev). Re-skinned to the paper/mono/night palette, quote type set in a
+   readable body face (not the chunky display face), keyboard nav SCOPED to the
+   focused region (the raw component put an ArrowLeft/Right listener on window,
+   which would have fought the order slip's own arrow-key radiogroup). Reduced
+   motion flattens the stack and kills autoplay. */
+interface CarouselReview { id: number; author: string; source: string; quote: string }
+
+function clampNum(v: number, min: number, max: number) { return Math.min(Math.max(v, min), max) }
+
+function ReviewStackCard({ review, index, activeIndex, total, reduce }: {
+  review: CarouselReview; index: number; activeIndex: number; total: number; reduce: boolean
+}) {
+  const off = index - activeIndex
+  const past = activeIndex > index
+  const scale = reduce ? 1 : clampNum(1 - off * 0.06, 0.6, 1)
+  const y = reduce ? 0 : clampNum(off * -26, -78, 9999)
+  const isActive = index === activeIndex
+  return (
+    <motion.figure
+      initial={false}
+      animate={{ y, scale, transition: { type: 'spring', stiffness: 250, damping: 22, mass: 0.5 } }}
+      className="absolute left-1/2 top-1/2 w-[calc(100%-1.5rem)] max-w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-3xl p-6 sm:p-8"
+      style={{
+        background: PAPER,
+        border: '1px solid rgba(20,23,22,0.12)',
+        boxShadow: '0 24px 60px -24px rgba(0,0,0,0.65)',
+        filter: past ? 'blur(2px)' : 'blur(0px)',
+        opacity: past ? 0 : 1,
+        transitionProperty: 'opacity, filter',
+        transitionDuration: reduce ? '0ms' : '260ms',
+        transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+        zIndex: total - index,
+        pointerEvents: isActive ? 'auto' : 'none',
+      }}
+    >
+      <blockquote>
+        <p className="text-[16.5px] leading-relaxed sm:text-[18px]" style={{ fontFamily: BODY, color: INK }}>
+          „{review.quote}“
+        </p>
+      </blockquote>
+      <figcaption className="mt-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t pt-4 text-[12px]" style={{ borderColor: 'rgba(20,23,22,0.12)', fontFamily: MONO }}>
+        <span className="font-bold uppercase tracking-wide" style={{ color: INK }}>{review.author}</span>
+        <span style={{ color: 'rgba(20,23,22,0.6)' }}>{review.source}</span>
+      </figcaption>
+    </motion.figure>
+  )
+}
+
+function ReviewsCarousel({ reviews, reduce }: { reviews: CarouselReview[]; reduce: boolean }) {
+  const [active, setActive] = useState(0)
+  const max = reviews.length - 1
+  const go = (i: number) => setActive(clampNum(i, 0, max))
+
+  useEffect(() => {
+    if (reduce || max < 1) return
+    const t = setInterval(() => setActive((p) => (p >= max ? 0 : p + 1)), 6000)
+    return () => clearInterval(t)
+  }, [reduce, max])
+
+  const onKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(active - 1) }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); go(active + 1) }
+  }
+
+  if (!reviews.length) return null
+  return (
+    <div
+      className={`relative mx-auto h-[460px] w-full max-w-3xl rounded-3xl sm:h-[360px] ${FOCUS_NIGHT}`}
+      role="group"
+      aria-roledescription="skrunspjald"
+      aria-label="Umsagnir gesta"
+      tabIndex={0}
+      onKeyDown={onKey}
+    >
+      <div className="grid h-full w-full place-items-center">
+        {reviews.map((r, i) => (
+          <ReviewStackCard key={r.id} review={r} index={i} activeIndex={active} total={reviews.length} reduce={reduce} />
+        ))}
+      </div>
+      <div className="absolute bottom-0 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3">
+        <button
+          type="button" aria-label="Fyrri umsögn" disabled={active <= 0} onClick={() => go(active - 1)}
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition disabled:opacity-30 ${FOCUS_NIGHT}`}
+          style={{ border: '1px solid rgba(237,232,220,0.25)', color: PAPER }}
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden />
+        </button>
+        <div className="flex items-center gap-2" aria-hidden>
+          {reviews.map((r, i) => (
+            <button
+              key={r.id} type="button" tabIndex={-1} onClick={() => go(i)}
+              className="h-2 rounded-full transition-all"
+              style={{ width: i === active ? 28 : 8, background: i === active ? MINT : 'rgba(79,189,154,0.35)' }}
+            />
+          ))}
+        </div>
+        <button
+          type="button" aria-label="Næsta umsögn" disabled={active >= max} onClick={() => go(active + 1)}
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition disabled:opacity-30 ${FOCUS_NIGHT}`}
+          style={{ border: '1px solid rgba(237,232,220,0.25)', color: PAPER }}
+        >
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
+      <p className="sr-only" aria-live="polite">Umsögn {active + 1} af {reviews.length}</p>
+    </div>
+  )
+}
+
 export default function Page() {
   const reduce = useReducedMotion() ?? false
   const heroShown = useMountShown(reduce)
@@ -714,19 +824,7 @@ export default function Page() {
           }}
         />
 
-        <div className="relative flex flex-1 flex-col justify-between pt-24 pb-10 md:pt-28">
-          {/* Credibility, up top */}
-          <Rise shown={heroShown} reduce={reduce} className={WRAP}>
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold tracking-[0.1em] uppercase ring-1 ring-white/30" style={{ fontFamily: MONO, color: PAPER }}>
-                Tilnefnd til alþjóðlegra verðlauna · National Fish &amp; Chip Awards 2026
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold tracking-[0.1em] uppercase ring-1 ring-white/30" style={{ fontFamily: MONO, color: PAPER }}>
-                <Star className="h-3.5 w-3.5" style={{ color: MINT }} aria-hidden /> {RATINGS[0].value}/5 Google · {RATINGS[0].detail}
-              </span>
-            </div>
-          </Rise>
-
+        <div className="relative flex flex-1 flex-col justify-end pt-24 pb-10 md:pt-28">
           {/* Main hero content, anchored bottom */}
           <div className={WRAP}>
             <Rise shown={heroShown} reduce={reduce} delay={80}>
@@ -747,7 +845,13 @@ export default function Page() {
                 Fiskur og franskar, steikt eftir pöntun. Sérvalinn og sjófrystur fiskur, alltaf ferskur í deigið.
               </p>
             </Rise>
-            <Rise shown={heroShown} reduce={reduce} delay={320} className="mt-8 flex flex-wrap items-center gap-3">
+            <Rise shown={heroShown} reduce={reduce} delay={300} className="mt-6 flex items-center gap-2.5">
+              <Award className="h-4 w-4 shrink-0" style={{ color: MINT }} aria-hidden />
+              <span className="text-[12.5px] tracking-wide" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.82)' }}>
+                Tilnefnd 2026 · National Fish &amp; Chip Awards, alþjóðlegi flokkurinn
+              </span>
+            </Rise>
+            <Rise shown={heroShown} reduce={reduce} delay={360} className="mt-8 flex flex-wrap items-center gap-3">
               <PrimaryButton onClick={() => scrollToId('kassinn')}>Settu saman kassann <ArrowRight className="h-4 w-4" aria-hidden /></PrimaryButton>
               <GhostButton href={PHONE_HREF}><Phone className="h-4 w-4" aria-hidden /> {PHONE_DISPLAY}</GhostButton>
               <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm ring-1 ring-white/25" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.85)' }}>
@@ -761,17 +865,23 @@ export default function Page() {
       {/* ==================================================== 2 · TRUST STRIP */}
       <section aria-label="Traust og viðurkenningar" style={{ borderTop: '1px solid rgba(237,232,220,0.1)', borderBottom: '1px solid rgba(237,232,220,0.1)' }}>
         <h2 className="sr-only">Traust og viðurkenningar</h2>
-        <div className={`${WRAP} grid gap-x-8 gap-y-4 py-6 text-center md:grid-cols-3 md:text-left`}>
+        <div className={`${WRAP} grid gap-x-10 gap-y-6 py-7 sm:grid-cols-3`}>
           {[
-            'Tilnefnd 2026 · National Fish & Chip Awards, alþjóðlegi flokkurinn',
-            `${RATINGS[0].value}/5 á ${RATINGS[0].platform} · ${RATINGS[0].detail}`,
-            `${RATINGS[1].value}/5 á ${RATINGS[1].platform} · ${RATINGS[1].detail}`,
-          ].map((t, i) => (
-            <div key={t} className={`flex items-center justify-center gap-3 md:justify-start ${i < 2 ? 'md:border-r md:border-white/10' : ''}`}>
-              <Star className="h-4 w-4 shrink-0" style={{ color: MINT }} aria-hidden />
-              <p className="text-[13px] leading-snug tracking-wide" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.85)' }}>{t}</p>
-            </div>
-          ))}
+            { icon: Award, value: 'Tilnefnd 2026', label: 'National Fish & Chip Awards, alþjóðlegi flokkurinn' },
+            { icon: Star, value: `${RATINGS[0].value} / 5`, label: `${RATINGS[0].platform} · ${RATINGS[0].detail}` },
+            { icon: Star, value: `${RATINGS[1].value} / 5`, label: `${RATINGS[1].platform} · ${RATINGS[1].detail}` },
+          ].map((it, i) => {
+            const Icon = it.icon
+            return (
+              <div key={it.label} className={`flex items-center gap-3.5 ${i < 2 ? 'sm:border-r sm:border-white/10 sm:pr-8' : ''}`}>
+                <Icon className="h-5 w-5 shrink-0" style={{ color: MINT }} aria-hidden />
+                <div className="min-w-0">
+                  <div className="text-[15px] font-bold leading-tight" style={{ fontFamily: MONO, color: PAPER }}>{it.value}</div>
+                  <div className="mt-1 text-[12px] leading-snug" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.6)' }}>{it.label}</div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </section>
 
@@ -792,14 +902,39 @@ export default function Page() {
         </FadeUp>
 
         <FadeUp delay={100} className="mt-14">
-          <div className="overflow-hidden rounded-2xl">
-            <Img
-              src={IMG('01_issi_1574_1720x920.webp')}
-              alt="Tveir stökkir fiskbitar í deigi með frönskum og sósu í ISSI kassa á dagblaðapappír."
-              className="aspect-[21/9] w-full object-cover"
-            />
+          {/* Food gallery — the real photography: the pan, then the box */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+              <Img
+                src={IMG('05_steiking_1720x920.webp')}
+                srcSet={`${IMG('05_steiking_1720x920-900.webp')} 900w, ${IMG('05_steiking_1720x920.webp')} 1720w`}
+                sizes="(min-width: 640px) 50vw, 100vw"
+                alt="Fiskur að steikjast í gullinni, freyðandi olíu í eldhúsinu hjá ISSI."
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+              <Img
+                src={IMG('01_issi_1574_1720x920.webp')}
+                alt="Tveir stökkir fiskbitar í deigi með frönskum og sósu í ISSI kassa á dagblaðapappír."
+                className="h-full w-full object-cover"
+              />
+            </div>
           </div>
-          <h3 className="mt-8 text-sm font-bold tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.55)' }}>Allur matseðillinn</h3>
+          {/* The dishes themselves, shot on newsprint */}
+          <div className="mt-4 grid grid-cols-3 gap-4">
+            {[
+              { img: '12_Fiskur-stor-haegri.webp', name: 'Fiskur' },
+              { img: '13_Blandadur-stor-haegri.webp', name: 'Blandaður' },
+              { img: '14_Franskar-og-laukhringir.webp', name: 'Franskar og laukhringir' },
+            ].map((f) => (
+              <figure key={f.name} className="overflow-hidden rounded-2xl p-4" style={{ background: PAPER }}>
+                <Img src={IMG(f.img)} alt={`${f.name} frá ISSI Fish & Chips.`} className="aspect-square w-full object-contain" />
+                <figcaption className="mt-2 text-center text-[11px] font-bold uppercase tracking-wide" style={{ fontFamily: MONO, color: 'rgba(20,23,22,0.62)' }}>{f.name}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <h3 className="mt-10 text-sm font-bold tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.55)' }}>Allur matseðillinn</h3>
           <ul className="mt-4 grid gap-x-10 gap-y-1 md:grid-cols-2">
             {MENU_LIST.map((it) => (
               <li key={it.name} className="flex items-baseline justify-between gap-4 border-b py-4" style={{ borderColor: 'rgba(237,232,220,0.1)' }}>
@@ -859,7 +994,7 @@ export default function Page() {
             <div className="rounded-2xl px-6 py-8" style={{ background: 'rgba(12,15,14,0.62)', backdropFilter: 'blur(2px)' }}>
             <Tag tone="outline">Ljósið í kofanum</Tag>
             <h2 className="mt-6 text-[clamp(1.9rem,5vw,3.6rem)]" style={{ fontFamily: DISPLAY, fontWeight: 400, lineHeight: 1.16, color: MINT_GLOW, textShadow: '0 2px 24px rgba(12,15,14,0.85)' }}>
-              Sama ljós, sama kofi, sama fiskur
+              Sama ljós, sami kofi, sami fiskur
             </h2>
             <p className="mx-auto mt-5 max-w-md text-[13px] tracking-wide" style={{ fontFamily: MONO, color: 'rgba(237,232,220,0.9)' }}>
               Fitjar 3 · þegar birtan dettur á
@@ -905,19 +1040,9 @@ export default function Page() {
             Fólk keyrir út á Reykjanes fyrir þetta
           </h2>
         </FadeUp>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {REVIEWS.map((r, i) => (
-            <FadeUp key={r.author} delay={i * 80}>
-              <figure className="flex h-full flex-col rounded-3xl p-6" style={{ background: PAPER, border: '1px solid rgba(20,23,22,0.08)' }}>
-                <blockquote className="flex-1 text-[17px] leading-relaxed" style={{ fontFamily: DISPLAY, fontWeight: 400, color: INK }}>„{r.quote}“</blockquote>
-                <figcaption className="mt-5 border-t pt-4 text-[12px]" style={{ borderColor: 'rgba(20,23,22,0.1)', fontFamily: MONO, color: 'rgba(20,23,22,0.68)' }}>
-                  <span className="block font-bold" style={{ color: INK }}>{r.author}</span>
-                  {r.source}
-                </figcaption>
-              </figure>
-            </FadeUp>
-          ))}
-        </div>
+        <FadeUp delay={40} className="mt-12">
+          <ReviewsCarousel reviews={REVIEWS.map((r, i) => ({ id: i, author: r.author, source: r.source, quote: r.quote }))} reduce={reduce} />
+        </FadeUp>
         <FadeUp delay={60}>
           <a href={TRIPADVISOR} target="_blank" rel="noreferrer" className={`mt-8 inline-flex items-center gap-1.5 text-sm font-bold underline underline-offset-4 ${FOCUS_NIGHT}`} style={{ fontFamily: BODY, color: PAPER }}>
             Lesa fleiri umsagnir á TripAdvisor <ExternalLink className="h-3.5 w-3.5" aria-hidden />
