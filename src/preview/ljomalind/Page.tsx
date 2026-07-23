@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode, RefObject } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, Clock, MapPin, Phone } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
@@ -16,9 +9,8 @@ import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { VerticalCutReveal } from '../../components/ui/vertical-cut-reveal'
 import { setNoindex, setThemeColor } from '../../lib/preview'
+import type { Category } from './data'
 import {
-  ACCENT,
-  ACCENT_TEXT,
   ADDRESS,
   CARD,
   CATEGORIES,
@@ -29,10 +21,11 @@ import {
   EMAIL,
   GROUND,
   HAIRLINE,
-  HAY,
+  HONEY,
   HOURS,
   HOURS_SHORT,
   IMG,
+  INDIGO,
   INK,
   MAPS_EMBED,
   MAPS_URL,
@@ -43,9 +36,10 @@ import {
   OPEN_MIN,
   PHONE,
   PHONE_HREF,
-  PINE,
   PRODUCERS,
   REVIEWS,
+  RUST,
+  RUST_TEXT,
 } from './data'
 
 const company = getPreviewCompany('ljomalind')
@@ -53,20 +47,19 @@ const company = getPreviewCompany('ljomalind')
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const canHoverPointer = () =>
-  typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
-
 const goTo = (id: string) =>
   document.getElementById(id)?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth' })
 
 const FOCUS =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C4472A]'
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B23A1E]'
 
 /* Accent-filled CTAs need a ring that stays visible whether the surrounding
  * ground is light or dark (accent-on-accent is invisible) — a double ring
  * (cream inner, ink outer) reads against either. */
 const FOCUS_ON_FILL =
-  'focus-visible:outline-none focus-visible:[box-shadow:0_0_0_2px_#F6F1E7,0_0_0_4px_#2B241C]'
+  'focus-visible:outline-none focus-visible:[box-shadow:0_0_0_2px_#ECE6D2,0_0_0_4px_#2A2A1D]'
+
+type FilterKey = Category['key'] | 'allt'
 
 /* ══════════════════════════════════════════════════════════════════════ */
 /*  Motion primitives (IO on an UNTRANSFORMED wrapper — craft ledger #7)     */
@@ -191,7 +184,7 @@ function ClipImg({
                   transition: `transform 1.25s ${EASE} ${delay}ms`,
                 }
           }
-          fallbackClassName={fallbackClassName ?? 'bg-gradient-to-br from-[#d8caa6] to-[#8a7f63]'}
+          fallbackClassName={fallbackClassName ?? 'bg-gradient-to-br from-[#cabb8a] to-[#7c7358]'}
         />
       </div>
     </div>
@@ -199,9 +192,9 @@ function ClipImg({
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  ELEVATION 1 — HeroCut renders the REAL 21st.dev Vertical Cut Reveal       */
-/*  (@danielpetho, id 884), vendored at src/components/ui. Reduced motion =>   */
-/*  static text; py-[0.2em] on its own clip wrapper clears á/é/ð safely.       */
+/*  HeroCut renders the REAL 21st.dev Vertical Cut Reveal (@danielpetho,      */
+/*  id 884), vendored at src/components/ui. Reduced motion => static text;    */
+/*  py-[0.2em] on its own clip wrapper clears á/é/ð safely.                   */
 /* ══════════════════════════════════════════════════════════════════════ */
 function HeroCut({
   text,
@@ -213,11 +206,7 @@ function HeroCut({
   italic?: boolean
 }) {
   const reduced = useReducedMotion()
-  // Reduced motion: static heading, no wrapper spans (ledger #8).
   if (reduced) return <span className={italic ? 'italic' : undefined}>{text}</span>
-  // The animation IS the 21st.dev component; we only feed it an overshoot-free
-  // tween and vertical padding on its own clip wrapper (wordLevelClassName) so
-  // tall Icelandic acutes never shear the top edge of the overflow clip.
   return (
     <VerticalCutReveal
       splitBy="words"
@@ -234,7 +223,7 @@ function HeroCut({
 
 /* Small decorative seed-head mark (aria-hidden, not a reproduction of the
  * real logo — a warm brand flourish only). */
-function SeedMark({ size = 22, color = ACCENT }: { size?: number; color?: string }) {
+function SeedMark({ size = 22, color = RUST }: { size?: number; color?: string }) {
   const spokes = Array.from({ length: 12 })
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden fill="none">
@@ -251,6 +240,26 @@ function SeedMark({ size = 22, color = ACCENT }: { size?: number; color?: string
       })}
       <circle cx="12" cy="12" r="1.4" fill={color} />
     </svg>
+  )
+}
+
+/* Four tiny dye-lot dots, standing in for "Allt" — the co-op's whole colour
+ * range in one mark. */
+function AllDotsMark({ active }: { active: boolean }) {
+  const dot = (c: string) => (
+    <span
+      aria-hidden
+      className="h-[5px] w-[5px] rounded-full"
+      style={{ background: active ? '#FFF7F0' : c }}
+    />
+  )
+  return (
+    <span aria-hidden className="grid grid-cols-2 gap-[3px]">
+      {dot(RUST)}
+      {dot(MOSS)}
+      {dot(HONEY)}
+      {dot(INDIGO)}
+    </span>
   )
 }
 
@@ -324,7 +333,7 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
       <header
         className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
         style={{
-          background: solid ? 'rgba(246,241,231,.9)' : 'transparent',
+          background: solid ? 'rgba(236,230,210,.9)' : 'transparent',
           backdropFilter: solid ? 'blur(10px)' : 'none',
           borderBottom: solid ? `1px solid ${HAIRLINE}` : '1px solid transparent',
         }}
@@ -338,10 +347,10 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             className={`flex min-h-11 items-center gap-2.5 rounded-full ${FOCUS}`}
             aria-label="Ljómalind, efst á síðu"
           >
-            <SeedMark size={22} color={solid ? ACCENT : '#F6F1E7'} />
+            <SeedMark size={22} color={solid ? RUST : '#ECE6D2'} />
             <span
               className="font-display text-[19px] font-semibold leading-none"
-              style={{ color: solid ? INK : '#F6F1E7' }}
+              style={{ color: solid ? INK : '#ECE6D2' }}
             >
               Ljómalind
             </span>
@@ -364,7 +373,7 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             <a
               href={PHONE_HREF}
               className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-semibold transition-transform hover:-translate-y-0.5 ${FOCUS_ON_FILL}`}
-              style={{ background: ACCENT, color: '#FFF7F0' }}
+              style={{ background: RUST, color: '#FFF7F0' }}
             >
               <Phone className="h-3.5 w-3.5" aria-hidden />
               <span className="hidden sm:inline">{PHONE}</span>
@@ -383,7 +392,7 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
                 aria-hidden
                 className="absolute h-[2px] w-[20px] transition-transform duration-300"
                 style={{
-                  background: solid ? INK : '#F6F1E7',
+                  background: solid ? INK : '#ECE6D2',
                   transform: open ? 'rotate(45deg)' : 'translateY(-4px)',
                   transitionTimingFunction: 'cubic-bezier(.22,.61,.21,1)',
                 }}
@@ -392,7 +401,7 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
                 aria-hidden
                 className="absolute h-[2px] w-[20px] transition-transform duration-300"
                 style={{
-                  background: solid ? INK : '#F6F1E7',
+                  background: solid ? INK : '#ECE6D2',
                   transform: open ? 'rotate(-45deg)' : 'translateY(4px)',
                   transitionTimingFunction: 'cubic-bezier(.22,.61,.21,1)',
                 }}
@@ -402,10 +411,10 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
         </div>
       </header>
 
-      {/* mobile menu: full-screen cream overlay, rendered as a SIBLING of the
-          header (never inside it — the header's backdrop-filter would become
-          the containing block for a fixed descendant and collapse its height).
-          Links rise out of masks, Fraunces, staggered. */}
+      {/* mobile menu: full-screen ground-colour overlay, rendered as a SIBLING
+          of the header (never inside it — the header's backdrop-filter would
+          become the containing block for a fixed descendant and collapse its
+          height). Links rise out of masks, staggered. */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -442,280 +451,225 @@ function TopNav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SIGNATURE — the producer thread rail (one scroll-linked element only)    */
-/*  SVG stroke draws down as you scroll the section; category dots light      */
-/*  ink -> accent as each is passed. Reduced motion: fully drawn at rest.     */
+/*  SIGNATURE — "Hillan": a real filterable producer index.                  */
+/*  Category chips (built from CATEGORIES + "Allt") filter the PRODUCERS      */
+/*  grid; surviving cards animate to their new grid position via Framer's     */
+/*  `layout` prop — a genuine FLIP re-sort, not a scroll-drawn line, and a     */
+/*  new motion vocabulary vs. Reveal/ClipImg/VerticalCutReveal. No             */
+/*  AnimatePresence here: its exit-clone bookkeeping proved to get stuck and   */
+/*  never unmount in this app (the same class of unreliable framer-motion      */
+/*  animation this codebase's craft ledger already documents for mount        */
+/*  reveals) — plain keyed React reconciliation removes filtered-out cards     */
+/*  immediately instead, which `layout` alone animates around just fine.       */
+/*  Reduced motion: filtering still works, but the re-sort snaps (no layout    */
+/*  spring) and every rendered card is opaque at full visibility from the      */
+/*  first frame.                                                             */
 /* ══════════════════════════════════════════════════════════════════════ */
-function ThreadRail({ progress }: { progress: MotionValue<number> }) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [h, setH] = useState(0)
+/* CSS-transition-driven fade for a freshly-mounted card (craft ledger:
+ * framer-motion mount/state reveals — initial/animate opacity props — fire
+ * unreliably in this app and can get stuck at opacity 0; every reveal this
+ * codebase ships (Reveal/ClipImg) drives opacity via a post-mount setState +
+ * inline CSS transition instead, which is what this does). The FLIP
+ * repositioning itself stays on framer's `layout` prop on the parent
+ * motion.button — that is a measurement-driven projection, not a mount
+ * reveal, and is unaffected by this issue. */
+function CardFade({ children }: { children: ReactNode }) {
+  const [shown, setShown] = useState(false)
   const reduced = useReducedMotion()
   useEffect(() => {
-    const el = trackRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => setH(el.clientHeight))
-    ro.observe(el)
-    setH(el.clientHeight)
-    return () => ro.disconnect()
+    setShown(true)
   }, [])
-
-  const pathLength = useTransform(progress, [0, 0.92], [0, 1])
-  const cx = 11
-
+  const on = shown || !!reduced
   return (
-    <div ref={trackRef} className="pointer-events-none absolute inset-y-0 left-0 w-[22px]" aria-hidden>
-      {h > 0 && (
-        <svg width="22" height={h} viewBox={`0 0 22 ${h}`} fill="none" className="overflow-visible">
-          {/* faint dashed guide (the "thread outline") */}
-          <line
-            x1={cx}
-            y1={0}
-            x2={cx}
-            y2={h}
-            stroke={ACCENT}
-            strokeWidth={1.5}
-            strokeDasharray="1 7"
-            strokeLinecap="round"
-            opacity={0.16}
-          />
-          {/* drawing accent fill */}
-          <motion.line
-            x1={cx}
-            y1={0}
-            x2={cx}
-            y2={h}
-            stroke={ACCENT}
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            style={{ pathLength: reduced ? 1 : pathLength }}
-          />
-          {/* category dots */}
-          {PRODUCERS.map((_, i) => {
-            const f = (i + 0.5) / PRODUCERS.length
-            const y = f * h
-            return <RailDot key={i} cx={cx} cy={y} progress={progress} f={f} reduced={!!reduced} />
-          })}
-        </svg>
-      )}
+    <div
+      style={
+        reduced
+          ? undefined
+          : {
+              opacity: on ? 1 : 0,
+              transform: on ? 'none' : 'translateY(10px) scale(0.97)',
+              transition: `opacity .4s ${EASE}, transform .4s ${EASE}`,
+            }
+      }
+    >
+      {children}
     </div>
   )
 }
 
-function RailDot({
-  cx,
-  cy,
-  progress,
-  f,
-  reduced,
-}: {
-  cx: number
-  cy: number
-  progress: MotionValue<number>
-  f: number
-  reduced: boolean
-}) {
-  const fill = useTransform(progress, [f - 0.05, f + 0.02], [INK, ACCENT])
-  const scale = useTransform(progress, [f - 0.05, f + 0.02], [0.7, 1])
+/* Inner content only — kept separate from the outer button/motion.button so
+ * that element can be inlined directly where it's rendered (a custom
+ * function-component wrapper around motion.button cannot forward a ref,
+ * which framer-motion's `layout` measurement needs on its exact host node —
+ * wrapping it one level down threw "Function components cannot be given
+ * refs" when this card was still rendered inside AnimatePresence). */
+function ProducerCardContent({ p, cat }: { p: (typeof PRODUCERS)[number]; cat: Category }) {
   return (
     <>
-      <circle cx={cx} cy={cy} r={7} fill={GROUND} />
-      <motion.circle
-        cx={cx}
-        cy={cy}
-        r={4}
-        style={{
-          fill: reduced ? ACCENT : fill,
-          scale: reduced ? 1 : scale,
-          transformOrigin: `${cx}px ${cy}px`,
-        }}
-      />
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
+        {p.img ? (
+          <img
+            src={p.img}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+          />
+        ) : (
+          <div
+            className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-4 text-center"
+            style={{
+              background: `repeating-linear-gradient(135deg, ${cat.tone}26 0, ${cat.tone}26 9px, transparent 9px, transparent 18px), ${CARD}`,
+              border: `1px solid ${cat.tone}55`,
+            }}
+          >
+            <span className="font-display text-[16px] font-semibold leading-tight" style={{ color: cat.toneText }}>
+              {p.is}
+            </span>
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em]" style={{ color: MUTED }}>
+              Engin mynd til af þessari vöru
+            </span>
+          </div>
+        )}
+        <span
+          className="absolute left-2.5 top-2.5 inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em]"
+          style={{ background: 'rgba(42,42,29,.62)', color: '#FFF7F0', backdropFilter: 'blur(3px)' }}
+        >
+          {p.tag}
+        </span>
+      </div>
+      <div className="mt-3 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="font-display text-[16.5px] font-semibold leading-tight" style={{ color: INK }}>
+            {p.is}
+          </h3>
+          <p className="mt-1 text-[13px] leading-snug" style={{ color: MUTED }}>
+            {p.line}
+          </p>
+        </div>
+        <span aria-hidden className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: cat.tone }} />
+      </div>
     </>
   )
 }
 
-/* ══════════════════════════════════════════════════════════════════════ */
-/*  ELEVATION 2 — Project Showcase (21st.dev #9607) adapted:                  */
-/*  desktop hover floats the row's photo toward the cursor (rAF lerp);        */
-/*  touch / no-hover renders each photo inline; reduced motion snaps.         */
-/* ══════════════════════════════════════════════════════════════════════ */
-function ProducerShowcase() {
+function ProducerIndex() {
   const reduced = useReducedMotion()
-  const [hoverCapable, setHoverCapable] = useState(false)
-  const [active, setActive] = useState<number | null>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
-  const target = useRef({ x: 0, y: 0 })
-  const pos = useRef({ x: 0, y: 0 })
-  const raf = useRef<number>(0)
-  const running = useRef(false)
+  const [filter, setFilter] = useState<FilterKey>('allt')
 
-  useEffect(() => {
-    setHoverCapable(canHoverPointer())
-  }, [])
+  const chips: { key: FilterKey; label: string; tone: string; toneText: string }[] = [
+    { key: 'allt', label: 'Allt', tone: INK, toneText: INK },
+    ...CATEGORIES.map((c) => ({ key: c.key, label: c.is, tone: c.tone, toneText: c.toneText })),
+  ]
 
-  /* Idle-cancels once the panel has caught up to the cursor (delta < 0.1px)
-   * instead of running forever on top of Lenis's own rAF; onMove restarts it. */
-  const startLoop = () => {
-    if (running.current) return
-    running.current = true
-    const loop = () => {
-      const k = reduced ? 1 : 0.16
-      pos.current.x += (target.current.x - pos.current.x) * k
-      pos.current.y += (target.current.y - pos.current.y) * k
-      const el = panelRef.current
-      if (el) el.style.transform = `translate3d(${pos.current.x + 26}px, ${pos.current.y - 150}px, 0)`
-      const dx = Math.abs(target.current.x - pos.current.x)
-      const dy = Math.abs(target.current.y - pos.current.y)
-      if (dx > 0.1 || dy > 0.1) {
-        raf.current = requestAnimationFrame(loop)
-      } else {
-        running.current = false
-      }
-    }
-    raf.current = requestAnimationFrame(loop)
-  }
+  const filtered = filter === 'allt' ? PRODUCERS : PRODUCERS.filter((p) => p.catKey === filter)
+  const activeChip = chips.find((c) => c.key === filter)
 
-  useEffect(() => {
-    if (!hoverCapable || active === null) return
-    startLoop()
-    return () => {
-      cancelAnimationFrame(raf.current)
-      running.current = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoverCapable, active])
+  const catByKey = (key: Category['key']) => CATEGORIES.find((c) => c.key === key) as Category
 
-  const onMove = (e: ReactMouseEvent) => {
-    target.current = { x: e.clientX, y: e.clientY }
-    if (reduced) pos.current = { ...target.current }
-    startLoop()
-  }
-
-  /* ── Touch / no fine-pointer: inline stacked photos ── */
-  if (!hoverCapable) {
-    return (
-      <ul className="flex flex-col">
-        {PRODUCERS.map((p, i) => (
-          <li
-            key={p.key}
-            className="border-t py-6 first:border-t-0"
-            style={{ borderColor: HAIRLINE }}
-          >
-            <Reveal>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: MOSS_TEXT }}>
-                {String(i + 1).padStart(2, '0')} · {p.tag}
-              </p>
-              <h3 className="mt-2 font-display text-[26px] font-semibold leading-[1.1]" style={{ color: INK }}>
-                {p.is}
-              </h3>
-              <p className="mt-2 max-w-prose text-[15px] leading-relaxed" style={{ color: MUTED }}>
-                {p.line}
-              </p>
-              {p.img ? (
-                <ClipImg
-                  src={p.img}
-                  alt={p.alt ?? ''}
-                  className="mt-4 aspect-[16/10] w-full rounded-xl"
-                />
-              ) : (
-                <div
-                  className="mt-4 flex aspect-[16/10] w-full items-center justify-center rounded-xl"
-                  style={{
-                    background: `repeating-linear-gradient(135deg, ${HAY}55, ${HAY}55 10px, transparent 10px, transparent 20px)`,
-                    border: `1px solid ${HAIRLINE}`,
-                  }}
-                >
-                  <span className="font-mono text-[10.5px] uppercase tracking-[0.16em]" style={{ color: MUTED }}>
-                    Engin mynd til af þessari vöru
-                  </span>
-                </div>
-              )}
-            </Reveal>
-          </li>
-        ))}
-      </ul>
-    )
-  }
-
-  /* ── Desktop: text rows + cursor-floating crossfade panel ── */
   return (
-    <>
-      <ul className="flex flex-col" onMouseLeave={() => setActive(null)}>
-        {PRODUCERS.map((p, i) => (
-          <li key={p.key} className="border-t first:border-t-0" style={{ borderColor: HAIRLINE }}>
-            <div
-              onMouseEnter={() => setActive(i)}
-              onMouseMove={onMove}
-              className="lj-prow group flex cursor-default items-baseline gap-5 py-7"
-            >
-              <span className="font-mono text-[12px] tabular-nums" style={{ color: MOSS_TEXT }}>
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3
-                  className="lj-prow-title font-display text-[clamp(1.7rem,3.2vw,2.6rem)] font-semibold leading-[1.08]"
-                  style={{ color: INK }}
-                >
-                  {p.is}
-                </h3>
-                <p
-                  className="mt-1.5 max-w-xl text-[14.5px] leading-relaxed transition-opacity"
-                  style={{ color: MUTED, opacity: active === i ? 1 : 0.72 }}
-                >
-                  {p.line}
-                </p>
-              </div>
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em]" style={{ color: MOSS_TEXT }}>
-                {p.tag}
-              </span>
-              <ArrowUpRight
-                className="lj-prow-arrow h-6 w-6 shrink-0 self-center"
-                style={{ color: ACCENT }}
-                aria-hidden
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      {/* floating cursor panel (fixed to viewport, decorative). Omitted
-          entirely for rows with no verified photo (e.g. seasonal
-          vegetables) rather than showing an empty/broken panel. */}
-      <div
-        ref={panelRef}
-        aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-30 hidden h-[260px] w-[210px] md:block"
-        style={{
-          opacity: active !== null && PRODUCERS[active].img ? 1 : 0,
-          transition: `opacity .3s ${EASE}`,
-          willChange: 'transform',
-        }}
-      >
-        <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-2xl shadow-black/30 ring-1 ring-white/20">
-          {PRODUCERS.filter((p) => p.img).map((p) => {
-            const i = PRODUCERS.indexOf(p)
-            return (
-              <img
-                key={p.key}
-                src={p.img}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover"
-                style={{ opacity: active === i ? 1 : 0, transition: `opacity .35s ${EASE}` }}
-              />
-            )
-          })}
-          <div
-            className="absolute inset-x-0 bottom-0 p-3"
-            style={{ background: 'linear-gradient(transparent, rgba(43,36,28,.72))' }}
-          >
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/85">
-              {active !== null ? PRODUCERS[active].tag : ''}
-            </span>
-          </div>
-        </div>
+    <section id="hillan" className="mx-auto max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
+      <div className="max-w-2xl">
+        <Reveal as="span" className="block font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: MOSS_TEXT }}>
+          Hillan
+        </Reveal>
+        <Reveal>
+          <h2 className="mt-3 font-display text-[clamp(1.9rem,4.5vw,3rem)] font-semibold leading-[1.1]" style={{ color: INK }}>
+            Sían sem vantaði á markaðinn
+          </h2>
+        </Reveal>
+        <Reveal delay={80}>
+          <p className="mt-4 text-[15px] leading-relaxed" style={{ color: MUTED }}>
+            Um 70 framleiðendur af Vesturlandi eiga vörur á hillunum í Ljómalind (skv. umfjöllun DV,
+            2018). Veldu flokk til að sjá hvað er í honum.
+          </p>
+        </Reveal>
       </div>
-    </>
+
+      <div
+        role="group"
+        aria-label="Sía eftir vöruflokki"
+        className="mt-10 flex flex-wrap gap-2.5"
+      >
+        {chips.map((chip) => {
+          const active = filter === chip.key
+          return (
+            <button
+              key={chip.key}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setFilter(chip.key)}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-[13.5px] font-semibold transition-colors duration-200 ${FOCUS}`}
+              style={
+                active
+                  ? { background: chip.tone, color: '#FFF7F0', border: '1px solid transparent' }
+                  : { background: CARD, color: chip.toneText, border: `1.5px solid ${chip.tone}55` }
+              }
+            >
+              {chip.key === 'allt' ? (
+                <AllDotsMark active={active} />
+              ) : (
+                <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: active ? '#FFF7F0' : chip.tone }} />
+              )}
+              {chip.label}
+            </button>
+          )
+        })}
+      </div>
+
+      <p aria-live="polite" className="mt-5 font-mono text-[11.5px] uppercase tracking-[0.14em]" style={{ color: MUTED }}>
+        {filtered.length} {filtered.length === 1 ? 'vara' : 'vörur'} á hillunum
+        {activeChip && filter !== 'allt' ? ` í flokknum ${activeChip.label}` : ''}
+      </p>
+
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {reduced ? (
+          filtered.map((p) => {
+            const cat = catByKey(p.catKey)
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => setFilter(p.catKey)}
+                aria-label={`${p.is}. Sía eftir ${cat.is}`}
+                className={`group block w-full text-left rounded-2xl p-3 ${FOCUS}`}
+                style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}
+              >
+                <ProducerCardContent p={p} cat={cat} />
+              </button>
+            )
+          })
+        ) : (
+          // Plain keyed map, no AnimatePresence: this codebase's framer-motion
+          // exit/enter animations have proven unreliable (craft ledger —
+          // reveals get stuck), including AnimatePresence exit clones that
+          // never finish and never unmount. `layout` alone (no AnimatePresence
+          // wrapper needed for it) still gives every surviving card a genuine
+          // FLIP reposition when the filtered set changes; removed cards are
+          // dropped immediately via ordinary React reconciliation instead of
+          // an exit animation, and CardFade covers the entrance.
+          filtered.map((p) => {
+            const cat = catByKey(p.catKey)
+            return (
+              <motion.button
+                key={p.key}
+                layout
+                type="button"
+                onClick={() => setFilter(p.catKey)}
+                aria-label={`${p.is}. Sía eftir ${cat.is}`}
+                className={`group block w-full text-left rounded-2xl p-3 ${FOCUS}`}
+                style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}
+                transition={{ type: 'spring', stiffness: 340, damping: 32, mass: 0.9 }}
+              >
+                <CardFade>
+                  <ProducerCardContent p={p} cat={cat} />
+                </CardFade>
+              </motion.button>
+            )
+          })
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -734,7 +688,7 @@ function MobileStickyBar() {
         className={`flex flex-1 flex-col items-center justify-center py-2.5 ${FOCUS}`}
       >
         <span className="flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: INK }}>
-          <Clock className="h-3.5 w-3.5" aria-hidden style={{ color: open ? MOSS : ACCENT }} />
+          <Clock className="h-3.5 w-3.5" aria-hidden style={{ color: open ? MOSS : RUST }} />
           {open ? 'Opið núna' : 'Lokað núna'}
         </span>
         <span className="font-mono text-[10px]" style={{ color: MUTED }}>
@@ -744,7 +698,7 @@ function MobileStickyBar() {
       <a
         href={PHONE_HREF}
         className={`flex flex-1 items-center justify-center gap-2 py-3 text-[14px] font-semibold ${FOCUS_ON_FILL}`}
-        style={{ background: ACCENT, color: '#FFF7F0' }}
+        style={{ background: RUST, color: '#FFF7F0' }}
       >
         <Phone className="h-4 w-4" aria-hidden />
         {PHONE}
@@ -783,14 +737,14 @@ function Hero() {
                   transition: `transform 1.6s ${EASE}`,
                 }
           }
-          fallbackClassName="bg-gradient-to-br from-[#8a7f63] to-[#3a352a]"
+          fallbackClassName="bg-gradient-to-br from-[#7c7358] to-[#2a2a1d]"
         />
         {/* warm bright-overcast grade, not dark/moody */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(180deg, rgba(43,36,28,.34) 0%, rgba(43,36,28,.12) 34%, rgba(43,36,28,.28) 62%, rgba(43,36,28,.7) 100%)',
+              'linear-gradient(180deg, rgba(42,42,29,.34) 0%, rgba(42,42,29,.12) 34%, rgba(42,42,29,.28) 62%, rgba(42,42,29,.7) 100%)',
           }}
         />
       </div>
@@ -802,11 +756,11 @@ function Hero() {
       >
         <div
           className="flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[11px] backdrop-blur-md"
-          style={{ background: 'rgba(43,36,28,.4)', color: CREAM_ON_DARK, border: '1px solid rgba(246,241,231,.2)' }}
+          style={{ background: 'rgba(42,42,29,.4)', color: CREAM_ON_DARK, border: '1px solid rgba(236,230,210,.2)' }}
         >
           <span
             className="inline-block h-1.5 w-1.5 rounded-full"
-            style={{ background: open ? '#8FBF6B' : ACCENT }}
+            style={{ background: open ? '#8FBF6B' : RUST }}
             aria-hidden
           />
           {open ? 'OPIÐ NÚNA' : 'LOKAÐ NÚNA'} · {HOURS_SHORT.toUpperCase()}
@@ -815,14 +769,29 @@ function Hero() {
 
       <div className="relative z-10 mx-auto w-full max-w-[1200px] px-5 pb-16 md:px-8 md:pb-24">
         <Reveal delay={0} y={0}>
-          <span className="font-mono text-[12px] uppercase tracking-[0.28em]" style={{ color: '#F0C9AE' }}>
+          <span className="font-mono text-[12px] uppercase tracking-[0.28em]" style={{ color: CREAM_ON_DARK }}>
             Sveitamarkaður · Borgarnes · Vesturland
           </span>
         </Reveal>
 
-        <h1 className="mt-4 font-display text-[clamp(3rem,10vw,7.5rem)] font-semibold leading-[1.02] text-[#F6F1E7]">
-          <HeroCut text="Beint frá" delay={0.15} />
-          <HeroCut text="héraðinu" delay={0.32} italic />
+        <h1
+          aria-label="Beint frá héraðinu"
+          className="mt-4 font-display text-[clamp(3rem,10vw,7.5rem)] font-semibold leading-[1.02] text-[#ECE6D2]"
+        >
+          {/* Decorative per-word/per-character reveal — VerticalCutReveal
+              renders its own internal sr-only + aria-hidden split per call,
+              so two adjacent calls with no DOM whitespace between them
+              produce a duplicated, unspaced accessible/crawlable text
+              ("Beint fráBeint fráhéraðinuhéraðinu"). Hiding the whole
+              decorative block from the accessibility tree and supplying the
+              h1's aria-label + one clean sr-only copy below fixes the
+              accessible name and crawlable text without touching the
+              animation itself. */}
+          <span aria-hidden="true">
+            <HeroCut text="Beint frá" delay={0.15} />
+            <HeroCut text="héraðinu" delay={0.32} italic />
+          </span>
+          <span className="sr-only">Beint frá héraðinu</span>
         </h1>
 
         <Reveal delay={620} y={16}>
@@ -837,7 +806,7 @@ function Hero() {
             <button
               onClick={() => goTo('heimsokn')}
               className={`inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-transform hover:-translate-y-0.5 ${FOCUS_ON_FILL}`}
-              style={{ background: ACCENT, color: '#FFF7F0' }}
+              style={{ background: RUST, color: '#FFF7F0' }}
             >
               <Clock className="h-4 w-4" aria-hidden />
               Opnunartími og leiðin
@@ -848,9 +817,9 @@ function Hero() {
               rel="noreferrer"
               className={`inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold backdrop-blur-md transition-transform hover:-translate-y-0.5 ${FOCUS}`}
               style={{
-                background: 'rgba(246,241,231,.12)',
-                color: '#F6F1E7',
-                border: '1px solid rgba(246,241,231,.3)',
+                background: 'rgba(236,230,210,.12)',
+                color: '#ECE6D2',
+                border: '1px solid rgba(236,230,210,.3)',
               }}
             >
               <MapPin className="h-4 w-4" aria-hidden />
@@ -864,7 +833,7 @@ function Hero() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 2 — what/who in 5 seconds                                         */
+/*  SECTION 2 — what/who in 5 seconds                                        */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Categories() {
   return (
@@ -890,23 +859,14 @@ function Categories() {
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
         {CATEGORIES.map((c, i) => (
           <Reveal key={c.is} delay={i * 80} as="figure" className="group relative overflow-hidden rounded-2xl">
-            <ClipImg
-              src={c.img}
-              alt=""
-              delay={i * 60}
-              className="aspect-[3/4] w-full"
-            />
+            <ClipImg src={c.img} alt="" delay={i * 60} className="aspect-[3/4] w-full" />
             <div
               className="pointer-events-none absolute inset-0"
-              style={{ background: 'linear-gradient(180deg, transparent 40%, rgba(43,36,28,.78) 100%)' }}
+              style={{ background: 'linear-gradient(180deg, transparent 40%, rgba(42,42,29,.78) 100%)' }}
             />
             <figcaption className="absolute inset-x-0 bottom-0 p-4">
-              <span
-                className="inline-block h-1 w-8 rounded-full"
-                style={{ background: c.tone }}
-                aria-hidden
-              />
-              <p className="mt-2 font-display text-[19px] font-semibold leading-tight text-[#F6F1E7]">{c.is}</p>
+              <span className="inline-block h-1 w-8 rounded-full" style={{ background: c.tone }} aria-hidden />
+              <p className="mt-2 font-display text-[19px] font-semibold leading-tight text-[#ECE6D2]">{c.is}</p>
               <p className="mt-0.5 text-[12.5px] leading-snug" style={{ color: CREAM_DIM }}>
                 {c.sub}
               </p>
@@ -919,7 +879,7 @@ function Categories() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 3 — the shelf (signature REAL interior photo)                     */
+/*  SECTION — the shelf (signature REAL interior photo)                      */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Shelf() {
   const { ref, shown } = useInViewOnce(0.1)
@@ -935,24 +895,21 @@ function Shelf() {
           style={
             reduced
               ? undefined
-              : {
-                  transform: on ? 'scale(1)' : 'scale(1.1)',
-                  transition: `transform 1.6s ${EASE}`,
-                }
+              : { transform: on ? 'scale(1)' : 'scale(1.1)', transition: `transform 1.6s ${EASE}` }
           }
-          fallbackClassName="bg-gradient-to-br from-[#c7b489] to-[#6f6547]"
+          fallbackClassName="bg-gradient-to-br from-[#c7b990] to-[#726a4d]"
         />
         <div
           className="absolute inset-0"
-          style={{ background: 'linear-gradient(90deg, rgba(43,36,28,.72) 0%, rgba(43,36,28,.15) 45%, transparent 70%)' }}
+          style={{ background: 'linear-gradient(90deg, rgba(42,42,29,.72) 0%, rgba(42,42,29,.15) 45%, transparent 70%)' }}
         />
         <div className="absolute inset-0 flex items-center">
           <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
             <Reveal className="max-w-xl">
-              <span className="font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: '#F0C9AE' }}>
+              <span className="font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: CREAM_ON_DARK }}>
                 Verslunargólfið
               </span>
-              <h2 className="mt-4 font-display text-[clamp(1.6rem,3.6vw,2.7rem)] font-semibold leading-[1.14] text-[#F6F1E7]">
+              <h2 className="mt-4 font-display text-[clamp(1.6rem,3.6vw,2.7rem)] font-semibold leading-[1.14] text-[#ECE6D2]">
                 Hver hilla er lítið kort til baka á býlið eða verkstæðið sem gerði vöruna.
               </h2>
               <p className="mt-4 text-[13px] leading-relaxed" style={{ color: CREAM_DIM }}>
@@ -968,125 +925,15 @@ function Shelf() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 4 — Framleiðendur (signature scroll rail + hover showcase)        */
-/* ══════════════════════════════════════════════════════════════════════ */
-function Framleidendur() {
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start center', 'end center'],
-  })
-  return (
-    <section id="framleidendur" className="mx-auto max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
-      <div className="max-w-2xl">
-        <Reveal as="span" className="block font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: MOSS_TEXT }}>
-          Framleiðendur
-        </Reveal>
-        <Reveal>
-          <h2 className="mt-3 font-display text-[clamp(1.9rem,4.5vw,3rem)] font-semibold leading-[1.1]" style={{ color: INK }}>
-            Þráðurinn frá hillu að héraði
-          </h2>
-        </Reveal>
-        <Reveal delay={80}>
-          <p className="mt-4 text-[15px] leading-relaxed" style={{ color: MUTED }}>
-            Flokkarnir hér að neðan eru þeir sem seldir eru í markaðnum (skv. umfjöllun DV, 2018).
-            Rennið niður og fylgið þræðinum sem tengir hverja hillu við fólkið á bak við hana.
-          </p>
-        </Reveal>
-      </div>
-
-      <div ref={sectionRef} className="relative mt-12 pl-9 md:pl-12">
-        <ThreadRail progress={scrollYProgress} />
-        <ProducerShowcase />
-        <Reveal>
-          <p className="mt-8 font-mono text-[12px] uppercase tracking-[0.16em]" style={{ color: ACCENT_TEXT }}>
-            Og um 70 framleiðendur til viðbótar af Vesturlandi
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 5 — Sagan (dated 17 May 2013)                                     */
+/*  SECTION — Sagan: opened 2013 + who runs it, merged into one section      */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Story() {
-  return (
-    <section id="saga" className="mx-auto max-w-[1200px] px-5 py-20 md:px-8 md:py-28">
-      <div className="grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-center md:gap-16">
-        <div className="order-2 md:order-1">
-          <Reveal as="span" className="block font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: MOSS_TEXT }}>
-            Sagan
-          </Reveal>
-          <Reveal>
-            <h2 className="mt-3 font-display text-[clamp(1.9rem,4.5vw,3rem)] font-semibold leading-[1.1]" style={{ color: INK }}>
-              Opnaði 17. maí 2013
-            </h2>
-          </Reveal>
-          <Reveal delay={80}>
-            <p className="mt-5 text-[15.5px] leading-relaxed" style={{ color: MUTED }}>
-              Ljómalind opnaði dyrnar í Borgarnesi 17. maí 2013 og hefur verið opin alla daga síðan.
-              Frá fyrsta degi hefur markaðurinn selt vörur frá framleiðendum í héraðinu, einkum úr
-              Borgarnesi og nágrenni, en líka úr Dölum, af Akranesi og af Snæfellsnesi.
-            </p>
-          </Reveal>
-          <Reveal delay={140}>
-            <p className="mt-4 text-[15.5px] leading-relaxed" style={{ color: MUTED }}>
-              Um 70 framleiðendur seldu vörur sínar í gegnum markaðinn þegar DV fjallaði um hann árið
-              2018. Þá var einnig starfrækt Matarlind, sameiginlegt eldhús í samstarfi við SSV, þar sem
-              matarfrumkvöðlar gátu þróað vörur áður en þær rötuðu á hillurnar (skv. umfjöllun DV, 2018).
-            </p>
-          </Reveal>
-          <Reveal delay={200}>
-            <div className="mt-8 flex flex-wrap gap-3">
-              {[
-                { n: '2013', l: 'Opnaði 17. maí' },
-                { n: '~70', l: 'framleiðendur (2018)' },
-                { n: 'Alla daga', l: '10:00–18:00, árið um kring' },
-              ].map((s) => (
-                <div
-                  key={s.n}
-                  className="rounded-xl px-4 py-3"
-                  style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}
-                >
-                  <p className="font-display text-[22px] font-semibold leading-none" style={{ color: ACCENT }}>
-                    {s.n}
-                  </p>
-                  <p className="mt-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em]" style={{ color: MUTED }}>
-                    {s.l}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-
-        <div className="order-1 md:order-2">
-          <ClipImg
-            src={IMG.turf}
-            alt="Svarttjörguð, torfþakin íslensk hús, dæmigerð fyrir hefðbundna íslenska byggingararfleifð"
-            className="aspect-[4/5] w-full rounded-2xl md:aspect-[4/4.6]"
-          />
-          <p className="mt-3 text-[12px] leading-relaxed" style={{ color: MUTED }}>
-            Torfbæirnir eru andrúmsloftsmynd af íslenskri byggingararfleifð, ekki mynd af Ljómalind sjálfri.
-          </p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 6 — Co-op / who runs it (turf-house heritage divider)             */
-/* ══════════════════════════════════════════════════════════════════════ */
-function CoOp() {
   const { ref, shown } = useInViewOnce(0.12)
   const reduced = useReducedMotion()
   const on = shown || !!reduced
   return (
-    <section className="relative overflow-hidden" style={{ background: PINE }}>
-      <div ref={ref} className="absolute inset-0 opacity-30">
+    <section id="saga" className="relative overflow-hidden" style={{ background: INK }}>
+      <div ref={ref} className="absolute inset-0 opacity-25">
         <Img
           src={IMG.turf}
           alt=""
@@ -1096,30 +943,81 @@ function CoOp() {
               ? undefined
               : { transform: on ? 'scale(1)' : 'scale(1.12)', transition: `transform 1.6s ${EASE}` }
           }
-          fallbackClassName="bg-[#2f3a2f]"
+          fallbackClassName="bg-[#1c1c13]"
         />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(58,74,58,.55), rgba(58,74,58,.85))' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(42,42,29,.5), rgba(42,42,29,.93))' }} />
       </div>
 
-      <div className="relative mx-auto max-w-[860px] px-5 py-24 text-center md:px-8 md:py-32">
-        <Reveal as="span" className="block font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: '#C9D3B4' }}>
-          Hverjir reka markaðinn
+      <div className="relative mx-auto max-w-[1200px] px-5 py-24 md:px-8 md:py-32">
+        <Reveal as="span" className="block font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: CREAM_DIM }}>
+          Sagan
         </Reveal>
         <Reveal>
-          <h2 className="mt-6 font-display text-[clamp(1.6rem,4vw,2.6rem)] font-semibold leading-[1.2] text-[#F6F1E7]">
-            Ljómalind er samvinnufélag, rekið dags daglega af heimakonum úr héraðinu sem skiptast á
-            að standa vaktina.
+          <h2 className="mt-3 max-w-2xl font-display text-[clamp(1.9rem,4.5vw,3.1rem)] font-semibold leading-[1.12] text-[#ECE6D2]">
+            Opnaði 17. maí 2013 og er enn rekið af heimafólki
           </h2>
         </Reveal>
-        <Reveal delay={100}>
-          <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed" style={{ color: CREAM_DIM }}>
-            Gestir lýsa markaðnum aftur og aftur á sama veg: lítil samvinnuverslun þar sem vörurnar eru
-            gerðar af fólkinu sem stendur vaktina, og hagnaðurinn verður eftir í heimabyggð.
-          </p>
-        </Reveal>
-        <Reveal delay={160}>
-          <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.16em]" style={{ color: '#A9B792' }}>
-            Torfbæir að ofan eru andrúmsloftsmynd af íslenskri byggingararfleifð, ekki mynd af markaðnum
+
+        <div className="mt-10 grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-start md:gap-14">
+          <div>
+            <Reveal delay={80}>
+              <p className="text-[15.5px] leading-relaxed" style={{ color: CREAM_ON_DARK }}>
+                Ljómalind opnaði dyrnar í Borgarnesi 17. maí 2013 og hefur verið opin alla daga síðan.
+                Frá fyrsta degi hefur markaðurinn selt vörur frá framleiðendum í héraðinu, einkum úr
+                Borgarnesi og nágrenni, en líka úr Dölum, af Akranesi og af Snæfellsnesi.
+              </p>
+            </Reveal>
+            <Reveal delay={140}>
+              <p className="mt-4 text-[15.5px] leading-relaxed" style={{ color: CREAM_DIM }}>
+                Um 70 framleiðendur seldu vörur sínar í gegnum markaðinn þegar DV fjallaði um hann árið
+                2018. Þá var einnig starfrækt Matarlind, sameiginlegt eldhús í samstarfi við SSV, þar sem
+                matarfrumkvöðlar gátu þróað vörur áður en þær rötuðu á hillurnar (skv. umfjöllun DV, 2018).
+              </p>
+            </Reveal>
+
+            <Reveal delay={200}>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {[
+                  { n: '2013', l: 'Opnaði 17. maí', c: RUST },
+                  { n: '~70', l: 'framleiðendur (2018)', c: MOSS },
+                  { n: 'Alla daga', l: '10:00–18:00, árið um kring', c: INDIGO },
+                ].map((s) => (
+                  <div
+                    key={s.n}
+                    className="rounded-xl px-4 py-3"
+                    style={{ background: 'rgba(236,230,210,.08)', border: '1px solid rgba(236,230,210,.16)' }}
+                  >
+                    <p className="font-display text-[22px] font-semibold leading-none" style={{ color: s.c }}>
+                      {s.n}
+                    </p>
+                    <p className="mt-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em]" style={{ color: CREAM_DIM }}>
+                      {s.l}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+
+          <Reveal delay={100} className="rounded-2xl p-7 md:p-8" style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}>
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: MOSS_TEXT }}>
+              Hverjir reka markaðinn
+            </span>
+            <p className="mt-4 font-display text-[19px] font-semibold leading-[1.32]" style={{ color: INK }}>
+              Samvinnufélag, rekið dags daglega af heimakonum úr héraðinu sem skiptast á að standa
+              vaktina.
+            </p>
+            <p className="mt-4 text-[14px] leading-relaxed" style={{ color: MUTED }}>
+              Gestir lýsa markaðnum aftur og aftur á sama veg: lítil samvinnuverslun þar sem vörurnar
+              eru gerðar af fólkinu sem stendur vaktina, og hagnaðurinn verður eftir í heimabyggð.
+            </p>
+          </Reveal>
+        </div>
+
+        <Reveal delay={220}>
+          <p className="mt-10 text-[11.5px] leading-relaxed" style={{ color: 'rgba(236,230,210,.5)' }}>
+            Torfbæir í bakgrunni eru andrúmsloftsmynd af íslenskri byggingararfleifð, ekki mynd af
+            markaðnum sjálfum.
           </p>
         </Reveal>
       </div>
@@ -1128,7 +1026,7 @@ function CoOp() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 7 — Reviews (sourced, no star number)                            */
+/*  SECTION — Reviews (sourced, no star number)                              */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Reviews() {
   return (
@@ -1149,7 +1047,7 @@ function Reviews() {
               className="flex h-full flex-col rounded-2xl p-6"
               style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}
             >
-              <SeedMark size={20} color={ACCENT} />
+              <SeedMark size={20} color={RUST} />
               <p className="mt-4 flex-1 text-[16px] leading-relaxed" style={{ color: INK }} lang={r.lang}>
                 {r.quote}
               </p>
@@ -1184,7 +1082,7 @@ function Reviews() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 8 — Practical info (huge) + eager map                            */
+/*  SECTION — Practical info (huge) + eager map                              */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Visit() {
   const open = useOpenNow()
@@ -1204,14 +1102,10 @@ function Visit() {
           <Reveal delay={80}>
             <div
               className="mt-8 inline-flex items-center gap-2.5 rounded-full px-4 py-2"
-              style={{ background: open ? 'rgba(110,122,79,.14)' : 'rgba(196,71,42,.12)' }}
+              style={{ background: open ? 'rgba(85,99,47,.14)' : 'rgba(178,58,30,.12)' }}
             >
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ background: open ? MOSS : ACCENT }}
-                aria-hidden
-              />
-              <span className="text-[13.5px] font-semibold" style={{ color: open ? MOSS_TEXT : ACCENT_TEXT }}>
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: open ? MOSS : RUST }} aria-hidden />
+              <span className="text-[13.5px] font-semibold" style={{ color: open ? MOSS_TEXT : RUST_TEXT }}>
                 {open ? 'Opið núna' : 'Lokað í augnablikinu'}
               </span>
             </div>
@@ -1226,17 +1120,13 @@ function Visit() {
               const RowIcon = row.icon
               return (
                 <Reveal key={row.k} as="div" className="flex items-start gap-4 py-5" style={{ borderColor: HAIRLINE }}>
-                  <RowIcon className="mt-0.5 h-5 w-5 shrink-0" style={{ color: ACCENT }} aria-hidden />
+                  <RowIcon className="mt-0.5 h-5 w-5 shrink-0" style={{ color: RUST }} aria-hidden />
                   <div>
                     <dt className="font-mono text-[11px] uppercase tracking-[0.16em]" style={{ color: MUTED }}>
                       {row.k}
                     </dt>
                     {row.href ? (
-                      <a
-                        href={row.href}
-                        className={`mt-1 block font-display text-[22px] font-semibold ${FOCUS}`}
-                        style={{ color: INK }}
-                      >
+                      <a href={row.href} className={`mt-1 block font-display text-[22px] font-semibold ${FOCUS}`} style={{ color: INK }}>
                         {row.v}
                       </a>
                     ) : (
@@ -1254,16 +1144,12 @@ function Visit() {
               )
             })}
             <Reveal as="div" className="flex items-start gap-4 py-5" style={{ borderColor: HAIRLINE }}>
-              <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0" style={{ color: ACCENT }} aria-hidden />
+              <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0" style={{ color: RUST }} aria-hidden />
               <div>
                 <dt className="font-mono text-[11px] uppercase tracking-[0.16em]" style={{ color: MUTED }}>
                   Fyrirspurnir
                 </dt>
-                <a
-                  href={`mailto:${EMAIL}`}
-                  className={`mt-1 block font-display text-[22px] font-semibold ${FOCUS}`}
-                  style={{ color: INK }}
-                >
+                <a href={`mailto:${EMAIL}`} className={`mt-1 block font-display text-[22px] font-semibold ${FOCUS}`} style={{ color: INK }}>
                   {EMAIL}
                 </a>
                 <p className="mt-0.5 text-[13px]" style={{ color: MUTED }}>
@@ -1290,75 +1176,19 @@ function Visit() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 9 — Getting there / West Iceland context                         */
-/* ══════════════════════════════════════════════════════════════════════ */
-function GettingThere() {
-  const { ref, shown } = useInViewOnce(0.12)
-  const reduced = useReducedMotion()
-  const on = shown || !!reduced
-  return (
-    <section className="relative overflow-hidden">
-      <div ref={ref} className="relative h-[60svh] min-h-[380px] w-full">
-        <Img
-          src={IMG.hills}
-          alt="Grænar hæðir og bóndabær í móðukenndu dalverpi á Vesturlandi"
-          className="h-full w-full object-cover"
-          style={
-            reduced
-              ? undefined
-              : { transform: on ? 'scale(1)' : 'scale(1.1)', transition: `transform 1.6s ${EASE}` }
-          }
-          fallbackClassName="bg-gradient-to-br from-[#9aa77e] to-[#3a4a3a]"
-        />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(43,36,28,.66), rgba(43,36,28,.12) 60%, transparent)' }} />
-        <div className="absolute inset-0 flex items-center">
-          <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
-            <Reveal className="max-w-lg">
-              <span className="font-mono text-[12px] uppercase tracking-[0.24em]" style={{ color: '#F0C9AE' }}>
-                Vesturland
-              </span>
-              <h2 className="mt-4 font-display text-[clamp(1.5rem,3.4vw,2.5rem)] font-semibold leading-[1.16] text-[#F6F1E7]">
-                Um klukkustund frá Reykjavík, í hjarta Borgarness.
-              </h2>
-              <p className="mt-4 text-[14px] leading-relaxed" style={{ color: CREAM_DIM }}>
-                Ljómalind stendur við Brúartorg 4, um 75 km frá Reykjavík (skv. west.is). Kjörinn
-                áfangastaður á leiðinni vestur, opinn alla daga.
-              </p>
-              <a
-                href={MAPS_URL}
-                target="_blank"
-                rel="noreferrer"
-                className={`mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-transform hover:-translate-y-0.5 ${FOCUS_ON_FILL}`}
-                style={{ background: ACCENT, color: '#FFF7F0' }}
-              >
-                <MapPin className="h-4 w-4" aria-hidden />
-                Opna leiðina í kortum
-              </a>
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════════════ */
-/*  SECTION 10 — Final CTA band                                               */
+/*  SECTION — Final CTA band                                                 */
 /* ══════════════════════════════════════════════════════════════════════ */
 function FinalCTA() {
   const open = useOpenNow()
   return (
     <section className="mx-auto max-w-[1200px] px-5 pb-24 pt-20 md:px-8 md:pb-28 md:pt-28">
-      <Reveal
-        className="relative overflow-hidden rounded-3xl px-6 py-14 text-center md:px-12 md:py-20"
-        style={{ background: INK }}
-      >
+      <Reveal className="relative overflow-hidden rounded-3xl px-6 py-14 text-center md:px-12 md:py-20" style={{ background: INK }}>
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]">
-          <SeedMark size={340} color="#F6F1E7" />
+          <SeedMark size={340} color="#ECE6D2" />
         </div>
         <div className="relative">
-          <SeedMark size={28} color="#F0C9AE" />
-          <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(1.8rem,4.5vw,3rem)] font-semibold leading-[1.12] text-[#F6F1E7]">
+          <SeedMark size={28} color={HONEY} />
+          <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(1.8rem,4.5vw,3rem)] font-semibold leading-[1.12] text-[#ECE6D2]">
             Sjáumst á markaðnum í Borgarnesi
           </h2>
           <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed" style={{ color: CREAM_DIM }}>
@@ -1368,7 +1198,7 @@ function FinalCTA() {
             <a
               href={PHONE_HREF}
               className={`inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-transform hover:-translate-y-0.5 ${FOCUS_ON_FILL}`}
-              style={{ background: ACCENT, color: '#FFF7F0' }}
+              style={{ background: RUST, color: '#FFF7F0' }}
             >
               <Phone className="h-4 w-4" aria-hidden />
               {PHONE}
@@ -1378,13 +1208,13 @@ function FinalCTA() {
               target="_blank"
               rel="noreferrer"
               className={`inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-transform hover:-translate-y-0.5 ${FOCUS}`}
-              style={{ background: 'rgba(246,241,231,.12)', color: '#F6F1E7', border: '1px solid rgba(246,241,231,.3)' }}
+              style={{ background: 'rgba(236,230,210,.12)', color: '#ECE6D2', border: '1px solid rgba(236,230,210,.3)' }}
             >
               <MapPin className="h-4 w-4" aria-hidden />
               Leiðin til okkar
             </a>
           </div>
-          <p className="mx-auto mt-8 max-w-lg text-[12px] leading-relaxed" style={{ color: 'rgba(246,241,231,.5)' }}>
+          <p className="mx-auto mt-8 max-w-lg text-[12px] leading-relaxed" style={{ color: 'rgba(236,230,210,.5)' }}>
             Vöruflokkar byggja á umfjöllun DV frá 2018 og skráningum vestlenskra ferðavefja. Verð eru
             ekki birt hér; hver framleiðandi verðmerkir sínar vörur á staðnum.
           </p>
@@ -1434,22 +1264,15 @@ export default function Page() {
   return (
     <div lang="is" className="font-sans overflow-x-clip" style={{ background: GROUND, color: INK }}>
       <style>{`
-        #lj-root ::selection { background:${ACCENT}; color:#FFF7F0; }
+        #lj-root ::selection { background:${RUST}; color:#FFF7F0; }
         .lj-navlink { position:relative; }
         .lj-navlink::after {
           content:''; position:absolute; left:0; right:100%; bottom:-5px; height:2px;
-          background:${ACCENT}; transition:right .3s ${EASE};
+          background:${RUST}; transition:right .3s ${EASE};
         }
         .lj-navlink:hover::after { right:0; }
-        .lj-prow-title { background-image:linear-gradient(${ACCENT},${ACCENT});
-          background-repeat:no-repeat; background-position:0 100%; background-size:0% 2px;
-          transition:background-size .4s ${EASE}, color .3s ${EASE}; padding-bottom:2px; }
-        .lj-prow:hover .lj-prow-title { background-size:100% 2px; color:${ACCENT}; }
-        .lj-prow-arrow { opacity:0; transform:translate(-6px,6px); transition:opacity .3s ${EASE}, transform .3s ${EASE}; }
-        .lj-prow:hover .lj-prow-arrow { opacity:1; transform:translate(0,0); }
         @media (prefers-reduced-motion: reduce) {
-          .lj-prow-title { background-size:0% 2px !important; }
-          .lj-prow-arrow { opacity:1; transform:none; }
+          .lj-navlink::after { transition-duration: .01ms !important; }
         }
       `}</style>
 
@@ -1459,13 +1282,11 @@ export default function Page() {
         <main>
           <Hero />
           <Categories />
+          <ProducerIndex />
           <Shelf />
-          <Framleidendur />
           <Story />
-          <CoOp />
           <Reviews />
           <Visit />
-          <GettingThere />
           <FinalCTA />
         </main>
         <MobileStickyBar />
