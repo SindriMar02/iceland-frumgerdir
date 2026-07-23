@@ -45,27 +45,27 @@ export const asset = (file: string) => `${import.meta.env.BASE_URL}ljomalind/${f
 
 export const IMG = {
   /** #1 REAL Ljómalind storefront, Borgarnes (DV.is 2018, signage unchanged). */
-  storefront: asset('ljomalind-dv-storefront-full.jpg'),
+  storefront: asset('ljomalind-dv-storefront-full.webp'),
   /** #2 REAL Ljómalind interior — the wool-shelf / "Alrún" rack. */
-  interior: asset('westis-hero-1280.jpg'),
+  interior: asset('westis-hero-1280.webp'),
   /** #3 Sheep on Icelandic pasture (Landmannalaugar, confirmed). */
-  sheep: asset('unsplash-sheep-pasture.jpg'),
+  sheep: asset('unsplash-sheep-pasture.webp'),
   /** #4 Hand-dyed yarn on a pegboard — generic craft shelf, texture only. */
-  yarn: asset('unsplash-yarn-shop-display.jpg'),
+  yarn: asset('unsplash-yarn-shop-display.webp'),
   /** #5 Jarred honey — generic, captioned generically. */
-  honey: asset('unsplash-honey-jars-market.jpg'),
+  honey: asset('unsplash-honey-jars-market.webp'),
   /** #6 Single artisan loaf on a board. */
-  bread: asset('unsplash-rye-bread-board.jpg'),
+  bread: asset('unsplash-rye-bread-board.webp'),
   /** #7 Green rolling hills + small farm (Iceland, confirmed). */
-  hills: asset('unsplash-west-iceland-hills-farm.jpg'),
+  hills: asset('unsplash-west-iceland-hills-farm.webp'),
   /** #8 Turf houses — heritage divider only, never "the market". */
-  turf: asset('unsplash-turf-houses.jpg'),
+  turf: asset('unsplash-turf-houses.webp'),
   /** #9 Fair-isle knit texture close-up. */
-  knit: asset('unsplash-knit-texture.jpg'),
+  knit: asset('unsplash-knit-texture.webp'),
   /** #10 Homemade jam jars — generic, captioned generically. */
-  jam: asset('unsplash-jam-jars.jpg'),
+  jam: asset('unsplash-jam-jars.webp'),
   /** #11 Handmade ceramic bowls. */
-  ceramic: asset('unsplash-ceramic-bowls.jpg'),
+  ceramic: asset('unsplash-ceramic-bowls.webp'),
 } as const
 
 /* ── Verified contact facts (Part A) ────────────────────────────────────── */

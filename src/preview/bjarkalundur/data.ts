@@ -25,21 +25,21 @@ export const MAP_LINK = 'https://www.google.com/maps/search/?api=1&query=65.5563
 
 /* ── Images (client's own photography + 2 CC BY-SA Wikimedia landmark shots) ─ */
 export const IMG = {
-  hero: img('hero-exterior.jpg'),
-  archival: img('archival.jpg'),
-  vadalfjoll1: img('vadalfjoll-1.jpg'),
-  vadalfjoll2: img('vadalfjoll-2.jpg'),
-  loungeGreen: img('lounge-green.jpg'),
-  muralPiano: img('mural-piano.jpg'),
-  dining: img('dining.jpg'),
-  loungeWindow: img('lounge-window.jpg'),
-  library: img('library.jpg'),
-  desk: img('desk.jpg'),
-  bedroom: img('bedroom.jpg'),
-  kitchenPrep: img('kitchen-prep.jpg'),
-  tableDetail: img('table-detail.jpg'),
-  campsiteField: img('campsite-field.jpg'),
-  heathPanorama: img('heath-panorama.jpg'),
+  hero: img('hero-exterior.webp'),
+  archival: img('archival.webp'),
+  vadalfjoll1: img('vadalfjoll-1.webp'),
+  vadalfjoll2: img('vadalfjoll-2.webp'),
+  loungeGreen: img('lounge-green.webp'),
+  muralPiano: img('mural-piano.webp'),
+  dining: img('dining.webp'),
+  loungeWindow: img('lounge-window.webp'),
+  library: img('library.webp'),
+  desk: img('desk.webp'),
+  bedroom: img('bedroom.webp'),
+  kitchenPrep: img('kitchen-prep.webp'),
+  tableDetail: img('table-detail.webp'),
+  campsiteField: img('campsite-field.webp'),
+  heathPanorama: img('heath-panorama.webp'),
 }
 
 /* ── Nav ───────────────────────────────────────────────────────────────── */

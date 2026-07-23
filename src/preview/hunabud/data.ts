@@ -20,14 +20,14 @@
 
 /** Local, real + honestly-sourced imagery. Referenced via BASE_URL in Page. */
 export const IMG = {
-  hero: 'hunabud/evendo1.jpg', // real storefront, sun, lopapeysur rack, visitor entering
-  signage: 'hunabud/wl2.jpg', // real storefront, all three signs legible
-  cakeCase: 'hunabud/wl3.jpg', // real café pastry display case
-  road: 'hunabud/us_road.jpg', // generic Route 1 ring-road scenery (illustrative)
-  bouquet1: 'hunabud/us_bouquet1.jpg', // generic elegant bouquet (illustrative)
-  bouquet2: 'hunabud/us_bouquet2.jpg', // generic wedding bouquet (illustrative)
-  florist: 'hunabud/us_florist.jpg', // generic hands arranging flowers (illustrative)
-  yarn: 'hunabud/us_yarn.jpg', // generic wool yarn balls (illustrative)
+  hero: 'hunabud/evendo1.webp', // real storefront, sun, lopapeysur rack, visitor entering
+  signage: 'hunabud/wl2.webp', // real storefront, all three signs legible
+  cakeCase: 'hunabud/wl3.webp', // real café pastry display case
+  road: 'hunabud/us_road.webp', // generic Route 1 ring-road scenery (illustrative)
+  bouquet1: 'hunabud/us_bouquet1.webp', // generic elegant bouquet (illustrative)
+  bouquet2: 'hunabud/us_bouquet2.webp', // generic wedding bouquet (illustrative)
+  florist: 'hunabud/us_florist.webp', // generic hands arranging flowers (illustrative)
+  yarn: 'hunabud/us_yarn.webp', // generic wool yarn balls (illustrative)
 } as const
 
 export type ImgKey = keyof typeof IMG
