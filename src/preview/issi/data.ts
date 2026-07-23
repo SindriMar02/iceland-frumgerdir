@@ -150,3 +150,15 @@ export const RATINGS = [
 /* ------------------------------------------------------------------ Story */
 export const SOURCING_QUOTE =
   'Allur fiskur sem við notum er frá Þorbirni í Grindavík, sérvalinn og sjófrystur.'
+
+/* --------------------------------------------------------- Brand marks
+ * "Ljósið í kofanum" redesign — real brand photography + marks added to
+ * public/issi/. Additions here are IMG paths and derived display strings
+ * only; no new facts. */
+/** 2000px b&w owner portrait (their own homepage hero) — used for the hero. */
+export const OWNER_IMG = IMG('20_forsida_owner.webp')
+/** 1720×480 band — customers/staff at the Fitjar service window. */
+export const HJORDIS_WINDOW_IMG = IMG('21_hjordis_window.webp')
+/** Real fish-skeleton wordmark, negative (white) versions for use on dark night ground. */
+export const LOGO_WIDE = IMG('issi-logo-wide.png')
+export const LOGO_NEG = IMG('issi-logo-neg.png')
