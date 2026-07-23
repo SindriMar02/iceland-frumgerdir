@@ -90,6 +90,56 @@ export const ROOMS = {
   cta: 'Bóka gistingu',
 }
 
+/* ── Room categories for the on-page browser — the same two counts and the
+   same gestahús furnishing list from ROOMS.body above, split into a
+   selectable pair instead of one paragraph. No amenity is added that is not
+   already stated verbatim in ROOMS.body (no breakfast/wifi/parking claims,
+   since inclusion isn't confirmed for either room type). ─────────────────── */
+export interface RoomCategory {
+  id: 'adalhus' | 'gestahus'
+  label: string
+  count: string
+  countLabel: string
+  body: string
+  features: string[]
+  img: keyof typeof IMG
+  alt: string
+}
+export const ROOM_CATEGORIES: RoomCategory[] = [
+  {
+    id: 'adalhus',
+    label: 'Herbergi í aðalhúsinu',
+    count: '19',
+    countLabel: 'herbergi í aðalhúsinu',
+    body: 'Um 19 herbergi í sjálfu hótelhúsinu, einföld og hlýleg að innan.',
+    features: ['Í sjálfu hótelhúsinu', 'Einföld og hlýleg innrétting'],
+    img: 'bedroom',
+    alt: ROOMS.alt,
+  },
+  {
+    id: 'gestahus',
+    label: 'Sjálfstæð gestahús',
+    count: '6',
+    countLabel: 'sjálfstæð gestahús',
+    body: 'Sex sjálfstæð gestahús á lóðinni, hvert með sínu tvíbreiða rúmi, eldhorni og baðherbergi.',
+    features: ['Tvíbreitt rúm', 'Lítið eldhorn', 'Eigið baðherbergi'],
+    img: 'bedroom',
+    alt: ROOMS.alt,
+  },
+]
+
+/* ── „Þá / Nú" — signature 1947↔2026 slider copy. Reuses the already-verified
+   alt text for the two photos (STORY.archivalAlt / HERO.alt) rather than
+   writing new descriptions of the same images. ────────────────────────────── */
+export const THEN_NOW = {
+  eyebrow: 'Þá og nú',
+  title: '1947 mætir 2026',
+  body: 'Sama hlið, sami staður. Dragðu sleðann til að bera saman gamla hótelið og Bjarkalund eins og hann er í dag.',
+  instruction: 'Dragðu til að bera saman, eða notaðu örvatakkana.',
+  labelThen: '1947',
+  labelNow: '2026',
+}
+
 /* ── Restaurant & bar ──────────────────────────────────────────────────── */
 export const RESTAURANT = {
   eyebrow: 'Veitingar',
@@ -102,7 +152,7 @@ export const RESTAURANT = {
     { key: 'tableDetail', alt: 'Borðdúkur með blúndukanti, kveikt á kerti og lítil pottaplanta á dökku viðarborði.' },
   ],
   quote: 'Besta pítsa í mörg ár, fersk og full af bragði.',
-  quoteBy: '— gestur, hotelbjarkalundur.is',
+  quoteBy: 'Gestur, hotelbjarkalundur.is',
 }
 
 /* ── Character / the green rooms (photo-led gallery) ───────────────────── */
