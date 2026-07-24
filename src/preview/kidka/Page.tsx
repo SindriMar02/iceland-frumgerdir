@@ -167,6 +167,73 @@ function StageChart({ step }: { step: number }) {
   )
 }
 
+/**
+ * Scroll reveal — IntersectionObserver + CSS transition, the project's standard
+ * pattern (the same one that replaced flaky framer whileInView on the other
+ * live pages). IO observes intersection with the viewport independently of how
+ * scrolling happens, so it works fine under Lenis. NOTE: the backgrounded
+ * preview tab suspends IO callbacks, so these reveals only animate on the LIVE
+ * site / a real foreground tab — expected, not a bug.
+ *  - variant "rise": opacity + translateY. Used for ALL text — never a clip
+ *    mask over Icelandic display copy (Þ, Ð, acutes, descenders would be cut).
+ *  - variant "wipe": a knit-in clip wipe bottom→top, echoing the yoke growing
+ *    row by row. Images only (no text to clip).
+ * Reduced-motion + above-the-fold content render immediately.
+ */
+function Reveal({
+  children,
+  delay = 0,
+  variant = 'rise',
+  className = '',
+}: {
+  children: React.ReactNode
+  delay?: number
+  variant?: 'rise' | 'wipe'
+  className?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [on, setOn] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setOn(true)
+      return
+    }
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setOn(true)
+            io.disconnect()
+          }
+        }),
+      { threshold: 0.1, rootMargin: '0px 0px -6% 0px' },
+    )
+    io.observe(el)
+    const r = el.getBoundingClientRect()
+    if (r.top < window.innerHeight && r.bottom > 0) setOn(true)
+    return () => io.disconnect()
+  }, [])
+  const style: React.CSSProperties =
+    variant === 'wipe'
+      ? {
+          opacity: on ? 1 : 0,
+          clipPath: on ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)',
+          transition: `opacity 700ms ease ${delay}ms, clip-path 950ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
+        }
+      : {
+          opacity: on ? 1 : 0,
+          transform: on ? 'none' : 'translateY(20px)',
+          transition: `opacity 640ms ease ${delay}ms, transform 720ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
+        }
+  return (
+    <div ref={ref} className={className} style={style}>
+      {children}
+    </div>
+  )
+}
+
 /* --------------------------------------------------------------- component */
 
 export default function KidkaPage() {
@@ -320,19 +387,21 @@ export default function KidkaPage() {
         {/* --------------------------------------------------------- stages */}
         <section id="plan" className="border-y" style={{ borderColor: C2.gridStrong, background: C2.oatDeep }}>
           <div className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
-            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
                 One row, start to finish
               </h2>
               <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
                 {stage.n} / 05 · {stage.titleIs.toUpperCase()}
               </p>
-            </div>
+            </Reveal>
 
             {/* the fill band — full width, always visible, completes as you step */}
-            <div className="border p-5 sm:p-6" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
-              <StageChart step={step} />
-            </div>
+            <Reveal delay={80}>
+              <div className="border p-5 sm:p-6" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
+                <StageChart step={step} />
+              </div>
+            </Reveal>
 
             {/* the 5-stage selector — a real row that fills 01 → 05 */}
             <ol className="mt-6 grid grid-cols-1 gap-1.5 sm:grid-cols-5">
@@ -384,20 +453,21 @@ export default function KidkaPage() {
 
         {/* --------------------------------------------------- collection */}
         <section id="chart" className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
-          <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+          <Reveal className="mb-9 flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
               The collection, charted
             </h2>
             <p className="text-[0.78rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
               Verð af kidka.com · 23.07.2026
             </p>
-          </div>
+          </Reveal>
 
           <ul className="grid grid-cols-2 md:grid-cols-4" style={{ borderTop: `1px solid ${C2.gridStrong}`, borderLeft: `1px solid ${C2.gridStrong}` }}>
             {PRODUCTS.map((p, i) => {
               const coord = `${String.fromCharCode(65 + (i % 4))}${Math.floor(i / 4) + 1}`
               return (
                 <li key={p.name} style={{ borderRight: `1px solid ${C2.gridStrong}`, borderBottom: `1px solid ${C2.gridStrong}` }}>
+                  <Reveal delay={Math.min((i % 4) * 70, 210)}>
                   <a href={p.url} target="_blank" rel="noopener noreferrer" className="group block p-3">
                     <div className="mb-3 flex items-center justify-between text-[0.7rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
                       <span>{coord}</span>
@@ -416,6 +486,7 @@ export default function KidkaPage() {
                       {p.eur ? `€${p.eur}` : 'sjá verð →'}
                     </p>
                   </a>
+                  </Reveal>
                 </li>
               )
             })}
@@ -439,14 +510,16 @@ export default function KidkaPage() {
 
         {/* ------------------------------------------- made in Hvammstangi */}
         <section className="relative">
-          <img
-            src={IMG.band}
-            alt="Two women wearing dark patterned KIDKA sweaters and beanies beside Icelandic horses"
-            loading="lazy"
-            className="h-[62vh] min-h-[420px] w-full object-cover"
-          />
+          <Reveal variant="wipe">
+            <img
+              src={IMG.band}
+              alt="Two women wearing dark patterned KIDKA sweaters and beanies beside Icelandic horses"
+              loading="lazy"
+              className="h-[62vh] min-h-[420px] w-full object-cover"
+            />
+          </Reveal>
           <div className="absolute inset-0 flex items-center justify-center px-5" style={{ background: 'rgba(12,10,8,0.42)' }}>
-            <div className="max-w-[46ch] text-center">
+            <Reveal delay={200} className="max-w-[46ch] text-center">
               <h2 className="text-[clamp(1.9rem,4.4vw,3.4rem)] leading-tight text-white" style={{ fontFamily: FONT2.display }}>
                 Made in Hvammstangi
               </h2>
@@ -455,22 +528,24 @@ export default function KidkaPage() {
                 comes from Icelandic sheep, the knitting happens here, and the people who own the
                 factory are the people who run it.
               </p>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* ------------------------------------------------------- swatch */}
         <section className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-            <div className="border p-2" style={{ borderColor: C2.gridStrong }}>
-              <img
-                src={IMG.story}
-                alt="A man wearing a patterned KIDKA cardigan in front of winter grass"
-                loading="lazy"
-                className="aspect-[3/4] w-full object-cover"
-              />
-            </div>
-            <div>
+            <Reveal variant="wipe">
+              <div className="border p-2" style={{ borderColor: C2.gridStrong }}>
+                <img
+                  src={IMG.story}
+                  alt="A man wearing a patterned KIDKA cardigan in front of winter grass"
+                  loading="lazy"
+                  className="aspect-[3/4] w-full object-cover"
+                />
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
               <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
                 What it is made of, plainly
               </h2>
@@ -505,7 +580,7 @@ export default function KidkaPage() {
                   </a>
                 ))}
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
 
@@ -542,7 +617,7 @@ export default function KidkaPage() {
         <section id="visit" style={{ background: C2.ink, color: C2.oat }}>
           <div className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-              <div>
+              <Reveal>
                 <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
                   Come and watch
                 </h2>
@@ -570,9 +645,10 @@ export default function KidkaPage() {
                     Open in maps
                   </a>
                 </div>
-              </div>
+              </Reveal>
 
               {/* the care label — copy-as-design, and where the practical info lives */}
+              <Reveal delay={140}>
               <div className="border p-6" style={{ borderColor: 'rgba(239,233,220,0.35)' }}>
                 <ChartBand repeats={3} cell={7} animate={false} className="mb-5 opacity-70" />
                 <p className="text-[0.72rem] uppercase" style={{ fontFamily: FONT2.mono, letterSpacing: '0.16em', color: C2.dye }}>
@@ -611,6 +687,7 @@ export default function KidkaPage() {
                   Hours as published on kidka.com. Confirm around holidays.
                 </p>
               </div>
+              </Reveal>
             </div>
           </div>
           <div className="overflow-hidden pb-2 opacity-60">
