@@ -16,6 +16,11 @@ gsap.registerPlugin(ScrollTrigger, SplitText)
 
 const company = getPreviewCompany('budir')
 
+/* Module-scoped handle to the desktop horizontal journey so anchor nav can
+   map a panel to its vertical scroll offset (labelToScroll pattern). Set and
+   cleared by Page()'s matchMedia branch. */
+let journeyNav: { master: ScrollTrigger; track: HTMLElement } | null = null
+
 /* ── „Svarti punkturinn" — the black anchor. ────────────────────────────────
    The cream hotel and the black church are the only fixed things in a
    landscape that never repeats. System: warm bone paper, black ink bands,
@@ -148,18 +153,22 @@ const PAGE_STYLES = `
 }
 .bu-photo:hover .bu-photo-img { filter: saturate(1); }
 
-/* Directional flip reveals: the cover panel exists only for the motion
-   branch — it stays invisible for reduced-motion / no-JS so the photo always
-   rests fully visible. */
-.bu-flip-cover { visibility: hidden; }
-
-/* Staðurinn lateral strip — horizontal only where the drift scrub runs
-   (desktop + motion-ok); otherwise a plain vertical stack. */
-.bu-place-strip { display: grid; gap: 2.75rem; }
-@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  .bu-place-strip { display: flex; align-items: flex-start; width: max-content; gap: 3vw; }
-  .bu-place-strip .bu-slab-place { width: clamp(300px, 30vw, 460px); flex: none; }
+/* flipMedia (the reference's measured recipe): every frame stacks TWO copies
+   of the same image. The top copy (.bu-media-up) peels away — clip-path
+   inset driven by a CSS var for the lateral variants, y for upDown — while
+   the source copy beneath settles. Reduced motion drops the top copy
+   entirely; the resting state is always the bare visible photo. */
+.bu-media-down { position: absolute; inset: 0; overflow: hidden; }
+.bu-media-up {
+  position: absolute; inset: 0; overflow: hidden;
+  --bu-clip: 0% 0% 0% 0%;
+  clip-path: inset(var(--bu-clip));
 }
+@media (prefers-reduced-motion: reduce) { .bu-media-up { display: none; } }
+
+/* Staðurinn photos — vertical stack by default; a lateral row inside the
+   journey (media block below). */
+.bu-place-strip { display: grid; gap: 2.75rem; }
 
 .bu-ul {
   text-decoration: underline;
@@ -175,18 +184,98 @@ const PAGE_STYLES = `
 }
 .bu-cta:hover { letter-spacing: .24em; }
 
-/* Rooms rail — horizontal layout exists ONLY where the pin runs (desktop +
-   motion-ok). Everywhere else it is a plain vertical stack. */
+/* Rooms — vertical stack by default; panels riding the journey on desktop. */
 .bu-rooms-track { display: grid; gap: 4.5rem; padding: 3.5rem clamp(1.25rem, 5vw, 4rem) 5.5rem; }
 .bu-rooms-intro { max-width: 34rem; }
+
+/* ═══ THE HORIZONTAL JOURNEY (the reference's architecture, their is_mobile
+   split): desktop + motion-ok lays EVERY panel on one max-content track,
+   translated by ONE pinned master scrub — vertical wheel input travels the
+   page sideways. Below lg or under reduced motion none of this CSS exists
+   and the page is the plain vertical document above. ═══ */
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  .bu-rooms-viewport { height: 100svh; display: flex; align-items: center; overflow: hidden; }
+  .bu-journey { height: 100svh; overflow: hidden; }
+  .bu-track {
+    position: relative; display: flex; width: max-content;
+    height: 100svh; align-items: stretch;
+  }
+  .bu-track > * { height: 100svh; flex: none; overflow: hidden; }
+  .bu-p-hero, .bu-p-rails, .bu-p-foot { width: 100vw; }
+  .bu-p-rails { min-height: 0; }
+
+  /* rooms — the old inner rail becomes panels on the single journey */
+  .bu-p-rooms { width: max-content; }
+  .bu-rooms-viewport { height: 100svh; display: flex; align-items: center; }
   .bu-rooms-track {
     display: flex; align-items: center; flex-wrap: nowrap;
-    gap: 6vw; padding: 0 10vw 0 6vw; width: max-content;
+    gap: 6vw; padding: 0 8vw 0 6vw; width: max-content;
   }
   .bu-rooms-intro { width: 30vw; max-width: none; flex: none; }
-  .bu-slab { width: clamp(340px, 26vw, 480px); flex: none; }
+  /* !important: these h2s size themselves via inline clamp() for the
+     vertical page; the journey's tighter columns must win over inline. */
+  .bu-rooms-intro h2 { font-size: min(6.5vw, 13svh) !important; white-space: nowrap; }
+  .bu-slab { width: clamp(340px, 24vw, 460px); flex: none; }
+
+  /* restaurant — one wide black panel, content flowing laterally */
+  .bu-p-rest { width: max-content; }
+  .bu-rest-inner {
+    display: flex; align-items: center; gap: 5vw;
+    height: 100svh; width: max-content; padding: 0 6vw;
+  }
+  .bu-rest-head { width: 22vw; align-self: flex-start; padding-top: 10svh; }
+  .bu-rest-title { font-size: min(7.5vw, 14svh); white-space: nowrap; margin: 0; }
+  .bu-rest-grid { display: flex; align-items: center; gap: 4vw; margin-top: 0; width: max-content; }
+  .bu-rest-copy { width: min(34rem, 32vw); }
+  .bu-rest-hours { width: clamp(280px, 22vw, 360px); }
+  .bu-rest-photos { display: flex; align-items: center; gap: 3vw; margin-top: 0; width: max-content; }
+  .bu-rest-photos > figure { width: clamp(250px, 20vw, 380px); }
+
+  /* saga — era columns side by side */
+  .bu-p-saga { width: max-content; display: flex; align-items: stretch; }
+  .bu-saga-head { width: 26vw; flex: none; padding: 10svh 0 0 5vw; }
+  .bu-saga-head h2 { font-size: min(2.6vw, 5svh) !important; max-width: 18vw; }
+  .bu-saga-steps {
+    display: flex; align-items: center; gap: 6vw;
+    padding: 0 8vw 0 3vw; width: max-content;
+  }
+  .bu-saga-step { margin-top: 0; width: max-content; }
+  .bu-saga-row { display: block; width: max-content; }
+  .bu-saga-step .bu-era { font-size: min(10vw, 19svh); margin-left: 0; line-height: 0.95; }
+  .bu-saga-text { padding: 2svh 0 0; max-width: 24rem; }
+  .bu-saga-photo { margin: 3svh 0 0; padding: 0; }
+  .bu-saga-photo figure { max-width: min(30vw, 56svh); }
+
+  /* weddings */
+  .bu-p-wed { width: max-content; }
+  .bu-wed-inner {
+    display: flex; align-items: center; gap: 5vw;
+    height: 100svh; width: max-content; padding: 0 6vw;
+  }
+  .bu-wed-head { width: 18vw; align-self: flex-start; padding-top: 10svh; }
+  .bu-wed-grid { display: flex; align-items: center; gap: 4vw; margin-top: 0; width: max-content; }
+  .bu-wed-copy { width: min(26rem, 26vw); max-width: none; }
+  .bu-wed-copy h2 { font-size: min(3.4vw, 6.5svh) !important; }
+  .bu-wed-photos { display: flex; align-items: center; gap: 3vw; width: max-content; }
+  .bu-wed-photos > figure { width: clamp(240px, 20vw, 380px); }
+
+  /* staðurinn */
+  .bu-p-place { width: max-content; }
+  .bu-place-inner {
+    display: flex; align-items: center; gap: 5vw;
+    height: 100svh; width: max-content; padding: 0 8vw 0 6vw;
+  }
+  .bu-place-head { width: 20vw; align-self: flex-start; padding-top: 10svh; }
+  .bu-place-titlegrid { display: block; margin-top: 0; width: 26vw; }
+  .bu-place-titlegrid h2 { font-size: min(4vw, 8svh) !important; }
+  .bu-place-stripwrap { margin-top: 0; }
+  .bu-place-strip { display: flex; align-items: center; width: max-content; gap: 3vw; }
+  .bu-place-strip .bu-slab-place { width: clamp(280px, 24vw, 440px); flex: none; }
+
+  /* footer */
+  .bu-p-foot { display: flex; flex-direction: column; justify-content: space-between; }
+  .bu-foot-grid { margin-top: 4svh; }
+  .bu-p-foot iframe { height: min(240px, 26svh); }
+  .bu-foot-wordwrap { margin-top: 0; }
 }
 
 @keyframes bu-menu-in { from { opacity: 0; } to { opacity: 1; } }
@@ -204,31 +293,43 @@ const PAGE_STYLES = `
 /* ═══════════════ Photo — the fixed things; they never animate ════════════ */
 function Photo({
   src, alt, spec, aspect = 'aspect-[4/3]', className = '', position = 'center',
-  priority = false, tone = 'light', flip,
+  priority = false, tone = 'light', flip, flipScrub = false, parallax = false,
 }: {
   src: string; alt: string; spec?: string; aspect?: string; className?: string
   position?: string; priority?: boolean; tone?: 'light' | 'dark'
-  flip?: 'up' | 'left' | 'right'
+  flip?: 'up' | 'left' | 'right'; flipScrub?: boolean; parallax?: boolean
 }) {
   const [failed, setFailed] = useState(false)
   return (
     <figure className={`bu-photo relative m-0 ${className}`}>
-      <div className={`bu-flip-frame relative overflow-hidden ${aspect}`} data-bu-flip={flip}>
+      <div className={`bu-flip-frame relative overflow-hidden ${aspect}`}
+        data-bu-flip={flip}
+        data-bu-scrub={flipScrub ? '1' : undefined}
+        data-bu-parallax={parallax ? '1' : undefined}>
         {failed ? (
           <div className="absolute inset-0" style={{ background: '#DCD5C4' }} role="img" aria-label={alt} />
         ) : (
-          <img
-            src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async"
-            {...(priority ? { fetchpriority: 'high' as const } : {})}
-            onError={() => setFailed(true)}
-            className="bu-photo-img absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: position }}
-          />
+          <>
+            <div className="bu-media-down">
+              <img
+                src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async"
+                {...(priority ? { fetchpriority: 'high' as const } : {})}
+                onError={() => setFailed(true)}
+                className="bu-photo-img bu-media-source absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: position }}
+              />
+            </div>
+            {flip ? (
+              <div className="bu-media-up" aria-hidden>
+                <img
+                  src={src} alt="" loading={priority ? 'eager' : 'lazy'} decoding="async"
+                  className="bu-photo-img absolute inset-0 h-full w-full object-cover"
+                  style={{ objectPosition: position }}
+                />
+              </div>
+            ) : null}
+          </>
         )}
-        {flip ? (
-          <span aria-hidden className="bu-flip-cover absolute inset-0"
-            style={{ background: tone === 'dark' ? INK : 'var(--bu-ground)' }} />
-        ) : null}
       </div>
       {spec ? (
         <figcaption
@@ -290,7 +391,19 @@ function TopNav() {
   const go = (id: string) => {
     setOpen(false)
     window.setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+      const target = document.getElementById(id)
+      if (!target) return
+      if (journeyNav) {
+        /* Horizontal journey: map the panel's x on the track to the master
+           trigger's scroll range (labelToScroll pattern, done manually). */
+        const { master, track } = journeyNav
+        const maxX = Math.max(1, track.scrollWidth - window.innerWidth)
+        const x = Math.min(target.offsetLeft, maxX)
+        const top = master.start + (x / maxX) * (master.end - master.start)
+        window.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
+      } else {
+        target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+      }
     }, 40)
   }
   const solid = scrolled || open
@@ -392,7 +505,7 @@ function TopNav() {
 function Hero() {
   const heroChars = HERO.word.split('')
   return (
-    <header className="relative flex min-h-[100svh] flex-col overflow-hidden">
+    <header className="bu-p-hero relative flex min-h-[100svh] flex-col overflow-hidden">
       {/* Sky — driven by the page-wide scrub via CSS custom properties. */}
       <div className="relative" style={{
         height: '62svh',
@@ -430,12 +543,20 @@ function Hero() {
 
       {/* Below sea level: the real place, quiet. Band ≤ 45vh (1080px source). */}
       <div className="relative flex-1" style={{ minHeight: '38svh', background: INK }}>
-        <div className="bu-flip-frame bu-hero-frame absolute inset-0 overflow-hidden" data-bu-flip="up">
-          <img src={IMG(PHOTOS.heroWater.file)} alt={HERO.photoAlt}
-            loading="eager" decoding="async" {...{ fetchpriority: 'high' as const }}
-            className="bu-photo-img absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
-          <span aria-hidden className="bu-flip-cover absolute inset-0" style={{ background: INK }} />
+        <div className="bu-flip-frame bu-hero-frame absolute inset-0 overflow-hidden"
+          data-bu-flip="up" data-bu-parallax="1">
+          <div className="bu-media-down">
+            <img src={IMG(PHOTOS.heroWater.file)} alt={HERO.photoAlt}
+              loading="eager" decoding="async" {...{ fetchpriority: 'high' as const }}
+              className="bu-photo-img bu-media-source absolute inset-0 h-full w-full object-cover"
+              style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
+          </div>
+          <div className="bu-media-up" aria-hidden>
+            <img src={IMG(PHOTOS.heroWater.file)} alt=""
+              loading="eager" decoding="async"
+              className="bu-photo-img absolute inset-0 h-full w-full object-cover"
+              style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
+          </div>
         </div>
         <div className="bu-hero-fade absolute left-0 top-0 max-w-[34rem] p-5 md:left-8 md:max-w-[30rem] md:p-7"
           style={{ background: BONE }}>
@@ -470,7 +591,7 @@ function Hero() {
    reference's signature type move, carried by their own homepage copy. */
 function Rails() {
   return (
-    <section aria-label="Búðir" className="bu-rails-sec relative flex min-h-[92svh] flex-col"
+    <section aria-label="Búðir" className="bu-rails-sec bu-p-rails relative flex min-h-[92svh] flex-col"
       style={{ background: 'var(--bu-ground)', overflowX: 'clip' }}>
       <div className="px-5 pt-14 md:px-8">
         <SectionHead index="01" label={HERO.word} />
@@ -506,7 +627,7 @@ function Rails() {
 /* ═══════════════ HERBERGI — horizontal scrub past the four categories ════ */
 function Rooms() {
   return (
-    <section id="herbergi" className="bu-rooms scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
+    <section id="herbergi" className="bu-rooms bu-p-rooms scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
       <div className="px-5 pt-14 md:px-8 lg:hidden">
         <SectionHead index="02" label={NAV[0].label} />
       </div>
@@ -569,10 +690,12 @@ function Restaurant() {
   /* The italic-serif interruption, built strictly from their own sentence. */
   const [barBefore, barAfter] = RESTAURANT.barLine.split('stórbrotnu útsýni')
   return (
-    <section id="veitingar" className="scroll-mt-16" style={{ background: INK }}>
-      <div className="px-5 pb-20 pt-14 md:px-8 md:pb-28">
-        <SectionHead index="03" label={NAV[1].label} tone="dark" />
-        <h2 className="bu-chars mb-0 mt-10"
+    <section id="veitingar" className="bu-p-rest scroll-mt-16" style={{ background: INK }}>
+      <div className="bu-rest-inner px-5 pb-20 pt-14 md:px-8 md:pb-28">
+        <div className="bu-rest-head">
+          <SectionHead index="03" label={NAV[1].label} tone="dark" />
+        </div>
+        <h2 className="bu-chars bu-rest-title mb-0 mt-10"
           style={{
             fontFamily: SERIF, fontWeight: 200, color: BONE,
             fontSize: 'clamp(2.7rem, 8.5vw, 7.5rem)', lineHeight: 1.06,
@@ -581,8 +704,8 @@ function Restaurant() {
           {RESTAURANT.title}
         </h2>
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
-          <div>
+        <div className="bu-rest-grid mt-12 grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+          <div className="bu-rest-copy">
             <p className="bu-lines m-0 max-w-[36rem] text-[15.5px] leading-[1.8]"
               style={{ fontFamily: GROTESK, color: BONE_SOFT }}>
               {RESTAURANT.body}
@@ -602,7 +725,7 @@ function Restaurant() {
               </span>
             </p>
           </div>
-          <div>
+          <div className="bu-rest-hours">
             <dl className="m-0">
               {RESTAURANT.hours.map((h) => (
                 <div key={h.label}
@@ -622,7 +745,7 @@ function Restaurant() {
           </div>
         </div>
 
-        <div className="mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        <div className="bu-rest-photos mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           <Photo src={IMG(PHOTOS.plateFish.file)} alt={PHOTOS.plateFish.alt}
             aspect="aspect-[4/5]" spec="Fiskréttur á steindiski" tone="dark" flip="left" />
           <Photo src={IMG(PHOTOS.barTeal.file)} alt={PHOTOS.barTeal.alt}
@@ -640,9 +763,9 @@ function Restaurant() {
 function Saga() {
   const sagaPhotos = [PHOTOS.churchHill, null, PHOTOS.snow] as const
   return (
-    <section id="sagan" className="scroll-mt-16 overflow-hidden"
+    <section id="sagan" className="bu-p-saga scroll-mt-16 overflow-hidden"
       style={{ background: 'var(--bu-ground)' }}>
-      <div className="px-5 pt-14 md:px-8">
+      <div className="bu-saga-head px-5 pt-14 md:px-8">
         <SectionHead index="04" label={NAV[2].label} />
         <div className="flex items-end justify-between gap-8">
           <h2 className="bu-lines mb-0 mt-10 max-w-[30rem]"
@@ -659,12 +782,12 @@ function Saga() {
         </div>
       </div>
 
-      <div className="pb-24 pt-6 md:pb-32">
+      <div className="bu-saga-steps pb-24 pt-6 md:pb-32">
         {SAGA.steps.map((step, i) => {
           const photo = sagaPhotos[i]
           return (
-            <div key={step.era} className="mt-16 md:mt-24">
-              <div className="grid items-end gap-x-10 gap-y-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+            <div key={step.era} className="bu-saga-step mt-16 md:mt-24">
+              <div className="bu-saga-row grid items-end gap-x-10 gap-y-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
                 <div aria-label={step.era} role="heading" aria-level={3}
                   className="bu-chars bu-era whitespace-nowrap"
                   style={{
@@ -674,15 +797,16 @@ function Saga() {
                   }}>
                   {step.era}
                 </div>
-                <p className="bu-lines m-0 max-w-[30rem] px-5 pb-3 text-[15px] leading-[1.8] md:px-0 md:pr-8"
+                <p className="bu-lines bu-saga-text m-0 max-w-[30rem] px-5 pb-3 text-[15px] leading-[1.8] md:px-0 md:pr-8"
                   style={{ fontFamily: GROTESK, color: INK_SOFT }}>
                   {step.text}
                 </p>
               </div>
               {photo ? (
-                <div className={`mt-12 px-5 md:px-8 ${i === 0 ? 'md:ml-[38%]' : 'md:mr-[42%]'}`}>
+                <div className={`bu-saga-photo mt-12 px-5 md:px-8 ${i === 0 ? 'md:ml-[38%]' : 'md:mr-[42%]'}`}>
                   <Photo src={IMG(photo.file)} alt={photo.alt} aspect="aspect-[16/10]"
-                    spec={photo.alt} className="max-w-[560px]" flip={i === 0 ? 'right' : 'left'} />
+                    spec={photo.alt} className="max-w-[560px]"
+                    flip={i === 0 ? 'right' : 'left'} flipScrub={i === 0} />
                 </div>
               ) : null}
             </div>
@@ -696,11 +820,13 @@ function Saga() {
 /* ═══════════════ BRÚÐKAUP — quiet ════════════════════════════════════════ */
 function Weddings() {
   return (
-    <section id="brudkaup" className="scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
-      <div className="px-5 pb-24 pt-14 md:px-8 md:pb-32">
-        <SectionHead index="05" label={NAV[3].label} />
-        <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
-          <div className="max-w-[26rem]">
+    <section id="brudkaup" className="bu-p-wed scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
+      <div className="bu-wed-inner px-5 pb-24 pt-14 md:px-8 md:pb-32">
+        <div className="bu-wed-head">
+          <SectionHead index="05" label={NAV[3].label} />
+        </div>
+        <div className="bu-wed-grid mt-12 grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
+          <div className="bu-wed-copy max-w-[26rem]">
             <h2 className="bu-chars m-0"
               style={{
                 fontFamily: SERIF, fontWeight: 200, color: INK,
@@ -718,11 +844,11 @@ function Weddings() {
               {WEDDINGS.cta}
             </a>
           </div>
-          <div className="grid gap-10 sm:grid-cols-[1.15fr_1fr] sm:items-start">
+          <div className="bu-wed-photos grid gap-10 sm:grid-cols-[1.15fr_1fr] sm:items-start">
             <Photo src={IMG(PHOTOS.eventHall.file)} alt={PHOTOS.eventHall.alt}
-              aspect="aspect-[4/5]" spec="Veislusalurinn" flip="right" />
+              aspect="aspect-[4/5]" spec="Veislusalurinn" flip="right" flipScrub parallax />
             <Photo src={IMG(PHOTOS.churchGrass.file)} alt={PHOTOS.churchGrass.alt}
-              aspect="aspect-[4/5]" spec="Svarta kirkjan" className="sm:mt-20" flip="left" />
+              aspect="aspect-[4/5]" spec="Hótelið á tanganum" className="sm:mt-20" flip="left" />
           </div>
         </div>
       </div>
@@ -734,10 +860,12 @@ function Weddings() {
 function Place() {
   const slabs = [PHOTOS.coast, PHOTOS.aerial, PHOTOS.beach] as const
   return (
-    <section id="stadurinn" className="scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
-      <div className="px-5 pb-24 pt-14 md:px-8 md:pb-32">
-        <SectionHead index="06" label={NAV[4].label} />
-        <div className="mt-12 grid gap-8 md:grid-cols-2 md:items-end">
+    <section id="stadurinn" className="bu-p-place scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
+      <div className="bu-place-inner px-5 pb-24 pt-14 md:px-8 md:pb-32">
+        <div className="bu-place-head">
+          <SectionHead index="06" label={NAV[4].label} />
+        </div>
+        <div className="bu-place-titlegrid mt-12 grid gap-8 md:grid-cols-2 md:items-end">
           <h2 className="bu-chars m-0"
             style={{
               fontFamily: SERIF, fontWeight: 200, color: INK,
@@ -750,14 +878,16 @@ function Place() {
             {PLACE.body}
           </p>
         </div>
-        {/* One lateral strip, drifted sideways by vertical scroll on desktop;
-            a plain stack (full content, no drift) below lg / reduced motion. */}
-        <div className="mt-14" style={{ overflowX: 'clip' }}>
+        {/* A lateral photo row inside the journey; a plain stack below lg /
+            reduced motion. The journey itself provides the sideways travel —
+            the coast panorama gets the inner parallax, the beach the scrubbed
+            peel. */}
+        <div className="bu-place-stripwrap mt-14">
           <div className="bu-place-strip">
             {slabs.map((ph, i) => (
               <Photo key={ph.file} src={IMG(ph.file)} alt={ph.alt} aspect="aspect-[4/5]"
                 spec={ph.alt} className={`bu-slab-place${i === 1 ? ' lg:mt-14' : ''}`}
-                flip={i === 1 ? 'left' : 'right'} />
+                flip={i === 1 ? 'left' : 'right'} flipScrub={i === 2} parallax={i === 0} />
             ))}
           </div>
         </div>
@@ -769,7 +899,7 @@ function Place() {
 /* ═══════════════ FOOTER — night; the lockup disassembled ═════════════════ */
 function FooterBlack() {
   return (
-    <footer className="relative overflow-hidden" style={{ background: INK }}>
+    <footer className="bu-p-foot relative overflow-hidden" style={{ background: INK }}>
       <div className="flex items-baseline justify-between px-5 pt-10 md:px-8">
         <span className="text-[12px] font-semibold uppercase tracking-[0.32em]"
           style={{ fontFamily: GROTESK, color: BONE }}>
@@ -782,7 +912,7 @@ function FooterBlack() {
         </a>
       </div>
 
-      <div className="mt-14 grid gap-12 px-5 md:grid-cols-[1.2fr_1fr] md:gap-20 md:px-8">
+      <div className="bu-foot-grid mt-14 grid gap-12 px-5 md:grid-cols-[1.2fr_1fr] md:gap-20 md:px-8">
         <dl className="m-0 max-w-[30rem]">
           {[
             { label: 'Netfang', value: EMAIL, href: EMAIL_HREF },
@@ -825,7 +955,7 @@ function FooterBlack() {
 
       {/* The reference's colossal cropped sign-off, sunk below the fold edge;
           the lockup's other half anchors the opposite corner. */}
-      <div className="relative mt-16">
+      <div className="bu-foot-wordwrap relative mt-16">
         <span className="absolute bottom-6 right-5 z-10 text-[12px] font-semibold uppercase tracking-[0.32em] md:right-8"
           style={{ fontFamily: GROTESK, color: BONE }}>
           Búðir
@@ -910,9 +1040,9 @@ export default function Page() {
         const q = gsap.utils.selector(root)
         const splits: SplitText[] = []
 
-        /* 1 — The sky scrub: one ScrollTrigger over the whole page; every
-           colour (hero sky pair + the page ground tint) is derived from the
-           raw progress value inside this single callback. */
+        /* 1 — Sky colours: derived from ONE progress value in one callback.
+           On desktop that value is the master journey trigger's progress;
+           on mobile it is the vertical page trigger's. */
         const applySky = (p: number) => {
           const s = skyAt(p)
           root.style.setProperty('--bu-sky-hi', s.hi)
@@ -920,15 +1050,52 @@ export default function Page() {
           root.style.setProperty('--bu-ground', s.ground)
         }
         applySky(0)
-        ScrollTrigger.create({
-          trigger: root,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 0.4,
-          onUpdate: (self) => applySky(self.progress),
-        })
 
-        /* 2 — Hero: BÚÐIR rises from below the horizon, masked at the
+        /* 2 — THE MASTER (their engine, verbatim shape): all panels on one
+           max-content track; a single pinned trigger scrubs the track's x
+           across the whole traverse. end = track overflow, scrub 1, ease
+           none — vertical wheel input travels the page sideways. */
+        const journeyEl = q('.bu-journey')[0] as HTMLElement | undefined
+        const track = q('.bu-track')[0] as HTMLElement | undefined
+        let journeyTl: gsap.core.Timeline | undefined
+        if (c.desktop && journeyEl && track) {
+          const maxX = () => Math.max(1, track.scrollWidth - window.innerWidth)
+          journeyTl = gsap.timeline()
+          journeyTl.to(track, { x: () => -maxX(), duration: 100, ease: 'none' })
+          const master = ScrollTrigger.create({
+            animation: journeyTl,
+            trigger: journeyEl,
+            pin: journeyEl,
+            scrub: 1,
+            start: 'top top',
+            end: () => '+=' + maxX(),
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => applySky(self.progress),
+          })
+          journeyNav = { master, track }
+        } else {
+          ScrollTrigger.create({
+            trigger: root,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.4,
+            onUpdate: (self) => applySky(self.progress),
+          })
+        }
+
+        /* Every per-element trigger goes through this: on the journey it
+           rides containerAnimation with left-based positions (their exact
+           pattern); on the vertical page it is a plain viewport trigger. */
+        const trig = (
+          el: Element | null | undefined, v: string, h: string,
+          extra?: Record<string, unknown>,
+        ): ScrollTrigger.Vars =>
+          (journeyTl
+            ? { trigger: el, containerAnimation: journeyTl, start: h, ...extra }
+            : { trigger: el, start: v, ...extra }) as ScrollTrigger.Vars
+
+        /* 3 — Hero: BÚÐIR rises from below the horizon, masked at the
            horizon wrapper (never per-line — Icelandic accents keep their
            0.24em headroom inside the mask). */
         const introDelay = preShownRef.current ? 1.35 : 0.2
@@ -939,24 +1106,24 @@ export default function Page() {
           opacity: 0, y: 22, duration: 0.9, ease: 'power3.out', stagger: 0.12, delay: introDelay + 0.5,
         })
 
-        /* 3 — Rails + hand-masked statements: play on enter, reverse on
+        /* 4 — Rails + hand-masked statements: play on enter, reverse on
            leave-back (the reference's toggle behaviour). */
         q('.bu-mrise').forEach((el) => {
           gsap.from(el, {
             yPercent: 112, duration: 1, ease: 'power3.out',
-            scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none reverse' },
+            scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none reverse' }),
           })
         })
 
-        /* 4 — Horizon rules draw in. */
+        /* 5 — Horizon rules draw in. */
         q('.bu-rule-draw').forEach((el) => {
           gsap.from(el, {
             scaleX: 0, duration: 1.1, ease: 'power2.inOut',
-            scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: 'play none none reverse' },
+            scrollTrigger: trig(el, 'top 92%', 'left 92%', { toggleActions: 'play none none reverse' }),
           })
         })
 
-        /* 5 — SplitText reveals. autoSplit re-splits when Boska finishes
+        /* 6 — SplitText reveals. autoSplit re-splits when Boska finishes
            loading; onSplit returns the tween so it is rebuilt cleanly.
            Line masks carry leading ≥1.15 wherever accents occur. */
         q('.bu-lines').forEach((el) => {
@@ -964,7 +1131,7 @@ export default function Page() {
             type: 'lines', mask: 'lines', autoSplit: true,
             onSplit: (self) => gsap.from(self.lines, {
               yPercent: 112, duration: 0.9, ease: 'power3.out', stagger: 0.09,
-              scrollTrigger: { trigger: el, start: 'top 87%', toggleActions: 'play none none reverse' },
+              scrollTrigger: trig(el, 'top 87%', 'left 87%', { toggleActions: 'play none none reverse' }),
             }),
           }))
         })
@@ -973,99 +1140,83 @@ export default function Page() {
             type: 'chars', mask: 'chars', autoSplit: true,
             onSplit: (self) => gsap.from(self.chars, {
               yPercent: 110, duration: 0.8, ease: 'power3.out', stagger: 0.035,
-              scrollTrigger: { trigger: el, start: 'top 86%', toggleActions: 'play none none reverse' },
+              scrollTrigger: trig(el, 'top 86%', 'left 86%', { toggleActions: 'play none none reverse' }),
             }),
           }))
         })
 
-        /* 6 — The rooms rail: pinned horizontal scrub, desktop only. The
-           horizontal layout itself only exists under the same media gate
-           (page CSS), so mobile and reduced-motion get a plain stack. */
-        let roomsTween: gsap.core.Tween | undefined
-        if (c.desktop) {
-          const track = q('.bu-rooms-track')[0] as HTMLElement | undefined
-          const viewport = q('.bu-rooms-viewport')[0] as HTMLElement | undefined
-          if (track && viewport) {
-            const dist = () => Math.max(0, track.scrollWidth - window.innerWidth)
-            roomsTween = gsap.to(track, {
-              x: () => -dist(),
-              ease: 'none',
-              scrollTrigger: {
-                trigger: viewport,
-                start: 'top top',
-                end: () => `+=${Math.round(dist() * 1.35)}`,
-                pin: true,
-                scrub: 0.5,
-                anticipatePin: 1,
-                invalidateOnRefresh: true,
-              },
-            })
-          }
-        }
-
-        /* 7 — Directional flip reveals (the reference's flipMedia analog):
-           a scrubbed perspective settle from the entering edge, an inner
-           counter-scale, and a ground-coloured cover wiping off the same
-           way. The scrub IS the ease (ease: none throughout). Covers are
-           visibility:hidden in CSS and only armed here, so reduced motion
-           and no-JS always rest on the bare, fully visible photo. */
-        const flipFor = (frame: HTMLElement, st: ScrollTrigger.Vars) => {
+        /* 7 — flipMedia peels (their measured recipe): the top copy of the
+           image peels away — clip-path inset for the lateral variants, y for
+           upDown — while the source copy settles beneath (counter scale /
+           counter y). Default is time-based on entry; a few hero-moment
+           photos ride a scrub instead (their cierre pattern). */
+        const peel = (frame: HTMLElement, tlVars: gsap.TimelineVars) => {
           const dir = (frame.dataset.buFlip ?? 'up') as 'up' | 'left' | 'right'
-          const img = frame.querySelector('.bu-photo-img')
-          const cover = frame.querySelector('.bu-flip-cover')
-          if (!img) return
-          gsap.set(frame, {
-            transformPerspective: 900,
-            transformOrigin:
-              dir === 'up' ? 'center bottom' : dir === 'left' ? 'right center' : 'left center',
-          })
-          const tl = gsap.timeline({ scrollTrigger: st })
-          tl.fromTo(frame,
-            dir === 'up' ? { rotationX: -24 } : { rotationY: dir === 'left' ? -22 : 22 },
-            { rotationX: 0, rotationY: 0, ease: 'none' }, 0)
-            .fromTo(img, { scale: 1.18 }, { scale: 1, ease: 'none' }, 0)
-          if (cover) {
-            gsap.set(cover, { visibility: 'visible' })
-            tl.to(cover,
-              dir === 'up' ? { yPercent: -101, ease: 'none' }
-                : dir === 'left' ? { xPercent: -101, ease: 'none' }
-                  : { xPercent: 101, ease: 'none' }, 0)
+          const up = frame.querySelector('.bu-media-up')
+          const src = frame.querySelector('.bu-media-source')
+          const isParallax = frame.dataset.buParallax === '1'
+          if (!up || !src) return
+          const tl = gsap.timeline(tlVars)
+          if (dir === 'up') {
+            tl.to(up, { y: '-105%', duration: 1.5, ease: 'power3.out' }, 0)
+            if (!isParallax) tl.from(src, { y: '-10%', duration: 2, ease: 'power3.out' }, 0)
+          } else if (dir === 'right') {
+            /* their leftRight */
+            tl.to(up, { '--bu-clip': '0% 100% 0% 0%', duration: 1.5, ease: 'power2.out' }, 0)
+            if (!isParallax) tl.from(src, { scale: 1.2, duration: 2, ease: 'power2.out' }, 0)
+          } else {
+            /* their rightLeft */
+            tl.to(up, { '--bu-clip': '0% 0% 0% 100%', duration: 1.5, ease: 'power2.out' }, 0)
+            if (!isParallax) tl.from(src, { scale: 1.2, duration: 2, ease: 'power2.out' }, 0)
           }
         }
         q('[data-bu-flip]').forEach((el) => {
           const frame = el as HTMLElement
           if (frame.classList.contains('bu-hero-frame')) return
-          if (roomsTween && frame.closest('.bu-rooms-track')) {
-            /* Inside the pinned rail, progress is horizontal — drive the
-               reveal from the rail's own scrub via containerAnimation. */
-            flipFor(frame, {
-              trigger: frame, containerAnimation: roomsTween,
-              start: 'left 88%', end: 'left 42%', scrub: 0.5,
-            })
-          } else {
-            flipFor(frame, { trigger: frame, start: 'top 88%', end: 'top 42%', scrub: 0.5 })
-          }
+          const scrubbed = frame.dataset.buScrub === '1'
+          peel(frame, {
+            scrollTrigger: scrubbed
+              ? trig(frame, 'top 88%', 'left 88%', {
+                end: journeyTl ? 'left 42%' : 'top 42%', scrub: 0.4,
+              })
+              : trig(frame, 'top 88%', 'left 88%', { toggleActions: 'play none none none' }),
+          })
         })
-        /* The hero band is already in view at load — a viewport scrub would
-           freeze mid-settle, so its flip is time-based, synced to the intro:
-           tilted back and ink-covered under the preloader, settling as the
-           word rises out of the sea. */
+        /* The hero band is in view at load, so its peel is time-based and
+           synced to the intro: the top copy slides away as the word rises
+           out of the sea. */
         const heroFrame = q('.bu-hero-frame')[0] as HTMLElement | undefined
         if (heroFrame) {
-          const heroImg = heroFrame.querySelector('.bu-photo-img')
-          const heroCover = heroFrame.querySelector('.bu-flip-cover')
-          gsap.set(heroFrame, { transformPerspective: 900, transformOrigin: 'center bottom' })
-          const htl = gsap.timeline({ delay: introDelay + 0.15 })
-          htl.fromTo(heroFrame, { rotationX: -24 }, { rotationX: 0, duration: 1.4, ease: 'power3.out' }, 0)
-          if (heroImg) htl.fromTo(heroImg, { scale: 1.18 }, { scale: 1, duration: 1.4, ease: 'power3.out' }, 0)
-          if (heroCover) {
-            gsap.set(heroCover, { visibility: 'visible' })
-            htl.to(heroCover, { yPercent: -101, duration: 1, ease: 'power2.inOut' }, 0.1)
+          const heroUp = heroFrame.querySelector('.bu-media-up')
+          const heroSrc = heroFrame.querySelector('.bu-media-source')
+          if (heroUp && heroSrc) {
+            const htl = gsap.timeline({ delay: introDelay + 0.1 })
+            htl.to(heroUp, { y: '-105%', duration: 1.5, ease: 'power3.out' }, 0)
+            htl.from(heroSrc, { y: '-10%', duration: 2, ease: 'power3.out' }, 0)
           }
         }
 
-        /* 8 — Side-to-side drifts (halved amplitudes below lg so nothing
-           clips; every affected wrapper carries overflow-x clip). */
+        /* 8 — Inner parallax (their projectInt move), journey only: on the
+           largest panel images the source drifts inside its frame as the
+           page travels past. Constant slight over-scale keeps the pan
+           gap-free; total lateral travel 15% of the frame. */
+        if (journeyTl) {
+          q('[data-bu-parallax]').forEach((el) => {
+            const src = el.querySelector('.bu-media-source')
+            if (!src) return
+            gsap.fromTo(src, { xPercent: 7.5, scale: 1.16 }, {
+              xPercent: -7.5, scale: 1.16, ease: 'none',
+              scrollTrigger: {
+                trigger: el, containerAnimation: journeyTl,
+                start: 'left 100%', end: 'right 0%', scrub: true,
+              },
+            })
+          })
+        }
+
+        /* 9 — Side-to-side drifts. On the journey they ride the traverse
+           via containerAnimation (offsets relative to the panel's passage);
+           on mobile they are the halved vertical-trigger versions. */
         const amp = c.desktop ? 1 : 0.5
         const railsSec = q('.bu-rails-sec')[0]
         const railFrom = [-14, 14, -10]
@@ -1073,33 +1224,36 @@ export default function Page() {
         q('.bu-rail').forEach((el, i) => {
           gsap.fromTo(el, { x: `${railFrom[i] * amp}vw` }, {
             x: `${railTo[i] * amp}vw`, ease: 'none',
-            scrollTrigger: { trigger: railsSec, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+            scrollTrigger: trig(railsSec, 'top bottom', 'left 100%', {
+              end: journeyTl ? 'right 0%' : 'bottom top', scrub: 0.6,
+            }),
           })
         })
         q('.bu-era').forEach((el) => {
           gsap.fromTo(el, { x: '0vw' }, {
             x: `${-12 * amp}vw`, ease: 'none',
-            scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+            scrollTrigger: trig(el, 'top bottom', 'left 100%', {
+              end: journeyTl ? 'left 0%' : 'bottom top', scrub: 0.6,
+            }),
           })
         })
-        if (c.desktop) {
-          const strip = q('.bu-place-strip')[0]
-          if (strip) {
-            gsap.fromTo(strip, { x: '8vw' }, {
-              x: '-22vw', ease: 'none',
-              scrollTrigger: { trigger: strip, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
-            })
-          }
-        }
         const footWord = q('.bu-footer-word')[0]
         if (footWord) {
           gsap.fromTo(footWord, { x: `${10 * amp}vw` }, {
             x: `${-4 * amp}vw`, ease: 'none',
-            scrollTrigger: { trigger: footWord, start: 'top bottom', end: 'top 30%', scrub: 0.6 },
+            scrollTrigger: trig(footWord, 'top bottom', 'left 100%', {
+              end: journeyTl ? 'left 20%' : 'top 30%', scrub: 0.6,
+            }),
           })
         }
 
-        return () => { splits.forEach((sp) => sp.revert()) }
+        /* Track width settles when Boska lands — recompute the journey. */
+        document.fonts.ready.then(() => ScrollTrigger.refresh())
+
+        return () => {
+          splits.forEach((sp) => sp.revert())
+          journeyNav = null
+        }
       },
     )
     return () => { mm.revert() }
@@ -1132,16 +1286,21 @@ export default function Page() {
       ) : null}
 
       <TopNav />
-      <main>
-        <Hero />
-        <Rails />
-        <Rooms />
-        <Restaurant />
-        <Saga />
-        <Weddings />
-        <Place />
-      </main>
-      <FooterBlack />
+      {/* The journey: pinned + translated sideways on desktop. The shared
+          PreviewChrome/PreviewFooter stay OUTSIDE it, in normal vertical
+          flow after the pin releases — never pinned, never translated. */}
+      <div className="bu-journey">
+        <main className="bu-track">
+          <Hero />
+          <Rails />
+          <Rooms />
+          <Restaurant />
+          <Saga />
+          <Weddings />
+          <Place />
+          <FooterBlack />
+        </main>
+      </div>
       <PreviewChrome company={company} />
       <PreviewFooter company={company} />
     </div>
