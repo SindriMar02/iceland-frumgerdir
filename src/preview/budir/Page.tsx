@@ -619,37 +619,31 @@ function Hero() {
               style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
           </div>
         </div>
-        {/* No solid box: a soft bone scrim radiating from the copy so the ink
-            type reads as bare editorial text on the photo. Anchored over the
-            content (25% 45%), full-strength through the text + buttons, fading
-            to transparent before the block's far corners — no rectangle edge
-            colliding with the BÚÐIR letters. INK_SOFT over the ≥.9 bone zone
-            where all copy sits ≈ 12:1 (AAA). */}
-        <div className="bu-hero-fade absolute left-0 top-0 max-w-[34rem] p-5 md:left-8 md:max-w-[30rem] md:p-7"
-          style={{ background: 'radial-gradient(115% 140% at 25% 45%, rgba(239,234,224,.95) 0%, rgba(239,234,224,.9) 50%, rgba(239,234,224,.5) 74%, rgba(239,234,224,0) 96%)' }}>
+        {/* A solid ink plate hanging off the horizon on the left — the page's
+            own black-anchor vocabulary, crisp hard edges, a brass hairline where
+            it meets the photo. Not a soft wash, not a CMS box: editorial
+            architecture. Bone copy on ink ≈ 12.6:1 (AAA). */}
+        <div className="bu-hero-fade absolute left-0 top-0 max-w-[32rem] p-6 md:max-w-[29rem] md:p-8"
+          style={{ background: INK, borderRight: '1px solid rgba(168,128,47,.55)' }}>
           <p className="m-0 text-[14px] leading-[1.7] md:text-[15px]"
-            style={{ fontFamily: GROTESK, color: INK_SOFT }}>
+            style={{ fontFamily: GROTESK, color: BONE_SOFT }}>
             {HERO.sub}
           </p>
-          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
             <a href={BOOKING_URL} target="_blank" rel="noreferrer"
-              className={`bu-cta inline-flex min-h-[48px] items-center px-6 text-[12px] font-semibold uppercase tracking-[0.2em] ${FOCUS}`}
-              style={{ fontFamily: GROTESK, background: INK, color: BONE }}>
+              className={`bu-cta relative inline-flex min-h-[48px] items-center px-6 text-[12px] font-semibold uppercase tracking-[0.2em] ${FOCUS}`}
+              style={{ fontFamily: GROTESK, border: '1px solid rgba(239,234,224,.45)', color: BONE }}>
               {HERO.cta}
             </a>
             <a href={PHONE_HREF}
               className={`bu-ul inline-flex min-h-[44px] items-center text-[13px] tracking-[0.06em] ${FOCUS}`}
-              style={{ fontFamily: GROTESK, color: INK }}>
+              style={{ fontFamily: GROTESK, color: BONE }}>
               {PHONE_DISPLAY}
             </a>
           </div>
         </div>
-        <p className="bu-hero-fade absolute bottom-3 right-4 m-0 hidden px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] md:block"
-          style={{
-            fontFamily: GROTESK, color: INK_SOFT,
-            background: 'linear-gradient(90deg, rgba(239,234,224,0) 0%, rgba(239,234,224,.82) 38%)',
-            textShadow: '0 1px 5px rgba(239,234,224,.85)',
-          }}>
+        <p className="bu-hero-fade absolute bottom-0 right-0 m-0 hidden px-4 py-2 text-[10px] uppercase tracking-[0.2em] md:block"
+          style={{ fontFamily: GROTESK, color: BONE_MUTE, background: INK }}>
           Hótelið og svarta kirkjan við ósinn
         </p>
       </div>
