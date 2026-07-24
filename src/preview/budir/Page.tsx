@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
+import Lenis from 'lenis'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -143,15 +144,30 @@ const PAGE_STYLES = `
 
 .bu-pre-mask { overflow: hidden; padding-top: 0.24em; }
 
+/* Mask headroom (item 3): SplitText char masks clip to the char's line-box, so
+   any Boska line-height below the glyph's full em extent (asc .96 + desc .25 =
+   1.21) guillotines accents/descenders (Í acute, g/j/þ/p descenders). Force a
+   comfortable ≥1.28 on every char-split display element (eras + panel titles)
+   so the reveal clips the MOTION, never the GLYPH. Beats the inline/desktop
+   line-heights those headings set. */
+.bu-chars { line-height: 1.28 !important; }
+
 .bu-vert { writing-mode: vertical-rl; transform: rotate(180deg); }
 
-/* Hover keeps only filter — transforms belong to the flip scrub (inline gsap
-   transforms would fight a CSS transform transition). */
-.bu-photo .bu-photo-img {
-  filter: saturate(.84);
-  transition: filter .6s ease;
-}
+/* Photo base saturation. The come-closer zoom lives on .bu-media-down (never
+   a GSAP target — the peel/parallax animate .bu-media-up / .bu-media-source,
+   so a CSS transform here can never fight an inline GSAP transform). */
+.bu-photo .bu-photo-img { filter: saturate(.84); }
 .bu-photo:hover .bu-photo-img { filter: saturate(1); }
+.bu-photo:hover .bu-media-down { transform: scale(1.04); }
+/* Brass inset frame draws in — the cohesive "come closer" cue. */
+.bu-flip-frame::after {
+  content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  border: 1px solid ${BRASS}; opacity: 0; transform: scale(1.03); transform-origin: center;
+}
+.bu-photo:hover .bu-flip-frame::after { opacity: .85; transform: scale(1); }
+.bu-photo figcaption { opacity: .82; }
+.bu-photo:hover figcaption { opacity: 1; }
 
 /* flipMedia (the reference's measured recipe): every frame stacks TWO copies
    of the same image. The top copy (.bu-media-up) peels away — clip-path
@@ -166,23 +182,68 @@ const PAGE_STYLES = `
 }
 @media (prefers-reduced-motion: reduce) { .bu-media-up { display: none; } }
 
+/* Fixed journey progress bar — the visible signal that the page is
+   advancing sideways. Fills 0→100% with the master trigger's progress. */
+.bu-progress {
+  position: fixed; left: 0; bottom: 0; z-index: 50;
+  height: 3px; width: 100%; transform-origin: left center;
+  transform: scaleX(0); background: ${BRASS}; pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) { .bu-progress { display: none; } }
+
+/* Small-furniture mask-rise (labels, specs, hours) — assembles via
+   containerAnimation as its panel slides in. Reduced motion / no-JS rests
+   fully visible; JS arms the hidden start. */
+.bu-up { will-change: transform, opacity; }
+
 /* Staðurinn photos — vertical stack by default; a lateral row inside the
    journey (media block below). */
 .bu-place-strip { display: grid; gap: 2.75rem; }
 
-.bu-ul {
-  text-decoration: underline;
-  text-decoration-color: rgba(168,128,47,.45);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 5px;
-  transition: text-decoration-color .25s ease;
-}
-.bu-ul:hover { text-decoration-color: ${BRASS}; }
+/* Footer sign-off (item 2): reserve descender room so j / á / ð never clip at
+   the black band's bottom edge (the panel is overflow:hidden). */
+.bu-footer-word { padding-bottom: .22em; }
+.bu-p-foot { padding-bottom: 2.5rem; }
 
-.bu-cta {
-  transition: letter-spacing .35s ease, background-color .3s ease;
+/* TEXT LINKS — one vocabulary: a brass underline that wipes in from the left.
+   Replaces the old static text-decoration transition so they never conflict. */
+.bu-ul {
+  position: relative; text-decoration: none;
 }
-.bu-cta:hover { letter-spacing: .24em; }
+.bu-ul::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 1px;
+  height: 1px; background: ${BRASS}; transform: scaleX(0); transform-origin: left center;
+}
+.bu-ul:hover::after, .bu-ul:focus-visible::after { transform: scaleX(1); }
+
+/* CTA BUTTONS — keep the letter-spacing expand AND a brass fill wiping up from
+   the bottom, behind ink-on-brass text. INK (#111) on BRASS (#A8802F) = 5.2:1
+   (AA). Text/icons sit on z-index:1 above the ::before fill. */
+.bu-cta { position: relative; overflow: hidden; isolation: isolate; }
+.bu-cta::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; background: ${BRASS};
+  transform: scaleY(0); transform-origin: bottom center;
+}
+/* !important: the CTAs set color inline (BONE on their INK bg); the hover
+   must flip the text to INK so it reads on the brass fill (5.2:1 AA). */
+.bu-cta:hover { letter-spacing: .24em; color: ${INK} !important; }
+.bu-cta:hover::before { transform: scaleY(1); }
+
+/* Clickable slab (room categories) — subtle lift paired with the photo hover. */
+.bu-slab:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -20px rgba(17,17,17,.45); }
+
+/* All hover motion is gated here — reduced motion gets the same end states
+   instantly (no transition declared → instant). */
+@media (prefers-reduced-motion: no-preference) {
+  .bu-ul::after { transition: transform .4s cubic-bezier(.4,0,.2,1); }
+  .bu-cta { transition: letter-spacing .35s ease, color .2s ease; }
+  .bu-cta::before { transition: transform .45s cubic-bezier(.4,0,.2,1); }
+  .bu-photo .bu-photo-img { transition: filter .6s ease; }
+  .bu-photo .bu-media-down { transition: transform .7s cubic-bezier(.22,1,.36,1); }
+  .bu-flip-frame::after { transition: opacity .5s ease, transform .5s cubic-bezier(.22,1,.36,1); }
+  .bu-photo figcaption { transition: opacity .4s ease; }
+  .bu-slab { transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease; }
+}
 
 /* Rooms — vertical stack by default; panels riding the journey on desktop. */
 .bu-rooms-track { display: grid; gap: 4.5rem; padding: 3.5rem clamp(1.25rem, 5vw, 4rem) 5.5rem; }
@@ -272,9 +333,9 @@ const PAGE_STYLES = `
   .bu-place-strip .bu-slab-place { width: clamp(280px, 24vw, 440px); flex: none; }
 
   /* footer */
-  .bu-p-foot { display: flex; flex-direction: column; justify-content: space-between; }
-  .bu-foot-grid { margin-top: 4svh; }
-  .bu-p-foot iframe { height: min(240px, 26svh); }
+  .bu-p-foot { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 4svh; }
+  .bu-foot-grid { margin-top: 3svh; }
+  .bu-foot-map { height: min(420px, 46svh); }
   .bu-foot-wordwrap { margin-top: 0; }
 }
 
@@ -333,7 +394,7 @@ function Photo({
       </div>
       {spec ? (
         <figcaption
-          className="mt-0 flex items-baseline justify-between gap-4 border-t pt-2.5 text-[10.5px] uppercase tracking-[0.18em]"
+          className="bu-up mt-0 flex items-baseline justify-between gap-4 border-t pt-2.5 text-[10.5px] uppercase tracking-[0.18em]"
           style={{
             fontFamily: GROTESK,
             borderColor: tone === 'light' ? HAIR_INK : HAIR_BONE,
@@ -354,7 +415,7 @@ function SectionHead({ index, label, tone = 'light' }: {
     <div>
       <div className="bu-rule-draw h-px w-full origin-left"
         style={{ background: tone === 'light' ? INK : BONE, opacity: tone === 'light' ? 0.55 : 0.4 }} />
-      <div className="flex items-baseline justify-between pt-3 text-[11px] font-medium uppercase tracking-[0.24em]"
+      <div className="bu-up flex items-baseline justify-between pt-3 text-[11px] font-medium uppercase tracking-[0.24em]"
         style={{ fontFamily: GROTESK, color: tone === 'light' ? INK_MUTE : BONE_MUTE }}>
         <span>{label}</span>
         <span aria-hidden style={{ color: tone === 'light' ? OLIVE_INK : BONE_MUTE }}>({index})</span>
@@ -558,8 +619,14 @@ function Hero() {
               style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
           </div>
         </div>
+        {/* No solid box: a soft bone scrim radiating from the copy so the ink
+            type reads as bare editorial text on the photo. Anchored over the
+            content (25% 45%), full-strength through the text + buttons, fading
+            to transparent before the block's far corners — no rectangle edge
+            colliding with the BÚÐIR letters. INK_SOFT over the ≥.9 bone zone
+            where all copy sits ≈ 12:1 (AAA). */}
         <div className="bu-hero-fade absolute left-0 top-0 max-w-[34rem] p-5 md:left-8 md:max-w-[30rem] md:p-7"
-          style={{ background: BONE }}>
+          style={{ background: 'radial-gradient(115% 140% at 25% 45%, rgba(239,234,224,.95) 0%, rgba(239,234,224,.9) 50%, rgba(239,234,224,.5) 74%, rgba(239,234,224,0) 96%)' }}>
           <p className="m-0 text-[14px] leading-[1.7] md:text-[15px]"
             style={{ fontFamily: GROTESK, color: INK_SOFT }}>
             {HERO.sub}
@@ -578,7 +645,11 @@ function Hero() {
           </div>
         </div>
         <p className="bu-hero-fade absolute bottom-3 right-4 m-0 hidden px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] md:block"
-          style={{ fontFamily: GROTESK, background: 'rgba(239,234,224,.9)', color: INK_SOFT }}>
+          style={{
+            fontFamily: GROTESK, color: INK_SOFT,
+            background: 'linear-gradient(90deg, rgba(239,234,224,0) 0%, rgba(239,234,224,.82) 38%)',
+            textShadow: '0 1px 5px rgba(239,234,224,.85)',
+          }}>
           Hótelið og svarta kirkjan við ósinn
         </p>
       </div>
@@ -603,7 +674,7 @@ function Rails() {
             <div key={phrase} className="bu-mask bu-rail overflow-hidden"
               style={{ paddingLeft: `${i * 7}%` }}>
               <p className="bu-mrise m-0 whitespace-nowrap"
-                style={{ lineHeight: 1.14, fontSize: 'clamp(1.9rem, 6.6vw, 5.6rem)' }}>
+                style={{ lineHeight: 1.26, fontSize: 'clamp(1.9rem, 6.6vw, 5.6rem)' }}>
                 <span className="font-semibold uppercase"
                   style={{ fontFamily: GROTESK, letterSpacing: '-0.01em', color: INK }}>
                   {first}
@@ -661,14 +732,14 @@ function Rooms() {
             <article key={room.key} className="bu-slab">
               <Photo src={IMG(room.img)} alt={room.alt} aspect="aspect-[4/5]"
                 spec={`${room.wing} · 0${i + 1}`} flip={i % 2 === 0 ? 'right' : 'left'} />
-              <h3 className="mb-0 mt-4"
+              <h3 className="bu-lines mb-0 mt-4"
                 style={{
                   fontFamily: SERIF, fontWeight: 300, color: INK,
-                  fontSize: 'clamp(1.7rem, 2.6vw, 2.3rem)', lineHeight: 1.12,
+                  fontSize: 'clamp(1.7rem, 2.6vw, 2.3rem)', lineHeight: 1.28,
                 }}>
                 {room.name}
               </h3>
-              <p className="mt-3 text-[14px] leading-[1.7]"
+              <p className="bu-lines mt-3 text-[14px] leading-[1.7]"
                 style={{ fontFamily: GROTESK, color: INK_SOFT }}>
                 {room.body}
               </p>
@@ -729,7 +800,7 @@ function Restaurant() {
             <dl className="m-0">
               {RESTAURANT.hours.map((h) => (
                 <div key={h.label}
-                  className="flex items-baseline justify-between gap-6 border-b py-4"
+                  className="bu-up flex items-baseline justify-between gap-6 border-b py-4"
                   style={{ borderColor: HAIR_BONE }}>
                   <dt className="text-[12px] font-medium uppercase tracking-[0.2em]"
                     style={{ fontFamily: GROTESK, color: BONE_MUTE }}>
@@ -935,21 +1006,20 @@ function FooterBlack() {
               </dd>
             </div>
           ))}
-          <div className="pt-5">
-            <a href={MAP_LINK} target="_blank" rel="noreferrer"
-              className={`bu-ul inline-flex min-h-[44px] items-center text-[12px] font-medium uppercase tracking-[0.18em] ${FOCUS}`}
-              style={{ fontFamily: GROTESK, color: BONE_MUTE }}>
-              Opna í Google kortum
-            </a>
-          </div>
         </dl>
         <div>
-          <div className="overflow-hidden" style={{ border: `1px solid ${HAIR_BONE}` }}>
+          <div className="overflow-hidden"
+            style={{ border: '1px solid rgba(168,128,47,.45)', boxShadow: `inset 0 0 0 1px ${HAIR_BONE}` }}>
             <iframe title={`Kort af Hótel Búðum, ${ADDRESS}`} src={MAP_EMBED}
               loading="eager" referrerPolicy="no-referrer-when-downgrade"
-              className="h-[260px] w-full border-0"
-              style={{ filter: 'grayscale(1) contrast(0.96)' }} />
+              className="bu-foot-map h-[320px] w-full border-0"
+              style={{ filter: 'grayscale(1) contrast(1.05) brightness(.85)' }} />
           </div>
+          <a href={MAP_LINK} target="_blank" rel="noreferrer"
+            className={`bu-ul mt-3 inline-flex min-h-[44px] items-center text-[11px] font-medium uppercase tracking-[0.18em] ${FOCUS}`}
+            style={{ fontFamily: GROTESK, color: BONE_MUTE }}>
+            Opna í Google kortum
+          </a>
         </div>
       </div>
 
@@ -963,8 +1033,8 @@ function FooterBlack() {
         <p aria-hidden className="bu-footer-word m-0 select-none whitespace-nowrap pl-2 font-extralight"
           style={{
             fontFamily: SERIF, fontWeight: 200, color: BONE,
-            fontSize: 'min(17vw, 15rem)', lineHeight: 0.9,
-            transform: 'translateY(0.22em)',
+            fontSize: 'min(17vw, 15rem)', lineHeight: 0.95,
+            transform: 'translateY(0.04em)',
           }}>
           Við sjáumst
         </p>
@@ -1039,6 +1109,19 @@ export default function Page() {
         if (!c.motion) return undefined
         const q = gsap.utils.selector(root)
         const splits: SplitText[] = []
+        const progress = q('.bu-progress')[0] as HTMLElement | undefined
+
+        /* 0 — LENIS drives the scroll. Without a rAF loop pumping
+           ScrollTrigger.update on every frame, the pinned scrub could stall
+           at x=0 (the shipped freeze); Lenis both fixes that and gives the
+           momentum feel the reference has. Armed in BOTH desktop and mobile
+           motion branches; never under reduced motion (this whole callback
+           is gated on c.motion above). */
+        const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
+        lenis.on('scroll', ScrollTrigger.update)
+        const tick = (t: number) => lenis.raf(t * 1000)
+        gsap.ticker.add(tick)
+        gsap.ticker.lagSmoothing(0)
 
         /* 1 — Sky colours: derived from ONE progress value in one callback.
            On desktop that value is the master journey trigger's progress;
@@ -1052,18 +1135,19 @@ export default function Page() {
         applySky(0)
 
         /* 2 — THE MASTER (their engine, verbatim shape): all panels on one
-           max-content track; a single pinned trigger scrubs the track's x
-           across the whole traverse. end = track overflow, scrub 1, ease
-           none — vertical wheel input travels the page sideways. */
+           max-content track; ONE pinned trigger scrubs ONE track tween
+           across the whole traverse. containerAnimation REQUIRES a tween
+           (not a timeline) — the previous timeline form is the likely cause
+           of the frozen x=0. end/x are function-form so they recompute after
+           layout settles (invalidateOnRefresh). */
         const journeyEl = q('.bu-journey')[0] as HTMLElement | undefined
         const track = q('.bu-track')[0] as HTMLElement | undefined
-        let journeyTl: gsap.core.Timeline | undefined
+        const maxX = () => track ? Math.max(1, track.scrollWidth - window.innerWidth) : 1
+        let journeyTween: gsap.core.Tween | undefined
         if (c.desktop && journeyEl && track) {
-          const maxX = () => Math.max(1, track.scrollWidth - window.innerWidth)
-          journeyTl = gsap.timeline()
-          journeyTl.to(track, { x: () => -maxX(), duration: 100, ease: 'none' })
+          journeyTween = gsap.to(track, { x: () => -maxX(), ease: 'none' })
           const master = ScrollTrigger.create({
-            animation: journeyTl,
+            animation: journeyTween,
             trigger: journeyEl,
             pin: journeyEl,
             scrub: 1,
@@ -1071,7 +1155,10 @@ export default function Page() {
             end: () => '+=' + maxX(),
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            onUpdate: (self) => applySky(self.progress),
+            onUpdate: (self) => {
+              applySky(self.progress)
+              if (progress) progress.style.transform = `scaleX(${self.progress})`
+            },
           })
           journeyNav = { master, track }
         } else {
@@ -1080,7 +1167,10 @@ export default function Page() {
             start: 'top top',
             end: 'bottom bottom',
             scrub: 0.4,
-            onUpdate: (self) => applySky(self.progress),
+            onUpdate: (self) => {
+              applySky(self.progress)
+              if (progress) progress.style.transform = `scaleX(${self.progress})`
+            },
           })
         }
 
@@ -1091,8 +1181,8 @@ export default function Page() {
           el: Element | null | undefined, v: string, h: string,
           extra?: Record<string, unknown>,
         ): ScrollTrigger.Vars =>
-          (journeyTl
-            ? { trigger: el, containerAnimation: journeyTl, start: h, ...extra }
+          (journeyTween
+            ? { trigger: el, containerAnimation: journeyTween, start: h, ...extra }
             : { trigger: el, start: v, ...extra }) as ScrollTrigger.Vars
 
         /* 3 — Hero: BÚÐIR rises from below the horizon, masked at the
@@ -1145,6 +1235,18 @@ export default function Page() {
           }))
         })
 
+        /* 6b — Small furniture (eyebrows, indices, specs, hours, room names
+           and bodies) rises as its panel slides in from the right — start
+           'left 85%' via containerAnimation so the panel visibly ASSEMBLES.
+           Mask-rise rather than SplitText on the tiny mono/tracked labels
+           (SplitText fights letter-spacing at that size). */
+        q('.bu-up').forEach((el) => {
+          gsap.from(el, {
+            yPercent: 40, opacity: 0, duration: 0.7, ease: 'power3.out',
+            scrollTrigger: trig(el, 'top 90%', 'left 85%', { toggleActions: 'play none none reverse' }),
+          })
+        })
+
         /* 7 — flipMedia peels (their measured recipe): the top copy of the
            image peels away — clip-path inset for the lateral variants, y for
            upDown — while the source copy settles beneath (counter scale /
@@ -1177,7 +1279,7 @@ export default function Page() {
           peel(frame, {
             scrollTrigger: scrubbed
               ? trig(frame, 'top 88%', 'left 88%', {
-                end: journeyTl ? 'left 42%' : 'top 42%', scrub: 0.4,
+                end: journeyTween ? 'left 42%' : 'top 42%', scrub: 0.4,
               })
               : trig(frame, 'top 88%', 'left 88%', { toggleActions: 'play none none none' }),
           })
@@ -1200,14 +1302,14 @@ export default function Page() {
            largest panel images the source drifts inside its frame as the
            page travels past. Constant slight over-scale keeps the pan
            gap-free; total lateral travel 15% of the frame. */
-        if (journeyTl) {
+        if (journeyTween) {
           q('[data-bu-parallax]').forEach((el) => {
             const src = el.querySelector('.bu-media-source')
             if (!src) return
             gsap.fromTo(src, { xPercent: 7.5, scale: 1.16 }, {
               xPercent: -7.5, scale: 1.16, ease: 'none',
               scrollTrigger: {
-                trigger: el, containerAnimation: journeyTl,
+                trigger: el, containerAnimation: journeyTween,
                 start: 'left 100%', end: 'right 0%', scrub: true,
               },
             })
@@ -1225,7 +1327,7 @@ export default function Page() {
           gsap.fromTo(el, { x: `${railFrom[i] * amp}vw` }, {
             x: `${railTo[i] * amp}vw`, ease: 'none',
             scrollTrigger: trig(railsSec, 'top bottom', 'left 100%', {
-              end: journeyTl ? 'right 0%' : 'bottom top', scrub: 0.6,
+              end: journeyTween ? 'right 0%' : 'bottom top', scrub: 0.6,
             }),
           })
         })
@@ -1233,7 +1335,7 @@ export default function Page() {
           gsap.fromTo(el, { x: '0vw' }, {
             x: `${-12 * amp}vw`, ease: 'none',
             scrollTrigger: trig(el, 'top bottom', 'left 100%', {
-              end: journeyTl ? 'left 0%' : 'bottom top', scrub: 0.6,
+              end: journeyTween ? 'left 0%' : 'bottom top', scrub: 0.6,
             }),
           })
         })
@@ -1242,15 +1344,31 @@ export default function Page() {
           gsap.fromTo(footWord, { x: `${10 * amp}vw` }, {
             x: `${-4 * amp}vw`, ease: 'none',
             scrollTrigger: trig(footWord, 'top bottom', 'left 100%', {
-              end: journeyTl ? 'left 20%' : 'top 30%', scrub: 0.6,
+              end: journeyTween ? 'left 20%' : 'top 30%', scrub: 0.6,
             }),
           })
         }
 
-        /* Track width settles when Boska lands — recompute the journey. */
+        /* The traverse = track.scrollWidth − innerWidth, and scrollWidth is
+           only correct once BOTH the display font (Boska changes panel widths)
+           AND every in-track image (each panel sizes to its photos) have
+           loaded. Refresh after each so end/x are measured against the true
+           ~14000px track, never a collapsed early-layout value. */
         document.fonts.ready.then(() => ScrollTrigger.refresh())
+        const imgs = Array.from(root.querySelectorAll('.bu-track img'))
+        Promise.all(imgs.map((im) => {
+          const el = im as HTMLImageElement
+          if (el.complete && el.naturalWidth > 0) return Promise.resolve()
+          const dec = el.decode ? el.decode().catch(() => undefined) : undefined
+          return dec ?? new Promise<void>((res) => {
+            el.addEventListener('load', () => res(), { once: true })
+            el.addEventListener('error', () => res(), { once: true })
+          })
+        })).then(() => ScrollTrigger.refresh())
 
         return () => {
+          gsap.ticker.remove(tick)
+          lenis.destroy()
           splits.forEach((sp) => sp.revert())
           journeyNav = null
         }
@@ -1263,6 +1381,7 @@ export default function Page() {
     <div ref={rootRef} lang="is" className="bu-root antialiased"
       style={{ background: 'var(--bu-ground)', overflowX: 'clip' }}>
       <style>{PAGE_STYLES}</style>
+      <div className="bu-progress" aria-hidden />
 
       {pre ? (
         <div ref={preRef} aria-hidden
