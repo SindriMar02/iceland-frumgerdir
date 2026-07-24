@@ -49,6 +49,13 @@ export function DraggableContainer({
   const y = useMotionValue(0)
   const [isDragging, setIsDragging] = useState(false)
   const reduce = useReducedMotion()
+  // On touch devices, lock drag to the X axis so a vertical swipe still
+  // scrolls the PAGE (framer sets touch-action: pan-y for x-only drag).
+  // Without this a 72vh drag panel traps the scroll and the visitor is stuck.
+  const [touch, setTouch] = useState(false)
+  useEffect(() => {
+    setTouch(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
 
   useEffect(() => {
     const rect = ref.current?.getBoundingClientRect()
@@ -88,7 +95,7 @@ export function DraggableContainer({
       <div ref={viewportRef} className="overflow-hidden" style={{ height }}>
         <motion.div
           className={`grid h-fit w-fit cursor-grab grid-cols-[repeat(2,1fr)] will-change-transform active:cursor-grabbing ${className}`}
-          drag
+          drag={touch ? 'x' : true}
           dragMomentum={!reduce}
           dragTransition={{ timeConstant: 200, power: 0.28, restDelta: 0, bounceStiffness: 0 }}
           onMouseDown={() => setIsDragging(true)}
@@ -112,9 +119,12 @@ export function GridItem({ children, className = '' }: { children: ReactNode; cl
     return () => window.clearTimeout(t)
   }, [])
   const variantCls = variant === 'masonry' ? 'even:mt-[52%]' : ''
+  // NOTE: no `h-full w-full` here. The caller passes explicit sizes
+  // (h-40 w-28 …); a hardcoded h-full collapses to 0 against the fit-content
+  // grid parent, which blanked the whole gallery. Size comes from `className`.
   return (
     <div
-      className={`h-full w-full overflow-hidden will-change-transform hover:cursor-pointer ${variantCls} ${className}`}
+      className={`overflow-hidden will-change-transform hover:cursor-pointer ${variantCls} ${className}`}
       style={{
         opacity: shown ? 1 : 0,
         transform: shown ? 'none' : 'scale(0.94)',

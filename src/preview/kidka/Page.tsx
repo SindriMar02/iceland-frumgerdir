@@ -131,36 +131,32 @@ function ChartBand({
 
 /* ------------------------------------------------------------------ stages */
 
-/** The pattern grows as you step through the stages: rows already "knitted"
- *  are inked, the rest stay as ghosted grid. Replaces an earlier factory
- *  floor plan whose architecture was invented — this makes no spatial claim
- *  about the building, only about the order of the work. */
-function StageChart({ step, cell = 15 }: { step: number; cell?: number }) {
-  const repeats = 5
-  const cols = CHART_W * repeats
-  const knittedRows = Math.round(((step + 1) / STAGES.length) * CHART_H)
+/** A knit band that COMPLETES left→right as you step through the five stages
+ *  — "one row, start to finish", literally. Fully responsive: the columns are
+ *  `1fr` and the cells are square, so the band always fits its container and is
+ *  never clipped (an earlier version was a fixed 975px grid that got sliced off
+ *  on mobile and read as noise). A dye "needle" marks the active knitting edge. */
+function StageChart({ step }: { step: number }) {
+  const REPEATS = 3
+  const cols = CHART_W * REPEATS // 39
+  const knitted = Math.round(((step + 1) / STAGES.length) * cols)
   return (
-    <div className="overflow-hidden" aria-hidden="true">
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${cols}, ${cell}px)`,
-          gridAutoRows: `${cell}px`,
-          width: 'max-content',
-        }}
-      >
+    <div className="mx-auto w-full max-w-[560px]" aria-hidden="true">
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
         {Array.from({ length: CHART_H }).map((_, r) =>
           Array.from({ length: cols }).map((__, c) => {
             const on = chartCell(r, c % CHART_W)
-            const knitted = CHART_H - 1 - r < knittedRows
+            const done = c < knitted
+            const edge = c === knitted - 1
             return (
               <span
                 key={`${r}-${c}`}
+                className="aspect-square"
                 style={{
-                  background: on ? C2.ink : 'transparent',
-                  outline: on ? 'none' : `0.5px solid ${C2.grid}`,
-                  opacity: on ? (knitted ? 1 : 0.12) : knitted ? 0.5 : 0.18,
-                  transition: 'opacity 420ms ease',
+                  background: on ? (edge ? C2.dye : done ? C2.ink : 'transparent') : 'transparent',
+                  outline: `0.5px solid ${C2.grid}`,
+                  opacity: on ? (done ? 1 : 0.14) : done ? 0.4 : 0.16,
+                  transition: 'opacity 340ms ease, background 340ms ease',
                 }}
               />
             )
@@ -333,55 +329,55 @@ export default function KidkaPage() {
               </p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12">
-              <div className="flex min-w-0 flex-col justify-center overflow-hidden border p-5" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
-                <StageChart step={step} />
-                <p className="mt-5 text-[0.75rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
-                  The pattern fills in as the work moves along.
-                </p>
-              </div>
+            {/* the fill band — full width, always visible, completes as you step */}
+            <div className="border p-5 sm:p-6" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
+              <StageChart step={step} />
+            </div>
 
-              <div className="flex flex-col">
-                <h3 className="text-[1.8rem] leading-tight" style={{ fontFamily: FONT2.display }}>
-                  {stage.title}
-                </h3>
-                <p className="mt-3 text-[1rem] leading-relaxed" style={{ color: C2.inkSoft }}>
-                  {stage.note}
-                </p>
-                {stage.hook && (
-                  <p
-                    className="mt-4 self-start px-2 py-1 text-[1rem] font-bold"
-                    style={{ background: C2.dye, color: C2.ink }}
+            {/* the 5-stage selector — a real row that fills 01 → 05 */}
+            <ol className="mt-6 grid grid-cols-1 gap-1.5 sm:grid-cols-5">
+              {STAGES.map((s, i) => (
+                <li key={s.n}>
+                  <button
+                    type="button"
+                    onClick={() => setStep(i)}
+                    aria-current={i === step ? 'step' : undefined}
+                    className="flex w-full items-center gap-2 border px-3 py-2.5 text-left sm:flex-col sm:items-start sm:gap-1"
+                    style={{
+                      borderColor: i === step ? C2.ink : C2.gridStrong,
+                      background: i === step ? C2.ink : 'transparent',
+                      color: i === step ? C2.oat : C2.ink,
+                    }}
                   >
-                    {stage.hook}
-                  </p>
-                )}
+                    <span className="text-[0.72rem]" style={{ fontFamily: FONT2.mono, color: i === step ? C2.dye : C2.ochre }}>
+                      {s.n}
+                    </span>
+                    <span className="text-[0.86rem] leading-tight">{s.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
 
-                <ol className="mt-7 flex flex-col gap-1.5">
-                  {STAGES.map((s, i) => (
-                    <li key={s.n}>
-                      <button
-                        type="button"
-                        onClick={() => setStep(i)}
-                        aria-current={i === step ? 'step' : undefined}
-                        className="flex w-full items-baseline gap-3 border px-3 py-2 text-left text-[0.88rem]"
-                        style={{
-                          borderColor: i === step ? C2.ink : C2.gridStrong,
-                          background: i === step ? C2.ink : 'transparent',
-                          color: i === step ? C2.oat : C2.ink,
-                        }}
-                      >
-                        <span style={{ fontFamily: FONT2.mono }}>{s.n}</span>
-                        <span>{s.title}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-                <p className="mt-5 text-[0.8rem] leading-relaxed" style={{ color: C2.inkSoft }}>
-                  Stages and wording taken from KIDKA&rsquo;s own descriptions. We have not drawn the
-                  building itself.
+            {/* the active stage, read out in full */}
+            <div className="mt-8 max-w-[640px]">
+              <h3 className="text-[clamp(1.5rem,4vw,2rem)] leading-tight" style={{ fontFamily: FONT2.display }}>
+                {stage.title}
+              </h3>
+              <p className="mt-3 text-[1.02rem] leading-relaxed" style={{ color: C2.inkSoft }}>
+                {stage.note}
+              </p>
+              {stage.hook && (
+                <p
+                  className="mt-4 inline-block px-2 py-1 text-[1rem] font-bold"
+                  style={{ background: C2.dye, color: C2.ink }}
+                >
+                  {stage.hook}
                 </p>
-              </div>
+              )}
+              <p className="mt-6 text-[0.8rem] leading-relaxed" style={{ color: C2.inkSoft }}>
+                Stages and wording taken from KIDKA&rsquo;s own descriptions. We have not drawn the
+                building itself.
+              </p>
             </div>
           </div>
         </section>
