@@ -140,12 +140,26 @@ const PAGE_STYLES = `
 
 .bu-vert { writing-mode: vertical-rl; transform: rotate(180deg); }
 
+/* Hover keeps only filter — transforms belong to the flip scrub (inline gsap
+   transforms would fight a CSS transform transition). */
 .bu-photo .bu-photo-img {
   filter: saturate(.84);
-  transform: scale(1.001);
-  transition: filter .6s ease, transform 1.1s cubic-bezier(.22,1,.36,1);
+  transition: filter .6s ease;
 }
-.bu-photo:hover .bu-photo-img { filter: saturate(1); transform: scale(1.02); }
+.bu-photo:hover .bu-photo-img { filter: saturate(1); }
+
+/* Directional flip reveals: the cover panel exists only for the motion
+   branch — it stays invisible for reduced-motion / no-JS so the photo always
+   rests fully visible. */
+.bu-flip-cover { visibility: hidden; }
+
+/* Staðurinn lateral strip — horizontal only where the drift scrub runs
+   (desktop + motion-ok); otherwise a plain vertical stack. */
+.bu-place-strip { display: grid; gap: 2.75rem; }
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .bu-place-strip { display: flex; align-items: flex-start; width: max-content; gap: 3vw; }
+  .bu-place-strip .bu-slab-place { width: clamp(300px, 30vw, 460px); flex: none; }
+}
 
 .bu-ul {
   text-decoration: underline;
@@ -190,15 +204,16 @@ const PAGE_STYLES = `
 /* ═══════════════ Photo — the fixed things; they never animate ════════════ */
 function Photo({
   src, alt, spec, aspect = 'aspect-[4/3]', className = '', position = 'center',
-  priority = false, tone = 'light',
+  priority = false, tone = 'light', flip,
 }: {
   src: string; alt: string; spec?: string; aspect?: string; className?: string
   position?: string; priority?: boolean; tone?: 'light' | 'dark'
+  flip?: 'up' | 'left' | 'right'
 }) {
   const [failed, setFailed] = useState(false)
   return (
     <figure className={`bu-photo relative m-0 ${className}`}>
-      <div className={`relative overflow-hidden ${aspect}`}>
+      <div className={`bu-flip-frame relative overflow-hidden ${aspect}`} data-bu-flip={flip}>
         {failed ? (
           <div className="absolute inset-0" style={{ background: '#DCD5C4' }} role="img" aria-label={alt} />
         ) : (
@@ -210,6 +225,10 @@ function Photo({
             style={{ objectPosition: position }}
           />
         )}
+        {flip ? (
+          <span aria-hidden className="bu-flip-cover absolute inset-0"
+            style={{ background: tone === 'dark' ? INK : 'var(--bu-ground)' }} />
+        ) : null}
       </div>
       {spec ? (
         <figcaption
@@ -411,10 +430,13 @@ function Hero() {
 
       {/* Below sea level: the real place, quiet. Band ≤ 45vh (1080px source). */}
       <div className="relative flex-1" style={{ minHeight: '38svh', background: INK }}>
-        <img src={IMG(PHOTOS.heroWater.file)} alt={HERO.photoAlt}
-          loading="eager" decoding="async" {...{ fetchpriority: 'high' as const }}
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
+        <div className="bu-flip-frame bu-hero-frame absolute inset-0 overflow-hidden" data-bu-flip="up">
+          <img src={IMG(PHOTOS.heroWater.file)} alt={HERO.photoAlt}
+            loading="eager" decoding="async" {...{ fetchpriority: 'high' as const }}
+            className="bu-photo-img absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
+          <span aria-hidden className="bu-flip-cover absolute inset-0" style={{ background: INK }} />
+        </div>
         <div className="bu-hero-fade absolute left-0 top-0 max-w-[34rem] p-5 md:left-8 md:max-w-[30rem] md:p-7"
           style={{ background: BONE }}>
           <p className="m-0 text-[14px] leading-[1.7] md:text-[15px]"
@@ -448,8 +470,8 @@ function Hero() {
    reference's signature type move, carried by their own homepage copy. */
 function Rails() {
   return (
-    <section aria-label="Búðir" className="relative flex min-h-[92svh] flex-col"
-      style={{ background: 'var(--bu-ground)' }}>
+    <section aria-label="Búðir" className="bu-rails-sec relative flex min-h-[92svh] flex-col"
+      style={{ background: 'var(--bu-ground)', overflowX: 'clip' }}>
       <div className="px-5 pt-14 md:px-8">
         <SectionHead index="01" label={HERO.word} />
       </div>
@@ -457,7 +479,7 @@ function Rails() {
         {RAILS.map((phrase, i) => {
           const [first, ...rest] = phrase.split(' ')
           return (
-            <div key={phrase} className="bu-mask overflow-hidden"
+            <div key={phrase} className="bu-mask bu-rail overflow-hidden"
               style={{ paddingLeft: `${i * 7}%` }}>
               <p className="bu-mrise m-0 whitespace-nowrap"
                 style={{ lineHeight: 1.14, fontSize: 'clamp(1.9rem, 6.6vw, 5.6rem)' }}>
@@ -517,7 +539,7 @@ function Rooms() {
           {ROOMS.map((room, i) => (
             <article key={room.key} className="bu-slab">
               <Photo src={IMG(room.img)} alt={room.alt} aspect="aspect-[4/5]"
-                spec={`${room.wing} · 0${i + 1}`} />
+                spec={`${room.wing} · 0${i + 1}`} flip={i % 2 === 0 ? 'right' : 'left'} />
               <h3 className="mb-0 mt-4"
                 style={{
                   fontFamily: SERIF, fontWeight: 300, color: INK,
@@ -602,11 +624,11 @@ function Restaurant() {
 
         <div className="mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           <Photo src={IMG(PHOTOS.plateFish.file)} alt={PHOTOS.plateFish.alt}
-            aspect="aspect-[4/5]" spec="Fiskréttur á steindiski" tone="dark" />
+            aspect="aspect-[4/5]" spec="Fiskréttur á steindiski" tone="dark" flip="left" />
           <Photo src={IMG(PHOTOS.barTeal.file)} alt={PHOTOS.barTeal.alt}
-            aspect="aspect-[4/5]" spec="Barinn" tone="dark" className="lg:mt-14" />
+            aspect="aspect-[4/5]" spec="Barinn" tone="dark" className="lg:mt-14" flip="up" />
           <Photo src={IMG(PHOTOS.breakfast.file)} alt={PHOTOS.breakfast.alt}
-            aspect="aspect-[4/5]" spec={RESTAURANT.hours[0].label} tone="dark"
+            aspect="aspect-[4/5]" spec={RESTAURANT.hours[0].label} tone="dark" flip="right"
             className="sm:col-span-2 sm:mx-auto sm:w-2/3 lg:col-span-1 lg:mx-0 lg:w-auto" />
         </div>
       </div>
@@ -644,7 +666,7 @@ function Saga() {
             <div key={step.era} className="mt-16 md:mt-24">
               <div className="grid items-end gap-x-10 gap-y-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
                 <div aria-label={step.era} role="heading" aria-level={3}
-                  className="bu-chars whitespace-nowrap"
+                  className="bu-chars bu-era whitespace-nowrap"
                   style={{
                     fontFamily: SERIF, fontWeight: 200, color: INK,
                     fontSize: 'clamp(5rem, 16vw, 13rem)', lineHeight: 0.95,
@@ -660,7 +682,7 @@ function Saga() {
               {photo ? (
                 <div className={`mt-12 px-5 md:px-8 ${i === 0 ? 'md:ml-[38%]' : 'md:mr-[42%]'}`}>
                   <Photo src={IMG(photo.file)} alt={photo.alt} aspect="aspect-[16/10]"
-                    spec={photo.alt} className="max-w-[560px]" />
+                    spec={photo.alt} className="max-w-[560px]" flip={i === 0 ? 'right' : 'left'} />
                 </div>
               ) : null}
             </div>
@@ -698,9 +720,9 @@ function Weddings() {
           </div>
           <div className="grid gap-10 sm:grid-cols-[1.15fr_1fr] sm:items-start">
             <Photo src={IMG(PHOTOS.eventHall.file)} alt={PHOTOS.eventHall.alt}
-              aspect="aspect-[4/5]" spec="Veislusalurinn" />
+              aspect="aspect-[4/5]" spec="Veislusalurinn" flip="right" />
             <Photo src={IMG(PHOTOS.churchGrass.file)} alt={PHOTOS.churchGrass.alt}
-              aspect="aspect-[4/5]" spec="Svarta kirkjan" className="sm:mt-20" />
+              aspect="aspect-[4/5]" spec="Svarta kirkjan" className="sm:mt-20" flip="left" />
           </div>
         </div>
       </div>
@@ -728,11 +750,16 @@ function Place() {
             {PLACE.body}
           </p>
         </div>
-        <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-          {slabs.map((ph, i) => (
-            <Photo key={ph.file} src={IMG(ph.file)} alt={ph.alt} aspect="aspect-[4/5]"
-              spec={ph.alt} className={i === 1 ? 'lg:mt-14' : i === 2 ? 'sm:col-span-2 sm:mx-auto sm:w-2/3 lg:col-span-1 lg:mx-0 lg:mt-28 lg:w-auto' : ''} />
-          ))}
+        {/* One lateral strip, drifted sideways by vertical scroll on desktop;
+            a plain stack (full content, no drift) below lg / reduced motion. */}
+        <div className="mt-14" style={{ overflowX: 'clip' }}>
+          <div className="bu-place-strip">
+            {slabs.map((ph, i) => (
+              <Photo key={ph.file} src={IMG(ph.file)} alt={ph.alt} aspect="aspect-[4/5]"
+                spec={ph.alt} className={`bu-slab-place${i === 1 ? ' lg:mt-14' : ''}`}
+                flip={i === 1 ? 'left' : 'right'} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -803,7 +830,7 @@ function FooterBlack() {
           style={{ fontFamily: GROTESK, color: BONE }}>
           Búðir
         </span>
-        <p aria-hidden className="m-0 select-none whitespace-nowrap pl-2 font-extralight"
+        <p aria-hidden className="bu-footer-word m-0 select-none whitespace-nowrap pl-2 font-extralight"
           style={{
             fontFamily: SERIF, fontWeight: 200, color: BONE,
             fontSize: 'min(17vw, 15rem)', lineHeight: 0.9,
@@ -954,12 +981,13 @@ export default function Page() {
         /* 6 — The rooms rail: pinned horizontal scrub, desktop only. The
            horizontal layout itself only exists under the same media gate
            (page CSS), so mobile and reduced-motion get a plain stack. */
+        let roomsTween: gsap.core.Tween | undefined
         if (c.desktop) {
           const track = q('.bu-rooms-track')[0] as HTMLElement | undefined
           const viewport = q('.bu-rooms-viewport')[0] as HTMLElement | undefined
           if (track && viewport) {
             const dist = () => Math.max(0, track.scrollWidth - window.innerWidth)
-            gsap.to(track, {
+            roomsTween = gsap.to(track, {
               x: () => -dist(),
               ease: 'none',
               scrollTrigger: {
@@ -973,6 +1001,102 @@ export default function Page() {
               },
             })
           }
+        }
+
+        /* 7 — Directional flip reveals (the reference's flipMedia analog):
+           a scrubbed perspective settle from the entering edge, an inner
+           counter-scale, and a ground-coloured cover wiping off the same
+           way. The scrub IS the ease (ease: none throughout). Covers are
+           visibility:hidden in CSS and only armed here, so reduced motion
+           and no-JS always rest on the bare, fully visible photo. */
+        const flipFor = (frame: HTMLElement, st: ScrollTrigger.Vars) => {
+          const dir = (frame.dataset.buFlip ?? 'up') as 'up' | 'left' | 'right'
+          const img = frame.querySelector('.bu-photo-img')
+          const cover = frame.querySelector('.bu-flip-cover')
+          if (!img) return
+          gsap.set(frame, {
+            transformPerspective: 900,
+            transformOrigin:
+              dir === 'up' ? 'center bottom' : dir === 'left' ? 'right center' : 'left center',
+          })
+          const tl = gsap.timeline({ scrollTrigger: st })
+          tl.fromTo(frame,
+            dir === 'up' ? { rotationX: -24 } : { rotationY: dir === 'left' ? -22 : 22 },
+            { rotationX: 0, rotationY: 0, ease: 'none' }, 0)
+            .fromTo(img, { scale: 1.18 }, { scale: 1, ease: 'none' }, 0)
+          if (cover) {
+            gsap.set(cover, { visibility: 'visible' })
+            tl.to(cover,
+              dir === 'up' ? { yPercent: -101, ease: 'none' }
+                : dir === 'left' ? { xPercent: -101, ease: 'none' }
+                  : { xPercent: 101, ease: 'none' }, 0)
+          }
+        }
+        q('[data-bu-flip]').forEach((el) => {
+          const frame = el as HTMLElement
+          if (frame.classList.contains('bu-hero-frame')) return
+          if (roomsTween && frame.closest('.bu-rooms-track')) {
+            /* Inside the pinned rail, progress is horizontal — drive the
+               reveal from the rail's own scrub via containerAnimation. */
+            flipFor(frame, {
+              trigger: frame, containerAnimation: roomsTween,
+              start: 'left 88%', end: 'left 42%', scrub: 0.5,
+            })
+          } else {
+            flipFor(frame, { trigger: frame, start: 'top 88%', end: 'top 42%', scrub: 0.5 })
+          }
+        })
+        /* The hero band is already in view at load — a viewport scrub would
+           freeze mid-settle, so its flip is time-based, synced to the intro:
+           tilted back and ink-covered under the preloader, settling as the
+           word rises out of the sea. */
+        const heroFrame = q('.bu-hero-frame')[0] as HTMLElement | undefined
+        if (heroFrame) {
+          const heroImg = heroFrame.querySelector('.bu-photo-img')
+          const heroCover = heroFrame.querySelector('.bu-flip-cover')
+          gsap.set(heroFrame, { transformPerspective: 900, transformOrigin: 'center bottom' })
+          const htl = gsap.timeline({ delay: introDelay + 0.15 })
+          htl.fromTo(heroFrame, { rotationX: -24 }, { rotationX: 0, duration: 1.4, ease: 'power3.out' }, 0)
+          if (heroImg) htl.fromTo(heroImg, { scale: 1.18 }, { scale: 1, duration: 1.4, ease: 'power3.out' }, 0)
+          if (heroCover) {
+            gsap.set(heroCover, { visibility: 'visible' })
+            htl.to(heroCover, { yPercent: -101, duration: 1, ease: 'power2.inOut' }, 0.1)
+          }
+        }
+
+        /* 8 — Side-to-side drifts (halved amplitudes below lg so nothing
+           clips; every affected wrapper carries overflow-x clip). */
+        const amp = c.desktop ? 1 : 0.5
+        const railsSec = q('.bu-rails-sec')[0]
+        const railFrom = [-14, 14, -10]
+        const railTo = [4, -4, 6]
+        q('.bu-rail').forEach((el, i) => {
+          gsap.fromTo(el, { x: `${railFrom[i] * amp}vw` }, {
+            x: `${railTo[i] * amp}vw`, ease: 'none',
+            scrollTrigger: { trigger: railsSec, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+          })
+        })
+        q('.bu-era').forEach((el) => {
+          gsap.fromTo(el, { x: '0vw' }, {
+            x: `${-12 * amp}vw`, ease: 'none',
+            scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+          })
+        })
+        if (c.desktop) {
+          const strip = q('.bu-place-strip')[0]
+          if (strip) {
+            gsap.fromTo(strip, { x: '8vw' }, {
+              x: '-22vw', ease: 'none',
+              scrollTrigger: { trigger: strip, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+            })
+          }
+        }
+        const footWord = q('.bu-footer-word')[0]
+        if (footWord) {
+          gsap.fromTo(footWord, { x: `${10 * amp}vw` }, {
+            x: `${-4 * amp}vw`, ease: 'none',
+            scrollTrigger: { trigger: footWord, start: 'top bottom', end: 'top 30%', scrub: 0.6 },
+          })
         }
 
         return () => { splits.forEach((sp) => sp.revert()) }
