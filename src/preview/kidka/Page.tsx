@@ -269,9 +269,9 @@ export default function KidkaPage() {
         {/* ------------------------------------------- hero: THE YOKE */}
         <section id="top" ref={yokeWrapRef} className="relative" style={{ height: '260vh' }}>
           <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
-            <div className="mx-auto grid w-full max-w-[1180px] items-center gap-6 px-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+            <div className="mx-auto grid w-full max-w-[1180px] grid-cols-1 items-center gap-6 px-5 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
               {/* copy — never gated on scroll or animation */}
-              <div className="relative z-10 order-2 lg:order-1">
+              <div className="relative z-10 order-2 md:order-1">
                 <p
                   className="mb-4 text-[0.72rem] uppercase sm:text-[0.78rem]"
                   style={{ fontFamily: FONT2.mono, color: C2.ochre, letterSpacing: '0.14em' }}
@@ -314,7 +314,7 @@ export default function KidkaPage() {
               </div>
 
               {/* the yoke */}
-              <div className="order-1 flex aspect-square w-full items-center justify-center lg:order-2 lg:aspect-auto lg:h-[76svh]">
+              <div className="order-1 flex aspect-square w-full items-center justify-center md:order-2 md:aspect-auto md:h-[76svh]">
                 <Yoke wrapRef={yokeWrapRef} />
               </div>
             </div>
@@ -334,7 +334,7 @@ export default function KidkaPage() {
             </div>
 
             <div className="grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12">
-              <div className="flex flex-col justify-center border p-5" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
+              <div className="flex min-w-0 flex-col justify-center overflow-hidden border p-5" style={{ borderColor: C2.gridStrong, background: C2.oat }}>
                 <StageChart step={step} />
                 <p className="mt-5 text-[0.75rem]" style={{ fontFamily: FONT2.mono, color: C2.ochre }}>
                   The pattern fills in as the work moves along.
