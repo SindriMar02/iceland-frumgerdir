@@ -517,7 +517,7 @@ export default function KidkaPage() {
 
         {/* ------------------------------------------- made in Hvammstangi */}
         <section className="relative">
-          <Reveal variant="wipe">
+          <Reveal>
             <img
               src={IMG.band}
               alt="Two women wearing dark patterned KIDKA sweaters and beanies beside Icelandic horses"
@@ -542,7 +542,7 @@ export default function KidkaPage() {
         {/* ------------------------------------------------------- swatch */}
         <section className="mx-auto max-w-[1180px] px-5 py-16 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-            <Reveal variant="wipe">
+            <Reveal>
               <div className="border p-2" style={{ borderColor: C2.gridStrong }}>
                 <img
                   src={IMG.story}
