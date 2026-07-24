@@ -168,12 +168,12 @@ function StageChart({ step }: { step: number }) {
 }
 
 /**
- * Scroll reveal — IntersectionObserver + CSS transition, the project's standard
- * pattern (the same one that replaced flaky framer whileInView on the other
- * live pages). IO observes intersection with the viewport independently of how
- * scrolling happens, so it works fine under Lenis. NOTE: the backgrounded
- * preview tab suspends IO callbacks, so these reveals only animate on the LIVE
- * site / a real foreground tab — expected, not a bug.
+ * Scroll reveal — IntersectionObserver + CSS transition, with a hard safety
+ * net so content is NEVER trapped hidden. Some in-app / mobile browsers and
+ * backgrounded tabs suspend IO callbacks; if the observer never fires, a
+ * per-element timeout reveals the content anyway (~1.7s). So: animate on scroll
+ * where IO works, and always become visible within ~1.7s everywhere else.
+ * Content visibility does not depend on the observer firing.
  *  - variant "rise": opacity + translateY. Used for ALL text — never a clip
  *    mask over Icelandic display copy (Þ, Ð, acutes, descenders would be cut).
  *  - variant "wipe": a knit-in clip wipe bottom→top, echoing the yoke growing
@@ -213,7 +213,14 @@ function Reveal({
     io.observe(el)
     const r = el.getBoundingClientRect()
     if (r.top < window.innerHeight && r.bottom > 0) setOn(true)
-    return () => io.disconnect()
+    // Safety net: if IO never fires (in-app browsers / suspended tabs), reveal
+    // anyway so nothing is ever stuck invisible. Where IO works the scroll
+    // reveal wins first; this only catches the environments where it doesn't.
+    const failsafe = window.setTimeout(() => setOn(true), 1700)
+    return () => {
+      io.disconnect()
+      window.clearTimeout(failsafe)
+    }
   }, [])
   const style: React.CSSProperties =
     variant === 'wipe'
