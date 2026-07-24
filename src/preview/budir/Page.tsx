@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
@@ -196,6 +197,23 @@ const PAGE_STYLES = `
    fully visible; JS arms the hidden start. */
 .bu-up { will-change: transform, opacity; }
 
+/* ═══ Hue-heading motif (normalisboring landing signature): a colossal
+   heading crosses a centered feature photo, one hue over the bone/ink ground
+   (ends) and the opposite hue over the photo (middle). Two pixel-identical
+   layers; the over-layer is clip-path'd to the photo's rect (measured in JS,
+   NOT mix-blend-mode — unreliable in WebKit per the ledger). A crisp darken/
+   lighten band under the heading guarantees legibility. ═══ */
+/* Grid overlap: both children share one cell (grid-area 1/1), centered — the
+   cell sizes to the WIDER heading × the TALLER photo, so the heading naturally
+   crosses the (narrower, taller) photo with its ends over the ground. */
+.bu-hue { display: grid; place-items: center; }
+.bu-hue-fig, .bu-hue-head { grid-area: 1 / 1; }
+.bu-hue-fig { position: relative; overflow: visible; }
+.bu-hue-band { position: absolute; left: 0; right: 0; z-index: 3; pointer-events: none; }
+.bu-hue-head { position: relative; pointer-events: none; z-index: 4; }
+.bu-hue-reveal { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .bu-hue-reveal { opacity: 1 !important; } }
+
 /* Staðurinn photos — vertical stack by default; a lateral row inside the
    journey (media block below). */
 .bu-place-strip { display: grid; gap: 2.75rem; }
@@ -291,20 +309,19 @@ const PAGE_STYLES = `
   .bu-rest-photos { display: flex; align-items: center; gap: 3vw; margin-top: 0; width: max-content; }
   .bu-rest-photos > figure { width: clamp(250px, 20vw, 380px); }
 
-  /* saga — era columns side by side */
+  /* saga — era-over-photo columns side by side */
   .bu-p-saga { width: max-content; display: flex; align-items: stretch; }
-  .bu-saga-head { width: 26vw; flex: none; padding: 10svh 0 0 5vw; }
+  .bu-saga-head { width: 24vw; flex: none; padding: 10svh 0 0 5vw; }
   .bu-saga-head h2 { font-size: min(2.6vw, 5svh) !important; max-width: 18vw; }
   .bu-saga-steps {
-    display: flex; align-items: center; gap: 6vw;
-    padding: 0 8vw 0 3vw; width: max-content;
+    display: flex; align-items: center; gap: 5vw;
+    padding: 0 8vw 0 2vw; width: max-content;
   }
-  .bu-saga-step { margin-top: 0; width: max-content; }
-  .bu-saga-row { display: block; width: max-content; }
-  .bu-saga-step .bu-era { font-size: min(10vw, 19svh); margin-left: 0; line-height: 0.95; }
-  .bu-saga-text { padding: 2svh 0 0; max-width: 24rem; }
-  .bu-saga-photo { margin: 3svh 0 0; padding: 0; }
-  .bu-saga-photo figure { max-width: min(30vw, 56svh); }
+  .bu-saga-step {
+    margin-top: 0; width: max-content;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .bu-saga-text { padding: 3svh 0 0; max-width: 24rem; text-align: center; }
 
   /* weddings */
   .bu-p-wed { width: max-content; }
@@ -750,6 +767,109 @@ function Rooms() {
   )
 }
 
+/* ═══════════════ HueHeading — colossal heading crossing a feature photo ═══
+   Two pixel-identical layers: base (ground hue) + an aria-hidden duplicate
+   (over hue) clipped to the photo's rect so the over hue shows ONLY across the
+   image. The clip inset + the crisp darken/lighten band are measured relative
+   to the heading box on mount / ResizeObserver / fonts.ready / ScrollTrigger
+   refresh — recomputed on layout change only (heading + photo travel together
+   so the split is stable per scroll frame). Colour, not motion: it persists
+   under reduced motion. */
+function HueHeading({
+  text, level = 2, photoFile, photoAlt, over, fontSize, flip,
+  aspect = 'aspect-[3/4]', figClass = '', wrapClass = '', ratio = 0.64,
+}: {
+  text: string; level?: 2 | 3; photoFile: string; photoAlt: string
+  over: 'bone' | 'ink'; fontSize: string
+  flip?: 'up' | 'left' | 'right'; aspect?: string; figClass?: string
+  wrapClass?: string; ratio?: number
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const figRef = useRef<HTMLDivElement>(null)
+  const headRef = useRef<HTMLDivElement>(null)
+  const lastClip = useRef('')
+  const lastBand = useRef('')
+  const [clip, setClip] = useState('inset(0 100% 0 0)')
+  const [band, setBand] = useState<{ top: number; height: number } | null>(null)
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const head = headRef.current, fig = figRef.current
+      if (!head || !fig) return
+      const hr = head.getBoundingClientRect()
+      if (hr.width < 2) return
+      /* Size the photo to a fraction of the heading IMPERATIVELY, then read
+         the rect back in the SAME reflow — so the clip always matches the
+         photo's actual rect exactly. headW is independent of the fig width,
+         so this is stable. State only updates on a REAL change (guarded by
+         refs) so a ResizeObserver tick can never feed back into a render
+         loop. */
+      const desired = Math.round(hr.width * ratio)
+      if (Math.abs(fig.offsetWidth - desired) > 1) fig.style.width = `${desired}px`
+      const pr = fig.getBoundingClientRect()
+      if (pr.width < 2) return
+      const top = Math.max(0, pr.top - hr.top)
+      const left = Math.max(0, pr.left - hr.left)
+      const right = Math.max(0, hr.right - pr.right)
+      const bottom = Math.max(0, hr.bottom - pr.bottom)
+      const nextClip = `inset(${top.toFixed(1)}px ${right.toFixed(1)}px ${bottom.toFixed(1)}px ${left.toFixed(1)}px)`
+      const bTop = Math.round(hr.top - pr.top - 4), bH = Math.round(hr.height + 8)
+      const nextBand = `${bTop}|${bH}`
+      if (nextClip !== lastClip.current) { lastClip.current = nextClip; setClip(nextClip) }
+      if (nextBand !== lastBand.current) { lastBand.current = nextBand; setBand({ top: bTop, height: bH }) }
+    }
+    const raf = requestAnimationFrame(function loop() { measure() })
+    /* Observe only wrap + head — NOT the fig, whose width this effect mutates
+       (observing it would create the feedback the error surfaced). */
+    const ro = new ResizeObserver(() => { measure() })
+    if (wrapRef.current) ro.observe(wrapRef.current)
+    if (headRef.current) ro.observe(headRef.current)
+    const onResize = () => measure()
+    window.addEventListener('resize', onResize)
+    if (document.fonts?.ready) document.fonts.ready.then(() => measure())
+    const onRefresh = () => measure()
+    ScrollTrigger.addEventListener('refresh', onRefresh)
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      window.removeEventListener('resize', onResize)
+      ScrollTrigger.removeEventListener('refresh', onRefresh)
+    }
+  }, [text, fontSize, ratio])
+
+  const baseColor = over === 'bone' ? INK : BONE
+  const overColor = over === 'bone' ? BONE : INK
+  /* The headings are colossal (>100px) — WCAG "large text", 3:1 AA. A band
+     dark/light enough for 3:1 across the crops used, while the photo stays
+     visible through the thin Boska letters. */
+  const bandColor = over === 'bone' ? 'rgba(17,17,17,.56)' : 'rgba(239,234,224,.52)'
+  const Tag = level === 2 ? 'h2' : 'h3'
+  const headStyle: CSSProperties = {
+    fontFamily: SERIF, fontWeight: 200, fontSize, lineHeight: 1.14,
+    letterSpacing: '-0.01em', margin: 0, whiteSpace: 'nowrap', textAlign: 'center',
+  }
+
+  return (
+    <div ref={wrapRef} className={`bu-hue relative ${wrapClass}`} style={{ overflowX: 'clip' }}>
+      <div ref={figRef} className={`bu-hue-fig ${figClass}`}>
+        <Photo src={IMG(photoFile)} alt={photoAlt} aspect={aspect}
+          tone={over === 'bone' ? 'light' : 'dark'} flip={flip} />
+        {band ? (
+          <div aria-hidden className="bu-hue-band"
+            style={{ top: band.top, height: band.height, background: bandColor }} />
+        ) : null}
+      </div>
+      <div ref={headRef} className="bu-hue-head bu-hue-reveal">
+        <Tag className="m-0" aria-label={text} style={{ ...headStyle, color: baseColor }}>{text}</Tag>
+        <span aria-hidden className="absolute inset-0"
+          style={{ ...headStyle, color: overColor, clipPath: clip, WebkitClipPath: clip } as CSSProperties}>
+          {text}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 /* ═══════════════ VEITINGASTAÐURINN — the black band ══════════════════════ */
 function Restaurant() {
   /* The italic-serif interruption, built strictly from their own sentence. */
@@ -760,14 +880,12 @@ function Restaurant() {
         <div className="bu-rest-head">
           <SectionHead index="03" label={NAV[1].label} tone="dark" />
         </div>
-        <h2 className="bu-chars bu-rest-title mb-0 mt-10"
-          style={{
-            fontFamily: SERIF, fontWeight: 200, color: BONE,
-            fontSize: 'clamp(2.7rem, 8.5vw, 7.5rem)', lineHeight: 1.06,
-            marginLeft: '-0.04em',
-          }}>
-          {RESTAURANT.title}
-        </h2>
+        {/* Hue motif: the title crosses the plate — BONE over the black band,
+            INK where it crosses the (lightened) photo. */}
+        <HueHeading text={RESTAURANT.title} photoFile={PHOTOS.plateFish.file}
+          photoAlt={PHOTOS.plateFish.alt} over="ink"
+          flip="up" fontSize="clamp(2.1rem, 7vw, 6.4rem)"
+          wrapClass="bu-rest-title mt-10 md:mt-0" figClass="w-[min(72vw,340px)]" />
 
         <div className="bu-rest-grid mt-12 grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
           <div className="bu-rest-copy">
@@ -810,23 +928,22 @@ function Restaurant() {
           </div>
         </div>
 
-        <div className="bu-rest-photos mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-          <Photo src={IMG(PHOTOS.plateFish.file)} alt={PHOTOS.plateFish.alt}
-            aspect="aspect-[4/5]" spec="Fiskréttur á steindiski" tone="dark" flip="left" />
+        <div className="bu-rest-photos mt-16 grid gap-10 sm:grid-cols-2 lg:gap-8">
           <Photo src={IMG(PHOTOS.barTeal.file)} alt={PHOTOS.barTeal.alt}
-            aspect="aspect-[4/5]" spec="Barinn" tone="dark" className="lg:mt-14" flip="up" />
+            aspect="aspect-[4/5]" spec="Barinn" tone="dark" flip="up" />
           <Photo src={IMG(PHOTOS.breakfast.file)} alt={PHOTOS.breakfast.alt}
             aspect="aspect-[4/5]" spec={RESTAURANT.hours[0].label} tone="dark" flip="right"
-            className="sm:col-span-2 sm:mx-auto sm:w-2/3 lg:col-span-1 lg:mx-0 lg:w-auto" />
+            className="lg:mt-14" />
         </div>
       </div>
     </section>
   )
 }
 
-/* ═══════════════ SAGAN — eras bleeding off the left edge ═════════════════ */
+/* ═══════════════ SAGAN — era numerals crossing their photos (hue motif) ══ */
 function Saga() {
-  const sagaPhotos = [PHOTOS.churchHill, null, PHOTOS.snow] as const
+  const sagaPhotos = [PHOTOS.churchHill, PHOTOS.snow, PHOTOS.churchGrass] as const
+  const sagaFlip = ['right', 'left', 'up'] as const
   return (
     <section id="sagan" className="bu-p-saga scroll-mt-16 overflow-hidden"
       style={{ background: 'var(--bu-ground)' }}>
@@ -851,29 +968,19 @@ function Saga() {
         {SAGA.steps.map((step, i) => {
           const photo = sagaPhotos[i]
           return (
-            <div key={step.era} className="bu-saga-step mt-16 md:mt-24">
-              <div className="bu-saga-row grid items-end gap-x-10 gap-y-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-                <div aria-label={step.era} role="heading" aria-level={3}
-                  className="bu-chars bu-era whitespace-nowrap"
-                  style={{
-                    fontFamily: SERIF, fontWeight: 200, color: INK,
-                    fontSize: 'clamp(5rem, 16vw, 13rem)', lineHeight: 0.95,
-                    marginLeft: 'max(-6vw, -4rem)',
-                  }}>
-                  {step.era}
-                </div>
-                <p className="bu-lines bu-saga-text m-0 max-w-[30rem] px-5 pb-3 text-[15px] leading-[1.8] md:px-0 md:pr-8"
-                  style={{ fontFamily: GROTESK, color: INK_SOFT }}>
-                  {step.text}
-                </p>
-              </div>
-              {photo ? (
-                <div className={`bu-saga-photo mt-12 px-5 md:px-8 ${i === 0 ? 'md:ml-[38%]' : 'md:mr-[42%]'}`}>
-                  <Photo src={IMG(photo.file)} alt={photo.alt} aspect="aspect-[16/10]"
-                    spec={photo.alt} className="max-w-[560px]"
-                    flip={i === 0 ? 'right' : 'left'} flipScrub={i === 0} />
-                </div>
-              ) : null}
+            <div key={step.era} className="bu-saga-step mt-16 md:mt-0">
+              {/* The era numeral crosses its photo — INK over the bone ground,
+                  BONE where it crosses the darkened photo. Centered, so every
+                  glyph (incl. the leading "1", "Í") stays fully in view on
+                  mobile — no bleed-off-left amputation. */}
+              <HueHeading text={step.era} level={3} photoFile={photo.file}
+                photoAlt={photo.alt} over="bone" flip={sagaFlip[i]}
+                fontSize="clamp(3.6rem, 18vw, 12rem)"
+                figClass="w-[min(60vw,280px)]" wrapClass="bu-saga-hue" />
+              <p className="bu-lines bu-saga-text mx-auto mt-8 max-w-[26rem] px-5 text-[15px] leading-[1.8] md:px-0"
+                style={{ fontFamily: GROTESK, color: INK_SOFT }}>
+                {step.text}
+              </p>
             </div>
           )
         })}
@@ -923,21 +1030,20 @@ function Weddings() {
 
 /* ═══════════════ STAÐURINN — the landscape, captioned honestly ═══════════ */
 function Place() {
-  const slabs = [PHOTOS.coast, PHOTOS.aerial, PHOTOS.beach] as const
+  const slabs = [PHOTOS.aerial, PHOTOS.beach] as const
   return (
     <section id="stadurinn" className="bu-p-place scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
       <div className="bu-place-inner px-5 pb-24 pt-14 md:px-8 md:pb-32">
         <div className="bu-place-head">
           <SectionHead index="06" label={NAV[4].label} />
         </div>
-        <div className="bu-place-titlegrid mt-12 grid gap-8 md:grid-cols-2 md:items-end">
-          <h2 className="bu-chars m-0"
-            style={{
-              fontFamily: SERIF, fontWeight: 200, color: INK,
-              fontSize: 'clamp(2.6rem, 6.5vw, 5.5rem)', lineHeight: 1.05,
-            }}>
-            {PLACE.title}
-          </h2>
+        <div className="bu-place-titlegrid mt-12 grid gap-8 md:grid-cols-2 md:items-center">
+          {/* Hue motif: STAÐURINN crosses the coastline — INK over the bone
+              ground, BONE where it crosses the darkened photo. */}
+          <HueHeading text={PLACE.title} photoFile={PHOTOS.coast.file}
+            photoAlt={PHOTOS.coast.alt} over="bone"
+            flip="up" fontSize="clamp(2.6rem, 9vw, 7.5rem)"
+            figClass="w-[min(60vw,300px)]" />
           <p className="bu-lines m-0 max-w-[26rem] text-[15px] leading-[1.8] md:justify-self-end"
             style={{ fontFamily: GROTESK, color: INK_SOFT }}>
             {PLACE.body}
@@ -1241,6 +1347,17 @@ export default function Page() {
           })
         })
 
+        /* 6c — Hue headings: fade BOTH layers together (opacity only — no
+           transform, so the measured bone/ink clip stays pixel-stable through
+           the reveal). Colour, not motion: reduced motion renders them solid
+           via the CSS media rule. */
+        q('.bu-hue-reveal').forEach((el) => {
+          gsap.fromTo(el, { opacity: 0 }, {
+            opacity: 1, duration: 1, ease: 'power2.out',
+            scrollTrigger: trig(el, 'top 85%', 'left 85%', { toggleActions: 'play none none reverse' }),
+          })
+        })
+
         /* 7 — flipMedia peels (their measured recipe): the top copy of the
            image peels away — clip-path inset for the lateral variants, y for
            upDown — while the source copy settles beneath (counter scale /
@@ -1325,14 +1442,10 @@ export default function Page() {
             }),
           })
         })
-        q('.bu-era').forEach((el) => {
-          gsap.fromTo(el, { x: '0vw' }, {
-            x: `${-12 * amp}vw`, ease: 'none',
-            scrollTrigger: trig(el, 'top bottom', 'left 100%', {
-              end: journeyTween ? 'left 0%' : 'bottom top', scrub: 0.6,
-            }),
-          })
-        })
+        /* (The saga era lateral drift is retired: the eras are now hue
+           headings that must hold a fixed position over their photo for the
+           measured clip to stay aligned — a relative drift would misalign the
+           bone/ink split. Their reveal is the opacity fade above.) */
         const footWord = q('.bu-footer-word')[0]
         if (footWord) {
           gsap.fromTo(footWord, { x: `${10 * amp}vw` }, {
