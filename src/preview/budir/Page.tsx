@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -21,7 +21,12 @@ const company = getPreviewCompany('budir')
 /* Module-scoped handle to the desktop horizontal journey so anchor nav can
    map a panel to its vertical scroll offset (labelToScroll pattern). Set and
    cleared by Page()'s matchMedia branch. */
-let journeyNav: { master: ScrollTrigger; track: HTMLElement } | null = null
+let journeyNav: { master: ScrollTrigger; track: HTMLElement; lenis: Lenis } | null = null
+/* The Lenis instance drives virtual scroll, so native window.scrollTo /
+   scrollIntoView are overridden the next frame — anchor nav must route through
+   lenis.scrollTo. Exposed here for TopNav's go(). Null when Lenis isn't armed
+   (reduced motion), where go() falls back to native scrollIntoView. */
+let pageLenis: Lenis | null = null
 
 /* ── „Svarti punkturinn" — the black anchor. ────────────────────────────────
    The cream hotel and the black church are the only fixed things in a
@@ -197,22 +202,47 @@ const PAGE_STYLES = `
    fully visible; JS arms the hidden start. */
 .bu-up { will-change: transform, opacity; }
 
-/* ═══ Hue-heading motif (normalisboring landing signature): a colossal
-   heading crosses a centered feature photo, one hue over the bone/ink ground
-   (ends) and the opposite hue over the photo (middle). Two pixel-identical
-   layers; the over-layer is clip-path'd to the photo's rect (measured in JS,
-   NOT mix-blend-mode — unreliable in WebKit per the ledger). A crisp darken/
-   lighten band under the heading guarantees legibility. ═══ */
-/* Grid overlap: both children share one cell (grid-area 1/1), centered — the
-   cell sizes to the WIDER heading × the TALLER photo, so the heading naturally
-   crosses the (narrower, taller) photo with its ends over the ground. */
+/* ═══ Hue-heading motif — normalisboring's ACTUAL technique: mix-blend-mode:
+   difference on the heading over its photo. The heading is painted near-bone
+   (#F4F1EA); difference inverts it against whatever is behind — over the bone
+   ground it resolves to ink, over a dark panel to bone, and over the photo to
+   the photo's own inverted hue. One rule, no measuring; both light and dark
+   panels are handled automatically. The photo is desaturated so the invert
+   reads as a controlled tonal HUE, not a psychedelic full-colour invert. ═══ */
 .bu-hue { display: grid; place-items: center; }
 .bu-hue-fig, .bu-hue-head { grid-area: 1 / 1; }
-.bu-hue-fig { position: relative; overflow: visible; }
-.bu-hue-band { position: absolute; left: 0; right: 0; z-index: 3; pointer-events: none; }
-.bu-hue-head { position: relative; pointer-events: none; z-index: 4; }
+.bu-hue-fig { position: relative; }
+.bu-hue-photo .bu-photo-img { filter: saturate(.5) contrast(1.03) brightness(.96); }
+.bu-hue-head {
+  position: relative; z-index: 4; pointer-events: none;
+  color: #F4F1EA; mix-blend-mode: difference;
+  white-space: nowrap; text-align: center;
+}
 .bu-hue-reveal { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .bu-hue-reveal { opacity: 1 !important; } }
+
+/* ═══ Custom cursor — the reference's signature: a small accent dot that
+   auto-inverts (mix-blend difference) and swells with a label over media /
+   CTAs. Desktop fine-pointer only; hidden under reduced motion + touch. ═══ */
+.bu-cursor {
+  position: fixed; left: 0; top: 0; z-index: 80;
+  width: .8rem; height: .8rem; margin: -.4rem 0 0 -.4rem; border-radius: 999px;
+  background: ${BRASS}; mix-blend-mode: difference; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; will-change: transform;
+}
+.bu-cursor-label {
+  font-family: ${GROTESK}; font-size: 10px; letter-spacing: .18em; font-weight: 600;
+  text-transform: uppercase; color: ${INK}; white-space: nowrap;
+  opacity: 0; transform: scale(.5); pointer-events: none;
+}
+.bu-cursor.is-grown { mix-blend-mode: normal; width: 5rem; height: 5rem; margin: -2.5rem 0 0 -2.5rem; }
+.bu-cursor.is-grown .bu-cursor-label { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: no-preference) {
+  .bu-cursor { transition: width .32s cubic-bezier(.22,1,.36,1), height .32s cubic-bezier(.22,1,.36,1), margin .32s cubic-bezier(.22,1,.36,1), background .3s ease; }
+  .bu-cursor-label { transition: opacity .25s ease, transform .32s cubic-bezier(.34,1.56,.64,1); }
+}
+@media (prefers-reduced-motion: reduce) { .bu-cursor { display: none !important; } }
+@media (pointer: coarse) { .bu-cursor { display: none !important; } }
 
 /* Staðurinn photos — vertical stack by default; a lateral row inside the
    journey (media block below). */
@@ -247,6 +277,13 @@ const PAGE_STYLES = `
 .bu-cta:hover { letter-spacing: .24em; color: ${INK} !important; }
 .bu-cta:hover::before { transform: scaleY(1); }
 
+/* Room project-picker pill — outlined like the reference "El proyecto", fills
+   brass on hover (INK on BRASS = 5.2:1 AA). Colour set inline per band tone, so
+   the hover overrides need !important. */
+.bu-room-pill:hover, .bu-room-pill:focus-visible {
+  background: ${BRASS}; border-color: ${BRASS} !important; color: ${INK} !important;
+}
+
 /* Clickable slab (room categories) — subtle lift paired with the photo hover. */
 .bu-slab:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -20px rgba(17,17,17,.45); }
 
@@ -255,6 +292,7 @@ const PAGE_STYLES = `
 @media (prefers-reduced-motion: no-preference) {
   .bu-ul::after { transition: transform .4s cubic-bezier(.4,0,.2,1); }
   .bu-cta { transition: letter-spacing .35s ease, color .2s ease; }
+  .bu-room-pill { transition: background .35s ease, color .25s ease, border-color .35s ease; }
   .bu-cta::before { transition: transform .45s cubic-bezier(.4,0,.2,1); }
   .bu-photo .bu-photo-img { transition: filter .6s ease; }
   .bu-photo .bu-media-down { transition: transform .7s cubic-bezier(.22,1,.36,1); }
@@ -263,9 +301,18 @@ const PAGE_STYLES = `
   .bu-slab { transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease; }
 }
 
-/* Rooms — vertical stack by default; panels riding the journey on desktop. */
-.bu-rooms-track { display: grid; gap: 4.5rem; padding: 3.5rem clamp(1.25rem, 5vw, 4rem) 5.5rem; }
-.bu-rooms-intro { max-width: 34rem; }
+/* Full-bleed photo slabs (reference full-height image panels) — full-width
+   tall blocks in the vertical document; the journey media query promotes them
+   to 100vw × 100svh panels. */
+.bu-p-bleed { position: relative; width: 100%; min-height: 82svh; }
+
+/* Rooms = the reference "project picker": each room is a full-bleed panel — a
+   parallaxing image over a caption band (centred title + corner furniture).
+   Vertical stack by default; 100vw panels riding the journey on desktop. */
+.bu-rooms-row { display: block; }
+.bu-room-panel { position: relative; width: 100%; display: flex; flex-direction: column; }
+.bu-room-media { position: relative; width: 100%; height: 56svh; }
+.bu-room-band { position: relative; min-height: 44svh; padding: 2.5rem 0; }
 
 /* ═══ THE HORIZONTAL JOURNEY (the reference's architecture, their is_mobile
    split): desktop + motion-ok lays EVERY panel on one max-content track,
@@ -279,21 +326,16 @@ const PAGE_STYLES = `
     height: 100svh; align-items: stretch;
   }
   .bu-track > * { height: 100svh; flex: none; overflow: hidden; }
-  .bu-p-hero, .bu-p-rails, .bu-p-foot { width: 100vw; }
+  .bu-p-hero, .bu-p-rails, .bu-p-foot, .bu-p-bleed { width: 100vw; }
   .bu-p-rails { min-height: 0; }
 
-  /* rooms — the old inner rail becomes panels on the single journey */
+  /* rooms — each category is its own full-viewport project panel; you travel
+     from one to the next as the journey scrolls sideways. */
   .bu-p-rooms { width: max-content; }
-  .bu-rooms-viewport { height: 100svh; display: flex; align-items: center; }
-  .bu-rooms-track {
-    display: flex; align-items: center; flex-wrap: nowrap;
-    gap: 6vw; padding: 0 8vw 0 6vw; width: max-content;
-  }
-  .bu-rooms-intro { width: 30vw; max-width: none; flex: none; }
-  /* !important: these h2s size themselves via inline clamp() for the
-     vertical page; the journey's tighter columns must win over inline. */
-  .bu-rooms-intro h2 { font-size: min(6.5vw, 13svh) !important; white-space: nowrap; }
-  .bu-slab { width: clamp(340px, 24vw, 460px); flex: none; }
+  .bu-rooms-row { display: flex; height: 100svh; align-items: stretch; }
+  .bu-room-panel { width: 100vw; height: 100svh; }
+  .bu-room-media { height: 60svh; }
+  .bu-room-band { flex: 1; min-height: 0; padding: 0; }
 
   /* restaurant — one wide black panel, content flowing laterally */
   .bu-p-rest { width: max-content; }
@@ -381,6 +423,7 @@ function Photo({
   return (
     <figure className={`bu-photo relative m-0 ${className}`}>
       <div className={`bu-flip-frame relative overflow-hidden ${aspect}`}
+        data-cursor="Skoða"
         data-bu-flip={flip}
         data-bu-scrub={flipScrub ? '1' : undefined}
         data-bu-parallax={parallax ? '1' : undefined}>
@@ -473,12 +516,15 @@ function TopNav() {
       if (!target) return
       if (journeyNav) {
         /* Horizontal journey: map the panel's x on the track to the master
-           trigger's scroll range (labelToScroll pattern, done manually). */
-        const { master, track } = journeyNav
+           trigger's scroll range (labelToScroll pattern, done manually), then
+           route through Lenis — a native scrollTo would be reverted next frame. */
+        const { master, track, lenis } = journeyNav
         const maxX = Math.max(1, track.scrollWidth - window.innerWidth)
         const x = Math.min(target.offsetLeft, maxX)
         const top = master.start + (x / maxX) * (master.end - master.start)
-        window.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
+        lenis.scrollTo(top, { immediate: reduced })
+      } else if (pageLenis) {
+        pageLenis.scrollTo(target, { offset: -64, immediate: reduced })
       } else {
         target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
       }
@@ -579,6 +625,40 @@ function TopNav() {
   )
 }
 
+/* ═══════════════ FullBleed — the reference's full-height photo slab ═══════
+   A whole panel that IS a photograph, edge to edge (100vw × 100svh on the
+   journey, full-width tall block on mobile). The flipMedia peel wipes the top
+   copy away on arrival while the source beneath drifts (inner parallax) as the
+   page travels past — their full-bleed-with-parallax move. A single small spec
+   chip in the corner names it (year·place·ordinal vocabulary), nothing else. */
+function FullBleed({ photoFile, alt, kicker, index, flip = 'left' }: {
+  photoFile: string; alt: string; kicker: string; index: string
+  flip?: 'up' | 'left' | 'right'
+}) {
+  return (
+    <section className="bu-p-bleed relative overflow-hidden" aria-label={alt} style={{ background: INK }}>
+      <div className="bu-flip-frame absolute inset-0 overflow-hidden"
+        data-cursor="Skoða" data-bu-flip={flip} data-bu-parallax="1">
+        <div className="bu-media-down">
+          <img src={IMG(photoFile)} alt={alt} loading="lazy" decoding="async"
+            className="bu-photo-img bu-media-source absolute inset-0 h-full w-full object-cover" />
+        </div>
+        <div className="bu-media-up" aria-hidden>
+          <img src={IMG(photoFile)} alt="" loading="lazy" decoding="async"
+            className="bu-photo-img absolute inset-0 h-full w-full object-cover" />
+        </div>
+      </div>
+      <div className="bu-up absolute bottom-0 left-0 flex items-baseline gap-4 px-5 py-3 md:px-8"
+        style={{ background: INK }}>
+        <span className="text-[11px] font-medium uppercase tracking-[0.24em]"
+          style={{ fontFamily: GROTESK, color: BONE_SOFT }}>{kicker}</span>
+        <span aria-hidden className="text-[11px] tracking-[0.2em]"
+          style={{ fontFamily: GROTESK, color: BRASS }}>({index})</span>
+      </div>
+    </section>
+  )
+}
+
 /* ═══════════════ HERO — the word stands on the horizon ═══════════════════ */
 function Hero() {
   const heroChars = HERO.word.split('')
@@ -636,29 +716,6 @@ function Hero() {
               style={{ objectPosition: 'center 55%', filter: 'saturate(.9)' }} />
           </div>
         </div>
-        {/* A solid ink plate hanging off the horizon on the left — the page's
-            own black-anchor vocabulary, crisp hard edges, a brass hairline where
-            it meets the photo. Not a soft wash, not a CMS box: editorial
-            architecture. Bone copy on ink ≈ 12.6:1 (AAA). */}
-        <div className="bu-hero-fade absolute left-0 top-0 max-w-[32rem] p-6 md:max-w-[29rem] md:p-8"
-          style={{ background: INK, borderRight: '1px solid rgba(168,128,47,.55)' }}>
-          <p className="m-0 text-[14px] leading-[1.7] md:text-[15px]"
-            style={{ fontFamily: GROTESK, color: BONE_SOFT }}>
-            {HERO.sub}
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <a href={BOOKING_URL} target="_blank" rel="noreferrer"
-              className={`bu-cta relative inline-flex min-h-[48px] items-center px-6 text-[12px] font-semibold uppercase tracking-[0.2em] ${FOCUS}`}
-              style={{ fontFamily: GROTESK, border: '1px solid rgba(239,234,224,.45)', color: BONE }}>
-              {HERO.cta}
-            </a>
-            <a href={PHONE_HREF}
-              className={`bu-ul inline-flex min-h-[44px] items-center text-[13px] tracking-[0.06em] ${FOCUS}`}
-              style={{ fontFamily: GROTESK, color: BONE }}>
-              {PHONE_DISPLAY}
-            </a>
-          </div>
-        </div>
         <p className="bu-hero-fade absolute bottom-0 right-0 m-0 hidden px-4 py-2 text-[10px] uppercase tracking-[0.2em] md:block"
           style={{ fontFamily: GROTESK, color: BONE_MUTE, background: INK }}>
           Hótelið og svarta kirkjan við ósinn
@@ -706,166 +763,111 @@ function Rails() {
   )
 }
 
-/* ═══════════════ HERBERGI — horizontal scrub past the four categories ════ */
+/* ═══════════════ HERBERGI — the reference "project picker" (mod-scroll__
+   projects): each room category is its own full-viewport panel — a parallaxing
+   image over a caption band that carries the room name centred, with the wing /
+   house / ordinal / booking-pill furniture in the four corners. Alternating
+   bone/ink bands carry the rhythm (their beige/grey alternation, in Búðir's own
+   two inks). Horizontal panels on the journey; a vertical stack on mobile. ═══ */
 function Rooms() {
   return (
-    <section id="herbergi" className="bu-rooms bu-p-rooms scroll-mt-16" style={{ background: 'var(--bu-ground)' }}>
-      <div className="px-5 pt-14 md:px-8 lg:hidden">
-        <SectionHead index="02" label={NAV[0].label} />
-      </div>
-      <div className="bu-rooms-viewport">
-        <div className="bu-rooms-track">
-          <div className="bu-rooms-intro flex items-stretch gap-6">
-            <span aria-hidden className="bu-vert hidden text-[11px] font-medium uppercase tracking-[0.3em] lg:block"
-              style={{ fontFamily: GROTESK, color: INK_MUTE }}>
-              {NAV[0].label} · (02)
-            </span>
-            <div>
-              <h2 className="bu-chars m-0"
-                style={{
-                  fontFamily: SERIF, fontWeight: 200, color: INK,
-                  fontSize: 'clamp(3.4rem, 8.5vw, 7.5rem)', lineHeight: 1.08,
-                }}>
-                {NAV[0].label}
-              </h2>
-              <p className="bu-lines mt-6 max-w-[24rem] text-[14.5px] leading-[1.7]"
-                style={{ fontFamily: GROTESK, color: INK_SOFT }}>
-                {ROOMS_NOTE}
-              </p>
-              <a href={BOOKING_URL} target="_blank" rel="noreferrer"
-                className={`bu-ul mt-4 inline-flex min-h-[44px] items-center text-[13px] font-medium tracking-[0.04em] ${FOCUS}`}
-                style={{ fontFamily: GROTESK, color: INK }}>
-                (Bóka)
-              </a>
-            </div>
-          </div>
-          {ROOMS.map((room, i) => (
-            <article key={room.key} className="bu-slab">
-              <Photo src={IMG(room.img)} alt={room.alt} aspect="aspect-[4/5]"
-                spec={`${room.wing} · 0${i + 1}`} flip={i % 2 === 0 ? 'right' : 'left'} />
-              <h3 className="bu-lines mb-0 mt-4"
-                style={{
-                  fontFamily: SERIF, fontWeight: 300, color: INK,
-                  fontSize: 'clamp(1.7rem, 2.6vw, 2.3rem)', lineHeight: 1.28,
-                }}>
-                {room.name}
-              </h3>
-              <p className="bu-lines mt-3 text-[14px] leading-[1.7]"
-                style={{ fontFamily: GROTESK, color: INK_SOFT }}>
-                {room.body}
-              </p>
-              <a href={BOOKING_URL} target="_blank" rel="noreferrer"
-                className={`bu-ul mt-3 inline-flex min-h-[44px] items-center text-[12px] font-medium uppercase tracking-[0.18em] ${FOCUS}`}
-                style={{ fontFamily: GROTESK, color: INK }}>
-                Bóka
-              </a>
+    <section id="herbergi" className="bu-p-rooms scroll-mt-16">
+      <div className="bu-rooms-row">
+        {ROOMS.map((room, i) => {
+          const dark = i % 2 === 1
+          const flip = i % 2 === 0 ? 'left' : 'right'
+          const titleColor = dark ? BONE : INK
+          const furn = dark ? BONE_MUTE : INK_MUTE
+          const noteColor = dark ? BONE_SOFT : INK_SOFT
+          return (
+            <article key={room.key} className="bu-room-panel"
+              style={{ background: dark ? INK : 'var(--bu-ground)' }}>
+              <div className="bu-room-media bu-flip-frame relative overflow-hidden"
+                data-cursor="Skoða" data-bu-flip={flip} data-bu-scrub="1" data-bu-parallax="1">
+                <div className="bu-media-down">
+                  <img src={IMG(room.img)} alt={room.alt} loading="lazy" decoding="async"
+                    className="bu-photo-img bu-media-source absolute inset-0 h-full w-full object-cover" />
+                </div>
+                <div className="bu-media-up" aria-hidden>
+                  <img src={IMG(room.img)} alt="" loading="lazy" decoding="async"
+                    className="bu-photo-img absolute inset-0 h-full w-full object-cover" />
+                </div>
+              </div>
+              <div className="bu-room-band relative flex flex-col items-center justify-center px-6 text-center">
+                <span className="bu-up absolute left-5 top-5 text-[11px] font-medium uppercase tracking-[0.24em] md:left-8"
+                  style={{ fontFamily: GROTESK, color: furn }}>
+                  {room.wing}
+                </span>
+                <span className="bu-up absolute right-5 top-5 text-[11px] font-medium uppercase tracking-[0.24em] md:right-8"
+                  style={{ fontFamily: GROTESK, color: furn }}>
+                  {i === 0 ? `${NAV[0].label} · (02)` : 'Hótel Búðir'}
+                </span>
+                <h3 className="bu-chars m-0"
+                  style={{
+                    fontFamily: SERIF, fontWeight: 200, color: titleColor,
+                    fontSize: 'clamp(2.4rem, 6vw, 5.5rem)', lineHeight: 1.05,
+                  }}>
+                  {room.name}
+                </h3>
+                <p className="bu-lines mx-auto mt-4 max-w-[34rem] text-[14px] leading-[1.7]"
+                  style={{ fontFamily: GROTESK, color: noteColor }}>
+                  {room.body}
+                </p>
+                {i === 0 ? (
+                  <p className="bu-up mx-auto mt-3 max-w-[30rem] text-[12px] leading-[1.6]"
+                    style={{ fontFamily: GROTESK, color: furn }}>
+                    {ROOMS_NOTE}
+                  </p>
+                ) : null}
+                <span aria-hidden className="bu-up absolute bottom-6 left-5 text-[13px] tracking-[0.1em] md:left-8"
+                  style={{ fontFamily: GROTESK, color: furn }}>
+                  0{i + 1}
+                </span>
+                <a href={BOOKING_URL} target="_blank" rel="noreferrer"
+                  data-cursor="Bóka"
+                  className={`bu-room-pill bu-up absolute bottom-5 right-5 inline-flex min-h-[44px] items-center rounded-full px-6 text-[12px] font-medium uppercase tracking-[0.16em] md:right-8 ${FOCUS}`}
+                  style={{
+                    fontFamily: GROTESK, color: titleColor,
+                    border: `1px solid ${dark ? 'rgba(239,234,224,.4)' : 'rgba(17,17,17,.4)'}`,
+                  }}>
+                  Bóka
+                </a>
+              </div>
             </article>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </section>
   )
 }
 
 /* ═══════════════ HueHeading — colossal heading crossing a feature photo ═══
-   Two pixel-identical layers: base (ground hue) + an aria-hidden duplicate
-   (over hue) clipped to the photo's rect so the over hue shows ONLY across the
-   image. The clip inset + the crisp darken/lighten band are measured relative
-   to the heading box on mount / ResizeObserver / fonts.ready / ScrollTrigger
-   refresh — recomputed on layout change only (heading + photo travel together
-   so the split is stable per scroll frame). Colour, not motion: it persists
-   under reduced motion. */
+   The reference's real technique: the heading sits over a centered photo with
+   mix-blend-mode: difference (see .bu-hue-head in PAGE_STYLES). The near-bone
+   source inverts against whatever is behind — over the bone ground → ink at
+   the ends, over a dark panel → bone, and over the (desaturated) photo → its
+   own tonal hue in the middle. Colour, not motion: it persists under reduced
+   motion; the reveal only fades it in. The photo is sized by figClass so its
+   (narrower) width lets the heading's ends overhang onto the ground. */
 function HueHeading({
-  text, level = 2, photoFile, photoAlt, over, fontSize, flip,
-  aspect = 'aspect-[3/4]', figClass = '', wrapClass = '', ratio = 0.64,
+  text, level = 2, photoFile, photoAlt, fontSize, flip,
+  aspect = 'aspect-[3/4]', figClass = '', wrapClass = '',
 }: {
   text: string; level?: 2 | 3; photoFile: string; photoAlt: string
-  over: 'bone' | 'ink'; fontSize: string
-  flip?: 'up' | 'left' | 'right'; aspect?: string; figClass?: string
-  wrapClass?: string; ratio?: number
+  fontSize: string; flip?: 'up' | 'left' | 'right'
+  aspect?: string; figClass?: string; wrapClass?: string
 }) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const figRef = useRef<HTMLDivElement>(null)
-  const headRef = useRef<HTMLDivElement>(null)
-  const lastClip = useRef('')
-  const lastBand = useRef('')
-  const [clip, setClip] = useState('inset(0 100% 0 0)')
-  const [band, setBand] = useState<{ top: number; height: number } | null>(null)
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const head = headRef.current, fig = figRef.current
-      if (!head || !fig) return
-      const hr = head.getBoundingClientRect()
-      if (hr.width < 2) return
-      /* Size the photo to a fraction of the heading IMPERATIVELY, then read
-         the rect back in the SAME reflow — so the clip always matches the
-         photo's actual rect exactly. headW is independent of the fig width,
-         so this is stable. State only updates on a REAL change (guarded by
-         refs) so a ResizeObserver tick can never feed back into a render
-         loop. */
-      const desired = Math.round(hr.width * ratio)
-      if (Math.abs(fig.offsetWidth - desired) > 1) fig.style.width = `${desired}px`
-      const pr = fig.getBoundingClientRect()
-      if (pr.width < 2) return
-      const top = Math.max(0, pr.top - hr.top)
-      const left = Math.max(0, pr.left - hr.left)
-      const right = Math.max(0, hr.right - pr.right)
-      const bottom = Math.max(0, hr.bottom - pr.bottom)
-      const nextClip = `inset(${top.toFixed(1)}px ${right.toFixed(1)}px ${bottom.toFixed(1)}px ${left.toFixed(1)}px)`
-      const bTop = Math.round(hr.top - pr.top - 4), bH = Math.round(hr.height + 8)
-      const nextBand = `${bTop}|${bH}`
-      if (nextClip !== lastClip.current) { lastClip.current = nextClip; setClip(nextClip) }
-      if (nextBand !== lastBand.current) { lastBand.current = nextBand; setBand({ top: bTop, height: bH }) }
-    }
-    const raf = requestAnimationFrame(function loop() { measure() })
-    /* Observe only wrap + head — NOT the fig, whose width this effect mutates
-       (observing it would create the feedback the error surfaced). */
-    const ro = new ResizeObserver(() => { measure() })
-    if (wrapRef.current) ro.observe(wrapRef.current)
-    if (headRef.current) ro.observe(headRef.current)
-    const onResize = () => measure()
-    window.addEventListener('resize', onResize)
-    if (document.fonts?.ready) document.fonts.ready.then(() => measure())
-    const onRefresh = () => measure()
-    ScrollTrigger.addEventListener('refresh', onRefresh)
-    return () => {
-      cancelAnimationFrame(raf)
-      ro.disconnect()
-      window.removeEventListener('resize', onResize)
-      ScrollTrigger.removeEventListener('refresh', onRefresh)
-    }
-  }, [text, fontSize, ratio])
-
-  const baseColor = over === 'bone' ? INK : BONE
-  const overColor = over === 'bone' ? BONE : INK
-  /* The headings are colossal (>100px) — WCAG "large text", 3:1 AA. A band
-     dark/light enough for 3:1 across the crops used, while the photo stays
-     visible through the thin Boska letters. */
-  const bandColor = over === 'bone' ? 'rgba(17,17,17,.56)' : 'rgba(239,234,224,.52)'
   const Tag = level === 2 ? 'h2' : 'h3'
   const headStyle: CSSProperties = {
     fontFamily: SERIF, fontWeight: 200, fontSize, lineHeight: 1.14,
-    letterSpacing: '-0.01em', margin: 0, whiteSpace: 'nowrap', textAlign: 'center',
+    letterSpacing: '-0.01em', margin: 0,
   }
-
   return (
-    <div ref={wrapRef} className={`bu-hue relative ${wrapClass}`} style={{ overflowX: 'clip' }}>
-      <div ref={figRef} className={`bu-hue-fig ${figClass}`}>
-        <Photo src={IMG(photoFile)} alt={photoAlt} aspect={aspect}
-          tone={over === 'bone' ? 'light' : 'dark'} flip={flip} />
-        {band ? (
-          <div aria-hidden className="bu-hue-band"
-            style={{ top: band.top, height: band.height, background: bandColor }} />
-        ) : null}
+    <div className={`bu-hue relative ${wrapClass}`} style={{ overflowX: 'clip' }}>
+      <div className={`bu-hue-fig bu-hue-photo ${figClass}`}>
+        <Photo src={IMG(photoFile)} alt={photoAlt} aspect={aspect} flip={flip} />
       </div>
-      <div ref={headRef} className="bu-hue-head bu-hue-reveal">
-        <Tag className="m-0" aria-label={text} style={{ ...headStyle, color: baseColor }}>{text}</Tag>
-        <span aria-hidden className="absolute inset-0"
-          style={{ ...headStyle, color: overColor, clipPath: clip, WebkitClipPath: clip } as CSSProperties}>
-          {text}
-        </span>
-      </div>
+      <Tag className="bu-hue-head bu-hue-reveal" style={headStyle}>{text}</Tag>
     </div>
   )
 }
@@ -883,7 +885,7 @@ function Restaurant() {
         {/* Hue motif: the title crosses the plate — BONE over the black band,
             INK where it crosses the (lightened) photo. */}
         <HueHeading text={RESTAURANT.title} photoFile={PHOTOS.plateFish.file}
-          photoAlt={PHOTOS.plateFish.alt} over="ink"
+          photoAlt={PHOTOS.plateFish.alt}
           flip="up" fontSize="clamp(2.1rem, 7vw, 6.4rem)"
           wrapClass="bu-rest-title mt-10 md:mt-0" figClass="w-[min(72vw,340px)]" />
 
@@ -974,7 +976,7 @@ function Saga() {
                   glyph (incl. the leading "1", "Í") stays fully in view on
                   mobile — no bleed-off-left amputation. */}
               <HueHeading text={step.era} level={3} photoFile={photo.file}
-                photoAlt={photo.alt} over="bone" flip={sagaFlip[i]}
+                photoAlt={photo.alt} flip={sagaFlip[i]}
                 fontSize="clamp(3.6rem, 18vw, 12rem)"
                 figClass="w-[min(60vw,280px)]" wrapClass="bu-saga-hue" />
               <p className="bu-lines bu-saga-text mx-auto mt-8 max-w-[26rem] px-5 text-[15px] leading-[1.8] md:px-0"
@@ -1041,7 +1043,7 @@ function Place() {
           {/* Hue motif: STAÐURINN crosses the coastline — INK over the bone
               ground, BONE where it crosses the darkened photo. */}
           <HueHeading text={PLACE.title} photoFile={PHOTOS.coast.file}
-            photoAlt={PHOTOS.coast.alt} over="bone"
+            photoAlt={PHOTOS.coast.alt}
             flip="up" fontSize="clamp(2.6rem, 9vw, 7.5rem)"
             figClass="w-[min(60vw,300px)]" />
           <p className="bu-lines m-0 max-w-[26rem] text-[15px] leading-[1.8] md:justify-self-end"
@@ -1143,6 +1145,53 @@ function FooterBlack() {
   )
 }
 
+/* ═══════════════ CursorDot — the reference's signature cursor ════════════
+   A small brass dot that trails the pointer (hand-lerped, speed 0.2, like
+   their gsap.quickSetter cursor) and auto-inverts via mix-blend difference.
+   Over any [data-cursor] element it swells to a disc carrying that element's
+   label. Fine-pointer + motion only; the CSS media queries hide it otherwise,
+   and the effect no-ops on touch / reduced motion so it is never armed. */
+function CursorDot() {
+  const ref = useRef<HTMLDivElement>(null)
+  const labelRef = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (prefersReduced()) return
+    if (!window.matchMedia('(pointer: fine)').matches) return
+    const dot = ref.current, label = labelRef.current
+    if (!dot || !label) return
+    let x = window.innerWidth / 2, y = window.innerHeight / 2
+    let tx = x, ty = y
+    const setX = gsap.quickSetter(dot, 'x', 'px')
+    const setY = gsap.quickSetter(dot, 'y', 'px')
+    setX(x); setY(y)
+    const move = (e: PointerEvent) => { tx = e.clientX; ty = e.clientY }
+    const tick = () => { x += (tx - x) * 0.2; y += (ty - y) * 0.2; setX(x); setY(y) }
+    const over = (e: PointerEvent) => {
+      const t = (e.target as Element | null)?.closest?.('[data-cursor]') as HTMLElement | null
+      if (t) { label.textContent = t.dataset.cursor ?? ''; dot.classList.add('is-grown') }
+    }
+    const out = (e: PointerEvent) => {
+      const t = (e.target as Element | null)?.closest?.('[data-cursor]') as HTMLElement | null
+      if (t) dot.classList.remove('is-grown')
+    }
+    window.addEventListener('pointermove', move, { passive: true })
+    document.addEventListener('pointerover', over)
+    document.addEventListener('pointerout', out)
+    gsap.ticker.add(tick)
+    return () => {
+      window.removeEventListener('pointermove', move)
+      document.removeEventListener('pointerover', over)
+      document.removeEventListener('pointerout', out)
+      gsap.ticker.remove(tick)
+    }
+  }, [])
+  return (
+    <div ref={ref} className="bu-cursor" aria-hidden>
+      <span ref={labelRef} className="bu-cursor-label" />
+    </div>
+  )
+}
+
 /* ═══════════════ PAGE ════════════════════════════════════════════════════ */
 export default function Page() {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -1219,6 +1268,7 @@ export default function Page() {
            is gated on c.motion above). */
         const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
         lenis.on('scroll', ScrollTrigger.update)
+        pageLenis = lenis
         const tick = (t: number) => lenis.raf(t * 1000)
         gsap.ticker.add(tick)
         gsap.ticker.lagSmoothing(0)
@@ -1260,7 +1310,7 @@ export default function Page() {
               if (progress) progress.style.transform = `scaleX(${self.progress})`
             },
           })
-          journeyNav = { master, track }
+          journeyNav = { master, track, lenis }
         } else {
           ScrollTrigger.create({
             trigger: root,
@@ -1316,11 +1366,16 @@ export default function Page() {
         /* 6 — SplitText reveals. autoSplit re-splits when Boska finishes
            loading; onSplit returns the tween so it is rebuilt cleanly.
            Line masks carry leading ≥1.15 wherever accents occur. */
+        /* THE signature reveal (normalisboring): lines rise/drop in ALTERNATING
+           directions inside their masks — even lines up from +110%, odd down
+           from -110% — so the words cascade rather than march. Function-based
+           yPercent + stagger gives the overlap in one tween. */
         q('.bu-lines').forEach((el) => {
           splits.push(SplitText.create(el, {
             type: 'lines', mask: 'lines', autoSplit: true,
             onSplit: (self) => gsap.from(self.lines, {
-              yPercent: 112, duration: 0.9, ease: 'power3.out', stagger: 0.09,
+              yPercent: (i: number) => (i % 2 ? -110 : 110),
+              duration: 0.9, ease: 'power3.out', stagger: 0.09,
               scrollTrigger: trig(el, 'top 87%', 'left 87%', { toggleActions: 'play none none reverse' }),
             }),
           }))
@@ -1478,6 +1533,7 @@ export default function Page() {
           lenis.destroy()
           splits.forEach((sp) => sp.revert())
           journeyNav = null
+          pageLenis = null
         }
       },
     )
@@ -1489,6 +1545,7 @@ export default function Page() {
       style={{ background: 'var(--bu-ground)', overflowX: 'clip' }}>
       <style>{PAGE_STYLES}</style>
       <div className="bu-progress" aria-hidden />
+      <CursorDot />
 
       {pre ? (
         <div ref={preRef} aria-hidden
@@ -1519,9 +1576,17 @@ export default function Page() {
         <main className="bu-track">
           <Hero />
           <Rails />
+          <FullBleed photoFile={PHOTOS.coast.file} alt={PHOTOS.coast.alt}
+            kicker="Ströndin" index="I" flip="left" />
           <Rooms />
+          <FullBleed photoFile={PHOTOS.loungeGallery.file} alt={PHOTOS.loungeGallery.alt}
+            kicker="Setustofan" index="II" flip="right" />
           <Restaurant />
+          <FullBleed photoFile={PHOTOS.snow.file} alt={PHOTOS.snow.alt}
+            kicker="Veturinn" index="III" flip="up" />
           <Saga />
+          <FullBleed photoFile={PHOTOS.churchHill.file} alt={PHOTOS.churchHill.alt}
+            kicker="Svarta kirkjan" index="IV" flip="left" />
           <Weddings />
           <Place />
           <FooterBlack />
