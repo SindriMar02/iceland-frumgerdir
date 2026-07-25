@@ -1426,7 +1426,10 @@ export default function Page() {
           if (!up || !src) return
           const tl = gsap.timeline(tlVars)
           if (dir === 'up') {
-            tl.to(up, { y: '-105%', duration: 1.5, ease: 'power3.out' }, 0)
+            /* A clip WIPE from the top edge, matching the lateral variants.
+               (Was `y:-105%` — translating the opaque top copy made an
+               identical duplicate visibly slide off the frame.) */
+            tl.to(up, { '--bu-clip': '100% 0% 0% 0%', duration: 1.5, ease: 'power2.out' }, 0)
             if (!isParallax) tl.from(src, { y: '-10%', duration: 2, ease: 'power3.out' }, 0)
           } else if (dir === 'right') {
             /* their leftRight */
@@ -1459,7 +1462,7 @@ export default function Page() {
           const heroSrc = heroFrame.querySelector('.bu-media-source')
           if (heroUp && heroSrc) {
             const htl = gsap.timeline({ delay: introDelay + 0.1 })
-            htl.to(heroUp, { y: '-105%', duration: 1.5, ease: 'power3.out' }, 0)
+            htl.to(heroUp, { '--bu-clip': '100% 0% 0% 0%', duration: 1.5, ease: 'power2.out' }, 0)
             htl.from(heroSrc, { y: '-10%', duration: 2, ease: 'power3.out' }, 0)
           }
         }
