@@ -611,9 +611,27 @@ export default function Page() {
       gsap.ticker.add(tick)
       gsap.ticker.lagSmoothing(0)
 
+      /* The hero entrance animates TOWARD the resting state, never away from
+         it. `gsap.from()` writes the hidden start as an inline style, so if the
+         tween never advances — a paused rAF, a screenshot/crawler that renders
+         and captures immediately, a GSAP failure — the wordmark, tagline and
+         meta row are left invisible and the hero is a photo with no text. This
+         way the resting state is what the markup already shows. */
       const word = q('.al-hero-word')[0]
-      if (word) gsap.from(word, { yPercent: 108, duration: 1.25, ease: 'power3.out', delay: 0.15 })
-      gsap.from(q('.al-hero-fade'), { opacity: 0, y: 16, duration: 0.9, ease: 'power3.out', stagger: 0.08, delay: 0.55 })
+      if (word) {
+        gsap.fromTo(word, { yPercent: 108 }, { yPercent: 0, duration: 1.25, ease: 'power3.out', delay: 0.15 })
+      }
+      const fades = q('.al-hero-fade')
+      gsap.fromTo(fades, { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.08, delay: 0.55 })
+      /* Belt and braces: if anything in the hero is still hidden shortly after
+         load, force it to its resting state. */
+      const heroFailsafe = window.setTimeout(() => {
+        if (word) gsap.set(word, { yPercent: 0 })
+        fades.forEach((el) => {
+          if (parseFloat(window.getComputedStyle(el).opacity) < 0.9) gsap.set(el, { opacity: 1, y: 0 })
+        })
+      }, 2200)
       const heroImg = q('.al-hero-img')[0]
       if (heroImg) {
         gsap.fromTo(heroImg, { yPercent: -4, scale: 1.08 }, {
@@ -635,6 +653,7 @@ export default function Page() {
       }, 1800)
       return () => {
         window.clearTimeout(failsafe)
+        window.clearTimeout(heroFailsafe)
         gsap.ticker.remove(tick)
         lenis.destroy()
       }
