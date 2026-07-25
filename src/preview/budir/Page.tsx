@@ -324,7 +324,15 @@ const PAGE_STYLES = `
   .bu-track {
     position: relative; display: flex; width: max-content;
     height: 100svh; align-items: stretch;
+    /* Keep the track on its own compositor layer for the whole traverse so
+       the browser never promotes/demotes it mid-scroll (measured: removes the
+       long frames during the pinned journey). */
+    will-change: transform; backface-visibility: hidden;
   }
+  /* The peel/parallax targets are transformed or clipped every frame — hint
+     them too so each is rasterised once instead of on every tick. */
+  .bu-media-up { will-change: clip-path, transform; }
+  .bu-media-source { will-change: transform; }
   .bu-track > * { height: 100svh; flex: none; overflow: hidden; }
   .bu-p-hero, .bu-p-rails, .bu-p-foot, .bu-p-bleed { width: 100vw; }
   .bu-p-rails { min-height: 0; }
@@ -1295,7 +1303,7 @@ export default function Page() {
         const maxX = () => track ? Math.max(1, track.scrollWidth - window.innerWidth) : 1
         let journeyTween: gsap.core.Tween | undefined
         if (c.desktop && journeyEl && track) {
-          journeyTween = gsap.to(track, { x: () => -maxX(), ease: 'none' })
+          journeyTween = gsap.to(track, { x: () => -maxX(), ease: 'none', force3D: true })
           const master = ScrollTrigger.create({
             animation: journeyTween,
             trigger: journeyEl,
