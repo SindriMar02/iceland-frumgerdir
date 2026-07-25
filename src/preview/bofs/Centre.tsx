@@ -18,6 +18,13 @@ import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
 /** Addresses that used to be real services and should not dead-end. */
 const RETIRED_SLUGS = new Set(['fannafold'])
 
+/** Tint the hero veil with the service's own hue so each page keeps its identity. */
+function hexToRgba(hex: string, alpha: number) {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.replace(/./g, (c) => c + c) : h, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 export default function BofsCentre() {
   const { slug = '' } = useParams()
   const [, , pick] = useLang()
@@ -47,10 +54,30 @@ export default function BofsCentre() {
       </a>
 
       <main id="main">
-        {/* ── HERO ─────────────────────────────────────────────────────── */}
+        {/* ── HERO: the service's own painting, full bleed ─────────────── */}
         <section className="relative overflow-hidden" style={{ background: service.hueSoft }}>
-          <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 pb-24 pt-32 sm:px-8 sm:pt-36 lg:grid-cols-[1.15fr_0.85fr]">
-            <div>
+          {photo && (
+            <div className="pointer-events-none absolute inset-0" aria-hidden>
+              <Img
+                src={asset(photo.src)}
+                alt=""
+                loading="eager"
+                fetchpriority="high"
+                className="h-full w-full object-cover"
+                fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
+              />
+              {/* legibility veil, tinted with the service hue so each page keeps its identity */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(100deg, ${hexToRgba(service.hueSoft, 0.96)} 0%, ${hexToRgba(service.hueSoft, 0.9)} 34%, ${hexToRgba(service.hueSoft, 0.55)} 60%, ${hexToRgba(service.hueSoft, 0.2)} 100%)`,
+                }}
+              />
+              <div className="absolute inset-x-0 bottom-0 h-28" style={{ background: `linear-gradient(${hexToRgba(service.hueSoft, 0)}, ${service.hueSoft})` }} />
+            </div>
+          )}
+          <div className="relative mx-auto max-w-6xl px-5 pb-28 pt-32 sm:px-8 sm:pt-36">
+            <div className="max-w-2xl">
               <Reveal y={14}>
                 <Link
                   to="/preview/bofs"
@@ -92,11 +119,6 @@ export default function BofsCentre() {
               </Reveal>
             </div>
 
-            <Reveal delay={0.16} className="flex justify-center">
-              <div className="w-[52%] max-w-[250px] lg:w-[72%]">
-                <HomeArt art={service.art} hue={service.hue} hueSoft="#FFFFFF" className="h-auto w-full" />
-              </div>
-            </Reveal>
           </div>
           <WaveDivider color={C.cream} className="h-12 w-full" />
         </section>
@@ -111,14 +133,14 @@ export default function BofsCentre() {
           <div className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:px-8">
             {photo && (
               <Reveal>
-                <figure className="bofs-arch mb-16 overflow-hidden" style={{ boxShadow: `0 34px 66px -46px rgba(58,44,34,.55)` }}>
-                  <Img
-                    src={asset(photo.src)}
-                    alt={pick(photo.alt)}
-                    className="bofs-photo h-[260px] w-full object-cover sm:h-[420px]"
-                    fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
-                  />
-                </figure>
+                <p className="mb-12 border-l-2 pl-4 text-[13.5px] leading-relaxed" style={{ borderColor: service.hue, color: C.body }}>
+                  {pick(photo.alt)}
+                  {photo.painted && (
+                    <span className="mt-1 block" style={{ opacity: 0.8 }}>
+                      {pick({ is: 'Máluð eftir raunverulegri ljósmynd af heimilinu.', en: 'Painted from a real photograph of the home.' })}
+                    </span>
+                  )}
+                </p>
               </Reveal>
             )}
             <div className="grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:gap-16">

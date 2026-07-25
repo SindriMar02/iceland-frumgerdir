@@ -555,7 +555,7 @@ export const FOSTER_STEPS = {
  * premises. Lækjarbakki is the exception: it keeps the ministry's REAL
  * photographs of the actual home.
  */
-export const CENTRE_PHOTO: Record<string, { src: string; alt: L }> = {
+export const CENTRE_PHOTO: Record<string, { src: string; alt: L; painted?: boolean }> = {
   studlar: {
     src: 'art-studlar.jpg',
     alt: t('Vatnslitamynd: stakt hús stendur af sér veðrið með hlýtt ljós í glugga', 'Watercolor: a lone house weathering the sky, one warm lit window'),
@@ -566,11 +566,13 @@ export const CENTRE_PHOTO: Record<string, { src: string; alt: L }> = {
   },
   bjargey: {
     src: 'art-bjargey.jpg',
-    alt: t('Vatnslitamynd: hús við lygnan fjörð með litlum garði í rósrauðri birtu', 'Watercolor: a house by a calm fjord with a small garden in rose light'),
+    alt: t('Vatnslitamynd af Bjargey á Laugalandi í Eyjafjarðarsveit, máluð eftir ljósmynd af húsinu', 'Watercolor of Bjargey at Laugaland in Eyjafjarðarsveit, painted from a photograph of the house'),
+    painted: true,
   },
   laekjarbakki: {
-    src: 'laekjarbakki-herbergi.jpg',
-    alt: t('Herbergi á meðferðarheimilinu Lækjarbakka í Gunnarsholti', 'A resident bedroom at the Lækjarbakki treatment home in Gunnarsholt'),
+    src: 'art-laekjarbakki.jpg',
+    alt: t('Vatnslitamynd af Lækjarbakka í Gunnarsholti, máluð eftir ljósmynd af húsunum', 'Watercolor of Lækjarbakki at Gunnarsholt, painted from a photograph of the buildings'),
+    painted: true,
   },
   barnahus: {
     src: 'art-barnahus.jpg',
