@@ -5,6 +5,7 @@ import { MotionConfig } from 'framer-motion'
 // Eager (not lazy): the universal fallback must always be available, even if a
 // route chunk is stale or 404s. It names no client and never links to the hub.
 import NotFound from './pages/NotFound'
+import { ROUTE_FAVICONS } from './preview/favicons'
 // Eager: shown as this route's OWN Suspense fallback while its chunk downloads, so it must be
 // available synchronously - a lazy-loaded fallback can't render before its own chunk has loaded.
 import FlatbakanLoading from './preview/flatbakan/Loading'
@@ -152,6 +153,44 @@ const SkalakotPage = lazy(() => import('./preview/skalakot/Page'))
 const KidkaPage = lazy(() => import('./preview/kidka/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
+/**
+ * Every route here is served by the same index.html, so without this each client
+ * preview would wear the same placeholder icon in the tab. It also guards against a
+ * worse failure: this SPA shares an origin with the ARTIX site at the root, and a
+ * page that declares no icon inherits whichever one the origin already has cached.
+ * Unknown routes (the hub, admin, outreach) keep the neutral icon from index.html.
+ */
+const DEFAULT_ICON =
+  document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.getAttribute('href') ?? ''
+
+/** Exact route first, then the closest parent, so a client's sub-pages
+ *  (/preview/bofs/studlar, /preview/bilageirinn/signal) keep their own brand. */
+function iconFor(pathname: string) {
+  if (ROUTE_FAVICONS[pathname]) return ROUTE_FAVICONS[pathname]
+  let best = ''
+  for (const route of Object.keys(ROUTE_FAVICONS)) {
+    if (pathname.startsWith(route + '/') && route.length > best.length) best = route
+  }
+  return best ? ROUTE_FAVICONS[best] : DEFAULT_ICON
+}
+
+function RouteFavicon() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    const href = iconFor(pathname)
+    if (!href) return
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.head.appendChild(link)
+    }
+    link.type = 'image/svg+xml'
+    if (link.getAttribute('href') !== href) link.setAttribute('href', href)
+  }, [pathname])
+  return null
+}
+
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
   useEffect(() => {
@@ -194,6 +233,7 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <BrowserRouter basename={basename}>
         <ScrollToTop />
+        <RouteFavicon />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<RootRoute />} />
