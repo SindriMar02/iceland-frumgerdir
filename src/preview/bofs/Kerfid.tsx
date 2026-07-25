@@ -10,8 +10,9 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useReducedMotion, useScroll } from 'framer-motion'
 import { Reveal } from '../../components/Reveal'
+import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { BofsStyles, Button, C, Eyebrow, Footer, Header, ScrollRail, SectionHead, SubNav, useLang, Arrow } from './ui'
+import { asset, BofsStyles, Button, C, Eyebrow, Footer, Header, ScrollRail, SectionHead, SubNav, useLang, Arrow } from './ui'
 import { HillDivider, WaveDivider } from './illustrations'
 import { HelpBand } from './sections'
 import { KERFID, UI } from './data'
@@ -66,6 +67,20 @@ export default function BofsKerfid() {
               <p className="bofs-pretty mx-auto mt-5 max-w-2xl text-[17px] leading-relaxed" style={{ color: C.body }}>
                 {pick(KERFID.hero.lead)}
               </p>
+            </Reveal>
+          </div>
+
+          {/* the whole journey as one painted panorama */}
+          <div className="mx-auto max-w-6xl px-5 pb-14 sm:px-8">
+            <Reveal>
+              <figure className="overflow-hidden rounded-[20px]" style={{ boxShadow: '0 34px 66px -46px rgba(58,44,34,.5)' }}>
+                <Img
+                  src={asset('art-kerfid.jpg')}
+                  alt={pick({ is: 'Vatnslitamynd: stígurinn liðast yfir hæðir, framhjá vörðu og brú, að húsi með ljós í glugga', en: 'Watercolor: the path winds over hills, past a cairn and a bridge, to a house with a lit window' })}
+                  className="h-[220px] w-full object-cover sm:h-[320px]"
+                  fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
+                />
+              </figure>
             </Reveal>
           </div>
         </section>

@@ -549,20 +549,44 @@ export const FOSTER_STEPS = {
 
 /* ── Photography (local; warm environments, no identifiable children) ─── */
 
+/*
+ * Service imagery: the watercolor suite (one painting per service, in the
+ * service's mood) — honestly symbolic, never pretending to be the real
+ * premises. Lækjarbakki is the exception: it keeps the ministry's REAL
+ * photographs of the actual home.
+ */
 export const CENTRE_PHOTO: Record<string, { src: string; alt: L }> = {
-  studlar: { src: 'interior-calm.jpg', alt: t('Hlýleg og notaleg setustofa í dagsbirtu', 'A warm, homely living room in daylight') },
-  blonduhlid: { src: 'interior-evening.jpg', alt: t('Notaleg stofa böðuð kvöldbirtu', 'A cosy room bathed in evening light') },
-  bjargey: { src: 'interior-nook.jpg', alt: t('Leshorn við glugga með útsýni', 'A reading nook by a window with a view') },
+  studlar: {
+    src: 'art-studlar.jpg',
+    alt: t('Vatnslitamynd: stakt hús stendur af sér veðrið með hlýtt ljós í glugga', 'Watercolor: a lone house weathering the sky, one warm lit window'),
+  },
+  blonduhlid: {
+    src: 'art-blonduhlid.jpg',
+    alt: t('Vatnslitamynd: stígur liðast milli grænna hæða að vörðu', 'Watercolor: a path winding between green hills past a cairn'),
+  },
+  bjargey: {
+    src: 'art-bjargey.jpg',
+    alt: t('Vatnslitamynd: hús við lygnan fjörð með litlum garði í rósrauðri birtu', 'Watercolor: a house by a calm fjord with a small garden in rose light'),
+  },
   laekjarbakki: {
     src: 'laekjarbakki-herbergi.jpg',
     alt: t('Herbergi á meðferðarheimilinu Lækjarbakka í Gunnarsholti', 'A resident bedroom at the Lækjarbakki treatment home in Gunnarsholt'),
   },
-  barnahus: { src: 'interior-bright.jpg', alt: t('Björt og hlýleg stofa full af dagsbirtu', 'A bright, warm room full of daylight') },
-  mst: { src: 'interior-family.jpg', alt: t('Notaleg fjölskyldustofa', 'A cosy family living room') },
-  sok: { src: 'land-peak.jpg', alt: t('Grænt fjall undir mildum himni', 'A green mountain under a gentle sky') },
+  barnahus: {
+    src: 'art-barnahus.jpg',
+    alt: t('Vatnslitamynd: mjúkur stóll, lampi og teppi í hlýju horni', 'Watercolor: a soft chair, a lamp and a blanket in a warm corner'),
+  },
+  mst: {
+    src: 'art-mst.jpg',
+    alt: t('Vatnslitamynd: þrjú hús í túni í kvöldbirtu, eitt lýsir hlýtt', 'Watercolor: three houses in a home field at evening, one glowing warm'),
+  },
+  sok: {
+    src: 'art-sok.jpg',
+    alt: t('Vatnslitamynd: sólarupprás yfir kyrru vatni og dökkri hæð', 'Watercolor: sunrise over still water and a dark hill'),
+  },
   fostur: {
-    src: 'land-coast.jpg',
-    alt: t('Sveitabær við fjörð, umvafinn fjöllum, táknræn mynd', 'A farmstead by a fjord, embraced by mountains, representative image'),
+    src: 'art-fostur.jpg',
+    alt: t('Vatnslitamynd: sveitabær með opnar dyr og ljós sem fellur á hlaðið', 'Watercolor: a farmstead with an open door, light spilling onto the step'),
   },
 }
 
@@ -1037,6 +1061,92 @@ export const CLOSING = {
   ),
   ctaPrimary: t('Hvernig barn fær aðstoð', 'How a child gets help'),
   ctaSecondary: t('Skoða öll úrræði', 'See all services'),
+}
+
+/* ── News (real, current, source-linked items; verified 25 July 2026) ──── */
+
+export interface NewsItem {
+  date: string
+  source: 'BOFS' | 'GEV' | 'Stjórnarráðið' | 'Vísir'
+  title: L
+  href: string
+}
+
+export const NEWS = {
+  eyebrow: t('Fréttir', 'News'),
+  title: t('Fréttir og tilkynningar', 'News and announcements'),
+  lead: t(
+    'Það nýjasta frá Barna- og fjölskyldustofu og umfjöllun tengd starfinu úr íslenskum fréttamiðlum, á einum stað.',
+    'The latest from Barna- og fjölskyldustofa, together with related coverage from Icelandic media, in one place.',
+  ),
+  updated: t('Uppfært 25. júlí 2026', 'Updated 25 July 2026'),
+  note: t(
+    'Á fullbúnum vef myndu fréttir sækjast sjálfkrafa úr fréttaveitum stofnunarinnar og fjölmiðla. Hér er sýnishorn með raunverulegum fréttum.',
+    'On a production site, items would be pulled automatically from the agency and media feeds. This is a sample of real, current items.',
+  ),
+  cta: t('Sjá allar fréttir', 'See all news'),
+  items: [
+    {
+      date: '24.07.2026',
+      source: 'BOFS',
+      title: t('Samantekt um úrræði og umsóknir um þjónustu á árunum 2022 til 2025', 'Overview of services and applications 2022 to 2025'),
+      href: 'https://island.is/s/bofs/frett/samantekt-um-urraedi-og-umsoknir-um-thjonustu-a-arunum-2022-2025',
+    },
+    {
+      date: '14.07.2026',
+      source: 'GEV',
+      title: t('Frumkvæðisathugun á eftirliti með börnum í fóstri', 'Review of oversight of children in foster care'),
+      href: 'https://island.is/s/gev/frett/frumkvaedisathugun-gev-a-eftirlitsskyldum-barnaverndarthjonusta-vegna-barna-i-fostri',
+    },
+    {
+      date: '09.07.2026',
+      source: 'BOFS',
+      title: t('Skráningar á fjölda mála í samþættingu þjónustu', 'Case registrations in integrated services'),
+      href: 'https://island.is/s/bofs/frett/skraningar-a-fjoelda-mala-i-samthaettingu-thjonustu',
+    },
+    {
+      date: '07.07.2026',
+      source: 'BOFS',
+      title: t('Tilkynningum til barnaverndar fækkar', 'Reports to child protection are decreasing'),
+      href: 'https://island.is/s/bofs/frett/tilkynningum-til-barnaverndar-faekkar',
+    },
+    {
+      date: '25.06.2026',
+      source: 'BOFS',
+      title: t('SES ráðstefnan 2026 er nú aðgengileg á vefnum', 'The SES conference 2026 is now available online'),
+      href: 'https://island.is/s/bofs/frett/ses-radstefnan-2026-er-nu-adgengileg-her-a-vefnum',
+    },
+    {
+      date: '26.05.2026',
+      source: 'BOFS',
+      title: t('Starfsfólk Barnahúss heimsækir Barnahus á Írlandi', 'Barnahús staff visit the Barnahus in Ireland'),
+      href: 'https://island.is/s/bofs/frett/starfsfolk-barnahuss-heimsaekir-barnahus-a-irlandi',
+    },
+    {
+      date: '11.05.2026',
+      source: 'BOFS',
+      title: t('Móttaka, menntun og farsæld barna með flóttabakgrunn', 'Reception, education and wellbeing of children with a refugee background'),
+      href: 'https://island.is/s/bofs/frett/mottaka-menntun-og-farsaelda-barna-med-flottabakgrunn',
+    },
+    {
+      date: '08.05.2026',
+      source: 'Stjórnarráðið',
+      title: t('Meðferðarheimilið Lækjarbakki formlega opnað í Gunnarsholti', 'The Lækjarbakki treatment home formally opened at Gunnarsholt'),
+      href: 'https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026/05/08/Medferdarheimilid-Laekjarbakki-formlega-opnad-i-Gunnarsholti',
+    },
+    {
+      date: '08.05.2026',
+      source: 'Vísir',
+      title: t('Engin bið eftir plássi á meðferðarheimilum ungmenna', 'No waiting list for places at youth treatment homes'),
+      href: 'https://www.visir.is/g/20262880648d/engin-bid-eftir-plassi-a-medferdarheimilum-ungmenna',
+    },
+    {
+      date: '23.04.2026',
+      source: 'BOFS',
+      title: t('Heimsókn umboðsmanns barna í Barnahús', 'The Ombudsman for Children visits Barnahús'),
+      href: 'https://island.is/s/bofs/frett/heimsokn-umbodsmanns-barna-i-barnahus',
+    },
+  ] as NewsItem[],
 }
 
 /* ── Not found (a wrong turn, not a dead end) ─────────────────────────── */

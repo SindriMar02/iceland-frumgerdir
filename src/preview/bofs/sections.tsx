@@ -20,6 +20,7 @@ import {
   HELP,
   INSTITUTIONS,
   type Milestone,
+  NEWS,
   NOTFOUND,
   ORG,
   REPORT,
@@ -363,9 +364,9 @@ export function FosterBand() {
                 style={{ willChange: 'transform' }}
               >
                 <Img
-                  src={asset('land-coast.jpg')}
-                  alt={pick({ is: 'Sveitabær við fjörð, umvafinn fjöllum', en: 'A farmstead by a fjord, embraced by mountains' })}
-                  className="bofs-photo h-[320px] w-full object-cover lg:h-[440px]"
+                  src={asset('art-fostur.jpg')}
+                  alt={pick({ is: 'Vatnslitamynd: sveitabær með opnar dyr og ljós sem fellur á hlaðið', en: 'Watercolor: a farmstead with an open door, light spilling onto the step' })}
+                  className="h-[320px] w-full object-cover lg:h-[440px]"
                   fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
                 />
               </motion.div>
@@ -477,6 +478,74 @@ export function DuskBookend() {
         <p className="bofs-display bofs-balance mx-auto mt-2 max-w-2xl text-[clamp(22px,3.4vw,34px)]" style={{ color: '#FDF3E3', textShadow: '0 1px 24px rgba(40,28,18,.45)' }}>
           {pick({ is: 'Hvað sem á dynur, þá logar alltaf ljós í einhverjum glugga.', en: 'Whatever the day brings, a light always stays on in some window.' })}
         </p>
+      </div>
+    </section>
+  )
+}
+
+/* ── News: real source-linked items ───────────────────────────────────── */
+
+const SOURCE_HUE: Record<string, string> = { BOFS: C.clay, GEV: C.sky, 'Stjórnarráðið': C.sage, 'Vísir': C.terra }
+
+export function NewsList({ items }: { items: typeof NEWS.items }) {
+  const [, , pick] = useLang()
+  return (
+    <ul className="divide-y" style={{ borderColor: C.line }}>
+      {items.map((n) => (
+        <li key={n.href} style={{ borderColor: C.line }}>
+          <a
+            href={n.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bofs-focus group flex items-baseline gap-4 rounded py-4 sm:gap-6"
+          >
+            <span className="bofs-num w-[84px] shrink-0 text-[13.5px] font-medium" style={{ color: C.body }}>
+              {n.date}
+            </span>
+            <span className="flex-1">
+              <span className="block text-[16.5px] font-semibold leading-snug transition-opacity group-hover:opacity-70" style={{ color: C.cocoa }}>
+                {pick(n.title)}
+              </span>
+              <span className="mt-1 inline-flex items-center gap-1.5 text-[12.5px] font-bold uppercase" style={{ color: SOURCE_HUE[n.source] ?? C.body, letterSpacing: '0.12em' }}>
+                {n.source}
+                <span className="sr-only">{pick({ is: '(opnast á nýjum vef)', en: '(opens in a new tab)' })}</span>
+              </span>
+            </span>
+            <Arrow className="mt-1 shrink-0 -rotate-45 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function NewsBand() {
+  const [, , pick] = useLang()
+  return (
+    <section id="frettir" className="scroll-mt-24" style={{ background: C.cream2 }}>
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <Eyebrow>{pick(NEWS.eyebrow)}</Eyebrow>
+            <h2 className="bofs-display bofs-balance mt-3 text-[clamp(26px,4.4vw,42px)]">{pick(NEWS.title)}</h2>
+            <p className="bofs-pretty mt-4 max-w-md text-[16.5px] leading-relaxed" style={{ color: C.body }}>
+              {pick(NEWS.lead)}
+            </p>
+            <p className="mt-3 text-[13px]" style={{ color: C.body, opacity: 0.75 }}>
+              {pick(NEWS.updated)}
+            </p>
+            <div className="mt-7">
+              <Button to="/preview/bofs/frettir" icon={<Arrow />}>
+                {pick(NEWS.cta)}
+              </Button>
+            </div>
+          </div>
+          <Reveal delay={0.08}>
+            <div className="rounded-[20px] px-6 py-2" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+              <NewsList items={NEWS.items.slice(0, 4)} />
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   )

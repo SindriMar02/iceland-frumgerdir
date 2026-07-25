@@ -76,14 +76,14 @@ export default function BofsUmStofnunina() {
             </Reveal>
           </div>
 
-          {/* one photographic moment: the agency's people-space, arch-cropped */}
+          {/* one painted moment: the warm common room, arch-cropped */}
           <div className="mx-auto mt-14 max-w-5xl px-5 sm:px-8">
             <Reveal>
               <figure className="bofs-arch overflow-hidden" style={{ boxShadow: '0 34px 66px -46px rgba(58,44,34,.5)' }}>
                 <Img
-                  src={asset('interior-living.jpg')}
-                  alt={pick({ is: 'Hlýlegt sameiginlegt rými baðað dagsbirtu', en: 'A warm shared space bathed in daylight' })}
-                  className="bofs-photo h-[240px] w-full object-cover sm:h-[380px]"
+                  src={asset('art-inni.jpg')}
+                  alt={pick({ is: 'Vatnslitamynd: hlýleg setustofa með stórum glugga og útsýni yfir grænar hæðir', en: 'Watercolor: a warm common room with a big window looking over green hills' })}
+                  className="h-[240px] w-full object-cover sm:h-[380px]"
                   fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
                 />
               </figure>

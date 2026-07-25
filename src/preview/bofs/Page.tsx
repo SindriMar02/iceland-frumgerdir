@@ -24,6 +24,7 @@ import {
   FosterBand,
   HelpBand,
   InstitutionsAndClose,
+  NewsBand,
   ReportBand,
   StatsBand,
   WayfinderDoors,
@@ -240,6 +241,9 @@ export default function BofsPage() {
             </div>
           </div>
         </section>
+
+        {/* ── NEWS ─────────────────────────────────────────────────────── */}
+        <NewsBand />
 
         {/* ── ABOUT TEASER + history stones ────────────────────────────── */}
         <AboutTeaser />

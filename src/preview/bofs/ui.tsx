@@ -34,9 +34,15 @@ export const C = {
 
 /* ── fonts ────────────────────────────────────────────────────────────── */
 
-const DISPLAY = '"Bricolage Grotesque", system-ui, sans-serif'
-const BODY = '"Hanken Grotesk", system-ui, sans-serif'
-const HAND = '"Caveat", "Bricolage Grotesque", cursive'
+/*
+ * Type recut 2026-07-17, to sit with the watercolor art direction:
+ * Fraunces (warm literary display serif, latin-ext = full Icelandic) over
+ * Author (humanist text sans, variable). Self-hosted from the local library
+ * at public/bofs/fonts/. Caveat stays for the single handwritten grace note.
+ */
+const DISPLAY = '"Fraunces", "Bricolage Grotesque", Georgia, serif'
+const BODY = '"Author", "Hanken Grotesk", system-ui, sans-serif'
+const HAND = '"Caveat", cursive'
 export const FONT = { display: DISPLAY, body: BODY, hand: HAND }
 
 /* ── assets ───────────────────────────────────────────────────────────── */
@@ -103,18 +109,23 @@ export function useLang(): [Lang, (l: Lang) => void, (v: L) => string] {
 export function BofsStyles() {
   return (
     <style>{`
+      @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-400.woff2')}') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-500.woff2')}') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-600.woff2')}') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Author'; src:url('${asset('fonts/author-var.woff2')}') format('woff2'); font-weight:200 800; font-style:normal; font-display:swap; }
+
       .bofs-root { background:${C.cream}; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
       .bofs-root ::selection { background:${C.terra}; color:#fff; }
-      .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; letter-spacing:-0.02em; line-height:1.02; font-variation-settings:'opsz' 40; }
-      /* let the true display cut show at hero scale, stay sturdy on small titles */
-      .bofs-display-xl { font-variation-settings:'opsz' 96; }
-      .bofs-display-sm { font-variation-settings:'opsz' 18; letter-spacing:-0.01em; }
+      /* a serif display wants air, not grotesk tightness */
+      .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:600; letter-spacing:-0.012em; line-height:1.08; }
+      .bofs-display-xl { font-weight:500; letter-spacing:-0.018em; line-height:1.04; }
+      .bofs-display-sm { font-weight:600; letter-spacing:-0.004em; }
       .bofs-hand { font-family:${HAND}; }
       /* long Icelandic compounds orphan easily; balance headings, pretty leads */
       .bofs-balance { text-wrap:balance; }
       .bofs-pretty { text-wrap:pretty; }
       /* one statement style, reused as each page's single large gesture */
-      .bofs-statement { font-family:${DISPLAY}; color:${C.cocoa}; font-size:clamp(24px,3.6vw,38px); line-height:1.16; letter-spacing:-0.02em; font-variation-settings:'opsz' 64; }
+      .bofs-statement { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:500; font-size:clamp(24px,3.6vw,38px); line-height:1.2; letter-spacing:-0.012em; }
       .bofs-num { font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; }
       .bofs-root a { color:inherit; }
       .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:10px; }
@@ -157,13 +168,8 @@ export function Wordmark({ onDeep = false, compact = false }: { onDeep?: boolean
   const ink = onDeep ? C.deepText : C.cocoa
   return (
     <span className="flex items-center gap-2.5">
-      <span
-        className="grid shrink-0 place-items-center rounded-2xl"
-        style={{ width: 42, height: 42, background: '#fff', boxShadow: onDeep ? '0 6px 16px -8px rgba(0,0,0,.5)' : `inset 0 0 0 1px ${C.line}` }}
-      >
-        {/* The real Barna- og fjölskyldustofa emblem */}
-        <img src={LOGO} width={30} height={30} alt="" aria-hidden="true" className="h-[30px] w-[30px]" />
-      </span>
+      {/* The real Barna- og fjölskyldustofa emblem, bare — no tile around it */}
+      <img src={LOGO} width={34} height={34} alt="" aria-hidden="true" className="h-[34px] w-[34px] shrink-0" />
       <span className="leading-none">
         <span
           className={`block font-semibold ${compact ? 'text-[15px]' : 'text-[13.5px] sm:text-[16px]'}`}
@@ -581,6 +587,7 @@ export function Footer() {
               {[
                 { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
                 { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
+                { label: pick({ is: 'Fréttir', en: 'News' }), to: '/preview/bofs/frettir' },
                 { label: pick(UI.nav.report), to: '/preview/bofs#tilkynna' },
                 { label: pick(UI.nav.help), to: '/preview/bofs#help' },
               ].map((l) => (
