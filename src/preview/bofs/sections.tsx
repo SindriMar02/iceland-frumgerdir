@@ -485,7 +485,17 @@ export function DuskBookend() {
 
 /* ── News: real source-linked items ───────────────────────────────────── */
 
-const SOURCE_HUE: Record<string, string> = { BOFS: C.clay, GEV: C.sky, 'Stjórnarráðið': C.sage, 'Vísir': C.terra }
+/*
+ * Source-label colours, darkened to clear WCAG AA at 12.5px on white.
+ * The display hues (C.sky 3.97:1, C.sage 3.98:1, C.terra 3.20:1) all failed;
+ * these measured variants sit between 5.2:1 and 5.9:1.
+ */
+const SOURCE_HUE: Record<string, string> = {
+  BOFS: C.clay,
+  GEV: '#3D6B87',
+  'Stjórnarráðið': '#4A6E4A',
+  'Vísir': '#A8471F',
+}
 
 export function NewsList({ items }: { items: typeof NEWS.items }) {
   const [, , pick] = useLang()
