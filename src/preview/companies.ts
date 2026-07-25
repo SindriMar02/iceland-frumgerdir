@@ -68,7 +68,8 @@ export interface PreviewCompany {
 
 const SIGN = `Bestu kveðjur,
 Sindri Már
-845 1758`
+845 1758
+sndr-studio.pages.dev`
 
 export const PREVIEW_COMPANIES: PreviewCompany[] = [
   {
@@ -3907,3 +3908,247 @@ ${SIGN}`,
 }
 
 PREVIEW_COMPANIES.push(BILAS)
+
+/* ── Batch 11 ──────────────────────────────────────────────────────────── */
+
+const SJAVARBORG: PreviewCompany = {
+  slug: 'sjavarborg',
+  route: '/preview/sjavarborg',
+  name: 'Sjávarborg',
+  sector: 'Gistiheimili & kaffihús',
+  location: 'Hafnargata 4, Stykkishólmur',
+  region: 'West',
+  established: 'Íshús frá 1914, gistiheimili frá 2013',
+  currentUrl: 'https://www.sjavarborg.is',
+  ownerEmail: 'info@sjavarborg.is',
+  concept: 'Borgin við sjóinn',
+  conceptTagline:
+    'One green harbour house that has been an ice store, a home, a shop and now a guesthouse with a café tells its own 110 years as the signature: a scroll-told heritage timeline where the building rebuilds itself through time, over the Breiðafjörður harbour it has always faced.',
+  accent: '#B07A34',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://images.unsplash.com/photo-1680766285771-6505e645d92f?q=80&w=1200&auto=format&fit=crop',
+  photoCredit: 'Aðalmyndir af Stykkishólmi og Súgandisey eru af Unsplash; myndir af húsinu, herbergjum og kaffihúsinu eru af vef gistiheimilisins sjálfs (Sjávarborg / Harbour Hostel).',
+  audit: {
+    strengths: [
+      'A genuinely distinctive asset: a green 1914 harbour house on the Stykkishólmur front, with a real 110-year story (ice store to home to shop to bookstore/barber/grocer to guesthouse) told in the operator’s own words',
+      'A working guesthouse with single/double/twin/family rooms, a shared kitchen and a downstairs café (coffee, cakes, soup, wraps, vegan/GF), plus strong platform ratings (Tripadvisor 4/5 ~220, Booking 8.5, Trip.com 8.9)',
+      'A postcard setting: Breiðafjörður, Súgandisey and the lighthouse out the window, five minutes from the Library of Water and the geothermal pool',
+    ],
+    weaknesses: [
+      'A templated Duda builder site where the testimonial band renders empty placeholder graphics and the 1914 story is buried in one short paragraph with no visual heritage section',
+      'No room prices anywhere; every booking intent is punted to an external engine, and the gallery is script-only with no crawlable images or alt text',
+      'Confusing machine-slug navigation, a script-obfuscated email, and photography served at 455px even though larger renditions exist on their own CDN',
+    ],
+    opportunities: [
+      'Make the 1914 ice-house the whole story: a scroll-told heritage timeline instead of a buried paragraph',
+      'Put honest room types and platform ratings on-page and lead every path to their own booking engine, without inventing a fixed rate',
+      'Serve their own photography at full size and give the harbour setting real editorial scale',
+    ],
+  },
+  positioning:
+    'Sjávarborg is a green 1914 harbour house in Stykkishólmur that has been an ice store, a home, a shop, a bookstore, a barber and a grocer before becoming a guesthouse with a café, always facing Breiðafjörður. All of that history and a postcard setting are trapped in a generic Duda template with empty testimonial placeholders, no prices and 455px photos. The redesign fixes a warm editorial serif on a cool fjord-slate world and tells the building’s 110 years as its signature moment, with honest room types, platform-cited ratings and every path leading to their own booking engine.',
+  outreach: {
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Sjávarborg',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk gistiheimili og ferðaþjónustu.
+
+Ég kynnti mér Sjávarborg og heillaðist af sögu hússins, græna hafnarhússins frá 1914 sem var íshús, síðan heimili, verslun og er nú gistiheimili með kaffihúsi, alltaf með Breiðafjörð fyrir framan gluggann. Núverandi vefur kemur þessu samt ekki til skila, sagan er falin í einni málsgrein, umsagnahlutinn birtist tómur og hvergi sjást verð eða heilar myndir.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að segja sögu hússins gegnum tímann sem hjarta vefsins, sýna herbergin og myndirnar ykkar í fullri stærð og láta allar leiðir liggja í ykkar eigið bókunarkerfi. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+
+PREVIEW_COMPANIES.push(SJAVARBORG)
+
+const BRAGDAVELLIR: PreviewCompany = {
+  slug: 'bragdavellir',
+  route: '/preview/bragdavellir',
+  name: 'Bragðavellir',
+  sector: 'Sumarhús & bistró',
+  location: 'Bragðavellir, 765 Djúpivogur',
+  region: 'East',
+  established: 'Sveitabýli við Hamarsfjörð, Hlaðan opin á sumrin',
+  currentUrl: 'https://bragdavellir.is',
+  ownerEmail: 'info@bragdavellir.is',
+  concept: 'Milli fjalls og fjöru',
+  conceptTagline:
+    'The farm sits in the thin band between Búlandstindur above and the shoreline below, so the page is a full-bleed nature-retreat editorial with one honest cottage chooser at its centre: three real house types that swap specs and photography in place, instead of a PDF and an external redirect.',
+  accent: '#9A6B2F',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://images.unsplash.com/photo-1699556589435-32c3a4a94366?q=80&w=1200&auto=format&fit=crop',
+  photoCredit:
+    'Myndir af húsunum, Hlöðunni og umhverfinu eru af vef býlisins sjálfs. Tvær stórar landslagsmyndir eru af Unsplash.',
+  audit: {
+    strengths: [
+      'A genuinely beautiful setting: a working farm on Hamarsfjörður with Búlandstindur above, the shoreline walkable from the cottage deck and Snædalsfoss about twenty minutes away',
+      'Three real cottage types (26 m², 36 m², 60 m²) rented year-round, plus Hlaðan, a summer bistro in a renovated old cowshed with published hours and a seasonal menu',
+      'Close to the Ring Road and Djúpivogur, with Papey and the Eggs of Merry Bay nearby, and their own booking engine already in place',
+    ],
+    weaknesses: [
+      'The site is frozen in 2019: nearly every image and asset sits under wp-content/uploads/2019, in a dated WordPress brochure theme that has not been refreshed in about seven years',
+      'Key content is trapped in downloadable PDFs (the menu, a 2019 what-to-do brochure) instead of being on-page, which is poor on mobile and invisible to search',
+      'No pricing or cottage detail on-page, so every booking intent is punted straight to an external engine, and the landscape that is the actual product is shown only as small gallery thumbnails',
+    ],
+    opportunities: [
+      'Give the setting cinematic scale and let the mountain-and-shore story carry the page',
+      'Put the three cottage types on-page with real specs so guests can choose before they are handed to the booking engine',
+      'Bring the barn-to-bistro story and its hours out of a PDF and into the page, with the season stated honestly',
+    ],
+  },
+  positioning:
+    'Bragðavellir is a farm on the edge of Hamarsfjörður with a pyramid mountain above it, a shoreline below it and an old cowshed reborn as a summer bistro. It is honestly simple, cosy and nature-first, not luxury, and that is its appeal. The current site is a 2019 WordPress brochure that hides the landscape in thumbnails and the menu in a PDF. The redesign gives the setting full-bleed scale and puts an honest cottage chooser at the centre, with the season and the booking path stated plainly.',
+  outreach: {
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Bragðavelli',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslenska ferðaþjónustu og gistingu.
+
+Ég kynnti mér Bragðavelli og fannst staðurinn sjálfur vera það sem selur, fjörðurinn, Búlandstindur fyrir ofan, fjaran niður af pallinum og gamla fjósið sem er orðið að bistró á sumrin. Á vefnum í dag sést þetta hins vegar illa, myndirnar eru litlar, matseðillinn er falinn í PDF skjali og hvergi eru upplýsingar um húsin sjálf fyrr en fólk er komið yfir í bókunarkerfið.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að landslagið fái að njóta sín í fullri stærð, að gestir geti borið saman húsin þrjú með stærð og fjölda rúma áður en þeir bóka, og að Hlaðan fái sinn eigin kafla með opnunartímum og árstíðinni sagt hreint út. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+
+PREVIEW_COMPANIES.push(BRAGDAVELLIR)
+
+const ALRUN: PreviewCompany = {
+  slug: 'alrun',
+  route: '/preview/alrun',
+  name: 'Alrún Nordic Design',
+  sector: 'Skartgripir & ull',
+  location: 'Sundaborg 1, 104 Reykjavík',
+  region: 'Capital',
+  established: 'Bindrúnir í silfri, gulli og íslenskri ull',
+  currentUrl: 'https://alrun.is',
+  ownerEmail: 'info@alrun.is',
+  concept: 'Twelve marks, one alphabet',
+  conceptTagline:
+    'Alrún’s twelve trademarked bindrunes are treated as a type specimen rather than a jewelry boutique: a bone-and-ink alphabet chart where their own artwork is the design system, and choosing a mark reveals its meaning and the real pieces that carry it.',
+  accent: '#A33A2B',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://cdn.shopify.com/s/files/1/1999/0377/files/Alrun_14K_gold_plated_necklace_Bindrune_Love.jpg?v=1760127384',
+  photoCredit:
+    'Myndir og tákn eru af vef og vefverslun Alrúnar sjálfrar (alrun.is og store.alrun.is).',
+  audit: {
+    strengths: [
+      'A genuinely distinctive brand asset: twelve original, trademarked bindrune symbols that work as a complete visual language across jewelry, capes, blankets and cushions',
+      'A live, actively maintained Shopify catalogue with real prices, plus strong 2025 studio photography for the gold-plated pendant line and the wool pieces',
+      'Real craft credentials: .925 sterling silver, rhodium and 14K gold plate, a Reykjavík studio, and a listing in the official Handverk og hönnun directory',
+    ],
+    weaknesses: [
+      'Two disconnected properties: a marketing site (alrun.is) and a Shopify store (store.alrun.is) with different design, navigation and even different brand names (Nordic Jewelry vs Nordic Design)',
+      'The footer claims a 1999 copyright although the company kennitala decodes to a 2004 registration, and the store footer separately shows a stale 2025 date',
+      'A hardcoded 560x315 autoplaying YouTube embed that breaks on mobile, legacy 2016 to 2017 product photography beside the new 2025 shots, a leftover copy-of-strength-charm-pendant URL and unfinished copy on product pages',
+    ],
+    opportunities: [
+      'Make the twelve symbols the whole interface, so the catalogue reads as one language instead of a product list',
+      'Unify the marketing site and the shop into a single storefront with one canonical brand name',
+      'Lead with the maker and the craft, which the current About page omits entirely',
+    ],
+  },
+  positioning:
+    'Alrún owns something most jewelry brands never get: a complete, trademarked visual alphabet of twelve bindrunes, already carried across silver, gold plate and Icelandic wool. Today that language is split across a dated marketing site and a separate Shopify store, with an implausible 1999 copyright and 2016-era photos sitting beside strong 2025 studio work. The redesign treats the twelve marks as a type specimen, a bone and ink alphabet chart where choosing a symbol reveals its meaning and the real pieces that carry it, with every price and link going to their own shop.',
+  outreach: {
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Alrúnu',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og vörumerki.
+
+Ég kynnti mér Alrúnu og fannst táknin sjálf vera það sterkasta sem þið eigið, tólf bindrúnir sem ganga í gegnum allt sem þið gerið, bæði skartið og ullina. Í dag skiptist vefurinn hins vegar í tvennt, kynningarsíðu og sérstaka vefverslun með ólíku útliti og jafnvel ólíku nafni, og táknin fá hvergi að vera aðalatriðið.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Hún notar ykkar eigin tákn og myndir, og verðin koma beint úr vefversluninni ykkar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Að setja táknin tólf fram eins og stafróf, þar sem hægt er að velja tákn og sjá strax merkingu þess og þá gripi sem bera það, og að allt liggi saman á einum stað í stað þess að skiptast á tvo vefi. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+
+PREVIEW_COMPANIES.push(ALRUN)
+
+const SKALAKOT: PreviewCompany = {
+  slug: 'skalakot',
+  route: '/preview/skalakot',
+  name: 'Skálakot Manor Hotel',
+  sector: 'Sveitahótel & hrossabú',
+  location: 'Skálakoti, 861 Hvolsvöllur',
+  region: 'South',
+  established: 'Fjölskyldujörð í sjö kynslóðir, Mummi og Jóhanna tóku við 1985',
+  currentUrl: 'https://skalakot.is',
+  ownerEmail: 'info@skalakot.is',
+  concept: 'Sjöunda kynslóðin',
+  conceptTagline:
+    'The seventh generation on one farm is the signature: a horizontal manor-and-horses journey where the family story, the rooms and the spa travel past under a sky that shifts from dawn to dusk. Exact reuse of the Búðir system (see budir-design-system) on Skálakot’s own material.',
+  accent: '#A8802F',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://skalakot.is/wp-content/uploads/2026/01/Wedding-couples-skalakot-6.jpg',
+  photoCredit: 'Allar myndir eru af vef hótelsins sjálfs (skalakot.is), þeirra eigin myndatökur.',
+  audit: {
+    strengths: [
+      'A genuinely rare asset: a seventh-generation family farm with a boutique manor hotel, homebred Icelandic horses, a spa and fine dining, told in the family’s own words on their site',
+      'Strong live reputation: TripAdvisor #1 of 26 in Hvolsvöllur (4/5, 123 reviews), Booking.com 9.3/300 reviews, guests staying as recently as June 2026',
+      'Professional photography exists at up to 4720px on their own CDN, including a full 2026 wedding shoot',
+    ],
+    weaknesses: [
+      'WordPress + Elementor on the dated free Septera theme: 2019-era uploads, "Best of Iceland 2019" badges still up, duplicated nav markup and a malformed menu URL',
+      'No prices anywhere, booking punted to an external godo.is engine, images served at 455-1024px though larger originals exist, no alt text',
+      'The seven-generations story, their single best asset, is buried on a text-thin family-farm page; only 3 room interiors shown for 14 rooms',
+    ],
+    opportunities: [
+      'Make the seventh generation the whole story: a scroll-told family timeline instead of a buried paragraph',
+      'Serve their own photography at full size and give the manor, horses and spa real editorial scale',
+      'Honest room categories with every path leading to their own booking engine',
+    ],
+  },
+  positioning:
+    'Skálakot is a seventh-generation family farm under the mountains of South Iceland that has grown into a manor hotel with homebred horses, a spa and a fine-dining restaurant. All of that is trapped in a dated free WordPress theme with 2019 badges, small photos and no story. The redesign reuses the proven Búðir system: a pinned horizontal journey through the farm, mix-blend headings over their own photography, and the family timeline (seven generations, 1985, today) as the signature moment, with every path leading to their own booking engine.',
+  outreach: {
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Skálakot',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður fyrir íslensk hótel og ferðaþjónustu.
+
+Ég kynnti mér Skálakot og sagan ykkar heillaði mig, sjö kynslóðir á sömu jörð, hrossarækt og gestrisni undir fjöllunum. Mér fannst núverandi vefur ekki ná að segja þessa sögu, myndirnar birtast litlar, sagan er falin í stuttri málsgrein og útlitið er farið að eldast í samanburði við upplifunina sem þið bjóðið.
+
+Því settist ég niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekkert og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Hugmyndin er einföld. Sagan um kynslóðirnar sjö er hjarta vefsins, myndirnar ykkar fá að njóta sín í fullri stærð og allar leiðir liggja í bókunarkerfið ykkar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+
+PREVIEW_COMPANIES.push(SKALAKOT)

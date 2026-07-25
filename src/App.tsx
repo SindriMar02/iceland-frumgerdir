@@ -144,6 +144,10 @@ const IssiPage = lazy(() => import('./preview/issi/Page'))
 // Húnabúð — Blönduós café/flower/gift shop, "Þrennt undir einu þaki" concept
 const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const BudirPage = lazy(() => import('./preview/budir/Page'))
+const SjavarborgPage = lazy(() => import('./preview/sjavarborg/Page'))
+const BragdavellirPage = lazy(() => import('./preview/bragdavellir/Page'))
+const AlrunPage = lazy(() => import('./preview/alrun/Page'))
+const SkalakotPage = lazy(() => import('./preview/skalakot/Page'))
 const KidkaPage = lazy(() => import('./preview/kidka/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
@@ -280,6 +284,10 @@ export default function App() {
             <Route path="/preview/issi" element={<IssiPage />} />
             <Route path="/preview/hunabud" element={<HunabudPage />} />
             <Route path="/preview/budir" element={<BudirPage />} />
+            <Route path="/preview/sjavarborg" element={<SjavarborgPage />} />
+            <Route path="/preview/bragdavellir" element={<BragdavellirPage />} />
+            <Route path="/preview/alrun" element={<AlrunPage />} />
+            <Route path="/preview/skalakot" element={<SkalakotPage />} />
             <Route path="/preview/kidka" element={<KidkaPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the

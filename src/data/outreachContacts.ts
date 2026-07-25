@@ -41,7 +41,8 @@ const PREVIEW = 'https://sindrimar02.github.io/iceland-frumgerdir/preview'
 
 const SIGN = `Bestu kveðjur,
 Sindri Már
-845 1758`
+845 1758
+sndr-studio.pages.dev`
 
 const SIGN_SHORT = `Bestu kveðjur,
 Sindri Már`
