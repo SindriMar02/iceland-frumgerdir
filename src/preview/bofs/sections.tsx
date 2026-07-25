@@ -112,7 +112,7 @@ export function StatsBand() {
             </Reveal>
           ))}
         </div>
-        <p className="mt-8 text-center text-[13px]" style={{ color: C.body, opacity: 0.75 }}>
+        <p className="mt-8 text-center text-[13px]" style={{ color: C.body }}>
           {pick(STATS.source)}
         </p>
       </div>
@@ -531,7 +531,7 @@ export function NewsBand() {
             <p className="bofs-pretty mt-4 max-w-md text-[16.5px] leading-relaxed" style={{ color: C.body }}>
               {pick(NEWS.lead)}
             </p>
-            <p className="mt-3 text-[13px]" style={{ color: C.body, opacity: 0.75 }}>
+            <p className="mt-3 text-[13px]" style={{ color: C.body }}>
               {pick(NEWS.updated)}
             </p>
             <div className="mt-7">

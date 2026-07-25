@@ -215,7 +215,7 @@ export default function BofsCentre() {
                   className="bofs-focus mt-4 flex items-center gap-3 rounded-[18px] p-5 transition-transform hover:-translate-y-1"
                   style={{ background: C.deep, color: C.deepText }}
                 >
-                  <span className="bofs-display grid h-12 w-16 shrink-0 place-items-center rounded-xl text-[20px]" style={{ background: 'rgba(255,255,255,.1)', color: C.sun }}>
+                  <span className="bofs-display bofs-num grid h-12 w-16 shrink-0 place-items-center rounded-xl text-[20px]" style={{ background: 'rgba(255,255,255,.1)', color: C.sunOnPanel }}>
                     {HELP.lines[1].value}
                   </span>
                   <span>

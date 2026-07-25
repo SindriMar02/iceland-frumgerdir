@@ -203,7 +203,7 @@ export default function BofsUmStofnunina() {
                 </p>
               </div>
               <div className="flex flex-col justify-center rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
-                <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.sun }}>
+                <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.sunOnDeep }}>
                   {pick(ORG.motto)}
                 </span>
                 <p className="mt-3 text-[16px] leading-relaxed" style={{ color: 'rgba(246,232,213,.85)' }}>

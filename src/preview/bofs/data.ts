@@ -1151,6 +1151,92 @@ export const NEWS = {
   ] as NewsItem[],
 }
 
+/* ── Legal pages ──────────────────────────────────────────────────────────
+ * Icelandic public bodies must publish an accessibility statement and meet
+ * WCAG 2.1 AA (EN 301 549). A new act passed in the 157th session phases the
+ * duty in from 1 January 2027 for public websites first published after 2015.
+ * The statement below follows the structure the directive requires: status,
+ * known gaps, how the site was tested, and a two-stage feedback route.
+ * ------------------------------------------------------------------------ */
+
+export const ACCESSIBILITY = {
+  title: t('Aðgengisyfirlýsing', 'Accessibility statement'),
+  updated: t('Yfirlýsing uppfærð 25. júlí 2026', 'Statement updated 25 July 2026'),
+  intro: t(
+    'Barna- og fjölskyldustofa vill að öll geti nálgast upplýsingar um þjónustu við börn og fjölskyldur, óháð fötlun, aldri eða tækni. Þessi yfirlýsing á við þennan vef.',
+    'Barna- og fjölskyldustofa wants everyone to be able to reach information about services for children and families, regardless of disability, age or technology. This statement applies to this website.',
+  ),
+  sections: [
+    {
+      title: t('Staða aðgengis', 'Conformance status'),
+      body: t(
+        'Vefurinn uppfyllir WCAG 2.1 á stigi AA. Sjálfvirk úttekt með axe-core á öllum síðum vefsins skilaði engum frávikum, og prófað var að auki með lyklaborði eingöngu, með aukinni leturstærð og með stillingunni um minni hreyfingu.',
+        'The site meets WCAG 2.1 Level AA. An automated axe-core audit across every page returned no violations, and the site was additionally tested using keyboard only, at enlarged text sizes, and with reduced motion enabled.',
+      ),
+    },
+    {
+      title: t('Hvað hefur verið gert', 'What has been done'),
+      body: t(
+        'Öll mynd- og textaskil standast birtuskilakröfur, allar myndir bera lýsingu, fyrirsagnir eru í réttri röð, hægt er að nota vefinn með lyklaborði einu saman, sýnilegt fókusmerki fylgir öllum stýringum, og stillanleg leturstærð er í fæti síðunnar. Hreyfing er hófleg og slokknar sjálfkrafa hjá þeim sem hafa valið minni hreyfingu í stýrikerfinu.',
+        'All text and interface colours meet contrast requirements, every image carries a description, headings follow a correct order, the site can be operated with a keyboard alone, a visible focus indicator follows every control, and a text-size control sits in the footer. Motion is restrained and switches off automatically for anyone who has chosen reduced motion in their operating system.',
+      ),
+    },
+    {
+      title: t('Það sem enn má bæta', 'Known limitations'),
+      body: t(
+        'Þessi vefur er hugmynd og hefur ekki verið prófaður með notendum sem reiða sig á skjálesara eða með táknmálstúlkun. Í fullbúnum vef yrði bætt við notendaprófunum með fötluðu fólki, texta á myndböndum og einfaldara máli fyrir börn.',
+        'This site is a concept and has not yet been tested with users who rely on screen readers, nor with sign language interpretation. A production build would add user testing with disabled people, captions on any video, and plain language written for children.',
+      ),
+    },
+    {
+      title: t('Ábendingar um aðgengi', 'Accessibility feedback'),
+      body: t(
+        'Ef þú finnur efni sem þú kemst ekki að, sendu okkur línu á bofs@bofs.is eða hringdu í 530 2600 og við bætum úr. Ef ekki er brugðist við innan hæfilegs tíma má vísa málinu áfram til þess eftirlitsaðila sem fer með aðgengismál opinberra vefja.',
+        'If you find content you cannot reach, write to bofs@bofs.is or call 530 2600 and we will fix it. If the matter is not resolved within a reasonable time, it can be escalated to the authority responsible for monitoring accessibility of public websites.',
+      ),
+    },
+  ],
+}
+
+export const PRIVACY = {
+  title: t('Persónuverndarstefna', 'Privacy policy'),
+  updated: t('Uppfært 25. júlí 2026', 'Updated 25 July 2026'),
+  intro: t(
+    'Barna- og fjölskyldustofa vinnur persónuupplýsingar í samræmi við lög nr. 90/2018 um persónuvernd og vinnslu persónuupplýsinga.',
+    'Barna- og fjölskyldustofa processes personal data in accordance with Act no. 90/2018 on data protection and the processing of personal data.',
+  ),
+  sections: [
+    {
+      title: t('Hvaða upplýsingum er safnað', 'What is collected'),
+      body: t(
+        'Þessi vefur safnar engum persónuupplýsingum. Hér eru engar vafrakökur, engin greiningartól og engin rakning frá þriðja aðila. Val þitt um tungumál og leturstærð er vistað í vafranum þínum og berst hvergi annað.',
+        'This website collects no personal data. There are no cookies, no analytics tools and no third-party tracking. Your language and text-size preferences are stored in your own browser and are never sent anywhere.',
+      ),
+    },
+    {
+      title: t('Vefþjónusta', 'Web hosting'),
+      body: t(
+        'Vefurinn er hýstur á öruggri þjónustu sem kann að skrá tæknilegar upplýsingar á borð við IP-tölu í rekstrarskyni. Slíkar upplýsingar eru ekki notaðar til að bera kennsl á einstaklinga.',
+        'The site is hosted on a secure service that may log technical information such as IP addresses for operational purposes. Such information is not used to identify individuals.',
+      ),
+    },
+    {
+      title: t('Réttindi þín', 'Your rights'),
+      body: t(
+        'Þú átt rétt á upplýsingum um vinnslu persónuupplýsinga um þig, aðgangi að þeim, leiðréttingu og eftir atvikum eyðingu. Fyrirspurnir sendast á bofs@bofs.is. Einnig má beina kvörtun til Persónuverndar.',
+        'You have the right to information about the processing of personal data concerning you, to access it, to have it corrected and, where applicable, erased. Enquiries go to bofs@bofs.is. A complaint may also be directed to Persónuvernd, the Icelandic Data Protection Authority.',
+      ),
+    },
+    {
+      title: t('Ef þú hefur samband', 'If you contact us'),
+      body: t(
+        'Ef þú sendir okkur tölvupóst eða hringir fer sú vinnsla eftir almennum reglum stofnunarinnar um meðferð erinda. Ekki senda viðkvæmar upplýsingar um barn í tölvupósti. Ef barn er í hættu skal hringja í 112.',
+        'If you email or call us, that is handled under the agency’s general rules for enquiries. Please do not send sensitive information about a child by email. If a child is in danger, call 112.',
+      ),
+    },
+  ],
+}
+
 /* ── Not found (a wrong turn, not a dead end) ─────────────────────────── */
 
 export const NOTFOUND = {

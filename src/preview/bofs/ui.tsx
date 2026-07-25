@@ -30,6 +30,11 @@ export const C = {
   rose: '#C06C7C', // rose as text (AA)
   deep: '#4A3123', // deep cocoa band ground
   deepText: '#F6E8D5', // text on deep band
+  // Gold for SMALL text on deep grounds. C.sun (#E1962F) is only 4.9:1 on
+  // C.deep and 3.6:1 over a translucent white panel, so it fails WCAG AA at
+  // body size; these are measured replacements (6.6:1 and 5.3:1).
+  sunOnDeep: '#F2B65E',
+  sunOnPanel: '#F5C173',
 }
 
 /* ── fonts ────────────────────────────────────────────────────────────── */
@@ -590,6 +595,8 @@ export function Footer() {
                 { label: pick({ is: 'Fréttir', en: 'News' }), to: '/preview/bofs/frettir' },
                 { label: pick(UI.nav.report), to: '/preview/bofs#tilkynna' },
                 { label: pick(UI.nav.help), to: '/preview/bofs#help' },
+                { label: pick({ is: 'Aðgengi', en: 'Accessibility' }), to: '/preview/bofs/adgengi' },
+                { label: pick({ is: 'Persónuvernd', en: 'Privacy' }), to: '/preview/bofs/personuvernd' },
               ].map((l) => (
                 <li key={l.to}>
                   <Link to={l.to} className="bofs-focus rounded transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.85)' }}>
@@ -636,7 +643,7 @@ export function Footer() {
         <div className="mt-6 flex flex-col gap-3 border-t pt-6 text-[13px] sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'rgba(246,232,213,.16)', color: 'rgba(246,232,213,.6)' }}>
           <p>
             {pick(UI.conceptBadge)}
-            <span className="mt-1 block opacity-80">
+            <span className="mt-1 block" style={{ color: 'rgba(246,232,213,.75)' }}>
               {pick({
                 is: 'Merki og nafn Barna- og fjölskyldustofu eru eign stofnunarinnar.',
                 en: 'The Barna- og fjölskyldustofa emblem and name are property of the agency.',
