@@ -13,7 +13,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 import { Reveal } from '../../components/Reveal'
 import { setThemeColor } from '../../lib/preview'
 import { BofsStyles, Button, C, Eyebrow, Footer, Header, SectionHead, ServiceCard, useLang, Arrow } from './ui'
-import { ValleyScene, ValueIcon, WaveDivider, HillDivider } from './illustrations'
+import { ValueIcon, WaveDivider, HillDivider } from './illustrations'
 import { GALLERY, HERO, HONEST, PATH, SERVICES, UI, VALUES, CATEGORIES } from './data'
 import { Img } from '../../components/Img'
 import { asset } from './ui'
@@ -40,7 +40,8 @@ export default function BofsPage() {
   }, [])
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  const valleyY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 120])
+  // the painting is scaled 110%, so 70px of drift never exposes an edge
+  const valleyY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 70])
   const contentY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -60])
   const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
 
@@ -57,10 +58,22 @@ export default function BofsPage() {
 
       <main id="main">
         {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <section ref={heroRef} className="relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden">
+        <section ref={heroRef} className="relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
           <motion.div style={{ y: valleyY, willChange: 'transform' }} className="pointer-events-none absolute inset-0 -z-10">
-            <ValleyScene className="absolute inset-x-0 bottom-0 h-full w-full" />
-            <div className="absolute inset-x-0 top-0 h-1/2" style={{ background: `linear-gradient(${C.cream}, rgba(251,243,231,0))` }} />
+            {/* the painted valley: gouache wash, eager-loaded, parallax only */}
+            <Img
+              src={asset('art-dawn.jpg')}
+              alt=""
+              aria-hidden
+              loading="eager"
+              fetchpriority="high"
+              className="h-full w-full scale-110 object-cover object-[62%_60%]"
+              fallbackClassName="bg-gradient-to-b from-[#F8EAD8] via-[#EFE5D2] to-[#CFD7C4]"
+            />
+            {/* legibility veils: cream for the type block, cream fade into the next band */}
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(251,243,231,.95) 0%, rgba(251,243,231,.84) 30%, rgba(251,243,231,.38) 56%, rgba(251,243,231,0) 78%)' }} />
+            <div className="absolute inset-x-0 top-0 h-24" style={{ background: 'linear-gradient(rgba(251,243,231,.8), rgba(251,243,231,0))' }} />
+            <div className="absolute inset-x-0 bottom-0 h-32" style={{ background: `linear-gradient(rgba(251,243,231,0), ${C.cream})` }} />
           </motion.div>
 
           <motion.div style={{ y: contentY, opacity: contentOpacity, willChange: 'transform, opacity' }} className="mx-auto w-full max-w-6xl px-5 pb-40 pt-28 sm:px-8">

@@ -11,7 +11,7 @@ import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
-import { HomeArt, ValleyScene, WaveDivider } from './illustrations'
+import { HomeArt, WaveDivider } from './illustrations'
 import { JourneyStrip, FosterSteps, NotFoundPage } from './sections'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
 
@@ -213,7 +213,6 @@ export default function BofsCentre() {
 
         {/* ── NEXT + BACK ──────────────────────────────────────────────── */}
         <section className="relative overflow-hidden" style={{ background: next.hueSoft }}>
-          <ValleyScene ambient={false} className="absolute inset-x-0 bottom-0 h-40 w-full opacity-40" />
           <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-6 px-5 py-16 sm:px-8 md:flex-row md:items-center md:justify-between">
             <div>
               <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.body }}>

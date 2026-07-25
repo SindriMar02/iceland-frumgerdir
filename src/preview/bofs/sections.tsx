@@ -12,7 +12,6 @@ import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { asset, Arrow, BofsStyles, Button, C, Eyebrow, Footer, Handwritten, Header, SectionHead, StatCountUp, useLang } from './ui'
-import { ValleyScene, ArchNotchDivider } from './illustrations'
 import {
   ABOUT_TEASER,
   CLOSING,
@@ -462,13 +461,20 @@ export function DuskBookend() {
   const [, , pick] = useLang()
   return (
     <section className="relative overflow-hidden" style={{ background: C.deep }}>
-      <ArchNotchDivider color={C.deep} className="block h-10 w-full" flip />
-      <ValleyScene palette="dusk" className="absolute inset-x-0 bottom-0 h-[78%] w-full" />
-      <div className="relative mx-auto max-w-4xl px-5 pb-40 pt-20 text-center sm:px-8">
+      {/* the same painted valley at dusk; darkening veil settles into the footer */}
+      <Img
+        src={asset('art-dusk.jpg')}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 h-full w-full object-cover object-[50%_42%]"
+        fallbackClassName="bg-gradient-to-b from-[#55402E] to-[#4A3123]"
+      />
+      <div className="absolute inset-0" style={{ background: `linear-gradient(rgba(58,44,34,.34), rgba(58,44,34,.55) 62%, ${C.deep} 98%)` }} />
+      <div className="relative mx-auto max-w-4xl px-5 pb-44 pt-28 text-center sm:px-8">
         <Handwritten className="text-[28px]" style={{ color: C.sun }}>
           {pick({ is: 'ljósin loga alltaf', en: 'the lights stay on' })}
         </Handwritten>
-        <p className="bofs-display bofs-balance mx-auto mt-2 max-w-2xl text-[clamp(22px,3.4vw,34px)]" style={{ color: C.deepText }}>
+        <p className="bofs-display bofs-balance mx-auto mt-2 max-w-2xl text-[clamp(22px,3.4vw,34px)]" style={{ color: '#FDF3E3', textShadow: '0 1px 24px rgba(40,28,18,.45)' }}>
           {pick({ is: 'Hvað sem á dynur, þá logar alltaf ljós í einhverjum glugga.', en: 'Whatever the day brings, a light always stays on in some window.' })}
         </p>
       </div>
@@ -492,10 +498,16 @@ export function NotFoundPage() {
       <BofsStyles />
       <Header />
       <main id="main">
-        <section className="relative isolate flex min-h-[86svh] flex-col justify-center overflow-hidden">
+        <section className="relative isolate flex min-h-[86svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
           <div className="pointer-events-none absolute inset-0 -z-10">
-            <ValleyScene className="absolute inset-x-0 bottom-0 h-full w-full" />
-            <div className="absolute inset-x-0 top-0 h-2/3" style={{ background: `linear-gradient(${C.cream} 30%, rgba(251,243,231,0))` }} />
+            <Img
+              src={asset('art-dawn.jpg')}
+              alt=""
+              aria-hidden
+              className="h-full w-full object-cover object-[62%_60%]"
+              fallbackClassName="bg-gradient-to-b from-[#F8EAD8] to-[#CFD7C4]"
+            />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(251,243,231,.96) 0%, rgba(251,243,231,.9) 40%, rgba(251,243,231,.55) 70%, rgba(251,243,231,.3) 100%)' }} />
           </div>
 
           <div className="mx-auto w-full max-w-3xl px-5 pb-32 pt-32 sm:px-8">
