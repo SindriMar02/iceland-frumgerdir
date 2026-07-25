@@ -49,7 +49,7 @@ export default function BofsFrettir() {
               <p className="bofs-pretty mt-5 max-w-2xl text-[17px] leading-relaxed" style={{ color: C.body }}>
                 {pick(NEWS.lead)}
               </p>
-              <p className="mt-3 text-[13px]" style={{ color: C.body, opacity: 0.75 }}>
+              <p className="mt-3 text-[13px]" style={{ color: C.body }}>
                 {pick(NEWS.updated)}
               </p>
             </Reveal>
