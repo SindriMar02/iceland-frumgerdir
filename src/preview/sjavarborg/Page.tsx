@@ -781,13 +781,23 @@ export default function Page() {
         gsap.ticker.add(tick)
         gsap.ticker.lagSmoothing(0)
 
-        /* Hero: wordmark chars rise, furniture fades up. */
-        gsap.from(q('.sb-hero-char'), {
-          yPercent: 120, duration: 1.2, ease: 'power3.out', stagger: 0.05, delay: 0.15,
-        })
-        gsap.from(q('.sb-hero-fade'), {
-          opacity: 0, y: 22, duration: 0.9, ease: 'power3.out', stagger: 0.1, delay: 0.55,
-        })
+        /* Hero: the wordmark chars rise and the furniture fades up, but both
+           animate TOWARD the resting state. gsap.from() writes the hidden
+           start as an inline style, so a renderer that captures before the
+           tween advances (screenshot service, crawler, link preview, paused
+           rAF) is left with a photo and no text. */
+        const heroChars = q('.sb-hero-char')
+        const heroFades = q('.sb-hero-fade')
+        gsap.fromTo(heroChars, { yPercent: 120 },
+          { yPercent: 0, duration: 1.2, ease: 'power3.out', stagger: 0.05, delay: 0.15 })
+        gsap.fromTo(heroFades, { opacity: 0, y: 22 },
+          { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.1, delay: 0.55 })
+        const heroFailsafe = window.setTimeout(() => {
+          gsap.set(heroChars, { yPercent: 0 })
+          heroFades.forEach((el) => {
+            if (parseFloat(window.getComputedStyle(el).opacity) < 0.9) gsap.set(el, { opacity: 1, y: 0 })
+          })
+        }, 2200)
         /* Hero parallax drift. */
         const heroImg = q('.sb-hero-img')[0]
         if (heroImg) {
@@ -896,6 +906,7 @@ export default function Page() {
         })).then(() => ScrollTrigger.refresh())
 
         return () => {
+          window.clearTimeout(heroFailsafe)
           gsap.ticker.remove(tick)
           lenis.destroy()
           splits.forEach((sp) => sp.revert())

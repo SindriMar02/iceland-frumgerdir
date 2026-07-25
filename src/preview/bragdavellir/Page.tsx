@@ -574,7 +574,17 @@ export default function Page() {
       gsap.ticker.add(tick)
       gsap.ticker.lagSmoothing(0)
 
-      gsap.from(q('.bv-hero-line'), { opacity: 0, y: 22, duration: 1, ease: 'power3.out', stagger: 0.12, delay: 0.2 })
+      /* Toward the resting state, never away from it — see the note in the
+         other builds: gsap.from() leaves the lockup invisible to any renderer
+         that captures before the tween advances. */
+      const heroLines = q('.bv-hero-line')
+      gsap.fromTo(heroLines, { opacity: 0, y: 22 },
+        { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.12, delay: 0.2 })
+      const heroFailsafe = window.setTimeout(() => {
+        heroLines.forEach((el) => {
+          if (parseFloat(window.getComputedStyle(el).opacity) < 0.9) gsap.set(el, { opacity: 1, y: 0 })
+        })
+      }, 2200)
       const heroImg = q('.bv-hero-img')[0]
       if (heroImg) {
         gsap.fromTo(heroImg, { yPercent: -4, scale: 1.08 }, {
@@ -594,6 +604,7 @@ export default function Page() {
       }, 1800)
       return () => {
         window.clearTimeout(failsafe)
+        window.clearTimeout(heroFailsafe)
         gsap.ticker.remove(tick)
         lenis.destroy()
       }
