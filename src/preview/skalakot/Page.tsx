@@ -1418,10 +1418,10 @@ export default function Page() {
            counter y). Default is time-based on entry; a few hero-moment
            photos ride a scrub instead (their cierre pattern). */
         const peel = (frame: HTMLElement, tlVars: gsap.TimelineVars) => {
-          const dir = (frame.dataset.buFlip ?? 'up') as 'up' | 'left' | 'right'
+          const dir = (frame.dataset.skFlip ?? 'up') as 'up' | 'left' | 'right'
           const up = frame.querySelector('.sk-media-up')
           const src = frame.querySelector('.sk-media-source')
-          const isParallax = frame.dataset.buParallax === '1'
+          const isParallax = frame.dataset.skParallax === '1'
           if (!up || !src) return
           const tl = gsap.timeline(tlVars)
           if (dir === 'up') {
@@ -1440,7 +1440,7 @@ export default function Page() {
         q('[data-sk-flip]').forEach((el) => {
           const frame = el as HTMLElement
           if (frame.classList.contains('sk-hero-frame')) return
-          const scrubbed = frame.dataset.buScrub === '1'
+          const scrubbed = frame.dataset.skScrub === '1'
           peel(frame, {
             scrollTrigger: scrubbed
               ? trig(frame, 'top 88%', 'left 88%', {
