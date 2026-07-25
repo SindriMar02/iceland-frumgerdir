@@ -4140,14 +4140,14 @@ const SKALAKOT: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk hótel og ferðaþjónustu.
 
-Ég kynnti mér Skálakot og sagan ykkar heillaði mig, sjö kynslóðir á sömu jörð, hrossarækt og gestrisni undir fjöllunum. Mér fannst núverandi vefur ekki ná að segja þessa sögu, myndirnar birtast litlar, sagan er falin í stuttri málsgrein og útlitið er farið að eldast í samanburði við upplifunina sem þið bjóðið.
+Ég kynnti mér Skálakot og heillaðist af sögunni ykkar. Sjö kynslóðir á sömu jörð, hrossaræktin og gestrisnin sem þið byggið á. Mér fannst vefurinn ykkar samt ekki ná að segja þessa sögu. Hún er falin í stuttri málsgrein, myndirnar ykkar birtast litlar þótt til séu miklu stærri útgáfur af þeim, og verð sjást hvergi.
 
-Því settist ég niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekkert og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Sagan um kynslóðirnar sjö er hjarta vefsins, myndirnar ykkar fá að njóta sín í fullri stærð og allar leiðir liggja í bókunarkerfið ykkar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Að sagan um kynslóðirnar sjö sé hjarta vefsins, að myndirnar ykkar fái að njóta sín í fullri stærð og að allar leiðir liggi í bókunarkerfið ykkar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 
