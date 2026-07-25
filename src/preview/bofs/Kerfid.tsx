@@ -92,7 +92,7 @@ export default function BofsKerfid() {
                         >
                           {i + 1}
                         </span>
-                        <div className="flex-1 rounded-[24px] p-6" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+                        <div className="flex-1 rounded-[18px] p-6" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                           <h3 className="bofs-display bofs-display-sm bofs-balance text-[21px]">{pick(st.title)}</h3>
                           <p className="mt-2 text-[15.5px] leading-relaxed" style={{ color: C.body }}>
                             {pick(st.body)}
@@ -118,7 +118,7 @@ export default function BofsKerfid() {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {KERFID.rights.items.map((r, i) => (
                 <Reveal key={i} delay={(i % 3) * 0.06}>
-                  <div className="flex h-full flex-col rounded-[22px] p-6" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+                  <div className="flex h-full flex-col rounded-[18px] p-6" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                     <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-[12px] font-bold" style={{ background: C.cream2, color: C.clayText }}>
                       <span className="h-4 w-4 rounded-[3px]" style={{ background: '#FFE6AE', boxShadow: 'inset 0 0 0 1px rgba(224,169,79,.5)' }} />
                       {pick(r.article)}
@@ -141,7 +141,7 @@ export default function BofsKerfid() {
             <div className="mx-auto mt-12 max-w-4xl space-y-4">
               {KERFID.laws.items.map((law, i) => (
                 <Reveal key={i} delay={i * 0.06}>
-                  <div className="rounded-[24px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+                  <div className="rounded-[18px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                     <h3 className="bofs-display bofs-display-sm text-[20px]">{pick(law.name)}</h3>
                     <p className="mt-2 text-[15.5px] leading-relaxed" style={{ color: C.body }}>
                       {pick(law.body)}

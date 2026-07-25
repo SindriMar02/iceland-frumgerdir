@@ -117,7 +117,7 @@ export function BofsStyles() {
       .bofs-statement { font-family:${DISPLAY}; color:${C.cocoa}; font-size:clamp(24px,3.6vw,38px); line-height:1.16; letter-spacing:-0.02em; font-variation-settings:'opsz' 64; }
       .bofs-num { font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; }
       .bofs-root a { color:inherit; }
-      .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:14px; }
+      .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:10px; }
       .bofs-root .no-scrollbar { scrollbar-width:none; -ms-overflow-style:none; }
       .bofs-root .no-scrollbar::-webkit-scrollbar { display:none; }
 
@@ -138,24 +138,13 @@ export function BofsStyles() {
         .bofs-lift:hover { transform:translateY(-3px); }
       }
 
-      @keyframes bofsDrift { from { transform:translateX(-16vw) } to { transform:translateX(116vw) } }
-      @keyframes bofsBreathe { 0%,100% { transform:scale(1); opacity:1 } 50% { transform:scale(1.05); opacity:.92 } }
-      @keyframes bofsTwinkle { 0%,100% { opacity:1 } 50% { opacity:.5 } }
-      @keyframes bofsSway { 0%,100% { transform:rotate(-2deg) } 50% { transform:rotate(2deg) } }
-      @keyframes bofsFly { 0% { transform:translate(0,0) } 50% { transform:translate(60px,-24px) } 100% { transform:translate(140px,10px) } }
-      @keyframes bofsBeat { 0%,100% { transform:scale(1) } 25% { transform:scale(1.08) } 40% { transform:scale(1) } }
-      @keyframes bofsFloat { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-9px) } }
-
-      .bofs-drift { animation:bofsDrift linear infinite; will-change:transform; }
-      .bofs-breathe { animation:bofsBreathe 7s ease-in-out infinite; will-change:transform; }
-      .bofs-twinkle { animation:bofsTwinkle 5.5s ease-in-out infinite; }
-      .bofs-sway { animation:bofsSway 8s ease-in-out infinite; }
-      .bofs-fly { animation:bofsFly 14s ease-in-out infinite; will-change:transform; }
-      .bofs-beat { animation:bofsBeat 4s ease-in-out infinite; }
-      .bofs-float { animation:bofsFloat 6s ease-in-out infinite; will-change:transform; }
-
+      /*
+       * NO LOOPING AMBIENT ANIMATION — professionalisation decision 2026-07-17.
+       * Drifting clouds, flying birds, breathing suns and twinkling windows
+       * read as a children's book; the register here is warm-institutional.
+       * All motion is either a one-shot entrance or user-triggered feedback.
+       */
       @media (prefers-reduced-motion: reduce) {
-        .bofs-drift,.bofs-breathe,.bofs-twinkle,.bofs-sway,.bofs-fly,.bofs-beat,.bofs-float { animation:none !important; }
         .bofs-faq { transition:none !important; }
       }
     `}</style>
@@ -183,8 +172,11 @@ export function Wordmark({ onDeep = false, compact = false }: { onDeep?: boolean
           Barna- og fjölskyldustofa
         </span>
         {!compact && (
-          <span className="mt-0.5 hidden sm:block" style={{ fontFamily: HAND, color: onDeep ? C.sun : C.clayText, fontSize: 16, lineHeight: 1 }}>
-            öruggt skjól
+          <span
+            className="mt-1 hidden text-[9.5px] font-bold uppercase sm:block"
+            style={{ color: onDeep ? C.sun : C.clayText, letterSpacing: '0.24em', lineHeight: 1 }}
+          >
+            Öruggt skjól
           </span>
         )}
       </span>
@@ -205,7 +197,7 @@ type BtnProps = {
 }
 
 const btnBase =
-  'bofs-focus inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[15px] font-semibold transition-all duration-300 will-change-transform hover:-translate-y-0.5'
+  'bofs-focus bofs-press inline-flex items-center justify-center gap-2 rounded-[13px] px-6 py-3 text-[15px] font-semibold transition-all duration-200 will-change-transform hover:-translate-y-0.5'
 
 function btnStyle(variant: BtnProps['variant']) {
   switch (variant) {
@@ -340,14 +332,14 @@ export function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
-        className="mx-auto mt-3 flex items-center justify-between gap-4 rounded-full px-3 py-2 pr-3 pl-4 transition-all duration-500 sm:mt-4"
+        className="mx-auto mt-3 flex items-center justify-between gap-4 rounded-2xl px-3 py-2 pr-3 pl-4 transition-all duration-500 sm:mt-4"
         style={{
           margin: '12px 12px 0',
           maxWidth: 'min(1180px, calc(100% - 24px))',
           marginLeft: 'auto',
           marginRight: 'auto',
-          background: scrolled ? 'rgba(251,243,231,.9)' : 'rgba(251,243,231,.35)',
-          boxShadow: scrolled ? `0 12px 34px -20px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}` : 'none',
+          background: scrolled ? 'rgba(251,243,231,.92)' : 'rgba(251,243,231,.35)',
+          boxShadow: scrolled ? `0 10px 30px -22px rgba(58,44,34,.45), inset 0 0 0 1px ${C.line}` : 'none',
           backdropFilter: scrolled ? 'blur(10px)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
@@ -360,7 +352,7 @@ export function Header() {
           <div className="relative" ref={servicesRef}>
             <button
               type="button"
-              className="bofs-focus flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
+              className="bofs-focus flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
               style={{ color: C.cocoa }}
               aria-haspopup="true"
               aria-expanded={services}
@@ -379,7 +371,7 @@ export function Header() {
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
                   transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
                   style={{ transformOrigin: 'top left', background: 'rgba(251,243,231,.97)', boxShadow: `0 26px 54px -26px rgba(58,44,34,.55), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
-                  className="absolute left-0 top-[calc(100%+10px)] grid w-[520px] grid-cols-2 gap-1 rounded-3xl p-3"
+                  className="absolute left-0 top-[calc(100%+10px)] grid w-[520px] grid-cols-2 gap-1 rounded-2xl p-3"
                 >
                   {[
                     { title: pick(CATEGORIES[0].title), list: homes },
@@ -417,7 +409,7 @@ export function Header() {
             <Link
               key={l.to}
               to={l.to}
-              className="bofs-focus rounded-full px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
+              className="bofs-focus rounded-lg px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
               style={{ color: C.cocoa, background: isActive(l.to) ? 'rgba(255,255,255,.6)' : undefined }}
             >
               {l.label}
@@ -428,7 +420,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <a
             href="tel:112"
-            className="bofs-focus bofs-press hidden items-center gap-1.5 rounded-full px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
+            className="bofs-focus bofs-press hidden items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
             style={{ background: '#A83A24', color: '#fff' }}
           >
             <PhoneGlyph /> {pick(UI.emergencyChip)}
@@ -438,7 +430,7 @@ export function Header() {
           </span>
           <button
             type="button"
-            className="bofs-focus grid h-10 w-10 place-items-center rounded-full xl:hidden"
+            className="bofs-focus grid h-10 w-10 place-items-center rounded-xl xl:hidden"
             style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
             aria-label="Menu"
             aria-expanded={open}
@@ -459,7 +451,7 @@ export function Header() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="mx-3 mt-2 max-h-[80vh] overflow-y-auto rounded-3xl p-3 xl:hidden"
+            className="mx-3 mt-2 max-h-[80vh] overflow-y-auto rounded-2xl p-3 xl:hidden"
             style={{ background: 'rgba(251,243,231,.97)', boxShadow: `0 24px 48px -24px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
           >
             <MobileGroup label={pick({ is: 'Síður', en: 'Pages' })}>
@@ -707,16 +699,11 @@ export function ServiceCard({ service, index = 0 }: { service: Service; index?: 
     <Reveal delay={(index % 3) * 0.08} y={26}>
       <Link
         to={`/preview/bofs/${service.slug}`}
-        className="bofs-focus group relative flex h-full flex-col overflow-hidden rounded-[28px] p-6 transition-all duration-500 hover:-translate-y-1.5"
-        style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 30px 54px -42px rgba(58,44,34,.55)` }}
+        className="bofs-focus bofs-lift group relative flex h-full flex-col overflow-hidden rounded-[18px] p-6"
+        style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 24px 44px -38px rgba(58,44,34,.5)` }}
       >
-        <span
-          className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full opacity-70 transition-transform duration-500 group-hover:scale-125"
-          style={{ background: service.hueSoft }}
-        />
-        <HomeArt art={service.art} hue={service.hue} hueSoft={service.hueSoft} className="relative h-[92px] w-[92px] drop-shadow-sm" />
-        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold" style={{ background: service.hueSoft, color: C.cocoa }}>
-          <span className="h-2 w-2 rounded-full" style={{ background: service.hue }} />
+        <HomeArt art={service.art} hue={service.hue} hueSoft={service.hueSoft} className="h-[64px] w-[64px]" />
+        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-bold" style={{ background: service.hueSoft, color: C.cocoa }}>
           {pick(service.kind)}
         </span>
         <h3 className="bofs-display bofs-display-sm mt-3 text-[23px]">{service.name}</h3>

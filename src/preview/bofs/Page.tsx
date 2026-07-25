@@ -12,7 +12,7 @@ import { useEffect, useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { Reveal } from '../../components/Reveal'
 import { setThemeColor } from '../../lib/preview'
-import { BofsStyles, Button, C, Eyebrow, Footer, Handwritten, Header, SectionHead, ServiceCard, useLang, Arrow } from './ui'
+import { BofsStyles, Button, C, Eyebrow, Footer, Header, SectionHead, ServiceCard, useLang, Arrow } from './ui'
 import { ValleyScene, ValueIcon, WaveDivider, HillDivider } from './illustrations'
 import { GALLERY, HERO, HONEST, PATH, SERVICES, UI, VALUES, CATEGORIES } from './data'
 import { Img } from '../../components/Img'
@@ -66,9 +66,7 @@ export default function BofsPage() {
           <motion.div style={{ y: contentY, opacity: contentOpacity, willChange: 'transform, opacity' }} className="mx-auto w-full max-w-6xl px-5 pb-40 pt-28 sm:px-8">
             <div className="max-w-2xl">
               <Reveal y={16}>
-                <Handwritten className="text-[26px] leading-none" style={{ color: C.clayText }} delay={0.15}>
-                  {pick({ is: 'velkomin', en: 'welcome' })}
-                </Handwritten>
+                <Eyebrow>{pick(HERO.kicker)}</Eyebrow>
               </Reveal>
               <Reveal delay={0.06}>
                 <h1 className="bofs-display bofs-display-xl bofs-balance mt-1 text-[clamp(40px,8vw,76px)]">{pick(HERO.title)}</h1>
@@ -100,13 +98,13 @@ export default function BofsPage() {
           </motion.div>
 
           <motion.div
-            className="absolute inset-x-0 bottom-6 mx-auto flex w-fit flex-col items-center gap-1 text-[12px] font-semibold uppercase tracking-widest"
-            style={{ color: C.body, opacity: contentOpacity }}
+            className="absolute inset-x-0 bottom-7 mx-auto flex w-fit flex-col items-center gap-1.5 text-[11px] font-bold uppercase"
+            style={{ color: C.body, opacity: contentOpacity, letterSpacing: '0.28em' }}
           >
             <span>{pick({ is: 'skoðaðu', en: 'scroll' })}</span>
-            <span className="bofs-float block h-8 w-5 rounded-full" style={{ boxShadow: `inset 0 0 0 1.5px ${C.body}` }}>
-              <span className="mx-auto mt-1.5 block h-1.5 w-1.5 rounded-full" style={{ background: C.body }} />
-            </span>
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <path d="M2 4.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </motion.div>
         </section>
 
@@ -181,7 +179,7 @@ export default function BofsPage() {
               <div className="pointer-events-none absolute left-0 right-0 top-9 hidden md:block" style={{ borderTop: `2px dashed ${C.line}` }} />
               {PATH.steps.map((step, i) => (
                 <Reveal key={step.n} delay={i * 0.1}>
-                  <div className="relative flex h-full flex-col rounded-[26px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+                  <div className="relative flex h-full flex-col rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                     <span className="bofs-display grid h-16 w-16 place-items-center rounded-2xl text-[28px] text-white" style={{ background: [C.terra, C.sage, C.sun][i] }}>
                       {step.n}
                     </span>
@@ -213,7 +211,7 @@ export default function BofsPage() {
                   delay={i * 0.08}
                   className={i === 0 ? 'col-span-2 lg:col-span-2 lg:row-span-2' : i === 1 ? 'col-span-2 lg:col-span-2' : 'col-span-1'}
                 >
-                  <figure className="group relative h-full overflow-hidden rounded-[26px]" style={{ boxShadow: `0 30px 56px -44px rgba(58,44,34,.6)` }}>
+                  <figure className="group relative h-full overflow-hidden rounded-[20px]" style={{ boxShadow: `0 30px 56px -44px rgba(58,44,34,.6)` }}>
                     <Img
                       src={asset(p.src)}
                       alt={pick(p.alt)}
@@ -241,13 +239,13 @@ export default function BofsPage() {
               <SectionHead eyebrow={pick(HONEST.kicker)} title={pick(HONEST.title)} onDeep />
             </div>
             <Reveal delay={0.1}>
-              <div className="rounded-[28px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
+              <div className="rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
                 <p className="text-[17px] leading-relaxed" style={{ color: 'rgba(246,232,213,.9)' }}>
                   {pick(HONEST.body)}
                 </p>
-                <Handwritten className="mt-5 text-[24px]" style={{ color: C.sun }}>
-                  {pick({ is: 'af því að börnin eiga það skilið', en: 'because children deserve it' })}
-                </Handwritten>
+                <p className="mt-5 text-[14.5px] font-semibold uppercase" style={{ color: C.sun, letterSpacing: '0.14em' }}>
+                  {pick({ is: 'Af því að börnin eiga það skilið', en: 'Because children deserve it' })}
+                </p>
               </div>
             </Reveal>
           </div>

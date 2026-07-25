@@ -41,24 +41,23 @@ export function WayfinderDoors() {
     <section className="scroll-mt-24" style={{ background: C.cream }}>
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
         <div className="mb-10 text-center">
-          <Handwritten className="text-[26px] leading-none" style={{ color: C.clayText }}>
-            {pick(WAYFINDER.hand)}
-          </Handwritten>
-          <h2 className="bofs-display bofs-balance mt-1 text-[clamp(26px,4vw,40px)]">{pick(WAYFINDER.title)}</h2>
+          <Eyebrow>{pick(WAYFINDER.hand)}</Eyebrow>
+          <h2 className="bofs-display bofs-balance mt-3 text-[clamp(26px,4vw,40px)]">{pick(WAYFINDER.title)}</h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-3">
           {WAYFINDER.doors.map((d, i) => {
             const hue = HUE[d.hueKey] ?? C.clay
             const inner = (
               <>
-                <div className="relative h-[70px]" style={{ background: hue, clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }}>
-                  <span
-                    className="absolute left-1/2 top-8 h-5 w-5 -translate-x-1/2 rounded-[5px]"
-                    style={{ background: '#FFE6AE', boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.5)' }}
-                  />
-                </div>
-                <div className="flex flex-1 flex-col rounded-b-[26px] px-6 pb-7 pt-5" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                  <h3 className="bofs-display bofs-display-sm bofs-balance text-[20px]">{pick(d.title)}</h3>
+                {/* quiet hue keel instead of a cartoon roof */}
+                <span className="block h-1 w-full rounded-t-[18px]" style={{ background: hue }} />
+                <div className="flex flex-1 flex-col px-6 pb-7 pt-6">
+                  <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+                    <path d="M6 16 L17 7 L28 16" fill="none" stroke={hue} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M9 15 V25 a3 3 0 0 0 3 3 H22 a3 3 0 0 0 3 -3 V15" fill="none" stroke={hue} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="14.5" y="18.5" width="5" height="5" rx="1.2" fill="#FFE6AE" stroke={hue} strokeWidth="1.2" />
+                  </svg>
+                  <h3 className="bofs-display bofs-display-sm bofs-balance mt-4 text-[20px]">{pick(d.title)}</h3>
                   <p className="mt-2 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.body }}>
                     {pick(d.body)}
                   </p>
@@ -69,8 +68,8 @@ export function WayfinderDoors() {
                 </div>
               </>
             )
-            const cls = 'bofs-focus bofs-lift group flex h-full flex-col'
-            const style = { filter: 'drop-shadow(0 26px 42px rgba(58,44,34,.14))' }
+            const cls = 'bofs-focus bofs-lift group flex h-full flex-col overflow-hidden rounded-[18px]'
+            const style = { background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 24px 44px -38px rgba(58,44,34,.5)` }
             return (
               <Reveal key={d.key} delay={i * 0.08} y={20}>
                 {d.to.startsWith('/') ? (
@@ -104,7 +103,7 @@ export function StatsBand() {
         <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((s, i) => (
             <Reveal key={i} delay={(i % 4) * 0.07}>
-              <div className="flex h-full flex-col rounded-[26px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+              <div className="flex h-full flex-col rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                 <StatCountUp value={s.value} format={s.format} className="bofs-display bofs-display-xl text-[clamp(40px,5vw,60px)]" style={{ color: C.clay, lineHeight: 1 }} />
                 <span className="mt-3 text-[15px] font-medium leading-snug" style={{ color: C.body }}>
                   {pick(s.label)}
@@ -138,7 +137,7 @@ export function ReportBand() {
 
         {/* one calm escalation line, red only where 112 is */}
         <Reveal>
-          <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center justify-between gap-4 rounded-[22px] p-5 sm:flex-row" style={{ background: '#A83A24', color: '#fff' }}>
+          <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center justify-between gap-4 rounded-[18px] p-5 sm:flex-row" style={{ background: '#A83A24', color: '#fff' }}>
             <span className="flex items-center gap-3 text-[16px] font-semibold">
               <span className="grid h-9 w-12 shrink-0 place-items-center rounded-xl bofs-num text-[15px] font-bold" style={{ background: 'rgba(255,255,255,.16)' }}>
                 112
@@ -155,7 +154,7 @@ export function ReportBand() {
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
           {REPORT.lanes.map((lane, li) => (
             <Reveal key={lane.key} delay={li * 0.08}>
-              <div className="flex h-full flex-col rounded-[26px] p-7" style={{ background: li === 0 ? C.cream : C.cream2, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+              <div className="flex h-full flex-col rounded-[20px] p-7" style={{ background: li === 0 ? C.cream : C.cream2, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                 <h3 className="bofs-display bofs-display-sm text-[21px]">{pick(lane.title)}</h3>
                 <ul className="mt-4 space-y-3">
                   {lane.rows.map((r, ri) => (
@@ -174,7 +173,7 @@ export function ReportBand() {
 
         {/* the legal centrepiece, set as the band's one pull-quote */}
         <Reveal delay={0.05}>
-          <figure className="relative mx-auto mt-10 max-w-3xl rounded-[26px] p-8" style={{ background: C.cream, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+          <figure className="relative mx-auto mt-10 max-w-3xl rounded-[20px] p-8" style={{ background: C.cream, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
             <span className="bofs-display absolute -top-3 left-7 text-[52px] leading-none" style={{ color: C.clay, opacity: 0.45 }}>
               &ldquo;
             </span>
@@ -229,7 +228,7 @@ export function AboutTeaser() {
                   <Link
                     key={m.year}
                     to="/preview/bofs/um-stofnunina#saga"
-                    className="bofs-focus bofs-lift relative flex flex-col items-center rounded-[20px] px-3 py-5 text-center"
+                    className="bofs-focus bofs-lift relative flex flex-col items-center rounded-[16px] px-3 py-5 text-center"
                     style={{ background: 'rgba(255,255,255,.72)', boxShadow: `inset 0 0 0 1px ${C.line}` }}
                   >
                     <span className="bofs-display text-[clamp(22px,3.4vw,30px)]" style={{ color: C.clay }}>
@@ -331,12 +330,7 @@ export function FaqList() {
     <section id="spurningar" className="scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <Handwritten className="text-[24px]" style={{ color: C.clayText }}>
-            {pick(FAQ.hand)}
-          </Handwritten>
-          <div className="mt-1">
-            <Eyebrow>{pick(FAQ.eyebrow)}</Eyebrow>
-          </div>
+          <Eyebrow>{pick(FAQ.eyebrow)}</Eyebrow>
           <h2 className="bofs-display bofs-balance mt-3 text-[clamp(28px,5vw,44px)]">{pick(FAQ.title)}</h2>
         </div>
         <div className="mx-auto mt-10 max-w-2xl">
@@ -380,10 +374,8 @@ export function FosterBand() {
           </Reveal>
           <Reveal delay={0.1}>
             <div>
-              <Handwritten className="text-[26px]" style={{ color: C.clayText }}>
-                {pick({ is: 'það er pláss', en: 'there is room' })}
-              </Handwritten>
-              <h2 className="bofs-display bofs-balance mt-1 text-[clamp(28px,4.5vw,44px)]">
+              <Eyebrow>{pick({ is: 'Það er pláss', en: 'There is room' })}</Eyebrow>
+              <h2 className="bofs-display bofs-balance mt-3 text-[clamp(28px,4.5vw,44px)]">
                 {pick({ is: 'Börn á Íslandi þarfnast fósturfjölskyldna', en: 'Children in Iceland need foster families' })}
               </h2>
               <p className="bofs-pretty mt-4 max-w-lg text-[17px] leading-relaxed" style={{ color: C.body }}>
@@ -445,10 +437,8 @@ export function InstitutionsAndClose() {
 
         {/* closing CTA folded into the same band */}
         <div className="mx-auto mt-16 max-w-2xl border-t pt-14 text-center" style={{ borderColor: C.line }}>
-          <Handwritten className="text-[28px]" style={{ color: C.clayText }}>
-            {pick(CLOSING.hand)}
-          </Handwritten>
-          <h2 className="bofs-display bofs-balance mt-1 text-[clamp(26px,4.6vw,42px)]">{pick(CLOSING.title)}</h2>
+          <Eyebrow>{pick(CLOSING.hand)}</Eyebrow>
+          <h2 className="bofs-display bofs-balance mt-3 text-[clamp(26px,4.6vw,42px)]">{pick(CLOSING.title)}</h2>
           <p className="bofs-pretty mx-auto mt-4 max-w-xl text-[17px] leading-relaxed" style={{ color: C.body }}>
             {pick(CLOSING.lead)}
           </p>
@@ -528,7 +518,7 @@ export function NotFoundPage() {
                   <li key={l.to}>
                     <Link
                       to={l.to}
-                      className="bofs-focus bofs-lift group flex items-center justify-between gap-3 rounded-[20px] px-5 py-4 text-[15.5px] font-semibold"
+                      className="bofs-focus bofs-lift group flex items-center justify-between gap-3 rounded-[16px] px-5 py-4 text-[15.5px] font-semibold"
                       style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}
                     >
                       {pick(l.label)}
@@ -614,7 +604,7 @@ export function FosterSteps() {
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {FOSTER_STEPS.steps.map((step, i) => (
             <Reveal key={step.n} delay={i * 0.1}>
-              <div className="flex h-full flex-col rounded-[26px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+              <div className="flex h-full flex-col rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                 <span className="bofs-display grid h-14 w-14 place-items-center rounded-2xl text-[24px] text-white" style={{ background: [C.terra, C.sage, C.sun][i] }}>
                   {step.n}
                 </span>
@@ -651,7 +641,7 @@ export function HelpBand() {
               <Reveal key={line.value} delay={(i % 2) * 0.08}>
                 <a
                   href={`tel:${line.value.replace(/\s/g, '')}`}
-                  className="bofs-focus bofs-lift flex items-center gap-4 rounded-[24px] p-5"
+                  className="bofs-focus bofs-lift flex items-center gap-4 rounded-[18px] p-5"
                   style={{
                     background: emphasis ? '#A83A24' : '#fff',
                     color: emphasis ? '#fff' : C.cocoa,

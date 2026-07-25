@@ -40,70 +40,42 @@ function Tree({ x, y, s = 1, c = '#6E9E6E' }: { x: number; y: number; s?: number
   )
 }
 
-/* ── ambient movers (each one a composited HTML-level element) ────────── */
+/* ── still sky accents (no looping animation; the scene is a painting) ── */
 
 function SunGlyph({ style }: { style?: CSSProperties }) {
   return (
-    <svg className="bofs-breathe absolute" style={{ willChange: 'transform', ...style }} viewBox="0 0 320 320" aria-hidden="true">
+    <svg className="absolute" style={style} viewBox="0 0 320 320" aria-hidden="true">
       <defs>
         <radialGradient id="sunGlowHtml" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#FFE7A8" stopOpacity="0.9" />
+          <stop offset="0" stopColor="#FFE7A8" stopOpacity="0.55" />
           <stop offset="1" stopColor="#FFE7A8" stopOpacity="0" />
         </radialGradient>
       </defs>
       <circle cx="160" cy="160" r="150" fill="url(#sunGlowHtml)" />
-      <circle cx="160" cy="160" r="58" fill="#FFD37A" />
-      <circle cx="160" cy="160" r="58" fill="#FFFFFF" opacity="0.12" />
-    </svg>
-  )
-}
-
-function CloudGlyph({ top, width, opacity = 0.9, dur, delay }: { top: string; width: string; opacity?: number; dur: number; delay: number }) {
-  return (
-    <svg
-      className="bofs-drift absolute left-0"
-      style={{ top, width, opacity, animationDuration: `${dur}s`, animationDelay: `${delay}s`, willChange: 'transform' }}
-      viewBox="-10 -1 62 26"
-      aria-hidden="true"
-    >
-      <path d="M0 12c0-7 6-12 13-12 4 0 8 2 10 5 2-2 5-3 8-3 7 0 12 5 12 11 0 1 0 2-1 3H-1c-1-2 1-4 1-4z" fill="#FFFFFF" opacity="0.9" />
-      <ellipse cx="20" cy="16" rx="30" ry="7" fill="#FFFFFF" opacity="0.55" />
-    </svg>
-  )
-}
-
-function BirdsGlyph({ style, color = '#7A5A48' }: { style?: CSSProperties; color?: string }) {
-  return (
-    <svg className="bofs-fly absolute" style={{ willChange: 'transform', ...style }} viewBox="0 0 96 40" aria-hidden="true">
-      <g fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" opacity="0.5">
-        <path d="M0 12C3.6 7.2 6 7.2 8.4 10.8 10.8 7.2 13.2 7.2 16.8 12" />
-        <path d="M40 34C42.7 30.4 44.5 30.4 46.3 33.1 48.1 30.4 49.9 30.4 52.6 34" transform="scale(0.9)" />
-        <path d="M74 6C77 2 79 2 81 5 83 2 85 2 88 6" />
-      </g>
+      <circle cx="160" cy="160" r="52" fill="#F6D08C" opacity="0.9" />
     </svg>
   )
 }
 
 function MoonGlyph({ style }: { style?: CSSProperties }) {
   return (
-    <svg className="bofs-breathe absolute" style={{ willChange: 'transform', ...style }} viewBox="0 0 120 120" aria-hidden="true">
+    <svg className="absolute" style={style} viewBox="0 0 120 120" aria-hidden="true">
       <defs>
         <radialGradient id="moonGlowHtml" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#FFF0C9" stopOpacity="0.55" />
+          <stop offset="0" stopColor="#FFF0C9" stopOpacity="0.4" />
           <stop offset="1" stopColor="#FFF0C9" stopOpacity="0" />
         </radialGradient>
       </defs>
       <circle cx="60" cy="60" r="56" fill="url(#moonGlowHtml)" />
-      <circle cx="60" cy="60" r="26" fill="#FBEAC0" />
-      <circle cx="60" cy="60" r="26" fill="#FFFFFF" opacity="0.12" />
+      <circle cx="60" cy="60" r="24" fill="#F4E4BC" opacity="0.9" />
     </svg>
   )
 }
 
-function StarGlyph({ style, delay = 0 }: { style?: CSSProperties; delay?: number }) {
+function StarGlyph({ style }: { style?: CSSProperties }) {
   return (
-    <svg className="bofs-twinkle absolute" style={{ animationDelay: `${delay}s`, ...style }} viewBox="0 0 12 12" aria-hidden="true">
-      <path d="M6 0 L7 5 L12 6 L7 7 L6 12 L5 7 L0 6 L5 5Z" fill="#FBEAC0" />
+    <svg className="absolute" style={style} viewBox="0 0 12 12" aria-hidden="true">
+      <circle cx="6" cy="6" r="1.6" fill="#F4E4BC" opacity="0.8" />
     </svg>
   )
 }
@@ -112,22 +84,27 @@ function StarGlyph({ style, delay = 0 }: { style?: CSSProperties; delay?: number
 
 type Palette = 'day' | 'dusk'
 
+/*
+ * Both palettes are deliberately muted: the valley is a quiet backdrop with
+ * the saturation of a wash drawing, not a storybook spread. Warmth comes from
+ * the cream sky and the lit windows, never from loud greens.
+ */
 const PALETTES: Record<Palette, { sky: [string, string, string]; hillFar: [string, string]; hillMid: [string, string]; hillNear: [string, string]; path: [string, string]; bush: string }> = {
   day: {
-    sky: ['#FBE7CE', '#FBEEDC', '#FAF3E7'],
-    hillFar: ['#CFE0C7', '#C2D8BC'],
-    hillMid: ['#A8C79E', '#9BBE92'],
-    hillNear: ['#83AC79', '#749E6C'],
-    path: ['#F3E4C9', '#EAD6B4'],
-    bush: '#6B9663',
+    sky: ['#F8EAD8', '#FAF0E2', '#FAF3E7'],
+    hillFar: ['#D8DECC', '#CFD7C4'],
+    hillMid: ['#BBC7AB', '#B0BEA1'],
+    hillNear: ['#9CAE90', '#90A385'],
+    path: ['#F1E3CB', '#E8D6B9'],
+    bush: '#8A9C7E',
   },
   dusk: {
-    sky: ['#3A2A1E', '#573C2A', '#6E4A33'],
-    hillFar: ['#5E7364', '#516454'],
-    hillMid: ['#4C684C', '#425A42'],
-    hillNear: ['#3B5439', '#324A31'],
-    path: ['#D9BE93', '#C6A878'],
-    bush: '#2F4A2E',
+    sky: ['#3C2C20', '#55402E', '#684A36'],
+    hillFar: ['#5E6E60', '#525F53'],
+    hillMid: ['#4C5F4B', '#435343'],
+    hillNear: ['#3C4F3A', '#344632'],
+    path: ['#D3BC96', '#C2A87E'],
+    bush: '#31452F',
   },
 }
 
@@ -215,24 +192,18 @@ export function ValleyScene({ className, style, ambient = true, palette = 'day' 
       <ellipse cx="1050" cy="726" rx="180" ry="36" fill={p.bush} opacity="0.5" />
       </svg>
 
-      {/* ambient sky movers: composited, GPU-only motion above the sky */}
+      {/* still sky accents: painted once, no looping motion anywhere */}
       {ambient && !dusk && (
         <div className="absolute inset-0 overflow-hidden">
-          <SunGlyph style={{ right: '5%', top: '6%', width: 'clamp(170px, 22vw, 320px)' }} />
-          <CloudGlyph top="12%" width="clamp(90px, 9vw, 130px)" dur={54} delay={-6} />
-          <CloudGlyph top="7%" width="clamp(64px, 6.5vw, 92px)" opacity={0.8} dur={64} delay={-30} />
-          <CloudGlyph top="17%" width="clamp(76px, 7.5vw, 108px)" opacity={0.85} dur={72} delay={-52} />
-          <BirdsGlyph style={{ left: '28%', top: '22%', width: 'clamp(64px, 6vw, 96px)' }} />
+          <SunGlyph style={{ right: '6%', top: '7%', width: 'clamp(150px, 19vw, 280px)' }} />
         </div>
       )}
       {ambient && dusk && (
         <div className="absolute inset-0 overflow-hidden">
           <MoonGlyph style={{ right: '9%', top: '10%', width: 'clamp(80px, 10vw, 120px)' }} />
-          <StarGlyph style={{ left: '18%', top: '18%', width: 12 }} delay={0} />
-          <StarGlyph style={{ left: '30%', top: '30%', width: 9 }} delay={-1.5} />
-          <StarGlyph style={{ left: '52%', top: '14%', width: 10 }} delay={-2.6} />
-          <StarGlyph style={{ left: '68%', top: '26%', width: 8 }} delay={-0.8} />
-          <StarGlyph style={{ left: '80%', top: '40%', width: 11 }} delay={-3.4} />
+          <StarGlyph style={{ left: '22%', top: '20%', width: 11 }} />
+          <StarGlyph style={{ left: '54%', top: '14%', width: 9 }} />
+          <StarGlyph style={{ left: '78%', top: '32%', width: 10 }} />
         </div>
       )}
     </div>
@@ -252,8 +223,10 @@ export type ArtKey =
   | 'fostur'
 
 /**
- * One flexible cozy-house illustration, differentiated per service by an
- * accent motif (sun, tree, heart, path, hands…) and the service colour.
+ * One monoline mark per service: a stroke-drawn house on a soft hue disc with
+ * a single quiet motif. Iconography, not illustration — nothing fills except
+ * the lit window, nothing animates, so it reads institutional while the hue
+ * keeps it warm.
  */
 export function HomeArt({ art, hue, hueSoft, className }: { art: ArtKey; hue: string; hueSoft: string; className?: string }) {
   return (
@@ -264,91 +237,57 @@ export function HomeArt({ art, hue, hueSoft, className }: { art: ArtKey; hue: st
       aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* soft round backdrop */}
+      {/* soft hue disc: the only field of colour, calm and brandable */}
       <circle cx="100" cy="100" r="96" fill={hueSoft} />
-      <circle className="bofs-breathe" style={{ transformOrigin: '148px 56px' }} cx="148" cy="56" r="20" fill={hue} opacity="0.35" />
 
-      {/* ground */}
-      <path d="M8 148 Q100 118 192 148 V196 H8Z" fill={hue} opacity="0.22" />
+      {/* monoline house */}
+      <path d="M56 96 L100 60 L144 96" fill="none" stroke={hue} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M66 92 V130 a10 10 0 0 0 10 10 H124 a10 10 0 0 0 10 -10 V92" fill="none" stroke={hue} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+      {/* the lit window: the one warm fill on the mark */}
+      <rect x="87" y="102" width="26" height="26" rx="6" fill="#FFE6AE" />
+      <rect x="87" y="102" width="26" height="26" rx="6" fill="none" stroke={hue} strokeWidth="3.5" opacity="0.45" />
 
-      {/* house */}
-      <g transform="translate(56 66)">
-        <rect x="6" y="34" width="76" height="58" rx="7" fill="#FBF3E6" />
-        <path d="M0 38 44 4 88 38Z" fill={hue} />
-        <rect
-          className="bofs-twinkle"
-          style={{ transformOrigin: '44px 62px' }}
-          x="30"
-          y="50"
-          width="28"
-          height="26"
-          rx="4"
-          fill="#FFE1A0"
-        />
-        <path d="M30 50 H58 M44 50 V76 M30 63 H58" stroke={hue} strokeWidth="2" opacity="0.5" />
-        <rect x="6" y="34" width="76" height="58" rx="7" fill="none" stroke={hue} strokeWidth="2" opacity="0.35" />
-      </g>
-
-      {/* per-service accent motif */}
-      {art === 'studlar' && (
-        // a sheltering roof / hands over the home
-        <path d="M40 70 Q100 26 160 70" fill="none" stroke={hue} strokeWidth="5" strokeLinecap="round" opacity="0.7" />
-      )}
+      {/* per-service motif: one quiet stroke gesture */}
+      {art === 'studlar' && <path d="M50 48 Q100 24 150 48" fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" opacity="0.55" />}
       {art === 'blonduhlid' && (
-        // map / compass dot path
-        <g stroke={hue} strokeWidth="3" strokeLinecap="round" opacity="0.7" fill="none">
-          <path d="M150 150 q-16 -14 -30 -6 q-16 8 -30 -2" strokeDasharray="1 10" />
-          <circle cx="150" cy="150" r="4" fill={hue} stroke="none" />
+        <g fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" opacity="0.8">
+          <path d="M118 164 q14 -10 28 -4 q10 4 20 -2" strokeDasharray="0.5 13" />
         </g>
       )}
       {art === 'bjargey' && (
-        // a growing sprout
-        <g transform="translate(150 120)" stroke={hue} strokeWidth="3" fill="none" strokeLinecap="round">
-          <path d="M6 40 V10" />
-          <path d="M6 20 q-12 -4 -16 -16 q14 2 16 12" fill={hue} opacity="0.3" stroke="none" />
-          <path d="M6 14 q12 -4 16 -16 q-14 2 -16 12" fill={hue} opacity="0.4" stroke="none" />
+        <g fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" opacity="0.8">
+          <path d="M148 170 V148" />
+          <path d="M148 156 q-10 -2 -14 -12" />
+          <path d="M148 150 q10 -2 14 -12" />
         </g>
       )}
-      {art === 'laekjarbakki' && (
-        // rolling countryside mounds
-        <path d="M116 150 q22 -22 44 0" fill={hue} opacity="0.4" />
-      )}
+      {art === 'laekjarbakki' && <path d="M114 166 q14 -14 28 0 q10 10 24 2" fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" opacity="0.7" />}
       {art === 'barnahus' && (
-        // a big heart sheltering the window
         <path
-          className="bofs-beat"
-          style={{ transformOrigin: '100px 60px' }}
-          d="M100 74c-14-11-26-18-26-31 0-8 6-13 13-13 5 0 9 3 13 8 4-5 8-8 13-8 7 0 13 5 13 13 0 13-12 20-26 31z"
-          fill={hue}
+          d="M148 172 c-9 -7 -15 -12 -15 -19 0 -5 4 -8 8 -8 3 0 5 2 7 4 2 -2 4 -4 7 -4 4 0 8 3 8 8 0 7 -6 12 -15 19z"
+          fill="none"
+          stroke={hue}
+          strokeWidth="5.5"
+          strokeLinejoin="round"
           opacity="0.85"
         />
       )}
       {art === 'mst' && (
-        // three linked dots — family at home
-        <g fill={hue} opacity="0.8">
-          <circle cx="42" cy="150" r="8" />
-          <circle cx="70" cy="158" r="6" />
-          <circle cx="96" cy="150" r="7" />
-          <path d="M42 150 L70 158 L96 150" stroke={hue} strokeWidth="2.5" fill="none" opacity="0.6" />
+        <g opacity="0.85">
+          <path d="M124 164 L146 170 L166 162" fill="none" stroke={hue} strokeWidth="4" opacity="0.5" />
+          <circle cx="124" cy="164" r="5.5" fill={hue} />
+          <circle cx="146" cy="170" r="4.5" fill={hue} />
+          <circle cx="166" cy="162" r="5" fill={hue} />
         </g>
       )}
       {art === 'sok' && (
-        // a gentle sunrise arc
-        <g stroke={hue} strokeWidth="3.5" strokeLinecap="round" opacity="0.7" fill="none">
-          <path d="M120 156 q22 -30 44 0" />
-          <path d="M132 156 l-6 -8 M164 148 l6 -8 M148 140 v-10" />
+        <g fill="none" stroke={hue} strokeWidth="5.5" strokeLinecap="round" opacity="0.8">
+          <path d="M118 170 q22 -26 44 0" />
+          <path d="M140 148 v-8" />
         </g>
       )}
       {art === 'fostur' && (
-        // two hands / clasped care
-        <path
-          d="M40 150 q10 -16 26 -10 q6 2 10 8 q4 -6 10 -8 q16 -6 26 10"
-          fill="none"
-          stroke={hue}
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          opacity="0.65"
-        />
+        <path d="M114 168 q10 -14 24 -8 q4 2 6 6 q2 -4 6 -6 q14 -6 24 8" fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" opacity="0.75" />
       )}
     </svg>
   )

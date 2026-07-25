@@ -948,8 +948,8 @@ export const ABOUT_TEASER = {
   eyebrow: t('Stofnunin', 'The agency'),
   title: t('Hver heldur utan um öll úrræðin?', 'Who holds all of this together?'),
   body: t(
-    'Barna- og fjölskyldustofa er ríkisstofnun undir mennta- og barnamálaráðuneytinu. Hún tók til starfa árið 2022 og vinnur að farsæld barna um allt land.',
-    'Barna- og fjölskyldustofa is a state agency under the Ministry of Education and Children. It began in 2022 and works for the wellbeing of children across the country.',
+    'Barna- og fjölskyldustofa er ríkisstofnun undir mennta- og barnamálaráðuneytinu. Hún tók til starfa árið 2022 og hjá henni vinna um 170 manns á hverjum degi að velferð barna um allt land.',
+    'Barna- og fjölskyldustofa is a state agency under the Ministry of Education and Children. It began in 2022, and around 170 people work there every day for the wellbeing of children across the country.',
   ),
   cta: t('Um stofnunina', 'About the agency'),
   timelineCta: t('Sjá alla söguna', 'See the whole story'),

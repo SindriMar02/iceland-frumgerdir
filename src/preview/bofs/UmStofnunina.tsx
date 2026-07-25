@@ -61,7 +61,7 @@ export default function BofsUmStofnunina() {
           {/* ruled letterhead fact band */}
           <div className="mx-auto max-w-4xl px-5 sm:px-8">
             <Reveal delay={0.05}>
-              <div className="grid divide-y overflow-hidden rounded-[24px] sm:grid-cols-3 sm:divide-x sm:divide-y-0" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}`, borderColor: C.line }}>
+              <div className="grid divide-y overflow-hidden rounded-[18px] sm:grid-cols-3 sm:divide-x sm:divide-y-0" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}`, borderColor: C.line }}>
                 {ABOUT.factband.map((f) => (
                   <div key={pick(f.label)} className="px-6 py-5 text-center" style={{ borderColor: C.line }}>
                     <span className="block text-[12px] font-bold uppercase tracking-[0.16em]" style={{ color: C.clayText }}>
@@ -127,7 +127,7 @@ export default function BofsUmStofnunina() {
             <div className="mt-12 grid gap-4 md:grid-cols-3">
               {ABOUT.org.groups.map((g, i) => (
                 <Reveal key={i} delay={i * 0.07}>
-                  <div className="h-full rounded-[24px] p-6" style={{ background: C.cream2, boxShadow: `inset 0 0 0 1px ${C.line}`, borderLeft: `4px solid ${[C.terra, C.sage, C.sky][i % 3]}` }}>
+                  <div className="h-full rounded-[18px] p-6" style={{ background: C.cream2, boxShadow: `inset 0 0 0 1px ${C.line}`, borderLeft: `4px solid ${[C.terra, C.sage, C.sky][i % 3]}` }}>
                     <h3 className="bofs-display bofs-display-sm text-[19px]">{pick(g.title)}</h3>
                     <p className="mt-2 text-[15px] leading-relaxed" style={{ color: C.body }}>
                       {pick(g.body)}
@@ -147,7 +147,7 @@ export default function BofsUmStofnunina() {
               <div className="mt-8 space-y-3">
                 {LEADERSHIP.map((l) => (
                   <Reveal key={l.name}>
-                    <div className="flex items-center gap-4 rounded-[22px] p-5" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+                    <div className="flex items-center gap-4 rounded-[18px] p-5" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                       <span className="bofs-display grid h-14 w-14 shrink-0 place-items-center rounded-full text-[20px]" style={{ background: C.cream2, color: C.clay }}>
                         {l.name.charAt(0)}
                       </span>
@@ -188,7 +188,7 @@ export default function BofsUmStofnunina() {
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
             <SectionHead eyebrow={pick(ABOUT.contact.eyebrow)} title={pick(ABOUT.contact.title)} onDeep />
             <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-[28px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
+              <div className="rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
                 <a href={`tel:${ORG.phone.replace(/\s/g, '')}`} className="bofs-focus bofs-display block text-[clamp(30px,5vw,44px)]" style={{ color: C.sun }}>
                   {ORG.phone}
                 </a>
@@ -202,7 +202,7 @@ export default function BofsUmStofnunina() {
                   {pick(ORG.hours)}
                 </p>
               </div>
-              <div className="flex flex-col justify-center rounded-[28px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
+              <div className="flex flex-col justify-center rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
                 <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.sun }}>
                   {pick(ORG.motto)}
                 </span>

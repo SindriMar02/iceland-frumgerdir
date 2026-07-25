@@ -10,7 +10,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, Button, C, Footer, Handwritten, Header, useLang, Arrow } from './ui'
+import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
 import { HomeArt, ValleyScene, WaveDivider } from './illustrations'
 import { JourneyStrip, FosterSteps, NotFoundPage } from './sections'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
@@ -71,9 +71,9 @@ export default function BofsCentre() {
                 <h1 className="bofs-display mt-4 text-[clamp(40px,7vw,68px)]">{service.name}</h1>
               </Reveal>
               <Reveal delay={0.18}>
-                <Handwritten className="mt-1 text-[clamp(22px,3vw,30px)]" style={{ color: C.cocoa, opacity: 0.72 }} delay={0.1}>
+                <p className="mt-3 text-[clamp(17px,2.2vw,20px)] font-medium leading-snug" style={{ color: C.cocoa, opacity: 0.75 }}>
                   {pick(service.tagline)}
-                </Handwritten>
+                </p>
               </Reveal>
               <Reveal delay={0.24}>
                 <p className="mt-5 max-w-xl text-[18px] leading-relaxed" style={{ color: C.cocoa, opacity: 0.82 }}>
@@ -93,8 +93,8 @@ export default function BofsCentre() {
             </div>
 
             <Reveal delay={0.16} className="flex justify-center">
-              <div className="bofs-float w-[68%] max-w-[320px] lg:w-full">
-                <HomeArt art={service.art} hue={service.hue} hueSoft="#FFFFFF" className="h-auto w-full drop-shadow-xl" />
+              <div className="w-[52%] max-w-[250px] lg:w-[72%]">
+                <HomeArt art={service.art} hue={service.hue} hueSoft="#FFFFFF" className="h-auto w-full" />
               </div>
             </Reveal>
           </div>
@@ -138,7 +138,7 @@ export default function BofsCentre() {
 
                 <div id="hvernig" className="scroll-mt-24">
                   <Block eyebrow={pick(UI.howToReach)} hue={service.hue}>
-                    <div className="rounded-[24px] p-6" style={{ background: service.hueSoft }}>
+                    <div className="rounded-[18px] p-6" style={{ background: service.hueSoft }}>
                       <p className="text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
                         {pick(service.how)}
                       </p>
@@ -147,7 +147,7 @@ export default function BofsCentre() {
                 </div>
 
                 {/* honest note */}
-                <div className="relative rounded-[26px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+                <div className="relative rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                   <span className="bofs-display absolute -top-3 left-6 text-[52px] leading-none" style={{ color: service.hue, opacity: 0.5 }}>
                     “
                   </span>
@@ -159,7 +159,7 @@ export default function BofsCentre() {
 
               {/* right: facts card (sticky) */}
               <aside className="lg:sticky lg:top-28 lg:self-start">
-                <div className="overflow-hidden rounded-[28px]" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 30px 60px -44px rgba(58,44,34,.5)` }}>
+                <div className="overflow-hidden rounded-[20px]" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 30px 60px -44px rgba(58,44,34,.5)` }}>
                   <div className="px-6 py-5" style={{ background: service.hueSoft }}>
                     <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.cocoa }}>
                       {pick(UI.keyFacts)}
@@ -190,7 +190,7 @@ export default function BofsCentre() {
                 {/* mini help */}
                 <a
                   href={`tel:${HELP.lines[1].value}`}
-                  className="bofs-focus mt-4 flex items-center gap-3 rounded-[22px] p-5 transition-transform hover:-translate-y-1"
+                  className="bofs-focus mt-4 flex items-center gap-3 rounded-[18px] p-5 transition-transform hover:-translate-y-1"
                   style={{ background: C.deep, color: C.deepText }}
                 >
                   <span className="bofs-display grid h-12 w-16 shrink-0 place-items-center rounded-xl text-[20px]" style={{ background: 'rgba(255,255,255,.1)', color: C.sun }}>
