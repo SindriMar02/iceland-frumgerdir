@@ -3954,14 +3954,18 @@ const SJAVARBORG: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk gistiheimili og ferðaþjónustu.
 
-Ég kynnti mér Sjávarborg og heillaðist af sögu hússins, græna hafnarhússins frá 1914 sem var íshús, síðan heimili, verslun og er nú gistiheimili með kaffihúsi, alltaf með Breiðafjörð fyrir framan gluggann. Núverandi vefur kemur þessu samt ekki til skila, sagan er falin í einni málsgrein, umsagnahlutinn birtist tómur og hvergi sjást verð eða heilar myndir.
+Ég kynnti mér Sjávarborg og það sem stóð upp úr var sagan af húsinu. Kjallarinn byggður 1914 sem íshús fyrir bátana, tvær hæðir ofan á 1938, síðan bókaverslun, rakarastofa og matvöruverslun, og loks gistiheimili með kaffihúsi. Sama húsið, fremst við höfnina, í meira en heila öld. Það er saga sem fá gistiheimili eiga.
+
+Á vefnum í dag er hún hins vegar sögð í einni málsgrein. Umsagnahlutinn birtist tómur, með grárri mynd í stað dóma, myndirnar af herbergjunum eru bornar fram í 455 punkta breidd sem verður óskýrt á nútímaskjám, og hvergi sjást verð áður en fólk er sent yfir í bókunarkerfið.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að segja sögu hússins gegnum tímann sem hjarta vefsins, sýna herbergin og myndirnar ykkar í fullri stærð og láta allar leiðir liggja í ykkar eigið bókunarkerfi. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Sagan af húsinu verður hjarta vefsins, þar sem hægt er að fara gegnum árin 1914, 1938, 2013 og fram til dagsins í dag. Herbergin fá almennilegar myndir, umsagnirnar koma frá Tripadvisor og Booking í stað tómra mynda, og allar leiðir liggja í ykkar eigið bókunarkerfi.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 
@@ -4015,14 +4019,18 @@ const BRAGDAVELLIR: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska ferðaþjónustu og gistingu.
 
-Ég kynnti mér Bragðavelli og fannst staðurinn sjálfur vera það sem selur, fjörðurinn, Búlandstindur fyrir ofan, fjaran niður af pallinum og gamla fjósið sem er orðið að bistró á sumrin. Á vefnum í dag sést þetta hins vegar illa, myndirnar eru litlar, matseðillinn er falinn í PDF skjali og hvergi eru upplýsingar um húsin sjálf fyrr en fólk er komið yfir í bókunarkerfið.
+Ég kynnti mér Bragðavelli og fannst staðurinn sjálfur vera það sem selur. Fjörðurinn, Búlandstindur fyrir ofan, fjaran niður af pallinum, Snædalsfoss í tuttugu mínútna göngufæri og gamla fjósið sem er orðið að bistró á sumrin.
+
+Á vefnum í dag sést þetta illa. Nánast allar myndirnar eru frá 2019 og eru bornar fram litlar, matseðillinn er falinn í PDF skjali sem opnast illa í síma, og hvergi eru upplýsingar um húsin sjálf fyrr en fólk er komið yfir í bókunarkerfið.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að landslagið fái að njóta sín í fullri stærð, að gestir geti borið saman húsin þrjú með stærð og fjölda rúma áður en þeir bóka, og að Hlaðan fái sinn eigin kafla með opnunartímum og árstíðinni sagt hreint út. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Landslagið fær að fylla skjáinn, staðirnir í kring fá hver sína mynd, og húsin þrjú má bera saman með stærð og fjölda rúma áður en bókað er. Hlaðan fær sinn eigin kafla með opnunartímum og árstíðinni sagt hreint út. Vatnið í forsíðumyndinni bærist meira að segja hægt, eins og á kyrrum degi.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 
