@@ -12,7 +12,7 @@ import { useEffect, useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { Reveal } from '../../components/Reveal'
 import { setThemeColor } from '../../lib/preview'
-import { BofsStyles, Button, C, Eyebrow, Footer, Header, SectionHead, ServiceCard, useLang, Arrow } from './ui'
+import { BofsStyles, Button, C, Eyebrow, Footer, Handwritten, Header, SectionHead, ServiceCard, useLang, Arrow } from './ui'
 import { ValleyScene, ValueIcon, WaveDivider, HillDivider } from './illustrations'
 import { GALLERY, HERO, HONEST, PATH, SERVICES, UI, VALUES, CATEGORIES } from './data'
 import { Img } from '../../components/Img'
@@ -66,9 +66,9 @@ export default function BofsPage() {
           <motion.div style={{ y: contentY, opacity: contentOpacity, willChange: 'transform, opacity' }} className="mx-auto w-full max-w-6xl px-5 pb-40 pt-28 sm:px-8">
             <div className="max-w-2xl">
               <Reveal y={16}>
-                <span className="bofs-hand text-[26px] leading-none" style={{ color: C.clayText }}>
+                <Handwritten className="text-[26px] leading-none" style={{ color: C.clayText }} delay={0.15}>
                   {pick({ is: 'velkomin', en: 'welcome' })}
-                </span>
+                </Handwritten>
               </Reveal>
               <Reveal delay={0.06}>
                 <h1 className="bofs-display bofs-display-xl bofs-balance mt-1 text-[clamp(40px,8vw,76px)]">{pick(HERO.title)}</h1>
@@ -245,9 +245,9 @@ export default function BofsPage() {
                 <p className="text-[17px] leading-relaxed" style={{ color: 'rgba(246,232,213,.9)' }}>
                   {pick(HONEST.body)}
                 </p>
-                <p className="bofs-hand mt-5 text-[24px]" style={{ color: C.sun }}>
+                <Handwritten className="mt-5 text-[24px]" style={{ color: C.sun }}>
                   {pick({ is: 'af því að börnin eiga það skilið', en: 'because children deserve it' })}
-                </p>
+                </Handwritten>
               </div>
             </Reveal>
           </div>

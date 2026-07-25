@@ -1039,6 +1039,25 @@ export const CLOSING = {
   ctaSecondary: t('Skoða öll úrræði', 'See all services'),
 }
 
+/* ── Not found (a wrong turn, not a dead end) ─────────────────────────── */
+
+export const NOTFOUND = {
+  hand: t('Þú beygðir af leið', 'You took a wrong turn'),
+  title: t('Þessi síða er ekki til', 'This page does not exist'),
+  lead: t(
+    'Það er allt í lagi. Slóðin gæti verið úrelt eða innsláttarvilla. Hér fyrir neðan eru leiðirnar sem skipta mestu máli.',
+    'That is alright. The address may be out of date, or a small typo. The paths that matter most are just below.',
+  ),
+  links: [
+    { label: t('Öll úrræðin', 'All services'), to: '/preview/bofs#heimili' },
+    { label: t('Hvernig kerfið virkar', 'How the system works'), to: '/preview/bofs/kerfid' },
+    { label: t('Hefur þú áhyggjur af barni?', 'Are you worried about a child?'), to: '/preview/bofs#tilkynna' },
+    { label: t('Fá hjálp núna', 'Get help now'), to: '/preview/bofs#help' },
+  ],
+  home: t('Aftur á forsíðu', 'Back to the front page'),
+  reassure: t('Ef barn er í bráðri hættu skaltu hringja í 112.', 'If a child is in immediate danger, call 112.'),
+}
+
 /* ── UI strings ───────────────────────────────────────────────────────── */
 
 export const UI = {

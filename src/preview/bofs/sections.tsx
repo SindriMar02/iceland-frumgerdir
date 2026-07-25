@@ -5,12 +5,13 @@
  * inside a large SVG, reduced-motion renders plainly, AA contrast throughout.
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
-import { asset, Arrow, Button, C, Eyebrow, SectionHead, StatCountUp, useLang } from './ui'
+import { setThemeColor } from '../../lib/preview'
+import { asset, Arrow, BofsStyles, Button, C, Eyebrow, Footer, Handwritten, Header, SectionHead, StatCountUp, useLang } from './ui'
 import { ValleyScene, ArchNotchDivider } from './illustrations'
 import {
   ABOUT_TEASER,
@@ -20,6 +21,7 @@ import {
   HELP,
   INSTITUTIONS,
   type Milestone,
+  NOTFOUND,
   ORG,
   REPORT,
   SERVICES,
@@ -39,9 +41,9 @@ export function WayfinderDoors() {
     <section className="scroll-mt-24" style={{ background: C.cream }}>
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
         <div className="mb-10 text-center">
-          <span className="bofs-hand text-[26px] leading-none" style={{ color: C.clayText }}>
+          <Handwritten className="text-[26px] leading-none" style={{ color: C.clayText }}>
             {pick(WAYFINDER.hand)}
-          </span>
+          </Handwritten>
           <h2 className="bofs-display bofs-balance mt-1 text-[clamp(26px,4vw,40px)]">{pick(WAYFINDER.title)}</h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-3">
@@ -329,9 +331,9 @@ export function FaqList() {
     <section id="spurningar" className="scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="bofs-hand text-[24px]" style={{ color: C.clayText }}>
+          <Handwritten className="text-[24px]" style={{ color: C.clayText }}>
             {pick(FAQ.hand)}
-          </span>
+          </Handwritten>
           <div className="mt-1">
             <Eyebrow>{pick(FAQ.eyebrow)}</Eyebrow>
           </div>
@@ -378,9 +380,9 @@ export function FosterBand() {
           </Reveal>
           <Reveal delay={0.1}>
             <div>
-              <span className="bofs-hand text-[26px]" style={{ color: C.clayText }}>
+              <Handwritten className="text-[26px]" style={{ color: C.clayText }}>
                 {pick({ is: 'það er pláss', en: 'there is room' })}
-              </span>
+              </Handwritten>
               <h2 className="bofs-display bofs-balance mt-1 text-[clamp(28px,4.5vw,44px)]">
                 {pick({ is: 'Börn á Íslandi þarfnast fósturfjölskyldna', en: 'Children in Iceland need foster families' })}
               </h2>
@@ -443,9 +445,9 @@ export function InstitutionsAndClose() {
 
         {/* closing CTA folded into the same band */}
         <div className="mx-auto mt-16 max-w-2xl border-t pt-14 text-center" style={{ borderColor: C.line }}>
-          <span className="bofs-hand text-[28px]" style={{ color: C.clayText }}>
+          <Handwritten className="text-[28px]" style={{ color: C.clayText }}>
             {pick(CLOSING.hand)}
-          </span>
+          </Handwritten>
           <h2 className="bofs-display bofs-balance mt-1 text-[clamp(26px,4.6vw,42px)]">{pick(CLOSING.title)}</h2>
           <p className="bofs-pretty mx-auto mt-4 max-w-xl text-[17px] leading-relaxed" style={{ color: C.body }}>
             {pick(CLOSING.lead)}
@@ -473,14 +475,87 @@ export function DuskBookend() {
       <ArchNotchDivider color={C.deep} className="block h-10 w-full" flip />
       <ValleyScene palette="dusk" className="absolute inset-x-0 bottom-0 h-[78%] w-full" />
       <div className="relative mx-auto max-w-4xl px-5 pb-40 pt-20 text-center sm:px-8">
-        <span className="bofs-hand text-[28px]" style={{ color: C.sun }}>
+        <Handwritten className="text-[28px]" style={{ color: C.sun }}>
           {pick({ is: 'ljósin loga alltaf', en: 'the lights stay on' })}
-        </span>
+        </Handwritten>
         <p className="bofs-display bofs-balance mx-auto mt-2 max-w-2xl text-[clamp(22px,3.4vw,34px)]" style={{ color: C.deepText }}>
           {pick({ is: 'Hvað sem á dynur, þá logar alltaf ljós í einhverjum glugga.', en: 'Whatever the day brings, a light always stays on in some window.' })}
         </p>
       </div>
     </section>
+  )
+}
+
+/* ── Not found: a wrong turn, handled warmly ──────────────────────────── */
+
+export function NotFoundPage() {
+  const [, , pick] = useLang()
+
+  useEffect(() => {
+    document.title = `${pick(NOTFOUND.title)} | Barna- og fjölskyldustofa`
+    setThemeColor(C.cream)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <div className="bofs-root min-h-screen overflow-x-clip">
+      <BofsStyles />
+      <Header />
+      <main id="main">
+        <section className="relative isolate flex min-h-[86svh] flex-col justify-center overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <ValleyScene className="absolute inset-x-0 bottom-0 h-full w-full" />
+            <div className="absolute inset-x-0 top-0 h-2/3" style={{ background: `linear-gradient(${C.cream} 30%, rgba(251,243,231,0))` }} />
+          </div>
+
+          <div className="mx-auto w-full max-w-3xl px-5 pb-32 pt-32 sm:px-8">
+            <Reveal y={14}>
+              <Handwritten className="text-[26px] leading-none" style={{ color: C.clayText }}>
+                {pick(NOTFOUND.hand)}
+              </Handwritten>
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h1 className="bofs-display bofs-display-xl bofs-balance mt-2 text-[clamp(34px,6.5vw,60px)]">{pick(NOTFOUND.title)}</h1>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <p className="bofs-pretty mt-5 max-w-xl text-[17px] leading-relaxed" style={{ color: C.body }}>
+                {pick(NOTFOUND.lead)}
+              </p>
+            </Reveal>
+            <Reveal delay={0.18}>
+              <ul className="mt-8 grid gap-2.5 sm:grid-cols-2">
+                {NOTFOUND.links.map((l) => (
+                  <li key={l.to}>
+                    <Link
+                      to={l.to}
+                      className="bofs-focus bofs-lift group flex items-center justify-between gap-3 rounded-[20px] px-5 py-4 text-[15.5px] font-semibold"
+                      style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}
+                    >
+                      {pick(l.label)}
+                      <Arrow className="shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-1" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal delay={0.24}>
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Button to="/preview/bofs" variant="soft" icon={<Arrow className="rotate-180" />}>
+                  {pick(NOTFOUND.home)}
+                </Button>
+                <span className="inline-flex items-center gap-2 text-[14px] font-semibold" style={{ color: C.body }}>
+                  <span className="bofs-num grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: '#A83A24' }}>
+                    112
+                  </span>
+                  {pick(NOTFOUND.reassure)}
+                </span>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
   )
 }
 

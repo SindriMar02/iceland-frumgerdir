@@ -10,10 +10,13 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
+import { asset, BofsStyles, Button, C, Footer, Handwritten, Header, useLang, Arrow } from './ui'
 import { HomeArt, ValleyScene, WaveDivider } from './illustrations'
-import { JourneyStrip, FosterSteps } from './sections'
+import { JourneyStrip, FosterSteps, NotFoundPage } from './sections'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
+
+/** Addresses that used to be real services and should not dead-end. */
+const RETIRED_SLUGS = new Set(['fannafold'])
 
 export default function BofsCentre() {
   const { slug = '' } = useParams()
@@ -27,7 +30,9 @@ export default function BofsCentre() {
     }
   }, [service])
 
-  if (!service) return <Navigate to="/preview/bofs" replace />
+  // A retired service URL still lands people on the hub, since it was once a
+  // real address; anything else is a genuine wrong turn and gets the 404.
+  if (!service) return RETIRED_SLUGS.has(slug) ? <Navigate to="/preview/bofs" replace /> : <NotFoundPage />
 
   const idx = SERVICES.findIndex((s) => s.slug === slug)
   const next = SERVICES[(idx + 1) % SERVICES.length]
@@ -66,9 +71,9 @@ export default function BofsCentre() {
                 <h1 className="bofs-display mt-4 text-[clamp(40px,7vw,68px)]">{service.name}</h1>
               </Reveal>
               <Reveal delay={0.18}>
-                <p className="bofs-hand mt-1 text-[clamp(22px,3vw,30px)]" style={{ color: C.cocoa, opacity: 0.72 }}>
+                <Handwritten className="mt-1 text-[clamp(22px,3vw,30px)]" style={{ color: C.cocoa, opacity: 0.72 }} delay={0.1}>
                   {pick(service.tagline)}
-                </p>
+                </Handwritten>
               </Reveal>
               <Reveal delay={0.24}>
                 <p className="mt-5 max-w-xl text-[18px] leading-relaxed" style={{ color: C.cocoa, opacity: 0.82 }}>

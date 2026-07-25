@@ -121,6 +121,10 @@ export function BofsStyles() {
       .bofs-root .no-scrollbar { scrollbar-width:none; -ms-overflow-style:none; }
       .bofs-root .no-scrollbar::-webkit-scrollbar { display:none; }
 
+      /* reader comfort: zoom reflows properly, unlike transform:scale */
+      html[data-bofs-text="lg"] .bofs-root { zoom:1.1; }
+      html[data-bofs-text="xl"] .bofs-root { zoom:1.22; }
+
       /* one photographic language: unify eleven photos into one shoot */
       .bofs-photo { filter:saturate(.94) sepia(.05) contrast(.99); }
       /* the doorway crop; at most one per page */
@@ -623,7 +627,14 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t pt-6 text-[13px] sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'rgba(246,232,213,.16)', color: 'rgba(246,232,213,.6)' }}>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t pt-6" style={{ borderColor: 'rgba(246,232,213,.16)' }}>
+          <TextSizeControl onDeep />
+          <a href="tel:1717" className="bofs-focus rounded text-[13.5px] transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.7)' }}>
+            {pick({ is: 'Hjálparsími Rauða krossins 1717, opinn allan sólarhringinn', en: 'Red Cross helpline 1717, open around the clock' })}
+          </a>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 border-t pt-6 text-[13px] sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'rgba(246,232,213,.16)', color: 'rgba(246,232,213,.6)' }}>
           <p>
             {pick(UI.conceptBadge)}
             <span className="mt-1 block opacity-80">
@@ -718,6 +729,136 @@ export function ServiceCard({ service, index = 0 }: { service: Service; index?: 
         </span>
       </Link>
     </Reveal>
+  )
+}
+
+/* ── handwriting: the annotation writes itself on ─────────────────────── */
+
+/**
+ * A Caveat annotation that reveals left to right, as if being written.
+ *
+ * The observed wrapper is NEVER clipped: an element that clips itself to zero
+ * width is never "in view" for IntersectionObserver, so the reveal would never
+ * fire and the line would ship invisible. Outer span observes, inner animates.
+ * The negative bottom/right insets keep descenders and Icelandic accents from
+ * being shaved off at the clip edge.
+ */
+export function Handwritten({
+  children,
+  className = '',
+  style,
+  delay = 0,
+}: {
+  children: ReactNode
+  className?: string
+  style?: CSSProperties
+  delay?: number
+}) {
+  const ref = useRef<HTMLSpanElement | null>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const reduce = useReducedMotion()
+  const shown = reduce || inView
+  return (
+    <span ref={ref} className={`bofs-hand inline-block ${className}`} style={style}>
+      <motion.span
+        className="inline-block"
+        initial={reduce ? false : { clipPath: 'inset(-12% 100% -18% -2%)' }}
+        animate={shown ? { clipPath: 'inset(-12% -4% -18% -2%)' } : undefined}
+        transition={{ duration: 0.9, delay, ease: [0.22, 0.61, 0.36, 1] }}
+        style={{ willChange: 'clip-path' }}
+      >
+        {children}
+      </motion.span>
+    </span>
+  )
+}
+
+/* ── reader comfort: text size (persisted, shared across pages) ────────── */
+
+export type TextSize = 'md' | 'lg' | 'xl'
+const TEXT_KEY = 'bofs-text'
+const TEXT_EVT = 'bofs-text-change'
+
+function readTextSize(): TextSize {
+  try {
+    const v = localStorage.getItem(TEXT_KEY)
+    return v === 'lg' || v === 'xl' ? v : 'md'
+  } catch {
+    return 'md'
+  }
+}
+
+export function useTextSize(): [TextSize, (t: TextSize) => void] {
+  const [size, setSizeState] = useState<TextSize>('md')
+
+  // read after mount so the first paint matches the server-agnostic default
+  useEffect(() => {
+    setSizeState(readTextSize())
+    const h = () => setSizeState(readTextSize())
+    window.addEventListener(TEXT_EVT, h)
+    return () => window.removeEventListener(TEXT_EVT, h)
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.bofsText = size
+    return () => {
+      delete document.documentElement.dataset.bofsText
+    }
+  }, [size])
+
+  const setSize = useCallback((t: TextSize) => {
+    try {
+      localStorage.setItem(TEXT_KEY, t)
+    } catch {
+      /* private mode, session only */
+    }
+    window.dispatchEvent(new Event(TEXT_EVT))
+  }, [])
+
+  return [size, setSize]
+}
+
+/** Small Aa control. Browser zoom exists, but many readers never find it. */
+export function TextSizeControl({ onDeep = false }: { onDeep?: boolean }) {
+  const [size, setSize] = useTextSize()
+  const [, , pick] = useLang()
+  const opts: { key: TextSize; label: string; px: number }[] = [
+    { key: 'md', label: 'A', px: 13 },
+    { key: 'lg', label: 'A', px: 15.5 },
+    { key: 'xl', label: 'A', px: 18 },
+  ]
+  return (
+    <div className="inline-flex items-center gap-2">
+      <span className="text-[13px]" style={{ color: onDeep ? 'rgba(246,232,213,.7)' : C.body }}>
+        {pick({ is: 'Leturstærð', en: 'Text size' })}
+      </span>
+      <div
+        className="inline-flex items-center gap-0.5 rounded-full p-0.5"
+        style={{ background: onDeep ? 'rgba(255,255,255,.1)' : '#fff', boxShadow: onDeep ? 'none' : `inset 0 0 0 1px ${C.line}` }}
+        role="group"
+        aria-label={pick({ is: 'Leturstærð', en: 'Text size' })}
+      >
+        {opts.map((o) => {
+          const active = size === o.key
+          return (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => setSize(o.key)}
+              aria-pressed={active}
+              className="bofs-focus grid h-7 w-7 place-items-center rounded-full font-bold leading-none transition-colors"
+              style={{
+                fontSize: o.px,
+                background: active ? C.clay : 'transparent',
+                color: active ? '#FFF6EC' : onDeep ? C.deepText : C.body,
+              }}
+            >
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
