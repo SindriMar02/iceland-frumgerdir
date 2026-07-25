@@ -4074,16 +4074,20 @@ const ALRUN: PreviewCompany = {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Alrúnu',
     body: `Góðan dag,
 
-Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og vörumerki.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk vörumerki.
 
-Ég kynnti mér Alrúnu og fannst táknin sjálf vera það sterkasta sem þið eigið, tólf bindrúnir sem ganga í gegnum allt sem þið gerið, bæði skartið og ullina. Í dag skiptist vefurinn hins vegar í tvennt, kynningarsíðu og sérstaka vefverslun með ólíku útliti og jafnvel ólíku nafni, og táknin fá hvergi að vera aðalatriðið.
+Ég kynnti mér Alrúnu og það sem stóð upp úr voru táknin sjálf. Tólf bindrúnir, hver með sína merkingu, sem ganga í gegnum allt sem þið gerið, bæði skartið og ullina. Það er sérstaða sem fá vörumerki eiga.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Hún notar ykkar eigin tákn og myndir, og verðin koma beint úr vefversluninni ykkar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Í dag skiptist vefurinn hins vegar í tvennt, kynningarsíðu og sérstaka vefverslun, með ólíku útliti og meira að segja ólíku nafni, Alrún Nordic Jewelry á öðrum og Alrún Nordic Design á hinum. Myndbandið á forsíðunni er fast í 560 punkta breidd og fer sjálfkrafa í gang, sem virkar illa í síma. Og táknin tólf, sem eru kjarninn í öllu, fá hvergi að vera aðalatriðið.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Hún notar ykkar eigin tákn og ykkar eigin myndir, og verðin koma beint úr vefversluninni ykkar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að setja táknin tólf fram eins og stafróf, þar sem hægt er að velja tákn og sjá strax merkingu þess og þá gripi sem bera það, og að allt liggi saman á einum stað í stað þess að skiptast á tvo vefi. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Táknin tólf eru sett fram eins og stafróf, þar sem hægt er að velja tákn og sjá strax merkinguna, myndina af gripnum sem ber það og verðið. Allt á einum stað í stað þess að skiptast á tvo vefi.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 

@@ -26,12 +26,18 @@
 const BASE = import.meta.env.BASE_URL
 export const IMG = (file: string) => `${BASE}alrun/${file}`
 export const SYM = (file: string) => `${BASE}alrun/symbols/${file}.png`
+/* One real product photograph per mark, harvested from their own Shopify. */
+export const RUNE_IMG = (file: string) => `${BASE}alrun/runes/${file}.webp`
 
 /* ── Contact (verified: alrun.is + store footer) ─────────────────────── */
 export const EMAIL = 'info@alrun.is'
 export const EMAIL_HREF = 'mailto:info@alrun.is'
 export const PHONE_DISPLAY = '+354 698 1312'
 export const PHONE_HREF = 'tel:+3546981312'
+/* PROVENANCE: the street address is NOT published on alrun.is or on the store
+   front page (only the kennitala KT.640304 is). It comes from the official
+   Handverk og hönnun craft-and-design directory, re-verified live 2026-07-25
+   alongside the same phone and email. Keep it at that confidence level. */
 export const ADDRESS_1 = 'Sundaborg 1'
 export const ADDRESS_2 = '104 Reykjavík, Iceland'
 export const SHOP_URL = 'https://store.alrun.is'
@@ -89,7 +95,7 @@ export const SYMBOLS: Sym[] = [
     { name: 'Silver Pendant', price: '$119', href: P('luck-gaefa-1') },
     { name: 'Stone Pendant', price: '$94', href: P('luck-gaefa') } ] },
   { key: 'viska', n: '03', is: 'Viska', en: 'Wisdom', file: 'wisdom', products: [
-    { name: 'Silver Pendant', price: '$119', href: P('wisdom-viska') } ] },
+    { name: 'Silver Pendant', price: '$119', href: P('wisdom-viska-1') } ] },
   { key: 'magn', n: '04', is: 'Magn', en: 'Strength', file: 'strength', products: [
     { name: 'Gold Plated Pendant', price: '$189', href: P('strength-magn-gold-plated-pendant') },
     { name: 'Crystal Studs', price: '$56', href: P('strength-magn-crystal-studs') },
@@ -110,12 +116,12 @@ export const SYMBOLS: Sym[] = [
     { name: 'Crystal Studs', price: '$89', href: P('music-tonlist-crystal-studs') },
     { name: 'Steel Dog-Tag', price: '$59', href: P('music-tonlist-steel-dog-tag') } ] },
   { key: 'aeska', n: '09', is: 'Æska', en: 'Youth', file: 'youth', products: [
-    { name: 'Silver Pendant', price: '$119', href: P('youth-aeska-silver-pendant') },
+    { name: 'Silver Pendant', price: '$119', href: P('youth-aeska-1') },
     { name: 'Stone Pendant', price: '$94', href: P('youth-aeska') } ] },
   { key: 'von', n: '10', is: 'Von', en: 'Hope', file: 'hope', products: [
-    { name: 'Silver Pendant', price: '$119', href: P('hope-von') } ] },
+    { name: 'Silver Pendant', price: '$119', href: P('hope-von-1') } ] },
   { key: 'thokki', n: '11', is: 'Þokki', en: 'Grace', file: 'grace', products: [
-    { name: 'Silver Pendant', price: '$119', href: P('grace-thokki') } ] },
+    { name: 'Silver Pendant', price: '$119', href: P('grace-thokki-1') } ] },
   { key: 'ekta', n: '12', is: 'Ekta', en: 'Genuine', file: 'genuine', products: [
     { name: 'Silver Pendant', price: '$119', href: P('genuine-ekta-1') } ] },
 ]
@@ -197,6 +203,8 @@ export const APPROACH = {
 /* ── FOOTER — their wine ground, uppercase column grid ───────────────── */
 export const FOOTER = {
   heading: 'A question? Write to us and we will reply as soon as we can.',
+  /* Four links per column so the block reads even, and every destination is
+     real (their own Instagram and Facebook, their own shop, their address). */
   columns: [
     { label: 'Explore', links: [
       { t: 'The twelve', href: '#twelve' },
@@ -208,10 +216,13 @@ export const FOOTER = {
       { t: 'info@alrun.is', href: 'mailto:info@alrun.is' },
       { t: '+354 698 1312', href: 'tel:+3546981312' },
       { t: 'Instagram', href: 'https://www.instagram.com/alrun.nordic.design/' },
+      { t: 'Facebook', href: 'https://www.facebook.com/AlrunNordicDesign' },
     ] },
     { label: 'Studio', links: [
       { t: 'Sundaborg 1', href: MAP_LINK },
       { t: '104 Reykjavík', href: MAP_LINK },
+      { t: 'Open in maps', href: MAP_LINK },
+      { t: 'store.alrun.is', href: SHOP_URL },
     ] },
   ],
   shopCta: 'Visit the shop',

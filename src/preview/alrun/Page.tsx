@@ -7,7 +7,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  IMG, SYM, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS_1, ADDRESS_2,
+  IMG, SYM, RUNE_IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS_1, ADDRESS_2,
   SHOP_URL, NAV, HERO, STATEMENT, SYMBOLS, TWELVE, PIECES, SHOP, CRAFT,
   APPROACH, FOOTER, JSON_LD,
 } from './data'
@@ -117,9 +117,20 @@ const PAGE_STYLES = `
 .al-row[aria-pressed="true"] .al-name { color: ${INK}; }
 .al-row[aria-pressed="true"] .al-num { color: ${ROSE}; }
 .al-row:hover .al-name { color: ${INK}; }
+/* The English meaning rides each row, faint until the row is active — so the
+   list itself carries the name-to-word pairing the whole brand rests on. */
+.al-row .al-mean { color: rgba(7,1,3,.34); }
+.al-row[aria-pressed="true"] .al-mean, .al-row:hover .al-mean { color: ${ROSE}; }
+/* A hairline grows under the active row. */
+.al-row { position: relative; }
+.al-row::after {
+  content: ''; position: absolute; left: 50%; right: 50%; bottom: 0; height: 0.5px;
+  background: ${HAIR};
+}
+.al-row[aria-pressed="true"]::after { left: 12%; right: 12%; }
 
 /* Their carousel track. */
-.al-track { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; }
+.al-track { display: flex; gap: 16px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
 .al-track::-webkit-scrollbar { display: none; }
 .al-card { flex: 0 0 auto; width: 400px; text-decoration: none; }
 .al-card .al-shot { width: 400px; height: 520px; overflow: hidden; background: #E7DDCF; }
@@ -131,7 +142,8 @@ const PAGE_STYLES = `
   .al-btn { transition: background .25s ease, color .25s ease; }
   .al-link::after { transition: transform .4s cubic-bezier(.4,0,.2,1); }
   .al-plate { transition: opacity .7s ease; }
-  .al-row .al-name, .al-row .al-num { transition: color .3s ease; }
+  .al-row .al-name, .al-row .al-num, .al-row .al-mean { transition: color .3s ease; }
+  .al-row::after { transition: left .45s cubic-bezier(.22,1,.36,1), right .45s cubic-bezier(.22,1,.36,1); }
   .al-card img { transition: transform .8s cubic-bezier(.22,1,.36,1); }
   .al-reveal { opacity: 0; transform: translateY(14px); }
 }
@@ -270,7 +282,7 @@ function Statement() {
       </p>
       <button type="button"
         onClick={() => document.getElementById(STATEMENT.ctaTo)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })}
-        className={`al-lbl al-link al-reveal mt-10 ${FOCUS}`} style={{ color: INK }}>
+        className={`al-lbl al-link al-reveal mt-10 inline-flex min-h-[44px] items-center ${FOCUS}`} style={{ color: INK }}>
         {STATEMENT.cta}
       </button>
     </section>
@@ -300,24 +312,40 @@ function Twelve() {
     <section id="twelve" className="scroll-mt-16" style={{ background: SAND }}>
       <div className="grid items-stretch lg:grid-cols-2">
         {/* the plate */}
-        <div className="relative min-h-[420px] overflow-hidden lg:min-h-[809px]" style={{ background: WINE }}>
-          <img src={IMG(TWELVE.backdrop)} alt={TWELVE.backdropAlt} loading="lazy" decoding="async"
-            className="absolute inset-0 h-full w-full object-cover" style={{ opacity: .5 }} />
+        <div className="relative h-[78svh] min-h-[440px] overflow-hidden lg:h-auto lg:min-h-[809px]" style={{ background: WINE }}>
           {SYMBOLS.map((sy, k) => (
-            <div key={sy.key} className="al-plate flex items-center justify-center" data-on={k === i ? '1' : '0'}>
-              <img src={SYM(sy.file)} alt="" aria-hidden
-                className="h-[42%] w-auto lg:h-[46%]"
-                style={{ filter: 'brightness(0) invert(1)' }} />
+            <div key={sy.key} className="al-plate" data-on={k === i ? '1' : '0'}>
+              {/* the real piece that carries this mark */}
+              <img src={RUNE_IMG(sy.file)} alt={`${sy.is} — ${sy.en}, an Alrún piece carrying the mark.`}
+                loading={k === 0 ? 'eager' : 'lazy'} decoding="async"
+                className="absolute inset-0 h-full w-full object-cover" />
+              <span aria-hidden className="absolute inset-0"
+                style={{ background: 'linear-gradient(180deg, rgba(7,1,3,.34) 0%, rgba(7,1,3,.16) 45%, rgba(7,1,3,.66) 100%)' }} />
+              {/* Only the WORD sits over the photograph. The piece in the shot
+                  already carries the mark, so a big overlaid copy of it just
+                  doubled the same shape. */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="al-exp m-0 uppercase"
+                  style={{ color: SAND, fontWeight: 300, fontSize: 'clamp(1.5rem, 3.6vw, 36.8px)', letterSpacing: '.06em', textShadow: '0 1px 18px rgba(0,0,0,.55)' }}>
+                  {sy.en}
+                </p>
+              </div>
             </div>
           ))}
-          <p className="al-lbl-s absolute bottom-5 left-5 m-0" style={{ color: SAND_MUTE }}>
-            {s.n} · {s.is} — {s.en}
+          {/* their bottom-left plate caption, plus a running index */}
+          <div className="absolute bottom-5 left-5 flex items-center gap-2.5">
+            <img src={SYM(s.file)} alt="" aria-hidden className="h-4 w-auto"
+              style={{ filter: 'brightness(0) invert(1)', opacity: .7 }} />
+            <p className="al-lbl-s m-0" style={{ color: SAND_MUTE }}>{s.is} — {s.en}</p>
+          </div>
+          <p className="al-lbl-s absolute bottom-5 right-5 m-0 tabular-nums" style={{ color: SAND_MUTE }}>
+            {s.n} / 12
           </p>
         </div>
 
         {/* the centred numbered list */}
         <div className="flex flex-col items-center justify-center px-5 py-20 md:px-10 md:py-28">
-          <p className="al-lbl-s al-reveal m-0" style={{ color: INK_MUTE }}>{TWELVE.eyebrow}</p>
+          <h2 className="al-lbl-s al-reveal m-0" style={{ color: INK_MUTE }}>{TWELVE.eyebrow}</h2>
 
           <div role="group" aria-label="The twelve bindrunes" className="mt-9 w-full">
             {SYMBOLS.map((sy, k) => (
@@ -327,6 +355,7 @@ function Twelve() {
                 onClick={() => setI(k)} onMouseEnter={() => setI(k)} onKeyDown={(e) => onKey(e, k)}>
                 <span className="al-num" aria-hidden>{sy.n}</span>
                 <span className="al-name al-item">{sy.is}</span>
+                <span className="al-mean al-lbl-s" aria-hidden>{sy.en}</span>
               </button>
             ))}
           </div>
@@ -353,6 +382,11 @@ function Twelve() {
             </ul>
           </div>
 
+          <a href={SHOP_URL} target="_blank" rel="noreferrer"
+            className={`al-lbl al-link mt-10 inline-flex min-h-[44px] items-center ${FOCUS}`} style={{ color: INK }}>
+            {TWELVE.cta}
+          </a>
+
           <p className="al-body mx-auto mt-8 max-w-[24rem] text-center text-[11.5px] leading-[1.6]" style={{ color: INK_MUTE }}>
             {TWELVE.note}
           </p>
@@ -365,13 +399,32 @@ function Twelve() {
 /* ═══════════════ SHOP — their 400x520 carousel ══════════════════════════ */
 function Shop() {
   const trackRef = useRef<HTMLDivElement>(null)
+  /* The arrows animate scrollLeft on our own rAF. Two things rule out the
+     simpler routes: CSS/native smooth scrolling is cancelled every frame by
+     Lenis (which drives the page on its own loop), and GSAP will not tween
+     scrollLeft without ScrollToPlugin. This is immune to both. */
+  const rafRef = useRef(0)
   const nudge = (dir: 1 | -1) => {
     const t = trackRef.current
-    if (t) t.scrollBy({ left: dir * 416, behavior: prefersReduced() ? 'auto' : 'smooth' })
+    if (!t) return
+    const max = t.scrollWidth - t.clientWidth
+    const from = t.scrollLeft
+    const to = Math.max(0, Math.min(max, from + dir * 416))
+    cancelAnimationFrame(rafRef.current)
+    if (prefersReduced() || to === from) { t.scrollLeft = to; return }
+    const started = performance.now()
+    const dur = 520
+    const step = (now: number) => {
+      const p = Math.min(1, (now - started) / dur)
+      t.scrollLeft = from + (to - from) * (1 - Math.pow(1 - p, 3))
+      if (p < 1) rafRef.current = requestAnimationFrame(step)
+    }
+    rafRef.current = requestAnimationFrame(step)
   }
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
   return (
     <section id="shop" className="scroll-mt-16 py-24 md:py-32" style={{ background: SAND }}>
-      <p className="al-lbl-s al-reveal m-0 px-5 text-center md:px-8" style={{ color: INK_MUTE }}>{SHOP.eyebrow}</p>
+      <h2 className="al-lbl-s al-reveal m-0 px-5 text-center md:px-8" style={{ color: INK_MUTE }}>{SHOP.eyebrow}</h2>
 
       <div ref={trackRef} className="al-track mt-10 px-5 md:px-8">
         {PIECES.map((p) => (
@@ -401,7 +454,7 @@ function Shop() {
           style={{ color: INK, border: `0.5px solid ${HAIR}` }}>→</button>
       </div>
       <div className="mt-8 text-center">
-        <a href={SHOP_URL} target="_blank" rel="noreferrer" className={`al-lbl al-link ${FOCUS}`} style={{ color: INK }}>
+        <a href={SHOP_URL} target="_blank" rel="noreferrer" className={`al-lbl al-link inline-flex min-h-[44px] items-center ${FOCUS}`} style={{ color: INK }}>
           {SHOP.cta}
         </a>
       </div>
@@ -416,32 +469,28 @@ function Shop() {
 /* ═══════════════ CRAFT — centred line + scattered plates ════════════════ */
 function Craft() {
   const reduced = prefersReduced()
-  /* Their scatter: small plates at deliberately uneven offsets. */
-  const pos = [
-    'sm:mt-0 sm:justify-self-start sm:w-[130px]',
-    'sm:mt-24 sm:justify-self-center sm:w-[120px]',
-    'sm:mt-10 sm:justify-self-end sm:w-[130px]',
-  ]
+  /* Deliberately EVEN, not scattered: three plates of identical size on one
+     aligned row, stacking to a single centred column on mobile. */
   return (
     <section id="craft" className="scroll-mt-16 px-5 py-24 md:px-8 md:py-32" style={{ background: SAND }}>
-      <div className="mx-auto grid max-w-[1180px] items-center gap-12 sm:grid-cols-3">
-        {CRAFT.scatter.map((s, k) => (
-          <div key={s.file} className={`al-reveal w-[42%] ${pos[k]}`}>
-            <div className="overflow-hidden" style={{ aspectRatio: k === 1 ? '3 / 4' : '13 / 10', background: '#E7DDCF' }}>
+      <div className="mx-auto grid max-w-[1000px] items-start gap-6 sm:grid-cols-3 sm:gap-7">
+        {CRAFT.scatter.map((s) => (
+          <div key={s.file} className="al-reveal mx-auto w-full max-w-[320px] sm:max-w-none">
+            <div className="overflow-hidden" style={{ aspectRatio: '4 / 5', background: '#E7DDCF' }}>
               <img src={IMG(s.file)} alt={s.alt} loading="lazy" decoding="async"
                 className="h-full w-full object-cover" />
             </div>
           </div>
         ))}
       </div>
-      <p className="al-body al-reveal mx-auto mt-16 max-w-[20rem] text-center text-[16px] font-light uppercase leading-[1.6]"
+      <h2 className="al-body al-reveal mx-auto mt-16 max-w-[20rem] text-center text-[16px] font-light uppercase leading-[1.6]"
         style={{ color: INK }}>
         {CRAFT.line}
-      </p>
+      </h2>
       <div className="mt-8 text-center">
         <button type="button"
           onClick={() => document.getElementById(CRAFT.ctaTo)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })}
-          className={`al-lbl al-link ${FOCUS}`} style={{ color: INK }}>
+          className={`al-lbl al-link inline-flex min-h-[44px] items-center ${FOCUS}`} style={{ color: INK }}>
           {CRAFT.cta}
         </button>
       </div>
@@ -453,7 +502,7 @@ function Craft() {
 function Approach() {
   return (
     <section id="approach" className="scroll-mt-16" style={{ background: INK }}>
-      <p className="al-lbl-s m-0 px-5 pt-16 md:px-8" style={{ color: SAND_MUTE }}>{APPROACH.eyebrow}</p>
+      <h2 className="al-lbl-s m-0 px-5 pt-16 md:px-8" style={{ color: SAND_MUTE }}>{APPROACH.eyebrow}</h2>
       <div className="mt-10 grid gap-px sm:grid-cols-2 lg:grid-cols-4" style={{ background: 'rgba(244,235,223,.14)' }}>
         {APPROACH.steps.map((st) => (
           <article key={st.n} className="relative min-h-[440px] overflow-hidden lg:min-h-[560px]">
@@ -474,7 +523,7 @@ function Approach() {
         ))}
       </div>
       <div className="px-5 py-14 text-center md:px-8">
-        <a href={SHOP_URL} target="_blank" rel="noreferrer" className={`al-lbl al-link ${FOCUS}`} style={{ color: SAND }}>
+        <a href={SHOP_URL} target="_blank" rel="noreferrer" className={`al-lbl al-link inline-flex min-h-[44px] items-center ${FOCUS}`} style={{ color: SAND }}>
           {APPROACH.cta}
         </a>
       </div>
@@ -487,12 +536,14 @@ function FooterWine() {
   return (
     <section id="contact" className="scroll-mt-16 px-5 pt-20 md:px-8 md:pt-28" style={{ background: WINE }}>
       <div className="mx-auto max-w-[1180px]">
-        <p className="al-exp al-reveal m-0 max-w-[30rem] text-[19.2px] leading-[1.5]" style={{ color: SAND }}>
+        <h2 className="al-exp al-reveal m-0 max-w-[30rem] text-[19.2px] leading-[1.5]" style={{ color: SAND }}>
           {FOOTER.heading}
-        </p>
-        <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+        </h2>
+        {/* A matched pair: two buttons of identical weight and equal width.
+            A bordered box next to a small text link read lopsided. */}
+        <div className="mt-9 grid max-w-[34rem] gap-4 sm:grid-cols-2">
           <a href={EMAIL_HREF} className={`al-btn al-btn-wine ${FOCUS}`}>{EMAIL}</a>
-          <a href={PHONE_HREF} className={`al-lbl al-link ${FOCUS}`} style={{ color: SAND }}>{PHONE_DISPLAY}</a>
+          <a href={PHONE_HREF} className={`al-btn al-btn-wine ${FOCUS}`}>{PHONE_DISPLAY}</a>
         </div>
 
         {/* their three uppercase columns */}
@@ -504,7 +555,7 @@ function FooterWine() {
                 {c.links.map((l) => (
                   <li key={l.t} className="mt-2.5">
                     <a href={l.href} {...(l.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}
-                      className={`al-lbl-s al-link ${FOCUS}`} style={{ color: SAND }}>
+                      className={`al-lbl-s al-link inline-flex min-h-[36px] items-center ${FOCUS}`} style={{ color: SAND }}>
                       {l.t}
                     </a>
                   </li>
