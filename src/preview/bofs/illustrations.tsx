@@ -12,6 +12,7 @@
  * animation back inside the terrain or scrolling drops to CPU repaints.
  */
 
+import { useId } from 'react'
 import type { CSSProperties } from 'react'
 
 /* ── little building blocks (static, inside the terrain svg) ──────────── */
@@ -352,48 +353,100 @@ export function ValueIcon({ name, color, className }: { name: string; color: str
  * Colours must match the section they pour INTO, or a hairline gap can show.
  */
 
-export function WaveDivider({ color, flip = false, className }: { color: string; flip?: boolean; className?: string }) {
+/*
+ * Each seam is drawn twice: the fill that pours into the next section, and an
+ * edge-only stroke along the same curve. The stroke is the pigment pooling
+ * that dries darker wherever one wash met another, which is the detail that
+ * stops a section boundary reading as a vector curve. Both sit in one <g> so
+ * the shared turbulence filter wobbles them identically; stroking the fill
+ * path directly would draw the closing segment down the sides too.
+ */
+const SEAM_POOL = 'rgba(58,44,34,.11)'
+
+function Seam({
+  viewBox,
+  fillPath,
+  edgePath,
+  color,
+  flip,
+  className,
+}: {
+  viewBox: string
+  fillPath: string
+  edgePath: string
+  color: string
+  flip?: boolean
+  className?: string
+}) {
+  /*
+   * The pooling stroke is clipped to the fill shape. Displacing a 2.5px line
+   * tears it into fragments and flings some of them clear of the edge, which
+   * showed up as dark dashes floating on the cream above the wave. Clipped to
+   * the fill, any tearing stays on the dark side where it reads as pigment
+   * settling, which is what it is meant to look like anyway.
+   *
+   * useId keeps the clip id unique when several seams share a page; the colons
+   * React puts in the id are stripped because they are awkward in url().
+   */
+  const clipId = `bofs-seamclip-${useId().replace(/:/g, '')}`
   return (
     <svg
       className={className}
-      viewBox="0 0 1440 80"
+      viewBox={viewBox}
       preserveAspectRatio="none"
       aria-hidden="true"
       style={{ display: 'block', transform: flip ? 'scaleY(-1)' : undefined }}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M0 40 Q 360 0 720 40 T 1440 40 V80 H0 Z" fill={color} />
+      <defs>
+        <clipPath id={clipId}>
+          <path d={fillPath} />
+        </clipPath>
+      </defs>
+      <g filter="url(#bofs-seam)">
+        <path d={fillPath} fill={color} />
+        <path d={edgePath} fill="none" stroke={SEAM_POOL} strokeWidth="9" clipPath={`url(#${clipId})`} />
+      </g>
     </svg>
+  )
+}
+
+export function WaveDivider({ color, flip = false, className }: { color: string; flip?: boolean; className?: string }) {
+  return (
+    <Seam
+      viewBox="0 0 1440 80"
+      fillPath="M0 40 Q 360 0 720 40 T 1440 40 V96 H0 Z"
+      edgePath="M0 40 Q 360 0 720 40 T 1440 40"
+      color={color}
+      flip={flip}
+      className={className}
+    />
   )
 }
 
 export function HillDivider({ color, flip = false, className }: { color: string; flip?: boolean; className?: string }) {
   return (
-    <svg
-      className={className}
+    <Seam
       viewBox="0 0 1440 90"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      style={{ display: 'block', transform: flip ? 'scaleY(-1)' : undefined }}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M0 62 Q 300 20 640 52 T 1160 46 Q 1320 40 1440 58 V90 H0 Z" fill={color} />
-    </svg>
+      fillPath="M0 62 Q 300 20 640 52 T 1160 46 Q 1320 40 1440 58 V106 H0 Z"
+      edgePath="M0 62 Q 300 20 640 52 T 1160 46 Q 1320 40 1440 58"
+      color={color}
+      flip={flip}
+      className={className}
+    />
   )
 }
 
 export function ArchNotchDivider({ color, flip = false, className }: { color: string; flip?: boolean; className?: string }) {
   return (
-    <svg
-      className={className}
+    <Seam
       viewBox="0 0 1440 90"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      style={{ display: 'block', transform: flip ? 'scaleY(-1)' : undefined }}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* flat horizon that lifts into one central doorway arch */}
-      <path d="M0 66 H620 Q 660 66 686 40 Q 720 6 754 40 Q 780 66 820 66 H1440 V90 H0 Z" fill={color} />
-    </svg>
+      /* flat horizon that lifts into one central doorway arch */
+      fillPath="M0 66 H620 Q 660 66 686 40 Q 720 6 754 40 Q 780 66 820 66 H1440 V106 H0 Z"
+      edgePath="M0 66 H620 Q 660 66 686 40 Q 720 6 754 40 Q 780 66 820 66 H1440"
+      color={color}
+      flip={flip}
+      className={className}
+    />
   )
 }

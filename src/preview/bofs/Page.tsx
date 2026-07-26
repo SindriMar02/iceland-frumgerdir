@@ -59,7 +59,7 @@ export default function BofsPage() {
 
       <main id="main">
         {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <section ref={heroRef} className="relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
+        <section ref={heroRef} className="bofs-wash relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
           <motion.div style={{ y: valleyY, willChange: 'transform' }} className="pointer-events-none absolute inset-0 -z-10">
             {/* the painted valley: gouache wash, eager-loaded, parallax only */}
             <Img
@@ -126,7 +126,7 @@ export default function BofsPage() {
         <WayfinderDoors />
 
         {/* ── MISSION + compressed values ─────────────────────────────── */}
-        <section className="relative" style={{ background: C.cream2 }}>
+        <section className="bofs-wash bofs-bloom relative" style={{ background: C.cream2 }}>
           <div className="mx-auto max-w-5xl px-5 py-20 text-center sm:px-8 sm:py-28">
             <Reveal>
               <Eyebrow>{pick({ is: 'Eitt net af hlýju', en: 'One warm network' })}</Eyebrow>
@@ -158,7 +158,7 @@ export default function BofsPage() {
         </section>
 
         {/* ── TREATMENT HOMES ──────────────────────────────────────────── */}
-        <section id="heimili" className="scroll-mt-24" style={{ background: C.cream }}>
+        <section id="heimili" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
             <SectionHead eyebrow={pick(CATEGORIES[0].title)} title={pick({ is: 'Örugg heimili þegar þeirra er þörf', en: 'Safe homes, when they’re needed' })} lead={pick(CATEGORIES[0].blurb)} />
             <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -170,7 +170,7 @@ export default function BofsPage() {
         </section>
 
         {/* ── FAMILY & SUPPORT SERVICES ────────────────────────────────── */}
-        <section id="thjonusta" className="scroll-mt-24" style={{ background: C.oat }}>
+        <section id="thjonusta" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.oat }}>
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
             <SectionHead
               eyebrow={pick(CATEGORIES[1].title)}
@@ -186,11 +186,11 @@ export default function BofsPage() {
         </section>
 
         {/* ── PATH (3 steps) ───────────────────────────────────────────── */}
-        <section id="path" className="scroll-mt-24" style={{ background: C.cream }}>
+        <section id="path" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
             <SectionHead eyebrow={pick({ is: 'Fyrsta skrefið', en: 'The first step' })} title={pick(PATH.title)} lead={pick(PATH.lead)} align="center" />
             <div className="relative mt-14 grid gap-6 md:grid-cols-3">
-              <div className="pointer-events-none absolute left-0 right-0 top-9 hidden md:block" style={{ borderTop: `2px dashed ${C.line}` }} />
+              <div className="bofs-rule pointer-events-none absolute left-0 right-0 top-9 hidden md:block" />
               {PATH.steps.map((step, i) => (
                 <Reveal key={step.n} delay={i * 0.1}>
                   <div className="relative flex h-full flex-col rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
@@ -215,7 +215,7 @@ export default function BofsPage() {
         <StatsBand />
 
         {/* ── WARMTH GALLERY ───────────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
+        <section className="bofs-wash" style={{ background: C.cream }}>
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
             <SectionHead eyebrow={pick(GALLERY.eyebrow)} title={pick(GALLERY.title)} lead={pick(GALLERY.lead)} align="center" />
             <div className="mt-12 grid grid-cols-2 gap-4 lg:h-[540px] lg:grid-cols-4 lg:grid-rows-2">
@@ -225,7 +225,7 @@ export default function BofsPage() {
                   delay={i * 0.08}
                   className={i === 0 ? 'col-span-2 lg:col-span-2 lg:row-span-2' : i === 1 ? 'col-span-2 lg:col-span-2' : 'col-span-1'}
                 >
-                  <figure className="group relative h-full overflow-hidden rounded-[20px]" style={{ boxShadow: `0 30px 56px -44px rgba(58,44,34,.6)` }}>
+                  <figure className="group relative h-full overflow-hidden rounded-[20px]">
                     <Img
                       src={asset(p.src)}
                       alt={pick(p.alt)}
@@ -250,7 +250,7 @@ export default function BofsPage() {
         <WaveDivider color={C.deep} className="block w-full" />
 
         {/* ── HONEST-HOPE BAND (the one deep pause) ────────────────────── */}
-        <section style={{ background: C.deep }}>
+        <section className="bofs-wash bofs-bloom" style={{ background: C.deep }}>
           <div className="mx-auto grid max-w-6xl gap-10 px-5 py-24 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <SectionHead eyebrow={pick(HONEST.kicker)} title={pick(HONEST.title)} onDeep />

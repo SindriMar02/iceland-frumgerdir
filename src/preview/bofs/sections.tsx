@@ -38,7 +38,7 @@ const HUE: Record<string, string> = { terra: C.terra, sky: C.sky, sun: C.sun }
 export function WayfinderDoors() {
   const [, , pick] = useLang()
   return (
-    <section className="scroll-mt-24" style={{ background: C.cream }}>
+    <section className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
         <div className="mb-10 text-center">
           <Eyebrow>{pick(WAYFINDER.hand)}</Eyebrow>
@@ -69,7 +69,7 @@ export function WayfinderDoors() {
               </>
             )
             const cls = 'bofs-focus bofs-lift group flex h-full flex-col overflow-hidden rounded-[18px]'
-            const style = { background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 24px 44px -38px rgba(58,44,34,.5)` }
+            const style = { background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }
             return (
               <Reveal key={d.key} delay={i * 0.08} y={20}>
                 {d.to.startsWith('/') ? (
@@ -97,7 +97,7 @@ export function StatsBand() {
   const items = STATS.items
   if (items.length < 3) return null
   return (
-    <section id="tolur" className="scroll-mt-24" style={{ background: C.cream2 }}>
+    <section id="tolur" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <SectionHead eyebrow={pick(STATS.eyebrow)} title={pick(STATS.title)} lead={pick(STATS.lead)} align="center" />
         <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -200,7 +200,7 @@ export function AboutTeaser() {
   const [, , pick] = useLang()
   const stones = [TIMELINE.items[0], TIMELINE.items[4], TIMELINE.items[5]].filter(Boolean) as Milestone[]
   return (
-    <section id="um" className="scroll-mt-24" style={{ background: C.oat }}>
+    <section id="um" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.oat }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div>
@@ -222,7 +222,7 @@ export function AboutTeaser() {
           {/* three history stones on a static dashed line */}
           <Reveal delay={0.08}>
             <div className="relative">
-              <div className="pointer-events-none absolute left-6 right-6 top-9 hidden sm:block" style={{ borderTop: `2px dashed ${C.line}` }} />
+              <div className="bofs-rule pointer-events-none absolute left-6 right-6 top-9 hidden sm:block" />
               <div className="grid grid-cols-3 gap-3">
                 {stones.map((m, i) => (
                   <Link
@@ -327,7 +327,7 @@ export function FaqList() {
     })),
   }
   return (
-    <section id="spurningar" className="scroll-mt-24" style={{ background: C.cream2 }}>
+    <section id="spurningar" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>{pick(FAQ.eyebrow)}</Eyebrow>
@@ -351,11 +351,17 @@ export function FosterBand() {
   const reduce = useReducedMotion()
   const service = SERVICES.find((s) => s.slug === 'fostur')
   return (
-    <section id="fostur-kall" className="scroll-mt-24" style={{ background: C.cream }}>
+    <section id="fostur-kall" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <Reveal>
-            <div className="overflow-hidden bofs-arch" style={{ boxShadow: '0 34px 66px -46px rgba(58,44,34,.55)' }}>
+            {/*
+              Wet edge rather than the arch doorway crop: this painting now
+              contains its own lit doorway, so cropping it into a second one
+              doubled the metaphor and clipped the light. Cast shadow gone
+              with it, since a painting does not float above the paper.
+            */}
+            <div className="bofs-wet overflow-hidden">
               <motion.div
                 initial={reduce ? undefined : { scale: 1.06 }}
                 whileInView={reduce ? undefined : { scale: 1 }}
@@ -364,8 +370,11 @@ export function FosterBand() {
                 style={{ willChange: 'transform' }}
               >
                 <Img
-                  src={asset('art-fostur.jpg')}
-                  alt={pick({ is: 'Vatnslitamynd: sveitabær með opnar dyr og ljós sem fellur á hlaðið', en: 'Watercolor: a farmstead with an open door, light spilling onto the step' })}
+                  src={asset('art-plass.jpg')}
+                  alt={pick({
+                    is: 'Vatnslitamynd: eldhús að kvöldi, borðið lagt, auður stóll með teppi og opnar dyr fram í upplýstan gang',
+                    en: 'Watercolor: a kitchen in the evening, the table laid, an empty chair with a blanket, and an open door onto a lit hallway',
+                  })}
                   className="h-[320px] w-full object-cover lg:h-[440px]"
                   fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
                 />
@@ -403,7 +412,7 @@ export function FosterBand() {
 export function InstitutionsAndClose() {
   const [, , pick] = useLang()
   return (
-    <section id="stofnanir" className="scroll-mt-24" style={{ background: C.oat }}>
+    <section id="stofnanir" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.oat }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <Eyebrow>{pick(INSTITUTIONS.eyebrow)}</Eyebrow>
@@ -461,7 +470,7 @@ export function InstitutionsAndClose() {
 export function DuskBookend() {
   const [, , pick] = useLang()
   return (
-    <section className="relative overflow-hidden" style={{ background: C.deep }}>
+    <section className="bofs-wash bofs-bloom relative overflow-hidden" style={{ background: C.deep }}>
       {/* the same painted valley at dusk; darkening veil settles into the footer */}
       <Img
         src={asset('art-dusk.jpg')}
@@ -532,7 +541,7 @@ export function NewsList({ items }: { items: typeof NEWS.items }) {
 export function NewsBand() {
   const [, , pick] = useLang()
   return (
-    <section id="frettir" className="scroll-mt-24" style={{ background: C.cream2 }}>
+    <section id="frettir" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
@@ -577,7 +586,7 @@ export function NotFoundPage() {
       <BofsStyles />
       <Header />
       <main id="main">
-        <section className="relative isolate flex min-h-[86svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
+        <section className="bofs-wash relative isolate flex min-h-[86svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
           <div className="pointer-events-none absolute inset-0 -z-10">
             <Img
               src={asset('art-dawn.jpg')}
@@ -673,7 +682,7 @@ export function JourneyStrip({ serviceName, hue }: { serviceName: string; hue: s
                 </span>
               </span>
             )}
-            {i < nodes.length - 1 && <span className="mx-2 block h-0 w-8 shrink-0 border-t-2 border-dashed sm:w-12" style={{ borderColor: C.line }} />}
+            {i < nodes.length - 1 && <span className="bofs-rule mx-2 w-8 shrink-0 sm:w-12" />}
           </div>
         ))}
         <Link to="/preview/bofs/kerfid" className="bofs-focus ml-4 hidden shrink-0 text-[14px] font-bold lg:inline" style={{ color: C.clayText }}>
@@ -689,7 +698,7 @@ export function JourneyStrip({ serviceName, hue }: { serviceName: string; hue: s
 export function FosterSteps() {
   const [, , pick] = useLang()
   return (
-    <section id="gerast" className="scroll-mt-24" style={{ background: C.cream2 }}>
+    <section id="gerast" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-5xl px-5 py-20 sm:px-8">
         <SectionHead eyebrow={pick(FOSTER_STEPS.eyebrow)} title={pick({ is: 'Þrjú skref að því að opna heimilið', en: 'Three steps to opening your home' })} lead={pick(FOSTER_STEPS.lead)} />
         <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -722,7 +731,7 @@ export function FosterSteps() {
 export function HelpBand() {
   const [, , pick] = useLang()
   return (
-    <section id="help" className="scroll-mt-24" style={{ background: C.cream }}>
+    <section id="help" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <SectionHead eyebrow={pick({ is: 'Alltaf einhver', en: 'Always someone' })} title={pick(HELP.title)} lead={pick(HELP.lead)} align="center" />
         <div className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-2">
@@ -736,7 +745,7 @@ export function HelpBand() {
                   style={{
                     background: emphasis ? '#A83A24' : '#fff',
                     color: emphasis ? '#fff' : C.cocoa,
-                    boxShadow: emphasis ? '0 20px 40px -24px rgba(168,58,36,.9)' : `inset 0 0 0 1px ${C.line}`,
+                    boxShadow: emphasis ? 'inset 0 0 0 1.5px rgba(168,58,36,.55)' : `inset 0 0 0 1px ${C.line}`,
                   }}
                 >
                   <span

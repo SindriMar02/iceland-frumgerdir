@@ -111,15 +111,74 @@ export function useLang(): [Lang, (l: Lang) => void, (v: L) => string] {
 
 /* ── ambient motion + base styles (injected once) ─────────────────────── */
 
+/* ── painted surface primitives ───────────────────────────────────────── */
+
+/*
+ * Until now the watercolours sat on a flat web page: solid hex grounds, hard
+ * rectangular crops, cast shadows. The paintings were doing all the work and
+ * the interface around them spoke a different material language.
+ *
+ * Everything below exists to make the INTERFACE behave the way the paintings
+ * do, so the site reads as one sheet of paper rather than as a website that
+ * contains pictures. It is all generated SVG: no texture download, no extra
+ * request, no JavaScript, and nothing animates. The motion lock still holds.
+ */
+
+/*
+ * Cold-press paper tooth. Fractal noise, desaturated, then compressed by the
+ * feComponentTransfer into the 0.86 to 1.0 range so that multiplying it over
+ * a ground darkens by at most 14% at the darkest speck and about 6% on
+ * average. Full-range grey noise multiplied would halve the luminance and
+ * wreck every contrast ratio on the site.
+ *
+ * Tiles at 260px, which stays illegible as a repeat even at the 1.22 zoom of
+ * the largest reader text setting.
+ */
+const PAPER =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.14' intercept='0.86'/%3E%3CfeFuncG type='linear' slope='0.14' intercept='0.86'/%3E%3CfeFuncB type='linear' slope='0.14' intercept='0.86'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23p)'/%3E%3C/svg%3E\")"
+
+/*
+ * A wash does not end in a straight line. Each mask is a soft-cornered field
+ * pushed around by turbulence and then blurred, so a painting dissolves into
+ * the paper instead of being cut off by a rectangle. preserveAspectRatio none
+ * plus mask-size 100% 100% lets one mask stretch to any slot.
+ *
+ * Two shapes only, matching the two crops the site already uses: the plain
+ * field, and the arch doorway that appears at most once per page.
+ */
+const wetFilter =
+  "%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.011 0.022' numOctaves='3' seed='9' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='20' xChannelSelector='R' yChannelSelector='G'/%3E%3CfeGaussianBlur stdDeviation='2.2'/%3E%3C/filter%3E"
+
+const WET =
+  `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='450' preserveAspectRatio='none'%3E${wetFilter}%3Crect x='18' y='18' width='564' height='414' rx='14' fill='%23fff' filter='url(%23w)'/%3E%3C/svg%3E")`
+
+/* the doorway: a half-round head on straight jambs, matching .bofs-arch */
+const WET_ARCH =
+  `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='450' preserveAspectRatio='none'%3E${wetFilter}%3Cpath d='M18 402 L18 300 A282 282 0 0 1 582 300 L582 402 Q582 432 552 432 L48 432 Q18 432 18 402 Z' fill='%23fff' filter='url(%23w)'/%3E%3C/svg%3E")`
+
+/*
+ * A rule in a painting is a brushstroke: it varies in thickness along its
+ * length and runs dry at one end. Carried as a mask rather than a coloured
+ * image so the stroke can take any colour from CSS.
+ */
+const INK_RULE =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='6' preserveAspectRatio='none'%3E%3Cpath d='M3 3.2 C 90 1.7, 170 4.3, 258 2.6 C 350 1.1, 430 4.1, 512 2.9 C 550 2.4, 575 3.4, 597 2.8' stroke='%23fff' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")"
+
 export function BofsStyles() {
   return (
-    <style>{`
+    <>
+      <style>{`
       @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-400.woff2')}') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
       @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-500.woff2')}') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
       @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-600.woff2')}') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
       @font-face { font-family:'Author'; src:url('${asset('fonts/author-var.woff2')}') format('woff2'); font-weight:200 800; font-style:normal; font-display:swap; }
 
-      .bofs-root { background:${C.cream}; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
+      /*
+       * The page ground is paper, not a colour. Every other surface in the
+       * system sits on this, and that is what makes the paintings and the
+       * interface read as one object rather than as pictures on a website.
+       */
+      .bofs-root { background-color:${C.cream}; background-image:${PAPER}; background-size:260px 260px; background-blend-mode:multiply; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
       .bofs-root ::selection { background:${C.terra}; color:#fff; }
       /* a serif display wants air, not grotesk tightness */
       .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:600; letter-spacing:-0.012em; line-height:1.08; }
@@ -146,6 +205,64 @@ export function BofsStyles() {
       /* the doorway crop; at most one per page */
       .bofs-arch { border-radius:999px 999px 30px 30px; }
 
+      /*
+       * Any band that lays down its own opaque colour would cover the sheet,
+       * so it re-lays the tooth inside itself. Multiplied, so that where two
+       * washes overlap they darken the way layered pigment does, rather than
+       * fogging toward grey the way stacked alpha does.
+       */
+      .bofs-wash { position:relative; }
+      .bofs-wash::before {
+        content:''; position:absolute; inset:0; pointer-events:none;
+        background-image:${PAPER}; background-size:220px 220px; mix-blend-mode:multiply;
+      }
+
+      /* pigment pools toward one part of the paper instead of filling a
+         rectangle evenly; two soft blooms, never a hard boundary */
+      .bofs-bloom { position:relative; }
+      .bofs-bloom::after {
+        content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
+        background:
+          radial-gradient(72% 56% at 16% 10%, rgba(74,49,35,.05), rgba(74,49,35,0) 70%),
+          radial-gradient(82% 62% at 88% 96%, rgba(74,49,35,.06), rgba(74,49,35,0) 72%);
+      }
+
+      /*
+       * WET EDGES. A painting dissolves into the paper; it does not stop at a
+       * crop. The ::after is edge darkening, where pigment pools and dries
+       * darker at the boundary of a wash. It is masked along with its parent,
+       * so the darkening follows the wobble exactly.
+       *
+       * Do not put .bofs-bloom on the same element: both use ::after.
+       */
+      .bofs-wet, .bofs-wet-arch {
+        position:relative;
+        -webkit-mask-size:100% 100%; mask-size:100% 100%;
+        -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+      }
+      .bofs-wet { -webkit-mask-image:${WET}; mask-image:${WET}; }
+      .bofs-wet-arch { -webkit-mask-image:${WET_ARCH}; mask-image:${WET_ARCH}; }
+      .bofs-wet::after, .bofs-wet-arch::after {
+        content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
+        background:radial-gradient(118% 118% at 50% 44%, rgba(74,49,35,0) 56%, rgba(74,49,35,.10) 84%, rgba(74,49,35,.21) 100%);
+      }
+
+      /* a rule in a painting is a brushstroke: thickness varies along its
+         length and it runs dry at the end. Carried as a mask so the stroke
+         takes its colour from CSS and can sit on any ground. */
+      /* no width here on purpose: a block div already fills its container,
+         and an absolutely positioned one is sized by its left/right offsets,
+         which a width:100% would override */
+      .bofs-rule {
+        border:0; display:block; height:6px;
+        -webkit-mask-image:${INK_RULE}; mask-image:${INK_RULE};
+        -webkit-mask-size:100% 100%; mask-size:100% 100%;
+        -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+        background-color:${C.line};
+      }
+      .bofs-rule-clay { background-color:${C.clay}; opacity:.5; }
+      .bofs-rule-deep { background-color:${C.deepText}; opacity:.32; }
+
       /* micro-interaction craft: composited-only lifts, gated behind real hover */
       .bofs-lift { transition:transform .2s ease-out, box-shadow .2s ease-out; }
       .bofs-press { transition:transform .12s ease-out; }
@@ -164,6 +281,28 @@ export function BofsStyles() {
         .bofs-faq { transition:none !important; }
       }
     `}</style>
+
+      {/*
+        One shared filter for the wet seams, rendered here because BofsStyles
+        mounts exactly once per page. Defining it inside each divider instead
+        would put duplicate ids in the DOM, which is the sort of thing the
+        accessibility audit exists to catch.
+      */}
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        width="0"
+        height="0"
+        style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
+      >
+        <defs>
+          <filter id="bofs-seam" x="-2%" y="-40%" width="104%" height="180%" colorInterpolationFilters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.011" numOctaves="2" seed="11" result="n" />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+    </>
   )
 }
 
@@ -217,10 +356,12 @@ function btnStyle(variant: BtnProps['variant']) {
     case 'ghost':
       return { background: 'transparent', color: C.clayText, boxShadow: 'inset 0 0 0 1.5px ' + C.line }
     case 'deep':
-      return { background: C.sun, color: '#3A2410', boxShadow: '0 10px 24px -12px rgba(58,44,34,.6)' }
+      // pigment weight, not elevation: an inked bottom edge instead of a
+      // shadow cast onto paper the button is supposed to be part of
+      return { background: C.sun, color: '#3A2410', boxShadow: 'inset 0 -2px 0 rgba(58,44,34,.22)' }
     case 'primary':
     default:
-      return { background: C.clay, color: '#FFF6EC', boxShadow: '0 12px 26px -14px rgba(176,81,47,.9)' }
+      return { background: C.clay, color: '#FFF6EC', boxShadow: 'inset 0 -2px 0 rgba(58,20,8,.26)' }
   }
 }
 
@@ -714,7 +855,7 @@ export function ServiceCard({ service, index = 0 }: { service: Service; index?: 
       <Link
         to={`/preview/bofs/${service.slug}`}
         className="bofs-focus bofs-lift group relative flex h-full flex-col overflow-hidden rounded-[18px] p-6"
-        style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 24px 44px -38px rgba(58,44,34,.5)` }}
+        style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
       >
         <HomeArt art={service.art} hue={service.hue} hueSoft={service.hueSoft} className="h-[64px] w-[64px]" />
         <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-bold" style={{ background: service.hueSoft, color: C.cocoa }}>

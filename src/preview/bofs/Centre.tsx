@@ -135,8 +135,15 @@ export default function BofsCentre() {
               <Reveal>
                 <p className="mb-12 border-l-2 pl-4 text-[13.5px] leading-relaxed" style={{ borderColor: service.hue, color: C.body }}>
                   {pick(photo.alt)}
+                  {/*
+                    Explicit measured colour, never opacity. C.body dimmed to
+                    0.8 computes to #877568 on cream, which is 3.99:1 and fails
+                    AA at this size; this is 5.08:1 and still reads as secondary
+                    to the alt text above it. Same mistake, same fix as the
+                    muted 13px text corrected on 17 July.
+                  */}
                   {photo.painted && (
-                    <span className="mt-1 block" style={{ opacity: 0.8 }}>
+                    <span className="mt-1 block" style={{ color: '#786456' }}>
                       {pick({ is: 'Máluð eftir raunverulegri ljósmynd af húsinu.', en: 'Painted from a real photograph of the building.' })}
                     </span>
                   )}
@@ -181,7 +188,7 @@ export default function BofsCentre() {
 
               {/* right: facts card (sticky) */}
               <aside className="lg:sticky lg:top-28 lg:self-start">
-                <div className="overflow-hidden rounded-[20px]" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}, 0 30px 60px -44px rgba(58,44,34,.5)` }}>
+                <div className="overflow-hidden rounded-[20px]" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                   <div className="px-6 py-5" style={{ background: service.hueSoft }}>
                     <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.cocoa }}>
                       {pick(UI.keyFacts)}

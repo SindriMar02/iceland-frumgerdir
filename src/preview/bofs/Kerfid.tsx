@@ -73,7 +73,7 @@ export default function BofsKerfid() {
           {/* the whole journey as one painted panorama */}
           <div className="mx-auto max-w-6xl px-5 pb-14 sm:px-8">
             <Reveal>
-              <figure className="overflow-hidden rounded-[20px]" style={{ boxShadow: '0 34px 66px -46px rgba(58,44,34,.5)' }}>
+              <figure className="bofs-wet overflow-hidden">
                 <Img
                   src={asset('art-kerfid.jpg')}
                   alt={pick({ is: 'Vatnslitamynd: stígurinn liðast yfir hæðir, framhjá vörðu og brú, að húsi með ljós í glugga', en: 'Watercolor: the path winds over hills, past a cairn and a bridge, to a house with a lit window' })}

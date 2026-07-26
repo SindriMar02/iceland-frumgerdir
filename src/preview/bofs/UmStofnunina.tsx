@@ -79,7 +79,7 @@ export default function BofsUmStofnunina() {
           {/* one painted moment: the warm common room, arch-cropped */}
           <div className="mx-auto mt-14 max-w-5xl px-5 sm:px-8">
             <Reveal>
-              <figure className="bofs-arch overflow-hidden" style={{ boxShadow: '0 34px 66px -46px rgba(58,44,34,.5)' }}>
+              <figure className="bofs-wet-arch overflow-hidden">
                 <Img
                   src={asset('art-inni.jpg')}
                   alt={pick({ is: 'Vatnslitamynd: hlýleg setustofa með stórum glugga og útsýni yfir grænar hæðir', en: 'Watercolor: a warm common room with a big window looking over green hills' })}
