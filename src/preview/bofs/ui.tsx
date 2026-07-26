@@ -8,7 +8,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, animate, useInView, useReducedMotion, type MotionValue } from 'framer-motion'
 import { CATEGORIES, ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
-import { HomeArt } from './illustrations'
 import { Reveal } from '../../components/Reveal'
 import { SndrBadge } from '../SndrBadge'
 
@@ -152,6 +151,15 @@ const wetFilter =
 const WET =
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='450' preserveAspectRatio='none'%3E${wetFilter}%3Crect x='18' y='18' width='564' height='414' rx='14' fill='%23fff' filter='url(%23w)'/%3E%3C/svg%3E")`
 
+/*
+ * The card head: wet along the BOTTOM only. The rect deliberately overhangs
+ * the viewBox on three sides so that after the blur and displacement those
+ * edges are still far outside the box and stay hard, letting the painting
+ * bleed off the card while only the bottom dissolves into the card's paper.
+ */
+const WET_HEAD =
+  `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='450' preserveAspectRatio='none'%3E${wetFilter}%3Crect x='-60' y='-60' width='720' height='462' fill='%23fff' filter='url(%23w)'/%3E%3C/svg%3E")`
+
 /* the doorway: a half-round head on straight jambs, matching .bofs-arch */
 const WET_ARCH =
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='450' preserveAspectRatio='none'%3E${wetFilter}%3Cpath d='M18 402 L18 300 A282 282 0 0 1 582 300 L582 402 Q582 432 552 432 L48 432 Q18 432 18 402 Z' fill='%23fff' filter='url(%23w)'/%3E%3C/svg%3E")`
@@ -242,6 +250,20 @@ export function BofsStyles() {
       }
       .bofs-wet { -webkit-mask-image:${WET}; mask-image:${WET}; }
       .bofs-wet-arch { -webkit-mask-image:${WET_ARCH}; mask-image:${WET_ARCH}; }
+
+      /* the service-card head: bleeds off three sides, dissolves at the foot.
+         Pooling runs along the bottom only, since that is the only edge where
+         the wash actually stops. */
+      .bofs-wet-head {
+        position:relative; display:block;
+        -webkit-mask-image:${WET_HEAD}; mask-image:${WET_HEAD};
+        -webkit-mask-size:100% 100%; mask-size:100% 100%;
+        -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+      }
+      .bofs-wet-head::after {
+        content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
+        background:linear-gradient(to bottom, rgba(74,49,35,0) 68%, rgba(74,49,35,.13) 100%);
+      }
       .bofs-wet::after, .bofs-wet-arch::after {
         content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
         background:radial-gradient(118% 118% at 50% 44%, rgba(74,49,35,0) 56%, rgba(74,49,35,.10) 84%, rgba(74,49,35,.21) 100%);
@@ -848,27 +870,69 @@ export function SectionHead({
   )
 }
 
+/*
+ * Where each painting sits inside the card head. These are hand-set rather
+ * than centre-cropped: the nine paintings have very different compositions
+ * (Stuðlar is an aerial, Bjargey looks across a fjord, Barnahús is two chairs
+ * in a corner) and an automatic centre crop puts the horizon in a different
+ * place on every card, which makes the row read as five unrelated pictures
+ * instead of one hand.
+ */
+const CARD_CROP: Record<Service['art'], string> = {
+  studlar: 'center 58%',
+  esjan: 'center 55%',
+  blonduhlid: 'center 46%',
+  bjargey: 'center 47%',
+  laekjarbakki: 'center 58%',
+  barnahus: 'center 55%',
+  mst: 'center 62%',
+  sok: 'center 58%',
+  fostur: 'center 60%',
+}
+
 export function ServiceCard({ service, index = 0 }: { service: Service; index?: number }) {
   const [, , pick] = useLang()
   return (
     <Reveal delay={(index % 3) * 0.08} y={26}>
       <Link
         to={`/preview/bofs/${service.slug}`}
-        className="bofs-focus bofs-lift group relative flex h-full flex-col overflow-hidden rounded-[18px] p-6"
+        className="bofs-focus bofs-lift group relative flex h-full flex-col overflow-hidden rounded-[18px]"
         style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
       >
-        <HomeArt art={service.art} hue={service.hue} hueSoft={service.hueSoft} className="h-[64px] w-[64px]" />
-        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-bold" style={{ background: service.hueSoft, color: C.cocoa }}>
-          {pick(service.kind)}
+        {/*
+          The painting is the card's head. It is decorative here, so alt is
+          empty: the name is announced by the h3 immediately below, and a
+          screen reader should not have to sit through a watercolour
+          description before hearing which centre this is.
+        */}
+        <span className="bofs-wet-head" style={{ background: service.hueSoft }}>
+          <img
+            src={asset(`card-${service.art}.jpg`)}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            width={640}
+            height={360}
+            className="bofs-photo block h-[132px] w-full object-cover"
+            style={{ objectPosition: CARD_CROP[service.art] ?? 'center 55%' }}
+          />
         </span>
-        <h3 className="bofs-display bofs-display-sm mt-3 text-[23px]">{service.name}</h3>
-        <p className="mt-2 flex-1 text-[15px] leading-relaxed" style={{ color: C.body }}>
-          {pick(service.card)}
-        </p>
-        <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: C.clayText }}>
-          {pick(UI.exploreCentre)}
-          <Arrow className="transition-transform duration-200 ease-out group-hover:translate-x-1" />
-        </span>
+        {/* a div, not a span: this wraps an h3, and a span may only contain
+            phrasing content. <a> itself is transparent, so a div is fine. */}
+        <div className="flex flex-1 flex-col p-6 pt-5">
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-bold" style={{ background: service.hueSoft, color: C.cocoa }}>
+            {pick(service.kind)}
+          </span>
+          <h3 className="bofs-display bofs-display-sm mt-3 text-[23px]">{service.name}</h3>
+          <p className="mt-2 flex-1 text-[15px] leading-relaxed" style={{ color: C.body }}>
+            {pick(service.card)}
+          </p>
+          <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: C.clayText }}>
+            {pick(UI.exploreCentre)}
+            <Arrow className="transition-transform duration-200 ease-out group-hover:translate-x-1" />
+          </span>
+        </div>
       </Link>
     </Reveal>
   )
