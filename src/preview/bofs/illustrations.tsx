@@ -214,6 +214,7 @@ export function ValleyScene({ className, style, ambient = true, palette = 'day' 
 
 export type ArtKey =
   | 'studlar'
+  | 'esjan'
   | 'blonduhlid'
   | 'bjargey'
   | 'laekjarbakki'
@@ -249,10 +250,15 @@ export function HomeArt({ art, hue, hueSoft, className }: { art: ArtKey; hue: st
 
       {/* per-service motif: one quiet stroke gesture */}
       {art === 'studlar' && <path d="M50 48 Q100 24 150 48" fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" opacity="0.55" />}
-      {art === 'blonduhlid' && (
+      {/* Esjan: the dotted path of mapping a situation */}
+      {art === 'esjan' && (
         <g fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" opacity="0.8">
           <path d="M118 164 q14 -10 28 -4 q10 4 20 -2" strokeDasharray="0.5 13" />
         </g>
+      )}
+      {/* Blönduhlíð: a sheltering roof over a smaller roof, home after treatment */}
+      {art === 'blonduhlid' && (
+        <path d="M116 168 l16 -14 l16 14 M136 168 l14 -12 l14 12" fill="none" stroke={hue} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
       )}
       {art === 'bjargey' && (
         <g fill="none" stroke={hue} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" opacity="0.8">

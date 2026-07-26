@@ -208,7 +208,7 @@ export interface Service {
   kind: L
   hue: string
   hueSoft: string
-  art: 'studlar' | 'blonduhlid' | 'bjargey' | 'laekjarbakki' | 'barnahus' | 'mst' | 'sok' | 'fostur'
+  art: 'studlar' | 'esjan' | 'blonduhlid' | 'bjargey' | 'laekjarbakki' | 'barnahus' | 'mst' | 'sok' | 'fostur'
   tagline: L
   card: L
   who: L
@@ -256,39 +256,75 @@ export const SERVICES: Service[] = [
     ),
   },
   {
-    slug: 'blonduhlid',
-    name: 'Blönduhlíð',
+    slug: 'esjan',
+    name: 'Esjan',
     category: 'heimili',
-    kind: t('Grunnmeðferð og stuðningsheimili', 'Primary treatment & support home'),
+    kind: t('Grunnmeðferð', 'Primary treatment'),
     hue: '#6E9E6E',
     hueSoft: '#DCEBD8',
-    art: 'blonduhlid',
+    art: 'esjan',
     tagline: t('Að kortleggja stöðuna, saman', 'Mapping the situation, together'),
     card: t(
-      'Grunnmeðferð þar sem staða barns er kortlögð og fyrstu skrefin tekin, ásamt stuðningsheimili fyrir börn sem geta ekki snúið heim að meðferð lokinni.',
-      'Primary treatment where the situation is mapped and the first steps taken, plus a support home for children who cannot return home after treatment.',
+      'Grunnmeðferð þar sem staða barns er kortlögð og fyrstu skrefin tekin. Hét áður Blönduhlíð.',
+      'Primary treatment where a child’s situation is mapped and the first steps are taken. Previously named Blönduhlíð.',
     ),
     who: t(
-      'Börn á aldrinum 12 til 18 ára sem þurfa markvissa greiningu og upphaf meðferðar, og börn sem þurfa áframhaldandi heimili og stuðning að lokinni meðferð.',
-      'Children aged 12 to 18 who need focused assessment and the start of treatment, and children who need a continued home and support once treatment ends.',
+      'Börn á aldrinum 12 til 18 ára sem þurfa markvissa greiningu og upphaf meðferðar vegna vímuefna- eða hegðunarvanda.',
+      'Children aged 12 to 18 who need focused assessment and the start of treatment for substance use or behavioural difficulties.',
     ),
     what: t(
-      'Í Blönduhlíð fer fram grunnmeðferð sem tekur að jafnaði 8 til 12 vikur, með reglulegum heimferðarleyfum. Unnið er að því að skilja styrkleika, áskoranir og þarfir barnsins og fjölskyldunnar og út frá því verður til skýr áætlun um næstu skref. Við heimilið er einnig starfrækt stuðningsheimili fyrir börn sem geta ekki búið hjá forsjáraðilum sínum að lokinni meðferð. Þar heldur stuðningurinn áfram í öruggum og heimilislegum ramma.',
-      'Blönduhlíð provides primary treatment that usually lasts 8 to 12 weeks, with regular home visits. The work is to understand the strengths, challenges and needs of the child and family, and from that a clear plan for the next steps takes shape. The home also runs a support home for children who cannot live with their guardians once treatment ends. There, support continues within a safe, home-like framework.',
+      'Í Esjunni fer fram grunnmeðferð sem tekur að jafnaði 8 til 12 vikur, með reglulegum heimferðarleyfum. Unnið er að því að skilja styrkleika, áskoranir og þarfir barnsins og fjölskyldunnar og út frá því verður til skýr áætlun um næstu skref. Heimilið rúmar sex ungmenni og starfar í húsnæði á Vogi. Það hét áður Blönduhlíð, en það nafn færðist yfir á stuðningsheimilið í Mosfellsbæ.',
+      'Esjan provides primary treatment that usually lasts 8 to 12 weeks, with regular home visits. The work is to understand the strengths, challenges and needs of the child and family, and from that a clear plan for the next steps takes shape. The home has room for six young people and operates in premises at Vogur. It was previously named Blönduhlíð, a name that has since moved to the support home in Mosfellsbær.',
     ),
     how: t(
-      'Barnaverndarþjónusta sækir um grunnmeðferð eða stuðningsheimili hjá Barna- og fjölskyldustofu.',
-      'The child protection service applies for primary treatment or the support home through Barna- og fjölskyldustofa.',
+      'Barnaverndarþjónusta sækir um grunnmeðferð hjá Barna- og fjölskyldustofu.',
+      'The child protection service applies for primary treatment through Barna- og fjölskyldustofa.',
     ),
     facts: [
       { label: t('Fyrir', 'For'), value: t('Börn 12 til 18 ára', 'Children 12 to 18') },
-      { label: t('Grunnmeðferð', 'Primary treatment'), value: t('Að jafnaði 8 til 12 vikur', 'Usually 8 to 12 weeks') },
-      { label: t('Einnig', 'Also'), value: t('Stuðningsheimili eftir meðferð', 'Support home after treatment') },
-      { label: t('Áhersla', 'Focus'), value: t('Greining, áætlun og eftirfylgd', 'Assessment, planning, follow-up') },
+      { label: t('Lengd', 'Length'), value: t('Að jafnaði 8 til 12 vikur', 'Usually 8 to 12 weeks') },
+      { label: t('Pláss', 'Places'), value: t('Sex ungmenni', 'Six young people') },
+      { label: t('Áhersla', 'Focus'), value: t('Greining, áætlun og fyrstu skref', 'Assessment, planning, first steps') },
     ],
     note: t(
       'Versti dagurinn segir ekki alla söguna. Hér byrjum við á að sjá barnið í heild og byggja á því sem er heilt.',
       'The worst day does not tell the whole story. Here we start by seeing the whole child and building on what is already whole.',
+    ),
+  },
+  {
+    slug: 'blonduhlid',
+    name: 'Blönduhlíð',
+    category: 'heimili',
+    kind: t('Stuðningsheimili', 'Support home'),
+    hue: '#8A9A5B',
+    hueSoft: '#E4EAD4',
+    art: 'blonduhlid',
+    tagline: t('Heimili þegar meðferð lýkur', 'A home for when treatment ends'),
+    card: t(
+      'Stuðningsheimili í Mosfellsbæ fyrir börn sem hafa lokið meðferð en eiga ekki öruggt heimili að hverfa til.',
+      'A support home in Mosfellsbær for children who have completed treatment but have no safe home to return to.',
+    ),
+    who: t(
+      'Börn og ungmenni sem hafa lokið meðferð á meðferðarheimilum stofunnar en geta ekki, af einhverjum ástæðum, snúið heim að henni lokinni.',
+      'Children and young people who have completed treatment at the agency’s treatment homes but cannot, for whatever reason, return home afterwards.',
+    ),
+    what: t(
+      'Blönduhlíð er á Farsældartúni í Mosfellsbæ og var opnuð í september 2025. Þar heldur stuðningurinn áfram í öruggum og heimilislegum ramma eftir að eiginlegri meðferð lýkur, með áherslu á daglegar venjur, skóla og undirbúning fyrir næsta skref. Gert er ráð fyrir þremur ungmennum í senn og mögulega því fjórða.',
+      'Blönduhlíð sits at Farsældartún in Mosfellsbær and opened in September 2025. There, support continues within a safe, home-like framework once treatment proper has ended, focusing on daily routines, school and preparing for the next step. It is intended for three young people at a time, with room for a fourth if needed.',
+    ),
+    how: t(
+      'Barnaverndarþjónusta sækir um stuðningsheimili hjá Barna- og fjölskyldustofu.',
+      'The child protection service applies for the support home through Barna- og fjölskyldustofa.',
+    ),
+    facts: [
+      { label: t('Fyrir', 'For'), value: t('Börn að lokinni meðferð', 'Children after treatment') },
+      { label: t('Staðsetning', 'Location'), value: t('Farsældartún í Mosfellsbæ', 'Farsældartún, Mosfellsbær') },
+      { label: t('Pláss', 'Places'), value: t('Þrjú ungmenni, mögulega fjögur', 'Three young people, possibly four') },
+      { label: t('Opnað', 'Opened'), value: t('September 2025', 'September 2025') },
+    ],
+    note: t(
+      'Meðferð er ekki endastöð. Stundum þarf öruggan stað til að æfa sig í venjulegu lífi áður en haldið er heim.',
+      'Treatment is not the end of the road. Sometimes a safe place is needed to practise ordinary life before going home.',
     ),
   },
   {
@@ -560,9 +596,13 @@ export const CENTRE_PHOTO: Record<string, { src: string; alt: L; painted?: boole
     src: 'art-studlar.jpg',
     alt: t('Vatnslitamynd: stakt hús stendur af sér veðrið með hlýtt ljós í glugga', 'Watercolor: a lone house weathering the sky, one warm lit window'),
   },
-  blonduhlid: {
+  esjan: {
     src: 'art-blonduhlid.jpg',
     alt: t('Vatnslitamynd: stígur liðast milli grænna hæða að vörðu', 'Watercolor: a path winding between green hills past a cairn'),
+  },
+  blonduhlid: {
+    src: 'art-studningsheimili.jpg',
+    alt: t('Vatnslitamynd: hlýlegt hús með ljós í gluggum við túnjaðar að kvöldi', 'Watercolor: a welcoming house with lit windows at the edge of a field in the evening'),
   },
   bjargey: {
     src: 'art-bjargey.jpg',
@@ -738,6 +778,14 @@ export const TIMELINE: { eyebrow: L; title: L; items: Milestone[] } = {
       body: t(
         'Ný stofnun tekur til starfa 1. janúar samkvæmt lögum nr. 87/2021 og leysir Barnaverndarstofu af hólmi.',
         'The new agency begins on 1 January under Act no. 87/2021, succeeding Barnaverndarstofa.',
+      ),
+    },
+    {
+      year: '2025',
+      title: t('Grunnmeðferð og stuðningsheimili skilja leiðir', 'Treatment and support home become separate homes'),
+      body: t(
+        'Grunnmeðferðin fær eigið heimili, Esjuna, og nýtt stuðningsheimili opnar undir nafninu Blönduhlíð á Farsældartúni í Mosfellsbæ.',
+        'Primary treatment gains its own home, Esjan, and a new support home opens under the name Blönduhlíð at Farsældartún in Mosfellsbær.',
       ),
     },
     {
