@@ -137,7 +137,7 @@ export default function BofsCentre() {
                   {pick(photo.alt)}
                   {photo.painted && (
                     <span className="mt-1 block" style={{ opacity: 0.8 }}>
-                      {pick({ is: 'Máluð eftir raunverulegri ljósmynd af heimilinu.', en: 'Painted from a real photograph of the home.' })}
+                      {pick({ is: 'Máluð eftir raunverulegri ljósmynd af húsinu.', en: 'Painted from a real photograph of the building.' })}
                     </span>
                   )}
                 </p>

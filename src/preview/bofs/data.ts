@@ -594,15 +594,27 @@ export const FOSTER_STEPS = {
 export const CENTRE_PHOTO: Record<string, { src: string; alt: L; painted?: boolean }> = {
   studlar: {
     src: 'art-studlar.jpg',
-    alt: t('Vatnslitamynd: stakt hús stendur af sér veðrið með hlýtt ljós í glugga', 'Watercolor: a lone house weathering the sky, one warm lit window'),
+    alt: t(
+      'Vatnslitamynd af Stuðlum við Fossaleyni, máluð eftir ljósmynd af húsinu, með torfþaki og grænum garði inni í miðju',
+      'Watercolor of Stuðlar at Fossaleyni, painted from a photograph of the building, with its turf roof and green inner courtyard',
+    ),
+    painted: true,
   },
   esjan: {
-    src: 'art-blonduhlid.jpg',
-    alt: t('Vatnslitamynd: stígur liðast milli grænna hæða að vörðu', 'Watercolor: a path winding between green hills past a cairn'),
+    src: 'art-esjan.jpg',
+    alt: t(
+      'Vatnslitamynd af húsinu á Vogi þar sem Esjan starfar, máluð eftir ljósmynd af byggingunni',
+      'Watercolor of the building at Vogur where Esjan operates, painted from a photograph of the building',
+    ),
+    painted: true,
   },
   blonduhlid: {
-    src: 'art-studningsheimili.jpg',
-    alt: t('Vatnslitamynd: hlýlegt hús með ljós í gluggum við túnjaðar að kvöldi', 'Watercolor: a welcoming house with lit windows at the edge of a field in the evening'),
+    src: 'art-blonduhlid.jpg',
+    alt: t(
+      'Vatnslitamynd af Blönduhlíð á Farsældartúni í Mosfellsbæ, máluð eftir ljósmynd af húsinu',
+      'Watercolor of Blönduhlíð at Farsældartún in Mosfellsbær, painted from a photograph of the house',
+    ),
+    painted: true,
   },
   bjargey: {
     src: 'art-bjargey.jpg',
@@ -616,7 +628,10 @@ export const CENTRE_PHOTO: Record<string, { src: string; alt: L; painted?: boole
   },
   barnahus: {
     src: 'art-barnahus.jpg',
-    alt: t('Vatnslitamynd: mjúkur stóll, lampi og teppi í hlýju horni', 'Watercolor: a soft chair, a lamp and a blanket in a warm corner'),
+    alt: t(
+      'Vatnslitamynd: tveir mjúkir stólar snúa hvor að öðrum við glugga, sá minni fyrir barn, vatnsglas og litir á borði á milli',
+      'Watercolor: two soft chairs turned toward each other by a window, the smaller one for a child, a glass of water and crayons on the table between them',
+    ),
   },
   mst: {
     src: 'art-mst.jpg',
