@@ -6,7 +6,7 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-07-27T01:00:13.267Z
+ * Last synced: 2026-07-27T10:08:55.071Z
  */
 
 import type { NewsItem } from './data'
