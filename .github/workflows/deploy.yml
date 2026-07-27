@@ -31,6 +31,14 @@ jobs:
       - run: npm run build
         env:
           BASE_PATH: /iceland-frumgerdir/
+      # Gate the artifact on the favicon check. This site is a GitHub Pages
+      # *project* site sharing an origin with the ARTIX site at the root, so a
+      # page without a usable icon shows a defence contractor's helm in a
+      # prospective client's tab. Checks the BUILT output, which is what ships.
+      # Rules and incident history: tools/favicon-guard.mjs
+      - name: favicon-guard (blocks the deploy if any page lacks a usable icon)
+        run: node tools/favicon-guard.mjs dist
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
