@@ -24,6 +24,8 @@
  *  - SÓK-meðferð: sálfræðiþjónusta vegna óviðeigandi kynhegðunar (ekki ókeypis).
  */
 
+import { SYNCED_AT, SYNCED_NEWS } from './news.generated'
+
 export type Lang = 'is' | 'en'
 export type L = Record<Lang, string>
 
@@ -1128,14 +1130,55 @@ export const CLOSING = {
   ctaSecondary: t('Skoða öll úrræði', 'See all services'),
 }
 
-/* ── News (real, current, source-linked items; verified 25 July 2026) ──── */
+/* ── News (real, current, source-linked items; verified 27 July 2026) ────
+ * Every item below was re-checked against the publisher's own page on
+ * 27 July 2026: island.is/s/bofs/frett (BOFS), island.is/s/gev (GEV),
+ * stjornarradid.is and visir.is. Summaries are written from the article
+ * body itself, never inferred from the headline, and every figure quoted
+ * appears verbatim in the source. Items whose text was not read carry no
+ * summary rather than a guessed one.
+ *
+ * One deliberate divergence from the source: the 11 May headline reads
+ * "farsælda barna" on island.is, an uncorrected typo in their own CMS. We
+ * publish the correct "farsæld barna".
+ * ---------------------------------------------------------------------- */
+
+export type NewsTopic = 'barnavernd' | 'medferd' | 'barnahus' | 'samstarf'
 
 export interface NewsItem {
   date: string
   source: 'BOFS' | 'GEV' | 'Stjórnarráðið' | 'Vísir'
+  topic: NewsTopic
   title: L
+  /** The publisher's own intro, or a fuller one read off the article body. */
+  summary?: L
   href: string
+  /*
+   * There is deliberately no image field. See the note in sections.tsx: the
+   * publishers' own news images are mostly clip art and charts, and a
+   * watercolour in their place would imply it depicts the story. The list is
+   * typographic and fetches no news content from a third-party host.
+   */
+  /** True when the English side is showing Icelandic for want of a translation. */
+  untranslated?: boolean
+  summaryUntranslated?: boolean
+  featured?: boolean
+  stats?: { value: string; label: L }[]
 }
+
+export const NEWS_TOPICS: { id: NewsTopic; label: L }[] = [
+  { id: 'barnavernd', label: t('Barnavernd', 'Child protection') },
+  { id: 'medferd', label: t('Meðferð og úrræði', 'Treatment and services') },
+  { id: 'barnahus', label: t('Barnahús', 'Barnahús') },
+  { id: 'samstarf', label: t('Samstarf og forvarnir', 'Partnership and prevention') },
+]
+
+export const NEWS_SOURCES: { id: NewsItem['source']; label: L }[] = [
+  { id: 'BOFS', label: t('Fréttir Barna- og fjölskyldustofu á island.is', 'Barna- og fjölskyldustofa newsroom on island.is') },
+  { id: 'GEV', label: t('Gæða- og eftirlitsstofnun velferðarmála', 'Quality and Supervisory Agency for Welfare') },
+  { id: 'Stjórnarráðið', label: t('Stjórnarráð Íslands', 'Government of Iceland') },
+  { id: 'Vísir', label: t('Vísir, íslenskur fréttamiðill', 'Vísir, an Icelandic news outlet') },
+]
 
 export const NEWS = {
   eyebrow: t('Fréttir', 'News'),
@@ -1144,74 +1187,32 @@ export const NEWS = {
     'Það nýjasta frá Barna- og fjölskyldustofu og umfjöllun tengd starfinu úr íslenskum fréttamiðlum, á einum stað.',
     'The latest from Barna- og fjölskyldustofa, together with related coverage from Icelandic media, in one place.',
   ),
-  updated: t('Uppfært 25. júlí 2026', 'Updated 25 July 2026'),
+  /** Stamped by the sync, so it can never drift from the actual content. */
+  updated: SYNCED_AT,
   note: t(
-    'Á fullbúnum vef myndu fréttir sækjast sjálfkrafa úr fréttaveitum stofnunarinnar og fjölmiðla. Hér er sýnishorn með raunverulegum fréttum.',
-    'On a production site, items would be pulled automatically from the agency and media feeds. This is a sample of real, current items.',
+    'Fréttirnar sækjast sjálfkrafa af fréttavef Barna- og fjölskyldustofu á island.is, með fyrirsögn, dagsetningu og inngangi eins og stofnunin birtir þær sjálf. Uppfærslan keyrir daglega, svo listinn hér er alltaf sá sami og á island.is. Fréttir frá öðrum en stofnuninni eru valdar handvirkt og merktar sinni heimild.',
+    'Items are pulled automatically from the Barna- og fjölskyldustofa newsroom on island.is, with the headline, date and intro exactly as the agency publishes them. The sync runs daily, so this list always matches island.is. Items from other publishers are selected by hand and labelled with their source.',
   ),
   cta: t('Sjá allar fréttir', 'See all news'),
-  items: [
-    {
-      date: '24.07.2026',
-      source: 'BOFS',
-      title: t('Samantekt um úrræði og umsóknir um þjónustu á árunum 2022 til 2025', 'Overview of services and applications 2022 to 2025'),
-      href: 'https://island.is/s/bofs/frett/samantekt-um-urraedi-og-umsoknir-um-thjonustu-a-arunum-2022-2025',
-    },
-    {
-      date: '14.07.2026',
-      source: 'GEV',
-      title: t('Frumkvæðisathugun á eftirliti með börnum í fóstri', 'Review of oversight of children in foster care'),
-      href: 'https://island.is/s/gev/frett/frumkvaedisathugun-gev-a-eftirlitsskyldum-barnaverndarthjonusta-vegna-barna-i-fostri',
-    },
-    {
-      date: '09.07.2026',
-      source: 'BOFS',
-      title: t('Skráningar á fjölda mála í samþættingu þjónustu', 'Case registrations in integrated services'),
-      href: 'https://island.is/s/bofs/frett/skraningar-a-fjoelda-mala-i-samthaettingu-thjonustu',
-    },
-    {
-      date: '07.07.2026',
-      source: 'BOFS',
-      title: t('Tilkynningum til barnaverndar fækkar', 'Reports to child protection are decreasing'),
-      href: 'https://island.is/s/bofs/frett/tilkynningum-til-barnaverndar-faekkar',
-    },
-    {
-      date: '25.06.2026',
-      source: 'BOFS',
-      title: t('SES ráðstefnan 2026 er nú aðgengileg á vefnum', 'The SES conference 2026 is now available online'),
-      href: 'https://island.is/s/bofs/frett/ses-radstefnan-2026-er-nu-adgengileg-her-a-vefnum',
-    },
-    {
-      date: '26.05.2026',
-      source: 'BOFS',
-      title: t('Starfsfólk Barnahúss heimsækir Barnahus á Írlandi', 'Barnahús staff visit the Barnahus in Ireland'),
-      href: 'https://island.is/s/bofs/frett/starfsfolk-barnahuss-heimsaekir-barnahus-a-irlandi',
-    },
-    {
-      date: '11.05.2026',
-      source: 'BOFS',
-      title: t('Móttaka, menntun og farsæld barna með flóttabakgrunn', 'Reception, education and wellbeing of children with a refugee background'),
-      href: 'https://island.is/s/bofs/frett/mottaka-menntun-og-farsaelda-barna-med-flottabakgrunn',
-    },
-    {
-      date: '08.05.2026',
-      source: 'Stjórnarráðið',
-      title: t('Meðferðarheimilið Lækjarbakki formlega opnað í Gunnarsholti', 'The Lækjarbakki treatment home formally opened at Gunnarsholt'),
-      href: 'https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026/05/08/Medferdarheimilid-Laekjarbakki-formlega-opnad-i-Gunnarsholti',
-    },
-    {
-      date: '08.05.2026',
-      source: 'Vísir',
-      title: t('Engin bið eftir plássi á meðferðarheimilum ungmenna', 'No waiting list for places at youth treatment homes'),
-      href: 'https://www.visir.is/g/20262880648d/engin-bid-eftir-plassi-a-medferdarheimilum-ungmenna',
-    },
-    {
-      date: '23.04.2026',
-      source: 'BOFS',
-      title: t('Heimsókn umboðsmanns barna í Barnahús', 'The Ombudsman for Children visits Barnahús'),
-      href: 'https://island.is/s/bofs/frett/heimsokn-umbodsmanns-barna-i-barnahus',
-    },
-  ] as NewsItem[],
+  featuredLabel: t('Nýjast', 'Latest'),
+  readMore: t('Lesa fréttina', 'Read the item'),
+  filterTitle: t('Sía eftir efni', 'Filter by topic'),
+  filterAll: t('Allt', 'Everything'),
+  archiveTitle: t('Eldra efni', 'Earlier items'),
+  sourcesTitle: t('Hvaðan fréttirnar koma', 'Where these items come from'),
+  sourcesNote: t(
+    'Hver frétt vísar beint á upprunalega heimild og opnast á vef útgefandans. Ekkert er endursagt hér nema það standi í heimildinni sjálfri.',
+    'Every item links straight to its original source and opens on the publisher’s own site. Nothing is restated here that is not in the source itself.',
+  ),
+  count: (n: number): L =>
+    t(n === 1 ? '1 frétt' : `${n} fréttir`, n === 1 ? '1 item' : `${n} items`),
+  empty: t('Engar fréttir í þessum flokki.', 'No items in this topic.'),
+  /**
+   * Regenerated by scripts/bofs-news-sync.mjs from the agency own
+   * newsroom on island.is. Do not hand-edit; edit OVERRIDES in that
+   * script instead, or the next sync silently discards the change.
+   */
+  items: SYNCED_NEWS,
 }
 
 /* ── Legal pages ──────────────────────────────────────────────────────────

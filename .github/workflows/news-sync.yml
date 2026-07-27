@@ -1,0 +1,72 @@
+name: BOFS news sync
+
+# Keeps the BOFS concept's news page current without anyone touching it.
+# Pulls the agency's own newsroom from island.is, regenerates
+# src/preview/bofs/news.generated.ts, and only commits when something
+# actually changed.
+#
+# A push made with GITHUB_TOKEN does not trigger other workflows, which is
+# GitHub's loop guard. So the deploy is kicked off explicitly at the end
+# rather than being left to the push trigger in deploy.yml, which would
+# never fire and would leave the site stale while the repo looked current.
+
+on:
+  schedule:
+    # 06:12 UTC daily. Off the hour on purpose: the top of the hour is the
+    # busiest slot on shared runners and scheduled jobs get queued there.
+    - cron: '12 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bofs-news-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Pull the newsroom and regenerate
+        run: node scripts/bofs-news-sync.mjs
+
+      - name: Fail if a dash slipped through
+        # The copy rule forbids en and em dashes in visible text. The sync
+        # rewrites them, so a hit here means the rewrite missed a case and
+        # the site must not deploy with it.
+        run: |
+          if grep -q $'–\|—' src/preview/bofs/news.generated.ts; then
+            echo "::error::en or em dash reached news.generated.ts"
+            grep -n $'–\|—' src/preview/bofs/news.generated.ts
+            exit 1
+          fi
+          echo "no dashes, ok"
+
+      - name: Commit if anything changed
+        id: commit
+        run: |
+          if git diff --quiet -- src/preview/bofs/news.generated.ts; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "newsroom unchanged, nothing to do"
+            exit 0
+          fi
+          git config user.name  "bofs-news-sync"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/preview/bofs/news.generated.ts
+          git commit -m "BOFS news: sync from island.is newsroom"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Redeploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main

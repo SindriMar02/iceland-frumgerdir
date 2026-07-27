@@ -68,7 +68,15 @@ export default function BofsPage() {
               aria-hidden
               loading="eager"
               fetchpriority="high"
-              className="h-full w-full scale-110 object-cover object-[62%_60%]"
+              /* The lit house sits at x≈78%, y≈56% of the painting (measured,
+                 not guessed: 54 of the 60 warmest pixels fall in that column).
+                 A portrait phone shows only ~26% of the painting's width under
+                 object-cover, and the desktop centre of 62% put that window at
+                 49% to 75%, so the house, which is the whole concept, fell just
+                 off the right edge. 84% brings the entire house into frame with
+                 room to its right, and lands it in the clear part of the
+                 legibility veil beside the buttons. */
+              className="h-full w-full scale-110 object-cover object-[84%_58%] md:object-[62%_60%]"
               fallbackClassName="bg-gradient-to-b from-[#F8EAD8] via-[#EFE5D2] to-[#CFD7C4]"
             />
             {/* legibility veils: cream for the type block, cream fade into the next band */}

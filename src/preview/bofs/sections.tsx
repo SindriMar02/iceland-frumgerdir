@@ -21,6 +21,8 @@ import {
   INSTITUTIONS,
   type Milestone,
   NEWS,
+  type NewsItem,
+  NEWS_SOURCES,
   NOTFOUND,
   ORG,
   REPORT,
@@ -426,7 +428,7 @@ export function InstitutionsAndClose() {
                   href={it.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bofs-focus rounded text-[15.5px] font-semibold transition-opacity hover:opacity-70"
+                  className="bofs-focus inline-block rounded py-1 text-[15.5px] font-semibold transition-opacity hover:opacity-70"
                   style={{ color: C.cocoa }}
                 >
                   {it.name}
@@ -506,65 +508,263 @@ const SOURCE_HUE: Record<string, string> = {
   'Vísir': '#A8471F',
 }
 
-export function NewsList({ items }: { items: typeof NEWS.items }) {
+const MONTHS: Record<'is' | 'en', string[]> = {
+  is: ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+}
+
+/** '24.07.2026' → { is: 'júlí 2026', en: 'July 2026' }. Grouping key is 'MM.YYYY'. */
+export function monthOf(date: string) {
+  const [, m, y] = date.split('.')
+  const i = Number(m) - 1
+  return { key: `${m}.${y}`, label: { is: `${MONTHS.is[i]} ${y}`, en: `${MONTHS.en[i]} ${y}` } }
+}
+
+/** The publisher, coloured. Hues are the audited ones, never opacity-dimmed. */
+function SourceMark({ source }: { source: NewsItem['source'] }) {
   const [, , pick] = useLang()
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-bold uppercase" style={{ color: SOURCE_HUE[source] ?? C.body, letterSpacing: '0.12em' }}>
+      {source}
+      <span className="sr-only">{pick({ is: '(opnast á vef útgefandans)', en: '(opens on the publisher’s site)' })}</span>
+    </span>
+  )
+}
+
+/*
+ * The news surfaces carry NO imagery, deliberately.
+ *
+ * The obvious move is to show each publisher's own picture beside its
+ * headline. We built that, then looked at what island.is actually publishes:
+ * most BOFS news images are generic clip art, pie charts and bar charts on
+ * white. Next to a watercolour identity they read as cheap stock, and they
+ * pull the eye away from the one thing that matters on a news list, which is
+ * what happened. Watercolours in their place were worse: a painting beside a
+ * report about placement figures implies it depicts that story, and it does
+ * not.
+ *
+ * So the list is typographic. Date, publisher, headline, and the agency's own
+ * summary where there is one. It also means the news content pulls nothing
+ * from a third-party host, which keeps a content security policy simple.
+ *
+ * Note that the page as a whole is not yet third-party free: the shared
+ * index.html of this repo still requests fonts.googleapis.com,
+ * fonts.gstatic.com and api.fontshare.com for the other previews, even
+ * though BOFS self-hosts its own faces. On a real government site that is
+ * worth closing, and not only for speed.
+ */
+
+/**
+ * The lead story. Card is an <article>; the link wraps only the headline and
+ * is stretched over the whole card with an ::after, so the accessible link
+ * name stays the headline alone rather than headline plus summary plus
+ * figures. Heading level is caller-controlled to keep each page's outline
+ * correct: h2 under the page h1 on /frettir, h3 under the band h2 on the
+ * landing page.
+ */
+export function NewsFeature({ item, as: H = 'h2' }: { item: NewsItem; as?: 'h2' | 'h3' }) {
+  const [, , pick] = useLang()
+  return (
+    <article
+      className="group relative overflow-hidden rounded-[22px]"
+      style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
+    >
+      {/* A brushstroke keel instead of a banner image: the lead still reads
+          as the lead without pretending a picture belongs to the story. */}
+      <span className="bofs-rule absolute inset-x-0 top-0 bofs-rule-clay" aria-hidden="true" />
+      <div className="p-6 sm:p-8 md:p-10">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="rounded-[9px] px-2.5 py-1 text-[11.5px] font-bold uppercase" style={{ background: C.clay, color: '#fff', letterSpacing: '0.1em' }}>
+            {pick(NEWS.featuredLabel)}
+          </span>
+          <span className="bofs-num text-[13.5px] font-medium" style={{ color: C.body }}>
+            {item.date}
+          </span>
+          <SourceMark source={item.source} />
+        </div>
+
+        <H className="bofs-display bofs-balance mt-4 text-[clamp(21px,2.6vw,29px)] leading-[1.16]">
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bofs-focus rounded after:absolute after:inset-0 after:content-['']"
+            style={{ color: C.cocoa }}
+          >
+            {pick(item.title)}
+          </a>
+        </H>
+
+        {item.summary && (
+          <p className="bofs-pretty mt-4 text-[16px] leading-relaxed" style={{ color: C.body }}>
+            {pick(item.summary)}
+          </p>
+        )}
+
+        {item.stats && (
+          <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-4">
+            {item.stats.map((s) => (
+              <div key={s.value}>
+                <dt className="bofs-display text-[26px] leading-none" style={{ color: C.clay }}>
+                  {s.value}
+                </dt>
+                <dd className="mt-1.5 max-w-[168px] text-[13px] leading-snug" style={{ color: C.body }}>
+                  {pick(s.label)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        <span className="mt-6 inline-flex items-center gap-2 text-[14.5px] font-bold" style={{ color: C.clayText }}>
+          {pick(NEWS.readMore)}
+          <Arrow className="-rotate-45 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </span>
+      </div>
+    </article>
+  )
+}
+
+/**
+ * One row: date and publisher on a meta line, then the headline, then the
+ * summary. The summary sits outside the link so the accessible link name
+ * stays the headline alone rather than headline plus paragraph, while the
+ * anchor's stretched ::after keeps the whole row clickable.
+ */
+export function NewsRow({ item }: { item: NewsItem }) {
+  const [, , pick] = useLang()
+  return (
+    <li style={{ borderColor: C.line }}>
+      <div className="group relative py-5">
+        <div className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="bofs-num text-[13px] font-medium" style={{ color: C.body }}>
+            {item.date}
+          </span>
+          <SourceMark source={item.source} />
+        </div>
+
+        <a
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bofs-focus rounded text-[16.5px] font-semibold leading-snug after:absolute after:inset-0 after:content-['']"
+          style={{ color: C.cocoa }}
+        >
+          {pick(item.title)}
+          <Arrow className="ml-1.5 inline-block -rotate-45 align-[-2px] transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </a>
+
+        {item.summary && (
+          <p className="bofs-pretty mt-2 max-w-[68ch] text-[14.5px] leading-relaxed" style={{ color: C.body }}>
+            {pick(item.summary)}
+          </p>
+        )}
+      </div>
+    </li>
+  )
+}
+
+/** A flat list, used on the landing band. */
+export function NewsList({ items }: { items: NewsItem[] }) {
   return (
     <ul className="divide-y" style={{ borderColor: C.line }}>
       {items.map((n) => (
-        <li key={n.href} style={{ borderColor: C.line }}>
-          <a
-            href={n.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bofs-focus group flex items-baseline gap-4 rounded py-4 sm:gap-6"
-          >
-            <span className="bofs-num w-[84px] shrink-0 text-[13.5px] font-medium" style={{ color: C.body }}>
-              {n.date}
-            </span>
-            <span className="flex-1">
-              <span className="block text-[16.5px] font-semibold leading-snug transition-opacity group-hover:opacity-70" style={{ color: C.cocoa }}>
-                {pick(n.title)}
-              </span>
-              <span className="mt-1 inline-flex items-center gap-1.5 text-[12.5px] font-bold uppercase" style={{ color: SOURCE_HUE[n.source] ?? C.body, letterSpacing: '0.12em' }}>
-                {n.source}
-                <span className="sr-only">{pick({ is: '(opnast á nýjum vef)', en: '(opens in a new tab)' })}</span>
-              </span>
-            </span>
-            <Arrow className="mt-1 shrink-0 -rotate-45 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
-        </li>
+        <NewsRow key={n.href} item={n} />
       ))}
     </ul>
   )
 }
 
+/** Grouped by month, used on the news page archive. */
+export function NewsGroupedList({ items }: { items: NewsItem[] }) {
+  const [, , pick] = useLang()
+  const groups: { key: string; label: { is: string; en: string }; items: NewsItem[] }[] = []
+  for (const item of items) {
+    const { key, label } = monthOf(item.date)
+    const last = groups[groups.length - 1]
+    if (last && last.key === key) last.items.push(item)
+    else groups.push({ key, label, items: [item] })
+  }
+  return (
+    <div className="space-y-10">
+      {groups.map((g) => (
+        <section key={g.key} aria-label={pick(g.label)}>
+          <div className="mb-1 flex items-center gap-4">
+            <span className="text-[12.5px] font-bold uppercase" style={{ color: C.clayText, letterSpacing: '0.14em' }}>
+              {pick(g.label)}
+            </span>
+            <hr className="bofs-rule flex-1" aria-hidden="true" />
+          </div>
+          <ul className="divide-y" style={{ borderColor: C.line }}>
+            {g.items.map((n) => (
+              <NewsRow key={n.href} item={n} />
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+/** Where the items come from, said plainly rather than left to be guessed. */
+export function NewsSources() {
+  const [, , pick] = useLang()
+  return (
+    <div className="rounded-[18px] p-6 sm:p-7" style={{ background: C.cream2, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+      <h2 className="bofs-display text-[19px]">{pick(NEWS.sourcesTitle)}</h2>
+      <dl className="mt-4 space-y-2.5">
+        {NEWS_SOURCES.map((s) => (
+          <div key={s.id} className="flex flex-wrap items-baseline gap-x-3">
+            <dt className="w-[112px] shrink-0 text-[12.5px] font-bold uppercase" style={{ color: SOURCE_HUE[s.id] ?? C.body, letterSpacing: '0.12em' }}>
+              {s.id}
+            </dt>
+            <dd className="flex-1 text-[14.5px] leading-snug" style={{ color: C.body }}>
+              {pick(s.label)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p className="bofs-pretty mt-5 text-[14px] leading-relaxed" style={{ color: C.body }}>
+        {pick(NEWS.sourcesNote)}
+      </p>
+    </div>
+  )
+}
+
 export function NewsBand() {
   const [, , pick] = useLang()
+  const featured = NEWS.items.find((n) => n.featured) ?? NEWS.items[0]
+  const rest = NEWS.items.filter((n) => n !== featured).slice(0, 3)
   return (
     <section id="frettir" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.cream2 }}>
       <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <Eyebrow>{pick(NEWS.eyebrow)}</Eyebrow>
             <h2 className="bofs-display bofs-balance mt-3 text-[clamp(26px,4.4vw,42px)]">{pick(NEWS.title)}</h2>
-            <p className="bofs-pretty mt-4 max-w-md text-[16.5px] leading-relaxed" style={{ color: C.body }}>
+            <p className="bofs-pretty mt-4 max-w-lg text-[16.5px] leading-relaxed" style={{ color: C.body }}>
               {pick(NEWS.lead)}
             </p>
             <p className="mt-3 text-[13px]" style={{ color: C.body }}>
               {pick(NEWS.updated)}
             </p>
-            <div className="mt-7">
-              <Button to="/preview/bofs/frettir" icon={<Arrow />}>
-                {pick(NEWS.cta)}
-              </Button>
-            </div>
           </div>
-          <Reveal delay={0.08}>
-            <div className="rounded-[20px] px-6 py-2" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-              <NewsList items={NEWS.items.slice(0, 4)} />
-            </div>
-          </Reveal>
+          <Button to="/preview/bofs/frettir" icon={<Arrow />}>
+            {pick(NEWS.cta)}
+          </Button>
         </div>
+
+        <Reveal delay={0.06}>
+          <div className="mt-10">
+            <NewsFeature item={featured} as="h3" />
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div className="mt-6 rounded-[20px] px-6 py-1" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+            <NewsList items={rest} />
+          </div>
+        </Reveal>
       </div>
     </section>
   )
@@ -592,7 +792,9 @@ export function NotFoundPage() {
               src={asset('art-dawn.jpg')}
               alt=""
               aria-hidden
-              className="h-full w-full object-cover object-[62%_60%]"
+              /* Same measured mobile crop as the landing hero: at 62% the lit
+                 house falls off the right edge on a portrait phone. */
+              className="h-full w-full object-cover object-[84%_58%] md:object-[62%_60%]"
               fallbackClassName="bg-gradient-to-b from-[#F8EAD8] to-[#CFD7C4]"
             />
             <div className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(251,243,231,.96) 0%, rgba(251,243,231,.9) 40%, rgba(251,243,231,.55) 70%, rgba(251,243,231,.3) 100%)' }} />

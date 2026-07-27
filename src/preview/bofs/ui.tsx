@@ -724,7 +724,7 @@ export function Footer() {
             <ul className="space-y-2 text-[15px]">
               {homes.map((s) => (
                 <li key={s.slug}>
-                  <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus rounded transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.85)' }}>
+                  <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
                     {s.name}
                   </Link>
                 </li>
@@ -739,7 +739,7 @@ export function Footer() {
             <ul className="space-y-2 text-[15px]">
               {services.map((s) => (
                 <li key={s.slug}>
-                  <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus rounded transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.85)' }}>
+                  <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
                     {s.name}
                   </Link>
                 </li>
@@ -762,7 +762,7 @@ export function Footer() {
                 { label: pick({ is: 'Persónuvernd', en: 'Privacy' }), to: '/preview/bofs/personuvernd' },
               ].map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="bofs-focus rounded transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.85)' }}>
+                  <Link to={l.to} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
                     {l.label}
                   </Link>
                 </li>
@@ -777,12 +777,12 @@ export function Footer() {
             <ul className="space-y-2 text-[15px]" style={{ color: 'rgba(246,232,213,.85)' }}>
               <li>{ORG.address}</li>
               <li>
-                <a className="bofs-focus rounded hover:opacity-70" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
+                <a className="bofs-focus inline-block rounded py-1 hover:opacity-70" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
                   {ORG.phone}
                 </a>
               </li>
               <li>
-                <a className="bofs-focus rounded hover:opacity-70" href={`mailto:${ORG.email}`}>
+                <a className="bofs-focus inline-block rounded py-1 hover:opacity-70" href={`mailto:${ORG.email}`}>
                   {ORG.email}
                 </a>
               </li>
@@ -798,7 +798,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t pt-6" style={{ borderColor: 'rgba(246,232,213,.16)' }}>
           <TextSizeControl onDeep />
-          <a href="tel:1717" className="bofs-focus rounded text-[13.5px] transition-opacity hover:opacity-70" style={{ color: 'rgba(246,232,213,.7)' }}>
+          <a href="tel:1717" className="bofs-focus inline-block rounded py-1 text-[13.5px] transition-opacity hover:opacity-70" style={{ color: '#C8B6A5' }}>
             {pick({ is: 'Hjálparsími Rauða krossins 1717, opinn allan sólarhringinn', en: 'Red Cross helpline 1717, open around the clock' })}
           </a>
         </div>
