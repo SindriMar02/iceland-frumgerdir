@@ -130,6 +130,8 @@ const BragdavellirPage = lazy(() => import('./preview/bragdavellir/Page'))
 const AlrunPage = lazy(() => import('./preview/alrun/Page'))
 const SkalakotPage = lazy(() => import('./preview/skalakot/Page'))
 const KidkaPage = lazy(() => import('./preview/kidka/Page'))
+const HeklusynPage = lazy(() => import('./preview/heklusyn/Page'))
+const ThgPage = lazy(() => import('./preview/thg/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 /**
@@ -291,6 +293,8 @@ export default function App() {
             <Route path="/preview/alrun" element={<AlrunPage />} />
             <Route path="/preview/skalakot" element={<SkalakotPage />} />
             <Route path="/preview/kidka" element={<KidkaPage />} />
+            <Route path="/preview/heklusyn" element={<HeklusynPage />} />
+            <Route path="/preview/thg" element={<ThgPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}

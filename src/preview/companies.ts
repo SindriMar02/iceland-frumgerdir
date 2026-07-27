@@ -4156,3 +4156,131 @@ ${SIGN}`,
 }
 
 PREVIEW_COMPANIES.push(SKALAKOT)
+
+const HEKLUSYN: PreviewCompany = {
+  slug: 'heklusyn',
+  route: '/preview/heklusyn',
+  name: 'Heklusýn',
+  sector: 'Fasteignaþróun & húsbygging',
+  location: 'Rangárslétta, vesturbakki Ytri-Rangár',
+  region: 'South',
+  established: 'Landið sjálfstæð eign frá 2020, félagið skráð 2021',
+  currentUrl: 'https://heklusyn.is/',
+  ownerEmail: 'heklusyn@heklusyn.is',
+  concept: 'Tólf hús',
+  conceptTagline:
+    'Fimmtíu hektarar og aðeins tólf til fjórtán hús. Fágætið sjálft er varan, og vefurinn byrjar á því í stað þess að fela það. Undirskriftin er sjóndeildarhringurinn: fjöllin átta sem sjást frá landinu, nefnd og staðsett á myndinni sjálfri.',
+  accent: '#3E5C6B',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://heklusyn.is/wp-content/uploads/2023/01/DJI_0684.jpg',
+  ownPhotography: true,
+  photoCredit:
+    'Allar ljósmyndir eru af vef Heklusýnar sjálfrar, sóttar í fullri upplausn. Tölvumyndir af innréttingum eru merktar sérstaklega á síðunni og eru ekki ljósmyndir af fullbúnum húsum.',
+  audit: {
+    strengths: [
+      'Óvenju sterk saga: fimmtíu hektarar af landi við Ytri-Rangá sem var hluti af Leirubakka og varð sjálfstæð eign 2020, með aðeins tólf til fjórtán húsum á öllu svæðinu',
+      'Frá landinu sjást átta nefnd fjöll, þar á meðal Hekla, Eyjafjallajökull og Þríhyrningur, sem er sölupunktur sem enginn annar getur afritað',
+      'Eigin ljósmyndun í hárri upplausn, þar á meðal drónamyndir allt að 5472 pixla breiðar, og raunveruleg sala í gangi með þrjú hús seld',
+    ],
+    weaknesses: [
+      'Ekkert kort af landinu. Sjálf varan, skipulag lóðanna á fimmtíu hekturum, er aðeins til sem myndbandsinnskot',
+      'Tæknilegar upplýsingar eru eingöngu PDF skjöl, ellefu lóðablöð og teikningar, án nokkurra upplýsinga á síðunni sjálfri',
+      'Ein eignasíða hleður fjörutíu og fimm myndum, samtals um 22 MB, þar af tíu skrár yfir eitt MB, og myndirnar eru nánast án responsive srcset',
+      'Tölvumyndir og ljósmyndir eru sýndar hlið við hlið án þess að greint sé á milli, sem er bagalegt þegar verið er að selja hús fyrir yfir hundrað milljónir',
+      'Fágætið sjálft, tólf til fjórtán hús á fimmtíu hekturum, kemur hvergi fram fyrr en langt niðri á síðu',
+    ],
+    opportunities: [
+      'Byrja á fágætinu sjálfu: fimmtíu hektarar, tólf hús, sagt strax í fyrstu setningu',
+      'Gera sjóndeildarhringinn að undirskrift síðunnar með fjöllin átta nefnd á myndinni',
+      'Setja húsin fram sem skrá með stöðu hvers og eins, þar sem seldu húsin sjást áfram því þau eru röksemdin',
+      'Breyta PDF hrúgunni í raunverulegar upplýsingar á síðunni',
+      'Merkja allar tölvumyndir skýrt, sem er bæði heiðarlegra og traustvekjandi gagnvart kaupendum',
+    ],
+  },
+  positioning:
+    'Heklusýn selur ekki hús heldur land sem hefur verið skammtað. Fimmtíu hektarar, tólf til fjórtán hús, átta nefnd fjöll í sjónlínu og áin fyrir neðan. Vefurinn á að hefjast á þeirri einu setningu og verja hana síðan alla leið: landið fyrst, húsin sem skrá með stöðu, gögnin sýnileg á síðunni sjálfri og hver einasta tölvumynd merkt sem slík. Þetta er ekki lúxusvefur með dökkum flötum og gulli heldur bjartur og norrænn vefur þar sem landslagið ber sig sjálft.',
+  outreach: {
+    subject: 'Hugmynd að nýjum vef fyrir Heklusýn',
+    body: `Sæl og blessuð,
+
+Ég heiti Sindri og vinn við vefhönnun. Ég rakst á Heklusýn og staldraði við, því landið ykkar við Ytri-Rangá er óvenjulegt og sagan um tólf hús á fimmtíu hekturum er sterkari en flest annað sem ég sé í fasteignaþróun hér á landi.
+
+Mér fannst hins vegar vanta að vefurinn segði þetta strax. Ég tók því saman frumgerð að nýjum vef þar sem fágætið sjálft er fyrsta setningin, fjöllin átta sem sjást frá landinu fá sitt eigið pláss og lóðirnar eru sýndar sem skrá með stöðu og verði í stað þess að vera faldar í PDF skjölum. Tvennt annað rak ég augun í. Ein eignasíða hleður um 22 MB af myndum, sem er þungt í síma úti á landi, og tölvumyndir af innréttingum standa við hliðina á ljósmyndum án þess að greint sé á milli. Í frumgerðinni eru þær merktar.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+
+PREVIEW_COMPANIES.push(HEKLUSYN)
+
+const THG: PreviewCompany = {
+  slug: 'thg',
+  route: '/preview/thg',
+  name: 'THG Arkitektar',
+  sector: 'Arkitektastofa',
+  location: 'Faxafen 9, 108 Reykjavík',
+  region: 'Capital',
+  established: 'Stofnað af Halldóri Guðmundssyni í október 1994',
+  currentUrl: 'https://www.thg.is/',
+  ownerEmail: 'thg@thg.is',
+  concept: 'Staðarandi',
+  conceptTagline:
+    'Stofan segir sömu hugsun þrisvar á eigin vef án þess að taka eftir því: að fella nýtt að því sem fyrir er. Sú setning verður burðarásinn, og undirskriftin er lárétt ferð gegnum verkin sjö þar sem hvert hús ber sína eigin liti og viðmótið skiptir um ham með þeim.',
+  accent: '#A8412A',
+  dark: true,
+  status: 'Concept ready',
+  thumb:
+    'https://images.squarespace-cdn.com/content/v1/5b0a957785ede1b5cc40a4ff/1fbd6a97-a3a3-4e7d-8786-c14862b9256d/H%C3%B3tel+Borg_Exterior_01.jpg?format=1200w',
+  ownPhotography: true,
+  photoCredit:
+    'Allar ljósmyndir eru af vef THG Arkitekta sjálfra, sóttar í fullri upplausn af þeirra eigin myndaþjóni.',
+  audit: {
+    strengths: [
+      'Þrjátíu og tveggja ára stofa með um fjörutíu manns og vottað gæðakerfi ÍST EN ISO 9001:2015 frá 2016',
+      'Verkefnaskráin er óvenju sterk og mjög almennt þekkt: Hótel Borg, Icelandair Hótel Marina, Reykjavík Konsúlat og Hótel Von, ásamt EIR við Spöng og Hrafnistu í Boðaþingi',
+      'Fagleg ljósmyndun af verkunum liggur þegar fyrir í tvöþúsund pixla upplausn á þeirra eigin myndaþjóni',
+    ],
+    weaknesses: [
+      'Aðeins sjö verkefni eru sýnd hjá stofu sem hefur starfað í þrjátíu og tvö ár og telur um fjörutíu manns',
+      'Hugsunin sem tengir verkin saman er hvergi orðuð, svo hvert verk stendur eitt og sér',
+      'Hvergi kemur fram að stofan teiknar bæði hótel og hjúkrunarheimili, sem er þó eitt af því sem greinir hana frá öðrum',
+      'Verklýsingarnar eru mjög stuttar og mörg verk eru án ártals eða stærðar, svo erfitt er að meta umfang stofunnar',
+    ],
+    opportunities: [
+      'Setja þeirra eigin setningu fremst: að fella nýtt að því sem fyrir er, studda þremur tilvitnunum úr þeirra eigin verklýsingum',
+      'Lárétt ferð gegnum verkin þar sem hvert hús ber sína eigin liti',
+      'Segja það sem vefurinn segir hvergi: að stofan teiknar bæði hótel og hjúkrunarheimili',
+      'Birta myndirnar í fullri upplausn og gefa þeim raunverulegan skala',
+      'Segja söguna af Kolasundinu sem gengur gegnum jarðhæð Konsúlats',
+    ],
+  },
+  positioning:
+    'THG er stofan á bak við hús sem fólk hefur þegar verið inni í án þess að vita það. Hótel Borg, Marina, Konsúlat og Von, og á hinum endanum EIR og Hrafnista. Vefurinn á að byrja á hugsuninni sem stofan orðar sjálf þrisvar, að fella nýtt að því sem fyrir er, og láta verkin sanna hana eitt af öðru í láréttri ferð þar sem viðmótið tekur lit af hverju húsi. Þetta er vefur sem arkitektar munu dæma, svo hófstilling gildir alls staðar og myndirnar fá að tala.',
+  outreach: {
+    subject: 'Hugmynd að nýjum vef fyrir THG Arkitekta',
+    body: `Góðan dag,
+
+Ég heiti Sindri og vinn við vefhönnun. Ég var að skoða verkin ykkar og rak augun í eitt: þið segið sömu hugsunina þrisvar á vefnum ykkar án þess að hún sé nokkurs staðar orðuð sem stefna stofunnar. Um Hótel Borg segið þið að móttakan sé hönnuð í samræmi við eldri móttöku, um Konsúlat að hugmyndin sé að fella saman nýtt og gamalt, og um Hótel Von að byggingin eigi að falla að nágrenninu og fanga staðarandann.
+
+Ég tók saman frumgerð að nýjum vef sem byrjar á þeirri hugsun og lætur verkin sanna hana, eitt af öðru. Vefurinn ykkar er tæknilega í fínu lagi, svo þetta snýst ekki um lagfæringar. Það sem mér fannst vanta er umfangið sjálft. Sjö verk eru sýnd hjá stofu sem hefur starfað í þrjátíu og tvö ár og telur um fjörutíu manns, og hvergi kemur fram að þið teiknið bæði hótel og hjúkrunarheimili.
+
+Hana má skoða hér, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+
+PREVIEW_COMPANIES.push(THG)
