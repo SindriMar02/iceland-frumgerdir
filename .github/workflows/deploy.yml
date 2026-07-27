@@ -37,7 +37,7 @@ jobs:
       # prospective client's tab. Checks the BUILT output, which is what ships.
       # Rules and incident history: tools/favicon-guard.mjs
       - name: favicon-guard (blocks the deploy if any page lacks a usable icon)
-        run: node tools/favicon-guard.mjs dist
+        run: node tools/favicon-guard.mjs dist --base=/iceland-frumgerdir/
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -34,8 +34,18 @@ import { fileURLToPath } from 'node:url';
 // Anchor to this script's own location (…/_tools/), not process.cwd(), which is
 // whatever repo the user happens to be standing in.
 const WORKSPACE = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const EXPLICIT = Boolean(process.argv[2]);
-const ROOT = EXPLICIT ? resolve(process.argv[2]) : WORKSPACE;
+const argv = process.argv.slice(2);
+
+// --base=/repo-name/ tells the guard where this site is mounted on its origin.
+// A bundler (Vite) emits base-prefixed ABSOLUTE hrefs like
+// "/iceland-frumgerdir/assets/favicon-32-B70Tl6Wy.png". Those are correct on a Pages
+// project site. A bare "/favicon.png" on that same site is the rule-2 bug: it escapes
+// to the ORIGIN root and serves ARTIX's icon. Without the base the two are
+// indistinguishable, so pass it whenever the build emits absolute hrefs.
+const baseArg = argv.find((a) => a.startsWith('--base='))?.slice('--base='.length);
+const BASE = baseArg ? '/' + baseArg.replace(/^\/+|\/+$/g, '') + '/' : null;
+const positional = argv.filter((a) => !a.startsWith('--'));
+const ROOT = positional[0] ? resolve(positional[0]) : WORKSPACE;
 
 // NOTE: dist/build are deliberately NOT skipped. They are what actually deploys.
 // Skipping them is precisely how three broken previews passed this guard.
@@ -118,13 +128,31 @@ for (const file of files) {
     if (/^https?:\/\//i.test(href) || href.startsWith('//')) continue; // external, deliberate
 
     if (href.startsWith('/')) {
-      // Only safe when the project is served from a domain root (Cloudflare Pages).
-      // On a GitHub Pages project site this points outside the site entirely.
-      const proj = projectRootOf(file);
       const clean = href.split(/[?#]/)[0];
+
+      if (BASE) {
+        // The site is mounted under BASE. An absolute href is only correct if it is
+        // prefixed with BASE; anything else lands outside this site on the origin.
+        if (!clean.startsWith(BASE)) {
+          problems.push([rel, `absolute href "${href}" is not under the site base "${BASE}" — it resolves to the ORIGIN ROOT`]);
+          continue;
+        }
+        const onDisk = join(ROOT, clean.slice(BASE.length));
+        if (!existsSync(onDisk)) {
+          problems.push([rel, `absolute href "${href}" is not in the built output`]);
+        } else if (statSync(onDisk).size < 70 && /\.(png|ico)$/i.test(onDisk)) {
+          problems.push([rel, `absolute href "${href}" is ${statSync(onDisk).size} bytes — blank render`]);
+        }
+        continue;
+      }
+
+      // No base declared: only safe when the project is served from a domain root
+      // (Cloudflare Pages). On a GitHub Pages project site this points outside the
+      // site entirely — and we cannot prove which, so warn rather than pass silently.
+      const proj = projectRootOf(file);
       const found = [join(proj, 'public', clean), join(proj, clean)].find((p) => existsSync(p));
       if (found) {
-        warnings.push([rel, `absolute href "${href}" — OK only because this project deploys at a domain root`]);
+        warnings.push([rel, `absolute href "${href}" — OK only because this project deploys at a domain root; pass --base=/repo/ if it does not`]);
       } else {
         problems.push([rel, `absolute href "${href}" resolves to the ORIGIN ROOT, not this site`]);
       }
