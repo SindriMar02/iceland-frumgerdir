@@ -1086,7 +1086,7 @@ export default function Page() {
                       {[140, 300, 460, 620, 780].map((y, i) => (
                         <path
                           key={y}
-                          d={`M0 ${y} C 220 ${y - 34 - i * 4}, 460 ${y + 30}, 680 ${y - 22}, 1000 ${y + 14}`}
+                          d={`M0 ${y} C 150 ${y - 34 - i * 4}, 330 ${y + 30}, 500 ${y + 4} C 670 ${y - 22}, 850 ${y + 26}, 1000 ${y + 14}`}
                           fill="none"
                           stroke={INK}
                           strokeOpacity="0.1"
