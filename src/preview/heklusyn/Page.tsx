@@ -178,7 +178,10 @@ const PAGE_STYLES = `
    parent of the split char spans, which is exactly where a 3D-transform
    ancestor needs to sit. ═══ */
 .hk-word { display: inline-block; white-space: nowrap; vertical-align: top; }
-.hk-char { display: inline-block; vertical-align: top; will-change: transform, opacity; }
+.hk-char {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+ display: inline-block; vertical-align: top; will-change: transform, opacity; }
 [data-hk-reveal="h"], [data-hk-reveal="a"] { perspective: 900px; line-height: 1.22; }
 [data-hk-reveal="p"] { line-height: 1.6; }
 
@@ -213,6 +216,25 @@ const PAGE_STYLES = `
   .hk-dome { margin-top: calc(-1 * var(--hk-u16)); padding-top: calc(var(--hk-u48) + 11vw); }
 }
 .hk-dome-heading { word-spacing: 0vw; }
+
+/* Two equal stat cells on one shared baseline. */
+.hk-stats { display: grid; gap: var(--hk-u48); align-items: end; }
+@media (min-width: 640px) { .hk-stats { grid-template-columns: 1fr 1fr; } }
+.hk-stat-num { white-space: nowrap; }
+
+/* The dome's own content must clear the arc. With 50vw top radii on a
+   full-bleed box the top 50vw of the box IS the curve, so anything inside it
+   at normal padding gets clipped by overflow:hidden. Content therefore lives
+   in a centred column that is narrow enough to sit inside the arc's mouth,
+   pushed below the crest. The photograph is a full-bleed band underneath,
+   outside the curved zone entirely. */
+.hk-dome-inner {
+  max-width: 46em;
+  margin-inline: auto;
+  padding-inline: var(--hk-gutter);
+  text-align: center;
+}
+.hk-dome-inner .hk-rule { margin-inline: auto; }
 
 /* ═══ §7 Árstíðirnan — the 10-point shutter merge (teardown §3 §11). Two
    half-screen panels, each a rectangle-with-a-rectangular-hole traced as a
@@ -695,6 +717,40 @@ function Hero() {
 /* ═════════════════════════════════════════════════════════════════════════
    §2 Thesis — Kjarninn
    ═════════════════════════════════════════════════════════════════════════ */
+/* One stat cell. Both cells render the same shape so the two numbers share a
+   baseline; a range sets inline ("12 TIL 14") instead of stacking a tower. */
+function Stat({ value, unit, range }: { value: string; unit: string; range?: string }) {
+  return (
+    <div className="hk-stat">
+      <p
+        data-hk-reveal="h"
+        aria-label={range ? `${value} til ${range} ${unit}` : `${value} ${unit}`}
+        className="m-0 hk-stat-num"
+        style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-num)', lineHeight: 1.02, letterSpacing: '-0.02em' }}
+      >
+        {value}
+        {range ? (
+          <>
+            <span
+              aria-hidden
+              style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: '.26em', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED, verticalAlign: '.62em', margin: '0 .30em' }}
+            >
+              til
+            </span>
+            {range}
+          </>
+        ) : null}
+      </p>
+      <p
+        className="m-0 hk-stat-unit"
+        style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED }}
+      >
+        {unit}
+      </p>
+    </div>
+  )
+}
+
 function Thesis() {
   return (
     <section id="hk-thesis" data-hk-bg="chalk" className="hk-theme-chalk hk-band relative">
@@ -702,29 +758,12 @@ function Thesis() {
         <Kicker>Fágætið</Kicker>
         <SectionRule />
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2" style={{ marginTop: 'var(--hk-u32)' }}>
-          <div data-hk-reveal="h">
-            <p className="m-0" style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-num)', lineHeight: 1.02, letterSpacing: '-0.02em' }}>
-              50
-            </p>
-            <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED }}>
-              hektarar
-            </p>
-          </div>
-          <div data-hk-reveal="h">
-            <p className="m-0" style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-num)', lineHeight: 0.98, letterSpacing: '-0.02em' }}>
-              12
-            </p>
-            <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, color: MUTED, fontSize: 'var(--hk-label)', letterSpacing: '.18em', textTransform: 'uppercase', padding: '.15em 0' }}>
-              til
-            </p>
-            <p className="m-0" style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-num)', lineHeight: 0.98, letterSpacing: '-0.02em' }}>
-              14
-            </p>
-            <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED, marginTop: '.2em' }}>
-              hús
-            </p>
-          </div>
+        {/* Two cells of identical shape on ONE shared baseline. The earlier
+            version stacked 12 / til / 14 into a three-row tower beside a
+            single-row 50, so nothing lined up. The range now sets inline. */}
+        <div className="hk-stats" style={{ marginTop: 'var(--hk-u32)' }}>
+          <Stat value="50" unit="hektarar" />
+          <Stat value="12" unit="hús" range="14" />
         </div>
 
         <p
@@ -847,37 +886,37 @@ function Horizon() {
 function Land() {
   return (
     <section id="hk-land" data-hk-bg="sand" className="hk-theme-sand hk-band hk-dome relative">
-      <div className="grid gap-0 lg:grid-cols-2">
-        <div style={{ padding: '0 var(--hk-gutter) var(--hk-u64)' }} className="flex flex-col justify-center">
-          <Kicker>Uppruni</Kicker>
-          <SectionRule />
-          <h2
-            data-hk-reveal="ctn"
-            className="hk-dome-heading m-0"
-            style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-          >
-            Landið heldur húsinu
-          </h2>
-          <p
-            data-hk-reveal="p"
-            style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '30em', marginTop: 'var(--hk-u24)' }}
-          >
-            Landið var áður hluti af sögulegu bújörðinni Leirubakka. Það varð sjálfstæð eign við Ytri-Rangá árið
-            2020, félagið sjálft skráð ári síðar.
-          </p>
-          <p
-            data-hk-reveal="p"
-            style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '30em', marginTop: 'var(--hk-u16)' }}
-          >
-            Á svæðinu er þess gætt að raska sem minnst núverandi hraunmyndunum, mosa og gróðri sem fyrir er.
-          </p>
-        </div>
-        <div className="relative min-h-[46svh] lg:min-h-0">
-          <RealPhoto
-            file={PHOTOS.houseAutumn.file} alt={PHOTOS.houseAutumn.alt} reveal="ctn"
-            className="absolute inset-0 h-full w-full" caption="Húsið á haustbakkanum"
-          />
-        </div>
+      <div className="hk-dome-inner">
+        <Kicker>Uppruni</Kicker>
+        <SectionRule />
+        <h2
+          data-hk-reveal="ctn"
+          className="hk-dome-heading m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
+        >
+          Landið heldur húsinu
+        </h2>
+        <p
+          data-hk-reveal="p"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '34em', margin: 'var(--hk-u24) auto 0' }}
+        >
+          Landið var áður hluti af sögulegu bújörðinni Leirubakka. Það varð sjálfstæð eign við Ytri-Rangá árið
+          2020, félagið sjálft skráð ári síðar.
+        </p>
+        <p
+          data-hk-reveal="p"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '34em', margin: 'var(--hk-u16) auto 0' }}
+        >
+          Á svæðinu er þess gætt að raska sem minnst núverandi hraunmyndunum, mosa og gróðri sem fyrir er.
+        </p>
+      </div>
+
+      {/* Full-bleed band below the curve, so the photograph is never clipped. */}
+      <div className="relative w-full" style={{ marginTop: 'var(--hk-u64)', height: 'min(62svh, 42vw)' }}>
+        <RealPhoto
+          file={PHOTOS.houseAutumn.file} alt={PHOTOS.houseAutumn.alt} reveal="ctn"
+          className="absolute inset-0 h-full w-full" caption="Húsið á haustbakkanum"
+        />
       </div>
     </section>
   )
@@ -1350,14 +1389,14 @@ export default function HeklusynPage() {
       const revealEls = Array.from(root.querySelectorAll<HTMLElement>('[data-hk-reveal]'))
       revealEls.forEach((el, i) => {
         const kind = el.dataset.hkReveal
-        const stBase = { toggleActions: 'play none none reverse' } as const
+        const stBase = { toggleActions: 'play none none none', once: true } as const
 
         if (kind === 'h') {
           splits.push(SplitText.create(el, {
-            type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: true,
+            type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: false,
             onSplit: (self) => {
               gsap.fromTo(self.chars,
-                { opacity: 0, yPercent: 50, rotateY: 90 },
+                { opacity: 0, yPercent: 50, rotateY: 34 },
                 {
                   opacity: 1, yPercent: 0, rotateY: 0, duration: DUR.l, ease: EASE.out, stagger: STAGGER * 0.5,
                   delay: DELAY, clearProps: 'transform',
@@ -1368,10 +1407,10 @@ export default function HeklusynPage() {
           }))
         } else if (kind === 'a') {
           splits.push(SplitText.create(el, {
-            type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: true,
+            type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: false,
             onSplit: (self) => {
               gsap.fromTo(self.chars,
-                { opacity: 0, rotateX: 90, x: '1.6em', transformOrigin: 'center bottom' },
+                { opacity: 0, rotateX: 34, x: '1.6em', transformOrigin: 'center bottom' },
                 {
                   opacity: 1, rotateX: 0, x: '0em', duration: DUR.l, ease: EASE.out, stagger: STAGGER,
                   delay: DELAY, clearProps: 'transform',
@@ -1382,7 +1421,7 @@ export default function HeklusynPage() {
           }))
         } else if (kind === 'p') {
           splits.push(SplitText.create(el, {
-            type: 'lines', mask: 'lines', autoSplit: true,
+            type: 'lines', mask: 'lines', autoSplit: false,
             onSplit: (self) => {
               gsap.fromTo(self.lines,
                 { yPercent: 110 },

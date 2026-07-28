@@ -167,7 +167,21 @@ ${THEME_CSS}
 /* SplitText char elements MUST stay inline-block. GSAP's own mask option
    emits block-level wrappers in this version, which stacks every character
    on its own line, so the per-character mask is done here instead. */
+/* Fixed-chrome legibility scrim: sits behind the bar, fades to nothing.
+   Only visible where it is needed (over bright photography). */
+.thg-chrome-bar { position: fixed; }
+.thg-chrome-scrim {
+  position: absolute; inset: -1px 0 auto 0; height: 132px; z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(18,20,22,.72) 0%, rgba(18,20,22,.46) 46%, rgba(18,20,22,0) 100%);
+}
+.thg-root[data-thg-chrome-ground='light'] .thg-chrome-scrim {
+  background: linear-gradient(180deg, rgba(232,230,225,.88) 0%, rgba(232,230,225,.55) 46%, rgba(232,230,225,0) 100%);
+}
 .thg-char {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+
   display: inline-block;
   vertical-align: top;
   will-change: transform, opacity;
@@ -328,8 +342,13 @@ function Chrome() {
   return (
     <div
       id="thg-chrome"
-      className="thg-container fixed inset-x-0 top-0 z-40 flex min-h-[56px] items-center justify-between py-3"
+      className="thg-chrome-bar thg-container fixed inset-x-0 top-0 z-40 flex min-h-[56px] items-center justify-between py-3"
     >
+      {/* The chrome floats over photography that can be almost white (the Borg
+          hero) while its own text is paper-coloured, which left it at roughly
+          1.5:1. This scrim guarantees the strip behind it is always dark
+          enough to read against, and is invisible over dark grounds. */}
+      <span aria-hidden className="thg-chrome-scrim" />
       <a
         href="#thg-top"
         data-thg-chrome-part="brand"
@@ -957,7 +976,7 @@ export default function Page() {
             type: 'words,chars',
             wordsClass: 'thg-word',
             charsClass: 'thg-char',
-            autoSplit: true,
+            autoSplit: false,
             onSplit: (self) => {
               // fromTo toward the resting state, never gsap.from: a from()
               // tween writes the hidden state as an inline style, so a paused
@@ -966,7 +985,7 @@ export default function Page() {
               // (beat 3 starts at ~0.8s into the timeline above).
               gsap.fromTo(
                 self.chars,
-                { opacity: 0, yPercent: 60, rotateY: 75 },
+                { opacity: 0, yPercent: 60, rotateY: 28 },
                 { opacity: 1, yPercent: 0, rotateY: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02, delay: 1.0, clearProps: 'transform' },
               )
               return undefined
@@ -1003,27 +1022,27 @@ export default function Page() {
               // No mask option: GSAP's char mask wrappers are block-level here
               // and would stack every character on its own line. CSS masks the
               // chars instead (.thg-char), guaranteed inline-block.
-              type: 'words,chars', wordsClass: 'thg-word', charsClass: 'thg-char', autoSplit: true,
+              type: 'words,chars', wordsClass: 'thg-word', charsClass: 'thg-char', autoSplit: false,
               onSplit: (self) => {
                 gsap.fromTo(self.chars,
-                  { opacity: 0, yPercent: 55, rotateY: 80 },
+                  { opacity: 0, yPercent: 55, rotateY: 30 },
                   {
                     opacity: 1, yPercent: 0, rotateY: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02,
                     clearProps: 'transform',
-                    scrollTrigger: trig(el, 'top 85%', 'left 85%', { toggleActions: 'play none none reverse' }),
+                    scrollTrigger: trig(el, 'top 85%', 'left 85%', { toggleActions: 'play none none none', once: true }),
                   })
                 return undefined
               },
             }))
           } else if (kind === 'p') {
             splits.push(SplitText.create(el, {
-              type: 'lines', mask: 'lines', autoSplit: true,
+              type: 'lines', mask: 'lines', autoSplit: false,
               onSplit: (self) => {
                 gsap.fromTo(self.lines,
                   { yPercent: 112 },
                   {
                     yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: 0.08,
-                    scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none reverse' }),
+                    scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
                   })
                 return undefined
               },
@@ -1033,7 +1052,7 @@ export default function Page() {
               { scaleX: 0 },
               {
                 scaleX: 1, duration: DUR.m, ease: EASE.inout, transformOrigin: 'left center',
-                scrollTrigger: trig(el, 'top 92%', 'left 92%', { toggleActions: 'play none none reverse' }),
+                scrollTrigger: trig(el, 'top 92%', 'left 92%', { toggleActions: 'play none none none', once: true }),
               })
           } else if (kind === 'a') {
             // Accent chars — era's script/accent primitive (rotateX+x on a
@@ -1041,14 +1060,14 @@ export default function Page() {
             // fluid with .thg-root's scoped canvas rather than the page's
             // unrelated root font-size.
             splits.push(SplitText.create(el, {
-              type: 'chars', charsClass: 'thg-char', autoSplit: true,
+              type: 'chars', charsClass: 'thg-char', autoSplit: false,
               onSplit: (self) => {
                 gsap.fromTo(self.chars,
-                  { opacity: 0, rotateX: 90, x: '1.2vw', transformOrigin: 'center bottom' },
+                  { opacity: 0, rotateX: 34, x: '1.2vw', transformOrigin: 'center bottom' },
                   {
                     opacity: 1, rotateX: 0, x: '0vw', duration: DUR.l, ease: EASE.out, stagger: 0.05,
                     clearProps: 'transform',
-                    scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none reverse' }),
+                    scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
                   })
                 return undefined
               },
@@ -1062,14 +1081,14 @@ export default function Page() {
               { clipPath: 'polygon(100% 0%, 100% 0%, 101% 100%, 125% 100%)' },
               {
                 clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', duration: DUR.l, ease: EASE.inout,
-                scrollTrigger: trig(el, 'top 82%', 'left 82%', { toggleActions: 'play none none reverse' }),
+                scrollTrigger: trig(el, 'top 82%', 'left 82%', { toggleActions: 'play none none none', once: true }),
               })
             if (inner) {
               gsap.fromTo(inner,
                 { scale: 1.5, xPercent: 25 },
                 {
                   scale: 1, xPercent: 0, duration: DUR.l, ease: EASE.inout,
-                  scrollTrigger: trig(el, 'top 82%', 'left 82%', { toggleActions: 'play none none reverse' }),
+                  scrollTrigger: trig(el, 'top 82%', 'left 82%', { toggleActions: 'play none none none', once: true }),
                 })
             }
           } else {
@@ -1077,7 +1096,7 @@ export default function Page() {
               { opacity: 0, y: 22 },
               {
                 opacity: 1, y: 0, duration: DUR.m, ease: EASE.out, delay: (i % 4) * 0.04,
-                scrollTrigger: trig(el, 'top 90%', 'left 90%', { toggleActions: 'play none none reverse' }),
+                scrollTrigger: trig(el, 'top 90%', 'left 90%', { toggleActions: 'play none none none', once: true }),
               })
           }
         })
@@ -1092,7 +1111,7 @@ export default function Page() {
             { strokeDashoffset: len },
             {
               strokeDashoffset: 0, duration: DUR.l * 1.8, ease: EASE.out,
-              scrollTrigger: trig(diagramPath, 'top 82%', 'left 82%', { toggleActions: 'play none none reverse' }),
+              scrollTrigger: trig(diagramPath, 'top 82%', 'left 82%', { toggleActions: 'play none none none', once: true }),
             })
         }
 
