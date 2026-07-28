@@ -144,14 +144,13 @@ export const DOCUMENTS = [
 /* ── §10 Fyrirspurn — enquiry targets ─────────────────────────────────── */
 export const ENQUIRY_HOUSES = ['Almenn fyrirspurn', ...HOUSES.map((h) => h.name)]
 
-/* ── Nav / section index (id must match the section wrapper) ────────────── */
+/* ── Nav / section index (id must match the section wrapper). Kononenko's
+   own chrome is a short comma-separated list, not one entry per section —
+   KONONENKO-BRIEF §4 gives this exact five-item set verbatim. ──────────── */
 export const NAV = [
   { id: 'hk-thesis', label: 'Fágætið' },
   { id: 'hk-horizon', label: 'Fjöllin' },
-  { id: 'hk-land', label: 'Landið' },
   { id: 'hk-houses', label: 'Húsin' },
-  { id: 'hk-seasons', label: 'Árstíðirnar' },
-  { id: 'hk-visuals', label: 'Tölvumyndir' },
   { id: 'hk-docs', label: 'Gögnin' },
   { id: 'hk-enquiry', label: 'Fyrirspurn' },
 ] as const

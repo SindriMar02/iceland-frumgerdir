@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -9,607 +9,329 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
+import { CanvasEngine, hasWebGL } from './webgl'
+import type { PlaneHandle, ShaderKind } from './webgl'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, COMPANY_LINE, COMPANY_ADDRESS,
-  OWNERS, PHOTOS, VISUALS, MOUNTAINS, HOUSES, STATUS_LABEL, DOCUMENTS, ENQUIRY_HOUSES,
-  NAV,
+  PHOTOS, VISUALS, MOUNTAINS, HOUSES, STATUS_LABEL, DOCUMENTS, ENQUIRY_HOUSES, NAV,
 } from './data'
-import type { HouseStatus } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
-CustomEase.create('hkOut', '0.25,1,0.5,1')
-CustomEase.create('hkIn', '0.5,0,0.75,0')
-CustomEase.create('hkInOut', '0.75,0,0.25,1')
-CustomEase.create('hkDive', '0.6,0,0,1')
+CustomEase.create('hkKon', '.17,.84,.44,1')
 
 const company = getPreviewCompany('heklusyn')
 
 /* ═════════════════════════════════════════════════════════════════════════
-   HEKLUSÝN — "Tólf hús". REBUILD per the ERA-FIDELITY ADDENDUM: this is no
-   longer an approximation driven by IntersectionObserver + CSS transitions.
-   It is the real ERA machine — GSAP SplitText char/line splits, Lenis-fed
-   ScrollTrigger scrub, a genuine arch-aperture preloader, a scrubbed dive-in
-   hero, a rising dome, a 10-point shutter merge, a footer aperture close,
-   and three independently-triggered chrome re-theme points — with the
-   Heklusýn identity (chalk/sand/basalt/river, Gambetta + Supreme, land and
-   river instead of arches and bougainvillea) unchanged. All facts, prices,
-   Tölvumynd labelling and the palette below are the same locked values the
-   previous build shipped; only the motion/structure system changed.
+   KONONENKO TRANSPLANT — full system replacement (see KONONENKO-BRIEF.md).
+   One shared THREE.js canvas (webgl.ts) renders every photograph and every
+   Tölvumynd render as a plane synced to its DOM twin's rect each frame; the
+   DOM <img> underneath stays in the markup for SSR/SEO/a11y and is only
+   visibility-hidden once the canvas is confirmed running. Paper-white
+   ground throughout, near-black text, the mixed Switzer/Hedvig headline
+   device, comma-nav chrome, fact-ledger anatomy, a Kononenko-style work
+   grid with the sketch-develop hover lens. Heklusýn's own signature — the
+   eight-mountain interactive horizon — is kept and restyled monochrome.
+   ═════════════════════════════════════════════════════════════════════════ */
 
-   FLUID CANVAS — ERA sets html{font-size:1vw} globally. This app has ~90
-   other routes sharing the same <html>, so every --hk-u* token is instead
-   written as calc(Nvw / var(--hk-ratio)) — mathematically identical output,
-   zero global blast radius.
+const BASE = import.meta.env.BASE_URL
+const FONTS_SW = `${BASE}fonts/switzer/`
+const FONTS_HV = `${BASE}fonts/hedvig/`
+const FILM = `${BASE}heklusyn/hero-film.mp4`
 
-   Every reveal below is gsap.fromTo(...) toward the resting state — never
-   gsap.from(). React always renders the full, final text; GSAP only ever
-   writes a transient inline "from" style inside a
-   prefers-reduced-motion:no-preference branch, then a 2s failsafe clears any
-   leftover inline transform/clip-path. A crawler, a paused rAF tab or a
-   screenshot mid-scroll therefore always sees complete, positioned text. ── */
-
-const FONTS_G = `${import.meta.env.BASE_URL}fonts/gambetta/`
-const FONTS_S = `${import.meta.env.BASE_URL}fonts/supreme/`
-
-const GAMBETTA = "'HK Gambetta', Georgia, serif"
-const SUPREME = "'HK Supreme', -apple-system, sans-serif"
+const SWITZER = "'HK Switzer', -apple-system, sans-serif"
+const HEDVIG = "'HK Hedvig', Georgia, serif"
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const isCoarsePointer = () =>
+  typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+const canHover = () =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
-/* Palette — unchanged from the previous build, contrast pairs verified
-   (relative-luminance formula):
-   ink #161A17 / chalk #F0ECE4 ............ 14.92:1 (AAA)
-   ink #161A17 / sand  #E4DED2 ............ 13.13:1 (AAA)
-   muted #5C635C / chalk .................. 5.25:1 (AA)
-   muted #5C635C / sand ................... 4.62:1 (AA)
-   river #3E5C6B / chalk .................. 6.05:1 (AA, close to AAA)
-   river #3E5C6B / sand ................... 5.32:1 (AA)
-   tawny #8A5A28 / chalk .................. 4.99:1 (AA, LARGE TEXT ONLY below)
-   tawny #8A5A28 / sand ................... 4.39:1 (fails AA normal — never used on sand)
-   chalk #F0ECE4 / dark #141815 ........... 15.22:1 (AAA)
-   accent #9BB6C4 / dark #141815 .......... 8.44:1 (AAA)
-   chalk #F0ECE4 / river #3E5C6B .......... 6.05:1 (AA)
-   muted-on-dark #A9B1A9 / dark ........... 8.15:1 (AAA)
-   muted-on-river #D3DBDE / river ......... 5.07:1 (AA)                       */
-const INK = '#161A17'
-const CHALK = '#F0ECE4'
-const SAND = '#E4DED2'
-const MUTED = '#5C635C'
-const RIVER = '#3E5C6B'
-const TAWNY = '#8A5A28'
-const DARK = '#141815'
-const MUTED_ON_DARK = '#A9B1A9'
-const MUTED_ON_RIVER = '#D3DBDE'
-const ACCENT_ON_DARK = '#9BB6C4'
+/* Ground everywhere is paper white. Only five colours exist on the page;
+   every other colour arrives through photography.
+   Contrast (relative-luminance formula, computed below in the report):
+   INK #111111 / GROUND #ffffff ............ 18.88:1 (AAA)
+   MUTED #767676 / GROUND #ffffff ........... 4.55:1 (AA, normal text floor)
+   INK #111111 / BAND #f0f0f0 ............... 16.57:1 (AAA)
+   INK #111111 / RULE #e2e2e2 ............... 14.58:1 (AAA)
+   MUTED #767676 / BAND #f0f0f0 ............. 3.99:1 (FAILS AA — muted text
+     is therefore never placed on the #f0f0f0 chrome band, only on #fff)
+   WHITE #ffffff / hero video, under the gradient scrim below — not a flat
+     pair (photography), scrim opacity chosen so the darkest text-bearing
+     region is effectively near-black, matching the INK/GROUND ratio.        */
+const INK = '#111111'
+const GROUND = '#ffffff'
+const MUTED = '#767676'
+const RULE = '#e2e2e2'
+const BAND = '#f0f0f0'
 
-/* Duration ladder + easing — teardown Phase 6, verbatim ratios. hkDive
-   (registered above, 0.6,0,0,1) is reserved for a future preloader exit
-   flourish; not currently wired to a tween. */
 const DUR = { s: 0.4, m: 0.8, l: 1.2 }
-const EASE = { out: 'hkOut', in: 'hkIn', inout: 'hkInOut' }
-const STAGGER = 0.1
-const DELAY = 0.3
+const EASE = 'hkKon'
+const STAGGER = 0.045
 
-/* The active Lenis instance (module scope, set/cleared by Page()'s
-   matchMedia branch) so Chrome's nav clicks route scroll THROUGH it —
-   a native scrollIntoView while Lenis owns the wheel would be reverted the
-   next frame. Null under reduced motion, where scroll is native. */
+/* Module-scope Lenis instance so Chrome's nav clicks route scroll through
+   it — null under the capability gate (reduced motion / touch / no WebGL),
+   where scroll is native and anchor links use scrollIntoView instead. */
 let hkLenis: Lenis | null = null
 
 const PAGE_STYLES = `
-@font-face { font-family:'HK Gambetta'; src:url('${FONTS_G}Gambetta-Light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Gambetta'; src:url('${FONTS_G}Gambetta-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Gambetta'; src:url('${FONTS_G}Gambetta-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Gambetta'; src:url('${FONTS_G}Gambetta-SemiBold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Gambetta'; src:url('${FONTS_G}Gambetta-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Gambetta'; src:url('${FONTS_G}Gambetta-Italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
-@font-face { font-family:'HK Supreme'; src:url('${FONTS_S}Supreme-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Supreme'; src:url('${FONTS_S}Supreme-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-@font-face { font-family:'HK Supreme'; src:url('${FONTS_S}Supreme-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
-
-/* ═══ Fluid canvas (era teardown Phase 2.1 / 13.1), scoped — see note above ═══ */
-.hk-root {
-  --hk-ratio: 16;
-  --hk-dur-s: .4s; --hk-dur-m: .8s; --hk-dur-l: 1.2s;
-  --hk-ease-out: cubic-bezier(.25,1,.5,1);
-  --hk-ease-in: cubic-bezier(.5,0,.75,0);
-  --hk-ease-in-out: cubic-bezier(.75,0,.25,1);
-  --hk-u2: calc(2vw / var(--hk-ratio));   --hk-u4: calc(4vw / var(--hk-ratio));
-  --hk-u8: calc(8vw / var(--hk-ratio));   --hk-u12: calc(12vw / var(--hk-ratio));
-  --hk-u16: calc(16vw / var(--hk-ratio)); --hk-u24: calc(24vw / var(--hk-ratio));
-  --hk-u32: calc(32vw / var(--hk-ratio)); --hk-u48: calc(48vw / var(--hk-ratio));
-  --hk-u64: calc(64vw / var(--hk-ratio)); --hk-u96: calc(96vw / var(--hk-ratio));
-  --hk-u160: calc(160vw / var(--hk-ratio));
-  --hk-gutter: max(20px, var(--hk-u48));
-  --hk-num: calc(240vw / var(--hk-ratio));
-  --hk-d1: calc(150vw / var(--hk-ratio));
-  --hk-d2: calc(84vw / var(--hk-ratio));
-  --hk-d3: calc(52vw / var(--hk-ratio));
-  --hk-lead: max(19px, calc(23vw / var(--hk-ratio)));
-  --hk-body: max(17px, calc(18vw / var(--hk-ratio)));
-  --hk-label: max(11px, calc(12vw / var(--hk-ratio)));
-  font-family: ${SUPREME};
-  background: ${CHALK}; color: ${INK};
-  overflow-x: clip;
+@font-face { font-family:'HK Switzer'; src:url('${FONTS_SW}Switzer-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'HK Switzer'; src:url('${FONTS_SW}Switzer-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'HK Switzer'; src:url('${FONTS_SW}Switzer-Semibold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+@font-face { font-family:'HK Switzer'; src:url('${FONTS_SW}Switzer-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face {
+  font-family:'HK Hedvig'; font-weight:400; font-style:normal; font-display:swap;
+  src:url('${FONTS_HV}hedvig-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-@media (max-width: 991px) { .hk-root {
-  --hk-gutter: max(18px, var(--hk-u32));
-  --hk-u24: var(--hk-u16); --hk-u32: var(--hk-u24); --hk-u48: var(--hk-u32);
-  --hk-u64: var(--hk-u48); --hk-u96: var(--hk-u64); --hk-u160: var(--hk-u96);
-} }
-@media (max-width: 767px) { .hk-root { --hk-ratio: 4.16; } }
-@media (min-width: 768px) and (max-width: 991px) { .hk-root { --hk-ratio: 8.34; } }
-@media (max-width: 767px) { .hk-root {
-  --hk-num: calc(190vw / var(--hk-ratio));
-  --hk-d1: calc(76vw / var(--hk-ratio));
-  --hk-d2: calc(50vw / var(--hk-ratio));
-  --hk-d3: calc(34vw / var(--hk-ratio));
-} }
-.hk-root ::selection { background: ${INK}; color: ${CHALK}; }
-.hk-root :focus-visible { outline: 2px solid var(--hk-t-accent, ${RIVER}); outline-offset: 3px; border-radius: 2px; }
-/* Descendant selector, not direct-child: the footer-aperture-close wrapper
-   (.hk-close-stack / .hk-enquiry-wrap) sits between <main> and every
-   section, so "main > section" would silently stop matching anything. */
-.hk-root main header, .hk-root main section { scroll-margin-top: 68px; }
+@font-face {
+  font-family:'HK Hedvig'; font-weight:400; font-style:normal; font-display:swap;
+  src:url('${FONTS_HV}hedvig-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+.hk-root {
+  --hk-gutter: clamp(20px, 5vw, 96px);
+  --hk-h1: clamp(2.75rem, 2.6vw + 2.05rem, 6.5rem);
+  --hk-h2: clamp(1.875rem, 1.5vw + 1.4rem, 3.25rem);
+  --hk-h3: clamp(1.375rem, 0.6vw + 1.15rem, 1.75rem);
+  --hk-num: clamp(3.25rem, 5.6vw + 1.1rem, 7.75rem);
+  --hk-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --hk-body: clamp(1rem, 0.15vw + 0.95rem, 1.0625rem);
+  --hk-label: 11px;
+  font-family: ${SWITZER};
+  background: ${GROUND}; color: ${INK};
+  overflow-x: clip;
+  position: relative;
+  /* The shared canvas lives in document.body at z-index:1 (webgl.ts); this
+     wrapper must out-rank it so every static-flow text node in the page
+     paints above the canvas, not beneath it (position:fixed + z-index
+     content always paints above non-positioned flow otherwise). */
+  z-index: 2;
+}
+.hk-root ::selection { background: ${INK}; color: ${GROUND}; }
+.hk-root :focus-visible { outline: 2px solid ${INK}; outline-offset: 3px; border-radius: 1px; }
+.hk-root section, .hk-root header { scroll-margin-top: 64px; }
 .hk-root h1, .hk-root h2, .hk-root h3, .hk-root .hk-fit {
   overflow-wrap: break-word; word-break: break-word; hyphens: auto;
 }
+.hk-serif { font-family: ${HEDVIG}; font-style: normal; font-weight: 400; }
 
-/* ═══ Self-theming bands — components read only the semantic tokens ═══ */
-.hk-theme-chalk { --hk-t-ink:${INK}; --hk-t-ground:${CHALK}; --hk-t-muted:${MUTED}; --hk-t-accent:${RIVER}; }
-.hk-theme-sand  { --hk-t-ink:${INK}; --hk-t-ground:${SAND};  --hk-t-muted:${MUTED}; --hk-t-accent:${RIVER}; }
-.hk-theme-dark  { --hk-t-ink:${CHALK}; --hk-t-ground:${DARK}; --hk-t-muted:${MUTED_ON_DARK}; --hk-t-accent:${ACCENT_ON_DARK}; }
-.hk-theme-river { --hk-t-ink:${CHALK}; --hk-t-ground:${RIVER}; --hk-t-muted:${MUTED_ON_RIVER}; --hk-t-accent:${CHALK}; }
-.hk-band { background: var(--hk-t-ground); color: var(--hk-t-ink); }
+/* ═══ Chrome ═══ */
+.hk-chrome-bar { transition: background-color ${DUR.s}s ${EASE}, border-color ${DUR.s}s ${EASE}; }
+.hk-chrome-link { transition: color ${DUR.s}s ${EASE}, opacity ${DUR.s}s ${EASE}; }
+.hk-chrome-link:hover, .hk-chrome-link[aria-current="true"] { text-decoration: underline; text-underline-offset: .2em; }
 
-/* ═══ Fixed chrome — wordmark, nav and CTA re-theme on THEIR OWN centre
-   (teardown Phase 5.4 / 13.3), three independent ScrollTrigger instances,
-   never one shared state. Colour transition only, 0.4s. ═══ */
-.hk-chrome-mark, .hk-chrome-nav, .hk-chrome-cta-label { transition: color var(--hk-dur-s) var(--hk-ease-out); }
-.hk-chrome-bar { transition: background-color var(--hk-dur-s) var(--hk-ease-out), border-color var(--hk-dur-s) var(--hk-ease-out); }
-
-/* ═══ Six reveal primitives — real GSAP SplitText, not IO whole-element
-   fades. Word wrappers stay inline-block/nowrap so a line never breaks
-   mid-word; character masking is CSS, never the SplitText mask option
-   (its wrappers render block-level here — see
-   [[gsap-splittext-clearprops-traps]] — which would stack chars vertically).
-   Perspective lives on the reveal-marked element itself: it is the direct
-   parent of the split char spans, which is exactly where a 3D-transform
-   ancestor needs to sit. ═══ */
-.hk-word {
-  display: inline-block;
-  white-space: nowrap;
-  vertical-align: top;
-  overflow: hidden;
-  padding-bottom: 0.20em;
-  margin-bottom: -0.20em;
-}
+/* ═══ Hero name reveal — GSAP SplitText words,chars, the ONLY char/word
+   split on the page (repo law: no line-splitting of paragraphs anywhere,
+   ever). Word wrappers stay inline-block/nowrap so a line never breaks
+   mid-word; descenders get room via the padding/margin pair below. ═══ */
+.hk-word { display: inline-block; white-space: nowrap; vertical-align: top; overflow: hidden; padding-bottom: .22em; margin-bottom: -.22em; }
 .hk-char { display: inline-block; }
-[data-hk-reveal="h"], [data-hk-reveal="a"] { line-height: 1.22; }
-[data-hk-reveal="p"] { line-height: 1.6; }
 
-/* ═══ §1 Arrival — the dive-in hero. ≥300vh scrubbed runway; a sticky inner
-   viewport holds the frame while GSAP scales the image 1→~1.8 from
-   50%/75% and parallaxes the three text layers out at differential rates.
-   position:sticky, not a ScrollTrigger pin — the brief bans scroll-jacking;
-   sticky never holds the page still, it only keeps content in view while
-   native scroll continues normally. No CSS transition anywhere in this
-   block: every property here is rewritten every scroll tick from JS. ═══ */
-.hk-hero-scroll { position: relative; height: 320vh; }
-.hk-hero-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-.hk-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 75%; will-change: transform; }
-@media (prefers-reduced-motion: reduce) {
-  .hk-hero-scroll { height: 100svh; }
-  .hk-hero-sticky { position: relative; }
-  .hk-hero-image { transform: none !important; }
-}
+/* ═══ Reveal primitives — h (hero chars only), ctn (opacity+y whole
+   element), line (clip-path wipe on hairline rules). No CSS transition on
+   any of these: every value here is written once by a fromTo tween toward
+   the resting state, never rewritten every scroll tick, so nothing here
+   collides with the "no transition on scrub-written properties" rule. ═══ */
+[data-hk-reveal] { }
 
-/* ═══ §4 Landið — the rising dome (teardown §3 §2 / Phase 13.7). Two 50vw
-   corner radii on a full-bleed section meet at the exact centre of its top
-   edge, producing one continuous elliptical crest — no arc-set SVG type
-   needed for that. word-spacing on the heading is scrubbed separately in
-   JS (never a CSS transition, since it is rewritten every tick). ═══ */
-.hk-dome {
-  position: relative; overflow: hidden;
-  border-top-left-radius: 50vw; border-top-right-radius: 50vw;
-  margin-top: calc(-1 * var(--hk-u32));
-  padding-top: calc(var(--hk-u64) + 6vw);
-}
-@media (max-width: 767px) {
-  .hk-dome { margin-top: calc(-1 * var(--hk-u16)); padding-top: calc(var(--hk-u48) + 11vw); }
-}
-.hk-dome-heading { word-spacing: 0vw; }
+/* ═══ Canvas image wrapper — the visible, hit-testable box the engine
+   reads getBoundingClientRect() from every frame. The real <img> inside is
+   visibility-hidden only once a plane is actually registered (webgl.ts);
+   until then, or with no WebGL/reduced-motion/touch, it stays the visible
+   photograph itself. ═══ */
+.hk-plane { position: relative; overflow: hidden; background: ${BAND}; }
+.hk-plane img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
+.hk-rule { height: 1px; background: ${RULE}; width: 100%; }
 
-/* The dome's own content must clear the arc. With 50vw top radii on a
-   full-bleed box the top 50vw of the box IS the curve, so anything inside it
-   at normal padding gets clipped by overflow:hidden. Content therefore lives
-   in a centred column that is narrow enough to sit inside the arc's mouth,
-   pushed below the crest. The photograph is a full-bleed band underneath,
-   outside the curved zone entirely. */
-.hk-dome-inner {
-  max-width: 46em;
-  margin-inline: auto;
-  padding-inline: var(--hk-gutter);
-  text-align: center;
-}
-.hk-dome-inner .hk-rule { margin-inline: auto; }
+/* ═══ Work grid ═══ */
+.hk-grid-row { display: grid; gap: var(--hk-gutter); }
+@media (min-width: 700px) { .hk-grid-row.hk-grid-row-2 { grid-template-columns: 1fr 1fr; } }
+.hk-grid-row-feature { display: grid; gap: calc(var(--hk-gutter) / 2); }
+@media (min-width: 700px) { .hk-grid-row-feature { grid-template-columns: 1fr 1fr; } }
 
-/* ═══ §7 Árstíðirnan — the 10-point shutter merge (teardown §3 §11). Two
-   half-screen panels, each a rectangle-with-a-rectangular-hole traced as a
-   single 10-point clip-path polygon, so JS can converge the hole's
-   top/bottom edges, then merge its outer/inner edges to the screen centre,
-   then push through with a scale — never a crossfade. Resting/no-JS state
-   (plain CSS below) is the fully OPEN aperture: both panels clipped to
-   zero width, so the land-river photo beneath is what a crawler, a paused
-   rAF tab or a reduced-motion visitor actually sees — consistent with the
-   rest of this page's "resting state is always the fully visible one"
-   rule. JS scrub then closes the aperture into winter as you scroll
-   through the section (Heklusýn's own reading of "the seasons": you move
-   FORWARD into winter, not back out of it). ═══ */
-.hk-shutter-wrap { position: relative; height: 240vh; margin-top: var(--hk-u32); }
-.hk-shutter-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-.hk-shutter-base { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.hk-shutter-panel { position: absolute; inset: 0; overflow: hidden; }
-/* One winter plate wiped in from both edges toward the centre. The earlier
-   two-panel version put a visible seam down the middle and read as the same
-   photograph printed twice rather than one image being revealed. */
-.hk-shutter-panel-l { clip-path: inset(0 100% 0 0); }
-.hk-shutter-panel-r { display: none; }
-.hk-shutter-panel-img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
-.hk-shutter-panel-img-l { left: 0; }
-.hk-shutter-panel-img-r { right: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .hk-shutter-wrap { height: auto; margin-top: var(--hk-u32); }
-  .hk-shutter-sticky { position: relative; height: 70svh; }
-}
-
-/* ═══ §10 Fyrirspurn arriving — the footer aperture close (teardown Phase
-   14 catalogue). No CSS transition: scale + clip-path are rewritten every
-   scroll tick by the footer-close ScrollTrigger. ═══ */
-.hk-close-stack { will-change: transform, clip-path; }
-.hk-enquiry-wrap { will-change: transform; }
-
-/* ═══ Sjóndeildarhringurinn — horizon strip ═══ */
-.hk-ridge { position: relative; }
+/* ═══ Mountain ridge — plain-text roving-tabindex list, small ink ticks on
+   the diagram itself (skýringarmynd), never a filled pill/button. ═══ */
 .hk-ridge-btn {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: .5em;
-  background: none; border: 0; padding: .5em .3em; cursor: pointer; min-height: 44px;
-  color: rgba(240,236,228,.72); font-family: ${SUPREME};
+  background: none; border: 0; padding: .3em .1em; cursor: pointer; min-height: 44px;
+  font-family: ${SWITZER}; color: ${MUTED}; text-align: left;
 }
-.hk-ridge-dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(240,236,228,.55); transition: background var(--hk-dur-s) var(--hk-ease-out), transform var(--hk-dur-s) var(--hk-ease-out); }
-.hk-ridge-btn[aria-pressed="true"] { color: ${CHALK}; }
-.hk-ridge-btn[aria-pressed="true"] .hk-ridge-dot { background: ${ACCENT_ON_DARK}; transform: scale(1.7); }
+.hk-ridge-btn[aria-pressed="true"] { color: ${INK}; text-decoration: underline; text-underline-offset: .2em; }
+.hk-ridge-btn { transition: color ${DUR.s}s ${EASE}; }
+.hk-tick { position: absolute; bottom: 0; width: 1px; background: rgba(255,255,255,.55); transition: background-color ${DUR.s}s ${EASE}, height ${DUR.s}s ${EASE}; }
+.hk-tick[data-active="true"] { background: #fff; }
 
-/* ═══ Tölvumynd chip — always visible, never hover-only ═══ */
-.hk-chip {
-  display: inline-flex; align-items: center; gap: .4em;
-  background: ${INK}; color: ${CHALK};
-  font-family: ${SUPREME}; font-weight: 600; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-  padding: .5em .8em; line-height: 1;
-}
-.hk-chip::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: ${TAWNY}; flex: none; }
-
-/* ═══ Húsin — ledger rows as native <details>, native keyboard/no-JS safe ═══ */
-.hk-row { border-top: 1px solid rgba(22,26,23,.14); }
-.hk-row:last-child { border-bottom: 1px solid rgba(22,26,23,.14); }
-.hk-row summary { list-style: none; cursor: pointer; min-height: 56px; }
-.hk-row summary::-webkit-details-marker { display: none; }
-.hk-row-plus { transition: transform var(--hk-dur-m) var(--hk-ease-in-out); }
-.hk-row[open] .hk-row-plus { transform: rotate(45deg); }
-.hk-row-body { overflow: hidden; }
-.hk-filter-chip { min-height: 44px; transition: background-color var(--hk-dur-s) var(--hk-ease-out), color var(--hk-dur-s) var(--hk-ease-out), border-color var(--hk-dur-s) var(--hk-ease-out); }
-.hk-filter-chip[aria-pressed="true"] { background: ${INK}; color: ${CHALK}; border-color: ${INK}; }
-
-/* ═══ Enquiry form ═══ */
-.hk-field { width: 100%; min-height: 48px; background: transparent; border: 0; border-bottom: 1px solid rgba(240,236,228,.4); color: ${CHALK}; font-family: ${SUPREME}; font-size: var(--hk-body); padding: .6em .1em; }
-.hk-field::placeholder { color: rgba(240,236,228,.5); }
-.hk-field:focus { border-bottom-color: ${ACCENT_ON_DARK}; }
-.hk-field { transition: border-color var(--hk-dur-s) var(--hk-ease-out); }
+/* ═══ Enquiry form — plain fields, plain underlined submit link, no pills,
+   no buttons, no icons. ═══ */
+.hk-field { width: 100%; min-height: 48px; background: transparent; border: 0; border-bottom: 1px solid rgba(17,17,17,.28); color: ${INK}; font-family: ${SWITZER}; font-size: var(--hk-body); padding: .6em .1em; }
+.hk-field::placeholder { color: rgba(17,17,17,.42); }
+.hk-field:focus { border-bottom-color: ${INK}; }
+.hk-field { transition: border-color ${DUR.s}s ${EASE}; }
 select.hk-field { appearance: none; }
+.hk-underline-link { color: ${INK}; text-decoration: underline; text-underline-offset: .22em; text-decoration-thickness: 1px; }
+.hk-underline-link { transition: opacity ${DUR.s}s ${EASE}; }
+@media (hover: hover) { .hk-underline-link:hover { opacity: .62; } }
 
-.hk-cta {
-  display: inline-flex; align-items: center; justify-content: center; gap: .6em;
-  min-height: 48px; padding: 0 1.6em; background: ${CHALK}; color: ${INK};
-  font-family: ${SUPREME}; font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+@media (prefers-reduced-motion: reduce) {
+  .hk-hero-video { display: none; }
 }
-.hk-cta { transition: transform var(--hk-dur-s) var(--hk-ease-out), background-color var(--hk-dur-s) var(--hk-ease-out); }
-@media (hover: hover) { .hk-cta:hover { transform: translateY(-2px); } }
-
-/* ═══ Preloader — 5-layer mask-composite:add arch aperture (teardown §5.1 /
-   13.7). ERA's own asset is a pre-authored SVG; this page has no asset
-   scope to add one, so the crown is built from two hard-edge radial
-   gradients rounding the top corners of an otherwise rectangular window —
-   same technique family (multiple mask layers, additive), same visible
-   result (a rounded-top aperture that widens and rises), zero new files.
-   Session-once, hard-capped at 2.5s, entirely absent under reduced motion
-   and for any client with JS disabled (this component simply never mounts
-   its overlay in that case — the page beneath is already in the DOM and
-   fully visible from first paint). ═══ */
-.hk-preloader {
-  position: fixed; inset: 0; z-index: 100; background: ${INK};
-  --hk-arch-w: 22vw; --hk-arch-y: 108vh; --hk-arch-r: calc(var(--hk-arch-w) * .16);
-  mask-repeat: no-repeat;
-  mask-composite: add;
-  -webkit-mask-composite: source-over;
-  mask-image:
-    linear-gradient(#000,#000),
-    linear-gradient(#000,#000),
-    linear-gradient(#000,#000),
-    radial-gradient(circle at bottom right, transparent 0 var(--hk-arch-r), #000 var(--hk-arch-r)),
-    radial-gradient(circle at bottom left,  transparent 0 var(--hk-arch-r), #000 var(--hk-arch-r));
-  mask-size:
-    calc(50% - (var(--hk-arch-w)/2) + 1px) 100%,
-    calc(50% - (var(--hk-arch-w)/2) + 1px) 100%,
-    calc(var(--hk-arch-w) + 2px) max(0px, var(--hk-arch-y)),
-    var(--hk-arch-r) var(--hk-arch-r),
-    var(--hk-arch-r) var(--hk-arch-r);
-  mask-position:
-    left top,
-    right top,
-    center top,
-    calc(50% - (var(--hk-arch-w)/2)) var(--hk-arch-y),
-    calc(50% + (var(--hk-arch-w)/2) - var(--hk-arch-r)) var(--hk-arch-y);
-}
-.hk-preloader-word {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-family: ${GAMBETTA}; font-weight: 400; color: ${CHALK}; font-size: clamp(28px, 4vw, 56px);
-  letter-spacing: .02em;
-}
-@media (prefers-reduced-motion: reduce) { .hk-preloader { display: none; } }
 `
+
+/* ═════════════════════════════════════════════════════════════════════════
+   WebGL engine context — one CanvasEngine instance for the whole page,
+   provided once at Page level, consumed by every CanvasImage.
+   ═════════════════════════════════════════════════════════════════════════ */
+const EngineContext = createContext<{ engine: CanvasEngine | null; capable: boolean }>({
+  engine: null, capable: false,
+})
+const useEngine = () => useContext(EngineContext)
 
 /* ═════════════════════════════════════════════════════════════════════════
    Small shared pieces
    ═════════════════════════════════════════════════════════════════════════ */
-
 function Kicker({ children, tone = 'ink' }: { children: ReactNode; tone?: 'ink' | 'light' }) {
   return (
-    <p
-      className="m-0"
-      style={{
-        fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)',
-        letterSpacing: '.22em', textTransform: 'uppercase',
-        color: tone === 'light' ? 'rgba(240,236,228,.75)' : 'var(--hk-t-muted, ' + MUTED + ')',
-      }}
-    >
+    <p className="m-0" style={{
+      fontFamily: SWITZER, fontWeight: 600, fontSize: 'var(--hk-label)',
+      letterSpacing: '.2em', textTransform: 'uppercase',
+      color: tone === 'light' ? 'rgba(255,255,255,.82)' : MUTED,
+    }}>
       {children}
     </p>
   )
 }
 
-function SectionRule({ tone = 'ink' }: { tone?: 'ink' | 'light' }) {
-  return (
-    <div
-      data-hk-reveal="line"
-      aria-hidden
-      className="h-px w-full"
-      style={{ background: tone === 'light' ? 'rgba(240,236,228,.35)' : 'rgba(22,26,23,.22)' }}
-    />
-  )
+function SectionRule() {
+  return <div data-hk-reveal="line" aria-hidden className="hk-rule" />
 }
 
-function TolvumyndChip({ label }: { label: string }) {
-  return (
-    <span className="hk-chip">
-      Tölvumynd{label ? ` · ${label}` : ''}
-    </span>
-  )
+function Serif({ children }: { children: ReactNode }) {
+  return <em className="hk-serif">{children}</em>
 }
 
-function RealPhoto({
-  file, alt, caption, priority = false, className = '', position = 'center', reveal,
+/* Kononenko's mixed-typeface headline device: one word in Hedvig serif, the
+   rest in Switzer sans, same line/size. Used for every display headline on
+   the page (hero, footer repeat, and the main section h2s). */
+function MixedHeading({
+  as: Tag = 'h2', sans, serif, size = 'h2', color = INK, className = '', style,
 }: {
-  file: string; alt: string; caption?: string; priority?: boolean; className?: string; position?: string
-  /** 'slide' = skewed clip wipe + inner counter-scale (the six-primitive
-   *  "slide" device). 'ctn' = plain opacity+y. Omit for no scroll reveal. */
-  reveal?: 'slide' | 'ctn'
+  as?: 'h1' | 'h2' | 'p'; sans: string; serif: string; size?: 'h1' | 'h2'; color?: string
+  className?: string; style?: React.CSSProperties
 }) {
-  const [failed, setFailed] = useState(false)
   return (
-    <figure data-hk-reveal={reveal} className={`m-0 overflow-hidden ${className}`}>
-      {failed ? (
-        <div className="absolute inset-0" style={{ background: SAND }} role="img" aria-label={alt} />
-      ) : (
-        <img
-          src={IMG(file)} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async"
-          {...(priority ? { fetchpriority: 'high' } : {})}
-          onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: position }}
-        />
-      )}
-      {caption ? (
-        <figcaption
-          className="absolute bottom-0 left-0 m-0"
-          style={{
-            background: DARK, color: CHALK, fontFamily: SUPREME, fontWeight: 600,
-            fontSize: '11px', letterSpacing: '.12em', textTransform: 'uppercase',
-            padding: '.6em .9em',
-          }}
-        >
-          {caption}
-        </figcaption>
-      ) : null}
-    </figure>
-  )
-}
-
-function VisPhoto({ file, alt, room }: { file: string; alt: string; room: string }) {
-  const [failed, setFailed] = useState(false)
-  return (
-    <figure data-hk-reveal="ctn" className="relative m-0 aspect-[4/3] overflow-hidden">
-      {failed ? (
-        <div className="absolute inset-0" style={{ background: SAND }} role="img" aria-label={alt} />
-      ) : (
-        <img
-          src={IMG(file)} alt={alt} loading="lazy" decoding="async"
-          onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
-      <figcaption className="absolute left-0 top-0 m-0 flex w-full items-center justify-between gap-2 p-3">
-        <span
-          style={{
-            fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.1em',
-            textTransform: 'uppercase', color: CHALK, background: DARK, padding: '.4em .7em',
-          }}
-        >
-          {room}
-        </span>
-        <TolvumyndChip label="" />
-      </figcaption>
-    </figure>
+    <Tag
+      data-hk-reveal={Tag === 'h1' ? 'h' : 'ctn'}
+      className={`hk-fit m-0 ${className}`}
+      style={{ fontFamily: SWITZER, fontWeight: 500, color, fontSize: `var(--hk-${size})`, lineHeight: 1.12, letterSpacing: '-.01em', marginTop: '.5em', ...style }}
+    >
+      {sans}
+      {sans && serif ? ' ' : ''}
+      <Serif>{serif}</Serif>
+    </Tag>
   )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   Preloader — arch-aperture, session-once, hard-capped at 2.5s
+   CanvasImage — the shared DOM twin every image on the page renders through.
+   Wrapper stays visible/interactive; the <img> inside is hidden once a
+   canvas plane is confirmed registered.
    ═════════════════════════════════════════════════════════════════════════ */
-function Preloader() {
-  const [visible, setVisible] = useState(false)
-  const elRef = useRef<HTMLDivElement>(null)
-  const wordRef = useRef<HTMLSpanElement>(null)
+function CanvasImage({
+  file, alt, shader, className = '', style, border = false, priority = false, aspect,
+}: {
+  file: string; alt: string; shader: ShaderKind; className?: string
+  style?: React.CSSProperties; border?: boolean; priority?: boolean; aspect?: string
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const handleRef = useRef<PlaneHandle | null>(null)
+  const { engine, capable } = useEngine()
 
   useEffect(() => {
-    if (prefersReduced()) return // reduced motion: never mounts; content beneath is already visible
-    let seen = false
-    try { seen = sessionStorage.getItem('hk-preloader-seen') === '1' } catch { /* private mode: show every time */ }
-    if (seen) return
-    setVisible(true)
-  }, [])
+    if (!capable || !engine) return
+    const wrapper = wrapRef.current
+    const img = imgRef.current
+    if (!wrapper || !img) return
+    const handle = engine.register({ wrapper, img, shader, borderPx: border ? 1.5 : 0 })
+    handleRef.current = handle
+    return () => { handle.destroy(); handleRef.current = null }
+  }, [engine, capable, shader, border])
 
   useEffect(() => {
-    if (!visible) return
-    const el = elRef.current
-    const word = wordRef.current
-    if (!el) return
-    try { sessionStorage.setItem('hk-preloader-seen', '1') } catch { /* private mode */ }
-
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    let done = false
-    const state = { w: 22, y: 108 }
-    const applyMask = () => {
-      el.style.setProperty('--hk-arch-w', `${state.w}vw`)
-      el.style.setProperty('--hk-arch-y', `${state.y}vh`)
+    if (!capable || shader !== 'sketch' || !canHover()) return
+    const wrapper = wrapRef.current
+    if (!wrapper) return
+    const move = (e: PointerEvent) => {
+      const rect = wrapper.getBoundingClientRect()
+      const u = clamp01((e.clientX - rect.left) / rect.width)
+      const v = clamp01(1 - (e.clientY - rect.top) / rect.height)
+      handleRef.current?.setPointer(u, v, true)
     }
-    applyMask()
-    if (word) gsap.set(word, { opacity: 0, y: 12 })
-
-    const finish = () => {
-      if (done) return
-      done = true
-      window.clearTimeout(hardCap)
-      document.body.style.overflow = prevOverflow
-      gsap.to(el, {
-        opacity: 0, duration: DUR.s, ease: EASE.in,
-        onComplete: () => setVisible(false),
-      })
-    }
-    // Hard cap: fires regardless of image load, timeline state, or a stalled
-    // network — the overlay can never trap the page past 2.5s.
-    const hardCap = window.setTimeout(finish, 2500)
-
-    const heroImg = new Image()
-    heroImg.src = IMG(PHOTOS.heroEstate.file)
-    const imageReady = heroImg.complete
-      ? Promise.resolve()
-      : new Promise<void>((resolve) => {
-          heroImg.addEventListener('load', () => resolve(), { once: true })
-          heroImg.addEventListener('error', () => resolve(), { once: true })
-        })
-
-    const tl = gsap.timeline({ onComplete: finish })
-    tl.fromTo(word, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: DUR.m, ease: EASE.out })
-    tl.to({}, { duration: 0.25 }) // brief hold, wordmark legible before the arch opens
-
-    Promise.race([imageReady, new Promise((r) => window.setTimeout(r, 1200))]).then(() => {
-      if (done) return
-      tl.to(state, { w: 42, y: -12, duration: 1.15, ease: EASE.inout, onUpdate: applyMask })
-        .to(el, { opacity: 0, duration: DUR.s, ease: EASE.in, onComplete: finish }, '-=0.05')
-    })
-
+    const leave = () => handleRef.current?.setPointer(-1, -1, false)
+    wrapper.addEventListener('pointermove', move)
+    wrapper.addEventListener('pointerleave', leave)
     return () => {
-      tl.kill()
-      window.clearTimeout(hardCap)
-      document.body.style.overflow = prevOverflow
+      wrapper.removeEventListener('pointermove', move)
+      wrapper.removeEventListener('pointerleave', leave)
     }
-  }, [visible])
-
-  if (!visible) return null
+  }, [capable, shader])
 
   return (
-    <div ref={elRef} className="hk-preloader" aria-hidden="true">
-      <span ref={wordRef} className="hk-preloader-word">Heklusýn</span>
+    <div
+      ref={wrapRef}
+      className={`hk-plane ${className}`}
+      style={{ aspectRatio: aspect, ...style }}
+      {...(capable ? { role: 'img' as const, 'aria-label': alt } : {})}
+    >
+      <img
+        ref={imgRef}
+        src={IMG(file)}
+        alt={alt}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        {...(priority ? { fetchpriority: 'high' } : {})}
+      />
     </div>
   )
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   Per-element chrome theming — wordmark, nav and CTA each re-theme on
-   THEIR OWN vertical centre crossing a [data-hk-bg] section boundary
-   (teardown Phase 5.4 / 13.3). Three independent instances of this hook,
-   never one shared state — that was the previous build's actual bug.
-   ═════════════════════════════════════════════════════════════════════════ */
-function useElementTheme(ref: React.RefObject<HTMLElement | null>): 'light' | 'dark' {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
-  useEffect(() => {
-    let io: IntersectionObserver | null = null
-    let resizeTimer: number | undefined
-    const build = () => {
-      io?.disconnect()
-      const el = ref.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      if (rect.width === 0 && rect.height === 0) return // hidden below its breakpoint — leave last theme
-      const winH = window.innerHeight
-      const centre = rect.top + rect.height / 2
-      const top = Math.max(0, Math.round(centre))
-      const bottom = Math.max(0, Math.round(winH - centre - 1))
-      io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return
-            const bg = entry.target.getAttribute('data-hk-bg')
-            setTheme(bg === 'dark' || bg === 'river' ? 'dark' : 'light')
-          })
-        },
-        { threshold: 0, rootMargin: `-${top}px 0px -${bottom}px 0px` },
-      )
-      document.querySelectorAll('[data-hk-bg]').forEach((section) => io!.observe(section))
-    }
-    build()
-    const onResize = () => {
-      window.clearTimeout(resizeTimer)
-      resizeTimer = window.setTimeout(build, 150)
-    }
-    window.addEventListener('resize', onResize)
-    return () => {
-      io?.disconnect()
-      window.clearTimeout(resizeTimer)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [ref])
-  return theme
+function TolvumyndLabel({ room }: { room: string }) {
+  return (
+    <p className="m-0" style={{
+      fontFamily: SWITZER, fontWeight: 600, fontSize: '11px', letterSpacing: '.14em',
+      textTransform: 'uppercase', color: INK, marginTop: '.6em',
+    }}>
+      Tölvumynd{room ? ` · ${room}` : ''}
+    </p>
+  )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   Fixed chrome — wordmark + nav + CTA, three independently-themed elements
+   Chrome — three-line stacked wordmark, comma-separated nav, no pills, no
+   buttons, no icons. Dark-on-white everywhere; white with a bottom scrim
+   only while the hero video is behind it.
    ═════════════════════════════════════════════════════════════════════════ */
 function Chrome() {
-  const markRef = useRef<HTMLAnchorElement>(null)
-  const navRef = useRef<HTMLElement>(null)
-  const ctaRef = useRef<HTMLButtonElement>(null)
-  const markTheme = useElementTheme(markRef)
-  const navTheme = useElementTheme(navRef)
-  const ctaTheme = useElementTheme(ctaRef)
+  const [overHero, setOverHero] = useState(true)
 
-  const barLight = markTheme === 'light'
-  const barBg = barLight ? 'rgba(240,236,228,.7)' : 'rgba(20,24,21,.42)'
-  const barBorder = barLight ? 'rgba(22,26,23,.12)' : 'rgba(240,236,228,.16)'
+  useEffect(() => {
+    const hero = document.getElementById('hk-hero')
+    if (!hero) return
+    const io = new IntersectionObserver(
+      ([entry]) => setOverHero(entry.isIntersecting),
+      { rootMargin: '-64px 0px -82% 0px', threshold: 0 },
+    )
+    io.observe(hero)
+    return () => io.disconnect()
+  }, [])
+
+  const color = overHero ? '#ffffff' : INK
+  const barBg = overHero ? 'transparent' : 'rgba(255,255,255,.92)'
+  const barBorder = overHero ? 'transparent' : RULE
 
   const go = (id: string) => {
     const target = document.getElementById(id)
@@ -620,146 +342,274 @@ function Chrome() {
 
   return (
     <div
-      className="hk-chrome-bar fixed inset-x-0 top-0 z-40 flex items-center justify-between backdrop-blur-md"
-      style={{ background: barBg, borderBottom: `1px solid ${barBorder}`, minHeight: '56px', padding: '0 var(--hk-gutter)' }}
+      className="hk-chrome-bar fixed inset-x-0 top-0 z-40 flex items-start justify-between backdrop-blur-sm"
+      style={{ background: barBg, borderBottom: `1px solid ${barBorder}`, padding: '14px var(--hk-gutter)' }}
     >
       <a
-        ref={markRef}
         href="#hk-hero"
         onClick={(e) => { e.preventDefault(); if (hkLenis) hkLenis.scrollTo(0); else window.scrollTo({ top: 0, behavior: prefersReduced() ? 'auto' : 'smooth' }) }}
-        className="hk-chrome-mark inline-flex min-h-[44px] items-center"
-        style={{ color: markTheme === 'light' ? INK : CHALK, fontFamily: GAMBETTA, fontWeight: 600, fontSize: '17px', letterSpacing: '.02em' }}
+        className="hk-chrome-link inline-flex min-h-[44px] flex-col leading-none"
+        style={{ color, fontFamily: SWITZER, fontWeight: 600, fontSize: '13px', letterSpacing: '.01em' }}
       >
-        Heklusýn
+        <span>Heklusýn</span>
+        <span style={{ opacity: .68, fontWeight: 400 }}>Rangárslétta</span>
+        <span style={{ opacity: .68, fontWeight: 400 }}>Ytri-Rangá</span>
       </a>
-      <nav ref={navRef} aria-label="Kaflar síðunnar" className="hidden items-center gap-6 lg:flex">
+      <nav aria-label="Kaflar síðunnar" className="hidden min-h-[44px] items-center gap-5 pt-1 lg:flex">
         {NAV.map((n) => (
           <button
             key={n.id}
             type="button"
             onClick={() => go(n.id)}
-            className="hk-chrome-nav min-h-[44px] whitespace-nowrap"
-            style={{ color: navTheme === 'light' ? INK : CHALK, opacity: 0.82, fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase' }}
+            className="hk-chrome-link whitespace-nowrap"
+            style={{ color, fontFamily: SWITZER, fontWeight: 500, fontSize: '13px' }}
           >
             {n.label}
           </button>
         ))}
       </nav>
-      <button
-        ref={ctaRef}
-        type="button"
-        onClick={() => go('hk-enquiry')}
-        className="hk-cta"
-        style={{ background: ctaTheme === 'light' ? INK : CHALK, minHeight: '44px', padding: '0 1.1em', fontSize: '11px' }}
-      >
-        <span className="hk-chrome-cta-label" style={{ color: ctaTheme === 'light' ? CHALK : INK }}>Fyrirspurn</span>
-      </button>
     </div>
   )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   §1 Arrival — Koma. ≥300vh scrubbed dive-in.
+   §1 Hero — poster-first video slot, giant mixed-type bottom-left name.
    ═════════════════════════════════════════════════════════════════════════ */
 function Hero() {
+  const [reduced] = useState(() => prefersReduced())
   return (
-    <header id="hk-hero" data-hk-bg="dark" className="hk-hero-scroll">
-      <div className="hk-hero-sticky" style={{ background: DARK }}>
+    <header id="hk-hero" className="relative" style={{ height: '100svh', minHeight: 560, overflow: 'hidden', background: INK }}>
+      {reduced ? (
         <img
           src={IMG(PHOTOS.heroEstate.file)} alt={PHOTOS.heroEstate.alt}
           loading="eager" decoding="async" {...{ fetchpriority: 'high' }}
-          className="hk-hero-image" style={{ objectPosition: '50% 62%' }}
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(180deg, rgba(20,24,21,.10) 0%, rgba(20,24,21,.22) 34%, rgba(20,24,21,.85) 52%, rgba(20,24,21,.92) 100%)' }}
-        />
+      ) : (
+        <video
+          className="hk-hero-video absolute inset-0 h-full w-full object-cover"
+          autoPlay muted loop playsInline
+          poster={IMG(PHOTOS.heroEstate.file)}
+        >
+          <source src={FILM} type="video/mp4" />
+        </video>
+      )}
+      <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.18) 40%, rgba(0,0,0,.72) 78%, rgba(0,0,0,.86) 100%)' }} />
 
-        <div className="relative z-10 flex h-full flex-col justify-end" style={{ padding: `0 var(--hk-gutter) calc(var(--hk-u64) + 56px)` }}>
-          <p
-            data-hk-reveal="ctn"
-            className="hk-hero-eyebrow m-0"
-            style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.24em', textTransform: 'uppercase', color: 'rgba(240,236,228,.78)' }}
-          >
-            {company.location}
-          </p>
-
-          <h1
-            data-hk-reveal="h"
-            className="hk-hero-h1 m-0"
-            style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d1)', lineHeight: 1.18, letterSpacing: '-0.01em' }}
-          >
-            Heklusýn
-          </h1>
-
-          <p
-            data-hk-reveal="a"
-            className="hk-hero-tagline m-0"
-            style={{
-              fontFamily: GAMBETTA, fontStyle: 'italic', fontWeight: 400, color: CHALK,
-              fontSize: 'var(--hk-d3)', lineHeight: 1.24, marginTop: 'var(--hk-u12)', maxWidth: '18em',
-            }}
-          >
-            Landið heldur húsinu.
-          </p>
-
-          <p
-            data-hk-reveal="ctn"
-            className="hk-hero-body m-0"
-            style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.86)', fontSize: 'var(--hk-body)', lineHeight: 1.6, marginTop: 'var(--hk-u24)', maxWidth: '30em' }}
-          >
-            Fimmtíu hektarar á vesturbakka Ytri-Rangár. Tólf til fjórtán hús á öllu svæðinu, ekkert fleira.
-          </p>
-        </div>
+      <div className="relative z-10 flex h-full flex-col justify-end" style={{ padding: `0 var(--hk-gutter) clamp(28px, 6vh, 64px)` }}>
+        <p data-hk-reveal="ctn" className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,.82)' }}>
+          {company.location}
+        </p>
+        <h1
+          data-hk-reveal="h"
+          className="hk-fit m-0"
+          style={{ fontFamily: SWITZER, fontWeight: 500, color: '#fff', fontSize: 'var(--hk-h1)', lineHeight: 1.05, letterSpacing: '-.015em', marginTop: '.2em' }}
+        >
+          Heklusýn <Serif>við Ytri-Rangá</Serif>
+        </h1>
+        <p data-hk-reveal="ctn" className="m-0" style={{ fontFamily: SWITZER, color: 'rgba(255,255,255,.86)', fontSize: 'var(--hk-body)', lineHeight: 1.6, marginTop: '1.1em', maxWidth: '30em' }}>
+          Fimmtíu hektarar á vesturbakka Ytri-Rangár. Tólf til fjórtán hús á öllu svæðinu, ekkert fleira.
+        </p>
       </div>
     </header>
   )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   §2 Thesis — Kjarninn
+   §2 Manifesto + fact ledger — Fágæti og kyrrð
    ═════════════════════════════════════════════════════════════════════════ */
-function Thesis() {
+const LEDGER: Array<[string, string]> = [
+  ['Landið', '50 hektarar'],
+  ['Hús', '12 til 14'],
+  ['Lóðir', 'allt að 5 hekturum'],
+  ['Upphaf', 'Leirubakki, sjálfstæð eign 2020'],
+  ['Áin', 'Ytri-Rangá'],
+  ['Verð', 'frá 109.000.000 kr.'],
+]
+
+function Manifesto() {
   return (
-    <section id="hk-thesis" data-hk-bg="chalk" className="hk-theme-chalk hk-band relative">
-      <div style={{ padding: 'var(--hk-u96) var(--hk-gutter)' }}>
-        <Kicker>Fágætið</Kicker>
-        <SectionRule />
+    <section id="hk-thesis" style={{ padding: 'clamp(64px, 11vw, 140px) var(--hk-gutter)' }}>
+      <Kicker>Fágætið</Kicker>
+      <SectionRule />
+      <MixedHeading sans="Fágæti og" serif="kyrrð" />
+      <p data-hk-reveal="ctn" style={{ fontFamily: SWITZER, color: INK, fontSize: 'var(--hk-lead)', lineHeight: 1.6, maxWidth: '34em', marginTop: '1em' }}>
+        Fimmtíu hektarar liggja að Ytri-Rangá. Þar munu aðeins tólf til fjórtán hús rísa, hvert á lóð sem getur
+        orðið allt að fimm hekturum að stærð. Landinu var ekki skipt í sem flestar lóðir. Því var úthlutað í
+        tólf til fjórtán.
+      </p>
 
-        {/* One typographic statement, not a stat grid. Two attempts at a grid
-            here both read as broken: first a lopsided 50 beside a 12/til/14
-            tower, then a floating superscript "til". The scarcity is a
-            sentence, so it is set as one. Both lines share a left edge and a
-            rhythm, so there is nothing to misalign. */}
-        <p
-          data-hk-reveal="ctn"
-          className="hk-claim m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.1, letterSpacing: '-0.015em', marginTop: 'var(--hk-u32)' }}
-        >
-          Fimmtíu hektarar.
-          <br />
-          Tólf til fjórtán hús.
-        </p>
+      <dl className="m-0" style={{ marginTop: 'clamp(32px, 5vw, 56px)' }}>
+        {LEDGER.map(([label, value]) => (
+          <div key={label} data-hk-reveal="ctn" className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1" style={{ borderTop: `1px solid ${RULE}`, padding: '1.1em 0' }}>
+            <dt className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED }}>{label}</dt>
+            <dd className="m-0" style={{ fontFamily: SWITZER, fontWeight: 500, fontSize: 'var(--hk-lead)', color: INK }}>{value}</dd>
+          </div>
+        ))}
+        <div aria-hidden style={{ borderTop: `1px solid ${RULE}` }} />
+      </dl>
+    </section>
+  )
+}
 
-        <p
-          data-hk-reveal="p"
-          className="mt-10"
-          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-lead)', lineHeight: 1.6, maxWidth: '32em', marginTop: 'var(--hk-u32)' }}
-        >
-          Fimmtíu hektarar liggja að Ytri-Rangá. Þar munu aðeins tólf til fjórtán hús rísa, hvert á lóð sem getur
-          orðið allt að fimm hekturum að stærð. Landinu var ekki skipt í sem flestar lóðir. Því var úthlutað í
-          tólf til fjórtán.
-        </p>
+/* ═════════════════════════════════════════════════════════════════════════
+   §3 Landið — origin, two real photographs
+   ═════════════════════════════════════════════════════════════════════════ */
+function Land() {
+  return (
+    <section id="hk-land" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <MixedHeading sans="Landið heldur" serif="húsinu" />
+      <p data-hk-reveal="ctn" style={{ fontFamily: SWITZER, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '34em', marginTop: '1em' }}>
+        Landið var áður hluti af sögulegu bújörðinni Leirubakka. Það varð sjálfstæð eign við Ytri-Rangá árið
+        2020, félagið sjálft skráð ári síðar. Á svæðinu er þess gætt að raska sem minnst núverandi
+        hraunmyndunum, mosa og gróðri sem fyrir er.
+      </p>
+
+      <div className="grid gap-4 sm:grid-cols-2" style={{ marginTop: 'clamp(28px, 4vw, 48px)' }}>
+        <div>
+          <CanvasImage file={PHOTOS.houseAutumn.file} alt={PHOTOS.houseAutumn.alt} shader="media" aspect="4/3" />
+          <p className="m-0" style={{ fontFamily: SWITZER, color: MUTED, fontSize: '13px', marginTop: '.6em' }}>Húsið á haustbakkanum</p>
+        </div>
+        <div>
+          <CanvasImage file={PHOTOS.winterDusk.file} alt={PHOTOS.winterDusk.alt} shader="media" aspect="4/3" />
+          <p className="m-0" style={{ fontFamily: SWITZER, color: MUTED, fontSize: '13px', marginTop: '.6em' }}>Vetrarkvöld á svæðinu</p>
+        </div>
       </div>
     </section>
   )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   §3 SIGNATURE — Sjóndeildarhringurinn
+   §4 Services line — one long h2, comma-separated
    ═════════════════════════════════════════════════════════════════════════ */
-function Horizon() {
+function Services() {
+  return (
+    <section id="hk-services" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <Kicker>Umfangið</Kicker>
+      <SectionRule />
+      <h2
+        data-hk-reveal="ctn"
+        className="hk-fit m-0"
+        style={{ fontFamily: SWITZER, fontWeight: 500, color: INK, fontSize: 'var(--hk-h2)', lineHeight: 1.18, marginTop: '.5em', maxWidth: '22em' }}
+      >
+        Heilsárshús, lóðir, hönnun, <Serif>bygging</Serif>
+      </h2>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §5 Method pair — Frá teikningu að húsi
+   ═════════════════════════════════════════════════════════════════════════ */
+function Method() {
+  return (
+    <section id="hk-method" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+        <div>
+          <Kicker>Ferlið</Kicker>
+          <SectionRule />
+          <MixedHeading sans="Frá teikningu að" serif="húsi" />
+          <p data-hk-reveal="ctn" style={{ fontFamily: SWITZER, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '30em', marginTop: '1em' }}>
+            Hönnunargögn og teikningar frá þróunaraðila liggja til grundvallar hverju húsi. Grunnmyndin er fyrsta
+            skrefið, húsið sjálft það síðasta.
+          </p>
+        </div>
+        <div>
+          <CanvasImage file={VISUALS.plan.file} alt={VISUALS.plan.alt} shader="sketch" aspect="4/3" />
+          <TolvumyndLabel room={VISUALS.plan.room} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §6 Work grid — Húsin. Alternating 2/1/2, Kononenko's own pattern.
+   ═════════════════════════════════════════════════════════════════════════ */
+type GridAssign = { shader: ShaderKind; file: string; alt: string; room?: string }
+const GRID_MEDIA: Record<string, GridAssign | [GridAssign, GridAssign]> = {
+  'Rangárslétta 2': [
+    { shader: 'media', file: PHOTOS.construction.file, alt: PHOTOS.construction.alt },
+    { shader: 'media', file: PHOTOS.houseBuilt.file, alt: PHOTOS.houseBuilt.alt },
+  ],
+  'Rangárslétta 3': { shader: 'sketch', file: VISUALS.living.file, alt: VISUALS.living.alt, room: VISUALS.living.room },
+  'Rangárslétta 9': { shader: 'sketch', file: VISUALS.kitchen.file, alt: VISUALS.kitchen.alt, room: VISUALS.kitchen.room },
+  'Rangárslétta 10': { shader: 'sketch', file: VISUALS.exterior.file, alt: VISUALS.exterior.alt, room: VISUALS.exterior.room },
+  'Rangárslétta 11': { shader: 'sketch', file: VISUALS.plan.file, alt: VISUALS.plan.alt, room: VISUALS.plan.room },
+}
+
+function GridCaption({ house }: { house: (typeof HOUSES)[number] }) {
+  const sold = house.statuses.includes('selt')
+  return (
+    <div style={{ marginTop: '.8em' }}>
+      <p className="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span style={{
+          fontFamily: SWITZER, fontWeight: 600, color: INK, fontSize: 'var(--hk-h3)',
+          textDecoration: sold ? 'line-through' : 'none', textDecorationColor: MUTED, textDecorationThickness: '1.5px',
+        }}>
+          {house.name}
+        </span>
+        {house.price ? <span style={{ fontFamily: SWITZER, fontWeight: 600, color: INK, fontSize: 'var(--hk-body)' }}>{house.price}</span> : null}
+      </p>
+      <p className="m-0" style={{ fontFamily: SWITZER, color: MUTED, fontSize: 'var(--hk-body)', marginTop: '.3em' }}>
+        {[house.size, house.plot].filter(Boolean).join(' · ') || 'Stærð og lóð ekki gefin upp'}
+      </p>
+      <p className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, color: INK, fontSize: '12px', letterSpacing: '.06em', textTransform: 'uppercase', marginTop: '.5em' }}>
+        {house.statuses.map((s) => STATUS_LABEL[s]).join(' · ')}
+      </p>
+    </div>
+  )
+}
+
+function GridTile({ house }: { house: (typeof HOUSES)[number] }) {
+  const assign = GRID_MEDIA[house.name]
+  return (
+    <div data-hk-reveal="ctn">
+      {Array.isArray(assign) ? (
+        <div className="grid grid-cols-2 gap-2">
+          {assign.map((a) => (
+            <CanvasImage key={a.file} file={a.file} alt={a.alt} shader={a.shader} aspect="4/3" border />
+          ))}
+        </div>
+      ) : (
+        <CanvasImage file={assign.file} alt={assign.alt} shader={assign.shader} aspect="4/3" border />
+      )}
+      {!Array.isArray(assign) && assign.shader === 'sketch' ? <TolvumyndLabel room={assign.room ?? ''} /> : null}
+      <GridCaption house={house} />
+    </div>
+  )
+}
+
+function WorkGrid() {
+  const rows: Array<(typeof HOUSES)[number][]> = [
+    [HOUSES[1], HOUSES[2]], // R3, R9
+    [HOUSES[0]], // R2 — feature
+    [HOUSES[3], HOUSES[4]], // R10, R11
+  ]
+  return (
+    <section id="hk-houses" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <Kicker>Staða húsanna</Kicker>
+      <SectionRule />
+      <MixedHeading sans="Fimm hús á" serif="landinu" />
+      <p data-hk-reveal="ctn" style={{ fontFamily: SWITZER, color: MUTED, fontSize: 'var(--hk-body)', lineHeight: 1.6, maxWidth: '34em', marginTop: '1em' }}>
+        Seld hús standa áfram í skránni og með yfirstrikun, því fágætið er röksemdin.
+      </p>
+
+      <div className="flex flex-col" style={{ gap: 'clamp(40px, 6vw, 72px)', marginTop: 'clamp(36px, 5vw, 64px)' }}>
+        {rows.map((row, i) => (
+          <div key={i} className={row.length === 2 ? 'hk-grid-row hk-grid-row-2' : 'hk-grid-row-feature'}>
+            {row.map((house) => <GridTile key={house.name} house={house} />)}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §7 Mountains — Sjóndeildarhringurinn, restyled monochrome
+   ═════════════════════════════════════════════════════════════════════════ */
+function Mountains() {
   const [selected, setSelected] = useState(0)
   const [focusIdx, setFocusIdx] = useState(0)
   const btnRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -770,7 +620,6 @@ function Horizon() {
     setSelected(clamped)
     btnRefs.current[clamped]?.focus()
   }
-
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowRight') { e.preventDefault(); move(focusIdx + 1) }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); move(focusIdx - 1) }
@@ -779,321 +628,50 @@ function Horizon() {
   }
 
   return (
-    <section id="hk-horizon" data-hk-bg="dark" className="relative" style={{ background: DARK }}>
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter) 0' }}>
-        <Kicker tone="light">Fjöllin átta</Kicker>
-        <SectionRule tone="light" />
-        <h2
-          data-hk-reveal="ctn"
-          className="m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-        >
-          Sjóndeildarhringurinn
-        </h2>
-        <p
-          data-hk-reveal="ctn"
-          style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.78)', fontSize: 'var(--hk-body)', lineHeight: 1.6, maxWidth: '34em', marginTop: 'var(--hk-u16)' }}
-        >
-          Frá landinu sjást átta fjöll. Þau eru nefnd hér og staðsett á myndinni til skýringar, ekki eftir mældri
-          hnitasetningu. Veldu nafn til að sjá það á sjóndeildarhringnum.
-        </p>
-      </div>
+    <section id="hk-horizon" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <Kicker>Fjöllin átta</Kicker>
+      <SectionRule />
+      <MixedHeading sans="Fjöllin" serif="átta" />
+      <p data-hk-reveal="ctn" style={{ fontFamily: SWITZER, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.6, maxWidth: '34em', marginTop: '1em' }}>
+        Frá landinu sjást átta fjöll. Þau eru nefnd hér og staðsett á myndinni til skýringar, ekki eftir mældri
+        hnitasetningu. Veldu nafn til að sjá það á sjóndeildarhringnum.
+      </p>
 
-      <div className="hk-ridge relative mt-8" style={{ marginTop: 'var(--hk-u32)' }}>
-        <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
-          <RealPhoto file={PHOTOS.landRiver.file} alt={PHOTOS.landRiver.alt} className="absolute inset-0 h-full w-full" />
-          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(20,24,21,.15) 0%, rgba(20,24,21,.74) 100%)' }} />
-          <span
-            aria-hidden
-            className="absolute left-3 top-3"
-            style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase', color: CHALK, background: DARK, padding: '.4em .7em' }}
-          >
-            Skýringarmynd
-          </span>
-
-          {MOUNTAINS.map((m) => (
-            <div key={m.name} className="absolute bottom-0" style={{ left: `${m.pos}%`, transform: 'translateX(-50%)' }}>
-              <div className="hk-ridge-dot" style={{ marginBottom: '2px' }} aria-hidden />
-            </div>
-          ))}
-
-          {selected !== null ? (
-            <p
-              aria-live="polite"
-              className="hk-fit absolute inset-x-0 bottom-0 m-0 text-center"
-              style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d3)', lineHeight: 1.2, padding: '0 var(--hk-gutter) var(--hk-u24)' }}
-            >
-              {MOUNTAINS[selected].name}
-            </p>
-          ) : null}
-        </div>
-
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,220px)_1fr] lg:items-center" style={{ marginTop: 'clamp(28px, 4vw, 48px)' }}>
         <div
           role="group"
           aria-label="Fjöllin átta"
           onKeyDown={onKeyDown}
-          className="flex flex-wrap items-start justify-center gap-x-1 gap-y-2"
-          style={{ padding: 'var(--hk-u24) var(--hk-gutter) var(--hk-u48)' }}
+          className="flex flex-row flex-wrap gap-x-4 gap-y-1 lg:flex-col lg:gap-y-2"
         >
           {MOUNTAINS.map((m, i) => (
             <button
               key={m.name}
               ref={(el) => { btnRefs.current[i] = el }}
               type="button"
-              role="button"
               aria-pressed={selected === i}
               tabIndex={focusIdx === i ? 0 : -1}
               onClick={() => { setSelected(i); setFocusIdx(i) }}
               className="hk-ridge-btn"
-              style={{ fontSize: 'var(--hk-label)', letterSpacing: '.06em' }}
+              style={{ fontSize: '14px' }}
             >
               {m.name}
             </button>
           ))}
         </div>
-      </div>
-    </section>
-  )
-}
 
-/* ═════════════════════════════════════════════════════════════════════════
-   §4 Landið — the rising dome, word-spacing scrubbed on its heading
-   ═════════════════════════════════════════════════════════════════════════ */
-function Land() {
-  return (
-    <section id="hk-land" data-hk-bg="sand" className="hk-theme-sand hk-band hk-dome relative">
-      <div className="hk-dome-inner">
-        <Kicker>Uppruni</Kicker>
-        <SectionRule />
-        <h2
-          data-hk-reveal="ctn"
-          className="hk-dome-heading m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-        >
-          Landið heldur húsinu
-        </h2>
-        <p
-          data-hk-reveal="p"
-          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '34em', margin: 'var(--hk-u24) auto 0' }}
-        >
-          Landið var áður hluti af sögulegu bújörðinni Leirubakka. Það varð sjálfstæð eign við Ytri-Rangá árið
-          2020, félagið sjálft skráð ári síðar.
-        </p>
-        <p
-          data-hk-reveal="p"
-          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '34em', margin: 'var(--hk-u16) auto 0' }}
-        >
-          Á svæðinu er þess gætt að raska sem minnst núverandi hraunmyndunum, mosa og gróðri sem fyrir er.
-        </p>
-      </div>
-
-      {/* Full-bleed band below the curve, so the photograph is never clipped. */}
-      <div className="relative w-full" style={{ marginTop: 'var(--hk-u64)', height: 'min(62svh, 42vw)' }}>
-        <RealPhoto
-          file={PHOTOS.houseAutumn.file} alt={PHOTOS.houseAutumn.alt} reveal="ctn"
-          className="absolute inset-0 h-full w-full" caption="Húsið á haustbakkanum"
-        />
-      </div>
-    </section>
-  )
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   §5 Húsin — ledger
-   ═════════════════════════════════════════════════════════════════════════ */
-function StatusPill({ status }: { status: HouseStatus }) {
-  const bg = status === 'selt' ? 'rgba(22,26,23,.08)' : status === 'til-solu' ? 'rgba(62,92,107,.14)' : 'rgba(138,90,40,.14)'
-  const fg = status === 'selt' ? INK : status === 'til-solu' ? '#2A4048' : '#6E4720'
-  return (
-    <span
-      className="inline-flex items-center"
-      style={{ background: bg, color: fg, fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.08em', textTransform: 'uppercase', padding: '.35em .6em' }}
-    >
-      {STATUS_LABEL[status]}
-    </span>
-  )
-}
-
-function Houses() {
-  const [filter, setFilter] = useState<'all' | HouseStatus>('all')
-  const filters: Array<{ key: 'all' | HouseStatus; label: string }> = [
-    { key: 'all', label: 'Allt' },
-    { key: 'selt', label: 'Selt' },
-    { key: 'til-solu', label: 'Til sölu' },
-    { key: 'i-byggingu', label: 'Í byggingu' },
-  ]
-  return (
-    <section id="hk-houses" data-hk-bg="chalk" className="hk-theme-chalk hk-band relative">
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter)' }}>
-        <Kicker>Staða húsanna</Kicker>
-        <SectionRule />
-        <div className="flex flex-wrap items-end justify-between gap-6" style={{ marginTop: 'var(--hk-u16)' }}>
-          <h2
-            data-hk-reveal="ctn"
-            className="m-0"
-            style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18 }}
-          >
-            Húsin
-          </h2>
-          <div role="group" aria-label="Sía eftir stöðu" className="flex flex-wrap gap-2">
-            {filters.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                aria-pressed={filter === f.key}
-                onClick={() => setFilter(f.key)}
-                className="hk-filter-chip"
-                style={{ border: `1px solid rgba(22,26,23,.22)`, background: 'transparent', color: INK, fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase', padding: '0 1em' }}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p
-          data-hk-reveal="p"
-          style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--hk-body)', lineHeight: 1.6, maxWidth: '34em', marginTop: 'var(--hk-u16)' }}
-        >
-          Ein lína á hvert hús. Seld hús standa áfram í skránni og með yfirstrikun, því fágætið er röksemdin.
-        </p>
-
-        <div className="mt-8" style={{ marginTop: 'var(--hk-u32)' }}>
-          {HOUSES.map((house) => {
-            const dim = filter !== 'all' && !house.statuses.includes(filter)
-            const sold = house.statuses.includes('selt')
-            return (
-              <details key={house.name} className="hk-row" style={{ opacity: dim ? 0.4 : 1, transition: 'opacity var(--hk-dur-m) var(--hk-ease-out)' }}>
-                <summary className="flex flex-wrap items-center justify-between gap-3 py-4">
-                  <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <span
-                      style={{
-                        fontFamily: GAMBETTA, fontWeight: 500, color: INK, fontSize: 'var(--hk-lead)',
-                        textDecoration: sold ? 'line-through' : 'none', textDecorationColor: MUTED, textDecorationThickness: '1.5px',
-                      }}
-                    >
-                      {house.name}
-                    </span>
-                    <span style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--hk-body)' }}>
-                      {house.size ?? 'Stærð ekki gefin upp'}
-                    </span>
-                    <span style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--hk-body)' }}>
-                      {house.plot ?? 'Lóð ekki gefin upp'}
-                    </span>
-                    {house.price ? (
-                      <span style={{ fontFamily: SUPREME, fontWeight: 600, color: INK, fontSize: 'var(--hk-body)' }}>
-                        {house.price === 'Selt' ? 'Verð: Selt' : house.price}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {house.statuses.map((s) => <StatusPill key={s} status={s} />)}
-                    <span className="hk-row-plus" aria-hidden style={{ fontFamily: SUPREME, fontSize: '20px', color: MUTED, lineHeight: 1 }}>+</span>
-                  </span>
-                </summary>
-                <div className="hk-row-body">
-                  <p style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '36em', paddingBottom: 'var(--hk-u16)' }}>
-                    {house.note}
-                  </p>
-                </div>
-              </details>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   §6 Eitt hús — Rangárslétta 2. The two paired photos use the "slide"
-   primitive (skewed clip wipe + inner counter-scale).
-   ═════════════════════════════════════════════════════════════════════════ */
-function OneHouse() {
-  const r2 = HOUSES[0]
-  return (
-    <section id="hk-one-house" data-hk-bg="sand" className="hk-theme-sand hk-band relative">
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter)' }}>
-        <Kicker>Rangárslétta 2</Kicker>
-        <SectionRule />
-        <h2
-          data-hk-reveal="ctn"
-          className="m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-        >
-          Eitt hús
-        </h2>
-        <p
-          data-hk-reveal="p"
-          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '32em', marginTop: 'var(--hk-u16)' }}
-        >
-          Sama lóð, tvær stundir: grindin fyrst, húsið svo. {r2.size} á lóð sem er um {r2.plot} að stærð.
-        </p>
-        <div data-hk-reveal="ctn" className="flex flex-wrap items-baseline gap-x-5 gap-y-2" style={{ marginTop: 'var(--hk-u24)' }}>
-          {r2.price ? (
-            <p className="hk-fit m-0" style={{ fontFamily: GAMBETTA, fontWeight: 400, color: INK, fontSize: 'var(--hk-d3)', lineHeight: 1.15 }}>
-              {r2.price}
-            </p>
-          ) : null}
-          <div className="flex items-center gap-2">
-            {r2.statuses.map((s) => <StatusPill key={s} status={s} />)}
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2" style={{ marginTop: 'var(--hk-u32)' }}>
-          <RealPhoto
-            file={PHOTOS.construction.file} alt={PHOTOS.construction.alt} reveal="slide"
-            className="relative aspect-[4/3]" caption="Grindin rís"
-          />
-          <RealPhoto
-            file={PHOTOS.houseBuilt.file} alt={PHOTOS.houseBuilt.alt} reveal="slide"
-            className="relative aspect-[4/3] sm:mt-10" caption="Fullbúið, sama lóð"
-          />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   §7 Árstíðirnar — the 10-point shutter merge
-   ═════════════════════════════════════════════════════════════════════════ */
-function Seasons() {
-  return (
-    <section id="hk-seasons" data-hk-bg="dark" className="relative" style={{ background: DARK }}>
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter) 0' }}>
-        <Kicker tone="light">Árstíðirnar</Kicker>
-        <SectionRule tone="light" />
-        <h2
-          data-hk-reveal="ctn"
-          className="m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-        >
-          Sama land, tvær árstíðir
-        </h2>
-        <p
-          data-hk-reveal="ctn"
-          style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.78)', fontSize: 'var(--hk-body)', lineHeight: 1.6, maxWidth: '30em', marginTop: 'var(--hk-u16)' }}
-        >
-          Áin að sumri, sama sjónarhorn í rökkri að vetri.
-        </p>
-      </div>
-
-      <div className="hk-shutter-wrap">
-        <div className="hk-shutter-sticky">
-          <img src={IMG(PHOTOS.landRiver.file)} alt={PHOTOS.landRiver.alt} className="hk-shutter-base" />
-          <div className="hk-shutter-panel hk-shutter-panel-l">
-            <img src={IMG(PHOTOS.winterDusk.file)} alt={PHOTOS.winterDusk.alt} className="hk-shutter-panel-img hk-shutter-panel-img-l" loading="lazy" decoding="async" />
-          </div>
-          <div className="hk-shutter-panel hk-shutter-panel-r">
-            <img src={IMG(PHOTOS.winterDusk.file)} alt="" aria-hidden className="hk-shutter-panel-img hk-shutter-panel-img-r" loading="lazy" decoding="async" />
-          </div>
-          <span
-            aria-hidden
-            className="absolute bottom-4 left-4 z-10"
-            style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase', color: CHALK, background: DARK, padding: '.4em .7em' }}
-          >
-            Áin, að degi til → vetur, í rökkri
+        <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
+          <CanvasImage file={PHOTOS.landRiver.file} alt={PHOTOS.landRiver.alt} shader="media" className="absolute inset-0 h-full w-full" />
+          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.5) 100%)' }} />
+          <span aria-hidden className="absolute left-3 top-3" style={{ fontFamily: SWITZER, fontWeight: 600, fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase', color: '#fff' }}>
+            Skýringarmynd
           </span>
+          {MOUNTAINS.map((m, i) => (
+            <span key={m.name} aria-hidden className="hk-tick" data-active={selected === i} style={{ left: `${m.pos}%`, height: selected === i ? '18px' : '9px' }} />
+          ))}
+          <p aria-live="polite" className="hk-fit absolute inset-x-0 bottom-0 m-0 text-center" style={{ color: '#fff', fontSize: 'var(--hk-h3)', padding: '0 16px 20px' }}>
+            <Serif>{MOUNTAINS[selected].name}</Serif>
+          </p>
         </div>
       </div>
     </section>
@@ -1101,84 +679,58 @@ function Seasons() {
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   §8 Tölvumyndir
-   ═════════════════════════════════════════════════════════════════════════ */
-function Visuals() {
-  const items = [VISUALS.living, VISUALS.kitchen, VISUALS.plan, VISUALS.exterior]
-  return (
-    <section id="hk-visuals" data-hk-bg="chalk" className="hk-theme-chalk hk-band relative">
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter)' }}>
-        <Kicker>Tölvumyndir</Kicker>
-        <SectionRule />
-        <h2
-          data-hk-reveal="ctn"
-          className="m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-        >
-          Tölvumyndir af innréttingum
-        </h2>
-        <p
-          data-hk-reveal="p"
-          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '34em', marginTop: 'var(--hk-u16)' }}
-        >
-          Myndirnar hér að neðan eru tölvugerðar sjónmyndir, ekki ljósmyndir af fullbúnum húsum. Hver mynd er
-          merkt sérstaklega.
-        </p>
-
-        <div className="grid gap-4 sm:grid-cols-2" style={{ marginTop: 'var(--hk-u32)' }}>
-          {items.map((v) => <VisPhoto key={v.file} file={v.file} alt={v.alt} room={v.room} />)}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   §9 Gögnin — compliance as monument
+   §8 Gögnin — compliance as monument
    ═════════════════════════════════════════════════════════════════════════ */
 function Docs() {
   return (
-    <section id="hk-docs" data-hk-bg="sand" className="hk-theme-sand hk-band relative">
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter)' }}>
-        <Kicker>Tæknileg gögn</Kicker>
-        <SectionRule />
-        <h2
-          data-hk-reveal="ctn"
-          className="m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
-        >
-          Gögnin
-        </h2>
+    <section id="hk-docs" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <Kicker>Tæknileg gögn</Kicker>
+      <SectionRule />
+      <MixedHeading sans="Gögnin og" serif="gagnsæi" />
 
-        <div className="grid gap-8 sm:grid-cols-3" style={{ marginTop: 'var(--hk-u32)' }}>
-          {DOCUMENTS.map((d) => (
-            <div key={d.label} data-hk-reveal="ctn">
-              <p className="m-0" style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d3)', lineHeight: 1.15 }}>
-                {d.count}
-              </p>
-              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, color: INK, fontSize: 'var(--hk-body)', letterSpacing: '.02em', textTransform: 'uppercase', marginTop: 'var(--hk-u4)' }}>
-                {d.label}
-              </p>
-              <p className="m-0" style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--hk-body)', lineHeight: 1.6, marginTop: 'var(--hk-u4)' }}>
-                {d.note}
-              </p>
-            </div>
-          ))}
-        </div>
+      <div className="grid gap-8 sm:grid-cols-3" style={{ marginTop: 'clamp(28px, 4vw, 48px)' }}>
+        {DOCUMENTS.map((d) => (
+          <div key={d.label} data-hk-reveal="ctn">
+            <p className="m-0" style={{ fontFamily: SWITZER, fontWeight: 500, color: INK, fontSize: 'var(--hk-h3)', lineHeight: 1.1 }}>{d.count}</p>
+            <p className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, color: INK, fontSize: '13px', letterSpacing: '.02em', textTransform: 'uppercase', marginTop: '.3em' }}>{d.label}</p>
+            <p className="m-0" style={{ fontFamily: SWITZER, color: MUTED, fontSize: 'var(--hk-body)', lineHeight: 1.6, marginTop: '.3em' }}>{d.note}</p>
+          </div>
+        ))}
+      </div>
+      <p data-hk-reveal="ctn" style={{ fontFamily: SWITZER, color: MUTED, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '32em', marginTop: 'clamp(28px, 4vw, 48px)', borderTop: `1px solid ${RULE}`, paddingTop: '1.2em' }}>
+        Skjölin eru þróunaraðilans eigin gögn og eru ekki endurbirt hér.
+      </p>
+    </section>
+  )
+}
 
-        <p
-          data-hk-reveal="p"
-          style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--hk-body)', lineHeight: 1.7, maxWidth: '32em', marginTop: 'var(--hk-u48)', borderTop: '1px solid rgba(22,26,23,.16)', paddingTop: 'var(--hk-u16)' }}
-        >
-          Skjölin eru þróunaraðilans eigin gögn og eru ekki endurbirt hér.
-        </p>
+/* ═════════════════════════════════════════════════════════════════════════
+   §9 Stat monument
+   ═════════════════════════════════════════════════════════════════════════ */
+function Stats() {
+  const sold = HOUSES.filter((h) => h.statuses.includes('selt')).length
+  const stats: Array<[string, string]> = [
+    ['2020', 'Landið sjálfstæð eign'],
+    ['50', 'Hektarar'],
+    ['12 til 14', 'Hús'],
+    [String(sold), 'Seld'],
+  ]
+  return (
+    <section id="hk-stats" style={{ padding: '0 var(--hk-gutter) clamp(64px, 11vw, 140px)' }}>
+      <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map(([num, label]) => (
+          <div key={label} data-hk-reveal="ctn">
+            <p className="hk-fit m-0" style={{ fontFamily: SWITZER, fontWeight: 500, color: INK, fontSize: num.length > 5 ? 'var(--hk-h2)' : 'var(--hk-num)', lineHeight: 1 }}>{num}</p>
+            <p className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, color: MUTED, fontSize: '12px', letterSpacing: '.08em', textTransform: 'uppercase', marginTop: '.6em' }}>{label}</p>
+          </div>
+        ))}
       </div>
     </section>
   )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   §10 Fyrirspurn
+   §10 Fyrirspurn + footer
    ═════════════════════════════════════════════════════════════════════════ */
 function Enquiry() {
   const [name, setName] = useState('')
@@ -1198,91 +750,76 @@ function Enquiry() {
   }, [name, addr, house])
 
   return (
-    <section id="hk-enquiry" data-hk-bg="river" className="hk-theme-river hk-band relative">
-      <div style={{ padding: 'var(--hk-u64) var(--hk-gutter) var(--hk-u96)' }}>
-        <Kicker tone="light">Hafa samband</Kicker>
-        <SectionRule tone="light" />
-        <h2
+    <section id="hk-enquiry" style={{ padding: 'clamp(64px, 11vw, 140px) var(--hk-gutter) clamp(48px, 8vw, 96px)' }}>
+      <Kicker>Hafa samband</Kicker>
+      <SectionRule />
+      <h2 data-hk-reveal="ctn" className="m-0" style={{ fontFamily: SWITZER, fontWeight: 500, color: INK, fontSize: 'var(--hk-h2)', lineHeight: 1.15, marginTop: '.5em' }}>
+        Fyrirspurn
+      </h2>
+
+      <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr]" style={{ marginTop: 'clamp(28px, 4vw, 48px)' }}>
+        <form
           data-hk-reveal="ctn"
-          className="m-0"
-          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
+          className="flex flex-col gap-6"
+          onSubmit={(e) => { e.preventDefault(); window.location.href = mailHref }}
         >
-          Fyrirspurn
-        </h2>
+          <div>
+            <label htmlFor="hk-f-name" className="sr-only">Nafn</label>
+            <input id="hk-f-name" className="hk-field" placeholder="Nafn" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+          </div>
+          <div>
+            <label htmlFor="hk-f-email" className="sr-only">Netfang</label>
+            <input id="hk-f-email" type="email" className="hk-field" placeholder="Netfang" value={addr} onChange={(e) => setAddr(e.target.value)} autoComplete="email" />
+          </div>
+          <div>
+            <label htmlFor="hk-f-house" className="sr-only">Hvaða hús</label>
+            <select id="hk-f-house" className="hk-field" value={house} onChange={(e) => setHouse(e.target.value)}>
+              {ENQUIRY_HOUSES.map((h) => <option key={h} value={h}>{h}</option>)}
+            </select>
+          </div>
+          <a href={mailHref} className="hk-underline-link inline-flex min-h-[44px] items-center self-start" style={{ fontFamily: SWITZER, fontWeight: 600, fontSize: '15px' }}>
+            Senda fyrirspurn
+          </a>
+          <p style={{ fontFamily: SWITZER, color: MUTED, fontSize: '13px', lineHeight: 1.5, maxWidth: '26em' }}>
+            Opnast í tölvupóstforritinu þínu, stílað á {EMAIL}.
+          </p>
+        </form>
 
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr]" style={{ marginTop: 'var(--hk-u32)' }}>
-          <form
-            data-hk-reveal="ctn"
-            className="flex flex-col gap-6"
-            onSubmit={(e) => { e.preventDefault(); window.location.href = mailHref }}
-          >
-            <div>
-              <label htmlFor="hk-f-name" className="sr-only">Nafn</label>
-              <input id="hk-f-name" className="hk-field" placeholder="Nafn" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-            </div>
-            <div>
-              <label htmlFor="hk-f-email" className="sr-only">Netfang</label>
-              <input id="hk-f-email" type="email" className="hk-field" placeholder="Netfang" value={addr} onChange={(e) => setAddr(e.target.value)} autoComplete="email" />
-            </div>
-            <div>
-              <label htmlFor="hk-f-house" className="sr-only">Hvaða hús</label>
-              <select id="hk-f-house" className="hk-field" value={house} onChange={(e) => setHouse(e.target.value)}>
-                {ENQUIRY_HOUSES.map((h) => <option key={h} value={h} style={{ color: INK }}>{h}</option>)}
-              </select>
-            </div>
-            <a href={mailHref} className="hk-cta self-start">
-              Senda fyrirspurn
-            </a>
-            <p style={{ fontFamily: SUPREME, color: MUTED_ON_RIVER, fontSize: '13px', lineHeight: 1.5, maxWidth: '26em' }}>
-              Opnast í tölvupóstforritinu þínu, stílað á {EMAIL}.
-            </p>
-          </form>
-
-          <div data-hk-reveal="ctn" className="flex flex-col gap-6">
-            <div>
-              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_ON_RIVER }}>Bein leið</p>
-              <a href={EMAIL_HREF} className="mt-2 block" style={{ fontFamily: GAMBETTA, fontWeight: 400, color: CHALK, fontSize: 'var(--hk-lead)', textDecoration: 'underline', textUnderlineOffset: '.18em' }}>
-                {EMAIL}
-              </a>
-              <a href={PHONE_HREF} className="mt-1 block" style={{ fontFamily: SUPREME, color: CHALK, fontSize: 'var(--hk-body)' }}>
-                {PHONE_DISPLAY}
-              </a>
-            </div>
-            <div style={{ borderTop: '1px solid rgba(240,236,228,.22)', paddingTop: 'var(--hk-u16)' }}>
-              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_ON_RIVER }}>Félagið</p>
-              <p className="mt-2" style={{ fontFamily: SUPREME, color: CHALK, fontSize: 'var(--hk-body)', lineHeight: 1.6 }}>
-                {COMPANY_LINE}<br />{COMPANY_ADDRESS}
-              </p>
-            </div>
-            <div>
-              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_ON_RIVER }}>Eigendur</p>
-              <p className="mt-2" style={{ fontFamily: SUPREME, color: MUTED_ON_RIVER, fontSize: '14px', lineHeight: 1.6, maxWidth: '28em' }}>
-                {OWNERS}
-              </p>
-            </div>
+        <div data-hk-reveal="ctn" className="flex flex-col gap-6">
+          <div>
+            <p className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED }}>Bein leið</p>
+            <a href={EMAIL_HREF} className="hk-underline-link mt-2 block" style={{ fontFamily: SWITZER, fontWeight: 500, fontSize: 'var(--hk-lead)' }}>{EMAIL}</a>
+            <a href={PHONE_HREF} className="mt-1 block" style={{ fontFamily: SWITZER, color: INK, fontSize: 'var(--hk-body)' }}>{PHONE_DISPLAY}</a>
+          </div>
+          <div style={{ borderTop: `1px solid ${RULE}`, paddingTop: '1.2em' }}>
+            <p className="m-0" style={{ fontFamily: SWITZER, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED }}>Félagið</p>
+            <p className="mt-2" style={{ fontFamily: SWITZER, color: INK, fontSize: 'var(--hk-body)', lineHeight: 1.6 }}>{COMPANY_LINE}<br />{COMPANY_ADDRESS}</p>
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: 'clamp(72px, 12vw, 160px)', borderTop: `1px solid ${RULE}`, paddingTop: 'clamp(28px, 4vw, 48px)' }}>
+        <p data-hk-reveal="ctn" className="hk-fit m-0" style={{ fontFamily: SWITZER, fontWeight: 500, color: INK, fontSize: 'var(--hk-h1)', lineHeight: 1.02, letterSpacing: '-.015em' }}>
+          Heklusýn <Serif>við Ytri-Rangá</Serif>
+        </p>
+        <p className="m-0" style={{ fontFamily: SWITZER, color: MUTED, fontSize: '13px', lineHeight: 1.6, marginTop: 'clamp(20px, 3vw, 32px)' }}>
+          {COMPANY_LINE} · {COMPANY_ADDRESS}
+        </p>
       </div>
     </section>
   )
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   Page — assembles the chrome, the closing stack (sections 1–9, clipped and
-   scaled down as Fyrirspurn arrives) and Fyrirspurn itself (scaled up to
-   meet it). Preloader and Chrome sit OUTSIDE the closing stack deliberately:
-   both use position:fixed, and a transformed ancestor would create a new
-   containing block for them, breaking their viewport-relative positioning
-   the moment the footer-close effect starts scaling the stack.
+   Page
    ═════════════════════════════════════════════════════════════════════════ */
 export default function HeklusynPage() {
   const rootRef = useRef<HTMLDivElement>(null)
-  const closeStackRef = useRef<HTMLDivElement>(null)
-  const enquiryWrapRef = useRef<HTMLDivElement>(null)
+  const [engineState, setEngineState] = useState<{ engine: CanvasEngine | null; capable: boolean }>({ engine: null, capable: false })
 
   useEffect(() => {
     document.title = 'Heklusýn · Tólf hús á fimmtíu hekturum'
-    setThemeColor(DARK)
+    setThemeColor(GROUND)
     let tag = document.querySelector<HTMLMetaElement>('meta[name="description"]')
     const created = !tag
     if (!tag) {
@@ -1298,16 +835,42 @@ export default function HeklusynPage() {
     }
   }, [])
 
-  /* All scroll choreography — hero dive-in, dome word-spacing, the six
-     reveal primitives, the shutter merge and the footer aperture close.
-     Gated entirely behind prefers-reduced-motion:no-preference: under
-     reduced motion this branch never runs a single tween, and the CSS
-     media queries above already collapse every tall scroll runway to a
-     normal single section, with panels/images at their fully visible
-     resting state. Chrome theming (useElementTheme, above) is deliberately
-     NOT gated here — a colour swap on scroll is not the kind of motion
-     that rule guards against, matching the precedent already established
-     on this app's THG and Búðir builds. */
+  /* The WebGL canvas + Lenis share one capability gate (KONONENKO-BRIEF §7):
+     no WebGL, prefers-reduced-motion, or a coarse (touch) primary pointer
+     ⇒ neither is created; every CanvasImage's real <img> simply stays
+     visible, exactly the reference's own fallback shape. */
+  useEffect(() => {
+    const capable = !prefersReduced() && hasWebGL() && !isCoarsePointer()
+    if (!capable) { setEngineState({ engine: null, capable: false }); return }
+    // A throw during engine construction must degrade to plain DOM images,
+    // never take down the React tree (THREE API drift did exactly that on
+    // the sister page).
+    let engine: CanvasEngine | null = null
+    try { engine = new CanvasEngine(BASE) } catch { engine = null }
+    if (!engine) { setEngineState({ engine: null, capable: false }); return }
+    setEngineState({ engine, capable: true })
+
+    const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
+    lenis.on('scroll', ScrollTrigger.update)
+    hkLenis = lenis
+    const tick = (t: number) => lenis.raf(t * 1000)
+    gsap.ticker.add(tick)
+    gsap.ticker.lagSmoothing(0)
+
+    return () => {
+      gsap.ticker.remove(tick)
+      lenis.destroy()
+      hkLenis = null
+      engine.dispose()
+      setEngineState({ engine: null, capable: false })
+    }
+  }, [])
+
+  /* Text reveals — gated on prefers-reduced-motion only (independent of the
+     WebGL/Lenis capability gate above: a desktop visitor without WebGL
+     support still gets ordinary fade/char reveals on native scroll). Every
+     tween is fromTo(...) toward the resting state React already rendered;
+     the only char/word split is the hero h1. */
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -1316,205 +879,51 @@ export default function HeklusynPage() {
       const c = ctx.conditions as { motion: boolean }
       if (!c.motion) return undefined
 
-      const q = gsap.utils.selector(root)
       const splits: SplitText[] = []
-
-      const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
-      lenis.on('scroll', ScrollTrigger.update)
-      hkLenis = lenis
-      const tick = (t: number) => lenis.raf(t * 1000)
-      gsap.ticker.add(tick)
-      gsap.ticker.lagSmoothing(0)
-
-      /* ── 1. Dive-in hero: scale 1→1.8 from 50%/75%, three text layers
-         parallax out at differential rates. One ScrollTrigger, onUpdate
-         reads progress directly — "ease: none" by construction, since the
-         value IS the scroll position (teardown Phase 6.1's rule). ── */
-      const heroScroll = q('.hk-hero-scroll')[0] as HTMLElement | undefined
-      const heroImg = q('.hk-hero-image')[0] as HTMLElement | undefined
-      const heroEyebrow = q('.hk-hero-eyebrow')[0] as HTMLElement | undefined
-      const heroH1 = q('.hk-hero-h1')[0] as HTMLElement | undefined
-      const heroLower = q('.hk-hero-tagline, .hk-hero-body') as HTMLElement[]
-      if (heroScroll && heroImg) {
-        ScrollTrigger.create({
-          trigger: heroScroll,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: true,
-          onUpdate: (self) => {
-            const p = self.progress
-            gsap.set(heroImg, { scale: 1 + p * 0.8 })
-            if (heroEyebrow) gsap.set(heroEyebrow, { yPercent: -Math.min(1, p / 0.5) * 40, opacity: 1 - Math.min(1, p / 0.45) })
-            if (heroH1) gsap.set(heroH1, { yPercent: -Math.min(1, p / 0.65) * 55, opacity: 1 - Math.min(1, p / 0.6) })
-            heroLower.forEach((el) => gsap.set(el, { yPercent: -Math.min(1, p / 0.8) * 70, opacity: 1 - Math.min(1, p / 0.72) }))
-          },
-        })
-      }
-
-      /* ── 2. Dome word-spacing: 0 → 2vw scrubbed as the dome crests. ── */
-      const domeSection = q('.hk-dome')[0] as HTMLElement | undefined
-      const domeHeading = q('.hk-dome-heading')[0] as HTMLElement | undefined
-      if (domeSection && domeHeading) {
-        gsap.fromTo(domeHeading, { wordSpacing: '0vw' }, {
-          wordSpacing: '2vw', ease: 'none',
-          scrollTrigger: { trigger: domeSection, start: 'top bottom', end: 'top top', scrub: true },
-        })
-      }
-
-      /* ── 3. The six reveal primitives, for real. ── */
       const revealEls = Array.from(root.querySelectorAll<HTMLElement>('[data-hk-reveal]'))
-      revealEls.forEach((el, i) => {
+      revealEls.forEach((el) => {
         const kind = el.dataset.hkReveal
-        const stBase = { toggleActions: 'play none none none', once: true } as const
+        const st = { trigger: el, start: 'top 88%', toggleActions: 'play none none none', once: true } as const
 
         if (kind === 'h') {
           splits.push(SplitText.create(el, {
             type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: false,
             onSplit: (self) => {
-              gsap.fromTo(self.chars,
-                { yPercent: 112 },
-                {
-                  yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: STAGGER * 0.5,
-                  delay: DELAY, clearProps: 'transform',
-                  scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
-                })
+              gsap.fromTo(self.chars, { yPercent: 112 }, {
+                yPercent: 0, duration: DUR.l, ease: EASE, stagger: STAGGER,
+                scrollTrigger: { ...st, start: 'top 95%' },
+              })
               return undefined
             },
           }))
-        } else if (kind === 'a') {
-          splits.push(SplitText.create(el, {
-            type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: false,
-            onSplit: (self) => {
-              gsap.fromTo(self.chars,
-                { yPercent: 112, x: '0.5em' },
-                {
-                  yPercent: 0, x: '0em', duration: DUR.l, ease: EASE.out, stagger: STAGGER,
-                  delay: DELAY, clearProps: 'transform',
-                  scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
-                })
-              return undefined
-            },
-          }))
-        } else if (kind === 'p') {
-          /* Deliberately NOT SplitText lines. Line-splitting measures the
-             paragraph before layout has settled, and when it guesses wrong it
-             locks every WORD into its own block wrapper, which shipped a page
-             of one-word lines. A paragraph has to be readable; a masked-line
-             reveal is decoration. Whole-element rise instead. */
-          gsap.fromTo(el,
-            { opacity: 0, y: 18 },
-            {
-              opacity: 1, y: 0, duration: DUR.m, ease: EASE.out,
-              scrollTrigger: { trigger: el, start: 'top 88%', ...stBase },
-            })
         } else if (kind === 'line') {
           gsap.fromTo(el, { clipPath: 'inset(0 0 100% 0)' }, {
-            clipPath: 'inset(0 0 0% 0)', duration: DUR.m, ease: EASE.out,
-            scrollTrigger: { trigger: el, start: 'top 92%', ...stBase },
+            clipPath: 'inset(0 0 0% 0)', duration: DUR.m, ease: EASE,
+            scrollTrigger: { ...st, start: 'top 94%' },
           })
-        } else if (kind === 'slide') {
-          const img = el.querySelector('img')
-          gsap.fromTo(el, { clipPath: 'polygon(100% 0%,100% 0%,108% 100%,24% 100%)' }, {
-            clipPath: 'polygon(0% 0%,100% 0%,100% 100%,0% 100%)', duration: DUR.l, ease: EASE.inout,
-            scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
-          })
-          if (img) {
-            gsap.fromTo(img, { scale: 1.35, xPercent: 14 }, {
-              scale: 1, xPercent: 0, duration: DUR.l, ease: EASE.inout,
-              scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
-            })
-          }
         } else {
-          gsap.fromTo(el, { opacity: 0, y: 26 }, {
-            opacity: 1, y: 0, duration: DUR.l, ease: EASE.out, delay: (i % 4) * 0.04,
-            scrollTrigger: { trigger: el, start: 'top 90%', ...stBase },
+          gsap.fromTo(el, { opacity: 0, y: 20 }, {
+            opacity: 1, y: 0, duration: DUR.m, ease: EASE,
+            scrollTrigger: st,
           })
         }
       })
 
-      /* ── 4. Árstíðirnar — the 10-point shutter merge. Two half-screen
-         panels, each an outer-rect-with-a-hole traced as a single 10-point
-         clip-path polygon (rebuilt every tick from 4 numbers via
-         onUpdate — GSAP cannot safely interpolate polygon() strings whose
-         point count/shape differs between phases, so the numbers are
-         tweened, not the string). Phase 1 converges the hole's top/bottom
-         edges toward a shared band (18.519%/81.481% — reused verbatim from
-         the ERA source, the one hole geometry, not the brand, the addendum
-         explicitly frees up). Phase 2 merges the remaining slit to the
-         screen's centre from both sides. Phase 3 is the push-through: once
-         both panels are fully opaque winter, they scale up together for a
-         camera-push finish. Not a crossfade at any point. ── */
-      const shutterWrap = q('.hk-shutter-wrap')[0] as HTMLElement | undefined
-      const panelL = q('.hk-shutter-panel-l')[0] as HTMLElement | undefined
-      const panelR = q('.hk-shutter-panel-r')[0] as HTMLElement | undefined
-      const panelLImg = q('.hk-shutter-panel-img-l')[0] as HTMLElement | undefined
-      const panelRImg = q('.hk-shutter-panel-img-r')[0] as HTMLElement | undefined
-      if (shutterWrap && panelL && panelR) {
-        const annulus = (top: number, bottom: number, x1: number, x2: number) =>
-          `polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% ${bottom}%, ${x1}% ${bottom}%, ${x1}% ${top}%, ${x2}% ${top}%, ${x2}% ${bottom}%, 0% ${bottom}%)`
-        const left = { top: 0, bottom: 100, outer: 0 }
-        const right = { top: 0, bottom: 100, outer: 100 }
-        const inner = { left: 100, right: 0 } // centre-facing edges
-        const apply = () => {
-          panelL.style.clipPath = annulus(left.top, left.bottom, left.outer, inner.left)
-          panelR.style.clipPath = annulus(right.top, right.bottom, inner.right, right.outer)
-        }
-        apply()
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: shutterWrap, start: 'top top', end: 'bottom bottom', scrub: true },
-        })
-        tl.to(left, { top: 18.519, bottom: 81.481, duration: 0.5, ease: 'none', onUpdate: apply })
-          .to(right, { top: 18.519, bottom: 81.481, duration: 0.5, ease: 'none', onUpdate: apply }, '<')
-          .to(left, { outer: 50, duration: 0.2, ease: 'none', onUpdate: apply })
-          .to(inner, { left: 50, right: 50, duration: 0.2, ease: 'none', onUpdate: apply }, '<')
-          .to(right, { outer: 50, duration: 0.2, ease: 'none', onUpdate: apply }, '<')
-        if (panelLImg && panelRImg) {
-          tl.to([panelLImg, panelRImg], { scale: 1.12, duration: 0.3, ease: 'none' })
-        }
-      }
-
-      /* ── 5. Footer aperture close — sections 1–9 clip to inset(8% 22%)
-         and scale to 0.75 as Fyrirspurn approaches; Fyrirspurn itself
-         scales 0.75→1 over the same scrub. Initial gsap.set matches
-         progress:0 exactly, so there is no jump before the trigger's first
-         onUpdate. ── */
-      const closeStack = closeStackRef.current
-      const enquiryWrap = enquiryWrapRef.current
-      if (closeStack && enquiryWrap) {
-        gsap.set(closeStack, { clipPath: 'inset(0% 0% 0% 0%)', scale: 1, transformOrigin: 'center center' })
-        gsap.set(enquiryWrap, { scale: 0.75, transformOrigin: 'center center' })
-        ScrollTrigger.create({
-          trigger: enquiryWrap,
-          start: 'top bottom',
-          end: 'top 15%',
-          scrub: 0.5,
-          onUpdate: (self) => {
-            const p = self.progress
-            gsap.set(closeStack, { clipPath: `inset(${p * 8}% ${p * 22}% ${p * 8}% ${p * 22}%)`, scale: 1 - p * 0.25 })
-            gsap.set(enquiryWrap, { scale: 0.75 + p * 0.25 })
-          },
-        })
-      }
-
       document.fonts.ready.then(() => ScrollTrigger.refresh())
 
-      /* ── Failsafe: 2s after mount, clear any leftover inline reveal
-         styles regardless of whether their ScrollTrigger has fired —
-         opacity:1 plus clearProps limited to transform/clipPath ONLY.
-         clearProps:'all' would also wipe React's own inline
-         fontSize/color/fontFamily, per [[gsap-splittext-clearprops-traps]]. ── */
+      /* Failsafe: 2s after mount, clear any leftover inline reveal styles
+         regardless of trigger state. clearProps limited to
+         transform/clipPath ONLY — never 'all', which would also wipe
+         React's own inline fontSize/color/fontFamily. */
       const failsafe = window.setTimeout(() => {
         gsap.set(
-          root.querySelectorAll('[data-hk-reveal], [data-hk-reveal] *, .hk-hero-eyebrow, .hk-hero-h1, .hk-hero-h1 *, .hk-hero-tagline, .hk-hero-tagline *, .hk-hero-body'),
+          root.querySelectorAll('[data-hk-reveal], [data-hk-reveal] *'),
           { opacity: 1, clearProps: 'transform,clipPath' },
         )
       }, 2000)
 
       return () => {
         window.clearTimeout(failsafe)
-        gsap.ticker.remove(tick)
-        lenis.destroy()
-        hkLenis = null
         splits.forEach((sp) => sp.revert())
       }
     })
@@ -1522,28 +931,25 @@ export default function HeklusynPage() {
   }, [])
 
   return (
-    <div ref={rootRef} className="hk-root relative" lang="is">
-      <style>{PAGE_STYLES}</style>
-      <Preloader />
-      <Chrome />
-      <main>
-        <div ref={closeStackRef} className="hk-close-stack">
+    <EngineContext.Provider value={engineState}>
+      <div ref={rootRef} className="hk-root" lang="is">
+        <style>{PAGE_STYLES}</style>
+        <Chrome />
+        <main>
           <Hero />
-          <Thesis />
-          <Horizon />
+          <Manifesto />
           <Land />
-          <Houses />
-          <OneHouse />
-          <Seasons />
-          <Visuals />
+          <Services />
+          <Method />
+          <WorkGrid />
+          <Mountains />
           <Docs />
-        </div>
-        <div ref={enquiryWrapRef} className="hk-enquiry-wrap">
+          <Stats />
           <Enquiry />
-        </div>
-      </main>
-      <PreviewFooter company={company} />
-      <PreviewChrome company={company} />
-    </div>
+        </main>
+        <PreviewFooter company={company} />
+        <PreviewChrome company={company} />
+      </div>
+    </EngineContext.Provider>
   )
 }

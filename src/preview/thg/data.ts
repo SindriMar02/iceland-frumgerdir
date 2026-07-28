@@ -1,9 +1,12 @@
 /**
  * THG Arkitektar — "Staðarandi" (fella nýtt að því sem fyrir er).
  *
- * Every fact below is sourced from BRIEF.md's locked table (§2) — itself
- * drawn from thg.is's own project pages. Photography = THG's own site,
- * fetched at full 2000px resolution (their CDN serves visitors only 750px).
+ * Facts below are sourced from BRIEF.md's locked table (§2) — itself drawn
+ * from thg.is's own project pages. Photography = THG's own site, fetched at
+ * full 2000px resolution (their CDN serves visitors only 750px). The visual
+ * system transplants kononenkogroup.com per KONONENKO-BRIEF.md (supersedes
+ * BRIEF.md for layout/motion) — this data file's facts are unchanged by
+ * that rebuild and carry over as-is.
  *
  * HONESTY GUARDRAILS (see BRIEF §2, §3):
  *  - Fields marked "not published" in the brief are omitted entirely below —
@@ -43,6 +46,10 @@ export const PRACTICE = {
   quality: 'ÍST EN ISO 9001:2015 frá 2016',
   services:
     'Hönnun og ráðgjafarþjónusta í mannvirkjagerð á sviðum arkitektúrs, skipulags og umhverfishönnunar, auk verkumsjónar og eftirlits.',
+  // The four clients named across the seven verified projects below
+  // (Icelandair — Marina; Hrafnista — Boðaþingi; SÁÁ — Vík; EIR — Spöngin).
+  // KONONENKO-BRIEF.md §manifesto: "Verkkaupar (Icelandair, Hrafnista, SÁÁ, EIR)".
+  clients: 'Icelandair, Hrafnista, SÁÁ, EIR',
 }
 
 /* ── The thesis (BRIEF §1) — the three quotations, verbatim / translated ── */
@@ -177,21 +184,6 @@ export const INTERIORS: InteriorShot[] = [
   { project: 'Reykjavík Konsúlat', image: 'konsulat-lounge', alt: 'Setustofa og bókarými á Reykjavík Konsúlat.' },
   { project: 'Reykjavík Konsúlat', image: 'konsulat-bath', alt: 'Baðherbergi á Reykjavík Konsúlat.' },
 ]
-
-/* ── Tvenns konar hús — BRIEF §6.5, the plain split ─────────────────────── */
-export const TVENNS_KONAR = {
-  hotel: { label: 'Hótel', project: 'Icelandair Hótel Marina', figure: '111', unit: 'herbergi', image: 'marina-exterior' },
-  care: { label: 'Hjúkrunarheimili', project: 'EIR, Spöngin', figure: '111', unit: 'þjónustuíbúðir', image: 'eir-1' },
-}
-
-/* ── Kolasundið — BRIEF §6.6 ─────────────────────────────────────────────── */
-export const KOLASUNDID = {
-  title: 'Kolasundið',
-  body:
-    'Kolasundið er göngugata sem liggur gegnum jarðhæð Reykjavík Konsúlat við Hafnarstræti 19 og tengir gamla miðbæinn við það sem áður var sjávarströndin. Almenn gönguleið er hluti af húsinu sjálfu, ekki viðbót við það.',
-  diagramLabel: 'Skýringarmynd, ekki mæld teikning.',
-  image: 'konsulat-street',
-}
 
 /* ── SEO / meta ───────────────────────────────────────────────────────── */
 export const PAGE_TITLE = 'THG Arkitektar · Staðarandi'
