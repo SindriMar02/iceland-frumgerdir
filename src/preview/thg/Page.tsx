@@ -187,12 +187,7 @@ ${THEME_CSS}
   padding-bottom: 0.20em;
   margin-bottom: -0.20em;
 }
-.thg-char {
-  display: inline-block;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
+.thg-char { display: inline-block; }
 /* Keeps each word atomic so a line never breaks between two characters. */
 .thg-hero-h1 > div, .thg-hero-h1 > span,
 [data-thg-reveal='h'] > div, [data-thg-reveal='h'] > span { display: inline-block; vertical-align: top; }
@@ -488,7 +483,7 @@ function ProjectPanel({ project, index }: { project: Project; index: number }) {
           0{index + 1} / 07
         </span>
         <h3
-          data-thg-reveal="h"
+          data-thg-reveal="c"
           className="thg-panel-title thg-chars m-0 mt-3 max-w-[16ch]"
           style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 'clamp(1.6rem,3.4vw,2.5rem)', lineHeight: 1.16 }}
         >
@@ -646,7 +641,7 @@ function Stofan() {
       <SectionHead eyebrow="Stofan" title="Stofan" />
       <div className="thg-container mt-10 md:mt-14">
         <p
-          data-thg-reveal="h"
+          data-thg-reveal="c"
           className="thg-chars m-0"
           style={{ fontFamily: DISPLAY, fontWeight: 500, color: PAPER, fontSize: 'clamp(3.4rem,11vw,9rem)', lineHeight: 1, letterSpacing: '-0.01em' }}
         >

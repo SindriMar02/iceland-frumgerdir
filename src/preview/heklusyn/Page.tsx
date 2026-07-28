@@ -185,12 +185,7 @@ const PAGE_STYLES = `
   padding-bottom: 0.20em;
   margin-bottom: -0.20em;
 }
-.hk-char {
-  display: inline-block;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
+.hk-char { display: inline-block; }
 [data-hk-reveal="h"], [data-hk-reveal="a"] { line-height: 1.22; }
 [data-hk-reveal="p"] { line-height: 1.6; }
 
@@ -226,10 +221,6 @@ const PAGE_STYLES = `
 }
 .hk-dome-heading { word-spacing: 0vw; }
 
-/* Two equal stat cells on one shared baseline. */
-.hk-stats { display: grid; gap: var(--hk-u48); align-items: end; }
-@media (min-width: 640px) { .hk-stats { grid-template-columns: 1fr 1fr; } }
-.hk-stat-num { white-space: nowrap; }
 
 /* The dome's own content must clear the arc. With 50vw top radii on a
    full-bleed box the top 50vw of the box IS the curve, so anything inside it
@@ -260,10 +251,13 @@ const PAGE_STYLES = `
 .hk-shutter-wrap { position: relative; height: 240vh; margin-top: var(--hk-u32); }
 .hk-shutter-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
 .hk-shutter-base { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.hk-shutter-panel { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; }
-.hk-shutter-panel-l { left: 0; clip-path: inset(0 0 0 100%); }
-.hk-shutter-panel-r { right: 0; clip-path: inset(0 100% 0 0); }
-.hk-shutter-panel-img { position: absolute; top: 0; height: 100%; width: 200%; object-fit: cover; }
+.hk-shutter-panel { position: absolute; inset: 0; overflow: hidden; }
+/* One winter plate wiped in from both edges toward the centre. The earlier
+   two-panel version put a visible seam down the middle and read as the same
+   photograph printed twice rather than one image being revealed. */
+.hk-shutter-panel-l { clip-path: inset(0 100% 0 0); }
+.hk-shutter-panel-r { display: none; }
+.hk-shutter-panel-img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
 .hk-shutter-panel-img-l { left: 0; }
 .hk-shutter-panel-img-r { right: 0; }
 @media (prefers-reduced-motion: reduce) {
@@ -726,40 +720,6 @@ function Hero() {
 /* ═════════════════════════════════════════════════════════════════════════
    §2 Thesis — Kjarninn
    ═════════════════════════════════════════════════════════════════════════ */
-/* One stat cell. Both cells render the same shape so the two numbers share a
-   baseline; a range sets inline ("12 TIL 14") instead of stacking a tower. */
-function Stat({ value, unit, range }: { value: string; unit: string; range?: string }) {
-  return (
-    <div className="hk-stat">
-      <p
-        data-hk-reveal="h"
-        aria-label={range ? `${value} til ${range} ${unit}` : `${value} ${unit}`}
-        className="m-0 hk-stat-num"
-        style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-num)', lineHeight: 1.02, letterSpacing: '-0.02em' }}
-      >
-        {value}
-        {range ? (
-          <>
-            <span
-              aria-hidden
-              style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: '.26em', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED, verticalAlign: '.62em', margin: '0 .30em' }}
-            >
-              til
-            </span>
-            {range}
-          </>
-        ) : null}
-      </p>
-      <p
-        className="m-0 hk-stat-unit"
-        style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--hk-label)', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED }}
-      >
-        {unit}
-      </p>
-    </div>
-  )
-}
-
 function Thesis() {
   return (
     <section id="hk-thesis" data-hk-bg="chalk" className="hk-theme-chalk hk-band relative">
@@ -767,13 +727,20 @@ function Thesis() {
         <Kicker>Fágætið</Kicker>
         <SectionRule />
 
-        {/* Two cells of identical shape on ONE shared baseline. The earlier
-            version stacked 12 / til / 14 into a three-row tower beside a
-            single-row 50, so nothing lined up. The range now sets inline. */}
-        <div className="hk-stats" style={{ marginTop: 'var(--hk-u32)' }}>
-          <Stat value="50" unit="hektarar" />
-          <Stat value="12" unit="hús" range="14" />
-        </div>
+        {/* One typographic statement, not a stat grid. Two attempts at a grid
+            here both read as broken: first a lopsided 50 beside a 12/til/14
+            tower, then a floating superscript "til". The scarcity is a
+            sentence, so it is set as one. Both lines share a left edge and a
+            rhythm, so there is nothing to misalign. */}
+        <p
+          data-hk-reveal="ctn"
+          className="hk-claim m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.1, letterSpacing: '-0.015em', marginTop: 'var(--hk-u32)' }}
+        >
+          Fimmtíu hektarar.
+          <br />
+          Tólf til fjórtán hús.
+        </p>
 
         <p
           data-hk-reveal="p"
@@ -817,7 +784,7 @@ function Horizon() {
         <Kicker tone="light">Fjöllin átta</Kicker>
         <SectionRule tone="light" />
         <h2
-          data-hk-reveal="h"
+          data-hk-reveal="ctn"
           className="m-0"
           style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
         >
@@ -962,7 +929,7 @@ function Houses() {
         <SectionRule />
         <div className="flex flex-wrap items-end justify-between gap-6" style={{ marginTop: 'var(--hk-u16)' }}>
           <h2
-            data-hk-reveal="h"
+            data-hk-reveal="ctn"
             className="m-0"
             style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18 }}
           >
@@ -1049,7 +1016,7 @@ function OneHouse() {
         <Kicker>Rangárslétta 2</Kicker>
         <SectionRule />
         <h2
-          data-hk-reveal="h"
+          data-hk-reveal="ctn"
           className="m-0"
           style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
         >
@@ -1097,17 +1064,17 @@ function Seasons() {
         <Kicker tone="light">Árstíðirnar</Kicker>
         <SectionRule tone="light" />
         <h2
-          data-hk-reveal="h"
+          data-hk-reveal="ctn"
           className="m-0"
           style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
         >
-          Árstíðirnar
+          Sama land, tvær árstíðir
         </h2>
         <p
           data-hk-reveal="ctn"
           style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.78)', fontSize: 'var(--hk-body)', lineHeight: 1.6, maxWidth: '30em', marginTop: 'var(--hk-u16)' }}
         >
-          Sama land, tvær árstíðir.
+          Áin að sumri, sama sjónarhorn í rökkri að vetri.
         </p>
       </div>
 
@@ -1144,7 +1111,7 @@ function Visuals() {
         <Kicker>Tölvumyndir</Kicker>
         <SectionRule />
         <h2
-          data-hk-reveal="h"
+          data-hk-reveal="ctn"
           className="m-0"
           style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
         >
@@ -1176,7 +1143,7 @@ function Docs() {
         <Kicker>Tæknileg gögn</Kicker>
         <SectionRule />
         <h2
-          data-hk-reveal="h"
+          data-hk-reveal="ctn"
           className="m-0"
           style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
         >
@@ -1236,7 +1203,7 @@ function Enquiry() {
         <Kicker tone="light">Hafa samband</Kicker>
         <SectionRule tone="light" />
         <h2
-          data-hk-reveal="h"
+          data-hk-reveal="ctn"
           className="m-0"
           style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--hk-d2)', lineHeight: 1.18, marginTop: 'var(--hk-u16)' }}
         >
