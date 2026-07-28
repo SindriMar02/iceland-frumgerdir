@@ -550,7 +550,7 @@ function ChapterRail() {
   return (
     <nav
       aria-hidden="true"
-      className="kiro-progress-deco pointer-events-none fixed inset-x-0 bottom-0 z-30 hidden justify-center pb-5 md:flex"
+      className="kiro-progress-deco pointer-events-none fixed inset-x-0 bottom-0 z-30 hidden justify-center pb-5 lg:flex"
     >
       <div
         className="pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2.5"

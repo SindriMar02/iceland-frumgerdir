@@ -107,3 +107,8 @@
 .kiro-press:active {
   transform: scale(0.97);
 }
+
+/* Short viewports: the fixed chapter rail would overlap hero CTAs — hide it. */
+@media (max-height: 660px) {
+  .kiro-progress-deco { display: none !important; }
+}
