@@ -4311,7 +4311,7 @@ const TANNLAEKNAVAKTIN: PreviewCompany = {
   status: 'Concept ready',
   thumb: `${import.meta.env.BASE_URL}tannlaeknavaktin/logo.png`,
   photoCredit:
-    'Engar ljósmyndir eru notaðar. Merki Tannlæknavaktarinnar er þeirra eigið, af skráningu þeirra á ja.is. Skýringarmynd af tönn er teiknuð upp á nýtt eftir mynd á vef þeirra. Opnunartími, verðskrá og starfsstöðvar eru sótt beint á tannlaeknavaktin.is 27. júlí 2026.',
+    'Myndirnar á síðunni eru tölvugerðar og eingöngu til skreytingar. Þær sýna hvorki húsnæði Tannlæknavaktarinnar né starfsfólk hennar. Merkið er þeirra eigið, af skráningu þeirra á ja.is. Opnunartími, verðskrá og starfsstöðvar eru sótt beint á tannlaeknavaktin.is 27. júlí 2026.',
   audit: {
     strengths: [
       'A genuinely needed service with unusually long hours: open to 22:00 on weekdays, 20:00 at weekends, with a dentist on call after 16:00 and all weekend',

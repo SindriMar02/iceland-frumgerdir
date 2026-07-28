@@ -23,6 +23,25 @@
  * time of day. Brand red #E70104 sampled from their actual logo pixels.
  */
 
+/* ── imagery ──────────────────────────────────────────────────────────────
+ * ART DIRECTION "Léttirinn" (the relief). No photography of this business
+ * exists, and dental stock is the generic look we are avoiding. These plates
+ * are generated atmosphere about RELIEF, the moment the pain stops.
+ *
+ * HONESTY RULE: none of them depicts the clinic's real premises, its rooms or
+ * any real member of staff, and none is captioned as such. The footer
+ * discloses that the imagery is illustrative and generated.
+ */
+const asset = (p: string) => `${import.meta.env.BASE_URL}tannlaeknavaktin/${p}`
+
+export const IMG = {
+  hero: asset('hero-morning.jpg'),
+  heroAlt: asset('hero-morning-alt.jpg'),
+  relief: asset('relief.jpg'),
+  night: asset('night-window.jpg'),
+  logo: asset('logo.png'),
+}
+
 /* ── identity ─────────────────────────────────────────────────────────── */
 
 export const PHONE_DISPLAY = '426 8000'
