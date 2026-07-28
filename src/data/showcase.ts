@@ -381,6 +381,23 @@ export const SHOWCASE: ShowcaseGroup[] = [
       },
     ],
   },
+  {
+    id: 'thjonusta',
+    title: 'Þjónusta & verkstæði',
+    blurb: 'Fyrirtæki þar sem traust, skýr verð og einfalt samband skipta mestu máli.',
+    items: [
+      {
+        route: '/preview/bilageirinn',
+        name: 'Bílageirinn',
+        sector: 'Réttingar og sprautun',
+        location: 'Reykjanesbær',
+        blurb:
+          'Réttingaverkstæði sagt með nákvæmni flugvirkjans, með viðurkenningu Toyota og Kia og bílaláni á meðan viðgerð stendur.',
+        image: img('photo-1625047509168-a7026f36de04'),
+        accent: '#E8A23D',
+      },
+    ],
+  },
 ]
 
 /** Flat, ordered list of every showcased redesign (Weider excluded by construction). */
