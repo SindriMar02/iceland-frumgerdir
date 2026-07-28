@@ -260,6 +260,10 @@ ${THEME_CSS}
     position: absolute; left: 0; bottom: 0; z-index: 5; pointer-events: none;
     padding: 0 var(--thg-gutter) var(--thg-u32);
   }
+  /* The label and the progress bar are pinned to the bottom of the same
+     sticky viewport as the panels, so panel content has to clear them or the
+     two sets of text sit on top of each other. */
+  .thg-panel > .thg-container:last-child { padding-bottom: calc(var(--thg-u32) + 3.25rem); }
   .thg-progress {
     display: block; position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
     height: 3px; transform-origin: left center; transform: scaleX(0);
@@ -925,7 +929,7 @@ export default function Page() {
             { scale: 1, opacity: 1 },
             {
               scale: 2, opacity: 0, ease: EASE.in, transformOrigin: '50% 50%',
-              scrollTrigger: { trigger: journeyEl, start: '85% bottom', end: 'bottom top', scrub: 0.5 },
+              scrollTrigger: { trigger: journeyEl, start: '92% bottom', end: 'bottom bottom', scrub: 0.4 },
             })
         }
 
@@ -1036,18 +1040,14 @@ export default function Page() {
               },
             }))
           } else if (kind === 'p') {
-            splits.push(SplitText.create(el, {
-              type: 'lines', mask: 'lines', autoSplit: false,
-              onSplit: (self) => {
-                gsap.fromTo(self.lines,
-                  { yPercent: 112 },
-                  {
-                    yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: 0.08,
-                    scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
-                  })
-                return undefined
-              },
-            }))
+            /* Deliberately NOT SplitText lines: it measures before layout
+               settles and can lock every word into its own block wrapper. */
+            gsap.fromTo(el,
+              { opacity: 0, y: 18 },
+              {
+                opacity: 1, y: 0, duration: DUR.m, ease: EASE.out,
+                scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
+              })
           } else if (kind === 'line') {
             gsap.fromTo(el,
               { scaleX: 0 },
