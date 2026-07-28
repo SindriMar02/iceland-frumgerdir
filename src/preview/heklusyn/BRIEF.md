@@ -214,3 +214,45 @@ alternating bands → repeating SectionHead → card grid → centred sign-off).
   `fetchpriority="high"`.
 - Do **not** run `npm run build` — the lead does that.
 - Do not edit `App.tsx`, `companies.ts` or `package.json` — the lead wires those.
+
+---
+
+# ERA-FIDELITY ADDENDUM (2026-07-28) — OVERRIDES THE BRIEF ABOVE WHERE THEY CONFLICT
+
+The first build kept ERA's numbers and lost ERA's behavior. Sindri's verdict: "looks and
+behaves nothing like the website I gave you." This addendum makes the page BE the ERA system.
+
+**REVOKED:** the "arches/domes banned" rule in §1. That was the lead's error. The arch/dome/
+aperture vocabulary is the SYSTEM's shape language, not ERA's brand. What stays banned is only
+brand: quatrefoil mark, bougainvillea, plum/sky/blush palette, Ambroise François/Sloop Script,
+their copy and photography.
+
+**MANDATORY DEVICES — the lead verifies each in the DOM; "could not honour" is not accepted:**
+
+1. **Arch aperture preloader** (teardown §5.1): 4-layer `mask-composite: add` aperture opening
+   over the wordmark. Hard cap 2.5s tied to real image load, sessionStorage-once,
+   reduced-motion and crawlers skip it entirely (content beneath always in DOM).
+2. **Dive-in hero** (teardown §3 §1): hero scroll area ≥300vh; scrub drives scale 1 → ~1.8
+   from origin `50% 75%` while the text layers parallax out at different rates. The current
+   1 → 1.12 is not a dive.
+3. **Dome rise** (teardown §3 §2 + Phase 14): the Landið section rises as a full-width dome,
+   `border-top-left/right-radius: 50vw`, with `word-spacing` 0 → 10rem scrubbed on its
+   heading as the dome crests.
+4. **The six reveal primitives FOR REAL** (teardown §5.7): GSAP SplitText `type:'words,chars'`
+   for `h`/`a`, masked lines for `p`, clip wipe for `line`, skew+counter-scale for `slide`.
+   No IntersectionObserver whole-element fades as substitutes. Keep `.hk-word { display:
+   inline-block; white-space: nowrap }` (see [[gsap-splittext-clearprops-traps]] — no mask
+   option, mask in CSS; never clearProps:'all').
+5. **10-point shutter merge** for Árstíðirnar (teardown §3 §11): two polygons converge,
+   MERGE, and push through — not a simple crossfade.
+6. **Footer aperture close** (teardown Phase 14): as Fyrirspurn arrives, the page above clips
+   into `inset(~8% ~22%)` and scales to ~0.75 behind it.
+7. **Lenis** global smooth scroll + `gsap.ticker.lagSmoothing(0)`; scrubbed values read
+   through it. Native fallback under reduced motion.
+8. **Per-element chrome theming** (teardown §5.4): wordmark, nav and CTA each re-theme on
+   THEIR OWN centre crossing a boundary — three distinct trigger points, not one.
+
+**UNCHANGED:** all facts, prices, Tölvumynd labelling, palette, type, copy. All safety rules:
+fromTo toward resting state + 2s failsafe (`opacity:1, clearProps:'transform,clipPath'` ONLY),
+full reduced-motion coverage (everything visible, nothing scrubbed), zero-JS text visibility,
+no CSS transition on scrub-written properties, `hk-` prefixes, AA contrast, no dashes in copy.

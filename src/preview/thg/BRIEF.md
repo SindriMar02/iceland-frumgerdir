@@ -199,3 +199,39 @@ colossal centred sign-off.
   marina-lounge, marina-bar, konsulat-street, konsulat-room, konsulat-bath,
   saa-vik-1, saa-vik-2, eir-1, hrafnista-1, von-1, mark` (all `.jpg`).
 - Do **not** run `npm run build`. Do not edit `App.tsx`, `companies.ts`, `package.json`.
+
+---
+
+# ERA-FIDELITY ADDENDUM (2026-07-28) — OVERRIDES THE BRIEF ABOVE WHERE THEY CONFLICT
+
+The first build kept ERA's numbers and lost ERA's behavior. This addendum makes the page BE
+the ERA system. Deliberately a DIFFERENT set-piece subset from the Heklusýn page: no
+preloader here, no dome, no footer aperture.
+
+**MANDATORY DEVICES — the lead verifies each in the DOM; "could not honour" is not accepted:**
+
+1. **Shutter hero, full choreography** (teardown §3 §11): the two panels converge, MERGE into
+   one covering plane, then push THROUGH revealing the photo — three beats, not a fade-out.
+   Time-based, content beneath always in DOM.
+2. **Horizontal journey, ERA-tuned** (teardown §5.6): section height = track scrollWidth for
+   1:1 mapping; ease `cubic-bezier(.25,0,.75,1)` (horScroll), `scrub: .25`; tween stashed for
+   `containerAnimation`; **differential title drift** — each panel's project name travels at a
+   slightly different rate than its photo. Inside panels, char reveals ride containerAnimation.
+   Mobile + reduced-motion stay the existing scroll-snap rail.
+3. **Recede-to-dissolve** (teardown Phase 14): the journey exits by receding — scale toward
+   ~2 with fade on the outgoing layer — into Innandyra. Not a hard cut.
+4. **Growing-arc CTA** (teardown Phase 14): the Samband CTA draws an arc on hover/focus that
+   deliberately STOPS at half. `@media (min-width:992px)` hover only; CSS custom-property
+   state machine, zero JS hover.
+5. **The six reveal primitives FOR REAL** (teardown §5.7): SplitText `words,chars` headings
+   (keep `.thg-word` nowrap fix), masked lines, clip wipes. No whole-element IO fades as
+   substitutes for h/p.
+6. **Lenis** global + `lagSmoothing(0)` on desktop no-preference; native scroll otherwise.
+7. **Per-project chrome theming sharpened**: chrome re-themes per panel DURING the journey,
+   0.4s, driven by journey progress, each fixed element on its own trigger point.
+
+**UNCHANGED:** the seven verified projects and every published/omitted field, Konsúlat once,
+SÁÁ framing, palette, type, copy. All safety rules: fromTo toward resting + failsafe
+(`opacity:1, clearProps:'transform,clipPath'` ONLY — never 'all'), full reduced-motion
+coverage, zero-JS text visibility, no CSS transition on scrub-written properties, `thg-`
+prefixes, AA contrast on every pair, no dashes in copy.
