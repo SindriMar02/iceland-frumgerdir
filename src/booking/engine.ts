@@ -209,7 +209,7 @@ export function quote(cfg: BusinessConfig, req: BookingRequest): Quote {
   if (p.perPerson && extraPeople > 0) {
     const chargeable = cfg.unit === 'NIGHT' ? extraPeople * Math.max(1, units) : extraPeople
     lines.push({
-      label: `${extraPeople} ${extraPeople === 1 ? 'til viðbótar' : 'til viðbótar'}`,
+      label: `${extraPeople} ${extraPeople === 1 ? 'gestur til viðbótar' : 'gestir til viðbótar'}`,
       amount: p.perPerson * chargeable,
     })
   }
@@ -295,6 +295,89 @@ export function freeSlots(
   return slotStarts(availability, date, resource).filter(
     (m) => loadOn(bookings, cfg.unit, resourceId, date, m) < resource.capacity,
   )
+}
+
+/* ── the DEPARTURE roll-up ────────────────────────────────────────────────
+   An owner never thinks in bookings, they think in departures: "the 10:00 has
+   five riders across three bookings, so six horses". Everything the schedule
+   views need is derived here, purely, from the same booking list. */
+
+export interface Departure {
+  date: DateStr
+  startMinute?: Minutes
+  resourceId: string
+  resourceName: string
+  capacity: number
+  /** Live bookings on this departure, requested and confirmed. */
+  bookings: Booking[]
+  /** People on CONFIRMED bookings. What you saddle horses for. */
+  riders: number
+  /** People on bookings still awaiting an answer. */
+  pending: number
+  /** Seats left against capacity, counting both. */
+  left: number
+}
+
+/** Departures on a date that have at least one live booking. */
+export function departuresOn(cfg: BusinessConfig, bookings: Booking[], date: DateStr): Departure[] {
+  const live = bookings.filter(
+    (b) => LIVE.includes(b.status) && occupiedDates(b, cfg.unit).includes(date),
+  )
+  const key = (b: Booking) => `${b.resourceId}@${b.startMinute ?? 0}`
+  const groups = new Map<string, Booking[]>()
+  for (const b of live) groups.set(key(b), [...(groups.get(key(b)) ?? []), b])
+
+  return [...groups.entries()]
+    .map(([k, list]) => {
+      const resource = cfg.resources.find((r) => r.id === list[0].resourceId)
+      const riders = list.filter((b) => b.status === 'CONFIRMED').reduce((s, b) => s + b.people, 0)
+      const pending = list.filter((b) => b.status === 'REQUESTED').reduce((s, b) => s + b.people, 0)
+      const capacity = resource?.capacity ?? 0
+      return {
+        date,
+        startMinute: list[0].startMinute,
+        resourceId: list[0].resourceId,
+        resourceName: resource?.name ?? k,
+        capacity,
+        bookings: [...list].sort((a, b) => (a.status === 'REQUESTED' ? -1 : 1)),
+        riders,
+        pending,
+        left: Math.max(0, capacity - riders - pending),
+      }
+    })
+    .sort((a, b) => (a.startMinute ?? 0) - (b.startMinute ?? 0))
+}
+
+/** One day summarised, for painting a calendar. */
+export interface DaySummary {
+  date: DateStr
+  open: boolean
+  departures: number
+  riders: number
+  pending: number
+}
+
+export function daySummary(cfg: BusinessConfig, bookings: Booking[], date: DateStr): DaySummary {
+  const deps = departuresOn(cfg, bookings, date)
+  const anyOpen = cfg.resources.some((r) => isOpenOn(resolve(cfg, r).availability, date))
+  return {
+    date,
+    open: anyOpen,
+    departures: deps.length,
+    riders: deps.reduce((s, d) => s + d.riders, 0),
+    pending: deps.reduce((s, d) => s + d.pending, 0),
+  }
+}
+
+export function weekSummary(
+  cfg: BusinessConfig, bookings: Booking[], from: DateStr, days = 14,
+): DaySummary[] {
+  return Array.from({ length: days }, (_, i) => daySummary(cfg, bookings, addDays(from, i)))
+}
+
+/** Everyone to ring if a departure has to be cancelled. */
+export function contactsFor(dep: Departure): { name: string; phone: string; people: number }[] {
+  return dep.bookings.map((b) => ({ name: b.customer.name, phone: b.customer.phone, people: b.people }))
 }
 
 /** Human Icelandic for a rejection, safe to show a customer. */

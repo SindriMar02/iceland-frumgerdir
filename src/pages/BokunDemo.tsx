@@ -107,8 +107,8 @@ function GuestView({ bookings }: { bookings: Booking[] }) {
       note: [note.trim(), children ? `${children} börn (afsláttur)` : ''].filter(Boolean).join(' · ') || undefined,
       quote: {
         lines: [
-          ...(adults ? [{ label: `${adults} fullorðnir`, amount: adults * tour.price }] : []),
-          ...(children ? [{ label: `${children} börn`, amount: children * (tour.price - CHILD_DISCOUNT) }] : []),
+          ...(adults ? [{ label: `${adults} ${adults === 1 ? 'fullorðinn' : 'fullorðnir'}`, amount: adults * tour.price }] : []),
+          ...(children ? [{ label: `${children} ${children === 1 ? 'barn' : 'börn'}`, amount: children * (tour.price - CHILD_DISCOUNT) }] : []),
         ],
         total, deposit: 0, units: 1, estimate: true,
       },
@@ -136,7 +136,7 @@ function GuestView({ bookings }: { bookings: Booking[] }) {
             <dt style={{ color: MUTE }}>Dagur</dt><dd>{prettyDate(date)} kl. {hhmm(time!)}</dd>
           </div>
           <div className="flex justify-between border-b py-2" style={{ borderColor: HAIR }}>
-            <dt style={{ color: MUTE }}>Knapar</dt><dd>{adults} fullorðnir{children ? `, ${children} börn` : ''}</dd>
+            <dt style={{ color: MUTE }}>Knapar</dt><dd>{adults} {adults === 1 ? 'fullorðinn' : 'fullorðnir'}{children ? `, ${children} ${children === 1 ? 'barn' : 'börn'}` : ''}</dd>
           </div>
           <div className="flex justify-between py-2">
             <dt style={{ color: MUTE }}>Áætlað verð</dt><dd style={{ color: TERRA }}>{isk(total)}</dd>
@@ -212,8 +212,8 @@ function GuestView({ bookings }: { bookings: Booking[] }) {
             3 · Knapar
           </span>
           <div className="flex gap-3">
-            <Stepper label="Fullorðnir" value={adults} min={0} max={tour.maxRiders} onChange={setAdults} />
-            <Stepper label={`Börn (${CHILD_DISCOUNT / 1000}þ afsl.)`} value={children} min={0} max={tour.maxRiders} onChange={setChildren} />
+            <Stepper label="Fullorðnir" value={adults} min={0} max={tour.maxRiders - children} onChange={setAdults} />
+            <Stepper label={`Börn (${CHILD_DISCOUNT / 1000}þ afsl.)`} value={children} min={0} max={tour.maxRiders - adults} onChange={setChildren} />
           </div>
         </div>
       </fieldset>
@@ -503,8 +503,9 @@ function SetupView() {
       <div className="rounded-2xl p-6 sm:p-8" style={{ background: PINE, color: BONE }}>
         <h4 style={{ fontFamily: SERIF, fontSize: '1.3rem' }}>Að breyta einhverju</h4>
         <p className="mt-3 max-w-[56ch]" style={{ lineHeight: 1.65, color: 'rgba(238,231,218,.86)' }}>
-          Hækka verð, loka degi, breyta hámarksfjölda eða bæta við ferð: það er allt í þessari
-          töflu og tekur eina mínútu. Þið þurfið aldrei að hafa samband við mig til að breyta verði.
+          Í fullbúnu kerfi breytið þið ferðum, verði og hámarksfjölda sjálf í vefumsjónarkerfinu,
+          og lokið einstökum dögum beint hér í bókunarhlutanum. Í þessu sýnishorni er taflan
+          aðeins til að sýna hvaða stillingar liggja að baki.
         </p>
       </div>
     </div>
