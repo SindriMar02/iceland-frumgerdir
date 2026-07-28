@@ -133,6 +133,7 @@ const KidkaPage = lazy(() => import('./preview/kidka/Page'))
 const HeklusynPage = lazy(() => import('./preview/heklusyn/Page'))
 const ThgPage = lazy(() => import('./preview/thg/Page'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
+const BokunDemo = lazy(() => import('./pages/BokunDemo'))
 const KiropraktorstofanPage = lazy(() => import('./preview/kiropraktorstofan/Page'))
 const HundahotelidPage = lazy(() => import('./preview/hundahotelid/Page'))
 const GitarinnPage = lazy(() => import('./preview/gitarinn/Page'))
@@ -302,6 +303,7 @@ export default function App() {
             <Route path="/preview/heklusyn" element={<HeklusynPage />} />
             <Route path="/preview/thg" element={<ThgPage />} />
             <Route path="/preview/tannlaeknavaktin" element={<TannlaeknavaktinPage />} />
+            <Route path="/demo/bokun" element={<BokunDemo />} />
             <Route path="/preview/kiropraktorstofan" element={<KiropraktorstofanPage />} />
             <Route path="/preview/hundahotelid" element={<HundahotelidPage />} />
             <Route path="/preview/gitarinn" element={<GitarinnPage />} />
