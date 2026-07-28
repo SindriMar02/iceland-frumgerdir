@@ -339,7 +339,7 @@ export function departuresOn(cfg: BusinessConfig, bookings: Booking[], date: Dat
         resourceId: list[0].resourceId,
         resourceName: resource?.name ?? k,
         capacity,
-        bookings: [...list].sort((a, b) => (a.status === 'REQUESTED' ? -1 : 1)),
+        bookings: [...list].sort((a) => (a.status === 'REQUESTED' ? -1 : 1)),
         riders,
         pending,
         left: Math.max(0, capacity - riders - pending),
