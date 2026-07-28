@@ -177,12 +177,21 @@ const PAGE_STYLES = `
    Perspective lives on the reveal-marked element itself: it is the direct
    parent of the split char spans, which is exactly where a 3D-transform
    ancestor needs to sit. ═══ */
-.hk-word { display: inline-block; white-space: nowrap; vertical-align: top; }
+.hk-word {
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: top;
+  overflow: hidden;
+  padding-bottom: 0.20em;
+  margin-bottom: -0.20em;
+}
 .hk-char {
+  display: inline-block;
+  will-change: transform;
   backface-visibility: hidden;
   transform: translateZ(0);
- display: inline-block; vertical-align: top; will-change: transform, opacity; }
-[data-hk-reveal="h"], [data-hk-reveal="a"] { perspective: 900px; line-height: 1.22; }
+}
+[data-hk-reveal="h"], [data-hk-reveal="a"] { line-height: 1.22; }
 [data-hk-reveal="p"] { line-height: 1.6; }
 
 /* ═══ §1 Arrival — the dive-in hero. ≥300vh scrubbed runway; a sticky inner
@@ -1396,9 +1405,9 @@ export default function HeklusynPage() {
             type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: false,
             onSplit: (self) => {
               gsap.fromTo(self.chars,
-                { opacity: 0, yPercent: 50, rotateY: 34 },
+                { yPercent: 112 },
                 {
-                  opacity: 1, yPercent: 0, rotateY: 0, duration: DUR.l, ease: EASE.out, stagger: STAGGER * 0.5,
+                  yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: STAGGER * 0.5,
                   delay: DELAY, clearProps: 'transform',
                   scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
                 })
@@ -1410,9 +1419,9 @@ export default function HeklusynPage() {
             type: 'words,chars', wordsClass: 'hk-word', charsClass: 'hk-char', autoSplit: false,
             onSplit: (self) => {
               gsap.fromTo(self.chars,
-                { opacity: 0, rotateX: 34, x: '1.6em', transformOrigin: 'center bottom' },
+                { yPercent: 112, x: '0.5em' },
                 {
-                  opacity: 1, rotateX: 0, x: '0em', duration: DUR.l, ease: EASE.out, stagger: STAGGER,
+                  yPercent: 0, x: '0em', duration: DUR.l, ease: EASE.out, stagger: STAGGER,
                   delay: DELAY, clearProps: 'transform',
                   scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
                 })

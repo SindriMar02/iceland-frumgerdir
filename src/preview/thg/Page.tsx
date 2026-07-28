@@ -40,9 +40,9 @@ const BRICK = '#A8412A'
 const PAPER = '#E8E6E1'
 const PAPER_MUTED = '#A7A6A3'
 
-const DISPLAY = "'THG Apfel', 'Helvetica Neue', Arial, sans-serif"
+const DISPLAY = "'THG Sentient', Georgia, 'Times New Roman', serif"
 const BODY = "'THG Switzer', 'Helvetica Neue', Arial, sans-serif"
-const FONTS_APFEL = `${import.meta.env.BASE_URL}fonts/apfel/`
+const FONTS_SENTIENT = `${import.meta.env.BASE_URL}fonts/sentient/`
 const FONTS_SWITZER = `${import.meta.env.BASE_URL}fonts/switzer/`
 
 /* Duration ladder + easing — BRIEF §5.3 / era teardown Phase 6, verbatim. */
@@ -82,9 +82,10 @@ const THEME_CSS = `
 `
 
 const PAGE_STYLES = `
-@font-face { font-family:'THG Apfel'; src:url('${FONTS_APFEL}ApfelGrotezk-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Apfel'; src:url('${FONTS_APFEL}ApfelGrotezk-Mittel.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Apfel'; src:url('${FONTS_APFEL}ApfelGrotezk-Fett.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
 @font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
 @font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
 @font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Semibold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
@@ -178,16 +179,21 @@ ${THEME_CSS}
 .thg-root[data-thg-chrome-ground='light'] .thg-chrome-scrim {
   background: linear-gradient(180deg, rgba(232,230,225,.88) 0%, rgba(232,230,225,.55) 46%, rgba(232,230,225,0) 100%);
 }
+.thg-word {
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: top;
+  overflow: hidden;
+  padding-bottom: 0.20em;
+  margin-bottom: -0.20em;
+}
 .thg-char {
+  display: inline-block;
+  will-change: transform;
   backface-visibility: hidden;
   transform: translateZ(0);
-
-  display: inline-block;
-  vertical-align: top;
-  will-change: transform, opacity;
 }
 /* Keeps each word atomic so a line never breaks between two characters. */
-.thg-word { display: inline-block; white-space: nowrap; vertical-align: top; }
 .thg-hero-h1 > div, .thg-hero-h1 > span,
 [data-thg-reveal='h'] > div, [data-thg-reveal='h'] > span { display: inline-block; vertical-align: top; }
 .thg-lines { line-height: 1.5; }
@@ -985,8 +991,8 @@ export default function Page() {
               // (beat 3 starts at ~0.8s into the timeline above).
               gsap.fromTo(
                 self.chars,
-                { opacity: 0, yPercent: 60, rotateY: 28 },
-                { opacity: 1, yPercent: 0, rotateY: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02, delay: 1.0, clearProps: 'transform' },
+                { yPercent: 112 },
+                { yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02, delay: 1.0, clearProps: 'transform' },
               )
               return undefined
             },
@@ -1025,9 +1031,9 @@ export default function Page() {
               type: 'words,chars', wordsClass: 'thg-word', charsClass: 'thg-char', autoSplit: false,
               onSplit: (self) => {
                 gsap.fromTo(self.chars,
-                  { opacity: 0, yPercent: 55, rotateY: 30 },
+                  { yPercent: 112 },
                   {
-                    opacity: 1, yPercent: 0, rotateY: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02,
+                    yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02,
                     clearProps: 'transform',
                     scrollTrigger: trig(el, 'top 85%', 'left 85%', { toggleActions: 'play none none none', once: true }),
                   })
@@ -1063,9 +1069,9 @@ export default function Page() {
               type: 'chars', charsClass: 'thg-char', autoSplit: false,
               onSplit: (self) => {
                 gsap.fromTo(self.chars,
-                  { opacity: 0, rotateX: 34, x: '1.2vw', transformOrigin: 'center bottom' },
+                  { yPercent: 112, x: '0.4vw' },
                   {
-                    opacity: 1, rotateX: 0, x: '0vw', duration: DUR.l, ease: EASE.out, stagger: 0.05,
+                    yPercent: 0, x: '0vw', duration: DUR.l, ease: EASE.out, stagger: 0.05,
                     clearProps: 'transform',
                     scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
                   })
@@ -1116,7 +1122,7 @@ export default function Page() {
         }
 
         /* The track's scrollWidth (and so .thg-journey's JS-set height) is
-           only correct once the display font (Apfel Grotezk changes
+           only correct once the display font (Sentient changes
            panel-name widths) and every in-track image have finished
            loading — resync + refresh after both so the runway height and
            every trigger's end/x are measured against the true track
