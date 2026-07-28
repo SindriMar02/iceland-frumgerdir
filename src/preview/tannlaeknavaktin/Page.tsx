@@ -263,94 +263,61 @@ function H2({ children, id }: { children: React.ReactNode; id?: string }) {
   )
 }
 
-/* ═══ THE SIGNATURE — the day dial ═══════════════════════════════════════
-   Their one genuinely confusing fact is that after 16:00, and all weekend, a
-   45.590 kr call-out charge lands on top of the price list. Nobody phoning at
-   21:00 knows that. So: drag across the day and the price answers back. */
+/* ═══ WHEN THE SURCHARGE APPLIES ═════════════════════════════════════════
+   This replaced an interactive price dial that was MISLEADING: it showed
+   "9.200 kr." as the cost of coming at a given hour, but 9.200 is the price of
+   a skoðun alone and a real emergency visit adds deyfing, röntgen, fylling. It
+   also printed a 54.790 kr total that appears nowhere on their price list, and
+   a slider implied you choose your arrival time when appointments are actually
+   day-by-day by phone. Two plain states, no invented arithmetic. */
 
-function DayDial() {
-  const [hour, setHour] = useState(() => {
-    const h = new Date().getHours()
-    return Math.max(8, Math.min(22, h))
-  })
-  const surcharge = hour >= ONCALL_FROM
-  const pct = ((hour - 8) / 14) * 100
-
+function WhenBand() {
   return (
-    <section id="hvenaer" className="scroll-mt-24" aria-labelledby="dial-h">
+    <section id="hvenaer" className="scroll-mt-24" aria-labelledby="when-h">
       <div className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-28">
         <Rise>
-          <Bracket color={REDINK}>Reiknaðu út</Bracket>
-          <H2 id="dial-h">Hvenær þú kemur breytir verðinu</H2>
-          <p className="mt-5 max-w-[52ch]" style={{ fontFamily: BODY, color: SOFT, fontSize: '1.08rem', lineHeight: 1.6 }}>
-            Dragðu yfir daginn. Eftir klukkan 16 á virkum dögum, og allar helgar, þarf að kalla út
-            tannlækni á bakvakt og þá bætist álagið ofan á verðskrána.
+          <Bracket color={REDINK}>Verðið</Bracket>
+          <H2 id="when-h">Hvenær þú kemur skiptir máli</H2>
+          <p className="mt-5 max-w-[54ch]" style={{ color: SOFT, fontSize: '1.08rem', lineHeight: 1.62 }}>
+            Eftir klukkan 16 á virkum dögum, og allar helgar, þarf að kalla út tannlækni á bakvakt.
+            Þá bætist álag ofan á verðskrána.
           </p>
         </Rise>
 
-        <Rise delay={1}>
-          <div
-            className="mt-12 p-6 sm:p-10"
-            style={{ background: surcharge ? '#FFF1F0' : '#FFFFFF', border: `1px solid ${HAIR}`, transition: 'background-color .5s ease' }}
-          >
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p style={{ fontFamily: MONO, fontSize: '.76rem', letterSpacing: '.14em', color: MUTE }} className="uppercase">
-                  Skoðun klukkan {hhmm(hour)}
-                </p>
-                <p
-                  className="mt-2"
-                  style={{
-                    fontFamily: DISPLAY,
-                    fontWeight: 600,
-                    fontSize: 'clamp(2.6rem, 8vw, 5rem)',
-                    letterSpacing: '-.035em',
-                    lineHeight: 1,
-                    color: surcharge ? RED : INK,
-                    transition: 'color .4s ease',
-                  }}
-                >
-                  {surcharge ? '54.790 kr.' : '9.200 kr.'}
-                </p>
-              </div>
-              <p className="max-w-[30ch]" style={{ fontFamily: BODY, color: SOFT, lineHeight: 1.55 }}>
-                {surcharge ? (
-                  <>
-                    9.200 kr. skoðun og <strong style={{ color: REDINK }}>45.590 kr. álag</strong> vegna útkalls
-                    á bakvakt.
-                  </>
-                ) : (
-                  <>Dagvinnutaxti. Ekkert álag leggst á verðskrána á þessum tíma.</>
-                )}
+        <div className="mt-12 grid gap-5 md:grid-cols-2">
+          <Rise>
+            <div className="h-full rounded-2xl bg-white p-8 sm:p-10" style={{ border: `1px solid ${HAIR}` }}>
+              <p style={{ fontFamily: MONO, fontSize: '.76rem', letterSpacing: '.13em', color: GREEN }} className="uppercase">
+                Dagvinnutími
+              </p>
+              <p className="mt-3" style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 'clamp(1.5rem, 3.6vw, 2.1rem)', letterSpacing: '-.025em', lineHeight: 1.15 }}>
+                Verðskráin gildir óbreytt
+              </p>
+              <p className="mt-4" style={{ color: SOFT, lineHeight: 1.6 }}>
+                Virka daga frá klukkan 8 til 16. Ekkert álag leggst ofan á.
               </p>
             </div>
+          </Rise>
 
-            <div className="relative mt-10">
-              <label htmlFor="tlv-hour" className="sr-only">
-                Veldu komutíma dagsins
-              </label>
-              <input
-                id="tlv-hour"
-                type="range"
-                min={8}
-                max={22}
-                step={1}
-                value={hour}
-                onChange={(e) => setHour(Number(e.target.value))}
-                className={`tlv-range ${FOCUS}`}
-                aria-valuetext={`Klukkan ${hhmm(hour)}, ${surcharge ? 'með álagi' : 'án álags'}`}
-                style={{ '--pct': `${pct}%` } as React.CSSProperties}
-              />
-              <div className="mt-3 flex justify-between" style={{ fontFamily: MONO, fontSize: '.74rem', color: MUTE }}>
-                <span>08:00</span>
-                <span style={{ color: REDINK }}>16:00 · álag hefst</span>
-                <span>22:00</span>
-              </div>
+          <Rise delay={1}>
+            <div className="h-full rounded-2xl p-8 sm:p-10" style={{ background: RED, color: '#fff' }}>
+              <p style={{ fontFamily: MONO, fontSize: '.76rem', letterSpacing: '.13em', color: 'rgba(255,255,255,.85)' }} className="uppercase">
+                Kvöld og helgar
+              </p>
+              <p className="mt-3" style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 'clamp(2.2rem, 6vw, 3.4rem)', letterSpacing: '-.035em', lineHeight: 1 }}>
+                {PRICE_SURCHARGE.amount}
+              </p>
+              <p className="mt-4" style={{ color: 'rgba(255,255,255,.94)', lineHeight: 1.6 }}>
+                Álag sem bætist ofan á verðskrána þegar kalla þarf út tannlækni á bakvakt.
+              </p>
             </div>
-          </div>
-          <p className="mt-4" style={{ fontFamily: MONO, fontSize: '.76rem', color: MUTE, lineHeight: 1.6 }}>
-            Verð eru af verðskrá Tannlæknavaktarinnar. Vakthafandi tannlæknir metur meðferðarþörf,
-            og önnur verk bætast við samkvæmt verðskránni hér að neðan.
+          </Rise>
+        </div>
+
+        <Rise delay={2}>
+          <p className="mt-6 max-w-[62ch]" style={{ fontFamily: MONO, fontSize: '.8rem', color: MUTE, lineHeight: 1.65 }}>
+            Verkin sjálf eru síðan samkvæmt verðskránni hér að neðan, og vakthafandi tannlæknir
+            metur meðferðarþörf í hvert sinn.
           </p>
         </Rise>
       </div>
@@ -513,8 +480,7 @@ function Assistant() {
         <div ref={logRef} className="tlv-log" role="log" aria-live="polite">
           {turns.length === 0 && (
             <p style={{ fontFamily: BODY, color: SOFT, lineHeight: 1.6 }}>
-              Góðan dag. Ég kann opnunartímann, verðskrána, hvað telst bráðatilvik og hvar er opið.
-              Spyrðu mig endilega.
+              Góðan dag. Hvað get ég gert fyrir þig?
             </p>
           )}
           {turns.map((t, i) => (
@@ -592,7 +558,7 @@ export default function TannlaeknavaktinPage() {
     }
   }, [menu])
 
-  const dial = useMemo(() => <DayDial />, [])
+  const dial = useMemo(() => <WhenBand />, [])
 
   return (
     <div style={{ background: BONE, color: INK, fontFamily: BODY, minHeight: '100vh' }}>
@@ -637,29 +603,6 @@ export default function TannlaeknavaktinPage() {
           transition: transform .34s cubic-bezier(.22,.61,.36,1);
         }
         .tlv-navlink:hover::after, .tlv-navlink:focus-visible::after { transform: scaleX(1); }
-
-        /* the day dial slider */
-        .tlv-range { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; cursor: grab; }
-        .tlv-range:active { cursor: grabbing; }
-        .tlv-range::-webkit-slider-runnable-track {
-          height: 6px; border-radius: 999px;
-          background: linear-gradient(90deg, ${GREEN} 0 57.14%, ${RED} 57.14% 100%);
-        }
-        .tlv-range::-moz-range-track {
-          height: 6px; border-radius: 999px;
-          background: linear-gradient(90deg, ${GREEN} 0 57.14%, ${RED} 57.14% 100%);
-        }
-        .tlv-range::-webkit-slider-thumb {
-          -webkit-appearance: none; appearance: none;
-          width: 34px; height: 34px; margin-top: -14px;
-          border-radius: 999px; background: #fff; border: 3px solid ${INK};
-          box-shadow: 0 3px 14px rgba(27,22,19,.22);
-        }
-        .tlv-range::-moz-range-thumb {
-          width: 34px; height: 34px; border-radius: 999px;
-          background: #fff; border: 3px solid ${INK};
-          box-shadow: 0 3px 14px rgba(27,22,19,.22);
-        }
 
         /* the floating assistant */
         .tlv-bubble {
