@@ -1,10 +1,10 @@
 import { ArchFrame } from './ArchFrame'
 
 /**
- * THE ASYMMETRIC PAIR — device 3 of the Amour Liquide transplant.
- * grid-template-columns: 72% 28%; the narrow column is a tall pill
- * (border-radius: 400px 400px 0 0) with a negative margin-left so it kisses
- * the big arch frame. Collapses to a single column under 768px.
+ * THE ASYMMETRIC PAIR — device 2 of the v2 brief. grid-template-columns:
+ * 72% 28%; the narrow column is a tall pill (border-radius: 400px 400px 0 0)
+ * with a negative margin-left so it kisses the big arch frame. Collapses to
+ * a single column under 768px.
  */
 export function FramePair({
   big,

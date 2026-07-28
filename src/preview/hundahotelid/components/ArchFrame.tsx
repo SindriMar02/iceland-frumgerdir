@@ -5,17 +5,18 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 gsap.registerPlugin(ScrollTrigger)
 
 /**
- * THE KENNEL-DOOR ARCH — devices 1, 2 and 4 of the Amour Liquide transplant
- * (see amourliquide-teardown.md, mandated in BRIEF-hundahotelid.md).
+ * THE KENNEL-DOOR ARCH — device 1 of the v2 brief (BRIEF2-hundahotelid.md),
+ * built on the Amour Liquide arch-mask grammar (amourliquide-teardown.md),
+ * recolored and reshaped for this brand.
  *
- * 1. The frame is clipped by an SVG clipPath in objectBoundingBox units,
- *    referenced as clip-path: url(#hh-arch) / url(#hh-arch-lg), swapped at
- *    992px via the --hh-clip custom property set on .hh-root (hh.css).
- * 2. Inside it, an oversized image (top:-4%; bottom:-4%, 108% height) that
- *    GSAP scrubs with a small negative-parallax drift so the photo can
- *    never reveal a gap at the mask edge, reversible with scroll direction.
- * 4. A small warm-tone caption sits directly under the frame at a literal
- *    12px / 16px (ml/mt) rhythm, never overlaid on the photo itself.
+ * - The frame is clipped by an SVG clipPath in objectBoundingBox units,
+ *   referenced as clip-path: url(#hh-arch) / url(#hh-arch-lg), swapped at
+ *   992px via the --hh-clip custom property set on .hh-root (hh.css).
+ * - Inside it, an oversized image (top:-4%; bottom:-4%, 108% height) that
+ *   GSAP scrubs with a small negative-parallax drift so the photo can
+ *   never reveal a gap at the mask edge, reversible with scroll direction.
+ * - A small warm-bronze caption sits directly under the frame at a literal
+ *   12px / 16px (ml/mt) rhythm, never overlaid on the photo itself.
  */
 export function ArchFrame({
   src,

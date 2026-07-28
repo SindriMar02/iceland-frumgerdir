@@ -1,8 +1,14 @@
 /**
- * KÍRÓPRAKTORSTOFA TRYGGVA JÓNASSONAR — "Fyrsta leyfið"
+ * KÍRÓPRAKTORSTOFA TRYGGVA JÓNASSONAR — "Fyrsta leyfið" (v2)
  * ---------------------------------------------------------------------------
  * Chiropractic clinic, Háaleitisbraut 66 (við Grensáskirkju), 103 Reykjavík.
- * Redesign concept, batch 13.
+ * Redesign concept, batch 13 REDO. v1 (light-paper, four MR/1971-split
+ * chapters) was rejected as generic AI slop; v2 is a dark chaptered case
+ * history in exactly the four chapters the redo brief specifies: 1977 (the
+ * licence), Meðferðin, Verðskráin, Stofan. All facts below carry over
+ * unchanged from the fact-checked v1 build; only CHAPTERS and the
+ * companyEntry presentation fields (accent/dark/thumb/photoCredit/audit/
+ * outreach) were updated for the new direction.
  *
  * SOURCES (fetched 2026-07-28 over plain HTTP with a desktop UA, their HTTPS
  * certificate is issued to plesk-web-11.vist.is and does not match their own
@@ -20,6 +26,9 @@
  *   generator meta tag + theme stylesheet  WordPress 4.8.25 on EightMedi Lite,
  *                                          verified directly in the fetched HTML
  *   ?page_id=583 ("Staðsetning" nav link)  returns their own 404 page, verified
+ *   Google Maps listing (checked 2026-07-28) unclaimed, zero reviews; competitor
+ *                                          "Kírópraktorstofa Íslands" shows 5.0
+ *                                          from 112 reviews, see public/.../real/HARVEST.md
  *
  * HONESTY: the "fyrsta opinbera starfsleyfi kírópraktors á Norðurlöndunum" claim
  * is printed on this page attributed to the practice's own account ("að sögn
@@ -32,9 +41,16 @@
 export const asset = (p: string) => `${import.meta.env.BASE_URL}kiropraktorstofan/${p}`
 
 export const IMG = {
-  leyfid: asset('leyfid-monument.jpg'),
-  stofan1977: asset('1977-kyrralif.jpg'),
+  /** Generated period stand-ins (no real archival photography exists, see
+   *  public/kiropraktorstofan/real/HARVEST.md). Treated with the D1 grade so
+   *  they sit consistently against the one real photograph below. */
+  doorway1977: asset('1977-kyrralif.jpg'),
+  document: asset('leyfid-monument.jpg'),
   hendur: asset('hendur-medferd.jpg'),
+  /** The one real, usable photograph found anywhere for this practice: the
+   *  clinic's own uploaded interior shot, Canon EOS M10, 2017-09-05. */
+  stofanReal: asset('real/stofan-2017-09-05.jpg'),
+  logo: asset('real/logo-main-100x100.png'),
 }
 
 /* ── identity ─────────────────────────────────────────────────────────── */
@@ -81,7 +97,7 @@ export const PRICE_VALID = 'Taxtinn tók gildi 1. janúar 2026 og gildir árið 
 export const PRICE_NOTE =
   'Komugjald er alltaf greitt, hvort sem meðferð er framkvæmd eða ekki. Sé forföllum ekki skilað með dags fyrirvara er greiddur sérstakur skróptaxti, 2.300 kr.'
 
-/* ── the licence facts (Kafli III spec row) ─────────────────────────────── */
+/* ── the licence facts (KAFLI 01 spec row) ──────────────────────────────── */
 export const LEYFID_FACTS = [
   { n: '01', label: 'Stúdent', value: 'MR, 1971' },
   { n: '02', label: 'Nám', value: 'AECC, Englandi, 1971-1976' },
@@ -89,7 +105,7 @@ export const LEYFID_FACTS = [
   { n: '04', label: 'Undirskrift', value: 'Matthías Bjarnason, ráðherra' },
 ]
 
-/* ── the examination method (Kafli IV spec row), condensed honestly from
+/* ── the examination method (KAFLI 02 spec row), condensed honestly from
  * their own /hvad-er-kiropraktor/ page ──────────────────────────────────── */
 export const EXAM_FACTS = [
   {
@@ -123,21 +139,27 @@ export const TREATMENT_LENGTH_NOTE =
 export const XRAY_NOTE =
   'Tryggvi hefur aldrei átt eða rekið röntgentæki. Þegar þörf er á myndgreiningu koma læknar að þeim rannsóknum.'
 
+export const PATIENT_COUNT_NOTE =
+  'Að eigin sögn hafa fleiri en 17.000 manns leitað til Tryggva frá því að stofan opnaði.'
+
 /* ── nav ──────────────────────────────────────────────────────────────── */
 
 export const NAV = [
-  { href: '#sagan', label: 'Sagan' },
-  { href: '#kiropraktor', label: 'Meðferðin' },
+  { href: '#leyfid', label: 'Leyfið' },
+  { href: '#medferdin', label: 'Meðferðin' },
   { href: '#verd', label: 'Verðskrá' },
   { href: '#stadsetning', label: 'Staðsetning' },
   { href: '#bokun', label: 'Bóka tíma' },
 ]
 
+/** Rail metadata only (D5 chapter progress rail) — the titles, abstracts and
+ *  ghost words for each chapter head are hardcoded per-chapter in Page.tsx,
+ *  same convention as v1. */
 export const CHAPTERS = [
-  { n: '01', year: '1971', short: 'MR', title: 'Nemandinn sem fór utan' },
-  { n: '02', year: '1977', short: 'Stofan', title: 'Fyrsti dagurinn á Klapparstíg' },
-  { n: '03', year: 'Leyfið', short: 'Leyfið', title: 'Landlæknir, Alþingi, undirskriftin' },
-  { n: '04', year: 'Í dag', short: 'Í dag', title: 'Áður en hnykkt er' },
+  { n: '01', short: '1977' },
+  { n: '02', short: 'Meðferðin' },
+  { n: '03', short: 'Verðskrá' },
+  { n: '04', short: 'Stofan' },
 ]
 
 /* ── JSON-LD ──────────────────────────────────────────────────────────── */
@@ -198,13 +220,13 @@ export const companyEntry = {
   ownerEmail: EMAIL,
   concept: 'Fyrsta leyfið',
   conceptTagline:
-    'A chaptered heritage page for the man who brought chiropractic care into legal existence in Iceland: MR to AECC, the 1977 opening, the landlæknir/Alþingi licence fight, ending at the reader’s own back and a working booking request. Warm paper chapters with one deliberate dark ink-blue chapter for the licence itself, no photography (none exists), typography and abstract signature imagery carrying the whole page.',
-  accent: '#1D3557',
-  dark: false,
+    'A dark, bound case history in four chapters: 1977 and the licence itself, the treatment, the price list, the practice today, ending at a working booking request. Full-bleed period stand-in photography and the one real clinic photo that exists, one oxblood accent, condensed display type, no dark+gold+serif reflex.',
+  accent: '#9A2B34',
+  dark: true,
   status: 'Concept ready' as const,
-  thumb: asset('leyfid-monument.jpg'),
+  thumb: asset('real/stofan-2017-09-05.jpg'),
   photoCredit:
-    'Engar nothæfar ljósmyndir eru til af stofunni. Myndirnar á síðunni eru skapaðar, abstrakt myndir sem vísa til sögunnar (skjöl, hendur, kyrralíf), ekki raunverulegar myndir af stofunni, herbergjum hennar eða starfsfólki.',
+    'Ein mynd á síðunni er raunveruleg ljósmynd af stofunni og Tryggva sjálfum, fengin af heimasíðu stofunnar (2017). Aðrar myndir eru skapaðar, abstrakt myndir sem vísa til sögunnar (skjal, hurð, hendur), ekki raunverulegar myndir af herbergjum stofunnar eða starfsfólki.',
   audit: {
     strengths: [
       'A genuinely rare, richly documented origin story in Tryggvi’s own words: MR 1971, AECC (Anglo-European College of Chiropractic) 1971 to 1976, a Danish internship, the 1977 opening, and the landlæknir/Alþingi licence process, all published on their own ferilskrá page',
@@ -219,22 +241,24 @@ export const companyEntry = {
       'The "Staðsetning" link in the main navigation is dead: it points to page_id=583, which returns the site’s own 404 page, verified directly',
       'The real, current 2026 price list sits three clicks deep on a page most visitors never find, while stale lines from 2021 and 2023 ("Veturinn 2023 er stofan opin eins og venjulega", a reference to a Mannlíf article from June 2021) are still presented as if current',
       'Tryggvi’s own remarkable origin story, a genuine first-in-Scandinavia chiropractic licence won through an Alþingi act, is buried in a small blog post dated October 2025 with no visibility from the homepage',
+      'The practice has no claimed Google Business profile: zero reviews are visible and the listing is unclaimed (checked 2026-07-28), while the competing practice Kírópraktorstofa Íslands shows a 5.0 rating from 112 reviews on the same search',
     ],
     opportunities: [
       'Tell the licence story as the whole page: MR to AECC to the 1977 opening to the landlæknir/Alþingi fight, ending at a working booking request',
       'Put the real, current 2026 price list above the fold instead of three clicks deep',
       'Fix the basics a 2017 WordPress theme cannot: working HTTPS, a correct practice name, no stale COVID banner, a working location link',
+      'Claim the Google Business profile and start collecting reviews, to close the visible gap against a competitor sitting at 5.0 from 112',
     ],
   } as AuditList,
   positioning:
-    'Kírópraktorstofa Tryggva Jónassonar holds a genuinely rare credential, Iceland’s first official chiropractor licence, won through a real fight with landlæknir and a real Alþingi act signed by a named minister, all recounted in Tryggvi’s own words. All of that sits behind a 2017 WordPress theme with broken HTTPS, a permanent COVID-19 banner, a dead location link, and the practice’s own name misspelled on its own homepage. The redesign turns the licence itself into the page’s spine: a chaptered telling from student to graduate to founder to the reader’s own back, with the real 2026 price list finally where people can see it and one working way to ask for a time.',
+    'Kírópraktorstofa Tryggva Jónassonar holds a genuinely rare credential, Iceland’s first official chiropractor licence, won through a real fight with landlæknir and a real Alþingi act signed by a named minister, all recounted in Tryggvi’s own words. All of that sits behind a 2017 WordPress theme with broken HTTPS, a permanent COVID-19 banner, a dead location link, an unclaimed Google Business profile with zero reviews against a competitor at 5.0 from 112, and the practice’s own name misspelled on its own homepage. The redesign turns the licence itself into the page’s spine: a dark, bound case history in four chapters, from the 1977 licence to the treatment to the real 2026 price list to the practice today, with one working way to ask for a time.',
   outreach: {
     subject: 'Hugmynd að nýrri heimasíðu fyrir kírópraktorstofuna',
     body: `Góðan dag Tryggvi,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Ég rakst á heimasíðu stofunnar ykkar og las mér til um söguna, hvernig þú fórst í nám við AECC árið 1971, opnaðir stofu haustið 1977 og fékkst að lokum fyrsta opinbera starfsleyfið sem kírópraktor hér á landi eftir að hafa átt í útistöðum við landlækni og Alþingi. Þetta er merkileg saga sem á skilið meira en gamalt vefumsjónarkerfi frá 2017 getur sýnt. Núverandi síða er til dæmis enn með upplýsingum um COVID-19 efst, öryggisvottorðið er ekki lengur í lagi svo vafrar vara við henni, og nafn stofunnar er ranglega stafsett á nokkrum stöðum á forsíðunni.
+Ég rakst á heimasíðu stofunnar ykkar og las mér til um söguna, hvernig þú fórst í nám við AECC árið 1971, opnaðir stofu haustið 1977 og fékkst að lokum fyrsta opinbera starfsleyfið sem kírópraktor hér á landi eftir að hafa átt í útistöðum við landlækni og Alþingi. Þetta er merkileg saga sem á skilið meira en gamalt vefumsjónarkerfi frá 2017 getur sýnt. Núverandi síða er til dæmis enn með upplýsingum um COVID-19 efst, öryggisvottorðið er ekki lengur í lagi svo vafrar vara við henni, og nafn stofunnar er ranglega stafsett á nokkrum stöðum á forsíðunni. Ég tók líka eftir að Google-færsla stofunnar er óstaðfest og engar umsagnir sýnilegar, á meðan samkeppnisaðili í sömu leit er með 5,0 í einkunn úr 112 umsögnum.
 
 Mér datt í hug að hanna frumgerð að nýrri síðu sem segir söguna ykkar almennilega, frá MR og AECC til leyfisins sjálfs, með verðskránni ykkar sýnilegri og einfaldri leið fyrir fólk til að biðja um tíma. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
 /**
- * THE LOADER — device 7 of the Amour Liquide transplant. A brief overlay
- * carrying the wordmark (max-width ~300px), tied to real readiness: it
+ * THE LOADER (chrome, not one of the numbered devices). A brief overlay
+ * carrying the wordmark (max-width ~280px), tied to real readiness: it
  * clears once web fonts report ready AND a minimum display time has
  * elapsed, whichever is later, capped by a hard failsafe so it can never
  * strand the page hidden. Fully skipped under reduced motion (see the
@@ -52,7 +52,7 @@ export function Loader() {
             y="42"
             textAnchor="middle"
             fill="var(--hh-ink)"
-            style={{ font: '700 30px "HH National Park", sans-serif', letterSpacing: '-0.01em' }}
+            style={{ font: '700 28px "HH Fraunces", serif', letterSpacing: '-0.01em' }}
           >
             Hundahótelið
           </text>
@@ -60,10 +60,10 @@ export function Loader() {
             x="150"
             y="68"
             textAnchor="middle"
-            fill="var(--hh-green)"
-            style={{ font: '500 16px "HH National Park", sans-serif', letterSpacing: '0.18em' }}
+            fill="var(--hh-rust)"
+            style={{ font: 'italic 500 17px "HH Fraunces", serif', letterSpacing: '0.04em' }}
           >
-            ÁSBRÚ
+            Ásbrú
           </text>
         </svg>
         <svg viewBox="0 0 120 40" className="h-6 w-32" aria-hidden="true">
@@ -77,7 +77,7 @@ export function Loader() {
             className="hh-loader__ring"
             d="M4,36 L4,14 C4,5 13,1 30,1 C47,1 56,5 56,14 L56,36"
             fill="none"
-            stroke="var(--hh-green)"
+            stroke="var(--hh-rust)"
             strokeWidth="2"
             pathLength={1}
           />

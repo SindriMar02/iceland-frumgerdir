@@ -40,11 +40,10 @@ const asset = (p: string) => `${import.meta.env.BASE_URL}gitarinn/${p}`
 const shopImg = (p: string) => `https://gitarinn.is/wp-content/uploads/${p}`
 
 export const FONTS = {
-  display: asset('fonts/BebasNeue-Regular.woff2'),
-  monoRegular: asset('fonts/IBMPlexMono-Regular.woff2'),
-  monoMedium: asset('fonts/IBMPlexMono-Medium.woff2'),
-  monoSemiBold: asset('fonts/IBMPlexMono-SemiBold.woff2'),
-  monoBold: asset('fonts/IBMPlexMono-Bold.woff2'),
+  display: asset('fonts/Monotonia.woff2'),
+  monoRegular: asset('fonts/SpaceMono-Regular.woff2'),
+  monoBold: asset('fonts/SpaceMono-Bold.woff2'),
+  monoItalic: asset('fonts/SpaceMono-Italic.woff2'),
 }
 
 /* ── identity ─────────────────────────────────────────────────────────── */

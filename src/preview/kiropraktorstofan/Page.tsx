@@ -12,65 +12,59 @@ import { setThemeColor } from '../../lib/preview'
 import './kiro.css'
 import {
   ADDRESS_LINE1, ADDRESS_LINE2, ADDRESS_NOTE, CHAPTERS, EMAIL, EMAIL_HREF, EXAM_FACTS,
-  HOURS, IMG, JSON_LD, LEYFID_FACTS, MAPS_URL, NAV, PHONE_DISPLAY, PHONE_HREF, PRACTICE_NAME,
-  PRICES, PRICE_NOTE, PRICE_VALID, SPINE_FACT, TREATMENT_LENGTH_NOTE, XRAY_NOTE,
+  HOURS, IMG, JSON_LD, LEYFID_FACTS, MAPS_URL, NAV, PATIENT_COUNT_NOTE, PHONE_DISPLAY,
+  PHONE_HREF, PRACTICE_NAME, PRICES, PRICE_NOTE, PRICE_VALID, SPINE_FACT,
+  TREATMENT_LENGTH_NOTE, XRAY_NOTE,
 } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
 
 const company = getPreviewCompany('kiropraktorstofan')
 
-/* ── "FYRSTA LEYFIÐ" ──────────────────────────────────────────────────────
-   Reference system: rr-tales-design-system.md (Reykjavik Roses "Five tales").
-   Its spine is the chaptered narrative itself, not its streetwear identity:
-   a chapter COVER beat, a chapter HEAD beat (mono pre-labels, per-letter
-   title reveal, giant outlined background words behind a centred plate), a
-   numbered spec row, a chapter progress rail, a two-column "story" beat and
-   an outro word-unmask. All six ship below, adapted to a 48-year chiropractic
-   practice instead of a streetwear archive, with the reference's OWN palette
-   and type left behind entirely (no dark near-black ground, no Array/Hanken/
-   IBM Plex Mono). Devices are numbered "RR-DEVICE n" in the comments below
-   so the final report can cite file:line for each one.
+/* ── "FYRSTA LEYFIÐ" v2 ───────────────────────────────────────────────────
+   Redo brief (BRIEF2-kiropraktorstofan.md). v1 (light paper, ghost words at
+   .14 alpha on CREAM, four MR/1971-split chapters, navy pills, floating pill
+   rail, empty-half-viewport text hero) was rejected as generic AI slop. v2
+   is a DARK chaptered case history — a bound sjúkraskrá — told in exactly
+   the four chapters the redo brief specifies: 01 the 1977 licence itself,
+   02 Meðferðin, 03 Verðskráin, 04 Stofan. Ground stays one cool near-black
+   family throughout (no alternating light/dark chapters), so the ghost
+   words (D3) finally sit on a background their stroke can actually read
+   against. Devices D1-D8 are numbered in the comments below so file:line
+   citations are easy in the final report. NO PINNED SECTIONS anywhere,
+   plain scroll-scrubs only. No page-level hero: the page opens directly on
+   KAFLI 01's own full-bleed cover, so there is no text-only empty-viewport
+   block (the exact failure mode that killed v1). ────────────────────────── */
 
-   CONCEPT. Tryggvi Jónasson holds Iceland's first official chiropractor
-   licence, won through a real fight with landlæknir and a real Alþingi act.
-   The page tells that as four chapters, MR to AECC, the 1977 opening, the
-   licence itself, and what the practice does today, then ends at the
-   reader's own back with a working booking request. No photography of the
-   clinic exists (verified: nothing usable anywhere on kiropraktorstofan.is),
-   so three SIGNATURE plates carry abstract, generated imagery instead, with
-   intentional gradient/texture fallbacks until those assets exist (see
-   IMAGE-PROMPTS.md). The signature device is the spine itself: a 24-vertebra
-   rail doubling as chapter progress, uncurling into a neutral line in the
-   closer, the "reader's own back" made literal. ────────────────────────── */
+const GROUND = '#0b0b0b'
+const PANEL = '#131215'
+const BONE = '#ece9e3'
+const MUTE = 'rgba(236,233,227,.62)'
+const HAIR = 'rgba(236,233,227,.14)'
+/** ONE accent, oxblood, brief range #8e2a35..#a32638. IMPORTANT: this value
+    fails AA/large-text contrast (~2.6:1) as foreground TEXT directly on
+    GROUND — computed during this build, not eyeballed. So ACCENT is used
+    ONLY as a fill (button/chip backgrounds carrying BONE text, which passes
+    at ~6.3:1) or as a non-text decoration (rail fill, borders, dividers).
+    It is never a glyph colour sitting bare on GROUND anywhere on this page. */
+const ACCENT = '#9A2B34'
+const OPEN_GREEN = '#5FBF77'
 
-const BONE = '#F2ECDD'
-const KRAFT = '#E7DCC0'
-const PAPERWHITE = '#FBF8EF'
-const INK = '#201C15'
-const SOFT = '#3A3528'
-const MUTE = '#5C554A'
-const SEAL = '#1D3557'
-const SEALDEEP = '#12233F'
-const HAIR = 'rgba(32,28,21,.14)'
-const HAIR_ON_SEAL = 'rgba(242,236,221,.20)'
-const SEAL_SOFT = 'rgba(242,236,221,.82)'
-const SEAL_MUTE = 'rgba(242,236,221,.58)'
-const OPEN_GREEN = '#3F6B3F'
-
-const DISPLAY = "'Kiro Marcellus', Georgia, 'Times New Roman', serif"
-const BODY = "'Kiro Newsreader', Georgia, serif"
+const DISPLAY = "'Kiro Khand', 'Arial Narrow', sans-serif"
+const BODY = "'Kiro General Sans', -apple-system, 'Helvetica Neue', Arial, sans-serif"
 const MONO = "'Kiro Server Mono', ui-monospace, 'SFMono-Regular', monospace"
 
 const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1D3557] focus-visible:ring-offset-[#F2ECDD]'
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#ece9e3] focus-visible:ring-offset-[#0b0b0b]'
 
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
-/* ── real, published hours → live status (Kírópraktorstofan/data.ts HOURS,
-   restated here as decimal spans for the client-side clock) ────────────── */
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/* ── real, published hours → live status (data.ts HOURS, restated here as
+   decimal spans for the client-side clock) ──────────────────────────────── */
 interface Span {
   open: number
   close: number
@@ -107,18 +101,10 @@ function readStatus(now: Date): { open: boolean; text: string } {
   return { open: false, text: 'LOKAÐ NÚNA' }
 }
 
-/* ── the spine layout (24 vertebrae + sacrum), a deterministic gentle
-   forward-slouch curve, uncurled by RR-DEVICE 9 in the closer ───────────── */
-const SPINE_LAYOUT = Array.from({ length: 24 }, (_, i) => {
-  const t = i / 23
-  const x = Math.sin(t * Math.PI * 1.15) * 20 + (1 - t) * 9
-  return { x: Math.round(x * 10) / 10, r: Math.round(x * 0.5 * 10) / 10 }
-})
-
 /* ── primitives ───────────────────────────────────────────────────────── */
 
-/** RR-DEVICE 7 — base reveal primitive. IntersectionObserver → .kiro-in,
-    CSS transition toward resting state. Set up once in Page(), see useReveal. */
+/** Base reveal primitive. IntersectionObserver → .kiro-in, CSS transition
+    toward resting state (never framer whileInView). Wired once in Page(). */
 function Rise({
   children,
   className = '',
@@ -139,149 +125,190 @@ function Rise({
   )
 }
 
-function H2({
-  children,
-  id,
-  color = INK,
-  size = 'clamp(2rem, 5vw, 3.2rem)',
-}: {
-  children: ReactNode
-  id?: string
-  color?: string
-  size?: string
-}) {
+/** K01's interior document plate (leyfid-monument.jpg) — hard clip-path
+    wipe reveal (IntersectionObserver toggling .kiro-in) + the D8 velocity
+    bend applied to its <img> from the Lenis-velocity ticker in Page(). */
+function Plate({ src, alt, ratio }: { src: string; alt: string; ratio: string }) {
   return (
-    <h2
-      id={id}
-      style={{
-        fontFamily: DISPLAY,
-        fontWeight: 400,
-        fontSize: size,
-        letterSpacing: '-.01em',
-        lineHeight: 1.08,
-        color,
-      }}
-    >
-      {children}
-    </h2>
+    <div data-plate className="kiro-plate kiro-rv" style={{ aspectRatio: ratio, ['--kiro-plate-bg' as string]: PANEL }}>
+      <img src={src} alt={alt} loading="lazy" decoding="async" style={{ objectPosition: '55% 55%' }} />
+    </div>
   )
 }
 
-/** RR-DEVICE 8 — signature plate. Hard clip-path wipe reveal (IntersectionObserver
-    toggling .kiro-in, see Rise/useReveal) + a Lenis-velocity CSS bend on the
-    <img> once it loads (see the gsap.context tick in Page()). Ships with an
-    intentional gradient/texture fallback; the real asset (from
-    IMAGE-PROMPTS.md) fades in on top once the lead generates it, and if the
-    file 404s the <img> hides itself so the fallback is the permanent visual. */
-function Plate({
+/* ── D1 — chapter cover. 100svh full-bleed image: permanent
+   grayscale(.4) contrast(1.06) brightness(.82) grade + a gradient shade
+   down to GROUND; mono "KAFLI 0X / 04" bottom-left; giant chapter name
+   bottom-right (clamp desktop / min() mobile floor, see .kiro-cover-word in
+   kiro.css); scrubbed photo scale 1.16→1 with name yPercent drift (wired in
+   the gsap.context effect in Page()). ──────────────────────────────────── */
+function ChapterCover({
+  n,
+  total,
+  word,
   src,
   alt,
-  ratio,
-  ground,
-  children,
+  objectPosition = '50% 50%',
+  tint,
+  priority = false,
 }: {
+  n: string
+  total: number
+  word: string
   src: string
   alt: string
-  ratio: string
-  ground: string
-  children: ReactNode
+  objectPosition?: string
+  tint?: string
+  priority?: boolean
 }) {
-  const [loaded, setLoaded] = useState(false)
   return (
-    <div
-      data-plate
-      className="kiro-plate"
-      style={{ aspectRatio: ratio, ['--kiro-plate-bg' as string]: ground }}
-    >
-      <div className="kiro-plate-fallback" aria-hidden="true">
-        {children}
-      </div>
+    <div className="kiro-cover relative flex min-h-[100svh] flex-col justify-end overflow-hidden" style={{ background: GROUND }}>
       <img
+        data-cover-img
         src={src}
         alt={alt}
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        className={loaded ? 'kiro-loaded' : ''}
-        onLoad={() => setLoaded(true)}
-        onError={(e) => {
-          ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+        {...(priority ? { fetchpriority: 'high' as const } : {})}
+        className="kiro-cover-img"
+        style={{
+          filter: 'grayscale(.4) contrast(1.06) brightness(.82)',
+          ['--kiro-pos' as string]: objectPosition,
         }}
       />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background: `${tint ? tint + ',' : ''}linear-gradient(180deg, rgba(11,11,11,0) 0%, rgba(11,11,11,.14) 42%, rgba(11,11,11,.58) 72%, ${GROUND} 100%)`,
+        }}
+      />
+      <div className="relative mx-auto flex w-full max-w-[1180px] flex-col gap-4 px-5 pb-12 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:px-8 sm:pb-16">
+        <p style={{ fontFamily: MONO, fontSize: '.82rem', letterSpacing: '.12em', color: MUTE }}>
+          KAFLI {n} / {pad(total)}
+        </p>
+        <p
+          data-cover-year
+          className="kiro-cover-word text-left sm:text-right"
+          style={{ fontFamily: DISPLAY, fontWeight: 700, letterSpacing: '-.01em', color: BONE }}
+        >
+          {word}
+        </p>
+      </div>
     </div>
   )
 }
 
-/** Kafli I has no dedicated signature photo (only three exist, for Kafli II,
-    III and IV, see IMAGE-PROMPTS.md), so its stage is texture-only: no <img>,
-    no src pretending an asset will eventually land here. Reusing another
-    chapter's photo path would misattach a 1977-opening image to the 1971
-    chapter once that asset actually exists, so this stays deliberately
-    image-free rather than a fourth Plate. */
-function TexturePanel({ ratio, children }: { ratio: string; children: ReactNode }) {
-  return (
-    <div className="kiro-rv relative overflow-hidden" style={{ aspectRatio: ratio }}>
-      {children}
-    </div>
-  )
-}
-
-function GrainFilter() {
-  return (
-    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-      <filter id="kiroGrain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" result="n" />
-        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0" />
-      </filter>
-    </svg>
-  )
-}
-
-/* ── RR-DEVICE 3 — numbered spec row. Hairline top+bottom, verticals between
-   cells, mono 01/02/03. Never pills or chips. ──────────────────────────── */
-function SpecRow({
-  items,
-  ink,
-  mute,
-  hair,
-  accent,
+/* ── D2 (per-letter title reveal, [data-split-title]) + D3 (two giant
+   outlined ghost words per chapter head, counter-drifting on scrub,
+   [data-ghost-a]/[data-ghost-b], desktop only) + an optional interior
+   Plate (K01 only). ──────────────────────────────────────────────────── */
+function ChapterHead({
+  as: Tag,
+  n,
+  sub,
+  title,
+  abstract,
+  ghostTop,
+  ghostBottom,
+  plate,
 }: {
-  items: { n: string; label: string; value?: string; body?: string }[]
-  ink: string
-  mute: string
-  hair: string
-  accent: string
+  as: 'h1' | 'h2'
+  n: string
+  sub: string
+  title: string
+  abstract: string
+  ghostTop: string
+  ghostBottom: string
+  plate?: ReactNode
 }) {
   return (
-    <div
-      className="grid"
-      style={{
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        borderTop: `1px solid ${hair}`,
-        borderBottom: `1px solid ${hair}`,
-      }}
-    >
-      {items.map((it, i) => (
-        <div
-          key={it.n}
-          className="kiro-spec-cell px-1 py-7 sm:px-6"
-          style={
-            {
-              borderLeft: i === 0 ? 'none' : `1px solid ${hair}`,
-              '--kiro-spec-hair': hair,
-            } as CSSProperties
-          }
+    <div data-chapter-head className="mx-auto max-w-[1180px] px-5 pt-20 pb-12 sm:px-8 sm:pt-28 sm:pb-16">
+      <Rise>
+        <p style={{ fontFamily: MONO, fontSize: '.78rem', letterSpacing: '.14em', color: MUTE }}>
+          KAFLI {n} · {sub}
+        </p>
+        <Tag
+          data-split-title
+          className="mt-6 max-w-[17ch]"
+          style={{
+            fontFamily: DISPLAY,
+            fontWeight: 700,
+            fontSize: 'clamp(2.4rem, 6.4vw, 4.8rem)',
+            letterSpacing: '-.01em',
+            lineHeight: 0.98,
+            color: BONE,
+          }}
         >
-          <p style={{ fontFamily: MONO, fontSize: '.78rem', color: accent }}>{it.n}</p>
-          <p className="mt-3" style={{ fontFamily: DISPLAY, fontSize: '1.18rem', color: ink }}>
+          {title}
+        </Tag>
+        <p className="mt-6 max-w-[46ch]" style={{ color: MUTE, fontSize: '1.06rem', lineHeight: 1.6 }}>
+          {abstract}
+        </p>
+      </Rise>
+
+      {/* overflow-hidden: the ghost words are decorative and MAY clip at
+          their container edge, but must never cause a page-level
+          horizontal scrollbar. D-FIX-6: minHeight now lives in kiro.css as
+          .kiro-ghost-zone--plate/--plain, tightened from 58vh/30vh to
+          46vh/20vh, and collapses to auto on <=1023px where .kiro-ghost is
+          hidden — a fixed vh reservation with no ghost text and no plate
+          was reading as dead near-black space on tablet/mobile. */}
+      <div
+        className={`kiro-ghost-zone ${plate ? 'kiro-ghost-zone--plate' : 'kiro-ghost-zone--plain'} relative mt-10 overflow-hidden`}
+      >
+        <p
+          data-ghost-a
+          aria-hidden="true"
+          className="kiro-ghost absolute -top-2 left-0 max-w-full select-none"
+          style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'min(15vw, 11rem)', lineHeight: 0.9 }}
+        >
+          {ghostTop}
+        </p>
+        <p
+          data-ghost-b
+          aria-hidden="true"
+          className="kiro-ghost absolute right-0 bottom-0 max-w-full select-none text-right"
+          style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'min(15vw, 11rem)', lineHeight: 0.9 }}
+        >
+          {ghostBottom}
+        </p>
+        {plate && (
+          <div className="relative mx-auto" style={{ width: 'min(44vw, 400px)', maxWidth: '80vw' }}>
+            {plate}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ── D6 — numbered fact grid (LEYFID_FACTS, EXAM_FACTS). Hairline top+
+   bottom (see .kiro-fact-grid wrapper below), 1px verticals between cells,
+   a small FILLED accent chip (bone-on-oxblood, not oxblood-on-ground —
+   see the ACCENT contrast note above) carries the 01/02 index. Never a
+   pill, never a bordered card. ──────────────────────────────────────────── */
+function FactGrid({ items }: { items: { n: string; label: string; value?: string; body?: string }[] }) {
+  return (
+    <div
+      className="kiro-fact-grid"
+      style={{ borderTop: `1px solid ${HAIR}`, borderBottom: `1px solid ${HAIR}`, ['--kiro-hair' as string]: HAIR }}
+    >
+      {items.map((it) => (
+        <div key={it.n} className="kiro-fact-cell px-1 py-7 sm:px-6">
+          <span className="kiro-chip" style={{ fontFamily: MONO, fontSize: '.7rem', ['--kiro-accent' as string]: ACCENT }}>
+            {it.n}
+          </span>
+          <p className="mt-3" style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: '1.24rem', color: BONE }}>
             {it.label}
           </p>
           {it.value && (
-            <p className="mt-1" style={{ fontFamily: MONO, fontSize: '.88rem', color: mute }}>
+            <p className="mt-1" style={{ fontFamily: MONO, fontSize: '.86rem', color: MUTE }}>
               {it.value}
             </p>
           )}
           {it.body && (
-            <p className="mt-2" style={{ color: mute, lineHeight: 1.55, fontSize: '.96rem' }}>
+            <p className="mt-2" style={{ color: MUTE, lineHeight: 1.55, fontSize: '.96rem' }}>
               {it.body}
             </p>
           )}
@@ -291,323 +318,127 @@ function SpecRow({
   )
 }
 
-/* ── RR-DEVICE 1 — chapter cover. 100svh full-bleed divider: mono
-   "KAFLI 0X / 04" bottom-left, giant year/word bottom-right, scrubbed
-   scale+brightness on the ground and a yPercent parallax on the name. ──── */
-function ChapterCover({
-  n,
-  total,
-  word,
-  ground,
-  textColor,
-  hairColor,
-  gradient,
-}: {
-  n: string
-  total: number
-  word: string
-  ground: string
-  textColor: string
-  hairColor: string
-  gradient: string
-}) {
+/* ── D6 — ledger rows: verðskrá + opening hours, a typeset dotted-leader
+   menu (mono index chip · display-face label · dotted leader · mono
+   value), hairline between every row. ────────────────────────────────── */
+function Ledger({ rows }: { rows: { n: string; label: string; value: string }[] }) {
   return (
-    <div
-      className="kiro-cover relative flex min-h-[100svh] flex-col justify-end overflow-hidden"
-      style={{ background: ground }}
-    >
-      <div
-        data-cover-bg
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{ background: gradient, transformOrigin: 'center' }}
-      />
-      <div className="relative mx-auto flex w-full max-w-[1180px] flex-col gap-4 px-5 pb-12 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:px-8 sm:pb-16">
-        <p style={{ fontFamily: MONO, fontSize: '.82rem', letterSpacing: '.12em', color: hairColor }}>
-          KAFLI {n} / {String(total).padStart(2, '0')}
-        </p>
-        <p
-          data-cover-year
-          className="text-left sm:text-right"
-          style={{
-            fontFamily: DISPLAY,
-            /* min(), not clamp()'s hard floor: a floor that ignores available
-               width is exactly how the reference system's own longest chapter
-               name overflowed a narrow phone (rr-tales-design-system §11.5).
-               No floor here, so the longest word (MEÐFERÐIN) always fits. */
-            fontSize: 'min(17vw, 9.5rem)',
-            lineHeight: 0.92,
-            letterSpacing: '-.02em',
-            color: textColor,
-          }}
-        >
-          {word}
-        </p>
-      </div>
-    </div>
+    <ul className="kiro-ledger" style={{ ['--kiro-hair' as string]: HAIR }}>
+      {rows.map((r) => (
+        <li key={r.n} className="kiro-ledger-row py-4">
+          <span className="kiro-chip shrink-0" style={{ fontFamily: MONO, fontSize: '.66rem', ['--kiro-accent' as string]: ACCENT }}>
+            {r.n}
+          </span>
+          <span className="kiro-ledger-label" style={{ fontFamily: DISPLAY, fontSize: '1.1rem', color: BONE }}>{r.label}</span>
+          <span className="kiro-ledger-leader" aria-hidden="true" />
+          {/* D-FIX-1: was Tailwind `shrink-0`, which forces this span to its
+              full single-line max-content width regardless of container —
+              the longest HOURS value ("9.00-12.00 og 13.00-16.00", 25
+              chars mono) then refused to shrink/wrap and pushed the whole
+              row past 390px, inflating the mobile layout viewport itself
+              (measured innerWidth 421 instead of 390). Sizing now lives in
+              kiro.css's .kiro-ledger-value, which switches the row to a
+              two-line grid (leader hidden, value below label) at <=560px
+              so nothing is ever forced wider than the column. */}
+          <span className="kiro-ledger-value" style={{ fontFamily: MONO, fontSize: '1rem', color: BONE }}>{r.value}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
-/* ── RR-DEVICE 2 — chapter head. Mono pre-labels → per-letter SplitText
-   title reveal ([data-split-title], see the gsap.context effect) → abstract
-   → a stage holding two giant outlined background words behind a centred
-   Plate. ─────────────────────────────────────────────────────────────── */
-function ChapterHead({
-  n,
-  year,
-  tagline,
-  title,
-  abstract,
-  bgWordTop,
-  bgWordBottom,
-  plate,
-  ink,
-  mute,
-  hair,
-  accent,
-}: {
-  n: string
-  year: string
-  tagline: string
-  title: string
-  abstract: string
-  bgWordTop: string
-  bgWordBottom: string
-  plate: ReactNode
-  ink: string
-  mute: string
-  hair: string
-  accent: string
-}) {
-  return (
-    <div className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-28">
-      <Rise>
-        <p style={{ fontFamily: MONO, fontSize: '.78rem', letterSpacing: '.14em', color: accent }}>
-          KAFLI {n} · {year}
-        </p>
-        <p className="mt-1" style={{ fontFamily: MONO, fontSize: '.78rem', letterSpacing: '.1em', color: mute }}>
-          {tagline}
-        </p>
-        <h2
-          data-split-title
-          className="mt-6 max-w-[16ch]"
-          style={{
-            fontFamily: DISPLAY,
-            fontWeight: 400,
-            fontSize: 'clamp(2.2rem, 6vw, 4.4rem)',
-            letterSpacing: '-.015em',
-            lineHeight: 1.06,
-            color: ink,
-          }}
-        >
-          {title}
-        </h2>
-        <p className="mt-6 max-w-[42ch]" style={{ color: mute, fontSize: '1.08rem', lineHeight: 1.6 }}>
-          {abstract}
-        </p>
-      </Rise>
-
-      {/* overflow-hidden: the giant outlined words are decorative and MAY
-          clip at their container edge (the reference system documents this
-          as the one intentionally-clipped element), but must never cause a
-          page-level horizontal scrollbar. */}
-      <div className="relative mt-16 overflow-hidden" style={{ minHeight: '58vh' }}>
-        <p
-          aria-hidden="true"
-          className="kiro-outline-word absolute -top-2 left-0 max-w-full select-none"
-          style={{
-            ['--kiro-hair' as string]: hair,
-            fontFamily: DISPLAY,
-            fontSize: 'min(15vw, 11rem)',
-            lineHeight: 0.9,
-          }}
-        >
-          {bgWordTop}
-        </p>
-        <p
-          aria-hidden="true"
-          className="kiro-outline-word absolute right-0 bottom-0 max-w-full select-none text-right"
-          style={{
-            ['--kiro-hair' as string]: hair,
-            fontFamily: DISPLAY,
-            fontSize: 'min(15vw, 11rem)',
-            lineHeight: 0.9,
-          }}
-        >
-          {bgWordBottom}
-        </p>
-        <div className="relative mx-auto" style={{ width: 'min(52vw, 460px)', maxWidth: '86vw' }}>
-          {plate}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ── RR-DEVICE 5 — story two-column beat, closed by an oversized chapter
-   tag above a hairline. ──────────────────────────────────────────────── */
+/* ── two-column story beat, closed by an oversized chapter tag above a
+   hairline (editorial long-read grammar, not a numbered "process" strip). ── */
 function StoryColumns({
   n,
-  total,
   leftLabel,
   leftBody,
   rightLabel,
   rightBody,
-  ink,
-  mute,
-  hair,
-  accent,
 }: {
   n: string
-  total: number
   leftLabel: string
   leftBody: string
   rightLabel: string
   rightBody: string
-  ink: string
-  mute: string
-  hair: string
-  accent: string
 }) {
   return (
-    <div className="mx-auto max-w-[1180px] px-5 pb-24 sm:px-8 sm:pb-32">
+    <div className="mx-auto max-w-[1180px] px-5 pb-16 sm:px-8 sm:pb-20">
       <Rise>
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-16">
           <div>
-            <h3 style={{ fontFamily: MONO, fontSize: '.82rem', letterSpacing: '.12em', color: accent }}>
+            <h3 style={{ fontFamily: MONO, fontSize: '.82rem', letterSpacing: '.12em', color: MUTE }} className="uppercase">
               {leftLabel}
             </h3>
-            <p className="mt-4 max-w-[42ch]" style={{ color: ink, fontSize: '1.08rem', lineHeight: 1.6 }}>
+            <p className="mt-4 max-w-[42ch]" style={{ color: BONE, fontSize: '1.08rem', lineHeight: 1.6 }}>
               {leftBody}
             </p>
           </div>
           <div>
-            <h3 style={{ fontFamily: MONO, fontSize: '.82rem', letterSpacing: '.12em', color: accent }}>
+            <h3 style={{ fontFamily: MONO, fontSize: '.82rem', letterSpacing: '.12em', color: MUTE }} className="uppercase">
               {rightLabel}
             </h3>
-            <p className="mt-4 max-w-[42ch]" style={{ color: ink, fontSize: '1.08rem', lineHeight: 1.6 }}>
+            <p className="mt-4 max-w-[42ch]" style={{ color: BONE, fontSize: '1.08rem', lineHeight: 1.6 }}>
               {rightBody}
             </p>
           </div>
         </div>
       </Rise>
-      <Rise delay={1} className="mt-16 flex items-end justify-between border-t pt-6" style={{ borderColor: hair }}>
-        <span
-          style={{ fontFamily: DISPLAY, fontSize: 'clamp(2.4rem, 7vw, 4.6rem)', color: accent, lineHeight: 1 }}
-        >
+      <Rise delay={1} className="mt-16 flex items-end justify-between border-t pt-6" style={{ borderColor: HAIR }}>
+        <span style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(2.4rem, 7vw, 4.6rem)', color: BONE, lineHeight: 1 }}>
           KAFLI {n}
         </span>
-        <span style={{ fontFamily: MONO, fontSize: '.8rem', color: mute }}>
-          {n} / {String(total).padStart(2, '0')}
-        </span>
+        <span style={{ fontFamily: MONO, fontSize: '.8rem', color: MUTE }}>{n} / 04</span>
       </Rise>
     </div>
   )
 }
 
-/* ── RR-DEVICE 6 — outro-style quote, unmasked word by word
-   ([data-unmask-quote], see the gsap.context effect). ───────────────────── */
-function UnmaskQuote({
-  text,
-  source,
-  ink,
-  mute,
-  accent,
-}: {
-  text: string
-  source: string
-  ink: string
-  mute: string
-  accent: string
-}) {
+/* ── D4 — outro-style quote, unmasked word by word
+   ([data-unmask-quote], see the gsap.context effect). Quotes are
+   Tryggvi-story lines drawn straight from data.ts's verified facts, never
+   invented testimonials. ─────────────────────────────────────────────── */
+function UnmaskQuote({ text, source }: { text: string; source: string }) {
   return (
-    <Rise className="mx-auto max-w-[1180px] px-5 pb-24 text-center sm:px-8 sm:pb-32">
+    <Rise className="mx-auto max-w-[1180px] px-5 pb-16 text-center sm:px-8 sm:pb-20">
       <blockquote
         data-unmask-quote
-        style={{
-          fontFamily: DISPLAY,
-          fontWeight: 400,
-          fontSize: 'clamp(1.5rem, 3.6vw, 2.6rem)',
-          lineHeight: 1.3,
-          color: ink,
-        }}
+        style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 'clamp(1.5rem, 3.6vw, 2.6rem)', lineHeight: 1.28, color: BONE }}
       >
         {text}
       </blockquote>
-      <p className="mt-6" style={{ fontFamily: MONO, fontSize: '.8rem', color: mute }}>
-        <span style={{ color: accent }}>·</span> {source}
+      <p className="mt-6" style={{ fontFamily: MONO, fontSize: '.8rem', color: MUTE }}>
+        · {source}
       </p>
     </Rise>
   )
 }
 
-/* ── RR-DEVICE 4 — chapter progress rail. Fixed bottom-centre on desktop
-   (a slim top-edge page-progress line replaces it on mobile, matching the
-   reference's own documented mobile fix). GSAP scaleX fill per chapter,
-   driven by that chapter's own ScrollTrigger progress; see the
-   gsap.context effect for the fill tweens. ──────────────────────────── */
+/* ── D5 — chapter progress rail. Fixed bottom-centre, desktop AND
+   min-height >= 660px only (see the media query in kiro.css); a slim
+   top-edge mobile page-progress line covers narrower/shorter viewports.
+   GSAP scaleX fill per chapter, driven by that chapter's own ScrollTrigger
+   progress (wired in Page()). D-FIX-3: was a rounded, bordered, drop-
+   shadowed floating capsule — banned house chrome. Now a hairline
+   segmented rail: one top rule spanning the row, a vertical hairline
+   between each segment, mono labels underneath, no fill/border-radius/
+   shadow/blur box. A soft bottom scrim (gradient only, not a panel) keeps
+   the labels legible over whatever content is scrolling underneath. ───── */
 function ChapterRail() {
   return (
-    <nav
-      aria-hidden="true"
-      className="kiro-progress-deco pointer-events-none fixed inset-x-0 bottom-0 z-30 hidden justify-center pb-5 lg:flex"
-    >
-      <div
-        className="pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2.5"
-        style={{ background: 'rgba(251,248,239,.92)', boxShadow: '0 10px 30px rgba(32,28,21,.16)', border: `1px solid ${HAIR}`, backdropFilter: 'blur(8px)' }}
-      >
+    <nav aria-hidden="true" className="kiro-rail pointer-events-none fixed inset-x-0 bottom-0 z-30">
+      <div aria-hidden="true" className="kiro-rail-scrim" />
+      <div className="kiro-rail-row mx-auto flex w-full max-w-[440px] items-stretch px-6 pb-5" style={{ borderTop: `1px solid ${HAIR}` }}>
         {CHAPTERS.map((c, i) => (
-          <div key={c.n} className="flex flex-col items-center gap-1.5">
-            <span
-              className="block overflow-hidden rounded-full"
-              style={{ width: 46, height: 5, background: 'rgba(32,28,21,.14)' }}
-            >
-              <span
-                data-rail-fill={i}
-                className="kiro-rail-fill block h-full rounded-full"
-                style={{ background: SEAL }}
-              />
+          <div key={c.n} className="kiro-rail-seg flex-1" style={{ borderLeft: i === 0 ? 'none' : `1px solid ${HAIR}` }}>
+            <span className="kiro-rail-track block" style={{ background: 'rgba(236,233,227,.14)' }}>
+              <span data-rail-fill={i} className="kiro-rail-fill block h-full" style={{ background: ACCENT }} />
             </span>
-            <span style={{ fontFamily: MONO, fontSize: '.62rem', color: MUTE }}>{c.short}</span>
+            <span className="kiro-rail-label" style={{ fontFamily: MONO, color: MUTE }}>{c.short}</span>
           </div>
         ))}
       </div>
     </nav>
-  )
-}
-
-/* ── RR-DEVICE 9 (bonus) — the spine settle. 24 vertebrae + sacrum, laid out
-   on a deterministic slouch curve, uncurling to neutral once in view (the
-   same IntersectionObserver that drives .kiro-rv, reused generically for
-   .kiro-spine, see useReveal). "Ending at the reader's own back." ──────── */
-function SpineSettle() {
-  return (
-    <div className="kiro-rv kiro-spine mx-auto" aria-hidden="true" style={{ width: 60 }}>
-      <div className="flex flex-col items-center" style={{ gap: 5 }}>
-        {SPINE_LAYOUT.map((v, i) => (
-          <div
-            key={i}
-            className="kiro-spine-vert"
-            style={
-              {
-                '--vx': `${v.x}px`,
-                '--vr': `${v.r}deg`,
-                '--vi': i,
-                width: i % 4 === 0 ? 28 : 34,
-                height: 9,
-                borderRadius: 4,
-                background: 'rgba(29,53,87,.14)',
-                border: `1px solid ${SEAL}`,
-              } as CSSProperties
-            }
-          />
-        ))}
-        <div
-          className="kiro-spine-vert mt-1"
-          style={{ '--vx': '0px', '--vr': '0deg', '--vi': 24, width: 44, height: 20, borderRadius: '9px 9px 18px 18px', background: SEAL } as CSSProperties}
-        />
-      </div>
-    </div>
   )
 }
 
@@ -622,7 +453,7 @@ export default function KiropraktorstofanPage() {
   const [erindi, setErindi] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => setThemeColor(BONE), [])
+  useEffect(() => setThemeColor(GROUND), [])
 
   useEffect(() => {
     const t = window.setInterval(() => setStatus(readStatus(new Date())), 60000)
@@ -641,12 +472,12 @@ export default function KiropraktorstofanPage() {
     }
   }, [menu])
 
-  /* RR-DEVICE 7 — base reveal engine. Observes every .kiro-rv/.kiro-plate/
-     .kiro-spine element, adds .kiro-in on first intersection (unobserve
-     after), with an in-view-on-mount check and a 2s failsafe so nothing
-     strands hidden if a font, an image or a paused rAF ever delays it. */
+  /* Base reveal engine. Observes every .kiro-rv/.kiro-plate element, adds
+     .kiro-in on first intersection (unobserve after), with an in-view-on-
+     mount check and a <=2s failsafe so nothing strands hidden if a font, an
+     image or a paused rAF ever delays it. */
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>('.kiro-rv, .kiro-plate, .kiro-spine'))
+    const els = Array.from(document.querySelectorAll<HTMLElement>('.kiro-rv, .kiro-plate'))
     if (reduced()) {
       els.forEach((el) => el.classList.add('kiro-in'))
       return
@@ -672,16 +503,16 @@ export default function KiropraktorstofanPage() {
     })
     const failsafe = window.setTimeout(() => {
       els.forEach((el) => el.classList.add('kiro-in'))
-    }, 2200)
+    }, 1800)
     return () => {
       io.disconnect()
       window.clearTimeout(failsafe)
     }
   }, [])
 
-  /* GSAP: covers (device 1), title reveals (device 2), progress rail
-     (device 4), unmask quote (device 6), plate velocity bend (device 8).
-     No pinned sections anywhere, plain scrubs only. */
+  /* GSAP: covers (D1), title reveals (D2), ghost-word counter-drift (D3),
+     progress rail (D5), unmask quote (D4), interior-plate velocity bend
+     (D8). No pinned sections anywhere, plain scrubs only. */
   useEffect(() => {
     if (reduced() || !rootRef.current) return
     const root = rootRef.current
@@ -695,17 +526,28 @@ export default function KiropraktorstofanPage() {
       gsap.ticker.add(tick)
       gsap.ticker.lagSmoothing(0)
 
-      /* RR-DEVICE 1 — chapter covers: bg scale 1.16→1 + brightening, name
-         yPercent 22→−16, scrub 1.1 (verbatim rr-tales cover values). */
+      /* D1 — chapter covers: image scale 1.16→1 (the permanent grayscale/
+         contrast/brightness grade lives as a static inline filter, never
+         animated), name yPercent 20→−14, scrub 1.1. */
       gsap.utils.toArray<HTMLElement>('.kiro-cover').forEach((cover) => {
-        const bg = cover.querySelector<HTMLElement>('[data-cover-bg]')
+        const img = cover.querySelector<HTMLElement>('[data-cover-img]')
         const word = cover.querySelector<HTMLElement>('[data-cover-year]')
         const trig = { trigger: cover, start: 'top bottom', end: 'bottom top', scrub: 1.1 }
-        if (bg) gsap.fromTo(bg, { scale: 1.16, filter: 'brightness(.86)' }, { scale: 1, filter: 'brightness(1)', ease: 'none', scrollTrigger: trig })
-        if (word) gsap.fromTo(word, { yPercent: 22 }, { yPercent: -16, ease: 'none', scrollTrigger: trig })
+        if (img) gsap.fromTo(img, { scale: 1.16 }, { scale: 1, ease: 'none', scrollTrigger: trig })
+        if (word) gsap.fromTo(word, { yPercent: 20 }, { yPercent: -14, ease: 'none', scrollTrigger: trig })
       })
 
-      /* RR-DEVICE 4 — per-chapter rail fill. */
+      /* D3 — ghost-word counter-drift: top word drifts up, bottom word
+         drifts down, scrubbed against its own chapter head. */
+      gsap.utils.toArray<HTMLElement>('[data-chapter-head]').forEach((head) => {
+        const a = head.querySelector<HTMLElement>('[data-ghost-a]')
+        const b = head.querySelector<HTMLElement>('[data-ghost-b]')
+        const trig = { trigger: head, start: 'top bottom', end: 'bottom top', scrub: 1 }
+        if (a) gsap.fromTo(a, { yPercent: 6 }, { yPercent: -16, ease: 'none', scrollTrigger: trig })
+        if (b) gsap.fromTo(b, { yPercent: -6 }, { yPercent: 16, ease: 'none', scrollTrigger: trig })
+      })
+
+      /* D5 — per-chapter rail fill. */
       gsap.utils.toArray<HTMLElement>('[data-chapter-root]').forEach((chRoot, i) => {
         const seg = document.querySelector<HTMLElement>(`[data-rail-fill="${i}"]`)
         if (!seg) return
@@ -726,10 +568,9 @@ export default function KiropraktorstofanPage() {
         )
       }
 
-      /* RR-DEVICE 2 — per-letter title reveal + RR-DEVICE 6 — word unmask.
-         Wait for the self-hosted fonts so SplitText measures real glyph
-         widths, not fallback-font placeholders (see gsap-splittext-
-         clearprops-traps memory). */
+      /* D2 — per-letter title reveal + D4 — word unmask. Wait for the
+         self-hosted fonts so SplitText measures real glyph widths, not
+         fallback-font placeholders (see gsap-splittext-clearprops-traps). */
       document.fonts.ready.then(() => {
         const chars: Element[] = []
         const words: Element[] = []
@@ -741,7 +582,7 @@ export default function KiropraktorstofanPage() {
             split.chars,
             { yPercent: 60, opacity: 0, rotate: () => gsap.utils.random(-9, 9) },
             {
-              yPercent: 0, opacity: 1, rotate: 0, duration: 0.9, ease: 'expo.out', stagger: 0.05,
+              yPercent: 0, opacity: 1, rotate: 0, duration: 0.85, ease: 'expo.out', stagger: 0.05,
               scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
             },
           )
@@ -754,7 +595,7 @@ export default function KiropraktorstofanPage() {
             split.words,
             { yPercent: 115, opacity: 0 },
             {
-              yPercent: 0, opacity: 1, duration: 0.9, ease: 'expo.out', stagger: 0.022,
+              yPercent: 0, opacity: 1, duration: 0.85, ease: 'expo.out', stagger: 0.022,
               scrollTrigger: { trigger: el, start: 'top 78%', toggleActions: 'play none none none' },
             },
           )
@@ -762,23 +603,31 @@ export default function KiropraktorstofanPage() {
 
         ScrollTrigger.refresh()
 
-        /* Failsafe: only clear the props that were actually animated, never
-           clearProps:'all' (that wipes React's inline style attribute). */
+        /* Failsafe (<=2s): only clear the props that were actually
+           animated, never clearProps:'all' (that wipes React's inline
+           style attribute — see gsap-splittext-clearprops-traps). */
         window.setTimeout(() => {
           if (chars.length) gsap.set(chars, { opacity: 1, clearProps: 'transform' })
           if (words.length) gsap.set(words, { opacity: 1, clearProps: 'transform' })
-        }, 2400)
+        }, 1800)
       })
 
-      /* RR-DEVICE 8 — plate velocity bend, straight from Lenis velocity via
-         the same ticker tick (cheap: at most 3 signature plates exist). */
-      const bendables = () => Array.from(document.querySelectorAll<HTMLElement>('[data-plate] img'))
+      /* D8 — interior-plate velocity bend, straight from Lenis velocity via
+         GSAP quickSetters (cheap: exactly one interior plate exists). */
+      const plateImgs = Array.from(document.querySelectorAll<HTMLImageElement>('.kiro-plate img'))
+      const setters = plateImgs.map((img) => ({
+        setT: gsap.quickSetter(img, 'transform') as (v: string) => void,
+        setF: gsap.quickSetter(img, 'filter') as (v: string) => void,
+      }))
       const bendTick = () => {
+        if (!setters.length) return
         const v = lenis?.velocity ?? 0
         const s = Math.min(2.4, Math.abs(v))
-        bendables().forEach((img) => {
-          img.style.transform = `scale(${1 + s * 0.012}) skewY(${(v * 0.4).toFixed(2)}deg)`
-          img.style.filter = `blur(${Math.min(2.2, s * 1.6).toFixed(2)}px)`
+        const t = `scale(${(1 + s * 0.012).toFixed(4)}) skewY(${(v * 0.4).toFixed(2)}deg)`
+        const f = `blur(${Math.min(2.2, s * 1.6).toFixed(2)}px)`
+        setters.forEach(({ setT, setF }) => {
+          setT(t)
+          setF(f)
         })
       }
       gsap.ticker.add(bendTick)
@@ -809,103 +658,92 @@ export default function KiropraktorstofanPage() {
   }, [name, phone, email, erindi])
 
   return (
-    <div ref={rootRef} style={{ background: BONE, color: INK, fontFamily: BODY, minHeight: '100vh' }}>
-      <GrainFilter />
+    <div ref={rootRef} style={{ background: GROUND, color: BONE, fontFamily: BODY, minHeight: '100vh' }}>
       <style>{`
-        @font-face { font-family:'Kiro Marcellus'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/marcellus-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-        @font-face { font-family:'Kiro Newsreader'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/newsreader-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-        @font-face { font-family:'Kiro Newsreader'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/newsreader-500.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-        @font-face { font-family:'Kiro Newsreader'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/newsreader-600.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
-        @font-face { font-family:'Kiro Newsreader'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/newsreader-700.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
-        @font-face { font-family:'Kiro Newsreader'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/newsreader-italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
+        @font-face { font-family:'Kiro Khand'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/khand-300.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+        @font-face { font-family:'Kiro Khand'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/khand-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+        @font-face { font-family:'Kiro Khand'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/khand-600.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+        @font-face { font-family:'Kiro Khand'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/khand-700.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+        @font-face { font-family:'Kiro General Sans'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/general-sans-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+        @font-face { font-family:'Kiro General Sans'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/general-sans-500.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+        @font-face { font-family:'Kiro General Sans'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/general-sans-600.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
         @font-face { font-family:'Kiro Server Mono'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/server-mono-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
         @font-face { font-family:'Kiro Server Mono'; src:url('${import.meta.env.BASE_URL}kiropraktorstofan/fonts/server-mono-italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
-
-        /* fixed, pointer-events-none grain, per the performance guardrail
-           (never on a scrolling container) */
-        .kiro-grain-overlay { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.035; filter:url(#kiroGrain); mix-blend-mode:overlay; }
-
-        .kiro-spine-vert {
-          transform: translateX(var(--vx,0px)) rotate(var(--vr,0deg));
-          transition: transform 1.1s cubic-bezier(.16,1,.3,1);
-          transition-delay: calc(var(--vi,0) * 38ms);
-        }
-        .kiro-spine.kiro-in .kiro-spine-vert { --vx: 0px; --vr: 0deg; }
-
-        .kiro-navlink { position: relative; }
-        .kiro-navlink::after {
-          content:''; position:absolute; left:0; right:0; bottom:-3px; height:1px;
-          background: currentColor; transform: scaleX(0); transform-origin:left;
-          transition: transform .32s cubic-bezier(.22,.61,.36,1);
-        }
-        .kiro-navlink:hover::after, .kiro-navlink:focus-visible::after { transform: scaleX(1); }
-
-        /* SpecRow (RR-DEVICE 3): the left-border verticals only make sense
-           between side-by-side cells. Once auto-fit collapses the grid to a
-           single column on narrow phones, swap to a top-border row divider
-           instead, or the left border reads as a stray vertical line down a
-           full-width stacked card. */
-        @media (max-width: 640px) {
-          .kiro-spec-cell { border-left: none !important; border-top: 1px solid var(--kiro-spec-hair, rgba(32,28,21,.14)); }
-          .kiro-spec-cell:first-child { border-top: none; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .kiro-grain-overlay { display:none; }
-          /* the chapter rail and page-progress line are pure scroll-progress
-             decoration (both aria-hidden); under reduced motion the GSAP tick
-             that fills them never runs, so they would sit frozen at empty
-             forever. Hide them rather than show a permanently-wrong state. */
-          .kiro-progress-deco { display:none !important; }
-        }
       `}</style>
-
-      <div className="kiro-grain-overlay" aria-hidden="true" />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
       <PreviewChrome company={company} />
 
       {/* mobile page-progress line */}
-      <div aria-hidden="true" className="kiro-progress-deco fixed inset-x-0 top-0 z-30 h-[3px] md:hidden" style={{ background: 'rgba(32,28,21,.10)' }}>
-        <div data-page-progress className="h-full" style={{ background: SEAL, transformOrigin: 'left center', transform: 'scaleX(0)' }} />
+      <div aria-hidden="true" className="kiro-page-progress fixed inset-x-0 top-0 z-30 h-[3px]" style={{ background: 'rgba(236,233,227,.10)' }}>
+        <div data-page-progress className="h-full" style={{ background: ACCENT, transformOrigin: 'left center', transform: 'scaleX(0)' }} />
       </div>
 
       <ChapterRail />
 
-      {/* ── NAV ─────────────────────────────────────────────────────────── */}
+      {/* ── NAV ───────────────────────────────────────────────────────────
+          D-FIX-2: was `sticky top-0`. Sticky still reserves its own height
+          in normal flow at its natural position (the very top of the
+          document, right before <main>) — that pushed KAFLI 01's 100svh
+          cover down by the header's own height, so the cover's bottom-
+          anchored "1977" word and "KAFLI 01 / 04" label sat that many
+          pixels below the fold on a 900px-tall viewport (verified:
+          cover.getBoundingClientRect().bottom was 973 against a 900px
+          window, exactly headerH=73 too tall). A header pinned at the very
+          top of the page with nothing above it behaves identically to
+          `fixed` for scroll/visibility purposes, but `fixed` takes zero
+          flow space, so switching removes the phantom gap and lets K01's
+          cover fill the full 900px. ─────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-40"
-        style={{ background: 'rgba(242,236,221,.92)', backdropFilter: 'blur(10px)', borderBottom: `1px solid ${HAIR}` }}
+        className="fixed inset-x-0 top-0 z-40"
+        style={{ background: 'rgba(11,11,11,.86)', backdropFilter: 'blur(10px)', borderBottom: `1px solid ${HAIR}` }}
       >
         <div className="mx-auto flex max-w-[1180px] items-center gap-4 px-5 py-3.5 sm:px-8">
           <a href="#top" className={`flex min-h-11 items-center gap-2.5 ${FOCUS}`} aria-label="Kírópraktorstofan, efst á síðu">
-            <svg viewBox="0 0 28 28" width="24" height="24" aria-hidden="true">
-              <rect x="12" y="2" width="4" height="6" rx="1.6" fill={SEAL} />
-              <rect x="9" y="9.5" width="10" height="5" rx="1.8" fill={SEAL} />
-              <rect x="12" y="16" width="4" height="6" rx="1.6" fill={SEAL} opacity="0.6" />
-              <path d="M8 24c2-2 4-3 6-3s4 1 6 3" stroke={SEAL} strokeWidth="1.6" fill="none" strokeLinecap="round" />
-            </svg>
-            <span style={{ fontFamily: DISPLAY, fontSize: '1.1rem', color: INK, whiteSpace: 'nowrap' }}>
+            <img
+              src={IMG.logo}
+              alt="Merki Kírópraktorstofu Tryggva Jónassonar"
+              width={24}
+              height={24}
+              style={{ borderRadius: 2 }}
+            />
+            <span style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: '1.14rem', color: BONE, whiteSpace: 'nowrap' }}>
               Kírópraktorstofan
             </span>
           </a>
+          <span
+            className="ml-2 hidden items-center gap-2 md:flex"
+            style={{ fontFamily: MONO, fontSize: '.72rem', letterSpacing: '.08em', color: status.open ? OPEN_GREEN : MUTE }}
+          >
+            <span aria-hidden="true" className="inline-block rounded-full" style={{ width: 6, height: 6, background: status.open ? OPEN_GREEN : MUTE }} />
+            {status.text}
+          </span>
           <nav className="ml-auto hidden items-center gap-6 lg:flex" aria-label="Aðalvalmynd">
             {NAV.map((n) => (
               <a
                 key={n.href}
                 href={n.href}
                 className={`kiro-navlink inline-flex min-h-11 items-center text-[.94rem] ${FOCUS}`}
-                style={{ color: SOFT, fontFamily: BODY }}
+                style={{ color: MUTE, fontFamily: BODY }}
               >
                 {n.label}
               </a>
             ))}
           </nav>
+          {/* D-FIX-1: was visible at every width, which — alongside the
+              unshrinkable nowrap wordmark and the shrink-0 menu button —
+              left no room at 320-374px (measured: the menu button's own
+              right edge landed at 327px against a 320px viewport). The
+              persistent bottom call strip (below) already puts the phone
+              number one tap away on every viewport under 1024px, so this
+              header chip is redundant clutter below `sm` and is dropped
+              there; ml-auto moves to the menu button as a fallback so
+              layout still docks right with the chip hidden. */}
           <a
             href={PHONE_HREF}
-            className={`ml-auto inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 kiro-press ${FOCUS} lg:ml-0`}
-            style={{ background: SEAL, color: '#fff', fontFamily: MONO, fontSize: '.86rem', whiteSpace: 'nowrap' }}
+            className={`kiro-marker kiro-press ml-auto hidden min-h-11 shrink-0 items-center gap-2 ${FOCUS} sm:inline-flex lg:ml-0`}
+            style={{ ['--kiro-accent' as string]: ACCENT, fontFamily: MONO, fontSize: '.86rem', whiteSpace: 'nowrap' }}
           >
             <Phone size={15} aria-hidden="true" /> {PHONE_DISPLAY}
           </a>
@@ -914,14 +752,14 @@ export default function KiropraktorstofanPage() {
             onClick={() => setMenu((v) => !v)}
             aria-expanded={menu}
             aria-label={menu ? 'Loka valmynd' : 'Opna valmynd'}
-            className={`grid h-11 w-11 shrink-0 place-items-center rounded-full lg:hidden ${FOCUS}`}
-            style={{ border: `1px solid ${HAIR}`, color: INK }}
+            className={`ml-auto grid h-11 w-11 shrink-0 place-items-center sm:ml-0 lg:hidden ${FOCUS}`}
+            style={{ border: `1px solid ${HAIR}`, color: BONE, borderRadius: 2 }}
           >
             {menu ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
           </button>
         </div>
         {menu && (
-          <div className="border-t lg:hidden" style={{ borderColor: HAIR, background: BONE }}>
+          <div className="border-t lg:hidden" style={{ borderColor: HAIR, background: GROUND }}>
             <nav className="mx-auto max-w-[1180px] px-5 py-2 sm:px-8" aria-label="Valmynd">
               {NAV.map((n) => (
                 <a
@@ -929,257 +767,197 @@ export default function KiropraktorstofanPage() {
                   href={n.href}
                   onClick={() => setMenu(false)}
                   className={`flex min-h-12 items-center border-b py-3.5 text-[1.02rem] ${FOCUS}`}
-                  style={{ borderColor: HAIR, fontFamily: DISPLAY, color: INK }}
+                  style={{ borderColor: HAIR, fontFamily: DISPLAY, fontWeight: 600, color: BONE }}
                 >
                   {n.label}
                 </a>
               ))}
+              <span className="flex min-h-12 items-center gap-2 py-3.5 text-[.86rem]" style={{ fontFamily: MONO, color: status.open ? OPEN_GREEN : MUTE }}>
+                <span aria-hidden="true" className="inline-block rounded-full" style={{ width: 6, height: 6, background: status.open ? OPEN_GREEN : MUTE }} />
+                {status.text}
+              </span>
             </nav>
           </div>
         )}
       </header>
 
-      <main id="top">
-        {/* ── HERO ──────────────────────────────────────────────────────── */}
-        <section className="mx-auto max-w-[1180px] px-5 pt-14 pb-20 sm:px-8 sm:pt-20 sm:pb-28">
-          <div className="flex items-center gap-2.5" style={{ fontFamily: MONO, fontSize: '.78rem', letterSpacing: '.1em', color: status.open ? OPEN_GREEN : MUTE }}>
-            <span aria-hidden="true" className="inline-block rounded-full" style={{ width: 8, height: 8, background: status.open ? OPEN_GREEN : MUTE }} />
-            <span>{status.text}</span>
-          </div>
-          <h1
-            className="mt-6 max-w-[16ch]"
-            style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(2.6rem, 7.2vw, 4.9rem)', letterSpacing: '-.015em', lineHeight: 1.05, color: INK }}
-          >
-            Kírópraktík á Íslandi byrjaði hér.
-          </h1>
-          <p className="mt-6 max-w-[46ch]" style={{ fontSize: 'clamp(1.06rem, 2.1vw, 1.28rem)', lineHeight: 1.55, color: SOFT }}>
-            Haustið 1977 fékk Tryggvi Jónasson fyrsta opinbera starfsleyfi kírópraktors á Íslandi.
-            Hann starfar enn, á Háaleitisbraut 66.
-          </p>
-          <div className="mt-9 flex flex-wrap items-center gap-3">
-            <a
-              href="#bokun"
-              className={`inline-flex min-h-14 items-center rounded-full px-8 kiro-press ${FOCUS}`}
-              style={{ background: SEAL, color: '#fff', fontFamily: DISPLAY, fontSize: '1.08rem' }}
-            >
-              Bóka tíma
-            </a>
-            <a
-              href={PHONE_HREF}
-              className={`inline-flex min-h-14 items-center gap-2 rounded-full px-7 kiro-press ${FOCUS}`}
-              style={{ border: `1px solid ${HAIR}`, color: INK, fontFamily: DISPLAY, fontSize: '1.02rem' }}
-            >
-              <Phone size={17} aria-hidden="true" /> Hringja í {PHONE_DISPLAY}
-            </a>
-          </div>
-        </section>
+      {/* ── D7: fixed slim call strip, mobile only, present from first
+          paint (not scroll-gated, not a pill: a full-width hairline bar). ── */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 lg:hidden"
+        style={{ background: 'rgba(11,11,11,.94)', backdropFilter: 'blur(10px)', borderTop: `1px solid ${HAIR}`, paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <a
+          href={PHONE_HREF}
+          className={`kiro-press flex min-h-14 items-center justify-center gap-2.5 ${FOCUS}`}
+          style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: '1.05rem', color: BONE }}
+        >
+          <Phone size={17} aria-hidden="true" style={{ color: ACCENT }} /> Hringja í {PHONE_DISPLAY}
+        </a>
+      </div>
 
-        {/* ── KAFLI I — 1971 ────────────────────────────────────────────── */}
-        <div id="sagan" className="scroll-mt-24" data-chapter-root={0} role="region" aria-label="Kafli 1 af 4: Nemandinn sem fór utan">
+      <main id="top" className="pb-16 lg:pb-0">
+        {/* ── KAFLI 01 — 1977, leyfið sjálft ─────────────────────────────
+            D-FIX-4: was a plain <div role="region">; now a real <section>
+            landmark (aria-label alone is enough for a <section> to expose
+            as a "region" landmark, so role="region" is dropped as
+            redundant). Same for the other three chapter roots below. ──── */}
+        <section id="leyfid" data-chapter-root={0} aria-label="Kafli 1 af 4: 1977, leyfið sjálft">
           <ChapterCover
-            n="01" total={4} word="1971" ground={BONE} textColor={INK} hairColor={MUTE}
-            gradient={`radial-gradient(120% 90% at 78% 100%, ${PAPERWHITE}, ${BONE} 62%)`}
+            n="01" total={4} word="1977"
+            src={IMG.doorway1977}
+            alt="Sólarljós fellur inn um hurð með rifflóttu gleri á viðarþili, hurðarhúnn úr eir, dökkur viðarparketgólf. Skjaluð kyrralífsmynd sem vísar til ársins 1977, þegar stofan opnaði."
+            objectPosition="50% 38%"
+            priority
           />
           <ChapterHead
-            n="01" year="1971" tagline="MR til AECC"
-            title="Nemandinn sem fór utan"
-            abstract="Tryggvi Jónasson lauk stúdentsprófi frá Menntaskólanum í Reykjavík árið 1971. Sama haust settist hann á skólabekk í Englandi, fyrsti Íslendingurinn í kírópraktíknámi."
-            bgWordTop="MR" bgWordBottom="AECC"
-            ink={INK} mute={MUTE} hair={HAIR} accent={SEAL}
+            as="h1" n="01" sub="1977"
+            title="Fyrsta starfsleyfið á Íslandi"
+            abstract="Tryggvi Jónasson lauk stúdentsprófi frá Menntaskólanum í Reykjavík 1971 og hélt sama haust til náms við Anglo-European College of Chiropractic á Englandi. Hann útskrifaðist sem Doctor of Chiropractic 1976, starfaði hálft ár í Danmörku og opnaði eigin stofu í Reykjavík haustið 1977, eftir að landlæknir og Alþingi höfðu tekið afstöðu til nýrrar heilbrigðisstéttar á Íslandi."
+            ghostTop="LEYFIÐ" ghostBottom="1977"
             plate={
-              <TexturePanel ratio="3 / 4">
-                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(155deg, ${PAPERWHITE}, ${BONE} 70%)` }} />
-                <div style={{ position: 'absolute', inset: 18, border: `1px solid ${HAIR}` }} />
-              </TexturePanel>
-            }
-          />
-          <Rise className="mx-auto max-w-[1180px] px-5 pb-24 sm:px-8 sm:pb-32">
-            <div className="max-w-[52ch] border-t pt-8" style={{ borderColor: HAIR }}>
-              <p style={{ color: SOFT, fontSize: '1.06rem', lineHeight: 1.62 }}>
-                Hann útskrifaðist sem Doctor of Chiropractic sumarið 1976, eftir fimm ára nám við
-                Anglo-European College of Chiropractic í Bournemouth. Að námi loknu starfaði hann
-                hálft ár í Danmörku, fyrst hjá Henning Hviid í Árósum og síðan hjá Arne Amtoft
-                Nielsen í Køge á Sjálandi.
-              </p>
-            </div>
-          </Rise>
-        </div>
-
-        {/* ── KAFLI II — 1977 ───────────────────────────────────────────── */}
-        <div data-chapter-root={1} style={{ background: KRAFT }} role="region" aria-label="Kafli 2 af 4: Fyrsti dagurinn á Klapparstíg">
-          <ChapterCover
-            n="02" total={4} word="1977" ground={KRAFT} textColor={INK} hairColor={MUTE}
-            gradient={`radial-gradient(120% 90% at 20% 100%, ${PAPERWHITE}, ${KRAFT} 62%)`}
-          />
-          <ChapterHead
-            n="02" year="1977" tagline="Stofan opnar"
-            title="Fyrsti dagurinn á Klapparstíg"
-            abstract="Haustið 1977 kom Tryggvi heim til Reykjavíkur og opnaði eigin stofu að Klapparstíg 27. Þar hófst starfsferill sem enn stendur, tæpri hálfri öld síðar."
-            bgWordTop="1977" bgWordBottom="KLAPPARSTÍGUR"
-            ink={INK} mute={MUTE} hair={HAIR} accent={SEAL}
-            plate={
-              <Plate src={IMG.stofan1977} alt="Skjalað kyrralíf sem vísar til ársins 1977, þegar stofan opnaði." ratio="3 / 4" ground={PAPERWHITE}>
-                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, #EFE6D0, ${KRAFT} 68%)` }} />
-                <div style={{ position: 'absolute', inset: 18, border: `1px solid rgba(32,28,21,.18)` }} />
-                <div style={{ position: 'absolute', left: '50%', top: '50%', width: 64, height: 64, borderRadius: 999, border: `1px solid rgba(32,28,21,.22)`, transform: 'translate(-50%,-50%)' }} />
-              </Plate>
-            }
-          />
-          <StoryColumns
-            n="02" total={4}
-            leftLabel="Þá" leftBody="Klapparstígur 27, fyrsta stofan. Fljótlega eftir opnun fór af stað ferli hjá embætti landlæknis, sem taldi lagaheimild vanta fyrir svo nýja heilbrigðisþjónustu á Íslandi."
-            rightLabel="Í dag" rightBody="Stofan er í dag á Háaleitisbraut 66, við Grensáskirkju. Að eigin sögn hafa fleiri en 17.000 manns leitað til Tryggva frá upphafi."
-            ink={INK} mute={MUTE} hair={HAIR} accent={SEAL}
-          />
-        </div>
-
-        {/* ── KAFLI III — LEYFIÐ (the one deliberate dark-ink chapter) ───── */}
-        <div data-chapter-root={2} style={{ background: SEALDEEP }} role="region" aria-label="Kafli 3 af 4: Landlæknir, Alþingi, undirskriftin">
-          <ChapterCover
-            n="03" total={4} word="LEYFIÐ" ground={SEALDEEP} textColor={PAPERWHITE} hairColor={SEAL_MUTE}
-            gradient={`radial-gradient(130% 90% at 50% 110%, ${SEAL}, ${SEALDEEP} 68%)`}
-          />
-          <ChapterHead
-            n="03" year="Leyfið" tagline="Landlæknir og Alþingi"
-            title="Landlæknir. Alþingi. Undirskriftin."
-            abstract="Embætti landlæknis taldi lagaheimild vanta. Þáverandi heilbrigðis- og tryggingamálaráðherra, Matthías Bjarnason, lagði því fyrir Alþingi breytingu á læknalögum: ákvæði um takmarkað lækningaleyfi."
-            bgWordTop="LEYFIÐ" bgWordBottom="1977"
-            ink={PAPERWHITE} mute={SEAL_SOFT} hair={HAIR_ON_SEAL} accent={BONE}
-            plate={
-              <Plate src={IMG.leyfid} alt="Skjalað kyrralíf sem vísar til leyfisveitingarinnar." ratio="4 / 3" ground={SEAL}>
-                <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(90% 70% at 30% 20%, rgba(242,236,221,.16), transparent 60%), linear-gradient(150deg, ${SEAL}, ${SEALDEEP})` }} />
-                <div style={{ position: 'absolute', inset: 22, border: `1px solid rgba(242,236,221,.22)` }} />
-                <div style={{ position: 'absolute', left: '58%', top: '46%', width: 76, height: 76, borderRadius: 999, border: `1.5px solid rgba(242,236,221,.32)`, transform: 'translate(-50%,-50%) rotate(-8deg)' }} />
-              </Plate>
+              <Plate
+                src={IMG.document}
+                alt="Kyrralífsmynd af stimpluðu skjali og fylliperi á dökku skrifborði, sem vísar til leyfisveitingarinnar."
+                ratio="4 / 3"
+              />
             }
           />
           <div className="mx-auto max-w-[1180px] px-5 pb-4 sm:px-8">
             <Rise>
-              <SpecRow items={LEYFID_FACTS} ink={PAPERWHITE} mute={SEAL_SOFT} hair={HAIR_ON_SEAL} accent={BONE} />
+              <FactGrid items={LEYFID_FACTS} />
             </Rise>
           </div>
           <UnmaskQuote
             text="Að sögn stofunnar sjálfrar var þetta fyrsta opinbera starfsleyfi kírópraktors sem veitt var á Norðurlöndunum."
             source="Frá kiropraktorstofan.is, ekki óháð staðfesting"
-            ink={PAPERWHITE} mute={SEAL_MUTE} accent={BONE}
           />
-        </div>
+        </section>
 
-        {/* ── KAFLI IV — Í DAG ─────────────────────────────────────────── */}
-        <div id="kiropraktor" className="scroll-mt-24" data-chapter-root={3} role="region" aria-label="Kafli 4 af 4: Áður en hnykkt er">
+        {/* ── KAFLI 02 — Meðferðin ─────────────────────────────────────── */}
+        <section id="medferdin" data-chapter-root={1} aria-label="Kafli 2 af 4: Meðferðin">
           <ChapterCover
-            n="04" total={4} word="MEÐFERÐIN" ground={BONE} textColor={INK} hairColor={MUTE}
-            gradient={`radial-gradient(120% 90% at 78% 100%, ${PAPERWHITE}, ${BONE} 62%)`}
+            n="02" total={4} word="MEÐFERÐIN"
+            src={IMG.hendur}
+            alt="Nærmynd af höndum, öruggum þrátt fyrir aldur, sem hvíla á brún pappírsklædds meðferðarbekks í hlýrri hliðarlýsingu."
+            objectPosition="56% 55%"
           />
           <ChapterHead
-            n="04" year="Í dag" tagline="Meðferðin"
+            as="h2" n="02" sub="Meðferðin"
             title="Áður en hnykkt er"
             abstract="Kírópraktík beinist að heilbrigði hryggjarins: byggingu hans, stöðu, hreyfingu og hæfni til að jafna sig. Sérhver gestur fær viðtal og ítarlega skoðun áður en meðferð hefst."
-            bgWordTop="SKOÐUN" bgWordBottom="HNYKKING"
-            ink={INK} mute={MUTE} hair={HAIR} accent={SEAL}
-            plate={
-              <Plate src={IMG.hendur} alt="Skjöluð mynd sem vísar til meðferðar á meðferðarbekk." ratio="4 / 5" ground={PAPERWHITE}>
-                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(115deg, ${PAPERWHITE} 20%, ${BONE} 60%, #EAE0C7 100%)` }} />
-                <div style={{ position: 'absolute', inset: 18, border: `1px solid ${HAIR}` }} />
-              </Plate>
-            }
+            ghostTop="SKOÐUN" ghostBottom="HNYKKING"
           />
           <div className="mx-auto max-w-[1180px] px-5 pb-4 sm:px-8">
             <Rise>
-              <SpecRow items={EXAM_FACTS} ink={INK} mute={MUTE} hair={HAIR} accent={SEAL} />
+              <FactGrid items={EXAM_FACTS} />
             </Rise>
           </div>
-          <Rise className="mx-auto max-w-[1180px] px-5 pt-14 pb-24 sm:px-8 sm:pb-32">
+          <Rise className="mx-auto max-w-[1180px] px-5 pt-10 pb-16 sm:px-8 sm:pb-20">
             <div className="grid gap-8 border-t pt-10 sm:grid-cols-2" style={{ borderColor: HAIR }}>
-              <p style={{ color: SOFT, lineHeight: 1.62, fontSize: '1.02rem' }}>{SPINE_FACT}</p>
+              <p style={{ color: MUTE, lineHeight: 1.62, fontSize: '1.02rem' }}>{SPINE_FACT}</p>
               <div className="grid gap-4" style={{ fontFamily: MONO, fontSize: '.86rem', color: MUTE, lineHeight: 1.6 }}>
                 <p>{TREATMENT_LENGTH_NOTE}</p>
                 <p>{XRAY_NOTE}</p>
               </div>
             </div>
           </Rise>
-        </div>
+        </section>
 
-        {/* ── VERÐSKRÁ ─────────────────────────────────────────────────── */}
-        <section id="verd" className="scroll-mt-24" style={{ background: KRAFT }} aria-labelledby="verd-h">
-          <div className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-28">
+        {/* ── KAFLI 03 — Verðskráin ────────────────────────────────────── */}
+        <section id="verd" className="scroll-mt-24" data-chapter-root={2} aria-label="Kafli 3 af 4: Verðskráin">
+          <ChapterCover
+            n="03" total={4} word="VERÐSKRÁIN"
+            src={IMG.document}
+            alt="Kyrralífsmynd af stimpluðu skjali og fylliperi í hlýju hliðarljósi á dökku skrifborði, endurnýtt hér sem tákn fyrir opinberan taxta."
+            objectPosition="62% 58%"
+            tint="radial-gradient(120% 70% at 32% 12%, rgba(154,43,52,.18), transparent 60%)"
+          />
+          <ChapterHead
+            as="h2" n="03" sub="Verðskrá"
+            title="Verðskráin, loksins efst"
+            abstract="Á núverandi vef er verðskráin þrjá smelli frá forsíðunni. Hér er hún efst, sýnileg og nákvæm, tekin beint af taxta stofunnar fyrir árið 2026."
+            ghostTop="TAXTINN" ghostBottom="2026"
+          />
+          <div className="mx-auto max-w-[1180px] px-5 pb-8 sm:px-8">
             <Rise>
-              <H2 id="verd-h">Verðið, ekki falið lengur.</H2>
-              <p className="mt-5 max-w-[52ch]" style={{ color: SOFT, fontSize: '1.06rem', lineHeight: 1.6 }}>
-                Á núverandi vef er verðskráin þrjá smelli frá forsíðunni. Hér er hún efst, sýnileg og
-                nákvæm, tekin beint af taxta stofunnar fyrir árið 2026.
-              </p>
-            </Rise>
-            <Rise delay={1}>
-              <ul className="mt-10">
-                {PRICES.map((p) => (
-                  <li key={p.item} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b py-5" style={{ borderColor: HAIR }}>
-                    <span style={{ fontFamily: DISPLAY, fontSize: '1.18rem', color: INK }}>{p.item}</span>
-                    <span style={{ fontFamily: MONO, color: SEAL, fontSize: '1.06rem' }}>{p.price}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <Ledger rows={PRICES.map((p, i) => ({ n: pad(i + 1), label: p.item, value: p.price }))} />
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <p style={{ fontFamily: MONO, fontSize: '.84rem', color: MUTE, lineHeight: 1.6 }}>{PRICE_VALID}</p>
                 <p style={{ fontFamily: MONO, fontSize: '.84rem', color: MUTE, lineHeight: 1.6 }}>{PRICE_NOTE}</p>
               </div>
             </Rise>
+            <Rise delay={1} className="mt-16">
+              <h3 style={{ fontFamily: MONO, fontSize: '.78rem', letterSpacing: '.12em', color: MUTE }} className="uppercase">
+                Opnunartími
+              </h3>
+              <div className="mt-4">
+                <Ledger rows={HOURS.map((h, i) => ({ n: pad(i + 1), label: h.days, value: h.span }))} />
+              </div>
+            </Rise>
+            <Rise delay={2} className="mt-14 pb-16 sm:pb-24">
+              <a
+                href="#bokun"
+                className={`kiro-bracket kiro-bracket-underline inline-flex min-h-11 items-center gap-1 ${FOCUS}`}
+                style={{ color: BONE, fontFamily: MONO, fontSize: '.94rem' }}
+              >
+                <span aria-hidden="true" className="kiro-bracket-mark">[ </span>Bóka tíma<span aria-hidden="true" className="kiro-bracket-mark"> ]</span>
+              </a>
+            </Rise>
           </div>
         </section>
 
-        {/* ── STAÐSETNING ──────────────────────────────────────────────── */}
-        <section id="stadsetning" className="scroll-mt-24" aria-labelledby="place-h">
-          <div className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-28">
+        {/* ── KAFLI 04 — Stofan ────────────────────────────────────────── */}
+        <section id="stadsetning" className="scroll-mt-24" data-chapter-root={3} aria-label="Kafli 4 af 4: Stofan">
+          <ChapterCover
+            n="04" total={4} word="STOFAN"
+            src={IMG.stofanReal}
+            alt="Tryggvi Jónasson stendur í dyragætt stofunnar árið 2017 með krosslagðar hendur, veggspjöld af hrygg og beinagrind sjást á vegg fyrir innan."
+            objectPosition="72% 36%"
+          />
+          <ChapterHead
+            as="h2" n="04" sub="Í dag"
+            title="Háaleitisbraut 66"
+            abstract={`${ADDRESS_NOTE} Stofan er í dag á Háaleitisbraut 66, við Grensáskirkju.`}
+            ghostTop="HÁALEITISBRAUT" ghostBottom="66"
+          />
+          <StoryColumns
+            n="04"
+            leftLabel="Þá"
+            leftBody="Klapparstígur 27, fyrsta stofan. Fljótlega eftir opnun fór af stað ferli hjá embætti landlæknis, sem taldi lagaheimild vanta fyrir svo nýja heilbrigðisþjónustu á Íslandi."
+            rightLabel="Í dag"
+            rightBody={`Stofan er í dag á Háaleitisbraut 66, við Grensáskirkju. ${PATIENT_COUNT_NOTE}`}
+          />
+          <UnmaskQuote
+            text={PATIENT_COUNT_NOTE}
+            source="Frá ferilskrá Tryggva Jónassonar á kiropraktorstofan.is"
+          />
+          <div className="mx-auto max-w-[1180px] px-5 pb-16 sm:px-8 sm:pb-20">
             <Rise>
-              <H2 id="place-h">Við Grensáskirkju, norðurendann</H2>
-              <p className="mt-5 max-w-[52ch]" style={{ color: SOFT, fontSize: '1.06rem', lineHeight: 1.6 }}>{ADDRESS_NOTE}</p>
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noreferrer"
+                className={`kiro-bracket kiro-bracket-underline inline-flex min-h-11 items-center gap-1 ${FOCUS}`}
+                style={{ color: BONE, fontFamily: MONO, fontSize: '.94rem' }}
+              >
+                <span aria-hidden="true" className="kiro-bracket-mark">[ </span>Opna í kortum<span aria-hidden="true" className="kiro-bracket-mark"> ]</span>
+              </a>
             </Rise>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2">
-              <Rise delay={1} as="article">
-                <div className="h-full rounded-2xl bg-white p-7 sm:p-8" style={{ border: `1px solid ${HAIR}` }}>
-                  <p style={{ fontFamily: MONO, fontSize: '.74rem', color: MUTE, letterSpacing: '.12em' }} className="uppercase">
-                    Heimilisfang
-                  </p>
-                  <h3 className="mt-4" style={{ fontFamily: DISPLAY, fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', color: INK }}>
-                    {ADDRESS_LINE1}
-                  </h3>
-                  <p className="mt-1" style={{ fontFamily: MONO, color: SOFT }}>{ADDRESS_LINE2}</p>
-                  <a
-                    href={MAPS_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`kiro-navlink mt-6 inline-flex min-h-11 items-center ${FOCUS}`}
-                    style={{ color: SEAL, fontFamily: MONO, fontSize: '.88rem' }}
-                  >
-                    Opna í kortum
-                  </a>
-                </div>
-              </Rise>
-              <Rise delay={2} as="article">
-                <div className="h-full rounded-2xl bg-white p-7 sm:p-8" style={{ border: `1px solid ${HAIR}` }}>
-                  <p style={{ fontFamily: MONO, fontSize: '.74rem', color: MUTE, letterSpacing: '.12em' }} className="uppercase">
-                    Opnunartími
-                  </p>
-                  <ul className="mt-4 grid gap-3">
-                    {HOURS.map((h) => (
-                      <li key={h.days}>
-                        <p style={{ fontFamily: DISPLAY, fontSize: '1.06rem', color: INK }}>{h.days}</p>
-                        <p style={{ fontFamily: MONO, fontSize: '.9rem', color: SOFT }}>{h.span}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Rise>
-            </div>
           </div>
         </section>
 
         {/* ── BÓKUN ────────────────────────────────────────────────────── */}
-        <section id="bokun" className="scroll-mt-24" style={{ background: PAPERWHITE }} aria-labelledby="bokun-h">
+        <section id="bokun" className="scroll-mt-24" style={{ background: PANEL }} aria-labelledby="bokun-h">
           <div className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-28">
             <Rise>
-              <H2 id="bokun-h">Biðjið um tíma</H2>
-              <p className="mt-5 max-w-[52ch]" style={{ color: SOFT, fontSize: '1.06rem', lineHeight: 1.6 }}>
+              <h2
+                id="bokun-h"
+                style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.2rem)', letterSpacing: '-.01em', lineHeight: 0.98, color: BONE }}
+              >
+                Biðjið um tíma
+              </h2>
+              <p className="mt-5 max-w-[52ch]" style={{ color: MUTE, fontSize: '1.06rem', lineHeight: 1.6 }}>
                 Fyllið út formið og Tryggvi hefur samband símleiðis eða í tölvupósti. Í bráðatilfellum er
                 fljótlegast að hringja beint.
               </p>
@@ -1190,7 +968,7 @@ export default function KiropraktorstofanPage() {
                   e.preventDefault()
                   window.location.href = mailto
                 }}
-                className="mt-10 grid max-w-[640px] gap-5"
+                className="mt-10 grid max-w-[640px] gap-6"
               >
                 <div className="grid gap-2">
                   <label htmlFor="kiro-name" style={{ fontFamily: MONO, fontSize: '.78rem', color: MUTE }} className="uppercase">
@@ -1198,17 +976,17 @@ export default function KiropraktorstofanPage() {
                   </label>
                   <input
                     id="kiro-name" required value={name} onChange={(e) => setName(e.target.value)}
-                    className={`kiro-field min-h-12 rounded-xl px-4 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: INK }}
+                    className={`kiro-field min-h-12 px-1 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: BONE }}
                   />
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <label htmlFor="kiro-phone" style={{ fontFamily: MONO, fontSize: '.78rem', color: MUTE }} className="uppercase">
                       Símanúmer
                     </label>
                     <input
                       id="kiro-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                      className={`kiro-field min-h-12 rounded-xl px-4 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: INK }}
+                      className={`kiro-field min-h-12 px-1 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: BONE }}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -1217,7 +995,7 @@ export default function KiropraktorstofanPage() {
                     </label>
                     <input
                       id="kiro-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                      className={`kiro-field min-h-12 rounded-xl px-4 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: INK }}
+                      className={`kiro-field min-h-12 px-1 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: BONE }}
                     />
                   </div>
                 </div>
@@ -1227,25 +1005,25 @@ export default function KiropraktorstofanPage() {
                   </label>
                   <textarea
                     id="kiro-erindi" rows={4} value={erindi} onChange={(e) => setErindi(e.target.value)}
-                    className={`kiro-field rounded-xl px-4 py-3 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: INK, resize: 'vertical' }}
+                    className={`kiro-field px-1 py-2 ${FOCUS}`} style={{ fontFamily: BODY, fontSize: '1rem', color: BONE, resize: 'vertical' }}
                   />
                 </div>
                 <p style={{ fontFamily: MONO, fontSize: '.78rem', color: MUTE, lineHeight: 1.6 }}>
                   Beiðnin opnast í tölvupóstforritinu þínu, tilbúin til sendingar, og þú getur yfirfarið
                   hana áður en hún fer af stað.
                 </p>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
+                <div className="mt-2 flex flex-wrap items-center gap-4">
                   <button
                     type="submit"
-                    className={`inline-flex min-h-14 items-center gap-2 rounded-full px-8 kiro-press ${FOCUS}`}
-                    style={{ background: SEAL, color: '#fff', fontFamily: DISPLAY, fontSize: '1.05rem' }}
+                    className={`kiro-marker kiro-press inline-flex min-h-14 items-center gap-2 px-6 ${FOCUS}`}
+                    style={{ ['--kiro-accent' as string]: ACCENT, fontFamily: DISPLAY, fontWeight: 600, fontSize: '1.05rem' }}
                   >
                     <Send size={17} aria-hidden="true" /> Senda beiðni
                   </button>
                   <a
                     href={PHONE_HREF}
-                    className={`inline-flex min-h-14 items-center gap-2 rounded-full px-7 kiro-press ${FOCUS}`}
-                    style={{ border: `1px solid ${HAIR}`, color: INK, fontFamily: DISPLAY, fontSize: '1rem' }}
+                    className={`kiro-bracket kiro-bracket-underline inline-flex min-h-14 items-center gap-2 ${FOCUS}`}
+                    style={{ color: BONE, fontFamily: MONO, fontSize: '.94rem' }}
                   >
                     <Phone size={16} aria-hidden="true" /> Hringja í {PHONE_DISPLAY}
                   </a>
@@ -1259,25 +1037,24 @@ export default function KiropraktorstofanPage() {
         <section aria-labelledby="closer-h">
           <div className="mx-auto max-w-[1180px] px-5 py-24 text-center sm:px-8 sm:py-32">
             <Rise>
-              <SpineSettle />
               <h2
                 id="closer-h"
-                className="mx-auto mt-10 max-w-[18ch]"
-                style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(2.1rem, 6vw, 3.8rem)', letterSpacing: '-.015em', lineHeight: 1.08, color: INK }}
+                className="mx-auto max-w-[20ch]"
+                style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(2.1rem, 6vw, 3.8rem)', letterSpacing: '-.01em', lineHeight: 1.02, color: BONE }}
               >
-                Næsta blaðsíðan er bakið þitt.
+                Sjúkraskráin heldur áfram. Hringdu og bættu þínum kafla við.
               </h2>
               <a
                 href={PHONE_HREF}
-                className={`mt-9 inline-flex min-h-[60px] items-center rounded-full px-9 kiro-press ${FOCUS}`}
-                style={{ background: SEAL, color: '#fff', fontFamily: DISPLAY, fontSize: 'clamp(1.1rem, 3vw, 1.4rem)' }}
+                className={`kiro-marker kiro-press mt-10 inline-block ${FOCUS}`}
+                style={{ ['--kiro-accent' as string]: ACCENT, fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(1.6rem, 5vw, 2.6rem)' }}
               >
                 {PHONE_DISPLAY}
               </a>
-              <p className="mt-8" style={{ fontFamily: MONO, fontSize: '.82rem', color: MUTE, lineHeight: 1.7 }}>
+              <p className="mt-9" style={{ fontFamily: MONO, fontSize: '.82rem', color: MUTE, lineHeight: 1.7 }}>
                 {PRACTICE_NAME} · {ADDRESS_LINE1}, {ADDRESS_LINE2}
                 <br />
-                <a href={EMAIL_HREF} className={`kiro-navlink inline-flex min-h-11 items-center ${FOCUS}`} style={{ color: SEAL }}>
+                <a href={EMAIL_HREF} className={`kiro-navlink inline-flex min-h-11 items-center ${FOCUS}`} style={{ color: BONE }}>
                   <Mail size={13} className="mr-1.5" aria-hidden="true" /> {EMAIL}
                 </a>
               </p>

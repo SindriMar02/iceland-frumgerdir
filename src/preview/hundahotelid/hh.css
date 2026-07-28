@@ -1,37 +1,41 @@
 /**
- * HUNDAHÓTELIÐ ÁSBRÚ — page-scoped styles.
+ * HUNDAHÓTELIÐ ÁSBRÚ — v2 "Sólarhringurinn" (one day at the hotel).
  * Everything here is prefixed `hh-` (classnames, custom properties and
  * keyframes) so nothing leaks into or collides with any other preview page.
- * Self-hosted National Park @font-face (single-typeface discipline, device 6
- * of the Amour Liquide transplant — see Page.tsx header comment).
+ *
+ * PALETTE — cream ground + terracotta/rust accent + warm bronze captions.
+ * real/logo.svg + real/logo.png are pure black line art (a kennel-roof
+ * silhouette, two dogs and hearts, no inherent brand color), so the accent
+ * is tuned toward the brief's own warm register rather than lifted from the
+ * mark. Computed AA contrast (see Page.tsx header comment for the numbers).
+ *
+ * NOTE: the @font-face rules for "HH Fraunces" are NOT declared here. This
+ * file is a static asset processed once by Vite; it cannot see
+ * import.meta.env.BASE_URL, and the production build serves this app from a
+ * GitHub Pages subpath (see vite.config.ts: `base: process.env.BASE_PATH`).
+ * A hardcoded root-absolute url('/hundahotelid/fonts/...') would 404 under
+ * that subpath. So @font-face is instead injected from Page.tsx via a small
+ * <style> tag built with BASE_URL.
  */
 
-/* NOTE: the @font-face rules for "HH National Park" are NOT declared here.
-   This file is a static asset processed once by Vite; it cannot see
-   import.meta.env.BASE_URL, and the production build serves this app from a
-   GitHub Pages subpath (see vite.config.ts: `base: process.env.BASE_PATH`).
-   A hardcoded root-absolute url('/hundahotelid/fonts/...') would 404 under
-   that subpath (the exact class of bug in [[favicon-origin-inheritance]]).
-   So @font-face is instead injected from Page.tsx via a small <style> tag
-   built with BASE_URL, right next to this file's import. */
-
 .hh-root {
-  --hh-cream: #f4f3e9;
-  --hh-cream-2: #eae7d4;
-  --hh-ink: #211d16;
-  --hh-muted: #65615a;
-  --hh-green: #2f6e3b;
-  --hh-green-deep: #16321d;
+  --hh-cream: #f7f1e4;
+  --hh-cream-2: #efe4cd;
+  --hh-ink: #2b211a;
+  --hh-muted: #6b5d4e;
+  --hh-rust: #c1502e;
+  --hh-rust-deep: #a8431f;
+  --hh-bronze: #7a5a38;
   --hh-white: #ffffff;
-  --hh-hair: rgba(33, 29, 22, 0.14);
-  --hh-hair-on-dark: rgba(244, 243, 233, 0.18);
+  --hh-hair: rgba(43, 33, 26, 0.16);
+  --hh-hair-2: rgba(43, 33, 26, 0.1);
 
   /* device 1 — the kennel-door arch, objectBoundingBox SVG clipPath, a
      --lg variant swapped in at 992px (see the <clipPath> defs mounted once
      in Page.tsx: #hh-arch and #hh-arch-lg). */
   --hh-clip: url(#hh-arch);
 
-  font-family: 'HH National Park', system-ui, sans-serif;
+  font-family: 'HH Fraunces', ui-serif, Georgia, serif;
   background: var(--hh-cream);
   color: var(--hh-ink);
   overflow-x: hidden;
@@ -45,14 +49,99 @@
 }
 
 .hh-root ::selection {
-  background: var(--hh-green);
+  background: var(--hh-rust);
   color: var(--hh-white);
 }
 
 .hh-focus:focus-visible {
-  outline: 2px solid var(--hh-green);
+  outline: 2px solid var(--hh-rust);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+.hh-italic {
+  font-style: italic;
+}
+
+/* ── device 1 (hero variant) — the arch owns the first screen: a
+   full-bleed clip-path frame sized by viewport height, a bottom-anchored
+   scrim, and the headline/CTA content living inside the frame instead of
+   in a column beside it (D-FIX-1, D-FIX-3, D-FIX-4). ───────────────────── */
+
+.hh-hero {
+  position: relative;
+  width: 100%;
+}
+
+.hh-hero__frame {
+  position: relative;
+  overflow: hidden;
+  clip-path: var(--hh-clip);
+  background: var(--hh-cream-2);
+  isolation: isolate;
+  width: 100%;
+  height: 80svh;
+  min-height: 560px;
+  max-height: 720px;
+}
+
+@media (min-width: 640px) {
+  .hh-hero__frame {
+    height: 76svh;
+    min-height: 600px;
+    max-height: 840px;
+  }
+}
+
+.hh-hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(43, 33, 26, 0) 28%,
+    rgba(43, 33, 26, 0.34) 60%,
+    rgba(43, 33, 26, 0.86) 100%
+  );
+  pointer-events: none;
+}
+
+.hh-hero__content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 26px 20px calc(32px + env(safe-area-inset-bottom, 0px));
+  color: var(--hh-cream);
+}
+
+@media (min-width: 640px) {
+  .hh-hero__content {
+    padding: 0 48px 56px;
+    max-width: 46rem;
+  }
+}
+
+.hh-hero__hours {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hh-cream);
+}
+
+.hh-hero__cta {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hh-hero__rating {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--hh-cream);
+  opacity: 0.88;
 }
 
 /* ── device 1 + 2 — the arch frame: SVG clip-path mask with an oversized
@@ -80,9 +169,16 @@
   transform: translate3d(0, 0, 0);
 }
 
-/* ── device 4 — caption discipline: small warm-tone caption under every
-   media frame, literal ml-12/mt-16 rhythm (12px / 16px), never inside the
-   image itself. ────────────────────────────────────────────────────── */
+/* a plain (non-arch) rectangular frame, used once for the Grindavík moment
+   to deliberately break the playful arch rhythm for that quieter beat. */
+.hh-frame--plain {
+  clip-path: none;
+  border-radius: 10px;
+}
+
+/* ── caption discipline: small warm-bronze caption under every media
+   frame, literal ml-12/mt-16 rhythm (12px / 16px), never overlaid on the
+   photo itself. ───────────────────────────────────────────────────────── */
 
 .hh-cap {
   margin-left: 12px;
@@ -90,14 +186,13 @@
   font-size: 13px;
   line-height: 1.45;
   letter-spacing: 0.01em;
-  color: var(--hh-muted);
+  color: var(--hh-bronze);
   max-width: 46ch;
 }
 
-/* ── device 3 — the asymmetric pair: 72% / 28% grid, the narrow column a
+/* ── device 2 — the asymmetric pair: 72% / 28% grid, the narrow column a
    tall pill (border-radius: 400px 400px 0 0) with a negative margin-left
-   so it kisses the big frame. Collapses to a single column under 768px
-   per the mandatory mobile override. ──────────────────────────────────── */
+   so it kisses the big frame. Collapses to a single column under 768px. ── */
 
 .hh-pair {
   display: grid;
@@ -134,7 +229,7 @@
   }
 }
 
-/* ── device 5 — CSS ticker: animation-play-state paused until `.is-inview`
+/* ── device 4 — CSS ticker: animation-play-state paused until `.is-inview`
    flips it running; one instance reversed via animation-direction. ─────── */
 
 @keyframes hh-ticker {
@@ -154,7 +249,7 @@
 .hh-ticker__track {
   display: inline-flex;
   width: max-content;
-  animation: hh-ticker 26s linear infinite;
+  animation: hh-ticker 32s linear infinite;
   animation-play-state: paused;
 }
 
@@ -172,7 +267,7 @@
   }
 }
 
-/* ── device 7 — loader overlay ───────────────────────────────────────── */
+/* ── device 7 (chrome) — loader overlay ──────────────────────────────── */
 
 .hh-loader {
   position: fixed;
@@ -192,8 +287,8 @@
 }
 
 .hh-loader__mark {
-  max-width: 300px;
-  width: 62vw;
+  max-width: 280px;
+  width: 58vw;
 }
 
 .hh-loader__ring {
@@ -206,37 +301,209 @@
   stroke-dashoffset: 0;
 }
 
-/* ── device 8 — resident viewer (hero carousel) ──────────────────────── */
+/* ── device 3 — the timeline spine: sticky time-marker rail + day beats ── */
 
-.hh-viewer__track {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overscroll-behavior-x: contain;
+.hh-spine {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
 }
 
-.hh-viewer__track::-webkit-scrollbar {
+@media (min-width: 900px) {
+  .hh-spine {
+    grid-template-columns: 148px 1fr;
+    gap: 56px;
+  }
+}
+
+.hh-spine__rail {
   display: none;
 }
 
-.hh-viewer__slide {
-  position: relative;
-  flex: 0 0 100%;
-  scroll-snap-align: start;
+@media (min-width: 900px) {
+  .hh-spine__rail {
+    display: flex;
+    position: sticky;
+    top: 108px;
+    height: max-content;
+    flex-direction: column;
+    gap: 26px;
+    padding-top: 8px;
+  }
+}
+
+.hh-spine__marker {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hh-muted);
+  transition: color 0.35s ease, transform 0.35s ease;
+  transform-origin: left center;
+}
+
+.hh-spine__marker::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--hh-hair);
+  transition: background-color 0.35s ease, transform 0.35s ease;
+  flex: none;
+}
+
+.hh-spine__marker[data-active='true'] {
+  color: var(--hh-rust-deep);
+  transform: scale(1.08);
+}
+
+.hh-spine__marker[data-active='true']::before {
+  background: var(--hh-rust);
+  transform: scale(1.5);
+}
+
+.hh-spine__mobile {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.hh-spine__mobile::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .hh-spine__mobile {
+    display: none;
+  }
+}
+
+.hh-beat {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.hh-beat + .hh-beat {
+  margin-top: 64px;
 }
 
 @media (min-width: 640px) {
-  .hh-viewer__slide {
-    flex-basis: 78%;
+  .hh-beat + .hh-beat {
+    margin-top: 84px;
   }
 }
 
-@media (min-width: 1024px) {
-  .hh-viewer__slide {
-    flex-basis: 46%;
+.hh-beat__time {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--hh-rust-deep);
+}
+
+/* ── device 6 — testimonials: editorial bordered alternating rows,
+   name band + star row, paw-monogram avatars (no stock faces). ─────────── */
+
+.hh-testi {
+  border-top: 1px solid var(--hh-hair);
+}
+
+.hh-testi:last-child {
+  border-bottom: 1px solid var(--hh-hair);
+}
+
+.hh-testi__row {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 860px) {
+  .hh-testi__row {
+    grid-template-columns: 30% 1fr;
   }
+  .hh-testi__row--rev {
+    grid-template-columns: 1fr 30%;
+  }
+  .hh-testi__row--rev .hh-testi__name {
+    order: 2;
+    border-left: 1px solid var(--hh-hair);
+    border-right: none;
+  }
+  .hh-testi__row--rev .hh-testi__quote {
+    order: 1;
+  }
+}
+
+.hh-testi__name {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 22px;
+  border-bottom: 1px solid var(--hh-hair);
+  background: var(--hh-cream-2);
+}
+
+@media (min-width: 860px) {
+  .hh-testi__name {
+    border-bottom: none;
+    border-right: 1px solid var(--hh-hair);
+  }
+}
+
+.hh-testi__avatar {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--hh-rust);
+  color: var(--hh-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hh-testi__quote {
+  padding: 26px 24px 28px;
+}
+
+.hh-testi__stars {
+  display: flex;
+  gap: 3px;
+  margin-top: 14px;
+}
+
+/* ── device 8 — the price table: typeset rows, hairline rules ───────────── */
+
+.hh-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hh-hair);
+}
+
+.hh-price-row:first-child {
+  border-top: 1px solid var(--hh-hair);
+}
+
+.hh-price-watermark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center 62%;
+  opacity: 0.07;
+  pointer-events: none;
 }
 
 /* ── reveal system: IntersectionObserver + CSS transition, always
@@ -255,7 +522,7 @@
 }
 
 [data-hh-reveal='scale'] {
-  transform: translateY(30px) scale(0.96);
+  transform: translateY(30px) scale(0.97);
 }
 
 [data-hh-reveal='scale'].hh-in {
@@ -271,6 +538,9 @@
   .hh-loader {
     display: none !important;
   }
+  .hh-spine__marker {
+    transform: none !important;
+  }
 }
 
 /* ── misc utility shapes ─────────────────────────────────────────────── */
@@ -283,13 +553,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  border-radius: 999px;
+  gap: 0.55rem;
+  border-radius: 11px;
   padding: 0.9rem 1.6rem;
   font-size: 0.95rem;
   font-weight: 600;
   min-height: 44px;
-  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .hh-btn:active {
@@ -297,12 +567,12 @@
 }
 
 .hh-btn--primary {
-  background: var(--hh-green);
+  background: var(--hh-rust);
   color: var(--hh-white);
 }
 
 .hh-btn--primary:hover {
-  background: #275b32;
+  background: var(--hh-rust-deep);
 }
 
 .hh-btn--ghost {
@@ -312,15 +582,55 @@
 }
 
 .hh-btn--ghost:hover {
-  border-color: var(--hh-green);
-  color: var(--hh-green);
+  border-color: var(--hh-rust);
+  color: var(--hh-rust-deep);
+}
+
+/* ghost button variant for use over photography (hero content sits on a
+   dark scrim, so the plain ghost's ink-colored hairline/text would
+   disappear). ────────────────────────────────────────────────────────── */
+.hh-btn--ghost-on-dark {
+  background: rgba(247, 241, 228, 0.1);
+  color: var(--hh-cream);
+  border: 1.5px solid rgba(247, 241, 228, 0.55);
+}
+
+.hh-btn--ghost-on-dark:hover {
+  border-color: var(--hh-cream);
+  background: rgba(247, 241, 228, 0.18);
 }
 
 .hh-btn--on-dark {
   background: var(--hh-cream);
-  color: var(--hh-green-deep);
+  color: var(--hh-rust-deep);
 }
 
 .hh-btn--on-dark:hover {
   background: var(--hh-white);
+}
+
+/* fixed mobile booking bar — sits below the 80px band PreviewChrome keeps
+   clear for its own floating admin buttons (see PreviewChrome.tsx). */
+.hh-stickybar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(247, 241, 228, 0.96);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--hh-hair);
+}
+
+@media (min-width: 900px) {
+  .hh-stickybar {
+    display: none;
+  }
+}
+
+.hh-stickybar .hh-btn {
+  flex: 1;
 }

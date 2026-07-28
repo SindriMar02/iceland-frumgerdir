@@ -9,15 +9,15 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { CSS } from './styles'
 import {
-  ADDRESS_CORRECT, COMPANY, EMAIL, EMAIL_HREF, FEES, FEE_HEADLINE, FEE_SUB, FOUNDING,
-  IMG, JSON_LD, KENNITALA, LEGAL_NAME, LISTINGS, LISTINGS_LABEL, LISTING_FILTERS,
-  EDITORIAL_CARDS, NAV, PHONE_DISPLAY, PHONE_HREF, STAFF, TOWNS,
-  type Listing, type ListingType,
+  ABOUT_QUOTE, ADDRESS_CORRECT, COMPANY, EMAIL, EMAIL_HREF, FEES, FEE_HEADLINE, FEE_SUB,
+  FOUNDING, HERO_INDEXES, IMG, JSON_LD, KENNITALA, LEGAL_NAME, LISTINGS, LISTINGS_LABEL,
+  LOGO, EDITORIAL_CARDS, NAV, PHONE_DISPLAY, PHONE_HREF, PRICE_BANDS, SORT_OPTIONS,
+  STADUR_FILTERS, STAFF, TOWNS,
+  type EditorialCard, type Listing, type SortMode,
 } from './data'
 
 gsap.registerPlugin(SplitText, CustomEase)
 CustomEase.create('egmOut', '.25,1,.5,1')
-CustomEase.create('egmIn', '.5,0,.75,0')
 
 const reduced = () =>
   typeof window !== 'undefined' &&
@@ -27,12 +27,12 @@ const reduced = () =>
    THE SCROLL ENGINE
    One Lenis instance drives smooth scroll. On every Lenis 'scroll' tick we
    read two element rects and write two scrub-driven inline styles directly
-   (device 3, the dive-in hero; device 8, the footer aperture close) — both
-   genuinely tied to scroll position, no artificial pinned runway needed.
-   Everything else (device 5 reveals, device 4 chrome theming) runs off
-   IntersectionObserver, registered separately below.
+   (device 3, the dive-in hero; device 10, the footer aperture close) — both
+   genuinely tied to scroll position. Everything else (device 7 reveals,
+   device 5 chrome theming) runs off IntersectionObserver, registered
+   separately below.
    ══════════════════════════════════════════════════════════════════════ */
-function useSceneEngine(heroImgRef: RefObject<HTMLDivElement | null>, closerRef: RefObject<HTMLDivElement | null>) {
+function useSceneEngine(heroStackRef: RefObject<HTMLDivElement | null>, closerRef: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
     if (reduced()) return
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true })
@@ -44,7 +44,7 @@ function useSceneEngine(heroImgRef: RefObject<HTMLDivElement | null>, closerRef:
 
     const onScroll = () => {
       const vh = window.innerHeight
-      const hero = heroImgRef.current
+      const hero = heroStackRef.current
       if (hero) {
         const wrap = hero.closest<HTMLElement>('[data-egm-hero]')
         if (wrap) {
@@ -80,11 +80,11 @@ function useSceneEngine(heroImgRef: RefObject<HTMLDivElement | null>, closerRef:
   }, [])
 }
 
-/* ── device 5 — reveal primitives ────────────────────────────────────────
+/* ── device 7 — reveal primitives: h / p / line / slide, and only these ──
    h    SplitText chars, rotateY 90 + yPercent 50 → 0            (headings)
    p    masked lines, yPercent 110 → 0, no opacity                (paragraphs)
    line clip-path inset wipe                                      (rules)
-   ctn  opacity + y                                                (containers)
+   slide skewed polygon wipe + inner counter-scale 1.5             (panels)
    IntersectionObserver-driven, once:true, in-view-on-mount check, a 2s
    failsafe so nothing strands hidden. Reduced motion renders everything
    resolved with no animation at all. */
@@ -114,15 +114,15 @@ function useRevealSystem() {
       el.classList.add(instant || skip ? 'egm-in-instant' : 'egm-in')
     }
 
+    const selector = '[data-egm-split="h"],[data-egm-rv-line],[data-egm-rv-p],[data-egm-rv-slide]'
+
     if (skip) {
       document.querySelectorAll('[data-egm-split="h"]').forEach((el) => revealHeading(el, true))
-      document.querySelectorAll('[data-egm-rv-ctn],[data-egm-rv-line],[data-egm-rv-p]').forEach((el) => revealPlain(el, true))
+      document.querySelectorAll('[data-egm-rv-line],[data-egm-rv-p],[data-egm-rv-slide]').forEach((el) => revealPlain(el, true))
       return
     }
 
-    const targets = Array.from(
-      document.querySelectorAll('[data-egm-split="h"],[data-egm-rv-ctn],[data-egm-rv-line],[data-egm-rv-p]'),
-    )
+    const targets = Array.from(document.querySelectorAll(selector))
     const fired = new WeakSet<Element>()
     const fire = (el: Element, instant: boolean) => {
       if (fired.has(el)) return
@@ -161,12 +161,11 @@ function useRevealSystem() {
   }, [])
 }
 
-/* ── device 4 — self-theming fixed chrome ────────────────────────────────
+/* ── device 5 — self-theming fixed chrome ────────────────────────────────
    Each fixed element gets its OWN IntersectionObserver, rootMargin-shifted
    to a 1px line at that element's vertical centre, observing every themed
    section. Whichever section's box currently straddles that line supplies
-   the theme. 0.4s CSS colour transition does the rest (see .egm-chrome in
-   styles.ts). */
+   the theme. 0.4s CSS colour transition does the rest. */
 function useSelfThemingChrome(refs: Array<RefObject<HTMLElement | null>>) {
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-egm-theme]'))
@@ -206,8 +205,148 @@ function useSelfThemingChrome(refs: Array<RefObject<HTMLElement | null>>) {
   }, [])
 }
 
-/* ── device 2 — the arch aperture preloader ──────────────────────────── */
-function Preloader() {
+/* ── device 3 — hero photo cycle, driven by the same wipe grammar as the
+   reveal system's 'slide' primitive (skewed polygon + counter-scale),
+   never a fade. Disabled entirely under reduced motion: one static frame. */
+function useHeroCycle(count: number) {
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    if (reduced() || count < 2) return
+    const id = window.setInterval(() => setActive((v) => (v + 1) % count), 4200)
+    return () => window.clearInterval(id)
+  }, [count])
+  return active
+}
+
+/* ── small building blocks ───────────────────────────────────────────── */
+
+function Rv({
+  as: Tag = 'div',
+  kind = 'p',
+  className = '',
+  children,
+  id,
+}: {
+  as?: 'div' | 'section' | 'article' | 'li' | 'span'
+  kind?: 'line' | 'p'
+  className?: string
+  children: React.ReactNode
+  id?: string
+}) {
+  const attr = kind === 'line' ? 'data-egm-rv-line' : 'data-egm-rv-p'
+  const base = kind === 'line' ? 'egm-rv-line' : 'egm-rv-p'
+  return (
+    <Tag id={id} {...{ [attr]: true }} className={`${base} ${className}`}>
+      {children}
+    </Tag>
+  )
+}
+
+/** The 'slide' reveal primitive: skewed clip-path wipe + inner counter-scale
+ * 1.5, for image panels and monument headlines (device 7). */
+function RvSlide({ className = '', children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <div data-egm-rv-slide className={`egm-rv-slide ${className}`}>
+      <div className="egm-slide-inner">{children}</div>
+    </div>
+  )
+}
+
+function H({ children, id, level = 2, className = '' }: { children: string; id?: string; level?: 2 | 3; className?: string }) {
+  const Tag = level === 2 ? 'h2' : 'h3'
+  return (
+    <Tag id={id} data-egm-split="h" className={`${level === 2 ? 'egm-h2' : 'egm-h3'} ${className}`}>
+      {children}
+    </Tag>
+  )
+}
+
+function Frame({ src, alt, ratio, className = '' }: { src: string; alt: string; ratio: string; className?: string }) {
+  return (
+    <RvSlide className={className}>
+      <div style={{ width: '100%', aspectRatio: ratio, overflow: 'hidden', position: 'relative', background: 'var(--egm-stone)' }}>
+        <img src={src} alt={alt} loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    </RvSlide>
+  )
+}
+
+/** Simplified currentColor glyph for the fixed self-theming chrome — the
+ * real logo (imported as LOGO from data.ts) is a fixed navy PNG on an
+ * opaque white plate, so it cannot itself flip colour as the chrome crosses
+ * light/dark sections. This mark carries that job; the real logo gets its
+ * own full-size, honestly-credited placement in the Saga section below. */
+function Mark({ size = 26, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true" style={{ display: 'block' }}>
+      <path d="M4 20 L20 6 L36 20" fill="none" stroke={color} strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" />
+      <path d="M9 18 V34 H31 V18" fill="none" stroke={color} strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" />
+      <path d="M16 34 V24 H24 V34" fill="none" stroke={color} strokeWidth="2.4" />
+    </svg>
+  )
+}
+
+type Row = { row: Listing } | { editorial: EditorialCard }
+
+function withEditorial(list: Listing[]): Row[] {
+  const out: Row[] = []
+  list.forEach((item, i) => {
+    out.push({ row: item })
+    if (i === 5 && list.length > 7) out.push({ editorial: EDITORIAL_CARDS[0] })
+    if (i === 11 && list.length > 13) out.push({ editorial: EDITORIAL_CARDS[1] })
+    if (i === 17 && list.length > 19) out.push({ editorial: EDITORIAL_CARDS[2] })
+  })
+  return out
+}
+
+function ListingRow({ l }: { l: Listing }) {
+  return (
+    <article className="egm-row">
+      <div className="egm-row-photo">
+        <img src={l.photo} alt={l.photoAlt} loading="lazy" decoding="async" />
+      </div>
+      <div className="egm-row-main">
+        <p className="egm-label" style={{ color: 'var(--egm-mute-ink)' }}>{l.town} · {l.type}</p>
+        <p className="egm-h5" style={{ marginTop: 'var(--egm-4)' }}>{l.address}</p>
+        <p className="egm-data" style={{ marginTop: 'var(--egm-4)', color: 'var(--egm-soft-ink)', fontSize: '.86rem' }}>
+          {l.sqm} m²{l.rooms > 0 ? ` · ${l.rooms} herb.` : ''}
+        </p>
+      </div>
+      <p className={`egm-h4 egm-data egm-row-price ${l.priceValue === null ? 'egm-row-price-offer' : ''}`}>{l.price}</p>
+    </article>
+  )
+}
+
+function EditorialRow({ card }: { card: EditorialCard }) {
+  if (card.kind === 'starfsmadur') {
+    return (
+      <div className="egm-editorial egm-editorial-staff">
+        <div className="egm-editorial-photo">
+          <img src={card.staff.photo} alt={card.staff.alt} loading="lazy" decoding="async" />
+        </div>
+        <div>
+          <p className="egm-label" style={{ color: 'var(--egm-blue-bright)' }}>{card.tag}</p>
+          <p className="egm-h5" style={{ color: 'var(--egm-paper)', marginTop: 'var(--egm-4)' }}>{card.staff.name}</p>
+          <a href={card.staff.phoneHref} className="egm-data" style={{ color: 'var(--egm-mute-paper)', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>
+            {card.staff.phone}
+          </a>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="egm-editorial">
+      <p className="egm-label" style={{ color: 'var(--egm-blue-bright)' }}>{card.tag}</p>
+      <p className="egm-h5" style={{ color: 'var(--egm-paper)' }}>{card.line}</p>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DEVICE 2 — the arch aperture preloader, tied to the first hero photo
+   actually loading. ≤2.5s, skippable, absent under reduced motion.
+   ══════════════════════════════════════════════════════════════════════ */
+function Preloader({ heroSrc }: { heroSrc: string }) {
   const [stage, setStage] = useState<'hold' | 'open' | 'exit' | 'gone'>('hold')
 
   useEffect(() => {
@@ -217,7 +356,7 @@ function Preloader() {
     }
     let cancelled = false
     const heroImg = new Image()
-    heroImg.src = IMG.lighthouse
+    heroImg.src = heroSrc
     const ready = Promise.race([
       Promise.all([document.fonts?.ready ?? Promise.resolve(), new Promise((res) => { heroImg.onload = res; heroImg.onerror = res })]),
       new Promise((res) => window.setTimeout(res, 1350)),
@@ -230,17 +369,12 @@ function Preloader() {
       cancelled = true
       window.clearTimeout(openTimer)
     }
-  }, [])
+  }, [heroSrc])
 
   useEffect(() => {
     if (stage !== 'exit') return
     const t = window.setTimeout(() => setStage('gone'), 700)
     return () => window.clearTimeout(t)
-  }, [stage])
-
-  useEffect(() => {
-    if (stage !== 'gone') return
-    document.body.style.overflow = ''
   }, [stage])
 
   useEffect(() => {
@@ -259,80 +393,22 @@ function Preloader() {
   )
 }
 
-/* ── small building blocks ───────────────────────────────────────────── */
-
-function Rv({
-  as: Tag = 'div',
-  kind = 'ctn',
-  className = '',
-  children,
-  id,
-}: {
-  as?: 'div' | 'section' | 'article' | 'li' | 'span'
-  kind?: 'ctn' | 'line' | 'p'
-  className?: string
-  children: React.ReactNode
-  id?: string
-}) {
-  const attr = kind === 'ctn' ? 'data-egm-rv-ctn' : kind === 'line' ? 'data-egm-rv-line' : 'data-egm-rv-p'
-  const base = kind === 'ctn' ? 'egm-rv-ctn' : kind === 'line' ? 'egm-rv-line' : 'egm-rv-p'
-  return (
-    <Tag id={id} {...{ [attr]: true }} className={`${base} ${className}`}>
-      {children}
-    </Tag>
-  )
-}
-
-function H({ children, id, level = 2, className = '' }: { children: string; id?: string; level?: 2 | 3; className?: string }) {
-  const Tag = level === 2 ? 'h2' : 'h3'
-  return (
-    <Tag id={id} data-egm-split="h" className={`${level === 2 ? 'egm-h2' : 'egm-h3'} ${className}`}>
-      {children}
-    </Tag>
-  )
-}
-
-function Frame({ src, alt, ratio, className = '' }: { src: string; alt: string; ratio: string; className?: string }) {
-  return (
-    <div className={className} style={{ width: '100%', aspectRatio: ratio, overflow: 'hidden', position: 'relative', background: 'var(--egm-stone)' }}>
-      <img src={src} alt={alt} loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-    </div>
-  )
-}
-
-function Mark({ size = 26, color = 'currentColor' }: { size?: number; color?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true" style={{ display: 'block' }}>
-      <path d="M4 20 L20 6 L36 20" fill="none" stroke={color} strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" />
-      <path d="M9 18 V34 H31 V18" fill="none" stroke={color} strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" />
-      <path d="M16 34 V24 H24 V34" fill="none" stroke={color} strokeWidth="2.4" />
-    </svg>
-  )
-}
-
-type Row = { row: Listing } | { editorial: (typeof EDITORIAL_CARDS)[number] }
-
-function withEditorial(filtered: Listing[]): Row[] {
-  const out: Row[] = []
-  filtered.forEach((item, i) => {
-    out.push({ row: item })
-    if (i === 3 && filtered.length > 5) out.push({ editorial: EDITORIAL_CARDS[0] })
-    if (i === 10 && filtered.length > 12) out.push({ editorial: EDITORIAL_CARDS[1] })
-  })
-  return out
-}
-
 /* ══════════════════════════════════════════════════════════════════════ */
 
 export default function EignamidlunPage() {
-  const heroImgRef = useRef<HTMLDivElement>(null)
+  const heroStackRef = useRef<HTMLDivElement>(null)
   const closerRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
-  const [filter, setFilter] = useState<ListingType | 'Öll'>('Öll')
+  const [stadur, setStadur] = useState('Öll')
+  const [bandIdx, setBandIdx] = useState(0)
+  const [sort, setSort] = useState<SortMode>('default')
   const [menu, setMenu] = useState(false)
 
-  useSceneEngine(heroImgRef, closerRef)
+  const heroListings = useMemo(() => HERO_INDEXES.map((i) => LISTINGS[i]), [])
+  const activeHero = useHeroCycle(heroListings.length)
+
+  useSceneEngine(heroStackRef, closerRef)
   useRevealSystem()
   useSelfThemingChrome([brandRef, ctaRef])
 
@@ -350,11 +426,28 @@ export default function EignamidlunPage() {
     }
   }, [menu])
 
-  const filtered = useMemo(
-    () => (filter === 'Öll' ? LISTINGS : LISTINGS.filter((l) => l.type === filter)),
-    [filter],
-  )
+  const band = PRICE_BANDS[bandIdx]
+  const filtered = useMemo(() => {
+    let out = LISTINGS.filter((l) => stadur === 'Öll' || l.town === stadur)
+    out = out.filter((l) => {
+      if (band.min === undefined && band.max === undefined) return true
+      if (l.priceValue === null) return false
+      if (band.min !== undefined && l.priceValue < band.min) return false
+      if (band.max !== undefined && l.priceValue >= band.max) return false
+      return true
+    })
+    if (sort !== 'default') {
+      out = [...out].sort((a, b) => {
+        if (a.priceValue === null) return 1
+        if (b.priceValue === null) return -1
+        return sort === 'verd-haekkandi' ? a.priceValue - b.priceValue : b.priceValue - a.priceValue
+      })
+    }
+    return out
+  }, [stadur, band, sort])
+
   const rows = useMemo(() => withEditorial(filtered), [filtered])
+  const resetFilters = () => { setStadur('Öll'); setBandIdx(0); setSort('default') }
 
   return (
     <div className="egm-canvas" lang="is">
@@ -362,12 +455,12 @@ export default function EignamidlunPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
       <PreviewChrome company={COMPANY} />
-      <Preloader />
+      <Preloader heroSrc={heroListings[0].photo} />
 
-      {/* ── device 4: self-theming fixed chrome ─────────────────────── */}
+      {/* ── device 5: self-theming fixed chrome ─────────────────────── */}
       <div ref={brandRef} className="egm-chrome egm-chrome-brand egm-theme-light">
-        <Mark size={24} color="var(--egm-accent)" />
-        <span className="egm-label" style={{ letterSpacing: '.14em' }}>Eignamiðlun&nbsp;Suðurnesja</span>
+        <Mark size={24} color="var(--egm-blue)" />
+        <span className="egm-label" style={{ letterSpacing: '.1em' }}>Eignamiðlun&nbsp;Suðurnesja</span>
       </div>
       <div ref={ctaRef} className="egm-chrome egm-chrome-cta">
         <a href={PHONE_HREF} className="egm-pill">☏ {PHONE_DISPLAY}</a>
@@ -379,9 +472,9 @@ export default function EignamidlunPage() {
         aria-controls="egm-menu"
         aria-label={menu ? 'Loka valmynd' : 'Opna valmynd'}
         className="egm-chrome egm-theme-light"
-        style={{ right: 'var(--egm-24)', top: 'var(--egm-80)', width: 44, height: 44, display: 'grid', placeItems: 'center', border: '1px solid currentColor', borderRadius: '999px', background: 'transparent' }}
+        style={{ right: 'var(--egm-24)', top: 'var(--egm-80)', width: 44, height: 44, display: 'grid', placeItems: 'center', border: '1px solid currentColor', borderRadius: 3, background: 'transparent' }}
       >
-        <span aria-hidden="true" style={{ fontFamily: "'EGM Mono', monospace", fontSize: '1.1rem' }}>{menu ? '×' : '≡'}</span>
+        <span aria-hidden="true" style={{ fontFamily: "'EGM Body', sans-serif", fontSize: '1.1rem', fontWeight: 600 }}>{menu ? '×' : '≡'}</span>
       </button>
       {menu && (
         <nav id="egm-menu" aria-label="Valmynd" className="egm-gr-ink" style={{ position: 'fixed', inset: 0, zIndex: 95, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'var(--egm-16)', padding: 'var(--egm-48)' }}>
@@ -396,62 +489,96 @@ export default function EignamidlunPage() {
               {n.label}
             </a>
           ))}
-          <a href={PHONE_HREF} className="egm-label" style={{ color: 'var(--egm-accent-bright)', marginTop: 'var(--egm-24)' }}>☏ {PHONE_DISPLAY}</a>
+          <a href={PHONE_HREF} className="egm-label" style={{ color: 'var(--egm-blue-bright)', marginTop: 'var(--egm-24)' }}>☏ {PHONE_DISPLAY}</a>
         </nav>
       )}
 
       <main id="top">
-        {/* ── HERO — device 3: dive-in scale scrub ────────────────────── */}
+        {/* ── HERO — device 3: real listing photo cycle + dive-in scrub ─── */}
         <section data-egm-hero data-egm-theme="dark" style={{ position: 'relative', height: '100svh', minHeight: 560, overflow: 'hidden' }} aria-labelledby="egm-h1">
-          <div ref={heroImgRef} style={{ position: 'absolute', inset: 0, transformOrigin: '50% 75%', willChange: 'transform' }}>
-            <img src={IMG.lighthouse} alt="Hvítur viti á grænni hæð við hafið." style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(14,26,32,.32), rgba(14,26,32,.68) 72%, rgba(14,26,32,.86))' }} />
+          <div ref={heroStackRef} style={{ position: 'absolute', inset: 0, transformOrigin: '50% 75%', willChange: 'transform' }}>
+            {heroListings.map((l, i) => (
+              <div key={l.address} className="egm-hero-layer" style={{ zIndex: i === activeHero ? 2 : 1 }}>
+                <RvSlide className={i === activeHero ? 'egm-in' : ''}>
+                  <div style={{ position: 'absolute', inset: 0 }}>
+                    {/* object-position + a small overscan on transform-origin push the
+                        source photo's own bottom-left corner (every es.is listing photo
+                        carries a baked-in company-logo watermark stamp there, confirmed
+                        across the harvested set) out past the visible frame, instead of
+                        letting it bleed off the hero edge at full-bleed scale. */}
+                    <img
+                      src={l.photo}
+                      alt={l.photoAlt}
+                      aria-hidden={i === activeHero ? undefined : true}
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      {...(i === 0 ? { fetchpriority: 'high' } : {})}
+                      decoding="async"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '78% 22%', transform: 'scale(1.24)', transformOrigin: '82% 18%' }}
+                    />
+                  </div>
+                </RvSlide>
+              </div>
+            ))}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 3, background: 'linear-gradient(180deg, rgba(19,33,46,.34), rgba(19,33,46,.66) 72%, rgba(19,33,46,.88))' }} />
           </div>
-          <div className="egm-container" style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 'var(--egm-64)', color: 'var(--egm-paper)' }}>
+          <div className="egm-container" style={{ position: 'relative', zIndex: 4, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 'var(--egm-64)', color: 'var(--egm-paper)' }}>
             <p className="egm-label" style={{ color: 'var(--egm-paper)', opacity: 0.82, marginBottom: 'var(--egm-16)' }}>Fasteignasala á Suðurnesjum · síðan 1978</p>
             <h1 id="egm-h1" data-egm-split="h" className="egm-h1" style={{ color: 'var(--egm-paper)', margin: 0 }}>
-              Eignamiðlun&nbsp;Suðurnesja
+              Heim á&nbsp;Suðurnesjum
             </h1>
             <p className="egm-body" style={{ maxWidth: '38ch', marginTop: 'var(--egm-24)', color: 'var(--egm-soft-paper)' }}>
-              Suðurnesin, hús fyrir hús. Sama fyrirtæki frá 1978, sama gagnsæja gjaldskráin fyrir hvert einasta hús.
+              Sama fyrirtæki frá 1978, sama gagnsæja gjaldskráin fyrir hvert einasta hús á núverandi söluskrá.
             </p>
+            <div aria-hidden="true" className="egm-hero-cap" style={{ marginTop: 'var(--egm-32)' }}>
+              <p className="egm-label" style={{ color: 'var(--egm-blue-bright)' }}>{heroListings[activeHero].town} · {heroListings[activeHero].type}</p>
+              <p className="egm-h3" style={{ color: 'var(--egm-paper)', marginTop: 'var(--egm-4)' }}>{heroListings[activeHero].address}</p>
+              <p className="egm-h4 egm-data" style={{ color: 'var(--egm-blue-bright)', marginTop: 'var(--egm-4)' }}>{heroListings[activeHero].price}</p>
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--egm-12)', marginTop: 'var(--egm-32)' }}>
-              <a href="#soluskra" className="egm-btn" style={{ background: 'var(--egm-accent)', color: '#fff' }}>Skoða söluskrá</a>
-              <a href="#gjaldskra" className="egm-btn egm-btn-outline" style={{ borderColor: 'rgba(244,234,217,.42)', color: 'var(--egm-paper)' }}>Sjá gjaldskrá</a>
+              <a href="#soluskra" className="egm-btn" style={{ background: 'var(--egm-blue)', color: '#fff' }}>Skoða söluskrá</a>
+              <a href="#gjaldskra" className="egm-btn egm-btn-outline" style={{ borderColor: 'rgba(247,241,228,.42)', color: 'var(--egm-paper)' }}>Sjá gjaldskrá</a>
             </div>
           </div>
-          <div className="egm-bob" aria-hidden="true" style={{ position: 'absolute', bottom: 'var(--egm-24)', left: '50%', transform: 'translateX(-50%)', color: 'var(--egm-paper)', opacity: 0.7 }}>
+          <div className="egm-bob" aria-hidden="true" style={{ position: 'absolute', bottom: 'var(--egm-24)', left: '50%', transform: 'translateX(-50%)', zIndex: 4, color: 'var(--egm-paper)', opacity: 0.7 }}>
             <span className="egm-label">Skruna</span>
           </div>
         </section>
 
-        {/* ── FOUNDING — "Síðan 1978" ──────────────────────────────────── */}
+        {/* ── FOUNDING — "Síðan 1978" + the real logo, honestly placed ──── */}
         <section id="saga" className="egm-gr-paper" data-egm-theme="light" aria-labelledby="saga-h">
-          <div className="egm-container" style={{ padding: 'var(--egm-96) 0', display: 'grid', gap: 'var(--egm-48)', gridTemplateColumns: '1fr' }}>
-            <div style={{ display: 'grid', gap: 'var(--egm-48)' }} className="egm-saga-grid">
-              <Rv kind="line"><div style={{ height: 1, background: 'var(--egm-hair-ink)', marginBottom: 'var(--egm-24)' }} /></Rv>
-              <div className="egm-saga-cols">
-                <div>
-                  <Frame src={IMG.coastDusk} alt="Klettur í hafinu við sólsetur." ratio="4 / 5" />
-                  <Rv kind="ctn" className="egm-mt"><p className="egm-label" style={{ color: 'var(--egm-accent-ink)', marginTop: 'var(--egm-24)' }}>{FOUNDING.date}</p></Rv>
-                  <H id="saga-h" level={2}>Tollvörður í aukastarfi</H>
-                </div>
-                <div>
-                  <Rv kind="p">
-                    <p className="egm-body">
-                      <span>Eignamiðlun Suðurnesja var stofnuð af {FOUNDING.founders}. {FOUNDING.lede}</span>
-                    </p>
-                  </Rv>
-                  <Rv kind="p" className="egm-mt">
-                    <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', marginTop: 'var(--egm-16)' }}>
-                      <span>{FOUNDING.body}</span>
-                    </p>
-                  </Rv>
-                  <Rv kind="ctn">
-                    <p className="egm-num" style={{ fontSize: 'var(--egm-h2)', marginTop: 'var(--egm-32)', color: 'var(--egm-accent)' }}>{FOUNDING.years} ár</p>
-                    <p className="egm-label" style={{ color: 'var(--egm-mute-ink)' }}>á sama landsvæði, án hlés</p>
-                  </Rv>
-                </div>
+          <div className="egm-container" style={{ padding: 'var(--egm-96) 0' }}>
+            <Rv kind="line"><div style={{ height: 1, background: 'var(--egm-hair-ink)', marginBottom: 'var(--egm-32)' }} /></Rv>
+            <Rv kind="p">
+              <img
+                src={LOGO}
+                alt="Merki Eignamiðlunar Suðurnesja"
+                width={220}
+                height={197}
+                loading="lazy"
+                decoding="async"
+                style={{ width: 'calc(200em / var(--egm-ratio))', minWidth: 120, height: 'auto', mixBlendMode: 'multiply' }}
+              />
+            </Rv>
+            <div className="egm-saga-cols" style={{ marginTop: 'var(--egm-48)' }}>
+              <div>
+                <Rv kind="p"><p className="egm-label" style={{ color: 'var(--egm-blue)' }}>{FOUNDING.date}</p></Rv>
+                <H id="saga-h" level={2}>Tollvörður í aukastarfi</H>
+              </div>
+              <div>
+                <Rv kind="p">
+                  <p className="egm-body">
+                    <span>Eignamiðlun Suðurnesja var stofnuð af {FOUNDING.founders}. {FOUNDING.lede}</span>
+                  </p>
+                </Rv>
+                <Rv kind="p" className="egm-mt">
+                  <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', marginTop: 'var(--egm-16)' }}>
+                    <span>{FOUNDING.body}</span>
+                  </p>
+                </Rv>
+                <Rv kind="p">
+                  <p className="egm-num" style={{ fontSize: 'var(--egm-h2)', marginTop: 'var(--egm-32)', color: 'var(--egm-blue)' }}>{FOUNDING.years} ár</p>
+                </Rv>
+                <Rv kind="p"><p className="egm-label" style={{ color: 'var(--egm-mute-ink)' }}>á sama landsvæði, án hlés</p></Rv>
               </div>
             </div>
           </div>
@@ -460,91 +587,108 @@ export default function EignamidlunPage() {
         {/* ── PILLARS — "Af hverju Eignamiðlun Suðurnesja" ─────────────── */}
         <section className="egm-gr-stone" data-egm-theme="light" aria-labelledby="pillars-h">
           <div className="egm-container" style={{ padding: 'var(--egm-80) 0' }}>
-            <Rv kind="ctn"><H id="pillars-h" level={2}>Af hverju Eignamiðlun Suðurnesja</H></Rv>
+            <Rv kind="p"><H id="pillars-h" level={2}>Af hverju Eignamiðlun Suðurnesja</H></Rv>
+            <Rv kind="p" className="egm-mt">
+              <p className="egm-body" style={{ maxWidth: '62ch', color: 'var(--egm-soft-ink)' }}>„{ABOUT_QUOTE}“</p>
+            </Rv>
             <div style={{ display: 'grid', gap: 'var(--egm-24)', marginTop: 'var(--egm-48)' }} className="egm-pillar-grid">
               {[
                 { n: '01', t: 'Staðbundin þekking frá 1978', b: 'Sama fyrirtæki hefur selt hús á Suðurnesjum í 47 ár, óslitið síðan Hannes og Halldóra byrjuðu.' },
                 { n: '02', t: 'Gagnsæ gjaldskrá', b: '1,3% söluþóknun og engin lágmarksþóknun, sagt beint út áður en nokkur spyr.' },
                 { n: '03', t: 'Engin skuldbinding', b: 'Frítt verðmat, bæði sölu og banka, og ekkert gjald fyrir gagnaöflun eða ljósmyndun.' },
               ].map((p) => (
-                <Rv key={p.n} kind="ctn" as="article">
-                  <p className="egm-mono" style={{ color: 'var(--egm-accent-ink)', fontSize: '.85rem' }}>{p.n}</p>
+                <Rv key={p.n} kind="p" as="article">
+                  <p className="egm-data" style={{ color: 'var(--egm-blue)', fontSize: '.85rem' }}>{p.n}</p>
                   <h3 className="egm-h5" style={{ marginTop: 'var(--egm-8)' }}>{p.t}</h3>
                   <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', marginTop: 'var(--egm-8)' }}>{p.b}</p>
                 </Rv>
               ))}
             </div>
-            <Frame src={IMG.mossDetail} alt="Nærmynd af mosavöxnu hrauni." ratio="21 / 6" className="egm-mt" />
           </div>
         </section>
 
-        {/* ── SÖLUSKRÁ — device 6: filtered grid + injected editorial cards ── */}
+        {/* ── SÖLUSKRÁ — device 6: real-photo rows + filters + editorial ─── */}
         <section id="soluskra" className="egm-gr-paper" data-egm-theme="light" aria-labelledby="soluskra-h">
           <div className="egm-container" style={{ padding: 'var(--egm-96) 0' }}>
-            <Rv kind="ctn">
-              <p className="egm-label" style={{ color: 'var(--egm-accent-ink)' }}>{LISTINGS_LABEL}</p>
+            <Rv kind="p">
+              <p className="egm-label" style={{ color: 'var(--egm-blue)' }}>{LISTINGS_LABEL}</p>
               <H id="soluskra-h" level={2}>Söluskráin, öll uppi á borðum</H>
               <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', maxWidth: '58ch', marginTop: 'var(--egm-16)' }}>
-                Tuttugu raunverulegar eignir af söluskrá Eignamiðlunar Suðurnesja, beint af vefsíðu þeirra.
-                Engar sviðsettar ljósmyndir á raunveruleg heimilisföng, aðeins tölurnar sjálfar.
+                Tuttugu eignir beint af söluskrá Eignamiðlunar Suðurnesja, með raunverulegum myndum af eignunum
+                sjálfum, sóttar 28. júlí 2026.
               </p>
             </Rv>
 
-            <Rv kind="ctn" className="egm-mt">
-              <div role="group" aria-label="Sía eftir eignagerð" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--egm-8)', marginTop: 'var(--egm-32)' }}>
-                {LISTING_FILTERS.map((f) => (
-                  <button
-                    key={f.value}
-                    type="button"
-                    className="egm-chip"
-                    aria-pressed={filter === f.value}
-                    onClick={() => setFilter(f.value)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
+            <Rv kind="p" className="egm-mt">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--egm-16)' }}>
+                <div role="group" aria-label="Sía eftir staðsetningu" className="egm-filter-group">
+                  {STADUR_FILTERS.map((f) => (
+                    <button key={f.value} type="button" className="egm-chip" aria-pressed={stadur === f.value} onClick={() => setStadur(f.value)}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                <div role="group" aria-label="Sía eftir verðbili" className="egm-filter-group">
+                  {PRICE_BANDS.map((b, i) => (
+                    <button key={b.label} type="button" className="egm-chip" aria-pressed={bandIdx === i} onClick={() => setBandIdx(i)}>
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="egm-filter-group" style={{ justifyContent: 'space-between' }}>
+                  <label className="egm-filter-group" style={{ gap: 'var(--egm-8)' }}>
+                    <span className="egm-label" style={{ color: 'var(--egm-mute-ink)' }}>Röðun</span>
+                    <select className="egm-select" value={sort} onChange={(e) => setSort(e.target.value as SortMode)} aria-label="Raða eftir verði">
+                      {SORT_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="egm-data" style={{ color: 'var(--egm-mute-ink)', fontSize: '.82rem' }}>
+                    {filtered.length} af {LISTINGS.length} eignum
+                  </p>
+                </div>
               </div>
-              <p className="egm-mono" style={{ marginTop: 'var(--egm-16)', color: 'var(--egm-mute-ink)', fontSize: '.82rem' }}>
-                {filtered.length} af {LISTINGS.length} eignum
-              </p>
             </Rv>
 
-            <div className="egm-grid" style={{ marginTop: 'var(--egm-24)' }}>
-              {rows.map((r, i) =>
-                'row' in r ? (
-                  <Rv key={r.row.address} as="article" kind="ctn" className="egm-listing">
-                    <p className="egm-mono" style={{ fontSize: '.76rem', color: 'var(--egm-mute-ink)', letterSpacing: '.08em' }}>
-                      {r.row.town} · {r.row.type}
-                    </p>
-                    <h3 className="egm-h5" style={{ marginTop: 'var(--egm-8)' }}>{r.row.address}</h3>
-                    <p className="egm-mono" style={{ marginTop: 'var(--egm-12)', color: 'var(--egm-soft-ink)', fontSize: '.86rem' }}>
-                      {r.row.sqm} m² {r.row.rooms > 0 ? `· ${r.row.rooms} herb.` : ''}
-                    </p>
-                    <p className="egm-h4" style={{ marginTop: 'var(--egm-16)', fontSize: 'clamp(1.3rem, 3.4vw, 1.9rem)', color: r.row.priceValue ? 'var(--egm-ink)' : 'var(--egm-accent-ink)' }}>
-                      {r.row.price}
-                    </p>
-                  </Rv>
-                ) : (
-                  <Rv key={`ed-${i}`} as="article" kind="ctn" className="egm-editorial">
-                    <p className="egm-label" style={{ color: 'var(--egm-accent-bright)' }}>{r.editorial.tag}</p>
-                    <p className="egm-h5" style={{ marginTop: 'var(--egm-12)', color: 'var(--egm-paper)' }}>{r.editorial.line}</p>
-                  </Rv>
-                ),
+            <div className="egm-mt">
+              {filtered.length === 0 ? (
+                <div className="egm-empty">
+                  <p className="egm-body">Engin eign fannst með þessari síu.</p>
+                  <button type="button" className="egm-btn egm-btn-outline" style={{ marginTop: 'var(--egm-16)' }} onClick={resetFilters}>
+                    Núllstilla síur
+                  </button>
+                </div>
+              ) : (
+                <div className="egm-list">
+                  {rows.map((r, i) =>
+                    'row' in r ? (
+                      <Rv key={r.row.address} as="div" kind="p"><ListingRow l={r.row} /></Rv>
+                    ) : (
+                      <Rv key={`ed-${i}`} as="div" kind="p"><EditorialRow card={r.editorial} /></Rv>
+                    ),
+                  )}
+                  <div style={{ borderTop: '1px solid var(--egm-hair-ink)' }} />
+                </div>
               )}
             </div>
           </div>
         </section>
 
-        {/* ── GJALDSKRÁ MONUMENT — compliance stated as a monument ────── */}
-        <section id="gjaldskra" className="egm-gr-ink" data-egm-theme="dark" aria-labelledby="fee-h">
-          <div className="egm-container" style={{ padding: 'var(--egm-96) 0' }}>
-            <Rv kind="ctn">
-              <p className="egm-label" style={{ color: 'var(--egm-accent-bright)' }}>Gjaldskrá</p>
-              <h2 id="fee-h" data-egm-split="h" className="egm-num" style={{ color: 'var(--egm-paper)', marginTop: 'var(--egm-16)' }}>
-                {FEE_HEADLINE}
-              </h2>
-              <p className="egm-h4" style={{ color: 'var(--egm-mute-paper)', marginTop: 'var(--egm-8)', fontWeight: 500 }}>{FEE_SUB}</p>
-            </Rv>
+        {/* ── GJALDSKRÁ MONUMENT — device 8 + device 4 (dome #1) ───────── */}
+        <section id="gjaldskra" className="egm-arch egm-gr-ink" data-egm-theme="dark" aria-labelledby="fee-h" style={{ marginTop: 'calc(var(--egm-64) * -1)' }}>
+          <div className="egm-container" style={{ padding: 'var(--egm-120) 0 var(--egm-96)' }}>
+            {/* centred, narrow: keeps the numeral clear of the arch's still-
+                curving corners (see .egm-dome-inner in styles.ts) */}
+            <div className="egm-dome-inner">
+              <Rv kind="p">
+                <p className="egm-label" style={{ color: 'var(--egm-blue-bright)' }}>Gjaldskrá</p>
+                <h2 id="fee-h" data-egm-split="h" className="egm-num" style={{ color: 'var(--egm-paper)', marginTop: 'var(--egm-16)' }}>
+                  {FEE_HEADLINE}
+                </h2>
+                <p className="egm-h4" style={{ color: 'var(--egm-mute-paper)', marginTop: 'var(--egm-8)', fontWeight: 500 }}>{FEE_SUB}</p>
+              </Rv>
+            </div>
 
             <div style={{ marginTop: 'var(--egm-64)', display: 'grid', gap: 0 }}>
               {FEES.map((f) => (
@@ -557,9 +701,9 @@ export default function EignamidlunPage() {
                   >
                     <div>
                       <p className="egm-body" style={{ color: 'var(--egm-paper)' }}>{f.label}</p>
-                      {f.note && <p className="egm-mono" style={{ color: 'var(--egm-mute-paper)', fontSize: '.82rem', marginTop: 'var(--egm-4)', maxWidth: '46ch' }}>{f.note}</p>}
+                      {f.note && <p className="egm-data" style={{ color: 'var(--egm-mute-paper)', fontSize: '.82rem', marginTop: 'var(--egm-4)', maxWidth: '46ch' }}>{f.note}</p>}
                     </div>
-                    <p className="egm-h4" style={{ color: 'var(--egm-accent-bright)', whiteSpace: 'nowrap' }}>{f.value}</p>
+                    <p className="egm-h4" style={{ color: 'var(--egm-blue-bright)', whiteSpace: 'nowrap' }}>{f.value}</p>
                   </div>
                 </Rv>
               ))}
@@ -568,19 +712,23 @@ export default function EignamidlunPage() {
           </div>
         </section>
 
-        {/* ── DOME — device 7: "Svæðið okkar" ──────────────────────────── */}
-        <section id="svaedid" className="egm-arch egm-gr-stone" data-egm-theme="light" aria-labelledby="svaedi-h" style={{ marginTop: 'calc(var(--egm-64) * -1)', position: 'relative', zIndex: 1 }}>
+        {/* ── SVÆÐIÐ — dome #2 ──────────────────────────────────────────── */}
+        <section id="svaedid" className="egm-arch egm-gr-stone" data-egm-theme="light" aria-labelledby="svaedi-h" style={{ marginTop: 'calc(var(--egm-64) * -1)' }}>
           <div className="egm-container" style={{ padding: 'var(--egm-120) 0 var(--egm-80)' }}>
-            <Rv kind="ctn">
-              <p className="egm-label" style={{ color: 'var(--egm-accent-ink)' }}>Svæðið okkar</p>
-              <H id="svaedi-h" level={2}>Reykjanesbær og nágrenni</H>
-            </Rv>
+            {/* centred, narrow: keeps the heading clear of the arch's still-
+                curving corners (see .egm-dome-inner in styles.ts) */}
+            <div className="egm-dome-inner egm-dome-inner--wide">
+              <Rv kind="p">
+                <p className="egm-label" style={{ color: 'var(--egm-blue)' }}>Svæðið okkar</p>
+                <H id="svaedi-h" level={2}>Reykjanesbær og nágrenni</H>
+              </Rv>
+            </div>
             <div style={{ marginTop: 'var(--egm-48)' }}>
               {TOWNS.map((t) => (
                 <Rv key={t.name} kind="line">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: 'var(--egm-16) 0', borderTop: '1px solid var(--egm-hair-ink)' }}>
                     <h3 className="egm-h4">{t.name}</h3>
-                    <p className="egm-mono" style={{ color: t.count > 0 ? 'var(--egm-accent-ink)' : 'var(--egm-mute-ink)' }}>
+                    <p className="egm-data" style={{ color: t.count > 0 ? 'var(--egm-blue)' : 'var(--egm-mute-ink)' }}>
                       {t.count > 0 ? `${t.count} eign${t.count === 1 ? '' : 'ir'} á skrá` : 'Engin eign á skrá í sýnishorni'}
                     </p>
                   </div>
@@ -588,32 +736,31 @@ export default function EignamidlunPage() {
               ))}
               <div style={{ borderTop: '1px solid var(--egm-hair-ink)' }} />
             </div>
-            <Rv kind="ctn" className="egm-mt">
-              <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', marginTop: 'var(--egm-24)', maxWidth: '56ch' }}>
+            <Rv kind="p" className="egm-mt">
+              <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', maxWidth: '56ch' }}>
                 Ein eign í sýnishorninu, Akurvellir 1, er á skrá utan Suðurnesja (Hafnarfjörður) og er talin
                 með til fullkomins samræmis við söluskrá Eignamiðlunar Suðurnesja, ekki sleppt.
               </p>
             </Rv>
-            <Frame src={IMG.lavaRoad} alt="Mosavaxið hraun og vegur, einkennandi landslag Reykjanesskagans." ratio="21 / 9" className="egm-mt" />
+            <Frame src={IMG.svaedi} alt="Mosavaxið hraun og vegur, einkennandi landslag Reykjanesskagans." ratio="21 / 9" className="egm-mt" />
           </div>
         </section>
 
-        {/* ── STAFF ─────────────────────────────────────────────────────── */}
+        {/* ── STAFF — device 9: real portraits, CSS hover state machine ─── */}
         <section id="starfsfolk" className="egm-gr-paper" data-egm-theme="light" aria-labelledby="staff-h">
           <div className="egm-container" style={{ padding: 'var(--egm-96) 0' }}>
-            <Rv kind="ctn"><H id="staff-h" level={2}>Starfsfólkið</H></Rv>
-            <div style={{ marginTop: 'var(--egm-32)' }}>
+            <Rv kind="p"><H id="staff-h" level={2}>Starfsfólkið</H></Rv>
+            <div className="egm-staff-grid" style={{ marginTop: 'var(--egm-40)' }}>
               {STAFF.map((s) => (
-                <Rv key={s.email} kind="line">
-                  <div className="egm-staff" style={{ display: 'grid', gap: 'var(--egm-8)' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 'var(--egm-16)' }}>
-                      <h3 className="egm-h4">{s.name}</h3>
-                      <div style={{ display: 'flex', gap: 'var(--egm-16)', flexWrap: 'wrap' }}>
-                        <a href={`tel:+354${s.phone.replace(/\s/g, '')}`} className="egm-mono" style={{ color: 'var(--egm-accent-ink)', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{s.phone}</a>
-                        <a href={`mailto:${s.email}`} className="egm-mono" style={{ color: 'var(--egm-soft-ink)', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{s.email}</a>
-                      </div>
-                    </div>
-                    <p className="egm-body" style={{ color: 'var(--egm-soft-ink)' }}>{s.title}</p>
+                <Rv key={s.email} as="article" kind="p" className="egm-staff-card">
+                  <div className="egm-staff-photo-wrap">
+                    <img src={s.photo} alt={s.alt} loading="lazy" decoding="async" />
+                  </div>
+                  <h3 className="egm-h5" style={{ marginTop: 'var(--egm-16)' }}>{s.name}</h3>
+                  <p className="egm-body" style={{ color: 'var(--egm-soft-ink)', marginTop: 'var(--egm-4)', fontSize: '.92rem' }}>{s.title}</p>
+                  <div className="egm-staff-contact" style={{ marginTop: 'var(--egm-8)', display: 'flex', flexDirection: 'column', gap: 'var(--egm-4)' }}>
+                    <a href={s.phoneHref} className="egm-data" style={{ color: 'var(--egm-blue)', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{s.phone}</a>
+                    <a href={`mailto:${s.email}`} className="egm-data" style={{ color: 'var(--egm-soft-ink)', fontSize: '.88rem', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{s.email}</a>
                   </div>
                 </Rv>
               ))}
@@ -621,24 +768,24 @@ export default function EignamidlunPage() {
           </div>
         </section>
 
-        {/* ── SELLER CTA + device 8: footer aperture close ─────────────── */}
+        {/* ── SELLER CTA + device 10: footer aperture close ────────────── */}
         <section aria-labelledby="cta-h" style={{ position: 'relative' }}>
           <div ref={closerRef} data-egm-closer className="egm-gr-ink" data-egm-theme="dark" style={{ willChange: 'clip-path' }}>
             <div data-egm-closer-stage className="egm-container" style={{ padding: 'var(--egm-120) 0', textAlign: 'center', transformOrigin: '50% 50%' }}>
-              <Rv kind="ctn">
-                <p className="egm-label" style={{ color: 'var(--egm-accent-bright)' }}>Skráðu eignina</p>
+              <Rv kind="p">
+                <p className="egm-label" style={{ color: 'var(--egm-blue-bright)' }}>Skráðu eignina</p>
                 <h2 id="cta-h" data-egm-split="h" className="egm-h1" style={{ color: 'var(--egm-paper)', fontSize: 'var(--egm-h2)', margin: '0 auto', maxWidth: '18ch' }}>
-                  Ein símtal. Engin lágmarksþóknun.
+                  Eitt símtal. Engin lágmarksþóknun.
                 </h2>
                 <p className="egm-body" style={{ color: 'var(--egm-mute-paper)', maxWidth: '48ch', margin: 'var(--egm-24) auto 0' }}>
                   Frítt verðmat og gagnsæ 1,3% gjaldskrá frá fyrsta degi. Hringdu eða sendu okkur línu og við
                   metum eignina ykkar án nokkurrar skuldbindingar.
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--egm-12)', marginTop: 'var(--egm-32)' }}>
-                  <a href={PHONE_HREF} className="egm-btn" style={{ background: 'var(--egm-accent)', color: '#fff' }}>Hringja í {PHONE_DISPLAY}</a>
-                  <a href={EMAIL_HREF} className="egm-btn egm-btn-outline" style={{ borderColor: 'rgba(244,234,217,.42)', color: 'var(--egm-paper)' }}>Senda á {EMAIL}</a>
+                  <a href={PHONE_HREF} className="egm-btn" style={{ background: 'var(--egm-blue)', color: '#fff' }}>Hringja í {PHONE_DISPLAY}</a>
+                  <a href={EMAIL_HREF} className="egm-btn egm-btn-outline" style={{ borderColor: 'rgba(247,241,228,.42)', color: 'var(--egm-paper)' }}>Senda á {EMAIL}</a>
                 </div>
-                <p className="egm-mono" style={{ color: 'var(--egm-mute-paper)', fontSize: '.82rem', marginTop: 'var(--egm-32)' }}>
+                <p className="egm-data" style={{ color: 'var(--egm-mute-paper)', fontSize: '.82rem', marginTop: 'var(--egm-32)' }}>
                   {LEGAL_NAME} · kt. {KENNITALA} · {ADDRESS_CORRECT}
                 </p>
               </Rv>

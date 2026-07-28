@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { reduced } from './primitives'
-import { ACCENT, DISPLAY, INK } from './tokens'
+import { ACCENT, CREAM, DISPLAY, INK } from './tokens'
 
 /**
  * DEVICE 3 — the direction-reversing marquee (mandated).
@@ -16,7 +16,7 @@ import { ACCENT, DISPLAY, INK } from './tokens'
  * page), used here to give the service list a fast, scannable pass before
  * the honest per-service cards underneath.
  */
-export function Marquee({ items }: { items: string[] }) {
+export function Marquee({ items, tone = 'onDeep' }: { items: string[]; tone?: 'onDeep' | 'onBone' }) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const trackRef = useRef<HTMLDivElement | null>(null)
 
@@ -42,6 +42,7 @@ export function Marquee({ items }: { items: string[] }) {
   }, [])
 
   const doubled = [...items, ...items]
+  const textColor = tone === 'onDeep' ? CREAM : INK
 
   return (
     <div ref={wrapRef} className="overflow-hidden" aria-hidden="true">
@@ -50,7 +51,7 @@ export function Marquee({ items }: { items: string[] }) {
           <span
             key={`${item}-${i}`}
             className="shrink-0 whitespace-nowrap px-6"
-            style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(1.6rem, 5vw, 3.2rem)', color: INK }}
+            style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(1.6rem, 5vw, 3.2rem)', color: textColor }}
           >
             {item}
             <span style={{ margin: '0 1.5rem', color: ACCENT }} aria-hidden="true">

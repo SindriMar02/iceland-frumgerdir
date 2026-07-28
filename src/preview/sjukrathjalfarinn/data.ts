@@ -40,20 +40,45 @@ const asset = (p: string) => `${import.meta.env.BASE_URL}sjukrathjalfarinn/${p}`
 export const IMG = {
   // Vetted movement/relief photography (Unsplash, free tier, verified 200 +
   // viewed before use). None of these depict this clinic's real premises.
+  // Used sparingly, only where no real photo of that specific offering exists.
   heroShoulder: asset('img/hero-shoulder.jpg'),
   reliefBack: asset('img/relief-back.jpg'),
   clinicKnee: asset('img/clinic-knee.jpg'),
   seniorActive: asset('img/senior-active.jpg'),
-  // Their own real photography, harvested from sjukrathjalfarinn.is.
+  // Their own real photography, harvested from sjukrathjalfarinn.is — the
+  // visual spine of the page (logo, premises, 18 named staff headshots).
+  logo: asset('real/logo-sjukralogoadal.jpg'),
+  clinic: asset('real/clinic-kristfade.jpg'),
   gym1: asset('img/gym-1.jpg'),
   gym2: asset('img/gym-2.jpg'),
   gym3: asset('img/gym-3.jpg'),
   gym4: asset('img/gym-4.jpg'),
   pool: asset('img/pool.jpg'),
-  team1: asset('img/team-1.jpg'),
-  team2: asset('img/team-2.jpg'),
-  team3: asset('img/team-3.jpg'),
 }
+
+/** Real staff headshots, 2022 team shoot (1536x2048) or 2024 refresh
+ *  (1067x1600), harvested from /starfsfolk/. Keyed by the exact filenames
+ *  in public/sjukrathjalfarinn/real/ — see HARVEST.md. */
+export const STAFF_PHOTO = {
+  'Arna Friðriksdóttir': asset('real/arna-fridriksdottir.jpg'),
+  'Helgi Þór Arason': asset('real/helgi-thor-arason.jpg'),
+  'Jón Þór Brandsson': asset('real/jon-thor-brandsson.jpg'),
+  'Kristín Sif Ómarsdóttir': asset('real/kristin-sif-omarsdottir.jpg'),
+  'Sigurvin Ingi Árnason': asset('real/sigurvin-ingi-arnason.jpg'),
+  'Þórhildur Knútsdóttir': asset('real/thorhildur-knutsdottir.jpg'),
+  'Alma Guðjónsdóttir': asset('real/alma-gudjonsddottir.jpg'),
+  'Anna María Baldursdóttir': asset('real/anna-maria-baldursdottir.jpg'),
+  'Bjartey Helgadóttir': asset('real/bjartey-helgadottir.jpg'),
+  'Gunnar Viktorsson': asset('real/gunnar-viktorsson.jpg'),
+  'Haraldur Sæmundsson': asset('real/haraldur-saemundsson.jpg'),
+  'Hulda Soffía Hermannsdóttir': asset('real/hulda-soffia-hermannsdottir.jpg'),
+  'Sandra Sigurðardóttir': asset('real/sandra-sigurdardottir.jpg'),
+  'Sigrún Matthíasdóttir': asset('real/sigrun-matthiasdottir.jpg'),
+  'Sveinbjörn Sigurðsson': asset('real/sveinbjorn-sigurdsson.jpg'),
+  'Tinna Björk Kristinsdóttir': asset('real/tinna-bjork-kristinsdottir.jpg'),
+  'Valgerður Jóhannsdóttir': asset('real/valgerdur-johannsdottir.jpg'),
+  'Þórunn Arnardóttir': asset('real/thorunn-arnardottir.jpg'),
+} as const
 
 export const PHOTO_CREDIT =
   'Myndir af æfingasölum, Suðurbæjarlaug og starfsfólki eru raunverulegar myndir af vef Sjúkraþjálfarans (sjukrathjalfarinn.is), sumar í upprunalegri lágri upplausn af vefnum þeirra. Myndir af hreyfingu og meðferð eru vandaðar myndir af Unsplash, engin þeirra sýnir raunverulegt húsnæði eða starfsfólk fyrirtækisins.'
@@ -247,29 +272,37 @@ export interface StaffMember {
   role: string
   note?: string
   house: 'Strandgata 75' | 'Bæjarhraun 2'
+  photo: string
 }
 
-/** All 19. Every name and title copied exactly from /starfsfolk/. */
+/** Every name and title copied exactly from /starfsfolk/; 18 of them carry a
+ *  real, harvested headshot (see STAFF_PHOTO / HARVEST.md). */
 export const STAFF: StaffMember[] = [
-  { name: 'Arna Friðriksdóttir', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2', note: 'Mjóbak, mjaðmagrind og íþróttasjúkraþjálfun' },
-  { name: 'Helgi Þór Arason', role: 'Sjúkraþjálfari, Diploma í íþróttasjúkraþjálfun', house: 'Bæjarhraun 2', note: 'Íþróttasjúkraþjálfun og uppbygging eftir slys' },
-  { name: 'Jón Þór Brandsson', role: 'Sérfræðingur í sjúkraþjálfun', house: 'Bæjarhraun 2', note: 'Sérfræðiviðurkenning í stoðkerfissjúkraþjálfun frá 2003' },
-  { name: 'Kristín Sif Ómarsdóttir', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2' },
-  { name: 'Sigurvin Ingi Árnason', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2' },
-  { name: 'Þórhildur Knútsdóttir', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2', note: 'Jafnvægissjúkraþjálfun' },
-  { name: 'Alma Guðjónsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Hjá Sjúkraþjálfaranum síðan 1999' },
-  { name: 'Anna María Baldursdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75' },
-  { name: 'Bjartey Helgadóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Sjúkraþjálfari meistaraflokks ÍBV í handbolta' },
-  { name: 'Gunnar Viktorsson', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Hjá Sjúkraþjálfaranum síðan 1989' },
-  { name: 'Haraldur Sæmundsson', role: 'Sjúkraþjálfari MTc', house: 'Strandgata 75', note: 'Manual Therapy, University of St. Augustine' },
-  { name: 'Hulda Soffía Hermannsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75' },
-  { name: 'Sandra Sigurðardóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75' },
-  { name: 'Sigrún Matthíasdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'MSc í heilbrigðisverkfræði, University of Calgary' },
-  { name: 'Sveinbjörn Sigurðsson', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Hjá Sjúkraþjálfaranum síðan 2007' },
-  { name: 'Tinna Björk Kristinsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75' },
-  { name: 'Valgerður Jóhannsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Barnasjúkraþjálfun' },
-  { name: 'Þórunn Arnardóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Sjúkraþjálfun á meðgöngu' },
+  { name: 'Arna Friðriksdóttir', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2', note: 'Mjóbak, mjaðmagrind og íþróttasjúkraþjálfun', photo: STAFF_PHOTO['Arna Friðriksdóttir'] },
+  { name: 'Helgi Þór Arason', role: 'Sjúkraþjálfari, Diploma í íþróttasjúkraþjálfun', house: 'Bæjarhraun 2', note: 'Íþróttasjúkraþjálfun og uppbygging eftir slys', photo: STAFF_PHOTO['Helgi Þór Arason'] },
+  { name: 'Jón Þór Brandsson', role: 'Sérfræðingur í sjúkraþjálfun', house: 'Bæjarhraun 2', note: 'Sérfræðiviðurkenning í stoðkerfissjúkraþjálfun frá 2003', photo: STAFF_PHOTO['Jón Þór Brandsson'] },
+  { name: 'Kristín Sif Ómarsdóttir', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2', photo: STAFF_PHOTO['Kristín Sif Ómarsdóttir'] },
+  { name: 'Sigurvin Ingi Árnason', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2', photo: STAFF_PHOTO['Sigurvin Ingi Árnason'] },
+  { name: 'Þórhildur Knútsdóttir', role: 'Sjúkraþjálfari', house: 'Bæjarhraun 2', note: 'Jafnvægissjúkraþjálfun', photo: STAFF_PHOTO['Þórhildur Knútsdóttir'] },
+  { name: 'Alma Guðjónsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Hjá Sjúkraþjálfaranum síðan 1999', photo: STAFF_PHOTO['Alma Guðjónsdóttir'] },
+  { name: 'Anna María Baldursdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', photo: STAFF_PHOTO['Anna María Baldursdóttir'] },
+  { name: 'Bjartey Helgadóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Sjúkraþjálfari meistaraflokks ÍBV í handbolta', photo: STAFF_PHOTO['Bjartey Helgadóttir'] },
+  { name: 'Gunnar Viktorsson', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Hjá Sjúkraþjálfaranum síðan 1989', photo: STAFF_PHOTO['Gunnar Viktorsson'] },
+  { name: 'Haraldur Sæmundsson', role: 'Sjúkraþjálfari MTc', house: 'Strandgata 75', note: 'Manual Therapy, University of St. Augustine', photo: STAFF_PHOTO['Haraldur Sæmundsson'] },
+  { name: 'Hulda Soffía Hermannsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', photo: STAFF_PHOTO['Hulda Soffía Hermannsdóttir'] },
+  { name: 'Sandra Sigurðardóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', photo: STAFF_PHOTO['Sandra Sigurðardóttir'] },
+  { name: 'Sigrún Matthíasdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'MSc í heilbrigðisverkfræði, University of Calgary', photo: STAFF_PHOTO['Sigrún Matthíasdóttir'] },
+  { name: 'Sveinbjörn Sigurðsson', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Hjá Sjúkraþjálfaranum síðan 2007', photo: STAFF_PHOTO['Sveinbjörn Sigurðsson'] },
+  { name: 'Tinna Björk Kristinsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', photo: STAFF_PHOTO['Tinna Björk Kristinsdóttir'] },
+  { name: 'Valgerður Jóhannsdóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Barnasjúkraþjálfun', photo: STAFF_PHOTO['Valgerður Jóhannsdóttir'] },
+  { name: 'Þórunn Arnardóttir', role: 'Sjúkraþjálfari', house: 'Strandgata 75', note: 'Sjúkraþjálfun á meðgöngu', photo: STAFF_PHOTO['Þórunn Arnardóttir'] },
 ]
+
+/** The two VERIFIED specialisation matches the quiz and the directory
+ *  filter chips are allowed to name. Every other therapist routes to the
+ *  general roster — never invent a per-therapist specialisation. */
+export const THERAPIST_MEDGANGA = STAFF.find((s) => s.name === 'Þórunn Arnardóttir')!
+export const THERAPIST_ITHROTT = STAFF.find((s) => s.name === 'Helgi Þór Arason')!
 
 export const STAFF_FEATURED = STAFF.filter((s) =>
   ['Jón Þór Brandsson', 'Haraldur Sæmundsson', 'Helgi Þór Arason', 'Alma Guðjónsdóttir', 'Sigrún Matthíasdóttir', 'Valgerður Jóhannsdóttir'].includes(
@@ -299,8 +332,10 @@ export const INSURANCE_NOTE =
 
 /* ── the quiz (guidance only, never a diagnosis) ─────────────────────────── */
 
-export type Svaedi = 'hofud' | 'axlir' | 'mjobak' | 'hne' | 'annad'
-export type Stada = 'ny' | 'langvinnt' | 'ithrott' | 'eftiraðgerð' | 'jafnvaegi'
+/** Step 1, single select — where it hurts. */
+export type Svaedi = 'bak' | 'hals' | 'oxl' | 'hne' | 'medganga' | 'ithrott'
+/** Step 2, multi select checkbox pills — what best describes the situation. */
+export type Lysing = 'ny' | 'langvinnt' | 'eftiraðgerð' | 'jafnvaegi'
 
 export interface QuizOption<T extends string> {
   id: T
@@ -309,17 +344,17 @@ export interface QuizOption<T extends string> {
 }
 
 export const SVAEDI_OPTIONS: QuizOption<Svaedi>[] = [
-  { id: 'hofud', label: 'Höfuð, háls og herðar', hint: 'til dæmis hnykkáverki eða spennuhöfuðverkur' },
-  { id: 'axlir', label: 'Axlir og efri bak', hint: '' },
-  { id: 'mjobak', label: 'Mjóbak og mjaðmir', hint: '' },
-  { id: 'hne', label: 'Hné og ganglimir', hint: '' },
-  { id: 'annad', label: 'Annað eða óviss', hint: 'það er allt í lagi, við hjálpum þér að finna út úr því' },
+  { id: 'bak', label: 'Bak', hint: 'mjóbak, efra bak eða mjaðmagrind' },
+  { id: 'hals', label: 'Háls og herðar', hint: 'til dæmis hnykkáverki eða spennuhöfuðverkur' },
+  { id: 'oxl', label: 'Öxl', hint: '' },
+  { id: 'hne', label: 'Hné', hint: '' },
+  { id: 'medganga', label: 'Meðganga', hint: '' },
+  { id: 'ithrott', label: 'Íþróttameiðsli', hint: '' },
 ]
 
-export const STADA_OPTIONS: QuizOption<Stada>[] = [
+export const LYSING_OPTIONS: QuizOption<Lysing>[] = [
   { id: 'ny', label: 'Nývaknandi verkur', hint: 'síðustu daga' },
   { id: 'langvinnt', label: 'Viðvarandi í langan tíma', hint: '' },
-  { id: 'ithrott', label: 'Eftir íþróttameiðsli', hint: '' },
   { id: 'eftiraðgerð', label: 'Eftir aðgerð eða slys', hint: '' },
   { id: 'jafnvaegi', label: 'Vil bæta jafnvægi og styrk', hint: 'eða komast í fastan hóp' },
 ]
@@ -328,81 +363,140 @@ export interface QuizResult {
   service: string
   line: string
   hopur?: string
+  /** Real, photographed therapists shown with the result. Either the ONE
+   *  verified specialisation match, or up to 3 generalists from the roster
+   *  shown honestly (never claiming a specialisation they don't have). */
+  therapists: StaffMember[]
+  matched: boolean
 }
+
+const GENERAL_SAMPLE = STAFF.filter((s) => s.name !== 'Þórunn Arnardóttir' && s.name !== 'Helgi Þór Arason').slice(0, 3)
 
 /**
  * Guidance only. Rules are evaluated top to bottom, first match wins. Every
  * named service and hópur in the output exists verbatim in SERVICES / HOPAR
- * above. This never diagnoses; see HONESTY_LINE, always shown with the
- * result.
+ * above; the only two named therapist matches are the verified ones from
+ * the batch brief. This never diagnoses; see HONESTY_LINE, always shown
+ * with the result.
  */
-export function recommend(svaedi: Svaedi, stada: Stada): QuizResult {
-  if (stada === 'ithrott') {
+export function recommend(svaedi: Svaedi, lysing: Set<Lysing>): QuizResult {
+  if (svaedi === 'ithrott') {
     return {
       service: 'Íþróttameiðsli',
-      line: 'Sjúkraþjálfarar hér starfa sjálfir með íþróttafélögum og sjá um uppbyggingu eftir íþróttameiðsli, óháð því hvar á líkamanum meiðslin eru.',
+      line: 'Helgi Þór Arason er með Diploma í íþróttasjúkraþjálfun og sinnir sjálfur uppbyggingu eftir íþróttameiðsli.',
+      therapists: [THERAPIST_ITHROTT],
+      matched: true,
     }
   }
-  if (stada === 'jafnvaegi') {
+  if (svaedi === 'medganga') {
     return {
-      service: 'Jafnvægisþjálfun eða Heilsuþjálfun 67+',
-      line: 'Báðir hóparnir eru haldnir í Bæjarhrauni 2 og eru byggðir upp í kringum styrk, stöðuskyn og jafnvægi.',
-      hopur: 'jafnvaegi',
+      service: 'Almenn sjúkraþjálfun',
+      line: 'Þórunn Arnardóttir sinnir sjúkraþjálfun á meðgöngu hér, hluti af almennri sjúkraþjálfun stöðvarinnar.',
+      therapists: [THERAPIST_MEDGANGA],
+      matched: true,
     }
   }
-  if (stada === 'eftiraðgerð') {
-    return svaedi === 'mjobak'
-      ? {
-          service: 'Almenn sjúkraþjálfun, með Bakhópi til hliðsjónar',
-          line: 'Fyrsta skoðun leggur mat á endurhæfinguna, og Bakhópurinn getur nýst í framhaldinu fyrir mjóbak og mjaðmagrind.',
-          hopur: 'bakhopur',
-        }
-      : {
-          service: 'Endurhæfing eftir aðgerð',
-          line: 'Þetta er hluti af almennri sjúkraþjálfun hér, sniðið að endurhæfingu eftir aðgerðir og slys.',
-        }
-  }
-  if (svaedi === 'mjobak') {
+  if (svaedi === 'bak') {
     return {
       service: 'Almenn sjúkraþjálfun, með Bakhópi til hliðsjónar',
       line: 'Fyrsta skoðun metur bakverki og mjaðmagrindarverki, og Bakhópurinn kennir styrktar- og stöðugleikaæfingar með tveimur sjúkraþjálfurum í tíma.',
       hopur: 'bakhopur',
+      therapists: GENERAL_SAMPLE,
+      matched: false,
     }
   }
-  if (svaedi === 'hne' && stada === 'langvinnt') {
+  if (svaedi === 'hne' && lysing.has('langvinnt')) {
     return {
       service: 'Almenn sjúkraþjálfun, með Slitgigtarskólanum til hliðsjónar',
       line: 'Sé verkurinn í hné eða mjöðm og hafi varað lengi getur Slitgigtarskólinn hentað vel samhliða sjúkraþjálfun.',
       hopur: 'slitgigt',
+      therapists: GENERAL_SAMPLE,
+      matched: false,
     }
   }
-  if (svaedi === 'hofud') {
+  if (lysing.has('jafnvaegi')) {
+    return {
+      service: 'Jafnvægisþjálfun eða Heilsuþjálfun 67+',
+      line: 'Báðir hóparnir eru haldnir í Bæjarhrauni 2 og eru byggðir upp í kringum styrk, stöðuskyn og jafnvægi.',
+      hopur: 'jafnvaegi',
+      therapists: GENERAL_SAMPLE,
+      matched: false,
+    }
+  }
+  if (lysing.has('eftiraðgerð')) {
+    return {
+      service: 'Endurhæfing eftir aðgerð',
+      line: 'Þetta er hluti af almennri sjúkraþjálfun hér, sniðið að endurhæfingu eftir aðgerðir og slys.',
+      therapists: GENERAL_SAMPLE,
+      matched: false,
+    }
+  }
+  if (svaedi === 'hals') {
     return {
       service: 'Almenn sjúkraþjálfun',
       line: 'Verkir í hálsi og herðum, þar á meðal eftir hnykkáverka, falla undir almenna sjúkraþjálfun hér.',
+      therapists: GENERAL_SAMPLE,
+      matched: false,
     }
   }
   return {
     service: 'Almenn sjúkraþjálfun',
     line: 'Fyrsta skoðun er besta næsta skrefið, og þjálfari beinir þér áfram þaðan ef annað hentar betur.',
+    therapists: GENERAL_SAMPLE,
+    matched: false,
   }
 }
 
 export const HONESTY_LINE =
   'Þetta er einungis leiðbeinandi ábending, ekki greining. Endanleg greining og meðferðaráætlun fer alltaf fram hjá sjúkraþjálfara.'
 
-export const quizMailto = (svaedi: QuizOption<Svaedi>, stada: QuizOption<Stada>, result: QuizResult) => {
+export const quizMailto = (svaedi: QuizOption<Svaedi>, lysing: QuizOption<Lysing>[], result: QuizResult) => {
   const subject = `Fyrirspurn um tíma, ${result.service}`
+  const stadaLine = lysing.length ? lysing.map((l) => l.label.toLowerCase()).join(', ') : 'ekkert sérstakt að auki'
   const body = [
     'Góðan dag,',
     '',
-    `Ég er að leita mér að tíma. Svæðið er ${svaedi.label.toLowerCase()} og staðan er "${stada.label.toLowerCase()}".`,
+    `Ég er að leita mér að tíma. Svæðið er ${svaedi.label.toLowerCase()} og staðan er: ${stadaLine}.`,
     `Vefsíðan benti mér á ${result.service}.`,
     '',
     'Hvenær getið þið tekið á móti mér?',
   ].join('\n')
   return `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
+
+/* ── FAQ (only questions answerable straight from the verified facts above) ── */
+
+export interface FaqItem {
+  q: string
+  a: string
+}
+
+export const FAQ_ITEMS: FaqItem[] = [
+  {
+    q: 'Get ég pantað tíma á netinu?',
+    a: `Ekki eins og er. Á núverandi vef er tímapöntun eingöngu í síma ${PHONE_DISPLAY}, sama regla gildir um þessa frumgerð þar til bókunarkerfi er tengt.`,
+  },
+  {
+    q: 'Þarf ég beiðni frá lækni?',
+    a: 'Sjúkratryggingar Íslands niðurgreiða sjúkraþjálfun ef fyrir liggur beiðni frá lækni, eða sjúkraþjálfara á heilsugæslu.',
+  },
+  {
+    q: 'Hvenær eruð þið opin?',
+    a: `${HOUSES[0].name}: ${HOUSES[0].openLabel.toLowerCase()}. ${HOUSES[1].name}: ${HOUSES[1].openLabel.toLowerCase()}. Lokað um helgar á báðum stöðum.`,
+  },
+  {
+    q: 'Hvernig afboða ég tíma?',
+    a: CANCEL_NOTE,
+  },
+  {
+    q: 'Tekur Sjúkraþjálfarinn kort?',
+    a: INSURANCE_NOTE,
+  },
+  {
+    q: 'Er heilsuræktin innifalin í sjúkraþjálfuninni?',
+    a: 'Nei, aðgangur að æfingasölunum er sér mánaðarkort eða klippikort, en það gildir á báðum stöðvum.',
+  },
+]
 
 /* ── nav ──────────────────────────────────────────────────────────────── */
 
@@ -461,18 +555,19 @@ export const sjukrathjalfarinnCompany = {
   concept: 'Hvar finnur þú til?',
   conceptTagline:
     'The current site lists nineteen physiotherapists and a genuinely distinctive group programme, hjartahópar and vatnsleikfimi included, three menu clicks deep with no way for a first-time visitor in pain to work out what applies to them. This redesign makes the page itself the triage: two short questions route a visitor straight to the right service and a working booking request, backed by a forty-two-year, two-house trust story.',
-  accent: '#FF5A36',
-  dark: false,
+  accent: '#E8503A',
+  dark: true,
   status: 'Concept ready' as const,
-  thumb: asset('img/hero-shoulder.jpg'),
+  thumb: asset('real/clinic-kristfade.jpg'),
   photoCredit: PHOTO_CREDIT,
   audit: {
     strengths: [
-      'Forty-two years in Hafnarfjörður (founded 1984), with a genuine two-house presence and 19 named, credentialed physiotherapists',
+      `Forty-two years in Hafnarfjörður (founded 1984), with a genuine two-house presence and ${STAFF.length} named, credentialed physiotherapists`,
       'A distinctive, real group-therapy roster most competitors do not offer: hjarta- og lungnaþjálfun, vatnsleikfimi in Suðurbæjarlaug, jafnvægisþjálfun and Slitgigtarskólinn, each with a published weekly schedule',
       'Two fully equipped gym facilities (Strandgata 75 and Bæjarhraun 2) under one membership, plus a real reimbursement path through Sjúkratryggingar Íslands',
     ],
     weaknesses: [
+      'The Google Business listing is unclaimed and sits at 3.0 stars from just 4 reviews, with the most visible review negative, while the nearby competitor Hress Sjúkraþjálfun shows 4.8 stars from 32',
       'The blog has not been updated since 15 October 2020, per their own RSS feed, nearly six years of dormancy',
       'The homepage Facebook widget shows a raw, unhandled authentication error to every visitor instead of failing silently',
       'Booking a first appointment has no self-service path at all, the only interactive elements on the whole site are a same-day cancellation form and a phone number',
@@ -480,9 +575,10 @@ export const sjukrathjalfarinnCompany = {
       'The site-wide meta description Google shows in search results is the untouched WordPress default, "Just another WordPress site"',
     ],
     opportunities: [
-      'Turn the nineteen staff and distinctive hópar roster into a two-question triage that routes a visitor straight to the right service instead of a flat six-item menu',
+      `Turn the ${STAFF.length} staff and distinctive hópar roster into a two-question triage that routes a visitor straight to the right service instead of a flat six-item menu`,
       'Lead with the forty-two-year, two-house story and the named front-desk staff at each location, a trust asset the current site never mentions',
       'Publish the real Sjúkratryggingar reimbursement mechanics honestly instead of a page that promises a "GJALDSKRÁ" and delivers no numbers',
+      'Claim the Google Business listing and let the real, named staff roster build the trust the current 3.0-star page cannot',
     ],
   },
   positioning:
@@ -493,9 +589,9 @@ export const sjukrathjalfarinnCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Ég var að skoða sjukrathjalfarinn.is og rakst á að þið hafið sinnt Hafnfirðingum í 42 ár, lengur en flest fyrirtæki í bænum geta státað af. En vefurinn sjálfur hefur ekki fengið nýtt efni síðan 2020, Facebook straumurinn á forsíðunni sýnir bilunarskilaboð í stað frétta, og eina leiðin til að panta fyrsta tíma er að hringja, jafnvel þó gesturinn sé kominn inn á síðuna einmitt til að fá svör við verknum sínum.
+Ég var að skoða sjukrathjalfarinn.is og rakst á að þið hafið sinnt Hafnfirðingum í 42 ár, lengur en flest fyrirtæki í bænum geta státað af. En vefurinn sjálfur hefur ekki fengið nýtt efni síðan 2020, Facebook straumurinn á forsíðunni sýnir bilunarskilaboð í stað frétta, og eina leiðin til að panta fyrsta tíma er að hringja, jafnvel þó gesturinn sé kominn inn á síðuna einmitt til að fá svör við verknum sínum. Google-síðan ykkar er líka óstaðfest og stendur í 3,0 stjörnum úr aðeins 4 umsögnum, á meðan Hress Sjúkraþjálfun hér í bænum er með 4,8 úr 32.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Sá sem lendir þar með verk svarar tveimur einföldum spurningum, hvar hann finnur til og hvað lýsir stöðunni best, og fær í staðinn ábendingu um hvaða þjónusta hjá ykkur hentar, með beinum hnappi til að hringja eða senda fyrirspurn. Hópatímarnir ykkar, ekki síst hjarta- og lungnaþjálfunin og vatnsleikfimin í Suðurbæjarlaug, fá líka sinn eigin stað í staðinn fyrir að týnast í valmyndinni.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Sá sem lendir þar með verk svarar tveimur einföldum spurningum, hvar hann finnur til og hvað lýsir stöðunni best, og fær í staðinn ábendingu um hvaða þjónusta hjá ykkur hentar og hvaða sjúkraþjálfari sinnir því, með beinum hnappi til að hringja eða senda fyrirspurn. Allir sjúkraþjálfararnir ykkar fá líka sitt eigið andlit á síðunni í stað þess að týnast í valmyndinni, og hópatímarnir, ekki síst hjarta- og lungnaþjálfunin og vatnsleikfimin í Suðurbæjarlaug, fá sinn eigin stað.
 
 Hana má skoða hér hvenær sem er:
 [HLEKKUR Á FRUMGERÐ]

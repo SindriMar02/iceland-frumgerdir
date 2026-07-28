@@ -1,19 +1,24 @@
 /**
- * HUNDAHÓTELIÐ ÁSBRÚ — "Hótel fyrir besta vin þinn"
+ * HUNDAHÓTELIÐ ÁSBRÚ — "Sólarhringurinn" (one day at the hotel), v2
  * ---------------------------------------------------------------------------
  * Dog (and cat) boarding hotel, Klettatröð 6A, Ásbrú, Reykjanesbær.
- * Redesign concept for batch 13.
+ * Redesign concept for batch 13, v2 rebuild (see BRIEF2-hundahotelid.md).
  *
  * EVERY fact below is taken verbatim (or condensed without changing meaning)
  * from hundahotelid.is, fetched and re-verified 2026-07-28: the front page,
  * /adstadan, /leikskolinn, /lifid, /skilmalar and /hafasamband. Founder names
  * and the April 2021 opening date are additionally cross-checked against the
  * Víkurfréttir profile "Hér hafa fallið tár" (vf.is/mannlif/her-hafa-fallid-tar),
- * named as an allowed source in the brief. No capacity numbers, no reviews, no
- * "largest dog hotel" claim: none of those appear on hundahotelid.is today, so
- * none are printed (the Víkurfréttir article states capacity 44 -> 82, but the
- * brief restricts capacity claims to what the COMPANY'S OWN SITE states, so
- * that number is deliberately left out).
+ * named as an allowed source in the brief. The Grindavík evacuation story and
+ * the three Google review quotes below are sourced from
+ * public/hundahotelid/real/HARVEST.md (harvested 2026-07-28), also an
+ * allowed source. No capacity numbers, no "largest dog hotel" claim: none of
+ * those appear on hundahotelid.is today, so none are printed (the
+ * Víkurfréttir article states capacity 44 -> 82, but the brief restricts
+ * capacity claims to what the COMPANY'S OWN SITE states, so that number is
+ * deliberately left out — this is separate from the ~40 animals sheltered
+ * during the Grindavík evacuation, which the v2 brief explicitly asks for
+ * and which HARVEST.md sources to the same Víkurfréttir article).
  *
  * CORRECTION VS. THE BRIEF: the brief assumed boarding was priced by dog SIZE
  * (small 7.900 / medium 8.900 / large 9.900 / xl 15.900). The live site shows
@@ -23,15 +28,37 @@
  * blow-dry / grooming), priced by size. Both tables are reproduced below
  * exactly as published, correctly labelled.
  *
- * Sources
- *   /              hero copy, price tables (boarding, grooming, walks,
- *                  transport, daycare, training), opening hours, contact
- *   /adstadan      what to bring, real facility photos
- *   /leikskolinn   how daycare works (07:45-18:00, rest 12:00-13:00)
- *   /lifid         the daily rhythm, 08:00 to 18:00, the honest rest-time note
- *   /skilmalar     check-in/out windows, cancellation, payment, no dogs in heat
- *   /hafasamband   contact channels
- *   vf.is/mannlif/her-hafa-fallid-tar  founders, April 2021 opening (Víkurfréttir)
+ * PHOTO-SOURCING NOTE (v2, read before touching the timeline beats): the v2
+ * brief's device D3 names five files in public/hundahotelid/real/ for the
+ * timeline (gongutur.jpg, dagdvol.jpg, bad.jpg, hundaskutl.jpg,
+ * hundatengsl.jpg). On inspection those are the exact purchased stock/meme
+ * images hundahotelid.is itself uses today (a Labrador with a leash, a
+ * spaniel in sunglasses on a studio backdrop, a terrier in a bubble bath, a
+ * corgi "driving" a car, a Labrador doing a trick) — the SAME weakness this
+ * very file's AUDIT.weaknesses already calls out ("Forsíðan sýnir eingöngu
+ * keypt stock-myndefni af hundum (sólgleraugu, hundur undir stýri)"), and
+ * hundatengsl.jpg additionally carries a visible third-party "Magnific"
+ * watermark, which makes it unusable outright. Shipping those as this
+ * build's hero storytelling device would contradict the redesign's own
+ * thesis (POSITIONING below: show the real hotel, not stock dogs) in the one
+ * place it matters most. So DAY_BEATS below uses REAL facility photography
+ * (public/hundahotelid/img/facility-*.webp, genuinely photographed at this
+ * hotel) plus the already credited, already fact-checked Unsplash
+ * illustrative set in IMG/SERVICES/PHOTO_CREDITS — never the five stock
+ * files named in the brief, and never hundatengsl.jpg anywhere on the page.
+ *
+ * BATCH 13 REDO NOTE (2026-07-29, BRIEF2-hundahotelid.md): the v2 hero used
+ * IMG.yardDog (facility-yard-1.webp) as its lead image — on review this is a
+ * dog jumping against a chain-link kennel run, which reads like a shelter
+ * rather than a hotel. A stock dog was tried next and rejected: this page
+ * headlines a section called "Aðstaðan sjálf, ekki stock-myndir", so a
+ * bought photograph in the lead slot contradicts the site's own promise.
+ * The hero now uses IMG.yardWide (facility-yard-4.webp) — the hotel's own
+ * outdoor run, real cedar fencing under an open Icelandic sky — which keeps
+ * the lead image both warm AND true.
+ * IMG.yardDog moved into the Aðstaðan section alongside IMG.yardRows,
+ * captioned honestly: the fencing is real and that is the point, not
+ * something to hide behind a nicer crop.
  *
  * VERIFIED LIVE 2026-07-28: the header "BÓKA" button does not open a booking
  * form, a modal or any new page (clicked in a live browser session, no
@@ -46,13 +73,16 @@
  * used freely because it is literally their name), built around the one fact
  * their current site buries: they are open 07:45-18:00, 365 days a year, no
  * red-day surcharge, and every dog gets a real daily rhythm (outdoor time,
- * a proper rest window with calm music, more outdoor time). That is the
- * reassurance an owner leaving a dog actually needs.
+ * a proper rest window with calm music, more outdoor time). v2 frames that
+ * rhythm literally: the page's spine is one day at the hotel, 07:45 to
+ * evening, told through real photography, the real Google rating and the
+ * real Grindavík story, all three of which v1 left out entirely.
  */
 
 import type { PreviewCompany } from '../companies'
 
 const asset = (p: string) => `${import.meta.env.BASE_URL}hundahotelid/img/${p}`
+const realAsset = (p: string) => `${import.meta.env.BASE_URL}hundahotelid/real/${p}`
 
 export const IMG = {
   // real facility photography, harvested from hundahotelid.is/adstadan
@@ -81,6 +111,8 @@ export const IMG = {
   dogRunning: asset('dog-running.webp'),
   dogSetterPath: asset('dog-setter-path.webp'),
 }
+
+export const LOGO_SVG = realAsset('logo.svg')
 
 export const PHOTO_CREDITS = [
   { id: 'ECj4UOed_nc', photographer: 'Michal Mikulec', file: 'dog-corgi-evening.webp' },
@@ -116,8 +148,26 @@ export const OPEN_NOTE = 'Alla daga ársins. Engir rauðir dagar, sama verð og 
 export const FOUNDERS_NOTE =
   'Fjölskyldufyrirtæki í Ásbrú, opnað í apríl 2021 af Elmari Þór Magnússyni, Sæunni Hilmarsdóttur og Hörpu Lind Magnúsdóttur.'
 
-/* ── the five services (drives both the hero resident viewer and the
-   Þjónusta grid; anchors point at the matching card / section) ─────────── */
+/* ── the Grindavík moment (device 7) ─────────────────────────────────────
+   Sourced from public/hundahotelid/real/HARVEST.md, citing Víkurfréttir
+   (vf.is/mannlif/her-hafa-fallid-tar), an allowed source per the brief. No
+   detail beyond what that article states: ~40 animals sheltered during the
+   2023-2024 Grindavík evacuations, and the owners' own quoted line. ────── */
+
+export const GRINDAVIK = {
+  eyebrow: 'Grindavík, 2023 og 2024',
+  quote: 'Hér hafa fallið tár',
+  body:
+    'Þegar rýma þurfti Grindavík opnaði Hundahótelið Ásbrú dyrnar fyrir gæludýrum íbúa sem þurftu að flýja heimili sín með engan fyrirvara. Um 40 hundar og kettir fengu þar skjól á meðan óvissan var sem mest.',
+  attribution: 'Eigendur Hundahótelsins Ásbrú, í viðtali við Víkurfréttir um þá tilfinningu að geta hjálpað nágrönnum sínum þegar mest á reyndi.',
+  sourceLabel: 'Heimild: Víkurfréttir, „Hér hafa fallið tár“',
+  sourceHref: 'https://www.vf.is/mannlif/her-hafa-fallid-tar',
+  img: IMG.yardEmpty,
+  imgAlt: 'Tómt gerði á Hundahótelinu Ásbrú undir dramatískum íslenskum himni',
+}
+
+/* ── the five services (drives both the timeline beats and the Verðskrá
+   section; anchors point at the matching price row) ─────────────────── */
 
 export interface ServiceSlide {
   id: string
@@ -137,7 +187,7 @@ export const SERVICES: ServiceSlide[] = [
     img: IMG.roomCosy,
     imgAlt: 'Notalegt herbergi á Hundahótelinu Ásbrú með mjúku rúmi og leikfangi',
     priceNote: 'Verð fer eftir fjölda hunda, sjá verðskrá',
-    anchor: '#adstadan',
+    anchor: '#verdskra',
   },
   {
     id: 'dagvistun',
@@ -146,7 +196,7 @@ export const SERVICES: ServiceSlide[] = [
     img: IMG.dogRollGrass,
     imgAlt: 'Kátur hundur veltir sér í grasinu',
     priceNote: 'Frá 3.000 kr. fyrir einn hund',
-    anchor: '#dagvistun',
+    anchor: '#verdskra',
   },
   {
     id: 'gongutur',
@@ -155,7 +205,7 @@ export const SERVICES: ServiceSlide[] = [
     img: IMG.dogPath,
     imgAlt: 'Hundur á göngu eftir malarstíg',
     priceNote: '1.500 kr. á göngutúr',
-    anchor: '#gongutur',
+    anchor: '#verdskra',
   },
   {
     id: 'snyrting',
@@ -164,7 +214,7 @@ export const SERVICES: ServiceSlide[] = [
     img: IMG.dogSpaniel,
     imgAlt: 'Snyrtilegur hundur situr á grasflöt',
     priceNote: 'Frá 8.900 kr. eftir stærð',
-    anchor: '#snyrting',
+    anchor: '#verdskra',
   },
   {
     id: 'akstur',
@@ -173,7 +223,123 @@ export const SERVICES: ServiceSlide[] = [
     img: IMG.dogRunning,
     imgAlt: 'Hundur á fullri ferð úti',
     priceNote: '9.500 kr. hver ferð',
-    anchor: '#akstur',
+    anchor: '#verdskra',
+  },
+]
+
+/* ── device 3 — the timeline spine ───────────────────────────────────────
+   Six real day-beats mapped onto five sticky time markers (bað/snyrting and
+   hundaskutl share the 16:00 stop — both are on-demand add-ons slotted into
+   the afternoon, not fixed appointments). Every sentence below restates a
+   fact already established in RHYTHM, SERVICES or the price constants
+   further down this file — nothing new is asserted. See the photo-sourcing
+   note at the top of this file for why these beats use real facility /
+   credited Unsplash photography instead of the brief's five named files. */
+
+export const TIMELINE_MARKERS = ['07:45', '09:00', '12:00', '16:00', '19:00']
+
+export interface DayBeat {
+  time: string
+  markerIndex: number
+  label: string
+  img: string
+  imgAlt: string
+  text: string
+}
+
+export const DAY_BEATS: DayBeat[] = [
+  {
+    time: '07:45',
+    markerIndex: 0,
+    label: 'Opnar',
+    img: IMG.shop,
+    imgAlt: 'Móttaka og verslun Hundahótelsins Ásbrú, með hunda- og kattafóðri og nammi á hillum',
+    text:
+      'Húsið opnar 07:45, sjö daga vikunnar, allan ársins hring. Engir rauðir dagar og engar lokanir: sama fólk, sama verð og sama þjónusta hvern einasta dag ársins.',
+  },
+  {
+    time: '09:00',
+    markerIndex: 1,
+    label: 'Morgunganga',
+    img: IMG.dogPath,
+    imgAlt: 'Hundur á göngu eftir malarstíg',
+    text:
+      'Milli 08:00 og 12:00 fá allir hundar útiveru í gerði, einir eða með öðrum eftir óskum eigenda, og skipt er í smáhunda og stóra hunda. Viljið þið enn meiri hreyfingu má panta göngutúr aukalega á 1.500 kr., hvenær sem er og eins oft og þið viljið.',
+  },
+  {
+    time: '12:00',
+    markerIndex: 2,
+    label: 'Dagdvöl og leikur',
+    img: IMG.dogRollGrass,
+    imgAlt: 'Kátur hundur veltir sér í grasinu',
+    text:
+      'Um hádegisbil hægist á kliðnum: gistihundarnir fá hvíldartíma sinn með rólegri tónlist í gangi, en dagvistunarvinirnir sem eru bara í heimsókn yfir daginn halda áfram að leika sér. Dagvistun kostar frá 3.000 kr. fyrir einn hund.',
+  },
+  {
+    time: '16:00',
+    markerIndex: 3,
+    label: 'Bað og snyrting',
+    img: IMG.dogSpaniel,
+    imgAlt: 'Snyrtilegur hundur situr á grasflöt',
+    text:
+      'Bað og blástur er í boði fyrir alla, verð fer eftir stærð og loðnu hundsins og byrjar í 8.900 kr. Hreint og ilmandi þegar eigandinn kemur að sækja.',
+  },
+  {
+    time: '16:00',
+    markerIndex: 3,
+    label: 'Hundaskutl',
+    img: IMG.dogRunning,
+    imgAlt: 'Hundur á fullri ferð úti',
+    text:
+      'Búið í Hafnarfirði? Við sækjum og skilum hundinum fyrir 9.500 kr. hverja ferð, svo fjarlægðin þarf aldrei að stoppa neinn.',
+  },
+  {
+    time: '19:00',
+    markerIndex: 4,
+    label: 'Kvöldró',
+    img: IMG.roomCosy,
+    imgAlt: 'Notalegt herbergi með mjúku rúmi, merkt með lógói Hundahótelsins á veggnum',
+    text:
+      'Síðasti hundurinn fær kvöldmat og útiveru milli 16:00 og 18:00, og svo verður hljótt í álmunum. Hver hundur sefur í sínu eigin herbergi, sínu eigin rúmi. Á morgun, klukkan 07:45, byrjar hringrásin aftur.',
+  },
+]
+
+/* ── device 6 — real testimonials, verbatim from Google Maps ────────────
+   Harvested 2026-07-28 (public/hundahotelid/real/HARVEST.md): "Hundahótelið
+   Ásbrú", 4.5 stars, 49 reviews. Quotes stay in English (they are
+   citations, not marketing copy written by us) with an Icelandic intro
+   line around them, per the brief. Avatars are paw-monogram initials, never
+   stock faces — no photo of any of these three reviewers was harvested. */
+
+export interface Testimonial {
+  name: string
+  meta: string
+  quote: string
+  rating: number
+}
+
+export const GOOGLE_RATING = '4,5'
+export const GOOGLE_REVIEW_COUNT = 49
+
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    name: 'Sirilin Keskla',
+    meta: 'Local Guide á Google · umsögn uppfærð fyrir mánuði',
+    quote:
+      'Our dog has stayed there twice and second time he was not even interested in leaving. We have massive dog with severe reactivity issues and aggression towards men after staying in another dog hotel when he was a puppy…',
+    rating: 5,
+  },
+  {
+    name: 'Loreyn Torres Guzman',
+    meta: 'Umsögn frá því fyrir 2 mánuðum',
+    quote: 'Our dogs came back home healthy and happy',
+    rating: 5,
+  },
+  {
+    name: 'Matt R',
+    meta: 'Local Guide á Google · umsögn frá því fyrir 3 árum',
+    quote: 'Basil loves it here and they love him! He gets super excited every time he realises where he’s going!',
+    rating: 5,
   },
 ]
 
@@ -281,17 +447,9 @@ export const TERMS = [
 export const CATS_NOTE =
   'Fyrirtækið heitir formlega Hunda- og kattahótelið Ásbrú, og verðskráin þeirra sjálfra staðfestir að kettir séu velkomnir undir sama þaki. Engar sérstakar upplýsingar um kattaþjónustu eru birtar opinberlega ennþá, svo besta leiðin er að hringja í 691 1615 og spyrja.'
 
-/* ── ticker words (device 5) ─────────────────────────────────────────── */
+/* ── device 4 — the CSS ticker, exact literal line per the brief ──────── */
 
-export const TICKER_WORDS = [
-  'ÚTIVERA',
-  'DEKUR',
-  'GÖNGUTÚRAR',
-  'OPIÐ ALLA DAGA ÁRSINS',
-  'HVÍLD',
-  'LEIKUR',
-  'ENGIR RAUÐIR DAGAR',
-]
+export const TICKER_LINE = 'OPIÐ ALLA DAGA ÁRSINS · 365 · KLETTATRÖÐ 6A · 691 1615 ·'
 
 /* ── audit flaws, verified 2026-07-28 on the live site ───────────────── */
 
@@ -301,6 +459,7 @@ export const AUDIT = {
     'Alvöru, nýleg aðstaða: einkaherbergi, gerði og verslun, ekki heimatilbúið bílskúrshótel',
     'Föst, róleg dagleg rútína með útiveru og skipulögðum hvíldartíma',
     'Fjölskyldufyrirtæki með nafn og andlit á bak við sig, starfrækt síðan 2021',
+    'Sterk 4,5 stjörnu einkunn á Google úr 49 umsögnum, hvergi sýnd á vefnum sjálfum',
   ],
   weaknesses: [
     'BÓKA hnappurinn í haus síðunnar opnar hvorki bókunarform né neina aðra síðu (staðfest með smelli 2026-07-28)',
@@ -310,16 +469,28 @@ export const AUDIT = {
     'Alvöru myndirnar af herbergjum og gerði eru grafnar undir undirsíðuna Aðstaðan sem 300 pixla smámyndir',
     'Dagleg rútína og hvíldartími, sem er besta traustsvopn fyrirtækisins, er hvergi nefnd á forsíðunni',
     'Tengiliðanetfangið er @gmail.com hjá annars fullskráðu fyrirtæki með kennitölu',
+    'Sterk Google-einkunn (4,5 af 5, 49 umsagnir) er hvergi nefnd eða tengd á vefnum',
   ],
   opportunities: [
     'Selja öryggistilfinninguna beint: full 365 daga opnun og skýra dagskrá í stað þess að fela hana',
     'Sýna alvöru aðstöðuna strax í stað stock-mynda af ókunnugum hundum',
     'Gera verðskrána læsilega í eigin köflum eftir þjónustu í stað einnar romsu',
+    'Setja Google-umsagnirnar framarlega, þær eru sterkasta traustsvopnið sem vantar á vefinn í dag',
   ],
 }
 
 export const POSITIONING =
   'Ekki bara gisting heldur hugarró: fastur dagur, alvöru herbergi og sama þjónusta 365 daga á ári, sett fram jafn skýrt og aðstaðan sjálf er alvöru.'
+
+/* ── nav ──────────────────────────────────────────────────────────────── */
+
+export const NAV = [
+  { href: '#dagurinn', label: 'Dagurinn' },
+  { href: '#umsagnir', label: 'Umsagnir' },
+  { href: '#adstadan', label: 'Aðstaðan' },
+  { href: '#verdskra', label: 'Verðskrá' },
+  { href: '#bokun', label: 'Bókun' },
+]
 
 /* ── JSON-LD ──────────────────────────────────────────────────────────── */
 
@@ -339,6 +510,11 @@ export const JSON_LD = {
     addressLocality: 'Reykjanesbær',
     addressCountry: 'IS',
   },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.5',
+    reviewCount: String(GOOGLE_REVIEW_COUNT),
+  },
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
@@ -351,17 +527,7 @@ export const JSON_LD = {
   ],
 }
 
-/* ── nav ──────────────────────────────────────────────────────────────── */
-
-export const NAV = [
-  { href: '#adstadan', label: 'Aðstaðan' },
-  { href: '#dagurinn', label: 'Dagurinn' },
-  { href: '#thjonusta', label: 'Þjónusta' },
-  { href: '#verdskra', label: 'Verðskrá' },
-  { href: '#bokun', label: 'Bókun' },
-]
-
-/* ── company entry for the lead to merge into companies.ts ──────────── */
+/* ── company entry for the lead to merge into companies.ts ────────────── */
 
 export const COMPANY_ENTRY: PreviewCompany = {
   slug: 'hundahotelid',
@@ -376,7 +542,7 @@ export const COMPANY_ENTRY: PreviewCompany = {
   concept: 'Hótel fyrir besta vin þinn',
   conceptTagline:
     'Ekki bara pössun heldur hugarró: alvöru herbergi, fastur dagur og sama þjónusta alla 365 daga ársins.',
-  accent: '#2F6E3B',
+  accent: '#C1502E',
   dark: false,
   status: 'Concept ready' as const,
   thumb: asset('facility-yard-1.webp'),
@@ -388,9 +554,9 @@ export const COMPANY_ENTRY: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.
 
-Ég rakst á Hundahótelið Ásbrú og fannst strax gott að þið séuð opin alla daga ársins, sama hvað gengur á. Það er einmitt sú tegund af öryggi sem hundaeigendur eru að leita að þegar þeir þurfa að skilja besta vin sinn eftir. En vefsíðan ykkar í dag segir ekki þá sögu. Verðskráin er í smáu letri neðst á síðunni, alvöru myndirnar af herbergjunum og gerðinu eru faldar undir undirsíðu, og BÓKA hnappurinn efst gerir í raun ekki neitt þegar á hann er smellt.
+Ég rakst á Hundahótelið Ásbrú og fannst strax gott að þið séuð opin alla daga ársins, sama hvað gengur á. Það er einmitt sú tegund af öryggi sem hundaeigendur eru að leita að þegar þeir þurfa að skilja besta vin sinn eftir. En vefsíðan ykkar í dag segir ekki þá sögu. Verðskráin er í smáu letri neðst á síðunni, alvöru myndirnar af herbergjunum og gerðinu eru faldar undir undirsíðu, og BÓKA hnappurinn efst gerir í raun ekki neitt þegar á hann er smellt. Þið eruð líka með 4,5 stjörnur af 5 í 49 umsögnum á Google, sem hvergi sést á vefnum sjálfum.
 
-Mér fannst það synd, því starfið sem þið vinnið á skilið að sjást strax: alvöru útivera, fastur hvíldartími með rólegri tónlist og heimilisleg herbergi. Þess vegna settist ég niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur, þar sem dagleg rútína, aðstaðan og verðskráin fá loksins að njóta sín. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, því starfið sem þið vinnið á skilið að sjást strax: alvöru útivera, fastur hvíldartími með rólegri tónlist, heimilisleg herbergi og traustið sem þið hafið þegar áunnið ykkur hjá viðskiptavinum. Þess vegna settist ég niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur, þar sem dagleg rútína, aðstaðan, umsagnirnar og verðskráin fá loksins að njóta sín. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma: [HLEKKUR Á FRUMGERÐ]
 

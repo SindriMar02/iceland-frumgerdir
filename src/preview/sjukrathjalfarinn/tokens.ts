@@ -1,28 +1,46 @@
 /**
- * Palette + type tokens, computed AA contrast noted inline (see the final
- * build report for the full pair-by-pair numbers). Light, energetic,
- * clinical-warm: a cool porcelain ground (never cream/beige, so this never
- * reads as the warm-paper editorial look), one committed coral accent, a
- * pale sage "clinical" alt ground. Distinct from every other batch-13 build.
+ * Palette + type tokens — v2. Computed AA contrast pairs (WCAG relative
+ * luminance formula, checked by script during the build, see build report):
+ *   INK on BONE 14.3:1 · SOFT on BONE 6.4:1 · MUTE on BONE 5.3:1
+ *   SOFT on WHITE 8.0:1 · MUTE on WHITE 6.5:1 · GREEN on BONE 5.6:1
+ *   CREAM on DEEP 14.9:1 · DEEP_MUTE on DEEP 6.7:1 · CREAM on FOOTER 16.7:1
+ *   ACCENT_DEEP on BONE 4.8:1 · ACCENT_DEEP on WHITE 6.0:1
+ *   CREAM on ACCENT_DEEP 5.3:1 · INK on raw ACCENT 4.75:1
+ * The raw coral ACCENT (#E8503A) fails white-text AA (3.7:1) — it is used
+ * ONLY as a fill behind dark INK text/art, or as a small swatch/border.
+ * Any solid button or band that needs light text uses ACCENT_DEEP instead.
  */
-export const INK = '#15191C'
-export const BASE = '#F6F7F5'
-export const MIST = '#E8F0EC'
-export const CARD = '#FFFFFF'
-export const SOFT = '#4B5054'
-/** Retuned from an earlier #6C7174 (4.26:1 on MIST, failed AA) to a value
- * that clears 4.5:1 on every ground the page uses (BASE, MIST, white). */
-export const MUTE = '#5C6164'
-export const HAIR = 'rgba(21,25,28,.12)'
-export const ACCENT = '#FF5A36'
-/** Retuned from an earlier #C6431F (4.29:1 on MIST, failed AA) so the one
- * accent-for-text shade clears 4.5:1 on BASE, MIST and white alike. */
-export const ACCENT_DEEP = '#B23A1A'
-export const GREEN = '#0B7A61'
 
-export const DISPLAY = "'SJR Gabarito', system-ui, sans-serif"
-export const BODY = "'SJR Switzer', system-ui, sans-serif"
+/* ── light "bone" register ──────────────────────────────────────────── */
+export const INK = '#1B1815'
+export const BONE = '#E8E7E2'
+export const MIST = '#E7EFE9'
+export const CARD = '#FFFFFF'
+export const SOFT = '#55504A'
+export const MUTE = '#625D57'
+export const HAIR = 'rgba(27,24,21,.14)'
+export const GREEN = '#096650'
+
+/* ── accent (spent only on the two ACCENT PUNCH bands: people, booking) ── */
+export const ACCENT = '#E8503A'
+export const ACCENT_DEEP = '#B23A1A'
+export const ACCENT_SOFT = 'rgba(232,80,58,.14)'
+
+/* ── deep "pine" register (marquee band + roster directory) ──────────── */
+export const DEEP = '#0E211A'
+export const DEEP_SOFT = '#16352A'
+export const CREAM = '#F5F1EA'
+export const DEEP_MUTE = '#9CA69F'
+export const DEEP_HAIR = 'rgba(245,241,234,.14)'
+
+/* ── near-black sign-off register (distinct hue from DEEP, warmer) ──── */
+export const FOOTER = '#14110E'
+
+export const DISPLAY = "'SJR Display', system-ui, sans-serif"
+export const BODY = "'SJR General', system-ui, sans-serif"
 export const MONO = "'SJR Plex Mono', ui-monospace, monospace"
 
 export const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B23A1A] focus-visible:ring-offset-[#F6F7F5]'
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B23A1A] focus-visible:ring-offset-[#E8E7E2]'
+export const FOCUS_DEEP =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#F5F1EA] focus-visible:ring-offset-[#0E211A]'
