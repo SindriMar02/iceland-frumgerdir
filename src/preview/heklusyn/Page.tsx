@@ -1396,18 +1396,17 @@ export default function HeklusynPage() {
             },
           }))
         } else if (kind === 'p') {
-          splits.push(SplitText.create(el, {
-            type: 'lines', mask: 'lines', autoSplit: false,
-            onSplit: (self) => {
-              gsap.fromTo(self.lines,
-                { yPercent: 110 },
-                {
-                  yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: STAGGER,
-                  scrollTrigger: { trigger: el, start: 'top 88%', ...stBase },
-                })
-              return undefined
-            },
-          }))
+          /* Deliberately NOT SplitText lines. Line-splitting measures the
+             paragraph before layout has settled, and when it guesses wrong it
+             locks every WORD into its own block wrapper, which shipped a page
+             of one-word lines. A paragraph has to be readable; a masked-line
+             reveal is decoration. Whole-element rise instead. */
+          gsap.fromTo(el,
+            { opacity: 0, y: 18 },
+            {
+              opacity: 1, y: 0, duration: DUR.m, ease: EASE.out,
+              scrollTrigger: { trigger: el, start: 'top 88%', ...stBase },
+            })
         } else if (kind === 'line') {
           gsap.fromTo(el, { clipPath: 'inset(0 0 100% 0)' }, {
             clipPath: 'inset(0 0 0% 0)', duration: DUR.m, ease: EASE.out,
