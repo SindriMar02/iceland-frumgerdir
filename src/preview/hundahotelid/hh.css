@@ -1,0 +1,326 @@
+/**
+ * HUNDAHÓTELIÐ ÁSBRÚ — page-scoped styles.
+ * Everything here is prefixed `hh-` (classnames, custom properties and
+ * keyframes) so nothing leaks into or collides with any other preview page.
+ * Self-hosted National Park @font-face (single-typeface discipline, device 6
+ * of the Amour Liquide transplant — see Page.tsx header comment).
+ */
+
+/* NOTE: the @font-face rules for "HH National Park" are NOT declared here.
+   This file is a static asset processed once by Vite; it cannot see
+   import.meta.env.BASE_URL, and the production build serves this app from a
+   GitHub Pages subpath (see vite.config.ts: `base: process.env.BASE_PATH`).
+   A hardcoded root-absolute url('/hundahotelid/fonts/...') would 404 under
+   that subpath (the exact class of bug in [[favicon-origin-inheritance]]).
+   So @font-face is instead injected from Page.tsx via a small <style> tag
+   built with BASE_URL, right next to this file's import. */
+
+.hh-root {
+  --hh-cream: #f4f3e9;
+  --hh-cream-2: #eae7d4;
+  --hh-ink: #211d16;
+  --hh-muted: #65615a;
+  --hh-green: #2f6e3b;
+  --hh-green-deep: #16321d;
+  --hh-white: #ffffff;
+  --hh-hair: rgba(33, 29, 22, 0.14);
+  --hh-hair-on-dark: rgba(244, 243, 233, 0.18);
+
+  /* device 1 — the kennel-door arch, objectBoundingBox SVG clipPath, a
+     --lg variant swapped in at 992px (see the <clipPath> defs mounted once
+     in Page.tsx: #hh-arch and #hh-arch-lg). */
+  --hh-clip: url(#hh-arch);
+
+  font-family: 'HH National Park', system-ui, sans-serif;
+  background: var(--hh-cream);
+  color: var(--hh-ink);
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .hh-root {
+    --hh-clip: url(#hh-arch-lg);
+  }
+}
+
+.hh-root ::selection {
+  background: var(--hh-green);
+  color: var(--hh-white);
+}
+
+.hh-focus:focus-visible {
+  outline: 2px solid var(--hh-green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── device 1 + 2 — the arch frame: SVG clip-path mask with an oversized
+   image drifting inside it (top:-4%; bottom:-4%, GSAP-scrubbed negative
+   parallax so the photo never gaps at the mask edges). ───────────────── */
+
+.hh-frame {
+  position: relative;
+  overflow: hidden;
+  clip-path: var(--hh-clip);
+  background: var(--hh-cream-2);
+  isolation: isolate;
+}
+
+.hh-frame__img {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -4%;
+  bottom: -4%;
+  width: 100%;
+  height: 108%;
+  object-fit: cover;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* ── device 4 — caption discipline: small warm-tone caption under every
+   media frame, literal ml-12/mt-16 rhythm (12px / 16px), never inside the
+   image itself. ────────────────────────────────────────────────────── */
+
+.hh-cap {
+  margin-left: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--hh-muted);
+  max-width: 46ch;
+}
+
+/* ── device 3 — the asymmetric pair: 72% / 28% grid, the narrow column a
+   tall pill (border-radius: 400px 400px 0 0) with a negative margin-left
+   so it kisses the big frame. Collapses to a single column under 768px
+   per the mandatory mobile override. ──────────────────────────────────── */
+
+.hh-pair {
+  display: grid;
+  grid-template-columns: 72% 28%;
+  align-items: end;
+}
+
+.hh-pair__pill {
+  position: relative;
+  overflow: hidden;
+  border-radius: 400px 400px 0 0;
+  margin-left: -9%;
+  background: var(--hh-cream-2);
+  z-index: 1;
+  box-shadow: -1px 0 0 var(--hh-cream);
+}
+
+.hh-pair__pill img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 767px) {
+  .hh-pair {
+    grid-template-columns: 1fr;
+    row-gap: 28px;
+  }
+  .hh-pair__pill {
+    margin-left: 0;
+    aspect-ratio: 3 / 4;
+  }
+}
+
+/* ── device 5 — CSS ticker: animation-play-state paused until `.is-inview`
+   flips it running; one instance reversed via animation-direction. ─────── */
+
+@keyframes hh-ticker {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.hh-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.hh-ticker__track {
+  display: inline-flex;
+  width: max-content;
+  animation: hh-ticker 26s linear infinite;
+  animation-play-state: paused;
+}
+
+.hh-ticker.is-inview .hh-ticker__track {
+  animation-play-state: running;
+}
+
+.hh-ticker__track--reverse {
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hh-ticker__track {
+    animation: none;
+  }
+}
+
+/* ── device 7 — loader overlay ───────────────────────────────────────── */
+
+.hh-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hh-cream);
+  transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1), visibility 0.6s;
+}
+
+.hh-loader[data-hidden='true'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hh-loader__mark {
+  max-width: 300px;
+  width: 62vw;
+}
+
+.hh-loader__ring {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.hh-loader[data-ready='true'] .hh-loader__ring {
+  stroke-dashoffset: 0;
+}
+
+/* ── device 8 — resident viewer (hero carousel) ──────────────────────── */
+
+.hh-viewer__track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.hh-viewer__track::-webkit-scrollbar {
+  display: none;
+}
+
+.hh-viewer__slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .hh-viewer__slide {
+    flex-basis: 78%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hh-viewer__slide {
+    flex-basis: 46%;
+  }
+}
+
+/* ── reveal system: IntersectionObserver + CSS transition, always
+   animating TOWARD the resting state, gated with a failsafe in JS
+   (see useReveal in Page.tsx). ───────────────────────────────────────── */
+
+[data-hh-reveal] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-hh-reveal].hh-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-hh-reveal='scale'] {
+  transform: translateY(30px) scale(0.96);
+}
+
+[data-hh-reveal='scale'].hh-in {
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hh-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .hh-loader {
+    display: none !important;
+  }
+}
+
+/* ── misc utility shapes ─────────────────────────────────────────────── */
+
+.hh-hair {
+  border-color: var(--hh-hair);
+}
+
+.hh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.9rem 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-height: 44px;
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hh-btn:active {
+  transform: scale(0.97);
+}
+
+.hh-btn--primary {
+  background: var(--hh-green);
+  color: var(--hh-white);
+}
+
+.hh-btn--primary:hover {
+  background: #275b32;
+}
+
+.hh-btn--ghost {
+  background: transparent;
+  color: var(--hh-ink);
+  border: 1.5px solid var(--hh-hair);
+}
+
+.hh-btn--ghost:hover {
+  border-color: var(--hh-green);
+  color: var(--hh-green);
+}
+
+.hh-btn--on-dark {
+  background: var(--hh-cream);
+  color: var(--hh-green-deep);
+}
+
+.hh-btn--on-dark:hover {
+  background: var(--hh-white);
+}

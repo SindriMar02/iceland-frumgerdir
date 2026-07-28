@@ -1,0 +1,109 @@
+/* KÍRÓPRAKTORSTOFA TRYGGVA JÓNASSONAR — "Fyrsta leyfið"
+   Slug-prefixed keyframes/utilities (no-style-bleed-between-designs). Font
+   @font-face rules are NOT declared here: this repo deploys under a dynamic
+   BASE_PATH (GitHub Pages project site), and a root-absolute url() written in
+   a statically-imported .css file does not get the base prefix at build time.
+   The proven-safe pattern already used elsewhere in this repo (see
+   src/preview/bofs/ui.tsx) is to inject @font-face via a JS template literal
+   using import.meta.env.BASE_URL, which Page.tsx does in its own <style> tag. */
+
+/* ── base reveal primitive (device 7) ─────────────────────────────────────
+   .kiro-rv starts hidden-below, .kiro-rv.kiro-in resolves to resting. Driven
+   by IntersectionObserver in Page.tsx, never framer whileInView. */
+.kiro-rv {
+  opacity: 0;
+  transform: translate3d(0, 30px, 0);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--kiro-d, 0) * 90ms);
+  will-change: opacity, transform;
+}
+.kiro-rv.kiro-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kiro-rv {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── SplitText char/word wrappers (avoids mid-word line breaks, device 2) ── */
+.kiro-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+.kiro-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* ── signature plate: hard clip-path wipe + velocity bend (device 8) ─────── */
+.kiro-plate {
+  position: relative;
+  overflow: hidden;
+  background: var(--kiro-plate-bg, #e7dcc0);
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 1.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.kiro-plate.kiro-in {
+  clip-path: inset(0 0 0 0);
+}
+.kiro-plate img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.kiro-plate img.kiro-loaded {
+  opacity: 1;
+}
+.kiro-plate .kiro-plate-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kiro-plate {
+    clip-path: inset(0 0 0 0) !important;
+    transition: none !important;
+  }
+}
+
+/* ── outlined background words (device 2) ─────────────────────────────── */
+.kiro-outline-word {
+  -webkit-text-stroke: 1px var(--kiro-hair, rgba(32, 28, 21, 0.14));
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── chapter rail (device 4) ───────────────────────────────────────────── */
+.kiro-rail-fill {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* ── booking / range inputs ───────────────────────────────────────────── */
+.kiro-field {
+  border: 1px solid var(--kiro-hairline, rgba(32, 28, 21, 0.16));
+  background: #fbf8ef;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.kiro-field:focus {
+  border-color: #1d3557;
+  background: #ffffff;
+}
+
+/* ── button press feedback ────────────────────────────────────────────── */
+.kiro-press {
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.kiro-press:active {
+  transform: scale(0.97);
+}

@@ -9,6 +9,12 @@
  * all sample prices/reviews are disclaimed in each page footer.
  */
 
+import { companyEntry as KIROPRAKTORSTOFAN_ENTRY } from './kiropraktorstofan/data'
+import { COMPANY_ENTRY as HUNDAHOTELID_ENTRY } from './hundahotelid/data'
+import { GITARINN as GITARINN_ENTRY } from './gitarinn/data'
+import { COMPANY as EIGNAMIDLUN_ENTRY } from './eignamidlun/data'
+import { sjukrathjalfarinnCompany as SJUKRATHJALFARINN_ENTRY } from './sjukrathjalfarinn/data'
+
 export interface AuditList {
   strengths: string[]
   weaknesses: string[]
@@ -4357,3 +4363,8 @@ ${SIGN}`,
 }
 
 PREVIEW_COMPANIES.push(TANNLAEKNAVAKTIN)
+PREVIEW_COMPANIES.push(KIROPRAKTORSTOFAN_ENTRY)
+PREVIEW_COMPANIES.push(HUNDAHOTELID_ENTRY)
+PREVIEW_COMPANIES.push(GITARINN_ENTRY)
+PREVIEW_COMPANIES.push(EIGNAMIDLUN_ENTRY)
+PREVIEW_COMPANIES.push(SJUKRATHJALFARINN_ENTRY)

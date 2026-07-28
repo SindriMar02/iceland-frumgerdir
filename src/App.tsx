@@ -133,6 +133,11 @@ const KidkaPage = lazy(() => import('./preview/kidka/Page'))
 const HeklusynPage = lazy(() => import('./preview/heklusyn/Page'))
 const ThgPage = lazy(() => import('./preview/thg/Page'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
+const KiropraktorstofanPage = lazy(() => import('./preview/kiropraktorstofan/Page'))
+const HundahotelidPage = lazy(() => import('./preview/hundahotelid/Page'))
+const GitarinnPage = lazy(() => import('./preview/gitarinn/Page'))
+const EignamidlunPage = lazy(() => import('./preview/eignamidlun/Page'))
+const SjukrathjalfarinnPage = lazy(() => import('./preview/sjukrathjalfarinn/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 /**
@@ -297,6 +302,11 @@ export default function App() {
             <Route path="/preview/heklusyn" element={<HeklusynPage />} />
             <Route path="/preview/thg" element={<ThgPage />} />
             <Route path="/preview/tannlaeknavaktin" element={<TannlaeknavaktinPage />} />
+            <Route path="/preview/kiropraktorstofan" element={<KiropraktorstofanPage />} />
+            <Route path="/preview/hundahotelid" element={<HundahotelidPage />} />
+            <Route path="/preview/gitarinn" element={<GitarinnPage />} />
+            <Route path="/preview/eignamidlun" element={<EignamidlunPage />} />
+            <Route path="/preview/sjukrathjalfarinn" element={<SjukrathjalfarinnPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
