@@ -1,86 +1,104 @@
 /**
  * THE SIGNATURE — "Tröllastafir".
  *
- * This is not an invented flourish. There is a real installation standing in
- * the Trollgarden at Fossatún: carved wooden letter drums on two spindles that
- * visitors turn by hand to spell troll words (see
- * public/fossatun/img/troll-garden-artwork.jpg). This component is the digital
- * echo of that object, and it is the one memorable interaction on the page.
+ * A digital echo of the real installation standing in Fossatún's Trollgarden:
+ * carved wooden letter drums on spindles (see
+ * public/fossatun/img/troll-garden-artwork.jpg).
  *
- * It is a TOY, not a scroll effect: it does nothing until a person touches it,
- * which is the whole point. Drag, click, or use the arrow keys on a drum.
- * Under prefers-reduced-motion it renders as a plain, correct word.
+ * IT IS DECORATIVE, NOT CUSTOMISABLE, AND THAT IS A HARD REQUIREMENT.
+ * The first version let a visitor rotate each drum to any letter. Two problems:
+ *   1. SAFETY. Free letter rotation means the row can be arranged into
+ *      slurs and obscenities on a client's page. The first build's own
+ *      deterministic scramble happened to land on a racial slur. Never ship
+ *      a control that lets arbitrary text be assembled from letterforms.
+ *   2. It was a toy competing with the booking, which is the page's real job.
+ *
+ * So the drums now only ever roll to TRÖLL. Each drum owns a DIFFERENT filler
+ * reel, so mid-roll the columns cannot align into any readable word, and the
+ * only resting state is the intended one. Hover replays the roll. Under
+ * prefers-reduced-motion it is plain static text.
  */
 
 import { useEffect, useRef, useState } from 'react'
 
-const ALPHABET = 'AÁBDÐEÉFGHIÍJKLMNOÓPRSTUÚVXYÝÞÆÖ'.split('')
+const TARGET = ['T', 'R', 'Ö', 'L', 'L']
 
-/** The word the drums settle on when solved, and the tease they start from. */
-const TARGET = 'TRÖLL'
-
-function letterAt(i: number, offset: number) {
-  const n = ALPHABET.length
-  return ALPHABET[(((i + offset) % n) + n) % n]
-}
-
-function Drum({
-  index,
-  solvedChar,
-  reduced,
-}: {
-  index: number
-  solvedChar: string
-  reduced: boolean
-}) {
-  const solvedIdx = Math.max(0, ALPHABET.indexOf(solvedChar))
-  // Start scrambled by a per-drum amount so the row reads as a puzzle.
-  const [offset, setOffset] = useState(() => (reduced ? 0 : (index + 1) * 5 + 3))
-  const startY = useRef<number | null>(null)
-
-  if (reduced) {
-    return <span className="fst-drum fst-drum--static">{solvedChar}</span>
-  }
-
-  const shown = letterAt(solvedIdx, offset)
-
-  return (
-    <button
-      type="button"
-      className="fst-drum"
-      data-solved={shown === solvedChar || undefined}
-      aria-label={`Stafur ${index + 1}, núna ${shown}. Notaðu upp og niður örvar til að snúa.`}
-      onClick={() => setOffset((o) => o + 1)}
-      onKeyDown={(e) => {
-        if (e.key === 'ArrowUp') { e.preventDefault(); setOffset((o) => o - 1) }
-        if (e.key === 'ArrowDown') { e.preventDefault(); setOffset((o) => o + 1) }
-      }}
-      onPointerDown={(e) => { startY.current = e.clientY; (e.target as HTMLElement).setPointerCapture(e.pointerId) }}
-      onPointerMove={(e) => {
-        if (startY.current === null) return
-        const dy = e.clientY - startY.current
-        if (Math.abs(dy) > 22) {
-          setOffset((o) => o + (dy > 0 ? 1 : -1))
-          startY.current = e.clientY
-        }
-      }}
-      onPointerUp={() => { startY.current = null }}
-    >
-      <span className="fst-drum__face">{shown}</span>
-    </button>
-  )
-}
+/**
+ * One distinct reel per drum, each ending on its target letter. They are
+ * deliberately different from one another: a shared reel would mean every
+ * column showed the same letter at the same moment, which both looks
+ * mechanical and could spell something unintended on the way past.
+ */
+const REELS = [
+  ['Þ', 'Á', 'Ð', 'Ý', 'Ú', 'T'],
+  ['Ö', 'Í', 'Æ', 'Þ', 'Ó', 'R'],
+  ['Ú', 'Ð', 'Ý', 'Á', 'Í', 'Ö'],
+  ['Æ', 'Ó', 'Þ', 'Ö', 'Ð', 'L'],
+  ['Í', 'Ý', 'Á', 'Ú', 'Æ', 'L'],
+]
 
 export function TrollWords() {
   const [reduced, setReduced] = useState(false)
+  const [spinKey, setSpinKey] = useState(0)
+  const [armed, setArmed] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     setReduced(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true)
   }, [])
 
+  // Roll on first sight rather than on load, so the moment is not wasted
+  // above the fold where nobody is looking yet.
+  useEffect(() => {
+    const el = ref.current
+    if (!el || reduced) return
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { setArmed(true); io.disconnect() }
+      }),
+      { threshold: 0.4 },
+    )
+    io.observe(el)
+    const failsafe = window.setTimeout(() => { setArmed(true); io.disconnect() }, 2000)
+    return () => { io.disconnect(); window.clearTimeout(failsafe) }
+  }, [reduced])
+
+  if (reduced) {
+    return (
+      <div className="fst-drums" aria-label="Tröllastafir">
+        {TARGET.map((c, i) => (
+          <span className="fst-drum fst-drum--static" key={i} aria-hidden="true">
+            <span className="fst-drum__face">{c}</span>
+          </span>
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="fst-drums" role="group" aria-label="Tröllastafir, snúanlegir stafir eins og í Tröllagarðinum">
-      {TARGET.split('').map((c, i) => (
-        <Drum key={i} index={i} solvedChar={c} reduced={reduced} />
+    <div
+      className="fst-drums"
+      ref={ref}
+      aria-label="Tröllastafir, orðið tröll á snúningskubbum eins og í Tröllagarðinum"
+      onMouseEnter={() => setSpinKey((k) => k + 1)}
+    >
+      {REELS.map((reel, i) => (
+        <span className="fst-drum" key={i} aria-hidden="true">
+          <span
+            key={spinKey}
+            className={armed ? 'fst-drum__reel is-rolling' : 'fst-drum__reel'}
+            style={{
+              // Each drum lands a beat after the one before it.
+              animationDelay: `${i * 90}ms`,
+              // The reel is translated so its LAST cell is the resting frame.
+              ['--fst-reel-len' as string]: reel.length,
+            }}
+          >
+            {reel.map((c, j) => (
+              <span className="fst-drum__face" key={j}>{c}</span>
+            ))}
+          </span>
+        </span>
       ))}
     </div>
   )

@@ -5,6 +5,11 @@
  * engine that runs a riding tour runs this guesthouse. Adding a business is
  * filling in a form like this one.
  *
+ * NO ONLINE PAYMENT, deliberately. Both flows are REQUEST mode: the guest
+ * asks, Fossatún confirms, money changes hands on arrival. Card payments are
+ * a hassle to set up and to run, so they are not built unless a client
+ * specifically asks for them.
+ *
  * HONESTY, and it matters on this build:
  *   Fossatún does NOT publish nightly rates. Their own site says the price
  *   "comes up when you click the booking knob". So the nightly numbers below
@@ -137,13 +142,14 @@ export const TROLLGARDEN_TICKETS: BusinessConfig = {
   },
   pricing: {},
   copy: {
-    cta: 'Kaupa miða',
+    cta: 'Panta miða',
     unitSingular: 'dagur',
     unitPlural: 'dagar',
     capacityLabel: 'gestir',
     capacitySingular: 'gestur',
     resourceLabel: 'heimsókn',
-    confirmation: 'Miðinn er tilbúinn þegar þið mætið. Greitt á staðnum eða með reikningi.',
+    confirmation:
+      'Miðarnir bíða ykkar í móttökunni. Greitt á staðnum, ekkert kort er slegið inn hér.',
   },
 }
 

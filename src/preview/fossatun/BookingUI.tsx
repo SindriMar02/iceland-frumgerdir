@@ -330,7 +330,7 @@ export function TicketBox() {
       <span className="fst-label">Miðar í Tröllagarðinn</span>
       <h3 style={{ marginTop: 6 }}>Kaupa fyrirfram</h3>
       <p className="fst-note" style={{ marginTop: 8 }}>
-        Í dag seljast þessir miðar eingöngu á staðnum. Verðin hér eru þeirra eigin, birt á vefnum þeirra.
+        Í dag seljast þessir miðar eingöngu á staðnum. Verðin hér eru þeirra eigin, birt á vefnum þeirra. Ekkert er greitt hér, aðeins pantað.
       </p>
 
       <div className="fst-field" style={{ marginTop: 16 }}>

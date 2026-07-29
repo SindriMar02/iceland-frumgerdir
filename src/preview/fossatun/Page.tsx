@@ -75,6 +75,50 @@ function useReveal() {
   }, [])
 }
 
+/**
+ * IMAGE MASK DRIFT.
+ *
+ * Photographs drift inside a fixed frame rather than travelling with the page.
+ * The rule that matters: every getBoundingClientRect() happens before any
+ * style write. Interleaving them forces one synchronous layout per element,
+ * and at a dozen tracked nodes that pins the main thread.
+ */
+function useImageDrift() {
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    const items = Array.from(document.querySelectorAll<HTMLElement>('.fst-frame-in'))
+    if (!items.length) return
+    let ticking = false
+
+    const update = () => {
+      ticking = false
+      const vh = window.innerHeight
+      const writes: [HTMLElement, string][] = []
+      for (const el of items) {
+        const box = el.parentElement
+        if (!box) continue
+        const r = box.getBoundingClientRect()
+        if (r.bottom < -240 || r.top > vh + 240) continue
+        const drift = Number(el.dataset.drift || 10)
+        const p = (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2)
+        writes.push([el, `translate3d(0,${(-p * drift).toFixed(2)}%,0)`])
+      }
+      for (const [el, t] of writes) el.style.transform = t
+    }
+
+    const onScroll = () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update) }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', update, { passive: true })
+    update()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+}
+
 /** The marquee only runs once it is on screen. */
 function useMarquee(ref: React.RefObject<HTMLDivElement | null>) {
   useEffect(() => {
@@ -91,6 +135,7 @@ function useMarquee(ref: React.RefObject<HTMLDivElement | null>) {
 
 export default function FossatunPage() {
   useReveal()
+  useImageDrift()
   const [month, setMonth] = useState(7)
   const marqueeRef = useRef<HTMLDivElement>(null)
   useMarquee(marqueeRef)
@@ -133,12 +178,10 @@ export default function FossatunPage() {
         }}
       >
         <span
-          style={{
-            display: 'inline-flex', alignItems: 'center',
-            background: '#f4f1ea', padding: '7px 12px',
-          }}
+          className="fst-disp"
+          style={{ fontSize: 23, fontWeight: 300, letterSpacing: '.12em', textTransform: 'uppercase' }}
         >
-          <img src={IMG('logo.jpg')} alt="Merki Fossatúns" style={{ height: 26, width: 'auto', display: 'block' }} />
+          Fossatún
         </span>
         <nav style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
           <a href="#bokun" style={{ textDecoration: 'none', fontSize: 14.5, fontWeight: 560 }}>Bóka</a>
@@ -151,13 +194,14 @@ export default function FossatunPage() {
       {/* ── hero ───────────────────────────────────────────────────────── */}
       <section className="fst-hero" aria-label="Fossatún">
         <div className="fst-hero__media">
-          <img
-            src={HERO}
-            alt="Fossatún við Grímsá, fossarnir í forgrunni og fjallið að baki í kvöldsól"
-            className="is-on"
-            loading="eager"
-            {...{ fetchpriority: 'high' }}
-          />
+          <div className="fst-frame-in" data-drift="6">
+            <img
+              src={HERO}
+              alt="Fossatún við Grímsá, fossarnir í forgrunni og fjallið að baki í kvöldsól"
+              loading="eager"
+              {...{ fetchpriority: 'high' }}
+            />
+          </div>
         </div>
         <div className="fst-hero__scrim" aria-hidden="true" />
         <div className="fst-hero__body fst-wrap">
@@ -249,14 +293,13 @@ export default function FossatunPage() {
             </div>
             <div className="fst-split">
               <div>
-                <h2>Snúðu stöfunum</h2>
+                <h2>Þar sem tröllin urðu til</h2>
                 <p style={{ marginTop: 16 }}>{TROLL.origin}</p>
                 <div style={{ margin: '26px 0' }}>
                   <TrollWords />
                 </div>
                 <p className="fst-note">
-                  Þetta er eftirmynd af stafaþrautinni sem stendur í garðinum. Snúðu þeim með músinni,
-                  fingri eða örvatökkunum.
+                  Stafirnir hér að ofan eru eftirmynd af stafaþrautinni sem stendur í garðinum.
                 </p>
                 <p style={{ marginTop: 22 }}>
                   <strong>{trailLine}</strong>
@@ -266,11 +309,15 @@ export default function FossatunPage() {
               </div>
               <div className="fst-split__media">
                 <figure className="fst-figure">
-                  <img
-                    src={IMG('troll-head-falls.jpg')}
-                    alt="Steypt tröllshöfuð við Tröllafossa, hótelið og fjallið í baksýn"
-                    loading="lazy"
-                  />
+                  <div className="fst-frame" style={{ aspectRatio: '4 / 5' }}>
+                    <div className="fst-frame-in" data-drift="9">
+                      <img
+                        src={IMG('troll-head-falls.jpg')}
+                        alt="Steypt tröllshöfuð við Tröllafossa, hótelið og fjallið í baksýn"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
                   <figcaption>Tröllshöfuðið við fossana, með Fossatún í baksýn.</figcaption>
                 </figure>
               </div>
@@ -278,17 +325,32 @@ export default function FossatunPage() {
 
             <div className="fst-cloud" style={{ marginTop: 48 }}>
               <figure className="fst-figure fst-rv">
-                <img src={IMG('troll-garden-artwork.jpg')} alt="Stafaþrautin í Tröllagarðinum, útskornir viðarkubbar á snúningsásum" loading="lazy" />
-                <figcaption>Stafaþrautin sem stafirnir hér að ofan eru sniðnir eftir.</figcaption>
+                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
+                  <div className="fst-frame-in" data-drift="9">
+                    <img src={IMG('troll-garden-artwork.jpg')} alt="Stafaþrautin í Tröllagarðinum, útskornir viðarkubbar á snúningsásum" loading="lazy" />
+                  </div>
+                </div>
+                </figure>
+              <figure className="fst-figure fst-rv">
+                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
+                  <div className="fst-frame-in" data-drift="12">
+                    <img src={IMG('troll-chair.jpg')} alt="Risastór tröllastóll úr timbri á gönguleiðinni" loading="lazy" />
+                  </div>
+                </div>
               </figure>
               <figure className="fst-figure fst-rv">
-                <img src={IMG('troll-chair.jpg')} alt="Risastór tröllastóll úr timbri á gönguleiðinni" loading="lazy" />
+                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
+                  <div className="fst-frame-in" data-drift="10">
+                    <img src={IMG('troll-cauldron.jpg')} alt="Tröllskessa með pott við gönguleiðina" loading="lazy" />
+                  </div>
+                </div>
               </figure>
               <figure className="fst-figure fst-rv">
-                <img src={IMG('troll-cauldron.jpg')} alt="Tröllskessa með pott við gönguleiðina" loading="lazy" />
-              </figure>
-              <figure className="fst-figure fst-rv">
-                <img src={IMG('troll-board-play.jpg')} alt="Gestur að leik við tröllaskiltið í garðinum" loading="lazy" />
+                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
+                  <div className="fst-frame-in" data-drift="13">
+                    <img src={IMG('troll-board-play.jpg')} alt="Gestur að leik við tröllaskiltið í garðinum" loading="lazy" />
+                  </div>
+                </div>
               </figure>
             </div>
           </div>
@@ -302,10 +364,12 @@ export default function FossatunPage() {
             ))}
           </div>
         </div>
-        <div className="fst-wrap" style={{ padding: '22px 0 0' }}>
-          <p className="fst-note" style={{ margin: 0 }}>
-            Tryggðatröll og Trunt Trunt hafa komið út á þessum tungumálum.
-          </p>
+        <div className="fst-marqueeblock">
+          <div className="fst-wrap">
+            <p className="fst-note">
+              Tryggðatröll og Trunt Trunt hafa komið út á þessum tungumálum.
+            </p>
+          </div>
         </div>
 
         {/* ── the music ────────────────────────────────────────────────── */}
@@ -332,11 +396,15 @@ export default function FossatunPage() {
               </div>
             </div>
             <figure className="fst-figure fst-rv" style={{ marginTop: 40 }}>
-              <img
-                src={IMG('vinyl-lounge.jpg')}
-                alt="Setustofan með plötusafninu, leðurstólar og hillur fullar af vínyl"
-                loading="lazy"
-              />
+              <div className="fst-frame" style={{ aspectRatio: '16 / 9' }}>
+                <div className="fst-frame-in" data-drift="12">
+                  <img
+                    src={IMG('vinyl-lounge.jpg')}
+                    alt="Setustofan með plötusafninu, leðurstólar og hillur fullar af vínyl"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
             </figure>
           </div>
         </section>
@@ -363,8 +431,9 @@ export default function FossatunPage() {
         {/* ── practical ────────────────────────────────────────────────── */}
         <section className="fst-sec">
           <div className="fst-wrap">
-            <div className="fst-sechead">
+            <div className="fst-sechead" style={{ justifyContent: 'space-between', width: '100%' }}>
               <span className="fst-label">Hagnýtt</span>
+              <img src={IMG('logo-mark.png')} alt="Merki Fossatúns" className="fst-mark" />
             </div>
             <div className="fst-tablewrap">
               <table className="fst-table">
