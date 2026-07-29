@@ -21,6 +21,7 @@ const DaeliFarm = lazy(() => import('./pages/DaeliFarm'))
 // Five independent redesign projects (new client engagements)
 const AdminPreviews = lazy(() => import('./preview/AdminPreviews'))
 const Outreach = lazy(() => import('./pages/Outreach'))
+const FossatunPage = lazy(() => import('./preview/fossatun/Page'))
 const ErpsstadirPage = lazy(() => import('./preview/erpsstadir/Page'))
 const TjoruhusidPage = lazy(() => import('./preview/tjoruhusid/Page'))
 const SeaKayakPage = lazy(() => import('./preview/seakayak/Page'))
@@ -224,6 +225,7 @@ export default function App() {
             <Route path="/admin/previews" element={<AdminPreviews />} />
             <Route path="/outreach" element={<Outreach />} />
             <Route path="/preview/erpsstadir" element={<ErpsstadirPage />} />
+            <Route path="/preview/fossatun" element={<FossatunPage />} />
             <Route path="/preview/tjoruhusid" element={<TjoruhusidPage />} />
             <Route path="/preview/seakayak" element={<SeaKayakPage />} />
             <Route path="/preview/weider" element={<WeiderPage />} />
