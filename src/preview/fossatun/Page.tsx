@@ -31,6 +31,7 @@ import { setThemeColor } from '../../lib/preview'
 import './fossatun.css'
 import { StayBooking, TicketBox } from './BookingUI'
 import { TrollWords } from './TrollWords'
+import { TrollDrums3D } from './TrollDrums3D'
 import {
   CURRENT_BOOKING_HOST, DIRECT_DISCOUNT_CODE, EMAIL, EMAIL_HREF, FOSSATUN_ENTRY, MUSIC,
   PHONE_DISPLAY, PHONE_HREF, REGION, STAYS, TROLL, YEAR,
@@ -296,7 +297,9 @@ export default function FossatunPage() {
                 <h2>Þar sem tröllin urðu til</h2>
                 <p style={{ marginTop: 16 }}>{TROLL.origin}</p>
                 <div style={{ margin: '26px 0' }}>
-                  <TrollWords />
+                  <TrollDrums3D>
+                    <TrollWords />
+                  </TrollDrums3D>
                 </div>
                 <p className="fst-note">
                   Stafirnir hér að ofan eru eftirmynd af stafaþrautinni sem stendur í garðinum.

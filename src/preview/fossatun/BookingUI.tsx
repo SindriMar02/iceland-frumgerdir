@@ -328,9 +328,9 @@ export function TicketBox() {
   return (
     <div className="fst-panel">
       <span className="fst-label">Miðar í Tröllagarðinn</span>
-      <h3 style={{ marginTop: 6 }}>Kaupa fyrirfram</h3>
+      <h3 style={{ marginTop: 6 }}>Panta fyrirfram</h3>
       <p className="fst-note" style={{ marginTop: 8 }}>
-        Í dag seljast þessir miðar eingöngu á staðnum. Verðin hér eru þeirra eigin, birt á vefnum þeirra. Ekkert er greitt hér, aðeins pantað.
+        Miðar seljast eingöngu á staðnum í dag. Hér er aðeins pantað, aldrei greitt. Verðin eru þeirra eigin, birt á vefnum þeirra.
       </p>
 
       <div className="fst-field" style={{ marginTop: 16 }}>

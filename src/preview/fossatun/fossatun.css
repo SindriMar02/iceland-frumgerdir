@@ -186,14 +186,17 @@
 
 .fst-hero { position: relative; min-height: 84svh; display: flex; align-items: flex-end; overflow: hidden; }
 .fst-hero__media { position: absolute; inset: 0; }
+/* The hero photograph is ALWAYS visible. It used to start at opacity 0 and be
+   faded in by an `is-on` class, left over from a season crossfade that was
+   never built because only one landscape photograph of the property exists.
+   Wrapping the hero in a drift frame dropped that class and the photo went
+   invisible while still loading fine, so every naturalWidth check passed.
+   A hero must never depend on a class arriving to be seen. */
 .fst-hero__media img {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  opacity: 0;
-  transition: opacity 0.9s var(--fst-ease);
 }
-.fst-hero__media img.is-on { opacity: 1; }
 .fst-hero__scrim {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(20, 24, 22, 0.34) 0%, rgba(20, 24, 22, 0.06) 34%, rgba(20, 24, 22, 0.76) 100%);
@@ -265,23 +268,42 @@
   color: inherit; cursor: pointer; font: inherit; line-height: 1;
 }
 .fst-cal__nav button:disabled { opacity: 0.35; cursor: default; }
-.fst-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.fst-cal__dow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fst-soft); text-align: center; padding-bottom: 6px; }
+.fst-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
+.fst-cal__dow {
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fst-soft); text-align: center; padding-bottom: 10px; font-weight: 600;
+}
 .fst-day {
-  aspect-ratio: 1; border: 0; background: none; font: inherit; font-size: 14px;
+  aspect-ratio: 1; border: 0; background: none; font: inherit; font-size: 14.5px;
   color: var(--fst-ink); cursor: pointer; font-variant-numeric: tabular-nums;
   display: flex; align-items: center; justify-content: center;
-  transition: background .16s var(--fst-ease), color .16s var(--fst-ease);
+  position: relative; isolation: isolate;
+  transition: color .16s var(--fst-ease);
 }
-.fst-day:hover:not(:disabled) { background: var(--fst-season-wash); }
-.fst-day:disabled { color: var(--fst-rule); cursor: not-allowed; text-decoration: line-through; }
-.fst-day[data-state='edge'] { background: var(--fst-season); color: #fff; }
-.fst-day[data-state='mid'] { background: var(--fst-season-wash); }
-.fst-day[data-today='true'] { box-shadow: inset 0 0 0 1px var(--fst-rule); }
+/* the selectable disc sits behind the number, so a range reads as one bar
+   with rounded ends rather than a row of separate chips */
+.fst-day::before {
+  content: ''; position: absolute; inset: 3px 0; z-index: -1;
+  background: transparent; transition: background .16s var(--fst-ease);
+}
+.fst-day:hover:not(:disabled)::before { background: var(--fst-season-wash); border-radius: 3px; }
+.fst-day:disabled { color: color-mix(in srgb, var(--fst-soft) 42%, transparent); cursor: not-allowed; }
+.fst-day:disabled::after {
+  content: ''; position: absolute; left: 26%; right: 26%; top: 50%; height: 1px;
+  background: currentColor; opacity: .5;
+}
+.fst-day[data-state='mid']::before { background: var(--fst-season-wash); border-radius: 0; }
+.fst-day[data-state='edge'] { color: #fff; font-weight: 600; }
+.fst-day[data-state='edge']::before { background: var(--fst-season); border-radius: 3px; }
+.fst-day[data-today='true']:not([data-state])::before {
+  background: transparent; box-shadow: inset 0 0 0 1px var(--fst-rule); border-radius: 3px;
+}
 
 .fst-panel { background: var(--fst-paper); border: 1px solid var(--fst-rule); padding: clamp(16px, 2.2vw, 26px); }
 .fst-field { display: block; margin-bottom: 14px; }
-.fst-field span { display: block; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--fst-soft); margin-bottom: 5px; }
+/* DIRECT CHILD ONLY. As a descendant selector this also caught the spans
+   inside .fst-extra, so extras rendered SHOUTING IN CAPS. */
+.fst-field > span { display: block; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--fst-soft); margin-bottom: 5px; }
 .fst-field input, .fst-field select {
   width: 100%; padding: 10px 12px; border: 1px solid var(--fst-rule);
   background: var(--fst-stone); color: inherit; font: inherit; font-size: 15px; border-radius: 0;
@@ -452,3 +474,26 @@
 
 /* the real logo, on light ground where a knocked-out mark actually reads */
 .fst-mark { height: 40px; width: auto; display: block; }
+
+/* ── the 3D drums ───────────────────────────────────────────────────────
+   The GL canvas sits above the flat drums, which stay in the DOM until GL
+   has actually painted a frame. If WebGL never comes up the flat version is
+   simply still there, which is the difference between degrading and
+   disappearing. */
+.fst-drums3d { position: relative; }
+.fst-drums3d__gl {
+  width: 100%;
+  height: clamp(120px, 17vw, 190px);
+  pointer-events: auto;
+}
+.fst-drums3d__flat {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+.fst-drums3d__flat[data-hidden] { opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .fst-drums3d__gl { display: none; }
+  .fst-drums3d__flat { position: static; opacity: 1 !important; }
+}
