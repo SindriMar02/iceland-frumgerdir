@@ -174,6 +174,15 @@ export const TROLL = {
   hoursSummer: 'Maí til ágúst, daglega klukkan 10 til 17',
   hoursShoulder: 'Apríl, september og október, um helgar',
   hoursWinter: 'Utan tímabils eftir samkomulagi fyrir hópa',
+  /**
+   * Verbatim from fossatun.is/trollgarden: "Admission is valid as Kr. 500
+   * discount for Fossatún books, vinyl, CD's" and staying guests get 500 kr
+   * off the books. A real detail that ties the trail to the record collection,
+   * and better content than the invented ticket shop that used to sit here.
+   */
+  creditNote:
+    'Aðgangseyririnn gildir sem 500 kr. inneign upp í bækur, vínyl og geisladiska í Fossatúni. Gestir sem gista fá 500 kr. afslátt af bókunum.',
+  soldWhere: 'Bækurnar fást í bókabúðum um allt land og í móttökunni í Fossatúni.',
   origin:
     'Steinar Berg fann klett í laginu eins og tröllsandlit við Tröllafossa og skrifaði í kjölfarið þjóðsögur um tröllin í Borgarfirði.',
   books: [

@@ -41,44 +41,87 @@ const REELS = [
 ]
 
 /**
- * One letter, painted onto a wooden face.
+ * PAINTED, not printed.
  *
- * The first attempt wrapped all six letters around a smooth cylinder via its
- * UVs, which put them along the AXIS instead of around the circumference: the
- * drums rendered as ridges with no readable letter anywhere. Discrete faces
- * are both easier to reason about and closer to the real object, which is a
- * ring of carved blocks rather than a printed tube.
+ * The real blocks in their garden are stained wood: some green, some orange,
+ * with the letters carved and hand painted in the opposite colour. The first
+ * version was a flat brown tile with clean type on it, which read as a render
+ * rather than an object. This paints each face the way the real ones look,
+ * with grain showing through, chipped edges, and letters drawn with a little
+ * jitter so no two strokes are mechanically identical.
  */
-function faceTexture(ch: string): THREE.CanvasTexture {
+const PAINT = [
+  { wood: '#5f6b39', letter: '#e08a2c', chip: '#7d8a52' }, // mossy green block
+  { wood: '#c07726', letter: '#4f5c30', chip: '#d68f3f' }, // orange block
+]
+
+function faceTexture(ch: string, variant: number): THREE.CanvasTexture {
   const w = 340
   const h = 268
   const c = document.createElement('canvas')
   c.width = w
   c.height = h
   const g = c.getContext('2d')!
+  const paint = PAINT[variant % PAINT.length]
 
-  g.fillStyle = '#8a7549'
+  // bare timber underneath, so chips can reveal it
+  g.fillStyle = '#9a8355'
   g.fillRect(0, 0, w, h)
-  for (let i = 0; i < 900; i++) {
-    g.fillStyle = `rgba(${58 + Math.random() * 44},${42 + Math.random() * 30},${16 + Math.random() * 22},${Math.random() * 0.17})`
-    g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 4, 1)
+
+  // the paint coat, brushed rather than flat
+  g.fillStyle = paint.wood
+  g.fillRect(0, 0, w, h)
+  for (let i = 0; i < 260; i++) {
+    g.globalAlpha = 0.06 + Math.random() * 0.1
+    g.fillStyle = i % 2 ? '#ffffff' : '#000000'
+    const y = Math.random() * h
+    g.fillRect(0, y, w, 1 + Math.random() * 2.4)
   }
-  // a darker bevel at the block edges
-  const grad = g.createLinearGradient(0, 0, 0, h)
-  grad.addColorStop(0, 'rgba(24,16,6,.42)')
-  grad.addColorStop(0.16, 'rgba(24,16,6,0)')
-  grad.addColorStop(0.84, 'rgba(24,16,6,0)')
-  grad.addColorStop(1, 'rgba(24,16,6,.46)')
-  g.fillStyle = grad
-  g.fillRect(0, 0, w, h)
+  g.globalAlpha = 1
 
-  g.font = '600 176px Georgia, serif'
+  // grain pulled through the coat
+  for (let i = 0; i < 700; i++) {
+    g.globalAlpha = 0.05 + Math.random() * 0.12
+    g.fillStyle = '#2b2313'
+    g.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 26, 1)
+  }
+  g.globalAlpha = 1
+
+  // worn edges: paint chipped away to the timber
+  for (let i = 0; i < 90; i++) {
+    const edge = Math.floor(Math.random() * 4)
+    const x = edge === 0 ? Math.random() * w : edge === 1 ? w - Math.random() * 12 : Math.random() * w
+    const y = edge === 2 ? Math.random() * h : edge === 3 ? h - Math.random() * 12 : Math.random() * 10
+    g.fillStyle = Math.random() > 0.5 ? '#9a8355' : paint.chip
+    g.globalAlpha = 0.35 + Math.random() * 0.5
+    g.beginPath()
+    g.ellipse(x, y, 1 + Math.random() * 5, 1 + Math.random() * 3, Math.random() * 3, 0, Math.PI * 2)
+    g.fill()
+  }
+  g.globalAlpha = 1
+
+  // the letter, carved: a dark bed, then paint laid slightly off it
   g.textAlign = 'center'
   g.textBaseline = 'middle'
-  g.fillStyle = 'rgba(34,22,8,.6)'
-  g.fillText(ch, w / 2, h / 2 + 6)
-  g.fillStyle = '#f7f0de'
-  g.fillText(ch, w / 2, h / 2)
+  g.font = '600 172px Georgia, serif'
+  g.fillStyle = 'rgba(22,16,6,.55)'
+  g.fillText(ch, w / 2 + 3, h / 2 + 5)
+  // three lightly offset passes read as a brush rather than a print
+  for (let i = 0; i < 3; i++) {
+    g.globalAlpha = i === 0 ? 1 : 0.5
+    g.fillStyle = paint.letter
+    g.fillText(ch, w / 2 + (Math.random() - 0.5) * 2.4, h / 2 + (Math.random() - 0.5) * 2.4)
+  }
+  g.globalAlpha = 1
+
+  // a soft inner shadow so the block reads solid under the lights
+  const grad = g.createLinearGradient(0, 0, 0, h)
+  grad.addColorStop(0, 'rgba(20,14,4,.4)')
+  grad.addColorStop(0.18, 'rgba(20,14,4,0)')
+  grad.addColorStop(0.82, 'rgba(20,14,4,0)')
+  grad.addColorStop(1, 'rgba(20,14,4,.45)')
+  g.fillStyle = grad
+  g.fillRect(0, 0, w, h)
 
   const t = new THREE.CanvasTexture(c)
   t.colorSpace = THREE.SRGBColorSpace
@@ -127,18 +170,22 @@ export function TrollDrums3D({ children }: { children: React.ReactNode }) {
 
     const coreGeo = new THREE.CylinderGeometry(radius * 0.93, radius * 0.93, 1.5, FACES)
     coreGeo.rotateZ(Math.PI / 2)
-    const coreMat = new THREE.MeshStandardMaterial({ color: 0x6b5a38, roughness: 0.85 })
-    disposables.push(coreGeo, coreMat)
+    const coreMats = PAINT.map((pnt) => {
+      const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(pnt.wood), roughness: 0.88 })
+      disposables.push(m)
+      return m
+    })
+    disposables.push(coreGeo)
 
     const spanX = 1.78
     REELS.forEach((reel, i) => {
       const group = new THREE.Group()
       group.position.x = (i - (REELS.length - 1) / 2) * spanX
-      group.add(new THREE.Mesh(coreGeo, coreMat))
+      group.add(new THREE.Mesh(coreGeo, coreMats[i % coreMats.length]))
 
       reel.forEach((ch, j) => {
         const a = j * step
-        const tex = faceTexture(ch)
+        const tex = faceTexture(ch, i)
         const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.7, metalness: 0.03 })
         disposables.push(tex, mat)
         const face = new THREE.Mesh(faceGeo, mat)
@@ -188,37 +235,77 @@ export function TrollDrums3D({ children }: { children: React.ReactNode }) {
     ro.observe(el)
 
     let raf = 0
-    let start = 0
-    let running = false
+    let rollStart = 0
+    let rolling = false
     let painted = false
-    const DUR = 1150
+    let inView = false
+    const DUR = 1250
 
+    /*
+     * A PERSISTENT LOOP, not a one-shot.
+     *
+     * The first version stopped rendering the moment the roll finished, so the
+     * drums sat perfectly frozen and read as a picture of blocks rather than
+     * blocks. Now the loop runs the whole time the piece is on screen: the row
+     * breathes on its axis and each drum carries a tiny independent wobble that
+     * always returns to its letter. It stops dead when scrolled away, so it is
+     * not burning frames for nothing.
+     */
     const tick = (t: number) => {
-      if (!start) start = t
-      const p = Math.min(1, (t - start) / DUR)
-      drums.forEach((d, i) => {
-        const lag = Math.min(1, Math.max(0, (p - i * 0.07) / (1 - i * 0.07)))
-        const e = 1 - Math.pow(1 - lag, 4) // settle, no overshoot past the letter
-        d.group.rotation.x = d.from + (d.to - d.from) * e
-      })
+      const secs = t / 1000
+
+      if (rolling) {
+        if (!rollStart) rollStart = t
+        const p = Math.min(1, (t - rollStart) / DUR)
+        drums.forEach((d, i) => {
+          const lag = Math.min(1, Math.max(0, (p - i * 0.075) / (1 - i * 0.075)))
+          // overshoot a touch and settle back, the way a weighted block would
+          const e = lag >= 1 ? 1 : 1 - Math.pow(2, -9 * lag) * Math.cos(lag * 13)
+          d.group.rotation.x = d.from + (d.to - d.from) * e
+        })
+        if (p >= 1) { rolling = false; rollStart = 0 }
+      } else {
+        // idle: each block settles around its letter, never away from it
+        drums.forEach((d, i) => {
+          d.group.rotation.x = d.to + Math.sin(secs * 0.7 + i * 1.3) * 0.022
+        })
+      }
+
+      // the whole row sways gently on the spindle
+      const sway = Math.sin(secs * 0.42) * 0.05
+      scene.rotation.y = sway
+      scene.rotation.z = Math.cos(secs * 0.33) * 0.012
+
       renderer.render(scene, camera)
       if (!painted) { painted = true; setLive(true) }
-      if (p < 1) raf = requestAnimationFrame(tick)
-      else running = false
+      if (inView) raf = requestAnimationFrame(tick)
     }
 
-    const play = () => {
-      if (running) return
-      running = true
-      start = 0
-      drums.forEach((d, i) => { d.from = d.to - step * (3 + i) })
+    const startLoop = () => {
+      if (raf) return
       raf = requestAnimationFrame(tick)
+    }
+    const stopLoop = () => {
+      cancelAnimationFrame(raf)
+      raf = 0
+    }
+
+    /** Spin every drum back a few faces and let it settle on its letter again. */
+    const play = () => {
+      if (rolling) return
+      rolling = true
+      rollStart = 0
+      drums.forEach((d, i) => { d.from = d.to - step * (3 + i) })
+      startLoop()
     }
 
     // roll when it comes into view, and again on hover
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((en) => { if (en.isIntersecting) play() }),
-      { threshold: 0.35 },
+      (entries) => entries.forEach((en) => {
+        inView = en.isIntersecting
+        if (inView) { startLoop(); play() } else { stopLoop() }
+      }),
+      { threshold: 0.2 },
     )
     io.observe(el)
     el.addEventListener('mouseenter', play)
@@ -229,7 +316,7 @@ export function TrollDrums3D({ children }: { children: React.ReactNode }) {
     setLive(true)
 
     return () => {
-      cancelAnimationFrame(raf)
+      stopLoop()
       io.disconnect()
       ro.disconnect()
       el.removeEventListener('mouseenter', play)

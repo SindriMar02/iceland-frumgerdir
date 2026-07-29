@@ -29,9 +29,10 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import './fossatun.css'
-import { StayBooking, TicketBox } from './BookingUI'
+import { StayBooking } from './BookingUI'
 import { TrollWords } from './TrollWords'
 import { TrollDrums3D } from './TrollDrums3D'
+import { SafeDecor } from './SafeDecor'
 import {
   CURRENT_BOOKING_HOST, DIRECT_DISCOUNT_CODE, EMAIL, EMAIL_HREF, FOSSATUN_ENTRY, MUSIC,
   PHONE_DISPLAY, PHONE_HREF, REGION, STAYS, TROLL, YEAR,
@@ -297,9 +298,11 @@ export default function FossatunPage() {
                 <h2>Þar sem tröllin urðu til</h2>
                 <p style={{ marginTop: 16 }}>{TROLL.origin}</p>
                 <div style={{ margin: '26px 0' }}>
-                  <TrollDrums3D>
-                    <TrollWords />
-                  </TrollDrums3D>
+                  <SafeDecor fallback={<TrollWords />}>
+                    <TrollDrums3D>
+                      <TrollWords />
+                    </TrollDrums3D>
+                  </SafeDecor>
                 </div>
                 <p className="fst-note">
                   Stafirnir hér að ofan eru eftirmynd af stafaþrautinni sem stendur í garðinum.
@@ -309,6 +312,8 @@ export default function FossatunPage() {
                   <br />
                   {TROLL.admissionNote}
                 </p>
+                <p className="fst-note">{TROLL.creditNote}</p>
+                <p className="fst-note" style={{ marginTop: -6 }}>{TROLL.soldWhere}</p>
               </div>
               <div className="fst-split__media">
                 <figure className="fst-figure">
@@ -425,9 +430,6 @@ export default function FossatunPage() {
               ekki setning á síðu heldur staðreynd sem dagatalið getur ekki selt.
             </p>
             <StayBooking month={month} />
-            <div style={{ marginTop: 34, maxWidth: 520 }}>
-              <TicketBox />
-            </div>
           </div>
         </section>
 
@@ -465,6 +467,16 @@ export default function FossatunPage() {
               Í dag fer bókun fram á {CURRENT_BOOKING_HOST} og afsláttarkóðinn {DIRECT_DISCOUNT_CODE} er
               sleginn inn þar. Hugmyndin hér er að sú bókun eigi heima á þeirra eigin léni.
             </p>
+            <div className="fst-owner-cta">
+              <p className="fst-label" style={{ marginBottom: 6 }}>Fyrir eigendur</p>
+              <p style={{ marginBottom: 14, maxWidth: '58ch' }}>
+                Sendu bókunarbeiðni hér að ofan og opnaðu svo stjórnborðið. Beiðnin birtist þar strax,
+                og þar er hún staðfest eða henni hafnað. Ekkert kort, engin greiðsla, engin þóknun.
+              </p>
+              <a className="fst-cta" href={`${import.meta.env.BASE_URL}preview/fossatun/stjornbord`}>
+                Opna stjórnborðið
+              </a>
+            </div>
           </div>
         </section>
       </main>

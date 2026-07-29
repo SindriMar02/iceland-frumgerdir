@@ -497,3 +497,73 @@
   .fst-drums3d__gl { display: none; }
   .fst-drums3d__flat { position: static; opacity: 1 !important; }
 }
+
+/* ── the owner dashboard demo ────────────────────────────────────────────
+   A separate page on purpose: guest and owner have different audiences, and
+   mixing them is what made the old ticket card misleading. */
+.fst-dash { min-height: 100svh; padding-bottom: 40px; }
+.fst-dash__bar { border-bottom: 1px solid var(--fst-rule); background: var(--fst-paper); }
+.fst-dash__barin {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding-block: 18px; flex-wrap: wrap;
+}
+.fst-dash__title { font-size: clamp(1.6rem, 3.4vw, 2.4rem); margin-top: 2px; }
+
+.fst-dash__note {
+  border-left: 2px solid var(--fst-lamp);
+  padding: 12px 0 12px 18px; margin: 26px 0 22px; font-size: 15px; max-width: 68ch;
+}
+
+.fst-dash__stats { display: flex; gap: clamp(18px, 4vw, 54px); flex-wrap: wrap; margin-bottom: 26px; }
+.fst-stat { display: flex; flex-direction: column; }
+.fst-stat__n {
+  font-family: 'FST Display', Georgia, serif; font-weight: 260;
+  font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1; font-variant-numeric: tabular-nums;
+}
+.fst-stat__l { font-size: 13px; color: var(--fst-soft); margin-top: 4px; }
+
+.fst-dash__tabs { display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--fst-rule); }
+.fst-dash__tab {
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  font: inherit; font-size: 14.5px; font-weight: 560; color: var(--fst-soft);
+  padding: 10px 4px; margin-right: 14px; cursor: pointer;
+}
+.fst-dash__tab[aria-selected='true'] { color: var(--fst-ink); border-bottom-color: var(--fst-season); }
+.fst-dash__badge {
+  display: inline-block; margin-left: 7px; min-width: 20px; padding: 1px 6px;
+  background: var(--fst-season); color: #fff; font-size: 12px; border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.fst-dash__reset {
+  margin-left: auto; background: none; border: 0; font: inherit; font-size: 13px;
+  color: var(--fst-soft); text-decoration: underline; cursor: pointer;
+}
+
+.fst-dash__empty { padding: 40px 0; color: var(--fst-soft); }
+.fst-dash__list { list-style: none; margin: 0; padding: 0; }
+.fst-dash__row {
+  display: grid; gap: 8px 20px; padding: 18px 0;
+  border-bottom: 1px solid var(--fst-rule);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 860px) {
+  .fst-dash__row { grid-template-columns: 1.1fr 1fr 1fr .7fr auto; align-items: center; }
+}
+.fst-dash__row[data-status='DECLINED'] { opacity: .5; }
+.fst-dash__meta { display: block; font-size: 13px; color: var(--fst-soft); }
+.fst-dash__sum { font-variant-numeric: tabular-nums; font-size: 15px; }
+.fst-dash__act { display: flex; gap: 8px; flex-wrap: wrap; }
+.fst-dash__act .fst-cta { min-height: 42px; padding: 0 16px; font-size: 14px; }
+.fst-dash__yes { background: var(--fst-season); }
+.fst-dash__state { font-size: 14px; color: var(--fst-soft); font-weight: 560; }
+
+.fst-dash__why { margin-top: 56px; padding-top: 30px; border-top: 1px solid var(--fst-rule); }
+.fst-dash__why ul.tight { margin: 16px 0 0; padding-left: 1.1em; }
+.fst-dash__why ul.tight li { margin-bottom: .45em; max-width: 66ch; }
+
+/* the owner-side entry point lives only in the prototype-meta block, never in
+   the guest chrome, so a real visitor is never shown an owner tool */
+.fst-owner-cta {
+  margin-top: 26px; padding: 22px; border: 1px solid var(--fst-rule);
+  background: var(--fst-paper);
+}

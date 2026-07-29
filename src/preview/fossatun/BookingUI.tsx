@@ -20,24 +20,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Booking, BookingRequest, BusinessConfig, DateStr } from '../../booking/types'
 import { addDays, check, daysBetween, fromDate, isOpenOn, isk, quote, resolve } from '../../booking/engine'
-import { FOSSATUN_STAY, SAMPLE_RATE_NOTE, TROLLGARDEN_TICKETS } from './booking'
+import { FOSSATUN_STAY, SAMPLE_RATE_NOTE } from './booking'
+import { demo } from './demoStore'
 
-const STORE_KEY = 'fossatun_bookings_v1'
 const DOW = ['mán', 'þri', 'mið', 'fim', 'fös', 'lau', 'sun']
 const MONTHS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní',
   'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember']
-
-function loadBookings(): Booking[] {
-  try {
-    const raw = localStorage.getItem(STORE_KEY)
-    return raw ? (JSON.parse(raw) as Booking[]) : []
-  } catch {
-    return []
-  }
-}
-function saveBookings(b: Booking[]) {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(b)) } catch { /* private mode */ }
-}
 
 /** Monday-first grid for one month, padded with nulls. */
 function monthGrid(year: number, month: number): (DateStr | null)[] {
@@ -84,7 +72,12 @@ export function StayBooking({ month }: { month: number }) {
   const [view, setView] = useState(() => nextOccurrence(month))
   useEffect(() => { setView(nextOccurrence(month)) }, [month])
 
-  useEffect(() => { setBookings(loadBookings()) }, [])
+  // the same store the owner dashboard reads, so a request made here shows up
+  // there immediately, in this tab or another one
+  useEffect(() => {
+    setBookings(demo.all())
+    return demo.subscribe(() => setBookings(demo.all()))
+  }, [])
 
   const resource = cfg.resources.find((r) => r.id === resourceId)!
   const cells = useMemo(() => monthGrid(view.y, view.m), [view])
@@ -129,9 +122,7 @@ export function StayBooking({ month }: { month: number }) {
       quote: q,
       createdAt: new Date().toISOString(),
     }
-    const next = [...bookings, booking]
-    setBookings(next)
-    saveBookings(next)
+    setBookings(demo.add(booking))
     setDone(booking)
   }
 
@@ -152,9 +143,14 @@ export function StayBooking({ month }: { month: number }) {
           {done.people === 1 ? cfg.copy.capacitySingular : cfg.copy.capacityLabel}.
         </p>
         <p className="fst-note">{cfg.copy.confirmation}</p>
-        <button className="fst-cta fst-cta--ghost" onClick={reset} style={{ marginTop: 10 }}>
-          Prófa aðra dagsetningu
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+          <button className="fst-cta fst-cta--ghost" onClick={reset}>
+            Prófa aðra dagsetningu
+          </button>
+          <a className="fst-cta" href={`${import.meta.env.BASE_URL}preview/fossatun/stjornbord`}>
+            Sjá hana í stjórnborðinu
+          </a>
+        </div>
       </div>
     )
   }
@@ -304,73 +300,6 @@ export function StayBooking({ month }: { month: number }) {
         </button>
         <p className="fst-note">{cfg.copy.confirmation}</p>
       </form>
-    </div>
-  )
-}
-
-/**
- * The Trollgarden ticket. This is the one they cannot sell online at all
- * today, it has REAL published prices, and it touches no booking channel,
- * so it is the safest thing to switch on first.
- */
-export function TicketBox() {
-  const cfg = TROLLGARDEN_TICKETS
-  const resource = cfg.resources[0]
-  const [adults, setAdults] = useState(2)
-  const [kids, setKids] = useState(0)
-  const [book, setBook] = useState(false)
-
-  const total =
-    adults * (resource.pricing?.perPerson ?? 0) +
-    kids * (resource.extras?.find((e) => e.id === 'barn')?.price ?? 0) +
-    (book ? resource.extras?.find((e) => e.id === 'bok')?.price ?? 0 : 0)
-
-  return (
-    <div className="fst-panel">
-      <span className="fst-label">Miðar í Tröllagarðinn</span>
-      <h3 style={{ marginTop: 6 }}>Panta fyrirfram</h3>
-      <p className="fst-note" style={{ marginTop: 8 }}>
-        Miðar seljast eingöngu á staðnum í dag. Hér er aðeins pantað, aldrei greitt. Verðin eru þeirra eigin, birt á vefnum þeirra.
-      </p>
-
-      <div className="fst-field" style={{ marginTop: 16 }}>
-        <span>Fullorðnir og 12 ára og eldri</span>
-        <div className="fst-steps">
-          <button type="button" onClick={() => setAdults((a) => Math.max(0, a - 1))} aria-label="Fækka fullorðnum">−</button>
-          <output>{adults}</output>
-          <button type="button" onClick={() => setAdults((a) => Math.min(20, a + 1))} aria-label="Fjölga fullorðnum">+</button>
-          <span className="fst-note" style={{ marginLeft: 6 }}>{isk(resource.pricing?.perPerson ?? 0)} hver</span>
-        </div>
-      </div>
-
-      <div className="fst-field">
-        <span>Börn 5 til 11 ára</span>
-        <div className="fst-steps">
-          <button type="button" onClick={() => setKids((k) => Math.max(0, k - 1))} aria-label="Fækka börnum">−</button>
-          <output>{kids}</output>
-          <button type="button" onClick={() => setKids((k) => Math.min(20, k + 1))} aria-label="Fjölga börnum">+</button>
-          <span className="fst-note" style={{ marginLeft: 6 }}>
-            {isk(resource.extras?.find((e) => e.id === 'barn')?.price ?? 0)} hvert
-          </span>
-        </div>
-      </div>
-
-      <label className="fst-extra">
-        <input type="checkbox" checked={book} onChange={(e) => setBook(e.target.checked)} />
-        <span className="n">Tryggðatröll, bókin</span>
-        <span className="p">{isk(resource.extras?.find((e) => e.id === 'bok')?.price ?? 0)}</span>
-      </label>
-
-      <div className="fst-quote">
-        <div className="fst-quote__row total">
-          <span>Samtals</span>
-          <span className="v">{isk(total)}</span>
-        </div>
-      </div>
-      <button className="fst-cta" style={{ marginTop: 14, width: '100%' }} type="button">
-        {cfg.copy.cta}
-      </button>
-      <p className="fst-note">{cfg.copy.confirmation}</p>
     </div>
   )
 }
