@@ -90,7 +90,10 @@ const CSS = `
 /* THE text device — translateY inside a mask.
    Resting state is VISIBLE: the hidden start only exists while .hk-js is on
    the root, so a crawler, a paused rAF or a JS failure can never strand copy. */
-.hk-m{display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em}
+/* padding-bottom/margin-bottom give the mask headroom for descenders (the
+   serif's g/y/þ drop well below the line box) without adding visible gap
+   between stacked lines — the negative margin cancels the padding's height. */
+.hk-m{display:block;overflow:hidden;padding-bottom:.22em;margin-bottom:-.22em}
 .hk-m>span{display:block;transform:none}
 .hk-js .hk-m>span{transform:translateY(108%);transition:transform 1.05s ${EASE}}
 .hk-js .hk-m.is-in>span{transform:none}
@@ -131,7 +134,10 @@ const CSS = `
 .hk-hero-scrim{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.05) 32%,rgba(0,0,0,.28) 70%,rgba(0,0,0,.66) 100%)}
 .hk-hero-lock{position:absolute;left:0;right:0;bottom:clamp(16px,2.6vw,40px);color:#fff}
-.hk-lock{display:block;font-weight:400;letter-spacing:-.03em;line-height:.9;
+/* line-height .9 was tight enough on its own to compress the line box below
+   the serif's descender extent (g/y/þ). .98 keeps the same tight display
+   rhythm but stops it fighting the mask's own headroom above. */
+.hk-lock{display:block;font-weight:400;letter-spacing:-.03em;line-height:.98;
   font-size:clamp(2.5rem,10.6vw,10.4rem)}
 
 /* statement — large, centred, grey, with the serif carrying the point */
