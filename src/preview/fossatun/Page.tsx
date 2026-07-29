@@ -98,7 +98,17 @@ export default function FossatunPage() {
   const state = YEAR[month - 1]
   const season = seasonOf(month, state.open)
 
-  useEffect(() => { setThemeColor('#e7e3dc') }, [])
+  useEffect(() => {
+    setThemeColor('#e7e3dc')
+    const prevTitle = document.title
+    document.title = 'Fossatún · Sveitahótel, Tröllagarður og Rock ’n’ Troll í Borgarfirði'
+    const meta = document.createElement('meta')
+    meta.name = 'description'
+    meta.content =
+      'Sveitahótel í Borgarfirði með tólf herbergjum, camping pods, tjaldsvæði, Tröllagarði og veitingastaðnum Rock ’n’ Troll. Opið allt árið nema í desember og janúar.'
+    document.head.appendChild(meta)
+    return () => { document.title = prevTitle; meta.remove() }
+  }, [])
 
   const openStays = useMemo(
     () => STAYS.map((s) => ({ ...s, on: state.open && s.months.includes(month) })),
@@ -122,11 +132,14 @@ export default function FossatunPage() {
           gap: 16, padding: '18px clamp(20px,5vw,72px)', color: '#f4f1ea',
         }}
       >
-        <img
-          src={IMG('logo.jpg')}
-          alt="Merki Fossatúns"
-          style={{ height: 34, width: 'auto', mixBlendMode: 'screen' }}
-        />
+        <span
+          style={{
+            display: 'inline-flex', alignItems: 'center',
+            background: '#f4f1ea', padding: '7px 12px',
+          }}
+        >
+          <img src={IMG('logo.jpg')} alt="Merki Fossatúns" style={{ height: 26, width: 'auto', display: 'block' }} />
+        </span>
         <nav style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
           <a href="#bokun" style={{ textDecoration: 'none', fontSize: 14.5, fontWeight: 560 }}>Bóka</a>
           <a href={PHONE_HREF} style={{ textDecoration: 'none', fontSize: 14.5, fontWeight: 560 }}>
