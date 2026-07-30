@@ -1,0 +1,36 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { margin: 0; background: var(--dusk); min-height: 100vh; }
+  .wrap { position: relative; overflow: hidden; padding: 6vw 6vw; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 3rem; align-items: center; }
+  .ember { position: absolute; top: 50%; left: 50%; width: 46rem; height: 46rem; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, #FF775240 0%, #F810F022 45%, transparent 70%); animation: ember 5s ease-in-out infinite alternate; }
+  @keyframes ember { from { opacity:.55; transform: translate(-50%,-50%) scale(.96) } to { opacity:.9; transform: translate(-50%,-50%) scale(1.04) } }
+  .kicker { position: relative; display: inline-flex; border-radius: 999px; border: 1px solid #ffffff2b; color: #FF9E7A; font-family: var(--font-bold); font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+  h2 { position: relative; font-family: var(--font-display); font-weight: 800; font-size: 2.6rem; line-height: 1.05; color: var(--dusk-ink); margin: 1.2rem 0 0; }
+  h2 span { color: #FF9E7A; }
+  p.lede { position: relative; color: var(--dusk-body); max-width: 30rem; margin: 1.2rem 0 0; line-height: 1.55; }
+  .row { position: relative; margin-top: 1.6rem; display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+  .btn { background: #FFF3EA; color: var(--dusk); border-radius: 999px; padding: 0.9rem 1.5rem; font-family: var(--font-bold); font-weight: 700; }
+  .rings { position: relative; aspect-ratio: 1; margin: 0 auto; max-width: 22rem; }
+  .ring { position: absolute; border-radius: 50%; border: 1px solid; }
+</style></head>
+<body>
+  <div class="wrap">
+    <div class="ember" aria-hidden="true"></div>
+    <div>
+      <span class="kicker">American M7 í Hamraborg</span>
+      <h2>Infrared, <span>fimmtán mínútur af hlýju</span></h2>
+      <p class="lede">Djúp og kraftmikil infrared meðferð sem skilar hámarksárangri á aðeins fimmtán mínútum. Hreint handklæði og sturtuaðstaða í einkaklefa fylgja hverjum tíma.</p>
+      <div class="row"><a class="btn" href="#">Bóka infrared tíma</a><span style="color:#EFC9BC;font-size:0.9rem">Frá 1.490 kr. eða innifalið í áskrift</span></div>
+    </div>
+    <div class="rings" aria-hidden="true">
+      <div class="ring" style="inset:0%;border-color:rgba(255,158,122,.16)"></div>
+      <div class="ring" style="inset:13%;border-color:rgba(255,158,122,.28)"></div>
+      <div class="ring" style="inset:26%;border-color:rgba(255,158,122,.4)"></div>
+      <div class="ring" style="inset:39%;border-color:rgba(255,158,122,.52);box-shadow:0 0 120px 40px #FF775244,inset 0 0 60px #FF775233;background:radial-gradient(circle at 40% 35%,#FF775266,#F810F033 70%,transparent)"></div>
+    </div>
+  </div>
+</body></html>

@@ -58,6 +58,19 @@ export interface Resource {
    */
   times?: Minutes[]
   /**
+   * How long one booking of this resource actually lasts.
+   *
+   * The engine has never needed it: it sells a seat on a departure and cares
+   * only about the start time and the capacity. It exists for the calendar
+   * feed, which cannot write an event without an end.
+   *
+   * Optional, and left unset rather than guessed. An invented duration puts a
+   * false end time in the owner's own calendar, which is worse than a slightly
+   * wrong one they were never promised. Unset falls back to the slot grid; see
+   * durationOf() in ical.ts.
+   */
+  durationMin?: Minutes
+  /**
    * Per-resource overrides, merged over the business defaults. This is what
    * makes one config serve a real business: a guesthouse where the cottage is
    * 24.000 and the double room is 18.000, or a workshop where the paint bay is
@@ -113,6 +126,17 @@ export interface Pricing {
   perUnit?: ISK
   /** Charged for every person over `includedPeople`. */
   perPerson?: ISK
+  /**
+   * Charged for every person the request counts as a child, INSTEAD of
+   * `perPerson`. Omit and children pay the adult rate, which is the safe
+   * direction: a missing discount is a conversation, a missing charge is a
+   * loss the business only finds in the accounts.
+   *
+   * `includedPeople` is deducted from ADULTS only. Combining the two is
+   * arbitrary whichever way it is defined, so it is defined here, tested, and
+   * not left to be discovered.
+   */
+  perChild?: ISK
   includedPeople?: number
   /**
    * Multipliers on the whole booking. Used for the surcharges Icelandic
@@ -166,8 +190,28 @@ export interface BookingCopy {
   /** What one unit is called: "nótt" · "dagur" · "tími" */
   unitSingular: string
   unitPlural: string
-  /** What the countable capacity is: "gestir" · "sæti" · "bílar" */
+  /** What the countable capacity is, PLURAL: "gestir" · "sæti" · "bílar" */
   capacityLabel: string
+  /**
+   * The same noun in the SINGULAR: "gestur" · "sæti" · "bíll" · "knapi".
+   *
+   * Icelandic does not tolerate "1 gestir", and a quote line is the last thing
+   * a customer reads before they commit. Optional so existing configs keep
+   * working; it falls back to `capacityLabel`, which is right for neuter nouns
+   * like "sæti" and wrong for the rest, so supply it.
+   */
+  capacitySingular?: string
+  /**
+   * Only used when `pricing.perChild` is set, so a business with no child rate
+   * never sees them. These describe the PERSON rather than the thing being
+   * sold, which is why defaulting them does not break the rule that the engine
+   * must never invent the customer's own nouns: a riding farm counts knapar and
+   * a workshop counts bílar, but both would say fullorðnir and börn.
+   */
+  adultLabel?: string
+  adultSingular?: string
+  childLabel?: string
+  childSingular?: string
   resourceLabel: string
   confirmation: string
 }
@@ -182,7 +226,20 @@ export interface BookingRequest {
   endDate?: DateStr
   /** SLOT only. Start time. */
   startMinute?: Minutes
+  /**
+   * EVERYONE on the booking, children included.
+   *
+   * Capacity, availability and conflict detection all key off this and nothing
+   * else, which is the point: a nine year old still needs a horse, a seat and a
+   * helmet. `children` below only ever splits this number for PRICING.
+   */
   people: number
+  /**
+   * How many of `people` are charged the child rate. A SUBSET, never an
+   * addition — `people: 4, children: 2` is a family of four, not six. Modelling
+   * it as a subset is what keeps every capacity rule in the engine untouched.
+   */
+  children?: number
   extraIds?: string[]
   customer: Customer
   note?: string
@@ -199,11 +256,26 @@ export interface Customer {
 
 export type BookingStatus = 'REQUESTED' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED'
 
+/**
+ * Where a booking came in. Absent means the web form, which is the only source
+ * that existed before owner entry; treating undefined as WEB keeps every record
+ * already in storage readable.
+ */
+export type BookingSource = 'WEB' | 'PHONE' | 'EMAIL' | 'WALK_IN'
+
 export interface Booking extends BookingRequest {
   id: string
   status: BookingStatus
   quote: Quote
   createdAt: string
+  /** Owner metadata, never accepted from a guest body. */
+  source?: BookingSource
+  /**
+   * Set when the owner knowingly booked past a full departure. The engine said
+   * no and a human overruled it, which is a thing you want on the record rather
+   * than a mystery over-capacity departure nobody can explain later.
+   */
+  overrode?: string
 }
 
 /* ── results ──────────────────────────────────────────────────────────── */

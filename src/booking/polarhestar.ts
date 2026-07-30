@@ -146,6 +146,7 @@ export const POLARHESTAR: BusinessConfig = {
     unitSingular: 'ferð',
     unitPlural: 'ferðir',
     capacityLabel: 'knapar',
+    capacitySingular: 'knapi',
     resourceLabel: 'Reiðtúr',
     confirmation:
       'Takk fyrir. Beiðnin er komin til okkar og við staðfestum hana með tölvupósti eða símtali. Ekkert er greitt á netinu.',

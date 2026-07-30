@@ -1,0 +1,66 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { padding: 5vw 5vw 4vw; }
+  h2 { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; color: var(--ink); text-align: center; margin: 0 0 0.6rem; }
+  .lede { text-align: center; color: var(--body); max-width: 46ch; margin: 0 auto 2.2rem; }
+  .dial { position: relative; max-width: 26rem; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; border-radius: 999px; padding: 0.375rem; background: #30103114; border: 1px solid var(--hair); }
+  .knob { position: absolute; top: 0.375rem; bottom: 0.375rem; left: 0.375rem; width: calc(50% - 0.375rem); border-radius: 999px; background: linear-gradient(120deg, var(--gold), var(--coral)); transition: transform 500ms var(--ease); }
+  .dial[data-slot="day"] .knob { transform: translateX(100%); }
+  .dial button { position: relative; z-index: 1; background: none; border: none; padding: 0.75rem 1rem; text-align: center; cursor: pointer; font-family: var(--font-med); }
+  .dial button b { display: block; font-family: var(--font-bold); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
+  .dial button span { font-size: 0.72rem; color: var(--body); }
+  .caption { text-align: center; color: var(--body); font-size: 0.9rem; margin: 0.9rem 0 2.2rem; }
+  .groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .shell { border-radius: var(--r-shell); padding: 0.375rem; background: var(--shell); border: 1px solid var(--hair); }
+  .card { border-radius: var(--r-shell-inner); background: var(--card); padding: 1.4rem; box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), 0 20px 45px -30px rgba(48,16,49,0.35); }
+  .card h3 { font-family: var(--font-bold); font-weight: 700; font-size: 1.05rem; color: var(--ink); margin: 0; }
+  .card .note { font-size: 0.82rem; color: var(--pink-tx); font-family: var(--font-med); margin: 0.1rem 0 0; }
+  dl { margin: 1.1rem 0 0; }
+  .rowline { display: flex; justify-content: space-between; align-items: baseline; padding: 0.4rem 0; font-size: 0.9rem; }
+  .rowline dt { color: var(--body); }
+  .rowline dd { margin: 0; font-family: var(--font-bold); font-weight: 700; color: var(--ink); }
+  @keyframes tick { from { transform: translateY(6px); opacity: 0 } to { transform: none; opacity: 1 } }
+  .tick { animation: tick 400ms var(--ease); display: inline-block; }
+</style></head>
+<body>
+  <h2>Klukkan ræður verðinu</h2>
+  <p class="lede">Öll verð eru uppi á borðum. Veldu tíma dags og sjáðu nákvæmlega hvað tíminn kostar.</p>
+
+  <div class="dial" data-slot="morning" id="dial">
+    <div class="knob"></div>
+    <button onclick="setSlot('morning')"><b>Fyrir kl. 14</b><span>Morgunverð</span></button>
+    <button onclick="setSlot('day')"><b>Eftir kl. 14</b><span>Dagverð</span></button>
+  </div>
+  <p class="caption">Morgunverð gildir milli klukkan 10 og 14. Sami tími kostar þá um tuttugu prósentum minna.</p>
+
+  <div class="groups" id="groups"></div>
+
+  <p style="text-align:center;font-size:0.78rem;color:var(--body);margin-top:1.6rem">Click the dial — prices swap live and pulse in (<code>ss-tick</code> keyframe). Defaults to whichever slot applies at the visitor's own clock.</p>
+
+<script>
+const DATA = [
+  { name: 'Vegaz, Túrbó og venjulegir bekkir', rows: [['10 mínútur',1832,2290],['15 mínútur',2232,2790],['20 mínútur',2792,3490]] },
+  { name: 'JEWEL bekkir', note: 'Djásnið frá Luxura', rows: [['10 mínútur',1910,2390],['15 mínútur',2552,3190],['20 mínútur',3432,4290]] },
+  { name: 'Standandi bekkir', rows: [['7 mínútur',1752,2190],['10 mínútur',1832,2290],['15 mínútur',2232,2790],['18 mínútur',2792,3490]] },
+]
+const isk = n => String(n).replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.') + ' kr.'
+let slot = 'morning'
+function render() {
+  document.getElementById('groups').innerHTML = DATA.map(g => `
+    <div class="shell"><div class="card">
+      <h3>${g.name}</h3>
+      ${g.note ? `<p class="note">${g.note}</p>` : ''}
+      <dl>${g.rows.map(([label, m, d]) => `
+        <div class="rowline"><dt>${label}</dt><dd><span class="tick" key="${slot}">${isk(slot === 'morning' ? m : d)}</span></dd></div>
+      `).join('')}</dl>
+    </div></div>
+  `).join('')
+}
+function setSlot(s) { slot = s; document.getElementById('dial').dataset.slot = s; render() }
+render()
+</script>
+</body></html>

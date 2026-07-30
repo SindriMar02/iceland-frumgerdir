@@ -1,0 +1,48 @@
+<!-- @dsCard group="Foundations" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { padding: 40px 48px; }
+  .head { font-family: var(--font-bold); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pink-tx); margin: 0 0 28px; }
+  .row { display: flex; align-items: baseline; gap: 24px; padding: 20px 0; border-top: 1px solid var(--hair); }
+  .row:first-of-type { border-top: none; }
+  .tag { width: 190px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 0.72rem; color: var(--body); line-height: 1.5; }
+  .tag b { display: block; color: var(--ink); font-family: var(--font-bold); font-size: 0.8rem; }
+  .sample { color: var(--ink); }
+</style></head>
+<body>
+  <p class="head">Type — Cabinet Grotesk only, one family, four weights</p>
+
+  <div class="row">
+    <div class="tag"><b>H1 hero</b>800 · 2.6–4.4rem<br>leading 1.04</div>
+    <div class="sample" style="font-family:var(--font-display);font-weight:800;font-size:3.2rem;line-height:1.04">Komdu í ljós.</div>
+  </div>
+  <div class="row">
+    <div class="tag"><b>H2 section</b>800 · 1.9–3rem<br>leading 1.06</div>
+    <div class="sample" style="font-family:var(--font-display);font-weight:800;font-size:2rem;line-height:1.06">Klukkan ræður verðinu</div>
+  </div>
+  <div class="row">
+    <div class="tag"><b>H3 / price</b>700 · 1.1–1.5rem</div>
+    <div class="sample" style="font-family:var(--font-bold);font-weight:700;font-size:1.4rem">JEWEL bekkir · 8.990 kr.</div>
+  </div>
+  <div class="row">
+    <div class="tag"><b>Button / label</b>700 · 0.9rem</div>
+    <div class="sample" style="font-family:var(--font-bold);font-weight:700;font-size:0.95rem">Bóka tíma</div>
+  </div>
+  <div class="row">
+    <div class="tag"><b>Sub-label</b>500 · 0.72–0.8rem</div>
+    <div class="sample" style="font-family:var(--font-med);font-weight:500;font-size:0.78rem;color:var(--body)">Morgunverð · Dagverð</div>
+  </div>
+  <div class="row">
+    <div class="tag"><b>Body</b>400 · 1–1.125rem<br>leading 1.6, max 60ch</div>
+    <div class="sample" style="font-family:var(--font-body);font-weight:400;font-size:1.05rem;line-height:1.6;max-width:60ch">Nýir bekkir í báðum stofum. Áskrift eða stakir tímar, bókað á Noona.</div>
+  </div>
+
+  <p class="head" style="margin-top:40px">Icelandic glyph check — Í Á É Ó Ú Ý Þ Æ Ö Ð</p>
+  <div class="row" style="border-top:none">
+    <div class="sample" style="font-family:var(--font-display);font-weight:800;font-size:2.4rem">Þrjár stofur við sjóinn — ÁÐUR ekki upphafsstafa ð/þ í hástöfum ef stafagerðin skortir þau</div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--pink-tx);font-family:var(--font-bold);max-width:70ch">Rule learned the hard way on this project: never render ð-words in <code>text-transform:uppercase</code> unless the font's capital Eth is verified — some fonts fall back to a bar-less "D". Cabinet Grotesk's uppercase Ð/Þ are correct (see above), but double-check on every new font before shipping an all-caps label.</p>
+</body></html>

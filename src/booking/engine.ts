@@ -205,13 +205,59 @@ export function quote(cfg: BusinessConfig, req: BookingRequest): Quote {
   }
 
   const included = p.includedPeople ?? 0
-  const extraPeople = Math.max(0, req.people - included)
-  if (p.perPerson && extraPeople > 0) {
-    const chargeable = cfg.unit === 'NIGHT' ? extraPeople * Math.max(1, units) : extraPeople
-    lines.push({
-      label: `${extraPeople} ${extraPeople === 1 ? 'gestur til viðbótar' : 'gestir til viðbótar'}`,
-      amount: p.perPerson * chargeable,
-    })
+  /*
+   * CHILDREN ARE A SUBSET OF `people`, NOT AN ADDITION.
+   *
+   * Clamped, because a request claiming more children than people would
+   * otherwise produce a negative adult count and an under-total. The engine is
+   * trusting by design and validate.ts is the real gate, but a price is the one
+   * number that must not be wrong even if something upstream is.
+   */
+  const children = Math.min(Math.max(0, Math.trunc(req.children ?? 0)), req.people)
+  const adults = req.people - children
+  // included comes off ADULTS only; see the note on Pricing.perChild
+  const chargeableAdults = Math.max(0, adults - included)
+  const nights = cfg.unit === 'NIGHT' ? Math.max(1, units) : 1
+
+  // The noun comes from the business's own copy. A riding tour charging per
+  // rider used to read "3 gestir til viðbótar": the wrong noun, and
+  // "til viðbótar" when nothing had been included to be additional TO.
+  const countNoun = (n: number) =>
+    n === 1 ? (cfg.copy.capacitySingular ?? cfg.copy.capacityLabel) : cfg.copy.capacityLabel
+
+  // Split ONLY when a child rate is actually configured. Without one there is
+  // no discount to express, so everybody is simply a person and the quote is
+  // byte-identical to what every existing config produced before child pricing
+  // existed. Splitting anyway would have read "1 knapi · 2 börn" on a booking
+  // where all three were charged the same, which explains nothing and invites
+  // the question of why the child line costs the same.
+  const splitByAge = p.perChild !== undefined && children > 0
+
+  if (!splitByAge) {
+    const extraPeople = Math.max(0, req.people - included)
+    if (p.perPerson && extraPeople > 0) {
+      const noun = countNoun(extraPeople)
+      lines.push({
+        label: included > 0 ? `${extraPeople} ${noun} til viðbótar` : `${extraPeople} ${noun}`,
+        amount: p.perPerson * extraPeople * nights,
+      })
+    }
+  } else {
+    if (p.perPerson && chargeableAdults > 0) {
+      const noun = chargeableAdults === 1
+        ? (cfg.copy.adultSingular ?? 'fullorðinn')
+        : (cfg.copy.adultLabel ?? 'fullorðnir')
+      lines.push({
+        label: included > 0
+          ? `${chargeableAdults} ${noun} til viðbótar`
+          : `${chargeableAdults} ${noun}`,
+        amount: p.perPerson * chargeableAdults * nights,
+      })
+    }
+    const noun = children === 1
+      ? (cfg.copy.childSingular ?? 'barn')
+      : (cfg.copy.childLabel ?? 'börn')
+    lines.push({ label: `${children} ${noun}`, amount: (p.perChild as number) * children * nights })
   }
 
   for (const id of req.extraIds ?? []) {

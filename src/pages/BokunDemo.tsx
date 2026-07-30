@@ -180,9 +180,17 @@ function GuestView({ bookings }: { bookings: Booking[] }) {
                   <span style={{ fontFamily: MONO, fontSize: '.74rem', color: on ? 'rgba(238,231,218,.7)' : MUTE }}>
                     {'  '}{t.duration} · {t.level}
                   </span>
+                  {/*
+                    The month has to be NAMED or the sentence is not said at all.
+                    A guest can clear the date field, and then this rendered
+                    "ekki í boði í" with nothing after it: a dangling preposition
+                    in front of a customer, on every tour at once.
+                  */}
                   {!runs && (
                     <span style={{ fontFamily: MONO, fontSize: '.72rem', color: on ? BONE : TERRA, display: 'block' }}>
-                      ekki í boði í {MONTHS[Number(date.slice(5, 7)) - 1]}
+                      {MONTHS[Number(date.slice(5, 7)) - 1]
+                        ? `ekki í boði í ${MONTHS[Number(date.slice(5, 7)) - 1]}`
+                        : 'ekki í boði á þessum tíma'}
                     </span>
                   )}
                 </span>

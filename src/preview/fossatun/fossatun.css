@@ -1,0 +1,506 @@
+/* FOSSATÚN — "Sagan af tröllunum og plötusafnaranum"
+   ---------------------------------------------------------------------------
+   REFERENCE: reveriesafaris.com (Awwwards HM). Its devices, verified in its
+   own DOM rather than from a screenshot: a very light high-contrast editorial
+   serif (PP Editorial New Ultralight, 200-400) carrying every heading; full
+   bleed photography as the primary structural element; a CENTRED section
+   intro (eyebrow, heading, one short lede, one text link) before a horizontal
+   image rail; sticky panels beside scrolling copy; and deliberately restrained
+   appear motion, no scrubbing and no scroll jacking (it is a Framer site with
+   no GSAP, no Lenis, and zero transforms on its images).
+
+   WHAT IS DIFFERENT HERE, because "warm Icelandic storytelling" was the brief:
+   the ground is warm parchment rather than cold white, the accent is the amber
+   that Fossatún's own camping pod glows in under the aurora, and the dark
+   chapters use the night navy off their own book cover. Reverie is cool,
+   distant, expensive. This is meant to feel like being told a story indoors.
+
+   Palette is SAMPLED, not invented: #0A121F and #C08448 are measured off the
+   Icelandic edition of Steinar Berg's "Trunt Trunt"; #ACB4A7 and #D8C09C off
+   the English edition.
+
+   Everything is namespaced `fst-` so nothing can bleed into another preview.  */
+
+@font-face {
+  font-family: 'FST Display';
+  src: url('./fonts/Boska-Variable.woff2') format('woff2-variations');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'FST Sans';
+  src: url('./fonts/Supreme-Variable.woff2') format('woff2-variations');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.fst-root {
+  --fst-paper: #f2ede3;      /* warm parchment, never cold white */
+  --fst-paper-2: #e9e2d4;
+  --fst-night: #0a121f;      /* Trunt Trunt, Icelandic edition */
+  --fst-night-2: #111c29;
+  --fst-ink: #1c2118;
+  --fst-soft: #5d655a;       /* grey biased to sage, not neutral */
+  --fst-rule: #cec6b6;
+  --fst-rule-dk: #26313f;
+  --fst-amber: #c08448;      /* the pod glowing under the aurora */
+  --fst-oxblood: #9c483c;
+  --fst-sage: #acb4a7;
+
+  --fst-pad: clamp(20px, 5vw, 76px);
+  --fst-maxw: 1320px;
+  --fst-read: 1080px;
+  --fst-ease: cubic-bezier(0.22, 0.8, 0.28, 1);
+
+  background: var(--fst-paper);
+  color: var(--fst-ink);
+  font-family: 'FST Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 380;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.fst-root *,
+.fst-root *::before,
+.fst-root *::after { box-sizing: border-box; }
+
+.fst-wrap { max-width: var(--fst-maxw); margin: 0 auto; padding-inline: var(--fst-pad); }
+.fst-wrap--read { max-width: var(--fst-read); }
+
+/* ── type ────────────────────────────────────────────────────────────────
+   Reverie sets EVERY heading in one ultralight serif and never goes bold.
+   Boska at 200-300 is the closest face in the library with full Icelandic
+   coverage (Þ Ð Æ Ö and the acutes all verified in the font binary).       */
+
+.fst-root h1,
+.fst-root h2,
+.fst-root h3,
+.fst-disp {
+  font-family: 'FST Display', Georgia, serif;
+  font-weight: 250;
+  line-height: 1.06;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  margin: 0;
+}
+.fst-root h1 { font-size: clamp(2.6rem, 6.6vw, 5.6rem); line-height: 1.02; }
+.fst-root h2 { font-size: clamp(2rem, 4.2vw, 3.6rem); }
+.fst-root h3 { font-size: clamp(1.3rem, 2vw, 1.7rem); font-weight: 300; line-height: 1.15; }
+.fst-root p { margin: 0 0 1.1em; max-width: 64ch; }
+
+.fst-eyebrow {
+  font-family: 'FST Sans', ui-monospace, monospace;
+  font-size: 11.5px;
+  font-weight: 560;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fst-soft);
+  margin: 0 0 18px;
+}
+.fst-lede {
+  font-size: clamp(1.06rem, 1.5vw, 1.26rem);
+  line-height: 1.6;
+  color: var(--fst-soft);
+  max-width: 58ch;
+}
+
+.fst-root a { color: inherit; }
+.fst-root a:focus-visible,
+.fst-root button:focus-visible,
+.fst-root input:focus-visible,
+.fst-root select:focus-visible {
+  outline: 2px solid var(--fst-amber);
+  outline-offset: 3px;
+}
+
+/* Reverie's one navigational flourish: a quiet underlined text link, never a
+   button, sitting under a centred intro. */
+.fst-textlink {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 560;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding-bottom: 3px;
+  border-bottom: 1px solid currentColor;
+  color: var(--fst-ink);
+  transition: color .25s var(--fst-ease), border-color .25s var(--fst-ease);
+}
+.fst-textlink:hover { color: var(--fst-amber); border-color: var(--fst-amber); }
+
+/* ── sections ────────────────────────────────────────────────────────────── */
+
+.fst-sec { padding: clamp(64px, 10vw, 148px) 0; }
+.fst-sec--tight { padding: clamp(44px, 6vw, 88px) 0; }
+
+/* the centred intro that opens Reverie's collection sections */
+.fst-intro { text-align: center; max-width: 720px; margin: 0 auto clamp(34px, 5vw, 62px); }
+.fst-intro .fst-lede { margin-inline: auto; }
+.fst-intro .fst-eyebrow { margin-bottom: 16px; }
+
+/* ── hero ────────────────────────────────────────────────────────────────
+   A real photograph of THEIR camping pod under the aurora. The type sits on
+   the dark lower third where the grass already falls away, so the scrim can
+   stay light and the picture is never crushed.                             */
+
+.fst-hero { position: relative; min-height: 100svh; display: flex; align-items: flex-end; overflow: hidden; }
+.fst-hero__media { position: absolute; inset: 0; }
+.fst-hero__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fst-hero__scrim {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6,10,18,.5) 0%, rgba(6,10,18,0) 26%,
+                    rgba(6,10,18,.18) 52%, rgba(6,10,18,.82) 100%);
+}
+.fst-hero__body {
+  position: relative; z-index: 2; width: 100%;
+  padding-bottom: clamp(46px, 9vw, 104px);
+  color: #f6f2e8;
+}
+.fst-hero__body h1 { color: #faf6ec; max-width: 15ch; }
+.fst-hero .fst-eyebrow { color: rgba(246,242,232,.76); }
+.fst-hero__sub { color: rgba(246,242,232,.88); max-width: 42ch; margin-top: 20px; font-size: 1.08rem; }
+
+.fst-scrollcue {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 3; color: rgba(246,242,232,.6);
+  font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.fst-scrollcue::after {
+  content: ''; width: 1px; height: 40px;
+  background: linear-gradient(180deg, rgba(246,242,232,.55), rgba(246,242,232,0));
+  animation: fst-cue 2.4s var(--fst-ease) infinite;
+}
+@keyframes fst-cue {
+  0% { transform: scaleY(0); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: top; }
+  56% { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ── the split: copy beside a sticky photograph ──────────────────────────
+   Reverie's own device. The photograph holds while the words move past it. */
+
+.fst-split { display: grid; grid-template-columns: 1fr; gap: clamp(26px, 4vw, 64px); align-items: start; }
+@media (min-width: 940px) {
+  .fst-split { grid-template-columns: 1fr 1.08fr; }
+  .fst-split--flip > :first-child { order: 2; }
+  .fst-split__sticky { position: sticky; top: 84px; }
+}
+.fst-split__copy { padding-top: clamp(0px, 1vw, 14px); }
+
+/* ── frames + drift ──────────────────────────────────────────────────────
+   The photograph drifts inside a fixed frame rather than travelling with the
+   page. Keep the wrapper inset >= drift * 1.2 / 100 or the edge shows.      */
+.fst-frame { position: relative; overflow: hidden; width: 100%; }
+.fst-frame-in { position: absolute; inset: -8% 0; will-change: transform; }
+.fst-frame-in img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+figure { margin: 0; }
+figcaption { margin-top: 12px; font-size: 14px; color: var(--fst-soft); max-width: 46ch; }
+
+/* ── full-bleed chapter break ────────────────────────────────────────────
+   One photograph, one line of type, nothing else. Reverie uses these to reset
+   the eye between collections.                                              */
+.fst-bleed { position: relative; min-height: clamp(440px, 76svh, 780px); display: flex; align-items: center; overflow: hidden; }
+.fst-bleed .fst-frame-in { inset: -7% 0; }
+/* Darkest through the MIDDLE band, because that is where the centred heading
+   sits and the photograph underneath it is snow and aurora. Measured, not
+   guessed: the first version left the lightest backdrop pixel at #AEB2AE,
+   which is 1.99:1 against the cream and fails even the large-text floor. */
+.fst-bleed__scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(6,10,18,.30) 0%,
+    rgba(6,10,18,.46) 34%,
+    rgba(6,10,18,.56) 50%,
+    rgba(6,10,18,.46) 66%,
+    rgba(6,10,18,.38) 100%);
+}
+/* belt and braces on type that sits over a photograph */
+.fst-bleed__body h2,
+.fst-bleed__body p { text-shadow: 0 1px 14px rgba(4,8,14,.55); }
+.fst-bleed__body { position: relative; z-index: 2; width: 100%; color: #f6f2e8; text-align: center; }
+.fst-bleed__body h2 { color: #faf6ec; max-width: 20ch; margin-inline: auto; }
+.fst-bleed__body .fst-eyebrow { color: rgba(246,242,232,.72); }
+.fst-bleed__body p { color: rgba(246,242,232,.86); max-width: 46ch; margin: 18px auto 0; }
+
+/* ── the night chapter ───────────────────────────────────────────────────
+   Their own book cover ground. Photographs of a lit pod at night genuinely
+   glow on it, and it passes AA trivially with the parchment ink.            */
+.fst-night {
+  background: var(--fst-night);
+  color: #ede6d8;
+  --fst-soft: #93a1ad;
+  --fst-rule: var(--fst-rule-dk);
+}
+.fst-night h1, .fst-night h2, .fst-night h3 { color: #f4ecdc; }
+.fst-night .fst-textlink { color: #ede6d8; }
+.fst-night .fst-textlink:hover { color: var(--fst-amber); border-color: var(--fst-amber); }
+
+/* ── the stay rail ───────────────────────────────────────────────────────
+   Reverie's "Curated Inspiration": a horizontal rail of tall images that you
+   drag or scroll sideways. Snap points so it never rests half way.          */
+.fst-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(268px, 30vw);
+  gap: clamp(14px, 1.8vw, 26px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-inline: var(--fst-pad);
+  padding-bottom: 12px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.fst-rail::-webkit-scrollbar { display: none; }
+@media (min-width: 1100px) { .fst-rail { grid-auto-columns: minmax(300px, 1fr); overflow-x: visible; } }
+
+.fst-stay { scroll-snap-align: start; display: flex; flex-direction: column; }
+.fst-stay__fig { position: relative; overflow: hidden; }
+.fst-stay__fig img {
+  width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block;
+  transition: transform 1.1s var(--fst-ease);
+}
+.fst-stay:hover .fst-stay__fig img { transform: scale(1.035); }
+.fst-stay__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.fst-stay__count { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--fst-soft); white-space: nowrap; }
+.fst-stay p { font-size: 15px; margin: 8px 0 0; color: var(--fst-soft); max-width: none; }
+.fst-stay ul { margin: 12px 0 0; padding-left: 1.05em; font-size: 14px; color: var(--fst-soft); }
+.fst-stay ul li { margin-bottom: .3em; }
+.fst-stay[data-off='true'] .fst-stay__fig img { filter: saturate(.55) brightness(.92); }
+.fst-stay__off {
+  margin-top: 10px; font-size: 12.5px; font-weight: 560; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--fst-oxblood);
+}
+.fst-night .fst-stay__off { color: var(--fst-amber); }
+
+/* ── a plain two-up / three-up photo set ─────────────────────────────────── */
+.fst-grid { display: grid; gap: clamp(14px, 2vw, 26px); grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }
+.fst-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ── the year band ───────────────────────────────────────────────────────
+   Kept from the previous build because the FACT it carries is real and rare:
+   they are shut in December and January, and a guest must not discover that
+   half way into a booking. It is no longer the page's spine, just a control
+   above the calendar where it belongs.                                      */
+.fst-year { border-block: 1px solid var(--fst-rule); }
+.fst-year__inner { display: flex; overflow-x: auto; scrollbar-width: none; }
+.fst-year__inner::-webkit-scrollbar { display: none; }
+.fst-month {
+  flex: 1 0 auto; min-width: 66px; padding: 13px 6px 11px;
+  background: none; border: 0; border-right: 1px solid var(--fst-rule);
+  color: var(--fst-soft); font: inherit; font-size: 12px; font-weight: 560;
+  letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+  position: relative; transition: color .3s var(--fst-ease), background .3s var(--fst-ease);
+}
+.fst-month:last-child { border-right: 0; }
+.fst-month:hover { color: var(--fst-ink); }
+.fst-month[aria-pressed='true'] { color: var(--fst-ink); background: rgba(192,132,72,.1); }
+.fst-month[aria-pressed='true']::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--fst-amber);
+}
+.fst-month[data-shut='true'] { text-decoration: line-through; opacity: .5; }
+
+/* ── booking ─────────────────────────────────────────────────────────────── */
+.fst-book { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 3vw, 42px); }
+@media (min-width: 980px) { .fst-book { grid-template-columns: 1.12fr .88fr; align-items: start; } }
+
+.fst-cal { background: var(--fst-paper-2); border: 1px solid var(--fst-rule); padding: clamp(16px, 2.2vw, 28px); }
+.fst-cal__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.fst-cal__nav { display: flex; gap: 6px; }
+.fst-cal__nav button {
+  width: 38px; height: 38px; border: 1px solid var(--fst-rule); background: none;
+  color: inherit; cursor: pointer; font: inherit; line-height: 1;
+}
+.fst-cal__nav button:disabled { opacity: .35; cursor: default; }
+.fst-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
+.fst-cal__dow {
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fst-soft); text-align: center; padding-bottom: 10px; font-weight: 600;
+}
+.fst-day {
+  aspect-ratio: 1; border: 0; background: none; font: inherit; font-size: 14.5px;
+  color: var(--fst-ink); cursor: pointer; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; isolation: isolate;
+  transition: color .16s var(--fst-ease);
+}
+.fst-day::before {
+  content: ''; position: absolute; inset: 3px 0; z-index: -1;
+  background: transparent; transition: background .16s var(--fst-ease);
+}
+.fst-day:hover:not(:disabled)::before { background: rgba(192,132,72,.14); border-radius: 3px; }
+.fst-day:disabled { color: color-mix(in srgb, var(--fst-soft) 42%, transparent); cursor: not-allowed; }
+.fst-day:disabled::after {
+  content: ''; position: absolute; left: 26%; right: 26%; top: 50%; height: 1px;
+  background: currentColor; opacity: .5;
+}
+.fst-day[data-state='mid']::before { background: rgba(192,132,72,.16); border-radius: 0; }
+.fst-day[data-state='edge'] { color: #fff; font-weight: 600; }
+.fst-day[data-state='edge']::before { background: var(--fst-amber); border-radius: 3px; }
+.fst-day[data-today='true']:not([data-state])::before {
+  background: transparent; box-shadow: inset 0 0 0 1px var(--fst-rule); border-radius: 3px;
+}
+
+.fst-panel { background: var(--fst-paper-2); border: 1px solid var(--fst-rule); padding: clamp(16px, 2.2vw, 28px); }
+.fst-field { display: block; margin-bottom: 15px; }
+/* DIRECT CHILD ONLY: as a descendant selector this also caught the spans
+   inside .fst-extra and rendered the extras SHOUTING IN CAPS. */
+.fst-field > span {
+  display: block; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fst-soft); margin-bottom: 6px;
+}
+.fst-field input, .fst-field select {
+  width: 100%; padding: 11px 13px; border: 1px solid var(--fst-rule);
+  background: var(--fst-paper); color: inherit; font: inherit; font-size: 15px; border-radius: 0;
+}
+.fst-steps { display: flex; align-items: center; gap: 10px; }
+.fst-steps button {
+  width: 44px; height: 44px; border: 1px solid var(--fst-rule); background: var(--fst-paper);
+  font: inherit; font-size: 18px; line-height: 1; cursor: pointer; color: inherit;
+}
+.fst-steps output { font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; font-size: 16px; }
+
+.fst-extra { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--fst-rule); }
+.fst-extra input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--fst-amber); }
+.fst-extra .n { font-size: 14.5px; }
+.fst-extra .p { margin-left: auto; font-variant-numeric: tabular-nums; font-size: 14.5px; color: var(--fst-soft); white-space: nowrap; }
+
+.fst-quote { margin-top: 16px; border-top: 1px solid var(--fst-rule); padding-top: 15px; }
+.fst-quote__row { display: flex; justify-content: space-between; gap: 14px; font-size: 14.5px; padding: 4px 0; }
+.fst-quote__row.total { border-top: 1px solid var(--fst-rule); margin-top: 8px; padding-top: 11px; font-size: 17px; }
+.fst-quote__row .v { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.fst-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 52px; padding: 0 30px; border: 0; border-radius: 0;
+  background: var(--fst-ink); color: var(--fst-paper);
+  font: inherit; font-size: 14px; font-weight: 560; letter-spacing: .09em;
+  text-transform: uppercase; cursor: pointer;
+  transition: background .22s var(--fst-ease);
+}
+.fst-cta:hover { background: var(--fst-amber); }
+.fst-cta:disabled { opacity: .45; cursor: not-allowed; }
+.fst-cta--ghost { background: none; color: var(--fst-ink); box-shadow: inset 0 0 0 1px var(--fst-rule); }
+.fst-cta--ghost:hover { background: rgba(192,132,72,.12); color: var(--fst-ink); }
+/* `.fst-root a { color: inherit }` outranks a bare `.fst-cta`, so an anchor
+   styled as a button rendered ink-on-ink: a solid box with an invisible label. */
+.fst-root a.fst-cta { color: var(--fst-paper); text-decoration: none; }
+.fst-root a.fst-cta:hover { color: var(--fst-paper); }
+.fst-night a.fst-cta { background: var(--fst-amber); color: #1a1206; }
+.fst-night a.fst-cta:hover { background: #d29a5e; }
+
+.fst-note { font-size: 13.5px; color: var(--fst-soft); margin-top: 10px; }
+.fst-sample {
+  display: inline-block; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fst-oxblood); border: 1px solid currentColor; padding: 1px 6px; margin-left: 7px;
+}
+.fst-shut {
+  border-left: 2px solid var(--fst-oxblood); background: rgba(156,72,60,.06);
+  padding: 15px 18px; margin-bottom: 20px;
+}
+
+/* ── tables ──────────────────────────────────────────────────────────────── */
+.fst-tablewrap { overflow-x: auto; }
+.fst-table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 15.5px; }
+.fst-table th, .fst-table td { text-align: left; padding: 14px 18px 14px 0; border-bottom: 1px solid var(--fst-rule); vertical-align: top; }
+.fst-table th {
+  font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--fst-soft); font-weight: 600; white-space: nowrap; width: 1%;
+}
+
+/* ── reveals ─────────────────────────────────────────────────────────────
+   Reverie's motion is appear-only: a short rise and a fade, nothing scrubbed.
+   Driven by IntersectionObserver with a timeout failsafe, and every reveal
+   resolves to the resting state so a failed observer can never hide content. */
+.fst-rv { opacity: 0; transform: translateY(16px); transition: opacity .9s var(--fst-ease), transform .9s var(--fst-ease); }
+.fst-rv.is-in { opacity: 1; transform: none; }
+.fst-rv[data-d='1'] { transition-delay: .08s; }
+.fst-rv[data-d='2'] { transition-delay: .16s; }
+.fst-rv[data-d='3'] { transition-delay: .24s; }
+
+/* the hero settles once, on mount: a photo already in view can never fire an
+   IntersectionObserver "enter", so it must not depend on one */
+.fst-hero__media img { animation: fst-settle 1.9s var(--fst-ease) both; }
+@keyframes fst-settle { from { transform: scale(1.07); } to { transform: scale(1); } }
+.fst-hero__body > * { animation: fst-rise 1s var(--fst-ease) both; }
+.fst-hero__body > *:nth-child(1) { animation-delay: .22s; }
+.fst-hero__body > *:nth-child(2) { animation-delay: .34s; }
+.fst-hero__body > *:nth-child(3) { animation-delay: .48s; }
+@keyframes fst-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fst-root *, .fst-root *::before, .fst-root *::after {
+    animation: none !important; transition: none !important;
+  }
+  .fst-rv { opacity: 1 !important; transform: none !important; }
+  .fst-hero__media img, .fst-hero__body > * { opacity: 1 !important; transform: none !important; }
+  .fst-frame-in { inset: 0; transform: none !important; will-change: auto; }
+}
+
+/* ── owner entry point ───────────────────────────────────────────────────
+   Lives only in the prototype note, never in the guest chrome, so a real
+   visitor is never handed an owner tool.                                    */
+.fst-owner-cta { margin-top: 30px; padding: 26px; border: 1px solid var(--fst-rule); background: var(--fst-paper-2); }
+
+/* ── the owner dashboard ─────────────────────────────────────────────────── */
+.fst-dash { min-height: 100svh; padding-bottom: 40px; background: var(--fst-paper); }
+.fst-dash__bar { border-bottom: 1px solid var(--fst-rule); background: var(--fst-paper-2); }
+.fst-dash__barin { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; flex-wrap: wrap; }
+.fst-dash__title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); margin-top: 3px; }
+.fst-dash__note { border-left: 2px solid var(--fst-amber); padding: 12px 0 12px 18px; margin: 28px 0 24px; font-size: 15px; max-width: 68ch; }
+.fst-dash__stats { display: flex; gap: clamp(20px, 4vw, 58px); flex-wrap: wrap; margin-bottom: 28px; }
+.fst-stat { display: flex; flex-direction: column; }
+.fst-stat__n {
+  font-family: 'FST Display', Georgia, serif; font-weight: 260;
+  font-size: clamp(2.3rem, 5vw, 3.5rem); line-height: 1; font-variant-numeric: tabular-nums;
+}
+.fst-stat__l { font-size: 13px; color: var(--fst-soft); margin-top: 4px; }
+.fst-dash__tabs { display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--fst-rule); }
+.fst-dash__tab {
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  font: inherit; font-size: 14.5px; font-weight: 560; color: var(--fst-soft);
+  padding: 11px 4px; margin-right: 14px; cursor: pointer;
+}
+.fst-dash__tab[aria-selected='true'] { color: var(--fst-ink); border-bottom-color: var(--fst-amber); }
+.fst-dash__badge {
+  display: inline-block; margin-left: 7px; min-width: 20px; padding: 1px 6px;
+  background: var(--fst-amber); color: #1a1206; font-size: 12px; border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.fst-dash__reset {
+  margin-left: auto; background: none; border: 0; font: inherit; font-size: 13px;
+  color: var(--fst-soft); text-decoration: underline; cursor: pointer;
+}
+.fst-dash__empty { padding: 44px 0; color: var(--fst-soft); }
+.fst-dash__list { list-style: none; margin: 0; padding: 0; }
+.fst-dash__row { display: grid; gap: 8px 20px; padding: 20px 0; border-bottom: 1px solid var(--fst-rule); grid-template-columns: 1fr; }
+@media (min-width: 860px) { .fst-dash__row { grid-template-columns: 1.1fr 1fr 1fr .7fr auto; align-items: center; } }
+.fst-dash__row[data-status='DECLINED'] { opacity: .5; }
+.fst-dash__meta { display: block; font-size: 13px; color: var(--fst-soft); }
+.fst-dash__sum { font-variant-numeric: tabular-nums; font-size: 15px; }
+.fst-dash__act { display: flex; gap: 8px; flex-wrap: wrap; }
+.fst-dash__act .fst-cta { min-height: 42px; padding: 0 16px; font-size: 12px; }
+.fst-dash__yes { background: var(--fst-amber); color: #1a1206; }
+.fst-dash__state { font-size: 14px; color: var(--fst-soft); font-weight: 560; }
+.fst-dash__why { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--fst-rule); }
+.fst-dash__why ul.tight { margin: 16px 0 0; padding-left: 1.1em; }
+.fst-dash__why ul.tight li { margin-bottom: .45em; max-width: 66ch; }
+
+/* ── mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .fst-root { font-size: 16.5px; }
+  .fst-split__sticky { position: static; }
+  .fst-hero { min-height: 92svh; }
+}
+@media (hover: none) {
+  .fst-month { min-height: 46px; }
+  .fst-day { min-height: 42px; }
+}

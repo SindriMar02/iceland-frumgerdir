@@ -1,0 +1,26 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { padding: 5vw; max-width: 42rem; margin: 0 auto; }
+  h2 { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; color: var(--ink); margin: 0 0 1.6rem; }
+  details { border-top: 1px solid var(--hair); padding: 1.2rem 0; }
+  details:last-of-type { border-bottom: 1px solid var(--hair); }
+  summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 1rem; cursor: pointer; font-family: var(--font-bold); font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+  summary::-webkit-details-marker { display: none; }
+  .plus { flex-shrink: 0; width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 1px solid var(--hair); display: grid; place-items: center; color: var(--pink-tx); transition: transform 500ms var(--ease); }
+  details[open] .plus { transform: rotate(45deg); }
+  p { color: var(--body); max-width: 60ch; margin: 0.8rem 0 0; line-height: 1.55; }
+  details[open] p { animation: faqIn 400ms var(--ease); }
+  @keyframes faqIn { from { opacity: 0; transform: translateY(-6px) } }
+</style></head>
+<body>
+  <h2>Spurt og svarað</h2>
+  <details open><summary>Hvernig bóka ég tíma?<span class="plus">+</span></summary><p>Þú bókar á Noona, annaðhvort á noona.app/sportsol eða í Noona appinu. Þar sérðu lausa tíma í báðum stofum í rauntíma. Þú getur líka hringt í 554 3799.</p></details>
+  <details><summary>Hvor stofan hentar mér?<span class="plus">+</span></summary><p>Báðar stofur eru með JEWEL og standandi bekki. Vegaz og infrared bekkurinn eru í Hamraborg 16 í Kópavogi og X10 og X10 Túrbó í Hverafold 1-3 í Grafarvogi.</p></details>
+  <details><summary>Af hverju er verðið lægra fyrir klukkan 14?<span class="plus">+</span></summary><p>Morgunverð gildir milli klukkan 10 og 14 og er um tuttugu prósentum lægra en dagverð.</p></details>
+  <details><summary>Hvað er innifalið í áskrift?<span class="plus">+</span></summary><p>Fimmtán mínútna ljósatími eða infrared tími alla daga, allan ársins hring, í báðum stofum. Áskrift frá 8.990 kr. á mánuði.</p></details>
+  <p style="font-size:0.78rem;color:var(--pink-tx);font-family:var(--font-bold);margin-top:1.6rem">Native &lt;details&gt;/&lt;summary&gt;, no JS. Plus rotates 45° on open (500ms system ease); answer fades/rises in via a CSS-only [open] selector.</p>
+</body></html>

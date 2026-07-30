@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/preview/seljavellir/**/*",
+    "src/preview/langaholt/**/*",
+    "src/preview/fiskkompani/**/*",
+    "src/preview/naustid/**/*",
+    "src/preview/alfacafe/**/*",
+    "src/preview/companies.ts",
+    "src/preview/PreviewChrome.tsx",
+    "src/preview/PreviewFooter.tsx",
+    "src/preview/SndrBadge.tsx",
+    "src/components/Img.tsx",
+    "src/lib/preview.ts",
+    "src/lib/utils.ts"
+  ]
+}

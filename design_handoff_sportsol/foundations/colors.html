@@ -1,0 +1,62 @@
+<!-- @dsCard group="Foundations" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { padding: 40px 48px; }
+  h1 { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 1.6rem; margin: 0 0 6px; }
+  .sub { color: var(--body); font-size: 0.95rem; margin: 0 0 32px; max-width: 60ch; }
+  .group { margin-bottom: 32px; }
+  .group h2 { font-family: var(--font-bold); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pink-tx); margin: 0 0 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; }
+  .swatch { width: 180px; border-radius: 14px; overflow: hidden; border: 1px solid var(--hair); }
+  .fill { height: 88px; }
+  .meta { background: var(--card); padding: 10px 12px; }
+  .meta .name { font-family: var(--font-bold); font-weight: 700; font-size: 0.82rem; color: var(--ink); }
+  .meta .hex { font-family: ui-monospace, monospace; font-size: 0.72rem; color: var(--body); margin-top: 2px; }
+  .meta .use { font-size: 0.68rem; color: var(--body); margin-top: 6px; line-height: 1.4; }
+  .dark-demo .fill { background: var(--dusk); }
+</style></head>
+<body>
+  <h1>Palette — derived from the logo</h1>
+  <p class="sub">Every color on the site traces back to the client's own logo fuchsia, #F810F0. There is one accent hue. Gold and coral exist only as decorative gradient stops (season-flavour, never text or fills).</p>
+
+  <div class="group">
+    <h2>Fuchsia — the one accent</h2>
+    <div class="row">
+      <div class="swatch"><div class="fill" style="background:#F810F0"></div><div class="meta"><div class="name">Pink</div><div class="hex">#F810F0</div><div class="use">Logo-exact. Large display type / decorative only. 3.15:1 on sun-white — large text (18px+/AA) only.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#A6009F"></div><div class="meta"><div class="name">Pink TX</div><div class="hex">#A6009F</div><div class="use">Small text on light grounds. 6.4:1 — AA everywhere.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#B500AE"></div><div class="meta"><div class="name">Pink Deep</div><div class="hex">#B500AE</div><div class="use">Button fills behind white text. 5.9:1.</div></div></div>
+      <div class="swatch dark-demo"><div class="fill" style="background:var(--dusk)"><div style="padding:24px 0 0 16px;font-family:var(--font-display);font-weight:800;color:#FF6BF7;font-size:1.3rem">Frá 299 kr.</div></div><div class="meta"><div class="name">Pink Hero</div><div class="hex">#FF6BF7</div><div class="use">Accent on the dark UV room only. 8.0:1 on dusk.</div></div></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>Light ground — day sections</h2>
+    <div class="row">
+      <div class="swatch"><div class="fill" style="background:var(--sunwhite);border-bottom:1px solid var(--hair)"></div><div class="meta"><div class="name">Sun-white</div><div class="hex">#FFF8EE</div><div class="use">Page background.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--card);border-bottom:1px solid var(--hair)"></div><div class="meta"><div class="name">Card</div><div class="hex">#FFFDF7</div><div class="use">Inner surface, sits inside the tinted shell.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink)"></div><div class="meta"><div class="name">Ink</div><div class="hex">#301031</div><div class="use">Headings, primary text.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--body)"></div><div class="meta"><div class="name">Body</div><div class="hex">#5C4260</div><div class="use">Body copy. 6.4:1 on sun-white.</div></div></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>The UV room — dark ground</h2>
+    <div class="row">
+      <div class="swatch"><div class="fill" style="background:var(--dusk)"></div><div class="meta"><div class="name">Dusk</div><div class="hex">#170623</div><div class="use">Hero, infrared chapter, final CTA band.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--uvroom)"></div><div class="meta"><div class="name">UV room</div><div class="hex">#12051C</div><div class="use">Deepest shade directly behind the tube wall.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--dusk);display:flex;align-items:center;justify-content:center;color:var(--dusk-ink);font-family:var(--font-display);font-weight:800">Aa</div><div class="meta"><div class="name">Dusk ink</div><div class="hex">#FFF6EC</div><div class="use">Headlines on dusk. 18.1:1.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--dusk);display:flex;align-items:center;justify-content:center;color:var(--dusk-body);font-size:0.85rem">Body copy</div><div class="meta"><div class="name">Dusk body</div><div class="hex">#E9D9F2</div><div class="use">Paragraphs on dusk. 14.4:1.</div></div></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>Decorative warmth (never text or fills)</h2>
+    <div class="row">
+      <div class="swatch"><div class="fill" style="background:var(--gold)"></div><div class="meta"><div class="name">Gold</div><div class="hex">#FFB53C</div><div class="use">Gradient stop only (weekend-tilboð strip).</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--coral)"></div><div class="meta"><div class="name">Coral</div><div class="hex">#FF7752</div><div class="use">Gradient stop only (Frelsi card, infrared glow).</div></div></div>
+    </div>
+  </div>
+</body></html>

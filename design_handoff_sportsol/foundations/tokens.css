@@ -1,0 +1,60 @@
+/* Sportsól — "Komdu í ljós" design tokens.
+   Palette derived entirely from the client's own logo fuchsia (#F810F0),
+   verified 2026-07-04/05. Do not introduce a second accent hue. */
+
+:root {
+  /* ── Light ground (day pages: verðskrá, áskrift, stofurnar, footer) ── */
+  --sunwhite: #FFF8EE;      /* page background */
+  --card: #FFFDF7;          /* inner card surface, sits inside a tinted shell */
+  --shell: #3010310a;       /* outer card shell tint (5% ink) */
+  --hair: #30103122;        /* hairline border, 13% ink */
+
+  /* ── Ink (text on light) ── */
+  --ink: #301031;           /* headings, primary text */
+  --body: #5C4260;          /* body copy — 6.4:1 on sunwhite, AA */
+
+  /* ── Brand fuchsia, derived from logo #F810F0 ── */
+  --pink: #F810F0;          /* the logo's exact hue — decorative / large type ONLY (3.15:1 on sunwhite, large-text-only) */
+  --pink-tx: #A6009F;       /* fuchsia as small text on light — 6.4:1 */
+  --pink-deep: #B500AE;     /* fuchsia button fill behind white text — 5.9:1 */
+  --pink-hero: #FF6BF7;     /* fuchsia accent on the dark UV room — 8.0:1 on dusk */
+
+  /* ── The UV room (hero, infrared chapter, final band) ── */
+  --dusk: #170623;          /* dark section ground */
+  --uvroom: #12051C;        /* deepest shade directly behind the tube wall */
+  --dusk-ink: #FFF6EC;      /* headline on dusk — 18.1:1 */
+  --dusk-body: #E9D9F2;     /* body copy on dusk — 14.4:1 */
+
+  /* ── Decorative-only warmth (never for text/fills) ── */
+  --gold: #FFB53C;
+  --coral: #FF7752;
+
+  /* ── Shape ── */
+  --r-shell: 2rem;          /* every card shell, one radius system-wide */
+  --r-shell-inner: calc(2rem - 0.375rem); /* concentric inner radius */
+  --r-pill: 999px;          /* every button / chip */
+
+  /* ── Motion ── */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur: 300ms;
+
+  /* ── Type ── */
+  --font-display: 'Cabinet Grotesk', system-ui, sans-serif; /* weight 800 for H1/H2 */
+  --font-bold: 'Cabinet Grotesk', system-ui, sans-serif;    /* weight 700 for buttons/labels/H3 */
+  --font-med: 'Cabinet Grotesk', system-ui, sans-serif;     /* weight 500 for sub-labels */
+  --font-body: 'Cabinet Grotesk', system-ui, sans-serif;    /* weight 400 for paragraphs */
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); font-weight: 400; color: var(--body); background: var(--sunwhite); -webkit-font-smoothing: antialiased; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-pill);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.7rem;
+  font-family: var(--font-bold);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
