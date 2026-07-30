@@ -426,12 +426,12 @@ export default function FossatunPage() {
           <div className="fst-wrap">
             <div className="fst-sechead">
               <span className="fst-label">Bókun</span>
-              <span className="fst-note">Prófaðu hana, hún virkar</span>
+              <span className="fst-note">Milliliðalaust, ekkert kort</span>
             </div>
-            <h2 style={{ maxWidth: '20ch' }}>Bókað hjá ykkur, ekki annars staðar</h2>
+            <h2 style={{ maxWidth: '20ch' }}>Bókaðu beint og fáðu {DIRECT_DISCOUNT_CODE}-afsláttinn</h2>
             <p className="fst-lede" style={{ margin: '16px 0 30px' }}>
-              Dagatalið hér að neðan les opnunina beint úr kerfinu. Lokað í desember og janúar er
-              ekki setning á síðu heldur staðreynd sem dagatalið getur ekki selt.
+              Veldu daga í dagatalinu og sendu bókunarbeiðni beint til Fossatúns. Ekkert greiðslukort
+              er slegið inn hér — Fossatún hefur samband og staðfestir með símtali eða tölvupósti.
             </p>
             <StayBooking month={month} />
           </div>
@@ -474,8 +474,9 @@ export default function FossatunPage() {
             <div className="fst-owner-cta">
               <p className="fst-label" style={{ marginBottom: 6 }}>Fyrir eigendur</p>
               <p style={{ marginBottom: 14, maxWidth: '58ch' }}>
-                Sendu bókunarbeiðni hér að ofan og opnaðu svo stjórnborðið. Beiðnin birtist þar strax,
-                og þar er hún staðfest eða henni hafnað. Ekkert kort, engin greiðsla, engin þóknun.
+                Prófaðu sjálf/ur: sendu bókunarbeiðni hér að ofan og opnaðu svo stjórnborðið, helst í
+                öðrum flipa. Beiðnin birtist þar í rauntíma, tilbúin til að samþykkja eða hafna. Ekkert
+                kort, engin greiðsla, engin þóknun.
               </p>
               <a className="fst-cta" href={`${import.meta.env.BASE_URL}preview/fossatun/stjornbord`}>
                 Opna stjórnborðið
