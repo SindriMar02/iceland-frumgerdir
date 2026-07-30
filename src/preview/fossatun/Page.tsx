@@ -335,6 +335,20 @@ export default function FossatunPage() {
           </div>
         </section>
 
+        {/* ── full bleed ─────────────────────────────────────────────── */}
+        <section className="fst-bleed" aria-label="Húsin á bakkanum að næturlagi">
+          <div className="fst-frame" style={{ position: 'absolute', inset: 0 }}>
+            <div className="fst-frame-in" data-drift="6">
+              <img src={IMG('aurora-cabin-edge.jpg')} alt="Norðurljós yfir húsunum á árbakkanum í Fossatúni" loading="lazy" />
+            </div>
+          </div>
+          <div className="fst-bleed__scrim" aria-hidden="true" />
+          <div className="fst-bleed__body fst-wrap">
+            <p className="fst-eyebrow">Tröllagarðurinn</p>
+            <h2>Gönguleiðin byrjar við dyrnar</h2>
+          </div>
+        </section>
+
         {/* ── the troll garden ───────────────────────────────────────── */}
         <section className="fst-sec fst-sec--tight" id="trollagardurinn">
           <div className="fst-wrap">
@@ -469,6 +483,20 @@ export default function FossatunPage() {
           <div className="fst-bleed__body fst-wrap">
             <p className="fst-eyebrow">Morgunverður</p>
             <h2>Þú borðar yfir fossunum</h2>
+          </div>
+        </section>
+
+        {/* ── full bleed ─────────────────────────────────────────────── */}
+        <section className="fst-bleed" aria-label="Grímsá við Fossatún">
+          <div className="fst-frame" style={{ position: 'absolute', inset: 0 }}>
+            <div className="fst-frame-in" data-drift="5">
+              <img src={IMG('falls-2.jpg')} alt="Grímsá fellur um klettana rétt neðan við húsin" loading="lazy" />
+            </div>
+          </div>
+          <div className="fst-bleed__scrim" aria-hidden="true" />
+          <div className="fst-bleed__body fst-wrap">
+            <p className="fst-eyebrow">Grímsá</p>
+            <h2>Áin heyrist alla nóttina</h2>
           </div>
         </section>
 
