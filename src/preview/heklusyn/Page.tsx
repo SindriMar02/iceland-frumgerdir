@@ -82,6 +82,11 @@ const CSS = `
 
 .hk-pad{padding-inline:clamp(18px,3.4vw,52px)}
 .hk-sec{padding-block:clamp(72px,11vh,148px)}
+/* The chrome is fixed with no background, so an anchor jump lands the target
+   at y=0, underneath it. Every nav target is a section id, and the mobile
+   menu is entirely anchors, so without this each menu tap hides the heading
+   it just scrolled to. */
+main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
 
 /* rule wipe — measured scaleX(0) → scaleX(1) */
 .hk-rule{height:1px;background:${RULE};transform-origin:left center}
@@ -124,6 +129,15 @@ const CSS = `
 .hk-chrome.is-ink{color:${INK}}
 .hk-chrome a{pointer-events:auto;color:inherit;text-decoration:none}
 .hk-wordmark{font-size:clamp(12px,1vw,15px);line-height:1.2;font-weight:400}
+/* The chrome is fixed and has no background, so on a phone its three-line
+   wordmark sat directly on top of section headings as they scrolled past.
+   One line on narrow screens, and sections get enough top padding to clear it. */
+@media (max-width:759px){
+  .hk-wordmark{line-height:1.2;font-size:12px}
+  .hk-wordmark br{display:none}
+  .hk-wordmark span{display:none}
+  .hk-sec{padding-block:clamp(84px,14vh,148px) clamp(72px,11vh,148px)}
+}
 .hk-nav{display:flex;gap:.3em;flex-wrap:wrap;justify-content:flex-end;max-width:62vw;
   font-size:clamp(12px,1vw,15px);font-weight:400}
 .hk-nav a{white-space:nowrap}
@@ -141,8 +155,12 @@ const CSS = `
 .hk-lock{display:block;font-weight:400;letter-spacing:-.03em;line-height:.98;
   font-size:clamp(2.5rem,10.6vw,10.4rem)}
 
-/* statement — large, centred, grey, with the serif carrying the point */
-.hk-statement{max-width:20ch;margin-inline:auto;text-align:center;color:${MUTED};
+/* statement — the page's opening line. Set LEFT on the same edge as every
+   other heading and with its rule ABOVE it, like hk-land/hk-houses: centred
+   with the rule underneath, it read as a detached box floating in its own
+   frame rather than as the first beat of the page. Larger than an h2 because
+   it is the thesis, but it obeys the same grammar as the rest. */
+.hk-statement{max-width:22ch;color:${MUTED};
   font-size:clamp(1.35rem,3.6vw,3rem);line-height:1.14;letter-spacing:-.022em;font-weight:400}
 .hk-statement .hk-serif{color:${INK}}
 
@@ -161,14 +179,12 @@ const CSS = `
 .hk-led-k,.hk-led-v{font-size:clamp(1.15rem,2.8vw,2.3rem);letter-spacing:-.02em;line-height:1.08}
 .hk-led-v{text-align:right}
 
-  box-shadow:0 0 0 1px rgba(0,0,0,.55);transform:translate(-50%,-50%);transition:opacity .4s ${EASE},transform .4s ${EASE}}
 .hk-sky{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:flex-end;
   gap:.15em .7em;font-size:clamp(1.15rem,3vw,2.5rem);letter-spacing:-.022em;line-height:1.06}
 .hk-sky li{transform:translateY(var(--r,0));white-space:nowrap}
 .hk-sky li:nth-child(even){color:${MUTED}}
 @media (max-width:600px){.hk-sky li{transform:none}}
 
-  font-size:clamp(.92rem,1.35vw,1.15rem);min-height:44px;transition:color .3s ${EASE}}
 
 /* enquiry */
 /* min-height:44px is the real tap-target floor (measured 21.5-24px before this,
@@ -183,6 +199,10 @@ const CSS = `
 .hk-send{display:inline-block;position:relative;margin-top:1.8rem;font-size:clamp(1.1rem,2vw,1.5rem);
   color:${INK};text-decoration:none;border-bottom:1px solid ${INK};padding-bottom:.1em}
 .hk-send::before{content:'';position:absolute;inset:-10px -6px}
+/* Same trick for the contact links: they measured 24px, and inline links in a
+   flex row cannot take a min-height without breaking the baseline row. */
+.hk-contact{position:relative}
+.hk-contact::before{content:'';position:absolute;inset:-11px -4px}
 .hk-send:hover{opacity:.6}
 ${HOUSE_LIST_CSS}
 ${PRELOADER_CSS}
@@ -323,7 +343,9 @@ export default function HeklusynPage() {
       <PreviewChrome company={company} />
 
       <header className={`hk-chrome${inkChrome ? ' is-ink' : ''}`}>
-        <a href="#hk-top" className="hk-wordmark">Heklusýn<br />Rangárslétta<br />Ytri-Rangá</a>
+        <a href="#hk-top" className="hk-wordmark">
+          Heklusýn<br /><span>Rangárslétta<br />Ytri-Rangá</span>
+        </a>
         <nav className="hk-nav" aria-label="Efnisyfirlit">
           {NAV.map((n, i) => (
             <a key={n.id} href={`#${n.id}`}>{n.label}{i < NAV.length - 1 ? ',' : ''}</a>
@@ -358,12 +380,15 @@ export default function HeklusynPage() {
              in the price, delivery ready for interior or fully furnished,
              and the Nibe heat pump driving the underfloor heating. */}
         <section id="hk-thesis" className="hk-sec hk-pad">
-          <p className="hk-statement hk-d" data-hk-tdrift="34">
+          <div className="hk-rule" />
+          <p
+            className="hk-statement hk-d"
+            data-hk-tdrift="34"
+            style={{ margin: 'clamp(26px,3.6vw,48px) 0 0' }}
+          >
             <Rise>Ekki sumarhús.</Rise>
             <Rise className="hk-serif">Þinn eigin herragarður.</Rise>
           </p>
-
-          <div className="hk-rule" style={{ margin: 'clamp(46px,7vw,104px) 0 0' }} />
 
           <div className="hk-intro">
             <div>
@@ -520,8 +545,8 @@ export default function HeklusynPage() {
 
           <div className="hk-rule" style={{ margin: 'clamp(48px,7vw,96px) 0 1.5rem' }} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.5rem 2.2rem', color: MUTED, fontSize: '.98rem' }}>
-            <a href={EMAIL_HREF} style={{ color: INK }}>{EMAIL}</a>
-            <a href={PHONE_HREF} style={{ color: INK }}>{PHONE_DISPLAY}</a>
+            <a className="hk-contact" href={EMAIL_HREF} style={{ color: INK }}>{EMAIL}</a>
+            <a className="hk-contact" href={PHONE_HREF} style={{ color: INK }}>{PHONE_DISPLAY}</a>
             <span>{COMPANY_LINE}</span>
             <span>{COMPANY_ADDRESS}</span>
           </div>

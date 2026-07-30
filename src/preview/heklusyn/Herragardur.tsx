@@ -110,8 +110,15 @@ export const HERRAGARDUR_CSS = `
 .hk-herra.is-in .hk-h03{opacity:1;transition-delay:.28s}
 .hk-herra.is-in .hk-hh{opacity:1;transition-delay:1.05s}
 
+/* SVG user units, so the rendered size is this times (width / 108). At a
+   354px-wide phone that is ~3.3x, so 3.1 renders near 10px — too small.
+   Bumped on narrow viewports where the scale factor is lowest. */
 .hk-ht{font-size:3.1px;fill:${MUTED};letter-spacing:.02em}
 .hk-ht5{fill:${INK};font-size:3.6px}
+@media (max-width:700px){
+  .hk-ht{font-size:4.4px}
+  .hk-ht5{font-size:5px}
+}
 .hk-hthouse{fill:${INK}}
 .hk-herra text{opacity:0;transition:opacity .7s cubic-bezier(.17,.84,.44,1) .9s}
 .hk-herra.is-in text{opacity:1}
