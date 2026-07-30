@@ -6,6 +6,7 @@ import { getPreviewCompany } from '../companies'
 import { HouseList, HOUSE_LIST_CSS } from './HouseList'
 import { Preloader, PRELOADER_CSS } from './Preloader'
 import { Herragardur, HERRAGARDUR_CSS } from './Herragardur'
+import { Skyline } from './Skyline'
 import { MobileNav, MOBILE_NAV_CSS } from './MobileNav'
 import type { HouseShot } from './HouseList'
 import {
@@ -61,7 +62,14 @@ const HOUSE_SHOTS: HouseShot[] = [
 
 /* Baseline offsets, in em, that read as a ridge. Purely typographic: they
    describe nothing about where any mountain stands. */
-const SKY = ['0em', '-0.55em', '-0.2em', '-0.85em', '-0.35em', '-1em', '-0.25em', '-0.6em']
+/* A gentle stagger so the row reads as a horizon rather than a ticker.
+   Deliberately NOT a height profile — we have no measured elevations for
+   these eight, and inventing one is the same mistake as the fabricated
+   summit pins this section replaced. Amplitude is small (max .5em) because
+   these values were originally tuned for a 1.15–2.5rem list and the row now
+   sets at 4.2rem, where the old .85/1em offsets threw names a full line
+   apart and read as scatter. */
+const SKY = ['0em', '-0.28em', '-0.1em', '-0.42em', '-0.18em', '-0.5em', '-0.12em', '-0.3em']
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -179,11 +187,23 @@ main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
 .hk-led-k,.hk-led-v{font-size:clamp(1.15rem,2.8vw,2.3rem);letter-spacing:-.02em;line-height:1.08}
 .hk-led-v{text-align:right}
 
-.hk-sky{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:flex-end;
-  gap:.15em .7em;font-size:clamp(1.15rem,3vw,2.5rem);letter-spacing:-.022em;line-height:1.06}
-.hk-sky li{transform:translateY(var(--r,0));white-space:nowrap}
+/* the horizon row. Full-bleed on purpose — it is a sightline, so it runs
+   past both edges rather than stopping at the text column. */
+/* Font size lives on the container so the padding below can be expressed in
+   em and is therefore guaranteed to clear the tallest --r offset at every
+   viewport. Without that top padding, overflow:hidden slices the raised
+   names clean through the middle. */
+.hk-skyline{width:100%;overflow:hidden;font-size:clamp(1.6rem,5.4vw,4.2rem);
+  padding-block:.72em .28em}
+.hk-skyline-track{display:inline-flex;align-items:flex-end;will-change:transform}
+.hk-skyline.is-static{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.hk-skyline.is-static .hk-sky{padding-inline:clamp(18px,3.4vw,52px)}
+.hk-sky{list-style:none;margin:0;padding:0;display:inline-flex;flex:0 0 auto;
+  align-items:flex-end;gap:0;font-size:inherit;
+  letter-spacing:-.028em;line-height:1.06;white-space:nowrap}
+.hk-sky li{transform:translateY(var(--r,0));white-space:nowrap;padding-inline:.42em}
 .hk-sky li:nth-child(even){color:${MUTED}}
-@media (max-width:600px){.hk-sky li{transform:none}}
+@media (prefers-reduced-motion:reduce){.hk-sky li{transform:none}}
 
 
 /* enquiry */
@@ -492,17 +512,15 @@ export default function HeklusynPage() {
             <Rise>Átta fjöll</Rise>
             <Rise className="hk-serif">í sjónlínu</Rise>
           </h2>
-          <p className="hk-r hk-d" data-hk-tdrift="12" style={{ color: MUTED, maxWidth: '44ch', lineHeight: 1.6, marginBottom: 'clamp(26px,3.4vw,44px)' }}>
+          <p className="hk-r hk-d" data-hk-tdrift="12" style={{ color: MUTED, maxWidth: '44ch', lineHeight: 1.6 }}>
             Af sömu spildu sérðu Heklu, Eyjafjallajökul og Þríhyrning. Öll átta í einni sjónlínu.
           </p>
-          <ul className="hk-sky" aria-label="Fjöllin átta sem sjást frá Rangársléttu">
-            {MOUNTAINS.map((m, i) => (
-              <li key={m.name} style={{ '--r': SKY[i % SKY.length] } as React.CSSProperties}>
-                {m.name}
-              </li>
-            ))}
-          </ul>
         </section>
+
+        <Skyline
+          label="Fjöllin átta sem sjást frá Rangársléttu"
+          peaks={MOUNTAINS.map((m, i) => ({ name: m.name, rise: SKY[i % SKY.length] }))}
+        />
 
         {/* 7 · documents */}
         <section id="hk-docs" className="hk-sec hk-pad" style={{ background: BAND }}>
