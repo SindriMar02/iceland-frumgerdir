@@ -395,11 +395,15 @@ export default function FossatunPage() {
               </div>
               <div className="fst-split__media">
                 <figure className="fst-figure">
-                  <img
-                    src={IMG('rocknroll-mark.jpg')}
-                    alt="Merki Rock ’n’ Troll, vínylplata með tröllsandliti"
-                    loading="lazy"
-                  />
+                  <div className="fst-frame" style={{ aspectRatio: '700 / 388' }}>
+                    <div className="fst-frame-in" data-drift="8">
+                      <img
+                        src={IMG('rocknroll-mark.jpg')}
+                        alt="Merki Rock ’n’ Troll, vínylplata með tröllsandliti"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
                 </figure>
               </div>
             </div>

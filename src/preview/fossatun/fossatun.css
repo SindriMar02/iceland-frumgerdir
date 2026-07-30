@@ -336,6 +336,11 @@
 .fst-cta:disabled { opacity: .45; cursor: not-allowed; }
 .fst-cta--ghost { background: none; color: var(--fst-ink); box-shadow: inset 0 0 0 1px var(--fst-rule); }
 .fst-cta--ghost:hover { background: var(--fst-season-wash); color: var(--fst-ink); }
+/* `.fst-root a { color: inherit }` outranks a bare `.fst-cta` on specificity,
+   so the one <a class="fst-cta"> on the page (the owner-dashboard link) was
+   rendering ink-on-ink: a solid box with its own label invisible on top of
+   it. Anchors also carry a default underline no button ever has to fight. */
+.fst-root a.fst-cta { color: var(--fst-stone); text-decoration: none; }
 
 .fst-note { font-size: 13.5px; color: var(--fst-soft); margin-top: 10px; }
 .fst-sample {
