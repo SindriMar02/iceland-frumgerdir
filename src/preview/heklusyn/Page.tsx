@@ -6,6 +6,7 @@ import { getPreviewCompany } from '../companies'
 import { HouseList, HOUSE_LIST_CSS } from './HouseList'
 import { Preloader, PRELOADER_CSS } from './Preloader'
 import { Herragardur, HERRAGARDUR_CSS } from './Herragardur'
+import { MobileNav, MOBILE_NAV_CSS } from './MobileNav'
 import type { HouseShot } from './HouseList'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, COMPANY_LINE, COMPANY_ADDRESS,
@@ -170,16 +171,23 @@ const CSS = `
   font-size:clamp(.92rem,1.35vw,1.15rem);min-height:44px;transition:color .3s ${EASE}}
 
 /* enquiry */
-.hk-field{display:block;border:0;border-bottom:1px solid ${RULE};background:none;width:100%;
-  padding:.85rem 0;font:inherit;font-size:1.05rem;color:${INK};border-radius:0}
+/* min-height:44px is the real tap-target floor (measured 21.5-24px before this,
+   on a mobile audit — the underline look stays, the box just gets tall enough
+   to tap reliably). */
+.hk-field{display:block;box-sizing:border-box;min-height:44px;border:0;border-bottom:1px solid ${RULE};
+  background:none;width:100%;padding:.85rem 0;font:inherit;font-size:1.05rem;color:${INK};border-radius:0}
 .hk-field:focus{outline:none;border-bottom-color:${INK}}
 .hk-lab{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:${MUTED}}
-.hk-send{display:inline-block;margin-top:1.8rem;font-size:clamp(1.1rem,2vw,1.5rem);color:${INK};
-  text-decoration:none;border-bottom:1px solid ${INK};padding-bottom:.1em}
+/* .hk-send measured 29px tall — an invisible hit-slop grows the tap target to
+   44px without visually bulking up a text link that's supposed to read light. */
+.hk-send{display:inline-block;position:relative;margin-top:1.8rem;font-size:clamp(1.1rem,2vw,1.5rem);
+  color:${INK};text-decoration:none;border-bottom:1px solid ${INK};padding-bottom:.1em}
+.hk-send::before{content:'';position:absolute;inset:-10px -6px}
 .hk-send:hover{opacity:.6}
 ${HOUSE_LIST_CSS}
 ${PRELOADER_CSS}
 ${HERRAGARDUR_CSS}
+${MOBILE_NAV_CSS}
 `
 
 /* ── text that rises out of a mask ─────────────────────────────────────── */
@@ -214,6 +222,7 @@ export default function HeklusynPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [inkChrome, setInkChrome] = useState(false)
   const inkRef = useRef(false)
+  const lenisRef = useRef<Lenis | null>(null)
   const [form, setForm] = useState({ name: '', email: '', house: ENQUIRY_HOUSES[0] })
 
   useEffect(() => { document.title = 'Heklusýn · Tólf hús á fimmtíu hekturum' }, [])
@@ -276,6 +285,7 @@ export default function HeklusynPage() {
     let raf = 0
     if (!reduced) {
       lenis = new Lenis({ lerp: 0.09, smoothWheel: true })
+      lenisRef.current = lenis
       const loop = (t: number) => { lenis?.raf(t); onScroll(); raf = requestAnimationFrame(loop) }
       raf = requestAnimationFrame(loop)
     } else {
@@ -289,6 +299,7 @@ export default function HeklusynPage() {
       io.disconnect()
       cancelAnimationFrame(raf)
       lenis?.destroy()
+      lenisRef.current = null
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
       root.classList.remove('hk-js')
@@ -318,6 +329,7 @@ export default function HeklusynPage() {
             <a key={n.id} href={`#${n.id}`}>{n.label}{i < NAV.length - 1 ? ',' : ''}</a>
           ))}
         </nav>
+        <MobileNav items={NAV} lenisRef={lenisRef} />
       </header>
 
       <main id="hk-top">
