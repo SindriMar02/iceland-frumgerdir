@@ -530,6 +530,15 @@ export default function TannlaeknavaktinPage() {
         .tlv-row { transition: background-color .25s ease; }
         .tlv-row:hover { background: rgba(42,33,28,.035); }
 
+        /* Live dot on the hero status plate. Only ever runs while the clinic
+           is actually open, so the motion means something. GREEN is #3A6B4A. */
+        @keyframes tlv-dot-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(58,107,74,.5) }
+          70%      { box-shadow: 0 0 0 8px rgba(58,107,74,0) }
+        }
+        .tlv-pulse-dot { animation: tlv-dot-glow 2.6s ease-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .tlv-pulse-dot { animation: none } }
+
         /* Header call pill and hairline burger. The burger's bars are animated
            from the class, never inline, so an inline transition cannot clobber
            the shorthand (ledger #81). */
@@ -649,46 +658,80 @@ export default function TannlaeknavaktinPage() {
           {/* ── 00 · HERO ────────────────────────────────────────────────
               Media and type in one grid cell, per the reference. The relief
               portrait is the hero, not a plate halfway down the page. */}
-          <section className="tlv-bleed" style={{ minHeight: 'min(88svh, 860px)' }}>
+          <section className="tlv-bleed" style={{ minHeight: 'min(88svh, 880px)' }}>
             <Frame src={IMG.relief} alt="Manneskja við bjartan glugga, róleg eftir að verkur er liðinn hjá." ratio="auto" drift={6} priority className="h-full" />
-            <div style={{ background: 'linear-gradient(100deg, rgba(247,242,234,.96) 0%, rgba(247,242,234,.86) 42%, rgba(247,242,234,.22) 78%)' }} />
+            {/* Scrim eases off sooner so the photograph is actually legible on
+                the right instead of being washed to near-solid cream. */}
+            <div style={{ background: 'linear-gradient(100deg, rgba(247,242,234,.97) 0%, rgba(247,242,234,.9) 34%, rgba(247,242,234,.35) 64%, rgba(247,242,234,0) 92%)' }} />
             <div className="mx-auto flex w-full max-w-[1240px] flex-col justify-center px-5 py-16 sm:px-8">
               <Eyebrow>Bráðaþjónusta vegna tannlækninga í Reykjavík</Eyebrow>
-              <div className="mt-5 flex items-center gap-3">
-                <span className="inline-block shrink-0 rounded-full" style={{ width: 10, height: 10, background: status.open ? GREEN : 'rgba(42,33,28,.4)' }} aria-hidden="true" />
-                <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.1em', color: status.open ? GREEN : 'rgba(42,33,28,.5)' }}>
-                  {status.open ? (status.onCall ? 'OPIÐ · TANNLÆKNIR Á BAKVAKT' : 'OPIÐ NÚNA') : 'LOKAÐ NÚNA'}
-                </span>
-              </div>
-              <h1 className="mt-6" style={{ margin: 0 }}>
+              <h1 className="mt-7" style={{ margin: 0 }}>
                 <Headline text="Verkurinn hættir í dag." size={112} measure={860} />
               </h1>
-              <p className="mt-8 max-w-[42ch]" style={{ fontSize: 'calc(var(--u) * 21)', lineHeight: 1.5, color: 'rgba(42,33,28,.72)' }}>
-                {status.open ? (
-                  <>Við lokum klukkan <strong style={{ color: INK, fontWeight: 600 }}>{status.closesAt}</strong> í dag.{' '}
-                    {status.onCall ? 'Tannlæknir er á bakvakt. Um kvöld og helgar er 45.590 kr. álag á verðskrána.' : 'Hringdu og fáðu tíma.'}</>
-                ) : (
-                  <>Við opnum klukkan <strong style={{ color: INK, fontWeight: 600 }}>{status.opensAt}</strong> {status.opensLabel}. Í neyðartilvikum er bent á að hafa samband við <strong style={{ color: INK, fontWeight: 600 }}>112</strong>.</>
-                )}
-              </p>
-              <div className="mt-9 flex flex-wrap items-center gap-3">
-                <a href={PHONE_HREF} className={`inline-flex items-center rounded-full ${FOCUS}`}
-                  style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: 'calc(var(--u) * 19)', padding: '17px 32px', minHeight: 56 }}>
-                  Hringja í {PHONE_DISPLAY}
-                </a>
-                <a href="#spyrja" className={`inline-flex items-center rounded-full ${FOCUS}`}
-                  style={{ border: '1px solid rgba(42,33,28,.2)', fontFamily: SANS, fontSize: 'calc(var(--u) * 17)', padding: '16px 26px', minHeight: 56 }}>
-                  Spyrja vaktina
-                </a>
-              </div>
-              <div className="mt-12 max-w-[520px]" aria-hidden="true">
-                <div className="flex items-baseline justify-between" style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(42,33,28,.5)' }}>
-                  <span>{hhmm(status.today.open)}</span>
-                  <span style={{ color: status.open ? GREEN : 'inherit' }}>{status.clock}</span>
-                  <span>{hhmm(status.today.close)}</span>
+
+              {/* THE STATUS PLATE.
+                  The old hero said the same thing three times: a dot-and-label,
+                  a sentence, and a progress bar. Worse, the bar lied when shut —
+                  progress clamps to 1 outside opening hours, and the three
+                  labels are justify-between, so at 23:12 it drew a FULL bar with
+                  "23:12" sitting midway between 08:00 and 22:00.
+
+                  One object now. The bar only exists while open, and it marks
+                  the current moment instead of filling, so it cannot imply a
+                  position it does not have. Knowing whether you can come RIGHT
+                  NOW is the one thing this clinic's page must answer, so it is
+                  built as the signature device rather than a footnote. */}
+              <div className="mt-10 max-w-[560px] rounded-2xl p-6 sm:p-7"
+                style={{ background: 'rgba(247,242,234,.72)', border: '1px solid rgba(42,33,28,.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+                <div className="flex items-center gap-3">
+                  <span aria-hidden="true" className={`inline-block shrink-0 rounded-full ${status.open ? 'tlv-pulse-dot' : ''}`}
+                    style={{ width: 9, height: 9, background: status.open ? GREEN : 'rgba(42,33,28,.38)' }} />
+                  <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '.15em', color: status.open ? GREEN : 'rgba(42,33,28,.55)' }}>
+                    {status.open ? (status.onCall ? 'Opið · tannlæknir á bakvakt' : 'Opið núna') : 'Lokað núna'}
+                  </span>
+                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(42,33,28,.5)', fontVariantNumeric: 'tabular-nums' }}>
+                    {status.clock}
+                  </span>
                 </div>
-                <div className="relative mt-2 h-[2px] w-full rounded-full" style={{ background: 'rgba(42,33,28,.16)' }}>
-                  <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${status.progress * 100}%`, background: status.open ? GREEN : 'rgba(42,33,28,.4)', transition: 'width 1s linear' }} />
+
+                {status.open ? (
+                  <>
+                    <div className="mt-5" aria-hidden="true">
+                      <div className="relative h-[3px] w-full rounded-full" style={{ background: 'rgba(42,33,28,.14)' }}>
+                        <span className="absolute top-1/2 rounded-full"
+                          style={{ left: `${status.progress * 100}%`, width: 9, height: 9, background: GREEN, transform: 'translate(-50%,-50%)', transition: 'left 1s linear' }} />
+                      </div>
+                      <div className="mt-2.5 flex justify-between" style={{ fontFamily: MONO, fontSize: 10.5, color: 'rgba(42,33,28,.45)' }}>
+                        <span>{hhmm(status.today.open)}</span>
+                        <span>{hhmm(status.today.close)}</span>
+                      </div>
+                    </div>
+                    <p className="mt-5" style={{ fontSize: 'calc(var(--u) * 18)', lineHeight: 1.55, color: 'rgba(42,33,28,.75)' }}>
+                      Við lokum klukkan <strong style={{ color: INK, fontWeight: 600 }}>{status.closesAt}</strong> í dag.{' '}
+                      {status.onCall ? 'Um kvöld og helgar er 45.590 kr. álag á verðskrána.' : 'Hringdu og fáðu tíma.'}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-4" style={{ fontSize: 'calc(var(--u) * 18)', lineHeight: 1.55, color: 'rgba(42,33,28,.75)' }}>
+                    Við opnum klukkan <strong style={{ color: INK, fontWeight: 600 }}>{status.opensAt}</strong> {status.opensLabel}.{' '}
+                    Í neyðartilvikum er bent á að hafa samband við <strong style={{ color: INK, fontWeight: 600 }}>112</strong>.
+                  </p>
+                )}
+
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <a href={PHONE_HREF} className={`tlv-call inline-flex items-center gap-2.5 rounded-full ${FOCUS}`}
+                    style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: 'calc(var(--u) * 18)', letterSpacing: '-.01em', padding: '15px 28px', minHeight: 54 }}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style={{ display: 'block' }}>
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
+                        fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Hringja í {PHONE_DISPLAY}
+                  </a>
+                  <button type="button" onClick={() => askOpen()}
+                    className={`tlv-link inline-flex items-center ${FOCUS}`}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 'calc(var(--u) * 17)', color: 'rgba(42,33,28,.72)', minHeight: 54, padding: '0 4px' }}>
+                    Spyrja vaktina
+                  </button>
                 </div>
               </div>
             </div>

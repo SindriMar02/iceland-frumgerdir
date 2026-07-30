@@ -1,35 +1,39 @@
 /**
- * FOSSATÚN — "Sagan af tröllunum og plötusafnaranum"
+ * FOSSATÚN — built against reveriesafaris.com, MEASURED not eyeballed.
  * ---------------------------------------------------------------------------
- * THE STORY, stated first because the previous build had none: a man who spent
- * his life in the record business found a rock shaped like a troll's face by a
- * waterfall, wrote folk tales about it, built a troll trail around it, and put
- * his vinyl collection in the restaurant. You sleep in a wooden pod under the
- * aurora and eat cake served on a record. That is the page.
+ * The first attempt claimed to transplant this reference and did not. Running
+ * the same probe over both pages is what showed it:
  *
- * REFERENCE: reveriesafaris.com, chosen by Sindri. Its devices were read out of
- * its own DOM, not guessed from a screenshot:
- *   · one very light editorial serif carries every heading, never bold
- *   · full-bleed photography IS the structure, not decoration between text
- *   · a centred intro (eyebrow / heading / one lede / one text link) opens a
- *     collection, then a horizontal rail of tall images
- *   · sticky photograph beside scrolling copy
- *   · appear-only motion. It is a Framer site: no GSAP, no Lenis, and its
- *     images carry no transforms at all. So nothing here is scrubbed either.
+ *                         Reverie      first attempt     target here
+ *   image area / viewport   0.906          0.367            >= 0.80
+ *   images                    84             15               >= 40
+ *   h1 / h2 / h3 px         42/32/26      90/58/27          42/34/24
+ *   headings centred        27 of 49       4 of 12          majority
+ *   tables                     0              1                 0
  *
- * WHY IT CAN WORK HERE, which I got wrong once: I said Fossatún had no room
- * photography and that a photo-led direction would lose. That was true of their
- * public PAGES and false of their MEDIA LIBRARY, which holds 295 assets — a
- * professional shoot including their camping pod under a full aurora, the hotel
- * under northern lights in snow, pod interiors, the glass conservatory hanging
- * over the falls, the gold records on the wall, and food plated on vinyl.
- * Harvest the archive before declaring an asset does not exist.
+ * The single number that matters is the first one. Reverie gives roughly a
+ * whole viewport of photography for every viewport you scroll; the first pass
+ * gave a third of that, which is why it read as a text page with pictures in
+ * it rather than a picture page with words on it. Everything below follows
+ * from fixing that: bigger pictures, more of them, smaller type, centred
+ * section intros, and no bullet lists or tables anywhere.
  *
- * The booking prototype and the owner dashboard are unchanged: they work, and
- * they were never the problem.
+ * DEVICES taken from the reference's own DOM (it is a Framer site: no GSAP, no
+ * Lenis, no transforms on its images, so nothing here is scrubbed either):
+ *   · one light editorial serif on every heading, never bold
+ *   · full-bleed photography as the structure itself
+ *   · centred intro (eyebrow / heading / one lede / one text link) opening a
+ *     collection, then a rail of tall images
+ *   · a photograph that sticks while copy scrolls past it
+ *   · a single deep dark chapter (theirs is forest green rgb(30,57,43))
+ *   · appear-only motion
+ *
+ * The photography is entirely Fossatún's own, harvested from their WordPress
+ * media library: 295 assets, including a professional shoot that never made it
+ * onto their public pages.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -42,22 +46,13 @@ import {
 
 const IMG = (f: string) => `${import.meta.env.BASE_URL}fossatun/img/${f}`
 
-/**
- * Appear-only reveals, the way the reference does them.
- *
- * Two rules learned the hard way: anything already on screen at mount is shown
- * immediately, because an element that never crosses the viewport boundary
- * never fires an observer; and a timeout failsafe force-shows the rest, gated
- * on position so it cannot wipe out the choreography for someone scrolling.
- */
+/** Appear-only reveals. Anything already on screen at mount is shown at once —
+ *  an element that never crosses the viewport edge never fires an observer. */
 function useReveal() {
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>('.fst-rv'))
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    if (reduced || !els.length) {
-      els.forEach((el) => el.classList.add('is-in'))
-      return
-    }
+    if (reduced || !els.length) { els.forEach((el) => el.classList.add('is-in')); return }
     const vh = window.innerHeight
     const waiting: HTMLElement[] = []
     els.forEach((el) => {
@@ -68,10 +63,9 @@ function useReveal() {
       (entries) => entries.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target) }
       }),
-      { threshold: 0.08, rootMargin: '0px 0px -5% 0px' },
+      { threshold: 0.06, rootMargin: '0px 0px -4% 0px' },
     )
     waiting.forEach((el) => io.observe(el))
-    // failsafe: only force-show what should already be on screen, never the lot
     const t = window.setTimeout(() => {
       waiting.forEach((el) => {
         if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
@@ -81,18 +75,14 @@ function useReveal() {
   }, [])
 }
 
-/**
- * Photographs drift inside a fixed frame instead of travelling with the page.
- * Every getBoundingClientRect() happens before any style write; interleaving
- * them forces a synchronous layout per element and pins the main thread.
- */
+/** Photographs drift inside a fixed frame. Every read happens before any write;
+ *  interleaving them forces one synchronous layout per element. */
 function useImageDrift() {
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const items = Array.from(document.querySelectorAll<HTMLElement>('.fst-frame-in'))
     if (!items.length) return
     let ticking = false
-
     const update = () => {
       ticking = false
       const vh = window.innerHeight
@@ -108,7 +98,6 @@ function useImageDrift() {
       }
       for (const [el, t] of writes) el.style.transform = t
     }
-
     const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update) } }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', update, { passive: true })
@@ -120,16 +109,33 @@ function useImageDrift() {
   }, [])
 }
 
+/** A photograph at full measure. This component exists so image blocks are
+ *  large by default — the reference's density is impossible with thumbnails. */
+function Shot({
+  src, alt, ratio, drift = 8, caption, eager = false,
+}: {
+  src: string; alt: string; ratio: string; drift?: number; caption?: string; eager?: boolean
+}) {
+  return (
+    <figure className="fst-wide">
+      <div className="fst-frame" style={{ aspectRatio: ratio }}>
+        <div className="fst-frame-in" data-drift={String(drift)}>
+          <img src={IMG(src)} alt={alt} loading={eager ? 'eager' : 'lazy'} />
+        </div>
+      </div>
+      {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+  )
+}
+
 export default function FossatunPage() {
   useReveal()
   useImageDrift()
   const [month, setMonth] = useState(7)
-  const bookRef = useRef<HTMLDivElement>(null)
-
   const state = YEAR[month - 1]
 
   useEffect(() => {
-    setThemeColor('#0a121f')
+    setThemeColor('#16241c')
     const prevTitle = document.title
     document.title = 'Fossatún · Sveitahótel, Tröllagarður og Rock ’n’ Troll í Borgarfirði'
     const meta = document.createElement('meta')
@@ -154,27 +160,26 @@ export default function FossatunPage() {
     <div className="fst-root">
       <PreviewChrome company={FOSSATUN_ENTRY} />
 
-      {/* ── header ─────────────────────────────────────────────────────── */}
       <header
         style={{
           position: 'absolute', insetInline: 0, top: 0, zIndex: 30,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: 16, padding: '22px clamp(20px,5vw,76px)', color: '#f6f2e8',
+          gap: 16, padding: '24px clamp(20px,5vw,76px)', color: '#f6f2e8',
         }}
       >
         <span
           className="fst-disp"
-          style={{ fontSize: 25, fontWeight: 300, letterSpacing: '.14em', textTransform: 'uppercase' }}
+          style={{ fontSize: 20, fontWeight: 300, letterSpacing: '.2em', textTransform: 'uppercase' }}
         >
           Fossatún
         </span>
-        <nav style={{ display: 'flex', gap: 22, alignItems: 'center', fontSize: 13.5, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+        <nav style={{ display: 'flex', gap: 24, alignItems: 'center', fontSize: 12.5, letterSpacing: '.16em', textTransform: 'uppercase' }}>
           <a href="#bokun" style={{ textDecoration: 'none', fontWeight: 560 }}>Bóka</a>
           <a href={PHONE_HREF} style={{ textDecoration: 'none', fontWeight: 560 }}>{PHONE_DISPLAY}</a>
         </nav>
       </header>
 
-      {/* ── hero: their pod under the aurora ───────────────────────────── */}
+      {/* ── hero ───────────────────────────────────────────────────────── */}
       <section className="fst-hero" aria-label="Fossatún">
         <div className="fst-hero__media">
           <img
@@ -197,48 +202,49 @@ export default function FossatunPage() {
       </section>
 
       <main>
-        {/* ── the thesis ───────────────────────────────────────────────── */}
-        <section className="fst-sec">
+        {/* ── opening statement, then a big picture ───────────────────── */}
+        <section className="fst-sec fst-sec--tight">
           <div className="fst-wrap">
-            <div className="fst-split">
-              <div className="fst-split__copy fst-rv">
-                <p className="fst-eyebrow">Staðurinn</p>
-                <h2>Einn bær, fjórir heimar</h2>
-                <p className="fst-lede" style={{ marginTop: 22 }}>
-                  Fossatún stendur við Tröllafossa í Grímsá, klukkutíma frá Reykjavík. Hér er
-                  sveitahótel, camping pods, sumarhús, tjaldsvæði, gönguleið full af tröllum og
-                  veitingastaður sem heitir eftir plötusafni eigandans.
-                </p>
-                <p>
-                  Það er óvenjulegt að finna þetta allt á sama hlaðinu, og það er ástæðan fyrir
-                  því að fólk kemur aftur. Þú getur gist eina nótt á leiðinni vestur, eða verið
-                  í viku og gengið sömu leiðina á hverjum degi.
-                </p>
-                <p style={{ marginTop: 26 }}>
-                  <a className="fst-textlink" href="#bokun">Sjá lausar nætur</a>
-                </p>
-              </div>
-              <div className="fst-split__sticky fst-rv" data-d="1">
-                <figure>
-                  <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
-                    <div className="fst-frame-in" data-drift="7">
-                      <img src={IMG('falls-trollafossar.jpg')} alt="Tröllafossar í Grímsá, hvítfyssandi vatn milli klettanna" loading="lazy" />
-                    </div>
-                  </div>
-                  <figcaption>Tröllafossar, steinsnar frá húsinu.</figcaption>
-                </figure>
-              </div>
+            <div className="fst-intro fst-rv">
+              <p className="fst-eyebrow">Staðurinn</p>
+              <h2>Einn bær, fjórir heimar</h2>
+              <p className="fst-lede" style={{ marginTop: 16 }}>
+                Sveitahótel, camping pods, sumarhús og tjaldsvæði við Tröllafossa í Grímsá,
+                klukkutíma frá Reykjavík. Gönguleið full af tröllum og veitingastaður sem
+                heitir eftir plötusafni eigandans.
+              </p>
+              <p style={{ marginTop: 22 }}>
+                <a className="fst-textlink" href="#bokun">Sjá lausar nætur</a>
+              </p>
             </div>
+          </div>
+          <div className="fst-wrap fst-rv">
+            <Shot src="falls-trollafossar.jpg" ratio="21 / 9" drift={6}
+              alt="Tröllafossar í Grímsá, hvítfyssandi vatn milli klettanna" />
           </div>
         </section>
 
-        {/* ── the stay, as a rail ──────────────────────────────────────── */}
+        {/* ── full bleed ─────────────────────────────────────────────── */}
+        <section className="fst-bleed" aria-label="Norðurljós yfir dalnum">
+          <div className="fst-frame" style={{ position: 'absolute', inset: 0 }}>
+            <div className="fst-frame-in" data-drift="6">
+              <img src={IMG('aurora-valley.jpg')} alt="Norðurljós yfir dalnum við Fossatún" loading="lazy" />
+            </div>
+          </div>
+          <div className="fst-bleed__scrim" aria-hidden="true" />
+          <div className="fst-bleed__body fst-wrap">
+            <p className="fst-eyebrow">Febrúar til nóvember</p>
+            <h2>Ljósin koma þegar húsið er þegar sofnað</h2>
+          </div>
+        </section>
+
+        {/* ── the stay ───────────────────────────────────────────────── */}
         <section className="fst-sec fst-sec--tight" id="gisting">
           <div className="fst-wrap">
             <div className="fst-intro fst-rv">
               <p className="fst-eyebrow">Gisting</p>
               <h2>Fjórar gerðir, sama túnið</h2>
-              <p className="fst-lede" style={{ marginTop: 18 }}>
+              <p className="fst-lede" style={{ marginTop: 16 }}>
                 Frá tjaldstæði við ána upp í herbergi með sérbaðherbergi. Veldu mánuð og sjáðu
                 hvað er opið þá.
               </p>
@@ -249,9 +255,7 @@ export default function FossatunPage() {
             <div className="fst-year__inner fst-wrap">
               {YEAR.map((m) => (
                 <button
-                  key={m.n}
-                  type="button"
-                  className="fst-month"
+                  key={m.n} type="button" className="fst-month"
                   aria-pressed={m.n === month}
                   data-shut={!m.open || undefined}
                   onClick={() => setMonth(m.n)}
@@ -262,11 +266,9 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          {/* The reveal lives on the RAIL, never on the cards. A card scrolled out
-              of view horizontally never intersects the viewport, so a per-card
-              observer leaves the last two stuck at opacity 0 with their lazy
-              images unloaded — on mobile you swipe across and hit blank cards. */}
-          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(26px,4vw,44px)' }}>
+          {/* the rail is IMAGES. One title, one line. No bullet lists — the
+              reference never puts a spec sheet under a picture. */}
+          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(24px,3.5vw,42px)' }}>
             {openStays.map((s) => (
               <article key={s.id} className="fst-stay" data-off={!s.on || undefined}>
                 <div className="fst-stay__fig">
@@ -277,7 +279,6 @@ export default function FossatunPage() {
                   <span className="fst-stay__count">{s.count}</span>
                 </div>
                 <p>{s.blurb}</p>
-                {s.facts.length > 0 && <ul>{s.facts.map((f) => <li key={f}>{f}</li>)}</ul>}
                 {!s.on && (
                   <p className="fst-stay__off">
                     {state.open ? `Ekki í boði í ${state.name}` : `Lokað í ${state.name}`}
@@ -286,10 +287,42 @@ export default function FossatunPage() {
               </article>
             ))}
           </div>
+
+          <div className="fst-wrap" style={{ marginTop: 'clamp(22px,3vw,40px)' }}>
+            <div className="fst-duo fst-rv">
+              <Shot src="pod-aurora-2.jpg" ratio="5 / 4" drift={9}
+                alt="Camping pod að utan að næturlagi undir norðurljósum" />
+              <Shot src="pod-interior-2.jpg" ratio="5 / 4" drift={7}
+                alt="Innan í camping pod, viðarklædd hvelfing með rúmi og borði" />
+            </div>
+          </div>
+
+          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+            <div className="fst-duo fst-rv">
+              <Shot src="cabins-snow.jpg" ratio="5 / 4" drift={8}
+                alt="Röð af gulum húsum með rauðu þaki í snjó, fjöll í baksýn" />
+              <Shot src="pods-summer.jpg" ratio="5 / 4" drift={10}
+                alt="Camping pods í sumarbirtu með birkitrjám og fjalli að baki" />
+            </div>
+          </div>
+
+          {/* rooms, as pictures rather than a spec list */}
+          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+            {[
+              ['hotel-room-2.jpg', 'Tveggja manna herbergi á sveitahótelinu'],
+              ['pod-interior-3.jpg', 'Rúm og borð inni í camping pod'],
+              ['cottage-sun.jpg', 'Sunset Cottage í kvöldsól'],
+              ['cottage-interior.jpg', 'Eldhúskrókur og borðstofa í Sunset Cottage'],
+            ].map(([f, a]) => (
+              <div key={f} className="fst-stay">
+                <div className="fst-stay__fig"><img src={IMG(f)} alt={a} loading="lazy" /></div>
+              </div>
+            ))}
+          </div>
         </section>
 
-        {/* ── chapter break: the hotel under the aurora ────────────────── */}
-        <section className="fst-bleed" aria-label="Norðurljós yfir Fossatúni">
+        {/* ── full bleed ─────────────────────────────────────────────── */}
+        <section className="fst-bleed" aria-label="Sveitahótelið undir norðurljósum">
           <div className="fst-frame" style={{ position: 'absolute', inset: 0 }}>
             <div className="fst-frame-in" data-drift="6">
               <img src={IMG('hotel-aurora-snow.jpg')} alt="Sveitahótelið í Fossatúni í snjó undir norðurljósum" loading="lazy" />
@@ -297,140 +330,155 @@ export default function FossatunPage() {
           </div>
           <div className="fst-bleed__scrim" aria-hidden="true" />
           <div className="fst-bleed__body fst-wrap">
-            <p className="fst-eyebrow">Febrúar til nóvember</p>
-            <h2>Ljósin koma þegar húsið er þegar sofnað</h2>
-            <p>
-              Fossatún er opið allt árið nema í desember og janúar. Það stendur hér vegna þess að
-              gestur á ekki að komast að því fyrst þegar hann er byrjaður að bóka.
-            </p>
+            <p className="fst-eyebrow">Opið allt árið nema í desember og janúar</p>
+            <h2>Vetrarnóttin er hluti af gistingunni</h2>
           </div>
         </section>
 
-        {/* ── the troll garden ─────────────────────────────────────────── */}
-        <section className="fst-sec" id="trollagardurinn">
-          <div className="fst-wrap">
-            <div className="fst-split fst-split--flip">
-              <div className="fst-split__sticky fst-rv">
-                <figure>
-                  <div className="fst-frame" style={{ aspectRatio: '4 / 5' }}>
-                    <div className="fst-frame-in" data-drift="9">
-                      <img src={IMG('troll-head-falls.jpg')} alt="Steypt tröllshöfuð við Tröllafossa með hótelið í baksýn" loading="lazy" />
-                    </div>
-                  </div>
-                  <figcaption>Tröllshöfuðið við fossana.</figcaption>
-                </figure>
-              </div>
-              <div className="fst-split__copy fst-rv" data-d="1">
-                <p className="fst-eyebrow">Tröllagarðurinn</p>
-                <h2>Það byrjaði á kletti</h2>
-                <p className="fst-lede" style={{ marginTop: 22 }}>{TROLL.origin}</p>
-                <p>
-                  Síðan urðu til bækurnar, og í kjölfarið gönguleiðin: tröll úr steypu og timbri
-                  á víð og dreif um túnið, þrautir fyrir börn og stafaþraut sem enginn gengur
-                  framhjá án þess að snúa.
-                </p>
-                <p><strong>{trailLine}</strong><br />{TROLL.admissionNote}</p>
-                <p className="fst-note">{TROLL.creditNote}</p>
-                <p className="fst-note" style={{ marginTop: -4 }}>{TROLL.soldWhere}</p>
-              </div>
-            </div>
-
-            <div className="fst-grid" style={{ marginTop: 'clamp(30px,5vw,58px)' }}>
-              <figure className="fst-rv">
-                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
-                  <div className="fst-frame-in" data-drift="8">
-                    <img src={IMG('troll-words-sign.jpg')} alt="Stafaþrautin í Tröllagarðinum, útskornir viðarkubbar á snúningsásum" loading="lazy" />
-                  </div>
-                </div>
-              </figure>
-              <figure className="fst-rv" data-d="1">
-                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
-                  <div className="fst-frame-in" data-drift="11">
-                    <img src={IMG('troll-cauldron.jpg')} alt="Tröllskessa með pott við gönguleiðina" loading="lazy" />
-                  </div>
-                </div>
-              </figure>
-              <figure className="fst-rv" data-d="2">
-                <div className="fst-frame" style={{ aspectRatio: '4 / 3' }}>
-                  <div className="fst-frame-in" data-drift="9">
-                    <img src={IMG('troll-tug.jpg')} alt="Gestir í reiptogi við tröllaþrautina á túninu" loading="lazy" />
-                  </div>
-                </div>
-              </figure>
-            </div>
-          </div>
-        </section>
-
-        {/* ── the record man: the night chapter ────────────────────────── */}
-        <section className="fst-sec fst-night" id="rocknroll">
+        {/* ── the troll garden ───────────────────────────────────────── */}
+        <section className="fst-sec fst-sec--tight" id="trollagardurinn">
           <div className="fst-wrap">
             <div className="fst-intro fst-rv">
-              <p className="fst-eyebrow">Rock ’n’ Troll</p>
-              <h2>Veitingastaður með plötusafn</h2>
-              <p className="fst-lede" style={{ marginTop: 18 }}>{MUSIC.blurb}</p>
+              <p className="fst-eyebrow">Tröllagarðurinn</p>
+              <h2>Það byrjaði á kletti</h2>
+              <p className="fst-lede" style={{ marginTop: 16 }}>{TROLL.origin}</p>
             </div>
+          </div>
 
-            <div className="fst-split" style={{ marginTop: 'clamp(24px,4vw,52px)' }}>
-              <div className="fst-split__copy fst-rv">
-                <p>
-                  Steinar Berg starfaði alla sína tíð í tónlist áður en hann byggði upp Fossatún.
-                  Gullplöturnar á veggnum eru hans eigin, og safnið í hillunum er ekki skraut
-                  heldur plötur sem eru settar á fóninn.
-                </p>
-                <p>{MUSIC.award}</p>
-                <p className="fst-note">Heimild: {MUSIC.awardSourceLabel}</p>
-                <p style={{ marginTop: 26 }}>
-                  <a className="fst-textlink" href="#bokun">Bóka borð og nótt</a>
-                </p>
-              </div>
-              <div className="fst-split__sticky fst-rv" data-d="1">
-                <figure>
-                  <div className="fst-frame" style={{ aspectRatio: '3 / 2' }}>
-                    <div className="fst-frame-in" data-drift="7">
-                      <img src={IMG('gold-records.jpg')} alt="Gullplötur í römmum á vegg veitingastaðarins" loading="lazy" />
-                    </div>
-                  </div>
-                  <figcaption>Gullplöturnar hanga í matsalnum.</figcaption>
-                </figure>
-              </div>
-            </div>
+          <div className="fst-wrap fst-rv">
+            <Shot src="troll-head-falls.jpg" ratio="21 / 9" drift={7}
+              alt="Steypt tröllshöfuð við Tröllafossa með hótelið í baksýn"
+              caption="Tröllshöfuðið við fossana." />
+          </div>
 
-            <div className="fst-grid" style={{ marginTop: 'clamp(28px,4vw,54px)' }}>
-              <figure className="fst-rv">
-                <div className="fst-frame" style={{ aspectRatio: '1 / 1' }}>
-                  <div className="fst-frame-in" data-drift="8">
-                    <img src={IMG('cake-on-vinyl.jpg')} alt="Kaka borin fram á vínylplötu í stað disks" loading="lazy" />
-                  </div>
-                </div>
-                <figcaption>Kakan kemur á plötu. Það er ekki uppstilling, það er diskurinn.</figcaption>
-              </figure>
-              <figure className="fst-rv" data-d="1">
-                <div className="fst-frame" style={{ aspectRatio: '1 / 1' }}>
-                  <div className="fst-frame-in" data-drift="10">
-                    <img src={IMG('vinyl-lounge-wide.jpg')} alt="Setustofan með plötusafninu, leðurstólar og hillur fullar af vínyl" loading="lazy" />
-                  </div>
-                </div>
-                <figcaption>Setustofan, þar sem safnið stendur.</figcaption>
-              </figure>
-              <figure className="fst-rv" data-d="2">
-                <div className="fst-frame" style={{ aspectRatio: '1 / 1' }}>
-                  <div className="fst-frame-in" data-drift="7">
-                    <img src={IMG('conservatory-falls.jpg')} alt="Glerskálinn á veitingastaðnum með útsýni beint yfir Tröllafossa" loading="lazy" />
-                  </div>
-                </div>
-                <figcaption>Glerskálinn hangir yfir fossunum.</figcaption>
-              </figure>
+          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+            <div className="fst-duo fst-rv">
+              <Shot src="troll-cauldron.jpg" ratio="5 / 4" drift={9}
+                alt="Tröllskessa með pott við gönguleiðina" />
+              <Shot src="troll-words-sign.jpg" ratio="5 / 4" drift={7}
+                alt="Stafaþrautin í Tröllagarðinum, útskornir viðarkubbar á snúningsásum" />
             </div>
+          </div>
+
+          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+            <div className="fst-duo fst-rv">
+              <Shot src="troll-tug.jpg" ratio="5 / 4" drift={8}
+                alt="Gestir í reiptogi við tröllaþrautina á túninu" />
+              <Shot src="troll-kick.jpg" ratio="5 / 4" drift={10}
+                alt="Barn að leik við tröllaskiltið í garðinum" />
+            </div>
+          </div>
+
+          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+            {[
+              ['troll-play.jpg', 'Tröllaleikir á túninu við gönguleiðina'],
+              ['troll-clay.jpg', 'Útskorið tröllshöfuð við ána'],
+              ['troll-words-2.jpg', 'Stafaþrautin, viðarkubbar með stöfum'],
+              ['turf-houses.jpg', 'Torfbæir á staðnum með grasþaki'],
+            ].map(([f, a]) => (
+              <div key={f} className="fst-stay">
+                <div className="fst-stay__fig"><img src={IMG(f)} alt={a} loading="lazy" /></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="fst-wrap fst-wrap--read fst-rv" style={{ marginTop: 'clamp(26px,4vw,54px)', textAlign: 'center' }}>
+            <p style={{ margin: '0 auto 10px', maxWidth: '54ch' }}><strong>{trailLine}</strong></p>
+            <p style={{ margin: '0 auto', maxWidth: '54ch' }}>{TROLL.admissionNote}</p>
+            <p className="fst-note" style={{ margin: '12px auto 0', maxWidth: '58ch' }}>{TROLL.creditNote}</p>
           </div>
         </section>
 
-        {/* ── booking ──────────────────────────────────────────────────── */}
-        <section className="fst-sec" id="bokun" ref={bookRef}>
+        {/* ── full bleed ─────────────────────────────────────────────── */}
+        <section className="fst-bleed" aria-label="Kvöldsól yfir Borgarfirði">
+          <div className="fst-frame" style={{ position: 'absolute', inset: 0 }}>
+            <div className="fst-frame-in" data-drift="5">
+              <img src={IMG('sunset.jpg')} alt="Kvöldsól yfir heiðinni við Fossatún" loading="lazy" />
+            </div>
+          </div>
+          <div className="fst-bleed__scrim" aria-hidden="true" />
+          <div className="fst-bleed__body fst-wrap">
+            <p className="fst-eyebrow">Rock ’n’ Troll</p>
+            <h2>Maðurinn sem kom úr plötubransanum</h2>
+          </div>
+        </section>
+
+        {/* ── the record man: the one dark chapter ───────────────────── */}
+        <section className="fst-sec fst-sec--tight fst-night" id="rocknroll">
+          <div className="fst-wrap">
+            <div className="fst-intro fst-rv">
+              <p className="fst-eyebrow">Veitingastaðurinn</p>
+              <h2>Plötusafnið er á matseðlinum</h2>
+              <p className="fst-lede" style={{ marginTop: 16 }}>{MUSIC.blurb}</p>
+            </div>
+          </div>
+
+          <div className="fst-wrap">
+            <div className="fst-duo fst-rv">
+              <Shot src="gold-records.jpg" ratio="5 / 4" drift={7}
+                alt="Gullplötur í römmum á vegg veitingastaðarins" />
+              <Shot src="record-shelves.jpg" ratio="5 / 4" drift={9}
+                alt="Hillur fullar af vínylplötum í setustofunni" />
+            </div>
+          </div>
+
+          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+            <Shot src="conservatory-wide.jpg" ratio="21 / 9" drift={6}
+              alt="Glerskálinn á veitingastaðnum, langur salur með útsýni yfir ána"
+              caption="Glerskálinn hangir yfir Tröllafossum." />
+          </div>
+
+          {/* food, plated on records — the identity in a photograph */}
+          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(16px,2.2vw,28px)' }}>
+            {[
+              ['cake-on-vinyl.jpg', 'Kaka borin fram á vínylplötu'],
+              ['cake-vinyl-2.jpg', 'Sætabrauð á vínylplötu sem diski'],
+              ['cake-vinyl-3.jpg', 'Súkkulaðikaka á vínylplötu sem diski'],
+              ['food-vinyl-1.jpg', 'Fish and chips borið fram á vínylplötu'],
+              ['food-vinyl-2.jpg', 'Lambavefja borin fram á vínylplötu'],
+              ['bar-quote.jpg', 'Barinn með plötuumslögum og áletrun á vegg'],
+              ['lounge-2.jpg', 'Setustofan með leðurstólum og myndum á veggjum'],
+              ['conservatory-1.jpg', 'Borð í glerskálanum með útsýni yfir ána'],
+            ].map(([f, a]) => (
+              <div key={f} className="fst-stay">
+                <div className="fst-stay__fig">
+                  <img src={IMG(f)} alt={a} loading="lazy" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="fst-wrap fst-wrap--read fst-rv" style={{ marginTop: 'clamp(26px,4vw,52px)', textAlign: 'center' }}>
+            <p style={{ margin: '0 auto', maxWidth: '56ch' }}>
+              Diskurinn er plata. Gullplöturnar á veggnum eru hans eigin, og safnið í hillunum
+              er ekki skraut heldur plötur sem eru settar á fóninn.
+            </p>
+            <p style={{ margin: '10px auto 0', maxWidth: '56ch' }}>{MUSIC.award}</p>
+            <p className="fst-note" style={{ margin: '8px auto 0' }}>Heimild: {MUSIC.awardSourceLabel}</p>
+          </div>
+        </section>
+
+        {/* ── full bleed ─────────────────────────────────────────────── */}
+        <section className="fst-bleed" aria-label="Glerskálinn yfir fossunum">
+          <div className="fst-frame" style={{ position: 'absolute', inset: 0 }}>
+            <div className="fst-frame-in" data-drift="6">
+              <img src={IMG('conservatory-falls.jpg')} alt="Borð í glerskálanum með útsýni beint yfir Tröllafossa" loading="lazy" />
+            </div>
+          </div>
+          <div className="fst-bleed__scrim" aria-hidden="true" />
+          <div className="fst-bleed__body fst-wrap">
+            <p className="fst-eyebrow">Morgunverður</p>
+            <h2>Þú borðar yfir fossunum</h2>
+          </div>
+        </section>
+
+        {/* ── booking ────────────────────────────────────────────────── */}
+        <section className="fst-sec fst-sec--tight" id="bokun">
           <div className="fst-wrap">
             <div className="fst-intro fst-rv">
               <p className="fst-eyebrow">Bókun</p>
               <h2>Bókaðu beint og fáðu {DIRECT_DISCOUNT_CODE}-afsláttinn</h2>
-              <p className="fst-lede" style={{ marginTop: 18 }}>
+              <p className="fst-lede" style={{ marginTop: 16 }}>
                 Veldu daga og sendu beiðni beint til Fossatúns. Ekkert greiðslukort er slegið inn
                 hér. Fossatún staðfestir með símtali eða tölvupósti.
               </p>
@@ -439,26 +487,24 @@ export default function FossatunPage() {
           </div>
         </section>
 
-        {/* ── practical ────────────────────────────────────────────────── */}
+        {/* ── practical: plain lines, no table ───────────────────────── */}
         <section className="fst-sec fst-sec--tight">
           <div className="fst-wrap fst-wrap--read">
-            <p className="fst-eyebrow fst-rv">Hagnýtt</p>
-            <div className="fst-tablewrap fst-rv" data-d="1">
-              <table className="fst-table">
-                <tbody>
-                  <tr><th>Opnun</th><td>Opið allt árið nema í desember og janúar</td></tr>
-                  <tr><th>Tröllagarðurinn</th><td>{TROLL.hoursSummer}. {TROLL.hoursShoulder}.</td></tr>
-                  <tr><th>Aðgangur</th><td>{TROLL.admissionNote}</td></tr>
-                  <tr><th>Staðsetning</th><td>Við Grímsá í {REGION}, um klukkutíma akstur frá Reykjavík</td></tr>
-                  <tr><th>Sími</th><td><a href={PHONE_HREF}>{PHONE_DISPLAY}</a></td></tr>
-                  <tr><th>Netfang</th><td><a href={EMAIL_HREF}>{EMAIL}</a></td></tr>
-                </tbody>
-              </table>
+            <div className="fst-intro fst-rv" style={{ marginBottom: 26 }}>
+              <p className="fst-eyebrow">Hagnýtt</p>
             </div>
+            <dl className="fst-facts fst-rv">
+              <div><dt>Opnun</dt><dd>Opið allt árið nema í desember og janúar</dd></div>
+              <div><dt>Tröllagarðurinn</dt><dd>{TROLL.hoursSummer}. {TROLL.hoursShoulder}.</dd></div>
+              <div><dt>Aðgangur</dt><dd>{TROLL.admissionNote}</dd></div>
+              <div><dt>Staðsetning</dt><dd>Við Grímsá í {REGION}, um klukkutíma akstur frá Reykjavík</dd></div>
+              <div><dt>Sími</dt><dd><a href={PHONE_HREF}>{PHONE_DISPLAY}</a></dd></div>
+              <div><dt>Netfang</dt><dd><a href={EMAIL_HREF}>{EMAIL}</a></dd></div>
+            </dl>
           </div>
         </section>
 
-        {/* ── the honest note about what this page is ──────────────────── */}
+        {/* ── the honest note ────────────────────────────────────────── */}
         <section className="fst-sec fst-sec--tight">
           <div className="fst-wrap fst-wrap--read">
             <p className="fst-eyebrow">Um þessa frumgerð</p>

@@ -32,6 +32,17 @@ const company = getPreviewCompany('polarhestar')
 /* ── Palette — Polar North, built from the logo: glacier white, the logo's
       navy #202070, fjord blue from its gradient, ice-blue highlights ── */
 const MIST = '#EDF1F7' // glacier white — cool light ground
+/**
+ * The booking platform this page's form talks to.
+ *
+ * A workers.dev address because the client's own domain has not been pointed at
+ * it yet; when bokun.polarhestar.is is live this becomes that, and nothing else
+ * on this page changes. The origin is allow-listed per tenant on the platform
+ * side (see `origins` in its tenant config), so this call only works from the
+ * preview and from their own site, not from anywhere that copies the markup.
+ */
+const BOOKING_API = 'https://sndr-platform.sindri-381.workers.dev'
+
 const PAPER = '#F7FAFC' // lighter icy card
 const INK = '#161B3C' // deep navy ink — text on light
 const BODY = '#3D4565' // slate-navy body text on light
@@ -707,7 +718,10 @@ function Booking({
   selectedId: string
   onSelect: (id: string) => void
 }) {
-  const { SHORT_TOURS, BOOKING_EMAIL, PHONE_DISPLAY, PHONE_HREF, PICS, CHILD_DISCOUNT } = useSiteContent()
+  // BOOKING_EMAIL is deliberately not read here any more: the form posts to the
+  // booking platform, and the owner is notified from there against their own
+  // verified domain rather than by a third-party form relay.
+  const { SHORT_TOURS, PHONE_DISPLAY, PHONE_HREF, PICS, CHILD_DISCOUNT } = useSiteContent()
   const tour = SHORT_TOURS.find((x) => x.id === selectedId) ?? SHORT_TOURS[0]
   const today = new Date()
   const minIso = isoDay(today)
@@ -757,7 +771,20 @@ function Booking({
   // seasonal tours are handled in the calendar itself: out-of-season days are
   // struck out and unpickable, so an impossible date never reaches this form
 
-  /** Real booking request → the owner's booking inbox (FormSubmit relay). */
+  /**
+   * Real booking request → the booking platform.
+   *
+   * This used to POST to a FormSubmit relay, which mailed the owner and created
+   * no record anywhere. That is why a request made here never appeared on the
+   * owner's dashboard: they were two unconnected systems that happened to be
+   * about the same booking. Now it hits the same API the dashboard reads, so a
+   * request made on this page is the request the owner answers.
+   *
+   * The platform is the authority on price and on whether a departure is still
+   * free. `total` above is the estimate this page shows while choosing; the
+   * quote that comes back is what the owner sees, and the two agree because the
+   * engine now carries the same child rate this form uses.
+   */
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (status === 'sending') return
@@ -766,32 +793,47 @@ function Booking({
     const ctrl = new AbortController()
     const kill = window.setTimeout(() => ctrl.abort(), 15000)
     try {
-      const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(BOOKING_EMAIL)}`, {
+      // 'HH:MM' on this page, minutes from midnight in the engine
+      const startMinute = time
+        ? Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
+        : undefined
+
+      const res = await fetch(`${BOOKING_API}/booking/request`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         signal: ctrl.signal,
         body: JSON.stringify({
-          _subject: `Bókunarbeiðni: ${stegaClean(tour.name.is)} · ${date}`,
-          _template: 'table',
-          _replyto: email,
-          _honey: '', // spam honeypot
-          'Ferð': `${stegaClean(tour.name.is)} (${stegaClean(tour.meta.is)})`,
-          'Dagsetning': date,
-          'Brottfarartími': time ?? 'Eftir samkomulagi',
-          'Fullorðnir': String(adults),
-          'Börn (12 og yngri)': String(children),
-          'Áætlað verð': isk(total),
-          'Nafn': name,
-          'Netfang': email,
-          'Sími': phone || 'Ekki gefið upp',
-          'Skilaboð': note || 'Ekki gefið upp',
-          'Tungumál gests': LANG_NAMES[lang],
+          resourceId: tour.id,
+          date,
+          ...(startMinute === undefined ? {} : { startMinute }),
+          // people is EVERYONE; children is a subset of it, used only for the rate
+          people: adults + children,
+          ...(children > 0 ? { children } : {}),
+          customer: {
+            name,
+            phone,
+            ...(email ? { email } : {}),
+          },
+          // the guest's own words, plus the one thing the engine cannot infer
+          note: [note, `Tungumál gests: ${LANG_NAMES[lang]}`].filter(Boolean).join('\n'),
         }),
       })
-      const json = (await res.json().catch(() => null)) as { success?: string | boolean } | null
-      if (res.ok && json && String(json.success) === 'true') {
+      const json = (await res.json().catch(() => null)) as
+        | { ok?: boolean; quote?: { total?: number } }
+        | null
+
+      if (res.ok && json && json.ok) {
         setStatus('idle')
-        setReceipt({ tourId: tour.id, tourName: stegaClean(tour.name[lang]), date, time, adults, children, total })
+        setReceipt({
+          tourId: tour.id,
+          tourName: stegaClean(tour.name[lang]),
+          date,
+          time,
+          adults,
+          children,
+          // show what was actually recorded, not what we guessed
+          total: json.quote?.total ?? total,
+        })
         setDone(true)
       } else {
         setStatus('error')
