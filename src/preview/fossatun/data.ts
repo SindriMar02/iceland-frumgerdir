@@ -124,8 +124,8 @@ export const STAYS: StayType[] = [
       'Sjónvarp, lítill ísskápur, örbylgjuofn og ketill',
       'Þráðlaust net og aðgangur að eldhúsi',
     ],
-    img: 'hotel-room',
-    imgAlt: 'Herbergi á sveitahótelinu í Fossatúni',
+    img: 'hotel-room.jpg',
+    imgAlt: 'Herbergi á sveitahótelinu með sjónvarpi, skrifborði og útsýni út um gluggann',
     months: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   },
   {
@@ -139,8 +139,8 @@ export const STAYS: StayType[] = [
       'Eldhúskrókur',
       'Heitir pottar',
     ],
-    img: 'pod',
-    imgAlt: 'Camping pod í Fossatúni',
+    img: 'pod-interior.jpg',
+    imgAlt: 'Innan í camping pod, viðarklætt hvelfing með uppbúnu rúmi',
     months: [5, 6, 7, 8, 9],
   },
   {
@@ -149,8 +149,8 @@ export const STAYS: StayType[] = [
     count: 'Sérstakt hús',
     blurb: 'Sérstakt hús á staðnum fyrir þá sem vilja meira næði.',
     facts: [],
-    img: 'cottage',
-    imgAlt: 'Sunset Cottage í Fossatúni',
+    img: 'cottage-exterior.jpg',
+    imgAlt: 'Sunset Cottage, stakt hús með rauðu þaki í vetrarbirtu',
     months: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   },
   {
@@ -159,8 +159,8 @@ export const STAYS: StayType[] = [
     count: 'Við ána',
     blurb: 'Tjaldsvæði við Grímsá, í göngufæri við veitingastaðinn og Tröllagarðinn.',
     facts: [],
-    img: 'camp',
-    imgAlt: 'Tjaldsvæðið í Fossatúni',
+    img: 'campsite-pitches.jpg',
+    imgAlt: 'Tjaldsvæðið við Grímsá séð úr lofti, einstaklingshólf í röðum',
     months: [6, 7, 8],
   },
 ]
@@ -248,7 +248,7 @@ export const FOSSATUN_ENTRY: PreviewCompany = {
   accent: '#46604c',
   dark: false,
   status: 'Concept ready',
-  thumb: 'fossatun/img/landscape-fjord-valley-01.jpg',
+  thumb: 'fossatun/img/hero-pod-aurora.jpg',
   ownPhotography: true,
   audit: AUDIT,
   positioning:
