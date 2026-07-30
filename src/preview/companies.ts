@@ -70,7 +70,7 @@ export interface PreviewCompany {
 const SIGN = `Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`
+https://sndr-studio.pages.dev`
 
 export const PREVIEW_COMPANIES: PreviewCompany[] = [
   {
