@@ -27,6 +27,9 @@ export function SndrBadge({ dark = false, className = '' }: { dark?: boolean; cl
         target="_blank"
         rel="noreferrer"
         aria-label="Hannað af SNDR Studio"
+        /* a logotype, so the mobile minimum type size does not apply to the
+           10.5px "STUDIO" lockup — see scripts/mobile-audit.mjs */
+        data-logotype
         className={`inline-flex min-h-11 items-center gap-2 ${className}`}
       >
         <span

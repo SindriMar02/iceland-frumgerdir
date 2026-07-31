@@ -12,7 +12,10 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
   return (
     <footer
       lang="is"
-      className={`px-5 pt-10 pb-28 text-center text-xs leading-relaxed md:pb-10 ${
+      /* text-sm on phones, text-xs from md up: at text-xs this footer rendered
+         at 12px on a 390px screen, below the legibility floor the previews now
+         hold to. Desktop is unchanged. */
+      className={`px-5 pt-10 pb-28 text-center text-[15px] leading-relaxed md:pb-10 md:text-xs ${
         dark ? 'bg-black text-white/60' : 'bg-neutral-50 text-neutral-500'
       }`}
     >
