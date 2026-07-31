@@ -3071,8 +3071,15 @@ ${SIGN}`,
     concept: 'Gula húsið við höfnina',
     conceptTagline:
       "Húsavík's number one rated seafood restaurant approached the way every guest already finds it, across the harbour toward the bright yellow house, with the signature soup on the table by the time you arrive.",
-    accent: '#F0B429',
-    dark: false,
+    accent: '#E3B81F',
+    dark: true,
+    /* Every photo on the page is the restaurant's own (Visit Húsavík listing);
+     * the six Unsplash atmosphere shots were dropped in the Bárujárn pass. */
+    ownPhotography: true,
+    /* No domain resolves for Naustið (naustid.is / .com checked 2026-07-31);
+     * their only web presence is the Facebook page. */
+    noOwnSite: true,
+    currentLabel: 'Núverandi Facebook-síða',
     status: 'Concept ready',
     thumb: 'https://visit-husavik.payload.is/api/media/file/Exterior%20PNG-2000x1125.png',
     audit: {
