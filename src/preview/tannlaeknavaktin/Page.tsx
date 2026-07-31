@@ -781,7 +781,7 @@ export default function TannlaeknavaktinPage() {
             {/* drift 12, not 6. Six is the spec's value for a CONTAINED hero;
                 this is a full-bleed band running the whole viewport, which the
                 spec puts at 12 to 13. Overscan is derived from it in <Frame>. */}
-            <Frame src={IMG.heroRelief} alt="Máluð mynd af hendi sem heldur um heitan bolla." ratio="auto" drift={12} priority className="h-full" />
+            <Frame src={IMG.heroPorcelain} alt="Máluð abstrakt mynd af gljáðu postulíni í hlýjum tónum." ratio="auto" drift={12} priority className="h-full" />
 
             {/* The painting is already pale, so this is not for contrast (umber
                 measures 14.9:1 over the type region). It exists to resolve the

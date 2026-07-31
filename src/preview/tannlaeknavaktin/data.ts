@@ -60,6 +60,21 @@ export const IMG = {
    * the wrong association for a frightened patient.
    */
   heroRelief: asset('hero-relief.jpg'),
+  /**
+   * THE HERO. An abstract painted study of glazed porcelain: the MATERIAL a
+   * tooth is made of, never the object.
+   *
+   * Every literal idea was either a cliché (smile, chair, drill) or generic
+   * comfort that any spa could claim (a mug, a bedsheet). Material sidesteps
+   * both: unmistakably about enamel to anyone who thinks about it, pure
+   * abstraction to everyone else, and it fits the porcelain palette exactly
+   * because it IS the palette.
+   *
+   * Picked over its sibling on calmness, not prettiness: texture spread 12.0
+   * against 15.3 across the type region, which is what matters under a 116u
+   * serif. Umber measures 8.7:1 there, worst case 5.6:1.
+   */
+  heroPorcelain: asset('hero-porcelain.jpg'),
   /* These MUST go through asset(). A root-absolute "/tannlaeknavaktin/..."
      works on a dev server, where the base is "/", and 404s on GitHub Pages,
      where it is "/iceland-frumgerdir/". Shipped that way once already. */
