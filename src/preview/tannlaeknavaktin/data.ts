@@ -48,6 +48,33 @@ export const IMG = {
    * live (measured: 14.9:1 average contrast for cream over that region).
    */
   heroNight: asset('hero-night.jpg'),
+  /**
+   * The hero. A hand around a hot mug, because their OWN advice page says
+   * toothache shows as "tennur verða viðkvæmar við sætindum eða kulda" —
+   * so something hot, held without flinching, is the literal relief this
+   * clinic sells. Warm and light, measured at 14.9:1 for umber over the
+   * type region (cream would be 1.1:1, so this hero is light-mode only).
+   *
+   * Rejected on the way: an open hand resting on a bedsheet. Beautiful, but
+   * an inert palm-up hand on white linen reads as a hospital bed, which is
+   * the wrong association for a frightened patient.
+   */
+  heroRelief: asset('hero-relief.jpg'),
+  /**
+   * THE HERO. An abstract painted study of glazed porcelain: the MATERIAL a
+   * tooth is made of, never the object.
+   *
+   * Every literal idea was either a cliché (smile, chair, drill) or generic
+   * comfort that any spa could claim (a mug, a bedsheet). Material sidesteps
+   * both: unmistakably about enamel to anyone who thinks about it, pure
+   * abstraction to everyone else, and it fits the porcelain palette exactly
+   * because it IS the palette.
+   *
+   * Picked over its sibling on calmness, not prettiness: texture spread 12.0
+   * against 15.3 across the type region, which is what matters under a 116u
+   * serif. Umber measures 8.7:1 there, worst case 5.6:1.
+   */
+  heroPorcelain: asset('hero-porcelain.jpg'),
   /* These MUST go through asset(). A root-absolute "/tannlaeknavaktin/..."
      works on a dev server, where the base is "/", and 404s on GitHub Pages,
      where it is "/iceland-frumgerdir/". Shipped that way once already. */

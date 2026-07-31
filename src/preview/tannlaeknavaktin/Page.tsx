@@ -242,13 +242,25 @@ function Eyebrow({ n, children }: { n?: string; children: React.ReactNode }) {
   )
 }
 
-/** A photograph that drifts inside a fixed frame. Never moves with the page. */
+/**
+ * A photograph that drifts inside a fixed frame. The image moves, the frame
+ * never does, so the picture is masked by its own box rather than scrolling
+ * with the page (the kononenkogroup mechanism: no WebGL, no canvas, a real
+ * <img> that stays visible and crawlable throughout).
+ *
+ * Drift, per the measured spec: 6 for a contained hero, 9 for cards, 12 to 13
+ * for a full-bleed band. The overscan is computed from the drift here rather
+ * than being a fixed number in the stylesheet, because the two must move
+ * together: too little inset for the drift and the image edge slides into
+ * frame at the extremes of the travel.
+ */
 function Frame({
   src, alt, ratio, drift = 10, priority = false, className = '',
 }: { src: string; alt: string; ratio: string; drift?: number; priority?: boolean; className?: string }) {
   return (
     <div className={`tlv-frame ${className}`} style={{ aspectRatio: ratio }}>
-      <div className="tlv-frame-in" data-drift={drift}>
+      <div className="tlv-frame-in" data-drift={drift}
+        style={{ '--dz': `${Math.max(9, drift * 1.35)}%` } as React.CSSProperties}>
         <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
       </div>
     </div>
@@ -395,7 +407,7 @@ export default function TannlaeknavaktinPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
   const headerSolid = scrolled || menu
-  const headerInk = headerSolid ? INK : '#FFF7E9'
+  /* The hero went light again, so the header never inverts: umber on both. */
 
   useMotion(ready)
 
@@ -437,7 +449,13 @@ export default function TannlaeknavaktinPage() {
         /* the drift frame — kononenkogroup's device. The negative inset IS the
            headroom the drift travels through; keep it ≳ drift × 1.2 / 100. */
         .tlv-frame    { position: relative; overflow: hidden; width: 100%; background: ${SAND}; }
-        .tlv-frame-in { position: absolute; inset: -9% 0; will-change: transform; }
+        /* Inset is DERIVED from the drift, never hardcoded. The kononenko spec
+           requires inset >= drift x 1.2, and a fixed -9% silently breaks the
+           moment a frame is given a full-bleed drift of 12-13: the image runs
+           out of overscan and its edge slides into view. --dz is set per frame
+           by <Frame> from its own drift value, so the constraint cannot be
+           violated by changing a number in the JSX. */
+        .tlv-frame-in { position: absolute; inset: calc(var(--dz, 9%) * -1) 0; will-change: transform; }
         .tlv-frame-in img { width: 100%; height: 100%; max-width: none;
                             object-fit: cover; display: block; }
 
@@ -577,6 +595,9 @@ export default function TannlaeknavaktinPage() {
           box-shadow: 0 4px 12px rgba(0,0,0,.34), 0 18px 40px rgba(0,0,0,.3); }
 
         /* Ghost on the dark hero: cream outline that fills to cream. */
+        .tlv-cta-ghost { background: transparent; color: #2A211C; border-color: rgba(42,33,28,.24); }
+        .tlv-cta-ghost::before { background: #1C1613; }
+        .tlv-cta-ghost:hover { color: #FFF7E9; border-color: #1C1613; transform: translateY(-2px); }
         .tlv-cta-ghost-dark { background: transparent; color: #FFF7E9;
           border-color: rgba(255,247,233,.34); }
         .tlv-cta-ghost-dark::before { background: #FFF7E9; }
@@ -591,8 +612,8 @@ export default function TannlaeknavaktinPage() {
            the motion carries meaning. Green lifted to #7FBF95 for the dark
            ground, where the page's #3A6B4A would disappear. */
         @keyframes tlv-dot-glow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(127,191,149,.5) }
-          70%      { box-shadow: 0 0 0 8px rgba(127,191,149,0) }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(58,107,74,.5) }
+          70%      { box-shadow: 0 0 0 8px rgba(58,107,74,0) }
         }
         .tlv-pulse-dot { animation: tlv-dot-glow 2.6s ease-out infinite; }
         @media (prefers-reduced-motion: reduce) { .tlv-pulse-dot { animation: none } }
@@ -651,14 +672,14 @@ export default function TannlaeknavaktinPage() {
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0"
             style={{
               height: 190,
-              background: 'linear-gradient(to bottom, rgba(10,14,18,.55) 0%, rgba(10,14,18,.26) 42%, rgba(10,14,18,0) 100%)',
+              background: 'linear-gradient(to bottom, rgba(247,242,234,.62) 0%, rgba(247,242,234,.30) 38%, rgba(247,242,234,0) 100%)',
               opacity: headerSolid ? 0 : 1,
               transition: 'opacity .38s ease',
             }} />
           <div className="relative mx-auto flex max-w-[1240px] items-center gap-4 px-5 py-3 sm:px-8">
             <a href="#top" className={`flex items-center gap-2.5 ${FOCUS}`} style={{ minHeight: 44 }} aria-label="Tannlæknavaktin">
               <Mark size={22} />
-              <span className="text-[.92rem] sm:text-[1rem]" style={{ fontFamily: SERIF, fontWeight: 500, letterSpacing: '-.02em', whiteSpace: 'nowrap', color: headerInk, transition: 'color .38s ease' }}>
+              <span className="text-[.92rem] sm:text-[1rem]" style={{ fontFamily: SERIF, fontWeight: 500, letterSpacing: '-.02em', whiteSpace: 'nowrap', color: INK }}>
                 tannlæknavaktin
               </span>
             </a>
@@ -677,8 +698,7 @@ export default function TannlaeknavaktinPage() {
               href={PHONE_HREF}
               className={`tlv-call inline-flex shrink-0 items-center gap-2.5 rounded-full px-4 sm:px-5 ${FOCUS}`}
               style={{
-                background: headerSolid ? INK : '#FFF7E9',
-                color: headerSolid ? '#FFF7E9' : INK,
+                background: INK, color: '#FFF7E9',
                 fontFamily: SANS, fontWeight: 600, fontSize: 15, letterSpacing: '-.01em',
                 minHeight: 42, whiteSpace: 'nowrap',
                 transition: 'background .38s ease, color .38s ease',
@@ -687,7 +707,7 @@ export default function TannlaeknavaktinPage() {
             >
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style={{ display: 'block' }}>
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
-                  fill="none" stroke={headerSolid ? '#C9A227' : '#7A5F12'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  fill="none" stroke="#C9A227" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               {PHONE_DISPLAY}
             </a>
@@ -701,8 +721,8 @@ export default function TannlaeknavaktinPage() {
               style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <span className="relative block h-[11px] w-[20px]" aria-hidden="true">
-                <span className="absolute left-0 block" style={{ height: 1.5, width: '100%', background: headerInk, borderRadius: 2, top: menu ? 4.75 : 0, transform: menu ? 'rotate(45deg)' : 'none' }} />
-                <span className="absolute left-0 block" style={{ height: 1.5, width: menu ? '100%' : '72%', background: headerInk, borderRadius: 2, bottom: menu ? 4.75 : 0, transform: menu ? 'rotate(-45deg)' : 'none' }} />
+                <span className="absolute left-0 block" style={{ height: 1.5, width: '100%', background: INK, borderRadius: 2, top: menu ? 4.75 : 0, transform: menu ? 'rotate(45deg)' : 'none' }} />
+                <span className="absolute left-0 block" style={{ height: 1.5, width: menu ? '100%' : '72%', background: INK, borderRadius: 2, bottom: menu ? 4.75 : 0, transform: menu ? 'rotate(-45deg)' : 'none' }} />
               </span>
             </button>
             </div>
@@ -758,20 +778,24 @@ export default function TannlaeknavaktinPage() {
               in the left two thirds where the paint is deliberately empty
               (measured 14.9:1 average contrast for cream over that region). */}
           <section className="tlv-hero tlv-bleed" style={{ minHeight: '100svh' }}>
-            <Frame src={IMG.heroNight} alt="Máluð næturmynd af götu þar sem einn upplýstur gluggi logar." ratio="auto" drift={6} priority className="h-full" />
+            {/* drift 12, not 6. Six is the spec's value for a CONTAINED hero;
+                this is a full-bleed band running the whole viewport, which the
+                spec puts at 12 to 13. Overscan is derived from it in <Frame>. */}
+            <Frame src={IMG.heroPorcelain} alt="Máluð abstrakt mynd af gljáðu postulíni í hlýjum tónum." ratio="auto" drift={12} priority className="h-full" />
 
-            {/* Lifts the worst case in the type area from 3.9:1 to comfortably
-                past 4.5:1 without flattening the painting. Weighted to the
-                bottom left, which is exactly where the words are. */}
+            {/* The painting is already pale, so this is not for contrast (umber
+                measures 14.9:1 over the type region). It exists to resolve the
+                hero into the exact page ground so there is no seam at the
+                bottom edge. */}
             <div aria-hidden="true" style={{
-              background: 'linear-gradient(to top, rgba(10,14,18,.82) 0%, rgba(10,14,18,.55) 26%, rgba(10,14,18,.18) 52%, rgba(10,14,18,0) 78%)',
+              background: `linear-gradient(to top, ${BONE} 0%, rgba(247,242,234,.82) 14%, rgba(247,242,234,.34) 40%, rgba(247,242,234,0) 70%)`,
             }} />
 
             <div className="mx-auto flex w-full max-w-[1240px] flex-col justify-end px-5 pb-16 sm:px-8 sm:pb-20">
-              <p className="uppercase" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.15em', color: 'rgba(255,247,233,.62)' }}>
+              <p className="uppercase" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.15em', color: 'rgba(42,33,28,.6)' }}>
                 Bráðaþjónusta vegna tannlækninga í Reykjavík
               </p>
-              <h1 className="mt-6" style={{ margin: 0, color: '#FFF7E9' }}>
+              <h1 className="mt-6" style={{ margin: 0, color: INK }}>
                 <Headline text="Verkurinn hættir í dag." size={116} measure={880} />
               </h1>
 
@@ -782,24 +806,24 @@ export default function TannlaeknavaktinPage() {
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                   <span className="inline-flex items-center gap-2.5">
                     <span aria-hidden="true" className={`inline-block shrink-0 rounded-full ${status.open ? 'tlv-pulse-dot' : ''}`}
-                      style={{ width: 8, height: 8, background: status.open ? '#7FBF95' : 'rgba(255,247,233,.4)' }} />
-                    <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '.16em', color: status.open ? '#7FBF95' : 'rgba(255,247,233,.6)' }}>
+                      style={{ width: 8, height: 8, background: status.open ? GREEN : 'rgba(42,33,28,.36)' }} />
+                    <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '.16em', color: status.open ? GREEN : 'rgba(42,33,28,.55)' }}>
                       {status.open ? (status.onCall ? 'Opið · bakvakt' : 'Opið núna') : 'Lokað núna'}
                     </span>
                   </span>
-                  <span style={{ fontFamily: SERIF, fontSize: 'clamp(17px, calc(var(--u) * 22), 26px)', color: '#FFF7E9', letterSpacing: '-.01em' }}>
+                  <span style={{ fontFamily: SERIF, fontSize: 'clamp(17px, calc(var(--u) * 22), 26px)', color: INK, letterSpacing: '-.01em' }}>
                     {status.open ? <>Lokum {status.closesAt}</> : <>Opnum {status.opensAt} {status.opensLabel}</>}
                   </span>
-                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(255,247,233,.45)', fontVariantNumeric: 'tabular-nums' }}>
+                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(42,33,28,.45)', fontVariantNumeric: 'tabular-nums' }}>
                     {status.clock}
                   </span>
                 </div>
 
                 {status.open && (
-                  <div className="relative mt-4 h-px w-full" aria-hidden="true" style={{ background: 'rgba(255,247,233,.22)' }}>
-                    <span className="absolute left-0 top-0 h-px" style={{ width: `${status.progress * 100}%`, background: 'rgba(127,191,149,.7)', transition: 'width 1s linear' }} />
+                  <div className="relative mt-4 h-px w-full" aria-hidden="true" style={{ background: 'rgba(42,33,28,.2)' }}>
+                    <span className="absolute left-0 top-0 h-px" style={{ width: `${status.progress * 100}%`, background: 'rgba(58,107,74,.6)', transition: 'width 1s linear' }} />
                     <span className="absolute top-1/2 rounded-full"
-                      style={{ left: `${status.progress * 100}%`, width: 7, height: 7, background: '#7FBF95', transform: 'translate(-50%,-50%)', transition: 'left 1s linear' }} />
+                      style={{ left: `${status.progress * 100}%`, width: 7, height: 7, background: GREEN, transform: 'translate(-50%,-50%)', transition: 'left 1s linear' }} />
                   </div>
                 )}
 
@@ -811,7 +835,7 @@ export default function TannlaeknavaktinPage() {
               </div>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid tlv-on-dark ${FOCUS}`}
+                <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid ${FOCUS}`}
                   style={{ fontFamily: SANS, fontWeight: 600, fontSize: 'clamp(16px, calc(var(--u) * 18), 20px)' }}>
                   <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style={{ display: 'block' }}>
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
@@ -820,7 +844,7 @@ export default function TannlaeknavaktinPage() {
                   <span>Hringja í {PHONE_DISPLAY}</span>
                 </a>
                 <button type="button" onClick={() => askOpen()}
-                  className={`tlv-cta tlv-cta-ghost-dark ${FOCUS}`}
+                  className={`tlv-cta tlv-cta-ghost ${FOCUS}`}
                   style={{ fontFamily: SANS, fontWeight: 500, fontSize: 'clamp(15px, calc(var(--u) * 17), 19px)', cursor: 'pointer' }}>
                   <span>Spyrja vaktina</span>
                 </button>
@@ -1093,8 +1117,16 @@ export default function TannlaeknavaktinPage() {
 
               The real answer is the awkward one, so it leads: the location
               MOVES, and only the phone knows. Everything else supports it. */}
-          <section id="stadsetning" className="scroll-mt-16" aria-labelledby="place-h">
-            <div className="mx-auto w-full max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+          <section id="stadsetning" className="scroll-mt-16">
+            {/* The night window belongs HERE, not on the hero. It is the literal
+                answer to the headline: which of the two is lit tonight. As the
+                hero it was atmosphere; here it is the subject. Drift 13, the
+                spec's top of the full-bleed band range. */}
+            <div className="tlv-bleed" aria-hidden="true">
+              <Frame src={IMG.heroNight} alt="" ratio="21/9" drift={13} />
+              <div style={{ background: 'linear-gradient(to bottom, rgba(28,22,19,.34) 0%, rgba(28,22,19,.12) 45%, rgba(247,242,234,.55) 86%, ' + BONE + ' 100%)' }} />
+            </div>
+            <div className="mx-auto w-full max-w-[1240px] px-5 pb-24 pt-16 sm:px-8 sm:pb-32 sm:pt-20" aria-labelledby="place-h">
               <Eyebrow n="07">Staðsetning</Eyebrow>
               <Headline id="place-h" className="mt-6" text="Hvar er opið í kvöld" size={104} measure={820} />
 
