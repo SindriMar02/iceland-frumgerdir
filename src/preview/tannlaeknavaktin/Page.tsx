@@ -242,13 +242,25 @@ function Eyebrow({ n, children }: { n?: string; children: React.ReactNode }) {
   )
 }
 
-/** A photograph that drifts inside a fixed frame. Never moves with the page. */
+/**
+ * A photograph that drifts inside a fixed frame. The image moves, the frame
+ * never does, so the picture is masked by its own box rather than scrolling
+ * with the page (the kononenkogroup mechanism: no WebGL, no canvas, a real
+ * <img> that stays visible and crawlable throughout).
+ *
+ * Drift, per the measured spec: 6 for a contained hero, 9 for cards, 12 to 13
+ * for a full-bleed band. The overscan is computed from the drift here rather
+ * than being a fixed number in the stylesheet, because the two must move
+ * together: too little inset for the drift and the image edge slides into
+ * frame at the extremes of the travel.
+ */
 function Frame({
   src, alt, ratio, drift = 10, priority = false, className = '',
 }: { src: string; alt: string; ratio: string; drift?: number; priority?: boolean; className?: string }) {
   return (
     <div className={`tlv-frame ${className}`} style={{ aspectRatio: ratio }}>
-      <div className="tlv-frame-in" data-drift={drift}>
+      <div className="tlv-frame-in" data-drift={drift}
+        style={{ '--dz': `${Math.max(9, drift * 1.35)}%` } as React.CSSProperties}>
         <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
       </div>
     </div>
@@ -437,7 +449,13 @@ export default function TannlaeknavaktinPage() {
         /* the drift frame — kononenkogroup's device. The negative inset IS the
            headroom the drift travels through; keep it ≳ drift × 1.2 / 100. */
         .tlv-frame    { position: relative; overflow: hidden; width: 100%; background: ${SAND}; }
-        .tlv-frame-in { position: absolute; inset: -9% 0; will-change: transform; }
+        /* Inset is DERIVED from the drift, never hardcoded. The kononenko spec
+           requires inset >= drift x 1.2, and a fixed -9% silently breaks the
+           moment a frame is given a full-bleed drift of 12-13: the image runs
+           out of overscan and its edge slides into view. --dz is set per frame
+           by <Frame> from its own drift value, so the constraint cannot be
+           violated by changing a number in the JSX. */
+        .tlv-frame-in { position: absolute; inset: calc(var(--dz, 9%) * -1) 0; will-change: transform; }
         .tlv-frame-in img { width: 100%; height: 100%; max-width: none;
                             object-fit: cover; display: block; }
 
@@ -758,7 +776,11 @@ export default function TannlaeknavaktinPage() {
               in the left two thirds where the paint is deliberately empty
               (measured 14.9:1 average contrast for cream over that region). */}
           <section className="tlv-hero tlv-bleed" style={{ minHeight: '100svh' }}>
-            <Frame src={IMG.heroNight} alt="Máluð næturmynd af götu þar sem einn upplýstur gluggi logar." ratio="auto" drift={6} priority className="h-full" />
+            {/* drift 12, not 6. Six is the spec's value for a CONTAINED hero;
+                this one is a full-bleed band running the whole viewport, which
+                the spec puts at 12 to 13. At 6 the travel was there but too
+                small to read as an effect. */}
+            <Frame src={IMG.heroNight} alt="Máluð næturmynd af götu þar sem einn upplýstur gluggi logar." ratio="auto" drift={12} priority className="h-full" />
 
             {/* Lifts the worst case in the type area from 3.9:1 to comfortably
                 past 4.5:1 without flattening the painting. Weighted to the
