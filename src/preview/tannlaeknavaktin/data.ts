@@ -48,6 +48,18 @@ export const IMG = {
    * live (measured: 14.9:1 average contrast for cream over that region).
    */
   heroNight: asset('hero-night.jpg'),
+  /**
+   * The hero. A hand around a hot mug, because their OWN advice page says
+   * toothache shows as "tennur verða viðkvæmar við sætindum eða kulda" —
+   * so something hot, held without flinching, is the literal relief this
+   * clinic sells. Warm and light, measured at 14.9:1 for umber over the
+   * type region (cream would be 1.1:1, so this hero is light-mode only).
+   *
+   * Rejected on the way: an open hand resting on a bedsheet. Beautiful, but
+   * an inert palm-up hand on white linen reads as a hospital bed, which is
+   * the wrong association for a frightened patient.
+   */
+  heroRelief: asset('hero-relief.jpg'),
   /* These MUST go through asset(). A root-absolute "/tannlaeknavaktin/..."
      works on a dev server, where the base is "/", and 404s on GitHub Pages,
      where it is "/iceland-frumgerdir/". Shipped that way once already. */
