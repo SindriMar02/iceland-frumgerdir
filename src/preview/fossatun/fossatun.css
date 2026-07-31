@@ -10,27 +10,29 @@
    no GSAP, no Lenis, and zero transforms on its images).
 
    WHAT IS DIFFERENT HERE, because "warm Icelandic storytelling" was the brief:
-   the ground is warm parchment rather than cold white, the accent is the amber
-   that Fossatún's own camping pod glows in under the aurora, and the dark
-   chapters use the night navy off their own book cover. Reverie is cool,
-   distant, expensive. This is meant to feel like being told a story indoors.
+   the ground is warm parchment rather than cold white, and the accent is the
+   amber that Fossatún's own camping pod glows in under the aurora. Reverie is
+   cool, distant, expensive. This is meant to feel like being told a story
+   indoors.
 
-   Palette is SAMPLED, not invented: #0A121F and #C08448 are measured off the
-   Icelandic edition of Steinar Berg's "Trunt Trunt"; #ACB4A7 and #D8C09C off
-   the English edition.
+   The accent #C08448 is measured off the Icelandic edition of Steinar Berg's
+   own "Trunt Trunt" cover. The single dark chapter follows the reference's
+   device rather than the book: theirs is a deep forest green rgb(30,57,43),
+   so ours is a deep Icelandic moss-basalt rather than the book's navy, which
+   sat oddly against parchment.
 
    Everything is namespaced `fst-` so nothing can bleed into another preview.  */
 
 @font-face {
   font-family: 'FST Display';
-  src: url('./fonts/Boska-Variable.woff2') format('woff2-variations');
+  src: url('./fonts/Sentient-Variable.woff2') format('woff2-variations');
   font-weight: 200 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'FST Sans';
-  src: url('./fonts/Supreme-Variable.woff2') format('woff2-variations');
+  src: url('./fonts/GeneralSans-Variable.woff2') format('woff2-variations');
   font-weight: 200 700;
   font-style: normal;
   font-display: swap;
@@ -72,16 +74,19 @@
 .fst-wrap--read { max-width: var(--fst-read); }
 
 /* ── type ────────────────────────────────────────────────────────────────
-   Reverie sets EVERY heading in one ultralight serif and never goes bold.
-   Boska at 200-300 is the closest face in the library with full Icelandic
-   coverage (Þ Ð Æ Ö and the acutes all verified in the font binary).       */
+   Reverie sets EVERY heading in one light editorial serif and never goes bold.
+   SENTIENT is that face here: same register as the reference's PP Editorial
+   New, but with properly drawn ð, þ, æ and acutes — Boska, which this replaced,
+   went fragile at display sizes and its ð and g read as mannered. General Sans
+   sits underneath deliberately quiet so it never competes with the serif.
+   Both variable 200-700, both checked in the binary for the Icelandic set.  */
 
 .fst-root h1,
 .fst-root h2,
 .fst-root h3,
 .fst-disp {
   font-family: 'FST Display', Georgia, serif;
-  font-weight: 250;
+  font-weight: 300;
   line-height: 1.06;
   letter-spacing: -0.012em;
   text-wrap: balance;
