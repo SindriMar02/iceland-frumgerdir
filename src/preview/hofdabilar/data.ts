@@ -10,7 +10,11 @@
    (söluaðili id 55) on 2026-07-31.
 
    Höfðabílar ehf., kt. 630609-2160, Fosshálsi 27 (Dragháls megin),
-   110 Reykjavík. Sími 577 4747, hofdabilar@hofdabilar.is. „Stofnað 2002" is
+   110 Reykjavík. Sími 577 4747. THERE IS NO COMPANY-WIDE EMAIL: their site
+   publishes only the three staff addresses, and hofdabilar@hofdabilar.is does
+   NOT exist (checked every page; the domain's MX is Microsoft 365 but that
+   mailbox is unverified). All mail goes to Tryggvi, the löggilti bifreiðasali.
+   „Stofnað 2002" is
    taken from the company's OWN logo mark, which arches that text around a
    chequered flag; it is their claim about themselves, not a registry fact
    (the ehf. kennitala dates from 2009). Three named staff, opening hours,
@@ -134,7 +138,7 @@ export const CONTACT = {
   addressDat: 'Fosshálsi 27, Dragháls megin',
   phoneDisplay: '577 4747',
   phoneHref: 'tel:+3545774747',
-  email: 'hofdabilar@hofdabilar.is',
+  email: 'tryggvi@hofdabilar.is',
   maps: 'https://maps.google.com/?q=' + encodeURIComponent('Höfðabílar, Fossháls 27, 110 Reykjavík'),
   mapsEmbed:
     'https://www.google.com/maps?q=Fossh%C3%A1lsi+27,+110+Reykjav%C3%ADk&output=embed',
@@ -180,7 +184,7 @@ export const JSON_LD = {
   name: 'Höfðabílar',
   legalName: 'Höfðabílar ehf.',
   telephone: '+354 577 4747',
-  email: 'hofdabilar@hofdabilar.is',
+  email: 'tryggvi@hofdabilar.is',
   foundingDate: '2002',
   address: {
     '@type': 'PostalAddress',
@@ -205,7 +209,7 @@ export const HOFDABILAR_ENTRY: PreviewCompany = {
   region: 'Höfuðborgarsvæðið',
   established: 'Stofnað 2002',
   currentUrl: 'https://hofdabilar.is',
-  ownerEmail: 'hofdabilar@hofdabilar.is',
+  ownerEmail: 'tryggvi@hofdabilar.is',
   concept: 'Á staðnum',
   conceptTagline:
     'Bílás-hönnunin færð yfir á Höfðabíla: lóðin sjálf er vefurinn. Öll 26 ökutækin á planinu við Fossháls með eigin myndum sölunnar, raunverði og akstri, leitarvél og síum. Næturasfalt, xenonblár hreimur, kílómetramælir sem telur bílana meðan þú skrollar.',
