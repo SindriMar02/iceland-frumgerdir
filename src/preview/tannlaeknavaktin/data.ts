@@ -40,6 +40,20 @@ export const IMG = {
   relief: asset('relief.jpg'),
   night: asset('night-window.jpg'),
   logo: asset('logo.png'),
+  /**
+   * The hero: one lit window on a dark street, painted in the same hand as the
+   * first-aid plates. The stock relief portrait it replaces only said "calm";
+   * this says what the business actually is, the one place still open. Its
+   * left two thirds are deliberately empty paint so the type has somewhere to
+   * live (measured: 14.9:1 average contrast for cream over that region).
+   */
+  heroNight: asset('hero-night.jpg'),
+  /* These MUST go through asset(). A root-absolute "/tannlaeknavaktin/..."
+     works on a dev server, where the base is "/", and 404s on GitHub Pages,
+     where it is "/iceland-frumgerdir/". Shipped that way once already. */
+  otwLoop: asset('otw-01-loop.mp4'),
+  otwPoster: asset('otw-01-poster.jpg'),
+  otwMilk: asset('otw-01-milk.jpg'),
 }
 
 /* ── identity ─────────────────────────────────────────────────────────── */

@@ -379,6 +379,24 @@ export default function TannlaeknavaktinPage() {
   const [status, setStatus] = useState<Status>(() => readStatus(new Date()))
   const [ready, setReady] = useState(false)
   const [menu, setMenu] = useState(false)
+  /**
+   * The header rides ON the hero painting with no ground of its own, and only
+   * takes a solid ivory ground once you scroll. Because the hero is now dark,
+   * its contents have to invert too: cream over the painting, umber once the
+   * ivory arrives. Fires at 24px so the bar is never half-legible over
+   * passing content. The menu forces it solid, since a dropdown over a
+   * painting is unreadable.
+   */
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  const headerSolid = scrolled || menu
+  const headerInk = headerSolid ? INK : '#FFF7E9'
+
   useMotion(ready)
 
   useEffect(() => {
@@ -530,6 +548,47 @@ export default function TannlaeknavaktinPage() {
         .tlv-row { transition: background-color .25s ease; }
         .tlv-row:hover { background: rgba(42,33,28,.035); }
 
+        /* CTAs. The fill sweeps in from the left rather than the whole button
+           flipping colour, and the label holds still while it happens.
+           ::before is the sweep, z-index keeps the text above it. */
+        .tlv-cta { position: relative; display: inline-flex; align-items: center; gap: 10px;
+          border-radius: 999px; padding: 15px 30px; min-height: 56px; overflow: hidden;
+          text-decoration: none; border: 1px solid transparent; isolation: isolate;
+          transition: transform .34s cubic-bezier(.16,1,.3,1), box-shadow .34s ease, border-color .34s ease, color .34s ease; }
+        .tlv-cta > * { position: relative; z-index: 1; }
+        .tlv-cta::before { content: ''; position: absolute; inset: 0; z-index: 0;
+          transform: scaleX(0); transform-origin: left center;
+          transition: transform .46s cubic-bezier(.16,1,.3,1); }
+        .tlv-cta:hover::before, .tlv-cta:focus-visible::before { transform: scaleX(1); }
+        .tlv-cta:active { transform: translateY(1px) scale(.99); }
+
+        .tlv-cta-solid { background: #E70104; color: #fff;
+          box-shadow: 0 2px 6px rgba(0,0,0,.28), 0 10px 28px rgba(231,1,4,.22); }
+        .tlv-cta-solid::before { background: #FFF7E9; }
+        .tlv-cta-solid:hover { color: #1C1613; transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,.34), 0 18px 40px rgba(0,0,0,.3); }
+
+        /* Ghost on the dark hero: cream outline that fills to cream. */
+        .tlv-cta-ghost-dark { background: transparent; color: #FFF7E9;
+          border-color: rgba(255,247,233,.34); }
+        .tlv-cta-ghost-dark::before { background: #FFF7E9; }
+        .tlv-cta-ghost-dark:hover { color: #1C1613; border-color: #FFF7E9; transform: translateY(-2px); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .tlv-cta, .tlv-cta::before { transition: none; }
+          .tlv-cta:hover { transform: none; }
+        }
+
+        /* Live dot on the hero status line. Only runs while genuinely open, so
+           the motion carries meaning. Green lifted to #7FBF95 for the dark
+           ground, where the page's #3A6B4A would disappear. */
+        @keyframes tlv-dot-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(127,191,149,.5) }
+          70%      { box-shadow: 0 0 0 8px rgba(127,191,149,0) }
+        }
+        .tlv-pulse-dot { animation: tlv-dot-glow 2.6s ease-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .tlv-pulse-dot { animation: none } }
+
         /* Live dot on the hero status plate. Only ever runs while the clinic
            is actually open, so the motion means something. GREEN is #3A6B4A. */
         @keyframes tlv-dot-glow {
@@ -567,11 +626,31 @@ export default function TannlaeknavaktinPage() {
             heavy blobs sitting next to each other. Now one dark call pill
             carrying a live status dot, and the menu reduced to bare hairlines
             with no container at all. Lighter ground, thinner rule, more air. */}
-        <header className="sticky top-0 z-40" style={{ background: 'rgba(247,242,234,.82)', backdropFilter: 'blur(14px) saturate(1.4)', WebkitBackdropFilter: 'blur(14px) saturate(1.4)', borderBottom: '1px solid rgba(42,33,28,.07)' }}>
-          <div className="mx-auto flex max-w-[1240px] items-center gap-4 px-5 py-3 sm:px-8">
+        {/* FIXED, not sticky: a sticky header keeps its layout space even when
+            it has no ground, which pushed the hero down and left a strip
+            across the top. Fixed takes no space, so the painting starts at the
+            very top edge and the bar rides on it. */}
+        <header className="fixed inset-x-0 top-0 z-40"
+          style={{
+            background: headerSolid ? 'rgba(247,242,234,.82)' : 'transparent',
+            backdropFilter: headerSolid ? 'blur(14px) saturate(1.4)' : 'none',
+            WebkitBackdropFilter: headerSolid ? 'blur(14px) saturate(1.4)' : 'none',
+            borderBottom: `1px solid ${headerSolid ? 'rgba(42,33,28,.07)' : 'transparent'}`,
+            transition: 'background .38s ease, border-color .38s ease',
+          }}>
+          {/* Wash extends 190px, well past the bar's own 70px. Fading inside
+              the bar's height ends on a visible line across the painting. */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0"
+            style={{
+              height: 190,
+              background: 'linear-gradient(to bottom, rgba(10,14,18,.55) 0%, rgba(10,14,18,.26) 42%, rgba(10,14,18,0) 100%)',
+              opacity: headerSolid ? 0 : 1,
+              transition: 'opacity .38s ease',
+            }} />
+          <div className="relative mx-auto flex max-w-[1240px] items-center gap-4 px-5 py-3 sm:px-8">
             <a href="#top" className={`flex items-center gap-2.5 ${FOCUS}`} style={{ minHeight: 44 }} aria-label="Tannlæknavaktin">
               <Mark size={22} />
-              <span className="text-[.92rem] sm:text-[1rem]" style={{ fontFamily: SERIF, fontWeight: 500, letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>
+              <span className="text-[.92rem] sm:text-[1rem]" style={{ fontFamily: SERIF, fontWeight: 500, letterSpacing: '-.02em', whiteSpace: 'nowrap', color: headerInk, transition: 'color .38s ease' }}>
                 tannlæknavaktin
               </span>
             </a>
@@ -589,12 +668,18 @@ export default function TannlaeknavaktinPage() {
             <a
               href={PHONE_HREF}
               className={`tlv-call inline-flex shrink-0 items-center gap-2.5 rounded-full px-4 sm:px-5 ${FOCUS}`}
-              style={{ background: INK, color: '#FFF7E9', fontFamily: SANS, fontWeight: 600, fontSize: 15, letterSpacing: '-.01em', minHeight: 42, whiteSpace: 'nowrap' }}
+              style={{
+                background: headerSolid ? INK : '#FFF7E9',
+                color: headerSolid ? '#FFF7E9' : INK,
+                fontFamily: SANS, fontWeight: 600, fontSize: 15, letterSpacing: '-.01em',
+                minHeight: 42, whiteSpace: 'nowrap',
+                transition: 'background .38s ease, color .38s ease',
+              }}
               aria-label={`Hringja í ${PHONE_DISPLAY}`}
             >
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style={{ display: 'block' }}>
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
-                  fill="none" stroke="#C9A227" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  fill="none" stroke={headerSolid ? '#C9A227' : '#7A5F12'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               {PHONE_DISPLAY}
             </a>
@@ -608,8 +693,8 @@ export default function TannlaeknavaktinPage() {
               style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <span className="relative block h-[11px] w-[20px]" aria-hidden="true">
-                <span className="absolute left-0 block" style={{ height: 1.5, width: '100%', background: INK, borderRadius: 2, top: menu ? 4.75 : 0, transform: menu ? 'rotate(45deg)' : 'none' }} />
-                <span className="absolute left-0 block" style={{ height: 1.5, width: menu ? '100%' : '72%', background: INK, borderRadius: 2, bottom: menu ? 4.75 : 0, transform: menu ? 'rotate(-45deg)' : 'none' }} />
+                <span className="absolute left-0 block" style={{ height: 1.5, width: '100%', background: headerInk, borderRadius: 2, top: menu ? 4.75 : 0, transform: menu ? 'rotate(45deg)' : 'none' }} />
+                <span className="absolute left-0 block" style={{ height: 1.5, width: menu ? '100%' : '72%', background: headerInk, borderRadius: 2, bottom: menu ? 4.75 : 0, transform: menu ? 'rotate(-45deg)' : 'none' }} />
               </span>
             </button>
             </div>
@@ -656,83 +741,81 @@ export default function TannlaeknavaktinPage() {
 
         <main id="top">
           {/* ── 00 · HERO ────────────────────────────────────────────────
-              Media and type in one grid cell, per the reference. The relief
-              portrait is the hero, not a plate halfway down the page. */}
-          <section className="tlv-bleed" style={{ minHeight: 'min(88svh, 880px)' }}>
-            <Frame src={IMG.relief} alt="Manneskja við bjartan glugga, róleg eftir að verkur er liðinn hjá." ratio="auto" drift={6} priority className="h-full" />
-            {/* Scrim eases off sooner so the photograph is actually legible on
-                the right instead of being washed to near-solid cream. */}
-            <div style={{ background: 'linear-gradient(100deg, rgba(247,242,234,.97) 0%, rgba(247,242,234,.9) 34%, rgba(247,242,234,.35) 64%, rgba(247,242,234,0) 92%)' }} />
-            <div className="mx-auto flex w-full max-w-[1240px] flex-col justify-center px-5 py-16 sm:px-8">
-              <Eyebrow>Bráðaþjónusta vegna tannlækninga í Reykjavík</Eyebrow>
-              <h1 className="mt-7" style={{ margin: 0 }}>
-                <Headline text="Verkurinn hættir í dag." size={112} measure={860} />
+              The stock relief portrait said only "calm". This says what the
+              business IS: the one lit window on a street where everything else
+              is shut. Painted in the same hand as the first-aid plates, so the
+              page has one illustrator rather than a stock library.
+
+              Full viewport, no header ground on top of it, and the type lives
+              in the left two thirds where the paint is deliberately empty
+              (measured 14.9:1 average contrast for cream over that region). */}
+          <section className="tlv-hero tlv-bleed" style={{ minHeight: '100svh' }}>
+            <Frame src={IMG.heroNight} alt="Máluð næturmynd af götu þar sem einn upplýstur gluggi logar." ratio="auto" drift={6} priority className="h-full" />
+
+            {/* Lifts the worst case in the type area from 3.9:1 to comfortably
+                past 4.5:1 without flattening the painting. Weighted to the
+                bottom left, which is exactly where the words are. */}
+            <div aria-hidden="true" style={{
+              background: 'linear-gradient(to top, rgba(10,14,18,.82) 0%, rgba(10,14,18,.55) 26%, rgba(10,14,18,.18) 52%, rgba(10,14,18,0) 78%)',
+            }} />
+
+            <div className="mx-auto flex w-full max-w-[1240px] flex-col justify-end px-5 pb-16 sm:px-8 sm:pb-20">
+              <p className="uppercase" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.15em', color: 'rgba(255,247,233,.62)' }}>
+                Bráðaþjónusta vegna tannlækninga í Reykjavík
+              </p>
+              <h1 className="mt-6" style={{ margin: 0, color: '#FFF7E9' }}>
+                <Headline text="Verkurinn hættir í dag." size={116} measure={880} />
               </h1>
 
-              {/* THE STATUS PLATE.
-                  The old hero said the same thing three times: a dot-and-label,
-                  a sentence, and a progress bar. Worse, the bar lied when shut —
-                  progress clamps to 1 outside opening hours, and the three
-                  labels are justify-between, so at 23:12 it drew a FULL bar with
-                  "23:12" sitting midway between 08:00 and 22:00.
-
-                  One object now. The bar only exists while open, and it marks
-                  the current moment instead of filling, so it cannot imply a
-                  position it does not have. Knowing whether you can come RIGHT
-                  NOW is the one thing this clinic's page must answer, so it is
-                  built as the signature device rather than a footnote. */}
-              <div className="mt-10 max-w-[560px] rounded-2xl p-6 sm:p-7"
-                style={{ background: 'rgba(247,242,234,.72)', border: '1px solid rgba(42,33,28,.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-                <div className="flex items-center gap-3">
-                  <span aria-hidden="true" className={`inline-block shrink-0 rounded-full ${status.open ? 'tlv-pulse-dot' : ''}`}
-                    style={{ width: 9, height: 9, background: status.open ? GREEN : 'rgba(42,33,28,.38)' }} />
-                  <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '.15em', color: status.open ? GREEN : 'rgba(42,33,28,.55)' }}>
-                    {status.open ? (status.onCall ? 'Opið · tannlæknir á bakvakt' : 'Opið núna') : 'Lokað núna'}
+              {/* One typographic line, not a card. The bar only exists while
+                  open, so it can never imply a position outside opening hours
+                  (progress clamps to 1 when shut). */}
+              <div className="mt-9 max-w-[540px]">
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span className="inline-flex items-center gap-2.5">
+                    <span aria-hidden="true" className={`inline-block shrink-0 rounded-full ${status.open ? 'tlv-pulse-dot' : ''}`}
+                      style={{ width: 8, height: 8, background: status.open ? '#7FBF95' : 'rgba(255,247,233,.4)' }} />
+                    <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '.16em', color: status.open ? '#7FBF95' : 'rgba(255,247,233,.6)' }}>
+                      {status.open ? (status.onCall ? 'Opið · bakvakt' : 'Opið núna') : 'Lokað núna'}
+                    </span>
                   </span>
-                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(42,33,28,.5)', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontFamily: SERIF, fontSize: 'clamp(17px, calc(var(--u) * 22), 26px)', color: '#FFF7E9', letterSpacing: '-.01em' }}>
+                    {status.open ? <>Lokum {status.closesAt}</> : <>Opnum {status.opensAt} {status.opensLabel}</>}
+                  </span>
+                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(255,247,233,.45)', fontVariantNumeric: 'tabular-nums' }}>
                     {status.clock}
                   </span>
                 </div>
 
-                {status.open ? (
-                  <>
-                    <div className="mt-5" aria-hidden="true">
-                      <div className="relative h-[3px] w-full rounded-full" style={{ background: 'rgba(42,33,28,.14)' }}>
-                        <span className="absolute top-1/2 rounded-full"
-                          style={{ left: `${status.progress * 100}%`, width: 9, height: 9, background: GREEN, transform: 'translate(-50%,-50%)', transition: 'left 1s linear' }} />
-                      </div>
-                      <div className="mt-2.5 flex justify-between" style={{ fontFamily: MONO, fontSize: 10.5, color: 'rgba(42,33,28,.45)' }}>
-                        <span>{hhmm(status.today.open)}</span>
-                        <span>{hhmm(status.today.close)}</span>
-                      </div>
-                    </div>
-                    <p className="mt-5" style={{ fontSize: 'calc(var(--u) * 18)', lineHeight: 1.55, color: 'rgba(42,33,28,.75)' }}>
-                      Við lokum klukkan <strong style={{ color: INK, fontWeight: 600 }}>{status.closesAt}</strong> í dag.{' '}
-                      {status.onCall ? 'Um kvöld og helgar er 45.590 kr. álag á verðskrána.' : 'Hringdu og fáðu tíma.'}
-                    </p>
-                  </>
-                ) : (
-                  <p className="mt-4" style={{ fontSize: 'calc(var(--u) * 18)', lineHeight: 1.55, color: 'rgba(42,33,28,.75)' }}>
-                    Við opnum klukkan <strong style={{ color: INK, fontWeight: 600 }}>{status.opensAt}</strong> {status.opensLabel}.{' '}
-                    Í neyðartilvikum er bent á að hafa samband við <strong style={{ color: INK, fontWeight: 600 }}>112</strong>.
-                  </p>
+                {status.open && (
+                  <div className="relative mt-4 h-px w-full" aria-hidden="true" style={{ background: 'rgba(255,247,233,.22)' }}>
+                    <span className="absolute left-0 top-0 h-px" style={{ width: `${status.progress * 100}%`, background: 'rgba(127,191,149,.7)', transition: 'width 1s linear' }} />
+                    <span className="absolute top-1/2 rounded-full"
+                      style={{ left: `${status.progress * 100}%`, width: 7, height: 7, background: '#7FBF95', transform: 'translate(-50%,-50%)', transition: 'left 1s linear' }} />
+                  </div>
                 )}
 
-                <div className="mt-7 flex flex-wrap items-center gap-3">
-                  <a href={PHONE_HREF} className={`tlv-call inline-flex items-center gap-2.5 rounded-full ${FOCUS}`}
-                    style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: 'calc(var(--u) * 18)', letterSpacing: '-.01em', padding: '15px 28px', minHeight: 54 }}>
-                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style={{ display: 'block' }}>
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
-                        fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Hringja í {PHONE_DISPLAY}
-                  </a>
-                  <button type="button" onClick={() => askOpen()}
-                    className={`tlv-link inline-flex items-center ${FOCUS}`}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 'calc(var(--u) * 17)', color: 'rgba(42,33,28,.72)', minHeight: 54, padding: '0 4px' }}>
-                    Spyrja vaktina
-                  </button>
-                </div>
+                {!status.open && (
+                  <p className="mt-3" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(255,247,233,.55)', lineHeight: 1.6 }}>
+                    Í neyðartilvikum er bent á að hafa samband við 112.
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid ${FOCUS}`}
+                  style={{ fontFamily: SANS, fontWeight: 600, fontSize: 'clamp(16px, calc(var(--u) * 18), 20px)' }}>
+                  <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style={{ display: 'block' }}>
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
+                      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Hringja í {PHONE_DISPLAY}</span>
+                </a>
+                <button type="button" onClick={() => askOpen()}
+                  className={`tlv-cta tlv-cta-ghost-dark ${FOCUS}`}
+                  style={{ fontFamily: SANS, fontWeight: 500, fontSize: 'clamp(15px, calc(var(--u) * 17), 19px)', cursor: 'pointer' }}>
+                  <span>Spyrja vaktina</span>
+                </button>
               </div>
             </div>
           </section>
@@ -812,15 +895,15 @@ export default function TannlaeknavaktinPage() {
                   copy verbatim so nothing new is asserted in Icelandic. */}
               <div className="mt-14 grid gap-px" style={{ background: 'rgba(42,33,28,.16)' }}>
                 <PaintBand
-                  src="/tannlaeknavaktin/otw-01-loop.mp4"
-                  poster="/tannlaeknavaktin/otw-01-poster.jpg"
+                  src={IMG.otwLoop}
+                  poster={IMG.otwPoster}
                   alt="Máluð mynd af hendi sem heldur um krónu tannar. Rótin snertir ekkert."
                   step="Skref 01"
                   line="Haltu um krónuna, ekki rótina."
                   note="Ekki bursta rótina"
                 />
                 <PaintBand
-                  src="/tannlaeknavaktin/otw-01-milk.jpg"
+                  src={IMG.otwMilk}
                   alt="Máluð mynd af mjólkurglasi á dökkum fleti."
                   step="Skref 02"
                   line="Fari hún ekki á sinn stað, geymdu hana í mjólk."
