@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import type { MotionValue } from 'framer-motion'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
@@ -26,38 +26,52 @@ import {
   RESERVE,
   REVIEWS,
   SOUP,
-  srcSet,
   STORY,
-  u,
-  UIMG,
 } from './data'
 
 const company = getPreviewCompany('naustid')
 
-/* ── Palette (brief-locked, sampled from the client's own photography) ─────
- * GROUND #F7F1E2 warm paper · INK #211D14 (≈15:1 on ground, AAA)
- * ACCENT #F0B429 the yellow house (ink-on-accent ≈10:1, AAA)
- * HARBOUR #3E6478 Skjálfandi blue-grey (≈5.1:1 on ground, AA)
- * SOUPC #D97B3F paprika orange — decoration inside the soup section ONLY
- * NIGHT #101820 the lantern section's harbour-night ground                */
-const GROUND = '#F7F1E2'
-const CARD = '#FFFCF2'
-const INK = '#211D14'
-const MUTED = '#5C543F'
-const ACCENT = '#F0B429'
-const HARBOUR = '#3E6478'
-const SOUPC = '#D97B3F'
-const NIGHT = '#101820'
-const DUSK = '#0B141B'
-const HAIRLINE = 'rgba(33,29,20,.14)'
-const CREAM_ON_DARK = 'rgba(247,241,226,.92)'
-const CREAM_DIM = 'rgba(247,241,226,.66)'
+/* ══════════════════════════════════════════════════════════════════════════
+ * BÁRUJÁRN — the corrugated-iron elevation.
+ *
+ * CONCEPT: Naustið lives in a 1931 timber house clad in vertical bárujárn.
+ * Every rib on that yellow façade is a line of light and a line of shadow.
+ * That rib IS the page: photographs arrive as vertical yellow ribs on
+ * harbour ink and resolve into the real photograph as you scroll. Rules,
+ * dividers and the lit window are all the same rib at different scales.
+ *
+ * PALETTE — sampled from the client's own exterior photograph, not chosen:
+ *   sunlit paint #FAE67A · body #C0A632 · shadow #8E7207 · sign black
+ *   #150503 · window trim #CFE9EA. Those become RIB / RIB_DEEP / DEEP / BONE.
+ *
+ * TYPE — measured off the reference (sondaven.com, SOTD 5 Jun 2026):
+ *   display all-caps, tracking −0.035em, leading .88 single / 1.04 multi
+ *   (looser than the reference's .83 because Icelandic Á/Í/Ó/Ú/Ý collide
+ *   at that leading — ledger #23); micro-labels 11px / +0.09em uppercase.
+ *   No box-shadows anywhere. No card rounding. Pills only on CTAs.
+ *
+ * HONESTY — the six Unsplash atmosphere images are gone. This page uses
+ * only the restaurant's own four photographs; everything else is drawn.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+const DEEP = '#12171B' /* harbour ink — the page ground */
+const DEEP_2 = '#0C1013' /* one step darker, for inset panels */
+const RIB = '#E3B81F' /* the house yellow — accent AND raster colour */
+const BONE = '#D8DEDD' /* the window trim, cooled */
+const BONE_SOFT = 'rgba(216,222,221,.72)'
+/* .52 measured 4.41:1 — under the 4.5 floor across 48 elements, the classic
+ * one-token-many-labels failure. Lifted to .60 = 5.21:1 and re-measured. */
+const BONE_MUTE = 'rgba(216,222,221,.60)'
+const HAIR = 'rgba(216,222,221,.16)'
+const HAIR_RIB = 'rgba(227,184,31,.34)'
+
+/* Computed against DEEP #12171B (relative luminance .0082):
+ *   RIB  9.57:1 AAA · BONE 13.24:1 AAA · BONE_SOFT 8.06:1 · BONE_MUTE 5.21:1
+ *   DEEP on RIB 9.57:1 AAA (dark ink on the yellow band)                    */
 
 const EASE = 'cubic-bezier(.22,.61,.21,1)'
 const FOCUS =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#211D14]'
-const FOCUS_DARK =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F7F1E2]'
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E3B81F]'
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -100,8 +114,8 @@ function useInViewOnce(threshold = 0.18) {
   return { ref, shown }
 }
 
-/* ── Reveal — rise + de-blur (NO overflow clip masks: Icelandic Í/Á accents
- * on Fraunces stay unclipped, per the accent-clipping rule). ─────────────── */
+/* ── Reveal — rise + de-blur. NO overflow clip masks anywhere on this page:
+ * Icelandic Í/Á/Ó acutes sit above the cap and masks guillotine them. ───── */
 function Reveal({
   children,
   delay = 0,
@@ -142,72 +156,330 @@ function Reveal({
   )
 }
 
-/* ── ClipImg — content photos wipe open from the bottom as they enter view.
- * Wrapper carries the aspect + IO; the inner layer clips (ledger #7/#12). ── */
-function ClipImg({
+/* ══════════════════════════════════════════════════════════════════════════
+ *  THE SIGNATURE — RibRaster
+ *
+ *  A photograph redrawn as vertical corrugated ribs: for every rib column we
+ *  walk down the image and draw a segment whose WIDTH tracks that pixel's
+ *  luminance, in house yellow on harbour ink. Bright paint = a fat rib, deep
+ *  shadow = a hairline. The result is the façade's own cladding rendered as
+ *  a halftone.
+ *
+ *  Drawn ONCE per size (never per scroll frame — 60k rects/frame would drop
+ *  us to single-digit fps). The scroll morph is a crossfade + counter-scale
+ *  between this canvas and the real photograph underneath, which is cheap,
+ *  compositor-only, and REVERSIBLE (scroll back up and the ribs return —
+ *  that reversibility is what proves it is scrubbed and not a one-shot,
+ *  ledger #50).
+ * ══════════════════════════════════════════════════════════════════════ */
+function drawRibs(
+  canvas: HTMLCanvasElement,
+  img: HTMLImageElement,
+  opts: { ribGap?: number; rowStep?: number; gamma?: number; minW?: number; ground?: string } = {},
+) {
+  /* gamma < 1 lifts the mid-tones: at 1.15 the ribs crushed to near-black
+   * everywhere the façade was in shadow and the raster read as a dark smear.
+   * 0.78 keeps the shadow side thin but visible, which is what makes the
+   * corrugation legible rather than murky. */
+  const { ribGap = 7, rowStep = 3, gamma = 0.78, minW = 0.5, ground = 'transparent' } = opts
+  const rect = canvas.getBoundingClientRect()
+  const w = Math.max(1, Math.round(rect.width))
+  const h = Math.max(1, Math.round(rect.height))
+  if (!img.naturalWidth || !img.naturalHeight) return false
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.6)
+  canvas.width = Math.round(w * dpr)
+  canvas.height = Math.round(h * dpr)
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return false
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.clearRect(0, 0, w, h)
+  if (ground !== 'transparent') {
+    ctx.fillStyle = ground
+    ctx.fillRect(0, 0, w, h)
+  }
+
+  /* Rect count is (w/ribGap) x (h/rowStep) and it is the whole cost of a
+   * raster. At phone width the hero was ~35k rects and showed up as a 496ms
+   * long task on a 4x-throttled CPU. Coarsening the vertical step on small
+   * canvases cuts that by a third; at 390px the ribs are ~2px apart on screen
+   * and the difference is not visible. */
+  const step = w < 500 ? rowStep + 1 : rowStep
+  const cols = Math.max(2, Math.floor(w / ribGap))
+  const rows = Math.max(2, Math.floor(h / step))
+
+  /* Sample the photo once at rib resolution, cover-fitting like object-cover
+   * so the raster frames the same crop the real photograph does. */
+  const buf = document.createElement('canvas')
+  buf.width = cols
+  buf.height = rows
+  const bctx = buf.getContext('2d', { willReadFrequently: true })
+  if (!bctx) return false
+  const scale = Math.max(cols / img.naturalWidth, rows / img.naturalHeight)
+  const dw = img.naturalWidth * scale
+  const dh = img.naturalHeight * scale
+  bctx.drawImage(img, (cols - dw) / 2, (rows - dh) / 2, dw, dh)
+  let data: Uint8ClampedArray
+  try {
+    data = bctx.getImageData(0, 0, cols, rows).data
+  } catch {
+    return false /* tainted canvas — caller keeps the plain photograph */
+  }
+
+  ctx.fillStyle = RIB
+  const maxW = ribGap - 1
+  for (let c = 0; c < cols; c++) {
+    const cx = (c + 0.5) * ribGap
+    for (let r = 0; r < rows; r++) {
+      const i = (r * cols + c) * 4
+      /* Rec. 709 luma, then gamma to push the mid-tones apart so the ribs
+       * read as corrugation rather than as an even grey field. */
+      const lum = (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255
+      const t = Math.pow(lum, gamma)
+      const bw = minW + t * (maxW - minW)
+      ctx.fillRect(cx - bw / 2, r * step, bw, step + 0.35)
+    }
+  }
+  return true
+}
+
+/* The two ways a raster can resolve:
+ *  · `reveal` (a number)         — one-shot, eased by a CSS transition
+ *  · `scrub`  (a MotionValue)    — tied to scroll, written straight to the
+ *                                  elements every frame with NO transition
+ * Mixing them is the bug this split exists to prevent: a CSS transition on a
+ * scroll-scrubbed property restarts on every scroll step, so the raster both
+ * lags the finger and pins the compositor (measured p95 199ms / worst 383ms
+ * on a throttled phone before this was separated). Ledger #19. */
+function RibRaster({
   src,
-  imgSrcSet,
+  srcSet: imgSrcSet,
+  webp,
   sizes,
   alt,
   className = '',
-  delay = 0,
-  fallbackClassName,
+  ribGap = 7,
+  rowStep = 3,
+  /* 0 = pure ribs, 1 = the real photograph */
+  reveal = 0,
+  scrub,
+  eager = false,
+  objectPosition,
 }: {
   src: string
-  imgSrcSet?: string
+  srcSet?: string
+  webp?: string
   sizes?: string
   alt: string
   className?: string
-  delay?: number
-  fallbackClassName?: string
+  ribGap?: number
+  rowStep?: number
+  reveal?: number
+  scrub?: MotionValue<number>
+  eager?: boolean
+  objectPosition?: string
 }) {
-  const { ref, shown } = useInViewOnce(0.16)
-  const reduced = useReducedMotion()
-  const on = shown || !!reduced
+  const hostRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [ok, setOk] = useState(false)
+  const [broken, setBroken] = useState(false)
+  const okRef = useRef(false)
+
+  const paint = useCallback(() => {
+    const canvas = canvasRef.current
+    const img = imgRef.current
+    if (!canvas || !img) return
+    const drew = drawRibs(canvas, img, { ribGap, rowStep })
+    okRef.current = drew
+    setOk(drew)
+  }, [ribGap, rowStep])
+
+  /* Scrubbed path: one subscriber, direct style writes, zero React renders
+   * per frame. Only opacity and transform are touched, so this stays on the
+   * compositor. */
+  useEffect(() => {
+    if (!scrub) return
+    const write = (v: number) => {
+      const canvas = canvasRef.current
+      const img = imgRef.current
+      if (!canvas || !img) return
+      const r = v < 0 ? 0 : v > 1 ? 1 : v
+      const live = okRef.current
+      canvas.style.opacity = String(live ? 1 - r : 0)
+      canvas.style.transform = `scale(${1 + r * 0.03})`
+      img.style.opacity = String(live ? r : 1)
+      if (live) img.style.transform = `scale(${1.06 - r * 0.06})`
+    }
+    write(scrub.get())
+    return scrub.on('change', write)
+  }, [scrub, ok])
+
+  useLayoutEffect(() => {
+    const img = imgRef.current
+    const host = hostRef.current
+    if (!img || !host) return
+    let raf = 0
+    const schedule = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(paint)
+    }
+    /* A cached image fires no load event, so paint from whatever is already
+     * decoded AND again on load — the cached-image trap from the WebGL
+     * image-effect notes, which silently leaves the canvas empty. */
+    if (img.complete) schedule()
+    img.addEventListener('load', schedule)
+    const ro = new ResizeObserver(schedule)
+    ro.observe(host)
+    return () => {
+      cancelAnimationFrame(raf)
+      img.removeEventListener('load', schedule)
+      ro.disconnect()
+    }
+  }, [paint])
+
+  const r = Math.min(1, Math.max(0, reveal))
+  /* When scrubbed, the effect above owns opacity/transform — React must not
+   * also write them, or it would fight the subscriber on every render. */
+  const s = !!scrub
   return (
-    <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <div
-        className="absolute inset-0"
-        style={
-          reduced
-            ? undefined
-            : {
-                clipPath: on ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
-                transition: `clip-path .95s ${EASE} ${delay}ms`,
-              }
-        }
-      >
-        <Img
-          src={src}
-          srcSet={imgSrcSet}
-          sizes={sizes}
-          alt={alt}
-          className="h-full w-full object-cover"
-          style={
-            reduced
-              ? undefined
-              : {
-                  transform: on ? 'scale(1)' : 'scale(1.09)',
-                  transition: `transform 1.25s ${EASE} ${delay}ms`,
-                }
-          }
-          fallbackClassName={fallbackClassName ?? 'bg-gradient-to-br from-[#c9bfa3] to-[#7b7259]'}
+    <div
+      ref={hostRef}
+      className={`na-raster relative overflow-hidden ${className}`}
+      data-scrub={s ? '' : undefined}
+      style={{ background: DEEP_2 }}
+    >
+      {/* A plain <img>: this component needs a real ref to sample pixels from,
+       * and the shared Img wrapper does not forward one. <picture> serves the
+       * WebP ladder with the original JPEG as the fallback rung. */}
+      <picture>
+        {webp && <source type="image/webp" srcSet={webp} sizes={sizes} />}
+        <img
+        ref={imgRef}
+        src={src}
+        srcSet={imgSrcSet}
+        sizes={sizes}
+        alt={broken ? '' : alt}
+        role={broken && alt ? 'img' : undefined}
+        aria-label={broken && alt ? alt : undefined}
+        decoding="async"
+        loading={eager ? 'eager' : 'lazy'}
+        {...(eager ? { fetchpriority: 'high' as const } : {})}
+        onError={() => setBroken(true)}
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{
+          objectPosition,
+          transformOrigin: 'center',
+          /* When the raster could not be drawn the photograph simply stays
+           * visible — never a blank panel. */
+          ...(s ? null : { opacity: broken ? 0 : ok ? r : 1, transform: ok ? `scale(${1.06 - r * 0.06})` : undefined }),
+          ...(broken ? { opacity: 0 } : null),
+        }}
         />
-      </div>
+      </picture>
+      <canvas
+        ref={canvasRef}
+        aria-hidden
+        className="absolute inset-0 h-full w-full"
+        style={{
+          transformOrigin: 'center',
+          pointerEvents: 'none',
+          ...(s ? null : { opacity: ok && !broken ? 1 - r : 0, transform: `scale(${1 + r * 0.03})` }),
+          ...(broken ? { opacity: 0 } : null),
+        }}
+      />
     </div>
   )
 }
 
-/* ── The fish mark — a clean vector cut of the silhouette on Naustið's own
- * black facade sign (white fish + lowercase wordmark), not an invented logo. */
-function FishMark({ size = 34, color = '#F7F1E2' }: { size?: number; color?: string }) {
+/* A RibRaster that resolves itself once as it enters the viewport, for the
+ * sections that are not scroll-scrubbed. */
+function RibReveal({
+  delay = 0,
+  ...rest
+}: Omit<Parameters<typeof RibRaster>[0], 'reveal' | 'scrub'> & { delay?: number }) {
+  const { ref, shown } = useInViewOnce(0.16)
+  const reduced = useReducedMotion()
+  const [r, setR] = useState(0)
+  useEffect(() => {
+    if (reduced) {
+      setR(1)
+      return
+    }
+    if (!shown) return
+    const t = window.setTimeout(() => setR(1), delay + 220)
+    return () => window.clearTimeout(t)
+  }, [shown, reduced, delay])
+  return (
+    <div ref={ref}>
+      <RibRaster reveal={r} {...rest} />
+    </div>
+  )
+}
+
+/* ── Rib rule — the hairline, redrawn as corrugation. Pure CSS. ─────────── */
+function RibRule({ className = '', tone = 'bone' }: { className?: string; tone?: 'bone' | 'rib' }) {
+  return (
+    <div
+      aria-hidden
+      className={`na-ribrule h-[10px] w-full ${className}`}
+      style={{
+        backgroundImage: `repeating-linear-gradient(90deg, ${
+          tone === 'rib' ? HAIR_RIB : HAIR
+        } 0 1px, transparent 1px 7px)`,
+      }}
+    />
+  )
+}
+
+/* ── Label — the reference's micro-label: 11px, +0.09em, uppercase. ─────── */
+function Label({
+  children,
+  color = RIB,
+  className = '',
+  as = 'p',
+}: {
+  children: ReactNode
+  color?: string
+  className?: string
+  as?: 'p' | 'span' | 'h3'
+}) {
+  const Tag = as
+  /* 12px on phones, 11px from sm up. The reference sets these at 10px, but it
+   * is a desktop-first site — at 390px, 41 of these were the page's dominant
+   * text style and 11px reads as fine print rather than as a label. */
+  return (
+    <Tag
+      className={`font-mono text-[12px] uppercase leading-[1.5] tracking-[0.09em] sm:text-[11px] ${className}`}
+      style={{ color }}
+    >
+      {children}
+    </Tag>
+  )
+}
+
+/* ── Display type. `lines` loosens the leading so a second line's Á/Í acute
+ * never lands on the line above (ledger #23). ──────────────────────────── */
+const display = (size: string, lines: 1 | 2 = 1, color: string = BONE): CSSProperties => ({
+  color,
+  fontSize: size,
+  lineHeight: lines === 1 ? 0.9 : 1.04,
+  letterSpacing: '-0.035em',
+  textTransform: 'uppercase',
+  fontWeight: 600,
+})
+
+/* ── The fish mark — a vector cut of the silhouette on Naustið's own black
+ * facade sign (white fish + lowercase wordmark), not an invented logo. ─── */
+/* `eye` must match whatever the mark sits ON — it is a hole punched through
+ * the fish, not a dot. Defaults to the page ground; pass RIB on the yellow. */
+function FishMark({ size = 34, color = BONE, eye = DEEP }: { size?: number; color?: string; eye?: string }) {
   return (
     <svg width={size} height={(size * 30) / 68} viewBox="0 0 68 30" aria-hidden fill="none">
       <path
         d="M2 15C11 5.5 27 2.5 41.5 9.5L60 3.5c-3.2 3.8-4.6 7.7-4.6 11.5s1.4 7.7 4.6 11.5l-18.5-6C27 27.5 11 24.5 2 15Z"
         fill={color}
       />
-      <circle cx="11.5" cy="13.6" r="1.7" fill={color === '#F7F1E2' ? INK : GROUND} />
+      <circle cx="11.5" cy="13.6" r="1.7" fill={eye} />
     </svg>
   )
 }
@@ -238,7 +510,7 @@ function useOpenNow() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  NAV — transparent over the dusk hero, warm paper once scrolled          */
+/*  NAV — ink over the hero, ink-solid once scrolled. Rib rule underneath.  */
 /* ══════════════════════════════════════════════════════════════════════ */
 function TopNav() {
   const [scrolled, setScrolled] = useState(false)
@@ -249,8 +521,13 @@ function TopNav() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
   const solid = scrolled || menuOpen
-  const linkColor = solid ? INK : CREAM_ON_DARK
   const go = (id: string) => {
     setMenuOpen(false)
     goTo(id)
@@ -260,53 +537,52 @@ function TopNav() {
       aria-label="Aðalvalmynd"
       className="fixed inset-x-0 top-0 z-40"
       style={{
-        background: solid ? 'rgba(247,241,226,.96)' : 'transparent',
-        borderBottom: `1px solid ${solid ? HAIRLINE : 'transparent'}`,
+        background: solid ? 'rgba(18,23,27,.94)' : 'transparent',
         backdropFilter: solid ? 'blur(10px)' : undefined,
         WebkitBackdropFilter: solid ? 'blur(10px)' : undefined,
-        transition: 'background-color .35s ease, border-color .35s ease',
+        transition: 'background-color .35s ease',
       }}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 md:px-8">
+      <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 py-3.5 md:px-10">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: prefersReduced() ? 'auto' : 'smooth' })}
-          className={`flex items-center gap-2.5 ${solid ? FOCUS : FOCUS_DARK}`}
+          className={`-my-2 flex min-h-[44px] items-center gap-2.5 py-2 ${FOCUS}`}
           aria-label="Naustið, efst á síðu"
         >
-          <FishMark size={30} color={solid ? INK : '#F7F1E2'} />
+          <FishMark size={28} color={RIB} />
           <span
-            className="font-display text-[20px] font-semibold lowercase italic leading-none"
-            style={{ color: linkColor }}
+            className="font-display text-[17px] font-semibold uppercase leading-none tracking-[-0.02em]"
+            style={{ color: BONE }}
           >
-            naustið
+            Naustið
           </span>
         </button>
 
-        <div className="hidden items-center gap-6 lg:flex">
+        <div className="hidden items-center gap-7 lg:flex">
           {NAV.map((n) => (
             <button
               key={n.id}
               onClick={() => go(n.id)}
-              className={`na-navlink font-sans text-[13.5px] font-medium ${solid ? FOCUS : FOCUS_DARK}`}
-              style={{ color: linkColor }}
+              className={`na-navlink font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+              style={{ color: BONE_SOFT }}
             >
               {n.label}
             </button>
           ))}
         </div>
 
-        <div className="hidden items-center gap-4 lg:flex">
+        <div className="hidden items-center gap-5 lg:flex">
           <a
             href={PHONE_HREF}
-            className={`font-mono text-[13px] font-bold tracking-[0.02em] ${solid ? FOCUS : FOCUS_DARK}`}
-            style={{ color: linkColor }}
+            className={`font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+            style={{ color: BONE_SOFT }}
           >
             {PHONE}
           </a>
           <button
             onClick={() => go('panta')}
-            className={`na-cta inline-flex min-h-[40px] items-center rounded-full px-5 font-sans text-[13px] font-bold ${FOCUS}`}
-            style={{ background: ACCENT, color: INK }}
+            className={`na-pill inline-flex min-h-[38px] items-center rounded-full border px-5 font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+            style={{ borderColor: HAIR_RIB, color: RIB }}
           >
             Panta borð
           </button>
@@ -316,45 +592,43 @@ function TopNav() {
           onClick={() => setMenuOpen((v) => !v)}
           aria-expanded={menuOpen}
           aria-label={menuOpen ? 'Loka valmynd' : 'Opna valmynd'}
-          className={`grid h-11 w-11 place-items-center rounded-full lg:hidden ${solid ? FOCUS : FOCUS_DARK}`}
-          style={{ color: linkColor }}
+          className={`grid h-11 w-11 place-items-center lg:hidden ${FOCUS}`}
+          style={{ color: BONE }}
         >
           <svg width="20" height="14" viewBox="0 0 20 14" fill="none" aria-hidden>
             {menuOpen ? (
-              <path d="M1 1l18 12M19 1 1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M1 1l18 12M19 1 1 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             ) : (
-              <path d="M0 1h20M0 7h20M0 13h20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M0 1h20M0 7h20M0 13h20" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             )}
           </svg>
         </button>
       </div>
+      {solid && <RibRule tone="rib" className="h-[6px]" />}
 
       {menuOpen && (
-        <div className="border-t px-5 pb-6 pt-2 lg:hidden" style={{ borderColor: HAIRLINE, background: GROUND }}>
+        <div className="px-5 pb-7 pt-1 lg:hidden" style={{ background: DEEP }}>
           <div className="flex flex-col">
-            {NAV.map((n) => (
+            {NAV.map((n, i) => (
               <button
                 key={n.id}
                 onClick={() => go(n.id)}
-                className={`border-b py-3.5 text-left font-sans text-[15px] font-medium ${FOCUS}`}
-                style={{ color: INK, borderColor: HAIRLINE }}
+                className={`na-mlink py-4 text-left font-display text-[26px] font-semibold uppercase leading-none tracking-[-0.03em] ${FOCUS}`}
+                style={{ color: BONE, animationDelay: `${60 + i * 55}ms` }}
               >
                 {n.label}
               </button>
             ))}
           </div>
+          <RibRule tone="rib" className="mt-3" />
           <div className="mt-4 flex items-center justify-between gap-3">
-            <a
-              href={PHONE_HREF}
-              className={`inline-flex min-h-[44px] items-center font-mono text-[14px] font-bold ${FOCUS}`}
-              style={{ color: INK }}
-            >
+            <a href={PHONE_HREF} className={`inline-flex min-h-[44px] items-center font-mono text-[15px] ${FOCUS}`} style={{ color: RIB }}>
               {PHONE}
             </a>
             <button
               onClick={() => go('panta')}
-              className={`inline-flex min-h-[44px] items-center rounded-full px-6 font-sans text-[14px] font-bold ${FOCUS}`}
-              style={{ background: ACCENT, color: INK }}
+              className={`inline-flex min-h-[44px] items-center rounded-full px-6 font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+              style={{ background: RIB, color: DEEP }}
             >
               Panta borð
             </button>
@@ -366,30 +640,43 @@ function TopNav() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  HERO — THE SIGNATURE: the approach across the harbour.                  */
-/*  A 230vh band. A sticky stage holds the dusk water while the real        */
-/*  yellow house scales from a small framed panel on the shore to a         */
-/*  full-bleed arrival at the red door. Ordinary scroll, never locked:      */
-/*  the headline block scrolls away in normal flow, and every scrubbed      */
-/*  property is a raw MotionValue (no CSS transitions on them, #19).        */
+/*  1 · HERO — the house arrives out of its own cladding.                   */
+/*  A 240vh band. The sticky stage holds the exterior photograph rendered   */
+/*  entirely as vertical yellow ribs; scrolling resolves the ribs into the  */
+/*  real photograph while the wordmark rises off the horizon. Ordinary      */
+/*  scroll, never locked. Every scrubbed property is a raw MotionValue.     */
 /* ══════════════════════════════════════════════════════════════════════ */
 function Hero() {
   const reduced = useReducedMotion()
   const wrapRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
+
+  /* rAF is PAUSED in a hidden tab, so a page opened in the background (ctrl
+   * click, session restore, a screenshot service) would never flip `mounted`
+   * and the whole headline would sit at opacity 0. Timers still run when
+   * hidden, so a setTimeout failsafe guarantees the entrance resolves — the
+   * same guard useInViewOnce already carries. */
   useEffect(() => {
     const raf = requestAnimationFrame(() => setMounted(true))
-    return () => cancelAnimationFrame(raf)
+    const t = window.setTimeout(() => setMounted(true), 400)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(t)
+    }
   }, [])
 
   const { scrollYProgress } = useScroll({ target: wrapRef, offset: ['start start', 'end end'] })
-  const houseScale = useTransform(scrollYProgress, [0, 0.62, 1], [0.38, 1.02, 1.34])
-  const houseY = useTransform(scrollYProgress, [0, 0.62, 1], ['11%', '0%', '0%'])
-  const houseRadius = useTransform(scrollYProgress, [0, 0.55], [36, 0])
-  const waterScale = useTransform(scrollYProgress, [0, 1], [1, 1.14])
-  const duskOpacity = useTransform(scrollYProgress, [0, 0.7], [0.34, 0.72])
-  const textOpacity = useTransform(scrollYProgress, [0, 0.16], [1, 0])
-  const textY = useTransform(scrollYProgress, [0, 0.16], [0, -48])
+  const houseScale = useTransform(scrollYProgress, [0, 1], [1.16, 1])
+  const textOpacity = useTransform(scrollYProgress, [0, 0.34], [1, 0])
+  const textY = useTransform(scrollYProgress, [0, 0.34], [0, -70])
+  const markY = useTransform(scrollYProgress, [0, 1], ['0%', '-16%'])
+  /* The reading scrim lifts as the headline leaves. Held opaque enough for
+   * the copy while it is there, then out of the way so the house is actually
+   * seen — a static scrim crushed the resolved photograph into mud. */
+  const scrimOpacity = useTransform(scrollYProgress, [0, 0.3, 0.62], [1, 0.94, 0.34])
+  /* The ribs resolve as a MotionValue, not React state: a state update per
+   * scroll step re-rendered the whole hero subtree ~40x per pass for nothing. */
+  const heroReveal = useTransform(scrollYProgress, [0.06, 0.52], [0, 1], { clamp: true })
 
   const stagger = (i: number): CSSProperties =>
     reduced
@@ -398,48 +685,47 @@ function Hero() {
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'none' : 'translateY(22px)',
           filter: mounted ? 'blur(0px)' : 'blur(8px)',
-          transition: `opacity .8s ${EASE} ${120 + i * 110}ms, transform .8s ${EASE} ${120 + i * 110}ms, filter .8s ${EASE} ${120 + i * 110}ms`,
+          transition: `opacity .8s ${EASE} ${180 + i * 110}ms, transform .8s ${EASE} ${180 + i * 110}ms, filter .8s ${EASE} ${180 + i * 110}ms`,
         }
-
-  /* Reduced-motion swaps the backdrop for the bright yellow exterior photo,
-   * so ACCENT (also yellow) on the eyebrow/h1b would collide there — fall
-   * back to cream in that branch only (ledger contrast fix). */
-  const heroAccentColor = reduced ? CREAM_ON_DARK : ACCENT
 
   const headline = (
     <>
-      <p className="font-mono text-[12px] font-bold uppercase tracking-[0.22em]" style={{ ...stagger(0), color: heroAccentColor }}>
-        {HERO.eyebrow}
-      </p>
-      <h1
-        className="mt-5 font-display font-semibold"
-        style={{ color: '#F7F1E2', fontSize: 'clamp(2.5rem,7.2vw,5.2rem)', lineHeight: 1.16, letterSpacing: '-0.015em' }}
-      >
+      <Label className="!tracking-[0.14em]" color={RIB}>
+        <span style={stagger(0)} className="inline-block">
+          {HERO.eyebrow}
+        </span>
+      </Label>
+      {/* The wordmark, set as the sign is set: the name, then the place.
+          Two accented lines, so the leading stays at 1.04. */}
+      <h1 className="mt-6 font-display" style={display('clamp(2.9rem,8.4vw,7.4rem)', 2)}>
         <span className="block" style={stagger(1)}>
           {HERO.h1a}
-        </span>
-        <span className="block italic" style={{ ...stagger(2), color: heroAccentColor }}>
+        </span>{' '}
+        <span className="block" style={{ ...stagger(2), color: RIB }}>
           {HERO.h1b}
         </span>
       </h1>
-      <p className="mt-6 max-w-[44ch] font-sans text-[15.5px] leading-[1.65]" style={{ ...stagger(3), color: CREAM_ON_DARK }}>
+      <p className="mt-7 max-w-[46ch] font-sans text-[15.5px] leading-[1.68]" style={{ ...stagger(3), color: BONE_SOFT }}>
         {HERO.sub}
       </p>
-      <p className="mt-5 font-mono text-[12.5px] tracking-[0.04em]" style={{ ...stagger(4), color: CREAM_ON_DARK }}>
-        {HERO.hoursLine}
-      </p>
-      <div className="mt-8 flex flex-wrap items-center gap-4" style={stagger(5)}>
+      <div className="mt-7 max-w-[520px]" style={stagger(4)}>
+        <RibRule tone="rib" />
+        <Label className="mt-3" color={BONE_MUTE}>
+          {HERO.hoursLine}
+        </Label>
+      </div>
+      <div className="mt-9 flex flex-wrap items-center gap-3.5" style={stagger(5)}>
         <a
           href={PHONE_HREF}
-          className={`na-cta inline-flex min-h-[50px] items-center rounded-full px-7 font-sans text-[15px] font-bold ${FOCUS_DARK}`}
-          style={{ background: ACCENT, color: INK }}
+          className={`na-cta inline-flex min-h-[52px] items-center rounded-full px-8 font-mono text-[11.5px] uppercase tracking-[0.09em] ${FOCUS}`}
+          style={{ background: RIB, color: DEEP }}
         >
           {HERO.ctaCall}
         </a>
         <button
           onClick={() => goTo('panta')}
-          className={`inline-flex min-h-[50px] items-center rounded-full border px-7 font-sans text-[15px] font-semibold ${FOCUS_DARK}`}
-          style={{ borderColor: 'rgba(247,241,226,.45)', color: CREAM_ON_DARK }}
+          className={`na-pill inline-flex min-h-[52px] items-center rounded-full border px-8 font-mono text-[11.5px] uppercase tracking-[0.09em] ${FOCUS}`}
+          style={{ borderColor: 'rgba(216,222,221,.34)', color: BONE }}
         >
           {HERO.ctaTable}
         </button>
@@ -447,28 +733,35 @@ function Hero() {
     </>
   )
 
-  /* Reduced motion: one calm viewport, the real house, everything visible. */
+  /* Reduced motion: one calm viewport, the real photograph, nothing moving. */
   if (reduced) {
     return (
-      <header className="relative" style={{ background: DUSK }}>
+      <header className="relative" style={{ background: DEEP }}>
         <div className="relative min-h-[100svh] overflow-hidden">
-          <Img
-            src={IMG.exterior}
-            srcSet={IMG.exteriorSrcSet}
-            sizes="100vw"
-            alt={HERO.houseAlt}
-            fetchpriority="high"
-            loading="eager"
-            className="absolute inset-0 h-full w-full object-cover"
-            fallbackClassName="bg-gradient-to-br from-[#3E6478] to-[#0B141B]"
-          />
+          {/* Native <picture> rather than the shared Img wrapper: reduced-motion
+              visitors should get the WebP ladder too, and the wrapper has no
+              <source> support. */}
+          <picture>
+            <source type="image/webp" srcSet={IMG.exteriorWebp} sizes="100vw" />
+            <img
+              src={IMG.exterior}
+              srcSet={IMG.exteriorSrcSet}
+              sizes="100vw"
+              alt={HERO.houseAlt}
+              {...{ fetchpriority: 'high' }}
+              loading="eager"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ objectPosition: '58% 42%' }}
+            />
+          </picture>
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(180deg, rgba(11,20,27,.82), rgba(11,20,27,.6))' }}
+            style={{ background: 'linear-gradient(100deg, rgba(18,23,27,.94) 0%, rgba(18,23,27,.82) 46%, rgba(18,23,27,.44) 100%)' }}
             aria-hidden
           />
-          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-5 pb-20 pt-28 md:px-8">
-            <div className="max-w-[640px]">{headline}</div>
+          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-center px-5 pb-24 pt-28 md:px-10">
+            <div className="max-w-[720px]">{headline}</div>
           </div>
         </div>
       </header>
@@ -476,77 +769,46 @@ function Hero() {
   }
 
   return (
-    <header className="relative" style={{ background: DUSK }}>
-      <div ref={wrapRef} className="relative h-[230vh]">
-        {/* STAGE — the sticky viewport the walk happens inside */}
+    <header className="relative" style={{ background: DEEP }}>
+      <div ref={wrapRef} className="relative h-[240vh]">
         <div className="sticky top-0 h-[100svh] overflow-hidden">
-          {/* dusk water, mount-triggered entrance (full-bleed bg = eager, #12) */}
-          <motion.div className="absolute inset-0" style={{ scale: waterScale }}>
-            <Img
-              src={u(UIMG.dockDusk, 2000)}
-              srcSet={srcSet(UIMG.dockDusk)}
+          <motion.div className="absolute inset-0" style={{ scale: houseScale }}>
+            <RibRaster
+              src={IMG.exterior}
+              srcSet={IMG.exteriorSrcSet}
+              webp={IMG.exteriorWebp}
               sizes="100vw"
-              alt=""
-              aria-hidden
-              fetchpriority="high"
-              loading="eager"
-              className="h-full w-full object-cover"
-              style={{
-                opacity: mounted ? 1 : 0,
-                transition: `opacity 1.3s ${EASE}`,
-                filter: 'saturate(.82) brightness(.9)',
-              }}
-              fallbackClassName="bg-gradient-to-b from-[#22384A] to-[#0B141B]"
+              alt={HERO.houseAlt}
+              className="h-full w-full"
+              objectPosition="58% 42%"
+              ribGap={8}
+              rowStep={3}
+              scrub={heroReveal}
+              eager
             />
           </motion.div>
+          {/* Reading scrim — measured against the worst backdrop pixel, so the
+              headline holds whether the ribs or the photograph are showing. */}
           <motion.div
             className="pointer-events-none absolute inset-0"
-            style={{ opacity: duskOpacity, background: DUSK }}
+            style={{
+              opacity: scrimOpacity,
+              background: 'linear-gradient(100deg, rgba(18,23,27,.94) 0%, rgba(18,23,27,.8) 46%, rgba(18,23,27,.26) 100%)',
+            }}
             aria-hidden
           />
 
-          {/* THE HOUSE — one real asset, scroll-scaled from shore to doorstep */}
-          <motion.div
-            className="absolute inset-0 overflow-hidden"
-            style={{
-              scale: houseScale,
-              y: houseY,
-              borderRadius: houseRadius,
-              transformOrigin: '52% 62%',
-              boxShadow: '0 34px 90px rgba(0,0,0,.5)',
-            }}
-          >
-            <Img
-              src={IMG.exterior}
-              srcSet={IMG.exteriorSrcSet}
-              sizes="100vw"
-              alt={HERO.houseAlt}
-              fetchpriority="high"
-              loading="eager"
-              className="h-full w-full object-cover"
-              style={{
-                objectPosition: '58% 46%',
-                opacity: mounted ? 1 : 0,
-                transition: `opacity 1.1s ${EASE} .35s`,
-              }}
-              fallbackClassName="bg-gradient-to-br from-[#F0B429] to-[#877720]"
-            />
+          <motion.div className="absolute inset-x-0 bottom-0 z-10" style={{ y: markY }} aria-hidden>
+            <RibRule tone="rib" className="h-[14px] opacity-70" />
           </motion.div>
         </div>
 
-        {/* HEADLINE — normal flow over the first viewport; scrolls away as
-            the visitor starts walking. Phone + hours live here at 0%. */}
         <motion.div
           className="absolute inset-x-0 top-0 z-10 flex h-[100svh] items-center"
           style={{ opacity: textOpacity, y: textY }}
         >
-          <div className="pointer-events-none mx-auto w-full max-w-6xl px-5 pt-14 md:px-8">
-            <div
-              className="pointer-events-auto max-w-[620px] rounded-[24px] p-5 sm:p-7"
-              style={{ background: 'rgba(11,20,27,.5)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
-            >
-              {headline}
-            </div>
+          <div className="mx-auto w-full max-w-[1500px] px-5 pt-12 md:px-10">
+            <div className="max-w-[720px]">{headline}</div>
           </div>
         </motion.div>
       </div>
@@ -555,75 +817,90 @@ function Hero() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
+/*  Section head — the reference's rule + label left, ordinal right.        */
+/* ══════════════════════════════════════════════════════════════════════ */
+function SectionHead({ label, n }: { label: string; n: string }) {
+  return (
+    <Reveal>
+      <RibRule tone="rib" />
+      <div className="mt-3 flex items-baseline justify-between gap-6">
+        <Label color={RIB}>{label}</Label>
+        <Label color={BONE_MUTE}>({n})</Label>
+      </div>
+    </Reveal>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════ */
 /*  2 · SOUP — the door opens onto the signature dish                       */
 /* ══════════════════════════════════════════════════════════════════════ */
 function SoupSection() {
   return (
-    <section id="supan" style={{ background: GROUND }} className="py-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <div className="grid items-center gap-x-14 gap-y-10 md:grid-cols-2">
+    <section id="supan" style={{ background: DEEP }} className="py-[clamp(84px,11vw,152px)]">
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label={SOUP.eyebrow} n="01" />
+        <div className="mt-12 grid items-start gap-x-16 gap-y-12 lg:grid-cols-[1fr_0.92fr]">
           <div>
-            <Reveal>
-              <p className="font-mono text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: INK }}>
-                {SOUP.eyebrow}
-              </p>
-            </Reveal>
             <Reveal delay={80}>
-              <h2
-                className="mt-4 font-display font-semibold"
-                style={{ color: INK, fontSize: 'clamp(2rem,4.4vw,3.3rem)', lineHeight: 1.16, letterSpacing: '-0.01em' }}
-              >
+              <h2 className="font-display" style={display('clamp(2.4rem,5.4vw,4.6rem)', 2)}>
                 {SOUP.heading}
               </h2>
             </Reveal>
-            <Reveal delay={140} as="p" className="mt-6 max-w-[52ch] font-sans text-[16px] leading-[1.7]" style={{ color: INK }}>
+            <Reveal delay={150} as="p" className="mt-8 max-w-[50ch] font-sans text-[16px] leading-[1.72]" style={{ color: BONE_SOFT }}>
               {SOUP.body1}
             </Reveal>
-            <Reveal delay={190} as="p" className="mt-4 max-w-[52ch] font-sans text-[15px] leading-[1.7]" style={{ color: MUTED }}>
+            <Reveal delay={200} as="p" className="mt-4 max-w-[50ch] font-sans text-[15px] leading-[1.72]" style={{ color: BONE_MUTE }}>
               {SOUP.body2}
             </Reveal>
-            <Reveal delay={250}>
-              <figure className="m-0 mt-8 rounded-[16px] p-5" style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}>
-                <blockquote className="font-sans text-[15.5px] italic leading-[1.6]" style={{ color: INK }}>
+
+            {/* The quote, set as a rib-ruled interruption rather than a card. */}
+            <Reveal delay={260}>
+              <figure className="m-0 mt-11">
+                <RibRule />
+                <blockquote className="mt-5 font-display" style={display('clamp(1.35rem,2.5vw,2rem)', 2, BONE)}>
                   “{SOUP.quote}”
                 </blockquote>
-                <figcaption className="mt-3 font-mono text-[11.5px] uppercase tracking-[0.08em]" style={{ color: MUTED }}>
-                  {SOUP.quoteName} · {SOUP.quoteSource}
+                <figcaption className="mt-4">
+                  <Label color={BONE_MUTE}>
+                    {SOUP.quoteName} · {SOUP.quoteSource}
+                  </Label>
                 </figcaption>
               </figure>
             </Reveal>
-            <Reveal delay={310}>
-              <div className="mt-7">
-                <p className="font-mono text-[12px] uppercase tracking-[0.14em]" style={{ color: MUTED }}>
+
+            <Reveal delay={320}>
+              <div className="mt-11">
+                <RibRule tone="rib" />
+                <Label className="mt-4" color={BONE_MUTE}>
                   {SOUP.priceLabel}
-                </p>
-                <p className="mt-1 font-mono text-[clamp(1.4rem,3vw,1.9rem)] font-bold tabular-nums" style={{ color: INK }}>
+                </Label>
+                <p className="mt-2 font-display tabular-nums" style={display('clamp(1.9rem,3.6vw,2.9rem)', 1, RIB)}>
                   {SOUP.priceValue}
-                  <span
-                    className="ml-3 inline-block h-[3px] w-14 translate-y-[-6px] rounded-full"
-                    style={{ background: SOUPC }}
-                    aria-hidden
-                  />
                 </p>
-                <p className="mt-2 font-sans text-[12.5px]" style={{ color: MUTED }}>
+                <p className="mt-3 max-w-[44ch] font-sans text-[12.5px] leading-[1.6]" style={{ color: BONE_MUTE }}>
                   {SOUP.priceNote}
                 </p>
               </div>
             </Reveal>
           </div>
-          <div>
-            <ClipImg
+
+          {/* Sticky: the left column runs much longer, and letting the photo
+              travel with it closes a ~200px void at the fold. */}
+          <figure className="m-0 lg:sticky lg:top-28">
+            <RibReveal
               src={IMG.soup}
+              webp={IMG.soupWebp}
+              sizes="(max-width:1024px) 92vw, 44vw"
               alt={SOUP.imgAlt}
-              className="aspect-[4/5] w-full rounded-[16px]"
-              fallbackClassName="bg-gradient-to-br from-[#D97B3F] to-[#7b4a25]"
+              className="aspect-[4/5] w-full"
+              ribGap={6}
+              rowStep={3}
+              delay={140}
             />
-            <Reveal delay={420}>
-              <p className="mt-3 font-mono text-[11.5px]" style={{ color: MUTED }}>
-                Fiskisúpan á útiborði fyrir framan húsið. Mynd staðarins.
-              </p>
-            </Reveal>
-          </div>
+            <figcaption className="mt-4">
+              <Label color={BONE_MUTE}>Fiskisúpan á útiborði fyrir framan húsið · Mynd staðarins</Label>
+            </figcaption>
+          </figure>
         </div>
       </div>
     </section>
@@ -631,53 +908,50 @@ function SoupSection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  3 · MENU — the day's placard, real dishes, honest small print           */
+/*  3 · MENU — the day's placard, real dishes, honest small print.          */
+/*  No prices: Naustið publishes none, so the menu is typographic (the      */
+/*  Monte pattern from Mobbin), not a price list we would have to invent.   */
 /* ══════════════════════════════════════════════════════════════════════ */
 function MenuSection() {
   return (
-    <section id="matsedill" style={{ background: GROUND }} className="pb-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <Reveal>
-          <h2
-            className="max-w-[640px] font-display font-semibold"
-            style={{ color: INK, fontSize: 'clamp(2rem,4.2vw,3.1rem)', lineHeight: 1.16, letterSpacing: '-0.01em' }}
-          >
-            {MENU.heading}
-          </h2>
-        </Reveal>
-        <Reveal delay={90} as="p" className="mt-5 max-w-[62ch] font-sans text-[15.5px] leading-[1.7]" style={{ color: MUTED }}>
-          {MENU.intro}
-        </Reveal>
+    <section id="matsedill" style={{ background: DEEP }} className="pb-[clamp(84px,11vw,152px)]">
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label="Matseðill" n="02" />
+        <div className="mt-12 grid gap-x-16 gap-y-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <Reveal delay={60}>
+              <h2 className="font-display" style={display('clamp(2.2rem,4.6vw,3.8rem)', 2)}>
+                {MENU.heading}
+              </h2>
+            </Reveal>
+            <Reveal delay={120} as="p" className="mt-7 max-w-[46ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: BONE_SOFT }}>
+              {MENU.intro}
+            </Reveal>
+            <Reveal delay={180}>
+              <figure className="m-0 mt-10">
+                <RibReveal src={IMG.salmon} webp={IMG.salmonWebp} sizes="(max-width:1024px) 92vw, 44vw" alt={MENU.imgAlt} className="aspect-[5/4] w-full" ribGap={6} rowStep={3} delay={120} />
+                <figcaption className="mt-4">
+                  <Label color={BONE_MUTE}>Grillaður lax af matseðlinum · Mynd staðarins</Label>
+                </figcaption>
+              </figure>
+            </Reveal>
+          </div>
 
-        <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          {/* the placard — set like the black fish sign on the lawn */}
-          <Reveal className="rounded-[16px] p-7 sm:p-9" style={{ background: INK, border: '1px solid rgba(247,241,226,.1)' }}>
-            <div className="flex items-center justify-between gap-4">
-              <FishMark size={40} />
-              <span className="font-mono text-[11px] uppercase tracking-[0.24em]" style={{ color: 'rgba(247,241,226,.55)' }}>
-                seafood restaurant
-              </span>
-            </div>
+          <div>
             {MENU.groups.map((g, gi) => (
-              <div key={g.title} className={gi === 0 ? 'mt-8' : 'mt-9'}>
-                <h3 className="font-mono text-[13px] font-bold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+              <div key={g.title} className={gi === 0 ? '' : 'mt-14'}>
+                <RibRule tone="rib" />
+                <Label className="mt-3" color={RIB} as="h3">
                   {g.title}
-                </h3>
-                <ul className="mt-3 list-none p-0">
+                </Label>
+                <ul className="mt-5 list-none p-0">
                   {g.items.map((it, i) => (
-                    <Reveal
-                      as="li"
-                      key={it.name}
-                      delay={60 + i * 55}
-                      y={10}
-                      className={i === 0 ? 'py-2.5' : 'border-t py-2.5'}
-                      style={{ borderColor: 'rgba(247,241,226,.1)' }}
-                    >
-                      <div className="flex flex-wrap items-baseline gap-x-4">
-                        <span className="font-display text-[19px] font-medium" style={{ color: CREAM_ON_DARK }}>
+                    <Reveal as="li" key={it.name} delay={40 + i * 45} y={10} className="na-dish py-4" style={{ borderTop: i === 0 ? 'none' : `1px solid ${HAIR}` }}>
+                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                        <span className="font-display" style={display('clamp(1.15rem,2vw,1.6rem)', 1, BONE)}>
                           {it.name}
                         </span>
-                        <span className="font-sans text-[13px]" style={{ color: 'rgba(247,241,226,.6)' }}>
+                        <span className="font-sans text-[13.5px] leading-snug" style={{ color: BONE_MUTE }}>
                           {it.note}
                         </span>
                       </div>
@@ -686,28 +960,13 @@ function MenuSection() {
                 </ul>
               </div>
             ))}
-          </Reveal>
-
-          <div className="lg:sticky lg:top-24">
-            <ClipImg
-              src={IMG.salmon}
-              alt={MENU.imgAlt}
-              className="aspect-[4/5] w-full rounded-[16px]"
-              delay={120}
-              fallbackClassName="bg-gradient-to-br from-[#c9bfa3] to-[#7b7259]"
-            />
-            <Reveal delay={260}>
-              <p className="mt-3 font-mono text-[11.5px]" style={{ color: MUTED }}>
-                Grillaður lax af matseðlinum. Mynd staðarins.
-              </p>
-            </Reveal>
-            <Reveal delay={320}>
-              <p
-                className="mt-6 rounded-[16px] p-5 font-sans text-[13.5px] leading-[1.65]"
-                style={{ background: CARD, border: `1px solid ${HAIRLINE}`, color: MUTED }}
-              >
-                {MENU.smallPrint}
-              </p>
+            <Reveal delay={220}>
+              <div className="mt-12">
+                <RibRule />
+                <p className="mt-4 max-w-[58ch] font-sans text-[13px] leading-[1.7]" style={{ color: BONE_MUTE }}>
+                  {MENU.smallPrint}
+                </p>
+              </div>
             </Reveal>
           </div>
         </div>
@@ -717,27 +976,41 @@ function MenuSection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  4 · ROPE — one quiet mariner texture band, pure texture, not a gauge    */
+/*  4 · THE CLADDING BAND — full-bleed, the façade as pure corrugation.     */
+/*  Replaces the old stock-rope divider: same job, but it is the actual     */
+/*  building and it belongs to the client.                                  */
 /* ══════════════════════════════════════════════════════════════════════ */
-function RopeDivider() {
+function CladdingBand() {
+  const ref = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  /* Resolves through the middle of its own pass and returns to ribs on the
+   * way out — reversible in both directions, and driven as a MotionValue so
+   * the band costs no React renders while it scrolls past. */
+  const bandReveal = useTransform(scrollYProgress, [0.16, 0.5, 0.84], [0, 1, 0], { clamp: true })
+
   return (
-    <div aria-hidden className="relative h-[110px] overflow-hidden md:h-[150px]">
-      <Img
-        src={u(UIMG.rope, 1800)}
-        srcSet={srcSet(UIMG.rope)}
+    <div ref={ref} className="relative" style={{ background: DEEP }}>
+      <RibRaster
+        src={IMG.exterior}
+        srcSet={IMG.exteriorSrcSet}
+        webp={IMG.exteriorWebp}
         sizes="100vw"
         alt=""
-        className="h-full w-full object-cover"
-        style={{ filter: 'saturate(.6) brightness(.92)' }}
-        fallbackClassName="bg-[#8a8272]"
+        className="h-[46svh] w-full md:h-[62svh]"
+        objectPosition="52% 38%"
+        ribGap={9}
+        rowStep={3}
+        {...(reduced ? { reveal: 1 } : { scrub: bandReveal })}
       />
       <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(247,241,226,.3), transparent 32%, transparent 68%, rgba(247,241,226,.3))',
-        }}
-      />
+        className="pointer-events-none absolute inset-0 flex items-end"
+        style={{ background: 'linear-gradient(180deg, rgba(18,23,27,.55) 0%, transparent 34%, rgba(18,23,27,.86) 100%)' }}
+      >
+        <div className="mx-auto w-full max-w-[1500px] px-5 pb-8 md:px-10">
+          <Label color={RIB}>Bárujárn · Sel, byggt 1931</Label>
+        </div>
+      </div>
     </div>
   )
 }
@@ -747,46 +1020,43 @@ function RopeDivider() {
 /* ══════════════════════════════════════════════════════════════════════ */
 function StorySection() {
   return (
-    <section id="sagan" style={{ background: GROUND }} className="py-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <div className="grid items-center gap-x-14 gap-y-10 md:grid-cols-2">
-          <ClipImg
-            src={IMG.interior}
-            alt={STORY.imgAlt}
-            className="aspect-[4/5] w-full rounded-[16px]"
-            fallbackClassName="bg-gradient-to-br from-[#9aa68f] to-[#4a5245]"
-          />
+    <section id="sagan" style={{ background: DEEP }} className="py-[clamp(84px,11vw,152px)]">
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label={STORY.eyebrow} n="03" />
+        <div className="mt-12 grid items-start gap-x-16 gap-y-12 lg:grid-cols-[0.92fr_1fr]">
+          <figure className="m-0">
+            <RibReveal src={IMG.interior} webp={IMG.interiorWebp} sizes="(max-width:1024px) 92vw, 44vw" alt={STORY.imgAlt} className="aspect-[4/5] w-full" ribGap={6} rowStep={3} />
+            <figcaption className="mt-4">
+              <Label color={BONE_MUTE}>Matsalurinn í Seli · Mynd staðarins</Label>
+            </figcaption>
+          </figure>
           <div>
-            <Reveal>
-              <p className="font-mono text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: HARBOUR }}>
-                {STORY.eyebrow}
-              </p>
-            </Reveal>
             <Reveal delay={80}>
-              <h2
-                className="mt-4 font-display font-semibold"
-                style={{ color: INK, fontSize: 'clamp(1.9rem,3.8vw,2.8rem)', lineHeight: 1.18, letterSpacing: '-0.01em' }}
-              >
+              <h2 className="font-display" style={display('clamp(2.1rem,4.4vw,3.6rem)', 2)}>
                 {STORY.heading}
               </h2>
             </Reveal>
-            <Reveal delay={150} as="p" className="mt-6 max-w-[54ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: INK }}>
+            <Reveal delay={150} as="p" className="mt-8 max-w-[52ch] font-sans text-[15.5px] leading-[1.74]" style={{ color: BONE_SOFT }}>
               {STORY.body1}
             </Reveal>
-            <Reveal delay={210} as="p" className="mt-4 max-w-[54ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: MUTED }}>
+            <Reveal delay={210} as="p" className="mt-4 max-w-[52ch] font-sans text-[15.5px] leading-[1.74]" style={{ color: BONE_MUTE }}>
               {STORY.body2}
             </Reveal>
           </div>
         </div>
 
-        {/* the walk in years — plainly counted facts, no invented meters */}
-        <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-8 border-t pt-9 md:grid-cols-4" style={{ borderColor: HAIRLINE }}>
+        {/* The years, counted plainly — each one its own rib-ruled column. */}
+        <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
           {STORY.timeline.map((t2, i) => (
             <Reveal key={t2.year} delay={i * 90} y={14}>
-              <div className="font-mono text-[clamp(1.3rem,2.4vw,1.7rem)] font-bold tabular-nums" style={{ color: INK }}>
+              <RibRule tone={i === STORY.timeline.length - 1 ? 'rib' : 'bone'} />
+              <div
+                className="mt-4 font-display tabular-nums"
+                style={display('clamp(1.6rem,3vw,2.4rem)', 1, i === STORY.timeline.length - 1 ? RIB : BONE)}
+              >
                 {t2.year}
               </div>
-              <div className="mt-1.5 font-sans text-[13px] leading-snug" style={{ color: MUTED }}>
+              <div className="mt-2.5 max-w-[24ch] font-sans text-[13px] leading-snug" style={{ color: BONE_MUTE }}>
                 {t2.label}
               </div>
             </Reveal>
@@ -798,47 +1068,41 @@ function StorySection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  6 · REVIEWS — real quotes, honest sourcing                              */
+/*  6 · REVIEWS — real quotes, honest sourcing. Rib-ruled rows, no cards.   */
 /* ══════════════════════════════════════════════════════════════════════ */
 function ReviewsSection() {
   return (
-    <section style={{ background: GROUND }} className="pb-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <Reveal>
-          <h2
-            className="max-w-[560px] font-display font-semibold"
-            style={{ color: INK, fontSize: 'clamp(2rem,4.2vw,3.1rem)', lineHeight: 1.16, letterSpacing: '-0.01em' }}
-          >
+    <section style={{ background: DEEP }} className="pb-[clamp(56px,7vw,92px)]">
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label="Umsagnir" n="04" />
+        <Reveal delay={70}>
+          <h2 className="mt-12 max-w-[16ch] font-display" style={display('clamp(2.2rem,4.6vw,3.8rem)', 2)}>
             {REVIEWS.heading}
           </h2>
         </Reveal>
-        <Reveal delay={90} as="p" className="mt-5 max-w-[58ch] font-sans text-[15.5px] leading-[1.7]" style={{ color: MUTED }}>
+        <Reveal delay={130} as="p" className="mt-7 max-w-[56ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: BONE_SOFT }}>
           {REVIEWS.body}
         </Reveal>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+
+        <div className="mt-14">
           {REVIEWS.quotes.map((q, i) => (
-            <Reveal
-              key={q.name}
-              delay={i * 110}
-              className="na-card flex flex-col rounded-[16px] p-6"
-              style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}
-            >
-              <p className="flex-1 font-sans text-[15px] italic leading-[1.6]" style={{ color: INK }}>
+            <Reveal key={q.name} delay={i * 110} className="na-quote grid gap-x-12 gap-y-4 py-9 md:grid-cols-[1fr_auto] md:items-end" style={{ borderTop: `1px solid ${HAIR}` }}>
+              <blockquote className="font-display" style={display('clamp(1.3rem,2.7vw,2.1rem)', 2, BONE)}>
                 “{q.text}”
-              </p>
-              <div className="mt-5 border-t pt-3.5" style={{ borderColor: HAIRLINE }}>
-                <div className="font-sans text-[13.5px] font-bold" style={{ color: INK }}>
-                  {q.name}
-                </div>
-                <div className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
+              </blockquote>
+              <div className="md:text-right">
+                <Label color={RIB}>{q.name}</Label>
+                <Label className="mt-1" color={BONE_MUTE}>
                   {q.source}
-                </div>
+                </Label>
               </div>
             </Reveal>
           ))}
+          <div style={{ borderTop: `1px solid ${HAIR}` }} />
         </div>
-        <Reveal delay={340}>
-          <p className="mt-5 font-sans text-[12px]" style={{ color: MUTED }}>
+
+        <Reveal delay={200}>
+          <p className="mt-6 max-w-[62ch] font-sans text-[12.5px] leading-[1.7]" style={{ color: BONE_MUTE }}>
             {REVIEWS.note}
           </p>
         </Reveal>
@@ -848,107 +1112,120 @@ function ReviewsSection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════ */
-/*  7 · LANTERN — hours as a window that is actually lit right now          */
+/*  7 · LANTERN — the hours, as the window that is lit right now.           */
+/*  The ribs themselves carry the light: open, and the cladding glows and   */
+/*  the real dining room resolves behind it; closed, and it stays ribs.     */
 /* ══════════════════════════════════════════════════════════════════════ */
 function LanternSection() {
   const open = useOpenNow()
   const reduced = useReducedMotion()
   return (
-    <section id="opid" style={{ background: NIGHT }} className="py-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <div className="grid items-center gap-x-14 gap-y-12 md:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative mx-auto w-full max-w-[420px]">
-            <ClipImg
-              src={u(UIMG.windowGlow, 1400)}
-              imgSrcSet={srcSet(UIMG.windowGlow)}
-              sizes="(max-width:768px) 90vw, 420px"
+    <section
+      id="opid"
+      style={{ background: DEEP_2 }}
+      className="relative overflow-hidden pb-[clamp(72px,9vw,120px)] pt-[clamp(56px,7vw,92px)]"
+    >
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label={LANTERN.eyebrow} n="05" />
+        <div className="mt-12 grid items-center gap-x-16 gap-y-14 lg:grid-cols-[1fr_0.85fr]">
+          <div>
+            <Reveal delay={70}>
+              <h2 className="font-display" style={display('clamp(2.4rem,5.6vw,4.8rem)', 1)}>
+                {LANTERN.heading}
+              </h2>
+            </Reveal>
+            <Reveal delay={130} as="p" className="mt-7 max-w-[48ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: BONE_SOFT }}>
+              {LANTERN.body}
+            </Reveal>
+
+            <Reveal delay={190}>
+              <div
+                className="mt-9 inline-flex items-center gap-2.5 rounded-full border px-4 py-2"
+                style={{ borderColor: open ? HAIR_RIB : 'rgba(216,222,221,.22)' }}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${open && !reduced ? 'na-pulse' : ''}`}
+                  style={{ background: open ? RIB : BONE_MUTE }}
+                  aria-hidden
+                />
+                <Label color={open ? RIB : BONE_MUTE}>
+                  {open ? LANTERN.openNow : LANTERN.closedNow} · {open ? LANTERN.closesAt : LANTERN.opensAt}
+                </Label>
+              </div>
+            </Reveal>
+
+            <Reveal delay={250}>
+              <p className="mt-9 font-display tabular-nums" style={display('clamp(2.4rem,6vw,4.6rem)', 1, BONE)}>
+                {LANTERN.hours}
+              </p>
+            </Reveal>
+
+            <Reveal delay={310}>
+              <div className="mt-10">
+                <RibRule tone="rib" />
+                <dl className="mt-5 grid gap-y-4 sm:grid-cols-2">
+                  <div>
+                    <Label as="span" color={BONE_MUTE}>
+                      Sími
+                    </Label>
+                    <dd className="mt-1.5 m-0">
+                      <a
+                        href={PHONE_HREF}
+                        className={`inline-flex min-h-[44px] items-center font-display underline-offset-[7px] hover:underline ${FOCUS}`}
+                        style={display('clamp(1.5rem,3vw,2.1rem)', 1, RIB)}
+                      >
+                        {PHONE}
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <Label as="span" color={BONE_MUTE}>
+                      Netfang
+                    </Label>
+                    <dd className="mt-1.5 m-0">
+                      <a
+                        href={`mailto:${EMAIL}`}
+                        className={`inline-flex min-h-[44px] items-center font-sans text-[15px] underline underline-offset-[3px] ${FOCUS}`}
+                        style={{ color: BONE_SOFT }}
+                      >
+                        {EMAIL}
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* The lit window: the real dining room, resolving only while open. */}
+          <div className="relative mx-auto w-full max-w-[440px]">
+            <RibReveal
+              src={IMG.interior}
+              webp={IMG.interiorWebp}
+              sizes="(max-width:1024px) 92vw, 440px"
               alt={LANTERN.imgAlt}
-              className="aspect-[3/4] w-full rounded-[16px]"
-              fallbackClassName="bg-gradient-to-b from-[#2a2313] to-[#05070a]"
+              className="aspect-[3/4] w-full"
+              ribGap={7}
+              rowStep={3}
+              delay={200}
             />
-            {/* live glow, driven by the verified hours against Iceland time */}
             <div
               aria-hidden
-              className={`pointer-events-none absolute inset-0 rounded-[16px] ${open && !reduced ? 'na-lantern' : ''}`}
+              className={`pointer-events-none absolute inset-0 ${open && !reduced ? 'na-lantern' : ''}`}
               style={{
-                background: 'radial-gradient(ellipse 60% 50% at 50% 52%, rgba(240,180,41,.42), transparent 68%)',
+                background: 'radial-gradient(ellipse 62% 52% at 50% 50%, rgba(227,184,31,.34), transparent 70%)',
                 opacity: open ? 1 : 0,
                 transition: 'opacity 1.2s ease',
               }}
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-[16px]"
-              style={{ background: 'rgba(5,8,12,.62)', opacity: open ? 0 : 1, transition: 'opacity 1.2s ease' }}
+              className="pointer-events-none absolute inset-0"
+              style={{ background: 'rgba(6,9,11,.66)', opacity: open ? 0 : 1, transition: 'opacity 1.2s ease' }}
             />
-          </div>
-
-          <div>
-            <Reveal>
-              <p className="font-mono text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-                {LANTERN.eyebrow}
-              </p>
-            </Reveal>
-            <Reveal delay={80}>
-              <h2
-                className="mt-4 font-display font-semibold"
-                style={{ color: CREAM_ON_DARK, fontSize: 'clamp(2rem,4.2vw,3.1rem)', lineHeight: 1.16, letterSpacing: '-0.01em' }}
-              >
-                {LANTERN.heading}
-              </h2>
-            </Reveal>
-            <Reveal delay={140} as="p" className="mt-5 max-w-[50ch] font-sans text-[15.5px] leading-[1.7]" style={{ color: CREAM_DIM }}>
-              {LANTERN.body}
-            </Reveal>
-
-            <Reveal delay={200}>
-              <div
-                className="mt-8 inline-flex items-center gap-2.5 rounded-full border px-4 py-2"
-                style={{ borderColor: open ? 'rgba(240,180,41,.5)' : 'rgba(247,241,226,.25)' }}
-              >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: open ? ACCENT : 'rgba(247,241,226,.35)' }}
-                  aria-hidden
-                />
-                <span
-                  className="font-mono text-[12.5px] font-bold uppercase tracking-[0.14em]"
-                  style={{ color: open ? ACCENT : CREAM_DIM }}
-                >
-                  {open ? LANTERN.openNow : LANTERN.closedNow} · {open ? LANTERN.closesAt : LANTERN.opensAt}
-                </span>
-              </div>
-            </Reveal>
-
-            <Reveal delay={260}>
-              <p
-                className="mt-7 font-mono font-bold tabular-nums"
-                style={{ color: CREAM_ON_DARK, fontSize: 'clamp(1.8rem,4.6vw,3rem)', lineHeight: 1.2 }}
-              >
-                {LANTERN.hours}
-              </p>
-            </Reveal>
-            <Reveal delay={320}>
-              <div className="mt-7 flex flex-col gap-2.5">
-                <a
-                  href={PHONE_HREF}
-                  className={`w-fit font-mono text-[clamp(1.5rem,3.6vw,2.2rem)] font-bold underline-offset-[6px] hover:underline ${FOCUS_DARK}`}
-                  style={{ color: ACCENT }}
-                >
-                  {PHONE}
-                </a>
-                <p className="font-sans text-[15px]" style={{ color: CREAM_DIM }}>
-                  {ADDRESS}
-                </p>
-                <a
-                  href={`mailto:${EMAIL}`}
-                  className={`w-fit font-sans text-[14.5px] underline underline-offset-[3px] ${FOCUS_DARK}`}
-                  style={{ color: CREAM_DIM }}
-                >
-                  {EMAIL}
-                </a>
-              </div>
-            </Reveal>
+            <figcaption className="mt-4">
+              <Label color={BONE_MUTE}>Ásgarðsvegur 1 · Mynd staðarins</Label>
+            </figcaption>
           </div>
         </div>
       </div>
@@ -983,11 +1260,7 @@ function ReserveSection() {
     opts?: { textarea?: boolean; required?: boolean; half?: boolean },
   ) => (
     <div className={opts?.half ? '' : 'sm:col-span-2'}>
-      <label
-        htmlFor={`na-${key}`}
-        className="mb-1.5 block font-mono text-[11px] font-bold uppercase tracking-[0.12em]"
-        style={{ color: MUTED }}
-      >
+      <label htmlFor={`na-${key}`} className="mb-2 block font-mono text-[12px] uppercase tracking-[0.09em] sm:text-[11px]" style={{ color: BONE_MUTE }}>
         {label}
       </label>
       {opts?.textarea ? (
@@ -996,7 +1269,7 @@ function ReserveSection() {
           rows={3}
           value={draft[key]}
           onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
-          className="na-input min-h-[44px] w-full rounded-[12px] px-3.5 py-3 font-sans text-[15px]"
+          className="na-input min-h-[44px] w-full px-3.5 py-3 font-sans text-[15px]"
         />
       ) : (
         <input
@@ -1005,273 +1278,244 @@ function ReserveSection() {
           required={opts?.required}
           value={draft[key]}
           onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
-          className="na-input min-h-[44px] w-full rounded-[12px] px-3.5 py-3 font-sans text-[15px]"
+          className="na-input min-h-[44px] w-full px-3.5 py-3 font-sans text-[15px]"
         />
       )}
     </div>
   )
 
   return (
-    <section id="panta" style={{ background: GROUND }} className="py-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <div className="grid items-stretch gap-x-14 gap-y-10 md:grid-cols-2">
-          <div className="relative hidden md:block">
-            <ClipImg
-              src={u(UIMG.tableNote, 1400)}
-              imgSrcSet={srcSet(UIMG.tableNote)}
-              sizes="(max-width:768px) 100vw, 50vw"
-              alt={RESERVE.imgAlt}
-              className="h-full min-h-[520px] w-full rounded-[16px]"
-              fallbackClassName="bg-gradient-to-br from-[#4a3928] to-[#1c130b]"
-            />
-          </div>
-
+    <section id="panta" style={{ background: DEEP }} className="pb-[clamp(84px,11vw,152px)] pt-[clamp(64px,8vw,104px)]">
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label={RESERVE.eyebrow} n="06" />
+        <div className="mt-12 grid gap-x-16 gap-y-12 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
-            <Reveal>
-              <p className="font-mono text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: HARBOUR }}>
-                {RESERVE.eyebrow}
-              </p>
-            </Reveal>
-            <Reveal delay={80}>
-              <h2
-                className="mt-4 font-display font-semibold"
-                style={{ color: INK, fontSize: 'clamp(2rem,4.2vw,3rem)', lineHeight: 1.16, letterSpacing: '-0.01em' }}
-              >
+            <Reveal delay={70}>
+              <h2 className="font-display" style={display('clamp(2.2rem,4.6vw,3.8rem)', 2)}>
                 {RESERVE.heading}
               </h2>
             </Reveal>
-            <Reveal delay={140} as="p" className="mt-5 max-w-[52ch] font-sans text-[15.5px] leading-[1.7]" style={{ color: MUTED }}>
+            <Reveal delay={130} as="p" className="mt-7 max-w-[42ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: BONE_SOFT }}>
               {RESERVE.body}
             </Reveal>
-
-            <Reveal delay={200}>
-              {sent ? (
-                <div className="mt-8 rounded-[16px] p-6 sm:p-7" style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}>
-                  <h3 className="font-display text-[24px] font-semibold" style={{ color: INK }}>
-                    {RESERVE.successHeading}
-                  </h3>
-                  <p className="mt-2 font-sans text-[14.5px] leading-[1.65]" style={{ color: MUTED }}>
-                    {RESERVE.successBody}
-                  </p>
-                  <div className="mt-5 space-y-1.5 border-t pt-4 font-sans text-[14px]" style={{ borderColor: HAIRLINE, color: INK }}>
-                    {sent.name && (
-                      <div>
-                        {RESERVE.fields.name}: <strong>{sent.name}</strong>
-                      </div>
-                    )}
-                    {sent.contact && (
-                      <div>
-                        {RESERVE.fields.contact}: <strong>{sent.contact}</strong>
-                      </div>
-                    )}
-                    {sent.guests && (
-                      <div>
-                        {RESERVE.fields.guests}: <strong>{sent.guests}</strong>
-                      </div>
-                    )}
-                    {sent.when && (
-                      <div>
-                        {RESERVE.fields.when}: <strong>{sent.when}</strong>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <a
-                      href={mailto}
-                      className={`na-cta inline-flex min-h-[46px] items-center rounded-full px-6 font-sans text-[14px] font-bold ${FOCUS}`}
-                      style={{ background: INK, color: GROUND }}
-                    >
-                      {RESERVE.successMail}
-                    </a>
-                    <a
-                      href={PHONE_HREF}
-                      className={`inline-flex min-h-[46px] items-center rounded-full border px-6 font-sans text-[14px] font-semibold ${FOCUS}`}
-                      style={{ borderColor: 'rgba(33,29,20,.3)', color: INK }}
-                    >
-                      {RESERVE.successCall}
-                    </a>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSent(null)
-                      setDraft(EMPTY_NOTE)
-                    }}
-                    className={`mt-4 font-sans text-[13px] underline underline-offset-[3px] ${FOCUS}`}
-                    style={{ color: MUTED }}
-                  >
-                    Skrifa nýjan miða
-                  </button>
-                </div>
-              ) : (
-                <form
-                  onSubmit={onSubmit}
-                  className="mt-8 rounded-[16px] p-6 sm:p-7"
-                  style={{ background: CARD, border: `1px solid ${HAIRLINE}`, boxShadow: '0 14px 44px rgba(33,29,20,.08)' }}
-                >
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {field('name', RESERVE.fields.name, { required: true, half: true })}
-                    {field('contact', RESERVE.fields.contact, { required: true, half: true })}
-                    {field('guests', RESERVE.fields.guests, { half: true })}
-                    {field('when', RESERVE.fields.when, { half: true })}
-                    {field('message', RESERVE.fields.message, { textarea: true })}
-                  </div>
-                  <button
-                    type="submit"
-                    className={`na-cta mt-6 inline-flex min-h-[50px] w-full items-center justify-center rounded-full px-7 font-sans text-[15px] font-bold sm:w-auto ${FOCUS}`}
-                    style={{ background: ACCENT, color: INK }}
-                  >
-                    {RESERVE.submit}
-                  </button>
-                  <p className="mt-4 font-sans text-[12.5px] leading-[1.6]" style={{ color: MUTED }}>
-                    {RESERVE.disclaimer}
-                  </p>
-                </form>
-              )}
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════════════ */
-/*  9 · FIND US — address, region context, honestly captioned atmosphere    */
-/* ══════════════════════════════════════════════════════════════════════ */
-function FindSection() {
-  return (
-    <section id="stadsetning" style={{ background: GROUND }} className="pb-[clamp(72px,10vw,132px)]">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <Reveal>
-          <h2
-            className="max-w-[560px] font-display font-semibold"
-            style={{ color: INK, fontSize: 'clamp(2rem,4.2vw,3.1rem)', lineHeight: 1.18, letterSpacing: '-0.01em' }}
-          >
-            {FIND.heading}
-          </h2>
-        </Reveal>
-        <Reveal delay={90} as="p" className="mt-5 max-w-[62ch] font-sans text-[15.5px] leading-[1.7]" style={{ color: MUTED }}>
-          {FIND.body}
-        </Reveal>
-
-        <div className="mt-10 grid gap-6 md:grid-cols-[1.25fr_0.75fr]">
-          <figure className="m-0">
-            <ClipImg
-              src={u(UIMG.harbourTown, 1800)}
-              imgSrcSet={srcSet(UIMG.harbourTown)}
-              sizes="(max-width:768px) 100vw, 62vw"
-              alt={FIND.harbourAlt}
-              className="aspect-[16/10] w-full rounded-[16px]"
-              fallbackClassName="bg-gradient-to-br from-[#3E6478] to-[#1d3341]"
-            />
-            <figcaption className="mt-3 font-mono text-[11.5px]" style={{ color: MUTED }}>
-              {FIND.harbourCaption}
-            </figcaption>
-          </figure>
-
-          <div className="flex flex-col gap-6">
-            <Reveal delay={140} className="rounded-[16px] p-6" style={{ background: HARBOUR }}>
-              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'rgba(247,241,226,.92)' }}>
-                {FIND.addressLabel}
-              </p>
-              <p className="mt-3 font-display text-[clamp(1.4rem,2.4vw,1.7rem)] font-semibold leading-[1.3]" style={{ color: '#F7F1E2' }}>
-                Ásgarðsvegur 1<br />
-                640 Húsavík
-              </p>
-              <a
-                href={MAPS_URL}
-                target="_blank"
-                rel="noreferrer"
-                className={`na-cta mt-5 inline-flex min-h-[44px] items-center rounded-full px-6 font-sans text-[13.5px] font-bold ${FOCUS_DARK}`}
-                style={{ background: GROUND, color: INK }}
-              >
-                {FIND.mapsCta}
-              </a>
-            </Reveal>
-
-            <Reveal
-              delay={220}
-              as="figure"
-              className="m-0 flex-1 overflow-hidden rounded-[16px]"
-              style={{ background: CARD, border: `1px solid ${HAIRLINE}` }}
-            >
-              <ClipImg
-                src={u(UIMG.puffin, 1200)}
-                imgSrcSet={srcSet(UIMG.puffin)}
-                sizes="(max-width:768px) 100vw, 32vw"
-                alt={FIND.puffinAlt}
-                className="aspect-[16/9] w-full"
-                delay={120}
-                fallbackClassName="bg-gradient-to-br from-[#7d8a93] to-[#3c464d]"
-              />
-              <figcaption className="p-4 font-sans text-[13.5px] leading-snug" style={{ color: MUTED }}>
-                {FIND.puffinCaption}
-              </figcaption>
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════════════ */
-/*  10 · CLOSING — the yellow band, the real sign, the honesty note         */
-/* ══════════════════════════════════════════════════════════════════════ */
-function ClosingSection() {
-  return (
-    <>
-      <section style={{ background: ACCENT }} className="py-[clamp(64px,9vw,110px)]">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-10 px-5 md:flex-row md:items-center md:justify-between md:px-8">
-          <div>
-            <Reveal>
-              <h2
-                className="font-display font-semibold"
-                style={{ color: INK, fontSize: 'clamp(2.1rem,4.6vw,3.4rem)', lineHeight: 1.14, letterSpacing: '-0.01em' }}
-              >
-                {CLOSING.heading}
-              </h2>
-            </Reveal>
-            <Reveal delay={90} as="p" className="mt-4 max-w-[46ch] font-sans text-[15.5px] leading-[1.65]" style={{ color: 'rgba(33,29,20,.78)' }}>
-              {CLOSING.sub}
-            </Reveal>
-            <Reveal delay={160}>
-              <div className="mt-7 flex flex-wrap items-center gap-4">
+            <Reveal delay={190}>
+              <div className="mt-9">
+                <RibRule tone="rib" />
+                <Label className="mt-4" color={BONE_MUTE}>
+                  Eða hringdu beint
+                </Label>
                 <a
                   href={PHONE_HREF}
-                  className={`na-cta inline-flex min-h-[52px] items-center rounded-full px-8 font-mono text-[16px] font-bold ${FOCUS}`}
-                  style={{ background: INK, color: GROUND }}
+                  className={`mt-2 inline-flex min-h-[44px] w-fit items-center font-display underline-offset-[7px] hover:underline ${FOCUS}`}
+                  style={display('clamp(1.8rem,3.6vw,2.7rem)', 1, RIB)}
                 >
                   {PHONE}
                 </a>
-                <span className="font-mono text-[13px] font-bold" style={{ color: INK }}>
-                  {ADDRESS} · 11:30–21:30
-                </span>
               </div>
             </Reveal>
           </div>
 
-          {/* the facade sign, rebuilt as it hangs on the house */}
-          <Reveal
-            delay={220}
-            className="shrink-0 rounded-[14px] px-9 py-7 text-center"
-            style={{ background: INK, boxShadow: '0 22px 60px rgba(33,29,20,.35)' }}
-          >
-            <div className="flex justify-center">
-              <FishMark size={64} />
-            </div>
-            <div className="mt-2 font-display text-[34px] font-semibold lowercase italic leading-none" style={{ color: CREAM_ON_DARK }}>
-              naustið
-            </div>
-            <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.3em]" style={{ color: 'rgba(247,241,226,.65)' }}>
-              seafood restaurant
-            </div>
+          <Reveal delay={160}>
+            {sent ? (
+              <div className="p-7 sm:p-9" style={{ background: DEEP_2, border: `1px solid ${HAIR}` }}>
+                <h3 className="font-display" style={display('clamp(1.5rem,2.6vw,2.1rem)', 1, RIB)}>
+                  {RESERVE.successHeading}
+                </h3>
+                <p className="mt-3 font-sans text-[14.5px] leading-[1.68]" style={{ color: BONE_SOFT }}>
+                  {RESERVE.successBody}
+                </p>
+                <dl className="mt-6 space-y-2.5 pt-5 font-sans text-[14px]" style={{ borderTop: `1px solid ${HAIR}`, color: BONE }}>
+                  {sent.name && (
+                    <div className="flex gap-3">
+                      <dt style={{ color: BONE_MUTE }}>{RESERVE.fields.name}:</dt>
+                      <dd className="m-0 font-medium">{sent.name}</dd>
+                    </div>
+                  )}
+                  {sent.contact && (
+                    <div className="flex gap-3">
+                      <dt style={{ color: BONE_MUTE }}>{RESERVE.fields.contact}:</dt>
+                      <dd className="m-0 font-medium">{sent.contact}</dd>
+                    </div>
+                  )}
+                  {sent.guests && (
+                    <div className="flex gap-3">
+                      <dt style={{ color: BONE_MUTE }}>{RESERVE.fields.guests}:</dt>
+                      <dd className="m-0 font-medium">{sent.guests}</dd>
+                    </div>
+                  )}
+                  {sent.when && (
+                    <div className="flex gap-3">
+                      <dt style={{ color: BONE_MUTE }}>{RESERVE.fields.when}:</dt>
+                      <dd className="m-0 font-medium">{sent.when}</dd>
+                    </div>
+                  )}
+                </dl>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <a
+                    href={mailto}
+                    className={`na-cta inline-flex min-h-[48px] items-center rounded-full px-7 font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+                    style={{ background: RIB, color: DEEP }}
+                  >
+                    {RESERVE.successMail}
+                  </a>
+                  <a
+                    href={PHONE_HREF}
+                    className={`na-pill inline-flex min-h-[48px] items-center rounded-full border px-7 font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+                    style={{ borderColor: 'rgba(216,222,221,.32)', color: BONE }}
+                  >
+                    {RESERVE.successCall}
+                  </a>
+                </div>
+                <button
+                  onClick={() => {
+                    setSent(null)
+                    setDraft(EMPTY_NOTE)
+                  }}
+                  className={`mt-5 font-mono text-[11px] uppercase tracking-[0.09em] underline underline-offset-[4px] ${FOCUS}`}
+                  style={{ color: BONE_MUTE }}
+                >
+                  Skrifa nýjan miða
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={onSubmit} className="p-7 sm:p-9" style={{ background: DEEP_2, border: `1px solid ${HAIR}` }}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {field('name', RESERVE.fields.name, { required: true, half: true })}
+                  {field('contact', RESERVE.fields.contact, { required: true, half: true })}
+                  {field('guests', RESERVE.fields.guests, { half: true })}
+                  {field('when', RESERVE.fields.when, { half: true })}
+                  {field('message', RESERVE.fields.message, { textarea: true })}
+                </div>
+                <button
+                  type="submit"
+                  className={`na-cta mt-7 inline-flex min-h-[52px] w-full items-center justify-center rounded-full px-8 font-mono text-[11.5px] uppercase tracking-[0.09em] sm:w-auto ${FOCUS}`}
+                  style={{ background: RIB, color: DEEP }}
+                >
+                  {RESERVE.submit}
+                </button>
+                <p className="mt-5 max-w-[52ch] font-sans text-[12.5px] leading-[1.65]" style={{ color: BONE_MUTE }}>
+                  {RESERVE.disclaimer}
+                </p>
+              </form>
+            )}
           </Reveal>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  9 · FIND US — the address as display type. No invented distances, and   */
+/*  no borrowed harbour photography: the place is named, not illustrated.   */
+/* ══════════════════════════════════════════════════════════════════════ */
+function FindSection() {
+  return (
+    <section id="stadsetning" style={{ background: DEEP }} className="pb-[clamp(84px,11vw,152px)]">
+      <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+        <SectionHead label="Staðsetning" n="07" />
+        <div className="mt-12 grid gap-x-16 gap-y-12 lg:grid-cols-[1fr_0.8fr] lg:items-end">
+          <div>
+            <Reveal delay={70}>
+              <h2 className="max-w-[14ch] font-display" style={display('clamp(2.4rem,6vw,5rem)', 2)}>
+                {FIND.heading}
+              </h2>
+            </Reveal>
+            <Reveal delay={130} as="p" className="mt-8 max-w-[54ch] font-sans text-[15.5px] leading-[1.72]" style={{ color: BONE_SOFT }}>
+              {FIND.body}
+            </Reveal>
+          </div>
+
+          <Reveal delay={190}>
+            <RibRule tone="rib" />
+            <Label className="mt-4" color={BONE_MUTE}>
+              {FIND.addressLabel}
+            </Label>
+            <p className="mt-3 font-display" style={display('clamp(1.7rem,3.4vw,2.6rem)', 2, BONE)}>
+              Ásgarðsvegur 1
+              <br />
+              640 Húsavík
+            </p>
+            <a
+              href={MAPS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className={`na-pill mt-7 inline-flex min-h-[48px] items-center rounded-full border px-7 font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+              style={{ borderColor: HAIR_RIB, color: RIB }}
+            >
+              {FIND.mapsCta}
+            </a>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  10 · CLOSING — the yellow band. The one place the house paint fills     */
+/*  the screen, with the real facade sign standing on it.                   */
+/* ══════════════════════════════════════════════════════════════════════ */
+function ClosingSection() {
+  return (
+    <>
+      <section style={{ background: RIB }} className="py-[clamp(76px,10vw,132px)]">
+        <div className="mx-auto max-w-[1500px] px-5 md:px-10">
+          <div
+            aria-hidden
+            className="h-[12px] w-full"
+            style={{ backgroundImage: `repeating-linear-gradient(90deg, rgba(18,23,27,.32) 0 1px, transparent 1px 7px)` }}
+          />
+          <div className="mt-10 flex flex-col items-start gap-12 md:flex-row md:items-end md:justify-between">
+            <div>
+              <Reveal>
+                <h2 className="max-w-[13ch] font-display" style={display('clamp(2.6rem,6.4vw,5.4rem)', 2, DEEP)}>
+                  {CLOSING.heading}
+                </h2>
+              </Reveal>
+              <Reveal delay={90} as="p" className="mt-6 max-w-[44ch] font-sans text-[15.5px] leading-[1.68]" style={{ color: 'rgba(18,23,27,.78)' }}>
+                {CLOSING.sub}
+              </Reveal>
+              <Reveal delay={160}>
+                <div className="mt-9 flex flex-wrap items-center gap-5">
+                  <a
+                    href={PHONE_HREF}
+                    className={`na-cta inline-flex min-h-[54px] items-center rounded-full px-9 font-display ${FOCUS}`}
+                    style={{ ...display('20px', 1, RIB), background: DEEP }}
+                  >
+                    {PHONE}
+                  </a>
+                  <span className="font-mono text-[12px] uppercase tracking-[0.09em] sm:text-[11px]" style={{ color: 'rgba(18,23,27,.72)' }}>
+                    {ADDRESS} · 11:30–21:30
+                  </span>
+                </div>
+              </Reveal>
+            </div>
+
+            {/* The facade sign. It hangs on the house as a black plate, but a
+                black plate floating on the yellow band read as a stray box —
+                so here it is struck straight into the paint instead, ink on
+                the house colour. */}
+            <Reveal delay={220} className="shrink-0 text-center md:pr-2">
+              <div className="flex justify-center">
+                <FishMark size={62} color={DEEP} eye={RIB} />
+              </div>
+              <div className="mt-3 font-display text-[30px] font-semibold lowercase italic leading-none" style={{ color: DEEP }}>
+                naustið
+              </div>
+              <div
+                className="mt-2.5 font-mono text-[11px] uppercase tracking-[0.3em] sm:text-[10px]"
+                style={{ color: 'rgba(18,23,27,.72)' }}
+              >
+                seafood restaurant
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
 
-      <section style={{ background: GROUND }} className="px-5 py-10 md:px-8">
-        <p className="mx-auto max-w-3xl text-center font-sans text-[12px] leading-[1.65]" style={{ color: MUTED }}>
+      <section style={{ background: DEEP_2 }} className="px-5 py-12 md:px-10">
+        <p className="mx-auto max-w-3xl text-center font-sans text-[12px] leading-[1.7]" style={{ color: BONE_MUTE }}>
           {DISCLAIMER}{' '}
           <a href={`mailto:${EMAIL}`} className="underline underline-offset-2">
             {EMAIL}
@@ -1290,19 +1534,19 @@ function StickyCta() {
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: INK }}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: DEEP_2 }}
     >
       <a
         href={PHONE_HREF}
-        className={`flex min-h-[54px] items-center justify-center font-sans text-[14.5px] font-bold ${FOCUS_DARK}`}
-        style={{ background: ACCENT, color: INK }}
+        className={`flex min-h-[54px] items-center justify-center font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+        style={{ background: RIB, color: DEEP }}
       >
         Hringja · {PHONE}
       </a>
       <button
         onClick={() => goTo('panta')}
-        className={`flex min-h-[54px] items-center justify-center font-sans text-[14.5px] font-bold ${FOCUS_DARK}`}
-        style={{ color: CREAM_ON_DARK }}
+        className={`flex min-h-[54px] items-center justify-center font-mono text-[11px] uppercase tracking-[0.09em] ${FOCUS}`}
+        style={{ color: BONE }}
       >
         Panta borð
       </button>
@@ -1316,7 +1560,7 @@ function StickyCta() {
 export default function Page() {
   useEffect(() => {
     document.title = 'Naustið · Sjávarréttir við höfnina á Húsavík'
-    setThemeColor(DUSK)
+    setThemeColor(DEEP)
     return () => setThemeColor('#0a1320')
   }, [])
 
@@ -1340,42 +1584,71 @@ export default function Page() {
   }, [])
 
   return (
-    <div lang="is" className="font-sans overflow-x-clip" style={{ background: GROUND, color: INK }}>
+    <div lang="is" className="font-sans overflow-x-clip" style={{ background: DEEP, color: BONE }}>
+      {/* Every rule below is prefixed na- and scoped under #na-root so this
+          page cannot bleed into the other previews (no-style-bleed rule). */}
       <style>{`
-        #na-root ::selection { background:${ACCENT}; color:${INK}; }
+        #na-root ::selection { background:${RIB}; color:${DEEP}; }
 
-        .na-navlink { position:relative; }
-        .na-navlink::after {
-          content:''; position:absolute; left:0; right:100%; bottom:-4px; height:2px;
-          background:${ACCENT}; transition:right .3s ${EASE};
+        /* Only the one-shot reveals ease. A scrubbed raster ([data-scrub]) is
+           written per frame by its scroll subscriber, and a transition there
+           restarts on every step — mush plus a pinned compositor. */
+        #na-root .na-raster:not([data-scrub]) canvas,
+        #na-root .na-raster:not([data-scrub]) img {
+          transition: opacity .55s ${EASE}, transform .9s ${EASE};
         }
-        .na-navlink:hover::after { right:0; }
 
-        .na-cta { transition:transform .16s ease, filter .25s ease; }
-        .na-cta:hover { filter:brightness(.94); }
-        .na-cta:active { transform:scale(.98); }
+        #na-root .na-navlink { position:relative; }
+        #na-root .na-navlink::after {
+          content:''; position:absolute; left:0; right:100%; bottom:-5px; height:1px;
+          background:${RIB}; transition:right .3s ${EASE};
+        }
+        #na-root .na-navlink:hover::after { right:0; }
 
-        .na-card { transition:transform .45s ${EASE}, box-shadow .45s ${EASE}; }
+        #na-root .na-cta { transition:transform .16s ease, filter .25s ease; }
+        #na-root .na-cta:hover { filter:brightness(1.06); }
+        #na-root .na-cta:active { transform:scale(.985); }
+
+        #na-root .na-pill { transition:border-color .3s ${EASE}, color .3s ${EASE}, background-color .3s ${EASE}; }
         @media (hover:hover) and (pointer:fine) {
-          .na-card:hover { transform:translateY(-4px); box-shadow:0 18px 44px rgba(33,29,20,.12); }
+          #na-root .na-pill:hover { border-color:${RIB}; background:${RIB}; color:${DEEP}; }
+          /* A dish lights up like a rib catching the sun, not like a card. */
+          #na-root .na-dish { transition:padding-left .4s ${EASE}; }
+          #na-root .na-dish:hover { padding-left:14px; }
+          #na-root .na-dish { position:relative; }
+          #na-root .na-dish::before {
+            content:''; position:absolute; left:0; top:16px; bottom:16px; width:2px;
+            background:${RIB}; opacity:0; transition:opacity .4s ${EASE};
+          }
+          #na-root .na-dish:hover::before { opacity:1; }
         }
 
-        .na-input {
-          background:#FFFFFF; border:1px solid rgba(33,29,20,.28); color:${INK};
+        #na-root .na-input {
+          background:${DEEP}; border:1px solid rgba(216,222,221,.24); color:${BONE};
+          border-radius:0;
           transition:border-color .2s ease, box-shadow .2s ease;
         }
-        .na-input:focus { outline:none; border-color:${HARBOUR}; box-shadow:0 0 0 3px rgba(62,100,120,.24); }
+        #na-root .na-input::placeholder { color:rgba(216,222,221,.4); }
+        #na-root .na-input:focus { outline:none; border-color:${RIB}; box-shadow:0 0 0 2px rgba(227,184,31,.28); }
 
         @media (prefers-reduced-motion: no-preference) {
-          .na-lantern { animation: na-lantern 5.5s ease-in-out infinite alternate; }
-          @keyframes na-lantern {
-            from { opacity:.72; }
-            to { opacity:1; }
-          }
+          #na-root .na-lantern { animation:na-lantern 5.5s ease-in-out infinite alternate; }
+          @keyframes na-lantern { from { opacity:.7 } to { opacity:1 } }
+          #na-root .na-pulse { animation:na-pulse 2.4s ease-in-out infinite; }
+          @keyframes na-pulse { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+          #na-root .na-mlink { animation:na-mlink .5s ${EASE} both; }
+          @keyframes na-mlink { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:none } }
         }
         @media (prefers-reduced-motion: reduce) {
-          .na-navlink::after, .na-cta, .na-card { transition:none !important; }
-          .na-lantern { animation:none !important; }
+          #na-root .na-navlink::after,
+          #na-root .na-cta,
+          #na-root .na-pill,
+          #na-root .na-dish,
+          #na-root .na-raster canvas,
+          #na-root .na-raster img { transition:none !important; }
+          #na-root .na-lantern,
+          #na-root .na-pulse,
+          #na-root .na-mlink { animation:none !important; }
         }
       `}</style>
       <div id="na-root">
@@ -1385,7 +1658,7 @@ export default function Page() {
           <Hero />
           <SoupSection />
           <MenuSection />
-          <RopeDivider />
+          <CladdingBand />
           <StorySection />
           <ReviewsSection />
           <LanternSection />

@@ -28,13 +28,22 @@ export const MAPS_URL = 'https://maps.google.com/?q=Naustið+Ásgarðsvegur+1+64
 const BASE = import.meta.env.BASE_URL
 
 /* Own real photos — copied into public/naustid/ (Visit Húsavík listing CDN,
- * the restaurant's own submitted photography). */
+ * the restaurant's own submitted photography).
+ *
+ * Each has a WebP ladder plus the original JPEG as the <picture> fallback.
+ * The 540w rung exists for the portrait figures specifically: on a phone they
+ * render in a ~350px CSS slot, and shipping the 1080 there was most of the
+ * page's image weight. Measured JPEG-only mobile payload was 1,082 KB. */
 export const IMG = {
   exterior: BASE + 'naustid/exterior-2000.jpg',
   exteriorSrcSet: `${BASE}naustid/exterior-1200.jpg 1200w, ${BASE}naustid/exterior-2000.jpg 2000w`,
+  exteriorWebp: `${BASE}naustid/exterior-800.webp 800w, ${BASE}naustid/exterior-1200.webp 1200w, ${BASE}naustid/exterior-2000.webp 2000w`,
   soup: BASE + 'naustid/fishsoup.jpg',
+  soupWebp: `${BASE}naustid/fishsoup-540.webp 540w, ${BASE}naustid/fishsoup-1080.webp 1080w`,
   salmon: BASE + 'naustid/salmon.jpg',
+  salmonWebp: `${BASE}naustid/salmon-540.webp 540w, ${BASE}naustid/salmon-1080.webp 1080w`,
   interior: BASE + 'naustid/inside2.jpg',
+  interiorWebp: `${BASE}naustid/inside2-540.webp 540w, ${BASE}naustid/inside2-1080.webp 1080w`,
 } as const
 
 /* Unsplash fill (all verified standard-license, no premium/plus IDs). */
@@ -216,4 +225,4 @@ export const CLOSING = {
 }
 
 export const DISCLAIMER =
-  'Um heiðarleika: Þessi síða er hönnunarfrumgerð frá SNDR, ekki opinber vefur Naustsins. Umsagnir eru raunverulegar en sóttar í gegnum umsagnaveitur (Sluurpy og Restaurant Guru, sem safna af Google, Tripadvisor og Facebook). Naustið birtir ekki verðlagðan matseðil opinberlega; verðbilið 4.000–6.000 kr. á mann er viðmið úr opinberum skráningum, ekki staðfestur verðlisti, og réttirnir hér eru teknir saman úr umsögnum og matarskrifum. Borðapöntunarformið er beiðni en ekki rauntímabókunarkerfi. Ljósmyndir af húsinu, súpunni, laxinum og matsalnum eru raunverulegar myndir staðarins af skráningu hans hjá Visit Húsavík; aðrar myndir eru andrúmsmyndir af Unsplash og eru merktar þannig.'
+  'Um heiðarleika: Þessi síða er hönnunarfrumgerð frá SNDR, ekki opinber vefur Naustsins. Umsagnir eru raunverulegar en sóttar í gegnum umsagnaveitur (Sluurpy og Restaurant Guru, sem safna af Google, Tripadvisor og Facebook). Naustið birtir ekki verðlagðan matseðil opinberlega; verðbilið 4.000–6.000 kr. á mann er viðmið úr opinberum skráningum, ekki staðfestur verðlisti, og réttirnir hér eru teknir saman úr umsögnum og matarskrifum. Borðapöntunarformið er beiðni en ekki rauntímabókunarkerfi. Allar ljósmyndir á síðunni eru raunverulegar myndir staðarins, sóttar úr skráningu hans hjá Visit Húsavík, og engar myndir úr myndabönkum eru notaðar. Myndirnar birtast sums staðar sem lóðréttar rendur í stíl við bárujárnið á húsinu; það er hönnunarþáttur og myndefninu sjálfu er ekki breytt.'
