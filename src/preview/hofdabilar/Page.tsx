@@ -11,6 +11,7 @@ import {
   CARS,
   CONTACT,
   FEES,
+  BODIES,
   HERO_SLIDES,
   HOURS,
   HOURS_NOTE,
@@ -478,10 +479,19 @@ type Filters = {
   year: [number, number]
   km: [number, number]
   make: string
+  model: string
+  body: string
   fuel: string
   gear: string
   tilbod: boolean
+  nyr: boolean
 }
+
+/* Models available for the selected make. With no make chosen the list would
+   be 26 near-identical trim strings, which is useless, so the select is only
+   offered once a make narrows it. */
+const modelsFor = (make: string) =>
+  make ? Array.from(new Set(CARS.filter((c) => c.make === make).map((c) => c.model))).sort() : []
 
 /* data-driven slider bounds (rounded to friendly steps) */
 /* reg is normally "M/YYYY" but a brand-new vehicle is registered as a bare
@@ -503,7 +513,7 @@ const DEFAULT_FILTERS: Filters = {
   price: [PRICE_MIN, PRICE_MAX],
   year: [YEAR_MIN, YEAR_MAX],
   km: [KM_MIN, KM_MAX],
-  make: '', fuel: '', gear: '', tilbod: false,
+  make: '', model: '', body: '', fuel: '', gear: '', tilbod: false, nyr: false,
 }
 
 const FUELS = ['Bens\u00edn', 'D\u00edsel', 'Rafmagn', 'Hybrid']
@@ -528,9 +538,13 @@ function passesFilters(c: Car, f: Filters): boolean {
     if (km === null || km < f.km[0] || km > f.km[1]) return false
   }
   if (f.make && c.make !== f.make) return false
+  if (f.model && c.model !== f.model) return false
+  if (f.body && c.body !== f.body) return false
   if (f.fuel && !fuelMatch(c, f.fuel)) return false
   if (f.gear && c.gear !== f.gear) return false
   if (f.tilbod && !c.tilbod) return false
+  /* a brand-new vehicle is the one with no recorded mileage */
+  if (f.nyr && c.km !== null) return false
   return true
 }
 
@@ -539,7 +553,7 @@ function filtersActive(f: Filters): boolean {
     f.price[0] > PRICE_MIN || f.price[1] < PRICE_MAX ||
     f.year[0] > YEAR_MIN || f.year[1] < YEAR_MAX ||
     f.km[0] > KM_MIN || f.km[1] < KM_MAX ||
-    Boolean(f.make || f.fuel || f.gear || f.tilbod)
+    Boolean(f.make || f.model || f.body || f.fuel || f.gear || f.tilbod || f.nyr)
   )
 }
 
@@ -577,10 +591,10 @@ function RangeSlider({
 
 /* styled native select with a chevron */
 function FilterSelect({
-  label, value, onChange, options, allLabel,
+  label, value, onChange, options, allLabel, disabled = false,
 }: {
   label: string; value: string; onChange: (v: string) => void
-  options: string[]; allLabel: string
+  options: string[]; allLabel: string; disabled?: boolean
 }) {
   return (
     <label className="block">
@@ -590,8 +604,15 @@ function FilterSelect({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-label={label}
-          className="w-full appearance-none rounded-xl border px-3.5 py-2.5 pr-9 text-[13px] outline-none transition-colors duration-200"
-          style={{ background: BG, borderColor: value ? XENON : HAIR, color: value ? INK : MUT, fontFamily: BODY }}
+          disabled={disabled}
+          className="w-full appearance-none rounded-xl border px-3.5 py-2.5 pr-9 text-[13px] outline-none transition-colors duration-200 disabled:cursor-not-allowed"
+          style={{
+            background: BG,
+            borderColor: value ? XENON : HAIR,
+            color: value ? INK : MUT,
+            fontFamily: BODY,
+            opacity: disabled ? 0.45 : 1,
+          }}
         >
           <option value="">{allLabel}</option>
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -629,13 +650,29 @@ function FilterPanel({ filters, setFilters, resultCount }: { filters: Filters; s
         ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 border-t pt-6 sm:grid-cols-3" style={{ borderColor: HAIR }}>
-        <FilterSelect label="Tegund" value={filters.make} onChange={(v) => set('make', v)} options={MAKES} allLabel="Allar tegundir" />
+      <div className="mt-6 grid grid-cols-1 gap-4 border-t pt-6 sm:grid-cols-2 lg:grid-cols-3" style={{ borderColor: HAIR }}>
+        <FilterSelect
+          label="Tegund"
+          value={filters.make}
+          /* changing make invalidates any model chosen under the old one */
+          onChange={(v) => setFilters({ ...filters, make: v, model: '' })}
+          options={MAKES}
+          allLabel="Allar tegundir"
+        />
+        <FilterSelect
+          label={filters.make ? 'Gerð' : 'Gerð (veldu tegund fyrst)'}
+          value={filters.model}
+          onChange={(v) => set('model', v)}
+          options={modelsFor(filters.make)}
+          allLabel={filters.make ? 'Allar gerðir' : 'Allar gerðir'}
+          disabled={!filters.make}
+        />
+        <FilterSelect label="Flokkur" value={filters.body} onChange={(v) => set('body', v)} options={BODIES} allLabel="Allir flokkar" />
         <FilterSelect label="Eldsneyti" value={filters.fuel} onChange={(v) => set('fuel', v)} options={FUELS} allLabel="Allt eldsneyti" />
         <FilterSelect label="Skipting" value={filters.gear} onChange={(v) => set('gear', v)} options={GEARS} allLabel="Allar skiptingar" />
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3">
         <button
           onClick={() => set('tilbod', !filters.tilbod)}
           aria-pressed={filters.tilbod}
@@ -651,8 +688,23 @@ function FilterPanel({ filters, setFilters, resultCount }: { filters: Filters; s
           Aðeins tilboð
         </button>
 
-        <div className="flex items-center gap-4">
-          <span className="text-[13px] tabular-nums" style={{ fontFamily: MONO, color: MUT }}>{resultCount} bílar</span>
+        <button
+          onClick={() => set('nyr', !filters.nyr)}
+          aria-pressed={filters.nyr}
+          className="flex items-center gap-2.5 rounded-full border py-2.5 pl-2.5 pr-4 text-[13px] transition-colors duration-200"
+          style={{ borderColor: filters.nyr ? XENON : HAIR, color: INK, fontFamily: BODY }}
+        >
+          <span
+            className="flex h-5 w-5 items-center justify-center rounded-full transition-colors duration-200"
+            style={{ background: filters.nyr ? XENON : 'transparent', border: filters.nyr ? 'none' : `1px solid ${HAIR}` }}
+          >
+            {filters.nyr && <Check size={13} style={{ color: DARKINK }} aria-hidden />}
+          </span>
+          Aðeins nýtt
+        </button>
+
+        <div className="ml-auto flex items-center gap-4">
+          <span className="text-[13px] tabular-nums" style={{ fontFamily: MONO, color: MUT }}>{resultCount} ökutæki</span>
           {active && (
             <button
               onClick={() => setFilters(DEFAULT_FILTERS)}
@@ -1123,62 +1175,99 @@ function Sell() {
   )
 }
 
-/* ── visit: real people, real hours, the map ── */
+/* ── visit: real people, real hours, the map ──────────────────────────────
+      Bílás had two staff with real photographs, so its cards led with a 4:3
+      portrait. Höfðabílar have three staff and publish NO photographs, so a
+      4:3 block with initials in it just read as a broken image. The card is
+      rebuilt as a compact person row: a small initial disc, name, role, and
+      contact details that wrap instead of clipping (mono addresses at 14px
+      overflowed a quarter-width column). Hours get their own column rather
+      than sitting as a bare block in a row of bordered cards.            ── */
 function Visit() {
   return (
     <section className="border-t" style={{ borderColor: HAIR, background: SURFACE }}>
       <div className="mx-auto max-w-[1400px] px-5 py-24 md:px-8 md:py-32">
-        <div className="grid grid-cols-1 gap-14 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:gap-16">
           <Rise>
             <div>
-              <h2 className="text-[clamp(2rem,4vw,3.2rem)] uppercase leading-none" style={{ fontFamily: DISPLAY, color: INK }}>
+              <h2 className="text-[clamp(2rem,4vw,3.2rem)] uppercase leading-[1.04]" style={{ fontFamily: DISPLAY, color: INK }}>
                 Opið virka daga 10-17
               </h2>
               <dl className="mt-8 flex flex-col gap-3">
                 {HOURS.map((h) => (
                   <div key={h.d} className="flex items-baseline justify-between gap-6 border-b pb-3" style={{ borderColor: HAIR }}>
                     <dt className="text-[14px]" style={{ color: MUT, fontFamily: BODY }}>{h.d}</dt>
-                    <dd className="text-[14px]" style={{ fontFamily: MONO, color: INK }}>{h.t}</dd>
+                    <dd className="whitespace-nowrap text-[14px]" style={{ fontFamily: MONO, color: INK }}>{h.t}</dd>
                   </div>
                 ))}
               </dl>
               <p className="mt-5 text-[13px]" style={{ color: MUT, fontFamily: BODY }}>
                 {HOURS_NOTE}
               </p>
+              <a
+                href={CONTACT.phoneHref}
+                className="mt-7 inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-[15px] font-semibold transition-transform duration-300 active:scale-[0.97]"
+                style={{ background: XENON, color: DARKINK, fontFamily: BODY }}
+              >
+                <Phone size={16} aria-hidden />
+                {CONTACT.phoneDisplay}
+              </a>
             </div>
           </Rise>
 
-          {STAFF.map((p, i) => (
-            <Rise key={p.name} delay={0.1 + i * 0.08}>
-              <div className="flex h-full flex-col justify-between overflow-hidden rounded-2xl border" style={{ borderColor: HAIR }}>
-                {/* Höfðabílar publish no staff photographs, so the card head is
-                    set typographically rather than inventing a portrait. */}
-                <div className="relative flex aspect-[4/3] items-end overflow-hidden p-6" style={{ background: BG }}>
-                  <span
-                    aria-hidden
-                    className="text-[clamp(3.4rem,7vw,5.4rem)] uppercase leading-[0.8]"
-                    style={{ fontFamily: DISPLAY, color: 'rgba(143,198,255,0.26)' }}
-                  >
-                    {p.name.split(' ').map((w) => w[0]).join('')}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col justify-between p-7">
-                  <div>
-                    <div className="text-[24px] uppercase leading-tight" style={{ fontFamily: DISPLAY, color: INK }}>{p.name}</div>
-                    <div className="mt-2 text-[14px]" style={{ color: MUT, fontFamily: BODY }}>{p.role}</div>
-                  </div>
-                  <div className="mt-10 flex flex-col gap-1">
-                    <a href={`mailto:${p.email}`} className="inline-flex items-center py-2 text-[14px] underline-offset-4 hover:underline" style={{ fontFamily: MONO, color: XENON }}>
-                      {p.email}
-                    </a>
-                    <a href={CONTACT.phoneHref} className="inline-flex items-center py-2 text-[14px]" style={{ fontFamily: MONO, color: MUT }}>
-                      s. {CONTACT.phoneDisplay}
-                    </a>
-                  </div>
-                </div>
-              </div>
+          <div>
+            <Rise>
+              <h3 className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO, color: MUT }}>
+                Söluráðgjafarnir á staðnum
+              </h3>
             </Rise>
-          ))}
+            <ul className="mt-6 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
+              {STAFF.map((p, i) => (
+                <li key={p.email}>
+                  <Rise delay={0.06 + i * 0.07}>
+                    <div
+                      className="flex h-full flex-col rounded-2xl border p-6 transition-colors duration-300 hover:border-white/30"
+                      style={{ borderColor: HAIR, background: BG }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span
+                          aria-hidden
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[17px] leading-none"
+                          style={{ background: 'rgba(143,198,255,0.12)', color: XENON, fontFamily: DISPLAY }}
+                        >
+                          {p.name.split(' ').map((w) => w[0]).join('')}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-[19px] uppercase leading-[1.1]" style={{ fontFamily: DISPLAY, color: INK }}>
+                            {p.name}
+                          </div>
+                          <div className="mt-1 text-[13px]" style={{ color: MUT, fontFamily: BODY }}>
+                            {p.role}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex flex-col gap-1 border-t pt-5" style={{ borderColor: HAIR }}>
+                        <a
+                          href={`mailto:${p.email}`}
+                          className="inline-flex min-h-11 items-center break-all text-[13px] underline-offset-4 hover:underline"
+                          style={{ fontFamily: MONO, color: XENON }}
+                        >
+                          {p.email}
+                        </a>
+                        <a
+                          href={CONTACT.phoneHref}
+                          className="inline-flex min-h-11 items-center text-[13px]"
+                          style={{ fontFamily: MONO, color: MUT }}
+                        >
+                          s. {CONTACT.phoneDisplay}
+                        </a>
+                      </div>
+                    </div>
+                  </Rise>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <Rise delay={0.2}>
@@ -1186,7 +1275,7 @@ function Visit() {
             href={CONTACT.maps}
             target="_blank"
             rel="noreferrer"
-            className="mt-12 flex items-center justify-between gap-4 rounded-2xl border p-7 transition-colors duration-300 hover:border-white/40"
+            className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-7 transition-colors duration-300 hover:border-white/40"
             style={{ borderColor: HAIR }}
           >
             <span className="flex items-center gap-4">
