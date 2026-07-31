@@ -128,10 +128,31 @@ function Shot({
   )
 }
 
+/**
+ * Open the year spine on the next month that is actually OPEN for business.
+ *
+ * This used to be a hardcoded `7`. Opened on 31 July, the booking calendar then
+ * landed on júlí of the FOLLOWING year: the calendar treats a month with fewer
+ * than four days left as gone and rolls it forward, and rolling July forward
+ * means July 2027. Correct by its own rules and baffling to look at. Anchor to
+ * today instead, and skip December and January, which they are shut.
+ */
+function defaultMonth(): number {
+  const now = new Date()
+  const daysInMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate()
+  // same "fewer than four days left counts as gone" rule the calendar uses
+  const start = now.getUTCMonth() + (daysInMonth - now.getUTCDate() < 4 ? 1 : 0)
+  for (let i = 0; i < 12; i++) {
+    const m = ((start + i) % 12) + 1
+    if (YEAR[m - 1].open) return m
+  }
+  return 7
+}
+
 export default function FossatunPage() {
   useReveal()
   useImageDrift()
-  const [month, setMonth] = useState(7)
+  const [month, setMonth] = useState(defaultMonth)
   const state = YEAR[month - 1]
 
   useEffect(() => {
