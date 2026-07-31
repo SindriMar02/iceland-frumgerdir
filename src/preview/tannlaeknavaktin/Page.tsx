@@ -66,6 +66,21 @@ const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
+/**
+ * Fluid type WITH A MOBILE FLOOR.
+ *
+ * --u is clamp(.44px, 100vw/1440, 1.12px), so below a 634px viewport it pins
+ * at .44px and a bare `calc(var(--u) * 18)` computes to 7.9px on a phone.
+ * Every text size on this page must therefore carry a floor; 25 of them did
+ * not, and the emergency list was rendering at about 8px.
+ *
+ * The ceiling is the value --u would reach at its own maximum, so desktop
+ * rendering is unchanged. Non-text uses of --u (maxWidth, padding, measure)
+ * are unaffected and stay bare.
+ */
+const fluid = (n: number, floor: number) =>
+  `clamp(${floor}px, calc(var(--u) * ${n}), ${+(n * 1.12).toFixed(1)}px)`
+
 const pad = (n: number) => String(n).padStart(2, '0')
 const hhmm = (h: number) => `${pad(h)}:00`
 
@@ -195,7 +210,11 @@ function Headline({
       style={{
         fontFamily: SERIF,
         fontWeight: 400,
-        fontSize: `calc(var(--u) * ${size})`,
+        // Floored like every other size on this page. Today's headlines are
+        // 92-116u, which already land at 40-51px on a phone, so this changes
+        // nothing visually — it exists so a future `size={40}` cannot silently
+        // render at 17px the way the body copy did.
+        fontSize: `clamp(${Math.max(26, Math.round(size * 0.44))}px, calc(var(--u) * ${size}), ${Math.round(size * 1.12)}px)`,
         lineHeight: 1.16,
         letterSpacing: '-.03em',
         margin: 0,
@@ -309,7 +328,7 @@ function PaintBand({
           <p className="uppercase" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.16em', color: '#C9A227' }}>
             {step}
           </p>
-          <p className="mt-3" style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 40)', lineHeight: 1.16, letterSpacing: '-.02em', color: '#FFF7E9' }}>
+          <p className="mt-3" style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(40, 22), lineHeight: 1.16, letterSpacing: '-.02em', color: '#FFF7E9' }}>
             {line}
           </p>
           <p className="mt-3 uppercase" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.14em', color: 'rgba(255,247,233,.62)' }}>
@@ -441,6 +460,21 @@ export default function TannlaeknavaktinPage() {
            references put this on html; here it would bleed into every other
            preview in the app, so it lives on the page root instead. */
         .tlv-root { --u: clamp(.44px, calc(100vw / 1440), 1.12px); }
+
+        /* FINE PRINT — the second half of the mobile-legibility fix.
+           --u sizes had no floor and collapsed to ~8px on a phone; these were
+           the opposite failure, hardcoded px that never move, so footnotes and
+           notes sat at 11.5-13px on a 390px screen. A clamp() cannot help here
+           because clamp only grows WITH the viewport, and this needs to grow as
+           the viewport SHRINKS. Hence a media query.
+           --fs-fine  running prose: disclosures, notes, footer, legal
+           --fs-label short tracked mono labels ("Í DAG", "klukkan tifar")
+           Mono reads roughly a pixel smaller than sans at the same size, which
+           is why fine lands at 15 and not 14. */
+        .tlv-root { --fs-fine: 12.5px; --fs-label: 11.5px; }
+        @media (max-width: 700px) {
+          .tlv-root { --fs-fine: 15px; --fs-label: 13px; }
+        }
 
         .tlv-line { display: inline-block; overflow: hidden;
                     padding-top: .18em; margin-top: -.18em; vertical-align: bottom; }
@@ -677,7 +711,12 @@ export default function TannlaeknavaktinPage() {
               transition: 'opacity .38s ease',
             }} />
           <div className="relative mx-auto flex max-w-[1240px] items-center gap-4 px-5 py-3 sm:px-8">
-            <a href="#top" className={`flex items-center gap-2.5 ${FOCUS}`} style={{ minHeight: 44 }} aria-label="Tannlæknavaktin">
+            {/* data-logotype: the wordmark is set at .92rem so it fits beside the
+                call button and the menu on a 360px header. That is a logotype,
+                not body copy, so the mobile type floor does not apply to it —
+                the marker tells scripts/mobile-audit.mjs so explicitly instead
+                of leaving it to look like an oversight. */}
+            <a href="#top" data-logotype className={`flex items-center gap-2.5 ${FOCUS}`} style={{ minHeight: 44 }} aria-label="Tannlæknavaktin">
               <Mark size={22} />
               <span className="text-[.92rem] sm:text-[1rem]" style={{ fontFamily: SERIF, fontWeight: 500, letterSpacing: '-.02em', whiteSpace: 'nowrap', color: INK }}>
                 tannlæknavaktin
@@ -689,7 +728,7 @@ export default function TannlaeknavaktinPage() {
                 label in the middle of the bar. */}
             <div className="ml-auto flex shrink-0 items-center gap-4">
             {/* Status reads at a glance without competing with the call. */}
-            <span className="hidden items-center gap-2 sm:inline-flex" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.15em', color: 'rgba(42,33,28,.5)' }}>
+            <span className="hidden items-center gap-2 sm:inline-flex" style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', letterSpacing: '.15em', color: 'rgba(42,33,28,.5)' }}>
               <span aria-hidden="true" className="inline-block rounded-full" style={{ width: 6, height: 6, background: status.open ? GREEN : 'rgba(42,33,28,.32)' }} />
               {status.open ? 'OPIÐ NÚNA' : 'LOKAÐ'}
             </span>
@@ -699,8 +738,8 @@ export default function TannlaeknavaktinPage() {
               className={`tlv-call inline-flex shrink-0 items-center gap-2.5 rounded-full px-4 sm:px-5 ${FOCUS}`}
               style={{
                 background: INK, color: '#FFF7E9',
-                fontFamily: SANS, fontWeight: 600, fontSize: 15, letterSpacing: '-.01em',
-                minHeight: 42, whiteSpace: 'nowrap',
+                fontFamily: SANS, fontWeight: 600, fontSize: 16, letterSpacing: '-.01em',
+                minHeight: 44, whiteSpace: 'nowrap',
                 transition: 'background .38s ease, color .38s ease',
               }}
               aria-label={`Hringja í ${PHONE_DISPLAY}`}
@@ -792,7 +831,7 @@ export default function TannlaeknavaktinPage() {
             }} />
 
             <div className="mx-auto flex w-full max-w-[1240px] flex-col justify-end px-5 pb-16 sm:px-8 sm:pb-20">
-              <p className="uppercase" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.15em', color: 'rgba(42,33,28,.6)' }}>
+              <p className="uppercase" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', letterSpacing: '.15em', color: 'rgba(42,33,28,.6)' }}>
                 Bráðaþjónusta vegna tannlækninga í Reykjavík
               </p>
               <h1 className="mt-6" style={{ margin: 0, color: INK }}>
@@ -807,14 +846,14 @@ export default function TannlaeknavaktinPage() {
                   <span className="inline-flex items-center gap-2.5">
                     <span aria-hidden="true" className={`inline-block shrink-0 rounded-full ${status.open ? 'tlv-pulse-dot' : ''}`}
                       style={{ width: 8, height: 8, background: status.open ? GREEN : 'rgba(42,33,28,.36)' }} />
-                    <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '.16em', color: status.open ? GREEN : 'rgba(42,33,28,.55)' }}>
+                    <span className="uppercase" style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', letterSpacing: '.16em', color: status.open ? GREEN : 'rgba(42,33,28,.55)' }}>
                       {status.open ? (status.onCall ? 'Opið · bakvakt' : 'Opið núna') : 'Lokað núna'}
                     </span>
                   </span>
                   <span style={{ fontFamily: SERIF, fontSize: 'clamp(17px, calc(var(--u) * 22), 26px)', color: INK, letterSpacing: '-.01em' }}>
                     {status.open ? <>Lokum {status.closesAt}</> : <>Opnum {status.opensAt} {status.opensLabel}</>}
                   </span>
-                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(42,33,28,.45)', fontVariantNumeric: 'tabular-nums' }}>
+                  <span className="ml-auto" style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', color: 'rgba(42,33,28,.45)', fontVariantNumeric: 'tabular-nums' }}>
                     {status.clock}
                   </span>
                 </div>
@@ -828,7 +867,7 @@ export default function TannlaeknavaktinPage() {
                 )}
 
                 {!status.open && (
-                  <p className="mt-3" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(255,247,233,.55)', lineHeight: 1.6 }}>
+                  <p className="mt-3" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(255,247,233,.55)', lineHeight: 1.6 }}>
                     Í neyðartilvikum er bent á að hafa samband við 112.
                   </p>
                 )}
@@ -864,7 +903,7 @@ export default function TannlaeknavaktinPage() {
                   the repetition that made the page feel padded. */}
               <Eyebrow n="01">Fyrsta matið</Eyebrow>
               <Headline id="urgent-h" className="mt-6" text="Er þetta bráðatilvik?" size={104} measure={820} />
-              <p className="mt-7 max-w-[56ch]" style={{ color: 'rgba(42,33,28,.72)', fontSize: 'calc(var(--u) * 19)', lineHeight: 1.55 }}>
+              <p className="mt-7 max-w-[56ch]" style={{ color: 'rgba(42,33,28,.72)', fontSize: fluid(19, 16), lineHeight: 1.55 }}>
                 {URGENT_INTRO}
               </p>
 
@@ -873,7 +912,7 @@ export default function TannlaeknavaktinPage() {
                   <h3 className="uppercase" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.16em', color: BRASS }}>Hringdu strax</h3>
                   <ul className="mt-5">
                     {URGENT_NOW.map((u) => (
-                      <li key={u} className="flex items-baseline gap-3 border-b py-3.5" style={{ borderColor: 'rgba(42,33,28,.12)', fontSize: 'calc(var(--u) * 18)' }}>
+                      <li key={u} className="flex items-baseline gap-3 border-b py-3.5" style={{ borderColor: 'rgba(42,33,28,.12)', fontSize: fluid(18, 16) }}>
                         <span aria-hidden="true" style={{ color: BRASS, fontFamily: MONO, fontSize: 11 }}>◆</span>{u}
                       </li>
                     ))}
@@ -881,8 +920,8 @@ export default function TannlaeknavaktinPage() {
                 </div>
                 <div>
                   <h3 className="uppercase" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.16em', color: 'rgba(42,33,28,.45)' }}>Má oftast bíða</h3>
-                  <p className="mt-5" style={{ color: 'rgba(42,33,28,.72)', lineHeight: 1.62, fontSize: 'calc(var(--u) * 18)' }}>{URGENT_WAIT}</p>
-                  <p className="mt-4 max-w-[46ch]" style={{ color: 'rgba(42,33,28,.72)', lineHeight: 1.62, fontSize: 'calc(var(--u) * 18)' }}>{TRAUMA_NOTE}</p>
+                  <p className="mt-5" style={{ color: 'rgba(42,33,28,.72)', lineHeight: 1.62, fontSize: fluid(18, 16) }}>{URGENT_WAIT}</p>
+                  <p className="mt-4 max-w-[46ch]" style={{ color: 'rgba(42,33,28,.72)', lineHeight: 1.62, fontSize: fluid(18, 16) }}>{TRAUMA_NOTE}</p>
                 </div>
               </div>
 
@@ -891,9 +930,9 @@ export default function TannlaeknavaktinPage() {
                   <div key={t.title} className="tlv-row grid gap-5 p-7 sm:p-9 md:grid-cols-[140px_1fr_auto] md:items-center" style={{ background: BONE }}>
                     <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.12em', color: t.primary ? BRASS : 'rgba(42,33,28,.5)' }} className="uppercase">{t.tag}</span>
                     <div>
-                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 30)', lineHeight: 1.16, letterSpacing: '-.02em' }}>{t.title}</h3>
+                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(30, 19), lineHeight: 1.16, letterSpacing: '-.02em' }}>{t.title}</h3>
                       <p className="mt-2 max-w-[52ch]" style={{ color: 'rgba(42,33,28,.7)', lineHeight: 1.55 }}>{t.line}</p>
-                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(42,33,28,.48)' }}>{t.note}</p>
+                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.48)' }}>{t.note}</p>
                     </div>
                     <a href={t.href} className={`inline-flex items-center justify-center rounded-full ${FOCUS}`}
                       style={{ background: t.primary ? RED : 'transparent', color: t.primary ? '#fff' : INK, border: t.primary ? 'none' : '1px solid rgba(42,33,28,.2)', fontFamily: SANS, fontWeight: 600, padding: '14px 24px', minHeight: 48, whiteSpace: 'nowrap' }}>
@@ -948,15 +987,15 @@ export default function TannlaeknavaktinPage() {
                   <article key={o.n} className="grid gap-4 p-7 sm:p-9 md:grid-cols-[64px_1fr] md:gap-8" style={{ background: BONE }}>
                     <p style={{ fontFamily: MONO, fontSize: 12, color: o.urgent ? BRASS : 'rgba(42,33,28,.42)' }}>[{o.n}]</p>
                     <div>
-                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 34)', lineHeight: 1.16, letterSpacing: '-.02em' }}>
+                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(34, 20), lineHeight: 1.16, letterSpacing: '-.02em' }}>
                         {o.head}
                         {o.urgent && (
-                          <span className="ml-4 align-middle uppercase" style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '.14em', color: BRASS }}>
+                          <span className="ml-4 align-middle uppercase" style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', letterSpacing: '.14em', color: BRASS }}>
                             klukkan tifar
                           </span>
                         )}
                       </h3>
-                      <p className="mt-3 max-w-[62ch]" style={{ color: 'rgba(42,33,28,.76)', lineHeight: 1.62, fontSize: 'calc(var(--u) * 17)' }}>
+                      <p className="mt-3 max-w-[62ch]" style={{ color: 'rgba(42,33,28,.76)', lineHeight: 1.62, fontSize: fluid(17, 16) }}>
                         {o.body}
                       </p>
                     </div>
@@ -964,7 +1003,7 @@ export default function TannlaeknavaktinPage() {
                 ))}
               </div>
 
-              <p className="mt-12 max-w-[58ch]" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(42,33,28,.52)', lineHeight: 1.7 }}>
+              <p className="mt-12 max-w-[58ch]" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.52)', lineHeight: 1.7 }}>
                 {ON_THE_WAY_NOTE}
                 <span className="mt-3 block" style={{ color: 'rgba(42,33,28,.4)' }}>{ON_THE_WAY_ART_NOTE}</span>
               </p>
@@ -982,23 +1021,23 @@ export default function TannlaeknavaktinPage() {
                 <span style={{ color: '#C9A227' }}>[03]&nbsp;&nbsp;</span>Neyð
               </p>
               <Headline id="neyd-h" className="mt-6" text="Þegar það bíður ekki eftir tannlækni" size={92} measure={1000} />
-              <p className="mt-8 max-w-[56ch]" style={{ color: 'rgba(255,247,233,.84)', fontSize: 'calc(var(--u) * 19)', lineHeight: 1.55 }}>
+              <p className="mt-8 max-w-[56ch]" style={{ color: 'rgba(255,247,233,.84)', fontSize: fluid(19, 16), lineHeight: 1.55 }}>
                 {RED_FLAGS.intro}
               </p>
               <ul className="mt-12 grid gap-px" style={{ background: 'rgba(255,247,233,.16)' }}>
                 {RED_FLAGS.items.map((r, i) => (
                   <li key={r} className="flex items-baseline gap-5 p-6 sm:px-8" style={{ background: INK }}>
                     <span aria-hidden="true" style={{ fontFamily: MONO, fontSize: 11, color: '#C9A227' }}>{String(i + 1).padStart(2, '0')}</span>
-                    <span style={{ fontFamily: SERIF, fontSize: 'calc(var(--u) * 28)', lineHeight: 1.3, letterSpacing: '-.02em' }}>{r}</span>
+                    <span style={{ fontFamily: SERIF, fontSize: fluid(28, 18), lineHeight: 1.3, letterSpacing: '-.02em' }}>{r}</span>
                   </li>
                 ))}
               </ul>
               <div className="mt-11 flex flex-wrap items-center gap-x-10 gap-y-6">
-                <p className="max-w-[54ch]" style={{ color: 'rgba(255,247,233,.72)', lineHeight: 1.62, fontSize: 'calc(var(--u) * 17)' }}>
+                <p className="max-w-[54ch]" style={{ color: 'rgba(255,247,233,.72)', lineHeight: 1.62, fontSize: fluid(17, 16) }}>
                   {RED_FLAGS.note}
                 </p>
                 <a href="tel:112" className={`ml-auto inline-flex items-center rounded-full ${FOCUS}`}
-                  style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: 'calc(var(--u) * 19)', padding: '16px 32px', minHeight: 54, whiteSpace: 'nowrap' }}>
+                  style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: fluid(19, 16), padding: '16px 32px', minHeight: 54, whiteSpace: 'nowrap' }}>
                   Hringja í 112
                 </a>
               </div>
@@ -1018,8 +1057,8 @@ export default function TannlaeknavaktinPage() {
                   <li key={v.n} className="grid gap-4 p-7 sm:p-9 md:grid-cols-[64px_1fr] md:gap-8" style={{ background: SAND }}>
                     <p style={{ fontFamily: MONO, fontSize: 12, color: BRASS }}>[{v.n}]</p>
                     <div>
-                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 32)', lineHeight: 1.16, letterSpacing: '-.02em' }}>{v.head}</h3>
-                      <p className="mt-3 max-w-[62ch]" style={{ color: 'rgba(42,33,28,.76)', lineHeight: 1.62, fontSize: 'calc(var(--u) * 17)' }}>{v.body}</p>
+                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(32, 20), lineHeight: 1.16, letterSpacing: '-.02em' }}>{v.head}</h3>
+                      <p className="mt-3 max-w-[62ch]" style={{ color: 'rgba(42,33,28,.76)', lineHeight: 1.62, fontSize: fluid(17, 16) }}>{v.body}</p>
                     </div>
                   </li>
                 ))}
@@ -1039,10 +1078,10 @@ export default function TannlaeknavaktinPage() {
                     <li key={w.day} className="tlv-row flex flex-wrap items-baseline justify-between gap-3 border-b py-5" style={{ borderColor: 'rgba(42,33,28,.14)', color: today ? INK : 'rgba(42,33,28,.62)' }}>
                       <span className="flex items-center gap-3">
                         {today && <span aria-hidden="true" className="inline-block rounded-full" style={{ width: 7, height: 7, background: status.open ? GREEN : RED }} />}
-                        <span style={{ fontFamily: SERIF, fontSize: 'calc(var(--u) * 30)', lineHeight: 1.16 }}>{w.label}</span>
-                        {today && <span style={{ fontFamily: MONO, fontSize: 10, color: BRASS, letterSpacing: '.1em' }}>Í DAG</span>}
+                        <span style={{ fontFamily: SERIF, fontSize: fluid(30, 19), lineHeight: 1.16 }}>{w.label}</span>
+                        {today && <span style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', color: BRASS, letterSpacing: '.1em' }}>Í DAG</span>}
                       </span>
-                      <span style={{ fontFamily: MONO, fontSize: 'calc(var(--u) * 17)' }}>
+                      <span style={{ fontFamily: MONO, fontSize: fluid(17, 16) }}>
                         <span aria-hidden="true" style={{ opacity: .4 }}>[</span>
                         <span style={{ padding: '0 .55em' }}>{hhmm(w.open)} · {hhmm(w.close)}</span>
                         <span aria-hidden="true" style={{ opacity: .4 }}>]</span>
@@ -1052,8 +1091,8 @@ export default function TannlaeknavaktinPage() {
                 })}
               </ul>
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <p style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(42,33,28,.6)', lineHeight: 1.65 }}>{HOURS_NOTE}</p>
-                <p style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(42,33,28,.6)', lineHeight: 1.65 }}>{AFTER_CLOSE}</p>
+                <p style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.6)', lineHeight: 1.65 }}>{HOURS_NOTE}</p>
+                <p style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.6)', lineHeight: 1.65 }}>{AFTER_CLOSE}</p>
               </div>
             </div>
           </section>
@@ -1071,9 +1110,9 @@ export default function TannlaeknavaktinPage() {
                 <div>
                   <p className="uppercase" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.13em', color: '#C9A227' }}>{PRICE_SURCHARGE.label}</p>
                   <RollingPrice value={SURCHARGE_VALUE} className="mt-3 block"
-                  style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 76)', letterSpacing: '-.035em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }} />
+                  style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(76, 34), letterSpacing: '-.035em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }} />
                 </div>
-                <p style={{ lineHeight: 1.58, fontSize: 'calc(var(--u) * 18)', color: 'rgba(255,247,233,.82)' }}>{PRICE_SURCHARGE.body}</p>
+                <p style={{ lineHeight: 1.58, fontSize: fluid(18, 16), color: 'rgba(255,247,233,.82)' }}>{PRICE_SURCHARGE.body}</p>
               </div>
               {/* Grouped, not a flat dump. The groups are the natural ones in
                   the clinic's own list; tabular-nums makes the prices form a
@@ -1085,8 +1124,8 @@ export default function TannlaeknavaktinPage() {
                     <ul className="mt-4">
                       {g.items.map((p) => (
                         <li key={p.item} className="tlv-row flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 border-b py-4" style={{ borderColor: 'rgba(42,33,28,.12)' }}>
-                          <span style={{ fontSize: 'calc(var(--u) * 18)' }}>{p.item}</span>
-                          <span style={{ fontFamily: MONO, fontSize: 'calc(var(--u) * 15)', color: 'rgba(42,33,28,.68)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{p.price}</span>
+                          <span style={{ fontSize: fluid(18, 16) }}>{p.item}</span>
+                          <span style={{ fontFamily: MONO, fontSize: fluid(15, 13), color: 'rgba(42,33,28,.68)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{p.price}</span>
                         </li>
                       ))}
                     </ul>
@@ -1095,7 +1134,7 @@ export default function TannlaeknavaktinPage() {
               </div>
               <ul className="mt-8 grid gap-3">
                 {PRICE_NOTES.map((n) => (
-                  <li key={n} className="flex gap-3" style={{ fontFamily: MONO, fontSize: 12.5, color: 'rgba(42,33,28,.5)', lineHeight: 1.6 }}>
+                  <li key={n} className="flex gap-3" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.5)', lineHeight: 1.6 }}>
                     <span aria-hidden="true" style={{ color: BRASS }}>·</span><span>{n}</span>
                   </li>
                 ))}
@@ -1130,7 +1169,7 @@ export default function TannlaeknavaktinPage() {
               <Eyebrow n="07">Staðsetning</Eyebrow>
               <Headline id="place-h" className="mt-6" text="Hvar er opið í kvöld" size={104} measure={820} />
 
-              <p className="mt-7 max-w-[50ch]" style={{ color: 'rgba(42,33,28,.72)', fontSize: 'calc(var(--u) * 19)', lineHeight: 1.55 }}>
+              <p className="mt-7 max-w-[50ch]" style={{ color: 'rgba(42,33,28,.72)', fontSize: fluid(19, 16), lineHeight: 1.55 }}>
                 {PLACE_NOTE}
               </p>
 
@@ -1144,19 +1183,19 @@ export default function TannlaeknavaktinPage() {
                       </div>
                     )}
                     <div className="border-t pt-7" style={{ borderColor: 'rgba(42,33,28,.18)' }}>
-                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 52)', lineHeight: 1.1, letterSpacing: '-.03em', color: INK }}>
+                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(52, 28), lineHeight: 1.1, letterSpacing: '-.03em', color: INK }}>
                         {place.address}
                       </h3>
-                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 'calc(var(--u) * 15)', color: 'rgba(42,33,28,.55)' }}>{place.postcode}</p>
-                      <p className="mt-6 max-w-[34ch]" style={{ color: 'rgba(42,33,28,.78)', lineHeight: 1.5, fontSize: 'calc(var(--u) * 17)' }}>
+                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: fluid(15, 13), color: 'rgba(42,33,28,.55)' }}>{place.postcode}</p>
+                      <p className="mt-6 max-w-[34ch]" style={{ color: 'rgba(42,33,28,.78)', lineHeight: 1.5, fontSize: fluid(17, 16) }}>
                         {place.dentists}
                       </p>
-                      <p className="mt-4 max-w-[34ch]" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(42,33,28,.45)', lineHeight: 1.6 }}>
+                      <p className="mt-4 max-w-[34ch]" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.45)', lineHeight: 1.6 }}>
                         {place.licence}
                       </p>
                       <a href={place.maps} target="_blank" rel="noreferrer"
                         className={`tlv-link mt-5 inline-flex items-center ${FOCUS}`}
-                        style={{ color: BRASS, fontFamily: MONO, fontSize: 13, minHeight: 44 }}>
+                        style={{ color: BRASS, fontFamily: MONO, fontSize: 'var(--fs-fine)', minHeight: 44 }}>
                         Opna í kortum
                       </a>
                     </div>
@@ -1166,7 +1205,7 @@ export default function TannlaeknavaktinPage() {
 
               {/* Only the phone can resolve the fork, so it closes the section. */}
               <div className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-5 border-t pt-8" style={{ borderColor: 'rgba(42,33,28,.16)' }}>
-                <p className="max-w-[46ch]" style={{ fontFamily: MONO, fontSize: 12.5, color: 'rgba(42,33,28,.55)', lineHeight: 1.65 }}>
+                <p className="max-w-[46ch]" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.55)', lineHeight: 1.65 }}>
                   Í síma 426 8000 færðu staðfest hvor stofan tekur á móti þann daginn.
                 </p>
                 <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid ml-auto ${FOCUS}`}
@@ -1189,7 +1228,7 @@ export default function TannlaeknavaktinPage() {
                 {ADVICE.map((a) => (
                   <article key={a.n}>
                     <p style={{ fontFamily: MONO, fontSize: 12, color: BRASS }}>[ {a.n} ]</p>
-                    <h3 className="mt-3" style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 28)', lineHeight: 1.2, letterSpacing: '-.02em' }}>{a.head}</h3>
+                    <h3 className="mt-3" style={{ fontFamily: SERIF, fontWeight: 400, fontSize: fluid(28, 18), lineHeight: 1.2, letterSpacing: '-.02em' }}>{a.head}</h3>
                     <p className="mt-3" style={{ color: 'rgba(42,33,28,.7)', lineHeight: 1.62 }}>{a.body}</p>
                   </article>
                 ))}
@@ -1203,13 +1242,13 @@ export default function TannlaeknavaktinPage() {
                   {AFTERCARE.map((a, i) => (
                     <li key={a} className="flex items-baseline gap-4 border-b py-4" style={{ borderColor: 'rgba(42,33,28,.12)' }}>
                       <span aria-hidden="true" style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(42,33,28,.4)' }}>{String(i + 1).padStart(2, '0')}</span>
-                      <span style={{ color: 'rgba(42,33,28,.78)', lineHeight: 1.6, fontSize: 'calc(var(--u) * 17)' }}>{a}</span>
+                      <span style={{ color: 'rgba(42,33,28,.78)', lineHeight: 1.6, fontSize: fluid(17, 16) }}>{a}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <p className="mt-14 max-w-[62ch]" style={{ fontFamily: MONO, fontSize: 12.5, color: 'rgba(42,33,28,.5)', lineHeight: 1.65 }}>
+              <p className="mt-14 max-w-[62ch]" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.5)', lineHeight: 1.65 }}>
                 Ráðin hér að ofan koma ekki í staðinn fyrir greiningu tannlæknis.
               </p>
             </div>
@@ -1220,10 +1259,10 @@ export default function TannlaeknavaktinPage() {
             <Mark size={40} />
             <Headline id="closer-h" className="mt-10" text={status.open ? 'Það er opið. Hringdu.' : `Við opnum klukkan ${status.opensAt}.`} size={104} measure={880} />
             <a href={PHONE_HREF} className={`mt-10 inline-flex items-center rounded-full ${FOCUS}`}
-              style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: 'calc(var(--u) * 24)', padding: '19px 38px', minHeight: 60 }}>
+              style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: fluid(24, 17), padding: '19px 38px', minHeight: 60 }}>
               {PHONE_DISPLAY}
             </a>
-            <p className="mt-12" style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(42,33,28,.5)', lineHeight: 1.8 }}>
+            <p className="mt-12" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', color: 'rgba(42,33,28,.5)', lineHeight: 1.8 }}>
               {LEGAL_NAME} · kt. {KENNITALA} · Skipholt 33, 105 Reykjavík<br />
               <a href={EMAIL_HREF} className={`tlv-link inline-flex items-center ${FOCUS}`} style={{ color: BRASS, minHeight: 44 }}>{EMAIL}</a>
             </p>
@@ -1298,7 +1337,7 @@ function AskSection() {
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Eyebrow n="09">Spyrðu vaktina</Eyebrow>
         <Headline id="ask-h" className="mt-6" text="Spurning sem má ekki bíða eftir símtali" size={92} measure={980} />
-        <p className="mt-7 max-w-[54ch]" style={{ color: 'rgba(42,33,28,.7)', fontSize: 'calc(var(--u) * 19)', lineHeight: 1.55 }}>
+        <p className="mt-7 max-w-[54ch]" style={{ color: 'rgba(42,33,28,.7)', fontSize: fluid(19, 16), lineHeight: 1.55 }}>
           Svarar strax, allan sólarhringinn, líka þegar lokað er. Kann opnunartímann,
           verðskrána, hvað telst bráðatilvik og hvað á að gera á leiðinni. Viti hann
           ekki svarið segir hann það og vísar á símann.
@@ -1421,7 +1460,11 @@ function VaktinBubble() {
             {/* Honest capability label, the way Tripadvisor ships a BETA chip.
                 Never let it read as a person. */}
             <span className="uppercase" style={{
-              fontFamily: MONO, fontSize: 8.5, letterSpacing: '.13em', color: BRASS,
+              // Flat 11px, not --fs-label: this chip is tracked at .13em and sits
+              // beside the panel title, so the 13px mobile step turned it into a
+              // slab that outweighed "Vaktin". 11px clears the legibility floor
+              // and stays the quiet capability mark it is meant to be.
+              fontFamily: MONO, fontSize: 11, letterSpacing: '.13em', color: BRASS,
               border: '1px solid rgba(122,95,18,.32)', borderRadius: 3, padding: '2px 5px',
             }}>
               {ASK_BADGE}
@@ -1449,7 +1492,7 @@ function VaktinBubble() {
                 than in a footnote. A dental page needs this more than a
                 travel site does. */}
             <p style={{
-              fontFamily: MONO, fontSize: 10, lineHeight: 1.65, color: 'rgba(42,33,28,.5)',
+              fontFamily: MONO, fontSize: 'var(--fs-fine)', lineHeight: 1.65, color: 'rgba(42,33,28,.5)',
               background: SAND, borderRadius: 8, padding: '9px 11px',
             }}>
               {ASK_DISCLAIMER}
@@ -1471,7 +1514,7 @@ function VaktinBubble() {
                       <button type="button" onClick={() => send(c)}
                         className={`tlv-chip flex w-full items-baseline gap-3 py-2.5 pr-2 text-left ${FOCUS}`}
                         style={{ borderTop: '1px solid rgba(42,33,28,.1)', minHeight: 46 }}>
-                        <span style={{ fontFamily: MONO, fontSize: 10, color: BRASS, letterSpacing: '.06em' }}>
+                        <span style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', color: BRASS, letterSpacing: '.06em' }}>
                           [{String(i + 1).padStart(2, '0')}]
                         </span>
                         <span style={{ fontFamily: SANS, fontSize: 14.5, color: 'rgba(42,33,28,.8)', lineHeight: 1.45 }}>{c}</span>
@@ -1484,7 +1527,7 @@ function VaktinBubble() {
               turns.map((t, i) => (
                 <div key={i} className="tlv-msg mt-5">
                   {t.who === 'you' ? (
-                    <p style={{ fontFamily: MONO, fontSize: 11.5, lineHeight: 1.6, letterSpacing: '.01em', color: BRASS }}>
+                    <p style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', lineHeight: 1.6, letterSpacing: '.01em', color: BRASS }}>
                       {t.text}
                     </p>
                   ) : (
@@ -1493,7 +1536,7 @@ function VaktinBubble() {
                         {t.text}
                       </p>
                       {/* Attribution is the point of a grounded assistant. */}
-                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.06em', color: 'rgba(42,33,28,.38)' }}>
+                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 'var(--fs-fine)', letterSpacing: '.06em', color: 'rgba(42,33,28,.38)' }}>
                         {ASK_SOURCE}
                       </p>
                     </>
@@ -1515,10 +1558,10 @@ function VaktinBubble() {
                     <button type="button" onClick={() => send(c)}
                       className={`tlv-follow ${FOCUS}`}
                       style={{
-                        fontFamily: SANS, fontSize: 12.5, lineHeight: 1.3, textAlign: 'left',
+                        fontFamily: SANS, fontSize: 14, lineHeight: 1.3, textAlign: 'left',
                         color: 'rgba(42,33,28,.72)', background: 'transparent',
                         border: '1px solid rgba(42,33,28,.18)', borderRadius: 999,
-                        padding: '7px 13px', minHeight: 36, cursor: 'pointer',
+                        padding: '9px 14px', minHeight: 44, cursor: 'pointer',
                       }}>
                       {c}
                     </button>
@@ -1554,7 +1597,7 @@ function VaktinBubble() {
             <button type="submit" disabled={thinking}
               className={`shrink-0 uppercase ${FOCUS}`}
               style={{
-                fontFamily: MONO, fontSize: 10.5, letterSpacing: '.16em', color: BRASS,
+                fontFamily: MONO, fontSize: 'var(--fs-label)', letterSpacing: '.16em', color: BRASS,
                 background: 'none', border: 'none', minHeight: 46, padding: '0 2px',
                 cursor: thinking ? 'default' : 'pointer',
                 opacity: thinking ? .4 : 1, transition: 'opacity .2s',
@@ -1595,7 +1638,7 @@ function VaktinBubble() {
             )}
           </span>
           <span className="tlv-launch-label uppercase"
-            style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '.16em', color: '#C9A227' }}>
+            style={{ fontFamily: MONO, fontSize: 'var(--fs-label)', letterSpacing: '.16em', color: '#C9A227' }}>
             {open ? 'Loka' : 'Spyrja vaktina'}
           </span>
         </button>
