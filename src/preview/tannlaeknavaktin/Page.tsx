@@ -562,10 +562,18 @@ export default function TannlaeknavaktinPage() {
         .tlv-cta:hover::before, .tlv-cta:focus-visible::before { transform: scaleX(1); }
         .tlv-cta:active { transform: translateY(1px) scale(.99); }
 
+        /* Default fills to UMBER, because most of these sit on ivory where a
+           cream fill would all but disappear. */
         .tlv-cta-solid { background: #E70104; color: #fff;
-          box-shadow: 0 2px 6px rgba(0,0,0,.28), 0 10px 28px rgba(231,1,4,.22); }
-        .tlv-cta-solid::before { background: #FFF7E9; }
-        .tlv-cta-solid:hover { color: #1C1613; transform: translateY(-2px);
+          box-shadow: 0 1px 2px rgba(42,33,28,.12), 0 6px 18px rgba(231,1,4,.20); }
+        .tlv-cta-solid::before { background: #1C1613; }
+        .tlv-cta-solid:hover { color: #FFF7E9; transform: translateY(-2px);
+          box-shadow: 0 3px 8px rgba(42,33,28,.16), 0 14px 34px rgba(42,33,28,.26); }
+        /* On the night hero the ground is already dark, so it fills to cream
+           instead. Same button, opposite surface. */
+        .tlv-on-dark.tlv-cta-solid { box-shadow: 0 2px 6px rgba(0,0,0,.28), 0 10px 28px rgba(231,1,4,.22); }
+        .tlv-on-dark.tlv-cta-solid::before { background: #FFF7E9; }
+        .tlv-on-dark.tlv-cta-solid:hover { color: #1C1613;
           box-shadow: 0 4px 12px rgba(0,0,0,.34), 0 18px 40px rgba(0,0,0,.3); }
 
         /* Ghost on the dark hero: cream outline that fills to cream. */
@@ -803,7 +811,7 @@ export default function TannlaeknavaktinPage() {
               </div>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid ${FOCUS}`}
+                <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid tlv-on-dark ${FOCUS}`}
                   style={{ fontFamily: SANS, fontWeight: 600, fontSize: 'clamp(16px, calc(var(--u) * 18), 20px)' }}>
                   <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style={{ display: 'block' }}>
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
@@ -1077,40 +1085,46 @@ export default function TannlaeknavaktinPage() {
               addresses are open. Only ONE is, on any given day — so the two are
               now set as an EITHER/OR with "eða" between them, over the night
               photograph. The layout now carries the fact instead of fighting it. */}
-          <section id="stadsetning" className="tlv-bleed scroll-mt-16" aria-labelledby="place-h">
-            <Frame src={IMG.night} alt="Einn upplýstur gluggi í dimmri götu að kvöldi." ratio="auto" drift={12} className="h-full" />
-            <div style={{ background: 'linear-gradient(180deg, rgba(12,11,11,.72) 0%, rgba(12,11,11,.58) 45%, rgba(12,11,11,.86) 100%)' }} />
-            <div className="mx-auto w-full max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-              <p className="uppercase" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.14em', color: 'rgba(255,247,233,.72)' }}>
-                <span style={{ color: '#C9A227' }}>[07]&nbsp;&nbsp;</span>Staðsetning
-              </p>
-              <div className="mt-6" style={{ color: '#FFF7E9' }}>
-                <Headline id="place-h" text="Hvar er opið í kvöld" size={104} measure={820} />
-              </div>
+          {/* ── 07 · WHERE ───────────────────────────────────────────────
+              No photograph. It carried a second night-window shot that read as
+              a weaker copy of the hero, and this section is pure wayfinding:
+              two addresses and the question of which one is open tonight.
+              Utility wants clarity, not atmosphere.
 
-              {/* the either/or */}
-              <div className="mt-16 grid items-start gap-10 md:grid-cols-[1fr_auto_1fr] md:gap-6">
+              The real answer is the awkward one, so it leads: the location
+              MOVES, and only the phone knows. Everything else supports it. */}
+          <section id="stadsetning" className="scroll-mt-16" aria-labelledby="place-h">
+            <div className="mx-auto w-full max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+              <Eyebrow n="07">Staðsetning</Eyebrow>
+              <Headline id="place-h" className="mt-6" text="Hvar er opið í kvöld" size={104} measure={820} />
+
+              <p className="mt-7 max-w-[50ch]" style={{ color: 'rgba(42,33,28,.72)', fontSize: 'calc(var(--u) * 19)', lineHeight: 1.55 }}>
+                {PLACE_NOTE}
+              </p>
+
+              {/* The either/or, as an actual fork rather than two cards. */}
+              <div className="mt-14 grid items-start gap-10 md:grid-cols-[1fr_auto_1fr] md:gap-8">
                 {PLACES.map((place, i) => (
                   <div key={place.address} className="contents">
                     {i === 1 && (
-                      <div className="flex items-center justify-center md:pt-6" aria-hidden="true">
-                        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '.2em', color: 'rgba(255,247,233,.5)' }} className="uppercase">eða</span>
+                      <div className="flex items-start justify-center md:pt-7" aria-hidden="true">
+                        <span className="uppercase" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.2em', color: BRASS }}>eða</span>
                       </div>
                     )}
-                    <div>
-                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 52)', lineHeight: 1.1, letterSpacing: '-.03em', color: '#FFF7E9' }}>
+                    <div className="border-t pt-7" style={{ borderColor: 'rgba(42,33,28,.18)' }}>
+                      <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 'calc(var(--u) * 52)', lineHeight: 1.1, letterSpacing: '-.03em', color: INK }}>
                         {place.address}
                       </h3>
-                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 'calc(var(--u) * 15)', color: 'rgba(255,247,233,.6)' }}>{place.postcode}</p>
-                      <p className="mt-6 max-w-[34ch]" style={{ color: 'rgba(255,247,233,.84)', lineHeight: 1.5, fontSize: 'calc(var(--u) * 17)' }}>
+                      <p className="mt-2" style={{ fontFamily: MONO, fontSize: 'calc(var(--u) * 15)', color: 'rgba(42,33,28,.55)' }}>{place.postcode}</p>
+                      <p className="mt-6 max-w-[34ch]" style={{ color: 'rgba(42,33,28,.78)', lineHeight: 1.5, fontSize: 'calc(var(--u) * 17)' }}>
                         {place.dentists}
                       </p>
-                      <p className="mt-4 max-w-[34ch]" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(255,247,233,.44)', lineHeight: 1.6 }}>
+                      <p className="mt-4 max-w-[34ch]" style={{ fontFamily: MONO, fontSize: 11.5, color: 'rgba(42,33,28,.45)', lineHeight: 1.6 }}>
                         {place.licence}
                       </p>
                       <a href={place.maps} target="_blank" rel="noreferrer"
                         className={`tlv-link mt-5 inline-flex items-center ${FOCUS}`}
-                        style={{ color: '#C9A227', fontFamily: MONO, fontSize: 13, minHeight: 44 }}>
+                        style={{ color: BRASS, fontFamily: MONO, fontSize: 13, minHeight: 44 }}>
                         Opna í kortum
                       </a>
                     </div>
@@ -1118,14 +1132,14 @@ export default function TannlaeknavaktinPage() {
                 ))}
               </div>
 
-              {/* the note is the ACTION: only the phone can tell you which */}
-              <div className="mt-16 flex flex-wrap items-center gap-x-8 gap-y-5 border-t pt-8" style={{ borderColor: 'rgba(255,247,233,.2)' }}>
-                <p className="max-w-[44ch]" style={{ color: 'rgba(255,247,233,.8)', fontSize: 'calc(var(--u) * 18)', lineHeight: 1.5 }}>
-                  {PLACE_NOTE}
+              {/* Only the phone can resolve the fork, so it closes the section. */}
+              <div className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-5 border-t pt-8" style={{ borderColor: 'rgba(42,33,28,.16)' }}>
+                <p className="max-w-[46ch]" style={{ fontFamily: MONO, fontSize: 12.5, color: 'rgba(42,33,28,.55)', lineHeight: 1.65 }}>
+                  Í síma 426 8000 færðu staðfest hvor stofan tekur á móti þann daginn.
                 </p>
-                <a href={PHONE_HREF} className={`ml-auto inline-flex items-center rounded-full ${FOCUS}`}
-                  style={{ background: RED, color: '#fff', fontFamily: SANS, fontWeight: 600, fontSize: 'calc(var(--u) * 18)', padding: '15px 28px', minHeight: 52, whiteSpace: 'nowrap' }}>
-                  Hringja í {PHONE_DISPLAY}
+                <a href={PHONE_HREF} className={`tlv-cta tlv-cta-solid ml-auto ${FOCUS}`}
+                  style={{ fontFamily: SANS, fontWeight: 600, fontSize: 'clamp(16px, calc(var(--u) * 18), 20px)' }}>
+                  <span>Hringja í {PHONE_DISPLAY}</span>
                 </a>
               </div>
             </div>
