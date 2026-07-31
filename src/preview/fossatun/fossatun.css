@@ -39,12 +39,12 @@
 .fst-root {
   --fst-paper: #f2ede3;      /* warm parchment, never cold white */
   --fst-paper-2: #e9e2d4;
-  --fst-night: #0a121f;      /* Trunt Trunt, Icelandic edition */
-  --fst-night-2: #111c29;
+  --fst-night: #16241c;      /* deep moss-basalt; the reference's own dark ground is rgb(30,57,43) */
+  --fst-night-2: #1d2f24;
   --fst-ink: #1c2118;
   --fst-soft: #5d655a;       /* grey biased to sage, not neutral */
   --fst-rule: #cec6b6;
-  --fst-rule-dk: #26313f;
+  --fst-rule-dk: #2c4034;
   --fst-amber: #c08448;      /* the pod glowing under the aurora */
   --fst-oxblood: #9c483c;
   --fst-sage: #acb4a7;
@@ -87,9 +87,13 @@
   text-wrap: balance;
   margin: 0;
 }
-.fst-root h1 { font-size: clamp(2.6rem, 6.6vw, 5.6rem); line-height: 1.02; }
-.fst-root h2 { font-size: clamp(2rem, 4.2vw, 3.6rem); }
-.fst-root h3 { font-size: clamp(1.3rem, 2vw, 1.7rem); font-weight: 300; line-height: 1.15; }
+/* MEASURED off the reference, not chosen: Reverie sets h1 42px, h2 32-42px,
+   h3 26px, at weights 200-400. The previous pass shipped 90/58/27, which is
+   what made this read as a big-display-type page instead of a photography one.
+   The restraint IS the look — the pictures are supposed to dwarf the words. */
+.fst-root h1 { font-size: clamp(2.1rem, 3.3vw, 2.9rem); line-height: 1.14; letter-spacing: -.004em; }
+.fst-root h2 { font-size: clamp(1.75rem, 2.5vw, 2.35rem); line-height: 1.16; letter-spacing: -.004em; }
+.fst-root h3 { font-size: clamp(1.22rem, 1.5vw, 1.45rem); font-weight: 300; line-height: 1.2; }
 .fst-root p { margin: 0 0 1.1em; max-width: 64ch; }
 
 .fst-eyebrow {
@@ -162,7 +166,7 @@
   padding-bottom: clamp(46px, 9vw, 104px);
   color: #f6f2e8;
 }
-.fst-hero__body h1 { color: #faf6ec; max-width: 15ch; }
+.fst-hero__body h1 { color: #faf6ec; max-width: 19ch; }
 .fst-hero .fst-eyebrow { color: rgba(246,242,232,.76); }
 .fst-hero__sub { color: rgba(246,242,232,.88); max-width: 42ch; margin-top: 20px; font-size: 1.08rem; }
 
@@ -265,7 +269,7 @@ figcaption { margin-top: 12px; font-size: 14px; color: var(--fst-soft); max-widt
 .fst-stay { scroll-snap-align: start; display: flex; flex-direction: column; }
 .fst-stay__fig { position: relative; overflow: hidden; }
 .fst-stay__fig img {
-  width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block;
+  width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block;
   transition: transform 1.1s var(--fst-ease);
 }
 .fst-stay:hover .fst-stay__fig img { transform: scale(1.035); }
@@ -280,6 +284,16 @@ figcaption { margin-top: 12px; font-size: 14px; color: var(--fst-soft); max-widt
   text-transform: uppercase; color: var(--fst-oxblood);
 }
 .fst-night .fst-stay__off { color: var(--fst-amber); }
+
+/* ── FULL-WIDTH media, edge to edge inside the wrap ──────────────────────
+   Reverie devotes ~0.9 of a viewport's area to photography per viewport of
+   scroll. Reaching that needs images at full measure, not thumbnails. */
+.fst-wide { width: 100%; }
+.fst-wide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* two large pictures side by side, each still huge */
+.fst-duo { display: grid; gap: clamp(12px, 1.6vw, 22px); grid-template-columns: 1fr; }
+@media (min-width: 800px) { .fst-duo { grid-template-columns: 1fr 1fr; } }
 
 /* ── a plain two-up / three-up photo set ─────────────────────────────────── */
 .fst-grid { display: grid; gap: clamp(14px, 2vw, 26px); grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }
@@ -503,4 +517,37 @@ figcaption { margin-top: 12px; font-size: 14px; color: var(--fst-soft); max-widt
 @media (hover: none) {
   .fst-month { min-height: 46px; }
   .fst-day { min-height: 42px; }
+}
+
+/* ── practical facts, as plain lines ─────────────────────────────────────
+   The reference uses ZERO tables. The previous pass shipped one, which is a
+   spec-sheet device and reads as a different kind of website entirely. */
+.fst-facts { margin: 0; }
+.fst-facts > div {
+  display: grid; grid-template-columns: 1fr; gap: 2px;
+  padding: 15px 0; border-top: 1px solid var(--fst-rule);
+}
+@media (min-width: 720px) {
+  .fst-facts > div { grid-template-columns: 190px 1fr; gap: 24px; align-items: baseline; }
+}
+.fst-facts > div:last-child { border-bottom: 1px solid var(--fst-rule); }
+.fst-facts dt {
+  font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--fst-soft); font-weight: 560;
+}
+.fst-facts dd { margin: 0; font-size: 16px; }
+
+/* a rail used purely for pictures carries no text block under it */
+.fst-stay > .fst-stay__fig:only-child img { aspect-ratio: 1 / 1; }
+
+/* ── media runs wider than text ──────────────────────────────────────────
+   A structural ceiling I missed on the first pass: .fst-wrap caps content at
+   1320px minus padding, i.e. ~81% of a 1440 viewport, so NO image inside it
+   can ever exceed a 0.81 area ratio no matter how tall it is. The reference
+   reaches 0.906 because its pictures run close to the full width while its
+   TEXT stays narrow. So media gets its own, wider container. */
+.fst-mediawrap {
+  max-width: none;
+  margin: 0 auto;
+  padding-inline: clamp(10px, 1.4vw, 22px);
 }
