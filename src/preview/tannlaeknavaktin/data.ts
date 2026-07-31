@@ -184,6 +184,59 @@ export const ADVICE = [
   },
 ]
 
+/* ── PROPOSED CONTENT ──────────────────────────────────────────────────────
+   Everything ABOVE this point is the clinic's own published material, taken
+   from tannlaeknavaktin.is, their verðskrá, or their /in-english page.
+
+   Everything in THIS block is standard dental guidance, not something the
+   clinic has published. It is here because the site is thin and repeats
+   itself, and these are the questions a person in pain actually has. It is
+   clinically standard and matches ADA and NHS emergency-dental guidance, but
+   KJARTAN MUST CONFIRM OR CUT EACH ITEM before this goes live — especially
+   VISIT, which describes how a visit runs.
+
+   VISIT is deliberately derived from the clinic's OWN price list (skoðun,
+   röntgenmynd, deyfing, bráðabirgðafylling, líming á krónu, bráðabirgðakróna)
+   plus their own statement that they handle emergencies and not routine care,
+   so it asserts nothing they do not already sell.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/** Beyond a dental chair. Standard triage red flags; none of this is on their
+ *  site today, and the swelling-and-airway one is the case where waiting for
+ *  a dentist is the wrong call. */
+export const RED_FLAGS = {
+  intro:
+    'Sumt bíður ekki eftir tannlækni. Leitaðu strax á bráðamóttöku eða hringdu í 112 ef eitthvað af þessu á við.',
+  items: [
+    'Bólga sem þrengir að öndun eða kyngingu',
+    'Bólga sem breiðist út í andlit, kjálka eða háls',
+    'Hiti samhliða bólgu eða verk í munni',
+    'Blæðing sem stöðvast ekki þrátt fyrir þrýsting',
+    'Áverki á höfði eða kjálka eftir slys',
+  ],
+  note:
+    'Ígerð hverfur ekki af sjálfu sér og sýklalyf ein og sér lækna hana ekki. Hún þarf meðhöndlun hjá tannlækni.',
+}
+
+/** What a visit actually involves. Every step maps to a line item in their
+ *  own verðskrá, so nothing here claims a service they do not list. */
+export const VISIT = [
+  { n: '01', head: 'Skoðun', body: 'Tannlæknir skoðar svæðið og fer yfir hvað gerðist og hversu lengi einkennin hafa staðið.' },
+  { n: '02', head: 'Röntgenmynd ef þarf', body: 'Mynd sýnir það sem ekki sést með berum augum, til dæmis brot niður í rót eða bólgu við rótarenda.' },
+  { n: '03', head: 'Deyfing', body: 'Svæðið er deyft áður en meðferð hefst svo hún valdi ekki verk.' },
+  { n: '04', head: 'Bráðabirgðameðferð', body: 'Vaktin leysir bráðavandann sjálfan, til dæmis með bráðabirgðafyllingu, límingu á krónu eða bráðabirgðakrónu.' },
+  { n: '05', head: 'Framhaldið hjá þínum tannlækni', body: 'Vaktin sinnir bráðatilvikum, ekki reglubundnu eftirliti. Varanleg viðgerð fer fram hjá þínum eigin tannlækni.' },
+]
+
+/** Standard post-treatment guidance. */
+export const AFTERCARE = [
+  'Bráðabirgðameðferð er tímabundin. Pantaðu tíma hjá þínum tannlækni sem fyrst til að ljúka viðgerðinni.',
+  'Tyggðu hinum megin á meðan bráðabirgðafylling eða límd króna er á sínum stað.',
+  'Sé svæðið deyft skaltu bíða með heitan mat og drykk þar til deyfingin er farin, svo þú bítir ekki í kinn eða tungu.',
+  'Haltu áfram að bursta og nota tannþráð, einnig við svæðið sem var meðhöndlað, nema tannlæknir ráðleggi annað.',
+  'Aukist verkur eða bólga á næstu dögum skaltu hafa samband aftur.',
+]
+
 /* ── prices (verbatim from their published verðskrá) ──────────────────── */
 
 export const PRICE_SURCHARGE = {
@@ -212,11 +265,109 @@ export const PRICES: { item: string; price: string }[] = [
   { item: 'Tannlit fylling, 4 fletir', price: '39.500 til 46.500 kr.' },
 ]
 
+
+/**
+ * The same twelve prices, grouped the way a price list actually reads.
+ * Flat, they are a dump of strings; grouped, they are a document. The groups
+ * are the natural ones in the clinic's own list, not invented categories.
+ */
+export const PRICE_GROUPS: { group: string; items: { item: string; price: string }[] }[] = [
+  { group: 'Skoðun', items: [{ item: 'Skoðun', price: '9.200 kr.' }] },
+  {
+    group: 'Myndir',
+    items: [
+      { item: 'Röntgenmynd', price: '5.500 kr.' },
+      { item: 'Ljósmynd', price: '2.000 kr.' },
+    ],
+  },
+  {
+    group: 'Deyfing',
+    items: [
+      { item: 'Yfirborðsdeyfing', price: '3.500 kr.' },
+      { item: 'Deyfing 1 til 3 tennur', price: '4.500 kr.' },
+    ],
+  },
+  {
+    group: 'Fyllingar',
+    items: [
+      { item: 'Bráðabirgðafylling', price: '12.800 kr.' },
+      { item: 'Tannlit fylling, 1 flötur', price: '24.500 til 29.500 kr.' },
+      { item: 'Tannlit fylling, 2 fletir', price: '33.000 til 38.000 kr.' },
+      { item: 'Tannlit fylling, 3 fletir', price: '34.500 til 42.000 kr.' },
+      { item: 'Tannlit fylling, 4 fletir', price: '39.500 til 46.500 kr.' },
+    ],
+  },
+  {
+    group: 'Krónur',
+    items: [
+      { item: 'Líming á krónu, til bráðabirgða', price: '13.800 kr.' },
+      { item: 'Bráðabirgðakróna', price: '26.500 til 35.000 kr.' },
+    ],
+  },
+]
+
+/** The surcharge as a NUMBER, for the roll-up. The string form stays in PRICE_SURCHARGE. */
+export const SURCHARGE_VALUE = 45590
+
 export const PRICE_NOTES = [
   'Tekið er við debetkortum og kreditkortum. Tannlæknavaktin getur krafið viðskiptavini um greiðslu fyrir fram.',
   'Fyrir börn, öryrkja og aldraða gildir verðskrá samkvæmt samningi TFÍ og Sjúkratrygginga Íslands.',
   'Verðskráin er byggð upp eins og hefðbundnar verðskrár tannlækna.',
 ]
+
+
+/* ── Á LEIÐINNI ───────────────────────────────────────────────────────────
+ * Their /in-english page carries detailed first aid that their ICELANDIC page
+ * does not have at all. An Icelandic speaker with a tooth knocked out at 21:00
+ * currently gets none of it, and the one hour window is the single most useful
+ * sentence on their whole website.
+ *
+ * Translated close to literal from THEIR OWN text. Medical instruction is not
+ * somewhere to paraphrase freely, and nothing here is invented: every line maps
+ * to a sentence on tannlaeknavaktin.is/index.php/in-english.
+ *
+ * Ordered by urgency, not by their page order. The knocked-out tooth is first
+ * because it is the only one with a clock running on it.
+ */
+export const ON_THE_WAY: { n: string; head: string; body: string; urgent?: boolean }[] = [
+  {
+    n: '01',
+    head: 'Tönn hefur slegist úr',
+    urgent: true,
+    body: 'Náðu í tönnina og haltu um krónuna, ekki rótina. Skolaðu hana með vatni ef hún er óhrein, en burstaðu hana ekki og fjarlægðu ekki vefjaleifar af rótinni. Reyndu að setja hana aftur á sinn stað, rétt snúna, en þvingaðu hana aldrei. Takist það ekki skaltu geyma hana í mjólk. Mestar líkur eru á að bjarga tönn sem kemst til tannlæknis innan klukkustundar.',
+  },
+  {
+    n: '02',
+    head: 'Tönn hefur brotnað',
+    body: 'Geymdu brotin. Skolaðu munninn með volgu vatni og skolaðu brotin líka. Ef það blæðir skaltu þrýsta grisju á svæðið í um tíu mínútur eða þar til blæðingin stöðvast. Kaldur bakstur utan á kinnina heldur bólgu niðri og dregur úr verk.',
+  },
+  {
+    n: '03',
+    head: 'Mikill tannverkur',
+    body: 'Skolaðu munninn vandlega með volgu vatni og notaðu tannþráð til að ná matarleifum sem sitja fastar. Sé bólga skaltu leggja kaldan bakstur utan á kinnina. Leggðu aldrei verkjatöflu upp að tannholdinu við tönnina, það getur brennt slímhúðina.',
+  },
+  {
+    n: '04',
+    head: 'Fylling eða króna losnaði',
+    body: 'Sykurlaust tyggjó má nota til bráðabirgða í holuna, eða tannlím úr apóteki. Losni króna skaltu taka hana með þér til tannlæknisins. Notaðu aldrei skyndilím.',
+  },
+  {
+    n: '05',
+    head: 'Blæðing í munni',
+    body: 'Skolaðu með mildri saltvatnslausn. Þrýstu rakri grisju á blæðingarstaðinn í fimmtán til tuttugu mínútur. Kaldur bakstur utan á kinnina í fimm til tíu mínútur dregur úr blæðingu og verk. Stöðvist blæðingin ekki skaltu leita strax til tannlæknis eða á bráðamóttöku.',
+  },
+]
+
+export const ON_THE_WAY_NOTE =
+  'Þessi ráð eru þýdd af ensku síðu Tannlæknavaktarinnar sjálfrar. Þau koma ekki í staðinn fyrir mat tannlæknis. Hringdu í 426 8000 um leið og þú getur.'
+
+/**
+ * Standing rule on this project: generated imagery is never passed off as the
+ * client's own premises, staff or patients, and the page says so where the
+ * images are, not only in a footer nobody reads.
+ */
+export const ON_THE_WAY_ART_NOTE =
+  'Myndirnar tvær hér að ofan eru málaðar skýringarmyndir, gerðar með gervigreind. Þær sýna hvorki húsnæði stofunnar, starfsfólk hennar né raunverulegan sjúkling.'
 
 /* ── receptionist ─────────────────────────────────────────────────────── */
 
@@ -232,12 +383,12 @@ export const PRICE_NOTES = [
 export const ASK_ENDPOINT = 'https://vaktin-receptionist.sindri-381.workers.dev'
 
 export const ASK_CHIPS = [
-  'Er opið núna?',
-  'Hvað kostar að koma á kvöldin?',
+  'Tönnin datt úr, hvað geri ég?',
   'Er þetta bráðatilvik?',
-  'Hvar er opið í kvöld?',
-  'Hvernig borga ég?',
-  'Hvað með börn?',
+  'Fylling datt úr',
+  'Hvað kostar að koma á kvöldin?',
+  'Hvað ef það blæðir?',
+  'Hvað með börnin?',
 ]
 
 /**
@@ -277,6 +428,25 @@ export const ASK_FACTS: { match: string[]; answer: string }[] = [
       'Eftir lokun er bent á að hafa samband við 112 í neyðartilvikum. Á opnunartíma svarar Tannlæknavaktin í 426 8000.',
   },
 ]
+
+/* first aid, from their own English page, so the new chips resolve */
+ASK_FACTS.push(
+  {
+    match: ['datt úr', 'slegist', 'losnaði tönn', 'tönnin úr', 'missti tönn', 'brotnaði tönn'],
+    answer:
+      'Náðu í tönnina og haltu um krónuna, ekki rótina. Skolaðu hana með vatni ef hún er óhrein, en burstaðu hana ekki. Reyndu að setja hana aftur á sinn stað en þvingaðu hana aldrei. Takist það ekki skaltu geyma hana í mjólk. Mestar líkur eru á að bjarga tönn sem kemst til tannlæknis innan klukkustundar. Hringdu strax í 426 8000.',
+  },
+  {
+    match: ['fylling', 'króna', 'krónan', 'losnaði'],
+    answer:
+      'Sykurlaust tyggjó má nota til bráðabirgða í holuna, eða tannlím úr apóteki. Losni króna skaltu taka hana með þér. Notaðu aldrei skyndilím. Hringdu í 426 8000 og fáðu tíma.',
+  },
+  {
+    match: ['blæð', 'blóð'],
+    answer:
+      'Skolaðu með mildri saltvatnslausn og þrýstu rakri grisju á blæðingarstaðinn í fimmtán til tuttugu mínútur. Kaldur bakstur utan á kinnina dregur úr blæðingu og verk. Stöðvist blæðingin ekki skaltu leita strax til tannlæknis eða á bráðamóttöku.',
+  },
+)
 
 export const ASK_FALLBACK =
   'Ég er ekki með það á hreinu. Best er að hringja í 426 8000, þar svarar starfsfólk vaktarinnar.'
