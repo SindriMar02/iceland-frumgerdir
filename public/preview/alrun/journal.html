@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Journal · Alrún Nordic Design</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Notes from the Alrún studio in Reykjavík. Every entry is the studio's own writing, kept from alrun.is.">
+<link rel="icon" href="img/favicon-alrun.png">
+<meta name="theme-color" content="#F1EDE4">
+<style>
+/* ============================================================================
+   ALRÚN — the journal. Their eight real posts from alrun.is, their own words
+   and their own photographs, given room to breathe. Prefix aj-, sharing the
+   ax- header, sheet and card vocabulary with the shop.
+   On Shopify this is the blog: /blogs/journal, one article per post.
+   ========================================================================= */
+@font-face{font-family:Gambetta;src:url('fonts/Gambetta-Light.woff2') format('woff2');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:Gambetta;src:url('fonts/Gambetta-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:Gambetta;src:url('fonts/Gambetta-LightItalic.woff2') format('woff2');font-weight:300;font-style:italic;font-display:swap}
+@font-face{font-family:GeneralSans;src:url('fonts/GeneralSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:GeneralSans;src:url('fonts/GeneralSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:FragMono;src:url('fonts/fragment-mono-v6-latin_latin-ext-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+
+:root{
+  --paper:#F1EDE4;--paper-2:#E7E1D5;--ink:#14120F;--ink-2:#0B0A08;
+  --rule:rgba(20,18,15,.17);--rule-soft:rgba(20,18,15,.085);--mute:rgba(20,18,15,.64);
+  --cream:#F7F4ED;--hdr-h:50px;--pad:clamp(20px,4.2vw,76px);
+  --disp:Gambetta,Georgia,serif;
+  --body:GeneralSans,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:FragMono,ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+figure,figcaption,h1,h2,h3,p,ul,li{margin:0}
+ul{padding:0;list-style:none}
+img{display:block;max-width:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+[hidden]{display:none!important}
+.ax-wrap{width:min(1600px,100%);margin-inline:auto;padding-inline:var(--pad)}
+.ax-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--mute);display:block}
+
+/* header, identical to the rest of the site */
+.ax-hdr{position:sticky;top:0;z-index:60;height:var(--hdr-h);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-inline:40px;background:var(--paper);border-bottom:1px solid var(--rule-soft)}
+.ax-hdr a,.ax-hdr button{text-decoration:none}
+.ax-hlink{font-size:12px;letter-spacing:.35px;text-transform:uppercase;position:relative;padding-block:5px;white-space:nowrap}
+.ax-hlink::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .36s var(--ease)}
+.ax-hlink:hover::after,.ax-hlink:focus-visible::after{transform:scaleX(1)}
+.ax-wordmark{
+  display:block;background-color:currentColor;flex:none;height:24px;width:70px;
+  -webkit-mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+          mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+}
+.ax-nav{display:flex;align-items:center;gap:clamp(16px,1.8vw,26px);justify-self:start}
+.ax-hdr-r{display:flex;align-items:center;gap:clamp(16px,1.8vw,26px);justify-self:end}
+@media(max-width:1080px){ .ax-hdr{padding-inline:24px} .ax-nav{gap:16px} .ax-hdr-r{gap:16px} }
+@media(max-width:700px){ .ax-nav .ax-hlink:nth-child(n+2){display:none} .ax-hdr{padding-inline:20px} }
+
+/* head */
+.aj-head{padding:clamp(44px,7vh,88px) 0 clamp(24px,3.6vh,40px)}
+.aj-head h1{font-family:var(--disp);font-weight:300;font-size:clamp(44px,8vw,116px);line-height:1.1;letter-spacing:-.024em;padding-block:.05em;margin-top:10px}
+.aj-head p{max-width:54ch;color:var(--mute);font-size:clamp(15px,1.1vw,17.5px);margin-top:16px}
+
+/* The lead entry runs full width; the rest fall into a two-column index, so
+   the page has a rhythm instead of eight identical cards. */
+.aj-lead{display:grid;gap:clamp(20px,3vw,52px);align-items:center;padding-bottom:clamp(34px,5vh,64px);border-bottom:1px solid var(--rule)}
+@media(min-width:900px){ .aj-lead{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)} }
+.aj-fig{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--paper-2)}
+.aj-fig img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s var(--ease)}
+.aj-item:hover .aj-fig img{transform:scale(1.035)}
+.aj-date{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.aj-lead h2{font-family:var(--disp);font-weight:300;font-size:clamp(28px,3.6vw,52px);line-height:1.16;letter-spacing:-.018em;padding-block:.04em;margin:10px 0 14px}
+.aj-lead p{color:var(--mute);max-width:52ch}
+
+.aj-grid{display:grid;gap:clamp(28px,3.4vw,54px);padding:clamp(34px,5vh,64px) 0 clamp(50px,8vh,96px)}
+@media(min-width:760px){ .aj-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media(min-width:1240px){ .aj-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.aj-item{display:block;text-decoration:none;opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s var(--ease)}
+.aj-item.aj-in{opacity:1;transform:none}
+.aj-item h3{font-family:var(--disp);font-weight:300;font-size:clamp(21px,2vw,27px);line-height:1.2;letter-spacing:-.012em;padding-block:.04em;margin:12px 0 8px}
+.aj-item p{color:var(--mute);font-size:14.5px;line-height:1.6}
+.aj-more{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;margin-top:12px;display:inline-block;position:relative;padding-bottom:5px}
+.aj-more::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;transform:scaleX(1);transform-origin:left;transition:transform .45s var(--ease)}
+.aj-item:hover .aj-more::after{transform:scaleX(0);transform-origin:right}
+
+/* the article reader */
+.ax-veil{position:fixed;inset:0;z-index:70;background:rgba(8,7,5,.5);opacity:0;pointer-events:none;transition:opacity .4s ease}
+.ax-veil[data-on]{opacity:1;pointer-events:auto}
+.aj-read{
+  position:fixed;top:0;right:0;bottom:0;z-index:71;width:min(720px,100vw);
+  background:var(--paper);border-left:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;
+  transform:translateX(102%);transition:transform .55s var(--ease);
+}
+.aj-read[data-on]{transform:translateX(0)}
+.aj-read-hd{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 24px;border-bottom:1px solid var(--rule-soft);background:var(--paper)}
+.aj-read-hd b{font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.ax-x{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--rule);border-radius:999px;font-size:15px;line-height:1}
+.ax-x:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.aj-read-body{padding:0 clamp(22px,4vw,48px) 56px}
+.aj-read-body figure{position:relative;aspect-ratio:4/3;overflow:hidden;margin:22px 0 26px;background:var(--paper-2)}
+.aj-read-body figure img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.aj-read-body h2{font-family:var(--disp);font-weight:300;font-size:clamp(28px,3.4vw,44px);line-height:1.16;letter-spacing:-.018em;padding-block:.04em;margin:16px 0 6px}
+.aj-read-body .aj-p{font-size:clamp(15.5px,1.12vw,17.5px);line-height:1.72;margin-top:1.05em;max-width:62ch}
+.aj-read-body .aj-p:first-of-type{font-family:var(--disp);font-weight:300;font-size:clamp(19px,1.7vw,25px);line-height:1.44;color:var(--ink)}
+.aj-src{margin-top:34px;padding-top:16px;border-top:1px solid var(--rule-soft);font-size:12.5px;color:var(--mute)}
+
+.ax-ft{border-top:1px solid var(--rule-soft);padding:26px 0 30px}
+.ax-ft .ax-wrap{display:flex;flex-wrap:wrap;gap:10px 26px;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.ax-ft a{text-decoration:none;border-bottom:1px solid var(--rule)}
+body.ax-lock{overflow:hidden}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} .aj-item{opacity:1;transform:none} }
+</style>
+</head>
+<body>
+
+<header class="ax-hdr">
+  <nav class="ax-nav" aria-label="Main">
+    <a class="ax-hlink" href="index.html">Home</a>
+    <a class="ax-hlink" href="index.html#marks">The marks</a>
+    <a class="ax-hlink" href="collection.html?mat=Wool">Textiles</a>
+    <a class="ax-hlink" href="collection.html">Everything</a>
+  </nav>
+  <a class="ax-wordmark" href="index.html" aria-label="Alrún Nordic Design, home"></a>
+  <div class="ax-hdr-r">
+    <a class="ax-hlink" href="journal.html">Journal</a>
+    <a class="ax-hlink" href="linesheet.html">Wholesale</a>
+  </div>
+</header>
+
+<main>
+  <section class="aj-head"><div class="ax-wrap">
+    <span class="ax-eyebrow">From the studio</span>
+    <h1>Journal</h1>
+    <p>Notes the studio has written since 2016, about the pieces, the people and the places behind the twelve marks.</p>
+  </div></section>
+
+  <div class="ax-wrap">
+    <article class="aj-lead aj-item" id="leadPost"></article>
+    <div class="aj-grid" id="grid"></div>
+  </div>
+</main>
+
+<div class="ax-veil" id="veil"></div>
+<aside class="aj-read" id="reader" role="dialog" aria-modal="true" aria-label="Journal entry">
+  <div class="aj-read-hd"><b>From the studio</b><button class="ax-x" id="readClose" aria-label="Close">✕</button></div>
+  <div class="aj-read-body" id="readBody"></div>
+</aside>
+
+<footer class="ax-ft"><div class="ax-wrap">
+  <span>Alrún Nordic Design · Reykjavík</span>
+  <a href="index.html">Home</a>
+  <a href="collection.html">Everything</a>
+  <a href="linesheet.html">Wholesale</a>
+  <span style="margin-left:auto">Prototype by SNDR Studio · not a live shop</span>
+</div></footer>
+
+<script>
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function longDate(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  return d + ' ' + MONTHS[m-1] + ' ' + y;
+}
+let POSTS = [];
+
+fetch('data/news.json').then(r=>r.json()).then(function(d){
+  POSTS = d.posts;
+  const lead = POSTS[0];
+  $('#leadPost').innerHTML =
+    '<figure class="aj-fig"><img src="' + esc(lead.img) + '" alt="' + esc(lead.title) + '" fetchpriority="high"></figure>' +
+    '<div><span class="aj-date">' + esc(longDate(lead.date)) + ' · Latest</span>' +
+    '<h2>' + esc(lead.title) + '</h2>' +
+    '<p>' + esc(lead.body[0].slice(0,220)) + '…</p>' +
+    '<span class="aj-more">Read the entry</span></div>';
+  $('#leadPost').dataset.slug = lead.slug;
+
+  $('#grid').innerHTML = POSTS.slice(1).map(function(p){
+    return '<article class="aj-item" data-slug="' + esc(p.slug) + '">' +
+      '<figure class="aj-fig"><img src="' + esc(p.img) + '" alt="' + esc(p.title) + '" loading="lazy" decoding="async"></figure>' +
+      '<span class="aj-date">' + esc(longDate(p.date)) + '</span>' +
+      '<h3>' + esc(p.title) + '</h3>' +
+      '<p>' + esc(p.body[0].slice(0,150)) + '…</p>' +
+      '<span class="aj-more">Read the entry</span></article>';
+  }).join('');
+
+  const items = $$('.aj-item');
+  if(REDUCE){ items.forEach(i=>i.classList.add('aj-in')); }
+  else{
+    const io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('aj-in'); io.unobserve(e.target); } });
+    }, {rootMargin:'0px 0px -8% 0px'});
+    items.forEach(function(el,i){ el.style.transitionDelay = (i%3)*70 + 'ms'; io.observe(el); });
+  }
+});
+
+/* the reader */
+const veil = $('#veil'), reader = $('#reader');
+function openRead(slug){
+  const p = POSTS.find(x=>x.slug===slug); if(!p) return;
+  $('#readBody').innerHTML =
+    '<figure><img src="' + esc(p.img) + '" alt="' + esc(p.title) + '"></figure>' +
+    '<span class="aj-date">' + esc(longDate(p.date)) + '</span>' +
+    '<h2>' + esc(p.title) + '</h2>' +
+    p.body.map(t=>'<p class="aj-p">' + esc(t) + '</p>').join('') +
+    '<p class="aj-src">Written by the studio and published on alrun.is. Kept word for word.</p>';
+  veil.setAttribute('data-on',''); reader.setAttribute('data-on','');
+  document.body.classList.add('ax-lock');
+  $('#readClose').focus();
+  $('#readBody').scrollTop = 0;
+}
+function closeRead(){
+  veil.removeAttribute('data-on'); reader.removeAttribute('data-on');
+  document.body.classList.remove('ax-lock');
+}
+document.addEventListener('click', function(e){
+  const it = e.target.closest('.aj-item'); if(!it) return;
+  openRead(it.dataset.slug);
+});
+veil.addEventListener('click', closeRead);
+$('#readClose').addEventListener('click', closeRead);
+addEventListener('keydown', function(e){ if(e.key==='Escape') closeRead(); });
+</script>
+</body>
+</html>
