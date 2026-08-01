@@ -290,10 +290,18 @@ html.ax-nointro .ax-intro{display:none}
   display:block;width:100%;height:112%;object-fit:cover;object-position:50% 45%;
   transform:translate3d(0,var(--heroPar,0px),0);
 }
-/* the source video never paints; the canvas is what you see, because blend
-   modes are silently ignored over WebKit's composited video layer while a
-   canvas blends reliably (craft ledger #18) */
-.ax-hero-fig video{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.ax-hero-fig canvas{height:100%}
+/* The canvas is what you SEE, because blend modes are silently ignored over
+   WebKit's composited video layer while a canvas blends reliably (ledger #18).
+   But the video must still be genuinely rendered at full size underneath it:
+   Chrome refuses to autoplay a video it considers not visible, so hiding it
+   with opacity:0 or a 1px box stops playback dead on a real browser. It is
+   simply covered by the opaque canvas instead. */
+.ax-hero-fig video{
+  position:absolute;inset:0;width:100%;height:112%;object-fit:cover;
+  object-position:50% 45%;z-index:1;pointer-events:none;
+}
+.ax-hero-fig canvas{position:absolute;inset:0;z-index:2}
 .ax-hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,4,3,.1) 0%,rgba(5,4,3,0) 45%,rgba(5,4,3,.22) 100%);pointer-events:none}
 .ax-hero-grain{
   position:absolute;inset:-60px;pointer-events:none;opacity:.3;mix-blend-mode:overlay;
@@ -736,7 +744,6 @@ html.ax-nointro .ax-intro{display:none}
     <li><a href="collection.html">Everything</a></li>
     <li><a href="journal.html">Journal</a></li>
     <li><a href="#trade">Stockists</a></li>
-    <li><a href="linesheet.html">Wholesale</a></li>
     <li><a href="linesheet.html">Wholesale</a></li>
   </ul>
   <div class="ax-menu-ft">
@@ -1217,6 +1224,14 @@ bagPaint();
     const ctx = cv.getContext('2d', {alpha:false});
     let onScreen = true;
     new IntersectionObserver(function(es){ onScreen = es[0].isIntersecting; },{threshold:0.02}).observe(media);
+
+    /* autoplay can still be declined; ask explicitly and retry on first input */
+    const kick = function(){ const pr = v.play(); if(pr && pr.catch) pr.catch(function(){}); };
+    kick();
+    v.addEventListener('canplay', kick, {once:true});
+    ['pointerdown','keydown','touchstart'].forEach(function(e){
+      addEventListener(e, kick, {once:true, passive:true});
+    });
 
     function size(){
       const r = media.getBoundingClientRect();

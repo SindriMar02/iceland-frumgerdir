@@ -55,7 +55,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ax-nav{display:flex;align-items:center;gap:clamp(16px,1.8vw,26px);justify-self:start}
 .ax-hdr-r{display:flex;align-items:center;gap:clamp(16px,1.8vw,26px);justify-self:end}
 @media(max-width:1080px){ .ax-hdr{padding-inline:24px} .ax-nav{gap:16px} .ax-hdr-r{gap:16px} }
-@media(max-width:700px){ .ax-nav .ax-hlink:nth-child(n+2){display:none} .ax-hdr{padding-inline:20px} }
+/* these pages carry no hamburger, so keep the two links that actually get
+   you around a shop rather than leaving only Home */
+@media(max-width:700px){ .ax-nav .ax-hlink:nth-child(2),.ax-nav .ax-hlink:nth-child(3){display:none} .ax-hdr{padding-inline:20px} }
 
 /* collection head */
 .ac-head{padding:clamp(44px,7vh,84px) 0 clamp(26px,4vh,44px);border-bottom:1px solid var(--rule-soft)}
