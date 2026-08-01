@@ -279,16 +279,17 @@ html.ax-nointro .ax-intro{display:none}
 .ax-hero-media{
   position:relative;width:min(520px,38vw);aspect-ratio:4/5;
   overflow:hidden;background:var(--ink-2);z-index:2;
-  /* --hp is 0 at rest and 1 once the hero has scrolled away: the frame sinks
-     and closes like an aperture */
-  transform:translate3d(0,calc(var(--hp,0)*72px),0) scale(calc(1 - var(--hp,0)*.07));
-  clip-path:inset(calc(var(--hp,0)*7%) calc(var(--hp,0)*3%) round 0);
+  /* The word is now one mark split across this frame's edge: the ink half
+     outside, the inverted half inside. So the frame and the word must carry the
+     IDENTICAL transform, or the two halves slide apart. No scale and no
+     clip-path here for the same reason: either would shift or crop the
+     inverted half while the ink half stayed put. */
+  transform:translate3d(0,calc(var(--hp,0)*-40px),0);
   will-change:transform;
 }
 .ax-hero-fig{position:absolute;inset:0;overflow:hidden}
 .ax-hero-fig img{
-  display:block;width:100%;height:112%;object-fit:cover;object-position:50% 45%;
-  transform:translate3d(0,var(--heroPar,0px),0);
+  display:block;width:100%;height:100%;object-fit:cover;object-position:50% 45%;
 }
 /* THE VIDEO IS THE VISIBLE FILM. Nothing hides it and nothing covers it, so
    there is no way for a browser to decide it is off-screen and refuse to
@@ -300,11 +301,11 @@ html.ax-nointro .ax-intro{display:none}
    picture, and outside it the ink copy shows on the paper. No blend mode over
    a video anywhere, which is what WebKit ignores (ledger #18). */
 .ax-hero-fig video{
-  position:absolute;inset:0;width:100%;height:112%;object-fit:cover;
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   object-position:50% 45%;z-index:1;
 }
 .ax-hero-invert{
-  position:absolute;inset:0;width:100%;height:112%;z-index:2;
+  position:absolute;inset:0;width:100%;height:100%;z-index:2;
   filter:invert(1);pointer-events:none;
   -webkit-mask:url('img/brand/logo-wordmark.svg') no-repeat center center/var(--wmw,760px) auto;
           mask:url('img/brand/logo-wordmark.svg') no-repeat center center/var(--wmw,760px) auto;
@@ -326,7 +327,7 @@ html.ax-nointro .ax-intro{display:none}
   -webkit-mask:url('img/brand/logo-wordmark.svg') no-repeat center/contain;
           mask:url('img/brand/logo-wordmark.svg') no-repeat center/contain;
   /* the word lifts and grows a little as the film sinks away beneath it */
-  transform:translate(-50%,-50%) translate3d(0,calc(var(--hp,0)*-58px),0) scale(calc(1 + var(--hp,0)*.06));
+  transform:translate(-50%,-50%) translate3d(0,calc(var(--hp,0)*-40px),0);
   will-change:transform;
 }
 /* no blending available, or motion turned down: a flat cream wordmark still
@@ -1246,7 +1247,7 @@ bagPaint();
     const ctxS = cv.getContext('2d');
     const paintOnce = function(){
       const r = media.getBoundingClientRect(), dpr = Math.min(devicePixelRatio||1,2);
-      cv.width = Math.max(2, Math.round(r.width*dpr)); cv.height = Math.max(2, Math.round(r.height*1.12*dpr));
+      cv.width = Math.max(2, Math.round(r.width*dpr)); cv.height = Math.max(2, Math.round(r.height*dpr));
       const iw = poster.naturalWidth, ih = poster.naturalHeight;
       if(!iw) return;
       const sc = Math.max(cv.width/iw, cv.height/ih);
@@ -1270,7 +1271,7 @@ bagPaint();
       const r = media.getBoundingClientRect();
       const dpr = Math.min(devicePixelRatio || 1, 2);
       cv.width  = Math.max(2, Math.round(r.width  * dpr));
-      cv.height = Math.max(2, Math.round(r.height * 1.12 * dpr));
+      cv.height = Math.max(2, Math.round(r.height * dpr));
     }
     size();
     addEventListener('resize', size);
