@@ -129,7 +129,15 @@ const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const BudirPage = lazy(() => import('./preview/budir/Page'))
 const SjavarborgPage = lazy(() => import('./preview/sjavarborg/Page'))
 const BragdavellirPage = lazy(() => import('./preview/bragdavellir/Page'))
-const AlrunPage = lazy(() => import('./preview/alrun/Page'))
+/* Alrún now ships as a standalone static site under public/preview/alrun/, so
+   a direct hit on /preview/alrun is served by that file and never reaches the
+   router. This only catches in-app navigation from the catalogue. */
+function AlrunPage() {
+  useEffect(() => {
+    window.location.replace(import.meta.env.BASE_URL + 'preview/alrun/')
+  }, [])
+  return null
+}
 const SkalakotPage = lazy(() => import('./preview/skalakot/Page'))
 const KidkaPage = lazy(() => import('./preview/kidka/Page'))
 const HeklusynPage = lazy(() => import('./preview/heklusyn/Page'))

@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en" data-mode="trade">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alrún · Wholesale order in Shopify</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="img/favicon-alrun.png" type="image/png">
+
+<style>
+/* ALRÚN studio dashboard — the plate side. Prefixed ad- throughout. */
+@font-face{font-family:'Schibsted';src:url('fonts/schibsted-grotesk-v7-latin_latin-ext-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Schibsted';src:url('fonts/schibsted-grotesk-v7-latin_latin-ext-500.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Schibsted';src:url('fonts/schibsted-grotesk-v7-latin_latin-ext-600.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'Schibsted';src:url('fonts/schibsted-grotesk-v7-latin_latin-ext-700.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Schibsted';src:url('fonts/schibsted-grotesk-v7-latin_latin-ext-800.woff2') format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'FragmentMono';src:url('fonts/fragment-mono-v6-latin_latin-ext-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+
+:root{
+  --plate:#141210; --plate-2:#1D1A16; --plate-3:#262119;
+  --ink:#F0ECE4; --ink-2:#BEB6A8; --ink-3:#867E71;
+  --rule:rgba(240,236,228,.16); --rule-soft:rgba(240,236,228,.08);
+  --new:#C8B27A; --ok:#7FA37F; --strike:cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;background:var(--plate);color:var(--ink);
+  font-family:'Schibsted',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.ad-mono{font-family:'FragmentMono',ui-monospace,Menlo,monospace}
+
+.ad-hdr{
+  position:sticky;top:0;z-index:20;background:var(--plate);
+  border-bottom:1px solid var(--rule);padding:0 20px;height:56px;
+  display:flex;align-items:center;gap:16px;
+}
+.ad-mark{
+  display:block;background-color:currentColor;flex:none;
+  -webkit-mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+          mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+  height:28px;width:80px;
+}
+.ad-mark span{position:absolute;left:-9999px}
+.ad-tag{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);border:1px solid var(--rule);padding:4px 9px;
+}
+.ad-hdr-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.ad-btn{
+  height:32px;padding:0 13px;border:1px solid var(--rule);
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:7px;text-decoration:none;
+  transition:background .26s var(--strike),color .26s var(--strike),border-color .26s var(--strike);
+}
+.ad-btn:hover{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+.ad-btn--pri{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+.ad-btn--pri:hover{background:transparent;color:var(--ink)}
+
+/* stat strip */
+.ad-stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);background:var(--plate-2)}
+.ad-stat{padding:16px 20px;border-right:1px solid var(--rule-soft)}
+.ad-stat:last-child{border-right:0}
+.ad-stat b{display:block;font-size:clamp(22px,3vw,32px);font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.ad-stat span{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+@media(max-width:700px){.ad-stats{grid-template-columns:repeat(2,1fr)}.ad-stat{border-bottom:1px solid var(--rule-soft)}}
+
+/* layout */
+.ad-main{display:grid;grid-template-columns:minmax(300px,400px) 1fr;min-height:calc(100svh - 56px - 84px)}
+@media(max-width:900px){.ad-main{grid-template-columns:1fr}.ad-detail{display:none}.ad-main.is-detail .ad-list{display:none}.ad-main.is-detail .ad-detail{display:block}}
+
+.ad-list{border-right:1px solid var(--rule);overflow-y:auto}
+.ad-filterbar{
+  display:flex;gap:6px;padding:11px 14px;border-bottom:1px solid var(--rule-soft);
+  position:sticky;top:0;background:var(--plate);z-index:5;flex-wrap:wrap;
+}
+/* the hidden attribute must beat class display rules or channel switching
+   leaves both streams stacked on screen */
+[hidden]{display:none!important}
+/* channel tabs: the two Shopify order streams */
+.ad-chan{display:flex;gap:8px;padding:14px 20px 0}
+.ad-chanbtn{
+  height:34px;padding:0 15px;border:1px solid var(--rule);border-radius:999px;
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);display:inline-flex;align-items:center;gap:8px;
+  transition:background .24s var(--strike),color .24s var(--strike);
+}
+.ad-chanbtn:hover{color:var(--ink);border-color:var(--ink)}
+.ad-chanbtn[aria-selected="true"]{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+.ad-chanct{opacity:.7}
+.ad-shoplist{padding:6px 18px}
+.ad-shoprow{
+  display:grid;grid-template-columns:92px minmax(0,1fr) auto auto;gap:14px;align-items:center;
+  padding:14px 10px;border-bottom:1px solid var(--rule-soft);
+}
+.ad-shoprow .imgs{display:flex}
+.ad-shoprow .imgs img{width:40px;height:40px;object-fit:cover;border:1px solid var(--rule);background:#fff;margin-left:-10px}
+.ad-shoprow .imgs img:first-child{margin-left:0}
+.ad-shoprow .who b{font-weight:600}
+.ad-shoprow .who small{display:block;color:var(--ink-3);font-size:12px}
+.ad-shoprow .sum{font-family:'FragmentMono',monospace;font-size:13px;text-align:right}
+.ad-shoprow .sum small{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase}
+.ad-pill{font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--rule);padding:4px 9px;border-radius:999px;color:var(--ink-2)}
+.ad-pill[data-st="paid"]{border-color:rgba(200,178,122,.5);color:var(--new)}
+.ad-pill[data-st="fulfilled"]{border-color:rgba(127,163,127,.5);color:var(--ok)}
+.ad-shopempty{padding:36px 10px;color:var(--ink-3);font-size:13.5px}
+.ad-fulfil{height:30px;padding:0 13px;border:1px solid var(--rule);border-radius:999px;font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.ad-fulfil:hover{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+@media(max-width:760px){ .ad-shoprow{grid-template-columns:minmax(0,1fr) auto;grid-auto-rows:auto} .ad-shoprow .imgs{display:none} }
+
+.ad-fchip{
+  height:26px;padding:0 10px;border:1px solid var(--rule);
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);display:inline-flex;align-items:center;gap:6px;
+  transition:background .24s var(--strike),color .24s var(--strike),border-color .24s var(--strike);
+}
+.ad-fchip:hover{color:var(--ink);border-color:var(--ink)}
+.ad-fchip[aria-pressed="true"]{background:var(--ink);color:var(--plate);border-color:var(--ink)}
+
+.ad-row{
+  width:100%;text-align:left;padding:14px 16px;border-bottom:1px solid var(--rule-soft);
+  display:grid;gap:5px;transition:background .22s var(--strike);position:relative;
+}
+.ad-row:hover{background:var(--plate-2)}
+.ad-row[aria-current="true"]{background:var(--plate-3)}
+.ad-row[aria-current="true"]::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ink)}
+.ad-row-top{display:flex;align-items:baseline;gap:9px}
+.ad-row-co{font-weight:600;font-size:14.5px;letter-spacing:-.005em}
+.ad-row-ref{font-family:'FragmentMono',monospace;font-size:10.5px;color:var(--ink-3);margin-left:auto}
+.ad-row-meta{font-family:'FragmentMono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.05em}
+.ad-pill{
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid var(--rule);padding:2px 7px;color:var(--ink-3);
+}
+.ad-pill.is-open{border-color:var(--new);color:var(--new)}
+.ad-pill.is-paid,.ad-pill.is-fulfilled{border-color:var(--ok);color:var(--ok)}
+
+.ad-detail{overflow-y:auto}
+.ad-dhead{padding:22px 24px 18px;border-bottom:1px solid var(--rule)}
+.ad-back{display:none;margin-bottom:12px}
+@media(max-width:900px){.ad-back{display:inline-flex}}
+.ad-dtitle{margin:0 0 4px;font-size:clamp(21px,2.6vw,29px);font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.ad-dsub{font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
+.ad-dactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+.ad-grid2{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--rule)}
+@media(max-width:640px){.ad-grid2{grid-template-columns:1fr}}
+.ad-fld{padding:12px 24px;border-right:1px solid var(--rule-soft);border-bottom:1px solid var(--rule-soft)}
+.ad-fld h4{
+  margin:0 0 3px;font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:400;
+}
+.ad-fld p{margin:0;font-size:14px;word-break:break-word}
+.ad-fld p.ad-empty{color:var(--ink-3)}
+
+.ad-lines{padding:0}
+.ad-lhead{
+  display:flex;align-items:center;gap:10px;padding:16px 24px 10px;
+}
+.ad-lhead h3{margin:0;font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+.ad-line{
+  display:grid;grid-template-columns:46px 1fr auto auto;gap:16px;align-items:center;
+  padding:10px 24px;border-bottom:1px solid var(--rule-soft);
+}
+@media(max-width:620px){.ad-line{grid-template-columns:46px 1fr auto;gap:11px}.ad-line .ad-money{grid-column:2/-1;text-align:left}}
+.ad-money{font-family:'FragmentMono',monospace;font-size:14px;text-align:right;min-width:92px}
+.ad-money small{display:block;font-size:10px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;margin-top:2px}
+.ad-rate{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.ad-rate input{
+  width:56px;height:28px;background:var(--plate-2);border:1px solid var(--rule);
+  color:var(--ink);text-align:center;font-family:'FragmentMono',monospace;font-size:12px;border-radius:0;
+}
+.ad-note{
+  margin:0;padding:12px 24px;background:var(--plate-2);border-bottom:1px solid var(--rule);
+  font-size:13px;color:var(--ink-2);
+}
+.ad-note b{color:var(--ink)}
+/* Product shots are cut out on pure white; untreated they glare on the plate ground. */
+.ad-line img{width:46px;height:46px;object-fit:cover;background:#D9D4CB;filter:brightness(.88) contrast(1.03)}
+.ad-line-t{font-size:13.5px;font-weight:500;line-height:1.3}
+.ad-line-s{font-family:'FragmentMono',monospace;font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+.ad-qty{font-family:'FragmentMono',monospace;font-size:16px;text-align:right}
+.ad-qty small{display:block;font-size:10px;letter-spacing:.13em;color:var(--ink-3);text-transform:uppercase}
+.ad-ltot{
+  display:flex;align-items:center;gap:14px;padding:14px 24px;background:var(--plate-2);
+  font-family:'FragmentMono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+}
+.ad-ltot b{font-size:17px;letter-spacing:0}
+
+.ad-status{display:flex;gap:0;border:1px solid var(--rule);margin-top:2px}
+.ad-status button{
+  flex:1;padding:8px 6px;font-family:'FragmentMono',monospace;font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
+  border-right:1px solid var(--rule);transition:background .24s var(--strike),color .24s var(--strike);
+}
+.ad-status button:last-child{border-right:0}
+.ad-status button:hover{background:var(--plate-3);color:var(--ink)}
+.ad-status button[aria-pressed="true"]{background:var(--ink);color:var(--plate)}
+
+/* empty states */
+.ad-blank{
+  display:grid;place-items:center;gap:14px;padding:70px 24px;text-align:center;min-height:50vh;align-content:center;
+}
+.ad-blank .ad-glyph{
+  width:56px;height:66px;background-color:var(--ink-3);
+  -webkit-mask:url('img/symbols/Hope.png') no-repeat center/contain;
+  mask:url('img/symbols/Hope.png') no-repeat center/contain;
+}
+.ad-blank h3{margin:0;font-size:20px;font-weight:600}
+.ad-blank p{margin:0;color:var(--ink-3);max-width:44ch;font-size:13.5px}
+
+.ad-ft{
+  border-top:1px solid var(--rule);padding:16px 20px;display:flex;gap:14px;flex-wrap:wrap;
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);align-items:center;
+}
+.ad-ft a,.ad-ft button{color:var(--ink-3);text-decoration:underline;text-underline-offset:3px}
+.ad-ft a:hover,.ad-ft button:hover{color:var(--ink)}
+.ad-toast{
+  position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);
+  background:var(--ink);color:var(--plate);padding:11px 20px;z-index:60;
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  transition:transform .46s var(--strike);
+}
+.ad-toast.is-up{transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+
+<header class="ad-hdr">
+  <span class="ad-mark" role="img" aria-label="Alrún Nordic Design"><span>Alrún Nordic Design</span></span>
+  <span class="ad-tag" id="hdrTag">Shopify admin · draft orders</span>
+  <div class="ad-hdr-r">
+    <a class="ad-btn" href="linesheet.html" target="_blank" rel="noopener">Line sheet</a>
+    <button class="ad-btn" type="button" id="csvBtn">Export CSV</button>
+  </div>
+</header>
+
+<!-- The two order streams share one admin, exactly as they do in Shopify:
+     shop orders arrive paid under Orders, wholesale arrives as draft orders. -->
+<div class="ad-chan" role="tablist" aria-label="Order stream">
+  <button class="ad-chanbtn" id="chWs" role="tab" aria-selected="true">Wholesale · draft orders</button>
+  <button class="ad-chanbtn" id="chShop" role="tab" aria-selected="false">Shop orders <span class="ad-chanct" id="shopCt">0</span></button>
+</div>
+
+<div id="shopView" hidden>
+  <div class="ad-stats">
+    <div class="ad-stat"><b id="rToday">0</b><span>Paid, waiting to be shipped</span></div>
+    <div class="ad-stat"><b id="rCount">0</b><span>Shop orders</span></div>
+    <div class="ad-stat"><b id="rRev">$0</b><span>Revenue in this demo</span></div>
+    <div class="ad-stat"><b style="font-size:15px;line-height:1.3">1 tap</b><span>To print the shipping label</span></div>
+  </div>
+  <div class="ad-shoplist" id="shopRows"></div>
+  <p class="ad-note" style="margin:14px 18px"><b>This is Shopify's normal Orders screen.</b> The customer
+  paid at checkout, so there is nothing to invoice: the address is attached, stock is already adjusted,
+  and the only job left is to pack the parcel and press Fulfill. Place a test order in
+  <a href="checkout.html" target="_blank" rel="noopener">the checkout</a> and it lands here.</p>
+</div>
+
+<div class="ad-stats" id="wsStats">
+  <div class="ad-stat"><b id="sNew">0</b><span>Waiting to be invoiced</span></div>
+  <div class="ad-stat"><b id="sTotal">0</b><span>Orders in total</span></div>
+  <div class="ad-stat"><b id="sUnits">0</b><span>Units requested</span></div>
+  <div class="ad-stat"><b id="sTop">None yet</b><span>Most requested piece</span></div>
+</div>
+
+<div class="ad-main" id="main">
+  <div class="ad-list" id="list">
+    <div class="ad-filterbar" id="filterbar">
+      <button class="ad-fchip" type="button" data-st="" aria-pressed="true">All <span id="cAll">0</span></button>
+      <button class="ad-fchip" type="button" data-st="open" aria-pressed="false">Open <span id="copen">0</span></button>
+      <button class="ad-fchip" type="button" data-st="invoiced" aria-pressed="false">Invoiced <span id="cinvoiced">0</span></button>
+      <button class="ad-fchip" type="button" data-st="paid" aria-pressed="false">Paid <span id="cpaid">0</span></button>
+    </div>
+    <div id="rows"></div>
+  </div>
+  <div class="ad-detail" id="detail"></div>
+</div>
+
+<footer class="ad-ft">
+  <span>Demo data lives in this browser only</span>
+  <button type="button" id="seedBtn">Load sample orders</button>
+  <button type="button" id="resetBtn">Clear all</button>
+  <span style="margin-left:auto">SNDR Studio prototype</span>
+</footer>
+
+<div class="ad-toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='alrun.orders.v1';
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+// Shopify's own draft order -> order lifecycle. Nothing invented.
+const STATUSES=[{k:'open',l:'Open'},{k:'invoiced',l:'Invoice sent'},{k:'paid',l:'Paid'},{k:'fulfilled',l:'Fulfilled'}];
+const SLABEL=Object.fromEntries(STATUSES.map(x=>[x.k,x.l]));
+/* The wholesale rate Alrún set once against each product. Adjustable here purely so
+   the mechanism can be shown in a walkthrough; the real value is theirs, per product. */
+let RATE=0.5;
+let orders=[], sel=null, filter='';
+let chan=null; try{ chan=new BroadcastChannel('alrun-orders'); }catch(e){}
+
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const load=()=>{ try{ orders=JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ orders=[]; } };
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(orders)); }catch(e){} };
+
+function fmtDate(iso){
+  const d=new Date(iso);
+  if(isNaN(d)) return '';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' · '+
+         d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('is-up');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('is-up'),2600);
+}
+
+/* ---------------- stats ---------------- */
+function renderStats(){
+  $('#sNew').textContent=orders.filter(o=>o.status==='open').length;
+  $('#sTotal').textContent=orders.length;
+  $('#sUnits').textContent=orders.reduce((n,o)=>n+(o.units||0),0);
+  const tally={};
+  orders.forEach(o=>(o.lines||[]).forEach(l=>{ tally[l.title]=(tally[l.title]||0)+l.qty; }));
+  const top=Object.entries(tally).sort((a,b)=>b[1]-a[1])[0];
+  const el=$('#sTop');
+  if(top){ el.textContent=top[0].length>26?top[0].slice(0,25)+'…':top[0]; el.style.fontSize='15px'; el.title=top[0]; }
+  else { el.textContent='None yet'; el.style.fontSize='15px'; }
+  STATUSES.forEach(st=>{
+    const n=$('#c'+st.k); if(n) n.textContent=orders.filter(o=>o.status===st.k).length;
+  });
+  const all=$('#cAll'); if(all) all.textContent=orders.length;
+}
+
+/* ---------------- list ---------------- */
+function renderList(){
+  const rows=$('#rows');
+  const list=orders.filter(o=>!filter||o.status===filter);
+  if(!list.length){
+    rows.innerHTML=`<div class="ad-blank" style="min-height:auto;padding:44px 20px">
+      <p>${orders.length? 'No orders with that status.' : 'No requests yet.'}</p>
+    </div>`;
+    return;
+  }
+  rows.innerHTML=list.map(o=>`
+    <button class="ad-row" type="button" data-ref="${esc(o.ref)}" aria-current="${o.ref===sel}">
+      <div class="ad-row-top">
+        <span class="ad-row-co">${esc(o.company)}</span>
+        <span class="ad-row-ref">${esc(o.ref)}</span>
+      </div>
+      <div class="ad-row-meta">${esc(o.country)} · ${o.lines.length} lines · ${o.units} units · ${fmtDate(o.at)}</div>
+      <div><span class="ad-pill is-${esc(o.status)}">${esc(SLABEL[o.status]||o.status)}</span></div>
+    </button>`).join('');
+  rows.querySelectorAll('.ad-row').forEach(b=>b.addEventListener('click',()=>{
+    sel=b.dataset.ref; $('#main').classList.add('is-detail'); renderList(); renderDetail();
+  }));
+}
+
+$$('#filterbar .ad-fchip').forEach(b=>b.addEventListener('click',()=>{
+  filter=b.dataset.st;
+  $$('#filterbar .ad-fchip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  renderList();
+}));
+
+/* ---------------- detail ---------------- */
+function renderDetail(){
+  const d=$('#detail');
+  const o=orders.find(x=>x.ref===sel);
+  if(!o){
+    d.innerHTML=`<div class="ad-blank">
+      <span class="ad-glyph"></span>
+      <h3>${orders.length? 'Pick an order' : 'Nothing has come in yet'}</h3>
+      <p>${orders.length
+        ? 'Choose a request on the left to see the full line-by-line order and the buyer’s details.'
+        : 'Open the line sheet in another tab, switch it to Trade, set some quantities and send the request. It appears here the moment it is sent.'}</p>
+      ${orders.length?'':'<a class="ad-btn ad-btn--pri" href="index.html" target="_blank" rel="noopener">Open the line sheet ↗</a><button class="ad-btn" type="button" id="seedBtn2">Or load sample orders</button>'}
+    </div>`;
+    const s2=$('#seedBtn2'); if(s2) s2.addEventListener('click',seed);
+    return;
+  }
+  const fld=(h,v)=>`<div class="ad-fld"><h4>${h}</h4><p class="${v?'':'ad-empty'}">${v?esc(v):'not given'}</p></div>`;
+  d.innerHTML=`
+    <div class="ad-dhead">
+      <button class="ad-btn ad-back" type="button" id="backBtn">← All orders</button>
+      <h2 class="ad-dtitle">${esc(o.company)}</h2>
+      <div class="ad-dsub">${esc(o.ref)} · received ${fmtDate(o.at)} · ${o.lines.length} lines · ${o.units} units</div>
+      <div class="ad-status" role="group" aria-label="Order status">
+        ${STATUSES.map(s=>`<button type="button" data-st="${s.k}" aria-pressed="${o.status===s.k}">${s.l}</button>`).join('')}
+      </div>
+      <div class="ad-dactions">
+        <button class="ad-btn ad-btn--pri" type="button" id="quoteBtn">Send invoice</button>
+        <button class="ad-btn" type="button" id="copyBtn">Copy order as text</button>
+        <button class="ad-btn" type="button" id="delBtn">Delete</button>
+      </div>
+    </div>
+    <p class="ad-note"><b>This is a draft order in Alrún's own Shopify.</b> It arrived typed and
+    already priced, from the wholesale price held against each product. Alrún check it and send the
+    invoice. The rate box above is only here so the mechanism can be seen; in the real build the
+    number lives on each product and nobody touches it per order.</p>
+    <div class="ad-grid2">
+      ${fld('Contact',o.name)}
+      ${fld('Email',o.email)}
+      ${fld('Phone',o.phone)}
+      ${fld('VAT / kennitala',o.vat)}
+      ${fld('Country',o.country)}
+      ${fld('Business type',o.btype)}
+      ${fld('Delivery address',o.address)}
+      ${fld('Requested delivery',o.delivery)}
+    </div>
+    ${o.notes?`<div class="ad-fld" style="border-right:0"><h4>Notes from the buyer</h4><p>${esc(o.notes)}</p></div>`:''}
+    <div class="ad-lines">
+      <div class="ad-lhead"><h3>The order</h3>
+        <label class="ad-rate">Wholesale rate
+          <input type="number" id="rateInp" min="1" max="99" step="1" value="${Math.round(RATE*100)}" aria-label="Wholesale rate percent"> % of retail
+        </label>
+      </div>
+      ${o.lines.map(l=>`
+        <div class="ad-line">
+          <img src="img/products/${esc(imgFor(l))}" alt="" onerror="this.style.visibility='hidden'">
+          <div>
+            <div class="ad-line-t">${esc(l.title)}</div>
+            <div class="ad-line-s">${esc(l.form)} · ${esc(l.material)}${l.symbols&&l.symbols.length?' · '+esc(l.symbols.join(', ')):''}</div>
+          </div>
+          <div class="ad-qty">${l.qty}<small>units</small></div>
+          <div class="ad-money">$${(( l.rrp||0)*RATE*l.qty).toFixed(0)}<small>@ $${((l.rrp||0)*RATE).toFixed(0)}</small></div>
+        </div>`).join('')}
+      <div class="ad-ltot">
+        <span>Total</span><b>${o.units}</b><span>units across ${o.lines.length} lines</span>
+        <span style="margin-left:auto">Retail value $${rrpTotal(o).toLocaleString('en-US')}</span>
+        <b>$${wsTotal(o).toLocaleString('en-US')}</b><span>invoice</span>
+      </div>
+    </div>`;
+
+  const back=$('#backBtn'); if(back) back.addEventListener('click',()=>{ $('#main').classList.remove('is-detail'); });
+  d.querySelectorAll('.ad-status button').forEach(b=>b.addEventListener('click',()=>{
+    o.status=b.dataset.st; save(); renderStats(); renderList(); renderDetail();
+    toast('Marked '+SLABEL[o.status]);
+  }));
+  const rateInp=$('#rateInp');
+  if(rateInp) rateInp.addEventListener('input',()=>{
+    const v=Math.min(99,Math.max(1,+rateInp.value||50));
+    RATE=v/100; renderDetail();
+    const again=$('#rateInp'); if(again){ again.focus(); again.select(); }
+  });
+  $('#quoteBtn').addEventListener('click',()=>mailQuote(o));
+  $('#copyBtn').addEventListener('click',()=>{
+    navigator.clipboard.writeText(orderText(o)).then(()=>toast('Order copied'),()=>toast('Copy failed'));
+  });
+  $('#delBtn').addEventListener('click',()=>{
+    if(!confirm('Delete '+o.ref+'?')) return;
+    orders=orders.filter(x=>x.ref!==o.ref); sel=null; save(); renderAll(); toast('Deleted');
+  });
+}
+
+const rrpTotal=o=>o.lines.reduce((n,l)=>n+(l.rrp||0)*l.qty,0);
+const wsTotal =o=>Math.round(o.lines.reduce((n,l)=>n+(l.rrp||0)*RATE*l.qty,0));
+
+/* line images: the catalogue slugs are the filenames on the shop side */
+function imgFor(l){
+  if(l.img) return l.img;
+  const slug=(l.url||'').split('/products/')[1]||'';
+  return slug? slug+'-0.webp' : '';
+}
+
+function orderText(o){
+  const L=['Alrún wholesale order '+o.ref,
+    o.company+(o.vat?' (VAT '+o.vat+')':''),
+    o.name+' · '+o.email+(o.phone?' · '+o.phone:''),
+    o.country+(o.address?' · '+o.address:''),
+    'Requested delivery: '+(o.delivery||'not specified'),
+    'Business type: '+(o.btype||'not given'),'',
+    'ORDER: '+o.lines.length+' lines, '+o.units+' units',''];
+  o.lines.forEach(l=>L.push(
+    String(l.qty).padStart(4,' ')+' x  '+l.title+'  ('+l.form+' / '+l.material+')'
+    +'   $'+((l.rrp||0)*RATE).toFixed(0)+' ea   $'+((l.rrp||0)*RATE*l.qty).toFixed(0)));
+  L.push('','Total: $'+wsTotal(o).toLocaleString('en-US')+' for '+o.units+' units');
+  if(o.notes) L.push('','Notes: '+o.notes);
+  return L.join('\n');
+}
+
+function mailQuote(o){
+  const subject='Alrún wholesale order '+o.ref;
+  const body=[
+    'Hi '+(o.name||'')+',','',
+    'Thank you for your order. Here it is confirmed, with the invoice to follow from Shopify.','',
+    orderText(o),'',
+    'Lead time: ','Shipping: ','','Best regards,','Alrún Nordic Design','+354 698 1312 · info@alrun.is'
+  ].join('\n');
+  const url='mailto:'+encodeURIComponent(o.email||'')+
+            '?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  window.location.href=url;
+}
+
+/* ---------------- CSV ---------------- */
+$('#csvBtn').addEventListener('click',()=>{
+  if(!orders.length){ toast('No orders to export'); return; }
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const rows=[['ref','received','status','company','vat','contact','email','phone','country','address','requested_delivery','business_type','product','form','material','symbols','qty','rrp_usd','notes'].join(',')];
+  orders.forEach(o=>o.lines.forEach(l=>rows.push([
+    o.ref,o.at,o.status,o.company,o.vat,o.name,o.email,o.phone,o.country,o.address,o.delivery,o.btype,
+    l.title,l.form,l.material,(l.symbols||[]).join(' '),l.qty,l.rrp,o.notes
+  ].map(q).join(','))));
+  const blob=new Blob(['﻿'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='alrun-orders.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('CSV exported');
+});
+
+/* ---------------- demo seed ---------------- */
+function seed(){
+  const sample=[
+    {ref:'ALR-480215',at:isoAgo(3),status:'open',company:'Nordic Museum Store',vat:'US-91-1234567',
+     name:'Erika Lindqvist',email:'buying@nordicmuseum.org',phone:'+1 206 789 5200',country:'United States',
+     address:'2655 NW Market St, Seattle WA 98107',delivery:'',btype:'Museum / gallery shop',
+     notes:'Repeat order ahead of the Julefest season. Same packaging as last time please.',
+     units:96,lines:[
+      {title:'Love / Ást Silver Pendant',form:'Pendant',material:'Silver',symbols:['Love'],qty:24,rrp:129,url:'https://store.alrun.is/products/love-ast-silver-pendant'},
+      {title:'Strength / Magn Silver Pendant',form:'Pendant',material:'Silver',symbols:['Strength'],qty:24,rrp:129,url:''},
+      {title:'Luck / Gæfa Gold Plated Pendant',form:'Pendant',material:'Gold plated',symbols:['Luck'],qty:18,rrp:189,url:''},
+      {title:'Heart / Hjarta Crystal Studs',form:'Earrings',material:'Crystal',symbols:['Heart'],qty:30,rrp:89,url:''}]},
+    {ref:'ALR-479880',at:isoAgo(28),status:'invoiced',company:'DÚKA',vat:'IS 480315-0450',
+     name:'Sigrún Ólafsdóttir',email:'duka@duka.is',phone:'+354 517 3005',country:'Iceland',
+     address:'Kringlan, 103 Reykjavík',delivery:'',btype:'Retail shop',
+     notes:'Would like the wool blankets in the two greys if available.',
+     units:34,lines:[
+      {title:'Nordic Strength Wool Blanket',form:'Home',material:'Wool',symbols:['Strength'],qty:12,rrp:169,url:''},
+      {title:'Nordic Love Wool Blanket',form:'Home',material:'Wool',symbols:['Love'],qty:12,rrp:169,url:''},
+      {title:'Nordic Love Wool Cape with hood',form:'Apparel',material:'Wool',symbols:['Love'],qty:10,rrp:199,url:''}]},
+    {ref:'ALR-479512',at:isoAgo(96),status:'paid',company:'Blue Lagoon Retail',vat:'IS 460892-1259',
+     name:'Haraldur Jónsson',email:'retail@bluelagoon.is',phone:'+354 420 8800',country:'Iceland',
+     address:'Norðurljósavegur 9, 240 Grindavík',delivery:'',btype:'Hotel / spa',
+     notes:'',units:60,lines:[
+      {title:'Energy / Orka Steel Pendant',form:'Pendant',material:'Steel',symbols:['Energy'],qty:30,rrp:79,url:''},
+      {title:'Energy / Orka Crystal Studs',form:'Earrings',material:'Crystal',symbols:['Energy'],qty:30,rrp:89,url:''}]}
+  ];
+  const have=new Set(orders.map(o=>o.ref));
+  sample.forEach(s=>{ if(!have.has(s.ref)) orders.push(s); });
+  orders.sort((a,b)=>new Date(b.at)-new Date(a.at));
+  save(); renderAll(); toast('Sample orders loaded');
+}
+function isoAgo(h){ return new Date(Date.now()-h*3600e3).toISOString(); }
+
+$('#seedBtn').addEventListener('click',seed);
+$('#resetBtn').addEventListener('click',()=>{
+  if(!confirm('Clear every order from this demo?')) return;
+  orders=[]; sel=null; save(); renderAll(); toast('Cleared');
+});
+
+/* ---------------- live ---------------- */
+function renderAll(){ renderStats(); renderList(); renderDetail(); }
+function ingest(order){
+  if(orders.some(o=>o.ref===order.ref)) return;
+  orders.unshift(order); save();
+  sel=order.ref; renderAll();
+  toast('New order · '+order.company);
+}
+if(chan) chan.onmessage=e=>{ if(e.data&&e.data.type==='new-order') ingest(e.data.order); };
+window.addEventListener('storage',e=>{
+  if(e.key!==KEY) return;
+  const before=orders.length; load();
+  if(orders.length>before && orders[0]) { sel=orders[0].ref; toast('New order · '+orders[0].company); }
+  renderAll();
+});
+
+load(); renderAll();
+})();
+</script>
+<script>
+/* ---------- the shop-orders channel (Shopify's normal Orders screen) ------ */
+(function(){
+  const $=s=>document.querySelector(s);
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+  const money=n=>'$'+Math.round(n);
+  const KEY='alrun.orders.retail.v1';
+  const read=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } };
+  const write=o=>{ try{ localStorage.setItem(KEY,JSON.stringify(o)); }catch(e){} };
+
+  const chWs=$('#chWs'), chShop=$('#chShop');
+  const wsBits=[ $('#wsStats'), $('#main') ];
+  function setChan(shop){
+    chWs.setAttribute('aria-selected', String(!shop));
+    chShop.setAttribute('aria-selected', String(shop));
+    wsBits.forEach(el=>{ if(el) el.hidden = shop; });
+    $('#shopView').hidden = !shop;
+    $('#hdrTag').textContent = shop ? 'Shopify admin · orders' : 'Shopify admin · draft orders';
+    if(shop) paint();
+  }
+  chWs.addEventListener('click',()=>setChan(false));
+  chShop.addEventListener('click',()=>setChan(true));
+
+  function fmt(iso){
+    const d=new Date(iso);
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  }
+  function paint(){
+    const orders=read();
+    $('#shopCt').textContent=orders.length;
+    $('#rCount').textContent=orders.length;
+    $('#rToday').textContent=orders.filter(o=>o.status==='paid').length;
+    $('#rRev').textContent=money(orders.reduce((s,o)=>s+(o.total||0),0));
+    const rows=$('#shopRows');
+    if(!orders.length){
+      rows.innerHTML='<p class="ad-shopempty">No shop orders yet in this demo. Buy something in the shop and pay in the checkout; the order appears here the moment it is placed.</p>';
+      return;
+    }
+    rows.innerHTML=orders.map(function(o,i){
+      const units=o.lines.reduce((s,l)=>s+l.qty,0);
+      return '<div class="ad-shoprow">'+
+        '<span class="imgs">'+o.lines.slice(0,3).map(l=>'<img src="img/products/'+esc(l.img)+'" alt="">').join('')+'</span>'+
+        '<span class="who"><b>'+esc(o.num)+' · '+esc(o.buyer.name)+'</b><small>'+fmt(o.at)+' · '+units+(units===1?' item':' items')+' · '+esc(o.buyer.addr)+'</small></span>'+
+        '<span class="ad-pill" data-st="'+esc(o.status)+'">'+(o.status==='paid'?'Paid':'Fulfilled')+'</span>'+
+        (o.status==='paid'
+          ? '<button class="ad-fulfil" data-i="'+i+'">Fulfill</button>'
+          : '<span class="sum">'+money(o.total)+'<small>done</small></span>')+
+      '</div>';
+    }).join('');
+  }
+  $('#shopRows').addEventListener('click',function(e){
+    const b=e.target.closest('.ad-fulfil'); if(!b) return;
+    const orders=read();
+    if(orders[+b.dataset.i]){ orders[+b.dataset.i].status='fulfilled'; write(orders); paint(); }
+  });
+
+  paint();
+  /* arriving from the checkout's thank-you page, open on the shop stream */
+  if(new URLSearchParams(location.search).get('chan')==='shop') setChan(true);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alrún Nordic Design · The Mark Register</title>
+<meta name="description" content="Twelve trademarked Nordic bindrunes, five forms, one register. Browse the whole Alrún collection by mark, form and material, then build a wholesale order in one pass.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="img/favicon-alrun.png" type="image/png">
+
+<style>
+/* ============================================================
+   ALRÚN — "Paper / Plate"
+   Retail reads the line sheet on paper. Trade flips it to plate.
+   All keyframes + utility classes prefixed al- to prevent bleed.
+   ============================================================ */
+
+@font-face{font-family:Gambetta;src:url('fonts/Gambetta-Light.woff2') format('woff2');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:Gambetta;src:url('fonts/Gambetta-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:GeneralSans;src:url('fonts/GeneralSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:GeneralSans;src:url('fonts/GeneralSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'FragmentMono';src:url('fonts/fragment-mono-v6-latin_latin-ext-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+
+:root{
+  --paper:#F1EDE4;
+  --paper-2:#E7E1D5;
+  --paper-3:#DDD6C8;
+  --ink:#14120F;
+  --ink-2:#3A342C;
+  --ink-3:rgba(20,18,15,.70);
+  --rule:rgba(20,18,15,.17);
+  --rule-soft:rgba(20,18,15,.085);
+  --field:#FFFFFF;
+  --strike:cubic-bezier(.22,1,.36,1);
+  --disp:Gambetta,Georgia,serif;
+  --body:GeneralSans,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --rail-h:60px;
+  --hdr-h:50px;
+}
+/* TRADE MODE — one shade deeper paper, so it reads as the working document
+   rather than a different website. Same ink, same rules, same type. */
+html[data-mode="trade"]{
+  --paper:#EAE5DA;
+  --paper-2:#E0DACD;
+  --paper-3:#D5CEBF;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:GeneralSans,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  transition:background .5s var(--strike),color .5s var(--strike);
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+figure,figcaption{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.al-mono{font-family:'FragmentMono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.al-wrap{width:min(1560px,100% - 40px);margin-inline:auto}
+@media(max-width:720px){.al-wrap{width:calc(100% - 24px)}}
+
+/* ---------- glyph as mask: the real trademarked marks, any colour ---------- */
+.al-glyph{
+  display:block;background-color:currentColor;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:contain;mask-size:contain;
+}
+
+/* ============================ HEADER ============================ */
+.al-hdr{
+  position:sticky;top:0;z-index:60;height:var(--hdr-h);
+  display:flex;align-items:center;
+  background:var(--paper);border-bottom:1px solid var(--rule-soft);
+}
+.al-hdr .al-wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%;padding-inline:40px}
+/* wide-tracked ALRÚN, exactly as the shop sets it */
+.al-wordmark{
+  display:block;background-color:currentColor;flex:none;height:24px;width:70px;
+  justify-self:center;
+  -webkit-mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+          mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+}
+.al-hdr-l{display:flex;align-items:center;gap:22px;justify-self:start}
+.al-hdr-r2{display:flex;align-items:center;gap:22px;justify-self:end}
+.al-hlink{font-size:12px;letter-spacing:.35px;text-transform:uppercase;text-decoration:none;position:relative;padding-block:5px;white-space:nowrap}
+.al-hlink::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .36s var(--strike)}
+.al-hlink:hover::after{transform:scaleX(1)}
+@media(max-width:900px){ .al-hdr .al-wrap{padding-inline:20px} .al-hdr-l .al-hlink{display:none} }
+/* Alrún's real mark, used as a mask so it takes currentColor and survives the
+   paper -> plate inversion. Header carries the compact lockup (diamond + ALRÚN);
+   NORDIC DESIGN is illegible at 30px so the full logo is reserved for the footer. */
+.al-mark{
+  display:block;background-color:currentColor;flex:none;
+  -webkit-mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+          mask:url('img/brand/logo-lockup.png') no-repeat center/contain;
+  height:30px;width:86px;
+}
+.al-mark span{position:absolute;left:-9999px}
+.al-logo-full{
+  display:block;background-color:currentColor;
+  -webkit-mask:url('img/brand/logo-full.png') no-repeat left center/contain;
+          mask:url('img/brand/logo-full.png') no-repeat left center/contain;
+  width:216px;height:74px;margin-bottom:14px;
+}
+@media(max-width:720px){.al-mark{height:26px;width:75px}.al-logo-full{width:180px;height:61px}}
+.al-hdr-spec{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-left:18px}
+/* The shop is a separate page now, so the sheet always offers a way back. */
+.al-hdr-back{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;text-decoration:none;
+  margin-left:auto;padding:8px 14px;border:1px solid var(--rule);border-radius:999px;white-space:nowrap}
+.al-hdr-back:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+@media(max-width:900px){.al-hdr-spec{display:none}}
+
+/* mode switch — the single most important control on the page */
+.al-modesw{
+  display:flex;align-items:stretch;border:1px solid var(--rule);
+  height:32px;flex:none;position:relative;overflow:hidden;
+}
+/* flex:1 1 0 forces both halves equal, so the sliding pill (inset 0 50% 0 0) lands
+   exactly on a button even though "Shop" and "Wholesale" are very different lengths. */
+.al-modesw button{
+  flex:1 1 0;min-width:86px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 13px;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  font-family:'FragmentMono',monospace;position:relative;z-index:2;
+  color:var(--ink-3);transition:color .38s var(--strike);white-space:nowrap;
+}
+.al-modesw button[aria-pressed="true"]{color:var(--paper)}
+.al-modesw::before{
+  content:"";position:absolute;inset:0 50% 0 0;background:var(--ink);z-index:1;
+  transition:transform .42s var(--strike);
+}
+html[data-mode="trade"] .al-modesw::before{transform:translateX(100%)}
+
+/* ---------- the plain-English mode note ---------- */
+.al-modenote{
+  background:var(--paper-2);border-bottom:1px solid var(--rule);
+  transition:background .5s var(--strike),border-color .5s var(--strike);
+}
+.al-modenote .al-wrap{
+  display:flex;align-items:baseline;gap:8px 16px;flex-wrap:wrap;padding:10px 0;
+}
+.al-modenote-t{font-size:13.5px;color:var(--ink-2);line-height:1.4;flex:1 1 460px;min-width:0}
+.al-modenote-t b{font-weight:600;color:var(--ink)}
+.al-modenote .al-modesw{margin-left:auto}
+.al-modenote-a{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--rule);
+  padding-bottom:2px;white-space:nowrap;
+  transition:border-color .26s var(--strike);
+}
+.al-modenote-a:hover{border-color:var(--ink)}
+@media(max-width:720px){
+  .al-modenote-t{font-size:13px}
+  .al-modenote-a{margin-left:0}
+}
+
+/* ============================ HERO ============================ */
+/* Image and copy share one grid cell so the hero is always as tall as the TALLER of
+   the two. Absolutely positioning the copy made it overflow upward on narrow screens
+   and land on top of the mode note. */
+.al-hero{position:relative;display:grid;background:#0d0b09;border-bottom:1px solid var(--rule)}
+/* width:100% is load-bearing — with aspect-ratio set, max-height would otherwise
+   shrink the WIDTH to preserve the ratio instead of cropping the height. */
+.al-hero-fig{grid-area:1/1;position:relative;width:100%;aspect-ratio:16/7;min-height:320px;max-height:62svh;overflow:hidden;background:#0d0b09}
+.al-hero-fig img{width:100%;height:100%;object-fit:cover;object-position:center 55%}
+.al-hero-veil{position:absolute;inset:0;background:linear-gradient(96deg,rgba(8,7,6,.86) 0%,rgba(8,7,6,.62) 34%,rgba(8,7,6,.12) 72%,rgba(8,7,6,.3) 100%),linear-gradient(180deg,rgba(8,7,6,.34) 0%,rgba(8,7,6,0) 40%,rgba(8,7,6,.5) 100%)}
+.al-hero-copy{
+  grid-area:1/1;align-self:end;position:relative;z-index:2;
+  padding:40px 0 30px;color:#F4F1EA;
+}
+.al-hero-copy .al-wrap{display:grid;gap:14px}
+.al-h1,.al-hero-sub{text-shadow:0 1px 26px rgba(6,5,4,.55)}
+.al-eyebrow{font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;opacity:.82}
+.al-h1{
+  margin:0;font-family:var(--disp);font-weight:300;letter-spacing:-.02em;
+  font-size:clamp(38px,7.4vw,88px);line-height:1.04;max-width:16ch;
+  padding-block:.06em; /* Icelandic accents sit above cap height */
+}
+.al-h1 em{font-style:italic;font-weight:300;letter-spacing:-.015em;opacity:1}
+/* Narrow crops centre on the brightest pendants, which swallowed the headline.
+   Bias the crop to the darker left of the frame and deepen the veil. */
+@media(max-width:720px){
+  /* let the photo stretch to whatever height the copy needs, instead of the 16/7 crop */
+  .al-hero-fig{aspect-ratio:auto;max-height:none;height:100%;min-height:440px}
+  .al-hero-fig img{object-position:26% 52%}
+  .al-hero-veil{background:linear-gradient(180deg,rgba(8,7,6,.74) 0%,rgba(8,7,6,.58) 38%,rgba(8,7,6,.92) 100%)}
+}
+.al-hero-sub{max-width:52ch;font-size:clamp(14px,1.15vw,16.5px);opacity:.9;margin:0}
+.al-hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+/* same bare link vocabulary as the shop: a hairline that retracts on hover */
+.al-btn{
+  display:inline-flex;align-items:center;gap:9px;padding-bottom:6px;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  font-family:'FragmentMono',monospace;position:relative;
+}
+.al-btn::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;
+  transform:scaleX(1);transform-origin:left;transition:transform .45s var(--strike);
+}
+.al-btn:hover::after,.al-btn:focus-visible::after{transform:scaleX(0);transform-origin:right}
+.al-hero-cta{gap:30px!important}
+
+/* ============================ THE RAIL (legacy) ============================ */
+/* Their physical display rack, made interactive. Nav + filter + story in one control. */
+.al-railwrap{
+  position:sticky;top:var(--hdr-h);z-index:50;background:var(--paper);
+  border-bottom:1px solid var(--rule);
+  transition:background .5s var(--strike),border-color .5s var(--strike);
+}
+.al-rail{
+  display:flex;align-items:stretch;gap:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;
+  scroll-snap-type:x proximity;
+}
+.al-rail::-webkit-scrollbar{display:none}
+.al-rail-item{
+  position:relative;flex:1 0 auto;min-width:76px;height:var(--rail-h);
+  display:grid;place-items:center;gap:0;padding:8px 6px 7px;
+  border-right:1px solid var(--rule-soft);scroll-snap-align:center;
+  color:var(--ink-3);transition:color .3s var(--strike),background .3s var(--strike);
+}
+.al-rail-item:first-child{border-left:1px solid var(--rule-soft)}
+.al-rail-item:hover{color:var(--ink);background:var(--paper-2)}
+.al-rail-item[aria-pressed="true"]{color:var(--paper);background:var(--ink)}
+.al-rail-item .al-glyph{width:26px;height:30px}
+.al-rail-item .al-rl{
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;margin-top:5px;white-space:nowrap;line-height:1;
+}
+.al-rail-item .al-rc{
+  position:absolute;top:5px;right:7px;font-family:'FragmentMono',monospace;
+  font-size:10px;opacity:.55;line-height:1;
+}
+.al-rail-all{min-width:88px}
+.al-rail-all .al-allmark{font-family:var(--disp);font-weight:400;font-size:17px;letter-spacing:.02em;line-height:1.1}
+@media(max-width:720px){
+  :root{--rail-h:58px}
+  .al-rail-item{min-width:62px;padding:6px 4px 5px}
+  .al-rail-item .al-glyph{width:21px;height:24px}
+  .al-rail-item .al-rl{font-size:8px;margin-top:4px}
+}
+
+/* ============================ FILTER STRIP ============================ */
+.al-filters{
+  border-bottom:1px solid var(--rule);background:var(--paper);
+  transition:background .5s var(--strike),border-color .5s var(--strike);
+}
+.al-filters .al-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:11px 0}
+.al-fgroup{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.al-flabel{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin-right:3px;
+}
+.al-chip{
+  height:24px;padding:0 2px;font-size:12.5px;letter-spacing:.005em;color:var(--ink-2);
+  display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;
+  border-bottom:1px solid transparent;transition:color .22s var(--strike),border-color .22s var(--strike);
+}
+.al-chip:hover{color:var(--ink);border-bottom-color:var(--rule)}
+.al-chip[aria-pressed="true"]{color:var(--ink);font-weight:500;border-bottom-color:var(--ink)}
+.al-chip .al-cn{font-family:'FragmentMono',monospace;font-size:9.5px;opacity:.55;vertical-align:super}
+.al-count{
+  margin-left:auto;font-family:'FragmentMono',monospace;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+}
+.al-clear{
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);text-decoration:underline;
+  text-underline-offset:3px;padding:4px 0;
+}
+.al-clear:hover{color:var(--ink)}
+.al-clear[hidden]{display:none}
+
+
+/* ==================== BROWSE: mark board + register ====================
+   A different look for the filters: the twelve marks become a compact GRID of
+   their own glyphs, which is the one asset nobody else has, instead of a long
+   text list. Form and material stay plain words underneath. Scoped under
+   .al-side so these beat the legacy horizontal rail on specificity, not on
+   source order. */
+.al-browse{display:grid;grid-template-columns:minmax(0,1fr)}
+@media(min-width:860px){
+  .al-browse{grid-template-columns:236px minmax(0,1fr)}
+  .al-side{border-right:1px solid var(--rule)}
+  .al-side .al-side-in{position:sticky;top:var(--hdr-h);max-height:calc(100svh - var(--hdr-h));overflow-y:auto}
+}
+.al-side{background:var(--paper)}
+.al-side .al-side-in{padding:24px 20px 28px;display:flex;flex-direction:column;gap:24px;scrollbar-width:thin}
+.al-side .al-slabel{
+  margin:0 0 12px;font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:400;
+}
+/* the mark board */
+.al-side .al-rail{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px 6px;
+  position:static;height:auto;overflow:visible;padding:0;margin:0;background:none;border:0;
+}
+.al-side .al-rail-item{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  width:100%;height:auto;min-width:0;padding:6px 2px;margin:0;
+  background:none;border:0;border-radius:0;
+  opacity:.42;transition:opacity .22s var(--strike);
+}
+.al-side .al-rail-item::before,.al-side .al-rail-item::after{content:none}
+.al-side .al-rail-item:hover{opacity:.8;background:none}
+.al-side .al-rail-item[aria-pressed="true"]{opacity:1;background:none;color:var(--ink)}
+.al-side .al-glyph{height:26px;width:26px;flex:none;margin:0}
+.al-side .al-rl{
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-2);margin:0;white-space:nowrap;
+}
+.al-side .al-rail-item[aria-pressed="true"] .al-rl{color:var(--ink);box-shadow:inset 0 -1px 0 var(--ink)}
+.al-side .al-rc{
+  font-family:'FragmentMono',monospace;font-size:10px;color:var(--ink-3);
+  margin:0;opacity:1;position:static;
+}
+/* "all marks" spans the row above the board */
+.al-side .al-rail-all{
+  grid-column:1/-1;flex-direction:row;justify-content:flex-start;gap:8px;
+  padding:0 0 11px;border-bottom:1px solid var(--rule);opacity:1;color:var(--ink);
+}
+.al-side .al-rail-all .al-allmark{
+  font-family:var(--body);font-weight:500;font-size:13px;letter-spacing:0;text-transform:none;width:auto;
+}
+.al-side .al-rail-all .al-rl{display:none}
+.al-side .al-rail-all .al-rc{margin-left:auto}
+.al-side .al-rail-all[aria-pressed="true"] .al-allmark{box-shadow:inset 0 -1px 0 var(--ink)}
+/* form + material: plain words */
+.al-side .al-fgroup{display:flex;flex-wrap:wrap;gap:5px 14px;padding:0;margin:0;background:none;border:0}
+.al-side .al-chip{
+  height:auto;min-width:0;padding:2px 0;margin:0;background:none;border:0;border-radius:0;
+  display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;
+  font-family:var(--body);font-size:13.5px;letter-spacing:0;text-transform:none;
+  color:var(--ink-3);transition:color .2s var(--strike);
+}
+.al-side .al-chip:hover{color:var(--ink);background:none}
+.al-side .al-chip[aria-pressed="true"]{color:var(--ink);background:none;box-shadow:inset 0 -1px 0 var(--ink)}
+.al-side .al-cn{font-family:'FragmentMono',monospace;font-size:10px;color:var(--ink-3);vertical-align:super;margin:0;opacity:1}
+.al-side .al-side-ft{display:flex;align-items:center;gap:12px;padding-top:14px;border-top:1px solid var(--rule)}
+.al-side .al-count{font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin:0}
+.al-side .al-clear{font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-left:auto;border-bottom:1px solid var(--rule);padding-bottom:1px;background:none;height:auto}
+.al-side .al-clear:hover{color:var(--ink);border-color:var(--ink)}
+@media(max-width:859px){
+  .al-side{border-bottom:1px solid var(--rule)}
+  .al-side .al-side-in{flex-direction:row;flex-wrap:wrap;gap:20px 30px}
+  .al-side .al-sgroup{flex:1 1 240px;min-width:0}
+  .al-side .al-rail{grid-template-columns:repeat(6,1fr)}
+  .al-side .al-side-ft{flex:1 1 100%}
+}
+
+/* ============================ STORY BAND ============================ */
+.al-story{
+  position:relative;border-bottom:1px solid var(--rule);overflow:hidden;
+  background:var(--paper-2);transition:background .5s var(--strike),border-color .5s var(--strike);
+}
+.al-story .al-wrap{
+  position:relative;z-index:2;display:grid;grid-template-columns:auto 1fr;
+  gap:clamp(18px,3.2vw,44px);align-items:center;padding:clamp(20px,3vw,34px) 0;
+}
+.al-story-glyph{width:clamp(52px,6vw,78px);height:clamp(64px,7.4vw,96px);color:var(--ink)}
+.al-story-txt{display:grid;gap:7px;max-width:74ch}
+.al-story-name{
+  margin:0;font-family:var(--disp);font-weight:300;letter-spacing:-.018em;line-height:1.1;padding-block:.05em;
+  font-size:clamp(24px,3.4vw,42px);
+}
+.al-story-name span{font-weight:400;opacity:.5}
+.al-story-name sup{font-size:.38em;vertical-align:super;opacity:.55;font-weight:500}
+.al-story-for{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.al-story-desc{margin:0;font-size:clamp(14px,1.15vw,16px);color:var(--ink-2);line-height:1.5}
+.al-story-wm{
+  position:absolute;right:-2%;top:50%;transform:translateY(-50%);
+  width:min(300px,34vw);height:150%;color:var(--ink);opacity:.055;pointer-events:none;z-index:1;
+}
+@media(max-width:720px){
+  .al-story .al-wrap{grid-template-columns:1fr;gap:14px}
+  .al-story-wm{display:none}
+}
+
+/* ============================ THE REGISTER (grid) ============================ */
+/* Hairline-separated cells, no radius, no shadow — a specimen sheet, not a card wall. */
+/* Container stays paper so a part-filled last row reads as blank sheet, not a grey
+   hole; the hairline register is drawn by each cell's own 1px ring instead. */
+.al-register{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));
+  gap:1px;background:var(--paper);border-block:1px solid var(--rule);
+  transition:background .5s var(--strike),border-color .5s var(--strike);
+}
+@media(max-width:900px){.al-register{grid-template-columns:repeat(auto-fill,minmax(clamp(150px,44vw,220px),1fr))}}
+.al-cell{
+  background:var(--paper);position:relative;display:flex;flex-direction:column;
+  box-shadow:0 0 0 1px var(--rule-soft);
+  transition:background .32s var(--strike);
+  opacity:0;transform:scale(1.025);
+  animation:al-strike .46s var(--strike) forwards;
+}
+@keyframes al-strike{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .al-cell{animation:none;opacity:1;transform:none}
+  *{scroll-behavior:auto !important}
+}
+.al-cell:hover{background:var(--paper-2)}
+.al-cell.is-inorder{background:var(--paper-3)}
+/* Alrún's studio shots are cut out on pure white. On warm paper they read as cold
+   bright rectangles, so every image gets its own white plate and the paper frames it. */
+.al-cell-img{position:relative;aspect-ratio:1/1;overflow:hidden;background:#FFFFFF}
+html[data-mode="trade"] .al-cell-img{background:#D9D4CB}
+html[data-mode="trade"] .al-cell-img img{filter:brightness(.88) contrast(1.03)}
+.al-cell-img img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:opacity .4s var(--strike);
+}
+.al-cell-img img.al-b{opacity:0}
+.al-cell:hover .al-cell-img img.al-b{opacity:1}
+.al-cell-tags{
+  position:absolute;left:0;bottom:0;display:flex;gap:1px;
+}
+.al-cell-tag{
+  background:var(--paper);color:var(--ink-2);padding:3px 7px;
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+}
+.al-cell-body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:6px;flex:1}
+.al-cell-t{font-size:13.5px;font-weight:500;line-height:1.3;letter-spacing:-.005em;margin:0}
+.al-cell-spec{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.08em;
+  color:var(--ink-3);text-transform:uppercase;
+}
+.al-cell-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
+.al-price{font-family:'FragmentMono',monospace;font-size:12.5px}
+.al-cell-link{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-3);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:1px;
+}
+.al-cell-link:hover{color:var(--ink);border-color:var(--ink)}
+
+/* quantity stepper — trade mode only */
+.al-step{display:none;align-items:center;border:1px solid var(--rule);height:32px}
+html[data-mode="trade"] .al-step{display:flex}
+html[data-mode="trade"] .al-cell-link{display:none}
+.al-step button{
+  width:30px;height:100%;display:grid;place-items:center;font-size:15px;line-height:1;
+  color:var(--ink-3);transition:background .2s var(--strike),color .2s var(--strike);
+}
+.al-step button:hover{background:var(--ink);color:var(--paper)}
+.al-step input{
+  width:42px;height:100%;text-align:center;border:0;background:transparent;
+  font-family:'FragmentMono',monospace;font-size:12px;
+  border-inline:1px solid var(--rule);-moz-appearance:textfield;
+}
+.al-step input::-webkit-outer-spin-button,.al-step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.al-moq{
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.07em;
+  color:var(--ink-3);text-transform:uppercase;
+}
+/* SKU is how a wholesale buyer actually refers to a product. Real Shopify SKUs. */
+.al-sku{display:none}
+html[data-mode="trade"] .al-sku{display:inline}
+.al-oos{
+  position:absolute;top:0;left:0;background:var(--ink);color:var(--paper);
+  font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 8px;
+}
+.al-cell.is-oos .al-cell-img img{opacity:.55}
+.al-cell.is-oos .al-step{opacity:.45;pointer-events:none}
+
+.al-tradeonly{display:none}
+html[data-mode="trade"] .al-tradeonly{display:block}
+html[data-mode="trade"] .al-retailonly{display:none}
+html[data-mode="trade"] .al-price{display:none}
+
+/* empty state */
+.al-empty{
+  grid-column:1/-1;background:var(--paper);padding:60px 20px;text-align:center;
+  display:grid;gap:10px;place-items:center;
+}
+.al-empty h3{margin:0;font-size:19px;font-weight:600}
+.al-empty p{margin:0;color:var(--ink-3);font-size:14px}
+
+/* ============================ SECTIONS ============================ */
+.al-sec{padding:clamp(56px,7vw,104px) 0;border-bottom:1px solid var(--rule)}
+.al-sec-head{display:grid;gap:10px;margin-bottom:clamp(24px,3vw,40px);max-width:64ch}
+.al-sec-h{margin:0;font-family:var(--disp);font-size:clamp(24px,3.2vw,42px);font-weight:300;letter-spacing:-.018em;line-height:1.14;padding-block:.05em}
+.al-sec-p{margin:0;color:var(--ink-2);font-size:clamp(14px,1.1vw,16px);max-width:58ch}
+
+/* coverage matrix — the thing that sells the whole idea to the owner */
+.al-matrix{width:100%;border-collapse:collapse;font-family:'FragmentMono',monospace;font-size:11px}
+.al-matrix th,.al-matrix td{border:1px solid var(--rule-soft);padding:7px 6px;text-align:center}
+.al-matrix th{font-weight:400;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.al-matrix th.al-rowh{text-align:left;padding-left:10px;color:var(--ink);font-size:11px;letter-spacing:.02em;text-transform:none}
+.al-matrix td.al-z{color:var(--ink-3);opacity:.45}
+/* Tinted density, not solid fills — solid black across a dense row read as damage
+   rather than data. Depth carries the count; the solid fill is reserved for hover. */
+.al-matrix td.al-hot{color:var(--ink);font-weight:400}
+.al-matrix td.al-hot button{width:100%;padding:2px 0;transition:background .22s var(--strike),color .22s var(--strike)}
+.al-matrix td.al-t1{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.al-matrix td.al-t2{background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.al-matrix td.al-t3{background:color-mix(in srgb,var(--ink) 23%,transparent)}
+.al-matrix td.al-t4{background:color-mix(in srgb,var(--ink) 34%,transparent)}
+.al-matrix td.al-hot:hover{background:var(--ink)}
+.al-matrix td.al-hot:hover button{color:var(--paper)}
+.al-matrix tbody tr:hover th.al-rowh{background:var(--paper-2)}
+.al-mxwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.al-two{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(24px,4vw,64px);align-items:center}
+@media(max-width:860px){.al-two{grid-template-columns:1fr}}
+.al-fig{position:relative;overflow:hidden;background:var(--paper-2)}
+.al-fig img{width:100%;height:100%;object-fit:cover;aspect-ratio:4/3}
+.al-figcap{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);padding-top:8px;
+}
+.al-list{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:0;border-top:1px solid var(--rule-soft)}
+.al-list li{
+  padding:13px 0;border-bottom:1px solid var(--rule-soft);
+  display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start;
+}
+.al-list .al-n{font-family:'FragmentMono',monospace;font-size:10px;color:var(--ink-3);padding-top:3px}
+.al-list strong{display:block;font-weight:600;font-size:14.5px;margin-bottom:2px}
+.al-list span{color:var(--ink-2);font-size:13.5px;line-height:1.45}
+
+/* ============================ ORDER DOCK ============================ */
+.al-dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  background:var(--ink);color:var(--paper);
+  transform:translateY(105%);transition:transform .46s var(--strike);
+  border-top:1px solid var(--rule);
+}
+.al-dock.is-up{transform:none}
+.al-dock .al-wrap{display:flex;align-items:center;gap:16px;padding:12px 0;flex-wrap:wrap}
+.al-dock-stat{font-family:'FragmentMono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.al-dock-stat b{font-weight:400;font-size:15px;letter-spacing:0}
+.al-dock-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.al-dbtn{
+  height:40px;padding:0 20px;border:1px solid var(--paper);background:var(--paper);color:var(--ink);
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:8px;transition:background .28s var(--strike),color .28s var(--strike);
+}
+.al-dbtn:hover{background:transparent;color:var(--paper)}
+.al-dbtn--ghost{background:transparent;color:var(--paper)}
+.al-dbtn--ghost:hover{background:var(--paper);color:var(--ink)}
+@media(max-width:640px){
+  .al-dock .al-wrap{gap:10px;padding:10px 0}
+  .al-dock-actions{width:100%;margin-left:0}
+  .al-dbtn{flex:1;justify-content:center;padding:0 12px}
+}
+
+/* ============================ ORDER SHEET ============================ */
+.al-sheet{
+  position:fixed;inset:0;z-index:90;display:grid;grid-template-columns:1fr min(720px,100%);
+  pointer-events:none;
+}
+.al-sheet.is-open{pointer-events:auto}
+.al-sheet-scrim{
+  grid-column:1/-1;grid-row:1;background:rgba(10,8,6,.5);opacity:0;
+  transition:opacity .4s var(--strike);backdrop-filter:blur(2px);
+}
+.al-sheet.is-open .al-sheet-scrim{opacity:1}
+/* position + z-index are load-bearing, not decoration. The scrim carries a
+   backdrop-filter, which creates a stacking context, so it paints ABOVE any
+   static sibling. Once the panel animates to transform:none it loses its own
+   stacking context and fell behind the scrim: the whole order sheet appeared
+   blurred and dimmed, and the scrim swallowed every click. */
+.al-sheet-panel{
+  grid-column:2;grid-row:1;background:var(--paper);color:var(--ink);
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateX(100%);transition:transform .5s var(--strike);
+  border-left:1px solid var(--rule);
+}
+.al-sheet.is-open .al-sheet-panel{transform:none}
+.al-sheet-hd{
+  display:flex;align-items:center;gap:12px;padding:16px 22px;
+  border-bottom:1px solid var(--rule);flex:none;
+}
+.al-sheet-hd h2{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em}
+.al-x{margin-left:auto;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--rule);font-size:17px}
+.al-x:hover{background:var(--ink);color:var(--paper)}
+.al-sheet-body{overflow-y:auto;flex:1;padding:0 22px 22px;-webkit-overflow-scrolling:touch}
+.al-sheet-ft{
+  flex:none;padding:14px 22px;border-top:1px solid var(--rule);background:var(--paper-2);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+@media(max-width:760px){
+  .al-sheet{grid-template-columns:0 1fr}
+  .al-sheet-panel{border-left:0}
+}
+
+.al-lines{display:grid;gap:0;margin:14px 0 0;border-top:1px solid var(--rule-soft)}
+.al-line{
+  display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--rule-soft);
+}
+.al-line img{width:54px;height:54px;object-fit:cover;background:var(--paper-2)}
+.al-line-t{font-size:13px;font-weight:500;line-height:1.3}
+.al-line-s{font-family:'FragmentMono',monospace;font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+.al-line-rm{font-family:'FragmentMono',monospace;font-size:10px;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px;margin-top:3px}
+.al-line-rm:hover{color:var(--ink)}
+
+/* presets — the "cut and easy" shortcut */
+.al-presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.al-preset{
+  border:1px solid var(--rule);padding:8px 12px;text-align:left;
+  transition:background .26s var(--strike),color .26s var(--strike),border-color .26s var(--strike);
+}
+.al-preset:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.al-preset b{display:block;font-size:12.5px;font-weight:600}
+.al-preset span{font-family:'FragmentMono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.65}
+
+/* form */
+.al-form{display:grid;gap:11px;margin-top:6px}
+.al-frow{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media(max-width:560px){.al-frow{grid-template-columns:1fr}}
+.al-f{display:grid;gap:5px}
+.al-f label{
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.al-f input,.al-f textarea,.al-f select{
+  height:40px;padding:0 11px;border:1px solid var(--rule);background:var(--field);
+  font-size:14px;border-radius:0;width:100%;
+  transition:border-color .24s var(--strike);
+}
+.al-f textarea{height:auto;padding:10px 11px;min-height:78px;resize:vertical;line-height:1.45}
+.al-f input:focus,.al-f textarea:focus,.al-f select:focus{outline:none;border-color:var(--ink)}
+.al-f .al-hint{font-size:11.5px;color:var(--ink-3)}
+.al-req::after{content:" *";color:var(--ink-3)}
+.al-err{border-color:#B03A2E !important}
+.al-errmsg{color:#B03A2E;font-size:11.5px;display:none}
+.al-errmsg.is-on{display:block}
+
+.al-sub{
+  display:grid;gap:3px;font-family:'FragmentMono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+}
+.al-sub b{font-size:16px;letter-spacing:0}
+
+/* receipt */
+.al-receipt{display:grid;gap:16px;padding:34px 0 10px;text-align:center;place-items:center}
+.al-receipt .al-glyph{width:52px;height:62px;color:var(--ink)}
+.al-receipt h3{margin:0;font-size:22px;font-weight:700;letter-spacing:-.015em}
+.al-receipt p{margin:0;color:var(--ink-2);max-width:44ch;font-size:14px}
+.al-ref{
+  font-family:'FragmentMono',monospace;font-size:15px;letter-spacing:.14em;
+  border:1px solid var(--rule);padding:11px 18px;background:var(--paper-2);
+}
+
+/* ============================ FOOTER ============================ */
+.al-ft{padding:clamp(40px,5vw,70px) 0 34px;font-size:13.5px}
+.al-ft .al-wrap{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px}
+@media(max-width:760px){.al-ft .al-wrap{grid-template-columns:1fr;gap:24px}}
+.al-ft h4{
+  margin:0 0 10px;font-family:'FragmentMono',monospace;font-size:10.5px;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);font-weight:400;
+}
+.al-ft a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--rule-soft)}
+.al-ft a:hover{color:var(--ink);border-color:var(--ink)}
+.al-ft ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.al-ft-note{
+  grid-column:1/-1;border-top:1px solid var(--rule-soft);padding-top:16px;margin-top:8px;
+  font-family:'FragmentMono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:14px;
+}
+
+/* skip link */
+/* Header (56) + rail (64) are both sticky, so anything scrolled to must clear them. */
+#register,#wholesale,.al-sec{scroll-margin-top:calc(var(--hdr-h) + var(--rail-h) + 8px)}
+.al-skip{position:absolute;left:-9999px;top:0;z-index:200;background:var(--ink);color:var(--paper);padding:10px 16px}
+.al-skip:focus{left:10px;top:10px}
+.al-dockpad{height:0;transition:height .4s var(--strike)}
+html[data-mode="trade"] .al-dockpad{height:66px}
+</style>
+</head>
+<body>
+<a class="al-skip" href="#register">Skip to the collection</a>
+
+<!-- ============================ HEADER ============================ -->
+<header class="al-hdr">
+  <div class="al-wrap">
+    <div class="al-hdr-l">
+      <a class="al-hlink" href="index.html">The shop</a>
+      <a class="al-hlink" href="collection.html">Everything</a>
+      <a class="al-hlink" href="journal.html">Journal</a>
+    </div>
+    <a class="al-wordmark" href="index.html" aria-label="Alrún Nordic Design, home"></a>
+    <div class="al-hdr-r2">
+      <span class="al-hdr-spec al-mono" id="hdrSpec">67 pieces</span>
+    </div>
+  </div>
+</header>
+
+<!-- One plain sentence saying which of the two pages you are on, and how to leave it.
+     "Retail / Trade" is jargon; nobody should have to guess what a mode does. -->
+<div class="al-modenote" id="modeNote">
+  <div class="al-wrap">
+    <span class="al-modenote-t" id="modeNoteT"></span>
+    <div class="al-modesw" role="group" aria-label="Who is buying">
+      <button type="button" id="mRetail" aria-pressed="true">Retail price</button>
+      <button type="button" id="mTrade" aria-pressed="false">Wholesale</button>
+    </div>
+    <button class="al-modenote-a" type="button" id="modeNoteA"></button>
+  </div>
+</div>
+
+<!-- ============================ HERO ============================ -->
+<section class="al-hero">
+  <figure class="al-hero-fig">
+    <img src="img/brand/symbols-detail.webp" alt="Alrún's display rail with all twelve bindrune pendants hanging in a row, each named beneath it" fetchpriority="high" width="1600" height="700">
+    <div class="al-hero-veil"></div>
+  </figure>
+  <div class="al-hero-copy">
+    <div class="al-wrap">
+      <p class="al-eyebrow">Reykjavík · alrun.is · wholesale sheet</p>
+      <h1 class="al-h1">Exceptional quality, <em>original Alrún design.</em></h1>
+      <p class="al-hero-sub">Every Alrún piece carries one of twelve trademarked bindrunes. Pick a mark and the whole collection reorganises around it: pendant, earring, bracelet, blanket, cape. Nothing is more than one tap away.</p>
+      <div class="al-hero-cta">
+        <button class="al-btn al-btn--fill" type="button" data-scroll="#register">Open the register</button>
+        <button class="al-btn al-btn--ghost" type="button" id="heroTrade">Order wholesale</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ THE RAIL ============================ -->
+<!-- ================= BROWSE: sidebar + register =================
+     A persistent left column instead of a horizontal rail plus an inline chip
+     row. A buyer scanning 67 lines wants every filter visible at once, in one
+     readable place, not two condensed sticky strips stacked on each other. -->
+<div class="al-browse">
+  <aside class="al-side" aria-label="Filter the register">
+    <div class="al-side-in">
+      <div class="al-sgroup">
+        <h3 class="al-slabel">Mark</h3>
+        <div class="al-rail" id="rail" role="group" aria-label="Filter by bindrune mark"></div>
+      </div>
+      <div class="al-sgroup">
+        <h3 class="al-slabel">Form</h3>
+        <div class="al-fgroup" id="formChips"></div>
+      </div>
+      <div class="al-sgroup">
+        <h3 class="al-slabel">Material</h3>
+        <div class="al-fgroup" id="matChips"></div>
+      </div>
+      <div class="al-side-ft">
+        <span class="al-count al-mono" id="countOut">67 pieces</span>
+        <button class="al-clear" type="button" id="clearBtn" hidden>Reset</button>
+      </div>
+    </div>
+  </aside>
+  <div class="al-browse-main">
+
+<!-- ============================ STORY BAND ============================ -->
+<section class="al-story" id="story" aria-live="polite">
+  <span class="al-glyph al-story-wm" id="storyWm" aria-hidden="true"></span>
+  <div class="al-wrap">
+    <span class="al-glyph al-story-glyph" id="storyGlyph" aria-hidden="true"></span>
+    <div class="al-story-txt">
+      <p class="al-story-for al-mono" id="storyFor">The complete collection</p>
+      <h2 class="al-story-name" id="storyName">All marks</h2>
+      <p class="al-story-desc" id="storyDesc">Twelve bindrunes, each a message bound into a single mark. The tradition is over a thousand years old; these twelve are Alrún's own, drawn in Reykjavík and trademarked. Choose one above to see everything it is made into.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ THE REGISTER ============================ -->
+<main id="register">
+  <div class="al-register" id="grid"></div>
+  </div>
+</div>
+</main>
+
+<!-- ============================ COVERAGE MATRIX ============================ -->
+<section class="al-sec">
+  <div class="al-wrap">
+    <div class="al-sec-head">
+      <p class="al-eyebrow al-mono" style="color:var(--ink-3)">The line sheet at a glance</p>
+      <h2 class="al-sec-h">Every mark, every form, in one table.</h2>
+      <p class="al-sec-p">A buyer's first question is never "what's new". It is "what can I actually stock". This is the whole range on one screen. Click any figure to jump into that exact selection.</p>
+    </div>
+    <div class="al-mxwrap"><table class="al-matrix" id="matrix"></table></div>
+  </div>
+</section>
+
+<!-- ============================ WHOLESALE ============================ -->
+<section class="al-sec" id="wholesale">
+  <div class="al-wrap al-two">
+    <div>
+      <div class="al-sec-head">
+        <p class="al-eyebrow al-mono" style="color:var(--ink-3)">For stockists</p>
+        <h2 class="al-sec-h">Build the order while you browse it.</h2>
+        <p class="al-sec-p">Switch to Wholesale and every piece in the register gains a quantity box. Fill them in as you read, in any order, across the whole range. When you are done, one form sends the finished order straight to the studio.</p>
+      </div>
+      <ol class="al-list">
+        <li><span class="al-n">01</span><div><strong>Switch to Wholesale</strong><span>The page changes colour so you always know which prices you are looking at. Your order is kept if you leave and come back.</span></div></li>
+        <li><span class="al-n">02</span><div><strong>Set quantities anywhere</strong><span>Filter by mark or form, add as you go. Minimum order quantities are built into the steppers, so an order cannot arrive incomplete.</span></div></li>
+        <li><span class="al-n">03</span><div><strong>Or start from a preset</strong><span>"One of each in Strength", "opening order", "best sellers". One tap fills the sheet, then you adjust.</span></div></li>
+        <li><span class="al-n">04</span><div><strong>Send it once</strong><span>Company details, delivery date, notes. The order lands in Alrún’s own Shopify admin as a draft order, priced and invoiced from there. No second system, no retyping.</span></div></li>
+      </ol>
+      <div style="margin-top:20px;display:flex;gap:9px;flex-wrap:wrap">
+        <button class="al-btn" type="button" id="wsTrade" style="border-color:var(--ink)">Switch to wholesale</button>
+        <a class="al-btn" href="dashboard.html" target="_blank" rel="noopener" style="border-color:var(--rule);color:var(--ink-3);text-decoration:none">See how it arrives ↗</a>
+      </div>
+    </div>
+    <div>
+      <figure class="al-fig" style="margin:0"><img src="img/brand/pieces.webp" alt="Alrún wool blankets woven with bindrune marks, folded over a wooden crate on the Icelandic coast" loading="lazy" width="1200" height="900"></figure>
+      <figcaption class="al-figcap">Wool blankets · New Zealand pure wool · woven in the mark of the buyer's choice</figcaption>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="al-ft">
+  <div class="al-wrap">
+    <div>
+      <div class="al-logo-full" role="img" aria-label="Alrún Nordic Design"></div>
+      <p style="margin:0;color:var(--ink-2);max-width:40ch">A small independent studio in Reykjavík. Original bindrune jewellery and home textiles, drawn and made in Iceland.</p>
+    </div>
+    <div>
+      <h4>Studio</h4>
+      <ul>
+        <li><a href="tel:+3546981312">+354 698 1312</a></li>
+        <li><a href="mailto:info@alrun.is">info@alrun.is</a></li>
+        <li><a href="https://www.instagram.com/alrun.nordic.design/" target="_blank" rel="noopener">Instagram</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For shops</h4>
+      <ul>
+        <li><button class="al-clear" type="button" id="ftTrade" style="text-align:left">Wholesale order sheet</button></li>
+        <li><a href="dashboard.html" target="_blank" rel="noopener">How an order arrives</a></li>
+      </ul>
+    </div>
+    <div class="al-ft-note">
+      <span>All twelve marks are registered trademarks of Alrún Nordic Design</span>
+      <span>Prototype · SNDR Studio</span>
+    </div>
+  </div>
+</footer>
+
+<div class="al-dockpad" aria-hidden="true"></div>
+
+<!-- ============================ ORDER DOCK ============================ -->
+<div class="al-dock" id="dock" role="region" aria-label="Wholesale order summary">
+  <div class="al-wrap">
+    <div class="al-dock-stat">Order sheet · <b id="dockLines">0</b> lines · <b id="dockUnits">0</b> units</div>
+    <div class="al-dock-actions">
+      <button class="al-dbtn al-dbtn--ghost" type="button" id="dockClear">Empty</button>
+      <button class="al-dbtn" type="button" id="dockOpen">Review &amp; send →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ORDER SHEET ============================ -->
+<div class="al-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+  <div class="al-sheet-scrim" id="scrim"></div>
+  <div class="al-sheet-panel">
+    <div class="al-sheet-hd">
+      <h2 id="sheetTitle">Wholesale order request</h2>
+      <button class="al-x" type="button" id="sheetX" aria-label="Close order sheet">✕</button>
+    </div>
+    <div class="al-sheet-body" id="sheetBody"></div>
+    <div class="al-sheet-ft" id="sheetFt"></div>
+  </div>
+</div>
+
+<script>
+/* =============================================================
+   ALRÚN — register + trade order builder
+   No dependencies. Demo persistence: localStorage + BroadcastChannel
+   so the studio dashboard updates live in a second tab.
+   ============================================================= */
+(function(){
+'use strict';
+
+const CATALOGUE = {"products":[{"id":8856498831512,"slug":"energy-orka-gold-plated-pendant","title":"Energy / Orka Gold Plated Pendant","form":"Pendant","symbols":["Energy"],"material":"Gold plated","price":189.0,"sku":"1055","avail":true,"variants":[{"t":"Default Title","sku":"1055","price":189.0,"avail":true}],"img":["energy-orka-gold-plated-pendant-0.webp"],"url":"https://store.alrun.is/products/energy-orka-gold-plated-pendant"},{"id":8856499486872,"slug":"heart-hjarta-gold-plated-pendant","title":"Heart / Hjarta Gold Plated Pendant","form":"Pendant","symbols":["Heart"],"material":"Gold plated","price":189.0,"sku":"1054","avail":true,"variants":[{"t":"Default Title","sku":"1054","price":189.0,"avail":true}],"img":["heart-hjarta-gold-plated-pendant-0.webp"],"url":"https://store.alrun.is/products/heart-hjarta-gold-plated-pendant"},{"id":8856501158040,"slug":"music-tonlist-gold-plated-pendant","title":"Music / Tónlist Gold Plated Pendant","form":"Pendant","symbols":["Music"],"material":"Gold plated","price":189.0,"sku":"1056","avail":true,"variants":[{"t":"Default Title","sku":"1056","price":189.0,"avail":true}],"img":["music-tonlist-gold-plated-pendant-0.webp"],"url":"https://store.alrun.is/products/music-tonlist-gold-plated-pendant"},{"id":8856500797592,"slug":"luck-gaefa-gold-plated-pendant","title":"Luck / Gæfa Gold Plated Pendant","form":"Pendant","symbols":["Luck"],"material":"Gold plated","price":189.0,"sku":"1052","avail":true,"variants":[{"t":"Default Title","sku":"1052","price":189.0,"avail":true}],"img":["luck-gaefa-gold-plated-pendant-0.webp"],"url":"https://store.alrun.is/products/luck-gaefa-gold-plated-pendant"},{"id":8856499912856,"slug":"love-ast-gold-plated-pendant","title":"Love / Ást Gold Plated Pendant","form":"Pendant","symbols":["Love"],"material":"Gold plated","price":189.0,"sku":"1051","avail":true,"variants":[{"t":"Default Title","sku":"1051","price":189.0,"avail":true}],"img":["love-ast-gold-plated-pendant-0.webp"],"url":"https://store.alrun.is/products/love-ast-gold-plated-pendant"},{"id":8856497782936,"slug":"strength-magn-gold-plated-pendant","title":"Strength / Magn Gold Plated Pendant","form":"Pendant","symbols":["Strength"],"material":"Gold plated","price":189.0,"sku":"1053","avail":true,"variants":[{"t":"Default Title","sku":"1053","price":189.0,"avail":true}],"img":["strength-magn-gold-plated-pendant-0.webp"],"url":"https://store.alrun.is/products/strength-magn-gold-plated-pendant"},{"id":8807552975000,"slug":"waveform-wool-blankets-assorted-colours","title":"Waveform Wool Blankets - Assorted Colours","form":"Home","symbols":[],"material":"Wool","price":169.0,"sku":"2643","avail":true,"variants":[{"t":"Aqua Blanket","sku":"2643","price":169.0,"avail":true},{"t":"Blue Blanket","sku":"2642","price":169.0,"avail":true},{"t":"Brown Blanket","sku":"2646","price":169.0,"avail":true},{"t":"Green Blanket","sku":"2641","price":169.0,"avail":true},{"t":"Grey Blanket","sku":"2645","price":169.0,"avail":true},{"t":"Orange Blanket","sku":"2648","price":169.0,"avail":true},{"t":"Red Blanket","sku":"2644","price":169.0,"avail":true},{"t":"Yellow Blanket","sku":"2647","price":169.0,"avail":true}],"img":["waveform-wool-blankets-assorted-colours-0.webp","waveform-wool-blankets-assorted-colours-1.webp"],"url":"https://store.alrun.is/products/waveform-wool-blankets-assorted-colours"},{"id":8797471604888,"slug":"waveform-cushion-covers-assorted-colours","title":"Waveform Cushion Covers - Assorted Colours","form":"Home","symbols":[],"material":"Wool","price":79.0,"sku":"2843","avail":true,"variants":[{"t":"Aqua Cover","sku":"2843","price":79.0,"avail":true},{"t":"Blue Cover","sku":"2842","price":79.0,"avail":true},{"t":"Brown Cover","sku":"2846","price":79.0,"avail":true},{"t":"Green Cover","sku":"2841","price":79.0,"avail":true},{"t":"Grey Cover","sku":"2845","price":79.0,"avail":true},{"t":"Orange Cover","sku":"2848","price":79.0,"avail":true},{"t":"Red Cover","sku":"2844","price":79.0,"avail":true},{"t":"Yellow Cover","sku":"2847","price":79.0,"avail":true}],"img":["waveform-cushion-covers-assorted-colours-0.webp","waveform-cushion-covers-assorted-colours-1.webp"],"url":"https://store.alrun.is/products/waveform-cushion-covers-assorted-colours"},{"id":7273884811416,"slug":"nordic-strength-wool-cape-with-hood","title":"Nordic Strength Wool Cape with hood","form":"Apparel","symbols":["Strength"],"material":"Wool","price":199.0,"sku":"2522","avail":true,"variants":[{"t":"Default Title","sku":"2522","price":199.0,"avail":true}],"img":["nordic-strength-wool-cape-with-hood-0.webp","nordic-strength-wool-cape-with-hood-1.webp"],"url":"https://store.alrun.is/products/nordic-strength-wool-cape-with-hood"},{"id":7273884614808,"slug":"nordic-love-wool-cape-with-hood-1","title":"Nordic Love Wool Cape with hood","form":"Apparel","symbols":["Love"],"material":"Wool","price":199.0,"sku":"2521","avail":true,"variants":[{"t":"Default Title","sku":"2521","price":199.0,"avail":true}],"img":["nordic-love-wool-cape-with-hood-1-0.webp","nordic-love-wool-cape-with-hood-1-1.webp"],"url":"https://store.alrun.is/products/nordic-love-wool-cape-with-hood-1"},{"id":10821354387,"slug":"music-tonlist-crystal-studs","title":"Music / Tónlist Crystal Studs","form":"Earrings","symbols":["Music"],"material":"Crystal","price":89.0,"sku":"1546","avail":true,"variants":[{"t":"Default Title","sku":"1546","price":89.0,"avail":true}],"img":["music-tonlist-crystal-studs-0.webp"],"url":"https://store.alrun.is/products/music-tonlist-crystal-studs"},{"id":10821347667,"slug":"strength-magn-crystal-studs","title":"Strength / Magn Crystal Studs","form":"Earrings","symbols":["Strength"],"material":"Crystal","price":56.0,"sku":"1543","avail":true,"variants":[{"t":"Default Title","sku":"1543","price":56.0,"avail":true}],"img":["strength-magn-crystal-studs-0.webp"],"url":"https://store.alrun.is/products/strength-magn-crystal-studs"},{"id":7236603248792,"slug":"strength-charm-pendant","title":"Strength Charm Pendant","form":"Home","symbols":["Strength"],"material":"Steel","price":59.0,"sku":"","avail":true,"variants":[{"t":"Default Title","sku":"","price":59.0,"avail":true}],"img":["strength-charm-pendant-0.webp","strength-charm-pendant-1.webp"],"url":"https://store.alrun.is/products/strength-charm-pendant"},{"id":7236502356120,"slug":"luck-charm-pendant","title":"Luck Charm Pendant","form":"Home","symbols":["Luck"],"material":"Steel","price":59.0,"sku":"","avail":true,"variants":[{"t":"Default Title","sku":"","price":59.0,"avail":true}],"img":["luck-charm-pendant-0.webp","luck-charm-pendant-1.webp"],"url":"https://store.alrun.is/products/luck-charm-pendant"},{"id":7130435322008,"slug":"love-charm-pendant","title":"Love Charm Pendant","form":"Home","symbols":["Love"],"material":"Steel","price":59.0,"sku":"","avail":true,"variants":[{"t":"Default Title","sku":"","price":59.0,"avail":true}],"img":["love-charm-pendant-0.webp","love-charm-pendant-1.webp"],"url":"https://store.alrun.is/products/love-charm-pendant"},{"id":7236608065688,"slug":"copy-of-strength-charm-pendant","title":"Heart Charm Pendant","form":"Home","symbols":["Heart"],"material":"Steel","price":59.0,"sku":"","avail":true,"variants":[{"t":"Default Title","sku":"","price":59.0,"avail":true}],"img":["copy-of-strength-charm-pendant-0.webp","copy-of-strength-charm-pendant-1.webp"],"url":"https://store.alrun.is/products/copy-of-strength-charm-pendant"},{"id":7236614553752,"slug":"energy-charm-pendant","title":"Energy Charm Pendant","form":"Home","symbols":["Energy"],"material":"Steel","price":59.0,"sku":"","avail":true,"variants":[{"t":"Default Title","sku":"","price":59.0,"avail":true}],"img":["energy-charm-pendant-0.webp","energy-charm-pendant-1.webp"],"url":"https://store.alrun.is/products/energy-charm-pendant"},{"id":7227329708184,"slug":"music-tonlist-steel-dog-tag","title":"Music / Tónlist Steel Dog-Tag","form":"Pendant","symbols":["Music"],"material":"Steel","price":59.0,"sku":"","avail":true,"variants":[{"t":"Default Title","sku":"","price":59.0,"avail":true}],"img":["music-tonlist-steel-dog-tag-0.webp"],"url":"https://store.alrun.is/products/music-tonlist-steel-dog-tag"},{"id":10821306899,"slug":"luck-gaefa","title":"LUCK / GÆFA Stone Pendant","form":"Pendant","symbols":["Luck"],"material":"Crystal","price":94.0,"sku":"1102","avail":true,"variants":[{"t":"Default Title","sku":"1102","price":94.0,"avail":true}],"img":["luck-gaefa-0.webp"],"url":"https://store.alrun.is/products/luck-gaefa"},{"id":10821313491,"slug":"youth-aeska","title":"YOUTH / ÆSKA Stone Pendant","form":"Pendant","symbols":["Youth"],"material":"Crystal","price":94.0,"sku":"1111","avail":true,"variants":[{"t":"Default Title","sku":"1111","price":94.0,"avail":true}],"img":["youth-aeska-0.webp"],"url":"https://store.alrun.is/products/youth-aeska"},{"id":10821311379,"slug":"energy-orka","title":"ENERGY / ORKA Stone Pendant","form":"Pendant","symbols":["Energy"],"material":"Crystal","price":94.0,"sku":"1106","avail":true,"variants":[{"t":"Default Title","sku":"1106","price":94.0,"avail":true}],"img":["energy-orka-0.webp"],"url":"https://store.alrun.is/products/energy-orka"},{"id":7119877800088,"slug":"ombre-woolen-blanket","title":"Ombre Wool Blankets - Assorted Colours","form":"Home","symbols":[],"material":"Wool","price":169.0,"sku":"2611","avail":true,"variants":[{"t":"Turquoise","sku":"2611","price":169.0,"avail":true},{"t":"Dark Grey","sku":"2612","price":169.0,"avail":true},{"t":"Mustard","sku":"2613","price":169.0,"avail":true},{"t":"Coffee","sku":"2614","price":169.0,"avail":true},{"t":"Blue Grey","sku":"2615","price":169.0,"avail":true},{"t":"Brown","sku":"2616","price":169.0,"avail":true},{"t":"Green","sku":"2617","price":169.0,"avail":true},{"t":"Grey Gold","sku":"2618","price":169.0,"avail":true},{"t":"Blue Agave","sku":"2619","price":169.0,"avail":true},{"t":"Soft Gold","sku":"2620","price":169.0,"avail":true},{"t":"Green Gold","sku":"2621","price":169.0,"avail":true},{"t":"Dusty Rose","sku":"2622","price":169.0,"avail":true}],"img":["ombre-woolen-blanket-0.webp","ombre-woolen-blanket-1.webp"],"url":"https://store.alrun.is/products/ombre-woolen-blanket"},{"id":6176176275608,"slug":"nordic-mini-strength-blanket","title":"Nordic Mini Strength Blanket","form":"Home","symbols":["Strength"],"material":"Wool","price":109.0,"sku":"2311","avail":true,"variants":[{"t":"dark grey","sku":"2311","price":109.0,"avail":true},{"t":"yellow","sku":"2312","price":109.0,"avail":true},{"t":"dark pink","sku":"2313","price":109.0,"avail":true}],"img":["nordic-mini-strength-blanket-0.webp","nordic-mini-strength-blanket-1.webp"],"url":"https://store.alrun.is/products/nordic-mini-strength-blanket"},{"id":6176160710808,"slug":"nordic-mini-love-blanket","title":"Nordic Mini Love Blanket","form":"Home","symbols":["Love"],"material":"Wool","price":109.0,"sku":"2301","avail":true,"variants":[{"t":"Light Pink","sku":"2301","price":109.0,"avail":true},{"t":"Moss Green","sku":"2302","price":109.0,"avail":true},{"t":"Turquoise","sku":"2303","price":109.0,"avail":true}],"img":["nordic-mini-love-blanket-0.webp","nordic-mini-love-blanket-1.webp"],"url":"https://store.alrun.is/products/nordic-mini-love-blanket"},{"id":1963097554998,"slug":"nordic-love-wool-cape","title":"Nordic Love Wool Cape","form":"Apparel","symbols":["Love"],"material":"Wool","price":169.0,"sku":"2502","avail":true,"variants":[{"t":"White and Light Grey","sku":"2502","price":169.0,"avail":true},{"t":"White and Turquoise","sku":"2501","price":169.0,"avail":true},{"t":"White and Moss Green","sku":"2503","price":169.0,"avail":true}],"img":["nordic-love-wool-cape-0.webp","nordic-love-wool-cape-1.webp"],"url":"https://store.alrun.is/products/nordic-love-wool-cape"},{"id":2011027439670,"slug":"nordic-strength-wool-cape","title":"Nordic Strength Wool Cape","form":"Apparel","symbols":["Love","Strength"],"material":"Wool","price":169.0,"sku":"2511","avail":true,"variants":[{"t":"White and Dark Grey","sku":"2511","price":169.0,"avail":true},{"t":"Blue","sku":"2512","price":169.0,"avail":true},{"t":"Rust Red","sku":"2513","price":169.0,"avail":true}],"img":["nordic-strength-wool-cape-0.webp","nordic-strength-wool-cape-1.webp"],"url":"https://store.alrun.is/products/nordic-strength-wool-cape"},{"id":10821310419,"slug":"hearthjarta","title":"HEART / HJARTA Stone Pendant","form":"Pendant","symbols":["Heart"],"material":"Crystal","price":94.0,"sku":"1105","avail":true,"variants":[{"t":"Default Title","sku":"1105","price":94.0,"avail":true}],"img":["hearthjarta-0.webp"],"url":"https://store.alrun.is/products/hearthjarta"},{"id":2098104533046,"slug":"iceland-island-silver-pendant","title":"Iceland / Ísland Silver Pendant","form":"Pendant","symbols":[],"material":"Silver","price":119.0,"sku":"1021","avail":true,"variants":[{"t":"Default Title","sku":"1021","price":119.0,"avail":true}],"img":["iceland-island-silver-pendant-0.webp","iceland-island-silver-pendant-1.webp"],"url":"https://store.alrun.is/products/iceland-island-silver-pendant"},{"id":10821321491,"slug":"energy-orka-1","title":"Energy / Orka Silver Pendant","form":"Pendant","symbols":["Energy"],"material":"Silver","price":119.0,"sku":"1006","avail":true,"variants":[{"t":"Default Title","sku":"1006","price":119.0,"avail":true}],"img":["energy-orka-1-0.webp"],"url":"https://store.alrun.is/products/energy-orka-1"},{"id":10821319251,"slug":"luck-gaefa-1","title":"Luck / Gæfa Silver Pendant","form":"Pendant","symbols":["Luck"],"material":"Silver","price":119.0,"sku":"1002","avail":true,"variants":[{"t":"Default Title","sku":"1002","price":119.0,"avail":true}],"img":["luck-gaefa-1-0.webp","luck-gaefa-1-1.webp"],"url":"https://store.alrun.is/products/luck-gaefa-1"},{"id":1949897162806,"slug":"nordic-herringbone-blanket","title":"Nordic Herringbone Wool Blankets","form":"Home","symbols":[],"material":"Wool","price":149.0,"sku":"2603","avail":true,"variants":[{"t":"Lemon Yellow","sku":"2603","price":149.0,"avail":true},{"t":"Turquoise","sku":"2601","price":149.0,"avail":true},{"t":"Charcoal Grey","sku":"2602","price":149.0,"avail":true}],"img":["nordic-herringbone-blanket-0.webp","nordic-herringbone-blanket-1.webp"],"url":"https://store.alrun.is/products/nordic-herringbone-blanket"},{"id":10821324627,"slug":"genuine-ekta-1","title":"Genuine / Ekta Silver Pendant","form":"Pendant","symbols":["Genuine"],"material":"Silver","price":119.0,"sku":"1012","avail":true,"variants":[{"t":"Default Title","sku":"1012","price":119.0,"avail":true}],"img":["genuine-ekta-1-0.webp"],"url":"https://store.alrun.is/products/genuine-ekta-1"},{"id":11158873043,"slug":"love-nordic-wool-blanket-light-grey","title":"Nordic Bindrune Love Wool Blanket - Light Grey","form":"Home","symbols":["Love"],"material":"Wool","price":149.0,"sku":"2101","avail":true,"variants":[{"t":"Default Title","sku":"2101","price":149.0,"avail":true}],"img":["love-nordic-wool-blanket-light-grey-0.webp","love-nordic-wool-blanket-light-grey-1.webp"],"url":"https://store.alrun.is/products/love-nordic-wool-blanket-light-grey"},{"id":11158823251,"slug":"strength-nordic-wool-blanket-grey","title":"Nordic Strength Wool Blanket - Dark Grey","form":"Home","symbols":["Strength"],"material":"Wool","price":149.0,"sku":"2401","avail":true,"variants":[{"t":"Default Title","sku":"2401","price":149.0,"avail":true}],"img":["strength-nordic-wool-blanket-grey-0.webp","strength-nordic-wool-blanket-grey-1.webp"],"url":"https://store.alrun.is/products/strength-nordic-wool-blanket-grey"},{"id":11136560403,"slug":"strength-nordic-wool-blanket","title":"Nordic Strength Wool Blanket - Navy Blue","form":"Home","symbols":["Strength"],"material":"Wool","price":149.0,"sku":"2402","avail":true,"variants":[{"t":"Default Title","sku":"2402","price":149.0,"avail":true}],"img":["strength-nordic-wool-blanket-0.webp","strength-nordic-wool-blanket-1.webp"],"url":"https://store.alrun.is/products/strength-nordic-wool-blanket"},{"id":11021092435,"slug":"love-nordic-wool-blanket","title":"Nordic Love Wool Blanket - Dark Teal","form":"Home","symbols":["Love"],"material":"Wool","price":149.0,"sku":"2102","avail":false,"variants":[{"t":"Default Title","sku":"2102","price":149.0,"avail":false}],"img":["love-nordic-wool-blanket-0.webp","love-nordic-wool-blanket-1.webp"],"url":"https://store.alrun.is/products/love-nordic-wool-blanket"},{"id":10821329043,"slug":"strength-magn-2","title":"Strength / Magn Bindrune Bracelet","form":"Bracelet","symbols":["Strength"],"material":"Silver","price":59.0,"sku":"1603","avail":true,"variants":[{"t":"Default Title","sku":"1603","price":59.0,"avail":true}],"img":["strength-magn-2-0.webp"],"url":"https://store.alrun.is/products/strength-magn-2"},{"id":10821334355,"slug":"love-ast-silver-earrings","title":"Love / Ást Silver Earrings","form":"Earrings","symbols":["Love"],"material":"Silver","price":89.0,"sku":"1501","avail":true,"variants":[{"t":"Default Title","sku":"1501","price":89.0,"avail":true}],"img":["love-ast-silver-earrings-0.webp"],"url":"https://store.alrun.is/products/love-ast-silver-earrings"},{"id":11158684051,"slug":"music-tonlist-bindrune-bracelet","title":"Music / Tónlist Bindrune Bracelet","form":"Bracelet","symbols":["Music"],"material":"Steel","price":59.0,"sku":"1606","avail":true,"variants":[{"t":"Default Title","sku":"1606","price":59.0,"avail":true}],"img":["music-tonlist-bindrune-bracelet-0.webp"],"url":"https://store.alrun.is/products/music-tonlist-bindrune-bracelet"},{"id":10821376147,"slug":"music-tonlist-silver-studs","title":"Music / Tónlist Silver Studs","form":"Earrings","symbols":["Music"],"material":"Silver","price":89.0,"sku":"1526","avail":true,"variants":[{"t":"Default Title","sku":"1526","price":89.0,"avail":true}],"img":["music-tonlist-silver-studs-0.webp"],"url":"https://store.alrun.is/products/music-tonlist-silver-studs"},{"id":10821373779,"slug":"energy-orka-silver-studs","title":"Energy / Orka Silver Studs","form":"Earrings","symbols":["Energy"],"material":"Silver","price":89.0,"sku":"1525","avail":true,"variants":[{"t":"Default Title","sku":"1525","price":89.0,"avail":true}],"img":["energy-orka-silver-studs-0.webp"],"url":"https://store.alrun.is/products/energy-orka-silver-studs"},{"id":10821370707,"slug":"heart-hjarta-silver-studs","title":"Heart / Hjarta Silver Studs","form":"Earrings","symbols":["Heart"],"material":"Silver","price":89.0,"sku":"1524","avail":true,"variants":[{"t":"Default Title","sku":"1524","price":89.0,"avail":true}],"img":["heart-hjarta-silver-studs-0.webp"],"url":"https://store.alrun.is/products/heart-hjarta-silver-studs"},{"id":10821367891,"slug":"luck-gaefa-silver-studs","title":"Luck / Gæfa Silver Studs","form":"Earrings","symbols":["Luck"],"material":"Silver","price":89.0,"sku":"1522","avail":true,"variants":[{"t":"Default Title","sku":"1522","price":89.0,"avail":true}],"img":["luck-gaefa-silver-studs-0.webp"],"url":"https://store.alrun.is/products/luck-gaefa-silver-studs"},{"id":10821364947,"slug":"strength-magn-silver-stud","title":"Strength / Magn Silver Studs","form":"Earrings","symbols":["Strength"],"material":"Silver","price":89.0,"sku":"1523","avail":true,"variants":[{"t":"Default Title","sku":"1523","price":89.0,"avail":true}],"img":["strength-magn-silver-stud-0.webp"],"url":"https://store.alrun.is/products/strength-magn-silver-stud"},{"id":10821362131,"slug":"love-ast-silver-studs","title":"Love / Ást Silver Studs","form":"Earrings","symbols":["Love"],"material":"Silver","price":89.0,"sku":"1521","avail":true,"variants":[{"t":"Default Title","sku":"1521","price":89.0,"avail":true}],"img":["love-ast-silver-studs-0.webp"],"url":"https://store.alrun.is/products/love-ast-silver-studs"},{"id":10821339667,"slug":"energy-orka-steel-dog-tag","title":"Energy / Orka Steel Dog-Tag","form":"Pendant","symbols":["Energy"],"material":"Steel","price":59.0,"sku":"1705","avail":true,"variants":[{"t":"Default Title","sku":"1705","price":59.0,"avail":true}],"img":["energy-orka-steel-dog-tag-0.webp"],"url":"https://store.alrun.is/products/energy-orka-steel-dog-tag"},{"id":10821338835,"slug":"luck-gaefa-steel-dog-tag","title":"Luck / Gæfa Steel Dog-Tag","form":"Pendant","symbols":["Luck"],"material":"Steel","price":59.0,"sku":"1702","avail":true,"variants":[{"t":"Default Title","sku":"1702","price":59.0,"avail":true}],"img":["luck-gaefa-steel-dog-tag-0.webp"],"url":"https://store.alrun.is/products/luck-gaefa-steel-dog-tag"},{"id":10821337939,"slug":"strength-magn-steel-dog-tag","title":"Strength / Magn Steel Dog-Tag","form":"Pendant","symbols":["Strength"],"material":"Steel","price":59.0,"sku":"1703","avail":true,"variants":[{"t":"Default Title","sku":"1703","price":59.0,"avail":true}],"img":["strength-magn-steel-dog-tag-0.webp"],"url":"https://store.alrun.is/products/strength-magn-steel-dog-tag"},{"id":10821337235,"slug":"love-ast-steel-dog-tag","title":"Love / Ást Steel Dog-Tag","form":"Pendant","symbols":["Love"],"material":"Steel","price":59.0,"sku":"1701","avail":true,"variants":[{"t":"Default Title","sku":"1701","price":59.0,"avail":true}],"img":["love-ast-steel-dog-tag-0.webp"],"url":"https://store.alrun.is/products/love-ast-steel-dog-tag"},{"id":10821336211,"slug":"heart-hjarta-steel-dog-tag","title":"Heart / Hjarta Steel Dog-Tag","form":"Pendant","symbols":["Heart"],"material":"Steel","price":59.0,"sku":"1704","avail":true,"variants":[{"t":"Default Title","sku":"1704","price":59.0,"avail":true}],"img":["heart-hjarta-steel-dog-tag-0.webp"],"url":"https://store.alrun.is/products/heart-hjarta-steel-dog-tag"},{"id":10821335443,"slug":"strength-magn-3","title":"Strength / Magn Silver Earrings","form":"Earrings","symbols":["Strength"],"material":"Silver","price":89.0,"sku":"1504","avail":true,"variants":[{"t":"Default Title","sku":"1504","price":89.0,"avail":true}],"img":["strength-magn-3-0.webp"],"url":"https://store.alrun.is/products/strength-magn-3"},{"id":10821333267,"slug":"heart-hjarta-silver-earrings","title":"Heart / Hjarta Silver Earrings","form":"Earrings","symbols":["Heart"],"material":"Silver","price":89.0,"sku":"1505","avail":true,"variants":[{"t":"Default Title","sku":"1505","price":89.0,"avail":true}],"img":["heart-hjarta-silver-earrings-0.webp"],"url":"https://store.alrun.is/products/heart-hjarta-silver-earrings"},{"id":10821332115,"slug":"luck-gaefa-silver-earrings","title":"Luck / Gæfa Silver Earrings","form":"Earrings","symbols":["Luck"],"material":"Silver","price":89.0,"sku":"1502","avail":true,"variants":[{"t":"Default Title","sku":"1502","price":89.0,"avail":true}],"img":["luck-gaefa-silver-earrings-0.webp"],"url":"https://store.alrun.is/products/luck-gaefa-silver-earrings"},{"id":10821330899,"slug":"energy-orka-silver-earrings","title":"Energy / Orka Silver Earrings","form":"Earrings","symbols":["Energy"],"material":"Silver","price":89.0,"sku":"1506","avail":true,"variants":[{"t":"Default Title","sku":"1506","price":89.0,"avail":true}],"img":["energy-orka-silver-earrings-0.webp"],"url":"https://store.alrun.is/products/energy-orka-silver-earrings"},{"id":10821323987,"slug":"grace-thokki-1","title":"Grace / Þokki Silver Pendant","form":"Pendant","symbols":["Grace"],"material":"Silver","price":119.0,"sku":"1010","avail":true,"variants":[{"t":"Default Title","sku":"1010","price":119.0,"avail":true}],"img":["grace-thokki-1-0.webp"],"url":"https://store.alrun.is/products/grace-thokki-1"},{"id":10821323283,"slug":"youth-aeska-1","title":"Youth / Æska Silver Pendant","form":"Pendant","symbols":["Youth"],"material":"Silver","price":119.0,"sku":"1011","avail":true,"variants":[{"t":"Default Title","sku":"1011","price":119.0,"avail":true}],"img":["youth-aeska-1-0.webp"],"url":"https://store.alrun.is/products/youth-aeska-1"},{"id":10821322579,"slug":"wisdom-viska-1","title":"Wisdom / Viska Silver Pendant","form":"Pendant","symbols":["Wisdom"],"material":"Silver","price":119.0,"sku":"1003","avail":true,"variants":[{"t":"Default Title","sku":"1003","price":119.0,"avail":true}],"img":["wisdom-viska-1-0.webp"],"url":"https://store.alrun.is/products/wisdom-viska-1"},{"id":10821322131,"slug":"hope-von-1","title":"Hope / Von Silver Pendant","form":"Pendant","symbols":["Hope"],"material":"Silver","price":119.0,"sku":"1009","avail":true,"variants":[{"t":"Default Title","sku":"1009","price":119.0,"avail":true}],"img":["hope-von-1-0.webp"],"url":"https://store.alrun.is/products/hope-von-1"},{"id":10821320915,"slug":"strength-magn-1","title":"Strength / Magn Silver Pendant","form":"Pendant","symbols":["Strength"],"material":"Silver","price":119.0,"sku":"1004","avail":true,"variants":[{"t":"Default Title","sku":"1004","price":119.0,"avail":true}],"img":["strength-magn-1-0.webp","strength-magn-1-1.webp"],"url":"https://store.alrun.is/products/strength-magn-1"},{"id":10821320083,"slug":"music-tonlist-1","title":"Music / Tónlist Silver Pendant","form":"Pendant","symbols":["Music"],"material":"Silver","price":119.0,"sku":"1008","avail":true,"variants":[{"t":"Default Title","sku":"1008","price":119.0,"avail":true}],"img":["music-tonlist-1-0.webp","music-tonlist-1-1.webp"],"url":"https://store.alrun.is/products/music-tonlist-1"},{"id":10821318547,"slug":"love-ast-1","title":"Love / Ást Silver Pendant","form":"Pendant","symbols":["Love"],"material":"Silver","price":119.0,"sku":"1001","avail":true,"variants":[{"t":"Default Title","sku":"1001","price":119.0,"avail":true}],"img":["love-ast-1-0.webp","love-ast-1-1.webp"],"url":"https://store.alrun.is/products/love-ast-1"},{"id":10821317651,"slug":"heart-hjarta","title":"Heart / Hjarta Silver Pendant","form":"Pendant","symbols":["Heart"],"material":"Silver","price":119.0,"sku":"1005","avail":true,"variants":[{"t":"Default Title","sku":"1005","price":119.0,"avail":true}],"img":["heart-hjarta-0.webp","heart-hjarta-1.webp"],"url":"https://store.alrun.is/products/heart-hjarta"},{"id":10821316819,"slug":"creation-skapa","title":"Creation / Skapa Silver Pendant","form":"Pendant","symbols":["Creation"],"material":"Silver","price":119.0,"sku":"1007","avail":true,"variants":[{"t":"Default Title","sku":"1007","price":119.0,"avail":true}],"img":["creation-skapa-0.webp"],"url":"https://store.alrun.is/products/creation-skapa"},{"id":11158652499,"slug":"heart-hjarta-bindrune-bracelet-1","title":"Heart / Hjarta Bindrune Bracelet","form":"Bracelet","symbols":["Heart"],"material":"Steel","price":59.0,"sku":"1604","avail":true,"variants":[{"t":"Default Title","sku":"1604","price":59.0,"avail":true}],"img":["heart-hjarta-bindrune-bracelet-1-0.webp","heart-hjarta-bindrune-bracelet-1-1.webp"],"url":"https://store.alrun.is/products/heart-hjarta-bindrune-bracelet-1"},{"id":10821328211,"slug":"energy-orka-bindrune-bracelet","title":"Energy / Orka Bindrune Bracelet","form":"Bracelet","symbols":["Energy"],"material":"Silver","price":59.0,"sku":"1605","avail":true,"variants":[{"t":"Default Title","sku":"1605","price":59.0,"avail":true}],"img":["energy-orka-bindrune-bracelet-0.webp"],"url":"https://store.alrun.is/products/energy-orka-bindrune-bracelet"},{"id":10821325907,"slug":"luck-gaefa-bindrune-bracelet","title":"Luck / Gæfa Bindrune Bracelet","form":"Bracelet","symbols":["Luck"],"material":"Silver","price":59.0,"sku":"1602","avail":true,"variants":[{"t":"Default Title","sku":"1602","price":59.0,"avail":true}],"img":["luck-gaefa-bindrune-bracelet-0.webp","luck-gaefa-bindrune-bracelet-1.webp"],"url":"https://store.alrun.is/products/luck-gaefa-bindrune-bracelet"},{"id":10821325459,"slug":"love-ast-bindrune-bracelet","title":"Love / Ást Bindrune Bracelet","form":"Bracelet","symbols":["Love"],"material":"Silver","price":59.0,"sku":"1601","avail":true,"variants":[{"t":"Default Title","sku":"1601","price":59.0,"avail":true}],"img":["love-ast-bindrune-bracelet-0.webp"],"url":"https://store.alrun.is/products/love-ast-bindrune-bracelet"}]};
+
+const SYMBOLS = [
+  {k:'Love',     is:'Ást',    for:'To share with someone special', d:'Ást symbolizes our deepest and most personal emotions. A symbol for the passionate, the devoted, and the selfless.'},
+  {k:'Luck',     is:'Gæfa',   for:'For success and good fortune',  d:'Gæfa welcomes good fortune and symbolizes your openness to possibilities. A symbol to attract new opportunities.'},
+  {k:'Wisdom',   is:'Viska',  for:'For guidance and insight',      d:'Viska symbolizes the search for greater insight and deeper understanding. A symbol for the questioning spirit, the intellectually curious, and the experience-seeker.'},
+  {k:'Strength', is:'Magn',   for:'For empowerment',               d:'Magn symbolizes the desire for intensity or inner strength to overcome emotional, intellectual, or physical challenges. A unifying symbol of empowerment and resilience.'},
+  {k:'Heart',    is:'Hjarta', for:'To evoke courage and warmth',   d:'Hjarta symbolizes warmth, wholeness, and bravery. A symbol of fierce love and courage.'},
+  {k:'Energy',   is:'Orka',   for:'For revitalization',            d:'Orka symbolizes refreshing vitality and focused power. A symbol for lively spirits, dynamic personalities, and active bodies.'},
+  {k:'Creation', is:'Skapa',  for:'To envision and innovate',      d:'Skapa symbolizes creativity, innovation, and a holistic worldview. A symbol to celebrate interconnectedness, artistry, and ingenuity.'},
+  {k:'Music',    is:'Tónlist',for:'To inspire the soul',           d:'Tónlist symbolizes inspiration and the universal love of music. A symbol to connect souls across cultures and traditions.'},
+  {k:'Youth',    is:'Æska',   for:'For an open mind',              d:'Æska symbolizes renewal and a fresh perspective. A symbol for the open-minded, the young at heart, and the critical thinker.'},
+  {k:'Hope',     is:'Von',    for:'For an uplifted spirit',        d:'Von symbolizes an uplifted spirit and enduring resilience. A symbol that reflects inspiration, perseverance, and positivity.'},
+  {k:'Grace',    is:'Þokki',  for:'For personal charm',            d:'Þokki symbolizes a personal charm, attractive but difficult to define. A symbol that reveals elegance and signifies the ability to be graceful under duress.'},
+  {k:'Genuine',  is:'Ekta',   for:'For the truth seeker',          d:'Ekta symbolizes the authentic individual. A symbol of integrity for the independent spirit and the speaker of truth.'}
+];
+const FORMS = ['Pendant','Earrings','Bracelet','Home','Apparel'];
+const MATS  = ['Silver','Gold plated','Steel','Crystal','Wool'];
+
+/* Case packs. Placeholder values, clearly flagged — Alrún must confirm the real ones. */
+const MOQ = {Pendant:3, Earrings:3, Bracelet:3, Home:2, Apparel:2};
+
+const P = CATALOGUE.products;
+const byId = Object.fromEntries(P.map(p=>[p.id,p]));
+
+const state = {
+  symbol:null, forms:new Set(), mats:new Set(),
+  mode:document.documentElement.dataset.mode || 'retail',
+  order:{}
+};
+
+const $  = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+const glyphUrl = k=>`url('img/symbols/${k}.png')`;
+const setGlyph = (el,k)=>{ el.style.webkitMaskImage=glyphUrl(k); el.style.maskImage=glyphUrl(k); };
+
+/* ---------------- persistence ---------------- */
+const ORDER_KEY='alrun.draftorder.v1';
+const QUEUE_KEY='alrun.orders.v1';
+const BUYER_KEY='alrun.buyer.v1';      // in the real build this is the Shopify customer record
+const LAST_KEY='alrun.lastorder.v1';   // in the real build this is their Shopify order history
+let chan=null; try{ chan=new BroadcastChannel('alrun-orders'); }catch(e){}
+
+function saveDraft(){ try{ localStorage.setItem(ORDER_KEY,JSON.stringify(state.order)); }catch(e){} }
+function loadDraft(){
+  try{
+    const raw=localStorage.getItem(ORDER_KEY); if(!raw) return;
+    const o=JSON.parse(raw);
+    Object.keys(o).forEach(id=>{ if(byId[id] && o[id]>0) state.order[id]=o[id]; });
+  }catch(e){}
+}
+
+/* ---------------- filtering ---------------- */
+function matches(p){
+  if(state.symbol && !p.symbols.includes(state.symbol)) return false;
+  if(state.forms.size && !state.forms.has(p.form)) return false;
+  if(state.mats.size  && !state.mats.has(p.material)) return false;
+  return true;
+}
+const visible = ()=>P.filter(matches);
+
+function countFor(fn){ return P.filter(p=>matches(p)&&fn(p)).length; }
+
+/* ---------------- rail ---------------- */
+function buildRail(){
+  const rail=$('#rail');
+  const all=document.createElement('button');
+  all.type='button'; all.className='al-rail-item al-rail-all';
+  all.setAttribute('aria-pressed','true'); all.dataset.sym='';
+  all.innerHTML=`<span class="al-allmark">ALLT</span><span class="al-rl">All marks</span><span class="al-rc">${P.length}</span>`;
+  rail.appendChild(all);
+  SYMBOLS.forEach(s=>{
+    const n=P.filter(p=>p.symbols.includes(s.k)).length;
+    const b=document.createElement('button');
+    b.type='button'; b.className='al-rail-item'; b.dataset.sym=s.k;
+    b.setAttribute('aria-pressed','false');
+    b.setAttribute('aria-label',`${s.k} / ${s.is}, ${n} pieces`);
+    b.innerHTML=`<span class="al-glyph" aria-hidden="true"></span><span class="al-rl">${s.is}</span><span class="al-rc">${n}</span>`;
+    setGlyph(b.querySelector('.al-glyph'),s.k);
+    rail.appendChild(b);
+  });
+  rail.addEventListener('click',e=>{
+    const b=e.target.closest('.al-rail-item'); if(!b) return;
+    state.symbol = b.dataset.sym || null;
+    syncRail(); render();
+    if(window.innerWidth>720) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  });
+}
+function syncRail(){
+  $$('#rail .al-rail-item').forEach(b=>{
+    b.setAttribute('aria-pressed', String((b.dataset.sym||null)===state.symbol));
+  });
+}
+
+/* ---------------- chips ---------------- */
+function buildChips(){
+  const mk=(host,list,set)=>{
+    list.forEach(v=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='al-chip'; b.dataset.v=v;
+      b.setAttribute('aria-pressed','false');
+      b.innerHTML=`${v}<span class="al-cn"></span>`;
+      b.addEventListener('click',()=>{
+        set.has(v)?set.delete(v):set.add(v);
+        render();
+      });
+      host.appendChild(b);
+    });
+  };
+  mk($('#formChips'),FORMS,state.forms);
+  mk($('#matChips'),MATS,state.mats);
+}
+function syncChips(){
+  $$('#formChips .al-chip').forEach(b=>{
+    const v=b.dataset.v, on=state.forms.has(v);
+    b.setAttribute('aria-pressed',String(on));
+    const others=new Set(state.forms); others.delete(v);
+    const n=P.filter(p=>p.form===v
+      && (!state.symbol || p.symbols.includes(state.symbol))
+      && (!state.mats.size || state.mats.has(p.material))).length;
+    b.querySelector('.al-cn').textContent=n;
+    b.style.opacity = n?1:.38;
+  });
+  $$('#matChips .al-chip').forEach(b=>{
+    const v=b.dataset.v, on=state.mats.has(v);
+    b.setAttribute('aria-pressed',String(on));
+    const n=P.filter(p=>p.material===v
+      && (!state.symbol || p.symbols.includes(state.symbol))
+      && (!state.forms.size || state.forms.has(p.form))).length;
+    b.querySelector('.al-cn').textContent=n;
+    b.style.opacity = n?1:.38;
+  });
+  const dirty = state.symbol || state.forms.size || state.mats.size;
+  $('#clearBtn').hidden = !dirty;
+}
+
+/* ---------------- story ---------------- */
+function syncStory(){
+  const g=$('#storyGlyph'), wm=$('#storyWm');
+  if(state.symbol){
+    const s=SYMBOLS.find(x=>x.k===state.symbol);
+    setGlyph(g,s.k); setGlyph(wm,s.k);
+    g.style.display=''; wm.style.display='';
+    $('#storyFor').textContent=s.for;
+    $('#storyName').innerHTML=`${s.k.toUpperCase()} <span>/ ${s.is}</span><sup>®</sup>`;
+    $('#storyDesc').textContent=s.d;
+  }else{
+    g.style.display='none'; wm.style.display='none';
+    $('#storyFor').textContent='The complete collection';
+    $('#storyName').textContent='All marks';
+    $('#storyDesc').textContent='Twelve bindrunes, each a message bound into a single mark. The tradition is over a thousand years old; these twelve are Alrún’s own, drawn in Reykjavík and trademarked. Choose one above to see everything it is made into.';
+  }
+}
+
+/* ---------------- grid ---------------- */
+function cell(p,i){
+  const el=document.createElement('article');
+  el.className='al-cell'+(state.order[p.id]?' is-inorder':'');
+  el.style.animationDelay=Math.min(i,24)*22+'ms';
+  el.dataset.id=p.id;
+  const b=p.img[1]?`<img class="al-b" src="img/products/${p.img[1]}" alt="" loading="lazy" aria-hidden="true">`:'';
+  const q=state.order[p.id]||0;
+  const moq=MOQ[p.form]||1;
+  if(p.avail===false) el.classList.add('is-oos');
+  el.innerHTML=`
+    <div class="al-cell-img">
+      <img src="img/products/${p.img[0]}" alt="${esc(p.title)}" loading="${i<8?'eager':'lazy'}">
+      ${b}
+      ${p.avail===false?'<span class="al-oos">Out of stock</span>':''}
+      <div class="al-cell-tags">
+        ${p.symbols.slice(0,2).map(s=>`<span class="al-cell-tag">${s}</span>`).join('')}
+      </div>
+    </div>
+    <div class="al-cell-body">
+      <h3 class="al-cell-t">${esc(p.title)}</h3>
+      <div class="al-cell-spec">${p.form} · ${p.material}${p.sku?`<span class="al-sku"> · SKU ${esc(p.sku)}</span>`:''}</div>
+      <div class="al-cell-foot">
+        <span class="al-price">$${p.price.toFixed(0)}</span>
+        <span class="al-moq al-tradeonly">Pack of ${moq}</span>
+        <a class="al-cell-link" href="${p.url}" target="_blank" rel="noopener">View ↗</a>
+        <div class="al-step">
+          <button type="button" data-d="-1" aria-label="Decrease quantity for ${esc(p.title)}">−</button>
+          <input type="number" inputmode="numeric" min="0" step="${moq}" value="${q}" aria-label="Quantity for ${esc(p.title)}">
+          <button type="button" data-d="1" aria-label="Increase quantity for ${esc(p.title)}">+</button>
+        </div>
+      </div>
+    </div>`;
+  return el;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(){
+  const list=visible();
+  const g=$('#grid');
+  g.innerHTML='';
+  if(!list.length){
+    g.innerHTML=`<div class="al-empty">
+      <h3>Nothing in that combination.</h3>
+      <p>Alrún does not make this mark in this form yet. Try clearing the material, or pick another mark.</p>
+      <button class="al-chip" type="button" onclick="document.getElementById('clearBtn').click()">Reset filters</button>
+    </div>`;
+  }else{
+    const frag=document.createDocumentFragment();
+    list.forEach((p,i)=>frag.appendChild(cell(p,i)));
+    g.appendChild(frag);
+  }
+  $('#countOut').textContent = list.length===P.length
+    ? `${P.length} pieces` : `${list.length} of ${P.length} pieces`;
+  syncChips(); syncStory(); syncDock();
+}
+
+/* grid interactions (delegated) */
+$('#grid').addEventListener('click',e=>{
+  const btn=e.target.closest('.al-step button'); if(!btn) return;
+  const cellEl=btn.closest('.al-cell'); const id=+cellEl.dataset.id;
+  const p=byId[id]; const moq=MOQ[p.form]||1;
+  const inp=cellEl.querySelector('.al-step input');
+  let v=(+inp.value||0)+(+btn.dataset.d)*moq;
+  if(v<0) v=0;
+  setQty(id,v); inp.value=v;
+  cellEl.classList.toggle('is-inorder',v>0);
+});
+$('#grid').addEventListener('change',e=>{
+  const inp=e.target.closest('.al-step input'); if(!inp) return;
+  const cellEl=inp.closest('.al-cell'); const id=+cellEl.dataset.id;
+  let v=Math.max(0,Math.round(+inp.value||0));
+  setQty(id,v); inp.value=v;
+  cellEl.classList.toggle('is-inorder',v>0);
+});
+
+function setQty(id,v){
+  if(v>0) state.order[id]=v; else delete state.order[id];
+  saveDraft(); syncDock();
+  if($('#sheet').classList.contains('is-open')) renderSheet();
+}
+
+/* ---------------- matrix ---------------- */
+function buildMatrix(){
+  const t=$('#matrix');
+  const head=`<thead><tr><th class="al-rowh">Mark</th>${FORMS.map(f=>`<th>${f}</th>`).join('')}<th>Total</th></tr></thead>`;
+  const rows=SYMBOLS.map(s=>{
+    const cells=FORMS.map(f=>{
+      const n=P.filter(p=>p.symbols.includes(s.k)&&p.form===f).length;
+      const tint = n>=4?'al-t4':n===3?'al-t3':n===2?'al-t2':'al-t1';
+      return n
+        ? `<td class="al-hot ${tint}"><button type="button" data-sym="${s.k}" data-form="${f}" style="color:inherit">${n}</button></td>`
+        : `<td class="al-z">·</td>`;
+    }).join('');
+    const tot=P.filter(p=>p.symbols.includes(s.k)).length;
+    return `<tr><th class="al-rowh"><button type="button" data-sym="${s.k}" data-form="" style="color:inherit">${s.k} <span style="opacity:.5">/ ${s.is}</span></button></th>${cells}<td>${tot}</td></tr>`;
+  }).join('');
+  t.innerHTML=head+`<tbody>${rows}</tbody>`;
+  t.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-sym]'); if(!b) return;
+    state.symbol=b.dataset.sym;
+    state.forms.clear(); if(b.dataset.form) state.forms.add(b.dataset.form);
+    state.mats.clear();
+    syncRail(); render();
+    document.getElementById('register').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+/* ---------------- mode ---------------- */
+function setMode(m){
+  state.mode=m;
+  document.documentElement.dataset.mode=m;
+  $('#mRetail').setAttribute('aria-pressed',String(m==='retail'));
+  $('#mTrade').setAttribute('aria-pressed',String(m==='trade'));
+  $('#hdrSpec').textContent = m==='trade' ? 'Wholesale · 67 pieces' : '67 pieces';
+  $('#modeNoteT').innerHTML = m==='trade'
+    ? '<b>You are on the wholesale sheet.</b> Prices here are quoted, not shown. Set how many of each piece you want, send once, and Alrún replies with your price and lead time.'
+    : '<b>You are seeing retail prices,</b> what one piece costs a customer. Switch back to Wholesale to build an order. The shop itself is a separate page.';
+  $('#modeNoteA').textContent = m==='trade'
+    ? 'Just buying one? Go to the shop'
+    : 'Buying for a shop? Order wholesale';
+  syncDock();
+  try{ localStorage.setItem('alrun.mode',m); }catch(e){}
+}
+$('#mRetail').addEventListener('click',()=>setMode('retail'));
+$('#mTrade').addEventListener('click',()=>setMode('trade'));
+$('#modeNoteA').addEventListener('click',()=>{
+  const next = state.mode==='trade' ? 'retail' : 'trade';
+  setMode(next);
+  if(next==='trade') scrollTo_('#register');
+});
+$('#heroTrade').addEventListener('click',()=>{ setMode('trade'); scrollTo_('#register'); });
+$('#wsTrade').addEventListener('click',()=>{ setMode('trade'); scrollTo_('#register'); });
+$('#ftTrade').addEventListener('click',()=>{ setMode('trade'); scrollTo_('#register'); });
+
+function scrollTo_(sel){ const el=$(sel); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+$$('[data-scroll]').forEach(b=>b.addEventListener('click',()=>scrollTo_(b.dataset.scroll)));
+
+/* ---------------- dock ---------------- */
+function orderLines(){
+  return Object.keys(state.order).map(id=>({p:byId[id],q:state.order[id]})).filter(l=>l.p);
+}
+function totalUnits(){ return orderLines().reduce((n,l)=>n+l.q,0); }
+function syncDock(){
+  const lines=orderLines();
+  $('#dockLines').textContent=lines.length;
+  $('#dockUnits').textContent=totalUnits();
+  $('#dock').classList.toggle('is-up', state.mode==='trade' && lines.length>0);
+}
+$('#dockClear').addEventListener('click',()=>{
+  if(!confirm('Empty the order sheet?')) return;
+  state.order={}; saveDraft(); render();
+});
+$('#dockOpen').addEventListener('click',openSheet);
+
+/* ---------------- presets ---------------- */
+const PRESETS=[
+  {t:'Opening order', s:'Best sellers across every form', build(){
+    const o={};
+    ['Love','Strength','Luck','Heart'].forEach(sym=>{
+      FORMS.forEach(f=>{
+        const p=P.find(x=>x.symbols.includes(sym)&&x.form===f);
+        if(p) o[p.id]=(MOQ[p.form]||1)*2;
+      });
+    });
+    return o;
+  }},
+  {t:'One of each mark', s:'12 pendants, the full symbol story', build(){
+    const o={};
+    SYMBOLS.forEach(s=>{
+      const p=P.find(x=>x.symbols.includes(s.k)&&x.form==='Pendant');
+      if(p) o[p.id]=MOQ.Pendant;
+    });
+    return o;
+  }},
+  {t:'Textiles only', s:'Blankets, cushions and capes', build(){
+    const o={};
+    P.filter(p=>p.material==='Wool').forEach(p=>{ o[p.id]=MOQ[p.form]||2; });
+    return o;
+  }},
+  {t:'Silver core', s:'The full sterling range', build(){
+    const o={};
+    P.filter(p=>p.material==='Silver').forEach(p=>{ o[p.id]=MOQ[p.form]||3; });
+    return o;
+  }}
+];
+
+/* A returning stockist reorders the same things. In the real build this reads their
+   Shopify order history; here it reads the last order they sent from this browser. */
+function lastOrderPreset(){
+  let last=null;
+  try{ last=JSON.parse(localStorage.getItem(LAST_KEY)||'null'); }catch(e){}
+  if(!last||!last.length) return null;
+  const live=last.filter(l=>byId[l.id]);
+  if(!live.length) return null;
+  return {t:'Repeat my last order', s:`${live.length} lines, exactly as before`, build(){
+    const o={}; live.forEach(l=>{ o[l.id]=l.qty; }); return o;
+  }};
+}
+function activePresets(){
+  const r=lastOrderPreset();
+  return r ? [r].concat(PRESETS) : PRESETS.slice();
+}
+
+/* ---------------- sheet ---------------- */
+const sheet=$('#sheet');
+let lastFocus=null;
+
+function openSheet(){
+  lastFocus=document.activeElement;
+  sheet.classList.add('is-open'); sheet.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  renderSheet();
+  setTimeout(()=>{ const f=sheet.querySelector('input,button'); if(f) f.focus(); },80);
+}
+function closeSheet(){
+  sheet.classList.remove('is-open'); sheet.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  if(lastFocus) lastFocus.focus();
+}
+$('#sheetX').addEventListener('click',closeSheet);
+$('#scrim').addEventListener('click',closeSheet);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sheet.classList.contains('is-open')) closeSheet(); });
+
+/* The sheet re-renders whenever the order changes (preset, stepper, remove).
+   Anything the buyer has already typed must survive that, or applying a preset
+   silently wipes their company details. */
+const FORM_IDS=['f_co','f_vat','f_nm','f_em','f_ph','f_cn','f_ad','f_dt','f_ty','f_no'];
+let formCache={};
+function grabForm(){
+  FORM_IDS.forEach(id=>{ const e=document.getElementById(id); if(e) formCache[id]=e.value; });
+}
+function restoreForm(){
+  FORM_IDS.forEach(id=>{ const e=document.getElementById(id);
+    if(e && formCache[id]!=null && formCache[id]!=='') e.value=formCache[id]; });
+}
+
+function renderSheet(){
+  grabForm();
+  const lines=orderLines();
+  const body=$('#sheetBody'), ft=$('#sheetFt');
+  ft.innerHTML=`
+    <div class="al-sub">
+      <span>${lines.length} lines · ${totalUnits()} units</span>
+      <b>Prices quoted on reply</b>
+    </div>
+    <button class="al-dbtn" type="button" id="sendBtn" style="margin-left:auto;background:var(--ink);color:var(--paper);border-color:var(--ink)">Send order request →</button>`;
+  ft.style.display='';
+
+  body.innerHTML=`
+    <p style="margin:16px 0 0;color:var(--ink-2);font-size:13.5px">
+      Alrún receive this as a complete, line-by-line order with your details attached. It reaches them already priced at your wholesale rate, so the invoice follows quickly. Nothing is charged here and no card is entered.
+    </p>
+
+    <h3 style="margin:22px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-family:'FragmentMono',monospace;color:var(--ink-3)">Start from a preset</h3>
+    <div class="al-presets">
+      ${activePresets().map((p,i)=>`<button class="al-preset" type="button" data-preset="${i}"><b>${p.t}</b><span>${p.s}</span></button>`).join('')}
+    </div>
+
+    <h3 style="margin:26px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-family:'FragmentMono',monospace;color:var(--ink-3)">Your order · ${lines.length} lines</h3>
+    <div class="al-lines">
+      ${lines.length? lines.map(l=>`
+        <div class="al-line" data-id="${l.p.id}">
+          <img src="img/products/${l.p.img[0]}" alt="">
+          <div>
+            <div class="al-line-t">${esc(l.p.title)}</div>
+            <div class="al-line-s">${l.p.form} · ${l.p.material}${l.p.symbols.length?' · '+l.p.symbols.join(', '):''}</div>
+            <button class="al-line-rm" type="button" data-rm="${l.p.id}">Remove</button>
+          </div>
+          <div class="al-step" style="display:flex">
+            <button type="button" data-sd="-1" data-id="${l.p.id}" aria-label="Decrease">−</button>
+            <input type="number" min="0" value="${l.q}" data-sq="${l.p.id}" aria-label="Quantity">
+            <button type="button" data-sd="1" data-id="${l.p.id}" aria-label="Increase">+</button>
+          </div>
+        </div>`).join('')
+        : `<p style="padding:18px 0;color:var(--ink-3);font-size:13.5px">Nothing added yet. Use a preset above, or close this and set quantities in the register.</p>`}
+    </div>
+
+    <h3 style="margin:28px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-family:'FragmentMono',monospace;color:var(--ink-3)">Your details</h3>
+    ${formCache.f_co?`<p style="margin:0;font-size:13px;color:var(--ink-3);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+      <span>Filled in from your last order.</span>
+      <button class="al-clear" type="button" id="forgetBtn">Use different details</button></p>`:''}
+    <form class="al-form" id="orderForm" novalidate>
+      <div class="al-frow">
+        <div class="al-f"><label class="al-req" for="f_co">Company</label><input id="f_co" name="company" autocomplete="organization" required></div>
+        <div class="al-f"><label for="f_vat">VAT / kennitala</label><input id="f_vat" name="vat" autocomplete="off"></div>
+      </div>
+      <div class="al-frow">
+        <div class="al-f"><label class="al-req" for="f_nm">Contact name</label><input id="f_nm" name="name" autocomplete="name" required></div>
+        <div class="al-f"><label class="al-req" for="f_em">Email</label><input id="f_em" name="email" type="email" autocomplete="email" required></div>
+      </div>
+      <div class="al-frow">
+        <div class="al-f"><label for="f_ph">Phone</label><input id="f_ph" name="phone" type="tel" autocomplete="tel"></div>
+        <div class="al-f"><label class="al-req" for="f_cn">Country</label><input id="f_cn" name="country" autocomplete="country-name" required></div>
+      </div>
+      <div class="al-f"><label for="f_ad">Delivery address</label><input id="f_ad" name="address" autocomplete="street-address"></div>
+      <div class="al-frow">
+        <div class="al-f"><label for="f_dt">Requested delivery</label><input id="f_dt" name="delivery" type="date"></div>
+        <div class="al-f"><label for="f_ty">Type of business</label>
+          <select id="f_ty" name="btype">
+            <option>Retail shop</option><option>Museum / gallery shop</option>
+            <option>Hotel / spa</option><option>Corporate gifting</option>
+            <option>Online retailer</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="al-f"><label for="f_no">Notes</label><textarea id="f_no" name="notes" placeholder="Packaging, display, anything the studio should know."></textarea></div>
+      <p class="al-errmsg" id="formErr">Please fill in the required fields marked with an asterisk.</p>
+    </form>`;
+
+  body.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{
+    const o=activePresets()[+b.dataset.preset].build();
+    Object.keys(o).forEach(id=>{ state.order[id]=Math.max(state.order[id]||0,o[id]); });
+    saveDraft(); render(); renderSheet();
+  }));
+  body.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{
+    delete state.order[b.dataset.rm]; saveDraft(); render(); renderSheet();
+  }));
+  body.querySelectorAll('[data-sd]').forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.id, p=byId[id], moq=MOQ[p.form]||1;
+    let v=(state.order[id]||0)+(+b.dataset.sd)*moq; if(v<0) v=0;
+    setQty(id,v); render(); renderSheet();
+  }));
+  body.querySelectorAll('[data-sq]').forEach(inp=>inp.addEventListener('change',()=>{
+    setQty(inp.dataset.sq,Math.max(0,Math.round(+inp.value||0))); render(); renderSheet();
+  }));
+
+  restoreForm();
+  const forget=document.getElementById('forgetBtn');
+  if(forget) forget.addEventListener('click',()=>{
+    formCache={};
+    try{ localStorage.removeItem(BUYER_KEY); }catch(e){}
+    renderSheet();
+  });
+  body.querySelectorAll('input,textarea,select').forEach(e=>{
+    if(FORM_IDS.includes(e.id)) e.addEventListener('input',grabForm);
+  });
+
+  const send=$('#sendBtn');
+  if(send) send.addEventListener('click',submitOrder);
+}
+
+/* ---------------- submit ---------------- */
+function submitOrder(){
+  const lines=orderLines();
+  if(!lines.length){ alert('Add at least one product before sending.'); return; }
+  const f=$('#orderForm');
+  const req=['f_co','f_nm','f_em','f_cn'];
+  let ok=true;
+  req.forEach(id=>{
+    const el=document.getElementById(id);
+    const bad=!el.value.trim() || (el.type==='email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value));
+    el.classList.toggle('al-err',bad); if(bad) ok=false;
+  });
+  $('#formErr').classList.toggle('is-on',!ok);
+  if(!ok){ f.querySelector('.al-err').focus(); return; }
+
+  const ref='ALR-'+String(Date.now()).slice(-6);
+  const order={
+    ref, at:new Date().toISOString(), status:'open',   // Shopify draft order state
+    company:$('#f_co').value.trim(), vat:$('#f_vat').value.trim(),
+    name:$('#f_nm').value.trim(), email:$('#f_em').value.trim(),
+    phone:$('#f_ph').value.trim(), country:$('#f_cn').value.trim(),
+    address:$('#f_ad').value.trim(), delivery:$('#f_dt').value,
+    btype:$('#f_ty').value, notes:$('#f_no').value.trim(),
+    units:totalUnits(),
+    lines:lines.map(l=>({id:l.p.id,title:l.p.title,form:l.p.form,material:l.p.material,
+                         symbols:l.p.symbols,qty:l.q,rrp:l.p.price,url:l.p.url,img:l.p.img[0]}))
+  };
+
+  try{
+    localStorage.setItem(BUYER_KEY,JSON.stringify({
+      f_co:order.company,f_vat:order.vat,f_nm:order.name,f_em:order.email,
+      f_ph:order.phone,f_cn:order.country,f_ad:order.address,f_ty:order.btype}));
+    localStorage.setItem(LAST_KEY,JSON.stringify(
+      order.lines.map(function(l){return {id:l.id,qty:l.qty};})));
+  }catch(e){}
+
+  let q=[];
+  try{ q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); }catch(e){}
+  q.unshift(order);
+  try{ localStorage.setItem(QUEUE_KEY,JSON.stringify(q)); }catch(e){}
+  if(chan) chan.postMessage({type:'new-order',order});
+
+  state.order={}; saveDraft(); render();
+  formCache={};
+
+  const body=$('#sheetBody'), ft=$('#sheetFt');
+  ft.style.display='none';
+  body.innerHTML=`
+    <div class="al-receipt">
+      <span class="al-glyph" id="rcGlyph" aria-hidden="true"></span>
+      <h3>Order request sent</h3>
+      <div class="al-ref">${ref}</div>
+      <p>${esc(order.company)} · ${order.lines.length} lines · ${order.units} units. The studio has the full order and will reply with a quote and lead time. A copy has gone to ${esc(order.email)}.</p>
+      <a class="al-btn" href="dashboard.html" target="_blank" rel="noopener" style="border-color:var(--ink);text-decoration:none;margin-top:6px">See how it reaches Alrún ↗</a>
+      <button class="al-clear" type="button" id="rcClose" style="margin-top:4px">Back to the register</button>
+    </div>`;
+  setGlyph($('#rcGlyph'),'Luck');
+  $('#rcClose').addEventListener('click',closeSheet);
+}
+
+/* ---------------- clear ---------------- */
+$('#clearBtn').addEventListener('click',()=>{
+  state.symbol=null; state.forms.clear(); state.mats.clear();
+  syncRail(); render();
+});
+
+/* ---------------- boot ---------------- */
+/* This page IS the wholesale line sheet, so it opens on trade. The shop lives on
+   index.html. ?mode=retail is kept only so a stockist can check retail prices. */
+const urlMode=new URLSearchParams(location.search).get('mode');
+if(urlMode==='trade'||urlMode==='retail'){ setMode(urlMode); }
+else{
+  try{ setMode('trade'); }
+  catch(e){ setMode('trade'); }
+}
+loadDraft();
+try{
+  const saved=JSON.parse(localStorage.getItem(BUYER_KEY)||'null');
+  if(saved) formCache=Object.assign({},saved);
+}catch(e){}
+buildRail(); buildChips(); buildMatrix(); render();
+})();
+</script>
+</body>
+</html>
