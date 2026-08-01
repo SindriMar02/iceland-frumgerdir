@@ -216,11 +216,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ax-intro-bg{
   position:absolute;inset:0;background:var(--ink-2);overflow:hidden;
   clip-path:inset(0);
-  /* two overlapping moves, not one then the other: the black contracts onto the
-     frame while it simultaneously dissolves, so the film develops through it
-     instead of being revealed by a cut when the element is removed */
-  transition:clip-path 1.5s cubic-bezier(.62,0,.18,1),
-             opacity 1.05s cubic-bezier(.4,0,.5,1) .55s;
+  /* SEQUENCED, not overlapped: the black square first travels all the way to
+     the frame and settles, and only then does it dissolve into the picture.
+     The 1.3s delay on opacity is the 1.2s contraction plus a beat of stillness,
+     so the film never appears while the box is still moving. */
+  transition:clip-path 1.2s cubic-bezier(.62,0,.2,1),
+             opacity .95s cubic-bezier(.4,0,.5,1) 1.3s;
 }
 /* the four insets are measured onto the hero's film frame, so the black of the
    loading screen contracts until it IS the film: no cut, no cross-fade, the
@@ -240,7 +241,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
      fill-mode forwards outranks a transition on the same property and the
      cream wordmark would otherwise hold at full opacity and then vanish
      with the element: exactly the snap this is meant to avoid */
-  transition:opacity .9s cubic-bezier(.4,0,.5,1);
 }
 /* it hands over to the hero copy underneath, which occupies the same pixels */
 
@@ -286,22 +286,29 @@ html.ax-nointro .ax-intro{display:none}
   will-change:transform;
 }
 .ax-hero-fig{position:absolute;inset:0;overflow:hidden}
-.ax-hero-fig img,.ax-hero-fig canvas{
+.ax-hero-fig img{
   display:block;width:100%;height:112%;object-fit:cover;object-position:50% 45%;
   transform:translate3d(0,var(--heroPar,0px),0);
 }
-.ax-hero-fig canvas{height:100%}
-/* The canvas is what you SEE, because blend modes are silently ignored over
-   WebKit's composited video layer while a canvas blends reliably (ledger #18).
-   But the video must still be genuinely rendered at full size underneath it:
-   Chrome refuses to autoplay a video it considers not visible, so hiding it
-   with opacity:0 or a 1px box stops playback dead on a real browser. It is
-   simply covered by the opaque canvas instead. */
+/* THE VIDEO IS THE VISIBLE FILM. Nothing hides it and nothing covers it, so
+   there is no way for a browser to decide it is off-screen and refuse to
+   autoplay it. That was the bug: occluding it with an opaque canvas.
+
+   The inversion is done the other way round instead. A second canvas sits over
+   the frame carrying a copy of the same film, CSS-inverted, and is masked by
+   the wordmark. So inside the frame the letters read as the inverse of the
+   picture, and outside it the ink copy shows on the paper. No blend mode over
+   a video anywhere, which is what WebKit ignores (ledger #18). */
 .ax-hero-fig video{
   position:absolute;inset:0;width:100%;height:112%;object-fit:cover;
-  object-position:50% 45%;z-index:1;pointer-events:none;
+  object-position:50% 45%;z-index:1;
 }
-.ax-hero-fig canvas{position:absolute;inset:0;z-index:2}
+.ax-hero-invert{
+  position:absolute;inset:0;width:100%;height:112%;z-index:2;
+  filter:invert(1);pointer-events:none;
+  -webkit-mask:url('img/brand/logo-wordmark.svg') no-repeat center center/var(--wmw,760px) auto;
+          mask:url('img/brand/logo-wordmark.svg') no-repeat center center/var(--wmw,760px) auto;
+}
 .ax-hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,4,3,.1) 0%,rgba(5,4,3,0) 45%,rgba(5,4,3,.22) 100%);pointer-events:none}
 .ax-hero-grain{
   position:absolute;inset:-60px;pointer-events:none;opacity:.3;mix-blend-mode:overlay;
@@ -314,21 +321,27 @@ html.ax-nointro .ax-intro{display:none}
 .ax-hero-word{
   position:absolute;top:50%;left:50%;
   width:min(760px,54vw);aspect-ratio:408/118;
-  margin:0;pointer-events:none;z-index:3;
-  background-color:#fff;
+  margin:0;pointer-events:none;z-index:1;
+  background-color:var(--ink);
   -webkit-mask:url('img/brand/logo-wordmark.svg') no-repeat center/contain;
           mask:url('img/brand/logo-wordmark.svg') no-repeat center/contain;
-  mix-blend-mode:difference;
   /* the word lifts and grows a little as the film sinks away beneath it */
   transform:translate(-50%,-50%) translate3d(0,calc(var(--hp,0)*-58px),0) scale(calc(1 + var(--hp,0)*.06));
   will-change:transform;
 }
 /* no blending available, or motion turned down: a flat cream wordmark still
    reads over the film */
-.ax-hero-word--fallback{mix-blend-mode:normal;background-color:var(--cream)}
-@supports not (mix-blend-mode:difference){
-  .ax-hero-word{mix-blend-mode:normal;background-color:var(--cream)}
+
+/* bare text links: a hairline that retracts to the right */
+.ax-lnk{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  text-decoration:none;position:relative;padding-bottom:6px;
 }
+.ax-lnk::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;
+  transform:scaleX(1);transform-origin:left;transition:transform .45s var(--ease);
+}
+.ax-lnk:hover::after,.ax-lnk:focus-visible::after{transform:scaleX(0);transform-origin:right}
 .ax-hero-meta{
   position:absolute;left:0;right:0;bottom:clamp(18px,4vh,44px);z-index:4;
   display:flex;flex-wrap:wrap;gap:14px 30px;align-items:center;justify-content:center;
@@ -761,7 +774,7 @@ html.ax-nointro .ax-intro{display:none}
       <span class="ax-eyebrow">Nordic bindrune jewelry and home décor · Reykjavík</span>
       <div class="ax-hero-media" id="heroMedia">
         <figure class="ax-hero-fig">
-          <canvas id="heroCanvas" aria-hidden="true"></canvas>
+          <canvas id="heroInvert" class="ax-hero-invert" aria-hidden="true"></canvas>
           <img id="heroPoster" src="img/brand/hero-poster.jpg" alt="Alrún pieces in Iceland: basalt columns, silver pendants on driftwood, wool blankets on the coast." hidden>
           <video id="heroFilm" autoplay muted loop playsinline preload="auto" tabindex="-1"
                  poster="img/brand/hero-poster.jpg" aria-hidden="true">
@@ -1212,14 +1225,34 @@ bagPaint();
    aperture while the word rises and opens its tracking, so the hero comes
    apart as you leave it. */
 (function(){
-  const v = $('#heroFilm'), cv = $('#heroCanvas'), poster = $('#heroPoster');
+  const v = $('#heroFilm'), cv = $('#heroInvert'), poster = $('#heroPoster');
   const media = $('#heroMedia'), word = $('#h1'), stage = $('#heroStage');
   if(!v || !cv) return;
 
+  /* keep the wordmark mask on the invert canvas the same size as the ink copy */
+  function syncMask(){
+    const r = word.getBoundingClientRect();
+    if(r.width) cv && cv.style.setProperty('--wmw', r.width + 'px');
+  }
+  syncMask();
+  addEventListener('resize', syncMask);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(syncMask);
+
   if(REDUCE){
-    cv.remove(); poster.hidden = false;
-    word.classList.add('ax-hero-word--fallback');
+    /* no motion: the poster stands in, and the invert canvas paints it once so
+       the letters still read as the inverse inside the frame */
+    poster.hidden = false;
     try{ v.pause(); }catch(e){}
+    const ctxS = cv.getContext('2d');
+    const paintOnce = function(){
+      const r = media.getBoundingClientRect(), dpr = Math.min(devicePixelRatio||1,2);
+      cv.width = Math.max(2, Math.round(r.width*dpr)); cv.height = Math.max(2, Math.round(r.height*1.12*dpr));
+      const iw = poster.naturalWidth, ih = poster.naturalHeight;
+      if(!iw) return;
+      const sc = Math.max(cv.width/iw, cv.height/ih);
+      ctxS.drawImage(poster, (cv.width-iw*sc)/2, (cv.height-ih*sc)/2, iw*sc, ih*sc);
+    };
+    if(poster.complete) paintOnce(); else poster.addEventListener('load', paintOnce, {once:true});
   }else{
     const ctx = cv.getContext('2d', {alpha:false});
     let onScreen = true;
@@ -1237,7 +1270,7 @@ bagPaint();
       const r = media.getBoundingClientRect();
       const dpr = Math.min(devicePixelRatio || 1, 2);
       cv.width  = Math.max(2, Math.round(r.width  * dpr));
-      cv.height = Math.max(2, Math.round(r.height * dpr));
+      cv.height = Math.max(2, Math.round(r.height * 1.12 * dpr));
     }
     size();
     addEventListener('resize', size);
@@ -1250,11 +1283,11 @@ bagPaint();
       if(!vw || !vh) return;
       /* overscale before biasing the crop, or the bias exposes an unpainted
          strip at the top of the frame and it renders as a black band */
-      const scale = Math.max(cw/vw, ch/vh) * 1.1;
+      /* mirror exactly what the <video> beneath is showing: same cover fit,
+         same object-position, so the inverted letters line up with the picture */
+      const scale = Math.max(cw/vw, ch/vh);
       const dw = vw*scale, dh = vh*scale;
-      const bias = ch*0.05;
-      const dy = Math.min(0, Math.max(ch-dh, (ch-dh)/2 + bias));
-      ctx.drawImage(v, (cw-dw)/2, dy, dw, dh);
+      ctx.drawImage(v, (cw-dw)/2, (ch-dh)*0.45, dw, dh);
     }
     requestAnimationFrame(paint);
   }
@@ -1343,23 +1376,34 @@ bagPaint();
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(pin);
   requestAnimationFrame(pin);
 
+  /* run ONCE. The failsafe timer below calls this too, and a second pass was
+     resetting the wordmark's opacity back to 1 mid-fade and cancelling the
+     transition, which is what froze it partway. */
+  let handed = false;
   const hand = function(){
-    if(!document.body.contains(intro)) return;
+    if(handed || !document.body.contains(intro)) return;
+    handed = true;
     pin();
     intro.setAttribute('data-done','');
     /* release the entrance animation's hold, then let the transition carry the
        cream copy out while the inverted hero copy is already painting beneath */
     mark.style.animation = 'none';
+    mark.style.transition = 'none';
     mark.style.opacity = '1';
-    requestAnimationFrame(function(){
+    /* the fade is timed here rather than with a CSS transition-delay: a delayed
+       transition on this element was being interrupted partway and freezing the
+       wordmark at ~0.93. Wait out the contraction, THEN arm the transition and
+       flip in the next frame, so it always runs to completion. */
+    setTimeout(function(){
+      mark.style.transition = 'opacity .95s cubic-bezier(.4,0,.5,1)';
       requestAnimationFrame(function(){ mark.style.opacity = '0'; });
-    });
+    }, 1300);
     /* the ground fades over .9s; the loader copy of the wordmark fades a beat
        later so the hero copy is already painting beneath it */
-    setTimeout(function(){ intro.remove(); removeEventListener('resize', pin); }, 1750);
+    setTimeout(function(){ intro.remove(); removeEventListener('resize', pin); }, 2900);
   };
-  setTimeout(hand, 1850);
-  setTimeout(hand, 3400);   /* failsafe: never hold the page longer than this */
+  setTimeout(hand, 1500);
+  setTimeout(hand, 3000);   /* failsafe: never hold the page longer than this */
 })();
 
 /* ---------- the twelve marks: hover index ---------- */
