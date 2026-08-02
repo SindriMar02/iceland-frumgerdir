@@ -4381,3 +4381,18 @@ PREVIEW_COMPANIES.push(FOSSATUN_ENTRY)
 
 import { HOFDABILAR_ENTRY } from './hofdabilar/data'
 PREVIEW_COMPANIES.push(HOFDABILAR_ENTRY)
+
+import { companyEntry as LAXA_ENTRY } from './laxa/data'
+PREVIEW_COMPANIES.push(LAXA_ENTRY)
+
+import { companyEntry as HUSAVIK_ENTRY } from './husavik/data'
+PREVIEW_COMPANIES.push(HUSAVIK_ENTRY)
+
+import { companyEntry as WESTFJORDS_ENTRY } from './westfjords/data'
+PREVIEW_COMPANIES.push(WESTFJORDS_ENTRY)
+
+import { companyEntry as LISTAK_ENTRY } from './listak/data'
+PREVIEW_COMPANIES.push(LISTAK_ENTRY)
+
+import { companyEntry as MINJASAFN_ENTRY } from './minjasafn/data'
+PREVIEW_COMPANIES.push(MINJASAFN_ENTRY)
