@@ -4371,3 +4371,9 @@ PREVIEW_COMPANIES.push(FOSSATUN_ENTRY)
 
 import { HOFDABILAR_ENTRY } from './hofdabilar/data'
 PREVIEW_COMPANIES.push(HOFDABILAR_ENTRY)
+
+import { companyEntry as LAXA_ENTRY } from './laxa/data'
+PREVIEW_COMPANIES.push(LAXA_ENTRY)
+
+import { companyEntry as WESTFJORDS_ENTRY } from './westfjords/data'
+PREVIEW_COMPANIES.push(WESTFJORDS_ENTRY)
