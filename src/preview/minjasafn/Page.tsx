@@ -6,7 +6,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  ADMISSION, CONTACT, EXHIBITIONS, GRIPIR, HOURS, IMG, JSON_LD, LENS, LINKS, META,
+  ADMISSION, CONTACT, CONTACT_SHEET, EXHIBITIONS, GRIPIR, HOURS, IMG, JSON_LD, LINKS, META,
   PROJECTS, STRATA, TIMELINE, openState,
 } from './data'
 import type { OpenState } from './data'
@@ -124,14 +124,9 @@ const CSS = `
     font-weight: 400; font-style: normal; font-display: swap;
   }
 
-  /* registered custom properties: --mj-clip is the ONLY thing a peel ever
-     animates (never a translated duplicate), and the lens coordinates are
-     lengths so the mask gradient and the ring can both calc() off them from
-     a single write on the stage element */
+  /* registered custom property: --mj-clip is the ONLY thing a peel ever
+     animates (never a translated duplicate) */
   @property --mj-clip { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
-  @property --mj-lx { syntax: '<length>'; inherits: true; initial-value: 0px; }
-  @property --mj-ly { syntax: '<length>'; inherits: true; initial-value: 0px; }
-  @property --mj-lr { syntax: '<length>'; inherits: true; initial-value: 160px; }
 
   .mj-page { overflow-x: clip; }
   .mj-page ::selection { background: ${SIENNA_DEEP}; color: ${TEXT}; }
@@ -381,66 +376,65 @@ const CSS = `
     }
   }
 
-  /* ── 80.000 MYNDIR: the excavation lens. A soot surface masked by a soft
-     radial aperture that follows the pointer; underneath, real photographs
-     of the museum's work. Pointer path and touch path are the SAME markup,
-     re-laid out by the media query below. ── */
-  .mj-lens {
-    position: relative; overflow: hidden;
-    height: clamp(420px, 62svh, 700px);
-    --mj-lr: clamp(120px, 15vw, 210px);
-    border: 1px solid ${HAIR};
+  /* ── 80.000 MYNDIR: the archive contact sheet. A physical sheet of frames
+     on a light table: sheet edge, header strip, an even block of frames
+     separated by sienna hairlines, a sequence number under every frame, and
+     a foot that carries the honesty line. NOTHING is ever hidden — every
+     frame is legible at rest, on every device, with scripts dead. Hover or
+     keyboard focus lifts exactly ONE frame off the sheet and clears its
+     desaturation; the other ten do not dim. ── */
+  .mj-cs { border: 1px solid ${HAIR}; background: ${GROUND}; }
+  .mj-cs-head, .mj-cs-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px 24px; flex-wrap: wrap;
+    padding: 13px clamp(14px, 2vw, 22px);
   }
-  .mj-lens-mosaic {
-    position: absolute; inset: 0; display: grid; gap: 2px;
-    grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr);
+  .mj-cs-head { border-bottom: 1px solid ${HAIR}; }
+  .mj-cs-foot { border-top: 1px solid ${HAIR}; }
+  /* the frame block. The 1px grid gaps ARE the sheet's separations: the
+     hairline tint sits on the container and the cells paint over it. */
+  .mj-cs-grid {
+    display: grid; gap: 1px; background: ${HAIR_STRONG};
+    border: 1px solid ${HAIR_STRONG};
+    grid-template-columns: repeat(2, 1fr);
+    margin: clamp(14px, 2vw, 22px);
   }
-  .mj-lens-mosaic figure { position: relative; overflow: hidden; margin: 0; }
-  .mj-lens-mosaic .mj-lens-wide { grid-column: span 2; }
-  .mj-lens-mosaic img {
+  @media (min-width: 640px) { .mj-cs-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1024px) { .mj-cs-grid { grid-template-columns: repeat(4, 1fr); } }
+  .mj-cs-cell {
+    position: relative; margin: 0; background: ${GROUND};
+    padding: 10px 10px 9px;
+  }
+  .mj-cs-frame {
+    transition: transform .5s ${EASE}, background .35s ease;
+    outline-offset: 2px;
+  }
+  .mj-cs-media { position: relative; overflow: hidden; aspect-ratio: 4 / 3; }
+  .mj-cs-media img {
     display: block; width: 100%; height: 100%; object-fit: cover;
     filter: saturate(.55) contrast(1.03) brightness(.92);
+    transition: filter .5s ease;
   }
-  .mj-lens-soot {
-    display: none; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-    background: linear-gradient(180deg, #1A1610 0%, #16130F 46%, #221A11 100%);
-    transition: opacity .6s ${EASE};
-    -webkit-mask-image: radial-gradient(circle at var(--mj-lx) var(--mj-ly),
-      transparent 0px, transparent calc(var(--mj-lr) * .5), #000 var(--mj-lr));
-    mask-image: radial-gradient(circle at var(--mj-lx) var(--mj-ly),
-      transparent 0px, transparent calc(var(--mj-lr) * .5), #000 var(--mj-lr));
+  .mj-cs-no { display: block; margin-top: 9px; transition: color .35s ease; }
+  /* a real sheet runs out of exposures before it runs out of grid: the last
+     rebate stays empty rather than being padded with a repeated picture */
+  /* opaque on purpose: the grid's hairline tint is the CONTAINER background,
+     so a translucent fill here would let the full sienna through and the
+     empty rebate would read as a painted block */
+  .mj-cs-blank {
+    background-color: ${GROUND};
+    background-image: linear-gradient(rgba(156,99,70,.05), rgba(156,99,70,.05));
   }
-  .mj-lens-soot::before {
-    content: ''; position: absolute; inset: 0;
-    background-image: ${GRAIN}; opacity: .2;
-  }
-  .mj-js .mj-lens-soot { display: block; }
-  .mj-lens-ring {
-    display: none; position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none;
-    width: calc(var(--mj-lr) * 2); height: calc(var(--mj-lr) * 2);
-    border-radius: 50%; border: 1px solid ${HAIR_STRONG};
-    transform: translate3d(calc(var(--mj-lx) - var(--mj-lr)), calc(var(--mj-ly) - var(--mj-lr)), 0);
-    will-change: transform; transition: opacity .5s ease;
-  }
-  .mj-js .mj-lens-ring { display: block; }
-  .mj-lens-hint { transition: opacity .5s ease; }
-  .mj-lens.is-open .mj-lens-soot, .mj-lens.is-open .mj-lens-ring { opacity: 0; }
 
-  /* touch / coarse pointer: there is no lens without a pointer, so the same
-     photographs become an honest scrolling strip and the soot never renders */
-  @media (hover: none), (pointer: coarse) {
-    .mj-lens { height: auto; overflow: visible; border: 0; }
-    .mj-lens-soot, .mj-lens-ring, .mj-lens-hint, .mj-lens-btn { display: none !important; }
-    .mj-lens-mosaic {
-      position: static; display: flex; gap: 12px;
-      overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 14px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-color: ${SIENNA_DEEP} rgba(237,230,218,.08); scrollbar-width: thin;
-    }
-    .mj-lens-mosaic figure {
-      flex: 0 0 auto; width: clamp(220px, 62vw, 300px); aspect-ratio: 4 / 3;
-      scroll-snap-align: start; border: 1px solid ${HAIR};
-    }
+  /* the single-state lift. No shadow anywhere: this page separates with
+     hairlines and scale alone. */
+  .mj-cs-frame:focus-visible { transform: scale(1.05); z-index: 2; }
+  .mj-cs-frame:focus-visible .mj-cs-media img { filter: saturate(.92) contrast(1.03) brightness(1); }
+  .mj-cs-frame:focus-visible .mj-cs-no { color: ${TEXT} !important; }
+  @media (hover: hover) and (pointer: fine) {
+    .mj-cs-frame:hover { transform: scale(1.05); z-index: 2; }
+    .mj-cs-frame:hover .mj-cs-media img { filter: saturate(.92) contrast(1.03) brightness(1); }
+    .mj-cs-frame:hover .mj-cs-no { color: ${TEXT} !important; }
   }
 
   @keyframes mj-cue-drop {
@@ -478,9 +472,9 @@ const CSS = `
     .mj-js .mj-tl-rule, .mj-tl-rule { transform: none !important; clip-path: none !important; }
     .mj-ap { clip-path: none !important; }
     .mj-cue-line { animation: none !important; }
-    /* the lens is pointer-driven by definition: its resting state is simply
-       the photographs, uncovered, with no soot and no ring */
-    .mj-lens-soot, .mj-lens-ring, .mj-lens-hint, .mj-lens-btn { display: none !important; }
+    /* the contact sheet already rests fully resolved: every frame visible,
+       every number legible. Only the lift stops travelling to its end state. */
+    .mj-cs-frame, .mj-cs-media img, .mj-cs-no { transition: none !important; }
     /* the core sample rests fully drawn, every band and every stop set */
     .mj-js .mj-tl-dot { background: ${SIENNA} !important; }
     /* hover vocabulary keeps its end states but stops travelling to them */
@@ -1450,86 +1444,28 @@ function SectionArchive() {
   )
 }
 
-/* ── 5b · UNDIR YFIRBORÐINU — the excavation lens ────────────────────────
-   The signature set-piece. A soot surface lies over a mosaic of the museum's
-   own photographs; a soft aperture follows the pointer and takes the soot
-   off wherever the visitor "digs". Pure CSS mask-image (radial-gradient)
-   whose centre is two registered <length> custom properties written from
-   the shared rAF loop. No WebGL, no library, no per-frame React.
+/* ── 5b · UNDIR YFIRBORÐINU — the archive contact sheet ──────────────────
+   The lens that used to live here failed on its own argument twice: it hid
+   the very photographs the section exists to show, and it re-buried them the
+   instant the pointer left, while every other reveal on this page digs ONCE
+   and stays dug. Replaced with the thing a photographic archive actually
+   makes: a contact sheet. Sheet edge, header strip, an even block of frames
+   on sienna hairlines, a sequence number under each, a foot line.
 
-   HONESTY, stated on the page and enforced here: these are the museum's own
-   photographs of its work, events and exhibitions. They are NOT the
-   digitised Ljósmyndasafn Austurlands, which is not published on the web.
-   The copy says so in as many words, and the photographs are shown with the
-   page's ordinary desaturation, never aged or sepia-toned into looking like
-   archive material they are not.
+   Every frame is visible at rest, at every width, with scripts dead and
+   under prefers-reduced-motion. There is no JS in this section at all: the
+   one interactive state is a CSS lift on :hover (gated behind a fine
+   pointer) mirrored exactly on :focus-visible, so a keyboard user gets the
+   same frame and a touch user simply gets the whole sheet.
 
-   Three paths to the same twelve pictures:
-   · pointer  — the lens
-   · touch    — the identical markup re-laid out as a native scrolling strip
-                by the (hover: none), (pointer: coarse) branch; soot never
-                renders, so nothing is ever hidden behind an absent pointer
-   · keyboard — a real button that lifts the soot entirely ── */
-function SectionLens() {
-  const stage = useRef<HTMLDivElement>(null)
-  const hint = useRef<HTMLParagraphElement>(null)
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    const el = stage.current
-    if (!el) return
-    if (reduced()) return
-    /* the lens is a pointer device: on coarse pointers the CSS branch has
-       already turned this into a strip, so no job and no listeners at all */
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-
-    /* viewport coords only — the rect read happens in the batched read phase */
-    const ptr = { x: -1, y: -1 }
-    let moved = false
-    const cur = { x: -1, y: -1 }
-
-    const onMove = (e: PointerEvent) => {
-      ptr.x = e.clientX
-      ptr.y = e.clientY
-      moved = true
-    }
-    const onLeave = () => {
-      ptr.x = -1
-      ptr.y = -1
-    }
-    el.addEventListener('pointermove', onMove, { passive: true })
-    el.addEventListener('pointerleave', onLeave, { passive: true })
-
-    const stop = addJob((vh) => {
-      const r = el.getBoundingClientRect()
-      if (r.bottom < -40 || r.top > vh + 40) return
-      /* resting target: slightly above centre, so the still frame already
-         shows that there is something under the soot */
-      const tx = ptr.x < 0 ? r.width * 0.5 : ptr.x - r.left
-      const ty = ptr.y < 0 ? r.height * 0.44 : ptr.y - r.top
-      if (cur.x < 0) {
-        cur.x = tx
-        cur.y = ty
-      }
-      cur.x += (tx - cur.x) * 0.16
-      cur.y += (ty - cur.y) * 0.16
-      const x = cur.x.toFixed(1)
-      const y = cur.y.toFixed(1)
-      const hintOpacity = moved ? '0' : '1'
-      return () => {
-        el.style.setProperty('--mj-lx', `${x}px`)
-        el.style.setProperty('--mj-ly', `${y}px`)
-        if (hint.current) hint.current.style.opacity = hintOpacity
-      }
-    })
-
-    return () => {
-      stop()
-      el.removeEventListener('pointermove', onMove)
-      el.removeEventListener('pointerleave', onLeave)
-    }
-  }, [])
-
+   HONESTY, stated in the copy AND on the foot of the sheet: these are the
+   museum's own photographs of its work, events and exhibitions. They are NOT
+   the digitised Ljósmyndasafn Austurlands, which is not published on the
+   web. The photographs keep the page's ordinary desaturation, never aged or
+   sepia-toned into looking like archive material they are not, and the
+   numbers 01..11 are sheet positions, not accession numbers. ── */
+function SectionContactSheet() {
+  const micro = { fontFamily: DISPLAY, fontWeight: 500, color: MUT } as const
   return (
     <section id="undir-yfirbordinu" className="pb-20 md:pb-28" style={{ background: GROUND_DEEP }}>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -1550,52 +1486,47 @@ function SectionLens() {
           </Reveal>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 md:mt-10">
-          <p
-            ref={hint}
-            className="mj-lens-hint text-[12px] uppercase tracking-[0.16em]"
-            style={{ fontFamily: DISPLAY, fontWeight: 500, color: MUT }}
-          >
-            Færðu bendilinn yfir flötinn
-          </p>
-          <button
-            type="button"
-            className="mj-lens-btn mj-cta rounded-full px-5 text-[12px] uppercase tracking-[0.08em]"
-            style={{
-              fontFamily: DISPLAY, fontWeight: 500, border: `1px solid ${HAIR_STRONG}`,
-              color: TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center',
-            }}
-            aria-pressed={open}
-            aria-controls="mj-lens-stage"
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? 'Hylja flötinn aftur' : 'Sýna allar myndirnar'}
-          </button>
-        </div>
+        <Reveal className="mt-9 md:mt-12">
+          <div className="mj-cs">
+            <div className="mj-cs-head">
+              <span className="text-[11px] uppercase tracking-[0.16em]" style={micro}>
+                Myndaörk · Starf, viðburðir og sýningar
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.16em]" style={{ ...micro, color: SIENNA }}>
+                {CONTACT_SHEET.length} myndir
+              </span>
+            </div>
 
-        <div
-          id="mj-lens-stage"
-          ref={stage}
-          className={`mj-lens mt-4 ${open ? 'is-open' : ''}`}
-        >
-          <div
-            className="mj-lens-mosaic"
-            role="region"
-            aria-label="Myndir úr starfi Minjasafns Austurlands, skrunaðu til hliðar á snertiskjá"
-            tabIndex={0}
-          >
-            {/* eleven pictures in a twelve-cell grid: the first takes a double
-                cell, which fills the grid exactly and breaks the uniform tile
-                field. Ignored by the touch branch, which is a flex strip. */}
-            {LENS.map((p, i) => (
-              <figure key={p.src} className={i === 0 ? 'mj-lens-wide' : undefined}>
-                <img src={p.src} alt={p.alt} loading="lazy" decoding="async" />
-              </figure>
-            ))}
+            <div
+              className="mj-cs-grid"
+              role="group"
+              aria-label="Myndaörk með ellefu ljósmyndum úr starfi Minjasafns Austurlands"
+            >
+              {CONTACT_SHEET.map((p, i) => (
+                <figure key={p.src} className="mj-cs-cell mj-cs-frame" tabIndex={0}>
+                  <div className="mj-cs-media">
+                    <img src={p.src} alt={p.alt} loading="lazy" decoding="async" />
+                  </div>
+                  <figcaption className="mj-cs-no text-[11px] uppercase tracking-[0.16em]" style={micro}>
+                    {String(i + 1).padStart(2, '0')}
+                  </figcaption>
+                </figure>
+              ))}
+              {/* the empty rebate that finishes the block: eleven exposures in
+                  a twelve-cell sheet, never a repeated picture as filler */}
+              <div className="mj-cs-cell mj-cs-blank" aria-hidden />
+            </div>
+
+            <div className="mj-cs-foot">
+              <span className="text-[11px] uppercase tracking-[0.16em]" style={micro}>
+                Myndir: Minjasafn Austurlands
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.16em]" style={micro}>
+                Ekki úr Ljósmyndasafni Austurlands
+              </span>
+            </div>
           </div>
-          <div className="mj-lens-soot" aria-hidden />
-          <div className="mj-lens-ring" aria-hidden />
-        </div>
+        </Reveal>
       </div>
     </section>
   )
@@ -1993,7 +1924,7 @@ export default function Page() {
         <SectionExhibitions />
         <SectionGripur />
         <SectionArchive />
-        <SectionLens />
+        <SectionContactSheet />
         <SectionSaga />
         <SectionProjects />
         <SectionLearning />

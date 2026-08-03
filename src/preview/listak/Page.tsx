@@ -530,7 +530,7 @@ function useStopHover(ref: React.RefObject<HTMLElement | null>) {
    value: a flat inset is silently wrong at drift 12+, where the image runs
    out of overhang and its own edge slides into frame. */
 function DriftFrame({
-  src, srcSet, sizes, alt, drift = 9, className = '', style, eager = false,
+  src, srcSet, sizes, alt, drift = 9, className = '', style, eager = false, w, h,
 }: {
   src: string
   srcSet?: string
@@ -540,6 +540,9 @@ function DriftFrame({
   className?: string
   style?: React.CSSProperties
   eager?: boolean
+  /** intrinsic pixels of `src`, declared so nothing shifts before decode */
+  w?: number
+  h?: number
 }) {
   const inner = useRef<HTMLDivElement>(null)
   useDriftNode(inner)
@@ -555,6 +558,8 @@ function DriftFrame({
           src={src}
           srcSet={srcSet}
           sizes={sizes}
+          width={w}
+          height={h}
           alt={alt}
           loading={eager ? 'eager' : 'lazy'}
           decoding="async"
@@ -691,6 +696,12 @@ const CSS = `
   .lk-frame { position: relative; overflow: hidden; width: 100%; }
   .lk-frame-in { position: absolute; inset: calc(var(--dz, 9%) * -1) 0; will-change: transform; }
   .lk-frame-in > img { width: 100%; height: 100%; object-fit: cover; }
+  /* A drift frame paints its image at ~1.42x its own box width: the --dz
+     overhang makes the cover box 1.243x taller than the frame, and the
+     corridor parallax scales the <img> a further 1.14x. --lk-fh is the frame
+     height at which that product lands exactly on the file's intrinsic width,
+     so a tall screen can never make the big panels outrun their own pixels. */
+  .lk-stop-frame { max-height: var(--lk-fh, none); max-width: var(--lk-fw, none); }
 
   /* ── reveals: resting state under reduced motion is fully visible ── */
   @keyframes lk-rise {
@@ -806,6 +817,32 @@ const CSS = `
   .lk-hint { display: none; }
   .lk-track-tail { display: none; }
 
+  /* ── MOUNTED PLATES — the resolution rule, expressed in CSS ─────────────
+     Six of the nine exhibition images the museum publishes are small; several
+     are screenshots they uploaded to their own site and nothing larger exists
+     anywhere. So a plate is sized from the FILE, never from the panel:
+       --lk-pw  0.8x the file's true intrinsic width  (the outer ceiling)
+       --lk-ar  the file's aspect ratio               (w / h, unitless)
+     and on the desktop corridor a viewport-height term keeps the whole
+     wall-label composition inside one 100svh panel. Nothing may raise these:
+     an image is never drawn wider than its own pixels. */
+  .lk-platefig {
+    margin: 0; display: flex; flex-direction: column; align-items: flex-start;
+    gap: 10px; order: -1;
+  }
+  .lk-plate {
+    width: min(var(--lk-pw), 100%);
+    padding: 10px; background: #FFFFFF; border: 1px solid ${ACCENT};
+  }
+  .lk-plate > img { display: block; width: 100%; height: auto; }
+  .lk-platecap {
+    margin: 0; font-family: ${DISPLAY}; font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: ${MUT};
+  }
+  .lk-labelgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .lk-labelcol { display: flex; flex-direction: column; gap: 8px; }
+  .lk-labelrule { height: 1px; width: 100%; background: ${ACCENT}; }
+
   @media (min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
     .lk-journey { height: 100svh; overflow: hidden; }
     .lk-track {
@@ -829,6 +866,12 @@ const CSS = `
     .lk-stop-std { width: 56vw; }
     .lk-stop-wide { width: 76vw; }
     .lk-stop-plate { width: 56vw; }
+    /* the wall-label panels are the WIDEST stops and carry the SMALLEST
+       images: the ground around a modest reproduction is the composition */
+    .lk-stop-small { width: 66vw; }
+    .lk-labelgrid { grid-template-columns: minmax(180px, 1fr) auto; gap: 3vw; align-items: end; }
+    .lk-platefig { order: 0; }
+    .lk-plate { width: min(var(--lk-pw), 36vw, calc(46svh * var(--lk-ar))); }
     .lk-stop-frame { height: 50svh; width: auto; }
     .lk-stop-wide .lk-stop-frame { height: 56svh; }
     .lk-stop-frame > .lk-frame-in > img { will-change: transform; }
@@ -912,6 +955,12 @@ const CSS = `
     .lk-stop-plate figure img { transition: transform .55s ${EASE}; }
     .lk-stop-plate:hover figure img,
     .lk-stop-plate:focus-within figure img { transform: scale(1.03); }
+    /* the wall-label plates get NO image transform: a reproduction sized to
+       its own pixels must not be scaled past them by a hover. The catalogue
+       caption carries the state instead. */
+    .lk-stop-small .lk-platecap { transition: color .5s ${EASE}; }
+    .lk-stop-small:hover .lk-platecap,
+    .lk-stop-small:focus-within .lk-platecap { color: ${ACCENT_DEEP}; }
 
     .lk-hall:hover { border-color: ${ACCENT}; }
 
@@ -1011,7 +1060,7 @@ const CSS = `
     .lk-nav::after, .lk-flink::after, .lk-card::after { transition: none !important; }
     .lk-card .lk-row-arrow, .lk-play { transition: none !important; }
     .lk-stop-artist, .lk-stop-hov .lk-chip-accent, .lk-stop-plate figure img,
-    .lk-hall, .lk-hall-n, .lk-hall-t, .lk-showrow, .lk-planpin {
+    .lk-platecap, .lk-hall, .lk-hall-n, .lk-hall-t, .lk-showrow, .lk-planpin {
       transition: none !important;
     }
     .lk-stop-hov:hover .lk-stop-artist,
@@ -1148,6 +1197,8 @@ function Hero({ status }: { status: OpenStatus | null }) {
       <div className="lk-hero-photo">
         <DriftFrame
           src={IMG('show-zimoun.jpg')}
+          w={1300}
+          h={867}
           alt="Hljóðinnsetning eftir ZIMOUN í sölum 10 og 11: skúlptúrar úr ljósum viði í hvítum sal"
           drift={13}
           className="h-full"
@@ -1275,12 +1326,35 @@ function StopChips({ show }: { show: Show }) {
   )
 }
 
+/* THE RESOLUTION RULE, in one place: the layout each show gets is decided by
+   how many pixels its photograph actually has, never the other way round.
+
+   'full'  (zimoun 1300, eirikur 1400, kristin 1400) keep the big drift frame.
+           --lk-fh caps the frame height so the frame's ~1.42x draw factor
+           (cover overhang x parallax scale) lands inside the file.
+   'small' (fugl 702, magnus 782, ulfur 789, silica 804, hughrif 822) become a
+           wall-label composition: a mounted reproduction at roughly 0.6x to
+           0.8x of its own pixels, generous ground, and the type carrying the
+           panel. This is how a gallery presents a modest reproduction.
+   'mini'  (katrín 250) stays the small mounted plate under a huge title. */
+function plateVars(show: Show): React.CSSProperties {
+  return {
+    ['--lk-pw' as string]: `${Math.round(show.natW * 0.8)}px`,
+    ['--lk-ar' as string]: String(+(show.natW / show.natH).toFixed(4)),
+  }
+}
+
 function Stop({ show, index }: { show: Show; index: number }) {
   const ref = useRef<HTMLElement>(null)
   useStopHover(ref)
   const n = String(index + 1).padStart(2, '0')
   const layoutClass =
-    show.layout === 'wide' ? 'lk-stop-wide' : show.layout === 'plate' ? 'lk-stop-plate' : 'lk-stop-std'
+    show.plate === 'full'
+      ? show.layout === 'wide' ? 'lk-stop-wide' : 'lk-stop-std'
+      : show.plate === 'mini'
+        ? 'lk-stop-plate'
+        : 'lk-stop-small'
+  const ar = show.natW / show.natH
   return (
     <article
       ref={ref}
@@ -1296,7 +1370,7 @@ function Stop({ show, index }: { show: Show; index: number }) {
           </div>
         </Reveal>
 
-        {show.layout === 'plate' ? (
+        {show.plate === 'mini' ? (
           <>
             <Reveal>
               <h3
@@ -1314,12 +1388,15 @@ function Stop({ show, index }: { show: Show; index: number }) {
               <p className="lk-stop-artist m-0 text-[16px] font-medium" style={{ fontFamily: DISPLAY, color: INK }}>{show.artist}</p>
               <p className="lk-stop-artist m-0 mt-1 text-[15px]" style={{ fontFamily: DISPLAY, color: MUT }}>{show.fact}</p>
             </Reveal>
-            {/* 250x313 source — mounted as a small wall plate, never upscaled */}
+            {/* 250x313 source — mounted as a small wall plate, never upscaled:
+                the box is the file's own width and the mat eats 16px of it */}
             <Reveal delay={110}>
               <figure className="m-0 mt-4 flex items-end gap-4">
-                <div className="p-2" style={{ border: `1px solid ${ACCENT}`, width: 'min(250px, 56vw)' }}>
+                <div className="p-2" style={{ border: `1px solid ${ACCENT}`, width: `min(${show.natW}px, 56vw)` }}>
                   <img
                     src={IMG(show.img)}
+                    width={show.natW}
+                    height={show.natH}
                     alt={show.alt}
                     loading="lazy"
                     decoding="async"
@@ -1332,17 +1409,81 @@ function Stop({ show, index }: { show: Show; index: number }) {
               </figure>
             </Reveal>
           </>
+        ) : show.plate === 'small' ? (
+          <>
+            {/* WALL LABEL. The source is 702px to 822px wide, so the plate is
+                capped well under 1:1 and the panel is carried by the type
+                beside it. Mirror image of the Katrín plate on purpose: label
+                left, reproduction right, caption under the mat, not beside. */}
+            <Reveal>
+              <h3
+                className="m-0 mt-3 max-w-[13em] uppercase"
+                style={{
+                  fontFamily: DISPLAY, fontWeight: 600, letterSpacing: '-0.015em',
+                  fontSize: 'clamp(1.5rem, 3vw, 2.9rem)', lineHeight: 1.04,
+                  paddingBottom: '0.12em',
+                }}
+              >
+                {show.title}
+              </h3>
+            </Reveal>
+            <Reveal delay={70}>
+              <div className="lk-labelgrid mt-3">
+                <div className="lk-labelcol">
+                  <div className="lk-rule-draw lk-labelrule" aria-hidden="true" />
+                  {show.artist && show.artist !== show.title ? (
+                    <p className="lk-stop-artist m-0 text-[16px] font-medium" style={{ fontFamily: DISPLAY, color: INK }}>
+                      {show.artist}
+                    </p>
+                  ) : null}
+                  <p className="lk-stop-artist m-0 text-[15px] leading-relaxed" style={{ fontFamily: DISPLAY, color: MUT }}>
+                    {show.fact}
+                  </p>
+                  {show.datesNote ? (
+                    <p className="m-0 text-[14px] leading-relaxed" style={{ fontFamily: DISPLAY, color: MUT }}>
+                      {show.datesNote}
+                    </p>
+                  ) : null}
+                </div>
+                <figure className="lk-platefig">
+                  <div className="lk-plate" style={plateVars(show)}>
+                    <img
+                      src={IMG(show.img)}
+                      width={show.natW}
+                      height={show.natH}
+                      alt={show.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <figcaption className="lk-platecap">Verk úr sýningunni · {show.chip}</figcaption>
+                </figure>
+              </div>
+            </Reveal>
+          </>
         ) : (
           <>
             <Reveal>
               <DriftFrame
                 src={IMG(show.img)}
-                srcSet={show.img800 ? `${IMG(show.img800)} 800w, ${IMG(show.img)} ${show.imgW ?? 1400}w` : undefined}
-                sizes={show.img800 ? (show.layout === 'wide' ? '(min-width: 1024px) 76vw, 100vw' : '(min-width: 1024px) 60vw, 100vw') : undefined}
+                w={show.natW}
+                h={show.natH}
+                srcSet={show.img800 ? `${IMG(show.img800)} 800w, ${IMG(show.img)} ${show.natW}w` : undefined}
+                /* sizes describes the width the image is actually PAINTED at,
+                   not the width of its box: a drift frame draws ~1.42x its box
+                   (measured), so 76vw of box is ~88vw of pixels. */
+                sizes={show.img800 ? (show.layout === 'wide' ? '(min-width: 1024px) 88vw, 100vw' : '(min-width: 1024px) 56vw, 100vw') : undefined}
                 alt={show.alt}
                 drift={9}
                 className="lk-stop-frame"
-                style={{ aspectRatio: String(show.ar) }}
+                style={{
+                  aspectRatio: String(ar),
+                  /* --lk-fh caps the pinned corridor (height drives the frame);
+                     --lk-fw caps the stacked fallback, where a wide viewport
+                     would otherwise hand a 1300px file a 1400px box */
+                  ['--lk-fh' as string]: `${Math.floor(show.natW / (1.42 * ar))}px`,
+                  ['--lk-fw' as string]: `${show.natW}px`,
+                }}
               />
             </Reveal>
             <Reveal delay={60}>
@@ -1727,8 +1868,13 @@ function Ketilhus() {
           <figure className="m-0">
             <DriftFrame
               src={IMG('samsett-mynd-1400.jpg')}
+              w={1400}
+              h={736}
               srcSet={`${IMG('samsett-mynd-800.jpg')} 800w, ${IMG('samsett-mynd-1400.jpg')} 1400w`}
-              sizes="(min-width: 1024px) 46vw, 100vw"
+              /* the frame is 46vw wide but the cover overhang paints ~82vw of
+                 pixels into it; the old 46vw here made desktop pick the 800w
+                 file and draw it at ~1170px, a 1.5x upscale */
+              sizes="(min-width: 1024px) 82vw, 100vw"
               alt="Samsett mynd úr safnbúð Listasafnsins á Akureyri: vörur og varningur búðarinnar"
               drift={9}
               className="aspect-[4/3]"

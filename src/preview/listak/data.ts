@@ -99,6 +99,13 @@ export const ADMISSION = [
 /* ── The nine current shows — ALL REAL, verified 2026-08-02 from their own
    show pages. Hall order = walking order through the building. ───────────── */
 
+/* RESOLUTION IS A FACT, NOT A PREFERENCE (measured 2026-08-03 from the files
+   in public/listak, `sips -g pixelWidth`). Six of the nine images the museum
+   publishes are small — several are screenshots they uploaded themselves, and
+   the museum's own server has nothing larger (checked). So the layout follows
+   the resolution instead of stretching the resolution to fill a layout: no
+   image on this page is ever drawn wider than its own pixels. */
+
 export interface Show {
   key: string
   artist: string
@@ -109,13 +116,21 @@ export interface Show {
   img: string
   alt: string
   fact: string
-  layout: 'std' | 'wide' | 'plate'
-  /** natural aspect ratio (w/h) for the mobile stacked frames */
-  ar: number
-  /** optional 800px-wide variant for srcset (phones must not pull ~2000px JPGs) */
+  /** TRUE intrinsic width/height of the LARGEST candidate actually served for
+      `img`, in pixels. This is the hard ceiling for the rendered width. */
+  natW: number
+  natH: number
+  /** the honest resolution tier, DERIVED from natW — it picks the composition:
+      'mini'  under  400px → small mounted plate, type carries the panel
+      'small' under 1000px → wall-label composition, plate well under 1:1
+      'full'  1300px+      → the large drift frame, which draws ~1.42x its own
+                             box (cover overhang x parallax scale) and so needs
+                             real pixels behind it */
+  plate: 'mini' | 'small' | 'full'
+  /** only consulted for plate === 'full' */
+  layout?: 'std' | 'wide'
+  /** optional 800px-wide variant for srcset (phones must not pull ~1400px JPGs) */
   img800?: string
-  /** intrinsic width of `img`, for the srcset width descriptor */
-  imgW?: number
 }
 
 export const SHOWS: Show[] = [
@@ -128,8 +143,9 @@ export const SHOWS: Show[] = [
     img: 'show-fugl.jpg',
     alt: 'Vatnslitaverk eftir Örlyg Kristfinnsson á sýningunni Sýning um heilagan fugl',
     fact: 'F. á Siglufirði 1949 · vatnslitir',
-    layout: 'std',
-    ar: 702 / 608,
+    natW: 702,
+    natH: 608,
+    plate: 'small',
   },
   {
     key: 'silica',
@@ -140,8 +156,9 @@ export const SHOWS: Show[] = [
     img: 'show-silica.jpg',
     alt: 'Verk eftir Huldu Rós Guðnadóttur á sýningunni S-I-L-I-C-A-0-3',
     fact: 'F. 1973 · býr í Berlín',
-    layout: 'std',
-    ar: 804 / 696,
+    natW: 804,
+    natH: 696,
+    plate: 'small',
   },
   {
     key: 'magnus',
@@ -152,8 +169,9 @@ export const SHOWS: Show[] = [
     img: 'show-magnus.jpg',
     alt: 'Verk eftir Magnús Helgason á sýningunni Andlegar verðmætavindur Magnúsar',
     fact: 'F. 1977 · á Akureyri síðan 2016',
-    layout: 'std',
-    ar: 782 / 631,
+    natW: 782,
+    natH: 631,
+    plate: 'small',
   },
   {
     key: 'katrin',
@@ -164,8 +182,9 @@ export const SHOWS: Show[] = [
     img: 'show-katrin.jpg',
     alt: 'Sjálfsástarvírus, minnisvarði #3: verk úr málmi, neoni og steypu eftir Katrínu Ingu Jónsdóttur Hjördísardóttur',
     fact: 'Málmur, neon, steypa',
-    layout: 'plate',
-    ar: 250 / 313,
+    natW: 250,
+    natH: 313,
+    plate: 'mini',
   },
   {
     key: 'hughrif',
@@ -177,8 +196,9 @@ export const SHOWS: Show[] = [
     img: 'show-hughrif.jpg',
     alt: 'Verk úr safneign á sýningunni Hughrif, Litir, Form I',
     fact: 'Valin verk úr safneign',
-    layout: 'std',
-    ar: 822 / 655,
+    natW: 822,
+    natH: 655,
+    plate: 'small',
   },
   {
     key: 'eirikur',
@@ -188,11 +208,14 @@ export const SHOWS: Show[] = [
     chip: 'SALUR 08',
     img: 'show-eirikur-1400.jpg',
     img800: 'show-eirikur-800.jpg',
-    imgW: 1400,
     alt: 'Verk eftir Eirík Pál Sveinsson á sýningunni Saga Íslands: 2. hluti',
     fact: 'Læknirinn sem prentaði út internetið',
+    /* the untouched original is 2000x1130; 1400 is the largest candidate we
+       serve, so 1400 is the ceiling the layout must respect */
+    natW: 1400,
+    natH: 791,
+    plate: 'full',
     layout: 'wide',
-    ar: 2000 / 1130,
   },
   {
     key: 'ulfur',
@@ -203,8 +226,9 @@ export const SHOWS: Show[] = [
     img: 'show-ulfur.jpg',
     alt: 'Verk eftir Úlf Logason á sýningunni Guð launi þér',
     fact: 'F. 1997 · fyrsta einkasýning á opinberu safni',
-    layout: 'std',
-    ar: 789 / 679,
+    natW: 789,
+    natH: 679,
+    plate: 'small',
   },
   {
     key: 'zimoun',
@@ -215,8 +239,10 @@ export const SHOWS: Show[] = [
     img: 'show-zimoun.jpg',
     alt: 'Hljóðinnsetning eftir ZIMOUN í sölum 10 og 11: skúlptúrar úr ljósum viði í hvítum sal',
     fact: 'Svissneskur hljóðskúlptúristi, f. 1977',
+    natW: 1300,
+    natH: 867,
+    plate: 'full',
     layout: 'wide',
-    ar: 1300 / 867,
   },
   {
     key: 'kristin',
@@ -226,11 +252,13 @@ export const SHOWS: Show[] = [
     chip: 'SALUR 12',
     img: 'show-kristin-1400.jpg',
     img800: 'show-kristin-800.jpg',
-    imgW: 1400,
     alt: 'Verk eftir Kristínu Gunnlaugsdóttur á sýningunni Ný aðföng í safneign',
     fact: 'Fimm ný verk í safneign',
+    /* original 2000x1650; 1400 is the largest candidate served */
+    natW: 1400,
+    natH: 1155,
+    plate: 'full',
     layout: 'std',
-    ar: 2000 / 1650,
   },
 ]
 
