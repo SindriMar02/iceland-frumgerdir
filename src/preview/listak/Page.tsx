@@ -9,9 +9,9 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  ADDRESS, ADMISSION, EDUCATION, EMAIL, EMAIL_HREF, FACEBOOK_URL, HOURS_RECAP,
-  INSTAGRAM_URL, JSON_LD, META, NEWSLETTER_URL, PHONE_DISPLAY, PHONE_HREF,
-  SHOWS, SITE_URL, TAGLINE, UPCOMING, openStatus,
+  ADDRESS, ADMISSION, EDUCATION, EMAIL, EMAIL_HREF, FACEBOOK_URL, FLOORPLAN,
+  HALLS, HALL_EMPTY, HOURS_RECAP, INSTAGRAM_URL, JSON_LD, META, NEWSLETTER_URL,
+  PHONE_DISPLAY, PHONE_HREF, SHOWS, SITE_URL, TAGLINE, UPCOMING, openStatus,
 } from './data'
 import type { OpenStatus, Show } from './data'
 
@@ -45,7 +45,11 @@ const PAPER_MUTE = 'rgba(240,239,232,0.66)'
 const HAIR_PAPER = 'rgba(240,239,232,0.24)'
 const OPEN_GREEN = '#1E7B34'
 
-const DISPLAY = "'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif"
+/* 'Familjen Grotesk Var' is the VARIABLE file (wght 400..700) declared under
+   its own family name so it deterministically wins the cascade; the four
+   static faces stay declared under 'Familjen Grotesk' as the fallback for
+   browsers without variable-font support. */
+const DISPLAY = "'Familjen Grotesk Var', 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif"
 const SERIF = "'Sentient', Georgia, 'Times New Roman', serif"
 
 const BASE = import.meta.env.BASE_URL
@@ -57,6 +61,16 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const prefersReduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/* The one gate every hover/pointer device on this page asks. It mirrors the
+   CSS `@media (hover: hover) and (pointer: fine)` blocks exactly, so a touch
+   device can never end up with a JS-driven hover state that CSS cannot clear. */
+const finePointer = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
+const motionOk = () => !prefersReduced()
+const hoverOk = () => motionOk() && finePointer()
 
 /* Module handles so anchor nav + stop focus can map into the pinned journey
    (budir's labelToScroll pattern). Set/cleared by the matchMedia branch. */
@@ -72,16 +86,73 @@ const driftNodes = new Set<HTMLElement>()
 const dofNodes = new Set<HTMLElement>()
 let driftRaf = 0
 
+/* Hover amount per drift frame, lerped in the loop so the hover reads as a
+   slow counter-drift rather than a CSS transition fighting the rAF writer.
+   `.lk-frame-in` has exactly ONE writer (this loop) — the corridor's GSAP
+   parallax targets the <img> inside it, never this node. */
+const hoverAmt = new WeakMap<HTMLElement, number>()
+
+/* ── variable-font weight groups (the cursor device) ──────────────────────
+   Registered letter nodes whose 'wght' axis is driven from pointer distance.
+   Rides the SAME rAF as the drift loop: per group ONE layout read (the host
+   rect) per frame, letter offsets cached from a one-off measure pass, and a
+   write only when the quantised weight actually changes. No setState. */
+interface WeightGroup {
+  host: HTMLElement
+  letters: Array<SVGElement | HTMLElement>
+  /** same letters on a non-measurable layer (inside <mask>), written in step */
+  mirror: Array<SVGElement | HTMLElement> | null
+  ox: number[]
+  oy: number[]
+  rest: number
+  lo: number
+  hi: number
+  radius: number
+  amp: number
+  last: number[]
+}
+const weightGroups = new Set<WeightGroup>()
+let ptrX = -1e5
+let ptrY = -1e5
+let ptrSeen = false
+
+function onPointerMove(e: PointerEvent) {
+  ptrX = e.clientX
+  ptrY = e.clientY
+  ptrSeen = true
+}
+function onPointerLeave() {
+  ptrSeen = false
+}
+let ptrBound = false
+function bindPointer() {
+  if (ptrBound || !hoverOk()) return
+  ptrBound = true
+  window.addEventListener('pointermove', onPointerMove, { passive: true })
+  window.addEventListener('pointerdown', onPointerMove, { passive: true })
+  document.addEventListener('pointerleave', onPointerLeave)
+  window.addEventListener('blur', onPointerLeave)
+}
+function unbindPointer() {
+  if (!ptrBound || weightGroups.size) return
+  ptrBound = false
+  ptrSeen = false
+  window.removeEventListener('pointermove', onPointerMove)
+  window.removeEventListener('pointerdown', onPointerMove)
+  document.removeEventListener('pointerleave', onPointerLeave)
+  window.removeEventListener('blur', onPointerLeave)
+}
+
 function driftTick() {
   const vh = window.innerHeight
   const vw = window.innerWidth
-  const dReads: Array<[HTMLElement, number]> = []
+  const dReads: Array<[HTMLElement, number, HTMLElement]> = []
   driftNodes.forEach((el) => {
     const host = el.parentElement
     if (!host) return
     const r = host.getBoundingClientRect()
     if (r.bottom < -240 || r.top > vh + 240) return
-    dReads.push([el, (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2)])
+    dReads.push([el, (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2), host])
   })
   const fReads: Array<[HTMLElement, number]> = []
   dofNodes.forEach((el) => {
@@ -89,11 +160,73 @@ function driftTick() {
     if (r.right < -vw * 0.6 || r.left > vw * 1.6) return
     fReads.push([el, (r.left + r.width / 2 - vw / 2) / (vw / 2 + r.width / 2)])
   })
+  /* one rect per weight group, read BEFORE any write below */
+  const wReads: Array<[WeightGroup, number, number]> = []
+  weightGroups.forEach((g) => {
+    const r = g.host.getBoundingClientRect()
+    if (r.bottom < 0 || r.top > vh) {
+      /* off screen: relax to rest without paying for distance math */
+      if (g.amp > 0.001) wReads.push([g, r.left, r.top])
+      return
+    }
+    wReads.push([g, r.left, r.top])
+  })
   /* writes */
   for (let i = 0; i < dReads.length; i++) {
-    const [el, p] = dReads[i]
+    const [el, p, host] = dReads[i]
     const d = Number(el.dataset.drift) || 9
-    el.style.transform = `translate3d(0, ${(-p * d).toFixed(3)}%, 0)`
+    /* hover: ease toward 1 on enter, back to 0 on leave (~0.5s at 60fps) */
+    const target = host.dataset.lkHover === '1' ? 1 : 0
+    const prev = hoverAmt.get(el) ?? 0
+    const h = prev + (target - prev) * 0.09
+    hoverAmt.set(el, h)
+    /* counter-drift: the frame slows against its own drift as it is hovered */
+    const y = -p * d * (1 - 0.55 * h)
+    el.style.transform =
+      `translate3d(0px, ${y.toFixed(3)}%, 0)` +
+      (h > 0.001 ? ` scale(${(1 + 0.036 * h).toFixed(4)})` : '')
+  }
+  for (let i = 0; i < wReads.length; i++) {
+    const [g, hx, hy] = wReads[i]
+    /* the light source is the LETTERS, not the block. A host-box test lit the
+       empty half of a full-width heading and dimmed every letter at once with
+       no visible source; gating on distance to the nearest letter keeps the
+       entry smooth and leaves the line at rest everywhere else. */
+    let near2 = Infinity
+    if (ptrSeen) {
+      for (let j = 0; j < g.ox.length; j++) {
+        const dx = ptrX - (hx + g.ox[j])
+        const dy = ptrY - (hy + g.oy[j])
+        const d2 = dx * dx + dy * dy
+        if (d2 < near2) near2 = d2
+      }
+    }
+    const reach = g.radius * 1.15
+    const engaged = ptrSeen && near2 <= reach * reach
+    g.amp += ((engaged ? 1 : 0) - g.amp) * 0.12
+    if (g.amp < 0.002 && !engaged) g.amp = 0
+    for (let j = 0; j < g.letters.length; j++) {
+      let w = g.rest
+      if (g.amp > 0) {
+        const dx = ptrX - (hx + g.ox[j])
+        const dy = ptrY - (hy + g.oy[j])
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        let f = 1 - dist / g.radius
+        f = f < 0 ? 0 : f > 1 ? 1 : f
+        f = f * f * (3 - 2 * f)
+        const near = g.lo + (g.hi - g.lo) * f
+        w = g.rest + (near - g.rest) * g.amp
+      }
+      /* quantised: most frames write nothing, so the SVG mask that the hero
+         cutout depends on is not re-rasterised 60 times a second */
+      const q = Math.round(w / 20) * 20
+      if (g.last[j] !== q) {
+        g.last[j] = q
+        const v = `'wght' ${q}`
+        g.letters[j].style.fontVariationSettings = v
+        if (g.mirror) g.mirror[j].style.fontVariationSettings = v
+      }
+    }
   }
   for (let i = 0; i < fReads.length; i++) {
     const [el, p] = fReads[i]
@@ -116,12 +249,12 @@ function driftTick() {
 }
 
 function ensureDriftLoop() {
-  if (!driftRaf && (driftNodes.size || dofNodes.size)) {
+  if (!driftRaf && (driftNodes.size || dofNodes.size || weightGroups.size)) {
     driftRaf = requestAnimationFrame(driftTick)
   }
 }
 function maybeStopDriftLoop() {
-  if (!driftNodes.size && !dofNodes.size && driftRaf) {
+  if (!driftNodes.size && !dofNodes.size && !weightGroups.size && driftRaf) {
     cancelAnimationFrame(driftRaf)
     driftRaf = 0
   }
@@ -137,6 +270,258 @@ function useDriftNode(ref: React.RefObject<HTMLElement | null>) {
     return () => {
       driftNodes.delete(el)
       maybeStopDriftLoop()
+    }
+  }, [ref])
+}
+
+/* ── the variable-font cursor primitive ───────────────────────────────────
+   'Variable Font And Cursor': letters near the pointer gain weight, letters
+   far from it stay light, interpolated by distance with a falloff radius.
+
+   Two things keep it honest under the house rules:
+   - it never runs at all unless (hover: hover) and (pointer: fine) and
+     prefers-reduced-motion is no-preference. Touch and reduced-motion never
+     register a group, never bind a pointer listener, and the type renders at
+     its designed static weight;
+   - the layout is PINNED so gaining weight cannot reflow the line. SVG lines
+     get `textLength` + `lengthAdjust="spacing"`; DOM letters get a measured
+     fixed inline-block width. Without this the wordmark would swim. */
+function useWeightGroup(
+  hostRef: React.RefObject<HTMLElement | null>,
+  opts: {
+    rest: number
+    lo: number
+    hi: number
+    /** falloff radius as a share of viewport width, floored at 200px */
+    radiusVw: number
+    /** SVG: pin each `text.lk-vf-line` to its natural length */
+    pinSvgLines?: boolean
+    /** DOM: freeze each letter box to its natural width */
+    fixWidths?: boolean
+    /** scope the MEASURED letters (a rendered layer) */
+    measureSel?: string
+    /** letters that copy the measured layer's weights but cannot be measured
+        themselves — the hero cutout lives inside <mask>, which has no box */
+    mirrorSel?: string
+  },
+) {
+  const optRef = useRef(opts)
+  optRef.current = opts
+  useEffect(() => {
+    const host = hostRef.current
+    if (!host || !hoverOk()) return
+    let group: WeightGroup | null = null
+    let dead = false
+
+    const measure = () => {
+      if (dead) return
+      const o = optRef.current
+      const pick = (sel: string, scope?: string) =>
+        Array.from(host.querySelectorAll(scope ? `${scope} ${sel}` : sel))
+      const letters = pick('.lk-vf-ch', o.measureSel) as Array<SVGElement | HTMLElement>
+      const mirror = (o.mirrorSel ? pick('.lk-vf-ch', o.mirrorSel) : []) as Array<
+        SVGElement | HTMLElement
+      >
+      if (!letters.length) return
+      /* reset to the natural resting state before measuring anything */
+      const all = letters.concat(mirror)
+      all.forEach((el) => {
+        el.style.fontVariationSettings = `'wght' ${o.rest}`
+        if (o.fixWidths) el.style.width = ''
+      })
+      /* READS */
+      const measureLines = o.pinSvgLines
+        ? (pick('.lk-vf-line', o.measureSel) as unknown as SVGTextElement[])
+        : []
+      const mirrorLines = o.pinSvgLines && o.mirrorSel
+        ? (pick('.lk-vf-line', o.mirrorSel) as unknown as SVGTextElement[])
+        : []
+      /* clear last pass's pinning or the positions read back are its own */
+      measureLines.concat(mirrorLines).forEach((t) => {
+        t.removeAttribute('textLength')
+        t.removeAttribute('lengthAdjust')
+        Array.from(t.children).forEach((c) => c.removeAttribute('x'))
+      })
+      /* Per-GLYPH advance centres, in user units, at the resting weight.
+         Pinning the LINE length alone is not enough: `lengthAdjust="spacing"`
+         holds the two ends still but lets the interior letters slide as their
+         advances change (measured: 26px of wobble at 284px type). Anchoring
+         every letter to its own advance centre instead means a letter gains
+         weight strictly in place. */
+      const perLine = measureLines.map((t) => {
+        if (typeof t.getNumberOfChars !== 'function') return null
+        try {
+          const n = t.getNumberOfChars()
+          const xs: number[] = []
+          for (let i = 0; i < n; i++) {
+            const s = t.getStartPositionOfChar(i)
+            const e = t.getEndPositionOfChar(i)
+            xs.push((s.x + e.x) / 2)
+          }
+          return xs
+        } catch {
+          return null
+        }
+      })
+      const natural = measureLines.map((t) =>
+        typeof t.getComputedTextLength === 'function' ? t.getComputedTextLength() : 0,
+      )
+      const hr = host.getBoundingClientRect()
+      const ox: number[] = []
+      const oy: number[] = []
+      const widths: number[] = []
+      for (let i = 0; i < letters.length; i++) {
+        const r = letters[i].getBoundingClientRect()
+        ox.push(r.left + r.width / 2 - hr.left)
+        oy.push(r.top + r.height / 2 - hr.top)
+        widths.push(r.width)
+      }
+      /* WRITES */
+      for (let i = 0; i < measureLines.length; i++) {
+        const xs = perLine[i]
+        if (xs && xs.length) {
+          /* every letter anchored to its own advance centre; a tspan with an
+             absolute x starts its own chunk, and the inherited
+             text-anchor:middle then centres that one glyph on it */
+          const pin = (line: SVGTextElement) => {
+            let ci = 0
+            Array.from(line.children).forEach((c) => {
+              const len = (c.textContent || '').length
+              if (c.classList.contains('lk-vf-ch') && xs[ci] !== undefined) {
+                c.setAttribute('x', xs[ci].toFixed(2))
+              }
+              ci += len
+            })
+          }
+          pin(measureLines[i])
+          if (mirrorLines[i]) pin(mirrorLines[i])
+        } else if (natural[i] > 0) {
+          /* fallback for engines without getStartPositionOfChar */
+          const len = String(natural[i])
+          measureLines[i].setAttribute('textLength', len)
+          measureLines[i].setAttribute('lengthAdjust', 'spacing')
+          if (mirrorLines[i]) {
+            mirrorLines[i].setAttribute('textLength', len)
+            mirrorLines[i].setAttribute('lengthAdjust', 'spacing')
+          }
+        }
+      }
+      if (o.fixWidths) {
+        for (let i = 0; i < letters.length; i++) {
+          ;(letters[i] as HTMLElement).style.width = `${widths[i].toFixed(2)}px`
+        }
+      }
+      if (group) weightGroups.delete(group)
+      group = {
+        host,
+        letters,
+        mirror: mirror.length === letters.length ? mirror : null,
+        ox,
+        oy,
+        rest: o.rest,
+        lo: o.lo,
+        hi: o.hi,
+        radius: Math.max(200, window.innerWidth * o.radiusVw),
+        amp: 0,
+        last: letters.map(() => -1),
+      }
+      weightGroups.add(group)
+      bindPointer()
+      ensureDriftLoop()
+    }
+
+    /* the wordmark is vw-sized: measure only once the display font is real */
+    let raf = 0
+    const schedule = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(measure)
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(schedule).catch(schedule)
+    } else {
+      schedule()
+    }
+    let rt = 0
+    const onResize = () => {
+      window.clearTimeout(rt)
+      rt = window.setTimeout(measure, 180)
+    }
+    window.addEventListener('resize', onResize)
+
+    return () => {
+      dead = true
+      cancelAnimationFrame(raf)
+      window.clearTimeout(rt)
+      window.removeEventListener('resize', onResize)
+      if (group) {
+        group.letters.concat(group.mirror ?? []).forEach((el) => {
+          el.style.fontVariationSettings = ''
+          ;(el as HTMLElement).style.width = ''
+        })
+        weightGroups.delete(group)
+        group = null
+      }
+      unbindPointer()
+      maybeStopDriftLoop()
+    }
+  }, [hostRef])
+}
+
+/* Per-letter renderer shared by the hero wordmark and the Húsið heading.
+   Spaces stay outside `.lk-vf-ch` so they are never weight targets. */
+function vfChars(text: string, Tag: 'tspan' | 'span') {
+  if (Tag === 'tspan') {
+    return Array.from(text).map((ch, i) =>
+      ch === ' ' ? (
+        <tspan key={i} xmlSpace="preserve">{' '}</tspan>
+      ) : (
+        <tspan key={i} className="lk-vf-ch">{ch}</tspan>
+      ),
+    )
+  }
+  /* DOM: letters are inline-block (so a measured width can pin them), so the
+     words must be wrapped or the line could never break. Real space text
+     nodes between the word boxes keep the natural wrap opportunities. */
+  const words = text.split(' ')
+  const out: ReactNode[] = []
+  words.forEach((word, w) => {
+    if (w > 0) out.push(<span key={`s${w}`}> </span>)
+    out.push(
+      <span key={`w${w}`} className="lk-vf-w">
+        {Array.from(word).map((ch, i) => (
+          <span key={i} className="lk-vf-ch lk-vf-ch-dom">{ch}</span>
+        ))}
+      </span>,
+    )
+  })
+  return out
+}
+
+/* Corridor-stop hover: drives the drift frame's hover channel from the WHOLE
+   stop, so hovering the title moves the artwork too. Focus does the same, so
+   keyboard users get the identical state. Never attached on touch/reduced
+   motion. */
+function useStopHover(ref: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !hoverOk()) return
+    const frame = el.querySelector('.lk-frame') as HTMLElement | null
+    const on = () => {
+      if (frame) frame.dataset.lkHover = '1'
+    }
+    const off = () => {
+      if (frame) frame.dataset.lkHover = '0'
+    }
+    el.addEventListener('pointerenter', on)
+    el.addEventListener('pointerleave', off)
+    el.addEventListener('focusin', on)
+    el.addEventListener('focusout', off)
+    return () => {
+      el.removeEventListener('pointerenter', on)
+      el.removeEventListener('pointerleave', off)
+      el.removeEventListener('focusin', on)
+      el.removeEventListener('focusout', off)
+      if (frame) delete frame.dataset.lkHover
     }
   }, [ref])
 }
@@ -250,6 +635,23 @@ const CSS = `
     src: url('${FONT_DIR}familjen-grotesk/familjen-grotesk-v11-latin_latin-ext-700.woff2') format('woff2');
     font-weight: 700; font-style: normal; font-display: swap;
   }
+  /* the VARIABLE face — wght 400..700, its own family so it wins outright.
+     Latin-ext first, then Latin: Icelandic (Á Ð Í Ó Ú Ý Þ Æ Ö) lives in
+     U+00C0..U+00FF, inside the Latin subset. Any glyph outside both ranges
+     falls back to the static faces above, which cover the same design. */
+  @font-face {
+    font-family: 'Familjen Grotesk Var';
+    src: url('${FONT_DIR}familjen-grotesk/familjen-grotesk-variable-latin-ext.woff2') format('woff2');
+    font-weight: 400 700; font-style: normal; font-display: swap;
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Familjen Grotesk Var';
+    src: url('${FONT_DIR}familjen-grotesk/familjen-grotesk-variable-latin.woff2') format('woff2');
+    font-weight: 400 700; font-style: normal; font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
   @font-face {
     font-family: 'Sentient';
     src: url('${FONT_DIR}sentient/Sentient-Light.woff2') format('woff2');
@@ -327,13 +729,10 @@ const CSS = `
     min-height: 46px; border-radius: 2px; padding: 12px 26px;
     font-family: ${DISPLAY}; font-size: 12px; font-weight: 600;
     letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
-    transition: opacity .25s ease, transform .25s ${EASE}, border-color .25s ease, background-color .25s ease;
+    transition: color .4s ${EASE}, border-color .4s ${EASE}, background-color .4s ${EASE};
   }
-  .lk-btn:hover { opacity: .88; transform: translateY(-1px); }
-  .lk-btn:active { transform: translateY(0); }
   .lk-btn-solid { background: ${ACCENT}; color: #FFFFFF; border: 1px solid ${ACCENT}; }
   .lk-btn-ghost { background: transparent; color: ${INK}; border: 1px solid ${ACCENT}; }
-  .lk-btn-ghost:hover { border-color: ${ACCENT_DEEP}; }
 
   /* text link rows — hairline separations carried by the single accent */
   .lk-row {
@@ -341,8 +740,7 @@ const CSS = `
     gap: 16px; min-height: 56px; padding: 14px 2px; text-decoration: none; color: ${INK};
     border-bottom: 1px solid ${ACCENT};
   }
-  .lk-row .lk-row-arrow { color: ${ACCENT_DEEP}; transition: transform .3s ${EASE}; }
-  .lk-row:hover .lk-row-arrow { transform: translate(3px, -3px); }
+  .lk-row .lk-row-arrow { color: ${ACCENT_DEEP}; transition: transform .45s ${EASE}; }
 
   /* real N4 press video — sharp corners, hairline border, no shadow */
   .lk-video-frame { overflow: hidden; border-radius: 4px; border: 1px solid ${ACCENT}; }
@@ -461,11 +859,144 @@ const CSS = `
     letter-spacing: 0.14em; text-transform: uppercase;
   }
 
+  /* every link family carries the SAME accent hairline wipe: header nav,
+     Fræðsla cards, footer links. One grammar, no opacity fades, no lifts. */
+  .lk-nav, .lk-card, .lk-flink { position: relative; }
+  .lk-play { border-radius: 2px; background: ${ACCENT}; color: #FFFFFF; }
+
   /* status dot */
   .lk-dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; flex: none; }
 
   /* serif register — Um safnið ONLY */
   .lk-serif { font-family: ${SERIF}; }
+
+  /* ── variable-font letter boxes ──
+     Inline-block so the measured width can pin them; the pin is what stops a
+     letter gaining weight from reflowing the whole line. */
+  .lk-vf-w { display: inline-block; white-space: nowrap; }
+  .lk-vf-ch-dom { display: inline-block; text-align: center; }
+
+  /* ══ HOVER VOCABULARY ══════════════════════════════════════════════════
+     Every hover state on this page lives inside this one query. On a touch
+     screen the rules do not exist at all, so a tap can never strand an
+     element in a hover state that nothing will clear. One accent, one
+     hairline, house easing, 0.4s to 0.6s. */
+  @media (hover: hover) and (pointer: fine) {
+    /* buttons stay calm: exactly one state change, no lift, no fade */
+    .lk-btn-ghost:hover { background: ${ACCENT}; color: #FFFFFF; }
+    .lk-btn-solid:hover { background: ${ACCENT_DEEP}; border-color: ${ACCENT_DEEP}; }
+
+    /* link rows: the accent hairline WIPES in from the left */
+    .lk-row::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+      background: ${ACCENT_DEEP}; transform: scaleX(0); transform-origin: left center;
+      transition: transform .55s ${EASE};
+    }
+    .lk-row:hover::after, .lk-row:focus-visible::after { transform: scaleX(1); }
+    .lk-row:hover .lk-row-arrow, .lk-row:focus-visible .lk-row-arrow {
+      transform: translate(4px, -4px);
+    }
+
+    /* corridor stops: chip fills, artist line lifts, image scales and
+       counter-drifts (the scale + counter-drift are written by the shared
+       rAF loop on .lk-frame-in, never by a second animation) */
+    .lk-stop-hov .lk-chip-accent {
+      transition: background-color .5s ${EASE}, color .5s ${EASE}, border-color .5s ${EASE};
+    }
+    .lk-stop-hov:hover .lk-chip-accent,
+    .lk-stop-hov:focus-within .lk-chip-accent { background: ${ACCENT}; color: #FFFFFF; }
+    .lk-stop-artist { transition: transform .5s ${EASE}, color .5s ${EASE}; }
+    .lk-stop-hov:hover .lk-stop-artist,
+    .lk-stop-hov:focus-within .lk-stop-artist { transform: translateY(-5px); color: ${INK}; }
+    /* the 250x313 plate has no drift frame, so it gets the same read in CSS */
+    .lk-stop-plate figure img { transition: transform .55s ${EASE}; }
+    .lk-stop-plate:hover figure img,
+    .lk-stop-plate:focus-within figure img { transform: scale(1.03); }
+
+    .lk-hall:hover { border-color: ${ACCENT}; }
+
+    /* header nav + footer links: the hairline wipes in under the text */
+    .lk-nav::after, .lk-flink::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: calc(50% - 0.9em);
+      height: 2px; background: ${ACCENT}; transform: scaleX(0);
+      transform-origin: left center; transition: transform .55s ${EASE};
+    }
+    .lk-nav:hover::after, .lk-nav:focus-visible::after,
+    .lk-flink:hover::after, .lk-flink:focus-visible::after { transform: scaleX(1); }
+
+    /* Fræðsla cards: the same wipe along the card's own bottom hairline */
+    .lk-card::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+      background: ${ACCENT_DEEP}; transform: scaleX(0); transform-origin: left center;
+      transition: transform .55s ${EASE};
+    }
+    .lk-card:hover::after, .lk-card:focus-visible::after { transform: scaleX(1); }
+    .lk-card .lk-row-arrow { transition: transform .5s ${EASE}; }
+    .lk-card:hover .lk-row-arrow, .lk-card:focus-visible .lk-row-arrow {
+      transform: translate(4px, -4px);
+    }
+
+    /* the video trigger joins the accent-fill family: no scale lift */
+    .lk-play { transition: background-color .4s ${EASE}; }
+    .lk-video-frame:hover .lk-play, .lk-video-frame:focus-visible .lk-play {
+      background: ${ACCENT_DEEP};
+    }
+  }
+
+  /* ══ §HÚSIÐ — schematic hall index + the museum's own floor plan ══════ */
+  .lk-halls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 560px) { .lk-halls { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .lk-hall {
+    position: relative; display: flex; flex-direction: column; align-items: stretch;
+    gap: 5px; min-height: 96px; padding: 10px 11px; text-align: left; cursor: pointer;
+    border: 1px solid rgba(20,20,15,0.26); border-radius: 2px;
+    background: transparent; color: ${INK};
+    transition: background-color .4s ${EASE}, border-color .4s ${EASE}, color .4s ${EASE};
+  }
+  .lk-hall-n {
+    font-family: ${DISPLAY}; font-size: 12px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: ${MUT}; transition: color .4s ${EASE};
+  }
+  .lk-hall-t {
+    font-family: ${DISPLAY}; font-size: 12px; line-height: 1.32; color: ${MUT};
+    transition: color .4s ${EASE};
+  }
+  .lk-hall.is-lit { background: ${ACCENT}; border-color: ${ACCENT}; color: #FFFFFF; }
+  .lk-hall.is-lit .lk-hall-n, .lk-hall.is-lit .lk-hall-t { color: #FFFFFF; }
+
+  .lk-showrow {
+    position: relative; display: flex; align-items: baseline; justify-content: space-between;
+    gap: 14px; width: 100%; min-height: 56px; padding: 12px 8px; text-align: left;
+    border-top: 1px solid rgba(20,20,15,0.26); background: transparent; color: ${INK};
+    cursor: pointer; transition: background-color .4s ${EASE}, border-color .4s ${EASE};
+  }
+  .lk-showrow:last-child { border-bottom: 1px solid rgba(20,20,15,0.26); }
+  .lk-showrow-halls {
+    font-family: ${DISPLAY}; font-size: 12px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; white-space: nowrap; color: ${ACCENT_DEEP};
+    transition: color .4s ${EASE};
+  }
+  .lk-showrow.is-lit { background: rgba(192,62,49,0.08); border-color: ${ACCENT}; }
+  .lk-showrow.is-lit + .lk-showrow { border-top-color: ${ACCENT}; }
+  .lk-showrow::after {
+    content: ''; position: absolute; left: 0; right: 0; top: -1px; height: 2px;
+    background: ${ACCENT}; transform: scaleX(0); transform-origin: left center;
+    transition: transform .55s ${EASE};
+  }
+  .lk-showrow.is-lit::after { transform: scaleX(1); }
+
+  .lk-plan { position: relative; border: 1px solid ${ACCENT}; background: #FFFFFF; }
+  .lk-plan img { display: block; width: 100%; height: auto; }
+  .lk-planpin {
+    position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid ${ACCENT}; border-radius: 999px;
+    background: rgba(240,239,232,0.55);
+    font-family: ${DISPLAY}; font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    color: ${ACCENT_DEEP};
+    transition: background-color .4s ${EASE}, color .4s ${EASE}, transform .4s ${EASE};
+  }
+  .lk-planpin.is-lit { background: ${ACCENT}; color: #FFFFFF; transform: scale(1.2); }
 
   @media (prefers-reduced-motion: reduce) {
     .lk-frame-in { inset: 0; transform: none !important; }
@@ -475,6 +1006,19 @@ const CSS = `
     .lk-rule-draw { transform: scaleX(1) !important; transition: none !important; }
     .lk-btn, .lk-btn:hover, .lk-btn:active { transition: none; transform: none; }
     .lk-row .lk-row-arrow { transition: none; }
+    /* the whole hover vocabulary collapses to instant, readable state changes */
+    .lk-row::after, .lk-showrow::after,
+    .lk-nav::after, .lk-flink::after, .lk-card::after { transition: none !important; }
+    .lk-card .lk-row-arrow, .lk-play { transition: none !important; }
+    .lk-stop-artist, .lk-stop-hov .lk-chip-accent, .lk-stop-plate figure img,
+    .lk-hall, .lk-hall-n, .lk-hall-t, .lk-showrow, .lk-planpin {
+      transition: none !important;
+    }
+    .lk-stop-hov:hover .lk-stop-artist,
+    .lk-stop-hov:focus-within .lk-stop-artist { transform: none !important; }
+    .lk-stop-plate:hover figure img,
+    .lk-stop-plate:focus-within figure img { transform: none !important; }
+    .lk-planpin.is-lit { transform: none !important; }
     .lk-hero-shade, .lk-hero-veil { opacity: 0 !important; transition: none !important; }
     .lk-hero-solid { opacity: 1 !important; animation: none !important; transform: none !important; }
     .lk-mark { opacity: 1 !important; }
@@ -482,11 +1026,18 @@ const CSS = `
 `
 
 /* ── the wordmark, drawn twice: once as a cutout mask, once solid ── */
+const MARK_L1 = 'LISTASAFNIÐ'
+const MARK_L2 = 'Á AKUREYRI'
+
 function WordmarkSvg({ mode }: { mode: 'cut' | 'solid' }) {
   const lines = (fill: string) => (
     <>
-      <text className="lk-hero-type" x="50%" y="36%" fill={fill}>LISTASAFNIÐ</text>
-      <text className="lk-hero-type" x="50%" y="36%" dy="0.98em" fill={fill}>Á AKUREYRI</text>
+      <text className="lk-hero-type lk-vf-line" x="50%" y="36%" fill={fill}>
+        {vfChars(MARK_L1, 'tspan')}
+      </text>
+      <text className="lk-hero-type lk-vf-line" x="50%" y="36%" dy="0.98em" fill={fill}>
+        {vfChars(MARK_L2, 'tspan')}
+      </text>
     </>
   )
   if (mode === 'solid') {
@@ -512,6 +1063,7 @@ function WordmarkSvg({ mode }: { mode: 'cut' | 'solid' }) {
 /* ── nav ── */
 const NAV_LINKS = [
   { id: 'syningar', label: 'Sýningarnar' },
+  { id: 'husid', label: 'Húsið' },
   { id: 'framundan', label: 'Framundan' },
   { id: 'fraedsla', label: 'Fræðsla' },
   { id: 'ketilhus', label: 'Ketilhús' },
@@ -552,13 +1104,13 @@ function Header() {
             <button
               key={l.id}
               onClick={() => goTo(l.id)}
-              className="lk-eyebrow min-h-[44px] transition-opacity hover:opacity-60"
+              className="lk-nav lk-eyebrow min-h-[44px]"
               style={{ color: INK }}
             >
               {l.label}
             </button>
           ))}
-          <a href={PHONE_HREF} className="lk-eyebrow flex min-h-[44px] items-center" style={{ color: ACCENT_DEEP }}>
+          <a href={PHONE_HREF} className="lk-nav lk-eyebrow flex min-h-[44px] items-center" style={{ color: ACCENT_DEEP }}>
             {PHONE_DISPLAY}
           </a>
         </nav>
@@ -576,8 +1128,22 @@ function Header() {
 
 /* ── §1 HERO ── */
 function Hero({ status }: { status: OpenStatus | null }) {
+  const heroRef = useRef<HTMLElement>(null)
+  /* THE cursor device. Rest 700 is the designed wordmark weight, so an idle
+     desktop, a touch device and a reduced-motion visitor all see exactly the
+     wordmark the brief locked. Bring the pointer into the hero and the mark
+     thins to 400 and thickens back to 700 under the cursor. */
+  useWeightGroup(heroRef, {
+    rest: 700,
+    lo: 400,
+    hi: 700,
+    radiusVw: 0.26,
+    pinSvgLines: true,
+    measureSel: '.lk-hero-solid',
+    mirrorSel: '.lk-hero-veil',
+  })
   return (
-    <section className="lk-hero" id="efst" aria-label="Listasafnið á Akureyri">
+    <section ref={heroRef} className="lk-hero" id="efst" aria-label="Listasafnið á Akureyri">
       <h1 className="lk-sr">Listasafnið á Akureyri</h1>
       <div className="lk-hero-photo">
         <DriftFrame
@@ -710,12 +1276,16 @@ function StopChips({ show }: { show: Show }) {
 }
 
 function Stop({ show, index }: { show: Show; index: number }) {
+  const ref = useRef<HTMLElement>(null)
+  useStopHover(ref)
   const n = String(index + 1).padStart(2, '0')
   const layoutClass =
     show.layout === 'wide' ? 'lk-stop-wide' : show.layout === 'plate' ? 'lk-stop-plate' : 'lk-stop-std'
   return (
     <article
-      className={`lk-stop ${layoutClass} px-5 py-10`}
+      ref={ref}
+      data-stop={show.key}
+      className={`lk-stop lk-stop-hov ${layoutClass} px-5 py-10`}
       tabIndex={0}
       aria-label={`Sýning ${n} af 09: ${show.title}${show.artist && show.artist !== show.title ? `, ${show.artist}` : ''}, ${show.chip}`}
     >
@@ -723,7 +1293,6 @@ function Stop({ show, index }: { show: Show; index: number }) {
         <Reveal soft>
           <div className="flex items-baseline justify-between gap-4">
             <StopChips show={show} />
-            <span className="lk-eyebrow" style={{ color: MUT }} aria-hidden="true">{n}/09</span>
           </div>
         </Reveal>
 
@@ -742,8 +1311,8 @@ function Stop({ show, index }: { show: Show; index: number }) {
               </h3>
             </Reveal>
             <Reveal delay={60}>
-              <p className="m-0 text-[16px] font-medium" style={{ fontFamily: DISPLAY, color: INK }}>{show.artist}</p>
-              <p className="m-0 mt-1 text-[15px]" style={{ fontFamily: DISPLAY, color: MUT }}>{show.fact}</p>
+              <p className="lk-stop-artist m-0 text-[16px] font-medium" style={{ fontFamily: DISPLAY, color: INK }}>{show.artist}</p>
+              <p className="lk-stop-artist m-0 mt-1 text-[15px]" style={{ fontFamily: DISPLAY, color: MUT }}>{show.fact}</p>
             </Reveal>
             {/* 250x313 source — mounted as a small wall plate, never upscaled */}
             <Reveal delay={110}>
@@ -789,7 +1358,7 @@ function Stop({ show, index }: { show: Show; index: number }) {
               </h3>
             </Reveal>
             <Reveal delay={100}>
-              <p className="m-0 text-[16px]" style={{ fontFamily: DISPLAY, color: MUT }}>
+              <p className="lk-stop-artist m-0 text-[16px]" style={{ fontFamily: DISPLAY, color: MUT }}>
                 {show.artist && show.artist !== show.title ? (
                   <span className="font-medium" style={{ color: INK }}>{show.artist} · </span>
                 ) : null}
@@ -845,6 +1414,184 @@ function Corridor() {
         <div className="lk-hud-rail"><div className="lk-hud-fill" /></div>
         <span className="lk-eyebrow lk-hud-count" style={{ color: INK }}>01/09</span>
       </div>
+    </section>
+  )
+}
+
+/* ── §3.5 HÚSIÐ — the live wayfinder ──────────────────────────────────────
+   The museum's real visitor problem: nine shows are on at once and nothing
+   tells you which one is in which hall. This answers it, two ways at once.
+
+   HONESTY, stated in code because it is the load-bearing decision here:
+   the twelve-cell grid is a SCHEMATIC index, drawn in CSS, labelled as a
+   schematic in the copy. It asserts the ORDER of the halls, nothing about
+   the building's geometry. The museum's own published drawing sits beside
+   it as the real artefact, and the only things marked on it are the five
+   hall numerals that are actually printed on that sheet (01 to 05), at the
+   positions those numerals actually occupy. Halls 06 to 12 are not on that
+   sheet and are therefore not marked on it. No coordinate anywhere in this
+   section was invented. */
+function Husid() {
+  const [hall, setHall] = useState<string | null>(null)
+  const headRef = useRef<HTMLHeadingElement>(null)
+  /* the cursor primitive, reused ONCE more and nowhere else */
+  useWeightGroup(headRef, { rest: 600, lo: 420, hi: 700, radiusVw: 0.16, fixWidths: true })
+
+  const showOf = (key: string | null) => (key ? SHOWS.find((s) => s.key === key) ?? null : null)
+  const activeKey = hall ? HALLS.find((h) => h.id === hall)?.showKey ?? null : null
+  const hallsOf = (key: string) => HALLS.filter((h) => h.showKey === key).map((h) => h.id)
+
+  const enter = (id: string | null) => setHall(id)
+  const mouseOnly = (e: React.PointerEvent, id: string | null) => {
+    if (e.pointerType !== 'mouse') return
+    setHall(id)
+  }
+  /* Tap path. It must NOT toggle: on touch the button takes focus first
+     (onFocus lights it) and the click lands a beat later, so a toggle would
+     immediately switch the highlight back off. Setting is idempotent; blur,
+     or a tap on another cell, clears it. */
+  const press = (id: string) => setHall(id || null)
+
+  return (
+    <section
+      id="husid"
+      className="mx-auto max-w-[1440px] px-5 py-16 md:px-8 md:py-24"
+      aria-label="Húsið, hvaða sýning er í hvaða sal"
+    >
+      <Reveal>
+        <p className="lk-eyebrow m-0" style={{ color: ACCENT_DEEP }}>Húsið</p>
+      </Reveal>
+      <Reveal delay={60}>
+        <h2
+          ref={headRef}
+          className="m-0 mt-3 uppercase"
+          style={{
+            fontFamily: DISPLAY, fontWeight: 600, letterSpacing: '-0.015em',
+            fontSize: 'clamp(1.8rem, 4vw, 3.4rem)', lineHeight: 1.02, paddingBottom: '0.12em',
+          }}
+        >
+          {vfChars('Hvaða sýning er í hvaða sal', 'span')}
+        </h2>
+      </Reveal>
+      <Reveal delay={110}>
+        <p className="m-0 mt-3 max-w-[42em] text-[16px] leading-relaxed" style={{ fontFamily: DISPLAY, color: MUT }}>
+          Níu sýningar standa yfir í tólf sölum. Veldu sal eða sýningu, þá lýsist hitt upp á móti.
+        </p>
+      </Reveal>
+
+      <div className="mt-9 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12">
+        {/* the schematic index */}
+        <Reveal delay={60}>
+          <h3 className="lk-eyebrow m-0" style={{ color: MUT }}>Salirnir tólf · skýringarmynd</h3>
+          <div className="lk-halls mt-3" role="group" aria-label="Salir safnsins">
+            {HALLS.map((h) => {
+              const s = showOf(h.showKey)
+              const isLit = h.id === hall || (activeKey !== null && h.showKey === activeKey)
+              return (
+                <button
+                  key={h.id}
+                  type="button"
+                  className={`lk-hall ${isLit ? 'is-lit' : ''}`}
+                  aria-pressed={isLit}
+                  onPointerEnter={(e) => mouseOnly(e, h.id)}
+                  onPointerLeave={(e) => mouseOnly(e, null)}
+                  onFocus={() => enter(h.id)}
+                  onBlur={() => enter(null)}
+                  onClick={() => press(h.id)}
+                >
+                  <span className="lk-hall-n">Salur {h.id}</span>
+                  <span className="lk-hall-t">{s ? s.title : HALL_EMPTY}</span>
+                </button>
+              )
+            })}
+          </div>
+          <p className="m-0 mt-3 text-[13px] leading-relaxed" style={{ fontFamily: DISPLAY, color: MUT }}>
+            Skýringarmyndin sýnir röð salanna, ekki lögun hússins eða stærð þeirra.
+          </p>
+        </Reveal>
+
+        {/* the nine shows, linked back */}
+        <Reveal delay={120}>
+          <h3 className="lk-eyebrow m-0" style={{ color: MUT }}>Sýningarnar níu</h3>
+          <div className="mt-3">
+            {SHOWS.map((s) => {
+              const halls = hallsOf(s.key)
+              const isLit = activeKey === s.key
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  className={`lk-showrow ${isLit ? 'is-lit' : ''}`}
+                  aria-pressed={isLit}
+                  onPointerEnter={(e) => mouseOnly(e, halls[0] ?? null)}
+                  onPointerLeave={(e) => mouseOnly(e, null)}
+                  onFocus={() => enter(halls[0] ?? null)}
+                  onBlur={() => enter(null)}
+                  onClick={() => press(halls[0] ?? '')}
+                >
+                  <span className="flex flex-col gap-1">
+                    <span
+                      className="text-[16px] font-medium uppercase tracking-[-0.01em] md:text-[18px]"
+                      style={{ fontFamily: DISPLAY }}
+                    >
+                      {s.title}
+                    </span>
+                    <span className="text-[13px]" style={{ fontFamily: DISPLAY, color: MUT }}>
+                      {s.artist && s.artist !== s.title ? s.artist : s.fact}
+                    </span>
+                  </span>
+                  <span className="lk-showrow-halls">{s.chip}</span>
+                </button>
+              )
+            })}
+          </div>
+        </Reveal>
+      </div>
+
+      {/* the museum's own drawing */}
+      <Reveal delay={80}>
+        <figure className="m-0 mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start lg:gap-12">
+          <div className="lk-plan">
+            <img
+              src={IMG(FLOORPLAN.src)}
+              width={FLOORPLAN.w}
+              height={FLOORPLAN.h}
+              loading="lazy"
+              decoding="async"
+              alt="Grunnteikning Listasafnsins á Akureyri. Á teikningunni eru salir 01 til 05 tölusettir með rauðu."
+            />
+            {FLOORPLAN.marks.map((m) => {
+              const isLit = m.id === hall || (activeKey !== null && HALLS.find((h) => h.id === m.id)?.showKey === activeKey)
+              return (
+                <span
+                  key={m.id}
+                  className={`lk-planpin ${isLit ? 'is-lit' : ''}`}
+                  style={{ left: `${m.x}%`, top: `${m.y}%` }}
+                  aria-hidden="true"
+                >
+                  {m.id}
+                </span>
+              )
+            })}
+          </div>
+          <figcaption className="flex flex-col gap-4">
+            <p className="lk-eyebrow m-0" style={{ color: ACCENT_DEEP }}>Grunnteikning</p>
+            <p className="m-0 text-[15px] leading-relaxed" style={{ fontFamily: DISPLAY, color: INK }}>
+              Safnið birtir sjálft grunnteikningar af húsinu. Þetta er teikning þeirra, óbreytt.
+            </p>
+            <p className="m-0 text-[14px] leading-relaxed" style={{ fontFamily: DISPLAY, color: MUT }}>
+              Á þessari teikningu eru fimm salir tölusettir, salir 01 til 05, og hringirnir sitja
+              á þeim tölum. Salir 06 til 12 eru ekki á þessu blaði og eru því ekki merktir hér.
+            </p>
+            <a href={SITE_URL} target="_blank" rel="noreferrer" className="lk-row" style={{ borderTop: `1px solid ${ACCENT}`, borderBottom: 'none' }}>
+              <span className="text-[15px] font-medium uppercase tracking-[-0.01em]" style={{ fontFamily: DISPLAY }}>
+                Grunnteikningar á listak.is
+              </span>
+              <ArrowUpRight size={16} className="lk-row-arrow" aria-hidden />
+            </a>
+          </figcaption>
+        </figure>
+      </Reveal>
     </section>
   )
 }
@@ -911,7 +1658,7 @@ function Education() {
               href={SITE_URL}
               target="_blank"
               rel="noreferrer"
-              className="flex h-full flex-col gap-3 p-6 no-underline"
+              className="lk-card flex h-full flex-col gap-3 p-6 no-underline"
               style={{ border: `1px solid ${ACCENT}`, color: INK }}
             >
               <h3 className="m-0 text-[19px] font-semibold uppercase tracking-[-0.01em]" style={{ fontFamily: DISPLAY }}>
@@ -920,7 +1667,7 @@ function Education() {
               <p className="m-0 text-[15px]" style={{ fontFamily: DISPLAY, color: MUT }}>{e.line}</p>
               <span className="lk-eyebrow mt-auto flex items-center gap-2" style={{ color: ACCENT_DEEP }}>
                 Nánar á listak.is
-                <ArrowUpRight size={14} aria-hidden />
+                <ArrowUpRight size={14} className="lk-row-arrow" aria-hidden />
               </span>
             </a>
           </Reveal>
@@ -1033,8 +1780,7 @@ function MuseumVideo() {
       />
       <span className="absolute inset-0" style={{ background: 'rgba(20,20,15,0.28)' }} aria-hidden />
       <span
-        className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-transform group-hover:scale-105"
-        style={{ background: ACCENT, color: '#fff' }}
+        className="lk-play absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
         aria-hidden
       >
         <Play size={22} fill="currentColor" style={{ marginLeft: 3 }} />
@@ -1088,7 +1834,7 @@ function About() {
           <div className="flex flex-col">
             <MuseumVideo />
             <p className="m-0 mb-6 mt-2 text-[12px]" style={{ color: MUT }}>
-              Að norðan, N4 sjónvarp — sjónvarpsþáttur um safnið.
+              Að norðan, N4 sjónvarp: sjónvarpsþáttur um safnið.
             </p>
             <a href={SITE_URL} target="_blank" rel="noreferrer" className="lk-row" style={{ borderTop: `1px solid ${ACCENT}` }}>
               <span className="text-[16px] font-medium uppercase tracking-[-0.01em]" style={{ fontFamily: DISPLAY }}>
@@ -1161,10 +1907,10 @@ function Footer() {
             <p className="lk-eyebrow m-0" style={{ color: PAPER_MUTE }}>Heimsókn</p>
             <address className="mt-4 flex flex-col gap-2 not-italic" style={{ fontFamily: DISPLAY }}>
               <span className="text-[15px]">{ADDRESS}</span>
-              <a href={PHONE_HREF} className="flex min-h-[44px] items-center text-[15px]" style={{ color: PAPER }}>
+              <a href={PHONE_HREF} className="lk-flink inline-flex min-h-[44px] w-fit max-w-full items-center text-[15px]" style={{ color: PAPER }}>
                 {PHONE_DISPLAY}
               </a>
-              <a href={EMAIL_HREF} className="flex min-h-[44px] items-center break-all text-[15px]" style={{ color: PAPER }}>
+              <a href={EMAIL_HREF} className="lk-flink inline-flex min-h-[44px] w-fit max-w-full items-center break-all text-[15px]" style={{ color: PAPER }}>
                 {EMAIL}
               </a>
             </address>
@@ -1200,7 +1946,7 @@ function Footer() {
               href={SITE_URL}
               target="_blank"
               rel="noreferrer"
-              className="lk-eyebrow flex min-h-[44px] items-center gap-2"
+              className="lk-flink lk-eyebrow inline-flex min-h-[44px] w-fit max-w-full items-center gap-2"
               style={{ color: PAPER }}
             >
               listak.is
@@ -1398,20 +2144,47 @@ export default function Page() {
           )
         })
 
+        /* A ScrollTrigger refresh re-parents the pinned journey, and the
+           browser BLURS whatever was focused inside it — that is what made
+           the last two corridor stops keyboard-unreachable: the late refresh
+           fired mid-travel and dropped focus onto <body>. Carry focus across
+           every refresh, whoever triggered it (resize included). */
+        let focusHeld: HTMLElement | null = null
+        const onRefreshInit = () => {
+          const a = document.activeElement as HTMLElement | null
+          focusHeld = a && a !== document.body && journeyEl.contains(a) ? a : null
+        }
+        const onRefreshed = () => {
+          const keep = focusHeld
+          focusHeld = null
+          if (keep && keep.isConnected && document.activeElement !== keep) {
+            keep.focus({ preventScroll: true })
+          }
+        }
+        ScrollTrigger.addEventListener('refreshInit', onRefreshInit)
+        ScrollTrigger.addEventListener('refresh', onRefreshed)
+
         /* keyboard reachability: focusing a stop travels the corridor to it */
         const onFocus = (e: FocusEvent) => {
           const stopEl = (e.target as Element | null)?.closest?.('.lk-stop') as HTMLElement | null
           if (!stopEl || !journeyNav) return
           journeyEl.scrollLeft = 0
+          journeyEl.scrollTop = 0
           const mx = maxX()
           const x = Math.min(Math.max(0, stopEl.offsetLeft - (window.innerWidth - stopEl.offsetWidth) / 2), mx)
-          const top = master.start + (x / mx) * (master.end - master.start)
+          /* clamp to the master's own range: the LAST stop maps to exactly
+             `end`, and one pixel past it unpins the journey under the caret */
+          const top = Math.min(master.end, master.start + (x / mx) * (master.end - master.start))
+          if (Math.abs(window.scrollY - top) < 2) return
           lenis.scrollTo(top, {})
         }
         journeyEl.addEventListener('focusin', onFocus)
 
         /* the traverse is only correct once the display font AND the track
-           images have loaded — refresh after both */
+           images have loaded — refresh after both. Every corridor frame
+           carries an explicit aspect-ratio, so once the visitor is INSIDE the
+           pin the image pass has nothing left to correct and a refresh there
+           would only jolt the travel. */
         document.fonts.ready.then(() => ScrollTrigger.refresh())
         const imgs = Array.from(track.querySelectorAll('img'))
         Promise.all(imgs.map((im) => {
@@ -1422,9 +2195,14 @@ export default function Page() {
             el.addEventListener('load', () => res(), { once: true })
             el.addEventListener('error', () => res(), { once: true })
           })
-        })).then(() => ScrollTrigger.refresh())
+        })).then(() => {
+          if (master.progress > 0) return
+          ScrollTrigger.refresh()
+        })
 
         return () => {
+          ScrollTrigger.removeEventListener('refreshInit', onRefreshInit)
+          ScrollTrigger.removeEventListener('refresh', onRefreshed)
           journeyEl.removeEventListener('focusin', onFocus)
           parallaxTweens.forEach((t) => {
             t.scrollTrigger?.kill()
@@ -1464,6 +2242,7 @@ export default function Page() {
         <Hero status={status} />
         <StatusTriptych status={status} />
         <Corridor />
+        <Husid />
         <Upcoming />
         <Education />
         <Ketilhus />

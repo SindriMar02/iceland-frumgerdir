@@ -6,7 +6,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  ADMISSION, CONTACT, EXHIBITIONS, GRIPIR, HOURS, IMG, JSON_LD, LINKS, META,
+  ADMISSION, CONTACT, EXHIBITIONS, GRIPIR, HOURS, IMG, JSON_LD, LENS, LINKS, META,
   PROJECTS, STRATA, TIMELINE, openState,
 } from './data'
 import type { OpenState } from './data'
@@ -49,7 +49,11 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const BASE = import.meta.env.BASE_URL
 const F_CABINET = `${BASE}fonts/cabinet-grotesk/fonts`
 const F_SENTIENT = `${BASE}fonts/sentient`
-const DISPLAY = "'Cabinet Grotesk', ui-sans-serif, system-ui, sans-serif"
+/* 'Cabinet Grotesk Var' is OURS and holds the variable face alone, so the
+   wght axis can never be outranked by a same-family static (see the
+   @font-face comment). Behind it: the self-hosted statics, then the
+   Fontshare 'Cabinet Grotesk' index.html already loads, then the system. */
+const DISPLAY = "'Cabinet Grotesk Var', 'Cabinet Grotesk Static', 'Cabinet Grotesk', ui-sans-serif, system-ui, sans-serif"
 const SERIF = "'Sentient', ui-serif, Georgia, serif"
 
 /* faint SVG turbulence grain, tinted by the band behind it — no fabricated
@@ -72,22 +76,42 @@ const PEEK = [8, 4, 0]
 
 const CSS = `
   @font-face {
-    font-family: 'Cabinet Grotesk';
+    font-family: 'Cabinet Grotesk Static';
     src: url('${F_CABINET}/CabinetGrotesk-Regular.woff2') format('woff2'),
          url('${F_CABINET}/CabinetGrotesk-Regular.woff') format('woff');
     font-weight: 400; font-style: normal; font-display: swap;
   }
   @font-face {
-    font-family: 'Cabinet Grotesk';
+    font-family: 'Cabinet Grotesk Static';
     src: url('${F_CABINET}/CabinetGrotesk-Medium.woff2') format('woff2'),
          url('${F_CABINET}/CabinetGrotesk-Medium.woff') format('woff');
     font-weight: 500; font-style: normal; font-display: swap;
   }
   @font-face {
-    font-family: 'Cabinet Grotesk';
+    font-family: 'Cabinet Grotesk Static';
     src: url('${F_CABINET}/CabinetGrotesk-Extrabold.woff2') format('woff2'),
          url('${F_CABINET}/CabinetGrotesk-Extrabold.woff') format('woff');
     font-weight: 800; font-style: normal; font-display: swap;
+  }
+  /* ── the variable axis (wght 100..900) — the whole excavated-weight device
+     lives here, so it MUST be the face that actually gets selected, and it
+     CANNOT be called 'Cabinet Grotesk'.
+     MEASURED, not assumed: index.html (a shared file, not ours to touch)
+     already pulls cabinet-grotesk@400,500,700,800 from the Fontshare CDN
+     under exactly that family name. Whenever a static face matches the
+     requested weight EXACTLY, Chrome picks it over a variable range in the
+     same family, and font-variation-settings on a static face is a silent
+     no-op. Probed on the real heading at 64.8px: font-weight 800 rendered
+     683.72px wide at 'wght' 100 AND at 'wght' 900 (dead axis), while
+     font-weight 900 — the one weight the CDN does not ship — correctly moved
+     641.16px to 693.86px. Hence a private family name here: this face is the
+     only member of 'Cabinet Grotesk Var', so nothing can outrank it, and the
+     self-hosted statics plus the CDN family stay behind it in the stack as a
+     real fallback if this file ever fails to load. ── */
+  @font-face {
+    font-family: 'Cabinet Grotesk Var';
+    src: url('${F_CABINET}/CabinetGrotesk-Variable.woff2') format('woff2');
+    font-weight: 100 900; font-style: normal; font-display: swap;
   }
   @font-face {
     font-family: 'Sentient';
@@ -99,6 +123,15 @@ const CSS = `
     src: url('${F_SENTIENT}/Sentient-Regular.woff2') format('woff2');
     font-weight: 400; font-style: normal; font-display: swap;
   }
+
+  /* registered custom properties: --mj-clip is the ONLY thing a peel ever
+     animates (never a translated duplicate), and the lens coordinates are
+     lengths so the mask gradient and the ring can both calc() off them from
+     a single write on the stage element */
+  @property --mj-clip { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  @property --mj-lx { syntax: '<length>'; inherits: true; initial-value: 0px; }
+  @property --mj-ly { syntax: '<length>'; inherits: true; initial-value: 0px; }
+  @property --mj-lr { syntax: '<length>'; inherits: true; initial-value: 160px; }
 
   .mj-page { overflow-x: clip; }
   .mj-page ::selection { background: ${SIENNA_DEEP}; color: ${TEXT}; }
@@ -163,6 +196,13 @@ const CSS = `
     background: repeating-linear-gradient(180deg,
       rgba(237,230,218,.022) 0 1px, transparent 1px 16px);
   }
+  /* the year slot: one anchor for all three bands, measured off the wordmark
+     at runtime (--mj-strata-top). The percentage is only the pre-measure
+     fallback for the frame before the effect runs. */
+  .mj-strata-label {
+    left: clamp(1.25rem, 5vw, 4rem);
+    top: var(--mj-strata-top, 22%);
+  }
   .mj-strata-edge {
     position: absolute; left: 0; right: 0; top: 100%; height: 2px;
     background: ${HAIR_STRONG};
@@ -191,24 +231,54 @@ const CSS = `
      frame enters the viewport. Exists only under .mj-js. ── */
   .mj-peel {
     display: none; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-    background: linear-gradient(180deg, #241A12 0%, #2F2115 60%, #3B2717 100%);
-    clip-path: inset(0 0 0 0); will-change: clip-path;
+    background: linear-gradient(180deg,
+      #241A12 0%, #241A12 calc(5% - 1px),
+      rgba(156,99,70,.55) calc(5% - 1px), rgba(156,99,70,.55) 5%,
+      #2F2115 60%, #3B2717 100%);
+    clip-path: inset(0 0 var(--mj-clip) 0); will-change: clip-path;
   }
   .mj-peel::before {
     content: ''; position: absolute; inset: 0;
     background-image: ${GRAIN}; opacity: .15;
   }
   .mj-js .mj-peel { display: block; }
+  /* the dig STOPS at 95%: a 5% soil ledge with a sienna face line is left
+     resting on the top edge of every photograph. Hover brushes the last of
+     it off (see the hover gate). Nothing here ever moves a duplicate. */
   .mj-js .mj-peel.is-dug {
-    clip-path: inset(0 0 100% 0);
-    transition: clip-path 1.2s ${EASE} .12s;
+    --mj-clip: 95%;
+    transition: --mj-clip 1.2s ${EASE} .12s;
+  }
+  /* a coarse pointer has no hover to brush the last of it off, so the ledge
+     would sit on the top 5% of every photograph forever (it hid the printed
+     header of the exhibition poster). There, the dig simply finishes. */
+  @media (hover: none), (pointer: coarse) {
+    .mj-js .mj-peel.is-dug { --mj-clip: 100%; }
   }
 
-  /* ── timeline rule: drawn base + sienna scaleY scrub on top ── */
+  /* ── timeline rule as a CORE SAMPLE: not a hairline but an extracted
+     column. It draws downward (scaleY) AND widens out of the ground
+     (scaleX) as the reader descends, and it is banded with the sampled
+     strata tints at the real vertical position of each dated stop, so the
+     bands are the years. Band boundaries are measured from the rendered
+     stops, never guessed. ── */
+  /* the column has to be wide enough to READ as strata: at 5px the measured
+     banding and its 3.5px boundary ticks were invisible sophistication and
+     the whole thing read as one sienna hairline. 11px is exactly the width
+     of the year markers, so the core runs behind them like a real sample. */
+  .mj-tl-base, .mj-tl-rule { width: 7px; left: 2px; }
+  @media (min-width: 768px) { .mj-tl-base, .mj-tl-rule { width: 11px; left: 0; } }
+  .mj-tl-base { background: rgba(156,99,70,.14); }
+  /* the draw is a CLIP, not a scaleY: a scaled column would squash its own
+     bands and the tints would stop lining up with the years they belong to.
+     scaleX is the only transform, so the core widens as it is pulled. */
   .mj-tl-rule {
-    transform-origin: top center; transform: scaleY(1); will-change: transform;
+    transform-origin: top center; transform: scaleX(1); clip-path: inset(0 0 0 0);
+    will-change: transform, clip-path; background: ${SIENNA};
   }
-  .mj-js .mj-tl-rule { transform: scaleY(0); }
+  .mj-js .mj-tl-rule { transform: scaleX(.34); clip-path: inset(0 0 100% 0); }
+  .mj-tl-dot { background: ${SIENNA}; transition: background .45s ease; }
+  .mj-js .mj-tl-dot { background: ${GROUND}; }
 
   /* ── footer aperture (ERA Phase 14): the clipping wrapper closes toward
      inset(8% 22%) as the page ends. Resting/no-JS state: open. ── */
@@ -235,14 +305,143 @@ const CSS = `
     content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px;
     background: ${SIENNA}; transform: scaleX(0); transform-origin: left center;
   }
-  .mj-ul:hover::after, .mj-ul:focus-visible::after { transform: scaleX(1); }
+  /* focus-visible ONLY out here. The :hover branch lives in the pointer gate
+     below, or a touch tap leaves this underline drawn permanently. */
+  .mj-ul:focus-visible::after { transform: scaleX(1); }
 
-  .mj-row { transition: background .35s ease; }
-  .mj-row:hover { background: rgba(156,99,70,.12); }
-  .mj-row:hover .mj-row-arrow { transform: translate(6px, -6px); }
+  /* ── link rows: a sienna hairline wipes in from the left under the row,
+     the label steps right, the arrow slides. Focus gets the same wipe so a
+     keyboard user is never worse off than a mouse. ── */
+  .mj-row { position: relative; transition: background .35s ease; }
+  .mj-row::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: ${SIENNA}; transform: scaleX(0); transform-origin: left center;
+    transition: transform .55s ${EASE};
+  }
+  .mj-row:focus-visible::after { transform: scaleX(1); }
+  .mj-row-label { transition: transform .45s ${EASE}; }
 
-  .mj-cta { transition: letter-spacing .3s ease, background .3s ease, filter .3s ease; }
-  .mj-cta:hover { letter-spacing: .12em; filter: brightness(1.18); }
+  /* no letter-spacing on hover: tracking is a LAYOUT property, and in a
+     right-aligned row it slid the pill's left edge 4px out from under a
+     stationary cursor. Background + brightness carry the state on the
+     compositor, like every other hover on this page. */
+  .mj-cta { transition: background .3s ease, filter .3s ease, border-color .3s ease; }
+
+  /* ── credits line: resting state is the full muted register (never dimmed
+     below readable), hover lifts it into the off-white and draws a hairline
+     under it ── */
+  .mj-panel-credits { position: relative; transition: color .4s ease, transform .4s ${EASE}; }
+  .mj-panel-credits::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 1px;
+    background: ${HAIR_STRONG}; transform: scaleX(0); transform-origin: left center;
+    transition: transform .55s ${EASE};
+  }
+
+  /* ── gripur strip: the hovered object is picked up off the shelf ── */
+  .mj-gripcard { transition: opacity .45s ease; }
+  .mj-gripmedia { transition: transform .55s ${EASE}; }
+  .mj-gripshelf {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: ${SIENNA};
+    transform: scaleX(0); transform-origin: left center; transition: transform .55s ${EASE};
+  }
+  .mj-chip { transition: background .35s ease, color .35s ease, border-color .35s ease; }
+
+  /* ── EVERY hover effect on this page lives behind this gate, so a touch
+     device can never get stranded in a hover state ── */
+  @media (hover: hover) and (pointer: fine) {
+    .mj-ul:hover::after { transform: scaleX(1); }
+    /* !important for the same reason as the chip below: every CTA carries its
+       resting background as an INLINE token, so a stylesheet rule loses. The
+       outlined pills fill sienna, the filled ones brighten. No layout. */
+    .mj-cta:hover { filter: brightness(1.18); background: ${SIENNA_DEEP} !important; }
+    .mj-row:hover { background: rgba(156,99,70,.10); }
+    .mj-row:hover::after { transform: scaleX(1); }
+    .mj-row:hover .mj-row-label { transform: translateX(6px); }
+    .mj-row:hover .mj-row-arrow { transform: translate(6px, -6px); }
+
+    /* brushing the last soil off a photograph */
+    .mj-js .mj-peelwrap:hover .mj-peel.is-dug,
+    .mj-js .mj-panel:hover .mj-peel.is-dug { --mj-clip: 100%; }
+    /* !important is load-bearing here and on the chip below: both carry
+       their resting colour as an INLINE token (Pill / the credits line), and
+       an inline declaration outranks a stylesheet rule */
+    .mj-panel:hover .mj-panel-credits { color: ${TEXT} !important; transform: translateY(-3px); }
+    .mj-panel:hover .mj-panel-credits::after { transform: scaleX(1); }
+
+    /* picking one object up: it lifts off its shelf line, its month chip
+       fills sienna, and the rest of the row steps back a stop */
+    .mj-strip:hover .mj-gripcard { opacity: .42; }
+    .mj-strip .mj-gripcard:hover { opacity: 1; }
+    .mj-gripcard:hover .mj-gripmedia { transform: translateY(-12px); }
+    .mj-gripcard:hover .mj-gripshelf { transform: scaleX(1); }
+    .mj-gripcard:hover .mj-chip {
+      background: ${SIENNA_DEEP} !important;
+      border-color: ${SIENNA_DEEP} !important;
+      color: ${TEXT} !important;
+    }
+  }
+
+  /* ── 80.000 MYNDIR: the excavation lens. A soot surface masked by a soft
+     radial aperture that follows the pointer; underneath, real photographs
+     of the museum's work. Pointer path and touch path are the SAME markup,
+     re-laid out by the media query below. ── */
+  .mj-lens {
+    position: relative; overflow: hidden;
+    height: clamp(420px, 62svh, 700px);
+    --mj-lr: clamp(120px, 15vw, 210px);
+    border: 1px solid ${HAIR};
+  }
+  .mj-lens-mosaic {
+    position: absolute; inset: 0; display: grid; gap: 2px;
+    grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr);
+  }
+  .mj-lens-mosaic figure { position: relative; overflow: hidden; margin: 0; }
+  .mj-lens-mosaic .mj-lens-wide { grid-column: span 2; }
+  .mj-lens-mosaic img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(.55) contrast(1.03) brightness(.92);
+  }
+  .mj-lens-soot {
+    display: none; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background: linear-gradient(180deg, #1A1610 0%, #16130F 46%, #221A11 100%);
+    transition: opacity .6s ${EASE};
+    -webkit-mask-image: radial-gradient(circle at var(--mj-lx) var(--mj-ly),
+      transparent 0px, transparent calc(var(--mj-lr) * .5), #000 var(--mj-lr));
+    mask-image: radial-gradient(circle at var(--mj-lx) var(--mj-ly),
+      transparent 0px, transparent calc(var(--mj-lr) * .5), #000 var(--mj-lr));
+  }
+  .mj-lens-soot::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: ${GRAIN}; opacity: .2;
+  }
+  .mj-js .mj-lens-soot { display: block; }
+  .mj-lens-ring {
+    display: none; position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none;
+    width: calc(var(--mj-lr) * 2); height: calc(var(--mj-lr) * 2);
+    border-radius: 50%; border: 1px solid ${HAIR_STRONG};
+    transform: translate3d(calc(var(--mj-lx) - var(--mj-lr)), calc(var(--mj-ly) - var(--mj-lr)), 0);
+    will-change: transform; transition: opacity .5s ease;
+  }
+  .mj-js .mj-lens-ring { display: block; }
+  .mj-lens-hint { transition: opacity .5s ease; }
+  .mj-lens.is-open .mj-lens-soot, .mj-lens.is-open .mj-lens-ring { opacity: 0; }
+
+  /* touch / coarse pointer: there is no lens without a pointer, so the same
+     photographs become an honest scrolling strip and the soot never renders */
+  @media (hover: none), (pointer: coarse) {
+    .mj-lens { height: auto; overflow: visible; border: 0; }
+    .mj-lens-soot, .mj-lens-ring, .mj-lens-hint, .mj-lens-btn { display: none !important; }
+    .mj-lens-mosaic {
+      position: static; display: flex; gap: 12px;
+      overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 14px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-color: ${SIENNA_DEEP} rgba(237,230,218,.08); scrollbar-width: thin;
+    }
+    .mj-lens-mosaic figure {
+      flex: 0 0 auto; width: clamp(220px, 62vw, 300px); aspect-ratio: 4 / 3;
+      scroll-snap-align: start; border: 1px solid ${HAIR};
+    }
+  }
 
   @keyframes mj-cue-drop {
     0%   { transform: scaleY(0); transform-origin: top center; }
@@ -276,9 +475,24 @@ const CSS = `
     .mj-hero-photo-in { transform: none !important; }
     .mj-js .mj-mask > .mj-mask-in { transform: none !important; transition: none !important; }
     .mj-js .mj-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
-    .mj-js .mj-tl-rule, .mj-tl-rule { transform: none !important; }
+    .mj-js .mj-tl-rule, .mj-tl-rule { transform: none !important; clip-path: none !important; }
     .mj-ap { clip-path: none !important; }
     .mj-cue-line { animation: none !important; }
+    /* the lens is pointer-driven by definition: its resting state is simply
+       the photographs, uncovered, with no soot and no ring */
+    .mj-lens-soot, .mj-lens-ring, .mj-lens-hint, .mj-lens-btn { display: none !important; }
+    /* the core sample rests fully drawn, every band and every stop set */
+    .mj-js .mj-tl-dot { background: ${SIENNA} !important; }
+    /* hover vocabulary keeps its end states but stops travelling to them */
+    .mj-gripmedia, .mj-gripshelf, .mj-gripcard, .mj-chip,
+    .mj-row, .mj-row::after, .mj-row-label, .mj-row-arrow,
+    .mj-panel-credits, .mj-panel-credits::after, .mj-ul::after {
+      transition: none !important;
+    }
+    /* the variable axis rests at its heaviest: fully excavated type. Each
+       node carries its own rest weight in --mj-w, so the giant numeral rests
+       at 900 and the section heads at 800. */
+    .mj-wght { font-variation-settings: 'wght' var(--mj-w, 800) !important; }
   }
 `
 
@@ -322,6 +536,79 @@ const easeOut2 = (v: number) => 1 - (1 - v) * (1 - v)
    velocity the instant its stagger window opens (the onset-lurch fix), and
    still tapers gently into the resolve */
 const easeBand = (v: number) => v * v * (3 - 2 * v)
+
+const reduced = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/* ── THE EXCAVATED WEIGHT ─────────────────────────────────────────────────
+   Cabinet Grotesk is loaded as a variable face (wght 100..900) and the axis
+   is driven by the SAME scroll progress that drives the dig: a heading is
+   thin and unresolved as it comes out of the ground and reaches its full
+   weight once it is fully uncovered. Text that literally becomes more solid
+   as you dig it up.
+
+   Two disciplines are load-bearing here:
+   1. Written straight to node.style from the shared rAF loop. No setState,
+      ever, and the value is skipped when the rounded weight has not changed,
+      so a still page writes nothing.
+   2. A heavier weight is a WIDER glyph, and a wider glyph can wrap to one
+      more line. Left alone, the light end of the scrub would un-wrap a
+      heading and shift the page under the reader mid-scroll. So the box is
+      measured once at the HEAVIEST weight (widest = most wraps = tallest)
+      and locked with min-height. Re-measured on resize and after
+      document.fonts.ready, never per frame. */
+function useWeightScrub(
+  ref: React.RefObject<HTMLElement | null>,
+  from: number,
+  to: number,
+  ratio = 0.55,
+  lock = false,
+) {
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    /* reduced motion: no job at all, the CSS rest weight stands */
+    if (reduced()) return
+
+    let lockTimer = 0
+    const relock = () => {
+      if (!lock) return
+      el.style.minHeight = ''
+      const prev = el.style.fontVariationSettings
+      el.style.fontVariationSettings = `"wght" ${to}`
+      const h = el.getBoundingClientRect().height
+      el.style.fontVariationSettings = prev
+      el.style.minHeight = `${Math.ceil(h)}px`
+    }
+    relock()
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(relock).catch(() => {})
+    }
+    const onResize = () => {
+      window.clearTimeout(lockTimer)
+      lockTimer = window.setTimeout(relock, 180)
+    }
+    window.addEventListener('resize', onResize)
+
+    let last = -1
+    const stop = addJob((vh) => {
+      const r = el.getBoundingClientRect()
+      if (r.top > vh + 60 || r.bottom < -60) return
+      const p = clamp01((vh - r.top) / (vh * ratio))
+      const w = Math.round(from + (to - from) * easeOut2(p))
+      if (w === last) return
+      return () => {
+        last = w
+        el.style.fontVariationSettings = `"wght" ${w}`
+      }
+    })
+    return () => {
+      stop()
+      window.clearTimeout(lockTimer)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [ref, from, to, ratio, lock])
+}
 
 /** Register a drift node (image drifting inside its fixed frame). */
 function useDriftNode(ref: React.RefObject<HTMLElement | null>) {
@@ -450,15 +737,19 @@ function Reveal({
 
 /* ── small shared furniture ── */
 
-function Pill({ children, tone = 'line' }: { children: ReactNode; tone?: 'line' | 'fill' }) {
+/* tone 'soot' is for chips that sit ON a photograph: a soot scrim keeps the
+   off-white legible over any pixel underneath, and leaves the sienna fill
+   free to arrive on hover */
+function Pill({ children, tone = 'line', className = '' }: { children: ReactNode; tone?: 'line' | 'fill' | 'soot'; className?: string }) {
+  const bg = tone === 'fill' ? SIENNA_DEEP : tone === 'soot' ? 'rgba(22,19,15,.82)' : 'transparent'
   return (
     <span
-      className="inline-flex items-center rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.14em]"
+      className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.14em] ${className}`}
       style={{
         fontFamily: DISPLAY, fontWeight: 500,
         border: `1px solid ${tone === 'fill' ? SIENNA_DEEP : HAIR_STRONG}`,
-        background: tone === 'fill' ? SIENNA_DEEP : 'transparent',
-        color: tone === 'fill' ? TEXT : SIENNA,
+        background: bg,
+        color: tone === 'line' ? SIENNA : TEXT,
       }}
     >
       {children}
@@ -491,6 +782,9 @@ function SectionHead({
   kicker: string
   title: string
 }) {
+  const h = useRef<HTMLHeadingElement>(null)
+  /* 220 out of the ground, 800 fully uncovered */
+  useWeightScrub(h, 220, 800, 0.55, true)
   return (
     <div>
       <Reveal>
@@ -504,8 +798,9 @@ function SectionHead({
         </div>
       </Reveal>
       <h2
-        className="mt-6 uppercase leading-[0.98] tracking-[-0.015em] text-[clamp(2rem,4.5vw,3.6rem)]"
-        style={{ fontFamily: DISPLAY, fontWeight: 800, color: TEXT }}
+        ref={h}
+        className="mj-wght mt-6 uppercase leading-[0.98] tracking-[-0.015em] text-[clamp(2rem,4.5vw,3.6rem)]"
+        style={{ fontFamily: DISPLAY, fontWeight: 800, color: TEXT, ['--mj-w' as string]: 800 }}
       >
         <MaskLine>{title}</MaskLine>
       </h2>
@@ -526,7 +821,7 @@ function PeelFrame(props: {
 }) {
   const { ref, inView } = useInView<HTMLDivElement>(0.3)
   return (
-    <div ref={ref} className={`relative overflow-hidden ${props.className ?? ''}`}>
+    <div ref={ref} className={`mj-peelwrap relative overflow-hidden ${props.className ?? ''}`}>
       <DriftFrame
         src={props.src}
         alt={props.alt}
@@ -557,7 +852,7 @@ function RowLink({
       className="mj-row flex min-h-[56px] items-center justify-between gap-4 px-1 py-3"
       style={{ borderTop: `1px solid ${HAIR}`, color: TEXT }}
     >
-      <span className="flex flex-col">
+      <span className="mj-row-label flex flex-col">
         <span className="text-[16px]" style={{ fontFamily: DISPLAY, fontWeight: 500 }}>{children}</span>
         {sub && <span className="mt-0.5 text-[12.5px]" style={{ color: MUT }}>{sub}</span>}
       </span>
@@ -642,13 +937,70 @@ function Nav() {
 function SectionHero() {
   const [mounted, setMounted] = useState(false)
   const outer = useRef<HTMLElement>(null)
+  const stage = useRef<HTMLDivElement>(null)
   const photoIn = useRef<HTMLDivElement>(null)
+  const lateA = useRef<HTMLDivElement>(null)
   const late = useRef<HTMLDivElement>(null)
   const cue = useRef<HTMLDivElement>(null)
+  const title = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 90)
     return () => clearTimeout(t)
+  }, [])
+
+  /* ── WHERE THE YEAR LABELS SIT ─────────────────────────────────────────
+     The band labels carry the dig's entire honest payload (2026 · 1943 ·
+     1942, all real dates). They used to be anchored at 20/30/40% of the
+     viewport, which is inside the wordmark's box at every scroll depth, and
+     mix-blend-mode: difference ate two of the three: '1943 · SAFNIÐ STOF'
+     with the rest swallowed by the M of MINJASAFN.
+
+     So the anchor is MEASURED off the wordmark instead of guessed as a
+     percentage: one slot, a line and a half above the type, recomputed on
+     resize and after the display face lands (a heavier wght is a wider
+     glyph, but the line count is fixed at two, so the height is stable).
+     One slot is enough and is better: each band clips away to expose the
+     next, so exactly one label can ever be visible at a time — the year
+     changes in place as you dig, and at each crossover the soil edge cuts
+     the line in half, the outgoing year above it and the incoming below. */
+  useEffect(() => {
+    const place = () => {
+      const st = stage.current
+      const t = title.current
+      if (!st || !t) return
+      const sr = st.getBoundingClientRect()
+      const tr = t.getBoundingClientRect()
+      const lab = st.querySelector('.mj-strata-label')
+      const labH = lab ? lab.getBoundingClientRect().height || 18 : 18
+      const nav = document.querySelector('header')
+      const navH = nav ? nav.getBoundingClientRect().height : 76
+      /* the band between the nav and the top of the wordmark. On a 1440x900
+         window that is 160px of room; on a 1280x620 window the wordmark eats
+         the viewport and it collapses to about 35px, which still holds one
+         12px line. Only if even that fails does the slot drop below the
+         wordmark, where the resolving eyebrow eventually arrives. */
+      const floor = navH + 10
+      const ceil = tr.top - sr.top - 12 - labH
+      const y = ceil >= floor
+        ? Math.min(ceil, Math.max(floor, tr.top - sr.top - 46))
+        : tr.bottom - sr.top + 20
+      st.style.setProperty('--mj-strata-top', `${Math.round(y)}px`)
+    }
+    place()
+    let t = 0
+    const onResize = () => {
+      window.clearTimeout(t)
+      t = window.setTimeout(place, 160)
+    }
+    window.addEventListener('resize', onResize)
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(place).catch(() => {})
+    }
+    return () => {
+      window.clearTimeout(t)
+      window.removeEventListener('resize', onResize)
+    }
   }, [])
 
   useEffect(() => {
@@ -669,8 +1021,15 @@ function SectionHero() {
         Math.max(PEEK[i] ?? 0, easeBand(clamp01((progress - i * 0.26) / 0.44)) * 100),
       )
       const pE = easeOut2(progress)
+      /* orientation first, action second: the eyebrow (who and where) resolves
+         while the second band is still coming off, the CTAs once the dig is
+         essentially done. One scrub, two windows, no extra job. */
+      const lateAO = clamp01((progress - 0.22) / 0.24)
       const lateO = clamp01((progress - 0.6) / 0.28)
       const cueO = clamp01(1 - progress * 4)
+      /* the wordmark itself gains weight as the strata come off it: the same
+         `progress` that clips the bands drives the wght axis, 300 to 820 */
+      const wght = Math.round(300 + 520 * pE)
       return () => {
         for (let i = 0; i < bands.length; i++) {
           bands[i].style.clipPath = `inset(0 0 ${insets[i].toFixed(2)}% 0)`
@@ -683,19 +1042,25 @@ function SectionHero() {
         if (photoIn.current) {
           photoIn.current.style.transform = `scale(${(1.09 - 0.09 * pE).toFixed(4)})`
         }
+        if (lateA.current) {
+          lateA.current.style.opacity = lateAO.toFixed(3)
+          lateA.current.style.visibility = lateAO < 0.05 ? 'hidden' : 'visible'
+          lateA.current.style.transform = `translateY(${((1 - lateAO) * 16).toFixed(2)}px)`
+        }
         if (late.current) {
           late.current.style.opacity = lateO.toFixed(3)
           late.current.style.visibility = lateO < 0.05 ? 'hidden' : 'visible'
           late.current.style.transform = `translateY(${((1 - lateO) * 16).toFixed(2)}px)`
         }
         if (cue.current) cue.current.style.opacity = cueO.toFixed(3)
+        if (title.current) title.current.style.fontVariationSettings = `"wght" ${wght}`
       }
     })
   }, [])
 
   return (
     <section ref={outer} id="efst" className="mj-hero-outer relative" aria-label="Jarðlög, upphafskafli">
-      <div className="sticky top-0 h-[100svh] overflow-hidden" style={{ background: GROUND }}>
+      <div ref={stage} className="sticky top-0 h-[100svh] overflow-hidden" style={{ background: GROUND }}>
         {/* base of the dig: the Sjálfbær eining interior, pre-desaturated for
             the difference-blend wordmark (the Búðir recipe) */}
         <div className="mj-hero-photo absolute inset-0">
@@ -729,16 +1094,14 @@ function SectionHero() {
             aria-hidden
             style={{ zIndex: 13 - i, background: STRATA_BG[i] }}
           >
+            {/* every band puts its year in the SAME measured slot clear of the
+                wordmark (see the placement effect). The clip stack makes them
+                mutually exclusive, so this reads as one counter going down. */}
             <span
-              className="absolute flex items-center gap-3 text-[11px] uppercase tracking-[0.16em]"
-              style={{
-                fontFamily: DISPLAY, fontWeight: 500,
-                color: 'rgba(237,230,218,.66)',
-                left: 'clamp(1.25rem, 5vw, 4rem)',
-                top: `${20 + i * 10}%`,
-              }}
+              className="mj-strata-label absolute flex items-center gap-3 text-[12px] uppercase tracking-[0.16em]"
+              style={{ fontFamily: DISPLAY, fontWeight: 500, color: 'rgba(237,230,218,.78)' }}
             >
-              <span className="inline-block h-px w-8" style={{ background: HAIR_STRONG }} />
+              <span className="inline-block h-px w-10" style={{ background: HAIR_STRONG }} />
               {s.label}
             </span>
             <span className="mj-strata-edge" />
@@ -748,8 +1111,9 @@ function SectionHero() {
         {/* the wordmark, blended over whatever depth the dig has reached */}
         <div className="absolute inset-0 z-20 flex items-center justify-center px-4">
           <h1
-            className="mj-hero-title text-center uppercase leading-[0.98] tracking-[-0.02em] text-[clamp(3.1rem,13.5vw,12rem)]"
-            style={{ fontFamily: DISPLAY, fontWeight: 800 }}
+            ref={title}
+            className="mj-hero-title mj-wght text-center uppercase leading-[0.98] tracking-[-0.02em] text-[clamp(3.1rem,13.5vw,12rem)]"
+            style={{ fontFamily: DISPLAY, fontWeight: 800, ['--mj-w' as string]: 820 }}
             aria-label="Minjasafn Austurlands"
           >
             {/* trailing space keeps textContent readable ("Minjasafn Austurlands",
@@ -761,12 +1125,9 @@ function SectionHero() {
         </div>
 
         {/* resolves once the strata are cleared */}
-        <div
-          ref={late}
-          className="mj-hero-late absolute inset-x-0 bottom-0 z-30 px-5 pb-8 md:px-10 md:pb-10"
-        >
+        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-8 md:px-10 md:pb-10">
           <div className="mx-auto flex max-w-[1440px] flex-wrap items-end justify-between gap-6">
-            <div>
+            <div ref={lateA} className="mj-hero-late">
               <p className="text-[12px] uppercase tracking-[0.14em] md:text-[13px]" style={{ fontFamily: DISPLAY, fontWeight: 500, color: TEXT }}>
                 Byggðasafn Austurlands · Egilsstöðum · stofnað 1943
               </p>
@@ -774,7 +1135,7 @@ function SectionHero() {
                 Lag fyrir lag.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div ref={late} className="mj-hero-late flex flex-wrap items-center gap-3">
               <button
                 onClick={() => goTo('heimsokn')}
                 className="mj-cta rounded-full px-6 text-[13px] uppercase tracking-[0.08em]"
@@ -927,7 +1288,7 @@ function SectionExhibitions() {
           {EXHIBITIONS.map((ex, i) => (
             <article
               key={ex.id}
-              className={`grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-12`}
+              className="mj-panel grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-12"
             >
               <Reveal className={`lg:col-span-7 ${i % 2 === 1 ? 'lg:order-2' : ''}`}>
                 <PeelFrame
@@ -957,7 +1318,7 @@ function SectionExhibitions() {
                 </Reveal>
                 {ex.credits && (
                   <Reveal delay={170}>
-                    <p className="mt-4 text-[12px] uppercase tracking-[0.1em]" style={{ fontFamily: DISPLAY, fontWeight: 500, color: MUT }}>
+                    <p className="mj-panel-credits mt-4 inline-block text-[12px] uppercase tracking-[0.1em]" style={{ fontFamily: DISPLAY, fontWeight: 500, color: MUT }}>
                       {ex.credits}
                     </p>
                   </Reveal>
@@ -1003,12 +1364,17 @@ function SectionGripur() {
         aria-label="Gripur mánaðarins, myndaröð, skrunaðu til hliðar"
       >
         {GRIPIR.map((g) => (
-          <figure key={g.month} className="w-[clamp(240px,64vw,320px)] shrink-0 snap-start">
+          <figure key={g.month} className="mj-gripcard w-[clamp(240px,64vw,320px)] shrink-0 snap-start">
+            {/* the shelf line is the ground the object was lifted off: it
+                stays at the original bottom edge while the media travels up */}
             <div className="relative">
-              <DriftFrame src={g.src} alt={g.alt} drift={6} className="aspect-[4/3]" />
-              <span className="absolute left-3 top-3 z-[4]">
-                <Pill tone="fill">{g.month}</Pill>
-              </span>
+              <span className="mj-gripshelf" aria-hidden />
+              <div className="mj-gripmedia relative">
+                <DriftFrame src={g.src} alt={g.alt} drift={6} className="aspect-[4/3]" />
+                <span className="absolute left-3 top-3 z-[4]">
+                  <Pill tone="soot" className="mj-chip">{g.month}</Pill>
+                </span>
+              </div>
             </div>
             <figcaption className="mt-3 text-[12px] uppercase tracking-[0.14em]" style={{ fontFamily: DISPLAY, fontWeight: 500, color: MUT }}>
               Úr safnkostinum
@@ -1037,6 +1403,9 @@ function SectionGripur() {
 
 /* ── 5 · LJÓSMYNDASAFNIÐ — layer 03, type-led statement ── */
 function SectionArchive() {
+  const num = useRef<HTMLParagraphElement>(null)
+  /* the widest use of the axis on the page: 150 out of the ground to 900 */
+  useWeightScrub(num, 150, 900, 0.5)
   return (
     <section id="ljosmyndasafn" className="py-20 md:py-28" style={{ background: GROUND_DEEP }}>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -1044,8 +1413,9 @@ function SectionArchive() {
         <div className="mt-10 grid grid-cols-1 items-end gap-10 lg:grid-cols-12">
           <div className="lg:col-span-8">
             <p
-              className="leading-[0.9] tracking-[-0.02em] text-[clamp(4.4rem,14vw,12.5rem)]"
-              style={{ fontFamily: DISPLAY, fontWeight: 800, color: SIENNA }}
+              ref={num}
+              className="mj-wght leading-[0.9] tracking-[-0.02em] text-[clamp(4.4rem,14vw,12.5rem)]"
+              style={{ fontFamily: DISPLAY, fontWeight: 900, color: SIENNA, ['--mj-w' as string]: 900 }}
             >
               <MaskLine>
                 <span aria-hidden style={{ fontSize: '.42em', verticalAlign: '0.5em', letterSpacing: 0 }}>~</span>
@@ -1080,24 +1450,264 @@ function SectionArchive() {
   )
 }
 
+/* ── 5b · UNDIR YFIRBORÐINU — the excavation lens ────────────────────────
+   The signature set-piece. A soot surface lies over a mosaic of the museum's
+   own photographs; a soft aperture follows the pointer and takes the soot
+   off wherever the visitor "digs". Pure CSS mask-image (radial-gradient)
+   whose centre is two registered <length> custom properties written from
+   the shared rAF loop. No WebGL, no library, no per-frame React.
+
+   HONESTY, stated on the page and enforced here: these are the museum's own
+   photographs of its work, events and exhibitions. They are NOT the
+   digitised Ljósmyndasafn Austurlands, which is not published on the web.
+   The copy says so in as many words, and the photographs are shown with the
+   page's ordinary desaturation, never aged or sepia-toned into looking like
+   archive material they are not.
+
+   Three paths to the same twelve pictures:
+   · pointer  — the lens
+   · touch    — the identical markup re-laid out as a native scrolling strip
+                by the (hover: none), (pointer: coarse) branch; soot never
+                renders, so nothing is ever hidden behind an absent pointer
+   · keyboard — a real button that lifts the soot entirely ── */
+function SectionLens() {
+  const stage = useRef<HTMLDivElement>(null)
+  const hint = useRef<HTMLParagraphElement>(null)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const el = stage.current
+    if (!el) return
+    if (reduced()) return
+    /* the lens is a pointer device: on coarse pointers the CSS branch has
+       already turned this into a strip, so no job and no listeners at all */
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+
+    /* viewport coords only — the rect read happens in the batched read phase */
+    const ptr = { x: -1, y: -1 }
+    let moved = false
+    const cur = { x: -1, y: -1 }
+
+    const onMove = (e: PointerEvent) => {
+      ptr.x = e.clientX
+      ptr.y = e.clientY
+      moved = true
+    }
+    const onLeave = () => {
+      ptr.x = -1
+      ptr.y = -1
+    }
+    el.addEventListener('pointermove', onMove, { passive: true })
+    el.addEventListener('pointerleave', onLeave, { passive: true })
+
+    const stop = addJob((vh) => {
+      const r = el.getBoundingClientRect()
+      if (r.bottom < -40 || r.top > vh + 40) return
+      /* resting target: slightly above centre, so the still frame already
+         shows that there is something under the soot */
+      const tx = ptr.x < 0 ? r.width * 0.5 : ptr.x - r.left
+      const ty = ptr.y < 0 ? r.height * 0.44 : ptr.y - r.top
+      if (cur.x < 0) {
+        cur.x = tx
+        cur.y = ty
+      }
+      cur.x += (tx - cur.x) * 0.16
+      cur.y += (ty - cur.y) * 0.16
+      const x = cur.x.toFixed(1)
+      const y = cur.y.toFixed(1)
+      const hintOpacity = moved ? '0' : '1'
+      return () => {
+        el.style.setProperty('--mj-lx', `${x}px`)
+        el.style.setProperty('--mj-ly', `${y}px`)
+        if (hint.current) hint.current.style.opacity = hintOpacity
+      }
+    })
+
+    return () => {
+      stop()
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerleave', onLeave)
+    }
+  }, [])
+
+  return (
+    <section id="undir-yfirbordinu" className="pb-20 md:pb-28" style={{ background: GROUND_DEEP }}>
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <SectionHead layer="Lag 03" depth={3} kicker="Sama lagið, myndirnar sjálfar" title="Undir yfirborðinu" />
+
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
+          <Reveal className="lg:col-span-7">
+            <p className="max-w-[54ch] text-[16px] leading-relaxed md:text-[16.5px]" style={{ color: MUT }}>
+              Ljósmyndasafn Austurlands geymir um 80.000 myndir og er sérstök deild innan
+              Héraðsskjalasafns Austfirðinga. Sá myndakostur er ekki birtur á vefnum.
+            </p>
+          </Reveal>
+          <Reveal delay={90} className="lg:col-span-5">
+            <p className="max-w-[48ch] text-[16px] leading-relaxed md:text-[16.5px]" style={{ color: MUT }}>
+              Myndirnar hér að neðan eru úr starfi safnsins, viðburðum þess og sýningum.
+              Þetta er boð um að leita í ljósmyndasafnið, ekki ljósmyndasafnið sjálft.
+            </p>
+          </Reveal>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 md:mt-10">
+          <p
+            ref={hint}
+            className="mj-lens-hint text-[12px] uppercase tracking-[0.16em]"
+            style={{ fontFamily: DISPLAY, fontWeight: 500, color: MUT }}
+          >
+            Færðu bendilinn yfir flötinn
+          </p>
+          <button
+            type="button"
+            className="mj-lens-btn mj-cta rounded-full px-5 text-[12px] uppercase tracking-[0.08em]"
+            style={{
+              fontFamily: DISPLAY, fontWeight: 500, border: `1px solid ${HAIR_STRONG}`,
+              color: TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center',
+            }}
+            aria-pressed={open}
+            aria-controls="mj-lens-stage"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? 'Hylja flötinn aftur' : 'Sýna allar myndirnar'}
+          </button>
+        </div>
+
+        <div
+          id="mj-lens-stage"
+          ref={stage}
+          className={`mj-lens mt-4 ${open ? 'is-open' : ''}`}
+        >
+          <div
+            className="mj-lens-mosaic"
+            role="region"
+            aria-label="Myndir úr starfi Minjasafns Austurlands, skrunaðu til hliðar á snertiskjá"
+            tabIndex={0}
+          >
+            {/* eleven pictures in a twelve-cell grid: the first takes a double
+                cell, which fills the grid exactly and breaks the uniform tile
+                field. Ignored by the touch branch, which is a flex strip. */}
+            {LENS.map((p, i) => (
+              <figure key={p.src} className={i === 0 ? 'mj-lens-wide' : undefined}>
+                <img src={p.src} alt={p.alt} loading="lazy" decoding="async" />
+              </figure>
+            ))}
+          </div>
+          <div className="mj-lens-soot" aria-hidden />
+          <div className="mj-lens-ring" aria-hidden />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /* ── 6 · SAGAN — layer 04, the serif register. 1942 → í dag. ── */
+/* the core sample's bands: the sampled soot→sienna family, deepest tone at
+   the top of the column (1942) brightening to the accent at today */
+const CORE_BANDS = ['#3B2717', '#5C3823', '#7B4A31', SIENNA]
+
 function SectionSaga() {
   const host = useRef<HTMLDivElement>(null)
   const rule = useRef<HTMLDivElement>(null)
+  const dots = useRef<Array<HTMLSpanElement | null>>([])
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const el = host.current
     const ln = rule.current
     if (!el || !ln) return
-    return addJob((vh) => {
+
+    /* ── THE CORE SAMPLE ──────────────────────────────────────────────────
+       The timeline rule stops being a hairline and becomes an extracted
+       column of ground. It is banded with the strata tints at the MEASURED
+       vertical position of each dated stop, so the bands are the years
+       themselves, not decoration: the boundary between the 1942 band and the
+       17.11.1942 band sits exactly on the second marker. As the reader
+       descends, the core is drawn out of the ground (clip) and widens
+       (scaleX), and each year's marker fills sienna the moment the core
+       reaches it. Measured, never guessed; re-measured on resize. */
+    const measure = () => {
+      const hr = el.getBoundingClientRect()
+      const ys = dots.current.map((d) => {
+        if (!d) return 0
+        const dr = d.getBoundingClientRect()
+        return dr.top + dr.height / 2 - hr.top
+      })
+      /* the rule spans inset 8px top and bottom (top-2 / bottom-2) */
+      const span = Math.max(1, hr.height - 16)
+      const pct = (y: number) => clamp01((y - 8) / span) * 100
+      /* the boundary tick is specified in PIXELS and converted, not as a flat
+         percentage: at 0.7% of a 500px column it came out 3.5px and at a
+         1200px column it would have been 8px. 3px of pale ash reads as the
+         line between two beds of soil at any column height. */
+      const tickPct = Math.min(3, (3 / span) * 100)
+      const stops: string[] = []
+      let prev = 0
+      for (let i = 0; i < CORE_BANDS.length; i++) {
+        const end = i === CORE_BANDS.length - 1 ? 100 : pct(ys[i + 1] ?? 0)
+        stops.push(`${CORE_BANDS[i]} ${prev.toFixed(2)}% ${Math.max(prev, end).toFixed(2)}%`)
+        if (i < CORE_BANDS.length - 1) {
+          const line = Math.min(100, end + tickPct)
+          stops.push(`rgba(237,230,218,.58) ${end.toFixed(2)}% ${line.toFixed(2)}%`)
+          prev = line
+        }
+      }
+      ln.style.backgroundImage = `linear-gradient(180deg, ${stops.join(', ')})`
+      return ys
+    }
+    let ys = measure()
+    let t = 0
+    const onResize = () => {
+      window.clearTimeout(t)
+      t = window.setTimeout(() => {
+        ys = measure()
+      }, 180)
+    }
+    window.addEventListener('resize', onResize)
+    /* the first measure runs before the display face and the photographs have
+       settled the column's height, and a stale height puts every band a dozen
+       pixels off its own year. A ResizeObserver on the column catches the
+       font swap, the image decode and any reflow, not just window resizes. */
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(() => { ys = measure() }).catch(() => {})
+    }
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onResize) : null
+    ro?.observe(el)
+
+    if (reduced()) {
+      return () => {
+        window.clearTimeout(t)
+        window.removeEventListener('resize', onResize)
+        ro?.disconnect()
+      }
+    }
+
+    const passed = dots.current.map(() => false)
+    const stop = addJob((vh) => {
       const r = el.getBoundingClientRect()
       if (r.bottom < -120 || r.top > vh + 120) return
       const p = clamp01((vh * 0.88 - r.top) / r.height)
+      const drawn = 8 + p * Math.max(1, r.height - 16)
+      const next = ys.map((y) => drawn >= y)
+      const changed = next.some((v, i) => v !== passed[i])
       return () => {
-        ln.style.transform = `scaleY(${p.toFixed(4)})`
+        ln.style.clipPath = `inset(0 0 ${((1 - p) * 100).toFixed(2)}% 0)`
+        ln.style.transform = `scaleX(${(0.34 + 0.66 * p).toFixed(3)})`
+        if (changed) {
+          for (let i = 0; i < next.length; i++) {
+            passed[i] = next[i]
+            const d = dots.current[i]
+            if (d) d.style.background = next[i] ? SIENNA : GROUND
+          }
+        }
       }
     })
+
+    return () => {
+      stop()
+      window.clearTimeout(t)
+      window.removeEventListener('resize', onResize)
+      ro?.disconnect()
+    }
   }, [])
 
   return (
@@ -1114,15 +1724,16 @@ function SectionSaga() {
         </Reveal>
 
         <div ref={host} className="relative mt-12 md:mt-16">
-          {/* base rule + the sienna scrub that draws downward with the dig */}
-          <div className="absolute bottom-2 left-[5px] top-2 w-px" style={{ background: HAIR }} aria-hidden />
-          <div ref={rule} className="mj-tl-rule absolute bottom-2 left-[5px] top-2 w-px" style={{ background: SIENNA }} aria-hidden />
+          {/* the empty borehole, and the banded core drawn out of it */}
+          <div className="mj-tl-base absolute bottom-2 top-2" aria-hidden />
+          <div ref={rule} className="mj-tl-rule absolute bottom-2 top-2" aria-hidden />
           <ol className="flex flex-col gap-10 md:gap-12">
             {TIMELINE.map((t, i) => (
               <li key={t.year} className="relative pl-9 md:pl-12">
                 <span
-                  className="absolute left-0 top-[6px] inline-block h-[11px] w-[11px] rounded-full"
-                  style={{ background: GROUND, border: `2px solid ${SIENNA}` }}
+                  ref={(n) => { dots.current[i] = n }}
+                  className="mj-tl-dot absolute left-0 top-[6px] inline-block h-[11px] w-[11px] rounded-full"
+                  style={{ border: `2px solid ${SIENNA}` }}
                   aria-hidden
                 />
                 <Reveal delay={i * 60}>
@@ -1346,11 +1957,11 @@ export default function Page() {
     ld.type = 'application/ld+json'
     ld.textContent = JSON.stringify(JSON_LD)
     document.head.appendChild(ld)
-    /* preload the display weights actually used at the top of the page */
+    /* one preload only: the variable face wins the family match at every
+       weight the page uses, so preloading the three statics as well would
+       just pull 60kB the renderer never paints with */
     const preloads = [
-      `${F_CABINET}/CabinetGrotesk-Extrabold.woff2`,
-      `${F_CABINET}/CabinetGrotesk-Medium.woff2`,
-      `${F_CABINET}/CabinetGrotesk-Regular.woff2`,
+      `${F_CABINET}/CabinetGrotesk-Variable.woff2`,
     ].map((href) => {
       const l = document.createElement('link')
       l.rel = 'preload'
@@ -1382,6 +1993,7 @@ export default function Page() {
         <SectionExhibitions />
         <SectionGripur />
         <SectionArchive />
+        <SectionLens />
         <SectionSaga />
         <SectionProjects />
         <SectionLearning />

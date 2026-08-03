@@ -258,6 +258,60 @@ export const EDUCATION = [
   { title: 'Þriðjudagsfyrirlestrar', line: 'Fyrirlestraröð á þriðjudögum' },
 ]
 
+/* ── HÚSIÐ — hall index ───────────────────────────────────────────────────
+   Which of the nine shows sits in which of the twelve halls. Derived ONLY
+   from the hall chips the museum publishes on its own show pages (see the
+   `chip` field on every Show above): "SALUR 01", "SALIR 02–03A",
+   "SALIR 04–05", "SALUR 06 + SVALIR", "SALUR 07" … "SALUR 12".
+   `showKey: null` renders the honest empty state instead of a guess. */
+
+export interface Hall {
+  id: string
+  showKey: string | null
+}
+
+export const HALLS: Hall[] = [
+  { id: '01', showKey: 'fugl' },
+  { id: '02', showKey: 'silica' },
+  { id: '03', showKey: 'silica' },
+  { id: '04', showKey: 'magnus' },
+  { id: '05', showKey: 'magnus' },
+  { id: '06', showKey: 'katrin' },
+  { id: '07', showKey: 'hughrif' },
+  { id: '08', showKey: 'eirikur' },
+  { id: '09', showKey: 'ulfur' },
+  { id: '10', showKey: 'zimoun' },
+  { id: '11', showKey: 'zimoun' },
+  { id: '12', showKey: 'kristin' },
+]
+
+export const HALL_EMPTY = 'Enginn viðburður núna'
+
+/* The museum publishes its own floor plans („Grunnteikningar"). This is the
+   real drawing, public/listak/floorplan.jpg, 1547×959.
+
+   HONESTY NOTE (load-bearing, do not "improve" this into a full hotspot map):
+   the drawing carries printed red hall numerals for FIVE halls only — 01, 02,
+   03, 04 and 05. Halls 06 to 12 do not appear on this sheet at all. The marks
+   below are the read-off positions of those five printed numerals, in percent
+   of the image box, measured from the file itself. They are label positions,
+   NOT surveyed room outlines: no room boundary is asserted anywhere in this
+   build, and the twelve-hall grid beside it is drawn as a schematic and is
+   labelled as one. */
+export const FLOORPLAN = {
+  src: 'floorplan.jpg',
+  w: 1547,
+  h: 959,
+  /** halls whose numeral is legibly printed on the sheet */
+  marks: [
+    { id: '01', x: 73.7, y: 17.9 },
+    { id: '02', x: 41.3, y: 57.6 },
+    { id: '03', x: 22.4, y: 50.3 },
+    { id: '04', x: 16.1, y: 65.9 },
+    { id: '05', x: 46.4, y: 82.0 },
+  ],
+}
+
 export const JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'ArtGallery',

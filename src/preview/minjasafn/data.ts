@@ -51,6 +51,34 @@ export const IMG = {
   },
 } as const
 
+/* ── LENS — the photographs shown under the excavation lens in the
+      Ljósmyndasafn section.
+      HONESTY BOUNDARY: these are the museum's OWN photographs of its work,
+      events and exhibitions. They are NOT the digitised Ljósmyndasafn
+      Austurlands (about 80.000 images, kept as a department within
+      Héraðsskjalasafn Austfirðinga), which is not published on the web.
+      The section copy says exactly that. Alt text stays inside what the
+      brief's eyes-on review established about each file: no invented
+      dates, names, places or object identifications. ── */
+export const LENS = [
+  { src: `${BASE}minjasafn/spjold-800.jpg`, alt: 'Sýningarspjöld um Grýlu og þjóðtrú á vegg í sýningarsal safnsins' },
+  { src: `${BASE}minjasafn/bak-800.jpg`, alt: 'Gestur skoðar sýningargripi í sal Minjasafns Austurlands' },
+  { src: `${BASE}minjasafn/syning2023-800.jpg`, alt: 'Sérsýning í Minjasafni Austurlands árið 2023' },
+  { src: `${BASE}minjasafn/thorri-800.jpg`, alt: 'Ljósmynd úr þorraviðburði á vegum Minjasafns Austurlands' },
+  { src: `${BASE}minjasafn/bras-800.jpg`, alt: 'Ljósmynd frá BRAS árið 2019' },
+  { src: `${BASE}minjasafn/saudkind-800.jpg`, alt: 'Sauðkind, ljósmynd frá Minjasafni Austurlands' },
+  { src: `${BASE}minjasafn/lindarbakki-800.jpg`, alt: 'Lindarbakki, rauðgaflaður torfbær á Borgarfirði eystra' },
+  { src: `${BASE}minjasafn/ull-800.jpg`, alt: 'Ull og textílvinna, ljósmynd frá Minjasafni Austurlands' },
+  { src: `${BASE}minjasafn/safnfraedsla-800.jpg`, alt: 'Safnfræðsla í Minjasafni Austurlands' },
+  /* the three gripur-mánaðarins studio shots that used to sit here were the
+     same three files as the strip above, and a studio object shot is neither
+     starf, viðburður né sýning. Replaced with the two remaining unused files
+     from the museum's own set, both eyes-on described, and the mosaic now
+     runs eleven pictures with one wide cell instead of twelve with repeats. */
+  { src: `${BASE}minjasafn/brakeout-800.jpg`, alt: 'Börn leysa þrautir við borð í safnfræðslu, með blöðum, kortum og læstum kassa' },
+  { src: `${BASE}minjasafn/spengja-800.jpg`, alt: 'Spengt leirtau á sýningu: skál og bolli sem gert hefur verið við með vír' },
+] as const
+
 /* Gripur mánaðarins — real, running series on minjasafn.is. Months only,
    object names are NOT invented for the photos. */
 export const GRIPIR = [
