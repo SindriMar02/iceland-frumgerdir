@@ -4377,3 +4377,9 @@ PREVIEW_COMPANIES.push(LAXA_ENTRY)
 
 import { companyEntry as WESTFJORDS_ENTRY } from './westfjords/data'
 PREVIEW_COMPANIES.push(WESTFJORDS_ENTRY)
+
+import { companyEntry as LISTAK_ENTRY } from './listak/data'
+PREVIEW_COMPANIES.push(LISTAK_ENTRY)
+
+import { companyEntry as MINJASAFN_ENTRY } from './minjasafn/data'
+PREVIEW_COMPANIES.push(MINJASAFN_ENTRY)

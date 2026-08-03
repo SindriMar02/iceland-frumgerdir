@@ -146,6 +146,9 @@ const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'
 const HofdabilarPage = lazy(() => import('./preview/hofdabilar/Page'))
 const LaxaPage = lazy(() => import('./preview/laxa/Page'))
 const WestfjordsPage = lazy(() => import('./preview/westfjords/Page'))
+// Museums — Listasafnid a Akureyri (Syningargangurinn) + Minjasafn Austurlands (Jardlog)
+const ListakPage = lazy(() => import('./preview/listak/Page'))
+const MinjasafnPage = lazy(() => import('./preview/minjasafn/Page'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
 /**
@@ -316,6 +319,8 @@ export default function App() {
             <Route path="/preview/comparison" element={<Comparison />} />
             <Route path="/preview/laxa" element={<LaxaPage />} />
             <Route path="/preview/westfjords" element={<WestfjordsPage />} />
+            <Route path="/preview/listak" element={<ListakPage />} />
+            <Route path="/preview/minjasafn" element={<MinjasafnPage />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
             <Route path="*" element={<NotFound />} />
