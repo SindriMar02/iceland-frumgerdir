@@ -757,35 +757,24 @@ const CSS = `
   .lk-video-frame { overflow: hidden; border-radius: 4px; border: 1px solid ${ACCENT}; }
   .lk-video-frame:focus-visible { outline: 2px solid ${ACCENT_DEEP}; outline-offset: 2px; }
 
-  /* ── HERO — wordmark-as-mask, resolves ONCE ─────────────────────────────
-     Resting state (no JS armed, reduced motion, crawler) is the RESOLVED
-     state: photo visible, solid wordmark. The cutout veil only exists while
-     .lk-js is present and the hero has not resolved. */
+  /* ── HERO — wordmark-as-window, permanent ───────────────────────────────
+     The photo is visible ONLY through the letter-shaped cutouts in the
+     veil; everywhere else is solid stone ground. There is no full-bleed
+     reveal state: this is the resting look on every viewport, every input
+     mode, with or without JS. .lk-hero-solid exists purely as an invisible,
+     measurable twin of the veil's text (elements inside an SVG <mask> have
+     no box and cannot be measured directly — see useWeightGroup) and is
+     never shown. */
   .lk-hero { position: relative; height: 100svh; overflow: hidden; background: ${INK}; }
   .lk-hero-photo { position: absolute; inset: 0; }
-  .lk-hero-photo img { filter: saturate(.96); }
-  /* under-veil darkener: makes the photo read INSIDE the letterforms against
-     the stone ground. Fades away with the veil on resolve. */
-  .lk-hero-shade { position: absolute; inset: 0; background: ${INK}; opacity: 0; }
-  .lk-hero-veil { position: absolute; inset: 0; opacity: 0; }
-  .lk-hero-solid { position: absolute; inset: 0; opacity: 1; transform-origin: 50% 40%; }
+  .lk-hero-photo img { filter: saturate(1.05) contrast(1.02); object-position: 50% 28%; }
+  .lk-hero-veil { position: absolute; inset: 0; opacity: 1; }
+  .lk-hero-solid { position: absolute; inset: 0; opacity: 0; }
   .lk-hero-veil svg, .lk-hero-solid svg { display: block; width: 100%; height: 100%; }
   .lk-hero-type {
     font-family: ${DISPLAY}; font-weight: 700; letter-spacing: -0.02em;
     font-size: clamp(44px, 17vw, 284px); text-anchor: middle;
   }
-  .lk-js:not(.lk-done) .lk-hero-shade { opacity: 0.6; }
-  .lk-js:not(.lk-done) .lk-hero-veil { opacity: 1; }
-  .lk-js:not(.lk-done) .lk-hero-solid { opacity: 0; }
-  .lk-done .lk-hero-shade { opacity: 0; transition: opacity 1.1s ease .05s; }
-  .lk-done .lk-hero-veil { opacity: 0; transition: opacity 1s ease .05s; }
-  @keyframes lk-dock {
-    0%   { opacity: 0; transform: none; }
-    26%  { opacity: 1; transform: none; }
-    52%  { opacity: 1; transform: none; }
-    100% { opacity: 0; transform: translate(-33vw, -34vh) scale(0.18); }
-  }
-  .lk-js.lk-done .lk-hero-solid { animation: lk-dock 1.9s ${EASE} 0.12s forwards; }
 
   /* ground-toned scrim under the hero's bottom content, always present */
   .lk-hero-foot {
@@ -801,9 +790,7 @@ const CSS = `
   }
 
   /* header wordmark waits for the dock */
-  .lk-mark { opacity: 1; transition: opacity .6s ease; }
-  .lk-js:not(.lk-done) .lk-mark { opacity: 0; }
-  .lk-js.lk-done .lk-mark { transition-delay: 1.35s; }
+  .lk-mark { opacity: 1; }
 
   /* ── corridor — vertical stacked list by default (phones, coarse pointer,
      reduced motion). The horizontal journey CSS exists ONLY inside the
@@ -1124,9 +1111,6 @@ const CSS = `
     .lk-stop-plate:hover figure img,
     .lk-stop-plate:focus-within figure img { transform: none !important; }
     .lk-planpin.is-lit { transform: none !important; }
-    .lk-hero-shade, .lk-hero-veil { opacity: 0 !important; transition: none !important; }
-    .lk-hero-solid { opacity: 1 !important; animation: none !important; transform: none !important; }
-    .lk-mark { opacity: 1 !important; }
   }
 `
 
@@ -1252,16 +1236,15 @@ function Hero({ status }: { status: OpenStatus | null }) {
       <h1 className="lk-sr">Listasafnið á Akureyri</h1>
       <div className="lk-hero-photo">
         <DriftFrame
-          src={IMG('show-zimoun.jpg')}
-          w={1300}
-          h={867}
-          alt="Hljóðinnsetning eftir ZIMOUN í sölum 10 og 11: skúlptúrar úr ljósum viði í hvítum sal"
+          src={IMG('show-kristin.jpg')}
+          w={2000}
+          h={1650}
+          alt="Kristín Gunnlaugsdóttir í vinnustofu sinni með málningarbakka"
           drift={13}
           className="h-full"
           eager
         />
       </div>
-      <div className="lk-hero-shade" aria-hidden="true" />
       <div className="lk-hero-veil" aria-hidden="true">
         <WordmarkSvg mode="cut" />
       </div>
@@ -1269,7 +1252,7 @@ function Hero({ status }: { status: OpenStatus | null }) {
         <WordmarkSvg mode="solid" />
       </div>
 
-      <p className="lk-hero-credit m-0">ZIMOUN, 2026 · Salir 10–11</p>
+      <p className="lk-hero-credit m-0">Kristín Gunnlaugsdóttir í vinnustofu sinni</p>
 
       <div className="lk-hero-foot">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-0 md:px-3">
@@ -2339,8 +2322,6 @@ function Loader() {
 
 export default function Page() {
   const rootRef = useRef<HTMLDivElement>(null)
-  const [armed, setArmed] = useState(false)
-  const [resolved, setResolved] = useState(false)
   const [status, setStatus] = useState<OpenStatus | null>(null)
 
   /* head: title, description, lang, JSON-LD, font preloads */
@@ -2377,42 +2358,6 @@ export default function Page() {
     setStatus(openStatus())
   }, [])
 
-  /* arm the mask choreography only for motion-ok desktop fine pointers.
-     Touch and small viewports rest PRE-RESOLVED (photo revealed, solid
-     wordmark) — the cutout veil would otherwise leave the first phone
-     screen as dark type over empty stone with an invisible photo. The
-     resting CSS state without .lk-js is already the resolved state. */
-  useEffect(() => {
-    if (prefersReduced()) return
-    if (!window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches) return
-    setArmed(true)
-  }, [])
-
-  /* hero resolves ONCE, on first scroll intent */
-  useEffect(() => {
-    if (!armed || resolved) return
-    let done = false
-    const fire = () => {
-      if (done) return
-      done = true
-      setResolved(true)
-    }
-    const onWheel = (e: WheelEvent) => { if (e.deltaY > 0) fire() }
-    const onScroll = () => { if ((window.scrollY || 0) > 8) fire() }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') fire()
-    }
-    window.addEventListener('wheel', onWheel, { passive: true })
-    window.addEventListener('touchmove', fire, { passive: true })
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('wheel', onWheel)
-      window.removeEventListener('touchmove', fire)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [armed, resolved])
 
   /* THE JOURNEY — desktop, fine pointer, motion ok. Lenis + one pinned tween
      (a timeline freezes at x=0 — known Búðir bug), containerAnimation-style
@@ -2603,7 +2548,7 @@ export default function Page() {
     <div
       ref={rootRef}
       lang="is"
-      className={`lk-root min-h-[100svh] antialiased ${armed ? 'lk-js' : ''} ${resolved ? 'lk-done' : ''}`}
+      className="lk-root min-h-[100svh] antialiased"
       style={{ fontFamily: DISPLAY }}
     >
       <style>{CSS}</style>
