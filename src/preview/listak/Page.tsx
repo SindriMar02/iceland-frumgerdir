@@ -1079,41 +1079,25 @@ const CSS = `
   }
 
   .lk-load-mark {
-    margin: 0; font-family: ${DISPLAY}; font-weight: 400;
-    font-size: clamp(26px, 6.4vw, 52px); line-height: 0.98;
+    margin: 0; font-family: ${DISPLAY}; font-weight: 500;
+    font-size: clamp(24px, 5.2vw, 44px); line-height: 1.02;
     letter-spacing: -0.02em; text-transform: uppercase; color: ${INK};
-    transition: font-weight .5s ${EASE};
   }
   .lk-load-mark span { display: block; }
-  .lk-load-rule { height: 1px; background: rgba(20,20,15,0.26); margin: 18px 0 14px; }
 
-  .lk-load-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  @media (min-width: 560px) { .lk-load-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-  .lk-load-cell {
-    position: relative; overflow: hidden; min-height: 74px;
-    display: flex; align-items: flex-start; padding: 9px 10px;
-    border: 1px solid rgba(20,20,15,0.26); border-radius: 2px;
+  /* the strip: one hairline track, one accent fill driven by real progress */
+  .lk-load-track {
+    position: relative; height: 2px; margin-top: 22px;
+    background: rgba(20,20,15,0.16); overflow: hidden;
   }
-  @media (min-width: 560px) { .lk-load-cell { min-height: 84px; } }
-  /* the light comes on from the floor of the hall upward */
-  .lk-load-cell::before {
-    content: ''; position: absolute; inset: 0; background: ${ACCENT};
-    transform: scaleY(0); transform-origin: 50% 100%;
-    transition: transform .62s ${EASE};
+  .lk-load-bar {
+    position: absolute; inset: 0; background: ${ACCENT};
+    transform: scaleX(0); transform-origin: 0 50%;
+    transition: transform .34s ${EASE};
   }
-  .lk-load-cell.is-lit { border-color: ${ACCENT}; }
-  .lk-load-cell.is-lit::before { transform: scaleY(1); }
-  .lk-load-n {
-    position: relative; font-family: ${DISPLAY}; font-size: 12px; font-weight: 500;
-    letter-spacing: 0.14em; text-transform: uppercase; color: ${MUT};
-    font-variant-numeric: tabular-nums;
-    transition: color .4s ${EASE} .12s;
-  }
-  .lk-load-cell.is-lit .lk-load-n { color: #FFFFFF; }
-
   .lk-load-meta {
     display: flex; align-items: baseline; justify-content: space-between;
-    gap: 14px; margin-top: 14px;
+    gap: 14px; margin-top: 12px;
   }
   .lk-load-count { font-variant-numeric: tabular-nums; color: ${ACCENT_DEEP}; }
 
@@ -2237,8 +2221,7 @@ function Loader() {
     if (!root) return
     try { sessionStorage.setItem(LK_LOAD_KEY, '1') } catch { /* private mode */ }
 
-    const cells = Array.from(root.querySelectorAll('.lk-load-cell')) as HTMLElement[]
-    const mark = root.querySelector('.lk-load-mark') as HTMLElement | null
+    const bar = root.querySelector('.lk-load-bar') as HTMLElement | null
     const count = root.querySelector('.lk-load-count') as HTMLElement | null
 
     /* ── real load units ── */
@@ -2270,15 +2253,13 @@ function Loader() {
     let capT = 0
     let exitT = 0
 
-    const paint = (n: number) => {
-      if (n === lit) return
-      for (let i = 0; i < cells.length; i++) cells[i].classList.toggle('is-lit', i < n)
-      if (count) count.textContent = `${String(n).padStart(2, '0')}/12`
-      /* a single cheap variable-axis gain across the whole fill: 400 → 700.
-         Twelve writes total, and it lives on its own element, so it never
-         meets the hero's own weight device. */
-      if (mark) mark.style.fontWeight = String(Math.round(400 + (n / 12) * 300))
-      lit = n
+    /* one strip, driven by real progress. Quantised to whole percent so the
+       transform is written at most 100 times, never once per tick. */
+    const paint = (pct: number) => {
+      if (pct === lit) return
+      if (bar) bar.style.transform = `scaleX(${pct / 100})`
+      if (count) count.textContent = `${String(pct).padStart(3, '0')}%`
+      lit = pct
     }
 
     const finish = () => {
@@ -2312,9 +2293,9 @@ function Loader() {
       const real = (loaded + (fontsDone ? 1 : 0)) / total
       const target = Math.min(real, (now - t0) / LK_LOAD_FLOOR)
       shown = Math.min(target, shown + LK_LOAD_STEP)
-      const n = shown >= 1 ? 12 : Math.max(0, Math.floor(shown * 12))
+      const n = shown >= 1 ? 100 : Math.max(0, Math.floor(shown * 100))
       paint(n)
-      if (n === 12) {
+      if (n === 100) {
         if (!fullAt) fullAt = now
         if (now - fullAt >= LK_LOAD_HOLD) finish()
       }
@@ -2344,17 +2325,12 @@ function Loader() {
           <span>{MARK_L1}</span>
           <span>{MARK_L2}</span>
         </p>
-        <div className="lk-load-rule" />
-        <div className="lk-load-grid">
-          {HALLS.map((h) => (
-            <div key={h.id} className="lk-load-cell">
-              <span className="lk-load-n">{h.id}</span>
-            </div>
-          ))}
+        <div className="lk-load-track">
+          <div className="lk-load-bar" />
         </div>
         <div className="lk-load-meta">
-          <p className="lk-eyebrow lk-load-count m-0">00/12</p>
-          <p className="lk-eyebrow m-0" style={{ color: MUT }}>Salir safnsins</p>
+          <p className="lk-eyebrow m-0" style={{ color: MUT }}>Kaupvangsstræti 8, Akureyri</p>
+          <p className="lk-eyebrow lk-load-count m-0">000%</p>
         </div>
       </div>
     </div>
