@@ -1047,7 +1047,79 @@ const CSS = `
   }
   .lk-planpin.is-lit { background: ${ACCENT}; color: #FFFFFF; transform: scale(1.2); }
 
+  /* ══ LOADER — "húsið opnast, salur fyrir sal" ════════════════════════════
+     The twelve-cell hall schematic of §Húsið, switched on. Same grid rhythm
+     (3 cols under 560px, 4 above, 8px gap, 1px hairline, 2px radius, the
+     same ~1.6 cell ratio) so the page rhymes with itself: the progress meter
+     IS the museum's floor plan, not a bar bolted on top of it.
+
+     Motion budget: transform + colour only. Twelve discrete steps over the
+     whole life of the sheet, so there is no per-frame work of any kind and
+     no second rAF loop — the fills are CSS transitions, driven by a class
+     that changes at most twelve times.
+
+     The sheet NEVER touches document/body overflow. That is deliberate: a
+     loader that locks scroll is one bad code path away from a permanently
+     frozen page, and on a phone it eats the first swipe. Instead the sheet
+     is opaque and capped, and any input lands it at once. ══════════════ */
+  .lk-load {
+    position: fixed; inset: 0; z-index: 200; background: ${GROUND};
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px 20px;
+    transform: translateY(0);
+  }
+  .lk-load-in { width: min(560px, 100%); }
+  /* exit — one composed gesture: the sheet lifts, the plate leaves slightly
+     ahead of it, and the hero is simply there underneath in its own resting
+     state (the loader never touches .lk-js / .lk-done). */
+  .lk-load.is-out { transform: translateY(-101%); transition: transform .7s ${EASE}; }
+  .lk-load.is-out .lk-load-in {
+    opacity: 0; transform: translateY(-7%);
+    transition: opacity .24s ease-in, transform .7s ${EASE};
+  }
+
+  .lk-load-mark {
+    margin: 0; font-family: ${DISPLAY}; font-weight: 400;
+    font-size: clamp(26px, 6.4vw, 52px); line-height: 0.98;
+    letter-spacing: -0.02em; text-transform: uppercase; color: ${INK};
+    transition: font-weight .5s ${EASE};
+  }
+  .lk-load-mark span { display: block; }
+  .lk-load-rule { height: 1px; background: rgba(20,20,15,0.26); margin: 18px 0 14px; }
+
+  .lk-load-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 560px) { .lk-load-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .lk-load-cell {
+    position: relative; overflow: hidden; min-height: 74px;
+    display: flex; align-items: flex-start; padding: 9px 10px;
+    border: 1px solid rgba(20,20,15,0.26); border-radius: 2px;
+  }
+  @media (min-width: 560px) { .lk-load-cell { min-height: 84px; } }
+  /* the light comes on from the floor of the hall upward */
+  .lk-load-cell::before {
+    content: ''; position: absolute; inset: 0; background: ${ACCENT};
+    transform: scaleY(0); transform-origin: 50% 100%;
+    transition: transform .62s ${EASE};
+  }
+  .lk-load-cell.is-lit { border-color: ${ACCENT}; }
+  .lk-load-cell.is-lit::before { transform: scaleY(1); }
+  .lk-load-n {
+    position: relative; font-family: ${DISPLAY}; font-size: 12px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: ${MUT};
+    font-variant-numeric: tabular-nums;
+    transition: color .4s ${EASE} .12s;
+  }
+  .lk-load-cell.is-lit .lk-load-n { color: #FFFFFF; }
+
+  .lk-load-meta {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 14px; margin-top: 14px;
+  }
+  .lk-load-count { font-variant-numeric: tabular-nums; color: ${ACCENT_DEEP}; }
+
   @media (prefers-reduced-motion: reduce) {
+    /* belt and braces: the component already never mounts here */
+    .lk-load { display: none !important; }
     .lk-frame-in { inset: 0; transform: none !important; }
     .lk-reveal, .lk-reveal-soft {
       opacity: 1 !important; transform: none !important; animation: none !important;
@@ -2112,6 +2184,183 @@ function Footer() {
 }
 
 /* ── PAGE ── */
+/* ═════════════════════════════════════════════════════════════════════════
+   LOADER — the twelve halls come on, one by one, on REAL load progress
+   ═════════════════════════════════════════════════════════════════════════
+   Timing contract (all four numbers are load-bearing, none of them is a
+   decorative timer):
+
+     FLOOR 1100ms  the cells may not run faster than this. On a warm cache
+                   every image is already .complete, so without a floor the
+                   sheet would mount and unmount inside one tick and nobody
+                   would ever see it.
+     HOLD   180ms  the twelfth hall stays lit long enough to register.
+     EXIT   700ms  the lift.
+     CAP   1700ms  hard stop on the WAIT, so the sheet is gone by 2400ms
+                   even if an asset never arrives (1700 + 700 = 2400).
+
+   Progress itself is real: the images the browser is actually fetching for
+   this paint (eager ones, plus any lazy one it has already decided to load)
+   and the display font, counted as completed units. `shown` is clamped by
+   BOTH the true fraction and the floor pace, so the meter can never claim
+   more halls than are genuinely loaded. STEP only limits how fast a jump
+   may sweep across the plan; it can never push the meter past the truth. */
+const LK_LOAD_FLOOR = 1100
+const LK_LOAD_HOLD = 180
+const LK_LOAD_EXIT = 700
+const LK_LOAD_CAP = 1700
+const LK_LOAD_STEP = 0.13 /* per 50ms tick: a full sweep takes ~460ms */
+const LK_LOAD_KEY = 'lk-loader-seen'
+
+function lkLoaderWanted(): boolean {
+  if (typeof window === 'undefined') return false
+  /* reduced motion wins over everything, including ?loader */
+  if (prefersReduced()) return false
+  try {
+    if (new URLSearchParams(window.location.search).has('loader')) return true
+  } catch { /* malformed query: fall through to the session rule */ }
+  try {
+    if (sessionStorage.getItem(LK_LOAD_KEY) === '1') return false
+  } catch { /* private mode throws: show it */ }
+  return true
+}
+
+function Loader() {
+  /* computed during the first render, not in an effect — an effect would
+     paint the page for one frame and then drop the sheet on top of it */
+  const [visible, setVisible] = useState(lkLoaderWanted)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!visible) return
+    const root = rootRef.current
+    if (!root) return
+    try { sessionStorage.setItem(LK_LOAD_KEY, '1') } catch { /* private mode */ }
+
+    const cells = Array.from(root.querySelectorAll('.lk-load-cell')) as HTMLElement[]
+    const mark = root.querySelector('.lk-load-mark') as HTMLElement | null
+    const count = root.querySelector('.lk-load-count') as HTMLElement | null
+
+    /* ── real load units ── */
+    const imgs = Array.from(document.images).filter((im) => im.loading !== 'lazy' || im.complete)
+    let loaded = imgs.filter((im) => im.complete).length
+    let fontsDone = false
+    const total = imgs.length + 1 /* +1: the display font */
+    const detach: Array<() => void> = []
+    imgs.forEach((im) => {
+      if (im.complete) return
+      const on = () => { loaded += 1 }
+      im.addEventListener('load', on, { once: true })
+      im.addEventListener('error', on, { once: true })
+      detach.push(() => {
+        im.removeEventListener('load', on)
+        im.removeEventListener('error', on)
+      })
+    })
+    try {
+      document.fonts.ready.then(() => { fontsDone = true })
+    } catch { fontsDone = true }
+
+    const t0 = performance.now()
+    let shown = 0
+    let lit = -1
+    let fullAt = 0
+    let done = false
+    let iv = 0
+    let capT = 0
+    let exitT = 0
+
+    const paint = (n: number) => {
+      if (n === lit) return
+      for (let i = 0; i < cells.length; i++) cells[i].classList.toggle('is-lit', i < n)
+      if (count) count.textContent = `${String(n).padStart(2, '0')}/12`
+      /* a single cheap variable-axis gain across the whole fill: 400 → 700.
+         Twelve writes total, and it lives on its own element, so it never
+         meets the hero's own weight device. */
+      if (mark) mark.style.fontWeight = String(Math.round(400 + (n / 12) * 300))
+      lit = n
+    }
+
+    const finish = () => {
+      if (done) return
+      done = true
+      window.clearInterval(iv)
+      window.clearTimeout(capT)
+      detach.forEach((f) => f())
+      window.removeEventListener('pointerdown', skip, opts)
+      window.removeEventListener('touchmove', skip, opts)
+      window.removeEventListener('wheel', skip, opts)
+      window.removeEventListener('keydown', skip, opts)
+      root.classList.add('is-out')
+      /* setTimeout, never rAF: the sheet must come off a backgrounded tab,
+         a throttled frame loop or a killed rAF just the same */
+      exitT = window.setTimeout(() => setVisible(false), LK_LOAD_EXIT)
+    }
+
+    /* INPUT-SKIP. Passive and capture, and nothing is ever preventDefault'ed:
+       the wheel / touchmove that dismissed the sheet still scrolls the
+       document underneath it, because nothing here locks scrolling. */
+    const opts: AddEventListenerOptions = { passive: true, capture: true }
+    function skip() { finish() }
+    window.addEventListener('pointerdown', skip, opts)
+    window.addEventListener('touchmove', skip, opts)
+    window.addEventListener('wheel', skip, opts)
+    window.addEventListener('keydown', skip, opts)
+
+    const tick = () => {
+      const now = performance.now()
+      const real = (loaded + (fontsDone ? 1 : 0)) / total
+      const target = Math.min(real, (now - t0) / LK_LOAD_FLOOR)
+      shown = Math.min(target, shown + LK_LOAD_STEP)
+      const n = shown >= 1 ? 12 : Math.max(0, Math.floor(shown * 12))
+      paint(n)
+      if (n === 12) {
+        if (!fullAt) fullAt = now
+        if (now - fullAt >= LK_LOAD_HOLD) finish()
+      }
+    }
+    paint(0)
+    iv = window.setInterval(tick, 50)
+    capT = window.setTimeout(finish, LK_LOAD_CAP)
+
+    return () => {
+      window.clearInterval(iv)
+      window.clearTimeout(capT)
+      window.clearTimeout(exitT)
+      detach.forEach((f) => f())
+      window.removeEventListener('pointerdown', skip, opts)
+      window.removeEventListener('touchmove', skip, opts)
+      window.removeEventListener('wheel', skip, opts)
+      window.removeEventListener('keydown', skip, opts)
+    }
+  }, [visible])
+
+  if (!visible) return null
+
+  return (
+    <div ref={rootRef} className="lk-load" aria-hidden="true">
+      <div className="lk-load-in">
+        <p className="lk-load-mark">
+          <span>{MARK_L1}</span>
+          <span>{MARK_L2}</span>
+        </p>
+        <div className="lk-load-rule" />
+        <div className="lk-load-grid">
+          {HALLS.map((h) => (
+            <div key={h.id} className="lk-load-cell">
+              <span className="lk-load-n">{h.id}</span>
+            </div>
+          ))}
+        </div>
+        <div className="lk-load-meta">
+          <p className="lk-eyebrow lk-load-count m-0">00/12</p>
+          <p className="lk-eyebrow m-0" style={{ color: MUT }}>Salir safnsins</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Page() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [armed, setArmed] = useState(false)
@@ -2398,6 +2647,7 @@ export default function Page() {
       <Footer />
       <PreviewFooter company={company} />
       <PreviewChrome company={company} />
+      <Loader />
     </div>
   )
 }

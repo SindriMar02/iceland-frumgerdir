@@ -446,6 +446,134 @@ const CSS = `
   /* finite on purpose: the no-auto-loop hero rule — three cycles, then rest */
   .mj-cue-line { animation: mj-cue-drop 2.2s ${EASE} 3; }
 
+  /* ── LOADER · KJARNASÝNI (the core sample) ───────────────────────────────
+     The page's organising idea is a dig, so the loader is the instrument
+     reading that precedes it: a narrow column of ground drawn DOWNWARD, past
+     the three real dates of the museum's own time, while the page's images
+     actually decode. Deliberately NOT the hero's move: the hero clips wide
+     strata off a photograph; this fills a 13px tube and reads a number.
+     No invented depths, metres or soil horizons — the graduations are
+     unlabelled instrument marks and the only words are real years.
+
+     Never mounts under reduced motion, never mounts twice in a session, and
+     never exists at all without JS (it is created in an effect-guarded
+     client render). pointer-events: none is load-bearing: the gesture that
+     dismisses the loader must still reach the page underneath. ── */
+  .mj-load {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 clamp(1.25rem, 6vw, 4rem);
+    background: ${GROUND};
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity .42s ${EASE} .2s;
+  }
+  .mj-load::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: ${GRAIN}; opacity: .1;
+  }
+  .mj-load-mod {
+    position: relative; width: 100%; max-width: 560px;
+    transition: transform .46s ${EASE}, opacity .22s linear;
+  }
+  .mj-load-meta {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: ${MUT};
+  }
+  .mj-load-pct {
+    color: ${TEXT}; letter-spacing: .14em;
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: "wght" 300;
+  }
+  .mj-load-rule { height: 1px; background: ${HAIR}; margin: 10px 0; }
+
+  /* the core itself. --mj-tw is the tube width, shared by the tube and the
+     depth whisker so the two can never disagree at a breakpoint. */
+  .mj-load-core {
+    position: relative; --mj-tw: 10px;
+    height: clamp(196px, 34svh, 300px);
+    margin: clamp(22px, 4vh, 38px) 0;
+  }
+  @media (min-width: 768px) {
+    .mj-load-core { --mj-tw: 15px; height: clamp(250px, 44svh, 392px); }
+  }
+  /* unlabelled graduations, every tenth of the column: an instrument scale,
+     not a depth claim */
+  .mj-load-scale {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 11px;
+    background-image: repeating-linear-gradient(180deg, ${HAIR} 0 1px, transparent 1px 10%);
+  }
+  .mj-load-tube {
+    position: absolute; left: 22px; top: 0; bottom: 0; width: var(--mj-tw);
+    background: rgba(156,99,70,.10); overflow: hidden;
+  }
+  /* three beds in the sampled soot→sienna family, warming downward exactly
+     as STRATA_BG does in the hero, parted by the same 1px pale ash boundary
+     the Sagan core sample uses */
+  .mj-load-fill {
+    position: absolute; inset: 0; will-change: clip-path;
+    clip-path: inset(0 0 100% 0);
+    background-image: linear-gradient(180deg,
+      #5A422C 0%, #5A422C 32.6%,
+      rgba(237,230,218,.5) 32.6%, rgba(237,230,218,.5) 33.6%,
+      #7A4F33 33.6%, #7A4F33 65.9%,
+      rgba(237,230,218,.5) 65.9%, rgba(237,230,218,.5) 66.9%,
+      ${SIENNA} 66.9%, ${SIENNA} 100%);
+  }
+  .mj-load-fill::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: ${GRAIN}; opacity: .22;
+  }
+  /* the reading head: one hairline at the current depth, whiskered out over
+     the graduations on one side and past the tube on the other */
+  .mj-load-front {
+    position: absolute; left: 4px; height: 1px; opacity: 0;
+    width: calc(18px + var(--mj-tw) + 26px);
+    background: ${TEXT}; box-shadow: 0 0 14px rgba(237,230,218,.38);
+    will-change: top;
+  }
+  .mj-load-row { position: absolute; left: calc(22px + var(--mj-tw)); }
+  .mj-load-tick {
+    display: block; height: 1px; width: 18px; background: ${HAIR_STRONG};
+    transition: width .6s ${EASE}, background-color .6s ${EASE};
+  }
+  .mj-load-row.is-on .mj-load-tick { width: 30px; background: ${SIENNA}; }
+  .mj-load-year {
+    display: block; margin-top: 9px;
+    font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: ${MUT}; font-variation-settings: "wght" 320;
+    transition: color .6s ${EASE}, font-variation-settings .6s ${EASE};
+    white-space: nowrap;
+  }
+  .mj-load-row.is-on .mj-load-year { color: ${TEXT}; font-variation-settings: "wght" 520; }
+
+  /* exit — one gesture: the sample is withdrawn upward out of the tube, the
+     reading lifts with it, the ground goes. The hero beneath is never
+     touched, so it hands off at its own resting state. !important is
+     required only to outrank the per-frame inline clip the rAF job wrote. */
+  .mj-load.is-out { opacity: 0; }
+  .mj-load.is-out .mj-load-mod { opacity: 0; transform: translateY(-26px); }
+  .mj-load.is-out .mj-load-fill {
+    clip-path: inset(0 0 100% 0) !important;
+    transition: clip-path .42s ${EASE};
+  }
+  .mj-load.is-out .mj-load-front { opacity: 0 !important; transition: opacity .2s linear; }
+  /* a skipped reading leaves faster than a completed one */
+  .mj-load.is-skip { transition: opacity .26s ${EASE} .12s; }
+  .mj-load.is-skip .mj-load-mod { transition: transform .3s ${EASE}, opacity .14s linear; }
+  .mj-load.is-skip .mj-load-fill { transition-duration: .26s; }
+
+  .mj-load-sr {
+    position: fixed; width: 1px; height: 1px; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .mj-load-meta { font-size: 12px; letter-spacing: .16em; }
+  }
+  /* belt and braces: the component already never mounts here */
+  @media (prefers-reduced-motion: reduce) { .mj-load { display: none !important; } }
+
   @media (prefers-reduced-motion: no-preference) {
     .mj-ul::after { transition: transform .4s ${EASE}; }
   }
@@ -1868,6 +1996,268 @@ function FooterAperture() {
   )
 }
 
+/* ── LOADER · KJARNASÝNI ──────────────────────────────────────────────────
+   Architecture borrowed from the Heklusýn preloader (session-once, hard
+   capped, absent under reduced motion); the look and the payload are this
+   page's own.
+
+   Progress is REAL: the images of the FIRST VIEW plus one unit for the
+   variable face. Two exclusions, both measured rather than assumed:
+     · loading="lazy" images never decode while a full-screen overlay keeps
+       them out of the viewport, so counting them would stall the reading
+       until the cap (this page lazy-loads 20+ archive frames);
+     · anything laid out below the first viewport — the preview chrome and
+       footer furniture live down there, and one of their images never
+       settled at all, which pinned the measured reading at 74% for 800ms
+       until the cap released it. What is counted is exactly what the visitor
+       is looking at when the loader lifts.
+   Completion is polled from im.complete in the read phase rather than from
+   load events, so a decode that finished before the listener was attached,
+   or an image swapped by srcset, can never leave a unit hanging.
+
+   The displayed value is min(real, elapsed/FLOOR): it can never run ahead of
+   the actual decode, and it can never finish before the floor. Without that
+   floor a warm cache has every image .complete at mount and the loader would
+   appear and vanish inside one frame.
+
+   Four guarantees, each one a bug already shipped once:
+     · any input lands it (pointerdown / touchmove / wheel / keydown) and the
+       overlay is pointer-events: none, so the dismissing gesture still
+       reaches the page;
+     · the scroll lock is released on skip, on completion, at the cap and on
+       unmount, and the final release is a setTimeout, so a dead
+       requestAnimationFrame can never leave the page locked;
+     · nothing here uses background-clip: text;
+     · no per-frame setState: one job on the page's shared rAF loop, reads
+       first, writes second, textContent and style only. ── */
+const LOAD_KEY = 'mj-kjarnasyni-seen'
+const LOAD_FLOOR = 1100 /* minimum time the reading is allowed to take */
+const LOAD_FORCE = 1250 /* cap on the reading phase: past this it completes */
+const LOAD_FORCE_RAMP = 220 /* and it completes over this, linearly, not damped */
+const LOAD_HOLD = 70 /* one beat with the reading complete */
+const LOAD_EXIT = 620 /* the composed exit */
+const LOAD_SKIP_EXIT = 380
+const LOAD_FAILSAFE = 2240 /* absolute ceiling, independent of rAF */
+
+function loaderShouldMount() {
+  if (typeof window === 'undefined') return false
+  /* reduced motion wins over everything, including ?loader */
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  try {
+    if (new URLSearchParams(window.location.search).has('loader')) return true
+  } catch { /* malformed query string: fall through to the session check */ }
+  try {
+    if (sessionStorage.getItem(LOAD_KEY) === '1') return false
+  } catch { /* private mode throws: show it */ }
+  return true
+}
+
+function CoreSampleLoader() {
+  /* lazy initialiser, not an effect: the decision is made during the first
+     client render, so the page is never painted bare for a frame first */
+  const [shown, setShown] = useState(loaderShouldMount)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const fillRef = useRef<HTMLDivElement>(null)
+  const frontRef = useRef<HTMLSpanElement>(null)
+  const pctRef = useRef<HTMLSpanElement>(null)
+  const bandRef = useRef<HTMLSpanElement>(null)
+  const rowsRef = useRef<Array<HTMLDivElement | null>>([])
+
+  useEffect(() => {
+    if (!shown) return
+    const root = rootRef.current
+    const fill = fillRef.current
+    if (!root || !fill) return
+    try { sessionStorage.setItem(LOAD_KEY, '1') } catch { /* private mode */ }
+
+    const html = document.documentElement
+    const body = document.body
+    const prevHtml = html.style.overflow
+    const prevBody = body.style.overflow
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    let unlocked = false
+    const unlock = () => {
+      if (unlocked) return
+      unlocked = true
+      html.style.overflow = prevHtml
+      body.style.overflow = prevBody
+    }
+
+    /* ── real decode progress ── */
+    const vh0 = window.innerHeight
+    const imgs = Array.from(document.images).filter((im) => {
+      if (im.loading === 'lazy') return false
+      const r = im.getBoundingClientRect()
+      return r.width > 0 && r.height > 0 && r.top < vh0 * 1.15 && r.bottom > -1
+    })
+    const totalUnits = imgs.length + 1
+    let fontsSettled = false
+    const settleFonts = () => { fontsSettled = true }
+    if (document.fonts?.ready) document.fonts.ready.then(settleFonts).catch(settleFonts)
+    else settleFonts()
+
+    const t0 = performance.now()
+    let forced = 0 /* the timestamp the cap fired, 0 while it has not */
+    let pAtForce = 0
+    let p = 0
+    let lastWhole = -1
+    let lastLit = -1
+    let finishing = false
+    let stopJob: (() => void) | undefined
+    let endTimer = 0
+    let holdTimer = 0
+
+    const forceTimer = window.setTimeout(() => {
+      forced = performance.now()
+      pAtForce = p
+    }, LOAD_FORCE)
+
+    const detachInput = () => {
+      window.removeEventListener('pointerdown', onInput, true)
+      window.removeEventListener('touchmove', onInput, true)
+      window.removeEventListener('wheel', onInput, true)
+      window.removeEventListener('keydown', onInput, true)
+    }
+
+    const finish = (skipped: boolean) => {
+      if (finishing) return
+      finishing = true
+      window.clearTimeout(forceTimer)
+      window.clearTimeout(holdTimer)
+      stopJob?.()
+      detachInput()
+      unlock() /* released the instant the exit starts, so the gesture that
+                  dismissed the loader keeps scrolling the page */
+      root.classList.add('is-out')
+      if (skipped) root.classList.add('is-skip')
+      endTimer = window.setTimeout(
+        () => setShown(false),
+        (skipped ? LOAD_SKIP_EXIT : LOAD_EXIT) + 30,
+      )
+    }
+
+    function onInput() { finish(true) }
+    const opts: AddEventListenerOptions = { passive: true, capture: true }
+    window.addEventListener('pointerdown', onInput, opts)
+    window.addEventListener('touchmove', onInput, opts)
+    window.addEventListener('wheel', onInput, opts)
+    window.addEventListener('keydown', onInput, opts)
+
+    stopJob = addJob(() => {
+      if (finishing) return
+      const now = performance.now()
+      let done = fontsSettled ? 1 : 0
+      for (let i = 0; i < imgs.length; i++) if (imgs[i].complete) done++
+      const real = done / totalUnits
+      const floorP = (now - t0) / LOAD_FLOOR
+      if (forced) {
+        /* past the cap the reading closes on a short linear ramp, never on
+           the damper: damping the last 26% cost 445ms and pushed the exit
+           into the failsafe */
+        p = Math.min(1, pAtForce + (1 - pAtForce) * ((now - forced) / LOAD_FORCE_RAMP))
+      } else {
+        const target = Math.min(real, floorP, 1)
+        const gap = target - p
+        /* light damper so a step in the real count arrives as a movement of
+           soil rather than a jump; snaps the last sliver so it always closes */
+        p = gap < 0.006 ? target : p + gap * 0.28
+      }
+      const v = p
+      return () => {
+        fill.style.clipPath = `inset(0 0 ${((1 - v) * 100).toFixed(2)}% 0)`
+        const fr = frontRef.current
+        if (fr) {
+          fr.style.top = `${(v * 100).toFixed(2)}%`
+          fr.style.opacity = v > 0.004 ? '1' : '0'
+        }
+        const whole = Math.round(v * 100)
+        if (whole !== lastWhole) {
+          lastWhole = whole
+          const pe = pctRef.current
+          if (pe) {
+            pe.textContent = `${String(whole).padStart(3, '0')}%`
+            /* the excavated weight, restrained: 300 to 640 across the read */
+            pe.style.fontVariationSettings = `"wght" ${Math.round(300 + 340 * v)}`
+          }
+        }
+        /* how many of the three bands the sample has passed */
+        const lit = v >= 2 / 3 ? 3 : v >= 1 / 3 ? 2 : v >= 0.02 ? 1 : 0
+        if (lit !== lastLit) {
+          lastLit = lit
+          for (let i = 0; i < 3; i++) rowsRef.current[i]?.classList.toggle('is-on', i < lit)
+          const be = bandRef.current
+          if (be) be.textContent = `Lag ${Math.max(1, lit)} af 3`
+        }
+        if (v >= 0.9995 && !holdTimer) {
+          /* a beat with the reading complete before it is withdrawn */
+          holdTimer = window.setTimeout(() => finish(false), LOAD_HOLD)
+        }
+      }
+    })
+
+    /* the only guarantee that survives a dead rAF */
+    const failsafe = window.setTimeout(() => {
+      stopJob?.()
+      detachInput()
+      unlock()
+      setShown(false)
+    }, LOAD_FAILSAFE)
+
+    return () => {
+      window.clearTimeout(forceTimer)
+      window.clearTimeout(failsafe)
+      window.clearTimeout(endTimer)
+      window.clearTimeout(holdTimer)
+      stopJob?.()
+      detachInput()
+      unlock()
+    }
+  }, [shown])
+
+  if (!shown) return null
+
+  return (
+    <>
+      <div ref={rootRef} className="mj-load" aria-hidden="true">
+        <div className="mj-load-mod" style={{ fontFamily: DISPLAY }}>
+          <div className="mj-load-meta">
+            <span>Kjarnasýni</span>
+            <span ref={pctRef} className="mj-load-pct">000%</span>
+          </div>
+          <div className="mj-load-rule" />
+
+          <div className="mj-load-core">
+            <span className="mj-load-scale" />
+            <div className="mj-load-tube">
+              <div ref={fillRef} className="mj-load-fill" />
+            </div>
+            <span ref={frontRef} className="mj-load-front" />
+            {STRATA.map((s, i) => (
+              <div
+                key={s.label}
+                ref={(el) => { rowsRef.current[i] = el }}
+                className="mj-load-row"
+                style={{ top: `${((i * 100) / 3).toFixed(2)}%` }}
+              >
+                <span className="mj-load-tick" />
+                <span className="mj-load-year">{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mj-load-rule" />
+          <div className="mj-load-meta">
+            <span>Minjasafn Austurlands</span>
+            <span ref={bandRef}>Lag 1 af 3</span>
+          </div>
+        </div>
+      </div>
+      <p className="mj-load-sr" role="status">Síðan er að hlaðast.</p>
+    </>
+  )
+}
+
 /* ── the page ── */
 export default function Page() {
   /* mj-js is applied after mount so the resting no-script state is always
@@ -1916,6 +2306,7 @@ export default function Page() {
       style={{ background: GROUND, color: TEXT, fontFamily: DISPLAY, fontWeight: 400 }}
     >
       <style>{CSS}</style>
+      <CoreSampleLoader />
       <a href="#efni" className="mj-skip">Beint í efnið</a>
       <Nav />
       <main id="efni">
