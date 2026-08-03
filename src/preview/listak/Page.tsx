@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Play } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -343,6 +343,10 @@ const CSS = `
   }
   .lk-row .lk-row-arrow { color: ${ACCENT_DEEP}; transition: transform .3s ${EASE}; }
   .lk-row:hover .lk-row-arrow { transform: translate(3px, -3px); }
+
+  /* real N4 press video — sharp corners, hairline border, no shadow */
+  .lk-video-frame { overflow: hidden; border-radius: 4px; border: 1px solid ${ACCENT}; }
+  .lk-video-frame:focus-visible { outline: 2px solid ${ACCENT_DEEP}; outline-offset: 2px; }
 
   /* ── HERO — wordmark-as-mask, resolves ONCE ─────────────────────────────
      Resting state (no JS armed, reduced motion, crawler) is the RESOLVED
@@ -992,6 +996,59 @@ function Ketilhus() {
   )
 }
 
+/* Real N4 regional-TV segment about the museum, verified via YouTube oEmbed
+   2026-08-03 (author_name: N4, embeddable). Click-to-play facade — no iframe,
+   no YouTube JS, loads on the page until the visitor actually wants the video. */
+const N4_VIDEO_ID = 'CXHdAGkYNIQ'
+const N4_VIDEO_TITLE = 'Að norðan: Listasafnið á Akureyri — N4'
+
+function MuseumVideo() {
+  const [playing, setPlaying] = useState(false)
+  if (playing) {
+    return (
+      <div className="lk-video-frame" style={{ aspectRatio: '16/9', background: '#000' }}>
+        <iframe
+          className="h-full w-full"
+          src={`https://www.youtube-nocookie.com/embed/${N4_VIDEO_ID}?autoplay=1`}
+          title={N4_VIDEO_TITLE}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setPlaying(true)}
+      className="lk-video-frame group relative block w-full cursor-pointer border-0 p-0"
+      style={{ aspectRatio: '16/9' }}
+      aria-label={`Spila myndband: ${N4_VIDEO_TITLE}`}
+    >
+      <img
+        src={`https://i.ytimg.com/vi/${N4_VIDEO_ID}/hqdefault.jpg`}
+        alt=""
+        loading="lazy"
+        className="h-full w-full object-cover"
+      />
+      <span className="absolute inset-0" style={{ background: 'rgba(20,20,15,0.28)' }} aria-hidden />
+      <span
+        className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-transform group-hover:scale-105"
+        style={{ background: ACCENT, color: '#fff' }}
+        aria-hidden
+      >
+        <Play size={22} fill="currentColor" style={{ marginLeft: 3 }} />
+      </span>
+      <span
+        className="absolute bottom-3 left-3 right-3 text-left text-[12px] font-medium uppercase tracking-[0.08em]"
+        style={{ fontFamily: DISPLAY, color: '#fff' }}
+      >
+        N4 · Að norðan
+      </span>
+    </button>
+  )
+}
+
 /* ── §7 UM SAFNIÐ — the single serif register ── */
 function About() {
   return (
@@ -1029,6 +1086,10 @@ function About() {
         </div>
         <Reveal delay={120}>
           <div className="flex flex-col">
+            <MuseumVideo />
+            <p className="m-0 mb-6 mt-2 text-[12px]" style={{ color: MUT }}>
+              Að norðan, N4 sjónvarp — sjónvarpsþáttur um safnið.
+            </p>
             <a href={SITE_URL} target="_blank" rel="noreferrer" className="lk-row" style={{ borderTop: `1px solid ${ACCENT}` }}>
               <span className="text-[16px] font-medium uppercase tracking-[-0.01em]" style={{ fontFamily: DISPLAY }}>
                 Vinir Listasafnsins
