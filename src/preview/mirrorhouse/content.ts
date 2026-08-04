@@ -79,11 +79,14 @@ export const SCRUB = {
   night: PHOTO.auroraWide,
   frameCount: 121,
   /**
-   * Phones get a 640w set (3.1MB) rather than the 1200w one (6.9MB). The film
-   * runs on mobile too, so the payload has to be worth a phone's data.
+   * Two sets. Desktop is 1200w at high JPEG quality (11MB); phones get 828w
+   * (5.8MB), which is sharp on a retina phone without the memory cost of the
+   * full set. Resolution is what decides DECODED memory (121 frames held at
+   * once), so it is the number to be careful with; JPEG quality costs only
+   * download. 1500w was measured and rejected: 692MB decoded.
    */
   frameSrc: (i: number, small = false) =>
-    `${B}${small ? 'frames-640' : 'frames'}/f${String(i + 1).padStart(3, '0')}.jpg`,
+    `${B}${small ? 'frames-828' : 'frames'}/f${String(i + 1).padStart(3, '0')}.jpg`,
 }
 
 // Verbatim guest quotes, attributed the way Airbnb displays them.
