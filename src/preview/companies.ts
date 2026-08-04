@@ -4383,3 +4383,6 @@ PREVIEW_COMPANIES.push(LISTAK_ENTRY)
 
 import { companyEntry as MINJASAFN_ENTRY } from './minjasafn/data'
 PREVIEW_COMPANIES.push(MINJASAFN_ENTRY)
+
+import { companyEntry as MIRRORHOUSE_ENTRY } from './mirrorhouse/data'
+PREVIEW_COMPANIES.push(MIRRORHOUSE_ENTRY)
