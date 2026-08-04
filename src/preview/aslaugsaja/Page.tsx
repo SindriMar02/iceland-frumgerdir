@@ -954,10 +954,20 @@ export default function AslaugSajaPage() {
               <button
                 type="button"
                 onClick={() => setSafnOpen(true)}
-                className={`${LBL} mt-10 border-b border-black pb-1 transition-opacity hover:opacity-45`}
+                className={`${LBL} mt-10 block border-b border-black pb-1 transition-opacity hover:opacity-45`}
               >
                 {tr('collection')} ({safn.length})
               </button>
+              {/* The enquiry basket is the intended route, but a contact page that
+                  offers no way to make contact when the basket is empty is a dead
+                  end. Her own published address, from saja.is/policies/contact-information. */}
+              <p className={`${LBL} mt-12 block text-black/45`}>{tr('orWriteDirect')}</p>
+              <a
+                href={`mailto:${company.ownerEmail}`}
+                className="asaja-display mt-2 inline-block text-[clamp(20px,4.4vw,30px)] lowercase leading-none tracking-[0em] transition-opacity hover:opacity-45"
+              >
+                {company.ownerEmail}
+              </a>
             </div>
           </div>
         )}

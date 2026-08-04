@@ -44,9 +44,10 @@ export const T = {
   scroll: ['SKRUNA', 'SCROLL'],
   studio: ['VINNUSTOFA', 'STUDIO'],
   enquiryIntro: [
-    'Verkin hér að neðan eru til sölu. Sendu fyrirspurn og Áslaug Saja svarar með verði, ástandi og sendingarmöguleikum.',
-    'The works below are for sale. Send an enquiry and Áslaug Saja will reply with price, condition and delivery.',
+    'Málverkin eru til sölu beint frá vinnustofunni. Veldu verkin sem þig langar að spyrja um og sendu eina fyrirspurn, þá svarar Áslaug Saja með verði, ástandi og sendingarmöguleikum.',
+    'The paintings are for sale directly from the studio. Pick the works you want to ask about and send one enquiry, and Áslaug Saja will reply with price, condition and delivery.',
   ],
+  orWriteDirect: ['EÐA SENDU PÓST BEINT', 'OR WRITE DIRECTLY'],
   aboutTitle: ['UM ÁSLAUGU SÖJU', 'ABOUT ÁSLAUG SAJA'],
   seriesNote: [
     'Raðirnar átta eru flokkun á verkunum 124 fyrir þessa frumgerð, hver kennd við eitt verk innan hennar.',
@@ -59,8 +60,8 @@ export const T = {
   shopHome: ['HEIMILI', 'HOME'],
   shopMouse: ['MÚS', 'MOUSE'],
   shopIntro: [
-    'Sömu myndir, komnar í efni: silkislæður og strigatöskur með mynstrum úr málverkunum, prentaðar og saumaðar af Áslaugu Söju sjálfri. Verslunin er rekin á saja.is — kaup fara þar fram, ekki hér.',
-    'The same images, carried into fabric: silk scarves and canvas bags printed with patterns drawn from the paintings, made by Áslaug Saja herself. The shop runs on saja.is — purchases happen there, not here.',
+    'Sömu myndir, komnar í efni: silkislæður og strigatöskur með mynstrum úr málverkunum, prentaðar og saumaðar af Áslaugu Söju sjálfri. Verslunin er rekin á saja.is og kaup fara þar fram, ekki hér.',
+    'The same images, carried into fabric: silk scarves and canvas bags printed with patterns drawn from the paintings, made by Áslaug Saja herself. The shop runs on saja.is, and purchases happen there, not here.',
   ],
   buyOnSaja: ['KAUPA Á SAJA.IS', 'BUY ON SAJA.IS'],
   alsoAvailableAs: ['LÍKA TIL SEM VARA', 'ALSO AVAILABLE AS AN OBJECT'],
@@ -74,13 +75,13 @@ export const t = (k: TKey, lang: Lang): string => T[k][lang === 'is' ? 0 : 1]
 /** Body copy that is too long to live in the pair table above. */
 export const ABOUT: Record<Lang, string[]> = {
   is: [
-    'Áslaug Saja Davíðsdóttir vinnur í Hveragerði. Hún kom úr textíl — silkiþrykki — yfir í málverkið, og sú leið sést enn: lögin eru byggð upp eins og prentun, litur ofan á lit, þar til svarti pensilstrokurinn fer yfir allt saman í einni hreyfingu.',
+    'Áslaug Saja Davíðsdóttir vinnur í Hveragerði. Hún kom úr textíl og silkiþrykki yfir í málverkið, og sú leið sést enn: lögin eru byggð upp eins og prentun, litur ofan á lit, þar til svarti pensilstrokurinn fer yfir allt saman í einni hreyfingu.',
     'Verkin eru unnin með akrýl, olíu, bleki, spreyi og krít, á striga og á Hahnemühle pappír. Þau eru frá 24x30 cm upp í 140x195 cm.',
     'Þessi síða sýnir 124 verk. Þau eru flokkuð á tvo vegu: eftir röðum og eftir litum. Litaflokkunin er ekki valin eftir smekk, hún kemur beint úr verkunum sjálfum.',
   ],
   en: [
-    'Áslaug Saja Davíðsdóttir works in Hveragerði, Iceland. She came to painting from textiles — silk printing — and that route is still visible: the layers are built like a print run, colour over colour, until a black brushstroke crosses the whole thing in one movement.',
+    'Áslaug Saja Davíðsdóttir works in Hveragerði, Iceland. She came to painting from textiles and silk printing, and that route is still visible: the layers are built like a print run, colour over colour, until a black brushstroke crosses the whole thing in one movement.',
     'The works are made with acrylic, oil, ink, spray and chalk, on canvas and on Hahnemühle paper. They run from 24x30 cm to 140x195 cm.',
-    'This site shows 124 works, sorted two ways: by series and by colour. The colour sorting is not a matter of taste — it comes straight out of the paintings.',
+    'This site shows 124 works, sorted two ways: by series and by colour. The colour sorting is not a matter of taste. It comes straight out of the paintings.',
   ],
 }
