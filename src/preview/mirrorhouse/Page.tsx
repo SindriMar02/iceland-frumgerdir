@@ -47,12 +47,18 @@ const MONO = "'Fragment Mono', ui-monospace, monospace"
 const BASE = import.meta.env.BASE_URL
 
 /** Palette stops for the master scrub. soft = elevated surface. */
+/**
+ * Canvas and ink cross through mid-grey together, so anywhere the crossover is
+ * SLOW the two meet in the middle and contrast collapses (measured 2.65:1 on
+ * the evening copy). Hold the light palette late, then cross fast, so no body
+ * copy is ever sitting inside the crossover.
+ */
 const STOPS = [
   { at: 0.0, c: '#E9EFF3', ink: '#37424E', soft: '#DDE6EC' },
-  { at: 0.32, c: '#E9EFF3', ink: '#37424E', soft: '#DDE6EC' },
-  { at: 0.5, c: '#B9C7D2', ink: '#26313C', soft: '#AFBFCC' },
-  { at: 0.62, c: '#2A3849', ink: '#DFE7ED', soft: '#33445A' },
-  { at: 0.74, c: '#0A121B', ink: '#EDF2F5', soft: '#111C28' },
+  { at: 0.56, c: '#E9EFF3', ink: '#37424E', soft: '#DDE6EC' },
+  { at: 0.60, c: '#C2CFD9', ink: '#202A34', soft: '#B6C5D1' },
+  { at: 0.645, c: '#16202C', ink: '#E4ECF1', soft: '#1D2937' },
+  { at: 0.70, c: '#0A121B', ink: '#EDF2F5', soft: '#111C28' },
   { at: 1.0, c: '#0A121B', ink: '#EDF2F5', soft: '#111C28' },
 ]
 
@@ -69,19 +75,45 @@ const paletteAt = (p: number) => {
   return { c: mixHex(a.c, b.c, t), ink: mixHex(a.ink, b.ink, t), soft: mixHex(a.soft, b.soft, t) }
 }
 
+/**
+ * THE FILM'S FRAMES — module scope, started from a plain effect on mount.
+ *
+ * This deliberately depends on NOTHING: not gsap, not ScrollTrigger, not the
+ * scroll position, not a media query. Every earlier version gated the load
+ * behind one of those, and each gate found a browser where it never fired,
+ * leaving the canvas black over the whole section. Someone opening this link
+ * once does not get a second chance.
+ */
+const shots: (HTMLImageElement | null)[] = new Array(SCRUB.frameCount).fill(null)
+let framesStarted = false
+/** decided once: a phone should not pull the 1200w set */
+const smallFrames = typeof window !== 'undefined' && window.innerWidth < 768
+
+function loadFrames(onFirst?: () => void) {
+  if (framesStarted) return
+  framesStarted = true
+  let next = 0
+  const pump = () => {
+    if (next >= SCRUB.frameCount) return
+    const idx = next++
+    const im = new Image()
+    im.decoding = 'async'
+    im.onload = () => { shots[idx] = im; if (idx === 0) onFirst?.(); pump() }
+    im.onerror = pump
+    im.src = SCRUB.frameSrc(idx, smallFrames)
+  }
+  for (let l = 0; l < 6; l++) pump()
+}
+
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
-/** Pin + full choreography only where it earns itself. This is deliberately a
-    LOWER threshold than the 991px layout breakpoint: the grids need a wide
-    canvas, but the night scrub only needs a screen tall enough to pin, and
-    gating it at 992 hid the film from every tablet and every desktop window
-    narrower than that. */
-const cinematic = () =>
-  typeof window !== 'undefined' &&
-  window.matchMedia('(min-width: 768px)').matches &&
-  !reduced()
+/** The film runs everywhere a phone can pin a section, which is everywhere.
+    Only reduced motion opts out, and that path keeps the two stills. Gating
+    this on width previously hid the film from tablets, from narrow desktop
+    windows, and from every phone. */
+const cinematic = () => typeof window !== 'undefined' && !reduced()
 
 /** Fluid size with a phone floor: --u pins small on narrow viewports. */
 const fluid = (n: number, floor: number) =>
@@ -138,7 +170,12 @@ function useMotion(ready: boolean) {
       if (c !== lastC) { root.style.setProperty('--mh-c', c); lastC = c }
       if (ink !== lastInk) { root.style.setProperty('--mh-ink', ink); lastInk = ink }
       if (soft !== lastSoft) { root.style.setProperty('--mh-soft', soft); lastSoft = soft }
-      const night = p > 0.58
+      // Derive "is the page dark now" from the canvas colour itself. A hard
+      // progress threshold drifts out of sync the moment the palette stops
+      // move, which is exactly how the accent ended up green-on-light.
+      const rgb = c.match(/\d+/g)!.map(Number)
+      const lin = rgb.map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4) })
+      const night = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2] < 0.18
       if (root.classList.contains('mh-night') !== night) {
         root.classList.toggle('mh-night', night)
         setThemeColor(night ? BASALT : ICE)
@@ -242,8 +279,9 @@ function useMotion(ready: boolean) {
          competes with them for bandwidth. Until they arrive the daylight
          still simply stays up. */
       const canvas = root.querySelector<HTMLCanvasElement>('.mh-scrub-canvas')
-      const ctx = canvas?.getContext('2d', { alpha: false }) ?? null
-      const shots: (HTMLImageElement | null)[] = new Array(SCRUB.frameCount).fill(null)
+      // alpha:true on purpose: with an opaque context an unpainted canvas paints
+      // solid BLACK over the section. Transparent lets the daylight still show.
+      const ctx = canvas?.getContext('2d') ?? null
       let shown = -1
 
       const drawCover = (img: HTMLImageElement) => {
@@ -296,28 +334,6 @@ function useMotion(ready: boolean) {
         paint(Math.max(0, keep))
       }
 
-      let framesStarted = false
-      const loadFrames = () => {
-        if (framesStarted) return
-        framesStarted = true
-        let next = 0
-        const LANES = 6 // keep the pipe busy without starving the rest
-        const pump = () => {
-          if (next >= SCRUB.frameCount) return
-          const idx = next++
-          const im = new Image()
-          im.decoding = 'async'
-          im.onload = () => {
-            shots[idx] = im
-            if (idx === 0) { sizeCanvas(); paint(0) }
-            pump()
-          }
-          im.onerror = pump
-          im.src = SCRUB.frameSrc(idx)
-        }
-        for (let l = 0; l < LANES; l++) pump()
-      }
-
       if (scrubWrap && dayLayer && canvas && cinematic()) {
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -325,9 +341,6 @@ function useMotion(ready: boolean) {
             start: 'top top',
             end: '+=300%',
             pin: true,
-            // Lenis already eases the scroll itself; a second smoothing pass
-            // here is what makes the picture trail the page. Map 1:1 and let
-            // Lenis own the feel.
             scrub: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
@@ -337,18 +350,19 @@ function useMotion(ready: boolean) {
             },
           },
         })
+
         gsap.fromTo(dayLayer, { scale: 1 }, {
           scale: 1.06, ease: 'none', duration: 1,
           scrollTrigger: { trigger: scrubWrap, start: 'top top', end: '+=300%', scrub: true },
         })
 
-        // Begin decoding a full screen ahead of the pin, but never DEPEND on
-        // that: onEnter does not fire when the page loads already past the
-        // start (a reload or HMR while viewing this section), which left the
-        // canvas blank. Belt and braces, and loadFrames is idempotent.
-        ScrollTrigger.create({ trigger: scrubWrap, start: 'top bottom+=100%', once: true, onEnter: loadFrames })
-        if (scrubWrap.getBoundingClientRect().top < window.innerHeight * 2) loadFrames()
-        gsap.delayedCall(1.4, loadFrames)
+        // The load is started from the component effect, never from here.
+        // This only keeps the canvas sized to the pin, and paints the first
+        // frame the instant it lands so the section is never empty.
+        const onFirst = () => { shown = -1; paint(0) }
+        window.addEventListener('mh:firstframe', onFirst)
+        cleanups.push(() => window.removeEventListener('mh:firstframe', onFirst))
+        if (shots[0]) onFirst()
         ScrollTrigger.addEventListener('refresh', sizeCanvas)
         cleanups.push(() => ScrollTrigger.removeEventListener('refresh', sizeCanvas))
         sizeCanvas()
@@ -632,6 +646,15 @@ export default function MirrorHousePage() {
     setThemeColor(ICE)
     document.title = 'Mirror House Iceland'
     setReady(true)
+    // Start the film downloading here, unconditionally. Held back a beat so the
+    // hero gets the connection first, then nothing can stop it.
+    const t = window.setTimeout(() => {
+      loadFrames(() => {
+        // first frame in: paint it immediately so the section is never empty
+        window.dispatchEvent(new Event('mh:firstframe'))
+      })
+    }, 700)
+    return () => window.clearTimeout(t)
   }, [])
 
   useMotion(ready)
@@ -893,7 +916,10 @@ const CSS = `
   --mh-ink: ${ROCK};
   --mh-soft: #DDE6EC;
   --mh-aurora: ${AURORA};
-  --mh-mute: color-mix(in srgb, var(--mh-ink) 64%, transparent);
+  /* the aurora green reads at 1.66:1 on the ice canvas; text that uses the
+     accent needs a deeper version of the same hue while the page is light */
+  --mh-accent-text: #1F6647;
+  --mh-mute: color-mix(in srgb, var(--mh-ink) 78%, transparent);
   --mh-hair: color-mix(in srgb, var(--mh-ink) 17%, transparent);
   background: var(--mh-c);
   color: var(--mh-ink);
@@ -1044,7 +1070,7 @@ const CSS = `
   text-transform: uppercase; color: var(--mh-mute); margin: 0 0 calc(var(--u) * 18);
 }
 .mh-scrub-caps .mh-phase { margin-bottom: calc(var(--u) * 14); }
-.mh-phase-is { color: var(--mh-aurora); }
+.mh-phase-is { color: var(--mh-accent-text); }
 .mh-stat {
   font-family: ${MONO}; font-size: ${fluid(12, 11)};
   color: var(--mh-mute); margin: calc(var(--u) * 14) 0 0;
@@ -1134,7 +1160,14 @@ const CSS = `
   max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 40) auto 0;
   padding: 0 calc(var(--u) * 48);
 }
-.mh-evening-foot .mh-body { margin: 0; }
+.mh-evening-foot .mh-body {
+  margin: 0; color: var(--mh-ink); font-weight: 300;
+  font-size: ${fluid(23, 17)}; max-width: 30ch;
+}
+.mh-evening-foot .mh-stat {
+  margin: 0; color: var(--mh-accent-text); font-size: ${fluid(16, 14)};
+  letter-spacing: .04em;
+}
 
 /* the night scrub */
 .mh-scrub-inner {
@@ -1245,6 +1278,7 @@ const CSS = `
   padding: 10px 12px; min-height: 44px;
 }
 .mh-field textarea { min-height: 0; resize: vertical; }
+.mh-night { --mh-accent-text: ${AURORA}; }
 .mh-night .mh-field input, .mh-night .mh-field select, .mh-night .mh-field textarea { color-scheme: dark; }
 .mh-owner-note {
   margin-top: calc(var(--u) * 48); padding-top: calc(var(--u) * 24);
@@ -1252,7 +1286,7 @@ const CSS = `
 }
 .mh-owner-note-label {
   font-family: ${MONO}; font-size: ${fluid(11, 10)}; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--mh-aurora); margin: 0 0 calc(var(--u) * 10);
+  text-transform: uppercase; color: var(--mh-accent-text); margin: 0 0 calc(var(--u) * 10);
 }
 .mh-owner-note-body {
   font-size: ${fluid(14, 13)}; font-weight: 300; line-height: 1.65;
@@ -1349,14 +1383,11 @@ const CSS = `
 
 /* Phone only: no pin, so the film is replaced by its two stills. Tablets and
    up keep the scrubbed clip even though their grids have collapsed. */
+/* The film plays on phones too, so the section stays pinned and the two-still
+   fallback stays out of the way. Only reduced motion falls back now. */
 @media (max-width: 767px) {
-  .mh-scrub-inner { height: auto; }
-  .mh-scrub-day { position: relative; inset: auto; }
-  .mh-scrub-day img { position: relative; aspect-ratio: 3 / 2; }
-  .mh-scrub-canvas { display: none; }
-  .mh-scrub-caps { position: absolute; }
-  .mh-scrub-cap-night { display: none; }
-  .mh-scrub-fallback { display: block; }
+  .mh-scrub-caps { left: 20px; bottom: 32px; }
+  .mh-scrub-cap { font-size: clamp(22px, 6.4vw, 30px); max-width: 20ch; }
 }
 
 /* ── reduced motion: every device collapses to its resting state ── */

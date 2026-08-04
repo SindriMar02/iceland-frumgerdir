@@ -78,7 +78,12 @@ export const SCRUB = {
   day: PHOTO.arrivalWide,
   night: PHOTO.auroraWide,
   frameCount: 121,
-  frameSrc: (i: number) => `${B}frames/f${String(i + 1).padStart(3, '0')}.jpg`,
+  /**
+   * Phones get a 640w set (3.1MB) rather than the 1200w one (6.9MB). The film
+   * runs on mobile too, so the payload has to be worth a phone's data.
+   */
+  frameSrc: (i: number, small = false) =>
+    `${B}${small ? 'frames-640' : 'frames'}/f${String(i + 1).padStart(3, '0')}.jpg`,
 }
 
 // Verbatim guest quotes, attributed the way Airbnb displays them.
