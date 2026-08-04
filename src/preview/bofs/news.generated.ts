@@ -6,12 +6,12 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-08-03T10:05:24.683Z
+ * Last synced: 2026-08-04T09:07:03.346Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 3. ágúst 2026', en: 'Updated 3 August 2026' }
+export const SYNCED_AT = { is: 'Uppfært 4. ágúst 2026', en: 'Updated 4 August 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
   {
