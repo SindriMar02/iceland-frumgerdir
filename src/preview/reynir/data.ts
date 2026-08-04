@@ -27,7 +27,8 @@
 
 export type Lang = 'en' | 'is'
 
-export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo.png`
+export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo.webp`
+const gal = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}.webp`
 /** Real B&W "hands shaping dough" photo from their own site, warm-toned. */
 export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
 /** Pistachio snúður, cut out to a TRANSPARENT background (Higgsfield asset,
@@ -67,6 +68,61 @@ export interface MenuItem {
   tag?: { en: string; is: string }
   desc: { en: string; is: string }
 }
+
+export interface Review {
+  quote: { en: string; is: string }
+  who: string
+}
+
+/** Real, sourced reviews only (per the honesty guardrail above) — currently just
+ *  the two that exist with quotable text: the Google review already on aha.is/
+ *  RestaurantGuru, and one Facebook recommendation (visible logged-out on their
+ *  page, 15 Jul 2020). RestaurantGuru's other two reviews are star-ratings only,
+ *  no text. Not padded to a "nicer" number. */
+export const REVIEWS: Review[] = [
+  {
+    quote: { en: 'Great pistachio Danish.', is: 'Frábær pistasíusnúður.' },
+    who: 'gj Anderson, Google',
+  },
+  {
+    quote: {
+      en: 'I wear glasses every day and absolutely hate it, but popping into Reynir Bakari for one of their “gleruauga” always makes my day better. Thanks!',
+      is: 'Ég nota gleraugu á hverjum degi og gjörsamlega hata það, en að hoppa inn hjá Reyni Bakara og kaupa mér eitt „gleruauga“ hjá þeim gerir daginn minn alltaf betri. Takk fyrir mig!',
+    },
+    who: 'Hrafn Sigurðarson, Facebook',
+  },
+]
+
+export interface GalleryPhoto {
+  src: string
+  /** Intrinsic pixel size, used only to reserve aspect ratio (no layout shift). */
+  w: number
+  h: number
+  caption: { en: string; is: string }
+}
+
+/** Candid black-and-white bakery photography, harvested from their own site
+ *  (reynirbakari.is/um-okkur) at full native resolution — real bakers, real
+ *  ovens, the shop floor. Two near-duplicate rack shots were dropped from the
+ *  live site's set of 18; the rest is shown here. */
+export const GALLERY: GalleryPhoto[] = [
+  { src: gal('01'), w: 1564, h: 1426, caption: { en: 'Shaping the morning’s first loaves', is: 'Fyrstu brauðin mótuð að morgni' } },
+  { src: gal('02'), w: 1700, h: 1134, caption: { en: 'Into the deck oven', is: 'Í ofninn' } },
+  { src: gal('03'), w: 1088, h: 1120, caption: { en: 'Building the day’s sandwiches', is: 'Samlokur settar saman' } },
+  { src: gal('04'), w: 1700, h: 1360, caption: { en: 'Checking the bread rack', is: 'Litið eftir brauðunum' } },
+  { src: gal('05'), w: 1700, h: 1359, caption: { en: 'Sourdough, shaped by hand', is: 'Súrdeig mótað í höndunum' } },
+  { src: gal('08'), w: 1360, h: 1700, caption: { en: 'Working the dough', is: 'Deigið hnoðað' } },
+  { src: gal('07'), w: 1700, h: 1133, caption: { en: 'A slice of the day’s cake', is: 'Sneið af dagsins köku' } },
+  { src: gal('14'), w: 1360, h: 1700, caption: { en: 'Loading the deck oven', is: 'Brauðin sett í ofninn' } },
+  { src: gal('12'), w: 1700, h: 1360, caption: { en: 'The old Fortuna mixer, still at work', is: 'Gamla Fortuna-hrærivélin enn í notkun' } },
+  { src: gal('17'), w: 1134, h: 1700, caption: { en: 'Cutting the dough to weight', is: 'Deigið vigtað og skorið' } },
+  { src: gal('11'), w: 1565, h: 1252, caption: { en: 'Cream puffs, fresh', is: 'Rjómabollur, nýjar' } },
+  { src: gal('18'), w: 1134, h: 1700, caption: { en: 'The final shape, by hand', is: 'Lokahnykkurinn, með höndunum' } },
+  { src: gal('15'), w: 1134, h: 1700, caption: { en: 'Shaping the rolls', is: 'Bollur mótaðar' } },
+  { src: gal('09'), w: 640, h: 428, caption: { en: 'Fresh from the counter', is: 'Nýbakað úr búðinni' } },
+  { src: gal('10'), w: 1200, h: 800, caption: { en: 'A celebration cake, plated', is: 'Tertan tilbúin' } },
+  { src: gal('13'), w: 640, h: 960, caption: { en: 'A finished creation', is: 'Fullbúið verk' } },
+]
 
 /** The house favourite — the pistachio Danish guests single out. */
 export const FEATURE: MenuItem = {
@@ -153,6 +209,7 @@ export const T = {
   en: {
     navMenu: 'The counter',
     navBread: 'Bread',
+    navGallery: 'Gallery',
     navStory: 'Our story',
     navVisit: 'Visit',
     orderPrimary: 'Order delivery',
@@ -173,6 +230,12 @@ export const T = {
     breadTitle: 'The bread.',
     breadIntro: 'Sourdough and traditional Icelandic loaves, many of them sugar-free and made with Icelandic rapeseed oil.',
     breadNote: 'Prices as listed on aha.is.',
+    galleryKicker: 'Behind the counter',
+    galleryTitle: 'In the bakery.',
+    galleryIntro: 'Sourdough on the bench, the ovens running since six every morning. A look at the everyday craft, in photos.',
+    galleryClose: 'Close',
+    galleryPrev: 'Previous photo',
+    galleryNext: 'Next photo',
     statementKicker: 'Our story',
     statementQuote: 'Everything made here, from scratch.',
     statementWho: 'Reynir bakari, since 1994',
@@ -185,9 +248,7 @@ export const T = {
     cateringBody:
       'Celebration cakes in cream, marzipan and chocolate, plus full catering for parties and events. Tell us the occasion and we will quote it.',
     cateringCta: 'Send an enquiry',
-    reviewQuote: 'Great pistachio Danish.',
-    reviewWho: 'gj Anderson, Google',
-    trustLine: '4.5 on Google across 63 reviews. 92% recommend on Facebook.',
+    trustLine: '4.5 on Google across 63 reviews. 92% recommend on Facebook (21 reviews).',
     visitKicker: 'Two locations',
     visitTitle: 'Find us',
     mainLabel: 'Bakery and café',
@@ -205,6 +266,7 @@ export const T = {
   is: {
     navMenu: 'Úr ofninum',
     navBread: 'Brauð',
+    navGallery: 'Myndir',
     navStory: 'Sagan',
     navVisit: 'Heimsókn',
     orderPrimary: 'Panta heim',
@@ -225,6 +287,12 @@ export const T = {
     breadTitle: 'Brauðin.',
     breadIntro: 'Súrdeigsbrauð og hefðbundin íslensk brauð, mörg sykurlaus og bökuð með íslenskri repjuolíu.',
     breadNote: 'Verð eins og þau birtast á aha.is.',
+    galleryKicker: 'Bakvið borðið',
+    galleryTitle: 'Í bakaríinu.',
+    galleryIntro: 'Súrdeigið á borðinu, ofnarnir í gangi frá klukkan sex á morgnana. Innsýn í daglegt handverk, í myndum.',
+    galleryClose: 'Loka',
+    galleryPrev: 'Fyrri mynd',
+    galleryNext: 'Næsta mynd',
     statementKicker: 'Sagan',
     statementQuote: 'Allt gert á staðnum, frá grunni.',
     statementWho: 'Reynir bakari, síðan 1994',
@@ -237,9 +305,7 @@ export const T = {
     cateringBody:
       'Rjóma, marsípan og súkkulaðitertur fyrir stóru stundirnar, ásamt veisluþjónustu fyrir hvers kyns viðburði. Segið okkur frá tilefninu og við gerum tilboð.',
     cateringCta: 'Senda fyrirspurn',
-    reviewQuote: 'Frábær pistasíusnúður.',
-    reviewWho: 'gj Anderson, Google',
-    trustLine: '4,5 á Google úr 63 umsögnum. 92% mæla með á Facebook.',
+    trustLine: '4,5 á Google úr 63 umsögnum. 92% mæla með á Facebook (21 umsögn).',
     visitKicker: 'Tveir staðir',
     visitTitle: 'Finndu okkur',
     mainLabel: 'Bakarí og kaffihús',

@@ -16,12 +16,12 @@
  * a medallion). Section reveals are IntersectionObserver + CSS transitions.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { T, type Lang, type MenuItem, LOGO, FEATURE_IMG, PRODUCT_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES } from './data'
+import { T, type Lang, type MenuItem, type GalleryPhoto, LOGO, FEATURE_IMG, PRODUCT_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS } from './data'
 
 const company = getPreviewCompany('reynir')
 
@@ -34,7 +34,7 @@ const GOLD = '#C8A877'
 const GOLD_LIGHT = '#EED3AA'
 const IVORY = '#F3EAD3'
 const DIM = 'rgba(243,234,211,.66)'
-const FAINT = 'rgba(243,234,211,.4)'
+const FAINT = 'rgba(243,234,211,.52)'
 const HAIR = 'rgba(238,211,170,.16)'
 const HAIR_SOFT = 'rgba(238,211,170,.1)'
 
@@ -103,7 +103,7 @@ const PAGE_CSS = `
   .rb-cta-ghost { background:transparent; color:${IVORY}; border:1px solid rgba(238,211,170,.34); }
   .rb-cta-ghost:hover { border-color:${GOLD}; background:rgba(238,211,170,.05); }
 
-  .rb-lang { background:none; border:none; cursor:pointer; padding:4px 7px; font-family:${BODY};
+  .rb-lang { background:none; border:none; cursor:pointer; padding:14px 13px; margin:-14px -13px; font-family:${BODY};
     font-size:13px; letter-spacing:.08em; color:${FAINT}; transition:color .2s ${EASE}; border-radius:4px; }
   .rb-lang[aria-pressed="true"] { color:${GOLD_LIGHT}; }
   .rb-lang:hover { color:${IVORY}; }
@@ -117,6 +117,60 @@ const PAGE_CSS = `
 
   .rb-cover-art { position:absolute; top:50%; right:clamp(-30px,0vw,20px); transform:translateY(-50%);
     width:clamp(300px,40vw,${MED_BASE}px); z-index:1; pointer-events:none; display:flex; align-items:center; justify-content:center; }
+
+  /* ── photo gallery: print-style contact sheet, columns masonry ─────────── */
+  .rb-gallery-grid { column-count:3; column-gap:14px; }
+  .rb-gallery-item { break-inside:avoid; margin:0 0 14px; padding:0; border:0; display:block; width:100%;
+    position:relative; overflow:hidden; border-radius:3px; cursor:zoom-in; background:${INK_DEEP};
+    box-shadow:0 1px 0 rgba(238,211,170,.06); }
+  .rb-gallery-item::after { content:''; position:absolute; inset:0; border-radius:3px;
+    border:1px solid rgba(238,211,170,0); transition:border-color .3s ${EASE}; pointer-events:none; }
+  .rb-gallery-item:hover::after, .rb-gallery-item:focus-visible::after { border-color:rgba(238,211,170,.4); }
+  .rb-gallery-item img { width:100%; height:auto; display:block; transition:transform .6s ${EASE}, filter .6s ${EASE}; }
+  .rb-gallery-item:hover img, .rb-gallery-item:focus-visible img { transform:scale(1.045); }
+  .rb-gallery-cap { position:absolute; left:0; right:0; bottom:0; padding:26px 14px 12px;
+    background:linear-gradient(0deg, rgba(11,10,9,.88) 0%, rgba(11,10,9,0) 100%);
+    opacity:0; transform:translateY(6px); transition:opacity .35s ${EASE}, transform .35s ${EASE};
+    text-align:left; font-family:${BODY}; font-size:12.5px; color:${GOLD_LIGHT}; letter-spacing:.01em; }
+  .rb-gallery-item:hover .rb-gallery-cap, .rb-gallery-item:focus-visible .rb-gallery-cap { opacity:1; transform:none; }
+
+  .rb-lightbox { position:fixed; inset:0; z-index:300; background:rgba(11,10,9,.94);
+    display:flex; align-items:center; justify-content:center; padding:clamp(16px,5vh,56px);
+    animation:rb-lb-in .28s ${EASE} both; }
+  @keyframes rb-lb-in { from { opacity:0; } to { opacity:1; } }
+  .rb-lightbox-fig { margin:0; max-width:min(92vw,1100px); max-height:88vh; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .rb-lightbox-fig img { max-width:100%; max-height:74vh; width:auto; height:auto; display:block; border-radius:3px;
+    box-shadow:0 40px 90px -20px rgba(0,0,0,.7); animation:rb-lb-zoom .32s ${EASE} both; }
+  @keyframes rb-lb-zoom { from { opacity:0; transform:scale(.97); } to { opacity:1; transform:none; } }
+  .rb-lightbox-cap { font-family:${BODY}; font-style:italic; font-size:15px; color:${IVORY}; text-align:center; }
+  .rb-lb-btn { position:absolute; background:rgba(19,19,19,.55); border:1px solid rgba(238,211,170,.22); color:${IVORY};
+    width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:background .2s ${EASE}, border-color .2s ${EASE}, transform .15s ${EASE}; }
+  .rb-lb-btn:hover { background:rgba(200,168,119,.16); border-color:${GOLD}; }
+  .rb-lb-btn:active { transform:scale(.94); }
+  .rb-lb-close { top:clamp(10px,2vh,28px); right:clamp(10px,2vw,28px); }
+  .rb-lb-prev { left:clamp(6px,1.5vw,20px); top:50%; transform:translateY(-50%); }
+  .rb-lb-next { right:clamp(6px,1.5vw,20px); top:50%; transform:translateY(-50%); }
+
+  /* ── rotating testimonial: soft crossfade on each key-remount ─────────── */
+  @keyframes rb-testi-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .rb-testi-fade { animation:rb-testi-in .7s ${EASE} both; }
+  /* 44px tap target with a small 7px visible dot centered inside (WCAG target size) */
+  .rb-testi-dot { width:44px; height:44px; padding:0; border:0; background:transparent; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; }
+  .rb-testi-dot::after { content:''; width:7px; height:7px; border-radius:50%; border:1px solid rgba(238,211,170,.4);
+    transition:background .25s ${EASE}, border-color .25s ${EASE}, transform .2s ${EASE}; }
+  .rb-testi-dot:hover::after { border-color:${GOLD}; transform:scale(1.15); }
+  .rb-testi-dot[data-active="true"]::after { background:${GOLD}; border-color:${GOLD}; }
+
+  @media (max-width:820px) {
+    .rb-gallery-grid { column-count:2; column-gap:10px; }
+    .rb-gallery-item { margin-bottom:10px; }
+    .rb-lb-prev { left:4px; } .rb-lb-next { right:4px; }
+  }
+  @media (max-width:480px) {
+    .rb-gallery-cap { opacity:1; transform:none; padding:18px 10px 9px; font-size:11.5px; }
+  }
 
   @media (max-width:980px) {
     .rb-cover-grid { grid-template-columns:1fr !important; }
@@ -143,6 +197,10 @@ const PAGE_CSS = `
     .rb-hero-spin { animation:none; }
     .rb-cta { transition:none; }
     .rb-cta:active { transform:none; }
+    .rb-gallery-item img { transition:none; }
+    .rb-gallery-item:hover img { transform:none; }
+    .rb-lightbox, .rb-lightbox-fig img { animation:none; }
+    .rb-testi-fade { animation:none; }
   }
 `
 
@@ -191,6 +249,67 @@ function MenuRow({ item, lang }: { item: MenuItem; lang: Lang }) {
   )
 }
 
+/** One gallery photo: hover reveals a gold caption over a dark scrim; click opens the lightbox. */
+function GalleryTile({ photo, lang, onOpen, style }: { photo: GalleryPhoto; lang: Lang; onOpen: () => void; style?: CSSProperties }) {
+  return (
+    <button type="button" className="rb-gallery-item" data-reveal style={style} onClick={onOpen} aria-label={photo.caption[lang]}>
+      <img src={photo.src} alt={photo.caption[lang]} loading="lazy" decoding="async" style={{ aspectRatio: `${photo.w} / ${photo.h}` }} />
+      <span className="rb-gallery-cap" aria-hidden="true">{photo.caption[lang]}</span>
+    </button>
+  )
+}
+
+/** The real reviews, auto-rotating with a soft crossfade. Pauses on
+ *  hover/focus and under prefers-reduced-motion; dots give manual control. */
+function TestimonialRotator({ lang, reduced }: { lang: Lang; reduced: boolean }) {
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (reduced || paused || REVIEWS.length <= 1) return
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % REVIEWS.length), 6500)
+    return () => window.clearInterval(id)
+  }, [reduced, paused])
+
+  const r = REVIEWS[index]
+
+  return (
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
+      <blockquote
+        key={index}
+        className={reduced ? undefined : 'rb-testi-fade'}
+        style={{ margin: '0 auto', maxWidth: '38ch', fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(26px,3.6vw,46px)', lineHeight: 1.25, color: IVORY }}
+      >
+        “{r.quote[lang]}”
+      </blockquote>
+      <figcaption
+        key={`w-${index}`}
+        className={reduced ? undefined : 'rb-testi-fade'}
+        style={{ fontSize: 14, color: FAINT, marginTop: 16 }}
+      >
+        {r.who}
+      </figcaption>
+
+      {REVIEWS.length > 1 && (
+        <div role="tablist" aria-label={lang === 'en' ? 'Reviews' : 'Umsagnir'} style={{ display: 'flex', gap: 0, justifyContent: 'center', marginTop: 4 }}>
+          {REVIEWS.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={i === index}
+              aria-label={`${lang === 'en' ? 'Review' : 'Umsögn'} ${i + 1}`}
+              data-active={i === index}
+              className="rb-testi-dot"
+              onClick={() => setIndex(i)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ReynirPage() {
   // Default to English on first load; flip to IS with the toggle.
   const [lang, setLang] = useState<Lang>('en')
@@ -232,27 +351,77 @@ export default function ReynirPage() {
     if (reduced) return
     const root = rootRef.current
     if (!root || !('IntersectionObserver' in window)) return
+
+    const reveal = (el: HTMLElement) => {
+      el.style.opacity = '1'
+      el.style.transform = 'none'
+    }
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            const el = e.target as HTMLElement
-            el.style.opacity = '1'
-            el.style.transform = 'none'
-            io.unobserve(el)
+            reveal(e.target as HTMLElement)
+            io.unobserve(e.target)
           }
         })
       },
       { threshold: 0.1, rootMargin: '0px 0px -6% 0px' },
     )
-    root.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el))
-    return () => io.disconnect()
+    const els = Array.from(root.querySelectorAll<HTMLElement>('[data-reveal]'))
+    els.forEach((el) => io.observe(el))
+
+    // Safety net: a backgrounded tab (opened in a background tab, some in-app
+    // browsers) pauses IntersectionObserver delivery, which can leave already
+    // scrolled-past content stuck at opacity:0. Catch it up shortly after
+    // mount and whenever the tab becomes visible again.
+    const catchUp = () => {
+      els.forEach((el) => {
+        if (el.style.opacity === '1') return
+        if (el.getBoundingClientRect().top < window.innerHeight) {
+          reveal(el)
+          io.unobserve(el)
+        }
+      })
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') catchUp()
+    }
+    const timeoutId = window.setTimeout(catchUp, 2500)
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      io.disconnect()
+      window.clearTimeout(timeoutId)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [reduced, lang])
 
   const marqueeItems = useMemo(
     () => ['Vínarbrauð', 'Súrdeigsbrauð', 'Snúður', 'Kanillengja', 'Pistasíusnúður', 'Kleina', 'Rúgbrauð', 'Skúffukaka'],
     [],
   )
+
+  // Gallery lightbox: null when closed, otherwise the open photo's index.
+  const [lightbox, setLightbox] = useState<number | null>(null)
+  const closeLightbox = () => setLightbox(null)
+  const stepLightbox = (dir: 1 | -1) => setLightbox((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length))
+
+  useEffect(() => {
+    if (lightbox === null) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowRight') stepLightbox(1)
+      if (e.key === 'ArrowLeft') stepLightbox(-1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [lightbox])
 
   const sectionPad = 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)'
   const wrap = { maxWidth: 1180, margin: '0 auto' } as const
@@ -282,6 +451,7 @@ export default function ReynirPage() {
           <nav className="rb-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
             <a href="#menu" className="rb-navlink">{t.navMenu}</a>
             <a href="#bread" className="rb-navlink">{t.navBread}</a>
+            <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
             <a href="#story" className="rb-navlink">{t.navStory}</a>
             <a href="#visit" className="rb-navlink">{t.navVisit}</a>
           </nav>
@@ -317,7 +487,7 @@ export default function ReynirPage() {
               </span>
             </div>
 
-            <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(54px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
+            <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
               {t.heroTitle}
             </h1>
 
@@ -468,6 +638,23 @@ export default function ReynirPage() {
         </div>
       </section>
 
+      {/* ===================== GALLERY ===================== */}
+      <section id="gallery" style={{ background: INK, padding: sectionPad }}>
+        <div style={wrap}>
+          <div data-reveal style={{ ...revealInit(reduced), borderTop: `1px solid ${HAIR}`, paddingTop: 16, maxWidth: 640 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.galleryKicker}</div>
+            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>{t.galleryTitle}</h2>
+            <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.galleryIntro}</p>
+          </div>
+
+          <div className="rb-gallery-grid" style={{ marginTop: 'clamp(32px,5vh,52px)' }}>
+            {GALLERY.map((photo, i) => (
+              <GalleryTile key={photo.src} photo={photo} lang={lang} onOpen={() => setLightbox(i)} style={revealInit(reduced, (i % 4) * 0.07)} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ===================== CAKES & CATERING + REVIEW ===================== */}
       <section style={{ background: INK_WARM, padding: sectionPad }}>
         <div style={wrap}>
@@ -492,12 +679,9 @@ export default function ReynirPage() {
             </div>
           </div>
 
-          {/* the one real review + trust line */}
+          {/* the real reviews, auto-rotating + trust line */}
           <figure data-reveal style={{ ...revealInit(reduced, 0.14), margin: '0', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)', textAlign: 'center' }}>
-            <blockquote style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(28px,4vw,52px)', lineHeight: 1.2, color: IVORY }}>
-              “{t.reviewQuote}”
-            </blockquote>
-            <figcaption style={{ fontSize: 14, color: FAINT, marginTop: 16 }}>{t.reviewWho}</figcaption>
+            <TestimonialRotator lang={lang} reduced={reduced} />
             <div style={{ fontSize: 13.5, color: DIM, marginTop: 18 }}>{t.trustLine}</div>
           </figure>
         </div>
@@ -562,6 +746,34 @@ export default function ReynirPage() {
           </div>
         </div>
       </footer>
+
+      {lightbox !== null && (
+        <div className="rb-lightbox" role="dialog" aria-modal="true" aria-label={GALLERY[lightbox].caption[lang]} onClick={closeLightbox}>
+          <button type="button" className="rb-lb-btn rb-lb-close" onClick={closeLightbox} aria-label={t.galleryClose}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          </button>
+          <button
+            type="button"
+            className="rb-lb-btn rb-lb-prev"
+            onClick={(e) => { e.stopPropagation(); stepLightbox(-1) }}
+            aria-label={t.galleryPrev}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M11 3L5 9L11 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+          <button
+            type="button"
+            className="rb-lb-btn rb-lb-next"
+            onClick={(e) => { e.stopPropagation(); stepLightbox(1) }}
+            aria-label={t.galleryNext}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7 3L13 9L7 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+          <figure className="rb-lightbox-fig" onClick={(e) => e.stopPropagation()}>
+            <img key={GALLERY[lightbox].src} src={GALLERY[lightbox].src} alt={GALLERY[lightbox].caption[lang]} decoding="async" />
+            <figcaption className="rb-lightbox-cap">{GALLERY[lightbox].caption[lang]}</figcaption>
+          </figure>
+        </div>
+      )}
 
       <PreviewChrome company={company} />
       <PreviewFooter company={company} />
