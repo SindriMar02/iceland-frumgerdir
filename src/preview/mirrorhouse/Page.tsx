@@ -246,8 +246,24 @@ function useMotion(ready: boolean) {
       const shots: (HTMLImageElement | null)[] = new Array(SCRUB.frameCount).fill(null)
       let shown = -1
 
-      const paint = (idx: number) => {
+      const drawCover = (img: HTMLImageElement) => {
         if (!canvas || !ctx) return
+        const cw = canvas.width, ch = canvas.height
+        const sc = Math.max(cw / img.naturalWidth, ch / img.naturalHeight)
+        const w = img.naturalWidth * sc, h = img.naturalHeight * sc
+        ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h)
+      }
+
+      const paint = (idx: number) => {
+        if (!canvas || !ctx || !canvas.width) return
+        // Nothing decoded yet? Draw the daylight still rather than leaving an
+        // empty canvas over the section. Without this the film reads as a
+        // blank field for as long as the first frame takes to arrive.
+        if (!shots.some(Boolean)) {
+          const still = root.querySelector<HTMLImageElement>('.mh-scrub-day img')
+          if (still?.complete && still.naturalWidth) drawCover(still)
+          return
+        }
         // nearest frame we actually hold, so a partial load still animates
         let i = idx
         if (!shots[i]) {
@@ -263,20 +279,21 @@ function useMotion(ready: boolean) {
         shown = i
         // exposed so the headless harness can assert which frame is on screen
         canvas.dataset.frame = String(i)
-        const cw = canvas.width, ch = canvas.height
-        const sc = Math.max(cw / img.naturalWidth, ch / img.naturalHeight)
-        const w = img.naturalWidth * sc, h = img.naturalHeight * sc
-        ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h)
+        drawCover(img)
       }
 
       const sizeCanvas = () => {
-        if (!canvas) return
+        if (!canvas || !canvas.clientWidth || !canvas.clientHeight) return
         // DPR capped at 1.5: a full-bleed 4K-ish blit per frame buys nothing
         const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
-        canvas.width = Math.round(canvas.clientWidth * dpr)
-        canvas.height = Math.round(canvas.clientHeight * dpr)
+        const w = Math.round(canvas.clientWidth * dpr)
+        const h = Math.round(canvas.clientHeight * dpr)
+        if (w === canvas.width && h === canvas.height) return
+        canvas.width = w
+        canvas.height = h
+        const keep = shown
         shown = -1
-        paint(Math.max(0, shown))
+        paint(Math.max(0, keep))
       }
 
       let framesStarted = false
@@ -325,8 +342,15 @@ function useMotion(ready: boolean) {
           scrollTrigger: { trigger: scrubWrap, start: 'top top', end: '+=300%', scrub: true },
         })
 
-        // begin decoding a full screen ahead of the pin
+        // Begin decoding a full screen ahead of the pin, but never DEPEND on
+        // that: onEnter does not fire when the page loads already past the
+        // start (a reload or HMR while viewing this section), which left the
+        // canvas blank. Belt and braces, and loadFrames is idempotent.
         ScrollTrigger.create({ trigger: scrubWrap, start: 'top bottom+=100%', once: true, onEnter: loadFrames })
+        if (scrubWrap.getBoundingClientRect().top < window.innerHeight * 2) loadFrames()
+        gsap.delayedCall(1.4, loadFrames)
+        ScrollTrigger.addEventListener('refresh', sizeCanvas)
+        cleanups.push(() => ScrollTrigger.removeEventListener('refresh', sizeCanvas))
         sizeCanvas()
         window.addEventListener('resize', sizeCanvas, { passive: true })
         cleanups.push(() => window.removeEventListener('resize', sizeCanvas))
