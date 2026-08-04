@@ -56,18 +56,22 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Ingibjörg á nú þegar lén, merki og eina síðu, en sú síða gerir ekkert nema senda gesti aftur til Airbnb. Frumgerðin sýnir hvað léninu hennar er raunverulega ætlað: kvikmyndaleg ferð í gegnum kofann sjálfan, umsagnirnar hennar 412 í aðalhlutverki, og bein bókun sem sparar henni þóknunina sem hún greiðir Airbnb á hverri einustu nótt.',
   outreach: {
-    subject: 'Speglahúsið þitt, á þinni eigin síðu',
+    subject: 'Speglahúsið á þinni eigin síðu',
     body: `Sæl Ingibjörg,
 
-Ég heiti Sindri og hanna vefsíður. Ég rakst á Speglahúsið á Airbnb og gat ekki hætt að skoða myndirnar. 412 umsagnir og 4,94 í einkunn tala sínu máli.
+Ég heiti Sindri og hanna vefsíður. Ég rakst á Speglahúsið og sat lengi yfir myndunum. 412 umsagnir og 4,94 í einkunn segja sína sögu.
 
-Ég tók eftir að þú átt nú þegar þitt eigið lén, mirrorhouseiceland.com, en að þaðan kemst maður bara beint aftur á Airbnb til að bóka.
+Ég tók eftir einu: þú átt nú þegar lénið mirrorhouseiceland.com, en þaðan liggur bara ein leið, aftur inn á Airbnb. Þóknunin fylgir hverri einustu nótt sem bókast þar.
 
-Ég bjó til frumgerð af því hvernig síðan þín gæti litið út, með beinni bókun, umsögnunum þínum sýnilegum, og myndunum þínum í aðalhlutverki.
+Ég bjó til frumgerð af því hvernig þín eigin síða gæti litið út. Hún kostar þig ekkert og þú mátt gera við hana það sem þú vilt:
 
 [HLEKKUR]
 
-Endilega skoðaðu og láttu mig vita hvað þér finnst.
+Þar eru þínar eigin myndir, umsagnirnar þínar, og bókunarform sem sendir fyrirspurn beint til þín. Ég bjó líka til stutta kvikmynd af húsinu þar sem sumarið verður að norðurljósum, hún spilast eftir því sem lesandinn skrunar.
+
+Ef þér líst á, þá er þetta það sem ég geri: sjálf síðan, Google-leitin svo fólk finni þig án Airbnb, og umsagnakerfi sem safnar umsögnum á þína eigin síðu. Við getum líka tengt beina bókun þegar þú vilt.
+
+Þú mátt endilega segja mér hvað þér finnst, hvort sem það er já eða nei.
 
 Bestu kveðjur,
 Sindri Már
