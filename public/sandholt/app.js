@@ -145,24 +145,43 @@
       t.style.transitionDelay = (i % 4) * 80 + 'ms';
       rio.observe(t);
     });
-    // Safety net: a fast flick can outrun the observer. Content must never stay hidden.
-    var sweeping = false;
-    var sweep = function () {
-      sweeping = false;
-      for (var i = rises.length - 1; i >= 0; i--) {
-        var t = rises[i];
-        if (t.classList.contains('in')) continue;
-        if (t.getBoundingClientRect().top < window.innerHeight) { t.classList.add('in'); rio.unobserve(t); }
+    /* Safety net: a fast flick can outrun the observer. Content must never
+       stay hidden.
+
+       This used to run on every scroll frame and measure EVERY not-yet-shown
+       element — 54 getBoundingClientRect calls a frame, every one of them a
+       forced synchronous layout because it ran after the write phase. It is
+       a backstop for a case the observer almost always handles, so it now
+       runs at most 5x a second, prunes what it has revealed (so the cost
+       falls to nothing as the page opens), and is driven from the read phase
+       of the scroll loop where no writes have happened yet. */
+    var pendRise = rises.slice(), pendHead = headings.slice(), sweptAt = -1e9;
+    var sweep = window.__shSweep = function (force) {
+      var now = Date.now();
+      if (!force && now - sweptAt < 200) return;
+      if (!pendRise.length && !pendHead.length) return;
+      sweptAt = now;
+      var vh = window.innerHeight;
+      for (var i = pendRise.length - 1; i >= 0; i--) {
+        var t = pendRise[i];
+        if (t.classList.contains('in')) { pendRise.splice(i, 1); continue; }
+        if (t.getBoundingClientRect().top < vh) { t.classList.add('in'); rio.unobserve(t); pendRise.splice(i, 1); }
       }
       // headings too — a stranded heading is worse than a stranded paragraph
-      for (var j = headings.length - 1; j >= 0; j--) {
-        var hd = headings[j];
-        if (hd.done) continue;
-        if (hd.el.getBoundingClientRect().top < window.innerHeight) { hd.done = true; hd.show(); }
+      for (var j = pendHead.length - 1; j >= 0; j--) {
+        var hd = pendHead[j];
+        if (hd.done) { pendHead.splice(j, 1); continue; }
+        if (hd.el.getBoundingClientRect().top < vh) { hd.done = true; hd.show(); pendHead.splice(j, 1); }
       }
     };
-    addEventListener('scroll', function () { if (!sweeping) { sweeping = true; requestAnimationFrame(sweep); } }, { passive: true });
-    addEventListener('resize', sweep, { passive: true });
+    // under reduced motion the scroll loop is not wired up, so drive it here
+    if (REDUCED) {
+      var sweeping = false;
+      addEventListener('scroll', function () {
+        if (!sweeping) { sweeping = true; requestAnimationFrame(function () { sweeping = false; sweep(); }); }
+      }, { passive: true });
+    }
+    addEventListener('resize', function () { sweep(true); }, { passive: true });
   } else {
     rises.forEach(function (t) { t.classList.add('in'); });
   }
@@ -183,6 +202,9 @@
 
   var daySec = $('.day'), dayPin = $('.day__pin'), dayTrack = $('[data-track]'), dayRail = $('[data-rail]');
   var heroSec = $('.hero'), heroMedia = $('[data-heromedia]'), heroCenter = $('[data-herocenter]');
+  var heroPin = $('.hero__pin'), heroFilm = $('[data-herofilm]');
+  var heroWho = $('.hero__who'), heroState = $('#hstate');
+  var barT = $('[data-bart]'), barB = $('[data-barb]');
   var wm = $('#wm'), wmSlot = $('[data-wmslot]'), wmHead = $('[data-wmhead]');
   var yearEl = $('[data-year]'), yearDigits = yearEl ? $$('span', yearEl) : [];
   var footEl = $('#foot'), footIn = $('[data-footin]'), footSpacer = $('[data-footspacer]');
@@ -196,6 +218,44 @@
       var s = document.createElement('span'); s.className = 'sw'; s.textContent = p;
       scrubEl.appendChild(s); scrubWords.push(s);
     });
+  }
+
+  /* Cache the digit weights once. getComputedStyle() inside the write phase
+     flushed style for every digit, every frame, everywhere on the page. */
+  var yearK = yearDigits.map(function (d) {
+    return parseFloat(getComputedStyle(d).getPropertyValue('--k')) || 1;
+  });
+
+  /* ── GEOMETRY CACHE ──────────────────────────────────────────
+     The wordmark flight needs two rects: its hero rest slot and its
+     header target. Both are constant — the slot sits in a sticky pin at
+     top:0, the target in a fixed header — so reading them per frame only
+     bought two forced synchronous layouts per frame, inside the write
+     phase, which is exactly what the perf contract above forbids.
+     Measure once, and again only on a real resize.                     */
+  var wmGeo = null, heroTravel = 1, dayTravel = 1;
+  function sizeHero() {
+    if (heroSec) heroTravel = Math.max(1, heroSec.offsetHeight - window.innerHeight);
+    if (daySec) dayTravel = Math.max(1, daySec.offsetHeight - window.innerHeight);
+    if (!wm || !wmSlot || !wmHead || !heroPin) return;
+    // subtract the pin's own offset so this is correct even when measured
+    // from a scroll position where the hero has already unstuck
+    var pin = heroPin.getBoundingClientRect();
+    var a = wmSlot.getBoundingClientRect();
+    var b = wmHead.getBoundingClientRect();
+    wmGeo = { aw: a.width, at: a.top - pin.top, bw: b.width, bt: b.top };
+    // width is fixed for the whole flight — writing it per frame relaid out
+    // and re-rasterised the wordmark (and its drop-shadow) every frame
+    wm.style.setProperty('--wmw', a.width + 'px');
+  }
+
+  /* Only touch the DOM when a value actually changed. Custom properties are
+     cheap to write and expensive to write 60 times a second for nothing. */
+  var last = {};
+  function setVar(el, name, v) {
+    var key = name + (el.id || el.className);
+    if (last[key] === v) return;
+    last[key] = v; el.style.setProperty(name, v);
   }
 
   /* The pinned chapter needs the section tall enough to scrub the whole
@@ -237,6 +297,10 @@
     var vh = window.innerHeight;
 
     /* ---- READ PHASE: every rect first, zero writes ---- */
+    // the reveal backstop reads geometry too, so it belongs here, before any
+    // write — out here it was 54 forced layouts a frame
+    if (window.__shSweep) window.__shSweep(false);
+
     var reads = [];
     for (var i = 0; i < frames.length; i++) {
       var r = frames[i].el.getBoundingClientRect();
@@ -257,49 +321,61 @@
     }
 
     if (dayR && dayTrack) {
-      var prog = clamp(-dayR.top / Math.max(1, daySec.offsetHeight - vh), 0, 1);
+      var prog = clamp(-dayR.top / dayTravel, 0, 1);
       dayTargetX = prog * dayOver;
       // only spin the rAF while the chapter is anywhere near the viewport
       dayLive = dayR.bottom > -vh && dayR.top < vh * 2;
       kickDay();
     }
 
-    /* hero closes into a slot; the wordmark flies into the header centre */
-    if (heroR && heroMedia) {
-      var hp = clamp(-heroR.top / Math.max(1, heroSec.offsetHeight - vh), 0, 1);
+    /* hero closes into a slot; the wordmark flies into the header centre.
+       Everything here is a transform or an opacity on a promoted layer —
+       no geometry is read, so nothing forces a layout. */
+    if (heroR && heroFilm && heroR.bottom > -vh && heroR.top < vh) {
+      var hp = clamp(-heroR.top / heroTravel, 0, 1);
       var e = hp * hp;                                  // hold, then go
-      heroMedia.style.setProperty('--hc', (e * 34).toFixed(2) + '%');
-      heroMedia.style.setProperty('--hs', (1 + e * 0.06).toFixed(4));
-      // the who-text and corner state fade well before the wordmark lands
-      heroSec.style.setProperty('--ho', (1 - clamp(hp * 1.9, 0, 1)).toFixed(3));
+      var hs = 1 + e * 0.06;
+      setVar(heroFilm, '--hs', hs.toFixed(4));
+      if (barT && barB) {
+        /* The bars replace a clip-path that used to sit on the SAME element as
+           the scale. A clip applies in local space, before the transform, so
+           the opening was scaled by --hs too. These bars cut in screen space,
+           so the scale has to be folded in by hand or the letterbox edge lands
+           ~9px off mid-flight (measured against the original, pixel for pixel). */
+        var openHalf = (0.5 - e * 0.34) * vh * hs;
+        var bar = (vh * 0.5 - openHalf).toFixed(1) + 'px';
+        setVar(barT, '--hcpx', bar); setVar(barB, '--hcpx', bar);
+      }
+      // the who-text and corner state fade well before the wordmark lands.
+      // written on the two leaf elements, never on .hero — a custom property
+      // on the section restyles its whole subtree, video included.
+      var ho = (1 - clamp(hp * 1.9, 0, 1)).toFixed(3);
+      if (heroWho) setVar(heroWho, '--ho', ho);
+      if (heroState) setVar(heroState, '--ho', ho);
       nav.classList.toggle('is-past', hp > 0.62);
 
-      if (wm && wmSlot && wmHead) {
-        var a = wmSlot.getBoundingClientRect();   // hero rest position (pinned, so stable)
-        var b = wmHead.getBoundingClientRect();   // header target (fixed, so constant)
+      if (wm && wmGeo) {
         var t = e;                                // same easing as the film close
-        wm.style.setProperty('--wmw', a.width + 'px');
-        wm.style.setProperty('--wms', (1 + (b.width / Math.max(1, a.width) - 1) * t).toFixed(4));
-        wm.style.setProperty('--wmy', (a.top + (b.top - a.top) * t).toFixed(1) + 'px');
+        setVar(wm, '--wms', (1 + (wmGeo.bw / Math.max(1, wmGeo.aw) - 1) * t).toFixed(4));
+        setVar(wm, '--wmy', (wmGeo.at + (wmGeo.bt - wmGeo.at) * t).toFixed(1) + 'px');
         // cream over the film -> ink once it sits on the cream bar
-        wm.style.setProperty('--wmc', (1 - clamp((hp - 0.55) / 0.3, 0, 1)).toFixed(3));
+        setVar(wm, '--wmc', (1 - clamp((hp - 0.55) / 0.3, 0, 1)).toFixed(3));
       }
     }
 
     /* 1920 — four digits, four generations, aligned only at centre */
-    if (yearR && yearDigits.length) {
+    if (yearR && yearDigits.length && yearR.bottom > 0 && yearR.top < vh) {
       // clamp: off-screen the raw ratio runs far past 1 and the digits fly hundreds of px
       var yp = clamp((yearR.top + yearR.height / 2 - vh / 2) / (vh / 2 + yearR.height / 2), -1, 1);
       for (var d = 0; d < yearDigits.length; d++) {
-        var k = parseFloat(getComputedStyle(yearDigits[d]).getPropertyValue('--k')) || 1;
-        yearDigits[d].style.setProperty('--dy', (yp * k * 46).toFixed(1) + 'px');
+        yearDigits[d].style.setProperty('--dy', (yp * yearK[d] * 46).toFixed(1) + 'px');
       }
     }
 
     /* footer is fixed behind the page; fade its content in as it is uncovered */
-    if (spacerR && footIn) {
+    if (spacerR && footIn && spacerR.top < vh) {
       var fp = clamp((vh - spacerR.top) / Math.max(1, spacerR.height * 0.85), 0, 1);
-      footIn.style.setProperty('--fp', fp.toFixed(3));
+      setVar(footIn, '--fp', fp.toFixed(3));
     }
 
     if (scrubR && scrubWords.length) {
@@ -314,10 +390,31 @@
   }
   function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }
 
+  function remeasure() { dayOver = sizeDay(); sizeFoot(); sizeHero(); onScroll(); }
+
+  /* On a phone, the collapsing URL bar fires resize DURING the scroll. The
+     old handler answered every one of those with sizeDay(), which reads
+     scrollWidth and writes a section height — a full layout thrash mid-flick,
+     which is why this felt far worse on mobile than on desktop. A width
+     change is a real rotation or window drag and is handled at once; a
+     height-only change is the URL bar, and waits for the scroll to settle. */
+  var lastW = window.innerWidth, reT = null;
+  function onResize() {
+    if (window.innerWidth !== lastW) {
+      lastW = window.innerWidth;
+      clearTimeout(reT); reT = null;
+      remeasure();
+      return;
+    }
+    clearTimeout(reT);
+    reT = setTimeout(function () { reT = null; remeasure(); }, 250);
+  }
+
   if (!REDUCED) {
-    dayOver = sizeDay(); sizeFoot();
+    dayOver = sizeDay(); sizeFoot(); sizeHero();
     addEventListener('scroll', onScroll, { passive: true });
-    addEventListener('resize', function () { dayOver = sizeDay(); sizeFoot(); onScroll(); }, { passive: true });
+    addEventListener('resize', onResize, { passive: true });
+    addEventListener('orientationchange', remeasure, { passive: true });
     frame();
   } else if (daySec) {
     // reduced motion: let the chapter be an ordinary horizontal scroller
@@ -370,7 +467,7 @@
 
   function ready() {
     document.body.classList.add('is-ready');
-    dayOver = sizeDay(); sizeFoot();
+    dayOver = sizeDay(); sizeFoot(); sizeHero();
     onScroll();
     startHeroVideo();
   }

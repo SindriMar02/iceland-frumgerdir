@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sandholt Bakarí · Laugavegur 36, Reykjavík · Síðan 1920</title>
 <meta name="description" content="Sandholt er handverksbakarí á Laugavegi 36 í Reykjavík. Fjórða kynslóð bakarameistara hefur bakað á sama stað síðan 1920. Súrdeigsbrauð, kaffi, morgunmatur og veislutertur. Opið alla daga 07:30–18:00.">
-<meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#EFE8DA">
 <link rel="icon" href="img/favicon.png">
 <link rel="preload" href="fonts/Gambetta-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Switzer-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=1785667980">
+<link rel="stylesheet" href="styles.css?v=1785844244">
 <meta property="og:title" content="Sandholt Bakarí · Síðan 1920">
 <meta property="og:description" content="Handverksbakarí á Laugavegi 36. Fjórða kynslóð bakarameistara. Opið alla daga 07:30–18:00.">
 <meta property="og:image" content="img/hero-b.avif">
@@ -95,11 +94,17 @@
 <section class="hero" id="top">
   <div class="hero__pin">
     <div class="hero__media" data-heromedia>
-      <video class="hero__vid" data-herovid autoplay muted loop playsinline webkit-playsinline
-              disablepictureinpicture preload="auto" poster="img/hero-poster.jpg" aria-hidden="true" tabindex="-1">
-        <source src="video/hero.mp4" type="video/mp4">
-      </video>
+      <!-- the film scales on its own composited layer; the letterbox is two
+           solid bars sliding in, not a clip-path repaint of the video -->
+      <div class="hero__film" data-herofilm>
+        <video class="hero__vid" data-herovid autoplay muted loop playsinline webkit-playsinline
+                disablepictureinpicture preload="auto" poster="img/hero-poster.jpg" aria-hidden="true" tabindex="-1">
+          <source src="video/hero.mp4" type="video/mp4">
+        </video>
+      </div>
       <span class="hero__scrim" aria-hidden="true"></span>
+      <span class="hero__bar hero__bar--t" data-bart aria-hidden="true"></span>
+      <span class="hero__bar hero__bar--b" data-barb aria-hidden="true"></span>
     </div>
 
     <div class="hero__center" data-herocenter>
@@ -381,6 +386,6 @@
   </div>
 </footer>
 
-<script src="app.js?v=1785667980"></script>
+<script src="app.js?v=1785844244"></script>
 </body>
 </html>
