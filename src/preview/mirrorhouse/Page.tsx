@@ -1010,6 +1010,7 @@ const CSS = `
   font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .16em;
   text-transform: uppercase; color: var(--mh-mute); margin: 0 0 calc(var(--u) * 18);
 }
+.mh-scrub-caps .mh-phase { margin-bottom: calc(var(--u) * 14); }
 .mh-phase-is { color: var(--mh-aurora); }
 .mh-stat {
   font-family: ${MONO}; font-size: ${fluid(12, 11)};
@@ -1114,12 +1115,13 @@ const CSS = `
   z-index: 3; color: #F2F6F8;
 }
 .mh-scrub-caps .mh-phase { color: rgba(242,246,248,.72); }
-/* Both captions are absolutely positioned on the same baseline so they
-   crossfade in place. Leaving one in flow let the taller night line grow
-   straight over the day line. */
-.mh-scrub-captext { position: relative; min-height: 2.5em; }
+/* Both captions occupy the SAME grid cell, so they crossfade in place and the
+   box is always as tall as the taller of the two. Absolute positioning with a
+   fixed min-height was wrong: on a narrow screen the night line wraps to three
+   lines, overflows its box upward and collides with the phase label above. */
+.mh-scrub-captext { display: grid; align-items: end; }
 .mh-scrub-cap {
-  position: absolute; left: 0; bottom: 0; margin: 0;
+  grid-area: 1 / 1; margin: 0;
   font-weight: 200; font-size: ${fluid(44, 23)}; line-height: 1.18;
   letter-spacing: -.01em; max-width: 32ch;
 }
