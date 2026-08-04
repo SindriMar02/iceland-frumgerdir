@@ -148,6 +148,9 @@ const HusavikPage = lazy(() => import('./preview/husavik/Page'))
 const WestfjordsPage = lazy(() => import('./preview/westfjords/Page'))
 const ListakPage = lazy(() => import('./preview/listak/Page'))
 const MinjasafnPage = lazy(() => import('./preview/minjasafn/Page'))
+const AslaugSajaPage = lazy(() => import('./preview/aslaugsaja/Page'))
+const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
+const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
 const FossatunDashboard = lazy(() => import('./preview/fossatun/Dashboard'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
 const BokunDemo = lazy(() => import('./pages/BokunDemo'))
@@ -327,6 +330,9 @@ export default function App() {
             <Route path="/preview/westfjords" element={<WestfjordsPage />} />
             <Route path="/preview/listak" element={<ListakPage />} />
             <Route path="/preview/minjasafn" element={<MinjasafnPage />} />
+            <Route path="/preview/aslaugsaja" element={<AslaugSajaPage />} />
+            <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
+            <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
             <Route path="/preview/fossatun/stjornbord" element={<FossatunDashboard />} />
             <Route path="/demo/bokun" element={<BokunDemo />} />
             <Route path="/preview/kiropraktorstofan" element={<KiropraktorstofanPage />} />
