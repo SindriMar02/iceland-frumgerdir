@@ -63,9 +63,9 @@ export const companyEntry: PreviewCompany = {
 
 Ég tók eftir einu: þú átt nú þegar lénið mirrorhouseiceland.com, en þaðan liggur bara ein leið, aftur inn á Airbnb. Þóknunin fylgir hverri einustu nótt sem bókast þar.
 
-Ég bjó til frumgerð af því hvernig þín eigin síða gæti litið út. Hún kostar þig ekkert og þú mátt gera við hana það sem þú vilt:
+Ég bjó til frumgerð af því hvernig þín eigin síða gæti litið út. Því fylgir engin skuldbinding, kíktu endilega á hana:
 
-[HLEKKUR]
+https://sindrimar02.github.io/iceland-frumgerdir/preview/mirrorhouse
 
 Þar eru þínar eigin myndir, umsagnirnar þínar, og bókunarform sem sendir fyrirspurn beint til þín. Ég bjó líka til stutta kvikmynd af húsinu þar sem sumarið verður að norðurljósum, hún spilast eftir því sem lesandinn skrunar.
 
