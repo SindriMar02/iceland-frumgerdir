@@ -10,6 +10,7 @@
   --font-editorial: "Playfair Display", Georgia, serif;  /* Guesthouse Carina */
   --font-survey: "Instrument Serif", Georgia, serif;     /* GJ Travel — Landmæling */
   --font-karla: "Karla", system-ui, sans-serif;         /* Naustið — Gluggar body */
+  --font-gambarino: "Gambarino", Georgia, serif;        /* Naustið — Gluggar display */
   --font-newsreader: "Newsreader", Georgia, serif;       /* Lýsulaugar — Græna lindin */
   --font-dmserif: "DM Serif Display", Georgia, serif;    /* Hespa — Litir landsins */
   --font-cinzel: "Cinzel", Georgia, serif;               /* Galdrasýning — engraved folklore */
@@ -354,3 +355,13 @@ html.lenis body {
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: "Server Mono"; src: url("./assets/fonts/ServerMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+/* Naustið (Gluggar) — Gambarino display serif (Fontshare FFL, local; Icelandic ✓
+   including the in-house-synthesised Þ Ð Æ Ö set). Single weight by design. */
+@font-face {
+  font-family: "Gambarino";
+  src: url("./assets/fonts/Gambarino-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
