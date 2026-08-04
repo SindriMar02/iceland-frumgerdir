@@ -49,6 +49,9 @@ export const PRODUCT_IMG = { yPercent: 50, duration: 1, stagger: 0.05, ease: 'qu
 export const TEXT_REVEAL = { yPercent: 100, maskFrom: 200, duration: 1, stagger: 0.05, ease: 'quart.out' }
 
 export const isMobile = () => window.innerWidth < 768
+/** A real touch device, not just a narrow window. Used to keep Lenis off phones. */
+export const isTouchDevice = () =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches
 export const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /** SplitText line-mask reveal, the reference's exact recipe:

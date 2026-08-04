@@ -17,6 +17,7 @@ import {
   REVEAL_START,
   gridDelay,
   isMobile,
+  isTouchDevice,
   reduceMotion,
   splitLineReveal,
 } from './motion'
@@ -30,6 +31,9 @@ import type { Medium, Work } from './works'
 gsap.registerPlugin(DrawSVGPlugin, ScrollToPlugin)
 
 const BASE = import.meta.env.BASE_URL
+/* shop.ts stores root-absolute paths, which resolve against the DOMAIN root and
+   404 under a sub-path deploy (/iceland-frumgerdir/). Re-base them like the rest. */
+const SHOP_IMG = (p: string) => `${BASE}${p.replace(/^\/+/, '')}`
 const GRID = (id: string) => `${BASE}asaja/grid/${id}.jpg`
 const FULL = (id: string) => `${BASE}asaja/work/${id}.jpg`
 const HERO = (id: string) => `${BASE}asaja/hero/${id}.jpg`
@@ -309,7 +313,7 @@ function ShopGrid({ products, buyLabel }: { products: ShopProduct[]; buyLabel: s
           >
             <span className="block aspect-[4/5] w-full overflow-hidden bg-black/5">
               <img
-                src={p.image}
+                src={SHOP_IMG(p.image)}
                 alt={p.is}
                 loading={i < 10 ? 'eager' : 'lazy'}
                 decoding="async"
@@ -345,7 +349,11 @@ export default function AslaugSajaPage() {
      their lenisShouldPause. */
   const lenisRef = useRef<Lenis | null>(null)
   useEffect(() => {
-    if (reduceMotion()) return
+    /* Never run Lenis on a touch device. iOS momentum scrolling is smoother than
+       any JS lerp, and running both means Lenis's rAF loop and the compositor
+       fight over the same scroll position every frame — that fight IS the judder
+       on a phone. Desktop keeps the reference's damped feel; touch gets native. */
+    if (reduceMotion() || isTouchDevice()) return
     const lenis = new Lenis({
       lerp: LENIS.lerp,
       wheelMultiplier: LENIS.wheelMultiplier,
@@ -549,6 +557,15 @@ export default function AslaugSajaPage() {
         className="fixed inset-x-0 top-0 z-50 flex h-[58px] items-center bg-transparent px-6 md:px-10"
         style={overPainting ? navInkStyle() : { color: '#000' }}
       >
+        {/* On a phone the light views scroll their own dark text straight under
+            this transparent bar and the wordmark collides with it. Desktop has
+            the room and keeps the approved transparent nav untouched. */}
+        {!overPainting && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[92px] bg-gradient-to-b from-[#FAFAFA] via-[#FAFAFA] to-transparent lg:hidden"
+          />
+        )}
         <button
           type="button"
           onClick={() => nav({ k: 'home' })}
@@ -947,8 +964,15 @@ export default function AslaugSajaPage() {
       </main>
 
       {/* ---- the sparse index lives INSIDE the menu overlay ---- */}
+      {/* data-lenis-prevent: while the page Lenis is stopped it preventDefaults
+          EVERY wheel/touch event (lenis.mjs:611), which freezes this nested
+          scroller too. The attribute makes Lenis bail out first (lenis.mjs:607).
+          overscroll-contain stops the freed gesture chaining to the page. */}
       {menu && (
-        <div className="fixed inset-0 z-[80] overflow-y-auto bg-[#FAFAFA]">
+        <div
+          data-lenis-prevent
+          className="fixed inset-0 z-[80] overflow-y-auto overscroll-contain bg-[#FAFAFA]"
+        >
           <div className="sticky top-0 z-10 flex h-[58px] items-center bg-[#FAFAFA] px-6 md:px-10">
             <span className="asaja-display text-[20px] uppercase leading-none tracking-[0.01em] md:text-[26px]">Áslaug Saja</span>
             <button type="button" className={`${LBL} ml-auto`} onClick={() => setMenu(false)}>
@@ -1006,7 +1030,7 @@ export default function AslaugSajaPage() {
               <p className={`${LBL} mt-10 normal-case leading-[1.9] tracking-[0.04em] text-black/45`}>{tr('emptyCollection')}</p>
             ) : (
               <>
-                <ul className="mt-8 flex-1 list-none space-y-6 overflow-y-auto">
+                <ul data-lenis-prevent className="mt-8 flex-1 list-none space-y-6 overflow-y-auto overscroll-contain">
                   {safn.map((id) => {
                     const w = workById(id)
                     if (!w) return null
