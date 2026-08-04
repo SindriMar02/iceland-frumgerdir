@@ -9,7 +9,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
 import {
-  FACTS, HOST, JSON_LD, LOCAL_AREA, PHOTO, REVIEW_QUOTES, REVIEW_THEMES, SCRUB,
+  FACTS, HOST, JSON_LD, LOCAL_AREA, PHOTO, REVIEW_QUOTES, REVIEW_THEMES, SCRUB, srcSet,
 } from './content'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -127,11 +127,17 @@ function useMotion(ready: boolean) {
 
     /* palette: ONE writer for the whole world. The .mh-night class rides
        along so native form controls flip their color-scheme with the sky. */
+    let lastC = '', lastInk = '', lastSoft = ''
     const applyPalette = (p: number) => {
       const { c, ink, soft } = paletteAt(p)
-      root.style.setProperty('--mh-c', c)
-      root.style.setProperty('--mh-ink', ink)
-      root.style.setProperty('--mh-soft', soft)
+      // Writing a custom property on the root restyles every descendant, and
+      // the palette is FLAT across more than half the document (ice to 0.32,
+      // basalt from 0.74). Skipping identical writes removes that recalc
+      // entirely there, and most of it elsewhere since the channels are
+      // already rounded to integers.
+      if (c !== lastC) { root.style.setProperty('--mh-c', c); lastC = c }
+      if (ink !== lastInk) { root.style.setProperty('--mh-ink', ink); lastInk = ink }
+      if (soft !== lastSoft) { root.style.setProperty('--mh-soft', soft); lastSoft = soft }
       const night = p > 0.58
       if (root.classList.contains('mh-night') !== night) {
         root.classList.toggle('mh-night', night)
@@ -402,7 +408,8 @@ function Frame({ photo, drift = 9, priority = false, className = '' }: {
         data-drift={drift}
         style={{ '--dz': `${Math.max(9, drift * 1.35)}%` } as React.CSSProperties}
       >
-        <img src={photo.src} alt={photo.alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
+        <img src={photo.src} srcSet={srcSet(photo.src)} sizes="(max-width: 991px) 100vw, 60vw"
+          alt={photo.alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
       </div>
     </figure>
   )
@@ -639,8 +646,8 @@ export default function MirrorHousePage() {
         <div className="mh-hero-media mh-rv">
           <div className="mh-frame-in" data-drift={13}
             style={{ '--dz': `${(13 * 1.35).toFixed(2)}%` } as React.CSSProperties}>
-            <img src={PHOTO.arrivalWide.src} alt={PHOTO.arrivalWide.alt} loading="eager"
-              decoding="async" />
+            <img src={PHOTO.arrivalWide.src} srcSet={srcSet(PHOTO.arrivalWide.src)} sizes="100vw"
+              alt={PHOTO.arrivalWide.alt} loading="eager" decoding="async" />
           </div>
         </div>
         {/* A hairline stands where the two words meet: MIRROR opens out of it
@@ -729,7 +736,8 @@ export default function MirrorHousePage() {
       <section className="mh-scrub" id="nottin">
         <div className="mh-scrub-inner">
           <div className="mh-scrub-day">
-            <img src={SCRUB.day.src} alt={SCRUB.day.alt} loading="lazy" decoding="async" />
+            <img src={SCRUB.day.src} srcSet={srcSet(SCRUB.day.src)} sizes="100vw"
+              alt={SCRUB.day.alt} loading="lazy" decoding="async" />
           </div>
           <canvas className="mh-scrub-canvas" aria-hidden="true" />
           <div className="mh-scrub-caps">
@@ -744,7 +752,8 @@ export default function MirrorHousePage() {
         </div>
         {/* static / mobile fallback: the aurora photo simply follows */}
         <figure className="mh-scrub-fallback">
-          <img src={SCRUB.night.src} alt={SCRUB.night.alt} loading="lazy" decoding="async" />
+          <img src={SCRUB.night.src} srcSet={srcSet(SCRUB.night.src)} sizes="100vw"
+            alt={SCRUB.night.alt} loading="lazy" decoding="async" />
           <figcaption className="mh-stat">
             Both photographs are of this cabin, from Ingibjörg's own listing.
           </figcaption>
@@ -893,16 +902,16 @@ const CSS = `
 }
 .mh-nav-mark {
   font-weight: 300; letter-spacing: .22em; text-decoration: none;
-  font-size: ${fluid(15, 12)};
+  font-size: ${fluid(15, 15)};
 }
 .mh-nav-links { display: flex; gap: calc(var(--u) * 28); margin-left: auto; }
 .mh-nav-links a {
-  text-decoration: none; font-size: ${fluid(14, 12)}; color: inherit;
+  text-decoration: none; font-size: ${fluid(14, 15)}; color: inherit;
   opacity: .68; transition: opacity .25s ease;
 }
 .mh-nav-links a:hover { opacity: 1; }
 .mh-nav-cta {
-  text-decoration: none; font-size: ${fluid(14, 12)}; font-weight: 500;
+  text-decoration: none; font-size: ${fluid(14, 15)}; font-weight: 500;
   padding: calc(var(--u) * 10) calc(var(--u) * 18);
   border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
   border-radius: 2px;
@@ -1022,7 +1031,10 @@ const CSS = `
 .mh-frame {
   position: relative; overflow: hidden; margin: 0; background: var(--mh-soft);
 }
-.mh-frame-in { position: absolute; inset: calc(var(--dz, 9%) * -1) 0; will-change: transform; }
+.mh-frame-in { position: absolute; inset: calc(var(--dz, 9%) * -1) 0; }
+/* translate3d already promotes these; the extra hint is only worth its memory
+   where there is memory to spare */
+@media (min-width: 992px) { .mh-frame-in { will-change: transform; } }
 .mh-frame-in img {
   width: 100%; height: 100%; max-width: none; object-fit: cover; display: block;
 }
@@ -1272,15 +1284,25 @@ const CSS = `
   max-width: calc(var(--u) * 1440); margin: 0 auto;
   padding: calc(var(--u) * 56) calc(var(--u) * 48) calc(var(--u) * 72);
 }
-.mh-foot-mark { font-weight: 300; letter-spacing: .22em; font-size: ${fluid(14, 12)}; margin: 0 0 calc(var(--u) * 12); }
+.mh-foot-mark { font-weight: 300; letter-spacing: .22em; font-size: ${fluid(14, 15)}; margin: 0 0 calc(var(--u) * 12); }
 .mh-foot-line {
-  font-size: ${fluid(13, 12)}; font-weight: 300; line-height: 1.6;
+  font-size: ${fluid(13, 15)}; font-weight: 300; line-height: 1.6;
   color: var(--mh-mute); margin: 0 0 calc(var(--u) * 8);
 }
 
 /* ── responsive ── */
 @media (max-width: 991px) {
-  .mh-nav { padding: 14px 20px; gap: 16px; }
+  .mh-nav { padding: 10px 20px; gap: 16px; }
+  /* 44px minimum on everything touchable: the fluid unit pins at its floor
+     here, so calc()-based padding collapses and these measured 18-32px tall */
+  .mh-nav-mark, .mh-nav-cta, .mh-nav-links a, .mh-hero-link {
+    display: inline-flex; align-items: center; min-height: 44px;
+  }
+  .mh-nav-cta { padding: 0 16px; }
+  .mh-hero-link { padding-bottom: 0; }
+  .mh-hero-link::after { bottom: 10px; }
+  .mh-cta { min-height: 44px; padding: 12px 22px; }
+  .mh-ghost { min-height: 44px; padding: 10px 18px; }
   .mh-nav-links { display: none; }
   .mh-nav-cta { margin-left: auto; }
   .mh-hero-block { padding: 0 20px 40px; }

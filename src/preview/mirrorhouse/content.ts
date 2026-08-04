@@ -20,6 +20,14 @@ export const HOST = {
 
 const B = import.meta.env.BASE_URL + 'mirrorhouse/'
 
+/**
+ * Phones were being served the same 1200-1440px JPEGs as desktop: 5.8MB of
+ * photography onto a 390px screen. The 800w set is 1.7MB, so `srcset` cuts
+ * roughly 70% of the image payload on a phone with no visible difference.
+ */
+export const srcSet = (src: string) =>
+  `${src.replace(/\.jpg$/, '-800.jpg')} 800w, ${src} 1440w`
+
 /** Local, vendored copies of her own listing photography. */
 export const PHOTO = {
   /** Summer, wide: gravel path leading up to the cabin, cliff wall behind. THE arrival. */

@@ -65,7 +65,7 @@ export const companyEntry: PreviewCompany = {
 
 Ég bjó til frumgerð af því hvernig þín eigin síða gæti litið út. Hún kostar þig ekkert og þú mátt gera við hana það sem þú vilt:
 
-[HLEKKUR]
+https://sindrimar02.github.io/iceland-frumgerdir/preview/mirrorhouse
 
 Þar eru þínar eigin myndir, umsagnirnar þínar, og bókunarform sem sendir fyrirspurn beint til þín. Ég bjó líka til stutta kvikmynd af húsinu þar sem sumarið verður að norðurljósum, hún spilast eftir því sem lesandinn skrunar.
 
