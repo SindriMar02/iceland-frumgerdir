@@ -52,14 +52,25 @@ export const PHOTO = {
   auroraStars: { src: `${B}aurora-stars.jpg`, alt: 'The cabin at night under stars, a band of green aurora glowing in the glass', ratio: '2 / 3' },
 } as const
 
-/** The night scrub: a real Kling 3.0 interpolation between her own two
-    photographs (start = summer arrival, end = the aurora shot), generated
-    2026-08-04, 17.5 credits, re-encoded g=12 for smooth currentTime seeking.
-    The stills remain the mobile/reduced-motion/poster fallback. */
+/**
+ * The night scrub: a real Kling 3.0 interpolation between her own two
+ * photographs (start = summer arrival, end = the aurora shot), generated
+ * 2026-08-04 for 17.5 credits.
+ *
+ * Shipped as a FRAME SEQUENCE, not an <video>. Driving a video by
+ * `currentTime` never scrubs smoothly: every assignment is a decoder seek,
+ * and measured on this very clip only ~104 of 241 frames ever reached the
+ * screen (an effective 13fps) even after re-encoding all-intra. Pre-decoded
+ * frames drawn to a canvas have no seek latency at all, and at 12fps/1200w
+ * the sequence is 6.9MB, lighter than the 8.9MB video it replaced.
+ *
+ * The two stills remain the phone / reduced-motion fallback.
+ */
 export const SCRUB = {
   day: PHOTO.arrivalWide,
   night: PHOTO.auroraWide,
-  videoSrc: `${B}night.mp4` as string | null,
+  frameCount: 121,
+  frameSrc: (i: number) => `${B}frames/f${String(i + 1).padStart(3, '0')}.jpg`,
 }
 
 // Verbatim guest quotes, attributed the way Airbnb displays them.
