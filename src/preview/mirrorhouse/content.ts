@@ -52,12 +52,14 @@ export const PHOTO = {
   auroraStars: { src: `${B}aurora-stars.jpg`, alt: 'The cabin at night under stars, a band of green aurora glowing in the glass', ratio: '2 / 3' },
 } as const
 
-/** The two frames of the night scrub (and of the Kling generation when it runs). */
+/** The night scrub: a real Kling 3.0 interpolation between her own two
+    photographs (start = summer arrival, end = the aurora shot), generated
+    2026-08-04, 17.5 credits, re-encoded g=12 for smooth currentTime seeking.
+    The stills remain the mobile/reduced-motion/poster fallback. */
 export const SCRUB = {
   day: PHOTO.arrivalWide,
   night: PHOTO.auroraWide,
-  /** Set to `${B}night.mp4` once the one authorized Kling 3.0 clip is generated. */
-  videoSrc: null as string | null,
+  videoSrc: `${B}night.mp4` as string | null,
 }
 
 // Verbatim guest quotes, attributed the way Airbnb displays them.

@@ -175,7 +175,7 @@ function useMotion(ready: boolean) {
       const capNight = root.querySelector<HTMLElement>('.mh-scrub-cap-night')
       const video = root.querySelector<HTMLVideoElement>('.mh-scrub-video')
 
-      if (scrubWrap && nightLayer && dayLayer && cinematic()) {
+      if (scrubWrap && dayLayer && (nightLayer || video) && cinematic()) {
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: scrubWrap,
@@ -193,7 +193,7 @@ function useMotion(ready: boolean) {
             },
           },
         })
-        if (!video) {
+        if (!video && nightLayer) {
           // A wipe, not a dissolve: the two photos hold the cabin at different
           // positions, and a crossfade midpoint double-exposes it. The night
           // sweeps in from the right like the mirror's own edge. Clip only,
@@ -404,10 +404,77 @@ function BookingForm() {
   )
 }
 
+/* ── preloader ─────────────────────────────────────────────────────────────
+   Heklusýn spec: counts REAL loading (hero image decode + fonts.ready), never
+   a fake timer. 1.1s floor (a warm cache would otherwise flash it for one
+   tick), 2.4s hard cap. Once per session; ?loader forces it for review; never
+   mounts under reduced motion. Wordmark fill: a hard two-stop gradient at
+   background-size 200%, position driven by (100 - pct) so it is exactly solid
+   at 100. */
+
+const shouldShowLoader = () => {
+  if (typeof window === 'undefined' || reduced()) return false
+  if (new URLSearchParams(window.location.search).has('loader')) return true
+  try { return !sessionStorage.getItem('mh_seen') } catch { return true }
+}
+
+function Preloader({ onDone }: { onDone: () => void }) {
+  const [pct, setPct] = useState(0)
+  const [leaving, setLeaving] = useState(false)
+
+  useEffect(() => {
+    try { sessionStorage.setItem('mh_seen', '1') } catch { /* private mode */ }
+    const t0 = performance.now()
+    let raf = 0
+    let shown = 0
+    const hero = document.querySelector<HTMLImageElement>('.mh-hero-media img')
+    let target = 0
+    let heroDone = hero ? hero.complete : true
+    let fontsDone = false
+    if (hero && !heroDone) {
+      hero.addEventListener('load', () => { heroDone = true }, { once: true })
+      hero.addEventListener('error', () => { heroDone = true }, { once: true })
+    }
+    document.fonts.ready.then(() => { fontsDone = true })
+
+    const FLOOR = 1100, CAP = 2400
+    const tick = () => {
+      const t = performance.now() - t0
+      target = ((heroDone ? 55 : Math.min(50, t / 24)) + (fontsDone ? 45 : 0))
+      if (t >= CAP) target = 100
+      // presentation lerp toward the real target; the data is real, the ease is ours
+      shown += (target - shown) * 0.12
+      const display = Math.min(100, Math.round(shown))
+      setPct(display)
+      if (display >= 100 && t >= FLOOR) {
+        setLeaving(true)
+        window.setTimeout(onDone, 950)
+        return
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [onDone])
+
+  return (
+    <div className={`mh-loader ${leaving ? 'is-leaving' : ''}`} aria-hidden="true">
+      <p
+        className="mh-loader-mark"
+        style={{ backgroundPositionX: `${100 - pct}%` }}
+      >
+        MIRROR HOUSE
+      </p>
+      <p className="mh-loader-pct">{pct}%</p>
+    </div>
+  )
+}
+
 /* ── the page ──────────────────────────────────────────────────────────── */
 
 export default function MirrorHousePage() {
   const [ready, setReady] = useState(false)
+  const [loading, setLoading] = useState(shouldShowLoader)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -430,6 +497,7 @@ export default function MirrorHousePage() {
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={company} />
+      {loading && <Preloader onDone={() => setLoading(false)} />}
 
       {/* nav */}
       <header className="mh-nav">
@@ -448,11 +516,11 @@ export default function MirrorHousePage() {
           <img src={PHOTO.arrivalWide.src} alt={PHOTO.arrivalWide.alt} loading="eager"
             decoding="async" />
         </div>
+        <h1 className="mh-wordmark" aria-label="Mirror House Iceland">
+          <span className="mh-wordmark-line">MIRROR HOUSE</span>
+          <span className="mh-wordmark-reflection" aria-hidden="true">MIRROR HOUSE</span>
+        </h1>
         <div className="mh-hero-block">
-          <h1 className="mh-wordmark" aria-label="Mirror House Iceland">
-            <span className="mh-wordmark-line">MIRROR HOUSE</span>
-            <span className="mh-wordmark-reflection" aria-hidden="true">MIRROR HOUSE</span>
-          </h1>
           <p className="mh-hero-sub">
             A one of a kind mirror glass cabin under the cliffs of Borgarbyggð.
             Sleeps two, an hour from Reykjavík.
@@ -690,15 +758,15 @@ const CSS = `
 }
 .mh-a:hover { color: var(--mh-aurora); }
 
-/* nav: hairline bar, colors ride the palette vars */
+/* nav: borderless, no fill, painted near-white under mix-blend difference —
+   it inverts against whatever passes beneath it (bright sky -> dark ink, rock
+   and night -> light), so it never needs a bar to stay legible */
 .mh-nav {
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; gap: calc(var(--u) * 40);
-  padding: calc(var(--u) * 18) calc(var(--u) * 48);
-  background: color-mix(in srgb, var(--mh-c) 86%, transparent);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--mh-hair);
-  transition: background .4s ease, color .4s ease;
+  padding: calc(var(--u) * 22) calc(var(--u) * 48);
+  color: #F2F6F8;
+  mix-blend-mode: difference;
 }
 .mh-nav-mark {
   font-weight: 300; letter-spacing: .22em; text-decoration: none;
@@ -706,51 +774,63 @@ const CSS = `
 }
 .mh-nav-links { display: flex; gap: calc(var(--u) * 28); margin-left: auto; }
 .mh-nav-links a {
-  text-decoration: none; font-size: ${fluid(14, 12)}; color: var(--mh-mute);
-  transition: color .25s ease;
+  text-decoration: none; font-size: ${fluid(14, 12)}; color: inherit;
+  opacity: .68; transition: opacity .25s ease;
 }
-.mh-nav-links a:hover { color: var(--mh-ink); }
+.mh-nav-links a:hover { opacity: 1; }
 .mh-nav-cta {
   text-decoration: none; font-size: ${fluid(14, 12)}; font-weight: 500;
   padding: calc(var(--u) * 10) calc(var(--u) * 18);
-  border: 1px solid var(--mh-hair); border-radius: 2px;
-  transition: border-color .25s ease, color .25s ease;
+  border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+  border-radius: 2px;
+  transition: border-color .25s ease;
 }
-.mh-nav-cta:hover { border-color: var(--mh-aurora); color: var(--mh-ink); }
+.mh-nav-cta:hover { border-color: currentColor; }
 
-/* hero */
-.mh-hero { position: relative; min-height: 100svh; display: grid; }
+/* hero: the nav overlays the image (negative pull), the wordmark sits dead
+   centre and takes its hues from whatever each letter happens to cover —
+   mix-blend difference over a gently desaturated photo (Búðir §6: the desat
+   is what keeps the invert a controlled hue instead of psychedelic). */
+.mh-hero { position: relative; min-height: 100svh; display: grid; margin-top: calc(var(--u) * -76); }
 .mh-hero-media, .mh-hero-media img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
+.mh-hero-media img { filter: saturate(.78) contrast(1.02); }
+.mh-js .mh-rv.mh-hero-media:not(.is-in) img { filter: saturate(.55) blur(10px); }
 .mh-hero-media::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(200deg, transparent 38%, rgba(10,18,27,.62) 100%);
+  background: linear-gradient(200deg, transparent 42%, rgba(10,18,27,.55) 100%);
+}
+.mh-wordmark {
+  position: absolute; inset: 0; z-index: 2;
+  display: grid; place-content: center; text-align: center;
+  margin: 0; line-height: 1.04; pointer-events: none;
+  color: #F2F6F8;
+  mix-blend-mode: difference;
+}
+.mh-wordmark-line {
+  display: block; font-weight: 200; letter-spacing: .1em; margin-right: -.1em;
+  font-size: clamp(40px, 10.4vw, 176px);
+  white-space: nowrap;
+}
+.mh-wordmark-reflection {
+  display: block; font-weight: 200; letter-spacing: .1em; margin-right: -.1em;
+  font-size: clamp(40px, 10.4vw, 176px); white-space: nowrap;
+  transform: scaleY(-1); transform-origin: top;
+  opacity: .22; user-select: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 16%, #000 96%);
+  mask-image: linear-gradient(180deg, transparent 16%, #000 96%);
 }
 .mh-hero-block {
-  position: relative; align-self: end;
+  position: relative; align-self: end; z-index: 1;
   padding: 0 calc(var(--u) * 48) calc(calc(var(--u) * 64) + env(safe-area-inset-bottom, 0px));
   color: #F2F6F8;
   max-width: calc(var(--u) * 900);
 }
-.mh-wordmark { margin: 0; line-height: 1.06; }
-.mh-wordmark-line {
-  display: block; font-weight: 200; letter-spacing: .14em;
-  font-size: ${fluid(96, 34)};
-  white-space: nowrap;
-}
-.mh-wordmark-reflection {
-  display: block; font-weight: 200; letter-spacing: .14em;
-  font-size: ${fluid(96, 34)}; white-space: nowrap;
-  transform: scaleY(-1); transform-origin: top;
-  opacity: .18; user-select: none;
-  -webkit-mask-image: linear-gradient(180deg, transparent 18%, #000 95%);
-  mask-image: linear-gradient(180deg, transparent 18%, #000 95%);
-}
 .mh-hero-sub {
-  margin: calc(var(--u) * -26) 0 0;
+  margin: 0;
   font-size: ${fluid(19, 15)}; line-height: 1.55; font-weight: 300;
-  max-width: 44ch; color: rgba(242,246,248,.88);
+  max-width: 44ch; color: rgba(242,246,248,.92);
 }
 .mh-cta {
   display: inline-block; margin-top: calc(var(--u) * 26);
@@ -1005,6 +1085,29 @@ const CSS = `
   padding: calc(var(--u) * 10) calc(var(--u) * 18);
 }
 .mh-ghost:hover { border-color: var(--mh-aurora); }
+
+/* preloader: basalt sheet, wordmark filling with real load progress, then
+   the sheet lifts to reveal the day. */
+.mh-loader {
+  position: fixed; inset: 0; z-index: 60;
+  background: ${BASALT};
+  display: grid; place-content: center;
+  transition: transform .95s cubic-bezier(.76, 0, .24, 1);
+}
+.mh-loader.is-leaving { transform: translateY(-100%); }
+.mh-loader-mark {
+  margin: 0; font-weight: 200; letter-spacing: .1em; margin-right: -.1em;
+  font-size: clamp(34px, 7.6vw, 120px); white-space: nowrap; line-height: 1;
+  background-image: linear-gradient(90deg, #EDF2F5 50%, rgba(237,242,245,.16) 50%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.mh-loader-pct {
+  position: fixed; left: calc(var(--u) * 48); bottom: calc(var(--u) * 40);
+  margin: 0; font-family: ${MONO}; font-size: 12px; letter-spacing: .16em;
+  color: rgba(159,176,189,.85);
+}
 
 /* footer */
 .mh-foot { border-top: 1px solid var(--mh-hair); }
