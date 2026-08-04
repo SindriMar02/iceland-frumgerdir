@@ -138,11 +138,20 @@ function useMotion(ready: boolean) {
     }
 
     root.classList.add('mh-js')
+    // iOS Safari fires a resize when its address bar hides/shows mid-scroll;
+    // without this a pinned ScrollTrigger can refresh and jump mid-gesture.
+    ScrollTrigger.config({ ignoreMobileResize: true })
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true })
 
     /* drift: Heklusýn spec, batched reads then writes, off-screen skipped */
     const frames = Array.from(root.querySelectorAll<HTMLElement>('.mh-frame-in'))
+    // Set once the night-scrub pin goes live (below). While it holds, the
+    // viewport is visually frozen, so every .mh-frame-in box reports the same
+    // rect on every tick — this loop would just burn main-thread time right
+    // next to the canvas draw, for zero visual change.
+    let scrubST: ScrollTrigger | null = null
     const drift = () => {
+      if (scrubST?.isActive) return
       const vh = window.innerHeight
       const writes: [HTMLElement, string][] = []
       for (const el of frames) {
@@ -350,6 +359,7 @@ function useMotion(ready: boolean) {
             },
           },
         })
+        scrubST = tl.scrollTrigger ?? null
 
         gsap.fromTo(dayLayer, { scale: 1 }, {
           scale: 1.06, ease: 'none', duration: 1,
@@ -377,7 +387,7 @@ function useMotion(ready: boolean) {
     }, root)
 
     lenis.on('scroll', ScrollTrigger.update)
-    const tick = (t: number) => { lenis.raf(t * 1000); drift() }
+    const tick = (t: number) => { drift(); lenis.raf(t * 1000) }
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
     drift()
