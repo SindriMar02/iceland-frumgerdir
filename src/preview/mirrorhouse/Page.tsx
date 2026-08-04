@@ -98,11 +98,23 @@ function loadFrames(onFirst?: () => void) {
     const idx = next++
     const im = new Image()
     im.decoding = 'async'
-    im.onload = () => { shots[idx] = im; if (idx === 0) onFirst?.(); pump() }
+    im.onload = () => {
+      // onload only means the bytes arrived — the pixels can still decode
+      // lazily on the FIRST drawImage, which on iOS Safari is a synchronous
+      // stall right in the middle of a scrub gesture. decode() front-loads
+      // that cost onto the (already background) load phase instead.
+      const commit = () => { shots[idx] = im; if (idx === 0) onFirst?.(); pump() }
+      im.decode ? im.decode().then(commit, commit) : commit()
+    }
     im.onerror = pump
     im.src = SCRUB.frameSrc(idx, smallFrames)
   }
-  for (let l = 0; l < 6; l++) pump()
+  // 121 frames at ~48KB (phone set) is 5.8MB total. A curious scroller can
+  // reach the pin before a 6-wide pump fills that in on real mobile data,
+  // landing on the "nearest loaded frame" fallback below — which reads as
+  // the film stepping/stalling, not as render jank. Wider concurrency (GH
+  // Pages is HTTP/2, so this isn't per-origin-limited) shortens that window.
+  for (let l = 0; l < 14; l++) pump()
 }
 
 const reduced = () =>
