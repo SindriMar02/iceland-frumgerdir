@@ -12,8 +12,10 @@
  *  - No per-dish prices exist publicly, so none are printed
  *  - Review quotes are real, relayed via aggregators (disclosed in footer)
  *  - Owners are referred to as "tvær mágkonur" (no legal names printed)
- * Own photos (exterior/soup/salmon/interior) are the restaurant's real
- * submitted photography from Visit Húsavík's listing CDN, served locally.
+ * Own photos are the restaurant's real photography, served locally:
+ * exterior/soup/salmon/interior from Visit Húsavík's listing CDN, and the
+ * garden shot (sign + flower-planted bathtub + red van) from the Icelandic
+ * Food guide's Naustið listing. No stock, nothing generated.
  * ────────────────────────────────────────────────────────────────────────── */
 
 export const PHONE = '464 1520'
@@ -44,6 +46,13 @@ export const IMG = {
   salmonWebp: `${BASE}naustid/salmon-540.webp 540w, ${BASE}naustid/salmon-1080.webp 1080w`,
   interior: BASE + 'naustid/inside2.jpg',
   interiorWebp: `${BASE}naustid/inside2-540.webp 540w, ${BASE}naustid/inside2-1080.webp 1080w`,
+  /* The garden: their own sign, the flower-planted bathtub and the red van.
+   * 3264x2448 original from the Icelandic Food guide's Naustið listing — the
+   * only high-resolution photograph of the place found anywhere, and the only
+   * one besides the exterior with the pixels for a full-bleed band. */
+  gardur: BASE + 'naustid/gardur-2200.jpg',
+  gardurSrcSet: `${BASE}naustid/gardur-1400.jpg 1400w, ${BASE}naustid/gardur-2200.jpg 2200w`,
+  gardurWebp: `${BASE}naustid/gardur-900.webp 900w, ${BASE}naustid/gardur-1400.webp 1400w, ${BASE}naustid/gardur-2200.webp 2200w, ${BASE}naustid/gardur-2900.webp 2900w`,
 } as const
 
 /* Unsplash fill (all verified standard-license, no premium/plus IDs). */
@@ -225,4 +234,4 @@ export const CLOSING = {
 }
 
 export const DISCLAIMER =
-  'Um heiðarleika: Þessi síða er hönnunarfrumgerð frá SNDR, ekki opinber vefur Naustsins. Umsagnir eru raunverulegar en sóttar í gegnum umsagnaveitur (Sluurpy og Restaurant Guru, sem safna af Google, Tripadvisor og Facebook). Naustið birtir ekki verðlagðan matseðil opinberlega; verðbilið 4.000–6.000 kr. á mann er viðmið úr opinberum skráningum, ekki staðfestur verðlisti, og réttirnir hér eru teknir saman úr umsögnum og matarskrifum. Borðapöntunarformið er beiðni en ekki rauntímabókunarkerfi. Allar ljósmyndir á síðunni eru raunverulegar myndir staðarins, sóttar úr skráningu hans hjá Visit Húsavík, og engar myndir úr myndabönkum eru notaðar. Opnunartími er samkvæmt skráningu Naustsins á ja.is.'
+  'Um heiðarleika: Þessi síða er hönnunarfrumgerð frá SNDR, ekki opinber vefur Naustsins. Umsagnir eru raunverulegar en sóttar í gegnum umsagnaveitur (Sluurpy og Restaurant Guru, sem safna af Google, Tripadvisor og Facebook). Naustið birtir ekki verðlagðan matseðil opinberlega; verðbilið 4.000–6.000 kr. á mann er viðmið úr opinberum skráningum, ekki staðfestur verðlisti, og réttirnir hér eru teknir saman úr umsögnum og matarskrifum. Borðapöntunarformið er beiðni en ekki rauntímabókunarkerfi. Allar ljósmyndir á síðunni eru raunverulegar myndir staðarins, sóttar úr skráningum hans hjá Visit Húsavík og Icelandic Food, og engar myndir úr myndabönkum eru notaðar. Opnunartími er samkvæmt skráningu Naustsins á ja.is.'

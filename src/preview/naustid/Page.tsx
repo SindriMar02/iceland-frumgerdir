@@ -129,6 +129,11 @@ const C = {
     en: 'A sample drawn from reviews and food writing. The menu changes with the season and the day’s catch — call 464 1520 to hear what is on.',
   },
   slab2: { is: 'Grillaður lax · af grillinu', en: 'Grilled salmon · off the grill' },
+  slabGardur: { is: 'Garðurinn · skiltið og baðkarið', en: 'The garden · the sign and the bathtub' },
+  plateNote: {
+    is: 'Af grillinu, borinn fram með salati og kartöflum. Fiskurinn kemur ferskur úr héraði og aflinn ræður hvað er á borðum hverju sinni.',
+    en: 'Off the grill, served with salad and potatoes. The fish is landed locally, and the day’s catch decides what is on the table.',
+  },
 
   k3: { is: '03 · sagan', en: '03 · the story' },
   storyH: { is: 'Eins og að koma til ömmu', en: 'Like visiting grandma' },
@@ -897,10 +902,58 @@ export default function Page() {
                 </figure>
               </section>
 
+              {/* A PLATE, not a slab. The source is 1080x1350; stretched across
+                  a 100vw bleed it was being upscaled and cropped to nothing.
+                  Held at its native 4:5 and height-capped, the largest it ever
+                  renders is ~496 CSS px — 992px at 2x, still inside the file.
+                  The panel stays full bleed; the photograph does not. */}
+              <section data-panel style={{ ...panelBase, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(28px,4vw,64px)' }}>
+                <figure style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 'clamp(24px,3.5vw,56px)', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <div
+                    style={{
+                      position: 'relative', overflow: 'hidden', background: SLAB,
+                      /* Sized against the REAL constraint. The drift wrapper is
+                         28.8% wider than its frame (overhang = drift x 1.6, both
+                         sides), so a 419px frame already asks for 1080 device px
+                         at 2x — exactly the source width. Anything larger
+                         upscales, which is what made this look soft. */
+                      height: 'min(58vh, 520px)', aspectRatio: '4 / 5', flex: '0 0 auto',
+                    }}
+                  >
+                    <Win
+                      src={IMG.salmon}
+                      webp={IMG.salmonWebp}
+                      sizes="(max-width:700px) 78vw, 536px"
+                      alt="Grillaður lax af matseðli Naustsins"
+                      drift={CFG.drift.fig}
+                      objectPosition="50% 45%"
+                    />
+                  </div>
+                  <figcaption style={{ maxWidth: '26ch' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: YELLOW }}>{T(C.slab2)}</div>
+                    <div aria-hidden style={{ height: 4, backgroundImage: TICK, margin: '16px 0' }} />
+                    <p className="na-fade" style={{ fontFamily: SANS, fontSize: 15.5, lineHeight: 1.65, color: BONE_SOFT, margin: 0 }}>
+                      {T(C.plateNote)}
+                    </p>
+                  </figcaption>
+                </figure>
+              </section>
+
+              {/* A genuine full-bleed slab: 3264x2448 at source, so at 2200 it
+                  still clears a 2x 1100px band without upscaling. Their own
+                  sign, the flower-planted bathtub and the red van — the most
+                  characterful photograph of the place that exists online. */}
               <section data-panel="slab" style={{ flex: '0 0 auto', width: '100vw', height: '100%', position: 'relative', overflow: 'hidden', background: SLAB }}>
-                <Win src={IMG.exterior} webp={IMG.exteriorWebp} sizes="100vw" alt="" drift={CFG.drift.slab} objectPosition="52% 40%" />
+                <Win
+                  src={IMG.gardur}
+                  webp={IMG.gardurWebp}
+                  sizes="142vw"
+                  alt="Skilti Naustsins í garðinum, blóm í gömlu baðkari og rauður sendibíll við gula húsið"
+                  drift={CFG.drift.slab}
+                  objectPosition="50% 58%"
+                />
                 <div style={{ position: 'absolute', left: 28, bottom: 28, background: INK, padding: '10px 16px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', color: YELLOW }}>{T(C.slab1)}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', color: YELLOW }}>{T(C.slabGardur)}</span>
                 </div>
               </section>
 
@@ -935,15 +988,6 @@ export default function Page() {
                     ))}
                     <p style={{ fontFamily: SANS, fontSize: 12.5, lineHeight: 1.6, color: BONE_MUTE, margin: '18px 0 0' }}>{T(C.menuNote)}</p>
                   </div>
-                </div>
-              </section>
-
-              {/* Not a harbour: no harbour photograph of theirs exists, and
-                  this design admits no stock imagery. */}
-              <section data-panel="slab" style={{ flex: '0 0 auto', width: '100vw', height: '100%', position: 'relative', overflow: 'hidden', background: SLAB }}>
-                <Win src={IMG.salmon} webp={IMG.salmonWebp} sizes="100vw" alt="Grillaður lax af matseðli Naustsins" drift={CFG.drift.slab} objectPosition="50% 45%" />
-                <div style={{ position: 'absolute', left: 28, bottom: 28, background: INK, padding: '10px 16px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', color: YELLOW }}>{T(C.slab2)}</span>
                 </div>
               </section>
 
