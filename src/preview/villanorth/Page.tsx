@@ -437,7 +437,7 @@ function BookingForm() {
   if (done) {
     return (
       <div className="vn-book-done" role="status">
-        <p className="vn-book-done-title">Request sent.</p>
+        <p className="vn-book-done-title">Your request is on its way.</p>
         <p className="vn-book-done-body">
           {done.date} to {done.endDate}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
           Eyþór confirms each request personally. The price for your dates comes with his reply
@@ -491,15 +491,15 @@ function BookingForm() {
             onChange={(e) => setPhone(e.target.value)} />
         </label>
         <label className="vn-field vn-field-wide">
-          <span className="vn-field-label">Anything Eyþór should know <span className="vn-optional">(optional)</span></span>
+          <span className="vn-field-label">Anything you would like Eyþór to know <span className="vn-optional">(optional)</span></span>
           <textarea rows={3} name="note" value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
       </div>
       {error && <p className="vn-field-error" role="alert">{error}</p>}
-      <button type="submit" className="vn-cta vn-cta-block">Request to book</button>
+      <button type="submit" className="vn-cta vn-cta-block">Enquire about your stay</button>
       <p className="vn-book-note">
-        No card, no charge. The guest asks, the owner confirms, and payment is
-        settled on arrival. The nightly price for your dates comes with the reply.
+        No payment today. Send your preferred dates and Eyþór replies with
+        availability and the nightly price. Payment is settled on arrival.
       </p>
     </form>
   )
@@ -569,7 +569,7 @@ export default function VillaNorthPage() {
           <a href="#rooms" onClick={anchor('rooms')}>Rooms</a>
           <a href="#guests" onClick={anchor('guests')}>Guests</a>
         </nav>
-        <a className="vn-nav-cta" href="#booking" onClick={anchor('booking')}>Request to book</a>
+        <a className="vn-nav-cta" href="#booking" onClick={anchor('booking')}>Enquire about your stay</a>
       </header>
 
       {/* 01 · hero */}
@@ -586,10 +586,10 @@ export default function VillaNorthPage() {
         <div className="vn-hero-block">
           <p className="vn-measure-text">Gistir 7 · fjögur svefnherbergi</p>
           <p className="vn-hero-sub">
-            An engineer's house in Fnjóskadalur valley, glass and dark timber against the
-            rocks, built for a group of seven.
+            Designed with precision, built for gathering. An engineer's house of glass
+            and dark timber above Fnjóskadalur, made for seven.
           </p>
-          <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Request to book</a>
+          <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Enquire about your stay</a>
         </div>
       </section>
 
@@ -598,9 +598,9 @@ export default function VillaNorthPage() {
         <div className="vn-drawing-copy">
           <Headline text="Every angle, decided first." size={64} floor={32} measure={600} />
           <p className="vn-body vn-rv">
-            Eyþór trained as an engineer, and it shows in the angles: an asymmetric
-            roofline, long glass on one side and dark timber cladding on the other,
-            cut into a hillside above Fnjóskadalur.
+            Eyþór trained as an engineer, and every line feels intentional: an
+            asymmetric roofline, long glass on one side and dark timber cladding on
+            the other, cut into a hillside above Fnjóskadalur.
           </p>
         </div>
         <div className="vn-drawing-inner">
@@ -634,7 +634,7 @@ export default function VillaNorthPage() {
               alt={PHOTO.glassGrid.alt} loading="lazy" decoding="async" />
           </div>
           <div className="vn-elev-caps">
-            <p className="vn-elev-cap vn-elev-cap-sketch">An engineer drew this before he built it.</p>
+            <p className="vn-elev-cap vn-elev-cap-sketch">The elevation, traced from the photograph line for line.</p>
             <p className="vn-elev-cap vn-elev-cap-photo">Villa North, Fnjóskadalur valley.</p>
           </div>
         </div>
@@ -678,8 +678,9 @@ export default function VillaNorthPage() {
       <section className="vn-rooms" id="rooms">
         <Headline text="Plan who sleeps where." size={64} floor={32} measure={620} />
         <p className="vn-body vn-rv">
-          Four bedrooms, the sitting room, the kitchen and the sundeck. Einföld
-          skýringarmynd, ekki í mælikvarða: a simple schematic, not to scale.
+          A simple guide to how the villa flows: four bedrooms, the sitting room, the
+          kitchen and the sundeck. Einföld skýringarmynd, ekki í mælikvarða: a
+          schematic, not to scale.
         </p>
         <Frame photo={PHOTO.mezzanine} className="vn-rooms-lead" drift={11} />
 
@@ -867,12 +868,12 @@ export default function VillaNorthPage() {
             messages, usually {HOST.respondsWithin}.
           </p>
           <div className="vn-owner-note vn-rv">
-            <p className="vn-owner-note-label">The owner's side</p>
+            <p className="vn-owner-note-label">The owner's dashboard</p>
             <p className="vn-owner-note-body">
               Every request lands in a dashboard built for this house: confirm or
               decline in one tap, watch requests arrive.{' '}
               <Link className="vn-a" to="/preview/villanorth/stjornbord">
-                Open the dashboard demo
+                See how direct bookings could work
               </Link>{' '}
               beside this tab and send yourself a request.
             </p>
@@ -904,11 +905,13 @@ export default function VillaNorthPage() {
               {' '}{FACTS.security}. {FACTS.water}.
             </p>
             <p className="vn-foot-line">
-              Photography: real photographs from Eyþór's own listing, retrieved August 2026.
+              Photography throughout this prototype comes directly from Eyþór's Airbnb
+              listing, retrieved August 2026.
             </p>
             <p className="vn-foot-line">{GLOW.filmCredit}</p>
             <p className="vn-foot-line">
-              Prototype by SNDR. Booking requests here are a demo and stay in this browser.
+              A private design prototype by SNDR. Booking requests stay a local
+              demonstration in this browser and are never submitted.
             </p>
           </div>
         </div>

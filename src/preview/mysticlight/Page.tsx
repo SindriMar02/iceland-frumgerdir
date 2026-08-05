@@ -417,7 +417,7 @@ function ShoreScope({ photo }: { photo: Photo }) {
       ))}
       <p className="ml-scope-caption" aria-live="polite">
         {active
-          ? <><strong>{active.name}</strong> · {active.en} — {active.note}</>
+          ? <><strong>{active.name}</strong> · {active.en} · {active.note}</>
           : 'Move the circle, or choose a mark: Selir, Haförn, Húsið.'}
       </p>
     </div>
@@ -531,7 +531,7 @@ function BookingForm() {
         </label>
       </div>
       {error && <p className="ml-field-error" role="alert">{error}</p>}
-      <button type="submit" className="ml-cta">Request a night</button>
+      <button type="submit" className="ml-cta">Enquire about your stay</button>
       <p className="ml-book-note">
         No card, no charge. The guest asks, the owners confirm, and the price for your dates
         comes with the reply. {FACTS.pets}.
@@ -577,7 +577,7 @@ export default function MysticLightPage() {
           <a href="#thakgluggin" onClick={anchor('thakgluggin')}>The skylight</a>
           <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
         </nav>
-        <a className="ml-nav-cta" href="#boka" onClick={anchor('boka')}>Request a night</a>
+        <a className="ml-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
       </header>
 
       {/* 01 · hero */}
@@ -592,10 +592,11 @@ export default function MysticLightPage() {
         </h1>
         <div className="ml-hero-block">
           <p className="ml-hero-sub">
-            An instrument for watching: seals at low tide, sea eagles over the fjord, the
-            aurora through the skylight above the bed.
+            Built around observation. Seals at low tide, sea eagles over the fjord
+            and, when conditions allow, the northern lights through the skylight
+            above the bed.
           </p>
-          <a className="ml-hero-link" href="#boka" onClick={anchor('boka')}>Request a night</a>
+          <a className="ml-hero-link" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
         </div>
       </section>
 
@@ -604,9 +605,9 @@ export default function MysticLightPage() {
         <div className="ml-mirror-copy">
           <Headline text="Seen only by the sky." size={84} floor={38} measure={600} />
           <p className="ml-body ml-rv">
-            The externally mirrored glass fronts reflect nature and the sea, and prevent any
-            view inside during daylight hours. From the outside, the cabin is weather. From
-            inside, it is glass.
+            The mirrored facade gives the landscape back to itself. By day it reflects
+            the sea, the mountains and the weather while preventing any view inside.
+            Step through the door and the same glass becomes a frame for the fjord.
           </p>
         </div>
         <Shot photo={PHOTO.summerFlowers} className="ml-mirror-fig" drift={8} />
@@ -614,7 +615,7 @@ export default function MysticLightPage() {
       <section className="ml-flagship">
         <Shot photo={PHOTO.sunsetScreen} className="ml-flagship-fig" priority={false} drift={12} />
         <p className="ml-flagship-cap ml-rv">
-          By evening the glass keeps doing the same thing. It just has more to hold.
+          As the daylight goes, the view simply changes with it.
         </p>
       </section>
 
@@ -623,8 +624,9 @@ export default function MysticLightPage() {
         <div className="ml-shore-head">
           <Headline text="Look through their scope." size={64} floor={32} measure={620} />
           <p className="ml-body ml-rv">
-            Esther and Pierre leave a spotting scope by the glass, and a pair of binoculars in
-            the cabin. Move the circle over the shore, or choose a mark to find it directly.
+            A spotting scope waits beside the window and binoculars are ready in the
+            cabin. Move the circle across the shore, or choose a mark below to find
+            seals, a sea eagle or the cabin itself.
           </p>
         </div>
         <ShoreScope photo={PHOTO.frostDawnEdge} />
@@ -640,8 +642,8 @@ export default function MysticLightPage() {
       <section className="ml-sky-intro" id="thakgluggin">
         <Headline text="The window is over the bed." size={64} floor={32} measure={600} />
         <p className="ml-body ml-rv">
-          A huge skylight sits directly above the double bed. What passes through it is not
-          staged: these are three of their own real skies, one after another.
+          The skylight sits directly above the double bed. Every colour, cloud and star
+          overhead is exactly as it was photographed from this cabin.
         </p>
       </section>
       <section className="ml-sky-outer">
@@ -692,9 +694,9 @@ export default function MysticLightPage() {
           <div className="ml-inside-copy">
             <Headline text="Small room, whole sky." size={56} floor={30} measure={520} />
             <p className="ml-body ml-rv">
-              Two stovetops, a kettle, a capsule machine and a fridge keep a slow morning easy.
-              Everything else is kept out of the way of the view, right down to the river-stone
-              basin in the bathroom.
+              A compact kitchen has everything an unhurried morning needs. Everything else
+              stays out of the way of the view, right down to the river-stone basin in the
+              bathroom.
             </p>
           </div>
           <Shot photo={PHOTO.interiorVelvet} className="ml-inside-side" drift={8} />
@@ -766,10 +768,10 @@ export default function MysticLightPage() {
       {/* 09 · booking */}
       <section className="ml-book" id="boka">
         <div className="ml-book-intro">
-          <Headline text="Request a night." size={72} floor={34} measure={560} />
+          <Headline text="Enquire about your stay." size={72} floor={34} measure={560} />
           <p className="ml-body ml-rv">
-            Requests go straight to Esther and Pierre, who host this shore themselves and
-            answer personally.
+            Every request goes directly to Esther and Pierre, the people who welcome
+            guests here themselves.
           </p>
           <div className="ml-owner-note ml-rv">
             <p className="ml-owner-note-label">The owners' side</p>
@@ -790,7 +792,8 @@ export default function MysticLightPage() {
       <section className="ml-close">
         <Shot photo={PHOTO.auroraWhirl} className="ml-close-fig" drift={12} />
         <p className="ml-close-cap ml-rv">
-          Clear nights are never guaranteed. When they come, this is what waits outside the door.
+          Clear skies can never be promised. When they arrive, guests have described
+          unforgettable nights above the fjord.
         </p>
       </section>
 
