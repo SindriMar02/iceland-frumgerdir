@@ -43,7 +43,7 @@ export const MAP_LINK = 'https://www.google.com/maps/search/?api=1&query=Faxafen
 export const PRACTICE = {
   founded: 1994,
   founder: 'Halldór Guðmundsson',
-  staffLine: 'þrjátíu og fjórir starfsmenn',
+  staffLine: 'yfir þrjátíu starfsmenn',
   quality: 'ÍST EN ISO 9001:2015 frá 2016',
   services:
     'Hönnun og ráðgjafarþjónusta í mannvirkjagerð á sviðum arkitektúrs, skipulags og umhverfishönnunar, auk verkumsjónar og eftirlits.',
@@ -252,7 +252,7 @@ export const PHOTOS = {
 export const SPEC: ReadonlyArray<readonly [string, string]> = [
   ['Stofnað', 'Október 1994'],
   ['Stofnandi', 'Halldór Guðmundsson'],
-  ['Starfsfólk', 'Þrjátíu og fjórir'],
+  ['Starfsfólk', 'Yfir þrjátíu'],
   ['Gæðakerfi', 'ÍST EN ISO 9001:2015'],
 ]
 
@@ -260,7 +260,7 @@ export const SPEC: ReadonlyArray<readonly [string, string]> = [
 export const LEDGER: ReadonlyArray<readonly [string, string]> = [
   ['Stofnað', '1994'],
   ['Verk í skrá', '22'],
-  ['Starfsfólk', '34'],
+  ['Starfsfólk', '30+'],
   ['Gæðakerfi frá', '2016'],
 ]
 

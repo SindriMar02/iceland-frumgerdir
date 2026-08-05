@@ -435,9 +435,9 @@ export default function ThgPage() {
           <div className="thg-intro">
             <div>
               <p className="thg-r thg-d" data-thg-tdrift="14" style={{ fontSize: 'clamp(1.05rem,1.5vw,1.32rem)', lineHeight: 1.5, letterSpacing: '-.01em' }}>
-                THG Arkitektar teiknar hótel, hjúkrunarheimili, þjónustuíbúðir, verslunar- og
+                THG Arkitektar teiknar hótel, hjúkrunarheimili, þjónustuíbúðir, verslunarrými og
                 veitingarými. Halldór Guðmundsson arkitekt stofnaði stofuna í október 1994 og þar
-                starfa þrjátíu og fjórir. Í verkefnaskránni eru tuttugu og tvö verk.
+                starfa yfir þrjátíu. Í verkefnaskránni eru tuttugu og tvö verk.
               </p>
               <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, lineHeight: 1.62, marginTop: '1.5rem', maxWidth: '46ch' }}>
                 Hönnun og ráðgjafarþjónusta í mannvirkjagerð á sviðum arkitektúrs, skipulags og
