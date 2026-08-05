@@ -141,6 +141,8 @@ html:not(.js) .pre{display:none}
   font-family:Gambetta,Georgia,serif;font-weight:400;
   font-size:clamp(34px,5.4vw,74px);line-height:1.02;letter-spacing:-.022em;
   margin:0 0 30px;max-width:16ch;
+  /* even two-line headlines instead of one orphan word on the last line */
+  text-wrap:balance;
 }
 .h2--sm{font-size:clamp(28px,3.4vw,46px);max-width:20ch}
 .h2 em{font-style:italic;color:var(--crust)}
