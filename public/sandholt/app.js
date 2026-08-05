@@ -431,8 +431,10 @@
      whenever the element reports it stalled.                          */
   function startHeroVideo() {
     var v = $('[data-herovid]');
-    if (!v || REDUCED) return;
+    if (!v || REDUCED || v.dataset.shWired === '1') return;
+    v.dataset.shWired = '1';                                // wire once, call anywhere
     v.muted = true; v.defaultMuted = true; v.loop = true;   // properties, not just attributes
+    v.playsInline = true;                                   // iOS: property, not just the attribute
     var tries = 0;
     var attempt = function () {
       if (!v.paused || tries > 60) return;
@@ -459,9 +461,13 @@
   }
 
   /* ═══ 5 · PRELOADER ═══════════════════════════════════════
-     Counts real image decode, never a timer. 1.1s floor (on a warm
-     cache every image is already .complete and it would flash), 2.4s
-     hard cap, once per session, never under reduced motion.          */
+     Counts the assets the FIRST SCREEN actually needs. Counting every
+     <img> was the bug: 13 of the 15 carry loading="lazy" and cannot
+     resolve while a full-screen overlay is up, so the number froze in
+     the teens and the hard cap yanked the overlay away mid-count.
+     1.1s floor (warm cache would otherwise flash), 2.6s hard cap, once
+     per session, never under reduced motion. The bar always reaches
+     100 before it leaves, cap or no cap.                             */
   var pre = $('#pre'), fill = $('[data-fill]'), pct = $('[data-pct]');
   var started = Date.now();
 
@@ -472,7 +478,9 @@
     startHeroVideo();
   }
 
+  var preRaf = 0;
   function finish() {
+    if (preRaf) cancelAnimationFrame(preRaf);
     if (pre) { pre.classList.add('is-done'); }
     ready();
   }
@@ -483,27 +491,68 @@
     requestAnimationFrame(function () { requestAnimationFrame(ready); });
   } else {
     sessionStorage.setItem('sh-seen', '1');
-    var imgs = $$('img').filter(function (i) { return !i.closest('.pre'); });
-    var total = Math.max(1, imgs.length), done = 0, settled = false;
 
-    var bump = function () {
-      done++;
-      var p = Math.round(clamp(done / total, 0, 1) * 100);
-      if (pct) pct.textContent = p;
-      if (fill) fill.style.width = p + '%';
-      if (done >= total) settle();
-    };
-    var settle = function () {
-      if (settled) return; settled = true;
-      var wait = Math.max(0, 1100 - (Date.now() - started));   // 1.1s floor
-      setTimeout(finish, wait);
-    };
-    imgs.forEach(function (im) {
-      if (im.complete) { bump(); return; }
-      im.addEventListener('load', bump, { once: true });
-      im.addEventListener('error', bump, { once: true });
+    /* Get the film going behind the overlay. It is muted and inline, so it
+       needs no gesture, and by the time the hero is uncovered it is already
+       rolling instead of sitting on its poster under a play button. */
+    startHeroVideo();
+
+    /* Each job calls back once when its asset is genuinely usable. */
+    var jobs = [];
+
+    // the wordmark layers — in the DOM, eager, and the thing on screen
+    $$('img').forEach(function (im) {
+      if (im.closest('.pre') || im.loading === 'lazy') return;
+      jobs.push(function (done) {
+        if (im.complete) return done();
+        im.addEventListener('load', done, { once: true });
+        im.addEventListener('error', done, { once: true });
+      });
     });
-    setTimeout(settle, 2400);                                   // hard cap
+
+    // the hero still, which is what shows if the film cannot roll
+    jobs.push(function (done) {
+      var p = new Image();
+      p.onload = p.onerror = done;
+      p.src = 'img/hero-poster.jpg';
+    });
+
+    // the faces the wordmark and the hero line are set in
+    jobs.push(function (done) {
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(done, done);
+      else done();
+    });
+
+    // the film itself, buffered far enough to actually play on reveal
+    jobs.push(function (done) {
+      var v = $('[data-herovid]');
+      if (!v) return done();
+      if (v.readyState >= 3) return done();
+      ['canplay', 'loadeddata', 'error', 'stalled'].forEach(function (ev) {
+        v.addEventListener(ev, done, { once: true });
+      });
+      if (v.networkState === 0) { try { v.load(); } catch (e) {} }
+    });
+
+    var total = Math.max(1, jobs.length), done = 0, capped = false, shown = 0;
+    jobs.forEach(function (job) {
+      var fired = false;
+      job(function () { if (!fired) { fired = true; done++; } });
+    });
+
+    /* The number eases toward the real fraction rather than stepping, so a
+       handful of coarse jobs still reads as motion. */
+    (function tick() {
+      var target = capped ? 100 : (done / total) * 100;
+      shown += (target - shown) * (capped ? 0.3 : 0.12);
+      if (target - shown < 0.4) shown = target;
+      if (pct) pct.textContent = Math.round(shown);
+      if (fill) fill.style.width = shown.toFixed(2) + '%';
+      if (shown > 99.6 && target === 100 && Date.now() - started >= 1100) return finish();
+      preRaf = requestAnimationFrame(tick);
+    })();
+
+    setTimeout(function () { capped = true; }, 2600);           // hard cap
   }
 })();
 

@@ -10,7 +10,7 @@
 <link rel="icon" href="img/favicon.png">
 <link rel="preload" href="fonts/Gambetta-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Switzer-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=1786120000">
+<link rel="stylesheet" href="styles.css?v=1786125500">
 <meta property="og:title" content="Sandholt Bakarí · Síðan 1920">
 <meta property="og:description" content="Handverksbakarí á Laugavegi 36. Fjórða kynslóð bakarameistara. Opið alla daga 07:30–18:00.">
 <meta property="og:image" content="img/hero-b.avif">
@@ -28,7 +28,7 @@
 
 <a class="skip" href="#efni">Beint í efni</a>
 
-<!-- ══ PRELOADER — counts real image decode, never a fake timer ══ -->
+<!-- ══ PRELOADER — counts the first screen's real assets, never a timer ══ -->
 <div class="pre" id="pre" aria-hidden="true">
   <div class="pre__mark">
     <img class="pre__base" src="img/logo-ink.png" alt="" width="1065" height="153">
@@ -99,7 +99,8 @@
            solid bars sliding in, not a clip-path repaint of the video -->
       <div class="hero__film" data-herofilm>
         <video class="hero__vid" data-herovid autoplay muted loop playsinline webkit-playsinline
-                disablepictureinpicture preload="auto" poster="img/hero-poster.jpg" aria-hidden="true" tabindex="-1">
+                disablepictureinpicture disableremoteplayback x-webkit-airplay="deny"
+                preload="auto" poster="img/hero-poster.jpg" aria-hidden="true" tabindex="-1">
           <source src="video/hero.mp4" type="video/mp4">
         </video>
       </div>
@@ -387,6 +388,6 @@
   </div>
 </footer>
 
-<script src="app.js?v=1786120000"></script>
+<script src="app.js?v=1786125500"></script>
 </body>
 </html>

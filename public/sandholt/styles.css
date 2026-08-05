@@ -216,7 +216,16 @@ html:not(.js) .pre{display:none}
   will-change:transform;backface-visibility:hidden}
 .hero__bar--t{top:0;transform:translate3d(0,calc(-100% + var(--hcpx,0px)),0)}
 .hero__bar--b{bottom:0;transform:translate3d(0,calc(100% - var(--hcpx,0px)),0)}
-.hero__vid{width:100%;height:100%;object-fit:cover;display:block}
+.hero__vid{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+/* iOS paints a start-playback button over any video it has not started, and
+   Low Power Mode guarantees it never starts. This is a silent decorative
+   film, so the control never belongs on it — the poster is the fallback. */
+.hero__vid::-webkit-media-controls,
+.hero__vid::-webkit-media-controls-enclosure,
+.hero__vid::-webkit-media-controls-panel,
+.hero__vid::-webkit-media-controls-start-playback-button{
+  display:none!important;-webkit-appearance:none;appearance:none;opacity:0;
+}
 .hero__scrim{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(78% 62% at 50% 40%, rgba(26,21,16,.62) 0%, rgba(26,21,16,.46) 45%, rgba(26,21,16,.60) 78%, rgba(26,21,16,.78) 100%)}
 
