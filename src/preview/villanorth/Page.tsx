@@ -1307,6 +1307,13 @@ const CSS = `
   max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 48) auto 0; padding: 0 calc(var(--u) * 48);
 }
 .vn-glow-tub-col { display: flex; flex-direction: column; gap: calc(var(--u) * 14); align-items: start; }
+/* Every child of .vn-frame is position:absolute, so the figure has no in-flow
+   content and its fit-content width is 0. In .vn-glow-row (a grid) align-items
+   is the BLOCK axis and items still stretch inline, so the other two frames are
+   fine. In this flex COLUMN align-items is the INLINE axis, so start = shrink
+   to fit = width 0, aspect-ratio then took height to 0, and the photo loaded
+   but never painted. Give width so the maxWidth prop has something to cap. */
+.vn-glow-tub-col > .vn-frame { width: 100%; }
 .vn-glow-fact { font-family: ${MONO}; font-size: ${fluid(12, 12)}; color: var(--vn-mute); margin: 0; max-width: 26ch; }
 .vn-glow-quote { max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 56) auto 0; padding: 0 calc(var(--u) * 48); color: inherit; }
 .vn-glow-quote cite { color: var(--vn-mute); }
