@@ -1,522 +1,276 @@
-import { useEffect, useRef, useState } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SplitText } from 'gsap/SplitText'
-import { CustomEase } from 'gsap/CustomEase'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { setThemeColor } from '../../lib/preview'
-import { initThgImagePipeline } from './webgl'
+import { getPreviewCompany } from '../companies'
+import { WorkList, WORK_LIST_CSS } from './WorkList'
+import { Preloader, PRELOADER_CSS } from './Preloader'
+import { Stadarandi, STADARANDI_CSS } from './Stadarandi'
+import { Register } from './Register'
+import { MobileNav, MOBILE_NAV_CSS } from './MobileNav'
 import {
-  IMG, ADDRESS, PHONE_DISPLAY, PHONE_HREF, EMAIL, EMAIL_HREF, KT, MAP_LINK,
-  PRACTICE, THESIS_QUOTES, CODENAME, TAGLINE, PROJECTS, INTERIORS,
+  IMG, ADDRESS, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, KT,
+  PHOTOS, SPEC, LEDGER, SERVICES, REGISTER, REGISTER_RISE, ENQUIRY_TOPICS, NAV,
   PAGE_TITLE, PAGE_DESCRIPTION, JSON_LD,
 } from './data'
-import type { Project } from './data'
 
-gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
-CustomEase.create('thgEase', '0.17,0.84,0.44,1')
+/* ═════════════════════════════════════════════════════════════════════════
+   THG ARKITEKTAR — the Heklusýn machine, device for device.
 
-const company = getPreviewCompany('thg')
+   The reference is src/preview/heklusyn/Page.tsx as it ships live, which was
+   itself built against kononenkogroup.com AS MEASURED. Every device below is
+   that page's, re-prefixed thg- and re-aimed at THG's own facts:
 
-/* ── THG Arkitektar — "Staðarandi", on the Kononenko system ──────────────
-   kononenkogroup.com transplanted completely (KONONENKO-BRIEF.md): the
-   one-canvas WebGL image pipeline (webgl.ts), the ink-sketch-develops-into-
-   photograph device on every project image, paper-white near-monochrome
-   ground, the mixed-typeface (Switzer + Hedvig accent word) headline
-   device, comma-separated text nav, fact-ledger anatomy, alternating work
-   grid, stat monument. THG's own seven verified projects, quotes and facts
-   fill it — nothing else changes. Judged by architects: restraint over
-   decoration, always. ──────────────────────────────────────────────────── */
+     · Lenis smooth scroll. No GSAP, no ScrollTrigger.
+     · Real <img> elements, every one visible. No canvas, no WebGL.
+     · Images move because an inner wrapper translates inside a frame with
+       overflow:hidden (.thg-frame / .thg-frame-in). That is the whole image
+       effect.
+     · Text arrives by translateY(108%) inside a mask (.thg-m), and keeps
+       drifting the whole time it is on screen on a separate wrapper
+       (.thg-d + data-thg-tdrift) so two transforms never share an element.
+     · Rules wipe with scaleX(0) → scaleX(1).
+     · Percentage preloader whose wordmark fills as the number climbs.
+     · Cursor-following photograph over a typeset list of works.
+     · Velocity-driven marquee.
+     · A scale diagram drawn from published areas only.
 
-const PAPER = '#ffffff'
+   THIS REPLACES the previous THG build, which rendered every photograph
+   through a THREE.js fragment shader (webgl.ts / shaders.ts, both deleted).
+   The Heklusýn file's own header records why that machine was abandoned
+   there: "Different machine, heavier, crashed on mount twice, and the reason
+   nothing felt like the reference." THG had never been given the correction.
+
+   Facts: everything below is thg.is's own, re-verified 5 August 2026. Their
+   register now lists TWENTY-TWO projects (it listed seven when the original
+   brief was written) and their staff page names THIRTY-FOUR people (not
+   "um fjörutíu"), so both numbers changed and the copy follows the site.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+const BASE = import.meta.env.BASE_URL
+const GROUND = '#ffffff'
 const INK = '#111111'
-const MUTED = '#767676'
+const MUTED = '#767676'   /* 4.55:1 on white — AA for normal text */
 const RULE = '#e2e2e2'
+const BAND = '#f0f0f0'
 
-const SANS = "'THG Switzer', 'Helvetica Neue', Arial, sans-serif"
+const SANS = "'THG Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif"
 const SERIF = "'THG Hedvig', Georgia, 'Times New Roman', serif"
-const FONTS_SWITZER = `${import.meta.env.BASE_URL}fonts/switzer/`
-const FONTS_HEDVIG = `${import.meta.env.BASE_URL}fonts/hedvig/`
+const EASE = 'cubic-bezier(.17,.84,.44,1)'
 
-const DUR = { s: 0.35, m: 0.7, l: 1.05 }
-const EASE = 'thgEase'
-const FOCUS = 'thg-focus'
+const prefersReduced = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const NAV_ITEMS = [
-  { href: '#verkin', label: 'Verkin' },
-  { href: '#stadarandi', label: 'Staðarandi' },
-  { href: '#innandyra', label: 'Innandyra' },
-  { href: '#stofan', label: 'Stofan' },
-  { href: '#samband', label: 'Samband' },
-]
+const CSS = `
+@font-face{font-family:'THG Switzer';src:url('${BASE}fonts/switzer/Switzer-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'THG Switzer';src:url('${BASE}fonts/switzer/Switzer-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'THG Switzer';src:url('${BASE}fonts/switzer/Switzer-Semibold.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'THG Hedvig';src:url('${BASE}fonts/hedvig/hedvig-latin.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'THG Hedvig';src:url('${BASE}fonts/hedvig/hedvig-latin-ext.woff2') format('woff2');font-weight:400;font-display:swap;unicode-range:U+0100-024F,U+1E00-1EFF,U+20A0-20AB,U+2C60-2C7F,U+A720-A7FF}
 
-/** Row layout for the work grid — Kononenko's own alternating 2/1/2 rhythm,
- *  continued once more (2/1/2/2) to land exactly on seven projects with no
- *  orphan card. Order matches PROJECTS (borg, marina, konsulat, von, eir,
- *  hrafnista, saavik), so Konsúlat still surfaces exactly once. */
-const WORK_ROWS: Array<Array<Project['key']>> = [
-  ['borg', 'marina'],
-  ['konsulat'],
-  ['von', 'eir'],
-  ['hrafnista', 'saavik'],
-]
+.thg-root{background:${GROUND};color:${INK};font-family:${SANS};-webkit-font-smoothing:antialiased;overflow-x:clip}
+.thg-root *,.thg-root *::before,.thg-root *::after{box-sizing:border-box}
+.thg-root h1,.thg-root h2,.thg-root p,.thg-root figure{margin:0}
+.thg-root img{display:block;max-width:100%}
+.thg-serif{font-family:${SERIF};font-weight:400;font-style:normal}
+.thg-root :focus-visible{outline:2px solid currentColor;outline-offset:3px}
 
-const projectByKey = (key: string): Project => {
-  const p = PROJECTS.find((pp) => pp.key === key)
-  if (!p) throw new Error(`Unknown THG project key: ${key}`)
-  return p
+.thg-pad{padding-inline:clamp(18px,3.4vw,52px)}
+.thg-sec{padding-block:clamp(72px,11vh,148px)}
+/* The chrome is fixed with no background, so an anchor jump lands the target
+   at y=0, underneath it. Every nav target is a section id, and the mobile
+   menu is entirely anchors, so without this each menu tap hides the heading
+   it just scrolled to. */
+main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
+
+/* rule wipe — measured scaleX(0) → scaleX(1) */
+.thg-rule{height:1px;background:${RULE};transform-origin:left center}
+.thg-js .thg-rule{transform:scaleX(0);transition:transform 1.1s ${EASE}}
+.thg-js .thg-rule.is-in{transform:scaleX(1)}
+
+/* THE text device — translateY inside a mask.
+   Resting state is VISIBLE: the hidden start only exists while .thg-js is on
+   the root, so a crawler, a paused rAF or a JS failure can never strand copy. */
+/* padding-bottom/margin-bottom give the mask headroom for descenders (the
+   serif's g/y/þ drop well below the line box) without adding visible gap
+   between stacked lines — the negative margin cancels the padding's height. */
+.thg-m{display:block;overflow:hidden;padding-bottom:.22em;margin-bottom:-.22em}
+.thg-m>span{display:block;transform:none}
+.thg-js .thg-m>span{transform:translateY(108%);transition:transform 1.05s ${EASE}}
+.thg-js .thg-m.is-in>span{transform:none}
+
+/* Continuous scroll drift for type. The mask reveal above handles ARRIVAL;
+   this handles the whole time a block is on screen, so headlines and body
+   travel at slightly different rates from the page and from each other.
+   Kept on a separate wrapper element so the two never share a transform. */
+.thg-d{display:block;will-change:transform}
+@media (prefers-reduced-motion:reduce){.thg-d{will-change:auto;transform:none!important}}
+
+/* soft rise for blocks that are not display type */
+.thg-r{opacity:1;transform:none}
+.thg-js .thg-r{opacity:0;transform:translateY(24px);transition:opacity .9s ${EASE},transform .9s ${EASE}}
+.thg-js .thg-r.is-in{opacity:1;transform:none}
+
+/* THE image device — masked frame, inner wrapper drifts.
+   --dz is derived from the drift so the two cannot be changed independently:
+   at drift 13 a fixed -9% inset runs out of overhang and the image's own edge
+   slides into frame at the extremes of the travel. */
+.thg-frame{position:relative;overflow:hidden;width:100%}
+.thg-frame-in{position:absolute;inset:calc(-1 * var(--dz,9%)) 0;will-change:transform}
+.thg-frame-in img{width:100%;height:100%;object-fit:cover}
+@media (prefers-reduced-motion:reduce){.thg-frame-in{inset:0;will-change:auto;transform:none!important}}
+
+/* fixed chrome */
+.thg-chrome{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:flex-start;
+  justify-content:space-between;gap:2rem;padding:clamp(14px,2vw,26px) clamp(18px,3.4vw,52px);
+  pointer-events:none;color:#fff;transition:color .45s ${EASE}}
+.thg-chrome.is-ink{color:${INK}}
+.thg-chrome a{pointer-events:auto;color:inherit;text-decoration:none}
+.thg-wordmark{font-size:clamp(12px,1vw,15px);line-height:1.2;font-weight:400}
+/* The chrome is fixed and has no background, so on a phone its three-line
+   wordmark sat directly on top of section headings as they scrolled past.
+   One line on narrow screens, and sections get enough top padding to clear it. */
+@media (max-width:759px){
+  .thg-wordmark{line-height:1.2;font-size:12px}
+  .thg-wordmark br{display:none}
+  .thg-wordmark span{display:none}
+  .thg-sec{padding-block:clamp(84px,14vh,148px) clamp(72px,11vh,148px)}
 }
+.thg-nav{display:flex;gap:.3em;flex-wrap:wrap;justify-content:flex-end;max-width:62vw;
+  font-size:clamp(12px,1vw,15px);font-weight:400}
+.thg-nav a{white-space:nowrap}
+.thg-nav a:hover{opacity:.55}
 
-const PAGE_STYLES = `
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Semibold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
-/* Hedvig Letters Serif — two files, split by the exact unicode-range Google
-   Fonts serves them under (css2 output). Icelandic (þðÞÐáéíóúýæö and every
-   other accented Latin-1 glyph) sits entirely inside U+0000-00FF, i.e. the
-   "latin" file below — the "latin-ext" file only ever downloads if a
-   Latin-Extended-A/B codepoint is actually used on the page, which THG copy
-   never does. Both declared per KONONENKO-BRIEF.md §type. */
-@font-face {
-  font-family:'THG Hedvig'; font-style:normal; font-weight:400; font-display:swap;
-  src:url('${FONTS_HEDVIG}hedvig-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family:'THG Hedvig'; font-style:normal; font-weight:400; font-display:swap;
-  src:url('${FONTS_HEDVIG}hedvig-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
+/* hero — full bleed, colossal lockup bottom left */
+.thg-hero{position:relative;height:100svh;min-height:540px;overflow:hidden}
+.thg-hero>.thg-frame{position:absolute;inset:0}
+.thg-hero-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.05) 32%,rgba(0,0,0,.28) 70%,rgba(0,0,0,.66) 100%)}
+.thg-hero-lock{position:absolute;left:0;right:0;bottom:clamp(16px,2.6vw,40px);color:#fff}
+/* line-height .9 was tight enough on its own to compress the line box below
+   the serif's descender extent (g/y/þ). .98 keeps the same tight display
+   rhythm but stops it fighting the mask's own headroom above.
+   The clamp ceiling is 7.4vw where Heklusýn's is 10.6vw: "THG Arkitektar" is
+   fourteen characters to "Heklusýn"'s eight, and at 10.6vw it overflowed the
+   viewport on every width below about 1100px. */
+.thg-lock{display:block;font-weight:400;letter-spacing:-.03em;line-height:.98;
+  font-size:clamp(1.9rem,7.4vw,7.2rem)}
 
-/* ═══ Ground — paper white everywhere, no other colour (KONONENKO-BRIEF §ground) */
-.thg-root { font-family:${SANS}; background:${PAPER}; color:${INK}; -webkit-font-smoothing:antialiased; }
-.thg-root, .thg-root *, .thg-root *::before, .thg-root *::after { box-sizing:border-box; }
-.thg-root ::selection { background:${INK}; color:${PAPER}; }
-.thg-serif { font-family:${SERIF}; font-style:normal; font-weight:400; }
-.thg-container { max-width:1600px; margin-inline:auto; padding-inline:clamp(20px,5vw,64px); }
-/* Long unbroken Icelandic compounds (ráðgjafarþjónusta, umhverfishönnunar)
-   inside a narrow 375px column never force horizontal scroll. */
-.thg-root h1, .thg-root h2, .thg-root h3, .thg-root p, .thg-root a, .thg-root dd { overflow-wrap:break-word; }
+/* statement — the page's opening line. Set LEFT on the same edge as every
+   other heading and with its rule ABOVE it: centred with the rule underneath,
+   it read as a detached box floating in its own frame rather than as the
+   first beat of the page. Larger than an h2 because it is the thesis, but it
+   obeys the same grammar as the rest. */
+.thg-statement{max-width:22ch;color:${MUTED};
+  font-size:clamp(1.35rem,3.6vw,3rem);line-height:1.14;letter-spacing:-.022em;font-weight:400}
+.thg-statement .thg-serif{color:${INK}}
 
-/* ═══ WebGL canvas — first child, unpositioned stacking level, so every
-   later DOM element paints above it in normal tree order; a low explicit
-   z-index plus .thg-main's z-index:1 makes that unambiguous rather than
-   relying purely on paint order. Fixed, DPR-capped and disposed inside
-   webgl.ts; pointer-events:none throughout so it never eats clicks. ═══ */
-.thg-gl-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; display:block; }
-.thg-main { position:relative; z-index:1; }
+/* intro + spec */
+.thg-intro{display:grid;gap:clamp(30px,4.5vw,72px);margin-top:clamp(30px,4vw,60px)}
+@media (min-width:900px){.thg-intro{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:start}}
+.thg-spec{margin:0;border-top:1px solid ${RULE}}
+.thg-spec>div{display:flex;justify-content:space-between;gap:1.2rem;align-items:baseline;
+  padding-block:clamp(11px,1.3vw,16px);border-bottom:1px solid ${RULE}}
+.thg-spec dt{margin:0;color:${MUTED};font-size:clamp(.84rem,1vw,.96rem)}
+.thg-spec dd{margin:0;text-align:right;font-size:clamp(.95rem,1.15vw,1.08rem)}
 
-/* Every [data-thg-plane] wrapper: the DOM <img> is the resting, always-
-   visible, no-JS/no-WebGL source of truth (object-fit:cover mirrors
-   exactly what the shader's own coverUv() does), hidden via inline style
-   ONLY once webgl.ts confirms a texture is ready to replace it in place. */
-.thg-plane-frame { position:relative; overflow:hidden; display:block; width:100%; height:100%; background:${RULE}; }
-.thg-plane-frame img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+/* ledger */
+.thg-ledger{border-top:1px solid ${RULE}}
+.thg-led{display:grid;grid-template-columns:1fr auto;gap:1.4rem;align-items:baseline;
+  padding-block:clamp(13px,1.5vw,21px);border-bottom:1px solid ${RULE}}
+.thg-led-k,.thg-led-v{font-size:clamp(1.15rem,2.8vw,2.3rem);letter-spacing:-.02em;line-height:1.08}
+.thg-led-v{text-align:right}
 
-/* ═══ Fixed chrome — comma nav + stacked wordmark, self-toning ═══════════
-   Default (no JS, or hero still at the top of the viewport) is the LIGHT
-   treatment: paper-white text over the hero's own scrim, because that is
-   genuinely what sits behind the bar at first paint. A tiny IntersectionObserver
-   (Page(), below) flips a single data attribute to "dark" once the hero has
-   scrolled out from under the bar — one discrete state change, never a
-   scroll-scrubbed value, so the colour transition here is safe. ═══ */
-.thg-chrome { position:fixed; inset-inline:0; top:0; z-index:50; display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:8px 16px; padding:clamp(16px,2.6vw,28px) clamp(20px,5vw,64px); color:${PAPER}; transition:color .35s cubic-bezier(.17,.84,.44,1); }
-.thg-chrome[data-thg-tone='dark'] { color:${INK}; }
-.thg-chrome-scrim { position:absolute; inset:-1px 0 auto 0; height:160px; z-index:-1; pointer-events:none; opacity:1; transition:opacity .35s cubic-bezier(.17,.84,.44,1); background:linear-gradient(180deg, rgba(17,17,17,.72) 0%, rgba(17,17,17,0) 100%); }
-.thg-chrome[data-thg-tone='dark'] .thg-chrome-scrim { opacity:0; }
-.thg-wordmark { display:flex; flex-direction:column; gap:1px; font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; line-height:1.4; text-decoration:none; color:inherit; }
-.thg-nav { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 6px; max-width:62vw; font-size:clamp(10.5px,1.6vw,12px); font-weight:500; letter-spacing:.04em; text-transform:uppercase; }
-.thg-nav a { text-decoration:none; color:inherit; }
-.thg-nav a:hover, .thg-nav a:focus-visible { text-decoration:underline; text-underline-offset:3px; }
+/* the register row. Full-bleed on purpose — it is a register, so it runs past
+   both edges rather than stopping at the text column. */
+/* Font size lives on the container so the padding below can be expressed in
+   em and is therefore guaranteed to clear the tallest --r offset at every
+   viewport. Without that top padding, overflow:hidden slices the raised
+   names clean through the middle. */
+.thg-skyline{width:100%;overflow:hidden;font-size:clamp(1.3rem,4.2vw,3.4rem);
+  padding-block:.72em .28em}
+.thg-skyline-track{display:inline-flex;align-items:flex-end;will-change:transform}
+.thg-skyline.is-static{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.thg-skyline.is-static .thg-sky{padding-inline:clamp(18px,3.4vw,52px)}
+.thg-sky{list-style:none;margin:0;padding:0;display:inline-flex;flex:0 0 auto;
+  align-items:flex-end;gap:0;font-size:inherit;
+  letter-spacing:-.028em;line-height:1.06;white-space:nowrap}
+.thg-sky li{transform:translateY(var(--r,0));white-space:nowrap;padding-inline:.42em}
+.thg-sky li:nth-child(even){color:${MUTED}}
+@media (prefers-reduced-motion:reduce){.thg-sky li{transform:none}}
 
-.thg-focus:focus-visible { outline:2px solid currentColor; outline-offset:3px; border-radius:1px; }
+/* the interiors pair */
+.thg-pair{display:grid;gap:clamp(14px,2vw,28px)}
+@media (min-width:820px){.thg-pair{grid-template-columns:1fr 1fr;align-items:start}
+  .thg-pair>*:nth-child(2){margin-top:clamp(28px,5vw,88px)}}
 
-/* ═══ Hero — poster-first video slot, giant bottom-left mixed-type name ═══ */
-.thg-hero { position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden; }
-.thg-hero-media-wrap { position:absolute; inset:0; }
-.thg-hero-media { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
-/* Stops verified against the worst realistic case (a pure-white sky pixel,
-   borg-exterior.jpg's own bottom band measured up to 254/255) at the
-   text block's own lowest realistic position (content sits flex-end,
-   bottom-anchored, so its top edge is comfortably below 50% of the hero
-   in every measured breakpoint from 375 to 1440) — see the contrast table
-   in the build report. Steep and early on purpose: a soft, slow gradient
-   alone left the eyebrow around 3-4:1 against a bright sky. */
-.thg-hero-scrim { position:absolute; inset:0; background:linear-gradient(180deg, rgba(17,17,17,0) 0%, rgba(17,17,17,.3) 30%, rgba(17,17,17,.65) 48%, rgba(17,17,17,.85) 62%, rgba(17,17,17,.94) 100%); }
-.thg-hero-content { position:relative; z-index:1; width:100%; padding-top:clamp(120px,17vw,208px); padding-bottom:clamp(40px,7vw,72px); }
-.thg-hero-eyebrow { margin:0 0 .9em; font-size:11px; font-weight:500; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.88); }
-.thg-hero-h1 { margin:0; max-width:20ch; color:${PAPER}; font-weight:500; font-size:clamp(2.4rem,7.4vw,6.6rem); line-height:1; letter-spacing:-.01em; }
-.thg-hero-line { margin:1.5em 0 0; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.88); }
-/* Char/word split lives ONLY on the hero name (repo law). Word wrapper
-   keeps each word atomic so a line never breaks mid-word; chars stay
-   inline-block so no per-character mask stacks them one-per-line. */
-.thg-word { display:inline-block; white-space:nowrap; vertical-align:top; overflow:hidden; padding-bottom:.22em; margin-bottom:-.22em; }
-.thg-char { display:inline-block; }
-
-@media (prefers-reduced-motion:reduce) { .thg-hero-media { transform:none !important; } }
-
-/* ═══ Generic section rhythm ═══════════════════════════════════════════ */
-.thg-section { padding-block:clamp(56px,9vw,120px); }
-.thg-section-h2 { margin:0 0 .6em; font-weight:500; font-size:clamp(1.7rem,3.6vw,2.6rem); line-height:1.15; letter-spacing:-.01em; }
-.thg-section-lede { margin:0; max-width:46ch; font-size:17px; line-height:1.7; color:${MUTED}; }
-
-/* ═══ Manifesto + fact ledger ══════════════════════════════════════════ */
-.thg-manifesto-h2 { margin:0 0 clamp(40px,6vw,72px); max-width:22ch; font-weight:500; font-size:clamp(1.9rem,4.8vw,3.7rem); line-height:1.22; letter-spacing:-.01em; }
-.thg-ledger { margin:0; border-top:1px solid ${RULE}; }
-.thg-ledger-row { display:grid; grid-template-columns:1fr; gap:.4em; padding:20px 0; border-bottom:1px solid ${RULE}; }
-.thg-ledger-row h3 { margin:0; font-size:11px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:${MUTED}; }
-.thg-ledger-row p { margin:0; font-size:17px; line-height:1.55; max-width:62ch; }
-@media (min-width:768px) { .thg-ledger-row { grid-template-columns:220px 1fr; align-items:baseline; gap:24px; } }
-
-/* ═══ Services line — one long comma h2 (KONONENKO-BRIEF §services) ═══════ */
-.thg-services { padding-block:clamp(40px,7vw,88px); border-block:1px solid ${RULE}; }
-.thg-services-h2 { margin:0; font-weight:500; font-size:clamp(1.5rem,3.6vw,2.7rem); line-height:1.38; letter-spacing:-.005em; }
-
-/* ═══ Staðarandi — the three quotes as method blocks ═══════════════════ */
-.thg-methods { display:flex; flex-direction:column; gap:2px; margin-top:clamp(40px,6vw,72px); }
-.thg-method { display:grid; grid-template-columns:1fr; background:${PAPER}; }
-.thg-method-text { order:2; padding:clamp(28px,5vw,64px) clamp(20px,5vw,64px); display:flex; flex-direction:column; justify-content:center; }
-.thg-method-media { order:1; aspect-ratio:4/3; }
-.thg-method-index { display:block; margin-bottom:.7em; font-size:12px; font-weight:500; letter-spacing:.1em; color:${MUTED}; }
-.thg-method blockquote { margin:0; }
-.thg-method blockquote p { margin:0; font-weight:400; font-size:clamp(1.2rem,2.4vw,1.7rem); line-height:1.45; }
-.thg-method cite { display:block; margin-top:1em; font-style:normal; font-size:12px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:${MUTED}; }
-.thg-method-note { margin:.6em 0 0; font-size:12px; color:${MUTED}; }
-@media (min-width:900px) {
-  .thg-method { grid-template-columns:1fr 1fr; align-items:stretch; }
-  .thg-method-text { order:1; }
-  .thg-method-media { order:2; aspect-ratio:auto; }
-  .thg-method-rev .thg-method-text { order:2; }
-  .thg-method-rev .thg-method-media { order:1; }
-}
-
-/* ═══ Verkin — the work grid, alternating 2/1/2/2 (KONONENKO-BRIEF §grid) ═ */
-.thg-work-grid { display:flex; flex-direction:column; gap:clamp(28px,4vw,40px); margin-top:clamp(32px,5vw,56px); }
-.thg-work-row { display:grid; grid-template-columns:1fr; gap:clamp(20px,3vw,32px); }
-@media (min-width:768px) { .thg-work-row-2 { grid-template-columns:1fr 1fr; } }
-.thg-work-card { display:flex; flex-direction:column; }
-.thg-work-media { aspect-ratio:4/5; }
-.thg-work-row-1 .thg-work-media { aspect-ratio:16/9; }
-.thg-work-name { margin:20px 0 0; font-weight:500; font-size:clamp(1.1rem,1.8vw,1.5rem); }
-.thg-work-fields { margin:12px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:4px 24px; }
-.thg-field { display:flex; gap:8px; align-items:baseline; margin:0; }
-.thg-field dt { margin:0; font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:${MUTED}; }
-.thg-field dd { margin:0; font-size:14px; }
-
-/* ═══ Innandyra — interiors, media shader with hairline border ═════════ */
-.thg-interiors-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:clamp(32px,5vw,56px); list-style:none; padding:0; }
-@media (min-width:768px) { .thg-interiors-grid { grid-template-columns:repeat(4,1fr); gap:16px; } }
-.thg-interior { margin:0; }
-.thg-interior-media { aspect-ratio:4/5; }
-.thg-interior figcaption { margin-top:8px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:${MUTED}; }
-
-/* ═══ Stofan — stat monument, giant numerals ════════════════════════════ */
-.thg-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(28px,5vw,48px) clamp(16px,3vw,32px); margin-top:clamp(32px,5vw,56px); }
-@media (min-width:768px) { .thg-stats { grid-template-columns:repeat(4,1fr); } }
-.thg-stat-figure { margin:0; font-weight:500; font-size:clamp(1.7rem,5vw,3.4rem); line-height:1.05; letter-spacing:-.01em; }
-.thg-stat-label { margin:.5em 0 0; font-weight:500; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:${MUTED}; }
-
-/* ═══ Samband + footer ══════════════════════════════════════════════════ */
-.thg-contact-list { list-style:none; margin:clamp(24px,4vw,40px) 0 0; padding:0; display:flex; flex-direction:column; gap:14px; }
-.thg-contact-list a { display:inline-block; font-size:clamp(1.25rem,3vw,2rem); font-weight:500; color:${INK}; text-decoration:underline; text-underline-offset:6px; text-decoration-color:${RULE}; }
-.thg-foot-wordmark-wrap { margin-top:clamp(56px,9vw,120px); padding-top:clamp(28px,4vw,48px); border-top:1px solid ${RULE}; }
-.thg-foot-wordmark { margin:0; font-weight:500; font-size:clamp(2.4rem,9.4vw,7.2rem); line-height:1; letter-spacing:-.02em; }
-.thg-foot-meta { display:flex; align-items:center; gap:12px; margin-top:clamp(20px,3vw,32px); }
-.thg-foot-mark { width:26px; height:26px; object-fit:cover; border-radius:2px; }
-.thg-foot-meta p { margin:0; font-size:12px; color:${MUTED}; }
+/* enquiry */
+/* min-height:44px is the real tap-target floor (measured 21.5-24px before this,
+   on a mobile audit — the underline look stays, the box just gets tall enough
+   to tap reliably). */
+.thg-field{display:block;box-sizing:border-box;min-height:44px;border:0;border-bottom:1px solid ${RULE};
+  background:none;width:100%;padding:.85rem 0;font:inherit;font-size:1.05rem;color:${INK};border-radius:0}
+.thg-field:focus{outline:none;border-bottom-color:${INK}}
+.thg-lab{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:${MUTED}}
+/* .thg-send measured 29px tall — an invisible hit-slop grows the tap target to
+   44px without visually bulking up a text link that's supposed to read light. */
+.thg-send{display:inline-block;position:relative;margin-top:1.8rem;font-size:clamp(1.1rem,2vw,1.5rem);
+  color:${INK};text-decoration:none;border-bottom:1px solid ${INK};padding-bottom:.1em}
+.thg-send::before{content:'';position:absolute;inset:-10px -6px}
+/* Same trick for the contact links: they measured 24px, and inline links in a
+   flex row cannot take a min-height without breaking the baseline row. */
+.thg-contact{position:relative}
+.thg-contact::before{content:'';position:absolute;inset:-11px -4px}
+.thg-send:hover{opacity:.6}
+${WORK_LIST_CSS}
+${PRELOADER_CSS}
+${STADARANDI_CSS}
+${MOBILE_NAV_CSS}
 `
 
-/* ═══════════════════════════ small helpers ════════════════════════════ */
-function Field({ label, value }: { label: string; value?: string }) {
-  if (!value) return null
+/* ── text that rises out of a mask ─────────────────────────────────────── */
+function Rise({ children, className, style }: { children: string; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className="thg-field">
-      <dt>{label}</dt>
-      <dd>{value}</dd>
+    <span className={`thg-m ${className ?? ''}`} style={style}>
+      <span>{children}</span>
+    </span>
+  )
+}
+
+/* ── a photograph in a masked frame whose inner wrapper drifts ───────────
+   The inset is DERIVED from the drift rather than fixed: at drift 13 a flat
+   -9% runs out of overhang and the photograph's own edge slides into frame
+   at the extremes of the travel. */
+function Frame({
+  file, alt, ratio = '3 / 2', drift = 10, priority = false,
+}: { file: string; alt: string; ratio?: string; drift?: number; priority?: boolean }) {
+  return (
+    <div className="thg-frame" style={{ aspectRatio: ratio }}>
+      <div
+        className="thg-frame-in"
+        data-thg-drift={drift}
+        style={{ '--dz': `${Math.max(9, drift * 1.35).toFixed(2)}%` } as React.CSSProperties}
+      >
+        <img
+          src={IMG(file)} alt={alt}
+          loading={priority ? 'eager' : 'lazy'} decoding="async"
+          {...(priority ? { fetchpriority: 'high' } : {})}
+        />
+      </div>
     </div>
   )
 }
 
-/* ═══════════════════════════ chrome ════════════════════════════════════ */
-function Chrome() {
-  return (
-    <div id="thg-chrome" className="thg-chrome" data-thg-tone="light">
-      <span aria-hidden className="thg-chrome-scrim" />
-      <a href="#thg-top" className={`thg-wordmark ${FOCUS}`} aria-label="Fara efst á síðu, THG Arkitektar">
-        <span>THG</span>
-        <span>Arkitektar</span>
-        <span>Reykjavík</span>
-      </a>
-      <nav aria-label="Aðalvalmynd" className="thg-nav">
-        {NAV_ITEMS.map((item, i) => (
-          <span key={item.href}>
-            <a href={item.href} className={FOCUS}>{item.label}</a>
-            {i < NAV_ITEMS.length - 1 ? <span aria-hidden>,</span> : null}
-          </span>
-        ))}
-      </nav>
-    </div>
-  )
-}
-
-/* ═══════════════════════════ 1 · hero ═══════════════════════════════════ */
-function Hero({ reducedMotion }: { reducedMotion: boolean }) {
-  const alt = 'Framhlið Hótel Borgar við Austurvöll í Reykjavík, fyrsti áfangi stækkunar sem THG Arkitektar hönnuðu.'
-  return (
-    <header id="thg-top" className="thg-hero">
-      <div className="thg-hero-media-wrap">
-        {reducedMotion ? (
-          <img
-            src={IMG('borg-exterior')}
-            alt={alt}
-            className="thg-hero-media"
-            loading="eager"
-            decoding="async"
-            {...{ fetchpriority: 'high' }}
-          />
-        ) : (
-          <video
-            className="thg-hero-media"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster={IMG('borg-exterior')}
-            aria-label={alt}
-          >
-            <source src={`${import.meta.env.BASE_URL}thg/hero-film.mp4`} type="video/mp4" />
-          </video>
-        )}
-        <div aria-hidden className="thg-hero-scrim" />
-      </div>
-      <div className="thg-container thg-hero-content">
-        <p className="thg-hero-eyebrow" data-thg-reveal>{CODENAME}</p>
-        <h1 className="thg-hero-h1">
-          THG <em className="thg-serif">Arkitektar</em>
-        </h1>
-        <p className="thg-hero-line" data-thg-reveal>
-          {PRACTICE.founded} · {PRACTICE.staffLine} · ISO 9001:2015
-        </p>
-      </div>
-    </header>
-  )
-}
-
-/* ═══════════════════════════ 2 · manifesto + ledger ═════════════════════ */
-function Manifesto() {
-  const parts = TAGLINE.split('fyrir')
-  return (
-    <section id="stadarandi-inngangur" className="thg-section" aria-labelledby="thg-manifesto-h2">
-      <div className="thg-container">
-        <h2 id="thg-manifesto-h2" className="thg-manifesto-h2" data-thg-reveal>
-          {parts[0]}<em className="thg-serif">fyrir</em>{parts[1]}
-        </h2>
-        {/* h3-label / value rows, not a real <dl>: Kononenko's own fact
-            ledger anatomy (KONONENKO-BRIEF.md §manifesto) pairs a heading
-            label with a value paragraph, not a definition-list term/detail
-            pair, so a plain div avoids an invalid dl content model. */}
-        <div className="thg-ledger">
-          <div className="thg-ledger-row" data-thg-reveal>
-            <h3>Stofnað</h3>
-            <p>{PRACTICE.founded}, {PRACTICE.founder}</p>
-          </div>
-          <div className="thg-ledger-row" data-thg-reveal>
-            <h3>Teymið</h3>
-            <p>{PRACTICE.staffLine}</p>
-          </div>
-          <div className="thg-ledger-row" data-thg-reveal>
-            <h3>Gæðakerfi</h3>
-            <p>{PRACTICE.quality}</p>
-          </div>
-          <div className="thg-ledger-row" data-thg-reveal>
-            <h3>Þjónusta</h3>
-            <p>{PRACTICE.services}</p>
-          </div>
-          <div className="thg-ledger-row" data-thg-reveal>
-            <h3>Verkkaupar</h3>
-            <p>{PRACTICE.clients}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 3 · services line ═══════════════════════════ */
-function ServicesLine() {
-  const parts = PRACTICE.services.split('arkitektúrs')
-  return (
-    <section id="thjonusta" className="thg-services" aria-labelledby="thg-services-h2">
-      <div className="thg-container">
-        <h2 id="thg-services-h2" className="thg-services-h2" data-thg-reveal>
-          {parts[0]}<em className="thg-serif">arkitektúrs</em>{parts[1]}
-        </h2>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 4 · staðarandi (the three quotes) ══════════ */
-function Stadarandi() {
-  return (
-    <section id="stadarandi" className="thg-section" aria-labelledby="thg-stadarandi-h2">
-      <div className="thg-container">
-        <h2 id="thg-stadarandi-h2" className="thg-section-h2" data-thg-reveal>{CODENAME}</h2>
-        <p className="thg-section-lede" data-thg-reveal>
-          Þrisvar á sínum eigin vef orðar stofan sömu hugsunina, án þess að nefna hana.
-        </p>
-      </div>
-      <div className="thg-methods">
-        {THESIS_QUOTES.map((t, i) => {
-          const proj = PROJECTS.find((p) => p.name === t.project)
-          if (!proj) return null
-          return (
-            <article key={t.project} className={`thg-method${i % 2 === 1 ? ' thg-method-rev' : ''}`} data-thg-theme={proj.theme}>
-              <div className="thg-method-media thg-plane-frame" data-thg-plane="sketch">
-                <img src={IMG(proj.image)} alt={proj.alt} loading="lazy" decoding="async" />
-              </div>
-              <div className="thg-method-text" data-thg-reveal>
-                <span aria-hidden className="thg-method-index">0{i + 1}</span>
-                <blockquote>
-                  <p>„{t.quote}“</p>
-                </blockquote>
-                <cite>{t.project}</cite>
-                {t.note ? <p className="thg-method-note">{t.note}</p> : null}
-              </div>
-            </article>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 5 · verkin (work grid) ══════════════════════ */
-function WorkCard({ project }: { project: Project }) {
-  return (
-    <article className="thg-work-card" data-thg-reveal>
-      <div className="thg-work-media thg-plane-frame" data-thg-plane="sketch">
-        <img src={IMG(project.image)} alt={project.alt} loading="lazy" decoding="async" />
-      </div>
-      <h3 className="thg-work-name">{project.name}</h3>
-      <dl className="thg-work-fields">
-        <Field label="Staður" value={project.place} />
-        <Field label="Ár" value={project.year} />
-        <Field label="Umfang" value={project.size} />
-        <Field label="Verkkaupi" value={project.client} />
-      </dl>
-    </article>
-  )
-}
-
-function Verkin() {
-  return (
-    <section id="verkin" className="thg-section" aria-labelledby="thg-verkin-h2">
-      <div className="thg-container">
-        <h2 id="thg-verkin-h2" className="thg-section-h2" data-thg-reveal>Verkin</h2>
-        <p className="thg-section-lede" data-thg-reveal>Sjö byggingar, þrjátíu og tvö ár.</p>
-      </div>
-      <div className="thg-container thg-work-grid">
-        {WORK_ROWS.map((row, ri) => (
-          <div key={ri} className={`thg-work-row ${row.length === 1 ? 'thg-work-row-1' : 'thg-work-row-2'}`}>
-            {row.map((key) => (
-              <WorkCard key={key} project={projectByKey(key)} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 6 · innandyra ═══════════════════════════════ */
-function Innandyra() {
-  return (
-    <section id="innandyra" className="thg-section" aria-labelledby="thg-innandyra-h2">
-      <div className="thg-container">
-        <h2 id="thg-innandyra-h2" className="thg-section-h2" data-thg-reveal>Innandyra</h2>
-        <p className="thg-section-lede" data-thg-reveal>Þú hefur líklega þegar komið inn í eitt af þessum.</p>
-      </div>
-      <ul className="thg-container thg-interiors-grid">
-        {INTERIORS.map((shot) => (
-          <li key={shot.image} className="thg-interior" data-thg-reveal>
-            <figure style={{ margin: 0 }}>
-              <div className="thg-interior-media thg-plane-frame" data-thg-plane="media" data-thg-border="1">
-                <img src={IMG(shot.image)} alt={shot.alt} loading="lazy" decoding="async" />
-              </div>
-              <figcaption>{shot.project}</figcaption>
-            </figure>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 7 · stofan (stat monument) ══════════════════ */
-function Stat({ figure, label }: { figure: string; label: string }) {
-  return (
-    <div className="thg-stat" data-thg-reveal>
-      <p className="thg-stat-figure">{figure}</p>
-      <h3 className="thg-stat-label">{label}</h3>
-    </div>
-  )
-}
-
-function Stofan() {
-  return (
-    <section id="stofan" className="thg-section" aria-labelledby="thg-stofan-h2">
-      <div className="thg-container">
-        <h2 id="thg-stofan-h2" className="thg-section-h2" data-thg-reveal>Stofan</h2>
-        <div className="thg-stats">
-          <Stat figure={String(PRACTICE.founded)} label="Stofnað" />
-          <Stat figure="Um fjörutíu" label="Í teyminu" />
-          <Stat figure={String(PROJECTS.length)} label="Verk sýnd hér" />
-          <Stat figure="ISO 9001" label="Vottun frá 2016" />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 8 · samband + footer ════════════════════════ */
-function Samband() {
-  return (
-    <section id="samband" className="thg-section" aria-labelledby="thg-samband-h2">
-      <div className="thg-container">
-        <h2 id="thg-samband-h2" className="thg-section-h2" data-thg-reveal>Samband</h2>
-        <ul className="thg-contact-list" data-thg-reveal>
-          <li><a href={MAP_LINK} target="_blank" rel="noreferrer" className={FOCUS}>{ADDRESS}</a></li>
-          <li><a href={PHONE_HREF} className={FOCUS}>{PHONE_DISPLAY}</a></li>
-          <li><a href={EMAIL_HREF} className={FOCUS}>{EMAIL}</a></li>
-        </ul>
-      </div>
-      <div className="thg-container thg-foot-wordmark-wrap">
-        <p className="thg-foot-wordmark">THG <em className="thg-serif">Arkitektar</em></p>
-        <div className="thg-foot-meta">
-          <img src={IMG('mark')} alt="" aria-hidden className="thg-foot-mark" loading="lazy" decoding="async" />
-          <p>THG Arkitektar ehf · {KT}</p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════════ page ════════════════════════════════════ */
-export default function Page() {
+export default function ThgPage() {
+  const company = getPreviewCompany('thg')
   const rootRef = useRef<HTMLDivElement>(null)
-  const [reducedMotion] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  )
+  const [inkChrome, setInkChrome] = useState(false)
+  const inkRef = useRef(false)
+  const lenisRef = useRef<Lenis | null>(null)
+  const [form, setForm] = useState({ name: '', email: '', topic: ENQUIRY_TOPICS[0] })
 
   useEffect(() => {
     document.title = PAGE_TITLE
-    setThemeColor(INK)
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
     const created = !meta
     if (!meta) {
@@ -526,159 +280,325 @@ export default function Page() {
     }
     const prevDesc = meta.content
     meta.content = PAGE_DESCRIPTION
-    const s = document.createElement('script')
-    s.type = 'application/ld+json'
-    s.textContent = JSON.stringify(JSON_LD)
-    document.head.appendChild(s)
+
+    const ld = document.createElement('script')
+    ld.type = 'application/ld+json'
+    ld.textContent = JSON.stringify(JSON_LD)
+    document.head.appendChild(ld)
+
     return () => {
-      s.remove()
+      ld.remove()
       if (created) meta?.remove()
       else if (meta) meta.content = prevDesc
     }
   }, [])
 
-  /* Chrome self-toning: white-on-scrim while the hero still covers the bar,
-     ink-on-paper once it doesn't. A thin IntersectionObserver band at the
-     bar's own height, the standard "sticky header colour swap" trick — one
-     discrete write per crossing, never a per-frame scroll value. Runs
-     regardless of prefers-reduced-motion (a colour swap, not motion). */
-  useEffect(() => {
-    const hero = document.getElementById('thg-top')
-    const chrome = document.getElementById('thg-chrome')
-    if (!hero || !chrome) return
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        chrome.dataset.thgTone = entry.isIntersecting ? 'light' : 'dark'
-      },
-      { rootMargin: '-88px 0px -100% 0px', threshold: 0 },
-    )
-    io.observe(hero)
-    return () => io.disconnect()
-  }, [])
-
-  /* All scroll choreography + the WebGL image pipeline. Reduced motion:
-     the matchMedia branch below never runs — every element sits at its
-     normal, fully visible resting layout (no opacity:0 default anywhere
-     in PAGE_STYLES), and Innandyra/Verkin/Staðarandi images are the plain
-     DOM <img>s underneath (no canvas ever mounts). */
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
-    const mm = gsap.matchMedia()
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      const q = gsap.utils.selector(root)
-      const splits: SplitText[] = []
+    const reduced = prefersReduced()
 
-      /* Lenis + the WebGL pipeline + the sketch shader's hover lens are all
-         gated the same way: fine-pointer only. On touch, the reveal
-         animations below still run (this whole effect is gated on
-         reduced-motion, not on pointer type) — only the canvas, the smooth
-         scroll and the cursor lens are desktop-with-a-mouse features,
-         matching KONONENKO-BRIEF.md's "No-WebGL/reduced-motion/touch ⇒
-         plain DOM images" and "hover lens ... desktop only". */
-      const fine = window.matchMedia('(pointer: fine)').matches
-      let lenis: Lenis | undefined
-      let tick: ((t: number) => void) | undefined
-      if (fine) {
-        lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
-        lenis.on('scroll', ScrollTrigger.update)
-        tick = (t: number) => lenis!.raf(t * 1000)
-        gsap.ticker.add(tick)
-        gsap.ticker.lagSmoothing(0)
+    if (!reduced) root.classList.add('thg-js')
+    const targets = Array.from(root.querySelectorAll<HTMLElement>('.thg-m,.thg-r,.thg-rule'))
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target) } }),
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.01 },
+    )
+    if (!reduced) targets.forEach((t) => io.observe(t))
+    const failsafe = window.setTimeout(() => targets.forEach((t) => t.classList.add('is-in')), 2000)
+
+    const frames = Array.from(root.querySelectorAll<HTMLElement>('.thg-frame-in'))
+    const drifters = reduced ? [] : Array.from(root.querySelectorAll<HTMLElement>('[data-thg-tdrift]'))
+    const hero = root.querySelector<HTMLElement>('.thg-hero')
+
+    /* One pass, reads first then writes. Interleaving getBoundingClientRect
+       with style.transform forces a synchronous layout per element — with
+       ~18 tracked nodes that is 18 forced layouts every frame, which pins
+       the main thread. Read everything, then write everything. */
+    const onScroll = () => {
+      const vh = window.innerHeight
+      const writes: Array<[HTMLElement, string]> = []
+
+      for (const el of frames) {
+        const box = el.parentElement
+        if (!box) continue
+        const r = box.getBoundingClientRect()
+        if (r.bottom < -240 || r.top > vh + 240) continue
+        const amt = Number(el.dataset.thgDrift || 10)
+        const p = (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2)
+        writes.push([el, `translate3d(0,${(-p * amt).toFixed(2)}%,0)`])
       }
-      // Any throw inside pipeline init must degrade to DOM images, never
-      // take down the React tree (a THREE colour-space assignment did
-      // exactly that once).
-      let pipeline: ReturnType<typeof initThgImagePipeline> = null
-      if (fine) {
-        try { pipeline = initThgImagePipeline(root) } catch { pipeline = null }
+
+      for (const el of drifters) {
+        const r = el.getBoundingClientRect()
+        if (r.bottom < -240 || r.top > vh + 240) continue
+        const amt = Number(el.dataset.thgTdrift || 4)
+        const p = (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2)
+        writes.push([el, `translate3d(0,${(-p * amt).toFixed(2)}px,0)`])
       }
 
-      /* Hero name — the ONE place words,chars splitting happens on this
-         page. fromTo toward the resting state (never gsap.from): a from()
-         tween writes the hidden state as an inline style at ScrollTrigger/
-         timeline creation, so a paused rAF, a crawler or a screenshot
-         service would see permanently invisible text. */
-      const heroH1 = q('.thg-hero-h1')[0] as HTMLElement | undefined
-      if (heroH1) {
-        splits.push(SplitText.create(heroH1, {
-          type: 'words,chars',
-          wordsClass: 'thg-word',
-          charsClass: 'thg-char',
-          autoSplit: false,
-          onSplit: (self) => {
-            gsap.fromTo(
-              self.chars,
-              { yPercent: 112 },
-              { yPercent: 0, duration: DUR.l, ease: EASE, stagger: 0.018, delay: 0.15, clearProps: 'transform' },
-            )
-            return undefined
-          },
-        }))
+      const heroRect = hero ? hero.getBoundingClientRect() : null
+
+      // every read is done; now write
+      for (const [el, t] of writes) el.style.transform = t
+      if (heroRect) {
+        const wantInk = heroRect.bottom < 88
+        if (wantInk !== inkRef.current) { inkRef.current = wantInk; setInkChrome(wantInk) }
       }
-      gsap.fromTo(q('.thg-hero-eyebrow'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: DUR.m, ease: EASE, delay: 0.05 })
-      gsap.fromTo(q('.thg-hero-line'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: DUR.m, ease: EASE, delay: 0.5 })
+    }
 
-      /* Every other reveal on the page: one restrained primitive
-         (opacity+y fromTo, toward resting, once). Judged by architects —
-         no six-device toolkit here, the sketch shader IS the page's
-         signature reveal. Hero eyebrow/line are excluded here — they
-         already got their own immediate (non-scroll-triggered) fromTo
-         above, since the hero is visible at load, not scrolled into view;
-         a fromTo defaults immediateRender:true, so running this generic,
-         scroll-triggered copy over them too would snap them back to
-         opacity:0 the instant it's created, on top of the tween that just
-         faded them in. */
-      const revealEls = Array.from(root.querySelectorAll<HTMLElement>('[data-thg-reveal]'))
-        .filter((el) => !el.closest('.thg-hero'))
-      revealEls.forEach((el, i) => {
-        gsap.fromTo(
-          el,
-          { opacity: 0, y: 18 },
-          {
-            opacity: 1, y: 0, duration: DUR.m, ease: EASE, delay: (i % 3) * 0.05,
-            scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none', once: true },
-          },
-        )
-      })
+    let lenis: Lenis | null = null
+    let raf = 0
+    if (!reduced) {
+      lenis = new Lenis({ lerp: 0.09, smoothWheel: true })
+      lenisRef.current = lenis
+      const loop = (t: number) => { lenis?.raf(t); onScroll(); raf = requestAnimationFrame(loop) }
+      raf = requestAnimationFrame(loop)
+    } else {
+      window.addEventListener('scroll', onScroll, { passive: true })
+    }
+    onScroll()
+    window.addEventListener('resize', onScroll, { passive: true })
 
-      /* ~2s failsafe: clear ONLY the properties any of the above animate.
-         clearProps:'all' would also wipe React's own inline style
-         attribute (e.g. the hero media's object-fit is a class, but any
-         future inline style would go with it) — transform/clipPath only. */
-      const failsafe = window.setTimeout(() => {
-        gsap.set(
-          root.querySelectorAll('[data-thg-reveal], [data-thg-reveal] *, .thg-hero-h1, .thg-hero-h1 *, .thg-hero-eyebrow, .thg-hero-line'),
-          { opacity: 1, clearProps: 'transform,clipPath' },
-        )
-      }, 2000)
-
-      return () => {
-        window.clearTimeout(failsafe)
-        pipeline?.dispose()
-        if (tick) gsap.ticker.remove(tick)
-        lenis?.destroy()
-        splits.forEach((sp) => sp.revert())
-      }
-    })
-    return () => mm.revert()
+    return () => {
+      window.clearTimeout(failsafe)
+      io.disconnect()
+      cancelAnimationFrame(raf)
+      lenis?.destroy()
+      lenisRef.current = null
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      root.classList.remove('thg-js')
+    }
   }, [])
 
+  const mailto = useMemo(() => {
+    const body = `Nafn: ${form.name}\nNetfang: ${form.email}\nErindi: ${form.topic}\n`
+    return `mailto:${EMAIL}?subject=${encodeURIComponent('Fyrirspurn til THG Arkitekta')}&body=${encodeURIComponent(body)}`
+  }, [form])
+
+  const H2: React.CSSProperties = {
+    fontSize: 'clamp(1.5rem,3.6vw,3rem)', letterSpacing: '-.022em', lineHeight: 1.08, fontWeight: 400,
+  }
+
   return (
-    <div ref={rootRef} lang="is" className="thg-root" style={{ background: PAPER, overflowX: 'clip' }}>
-      <style>{PAGE_STYLES}</style>
+    <div ref={rootRef} className="thg-root">
+      <style>{CSS}</style>
+      <Preloader ink={INK} ground={GROUND} />
       <PreviewChrome company={company} />
-      <Chrome />
-      <main className="thg-main">
-        <Hero reducedMotion={reducedMotion} />
-        <Manifesto />
-        <ServicesLine />
-        <Stadarandi />
-        <Verkin />
-        <Innandyra />
-        <Stofan />
-        <Samband />
+
+      <header className={`thg-chrome${inkChrome ? ' is-ink' : ''}`}>
+        <a href="#thg-top" className="thg-wordmark">
+          THG Arkitektar<br /><span>{ADDRESS}</span>
+        </a>
+        <nav className="thg-nav" aria-label="Efnisyfirlit">
+          {NAV.map((n, i) => (
+            <a key={n.id} href={`#${n.id}`}>{n.label}{i < NAV.length - 1 ? ',' : ''}</a>
+          ))}
+        </nav>
+        <MobileNav items={NAV} lenisRef={lenisRef} />
+      </header>
+
+      <main id="thg-top">
+        {/* 1 · hero */}
+        <section className="thg-hero">
+          <div className="thg-frame" style={{ aspectRatio: 'auto', height: '100%' }}>
+            <div className="thg-frame-in" data-thg-drift="6" style={{ '--dz': '9%' } as React.CSSProperties}>
+              <img src={IMG(PHOTOS.hero.file)} alt={PHOTOS.hero.alt}
+                   loading="eager" decoding="async" {...{ fetchpriority: 'high' }} />
+            </div>
+          </div>
+          <div className="thg-hero-scrim" aria-hidden />
+          <div className="thg-hero-lock thg-pad">
+            <h1 style={{ fontWeight: 400 }}>
+              <Rise className="thg-lock">THG Arkitektar</Rise>
+              <Rise className="thg-lock thg-serif">frá 1994</Rise>
+            </h1>
+          </div>
+        </section>
+
+        {/* 2 · what the practice actually is. Every claim is theirs: founded
+             by Halldór Guðmundsson in October 1994, thirty-four named people
+             on the staff page, twenty-two projects in the register, the
+             services sentence verbatim, ISO 9001:2015 since 2016. */}
+        <section id="thg-thesis" className="thg-sec thg-pad">
+          <div className="thg-rule" />
+          <p
+            className="thg-statement thg-d"
+            data-thg-tdrift="34"
+            style={{ margin: 'clamp(26px,3.6vw,48px) 0 0' }}
+          >
+            <Rise>Ekki hús á auðum reit.</Rise>
+            <Rise className="thg-serif">Hús sem á heima.</Rise>
+          </p>
+
+          <div className="thg-intro">
+            <div>
+              <p className="thg-r thg-d" data-thg-tdrift="14" style={{ fontSize: 'clamp(1.05rem,1.5vw,1.32rem)', lineHeight: 1.5, letterSpacing: '-.01em' }}>
+                THG Arkitektar teiknar hótel, hjúkrunarheimili, þjónustuíbúðir, verslunar- og
+                veitingarými. Halldór Guðmundsson arkitekt stofnaði stofuna í október 1994 og þar
+                starfa þrjátíu og fjórir. Í verkefnaskránni eru tuttugu og tvö verk.
+              </p>
+              <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, lineHeight: 1.62, marginTop: '1.5rem', maxWidth: '46ch' }}>
+                Hönnun og ráðgjafarþjónusta í mannvirkjagerð á sviðum arkitektúrs, skipulags og
+                umhverfishönnunar, auk verkumsjónar og eftirlits. Gæðakerfi stofunnar er vottað
+                samkvæmt ÍST EN ISO 9001:2015.
+              </p>
+            </div>
+
+            <dl className="thg-spec">
+              {SPEC.map(([k, v]) => (
+                <div key={k}>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* 3 · THE WOW — the thesis as an area, from their own two published
+             numbers for Vík. See Stadarandi.tsx for the arithmetic and the
+             honesty boundary. */}
+        <section id="thg-vik" className="thg-sec thg-pad">
+          <div className="thg-rule" />
+          <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, margin: 'clamp(26px,3.6vw,48px) 0 .7rem' }}>
+            <Rise>Tvö þúsund sjö hundruð og þrjátíu fermetrar,</Rise>
+            <Rise className="thg-serif">utan um átta hundruð og fimmtíu.</Rise>
+          </h2>
+          <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, maxWidth: '46ch', lineHeight: 1.62, marginBottom: 'clamp(30px,4vw,58px)' }}>
+            Endurhæfingarmiðstöð SÁÁ í Vík stækkar um 2.730 fermetra og verður 3.580 fermetrar alls.
+            Húsið sem fyrir stóð er því 850 fermetrar. Verkefnið er ekki nýbygging á auðum reit,
+            heldur viðbót sem þarf að lúta því sem stendur.
+          </p>
+          <Stadarandi />
+          <p className="thg-r" style={{ color: MUTED, fontSize: '.86rem', marginTop: '1.6rem' }}>
+            Skýringarmynd af flatarmáli, ekki mæld teikning.
+          </p>
+        </section>
+
+        {/* 3b · full bleed */}
+        <Frame file={PHOTOS.band.file} alt={PHOTOS.band.alt} ratio="16 / 8" drift={13} />
+
+        <section className="thg-sec thg-pad">
+          <div className="thg-rule" />
+          <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, marginTop: 'clamp(26px,3.6vw,52px)' }}>
+            <Rise>Gatan liggur</Rise>
+            <Rise className="thg-serif">gegnum húsið.</Rise>
+          </h2>
+          <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, fontSize: 'clamp(1rem,1.2vw,1.1rem)', lineHeight: 1.62, maxWidth: '46ch', marginTop: '1.4rem' }}>
+            Kolasundið liggur gegnum jarðhæð Reykjavík Konsúlat við Hafnarstræti 19 og tengir gamla
+            miðbæinn við það sem áður var sjávarströndin. Almenn gönguleið er hluti af húsinu sjálfu,
+            ekki viðbót við það.
+          </p>
+        </section>
+
+        {/* 4 · ledger */}
+        <section className="thg-sec thg-pad">
+          <div className="thg-ledger">
+            {LEDGER.map(([k, v]) => (
+              <div className="thg-led" key={k}>
+                <span className="thg-led-k"><Rise>{k}</Rise></span>
+                <span className="thg-led-v thg-serif"><Rise>{v}</Rise></span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 5 · the works */}
+        <section id="thg-works" className="thg-sec thg-pad">
+          <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, marginBottom: '.7rem' }}><Rise>Verkin</Rise></h2>
+          <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, maxWidth: '46ch', lineHeight: 1.6, marginBottom: 'clamp(24px,3.4vw,48px)' }}>
+            Sjö af tuttugu og tveimur verkum í skránni — þau sem eiga birtar ljósmyndir.
+          </p>
+          {/* A list, not a grid. Seven tiles read as a thin grid of stock
+              photographs; seven names set large read as a practice with a
+              position. */}
+          <WorkList />
+        </section>
+
+        {/* 5b · innandyra */}
+        <section className="thg-sec thg-pad">
+          <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, marginBottom: 'clamp(24px,3.4vw,48px)' }}>
+            <Rise>Innandyra</Rise>
+          </h2>
+          <div className="thg-pair">
+            <Frame file={PHOTOS.insideA.file} alt={PHOTOS.insideA.alt} ratio="4 / 3" drift={10} />
+            <Frame file={PHOTOS.insideB.file} alt={PHOTOS.insideB.alt} ratio="4 / 3" drift={10} />
+          </div>
+        </section>
+
+        {/* 6 · the register — the answer to "is that all you've done?".
+             Twenty-two titles, exactly as thg.is/verkefni lists them. */}
+        <section id="thg-register" className="thg-sec thg-pad">
+          <div className="thg-rule" />
+          <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, margin: 'clamp(26px,3.6vw,48px) 0 .7rem' }}>
+            <Rise>Tuttugu og tvö verk</Rise>
+            <Rise className="thg-serif">í skránni</Rise>
+          </h2>
+          <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, maxWidth: '46ch', lineHeight: 1.6 }}>
+            Hótel, hjúkrunarheimili, þjónustuíbúðir, verslun, veitingar, skólar og skipulag. Öll skráð
+            á vef stofunnar.
+          </p>
+        </section>
+
+        <Register
+          label="Verkefnaskrá THG Arkitekta"
+          peaks={REGISTER.map((name, i) => ({ name, rise: REGISTER_RISE[i % REGISTER_RISE.length] }))}
+        />
+
+        {/* 7 · services */}
+        <section id="thg-services" className="thg-sec thg-pad" style={{ background: BAND }}>
+          <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, marginBottom: '1.4rem' }}><Rise>Þjónustan</Rise></h2>
+          <div className="thg-ledger">
+            {SERVICES.map(([k, v]) => (
+              <div className="thg-led" key={k}>
+                <span className="thg-led-k"><Rise>{k}</Rise></span>
+                <span className="thg-led-v thg-serif"><Rise>{v}</Rise></span>
+              </div>
+            ))}
+          </div>
+          <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, marginTop: '1.3rem', maxWidth: '46ch', lineHeight: 1.6 }}>
+            Öll svið stofunnar eins og hún lýsir þeim sjálf.
+          </p>
+        </section>
+
+        {/* 7b · closing frame */}
+        <Frame file={PHOTOS.closing.file} alt={PHOTOS.closing.alt} ratio="16 / 8" drift={11} />
+
+        {/* 8 · enquiry */}
+        <section id="thg-enquiry" className="thg-sec thg-pad">
+          <h2 className="thg-d" data-thg-tdrift="40" style={{ fontSize: 'clamp(1.9rem,5.2vw,4.6rem)', letterSpacing: '-.028em', lineHeight: 1.02, fontWeight: 400, marginBottom: 'clamp(28px,4vw,56px)' }}>
+            <Rise>Fyrirspurn</Rise>
+          </h2>
+          <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '44rem' }}>
+            <label>
+              <span className="thg-lab">Nafn</span>
+              <input className="thg-field" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </label>
+            <label>
+              <span className="thg-lab">Netfang</span>
+              <input className="thg-field" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </label>
+            <label>
+              <span className="thg-lab">Erindi</span>
+              <select className="thg-field" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })}>
+                {ENQUIRY_TOPICS.map((t) => <option key={t}>{t}</option>)}
+              </select>
+            </label>
+            <a className="thg-send" href={mailto}>Senda fyrirspurn</a>
+          </div>
+
+          <div className="thg-rule" style={{ margin: 'clamp(48px,7vw,96px) 0 1.5rem' }} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.5rem 2.2rem', color: MUTED, fontSize: '.98rem' }}>
+            <a className="thg-contact" href={EMAIL_HREF} style={{ color: INK }}>{EMAIL}</a>
+            <a className="thg-contact" href={PHONE_HREF} style={{ color: INK }}>{PHONE_DISPLAY}</a>
+            <span>THG Arkitektar ehf. · {KT}</span>
+            <span>{ADDRESS}</span>
+          </div>
+        </section>
       </main>
+
       <PreviewFooter company={company} />
     </div>
   )
