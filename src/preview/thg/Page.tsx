@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
@@ -7,178 +8,198 @@ import Lenis from 'lenis'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { setThemeColor } from '../../lib/preview'
+import { setThemeColor, setNoindex } from '../../lib/preview'
 import {
-  IMG, ADDRESS, PHONE_DISPLAY, PHONE_HREF, EMAIL, EMAIL_HREF, KT, MAP_LINK,
-  PRACTICE, THESIS_QUOTES, CODENAME, TAGLINE, PROJECTS, INTERIORS,
-  TVENNS_KONAR, KOLASUNDID, PAGE_TITLE, PAGE_DESCRIPTION, JSON_LD,
+  IMG, ADDRESS, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, KT,
+  PRACTICE, TAGLINE, PROJECTS, INTERIORS, KIND_LABEL, KOLASUNDID,
+  PHOTOS, DOCUMENTS, ENQUIRY_TOPICS, NAV,
+  PAGE_TITLE, PAGE_DESCRIPTION, JSON_LD,
 } from './data'
-import type { Project } from './data'
+import type { ProjectKind } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
 CustomEase.create('thgOut', '0.25,1,0.5,1')
 CustomEase.create('thgIn', '0.5,0,0.75,0')
 CustomEase.create('thgInOut', '0.75,0,0.25,1')
-CustomEase.create('thgJourney', '0.25,0,0.75,1')
+CustomEase.create('thgDive', '0.6,0,0,1')
 
 const company = getPreviewCompany('thg')
 
-/* ── THG Arkitektar — "Staðarandi" ───────────────────────────────────────
-   Design system transplanted from the era-residence.com teardown (the
-   MECHANICS only — fluid canvas, self-theming chrome, six reveal
-   primitives, horizontal journey). Surface is entirely THG's own: concrete
-   and graphite, two grotesk faces, colour drawn only from the seven
-   projects' own photography. No arches, no Didone, no gold-on-black.
+/* ═════════════════════════════════════════════════════════════════════════
+   THG ARKITEKTAR — "Staðarandi", rebuilt as an EXACT transplant of the
+   Heklusýn page (src/preview/heklusyn/Page.tsx), device for device:
 
-   Judged by architects. Restraint over decoration, always. ──────────────── */
+     1. arch-aperture preloader, session-once, hard-capped at 2.5s
+     2. three independently-themed chrome elements (mark / nav / CTA), each
+        re-theming on ITS OWN vertical centre, never one shared state
+     3. §1 the 320vh scrubbed dive-in hero, scale 1→1.8 from 50%/75%, three
+        text layers parallaxing out at differential rates
+     4. §4 the rising dome — two 50vw top radii meeting at the centre of a
+        full-bleed section, with word-spacing 0→2vw scrubbed on its heading
+     5. §7 the 10-point shutter merge (converge → merge to centre → push
+        through with a scale), never a crossfade
+     6. §10 the footer aperture close — sections 1–9 clip to inset(8% 22%)
+        and scale to .75 while Fyrirspurn scales .75→1 to meet them
+     7. the six reveal primitives on real GSAP SplitText char splits
+     8. the fluid canvas (--thg-uN tokens), the self-theming bands, the
+        <details> ledger with filter chips, the horizon-strip selector
 
-const CONCRETE = '#E8E6E1'
-const GRAPHITE = '#1C1D1F'
-const INK = '#16181A'
-const MUTED = '#5A5E62'
-const BRICK = '#A8412A'
-const PAPER = '#E8E6E1'
-const PAPER_MUTED = '#A7A6A3'
+   IDENTITY IS ALSO HEKLUSÝN'S, deliberately: chalk / sand / basalt / river,
+   Gambetta + Supreme, the same type scale and the same air. The only things
+   that changed are the FACTS and the PHOTOGRAPHS, which are THG's own.
 
-const DISPLAY = "'THG Sentient', Georgia, 'Times New Roman', serif"
-const BODY = "'THG Switzer', 'Helvetica Neue', Arial, sans-serif"
-const FONTS_SENTIENT = `${import.meta.env.BASE_URL}fonts/sentient/`
-const FONTS_SWITZER = `${import.meta.env.BASE_URL}fonts/switzer/`
+   THREE DEVIATIONS, each forced by honesty, none structural:
+   a) Heklusýn's horizon strip pins eight mountains onto one photograph.
+      THG has no landscape to pin, so the same strip drives a PROJECT
+      selector: the plate swaps to the selected building. No coordinate is
+      asserted anywhere — the dot rail is a plain index, not a position.
+   b) Heklusýn's "Tölvumynd" chip marks CGI. Every THG image is a real
+      photograph, so the identical chip carries the building and the room
+      instead. Labelling a photo "Tölvumynd" would be a false claim.
+   c) The ledger's sold/for-sale/under-construction pills become the three
+      building families THG's own site names (hótel, þjónusta og hjúkrun,
+      endurhæfing). Nothing here is for sale.
 
-/* Duration ladder + easing — BRIEF §5.3 / era teardown Phase 6, verbatim. */
+   FLUID CANVAS — ERA sets html{font-size:1vw} globally. This app has ~90
+   other routes sharing the same <html>, so every --thg-u* token is instead
+   written as calc(Nvw / var(--thg-ratio)) — mathematically identical
+   output, zero global blast radius.
+
+   Every reveal below is gsap.fromTo(...) toward the resting state — never
+   gsap.from(). React always renders the full, final text; GSAP only ever
+   writes a transient inline "from" style inside a
+   prefers-reduced-motion:no-preference branch, then a 2s failsafe clears
+   any leftover inline transform/clip-path. A crawler, a paused rAF tab or a
+   screenshot mid-scroll therefore always sees complete, positioned text. ── */
+
+const FONTS_G = `${import.meta.env.BASE_URL}fonts/gambetta/`
+const FONTS_S = `${import.meta.env.BASE_URL}fonts/supreme/`
+
+const GAMBETTA = "'THG Gambetta', Georgia, serif"
+const SUPREME = "'THG Supreme', -apple-system, sans-serif"
+
+const prefersReduced = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/* Palette — Heklusýn's, carried across unchanged, contrast pairs verified
+   (relative-luminance formula):
+   ink #161A17 / chalk #F0ECE4 ............ 14.92:1 (AAA)
+   ink #161A17 / sand  #E4DED2 ............ 13.13:1 (AAA)
+   muted #5C635C / chalk .................. 5.25:1 (AA)
+   muted #5C635C / sand ................... 4.62:1 (AA)
+   river #3E5C6B / chalk .................. 6.05:1 (AA, close to AAA)
+   river #3E5C6B / sand ................... 5.32:1 (AA)
+   tawny #8A5A28 / chalk .................. 4.99:1 (AA, LARGE TEXT ONLY)
+   chalk #F0ECE4 / dark #141815 ........... 15.22:1 (AAA)
+   accent #9BB6C4 / dark #141815 .......... 8.44:1 (AAA)
+   chalk #F0ECE4 / river #3E5C6B .......... 6.05:1 (AA)
+   muted-on-dark #A9B1A9 / dark ........... 8.15:1 (AAA)
+   muted-on-river #D3DBDE / river ......... 5.07:1 (AA)                     */
+const INK = '#161A17'
+const CHALK = '#F0ECE4'
+const SAND = '#E4DED2'
+const MUTED = '#5C635C'
+const RIVER = '#3E5C6B'
+const TAWNY = '#8A5A28'
+const DARK = '#141815'
+const MUTED_ON_DARK = '#A9B1A9'
+const MUTED_ON_RIVER = '#D3DBDE'
+const ACCENT_ON_DARK = '#9BB6C4'
+
+/* Duration ladder + easing — teardown Phase 6, verbatim ratios. thgDive
+   (registered above, 0.6,0,0,1) is reserved for a future preloader exit
+   flourish; not currently wired to a tween. */
 const DUR = { s: 0.4, m: 0.8, l: 1.2 }
 const EASE = { out: 'thgOut', in: 'thgIn', inout: 'thgInOut' }
+const STAGGER = 0.1
+const DELAY = 0.3
 
-const FOCUS_CLASS = 'thg-focus-ring'
-
-/* ── Per-project themes — each ground colour was sampled from that
-   building's OWN photograph (median-cut quantisation of the actual JPEG,
-   picked for the most distinct swatch), then nudged to clear WCAG AA
-   against its paired text colour. Verified ratios (relative-luminance
-   formula, computed 2026-07-27):
-
-     borg       ground #2E1911  text #E8E6E1 (paper)  → 13.33:1  AAA
-     marina     ground #23302F  text #E8E6E1 (paper)  → 10.97:1  AAA
-     konsulat   ground #E4E7EA  text #16181A (ink)     → 14.34:1  AAA
-     von        ground #DEDDD9  text #16181A (ink)     → 13.10:1  AAA
-     eir        ground #EDE7DB  text #16181A (ink)     → 14.46:1  AAA
-     hrafnista  ground #E3E5EA  text #16181A (ink)     → 14.12:1  AAA
-     saavik     ground #E6E1D2  text #16181A (ink)     → 13.62:1  AAA
-
-   Each theme's small saturated "accent" (a genuine colour lifted straight
-   from that project's own photo) is DECORATIVE ONLY — underlines, dots,
-   the field-label rule — never body text; see contrast notes inline. ──── */
-const THEME_CSS = `
-.thg-root [data-thg-theme="concrete"] { --thg-bg:${CONCRETE}; --thg-fg:${INK}; --thg-fg-muted:${MUTED}; --thg-focus:${BRICK}; --thg-accent:${BRICK}; }
-.thg-root [data-thg-theme="graphite"] { --thg-bg:${GRAPHITE}; --thg-fg:${PAPER}; --thg-fg-muted:${PAPER_MUTED}; --thg-focus:${PAPER}; --thg-accent:${BRICK}; }
-.thg-root [data-thg-theme="borg"]      { --thg-bg:#2E1911; --thg-fg:#E8E6E1; --thg-fg-muted:#B9B7B2; --thg-focus:#E8E6E1; --thg-accent:#C79A5B; }
-.thg-root [data-thg-theme="marina"]    { --thg-bg:#23302F; --thg-fg:#E8E6E1; --thg-fg-muted:#B9B7B2; --thg-focus:#E8E6E1; --thg-accent:#B36E5C; }
-.thg-root [data-thg-theme="konsulat"]  { --thg-bg:#E4E7EA; --thg-fg:#16181A; --thg-fg-muted:#5A5E62; --thg-focus:${BRICK}; --thg-accent:#6B7480; }
-.thg-root [data-thg-theme="von"]       { --thg-bg:#DEDDD9; --thg-fg:#16181A; --thg-fg-muted:#5A5E62; --thg-focus:${BRICK}; --thg-accent:#8C8A82; }
-.thg-root [data-thg-theme="eir"]       { --thg-bg:#EDE7DB; --thg-fg:#16181A; --thg-fg-muted:#5A5E62; --thg-focus:${BRICK}; --thg-accent:#C1642A; }
-.thg-root [data-thg-theme="hrafnista"] { --thg-bg:#E3E5EA; --thg-fg:#16181A; --thg-fg-muted:#5A5E62; --thg-focus:${BRICK}; --thg-accent:#4C74A8; }
-.thg-root [data-thg-theme="saavik"]    { --thg-bg:#E6E1D2; --thg-fg:#16181A; --thg-fg-muted:#5A5E62; --thg-focus:${BRICK}; --thg-accent:#8C8355; }
-.thg-root [data-thg-theme] { background: var(--thg-bg); color: var(--thg-fg); }
-`
+/* The active Lenis instance (module scope, set/cleared by Page()'s
+   matchMedia branch) so Chrome's nav clicks route scroll THROUGH it — a
+   native scrollIntoView while Lenis owns the wheel would be reverted the
+   next frame. Null under reduced motion, where scroll is native. */
+let thgLenis: Lenis | null = null
 
 const PAGE_STYLES = `
-@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Sentient'; src:url('${FONTS_SENTIENT}Sentient-Italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Semibold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
-@font-face { font-family:'THG Switzer'; src:url('${FONTS_SWITZER}Switzer-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Gambetta'; src:url('${FONTS_G}Gambetta-Light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Gambetta'; src:url('${FONTS_G}Gambetta-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Gambetta'; src:url('${FONTS_G}Gambetta-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Gambetta'; src:url('${FONTS_G}Gambetta-SemiBold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Gambetta'; src:url('${FONTS_G}Gambetta-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Gambetta'; src:url('${FONTS_G}Gambetta-Italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
+@font-face { font-family:'THG Supreme'; src:url('${FONTS_S}Supreme-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Supreme'; src:url('${FONTS_S}Supreme-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'THG Supreme'; src:url('${FONTS_S}Supreme-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
 
-/* ═══ 1 — THE FLUID CANVAS (era teardown Phase 2.1 / BRIEF §5.1) ═══════════
-   Mathematically identical to "html{font-size:1vw}" + calc(Nrem/ratio) —
-   1rem at that font-size literally equals 1vw, so calc(Nrem/ratio) always
-   reduces to (N/ratio)vw. Expressing it directly in vw lets the fluid
-   canvas stay SCOPED to .thg-root instead of overwriting the shared
-   <html> font-size for every other route in this app. */
+/* ═══ Fluid canvas (era teardown Phase 2.1 / 13.1), scoped — see note above ═══ */
 .thg-root {
-  --thg-ratio: 16;   /* desktop canvas: 1600px */
-  --thg-u4:  calc(4  * 1vw / var(--thg-ratio));
-  --thg-u8:  calc(8  * 1vw / var(--thg-ratio));
-  --thg-u12: calc(12 * 1vw / var(--thg-ratio));
-  --thg-u16: calc(16 * 1vw / var(--thg-ratio));
-  --thg-u24: calc(24 * 1vw / var(--thg-ratio));
-  --thg-u32: calc(32 * 1vw / var(--thg-ratio));
-  --thg-u48: calc(48 * 1vw / var(--thg-ratio));
-  --thg-u64: calc(64 * 1vw / var(--thg-ratio));
-  --thg-u96: calc(96 * 1vw / var(--thg-ratio));
-  --thg-u160: calc(160 * 1vw / var(--thg-ratio));
-  --thg-gutter: var(--thg-u48);
-  --thg-chrome-fg: ${PAPER};
+  --thg-ratio: 16;
+  --thg-dur-s: .4s; --thg-dur-m: .8s; --thg-dur-l: 1.2s;
+  --thg-ease-out: cubic-bezier(.25,1,.5,1);
+  --thg-ease-in: cubic-bezier(.5,0,.75,0);
+  --thg-ease-in-out: cubic-bezier(.75,0,.25,1);
+  --thg-u2: calc(2vw / var(--thg-ratio));   --thg-u4: calc(4vw / var(--thg-ratio));
+  --thg-u8: calc(8vw / var(--thg-ratio));   --thg-u12: calc(12vw / var(--thg-ratio));
+  --thg-u16: calc(16vw / var(--thg-ratio)); --thg-u24: calc(24vw / var(--thg-ratio));
+  --thg-u32: calc(32vw / var(--thg-ratio)); --thg-u48: calc(48vw / var(--thg-ratio));
+  --thg-u64: calc(64vw / var(--thg-ratio)); --thg-u96: calc(96vw / var(--thg-ratio));
+  --thg-u160: calc(160vw / var(--thg-ratio));
+  --thg-gutter: max(20px, var(--thg-u48));
+  --thg-num: calc(240vw / var(--thg-ratio));
+  --thg-d1: calc(150vw / var(--thg-ratio));
+  --thg-d2: calc(84vw / var(--thg-ratio));
+  --thg-d3: calc(52vw / var(--thg-ratio));
+  --thg-lead: max(19px, calc(23vw / var(--thg-ratio)));
+  --thg-body: max(17px, calc(18vw / var(--thg-ratio)));
+  --thg-label: max(11px, calc(12vw / var(--thg-ratio)));
+  font-family: ${SUPREME};
+  background: ${CHALK}; color: ${INK};
+  overflow-x: clip;
 }
-@media (min-width: 768px) and (max-width: 991px) { .thg-root { --thg-ratio: 8.34; --thg-gutter: var(--thg-u24); } } /* tablet canvas: 834px */
-@media (max-width: 767px) { .thg-root { --thg-ratio: 4.16; --thg-gutter: var(--thg-u24); } } /* mobile canvas: 416px */
-
-.thg-root { font-family: ${BODY}; }
-.thg-root ::selection { background: ${INK}; color: ${CONCRETE}; }
-.thg-container { padding-inline: var(--thg-gutter); }
-
-${THEME_CSS}
-
-/* ═══ 2 — SELF-THEMING FIXED CHROME (era Phase 5.4 / addendum device 7) ════
-   #thg-chrome sits outside every themed section, so it cannot inherit
-   --thg-fg by cascade. Outside the journey, Page.tsx reads each themed
-   VERTICAL zone's own computed --thg-fg and writes it onto the bulk
-   --thg-chrome-fg only when the active zone changes. Inside the horizontal
-   journey each [data-thg-chrome-part] (logo+wordmark, codename badge) is
-   re-themed INDEPENDENTLY — its own bounding-box centre is tested against
-   the project panel currently beneath it, era §5.4's per-element-centre
-   idea adapted to the horizontal axis — via --thg-part-fg, which wins over
-   the bulk colour by cascade specificity. Neither write happens on every
-   scroll tick, only when the active zone/panel actually changes, so this
-   0.4s colour transition never fights a per-frame write (the "no CSS
-   transition on a scrub-driven property" rule). */
-#thg-chrome { color: var(--thg-chrome-fg); transition: color ${DUR.s}s cubic-bezier(.25,1,.5,1); }
-#thg-chrome [data-thg-chrome-part] { color: var(--thg-part-fg, inherit); transition: color ${DUR.s}s cubic-bezier(.25,1,.5,1); }
-
-/* ═══ 3 — FOCUS — visible on both concrete and graphite grounds ═══════════
-   Each theme block above defines --thg-focus to the colour that clears
-   3:1 against ITS OWN ground (paper on the dark project/graphite grounds,
-   brick on every light one) — see the contrast table in the comment above
-   THEME_CSS. */
-.thg-root .${FOCUS_CLASS}:focus-visible,
-.thg-root .thg-track:focus-visible,
-.thg-root a:focus-visible,
-.thg-root button:focus-visible {
-  outline: 2px solid var(--thg-focus, ${BRICK});
-  outline-offset: 3px;
-  border-radius: 1px;
+@media (max-width: 991px) { .thg-root {
+  --thg-gutter: max(18px, var(--thg-u32));
+  --thg-u24: var(--thg-u16); --thg-u32: var(--thg-u24); --thg-u48: var(--thg-u32);
+  --thg-u64: var(--thg-u48); --thg-u96: var(--thg-u64); --thg-u160: var(--thg-u96);
+} }
+@media (max-width: 767px) { .thg-root { --thg-ratio: 4.16; } }
+@media (min-width: 768px) and (max-width: 991px) { .thg-root { --thg-ratio: 8.34; } }
+@media (max-width: 767px) { .thg-root {
+  --thg-num: calc(190vw / var(--thg-ratio));
+  --thg-d1: calc(76vw / var(--thg-ratio));
+  --thg-d2: calc(50vw / var(--thg-ratio));
+  --thg-d3: calc(34vw / var(--thg-ratio));
+} }
+.thg-root ::selection { background: ${INK}; color: ${CHALK}; }
+.thg-root :focus-visible { outline: 2px solid var(--thg-t-accent, ${RIVER}); outline-offset: 3px; border-radius: 2px; }
+/* Descendant selector, not direct-child: the footer-aperture-close wrapper
+   (.thg-close-stack / .thg-enquiry-wrap) sits between <main> and every
+   section, so "main > section" would silently stop matching anything. */
+.thg-root main header, .thg-root main section { scroll-margin-top: 68px; }
+.thg-root h1, .thg-root h2, .thg-root h3, .thg-root .thg-fit {
+  overflow-wrap: break-word; word-break: break-word; hyphens: auto;
 }
 
-/* ═══ 4 — SIX REVEAL PRIMITIVES, era Phase 5.7 / BRIEF §5.3 ════════════════
-   Every element below keeps its ORDINARY resting layout in plain CSS —
-   there is no opacity:0 default anywhere on this page. JS (inside a
-   prefers-reduced-motion:no-preference matchMedia branch) calls
-   gsap.from(el, hiddenState) which briefly sets an inline "from" style and
-   animates BACK to the element's natural computed style. If JS never runs,
-   or a crawler/screenshot service renders before ScrollTrigger fires, the
-   element is simply sitting at its normal, fully visible layout — nothing
-   to "clear". A 2s failsafe (Page(), below) additionally clears any
-   leftover inline reveal styles as a backstop against a stuck mid-tween
-   frame. Icelandic accents (þ/ð/á/é/í/ó/ú/ý/æ/ö) get line-height ≥1.22 on
-   every char-split element so ascenders/accents are never guillotined by
-   the SplitText line mask. */
-.thg-chars { line-height: 1.22 !important; }
-/* SplitText char elements MUST stay inline-block. GSAP's own mask option
-   emits block-level wrappers in this version, which stacks every character
-   on its own line, so the per-character mask is done here instead. */
-/* Fixed-chrome legibility scrim: sits behind the bar, fades to nothing.
-   Only visible where it is needed (over bright photography). */
-.thg-chrome-bar { position: fixed; }
-.thg-chrome-scrim {
-  position: absolute; inset: -1px 0 auto 0; height: 132px; z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(18,20,22,.72) 0%, rgba(18,20,22,.46) 46%, rgba(18,20,22,0) 100%);
-}
-.thg-root[data-thg-chrome-ground='light'] .thg-chrome-scrim {
-  background: linear-gradient(180deg, rgba(232,230,225,.88) 0%, rgba(232,230,225,.55) 46%, rgba(232,230,225,0) 100%);
-}
+/* ═══ Self-theming bands — components read only the semantic tokens ═══ */
+.thg-theme-chalk { --thg-t-ink:${INK}; --thg-t-ground:${CHALK}; --thg-t-muted:${MUTED}; --thg-t-accent:${RIVER}; }
+.thg-theme-sand  { --thg-t-ink:${INK}; --thg-t-ground:${SAND};  --thg-t-muted:${MUTED}; --thg-t-accent:${RIVER}; }
+.thg-theme-dark  { --thg-t-ink:${CHALK}; --thg-t-ground:${DARK}; --thg-t-muted:${MUTED_ON_DARK}; --thg-t-accent:${ACCENT_ON_DARK}; }
+.thg-theme-river { --thg-t-ink:${CHALK}; --thg-t-ground:${RIVER}; --thg-t-muted:${MUTED_ON_RIVER}; --thg-t-accent:${CHALK}; }
+.thg-band { background: var(--thg-t-ground); color: var(--thg-t-ink); }
+
+/* ═══ Fixed chrome — wordmark, nav and CTA re-theme on THEIR OWN centre
+   (teardown Phase 5.4 / 13.3), three independent ScrollTrigger instances,
+   never one shared state. Colour transition only, 0.4s. ═══ */
+.thg-chrome-mark, .thg-chrome-nav, .thg-chrome-cta-label { transition: color var(--thg-dur-s) var(--thg-ease-out); }
+.thg-chrome-bar { transition: background-color var(--thg-dur-s) var(--thg-ease-out), border-color var(--thg-dur-s) var(--thg-ease-out); }
+
+/* ═══ Six reveal primitives — real GSAP SplitText, not IO whole-element
+   fades. Word wrappers stay inline-block/nowrap so a line never breaks
+   mid-word; character masking is CSS, never the SplitText mask option
+   (its wrappers render block-level here — see
+   [[gsap-splittext-clearprops-traps]] — which would stack chars vertically).
+   Perspective lives on the reveal-marked element itself: it is the direct
+   parent of the split char spans, which is exactly where a 3D-transform
+   ancestor needs to sit. ═══ */
 .thg-word {
   display: inline-block;
   white-space: nowrap;
@@ -188,1016 +209,1390 @@ ${THEME_CSS}
   margin-bottom: -0.20em;
 }
 .thg-char { display: inline-block; }
-/* Keeps each word atomic so a line never breaks between two characters. */
-.thg-hero-h1 > div, .thg-hero-h1 > span,
-[data-thg-reveal='h'] > div, [data-thg-reveal='h'] > span { display: inline-block; vertical-align: top; }
-.thg-lines { line-height: 1.5; }
+[data-thg-reveal="h"], [data-thg-reveal="a"] { line-height: 1.22; }
+[data-thg-reveal="p"] { line-height: 1.6; }
 
-/* ═══ 5 — THE APERTURE SHUTTER, three beats (addendum device 1 / era §11) ═
-   Resting state (no JS, and the failsafe end-state): both panels sit fully
-   off-canvas (translateX ±100% of their OWN half-width) — the photo and
-   the hero copy are fully visible from the very first paint, nothing to
-   "clear". JS plays a TIME-BASED (not scroll-triggered) three-beat
-   timeline that starts from this exact resting position, so there is no
-   flash at tween creation:
-     1. CONVERGE  — both panels slide in from the outer edges to translateX
-        0, meeting at the centre seam and, together, covering the full
-        frame (photo + hero copy included).
-     2. MERGE+HOLD — an explicit pause once they read as one covering
-        plane (.thg-shutter-plane, the wrapper around both halves).
-     3. PUSH THROUGH — the merged plane scales past the viewer
-        (scale → 1.6) while it fades, clearing the frame and revealing the
-        photo underneath — echoing era's arch shutter, which scales its
-        merged aperture 1 → 1.84 as "the camera pushes through".
-   Only transform/opacity are ever written inline, so the ~2s failsafe
-   (clearProps:'transform,clipPath', Page() below) can always recover a
-   stuck mid-tween frame back to this exact resting, fully-open state. */
-.thg-shutter-plane { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-.thg-shutter { position: absolute; top: 0; bottom: 0; width: 50%; background: ${GRAPHITE}; }
-.thg-shutter-left  { left: 0; transform: translateX(-100%); }
-.thg-shutter-right { right: 0; transform: translateX(100%); }
-.thg-hero-frame { position: absolute; inset: 0; overflow: hidden; }
-.thg-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 62%; }
-
-/* ═══ 6 — THE HORIZONTAL JOURNEY (addendum device 2 / era §5.6) ═══════════
-   Base state (mobile AND prefers-reduced-motion:reduce): a plain
-   scroll-snap swipe rail — never a scroll-jack, never pinned. Same seven
-   panels, same DOM order, real focusable content, screen-reader-linear.
-
-   Promoted at >=992px AND prefers-reduced-motion:no-preference to era's
-   OWN mechanism, not a GSAP-managed pin: .thg-journey (the outer runway)
-   gets its height set in JS to .thg-track's scrollWidth — one vertical
-   pixel of runway per horizontal pixel of travel, the "1:1 mapping" the
-   brief asks for — while .thg-journey-sticky (the viewport window) is a
-   plain CSS position:sticky, so it stays pinned to the top of the
-   viewport for exactly the runway's length with no spacer div, no pin
-   bookkeeping. .thg-track is the element GSAP actually translates. */
-.thg-journey { position: relative; }
-.thg-track {
-  display: flex; overflow-x: auto; overflow-y: hidden;
-  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.thg-track::-webkit-scrollbar { display: none; }
-.thg-panel { flex: 0 0 88vw; scroll-snap-align: start; min-height: 78svh; }
-@media (min-width: 480px) { .thg-panel { flex-basis: 62vw; } }
-.thg-journey-label { padding: var(--thg-u32) var(--thg-gutter) var(--thg-u16); }
-.thg-progress { display: none; }
-
-@media (min-width: 992px) and (prefers-reduced-motion: no-preference) {
-  .thg-journey-sticky {
-    position: sticky; top: 0; height: 100svh; overflow: hidden;
-    display: block;
-  }
-  .thg-track {
-    position: relative; overflow: visible; scroll-snap-type: none;
-    width: max-content; height: 100svh; align-items: stretch;
-    will-change: transform; backface-visibility: hidden;
-  }
-  .thg-panel { flex: none; width: 100vw; height: 100svh; min-height: 0; scroll-snap-align: none; }
-  .thg-panel-title { display: inline-block; will-change: transform; }
-  .thg-journey-label {
-    position: absolute; left: 0; bottom: 0; z-index: 5; pointer-events: none;
-    padding: 0 var(--thg-gutter) var(--thg-u32);
-  }
-  /* The label and the progress bar are pinned to the bottom of the same
-     sticky viewport as the panels, so panel content has to clear them or the
-     two sets of text sit on top of each other. */
-  .thg-panel > .thg-container:last-child { padding-bottom: calc(var(--thg-u32) + 3.25rem); }
-  .thg-progress {
-    display: block; position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
-    height: 3px; transform-origin: left center; transform: scaleX(0);
-    background: ${BRICK};
-  }
-}
-
-/* ═══ 7 — Reduced motion: neutralise anything decorative that remains ═════ */
+/* ═══ §1 Arrival — the dive-in hero. ≥300vh scrubbed runway; a sticky inner
+   viewport holds the frame while GSAP scales the image 1→~1.8 from 50%/75%
+   and parallaxes the three text layers out at differential rates.
+   position:sticky, not a ScrollTrigger pin — the brief bans scroll-jacking;
+   sticky never holds the page still, it only keeps content in view while
+   native scroll continues normally. No CSS transition anywhere in this
+   block: every property here is rewritten every scroll tick from JS. ═══ */
+.thg-hero-scroll { position: relative; height: 320vh; }
+.thg-hero-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.thg-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 75%; will-change: transform; }
 @media (prefers-reduced-motion: reduce) {
-  .thg-hero-img { transform: none !important; }
+  .thg-hero-scroll { height: 100svh; }
+  .thg-hero-sticky { position: relative; }
+  .thg-hero-image { transform: none !important; }
 }
 
-/* ═══ 8 — Misc furniture ════════════════════════════════════════════════ */
-.thg-rule { height: 1px; width: 100%; transform-origin: left center; }
-.thg-field-row + .thg-field-row { border-top-width: 1px; }
-.thg-diagram-path { fill: none; stroke-width: 1.5; }
+/* ═══ §4 Aðferðin — the rising dome (teardown §3 §2 / Phase 13.7). Two 50vw
+   corner radii on a full-bleed section meet at the exact centre of its top
+   edge, producing one continuous elliptical crest — no arc-set SVG type
+   needed for that. word-spacing on the heading is scrubbed separately in
+   JS (never a CSS transition, since it is rewritten every tick). ═══ */
+.thg-dome {
+  position: relative; overflow: hidden;
+  border-top-left-radius: 50vw; border-top-right-radius: 50vw;
+  margin-top: calc(-1 * var(--thg-u32));
+  padding-top: calc(var(--thg-u64) + 6vw);
+}
+@media (max-width: 767px) {
+  .thg-dome { margin-top: calc(-1 * var(--thg-u16)); padding-top: calc(var(--thg-u48) + 11vw); }
+}
+.thg-dome-heading { word-spacing: 0vw; }
 
-/* ═══ 9 — GROWING ARC CTA (addendum device 4 / era §2.7(b)) ════════════════
-   Zero JS hover: a CSS custom-property state machine exactly like era's
-   circle CTA. --thg-arc-dash starts at 0.0417×C (a short tick, C = 2π×44 ≈
-   276.46) and is reassigned to C/2 — a half circle, NEVER the full ring —
-   by :hover (gated to pointer-capable desktop widths only) and by
-   :focus-visible (kept UNGATED by width, honouring the page-wide
-   ":focus-visible on everything" rule ahead of the brief's narrower
-   hover-only framing). The dash itself only ever transitions on those two
-   discrete state changes, never on a scroll tick. */
-.thg-arc-cta {
-  --thg-arc-dash: 11.53;
-  position: relative; display: inline-flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 2px;
-  width: 88px; height: 88px; border-radius: 50%;
+/* The dome's own content must clear the arc. With 50vw top radii on a
+   full-bleed box the top 50vw of the box IS the curve, so anything inside it
+   at normal padding gets clipped by overflow:hidden. Content therefore lives
+   in a centred column that is narrow enough to sit inside the arc's mouth,
+   pushed below the crest. The photograph is a full-bleed band underneath,
+   outside the curved zone entirely. */
+.thg-dome-inner {
+  max-width: 46em;
+  margin-inline: auto;
+  padding-inline: var(--thg-gutter);
+  text-align: center;
 }
-.thg-arc-ring { stroke-dasharray: var(--thg-arc-dash) calc(276.46 - var(--thg-arc-dash)); transition: stroke-dasharray ${DUR.m}s cubic-bezier(.75,0,.25,1); }
-.thg-arc-cta:focus-visible { --thg-arc-dash: 138.23; }
-@media (min-width: 992px) {
-  .thg-arc-cta:hover { --thg-arc-dash: 138.23; }
+.thg-dome-inner .thg-rule { margin-inline: auto; }
+
+/* ═══ §7 Utan og innan — the 10-point shutter merge (teardown §3 §11). A
+   panel traced as a single 10-point clip-path polygon, so JS can converge
+   the hole's top/bottom edges, then merge its outer/inner edges to the
+   screen centre, then push through with a scale — never a crossfade.
+   Resting/no-JS state (plain CSS below) is the fully OPEN aperture: the
+   panel clipped to zero width, so the façade beneath is what a crawler, a
+   paused rAF tab or a reduced-motion visitor actually sees — consistent
+   with the rest of this page's "resting state is always the fully visible
+   one" rule. JS scrub then closes the aperture onto the interior as you
+   scroll through the section: you move INTO the building. ═══ */
+.thg-shutter-wrap { position: relative; height: 240vh; margin-top: var(--thg-u32); }
+.thg-shutter-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.thg-shutter-base { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.thg-shutter-panel { position: absolute; inset: 0; overflow: hidden; }
+/* One interior plate wiped in from both edges toward the centre. The earlier
+   two-panel version put a visible seam down the middle and read as the same
+   photograph printed twice rather than one image being revealed. */
+.thg-shutter-panel-l { clip-path: inset(0 100% 0 0); }
+.thg-shutter-panel-r { display: none; }
+.thg-shutter-panel-img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
+.thg-shutter-panel-img-l { left: 0; }
+.thg-shutter-panel-img-r { right: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .thg-shutter-wrap { height: auto; margin-top: var(--thg-u32); }
+  .thg-shutter-sticky { position: relative; height: 70svh; }
 }
-.thg-arc-label { position: relative; z-index: 1; text-align: center; line-height: 1.3; }
+
+/* ═══ §10 Fyrirspurn arriving — the footer aperture close (teardown Phase
+   14 catalogue). No CSS transition: scale + clip-path are rewritten every
+   scroll tick by the footer-close ScrollTrigger. ═══ */
+.thg-close-stack { will-change: transform, clip-path; }
+.thg-enquiry-wrap { will-change: transform; }
+
+/* ═══ Verkin — the horizon strip, driving a project selector ═══ */
+.thg-ridge { position: relative; }
+.thg-ridge-btn {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: .5em;
+  background: none; border: 0; padding: .5em .3em; cursor: pointer; min-height: 44px;
+  color: rgba(240,236,228,.72); font-family: ${SUPREME};
+}
+.thg-ridge-dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(240,236,228,.55); transition: background var(--thg-dur-s) var(--thg-ease-out), transform var(--thg-dur-s) var(--thg-ease-out); }
+.thg-ridge-btn[aria-pressed="true"] { color: ${CHALK}; }
+.thg-ridge-btn[aria-pressed="true"] .thg-ridge-dot { background: ${ACCENT_ON_DARK}; transform: scale(1.7); }
+.thg-ridge-dot[data-on="1"] { background: ${ACCENT_ON_DARK}; transform: scale(1.7); }
+/* The plate stack: every project sits in the same frame, only opacity
+   changes. Resting state (no JS) is the first plate visible, never blank. */
+.thg-plate { position: absolute; inset: 0; opacity: 0; transition: opacity var(--thg-dur-m) var(--thg-ease-out); }
+.thg-plate[data-on="1"] { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .thg-plate { transition: none; } }
+
+/* ═══ Building chip — always visible, never hover-only ═══ */
+.thg-chip {
+  display: inline-flex; align-items: center; gap: .4em;
+  background: ${INK}; color: ${CHALK};
+  font-family: ${SUPREME}; font-weight: 600; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  padding: .5em .8em; line-height: 1;
+}
+.thg-chip::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: ${TAWNY}; flex: none; }
+
+/* ═══ Skráin — ledger rows as native <details>, native keyboard/no-JS safe ═══ */
+.thg-row { border-top: 1px solid rgba(22,26,23,.14); }
+.thg-row:last-child { border-bottom: 1px solid rgba(22,26,23,.14); }
+.thg-row summary { list-style: none; cursor: pointer; min-height: 56px; }
+.thg-row summary::-webkit-details-marker { display: none; }
+.thg-row-plus { transition: transform var(--thg-dur-m) var(--thg-ease-in-out); }
+.thg-row[open] .thg-row-plus { transform: rotate(45deg); }
+.thg-row-body { overflow: hidden; }
+.thg-filter-chip { min-height: 44px; transition: background-color var(--thg-dur-s) var(--thg-ease-out), color var(--thg-dur-s) var(--thg-ease-out), border-color var(--thg-dur-s) var(--thg-ease-out); }
+.thg-filter-chip[aria-pressed="true"] { background: ${INK}; color: ${CHALK}; border-color: ${INK}; }
+
+/* ═══ Enquiry form ═══ */
+.thg-field { width: 100%; min-height: 48px; background: transparent; border: 0; border-bottom: 1px solid rgba(240,236,228,.4); color: ${CHALK}; font-family: ${SUPREME}; font-size: var(--thg-body); padding: .6em .1em; }
+.thg-field::placeholder { color: rgba(240,236,228,.5); }
+.thg-field:focus { border-bottom-color: ${ACCENT_ON_DARK}; }
+.thg-field { transition: border-color var(--thg-dur-s) var(--thg-ease-out); }
+select.thg-field { appearance: none; }
+
+.thg-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: .6em;
+  min-height: 48px; padding: 0 1.6em; background: ${CHALK}; color: ${INK};
+  font-family: ${SUPREME}; font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+}
+.thg-cta { transition: transform var(--thg-dur-s) var(--thg-ease-out), background-color var(--thg-dur-s) var(--thg-ease-out); }
+@media (hover: hover) { .thg-cta:hover { transform: translateY(-2px); } }
+
+/* ═══ Preloader — 5-layer mask-composite:add arch aperture (teardown §5.1 /
+   13.7). ERA's own asset is a pre-authored SVG; this page has no asset
+   scope to add one, so the crown is built from two hard-edge radial
+   gradients rounding the top corners of an otherwise rectangular window —
+   same technique family (multiple mask layers, additive), same visible
+   result (a rounded-top aperture that widens and rises), zero new files.
+   Session-once, hard-capped at 2.5s, entirely absent under reduced motion
+   and for any client with JS disabled (this component simply never mounts
+   its overlay in that case — the page beneath is already in the DOM and
+   fully visible from first paint). ═══ */
+.thg-preloader {
+  position: fixed; inset: 0; z-index: 100; background: ${INK};
+  --thg-arch-w: 22vw; --thg-arch-y: 108vh; --thg-arch-r: calc(var(--thg-arch-w) * .16);
+  mask-repeat: no-repeat;
+  mask-composite: add;
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(#000,#000),
+    linear-gradient(#000,#000),
+    linear-gradient(#000,#000),
+    radial-gradient(circle at bottom right, transparent 0 var(--thg-arch-r), #000 var(--thg-arch-r)),
+    radial-gradient(circle at bottom left,  transparent 0 var(--thg-arch-r), #000 var(--thg-arch-r));
+  mask-size:
+    calc(50% - (var(--thg-arch-w)/2) + 1px) 100%,
+    calc(50% - (var(--thg-arch-w)/2) + 1px) 100%,
+    calc(var(--thg-arch-w) + 2px) max(0px, var(--thg-arch-y)),
+    var(--thg-arch-r) var(--thg-arch-r),
+    var(--thg-arch-r) var(--thg-arch-r);
+  mask-position:
+    left top,
+    right top,
+    center top,
+    calc(50% - (var(--thg-arch-w)/2)) var(--thg-arch-y),
+    calc(50% + (var(--thg-arch-w)/2) - var(--thg-arch-r)) var(--thg-arch-y);
+}
+.thg-preloader-word {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: ${GAMBETTA}; font-weight: 400; color: ${CHALK}; font-size: clamp(24px, 3.4vw, 48px);
+  letter-spacing: .02em; text-align: center; padding: 0 6vw;
+}
+@media (prefers-reduced-motion: reduce) { .thg-preloader { display: none; } }
 `
 
-/* ═══════════════════════════ small helpers ════════════════════════════ */
-function Kicker({ children, tone }: { children: React.ReactNode; tone?: string }) {
+/* ═════════════════════════════════════════════════════════════════════════
+   Small shared pieces
+   ═════════════════════════════════════════════════════════════════════════ */
+
+function Kicker({ children, tone = 'ink' }: { children: ReactNode; tone?: 'ink' | 'light' }) {
   return (
     <p
-      className="m-0 text-[11px] font-medium uppercase tracking-[0.24em]"
-      style={{ fontFamily: BODY, color: tone ?? 'var(--thg-fg-muted)' }}
+      className="m-0"
+      style={{
+        fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--thg-label)',
+        letterSpacing: '.22em', textTransform: 'uppercase',
+        color: tone === 'light' ? 'rgba(240,236,228,.75)' : 'var(--thg-t-muted, ' + MUTED + ')',
+      }}
     >
       {children}
     </p>
   )
 }
 
-function SectionHead({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div data-thg-reveal="c" className="thg-container pt-16 md:pt-20">
-      <div aria-hidden className="thg-rule mb-4" style={{ background: 'var(--thg-fg)', opacity: 0.18 }} />
-      <Kicker>{eyebrow}</Kicker>
-      <h2
-        data-thg-reveal="h"
-        className="thg-chars m-0 mt-3"
-        style={{ fontFamily: DISPLAY, fontWeight: 500, color: 'var(--thg-fg)', fontSize: 'clamp(1.9rem,4.4vw,3.4rem)', lineHeight: 1.12, letterSpacing: '-0.01em' }}
-      >
-        {title}
-      </h2>
-    </div>
-  )
-}
-
-function Field({ label, value }: { label: string; value?: string }) {
-  if (!value) return null
-  return (
-    <div className="thg-field-row flex items-baseline justify-between gap-6 py-2.5" style={{ borderColor: 'color-mix(in srgb, var(--thg-fg) 16%, transparent)' }}>
-      <dt className="m-0 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ fontFamily: BODY, color: 'var(--thg-fg-muted)' }}>{label}</dt>
-      <dd className="m-0 text-right text-[17px]" style={{ fontFamily: BODY, color: 'var(--thg-fg)' }}>{value}</dd>
-    </div>
-  )
-}
-
-/* ═══════════════════════════ CHROME — the fixed logo + label ═══════════ */
-function Chrome() {
+function SectionRule({ tone = 'ink' }: { tone?: 'ink' | 'light' }) {
   return (
     <div
-      id="thg-chrome"
-      className="thg-chrome-bar thg-container fixed inset-x-0 top-0 z-40 flex min-h-[56px] items-center justify-between py-3"
-    >
-      {/* The chrome floats over photography that can be almost white (the Borg
-          hero) while its own text is paper-coloured, which left it at roughly
-          1.5:1. This scrim guarantees the strip behind it is always dark
-          enough to read against, and is invisible over dark grounds. */}
-      <span aria-hidden className="thg-chrome-scrim" />
-      <a
-        href="#thg-top"
-        data-thg-chrome-part="brand"
-        className={`inline-flex min-h-[44px] items-center gap-2.5 ${FOCUS_CLASS}`}
-        aria-label="Fara efst á síðu, THG Arkitektar"
-      >
-        <img src={IMG('mark')} alt="" aria-hidden className="h-6 w-6 rounded-sm object-cover md:h-7 md:w-7" />
-        <span className="text-[12px] font-medium uppercase tracking-[0.22em]" style={{ fontFamily: BODY }}>
-          THG Arkitektar
+      data-thg-reveal="line"
+      aria-hidden
+      className="h-px w-full"
+      style={{ background: tone === 'light' ? 'rgba(240,236,228,.35)' : 'rgba(22,26,23,.22)' }}
+    />
+  )
+}
+
+function BuildingChip({ label }: { label: string }) {
+  return <span className="thg-chip">{label}</span>
+}
+
+function RealPhoto({
+  file, alt, caption, priority = false, className = '', position = 'center', reveal,
+}: {
+  file: string; alt: string; caption?: string; priority?: boolean; className?: string; position?: string
+  /** 'slide' = skewed clip wipe + inner counter-scale (the six-primitive
+   *  "slide" device). 'ctn' = plain opacity+y. Omit for no scroll reveal. */
+  reveal?: 'slide' | 'ctn'
+}) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <figure data-thg-reveal={reveal} className={`m-0 overflow-hidden ${className}`}>
+      {failed ? (
+        <div className="absolute inset-0" style={{ background: SAND }} role="img" aria-label={alt} />
+      ) : (
+        <img
+          src={IMG(file)} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async"
+          {...(priority ? { fetchpriority: 'high' } : {})}
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: position }}
+        />
+      )}
+      {caption ? (
+        <figcaption
+          className="absolute bottom-0 left-0 m-0"
+          style={{
+            background: DARK, color: CHALK, fontFamily: SUPREME, fontWeight: 600,
+            fontSize: '11px', letterSpacing: '.12em', textTransform: 'uppercase',
+            padding: '.6em .9em',
+          }}
+        >
+          {caption}
+        </figcaption>
+      ) : null}
+    </figure>
+  )
+}
+
+/* Innandyra tile — Heklusýn's VisPhoto exactly, with the "Tölvumynd" chip
+   re-captioned to the building (deviation (b) in the header note). */
+function InteriorPhoto({ file, alt, room, project }: { file: string; alt: string; room: string; project: string }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <figure data-thg-reveal="ctn" className="relative m-0 aspect-[4/3] overflow-hidden">
+      {failed ? (
+        <div className="absolute inset-0" style={{ background: SAND }} role="img" aria-label={alt} />
+      ) : (
+        <img
+          src={IMG(file)} alt={alt} loading="lazy" decoding="async"
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
+      <figcaption className="absolute left-0 top-0 m-0 flex w-full items-center justify-between gap-2 p-3">
+        <span
+          style={{
+            fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.1em',
+            textTransform: 'uppercase', color: CHALK, background: DARK, padding: '.4em .7em',
+          }}
+        >
+          {room}
         </span>
-      </a>
-      <span aria-hidden data-thg-chrome-part="codename" className="hidden text-[11px] uppercase tracking-[0.32em] opacity-80 sm:inline" style={{ fontFamily: BODY }}>
-        {CODENAME}
-      </span>
+        <BuildingChip label={project} />
+      </figcaption>
+    </figure>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   Preloader — arch-aperture, session-once, hard-capped at 2.5s
+   ═════════════════════════════════════════════════════════════════════════ */
+function Preloader() {
+  const [visible, setVisible] = useState(false)
+  const elRef = useRef<HTMLDivElement>(null)
+  const wordRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (prefersReduced()) return // reduced motion: never mounts; content beneath is already visible
+    let seen = false
+    try { seen = sessionStorage.getItem('thg-preloader-seen') === '1' } catch { /* private mode: show every time */ }
+    if (seen) return
+    setVisible(true)
+  }, [])
+
+  useEffect(() => {
+    if (!visible) return
+    const el = elRef.current
+    const word = wordRef.current
+    if (!el) return
+    try { sessionStorage.setItem('thg-preloader-seen', '1') } catch { /* private mode */ }
+
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    let done = false
+    const state = { w: 22, y: 108 }
+    const applyMask = () => {
+      el.style.setProperty('--thg-arch-w', `${state.w}vw`)
+      el.style.setProperty('--thg-arch-y', `${state.y}vh`)
+    }
+    applyMask()
+    if (word) gsap.set(word, { opacity: 0, y: 12 })
+
+    const finish = () => {
+      if (done) return
+      done = true
+      window.clearTimeout(hardCap)
+      document.body.style.overflow = prevOverflow
+      gsap.to(el, {
+        opacity: 0, duration: DUR.s, ease: EASE.in,
+        onComplete: () => setVisible(false),
+      })
+    }
+    // Hard cap: fires regardless of image load, timeline state, or a stalled
+    // network — the overlay can never trap the page past 2.5s.
+    const hardCap = window.setTimeout(finish, 2500)
+
+    const heroImg = new Image()
+    heroImg.src = IMG(PHOTOS.hero.file)
+    const imageReady = heroImg.complete
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          heroImg.addEventListener('load', () => resolve(), { once: true })
+          heroImg.addEventListener('error', () => resolve(), { once: true })
+        })
+
+    const tl = gsap.timeline({ onComplete: finish })
+    tl.fromTo(word, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: DUR.m, ease: EASE.out })
+    tl.to({}, { duration: 0.25 }) // brief hold, wordmark legible before the arch opens
+
+    Promise.race([imageReady, new Promise((r) => window.setTimeout(r, 1200))]).then(() => {
+      if (done) return
+      tl.to(state, { w: 42, y: -12, duration: 1.15, ease: EASE.inout, onUpdate: applyMask })
+        .to(el, { opacity: 0, duration: DUR.s, ease: EASE.in, onComplete: finish }, '-=0.05')
+    })
+
+    return () => {
+      tl.kill()
+      window.clearTimeout(hardCap)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [visible])
+
+  if (!visible) return null
+
+  return (
+    <div ref={elRef} className="thg-preloader" aria-hidden="true">
+      <span ref={wordRef} className="thg-preloader-word">THG Arkitektar</span>
     </div>
   )
 }
 
-/* ═══════════════════════════ 1 · APERTURE (hero) ════════════════════════ */
-function Aperture() {
+/* ═════════════════════════════════════════════════════════════════════════
+   Per-element chrome theming — wordmark, nav and CTA each re-theme on
+   THEIR OWN vertical centre crossing a [data-thg-bg] section boundary
+   (teardown Phase 5.4 / 13.3). Three independent instances of this hook,
+   never one shared state — that was the previous build's actual bug.
+   ═════════════════════════════════════════════════════════════════════════ */
+function useElementTheme(ref: React.RefObject<HTMLElement | null>): 'light' | 'dark' {
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  useEffect(() => {
+    let io: IntersectionObserver | null = null
+    let resizeTimer: number | undefined
+    const build = () => {
+      io?.disconnect()
+      const el = ref.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      if (rect.width === 0 && rect.height === 0) return // hidden below its breakpoint — leave last theme
+      const winH = window.innerHeight
+      const centre = rect.top + rect.height / 2
+      const top = Math.max(0, Math.round(centre))
+      const bottom = Math.max(0, Math.round(winH - centre - 1))
+      io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return
+            const bg = entry.target.getAttribute('data-thg-bg')
+            setTheme(bg === 'dark' || bg === 'river' ? 'dark' : 'light')
+          })
+        },
+        { threshold: 0, rootMargin: `-${top}px 0px -${bottom}px 0px` },
+      )
+      document.querySelectorAll('[data-thg-bg]').forEach((section) => io!.observe(section))
+    }
+    build()
+    const onResize = () => {
+      window.clearTimeout(resizeTimer)
+      resizeTimer = window.setTimeout(build, 150)
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      io?.disconnect()
+      window.clearTimeout(resizeTimer)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [ref])
+  return theme
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   Fixed chrome — wordmark + nav + CTA, three independently-themed elements
+   ═════════════════════════════════════════════════════════════════════════ */
+function Chrome() {
+  const markRef = useRef<HTMLAnchorElement>(null)
+  const navRef = useRef<HTMLElement>(null)
+  const ctaRef = useRef<HTMLButtonElement>(null)
+  const markTheme = useElementTheme(markRef)
+  const navTheme = useElementTheme(navRef)
+  const ctaTheme = useElementTheme(ctaRef)
+
+  const barLight = markTheme === 'light'
+  const barBg = barLight ? 'rgba(240,236,228,.7)' : 'rgba(20,24,21,.42)'
+  const barBorder = barLight ? 'rgba(22,26,23,.12)' : 'rgba(240,236,228,.16)'
+
+  const go = (id: string) => {
+    const target = document.getElementById(id)
+    if (!target) return
+    if (thgLenis) thgLenis.scrollTo(target, { offset: -64 })
+    else target.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'start' })
+  }
+
   return (
-    <header
-      id="thg-top"
-      data-thg-theme="graphite"
-      className="thg-chrome-zone relative flex min-h-[100svh] items-end overflow-hidden"
+    <div
+      className="thg-chrome-bar fixed inset-x-0 top-0 z-40 flex items-center justify-between backdrop-blur-md"
+      style={{ background: barBg, borderBottom: `1px solid ${barBorder}`, minHeight: '56px', padding: '0 var(--thg-gutter)' }}
     >
-      <div className="thg-hero-frame">
+      <a
+        ref={markRef}
+        href="#thg-hero"
+        onClick={(e) => { e.preventDefault(); if (thgLenis) thgLenis.scrollTo(0); else window.scrollTo({ top: 0, behavior: prefersReduced() ? 'auto' : 'smooth' }) }}
+        className="thg-chrome-mark inline-flex min-h-[44px] items-center"
+        style={{ color: markTheme === 'light' ? INK : CHALK, fontFamily: GAMBETTA, fontWeight: 600, fontSize: '17px', letterSpacing: '.02em' }}
+      >
+        THG Arkitektar
+      </a>
+      <nav ref={navRef} aria-label="Kaflar síðunnar" className="hidden items-center gap-6 lg:flex">
+        {NAV.map((n) => (
+          <button
+            key={n.id}
+            type="button"
+            onClick={() => go(n.id)}
+            className="thg-chrome-nav min-h-[44px] whitespace-nowrap"
+            style={{ color: navTheme === 'light' ? INK : CHALK, opacity: 0.82, fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase' }}
+          >
+            {n.label}
+          </button>
+        ))}
+      </nav>
+      <button
+        ref={ctaRef}
+        type="button"
+        onClick={() => go('thg-enquiry')}
+        className="thg-cta"
+        style={{ background: ctaTheme === 'light' ? INK : CHALK, minHeight: '44px', padding: '0 1.1em', fontSize: '11px' }}
+      >
+        <span className="thg-chrome-cta-label" style={{ color: ctaTheme === 'light' ? CHALK : INK }}>Fyrirspurn</span>
+      </button>
+    </div>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §1 Arrival — Koma. ≥300vh scrubbed dive-in.
+   ═════════════════════════════════════════════════════════════════════════ */
+function Hero() {
+  return (
+    <header id="thg-hero" data-thg-bg="dark" className="thg-hero-scroll">
+      <div className="thg-hero-sticky" style={{ background: DARK }}>
         <img
-          src={IMG('borg-exterior')}
-          alt="Viðbygging Hótel Borgar í Reykjavík, fyrsti áfangi stækkunar hótelsins sem THG Arkitektar hönnuðu."
-          className="thg-hero-img"
-          loading="eager"
-          decoding="async"
-          {...{ fetchpriority: 'high' }}
+          src={IMG(PHOTOS.hero.file)} alt={PHOTOS.hero.alt}
+          loading="eager" decoding="async" {...{ fetchpriority: 'high' }}
+          className="thg-hero-image" style={{ objectPosition: '50% 42%' }}
         />
         <div
           aria-hidden
           className="absolute inset-0"
-          /* The hero photograph is a near-white building against a pale sky, so
-             a soft bottom gradient is not enough: the type zone needs a solid
-             floor or the eyebrow, H1 and practice line all sit at roughly 1.5:1. */
-          style={{ background: 'linear-gradient(180deg, rgba(28,29,31,0) 0%, rgba(22,24,26,.28) 40%, rgba(22,24,26,.80) 68%, rgba(22,24,26,.92) 100%)' }}
+          style={{ background: 'linear-gradient(180deg, rgba(20,24,21,.10) 0%, rgba(20,24,21,.22) 34%, rgba(20,24,21,.85) 52%, rgba(20,24,21,.92) 100%)' }}
         />
-      </div>
-      <div className="thg-shutter-plane" aria-hidden>
-        <div className="thg-shutter thg-shutter-left" />
-        <div className="thg-shutter thg-shutter-right" />
-      </div>
 
-      <div className="thg-container relative z-[1] w-full pb-14 pt-32 md:pb-20">
-        <p className="thg-hero-eyebrow m-0 mb-5 text-[11px] font-medium uppercase tracking-[0.3em]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>
-          {CODENAME}
-        </p>
-        <h1
-          className="thg-hero-h1 thg-chars m-0 max-w-[18ch]"
-          style={{ fontFamily: DISPLAY, fontWeight: 500, color: PAPER, fontSize: 'clamp(2.3rem,6.4vw,5.4rem)', lineHeight: 1.14, letterSpacing: '-0.01em' }}
-        >
-          {TAGLINE}
-        </h1>
-        <p
-          className="thg-hero-practice m-0 mt-8 text-[15px] uppercase tracking-[0.14em] md:text-[16px]"
-          style={{ fontFamily: BODY, color: PAPER_MUTED }}
-        >
-          1994 · {PRACTICE.staffLine} · ISO 9001:2015
-        </p>
+        <div className="relative z-10 flex h-full flex-col justify-end" style={{ padding: `0 var(--thg-gutter) calc(var(--thg-u64) + 56px)` }}>
+          <p
+            data-thg-reveal="ctn"
+            className="thg-hero-eyebrow m-0"
+            style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--thg-label)', letterSpacing: '.24em', textTransform: 'uppercase', color: 'rgba(240,236,228,.78)' }}
+          >
+            {ADDRESS}
+          </p>
+
+          <h1
+            data-thg-reveal="h"
+            className="thg-hero-h1 m-0"
+            style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--thg-d1)', lineHeight: 1.18, letterSpacing: '-0.01em' }}
+          >
+            THG Arkitektar
+          </h1>
+
+          <p
+            data-thg-reveal="a"
+            className="thg-hero-tagline m-0"
+            style={{
+              fontFamily: GAMBETTA, fontStyle: 'italic', fontWeight: 400, color: CHALK,
+              fontSize: 'var(--thg-d3)', lineHeight: 1.24, marginTop: 'var(--thg-u12)', maxWidth: '18em',
+            }}
+          >
+            {TAGLINE}
+          </p>
+
+          <p
+            data-thg-reveal="ctn"
+            className="thg-hero-body m-0"
+            style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.86)', fontSize: 'var(--thg-body)', lineHeight: 1.6, marginTop: 'var(--thg-u24)', maxWidth: '30em' }}
+          >
+            Stofnað 1994, {PRACTICE.staffLine}. Hótel, hjúkrunarheimili og þjónustuíbúðir sem eru teiknaðar
+            inn í það sem stendur fyrir.
+          </p>
+        </div>
       </div>
     </header>
   )
 }
 
-/* ═══════════════════════════ 2 · STAÐARANDI (the thesis) ═══════════════ */
-function Stadarandi() {
+/* ═════════════════════════════════════════════════════════════════════════
+   §2 Thesis — Kjarninn
+   ═════════════════════════════════════════════════════════════════════════ */
+function Thesis() {
   return (
-    <section id="stadarandi" data-thg-theme="concrete" className="thg-chrome-zone relative pb-20 md:pb-28">
-      <SectionHead eyebrow="Rökin" title="Staðarandi" />
-      <div className="thg-container mt-10 md:mt-14">
-        <p data-thg-reveal="p" className="thg-lines m-0 max-w-[46ch] text-[17px] leading-[1.7]" style={{ fontFamily: BODY, color: 'var(--thg-fg)' }}>
-          Þrisvar á sínum eigin vef orðar stofan sömu hugsunina, án þess að nefna hana. Verkin sjálf segja hana best.
+    <section id="thg-thesis" data-thg-bg="chalk" className="thg-theme-chalk thg-band relative">
+      <div style={{ padding: 'var(--thg-u96) var(--thg-gutter)' }}>
+        <Kicker>Kjarninn</Kicker>
+        <SectionRule />
+
+        {/* One typographic statement, not a stat grid — Heklusýn's §2 shape
+            exactly. Two lines sharing a left edge and a rhythm, so there is
+            nothing to misalign. */}
+        <p
+          data-thg-reveal="ctn"
+          className="thg-claim m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d2)', lineHeight: 1.1, letterSpacing: '-0.015em', marginTop: 'var(--thg-u32)' }}
+        >
+          Ekkert hús stendur eitt.
+          <br />
+          Það stendur við annað.
         </p>
-        <ol className="m-0 mt-12 grid list-none gap-10 p-0 md:mt-16 md:grid-cols-3 md:gap-8">
-          {THESIS_QUOTES.map((t, i) => (
-            <li key={t.project} data-thg-reveal="c">
-              <span aria-hidden data-thg-reveal="a" className="thg-chars block text-[12px] font-medium tracking-[0.1em]" style={{ fontFamily: BODY, color: BRICK }}>
-                0{i + 1}
-              </span>
-              <div aria-hidden className="thg-rule my-3" style={{ background: 'var(--thg-fg)', opacity: 0.18 }} />
-              <blockquote className="m-0">
-                <p className="m-0 text-[19px] leading-[1.45]" style={{ fontFamily: DISPLAY, fontWeight: 400, color: 'var(--thg-fg)' }}>
-                  „{t.quote}"
-                </p>
-              </blockquote>
-              <cite className="mt-4 block text-[12px] font-medium not-italic uppercase tracking-[0.16em]" style={{ fontFamily: BODY, color: 'var(--thg-fg-muted)' }}>
-                {t.project}
-              </cite>
-              {t.note ? (
-                <p className="m-0 mt-1 text-[12px]" style={{ fontFamily: BODY, color: 'var(--thg-fg-muted)' }}>{t.note}</p>
-              ) : null}
-            </li>
-          ))}
-        </ol>
+
+        <p
+          data-thg-reveal="p"
+          className="mt-10"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--thg-lead)', lineHeight: 1.6, maxWidth: '32em', marginTop: 'var(--thg-u32)' }}
+        >
+          Sama hugsunin kemur fyrir í þremur verkefnum stofunnar. Gestamóttakan á Hótel Borg er hönnuð í
+          Art Deko stíl í samræmi við eldri móttöku. Í Reykjavík Konsúlat er nýjum og sögulegum byggingum
+          fléttað saman. Á Hótel Von var miðað við byggingarstílinn í næsta nágrenni til að fanga
+          staðarandann. Þetta stendur hvergi sem ein setning á vef stofunnar. Það er samt kjarninn.
+        </p>
       </div>
     </section>
   )
 }
 
-/* ═══════════════════════════ 3 · VERKIN (horizontal journey) ═══════════ */
-function ProjectPanel({ project, index }: { project: Project; index: number }) {
-  /* Two solid zones, not a gradient-over-photo: the photo stays at full
-     strength (this IS the "one large photograph" the brief asks for), and
-     the caption plate below is an OPAQUE var(--thg-bg) fill — the exact
-     hex this theme's contrast ratio was computed against (see THEME_CSS
-     comment above), never a partial-opacity blend that would drift off
-     that verified number. */
-  return (
-    <article
-      className="thg-panel relative flex flex-col overflow-hidden"
-      data-thg-theme={project.theme}
-      aria-label={project.name}
-    >
-      <div className="relative min-h-0 flex-1 overflow-hidden">
-        <img
-          src={IMG(project.image)}
-          alt={project.alt}
-          loading={index === 0 ? 'eager' : 'lazy'}
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      </div>
-      <div className="thg-container relative shrink-0 py-6 md:py-8" style={{ background: 'var(--thg-bg)' }}>
-        <span aria-hidden className="block text-[12px] font-medium tracking-[0.14em]" style={{ fontFamily: BODY, color: 'var(--thg-accent)' }}>
-          0{index + 1} / 07
-        </span>
-        <h3
-          data-thg-reveal="c"
-          className="thg-panel-title thg-chars m-0 mt-3 max-w-[16ch]"
-          style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 'clamp(1.6rem,3.4vw,2.5rem)', lineHeight: 1.16 }}
-        >
-          {project.name}
-        </h3>
-        <dl className="m-0 mt-5 max-w-[30ch]" data-thg-reveal="c">
-          <Field label="Staður" value={project.place} />
-          <Field label="Ár" value={project.year} />
-          <Field label="Umfang" value={project.size} />
-          <Field label="Verkkaupi" value={project.client} />
-        </dl>
-      </div>
-    </article>
-  )
-}
+/* ═════════════════════════════════════════════════════════════════════════
+   §3 SIGNATURE — Verkin. Heklusýn's horizon strip, driving the project
+   plate instead of pinning mountains (deviation (a) in the header note).
+   ═════════════════════════════════════════════════════════════════════════ */
+function Works() {
+  const [selected, setSelected] = useState(0)
+  const [focusIdx, setFocusIdx] = useState(0)
+  const btnRefs = useRef<Array<HTMLButtonElement | null>>([])
 
-function Verkin() {
+  const move = (next: number) => {
+    const clamped = (next + PROJECTS.length) % PROJECTS.length
+    setFocusIdx(clamped)
+    setSelected(clamped)
+    btnRefs.current[clamped]?.focus()
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); move(focusIdx + 1) }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); move(focusIdx - 1) }
+    else if (e.key === 'Home') { e.preventDefault(); move(0) }
+    else if (e.key === 'End') { e.preventDefault(); move(PROJECTS.length - 1) }
+  }
+
+  const active = PROJECTS[selected]
+  const chipLabel = [active.place, active.year].filter(Boolean).join(' · ')
+
   return (
-    <section id="verkin" data-thg-theme="graphite" className="thg-chrome-zone thg-journey">
-      {/* .thg-journey-sticky is the ONLY thing that becomes position:sticky
-          (desktop + no-preference, see PAGE_STYLES §6) — it is also the
-          "outgoing layer" the recede-to-dissolve transition (device 3)
-          scales and fades as the journey hands off to Innandyra. DOM
-          order: the heading precedes the rail so reading/keyboard order
-          stays "Verkin" then its seven panels on mobile (plain flow); the
-          desktop media query lifts the label into an absolute bottom-left
-          overlay, where DOM order no longer matters. */}
-      <div className="thg-journey-sticky">
-        <div className="thg-journey-label">
-          <Kicker tone={PAPER_MUTED}>Sjö byggingar, þrjátíu og tvö ár</Kicker>
-          <h2 className="m-0 mt-2 text-[13px] font-medium uppercase tracking-[0.24em]" style={{ fontFamily: BODY, color: PAPER }}>
-            Verkin
-          </h2>
+    <section id="thg-works" data-thg-bg="dark" className="relative" style={{ background: DARK }}>
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter) 0' }}>
+        <Kicker tone="light">Úr verkefnaskránni</Kicker>
+        <SectionRule tone="light" />
+        <h2
+          data-thg-reveal="ctn"
+          className="m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Sjö hús, eitt viðhorf
+        </h2>
+        <p
+          data-thg-reveal="ctn"
+          style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.78)', fontSize: 'var(--thg-body)', lineHeight: 1.6, maxWidth: '34em', marginTop: 'var(--thg-u16)' }}
+        >
+          Sjö af verkefnum stofunnar, valin hér. Veldu nafn til að sjá húsið.
+        </p>
+      </div>
+
+      <div className="thg-ridge relative mt-8" style={{ marginTop: 'var(--thg-u32)' }}>
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+          {PROJECTS.map((p, i) => (
+            <div key={p.key} className="thg-plate" data-on={selected === i ? '1' : '0'} aria-hidden={selected !== i}>
+              <img
+                src={IMG(p.image)} alt={selected === i ? p.alt : ''}
+                loading={i === 0 ? 'eager' : 'lazy'} decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+          ))}
+          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(20,24,21,.15) 0%, rgba(20,24,21,.74) 100%)' }} />
+          {chipLabel ? (
+            <span
+              aria-hidden
+              className="absolute left-3 top-3"
+              style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase', color: CHALK, background: DARK, padding: '.4em .7em' }}
+            >
+              {chipLabel}
+            </span>
+          ) : null}
+
+          {/* Index rail, not a map: the dots mark position in the list of
+              seven, and assert nothing about the photograph beneath them. */}
+          <div aria-hidden className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-3">
+            {PROJECTS.map((p, i) => (
+              <span key={p.key} className="thg-ridge-dot" data-on={selected === i ? '1' : '0'} />
+            ))}
+          </div>
+
+          <p
+            aria-live="polite"
+            className="thg-fit absolute inset-x-0 bottom-0 m-0 text-center"
+            style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--thg-d3)', lineHeight: 1.2, padding: '0 var(--thg-gutter) var(--thg-u24)' }}
+          >
+            {active.name}
+          </p>
         </div>
+
         <div
-          className="thg-track"
-          data-thg-track
-          tabIndex={0}
           role="group"
-          aria-label="Verkin, sjö byggingar. Renna lárétt eða nota örvatakka."
+          aria-label="Sjö verkefni"
+          onKeyDown={onKeyDown}
+          className="flex flex-wrap items-start justify-center gap-x-1 gap-y-2"
+          style={{ padding: 'var(--thg-u24) var(--thg-gutter) var(--thg-u48)' }}
         >
           {PROJECTS.map((p, i) => (
-            <ProjectPanel key={p.key} project={p} index={i} />
+            <button
+              key={p.key}
+              ref={(el) => { btnRefs.current[i] = el }}
+              type="button"
+              aria-pressed={selected === i}
+              tabIndex={focusIdx === i ? 0 : -1}
+              onClick={() => { setSelected(i); setFocusIdx(i) }}
+              className="thg-ridge-btn"
+              style={{ fontSize: 'var(--thg-label)', letterSpacing: '.06em' }}
+            >
+              {p.name}
+            </button>
           ))}
         </div>
-        <div className="thg-progress" aria-hidden />
       </div>
     </section>
   )
 }
 
-/* ═══════════════════════════ 4 · INNANDYRA ══════════════════════════════ */
-function Innandyra() {
+/* ═════════════════════════════════════════════════════════════════════════
+   §4 Aðferðin — the rising dome, word-spacing scrubbed on its heading
+   ═════════════════════════════════════════════════════════════════════════ */
+function Method() {
   return (
-    <section id="innandyra" data-thg-theme="concrete" className="thg-chrome-zone pb-20 md:pb-28">
-      <SectionHead eyebrow="Rýmin" title="Innandyra" />
-      <div className="thg-container mt-8 md:mt-10">
-        <p data-thg-reveal="p" className="thg-lines m-0 max-w-[42ch] text-[17px] leading-[1.7]" style={{ fontFamily: BODY, color: 'var(--thg-fg)' }}>
-          Þú hefur líklega þegar komið inn í eitt af þessum.
+    <section id="thg-method" data-thg-bg="sand" className="thg-theme-sand thg-band thg-dome relative">
+      <div className="thg-dome-inner">
+        <Kicker>Aðferðin</Kicker>
+        <SectionRule />
+        <h2
+          data-thg-reveal="ctn"
+          className="thg-dome-heading m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Að fanga staðarandann
+        </h2>
+        <p
+          data-thg-reveal="p"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--thg-body)', lineHeight: 1.7, maxWidth: '34em', margin: 'var(--thg-u24) auto 0' }}
+        >
+          {PRACTICE.services}
+        </p>
+        <p
+          data-thg-reveal="p"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--thg-body)', lineHeight: 1.7, maxWidth: '34em', margin: 'var(--thg-u16) auto 0' }}
+        >
+          Á Hótel Von var miðað við að hótelbyggingin mundi falla að þeim byggingarstíl sem er í næsta
+          nágrenni. Húsið hér að neðan er sú bygging.
         </p>
       </div>
-      <div className="thg-container mt-10 grid grid-cols-2 gap-3 md:mt-14 md:grid-cols-4 md:gap-4">
-        {INTERIORS.map((shot) => (
-          <figure key={shot.image} data-thg-reveal="c" className="m-0">
-            <div className="aspect-[4/5] overflow-hidden">
-              <img src={IMG(shot.image)} alt={shot.alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-            </div>
-            <figcaption className="mt-2 text-[11px] uppercase tracking-[0.12em]" style={{ fontFamily: BODY, color: 'var(--thg-fg-muted)' }}>
-              {shot.project}
-            </figcaption>
-          </figure>
-        ))}
+
+      {/* Full-bleed band below the curve, so the photograph is never clipped. */}
+      <div className="relative w-full" style={{ marginTop: 'var(--thg-u64)', height: 'min(62svh, 42vw)' }}>
+        <RealPhoto
+          file={PHOTOS.domeBand.file} alt={PHOTOS.domeBand.alt} reveal="ctn"
+          className="absolute inset-0 h-full w-full" caption="Hótel Von, Reykjavík"
+        />
       </div>
     </section>
   )
 }
 
-/* ═══════════════════════════ 5 · TVENNS KONAR HÚS ═══════════════════════ */
-function TvennsKonarHus() {
-  const { hotel, care } = TVENNS_KONAR
+/* ═════════════════════════════════════════════════════════════════════════
+   §5 Skráin — ledger
+   ═════════════════════════════════════════════════════════════════════════ */
+function KindPill({ kind }: { kind: ProjectKind }) {
+  const bg = kind === 'hotel' ? 'rgba(62,92,107,.14)' : kind === 'thjonusta' ? 'rgba(22,26,23,.08)' : 'rgba(138,90,40,.14)'
+  const fg = kind === 'hotel' ? '#2A4048' : kind === 'thjonusta' ? INK : '#6E4720'
   return (
-    <section id="tvenns-konar-hus" data-thg-theme="graphite" className="thg-chrome-zone pb-20 md:pb-28">
-      <SectionHead eyebrow="Tvær áttir" title="Tvenns konar hús" />
-      <div className="thg-container mt-8 md:mt-10">
-        <p data-thg-reveal="p" className="thg-lines m-0 max-w-[44ch] text-[17px] leading-[1.7]" style={{ fontFamily: BODY, color: 'var(--thg-fg)' }}>
-          Byggingar fyrir eina nótt. Og byggingar fyrir síðustu árin.
+    <span
+      className="inline-flex items-center"
+      style={{ background: bg, color: fg, fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.08em', textTransform: 'uppercase', padding: '.35em .6em' }}
+    >
+      {KIND_LABEL[kind]}
+    </span>
+  )
+}
+
+function Ledger() {
+  const [filter, setFilter] = useState<'all' | ProjectKind>('all')
+  const filters: Array<{ key: 'all' | ProjectKind; label: string }> = [
+    { key: 'all', label: 'Allt' },
+    { key: 'hotel', label: KIND_LABEL.hotel },
+    { key: 'thjonusta', label: KIND_LABEL.thjonusta },
+    { key: 'endurhaefing', label: KIND_LABEL.endurhaefing },
+  ]
+  return (
+    <section id="thg-ledger" data-thg-bg="chalk" className="thg-theme-chalk thg-band relative">
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter)' }}>
+        <Kicker>Verkefnaskrá</Kicker>
+        <SectionRule />
+        <div className="flex flex-wrap items-end justify-between gap-6" style={{ marginTop: 'var(--thg-u16)' }}>
+          <h2
+            data-thg-reveal="ctn"
+            className="m-0"
+            style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d2)', lineHeight: 1.18 }}
+          >
+            Skráin
+          </h2>
+          <div role="group" aria-label="Sía eftir tegund" className="flex flex-wrap gap-2">
+            {filters.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                aria-pressed={filter === f.key}
+                onClick={() => setFilter(f.key)}
+                className="thg-filter-chip"
+                style={{ border: `1px solid rgba(22,26,23,.22)`, background: 'transparent', color: INK, fontFamily: SUPREME, fontWeight: 600, fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase', padding: '0 1em' }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p
+          data-thg-reveal="p"
+          style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--thg-body)', lineHeight: 1.6, maxWidth: '34em', marginTop: 'var(--thg-u16)' }}
+        >
+          Ein lína á hvert verk. Reitur sem stofan hefur ekki birt stendur auður, aldrei ágiskun.
+        </p>
+
+        <div className="mt-8" style={{ marginTop: 'var(--thg-u32)' }}>
+          {PROJECTS.map((p) => {
+            const dim = filter !== 'all' && p.kind !== filter
+            return (
+              <details key={p.key} className="thg-row" style={{ opacity: dim ? 0.4 : 1, transition: 'opacity var(--thg-dur-m) var(--thg-ease-out)' }}>
+                <summary className="flex flex-wrap items-center justify-between gap-3 py-4">
+                  <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <span style={{ fontFamily: GAMBETTA, fontWeight: 500, color: INK, fontSize: 'var(--thg-lead)' }}>
+                      {p.name}
+                    </span>
+                    <span style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--thg-body)' }}>
+                      {p.place ?? 'Staðsetning ekki gefin upp'}
+                    </span>
+                    <span style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--thg-body)' }}>
+                      {p.year ?? 'Ártal ekki gefið upp'}
+                    </span>
+                    {p.size ? (
+                      <span style={{ fontFamily: SUPREME, fontWeight: 600, color: INK, fontSize: 'var(--thg-body)' }}>
+                        {p.size}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <KindPill kind={p.kind} />
+                    <span className="thg-row-plus" aria-hidden style={{ fontFamily: SUPREME, fontSize: '20px', color: MUTED, lineHeight: 1 }}>+</span>
+                  </span>
+                </summary>
+                <div className="thg-row-body">
+                  <p style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--thg-body)', lineHeight: 1.7, maxWidth: '36em', paddingBottom: p.client ? 0 : 'var(--thg-u16)' }}>
+                    {p.quote}
+                  </p>
+                  {p.client ? (
+                    <p style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--thg-body)', lineHeight: 1.7, paddingBottom: 'var(--thg-u16)' }}>
+                      Verkkaupi: {p.client}
+                    </p>
+                  ) : null}
+                </div>
+              </details>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §6 Eitt verk — Reykjavík Konsúlat og Kolasundið. The two paired photos
+   use the "slide" primitive (skewed clip wipe + inner counter-scale).
+   ═════════════════════════════════════════════════════════════════════════ */
+function OneWork() {
+  const konsulat = PROJECTS.find((p) => p.key === 'konsulat')!
+  return (
+    <section id="thg-one-work" data-thg-bg="sand" className="thg-theme-sand thg-band relative">
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter)' }}>
+        <Kicker>Reykjavík Konsúlat</Kicker>
+        <SectionRule />
+        <h2
+          data-thg-reveal="ctn"
+          className="m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Eitt verk
+        </h2>
+        <p
+          data-thg-reveal="p"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--thg-body)', lineHeight: 1.7, maxWidth: '32em', marginTop: 'var(--thg-u16)' }}
+        >
+          {KOLASUNDID.body}
+        </p>
+        <div data-thg-reveal="ctn" className="flex flex-wrap items-baseline gap-x-5 gap-y-2" style={{ marginTop: 'var(--thg-u24)' }}>
+          <p className="thg-fit m-0" style={{ fontFamily: GAMBETTA, fontWeight: 400, color: INK, fontSize: 'var(--thg-d3)', lineHeight: 1.15 }}>
+            {KOLASUNDID.title}
+          </p>
+          <div className="flex items-center gap-2">
+            <KindPill kind={konsulat.kind} />
+            {konsulat.year ? (
+              <span style={{ fontFamily: SUPREME, fontWeight: 600, color: MUTED, fontSize: '11px', letterSpacing: '.08em' }}>
+                {konsulat.year}
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2" style={{ marginTop: 'var(--thg-u32)' }}>
+          <RealPhoto
+            file={PHOTOS.onePairA.file} alt={PHOTOS.onePairA.alt} reveal="slide"
+            className="relative aspect-[4/3]" caption="Hafnarstræti 19, gatan"
+          />
+          <RealPhoto
+            file={PHOTOS.onePairB.file} alt={PHOTOS.onePairB.alt} reveal="slide"
+            className="relative aspect-[4/3] sm:mt-10" caption="Innandyra, sama hús"
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §7 Utan og innan — the 10-point shutter merge
+   ═════════════════════════════════════════════════════════════════════════ */
+function InsideOut() {
+  return (
+    <section id="thg-inside" data-thg-bg="dark" className="relative" style={{ background: DARK }}>
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter) 0' }}>
+        <Kicker tone="light">Utan og innan</Kicker>
+        <SectionRule tone="light" />
+        <h2
+          data-thg-reveal="ctn"
+          className="m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Sama hús, tvö sjónarhorn
+        </h2>
+        <p
+          data-thg-reveal="ctn"
+          style={{ fontFamily: SUPREME, color: 'rgba(240,236,228,.78)', fontSize: 'var(--thg-body)', lineHeight: 1.6, maxWidth: '30em', marginTop: 'var(--thg-u16)' }}
+        >
+          Framhliðin við Austurvöll, og gestamóttakan innan við hana.
         </p>
       </div>
-      <div className="thg-container mt-12 grid gap-8 md:mt-16 md:grid-cols-2 md:gap-6">
-        {[hotel, care].map((h) => (
-          <div key={h.label} data-thg-reveal="c" className="flex flex-col overflow-hidden">
-            <div className="aspect-[4/3] shrink-0">
-              <img src={IMG(h.image)} alt={`${h.project}, ${h.label.toLowerCase()}`} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+
+      <div className="thg-shutter-wrap">
+        <div className="thg-shutter-sticky">
+          <img src={IMG(PHOTOS.shutterBase.file)} alt={PHOTOS.shutterBase.alt} className="thg-shutter-base" />
+          <div className="thg-shutter-panel thg-shutter-panel-l">
+            <img src={IMG(PHOTOS.shutterPlate.file)} alt={PHOTOS.shutterPlate.alt} className="thg-shutter-panel-img thg-shutter-panel-img-l" loading="lazy" decoding="async" />
+          </div>
+          <div className="thg-shutter-panel thg-shutter-panel-r">
+            <img src={IMG(PHOTOS.shutterPlate.file)} alt="" aria-hidden className="thg-shutter-panel-img thg-shutter-panel-img-r" loading="lazy" decoding="async" />
+          </div>
+          <span
+            aria-hidden
+            className="absolute bottom-4 left-4 z-10"
+            style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase', color: CHALK, background: DARK, padding: '.4em .7em' }}
+          >
+            Hótel Borg, framhliðin → gestamóttakan
+          </span>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §8 Innandyra
+   ═════════════════════════════════════════════════════════════════════════ */
+function Interiors() {
+  return (
+    <section id="thg-interiors" data-thg-bg="chalk" className="thg-theme-chalk thg-band relative">
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter)' }}>
+        <Kicker>Innandyra</Kicker>
+        <SectionRule />
+        <h2
+          data-thg-reveal="ctn"
+          className="m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Rýmin sjálf
+        </h2>
+        <p
+          data-thg-reveal="p"
+          style={{ fontFamily: SUPREME, color: INK, fontSize: 'var(--thg-body)', lineHeight: 1.7, maxWidth: '34em', marginTop: 'var(--thg-u16)' }}
+        >
+          Myndirnar hér að neðan eru ljósmyndir af fullbúnum rýmum, ekki tölvumyndir. Hver mynd er merkt
+          rýminu og húsinu sem hún tilheyrir.
+        </p>
+
+        <div className="grid gap-4 sm:grid-cols-2" style={{ marginTop: 'var(--thg-u32)' }}>
+          {INTERIORS.map((v, i) => (
+            <div key={v.image} className={i === INTERIORS.length - 1 && INTERIORS.length % 2 === 1 ? 'sm:col-span-2' : undefined}>
+              <InteriorPhoto file={v.image} alt={v.alt} room={v.room} project={v.project} />
             </div>
-            {/* Solid graphite plate, not a gradient over the photo — keeps
-                paper-on-graphite at the exact verified 13.52:1 (AAA). */}
-            <div className="p-6 md:p-8" style={{ background: GRAPHITE }}>
-              <Kicker tone={PAPER_MUTED}>{h.label}</Kicker>
-              <p className="m-0 mt-2 text-[15px]" style={{ fontFamily: BODY, color: PAPER }}>{h.project}</p>
-              <p className="m-0 mt-3" style={{ fontFamily: DISPLAY, fontWeight: 500, color: PAPER, fontSize: 'clamp(2.6rem,6vw,4.2rem)', lineHeight: 1 }}>
-                {h.figure}
-                <span className="ml-3 align-middle text-[14px] font-normal uppercase tracking-[0.1em]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>
-                  {h.unit}
-                </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §9 Stofan — the three numbers
+   ═════════════════════════════════════════════════════════════════════════ */
+function PracticeFacts() {
+  return (
+    <section id="thg-practice" data-thg-bg="sand" className="thg-theme-sand thg-band relative">
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter)' }}>
+        <Kicker>Stofan</Kicker>
+        <SectionRule />
+        <h2
+          data-thg-reveal="ctn"
+          className="m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Þrjár tölur
+        </h2>
+
+        <div className="grid gap-8 sm:grid-cols-3" style={{ marginTop: 'var(--thg-u32)' }}>
+          {DOCUMENTS.map((d) => (
+            <div key={d.label} data-thg-reveal="ctn">
+              <p className="m-0" style={{ fontFamily: GAMBETTA, fontWeight: 300, color: INK, fontSize: 'var(--thg-d3)', lineHeight: 1.15 }}>
+                {d.count}
+              </p>
+              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, color: INK, fontSize: 'var(--thg-body)', letterSpacing: '.02em', textTransform: 'uppercase', marginTop: 'var(--thg-u4)' }}>
+                {d.label}
+              </p>
+              <p className="m-0" style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--thg-body)', lineHeight: 1.6, marginTop: 'var(--thg-u4)' }}>
+                {d.note}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p
+          data-thg-reveal="p"
+          style={{ fontFamily: SUPREME, color: MUTED, fontSize: 'var(--thg-body)', lineHeight: 1.7, maxWidth: '32em', marginTop: 'var(--thg-u48)', borderTop: '1px solid rgba(22,26,23,.16)', paddingTop: 'var(--thg-u16)' }}
+        >
+          Verkefnin sjö á þessari síðu eru valin úr verkefnaskrá stofunnar á thg.is. Engu er bætt við
+          og ekkert er sagt hér sem stofan hefur ekki þegar birt sjálf.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   §10 Fyrirspurn
+   ═════════════════════════════════════════════════════════════════════════ */
+function Enquiry() {
+  const [name, setName] = useState('')
+  const [addr, setAddr] = useState('')
+  const [topic, setTopic] = useState(ENQUIRY_TOPICS[0])
+
+  const mailHref = useMemo(() => {
+    const subject = `Fyrirspurn: ${topic}`
+    const bodyLines = [
+      `Nafn: ${name || '[nafn]'}`,
+      `Netfang: ${addr || '[netfang]'}`,
+      `Erindi: ${topic}`,
+      '',
+      'Skrifaðu skilaboð hér.',
+    ]
+    return `${EMAIL_HREF}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join('\n'))}`
+  }, [name, addr, topic])
+
+  return (
+    <section id="thg-enquiry" data-thg-bg="river" className="thg-theme-river thg-band relative">
+      <div style={{ padding: 'var(--thg-u64) var(--thg-gutter) var(--thg-u96)' }}>
+        <Kicker tone="light">Hafa samband</Kicker>
+        <SectionRule tone="light" />
+        <h2
+          data-thg-reveal="ctn"
+          className="m-0"
+          style={{ fontFamily: GAMBETTA, fontWeight: 300, color: CHALK, fontSize: 'var(--thg-d2)', lineHeight: 1.18, marginTop: 'var(--thg-u16)' }}
+        >
+          Fyrirspurn
+        </h2>
+
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr]" style={{ marginTop: 'var(--thg-u32)' }}>
+          <form
+            data-thg-reveal="ctn"
+            className="flex flex-col gap-6"
+            onSubmit={(e) => { e.preventDefault(); window.location.href = mailHref }}
+          >
+            <div>
+              <label htmlFor="thg-f-name" className="sr-only">Nafn</label>
+              <input id="thg-f-name" className="thg-field" placeholder="Nafn" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+            </div>
+            <div>
+              <label htmlFor="thg-f-email" className="sr-only">Netfang</label>
+              <input id="thg-f-email" type="email" className="thg-field" placeholder="Netfang" value={addr} onChange={(e) => setAddr(e.target.value)} autoComplete="email" />
+            </div>
+            <div>
+              <label htmlFor="thg-f-topic" className="sr-only">Erindi</label>
+              <select id="thg-f-topic" className="thg-field" value={topic} onChange={(e) => setTopic(e.target.value)}>
+                {ENQUIRY_TOPICS.map((t) => <option key={t} value={t} style={{ color: INK }}>{t}</option>)}
+              </select>
+            </div>
+            <a href={mailHref} className="thg-cta self-start">
+              Senda fyrirspurn
+            </a>
+            <p style={{ fontFamily: SUPREME, color: MUTED_ON_RIVER, fontSize: '13px', lineHeight: 1.5, maxWidth: '26em' }}>
+              Opnast í tölvupóstforritinu þínu, stílað á {EMAIL}.
+            </p>
+          </form>
+
+          <div data-thg-reveal="ctn" className="flex flex-col gap-6">
+            <div>
+              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--thg-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_ON_RIVER }}>Bein leið</p>
+              <a href={EMAIL_HREF} className="mt-2 block" style={{ fontFamily: GAMBETTA, fontWeight: 400, color: CHALK, fontSize: 'var(--thg-lead)', textDecoration: 'underline', textUnderlineOffset: '.18em' }}>
+                {EMAIL}
+              </a>
+              <a href={PHONE_HREF} className="mt-1 block" style={{ fontFamily: SUPREME, color: CHALK, fontSize: 'var(--thg-body)' }}>
+                {PHONE_DISPLAY}
+              </a>
+            </div>
+            <div style={{ borderTop: '1px solid rgba(240,236,228,.22)', paddingTop: 'var(--thg-u16)' }}>
+              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--thg-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_ON_RIVER }}>Stofan</p>
+              <p className="mt-2" style={{ fontFamily: SUPREME, color: CHALK, fontSize: 'var(--thg-body)', lineHeight: 1.6 }}>
+                THG Arkitektar ehf. · {KT}<br />{ADDRESS}
+              </p>
+            </div>
+            <div>
+              <p className="m-0" style={{ fontFamily: SUPREME, fontWeight: 600, fontSize: 'var(--thg-label)', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_ON_RIVER }}>Stofnandi</p>
+              <p className="mt-2" style={{ fontFamily: SUPREME, color: MUTED_ON_RIVER, fontSize: '14px', lineHeight: 1.6, maxWidth: '28em' }}>
+                {PRACTICE.founder} arkitekt stofnaði stofuna í október {PRACTICE.founded}. Gæðakerfi {PRACTICE.quality}.
               </p>
             </div>
           </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 6 · KOLASUNDIÐ ══════════════════════════════ */
-function Kolasundid() {
-  return (
-    <section id="kolasundid" data-thg-theme="concrete" className="thg-chrome-zone pb-20 md:pb-28">
-      <SectionHead eyebrow="Ein hugmynd" title={KOLASUNDID.title} />
-      <div className="thg-container mt-10 grid gap-10 md:mt-14 md:grid-cols-[1.1fr_1fr] md:gap-14">
-        <div data-thg-reveal="slide" className="relative aspect-[4/3] overflow-hidden md:aspect-[5/4]">
-          <img src={IMG(KOLASUNDID.image)} alt="Kolasundið, göngugatan sem liggur gegnum jarðhæð Reykjavík Konsúlat." loading="lazy" decoding="async" className="h-full w-full object-cover" />
-        </div>
-        <div>
-          <p data-thg-reveal="p" className="thg-lines m-0 text-[17px] leading-[1.75]" style={{ fontFamily: BODY, color: 'var(--thg-fg)' }}>
-            {KOLASUNDID.body}
-          </p>
-          <div data-thg-reveal="c" className="mt-10">
-            <svg viewBox="0 0 320 90" className="w-full max-w-[22rem]" aria-hidden role="presentation">
-              <path
-                className="thg-diagram-path"
-                d="M8 66 C 70 66, 90 20, 158 20 S 250 66, 312 24"
-                style={{ stroke: 'var(--thg-accent, #A8412A)' }}
-              />
-              <circle cx="8" cy="66" r="3.5" style={{ fill: 'var(--thg-fg)' }} />
-              <circle cx="312" cy="24" r="3.5" style={{ fill: 'var(--thg-fg)' }} />
-            </svg>
-            <div className="mt-2 flex items-center justify-between text-[11px] uppercase tracking-[0.12em]" style={{ fontFamily: BODY, color: 'var(--thg-fg-muted)' }}>
-              <span>Gamli miðbærinn</span>
-              <span>Gamla sjávarlóðin</span>
-            </div>
-            <p className="m-0 mt-4 text-[12px] italic" style={{ fontFamily: BODY, color: 'var(--thg-fg-muted)' }}>
-              {KOLASUNDID.diagramLabel}
-            </p>
-          </div>
         </div>
       </div>
     </section>
   )
 }
 
-/* ═══════════════════════════ 7 · STOFAN (compliance as monument) ═══════ */
-function Stofan() {
-  return (
-    <section id="stofan" data-thg-theme="graphite" className="thg-chrome-zone pb-20 md:pb-28">
-      <SectionHead eyebrow="Stofan" title="Stofan" />
-      <div className="thg-container mt-10 md:mt-14">
-        <p
-          data-thg-reveal="c"
-          className="thg-chars m-0"
-          style={{ fontFamily: DISPLAY, fontWeight: 500, color: PAPER, fontSize: 'clamp(3.4rem,11vw,9rem)', lineHeight: 1, letterSpacing: '-0.01em' }}
-        >
-          1994
-        </p>
-        <div className="mt-8 grid gap-6 md:mt-10 md:grid-cols-2 md:gap-10">
-          <p data-thg-reveal="c" className="m-0 text-[19px] leading-[1.4]" style={{ fontFamily: DISPLAY, fontWeight: 400, color: PAPER }}>
-            {PRACTICE.staffLine}. {PRACTICE.quality}.
-          </p>
-          <p data-thg-reveal="p" className="thg-lines m-0 max-w-[46ch] text-[17px] leading-[1.75]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>
-            {PRACTICE.services}
-          </p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════ 8 · SAMBAND ════════════════════════════════ */
-function Samband() {
-  return (
-    <section id="samband" data-thg-theme="graphite" className="thg-chrome-zone pb-24 md:pb-32">
-      <SectionHead eyebrow="Hafið samband" title="Samband" />
-      <div className="thg-container mt-10 md:mt-14">
-        {/* GROWING-ARC CTA — addendum device 4 / era §2.7(b). A fragment of
-            ring (0.0417×C) grows to exactly half the circumference on
-            hover/focus and deliberately stops there — see .thg-arc-cta in
-            PAGE_STYLES for the CSS custom-property state machine that
-            drives it; there is no JS hover handler anywhere in this file. */}
-        <a
-          href={EMAIL_HREF}
-          className={`thg-arc-cta mb-12 ${FOCUS_CLASS}`}
-          aria-label={`Senda tölvupóst á ${EMAIL}`}
-        >
-          <svg viewBox="0 0 100 100" width="88" height="88" className="absolute inset-0" aria-hidden focusable="false">
-            <circle cx="50" cy="50" r="44" fill="none" stroke="var(--thg-fg)" strokeOpacity="0.18" strokeWidth="1" />
-            <circle className="thg-arc-ring" cx="50" cy="50" r="44" fill="none" stroke="var(--thg-fg)" strokeWidth="1.5" transform="rotate(-90 50 50)" />
-          </svg>
-          <span className="thg-arc-label text-[11px] font-medium uppercase tracking-[0.14em]" style={{ fontFamily: BODY, color: 'var(--thg-fg)' }}>
-            Senda<br />póst
-          </span>
-        </a>
-        <dl className="m-0 max-w-[34rem]">
-          <div className="thg-field-row flex items-baseline justify-between gap-6 py-4" style={{ borderColor: 'rgba(232,230,225,.16)' }}>
-            <dt className="m-0 text-[12px] font-medium uppercase tracking-[0.2em]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>Heimilisfang</dt>
-            <dd className="m-0 text-right">
-              <a href={MAP_LINK} target="_blank" rel="noreferrer" className={`inline-flex min-h-[44px] items-center text-[17px] underline underline-offset-4 ${FOCUS_CLASS}`} style={{ fontFamily: BODY, color: PAPER }}>
-                {ADDRESS}
-              </a>
-            </dd>
-          </div>
-          <div className="thg-field-row flex items-baseline justify-between gap-6 py-4" style={{ borderColor: 'rgba(232,230,225,.16)' }}>
-            <dt className="m-0 text-[12px] font-medium uppercase tracking-[0.2em]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>Sími</dt>
-            <dd className="m-0 text-right">
-              <a href={PHONE_HREF} className={`inline-flex min-h-[44px] items-center text-[17px] underline underline-offset-4 ${FOCUS_CLASS}`} style={{ fontFamily: BODY, color: PAPER }}>
-                {PHONE_DISPLAY}
-              </a>
-            </dd>
-          </div>
-          <div className="thg-field-row flex items-baseline justify-between gap-6 py-4" style={{ borderColor: 'rgba(232,230,225,.16)' }}>
-            <dt className="m-0 text-[12px] font-medium uppercase tracking-[0.2em]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>Netfang</dt>
-            <dd className="m-0 text-right">
-              <a href={EMAIL_HREF} className={`inline-flex min-h-[44px] items-center text-[17px] underline underline-offset-4 ${FOCUS_CLASS}`} style={{ fontFamily: BODY, color: PAPER }}>
-                {EMAIL}
-              </a>
-            </dd>
-          </div>
-        </dl>
-        <p className="m-0 mt-10 text-[12px]" style={{ fontFamily: BODY, color: PAPER_MUTED }}>THG Arkitektar ehf · {KT}</p>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════════ PAGE ════════════════════════════════════ */
-export default function Page() {
+/* ═════════════════════════════════════════════════════════════════════════
+   Page — assembles the chrome, the closing stack (sections 1–9, clipped and
+   scaled down as Fyrirspurn arrives) and Fyrirspurn itself (scaled up to
+   meet it). Preloader and Chrome sit OUTSIDE the closing stack deliberately:
+   both use position:fixed, and a transformed ancestor would create a new
+   containing block for them, breaking their viewport-relative positioning
+   the moment the footer-close effect starts scaling the stack.
+   ═════════════════════════════════════════════════════════════════════════ */
+export default function ThgPage() {
   const rootRef = useRef<HTMLDivElement>(null)
-  const journeyActiveRef = useRef(false)
+  const closeStackRef = useRef<HTMLDivElement>(null)
+  const enquiryWrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => setNoindex(true), [])
 
   useEffect(() => {
     document.title = PAGE_TITLE
-    setThemeColor(GRAPHITE)
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
-    const created = !meta
-    if (!meta) {
-      meta = document.createElement('meta')
-      meta.name = 'description'
-      document.head.appendChild(meta)
+    setThemeColor(DARK)
+    let tag = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+    const created = !tag
+    if (!tag) {
+      tag = document.createElement('meta')
+      tag.name = 'description'
+      document.head.appendChild(tag)
     }
-    const prevDesc = meta.content
-    meta.content = PAGE_DESCRIPTION
-    const s = document.createElement('script')
-    s.type = 'application/ld+json'
-    s.textContent = JSON.stringify(JSON_LD)
-    document.head.appendChild(s)
+    const prev = tag.content
+    tag.content = PAGE_DESCRIPTION
+
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.textContent = JSON.stringify(JSON_LD)
+    document.head.appendChild(script)
+
     return () => {
-      s.remove()
-      if (created) meta?.remove()
-      else if (meta) meta.content = prevDesc
+      script.remove()
+      if (created) tag?.remove()
+      else if (tag) tag.content = prev
     }
   }, [])
 
-  /* Self-theming chrome for the VERTICAL page (era §5.4 / BRIEF §5.2): the
-     fixed chrome reads the CSS custom property of whichever top-level
-     section currently sits at its own vertical position, and only writes
-     when the active zone actually changes. Runs regardless of
-     prefers-reduced-motion — a colour swap is not the kind of motion that
-     rule guards against, and the chrome must stay legible either way.
-     Deliberately paused (journeyActiveRef) while the horizontal journey is
-     pinned; the GSAP effect below drives chrome colour there instead, keyed
-     to which project panel is centred rather than page scroll position. */
-  useEffect(() => {
-    const chrome = document.getElementById('thg-chrome')
-    if (!chrome) return
-    const zones = Array.from(document.querySelectorAll<HTMLElement>('.thg-chrome-zone'))
-    const CHROME_Y = 44
-    let raf = 0
-    let current: HTMLElement | null = null
-    const apply = () => {
-      if (journeyActiveRef.current) return
-      let active = zones[0] ?? null
-      for (const z of zones) {
-        const r = z.getBoundingClientRect()
-        if (r.top <= CHROME_Y && r.bottom >= CHROME_Y) { active = z; break }
-      }
-      if (!active || active === current) return
-      current = active
-      const fg = getComputedStyle(active).getPropertyValue('--thg-fg').trim()
-      if (fg) chrome.style.setProperty('--thg-chrome-fg', fg)
-    }
-    const onScroll = () => {
-      if (raf) return
-      raf = requestAnimationFrame(() => { raf = 0; apply() })
-    }
-    apply()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    window.addEventListener('thg:journey-released', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      window.removeEventListener('thg:journey-released', onScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [])
-
-  /* All scroll choreography. Reduced motion: the matchMedia branch returns
-     before a single tween is created — every element sits at its normal,
-     fully visible resting layout; no pin, no scrub, no shutter, no journey
-     pin (the CSS media query above already keeps the journey as a plain
-     scroll-snap rail in that case). */
+  /* All scroll choreography — hero dive-in, dome word-spacing, the six
+     reveal primitives, the shutter merge and the footer aperture close.
+     Gated entirely behind prefers-reduced-motion:no-preference: under
+     reduced motion this branch never runs a single tween, and the CSS
+     media queries above already collapse every tall scroll runway to a
+     normal single section, with panels/images at their fully visible
+     resting state. Chrome theming (useElementTheme, above) is deliberately
+     NOT gated here — a colour swap on scroll is not the kind of motion
+     that rule guards against. */
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
     const mm = gsap.matchMedia()
-    mm.add(
-      { motion: '(prefers-reduced-motion: no-preference)', desktop: '(min-width: 992px)' },
-      (mctx) => {
-        const c = mctx.conditions as { motion: boolean; desktop: boolean }
-        if (!c.motion) return undefined
-        const q = gsap.utils.selector(root)
-        const splits: SplitText[] = []
+    mm.add({ motion: '(prefers-reduced-motion: no-preference)' }, (ctx) => {
+      const c = ctx.conditions as { motion: boolean }
+      if (!c.motion) return undefined
 
-        /* LENIS + lagSmoothing(0) — addendum device 6: desktop no-preference
-           only. Below 992px the ScrollTrigger reveals above still run (this
-           whole branch is already gated on prefers-reduced-motion, not on
-           desktop), they simply ride native scroll instead of Lenis — no
-           smoothing library, no ticker hookup. */
-        let lenis: Lenis | undefined
-        let tick: ((t: number) => void) | undefined
-        if (c.desktop) {
-          lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
-          lenis.on('scroll', ScrollTrigger.update)
-          tick = (t: number) => lenis!.raf(t * 1000)
-          gsap.ticker.add(tick)
-          gsap.ticker.lagSmoothing(0)
-        }
+      const q = gsap.utils.selector(root)
+      const splits: SplitText[] = []
 
-        const journeyEl = q('.thg-journey')[0] as HTMLElement | undefined
-        const journeySticky = q('.thg-journey-sticky')[0] as HTMLElement | undefined
-        const track = q('.thg-track')[0] as HTMLElement | undefined
-        const panels = q('.thg-panel') as HTMLElement[]
-        const progressEl = q('.thg-progress')[0] as HTMLElement | undefined
-        const chromeParts = q('[data-thg-chrome-part]') as HTMLElement[]
-        const chromePanelState = new Map<HTMLElement, HTMLElement>()
-        let journeyTween: gsap.core.Tween | undefined
+      const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
+      lenis.on('scroll', ScrollTrigger.update)
+      thgLenis = lenis
+      const tick = (t: number) => lenis.raf(t * 1000)
+      gsap.ticker.add(tick)
+      gsap.ticker.lagSmoothing(0)
 
-        /* .thg-journey's height IS .thg-track's scrollWidth — the "1:1
-           mapping" era §5.6 describes — so it has to be resynced whenever
-           track width can change: on mount, after fonts/images finish
-           loading (below), and on resize. */
-        const syncJourneyHeight = () => {
-          if (journeyEl && track) journeyEl.style.height = `${track.scrollWidth}px`
-        }
+      /* ── 1. Dive-in hero: scale 1→1.8 from 50%/75%, three text layers
+         parallax out at differential rates. One ScrollTrigger, onUpdate
+         reads progress directly — "ease: none" by construction, since the
+         value IS the scroll position (teardown Phase 6.1's rule). ── */
+      const heroScroll = q('.thg-hero-scroll')[0] as HTMLElement | undefined
+      const heroImg = q('.thg-hero-image')[0] as HTMLElement | undefined
+      const heroEyebrow = q('.thg-hero-eyebrow')[0] as HTMLElement | undefined
+      const heroH1 = q('.thg-hero-h1')[0] as HTMLElement | undefined
+      const heroLower = q('.thg-hero-tagline, .thg-hero-body') as HTMLElement[]
+      if (heroScroll && heroImg) {
+        ScrollTrigger.create({
+          trigger: heroScroll,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: true,
+          onUpdate: (self) => {
+            const p = self.progress
+            gsap.set(heroImg, { scale: 1 + p * 0.8 })
+            if (heroEyebrow) gsap.set(heroEyebrow, { yPercent: -Math.min(1, p / 0.5) * 40, opacity: 1 - Math.min(1, p / 0.45) })
+            if (heroH1) gsap.set(heroH1, { yPercent: -Math.min(1, p / 0.65) * 55, opacity: 1 - Math.min(1, p / 0.6) })
+            heroLower.forEach((el) => gsap.set(el, { yPercent: -Math.min(1, p / 0.8) * 70, opacity: 1 - Math.min(1, p / 0.72) }))
+          },
+        })
+      }
 
-        if (c.desktop && journeyEl && journeySticky && track) {
-          syncJourneyHeight()
+      /* ── 2. Dome word-spacing: 0 → 2vw scrubbed as the dome crests. ── */
+      const domeSection = q('.thg-dome')[0] as HTMLElement | undefined
+      const domeHeading = q('.thg-dome-heading')[0] as HTMLElement | undefined
+      if (domeSection && domeHeading) {
+        gsap.fromTo(domeHeading, { wordSpacing: '0vw' }, {
+          wordSpacing: '2vw', ease: 'none',
+          scrollTrigger: { trigger: domeSection, start: 'top bottom', end: 'top top', scrub: true },
+        })
+      }
 
-          /* THE HORIZONTAL JOURNEY — addendum device 2 / era §5.6. Not a
-             GSAP pin: .thg-journey-sticky is a plain CSS position:sticky
-             viewport (PAGE_STYLES §6), so no pin-spacer bookkeeping exists
-             at all — exactly era's own mechanism, not an approximation of
-             it. journeyTween is a TWEEN (never a timeline: containerAnimation
-             requires one) with the exact ease/scrub/dead-zone era uses. */
-          const dist = () => Math.max(1, track.scrollWidth - window.innerWidth)
-          journeyTween = gsap.to(track, {
-            x: () => -dist(),
-            ease: 'thgJourney',
-            force3D: true,
-            scrollTrigger: {
-              trigger: journeyEl,
-              start: '2.5% top',
-              end: '97.5% bottom',
-              scrub: 0.25,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                if (progressEl) progressEl.style.transform = `scaleX(${self.progress})`
-                journeyActiveRef.current = self.isActive
+      /* ── 3. The six reveal primitives, for real. ── */
+      const revealEls = Array.from(root.querySelectorAll<HTMLElement>('[data-thg-reveal]'))
+      revealEls.forEach((el, i) => {
+        const kind = el.dataset.thgReveal
+        const stBase = { toggleActions: 'play none none none', once: true } as const
 
-                /* PER-PROJECT CHROME, device 7: each fixed chrome element
-                   (logo+wordmark, codename badge) is tested against its OWN
-                   horizontal centre, independently of the others — era
-                   §5.4's per-element-centre idea, adapted from "which
-                   vertical section is at my centre" to "which panel is
-                   under my centre right now". Only writes (and only
-                   transitions, via the CSS §2 rule) when that element's own
-                   panel actually changes. */
-                chromeParts.forEach((part) => {
-                  const r = part.getBoundingClientRect()
-                  const cx = r.left + r.width / 2
-                  const panel = panels.find((p) => {
-                    const pr = p.getBoundingClientRect()
-                    return cx >= pr.left && cx <= pr.right
-                  })
-                  if (!panel || chromePanelState.get(part) === panel) return
-                  chromePanelState.set(part, panel)
-                  const fg = getComputedStyle(panel).getPropertyValue('--thg-fg').trim()
-                  if (fg) part.style.setProperty('--thg-part-fg', fg)
-                })
-              },
-              onEnter: () => { journeyActiveRef.current = true },
-              onEnterBack: () => { journeyActiveRef.current = true },
-              onLeave: () => {
-                journeyActiveRef.current = false
-                chromeParts.forEach((part) => { part.style.removeProperty('--thg-part-fg'); chromePanelState.delete(part) })
-                window.dispatchEvent(new Event('thg:journey-released'))
-              },
-              onLeaveBack: () => {
-                journeyActiveRef.current = false
-                chromeParts.forEach((part) => { part.style.removeProperty('--thg-part-fg'); chromePanelState.delete(part) })
-                window.dispatchEvent(new Event('thg:journey-released'))
-              },
-            },
-          })
-
-          /* DIFFERENTIAL TITLE DRIFT — the second half of device 2: each
-             panel's project name travels at a slightly different rate than
-             its photograph (which doesn't move inside its panel at all —
-             rate 0), riding the SAME containerAnimation as the horizontal
-             pan itself. Rates alternate sign/magnitude per panel so no two
-             neighbours drift identically. */
-          const driftRates = [7, -9, 5, -11, 8, -6, 10]
-          panels.forEach((panel, i) => {
-            const title = panel.querySelector<HTMLElement>('.thg-panel-title')
-            if (!title) return
-            const rate = driftRates[i % driftRates.length]
-            gsap.fromTo(title,
-              { xPercent: -rate },
-              {
-                xPercent: rate, ease: 'none',
-                scrollTrigger: { containerAnimation: journeyTween, trigger: panel, start: 'left right', end: 'right left', scrub: true },
-              })
-          })
-
-          /* RECEDE-TO-DISSOLVE — addendum device 3 / era's amenities exit
-             (§9 "dissolving" not "zooming"): the sticky viewport window
-             (the journey's "outgoing layer") scales toward 2 while it
-             fades, scrubbed across the runway's final stretch, so the
-             handoff into Innandyra is a dissolve, never a hard cut. */
-          gsap.fromTo(journeySticky,
-            { scale: 1, opacity: 1 },
-            {
-              scale: 2, opacity: 0, ease: EASE.in, transformOrigin: '50% 50%',
-              scrollTrigger: { trigger: journeyEl, start: '92% bottom', end: 'bottom bottom', scrub: 0.4 },
-            })
-        }
-
-        /* Per-element trigger: inside the journey it rides
-           containerAnimation with left-based positions; everywhere else
-           (the seven normal vertical sections) it's a plain viewport
-           trigger. Mobile/tablet (journeyTween undefined) never wires a
-           containerAnimation — the track there is a native scroll-snap
-           rail, not a scrub target. */
-        const trig = (el: Element, v: string, h: string, extra?: Record<string, unknown>): ScrollTrigger.Vars => {
-          const inTrack = !!(el as HTMLElement).closest?.('.thg-track')
-          return (inTrack && journeyTween
-            ? { trigger: el, containerAnimation: journeyTween, start: h, ...extra }
-            : { trigger: el, start: v, ...extra }) as ScrollTrigger.Vars
-        }
-
-        /* THE APERTURE SHUTTER, three beats — addendum device 1 / era §11.
-           Time-based (the hero is visible at load, not scroll-triggered).
-           See PAGE_STYLES §5: the resting/failsafe state is already fully
-           open (both panels off-canvas), so this timeline starts exactly
-           there with no flash, closes, holds, then pushes through. */
-        const shutterLeft = q('.thg-shutter-left')[0] as HTMLElement | undefined
-        const shutterRight = q('.thg-shutter-right')[0] as HTMLElement | undefined
-        const shutterPlane = q('.thg-shutter-plane')[0] as HTMLElement | undefined
-        if (shutterLeft && shutterRight && shutterPlane) {
-          gsap.timeline({ delay: 0.1 })
-            // BEAT 1 — CONVERGE: both panels slide in from the outer edges
-            // and meet at the centre seam, together covering the full frame.
-            .fromTo(shutterLeft, { xPercent: -100 }, { xPercent: 0, duration: 0.5, ease: EASE.inout })
-            .fromTo(shutterRight, { xPercent: 100 }, { xPercent: 0, duration: 0.5, ease: EASE.inout }, '<')
-            // BEAT 2 — MERGE + HOLD: they now read as one covering plane;
-            // an explicit pause before it opens.
-            .to(shutterPlane, { duration: 0.2 })
-            // BEAT 3 — PUSH THROUGH: the merged plane scales past the
-            // viewer and fades, clearing the frame — era's arch shutter
-            // scales its merged aperture 1 → 1.84 for the same "camera
-            // pushes through" read.
-            .to(shutterPlane, { scale: 1.6, opacity: 0, duration: 0.55, ease: EASE.in, transformOrigin: '50% 50%' })
-        }
-        gsap.fromTo(q('.thg-hero-img'), { scale: 1.1 }, { scale: 1, duration: 1.6, ease: EASE.out, delay: 0.1 })
-        const heroH1 = q('.thg-hero-h1')[0] as HTMLElement | undefined
-        if (heroH1) {
-          splits.push(SplitText.create(heroH1, {
-            // 'words,chars', never 'chars' alone: inline-block characters with
-            // no word wrapper let the browser break a line mid-word ("fyri /
-            // r er."). The word wrapper keeps each word atomic.
-            // No mask option either: GSAP's mask wrappers render as block-level
-            // divs here and would stack every character on its own line.
-            type: 'words,chars',
-            wordsClass: 'thg-word',
-            charsClass: 'thg-char',
-            autoSplit: false,
+        if (kind === 'h') {
+          splits.push(SplitText.create(el, {
+            type: 'words,chars', wordsClass: 'thg-word', charsClass: 'thg-char', autoSplit: false,
             onSplit: (self) => {
-              // fromTo toward the resting state, never gsap.from: a from()
-              // tween writes the hidden state as an inline style, so a paused
-              // rAF, a crawler or a screenshot service gets an invisible H1.
-              // Delay tuned to land as the shutter's push-through beat runs
-              // (beat 3 starts at ~0.8s into the timeline above).
-              gsap.fromTo(
-                self.chars,
+              gsap.fromTo(self.chars,
                 { yPercent: 112 },
-                { yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02, delay: 1.0, clearProps: 'transform' },
-              )
+                {
+                  yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: STAGGER * 0.5,
+                  delay: DELAY, clearProps: 'transform',
+                  scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
+                })
               return undefined
             },
           }))
-        }
-        gsap.fromTo(q('.thg-hero-eyebrow'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: DUR.m, ease: EASE.out, delay: 0.75 })
-        gsap.fromTo(q('.thg-hero-practice'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: DUR.m, ease: EASE.out, delay: 1.5 })
-
-        /* THE SIX REVEAL PRIMITIVES, for real — addendum device 5 / era
-           §5.7: 'h' (heading chars), 'p' (masked lines), 'line' (clip
-           wipe), 'a' (accent chars, rotateX+x — used on the thesis quote
-           index badges), 'slide' (skewed clip-path wipe + inner counter-
-           scale — used on the Kolasundið photograph) and 'ctn' (the
-           fallback branch: opacity+y, for plain containers/groups, never
-           substituted for an 'h' or 'p'). Inside the track, only wired on
-           desktop: on mobile/tablet the rail is a native scroll-snap
-           gesture and every panel shares one vertical position, so a
-           vertical ScrollTrigger there would fire for all seven at once.
-           Mobile panels simply render at their normal, fully legible
-           resting state instead — content is identical either way. */
-        const revealables = Array.from(root.querySelectorAll<HTMLElement>('[data-thg-reveal]'))
-        revealables.forEach((el, i) => {
-          const inTrack = !!el.closest('.thg-track')
-          if (inTrack && !c.desktop) return
-          const kind = el.dataset.thgReveal
-          /* Every reveal below is fromTo, toward the element's resting state.
-             gsap.from() would write the hidden state as an inline style at
-             ScrollTrigger init, so anything that never advances the timeline
-             (paused rAF, a crawler, a screenshot service) would be left with
-             permanently invisible content. */
-          if (kind === 'h') {
-            splits.push(SplitText.create(el, {
-              // No mask option: GSAP's char mask wrappers are block-level here
-              // and would stack every character on its own line. CSS masks the
-              // chars instead (.thg-char), guaranteed inline-block.
-              type: 'words,chars', wordsClass: 'thg-word', charsClass: 'thg-char', autoSplit: false,
-              onSplit: (self) => {
-                gsap.fromTo(self.chars,
-                  { yPercent: 112 },
-                  {
-                    yPercent: 0, duration: DUR.l, ease: EASE.out, stagger: 0.02,
-                    clearProps: 'transform',
-                    scrollTrigger: trig(el, 'top 85%', 'left 85%', { toggleActions: 'play none none none', once: true }),
-                  })
-                return undefined
-              },
-            }))
-          } else if (kind === 'p') {
-            /* Deliberately NOT SplitText lines: it measures before layout
-               settles and can lock every word into its own block wrapper. */
-            gsap.fromTo(el,
-              { opacity: 0, y: 18 },
-              {
-                opacity: 1, y: 0, duration: DUR.m, ease: EASE.out,
-                scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
-              })
-          } else if (kind === 'line') {
-            gsap.fromTo(el,
-              { scaleX: 0 },
-              {
-                scaleX: 1, duration: DUR.m, ease: EASE.inout, transformOrigin: 'left center',
-                scrollTrigger: trig(el, 'top 92%', 'left 92%', { toggleActions: 'play none none none', once: true }),
-              })
-          } else if (kind === 'a') {
-            // Accent chars — era's script/accent primitive (rotateX+x on a
-            // short baseline arc). x expressed in vw (not rem) so it stays
-            // fluid with .thg-root's scoped canvas rather than the page's
-            // unrelated root font-size.
-            splits.push(SplitText.create(el, {
-              type: 'chars', charsClass: 'thg-char', autoSplit: false,
-              onSplit: (self) => {
-                gsap.fromTo(self.chars,
-                  { yPercent: 112, x: '0.4vw' },
-                  {
-                    yPercent: 0, x: '0vw', duration: DUR.l, ease: EASE.out, stagger: 0.05,
-                    clearProps: 'transform',
-                    scrollTrigger: trig(el, 'top 88%', 'left 88%', { toggleActions: 'play none none none', once: true }),
-                  })
-                return undefined
-              },
-            }))
-          } else if (kind === 'slide') {
-            // Skewed clip-path wipe + inner counter-scale — era's slide
-            // primitive, used here once for a real photographic reveal
-            // rather than a plain opacity fade standing in for it.
-            const inner = el.querySelector<HTMLImageElement>('img')
-            gsap.fromTo(el,
-              { clipPath: 'polygon(100% 0%, 100% 0%, 101% 100%, 125% 100%)' },
-              {
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', duration: DUR.l, ease: EASE.inout,
-                scrollTrigger: trig(el, 'top 82%', 'left 82%', { toggleActions: 'play none none none', once: true }),
-              })
-            if (inner) {
-              gsap.fromTo(inner,
-                { scale: 1.5, xPercent: 25 },
+        } else if (kind === 'a') {
+          splits.push(SplitText.create(el, {
+            type: 'words,chars', wordsClass: 'thg-word', charsClass: 'thg-char', autoSplit: false,
+            onSplit: (self) => {
+              gsap.fromTo(self.chars,
+                { yPercent: 112, x: '0.5em' },
                 {
-                  scale: 1, xPercent: 0, duration: DUR.l, ease: EASE.inout,
-                  scrollTrigger: trig(el, 'top 82%', 'left 82%', { toggleActions: 'play none none none', once: true }),
+                  yPercent: 0, x: '0em', duration: DUR.l, ease: EASE.out, stagger: STAGGER,
+                  delay: DELAY, clearProps: 'transform',
+                  scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
                 })
-            }
-          } else {
-            gsap.fromTo(el,
-              { opacity: 0, y: 22 },
-              {
-                opacity: 1, y: 0, duration: DUR.m, ease: EASE.out, delay: (i % 4) * 0.04,
-                scrollTrigger: trig(el, 'top 90%', 'left 90%', { toggleActions: 'play none none none', once: true }),
-              })
-          }
-        })
-
-        /* Kolasundið diagram — resting state (no JS) is fully drawn; JS
-           animates FROM an undrawn dash-offset back to it. */
-        const diagramPath = root.querySelector<SVGPathElement>('.thg-diagram-path') ?? undefined
-        if (diagramPath) {
-          const len = diagramPath.getTotalLength()
-          gsap.set(diagramPath, { strokeDasharray: len })
-          gsap.fromTo(diagramPath,
-            { strokeDashoffset: len },
+              return undefined
+            },
+          }))
+        } else if (kind === 'p') {
+          /* Deliberately NOT SplitText lines. Line-splitting measures the
+             paragraph before layout has settled, and when it guesses wrong it
+             locks every WORD into its own block wrapper, which shipped a page
+             of one-word lines. A paragraph has to be readable; a masked-line
+             reveal is decoration. Whole-element rise instead. */
+          gsap.fromTo(el,
+            { opacity: 0, y: 18 },
             {
-              strokeDashoffset: 0, duration: DUR.l * 1.8, ease: EASE.out,
-              scrollTrigger: trig(diagramPath, 'top 82%', 'left 82%', { toggleActions: 'play none none none', once: true }),
+              opacity: 1, y: 0, duration: DUR.m, ease: EASE.out,
+              scrollTrigger: { trigger: el, start: 'top 88%', ...stBase },
             })
-        }
-
-        /* The track's scrollWidth (and so .thg-journey's JS-set height) is
-           only correct once the display font (Sentient changes
-           panel-name widths) and every in-track image have finished
-           loading — resync + refresh after both so the runway height and
-           every trigger's end/x are measured against the true track
-           width. */
-        document.fonts.ready.then(() => { if (c.desktop) syncJourneyHeight(); ScrollTrigger.refresh() })
-        const imgs = Array.from(root.querySelectorAll('.thg-track img'))
-        Promise.all(imgs.map((im) => {
-          const el = im as HTMLImageElement
-          if (el.complete && el.naturalWidth > 0) return Promise.resolve()
-          const dec = el.decode ? el.decode().catch(() => undefined) : undefined
-          return dec ?? new Promise<void>((res) => {
-            el.addEventListener('load', () => res(), { once: true })
-            el.addEventListener('error', () => res(), { once: true })
+        } else if (kind === 'line') {
+          gsap.fromTo(el, { clipPath: 'inset(0 0 100% 0)' }, {
+            clipPath: 'inset(0 0 0% 0)', duration: DUR.m, ease: EASE.out,
+            scrollTrigger: { trigger: el, start: 'top 92%', ...stBase },
           })
-        })).then(() => { if (c.desktop) syncJourneyHeight(); ScrollTrigger.refresh() })
-
-        /* Panel width is viewport-relative (100vw × 7), so the runway
-           height also has to be resynced on resize, not just once at load —
-           debounced exactly like era's own resize handler (13.6). */
-        let resizeTimer = 0
-        const onResize = () => {
-          window.clearTimeout(resizeTimer)
-          resizeTimer = window.setTimeout(() => {
-            if (c.desktop) syncJourneyHeight()
-            ScrollTrigger.refresh()
-          }, 40)
+        } else if (kind === 'slide') {
+          const img = el.querySelector('img')
+          gsap.fromTo(el, { clipPath: 'polygon(100% 0%,100% 0%,108% 100%,24% 100%)' }, {
+            clipPath: 'polygon(0% 0%,100% 0%,100% 100%,0% 100%)', duration: DUR.l, ease: EASE.inout,
+            scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
+          })
+          if (img) {
+            gsap.fromTo(img, { scale: 1.35, xPercent: 14 }, {
+              scale: 1, xPercent: 0, duration: DUR.l, ease: EASE.inout,
+              scrollTrigger: { trigger: el, start: 'top 85%', ...stBase },
+            })
+          }
+        } else {
+          gsap.fromTo(el, { opacity: 0, y: 26 }, {
+            opacity: 1, y: 0, duration: DUR.l, ease: EASE.out, delay: (i % 4) * 0.04,
+            scrollTrigger: { trigger: el, start: 'top 90%', ...stBase },
+          })
         }
-        window.addEventListener('resize', onResize)
+      })
 
-        /* ~2s failsafe (BRIEF §7): clear any leftover inline reveal styles
-           regardless of whether their ScrollTrigger has fired yet, so a
-           paused rAF, a crawler, or a screenshot service never renders a
-           mid-tween "hidden" frame — the shutter panels are included here
-           too, so a stuck mid-close frame can never permanently hide the
-           hero photo. */
-        const failsafe = window.setTimeout(() => {
-          // Clear ONLY the properties the reveals animate. clearProps:'all'
-          // also wipes React's own inline style attribute, which is where the
-          // hero's font-size, font-family and colour live, so it silently
-          // reset the H1 to 16px unstyled text two seconds after every load.
-          gsap.set(
-            root.querySelectorAll(
-              '[data-thg-reveal], [data-thg-reveal] *, .thg-hero-h1, .thg-hero-h1 *, .thg-hero-eyebrow, .thg-hero-practice, .thg-shutter-plane, .thg-shutter-left, .thg-shutter-right',
-            ),
-            { opacity: 1, clearProps: 'transform,clipPath' },
-          )
-        }, 2000)
-
-        return () => {
-          window.clearTimeout(failsafe)
-          window.clearTimeout(resizeTimer)
-          window.removeEventListener('resize', onResize)
-          if (tick) gsap.ticker.remove(tick)
-          lenis?.destroy()
-          if (journeyEl) journeyEl.style.removeProperty('height')
-          chromeParts.forEach((part) => part.style.removeProperty('--thg-part-fg'))
-          splits.forEach((sp) => sp.revert())
-          journeyActiveRef.current = false
+      /* ── 4. Utan og innan — the 10-point shutter merge. Panels traced as
+         an outer-rect-with-a-hole in a single 10-point clip-path polygon
+         (rebuilt every tick from 4 numbers via onUpdate — GSAP cannot
+         safely interpolate polygon() strings whose point count/shape
+         differs between phases, so the numbers are tweened, not the
+         string). Phase 1 converges the hole's top/bottom edges toward a
+         shared band (18.519%/81.481% — the ERA source's own hole
+         geometry). Phase 2 merges the remaining slit to the screen's
+         centre from both sides. Phase 3 is the push-through: once the
+         plate is fully opaque, it scales up for a camera-push finish. Not
+         a crossfade at any point. ── */
+      const shutterWrap = q('.thg-shutter-wrap')[0] as HTMLElement | undefined
+      const panelL = q('.thg-shutter-panel-l')[0] as HTMLElement | undefined
+      const panelR = q('.thg-shutter-panel-r')[0] as HTMLElement | undefined
+      const panelLImg = q('.thg-shutter-panel-img-l')[0] as HTMLElement | undefined
+      const panelRImg = q('.thg-shutter-panel-img-r')[0] as HTMLElement | undefined
+      if (shutterWrap && panelL && panelR) {
+        const annulus = (top: number, bottom: number, x1: number, x2: number) =>
+          `polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% ${bottom}%, ${x1}% ${bottom}%, ${x1}% ${top}%, ${x2}% ${top}%, ${x2}% ${bottom}%, 0% ${bottom}%)`
+        const left = { top: 0, bottom: 100, outer: 0 }
+        const right = { top: 0, bottom: 100, outer: 100 }
+        const inner = { left: 100, right: 0 } // centre-facing edges
+        const apply = () => {
+          panelL.style.clipPath = annulus(left.top, left.bottom, left.outer, inner.left)
+          panelR.style.clipPath = annulus(right.top, right.bottom, inner.right, right.outer)
         }
-      },
-    )
+        apply()
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: shutterWrap, start: 'top top', end: 'bottom bottom', scrub: true },
+        })
+        tl.to(left, { top: 18.519, bottom: 81.481, duration: 0.5, ease: 'none', onUpdate: apply })
+          .to(right, { top: 18.519, bottom: 81.481, duration: 0.5, ease: 'none', onUpdate: apply }, '<')
+          .to(left, { outer: 50, duration: 0.2, ease: 'none', onUpdate: apply })
+          .to(inner, { left: 50, right: 50, duration: 0.2, ease: 'none', onUpdate: apply }, '<')
+          .to(right, { outer: 50, duration: 0.2, ease: 'none', onUpdate: apply }, '<')
+        if (panelLImg && panelRImg) {
+          tl.to([panelLImg, panelRImg], { scale: 1.12, duration: 0.3, ease: 'none' })
+        }
+      }
+
+      /* ── 5. Footer aperture close — sections 1–9 clip to inset(8% 22%)
+         and scale to 0.75 as Fyrirspurn approaches; Fyrirspurn itself
+         scales 0.75→1 over the same scrub. Initial gsap.set matches
+         progress:0 exactly, so there is no jump before the trigger's first
+         onUpdate. ── */
+      const closeStack = closeStackRef.current
+      const enquiryWrap = enquiryWrapRef.current
+      if (closeStack && enquiryWrap) {
+        gsap.set(closeStack, { clipPath: 'inset(0% 0% 0% 0%)', scale: 1, transformOrigin: 'center center' })
+        gsap.set(enquiryWrap, { scale: 0.75, transformOrigin: 'center center' })
+        ScrollTrigger.create({
+          trigger: enquiryWrap,
+          start: 'top bottom',
+          end: 'top 15%',
+          scrub: 0.5,
+          onUpdate: (self) => {
+            const p = self.progress
+            gsap.set(closeStack, { clipPath: `inset(${p * 8}% ${p * 22}% ${p * 8}% ${p * 22}%)`, scale: 1 - p * 0.25 })
+            gsap.set(enquiryWrap, { scale: 0.75 + p * 0.25 })
+          },
+        })
+      }
+
+      document.fonts.ready.then(() => ScrollTrigger.refresh())
+
+      /* ── Failsafe: 2s after mount, clear any leftover inline reveal
+         styles regardless of whether their ScrollTrigger has fired —
+         opacity:1 plus clearProps limited to transform/clipPath ONLY.
+         clearProps:'all' would also wipe React's own inline
+         fontSize/color/fontFamily, per [[gsap-splittext-clearprops-traps]]. ── */
+      const failsafe = window.setTimeout(() => {
+        gsap.set(
+          root.querySelectorAll('[data-thg-reveal], [data-thg-reveal] *, .thg-hero-eyebrow, .thg-hero-h1, .thg-hero-h1 *, .thg-hero-tagline, .thg-hero-tagline *, .thg-hero-body'),
+          { opacity: 1, clearProps: 'transform,clipPath' },
+        )
+      }, 2000)
+
+      return () => {
+        window.clearTimeout(failsafe)
+        gsap.ticker.remove(tick)
+        lenis.destroy()
+        thgLenis = null
+        splits.forEach((sp) => sp.revert())
+      }
+    })
     return () => { mm.revert() }
   }, [])
 
   return (
-    <div ref={rootRef} lang="is" className="thg-root antialiased" style={{ background: CONCRETE, overflowX: 'clip' }}>
+    <div ref={rootRef} className="thg-root relative" lang="is">
       <style>{PAGE_STYLES}</style>
-      <PreviewChrome company={company} />
+      <Preloader />
       <Chrome />
       <main>
-        <Aperture />
-        <Stadarandi />
-        <Verkin />
-        <Innandyra />
-        <TvennsKonarHus />
-        <Kolasundid />
-        <Stofan />
-        <Samband />
+        <div ref={closeStackRef} className="thg-close-stack">
+          <Hero />
+          <Thesis />
+          <Works />
+          <Method />
+          <Ledger />
+          <OneWork />
+          <InsideOut />
+          <Interiors />
+          <PracticeFacts />
+        </div>
+        <div ref={enquiryWrapRef} className="thg-enquiry-wrap">
+          <Enquiry />
+        </div>
       </main>
       <PreviewFooter company={company} />
+      <PreviewChrome company={company} />
     </div>
   )
 }
