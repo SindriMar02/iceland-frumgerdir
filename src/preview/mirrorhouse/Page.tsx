@@ -1088,13 +1088,13 @@ const CSS = `
   transition: color .4s ease;
 }
 .mh-phase {
-  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .16em;
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; letter-spacing: .16em;
   text-transform: uppercase; color: var(--mh-mute); margin: 0 0 calc(var(--u) * 18);
 }
 .mh-scrub-caps .mh-phase { margin-bottom: calc(var(--u) * 14); }
 .mh-phase-is { color: var(--mh-accent-text); }
 .mh-stat {
-  font-family: ${MONO}; font-size: ${fluid(12, 11)};
+  font-family: ${MONO}; font-size: ${fluid(12, 12)};
   color: var(--mh-mute); margin: calc(var(--u) * 14) 0 0;
 }
 .mh-a { color: inherit; }
@@ -1149,7 +1149,7 @@ const CSS = `
   padding: calc(var(--u) * 14) 0; border-top: 1px solid var(--mh-hair);
 }
 .mh-facts dt {
-  font-family: ${MONO}; font-size: ${fluid(12, 11)}; text-transform: uppercase;
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; text-transform: uppercase;
   letter-spacing: .14em; color: var(--mh-mute); padding-top: 2px;
 }
 .mh-facts dd { margin: 0; font-size: ${fluid(15, 14)}; font-weight: 300; line-height: 1.5; }
@@ -1243,7 +1243,7 @@ const CSS = `
   margin: 0; font-size: ${fluid(21, 16)}; line-height: 1.45; font-weight: 300;
 }
 .mh-quote-by {
-  font-family: ${MONO}; font-size: ${fluid(12, 11)}; color: var(--mh-mute);
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; color: var(--mh-mute);
   margin: calc(var(--u) * 18) 0 0;
 }
 .mh-themes {
@@ -1271,7 +1271,7 @@ const CSS = `
 }
 .mh-place-name { font-weight: 400; font-size: ${fluid(17, 15)}; }
 .mh-place-note { font-weight: 300; font-size: ${fluid(15, 13)}; color: var(--mh-mute); line-height: 1.5; }
-.mh-place-dist { font-family: ${MONO}; font-size: ${fluid(12, 11)}; color: var(--mh-mute); }
+.mh-place-dist { font-family: ${MONO}; font-size: ${fluid(12, 12)}; color: var(--mh-mute); }
 
 /* booking */
 .mh-book {
@@ -1289,7 +1289,7 @@ const CSS = `
 .mh-field { display: flex; flex-direction: column; gap: 6px; }
 .mh-field-wide { grid-column: 1 / -1; }
 .mh-field-label {
-  font-family: ${MONO}; font-size: ${fluid(11, 10)}; letter-spacing: .12em;
+  font-family: ${MONO}; font-size: ${fluid(11, 12)}; letter-spacing: .12em;
   text-transform: uppercase; color: var(--mh-mute);
 }
 .mh-optional { text-transform: none; letter-spacing: 0; }
@@ -1307,7 +1307,7 @@ const CSS = `
   border-top: 1px solid var(--mh-hair);
 }
 .mh-owner-note-label {
-  font-family: ${MONO}; font-size: ${fluid(11, 10)}; letter-spacing: .14em;
+  font-family: ${MONO}; font-size: ${fluid(11, 12)}; letter-spacing: .14em;
   text-transform: uppercase; color: var(--mh-accent-text); margin: 0 0 calc(var(--u) * 10);
 }
 .mh-owner-note-body {
