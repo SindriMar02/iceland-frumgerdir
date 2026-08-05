@@ -4249,7 +4249,7 @@ const THG: PreviewCompany = {
   ownerEmail: 'thg@thg.is',
   concept: 'Staðarandi',
   conceptTagline:
-    'Stofan segir sömu hugsun þrisvar á eigin vef án þess að taka eftir því: að fella nýtt að því sem fyrir er. Sú setning verður burðarásinn, og undirskriftin er lárétt ferð gegnum verkin sjö þar sem hvert hús ber sína eigin liti og viðmótið skiptir um ham með þeim.',
+    'Stofan segir sömu hugsun þrisvar á eigin vef án þess að taka eftir því: að fella nýtt að því sem fyrir er. Sú setning verður burðarásinn. Undirskriftin er Endurhæfingarmiðstöð SÁÁ í Vík teiknuð í réttum kvarða: tvö þúsund sjö hundruð og þrjátíu fermetra viðbót utan um átta hundruð og fimmtíu fermetra hús sem fyrir stóð, sem er hugsunin sjálf í flatarmáli.',
   accent: '#A8412A',
   dark: true,
   status: 'Concept ready',
@@ -4260,35 +4260,35 @@ const THG: PreviewCompany = {
     'Allar ljósmyndir eru af vef THG Arkitekta sjálfra, sóttar í fullri upplausn af þeirra eigin myndaþjóni.',
   audit: {
     strengths: [
-      'Þrjátíu og tveggja ára stofa með um fjörutíu manns og vottað gæðakerfi ÍST EN ISO 9001:2015 frá 2016',
-      'Verkefnaskráin er óvenju sterk og mjög almennt þekkt: Hótel Borg, Icelandair Hótel Marina, Reykjavík Konsúlat og Hótel Von, ásamt EIR við Spöng og Hrafnistu í Boðaþingi',
+      'Þrjátíu og tveggja ára stofa með yfir þrjátíu starfsmenn og vottað gæðakerfi ÍST EN ISO 9001:2015 frá 2016',
+      'Verkefnaskráin er óvenju sterk, tuttugu og tvö verk og mörg mjög almennt þekkt: Hótel Borg, Icelandair Hótel Marina, Reykjavík Konsúlat og Hótel Von, ásamt EIR við Spöng og Hrafnistu í Boðaþingi',
       'Fagleg ljósmyndun af verkunum liggur þegar fyrir í tvöþúsund pixla upplausn á þeirra eigin myndaþjóni',
     ],
     weaknesses: [
-      'Aðeins sjö verkefni eru sýnd hjá stofu sem hefur starfað í þrjátíu og tvö ár og telur um fjörutíu manns',
+      'Á forsíðunni mæta manni fjórtán verk en í verkefnaskránni sjálfri eru tuttugu og tvö, svo átta verk sjást hvergi nema maður rati inn á skrána (talið í vefnum sjálfum 5. ágúst 2026)',
       'Hugsunin sem tengir verkin saman er hvergi orðuð, svo hvert verk stendur eitt og sér',
-      'Hvergi kemur fram að stofan teiknar bæði hótel og hjúkrunarheimili, sem er þó eitt af því sem greinir hana frá öðrum',
-      'Verklýsingarnar eru mjög stuttar og mörg verk eru án ártals eða stærðar, svo erfitt er að meta umfang stofunnar',
+      'Verklýsingarnar eru mjög stuttar, oftast ein eða tvær setningar, og mörg verk eru án ártals eða stærðar',
+      'Hvergi kemur fram hversu margir starfa á stofunni, svo umfangið sést ekki á vefnum',
     ],
     opportunities: [
       'Setja þeirra eigin setningu fremst: að fella nýtt að því sem fyrir er, studda þremur tilvitnunum úr þeirra eigin verklýsingum',
-      'Lárétt ferð gegnum verkin þar sem hvert hús ber sína eigin liti',
-      'Segja það sem vefurinn segir hvergi: að stofan teiknar bæði hótel og hjúkrunarheimili',
+      'Teikna Vík í réttum kvarða, því viðbótin utan um eldra húsið er hugsunin sjálf í flatarmáli',
+      'Sýna alla verkefnaskrána, öll tuttugu og tvö verkin, í stað fjórtán á forsíðu',
       'Birta myndirnar í fullri upplausn og gefa þeim raunverulegan skala',
       'Segja söguna af Kolasundinu sem gengur gegnum jarðhæð Konsúlats',
     ],
   },
   positioning:
-    'THG er stofan á bak við hús sem fólk hefur þegar verið inni í án þess að vita það. Hótel Borg, Marina, Konsúlat og Von, og á hinum endanum EIR og Hrafnista. Vefurinn á að byrja á hugsuninni sem stofan orðar sjálf þrisvar, að fella nýtt að því sem fyrir er, og láta verkin sanna hana eitt af öðru í láréttri ferð þar sem viðmótið tekur lit af hverju húsi. Þetta er vefur sem arkitektar munu dæma, svo hófstilling gildir alls staðar og myndirnar fá að tala.',
+    'THG er stofan á bak við hús sem fólk hefur þegar verið inni í án þess að vita það. Hótel Borg, Marina, Konsúlat og Von, og á hinum endanum EIR og Hrafnista. Vefurinn á að byrja á hugsuninni sem stofan orðar sjálf þrisvar, að fella nýtt að því sem fyrir er, og láta verkin sanna hana. Umfangið á líka að sjást: öll tuttugu og tvö verkin, ekki fjórtán. Þetta er vefur sem arkitektar munu dæma, svo hófstilling gildir alls staðar og myndirnar fá að tala.',
   outreach: {
     subject: 'Hugmynd að nýjum vef fyrir THG Arkitekta',
     body: `Góðan dag,
 
-Ég heiti Sindri og vinn við vefhönnun. Ég var að skoða verkin ykkar og rak augun í eitt: þið segið sömu hugsunina þrisvar á vefnum ykkar án þess að hún sé nokkurs staðar orðuð sem stefna stofunnar. Um Hótel Borg segið þið að móttakan sé hönnuð í samræmi við eldri móttöku, um Konsúlat að hugmyndin sé að fella saman nýtt og gamalt, og um Hótel Von að byggingin eigi að falla að nágrenninu og fanga staðarandann.
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnaskrána ykkar og tók eftir einu: þið segið sömu hugsunina þrisvar í verklýsingunum án þess að hún sé nokkurs staðar orðuð sem stefna stofunnar. Um Hótel Borg segið þið að móttakan sé hönnuð í samræmi við eldri móttöku, um Konsúlat að hugmyndin sé að flétta saman nýtt og sögulegt, og um Hótel Von að byggingin eigi að falla að byggingarstílnum í næsta nágrenni og fanga staðarandann.
 
-Ég tók saman frumgerð að nýjum vef sem byrjar á þeirri hugsun og lætur verkin sanna hana, eitt af öðru. Vefurinn ykkar er tæknilega í fínu lagi, svo þetta snýst ekki um lagfæringar. Það sem mér fannst vanta er umfangið sjálft. Sjö verk eru sýnd hjá stofu sem hefur starfað í þrjátíu og tvö ár og telur um fjörutíu manns, og hvergi kemur fram að þið teiknið bæði hótel og hjúkrunarheimili.
+Ég gerði frumgerð að vef sem byrjar á þeirri hugsun og lætur verkin sanna hana. Vefurinn ykkar er í fínu lagi tæknilega, svo þetta snýst ekki um lagfæringar. Það sem mér fannst helst vanta er að umfangið sjáist. Á forsíðunni mæta manni fjórtán verk en í skránni sjálfri eru tuttugu og tvö, og flest verkin fá eina eða tvær setningar.
 
-Hana má skoða hér, og hún virkar vel í síma:
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
 Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
