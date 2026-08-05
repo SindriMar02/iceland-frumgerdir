@@ -491,7 +491,7 @@ function BookingForm() {
   if (done) {
     return (
       <div className="lv-book-done" role="status">
-        <p className="lv-book-done-title">Request sent.</p>
+        <p className="lv-book-done-title">Your request has been sent.</p>
         <p className="lv-book-done-body">
           {done.date} to {done.endDate}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
           {' '}Visiting Iceland confirms each request personally. The price for your dates
@@ -499,7 +499,7 @@ function BookingForm() {
         </p>
         <p className="lv-book-note">
           This is a prototype. The request lives only in this browser.{' '}
-          <Link className="lv-a" to="/preview/lakeview/stjornbord">See the owner's side</Link>{' '}
+          <Link className="lv-a" to="/preview/lakeview/stjornbord">See how direct bookings could work</Link>{' '}
           to watch it arrive.
         </p>
         <button type="button" className="lv-ghost" onClick={() => setDone(null)}>
@@ -546,15 +546,15 @@ function BookingForm() {
             onChange={(e) => setPhone(e.target.value)} />
         </label>
         <label className="lv-field lv-field-wide">
-          <span className="lv-field-label">Anything the host should know <span className="lv-optional">(optional)</span></span>
+          <span className="lv-field-label">Anything Omar should know <span className="lv-optional">(optional)</span></span>
           <textarea rows={3} name="note" value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
       </div>
       {error && <p className="lv-field-error" role="alert">{error}</p>}
-      <button type="submit" className="lv-cta">Request to book</button>
+      <button type="submit" className="lv-cta">Ask about your stay</button>
       <p className="lv-book-note">
-        No card, no charge. The guest asks, the host confirms, and the nightly
-        price for your dates comes with the reply.
+        No payment today. Send your preferred dates and Omar confirms
+        availability, with the nightly price in his reply.
       </p>
     </form>
   )
@@ -711,7 +711,7 @@ export default function LakeviewPage() {
           <a href="#votnin" onClick={anchor('votnin')}>The waters</a>
           <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
         </nav>
-        <a className="lv-nav-cta" href="#boka" onClick={anchor('boka')}>Request to book</a>
+        <a className="lv-nav-cta" href="#boka" onClick={anchor('boka')}>Ask about your stay</a>
       </header>
 
       {/* 01 · hero: film + centred wordmark */}
@@ -748,10 +748,11 @@ export default function LakeviewPage() {
         </h1>
         <div className="lv-hero-block">
           <p className="lv-hero-sub">
-            A turf-roofed cabin above Úlfljótsvatn lake, in the heart of the
-            Golden Circle. Sleeps two.
+            Built from the same landscape it overlooks. A turf-roofed retreat
+            above Úlfljótsvatn where traditional Icelandic building meets
+            uninterrupted glass and still water. Sleeps two.
           </p>
-          <a className="lv-hero-link" href="#boka" onClick={anchor('boka')}>Request to book</a>
+          <a className="lv-hero-link" href="#boka" onClick={anchor('boka')}>Ask about your stay</a>
         </div>
       </section>
 
@@ -794,8 +795,8 @@ export default function LakeviewPage() {
           <p className="lv-eyebrow">Vötnin þrjú</p>
           <Headline text="The lake, the pool and the bath." size={52} floor={30} measure={560} />
           <p className="lv-body lv-waters-intro">
-            Three separate bodies of water. One is the lake itself, one is heated
-            by the ground it sits in, and one is indoors at the window.
+            Three waters shape every stay. The lake beyond the glass, the
+            geothermal pool beside the cabin, and the bath indoors at the window.
           </p>
         </div>
         <div className="lv-rv">
@@ -897,7 +898,7 @@ export default function LakeviewPage() {
           ))}
         </dl>
         <p className="lv-stat lv-rv">
-          Counts and quotes from the listing's own review index, retrieved
+          Everything here comes directly from Airbnb guest reviews, collected
           August 2026.
         </p>
       </section>
@@ -916,7 +917,7 @@ export default function LakeviewPage() {
               Every request lands in a dashboard built for this cabin:
               confirm or decline in a tap, watch the calendar fill.{' '}
               <Link className="lv-a" to="/preview/lakeview/stjornbord">
-                Open the dashboard demo
+                Open the owner dashboard
               </Link>{' '}
               beside this tab and send yourself a request.
             </p>
@@ -939,10 +940,13 @@ export default function LakeviewPage() {
           </div>
           <div>
             <p className="lv-foot-line">
-              Photography: the listing's own photographs, retrieved August 2026.
+              Photography throughout this prototype comes from the owner's own
+              Airbnb listing, retrieved August 2026.
             </p>
             <p className="lv-foot-line">
-              Prototype by SNDR. Booking requests here are a demo and stay in this browser.
+              Prototype by SNDR. It shows how direct enquiries could work on the
+              owner's own website. Every request stays inside this browser and is
+              never sent.
             </p>
           </div>
         </div>

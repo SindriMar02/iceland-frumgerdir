@@ -113,10 +113,10 @@ export const REVIEW_THEMES = [
  * rather than guessed at.
  */
 export const GOLDEN_CIRCLE = [
-  { name: 'Gullfoss, Geysir & Þingvellir', note: 'The Golden Circle’s three signature stops, all the same short drive.', dist: 'Short drive' },
-  { name: 'Reykjavík', note: 'The capital, and the road to the airport.', dist: '45 min' },
-  { name: 'Selfoss', note: 'The nearest town, for fuel and groceries.', dist: '15 min' },
-  { name: 'Úlfljótsvatn itself', note: 'Fishing, kayaking and hiking paths start at the water’s edge.', dist: 'On site' },
+  { name: 'Gullfoss, Geysir & Þingvellir', note: 'Three of Iceland’s best-known natural landmarks, all the same short drive.', dist: 'Short drive' },
+  { name: 'Reykjavík', note: 'Reykjavík, and the road onward to the airport.', dist: '45 min' },
+  { name: 'Selfoss', note: 'Selfoss, for groceries, cafés and restaurants.', dist: '15 min' },
+  { name: 'Úlfljótsvatn itself', note: 'The shoreline is where the day starts: fishing, kayaking and walking trails.', dist: 'On site' },
 ] as const
 
 /** Practical facts, each traceable to the harvest JSON. */
@@ -141,7 +141,7 @@ export const JSON_LD = {
   '@type': 'LodgingBusiness',
   name: 'Iceland Lakeview Retreat',
   description:
-    'A turf-roofed cabin above Úlfljótsvatn lake in the heart of the Golden Circle, combining Icelandic traditional housing with a modern elegance: floor-to-ceiling glass, a fireplace and an outdoor heated pool.',
+    'A private turf-roofed retreat above Úlfljótsvatn in South Iceland, combining traditional Icelandic architecture with floor-to-ceiling glass, geothermal bathing and panoramic lake views in the heart of the Golden Circle.',
   address: {
     '@type': 'PostalAddress',
     addressLocality: 'Úlfljótsvatn',
