@@ -4402,3 +4402,12 @@ PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)
 
 import { companyEntry as MIRRORHOUSE_ENTRY } from './mirrorhouse/data'
 PREVIEW_COMPANIES.push(MIRRORHOUSE_ENTRY)
+
+import { companyEntry as LAKEVIEW_ENTRY } from './lakeview/data'
+PREVIEW_COMPANIES.push(LAKEVIEW_ENTRY)
+
+import { companyEntry as MYSTICLIGHT_ENTRY } from './mysticlight/data'
+PREVIEW_COMPANIES.push(MYSTICLIGHT_ENTRY)
+
+import { companyEntry as VILLANORTH_ENTRY } from './villanorth/data'
+PREVIEW_COMPANIES.push(VILLANORTH_ENTRY)

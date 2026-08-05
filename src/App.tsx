@@ -151,6 +151,12 @@ const MinjasafnPage = lazy(() => import('./preview/minjasafn/Page'))
 const AslaugSajaPage = lazy(() => import('./preview/aslaugsaja/Page'))
 const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
 const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
+const LakeviewPage = lazy(() => import('./preview/lakeview/Page'))
+const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
+const MysticLightPage = lazy(() => import('./preview/mysticlight/Page'))
+const MysticLightDashboard = lazy(() => import('./preview/mysticlight/Dashboard'))
+const VillaNorthPage = lazy(() => import('./preview/villanorth/Page'))
+const VillaNorthDashboard = lazy(() => import('./preview/villanorth/Dashboard'))
 const FossatunDashboard = lazy(() => import('./preview/fossatun/Dashboard'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
 const BokunDemo = lazy(() => import('./pages/BokunDemo'))
@@ -333,6 +339,12 @@ export default function App() {
             <Route path="/preview/aslaugsaja" element={<AslaugSajaPage />} />
             <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
+            <Route path="/preview/lakeview" element={<LakeviewPage />} />
+            <Route path="/preview/lakeview/stjornbord" element={<LakeviewDashboard />} />
+            <Route path="/preview/mysticlight" element={<MysticLightPage />} />
+            <Route path="/preview/mysticlight/stjornbord" element={<MysticLightDashboard />} />
+            <Route path="/preview/villanorth" element={<VillaNorthPage />} />
+            <Route path="/preview/villanorth/stjornbord" element={<VillaNorthDashboard />} />
             <Route path="/preview/fossatun/stjornbord" element={<FossatunDashboard />} />
             <Route path="/demo/bokun" element={<BokunDemo />} />
             <Route path="/preview/kiropraktorstofan" element={<KiropraktorstofanPage />} />
