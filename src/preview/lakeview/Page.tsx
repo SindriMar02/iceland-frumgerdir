@@ -173,28 +173,47 @@ function useMotion(ready: boolean) {
         )
       })
 
-      // hero wordmark: rises once, gated behind the loader if one is present
+      /* THE WORDMARK - the waterline.
+         A rule draws itself across the hero, then LAKEVIEW surfaces from under
+         it out of the .lv-line mask, the same gesture the turf roof makes when
+         it resolves out of the moor further down. Scroll sinks the name back
+         under and lets the line widen past it into the horizon.
+
+         Entrance drives yPercent, the scroll drives y (px): two separate
+         transform components, so the scrub cannot capture a start value from
+         mid-entrance and fight it. */
       const heroWord = root.querySelector<HTMLElement>('.lv-wordmark .lv-word')
-      if (heroWord) {
-        gsap.set(heroWord, { yPercent: 116, opacity: 0 })
+      const wmRule = root.querySelector<HTMLElement>('.lv-wm-rule')
+      const heroEl = root.querySelector<HTMLElement>('.lv-hero')
+      const wordmarkEl = root.querySelector<HTMLElement>('.lv-wordmark')
+
+      if (heroWord && wmRule) {
+        gsap.set(heroWord, { yPercent: 116 })
+        gsap.set(wmRule, { scaleX: 0, opacity: 0 })
+        let opened = false
         const openWordmark = () => {
-          gsap.to(heroWord, { yPercent: 0, opacity: 1, duration: 1.15, ease: 'expo.out' })
+          if (opened) return
+          opened = true
+          gsap.timeline()
+            .to(wmRule, { scaleX: 1, opacity: 0.7, duration: 0.8, ease: 'expo.out' })
+            .to(heroWord, { yPercent: 0, duration: 1.25, ease: 'expo.out' }, '-=0.46')
         }
         if (root.querySelector('.lv-loader')) {
           window.addEventListener('lv:revealed', openWordmark, { once: true })
         } else {
           gsap.delayedCall(0.15, openWordmark)
         }
+        /* rAF is suspended in a hidden tab and in a background preview pane, so
+           the loader's own timer may never fire and the name would stay parked
+           below its mask. [[preview-pane-verification-gotchas]] */
+        window.setTimeout(openWordmark, 3200)
       }
-      // hero: the wordmark (and its sub-block) fade and lift as the film
-      // scrolls away, a generic hero-parallax pattern (not a signature device)
-      const heroEl = root.querySelector<HTMLElement>('.lv-hero')
-      const wordmarkEl = root.querySelector<HTMLElement>('.lv-wordmark')
-      if (heroEl && wordmarkEl) {
-        gsap.to(wordmarkEl, {
-          opacity: 0.06, yPercent: -18, ease: 'none',
-          scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 0.6 },
-        })
+
+      if (heroEl && wordmarkEl && heroWord && wmRule) {
+        const away = { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 0.6 }
+        gsap.to(heroWord, { y: 90, ease: 'none', scrollTrigger: away })
+        gsap.to(wmRule, { scaleX: 3.4, opacity: 0, ease: 'none', scrollTrigger: away })
+        gsap.to(wordmarkEl, { opacity: 0.08, yPercent: -12, ease: 'none', scrollTrigger: away })
       }
 
       /* FINDING THE HOUSE — the signature scroll device. A single oversized
@@ -745,6 +764,7 @@ export default function LakeviewPage() {
           <span aria-hidden="true">
             <span className="lv-line"><span className="lv-word">LAKEVIEW</span></span>
           </span>
+          <span className="lv-wm-rule" aria-hidden="true" />
         </h1>
         <div className="lv-hero-block">
           <p className="lv-hero-sub">
@@ -1045,7 +1065,14 @@ const CSS = `
   font-size: clamp(48px, 11vw, 180px);
   line-height: 1;
 }
+.lv-wordmark { flex-direction: column; }
 .lv-wordmark .lv-line { padding: .2em .02em .05em; margin: -.2em -.02em -.05em; }
+/* the waterline the name surfaces out of */
+.lv-wm-rule {
+  display: block; width: min(46vw, 560px); height: 1px; margin-top: .28em;
+  background: currentColor; opacity: .7; transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
 .lv-hero-block {
   position: relative; align-self: end; z-index: 1;
   padding: 0 calc(var(--u) * 48) calc(calc(var(--u) * 64) + env(safe-area-inset-bottom, 0px));
@@ -1483,6 +1510,7 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) {
   .lv-root * { transition: none !important; animation: none !important; }
   .lv-word { transform: none !important; opacity: 1 !important; }
+  .lv-wm-rule { transform: none !important; opacity: .7 !important; }
   .lv-frame-reveal { clip-path: none !important; filter: none !important; transform: none !important; -webkit-mask-image: none !important; mask-image: none !important; }
   .lv-frame-reveal::after { opacity: 0 !important; }
   .lv-frame-drift { inset: 0; transform: none !important; }

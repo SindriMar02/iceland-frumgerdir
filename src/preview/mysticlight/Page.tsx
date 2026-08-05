@@ -190,6 +190,56 @@ function useMotion(ready: boolean) {
           ...trackImages.map((img) => (img.decode ? img.decode().catch(() => undefined) : Promise.resolve())),
         ]).then(() => ScrollTrigger.refresh())
       }
+
+      /* THE WORDMARK - the light arrives.
+         The name does not slide in. It resolves out of a bloom: blurred and
+         oversized, then sharp, MYSTIC first and the amber LIGHT behind it,
+         with one band of light passing across the lockup as it settles. The
+         page is an instrument for watching light, so light is the entrance.
+
+         Entrance drives the WORDS (filter / opacity / scale); the scroll drives
+         the PARENT. Different elements, so the scrub can never capture a start
+         value from mid-entrance. */
+      const wmWords = root.querySelectorAll<HTMLElement>('.ml-wm-word')
+      const wmSweep = root.querySelector<HTMLElement>('.ml-wm-sweep')
+      const wmEl = root.querySelector<HTMLElement>('.ml-wordmark')
+      const heroEl = root.querySelector<HTMLElement>('.ml-hero')
+
+      if (wmWords.length) {
+        gsap.set(wmWords, { autoAlpha: 0, filter: 'blur(16px)', scale: 1.05 })
+        if (wmSweep) gsap.set(wmSweep, { opacity: 0, xPercent: -115 })
+        let opened = false
+        const openWordmark = () => {
+          if (opened) return
+          opened = true
+          const tl = gsap.timeline()
+          tl.to(wmWords, {
+            autoAlpha: 1, filter: 'blur(0px)', scale: 1,
+            duration: 1.5, ease: 'expo.out', stagger: 0.16,
+          })
+          if (wmSweep) {
+            tl.to(wmSweep, { opacity: 1, duration: 0.3, ease: 'none' }, 0.35)
+              .to(wmSweep, { xPercent: 115, duration: 1.5, ease: 'power2.inOut' }, 0.35)
+              .to(wmSweep, { opacity: 0, duration: 0.45, ease: 'none' }, 1.5)
+          }
+        }
+        if (root.querySelector('.ml-loader')) {
+          window.addEventListener('ml:revealed', openWordmark, { once: true })
+        } else {
+          gsap.delayedCall(0.15, openWordmark)
+        }
+        /* rAF stops in a hidden tab and in a background preview pane, so the
+           loader's own timer may never resolve. setTimeout keeps ticking.
+           [[preview-pane-verification-gotchas]] */
+        window.setTimeout(openWordmark, 4200)
+      }
+
+      if (heroEl && wmEl) {
+        gsap.to(wmEl, {
+          opacity: 0.07, yPercent: -14, filter: 'blur(9px)', ease: 'none',
+          scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 0.6 },
+        })
+      }
     }, root)
 
     lenis.on('scroll', ScrollTrigger.update)
@@ -426,6 +476,66 @@ function ShoreScope({ photo }: { photo: Photo }) {
 
 /* ── booking form ──────────────────────────────────────────────────────── */
 
+/* ── preloader ──────────────────────────────────────────────────────────────
+   Counts REAL loading (hero decode + fonts.ready), never a fake timer. 1.1s
+   floor, 2.4s cap, once per session; ?loader forces it; never under reduced
+   motion. This one does not slide away: the sheet dissolves, because the whole
+   page is about light arriving rather than a curtain moving. */
+const shouldShowLoader = () => {
+  if (typeof window === 'undefined' || reduced()) return false
+  if (new URLSearchParams(window.location.search).has('loader')) return true
+  try { return !sessionStorage.getItem('ml_seen') } catch { return true }
+}
+
+function Preloader({ onDone }: { onDone: () => void }) {
+  const [pct, setPct] = useState(0)
+  const [leaving, setLeaving] = useState(false)
+
+  useEffect(() => {
+    try { sessionStorage.setItem('ml_seen', '1') } catch { /* private mode */ }
+    const t0 = performance.now()
+    let raf = 0
+    let shown = 0
+    let heroDone = false
+    const hero = new Image()
+    hero.decoding = 'async'
+    const mark = () => { heroDone = true }
+    hero.addEventListener('load', mark, { once: true })
+    hero.addEventListener('error', mark, { once: true })
+    hero.src = PHOTO.arrivalStorm.src
+    if (hero.complete) heroDone = true
+    let fontsDone = false
+    document.fonts.ready.then(() => { fontsDone = true })
+
+    const FLOOR = 1100, CAP = 2400
+    const tick = () => {
+      const t = performance.now() - t0
+      let target = (heroDone ? 55 : Math.min(50, t / 24)) + (fontsDone ? 45 : 0)
+      if (t >= CAP) target = 100
+      shown += (target - shown) * 0.12
+      const display = Math.min(100, Math.round(shown))
+      setPct(display)
+      if (display >= 100 && t >= FLOOR) {
+        setLeaving(true)
+        window.setTimeout(onDone, 950)
+        return
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [onDone])
+
+  return (
+    <div className={`ml-loader ${leaving ? 'is-leaving' : ''}`} aria-hidden="true">
+      <p className="ml-loader-mark" style={{ backgroundPositionX: `${100 - pct}%` }}>
+        MYSTIC LIGHT
+      </p>
+      <p className="ml-loader-pct">{pct}%</p>
+    </div>
+  )
+}
+
 const NIGHT_MS = 86400000
 const plusDays = (d: string, n: number) => {
   const t = new Date(`${d}T12:00:00`)
@@ -554,6 +664,8 @@ export default function MysticLightPage() {
 
   useMotion(ready)
 
+  const [loading, setLoading] = useState(shouldShowLoader)
+
   const anchor = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' })
@@ -563,6 +675,12 @@ export default function MysticLightPage() {
   return (
     <div ref={rootRef} className="ml-root">
       <style>{CSS}</style>
+      {loading && (
+        <Preloader onDone={() => {
+          setLoading(false)
+          window.dispatchEvent(new Event('ml:revealed'))
+        }} />
+      )}
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={company} />
@@ -587,8 +705,9 @@ export default function MysticLightPage() {
             alt={PHOTO.arrivalStorm.alt} loading="eager" decoding="async" />
         </div>
         <h1 className="ml-wordmark" aria-label="Mystic Light Lodge">
-          <span aria-hidden="true">MYSTIC</span>{' '}
-          <span aria-hidden="true" className="ml-wm-amber">LIGHT</span>
+          <span aria-hidden="true" className="ml-wm-word">MYSTIC</span>{' '}
+          <span aria-hidden="true" className="ml-wm-word ml-wm-amber">LIGHT</span>
+          <span aria-hidden="true" className="ml-wm-sweep" />
         </h1>
         <div className="ml-hero-block">
           <p className="ml-hero-sub">
@@ -913,6 +1032,35 @@ const CSS = `
   font-size: clamp(38px, 9vw, 138px); line-height: 1.02;
 }
 .ml-wm-amber { color: var(--ml-amber); font-weight: 500; }
+/* the name resolves out of a bloom rather than sliding in: this cabin is an
+   instrument for watching light, so the light is what arrives. */
+.ml-wm-word { display: inline-block; will-change: filter, opacity, transform; }
+.ml-wm-sweep {
+  position: absolute; inset: -.25em -12%; pointer-events: none; opacity: 0;
+  background: linear-gradient(100deg,
+    transparent 40%, rgba(217,165,78,.16) 47%, rgba(240,246,250,.5) 50%,
+    rgba(217,165,78,.16) 53%, transparent 60%);
+  mix-blend-mode: screen;
+}
+/* preloader: the sheet dissolves, it does not slide */
+.ml-loader {
+  position: fixed; inset: 0; z-index: 60; background: ${CANVAS};
+  display: grid; place-content: center;
+  transition: opacity .9s ease, filter .9s ease;
+}
+.ml-loader.is-leaving { opacity: 0; filter: blur(12px); pointer-events: none; }
+.ml-loader-mark {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 300; letter-spacing: .06em;
+  font-size: clamp(32px, 7.4vw, 116px); white-space: nowrap; line-height: 1;
+  background-image: linear-gradient(90deg, ${INK} 50%, rgba(222,228,232,.14) 50%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ml-loader-pct {
+  position: fixed; left: calc(var(--u) * 48); bottom: calc(var(--u) * 40);
+  margin: 0; font-family: ${MONO}; font-size: 12px; letter-spacing: .16em;
+  color: rgba(222,228,232,.6);
+}
 .ml-hero-block {
   position: relative; z-index: 1; align-self: end;
   padding: 0 calc(var(--u) * 48) calc(calc(var(--u) * 64) + env(safe-area-inset-bottom, 0px));
@@ -1315,6 +1463,8 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) {
   .ml-root * { transition: none !important; animation: none !important; }
   .ml-word { transform: none !important; opacity: 1 !important; }
+  .ml-wm-word { filter: none !important; opacity: 1 !important; transform: none !important; }
+  .ml-wm-sweep { display: none !important; }
   .ml-shot img {
     filter: none !important; transform: none !important;
     -webkit-mask-image: none !important; mask-image: none !important;
