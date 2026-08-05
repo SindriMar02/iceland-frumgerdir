@@ -378,20 +378,20 @@ function ThreeWaters() {
     body: string; fact: string; objectPosition?: string
   }> = [
     {
-      key: 'vatnid', name: 'Vatnið', photo: PHOTO.arrivalLake, objectPosition: '50% 68%',
-      gloss: 'The lake',
+      key: 'vatnid', name: 'The lake', photo: PHOTO.arrivalLake, objectPosition: '50% 68%',
+      gloss: 'Úlfljótsvatn',
       body: 'Úlfljótsvatn begins where the path ends. Fishing, kayaking and the area’s hiking trails all start at the water.',
       fact: 'Named in 64 of 207 reviews as the reason for the location',
     },
     {
-      key: 'laugin', name: 'Laugin', photo: winter ? PHOTO.poolWinter : PHOTO.poolSunset,
-      gloss: 'The geothermal pool',
+      key: 'laugin', name: 'The pool', photo: winter ? PHOTO.poolWinter : PHOTO.poolSunset,
+      gloss: 'Outdoors, geothermal',
       body: 'Outdoors, heated by the ground it sits on, open in every season. Guests use it as a hot tub and mostly call it one.',
       fact: '72 of 207 reviews mention it, several of them for the northern lights',
     },
     {
-      key: 'badid', name: 'Baðið', photo: PHOTO.bathWide,
-      gloss: 'The bath indoors',
+      key: 'badid', name: 'The bath', photo: PHOTO.bathWide,
+      gloss: 'Indoors, at the glass',
       body: 'A freestanding bath at the floor-to-ceiling glass, with the lake filling the window.',
       fact: 'Indoors, and the only one of the three that is private in every weather',
     },
@@ -759,8 +759,7 @@ export default function LakeviewPage() {
       {/* 02 · manifesto */}
       <section className="lv-manifesto" id="husid">
         <div className="lv-manifesto-copy">
-          <Headline text="Torfbær, sextíu árum síðar." size={84} floor={38} measure={620} />
-          <p className="lv-gloss lv-rv">A turf house, sixty years on.</p>
+          <Headline text="A turf house, sixty years on." size={84} floor={38} measure={620} />
           <p className="lv-body lv-rv">
             {'“'}…combines Icelandic traditional housing with a modern elegance,{'”'} the
             listing says, and the drone photograph proves it: the roof is
@@ -783,8 +782,7 @@ export default function LakeviewPage() {
             />
           </div>
           <div className="lv-find-caps">
-            <p className="lv-find-cap">Þakið er úr landinu.</p>
-            <p className="lv-find-gloss">The roof is made of the land itself.</p>
+            <p className="lv-find-cap">The roof is made of the land itself.</p>
           </div>
         </div>
       </section>
@@ -792,7 +790,7 @@ export default function LakeviewPage() {
       {/* 04 · the three waters */}
       <section className="lv-waters" id="votnin">
         <div className="lv-waters-head lv-rv">
-          <p className="lv-eyebrow">Vötnin þrjú</p>
+          <p className="lv-eyebrow">The three waters</p>
           <Headline text="The lake, the pool and the bath." size={52} floor={30} measure={560} />
           <p className="lv-body lv-waters-intro">
             Three waters shape every stay. The lake beyond the glass, the
@@ -861,7 +859,7 @@ export default function LakeviewPage() {
       {/* 07 · the golden circle */}
       <section className="lv-circle" id="hringurinn">
         <div className="lv-circle-copy">
-          <p className="lv-eyebrow">Gullni hringurinn</p>
+          <p className="lv-eyebrow">Around the cabin</p>
           <Headline text="The Golden Circle starts at the door." size={48} floor={28} measure={520} />
           <ul className="lv-circle-list lv-rv">
             {GOLDEN_CIRCLE.map((p) => (
