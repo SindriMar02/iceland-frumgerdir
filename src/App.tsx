@@ -149,6 +149,7 @@ const WestfjordsPage = lazy(() => import('./preview/westfjords/Page'))
 const ListakPage = lazy(() => import('./preview/listak/Page'))
 const MinjasafnPage = lazy(() => import('./preview/minjasafn/Page'))
 const AslaugSajaPage = lazy(() => import('./preview/aslaugsaja/Page'))
+const SigtryggurPage = lazy(() => import('./preview/sigtryggur/Page'))
 const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
 const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
 const LakeviewPage = lazy(() => import('./preview/lakeview/Page'))
@@ -156,6 +157,10 @@ const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
 const MysticLightPage = lazy(() => import('./preview/mysticlight/Page'))
 const MysticLightDashboard = lazy(() => import('./preview/mysticlight/Dashboard'))
 const VillaNorthPage = lazy(() => import('./preview/villanorth/Page'))
+const LaxfossPage = lazy(() => import('./preview/laxfoss/Page'))
+const LaxfossDashboard = lazy(() => import('./preview/laxfoss/Dashboard'))
+const GlassCottagesPage = lazy(() => import('./preview/glasscottages/Page'))
+const GlassCottagesDashboard = lazy(() => import('./preview/glasscottages/Dashboard'))
 const VillaNorthDashboard = lazy(() => import('./preview/villanorth/Dashboard'))
 const FossatunDashboard = lazy(() => import('./preview/fossatun/Dashboard'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
@@ -337,6 +342,7 @@ export default function App() {
             <Route path="/preview/listak" element={<ListakPage />} />
             <Route path="/preview/minjasafn" element={<MinjasafnPage />} />
             <Route path="/preview/aslaugsaja" element={<AslaugSajaPage />} />
+            <Route path="/preview/sigtryggur" element={<SigtryggurPage />} />
             <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
             <Route path="/preview/lakeview" element={<LakeviewPage />} />
@@ -345,6 +351,10 @@ export default function App() {
             <Route path="/preview/mysticlight/stjornbord" element={<MysticLightDashboard />} />
             <Route path="/preview/villanorth" element={<VillaNorthPage />} />
             <Route path="/preview/villanorth/stjornbord" element={<VillaNorthDashboard />} />
+            <Route path="/preview/laxfoss" element={<LaxfossPage />} />
+            <Route path="/preview/laxfoss/stjornbord" element={<LaxfossDashboard />} />
+            <Route path="/preview/glasscottages" element={<GlassCottagesPage />} />
+            <Route path="/preview/glasscottages/stjornbord" element={<GlassCottagesDashboard />} />
             <Route path="/preview/fossatun/stjornbord" element={<FossatunDashboard />} />
             <Route path="/demo/bokun" element={<BokunDemo />} />
             <Route path="/preview/kiropraktorstofan" element={<KiropraktorstofanPage />} />
