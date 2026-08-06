@@ -59,6 +59,15 @@ const reduced = () =>
 const fluid = (n: number, floor: number) =>
   `clamp(${floor}px, calc(var(--u) * ${n}), ${+(n * 1.15).toFixed(1)}px)`
 
+/** The hero film plays unless motion is reduced or the connection asks not to.
+    A Kling 3.0 ambient loop of THEIR aerial: water moves, nothing else does.
+    Palindrome (last frame = first), poster = the exact first frame. */
+const filmOk = () => {
+  if (typeof window === 'undefined' || reduced()) return false
+  const c = (navigator as { connection?: { saveData?: boolean } }).connection
+  return !c?.saveData
+}
+
 /* ── motion engine ───────────────────────────────────────────────────────── */
 
 function useMotion(ready: boolean) {
@@ -440,7 +449,7 @@ function Preloader({ onDone }: { onDone: () => void }) {
     const mark = () => { heroDone = true }
     hero.addEventListener('load', mark, { once: true })
     hero.addEventListener('error', mark, { once: true })
-    hero.src = PHOTO.waterfallAerial.src
+    hero.src = `${BASE}laxfoss/hero-poster.jpg`
     if (hero.complete) heroDone = true
     let fontsDone = false
     document.fonts.ready.then(() => { fontsDone = true })
@@ -482,6 +491,8 @@ function Preloader({ onDone }: { onDone: () => void }) {
 export default function LaxfossPage() {
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(shouldShowLoader)
+  const [playFilm] = useState(filmOk)
+  const [filmAlive, setFilmAlive] = useState(true)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -526,8 +537,19 @@ export default function LaxfossPage() {
       {/* 01 · hero — the lodge above its falls */}
       <section className="lx-hero" id="top">
         <div className="lx-hero-media">
-          <img src={PHOTO.waterfallAerial.src} srcSet={srcSet(PHOTO.waterfallAerial.src)} sizes="100vw"
-            alt={PHOTO.waterfallAerial.alt} loading="eager" decoding="async" />
+          {playFilm && filmAlive ? (
+            <video
+              autoPlay muted loop playsInline
+              poster={`${BASE}laxfoss/hero-poster.jpg`}
+              aria-label={PHOTO.waterfallAerial.alt}
+              onError={() => setFilmAlive(false)}
+            >
+              <source src={`${BASE}laxfoss/hero-film.mp4`} type="video/mp4" />
+            </video>
+          ) : (
+            <img src={PHOTO.waterfallAerial.src} srcSet={srcSet(PHOTO.waterfallAerial.src)} sizes="100vw"
+              alt={PHOTO.waterfallAerial.alt} loading="eager" decoding="async" />
+          )}
         </div>
         <h1 className="lx-wm" aria-label="Laxfoss">
           <span className="lx-wm-brink" aria-hidden="true" />
@@ -788,7 +810,7 @@ const CSS = `
 /* ── hero ── */
 .lx-hero { position: relative; min-height: 100svh; display: grid; overflow: hidden; }
 .lx-hero-media { position: absolute; inset: 0; }
-.lx-hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lx-hero-media img, .lx-hero-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lx-hero-media::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(198deg, rgba(11,27,38,.12) 40%, rgba(11,27,38,.66) 100%);
