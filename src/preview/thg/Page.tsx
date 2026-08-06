@@ -509,7 +509,7 @@ export default function ThgPage() {
         <section id="thg-works" className="thg-sec thg-pad">
           <h2 className="thg-d" data-thg-tdrift="26" style={{ ...H2, marginBottom: '.7rem' }}><Rise>Verkin</Rise></h2>
           <p className="thg-r thg-d" data-thg-tdrift="12" style={{ color: MUTED, maxWidth: '46ch', lineHeight: 1.6, marginBottom: 'clamp(24px,3.4vw,48px)' }}>
-            Sjö af tuttugu og tveimur verkum í skránni — þau sem eiga birtar ljósmyndir.
+            Sjö af tuttugu og tveimur verkum í skránni, þau sem eiga birtar ljósmyndir.
           </p>
           {/* A list, not a grid. Seven tiles read as a thin grid of stock
               photographs; seven names set large read as a practice with a
