@@ -102,16 +102,15 @@ export const companyEntry: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenskt listafólk.
 
-Ég var að skoða vatnsmyndirnar þínar og staldraði lengi við Merlandi Skagafjörð. Það eina sem ég saknaði var að sjá þær í fullri stærð á skjánum, því eins og staðan er í dag sitja þær í smáum reitum í Wix-galleríi.
+Ég staldraði lengi við Merlandi Skagafjörður 4 hjá þér. Það eina sem mig vantaði var að sjá verkin í fullri stærð á skjánum, því eins og staðan er í dag sitja þau í litlum reitum.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð fyrir þig. Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð fyrir þig. Hún kostar þig ekki neitt og henni fylgir engin skuldbinding:
 
-Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Seríurnar þínar verða leiðarkerfið og hver þeirra tengd sýningunni sem hún var sýnd á, og svo má fletta verkunum eftir litum.
+Hugmyndin er einföld. Raðirnar þínar verða leiðarkerfið, hver þeirra tengd sýningunni sem hún var sýnd á, og svo má fletta verkunum eftir litum.
 
-Eitt sem ég rakst á í leiðinni: síðan þín birtir aðeins 25 verk úr hverri seríu í frumkóðanum, svo stór hluti verkanna finnst ekki í Google í dag. Ég get sagt þér nánar frá því ef þú vilt.
+Eitt í leiðinni: stór hluti verkanna þinna finnst ekki þegar leitað er að þeim í Google. Ég get sýnt þér það ef þú vilt.
 
 Endilega láttu mig vita ef þú hefur áhuga.
 

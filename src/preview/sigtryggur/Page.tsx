@@ -441,6 +441,37 @@ export default function SigtryggurBjarniPage() {
     return m
   }, [])
 
+  /* Structured data, every field traceable to his own CV page. */
+  const jsonLd = useMemo(
+    () =>
+      JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Sigtryggur Bjarni Baldvinsson',
+        jobTitle: 'Myndlistarmaður',
+        birthPlace: 'Akureyri',
+        birthDate: '1966',
+        nationality: 'IS',
+        email: 'mailto:sigtryggur@mir.is',
+        url: 'https://www.sigtryggurbjarni.is',
+        knowsAbout: ['Málverk', 'Vatnslitamyndir', 'Ljósmyndun'],
+        alumniOf: [
+          { '@type': 'CollegeOrUniversity', name: 'Myndlistaskólinn á Akureyri' },
+          { '@type': 'CollegeOrUniversity', name: 'Myndlista- og handíðaskóli Íslands' },
+          { '@type': 'CollegeOrUniversity', name: 'École des Arts Décoratifs, Strasbourg' },
+        ],
+        makesOffer: undefined,
+        subjectOf: EXHIBITIONS.slice(0, 12).map((e) => ({
+          '@type': 'ExhibitionEvent',
+          name: e.title,
+          startDate: e.year,
+          location: { '@type': 'Place', name: e.venue },
+        })),
+        owns: COLLECTIONS.map((c) => ({ '@type': 'Organization', name: c })),
+      }),
+    [],
+  )
+
   const L = lang === 'is'
   const sName = useCallback((s: { name: string; en: string }) => (L ? s.name : s.en), [L])
   const cName = (c: string) => (L ? c.toUpperCase() : COLOUR_EN[c].toUpperCase())
@@ -555,6 +586,10 @@ export default function SigtryggurBjarniPage() {
 
   return (
     <div lang={L ? 'is' : 'en'} className="min-h-screen bg-[#FAFAFA] text-black antialiased">
+      {/* Schema built only from facts on his own CV page. This is also the point
+          the outreach makes: his current site publishes none, so search engines
+          have nothing structured to read about a painter in the National Gallery. */}
+      <script type="application/ld+json">{jsonLd}</script>
       <style>{`
         .sbb-display{font-family:'Clash Display',sans-serif;font-weight:600}
         .sbb-thumb{transition:opacity .5s ease}
