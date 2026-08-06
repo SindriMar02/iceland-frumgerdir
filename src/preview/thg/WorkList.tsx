@@ -142,4 +142,21 @@ export const WORK_LIST_CSS = `
   overflow:hidden;margin-bottom:.9rem}
 .thg-wthumb img{width:100%;height:100%;object-fit:cover}
 @media (prefers-reduced-motion:reduce){.thg-preview{display:none}}
+
+/* Phones get ONE column. The 1fr/auto split is right on desktop, where the
+   kind sits opposite the name on the same baseline, but on a 390px screen
+   that second column is sized by the longest label ("Þjónusta og hjúkrun")
+   and takes its width out of the first — which is where the thumbnail
+   lives. Measured at 390px: every photograph was squeezed to 296px of a
+   354px row, with the label stranded alongside the middle of the image and
+   a ragged gutter down the right. Stacking fixes the photographs and puts
+   the kind where it reads as a tag on the work rather than a second column
+   of the page. */
+@media (max-width:759px){
+  .thg-wrow{grid-template-columns:1fr;gap:0}
+  .thg-wthumb{margin-bottom:1rem}
+  .thg-wname,.thg-wmeta{grid-column:1}
+  .thg-wstate{grid-column:1;grid-row:auto;text-align:left;margin-top:.5rem;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+}
 `
