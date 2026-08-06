@@ -203,7 +203,10 @@ function useMotion(ready: boolean) {
         if (!frame) continue
         const r = frame.getBoundingClientRect()
         if (r.bottom < -40 || r.top > vh + 40) continue
-        const p = 1 - (r.top + r.height / 2) / (vh / 2) / 2 // -1..1 across viewport
+        /* clamp: a frame taller than ~vh can push p past ±1 near its exit,
+           which overruns the --dz overhang and bleeds the image edge into
+           the frame (measured 45px on an 843px frame). Bound it. */
+        const p = Math.max(-1, Math.min(1, 1 - (r.top + r.height / 2) / (vh / 2) / 2)) // -1..1 across viewport
         const d = Number(el.dataset.drift || 9)
         writes.push([el, -p * d])
       }
