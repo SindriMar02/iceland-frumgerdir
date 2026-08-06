@@ -846,8 +846,8 @@ const CSS = `
 .gc-nav-links { display: flex; gap: calc(var(--u) * 24); font-size: 14px; }
 .gc-nav-links a { opacity: .78; transition: opacity .2s; padding: 8px 0; }
 .gc-nav-links a:hover { opacity: 1; }
-.gc-nav-cta {
-  font-size: 13.5px; font-weight: 500; white-space: nowrap;
+.gc-nav a.gc-nav-cta {
+  font-size: 13.5px; font-weight: 500; white-space: nowrap; color: ${NIGHT};
   padding: 9px 18px; border-radius: 999px;
   background: ${BONE}; color: ${NIGHT};
   transition: filter .25s, transform .16s cubic-bezier(.23,1,.32,1);
