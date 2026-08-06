@@ -4399,5 +4399,11 @@ PREVIEW_COMPANIES.push(MYSTICLIGHT_ENTRY)
 import { companyEntry as VILLANORTH_ENTRY } from './villanorth/data'
 PREVIEW_COMPANIES.push(VILLANORTH_ENTRY)
 
+import { companyEntry as LAXFOSS_ENTRY } from './laxfoss/data'
+PREVIEW_COMPANIES.push(LAXFOSS_ENTRY)
+
+import { companyEntry as GLASSCOTTAGES_ENTRY } from './glasscottages/data'
+PREVIEW_COMPANIES.push(GLASSCOTTAGES_ENTRY)
+
 import { companyEntry as ASLAUGSAJA_ENTRY } from './aslaugsaja/data'
 PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)

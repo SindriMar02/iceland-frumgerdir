@@ -158,6 +158,10 @@ const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
 const MysticLightPage = lazy(() => import('./preview/mysticlight/Page'))
 const MysticLightDashboard = lazy(() => import('./preview/mysticlight/Dashboard'))
 const VillaNorthPage = lazy(() => import('./preview/villanorth/Page'))
+const LaxfossPage = lazy(() => import('./preview/laxfoss/Page'))
+const LaxfossDashboard = lazy(() => import('./preview/laxfoss/Dashboard'))
+const GlassCottagesPage = lazy(() => import('./preview/glasscottages/Page'))
+const GlassCottagesDashboard = lazy(() => import('./preview/glasscottages/Dashboard'))
 const VillaNorthDashboard = lazy(() => import('./preview/villanorth/Dashboard'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 
@@ -341,6 +345,10 @@ export default function App() {
             <Route path="/preview/mysticlight/stjornbord" element={<MysticLightDashboard />} />
             <Route path="/preview/villanorth" element={<VillaNorthPage />} />
             <Route path="/preview/villanorth/stjornbord" element={<VillaNorthDashboard />} />
+            <Route path="/preview/laxfoss" element={<LaxfossPage />} />
+            <Route path="/preview/laxfoss/stjornbord" element={<LaxfossDashboard />} />
+            <Route path="/preview/glasscottages" element={<GlassCottagesPage />} />
+            <Route path="/preview/glasscottages/stjornbord" element={<GlassCottagesDashboard />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
             <Route path="*" element={<NotFound />} />
