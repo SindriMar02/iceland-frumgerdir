@@ -361,8 +361,15 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
 }
 
 /** Drifting photo frame — the continuous device on every content photo. */
-function Frame({ photo, className = '', priority = false, drift = 9, sizes }: {
-  photo: Photo; className?: string; priority?: boolean; drift?: number; sizes?: string
+/**
+ * `focus` aims the cover-crop. It matters wherever a frame's aspect fights the
+ * source's: .gh-water-row forces 3/4 portrait, so a 4/3 landscape photograph
+ * keeps only its middle third and anything at the edges is simply gone. The
+ * sauna row shipped a picture of trees for exactly that reason.
+ */
+function Frame({ photo, className = '', priority = false, drift = 9, sizes, focus }: {
+  photo: Photo; className?: string; priority?: boolean; drift?: number
+  sizes?: string; focus?: string
 }) {
   return (
     <figure className={`gh-frame gh-rv ${className}`} style={{ aspectRatio: photo.ratio }}>
@@ -378,6 +385,7 @@ function Frame({ photo, className = '', priority = false, drift = 9, sizes }: {
           alt={photo.alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
+          style={focus ? { objectPosition: focus } : undefined}
         />
       </div>
     </figure>
@@ -676,7 +684,11 @@ export default function GlasshousePage() {
           </p>
         </div>
         <div className="gh-water-row">
-          <Frame photo={PHOTO.saunaBarrel} drift={9} sizes="(max-width: 899px) 100vw, 33vw" />
+          {/* house-sauna, not sauna-barrel: same 4/3 shape but a sharper frame
+              with the door open and the wood lit, and the crop is aimed right
+              so the barrel is the subject rather than the birches behind it. */}
+          <Frame photo={PHOTO.houseSauna} drift={9} focus="76% 50%"
+            sizes="(max-width: 899px) 100vw, 33vw" />
           <Frame photo={PHOTO.hottubSnow} drift={11} sizes="(max-width: 899px) 100vw, 33vw" />
           <Frame photo={PHOTO.poolMoss} drift={8} sizes="(max-width: 899px) 100vw, 33vw" />
         </div>

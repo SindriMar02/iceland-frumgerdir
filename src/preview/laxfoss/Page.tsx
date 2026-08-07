@@ -542,12 +542,20 @@ export default function LaxfossPage() {
       {/* capsule nav — a floating frost pill; flips ink over night sections */}
       <header className="lx-nav">
         <a className="lx-nav-mark" href="#top" onClick={anchor('top')}>LAXFOSS</a>
+        {/* laxfoss.org runs Our lodge / History / Gallery / Enquiry. Every one
+            of those already existed here as a section, just unlinked, so the
+            page looked thinner than theirs while actually holding more. The
+            nav now covers their whole structure and adds the falls and the
+            guests, which their site has no page for. */}
         <nav className="lx-nav-links" aria-label="Page">
           <a href="#husid" onClick={anchor('husid')}>The house</a>
+          <a href="#herbergin" onClick={anchor('herbergin')}>Rooms</a>
           <a href="#fossinn" onClick={anchor('fossinn')}>The falls</a>
+          <a href="#saunan" onClick={anchor('saunan')}>Sauna</a>
+          <a href="#sagan" onClick={anchor('sagan')}>History</a>
           <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
         </nav>
-        <a className="lx-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
+        <a className="lx-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire</a>
       </header>
 
       {/* 01 · hero — the lodge above its falls */}
@@ -614,7 +622,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 04 · the 1920s house */}
-      <section className="lx-history">
+      <section className="lx-history" id="sagan">
         <Frame photo={PHOTO.lodgeExterior} drift={9} className="lx-history-fig" />
         <div className="lx-history-copy">
           <Headline text="A century by the water." size={56} floor={30} measure={520} />
@@ -633,7 +641,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 05 · inside + rooms index */}
-      <section className="lx-rooms">
+      <section className="lx-rooms" id="herbergin">
         <div className="lx-rooms-head">
           <Headline text="Five guests, four rooms." size={56} floor={30} measure={560} />
           <p className="lx-body lx-rv">
@@ -667,7 +675,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 06 · sauna night beat */}
-      <section className="lx-sauna" data-lx-dark>
+      <section className="lx-sauna" id="saunan" data-lx-dark>
         <Frame photo={PHOTO.saunaNight} drift={12} className="lx-sauna-bleed" sizes="100vw" priority={false} />
         <div className="lx-sauna-copy">
           <Headline text="Wood smoke, cold air." size={64} floor={32} measure={560} />
@@ -688,7 +696,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 07 · the river, honestly */}
-      <section className="lx-river">
+      <section className="lx-river" id="ain">
         <div className="lx-river-copy">
           <Headline text="Norðurá, up close." size={56} floor={30} measure={560} />
           <p className="lx-body lx-rv">{RIVER.claim} In season the salmon gather
