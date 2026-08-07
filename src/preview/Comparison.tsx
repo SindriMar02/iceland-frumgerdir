@@ -220,7 +220,7 @@ export default function Comparison() {
             Sindri Már <span className="text-slate-400">— Vefhönnun</span>
           </a>
           <a
-            href="mailto:sindrimar02@gmail.com"
+            href="mailto:sindri@klubbr.is"
             className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700"
           >
             Hafðu samband
@@ -355,7 +355,7 @@ export default function Comparison() {
             skuldbindingar. Það eina sem þarf er stutt skilaboð.
           </p>
           <a
-            href="mailto:sindrimar02@gmail.com?subject=Ný%20vefs%C3%AD%C3%B0a"
+            href="mailto:sindri@klubbr.is?subject=Ný%20vefs%C3%AD%C3%B0a"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-slate-700"
           >
             Hafðu samband
@@ -367,8 +367,8 @@ export default function Comparison() {
       <footer className="px-5 py-10 text-center text-xs leading-relaxed text-slate-400 md:px-8">
         <p className="mx-auto max-w-2xl">
           Sindri Már · Vefhönnun ·{' '}
-          <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
-            sindrimar02@gmail.com
+          <a href="mailto:sindri@klubbr.is" className="underline underline-offset-2">
+            sindri@klubbr.is
           </a>
           <br />
           Nýju hönnunirnar eru frumgerðir og hönnunarhugmyndir. Allur sýnishornatexti og myndir eru til
