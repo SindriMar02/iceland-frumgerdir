@@ -163,12 +163,26 @@ function useMotion(ready: boolean) {
         }
       }
 
-      /* THE NIGHT — pinned. The aurora deepens through four of their own
-         frames as you scroll, each dissolving into the next under a slow
-         push-in. The guest quotes keep their own cadence underneath. */
-      const nightEl = root.querySelector<HTMLElement>('.gc-night')
-      const layers = gsap.utils.toArray<HTMLElement>('.gc-night-layer', root)
-      if (nightEl && layers.length > 1 && window.innerWidth >= 768) {
+      /* Both breakpoint-gated blocks below run through gsap.matchMedia, never
+         a one-time `innerWidth` check. That check is evaluated ONCE at mount,
+         so resizing across the breakpoint leaves the page in a state nobody
+         designed. Measured on the live build, both directions broken:
+           wide -> narrow : the chooser columns KEPT clipPath inset(0 0 100%)
+                            and rendered as nothing at all on a phone.
+           narrow -> wide : all four aurora layers sat at opacity 1 with no
+                            pin and no scrub.
+         matchMedia sets each block up on entering its query and REVERTS its
+         inline styles on leaving, which is exactly what both need. */
+      const mm = gsap.matchMedia()
+      cleanups.push(() => mm.revert())
+
+      /* THE NIGHT — the aurora deepens through four of their own frames as you
+         scroll, each dissolving into the next under a slow push-in. The guest
+         quotes keep their own cadence underneath. */
+      mm.add('(min-width: 768px)', () => {
+        const nightEl = root.querySelector<HTMLElement>('.gc-night')
+        const layers = gsap.utils.toArray<HTMLElement>('.gc-night-layer', root)
+        if (!nightEl || layers.length < 2) return
         gsap.set(layers, { autoAlpha: 0 })
         gsap.set(layers[0], { autoAlpha: 1 })
         /* NO pin. The page already pins the chooser, and a second pin here
@@ -189,7 +203,7 @@ function useMotion(ready: boolean) {
           nt.to(layers[i], { autoAlpha: 1, ease: 'none', duration: dur }, at)
         }
         nt.fromTo(layers, { scale: 1.07 }, { scale: 1, ease: 'none', duration: 1 }, 0)
-      }
+      })
 
       /* the header carries no surface until the hero is behind you */
       const navEl = root.querySelector<HTMLElement>('.gc-nav')
@@ -203,12 +217,13 @@ function useMotion(ready: boolean) {
       /* THE CHOOSER — opposing clip reveals under a pin, centre label in sync.
          Blár opens from the top, Grænn from the bottom. Desktop only; under
          1024px the columns stack and reveal via the page-wide clip system. */
-      const chooser = root.querySelector<HTMLElement>('.gc-chooser')
-      const colB = root.querySelector<HTMLElement>('.gc-choose-blar .gc-choose-media')
-      const colG = root.querySelector<HTMLElement>('.gc-choose-graenn .gc-choose-media')
-      const midT = root.querySelector<HTMLElement>('.gc-choose-mid-top')
-      const midB = root.querySelector<HTMLElement>('.gc-choose-mid-bot')
-      if (chooser && colB && colG && midT && midB && window.innerWidth >= 1024) {
+      mm.add('(min-width: 1024px)', () => {
+        const chooser = root.querySelector<HTMLElement>('.gc-chooser')
+        const colB = root.querySelector<HTMLElement>('.gc-choose-blar .gc-choose-media')
+        const colG = root.querySelector<HTMLElement>('.gc-choose-graenn .gc-choose-media')
+        const midT = root.querySelector<HTMLElement>('.gc-choose-mid-top')
+        const midB = root.querySelector<HTMLElement>('.gc-choose-mid-bot')
+        if (!chooser || !colB || !colG || !midT || !midB) return
         gsap.set(colB, { clipPath: 'inset(0% 0% 100% 0%)' })
         gsap.set(colG, { clipPath: 'inset(100% 0% 0% 0%)' })
         gsap.set(midT, { clipPath: 'inset(0% 0% 100% 0%)' })
@@ -225,7 +240,8 @@ function useMotion(ready: boolean) {
         chooserST = tl.scrollTrigger ?? null
         tl.to([colB, midT], { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', duration: 1 }, 0)
           .to([colG, midB], { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', duration: 1 }, 0)
-      }
+        return () => { chooserST = null }
+      })
 
       /* focusin failsafe */
       const onFocusIn = (e: FocusEvent) => {
@@ -1104,6 +1120,13 @@ const CSS = `
   background: linear-gradient(10deg, rgba(16,20,24,.84) 14%, rgba(16,20,24,.12) 60%);
 }
 .gc-night-layer { position: absolute; inset: 0; will-change: transform, opacity; }
+/* Under 768px the scrub does not run, so all four layers would sit stacked at
+   opacity 1 and you would simply see whichever is last in the DOM. Make that
+   explicit: the phone gets the payoff frame (the aurora through the glass
+   roof) and does not paint the other three. */
+@media (max-width: 767px) {
+  .gc-night-layer:not(:last-child) { display: none; }
+}
 .gc-night-inner { position: relative; z-index: 1; padding: calc(var(--u) * 120) calc(var(--u) * 48) calc(var(--u) * 80); max-width: calc(var(--u) * 900); }
 .gc-night-score { margin: 0 0 calc(var(--u) * 26); font-size: ${fluid(14, 13)}; letter-spacing: .04em; color: rgba(232,236,234,.85); }
 .gc-night-honest { margin: calc(var(--u) * 64) 0 0; font-size: ${fluid(14, 13)}; color: rgba(232,236,234,.66); }

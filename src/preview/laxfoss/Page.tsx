@@ -155,12 +155,26 @@ function useMotion(ready: boolean) {
 
       /* THE DROP — pinned descent of the falls. One timeline, one scrub.
          The dark aerial rises past the reader while three stations pass:
-         Upstream, The brink, The pool. Desktop pins; under 768px the
-         stations simply stack (no pin, nothing to miss). */
-      const drop = root.querySelector<HTMLElement>('.lx-drop')
-      const dropImg = root.querySelector<HTMLElement>('.lx-drop-img')
-      const stations = root.querySelectorAll<HTMLElement>('.lx-drop-station')
-      if (drop && dropImg && stations.length === 3 && window.innerWidth >= 768) {
+         Upstream, The brink, The pool. Under 768px the river goes sticky and
+         the stations scroll over it in CSS instead (see the phone block).
+
+         THIS MUST BE gsap.matchMedia, NOT a one-time innerWidth check.
+         A plain `innerWidth >= 768` gate is evaluated ONCE at mount, so a
+         visitor who opens the page on a narrow window and then widens it (or
+         rotates a tablet) never gets this block: the phone CSS stops applying,
+         the stations return to position:absolute at full opacity, and because
+         they all sit in the SAME place all three render on top of each other
+         as garbled overlapping copy. Reproduced exactly by loading at 569px
+         and resizing to 1200px. matchMedia sets the block up on entering the
+         query and REVERTS its inline styles on leaving, so both directions are
+         correct however the window changes. */
+      const mm = gsap.matchMedia()
+      cleanups.push(() => mm.revert())
+      mm.add('(min-width: 768px)', () => {
+        const drop = root.querySelector<HTMLElement>('.lx-drop')
+        const dropImg = root.querySelector<HTMLElement>('.lx-drop-img')
+        const stations = root.querySelectorAll<HTMLElement>('.lx-drop-station')
+        if (!drop || !dropImg || stations.length !== 3) return
         gsap.set(stations, { autoAlpha: 0, y: 44 })
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -190,7 +204,8 @@ function useMotion(ready: boolean) {
           tl.to(st, { autoAlpha: 1, y: 0, duration: FADE, ease: 'power2.out' }, inAt)
           if (leaveAt > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: FADE, ease: 'power2.in' }, leaveAt)
         })
-      }
+        return () => { dropST = null }
+      })
 
       /* focusin failsafe: keyboard users must never land inside hidden copy */
       const onFocusIn = (e: FocusEvent) => {
