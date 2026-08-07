@@ -47,13 +47,51 @@ const EMBER_TEXT = '#96521F'   // accent text on the sky ground (AA)
 const SANS = "'Alpino', system-ui, sans-serif"
 const BASE = import.meta.env.BASE_URL
 
-/** The window film: 48 frames of THEIR view, generated from their own
-    photograph, carrying the sky from open day through dusk to a full aurora.
-    Shipped as a frame sequence rather than a <video>, because seeking a video
-    by currentTime never scrubs smoothly under a scroll scrub. */
-const SKY_FRAMES = 48
-const skyFrame = (i: number) =>
-  `${BASE}glasshouse/skyseq/${String(i + 1).padStart(3, '0')}.jpg`
+/**
+ * THE NIGHT FILM — their own house, generated from their own photograph,
+ * carried from bright day to a full aurora. Same lineage as Mirror House's
+ * night scrub, and deliberately the same measured configuration:
+ *
+ *   121 frames, because 48 is visibly chunky under a long scrub.
+ *   1200w desktop / 828w phone, because RESOLUTION is what decides decoded
+ *   memory when 121 frames are held at once (Mirror House measured 1500w at
+ *   692MB and rejected it). JPEG quality costs download only.
+ *
+ * A frame sequence on a canvas, never a <video>: seeking by currentTime has
+ * real latency and never scrubs smoothly. Phones get the smaller set rather
+ * than a static photograph, so the section is the film everywhere.
+ */
+const SKY_FRAMES = 121
+const skyFrame = (i: number, small = false) =>
+  `${BASE}glasshouse/${small ? 'skyseq-828' : 'skyseq'}/${String(i + 1).padStart(3, '0')}.jpg`
+
+/* Frames live at module scope and start decoding on mount, not on an
+   onEnter: a link opened ALREADY inside the pinned section never fires
+   onEnter, and the canvas would stay black for exactly the visitor who
+   reloads at depth. [[preflight-before-outreach]] */
+const skyShots: (HTMLImageElement | null)[] = new Array(SKY_FRAMES).fill(null)
+let skyStarted = false
+function startSkyFrames(small: boolean) {
+  if (skyStarted) return
+  skyStarted = true
+  let next = 0
+  const pump = () => {
+    const idx = next++
+    if (idx >= SKY_FRAMES) return
+    const im = new Image()
+    im.decoding = 'async'
+    const go = () => {
+      skyShots[idx] = im
+      /* decode() front-loads the cost so a scrub gesture never stalls */
+      im.decode().then(pump).catch(pump)
+    }
+    im.addEventListener('load', go, { once: true })
+    im.addEventListener('error', pump, { once: true })
+    im.src = skyFrame(idx, small)
+  }
+  /* three parallel chains: fast enough to be ready, gentle on the socket */
+  pump(); pump(); pump()
+}
 
 const reduced = () =>
   typeof window !== 'undefined' &&
@@ -139,24 +177,21 @@ function useMotion(ready: boolean) {
         })
       }
 
-      /* THE WINDOW — the skylight opens, again and again.
-         Each photograph is a pane hinged along the TOP edge of the aperture.
-         Scroll swings the front pane up and away on rotateX, revealing the
-         next beneath it, exactly the way their roof window opens. The frame
-         NEVER expands to full bleed: the section ends holding its last pane,
-         because the whole idea is that you are looking THROUGH something.
-         One timeline, one scrub, monotonic and reversible. */
+      /* THE NIGHT — full bleed, pinned, and it is ONE slow push-in.
+         Their house in daylight becomes their house under the aurora, drawn
+         frame by frame on a canvas that fills the viewport. The zoom is done
+         here rather than asked of the model: a scale ramp in the draw call is
+         perfectly smooth and costs nothing, where a generated camera move
+         would wobble. 1.00 to 1.10 only — enough to feel like the night is
+         closing in, not enough to soften the frame. */
       const win = root.querySelector<HTMLElement>('.gh-window')
       const canvas = root.querySelector<HTMLCanvasElement>('.gh-sky')
       const caps = root.querySelectorAll<HTMLElement>('.gh-pane-cap')
-      const aperture = root.querySelector<HTMLElement>('.gh-aperture')
-      if (win && aperture && canvas && caps.length === 4 && window.innerWidth >= 768) {
+      if (win && canvas && caps.length === 4) {
         const c2d = canvas.getContext('2d')
-        const frames: HTMLImageElement[] = []
         let drawn = -1
+        let zoom = 1
 
-        /* Fit to the aperture's own box at device resolution. Re-run on every
-           ScrollTrigger refresh, since the pin changes layout. */
         const fit = () => {
           const r = canvas.getBoundingClientRect()
           const dpr = Math.min(2, window.devicePixelRatio || 1)
@@ -164,45 +199,56 @@ function useMotion(ready: boolean) {
           canvas.height = Math.max(1, Math.round(r.height * dpr))
           drawn = -1                              // size changed, force a redraw
         }
-        /* object-fit: cover, by hand */
+        /* cover-fit by hand, times the zoom */
         const paint = (i: number) => {
-          const im = frames[i]
-          if (!c2d || !im || !im.complete || !im.naturalWidth) return
+          if (!c2d) return
+          /* fall back to the NEAREST decoded frame rather than painting
+             nothing: a curious scroller outruns the loader, and a blank
+             canvas reads as broken where a slightly stale frame does not */
+          let im = skyShots[i]
+          if (!im) {
+            for (let d = 1; d < SKY_FRAMES; d++) {
+              im = skyShots[i - d] || skyShots[i + d] || null
+              if (im) break
+            }
+          }
+          if (!im || !im.complete || !im.naturalWidth) return
           const cw = canvas.width, ch = canvas.height
-          const k = Math.max(cw / im.naturalWidth, ch / im.naturalHeight)
+          const k = Math.max(cw / im.naturalWidth, ch / im.naturalHeight) * zoom
           const w = im.naturalWidth * k, h = im.naturalHeight * k
-          c2d.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
+          /* Anchor the crop ABOVE centre. The aurora is the subject and it
+             lives in the top third; a centred cover-crop plus the push-in
+             walked straight off it and left a picture of a wall. 0.32 keeps
+             the sky in frame the whole way through. */
+          c2d.drawImage(im, (cw - w) / 2, (ch - h) * 0.32, w, h)
           drawn = i
         }
-        for (let i = 0; i < SKY_FRAMES; i++) {
-          const im = new Image()
-          im.decoding = 'async'
-          im.src = skyFrame(i)
-          frames.push(im)
-          /* a CACHED image never fires load, so paint straight away if it is
-             already complete rather than waiting on an event that will not
-             come. The canvas is never faded in — it paints or it does not. */
-          if (im.complete) { if (i === 0) paint(0) }
-          else if (i === 0) im.addEventListener('load', () => paint(0), { once: true })
-        }
+        startSkyFrames(window.innerWidth < 768)
         fit()
+        /* paint frame 0 the moment it exists, so the section is never black */
+        const firstPaint = window.setInterval(() => {
+          if (skyShots[0]) { paint(0); window.clearInterval(firstPaint) }
+        }, 60)
+        cleanups.push(() => window.clearInterval(firstPaint))
+
         gsap.set(caps, { autoAlpha: 0, y: -22 })
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: win, start: 'top top', end: '+=280%',
+            trigger: win, start: 'top top', end: '+=320%',
             pin: true, scrub: 0.9, anticipatePin: 1, invalidateOnRefresh: true,
             onRefresh: () => { fit(); paint(Math.max(0, drawn)) },
           },
         })
         windowST = tl.scrollTrigger ?? null
 
-        /* the scrub drives a plain number; the number picks the frame */
-        const cursor = { f: 0 }
+        /* one cursor drives both the frame index and the push-in */
+        const cursor = { t: 0 }
         tl.to(cursor, {
-          f: SKY_FRAMES - 1, ease: 'none', duration: 1,
+          t: 1, ease: 'none', duration: 1,
           onUpdate: () => {
-            const i = Math.max(0, Math.min(SKY_FRAMES - 1, Math.round(cursor.f)))
-            if (i !== drawn) paint(i)
+            zoom = 1 + 0.10 * cursor.t
+            const i = Math.max(0, Math.min(SKY_FRAMES - 1, Math.round(cursor.t * (SKY_FRAMES - 1))))
+            paint(i)                              // repaint every tick: the zoom moves too
           },
         }, 0)
 
@@ -599,17 +645,13 @@ export default function GlasshousePage() {
       {/* 03 · THE WINDOW — pinned sky device */}
       <section className="gh-window" id="glugginn" data-gh-dark="">
         <div className="gh-window-inner">
-          {/* the aperture is still the point: you are looking THROUGH a frame,
-             and it never expands to full bleed. What sits inside it is now one
-             continuous film of their own view rather than four hinged stills. */}
-          <div className="gh-aperture" aria-hidden="true">
-            <canvas className="gh-sky" />
-          </div>
+          {/* full bleed: the night is the whole viewport, not a picture of it */}
+          <canvas className="gh-sky" aria-hidden="true" />
           <div className="gh-pane-caps">
-            <p className="gh-pane-cap">Day. The field runs flat to the horizon, and the sky takes most of it.</p>
-            <p className="gh-pane-cap">Evening. The light drops and the first green shows low in the north.</p>
-            <p className="gh-pane-cap">Night. The aurora crosses the whole sky, not a corner of it.</p>
-            <p className="gh-pane-cap">Rendered, not photographed. Clear nights are never promised, but this is the sky they wait for.</p>
+            <p className="gh-pane-cap">Midday. The turf roof, the sauna, the tub, and nothing else for a while.</p>
+            <p className="gh-pane-cap">Evening. The light goes long, and the glass starts giving it back.</p>
+            <p className="gh-pane-cap">Then the sky does the thing you came for.</p>
+            <p className="gh-pane-cap">Rendered, not photographed. Clear nights are never promised.</p>
           </div>
           {/* static fallback for reduced motion and phones */}
           <figure className="gh-window-static">
@@ -775,29 +817,19 @@ const CSS = `
    under it. Mechanism adapted from a 21st.dev gradient button; the palette,
    geometry and the ink-on-ember contrast are this build's own. Ink text is
    deliberate — white would fall under AA at the light end of the ramp. */
+/* The outlined original, restored. The gradient fill read as a stock SaaS
+   button dropped onto a page whose whole logic is glass and hairlines, and it
+   carried an ember glow the palette never asked for. An outline that inverts
+   on hover inherits the nav's own colour, so it stays correct over both the
+   light chrome and the dark chrome without a second rule fighting it. */
 .gh-nav-cta {
-  position: relative; isolation: isolate;
   font-size: ${fluid(14, 13)}; font-weight: 500;
   padding: calc(var(--u) * 10) calc(var(--u) * 20);
-  border: 0; border-radius: 12px;
-  color: ${INK} !important;
-  background-image: linear-gradient(100deg, ${EMBER} 0%, #E8A878 26%, ${EMBER} 50%, #A85F30 76%, ${EMBER} 100%);
-  background-size: 300% 100%; background-position: 0% 50%;
-  box-shadow: 0 6px 24px -10px rgba(201,123,74,.8);
-  transition: background-position 1s cubic-bezier(.23,1,.32,1),
-              box-shadow .45s ease, transform .15s ease;
+  border: 1px solid currentColor; border-radius: 12px;
+  transition: background .25s ease, color .25s ease;
 }
-.gh-nav-cta::before {
-  content: ''; position: absolute; inset: -1px; z-index: -1; opacity: 0;
-  border-radius: inherit; background: inherit; filter: blur(11px);
-  transition: opacity .45s ease;
-}
-.gh-nav-cta:hover {
-  background-position: 100% 50%;
-  box-shadow: 0 10px 32px -10px rgba(201,123,74,.95);
-}
-.gh-nav-cta:hover::before { opacity: .8; }
-.gh-nav-cta:active { transform: scale(.98); }
+.gh-nav-cta:hover { background: var(--gh-ink); color: var(--gh-sky); }
+.gh-nav.is-dark .gh-nav-cta:hover { background: ${NIGHT_INK}; color: ${NIGHT}; }
 
 /* hero */
 .gh-hero { position: relative; min-height: 100svh; display: grid; overflow: hidden; }
@@ -874,13 +906,18 @@ const CSS = `
 .gh-aperture {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: min(68vw, calc(var(--u) * 900)); height: min(52svh, calc(var(--u) * 560));
-  border-radius: 2px; overflow: hidden;
-  /* the frame is the point: a hairline plus a vignette that isolates it */
-  box-shadow: 0 0 0 1px rgba(230,236,242,.32), 0 0 0 200vmax ${NIGHT};
+  display: none;                      /* the aperture is gone: see .gh-sky */
 }
 .gh-sky {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   background: ${NIGHT};
+}
+/* the film is dark at the end and the captions sit on it, so the bottom
+   third gets a scrim rather than trusting a text-shadow alone */
+.gh-window-inner::after {
+  content: ''; position: absolute; inset: auto 0 0 0; height: 46%;
+  pointer-events: none; z-index: 1;
+  background: linear-gradient(to top, rgba(11,16,22,.72), rgba(11,16,22,0));
 }
 .gh-pane-caps { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 64);
   display: grid; place-items: center; z-index: 20; pointer-events: none; }
@@ -1023,12 +1060,28 @@ const CSS = `
   .gh-seasons-cap { left: 20px; right: 20px; }
 }
 @media (max-width: 767px) {
-  /* no pin under 768: the window becomes its static aurora figure */
+  /* The phone keeps the FILM. It used to drop to a single static aurora
+     photograph, which is the most generic thing this page could do on the
+     device an owner is most likely to open the link on.
+     It does not full-bleed, though: cover-fitting a 16:9 film into a portrait
+     viewport shows a narrow vertical slice of it. The film runs as a centred
+     cinema band at its own aspect with the caption beneath, which reads as
+     deliberate rather than cropped. Same 121 frames, 828w set. */
   .gh-window { min-height: 0; }
-  .gh-window-inner { height: auto; overflow: visible; }
-  .gh-aperture, .gh-pane-caps { display: none; }
-  .gh-window-static { display: block; }
-  .gh-window-static img { width: 100%; height: auto; display: block; }
+  .gh-window-inner {
+    height: 100svh; overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px; padding: 0 18px;
+  }
+  .gh-sky {
+    position: relative; inset: auto;
+    width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 3px;
+  }
+  .gh-window-inner::after { display: none; }   /* no scrim: caption is off-image */
+  .gh-pane-caps { position: static; }
+  .gh-pane-cap { font-size: 16px; max-width: 30ch; line-height: 1.45; text-shadow: none; }
+  .gh-window-static { display: none; }
   .gh-fields { grid-template-columns: 1fr; }
 }
 
@@ -1038,8 +1091,13 @@ const CSS = `
   .gh-word { transform: none !important; opacity: 1 !important; }
   .gh-wm-in { opacity: 1 !important; transform: none !important; filter: none !important; visibility: visible !important; }
   .gh-frame-in { inset: 0; transform: none !important; }
-  .gh-aperture, .gh-pane-caps { display: none; }
+  /* the one place the film does not run: no canvas is ever painted here,
+     so the static figure must take over completely */
+  .gh-sky, .gh-pane-caps { display: none; }
+  .gh-window-inner { height: auto; overflow: visible; }
+  .gh-window-inner::after { display: none; }
   .gh-window-static { display: block; }
+  .gh-window-static img { width: 100%; height: auto; display: block; }
   .gh-season-top { clip-path: inset(0 0 100% 0) !important; }
 }
 `
