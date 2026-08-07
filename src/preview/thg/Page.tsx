@@ -199,6 +199,19 @@ main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
 .thg-sky li:nth-child(even){color:${MUTED}}
 @media (prefers-reduced-motion:reduce){.thg-sky li{transform:none}}
 
+/* The register IS the payoff of the heading above it. At the shared clamp it
+   floors at 1.3rem on a 390px screen, which renders the whole thing as a 52px
+   sliver sitting under ~110px of the heading section's bottom padding and hard
+   against the grey band below: the heading promises twenty-two works and what
+   follows reads as an empty stretch of page. Measured on the live build.
+   Bigger type on phones, and the heading's own section gives up most of its
+   bottom padding so the two read as one unit. Top padding stays above the
+   tallest --r offset (.5em) so nothing clips. */
+@media (max-width:759px){
+  #thg-register{padding-bottom:clamp(24px,4vh,40px)}
+  .thg-skyline{font-size:clamp(2.4rem,9vw,3.4rem);padding-block:.62em .46em}
+}
+
 /* the interiors pair */
 .thg-pair{display:grid;gap:clamp(14px,2vw,28px)}
 @media (min-width:820px){.thg-pair{grid-template-columns:1fr 1fr;align-items:start}

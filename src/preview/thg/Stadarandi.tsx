@@ -79,7 +79,7 @@ export function Stadarandi() {
         <rect className="thg-sb" x={0} y={AFTER - BEFORE} width={BEFORE} height={BEFORE} />
 
         <text className="thg-st thg-st-a" x={AFTER} y={-1.4} textAnchor="end">{fmt(VIK.after)} m²</text>
-        <text className="thg-st" x={ADDITION + 1.6} y={AFTER - ADDITION + 4.4}>{fmt(VIK.addition)} m² viðbót</text>
+        <text className="thg-st thg-st-add" x={ADDITION + 1.6} y={AFTER - ADDITION + 4.4}>{fmt(VIK.addition)} m² viðbót</text>
         <text className="thg-st thg-st-b" x={BEFORE + 1.8} y={AFTER - 1.4}>{fmt(VIK.before)} m² fyrir</text>
       </svg>
 
@@ -118,6 +118,12 @@ export const STADARANDI_CSS = `
 @media (max-width:700px){
   .thg-st{font-size:4.4px}
   .thg-st-a{font-size:5px}
+  /* The addition's label is start-anchored just outside the dashed square,
+     which is fine in the desktop column but on a 390px screen ran 37px past
+     the viewport edge and was clipped by the root's overflow-x. Anchoring it
+     to the same x from the other side drops it inside the square, over empty
+     white, clear of both the outer label above and the rules. */
+  .thg-st-add{text-anchor:end}
 }
 .thg-st-b{fill:${INK}}
 .thg-sta text{opacity:0;transition:opacity .7s cubic-bezier(.17,.84,.44,1) .9s}
