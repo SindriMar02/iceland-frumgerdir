@@ -209,9 +209,12 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
         maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined,
       }}
     >
+      {/* The inter-word space MUST sit outside the overflow-hidden mask: a
+          trailing space inside an inline-block is trimmed by the layout
+          engine, and every word butts against the next. */}
       {words.map((w, i) => (
-        <span className="sb-line" key={i} aria-hidden="true">
-          <span className="sb-word">{w}</span>
+        <span key={i} aria-hidden="true">
+          <span className="sb-line"><span className="sb-word">{w}</span></span>
           {i < words.length - 1 ? ' ' : ''}
         </span>
       ))}
@@ -274,6 +277,59 @@ function FormFigure({ photo, clipId, groupClass, full }: {
         preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId})`}
       />
     </svg>
+  )
+}
+
+/** Auto-rotating quote stack. The cards sit behind one another with a small
+    offset and lean, the front one square to the reader; advancing steps the
+    whole stack forward. Pauses on hover and on focus, so nobody loses a
+    sentence mid-read, and collapses to a plain list under reduced motion. */
+function StaggerQuotes() {
+  const [active, setActive] = useState(0)
+  const [held, setHeld] = useState(false)
+  const n = REVIEW_QUOTES.length
+
+  useEffect(() => {
+    if (reduced() || held) return
+    const iv = window.setInterval(() => setActive((v) => (v + 1) % n), 6200)
+    return () => window.clearInterval(iv)
+  }, [held, n])
+
+  return (
+    <div
+      className="sb-stack"
+      onMouseEnter={() => setHeld(true)}
+      onMouseLeave={() => setHeld(false)}
+      onFocusCapture={() => setHeld(true)}
+      onBlurCapture={() => setHeld(false)}
+    >
+      <div className="sb-stack-cards">
+        {REVIEW_QUOTES.map((q, i) => {
+          const pos = (i - active + n) % n      // 0 = front, then back
+          return (
+            <blockquote
+              key={q.author}
+              className="sb-card"
+              data-pos={pos}
+              aria-hidden={pos !== 0}
+            >
+              <p>{'\u201C'}{q.quote}{'\u201D'}</p>
+              <cite>{q.author}, {q.when}</cite>
+            </blockquote>
+          )
+        })}
+      </div>
+      <div className="sb-stack-dots" role="tablist" aria-label="Guest quotes">
+        {REVIEW_QUOTES.map((q, i) => (
+          <button
+            key={q.author} type="button" role="tab"
+            aria-selected={i === active} aria-label={`Quote by ${q.author}`}
+            className={`sb-dot ${i === active ? 'is-on' : ''}`}
+            onClick={() => setActive(i)}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -568,7 +624,7 @@ export default function SvartaborgPage() {
         </div>
         <div className="sb-geo-row">
           <Frame photo={PHOTO.gableTubA} drift={11} sizes="(max-width: 899px) 100vw, 60vw" className="sb-geo-main" />
-          <Frame photo={PHOTO.tubClose} drift={8} sizes="(max-width: 899px) 100vw, 36vw" className="sb-geo-side" />
+          <Frame photo={PHOTO.windowMoss} drift={8} sizes="(max-width: 899px) 100vw, 36vw" className="sb-geo-side" />
         </div>
       </section>
 
@@ -610,14 +666,7 @@ export default function SvartaborgPage() {
         <div className="sb-guests-head sb-rv">
           <Headline text="What guests keep saying." size={54} floor={30} measure={560} />
         </div>
-        <ul className="sb-quotes">
-          {REVIEW_QUOTES.map((q) => (
-            <li key={q.author} className="sb-quote sb-rv">
-              <p>{'“'}{q.quote}{'”'}</p>
-              <cite>{q.author}, {q.when}</cite>
-            </li>
-          ))}
-        </ul>
+        <StaggerQuotes />
       </section>
 
       <section className="sb-book" id="boka">
@@ -717,7 +766,6 @@ const CSS = `
   border: 1px solid ${HAIR}; border-radius: 0;
   transition: background .25s ease, color .25s ease, border-color .25s ease;
 }
-.sb-nav-cta:hover { background: var(--sb-bone); color: var(--sb-black); border-color: var(--sb-bone); }
 
 /* hero */
 .sb-hero { position: relative; }
@@ -784,7 +832,7 @@ const CSS = `
 .sb-geo-row { display: grid; grid-template-columns: 3fr 2fr; gap: calc(var(--u) * 24);
   margin-top: calc(var(--u) * 48); align-items: start; }
 .sb-geo-main { aspect-ratio: 3 / 2 !important; }
-.sb-geo-side { aspect-ratio: 3 / 4 !important; margin-top: calc(var(--u) * 90); }
+.sb-geo-side { aspect-ratio: 2 / 3 !important; margin-top: calc(var(--u) * 90); }
 
 /* diamond circle */
 .sb-circle {
@@ -810,12 +858,52 @@ const CSS = `
 /* guests */
 .sb-guests { max-width: calc(var(--u) * 1360); margin: 0 auto;
   padding: calc(var(--u) * 110) calc(var(--u) * 44) calc(var(--u) * 40); }
-.sb-quotes { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: calc(var(--u) * 40); margin: calc(var(--u) * 52) 0 0; padding: 0; }
-.sb-quote { border-top: 1px solid var(--sb-hair); padding-top: calc(var(--u) * 22); }
-.sb-quote p { margin: 0; font-size: ${fluid(17, 15)}; line-height: 1.58; }
-.sb-quote cite { display: block; margin-top: calc(var(--u) * 14); font-style: normal;
-  font-size: ${fluid(13, 12)}; color: var(--sb-mute); }
+/* the quote stack */
+.sb-stack { margin: calc(var(--u) * 56) 0 0; }
+.sb-stack-cards { position: relative; height: calc(var(--u) * 300); max-width: calc(var(--u) * 720); }
+.sb-card {
+  position: absolute; inset: 0 auto auto 0; width: 100%; margin: 0;
+  background: #17191B; border: 1px solid var(--sb-hair);
+  padding: calc(var(--u) * 40) calc(var(--u) * 44);
+  transform-origin: 0% 100%; will-change: transform, opacity;
+  transition: transform .8s cubic-bezier(.23,1,.32,1), opacity .8s cubic-bezier(.23,1,.32,1);
+}
+.sb-card p { margin: 0; font-size: ${fluid(21, 17)}; line-height: 1.5; }
+.sb-card cite { display: block; margin-top: calc(var(--u) * 20); font-style: normal;
+  font-size: ${fluid(13, 12)}; letter-spacing: .04em; color: var(--sb-mute); }
+.sb-card[data-pos="0"] { transform: none; opacity: 1; z-index: 3; }
+.sb-card[data-pos="1"] { transform: translate3d(calc(var(--u) * 34), calc(var(--u) * 22), 0) rotate(1.6deg) scale(.955); opacity: .5; z-index: 2; }
+.sb-card[data-pos="2"] { transform: translate3d(calc(var(--u) * 66), calc(var(--u) * 44), 0) rotate(3.2deg) scale(.91); opacity: .26; z-index: 1; }
+.sb-stack-dots { display: flex; gap: 10px; margin: calc(var(--u) * 34) 0 0; }
+.sb-dot { width: 30px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer;
+  position: relative; }
+.sb-dot::after { content: ''; position: absolute; left: 0; top: 50%; width: 26px; height: 1px;
+  background: var(--sb-hair); transition: background .4s ease; }
+.sb-dot.is-on::after { background: ${GEO_TEXT}; }
+
+/* the enquire CTA: an animated gradient that travels on hover, with a glow
+   that lifts off the black. Mechanism adapted from a 21st.dev gradient
+   button; the palette and geometry are this build's own. */
+.sb-nav-cta {
+  position: relative; isolation: isolate; border: 0 !important;
+  color: ${BLACK} !important; font-weight: 500;
+  background-image: linear-gradient(100deg, ${GEO} 0%, #7FD3D5 26%, ${GEO} 50%, #2E7D80 76%, ${GEO} 100%);
+  background-size: 300% 100%; background-position: 0% 50%;
+  box-shadow: 0 6px 26px -10px rgba(79,163,165,.75);
+  transition: background-position 1s cubic-bezier(.23,1,.32,1),
+              box-shadow .45s ease, transform .15s ease;
+}
+.sb-nav-cta::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; opacity: 0;
+  background: inherit; filter: blur(11px);
+  transition: opacity .45s ease;
+}
+.sb-nav-cta:hover {
+  background-position: 100% 50%;
+  box-shadow: 0 10px 34px -10px rgba(79,163,165,.9);
+}
+.sb-nav-cta:hover::before { opacity: .75; }
+.sb-nav-cta:active { transform: scale(.98); }
 
 /* booking */
 .sb-book {
@@ -903,7 +991,7 @@ const CSS = `
   .sb-geo, .sb-guests { padding-left: 20px; padding-right: 20px; }
   .sb-geo-row { grid-template-columns: 1fr; }
   .sb-geo-side { margin-top: 0; }
-  .sb-quotes { grid-template-columns: 1fr; }
+  .sb-stack-cards { height: calc(var(--u) * 380); }
   .sb-foot-grid { grid-template-columns: 1fr; padding-left: 20px; padding-right: 20px; }
   .sb-fields { grid-template-columns: 1fr 1fr; }
   .sb-view-copy { padding-left: 20px; padding-right: 20px; }
@@ -922,5 +1010,10 @@ const CSS = `
   .sb-word, .sb-wm-word { transform: none !important; opacity: 1 !important; }
   .sb-frame-in { inset: 0; transform: none !important; }
   .sb-hero-cap { opacity: 1 !important; visibility: visible !important; }
+  /* the stack becomes a plain readable list */
+  .sb-stack-cards { height: auto; }
+  .sb-card { position: relative; transform: none !important; opacity: 1 !important;
+    margin-bottom: 14px; }
+  .sb-stack-dots { display: none; }
 }
 `

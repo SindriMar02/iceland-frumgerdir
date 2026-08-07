@@ -252,9 +252,12 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
         maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined,
       }}
     >
+      {/* The inter-word space MUST sit outside the overflow-hidden mask: a
+          trailing space inside an inline-block is trimmed by the layout
+          engine, and every word butts against the next. */}
       {words.map((w, i) => (
-        <span className="gc-line" key={i} aria-hidden="true">
-          <span className="gc-word">{w}</span>
+        <span key={i} aria-hidden="true">
+          <span className="gc-line"><span className="gc-word">{w}</span></span>
           {i < words.length - 1 ? ' ' : ''}
         </span>
       ))}

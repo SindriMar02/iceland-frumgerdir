@@ -52,6 +52,7 @@ export const PHOTO = {
   ridgeWide: { src: `${B}ridge-wide.jpg`, alt: 'The house small on its ridge, the valley wide around it', ratio: '3 / 2' },
   houseTubHill: { src: `${B}house-tub-hill.jpg`, alt: 'The house and hot tub on the hillside', ratio: '3 / 2' },
   windowReflect: { src: `${B}window-reflect.jpg`, alt: 'The big window reflecting the valley back at itself', ratio: '3 / 2' },
+  windowMoss: { src: `${B}window-moss.jpg`, alt: 'The corner window in the black cladding, the valley in the glass and the second house small on the hill', ratio: '2 / 3' },
   winterSide: { src: `${B}winter-side.jpg`, alt: 'The house in snow, the mirrored windows holding the white hills', ratio: '3 / 2' },
   horsesSnow: { src: `${B}horses-snow.jpg`, alt: 'Horses crossing the snow below the house', ratio: '3 / 2' },
   arrivalDrone: { src: `${B}arrival-drone.jpg`, alt: 'Arriving up the track, the house on the hill ahead', ratio: '3 / 2' },

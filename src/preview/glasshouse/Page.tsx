@@ -44,7 +44,7 @@ const NIGHT_INK = '#E6ECF2'
 const EMBER = '#C97B4A'        // fills only (with ink text)
 const EMBER_TEXT = '#96521F'   // accent text on the sky ground (AA)
 
-const SANS = "'Cabinet Grotesk', system-ui, sans-serif"
+const SANS = "'Alpino', system-ui, sans-serif"
 const BASE = import.meta.env.BASE_URL
 
 const reduced = () =>
@@ -131,40 +131,46 @@ function useMotion(ready: boolean) {
         })
       }
 
-      /* THE WINDOW — pinned aperture; the sky passes through it downward.
-         One timeline, one scrub, monotonic and reversible. Desktop pins;
-         under 768px the three skies simply stack. */
+      /* THE WINDOW — the skylight opens, again and again.
+         Each photograph is a pane hinged along the TOP edge of the aperture.
+         Scroll swings the front pane up and away on rotateX, revealing the
+         next beneath it, exactly the way their roof window opens. The frame
+         NEVER expands to full bleed: the section ends holding its last pane,
+         because the whole idea is that you are looking THROUGH something.
+         One timeline, one scrub, monotonic and reversible. */
       const win = root.querySelector<HTMLElement>('.gh-window')
-      const stack = root.querySelector<HTMLElement>('.gh-sky-stack')
-      const caps = root.querySelectorAll<HTMLElement>('.gh-sky-cap')
-      const release = root.querySelector<HTMLElement>('.gh-window-release')
+      const panes = Array.from(root.querySelectorAll<HTMLElement>('.gh-pane'))
+      const caps = root.querySelectorAll<HTMLElement>('.gh-pane-cap')
       const aperture = root.querySelector<HTMLElement>('.gh-aperture')
-      if (win && stack && aperture && release && caps.length === 3 && window.innerWidth >= 768) {
-        gsap.set(caps, { autoAlpha: 0, y: -26 })
-        gsap.set(release, { autoAlpha: 0 })
+      if (win && aperture && panes.length === 4 && caps.length === 4 && window.innerWidth >= 768) {
+        gsap.set(panes, { rotateX: 0 })
+        gsap.set(caps, { autoAlpha: 0, y: -22 })
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: win, start: 'top top', end: '+=260%',
+            trigger: win, start: 'top top', end: '+=280%',
             pin: true, scrub: 0.9, anticipatePin: 1, invalidateOnRefresh: true,
           },
         })
         windowST = tl.scrollTrigger ?? null
-        /* the stack rides DOWN through the frame: start showing the TOP layer
-           (morning) with the stack pulled up, and lower layers arrive from
-           above as it travels down. yPercent -66.7 → 0, ease none. */
-        tl.fromTo(stack, { yPercent: -66.7 }, { yPercent: 0, ease: 'none', duration: 0.86 }, 0)
-        const beats = [
-          [0.02, 0.24, 0.3],
-          [0.34, 0.56, 0.62],
-          [0.66, 1.0, -1],
-        ] as const
-        caps.forEach((cap, i) => {
-          const [inAt, holdTo, outDone] = beats[i]
-          tl.to(cap, { autoAlpha: 1, y: 0, duration: 0.07, ease: 'power2.out' }, inAt)
-          if (outDone > 0) tl.to(cap, { autoAlpha: 0, y: 20, duration: 0.06, ease: 'power2.in' }, holdTo)
+        const n = panes.length
+        const slice = 1 / n                       // one beat per pane
+        panes.forEach((pane, i) => {
+          /* the last pane never leaves — it is what you are left looking at */
+          if (i < n - 1) {
+            tl.to(pane, {
+              rotateX: -96, ease: 'power1.in', duration: slice * 0.72,
+            }, slice * (i + 0.22))
+            tl.to(pane, {
+              filter: 'brightness(0.45)', ease: 'none', duration: slice * 0.72,
+            }, slice * (i + 0.22))
+          }
+          const capIn = slice * (i + 0.04)
+          tl.to(caps[i], { autoAlpha: 1, y: 0, duration: slice * 0.16, ease: 'power2.out' }, capIn)
+          if (i < n - 1) {
+            tl.to(caps[i], { autoAlpha: 0, y: 16, duration: slice * 0.12, ease: 'power2.in' },
+              slice * (i + 0.78))
+          }
         })
-        /* the release: their aurora photograph takes the whole viewport */
-        tl.to(release, { autoAlpha: 1, duration: 0.12, ease: 'none' }, 0.87)
       }
 
       /* seasons band: one clip sweep, summer uncovers winter as it crosses */
@@ -204,7 +210,9 @@ function useMotion(ready: boolean) {
         if (r.bottom < -40 || r.top > vh + 40) continue
         const p = Math.max(-1, Math.min(1, 1 - (r.top + r.height / 2) / (vh / 2) / 2))
         const d = Number(el.dataset.drift || 9)
-        writes.push([el, -p * d])
+        /* POSITIVE p here, unlike every other build: the photo travels DOWN
+           as the page scrolls down, matching this page's inverted gravity. */
+        writes.push([el, p * d])
       }
       for (const [el, y] of writes) el.style.transform = `translate3d(0, ${y}%, 0)`
     }
@@ -244,9 +252,12 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
         maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined,
       }}
     >
+      {/* The inter-word space MUST sit outside the overflow-hidden mask: a
+          trailing space inside an inline-block is trimmed by the layout
+          engine, and every word butts against the next. */}
       {words.map((w, i) => (
-        <span className="gh-line" key={i} aria-hidden="true">
-          <span className="gh-word">{w}</span>
+        <span key={i} aria-hidden="true">
+          <span className="gh-line"><span className="gh-word">{w}</span></span>
           {i < words.length - 1 ? ' ' : ''}
         </span>
       ))}
@@ -540,30 +551,21 @@ export default function GlasshousePage() {
       <section className="gh-window" id="glugginn" data-gh-dark="">
         <div className="gh-window-inner">
           <div className="gh-aperture" aria-hidden="true">
-            <div className="gh-sky-stack">
-              <div className="gh-sky-layer gh-sky-night">
-                <img src={PHOTO.auroraHouse.src} srcSet={srcSet(PHOTO.auroraHouse.src)}
-                  sizes="70vw" alt="" loading="lazy" decoding="async" />
+            {/* panes are hinged at the top edge; DOM order is front-to-back,
+               so z-index counts down and pane 0 is the one you see first */}
+            {[PHOTO.viewSky, PHOTO.bedSummer, PHOTO.auroraTrees, PHOTO.auroraHouse].map((ph, i) => (
+              <div className="gh-pane" key={ph.src} style={{ zIndex: 10 - i }}>
+                <img src={ph.src} srcSet={srcSet(ph.src)} sizes="70vw"
+                  alt="" loading="lazy" decoding="async" />
               </div>
-              <div className="gh-sky-layer gh-sky-dusk">
-                <img src={PHOTO.sunsetPerson.src} srcSet={srcSet(PHOTO.sunsetPerson.src)}
-                  sizes="70vw" alt="" loading="lazy" decoding="async" />
-              </div>
-              <div className="gh-sky-layer gh-sky-day">
-                <img src={PHOTO.viewSky.src} srcSet={srcSet(PHOTO.viewSky.src)}
-                  sizes="70vw" alt="" loading="lazy" decoding="async" />
-              </div>
-            </div>
+            ))}
           </div>
-          <div className="gh-sky-caps">
-            <p className="gh-sky-cap">Morning. The sky arrives before you are up.</p>
-            <p className="gh-sky-cap">Evening. The glass keeps the last of the light.</p>
-            <p className="gh-sky-cap">Night. Their own photograph, taken right here.</p>
+          <div className="gh-pane-caps">
+            <p className="gh-pane-cap">Morning. The sky arrives before you are up.</p>
+            <p className="gh-pane-cap">Afternoon. The glass keeps the whole field in view.</p>
+            <p className="gh-pane-cap">Late. Green over the birch tops, if the sky agrees.</p>
+            <p className="gh-pane-cap">Night, from their own camera, standing right here.</p>
           </div>
-          <figure className="gh-window-release" aria-hidden="true">
-            <img src={PHOTO.auroraHouse.src} srcSet={srcSet(PHOTO.auroraHouse.src)}
-              sizes="100vw" alt="" loading="lazy" decoding="async" />
-          </figure>
           {/* static fallback for reduced motion and phones */}
           <figure className="gh-window-static">
             <img src={PHOTO.auroraHouse.src} srcSet={srcSet(PHOTO.auroraHouse.src)}
@@ -686,8 +688,9 @@ export default function GlasshousePage() {
 /* ── styles ─────────────────────────────────────────────────────────────── */
 
 const CSS = `
-@font-face { font-family: 'Cabinet Grotesk'; src: url('${BASE}glasshouse/fonts/CabinetGrotesk-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Cabinet Grotesk'; src: url('${BASE}glasshouse/fonts/CabinetGrotesk-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Alpino'; src: url('${BASE}glasshouse/fonts/Alpino-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Alpino'; src: url('${BASE}glasshouse/fonts/Alpino-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Alpino'; src: url('${BASE}glasshouse/fonts/Alpino-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
 
 .gh-root {
   --u: clamp(0.58px, 0.0695vw, 1px);
@@ -723,14 +726,33 @@ const CSS = `
 .gh-nav-links { display: flex; gap: calc(var(--u) * 26); margin-left: auto; }
 .gh-nav-links a { font-size: ${fluid(14, 13)}; opacity: .82; }
 .gh-nav-links a:hover { opacity: 1; }
+/* the enquire CTA: an animated gradient that travels on hover, with a glow
+   under it. Mechanism adapted from a 21st.dev gradient button; the palette,
+   geometry and the ink-on-ember contrast are this build's own. Ink text is
+   deliberate — white would fall under AA at the light end of the ramp. */
 .gh-nav-cta {
+  position: relative; isolation: isolate;
   font-size: ${fluid(14, 13)}; font-weight: 500;
   padding: calc(var(--u) * 10) calc(var(--u) * 20);
-  border: 1px solid currentColor; border-radius: 12px;
-  transition: background .25s ease, color .25s ease;
+  border: 0; border-radius: 12px;
+  color: ${INK} !important;
+  background-image: linear-gradient(100deg, ${EMBER} 0%, #E8A878 26%, ${EMBER} 50%, #A85F30 76%, ${EMBER} 100%);
+  background-size: 300% 100%; background-position: 0% 50%;
+  box-shadow: 0 6px 24px -10px rgba(201,123,74,.8);
+  transition: background-position 1s cubic-bezier(.23,1,.32,1),
+              box-shadow .45s ease, transform .15s ease;
 }
-.gh-nav-cta:hover { background: var(--gh-ink); color: var(--gh-sky); }
-.gh-nav.is-dark .gh-nav-cta:hover { background: ${NIGHT_INK}; color: ${NIGHT}; }
+.gh-nav-cta::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; opacity: 0;
+  border-radius: inherit; background: inherit; filter: blur(11px);
+  transition: opacity .45s ease;
+}
+.gh-nav-cta:hover {
+  background-position: 100% 50%;
+  box-shadow: 0 10px 32px -10px rgba(201,123,74,.95);
+}
+.gh-nav-cta:hover::before { opacity: .8; }
+.gh-nav-cta:active { transform: scale(.98); }
 
 /* hero */
 .gh-hero { position: relative; min-height: 100svh; display: grid; overflow: hidden; }
@@ -807,21 +829,27 @@ const CSS = `
 .gh-aperture {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: min(68vw, calc(var(--u) * 900)); height: min(52svh, calc(var(--u) * 560));
-  overflow: hidden; border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(230,236,242,.28), 0 0 0 200vmax ${NIGHT};
+  border-radius: 2px;
+  /* the frame is the point: a hairline plus a vignette that isolates it */
+  box-shadow: 0 0 0 1px rgba(230,236,242,.32), 0 0 0 200vmax ${NIGHT};
+  /* panes swing on a real hinge, so the aperture needs depth and must NOT
+     clip the outgoing pane's top edge */
+  perspective: 1600px; transform-style: preserve-3d;
 }
-.gh-sky-stack { position: absolute; left: 0; right: 0; top: 0; height: 300%; will-change: transform; }
-.gh-sky-layer { position: relative; height: 33.334%; overflow: hidden; }
-.gh-sky-layer img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.gh-sky-caps { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 72);
-  display: grid; place-items: center; z-index: 3; pointer-events: none; }
-.gh-sky-cap {
+.gh-pane {
+  position: absolute; inset: 0; overflow: hidden;
+  transform-origin: 50% 0%;          /* the hinge, along the top edge */
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  will-change: transform, filter;
+}
+.gh-pane img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gh-pane-caps { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 64);
+  display: grid; place-items: center; z-index: 20; pointer-events: none; }
+.gh-pane-cap {
   grid-area: 1 / 1; margin: 0; font-size: ${fluid(18, 15)}; font-weight: 400;
   letter-spacing: .01em; color: ${NIGHT_INK}; text-align: center; max-width: 46ch;
-  padding: 0 20px;
+  padding: 0 20px; text-shadow: 0 1px 20px rgba(11,16,22,.75);
 }
-.gh-window-release { position: absolute; inset: 0; margin: 0; z-index: 2; }
-.gh-window-release img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gh-window-static { display: none; margin: 0; }
 .gh-caption { font-size: ${fluid(14, 13)}; color: ${NIGHT_INK}; opacity: .82;
   padding: calc(var(--u) * 18) calc(var(--u) * 44); line-height: 1.6; }
@@ -959,7 +987,7 @@ const CSS = `
   /* no pin under 768: the window becomes its static aurora figure */
   .gh-window { min-height: 0; }
   .gh-window-inner { height: auto; overflow: visible; }
-  .gh-aperture, .gh-sky-caps, .gh-window-release { display: none; }
+  .gh-aperture, .gh-pane-caps { display: none; }
   .gh-window-static { display: block; }
   .gh-window-static img { width: 100%; height: auto; display: block; }
   .gh-fields { grid-template-columns: 1fr; }
@@ -971,7 +999,7 @@ const CSS = `
   .gh-word { transform: none !important; opacity: 1 !important; }
   .gh-wm-in { opacity: 1 !important; transform: none !important; filter: none !important; visibility: visible !important; }
   .gh-frame-in { inset: 0; transform: none !important; }
-  .gh-aperture, .gh-sky-caps, .gh-window-release { display: none; }
+  .gh-aperture, .gh-pane-caps { display: none; }
   .gh-window-static { display: block; }
   .gh-season-top { clip-path: inset(0 0 100% 0) !important; }
 }
