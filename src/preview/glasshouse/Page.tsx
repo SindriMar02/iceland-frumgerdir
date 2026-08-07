@@ -164,11 +164,13 @@ function useMotion(ready: boolean) {
               filter: 'brightness(0.45)', ease: 'none', duration: slice * 0.72,
             }, slice * (i + 0.22))
           }
-          const capIn = slice * (i + 0.04)
-          tl.to(caps[i], { autoAlpha: 1, y: 0, duration: slice * 0.16, ease: 'power2.out' }, capIn)
+          /* captions CROSSFADE: the next begins arriving before this one has
+             left, so the pinned frame never sits captionless. */
+          tl.to(caps[i], { autoAlpha: 1, y: 0, duration: slice * 0.18, ease: 'power2.out' },
+            slice * (i - 0.06))
           if (i < n - 1) {
-            tl.to(caps[i], { autoAlpha: 0, y: 16, duration: slice * 0.12, ease: 'power2.in' },
-              slice * (i + 0.78))
+            tl.to(caps[i], { autoAlpha: 0, y: 16, duration: slice * 0.18, ease: 'power2.in' },
+              slice * (i + 0.82))
           }
         })
       }

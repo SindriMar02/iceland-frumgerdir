@@ -10,7 +10,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
 import {
-  COTTAGES, CRAFT, FACTS, HOST, JSON_LD, PHOTO, REVIEW_QUOTES,
+  COTTAGES, CRAFT, FACTS, HOST, JSON_LD, PHOTO, REVIEW_QUOTES, STAY,
   srcSet, type Photo,
 } from './content'
 
@@ -64,6 +64,9 @@ const fluid = (n: number, floor: number) =>
   `clamp(${floor}px, calc(var(--u) * ${n}), ${+(n * 1.15).toFixed(1)}px)`
 
 type CottageId = 'blar' | 'graenn'
+
+/** The night deepens as you scroll: four of their own aurora frames. */
+const NIGHT_SEQ = [PHOTO.auroraWide, PHOTO.auroraCottage, PHOTO.auroraGable, PHOTO.auroraRoof]
 
 /* ── motion engine ───────────────────────────────────────────────────────── */
 
@@ -141,6 +144,58 @@ function useMotion(ready: boolean) {
         gsap.to(wmEl, { opacity: 0.06, ease: 'none', scrollTrigger: away })
       }
 
+      /* the hero settles out of the opening. Its own transform, never shared
+         with a scroll-away — the wordmark handles the scroll. */
+      const heroImg = root.querySelector<HTMLElement>('.gc-hero-media img')
+      if (heroImg) {
+        gsap.set(heroImg, { scale: 1.14, transformOrigin: '50% 55%' })
+        const settle = () =>
+          gsap.to(heroImg, { scale: 1, duration: 2.1, ease: 'expo.out', overwrite: 'auto' })
+        if (root.querySelector('.gc-loader')) {
+          window.addEventListener('gc:revealed', settle, { once: true })
+          window.setTimeout(settle, 3600) // rAF-suspension backstop
+        } else {
+          gsap.delayedCall(0.1, settle)
+        }
+      }
+
+      /* THE NIGHT — pinned. The aurora deepens through four of their own
+         frames as you scroll, each dissolving into the next under a slow
+         push-in. The guest quotes keep their own cadence underneath. */
+      const nightEl = root.querySelector<HTMLElement>('.gc-night')
+      const layers = gsap.utils.toArray<HTMLElement>('.gc-night-layer', root)
+      if (nightEl && layers.length > 1 && window.innerWidth >= 768) {
+        gsap.set(layers, { autoAlpha: 0 })
+        gsap.set(layers[0], { autoAlpha: 1 })
+        /* NO pin. The page already pins the chooser, and a second pin here
+           fought it: the section sat unpinned mid-range with a dead band above
+           the photograph. Driving the crossfade off the section's own passage
+           through the viewport gives the same deepening with nothing to break. */
+        const nt = gsap.timeline({
+          scrollTrigger: {
+            trigger: nightEl, start: 'top bottom', end: 'bottom top',
+            scrub: 0.8, invalidateOnRefresh: true,
+          },
+        })
+        const step = 1 / (layers.length - 1)
+        for (let i = 1; i < layers.length; i++) {
+          const at = step * (i - 1) + step * 0.12
+          const dur = step * 0.76
+          nt.to(layers[i - 1], { autoAlpha: 0, ease: 'none', duration: dur }, at)
+          nt.to(layers[i], { autoAlpha: 1, ease: 'none', duration: dur }, at)
+        }
+        nt.fromTo(layers, { scale: 1.07 }, { scale: 1, ease: 'none', duration: 1 }, 0)
+      }
+
+      /* the header carries no surface until the hero is behind you */
+      const navEl = root.querySelector<HTMLElement>('.gc-nav')
+      if (navEl) {
+        ScrollTrigger.create({
+          start: 'top -70', end: 99999,
+          onToggle: (self) => navEl.classList.toggle('is-solid', self.isActive),
+        })
+      }
+
       /* THE CHOOSER — opposing clip reveals under a pin, centre label in sync.
          Blár opens from the top, Grænn from the bottom. Desktop only; under
          1024px the columns stack and reveal via the page-wide clip system. */
@@ -158,6 +213,9 @@ function useMotion(ready: boolean) {
           scrollTrigger: {
             trigger: chooser, start: 'top top', end: '+=160%',
             pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true,
+            /* this pin inserts a spacer ~2650px tall. Anything below it must
+               re-measure AFTER the spacer exists, so the pin refreshes first. */
+            refreshPriority: 1,
           },
         })
         chooserST = tl.scrollTrigger ?? null
@@ -219,6 +277,21 @@ function useMotion(ready: boolean) {
     }
 
     lenis.on('scroll', ScrollTrigger.update)
+
+    /* The document keeps growing after the triggers are built: lazy
+       photographs decode, late fonts reflow, the stay table lays out. Every
+       trigger otherwise keeps the positions it measured on the shorter page —
+       measured symptom was the night scrub sitting ~85% through its timeline
+       at the moment its own section entered the viewport. */
+    const refresh = () => ScrollTrigger.refresh()
+    document.fonts.ready.then(refresh)
+    window.addEventListener('load', refresh)
+    const rt = window.setTimeout(refresh, 1400)
+    cleanups.push(() => {
+      window.removeEventListener('load', refresh)
+      window.clearTimeout(rt)
+    })
+
     const tick = (t: number) => { drift(); lenis.raf(t * 1000) }
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
@@ -519,8 +592,10 @@ function Preloader({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={`gc-loader ${leaving ? 'is-leaving' : ''}`} aria-hidden="true">
-      <div className="gc-loader-half gc-loader-top" />
-      <div className="gc-loader-half gc-loader-bot" />
+      {/* the sheet is cut along the gable: the roof drops, the sky lifts */}
+      <div className="gc-loader-half gc-loader-sky" />
+      <div className="gc-loader-half gc-loader-roof" />
+      <div className="gc-loader-seam" />
       <div className="gc-loader-center">
         <div className="gc-loader-ring" style={{ '--p': pct } as React.CSSProperties} />
         <p className="gc-loader-mark" style={{ backgroundPositionX: `${100 - pct}%` }}>
@@ -603,12 +678,7 @@ export default function GlassCottagesPage() {
         <a className="gc-nav-mark" href="#top" onClick={anchor('top')}>
           GLASS <span>COTTAGES</span>
         </a>
-        <nav className="gc-nav-links" aria-label="Page">
-          <a href="#landid" onClick={anchor('landid')}>The field</a>
-          <a href="#husin" onClick={anchor('husin')}>The cottages</a>
-          <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
-        </nav>
-        <a className="gc-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
+        <a className="gc-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire</a>
       </header>
 
       {/* 01 · hero */}
@@ -740,11 +810,34 @@ export default function GlassCottagesPage() {
         </div>
       </section>
 
-      {/* 05 · night — aurora + quotes */}
+      {/* 05 · the stay — the practical spec the old site never states */}
+      <section className="gc-stay" id="dvolin">
+        <div className="gc-stay-head">
+          <Headline text="What the stay actually is." size={54} floor={28} measure={560} />
+          <p className="gc-body gc-rv">
+            Both cottages hold the same things. Blár and Grænn differ only in
+            their palette: one follows the lagoons and the ice, the other the
+            moss and the aurora.
+          </p>
+        </div>
+        <dl className="gc-spec gc-rv">
+          {STAY.map((row) => (
+            <div className="gc-spec-row" key={row.k}>
+              <dt>{row.k}</dt>
+              <dd>{row.v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {/* 06 · night — aurora + quotes */}
       <section className="gc-night" id="gestir">
         <div className="gc-night-media">
-          <img src={PHOTO.auroraWide.src} srcSet={srcSet(PHOTO.auroraWide.src)} sizes="100vw"
-            alt={PHOTO.auroraWide.alt} loading="lazy" decoding="async" />
+          {NIGHT_SEQ.map((p, i) => (
+            <img key={p.src} className="gc-night-layer" src={p.src} srcSet={srcSet(p.src)}
+              sizes="100vw" alt={i === 0 ? p.alt : ''} aria-hidden={i > 0 ? 'true' : undefined}
+              loading="lazy" decoding="async" />
+          ))}
         </div>
         <div className="gc-night-inner">
           <p className="gc-night-score gc-rv">
@@ -835,28 +928,33 @@ const CSS = `
 
 /* ── capsule nav ── */
 .gc-nav {
-  position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
-  z-index: 40; display: flex; align-items: center; gap: calc(var(--u) * 30);
-  height: 54px; padding: 0 10px 0 22px; border-radius: 999px;
-  background: rgba(16, 20, 24, .62);
-  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(232, 236, 234, .12);
-  max-width: calc(100vw - 24px);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 70px; padding: 0 calc(var(--u) * 34);
+  background: transparent; border-bottom: 1px solid transparent;
+  transition: background .55s ease, border-color .55s ease,
+    -webkit-backdrop-filter .55s ease, backdrop-filter .55s ease;
 }
-.gc-nav a { color: inherit; text-decoration: none; }
-.gc-nav-mark { font-weight: 500; letter-spacing: .14em; font-size: 13.5px; white-space: nowrap; }
+.gc-nav.is-solid {
+  background: rgba(16, 20, 24, .68);
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  border-bottom-color: rgba(232, 236, 234, .11);
+}
+.gc-nav a { color: #F2F6F4; text-decoration: none; }
+.gc-nav-mark { font-weight: 500; letter-spacing: .2em; font-size: 12.5px; white-space: nowrap; }
 .gc-nav-mark span { color: ${BLAR}; }
-.gc-nav-links { display: flex; gap: calc(var(--u) * 24); font-size: 14px; }
-.gc-nav-links a { opacity: .78; transition: opacity .2s; padding: 8px 0; }
-.gc-nav-links a:hover { opacity: 1; }
 .gc-nav a.gc-nav-cta {
-  font-size: 13.5px; font-weight: 500; white-space: nowrap; color: ${NIGHT};
-  padding: 9px 18px; border-radius: 999px;
-  background: ${BONE}; color: ${NIGHT};
-  transition: filter .25s, transform .16s cubic-bezier(.23,1,.32,1);
+  position: relative; font-size: 13px; font-weight: 500; letter-spacing: .05em;
+  white-space: nowrap; padding-bottom: 4px;
 }
-.gc-nav-cta:hover { filter: brightness(1.06); }
-.gc-nav-cta:active { transform: scale(.97); }
+.gc-nav-cta::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: currentColor; opacity: .6; transform-origin: right;
+  transition: transform .45s cubic-bezier(.23,1,.32,1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .gc-nav-cta:hover::after { transform: scaleX(.28); }
+}
 
 /* ── hero ── */
 .gc-hero { position: relative; min-height: 100svh; display: grid; overflow: hidden; }
@@ -1001,6 +1099,7 @@ const CSS = `
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(10deg, rgba(16,20,24,.84) 14%, rgba(16,20,24,.12) 60%);
 }
+.gc-night-layer { position: absolute; inset: 0; will-change: transform, opacity; }
 .gc-night-inner { position: relative; z-index: 1; padding: calc(var(--u) * 120) calc(var(--u) * 48) calc(var(--u) * 80); max-width: calc(var(--u) * 900); }
 .gc-night-score { margin: 0 0 calc(var(--u) * 26); font-size: ${fluid(14, 13)}; letter-spacing: .04em; color: rgba(232,236,234,.85); }
 .gc-night-honest { margin: calc(var(--u) * 64) 0 0; font-size: ${fluid(14, 13)}; color: rgba(232,236,234,.66); }
@@ -1012,6 +1111,26 @@ const CSS = `
 .gc-nq-dots { position: absolute; bottom: -34px; left: 2px; display: flex; gap: 10px; }
 .gc-nq-dot { width: 26px; height: 3px; border: 0; border-radius: 2px; padding: 0; cursor: pointer; background: rgba(232,236,234,.3); transition: background .3s; }
 .gc-nq-dot.is-on { background: ${GRAENN}; }
+
+/* ── the stay ── */
+.gc-stay {
+  display: grid; grid-template-columns: .85fr 1.15fr; gap: calc(var(--u) * 88);
+  align-items: start; max-width: calc(var(--u) * 1300); margin: 0 auto;
+  padding: calc(var(--u) * 140) calc(var(--u) * 48);
+}
+.gc-stay-head { position: sticky; top: 108px; }
+.gc-stay-head .gc-body { margin-top: calc(var(--u) * 24); }
+.gc-spec { margin: 0; }
+.gc-spec-row {
+  display: grid; grid-template-columns: 9rem 1fr; gap: calc(var(--u) * 26);
+  padding: 17px 0; border-top: 1px solid var(--gc-hair);
+}
+.gc-spec-row:last-child { border-bottom: 1px solid var(--gc-hair); }
+.gc-spec dt {
+  margin: 0; padding-top: .28em; font-size: 12px; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--gc-mute);
+}
+.gc-spec dd { margin: 0; font-size: ${fluid(18, 16)}; line-height: 1.5; }
 
 /* ── booking ── */
 .gc-book {
@@ -1075,11 +1194,24 @@ const CSS = `
 
 /* ── loader ── */
 .gc-loader { position: fixed; inset: 0; z-index: 60; }
-.gc-loader-half { position: absolute; left: 0; right: 0; height: 50.2%; background: ${NIGHT}; transition: transform 1s cubic-bezier(.76, 0, .24, 1); }
-.gc-loader-top { top: 0; }
-.gc-loader-bot { bottom: 0; }
-.gc-loader.is-leaving .gc-loader-top { transform: translateY(-102%); }
-.gc-loader.is-leaving .gc-loader-bot { transform: translateY(102%); }
+/* the sheet is cut along the cottages' own gable: an apex at the top centre,
+   two slopes falling to the bottom corners. The roof drops out of frame, the
+   sky either side of it lifts away, and light blooms from the apex. */
+.gc-loader-half {
+  position: absolute; inset: 0; background: ${NIGHT};
+  transition: transform 1.15s cubic-bezier(.76, 0, .24, 1);
+}
+.gc-loader-roof { clip-path: polygon(0% 100%, 50% 0%, 100% 100%); }
+.gc-loader-sky { clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 0, 0 100%); }
+.gc-loader.is-leaving .gc-loader-roof { transform: translateY(103%); }
+.gc-loader.is-leaving .gc-loader-sky { transform: translateY(-103%); }
+.gc-loader-seam {
+  position: absolute; left: 50%; top: -8vmax; width: 48vmax; height: 48vmax;
+  transform: translateX(-50%); border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, ${BLAR} 0%, transparent 62%);
+  opacity: 0; transition: opacity .9s ease;
+}
+.gc-loader.is-leaving .gc-loader-seam { opacity: .42; }
 .gc-loader-center {
   position: absolute; inset: 0; display: grid; place-content: center; place-items: center;
   gap: 26px; transition: opacity .5s ease;
@@ -1112,8 +1244,9 @@ const CSS = `
   .gc-choose-mid span { background: none; text-shadow: none; color: var(--gc-mute); padding: 0; }
 }
 @media (max-width: 991px) {
-  .gc-nav { gap: 14px; padding: 0 8px 0 16px; height: 50px; }
-  .gc-nav-links { display: none; }
+  .gc-nav { height: 60px; padding: 0 20px; }
+  .gc-stay { grid-template-columns: 1fr; gap: 40px; padding: 100px 20px; }
+  .gc-stay-head { position: static; }
   .gc-land { padding: 110px 20px 70px; }
   .gc-inside { padding-left: 12px; padding-right: 12px; }
   .gc-inside-panel { padding: 40px 22px; }
@@ -1130,6 +1263,7 @@ const CSS = `
 }
 @media (max-width: 519px) {
   .gc-fields { grid-template-columns: 1fr; }
+  .gc-spec-row { grid-template-columns: 1fr; gap: 5px; }
   .gc-wm { font-size: clamp(22px, 8.6vw, 44px); }
 }
 

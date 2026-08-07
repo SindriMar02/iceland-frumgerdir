@@ -170,15 +170,19 @@ function useMotion(ready: boolean) {
         })
         dropST = tl.scrollTrigger ?? null
         tl.fromTo(dropImg, { yPercent: 7 }, { yPercent: -13, ease: 'none', duration: 1 }, 0)
+        /* The beats CROSSFADE. An earlier cut had station 1 finish fading out
+           at .37 and station 2 begin at .40, which left ~65px of pinned
+           scroll showing an empty band and read as a broken section. Each
+           station now starts arriving before the previous has gone. */
         const beats = [
-          [0.02, 0.3, 0.37],   // in, hold-until, out-done
-          [0.4, 0.62, 0.69],
-          [0.72, 1.0, -1],     // the pool stays
+          [0.02, 0.30],   // [in, start-leaving]
+          [0.28, 0.60],
+          [0.58, -1],     // the pool stays to the end
         ] as const
         stations.forEach((st, i) => {
-          const [inAt, holdTo, outDone] = beats[i]
+          const [inAt, leaveAt] = beats[i]
           tl.to(st, { autoAlpha: 1, y: 0, duration: 0.09, ease: 'power2.out' }, inAt)
-          if (outDone > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: 0.07, ease: 'power2.in' }, holdTo)
+          if (leaveAt > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: 0.09, ease: 'power2.in' }, leaveAt)
         })
       }
 
@@ -903,9 +907,16 @@ const CSS = `
 .lx-drop-inner { position: relative; height: 100svh; overflow: hidden; display: grid; place-items: center; }
 .lx-drop-media { position: absolute; inset: -16% 0; }
 .lx-drop-img { width: 100%; height: 100%; object-fit: cover; display: block; will-change: transform; }
+/* The station copy sits over whitewater, which is the brightest thing on the
+   page. The old scrim was an edge vignette — lightest exactly where the text
+   is — so white-on-white made the section read as broken. Two layers now: a
+   soft dark pool under the copy (carries the type to ~5.9:1 over foam), and
+   the original edge vignette behind it. */
 .lx-drop-inner::after {
   content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, rgba(11,27,38,.18) 30%, rgba(11,27,38,.62) 100%);
+  background:
+    radial-gradient(ellipse 64% 48% at center, rgba(6,18,26,.80) 0%, rgba(6,18,26,.56) 44%, rgba(6,18,26,0) 78%),
+    radial-gradient(ellipse at center, rgba(11,27,38,.22) 34%, rgba(11,27,38,.66) 100%);
 }
 .lx-drop-station {
   position: absolute; z-index: 2; text-align: center; max-width: 46ch;
@@ -913,9 +924,12 @@ const CSS = `
 }
 .lx-drop-name {
   margin: 0 0 10px; font-weight: 500; font-size: ${fluid(30, 22)};
-  letter-spacing: -.02em; color: #fff;
+  letter-spacing: -.02em; color: #fff; text-shadow: 0 2px 22px rgba(6,18,26,.6);
 }
-.lx-drop-body { margin: 0; font-size: ${fluid(16, 14.5)}; line-height: 1.6; color: rgba(232,238,242,.88); }
+.lx-drop-body {
+  margin: 0; font-size: ${fluid(16, 14.5)}; line-height: 1.6;
+  color: rgba(236,242,246,.94); text-shadow: 0 1px 18px rgba(6,18,26,.55);
+}
 /* no-JS / reduced-motion: stations flow under the image instead of hiding */
 @media (prefers-reduced-motion: reduce), (max-width: 767px) {
   .lx-drop-inner { height: auto; display: block; }
