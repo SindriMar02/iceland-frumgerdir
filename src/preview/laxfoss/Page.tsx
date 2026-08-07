@@ -936,13 +936,57 @@ const CSS = `
   margin: 0; font-size: ${fluid(16, 14.5)}; line-height: 1.6;
   color: rgba(236,242,246,.94); text-shadow: 0 1px 18px rgba(6,18,26,.55);
 }
-/* no-JS / reduced-motion: stations flow under the image instead of hiding */
-@media (prefers-reduced-motion: reduce), (max-width: 767px) {
+/* no-JS / reduced-motion: stations flow under the image instead of hiding.
+   No sticky, no overlap, nothing that depends on frames. */
+@media (prefers-reduced-motion: reduce) {
   .lx-drop-inner { height: auto; display: block; }
   .lx-drop-media { position: relative; inset: auto; aspect-ratio: 3 / 2; }
   .lx-drop-inner::after { content: none; }
   .lx-drop-station { position: static; opacity: 1 !important; transform: none !important; visibility: visible !important; text-align: left; max-width: 56ch; padding: 28px 20px 0; }
   .lx-drop { padding-bottom: 48px; }
+}
+
+/* PHONE — the descent, translated rather than discarded.
+   The old mobile fallback dropped the pin and left one big rapids photo with
+   three headings stacked underneath it on flat navy: the copy lost its river
+   and the section stopped meaning anything. Here the river is STICKY and the
+   three stations scroll over it, one screen each, which is the desktop idea
+   in pure CSS. No ScrollTrigger, no JS, nothing to starve on a phone. */
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  /* overflow MUST be cleared here: the desktop rule sets overflow:hidden on
+     this element, and an overflow:hidden ancestor silently disables position
+     sticky in a descendant. Measured symptom was the river scrolling straight
+     off the top (top 0 to -2228) while the stations passed correctly. */
+  .lx-drop-inner { height: auto; display: block; position: relative; overflow: visible; }
+  .lx-drop-media {
+    /* inset MUST come before top: it is the shorthand for all four sides, so
+       declaring top first and inset:auto after resets top straight back to
+       auto and the element never sticks. Computed style read top:auto until
+       this was reordered. */
+    position: sticky; inset: auto; top: 0; height: 100svh; z-index: 0;
+  }
+  .lx-drop-img { height: 100%; }
+  .lx-drop-inner::after { content: none; }
+  .lx-drop-station {
+    position: relative; z-index: 2;
+    opacity: 1 !important; visibility: visible !important; transform: none !important;
+    min-height: 88svh; display: flex; flex-direction: column; justify-content: center;
+    max-width: none; text-align: left; padding: 0 22px;
+  }
+  /* No negative margin to pull the first station up over the river. The
+     sticky media only stays put for (container height - its own height), so
+     stealing 100svh back would end the stick a station early and strand
+     "The pool" on flat navy. Letting the river hold one screen on its own
+     first also matches desktop, where the photograph is there before the
+     first station fades in. */
+  /* each station carries its own pool of shade, so the type stays legible
+     wherever the whitewater happens to sit behind it */
+  .lx-drop-station::before {
+    content: ''; position: absolute; inset: -6% -22px; z-index: -1;
+    background: radial-gradient(120% 68% at 50% 50%,
+      rgba(6,18,26,.86) 0%, rgba(6,18,26,.66) 46%, rgba(6,18,26,0) 82%);
+  }
+  .lx-drop { padding-bottom: 0; }
 }
 
 /* ── history ── */
