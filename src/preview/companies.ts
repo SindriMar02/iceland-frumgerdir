@@ -4401,6 +4401,10 @@ PREVIEW_COMPANIES.push(VILLANORTH_ENTRY)
 
 import { companyEntry as LAXFOSS_ENTRY } from './laxfoss/data'
 PREVIEW_COMPANIES.push(LAXFOSS_ENTRY)
+import { companyEntry as GLASSHOUSE_ENTRY } from './glasshouse/data'
+PREVIEW_COMPANIES.push(GLASSHOUSE_ENTRY)
+import { companyEntry as SVARTABORG_ENTRY } from './svartaborg/data'
+PREVIEW_COMPANIES.push(SVARTABORG_ENTRY)
 
 import { companyEntry as GLASSCOTTAGES_ENTRY } from './glasscottages/data'
 PREVIEW_COMPANIES.push(GLASSCOTTAGES_ENTRY)
