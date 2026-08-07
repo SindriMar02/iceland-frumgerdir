@@ -766,7 +766,10 @@ const CSS = `
   align-items: center; max-width: calc(var(--u) * 1360); margin: 0 auto;
   padding: calc(var(--u) * 150) calc(var(--u) * 44) calc(var(--u) * 110);
 }
-.sb-manifesto-fig { max-width: calc(var(--u) * 560); justify-self: end; }
+/* width:100% is load-bearing: every child of the frame is absolute, so
+   justify-self:end shrinks the figure's fit-content width to 0 and
+   aspect-ratio takes the height with it ([[frame-zero-width-flex-collapse]]). */
+.sb-manifesto-fig { width: 100%; max-width: calc(var(--u) * 560); justify-self: end; }
 
 /* view */
 .sb-view { padding: calc(var(--u) * 40) 0 calc(var(--u) * 110); }
