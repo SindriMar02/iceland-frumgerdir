@@ -59,7 +59,7 @@ export function WantRedesign({ company, dark = false, accentClassName }: ThemedP
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
-              href={`mailto:sindri@klubbr.is?subject=${encodeURIComponent(`Endurhönnun — ${company.name}`)}`}
+              href={`mailto:sindrimar02@gmail.com?subject=${encodeURIComponent(`Endurhönnun — ${company.name}`)}`}
               className={`inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 ${accentClassName}`}
             >
               Senda Sindra línu
@@ -114,8 +114,8 @@ export function ProtoFooter({ company, dark = false }: { company: Company; dark?
       </p>
       <p className="mt-3">
         © 2026 · Hugmynd og hönnun:{' '}
-        <a href="mailto:sindri@klubbr.is" className="underline underline-offset-2">
-          sindri@klubbr.is
+        <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
+          sindrimar02@gmail.com
         </a>
       </p>
     </footer>

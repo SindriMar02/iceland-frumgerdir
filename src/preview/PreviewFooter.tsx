@@ -47,8 +47,8 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
       </p>
       <p className="mt-3">
         © 2026 · Hugmynd og hönnun:{' '}
-        <a href="mailto:sindri@klubbr.is" className="underline underline-offset-2">
-          sindri@klubbr.is
+        <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
+          sindrimar02@gmail.com
         </a>
       </p>
       <div className={`mx-auto mt-6 flex justify-center border-t pt-6 ${dark ? 'border-white/10' : 'border-neutral-200'}`}>

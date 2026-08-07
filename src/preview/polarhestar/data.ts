@@ -20,7 +20,7 @@ export const PHONE_DISPLAY = '+354 896 1879'
 export const PHONE_HREF = 'tel:+3548961879'
 export const EMAIL = 'polarhestar@polarhestar.is'
 /** Sandbox: booking requests go to Sindri; swap to the owner's inbox in the CMS at handoff. */
-export const BOOKING_EMAIL = 'sindri@klubbr.is'
+export const BOOKING_EMAIL = 'sindrimar02@gmail.com'
 export const FACEBOOK = 'https://www.facebook.com/polarhestar'
 export const INSTAGRAM = 'https://www.instagram.com/polarhestartours'
 export const TRIPADVISOR =
