@@ -47,6 +47,14 @@ const EMBER_TEXT = '#96521F'   // accent text on the sky ground (AA)
 const SANS = "'Alpino', system-ui, sans-serif"
 const BASE = import.meta.env.BASE_URL
 
+/** The window film: 48 frames of THEIR view, generated from their own
+    photograph, carrying the sky from open day through dusk to a full aurora.
+    Shipped as a frame sequence rather than a <video>, because seeking a video
+    by currentTime never scrubs smoothly under a scroll scrub. */
+const SKY_FRAMES = 48
+const skyFrame = (i: number) =>
+  `${BASE}glasshouse/skyseq/${String(i + 1).padStart(3, '0')}.jpg`
+
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
@@ -139,31 +147,68 @@ function useMotion(ready: boolean) {
          because the whole idea is that you are looking THROUGH something.
          One timeline, one scrub, monotonic and reversible. */
       const win = root.querySelector<HTMLElement>('.gh-window')
-      const panes = Array.from(root.querySelectorAll<HTMLElement>('.gh-pane'))
+      const canvas = root.querySelector<HTMLCanvasElement>('.gh-sky')
       const caps = root.querySelectorAll<HTMLElement>('.gh-pane-cap')
       const aperture = root.querySelector<HTMLElement>('.gh-aperture')
-      if (win && aperture && panes.length === 4 && caps.length === 4 && window.innerWidth >= 768) {
-        gsap.set(panes, { rotateX: 0 })
+      if (win && aperture && canvas && caps.length === 4 && window.innerWidth >= 768) {
+        const c2d = canvas.getContext('2d')
+        const frames: HTMLImageElement[] = []
+        let drawn = -1
+
+        /* Fit to the aperture's own box at device resolution. Re-run on every
+           ScrollTrigger refresh, since the pin changes layout. */
+        const fit = () => {
+          const r = canvas.getBoundingClientRect()
+          const dpr = Math.min(2, window.devicePixelRatio || 1)
+          canvas.width = Math.max(1, Math.round(r.width * dpr))
+          canvas.height = Math.max(1, Math.round(r.height * dpr))
+          drawn = -1                              // size changed, force a redraw
+        }
+        /* object-fit: cover, by hand */
+        const paint = (i: number) => {
+          const im = frames[i]
+          if (!c2d || !im || !im.complete || !im.naturalWidth) return
+          const cw = canvas.width, ch = canvas.height
+          const k = Math.max(cw / im.naturalWidth, ch / im.naturalHeight)
+          const w = im.naturalWidth * k, h = im.naturalHeight * k
+          c2d.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
+          drawn = i
+        }
+        for (let i = 0; i < SKY_FRAMES; i++) {
+          const im = new Image()
+          im.decoding = 'async'
+          im.src = skyFrame(i)
+          frames.push(im)
+          /* a CACHED image never fires load, so paint straight away if it is
+             already complete rather than waiting on an event that will not
+             come. The canvas is never faded in — it paints or it does not. */
+          if (im.complete) { if (i === 0) paint(0) }
+          else if (i === 0) im.addEventListener('load', () => paint(0), { once: true })
+        }
+        fit()
         gsap.set(caps, { autoAlpha: 0, y: -22 })
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: win, start: 'top top', end: '+=280%',
             pin: true, scrub: 0.9, anticipatePin: 1, invalidateOnRefresh: true,
+            onRefresh: () => { fit(); paint(Math.max(0, drawn)) },
           },
         })
         windowST = tl.scrollTrigger ?? null
-        const n = panes.length
-        const slice = 1 / n                       // one beat per pane
-        panes.forEach((pane, i) => {
-          /* the last pane never leaves — it is what you are left looking at */
-          if (i < n - 1) {
-            tl.to(pane, {
-              rotateX: -96, ease: 'power1.in', duration: slice * 0.72,
-            }, slice * (i + 0.22))
-            tl.to(pane, {
-              filter: 'brightness(0.45)', ease: 'none', duration: slice * 0.72,
-            }, slice * (i + 0.22))
-          }
+
+        /* the scrub drives a plain number; the number picks the frame */
+        const cursor = { f: 0 }
+        tl.to(cursor, {
+          f: SKY_FRAMES - 1, ease: 'none', duration: 1,
+          onUpdate: () => {
+            const i = Math.max(0, Math.min(SKY_FRAMES - 1, Math.round(cursor.f)))
+            if (i !== drawn) paint(i)
+          },
+        }, 0)
+
+        const n = caps.length
+        const slice = 1 / n
+        caps.forEach((_, i) => {
           /* Captions are stacked in one spot, so their opacities must not
              overlap (two captions render over each other) and must not leave a
              gap (none renders). Caption i leaves across .80-.98 of its slice;
@@ -554,21 +599,17 @@ export default function GlasshousePage() {
       {/* 03 · THE WINDOW — pinned sky device */}
       <section className="gh-window" id="glugginn" data-gh-dark="">
         <div className="gh-window-inner">
+          {/* the aperture is still the point: you are looking THROUGH a frame,
+             and it never expands to full bleed. What sits inside it is now one
+             continuous film of their own view rather than four hinged stills. */}
           <div className="gh-aperture" aria-hidden="true">
-            {/* panes are hinged at the top edge; DOM order is front-to-back,
-               so z-index counts down and pane 0 is the one you see first */}
-            {[PHOTO.viewSky, PHOTO.bedSummer, PHOTO.auroraTrees, PHOTO.auroraHouse].map((ph, i) => (
-              <div className="gh-pane" key={ph.src} style={{ zIndex: 10 - i }}>
-                <img src={ph.src} srcSet={srcSet(ph.src)} sizes="70vw"
-                  alt="" loading="lazy" decoding="async" />
-              </div>
-            ))}
+            <canvas className="gh-sky" />
           </div>
           <div className="gh-pane-caps">
-            <p className="gh-pane-cap">Morning. The sky arrives before you are up.</p>
-            <p className="gh-pane-cap">Afternoon. The glass keeps the whole field in view.</p>
-            <p className="gh-pane-cap">Late. Green over the birch tops, if the sky agrees.</p>
-            <p className="gh-pane-cap">Night, from their own camera, standing right here.</p>
+            <p className="gh-pane-cap">Day. The field runs flat to the horizon, and the sky takes most of it.</p>
+            <p className="gh-pane-cap">Evening. The light drops and the first green shows low in the north.</p>
+            <p className="gh-pane-cap">Night. The aurora crosses the whole sky, not a corner of it.</p>
+            <p className="gh-pane-cap">Rendered, not photographed. Clear nights are never promised, but this is the sky they wait for.</p>
           </div>
           {/* static fallback for reduced motion and phones */}
           <figure className="gh-window-static">
@@ -833,20 +874,14 @@ const CSS = `
 .gh-aperture {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: min(68vw, calc(var(--u) * 900)); height: min(52svh, calc(var(--u) * 560));
-  border-radius: 2px;
+  border-radius: 2px; overflow: hidden;
   /* the frame is the point: a hairline plus a vignette that isolates it */
   box-shadow: 0 0 0 1px rgba(230,236,242,.32), 0 0 0 200vmax ${NIGHT};
-  /* panes swing on a real hinge, so the aperture needs depth and must NOT
-     clip the outgoing pane's top edge */
-  perspective: 1600px; transform-style: preserve-3d;
 }
-.gh-pane {
-  position: absolute; inset: 0; overflow: hidden;
-  transform-origin: 50% 0%;          /* the hinge, along the top edge */
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  will-change: transform, filter;
+.gh-sky {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  background: ${NIGHT};
 }
-.gh-pane img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gh-pane-caps { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 64);
   display: grid; place-items: center; z-index: 20; pointer-events: none; }
 .gh-pane-cap {
