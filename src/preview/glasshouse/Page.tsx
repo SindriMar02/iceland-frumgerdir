@@ -164,13 +164,15 @@ function useMotion(ready: boolean) {
               filter: 'brightness(0.45)', ease: 'none', duration: slice * 0.72,
             }, slice * (i + 0.22))
           }
-          /* captions CROSSFADE: the next begins arriving before this one has
-             left, so the pinned frame never sits captionless. */
+          /* Captions are stacked in one spot, so their opacities must not
+             overlap (two captions render over each other) and must not leave a
+             gap (none renders). Caption i leaves across .80-.98 of its slice;
+             caption i+1 arrives from .98, exactly where the previous ended. */
           tl.to(caps[i], { autoAlpha: 1, y: 0, duration: slice * 0.18, ease: 'power2.out' },
-            slice * (i - 0.06))
+            slice * (i - 0.02))
           if (i < n - 1) {
             tl.to(caps[i], { autoAlpha: 0, y: 16, duration: slice * 0.18, ease: 'power2.in' },
-              slice * (i + 0.82))
+              slice * (i + 0.80))
           }
         })
       }

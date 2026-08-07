@@ -170,19 +170,25 @@ function useMotion(ready: boolean) {
         })
         dropST = tl.scrollTrigger ?? null
         tl.fromTo(dropImg, { yPercent: 7 }, { yPercent: -13, ease: 'none', duration: 1 }, 0)
-        /* The beats CROSSFADE. An earlier cut had station 1 finish fading out
-           at .37 and station 2 begin at .40, which left ~65px of pinned
-           scroll showing an empty band and read as a broken section. Each
-           station now starts arriving before the previous has gone. */
+        /* The three stations are absolutely positioned in the SAME place, so
+           their opacities must never overlap: two visible at once renders both
+           texts on top of each other and reads as duplicated, garbled copy.
+           Nor may there be a RANGE with none visible, which reads as an empty,
+           broken section. So the handoff is exact — each station's fade-out
+           ENDS on the frame the next station's fade-in BEGINS:
+             st1  in .02-.11   out .30-.39
+             st2  in .39-.48   out .62-.71
+             st3  in .71-.80   holds to the end                            */
+        const FADE = 0.09
         const beats = [
           [0.02, 0.30],   // [in, start-leaving]
-          [0.28, 0.60],
-          [0.58, -1],     // the pool stays to the end
+          [0.39, 0.62],
+          [0.71, -1],     // the pool stays to the end
         ] as const
         stations.forEach((st, i) => {
           const [inAt, leaveAt] = beats[i]
-          tl.to(st, { autoAlpha: 1, y: 0, duration: 0.09, ease: 'power2.out' }, inAt)
-          if (leaveAt > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: 0.09, ease: 'power2.in' }, leaveAt)
+          tl.to(st, { autoAlpha: 1, y: 0, duration: FADE, ease: 'power2.out' }, inAt)
+          if (leaveAt > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: FADE, ease: 'power2.in' }, leaveAt)
         })
       }
 

@@ -65,8 +65,12 @@ const fluid = (n: number, floor: number) =>
 
 type CottageId = 'blar' | 'graenn'
 
-/** The night deepens as you scroll: four of their own aurora frames. */
-const NIGHT_SEQ = [PHOTO.auroraWide, PHOTO.auroraCottage, PHOTO.auroraGable, PHOTO.auroraRoof]
+/** The night deepens as you scroll. Four frames, none of them used anywhere
+    else on the page: auroraGable is Graenn's chooser-to-detail Flip pair and
+    appears twice already, so it cannot also open here. This runs dusk outside,
+    the aurora arriving over the field, the aurora over the cottage, then the
+    view up through the glass roof from inside. */
+const NIGHT_SEQ = [PHOTO.duskBlue, PHOTO.auroraWide, PHOTO.auroraCottage, PHOTO.auroraRoof]
 
 /* ── motion engine ───────────────────────────────────────────────────────── */
 
