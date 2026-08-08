@@ -4409,5 +4409,8 @@ PREVIEW_COMPANIES.push(SVARTABORG_ENTRY)
 import { companyEntry as GLASSCOTTAGES_ENTRY } from './glasscottages/data'
 PREVIEW_COMPANIES.push(GLASSCOTTAGES_ENTRY)
 
+import { companyEntry as RAKARARNIR_ENTRY } from './rakararnir/company'
+PREVIEW_COMPANIES.push(RAKARARNIR_ENTRY)
+
 import { companyEntry as ASLAUGSAJA_ENTRY } from './aslaugsaja/data'
 PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)

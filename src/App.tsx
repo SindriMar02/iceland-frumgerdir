@@ -162,6 +162,7 @@ const LaxfossPage = lazy(() => import('./preview/laxfoss/Page'))
 const LaxfossDashboard = lazy(() => import('./preview/laxfoss/Dashboard'))
 const GlassCottagesPage = lazy(() => import('./preview/glasscottages/Page'))
 const GlassCottagesDashboard = lazy(() => import('./preview/glasscottages/Dashboard'))
+const RakararnirPage = lazy(() => import('./preview/rakararnir/Page'))
 const GlasshousePage = lazy(() => import('./preview/glasshouse/Page'))
 const GlasshouseDashboard = lazy(() => import('./preview/glasshouse/Dashboard'))
 const SvartaborgPage = lazy(() => import('./preview/svartaborg/Page'))
@@ -353,6 +354,7 @@ export default function App() {
             <Route path="/preview/laxfoss/stjornbord" element={<LaxfossDashboard />} />
             <Route path="/preview/glasscottages" element={<GlassCottagesPage />} />
             <Route path="/preview/glasscottages/stjornbord" element={<GlassCottagesDashboard />} />
+            <Route path="/preview/rakararnir" element={<RakararnirPage />} />
             <Route path="/preview/glasshouse" element={<GlasshousePage />} />
             <Route path="/preview/glasshouse/stjornbord" element={<GlasshouseDashboard />} />
             <Route path="/preview/svartaborg" element={<SvartaborgPage />} />
