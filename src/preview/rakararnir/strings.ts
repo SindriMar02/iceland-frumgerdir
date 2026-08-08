@@ -109,6 +109,11 @@ export const STRINGS = {
       directions: 'Fá leiðarlýsingu',
     },
 
+    seo: {
+      title: 'Rakararnir · Klapparstígur 40',
+      description: 'Rakarastofa á Klapparstíg 40 í 101 Reykjavík. Engin tímapöntun, þú gengur bara inn. Verðskrá og opnunartími á síðunni.',
+    },
+
     foot: {
       hours: 'Opnunartími',
       weekdays: 'Mán til fös',
@@ -214,6 +219,11 @@ export const STRINGS = {
       lead: 'At the bottom of Klapparstígur, on the corner. Easy to find, hard to walk past.',
       activate: 'Tap to explore the map',
       directions: 'Get directions',
+    },
+
+    seo: {
+      title: 'Rakararnir · Klapparstígur 40',
+      description: 'Barbershop at Klapparstígur 40, 101 Reykjavík. No appointments, just walk in. Prices and opening hours on the page.',
     },
 
     foot: {

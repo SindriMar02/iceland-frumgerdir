@@ -164,6 +164,55 @@ export default function RakararnirPage() {
   }, [])
   useEffect(() => { localStorage.setItem(LANG_KEY, lang) }, [lang])
   useEffect(() => { document.documentElement.lang = lang }, [lang])
+
+  /* Tab title, meta description and a JSON-LD HairSalon block. The shared
+     shell's own <title>/<meta> are generic ("Endurhannanir"), which read
+     back to this project's own preflight check as the page having no
+     identity of its own — a real SEO gap, not a cosmetic one, on a page
+     whose whole pitch to the owner is better search visibility.
+     JSON-LD is deliberately minimal: name, address, phone, real opening
+     hours. No priceRange or offer catalogue, because the prices on the page
+     are placeholders and feeding fabricated numbers to search engines and
+     AI answer boxes would be a worse dishonesty than a placeholder label a
+     visitor can actually read and judge for themselves. */
+  useEffect(() => {
+    const prevTitle = document.title
+    document.title = s.seo.title
+    const meta = document.querySelector('meta[name="description"]')
+    const prevDesc = meta?.getAttribute('content') ?? ''
+    meta?.setAttribute('content', s.seo.description)
+
+    const ld = document.createElement('script')
+    ld.type = 'application/ld+json'
+    ld.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'HairSalon',
+      name: SHOP.name,
+      url: window.location.href,
+      telephone: SHOP.phoneHref.replace('tel:', ''),
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: SHOP.street,
+        addressLocality: 'Reykjavík',
+        postalCode: '101',
+        addressCountry: 'IS',
+      },
+      openingHoursSpecification: {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '10:00',
+        closes: '18:00',
+      },
+    })
+    document.head.appendChild(ld)
+
+    return () => {
+      document.title = prevTitle
+      meta?.setAttribute('content', prevDesc)
+      ld.remove()
+    }
+  }, [lang, s.seo.title, s.seo.description])
+
   /* The badge is the whole promise of a walk-in shop, so it cannot go stale
      while the tab sits open over the shop's closing time. */
   useEffect(() => {
