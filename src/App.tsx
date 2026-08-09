@@ -127,6 +127,7 @@ const IssiPage = lazy(() => import('./preview/issi/Page'))
 // Húnabúð — Blönduós café/flower/gift shop, "Þrennt undir einu þaki" concept
 const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const BudirPage = lazy(() => import('./preview/budir/Page'))
+const DrangarPage = lazy(() => import('./preview/drangar/Page'))
 const SjavarborgPage = lazy(() => import('./preview/sjavarborg/Page'))
 const BragdavellirPage = lazy(() => import('./preview/bragdavellir/Page'))
 /* Alrún now ships as a standalone static site under public/preview/alrun/, so
@@ -326,6 +327,7 @@ export default function App() {
             <Route path="/preview/issi" element={<IssiPage />} />
             <Route path="/preview/hunabud" element={<HunabudPage />} />
             <Route path="/preview/budir" element={<BudirPage />} />
+            <Route path="/preview/drangar" element={<DrangarPage />} />
             <Route path="/preview/sjavarborg" element={<SjavarborgPage />} />
             <Route path="/preview/bragdavellir" element={<BragdavellirPage />} />
             <Route path="/preview/alrun" element={<AlrunPage />} />
