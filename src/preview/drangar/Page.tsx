@@ -426,7 +426,10 @@ const PAGE_STYLES = `
 /* cierre */
 .dr-cierre { width: 120vw; background: ${ACCENT}; color: ${PLASTER}; overflow: clip; }
 .dr-cierre-in { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 6vw; width: 88vw; }
-.dr-cierre-word { font-family: ${DISPLAY}; font-weight: 200; font-size: min(11vw, 24svh); line-height: .92; white-space: nowrap; }
+.dr-cierre-word { font-family: ${DISPLAY}; font-weight: 200; font-size: min(9.5vw, 21svh); line-height: .96; }
+/* each row is its own BLOCK line, so the phrase stacks instead of running off
+   the panel as one nowrap row */
+.dr-cierre-row { display: block; white-space: nowrap; }
 .dr-cierre-sub { margin-top: 2rem; font-size: .9rem; color: rgba(237,235,230,.85); }
 .dr-cierre-ctas { margin-top: 2rem; display: flex; gap: 1.2rem; align-items: center; }
 .dr-cierre-strip { position: absolute; top: 8svh; right: -4vw; width: 34vw; height: 30svh; overflow: clip; opacity: .92; }
@@ -647,8 +650,12 @@ export default function DrangarPage() {
 
       /* ── shared: split helpers ── */
       const cascade = (el: Element, tl: gsap.core.Timeline, pos: string | number = '<+=.05') => {
-        SplitText.create(el, { type: 'lines,chars', linesClass: 'dr-line', charsClass: 'dr-char' })
-        el.querySelectorAll('.dr-line').forEach((line, i) => {
+        const split = SplitText.create(el, { type: 'lines,chars', linesClass: 'dr-line', charsClass: 'dr-char' })
+        /* iterate the SPLIT'S OWN lines, never a querySelectorAll: markup that
+           already carries a .dr-line class would otherwise be matched too and
+           the same chars get tweened twice in opposite directions (one line
+           ends up parked out of view behind its mask). */
+        split.lines.forEach((line, i) => {
           const from = i % 2 !== 0 ? -110 : 110
           tl.from(line.querySelectorAll('.dr-char'), {
             yPercent: from, duration: 0.65, stagger: 0.03, ease: 'power3.out',
@@ -1481,8 +1488,8 @@ export default function DrangarPage() {
             <section className="dr-panel dr-cierre" aria-label="Booking">
               <div className="dr-cierre-in">
                 <h2 className="dr-cierre-word">
-                  <span className="dr-line">{CIERRE.lineA}</span>
-                  <span className="dr-line"><em className="dr-it">{CIERRE.lineB}</em></span>
+                  <span className="dr-cierre-row">{CIERRE.lineA}</span>
+                  <span className="dr-cierre-row"><em className="dr-it">{CIERRE.lineB}</em></span>
                 </h2>
                 <p className="dr-cierre-sub">{CIERRE.sub}</p>
                 <div className="dr-cierre-ctas">
