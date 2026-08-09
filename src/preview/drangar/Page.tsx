@@ -323,8 +323,11 @@ const PAGE_STYLES = `
   font-size: .85rem; line-height: 1.6; }
 .dr-statement-body .dr-char { opacity: 1; }
 
-/* accordion */
-.dr-acc { display: flex; height: var(--dr-100vh); }
+/* accordion — FIXED total width (the reference's sizeProjects): items open
+   INSIDE a constant footprint, so nothing downstream ever shifts and every
+   later trigger window stays true. The trailing space is consumed ahead of
+   the traveler as items open. */
+.dr-acc { display: flex; width: 232vw; height: var(--dr-100vh); }
 .dr-acc-item { position: relative; width: 58vw; height: 100%; overflow: clip; display: flex; flex-direction: column; }
 .dr-acc-media { position: relative; height: 60svh; flex: none; overflow: clip; }
 .dr-acc-media .dr-flip { position: absolute; inset: 0; }
@@ -354,8 +357,9 @@ const PAGE_STYLES = `
 .dr-shednote-body { font-size: .95rem; line-height: 1.65; color: ${INK_SOFT}; max-width: 24rem; }
 @media (max-width: 1023px) { .dr-shednote { width: 100%; } .dr-shednote-in { padding: 3.5rem 1.65rem; } }
 
-/* materials */
-.dr-mat { width: 150vw; background: ${PLASTER}; display: flex; flex-direction: column;
+/* materials — width just past one viewport plus the drift runway; a wider
+   panel leaves a dead plaster stretch before the barn's ink edge */
+.dr-mat { width: 112vw; background: ${PLASTER}; display: flex; flex-direction: column;
   justify-content: space-between; padding: 5.5rem 1.65rem 2.2rem; }
 .dr-mat-rail { position: absolute; top: 50%; left: 1.1rem; transform: rotate(-90deg) translateY(-50%);
   transform-origin: center left; color: ${INK_MUTE}; }
@@ -391,8 +395,8 @@ const PAGE_STYLES = `
 .dr-barn-title { font-family: ${DISPLAY}; font-weight: 200; font-size: min(4.8vw, 10svh); line-height: 1; }
 .dr-barn-title em { font-style: italic; }
 .dr-barn-body { margin-top: 1.6rem; max-width: 24rem; color: ${PLASTER_MUTE}; font-size: .85rem; line-height: 1.6; }
-.dr-barn-strip { position: absolute; top: 0; left: 54vw; width: 40vw; height: 100%; will-change: transform; }
-.dr-barn-cell { position: relative; height: 62svh; margin-bottom: 2.5svh; overflow: clip; }
+.dr-barn-strip { position: absolute; top: 0; left: 54vw; width: 40vw; will-change: transform; }
+.dr-barn-cell { position: relative; height: 44svh; margin-bottom: 2svh; overflow: clip; }
 .dr-barn-cell img { width: 100%; height: 100%; object-fit: cover; }
 .dr-barn-cell figcaption { position: absolute; left: 0; bottom: 0; z-index: 2;
   padding: .5em .85em; background: rgba(19,18,17,.72); color: ${PLASTER};
@@ -402,7 +406,7 @@ const PAGE_STYLES = `
 .dr-isl { width: 100vw; position: relative; }
 .dr-isl .dr-flip { position: absolute; inset: 0; }
 .dr-isl-chip { position: absolute; left: 1.65rem; bottom: 1.65rem; z-index: 4; background: ${INK};
-  color: ${PLASTER}; padding: 1rem 1.2rem; max-width: 22rem; }
+  color: ${PLASTER}; padding: 1rem 1.2rem; max-width: 22rem; overflow: clip; }
 .dr-isl-line { font-family: ${DISPLAY}; font-weight: 200; font-size: 1.5rem; line-height: 1.25; }
 .dr-isl-line .dr-travel { position: relative; display: inline-block; font-style: italic; color: var(--dr-patina); }
 
@@ -447,6 +451,7 @@ const PAGE_STYLES = `
 @media (max-width: 1023px) {
   .dr-track { display: block; width: 100%; }
   .dr-panel { height: auto; width: 100% !important; }
+  .dr-acc { width: 100%; }
   .dr-hero { min-height: 100svh; }
   .dr-hero-word { font-size: min(13.4vw, 17svh); }
   .dr-hero-sub { position: static; margin: 1.2rem 1.65rem 2rem auto; }
@@ -799,15 +804,9 @@ export default function DrangarPage() {
           })
         }
 
-        /* measure the track AT PROGRESS(1) — the reference's trick. Function-
-           based so a same-branch resize re-measures on refresh. */
-        const measureMaxX = () => {
-          const p = projectsTl.progress()
-          projectsTl.progress(1)
-          const w = track.scrollWidth
-          projectsTl.progress(p)
-          return w - window.innerWidth
-        }
+        /* the accordion's container width is FIXED, so the track measures the
+           same at any progress; function-based for same-branch resizes. */
+        const measureMaxX = () => track.scrollWidth - window.innerWidth
         const journeyTween = gsap.to(track, { x: () => -measureMaxX(), duration: 100, ease: 'none' })
         const master = ScrollTrigger.create({
           animation: journeyTween,
@@ -919,10 +918,10 @@ export default function DrangarPage() {
           gsap.set(mat, { width: mat.offsetWidth })
           const terms = Array.from(mat.querySelectorAll<HTMLElement>('.dr-mat-term'))
           const pTl = gsap.timeline({ paused: true })
-          pTl.to(terms[0], { paddingLeft: '12vw', ease: 'none' }, 0)
+          pTl.to(terms[0], { paddingLeft: '8vw', ease: 'none' }, 0)
           pTl.to(terms[1], { paddingRight: '3vw', ease: 'none' }, 0)
-          pTl.to(terms[2], { paddingLeft: '20vw', ease: 'none' }, 0)
-          if (terms[3]) pTl.to(terms[3], { paddingLeft: '7vw', ease: 'none' }, 0)
+          pTl.to(terms[2], { paddingLeft: '11vw', ease: 'none' }, 0)
+          if (terms[3]) pTl.to(terms[3], { paddingLeft: '5vw', ease: 'none' }, 0)
           ScrollTrigger.create({ ...onJourney(mat, '0% 100%'), animation: pTl, end: '100% 0%', scrub: 1 })
 
           const stack = mat.querySelector<HTMLElement>('.dr-mat-stack')!
@@ -952,22 +951,25 @@ export default function DrangarPage() {
           }
         }
 
-        /* barn pin-in-pin filmstrip: the stage rides the journey (counter-
-           slide = the reference's lastProject x-travel) while the strip's
-           vertical film plays inside it */
+        /* barn pin-in-pin filmstrip: the stage rides the journey (the
+           reference's lastProject x-travel) while a vertical film drifts
+           inside it. Deterministic geometry: fixed cells, strip taller than
+           the viewport for the WHOLE travel, one linear phase — photos are
+           on screen from the first frame of the panel to the last. */
         const barn = root.querySelector<HTMLElement>('.dr-barn')
         if (barn) {
           const stage = barn.querySelector<HTMLElement>('.dr-barn-stage')!
           const strip = barn.querySelector<HTMLElement>('.dr-barn-strip')!
-          const cells = Array.from(barn.querySelectorAll<HTMLElement>('.dr-barn-cell'))
+          const cells = barn.querySelectorAll<HTMLElement>('.dr-barn-cell').length
+          const stripH = cells * 46 - 2            // svh: 44svh cells + 2svh gaps
+          const yFrom = 10                          // first two photos visible at entry
+          const yTo = -(stripH - 100)               // last photo lands flush at the end
+          const travel = 120                        // barn 220vw − 100vw stage
           const bTl = gsap.timeline({ paused: true })
-          bTl.fromTo(stage, { x: '0vw' }, { x: '120vw', duration: 1.75, ease: 'none' }, 0)
-          bTl.fromTo(strip, { y: '100vh' }, { y: `${100 - 66 * (cells.length - 1)}vh`, duration: 1, ease: 'none' }, 0)
-          bTl.from(cells, { height: '80svh', duration: 1, ease: 'none' }, 0)
-          bTl.to(strip, { y: `${100 - 66 * (cells.length - 1) - 40}vh`, duration: 0.75, ease: 'none' }, 1)
-          bTl.to(cells, { height: '40svh', duration: 0.75, ease: 'power1.inOut' }, 1)
+          bTl.fromTo(stage, { x: '0vw' }, { x: `${travel}vw`, duration: 1, ease: 'none' }, 0)
+          bTl.fromTo(strip, { y: `${yFrom}svh` }, { y: `${yTo}svh`, duration: 1, ease: 'none' }, 0)
           ScrollTrigger.create({
-            ...onJourney(barn, 'left 0%'), animation: bTl, end: 'left -120%', scrub: 0,
+            ...onJourney(barn, 'left 0%'), animation: bTl, end: `left -${travel}%`, scrub: 0,
           })
           const bTitle = barn.querySelector('.dr-barn-title')
           if (bTitle) {
