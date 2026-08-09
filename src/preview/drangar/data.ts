@@ -254,7 +254,7 @@ export const TIMELINE = [
 export const SAGA = {
   title: 'Designed to remember',
   credit: 'Renovation by Studio Granda, Reykjavík',
-  award: 'Winner of the Icelandic Design Award 2020 and nominee for the EU Mies van der Rohe Award 2022. Rated 9.8 of 10 by 225 guests on Booking.com.',
+  award: 'Winner of the Icelandic Design Award 2020 and nominee for the EU Mies van der Rohe Award 2022. Rated 9.8 of 10 across more than 200 guest reviews on Booking.com.',
 }
 
 /* ── Cierre — the single red panel. ── */
