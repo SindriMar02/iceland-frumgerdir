@@ -3834,21 +3834,23 @@ ${SIGN}`,
     positioning:
       'Drangar is the rarest kind of candidate: a world-class product behind a website that hides it. Studio Granda spent six years turning standard 1980s farm buildings into one of the most celebrated renovations in Iceland, rooms glossed in real tractor liveries, a barn wrapped in copper that weathers from brown to Spanish green, and the current site shows a ghost of a photo and five identical Booking.com buttons. The prototype makes the page do what the architects did: keep the memory of the farm and let the buildings speak.',
     outreach: {
-      subject: 'Hugmynd að nýrri vefsíðu fyrir Drangar',
+      subject: 'Húsin ykkar unnu Hönnunarverðlaun Íslands, en vefsíðan segir það hvergi',
       body: `Góðan dag,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska gististaði.
 
-Ég kynnti mér Drangar og varð satt að segja hugfanginn af húsunum, endurbyggingin sem vann Hönnunarverðlaun Íslands 2020 og var tilnefnd til Mies van der Rohe verðlaunanna er einstakt efni. Núverandi vefsíða kemur þessu samt ekki til skila: myndin af húsunum sést varla á forsíðunni, hvergi er minnst á verðlaunin og allir hnappar senda gesti beint á Booking.com, sem tekur þóknun af hverri einustu bókun.
+Ég fletti Dröngum upp eftir að hafa séð myndir af endurbyggingunni, herbergin í gljáandi traktoralitunum, fjósið klætt kopar. Sagan á bak við húsin er einstök: Hönnunarverðlaun Íslands 2020, tilnefning til Mies van der Rohe verðlaunanna 2022 og gestir sem gefa staðnum 9,8 af 10 á Booking.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Vefsíðan segir samt ekkert af þessu. Myndin af húsunum sést varla á forsíðunni, verðlaunin eru hvergi nefnd og allir fimm hnapparnir senda gesti beint á Booking.com, sem tekur þóknun af hverri einustu bókun.
+
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Hún er byggð á húsunum sjálfum: herbergin fjögur birtast hvert í sínum traktoralit, koparinn á síðunni eldist úr brúnu yfir í spanskgrænu eftir því sem lengra er haldið, og verðlaunasagan fær loksins sinn sess. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld: að vefurinn standist samanburð við húsin sjálf, verðlaunasagan fái sinn sess og gestir geti líka bókað beint hjá ykkur án milliliða. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, með beinum bókunum til hliðar við Booking. Ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
-Endilega látið mig vita ef þið hafið áhuga.
+Endilega látið mig vita ef þið hafið áhuga. (If you would prefer English, just say the word.)
 
 ${SIGN}`,
     },
