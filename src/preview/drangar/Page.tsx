@@ -128,18 +128,18 @@ const PAGE_STYLES = `
    headroom, compensated with negative margins (Icelandic accents + Sentient
    descenders both clear). Applies wherever cascade() creates .dr-line. */
 .dr-root .dr-line { overflow: clip; padding-top: .16em; margin-top: -.16em; padding-bottom: .18em; margin-bottom: -.18em; }
-.dr-line > span { display: inline-block; will-change: transform; }
+.dr-line > span { display: inline-block; }
 .dr-wordspace { display: inline-block; width: .3em; }
 
 /* ── media plumbing — two-copy peel + one-var parallax (reference's exact
    mechanism: --clip inset on the up layer, oversized source below). ── */
 .dr-flip { position: relative; overflow: clip; display: block; }
 .dr-m { position: absolute; inset: 0; }
-.dr-m-up { --dr-clip: 0% 0% 0% 0%; clip-path: inset(var(--dr-clip)); z-index: 2; will-change: clip-path; }
+.dr-m-up { z-index: 2; }
 .dr-m img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.dr-m-src { will-change: transform; }
-.dr-par { --dr-ty: 0%; }
-.dr-par .dr-m-src img { height: 116%; transform: translateY(calc(var(--dr-ty) * -0.14)); }
+/* parallax room: the source is center-oversized so GSAP's yPercent drift
+   (ONE writer, merged with the peel's scale) never exposes an edge */
+.dr-par .dr-m-src img { height: 116%; top: -8%; }
 .dr-spec { position: absolute; left: 0; bottom: 0; z-index: 3; display: flex; gap: 1.1em;
   padding: .55em .9em; background: ${PLASTER_SOFT}; color: ${INK};
   border-top: 1px solid var(--dr-patina); backdrop-filter: blur(4px); }
@@ -151,7 +151,7 @@ const PAGE_STYLES = `
   border-radius: calc((.85em - 1.5px) * 3); overflow: hidden; }
 .dr-btn { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 .dr-btn:active { transform: scale(.97); }
-.dr-btn > span { position: relative; display: block; z-index: 2; overflow: clip; will-change: transform; }
+.dr-btn > span { position: relative; display: block; z-index: 2; overflow: clip; }
 .dr-btn::before { content: ''; position: absolute; width: 102%; height: 102%; top: 0; left: 0;
   border-radius: inherit; z-index: 1; background: var(--dr-fill, ${INK});
   transform: translate(var(--dr-px, -102%), var(--dr-py, 0%)); }
@@ -186,7 +186,7 @@ const PAGE_STYLES = `
   display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2.2rem; }
 .dr-loader-word { font-family: ${DISPLAY}; font-weight: 200; font-size: clamp(2.4rem, 7vw, 5rem);
   letter-spacing: .04em; overflow: clip; padding-top: .1em; }
-.dr-loader-word span { display: inline-block; will-change: transform; }
+.dr-loader-word span { display: inline-block; }
 .dr-loader-bar { position: relative; width: min(46vw, 340px); height: 1px; background: ${HAIR_PLASTER}; }
 .dr-loader-bar i { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0);
   background: var(--dr-patina); }
@@ -260,7 +260,7 @@ const PAGE_STYLES = `
 .dr-hero-word { position: relative; font-family: ${DISPLAY}; font-weight: 200;
   font-size: min(13.2vw, 34svh); line-height: .82; letter-spacing: .015em; white-space: nowrap; }
 .dr-hero-word .dr-hero-mask { overflow: clip; padding-top: .18em; }
-.dr-hero-word .dr-hero-mask span { display: inline-block; will-change: transform; }
+.dr-hero-word .dr-hero-mask span { display: inline-block; }
 .dr-waterline { position: relative; height: 1px; background: ${INK}; margin: 0 1.65rem; }
 .dr-hero-band { position: relative; height: 38svh; margin: 0; }
 .dr-hero-band .dr-flip { position: absolute; inset: 0; }
@@ -346,7 +346,7 @@ const PAGE_STYLES = `
 .dr-acc-line { margin-top: 1rem; max-width: 21rem; font-size: .85rem; line-height: 1.55; opacity: .92; }
 .dr-acc-cta { margin-top: 1.5rem; }
 .dr-acc-textwrap > * { overflow: clip; }
-.dr-acc-textwrap .dr-pop { display: block; will-change: transform; }
+.dr-acc-textwrap .dr-pop { display: block; }
 
 /* shed note */
 .dr-shednote { width: 44vw; background: ${PLASTER}; display: flex; align-items: center; }
@@ -543,10 +543,10 @@ function Media(props: {
       style={{ margin: 0 }}
     >
       <div className="dr-m dr-m-src" aria-hidden="true">
-        <img src={src} alt="" loading={eager ? 'eager' : 'lazy'} />
+        <img src={src} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" />
       </div>
       <div className="dr-m dr-m-up">
-        <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} />
+        <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
       </div>
       {spec && (
         <figcaption className="dr-spec dr-mono">
@@ -636,6 +636,7 @@ export default function DrangarPage() {
 
     const isDesktop = window.matchMedia('(min-width: 1024px)').matches
     const fine = window.matchMedia('(pointer: fine)').matches
+    const cleanupFns: Array<() => void> = []
     const ctx = gsap.context(() => {
       const TS = 1.15 // global speed dial (reference)
 
@@ -716,27 +717,33 @@ export default function DrangarPage() {
         })
       }
 
-      /* ── flip peels + parallax, per-instance data-driven ── */
+      /* ── flip peels + parallax. ONE writer per image: GSAP owns clip-path
+         on the up layer and scale+yPercent on the source img (it merges its
+         own transform channels; a CSS calc() transform would fight the
+         inline one and jitter). Accordion media peel one-shot only — its
+         panel geometry animates, so scrubbed starts there go stale. ── */
       const armFlips = (container: (t: Element) => ScrollTrigger.Vars) => {
         root.querySelectorAll<HTMLElement>('.dr-flip').forEach((fig) => {
           const up = fig.querySelector('.dr-m-up') as HTMLElement
           const src = fig.querySelector('.dr-m-src img') as HTMLElement
+          const inAccordion = !!fig.closest('.dr-acc-media')
           const dir = fig.dataset.drDir ?? 'up'
-          const scrub = fig.dataset.drScrub === '1'
+          const scrub = fig.dataset.drScrub === '1' && !inAccordion
           const dur = parseFloat(fig.dataset.drDur ?? '1.5')
-          const clip = dir === 'up' ? '100% 0% 0% 0%' : dir === 'right' ? '0% 100% 0% 0%' : '0% 0% 0% 100%'
+          const clipFrom = dir === 'up' ? 'inset(100% 0% 0% 0%)' : dir === 'right' ? 'inset(0% 100% 0% 0%)' : 'inset(0% 0% 0% 100%)'
           const tl = gsap.timeline({ paused: true })
-          tl.from(up, { '--dr-clip': clip, duration: dur, ease: 'power2.out' }, 0)
+          tl.fromTo(up, { clipPath: clipFrom }, { clipPath: 'inset(0% 0% 0% 0%)', duration: dur, ease: 'power2.out', immediateRender: true }, 0)
           tl.from(src, { scale: 1.2, duration: dur + 0.5, ease: 'power2.out' }, 0)
           ScrollTrigger.create({
             ...container(fig),
             animation: tl,
             ...(scrub ? { scrub: 0.35, end: '+=75%' } : { toggleActions: 'play none none reverse' }),
           })
-          /* inner parallax */
-          const par = gsap.timeline({ paused: true })
-          par.fromTo(fig, { '--dr-ty': '100%' }, { '--dr-ty': '0%', ease: 'none' }, 0)
-          ScrollTrigger.create({ ...container(fig), animation: par, scrub: 0.5, end: '+=120%' })
+          if (!inAccordion && fig.classList.contains('dr-par')) {
+            const par = gsap.timeline({ paused: true })
+            par.fromTo(src, { yPercent: 6 }, { yPercent: -6, ease: 'none' }, 0)
+            ScrollTrigger.create({ ...container(fig), animation: par, scrub: 0.5, end: '+=120%' })
+          }
         })
       }
 
@@ -792,21 +799,25 @@ export default function DrangarPage() {
           })
         }
 
-        /* measure the track AT PROGRESS(1) — the reference's trick */
-        projectsTl.progress(1)
-        const trackW = track.scrollWidth
-        projectsTl.progress(0)
-        const maxX = trackW - window.innerWidth
-
-        const journeyTween = gsap.to(track, { x: -maxX, duration: 100, ease: 'none' })
+        /* measure the track AT PROGRESS(1) — the reference's trick. Function-
+           based so a same-branch resize re-measures on refresh. */
+        const measureMaxX = () => {
+          const p = projectsTl.progress()
+          projectsTl.progress(1)
+          const w = track.scrollWidth
+          projectsTl.progress(p)
+          return w - window.innerWidth
+        }
+        const journeyTween = gsap.to(track, { x: () => -measureMaxX(), duration: 100, ease: 'none' })
         const master = ScrollTrigger.create({
           animation: journeyTween,
           trigger: journeyEl,
           pin: journeyEl,
           anticipatePin: 1,
           scrub: 1,
+          invalidateOnRefresh: true,
           start: 'top top',
-          end: `+=${maxX}`,
+          end: () => `+=${measureMaxX()}`,
           onUpdate: (self) => {
             const patina = patinaAt(self.progress)
             root.style.setProperty('--dr-patina', patina)
@@ -1081,6 +1092,13 @@ export default function DrangarPage() {
       Promise.allSettled([document.fonts.ready, ...imgs.map((im) => (im as HTMLImageElement).decode?.().catch(() => undefined))]).then(() => {
         ScrollTrigger.refresh()
       })
+
+      /* branch fork is structural: crossing it re-runs the whole engine
+         (the reference reloads across its fork too) */
+      const fork = window.matchMedia('(min-width: 1024px)')
+      const onFork = () => window.location.reload()
+      fork.addEventListener('change', onFork)
+      cleanupFns.push(() => fork.removeEventListener('change', onFork))
     }, root)
 
     /* cursor — lerp + swell + content-swap */
@@ -1148,6 +1166,7 @@ export default function DrangarPage() {
 
     return () => {
       ctx.revert()
+      cleanupFns.forEach((fn) => fn())
       cursorCleanup?.()
       if (journeyNav) {
         journeyNav.lenis.destroy()
@@ -1336,7 +1355,7 @@ export default function DrangarPage() {
                     </div>
                     <div className="dr-acc-body">
                       <figure className="dr-acc-detail" aria-hidden="false" style={{ margin: 0 }}>
-                        <img src={r.photo2} alt={r.photo2Alt} loading="lazy" />
+                        <img src={r.photo2} alt={r.photo2Alt} loading="eager" decoding="async" />
                       </figure>
                       <div className="dr-acc-textwrap">
                         <h3 className="dr-acc-name dr-display">{r.name}</h3>
@@ -1392,7 +1411,7 @@ export default function DrangarPage() {
               ))}
               <div className="dr-mat-stack" aria-hidden="true">
                 {MATERIALS.map((m, i) => (
-                  <img key={m.id} src={m.photo} alt="" className={i === 0 ? 'is-on' : ''} loading="lazy" />
+                  <img key={m.id} src={m.photo} alt="" className={i === 0 ? 'is-on' : ''} loading="eager" decoding="async" />
                 ))}
               </div>
             </section>
@@ -1409,7 +1428,7 @@ export default function DrangarPage() {
                 <div className="dr-barn-strip">
                   {BARN.photos.map((p) => (
                     <figure className="dr-barn-cell" key={p.src} style={{ margin: 0 }}>
-                      <img src={p.src} alt={p.alt} loading="lazy" />
+                      <img src={p.src} alt={p.alt} loading="eager" decoding="async" />
                       <figcaption>{p.cap}</figcaption>
                     </figure>
                   ))}
@@ -1432,8 +1451,8 @@ export default function DrangarPage() {
             {/* 7 ── SAGAN */}
             <section className="dr-panel dr-saga" id="sagan" aria-label="The story">
               <div className="dr-saga-fig dr-flip dr-par" data-dr-dir="up">
-                <div className="dr-m dr-m-src"><img src={IMG.entranceDusk} alt="" loading="lazy" /></div>
-                <div className="dr-m dr-m-up"><img src={IMG.entranceDusk} alt="The concrete entrance and glazing at dusk, terrace toward the sea" loading="lazy" /></div>
+                <div className="dr-m dr-m-src"><img src={IMG.entranceDusk} alt="" loading="eager" decoding="async" /></div>
+                <div className="dr-m dr-m-up"><img src={IMG.entranceDusk} alt="The concrete entrance and glazing at dusk, terrace toward the sea" loading="eager" decoding="async" /></div>
               </div>
               <div className="dr-saga-copy">
                 <h2 className="dr-saga-title">{SAGA.title}</h2>
@@ -1476,7 +1495,7 @@ export default function DrangarPage() {
                 </div>
               </div>
               <div className="dr-cierre-strip" aria-hidden="true">
-                <img src={IMG.gate} alt="" loading="lazy" />
+                <img src={IMG.gate} alt="" loading="eager" decoding="async" />
               </div>
             </section>
           </div>
