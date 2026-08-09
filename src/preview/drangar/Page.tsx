@@ -265,7 +265,10 @@ const PAGE_STYLES = `
 .dr-hero-band { position: relative; height: 38svh; margin: 0; }
 .dr-hero-band .dr-flip { position: absolute; inset: 0; }
 .dr-hero-kicker { position: absolute; top: calc(1.1rem + 54px); left: 1.65rem; color: ${INK_MUTE}; }
-.dr-hero-sub { position: absolute; left: 1.65rem; bottom: calc(38svh + 2rem); max-width: 15.5rem;
+/* sits directly under the kicker, OUT of the wordmark's vertical band: the
+   colossal word is centred and its left edge reaches ~17vw, so anything
+   parked beside it at mid-height collides on shorter viewports */
+.dr-hero-sub { position: absolute; left: 1.65rem; top: calc(1.1rem + 5.2rem); max-width: 14rem;
   font-size: .85rem; line-height: 1.5; color: ${INK_SOFT}; }
 .dr-hero-rotmenu { position: absolute; top: calc(1.1rem + 54px); right: .55rem; transform-origin: bottom right;
   transform: rotate(-90deg); display: flex; flex-wrap: nowrap; gap: 1.2rem; color: ${INK_MUTE}; white-space: nowrap; }
