@@ -381,17 +381,22 @@ const PAGE_STYLES = `
 .dr-mat-stack img.is-on { opacity: 1; z-index: 2; }
 .dr-mat-stack img.is-prev { opacity: 1; z-index: 1; }
 
-/* barn pin-in-pin */
+/* barn pin-in-pin — the stage counter-slides against the journey so it holds
+   the viewport while the vertical film plays (the reference's last-item). */
 .dr-barn { width: 220vw; background: ${INK}; color: ${PLASTER}; overflow: clip;
   box-shadow: 0 0 0 1px ${INK}; }
-.dr-barn-content { position: absolute; top: 0; left: 0; width: 44vw; height: 100%;
-  display: flex; flex-direction: column; justify-content: center; padding: 0 4vw; }
+.dr-barn-stage { position: absolute; top: 0; left: 0; width: 100vw; height: 100%; will-change: transform; }
+.dr-barn-content { position: absolute; top: 0; left: 0; width: 46vw; height: 100%;
+  display: flex; flex-direction: column; justify-content: center; padding: 0 0 0 6vw; }
 .dr-barn-title { font-family: ${DISPLAY}; font-weight: 200; font-size: min(4.8vw, 10svh); line-height: 1; }
 .dr-barn-title em { font-style: italic; }
 .dr-barn-body { margin-top: 1.6rem; max-width: 24rem; color: ${PLASTER_MUTE}; font-size: .85rem; line-height: 1.6; }
-.dr-barn-strip { position: absolute; top: 0; left: 52vw; width: 44vw; height: 100%; }
-.dr-barn-cell { position: relative; height: 62svh; margin-bottom: 2svh; overflow: clip; }
+.dr-barn-strip { position: absolute; top: 0; left: 54vw; width: 40vw; height: 100%; will-change: transform; }
+.dr-barn-cell { position: relative; height: 62svh; margin-bottom: 2.5svh; overflow: clip; }
 .dr-barn-cell img { width: 100%; height: 100%; object-fit: cover; }
+.dr-barn-cell figcaption { position: absolute; left: 0; bottom: 0; z-index: 2;
+  padding: .5em .85em; background: rgba(19,18,17,.72); color: ${PLASTER};
+  font-family: ${MONO}; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; }
 
 /* islands full-bleed */
 .dr-isl { width: 100vw; position: relative; }
@@ -463,6 +468,7 @@ const PAGE_STYLES = `
   .dr-mat-fig-m { width: 100%; aspect-ratio: 4/3; overflow: clip; }
   .dr-mat-fig-m img { width: 100%; height: 100%; object-fit: cover; }
   .dr-barn { width: 100%; }
+  .dr-barn-stage { position: static; width: 100%; height: auto; }
   .dr-barn-content { position: static; width: 100%; padding: 4.5rem 1.65rem 1rem; }
   .dr-barn-strip { position: static; width: 100%; padding: 0 1.65rem 3rem; }
   .dr-barn-cell { height: 46svh; margin-bottom: 1rem; }
@@ -935,16 +941,20 @@ export default function DrangarPage() {
           }
         }
 
-        /* barn pin-in-pin filmstrip */
+        /* barn pin-in-pin filmstrip: the stage rides the journey (counter-
+           slide = the reference's lastProject x-travel) while the strip's
+           vertical film plays inside it */
         const barn = root.querySelector<HTMLElement>('.dr-barn')
         if (barn) {
+          const stage = barn.querySelector<HTMLElement>('.dr-barn-stage')!
           const strip = barn.querySelector<HTMLElement>('.dr-barn-strip')!
           const cells = Array.from(barn.querySelectorAll<HTMLElement>('.dr-barn-cell'))
           const bTl = gsap.timeline({ paused: true })
-          bTl.fromTo(strip, { y: '100vh' }, { y: `${100 - 64 * (cells.length - 1)}vh`, duration: 1, ease: 'none' }, 0)
+          bTl.fromTo(stage, { x: '0vw' }, { x: '120vw', duration: 1.75, ease: 'none' }, 0)
+          bTl.fromTo(strip, { y: '100vh' }, { y: `${100 - 66 * (cells.length - 1)}vh`, duration: 1, ease: 'none' }, 0)
           bTl.from(cells, { height: '80svh', duration: 1, ease: 'none' }, 0)
-          bTl.to(strip, { y: `-${64 * (cells.length - 2)}vh`, duration: 0.75, ease: 'none' }, 1)
-          bTl.to(cells, { height: '38svh', duration: 0.75, ease: 'power1.inOut' }, 1)
+          bTl.to(strip, { y: `${100 - 66 * (cells.length - 1) - 40}vh`, duration: 0.75, ease: 'none' }, 1)
+          bTl.to(cells, { height: '40svh', duration: 0.75, ease: 'power1.inOut' }, 1)
           ScrollTrigger.create({
             ...onJourney(barn, 'left 0%'), animation: bTl, end: 'left -120%', scrub: 0,
           })
@@ -1389,18 +1399,21 @@ export default function DrangarPage() {
 
             {/* 5 ── COW BARN */}
             <section className="dr-panel dr-barn" id="fjosid" aria-label="The Cow Barn">
-              <div className="dr-barn-content">
-                <h2 className="dr-barn-title dr-display">
-                  <em>{BARN.is}</em>, the Cow Barn
-                </h2>
-                <p className="dr-barn-body">{BARN.body}</p>
-              </div>
-              <div className="dr-barn-strip">
-                {BARN.photos.map((p) => (
-                  <div className="dr-barn-cell" key={p.src}>
-                    <img src={p.src} alt={p.alt} loading="lazy" />
-                  </div>
-                ))}
+              <div className="dr-barn-stage">
+                <div className="dr-barn-content">
+                  <h2 className="dr-barn-title dr-display">
+                    <em>{BARN.is}</em>, the Cow Barn
+                  </h2>
+                  <p className="dr-barn-body">{BARN.body}</p>
+                </div>
+                <div className="dr-barn-strip">
+                  {BARN.photos.map((p) => (
+                    <figure className="dr-barn-cell" key={p.src} style={{ margin: 0 }}>
+                      <img src={p.src} alt={p.alt} loading="lazy" />
+                      <figcaption>{p.cap}</figcaption>
+                    </figure>
+                  ))}
+                </div>
               </div>
             </section>
 

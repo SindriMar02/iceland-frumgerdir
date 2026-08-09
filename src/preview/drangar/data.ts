@@ -226,10 +226,10 @@ export const BARN = {
   is: 'Fjósið',
   body: 'Eight rooms wrapped in sleek copper where the cows once stood, six double and two triple, with a common room, kitchen and reception opening onto the water. All twelve rooms across the farm have bathrooms of their own.',
   photos: [
-    { src: IMG.barnCommon, alt: 'The Cow Barn common room, oak ceiling and full-height glazing to the sea' },
-    { src: IMG.roomBovine, alt: 'A bovine-grey guest room with a framed portrait of a cow' },
-    { src: IMG.auroraWindow, alt: 'The aurora seen through the barn glazing' },
-    { src: IMG.barnSea, alt: 'The copper-clad barn low against Breiðafjörður' },
+    { src: IMG.barnCommon, alt: 'The Cow Barn common room, oak ceiling and full-height glazing to the sea', cap: 'The common room' },
+    { src: IMG.roomBovine, alt: 'A bovine-grey guest room with a framed portrait of a cow', cap: 'A barn room' },
+    { src: IMG.auroraWindow, alt: 'The aurora seen through the barn glazing', cap: 'From the glazing' },
+    { src: IMG.barnSea, alt: 'The copper-clad barn low against Breiðafjörður', cap: 'The barn, the shore' },
   ],
 }
 
