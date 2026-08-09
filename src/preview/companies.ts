@@ -3853,6 +3853,8 @@ Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 
 Hún er hönnuð fyrir símann fyrst, því þar leita flestir ferðamenn, og virkar eins vel á tölvu. Herbergin fjögur fá hvert sinn lit, koparinn eldist úr brúnu yfir í spanskgrænu eftir því sem líður á síðuna og sagan á bak við húsin fær loksins pláss.
 
+Svo er það leitin. Eins og staðan er í dag segir vefsíðan ykkar hvorki Google né gervigreind eins og ChatGPT að á Dröngum sé verðlaunað gistiheimili á Snæfellsnesi. Það vantar lýsingu á síðuna, fyrirsögn og þær upplýsingar sem tölvur lesa. Frumgerðin hefur þetta allt á hreinu, svo þið komið upp þegar fólk leitar að gistingu á svæðinu, hvort sem það er á Google eða í gervigreind.
+
 Næsta skref væri svo bókunarkerfi beint á ykkar eigin síðu. Gestir sjá lausar nætur og fá staðfestingu strax, þið sæjuð allar bókanir á einum stað og hver bókun sem kemur beint til ykkar sleppur við þóknunina sem Booking tekur.
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þið hafið gaman af því að skoða hugmyndina.
