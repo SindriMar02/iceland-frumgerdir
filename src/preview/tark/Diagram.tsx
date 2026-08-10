@@ -61,6 +61,14 @@ export function Diagram() {
 
         <text className="tark-st tark-st-a" x={H} y={-1.4} textAnchor="end">Húsið · {fmt(hus.m2)} m²</text>
         <text className="tark-st tark-st-b" x={L + 1.8} y={H - 1.4}>Lónið · {fmt(lon.m2)} m²</text>
+
+        {/* crop marks — drawing-sheet corners, outside the outer square */}
+        <g className="tark-crop" aria-hidden>
+          <path d={`M -3 0 H -0.9 M 0 -3 V -0.9`} />
+          <path d={`M ${H + 0.9} 0 H ${H + 3} M ${H} -3 V -0.9`} />
+          <path d={`M -3 ${H} H -0.9 M 0 ${H + 0.9} V ${H + 3}`} />
+          <path d={`M ${H + 0.9} ${H} H ${H + 3} M ${H} ${H + 0.9} V ${H + 3}`} />
+        </g>
       </svg>
 
       <dl className="tark-sta-key">
@@ -100,6 +108,7 @@ export const DIAGRAM_CSS = `
 .tark-sta text{opacity:0;transition:opacity .7s cubic-bezier(.17,.84,.44,1) .9s}
 .tark-sta.is-in text{opacity:1}
 
+.tark-crop path{stroke:#111111;stroke-width:.32;opacity:.35;fill:none}
 .tark-sta-key{margin:0;display:grid;gap:0;border-top:1px solid ${RULE}}
 .tark-sta-key>div{display:flex;justify-content:space-between;gap:1.4rem;align-items:baseline;
   padding-block:clamp(12px,1.4vw,18px);border-bottom:1px solid ${RULE}}

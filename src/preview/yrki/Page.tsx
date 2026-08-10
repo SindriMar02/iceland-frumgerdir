@@ -173,6 +173,38 @@ main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
 .yrki-contact{position:relative}
 .yrki-contact::before{content:'';position:absolute;inset:-11px -4px}
 .yrki-send:hover{opacity:.6}
+
+/* ═══ premium layer — the drawing-sheet language ═══ */
+/* ghost numeral behind the diagram: outline-only display figure */
+#yrki-scale{position:relative;overflow:hidden}
+.yrki-ghost{position:absolute;right:clamp(8px,2vw,40px);top:44%;transform:translateY(-50%);
+  font-family:'YRKI Hedvig',Georgia,serif;font-size:clamp(10rem,24vw,21rem);line-height:1;
+  color:transparent;-webkit-text-stroke:1.2px rgba(17,17,17,.09);
+  pointer-events:none;user-select:none;white-space:nowrap}
+@media (max-width:759px){.yrki-ghost{display:none}}
+
+/* hero title block, bottom right — the sheet's own corner stamp */
+.yrki-tblock{position:absolute;right:clamp(18px,3.4vw,52px);bottom:clamp(16px,2.6vw,40px);
+  margin:0;color:#fff;display:grid;gap:.5em;text-align:right;
+  border-right:1px solid rgba(255,255,255,.4);padding-right:1.2em}
+.yrki-tblock>div{display:grid;gap:.15em}
+.yrki-tblock dt{margin:0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.yrki-tblock dd{margin:0;font-family:'YRKI Hedvig',Georgia,serif;font-size:clamp(14px,1.15vw,17px);line-height:1}
+@media (max-width:899px){.yrki-tblock{display:none}}
+
+/* marquee: fade the register in and out at the edges */
+.yrki-skyline{-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+
+/* the close: a display-size line, not a small link */
+.yrki-send{font-family:'YRKI Hedvig',Georgia,serif;font-size:clamp(1.5rem,3.2vw,2.9rem);
+  letter-spacing:-.015em;border-bottom-width:2px}
+
+/* statement gets one size more air */
+.yrki-statement{font-size:clamp(1.5rem,4vw,3.4rem);line-height:1.1}
+
+/* hairline print edge on every framed photograph */
+.yrki-frame::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(17,17,17,.06);pointer-events:none}
 ${WORK_LIST_CSS}
 ${PRELOADER_CSS}
 ${DIAGRAM_CSS}
@@ -255,6 +287,36 @@ export default function YrkiPage() {
     if (!reduced) targets.forEach((t) => io.observe(t))
     const failsafe = window.setTimeout(() => targets.forEach((t) => t.classList.add('is-in')), 2000)
 
+    /* premium: small ledger figures count up as they arrive. Years and other
+       4-digit values stay static (a spinning 1997 reads cheap); the failsafe
+       writes the final figure no matter what. */
+    const counters = Array.from(root.querySelectorAll<HTMLElement>('.yrki-led-v .yrki-m>span'))
+      .filter((el) => /^\d{1,3}$/.test((el.textContent || '').trim()))
+    counters.forEach((el) => { el.dataset.final = (el.textContent || '').trim() })
+    let io2: IntersectionObserver | null = null
+    if (!reduced && counters.length) {
+      io2 = new IntersectionObserver((es) => es.forEach((e) => {
+        if (!e.isIntersecting) return
+        const el = e.target as HTMLElement
+        io2!.unobserve(el)
+        const final = Number(el.dataset.final)
+        const t0 = performance.now()
+        const D = 1100
+        const tick = (t: number) => {
+          const pr = Math.min(1, (t - t0) / D)
+          const ease = 1 - Math.pow(1 - pr, 3)
+          el.textContent = String(Math.round(final * ease))
+          if (pr < 1) requestAnimationFrame(tick)
+          else el.textContent = String(final)
+        }
+        requestAnimationFrame(tick)
+      }), { threshold: 0.6 })
+      counters.forEach((el) => io2!.observe(el))
+    }
+    const counterFailsafe = window.setTimeout(() => {
+      counters.forEach((el) => { if (el.dataset.final) el.textContent = el.dataset.final })
+    }, 2600)
+
     const frames = Array.from(root.querySelectorAll<HTMLElement>('.yrki-frame-in'))
     const drifters = reduced ? [] : Array.from(root.querySelectorAll<HTMLElement>('[data-yrki-tdrift]'))
     const hero = root.querySelector<HTMLElement>('.yrki-hero')
@@ -302,6 +364,8 @@ export default function YrkiPage() {
 
     return () => {
       window.clearTimeout(failsafe)
+      window.clearTimeout(counterFailsafe)
+      io2?.disconnect()
       io.disconnect()
       cancelAnimationFrame(raf)
       lenis?.destroy()
@@ -349,6 +413,11 @@ export default function YrkiPage() {
             </div>
           </div>
           <div className="yrki-hero-scrim" aria-hidden />
+          <dl className="yrki-tblock">
+            <div><dt>Verk í skrá</dt><dd>86</dd></div>
+            <div><dt>Stofnað</dt><dd>1997</dd></div>
+            <div><dt>ISO 9001</dt><dd>2008</dd></div>
+          </dl>
           <div className="yrki-hero-lock yrki-pad">
             <h1 style={{ fontWeight: 400 }}>
               <Rise className="yrki-lock">Yrki arkitektar</Rise>
@@ -387,6 +456,7 @@ export default function YrkiPage() {
         {/* 3 · THE WOW — the spread of scale, three published areas */}
         <section id="yrki-scale" className="yrki-sec yrki-pad">
           <div className="yrki-rule" />
+          <span className="yrki-ghost" aria-hidden>2.280</span>
           <h2 className="yrki-d" data-yrki-tdrift="26" style={{ ...H2, margin: 'clamp(26px,3.6vw,48px) 0 .7rem' }}>
             <Rise>Tvö hundruð og tíu fermetrar,</Rise>
             <Rise className="yrki-serif">og tvö þúsund tvö hundruð og áttatíu.</Rise>

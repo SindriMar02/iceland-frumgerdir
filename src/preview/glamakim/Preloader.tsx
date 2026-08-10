@@ -103,7 +103,7 @@ export function Preloader({ ink = '#111111', ground = '#ffffff' }: { ink?: strin
         {/* 100 - pct: at 0 the sweep sits fully right (nothing revealed),
             at 100 it has travelled all the way left and the word is solid. */}
         <span className="gk-pre-mark" style={{ backgroundPositionX: `${100 - pct}%` }}>
-          THG Arkitektar
+          Gláma·Kím
         </span>
         <span className="gk-pre-num">{pct}</span>
       </div>
@@ -124,7 +124,7 @@ export const PRELOADER_CSS = `
 
 /* 21st.dev "Text Scroll Read" sweep: a hard two-stop gradient at 200% width,
    clipped to the glyphs, its x position driven by the percentage.
-   "THG Arkitektar" is more than twice the length of "Heklusýn", so the
+   "Gláma·Kím" is longer than "Heklusýn", so the
    lockup clamp is a step down from that page's — at 10.6vw the wordmark
    overflowed the field on every viewport below ~1100px. */
 .gk-pre-mark{

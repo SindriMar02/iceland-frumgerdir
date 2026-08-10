@@ -102,6 +102,7 @@ export function WorkList() {
                   <img src={IMG(p.image)} alt={p.alt} loading="lazy" decoding="async" />
                 </span>
               ) : null}
+              <span className="tark-wnum" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
               <span className="tark-wname">{p.name}</span>
               {/* Only some projects publish a year or a size. Joining on a
                   separator unconditionally would print a bare " · " on the
@@ -132,6 +133,7 @@ export const WORK_LIST_CSS = `
 /* One step down from Heklusýn's 4.2vw ceiling: "Endurhæfingarmiðstöð SÁÁ, Vík"
    is 27 characters where the longest house name is 15, and at the larger
    clamp it wrapped to three lines on every viewport under ~1200px. */
+.tark-wnum{grid-column:1;color:#767676;font-size:clamp(.78rem,.9vw,.92rem);letter-spacing:.14em}
 .tark-wname{font-size:clamp(1.3rem,3.3vw,2.7rem);letter-spacing:-.026em;line-height:1.04;grid-column:1}
 .tark-wmeta{grid-column:1;color:${MUTED};font-size:clamp(.86rem,1.05vw,1rem)}
 .tark-wstate{grid-column:2;grid-row:1/3;text-align:right;color:${MUTED};font-size:clamp(.9rem,1.15vw,1.06rem);white-space:nowrap}

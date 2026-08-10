@@ -174,6 +174,38 @@ main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
 .tark-contact{position:relative}
 .tark-contact::before{content:'';position:absolute;inset:-11px -4px}
 .tark-send:hover{opacity:.6}
+
+/* ═══ premium layer — the drawing-sheet language ═══ */
+/* ghost numeral behind the diagram: outline-only display figure */
+#tark-scale{position:relative;overflow:hidden}
+.tark-ghost{position:absolute;right:clamp(8px,2vw,40px);top:44%;transform:translateY(-50%);
+  font-family:'TARK Hedvig',Georgia,serif;font-size:clamp(10rem,24vw,21rem);line-height:1;
+  color:transparent;-webkit-text-stroke:1.2px rgba(17,17,17,.09);
+  pointer-events:none;user-select:none;white-space:nowrap}
+@media (max-width:759px){.tark-ghost{display:none}}
+
+/* hero title block, bottom right — the sheet's own corner stamp */
+.tark-tblock{position:absolute;right:clamp(18px,3.4vw,52px);bottom:clamp(16px,2.6vw,40px);
+  margin:0;color:#fff;display:grid;gap:.5em;text-align:right;
+  border-right:1px solid rgba(255,255,255,.4);padding-right:1.2em}
+.tark-tblock>div{display:grid;gap:.15em}
+.tark-tblock dt{margin:0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.tark-tblock dd{margin:0;font-family:'TARK Hedvig',Georgia,serif;font-size:clamp(14px,1.15vw,17px);line-height:1}
+@media (max-width:899px){.tark-tblock{display:none}}
+
+/* marquee: fade the register in and out at the edges */
+.tark-skyline{-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+
+/* the close: a display-size line, not a small link */
+.tark-send{font-family:'TARK Hedvig',Georgia,serif;font-size:clamp(1.5rem,3.2vw,2.9rem);
+  letter-spacing:-.015em;border-bottom-width:2px}
+
+/* statement gets one size more air */
+.tark-statement{font-size:clamp(1.5rem,4vw,3.4rem);line-height:1.1}
+
+/* hairline print edge on every framed photograph */
+.tark-frame::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(17,17,17,.06);pointer-events:none}
 ${WORK_LIST_CSS}
 ${PRELOADER_CSS}
 ${DIAGRAM_CSS}
@@ -256,6 +288,36 @@ export default function TarkPage() {
     if (!reduced) targets.forEach((t) => io.observe(t))
     const failsafe = window.setTimeout(() => targets.forEach((t) => t.classList.add('is-in')), 2000)
 
+    /* premium: small ledger figures count up as they arrive. Years and other
+       4-digit values stay static (a spinning 1997 reads cheap); the failsafe
+       writes the final figure no matter what. */
+    const counters = Array.from(root.querySelectorAll<HTMLElement>('.tark-led-v .tark-m>span'))
+      .filter((el) => /^\d{1,3}$/.test((el.textContent || '').trim()))
+    counters.forEach((el) => { el.dataset.final = (el.textContent || '').trim() })
+    let io2: IntersectionObserver | null = null
+    if (!reduced && counters.length) {
+      io2 = new IntersectionObserver((es) => es.forEach((e) => {
+        if (!e.isIntersecting) return
+        const el = e.target as HTMLElement
+        io2!.unobserve(el)
+        const final = Number(el.dataset.final)
+        const t0 = performance.now()
+        const D = 1100
+        const tick = (t: number) => {
+          const pr = Math.min(1, (t - t0) / D)
+          const ease = 1 - Math.pow(1 - pr, 3)
+          el.textContent = String(Math.round(final * ease))
+          if (pr < 1) requestAnimationFrame(tick)
+          else el.textContent = String(final)
+        }
+        requestAnimationFrame(tick)
+      }), { threshold: 0.6 })
+      counters.forEach((el) => io2!.observe(el))
+    }
+    const counterFailsafe = window.setTimeout(() => {
+      counters.forEach((el) => { if (el.dataset.final) el.textContent = el.dataset.final })
+    }, 2600)
+
     const frames = Array.from(root.querySelectorAll<HTMLElement>('.tark-frame-in'))
     const drifters = reduced ? [] : Array.from(root.querySelectorAll<HTMLElement>('[data-tark-tdrift]'))
     const hero = root.querySelector<HTMLElement>('.tark-hero')
@@ -303,6 +365,8 @@ export default function TarkPage() {
 
     return () => {
       window.clearTimeout(failsafe)
+      window.clearTimeout(counterFailsafe)
+      io2?.disconnect()
       io.disconnect()
       cancelAnimationFrame(raf)
       lenis?.destroy()
@@ -350,6 +414,11 @@ export default function TarkPage() {
             </div>
           </div>
           <div className="tark-hero-scrim" aria-hidden />
+          <dl className="tark-tblock">
+            <div><dt>Verk í skrá</dt><dd>42</dd></div>
+            <div><dt>Skráð</dt><dd>1978</dd></div>
+            <div><dt>Svið</dt><dd>6</dd></div>
+          </dl>
           <div className="tark-hero-lock tark-pad">
             <h1 style={{ fontWeight: 400 }}>
               <Rise className="tark-lock">T.ark arkitektar</Rise>
@@ -390,6 +459,7 @@ export default function TarkPage() {
         {/* 3 · THE WOW — the spread of scale, three published areas */}
         <section id="tark-scale" className="tark-sec tark-pad">
           <div className="tark-rule" />
+          <span className="tark-ghost" aria-hidden>3.000</span>
           <h2 className="tark-d" data-tark-tdrift="26" style={{ ...H2, margin: 'clamp(26px,3.6vw,48px) 0 .7rem' }}>
             <Rise>Húsið er þrjú þúsund fermetrar,</Rise>
             <Rise className="tark-serif">lónið er eitt þúsund.</Rise>

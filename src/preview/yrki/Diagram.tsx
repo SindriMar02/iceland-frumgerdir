@@ -69,6 +69,14 @@ export function Diagram() {
         <text className="yrki-st yrki-st-a" x={B} y={-1.4} textAnchor="end">{fmt(big.m2)} m²</text>
         <text className="yrki-st yrki-st-add" x={M + 1.6} y={B - M + 4.4}>{fmt(mid.m2)} m²</text>
         <text className="yrki-st yrki-st-b" x={S + 1.8} y={B - 1.4}>{fmt(small.m2)} m²</text>
+
+        {/* crop marks — drawing-sheet corners, outside the outer square */}
+        <g className="yrki-crop" aria-hidden>
+          <path d={`M -3 0 H -0.9 M 0 -3 V -0.9`} />
+          <path d={`M ${B + 0.9} 0 H ${B + 3} M ${B} -3 V -0.9`} />
+          <path d={`M -3 ${B} H -0.9 M 0 ${B + 0.9} V ${B + 3}`} />
+          <path d={`M ${B + 0.9} ${B} H ${B + 3} M ${B} ${B + 0.9} V ${B + 3}`} />
+        </g>
       </svg>
 
       <dl className="yrki-sta-key">
@@ -111,6 +119,7 @@ export const DIAGRAM_CSS = `
 .yrki-sta text{opacity:0;transition:opacity .7s cubic-bezier(.17,.84,.44,1) .9s}
 .yrki-sta.is-in text{opacity:1}
 
+.yrki-crop path{stroke:#111111;stroke-width:.32;opacity:.35;fill:none}
 .yrki-sta-key{margin:0;display:grid;gap:0;border-top:1px solid ${RULE}}
 .yrki-sta-key>div{display:flex;justify-content:space-between;gap:1.4rem;align-items:baseline;
   padding-block:clamp(12px,1.4vw,18px);border-bottom:1px solid ${RULE}}
