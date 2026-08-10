@@ -574,9 +574,12 @@ export default function DrangarPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [loaderDone, setLoaderDone] = useState(
-    () => prefersReduced() || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dr_seen') === '1'),
-  )
+  const [loaderDone, setLoaderDone] = useState(() => {
+    if (prefersReduced()) return true
+    /* storage access throws outright in some privacy modes — never let that
+       take the page down with it */
+    try { return sessionStorage.getItem('dr_seen') === '1' } catch { return false }
+  })
   useBodyLock(menuOpen)
 
   useEffect(() => {
@@ -606,27 +609,48 @@ export default function DrangarPage() {
     gsap.fromTo(chars, { xPercent: 120 }, {
       xPercent: 0, duration: 0.55, stagger: 0.08, ease: 'power3.out', delay: 0.25,
     })
-    /* bounded fake counter: never outruns real image progress (reference) */
-    const imgs = Array.from(document.images)
-    let loaded = 0
-    const bump = () => { loaded += 1 }
-    imgs.forEach((im) => {
-      const t = new Image()
-      t.onload = bump
-      t.onerror = bump
-      t.src = im.src
+    /* Gate on the FIRST SCREEN only, and never for longer than MAX_HOLD.
+       The previous version waited on every entry in document.images and
+       force-fetched each one through `new Image()`. That did three bad things
+       on a phone: it defeated loading="lazy" (all 2.4 MB of gallery downloaded
+       before anything was visible), it parked the bar at exactly 90% until the
+       very last photo landed (measured: 18.8 s of black screen on a throttled
+       connection — reads as hung, and Sindri gave up and reopened), and a
+       single stalled request held the page hostage forever. Time is now both
+       a floor and a ceiling: the bar always creeps forward, and it completes
+       at MAX_HOLD no matter what the network is doing. */
+    const MIN_HOLD = 1100 // let the wordmark animation actually read
+    const MAX_HOLD = 2600 // hard ceiling — the page reveals regardless
+    const gate = Array.from(root.querySelectorAll<HTMLImageElement>('.dr-hero img, .dr-arrival img'))
+    const settled = (im: HTMLImageElement) => im.complete && im.naturalWidth > 0
+    let done = gate.filter(settled).length
+    gate.forEach((im) => {
+      if (settled(im)) return
+      const bump = () => {
+        done += 1
+        im.removeEventListener('load', bump)
+        im.removeEventListener('error', bump)
+      }
+      im.addEventListener('load', bump)
+      im.addEventListener('error', bump)
     })
+    const started = performance.now()
     let fake = 0
     const iv = window.setInterval(() => {
-      const real = imgs.length ? Math.floor((loaded / imgs.length) * 100) : 100
-      /* crawl toward 90 while assets land; the last 10% belongs to reality */
-      const ceiling = real === 100 ? 100 : Math.max(real, Math.min(fake + 3, 90))
-      fake = Math.min(fake + 3, ceiling)
+      const elapsed = performance.now() - started
+      const realPct = gate.length ? (done / gate.length) * 100 : 100
+      const timePct = (elapsed / MAX_HOLD) * 100
+      /* whichever is further along drives the bar; time guarantees an end */
+      const target = Math.max(realPct, timePct)
+      /* hold short of full until MIN_HOLD so the intro can breathe */
+      const capped = elapsed < MIN_HOLD ? Math.min(target, 92) : target
+      /* always creep (never stall), never leap */
+      fake = Math.min(100, Math.max(fake + 1.5, Math.min(fake + 7, capped)))
       bar.style.transform = `scaleX(${fake / 100})`
-      pct.textContent = `${fake}%`
+      pct.textContent = `${Math.round(fake)}%`
       if (fake >= 100) {
         window.clearInterval(iv)
-        sessionStorage.setItem('dr_seen', '1')
+        try { sessionStorage.setItem('dr_seen', '1') } catch { /* private mode throws */ }
         gsap.to([bar.parentElement, pct], { opacity: 0, duration: 0.4, ease: 'none' })
         gsap.to(root.querySelector('.dr-loader'), {
           yPercent: -100, duration: 0.9, ease: 'power3.inOut', delay: 0.4,
@@ -634,6 +658,14 @@ export default function DrangarPage() {
         })
       }
     }, 16)
+    /* Failsafe: if the interval is throttled (backgrounded tab) or a reveal
+       tween never completes, the page still opens. Nothing about a loading
+       animation may ever be load-bearing for access to the content. */
+    window.setTimeout(() => {
+      window.clearInterval(iv)
+      try { sessionStorage.setItem('dr_seen', '1') } catch { /* private mode */ }
+      setLoaderDone(true)
+    }, MAX_HOLD + 3000)
     /* no cleanup: StrictMode's simulated unmount must not kill the one real
        run; the interval clears itself at 100. */
   }, [loaderDone])
