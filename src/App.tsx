@@ -143,6 +143,9 @@ const SkalakotPage = lazy(() => import('./preview/skalakot/Page'))
 const KidkaPage = lazy(() => import('./preview/kidka/Page'))
 const HeklusynPage = lazy(() => import('./preview/heklusyn/Page'))
 const ThgPage = lazy(() => import('./preview/thg/Page'))
+const YrkiPage = lazy(() => import('./preview/yrki/Page'))
+const GlamakimPage = lazy(() => import('./preview/glamakim/Page'))
+const TarkPage = lazy(() => import('./preview/tark/Page'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
 const HofdabilarPage = lazy(() => import('./preview/hofdabilar/Page'))
 const LaxaPage = lazy(() => import('./preview/laxa/Page'))
@@ -335,6 +338,9 @@ export default function App() {
             <Route path="/preview/kidka" element={<KidkaPage />} />
             <Route path="/preview/heklusyn" element={<HeklusynPage />} />
             <Route path="/preview/thg" element={<ThgPage />} />
+            <Route path="/preview/yrki" element={<YrkiPage />} />
+            <Route path="/preview/glamakim" element={<GlamakimPage />} />
+            <Route path="/preview/tark" element={<TarkPage />} />
             <Route path="/preview/tannlaeknavaktin" element={<TannlaeknavaktinPage />} />
             <Route path="/preview/hofdabilar" element={<HofdabilarPage />} />
             <Route path="/preview/comparison" element={<Comparison />} />

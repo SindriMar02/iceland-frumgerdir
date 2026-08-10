@@ -4477,3 +4477,180 @@ PREVIEW_COMPANIES.push(RAKARARNIR_ENTRY)
 
 import { companyEntry as ASLAUGSAJA_ENTRY } from './aslaugsaja/data'
 PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)
+
+/* ── Three architecture practices on the Heklusýn machine, 2026-08-10 ──── */
+
+const YRKI_ENTRY: PreviewCompany = {
+  slug: 'yrki',
+  route: '/preview/yrki',
+  name: 'Yrki arkitektar',
+  sector: 'Arkitektastofa',
+  location: 'Mýrargata 26, 101 Reykjavík',
+  region: 'Capital',
+  established: 'Stofnað 1997 af Ásdísi Helgu Ágústsdóttur og Sólveigu Berg',
+  currentUrl: 'https://www.yrki.is/',
+  ownerEmail: 'yrki@yrki.is',
+  concept: 'Það jarðbundna og það ljóðræna',
+  conceptTagline:
+    'Nafn stofunnar ber sýnina, að sameina það jarðbundna og ljóðræna, en forsíðan þeirra segir ekkert. Vefurinn byrjar á þeirri setningu, teiknar breidd skrárinnar í réttum kvarða frá 210 upp í 2.280 fermetra og lætur öll 86 verkin renna hjá í einni skrá.',
+  accent: '#111111',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://yrki.is/wp-content/uploads/2025/01/HS4.jpg',
+  ownPhotography: true,
+  photoCredit: 'Allar ljósmyndir eru af vef Yrki arkitekta sjálfra, sóttar í fullri upplausn.',
+  audit: {
+    strengths: [
+      'Stofnað 1997 af tveimur konum í framhaldi af fyrstu verðlaunum fyrir Lækningaminjasafnið við Nesstofu',
+      'Fyrsta arkitektastofan á Íslandi með vottað ISO 9001 gæðakerfi, frá 4. júlí 2008',
+      '86 verk í skrá með ljósmyndum, þar á meðal sumarbústaður sem Dezeen skrifaði um',
+    ],
+    weaknesses: [
+      'Forsíðan sýnir aðeins merki og valmynd, engin setning um stofuna sjálfa (mælt í vafra 10. ágúst 2026: 53 stafir af texta)',
+      'Verðlaun og viðurkenningar birtast aðeins sem merkjaveggur neðst á verkefnasíðunni, hvergi sagt frá þeim',
+      'Verkefnaskráin er sterk en ekkert dregur breiddina saman, hvert verk stendur eitt',
+    ],
+    opportunities: [
+      'Setja nafnskýringuna fremst: að sameina það jarðbundna og ljóðræna',
+      'Teikna breidd skrárinnar í réttum kvarða úr þeirra eigin birtu fermetratölum',
+      'Láta öll 86 verkin sjást sem eina skrá, ekki 86 stakar síður',
+    ],
+  },
+  positioning:
+    'Yrki á sögu sem fáar stofur eiga, stofnuð á fyrstu verðlaunum og fyrst á Íslandi með vottað ISO 9001. Vefurinn á að segja það sem forsíðan þeirra segir ekki.',
+  outreach: {
+    subject: 'Hugmynd að nýjum vef fyrir Yrki arkitekta',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: forsíðan sýnir merkið og valmyndina en segir ekkert um stofuna sjálfa. Sagan ykkar er samt óvenju sterk, stofa sem var stofnuð í framhaldi af fyrstu verðlaunum fyrir Lækningaminjasafnið og var fyrst á Íslandi með vottað ISO 9001 gæðakerfi.
+
+Ég gerði frumgerð að vef sem byrjar á sýninni sem nafnið ykkar ber, að sameina það jarðbundna og ljóðræna, og lætur verkin sanna hana. Öll 86 verkin í skránni koma fram, og breiddin frá sumarbústað við Heklurætur upp í frystigeymslu í Sundahöfn er teiknuð í réttum kvarða úr ykkar eigin fermetratölum.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+PREVIEW_COMPANIES.push(YRKI_ENTRY)
+
+const GLAMAKIM_ENTRY: PreviewCompany = {
+  slug: 'glamakim',
+  route: '/preview/glamakim',
+  name: 'Gláma·Kím',
+  sector: 'Arkitektastofa',
+  location: 'Laugavegur 164, 101 Reykjavík',
+  region: 'Capital',
+  established: 'Fimm eigendur, fimmtán manna stofa á Laugavegi 164',
+  currentUrl: 'https://www.glamakim.is/',
+  ownerEmail: 'glamakim@glamakim.is',
+  concept: 'Að halda trúnaði við húsið',
+  conceptTagline:
+    'Stofan sem var treyst fyrir Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Vefurinn byrjar á endurgerðunum og teiknar árabilin í réttum kvarða: meira en öld milli elstu teikninga og nýjustu endurgerðar.',
+  accent: '#111111',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://glamakim.is/wp-content/uploads/2025/09/SR9.jpg',
+  ownPhotography: true,
+  photoCredit:
+    'Allar ljósmyndir eru af vef Glámu·Kíms sjálfrar, merktar © Nanne Springer eins og frumsíðan gerir.',
+  audit: {
+    strengths: [
+      'Endurgerðarverkefni sem fáum er treyst fyrir: Þingvallabærinn, Háskólabíó og friðað timburhús frá 1907',
+      'Fagleg ljósmyndun á öllum verkefnum, merkt Nanne Springer',
+      'Vottað gæðakerfi samkvæmt ÍST EN ISO 9001:2015',
+    ],
+    weaknesses: [
+      'Verkefnasíðurnar bera bloggyfirbragð, dagsetningar og höfundarlínur eins og fréttafærslur (mælt 10. ágúst 2026)',
+      'Sérstaða stofunnar í endurgerðum er hvergi orðuð, verkin standa hvert í sínu lagi',
+      'Forsíðan er löng runa af færslum án nokkurrar kynningar á stofunni',
+    ],
+    opportunities: [
+      'Orða sérstöðuna sem verkin sanna: að halda trúnaði við húsið sem fyrir er',
+      'Teikna árabilin úr þeirra eigin verklýsingum, 1907 til 2016, 1959 til 2020, 1968 til 2017',
+      'Halda ljósmyndaeinkennum Nanne Springer fremst',
+    ],
+  },
+  positioning:
+    'Gláma·Kím er stofan sem fær húsin sem enginn má skemma. Vefurinn á að segja það upphátt.',
+  outreach: {
+    subject: 'Hugmynd að nýjum vef fyrir Glámu·Kím',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin ykkar og tók eftir því hvað ykkur er treyst fyrir, Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Sú sérstaða er hvergi orðuð á vefnum, og verkefnasíðurnar bera bloggyfirbragð með dagsetningum og höfundarlínum eins og fréttafærslur.
+
+Ég gerði frumgerð að vef sem byrjar á þessari sérstöðu og lætur verkin sanna hana. Árabilin eru teiknuð í réttum kvarða úr ykkar eigin verklýsingum, meira en öld á milli elstu teikninga og nýjustu endurgerðar, og ljósmyndir Nanne Springer fá að njóta sín í fullri stærð.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+PREVIEW_COMPANIES.push(GLAMAKIM_ENTRY)
+
+const TARK_ENTRY: PreviewCompany = {
+  slug: 'tark',
+  route: '/preview/tark',
+  name: 'T.ark arkitektar',
+  sector: 'Arkitektastofa',
+  location: 'Hátún 2b, 105 Reykjavík',
+  region: 'Capital',
+  established: 'Skráð 1978, í eigu ellefu starfsmanna sinna',
+  currentUrl: 'https://www.tark.is/',
+  ownerEmail: 'tark@tark.is',
+  concept: 'Frá virkjun að baðlóni',
+  conceptTagline:
+    'Stofan á bak við Sky Lagoon, Austurhöfn, Hellisheiðarvirkjun og viðbyggingu Sundhallarinnar, en neðst á vefnum þeirra stendur "Proudly created with Wix.com". Vefurinn teiknar breiddina, frá virkjun að baðlóni, og lætur skrána sanna hana.',
+  accent: '#111111',
+  dark: false,
+  status: 'Concept ready',
+  thumb: 'https://static.wixstatic.com/media/dd0cb2_34b29999d61d4b47aa1544b1b7eb0a99~mv2.jpg',
+  ownPhotography: true,
+  photoCredit: 'Allar ljósmyndir eru af vef T.ark sjálfra, sóttar í fullri upplausn af myndaþjóni vefsins.',
+  audit: {
+    strengths: [
+      'Verk sem allir þekkja: Sky Lagoon, Austurhöfn, The Reykjavik Edition, Sundhöllin og Hellisheiðarvirkjun',
+      'Tuttugu og sex manna stofa skráð 1978, í eigu ellefu starfsmanna',
+      'Fyrstu verðlaun í alþjóðlegri C40 samkeppni og í opinni samkeppni um Stjórnarráðsreitinn',
+    ],
+    weaknesses: [
+      'Neðst á hverri síðu stendur "©2021 by Tark. Proudly created with Wix.com" (staðfest 10. ágúst 2026)',
+      'Verkin liggja í sex löngum flokkasíðum, ekkert eitt yfirlit yfir skrána',
+      'Ekkert á vefnum dregur saman breiddina sem er sérstaða stofunnar',
+    ],
+    opportunities: [
+      'Teikna breiddina sem setningu: frá virkjun að baðlóni',
+      'Nota þeirra eigin birtu tölur, hús 3.000 fermetrar og lón 1.000, í réttum kvarða',
+      'Sýna öll 42 verkin sem eina skrá',
+    ],
+  },
+  positioning:
+    'T.ark er stofan á bak við hús sem allir Íslendingar þekkja, með vef sem segir "created with Wix". Bilið þar á milli er sölupunkturinn, án þess að segja það upphátt.',
+  outreach: {
+    subject: 'Hugmynd að nýjum vef fyrir T.ark arkitekta',
+    body: `Góðan dag,
+
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: stofan á bak við Sky Lagoon, Austurhöfn og viðbyggingu Sundhallarinnar er með vef þar sem neðst á hverri síðu stendur Proudly created with Wix.
+
+Ég gerði frumgerð að vef sem teiknar breiddina ykkar, frá Hellisheiðarvirkjun að baðlóni, og lætur verkin sanna hana. Öll 42 verkin úr flokkunum sex koma fram sem ein skrá, og hlutföll Laugarás Lagoon, hús upp á 3.000 fermetra og lón upp á 1.000, eru teiknuð í réttum kvarða úr ykkar eigin tölum.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+[HLEKKUR Á FRUMGERÐ]
+
+Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+
+Endilega látið mig vita ef þið hafið áhuga.
+
+${SIGN}`,
+  },
+}
+PREVIEW_COMPANIES.push(TARK_ENTRY)
