@@ -4522,9 +4522,9 @@ const YRKI_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir Yrki arkitekta',
     body: `Góðan dag,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: forsíðan sýnir merkið og valmyndina en segir ekkert um stofuna sjálfa. Sagan ykkar er samt óvenju sterk, stofa sem var stofnuð í framhaldi af fyrstu verðlaunum fyrir Lækningaminjasafnið og var fyrst á Íslandi með vottað ISO 9001 gæðakerfi.
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: forsíðan er ein mynd, merkið og valmyndin, en segir ekkert um stofuna sjálfa. Sagan ykkar er samt óvenju sterk, stofa sem var stofnuð í framhaldi af fyrstu verðlaunum fyrir Lækningaminjasafnið og var fyrst á Íslandi með vottað ISO 9001 gæðakerfi.
 
-Ég gerði frumgerð að vef sem byrjar á sýninni sem nafnið ykkar ber, að sameina það jarðbundna og ljóðræna, og lætur verkin sanna hana. Öll 86 verkin í skránni koma fram, og breiddin frá sumarbústað við Heklurætur upp í frystigeymslu í Sundahöfn er teiknuð í réttum kvarða úr ykkar eigin fermetratölum.
+Ég gerði frumgerð að vef sem byrjar á sýninni sem nafnið ykkar ber, að sameina það jarðbundna og ljóðræna, og lætur verkin sanna hana. Verkefnaskráin rennur þar í gegn í heild sinni, og breiddin frá sumarbústað við Heklurætur upp í frystigeymslu í Sundahöfn er teiknuð í réttum kvarða úr ykkar eigin fermetratölum.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
@@ -4639,9 +4639,9 @@ const TARK_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir T.ark arkitekta',
     body: `Góðan dag,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: stofan á bak við Sky Lagoon, Austurhöfn og viðbyggingu Sundhallarinnar er með vef þar sem neðst á hverri síðu stendur Proudly created with Wix.
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: stofan á bak við Sky Lagoon, Austurhöfn og The Reykjavik Edition er með vef þar sem neðst á hverri síðu stendur Proudly created with Wix.
 
-Ég gerði frumgerð að vef sem teiknar breiddina ykkar, frá Hellisheiðarvirkjun að baðlóni, og lætur verkin sanna hana. Öll 42 verkin úr flokkunum sex koma fram sem ein skrá, og hlutföll Laugarás Lagoon, hús upp á 3.000 fermetra og lón upp á 1.000, eru teiknuð í réttum kvarða úr ykkar eigin tölum.
+Ég gerði frumgerð að vef sem teiknar breiddina ykkar, frá Hellisheiðarvirkjun að baðlóni, og lætur verkin sanna hana. Verkin úr flokkunum sex koma fram sem ein skrá, og hlutföll Laugarás Lagoon, hús upp á 3.000 fermetra og lón upp á 1.000, eru teiknuð í réttum kvarða úr ykkar eigin tölum.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
