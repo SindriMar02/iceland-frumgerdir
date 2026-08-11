@@ -26,6 +26,10 @@ import { motion, useAnimationFrame, useMotionValue, useScroll, useSpring, useTra
    horizontally-scrollable list, which is also the no-JS resting state.
    ═════════════════════════════════════════════════════════════════════════ */
 
+/** Idle drift of the register, in px/s. Scroll velocity multiplies it up
+ *  to 6x; at rest this is the whole speed. */
+const SPEED_PX_PER_SEC = 46
+
 const wrapValue = (min: number, max: number, v: number) => {
   const range = max - min
   return ((((v - min) % range) + range) % range) + min
@@ -110,7 +114,13 @@ export function Register({ peaks, label }: { peaks: readonly RegisterItem[]; lab
     const mag = Math.min(5, Math.abs(vf))
     // scrolling down carries the horizon one way, scrolling up reverses it
     if (mag > 0.1) dirRef.current = vf >= 0 ? -1 : 1
-    baseX.set(baseX.get() + dirRef.current * (bw * 3) / 100 * (1 + mag) * (delta / 1000))
+    // Speed must NOT derive from block width. The reference tuned
+    // (bw * 3) / 100 against eight mountain names (~2.500px -> ~75 px/s); this
+    // register is 19 to 86 project titles, so the same formula idled Yrki's
+    // 46.024px block at ~1.380 px/s and the names became an unreadable blur.
+    // Fixed px/s instead, so every build reads at the same considered pace
+    // however long its register is.
+    baseX.set(baseX.get() + dirRef.current * SPEED_PX_PER_SEC * (1 + mag) * (delta / 1000))
   })
 
   const list = (i: number) => (
