@@ -50,6 +50,7 @@ const VellirPage = lazy(() => import('./preview/vellir/Page'))
 // Bakery scout round 8 — Passion Reykjavík (GK skeleton, their own dark-gold brand)
 // Reynir bakari — clones the Passion design + palette, re-skinned to their brand
 const ReynirPage = lazy(() => import('./preview/reynir/Page'))
+const ReynirOrderPage = lazy(() => import('./preview/reynir/OrderPage'))
 // Standalone lead — e-commerce showroom redesign (Shopify-migratable)
 const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
 const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
@@ -283,6 +284,7 @@ export default function App() {
             <Route path="/preview/vinland" element={<VinlandPage />} />
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/reynir" element={<ReynirPage />} />
+            <Route path="/preview/reynir/panta" element={<ReynirOrderPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
             <Route path="/preview/heitirpottar/lager" element={<HeitirpottarStock />} />
             <Route path="/preview/sportsol" element={<SportsolPage />} />

@@ -17,39 +17,26 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
 import { T, type Lang, type MenuItem, type GalleryPhoto, LOGO, FEATURE_IMG, PRODUCT_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS } from './data'
+import { BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY } from './tokens'
+import OrderTeaser from './OrderTeaser'
+import MapCard from './MapCard'
+import { ORDER_T } from './order'
+import { useLang } from './useLang'
+
+/** The order configurator's own route. */
+const ORDER_PATH = '/preview/reynir/panta'
 
 const company = getPreviewCompany('reynir')
 
-// ── Brand tokens (shared with Passion per the brief) ────────────────────────
-const INK = '#131313'
-const INK_WARM = '#161311'
-const INK_DEEP = '#0B0A09'
-const BURGUNDY = '#5C1C1F'
-const GOLD = '#C8A877'
-const GOLD_LIGHT = '#EED3AA'
-const IVORY = '#F3EAD3'
-const DIM = 'rgba(243,234,211,.66)'
-const FAINT = 'rgba(243,234,211,.52)'
-const HAIR = 'rgba(238,211,170,.16)'
-const HAIR_SOFT = 'rgba(238,211,170,.1)'
-
-const DISPLAY = "'Lusitana', Georgia, serif"
-const BODY = "'Source Serif 4', 'Source Serif Pro', Georgia, serif"
-const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)'
+// Brand tokens live in tokens.ts so section components share one source of truth.
 /** Base box size of the travelling pistachio medallion (scaled via transform). */
 const MED_BASE = 440
-
-const GOLD_TEXT = {
-  background: `linear-gradient(180deg, ${GOLD_LIGHT} 6%, ${GOLD} 58%, #A98C5F 100%)`,
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  color: 'transparent',
-} as const
 
 const PAGE_CSS = `
   .rb-page ::selection { background:${BURGUNDY}; color:${IVORY}; }
@@ -311,8 +298,9 @@ function TestimonialRotator({ lang, reduced }: { lang: Lang; reduced: boolean })
 }
 
 export default function ReynirPage() {
-  // Default to English on first load; flip to IS with the toggle.
-  const [lang, setLang] = useState<Lang>('en')
+  // English on a first visit, but shared with the order route so a visitor
+  // reading in Icelandic does not land back in English after ordering.
+  const [lang, setLang] = useLang()
   const t = T[lang]
   const rootRef = useRef<HTMLDivElement>(null)
   const [reduced, setReduced] = useState(false)
@@ -452,6 +440,8 @@ export default function ReynirPage() {
             <a href="#menu" className="rb-navlink">{t.navMenu}</a>
             <a href="#bread" className="rb-navlink">{t.navBread}</a>
             <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
+            {/* a real destination, not an anchor: clicking "Panta" means ordering */}
+            <Link to={ORDER_PATH} className="rb-navlink">{ORDER_T[lang].navOrder}</Link>
             <a href="#story" className="rb-navlink">{t.navStory}</a>
             <a href="#visit" className="rb-navlink">{t.navVisit}</a>
           </nav>
@@ -687,6 +677,11 @@ export default function ReynirPage() {
         </div>
       </section>
 
+      {/* ===================== CUSTOM ORDERS (teaser) =====================
+          The full configurator lives on its own route so this page keeps its
+          story. See OrderPage.tsx. */}
+      <OrderTeaser lang={lang} orderPath={ORDER_PATH} />
+
       {/* ===================== VISIT STRIP ===================== */}
       <section id="visit" style={{ background: INK, padding: sectionPad }}>
         <div style={wrap}>
@@ -696,6 +691,15 @@ export default function ReynirPage() {
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT }}>{t.visitTitle}</h2>
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold" style={{ marginTop: 'clamp(24px,4vh,36px)' }}>{t.orderPrimary}</a>
               <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
+
+              {/* the map fills this column's dead space, opposite the addresses */}
+              <MapCard
+                lang={lang}
+                locations={[
+                  { label: t.mainLabel, address: t.mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
+                  { label: t.secondLabel, address: t.secondName, query: 'Reynir bakari, Hamraborg 14, 200 Kópavogur' },
+                ]}
+              />
             </div>
 
             <div data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gap: 26 }}>
