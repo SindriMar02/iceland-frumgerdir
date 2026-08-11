@@ -4525,16 +4525,18 @@ const YRKI_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir Yrki arkitekta',
     body: `Sælar Ásdís Helga og Sólveig,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: forsíðan er ein mynd, merkið og valmyndin, en segir ekkert um stofuna sjálfa. Sagan ykkar er samt óvenju sterk, stofa sem var stofnuð í framhaldi af fyrstu verðlaunum fyrir Lækningaminjasafnið og var fyrst á Íslandi með vottað ISO 9001 gæðakerfi.
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkin ykkar og staldraði við söguna af því hvernig stofan varð til, að þið unnuð samkeppnina um Lækningaminjasafnið við Nesstofu og stofnuðuð Yrki í framhaldinu. Nafnið sjálft segir líka sitt, að yrkja og rækta í senn.
 
-Ég gerði frumgerð að vef sem byrjar á sýninni sem nafnið ykkar ber, að sameina það jarðbundna og ljóðræna, og lætur verkin sanna hana. Verkefnaskráin rennur þar í gegn í heild sinni, og breiddin frá sumarbústað við Heklurætur upp í frystigeymslu í Sundahöfn er teiknuð í réttum kvarða úr ykkar eigin fermetratölum.
+Það eina sem mér fannst vanta er að forsíðan segir ekkert af þessu. Sá sem kemur inn á vefinn sér mynd og valmynd, og fer þaðan án þess að vita nokkuð um stofuna.
+
+Ég gerði frumgerð að nýjum vef sem byrjar á þessu og lætur svo verkin tala. Mér þótti sérstaklega gaman að vinna með myndirnar ykkar, þær eru óvenju góðar.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+Því fylgir engin skuldbinding, kíkið endilega á hana. Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
 
-Endilega látið mig vita ef þið hafið áhuga.
+Endilega látið mig vita hvað ykkur finnst.
 
 ${SIGN}`,
   },
@@ -4588,16 +4590,18 @@ const GLAMAKIM_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir Glámu·Kím',
     body: `Sæll Sigbjörn,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin ykkar og tók eftir því hvað ykkur er treyst fyrir, Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Sú sérstaða er hvergi orðuð á vefnum, og verkefnasíðurnar bera bloggyfirbragð með dagsetningum og höfundarlínum eins og fréttafærslur.
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin hjá Glámu·Kím og það sem sat eftir hjá mér var hverju ykkur er treyst fyrir. Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Það er ekki sjálfgefið að fá að koma nálægt húsum sem þessum, og mér finnst það segja mest um stofuna.
 
-Ég gerði frumgerð að vef sem byrjar á þessari sérstöðu og lætur verkin sanna hana. Árabilin eru teiknuð í réttum kvarða úr ykkar eigin verklýsingum, meira en öld á milli elstu teikninga og nýjustu endurgerðar, og ljósmyndir Nanne Springer fá að njóta sín í fullri stærð.
+Á vefnum birtast þessi verk samt eins og fréttafærslur, með dagsetningu og höfundarlínu, og sérstaðan sjálf er hvergi orðuð.
+
+Ég gerði frumgerð að nýjum vef sem setur hana fremst. Ljósmyndir Nanne Springer fá þar líka að njóta sín, þær eiga það skilið.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+Því fylgir engin skuldbinding, kíktu endilega á hana. Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
 
-Endilega látið mig vita ef þið hafið áhuga.
+Endilega láttu mig vita hvað þér finnst.
 
 ${SIGN}`,
   },
@@ -4648,16 +4652,18 @@ const TARK_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir T.ark arkitekta',
     body: `Sæll Ivon,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: stofan á bak við Sky Lagoon, Austurhöfn og The Reykjavik Edition er með vef þar sem neðst á hverri síðu stendur Proudly created with Wix.
+Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin hjá T.ark og áttaði mig á því hvað ég hef oft verið staddur inni í húsunum ykkar án þess að vita af því. Sky Lagoon, Austurhöfn og Edition við Hörpu, allt hús sem fólk þekkir án þess að vita hver teiknaði þau.
 
-Ég gerði frumgerð að vef sem teiknar breiddina ykkar, frá Hellisheiðarvirkjun að baðlóni, og lætur verkin sanna hana. Verkin úr flokkunum sex koma fram sem ein skrá, og hlutföll Laugarás Lagoon, hús upp á 3.000 fermetra og lón upp á 1.000, eru teiknuð í réttum kvarða úr ykkar eigin tölum.
+Það eina sem stakk mig er að neðst á hverri síðu vefsins stendur Proudly created with Wix.
+
+Ég gerði frumgerð að nýjum vef fyrir stofuna, þar sem breiddin sem þið búið yfir sést strax, allt frá virkjun upp í baðlón.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Ef ykkur líst vel á gæti ég klárað vefinn í heild, en ef ekki vona ég að þetta gefi ykkur að minnsta kosti hugmyndir.
+Því fylgir engin skuldbinding, kíktu endilega á hana. Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
 
-Endilega látið mig vita ef þið hafið áhuga.
+Endilega láttu mig vita hvað þér finnst.
 
 ${SIGN}`,
   },
