@@ -115,7 +115,14 @@ main > section[id]{scroll-margin-top:clamp(56px,9vh,96px)}
 .tark-hero{position:relative;height:100svh;min-height:540px;overflow:hidden}
 .tark-hero>.tark-frame{position:absolute;inset:0}
 .tark-hero-scrim{position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.05) 32%,rgba(0,0,0,.28) 70%,rgba(0,0,0,.66) 100%)}
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,.02) 26%,rgba(0,0,0,.10) 52%,rgba(0,0,0,.52) 82%,rgba(0,0,0,.74) 100%)}
+/* cinematic settle: the hero photograph eases out of a slight push-in once,
+   on the IMG so it never fights the scroll loop's transform on the wrapper.
+   Keyframes are prefixed per-page — no style bleed between builds. */
+@keyframes tark-heroSettle{from{transform:scale(1.075)}to{transform:scale(1)}}
+.tark-hero .tark-frame-in img{transform-origin:50% 55%;
+  animation:tark-heroSettle 2600ms cubic-bezier(.17,.84,.44,1) both}
+@media (prefers-reduced-motion:reduce){.tark-hero .tark-frame-in img{animation:none}}
 .tark-hero-lock{position:absolute;left:0;right:0;bottom:clamp(16px,2.6vw,40px);color:#fff}
 .tark-lock{display:block;font-weight:400;letter-spacing:-.03em;line-height:.98;
   font-size:clamp(1.9rem,7.4vw,7.2rem)}

@@ -128,8 +128,8 @@ export const PROJECTS: Project[] = [
 
 /* ── The photographs the set-pieces are built on ────────────────────────── */
 export const PHOTOS = {
-  hero: { file: 'helgafellsskoli-1', alt: 'Helgafellsskóli í Mosfellsbæ, sjónsteypa og viðarklæðning eftir Yrki arkitekta.' },
-  band: { file: 'alftabol-2', alt: 'Álftaból við Heklurætur, sumarbústaður eftir Yrki arkitekta.' },
+  hero: { file: 'alftabol-2', alt: 'Álftaból við Heklurætur í rökkri, ljós í gluggum og áin fyrir neðan.' },
+  band: { file: 'helgafellsskoli-1', alt: 'Helgafellsskóli í Mosfellsbæ, sjónsteypa og viðarklæðning eftir Yrki arkitekta.' },
   insideA: { file: 'deloitte-2', alt: 'Vinnurými í höfuðstöðvum Deloitte, innanhússhönnun Yrki arkitekta.' },
   insideB: { file: 'stefansbud-2', alt: 'Alrýmið í Stefánsbúð í Mjóafirði.' },
   closing: { file: 'lautavegur-2', alt: 'Parhús Yrki arkitekta við Lautaveg í Reykjavík.' },

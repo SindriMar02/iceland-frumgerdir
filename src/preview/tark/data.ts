@@ -122,8 +122,8 @@ export const PROJECTS: Project[] = [
 
 /* ── The photographs the set-pieces are built on ────────────────────────── */
 export const PHOTOS = {
-  hero: { file: 'skylagoon-3', alt: 'Sky Lagoon á Kársnesi, baðlón hannað af T.ark.' },
-  band: { file: 'sundhollin-2', alt: 'Sundhöll Reykjavíkur og viðbygging T.ark.' },
+  hero: { file: 'edition-1', alt: 'Húsagarður The Reykjavik Edition við Austurhöfn, dökkar hliðar og mosaþök.' },
+  band: { file: 'skylagoon-1', alt: 'Sky Lagoon á Kársnesi, torfhlaðinn veggur og inngangurinn.' },
   insideA: { file: 'edition-2', alt: 'The Reykjavik Edition innandyra.' },
   insideB: { file: 'laugaras-2', alt: 'Laugarás Lagoon, efni úr nærumhverfinu.' },
   closing: { file: 'husvigdisar-1', alt: 'Hús Vigdísar, Stofnun Vigdísar Finnbogadóttur.' },
