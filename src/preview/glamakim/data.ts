@@ -43,6 +43,8 @@ export interface Project {
   place?: string
   year?: string
   size?: string
+  /** Their own status wording, where a project page publishes one. */
+  status?: string
   quote: string
   image: string
   alt: string

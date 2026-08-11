@@ -42,6 +42,8 @@ export interface Project {
   place?: string
   year?: string
   size?: string
+  /** Their own status wording, where the page publishes one. */
+  status?: string
   quote: string
   image: string
   alt: string
@@ -83,20 +85,28 @@ export const PROJECTS: Project[] = [
   },
   {
     key: 'sundhollin',
-    name: 'Sundhöllin',
+    name: 'Stækkun Sundhallarinnar',
     place: 'Reykjavík',
-    quote: 'Viðbygging við Sundhöll Reykjavíkur, eitt þekktasta hús borgarinnar.',
+    year: '2013',
+    /* Their own page: "Samkeppni um útisundlaug og nýja klefa við Sundhöll
+       Reykjavíkur ... Opin samkeppni. Tillagan unnin í samvinnu við Kurtogpí.
+       Tillagan fékk 3. verðlaun." A competition entry, never built by T.ark,
+       so it is never shown here as a completed extension. */
+    status: 'Samkeppnistillaga',
+    quote: 'Opin samkeppni um útisundlaug og nýja klefa við Sundhöll Reykjavíkur, unnin í samvinnu við Kurtogpí. Tillagan fékk 3. verðlaun. Eitt helsta markmið hennar var að nýta núverandi búningsklefa fyrir bæði kynin.',
     image: 'sundhollin-1',
-    alt: 'Sundhöll Reykjavíkur og viðbygging T.ark.',
-    tag: 'Opinbert',
+    alt: 'Samkeppnistillaga T.ark og Kurtogpí um stækkun Sundhallarinnar.',
+    tag: 'Samkeppni',
   },
   {
     key: 'edition',
     name: 'The Reykjavik Edition',
-    place: 'Austurhöfn, Reykjavík',
-    quote: 'Hótel við höfnina í Reykjavík.',
+    place: 'Bryggjugata 8, Reykjavík',
+    year: '2018-2021',
+    size: '19.000 m² · 253 herbergi',
+    quote: 'Á Austurbakkanum við hlið Hörpu reis 19.000 fermetra hótelbygging hönnuð af T.ark. Á hótelinu, sem er sex hæðir, eru 253 gestaherbergi ásamt veitingastað, skemmtistað, veislusal, börum og heilsulind. Verkkaupi Carpenter and Company.',
     image: 'edition-1',
-    alt: 'The Reykjavik Edition hótel við Austurhöfn.',
+    alt: 'Húsagarður The Reykjavik Edition við Austurhöfn.',
     tag: 'Hótel',
   },
   {
@@ -126,7 +136,10 @@ export const PHOTOS = {
   band: { file: 'skylagoon-1', alt: 'Sky Lagoon á Kársnesi, torfhlaðinn veggur og inngangurinn.' },
   insideA: { file: 'edition-2', alt: 'The Reykjavik Edition innandyra.' },
   insideB: { file: 'laugaras-2', alt: 'Laugarás Lagoon, efni úr nærumhverfinu.' },
-  closing: { file: 'husvigdisar-1', alt: 'Hús Vigdísar, Stofnun Vigdísar Finnbogadóttur.' },
+  /* Was Hús Vigdísar, which is a 2nd-prize COMPETITION entry — an unlabelled
+     full-bleed render of it read as a built T.ark building. Swapped for
+     Austurhöfn, which they did build. */
+  closing: { file: 'austurhofn-2', alt: 'Austurhöfn við höfnina í Reykjavík, 74 íbúðir eftir T.ark.' },
 } as const
 
 /* ── §2 spec list ───────────────────────────────────────────────────────── */

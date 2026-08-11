@@ -444,7 +444,7 @@ export default function YrkiPage() {
           <div className="yrki-intro">
             <div>
               <p className="yrki-r yrki-d" data-yrki-tdrift="14" style={{ fontSize: 'clamp(1.05rem,1.5vw,1.32rem)', lineHeight: 1.5, letterSpacing: '-.01em' }}>
-                Yrki var stofnað árið 1997 af {PRACTICE.founders}, í framhaldi af fyrstu verðlaunum sem þær
+                Yrki var stofnað árið 1997 af þeim {PRACTICE.foundersDative}, í framhaldi af fyrstu verðlaunum sem þær
                 hlutu fyrir Lækningaminjasafnið við Nesstofu. Nafnið vísar til sýnar stofunnar, að sameina
                 það jarðbundna og ljóðræna í öllum verkefnum, frá þéttbýli til náttúru.
               </p>
@@ -510,7 +510,7 @@ export default function YrkiPage() {
         <section id="yrki-works" className="yrki-sec yrki-pad">
           <h2 className="yrki-d" data-yrki-tdrift="26" style={{ ...H2, marginBottom: '.7rem' }}><Rise>Verkin</Rise></h2>
           <p className="yrki-r yrki-d" data-yrki-tdrift="12" style={{ color: MUTED, maxWidth: '46ch', lineHeight: 1.6, marginBottom: 'clamp(24px,3.4vw,48px)' }}>
-            Sjö af áttatíu og sex verkum í skránni, þau sem sýna breiddina best.
+            Sjö af yfir áttatíu verkum í skránni, þau sem sýna breiddina best.
           </p>
           <WorkList />
         </section>
@@ -530,7 +530,7 @@ export default function YrkiPage() {
         <section id="yrki-register" className="yrki-sec yrki-pad">
           <div className="yrki-rule" />
           <h2 className="yrki-d" data-yrki-tdrift="26" style={{ ...H2, margin: 'clamp(26px,3.6vw,48px) 0 .7rem' }}>
-            <Rise>Áttatíu og sex verk</Rise>
+            <Rise>Yfir áttatíu verk</Rise>
             <Rise className="yrki-serif">í skránni</Rise>
           </h2>
           <p className="yrki-r yrki-d" data-yrki-tdrift="12" style={{ color: MUTED, maxWidth: '46ch', lineHeight: 1.6 }}>

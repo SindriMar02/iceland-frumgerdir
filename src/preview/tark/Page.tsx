@@ -487,13 +487,14 @@ export default function TarkPage() {
         <section className="tark-sec tark-pad">
           <div className="tark-rule" />
           <h2 className="tark-d" data-tark-tdrift="26" style={{ ...H2, marginTop: 'clamp(26px,3.6vw,52px)' }}>
-            <Rise>Eitt þekktasta hús borgarinnar</Rise>
-            <Rise className="tark-serif">fékk viðbyggingu.</Rise>
+            <Rise>Nítján þúsund fermetrar</Rise>
+            <Rise className="tark-serif">við hliðina á Hörpu.</Rise>
           </h2>
           <p className="tark-r tark-d" data-tark-tdrift="12" style={{ color: MUTED, fontSize: 'clamp(1rem,1.2vw,1.1rem)', lineHeight: 1.62, maxWidth: '46ch', marginTop: '1.4rem' }}>
-            T.ark teiknaði viðbyggingu við Sundhöll Reykjavíkur. Á sömu skrá standa skrifstofur Alþingis,
-            Arion banki við Borgartún, The Reykjavik Edition við höfnina og Hús Vigdísar. Hús sem fólk
-            hefur þegar verið inni í, án þess að vita hver teiknaði þau.
+            The Reykjavik Edition á Austurbakkanum er nítján þúsund fermetrar á sex hæðum, með 253
+            gestaherbergjum, veitingastað, veislusal og heilsulind. Á sömu skrá standa skrifstofur Alþingis,
+            Arion banki við Borgartún og 74 íbúðir við Austurhöfn. Hús sem fólk hefur þegar verið inni í,
+            án þess að vita hver teiknaði þau.
           </p>
         </section>
 

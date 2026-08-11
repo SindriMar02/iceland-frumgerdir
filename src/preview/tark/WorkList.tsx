@@ -108,7 +108,7 @@ export function WorkList() {
                   separator unconditionally would print a bare " · " on the
                   ones that publish neither — build from what exists. */}
               <span className="tark-wmeta">
-                {[p.place, p.year, p.size].filter(Boolean).join(' · ')}
+                {[p.place, p.year, p.size, p.status].filter(Boolean).join(' · ')}
               </span>
               <span className="tark-wstate">{p.tag}</span>
             </a>

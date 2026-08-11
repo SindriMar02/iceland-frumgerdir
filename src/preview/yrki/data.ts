@@ -32,7 +32,10 @@ export const EMAIL_HREF = 'mailto:yrki@yrki.is'
    samkvæmt ISO 9001 staðlinum." — vottað 4. júlí 2008 (vottanir page). */
 export const PRACTICE = {
   founded: 1997,
-  founders: 'Ásdís Helga Ágústsdóttir og Sólveig Berg',
+  /** DATIVE — this string is used after the preposition "af". Their own
+   *  sentence: "stofnað árið 1997 af þeim Ásdísi Helgu Ágústsdóttur og
+   *  Sólveigu Berg." Nominative here shipped broken Icelandic once. */
+  foundersDative: 'Ásdísi Helgu Ágústsdóttur og Sólveigu Berg',
   staffLine: 'ellefu manna hópur',
   isoLine: 'Fyrsta arkitektastofan á Íslandi með vottað ISO 9001 gæðakerfi, frá 4. júlí 2008.',
 }
@@ -44,6 +47,8 @@ export interface Project {
   place?: string
   year?: string
   size?: string
+  /** Their own STAÐA field, where the project page publishes one. */
+  status?: string
   quote: string
   image: string
   alt: string
@@ -58,6 +63,7 @@ export const PROJECTS: Project[] = [
     place: 'Við Heklurætur',
     year: '2021-2025',
     size: '210 m²',
+    status: 'Á framkvæmdastigi',
     quote: 'Sumarbústaður við Heklurætur. Dezeen, breska veftímaritið um arkitektúr og hönnun, hefur birt grein um bústaðinn.',
     image: 'alftabol-1',
     alt: 'Álftaból, sumarbústaður Yrki arkitekta við Heklurætur.',
@@ -69,10 +75,11 @@ export const PROJECTS: Project[] = [
     place: 'Flateyri',
     year: '2021-2022',
     size: '468 m²',
+    status: 'Fullbyggt',
     quote: 'Nemendagarðarnir hýsa 14 námsmannaíbúðir á tveimur hæðum og sameiginlegt alrými á jarðhæð. Fullbyggt fyrir Lýðskólann á Flateyri.',
     image: 'flateyri-1',
     alt: 'Nemendagarðar Yrki arkitekta á Flateyri, fullbyggðir 2022.',
-    tag: 'Fullbyggt',
+    tag: 'Íbúðarhúsnæði',
   },
   {
     key: 'lautavegur',
@@ -80,10 +87,11 @@ export const PROJECTS: Project[] = [
     place: 'Reykjavík',
     year: '2022-2024',
     size: '420 m²',
-    quote: 'Parhús í Reykjavík. Fullbyggt.',
+    status: 'Fullbyggt',
+    quote: 'Parhús í Reykjavík.',
     image: 'lautavegur-1',
     alt: 'Parhús Yrki arkitekta við Lautaveg í Reykjavík.',
-    tag: 'Fullbyggt',
+    tag: 'Íbúðarhúsnæði',
   },
   {
     key: 'helgafellsskoli',
@@ -92,7 +100,7 @@ export const PROJECTS: Project[] = [
     quote: 'Byggingin er samblanda af sjónsteypu ásamt viðarklæðningum. Hönnunin aðlagast bröttu landslagi, þar sem byggingin spannar frá einni upp í þrjár hæðir.',
     image: 'helgafellsskoli-1',
     alt: 'Helgafellsskóli, sjónsteypa og viðarklæðning í bröttu landslagi.',
-    tag: 'Skóli',
+    tag: 'Opinber bygging',
   },
   {
     key: 'stefansbud',
@@ -100,10 +108,11 @@ export const PROJECTS: Project[] = [
     place: 'Mjóifjörður',
     year: '2021-',
     size: '160 m²',
+    status: 'Á framkvæmdastigi',
     quote: 'Gömul skemma í flæðarmáli Mjóafjarðar gerð upp og henni breytt í frístundahús.',
     image: 'stefansbud-1',
     alt: 'Stefánsbúð, gömul skemma í flæðarmáli Mjóafjarðar.',
-    tag: 'Endurgerð',
+    tag: 'Íbúðarhúsnæði',
   },
   {
     key: 'deloitte',
@@ -112,17 +121,22 @@ export const PROJECTS: Project[] = [
     quote: 'Yrki arkitektar sáu um innanhússhönnunina á nýjum höfuðstöðvum Deloitte á Íslandi. Meginmarkmiðið var að skapa sveigjanleika og flæði í vinnuumhverfinu.',
     image: 'deloitte-1',
     alt: 'Innanhússhönnun Yrki arkitekta í höfuðstöðvum Deloitte.',
-    tag: 'Innanhússhönnun',
+    tag: 'Skrifstofuhúsnæði',
   },
   {
     key: 'nesstofa',
     name: 'Nesstofa',
     place: 'Seltjarnarnes',
+    year: '1997-',
     size: '1.360 m²',
-    quote: 'Yrki arkitektar hlutu 1. verðlaun í opinni hönnunarsamkeppni fyrir tillögu sína að Lækningaminjasafni á Seltjarnarnesi. Stofan var stofnuð í framhaldi af þeim verðlaunum.',
+    /* Their own page: "Tímabil: 1997 – ókláruð", "Staða: Bygging fokheld.
+       Fullnaðarhönnun lokið." The building was never finished, so it is
+       never shown here as built. */
+    status: 'Ókláruð, bygging fokheld',
+    quote: 'Yrki arkitektar hlutu 1. verðlaun í opinni hönnunarsamkeppni fyrir tillögu sína að Lækningaminjasafni á Seltjarnarnesi, og stofan var stofnuð í framhaldi af þeim verðlaunum. Byggingin er fokheld og fullnaðarhönnun lokið, en verkið er ókláruð.',
     image: 'nesstofa-1',
     alt: 'Verðlaunatillaga Yrki arkitekta að Lækningaminjasafni við Nesstofu.',
-    tag: '1. verðlaun',
+    tag: 'Opinber bygging',
   },
 ]
 
@@ -146,7 +160,7 @@ export const SPEC: ReadonlyArray<readonly [string, string]> = [
 /* ── §4 the ledger ──────────────────────────────────────────────────────── */
 export const LEDGER: ReadonlyArray<readonly [string, string]> = [
   ['Stofnað', '1997'],
-  ['Verk í skrá', '86'],
+  ['Verk í skrá', '80+'],
   ['ISO 9001 frá', '2008'],
   ['Starfsfólk', '11'],
 ]
