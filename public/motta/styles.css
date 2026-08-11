@@ -232,7 +232,7 @@ body.loaded .swoosh path { transition: stroke-dashoffset 1s var(--ease) .55s; st
 /* JS owns canvas opacity + img transform entirely (one writer per element) */
 .hero-media canvas { opacity: 1; background: var(--film-ground); will-change: opacity; }
 /* origin at the bottom: the push-in moves TOWARD the mat, never crops it away */
-@keyframes mt-ken { from { transform: scale(1.004); } to { transform: scale(1.055); } }
+@keyframes mt-ken { from { transform: scale(1.005); } to { transform: scale(1.115); } }
 .film-cap {
   position: absolute; left: var(--pad); bottom: 30px; z-index: 4;
   font-family: var(--mono); font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
@@ -556,49 +556,6 @@ h1, h2, h3 { text-wrap: balance; }
 /* ---------- rental size ladder inside the navy band ---------- */
 .leiga-staerdir { margin-top: 4px; }
 .leiga-lead { color: rgba(233, 238, 241, .82); max-width: 56ch; margin-bottom: 18px; }
-.lg-grid {
-  --k: .50;                      /* px per cm */
-  display: flex; align-items: flex-end; gap: 10px; flex-wrap: nowrap;
-  padding-top: 26px; margin-bottom: 14px;
-  border-bottom: 1px solid var(--hair-bone);
-  overflow-x: auto; overscroll-behavior-x: contain;
-}
-.lg-size {
-  position: relative; flex: 0 0 auto;
-  width: calc(var(--w) * var(--k) * 1px);
-  height: calc(var(--l) * var(--k) * 1px);
-  border: 1px solid rgba(233, 238, 241, .38);
-  border-bottom: 0;
-  /* the pile itself, echoing the hero raster */
-  background-image: radial-gradient(circle at 2px 2px, rgba(233, 238, 241, .3) 1.15px, transparent 1.35px);
-  background-size: 6px 6px;
-  transition: background-color .35s var(--ease), border-color .35s var(--ease);
-}
-.lg-size:hover, .lg-size:focus-within {
-  background-color: rgba(31, 160, 220, .22);
-  border-color: var(--cyan);
-}
-.lg-size dt { position: absolute; top: -22px; left: 0; right: 0; text-align: center; }
-.lg-let {
-  font-family: var(--disp); font-weight: 700; font-size: 14px; color: var(--bone);
-  letter-spacing: .02em;
-}
-.lg-size dd {
-  position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%) rotate(180deg);
-  writing-mode: vertical-rl;
-  font-family: var(--mono); font-size: 10px; letter-spacing: .03em;
-  color: rgba(233, 238, 241, .82); white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.lg-scale {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase;
-  color: rgba(233, 238, 241, .6); margin-bottom: 18px;
-}
-.lg-ruler { display: block; width: calc(100 * var(--k, .40) * 1px); height: 1px; background: rgba(233, 238, 241, .6); position: relative; flex: 0 0 auto; }
-.lg-ruler::before, .lg-ruler::after { content: ''; position: absolute; top: -3px; width: 1px; height: 7px; background: rgba(233, 238, 241, .6); }
-.lg-ruler::before { left: 0; }
-.lg-ruler::after { right: 0; }
 .leiga-tidni { color: rgba(233, 238, 241, .82); margin-top: 16px; }
 .leiga-tidni strong { color: #fff; font-weight: 600; }
 
@@ -627,8 +584,6 @@ h1, h2, h3 { text-wrap: balance; }
 .pl-foot { padding: 22px var(--pad) 0; color: var(--steel); font-size: 14px; }
 
 @media (max-width: 767.9px) {
-  .lg-grid { --k: .27; gap: 7px; }
-  .lg-size dd { font-size: 9.5px; }
   .rek-wrap { grid-template-columns: 1fr; }
   .rek-tabs { flex-direction: row; overflow-x: auto; gap: 4px; border-bottom: 1px solid var(--hair); padding-bottom: 2px; }
   .rek-tab { border-left: 0; border-bottom: 2px solid transparent; padding: 12px 14px; white-space: nowrap; font-size: 15px; }
@@ -654,3 +609,58 @@ h1, h2, h3 { text-wrap: balance; }
 .ls-inner { max-width: 1200px; margin: 0 auto; padding: 0 var(--pad); }
 .leiga-sizes .leiga-lead { margin-bottom: 4px; }
 .lg-scale { max-width: none; }
+
+/* ---------- leigustærðir: one mat drawn in plan, on a real metre grid ---------- */
+.ms {
+  --s: 88;                                   /* px per metre */
+  display: grid; grid-template-columns: 1fr minmax(230px, 300px);
+  gap: clamp(24px, 4vw, 56px); align-items: end;
+}
+.ms-stage {
+  position: relative; min-width: 0;
+  height: calc(2.05 * var(--s) * 1px);
+  border: 1px solid var(--hair-bone);
+  /* 1 m grid, so the size is judged against something real */
+  background-image:
+    repeating-linear-gradient(90deg, rgba(233,238,241,.16) 0 1px, transparent 1px calc(var(--s) * 1px)),
+    repeating-linear-gradient(0deg,  rgba(233,238,241,.16) 0 1px, transparent 1px calc(var(--s) * 1px));
+  background-position: left calc(.22 * var(--s) * 1px) bottom calc(.22 * var(--s) * 1px);
+  overflow: hidden;
+}
+.ms-mat {
+  position: absolute;
+  left: calc(.22 * var(--s) * 1px); bottom: calc(.22 * var(--s) * 1px);
+  width: calc(var(--l) / 100 * var(--s) * 1px);
+  height: calc(var(--w) / 100 * var(--s) * 1px);
+  background-color: rgba(31, 160, 220, .16);
+  background-image: radial-gradient(circle at 2px 2px, rgba(233, 238, 241, .42) 1.15px, transparent 1.35px);
+  background-size: 6px 6px;
+  border: 1px solid var(--cyan);
+  transition: width .7s var(--ease), height .7s var(--ease);
+}
+.ms-legend {
+  position: absolute; right: 12px; top: 10px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+  color: rgba(233, 238, 241, .6);
+}
+.ms-legend i { display: block; width: calc(var(--s) * 1px); height: 1px; background: rgba(233, 238, 241, .5); }
+.ms-name { font-family: var(--mono); font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: rgba(233,238,241,.7); }
+.ms-read { font-family: var(--disp); font-weight: 700; font-size: clamp(30px, 4vw, 50px); line-height: 1; letter-spacing: -.01em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.ms-unit { font-size: .42em; color: rgba(233, 238, 241, .62); }
+.ms-area { font-family: var(--mono); font-size: 13px; color: rgba(233, 238, 241, .72); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.ms-area sup { font-size: .75em; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 22px; }
+.ms-chip {
+  width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
+  background: transparent; border: 1.5px solid var(--hair-bone); color: var(--bone);
+  font-family: var(--disp); font-weight: 700; font-size: 15px;
+  transition: background-color .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
+}
+.ms-chip:hover { border-color: rgba(233, 238, 241, .6); }
+.ms-chip.on { background: var(--cyan); border-color: var(--cyan); color: var(--navy); }
+@media (max-width: 899.9px) {
+  .ms { --s: 42; grid-template-columns: 1fr; align-items: start; }
+  .ms-stage { height: calc(2.2 * var(--s) * 1px); }
+}
+@media (prefers-reduced-motion: reduce) { .ms-mat { transition: none; } }

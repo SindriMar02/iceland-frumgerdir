@@ -150,6 +150,7 @@
       t.style.animation = 'none';
       void t.offsetWidth;
       t.style.animation = `mt-ken ${(SLIDE_MS + CROSS * 2) / 1000}s linear forwards`;
+      t.style.animationPlayState = 'running';
     }
 
     async function go(next) {
@@ -369,6 +370,41 @@
         e.preventDefault();
         const n = (i + next + rekTabs.length) % rekTabs.length;
         showRek(n); rekTabs[n].focus();
+      });
+    });
+  }
+
+
+  /* ---------- LEIGUSTÆRÐIR: one mat drawn to scale on a metre grid ---------- */
+  const msMat = document.getElementById('msMat');
+  if (msMat) {
+    const chips = [...document.querySelectorAll('.ms-chip')];
+    const msDim = document.getElementById('msDim');
+    const msArea = document.getElementById('msArea');
+    const msName = document.getElementById('msName');
+    const show = i => {
+      const c = chips[i], w = +c.dataset.w, l = +c.dataset.l;
+      chips.forEach((x, n) => {
+        x.classList.toggle('on', n === i);
+        x.setAttribute('aria-checked', String(n === i));
+        x.tabIndex = n === i ? 0 : -1;
+      });
+      msMat.style.setProperty('--w', w);
+      msMat.style.setProperty('--l', l);
+      msDim.textContent = `${w} x ${l}`;
+      msArea.textContent = (Math.round(w * l / 100) / 100).toFixed(2).replace('.', ',');
+      msName.textContent = c.dataset.name;
+    };
+    chips.forEach((c, i) => {
+      c.tabIndex = i === 0 ? 0 : -1;
+      c.addEventListener('click', () => show(i));
+      c.addEventListener('keydown', e => {
+        const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+                : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const n = (i + d + chips.length) % chips.length;
+        show(n); chips[n].focus();
       });
     });
   }
