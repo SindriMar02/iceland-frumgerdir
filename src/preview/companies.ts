@@ -4489,6 +4489,9 @@ const YRKI_ENTRY: PreviewCompany = {
   region: 'Capital',
   established: 'Stofnað 1997 af Ásdísi Helgu Ágústsdóttur og Sólveigu Berg',
   currentUrl: 'https://www.yrki.is/',
+  /* Yrki publish NO individual addresses anywhere (site, ja.is, the
+     architect directory) — only the office inbox. Addressed to both founders
+     by name in the body instead of guessing an address. */
   ownerEmail: 'yrki@yrki.is',
   concept: 'Það jarðbundna og það ljóðræna',
   conceptTagline:
@@ -4520,7 +4523,7 @@ const YRKI_ENTRY: PreviewCompany = {
     'Yrki á sögu sem fáar stofur eiga, stofnuð á fyrstu verðlaunum og fyrst á Íslandi með vottað ISO 9001. Vefurinn á að segja það sem forsíðan þeirra segir ekki.',
   outreach: {
     subject: 'Hugmynd að nýjum vef fyrir Yrki arkitekta',
-    body: `Góðan dag,
+    body: `Sælar Ásdís Helga og Sólveig,
 
 Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: forsíðan er ein mynd, merkið og valmyndin, en segir ekkert um stofuna sjálfa. Sagan ykkar er samt óvenju sterk, stofa sem var stofnuð í framhaldi af fyrstu verðlaunum fyrir Lækningaminjasafnið og var fyrst á Íslandi með vottað ISO 9001 gæðakerfi.
 
@@ -4547,7 +4550,11 @@ const GLAMAKIM_ENTRY: PreviewCompany = {
   region: 'Capital',
   established: 'Fimm eigendur, fimmtán manna stofa á Laugavegi 164',
   currentUrl: 'https://www.glamakim.is/',
-  ownerEmail: 'glamakim@glamakim.is',
+  /* No framkvæmdastjóri is designated; five equal partners. Sigbjörn
+     Kjartansson is the partner who represents Gláma·Kím publicly on the
+     Þingvellir work (Þingvallanefnd minutes, 2023) — and Þingvallabærinn is
+     this page's hero, so he is the partner the pitch actually lands with. */
+  ownerEmail: 'sigbjorn@glamakim.is',
   concept: 'Að halda trúnaði við húsið',
   conceptTagline:
     'Stofan sem var treyst fyrir Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Vefurinn byrjar á endurgerðunum og teiknar árabilin í réttum kvarða: meira en öld milli elstu teikninga og nýjustu endurgerðar.',
@@ -4579,7 +4586,7 @@ const GLAMAKIM_ENTRY: PreviewCompany = {
     'Gláma·Kím er stofan sem fær húsin sem enginn má skemma. Vefurinn á að segja það upphátt.',
   outreach: {
     subject: 'Hugmynd að nýjum vef fyrir Glámu·Kím',
-    body: `Góðan dag,
+    body: `Sæll Sigbjörn,
 
 Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin ykkar og tók eftir því hvað ykkur er treyst fyrir, Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Sú sérstaða er hvergi orðuð á vefnum, og verkefnasíðurnar bera bloggyfirbragð með dagsetningum og höfundarlínum eins og fréttafærslur.
 
@@ -4606,7 +4613,9 @@ const TARK_ENTRY: PreviewCompany = {
   region: 'Capital',
   established: 'Skráð 1978, í eigu ellefu starfsmanna sinna',
   currentUrl: 'https://www.tark.is/',
-  ownerEmail: 'tark@tark.is',
+  /* Ivon Stefán Cilia — "arkitekt / eigandi, framkvæmdastjóri" on tark.is.
+     The one named CEO of the three practices. */
+  ownerEmail: 'ivon@tark.is',
   concept: 'Frá virkjun að baðlóni',
   conceptTagline:
     'Stofan á bak við Sky Lagoon, Austurhöfn, Hellisheiðarvirkjun og viðbyggingu Sundhallarinnar, en neðst á vefnum þeirra stendur "Proudly created with Wix.com". Vefurinn teiknar breiddina, frá virkjun að baðlóni, og lætur skrána sanna hana.',
@@ -4637,7 +4646,7 @@ const TARK_ENTRY: PreviewCompany = {
     'T.ark er stofan á bak við hús sem allir Íslendingar þekkja, með vef sem segir "created with Wix". Bilið þar á milli er sölupunkturinn, án þess að segja það upphátt.',
   outreach: {
     subject: 'Hugmynd að nýjum vef fyrir T.ark arkitekta',
-    body: `Góðan dag,
+    body: `Sæll Ivon,
 
 Ég heiti Sindri og hanna vefsíður. Ég var að skoða vefinn ykkar og tók eftir einu: stofan á bak við Sky Lagoon, Austurhöfn og The Reykjavik Edition er með vef þar sem neðst á hverri síðu stendur Proudly created with Wix.
 

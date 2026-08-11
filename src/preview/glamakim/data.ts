@@ -22,7 +22,10 @@ const BASE = import.meta.env.BASE_URL
 export const IMG = (file: string) => `${BASE}glamakim/${file}.jpg`
 
 /* ── Contact (site footer, verbatim) ───────────────────────────────────── */
-export const ADDRESS = 'Laugavegur 164, 101 Reykjavík'
+/* Their own site prints "101 Reykjavík" on every page, but the company
+   registry (kt. 560496-2739) has Laugavegi 164, 105 Reykjavík. The
+   registry wins: 101 is their error, and a redesign should not repeat it. */
+export const ADDRESS = 'Laugavegur 164, 105 Reykjavík'
 export const PHONE_DISPLAY = '+354 530 8100'
 export const PHONE_HREF = 'tel:+3545308100'
 export const EMAIL = 'glamakim@glamakim.is'
@@ -209,7 +212,7 @@ export const JSON_LD = {
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Laugavegur 164',
-    postalCode: '101',
+    postalCode: '105',
     addressLocality: 'Reykjavík',
     addressCountry: 'IS',
   },
