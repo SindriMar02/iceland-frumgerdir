@@ -133,7 +133,11 @@ export const PROJECTS: Project[] = [
 /* ── The photographs the set-pieces are built on ────────────────────────── */
 export const PHOTOS = {
   hero: { file: 'edition-1', alt: 'Húsagarður The Reykjavik Edition við Austurhöfn, dökkar hliðar og mosaþök.' },
-  band: { file: 'skylagoon-1', alt: 'Sky Lagoon á Kársnesi, torfhlaðinn veggur og inngangurinn.' },
+  /* Was skylagoon-1: a phone snapshot, half empty sky, with the Sky Lagoon
+     sign in frame. Laugarás at golden hour is the better photograph AND
+     sits directly under the Laugarás diagram, so the band now shows the
+     building the drawing just measured. */
+  band: { file: 'laugaras-1', alt: 'Laugarás Lagoon í kvöldbirtu, torfþak og lýstir timburbogar.' },
   insideA: { file: 'edition-2', alt: 'The Reykjavik Edition innandyra.' },
   insideB: { file: 'laugaras-2', alt: 'Laugarás Lagoon, efni úr nærumhverfinu.' },
   /* Was Hús Vigdísar, which is a 2nd-prize COMPETITION entry — an unlabelled
