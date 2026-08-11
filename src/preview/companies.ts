@@ -4525,16 +4525,20 @@ const YRKI_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir Yrki arkitekta',
     body: `Sælar Ásdís Helga og Sólveig,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkin ykkar og staldraði við söguna af því hvernig stofan varð til, að þið unnuð samkeppnina um Lækningaminjasafnið við Nesstofu og stofnuðuð Yrki í framhaldinu. Nafnið sjálft segir líka sitt, að yrkja og rækta í senn.
+Ég heiti Sindri og hanna vefsíður fyrir íslenskar arkitektastofur og hönnunarfyrirtæki.
 
-Það eina sem mér fannst vanta er að forsíðan segir ekkert af þessu. Sá sem kemur inn á vefinn sér mynd og valmynd, og fer þaðan án þess að vita nokkuð um stofuna.
+Ég var að skoða íslenskan arkitektúr þegar ég rakst á Yrki og staldraði við söguna af því hvernig stofan varð til. Þið unnuð samkeppnina um Lækningaminjasafnið við Nesstofu og stofnuðuð Yrki í framhaldinu, og nafnið segir svo það sem eftir er, að yrkja og rækta í senn. Á vefnum sést þetta samt hvergi. Forsíðan sýnir mynd og valmynd, og sá sem kemur inn fer þaðan án þess að vita nokkuð um stofuna. Verðlaunin liggja neðst á einni síðu sem röð af merkjum, án þess að nokkur saga fylgi þeim.
 
-Ég gerði frumgerð að nýjum vef sem byrjar á þessu og lætur svo verkin tala. Mér þótti sérstaklega gaman að vinna með myndirnar ykkar, þær eru óvenju góðar.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Því fylgir engin skuldbinding, kíkið endilega á hana. Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
+Hún er hönnuð fyrir símann fyrst, því þar skoðar fólk vefi mest í dag, og virkar eins vel á tölvu. Vefurinn byrjar á því hver þið eruð og lætur verkin svo tala, öll á einum stað í stað þess að standa hvert í sínu lagi. Myndirnar ykkar eru óvenju góðar og fá loksins að fylla skjáinn.
+
+Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þið hafið gaman af því að skoða hugmyndina.
 
 Endilega látið mig vita hvað ykkur finnst.
 
@@ -4590,16 +4594,22 @@ const GLAMAKIM_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir Glámu·Kím',
     body: `Sæll Sigbjörn,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin hjá Glámu·Kím og það sem sat eftir hjá mér var hverju ykkur er treyst fyrir. Þingvallabænum, Háskólabíói og friðuðu timburhúsi frá 1907. Það er ekki sjálfgefið að fá að koma nálægt húsum sem þessum, og mér finnst það segja mest um stofuna.
+Ég heiti Sindri og hanna vefsíður fyrir íslenskar arkitektastofur og hönnunarfyrirtæki.
 
-Á vefnum birtast þessi verk samt eins og fréttafærslur, með dagsetningu og höfundarlínu, og sérstaðan sjálf er hvergi orðuð.
+Ég var að skoða íslenskar stofur og staldraði við hverju Glámu·Kím er treyst fyrir. Þingvallabærinn er hús sem flestir Íslendingar hafa staðið fyrir framan án þess að hugsa út í hver heldur því við, og svo bætast Háskólabíó og friðað timburhús frá 1907 ofan á. Það er ekki sjálfgefið að fá að koma nálægt húsum sem þessum, og mér finnst það segja mest um stofuna. Á vefnum birtast verkin samt eins og fréttafærslur, hvert með dagsetningu og höfundarlínu, og sérstaðan sjálf er hvergi orðuð.
 
-Ég gerði frumgerð að nýjum vef sem setur hana fremst. Ljósmyndir Nanne Springer fá þar líka að njóta sín, þær eiga það skilið.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Því fylgir engin skuldbinding, kíktu endilega á hana. Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
+Hún er hönnuð fyrir símann fyrst, því þar skoðar fólk vefi mest í dag, og virkar eins vel á tölvu. Vefurinn byrjar á endurgerðunum og ljósmyndir Nanne Springer fá þar að njóta sín, þær eiga það skilið.
+
+Svo er það leitin. Forsíðan ykkar ber enga lýsingu í dag, svo hvorki Google né gervigreind eins og ChatGPT hefur neitt til að vitna í þegar einhver leitar að stofu sem kann að fara með gömul hús. Frumgerðin hefur þetta á hreinu.
+
+Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þú hafir gaman af því að skoða hugmyndina.
 
 Endilega láttu mig vita hvað þér finnst.
 
@@ -4652,16 +4662,22 @@ const TARK_ENTRY: PreviewCompany = {
     subject: 'Hugmynd að nýjum vef fyrir T.ark arkitekta',
     body: `Sæll Ivon,
 
-Ég heiti Sindri og hanna vefsíður. Ég var að skoða verkefnin hjá T.ark og áttaði mig á því hvað ég hef oft verið staddur inni í húsunum ykkar án þess að vita af því. Sky Lagoon, Austurhöfn og Edition við Hörpu, allt hús sem fólk þekkir án þess að vita hver teiknaði þau.
+Ég heiti Sindri og hanna vefsíður fyrir íslenskar arkitektastofur og hönnunarfyrirtæki.
 
-Það eina sem stakk mig er að neðst á hverri síðu vefsins stendur Proudly created with Wix.
+Ég var að skoða verkefnin hjá T.ark og áttaði mig á því hvað ég hef oft verið staddur inni í húsunum ykkar án þess að vita af því. Sky Lagoon, Austurhöfn og Edition við Hörpu. Hús sem allir þekkja, án þess að vita hver teiknaði þau. Vefurinn ykkar segir það hins vegar ekki. Neðst á hverri síðu stendur Proudly created with Wix, og í leitarniðurstöðum heitir forsíðan Home | Tark.
 
-Ég gerði frumgerð að nýjum vef fyrir stofuna, þar sem breiddin sem þið búið yfir sést strax, allt frá virkjun upp í baðlón.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Því fylgir engin skuldbinding, kíktu endilega á hana. Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
+Hún er hönnuð fyrir símann fyrst, því þar skoðar fólk vefi mest í dag, og virkar eins vel á tölvu. Vefurinn byrjar á breiddinni sem þið búið yfir, allt frá virkjun upp í baðlón, og lætur skrána svo sanna hana í stað þess að dreifa henni á sex flokkasíður.
+
+Þar er líka hugsað fyrir leitinni, með réttum titli, lýsingu og þeim upplýsingum sem Google og gervigreind eins og ChatGPT lesa, svo stofan komi upp undir sínu eigin nafni.
+
+Ég sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þú hafir gaman af því að skoða hugmyndina.
 
 Endilega láttu mig vita hvað þér finnst.
 
