@@ -616,14 +616,16 @@ h1, h2, h3 { text-wrap: balance; }
   display: grid; grid-template-columns: 1fr minmax(230px, 300px);
   gap: clamp(24px, 4vw, 56px); align-items: end;
 }
+/* stage, axis and caption are ONE grid item, or auto-placement puts the axis in the side column */
+.ms-left { min-width: 0; }
 .ms-stage {
   position: relative; min-width: 0;
   height: calc(2.05 * var(--s) * 1px);
   border: 1px solid var(--hair-bone);
   /* 1 m grid, so the size is judged against something real */
   background-image:
-    repeating-linear-gradient(90deg, rgba(233,238,241,.16) 0 1px, transparent 1px calc(var(--s) * 1px)),
-    repeating-linear-gradient(0deg,  rgba(233,238,241,.16) 0 1px, transparent 1px calc(var(--s) * 1px));
+    repeating-linear-gradient(90deg, rgba(233,238,241,.26) 0 1px, transparent 1px calc(var(--s) * 1px)),
+    repeating-linear-gradient(0deg,  rgba(233,238,241,.26) 0 1px, transparent 1px calc(var(--s) * 1px));
   background-position: left calc(.22 * var(--s) * 1px) bottom calc(.22 * var(--s) * 1px);
   overflow: hidden;
 }
@@ -638,13 +640,6 @@ h1, h2, h3 { text-wrap: balance; }
   border: 1px solid var(--cyan);
   transition: width .7s var(--ease), height .7s var(--ease);
 }
-.ms-legend {
-  position: absolute; right: 12px; top: 10px;
-  display: flex; align-items: center; gap: 8px;
-  font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
-  color: rgba(233, 238, 241, .6);
-}
-.ms-legend i { display: block; width: calc(var(--s) * 1px); height: 1px; background: rgba(233, 238, 241, .5); }
 .ms-name { font-family: var(--mono); font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: rgba(233,238,241,.7); }
 .ms-read { font-family: var(--disp); font-weight: 700; font-size: clamp(30px, 4vw, 50px); line-height: 1; letter-spacing: -.01em; margin-top: 8px; font-variant-numeric: tabular-nums; }
 .ms-unit { font-size: .42em; color: rgba(233, 238, 241, .62); }
@@ -690,3 +685,33 @@ h1, h2, h3 { text-wrap: balance; }
 .faq-a { padding: 0 0 22px; }
 .faq-a p { color: var(--steel); max-width: 68ch; }
 @media (prefers-reduced-motion: reduce) { .faq-mark::before, .faq-mark::after { transition: none; } }
+
+/* a metre axis under the grid: the numbers land on the gridlines, so "one box = one metre"
+   is read off the drawing itself rather than from a scale bar */
+.ms-axis { position: relative; height: 22px; margin-top: 2px; }
+.ms-axis span {
+  position: absolute; top: 7px;
+  left: calc((0.22 + var(--n)) * var(--s) * 1px);
+  transform: translateX(-50%);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em;
+  color: rgba(233, 238, 241, .62); font-variant-numeric: tabular-nums;
+}
+.ms-axis span::before {
+  content: ''; position: absolute; left: 50%; top: -7px; width: 1px; height: 5px;
+  background: rgba(233, 238, 241, .38);
+}
+.ms-axis em {
+  position: absolute; top: 7px; left: calc((0.22 + 7.5) * var(--s) * 1px);
+  font-family: var(--mono); font-style: normal; font-size: 10.5px;
+  letter-spacing: .06em; text-transform: uppercase; color: rgba(233, 238, 241, .45);
+  white-space: nowrap;
+}
+.ms-help {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase;
+  color: rgba(233, 238, 241, .55); margin-top: 10px;
+}
+@media (max-width: 899.9px) {
+  .ms-axis em { display: none; }          /* 7.5 m of axis will not fit beside the numbers */
+  .ms-axis span { font-size: 9.5px; }
+  .ms-help { font-size: 10px; letter-spacing: .04em; }
+}
