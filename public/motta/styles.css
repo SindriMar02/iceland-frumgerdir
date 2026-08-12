@@ -664,3 +664,29 @@ h1, h2, h3 { text-wrap: balance; }
   .ms-stage { height: calc(2.2 * var(--s) * 1px); }
 }
 @media (prefers-reduced-motion: reduce) { .ms-mat { transition: none; } }
+
+/* ---------- spurt og svarað ---------- */
+.faq { padding: clamp(48px, 7vw, 104px) 0; }
+.faq-wrap { padding: 0 var(--pad); max-width: 900px; margin: 0 auto; }
+.faq-item { border-top: 1px solid var(--hair); }
+.faq-item:last-child { border-bottom: 1px solid var(--hair); }
+.faq-item summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 20px 0; cursor: pointer; list-style: none; min-height: 44px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item h3 {
+  font-family: var(--body); text-transform: none; font-weight: 600;
+  font-size: clamp(16.5px, 1.6vw, 19px); line-height: 1.4; letter-spacing: 0;
+}
+.faq-mark { position: relative; flex: 0 0 auto; width: 16px; height: 16px; }
+.faq-mark::before, .faq-mark::after {
+  content: ''; position: absolute; background: var(--cyan-deep); border-radius: 1px;
+  transition: transform .35s var(--ease), opacity .35s var(--ease);
+}
+.faq-mark::before { top: 7px; left: 0; width: 16px; height: 2px; }
+.faq-mark::after { left: 7px; top: 0; width: 2px; height: 16px; }
+.faq-item[open] .faq-mark::after { transform: rotate(90deg); opacity: 0; }
+.faq-a { padding: 0 0 22px; }
+.faq-a p { color: var(--steel); max-width: 68ch; }
+@media (prefers-reduced-motion: reduce) { .faq-mark::before, .faq-mark::after { transition: none; } }
