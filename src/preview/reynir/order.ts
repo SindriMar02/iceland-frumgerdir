@@ -231,6 +231,17 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
   },
 ]
 
+/** Occasions a company might be ordering for. PLACEHOLDER: confirm the list with the owner. */
+export const OCCASIONS: { id: string; label: Bilingual }[] = [
+  { id: 'fundur', label: { en: 'Meeting', is: 'Fundur' } },
+  { id: 'radstefna', label: { en: 'Conference', is: 'Ráðstefna' } },
+  { id: 'arshatid', label: { en: 'Staff party', is: 'Árshátíð eða starfsmannahittingur' } },
+  { id: 'afmaeli', label: { en: 'Anniversary', is: 'Afmæli' } },
+  { id: 'opnun', label: { en: 'Opening or launch', is: 'Opnun eða kynning' } },
+  { id: 'erfidrykkja', label: { en: 'Funeral reception', is: 'Erfidrykkja' } },
+  { id: 'annad', label: { en: 'Something else', is: 'Annað' } },
+]
+
 /** The two real Reynir locations, from their own site. Not placeholder. */
 export const PICKUP_LOCATIONS: { id: string; label: Bilingual }[] = [
   { id: 'dalvegur', label: { en: 'Dalvegur 4, Kópavogur', is: 'Dalvegur 4, Kópavogi' } },
@@ -243,9 +254,37 @@ export interface OrderCopy {
   title: string
   intro: string
   sampleNotice: string
+  stepWho: string
+  whoPerson: string
+  whoCompany: string
+  whoPersonHint: string
+  whoCompanyHint: string
   stepProduct: string
   stepOptions: string
   stepDetails: string
+  fieldQty: string
+  fieldQtyHint: string
+  fieldCompany: string
+  fieldKennitala: string
+  fieldKennitalaHint: string
+  fieldContact: string
+  fieldInvoiceEmail: string
+  fieldInvoiceEmailHint: string
+  fieldOccasion: string
+  fieldGuests: string
+  fieldGuestsHint: string
+  fieldHandover: string
+  handoverPickup: string
+  handoverDelivery: string
+  fieldAddress: string
+  fieldAddressHint: string
+  errCompany: string
+  errKennitala: string
+  errKennitalaFormat: string
+  errContact: string
+  errAddress: string
+  bigOrderNote: string
+  slipQty: (n: number) => string
   /** Homepage teaser only. */
   teaseCta: string
   teaseNote: string
@@ -296,9 +335,38 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
       'Choose what you would like and we will confirm it by phone. Nothing is charged online, you pay when you collect.',
     sampleNotice:
       'Sample options. The real range, prices and lead times are set by the bakery.',
+    stepWho: 'Who is ordering?',
+    whoPerson: 'For myself',
+    whoCompany: 'Company or event',
+    whoPersonHint: 'A single order to collect yourself.',
+    whoCompanyHint: 'Invoiced to a kennitala, with delivery if you need it.',
     stepProduct: 'What are we baking?',
     stepOptions: 'Make it yours',
     stepDetails: 'Your details',
+    fieldQty: 'How many?',
+    fieldQtyHint: 'The same order, this many times over.',
+    fieldCompany: 'Company',
+    fieldKennitala: 'Kennitala',
+    fieldKennitalaHint: 'So we can invoice you.',
+    fieldContact: 'Contact person',
+    fieldInvoiceEmail: 'Email for the invoice',
+    fieldInvoiceEmailHint: 'Leave empty to use the address above.',
+    fieldOccasion: 'Occasion',
+    fieldGuests: 'Roughly how many people',
+    fieldGuestsHint: 'Helps us get the quantity right.',
+    fieldHandover: 'Collection or delivery',
+    handoverPickup: 'We collect it',
+    handoverDelivery: 'Deliver it to us',
+    fieldAddress: 'Delivery address',
+    fieldAddressHint: 'Street, floor and anything we need to find you.',
+    errCompany: 'We need the company name for the invoice.',
+    errKennitala: 'We need a kennitala to invoice a company.',
+    errKennitalaFormat: 'An Icelandic kennitala is ten digits.',
+    errContact: 'We need a name to ask for.',
+    errAddress: 'We need somewhere to deliver to.',
+    bigOrderNote:
+      'Ordering for a bigger event? Tell us the numbers below and we will quote it when we call.',
+    slipQty: (n: number) => `${n} of these`,
     teaseCta: 'Start an order',
     teaseNote: 'Takes a minute. We confirm by phone and you pay when you collect.',
     backToSite: 'Back to the bakery',
@@ -346,9 +414,38 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
       'Veldu það sem þú vilt og við staðfestum símleiðis. Ekkert er greitt á netinu, greitt er þegar sótt er.',
     sampleNotice:
       'Sýnishorn af valmöguleikum. Bakaríið ákveður raunverulegt úrval, verð og afgreiðslutíma.',
+    stepWho: 'Hver er að panta?',
+    whoPerson: 'Fyrir mig',
+    whoCompany: 'Fyrirtæki eða viðburður',
+    whoPersonHint: 'Ein pöntun sem þú sækir sjálf eða sjálfur.',
+    whoCompanyHint: 'Reikningur á kennitölu, með sendingu ef þið þurfið.',
     stepProduct: 'Hvað eigum við að baka?',
     stepOptions: 'Sníddu að þér',
     stepDetails: 'Upplýsingar um þig',
+    fieldQty: 'Hversu mörg?',
+    fieldQtyHint: 'Sama pöntun, svona oft.',
+    fieldCompany: 'Fyrirtæki',
+    fieldKennitala: 'Kennitala',
+    fieldKennitalaHint: 'Svo við getum sent reikning.',
+    fieldContact: 'Tengiliður',
+    fieldInvoiceEmail: 'Netfang fyrir reikning',
+    fieldInvoiceEmailHint: 'Skildu eftir autt til að nota netfangið hér að ofan.',
+    fieldOccasion: 'Tilefni',
+    fieldGuests: 'Um það bil hvað margir',
+    fieldGuestsHint: 'Hjálpar okkur að hafa magnið rétt.',
+    fieldHandover: 'Sótt eða sent',
+    handoverPickup: 'Við sækjum',
+    handoverDelivery: 'Sent til okkar',
+    fieldAddress: 'Afhendingarstaður',
+    fieldAddressHint: 'Gata, hæð og annað sem við þurfum til að finna ykkur.',
+    errCompany: 'Við þurfum nafn fyrirtækisins fyrir reikninginn.',
+    errKennitala: 'Við þurfum kennitölu til að senda fyrirtæki reikning.',
+    errKennitalaFormat: 'Íslensk kennitala er tíu tölustafir.',
+    errContact: 'Við þurfum nafn til að spyrja eftir.',
+    errAddress: 'Við þurfum stað til að senda á.',
+    bigOrderNote:
+      'Ertu að panta fyrir stærri viðburð? Segðu okkur fjöldann hér að neðan og við gerum tilboð þegar við hringjum.',
+    slipQty: (n: number) => `${n} stykki af þessu`,
     teaseCta: 'Byrja pöntun',
     teaseNote: 'Tekur eina mínútu. Við staðfestum símleiðis og greitt er þegar sótt er.',
     backToSite: 'Til baka á vefinn',

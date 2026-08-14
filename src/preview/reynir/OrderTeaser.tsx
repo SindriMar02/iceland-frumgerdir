@@ -16,8 +16,11 @@ import { ORDER_PRODUCTS, ORDER_T, isk } from './order'
 import { DIM, DISPLAY, EASE, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, INK_DEEP, IVORY } from './tokens'
 
 const TEASER_CSS = `
-  .rb-tease-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;
+  /* Flex + centred remainder, not a 3-col grid: the owner can add or remove a
+     product in the CMS and the row never leaves an empty cell. See OrderSection. */
+  .rb-tease-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
     margin-top:clamp(26px,4vh,38px); }
+  .rb-tease-grid > * { flex:1 1 240px; max-width:calc(33.333% - 7px); }
   .rb-tease-card { display:flex; flex-direction:column; gap:7px; text-decoration:none;
     padding:20px 18px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
     transition:border-color .24s ${EASE}, background .24s ${EASE}, transform .2s ${EASE}; }
@@ -33,7 +36,7 @@ const TEASER_CSS = `
     margin-top:clamp(26px,4vh,36px); }
   .rb-tease-note { font-size:13.5px; color:${DIM}; line-height:1.55; max-width:44ch; }
 
-  @media (max-width:860px) { .rb-tease-grid { grid-template-columns:1fr; } }
+  @media (max-width:860px) { .rb-tease-grid > * { max-width:100%; flex-basis:100%; } }
   @media (prefers-reduced-motion: reduce) {
     .rb-tease-card { transition:none; }
     .rb-tease-card:hover { transform:none; }

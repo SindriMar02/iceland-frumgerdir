@@ -23,6 +23,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Lang } from './data'
 import { LINKS } from './data'
 import {
+  OCCASIONS,
   ORDER_PRODUCTS,
   ORDER_T,
   PICKUP_LOCATIONS,
@@ -40,8 +41,37 @@ const ORDER_CSS = `
   .rb-ord-step { border-top:1px solid ${HAIR}; padding-top:18px; margin-top:clamp(30px,4.5vh,46px); }
   .rb-ord-steplabel { font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:${GOLD}; }
 
-  /* product picker */
-  .rb-ord-prods { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:16px; }
+  /* Who is ordering. Two lanes, not a dropdown: it changes which fields appear. */
+  .rb-ord-who { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+  .rb-ord-wholane { display:flex; flex-direction:column; gap:5px; text-align:left; cursor:pointer;
+    padding:15px 16px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
+    transition:border-color .22s ${EASE}, background .22s ${EASE}; }
+  .rb-ord-wholane:hover { border-color:rgba(238,211,170,.4); background:rgba(243,234,211,.05); }
+  .rb-ord-wholane[data-on="true"] { border-color:${GOLD}; background:rgba(200,168,119,.09); }
+  .rb-ord-wholane input { position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; }
+  .rb-ord-wholane:has(input:focus-visible) { outline:2px solid ${GOLD}; outline-offset:3px; }
+  .rb-ord-wholane-name { font-family:${DISPLAY}; font-size:18px; color:${IVORY}; line-height:1.2; }
+  .rb-ord-wholane[data-on="true"] .rb-ord-wholane-name { color:${GOLD_LIGHT}; }
+  .rb-ord-wholane-hint { font-size:12.5px; color:${DIM}; line-height:1.45; }
+
+  /* quantity stepper */
+  .rb-ord-qty { display:flex; align-items:center; gap:0; margin-top:8px;
+    border:1px solid ${HAIR}; border-radius:4px; width:max-content; }
+  .rb-ord-qty button { width:46px; height:46px; background:none; border:0; cursor:pointer; color:${IVORY};
+    font-size:19px; line-height:1; transition:color .2s ${EASE}, background .2s ${EASE}; }
+  .rb-ord-qty button:hover:not(:disabled) { color:${GOLD_LIGHT}; background:rgba(243,234,211,.05); }
+  .rb-ord-qty button:disabled { opacity:.32; cursor:not-allowed; }
+  .rb-ord-qty button:focus-visible { outline:2px solid ${GOLD}; outline-offset:-2px; }
+  .rb-ord-qty-val { min-width:46px; text-align:center; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
+    font-variant-numeric:tabular-nums; }
+
+  /* Product picker. FLEX, not grid, so the owner can add or remove a product in
+     the CMS at any count without leaving a hole: a grid keeps empty cells in the
+     last row (4 products = one stranded card beside two gaps), whereas wrapped
+     flex + centred remainder reads as deliberate at 1, 2, 4, 5 or 7 products.
+     max-width caps each card at a third so a short row never stretches. */
+  .rb-ord-prods { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:16px; }
+  .rb-ord-prods > * { flex:1 1 210px; max-width:calc(33.333% - 7px); }
   .rb-ord-prod { position:relative; display:flex; flex-direction:column; gap:6px; text-align:left; cursor:pointer;
     padding:16px 15px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
     transition:border-color .22s ${EASE}, background .22s ${EASE}, transform .16s ${EASE}; }
@@ -180,11 +210,12 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-label { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:${FAINT}; }
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
-    .rb-ord-prods { grid-template-columns:1fr; }
+    .rb-ord-prods > * { max-width:100%; flex-basis:100%; }
     /* the sticky bar already draws a divider, so the step right under it must
        not draw a second one. Adjacent-sibling, not :first-of-type, because the
        bar is itself the first div sibling. */
     .rb-ord-mobiletotal + .rb-ord-step { border-top:0; padding-top:0; margin-top:clamp(24px,3.5vh,34px); }
+    .rb-ord-who { grid-template-columns:1fr; }
   }
   @media (max-width:520px) {
     .rb-ord-two { grid-template-columns:1fr; gap:0; }
@@ -255,9 +286,28 @@ export default function OrderSection({
     [productId],
   )
 
+  /** A private order and a company order need different fields, not a different form. */
+  const [who, setWho] = useState<'person' | 'company'>('person')
+  const [qty, setQty] = useState(1)
   const [picked, setPicked] = useState<Record<string, string[]>>({})
   const [inscription, setInscription] = useState('')
-  const [customer, setCustomer] = useState({ name: '', phone: '', email: '', date: '', location: PICKUP_LOCATIONS[0].id, notes: '' })
+  const [customer, setCustomer] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    date: '',
+    location: PICKUP_LOCATIONS[0].id,
+    notes: '',
+    // company only
+    company: '',
+    kennitala: '',
+    contact: '',
+    invoiceEmail: '',
+    occasion: OCCASIONS[0].id,
+    guests: '',
+    handover: 'pickup' as 'pickup' | 'delivery',
+    address: '',
+  })
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [triedSubmit, setTriedSubmit] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle')
@@ -311,8 +361,13 @@ export default function OrderSection({
     if (written && product.inscription) {
       out.push({ key: 'inscription', name: `“${written}”`, sub: product.inscription.label[lang], price: null })
     }
-    return { lines: out, total: sum }
-  }, [product, picked, inscription, lang, t.slipBase])
+    // Quantity multiplies the whole configured item, so it is shown as its own
+    // line rather than silently changing the numbers above it.
+    if (qty > 1) {
+      out.push({ key: 'qty', name: t.slipQty(qty), sub: `× ${isk(sum)}`, price: sum * qty })
+    }
+    return { lines: out, total: sum * qty }
+  }, [product, picked, inscription, lang, qty, t])
 
   // Bump the total when it changes, so the price movement is felt, not just read.
   const [bump, setBump] = useState(false)
@@ -333,7 +388,19 @@ export default function OrderSection({
         e[`g_${group.id}`] = group.kind === 'single' ? t.errRequiredGroup : t.errRequiredMulti
       }
     }
-    if (!customer.name.trim()) e.c_name = t.errName
+    if (who === 'person') {
+      if (!customer.name.trim()) e.c_name = t.errName
+    } else {
+      if (!customer.company.trim()) e.c_company = t.errCompany
+      if (!customer.contact.trim()) e.c_contact = t.errContact
+      const kt = customer.kennitala.replace(/[^\d]/g, '')
+      if (!customer.kennitala.trim()) e.c_kennitala = t.errKennitala
+      else if (kt.length !== 10) e.c_kennitala = t.errKennitalaFormat
+      if (customer.handover === 'delivery' && !customer.address.trim()) e.c_address = t.errAddress
+      if (customer.invoiceEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.invoiceEmail.trim())) {
+        e.c_invoiceEmail = t.errEmail
+      }
+    }
     const digits = customer.phone.replace(/[^\d]/g, '')
     if (!customer.phone.trim()) e.c_phone = t.errPhone
     else if (digits.length < 7) e.c_phone = t.errPhoneFormat
@@ -341,7 +408,7 @@ export default function OrderSection({
     if (!customer.date) e.c_date = t.errDate
     else if (customer.date < earliest) e.c_date = t.errDateTooSoon(prettyDate(earliest, lang))
     return e
-  }, [product, picked, customer, earliest, lang, t])
+  }, [product, picked, customer, earliest, lang, t, who])
 
   const showErr = (key: string) => (touched[key] || triedSubmit ? errors[key] : undefined)
 
@@ -365,7 +432,12 @@ export default function OrderSection({
   const reset = () => {
     setPicked({})
     setInscription('')
-    setCustomer({ name: '', phone: '', email: '', date: '', location: PICKUP_LOCATIONS[0].id, notes: '' })
+    setQty(1)
+    setCustomer({
+      name: '', phone: '', email: '', date: '', location: PICKUP_LOCATIONS[0].id, notes: '',
+      company: '', kennitala: '', contact: '', invoiceEmail: '',
+      occasion: OCCASIONS[0].id, guests: '', handover: 'pickup', address: '',
+    })
     setTouched({})
     setTriedSubmit(false)
     setStatus('idle')
@@ -457,8 +529,31 @@ export default function OrderSection({
                 <span className="rb-ord-mobiletotal-value" data-bump={bump} aria-live="polite">{isk(total)}</span>
               </div>
 
-              {/* 1 — product */}
+              {/* 1 — who is ordering (drives which details are asked for later) */}
               <div className="rb-ord-step" style={{ marginTop: 22 }}>
+                <div className="rb-ord-steplabel">{t.stepWho}</div>
+                <div className="rb-ord-who" role="radiogroup" aria-label={t.stepWho}>
+                  {([
+                    { id: 'person' as const, name: t.whoPerson, hint: t.whoPersonHint },
+                    { id: 'company' as const, name: t.whoCompany, hint: t.whoCompanyHint },
+                  ]).map((o) => (
+                    <label key={o.id} className="rb-ord-wholane" data-on={who === o.id}>
+                      <input
+                        type="radio"
+                        name="rb-ord-who"
+                        checked={who === o.id}
+                        onChange={() => setWho(o.id)}
+                      />
+                      <span className="rb-ord-wholane-name">{o.name}</span>
+                      <span className="rb-ord-wholane-hint">{o.hint}</span>
+                    </label>
+                  ))}
+                </div>
+                {who === 'company' && <p className="rb-ord-help" style={{ marginTop: 12 }}>{t.bigOrderNote}</p>}
+              </div>
+
+              {/* 2 — product */}
+              <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepProduct}</div>
                 <div className="rb-ord-prods" role="radiogroup" aria-label={t.stepProduct}>
                   {ORDER_PRODUCTS.map((p) => (
@@ -479,7 +574,7 @@ export default function OrderSection({
                 <p className="rb-ord-help" style={{ marginTop: 12 }}>{product.blurb[lang]}</p>
               </div>
 
-              {/* 2 — options */}
+              {/* 3 — options */}
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepOptions}</div>
                 <div className="rb-ord-groups" data-key={product.id} key={product.id}>
@@ -555,30 +650,132 @@ export default function OrderSection({
                       <p className="rb-ord-hint">{t.charsLeft(product.inscription.maxLength - inscription.length)}</p>
                     </div>
                   )}
+
+                  <div className="rb-ord-field">
+                    <span className="rb-ord-label" id="rb-ord-qty-label">{t.fieldQty}</span>
+                    <div className="rb-ord-qty" role="group" aria-labelledby="rb-ord-qty-label">
+                      <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="−">−</button>
+                      <span className="rb-ord-qty-val" aria-live="polite">{qty}</span>
+                      <button type="button" onClick={() => setQty((q) => Math.min(99, q + 1))} disabled={qty >= 99} aria-label="+">+</button>
+                    </div>
+                    <p className="rb-ord-hint">{t.fieldQtyHint}</p>
+                  </div>
                 </div>
               </div>
 
-              {/* 3 — customer */}
+              {/* 4 — customer */}
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepDetails}</div>
 
+                {who === 'company' && (
+                  <>
+                    <div className="rb-ord-two" style={{ marginTop: 4 }}>
+                      <div className="rb-ord-field">
+                        <label className="rb-ord-label" htmlFor="rb-ord-company">{t.fieldCompany}</label>
+                        <input
+                          id="rb-ord-company"
+                          className="rb-ord-input"
+                          type="text"
+                          autoComplete="organization"
+                          value={customer.company}
+                          data-invalid={showErr('c_company') ? 'true' : undefined}
+                          aria-invalid={!!showErr('c_company')}
+                          aria-describedby={showErr('c_company') ? 'err_c_company' : undefined}
+                          onChange={(e) => setCustomer({ ...customer, company: e.target.value })}
+                          onBlur={() => setTouched({ ...touched, c_company: true })}
+                        />
+                        {showErr('c_company') && <p className="rb-ord-err" id="err_c_company" role="alert">{showErr('c_company')}</p>}
+                      </div>
+
+                      <div className="rb-ord-field">
+                        <label className="rb-ord-label" htmlFor="rb-ord-kennitala">{t.fieldKennitala}</label>
+                        <input
+                          id="rb-ord-kennitala"
+                          className="rb-ord-input"
+                          type="text"
+                          inputMode="numeric"
+                          value={customer.kennitala}
+                          data-invalid={showErr('c_kennitala') ? 'true' : undefined}
+                          aria-invalid={!!showErr('c_kennitala')}
+                          aria-describedby={showErr('c_kennitala') ? 'err_c_kennitala' : 'hint_c_kennitala'}
+                          onChange={(e) => setCustomer({ ...customer, kennitala: e.target.value })}
+                          onBlur={() => setTouched({ ...touched, c_kennitala: true })}
+                        />
+                        {showErr('c_kennitala')
+                          ? <p className="rb-ord-err" id="err_c_kennitala" role="alert">{showErr('c_kennitala')}</p>
+                          : <p className="rb-ord-hint" id="hint_c_kennitala">{t.fieldKennitalaHint}</p>}
+                      </div>
+                    </div>
+
+                    <div className="rb-ord-two">
+                      <div className="rb-ord-field">
+                        <label className="rb-ord-label" htmlFor="rb-ord-occasion">{t.fieldOccasion}</label>
+                        <select
+                          id="rb-ord-occasion"
+                          className="rb-ord-select"
+                          value={customer.occasion}
+                          onChange={(e) => setCustomer({ ...customer, occasion: e.target.value })}
+                        >
+                          {OCCASIONS.map((o) => (
+                            <option key={o.id} value={o.id} style={{ background: INK }}>{o.label[lang]}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="rb-ord-field">
+                        <label className="rb-ord-label" htmlFor="rb-ord-guests">{t.fieldGuests}</label>
+                        <input
+                          id="rb-ord-guests"
+                          className="rb-ord-input"
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          value={customer.guests}
+                          aria-describedby="hint_c_guests"
+                          onChange={(e) => setCustomer({ ...customer, guests: e.target.value })}
+                        />
+                        <p className="rb-ord-hint" id="hint_c_guests">{t.fieldGuestsHint}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="rb-ord-two" style={{ marginTop: 4 }}>
-                  <div className="rb-ord-field">
-                    <label className="rb-ord-label" htmlFor="rb-ord-name">{t.fieldName}</label>
-                    <input
-                      id="rb-ord-name"
-                      className="rb-ord-input"
-                      type="text"
-                      autoComplete="name"
-                      value={customer.name}
-                      data-invalid={showErr('c_name') ? 'true' : undefined}
-                      aria-invalid={!!showErr('c_name')}
-                      aria-describedby={showErr('c_name') ? 'err_c_name' : undefined}
-                      onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
-                      onBlur={() => setTouched({ ...touched, c_name: true })}
-                    />
-                    {showErr('c_name') && <p className="rb-ord-err" id="err_c_name" role="alert">{showErr('c_name')}</p>}
-                  </div>
+                  {who === 'person' ? (
+                    <div className="rb-ord-field">
+                      <label className="rb-ord-label" htmlFor="rb-ord-name">{t.fieldName}</label>
+                      <input
+                        id="rb-ord-name"
+                        className="rb-ord-input"
+                        type="text"
+                        autoComplete="name"
+                        value={customer.name}
+                        data-invalid={showErr('c_name') ? 'true' : undefined}
+                        aria-invalid={!!showErr('c_name')}
+                        aria-describedby={showErr('c_name') ? 'err_c_name' : undefined}
+                        onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
+                        onBlur={() => setTouched({ ...touched, c_name: true })}
+                      />
+                      {showErr('c_name') && <p className="rb-ord-err" id="err_c_name" role="alert">{showErr('c_name')}</p>}
+                    </div>
+                  ) : (
+                    <div className="rb-ord-field">
+                      <label className="rb-ord-label" htmlFor="rb-ord-contact">{t.fieldContact}</label>
+                      <input
+                        id="rb-ord-contact"
+                        className="rb-ord-input"
+                        type="text"
+                        autoComplete="name"
+                        value={customer.contact}
+                        data-invalid={showErr('c_contact') ? 'true' : undefined}
+                        aria-invalid={!!showErr('c_contact')}
+                        aria-describedby={showErr('c_contact') ? 'err_c_contact' : undefined}
+                        onChange={(e) => setCustomer({ ...customer, contact: e.target.value })}
+                        onBlur={() => setTouched({ ...touched, c_contact: true })}
+                      />
+                      {showErr('c_contact') && <p className="rb-ord-err" id="err_c_contact" role="alert">{showErr('c_contact')}</p>}
+                    </div>
+                  )}
 
                   <div className="rb-ord-field">
                     <label className="rb-ord-label" htmlFor="rb-ord-phone">{t.fieldPhone}</label>
@@ -619,6 +816,30 @@ export default function OrderSection({
                     : <p className="rb-ord-hint" id="hint_c_email">{t.fieldEmailHelp}</p>}
                 </div>
 
+                {who === 'company' && (
+                  <div className="rb-ord-field">
+                    <label className="rb-ord-label" htmlFor="rb-ord-invoice-email">
+                      {t.fieldInvoiceEmail}
+                      <span className="rb-ord-tag">{t.optional}</span>
+                    </label>
+                    <input
+                      id="rb-ord-invoice-email"
+                      className="rb-ord-input"
+                      type="email"
+                      inputMode="email"
+                      value={customer.invoiceEmail}
+                      data-invalid={showErr('c_invoiceEmail') ? 'true' : undefined}
+                      aria-invalid={!!showErr('c_invoiceEmail')}
+                      aria-describedby={showErr('c_invoiceEmail') ? 'err_c_invoiceEmail' : 'hint_c_invoiceEmail'}
+                      onChange={(e) => setCustomer({ ...customer, invoiceEmail: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, c_invoiceEmail: true })}
+                    />
+                    {showErr('c_invoiceEmail')
+                      ? <p className="rb-ord-err" id="err_c_invoiceEmail" role="alert">{showErr('c_invoiceEmail')}</p>
+                      : <p className="rb-ord-hint" id="hint_c_invoiceEmail">{t.fieldInvoiceEmailHint}</p>}
+                  </div>
+                )}
+
                 <div className="rb-ord-two">
                   <div className="rb-ord-field">
                     <label className="rb-ord-label" htmlFor="rb-ord-date">{t.fieldDate}</label>
@@ -639,10 +860,41 @@ export default function OrderSection({
                       : <p className="rb-ord-hint" id="hint_c_date">{t.fieldDateHelp(product.leadDays)}</p>}
                   </div>
 
+                  {who === 'company' ? (
+                    <div className="rb-ord-field">
+                      <label className="rb-ord-label" htmlFor="rb-ord-handover">{t.fieldHandover}</label>
+                      <select
+                        id="rb-ord-handover"
+                        className="rb-ord-select"
+                        value={customer.handover}
+                        onChange={(e) => setCustomer({ ...customer, handover: e.target.value as 'pickup' | 'delivery' })}
+                      >
+                        <option value="pickup" style={{ background: INK }}>{t.handoverPickup}</option>
+                        <option value="delivery" style={{ background: INK }}>{t.handoverDelivery}</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="rb-ord-field">
+                      <label className="rb-ord-label" htmlFor="rb-ord-location">{t.fieldLocation}</label>
+                      <select
+                        id="rb-ord-location"
+                        className="rb-ord-select"
+                        value={customer.location}
+                        onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
+                      >
+                        {PICKUP_LOCATIONS.map((l) => (
+                          <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {who === 'company' && customer.handover === 'pickup' && (
                   <div className="rb-ord-field">
-                    <label className="rb-ord-label" htmlFor="rb-ord-location">{t.fieldLocation}</label>
+                    <label className="rb-ord-label" htmlFor="rb-ord-location-co">{t.fieldLocation}</label>
                     <select
-                      id="rb-ord-location"
+                      id="rb-ord-location-co"
                       className="rb-ord-select"
                       value={customer.location}
                       onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
@@ -652,7 +904,28 @@ export default function OrderSection({
                       ))}
                     </select>
                   </div>
-                </div>
+                )}
+
+                {who === 'company' && customer.handover === 'delivery' && (
+                  <div className="rb-ord-field">
+                    <label className="rb-ord-label" htmlFor="rb-ord-address">{t.fieldAddress}</label>
+                    <input
+                      id="rb-ord-address"
+                      className="rb-ord-input"
+                      type="text"
+                      autoComplete="street-address"
+                      value={customer.address}
+                      data-invalid={showErr('c_address') ? 'true' : undefined}
+                      aria-invalid={!!showErr('c_address')}
+                      aria-describedby={showErr('c_address') ? 'err_c_address' : 'hint_c_address'}
+                      onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, c_address: true })}
+                    />
+                    {showErr('c_address')
+                      ? <p className="rb-ord-err" id="err_c_address" role="alert">{showErr('c_address')}</p>
+                      : <p className="rb-ord-hint" id="hint_c_address">{t.fieldAddressHint}</p>}
+                  </div>
+                )}
 
                 <div className="rb-ord-field">
                   <label className="rb-ord-label" htmlFor="rb-ord-notes">
