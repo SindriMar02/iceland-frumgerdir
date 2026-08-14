@@ -21,9 +21,76 @@
 <link rel="icon" href="favicon-48.png" type="image/png" sizes="48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!--
+      STALE-DEPLOY WATCHDOG. Must be inline and must run before the bundle,
+      because it exists for the one failure the app cannot catch itself.
+
+      GitHub Pages serves this file with cache-control: max-age=600, while every
+      deploy replaces dist/ wholesale and renames the content-hashed chunks. A
+      visitor holding a ten-minute-old copy of this HTML therefore asks for an
+      assets/index-<oldhash>.js that no longer exists. That is the module ENTRY:
+      it 404s, no bundled code runs at all, and the visitor sits on a permanently
+      white page. (Measured 2026-08-14: #root left with 0 children, 0 characters.
+      It is why Tannlæknavaktin would not open until a refresh AND a browser quit.)
+
+      A reload fixes it, because reloading revalidates this HTML and gets the new
+      filenames. So: reload once, and only once. The flag is the same key the app
+      uses in src/StaleBuildBoundary.tsx, so the two share a single retry between
+      them and cannot ping-pong. sessionStorage, so it dies with the tab and a
+      later visit gets a fresh automatic recovery.
+
+      Capture phase: resource load errors do not bubble.
+    -->
+    <script>
+      (function () {
+        var KEY = 'sndr:stale-build-reload'
+        function claim() {
+          try {
+            if (sessionStorage.getItem(KEY)) return false
+            sessionStorage.setItem(KEY, String(Date.now()))
+            return true
+          } catch (e) { return true }
+        }
+        window.addEventListener('error', function (e) {
+          var t = e.target
+          if (!t || t === window) return
+          var tag = t.tagName
+          if (tag !== 'SCRIPT' && tag !== 'LINK') return
+          // Only our own build output. A dead Google Font or a blocked third
+          // party must never be able to reload a client's page in a loop.
+          var url = t.src || t.href || ''
+          if (url.indexOf('/assets/') === -1) return
+          if (claim()) window.location.reload()
+        }, true)
+
+        /**
+         * Last resort. If the reload above did not help, the current build is
+         * genuinely missing a file and no bundled code will ever run — nothing
+         * inside the app can draw anything, so the message has to live here.
+         * Gated on the entry bundle having EXECUTED (main.tsx sets the flag),
+         * not on #root being non-empty: the app's outer Suspense fallback is
+         * null, so a healthy page has an empty #root for as long as its route
+         * chunk takes to arrive, and a slow phone would be accused wrongly.
+         */
+        window.addEventListener('DOMContentLoaded', function () {
+          setTimeout(function () {
+            var fb = document.getElementById('boot-fallback')
+            if (!fb || window.__sndrAppBooted) return
+            fb.hidden = false
+          }, 8000)
+        })
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Sibling of #root, never a child: React clears its own container on the
+         first render, and this must survive the case where React never runs.
+         Names no client and links nowhere, like every other fallback here. -->
+    <div id="boot-fallback" hidden role="alert" style="min-height:100svh;display:grid;place-content:center;gap:18px;padding:32px;text-align:center;background:#faf8f5;color:#1c1a17;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">
+      <p style="margin:0;font-size:19px;line-height:1.5;max-width:34ch">Síðan náðist ekki að hlaðast. Þetta lagast oftast við að hlaða henni aftur.</p>
+      <button type="button" onclick="try{sessionStorage.removeItem('sndr:stale-build-reload')}catch(e){};location.reload()" style="justify-self:center;min-height:44px;padding:0 22px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-size:15px;cursor:pointer">Hlaða síðunni aftur</button>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

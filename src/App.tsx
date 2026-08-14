@@ -5,6 +5,9 @@ import { MotionConfig } from 'framer-motion'
 // Eager (not lazy): the universal fallback must always be available, even if a
 // route chunk is stale or 404s. It names no client and never links to the hub.
 import NotFound from './pages/NotFound'
+// Eager for the same reason, and one level further out: it is what turns a
+// stale-deploy chunk 404 from a permanent white page into a single reload.
+import StaleBuildBoundary, { clearStaleBuildRetry } from './StaleBuildBoundary'
 import { ROUTE_FAVICONS } from './preview/favicons'
 // Eager: shown as this route's OWN Suspense fallback while its chunk downloads, so it must be
 // available synchronously - a lazy-loaded fallback can't render before its own chunk has loaded.
@@ -250,13 +253,24 @@ function RootRoute() {
 const BASE = import.meta.env.BASE_URL
 const basename = BASE === '/' ? undefined : BASE.replace(/\/$/, '')
 
+/** Renders nothing; exists only to report "a route chunk resolved". */
+function StaleBuildOk() {
+  useEffect(() => clearStaleBuildRetry(), [])
+  return null
+}
+
 export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <BrowserRouter basename={basename}>
         <ScrollToTop />
         <RouteFavicon />
+        <StaleBuildBoundary>
         <Suspense fallback={null}>
+          {/* Inside the boundary, so it only commits once the route's chunk has
+              actually resolved. That is the proof the build is good, and the
+              moment it is safe to hand the next deploy a fresh retry. */}
+          <StaleBuildOk />
           <Routes>
             <Route path="/" element={<RootRoute />} />
             <Route path="/daeli-farm" element={<DaeliFarm />} />
@@ -374,6 +388,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </StaleBuildBoundary>
       </BrowserRouter>
     </MotionConfig>
   )
