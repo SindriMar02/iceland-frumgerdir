@@ -21,18 +21,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Lang } from './data'
-import { LINKS } from './data'
 import {
-  OCCASIONS,
-  ORDER_PRODUCTS,
   ORDER_T,
-  PICKUP_LOCATIONS,
   PLACEHOLDER_DATA,
   isk,
   type OrderGroup,
   type OrderProduct,
 } from './order'
 import { BODY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
+import { useSiteContent } from './sanity'
 
 const ORDER_CSS = `
   /* layout: functional split, the slip reacts to the choices */
@@ -277,13 +274,14 @@ export default function OrderSection({
   initialProductId?: string
 }) {
   const t = ORDER_T[lang]
+  const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS } = useSiteContent()
 
   const [productId, setProductId] = useState(
     () => (initialProductId && ORDER_PRODUCTS.some((p) => p.id === initialProductId) ? initialProductId : ORDER_PRODUCTS[0].id),
   )
   const product: OrderProduct = useMemo(
     () => ORDER_PRODUCTS.find((p) => p.id === productId) ?? ORDER_PRODUCTS[0],
-    [productId],
+    [productId, ORDER_PRODUCTS],
   )
 
   /** A private order and a company order need different fields, not a different form. */

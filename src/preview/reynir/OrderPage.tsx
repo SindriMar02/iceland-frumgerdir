@@ -17,11 +17,12 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { LINKS, LOGO, T } from './data'
+import { LOGO, T } from './data'
 import { ORDER_T } from './order'
 import OrderSection from './OrderSection'
 import { useLang } from './useLang'
 import { BODY, DIM, EASE, FAINT, GOLD, GOLD_LIGHT, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
+import { SiteContentProvider, useSiteContent } from './sanity'
 
 const company = getPreviewCompany('reynir')
 
@@ -61,10 +62,11 @@ const PAGE_CSS = `
   }
 `
 
-export default function ReynirOrderPage() {
+function ReynirOrderPageInner() {
   const [lang, setLang] = useLang()
   const t = T[lang]
   const ot = ORDER_T[lang]
+  const { LINKS, hoursRows, hamraborgNote, mainName, secondName } = useSiteContent()
   const [params] = useSearchParams()
   const preselect = params.get('vara') ?? undefined
 
@@ -107,17 +109,17 @@ export default function ReynirOrderPage() {
           <div>
             <div className="rb-op-foot-label">{t.mainLabel}</div>
             <p className="rb-op-foot-body">
-              {t.mainName}
+              {mainName}
               <br />
-              {t.hoursRows.join(' · ')}
+              {hoursRows[lang].join(' · ')}
             </p>
           </div>
           <div>
             <div className="rb-op-foot-label">{t.secondLabel}</div>
             <p className="rb-op-foot-body">
-              {t.secondName}
+              {secondName}
               <br />
-              {t.secondNote}
+              {hamraborgNote[lang]}
             </p>
           </div>
           <div>
@@ -134,5 +136,13 @@ export default function ReynirOrderPage() {
       <PreviewChrome company={company} />
       <PreviewFooter company={company} />
     </div>
+  )
+}
+
+export default function ReynirOrderPage() {
+  return (
+    <SiteContentProvider>
+      <ReynirOrderPageInner />
+    </SiteContentProvider>
   )
 }

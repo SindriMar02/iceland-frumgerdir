@@ -31,6 +31,12 @@ jobs:
       - run: npm run build
         env:
           BASE_PATH: /iceland-frumgerdir/
+          # Read-only Sanity viewer tokens, one per client CMS project. Without
+          # these the production build never enters preview mode even inside
+          # a studio's Presentation iframe (see isPreview in each preview's
+          # sanity.ts), so the live-preview handshake silently never connects.
+          VITE_SANITY_VIEWER_TOKEN: ${{ secrets.VITE_SANITY_VIEWER_TOKEN }}
+          VITE_REYNIR_SANITY_VIEWER_TOKEN: ${{ secrets.VITE_REYNIR_SANITY_VIEWER_TOKEN }}
       # Gate the artifact on the favicon check. This site is a GitHub Pages
       # *project* site sharing an origin with the ARTIX site at the root, so a
       # page without a usable icon shows a defence contractor's helm in a

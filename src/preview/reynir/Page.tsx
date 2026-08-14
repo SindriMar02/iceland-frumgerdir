@@ -22,12 +22,13 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { T, type Lang, type MenuItem, type GalleryPhoto, LOGO, FEATURE_IMG, PRODUCT_IMG, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS } from './data'
+import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, LOGO, FEATURE_IMG, PRODUCT_IMG } from './data'
 import { BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY } from './tokens'
 import OrderTeaser from './OrderTeaser'
 import MapCard from './MapCard'
 import { ORDER_T } from './order'
 import { useLang } from './useLang'
+import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 
 /** The order configurator's own route. */
 const ORDER_PATH = '/preview/reynir/panta'
@@ -194,16 +195,18 @@ const PAGE_CSS = `
 const pad2 = (n: number) => String(n).padStart(2, '0')
 const fmtHM = (mins: number) => `${Math.floor(mins / 60)}:${pad2(mins % 60)}`
 
-/** Iceland has no DST, so UTC clock fields equal Iceland local time. */
-function openStatus(now: number, lang: Lang) {
+/** Iceland has no DST, so UTC clock fields equal Iceland local time.
+ *  hoursByDay is read live from the CMS (falls back to bundled data.ts) so
+ *  the "open now" badge always matches whatever the owner set. */
+function openStatus(now: number, lang: Lang, hoursByDay: readonly DayHours[]) {
   const d = new Date(now)
   const day = d.getUTCDay()
   const mins = d.getUTCHours() * 60 + d.getUTCMinutes()
-  const today = HOURS_BY_DAY[day]
+  const today = hoursByDay[day]
   const t = T[lang]
-  if (mins >= today.open && mins < today.close) return { open: true, label: t.statusOpen(fmtHM(today.close)) }
-  if (mins < today.open) return { open: false, label: t.statusOpensToday(fmtHM(today.open)) }
-  return { open: false, label: t.statusOpensTomorrow(fmtHM(HOURS_BY_DAY[(day + 1) % 7].open)) }
+  if (!today.closed && mins >= today.open && mins < today.close) return { open: true, label: t.statusOpen(fmtHM(today.close)) }
+  if (today.closed || mins < today.open) return { open: false, label: t.statusOpensToday(fmtHM(today.open)) }
+  return { open: false, label: t.statusOpensTomorrow(fmtHM(hoursByDay[(day + 1) % 7].open)) }
 }
 
 const revealInit = (reduced: boolean, delay = 0) =>
@@ -248,17 +251,21 @@ function GalleryTile({ photo, lang, onOpen, style }: { photo: GalleryPhoto; lang
 
 /** The real reviews, auto-rotating with a soft crossfade. Pauses on
  *  hover/focus and under prefers-reduced-motion; dots give manual control. */
-function TestimonialRotator({ lang, reduced }: { lang: Lang; reduced: boolean }) {
+function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: boolean; reviews: Review[] }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
-    if (reduced || paused || REVIEWS.length <= 1) return
-    const id = window.setInterval(() => setIndex((i) => (i + 1) % REVIEWS.length), 6500)
+    if (reduced || paused || reviews.length <= 1) return
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % reviews.length), 6500)
     return () => window.clearInterval(id)
-  }, [reduced, paused])
+  }, [reduced, paused, reviews])
 
-  const r = REVIEWS[index]
+  useEffect(() => {
+    if (index >= reviews.length) setIndex(0)
+  }, [reviews, index])
+
+  const r = reviews[index] ?? reviews[0]
 
   return (
     <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
@@ -277,9 +284,9 @@ function TestimonialRotator({ lang, reduced }: { lang: Lang; reduced: boolean })
         {r.who}
       </figcaption>
 
-      {REVIEWS.length > 1 && (
+      {reviews.length > 1 && (
         <div role="tablist" aria-label={lang === 'en' ? 'Reviews' : 'Umsagnir'} style={{ display: 'flex', gap: 0, justifyContent: 'center', marginTop: 4 }}>
-          {REVIEWS.map((_, i) => (
+          {reviews.map((_, i) => (
             <button
               key={i}
               type="button"
@@ -297,11 +304,16 @@ function TestimonialRotator({ lang, reduced }: { lang: Lang; reduced: boolean })
   )
 }
 
-export default function ReynirPage() {
+function ReynirPageInner() {
   // English on a first visit, but shared with the order route so a visitor
   // reading in Icelandic does not land back in English after ordering.
   const [lang, setLang] = useLang()
   const t = T[lang]
+  const {
+    LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
+    hoursRows, hamraborgNote, mainName, secondName, trustLine,
+    heroTitle, heroSub, heroLine, statementQuote, statementWho, storyP1, storyP2,
+  } = useSiteContent()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reduced, setReduced] = useState(false)
 
@@ -318,7 +330,7 @@ export default function ReynirPage() {
     const id = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(id)
   }, [])
-  const status = useMemo(() => openStatus(now, lang), [now, lang])
+  const status = useMemo(() => openStatus(now, lang, HOURS_BY_DAY), [now, lang, HOURS_BY_DAY])
 
   useEffect(() => {
     setThemeColor(INK)
@@ -478,14 +490,14 @@ export default function ReynirPage() {
             </div>
 
             <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
-              {t.heroTitle}
+              {heroTitle[lang]}
             </h1>
 
             <p className="rb-enter-3" style={{ fontStyle: 'italic', fontSize: 'clamp(17px,1.9vw,23px)', color: IVORY, margin: 'clamp(16px,2.5vh,24px) 0 0', lineHeight: 1.5, maxWidth: '30ch' }}>
-              {t.heroSub}
+              {heroSub[lang]}
             </p>
             <p className="rb-enter-3" style={{ fontSize: 'clamp(14.5px,1.2vw,16px)', color: DIM, margin: '12px 0 0', maxWidth: '40ch', lineHeight: 1.6 }}>
-              {t.heroLine}
+              {heroLine[lang]}
             </p>
 
             <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
@@ -590,13 +602,13 @@ export default function ReynirPage() {
             {t.statementKicker}
           </div>
           <blockquote data-reveal style={{ ...revealInit(reduced, 0.08), fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5.4vw,76px)', lineHeight: 1.12, letterSpacing: '.005em', color: IVORY, margin: '24px 0 0' }}>
-            “{t.statementQuote}”
+            “{statementQuote[lang]}”
           </blockquote>
-          <div data-reveal style={{ ...revealInit(reduced, 0.14), fontSize: 14, color: 'rgba(243,234,211,.7)', marginTop: 22 }}>{t.statementWho}</div>
+          <div data-reveal style={{ ...revealInit(reduced, 0.14), fontSize: 14, color: 'rgba(243,234,211,.7)', marginTop: 22 }}>{statementWho[lang]}</div>
 
           <div data-reveal style={{ ...revealInit(reduced, 0.2), display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(24px,4vw,64px)', marginTop: 'clamp(48px,7vh,88px)', maxWidth: 820 }} className="rb-catering-grid">
-            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{t.storyP1}</p>
-            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{t.storyP2}</p>
+            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{storyP1[lang]}</p>
+            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{storyP2[lang]}</p>
           </div>
         </div>
       </section>
@@ -671,8 +683,8 @@ export default function ReynirPage() {
 
           {/* the real reviews, auto-rotating + trust line */}
           <figure data-reveal style={{ ...revealInit(reduced, 0.14), margin: '0', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)', textAlign: 'center' }}>
-            <TestimonialRotator lang={lang} reduced={reduced} />
-            <div style={{ fontSize: 13.5, color: DIM, marginTop: 18 }}>{t.trustLine}</div>
+            <TestimonialRotator lang={lang} reduced={reduced} reviews={REVIEWS} />
+            <div style={{ fontSize: 13.5, color: DIM, marginTop: 18 }}>{trustLine[lang]}</div>
           </figure>
         </div>
       </section>
@@ -696,8 +708,8 @@ export default function ReynirPage() {
               <MapCard
                 lang={lang}
                 locations={[
-                  { label: t.mainLabel, address: t.mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
-                  { label: t.secondLabel, address: t.secondName, query: 'Reynir bakari, Hamraborg 14, 200 Kópavogur' },
+                  { label: t.mainLabel, address: mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
+                  { label: t.secondLabel, address: secondName, query: 'Reynir bakari, Hamraborg 14, 200 Kópavogur' },
                 ]}
               />
             </div>
@@ -705,9 +717,9 @@ export default function ReynirPage() {
             <div data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gap: 26 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.mainLabel}</div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 8 }}>{t.mainName}</div>
+                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 8 }}>{mainName}</div>
                 <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
-                  {t.hoursRows.map((l) => (
+                  {hoursRows[lang].map((l) => (
                     <div key={l} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
                       <span>{l.split(/\s(.+)/)[0]}</span>
                       <span style={{ color: IVORY }}>{l.split(/\s(.+)/)[1]}</span>
@@ -725,8 +737,8 @@ export default function ReynirPage() {
               </div>
               <div style={{ borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 20 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.secondLabel}</div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,24px)', color: IVORY, marginTop: 8 }}>{t.secondName}</div>
-                <p style={{ fontSize: 14, color: DIM, margin: '8px 0 0', lineHeight: 1.6 }}>{t.secondNote}</p>
+                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,24px)', color: IVORY, marginTop: 8 }}>{secondName}</div>
+                <p style={{ fontSize: 14, color: DIM, margin: '8px 0 0', lineHeight: 1.6 }}>{hamraborgNote[lang]}</p>
               </div>
             </div>
           </div>
@@ -741,7 +753,7 @@ export default function ReynirPage() {
             <div style={{ fontSize: 13, color: FAINT, marginTop: 12 }}>{t.footerTag}</div>
           </div>
           <div style={{ fontSize: 13.5, color: DIM, lineHeight: 1.8, textAlign: 'right' }}>
-            <div>{t.mainName} · {LINKS.phoneLabel}</div>
+            <div>{mainName} · {LINKS.phoneLabel}</div>
             <div style={{ display: 'flex', gap: 18, justifyContent: 'flex-end', marginTop: 6 }}>
               <a href={LINKS.instagram} target="_blank" rel="noreferrer" className="rb-foot-link">Instagram</a>
               <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="rb-foot-link">Facebook</a>
@@ -782,5 +794,13 @@ export default function ReynirPage() {
       <PreviewChrome company={company} />
       <PreviewFooter company={company} />
     </div>
+  )
+}
+
+export default function ReynirPage() {
+  return (
+    <SiteContentProvider>
+      <ReynirPageInner />
+    </SiteContentProvider>
   )
 }

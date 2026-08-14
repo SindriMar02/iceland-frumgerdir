@@ -12,8 +12,9 @@
 
 import { Link } from 'react-router-dom'
 import type { Lang } from './data'
-import { ORDER_PRODUCTS, ORDER_T, isk } from './order'
+import { ORDER_T, isk } from './order'
 import { DIM, DISPLAY, EASE, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, INK_DEEP, IVORY } from './tokens'
+import { useSiteContent } from './sanity'
 
 const TEASER_CSS = `
   /* Flex + centred remainder, not a 3-col grid: the owner can add or remove a
@@ -45,6 +46,7 @@ const TEASER_CSS = `
 
 export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath: string }) {
   const t = ORDER_T[lang]
+  const { ORDER_PRODUCTS } = useSiteContent()
 
   return (
     <section id="order" style={{ background: INK_DEEP, padding: 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
