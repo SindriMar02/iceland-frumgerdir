@@ -258,6 +258,7 @@ export default function Page() {
   useEffect(() => {
     reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setThemeColor(ICE)
+    document.title = 'Iceland Luxury Lodges — Four private houses on the lakes of the Golden Circle'
     const forced = new URLSearchParams(window.location.search).has('loader')
     let seen = false
     try { seen = sessionStorage.getItem(SEEN_KEY) === '1' } catch { seen = true }

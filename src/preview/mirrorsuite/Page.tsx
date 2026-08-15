@@ -194,6 +194,7 @@ export default function Page() {
   useEffect(() => {
     reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setThemeColor(DEEP)
+    document.title = 'The Mirror Suite — Mirror suites by the sea in West Iceland'
     const forced = new URLSearchParams(window.location.search).has('loader')
     let seen = false
     try { seen = sessionStorage.getItem(SEEN_KEY) === '1' } catch { seen = true }

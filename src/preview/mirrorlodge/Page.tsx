@@ -220,6 +220,7 @@ export default function Page() {
   useEffect(() => {
     reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setThemeColor(SILVER)
+    document.title = 'Mirror Lodge Iceland — A mirror-glass cabin by Geysir'
     const forced = new URLSearchParams(window.location.search).has('loader')
     let seen = false
     try { seen = sessionStorage.getItem(SEEN_KEY) === '1' } catch { seen = true }
