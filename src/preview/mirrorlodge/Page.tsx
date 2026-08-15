@@ -1,136 +1,100 @@
 import { useEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, INSTAGRAM, LICENCE, NAV, HERO, STATEMENT,
-  MIRROR_STOPS, CABIN, SKY, PLACE, GALLERY, BOOKING, JSON_LD,
+  CABIN, SKY, PLACE, GALLERY, REVIEWS, JOURNEY, BOOKING, JSON_LD,
 } from './data'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const company = companyEntry
 
 /* ── „Landslagið klæðir húsið" — the landscape wears the house. ─────────────
-   A mirror-clad cabin has no colour of its own. The page is built on that:
-   THE MIRROR — a pinned frame where the cabin stays still while its
-   reflected world wipes from snow to open land to aurora (clip-path inset,
-   driven by scroll progress in the shared rAF; CSS sticky does the pin,
-   no GSAP). The wordmark stands on its own true reflection (scaleY(-1)).
-   Chrome register: silver canvas, graphite ink, one desaturated
-   aurora-green accent. Clash Display + General Sans. ─────────────────────── */
+   A mirror-clad cabin has no colour of its own, so the page borrows its
+   colour from the sky and hands the visitor a walk instead of a scroll.
 
-/* Palette — computed contrast:
-   GRAPHITE #14181B on SILVER #F4F6F7 ..... 15.2:1 AAA
-   MOSS #3F6B5B on SILVER ................. 5.5:1 AA (small-text safe)
-   SILVER on GRAPHITE ..................... 15.2:1 AAA */
-const SILVER = '#F4F6F7'
-const GRAPHITE = '#14181B'
+   Two engines, welded together:
+   · [[mirrorhouse-design-system]] — the SEAM-REVEAL wordmark (a hairline
+     draws itself, MIRROR opens leftward out of it and LODGE rightward, then
+     scroll keeps parting them while the rule grows past them), the PALETTE
+     SCRUB (one master trigger lerps day → dusk → night across the whole
+     document through three CSS vars on the root, so every section inherits
+     the hour), and mix-blend-difference chrome that needs no bar.
+   · [[drangar]]/NIB — the PINNED HORIZONTAL JOURNEY (a tween, never a
+     timeline, driven with containerAnimation) and its image flow: two-copy
+     FLIP PEELS where a clip-path inset uncovers the top copy while the
+     oversized source below scales and drifts, one writer per image.
+
+   Desktop ≥1024 and no reduced motion gets the journey; everything else is
+   a plain vertical document with the same content and the same peels. ──── */
+
+/* Palette — the hour is a variable, not a constant. Computed contrast at
+   both ends of the scrub:
+   INK #14181B on DAY  #F4F6F7 ....... 15.2:1 AAA
+   BONE #EEF1F2 on NIGHT #10161C ..... 15.4:1 AAA
+   MOSS #3F6B5B on DAY ............... 5.5:1 AA (small text safe)
+   GLASS #8FC3B1 on NIGHT ............ 8.6:1 AA (small text safe) */
+const DAY = '#F4F6F7'
+const NIGHT = '#10161C'
 
 const SEEN_KEY = 'ml_seen'
 
-interface DriftNode { el: HTMLElement; d: number }
-const driftSet = new Set<DriftNode>()
-/** the pinned mirror registers a progress callback into the same loop */
-const scrubSet = new Set<{ el: HTMLElement; fn: (p: number) => void }>()
-let rafId = 0
-let reduced = false
+/* the scrub stops: canvas / ink / accent / hairline, in order of the day */
+const HOURS = [
+  { at: 0.00, canvas: '#F4F6F7', ink: '#14181B', accent: '#3F6B5B' },
+  { at: 0.42, canvas: '#E4E7EA', ink: '#171C21', accent: '#3F6B5B' },
+  { at: 0.72, canvas: '#5C6874', ink: '#F2F5F6', accent: '#A9D3C4' },
+  { at: 1.00, canvas: '#10161C', ink: '#EEF1F2', accent: '#8FC3B1' },
+]
 
-function loop() {
-  rafId = 0
-  if (!driftSet.size && !scrubSet.size) return
-  const vh = window.innerHeight
-  const dReads: { n: DriftNode; p: number; vis: boolean }[] = []
-  driftSet.forEach((n) => {
-    const r = n.el.getBoundingClientRect()
-    dReads.push({
-      n,
-      p: (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2),
-      vis: r.bottom > -80 && r.top < vh + 80,
-    })
-  })
-  const sReads: { s: { el: HTMLElement; fn: (p: number) => void }; p: number }[] = []
-  scrubSet.forEach((s) => {
-    const r = s.el.getBoundingClientRect()
-    const total = r.height - vh
-    if (total <= 0) return
-    sReads.push({ s, p: Math.min(1, Math.max(0, -r.top / total)) })
-  })
-  for (const { n, p, vis } of dReads) {
-    if (!vis) continue
-    n.el.style.transform = `translate3d(0, ${(-p * n.d).toFixed(3)}%, 0)`
+const hex = (h: string) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]
+const mixHex = (a: string, b: string, t: number) => {
+  const [r1, g1, b1] = hex(a); const [r2, g2, b2] = hex(b)
+  const r = Math.round(r1 + (r2 - r1) * t)
+  const g = Math.round(g1 + (g2 - g1) * t)
+  const bl = Math.round(b1 + (b2 - b1) * t)
+  return `rgb(${r}, ${g}, ${bl})`
+}
+function hourAt(p: number) {
+  let i = 0
+  while (i < HOURS.length - 2 && p > HOURS[i + 1].at) i += 1
+  const a = HOURS[i]; const b = HOURS[i + 1]
+  const t = Math.min(1, Math.max(0, (p - a.at) / Math.max(0.0001, b.at - a.at)))
+  return {
+    canvas: mixHex(a.canvas, b.canvas, t),
+    ink: mixHex(a.ink, b.ink, t),
+    accent: mixHex(a.accent, b.accent, t),
   }
-  for (const { s, p } of sReads) s.fn(p)
-  rafId = requestAnimationFrame(loop)
-}
-function armDrift(el: HTMLElement | null, d: number) {
-  if (!el || reduced) return () => {}
-  const n = { el, d }
-  driftSet.add(n)
-  if (!rafId) rafId = requestAnimationFrame(loop)
-  return () => { driftSet.delete(n); el.style.transform = '' }
-}
-function armScrub(el: HTMLElement | null, fn: (p: number) => void) {
-  if (!el || reduced) return () => {}
-  const s = { el, fn }
-  scrubSet.add(s)
-  if (!rafId) rafId = requestAnimationFrame(loop)
-  return () => { scrubSet.delete(s) }
 }
 
-function Frame({ src, alt, drift = 10, ratio = '4/3' }: { src: string; alt: string; drift?: number; ratio?: string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => armDrift(ref.current, drift), [drift])
-  const dz = Math.max(9, drift * 1.35)
+let pageLenis: Lenis | null = null
+
+/* ── flip peel figure (drangar mechanism: two copies, --clip on the top,
+      oversized source underneath so the parallax never exposes an edge) ── */
+function Flip({
+  src, alt, dir = 'up', scrub = false, par = true, className = '', priority = false,
+}: {
+  src: string; alt: string; dir?: 'up' | 'left' | 'right'; scrub?: boolean; par?: boolean; className?: string; priority?: boolean
+}) {
   return (
-    <figure className="ml-frame" style={{ ['--dz' as string]: `${dz}%`, aspectRatio: ratio }}>
-      <div className="ml-frame-in" ref={ref}>
-        <img src={src} alt={alt} loading="lazy" decoding="async" />
+    <figure
+      className={`ml-flip ${par ? 'ml-par' : ''} ${className}`}
+      data-ml-dir={dir}
+      data-ml-scrub={scrub ? '1' : '0'}
+    >
+      <div className="ml-m ml-m-src">
+        <img src={src} alt="" aria-hidden="true" loading={priority ? 'eager' : 'lazy'} decoding="async" />
+      </div>
+      <div className="ml-m ml-m-up">
+        <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
       </div>
     </figure>
-  )
-}
-
-function Rise({ as: Tag = 'div', className = '', children }: { as?: 'div' | 'h2' | 'h3' | 'p'; className?: string; children: React.ReactNode }) {
-  return (
-    <Tag className={`ml-rise ${className}`}>
-      <span className="ml-rise-in">{children}</span>
-    </Tag>
-  )
-}
-
-/* ── THE MIRROR: pinned wipe through their own photos ───────────────────── */
-function MirrorPin() {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const layerRefs = useRef<(HTMLDivElement | null)[]>([])
-  useEffect(() => {
-    return armScrub(wrapRef.current, (p) => {
-      const n = MIRROR_STOPS.length
-      /* layer i wipes in over segment [i-1, i] of n-1 segments */
-      for (let i = 1; i < n; i++) {
-        const el = layerRefs.current[i]
-        if (!el) continue
-        const seg = (p * (n - 1)) - (i - 1)
-        const t = Math.min(1, Math.max(0, seg))
-        el.style.clipPath = `inset(0 ${((1 - t) * 100).toFixed(2)}% 0 0)`
-      }
-    })
-  }, [])
-  return (
-    <section className="ml-mirror" id="spegill" ref={wrapRef} aria-label="The cabin through its seasons">
-      <div className="ml-mirror-sticky">
-        {MIRROR_STOPS.map((s, i) => (
-          <div
-            className="ml-mirror-layer"
-            key={s.img}
-            ref={(el) => { layerRefs.current[i] = el }}
-            style={i === 0 ? undefined : { clipPath: 'inset(0 100% 0 0)' }}
-          >
-            <img src={IMG[s.img]} alt={s.alt} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
-          </div>
-        ))}
-        <p className="ml-mirror-caption">Snow, open land, aurora. The mirror takes whatever comes.</p>
-      </div>
-    </section>
   )
 }
 
@@ -152,7 +116,7 @@ function Preloader({ onDone }: { onDone: () => void }) {
       setPct(Math.round(p * 100))
       if (p >= 1 && !doneRef.current) {
         doneRef.current = true
-        window.setTimeout(() => { onDone(); window.dispatchEvent(new CustomEvent('ml:revealed')) }, 240)
+        window.setTimeout(() => { onDone(); window.dispatchEvent(new CustomEvent('ml:revealed')) }, 220)
         return
       }
       raf = requestAnimationFrame(tick)
@@ -163,7 +127,43 @@ function Preloader({ onDone }: { onDone: () => void }) {
   return (
     <div className="ml-loader" role="status" aria-label="Loading">
       <div className="ml-loader-word" style={{ ['--p' as string]: `${100 - pct}%` }}>MIRROR LODGE</div>
-      <div className="ml-loader-refl" style={{ ['--p' as string]: `${100 - pct}%` }} aria-hidden="true">MIRROR LODGE</div>
+      <div className="ml-loader-line" aria-hidden="true" />
+    </div>
+  )
+}
+
+function Reviews() {
+  const [i, setI] = useState(0)
+  const n = REVIEWS.quotes.length
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = window.setInterval(() => setI((v) => (v + 1) % n), 7000)
+    return () => window.clearInterval(t)
+  }, [n])
+  return (
+    <div className="ml-rev">
+      <div className="ml-rev-head">
+        <h2 className="ml-h2">{REVIEWS.lead}</h2>
+        <p className="ml-body">{REVIEWS.body}</p>
+      </div>
+      <div className="ml-rev-quotes">
+        <ul className="ml-rev-list">
+          {REVIEWS.quotes.map((q, idx) => (
+            <li key={q.text} className={`ml-rev-q ${idx === i ? 'is-live' : ''}`} aria-hidden={idx !== i}>
+              <blockquote>“{q.text}”</blockquote>
+              <cite>{q.meta}</cite>
+            </li>
+          ))}
+        </ul>
+        <div className="ml-rev-dots" role="tablist" aria-label="Reviews">
+          {REVIEWS.quotes.map((q, idx) => (
+            <button key={q.text} type="button" role="tab" aria-selected={idx === i}
+              aria-label={`Review ${idx + 1} of ${n}`}
+              className={`ml-rev-dot ${idx === i ? 'is-on' : ''}`} onClick={() => setI(idx)} />
+          ))}
+        </div>
+        <p className="ml-rev-note">{REVIEWS.sampleNote}</p>
+      </div>
     </div>
   )
 }
@@ -178,7 +178,7 @@ function BookingForm() {
       const prev = JSON.parse(localStorage.getItem(key) || '[]')
       prev.push({ ...Object.fromEntries(fd.entries()), at: new Date().toISOString() })
       localStorage.setItem(key, JSON.stringify(prev))
-    } catch { /* private mode: demo still succeeds */ }
+    } catch { /* private mode: the demo still succeeds */ }
     setSent(true)
   }
   if (sent) return <div className="ml-book-done" role="status"><p>{BOOKING.success}</p></div>
@@ -218,8 +218,8 @@ export default function Page() {
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    setThemeColor(SILVER)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    setThemeColor(DAY)
     document.title = 'Mirror Lodge Iceland — A mirror-glass cabin by Geysir'
     const forced = new URLSearchParams(window.location.search).has('loader')
     let seen = false
@@ -236,25 +236,162 @@ export default function Page() {
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     root.classList.add('js')
-    if (reduced) { root.classList.add('reduced'); return }
-    const io = new IntersectionObserver(
-      (es) => es.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-on'); io.unobserve(en.target) } }),
-      { threshold: 0.2 },
-    )
-    root.querySelectorAll('.ml-rise, .ml-frame, .ml-fact, .ml-amen li, .ml-point, .ml-gal-item').forEach((el) => io.observe(el))
-    return () => io.disconnect()
-  }, [booted])
+    if (reduced) root.classList.add('reduced')
 
-  useEffect(() => {
-    const onReveal = () => rootRef.current?.classList.add('is-revealed')
-    window.addEventListener('ml:revealed', onReveal)
-    return () => window.removeEventListener('ml:revealed', onReveal)
-  }, [])
+    const ctx = gsap.context(() => {
+      /* ── THE SEAM REVEAL (mirrorhouse device 2) ── */
+      const seam = root.querySelector<HTMLElement>('.ml-wm-seam')
+      const wmL = root.querySelector<HTMLElement>('.ml-wm-l')
+      const wmR = root.querySelector<HTMLElement>('.ml-wm-r')
+      const heroEl = root.querySelector<HTMLElement>('.ml-hero')
+      if (seam && wmL && wmR && heroEl && !reduced) {
+        gsap.set(seam, { scaleY: 0 })
+        gsap.set(wmL, { clipPath: 'inset(0% 0% 0% 100%)' })
+        gsap.set(wmR, { clipPath: 'inset(0% 100% 0% 0%)' })
+        const openFromTheLine = () => {
+          gsap.timeline()
+            .to(seam, { scaleY: 1, duration: 0.85, ease: 'expo.out' })
+            .to([wmL, wmR], { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.out' }, '-=0.42')
+            .from([wmL, wmR], { x: (i: number) => (i === 0 ? 26 : -26), duration: 1.5, ease: 'expo.out' }, '<')
+        }
+        if (document.querySelector('.ml-loader')) {
+          window.addEventListener('ml:revealed', openFromTheLine, { once: true })
+        } else {
+          gsap.delayedCall(0.12, openFromTheLine)
+        }
+        const driveOn = { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 0.6 }
+        gsap.to(wmL, { xPercent: -14, opacity: 0.08, ease: 'none', scrollTrigger: driveOn })
+        gsap.to(wmR, { xPercent: 14, opacity: 0.08, ease: 'none', scrollTrigger: driveOn })
+        gsap.to(seam, { scaleY: 3.4, opacity: 0, ease: 'none', scrollTrigger: driveOn })
+      }
+
+      /* ── THE PALETTE SCRUB (mirrorhouse device 1): ONE writer, three vars,
+            every section inherits the hour. ── */
+      const applyHour = (p: number) => {
+        const h = hourAt(p)
+        root.style.setProperty('--ml-canvas', h.canvas)
+        root.style.setProperty('--ml-ink', h.ink)
+        root.style.setProperty('--ml-accent', h.accent)
+        root.classList.toggle('ml-night', p > 0.6)
+        setThemeColor(p > 0.6 ? NIGHT : DAY)
+      }
+      applyHour(0)
+      if (!reduced) {
+        ScrollTrigger.create({
+          trigger: root,
+          start: 'top top',
+          end: 'bottom bottom',
+          onUpdate: (self) => applyHour(self.progress),
+        })
+      }
+
+      /* ── flip peels: ONE writer per image (clip on the up copy, scale +
+            drift on the source below) ── */
+      const armFlips = (container: (t: Element) => ScrollTrigger.Vars) => {
+        root.querySelectorAll<HTMLElement>('.ml-flip').forEach((fig) => {
+          const up = fig.querySelector('.ml-m-up') as HTMLElement
+          const src = fig.querySelector('.ml-m-src img') as HTMLElement
+          if (!up || !src) return
+          const dir = fig.dataset.mlDir ?? 'up'
+          const scrub = fig.dataset.mlScrub === '1'
+          const clipFrom = dir === 'up' ? 'inset(100% 0% 0% 0%)'
+            : dir === 'right' ? 'inset(0% 100% 0% 0%)' : 'inset(0% 0% 0% 100%)'
+          const tl = gsap.timeline({ paused: true })
+          tl.fromTo(up, { clipPath: clipFrom },
+            { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power2.out', immediateRender: true }, 0)
+          tl.from(src, { scale: 1.2, duration: 2, ease: 'power2.out' }, 0)
+          ScrollTrigger.create({
+            ...container(fig),
+            animation: tl,
+            ...(scrub ? { scrub: 0.35, end: '+=75%' } : { toggleActions: 'play none none reverse' }),
+          })
+          if (fig.classList.contains('ml-par')) {
+            const par = gsap.timeline({ paused: true })
+            par.fromTo(src, { yPercent: 6 }, { yPercent: -6, ease: 'none' }, 0)
+            ScrollTrigger.create({ ...container(fig), animation: par, scrub: 0.5, end: '+=120%' })
+          }
+        })
+      }
+
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches && !reduced
+
+      if (isDesktop) {
+        /* ══ THE HORIZONTAL JOURNEY (drangar/NIB) ══ */
+        const lenis = new Lenis()
+        pageLenis = lenis
+        lenis.on('scroll', ScrollTrigger.update)
+        const raf = (t: number) => lenis.raf(t * 1000)
+        gsap.ticker.add(raf)
+        gsap.ticker.lagSmoothing(0)
+
+        const journeyEl = root.querySelector<HTMLElement>('.ml-journey')!
+        const track = root.querySelector<HTMLElement>('.ml-track')!
+        const measureMaxX = () => track.scrollWidth - window.innerWidth
+        /* containerAnimation REQUIRES a tween, not a timeline, or the track
+           freezes at x=0 (budir §9.2) */
+        const journeyTween = gsap.to(track, { x: () => -measureMaxX(), duration: 100, ease: 'none', force3D: true })
+        const master = ScrollTrigger.create({
+          animation: journeyTween,
+          trigger: journeyEl,
+          pin: journeyEl,
+          scrub: 1,
+          start: 'top top',
+          end: () => '+=' + measureMaxX(),
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const bar = root.querySelector<HTMLElement>('.ml-progress')
+            if (bar) bar.style.transform = `scaleX(${self.progress})`
+          },
+        })
+        void master
+        armFlips((t) => ({ trigger: t, containerAnimation: journeyTween, start: 'left 88%' }))
+
+        /* copy rises inside the journey ride the same container */
+        root.querySelectorAll<HTMLElement>('.ml-rise').forEach((el) => {
+          const inJourney = !!el.closest('.ml-journey')
+          gsap.fromTo(el.querySelector('.ml-rise-in'), { yPercent: 112 }, {
+            yPercent: 0, duration: 1, ease: 'expo.out',
+            scrollTrigger: inJourney
+              ? { trigger: el, containerAnimation: journeyTween, start: 'left 82%', once: true }
+              : { trigger: el, start: 'top 88%', once: true },
+          })
+        })
+
+        const refresh = () => ScrollTrigger.refresh()
+        Promise.all([
+          document.fonts?.ready ?? Promise.resolve(),
+          ...Array.from(root.querySelectorAll('img')).map((im) =>
+            im.complete ? Promise.resolve() : new Promise((res) => { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }) })),
+        ]).then(refresh)
+      } else {
+        armFlips((t) => ({ trigger: t, start: 'top 86%' }))
+        if (!reduced) {
+          root.querySelectorAll<HTMLElement>('.ml-rise').forEach((el) => {
+            gsap.fromTo(el.querySelector('.ml-rise-in'), { yPercent: 112 }, {
+              yPercent: 0, duration: 1, ease: 'expo.out',
+              scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+            })
+          })
+        }
+      }
+    }, rootRef)
+
+    return () => {
+      ctx.revert()
+      if (pageLenis) { pageLenis.destroy(); pageLenis = null }
+      gsap.ticker.lagSmoothing(500, 33)
+    }
+  }, [booted])
 
   const goTo = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    document.getElementById(id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+    const el = document.getElementById(id)
+    if (!el) return
+    if (pageLenis) pageLenis.scrollTo(el, { offset: -10 })
+    else el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
@@ -268,12 +405,10 @@ export default function Page() {
         <nav className="ml-nav-links" aria-label="Sections">
           {NAV.map((n) => <a key={n.id} href={`#${n.id}`} onClick={goTo(n.id)}>{n.label}</a>)}
         </nav>
-        <button
-          className={`ml-burger ${menuOpen ? 'is-x' : ''}`}
-          aria-expanded={menuOpen}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          onClick={() => setMenuOpen((v) => !v)}
-        ><i /><i /></button>
+        <button className={`ml-burger ${menuOpen ? 'is-x' : ''}`} aria-expanded={menuOpen}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((v) => !v)}>
+          <i /><i />
+        </button>
       </header>
       <div className={`ml-sheet ${menuOpen ? 'is-open' : ''}`} hidden={!menuOpen}>
         {NAV.map((n, i) => (
@@ -283,81 +418,92 @@ export default function Page() {
       </div>
 
       <main id="top">
-        {/* ── hero: photo + reflected wordmark ── */}
+        {/* ── HERO: the seam-reveal lockup over the cabin ── */}
         <section className="ml-hero">
-          <HeroMedia />
-          <div className="ml-hero-lockup">
-            <h1 className="ml-hero-word" aria-label={HERO.word}>
-              <span className="ml-hero-word-in">MIRROR LODGE</span>
-            </h1>
-            <div className="ml-hero-word ml-hero-word-refl" aria-hidden="true">
-              <span className="ml-hero-word-in">MIRROR LODGE</span>
-            </div>
-            <p className="ml-hero-sub"><span>{HERO.sub}</span></p>
+          <div className="ml-hero-media">
+            <img src={IMG.hero} alt="Mirror Lodge reflecting the winter landscape" loading="eager" decoding="async" />
           </div>
+          <h1 className="ml-wordmark" aria-label={HERO.word}>
+            <span className="ml-wm-word ml-wm-l">MIRROR</span>
+            <span className="ml-wm-seam" aria-hidden="true" />
+            <span className="ml-wm-word ml-wm-r">LODGE</span>
+          </h1>
+          <p className="ml-hero-sub"><span>{HERO.sub}</span></p>
         </section>
 
         {/* ── statement ── */}
         <section className="ml-statement">
-          <Rise as="h2" className="ml-statement-lead">{STATEMENT.lead}</Rise>
-          <Rise as="p" className="ml-statement-body">{STATEMENT.body}</Rise>
+          <h2 className="ml-rise ml-statement-lead"><span className="ml-rise-in">{STATEMENT.lead}</span></h2>
+          <p className="ml-statement-body">{STATEMENT.body}</p>
         </section>
 
-        {/* ── THE MIRROR (pinned wipe) ── */}
-        <MirrorPin />
+        {/* ══ THE JOURNEY — a walk through the cabin's day ══ */}
+        <section className="ml-journey" id="spegill" aria-label={JOURNEY.label}>
+          <div className="ml-track">
+            {/* panel 1 — the mirror, full bleed */}
+            <article className="ml-panel ml-panel-bleed">
+              <Flip src={IMG.hero} alt="The cabin mirrored in the snow" dir="right" scrub par />
+              <div className="ml-panel-chip">
+                <span className="ml-kicker">The mirror</span>
+                <p>Snow, birch, midnight sun, aurora. The cladding takes whatever the Golden Circle is doing.</p>
+              </div>
+            </article>
 
-        {/* ── the cabin ── */}
-        <section className="ml-cabin" id="skalinn">
-          <div className="ml-cabin-grid">
-            <div className="ml-cabin-copy">
-              <Rise as="h2" className="ml-h2">{CABIN.lead}</Rise>
-              <Rise as="p" className="ml-body">{CABIN.body}</Rise>
-              <div className="ml-facts" role="list">
+            {/* panel 2 — the cabin, copy + facts */}
+            <article className="ml-panel ml-panel-copy" id="skalinn">
+              <h2 className="ml-rise ml-h2"><span className="ml-rise-in">{CABIN.lead}</span></h2>
+              <p className="ml-body">{CABIN.body}</p>
+              <div className="ml-facts">
                 {CABIN.facts.map((f) => (
-                  <div className="ml-fact" role="listitem" key={f.l}>
+                  <div className="ml-fact" key={f.l}>
                     <span className="ml-fact-n">{f.n}</span>
                     <span className="ml-fact-l">{f.l}</span>
                   </div>
                 ))}
               </div>
-              <ul className="ml-amen">
-                {CABIN.amenities.map((a) => <li key={a}>{a}</li>)}
-              </ul>
-            </div>
-            <div className="ml-cabin-photos">
-              <Frame src={IMG.inside} alt="Inside the cabin, bed under the skylight" ratio="4/3" drift={10} />
-              <Frame src={IMG.cabin3} alt="The cabin on the property" ratio="4/3" drift={9} />
-              <Frame src={IMG.cabin6} alt="The mirror cladding up close" ratio="4/3" drift={9} />
-            </div>
+              <ul className="ml-amen">{CABIN.amenities.map((a) => <li key={a}>{a}</li>)}</ul>
+            </article>
+
+            {/* panel 3 — inside, tall pair */}
+            <article className="ml-panel ml-panel-pair">
+              <Flip src={IMG.inside} alt="Inside the cabin, the bed under the skylight" dir="up" par />
+              <Flip src={IMG.cabin6} alt="The mirror cladding up close" dir="up" par />
+            </article>
+
+            {/* panel 4 — the sky, full bleed */}
+            <article className="ml-panel ml-panel-bleed">
+              <Flip src={IMG.aurora} alt="Aurora over Mirror Lodge" dir="left" scrub par />
+              <div className="ml-panel-chip">
+                <span className="ml-kicker">{SKY.lead}</span>
+                <p>{SKY.body}</p>
+              </div>
+            </article>
+
+            {/* panel 5 — the place */}
+            <article className="ml-panel ml-panel-copy" id="stadurinn">
+              <h2 className="ml-rise ml-h2"><span className="ml-rise-in">{PLACE.lead}</span></h2>
+              <p className="ml-body">{PLACE.body}</p>
+              <ul className="ml-points">{PLACE.points.map((p) => <li key={p}>{p}</li>)}</ul>
+            </article>
+
+            {/* panel 6 — geysir, full bleed */}
+            <article className="ml-panel ml-panel-bleed">
+              <Flip src={IMG.geysir} alt="Strokkur erupting at Geysir" dir="right" scrub par />
+              <div className="ml-panel-chip">
+                <span className="ml-kicker">Down the road</span>
+                <p>Geysir is minutes away. Stay the night and have it after the buses leave.</p>
+              </div>
+            </article>
+
+            {/* panel 7 — testimonials, riding the journey */}
+            <article className="ml-panel ml-panel-rev">
+              <Reviews />
+            </article>
           </div>
+          <div className="ml-progress-rail" aria-hidden="true"><i className="ml-progress" /></div>
         </section>
 
-        {/* ── skylight / aurora band ── */}
-        <section className="ml-sky">
-          <div className="ml-sky-media">
-            <img src={IMG.aurora} alt="Aurora over Mirror Lodge" loading="lazy" decoding="async" />
-          </div>
-          <div className="ml-sky-copy">
-            <Rise as="h2" className="ml-h2">{SKY.lead}</Rise>
-            <Rise as="p" className="ml-body">{SKY.body}</Rise>
-          </div>
-        </section>
-
-        {/* ── the place ── */}
-        <section className="ml-place" id="stadurinn">
-          <div className="ml-place-grid">
-            <div className="ml-place-copy">
-              <Rise as="h2" className="ml-h2">{PLACE.lead}</Rise>
-              <Rise as="p" className="ml-body">{PLACE.body}</Rise>
-              <ul className="ml-points">
-                {PLACE.points.map((p) => <li className="ml-point" key={p}>{p}</li>)}
-              </ul>
-            </div>
-            <Frame src={IMG.geysir} alt="Strokkur erupting at Geysir" ratio="3/2.6" drift={11} />
-          </div>
-        </section>
-
-        {/* ── gallery strip ── */}
+        {/* ── gallery ── */}
         <section className="ml-gallery" aria-label="Gallery">
           <div className="ml-gal-track">
             {GALLERY.map((g) => (
@@ -371,17 +517,17 @@ export default function Page() {
         {/* ── booking ── */}
         <section className="ml-book" id="bokun">
           <div className="ml-book-copy">
-            <Rise as="h2" className="ml-h2">{BOOKING.title}</Rise>
-            <Rise as="p" className="ml-body">{BOOKING.body}</Rise>
+            <h2 className="ml-rise ml-h2"><span className="ml-rise-in">{BOOKING.title}</span></h2>
+            <p className="ml-body">{BOOKING.body}</p>
           </div>
           <BookingForm />
         </section>
 
-        {/* ── footer ── */}
+        {/* ── footer: resolves back to the day so the shared prototype
+             disclaimer below it lands on a matching surface ── */}
         <footer className="ml-footer">
           <div className="ml-footer-word" aria-hidden="true">
-            <span>MIRROR LODGE</span>
-            <span className="ml-footer-word-refl">MIRROR LODGE</span>
+            <span>MIRROR</span><i className="ml-footer-seam" /><span>LODGE</span>
           </div>
           <dl className="ml-footer-dl">
             <div><dt>Email</dt><dd><a href={EMAIL_HREF}>{EMAIL}</a></dd></div>
@@ -396,54 +542,45 @@ export default function Page() {
   )
 }
 
-/* hero media with drift, split out so the ref wiring stays tidy */
-function HeroMedia() {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => armDrift(ref.current, 8), [])
-  return (
-    <div className="ml-hero-media" style={{ ['--dz' as string]: '11%' }}>
-      <div className="ml-frame-in" ref={ref}>
-        <img src={IMG.hero} alt="Mirror Lodge mirrored in the winter landscape" loading="eager" decoding="async" />
-      </div>
-    </div>
-  )
-}
-
 /* ═════════════════════════════ STYLES ═══════════════════════════════════ */
+const B = import.meta.env.BASE_URL
 const STYLES = `
-@font-face{font-family:'ClashDisplayMl';src:url('${import.meta.env.BASE_URL}fonts/clash-display/fonts/ClashDisplay-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'ClashDisplayMl';src:url('${import.meta.env.BASE_URL}fonts/clash-display/fonts/ClashDisplay-Extralight.woff2') format('woff2');font-weight:200;font-display:swap}
-@font-face{font-family:'GeneralSansMl';src:url('${import.meta.env.BASE_URL}fonts/general-sans/GeneralSans-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'GeneralSansMl';src:url('${import.meta.env.BASE_URL}fonts/general-sans/GeneralSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'GeneralSansMl';src:url('${import.meta.env.BASE_URL}fonts/general-sans/GeneralSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'ClashDisplayMl';src:url('${B}fonts/clash-display/fonts/ClashDisplay-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'ClashDisplayMl';src:url('${B}fonts/clash-display/fonts/ClashDisplay-Extralight.woff2') format('woff2');font-weight:200;font-display:swap}
+@font-face{font-family:'GeneralSansMl';src:url('${B}fonts/general-sans/GeneralSans-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'GeneralSansMl';src:url('${B}fonts/general-sans/GeneralSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'GeneralSansMl';src:url('${B}fonts/general-sans/GeneralSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
 
 .ml-root{
-  --silver:${SILVER}; --ink:${GRAPHITE}; --moss:#3F6B5B;
-  --ink-soft:rgba(20,24,27,.78); --ink-mute:rgba(20,24,27,.58);
-  --silver-soft:rgba(244,246,247,.85); --silver-mute:rgba(244,246,247,.6);
-  --hair:rgba(20,24,27,.13); --hair-silver:rgba(244,246,247,.22);
+  /* the hour: written by ONE scrub, inherited by everything */
+  --ml-canvas:${DAY}; --ml-ink:#14181B; --ml-accent:#3F6B5B;
+  --ink-soft:color-mix(in srgb,var(--ml-ink) 78%,transparent);
+  --ink-mute:color-mix(in srgb,var(--ml-ink) 56%,transparent);
+  --hair:color-mix(in srgb,var(--ml-ink) 15%,transparent);
   --disp:'ClashDisplayMl','Helvetica Neue',sans-serif;
   --sans:'GeneralSansMl','Helvetica Neue',Arial,sans-serif;
   --e:cubic-bezier(.25,.9,.25,1);
-  background:var(--silver); color:var(--ink);
+  background:var(--ml-canvas); color:var(--ml-ink);
   font-family:var(--sans); font-weight:300; line-height:1.6;
   overflow-x:clip;
+  transition:background-color .25s linear,color .25s linear;
 }
 .ml-root *{box-sizing:border-box;margin:0}
 .ml-root img{display:block;width:100%;height:100%;object-fit:cover}
 .ml-root a{color:inherit;text-decoration:none}
-.ml-root :focus-visible{outline:2px solid var(--moss);outline-offset:3px}
+.ml-root :focus-visible{outline:2px solid var(--ml-accent);outline-offset:3px}
 .ml-root button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
-/* loader: wordmark + its true reflection fill together */
-.ml-loader{position:fixed;inset:0;z-index:80;background:var(--silver);display:grid;place-content:center;text-align:center}
-.ml-loader-word,.ml-loader-refl{font-family:var(--disp);font-weight:200;font-size:clamp(1.8rem,6vw,4rem);letter-spacing:.14em;
-  background:linear-gradient(90deg,var(--ink) 50%,rgba(20,24,27,.18) 50%);background-size:200% 100%;background-position-x:var(--p,100%);
+/* loader */
+.ml-loader{position:fixed;inset:0;z-index:80;background:${DAY};display:grid;place-content:center;gap:18px;text-align:center}
+.ml-loader-word{font-family:var(--disp);font-weight:200;font-size:clamp(1.8rem,6vw,4rem);letter-spacing:.14em;
+  background:linear-gradient(90deg,#14181B 50%,rgba(20,24,27,.18) 50%);background-size:200% 100%;background-position-x:var(--p,100%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
-.ml-loader-refl{transform:scaleY(-1);opacity:.28;
-  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0) 15%,#000 90%);mask-image:linear-gradient(to top,rgba(0,0,0,0) 15%,#000 90%)}
+.ml-loader-line{width:96px;height:1px;background:rgba(20,24,27,.18);margin:0 auto;position:relative;overflow:hidden}
+.ml-loader-line::after{content:'';position:absolute;inset:0;background:#3F6B5B;transform-origin:left;animation:ml-sweep 1.2s var(--e) infinite}
+@keyframes ml-sweep{0%{transform:scaleX(0)}55%{transform:scaleX(1);transform-origin:left}56%{transform-origin:right}100%{transform:scaleX(0);transform-origin:right}}
 
-/* nav */
+/* nav — no bar, self-theming */
 .ml-nav{position:fixed;inset:0 0 auto 0;z-index:60;display:flex;align-items:center;justify-content:space-between;
   padding:clamp(14px,2.4vw,22px) clamp(18px,3.4vw,44px);mix-blend-mode:difference;color:#F2F6F8}
 .ml-nav-mark{font-family:var(--disp);font-weight:300;letter-spacing:.16em;font-size:.92rem}
@@ -455,7 +592,7 @@ const STYLES = `
 .ml-burger i:first-child{top:18px}.ml-burger i:last-child{top:26px}
 .ml-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
 .ml-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
-.ml-sheet{position:fixed;inset:0;z-index:55;background:var(--silver);display:grid;place-content:center;gap:8px;text-align:center;
+.ml-sheet{position:fixed;inset:0;z-index:55;background:var(--ml-canvas);display:grid;place-content:center;gap:8px;text-align:center;
   opacity:0;pointer-events:none;transition:opacity .5s var(--e)}
 .ml-sheet[hidden]{display:none}
 .ml-sheet.is-open{opacity:1;pointer-events:auto}
@@ -464,139 +601,152 @@ const STYLES = `
 .ml-sheet.is-open a{opacity:1;transform:none}
 @media (max-width:860px){.ml-nav-links{display:none}.ml-burger{display:block}}
 
+/* ── flip peel media (drangar mechanism) ── */
+.ml-flip{position:relative;overflow:clip;display:block;background:color-mix(in srgb,var(--ml-ink) 8%,transparent)}
+.ml-m{position:absolute;inset:0}
+.ml-m-up{z-index:2}
+.ml-par .ml-m-src img{height:116%;top:-8%;position:absolute}
+.ml-flip img{filter:saturate(.9)}
+
 /* hero */
 .ml-hero{position:relative;min-height:100svh;display:grid}
 .ml-hero-media{position:absolute;inset:0;overflow:hidden}
-.ml-frame-in{position:absolute;inset:calc(-1 * var(--dz,9%)) 0;will-change:transform}
-.ml-hero-media img{filter:saturate(.82)}
-.ml-hero-media::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,24,27,.42),rgba(20,24,27,.05) 45%)}
-.ml-hero-lockup{position:relative;z-index:2;align-self:end;justify-self:center;text-align:center;padding-bottom:clamp(34px,8vh,90px)}
-.ml-hero-word{overflow:hidden;color:#F2F6F8;mix-blend-mode:difference}
-.ml-hero-word-in{display:block;font-family:var(--disp);font-weight:200;font-size:clamp(2.3rem,8vw,6.6rem);letter-spacing:.12em;line-height:1.06;
-  transform:translateY(112%);transition:transform 1.2s var(--e)}
-.is-revealed .ml-hero-word-in{transform:none}
-.ml-hero-word-refl{opacity:.3;transform:scaleY(-1);margin-top:-2px;
-  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0) 30%,#000 96%);mask-image:linear-gradient(to top,rgba(0,0,0,0) 30%,#000 96%)}
-.ml-hero-word-refl .ml-hero-word-in{transition-delay:.06s}
-.ml-hero-sub{margin-top:18px;overflow:hidden}
-.ml-hero-sub span{display:inline-block;color:#EDF1F2;font-size:clamp(.92rem,1.6vw,1.05rem);max-width:44ch;text-shadow:0 1px 14px rgba(20,24,27,.4);
-  opacity:0;transform:translateY(14px);transition:opacity .9s var(--e) .75s,transform .9s var(--e) .75s}
-.is-revealed .ml-hero-sub span{opacity:1;transform:none}
+.ml-hero-media img{filter:saturate(.8) brightness(.95)}
+.ml-hero-media::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(120% 60% at 50% 50%,rgba(16,22,28,.42) 0%,rgba(16,22,28,.12) 58%,transparent 80%),
+             linear-gradient(to top,rgba(16,22,28,.5),transparent 46%)}
+/* MIRROR | LODGE about a hairline */
+.ml-wordmark{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;
+  margin:0;pointer-events:none;color:#F2F6F8;mix-blend-mode:difference;
+  font-family:var(--disp);font-size:clamp(34px,8.4vw,124px);line-height:1.02;font-weight:200}
+.ml-wm-word{display:block;letter-spacing:.12em;white-space:nowrap;will-change:clip-path,transform}
+.ml-wm-l{padding-right:.34em;margin-right:-.1em;text-align:right}
+.ml-wm-r{padding-left:.34em;text-align:left}
+.ml-wm-seam{flex:none;width:1px;height:.96em;background:currentColor;opacity:.85;transform-origin:50% 50%}
+.ml-hero-sub{position:absolute;left:0;right:0;bottom:clamp(30px,7vh,80px);z-index:2;text-align:center;padding:0 20px;overflow:hidden}
+.ml-hero-sub span{display:inline-block;color:#EDF1F2;font-size:clamp(.92rem,1.6vw,1.05rem);max-width:46ch;
+  text-shadow:0 1px 16px rgba(16,22,28,.55)}
+@media (max-width:640px){
+  .ml-wordmark{flex-direction:column;gap:.1em;font-size:clamp(34px,12vw,64px)}
+  .ml-wm-l,.ml-wm-r{padding:0;margin:0;text-align:center}
+  .ml-wm-seam{width:.8em;height:1px}
+}
 
 /* statement */
-.ml-statement{padding:clamp(90px,16vh,180px) clamp(20px,6vw,72px);max-width:880px;margin:0 auto;text-align:center}
-.ml-statement-lead .ml-rise-in{font-family:var(--disp);font-weight:300;font-size:clamp(1.7rem,4vw,3rem);line-height:1.16;letter-spacing:.01em}
-.ml-statement-body{margin-top:24px}
-.ml-statement-body .ml-rise-in{color:var(--ink-soft);font-size:clamp(1rem,1.8vw,1.15rem);max-width:58ch;margin:0 auto}
+.ml-statement{padding:clamp(90px,16vh,180px) clamp(20px,6vw,72px);max-width:900px;margin:0 auto;text-align:center}
+.ml-statement-lead{overflow:hidden}
+.ml-statement-lead .ml-rise-in{display:block;font-family:var(--disp);font-weight:300;font-size:clamp(1.7rem,4vw,3rem);line-height:1.16;
+  padding-bottom:.12em;margin-bottom:-.12em}
+.ml-statement-body{margin-top:24px;color:var(--ink-soft);font-size:clamp(1rem,1.8vw,1.15rem);max-width:58ch;margin-inline:auto}
 
-/* THE MIRROR */
-.ml-mirror{height:320svh;position:relative}
-.ml-mirror-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
-.ml-mirror-layer{position:absolute;inset:0;will-change:clip-path}
-.ml-mirror-layer img{filter:saturate(.88)}
-.ml-mirror-caption{position:absolute;left:0;right:0;bottom:clamp(20px,4vh,44px);text-align:center;color:#F2F6F8;mix-blend-mode:difference;
-  font-size:.86rem;letter-spacing:.05em;padding:0 20px}
-.reduced .ml-mirror{height:auto}
-.reduced .ml-mirror-sticky{position:static;height:auto;display:grid;gap:2px}
-.reduced .ml-mirror-layer{position:static;clip-path:none !important;aspect-ratio:16/9}
-
-/* cabin */
-.ml-cabin{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1500px;margin:0 auto}
-.ml-cabin-grid{display:grid;grid-template-columns:minmax(300px,5fr) 7fr;gap:clamp(28px,4.5vw,64px);align-items:start}
-.ml-cabin-copy{position:sticky;top:96px;display:grid;gap:22px}
-.ml-h2 .ml-rise-in{font-family:var(--disp);font-weight:300;font-size:clamp(1.5rem,2.8vw,2.3rem);line-height:1.18;letter-spacing:.01em}
-.ml-body .ml-rise-in{color:var(--ink-soft);max-width:52ch}
-.ml-facts{display:flex;gap:clamp(20px,3vw,40px)}
-.ml-fact{display:grid;gap:2px;opacity:0;transform:translateY(14px);transition:opacity .7s var(--e),transform .7s var(--e)}
-.ml-fact.is-on{opacity:1;transform:none}
-.ml-fact:nth-child(2){transition-delay:.1s}.ml-fact:nth-child(3){transition-delay:.2s}
-.ml-fact-n{font-family:var(--disp);font-weight:200;font-size:clamp(1.9rem,3.4vw,2.8rem);line-height:1;color:var(--moss)}
+/* ══ THE JOURNEY ══ */
+.ml-journey{position:relative;overflow:clip}
+.ml-track{display:flex;width:fit-content;align-items:stretch}
+.ml-panel{position:relative;height:100svh;flex:none;display:grid}
+.ml-panel-bleed{width:100vw}
+.ml-panel-bleed .ml-flip{position:absolute;inset:0}
+.ml-panel-chip{position:relative;z-index:3;align-self:end;justify-self:start;max-width:min(46ch,42vw);
+  margin:0 0 clamp(30px,7vh,72px) clamp(24px,4vw,64px);
+  background:color-mix(in srgb,var(--ml-canvas) 88%,transparent);color:var(--ml-ink);
+  padding:clamp(18px,2.4vw,28px);border-top:1px solid var(--ml-accent);backdrop-filter:blur(6px)}
+.ml-kicker{display:block;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:8px}
+.ml-panel-chip p{color:var(--ink-soft);font-size:.98rem;line-height:1.55}
+.ml-panel-copy{width:min(92vw,760px);align-content:center;padding:0 clamp(24px,4vw,72px);gap:22px}
+.ml-h2{overflow:hidden}
+.ml-h2 .ml-rise-in{display:block;font-family:var(--disp);font-weight:300;font-size:clamp(1.5rem,2.9vw,2.4rem);line-height:1.18;
+  padding-bottom:.14em;margin-bottom:-.14em}
+.ml-body{color:var(--ink-soft);max-width:54ch}
+.ml-facts{display:flex;gap:clamp(20px,3vw,44px)}
+.ml-fact{display:grid;gap:2px}
+.ml-fact-n{font-family:var(--disp);font-weight:200;font-size:clamp(1.9rem,3.4vw,2.9rem);line-height:1;color:var(--ml-accent)}
 .ml-fact-l{font-size:.8rem;letter-spacing:.05em;color:var(--ink-mute)}
-.ml-amen{list-style:none;padding:0;display:grid;gap:9px;max-width:40ch}
-.ml-amen li{padding-left:18px;position:relative;color:var(--ink-soft);font-size:.95rem;
-  opacity:0;transform:translateX(-8px);transition:opacity .6s var(--e),transform .6s var(--e)}
-.ml-amen li.is-on{opacity:1;transform:none}
-.ml-amen li::before{content:'';position:absolute;left:0;top:.68em;width:9px;height:1px;background:var(--moss)}
-.ml-cabin-photos{display:grid;gap:clamp(14px,2vw,26px)}
-.ml-frame{position:relative;overflow:hidden;opacity:0;transform:translateY(30px);transition:opacity 1s var(--e),transform 1s var(--e)}
-.ml-frame.is-on{opacity:1;transform:none}
-.ml-frame img{filter:saturate(.9)}
-@media (max-width:1020px){.ml-cabin-grid{grid-template-columns:1fr}.ml-cabin-copy{position:static}}
-
-/* sky band */
-.ml-sky{position:relative;min-height:92svh;display:grid;align-content:end;isolation:isolate}
-.ml-sky-media{position:absolute;inset:0;z-index:-1}
-.ml-sky-media::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,24,27,.78),rgba(20,24,27,.08) 55%)}
-.ml-sky-copy{padding:clamp(30px,6vw,70px);max-width:760px;color:var(--silver);display:grid;gap:16px}
-.ml-sky-copy .ml-h2 .ml-rise-in{color:var(--silver)}
-.ml-sky-copy .ml-body .ml-rise-in{color:var(--silver-soft)}
-
-/* place */
-.ml-place{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1400px;margin:0 auto}
-.ml-place-grid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1.1fr);gap:clamp(28px,5vw,70px);align-items:center}
-.ml-place-copy{display:grid;gap:20px}
+.ml-amen{list-style:none;padding:0;display:grid;gap:9px;max-width:42ch}
+.ml-amen li{padding-left:18px;position:relative;color:var(--ink-soft);font-size:.95rem}
+.ml-amen li::before{content:'';position:absolute;left:0;top:.68em;width:9px;height:1px;background:var(--ml-accent)}
 .ml-points{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:10px}
-.ml-point{border:1px solid var(--hair);padding:9px 16px;font-size:.88rem;color:var(--ink-soft);
-  opacity:0;transform:translateY(10px);transition:opacity .6s var(--e),transform .6s var(--e)}
-.ml-point.is-on{opacity:1;transform:none}
-.ml-point:nth-child(2){transition-delay:.08s}.ml-point:nth-child(3){transition-delay:.16s}.ml-point:nth-child(4){transition-delay:.24s}
-@media (max-width:900px){.ml-place-grid{grid-template-columns:1fr}}
+.ml-points li{border:1px solid var(--hair);padding:9px 16px;font-size:.88rem;color:var(--ink-soft)}
+.ml-panel-pair{width:min(96vw,860px);grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,26px);align-content:center;padding:0 clamp(24px,3vw,48px)}
+.ml-panel-pair .ml-flip{aspect-ratio:3/4}
+/* testimonials panel */
+.ml-panel-rev{width:min(96vw,900px);align-content:center;padding:0 clamp(24px,4vw,64px)}
+.ml-rev{display:grid;gap:clamp(22px,4vh,44px)}
+.ml-rev-head{display:grid;gap:14px;max-width:52ch}
+.ml-rev-quotes{border-top:1px solid var(--hair);padding-top:24px;display:grid;gap:16px}
+.ml-rev-list{list-style:none;padding:0;margin:0;display:grid}
+.ml-rev-q{grid-area:1/1;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .7s var(--e),transform .7s var(--e)}
+.ml-rev-q.is-live{opacity:1;transform:none;pointer-events:auto}
+.ml-rev-q blockquote{margin:0;font-family:var(--disp);font-weight:200;font-size:clamp(1.25rem,2.5vw,2rem);line-height:1.32;max-width:32ch}
+.ml-rev-q cite{display:block;margin-top:14px;font-style:normal;font-size:.8rem;letter-spacing:.06em;color:var(--ink-mute)}
+.ml-rev-dots{display:flex;gap:8px}
+.ml-rev-dot{width:34px;height:2px;background:var(--hair);position:relative;padding:0;transition:background .4s var(--e)}
+.ml-rev-dot::after{content:'';position:absolute;inset:-11px 0}
+.ml-rev-dot.is-on{background:var(--ml-accent)}
+.ml-rev-note{font-size:.74rem;color:var(--ink-mute)}
+/* progress rail */
+.ml-progress-rail{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--hair);z-index:4}
+.ml-progress{display:block;height:100%;background:var(--ml-accent);transform:scaleX(0);transform-origin:left}
 
-/* gallery: one slow marquee row (the page's single marquee) */
-.ml-gallery{overflow:hidden;padding:0 0 clamp(90px,14vh,160px)}
+/* the journey collapses to a plain document below 1024 / reduced motion */
+@media (max-width:1023px){
+  .ml-track{display:block;width:100%}
+  .ml-panel{height:auto;width:auto !important;padding:clamp(60px,10vh,110px) clamp(20px,5vw,48px);gap:20px}
+  .ml-panel-bleed{padding:0;min-height:72svh;display:grid}
+  .ml-panel-bleed .ml-flip{position:absolute;inset:0}
+  .ml-panel-chip{max-width:none;margin:0 clamp(16px,4vw,28px) clamp(20px,5vh,40px)}
+  .ml-panel-pair{grid-template-columns:1fr 1fr}
+  .ml-progress-rail{display:none}
+}
+.reduced .ml-track{display:block;width:100%}
+.reduced .ml-panel{height:auto;width:auto !important}
+
+/* gallery */
+.ml-gallery{overflow:hidden;padding:clamp(70px,11vh,140px) 0}
 .ml-gal-track{display:flex;gap:clamp(12px,1.6vw,22px);width:max-content;animation:ml-gal 60s linear infinite;padding:0 20px}
 .ml-gallery:hover .ml-gal-track{animation-play-state:paused}
-.ml-gal-item{width:clamp(220px,26vw,380px);aspect-ratio:3/2;overflow:hidden;flex:none;
-  opacity:0;transform:translateY(20px);transition:opacity .8s var(--e),transform .8s var(--e)}
-.ml-gal-item.is-on{opacity:1;transform:none}
+.ml-gal-item{width:clamp(220px,26vw,380px);aspect-ratio:3/2;overflow:hidden;flex:none}
 .ml-gal-item img{filter:saturate(.88);transition:transform 1.1s var(--e)}
 .ml-gal-item:hover img{transform:scale(1.06)}
 @keyframes ml-gal{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .reduced .ml-gal-track{animation:none;flex-wrap:wrap;width:auto}
 
 /* booking */
-.ml-book{max-width:1100px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(100px,15vh,180px);
+.ml-book{max-width:1100px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(90px,14vh,170px);
   display:grid;grid-template-columns:minmax(280px,1fr) minmax(300px,1.1fr);gap:clamp(30px,5vw,70px);align-items:start}
 .ml-book-copy{display:grid;gap:16px}
 .ml-book-form{display:grid;gap:18px;border-top:1px solid var(--hair);padding-top:26px}
 .ml-field{display:grid;gap:7px}
 .ml-field label{font-size:.78rem;letter-spacing:.06em;color:var(--ink-mute);font-weight:400}
-.ml-field input{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--hair);padding:12px 14px;border-radius:0;min-height:46px;width:100%}
-.ml-field input:focus{outline:2px solid var(--moss);outline-offset:1px;border-color:transparent}
+.ml-field input{font:inherit;color:var(--ml-ink);background:transparent;border:1px solid var(--hair);padding:12px 14px;border-radius:0;min-height:46px;width:100%}
+.ml-field input:focus{outline:2px solid var(--ml-accent);outline-offset:1px;border-color:transparent}
 .ml-field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.ml-cta{background:var(--ink);color:var(--silver);padding:15px 30px;font-weight:400;letter-spacing:.04em;font-size:.94rem;min-height:48px;
+.ml-night .ml-field input{color-scheme:dark}
+.ml-cta{background:var(--ml-ink);color:var(--ml-canvas);padding:15px 30px;font-weight:400;letter-spacing:.04em;font-size:.94rem;min-height:48px;
   transition:transform .25s var(--e),background .3s var(--e)}
-.ml-cta:hover{background:var(--moss)}
+.ml-cta:hover{background:var(--ml-accent)}
 .ml-cta:active{transform:translateY(1px) scale(.99)}
 .ml-book-note{font-size:.78rem;color:var(--ink-mute)}
-.ml-book-done p{font-family:var(--disp);font-weight:300;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch;border-top:1px solid var(--moss);padding-top:22px}
+.ml-book-done p{font-family:var(--disp);font-weight:300;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch;
+  border-top:1px solid var(--ml-accent);padding-top:22px}
 @media (max-width:860px){.ml-book{grid-template-columns:1fr}}
 
-/* footer */
-.ml-footer{background:var(--ink);color:var(--silver);padding:clamp(60px,10vh,110px) clamp(20px,5vw,64px) 0}
-.ml-footer-word{display:grid;justify-items:center;margin-bottom:clamp(30px,6vh,60px)}
-.ml-footer-word span{font-family:var(--disp);font-weight:200;font-size:clamp(2rem,7.4vw,5.8rem);letter-spacing:.14em;line-height:1.04}
-.ml-footer-word-refl{transform:scaleY(-1);opacity:.22;
-  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0) 35%,#000 96%);mask-image:linear-gradient(to top,rgba(0,0,0,0) 35%,#000 96%)}
+/* footer — returns to daylight so the shared disclaimer below matches */
+.ml-footer{background:${DAY};color:#14181B;padding:clamp(50px,9vh,100px) clamp(20px,5vw,64px) 0;border-top:1px solid rgba(20,24,27,.12)}
+.ml-footer-word{display:flex;align-items:center;justify-content:center;gap:.34em;margin-bottom:clamp(30px,6vh,58px)}
+.ml-footer-word span{font-family:var(--disp);font-weight:200;font-size:clamp(1.9rem,7vw,5.4rem);letter-spacing:.14em;line-height:1.04}
+.ml-footer-seam{flex:none;width:1px;height:.9em;background:#3F6B5B;opacity:.8}
 .ml-footer-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:22px;max-width:1200px;margin:0 auto}
-.ml-footer-dl div{display:grid;gap:5px;border-top:1px solid var(--hair-silver);padding-top:14px}
-.ml-footer-dl dt{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver-mute);font-weight:400}
-.ml-footer-dl dd{color:var(--silver-soft);font-size:.95rem}
-.ml-footer-dl a:hover{color:var(--silver)}
+.ml-footer-dl div{display:grid;gap:5px;border-top:1px solid rgba(20,24,27,.14);padding-top:14px}
+.ml-footer-dl dt{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(20,24,27,.55);font-weight:400}
+.ml-footer-dl dd{color:rgba(20,24,27,.8);font-size:.95rem}
+.ml-footer-dl a:hover{color:#14181B}
 
-/* rise */
+/* rise: resting state is visible; GSAP arms the hidden start only with js */
 .ml-rise{overflow:hidden}
-.ml-rise-in{display:block;padding-bottom:.14em;margin-bottom:-.14em}
-.js:not(.reduced) .ml-rise .ml-rise-in{transform:translateY(112%);transition:transform 1s var(--e)}
-.js:not(.reduced) .ml-rise.is-on .ml-rise-in{transform:none}
+.ml-rise-in{display:block}
 
 @media (prefers-reduced-motion:reduce){
-  .ml-frame-in{position:absolute;inset:0;transform:none !important}
-  .ml-hero-word-in,.ml-hero-sub span{transform:none;opacity:1;transition:none}
-  .ml-frame,.ml-fact,.ml-amen li,.ml-point,.ml-gal-item{opacity:1;transform:none;transition:none}
   .ml-gal-track{animation:none;flex-wrap:wrap;width:auto}
-  .ml-mirror{height:auto}
-  .ml-mirror-sticky{position:static;height:auto;display:grid;gap:2px}
-  .ml-mirror-layer{position:static;clip-path:none !important;aspect-ratio:16/9}
+  .ml-loader-line::after{animation:none}
+  .ml-rev-q{grid-area:auto;opacity:1;transform:none;pointer-events:auto;margin-bottom:24px}
 }
 `

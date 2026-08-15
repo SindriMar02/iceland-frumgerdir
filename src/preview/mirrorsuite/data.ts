@@ -99,11 +99,45 @@ export const FLORA = {
   ],
 }
 
+/**
+ * REVIEWS — the score, count and source are VERIFIED (their own Google widget,
+ * read 2026-08-15). The three quotes below are SAMPLE COPY standing in for the
+ * real review text, which is not published anywhere we can read: the Google
+ * reviews show only stars, and their own Lodgify page says "This property has
+ * no reviews yet". They are placeholders for the owners' real words, and the
+ * shared prototype footer already declares that reviews here are sýnishorn.
+ * DO NOT lift quotes from ÖÖD Hekla Horizon (Hella) — that is a different
+ * property and its TripAdvisor reviews are not these guests'.
+ */
 export const REVIEWS = {
-  lead: 'Five stars, hiding in a widget.',
+  lead: 'Five stars, and not one of them on your own website.',
   score: '5.0',
   count: '10 Google reviews',
-  body: 'Every guest who has reviewed The Mirror Suite on Google gave it five stars. The booking page never mentions it. This one does.',
+  source: 'Google',
+  body: 'Every guest who has reviewed The Mirror Suite gave it five stars. Your booking page says “no reviews yet”. A guest deciding at midnight never sees any of it.',
+  sampleNote: 'Sample wording, shown in place of the real review text',
+  quotes: [
+    {
+      text: 'We sat in the hot tub at one in the morning with the sauna still warm behind us, and the whole sky went green over the fjord.',
+      name: 'Guest',
+      meta: 'Sample review',
+    },
+    {
+      text: 'Three glass walls and nobody for miles. You stop looking at your phone about ten minutes after you arrive.',
+      name: 'Guest',
+      meta: 'Sample review',
+    },
+    {
+      text: 'Fifty metres from the sea, and the tide is the only thing you hear. We have stayed in a lot of places in Iceland; this one we still talk about.',
+      name: 'Guest',
+      meta: 'Sample review',
+    },
+  ],
+}
+
+export const PANO = {
+  caption: 'Some nights the sky does the decorating.',
+  note: 'Scroll to run the night',
 }
 
 export const HOSTS = {

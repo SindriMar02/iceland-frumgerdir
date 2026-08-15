@@ -93,6 +93,41 @@ export const GALLERY: { img: keyof typeof IMG; alt: string }[] = [
   { img: 'g19', alt: 'Mirror Lodge gallery photo' },
 ]
 
+/**
+ * TESTIMONIALS — sample copy. Mirror Lodge publishes no review text on their
+ * own site, and their Airbnb listing cannot be tied to them with certainty
+ * (their site carries licence HG-00016971 while the Laugarás mirror listing
+ * shows HG-00017975 — two different registrations, see the scout record).
+ * So these stand in for the owners' real guest words, labelled on the face of
+ * the component. Never attribute another mirror property's reviews to them.
+ */
+export const REVIEWS = {
+  lead: 'The part of the stay guests write home about.',
+  body:
+    'Nothing on mirrorlodge.com tells a visitor what a night here is like. No prices, no availability, no guest words: the page ends and the visitor has to email into the dark.',
+  sampleNote: 'Sample wording, shown in place of the real review text',
+  quotes: [
+    {
+      text: 'You lie in bed and the sky is just there, no window frame in the way. We turned the blinds off and watched the light change until we fell asleep.',
+      meta: 'Sample review',
+    },
+    {
+      text: 'Geysir erupts down the road, but the best part was after the buses left. Total silence, the hot tub steaming, the mountains going pink.',
+      meta: 'Sample review',
+    },
+    {
+      text: 'From the outside it disappears into the field. From the inside you are sitting in the middle of Iceland with a kitchen and a hot shower.',
+      meta: 'Sample review',
+    },
+  ],
+}
+
+/** The journey: what the horizontal traverse steps through, in order. */
+export const JOURNEY = {
+  label: 'The journey',
+  hint: 'Scroll',
+}
+
 export const BOOKING = {
   title: 'Ask for your nights',
   body: 'Minimum stay is two nights, and stays of three nights or more get a lower nightly rate. Send your dates and we answer personally with availability and a price. No card, no charge.',

@@ -70,20 +70,18 @@ function armDrift(el: HTMLElement | null, d: number, kind: DriftKind) {
   }
 }
 
-/* ── Waterline figure: image + its live reflection under a seam ─────────── */
-function Waterline({
-  src, alt, drift = 9, reflH = 34, className = '', priority = false, videoSrc,
+/* ── Full-bleed stage: the photograph, optionally alive as film ──────────
+   (The mirrored-reflection strip this used to carry is gone: a flipped,
+   blurred copy of a landscape photo is not a reflection, it is a smear —
+   it read as a rendering fault rather than water.) ────────────────────── */
+function Stage({
+  src, alt, drift = 9, className = '', priority = false, videoSrc,
 }: {
-  src: string; alt: string; drift?: number; reflH?: number; className?: string; priority?: boolean; videoSrc?: string
+  src: string; alt: string; drift?: number; className?: string; priority?: boolean; videoSrc?: string
 }) {
   const imgRef = useRef<HTMLDivElement>(null)
-  const reflRef = useRef<HTMLDivElement>(null)
   const [film, setFilm] = useState(false)
-  useEffect(() => {
-    const a = armDrift(imgRef.current, drift, 'img')
-    const b = armDrift(reflRef.current, drift * 0.66, 'refl')
-    return () => { a(); b() }
-  }, [drift])
+  useEffect(() => armDrift(imgRef.current, drift, 'img'), [drift])
   useEffect(() => {
     if (!videoSrc || reduced) return
     const con = (navigator as { connection?: { saveData?: boolean } }).connection
@@ -92,13 +90,13 @@ function Waterline({
   }, [videoSrc])
   const dz = Math.max(9, drift * 1.35)
   return (
-    <figure className={`ill-water ${className}`}>
-      <div className="ill-water-frame" style={{ ['--dz' as string]: `${dz}%` }}>
-        <div className="ill-water-in" ref={imgRef}>
+    <figure className={`ill-stage ${className}`}>
+      <div className="ill-stage-frame" style={{ ['--dz' as string]: `${dz}%` }}>
+        <div className="ill-stage-in" ref={imgRef}>
           <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
           {film && (
             <video
-              className="ill-water-film"
+              className="ill-stage-film"
               src={videoSrc}
               poster={src}
               autoPlay
@@ -108,12 +106,6 @@ function Waterline({
               aria-hidden="true"
             />
           )}
-        </div>
-      </div>
-      <div className="ill-seam" aria-hidden="true" />
-      <div className="ill-refl" style={{ height: `${reflH}%`, ['--dz' as string]: `${dz}%` }} aria-hidden="true">
-        <div className="ill-water-in" ref={reflRef}>
-          <img src={src} alt="" loading={priority ? 'eager' : 'lazy'} decoding="async" />
         </div>
       </div>
     </figure>
@@ -127,7 +119,7 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
   const dz = Math.max(9, drift * 1.35)
   return (
     <figure className={`ill-frame ${wide ? 'is-wide' : ''}`} style={{ ['--dz' as string]: `${dz}%` }}>
-      <div className="ill-water-in" ref={ref}>
+      <div className="ill-stage-in" ref={ref}>
         <img src={src} alt={alt} loading="lazy" decoding="async" />
       </div>
     </figure>
@@ -253,6 +245,87 @@ export default function Page() {
   const [booted, setBooted] = useState(false)
   const [showLoader, setShowLoader] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const heroRef = useRef<HTMLElement>(null)
+  const seamRef = useRef<HTMLSpanElement>(null)
+  const wmLRef = useRef<HTMLSpanElement>(null)
+  const wmRRef = useRef<HTMLSpanElement>(null)
+
+  /* ── THE SEAM REVEAL ([[mirrorhouse-design-system]] device 2, ported to
+       vanilla). The hairline draws itself, then ICELAND opens leftward out
+       of it and LUXURY LODGES rightward, with a breath of outward travel
+       under the wipe so the words feel pushed out of the line rather than
+       merely uncovered. Scroll then keeps parting them while the rule grows
+       past them. Chains off the loader event, never a guessed delay. ── */
+  useEffect(() => {
+    const seam = seamRef.current
+    const wmL = wmLRef.current
+    const wmR = wmRRef.current
+    const hero = heroRef.current
+    if (!seam || !wmL || !wmR || !hero) return
+    if (reduced) {
+      seam.style.transform = 'scaleY(1)'
+      wmL.style.clipPath = 'inset(0)'
+      wmR.style.clipPath = 'inset(0)'
+      return
+    }
+    /* resting (pre-reveal) state */
+    seam.style.transform = 'scaleY(0)'
+    wmL.style.clipPath = 'inset(0% 0% 0% 100%)'
+    wmR.style.clipPath = 'inset(0% 100% 0% 0%)'
+
+    /* JS is the SINGLE writer of transform on all three nodes. The reveal
+       transitions it, then hands ownership to the scroll driver — a CSS
+       var-based transform alongside an inline one silently loses. */
+    let revealDone = false
+    const open = () => {
+      seam.style.transition = 'transform .85s cubic-bezier(.16,1,.3,1)'
+      seam.style.transform = 'scaleY(1)'
+      window.setTimeout(() => {
+        for (const [el, from] of [[wmL, 26], [wmR, -26]] as const) {
+          el.style.transition = 'clip-path 1.5s cubic-bezier(.16,1,.3,1), transform 1.5s cubic-bezier(.16,1,.3,1)'
+          el.style.transform = `translateX(${from}px)`
+          requestAnimationFrame(() => {
+            el.style.clipPath = 'inset(0% 0% 0% 0%)'
+            el.style.transform = 'translateX(0px)'
+          })
+        }
+        /* release the transitions so the scroll driver writes land instantly */
+        window.setTimeout(() => {
+          revealDone = true
+          seam.style.transition = ''
+          wmL.style.transition = ''
+          wmR.style.transition = ''
+          onScroll()
+        }, 1560)
+      }, 430)
+    }
+    window.addEventListener('ill:revealed', open, { once: true })
+
+    /* scroll keeps parting the halves; the seam grows past them and fades */
+    let raf = 0
+    function onScroll() {
+      if (raf || !revealDone) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const r = hero!.getBoundingClientRect()
+        const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)))
+        wmL!.style.transform = `translateX(${(-14 * p).toFixed(2)}%)`
+        wmR!.style.transform = `translateX(${(14 * p).toFixed(2)}%)`
+        wmL!.style.opacity = wmR!.style.opacity = `${(1 - p * 0.92).toFixed(3)}`
+        seam!.style.transform = `scaleY(${(1 + p * 2.4).toFixed(3)})`
+        seam!.style.opacity = `${(1 - p).toFixed(3)}`
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('ill:revealed', open)
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+    /* mount-once: re-running this on `booted` would re-arm the hidden resting
+       state AFTER the reveal had already played, blanking the wordmark. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   /* boot: loader decision + reveal wiring */
   useEffect(() => {
@@ -283,7 +356,7 @@ export default function Page() {
       }),
       { threshold: 0.22 },
     )
-    root.querySelectorAll('.ill-rise, .ill-rule, .ill-door, .ill-fact, .ill-amen li, .ill-frame, .ill-water').forEach((el) => io.observe(el))
+    root.querySelectorAll('.ill-rise, .ill-rule, .ill-door, .ill-fact, .ill-amen li, .ill-frame').forEach((el) => io.observe(el))
     return () => io.disconnect()
   }, [booted])
 
@@ -337,16 +410,15 @@ export default function Page() {
       </div>
 
       <main id="top">
-        {/* ── HERO: the waterline ── */}
-        <section className="ill-hero">
-          <Waterline src={IMG.heroEstate} videoSrc={`${import.meta.env.BASE_URL}icelandluxurylodges/hero-film.mp4`} alt="An evening on the lodge deck: the hot tub steaming, the firepit lit, the hall glowing behind" drift={7} reflH={38} className="is-hero" priority />
-          <div className="ill-hero-word" aria-label={HERO.word}>
-            {HERO.lines.map((l, i) => (
-              <span className="ill-hero-line" key={l}>
-                <span className="ill-hero-line-in" style={{ transitionDelay: `${140 + i * 130}ms` }}>{l}</span>
-              </span>
-            ))}
-          </div>
+        {/* ── HERO: the seam-reveal lockup over the living terrace ──
+             ICELAND | LUXURY LODGES parted by a hairline (mirrorhouse spec). */}
+        <section className="ill-hero" ref={heroRef}>
+          <Stage src={IMG.heroEstate} videoSrc={`${import.meta.env.BASE_URL}icelandluxurylodges/hero-film.mp4`} alt="The infinity pool on the terrace above the lake, mountains across the water" drift={7} className="is-hero" priority />
+          <h1 className="ill-wordmark" aria-label={HERO.word}>
+            <span className="ill-wm-word ill-wm-l" ref={wmLRef}>Iceland</span>
+            <span className="ill-wm-seam" aria-hidden="true" ref={seamRef} />
+            <span className="ill-wm-word ill-wm-r" ref={wmRRef}>Luxury Lodges</span>
+          </h1>
           <p className="ill-hero-sub">
             <span className="ill-hero-sub-in">{HERO.sub}</span>
           </p>
@@ -441,7 +513,7 @@ export default function Page() {
 
         {/* ── footer ── */}
         <footer className="ill-footer">
-          <Waterline src={IMG.lodgeExterior} alt="Úlfljótsskáli at dusk" drift={6} reflH={30} className="is-footer" />
+          <Stage src={IMG.lodgeExterior} alt="Úlfljótsskáli at dusk" drift={6} className="is-footer" />
           <div className="ill-footer-grid">
             <div className="ill-footer-word" aria-hidden="true">Sjáumst við vatnið</div>
             <dl className="ill-footer-dl">
@@ -514,32 +586,40 @@ const STYLES = `
 .ill-sheet.is-open a{opacity:1;transform:none}
 @media (max-width:860px){.ill-nav-links{display:none}.ill-burger{display:block}}
 
-/* ── waterline figure ── */
-.ill-water{position:relative}
-.ill-water-frame{position:relative;overflow:hidden}
-.ill-water-in{position:absolute;inset:calc(-1 * var(--dz,9%)) 0;will-change:transform}
-.ill-water-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ill-seam{height:1px;background:var(--ink);opacity:.6}
-.ill-refl{position:relative;overflow:hidden;transform:scaleY(-1);filter:blur(2.5px) saturate(.72) brightness(1.04);opacity:.5;
-  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0) 4%,rgba(0,0,0,.85) 96%);mask-image:linear-gradient(to top,rgba(0,0,0,0) 4%,rgba(0,0,0,.85) 96%)}
-.ill-refl::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(239,243,245,0),rgba(239,243,245,.65))}
+/* ── full-bleed stage ── */
+.ill-stage{position:relative}
+.ill-stage-frame{position:relative;overflow:hidden;height:100%}
+.ill-stage-in{position:absolute;inset:calc(-1 * var(--dz,9%)) 0;will-change:transform}
+.ill-stage-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 
-/* ── hero ── */
-.ill-hero{position:relative;min-height:100svh;display:grid;grid-template-rows:1fr auto}
-.ill-hero .ill-water.is-hero{position:absolute;inset:0;display:grid;grid-template-rows:1fr 1px 38%}
-.ill-hero .ill-water.is-hero .ill-water-frame{height:100%}
-.ill-hero .ill-water.is-hero .ill-refl{height:100% !important}
-.ill-hero-word{position:absolute;left:0;right:0;top:62%;transform:translateY(-104%);z-index:3;text-align:center;
-  color:#F2F6F8;mix-blend-mode:difference;pointer-events:none}
-.ill-hero-line{display:block;overflow:hidden;padding:.06em 0 .1em}
-.ill-hero-line-in{display:block;font-family:var(--serif);font-size:clamp(2.6rem,8.6vw,7.4rem);line-height:1.02;letter-spacing:.005em;
-  transform:translateY(112%);transition:transform 1.15s var(--e)}
-.is-revealed .ill-hero-line-in{transform:none}
-.ill-hero-sub{position:absolute;left:0;right:0;top:calc(62% + 18px);z-index:3;text-align:center;padding:0 20px;overflow:hidden}
-.ill-hero-sub-in{display:inline-block;color:var(--ink-soft);font-size:clamp(.92rem,1.6vw,1.05rem);max-width:44ch;
-  opacity:0;transform:translateY(16px);transition:opacity .9s var(--e) .7s,transform .9s var(--e) .7s}
+/* ── hero: seam-reveal lockup over the living terrace ── */
+.ill-hero{position:relative;min-height:100svh;display:grid}
+.ill-hero .ill-stage.is-hero{position:absolute;inset:0}
+/* the difference-blend wordmark needs a calmer, darker ground to read against
+   a busy mid-tone photograph (mirrorhouse ran its hero at saturate(.78)) */
+.ill-hero .ill-stage.is-hero img,.ill-hero .ill-stage.is-hero video{filter:saturate(.78) brightness(.94)}
+.ill-hero .ill-stage.is-hero::after{content:'';position:absolute;inset:0;z-index:1;
+  background:
+    radial-gradient(120% 62% at 50% 50%,rgba(14,22,29,.46) 0%,rgba(14,22,29,.16) 55%,transparent 78%),
+    linear-gradient(200deg,transparent 40%,rgba(14,22,29,.5) 100%)}
+/* ICELAND | LUXURY LODGES, mirrored about a hairline (mirrorhouse spec) */
+.ill-wordmark{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
+  margin:0;pointer-events:none;color:#F2F6F8;mix-blend-mode:difference;
+  font-family:var(--serif);font-size:clamp(30px,7.4vw,112px);line-height:1.02;font-weight:400}
+.ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform}
+.ill-wm-l{padding-right:.3em;margin-right:-.08em;text-align:right}
+.ill-wm-r{padding-left:.3em;text-align:left}
+.ill-wm-seam{flex:none;width:1px;height:.94em;background:currentColor;opacity:.85;transform-origin:50% 50%}
+.ill-hero-sub{position:absolute;left:0;right:0;bottom:clamp(30px,7vh,74px);z-index:3;text-align:center;padding:0 20px;overflow:hidden}
+.ill-hero-sub-in{display:inline-block;color:#EDF1F2;font-size:clamp(.92rem,1.6vw,1.05rem);max-width:44ch;
+  text-shadow:0 1px 16px rgba(14,22,29,.5);
+  opacity:0;transform:translateY(16px);transition:opacity .9s var(--e) .9s,transform .9s var(--e) .9s}
 .is-revealed .ill-hero-sub-in{opacity:1;transform:none}
-@media (max-width:700px){.ill-hero-sub{top:calc(62% + 12px)}}
+@media (max-width:640px){
+  .ill-wordmark{flex-direction:column;gap:.16em;font-size:clamp(30px,10.4vw,60px)}
+  .ill-wm-l,.ill-wm-r{padding:0;margin:0;text-align:center}
+  .ill-wm-seam{width:.86em;height:1px}
+}
 
 /* ── statement ── */
 .ill-statement{padding:clamp(90px,16vh,180px) clamp(20px,6vw,72px);max-width:900px;margin:0 auto;text-align:center}
@@ -638,10 +718,9 @@ const STYLES = `
 
 /* ── footer ── */
 .ill-footer{position:relative;background:var(--ink);color:var(--ice)}
-.ill-footer .ill-water.is-footer{display:grid;grid-template-rows:52svh 1px 16svh}
-.ill-footer .ill-water.is-footer .ill-water-frame,.ill-footer .ill-water.is-footer .ill-refl{height:100%}
-.ill-footer .ill-water.is-footer .ill-seam{background:var(--ice);opacity:.5}
-.ill-footer .ill-water.is-footer .ill-refl::after{background:linear-gradient(to bottom,rgba(14,22,29,0),rgba(14,22,29,.94))}
+.ill-footer .ill-stage.is-footer{height:56svh;position:relative}
+.ill-footer .ill-stage.is-footer::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(14,22,29,.12),rgba(14,22,29,.96))}
 .ill-footer-grid{padding:clamp(40px,7vh,90px) clamp(20px,5vw,64px);display:grid;gap:clamp(28px,5vh,54px);max-width:1500px;margin:0 auto}
 .ill-footer-word{font-family:var(--serif);font-size:clamp(2rem,7.2vw,5.4rem);line-height:1.04;color:var(--ice);opacity:.94}
 .ill-footer-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px}
@@ -658,11 +737,9 @@ const STYLES = `
 
 /* ── reduced motion: everything rests visible, no drift, no loader ── */
 @media (prefers-reduced-motion:reduce){
-  .ill-water-in{position:absolute;inset:0;transform:none !important}
-  .ill-refl{display:none}
+  .ill-stage-in{position:absolute;inset:0;transform:none !important}
   .ill-hero-line-in,.ill-hero-sub-in{transform:none;opacity:1;transition:none}
   .ill-door,.ill-fact,.ill-amen li,.ill-frame{opacity:1;transform:none;transition:none}
   .ill-loader-line::after{animation:none}
 }
-.reduced .ill-refl{display:none}
 `

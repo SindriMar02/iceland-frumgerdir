@@ -5,7 +5,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, ADDRESS, COMPANY, NAV, HERO, STATEMENT,
-  ROW, SUITE, FLORA, REVIEWS, HOSTS, BOOKING, JSON_LD,
+  ROW, SUITE, FLORA, REVIEWS, PANO, HOSTS, BOOKING, JSON_LD,
 } from './data'
 
 const company = companyEntry
@@ -216,7 +216,11 @@ export default function Page() {
       (es) => es.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-on'); io.unobserve(en.target) } }),
       { threshold: 0.2 },
     )
-    root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-name-card, .ms-panel').forEach((el) => io.observe(el))
+    /* NOTE: never observe .ms-panel — React owns its className (is-open toggles
+       on hover), so an imperatively-added is-on class is wiped on the next
+       render and the whole row vanishes. Reveal the TRACK instead; the panels
+       stagger off it in CSS. */
+    root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-name-card, .ms-row-track').forEach((el) => io.observe(el))
     return () => io.disconnect()
   }, [booted])
 
@@ -309,11 +313,11 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── panorama band ── */}
-        <section className="ms-pano">
-          <PanoMedia />
-          <p className="ms-pano-caption">Some nights the sky does the decorating.</p>
-        </section>
+        {/* ── THE NIGHT: pinned, scroll-scrubbed aurora film ── */}
+        <PanoScrub />
+
+        {/* ── reviews + testimonials ── */}
+        <Reviews />
 
         {/* ── the names ── */}
         <section className="ms-flora" id="floran">
@@ -329,18 +333,6 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── reviews ── */}
-        <section className="ms-reviews">
-          <div className="ms-reviews-card">
-            <Rise as="h2" className="ms-h2">{REVIEWS.lead}</Rise>
-            <div className="ms-reviews-score">
-              <span className="ms-reviews-n">{REVIEWS.score}</span>
-              <span className="ms-reviews-stars" aria-hidden="true">★★★★★</span>
-              <span className="ms-reviews-c">{REVIEWS.count}</span>
-            </div>
-            <Rise as="p" className="ms-body">{REVIEWS.body}</Rise>
-          </div>
-        </section>
 
         {/* ── hosts ── */}
         <section className="ms-hosts">
@@ -386,15 +378,113 @@ function HeroMedia() {
   )
 }
 
-function PanoMedia() {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => armDrift(ref.current, 12), [])
+/* ── THE NIGHT ────────────────────────────────────────────────────────────
+   A pinned band where scroll runs the aurora film and pushes into it, the
+   [[mirrorhouse-design-system]] scrubbed-hero device. Scrubbing a <video>
+   via currentTime is a decoder SEEK per frame and cannot be smooth (measured
+   there: 104 of 241 frames ever reached the screen), so the film plays
+   itself at its own rate and SCROLL owns the push-in and the exposure —
+   both pure compositor properties. Reduced motion / Save-Data get the still.
+   ──────────────────────────────────────────────────────────────────────── */
+function PanoScrub() {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const mediaRef = useRef<HTMLDivElement>(null)
+  const [film, setFilm] = useState(false)
+  useEffect(() => {
+    if (reduced) return
+    const con = (navigator as { connection?: { saveData?: boolean } }).connection
+    if (!con?.saveData) setFilm(true)
+  }, [])
+  useEffect(() => {
+    const wrap = wrapRef.current
+    const media = mediaRef.current
+    if (!wrap || !media || reduced) return
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const r = wrap.getBoundingClientRect()
+        const total = r.height - window.innerHeight
+        if (total <= 0) return
+        const p = Math.min(1, Math.max(0, -r.top / total))
+        /* the weird push-in: 1 → 1.18 across the pin, with the night
+           deepening as it goes */
+        media.style.transform = `scale(${(1 + p * 0.18).toFixed(4)})`
+        media.style.filter = `brightness(${(1 - p * 0.26).toFixed(3)}) saturate(${(1 + p * 0.22).toFixed(3)})`
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
+  }, [film])
   return (
-    <div className="ms-pano-media" style={{ ['--dz' as string]: '16.2%' }}>
-      <div className="ms-frame-in" ref={ref}>
-        <img src={IMG.pano} alt="Panorama of the fjord and the suites" loading="lazy" decoding="async" />
+    <section className="ms-pano" ref={wrapRef} aria-label="The night">
+      <div className="ms-pano-sticky">
+        <div className="ms-pano-media" ref={mediaRef}>
+          <img src={IMG.pano} alt="The suites under the aurora on the shore" loading="lazy" decoding="async" />
+          {film && (
+            <video className="ms-pano-film" src={`${import.meta.env.BASE_URL}mirrorsuite/aurora-film.mp4`}
+              poster={IMG.pano} autoPlay muted loop playsInline aria-hidden="true" />
+          )}
+        </div>
+        <p className="ms-pano-caption">{PANO.caption}</p>
       </div>
-    </div>
+    </section>
+  )
+}
+
+/* ── Reviews + testimonials ───────────────────────────────────────────────
+   The score/count/source are verified off their own Google widget. The
+   quotes are sample copy standing in for review text nobody publishes —
+   labelled as such on the face of the component, not just in the footer. */
+function Reviews() {
+  const [i, setI] = useState(0)
+  const n = REVIEWS.quotes.length
+  useEffect(() => {
+    if (reduced) return
+    const t = window.setInterval(() => setI((v) => (v + 1) % n), 7000)
+    return () => window.clearInterval(t)
+  }, [n])
+  return (
+    <section className="ms-reviews" aria-label="Guest reviews">
+      <div className="ms-rev-head">
+        <Rise as="h2" className="ms-h2">{REVIEWS.lead}</Rise>
+        <Rise as="p" className="ms-body">{REVIEWS.body}</Rise>
+      </div>
+      <div className="ms-rev-grid">
+        <div className="ms-rev-score">
+          <span className="ms-rev-n">{REVIEWS.score}</span>
+          <span className="ms-rev-stars" aria-hidden="true">★★★★★</span>
+          <span className="ms-rev-c">{REVIEWS.count}</span>
+          <span className="ms-rev-src">Verified on {REVIEWS.source}</span>
+        </div>
+        <div className="ms-rev-quotes">
+          <ul className="ms-rev-list">
+            {REVIEWS.quotes.map((q, idx) => (
+              <li key={q.text} className={`ms-rev-q ${idx === i ? 'is-live' : ''}`} aria-hidden={idx !== i}>
+                <blockquote>“{q.text}”</blockquote>
+                <cite>{q.name} · {q.meta}</cite>
+              </li>
+            ))}
+          </ul>
+          <div className="ms-rev-dots" role="tablist" aria-label="Reviews">
+            {REVIEWS.quotes.map((q, idx) => (
+              <button
+                key={q.text}
+                type="button"
+                role="tab"
+                aria-selected={idx === i}
+                aria-label={`Review ${idx + 1} of ${n}`}
+                className={`ms-rev-dot ${idx === i ? 'is-on' : ''}`}
+                onClick={() => setI(idx)}
+              />
+            ))}
+          </div>
+          <p className="ms-rev-note">{REVIEWS.sampleNote}</p>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -480,12 +570,14 @@ const STYLES = `
 .ms-row{padding:0 clamp(8px,1.4vw,20px)}
 .ms-row-track{display:flex;gap:clamp(6px,.9vw,12px);height:min(78svh,760px)}
 .ms-panel{position:relative;flex:1;overflow:hidden;isolation:isolate;text-align:left;padding:0;
-  transition:flex 1s var(--e);opacity:0;transform:translateY(26px)}
-.js:not(.reduced) .ms-panel{transition:flex 1s var(--e),opacity .9s var(--e),transform .9s var(--e)}
-.ms-panel.is-on{opacity:1;transform:none}
-.ms-panel:nth-child(2).is-on{transition-delay:0s,.08s,.08s}
-.ms-panel:nth-child(3).is-on{transition-delay:0s,.16s,.16s}
-.ms-panel:nth-child(4).is-on{transition-delay:0s,.24s,.24s}
+  transition:flex 1s var(--e)}
+/* entry is driven by the TRACK's is-on, never by a class on the panel itself */
+.js:not(.reduced) .ms-row-track .ms-panel{opacity:0;transform:translateY(26px);
+  transition:flex 1s var(--e),opacity .9s var(--e),transform .9s var(--e)}
+.js:not(.reduced) .ms-row-track.is-on .ms-panel{opacity:1;transform:none}
+.ms-row-track .ms-panel:nth-child(2){transition-delay:0s,.08s,.08s}
+.ms-row-track .ms-panel:nth-child(3){transition-delay:0s,.16s,.16s}
+.ms-row-track .ms-panel:nth-child(4){transition-delay:0s,.24s,.24s}
 .ms-panel.is-open{flex:3.2}
 .ms-panel img{position:absolute;inset:0;filter:saturate(.9);transition:transform 1.2s var(--e)}
 .ms-panel:hover img{transform:scale(1.04)}
@@ -527,11 +619,38 @@ const STYLES = `
 @media (max-width:1020px){.ms-suite-grid{grid-template-columns:1fr}.ms-suite-copy{position:static}}
 @media (max-width:560px){.ms-suite-pair{grid-template-columns:1fr}}
 
-/* panorama */
-.ms-pano{position:relative;height:72svh;overflow:hidden}
-.ms-pano-media{position:absolute;inset:0;overflow:hidden}
+/* THE NIGHT — pinned scrub */
+.ms-pano{position:relative;height:260svh}
+.ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
+.ms-pano-media{position:absolute;inset:0;will-change:transform,filter;transform-origin:50% 55%}
+.ms-pano-media img,.ms-pano-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ms-pano-caption{position:absolute;left:0;right:0;bottom:clamp(18px,4vh,40px);text-align:center;color:#F2F6F8;mix-blend-mode:difference;
   font-size:.86rem;letter-spacing:.05em;padding:0 20px}
+
+/* reviews + testimonials */
+.ms-reviews{padding:clamp(80px,13vh,150px) clamp(20px,5vw,64px);max-width:1300px;margin:0 auto;display:grid;gap:clamp(28px,5vh,52px)}
+.ms-rev-head{display:grid;gap:14px;max-width:52ch}
+.ms-rev-grid{display:grid;grid-template-columns:minmax(200px,.66fr) minmax(300px,1.34fr);gap:clamp(24px,4vw,60px);align-items:start}
+.ms-rev-score{display:grid;gap:5px;justify-items:start;border-top:1px solid var(--hair);padding-top:22px}
+.ms-rev-n{font-family:var(--disp);font-weight:200;font-size:clamp(3.4rem,8vw,6rem);line-height:.92}
+.ms-rev-stars{color:var(--glass);letter-spacing:.26em;font-size:1rem}
+.ms-rev-c{font-size:.9rem;color:var(--bone-soft)}
+.ms-rev-src{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bone-mute)}
+.ms-rev-quotes{border-top:1px solid var(--hair);padding-top:22px;display:grid;gap:16px}
+.ms-rev-list{list-style:none;padding:0;margin:0;display:grid}
+.ms-rev-q{grid-area:1/1;opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .7s var(--e),transform .7s var(--e)}
+.ms-rev-q.is-live{opacity:1;transform:none;pointer-events:auto}
+.ms-rev-q blockquote{margin:0;font-family:var(--disp);font-weight:200;
+  font-size:clamp(1.25rem,2.5vw,2rem);line-height:1.32;max-width:30ch}
+.ms-rev-q cite{display:block;margin-top:14px;font-style:normal;font-size:.8rem;letter-spacing:.06em;color:var(--bone-mute)}
+.ms-rev-dots{display:flex;gap:8px}
+.ms-rev-dot{width:34px;height:2px;background:var(--hair);position:relative;padding:0;
+  transition:background .4s var(--e)}
+.ms-rev-dot::after{content:'';position:absolute;inset:-11px 0}
+.ms-rev-dot.is-on{background:var(--glass)}
+.ms-rev-note{font-size:.74rem;letter-spacing:.04em;color:var(--bone-mute)}
+@media (max-width:820px){.ms-rev-grid{grid-template-columns:1fr}}
 
 /* flora names */
 .ms-flora{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1100px;margin:0 auto;display:grid;gap:22px}
@@ -545,13 +664,6 @@ const STYLES = `
 @media (max-width:700px){.ms-names{grid-template-columns:1fr}}
 
 /* reviews */
-.ms-reviews{padding:0 clamp(20px,5vw,64px) clamp(90px,14vh,160px)}
-.ms-reviews-card{max-width:760px;margin:0 auto;background:var(--bone);color:var(--deep);padding:clamp(34px,6vw,68px);display:grid;gap:18px;text-align:center}
-.ms-reviews-card .ms-h2 .ms-rise-in,.ms-reviews-card .ms-body .ms-rise-in{color:inherit;margin:0 auto}
-.ms-reviews-score{display:grid;gap:6px;justify-items:center}
-.ms-reviews-n{font-family:var(--disp);font-weight:200;font-size:clamp(3rem,8vw,5.4rem);line-height:1}
-.ms-reviews-stars{color:#2F6B58;letter-spacing:.3em;font-size:1.05rem}
-.ms-reviews-c{font-size:.85rem;color:rgba(15,20,28,.62)}
 
 /* hosts */
 .ms-hosts{padding:0 clamp(20px,6vw,72px) clamp(90px,14vh,160px);max-width:760px;margin:0 auto;display:grid;gap:16px}
@@ -597,6 +709,10 @@ const STYLES = `
   .ms-panel-text{opacity:1;transform:none}
   .ms-row-track{flex-direction:column;height:auto}
   .ms-panel{min-height:300px}
+  .ms-pano{height:auto}
+  .ms-pano-sticky{position:static;height:72svh}
+  .ms-pano-media{transform:none !important;filter:none !important}
+  .ms-rev-q{grid-area:auto;opacity:1;transform:none;pointer-events:auto;margin-bottom:26px}
   .ms-loader-horizon::after{animation:none}
 }
 `
