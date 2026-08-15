@@ -803,10 +803,15 @@ const CSS = `
   .ki-yfirlit-grid { grid-template-columns: repeat(2, 1fr); }
   .ki-verk-grid .ki-slide:nth-child(2), .ki-verk-grid .ki-slide:nth-child(3) { margin-top: 0; }
   .ki-skra-cols { grid-template-columns: 1fr 1fr; }
-  .ki-italskar, .ki-studio { grid-template-columns: 1fr; }
-  .ki-italskar-fig, .ki-studio-fig { justify-self: start; }
   .ki-foot-grid { grid-template-columns: 1fr; }
   .ki-dome-title { white-space: normal; }
+}
+/* Text + one modest figure: these hold as two columns far below the page's
+   main 991 breakpoint. Collapsing them early left the figure at its desktop
+   max-width in a full-width column, i.e. a dead half-screen beside it. */
+@media (max-width: 860px) {
+  .ki-italskar, .ki-studio { grid-template-columns: 1fr; gap: calc(var(--u) * 40); }
+  .ki-italskar-fig, .ki-studio-fig { justify-self: stretch; max-width: none; width: 100%; }
 }
 @media (max-width: 640px) {
   .ki-intro, .ki-verk, .ki-dome, .ki-skra, .ki-italskar, .ki-studio { padding-left: 20px; padding-right: 20px; }

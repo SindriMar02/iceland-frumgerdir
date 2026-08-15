@@ -36,15 +36,6 @@ export const PHOTO = {
   svid: P('svid', 'Tónleikar: gítarleikari baðaður grænu sviðsljósi', '3 / 2'),
 }
 
-/** The five phases of one working day — the page's structure. */
-export const PHASES = [
-  { is: 'Morgunn', en: 'Portrett' },
-  { is: 'Dagur', en: 'Á vellinum' },
-  { is: 'Síðdegi', en: 'Fjölskyldan' },
-  { is: 'Gullna stundin', en: 'Brúðkaup' },
-  { is: 'Kvöld', en: 'Á sviðinu' },
-] as const
-
 /** Her real wedding packages, prices exactly as published (ágúst 2026). */
 export const PACKAGES = [
   {
@@ -126,9 +117,9 @@ export const companyEntry: PreviewCompany = {
   established: 'Sjálfstætt starfandi ljósmyndari',
   currentUrl: 'https://huldamargret.is',
   ownerEmail: 'hulda@huldamargret.is',
-  concept: 'Einn dagur',
+  concept: 'Verkin sjálf',
   conceptTagline:
-    'Einn vinnudagur ljósmyndara: síðan byrjar í morgunbirtu stúdíósins og endar í sviðsljósinu, og verkin hennar bera hvert skref.',
+    'Safnið hennar ber síðuna: stjórnendaportrett, brúðkaup, íþróttir og viðburðir, með raunverulegri verðskrá og merkjum þeirra sem hringja aftur.',
   accent: '#B98A45',
   dark: false,
   status: 'Concept ready',
@@ -148,15 +139,15 @@ export const companyEntry: PreviewCompany = {
       'Engin skipulögð leið frá verki að bókun',
     ],
     opportunities: [
-      'Láta safnið sjálft segja vinnudaginn: portrett að morgni, völlur um miðjan dag, brúðkaup í gullnu stundinni, svið um kvöld',
+      'Láta safnið sjálft bera síðuna: portrett, íþróttir, fermingar, brúðkaup og viðburðir, hvert með sínum kafla',
       'Verðskráin og merkjaveggurinn eru þegar til; þau þurfa bara umgjörð sem treystir þeim',
     ],
   },
   positioning:
-    'Hulda Margrét ljósmyndar allt frá stjórnendaportrettum upp í landsleiki og brúðkaup. Vefurinn er byggður sem einn vinnudagur: birtan á síðunni fylgir sólinni frá morgunstúdíói að sviðsljósi kvöldsins, og hvert skref dagsins er raunverulegt verk af hennar eigin vef.',
+    'Hulda Margrét ljósmyndar allt frá stjórnendaportrettum upp í landsleiki og brúðkaup. Vefurinn er byggður utan um safnið sjálft: hver tegund verks fær sinn kafla, verðskráin er hennar eigin og merkjaveggurinn sýnir hverjir hringja aftur.',
   outreach: {
     subject: 'Hugmynd að nýjum vef fyrir ljósmyndastúdíóið',
     body:
-      'Sæl Hulda,\n\nÉg heiti Sindri og hanna vefsíður. Ég rakst á vefinn þinn og sá að myndirnar þínar, verðskráin og viðskiptavinalistinn eru sterkari en umgjörðin sem heldur utan um þau.\n\nÉg setti saman frumgerð að nýjum vef þar sem birtan á síðunni fylgir einum vinnudegi hjá þér: portrett að morgni, völlurinn um miðjan dag, brúðkaup í gullnu stundinni og sviðið um kvöldið. Allt á síðunni eru þínar eigin myndir og þín eigin verð.\n\nÞetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\nBestu kveðjur,\nSindri',
+      'Sæl Hulda,\n\nÉg heiti Sindri og hanna vefsíður. Ég rakst á vefinn þinn og sá að myndirnar þínar, verðskráin og viðskiptavinalistinn eru sterkari en umgjörðin sem heldur utan um þau.\n\nÉg setti saman frumgerð að nýjum vef þar sem safnið sjálft ber síðuna: stjórnendaportrett, íþróttir, fermingar, brúðkaup og viðburðir, hvert með sínum kafla. Allt á síðunni eru þínar eigin myndir og þín eigin verð.\n\nÞetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\nBestu kveðjur,\nSindri',
   },
 }

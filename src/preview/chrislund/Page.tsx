@@ -475,13 +475,10 @@ export default function ChrisLundPage() {
         </figure>
       </section>
 
-      {/* 07 · about */}
+      {/* 07 · about. Deliberately no photograph: the only portrait available
+          is a sample of a client from his own gallery, and beside "Um
+          Christopher" a stranger's face reads as his. */}
       <section className="cl-um">
-        <figure className="cl-um-fig cl-rv">
-          <img src={PHOTO.portrettBw.src} srcSet={srcSet(PHOTO.portrettBw.src)} sizes="(max-width: 991px) 80vw, 34vw"
-            alt={PHOTO.portrettBw.alt} loading="lazy" decoding="async" />
-          <figcaption className="cl-fig-cap">Portrett úr safninu</figcaption>
-        </figure>
         <div className="cl-um-copy">
           <Rule label="Um Christopher" />
           <Headline text="Tuttugu ár á bak við vélina." size={64} floor={30} measure={560} />
@@ -714,9 +711,14 @@ const CSS = `
 .cl-fig-cap { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
 
 /* about */
-.cl-um { display: grid; grid-template-columns: 1fr 1.3fr; gap: calc(var(--u) * 70); align-items: center; padding: calc(var(--u) * 140) calc(var(--u) * 34); }
-.cl-um-fig { margin: 0; max-width: calc(var(--u) * 440); width: 100%; }
-.cl-um-fig img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+/* With no honest photograph to pair it with, About closes the page as a
+   centred statement, which sets up the centred contact block directly below
+   instead of leaving half a screen empty beside a short paragraph. */
+.cl-um { padding: calc(var(--u) * 130) calc(var(--u) * 34) calc(var(--u) * 110); text-align: center; }
+.cl-um-copy { max-width: calc(var(--u) * 720); margin-inline: auto; }
+.cl-um .cl-headline { margin-inline: auto; }
+.cl-um .cl-rulehead-label { display: block; text-align: center; }
+.cl-um-marks { justify-content: center; }
 .cl-um-marks { display: flex; align-items: center; gap: calc(var(--u) * 30); margin-top: calc(var(--u) * 36); }
 .cl-um-logo { height: calc(var(--u) * 74); width: auto; mix-blend-mode: multiply; }
 .cl-um-op { height: calc(var(--u) * 64); width: auto; mix-blend-mode: multiply; }
@@ -740,11 +742,18 @@ const CSS = `
 
 /* responsive */
 @media (max-width: 991px) {
-  .cl-series, .cl-thjonusta, .cl-um { grid-template-columns: 1fr; }
+  .cl-thjonusta { grid-template-columns: 1fr; }
   .cl-bok-grid { grid-template-columns: 1fr; }
   .cl-bok-specs { grid-template-columns: 1fr 1fr; }
   .cl-foot-grid { grid-template-columns: 1fr; }
-  .cl-series-preview { position: static; }
+}
+/* The picker is a hover/tap preview, so the image belongs BESIDE the list for
+   as long as two columns fit. Below that it moves ABOVE the list, under the
+   headline, rather than sitting orphaned after six rows of text. */
+@media (max-width: 760px) {
+  .cl-series { grid-template-columns: 1fr; gap: calc(var(--u) * 26); }
+  .cl-series-preview { position: static; order: -1; }
+  .cl-series-preview img { aspect-ratio: 3 / 2; }
 }
 @media (max-width: 640px) {
   .cl-edit, .cl-bridge, .cl-safn, .cl-bok, .cl-thjonusta, .cl-um, .cl-samband { padding-left: 20px; padding-right: 20px; }

@@ -14,14 +14,18 @@ gsap.registerPlugin(ScrollTrigger)
 
 const company = getPreviewCompany('huldamargret')
 
-/* ── HULDA MARGRÉT · "EINN DAGUR" ──────────────────────────────────────────
-   One page, one working day of the studio. The canvas follows the sun:
-   morning paper-light for executive portraits, cool daylight on the pitch,
-   the golden hour for a wedding, and stage-dark night for concerts. A single
-   scroll-driven palette lerp (Mirror House lineage, new arc, new palette),
-   Icelandic day-phase labels carrying the structure, and a pinned climax:
-   the day's CONTACT SHEET, five of her frames dealt across one pin while
-   the light dies to night. Every photograph is her own published work.
+/* ── HULDA MARGRÉT · "VERKIN SJÁLF" ────────────────────────────────────────
+   One page, one collection. Each kind of work she actually sells gets its
+   own chapter (portrett · íþróttir og viðburðir · fjölskyldur · brúðkaup ·
+   viðskiptavinir), and the CONTACT SHEET pins five representative frames
+   across one horizontal walk. Every photograph is her own published work.
+
+   The scroll-driven day-to-night palette scrub is REMOVED (2026-08-15,
+   Sindri: "the day to night thing makes no sense"). It dragged the logo
+   wall, the price list and the contact block onto a near-black ground for
+   reasons none of those sections earned, and the day-phase labels that
+   served it ("Kvöld · Viðskiptavinir" over a logo wall) went with it. The
+   page now holds one steady morning-paper palette start to finish.
 
    Scoped fluid unit --u on .hm-root only ([[no-style-bleed-between-designs]]).
    Display leading never below 1.12 with .22em mask headroom (ledger #23).
@@ -33,7 +37,6 @@ const company = getPreviewCompany('huldamargret')
    the wordmark opens out of a hairline the way a leaf shutter opens. ────── */
 
 const MORNING = '#F1EFEA'
-const NIGHT = '#101017'
 const INK_DAY = '#2C2823'
 const GOLD = '#B98A45'
 
@@ -42,37 +45,6 @@ const SANS = "'Supreme', system-ui, sans-serif"
 const MONO = "'Azeret Mono', ui-monospace, monospace"
 
 const BASE = import.meta.env.BASE_URL
-
-/**
- * Palette stops: morning paper → cool daylight → golden hour → night.
- * Canvas and ink cross fast (Mirror House lesson: a slow crossover parks
- * body copy at 2.6:1 mid-grey). The crossover sits inside the contact-sheet
- * pin, so the light dies while the day is being recapped.
- */
-const STOPS = [
-  { at: 0.0, c: '#F1EFEA', ink: '#2C2823', soft: '#E7E3DA' },
-  { at: 0.3, c: '#EDEEEC', ink: '#25292B', soft: '#E0E4E2' },
-  { at: 0.52, c: '#EBDFC9', ink: '#33291A', soft: '#E2D3B6' },
-  { at: 0.62, c: '#E4D2B4', ink: '#33281733', soft: '#DAC59F' }, // approach
-  { at: 0.68, c: '#241F1E', ink: '#EDE8E1', soft: '#2E2827' },
-  { at: 0.74, c: '#101017', ink: '#EEEDF0', soft: '#1A1A22' },
-  { at: 1.0, c: '#101017', ink: '#EEEDF0', soft: '#1A1A22' },
-]
-// the 0.62 ink above carries a typo-guard: never ship 8-digit hex into mix
-STOPS[3].ink = '#332817'
-
-const hex2rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
-const mixHex = (a: string, b: string, t: number) => {
-  const A = hex2rgb(a), B = hex2rgb(b)
-  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`
-}
-const paletteAt = (p: number) => {
-  let i = 0
-  while (i < STOPS.length - 2 && p > STOPS[i + 1].at) i++
-  const a = STOPS[i], b = STOPS[i + 1]
-  const t = Math.max(0, Math.min(1, (p - a.at) / (b.at - a.at || 1)))
-  return { c: mixHex(a.c, b.c, t), ink: mixHex(a.ink, b.ink, t), soft: mixHex(a.soft, b.soft, t) }
-}
 
 const reduced = () =>
   typeof window !== 'undefined' &&
@@ -92,10 +64,6 @@ function useMotion(ready: boolean) {
 
     if (reduced()) {
       root.classList.add('hm-static')
-      const { c, ink, soft } = paletteAt(0)
-      root.style.setProperty('--hm-c', c)
-      root.style.setProperty('--hm-ink', ink)
-      root.style.setProperty('--hm-soft', soft)
       return
     }
 
@@ -123,23 +91,6 @@ function useMotion(ready: boolean) {
       for (const [el, t] of writes) el.style.transform = t
     }
 
-    /* palette: ONE writer for the whole page */
-    let lastC = '', lastInk = '', lastSoft = ''
-    const applyPalette = (p: number) => {
-      const { c, ink, soft } = paletteAt(p)
-      if (c !== lastC) { root.style.setProperty('--hm-c', c); lastC = c }
-      if (ink !== lastInk) { root.style.setProperty('--hm-ink', ink); lastInk = ink }
-      if (soft !== lastSoft) { root.style.setProperty('--hm-soft', soft); lastSoft = soft }
-      const rgb = c.match(/\d+/g)!.map(Number)
-      const lin = rgb.map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4) })
-      const night = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2] < 0.18
-      if (root.classList.contains('hm-night') !== night) {
-        root.classList.toggle('hm-night', night)
-        setThemeColor(night ? NIGHT : MORNING)
-      }
-    }
-    applyPalette(0)
-
     /* shutter reveals: IO arms a class once; CSS owns the transition */
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
@@ -153,13 +104,6 @@ function useMotion(ready: boolean) {
     })
 
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        start: 0,
-        end: () => document.documentElement.scrollHeight - window.innerHeight,
-        onUpdate: (self) => applyPalette(self.progress),
-        invalidateOnRefresh: true,
-      })
-
       /* THE WORDMARK — the leaf shutter.
          A hairline stands between the two names. It draws itself, then HULDA
          opens leftward out of it and MARGRÉT rightward, the way a leaf
@@ -277,15 +221,9 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
   )
 }
 
-/** Day-phase label: the page's only recurring structural device. */
-function Phase({ is, en }: { is: string; en: string }) {
-  return (
-    <p className="hm-phase">
-      <span className="hm-phase-is">{is}</span>
-      <span aria-hidden="true"> · </span>
-      <span>{en}</span>
-    </p>
-  )
+/** Section label: names the kind of work, the page's one recurring device. */
+function Kicker({ children }: { children: React.ReactNode }) {
+  return <p className="hm-kicker">{children}</p>
 }
 
 /** A photograph that drifts inside a fixed frame and arrives by shutter-wipe. */
@@ -365,12 +303,12 @@ function Preloader({ onDone }: { onDone: () => void }) {
 
 /* ── the page ──────────────────────────────────────────────────────────── */
 
-const SHEET: Array<{ photo: HmPhoto; is: string; en: string }> = [
-  { photo: PHOTO.portrettA, is: 'Morgunn', en: 'Portrett' },
-  { photo: PHOTO.vollur, is: 'Dagur', en: 'Á vellinum' },
-  { photo: PHOTO.ferming, is: 'Síðdegi', en: 'Fjölskyldan' },
-  { photo: PHOTO.brudkaup, is: 'Gullna stundin', en: 'Brúðkaup' },
-  { photo: PHOTO.svid, is: 'Kvöld', en: 'Á sviðinu' },
+const SHEET: Array<{ photo: HmPhoto; label: string }> = [
+  { photo: PHOTO.portrettA, label: 'Portrett' },
+  { photo: PHOTO.vollur, label: 'Íþróttir' },
+  { photo: PHOTO.ferming, label: 'Fermingar' },
+  { photo: PHOTO.brudkaup, label: 'Brúðkaup' },
+  { photo: PHOTO.svid, label: 'Viðburðir' },
 ]
 
 export default function HuldaMargretPage() {
@@ -415,7 +353,7 @@ export default function HuldaMargretPage() {
       <header className="hm-nav">
         <a className="hm-nav-mark" href="#top" onClick={anchor('top')}>HULDA&nbsp;MARGRÉT</a>
         <nav className="hm-nav-links" aria-label="Síða">
-          <a href="#dagurinn" onClick={anchor('dagurinn')}>Dagurinn</a>
+          <a href="#verkin" onClick={anchor('verkin')}>Verkin</a>
           <a href="#verdskra" onClick={anchor('verdskra')}>Verðskrá</a>
         </nav>
         <a className="hm-nav-cta" href="#samband" onClick={anchor('samband')}>Bóka myndatöku</a>
@@ -438,8 +376,8 @@ export default function HuldaMargretPage() {
         </h1>
         <div className="hm-hero-block">
           <p className="hm-hero-sub">
-            Ljósmyndari sem fylgir deginum: portrett að morgni, landsleikur um miðjan
-            dag, brúðkaup í gullnu stundinni.
+            Stjórnendaportrett, brúðkaup, íþróttir og viðburðir. Yfir þrjátíu
+            fyrirtæki og félög eru meðal viðskiptavina.
           </p>
           <a className="hm-hero-link" href="#samband" onClick={anchor('samband')}>Bóka myndatöku</a>
         </div>
@@ -452,17 +390,17 @@ export default function HuldaMargretPage() {
           <p className="hm-body hm-rv">
             Það verður ekki endurtekið: markið, jáið, fyrsti hljómurinn. Vinnan er
             að standa á réttum stað þegar það gerist, með ljósið lesið fyrirfram.
-            Þessi síða fylgir einum vinnudegi, og hvert verk á henni er raunverulegt.
+            Hvert verk hér er raunverulegt.
           </p>
         </div>
         <Frame photo={PHOTO.studio} drift={9} className="hm-manifesto-fig" />
       </section>
 
       {/* 03 · morning, portraits */}
-      <section className="hm-morgunn" id="dagurinn">
+      <section className="hm-morgunn" id="verkin">
         <div className="hm-morgunn-copy">
-          <Phase is="Morgunn" en="Portrett" />
-          <Headline text="Dagurinn byrjar í augnhæð." size={64} floor={32} measure={560} />
+          <Kicker>Portrett</Kicker>
+          <Headline text="Portrett í augnhæð." size={64} floor={32} measure={560} />
           <p className="hm-body hm-rv">
             Vönduð og traustvekjandi portrett fyrir stjórnendur og starfsfólk, tekin
             fyrir heimasíður, ársskýrslur, fréttir og viðburði. Hálftími fyrir
@@ -482,8 +420,8 @@ export default function HuldaMargretPage() {
       {/* 04 · day, the pitch */}
       <section className="hm-dagur">
         <div className="hm-dagur-head">
-          <Phase is="Dagur" en="Á vellinum" />
-          <Headline text="Svo flautar dómarinn." size={64} floor={32} measure={560} />
+          <Kicker>Íþróttir og viðburðir</Kicker>
+          <Headline text="Þegar dómarinn flautar." size={64} floor={32} measure={560} />
         </div>
         <Frame photo={PHOTO.vollur} drift={12} className="hm-dagur-bleed" />
         <div className="hm-dagur-foot">
@@ -501,39 +439,38 @@ export default function HuldaMargretPage() {
           <Frame photo={PHOTO.ferming} drift={9} />
         </div>
         <div className="hm-sidegi-copy">
-          <Phase is="Síðdegi" en="Fjölskyldan" />
-          <Headline text="Fjölskyldan á síðdegið." size={56} floor={30} measure={520} />
+          <Kicker>Fjölskyldur</Kicker>
+          <Headline text="Í næði, ekki flýti." size={56} floor={30} measure={520} />
           <p className="hm-body hm-rv">
             Fermingar, fjölskyldur og hópar. Myndir sem hanga uppi árum saman eiga
-            skilið dagsljós og næði frekar en flýti.
+            skilið dagsljós og tíma.
           </p>
         </div>
       </section>
 
-      {/* 06 · the contact sheet: golden hour dies into night inside this pin */}
-      <section className="hm-sheet" aria-label="Snertiörk dagsins">
+      {/* 06 · the contact sheet: five representative frames, one horizontal walk */}
+      <section className="hm-sheet" aria-label="Snertiörk úr safninu">
         <div className="hm-sheet-head">
-          <Phase is="Gullna stundin" en="Brúðkaup" />
-          <Headline text="Fimm augnablik. Einn dagur." size={64} floor={30} measure={620} />
+          <Kicker>Brúðkaup</Kicker>
+          <Headline text="Fimm myndir úr safninu." size={64} floor={30} measure={620} />
         </div>
         <div className="hm-sheet-track">
           {SHEET.map((s) => (
-            <figure key={s.is} className="hm-sheet-cell">
+            <figure key={s.label} className="hm-sheet-cell">
               <img src={s.photo.src} srcSet={srcSet(s.photo.src)}
                 sizes="(max-width: 767px) 86vw, 44vw"
                 alt={s.photo.alt} loading="lazy" decoding="async" />
               <figcaption>
-                <span className="hm-sheet-is">{s.is}</span>
-                <span className="hm-sheet-en">{s.en}</span>
+                <span className="hm-sheet-cat">{s.label}</span>
               </figcaption>
             </figure>
           ))}
         </div>
       </section>
 
-      {/* 07 · night: clients */}
+      {/* 07 · clients */}
       <section className="hm-vidskipta">
-        <Phase is="Kvöld" en="Viðskiptavinir" />
+        <Kicker>Viðskiptavinir</Kicker>
         <Headline text="Þeir sem hringja aftur." size={64} floor={32} measure={620} />
         <p className="hm-body hm-rv">
           Yfir þrjátíu fyrirtæki, félög og fjölmiðlar sýna merkin sín á vef Huldu. Hér eru tólf.
@@ -586,7 +523,7 @@ export default function HuldaMargretPage() {
 
       {/* 09 · contact */}
       <section className="hm-samband" id="samband">
-        <Headline text="Dagurinn þinn er næstur." size={80} floor={36} measure={640} />
+        <Headline text="Segðu Huldu frá myndatökunni." size={80} floor={36} measure={640} />
         <div className="hm-samband-row hm-rv">
           <a className="hm-samband-tel" href={CONTACT.phoneHref}>{CONTACT.phone}</a>
           <a className="hm-cta" href={`mailto:${CONTACT.email}?subject=${encodeURIComponent('Fyrirspurn um myndatöku')}`}>
@@ -651,14 +588,9 @@ const CSS = `
 }
 .hm-root [id] { scroll-margin-top: 84px; }
 .hm-root a, .hm-root button { touch-action: manipulation; }
-.hm-night { color-scheme: dark; }
 .hm-loader-pct, .hm-verd-price { font-variant-numeric: tabular-nums; }
 .hm-root ::selection { background: var(--hm-gold); color: #1B150C; }
-.hm-night { --hm-accent-text: #D9A65A; }
 .hm-root :focus-visible { outline: 2px solid var(--hm-accent-text); outline-offset: 3px; border-radius: 2px; }
-
-/* palette transitions ride the vars; chrome colour follows the sky */
-.hm-root, .hm-nav, .hm-frame, .hm-logo-chip, .hm-verd-card { transition: background-color .4s linear, color .4s linear, border-color .4s linear; }
 
 /* nav — fixed, borderless, difference-blend so no bar is ever needed */
 .hm-nav {
@@ -739,12 +671,11 @@ const CSS = `
   transition: opacity .2s cubic-bezier(.4,0,.2,1);
 }
 .hm-inline-cta a:hover { opacity: .7; }
-.hm-phase {
+.hm-kicker {
   font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .12em;
   text-transform: uppercase; color: var(--hm-accent-text);
   margin: 0 0 calc(var(--u) * 18);
 }
-.hm-phase-is { font-weight: 400; }
 
 /* frames + shutter reveal */
 .hm-frame { position: relative; overflow: hidden; margin: 0; background: var(--hm-soft); }
@@ -802,11 +733,10 @@ const CSS = `
 .hm-sheet-cell { flex: 0 0 auto; width: min(44vw, 720px); margin: 0; }
 .hm-sheet-cell img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--hm-soft); }
 .hm-sheet-cell figcaption {
-  display: flex; justify-content: space-between; gap: 12px;
   font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)};
   padding-top: 10px; color: var(--hm-mute);
 }
-.hm-sheet-is { text-transform: uppercase; letter-spacing: .12em; color: var(--hm-accent-text); }
+.hm-sheet-cat { text-transform: uppercase; letter-spacing: .12em; color: var(--hm-accent-text); }
 @media (max-width: 767px) {
   .hm-sheet-track { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
   .hm-sheet-cell { width: 86vw; scroll-snap-align: center; }
@@ -831,7 +761,7 @@ const CSS = `
 }
 .hm-logo-chip {
   flex: 0 0 auto; width: calc(var(--u) * 190); height: calc(var(--u) * 104);
-  background: #F4F1EA; border: 1px solid var(--hm-hair);
+  background: #FFFFFF; border: 1px solid var(--hm-hair);
   display: grid; place-content: center; padding: calc(var(--u) * 20);
 }
 .hm-logo-chip img { max-width: 100%; max-height: calc(var(--u) * 56); object-fit: contain; }
