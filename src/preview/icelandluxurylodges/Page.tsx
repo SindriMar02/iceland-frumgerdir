@@ -126,6 +126,124 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
   )
 }
 
+/* ── THE WALKTHROUGH ──────────────────────────────────────────────────────
+   A pinned band where SCROLL walks you through the lodge: a pre-decoded JPEG
+   frame sequence blitted to a canvas, the scroll position picking the frame.
+   The camera moves exactly as far as you push it and stops when you stop.
+   (Not a <video>: driving currentTime is a decoder seek per frame and cannot
+   be smooth — measured on Mirror House at 104 of 241 frames. And an
+   autoplaying video is not a walkthrough at all, it is a video.)
+   Loader is the hardened Mirror House one: unconditional from a mount
+   effect, decode() before a frame counts, 14-wide pump, nearest-loaded
+   fallback so a partial load still animates, still drawn until the first
+   frame decodes, and canvas.dataset.frame exposed for the QA probe. ────── */
+const WALK_FRAMES = 121
+
+function Walkthrough({ still, label, lead }: { still: string; label: string; lead: string }) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const stillRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    const wrap = wrapRef.current
+    const canvas = canvasRef.current
+    if (!wrap || !canvas || reduced) return
+    const small = window.matchMedia('(max-width: 767px)').matches
+    const dir = small ? 'walk-lodge-sm' : 'walk-lodge'
+    const ctx = canvas.getContext('2d', { alpha: true })
+    if (!ctx) return
+
+    const imgs: (HTMLImageElement | null)[] = new Array(WALK_FRAMES).fill(null)
+    let shown = -1
+    let wanted = 0
+    let stopped = false
+
+    const sizeCanvas = () => {
+      const dpr = Math.min(1.5, window.devicePixelRatio || 1)
+      canvas.width = Math.round(canvas.clientWidth * dpr)
+      canvas.height = Math.round(canvas.clientHeight * dpr)
+    }
+    const blit = (im: CanvasImageSource, iw: number, ih: number) => {
+      const cw = canvas.width; const ch = canvas.height
+      const s = Math.max(cw / iw, ch / ih)
+      const w = iw * s; const h = ih * s
+      ctx.clearRect(0, 0, cw, ch)
+      ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
+    }
+    const paint = (idx: number) => {
+      let i = idx
+      if (!imgs[i]) {
+        let d = 1
+        while (d < WALK_FRAMES) {
+          if (imgs[Math.max(0, i - d)]) { i = Math.max(0, i - d); break }
+          if (imgs[Math.min(WALK_FRAMES - 1, i + d)]) { i = Math.min(WALK_FRAMES - 1, i + d); break }
+          d += 1
+        }
+      }
+      const im = imgs[i]
+      if (im) { blit(im, im.naturalWidth, im.naturalHeight); shown = i; canvas.dataset.frame = String(i) }
+      else {
+        const st = stillRef.current
+        if (st?.complete && st.naturalWidth) blit(st, st.naturalWidth, st.naturalHeight)
+      }
+    }
+    const src = (n: number) =>
+      `${import.meta.env.BASE_URL}icelandluxurylodges/${dir}/f${String(n + 1).padStart(3, '0')}.jpg`
+    let next = 0
+    const pump = () => {
+      if (stopped || next >= WALK_FRAMES) return
+      const n = next++
+      const im = new Image()
+      im.src = src(n)
+      const done = () => {
+        if (stopped) return
+        imgs[n] = im
+        if (shown < 0 || Math.abs(n - wanted) < 2) paint(wanted)
+        pump()
+      }
+      im.decode().then(done).catch(() => { im.onload = done; im.onerror = () => pump() })
+    }
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const r = wrap.getBoundingClientRect()
+        const total = r.height - window.innerHeight
+        if (total <= 0) return
+        const p = Math.min(1, Math.max(0, -r.top / total))
+        const idx = Math.min(WALK_FRAMES - 1, Math.round(p * (WALK_FRAMES - 1)))
+        if (idx !== shown) { wanted = idx; paint(idx) }
+      })
+    }
+    sizeCanvas(); onScroll()
+    const kick = window.setTimeout(() => { for (let k = 0; k < 14; k++) pump() }, 700)
+    const onResize = () => { sizeCanvas(); paint(wanted) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      stopped = true
+      window.clearTimeout(kick)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  return (
+    <section className="ill-walk" ref={wrapRef} aria-label={label}>
+      <div className="ill-walk-sticky">
+        <img ref={stillRef} className="ill-walk-still" src={still} alt={label} loading="lazy" decoding="async" />
+        <canvas ref={canvasRef} className="ill-walk-canvas" aria-hidden="true" />
+        <div className="ill-walk-copy">
+          <span className="ill-walk-label">{label}</span>
+          <p className="ill-walk-lead">{lead}</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /* ── Mask-reveal text helpers ───────────────────────────────────────────── */
 function Rise({ as: Tag = 'div', className = '', children }: { as?: 'div' | 'h2' | 'h3' | 'p' | 'span'; className?: string; children: React.ReactNode }) {
   return (
@@ -368,6 +486,19 @@ export default function Page() {
   }, [])
 
   /* nav: smooth anchor scroll (native; no Lenis on this page) */
+  /* the nav swaps register at the foot of the hero instead of inverting */
+  useEffect(() => {
+    const nav = rootRef.current?.querySelector('.ill-nav')
+    const hero = heroRef.current
+    if (!nav || !hero) return
+    const io = new IntersectionObserver(
+      ([en]) => nav.classList.toggle('is-past', !en.isIntersecting),
+      { rootMargin: '-72px 0px 0px 0px', threshold: 0 },
+    )
+    io.observe(hero)
+    return () => io.disconnect()
+  }, [])
+
   const goTo = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     document.getElementById(id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
@@ -400,7 +531,7 @@ export default function Page() {
           <i /><i />
         </button>
       </header>
-      <div className={`ill-sheet ${menuOpen ? 'is-open' : ''}`} hidden={!menuOpen}>
+      <div className={`ill-sheet ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
         {NAV.map((n, i) => (
           <a key={n.id} href={`#${n.id}`} style={{ transitionDelay: `${80 + i * 55}ms` }}
             onClick={(e) => { setMenuOpen(false); goTo(n.id)(e) }}>
@@ -487,6 +618,13 @@ export default function Page() {
           </section>
         ))}
 
+        {/* ── THE WALKTHROUGH: scroll walks the lodge ── */}
+        <Walkthrough
+          still={IMG.lodgeWide}
+          label="Walk through Úlfljótsskáli"
+          lead="Past the bar, through the hall, into the rooms. Scroll to walk."
+        />
+
         {/* ── fourth key: honest text card, no photo exists ── */}
         <section className="ill-fourth">
           <div className="ill-fourth-card">
@@ -567,7 +705,18 @@ const STYLES = `
 
 /* ── nav ── */
 .ill-nav{position:fixed;inset:0 0 auto 0;z-index:60;display:flex;align-items:center;justify-content:space-between;
-  padding:clamp(14px,2.4vw,24px) clamp(18px,3.4vw,44px);mix-blend-mode:difference;color:#F2F6F8}
+  padding:clamp(14px,2.4vw,24px) clamp(18px,3.4vw,44px);color:#F5F8F9;
+  transition:color .45s var(--e),background-color .45s var(--e),backdrop-filter .45s var(--e)}
+/* over the hero photo: solid light on a soft scrim. Past it: the page's own
+   ink on a quiet blurred surface. NEVER mix-blend-difference — over a bright
+   mid-tone photograph it inverts to muddy olive/brown instead of reading as
+   chrome. */
+.ill-nav::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(14,22,29,.42),transparent);
+  opacity:1;transition:opacity .45s var(--e)}
+.ill-nav.is-past{color:var(--ink);background:rgba(239,243,245,.86);backdrop-filter:blur(10px);
+  box-shadow:0 1px 0 var(--hair)}
+.ill-nav.is-past::before{opacity:0}
 .ill-nav-mark{font-family:var(--serif);font-size:1.02rem;letter-spacing:.02em;display:flex;gap:.4em}
 .ill-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.82rem;font-weight:400;letter-spacing:.04em}
 .ill-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
@@ -578,11 +727,12 @@ const STYLES = `
 .ill-burger i:last-child{top:26px}
 .ill-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
 .ill-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
-.ill-sheet{position:fixed;inset:0;z-index:55;background:var(--ice);display:grid;place-content:center;gap:8px;text-align:center;
-  opacity:0;pointer-events:none;transition:opacity .5s var(--e)}
-.ill-sheet[hidden]{display:none}
-.ill-sheet.is-open{opacity:1;pointer-events:auto}
-.ill-sheet a{font-family:var(--serif);font-size:clamp(1.7rem,7vw,2.6rem);padding:.22em 0;opacity:0;transform:translateY(14px);transition:opacity .5s var(--e),transform .5s var(--e)}
+.ill-sheet{position:fixed;inset:0;z-index:55;background:var(--ice);display:grid;place-content:center;gap:2px;text-align:center;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .5s var(--e),visibility 0s linear .5s}
+.ill-sheet.is-open{opacity:1;visibility:visible;pointer-events:auto;
+  transition:opacity .5s var(--e),visibility 0s linear 0s}
+.ill-sheet a{font-family:var(--serif);font-size:clamp(1.7rem,7vw,2.6rem);padding:.34em .2em;opacity:0;transform:translateY(14px);transition:opacity .5s var(--e),transform .5s var(--e);text-transform:uppercase;letter-spacing:.16em}
 .ill-sheet.is-open a{opacity:1;transform:none}
 @media (max-width:860px){.ill-nav-links{display:none}.ill-burger{display:block}}
 
@@ -604,7 +754,7 @@ const STYLES = `
     linear-gradient(200deg,transparent 40%,rgba(14,22,29,.5) 100%)}
 /* ICELAND | LUXURY LODGES, mirrored about a hairline (mirrorhouse spec) */
 .ill-wordmark{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
-  margin:0;pointer-events:none;color:#F2F6F8;mix-blend-mode:difference;
+  margin:0;pointer-events:none;color:#F6F9FA;text-shadow:0 2px 30px rgba(14,22,29,.45);
   font-family:var(--serif);font-size:clamp(30px,7.4vw,112px);line-height:1.02;font-weight:400}
 .ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform}
 .ill-wm-l{padding-right:.3em;margin-right:-.08em;text-align:right}
@@ -678,6 +828,25 @@ const STYLES = `
 .ill-frame img{filter:saturate(.92)}
 @media (max-width:1020px){.ill-chapter-grid{grid-template-columns:1fr}.ill-chapter-copy{position:static}}
 @media (max-width:640px){.ill-chapter-photos{grid-template-columns:1fr}.ill-frame{aspect-ratio:4/3}}
+
+/* ── THE WALKTHROUGH ── */
+.ill-walk{position:relative;height:300svh}
+.ill-walk-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--ink)}
+.ill-walk-still,.ill-walk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+.ill-walk-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;z-index:2;pointer-events:none;
+  background:linear-gradient(to top,rgba(14,22,29,.72),transparent)}
+.ill-walk-copy{position:absolute;left:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;display:grid;gap:10px}
+.ill-walk-label{font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(239,243,245,.72)}
+.ill-walk-lead{font-family:var(--serif);font-size:clamp(1.4rem,3vw,2.4rem);line-height:1.2;color:#F4F8F9;max-width:22ch;
+  text-shadow:0 2px 24px rgba(14,22,29,.5)}
+.reduced .ill-walk{height:auto}
+.reduced .ill-walk-sticky{position:static;height:76svh}
+.reduced .ill-walk-canvas{display:none}
+@media (prefers-reduced-motion:reduce){
+  .ill-walk{height:auto}
+  .ill-walk-sticky{position:static;height:76svh}
+  .ill-walk-canvas{display:none}
+}
 
 /* ── fourth key ── */
 .ill-fourth{padding:0 clamp(20px,5vw,64px) clamp(80px,12vh,140px)}

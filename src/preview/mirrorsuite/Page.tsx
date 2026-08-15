@@ -221,6 +221,16 @@ export default function Page() {
        render and the whole row vanishes. Reveal the TRACK instead; the panels
        stagger off it in CSS. */
     root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-name-card, .ms-row-track').forEach((el) => io.observe(el))
+    const nav = root.querySelector('.ms-nav')
+    const heroEl = root.querySelector('.ms-hero')
+    if (nav && heroEl) {
+      const navIo = new IntersectionObserver(
+        ([en]) => nav.classList.toggle('is-past', !en.isIntersecting),
+        { rootMargin: '-72px 0px 0px 0px', threshold: 0 },
+      )
+      navIo.observe(heroEl)
+      return () => { io.disconnect(); navIo.disconnect() }
+    }
     return () => io.disconnect()
   }, [booted])
 
@@ -253,7 +263,7 @@ export default function Page() {
           onClick={() => setMenuOpen((v) => !v)}
         ><i /><i /></button>
       </header>
-      <div className={`ms-sheet ${menuOpen ? 'is-open' : ''}`} hidden={!menuOpen}>
+      <div className={`ms-sheet ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
         {NAV.map((n, i) => (
           <a key={n.id} href={`#${n.id}`} style={{ transitionDelay: `${80 + i * 55}ms` }}
             onClick={(e) => { setMenuOpen(false); goTo(n.id)(e) }}>{n.label}</a>
@@ -378,27 +388,109 @@ function HeroMedia() {
   )
 }
 
-/* ── THE NIGHT ────────────────────────────────────────────────────────────
-   A pinned band where scroll runs the aurora film and pushes into it, the
-   [[mirrorhouse-design-system]] scrubbed-hero device. Scrubbing a <video>
-   via currentTime is a decoder SEEK per frame and cannot be smooth (measured
-   there: 104 of 241 frames ever reached the screen), so the film plays
-   itself at its own rate and SCROLL owns the push-in and the exposure —
-   both pure compositor properties. Reduced motion / Save-Data get the still.
+/* ── THE NIGHT — the real scroll-through ──────────────────────────────────
+   [[mirrorhouse-design-system]] device 4, transplanted properly this time.
+   The aurora does NOT play on its own: scroll IS the clock. A pre-decoded
+   JPEG frame sequence is blitted to a canvas and the scroll position picks
+   the frame, so the sky moves exactly as far as you push it and stops when
+   you stop — that is the whole effect.
+
+   Driving a <video>'s currentTime instead cannot work (measured on Mirror
+   House: only 104 of 241 frames ever reached the screen, because every
+   assignment is a decoder SEEK). And letting the video simply autoplay —
+   which is what shipped here first — throws the effect away entirely: the
+   sky moves on its own and scroll does nothing.
+
+   Loader architecture is the hardened one from that build, every clause
+   paid for by a real bug there:
+   · loads unconditionally from a mount effect (never gated behind a
+     scroll trigger, which found browsers where it never fired → blank),
+   · img.decode() before a frame counts (onload only means bytes arrived;
+     the decode would otherwise stall inside the first draw),
+   · 14-wide concurrency (a curious scroller outruns a narrow pump and the
+     film reads as stepping),
+   · paint() falls back to the nearest loaded frame and draws the still
+     while zero frames are decoded, so it is never blank,
+   · canvas.dataset.frame exposes the shown frame so a probe can assert it.
    ──────────────────────────────────────────────────────────────────────── */
+const NIGHT_FRAMES = 121
+
 function PanoScrub() {
   const wrapRef = useRef<HTMLDivElement>(null)
-  const mediaRef = useRef<HTMLDivElement>(null)
-  const [film, setFilm] = useState(false)
-  useEffect(() => {
-    if (reduced) return
-    const con = (navigator as { connection?: { saveData?: boolean } }).connection
-    if (!con?.saveData) setFilm(true)
-  }, [])
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const stillRef = useRef<HTMLImageElement>(null)
+
   useEffect(() => {
     const wrap = wrapRef.current
-    const media = mediaRef.current
-    if (!wrap || !media || reduced) return
+    const canvas = canvasRef.current
+    if (!wrap || !canvas || reduced) return
+
+    const small = window.matchMedia('(max-width: 767px)').matches
+    const dir = small ? 'night-sm' : 'night'
+    const ctx = canvas.getContext('2d', { alpha: true })
+    if (!ctx) return
+
+    const imgs: (HTMLImageElement | null)[] = new Array(NIGHT_FRAMES).fill(null)
+    let shown = -1
+    let stopped = false
+
+    const sizeCanvas = () => {
+      const dpr = Math.min(1.5, window.devicePixelRatio || 1)
+      canvas.width = Math.round(canvas.clientWidth * dpr)
+      canvas.height = Math.round(canvas.clientHeight * dpr)
+    }
+
+    /* cover-fit blit */
+    const draw = (im: CanvasImageSource, iw: number, ih: number) => {
+      const cw = canvas.width; const ch = canvas.height
+      const scale = Math.max(cw / iw, ch / ih)
+      const w = iw * scale; const h = ih * scale
+      ctx.clearRect(0, 0, cw, ch)
+      ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
+    }
+
+    const paint = (idx: number) => {
+      /* nearest loaded frame, so a partial load still animates */
+      let i = idx
+      if (!imgs[i]) {
+        let d = 1
+        while (d < NIGHT_FRAMES) {
+          if (imgs[Math.max(0, i - d)]) { i = Math.max(0, i - d); break }
+          if (imgs[Math.min(NIGHT_FRAMES - 1, i + d)]) { i = Math.min(NIGHT_FRAMES - 1, i + d); break }
+          d += 1
+        }
+      }
+      const im = imgs[i]
+      if (im) {
+        draw(im, im.naturalWidth, im.naturalHeight)
+        shown = i
+        canvas.dataset.frame = String(i)
+      } else {
+        const still = stillRef.current
+        if (still?.complete && still.naturalWidth) draw(still, still.naturalWidth, still.naturalHeight)
+      }
+    }
+
+    const src = (n: number) =>
+      `${import.meta.env.BASE_URL}mirrorsuite/${dir}/f${String(n + 1).padStart(3, '0')}.jpg`
+
+    /* 14-wide pump, decode() before counting */
+    let next = 0
+    const pump = () => {
+      if (stopped || next >= NIGHT_FRAMES) return
+      const n = next++
+      const im = new Image()
+      im.src = src(n)
+      const done = () => {
+        if (stopped) return
+        imgs[n] = im
+        if (shown < 0 || Math.abs(n - wanted) < 2) paint(wanted)
+        pump()
+      }
+      im.decode().then(done).catch(() => { im.onload = done; im.onerror = () => { pump() } })
+    }
+
+    let wanted = 0
     let raf = 0
     const onScroll = () => {
       if (raf) return
@@ -408,27 +500,36 @@ function PanoScrub() {
         const total = r.height - window.innerHeight
         if (total <= 0) return
         const p = Math.min(1, Math.max(0, -r.top / total))
-        /* the weird push-in: 1 → 1.18 across the pin, with the night
-           deepening as it goes */
-        media.style.transform = `scale(${(1 + p * 0.18).toFixed(4)})`
-        media.style.filter = `brightness(${(1 - p * 0.26).toFixed(3)}) saturate(${(1 + p * 0.22).toFixed(3)})`
+        const idx = Math.min(NIGHT_FRAMES - 1, Math.round(p * (NIGHT_FRAMES - 1)))
+        if (idx !== shown) { wanted = idx; paint(idx) }
       })
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
+
+    sizeCanvas()
     onScroll()
-    return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
-  }, [film])
+    /* let the hero win the connection first, then load unconditionally */
+    const kick = window.setTimeout(() => { for (let k = 0; k < 14; k++) pump() }, 700)
+
+    const onResize = () => { sizeCanvas(); paint(wanted) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      stopped = true
+      window.clearTimeout(kick)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
   return (
     <section className="ms-pano" ref={wrapRef} aria-label="The night">
       <div className="ms-pano-sticky">
-        <div className="ms-pano-media" ref={mediaRef}>
-          <img src={IMG.pano} alt="The suites under the aurora on the shore" loading="lazy" decoding="async" />
-          {film && (
-            <video className="ms-pano-film" src={`${import.meta.env.BASE_URL}mirrorsuite/aurora-film.mp4`}
-              poster={IMG.pano} autoPlay muted loop playsInline aria-hidden="true" />
-          )}
-        </div>
+        <img ref={stillRef} className="ms-pano-still" src={IMG.pano}
+          alt="The suites under the aurora on the shore" loading="eager" decoding="async" />
+        <canvas ref={canvasRef} className="ms-pano-canvas" aria-hidden="true" />
         <p className="ms-pano-caption">{PANO.caption}</p>
+        <p className="ms-pano-hint" aria-hidden="true">{PANO.note}</p>
       </div>
     </section>
   )
@@ -525,7 +626,12 @@ const STYLES = `
 
 /* nav */
 .ms-nav{position:fixed;inset:0 0 auto 0;z-index:60;display:flex;align-items:center;justify-content:space-between;
-  padding:clamp(14px,2.4vw,22px) clamp(18px,3.4vw,44px);mix-blend-mode:difference;color:#F2F6F8}
+  padding:clamp(14px,2.4vw,22px) clamp(18px,3.4vw,44px);color:var(--bone);
+  transition:background-color .45s var(--e),backdrop-filter .45s var(--e)}
+.ms-nav::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(15,20,28,.5),transparent);transition:opacity .45s var(--e)}
+.ms-nav.is-past{background:color-mix(in srgb,var(--deep) 84%,transparent);backdrop-filter:blur(10px)}
+.ms-nav.is-past::before{opacity:0}
 .ms-nav-mark{font-family:var(--disp);font-weight:300;letter-spacing:.14em;font-size:.9rem}
 .ms-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.82rem;font-weight:400;letter-spacing:.04em}
 .ms-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
@@ -535,12 +641,13 @@ const STYLES = `
 .ms-burger i:first-child{top:18px}.ms-burger i:last-child{top:26px}
 .ms-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
 .ms-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
-.ms-sheet{position:fixed;inset:0;z-index:55;background:var(--deep);display:grid;place-content:center;gap:8px;text-align:center;
-  opacity:0;pointer-events:none;transition:opacity .5s var(--e)}
-.ms-sheet[hidden]{display:none}
-.ms-sheet.is-open{opacity:1;pointer-events:auto}
-.ms-sheet a{font-family:var(--disp);font-weight:200;font-size:clamp(1.8rem,7vw,2.8rem);padding:.2em 0;
-  opacity:0;transform:translateY(14px);transition:opacity .5s var(--e),transform .5s var(--e)}
+.ms-sheet{position:fixed;inset:0;z-index:55;background:var(--deep);display:grid;place-content:center;gap:2px;text-align:center;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .5s var(--e),visibility 0s linear .5s}
+.ms-sheet.is-open{opacity:1;visibility:visible;pointer-events:auto;
+  transition:opacity .5s var(--e),visibility 0s linear 0s}
+.ms-sheet a{font-family:var(--disp);font-weight:200;font-size:clamp(1.8rem,7vw,2.8rem);padding:.34em .2em;
+  opacity:0;transform:translateY(14px);transition:opacity .5s var(--e),transform .5s var(--e);text-transform:uppercase;letter-spacing:.16em}
 .ms-sheet.is-open a{opacity:1;transform:none}
 @media (max-width:860px){.ms-nav-links{display:none}.ms-burger{display:block}}
 
@@ -624,8 +731,13 @@ const STYLES = `
 .ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
 .ms-pano-media{position:absolute;inset:0;will-change:transform,filter;transform-origin:50% 55%}
 .ms-pano-media img,.ms-pano-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ms-pano-caption{position:absolute;left:0;right:0;bottom:clamp(18px,4vh,40px);text-align:center;color:#F2F6F8;mix-blend-mode:difference;
-  font-size:.86rem;letter-spacing:.05em;padding:0 20px}
+.ms-pano-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ms-pano-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ms-pano-caption{position:absolute;left:0;right:0;bottom:clamp(18px,4vh,40px);text-align:center;color:#F2F6F8;
+  font-size:.86rem;letter-spacing:.05em;padding:0 20px;text-shadow:0 1px 18px rgba(15,20,28,.6)}
+.ms-pano-hint{position:absolute;left:0;right:0;top:calc(50% + 4px);text-align:center;color:var(--bone-mute);
+  font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;pointer-events:none}
+.reduced .ms-pano-canvas,.reduced .ms-pano-hint{display:none}
 
 /* reviews + testimonials */
 .ms-reviews{padding:clamp(80px,13vh,150px) clamp(20px,5vw,64px);max-width:1300px;margin:0 auto;display:grid;gap:clamp(28px,5vh,52px)}
