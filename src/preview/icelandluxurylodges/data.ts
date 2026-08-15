@@ -6,7 +6,7 @@
  * site is English-only.
  */
 
-const B = '/icelandluxurylodges'
+const B = `${import.meta.env.BASE_URL}icelandluxurylodges`
 
 export const EMAIL = 'signy@icelandluxurylodges.com'
 export const EMAIL_HREF = 'mailto:signy@icelandluxurylodges.com'

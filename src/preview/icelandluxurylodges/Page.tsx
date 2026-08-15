@@ -338,7 +338,7 @@ export default function Page() {
       <main id="top">
         {/* ── HERO: the waterline ── */}
         <section className="ill-hero">
-          <Waterline src={IMG.heroEstate} videoSrc="/icelandluxurylodges/hero-film.mp4" alt="An evening on the lodge deck: the hot tub steaming, the firepit lit, the hall glowing behind" drift={7} reflH={38} className="is-hero" priority />
+          <Waterline src={IMG.heroEstate} videoSrc={`${import.meta.env.BASE_URL}icelandluxurylodges/hero-film.mp4`} alt="An evening on the lodge deck: the hot tub steaming, the firepit lit, the hall glowing behind" drift={7} reflH={38} className="is-hero" priority />
           <div className="ill-hero-word" aria-label={HERO.word}>
             {HERO.lines.map((l, i) => (
               <span className="ill-hero-line" key={l}>
@@ -460,10 +460,10 @@ export default function Page() {
 
 /* ═════════════════════════════ STYLES ═══════════════════════════════════ */
 const STYLES = `
-@font-face{font-family:'Gambarino';src:url('/fonts/gambarino/Gambarino-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'SwitzerIll';src:url('/fonts/switzer/Switzer-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'SwitzerIll';src:url('/fonts/switzer/Switzer-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'SwitzerIll';src:url('/fonts/switzer/Switzer-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Gambarino';src:url('${import.meta.env.BASE_URL}fonts/gambarino/Gambarino-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'SwitzerIll';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'SwitzerIll';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'SwitzerIll';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
 
 .ill-root{
   --ice:${ICE}; --ink:${INK}; --dusk:${DUSK};

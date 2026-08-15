@@ -4,7 +4,7 @@
  * Google widget 2026-08-14/15. English-first (their site is English-only).
  */
 
-const B = '/mirrorsuite'
+const B = `${import.meta.env.BASE_URL}mirrorsuite`
 
 export const EMAIL = 'info@themirrorsuite.com'
 export const EMAIL_HREF = 'mailto:info@themirrorsuite.com'

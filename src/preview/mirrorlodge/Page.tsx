@@ -410,11 +410,11 @@ function HeroMedia() {
 
 /* ═════════════════════════════ STYLES ═══════════════════════════════════ */
 const STYLES = `
-@font-face{font-family:'ClashDisplayMl';src:url('/fonts/clash-display/fonts/ClashDisplay-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'ClashDisplayMl';src:url('/fonts/clash-display/fonts/ClashDisplay-Extralight.woff2') format('woff2');font-weight:200;font-display:swap}
-@font-face{font-family:'GeneralSansMl';src:url('/fonts/general-sans/GeneralSans-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'GeneralSansMl';src:url('/fonts/general-sans/GeneralSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'GeneralSansMl';src:url('/fonts/general-sans/GeneralSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'ClashDisplayMl';src:url('${import.meta.env.BASE_URL}fonts/clash-display/fonts/ClashDisplay-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'ClashDisplayMl';src:url('${import.meta.env.BASE_URL}fonts/clash-display/fonts/ClashDisplay-Extralight.woff2') format('woff2');font-weight:200;font-display:swap}
+@font-face{font-family:'GeneralSansMl';src:url('${import.meta.env.BASE_URL}fonts/general-sans/GeneralSans-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'GeneralSansMl';src:url('${import.meta.env.BASE_URL}fonts/general-sans/GeneralSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'GeneralSansMl';src:url('${import.meta.env.BASE_URL}fonts/general-sans/GeneralSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
 
 .ml-root{
   --silver:${SILVER}; --ink:${GRAPHITE}; --moss:#3F6B5B;

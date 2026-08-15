@@ -4,7 +4,7 @@
  * prototype (their primary market; site is EN/DE/IS).
  */
 
-const B = '/mirrorlodge'
+const B = `${import.meta.env.BASE_URL}mirrorlodge`
 
 export const EMAIL = 'welcome@mirrorlodge.com'
 export const EMAIL_HREF = 'mailto:welcome@mirrorlodge.com'

@@ -399,12 +399,12 @@ function PanoMedia() {
 
 /* ═════════════════════════════ STYLES ═══════════════════════════════════ */
 const STYLES = `
-@font-face{font-family:'BricolageMs';src:url('/fonts/bricolage/bricolage-grotesque-v9-latin_latin-ext-200.woff2') format('woff2');font-weight:200;font-display:swap}
-@font-face{font-family:'BricolageMs';src:url('/fonts/bricolage/bricolage-grotesque-v9-latin_latin-ext-300.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'BricolageMs';src:url('/fonts/bricolage/bricolage-grotesque-v9-latin_latin-ext-500.woff2') format('woff2');font-weight:500;font-display:swap}
-@font-face{font-family:'SwitzerMs';src:url('/fonts/switzer/Switzer-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'SwitzerMs';src:url('/fonts/switzer/Switzer-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'SwitzerMs';src:url('/fonts/switzer/Switzer-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'BricolageMs';src:url('${import.meta.env.BASE_URL}fonts/bricolage/bricolage-grotesque-v9-latin_latin-ext-200.woff2') format('woff2');font-weight:200;font-display:swap}
+@font-face{font-family:'BricolageMs';src:url('${import.meta.env.BASE_URL}fonts/bricolage/bricolage-grotesque-v9-latin_latin-ext-300.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'BricolageMs';src:url('${import.meta.env.BASE_URL}fonts/bricolage/bricolage-grotesque-v9-latin_latin-ext-500.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'SwitzerMs';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'SwitzerMs';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'SwitzerMs';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
 
 .ms-root{
   --deep:${DEEP}; --bone:${BONE}; --glass:#8FBFB0;
