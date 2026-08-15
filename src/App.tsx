@@ -160,6 +160,9 @@ const MinjasafnPage = lazy(() => import('./preview/minjasafn/Page'))
 const AslaugSajaPage = lazy(() => import('./preview/aslaugsaja/Page'))
 const SigtryggurPage = lazy(() => import('./preview/sigtryggur/Page'))
 const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
+const HuldaMargretPage = lazy(() => import('./preview/huldamargret/Page'))
+const KatrinIsfeldPage = lazy(() => import('./preview/katrinisfeld/Page'))
+const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
 const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
 const LakeviewPage = lazy(() => import('./preview/lakeview/Page'))
 const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
@@ -367,6 +370,9 @@ export default function App() {
             <Route path="/preview/aslaugsaja" element={<AslaugSajaPage />} />
             <Route path="/preview/sigtryggur" element={<SigtryggurPage />} />
             <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
+            <Route path="/preview/huldamargret" element={<HuldaMargretPage />} />
+            <Route path="/preview/katrinisfeld" element={<KatrinIsfeldPage />} />
+            <Route path="/preview/chrislund" element={<ChrisLundPage />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
             <Route path="/preview/lakeview" element={<LakeviewPage />} />
             <Route path="/preview/lakeview/stjornbord" element={<LakeviewDashboard />} />

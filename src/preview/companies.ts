@@ -4453,6 +4453,14 @@ PREVIEW_COMPANIES.push(SIGTRYGGUR_ENTRY)
 import { companyEntry as MIRRORHOUSE_ENTRY } from './mirrorhouse/data'
 PREVIEW_COMPANIES.push(MIRRORHOUSE_ENTRY)
 
+// Solo-professional batch: photographer, interior architect, photographer
+import { companyEntry as HULDAMARGRET_ENTRY } from './huldamargret/data'
+PREVIEW_COMPANIES.push(HULDAMARGRET_ENTRY)
+import { companyEntry as KATRINISFELD_ENTRY } from './katrinisfeld/data'
+PREVIEW_COMPANIES.push(KATRINISFELD_ENTRY)
+import { companyEntry as CHRISLUND_ENTRY } from './chrislund/data'
+PREVIEW_COMPANIES.push(CHRISLUND_ENTRY)
+
 import { companyEntry as LAKEVIEW_ENTRY } from './lakeview/data'
 PREVIEW_COMPANIES.push(LAKEVIEW_ENTRY)
 
