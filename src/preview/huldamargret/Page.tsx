@@ -143,9 +143,14 @@ function useMotion(ready: boolean) {
     /* shutter reveals: IO arms a class once; CSS owns the transition */
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
-      { threshold: 0.22 },
+      // threshold 0: a figure taller than the sampling window that is scrolled
+      // past fast never reaches a ratio threshold, and stays clipped forever.
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     )
-    root.querySelectorAll('.hm-rv').forEach((el) => io.observe(el))
+    root.querySelectorAll('.hm-rv').forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
+      io.observe(el)
+    })
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
@@ -518,13 +523,27 @@ export default function HuldaMargretPage() {
         <p className="hm-body hm-rv">
           Yfir þrjátíu fyrirtæki og félög sýna merkin sín á vef Huldu. Hér eru tólf.
         </p>
-        <ul className="hm-logos hm-rv" aria-label="Meðal viðskiptavina">
-          {LOGOS.map((l) => (
-            <li key={l.name} className="hm-logo-chip">
-              <img src={l.src} alt={l.name} loading="lazy" decoding="async" />
-            </li>
-          ))}
-        </ul>
+        {/* One continuous band: the client list is breadth, not twelve items
+            each deserving its own tile. The second run is aria-hidden so the
+            loop is seamless without doubling it for screen readers. */}
+        <div className="hm-marquee hm-rv" data-hm-marquee>
+          <div className="hm-marquee-track">
+            <ul className="hm-marquee-run" aria-label="Meðal viðskiptavina">
+              {LOGOS.map((l) => (
+                <li key={l.name} className="hm-logo-chip">
+                  <img src={l.src} alt={l.name} loading="lazy" decoding="async" />
+                </li>
+              ))}
+            </ul>
+            <ul className="hm-marquee-run" aria-hidden="true">
+              {LOGOS.map((l) => (
+                <li key={`${l.name}-2`} className="hm-logo-chip">
+                  <img src={l.src} alt="" loading="lazy" decoding="async" />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* 08 · price list (real) */}
@@ -715,27 +734,34 @@ const CSS = `
 }
 
 /* sections */
+/* One vertical rhythm. Neighbouring sections each contributing 140u stacked
+   into a dead band, so the step is smaller and the section owns its own air. */
 .hm-manifesto, .hm-morgunn, .hm-sidegi, .hm-vidskipta, .hm-verd, .hm-samband {
-  padding: calc(var(--u) * 140) calc(var(--u) * 34);
+  padding: calc(var(--u) * 104) calc(var(--u) * 34);
 }
-.hm-manifesto { display: grid; grid-template-columns: 1.25fr 1fr; gap: calc(var(--u) * 70); align-items: end; }
-.hm-manifesto-fig { max-width: calc(var(--u) * 520); justify-self: end; width: 100%; }
+/* ONE image rhythm for the whole page: every figure fills its grid cell, one
+   shared gutter, one shared ratio per role (3:2 standing, 21:9 for the two
+   full-bleed bands). No negative margins, no percentage widths, no per-figure
+   max-widths — those read as arbitrary rather than composed. */
+.hm-manifesto { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 48); align-items: center; }
+.hm-manifesto-fig { width: 100%; aspect-ratio: 3 / 2 !important; }
 
-.hm-morgunn { display: grid; grid-template-columns: 1fr 1.2fr; gap: calc(var(--u) * 70); align-items: start; }
-.hm-morgunn-figs { display: grid; gap: calc(var(--u) * 34); }
-.hm-morgunn-b { width: 72%; justify-self: end; margin-top: calc(var(--u) * -60); }
+.hm-morgunn { display: grid; grid-template-columns: 0.9fr 1.3fr; gap: calc(var(--u) * 48); align-items: center; }
+.hm-morgunn-figs { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 24); }
+.hm-morgunn-figs .hm-frame { width: 100%; aspect-ratio: 4 / 5 !important; }
 
-.hm-dagur { padding: calc(var(--u) * 100) 0; }
+.hm-dagur { padding: calc(var(--u) * 110) 0; }
 .hm-dagur-head { padding: 0 calc(var(--u) * 34) calc(var(--u) * 44); }
 .hm-dagur-bleed { aspect-ratio: 21 / 9 !important; }
 .hm-dagur-bleed img { object-position: 50% 30%; }
 .hm-dagur-foot {
-  display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 70);
-  align-items: start; padding: calc(var(--u) * 54) calc(var(--u) * 34) 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 48);
+  align-items: center; padding: calc(var(--u) * 48) calc(var(--u) * 34) 0;
 }
-.hm-dagur-vara { max-width: calc(var(--u) * 460); justify-self: end; width: 100%; }
+.hm-dagur-vara { width: 100%; aspect-ratio: 3 / 2 !important; }
 
-.hm-sidegi { display: grid; grid-template-columns: 1.15fr 1fr; gap: calc(var(--u) * 70); align-items: center; }
+.hm-sidegi { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 48); align-items: center; }
+.hm-sidegi-figs .hm-frame { width: 100%; aspect-ratio: 3 / 2 !important; }
 
 /* the contact sheet */
 .hm-sheet { position: relative; padding: calc(var(--u) * 120) 0 calc(var(--u) * 80); }
@@ -755,16 +781,33 @@ const CSS = `
 }
 
 /* clients */
-.hm-vidskipta { text-align: left; }
-.hm-logos {
-  list-style: none; display: grid; grid-template-columns: repeat(6, 1fr);
-  gap: calc(var(--u) * 18); padding: 0; margin: calc(var(--u) * 44) 0 0;
+.hm-vidskipta { text-align: left; padding-bottom: calc(var(--u) * 74); }
+/* the client band: one continuous run, edges faded into the canvas */
+.hm-marquee {
+  margin: calc(var(--u) * 44) calc(var(--u) * -34) 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.hm-marquee-track { display: flex; width: max-content; }
+.hm-js .hm-marquee-track { animation: hm-logo-run 42s linear infinite; }
+.hm-marquee:hover .hm-marquee-track, .hm-marquee:focus-within .hm-marquee-track { animation-play-state: paused; }
+@keyframes hm-logo-run { from { transform: translate3d(0,0,0) } to { transform: translate3d(-50%,0,0) } }
+.hm-marquee-run {
+  list-style: none; display: flex; align-items: center;
+  gap: calc(var(--u) * 16); padding: 0 calc(var(--u) * 8); margin: 0;
 }
 .hm-logo-chip {
+  flex: 0 0 auto; width: calc(var(--u) * 190); height: calc(var(--u) * 104);
   background: #F4F1EA; border: 1px solid var(--hm-hair);
-  aspect-ratio: 5 / 3; display: grid; place-content: center; padding: calc(var(--u) * 18);
+  display: grid; place-content: center; padding: calc(var(--u) * 20);
 }
-.hm-logo-chip img { max-width: 100%; max-height: calc(var(--u) * 52); object-fit: contain; }
+.hm-logo-chip img { max-width: 100%; max-height: calc(var(--u) * 56); object-fit: contain; }
+@media (prefers-reduced-motion: reduce) {
+  .hm-marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .hm-marquee-track { animation: none !important; }
+  .hm-marquee-run:nth-child(2) { display: none; }
+}
 
 /* price list */
 .hm-verd-grid {
@@ -803,9 +846,11 @@ const CSS = `
 
 /* responsive collapse */
 @media (max-width: 991px) {
-  .hm-manifesto, .hm-morgunn, .hm-sidegi, .hm-dagur-foot { grid-template-columns: 1fr; }
-  .hm-manifesto-fig, .hm-dagur-vara { justify-self: start; }
-  .hm-morgunn-b { margin-top: 0; width: 86%; }
+  /* Stacked: one column, every figure fills it — a figure keeping a desktop
+     width leaves a dead column beside it. */
+  .hm-manifesto, .hm-morgunn, .hm-sidegi, .hm-dagur-foot { grid-template-columns: 1fr; gap: calc(var(--u) * 34); }
+  .hm-manifesto-fig, .hm-dagur-vara, .hm-sidegi-figs .hm-frame { width: 100%; aspect-ratio: 16 / 9 !important; }
+  .hm-morgunn-figs { grid-template-columns: 1fr 1fr; }
   .hm-logos { grid-template-columns: repeat(3, 1fr); }
   .hm-verd-grid { grid-template-columns: 1fr; }
   .hm-foot-grid { grid-template-columns: 1fr; }

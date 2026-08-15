@@ -7,7 +7,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  CONTACT, JSON_LD, PHOTO, REGISTER, REGISTER_COUNT, srcSet, type KiPhoto,
+  CONTACT, JSON_LD, PHOTO, PROJECTS, REGISTER, REGISTER_COUNT, srcSet, type KiPhoto,
 } from './data'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -101,9 +101,17 @@ function useMotion(ready: boolean) {
     /* reveals: IO arms a class; CSS owns transitions (ERA reveal/initial) */
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
-      { threshold: 0.2 },
+      // threshold 0 + a negative-free root margin: a tall figure scrolled past
+      // quickly never reached a 0.2 ratio, so it stayed clipped at
+      // inset(0 50%) forever and held a full-height invisible box.
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     )
-    root.querySelectorAll('.ki-rv, .ki-slide, .ki-shutter').forEach((el) => io.observe(el))
+    root.querySelectorAll('.ki-rv, .ki-slide, .ki-shutter').forEach((el) => {
+      // anything already above the fold when the observer arms is revealed
+      // outright rather than waiting for a crossing that already happened
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
+      io.observe(el)
+    })
 
     const ctx = gsap.context(() => {
       /* dive-in hero: the camera settles into the first room (scale 2 from
@@ -222,16 +230,6 @@ function Slide({ photo, className = '', priority = false }: {
     <figure className={`ki-slide ${className}`} style={{ aspectRatio: photo.ratio }}>
       <img src={photo.src} srcSet={srcSet(photo.src)} sizes="(max-width: 991px) 100vw, 46vw"
         alt={photo.alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
-    </figure>
-  )
-}
-
-/** shutter: converging panels open onto the project's lead image. */
-function Shutter({ photo, className = '' }: { photo: KiPhoto; className?: string }) {
-  return (
-    <figure className={`ki-shutter ${className}`} style={{ aspectRatio: photo.ratio }}>
-      <img src={photo.src} srcSet={srcSet(photo.src)} sizes="(max-width: 991px) 100vw, 72vw"
-        alt={photo.alt} loading="lazy" decoding="async" />
     </figure>
   )
 }
@@ -357,18 +355,44 @@ export default function KatrinIsfeldPage() {
         </p>
       </section>
 
-      {/* 03 · project one: Súluhöfða */}
-      <section className="ki-verk ki-verk-sulu" id="verkefni" data-ki-band="dark">
-        <div className="ki-verk-head">
+      {/* 03 · the overview: her work across all four categories */}
+      <section className="ki-yfirlit" id="verkefni" data-ki-band="dark">
+        <div className="ki-yfirlit-head">
           <p className="ki-verk-kicker" aria-hidden="true">Verkefni</p>
-          <Headline text="Nýbyggt hús í Súluhöfða." size={84} floor={34} measure={760} />
+          <Headline text="Heimili, gistiheimili, hótel og stofur." size={80} floor={32} measure={880} />
+          <p className="ki-body ki-rv">
+            Sautján verk úr skránni hennar, hvert með sinni eigin ljósmynd: eldhús og
+            baðherbergi, heil heimili, gistiherbergi og atvinnurými.
+          </p>
+        </div>
+        <ul className="ki-yfirlit-grid">
+          {PROJECTS.map((v) => (
+            <li key={v.name} className="ki-verk-card ki-rv">
+              <figure className="ki-verk-card-fig">
+                <img src={v.photo.src} srcSet={srcSet(v.photo.src)}
+                  sizes="(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw"
+                  alt={v.photo.alt} loading="lazy" decoding="async" />
+              </figure>
+              <div className="ki-verk-card-meta">
+                <span className="ki-verk-card-name">{v.name}</span>
+                <span className="ki-verk-card-cat">{v.flokkur}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* 04 · one project in depth, so the overview has a floor */}
+      <section className="ki-verk ki-verk-sulu" data-ki-band="dark">
+        <div className="ki-verk-head">
+          <p className="ki-verk-kicker" aria-hidden="true">Eitt verk í nærmynd</p>
+          <Headline text="Nýbyggt hús í Súluhöfða." size={72} floor={32} measure={760} />
           <p className="ki-body ki-rv">
             „Húsið var í byggingu þegar ég fékk það verkefni að sjá um alla
             innanhússhönnun.“ Eyjan er vínrauð, ljósin kopar, arinveggurinn ljós
-            steinn sem geymir eldiviðinn, og hvert herbergi heldur sama hita.
+            steinn sem geymir eldiviðinn.
           </p>
         </div>
-        <Shutter photo={PHOTO.eyja} className="ki-verk-lead" />
         <div className="ki-verk-grid">
           <Slide photo={PHOTO.skapur} />
           <Slide photo={PHOTO.arinn} />
@@ -382,7 +406,7 @@ export default function KatrinIsfeldPage() {
         </dl>
       </section>
 
-      {/* 04 · the dome: materials */}
+      {/* 05 · the dome: materials */}
       <section className="ki-dome" data-ki-band="light">
         <Headline className="ki-dome-title" text="Efnin bera rýmið." size={84} floor={32} />
         <div className="ki-dome-arch">
@@ -393,30 +417,6 @@ export default function KatrinIsfeldPage() {
           Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist
           með húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
         </p>
-      </section>
-
-      {/* 05 · project two: Fljótshlíð */}
-      <section className="ki-verk ki-verk-fljot" data-ki-band="summer">
-        <div className="ki-verk-head">
-          <p className="ki-verk-kicker" aria-hidden="true">Verkefni</p>
-          <Headline text="Sumarhús í Fljótshlíð." size={84} floor={34} measure={700} />
-          <p className="ki-body ki-rv">
-            Hér snýst allt um birtuna: hörgardínur sem sía hana, ljós viður sem ber
-            hana áfram, og dökk eyja sem gefur henni botn. Sumarhús sem er notað
-            allt árið.
-          </p>
-        </div>
-        <div className="ki-fljot-grid">
-          <Slide photo={PHOTO.fStofa} className="ki-fljot-tall" priority={false} />
-          <Slide photo={PHOTO.fEldhus} />
-          <Slide photo={PHOTO.fKrokur} />
-          <Slide photo={PHOTO.fEyja} className="ki-fljot-wide" />
-        </div>
-        <dl className="ki-facts ki-rv">
-          <div><dt>Hlutverk</dt><dd>Innanhússhönnun</dd></div>
-          <div><dt>Staður</dt><dd>Fljótshlíð</dd></div>
-          <div><dt>Ljósmyndað</dt><dd>2024</dd></div>
-        </dl>
       </section>
 
       {/* 06 · the register */}
@@ -630,6 +630,21 @@ const CSS = `
 /* sections */
 .ki-intro { padding: calc(var(--u) * 150) calc(var(--u) * 34); }
 .ki-verk { padding: calc(var(--u) * 130) calc(var(--u) * 34); }
+
+/* THE OVERVIEW — an even three-up of real named projects. One ratio, one
+   gutter, no offsets: breadth reads as a body of work, not as a collage. */
+.ki-yfirlit { padding: calc(var(--u) * 140) calc(var(--u) * 34); }
+.ki-yfirlit-head { max-width: calc(var(--u) * 900); margin-bottom: calc(var(--u) * 56); }
+.ki-yfirlit-grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 34) calc(var(--u) * 28);
+}
+.ki-verk-card-fig { margin: 0; overflow: hidden; background: rgb(0 0 0 / .18); }
+.ki-verk-card-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; transition: transform 1.1s ${OUT}; }
+@media (hover: hover) { .ki-verk-card:hover .ki-verk-card-fig img { transform: scale(1.04); } }
+.ki-verk-card-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 10px; }
+.ki-verk-card-name { font-size: ${fluid(16, 14.5)}; }
+.ki-verk-card-cat { font-family: ${MONO}; font-size: ${fluid(11, 10.5)}; letter-spacing: .12em; text-transform: uppercase; color: var(--ki-copper); white-space: nowrap; }
 .ki-verk-kicker { font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .14em; text-transform: uppercase; color: #8A5A33; margin: 0 0 calc(var(--u) * 16); }
 [data-ki-band='dark'] .ki-verk-kicker, .ki-verk-sulu .ki-verk-kicker { color: #D9A87E; }
 .ki-verk-head { max-width: calc(var(--u) * 860); margin-bottom: calc(var(--u) * 54); }
@@ -716,6 +731,7 @@ const CSS = `
 /* responsive */
 @media (max-width: 991px) {
   .ki-verk-grid { grid-template-columns: 1fr; }
+  .ki-yfirlit-grid { grid-template-columns: repeat(2, 1fr); }
   .ki-verk-grid .ki-slide:nth-child(2), .ki-verk-grid .ki-slide:nth-child(3) { margin-top: 0; }
   .ki-fljot-grid { grid-template-columns: 1fr; }
   .ki-fljot-wide { grid-column: auto; }
@@ -729,6 +745,8 @@ const CSS = `
   .ki-intro, .ki-verk, .ki-dome, .ki-skra, .ki-italskar, .ki-studio { padding-left: 20px; padding-right: 20px; }
   .ki-samband-in { padding-left: 20px; padding-right: 20px; }
   .ki-skra-cols { grid-template-columns: 1fr; }
+  .ki-yfirlit { padding-left: 20px; padding-right: 20px; }
+  .ki-yfirlit-grid { grid-template-columns: 1fr; }
   .ki-hero-lockup { padding: 0 20px 34px; }
 }
 `

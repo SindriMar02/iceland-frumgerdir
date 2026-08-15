@@ -39,6 +39,37 @@ export const PHOTO = {
   fBitar: P('f-bitar', 'Borðstofa undir timburbitum með kúpulljósi', '3 / 4'),
 }
 
+/**
+ * THE OVERVIEW — real named projects from across her four categories, each
+ * with its own photograph harvested from that project's own page. This is
+ * the page's spine: breadth of work, not one house.
+ */
+const V = (file: string, alt: string): KiPhoto => ({
+  src: `${BASE}katrinisfeld/${file}-1920.jpg`,
+  alt,
+  ratio: '4 / 3',
+})
+
+export const PROJECTS: Array<{ name: string; flokkur: string; photo: KiPhoto }> = [
+  { name: 'Nýbyggt hús í Súluhöfða', flokkur: 'Innanhússhönnun', photo: { src: `${BASE}katrinisfeld/s-eyja-1920.jpg`, alt: 'Vínrauð eldhúseyja með svörtum blöndunartækjum og koparljósum', ratio: '4 / 3' } },
+  { name: 'Eldhúsrými í Skuggahverfi', flokkur: 'Innanhússhönnun', photo: V('p-skuggahverfi-0', 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu') },
+  { name: 'Eldhúsrými í skandinavískum stíl', flokkur: 'Innanhússhönnun', photo: V('p-skandinaviskt-0', 'Ljóst eldhús með eyju, viðarborði og hangandi ljósum') },
+  { name: 'Eldhúsrými', flokkur: 'Innanhússhönnun', photo: V('p-eldhusrymi-0', 'Opið eldhús og borðstofa með kringlóttu borði') },
+  { name: 'Sumarhús í Fljótshlíð', flokkur: 'Innanhússhönnun', photo: { src: `${BASE}katrinisfeld/f-eldhus-1920.jpg`, alt: 'Eldhús sumarhússins með barstólum og mjúku dagsljósi', ratio: '4 / 3' } },
+  { name: 'Álfheimar', flokkur: 'Innanhússhönnun', photo: V('p-alfheimar-0', 'Stofa með dökkum sófa og stóru listaverki á vegg') },
+  { name: 'Hús í Garðabæ', flokkur: 'Innanhússhönnun', photo: V('p-gardabaer-0', 'Stofa með kringlóttum spegli, dökkum sófa og leðurstól') },
+  { name: 'Baðherbergi', flokkur: 'Innanhússhönnun', photo: V('p-badherbergi-0', 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu') },
+  { name: 'Barnaherbergi', flokkur: 'Innanhússhönnun', photo: V('p-barnaherbergi-0', 'Barnaherbergi með bláum veggjum, rúmi og röndóttu teppi') },
+  { name: 'Hönnunarstúdíó', flokkur: 'Innanhússhönnun', photo: V('p-studio-1', 'Dökk marmaraborðplata í sýningarrými stúdíósins') },
+  { name: 'Freyja gistiheimili', flokkur: 'Gistiheimili og hótel', photo: V('p-freyja-0', 'Gestaherbergi með bláum vegg og ljósum gluggatjöldum') },
+  { name: 'Freyja lúxusíbúð', flokkur: 'Gistiheimili og hótel', photo: V('p-freyjalux-0', 'Svefnherbergi með gráu rúmi og innbyggðum hillum') },
+  { name: 'Svala Apartments', flokkur: 'Gistiheimili og hótel', photo: V('p-svala-0', 'Gestaherbergi með grænum vegg og listaverki af hesti') },
+  { name: 'Sólvallagata', flokkur: 'Gistiheimili og hótel', photo: V('p-solvallagata-1', 'Hvítur stigagangur með viðarhandriði') },
+  { name: 'Old Charm Apt', flokkur: 'Gistiheimili og hótel', photo: V('p-oldcharm-1', 'Svefnherbergi undir timburbitum') },
+  { name: 'Skrifstofurými', flokkur: 'Atvinnuhúsnæði', photo: V('p-skrifstofa-0', 'Skrifstofurými með gráum sófa og rauðum stól') },
+  { name: 'Tannlæknastofa', flokkur: 'Atvinnuhúsnæði', photo: V('p-tannlaeknar-0', 'Móttaka tannlæknastofu með ljósum afgreiðsluborði') },
+]
+
 /** Her own published register: 23 verk í 4 flokkum (af katrinisfeld.is). */
 export const REGISTER: Array<{ flokkur: string; verk: string[] }> = [
   {

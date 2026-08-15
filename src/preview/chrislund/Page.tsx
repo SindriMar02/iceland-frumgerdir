@@ -69,9 +69,14 @@ function useMotion(ready: boolean) {
 
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
-      { threshold: 0.2 },
+      // threshold 0: a figure taller than the sampling window that is scrolled
+      // past fast never reaches a ratio threshold, and stays clipped forever.
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     )
-    root.querySelectorAll('.cl-rv').forEach((el) => io.observe(el))
+    root.querySelectorAll('.cl-rv').forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
+      io.observe(el)
+    })
 
     const ctx = gsap.context(() => {
       /* word-mask rises */
