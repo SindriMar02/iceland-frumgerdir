@@ -173,15 +173,18 @@ function useMotion(ready: boolean) {
         }
       }
 
-      /* footer arch: the last room opens through an arch as it enters */
+      /* footer arch: the last room rises into place through its arch.
+         The arch itself is now a STATIC border-radius. It used to be tweened
+         as clip-path: inset(... round ...), but GSAP cannot interpolate an
+         inset() that carries a round component: the computed value collapsed
+         to inset(0% 0% 0px), the radius was dropped, and the dome arrived as
+         a broken rectangle. Only the rise is animated now. */
       const foot = root.querySelector<HTMLElement>('.ki-samband-in')
       if (foot) {
-        gsap.fromTo(foot,
-          { clipPath: 'inset(14% 24% 0 24% round calc(var(--u) * 400) calc(var(--u) * 400) 0 0)' },
-          {
-            clipPath: 'inset(0% 0% 0 0% round 0 0 0 0)', ease: 'none',
-            scrollTrigger: { trigger: foot, start: 'top 92%', end: 'top 34%', scrub: 0.8 },
-          })
+        gsap.fromTo(foot, { yPercent: 5 }, {
+          yPercent: 0, ease: 'none',
+          scrollTrigger: { trigger: foot, start: 'top 95%', end: 'top 45%', scrub: 0.8 },
+        })
       }
 
       ScrollTrigger.addEventListener('refresh', readBands)
@@ -369,7 +372,7 @@ export default function KatrinIsfeldPage() {
         </div>
         <div className="ki-hero-scrim" aria-hidden="true" />
         <div className="ki-hero-lockup">
-          <Headline as="h1" className="ki-hero-title" text="Rýmið man hver á það." size={104} floor={38} />
+          <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={100} floor={36} />
           <p className="ki-hero-sub">
             Katrín Ísfeld hannar innanhús frá grunni: heimili, gistiheimili, hótel
             og atvinnurými.
@@ -776,6 +779,11 @@ const CSS = `
 .ki-samband-in {
   text-align: center; padding: calc(var(--u) * 140) calc(var(--u) * 34) calc(var(--u) * 60);
   background: #16211E; color: #E9EDE8;
+  /* the arch, held in CSS so no tween can drop it */
+  border-radius: calc(var(--u) * 420) calc(var(--u) * 420) 0 0;
+  overflow: hidden; will-change: transform;
+  /* both grounds are near-black, so the dome needs its own drawn edge */
+  box-shadow: inset 0 1px 0 rgb(237 231 222 / .22);
 }
 .ki-samband-in .ki-headline { margin-inline: auto; }
 .ki-samband-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--u) * 34); margin-top: calc(var(--u) * 26); }

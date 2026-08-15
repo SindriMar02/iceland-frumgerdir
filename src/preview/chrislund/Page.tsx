@@ -230,14 +230,68 @@ function Rule({ label }: { label: string }) {
   )
 }
 
-/* ── series picker: a real list with hover/tap preview ─────────────────── */
+/* ── series picker: the preview comes to the cursor ─────────────────────────
+   On a fine pointer the image follows the cursor over the list, so the list
+   itself takes the full measure and no column sits empty waiting to be used.
+   Two hard rules from the HouseList build: the lerped position is written
+   straight to the node via a ref (a setState per frame collapses on mobile
+   and burns the main thread), and setState fires ONLY when a boolean or the
+   active row actually flips. Touch, coarse pointers and reduced motion never
+   get the float at all: they keep the anchored preview, which is also what
+   keyboard focus reveals since focus has no pointer position. ─────────────── */
 
 function SeriesPicker() {
   const [active, setActive] = useState(0)
+  const [floating, setFloating] = useState(false)
+  const floatRef = useRef<HTMLElement>(null)
+  const target = useRef({ x: 0, y: 0 })
+  const pos = useRef({ x: 0, y: 0 })
   const s = SERIES[active]
+
+  const canFloat = () =>
+    typeof window !== 'undefined' &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !reduced()
+
+  /* the follow loop runs only while the pointer is actually over the list */
+  useEffect(() => {
+    if (!floating) return
+    let raf = 0
+    const loop = () => {
+      pos.current.x += (target.current.x - pos.current.x) * 0.14
+      pos.current.y += (target.current.y - pos.current.y) * 0.14
+      const el = floatRef.current
+      if (el) {
+        el.style.transform =
+          `translate3d(${pos.current.x.toFixed(1)}px, ${pos.current.y.toFixed(1)}px, 0) translate(-50%, -50%)`
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(raf)
+  }, [floating])
+
+  const place = (e: React.PointerEvent) => {
+    target.current = { x: e.clientX, y: e.clientY }
+  }
+
   return (
-    <div className="cl-series">
-      <ul className="cl-series-list" aria-label="Myndaraðir">
+    <div className={`cl-series ${floating ? 'is-floating' : ''}`}>
+      <ul
+        className="cl-series-list"
+        aria-label="Myndaraðir"
+        onPointerEnter={(e) => {
+          if (!canFloat()) return
+          // start under the cursor, or the preview flies in from the corner
+          target.current = { x: e.clientX, y: e.clientY }
+          pos.current = { x: e.clientX, y: e.clientY }
+          const el = floatRef.current
+          if (el) el.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`
+          setFloating(true)
+        }}
+        onPointerMove={place}
+        onPointerLeave={() => setFloating(false)}
+      >
         {SERIES.map((it, i) => (
           <li key={it.name}>
             <button
@@ -256,11 +310,20 @@ function SeriesPicker() {
           </li>
         ))}
       </ul>
+
+      {/* anchored preview: touch, coarse pointer, reduced motion, and the
+          keyboard path (revealed by :focus-within, which has no cursor) */}
       <figure className="cl-series-preview" aria-live="polite">
         <img key={s.photo.src} src={s.photo.src} srcSet={srcSet(s.photo.src)}
           sizes="(max-width: 991px) 92vw, 40vw" alt={s.photo.alt}
           loading="lazy" decoding="async" />
         <figcaption>{s.name}</figcaption>
+      </figure>
+
+      {/* pointer-follow preview: decorative, the anchored one carries the a11y */}
+      <figure className="cl-series-float" ref={floatRef} aria-hidden="true">
+        <img src={s.photo.src} srcSet={srcSet(s.photo.src)} sizes="340px"
+          alt="" loading="lazy" decoding="async" />
       </figure>
     </div>
   )
@@ -668,6 +731,7 @@ const CSS = `
   font-family: inherit;
 }
 .cl-series-row.is-active { --on: 1; }
+.cl-series-row:active .cl-series-row-inner { transform: translateX(calc(var(--on) * 18px)) scale(.985); }
 .cl-series-row-inner {
   display: grid; gap: 4px;
   transform: translateX(calc(var(--on) * 18px));
@@ -679,6 +743,28 @@ const CSS = `
 .cl-series-preview { position: sticky; top: calc(var(--u) * 80); margin: 0; }
 .cl-series-preview img { width: 100%; aspect-ratio: 4 / 3.4; object-fit: cover; background: #E4E2DB; }
 .cl-series-preview figcaption { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
+/* the float never exists for touch or reduced motion */
+.cl-series-float { display: none; }
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* the image comes to the cursor, so the list takes the whole measure and
+     nothing sits in a reserved column waiting to be filled */
+  .cl-series { display: block; position: relative; margin-top: calc(var(--u) * 30); }
+  .cl-series-preview {
+    position: absolute; top: 0; right: 0; width: clamp(240px, 26%, 360px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s cubic-bezier(.16,1,.3,1);
+  }
+  /* keyboard has no pointer, so focus anchors the preview instead */
+  .cl-series:focus-within .cl-series-preview { opacity: 1; }
+  .cl-series-float {
+    display: block; position: fixed; top: 0; left: 0; z-index: 30; margin: 0;
+    width: clamp(220px, 22vw, 340px); pointer-events: none; will-change: transform;
+    opacity: 0; transition: opacity .35s cubic-bezier(.16,1,.3,1);
+  }
+  .cl-series.is-floating .cl-series-float { opacity: 1; }
+  .cl-series-float img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: #E4E2DB; }
+}
 
 /* the book */
 .cl-bok { padding: calc(var(--u) * 140) calc(var(--u) * 34); background: #ECEAE4; }

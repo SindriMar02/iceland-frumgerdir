@@ -128,9 +128,9 @@ export const companyEntry: PreviewCompany = {
   established: 'Sjálfstætt starfandi innanhússarkitekt',
   currentUrl: 'https://katrinisfeld.is',
   ownerEmail: 'katrin@katrinisfeld.is',
-  concept: 'Rýmið man',
+  concept: 'Í heild',
   conceptTagline:
-    'Hún hannar rými sem muna hver á þau. Vefurinn hennar á að gera það sama: hvert verkefni fær sinn eigin litheim og forsíðan ber þá alla.',
+    'Hún hannar innanhús frá grunni, ekki eitt horn í einu. Vefurinn gerir það sama: hvert verkefni fær sinn eigin litheim og forsíðan ber þá alla.',
   accent: '#8C3A34',
   dark: false,
   status: 'Concept ready',

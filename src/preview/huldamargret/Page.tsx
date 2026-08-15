@@ -627,16 +627,21 @@ const CSS = `
 .hm-hero-media img { width: 100%; height: 100%; object-fit: cover; }
 .hm-hero::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgb(20 16 10 / .18), transparent 40%, rgb(20 16 10 / .38) 88%);
+  /* the wordmark sits at 44%, which on a bright frame (white dress, sky,
+     sunlit grass) is exactly where the old gradient was fully transparent.
+     A soft radial scrim sits under the lockup so the name holds at any crop. */
+  background:
+    radial-gradient(118% 58% at 50% 44%, rgb(16 12 8 / .46), transparent 72%),
+    linear-gradient(180deg, rgb(20 16 10 / .22), transparent 42%, rgb(20 16 10 / .40) 88%);
   pointer-events: none;
 }
 .hm-wordmark {
   position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%);
   display: flex; align-items: center; gap: calc(var(--u) * 26); z-index: 2;
-  font-family: ${DISPLAY}; font-weight: 300; color: #F6F3EC;
+  font-family: ${DISPLAY}; font-weight: 400; color: #FFFDF8;
   font-size: ${fluid(108, 40)}; letter-spacing: .02em; line-height: 1.12;
   margin: 0; white-space: nowrap;
-  text-shadow: 0 2px 26px rgb(15 12 8 / .35);
+  text-shadow: 0 1px 3px rgb(15 12 8 / .55), 0 6px 34px rgb(15 12 8 / .45);
 }
 .hm-wm-word { display: inline-block; }
 .hm-wm-seam { width: 1px; align-self: stretch; background: #F6F3EC; transform-origin: center; }
