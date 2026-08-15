@@ -732,4 +732,34 @@ const STYLES = `
   .ml-loader-line::after{animation:none}
   .ml-rev-q{grid-area:auto;opacity:1;transform:none;pointer-events:auto;margin-bottom:24px}
 }
+
+/* ── the SHARED prototype disclaimer, dressed in this page's own language ──
+   PreviewFooter ships Tailwind utilities (bg-neutral-50, text-center, default
+   sans). Dropped inside a designed footer it reads as a foreign design system
+   bolted on: its own background, its own alignment, its own type. These rules
+   are scoped to this route only and never touch the component. */
+.ml-footer footer[lang="is"]{
+  background:transparent !important;
+  color:var(--ink-mute);
+  font-family:var(--sans);
+  font-size:.76rem;
+  line-height:1.7;
+  text-align:left;
+  max-width:1200px;
+  margin:clamp(38px,6vh,66px) auto 0;
+  padding:clamp(22px,3.4vh,34px) 0 clamp(34px,6vh,56px);
+  border-top:1px solid var(--hair);
+}
+.ml-footer footer[lang="is"] p{max-width:74ch;margin:0}
+.ml-footer footer[lang="is"] p + p{margin-top:9px}
+.ml-footer footer[lang="is"] strong{color:var(--ink-soft);font-weight:400}
+.ml-footer footer[lang="is"] a{color:var(--ink-soft);text-decoration:underline;
+  text-underline-offset:3px;text-decoration-thickness:1px;transition:color .3s var(--e)}
+.ml-footer footer[lang="is"] a:hover{color:var(--moss)}
+.ml-footer footer[lang="is"] > div{justify-content:flex-start !important;
+  margin:clamp(18px,2.6vh,26px) 0 0 !important;padding-top:clamp(16px,2.4vh,22px) !important;
+  border-top-color:var(--hair) !important}
+@media (max-width:760px){
+  .ml-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
+}
 `

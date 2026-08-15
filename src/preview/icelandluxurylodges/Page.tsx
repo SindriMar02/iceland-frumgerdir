@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Lenis from 'lenis'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -30,6 +31,11 @@ const INK = '#0E161D'
 const DUSK = '#41607A'
 
 const SEEN_KEY = 'ill_seen'
+
+/* smooth scroll. Lenis scrolls the window for real, so the drift loop's
+   getBoundingClientRect reads and the frame-sequence scrubber's native
+   'scroll' listener both stay correct — no extra plumbing needed. */
+let pageLenis: Lenis | null = null
 
 type DriftKind = 'img' | 'refl' | 'text'
 interface DriftNode { el: HTMLElement; d: number; kind: DriftKind }
@@ -463,6 +469,18 @@ export default function Page() {
   }, [])
 
   /* reveals: IO arms .is-on; resting CSS state is the visible one without .js */
+  /* ── smooth scroll ── */
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true })
+    pageLenis = lenis
+    let id = requestAnimationFrame(function raf(t: number) {
+      lenis.raf(t)
+      id = requestAnimationFrame(raf)
+    })
+    return () => { cancelAnimationFrame(id); lenis.destroy(); pageLenis = null }
+  }, [])
+
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -501,7 +519,11 @@ export default function Page() {
 
   const goTo = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    document.getElementById(id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+    const el = document.getElementById(id)
+    if (!el) return
+    /* Lenis reverts native scrollIntoView on the next frame — route through it */
+    if (pageLenis) pageLenis.scrollTo(el, { offset: -10 })
+    else el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
   }
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -910,5 +932,37 @@ const STYLES = `
   .ill-hero-line-in,.ill-hero-sub-in{transform:none;opacity:1;transition:none}
   .ill-door,.ill-fact,.ill-amen li,.ill-frame{opacity:1;transform:none;transition:none}
   .ill-loader-line::after{animation:none}
+}
+
+/* ── the SHARED prototype disclaimer, dressed in this page's own language ──
+   PreviewFooter ships Tailwind utilities (bg-neutral-50, text-center, default
+   sans). Dropped inside a designed footer it reads as a foreign design system
+   bolted on: its own background, its own alignment, its own type. These rules
+   are scoped to this route only and never touch the component. */
+.ill-footer footer[lang="is"]{
+  background:transparent !important;
+  color:var(--ice-mute);
+  font-family:var(--sans);
+  font-size:.76rem;
+  line-height:1.7;
+  text-align:left;
+  max-width:1200px;
+  margin:clamp(38px,6vh,66px) auto 0;
+  padding:clamp(22px,3.4vh,34px) 0 clamp(34px,6vh,56px);
+  border-top:1px solid var(--hair-ice);
+}
+.ill-footer footer[lang="is"] p{max-width:74ch;margin:0}
+.ill-footer footer[lang="is"] p + p{margin-top:9px}
+.ill-footer footer[lang="is"] strong{color:var(--ice-soft);font-weight:400}
+.ill-footer footer[lang="is"] a{color:var(--ice-soft);text-decoration:underline;
+  text-underline-offset:3px;text-decoration-thickness:1px;transition:color .3s var(--e)}
+.ill-footer footer[lang="is"] a:hover{color:var(--dusk)}
+.ill-footer footer[lang="is"] > div{justify-content:flex-start !important;
+  margin:clamp(18px,2.6vh,26px) 0 0 !important;padding-top:clamp(16px,2.4vh,22px) !important;
+  border-top-color:var(--hair-ice) !important}
+/* the SNDR logotype carries an inline near-black colour: invisible on ink */
+.ill-footer footer[lang="is"] [data-logotype] > span{color:var(--ice-soft) !important}
+@media (max-width:760px){
+  .ill-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
 `
