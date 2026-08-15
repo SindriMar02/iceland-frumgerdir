@@ -4482,6 +4482,12 @@ PREVIEW_COMPANIES.push(GLASSCOTTAGES_ENTRY)
 
 import { companyEntry as RAKARARNIR_ENTRY } from './rakararnir/company'
 PREVIEW_COMPANIES.push(RAKARARNIR_ENTRY)
+import { companyEntry as ILL_ENTRY } from './icelandluxurylodges/company'
+PREVIEW_COMPANIES.push(ILL_ENTRY)
+import { companyEntry as MIRRORLODGE_ENTRY } from './mirrorlodge/company'
+PREVIEW_COMPANIES.push(MIRRORLODGE_ENTRY)
+import { companyEntry as MIRRORSUITE_ENTRY } from './mirrorsuite/company'
+PREVIEW_COMPANIES.push(MIRRORSUITE_ENTRY)
 
 import { companyEntry as ASLAUGSAJA_ENTRY } from './aslaugsaja/data'
 PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)
