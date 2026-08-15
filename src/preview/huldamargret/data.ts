@@ -86,6 +86,13 @@ export const CONTACT = {
   email: 'hulda@huldamargret.is',
 } as const
 
+/** Real, fact-checked scope (her own audit flags the current meta as keyword-stuffed). */
+export const META = {
+  title: 'Hulda Margrét ljósmyndari',
+  description:
+    'Hulda Margrét er sjálfstætt starfandi ljósmyndari: stjórnendaportrett, brúðkaup, fermingar og viðburðir. Meðal viðskiptavina eru Harpa, KSÍ og Vodafone.',
+} as const
+
 export const JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'Photographer',

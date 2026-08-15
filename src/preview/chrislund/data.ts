@@ -72,9 +72,9 @@ export const BOOK = {
 
 export const SERVICES = [
   { name: 'FineArt prentun', note: 'Hágæða prentun listaverka og ljósmynda' },
-  { name: 'Skönnun', note: 'Listaverk og filmur í fullum gæðum' },
-  { name: 'Litgreining', note: 'Undirbúningur mynda fyrir prent og bækur' },
-  { name: 'Myndvinnsla', note: 'Frágangur fyrir listaverka- og ljósmyndabækur' },
+  { name: 'Skönnun', note: 'Listaverk og filmur í fullri upplausn' },
+  { name: 'Litgreining', note: 'Samræmt litróf yfir heilt verk, tilbúið fyrir prent' },
+  { name: 'Myndvinnsla', note: 'Retúsjering og frágangur, tilbúið fyrir sýningu eða bók' },
 ] as const
 
 export const CONTACT = {

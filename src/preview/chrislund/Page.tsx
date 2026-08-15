@@ -78,10 +78,14 @@ function useMotion(ready: boolean) {
       io.observe(el)
     })
 
+    const wallPinActive = window.matchMedia('(min-width: 992px)').matches
+
     const ctx = gsap.context(() => {
-      /* word-mask rises */
+      /* word-mask rises. Desktop: wall headlines ride the pinned
+         containerAnimation below instead. Mobile/tablet: the wall never
+         pins, so give them this same generic rise or they'd never animate. */
       root.querySelectorAll<HTMLElement>('[data-cl-headline]').forEach((h) => {
-        if (h.closest('.cl-wall')) return // journey copies ride containerAnimation below
+        if (h.closest('.cl-wall') && wallPinActive) return
         const words = h.querySelectorAll<HTMLElement>('.cl-word')
         if (!words.length) return
         gsap.fromTo(words,
@@ -108,7 +112,7 @@ function useMotion(ready: boolean) {
       const track = root.querySelector<HTMLElement>('.cl-wall-track')
       const progress = root.querySelector<HTMLElement>('.cl-wall-progress')
       const maxX = () => (track ? Math.max(1, track.scrollWidth - window.innerWidth) : 1)
-      if (wall && track && window.matchMedia('(min-width: 992px)').matches) {
+      if (wall && track && wallPinActive) {
         const tween = gsap.to(track, { x: () => -maxX(), ease: 'none', force3D: true })
         ScrollTrigger.create({
           animation: tween,
@@ -156,6 +160,8 @@ function useMotion(ready: boolean) {
       nums.forEach((el) => {
         const to = Number(el.dataset.clCount || 0)
         const obj = { v: 0 }
+        el.textContent = '0' // zero it off-screen now, not on trigger fire, or the
+        // real JSX value (130/12) sits there and visibly snaps to 0 later
         gsap.to(obj, {
           v: to, duration: 1.6, ease: 'power2.out',
           scrollTrigger: { trigger: el, start: 'top 85%', once: true },
@@ -164,7 +170,17 @@ function useMotion(ready: boolean) {
       })
     }, root)
 
-    lenis.on('scroll', ScrollTrigger.update)
+    // IntersectionObserver is the primary reveal trigger, but a scroll fast
+    // enough to skip an element's whole bounding box between painted frames
+    // (a hard scrollbar-drag flick, repeated Page Down) can leave it with no
+    // frame ever observed inside the viewport -- is-in never lands, so it
+    // stays clipped forever. This sweep re-checks on every scroll tick.
+    const revealPassed = () => {
+      root.querySelectorAll('.cl-rv:not(.is-in)').forEach((el) => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
+      })
+    }
+    lenis.on('scroll', () => { ScrollTrigger.update(); revealPassed() })
     const tick = (t: number) => { lenis.raf(t * 1000) }
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
@@ -232,8 +248,10 @@ function SeriesPicker() {
               onClick={() => setActive(i)}
               aria-pressed={i === active}
             >
-              <span className="cl-series-name">{it.name}</span>
-              <span className="cl-series-note">{it.note}</span>
+              <span className="cl-series-row-inner">
+                <span className="cl-series-name">{it.name}</span>
+                <span className="cl-series-note">{it.note}</span>
+              </span>
             </button>
           </li>
         ))}
@@ -257,7 +275,16 @@ export default function ChrisLundPage() {
   useEffect(() => {
     setThemeColor(PAPER)
     document.title = 'Christopher Lund ljósmyndari'
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'description'
+      document.head.appendChild(meta)
+    }
+    const prevDescription = meta.content
+    meta.content = 'Christopher Lund, ljósmyndari í yfir 20 ár á Íslandi. Landslag, fyrirtæki, arkitektúr og brúðkaup, auk FineArt prentunar og skönnunar. Sími 822 7601.'
     setReady(true)
+    return () => { meta.content = prevDescription }
   }, [])
 
   useMotion(ready)
@@ -366,6 +393,16 @@ export default function ChrisLundPage() {
         </div>
       </section>
 
+      {/* bridge — the wall's payoff turned into a reason to call, before the
+          page drops back into browsing mode */}
+      <section className="cl-bridge">
+        <p className="cl-bridge-text cl-rv">
+          Verkin á veggnum eru sönnunin. Sama natni fer í fyrirtækja-,
+          brúðkaups- og portrettmyndir.
+        </p>
+        <a className="cl-bridge-tel cl-rv" href={CONTACT.phoneHref}>{CONTACT.phone}</a>
+      </section>
+
       {/* 04 · series picker */}
       <section className="cl-safn">
         <Rule label="Myndaraðirnar" />
@@ -411,20 +448,30 @@ export default function ChrisLundPage() {
         <div className="cl-thjonusta-copy">
           <Rule label="Þjónusta" />
           <Headline text="Frá töku að prenti." size={72} floor={30} measure={560} />
+          <p className="cl-body cl-rv">
+            Ekki bara fyrir eigin verk: ljósmyndarar og listamenn fá sömu
+            prentun, skönnun og litgreiningu hér.
+          </p>
           <ul className="cl-services">
-            {SERVICES.map((s) => (
+            {SERVICES.map((s, i) => (
               <li key={s.name} className="cl-service cl-rv">
-                <span className="cl-service-name">{s.name}</span>
+                <div className="cl-service-top">
+                  <span className="cl-service-name">{s.name}</span>
+                  <span className="cl-service-nr">{String(i + 1).padStart(2, '0')}</span>
+                </div>
                 <span className="cl-service-note">{s.note}</span>
               </li>
             ))}
           </ul>
+          <a className="cl-thjonusta-cta cl-rv" href={CONTACT.phoneHref}>
+            Spurning um verk? Hringdu í {CONTACT.phone}.
+          </a>
         </div>
         <figure className="cl-thjonusta-fig cl-rv">
           <img src={PHOTO.fyrirtaekiLid.src} srcSet={srcSet(PHOTO.fyrirtaekiLid.src)}
             sizes="(max-width: 991px) 92vw, 44vw"
             alt={PHOTO.fyrirtaekiLid.alt} loading="lazy" decoding="async" />
-          <figcaption className="cl-fig-cap">Fyrirtækjaljósmyndun</figcaption>
+          <figcaption className="cl-fig-cap">Öll verk fara í gegnum sömu vinnslu: litgreiningu, frágang, prentun.</figcaption>
         </figure>
       </section>
 
@@ -439,7 +486,7 @@ export default function ChrisLundPage() {
           <Rule label="Um Christopher" />
           <Headline text="Tuttugu ár á bak við vélina." size={64} floor={30} measure={560} />
           <p className="cl-body cl-rv">
-            Christopher hefur starfað í yfir tuttugu ár á Íslandi, í Noregi og í
+            Christopher hefur starfað í yfir tuttugu ár á Íslandi, í Noregi og
             Danmörku og talar fjögur tungumál. Auk myndatöku sinnir hann hágæða
             prentun, myndvinnslu og undirbúningi bóka.
           </p>
@@ -504,7 +551,7 @@ const CSS = `
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
-.cl-root [id] { scroll-margin-top: 84px; }
+.cl-root [id] { scroll-margin-top: calc(var(--u) * 50 + 24px); }
 .cl-root a, .cl-root button { touch-action: manipulation; }
 .cl-edit-n, .cl-samband-tel { font-variant-numeric: tabular-nums; }
 .cl-root ::selection { background: var(--cl-gold); color: #FFFDF8; }
@@ -517,7 +564,7 @@ const CSS = `
   padding: calc(var(--u) * 22) calc(var(--u) * 34);
   mix-blend-mode: difference; color: #EEECE6; pointer-events: none;
 }
-.cl-nav a { pointer-events: auto; color: inherit; text-decoration: none; }
+.cl-nav a { pointer-events: auto; color: inherit; text-decoration: none; transition: opacity .2s cubic-bezier(.16,1,.3,1); }
 .cl-nav a:hover { opacity: .7; }
 .cl-nav-mark { font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .13em; }
 .cl-nav-links { display: flex; gap: calc(var(--u) * 26); font-size: ${fluid(14, 13)}; }
@@ -561,7 +608,7 @@ const CSS = `
 
 /* reveals */
 .cl-js .cl-rv { opacity: 0; transform: translateY(26px); }
-.cl-js .cl-rv.is-in { opacity: 1; transform: none; transition: opacity .9s ease, transform .9s cubic-bezier(.16,1,.3,1); }
+.cl-js .cl-rv.is-in { opacity: 1; transform: none; transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1); }
 .cl-static .cl-rv, .cl-root:not(.cl-js) .cl-rv { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .cl-hero img { transform: none !important; inset: 0; height: 100%; }
@@ -608,19 +655,28 @@ const CSS = `
   .cl-wall-progressbar { display: none; }
 }
 
+/* bridge */
+.cl-bridge { text-align: center; padding: calc(var(--u) * 60) calc(var(--u) * 34); border-bottom: 1px solid var(--cl-hair); }
+.cl-bridge-text { max-width: calc(var(--u) * 560); margin: 0 auto calc(var(--u) * 18); font-size: ${fluid(17, 15)}; line-height: 1.6; color: var(--cl-ink); }
+.cl-bridge-tel { display: inline-block; font-family: ${MONO}; font-size: ${fluid(20, 16)}; letter-spacing: .04em; color: var(--cl-gold-text); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; transition: color .3s cubic-bezier(.16,1,.3,1); }
+.cl-bridge-tel:hover { color: var(--cl-ink); }
+
 /* series picker */
 .cl-safn { padding: calc(var(--u) * 150) calc(var(--u) * 34); }
 .cl-series { display: grid; grid-template-columns: 1.15fr 1fr; gap: calc(var(--u) * 70); align-items: start; margin-top: calc(var(--u) * 30); }
 .cl-series-list { list-style: none; margin: 0; padding: 0; }
 .cl-series-row {
   --on: 0; width: 100%; text-align: left; background: none; border: none; cursor: pointer;
-  display: grid; gap: 4px; padding: 16px 0 16px calc(var(--on) * 18px);
-  border-top: 1px solid var(--cl-hair); color: inherit;
-  transition: padding .5s cubic-bezier(.16,1,.3,1);
+  padding: 16px 0; border-top: 1px solid var(--cl-hair); color: inherit;
   font-family: inherit;
 }
 .cl-series-row.is-active { --on: 1; }
-.cl-series-name { font-family: ${DISPLAY}; font-weight: 500; font-size: ${fluid(34, 22)}; line-height: 1.15; transition: color .3s ease; }
+.cl-series-row-inner {
+  display: grid; gap: 4px;
+  transform: translateX(calc(var(--on) * 18px));
+  transition: transform .5s cubic-bezier(.16,1,.3,1);
+}
+.cl-series-name { font-family: ${DISPLAY}; font-weight: 500; font-size: ${fluid(34, 22)}; line-height: 1.15; transition: color .3s cubic-bezier(.16,1,.3,1); }
 .cl-series-row.is-active .cl-series-name { color: var(--cl-gold-text); }
 .cl-series-note { font-size: ${fluid(14, 13)}; color: var(--cl-mute); }
 .cl-series-preview { position: sticky; top: calc(var(--u) * 80); margin: 0; }
@@ -639,11 +695,20 @@ const CSS = `
 .cl-bok-specs dd { margin: 0; font-size: ${fluid(16, 14.5)}; }
 
 /* services */
-.cl-thjonusta { display: grid; grid-template-columns: 1.1fr 1fr; gap: calc(var(--u) * 70); align-items: center; padding: calc(var(--u) * 150) calc(var(--u) * 34); }
+.cl-thjonusta { display: grid; grid-template-columns: 1.1fr 1fr; gap: calc(var(--u) * 70); align-items: start; padding: calc(var(--u) * 150) calc(var(--u) * 34); }
 .cl-services { list-style: none; margin: calc(var(--u) * 10) 0 0; padding: 0; }
-.cl-service { display: grid; gap: 4px; padding: 16px 0; border-top: 1px solid var(--cl-hair); }
+.cl-service { display: grid; gap: 6px; padding: 16px 0; border-top: 1px solid var(--cl-hair); }
+.cl-service-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .cl-service-name { font-family: ${DISPLAY}; font-weight: 500; font-size: ${fluid(26, 19)}; }
+.cl-service-nr { flex: none; font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .12em; color: var(--cl-gold-text); }
 .cl-service-note { font-size: ${fluid(14, 13)}; color: var(--cl-mute); }
+.cl-thjonusta-cta {
+  display: inline-block; margin-top: calc(var(--u) * 28); font-family: ${MONO};
+  font-size: ${fluid(13.5, 12.5)}; letter-spacing: .04em; color: var(--cl-gold-text);
+  text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px;
+  transition: color .3s cubic-bezier(.16,1,.3,1);
+}
+.cl-thjonusta-cta:hover { color: var(--cl-ink); }
 .cl-thjonusta-fig { margin: 0; }
 .cl-thjonusta-fig img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
 .cl-fig-cap { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
@@ -662,6 +727,7 @@ const CSS = `
 .cl-samband-tel {
   display: inline-block; font-family: ${DISPLAY}; font-weight: 500; font-size: ${fluid(110, 44)};
   letter-spacing: -.02em; color: inherit; text-decoration: none; margin-top: calc(var(--u) * 16);
+  transition: color .3s cubic-bezier(.16,1,.3,1);
 }
 .cl-samband-tel:hover { color: var(--cl-gold-text); }
 .cl-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12)}; color: var(--cl-mute); margin-top: calc(var(--u) * 20); }
@@ -681,7 +747,7 @@ const CSS = `
   .cl-series-preview { position: static; }
 }
 @media (max-width: 640px) {
-  .cl-edit, .cl-safn, .cl-bok, .cl-thjonusta, .cl-um, .cl-samband { padding-left: 20px; padding-right: 20px; }
+  .cl-edit, .cl-bridge, .cl-safn, .cl-bok, .cl-thjonusta, .cl-um, .cl-samband { padding-left: 20px; padding-right: 20px; }
   .cl-hero-title { left: 20px; bottom: 96px; }
   .cl-hero-block { padding: 0 20px 30px; }
   .cl-bok-specs { grid-template-columns: 1fr; }

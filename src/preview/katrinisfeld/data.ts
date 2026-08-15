@@ -115,7 +115,7 @@ export const JSON_LD = {
     addressLocality: 'Reykjavík',
     addressCountry: 'IS',
   },
-  knowsAbout: ['Innanhússhönnun', 'Innanhússarkitektúr', 'Gistiheimili og hótel', 'Ítalskar innréttingar'],
+  knowsAbout: ['Innanhússhönnun', 'Innanhússarkitektúr', 'Gistiheimili og hótel', 'Atvinnuhúsnæði', 'Ítalskar innréttingar'],
 }
 
 export const companyEntry: PreviewCompany = {

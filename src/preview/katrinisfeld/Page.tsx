@@ -125,7 +125,7 @@ function useMotion(ready: boolean) {
           if (heroWords.length) {
             gsap.fromTo(heroWords,
               { yPercent: 116, opacity: 0 },
-              { yPercent: 0, opacity: 1, duration: 1.2, ease: 'expo.out', stagger: 0.1, delay: 0.35 })
+              { yPercent: 0, opacity: 1, duration: 1.2, ease: 'expo.out', stagger: 0.06, delay: 0.35 })
           }
         }
         if (document.querySelector('.ki-loader')) {
@@ -142,7 +142,7 @@ function useMotion(ready: boolean) {
         gsap.fromTo(words,
           { yPercent: 116, opacity: 0 },
           {
-            yPercent: 0, opacity: 1, duration: 1.2, ease: 'expo.out', stagger: 0.1,
+            yPercent: 0, opacity: 1, duration: 1.2, ease: 'expo.out', stagger: 0.06,
             scrollTrigger: { trigger: h, start: 'top 86%', once: true },
           })
       })
@@ -158,10 +158,19 @@ function useMotion(ready: boolean) {
         })
       }
       if (arc) {
-        gsap.fromTo(arc, { wordSpacing: '0em' }, {
-          wordSpacing: '.42em', ease: 'none',
-          scrollTrigger: { trigger: arc, start: 'top 95%', end: 'bottom 30%', scrub: 0.8 },
-        })
+        // word-spacing itself reflows text every scrub frame; spreading the
+        // per-word wrapper spans apart on transform:x gives the same look
+        // (words drifting apart as the dome rises) without ever touching layout.
+        const words = Array.from(arc.querySelectorAll<HTMLElement>(':scope > span'))
+        if (words.length > 1) {
+          const n = words.length
+          const em = parseFloat(getComputedStyle(arc).fontSize) || 60
+          gsap.fromTo(words, { x: 0 }, {
+            x: (i: number) => (i - (n - 1) / 2) * em * 0.42,
+            ease: 'none',
+            scrollTrigger: { trigger: arc, start: 'top 95%', end: 'bottom 30%', scrub: 0.8 },
+          })
+        }
       }
 
       /* footer arch: the last room opens through an arch as it enters */
@@ -222,12 +231,14 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
   )
 }
 
-/** slide: ERA's skewed-polygon media reveal with inner counter-scale. */
-function Slide({ photo, className = '', priority = false }: {
-  photo: KiPhoto; className?: string; priority?: boolean
+/** slide: ERA's skewed-polygon media reveal with inner counter-scale.
+ *  variant="shutter" swaps in the converging-panel reveal for one deliberate
+ *  moment so the page doesn't run the same photo treatment start to finish. */
+function Slide({ photo, className = '', priority = false, variant = 'slide' }: {
+  photo: KiPhoto; className?: string; priority?: boolean; variant?: 'slide' | 'shutter'
 }) {
   return (
-    <figure className={`ki-slide ${className}`} style={{ aspectRatio: photo.ratio }}>
+    <figure className={`${variant === 'shutter' ? 'ki-shutter' : 'ki-slide'} ${className}`} style={{ aspectRatio: photo.ratio }}>
       <img src={photo.src} srcSet={srcSet(photo.src)} sizes="(max-width: 991px) 100vw, 46vw"
         alt={photo.alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
     </figure>
@@ -289,6 +300,18 @@ function Preloader({ onDone }: { onDone: () => void }) {
   )
 }
 
+/* the overview, clustered by her own categories so a hotel or clinic owner
+   can find their kind of work without scrolling past a wall of homes first */
+const PROJECT_GROUPS = (() => {
+  const order: string[] = []
+  const byFlokkur = new Map<string, typeof PROJECTS>()
+  for (const p of PROJECTS) {
+    if (!byFlokkur.has(p.flokkur)) { byFlokkur.set(p.flokkur, []); order.push(p.flokkur) }
+    byFlokkur.get(p.flokkur)!.push(p)
+  }
+  return order.map((flokkur) => ({ flokkur, items: byFlokkur.get(flokkur)! }))
+})()
+
 /* ── the page ──────────────────────────────────────────────────────────── */
 
 export default function KatrinIsfeldPage() {
@@ -299,6 +322,15 @@ export default function KatrinIsfeldPage() {
   useEffect(() => {
     setThemeColor(CHARCOAL)
     document.title = 'Katrín Ísfeld innanhússarkitekt'
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'description'
+      document.head.appendChild(meta)
+    }
+    meta.content =
+      'Katrín Ísfeld innanhússarkitekt hannar innanhús fyrir heimili, gistiheimili, ' +
+      'hótel og atvinnurými í Reykjavík: 23 verk, þar á meðal ítalskar innréttingar.'
     setReady(true)
   }, [])
 
@@ -339,7 +371,8 @@ export default function KatrinIsfeldPage() {
         <div className="ki-hero-lockup">
           <Headline as="h1" className="ki-hero-title" text="Rýmið man hver á það." size={104} floor={38} />
           <p className="ki-hero-sub">
-            Katrín Ísfeld hannar innanhús frá grunni: heimili, gistiheimili og hótel.
+            Katrín Ísfeld hannar innanhús frá grunni: heimili, gistiheimili, hótel
+            og atvinnurými.
           </p>
         </div>
       </section>
@@ -350,36 +383,44 @@ export default function KatrinIsfeldPage() {
         <Headline text="Hvert verkefni fær sinn eigin litheim." size={72} floor={32} measure={780} />
         <p className="ki-body ki-rv">
           Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir á þessari
-          síðu eru ekki valdir úr korti heldur teknir beint úr verkefnunum sjálfum,
+          síðu eru ekki valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum,
           eins og þau voru ljósmynduð.
         </p>
       </section>
 
-      {/* 03 · the overview: her work across all four categories */}
+      {/* 03 · the overview: her work across all four categories, clustered so
+          each buyer type (heimili / gistiheimili og hótel / atvinnuhúsnæði)
+          reads as its own body of work rather than one undifferentiated wall */}
       <section className="ki-yfirlit" id="verkefni" data-ki-band="dark">
         <div className="ki-yfirlit-head">
           <p className="ki-verk-kicker" aria-hidden="true">Verkefni</p>
-          <Headline text="Heimili, gistiheimili, hótel og stofur." size={80} floor={32} measure={880} />
+          <Headline text="Heimili, gistiheimili, hótel og atvinnurými." size={80} floor={32} measure={880} />
           <p className="ki-body ki-rv">
             Sautján verk úr skránni hennar, hvert með sinni eigin ljósmynd: eldhús og
             baðherbergi, heil heimili, gistiherbergi og atvinnurými.
           </p>
         </div>
-        <ul className="ki-yfirlit-grid">
-          {PROJECTS.map((v) => (
-            <li key={v.name} className="ki-verk-card ki-rv">
-              <figure className="ki-verk-card-fig">
-                <img src={v.photo.src} srcSet={srcSet(v.photo.src)}
-                  sizes="(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw"
-                  alt={v.photo.alt} loading="lazy" decoding="async" />
-              </figure>
-              <div className="ki-verk-card-meta">
-                <span className="ki-verk-card-name">{v.name}</span>
-                <span className="ki-verk-card-cat">{v.flokkur}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {PROJECT_GROUPS.map((g) => (
+          <div key={g.flokkur} className="ki-yfirlit-cluster">
+            <p className="ki-yfirlit-cat ki-rv">
+              {g.flokkur}<span className="ki-yfirlit-cat-n">{g.items.length} verk</span>
+            </p>
+            <ul className="ki-yfirlit-grid" style={{ ['--cluster-cols' as string]: Math.min(g.items.length, 3) }}>
+              {g.items.map((v) => (
+                <li key={v.name} className="ki-verk-card ki-rv">
+                  <figure className="ki-verk-card-fig">
+                    <img src={v.photo.src} srcSet={srcSet(v.photo.src)}
+                      sizes="(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw"
+                      alt={v.photo.alt} loading="lazy" decoding="async" />
+                  </figure>
+                  <div className="ki-verk-card-meta">
+                    <span className="ki-verk-card-name">{v.name}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </section>
 
       {/* 04 · one project in depth, so the overview has a floor */}
@@ -388,9 +429,8 @@ export default function KatrinIsfeldPage() {
           <p className="ki-verk-kicker" aria-hidden="true">Eitt verk í nærmynd</p>
           <Headline text="Nýbyggt hús í Súluhöfða." size={72} floor={32} measure={760} />
           <p className="ki-body ki-rv">
-            „Húsið var í byggingu þegar ég fékk það verkefni að sjá um alla
-            innanhússhönnun.“ Eyjan er vínrauð, ljósin kopar, arinveggurinn ljós
-            steinn sem geymir eldiviðinn.
+            Eyjan er vínrauð, ljósin kopar og arinveggurinn ljós steinn með
+            eldiviðarhólfum, allt teiknað inn í húsið frá grunni.
           </p>
         </div>
         <div className="ki-verk-grid">
@@ -419,10 +459,30 @@ export default function KatrinIsfeldPage() {
         </p>
       </section>
 
-      {/* 06 · the register */}
+      {/* 06 · Italian cabinetry — follows straight on from the materials
+          section above instead of interrupting the register with a pitch */}
+      <section className="ki-italskar" data-ki-band="dark">
+        <div className="ki-italskar-in">
+          <Headline text="Ítalskar innréttingar." size={64} floor={30} measure={560} />
+          <p className="ki-body ki-rv">
+            Innréttingar fyrir eldhús og bað koma frá Ítalíu og eru teiknaðar inn í
+            hvert verkefni frá grunni, hvort sem um er að ræða heimili eða
+            gistiheimili.
+          </p>
+          <a className="ki-cta ki-rv" href="#samband" onClick={anchor('samband')}>Hafa samband</a>
+        </div>
+        <Slide photo={PHOTO.fEyja} className="ki-italskar-fig" />
+      </section>
+
+      {/* 07 · the register: the complete index, six more than the photographed
+          overview above, so it earns its place instead of repeating it */}
       <section className="ki-skra" id="skra" data-ki-band="dark">
         <div className="ki-skra-head">
           <Headline text="Skráin öll." size={84} floor={34} />
+          <p className="ki-body ki-rv">
+            Sautján verk að ofan eru ljósmynduð; hér er skráin í heild, sex til
+            viðbótar.
+          </p>
           <p className="ki-skra-count ki-rv" aria-label={`${REGISTER_COUNT} verk í ${REGISTER.length} flokkum`}>
             <span className="ki-skra-n">{REGISTER_COUNT}</span> verk ·{' '}
             <span className="ki-skra-n">{REGISTER.length}</span> flokkar
@@ -443,28 +503,18 @@ export default function KatrinIsfeldPage() {
         <p className="ki-stat ki-rv">Verkefnaskráin eins og hún er birt á katrinisfeld.is, ágúst 2026.</p>
       </section>
 
-      {/* 07 · Italian cabinetry */}
-      <section className="ki-italskar" data-ki-band="dark">
-        <div className="ki-italskar-in">
-          <Headline text="Ítalskar innréttingar." size={64} floor={30} measure={560} />
-          <p className="ki-body ki-rv">
-            Sérpantaðar innréttingar fyrir eldhús og bað, valdar og útfærðar með
-            hverju verkefni.
-          </p>
-          <a className="ki-cta ki-rv" href="#samband" onClick={anchor('samband')}>Hafa samband</a>
-        </div>
-        <Slide photo={PHOTO.fBitar} className="ki-italskar-fig" />
-      </section>
-
-      {/* 08 · the studio */}
+      {/* 08 · the studio — the pedigree gets real weight here: a specific,
+          hard-to-match credential, not a footnote before the contact block */}
       <section className="ki-studio" data-ki-band="light">
-        <Slide photo={PHOTO.fStofa} className="ki-studio-fig" />
+        <Slide photo={PHOTO.fStofa} className="ki-studio-fig" variant="shutter" />
         <div className="ki-studio-copy">
-          <Headline text="Stúdíóið." size={64} floor={30} />
+          <p className="ki-verk-kicker" aria-hidden="true">Bakgrunnur</p>
+          <Headline text="Stúdíóið." size={78} floor={32} />
           <p className="ki-body ki-rv">
-            Katrín starfaði á arkitektastofum í Hollandi og í Flórída, meðal annars
-            við hönnun glæsihúsa, áður en hún opnaði eigið stúdíó við Bankastræti.
-            Hún tekur að sér heildarhönnun og einstök rými.
+            Áður en Katrín opnaði stúdíóið sitt við Bankastræti starfaði hún á
+            arkitektastofum í Hollandi og í Fort Lauderdale, þar sem hún hannaði
+            glæsivillur. Sú reynsla mótar hvernig hún tekur að sér verkefni hér
+            heima, hvort sem það er eitt herbergi eða húsið í heild.
           </p>
         </div>
       </section>
@@ -472,7 +522,7 @@ export default function KatrinIsfeldPage() {
       {/* 09 · contact through the arch */}
       <section className="ki-samband" id="samband" data-ki-band="dark">
         <div className="ki-samband-in">
-          <Headline text="Komdu með rýmið til hennar." size={80} floor={32} measure={720} />
+          <Headline text="Segðu Katrínu frá rýminu þínu." size={80} floor={32} measure={720} />
           <div className="ki-samband-row">
             <a className="ki-samband-tel" href={CONTACT.phoneHref}>{CONTACT.phone}</a>
             <a className="ki-cta" href={`mailto:${CONTACT.email}?subject=${encodeURIComponent('Fyrirspurn um hönnun')}`}>
@@ -549,7 +599,7 @@ const CSS = `
   padding: calc(var(--u) * 22) calc(var(--u) * 34);
   pointer-events: none;
 }
-.ki-nav a { pointer-events: auto; text-decoration: none; transition: color .4s linear, opacity .25s ease; }
+.ki-nav a { pointer-events: auto; text-decoration: none; transition: color .4s linear, opacity .25s ${OUT}; }
 .ki-nav a[data-ki-on='dark'] { color: #EDE7DE; }
 .ki-nav a[data-ki-on='light'], .ki-nav a:not([data-ki-on]) { color: ${INK}; }
 .ki-nav a:hover { opacity: .68; }
@@ -561,7 +611,7 @@ const CSS = `
 /* loader: the arch aperture */
 .ki-loader {
   position: fixed; inset: 0; z-index: 90; display: grid; place-content: end center;
-  background: ${CHARCOAL}; transition: opacity .85s ease, visibility .85s ease;
+  background: ${CHARCOAL}; transition: opacity .7s ${OUT}, visibility .7s ${OUT};
 }
 .ki-loader.is-leaving { opacity: 0; visibility: hidden; }
 .ki-loader-arch {
@@ -622,6 +672,19 @@ const CSS = `
   opacity: 1; transform: none; clip-path: none;
 }
 .ki-static .ki-slide img, .ki-static .ki-shutter img { transform: none; }
+
+/* group entrances: a 45ms wave instead of every item in a row popping in at
+   once (each cluster/grid restarts its own count, so nothing accumulates
+   into a long tail by the last item) */
+.ki-js .ki-yfirlit-grid .ki-verk-card:nth-child(3n+2) { transition-delay: 45ms; }
+.ki-js .ki-yfirlit-grid .ki-verk-card:nth-child(3n+3) { transition-delay: 90ms; }
+.ki-js .ki-verk-grid .ki-slide:nth-child(2) { transition-delay: 45ms; }
+.ki-js .ki-verk-grid .ki-slide:nth-child(3) { transition-delay: 90ms; }
+.ki-js .ki-verk-grid .ki-slide:nth-child(4) { transition-delay: 135ms; }
+.ki-js .ki-skra-cols .ki-skra-flokkur:nth-child(2) { transition-delay: 45ms; }
+.ki-js .ki-skra-cols .ki-skra-flokkur:nth-child(3) { transition-delay: 90ms; }
+.ki-js .ki-skra-cols .ki-skra-flokkur:nth-child(4) { transition-delay: 135ms; }
+
 @media (prefers-reduced-motion: reduce) {
   .ki-hero-media img { transform: none !important; }
   .ki-word { transform: none !important; opacity: 1 !important; }
@@ -631,25 +694,31 @@ const CSS = `
 .ki-intro { padding: calc(var(--u) * 150) calc(var(--u) * 34); }
 .ki-verk { padding: calc(var(--u) * 130) calc(var(--u) * 34); }
 
-/* THE OVERVIEW — an even three-up of real named projects. One ratio, one
-   gutter, no offsets: breadth reads as a body of work, not as a collage. */
+/* THE OVERVIEW — clustered by category so breadth reads as three distinct
+   bodies of work (homes / hospitality / business), not one undifferentiated
+   wall. One ratio, one gutter within each cluster: still no collage. */
 .ki-yfirlit { padding: calc(var(--u) * 140) calc(var(--u) * 34); }
-.ki-yfirlit-head { max-width: calc(var(--u) * 900); margin-bottom: calc(var(--u) * 56); }
+.ki-yfirlit-head { max-width: calc(var(--u) * 900); margin-bottom: calc(var(--u) * 64); }
+.ki-yfirlit-cluster + .ki-yfirlit-cluster { margin-top: calc(var(--u) * 76); }
+.ki-yfirlit-cat {
+  display: flex; align-items: baseline; gap: calc(var(--u) * 14);
+  font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .13em; text-transform: uppercase;
+  color: #D9A87E; border-top: 1px solid var(--ki-hair); padding-top: calc(var(--u) * 18);
+  margin: 0 0 calc(var(--u) * 28);
+}
+.ki-yfirlit-cat-n { font-family: ${SANS}; letter-spacing: 0; text-transform: none; color: var(--ki-mute); font-size: ${fluid(12.5, 11.5)}; }
 .ki-yfirlit-grid {
   list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 34) calc(var(--u) * 28);
+  display: grid; grid-template-columns: repeat(var(--cluster-cols, 3), 1fr); gap: calc(var(--u) * 34) calc(var(--u) * 28);
 }
 .ki-verk-card-fig { margin: 0; overflow: hidden; background: rgb(0 0 0 / .18); }
-.ki-verk-card-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; transition: transform 1.1s ${OUT}; }
+.ki-verk-card-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; transition: transform .6s ${OUT}; }
 @media (hover: hover) { .ki-verk-card:hover .ki-verk-card-fig img { transform: scale(1.04); } }
-.ki-verk-card-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 10px; }
+.ki-verk-card-meta { padding-top: 10px; }
 .ki-verk-card-name { font-size: ${fluid(16, 14.5)}; }
-.ki-verk-card-cat { font-family: ${MONO}; font-size: ${fluid(11, 10.5)}; letter-spacing: .12em; text-transform: uppercase; color: var(--ki-copper); white-space: nowrap; }
 .ki-verk-kicker { font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .14em; text-transform: uppercase; color: #8A5A33; margin: 0 0 calc(var(--u) * 16); }
 [data-ki-band='dark'] .ki-verk-kicker, .ki-verk-sulu .ki-verk-kicker { color: #D9A87E; }
 .ki-verk-head { max-width: calc(var(--u) * 860); margin-bottom: calc(var(--u) * 54); }
-.ki-verk-lead { margin-bottom: calc(var(--u) * 40); }
-.ki-verk-lead img { aspect-ratio: 16 / 8.4; }
 .ki-verk-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: calc(var(--u) * 40); }
 .ki-verk-grid .ki-slide:nth-child(2) { margin-top: calc(var(--u) * 70); }
 .ki-verk-grid .ki-slide:nth-child(3) { margin-top: calc(var(--u) * -50); }
@@ -668,11 +737,6 @@ const CSS = `
 .ki-dome-arch img { width: 100%; aspect-ratio: 4 / 4.4; object-fit: cover; display: block; }
 .ki-dome-body { margin: calc(var(--u) * 44) auto 0; }
 
-/* Fljótshlíð grid */
-.ki-fljot-grid { display: grid; grid-template-columns: 1fr 1.4fr 1fr; grid-auto-rows: auto; gap: calc(var(--u) * 40); align-items: start; }
-.ki-fljot-tall { grid-row: span 2; }
-.ki-fljot-wide { grid-column: 2 / 4; }
-
 /* register */
 .ki-skra { padding: calc(var(--u) * 140) calc(var(--u) * 34); }
 .ki-skra-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: calc(var(--u) * 50); }
@@ -682,16 +746,21 @@ const CSS = `
 .ki-skra-cat { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .13em; text-transform: uppercase; font-weight: 400; color: var(--ki-copper); margin: 0 0 calc(var(--u) * 18); }
 .ki-skra-list { list-style: none; margin: 0; padding: 0; }
 .ki-skra-row {
-  --bar: 0; position: relative; border-top: 1px solid var(--ki-hair);
-  padding: 12px 0 12px calc(var(--bar) * 18px); font-size: ${fluid(15.5, 14)};
-  transition: padding .8s ${OUT}, color .8s ${OUT};
+  position: relative; border-top: 1px solid var(--ki-hair);
+  padding: 12px 0; font-size: ${fluid(15.5, 14)};
+  transition: color .8s ${OUT};
 }
+.ki-skra-row > span { display: inline-block; transition: transform .8s ${OUT}; }
 .ki-skra-row::before {
   content: ''; position: absolute; left: 0; top: 50%; translate: 0 -50%;
-  width: calc(var(--bar) * 10px); height: 1px; background: var(--ki-copper);
-  transition: width .8s ${OUT};
+  width: 10px; height: 1px; background: var(--ki-copper);
+  transform: scaleX(0); transform-origin: left; transition: transform .8s ${OUT};
 }
-@media (hover: hover) { .ki-skra-row:hover { --bar: 1; color: var(--ki-copper); } }
+@media (hover: hover) {
+  .ki-skra-row:hover { color: var(--ki-copper); }
+  .ki-skra-row:hover > span { transform: translateX(18px); }
+  .ki-skra-row:hover::before { transform: scaleX(1); }
+}
 
 /* Italian cabinetry */
 .ki-italskar { display: grid; grid-template-columns: 1.1fr 1fr; gap: calc(var(--u) * 70); align-items: center; padding: calc(var(--u) * 120) calc(var(--u) * 34); }
@@ -705,25 +774,25 @@ const CSS = `
 /* contact */
 .ki-samband { padding: calc(var(--u) * 60) 0 0; }
 .ki-samband-in {
-  text-align: center; padding: calc(var(--u) * 140) calc(var(--u) * 34);
+  text-align: center; padding: calc(var(--u) * 140) calc(var(--u) * 34) calc(var(--u) * 60);
   background: #16211E; color: #E9EDE8;
 }
 .ki-samband-in .ki-headline { margin-inline: auto; }
-.ki-samband-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--u) * 34); margin-top: calc(var(--u) * 30); }
-.ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(56, 26)}; color: inherit; text-decoration: none; }
+.ki-samband-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--u) * 34); margin-top: calc(var(--u) * 26); }
+.ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(56, 26)}; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
 .ki-samband-tel:hover { color: var(--ki-copper); }
-.ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12)}; color: #9AA79F; margin-top: calc(var(--u) * 24); }
+.ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12)}; color: #9AA79F; margin-top: calc(var(--u) * 20); }
 .ki-cta {
   display: inline-block; font-size: ${fluid(16, 15)}; color: #171310;
   background: #EDE7DE; padding: calc(var(--u) * 16) calc(var(--u) * 30);
-  text-decoration: none; transition: opacity .25s ease, transform .25s ease;
+  text-decoration: none; transition: opacity .25s ${OUT}, transform .25s ${OUT};
 }
 .ki-cta:hover { opacity: .85; }
 .ki-cta:active { transform: scale(.98); }
 .ki-italskar .ki-cta, .ki-samband .ki-cta { background: #EDE7DE; color: #171310; }
 
 /* footer */
-.ki-foot { border-top: 1px solid rgb(237 231 222 / .14); padding: calc(var(--u) * 54) calc(var(--u) * 34) calc(var(--u) * 70); background: ${CHARCOAL}; color: #EDE7DE; }
+.ki-foot { border-top: 1px solid rgb(237 231 222 / .14); padding: calc(var(--u) * 42) calc(var(--u) * 34) calc(var(--u) * 42); background: ${CHARCOAL}; color: #EDE7DE; }
 .ki-foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 34); }
 .ki-foot-mark { font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .14em; margin: 0 0 10px; }
 .ki-foot-line { font-size: ${fluid(13.5, 12.5)}; color: #B9B1A5; margin: 0 0 6px; line-height: 1.6; }
@@ -733,8 +802,6 @@ const CSS = `
   .ki-verk-grid { grid-template-columns: 1fr; }
   .ki-yfirlit-grid { grid-template-columns: repeat(2, 1fr); }
   .ki-verk-grid .ki-slide:nth-child(2), .ki-verk-grid .ki-slide:nth-child(3) { margin-top: 0; }
-  .ki-fljot-grid { grid-template-columns: 1fr; }
-  .ki-fljot-wide { grid-column: auto; }
   .ki-skra-cols { grid-template-columns: 1fr 1fr; }
   .ki-italskar, .ki-studio { grid-template-columns: 1fr; }
   .ki-italskar-fig, .ki-studio-fig { justify-self: start; }
@@ -743,10 +810,16 @@ const CSS = `
 }
 @media (max-width: 640px) {
   .ki-intro, .ki-verk, .ki-dome, .ki-skra, .ki-italskar, .ki-studio { padding-left: 20px; padding-right: 20px; }
-  .ki-samband-in { padding-left: 20px; padding-right: 20px; }
+  .ki-samband-in { padding: calc(var(--u) * 140) 20px 16px; }
+  .ki-samband-row { margin-top: 16px; }
+  .ki-samband-addr { margin-top: 10px; }
   .ki-skra-cols { grid-template-columns: 1fr; }
   .ki-yfirlit { padding-left: 20px; padding-right: 20px; }
   .ki-yfirlit-grid { grid-template-columns: 1fr; }
   .ki-hero-lockup { padding: 0 20px 34px; }
+  /* the footer's three columns stack full-height here (single column), so
+     the fixed nav needs more headroom above the final CTA than desktop */
+  .ki-foot { padding: 14px 20px; }
+  .ki-foot-grid { gap: 8px; }
 }
 `

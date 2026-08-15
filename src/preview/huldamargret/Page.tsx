@@ -7,7 +7,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  CONTACT, JSON_LD, LOGOS, PACKAGES, PHOTO, srcSet, type HmPhoto,
+  CONTACT, JSON_LD, LOGOS, META, PACKAGES, PHOTO, srcSet, type HmPhoto,
 } from './data'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -380,8 +380,19 @@ export default function HuldaMargretPage() {
 
   useEffect(() => {
     setThemeColor(MORNING)
-    document.title = 'Hulda Margrét ljósmyndari'
+    document.title = META.title
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'description'
+      document.head.appendChild(meta)
+    }
+    const prevDescription = meta.content
+    meta.content = META.description
     setReady(true)
+    return () => {
+      meta.content = prevDescription
+    }
   }, [])
 
   useMotion(ready)
@@ -457,6 +468,10 @@ export default function HuldaMargretPage() {
             fyrir heimasíður, ársskýrslur, fréttir og viðburði. Hálftími fyrir
             manneskju sem á að þekkjast á myndinni sinni.
           </p>
+          <p className="hm-inline-cta hm-rv">
+            Fyrirtæki og stofnanir:{' '}
+            <a href="#samband" onClick={anchor('samband')}>Óska eftir tilboði</a>
+          </p>
         </div>
         <div className="hm-morgunn-figs">
           <Frame photo={PHOTO.portrettA} drift={9} />
@@ -487,7 +502,7 @@ export default function HuldaMargretPage() {
         </div>
         <div className="hm-sidegi-copy">
           <Phase is="Síðdegi" en="Fjölskyldan" />
-          <Headline text="Síðdegið á fjölskyldan." size={56} floor={30} measure={520} />
+          <Headline text="Fjölskyldan á síðdegið." size={56} floor={30} measure={520} />
           <p className="hm-body hm-rv">
             Fermingar, fjölskyldur og hópar. Myndir sem hanga uppi árum saman eiga
             skilið dagsljós og næði frekar en flýti.
@@ -518,10 +533,10 @@ export default function HuldaMargretPage() {
 
       {/* 07 · night: clients */}
       <section className="hm-vidskipta">
-        <Phase is="Kvöld" en="Á sviðinu" />
+        <Phase is="Kvöld" en="Viðskiptavinir" />
         <Headline text="Þeir sem hringja aftur." size={64} floor={32} measure={620} />
         <p className="hm-body hm-rv">
-          Yfir þrjátíu fyrirtæki og félög sýna merkin sín á vef Huldu. Hér eru tólf.
+          Yfir þrjátíu fyrirtæki, félög og fjölmiðlar sýna merkin sín á vef Huldu. Hér eru tólf.
         </p>
         {/* One continuous band: the client list is breadth, not twelve items
             each deserving its own tile. The second run is aria-hidden so the
@@ -562,7 +577,10 @@ export default function HuldaMargretPage() {
         </ul>
         <p className="hm-stat hm-rv">
           Verð af vef Huldu, ágúst 2026. Innifalinn er allt að 60 mínútna akstur.
-          Aðrar myndatökur: hafðu samband.
+        </p>
+        <p className="hm-inline-cta hm-rv">
+          Aðrar myndatökur (portrett, fermingar, viðburðir):{' '}
+          <a href="#samband" onClick={anchor('samband')}>Hafðu samband</a>
         </p>
       </section>
 
@@ -649,7 +667,7 @@ const CSS = `
   padding: calc(var(--u) * 22) calc(var(--u) * 34);
   mix-blend-mode: difference; color: #F2EFE8; pointer-events: none;
 }
-.hm-nav a { pointer-events: auto; color: inherit; text-decoration: none; }
+.hm-nav a { pointer-events: auto; color: inherit; text-decoration: none; transition: opacity .2s cubic-bezier(.4,0,.2,1); }
 .hm-nav-mark { font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .14em; }
 .hm-nav-links { display: flex; gap: calc(var(--u) * 26); font-size: ${fluid(14, 13)}; }
 .hm-nav-links a:hover, .hm-nav-cta:hover { opacity: .72; }
@@ -699,6 +717,7 @@ const CSS = `
 .hm-hero-link {
   color: inherit; font-size: ${fluid(15, 14)}; text-decoration: none;
   border-bottom: 1px solid currentColor; padding-bottom: 3px;
+  transition: opacity .2s cubic-bezier(.4,0,.2,1);
 }
 .hm-hero-link:hover { opacity: .75; }
 
@@ -711,6 +730,15 @@ const CSS = `
 .hm-word { display: inline-block; }
 .hm-body { font-size: ${fluid(17, 15)}; line-height: 1.66; color: var(--hm-mute); max-width: 58ch; margin: 0; }
 .hm-stat { font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)}; color: var(--hm-mute); margin: calc(var(--u) * 22) 0 0; }
+/* secondary, segment-aware CTA line: a named path for readers the primary
+   "Bóka myndatöku" CTA doesn't obviously speak to (corporate, other shoots) */
+.hm-inline-cta { font-size: ${fluid(15, 14)}; color: var(--hm-mute); margin: calc(var(--u) * 20) 0 0; }
+.hm-inline-cta a {
+  color: var(--hm-accent-text); text-decoration: none;
+  border-bottom: 1px solid currentColor; padding-bottom: 1px;
+  transition: opacity .2s cubic-bezier(.4,0,.2,1);
+}
+.hm-inline-cta a:hover { opacity: .7; }
 .hm-phase {
   font-family: ${MONO}; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .12em;
   text-transform: uppercase; color: var(--hm-accent-text);
@@ -725,7 +753,7 @@ const CSS = `
 .hm-js .hm-rv { clip-path: inset(12% 0 12% 0); opacity: 0; filter: brightness(1.3); transform: translateY(14px); }
 .hm-js .hm-rv.is-in {
   clip-path: inset(0 0 0 0); opacity: 1; filter: brightness(1); transform: none;
-  transition: clip-path .9s cubic-bezier(.16,1,.3,1), opacity .7s ease, filter 1.1s ease, transform .9s cubic-bezier(.16,1,.3,1);
+  transition: clip-path .9s cubic-bezier(.16,1,.3,1), opacity .7s cubic-bezier(.16,1,.3,1), filter 1.1s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
 }
 .hm-static .hm-rv, .hm-root:not(.hm-js) .hm-rv { clip-path: none; opacity: 1; filter: none; transform: none; }
 @media (prefers-reduced-motion: reduce) {
@@ -734,7 +762,7 @@ const CSS = `
 }
 
 /* sections */
-/* One vertical rhythm. Neighbouring sections each contributing 140u stacked
+/* One vertical rhythm. Neighbouring sections each contributing 104u stacked
    into a dead band, so the step is smaller and the section owns its own air. */
 .hm-manifesto, .hm-morgunn, .hm-sidegi, .hm-vidskipta, .hm-verd, .hm-samband {
   padding: calc(var(--u) * 104) calc(var(--u) * 34);
@@ -755,8 +783,12 @@ const CSS = `
 .hm-dagur-bleed { aspect-ratio: 21 / 9 !important; }
 .hm-dagur-bleed img { object-position: 50% 30%; }
 .hm-dagur-foot {
+  /* start-aligned, not centered: a single short paragraph centered against a
+     taller image left large dead gaps above and below it (accidental, not a
+     considered quiet moment). Starting both columns at the same top line
+     reads as a deliberate pairing instead. */
   display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 48);
-  align-items: center; padding: calc(var(--u) * 48) calc(var(--u) * 34) 0;
+  align-items: start; padding: calc(var(--u) * 48) calc(var(--u) * 34) 0;
 }
 .hm-dagur-vara { width: 100%; aspect-ratio: 3 / 2 !important; }
 
@@ -826,13 +858,13 @@ const CSS = `
 .hm-samband-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--u) * 34); margin-top: calc(var(--u) * 30); }
 .hm-samband-tel {
   font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(56, 26)};
-  color: inherit; text-decoration: none;
+  color: inherit; text-decoration: none; transition: color .2s cubic-bezier(.4,0,.2,1);
 }
 .hm-samband-tel:hover { color: var(--hm-accent-text); }
 .hm-cta {
   display: inline-block; font-size: ${fluid(16, 15)}; color: var(--hm-c);
   background: var(--hm-ink); padding: calc(var(--u) * 16) calc(var(--u) * 30);
-  text-decoration: none; transition: opacity .25s ease, transform .25s ease;
+  text-decoration: none; transition: opacity .25s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1);
 }
 .hm-cta:hover { opacity: .88; }
 .hm-cta:active { transform: scale(.98); }
@@ -865,5 +897,8 @@ const CSS = `
   .hm-hero-block { left: 20px; right: 20px; bottom: 30px; }
   .hm-logos { grid-template-columns: repeat(2, 1fr); }
   .hm-dagur-bleed { aspect-ratio: 4 / 3 !important; }
+  /* the couple sit left-of-centre in the source frame; a narrow crop centred
+     on the full 3:2 image loses the bride entirely and keeps only the groom */
+  .hm-hero-media img { object-position: 28% center; }
 }
 `
