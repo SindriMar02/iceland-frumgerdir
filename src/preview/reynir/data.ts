@@ -32,16 +32,27 @@
 export type Lang = 'en' | 'is'
 
 export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo.webp`
+/** Full-size gallery frame (lightbox). */
 const gal = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}.webp`
+/** 800px variant of the same frame, for the masonry tiles — the grid renders
+ *  them around 380px wide, so shipping the 2000px file to every tile would
+ *  cost ~5.8MB for a gallery that needs 600KB. Paired via srcset. */
+const galSm = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}-sm.webp`
 /** Real B&W "hands shaping dough" photo from their own site, warm-toned. */
 export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
-/** Pistachio snúður, cut out to a TRANSPARENT background (Higgsfield asset,
- *  cutout via corner floodfill — see IMAGE-PROMPTS.md). Transparent so only the
- *  bun rotates as it travels, with no square/ghost background behind it. */
+/** THE pistachio snúður, from Reynir's own 2020 shoot, masked to a circle so
+ *  the medallion can turn without revealing a rectangle behind it. A true
+ *  cutout was attempted and abandoned: the bun's pale crust and the baking
+ *  parchment sit too close in tone, so every threshold that removed the paper
+ *  also ate the crust. The circle keeps a sliver of parchment, which reads as
+ *  paper rather than as an error. */
 export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.webp`
-/** Torn-open, gooey pistachio snúður (Higgsfield) — the framed product shot in
- *  the featured slot. */
-export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-torn.jpg`
+/** The same bun wider, keeping the caramel running off the edge — the framed
+ *  product shot in the featured slot. */
+export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-bakki.jpg`
+/** The shop itself: their wall of framed black-and-white bakery photographs,
+ *  the "HANDVERKSBAKARÍ" sign, and the tables you can sit at. */
+export const SHOP_IMG = `${import.meta.env.BASE_URL}reynir/bud.webp`
 
 export const LINKS = {
   order: 'https://www.aha.is/veitingar/reynir-bakari',
@@ -100,34 +111,43 @@ export const REVIEWS: Review[] = [
 ]
 
 export interface GalleryPhoto {
+  /** Full-size frame, used by the lightbox. */
   src: string
+  /** 800px variant for the masonry tile; paired with src via srcset. */
+  srcSm: string
   /** Intrinsic pixel size, used only to reserve aspect ratio (no layout shift). */
   w: number
   h: number
   caption: { en: string; is: string }
 }
 
-/** Candid black-and-white bakery photography, harvested from their own site
- *  (reynirbakari.is/um-okkur) at full native resolution — real bakers, real
- *  ovens, the shop floor. Two near-duplicate rack shots were dropped from the
- *  live site's set of 18; the rest is shown here. */
+/** Reynir's own professional shoot (August 2020), in the photographer's own
+ *  black-and-white selects, at full resolution from the originals — these
+ *  replace the ~1700px versions previously harvested off their Wix site.
+ *
+ *  Ordered as one morning rather than as sixteen nice pictures: the dough is
+ *  mixed, weighed and shaped, the cinnamon goes on, the rolls are cut, the
+ *  ovens are loaded and emptied, the cakes and sandwiches are finished, and
+ *  the room is working. Chosen from 220 frames; see reynir-photo-map.md for
+ *  the full selection and what was left out. */
 export const GALLERY: GalleryPhoto[] = [
-  { src: gal('01'), w: 1564, h: 1426, caption: { en: 'Shaping the morning’s first loaves', is: 'Fyrstu brauðin mótuð að morgni' } },
-  { src: gal('02'), w: 1700, h: 1134, caption: { en: 'Into the deck oven', is: 'Í ofninn' } },
-  { src: gal('03'), w: 1088, h: 1120, caption: { en: 'Building the day’s sandwiches', is: 'Samlokur settar saman' } },
-  { src: gal('04'), w: 1700, h: 1360, caption: { en: 'Checking the bread rack', is: 'Litið eftir brauðunum' } },
-  { src: gal('05'), w: 1700, h: 1359, caption: { en: 'Sourdough, shaped by hand', is: 'Súrdeig mótað í höndunum' } },
-  { src: gal('08'), w: 1360, h: 1700, caption: { en: 'Working the dough', is: 'Deigið hnoðað' } },
-  { src: gal('07'), w: 1700, h: 1133, caption: { en: 'A slice of the day’s cake', is: 'Sneið af dagsins köku' } },
-  { src: gal('14'), w: 1360, h: 1700, caption: { en: 'Loading the deck oven', is: 'Brauðin sett í ofninn' } },
-  { src: gal('12'), w: 1700, h: 1360, caption: { en: 'The old Fortuna mixer, still at work', is: 'Gamla Fortuna-hrærivélin enn í notkun' } },
-  { src: gal('17'), w: 1134, h: 1700, caption: { en: 'Cutting the dough to weight', is: 'Deigið vigtað og skorið' } },
-  { src: gal('11'), w: 1565, h: 1252, caption: { en: 'Cream puffs, fresh', is: 'Rjómabollur, nýjar' } },
-  { src: gal('18'), w: 1134, h: 1700, caption: { en: 'The final shape, by hand', is: 'Lokahnykkurinn, með höndunum' } },
-  { src: gal('15'), w: 1134, h: 1700, caption: { en: 'Shaping the rolls', is: 'Bollur mótaðar' } },
-  { src: gal('09'), w: 640, h: 428, caption: { en: 'Fresh from the counter', is: 'Nýbakað úr búðinni' } },
-  { src: gal('10'), w: 1200, h: 800, caption: { en: 'A celebration cake, plated', is: 'Tertan tilbúin' } },
-  { src: gal('13'), w: 640, h: 960, caption: { en: 'A finished creation', is: 'Fullbúið verk' } },
+  { src: gal('01'), srcSm: galSm('01'), w: 1335, h: 2000, caption: { en: 'Lifting the dough from the tub', is: 'Deigið lyft upp úr karinu' } },
+  { src: gal('02'), srcSm: galSm('02'), w: 1335, h: 2000, caption: { en: 'The dough goes in to rest', is: 'Deigið sett í kar' } },
+  { src: gal('03'), srcSm: galSm('03'), w: 2000, h: 1335, caption: { en: 'Flour across the bench', is: 'Hveiti yfir borðið' } },
+  { src: gal('04'), srcSm: galSm('04'), w: 1335, h: 2000, caption: { en: 'Cutting the dough to weight', is: 'Deigið vigtað og skorið' } },
+  { src: gal('05'), srcSm: galSm('05'), w: 1335, h: 2000, caption: { en: 'Shaped by hand', is: 'Mótað í höndunum' } },
+  { src: gal('06'), srcSm: galSm('06'), w: 1335, h: 2000, caption: { en: 'Spreading the cinnamon', is: 'Kanilsmjörið smurt á' } },
+  { src: gal('07'), srcSm: galSm('07'), w: 1335, h: 2000, caption: { en: 'Cutting the roll', is: 'Rúllan skorin' } },
+  { src: gal('08'), srcSm: galSm('08'), w: 1335, h: 2000, caption: { en: 'The scissor cut that makes a snúður', is: 'Klippt í snúða' } },
+  { src: gal('09'), srcSm: galSm('09'), w: 1335, h: 2000, caption: { en: 'A tray, shaped and ready', is: 'Bakkinn mótaður og tilbúinn' } },
+  { src: gal('10'), srcSm: galSm('10'), w: 2000, h: 1335, caption: { en: 'Into the deck oven', is: 'Sett í steinofninn' } },
+  { src: gal('11'), srcSm: galSm('11'), w: 2000, h: 1335, caption: { en: 'The oven’s glow', is: 'Ofninn glóir' } },
+  { src: gal('12'), srcSm: galSm('12'), w: 1335, h: 2000, caption: { en: 'The tin loaf, out', is: 'Formbrauðið úr ofninum' } },
+  { src: gal('13'), srcSm: galSm('13'), w: 1335, h: 2000, caption: { en: 'Straight from the oven', is: 'Beint úr ofninum' } },
+  { src: gal('14'), srcSm: galSm('14'), w: 1335, h: 2000, caption: { en: 'Glazing the buns', is: 'Bollurnar gljáðar' } },
+  { src: gal('15'), srcSm: galSm('15'), w: 1335, h: 2000, caption: { en: 'The cake gets its cream', is: 'Rjóminn á tertuna' } },
+  { src: gal('16'), srcSm: galSm('16'), w: 1335, h: 2000, caption: { en: 'Building the day’s sandwiches', is: 'Samlokur dagsins settar saman' } },
+  { src: gal('17'), srcSm: galSm('17'), w: 2000, h: 1335, caption: { en: 'The bakery at work', is: 'Bakaríið að störfum' } },
 ]
 
 /** The house favourite — the pistachio Danish guests single out. */
@@ -237,7 +257,7 @@ export const T = {
     breadNote: 'Prices as listed on aha.is.',
     galleryKicker: 'Behind the counter',
     galleryTitle: 'In the bakery.',
-    galleryIntro: 'Sourdough on the bench, the ovens running since six every morning. A look at the everyday craft, in photos.',
+    galleryIntro: 'Sourdough on the bench and the ovens already running before the doors open. A look at the everyday craft, in photos.',
     galleryClose: 'Close',
     galleryPrev: 'Previous photo',
     galleryNext: 'Next photo',
@@ -289,7 +309,7 @@ export const T = {
     breadNote: 'Verð eins og þau birtast á aha.is.',
     galleryKicker: 'Bakvið borðið',
     galleryTitle: 'Í bakaríinu.',
-    galleryIntro: 'Súrdeigið á borðinu, ofnarnir í gangi frá klukkan sex á morgnana. Innsýn í daglegt handverk, í myndum.',
+    galleryIntro: 'Súrdeigið á borðinu og ofnarnir komnir í gang áður en opnað er. Innsýn í daglegt handverk, í myndum.',
     galleryClose: 'Loka',
     galleryPrev: 'Fyrri mynd',
     galleryNext: 'Næsta mynd',

@@ -67,6 +67,10 @@ export interface OrderProduct {
   name: Bilingual
   blurb: Bilingual
   basePrice: number
+  /** Square product photo. OPTIONAL on purpose: a product the owner adds in
+   *  the CMS before uploading a picture must still render a correct card, so
+   *  every card treats the image as an enhancement, never as structure. */
+  image?: string
   /** Minimum days of notice. Drives the earliest selectable pickup date. */
   leadDays: number
   /** Free-text line piped onto the product, e.g. writing on a cake. */
@@ -84,6 +88,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
       is: 'Sérbökuð fyrir afmæli, fermingar og stórafmæli.',
     },
     basePrice: 8900,
+    image: `${import.meta.env.BASE_URL}reynir/order/terta.webp`,
     leadDays: 3,
     inscription: {
       label: { en: 'Writing on the cake', is: 'Áletrun á tertuna' },
@@ -164,6 +169,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
       is: 'Snittur og brauðréttir, lagað að morgni þess dags sem sótt er.',
     },
     basePrice: 6400,
+    image: `${import.meta.env.BASE_URL}reynir/order/veislubakki.webp`,
     leadDays: 2,
     groups: [
       {
@@ -201,6 +207,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
       is: 'Bakki af bakkelsi dagsins fyrir fundi og mannfagnaði.',
     },
     basePrice: 4900,
+    image: `${import.meta.env.BASE_URL}reynir/order/bakkelsi.webp`,
     leadDays: 2,
     groups: [
       {

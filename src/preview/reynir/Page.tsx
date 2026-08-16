@@ -22,7 +22,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
-import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, LOGO, FEATURE_IMG, PRODUCT_IMG } from './data'
+import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG } from './data'
 import { BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY } from './tokens'
 import OrderTeaser from './OrderTeaser'
 import MapCard from './MapCard'
@@ -56,9 +56,13 @@ const PAGE_CSS = `
   @keyframes rb-marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .rb-marquee-track { display:flex; width:max-content; animation:rb-marquee 36s linear infinite; }
 
-  /* the hero pistachio turns slowly and smoothly, in place */
+  /* the hero pistachio turns slowly and smoothly, in place. It is a real
+     photograph masked to a circle rather than a cutout, so it carries a gold
+     hairline and a soft drop to read as a struck medallion rather than as a
+     photo that happens to be round. */
   @keyframes rb-hero-spin { to { transform:rotate(360deg); } }
-  .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%; }
+  .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%;
+    border-radius:50%; box-shadow:0 0 0 1px rgba(238,211,170,.34), 0 34px 70px -22px rgba(0,0,0,.85); }
 
   /* ── intro loader: the gold script writes itself on, as if piped ──────────── */
   .rb-intro { position:fixed; inset:0; z-index:9999; background:${INK};
@@ -243,7 +247,22 @@ function MenuRow({ item, lang }: { item: MenuItem; lang: Lang }) {
 function GalleryTile({ photo, lang, onOpen, style }: { photo: GalleryPhoto; lang: Lang; onOpen: () => void; style?: CSSProperties }) {
   return (
     <button type="button" className="rb-gallery-item" data-reveal style={style} onClick={onOpen} aria-label={photo.caption[lang]}>
-      <img src={photo.src} alt={photo.caption[lang]} loading="lazy" decoding="async" style={{ aspectRatio: `${photo.w} / ${photo.h}` }} />
+      {/* Tiles render around 380px wide, so let the browser take the 800px
+          variant here and keep the 2000px file for the lightbox. */}
+      <img
+        src={photo.srcSm}
+        srcSet={`${photo.srcSm} 800w, ${photo.src} 2000w`}
+        /* The tile is 31vw only until the 1180px container caps it at 384px
+           (1180 minus two 14px gaps, over three columns). Saying "31vw" past
+           that point overstates the slot, and on a 2× screen the browser then
+           reaches past the 800px file for the 2000px one — which is exactly
+           the download the small variant exists to avoid. */
+        sizes="(max-width:480px) 92vw, (max-width:820px) 46vw, (max-width:1239px) 31vw, 384px"
+        alt={photo.caption[lang]}
+        loading="lazy"
+        decoding="async"
+        style={{ aspectRatio: `${photo.w} / ${photo.h}` }}
+      />
       <span className="rb-gallery-cap" aria-hidden="true">{photo.caption[lang]}</span>
     </button>
   )
@@ -703,6 +722,21 @@ function ReynirPageInner() {
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT }}>{t.visitTitle}</h2>
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold" style={{ marginTop: 'clamp(24px,4vh,36px)' }}>{t.orderPrimary}</a>
               <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
+
+              {/* The room itself, above the map: their own wall of framed
+                  black-and-white bakery photographs and the tables you can
+                  sit at. A map says where; this says what it is like. */}
+              <figure style={{ margin: 'clamp(24px,3.5vh,32px) 0 0', borderRadius: 4, overflow: 'hidden', border: `1px solid ${HAIR}` }}>
+                <img
+                  src={SHOP_IMG}
+                  alt={lang === 'en' ? 'Inside Reynir bakari on Dalvegur: a wall of framed black-and-white bakery photographs above the tables' : 'Inni í Reyni bakara á Dalvegi: veggur með innrömmuðum svarthvítum myndum úr bakaríinu fyrir ofan borðin'}
+                  width={1900}
+                  height={1400}
+                  loading="lazy"
+                  decoding="async"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+              </figure>
 
               {/* the map fills this column's dead space, opposite the addresses */}
               <MapCard

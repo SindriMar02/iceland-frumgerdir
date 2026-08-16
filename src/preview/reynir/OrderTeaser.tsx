@@ -24,7 +24,13 @@ const TEASER_CSS = `
   .rb-tease-grid > * { flex:1 1 240px; max-width:calc(33.333% - 7px); }
   .rb-tease-card { display:flex; flex-direction:column; gap:7px; text-decoration:none;
     padding:20px 18px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
+    overflow:hidden;
     transition:border-color .24s ${EASE}, background .24s ${EASE}, transform .2s ${EASE}; }
+  /* Optional product photo — a product without one still renders a full card. */
+  .rb-tease-pic { margin:-20px -18px 12px; aspect-ratio:4 / 3; overflow:hidden; background:#0B0A09; }
+  .rb-tease-pic img { width:100%; height:100%; object-fit:cover; display:block;
+    filter:saturate(.96) brightness(.92); transition:transform .55s ${EASE}, filter .4s ${EASE}; }
+  .rb-tease-card:hover .rb-tease-pic img { transform:scale(1.045); filter:saturate(1) brightness(1); }
   .rb-tease-card:hover { border-color:${GOLD}; background:rgba(200,168,119,.08); transform:translateY(-2px); }
   .rb-tease-card:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; }
   .rb-tease-name { font-family:${DISPLAY}; font-size:clamp(20px,2.1vw,25px); color:${IVORY}; line-height:1.15;
@@ -65,6 +71,11 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
         <div className="rb-tease-grid">
           {ORDER_PRODUCTS.map((p) => (
             <Link key={p.id} to={`${orderPath}?vara=${p.id}`} className="rb-tease-card">
+              {p.image && (
+                <span className="rb-tease-pic">
+                  <img src={p.image} alt="" loading="lazy" decoding="async" width={1400} height={1050} />
+                </span>
+              )}
               <span className="rb-tease-name">{p.name[lang]}</span>
               <span className="rb-tease-from">{lang === 'is' ? 'frá' : 'from'} {isk(p.basePrice)}</span>
               <span className="rb-tease-blurb">{p.blurb[lang]}</span>

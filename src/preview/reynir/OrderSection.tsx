@@ -71,15 +71,30 @@ const ORDER_CSS = `
   .rb-ord-prods > * { flex:1 1 210px; max-width:calc(33.333% - 7px); }
   .rb-ord-prod { position:relative; display:flex; flex-direction:column; gap:6px; text-align:left; cursor:pointer;
     padding:16px 15px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
+    overflow:hidden;
     transition:border-color .22s ${EASE}, background .22s ${EASE}, transform .16s ${EASE}; }
+  /* Product photo. The card is built so this can be absent — a product added
+     in the CMS before its picture exists simply renders the text card. */
+  .rb-ord-prod-pic { margin:-16px -15px 10px; aspect-ratio:1 / 1; overflow:hidden; background:${INK}; }
+  .rb-ord-prod-pic img { width:100%; height:100%; object-fit:cover; display:block;
+    filter:saturate(.96) brightness(.94); transition:transform .5s ${EASE}, filter .35s ${EASE}; }
+  .rb-ord-prod:hover .rb-ord-prod-pic img { transform:scale(1.04); filter:saturate(1) brightness(1); }
+  .rb-ord-prod[data-on="true"] .rb-ord-prod-pic img { filter:saturate(1) brightness(1); }
   .rb-ord-prod:hover { border-color:rgba(238,211,170,.4); background:rgba(243,234,211,.05); }
   .rb-ord-prod:active { transform:scale(.99); }
   .rb-ord-prod[data-on="true"] { border-color:${GOLD}; background:rgba(200,168,119,.09); }
   .rb-ord-prod-name { font-family:${DISPLAY}; font-size:19px; line-height:1.15; color:${IVORY}; padding-right:24px; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-name { color:${GOLD_LIGHT}; }
   .rb-ord-prod-from { font-size:12.5px; color:${DIM}; font-variant-numeric:tabular-nums; }
-  .rb-ord-prod-mark { position:absolute; top:14px; right:14px; width:17px; height:17px; border-radius:50%;
-    border:1px solid rgba(238,211,170,.4); display:flex; align-items:center; justify-content:center;
+  /* z-index is load-bearing, not decoration: the product photo carries a
+     filter, which gives it its own stacking context, and a stacking context
+     with z-index:auto paints in the positioned layer in DOM order — putting
+     the later <img> on top of this earlier absolute mark and hiding the
+     selected state entirely. The ring behind it keeps the mark legible over
+     a photograph rather than only over the dark card. */
+  .rb-ord-prod-mark { position:absolute; z-index:2; top:14px; right:14px; width:17px; height:17px; border-radius:50%;
+    border:1px solid rgba(238,211,170,.55); display:flex; align-items:center; justify-content:center;
+    background:rgba(11,10,9,.45); box-shadow:0 0 0 3px rgba(11,10,9,.35);
     transition:border-color .2s ${EASE}, background .2s ${EASE}; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-mark { border-color:${GOLD}; background:${GOLD}; }
   .rb-ord-prod-mark svg { opacity:0; transform:scale(.6); transition:opacity .18s ${EASE}, transform .18s ${EASE}; }
@@ -212,6 +227,10 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
     .rb-ord-prods > * { max-width:100%; flex-basis:100%; }
+    /* Cards go full width here, so a square photo would be ~390px tall each
+       and push the actual choices three screens down. A letterbox keeps the
+       product visible without burying the form. */
+    .rb-ord-prod-pic { aspect-ratio:16 / 9; }
     /* the sticky bar already draws a divider, so the step right under it must
        not draw a second one. Adjacent-sibling, not :first-of-type, because the
        bar is itself the first div sibling. */
@@ -568,6 +587,11 @@ export default function OrderSection({
                         onChange={() => setProductId(p.id)}
                       />
                       <span className="rb-ord-prod-mark" aria-hidden="true"><Check /></span>
+                      {p.image && (
+                        <span className="rb-ord-prod-pic">
+                          <img src={p.image} alt="" loading="lazy" decoding="async" width={1400} height={1400} />
+                        </span>
+                      )}
                       <span className="rb-ord-prod-name">{p.name[lang]}</span>
                       <span className="rb-ord-prod-from">{lang === 'is' ? 'frá' : 'from'} {isk(p.basePrice)}</span>
                     </label>

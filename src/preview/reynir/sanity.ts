@@ -86,9 +86,18 @@ const client = createClient({
 const builder = imageUrlBuilder({ projectId: 'v4v3s4wg', dataset: 'production' })
 
 type RawImg = { asset?: { _ref?: string }; hotspot?: { x?: number; y?: number } } | null | undefined
-function mkGalleryPic(img: RawImg, fallback: GalleryPhoto): { src: string; w: number; h: number } {
-  if (!img?.asset?._ref) return { src: fallback.src, w: fallback.w, h: fallback.h }
-  return { src: builder.image(img).width(1600).quality(80).auto('format').url(), w: fallback.w, h: fallback.h }
+/** A CMS gallery upload, rendered at both sizes the tile/lightbox pair needs.
+ *  Falls back to the bundled frame whole — never half-CMS, half-bundle. */
+function mkGalleryPic(img: RawImg, fallback: GalleryPhoto): { src: string; srcSm: string; w: number; h: number } {
+  if (!img?.asset?._ref) return { src: fallback.src, srcSm: fallback.srcSm, w: fallback.w, h: fallback.h }
+  const at = (w: number) => builder.image(img).width(w).quality(80).auto('format').url()
+  return { src: at(2000), srcSm: at(800), w: fallback.w, h: fallback.h }
+}
+
+/** A CMS product photo, square to match the bundled crops. */
+function mkProductPic(img: RawImg): string | undefined {
+  if (!img?.asset?._ref) return undefined
+  return builder.image(img).width(1400).height(1400).fit('crop').quality(84).auto('format').url()
 }
 
 /* ── Hours: 7-entry array (0=Sun..6=Sat), minutes-from-midnight, matches
@@ -220,7 +229,7 @@ const QUERY = `{
   "reviews": *[_type=="review"]|order(order asc){quote, who},
   "gallery": *[_type=="galleryImage"]|order(order asc){image{asset,hotspot}, caption},
   "orderProducts": *[_type=="orderProduct" && active != false]|order(order asc){
-    "id": id.current, name, blurb, basePrice, leadDays, inscription,
+    "id": id.current, name, blurb, basePrice, leadDays, inscription, image{asset,hotspot},
     groups[]{"id": id.current, kind, label, help, required, max,
       choices[]{"id": id.current, label, priceDelta, note}}
   },
@@ -246,6 +255,9 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
       name: biSelf(d.name),
       blurb: biSelf(d.blurb),
       basePrice: typeof d.basePrice === 'number' ? d.basePrice : 0,
+      // CMS photo when uploaded, otherwise the bundled crop for a product we
+      // already ship one for. A brand-new product with neither still renders.
+      image: mkProductPic(d.image) ?? ORDER_PRODUCTS.find((p) => p.id === String(d.id || ''))?.image,
       leadDays: typeof d.leadDays === 'number' ? d.leadDays : 0,
       inscription: d.inscription?.label
         ? {
@@ -328,7 +340,7 @@ function merge(raw: any): SiteContent {
     ? raw.gallery.map((g: any, i: number) => {
         const fb = GALLERY[i % GALLERY.length]
         const pic = mkGalleryPic(g?.image, fb)
-        return { src: pic.src, w: pic.w, h: pic.h, caption: g?.caption ? biSelf(g.caption) : fb.caption }
+        return { src: pic.src, srcSm: pic.srcSm, w: pic.w, h: pic.h, caption: g?.caption ? biSelf(g.caption) : fb.caption }
       })
     : GALLERY
 
