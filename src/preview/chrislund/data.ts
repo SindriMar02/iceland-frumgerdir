@@ -137,9 +137,21 @@ export const companyEntry: PreviewCompany = {
   },
   positioning:
     'Christopher Lund hefur ljósmyndað í yfir tuttugu ár og gefið út bók með 130 landslagsmyndum, en sýndi aðeins tólf þeirra á vegg. Vefurinn er byggður á þeirri ritstjórn: sýningarveggur sem gengið er eftir, ein mynd í einu, í fullri stærð.',
+  /* Re-measured on chris.is 2026-08-16 and two claims had to change. The front
+     page now serves its slideshow at 1440px, so "the largest image the site
+     shows" was falsifiable the moment he opened it; the 311px figure is real
+     but belongs to /verkefnin (/baekur is 472px). And Vitni ran 6 June to 13
+     September 2020, so it is named with its year rather than as recent work. */
   outreach: {
-    subject: 'Hugmynd að nýjum vef fyrir ljósmyndastofuna',
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Christopher Lund',
     body:
-      'Sæll Christopher,\n\nÉg heiti Sindri og hanna vefsíður. Ég skoðaði chris.is og tók eftir að stærsta mynd sem síðan sýnir gestum er 311 pixlar á breidd, og forsíðan hefur engan lesanlegan texta fyrir Google. Myndirnar þínar eiga betra skilið.\n\nÉg setti saman frumgerð að vef sem hangir eins og sýningarveggur: fáar myndir í fullri stærð, bókin þín og VITNI-sýningin í öndvegi. Allt á síðunni eru þínar eigin myndir og þín eigin merki.\n\nÞetta kostar þig ekki neitt og því fylgir engin skuldbinding.\n\nBestu kveðjur,\nSindri',
+      'Sæll Christopher,\n\n' +
+      'Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki. Ég skoðaði chris.is og staldraði við Vitni, sýninguna sem þú settir upp í Ljósmyndasafni Reykjavíkur sumarið 2020. Að snúa vélinni að ferðamanninum sjálfum, einmitt sumarið sem hann var hvergi, er hugmynd sem stendur enn.\n\n' +
+      'Eitt rakst ég þó á. Á verkefnasíðunni birtast myndirnar 311 pixla breiðar og á bókarsíðunni 472, og forsíðan hefur hvorki fyrirsagnir né lesanlegan texta, þannig að Google hefur ekkert að lesa á henni. Ein slóðin heitir enn copy-of-arkitektur.\n\n' +
+      'Ég setti saman frumgerð að vef sem hangir eins og sýningarveggur: fáar myndir í fullri stærð, gengið eftir þeim einni í einu, með bókinni og sýningunni í öndvegi. Allar myndir og merki á síðunni eru þín eigin.\n\n' +
+      'Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.\n\n' +
+      'Hana má skoða hér hvenær sem er, og hún virkar vel í síma:\n[HLEKKUR Á FRUMGERÐ]\n\n' +
+      'Ef þér líst á er ég til í að heyra frá þér, en ef ekki er það að sjálfsögðu allt í lagi.\n\n' +
+      'Bestu kveðjur,\nSindri Már\n845 1758\nsndr-studio.pages.dev',
   },
 }

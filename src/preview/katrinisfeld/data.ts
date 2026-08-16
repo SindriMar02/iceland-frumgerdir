@@ -156,9 +156,19 @@ export const companyEntry: PreviewCompany = {
   },
   positioning:
     'Katrín Ísfeld hannar innanhús frá grunni fyrir heimili, gistiheimili og hótel. Vefurinn er byggður eins og hún hannar: gesturinn kemur inn í eitt rými í einu, hvert með sínum litheimi, og verkefnaskráin öll stendur opin eins og teikningaskápur.',
+  /* Observation paragraph re-measured on katrinisfeld.is 2026-08-16: 0 h1/h2/h3,
+     238 characters of front-page text, 30 CSS-background images against 2 real
+     ones, and a meta description that ends on the slider's Previous and Next. */
   outreach: {
-    subject: 'Hugmynd að nýjum vef fyrir stúdíóið',
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Katrínu Ísfeld',
     body:
-      'Sæl Katrín,\n\nÉg heiti Sindri og hanna vefsíður. Verkefnin þín á katrinisfeld.is eru sterk, en síðan sjálf heldur þeim frá Google: hver einasta ljósmynd er CSS-bakgrunnur, forsíðan er án fyrirsagna og lýsingin sem birtist í leitarniðurstöðum er slitur úr myndasleða.\n\nÉg setti saman frumgerð þar sem verkefnaskráin þín öll, 23 verk í fjórum flokkum, ber síðuna, og litheimur verkefnanna sjálfra litar hana. Allt á síðunni eru þínar eigin myndir.\n\nÞetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\nBestu kveðjur,\nSindri',
+      'Sæl Katrín,\n\n' +
+      'Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki. Ég skoðaði katrinisfeld.is og það sem sat eftir var breiddin: 23 verk í fjórum flokkum, allt frá eldhúsum og baðherbergjum upp í gistiheimili og hótel, og ljósmyndunin á þeim er samræmd og sterk.\n\n' +
+      'Eitt rakst ég þó á. Forsíðan hefur engar fyrirsagnir og 238 stafi af texta, myndirnar eru nær allar settar inn sem bakgrunnur í stað raunverulegra mynda, og lýsingin sem birtist í Google endar á orðunum Previous og Next, sem eru hnappar úr myndasleðanum. Verkin þín eru því nánast ósýnileg í leit.\n\n' +
+      'Ég setti saman frumgerð þar sem verkefnaskráin þín öll ber síðuna og hvert verk fær sína eigin mynd í fullri upplausn. Allar myndir á síðunni eru þínar eigin.\n\n' +
+      'Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.\n\n' +
+      'Hana má skoða hér hvenær sem er, og hún virkar vel í síma:\n[HLEKKUR Á FRUMGERÐ]\n\n' +
+      'Ef þér líst á er ég til í að heyra frá þér, en ef ekki er það að sjálfsögðu allt í lagi.\n\n' +
+      'Bestu kveðjur,\nSindri Már\n845 1758\nsndr-studio.pages.dev',
   },
 }

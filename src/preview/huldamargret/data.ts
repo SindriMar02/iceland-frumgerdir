@@ -145,9 +145,19 @@ export const companyEntry: PreviewCompany = {
   },
   positioning:
     'Hulda Margrét ljósmyndar allt frá stjórnendaportrettum upp í landsleiki og brúðkaup. Vefurinn er byggður utan um safnið sjálft: hver tegund verks fær sinn kafla, verðskráin er hennar eigin og merkjaveggurinn sýnir hverjir hringja aftur.',
+  /* Observation paragraph re-measured on huldamargret.is 2026-08-16: images are
+     stored at 2001px and painted at 241px, and the meta description AIOSEO
+     serves Google is a keyword list, not a sentence. */
   outreach: {
-    subject: 'Hugmynd að nýjum vef fyrir ljósmyndastúdíóið',
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Huldu Margréti',
     body:
-      'Sæl Hulda,\n\nÉg heiti Sindri og hanna vefsíður. Ég rakst á vefinn þinn og sá að myndirnar þínar, verðskráin og viðskiptavinalistinn eru sterkari en umgjörðin sem heldur utan um þau.\n\nÉg setti saman frumgerð að nýjum vef þar sem safnið sjálft ber síðuna: stjórnendaportrett, íþróttir, fermingar, brúðkaup og viðburðir, hvert með sínum kafla. Allt á síðunni eru þínar eigin myndir og þín eigin verð.\n\nÞetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\nBestu kveðjur,\nSindri',
+      'Sæl Hulda,\n\n' +
+      'Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki. Ég rakst á vefinn þinn og staldraði við safnið: stjórnendaportrett, íþróttir, brúðkaup og viðburðir, og merki þeirra sem hringja aftur, Harpa, KSÍ, Stöð 2 og Vodafone. Það er sterkari listi en flestir ljósmyndarar hér geta sýnt.\n\n' +
+      'Eitt rakst ég þó á. Myndirnar þínar liggja á vefnum í rúmlega 2000 pixla breidd en birtast gestum í mesta lagi 241 pixla breiðar, og línan sem Google birtir undir nafninu þínu er listi af leitarorðum frekar en setning. Sniðmátið heldur myndunum minni en þær eru.\n\n' +
+      'Ég setti saman frumgerð að nýjum vef þar sem safnið sjálft ber síðuna: portrett, íþróttir, fermingar, brúðkaup og viðburðir, hvert með sínum kafla, ásamt verðskránni þinni og merkjaveggnum. Allar myndir á síðunni eru þínar eigin, sóttar í fullri upplausn.\n\n' +
+      'Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.\n\n' +
+      'Hana má skoða hér hvenær sem er, og hún virkar vel í síma:\n[HLEKKUR Á FRUMGERÐ]\n\n' +
+      'Ef þér líst á er ég til í að heyra frá þér, en ef ekki er það að sjálfsögðu allt í lagi.\n\n' +
+      'Bestu kveðjur,\nSindri Már\n845 1758\nsndr-studio.pages.dev',
   },
 }
