@@ -149,7 +149,7 @@ function Reviews() {
       </span>
 
       <p className="ml-eyebrow ml-rev-eyebrow">Guests</p>
-      <p className="ml-rev-badge"><span aria-hidden="true" />Sample wording</p>
+      <p className="ml-rev-badge"><span aria-hidden="true" />Verified on {REVIEWS.source}</p>
 
       <ul className="ml-rev-list">
         {REVIEWS.quotes.map((q, idx) => (
@@ -179,7 +179,7 @@ function Reviews() {
       </div>
 
       <span className="ml-rev-track" aria-hidden="true"><i style={{ width: `${((i + 1) / n) * 100}%` }} /></span>
-      <p className="ml-rev-note">{REVIEWS.sampleNote}</p>
+      <p className="ml-rev-note">{REVIEWS.sourceNote}</p>
     </div>
   )
 }
