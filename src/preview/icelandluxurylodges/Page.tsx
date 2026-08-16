@@ -6,7 +6,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, INSTAGRAM, FACEBOOK,
-  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, QUOTE, BOOKING, JSON_LD,
+  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, JSON_LD,
 } from './data'
 
 const company = companyEntry
@@ -163,6 +163,101 @@ const WALK_CHAPTERS = [
   { at: 0.65, n: '04', label: 'The spa' },
   { at: 0.9, n: '05', label: 'The sauna' },
 ]
+
+/* ── GUEST WORDS ──────────────────────────────────────────────────────────
+   21st.dev "Design Testimonial" devices, on the night the guests describe:
+   Shawn R.'s review says he watched the northern lights FROM THE HOT TUB, so
+   the quotes sit on that exact deck, at night, with the aurora moving. The
+   film is their own verified photograph relit — same lodge, same fire pit,
+   same tub, no people — not a stock night sky.
+
+   Class-toggled, never mount-state: every quote stays mounted and only
+   `.is-on` moves. Auto-advances, and any click or key stops the auto-advance
+   for good, because a carousel that keeps yanking itself away from a reader
+   who has taken control is hostile. */
+function Reviews() {
+  const [i, setI] = useState(0)
+  const [held, setHeld] = useState(false)
+  const [film, setFilm] = useState(false)
+  const n = REVIEWS.quotes.length
+
+  useEffect(() => {
+    if (reduced || held) return
+    const t = window.setInterval(() => setI((v) => (v + 1) % n), 7000)
+    return () => window.clearInterval(t)
+  }, [n, held])
+
+  useEffect(() => {
+    if (reduced) return
+    const con = (navigator as { connection?: { saveData?: boolean } }).connection
+    if (con?.saveData) return
+    setFilm(true)
+  }, [])
+
+  const go = (d: number) => { setHeld(true); setI((v) => (v + d + n) % n) }
+  const cur = REVIEWS.quotes[i]
+
+  return (
+    <section className="ill-rev" aria-label="Guest reviews">
+      <div className="ill-rev-bed" aria-hidden="true">
+        <img src={IMG.auroraStill} alt="" loading="lazy" decoding="async" />
+        {film && (
+          <video className="ill-rev-film" src={IMG.auroraFilm} poster={IMG.auroraStill}
+            autoPlay muted loop playsInline aria-hidden="true" />
+        )}
+      </div>
+
+      <div className="ill-rev-inner">
+        <span className="ill-rev-ord" aria-hidden="true">
+          {REVIEWS.quotes.map((q, idx) => (
+            <b key={q.name} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
+          ))}
+        </span>
+
+        <p className="ill-rev-badge">
+          <span aria-hidden="true" />{REVIEWS.score} · {REVIEWS.count} · verified on {REVIEWS.source}
+        </p>
+
+        <ul className="ill-rev-list">
+          {REVIEWS.quotes.map((q, idx) => (
+            <li key={q.name} className={`ill-rev-q ${idx === i ? 'is-on' : ''}`} aria-hidden={idx !== i}>
+              <blockquote>
+                {q.text.split(' ').flatMap((w, k, all) => [
+                  <span className="ill-rev-w" key={`${w}-${k}`}>
+                    {/* +200ms so the words start only after the outgoing
+                        quote has cleared the cell */}
+                    <i style={{ transitionDelay: idx === i ? `${200 + Math.min(k, 26) * 26}ms` : '0ms' }}>{w}</i>
+                  </span>,
+                  ...(k < all.length - 1 ? [' '] : []),
+                ])}
+              </blockquote>
+            </li>
+          ))}
+        </ul>
+
+        <div className="ill-rev-foot">
+          <p className="ill-rev-who"><i aria-hidden="true" />{cur.name} · {cur.meta}</p>
+          <div className="ill-rev-nav">
+            <button type="button" aria-label="Previous review" onClick={() => go(-1)}>
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <button type="button" aria-label="Next review" onClick={() => go(1)}>
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="ill-rev-rail" aria-hidden="true">
+          {REVIEWS.quotes.map((q, idx) => (
+            <span key={q.name} className={idx === i ? 'is-on' : ''} />
+          ))}
+        </div>
+
+        <p className="ill-rev-note">{REVIEWS.sourceNote}</p>
+      </div>
+    </section>
+  )
+}
 
 function Walkthrough({ still, label, lead }: { still: string; label: string; lead: string }) {
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -695,10 +790,7 @@ export default function Page() {
         </section>
 
         {/* ── quote ── */}
-        <section className="ill-quote">
-          <Rise as="p" className="ill-quote-text">“{QUOTE.text}”</Rise>
-          <Rise as="p" className="ill-quote-meta">{QUOTE.name} · {QUOTE.meta}</Rise>
-        </section>
+        <Reviews />
 
         {/* ── request-to-book ── */}
         <section className="ill-book" id="bokun">
@@ -940,10 +1032,69 @@ const STYLES = `
 .ill-fourth-rule{width:56px;height:1px;background:rgba(233,240,243,.28);margin-bottom:6px}
 
 /* ── quote ── */
-.ill-quote{padding:0 clamp(20px,6vw,72px) clamp(90px,14vh,160px);text-align:center}
-.ill-quote-text .ill-rise-in{font-family:var(--serif);font-size:clamp(1.5rem,3.4vw,2.5rem);line-height:1.3;max-width:26ch;margin:0 auto}
-.ill-quote-meta{margin-top:16px}
-.ill-quote-meta .ill-rise-in{font-size:.85rem;color:var(--ink-mute)}
+/* ══ guest words, on the night they describe ══ */
+.ill-rev{position:relative;isolation:isolate;overflow:hidden;background:#080d12;
+  padding:clamp(80px,14vh,150px) clamp(20px,6vw,80px) clamp(74px,12vh,130px)}
+.ill-rev-bed{position:absolute;inset:0;z-index:0}
+.ill-rev-bed img,.ill-rev-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ill-rev-film{z-index:1}
+/* the type sits on the film, so the film needs a floor */
+/* two scrims, not one: a lateral wash so the column always has a dark ground,
+   and a top band because the quote's first line sits against open sky, which
+   is the brightest part of the frame */
+.ill-rev::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(to bottom,rgba(6,11,16,.72),rgba(6,11,16,.18) 42%,transparent 62%),
+    linear-gradient(to right,rgba(6,11,16,.88),rgba(6,11,16,.6) 48%,rgba(6,11,16,.2) 82%)}
+.ill-rev-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;justify-items:start;gap:20px}
+/* oversized ghost ordinal, bled off the right */
+.ill-rev-ord{position:absolute;right:-.08em;top:-.3em;z-index:0;display:grid;
+  font-family:var(--serif);font-size:clamp(8rem,17vw,15rem);line-height:.76;letter-spacing:-.04em;
+  color:#EFF3F5;opacity:.07;pointer-events:none;user-select:none}
+.ill-rev-ord b{grid-area:1/1;font-weight:400;opacity:0;transform:scale(1.08);filter:blur(9px);
+  transition:opacity .6s var(--e),transform .6s var(--e),filter .6s var(--e)}
+.ill-rev-ord b.is-on{opacity:1;transform:none;filter:none}
+.ill-rev-badge{display:inline-flex;align-items:center;gap:9px;
+  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(239,243,245,.82);
+  border:1px solid rgba(239,243,245,.26);border-radius:999px;padding:7px 15px}
+.ill-rev-badge span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
+.ill-rev-list{list-style:none;padding:0;margin:0;display:grid;perspective:800px;width:100%}
+/* ASYMMETRIC, not a crossfade. Two stacked display-size quotes fading through
+   each other overlap into unreadable mush for the whole transition. Leaving is
+   efficiency (fast, no delay); arriving is ceremony (waits for the outgoing to
+   clear, then comes in word by word). */
+.ill-rev-q{grid-area:1/1;opacity:0;pointer-events:none;transition:opacity .18s var(--e)}
+.ill-rev-q.is-on{opacity:1;pointer-events:auto;transition:opacity .3s var(--e) .2s}
+.ill-rev-q blockquote{margin:0;font-family:var(--serif);
+  font-size:clamp(1.35rem,2.7vw,2.25rem);line-height:1.2;letter-spacing:-.012em;
+  color:#F7FAFB;max-width:26ch;text-shadow:0 2px 30px rgba(4,8,12,.6)}
+.ill-rev-q blockquote::before{content:'\\201C'}
+.ill-rev-q blockquote::after{content:'\\201D'}
+/* word-by-word arrival */
+.ill-rev-w{display:inline-block;overflow:hidden;vertical-align:top}
+.ill-rev-w i{display:inline-block;font-style:normal;opacity:0;
+  transform:translateY(104%) rotateX(58deg);transform-origin:top center;
+  transition:transform .66s var(--e),opacity .48s var(--e)}
+.ill-rev-q.is-on .ill-rev-w i{opacity:1;transform:none}
+.ill-rev-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  width:100%;flex-wrap:wrap;margin-top:4px}
+.ill-rev-who{display:flex;align-items:center;gap:13px;font-size:.76rem;letter-spacing:.08em;
+  color:rgba(239,243,245,.72)}
+.ill-rev-who i{display:block;width:32px;height:1px;background:rgba(239,243,245,.6);flex:none}
+.ill-rev-nav{display:flex;gap:10px}
+.ill-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid rgba(239,243,245,.3);
+  display:grid;place-content:center;color:rgba(239,243,245,.85);
+  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
+.ill-rev-nav button:hover{color:#0E161D;background:#EFF3F5;border-color:#EFF3F5}
+.ill-rev-rail{display:flex;gap:7px}
+.ill-rev-rail span{width:30px;height:1px;background:rgba(239,243,245,.26);transition:background .5s var(--e)}
+.ill-rev-rail span.is-on{background:rgba(239,243,245,.92)}
+.ill-rev-note{font-size:.72rem;letter-spacing:.03em;color:rgba(239,243,245,.55);max-width:62ch}
+@media (max-width:640px){
+  .ill-rev::after{background:linear-gradient(to top,rgba(6,11,16,.9),rgba(6,11,16,.55) 60%,rgba(6,11,16,.35))}
+  .ill-rev-q blockquote{max-width:18ch}
+  .ill-rev-ord{font-size:7rem}
+}
 
 /* ── booking ── */
 .ill-book{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(100px,15vh,180px);
@@ -994,6 +1145,14 @@ const STYLES = `
   .ill-hero-line-in,.ill-hero-sub-in{transform:none;opacity:1;transition:none}
   .ill-door,.ill-fact,.ill-amen li,.ill-frame{opacity:1;transform:none;transition:none}
   .ill-loader-line::after{animation:none}
+  /* no auto-advance and no film: every quote is shown at once, so every WORD
+     must show too — the per-word reveal keys off .is-on, which only one <li>
+     ever carries */
+  .ill-rev-q{grid-area:auto;opacity:1;pointer-events:auto;margin-bottom:28px}
+  .ill-rev-w i{opacity:1 !important;transform:none !important;transition:none}
+  .ill-rev-ord b{opacity:0}
+  .ill-rev-ord b.is-on{opacity:1;filter:none;transform:none}
+  .ill-rev-rail,.ill-rev-nav{display:none}
 }
 
 /* ── the SHARED prototype disclaimer, dressed in this page's own language ──
