@@ -54,6 +54,7 @@ const VellirPage = lazy(() => import('./preview/vellir/Page'))
 // Reynir bakari — clones the Passion design + palette, re-skinned to their brand
 const ReynirPage = lazy(() => import('./preview/reynir/Page'))
 const ReynirOrderPage = lazy(() => import('./preview/reynir/OrderPage'))
+const ReynirLegalPage = lazy(() => import('./preview/reynir/LegalPage'))
 // Standalone lead — e-commerce showroom redesign (Shopify-migratable)
 const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
 const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
@@ -305,6 +306,7 @@ export default function App() {
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/reynir" element={<ReynirPage />} />
             <Route path="/preview/reynir/panta" element={<ReynirOrderPage />} />
+            <Route path="/preview/reynir/personuvernd" element={<ReynirLegalPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
             <Route path="/preview/heitirpottar/lager" element={<HeitirpottarStock />} />
             <Route path="/preview/sportsol" element={<SportsolPage />} />

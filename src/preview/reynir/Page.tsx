@@ -786,11 +786,13 @@ function ReynirPageInner() {
           </div>
           <div style={{ fontSize: 13.5, color: DIM, lineHeight: 1.8, textAlign: 'right' }}>
             <div>{mainName} · {LINKS.phoneLabel}</div>
-            <div style={{ display: 'flex', gap: 18, justifyContent: 'flex-end', marginTop: 6 }}>
+            <div style={{ display: 'flex', gap: 18, justifyContent: 'flex-end', marginTop: 6, flexWrap: 'wrap' }}>
               <a href={LINKS.instagram} target="_blank" rel="noreferrer" className="rb-foot-link">Instagram</a>
               <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="rb-foot-link">Facebook</a>
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-foot-link">aha.is</a>
+              <Link to="/preview/reynir/personuvernd" className="rb-foot-link">{t.legalLink}</Link>
             </div>
+            <div style={{ fontSize: 12, color: FAINT, marginTop: 10 }}>{t.legalLine}</div>
           </div>
         </div>
       </footer>

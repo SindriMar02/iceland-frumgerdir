@@ -17,9 +17,12 @@
  *     the shared gold so it reads on the dark ground; shape unchanged.
  *   - PHOTOGRAPHY is their own professional shoot (Aug 2020), which Sindri paid
  *     for. The one exception is the turning hero bun — see FEATURE_IMG.
- *   - PRICES came from their aha.is delivery menu (fetched Jul 2026).
- *     ⚠️ MUST be re-confirmed with the owner before launch: a delivery-platform
- *     price is not necessarily their counter price, and it is over a year old.
+ *   - PRICES + PRODUCTS are verified against Reynir's OWN current Wolt listing
+ *     (fetched 2026-08-16). Every price previously taken from aha.is matched
+ *     Wolt exactly, which is as close to confirmation as we get without the
+ *     till. Note both are delivery platforms, so if their counter price differs
+ *     the owner should say so — but two independent listings agreeing is a
+ *     strong signal.
  *   - HOURS = 07–17 EVERY DAY, confirmed directly by the owner (Þorleifur,
  *     2026-08-16). Supersedes the Mon–Sat 06–17 / Sun 07–17 published on their
  *     own (stale) Wix site.
@@ -35,12 +38,10 @@
  *     Rating shown as 4,5 from 65 Google reviews, read off their live Google
  *     listing 2026-08-16.
  *
- * KNOWN CONFLICT TO RESOLVE WITH THE OWNER BEFORE LAUNCH:
- *   Þorleifur said "07 til 17 alla daga". Their own Wolt listing (updated Nov
- *   2025) says weekdays 07–17 but SATURDAY AND SUNDAY 08–17, and the older
- *   directories (finna.is, 1819.is) still say 06:00. We publish what the owner
- *   said, but a wrong weekend opening time on their own site sends people to a
- *   locked door, so it needs one confirming sentence from him.
+ * HOURS: settled. Þorleifur reconfirmed 07–17 EVERY DAY (2026-08-16) after we
+ * put the weekend discrepancy to him — their Wolt listing says 08:00 at
+ * weekends and the old directories say 06:00, and both are wrong. The owner's
+ * word is the source of truth and those listings need updating, not this site.
  */
 
 export type Lang = 'en' | 'is'
@@ -204,7 +205,10 @@ export const FEATURE: MenuItem = {
   },
 }
 
-/** Pastries — real names + aha.is prices. */
+/** Pastries. Every item and price below is verified against Reynir's OWN
+ *  current Wolt listing (fetched 2026-08-16) — and every price we already had
+ *  from aha.is matched it exactly, which is the closest thing to confirmation
+ *  we can get without the owner's till. */
 export const MENU: MenuItem[] = [
   {
     name: 'Vínarbrauðslengja með súkkulaði',
@@ -224,11 +228,35 @@ export const MENU: MenuItem[] = [
     },
   },
   {
+    name: 'Vínarbrauðslengja með bleikum glassúr',
+    price: '1.395 kr.',
+    desc: {
+      en: 'The same length under the pink glaze instead.',
+      is: 'Sama lengja, með bleikum glassúr í staðinn.',
+    },
+  },
+  {
+    name: 'Gleraugu',
+    price: '620 kr.',
+    desc: {
+      en: 'The two-eyed Danish that regulars ask for by name.',
+      is: 'Gleraugun sem fastagestir biðja um með nafni.',
+    },
+  },
+  {
     name: 'Snúður með súkkulaði glassúr',
     price: '550 kr.',
     desc: {
       en: 'The classic Icelandic snúður under a real chocolate glaze.',
       is: 'Klassíski snúðurinn undir súkkulaðiglassúr.',
+    },
+  },
+  {
+    name: 'Snúður með bleikum glassúr',
+    price: '550 kr.',
+    desc: {
+      en: 'The same bun, the pink glaze everyone grew up on.',
+      is: 'Sami snúður, bleiki glassúrinn sem allir ólust upp við.',
     },
   },
   {
@@ -248,6 +276,11 @@ export const MENU: MenuItem[] = [
     },
   },
   {
+    name: 'Ostaslaufa',
+    price: '640 kr.',
+    desc: { en: 'Cheese pastry, for when it should be savoury.', is: 'Ostaslaufa, þegar það á að vera salt.' },
+  },
+  {
     name: 'Kleina',
     price: '395 kr.',
     desc: {
@@ -257,20 +290,29 @@ export const MENU: MenuItem[] = [
   },
 ]
 
-/** Traditional breads — real names + aha.is prices. */
+/** Breads and rolls, verified against their current Wolt listing 2026-08-16. */
 export const BREAD: MenuItem[] = [
   { name: 'Hvítt súrdeigsbrauð', price: '1.190 kr.', desc: { en: 'White sourdough, slow-proved and baked on-site.', is: 'Hvítt súrdeigsbrauð, hæghefað og bakað á staðnum.' } },
   { name: 'Gróft súrdeigsbrauð', price: '1.190 kr.', desc: { en: 'Wholegrain sourdough with a deep crust.', is: 'Gróft súrdeigsbrauð með þéttri skorpu.' } },
   { name: 'Döðlubrauð', price: '1.110 kr.', desc: { en: 'Naturally sweet date bread.', is: 'Náttúrulega sætt döðlubrauð.' } },
-  { name: 'Sexkornabrauð', price: '930 kr.', desc: { en: 'A six-grain loaf, hearty and healthy.', is: 'Sexkornabrauð, matarmikið og hollt.' } },
-  { name: 'Þriggja korna brauð', price: '930 kr.', desc: { en: 'Three grains in one everyday loaf.', is: 'Þrjú korn í einu hversdagsbrauði.' } },
   { name: 'Normalbrauð', price: '930 kr.', desc: { en: 'The everyday standard loaf.', is: 'Venjulega brauðið fyrir hvern dag.' } },
+  { name: 'Sólkjarnarúnstykki', price: '230 kr.', desc: { en: 'Sunflower-seed roll.', is: 'Rúnstykki með sólkjörnum.' } },
+  { name: 'Múslírúnstykki', price: '230 kr.', desc: { en: 'Muesli roll, for the morning.', is: 'Múslírúnstykki, fyrir morguninn.' } },
+  { name: 'Ostarúnstykki', price: '200 kr.', desc: { en: 'Cheese roll, straight from the oven.', is: 'Ostarúnstykki, beint úr ofninum.' } },
+  { name: 'Birkirúnstykki', price: '180 kr.', desc: { en: 'The plain birki roll.', is: 'Klassíska birkirúnstykkið.' } },
 ]
 
-/** Celebration cakes — real names + aha.is prices. */
+/** Cakes, verified against their current Wolt listing 2026-08-16. Celebration
+ *  cakes to order are handled separately in the order flow. */
 export const CAKES: MenuItem[] = [
   { name: 'Skúffukaka', price: '1.920 kr.', desc: { en: '', is: '' } },
   { name: 'Gulrótarkaka', price: '1.920 kr.', desc: { en: '', is: '' } },
+  { name: 'Karamellukaka', price: '1.920 kr.', desc: { en: '', is: '' } },
+  { name: 'Eplakaka', price: '1.920 kr.', desc: { en: '', is: '' } },
+  { name: 'Sítrónukaka', price: '1.620 kr.', desc: { en: '', is: '' } },
+  { name: 'Appelsínuhringur', price: '1.620 kr.', desc: { en: '', is: '' } },
+  { name: 'Marmarakaka', price: '1.470 kr.', desc: { en: '', is: '' } },
+  { name: 'Möndlukaka', price: '1.470 kr.', desc: { en: '', is: '' } },
   { name: 'Djöflaterta', price: '3.480 kr.', desc: { en: '', is: '' } },
   { name: 'Hressóterta', price: '7.600 kr.', desc: { en: '', is: '' } },
 ]
@@ -327,6 +369,8 @@ export const T = {
     rowEmail: 'Email',
     deliveryNote: 'Home delivery across the capital area through aha.is.',
     footerTag: 'Family-run craft bakery in Kópavogur since 1994',
+    legalLink: 'Privacy and terms',
+    legalLine: 'Reynir bakari ehf., reg. no. 701195-3029, Dalvegur 4, 201 Kópavogur',
   },
   is: {
     navMenu: 'Úr ofninum',
@@ -379,5 +423,7 @@ export const T = {
     rowEmail: 'Netfang',
     deliveryNote: 'Heimsending um höfuðborgarsvæðið í gegnum aha.is.',
     footerTag: 'Fjölskyldurekið handverksbakarí í Kópavogi síðan 1994',
+    legalLink: 'Persónuvernd og skilmálar',
+    legalLine: 'Reynir bakari ehf., kt. 701195-3029, Dalvegi 4, 201 Kópavogi',
   },
 } as const
