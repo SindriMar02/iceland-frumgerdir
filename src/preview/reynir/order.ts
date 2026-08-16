@@ -242,10 +242,13 @@ export const OCCASIONS: { id: string; label: Bilingual }[] = [
   { id: 'annad', label: { en: 'Something else', is: 'Annað' } },
 ]
 
-/** The two real Reynir locations, from their own site. Not placeholder. */
+/** Real, not placeholder. ONE location: the Hamraborg 14 shop closed around
+ *  2024 (owner, 2026-08-16), so it is not a collection point. The form renders
+ *  a single location as plain text rather than a one-option dropdown, so this
+ *  list staying at one entry is not a UI problem — and adding a second back
+ *  (or a third) turns the field into a select again on its own. */
 export const PICKUP_LOCATIONS: { id: string; label: Bilingual }[] = [
   { id: 'dalvegur', label: { en: 'Dalvegur 4, Kópavogur', is: 'Dalvegur 4, Kópavogi' } },
-  { id: 'hamraborg', label: { en: 'Hamraborg 14, Kópavogur', is: 'Hamraborg 14, Kópavogi' } },
 ]
 
 export interface OrderCopy {

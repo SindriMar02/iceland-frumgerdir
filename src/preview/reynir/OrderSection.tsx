@@ -134,6 +134,10 @@ const ORDER_CSS = `
   .rb-ord-input[aria-invalid="true"], .rb-ord-select[aria-invalid="true"] { border-color:#D98A76; }
   .rb-ord-hint { font-size:12.5px; color:${DIM}; margin-top:6px; line-height:1.45; }
   .rb-ord-err { font-size:12.5px; color:#E8A594; margin-top:6px; line-height:1.45; }
+  /* A settled, unchangeable value — shown instead of a pointless one-option
+     dropdown when there is only one collection point. Reads as information,
+     not as a control the visitor failed to notice they could change. */
+  .rb-ord-readout { font-family:${BODY}; font-size:16px; color:${IVORY}; padding:13px 0 0; line-height:1.4; }
   .rb-ord-two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
   /* the slip */
@@ -873,34 +877,52 @@ export default function OrderSection({
                     </div>
                   ) : (
                     <div className="rb-ord-field">
-                      <label className="rb-ord-label" htmlFor="rb-ord-location">{t.fieldLocation}</label>
-                      <select
-                        id="rb-ord-location"
-                        className="rb-ord-select"
-                        value={customer.location}
-                        onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
-                      >
-                        {PICKUP_LOCATIONS.map((l) => (
-                          <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
-                        ))}
-                      </select>
+                      {PICKUP_LOCATIONS.length > 1 ? (
+                        <>
+                          <label className="rb-ord-label" htmlFor="rb-ord-location">{t.fieldLocation}</label>
+                          <select
+                            id="rb-ord-location"
+                            className="rb-ord-select"
+                            value={customer.location}
+                            onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
+                          >
+                            {PICKUP_LOCATIONS.map((l) => (
+                              <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
+                            ))}
+                          </select>
+                        </>
+                      ) : (
+                        <>
+                          <span className="rb-ord-label">{t.fieldLocation}</span>
+                          <div className="rb-ord-readout">{PICKUP_LOCATIONS[0].label[lang]}</div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
 
                 {who === 'company' && customer.handover === 'pickup' && (
                   <div className="rb-ord-field">
-                    <label className="rb-ord-label" htmlFor="rb-ord-location-co">{t.fieldLocation}</label>
-                    <select
-                      id="rb-ord-location-co"
-                      className="rb-ord-select"
-                      value={customer.location}
-                      onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
-                    >
-                      {PICKUP_LOCATIONS.map((l) => (
-                        <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
-                      ))}
-                    </select>
+                    {PICKUP_LOCATIONS.length > 1 ? (
+                      <>
+                        <label className="rb-ord-label" htmlFor="rb-ord-location-co">{t.fieldLocation}</label>
+                        <select
+                          id="rb-ord-location-co"
+                          className="rb-ord-select"
+                          value={customer.location}
+                          onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
+                        >
+                          {PICKUP_LOCATIONS.map((l) => (
+                            <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      <>
+                        <span className="rb-ord-label">{t.fieldLocation}</span>
+                        <div className="rb-ord-readout">{PICKUP_LOCATIONS[0].label[lang]}</div>
+                      </>
+                    )}
                   </div>
                 )}
 

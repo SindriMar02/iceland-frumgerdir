@@ -115,13 +115,26 @@ const DAY_ABBR: Record<Lang, string[]> = {
   is: ['Mán', 'Þri', 'Mið', 'Fim', 'Fös', 'Lau', 'Sun'],
 }
 
-/** Groups consecutive days sharing identical hours into one line, e.g.
- *  "Mon to Sat 6:00 to 17:00" + "Sun 7:00 to 17:00" — generated FROM the
- *  live hours so the displayed text and the live open/closed badge can
- *  never disagree (a two-source-of-truth trust-breaker, see cms-setup-sanity
- *  memory's editability-audit lesson). */
-function buildHoursRows(days: readonly DayHours[], lang: Lang): string[] {
-  const rows: string[] = []
+/** One printed hours line, kept as two fields rather than one string: the
+ *  visit strip lays the day out opposite the time, and splitting a joined
+ *  string on its first space silently mangles any multi-word day label
+ *  ("Every day 7:00 to 17:00" → "Every" / "day 7:00 to 17:00"). */
+export interface HoursRow {
+  label: string
+  value: string
+}
+
+/** Groups consecutive days sharing identical hours into one line — "Every day
+ *  7:00 to 17:00" when the whole week matches, otherwise "Mon to Sat …" plus
+ *  the exceptions. Generated FROM the live hours so the printed text and the
+ *  live open/closed badge can never disagree (a two-source-of-truth
+ *  trust-breaker, see cms-setup-sanity memory's editability-audit lesson). */
+function buildHoursRows(days: readonly DayHours[], lang: Lang): HoursRow[] {
+  const to = lang === 'en' ? 'to' : 'til'
+  const value = (h: DayHours) =>
+    h.closed ? (lang === 'en' ? 'Closed' : 'Lokað') : `${fmtHM(h.open)} ${to} ${fmtHM(h.close)}`
+
+  const rows: HoursRow[] = []
   let i = 0
   while (i < DISPLAY_ORDER.length) {
     const h = days[DISPLAY_ORDER[i]]
@@ -131,10 +144,14 @@ function buildHoursRows(days: readonly DayHours[], lang: Lang): string[] {
       if (next.open === h.open && next.close === h.close && !!next.closed === !!h.closed) j++
       else break
     }
-    const startLabel = DAY_ABBR[lang][i]
-    const dayLabel = i === j ? startLabel : `${startLabel} ${lang === 'en' ? 'to' : 'til'} ${DAY_ABBR[lang][j]}`
-    const hoursLabel = h.closed ? (lang === 'en' ? 'Closed' : 'Lokað') : `${fmtHM(h.open)} ${lang === 'en' ? 'to' : 'til'} ${fmtHM(h.close)}`
-    rows.push(`${dayLabel} ${hoursLabel}`)
+    // The whole week on one schedule reads better as "Every day" than "Mon to Sun".
+    const label =
+      i === 0 && j === DISPLAY_ORDER.length - 1
+        ? lang === 'en' ? 'Every day' : 'Alla daga'
+        : i === j
+          ? DAY_ABBR[lang][i]
+          : `${DAY_ABBR[lang][i]} ${to} ${DAY_ABBR[lang][j]}`
+    rows.push({ label, value: value(h) })
     i = j + 1
   }
   return rows
@@ -144,10 +161,8 @@ function buildHoursRows(days: readonly DayHours[], lang: Lang): string[] {
 export interface SiteContent {
   LINKS: typeof LINKS
   HOURS_BY_DAY: readonly DayHours[]
-  hoursRows: Record<Lang, string[]>
-  hamraborgNote: Bilingual
+  hoursRows: Record<Lang, HoursRow[]>
   mainName: string
-  secondName: string
   trustLine: Bilingual
   heroTitle: Bilingual
   heroSub: Bilingual
@@ -171,10 +186,10 @@ export interface SiteContent {
 const FALLBACK: SiteContent = {
   LINKS,
   HOURS_BY_DAY,
-  hoursRows: { en: [...T.en.hoursRows], is: [...T.is.hoursRows] },
-  hamraborgNote: { en: T.en.secondNote, is: T.is.secondNote },
+  // Generated from HOURS_BY_DAY, never typed out separately — so the printed
+  // hours and the live open/closed badge cannot drift apart.
+  hoursRows: { en: buildHoursRows(HOURS_BY_DAY, 'en'), is: buildHoursRows(HOURS_BY_DAY, 'is') },
   mainName: T.en.mainName,
-  secondName: T.en.secondName,
   trustLine: { en: T.en.trustLine, is: T.is.trustLine },
   heroTitle: { en: T.en.heroTitle, is: T.is.heroTitle },
   heroSub: { en: T.en.heroSub, is: T.is.heroSub },
@@ -197,8 +212,8 @@ const FALLBACK: SiteContent = {
 
 /* ── GROQ: everything editable, in one round trip ───────────────────────── */
 const QUERY = `{
-  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, phone2Label, email, orderEmail, facebook, instagram, ahaUrl, mainAddress, secondAddress, trustLine},
-  "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun, hamraborgNote},
+  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, mainAddress, trustLine},
+  "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun},
   "hero": *[_type=="heroSection"][0]{heroTitle, heroSub, heroLine, heroPhotoCaption},
   "story": *[_type=="storySection"][0]{statementQuote, statementWho, storyP1, storyP2},
   "menuItems": *[_type=="menuItem"]|order(order asc){category, name, price, tag, desc},
@@ -267,7 +282,6 @@ function merge(raw: any): SiteContent {
     ...LINKS,
     phone: s?.phoneHref || LINKS.phone,
     phoneLabel: s?.phoneDisplay || LINKS.phoneLabel,
-    phone2Label: s?.phone2Label || LINKS.phone2Label,
     email: s?.email || LINKS.email,
     orderEmail: s?.orderEmail || LINKS.orderEmail,
     facebook: s?.facebook || LINKS.facebook,
@@ -330,9 +344,7 @@ function merge(raw: any): SiteContent {
     LINKS: linksMerged,
     HOURS_BY_DAY: hoursByDay,
     hoursRows: { en: buildHoursRows(hoursByDay, 'en'), is: buildHoursRows(hoursByDay, 'is') },
-    hamraborgNote: h?.hamraborgNote ? biSelf(h.hamraborgNote) : FALLBACK.hamraborgNote,
     mainName: FALLBACK.mainName,
-    secondName: FALLBACK.secondName,
     trustLine: s?.trustLine ? biSelf(s.trustLine) : FALLBACK.trustLine,
     heroTitle: raw?.hero?.heroTitle ? biPick(raw.hero.heroTitle, FALLBACK.heroTitle) : FALLBACK.heroTitle,
     heroSub: raw?.hero?.heroSub ? biPick(raw.hero.heroSub, FALLBACK.heroSub) : FALLBACK.heroSub,

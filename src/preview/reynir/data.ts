@@ -4,7 +4,7 @@
  * Clones the Passion Reykjavík design system (near-black #131313 ground,
  * antique-gold serif, deep burgundy, ivory; Lusitana + Source Serif 4) per the
  * brief — same design + colours, re-skinned with Reynir's own logo, facts and
- * voice. Family craft bakery in Kópavogur, Dalvegur 4 + Hamraborg 14.
+ * voice. Family craft bakery in Kópavogur, Dalvegur 4.
  *
  * HONESTY GUARDRAILS (prototype disclaimed in PreviewFooter):
  *   - LOGO is their real script wordmark (from reynirbakari.is), recoloured to
@@ -13,9 +13,13 @@
  *     site, warm-toned to fit the palette. No invented photography.
  *   - PRICES are REAL, from their aha.is delivery menu (aha.is/veitingar/
  *     reynir-bakari, fetched Jul 2026). Their own site publishes no price list.
- *   - HOURS = their own site (Dalvegur): Mon–Sat 06–17, Sun 07–17. Hamraborg
- *     hours conflict across sources + are not on their site → we direct to a
- *     phone call rather than state a possibly-wrong time.
+ *   - HOURS = 07–17 EVERY DAY, confirmed directly by the owner (Þorleifur,
+ *     2026-08-16). Supersedes the Mon–Sat 06–17 / Sun 07–17 published on their
+ *     own (stale) Wix site.
+ *   - ONE LOCATION. Their Hamraborg 14 shop CLOSED around 2024 — confirmed by
+ *     the owner 2026-08-16. Their live Wix site, Google and aha.is may still
+ *     list it; this site must not. (The earlier caution here — that Hamraborg
+ *     hours "conflict across sources" — turned out to be because it was shut.)
  *   - STORY facts (founded 1 Feb 1994; founder Reynir (Carl) Þorleifsson;
  *     passed 2019; sons Þorleifur Karl + Henry Þór took over; ~20 staff; all
  *     baked on-site from scratch) are from their About page (reynirbakari.is/
@@ -45,21 +49,23 @@ export const LINKS = {
   instagram: 'https://www.instagram.com/reynir.bakari',
   phone: '+3545644700',
   phoneLabel: '564 4700',
-  phone2Label: '554 4200',
   email: 'reynirbakari@reynirbakari.is',
   orderEmail: 'pantanir@reynirbakari.is',
 } as const
 
-/** Weekly hours, minutes-from-midnight, UTC (Iceland has no DST). Dalvegur,
- *  from their own site: Mon–Sat 06–17, Sun 07–17. */
+/** Weekly hours, minutes-from-midnight, UTC (Iceland has no DST). 07–17 every
+ *  day, confirmed by the owner 2026-08-16. This array is the ONE source the
+ *  hours come from: the live open/closed badge reads it, and the printed
+ *  "Every day 7:00 to 17:00" line is generated from it (see sanity.ts's
+ *  buildHoursRows) rather than written out a second time by hand. */
 export const HOURS_BY_DAY = [
   { open: 7 * 60, close: 17 * 60 }, // Sun
-  { open: 6 * 60, close: 17 * 60 }, // Mon
-  { open: 6 * 60, close: 17 * 60 }, // Tue
-  { open: 6 * 60, close: 17 * 60 }, // Wed
-  { open: 6 * 60, close: 17 * 60 }, // Thu
-  { open: 6 * 60, close: 17 * 60 }, // Fri
-  { open: 6 * 60, close: 17 * 60 }, // Sat
+  { open: 7 * 60, close: 17 * 60 }, // Mon
+  { open: 7 * 60, close: 17 * 60 }, // Tue
+  { open: 7 * 60, close: 17 * 60 }, // Wed
+  { open: 7 * 60, close: 17 * 60 }, // Thu
+  { open: 7 * 60, close: 17 * 60 }, // Fri
+  { open: 7 * 60, close: 17 * 60 }, // Sat
 ] as const
 
 export interface MenuItem {
@@ -221,7 +227,6 @@ export const T = {
     heroSub: 'A family bakery in Kópavogur since 1994.',
     heroLine: 'Sourdough, Danish pastries, cakes and coffee, all baked on-site from scratch.',
     heroPhotoCaption: 'Shaping the day, Reynir bakari',
-    hoursShort: ['Mon to Fri 6 to 17', 'Sat 6 to 17, Sun 7 to 17'],
     menuMasthead: 'The menu',
     ovenTitle: 'From the oven',
     ovenIntro: 'Baked fresh through the morning. Prices as listed on aha.is.',
@@ -249,17 +254,13 @@ export const T = {
       'Celebration cakes in cream, marzipan and chocolate, plus full catering for parties and events. Tell us the occasion and we will quote it.',
     cateringCta: 'Send an enquiry',
     trustLine: '4.5 on Google across 63 reviews. 92% recommend on Facebook (21 reviews).',
-    visitKicker: 'Two locations',
+    visitKicker: 'Open every day',
     visitTitle: 'Find us',
     mainLabel: 'Bakery and café',
     mainName: 'Dalvegur 4, 201 Kópavogur',
     rowHours: 'Hours',
     rowPhone: 'Phone',
     rowEmail: 'Email',
-    hoursRows: ['Mon to Fri 6:00 to 17:00', 'Sat 6:00 to 17:00', 'Sun 7:00 to 17:00'],
-    secondLabel: 'Also in Hamraborg',
-    secondName: 'Hamraborg 14, 200 Kópavogur',
-    secondNote: 'Our second Kópavogur bakery. Call 554 4200 for its opening hours.',
     deliveryNote: 'Home delivery across the capital area through aha.is.',
     footerTag: 'Family-run craft bakery in Kópavogur since 1994',
   },
@@ -278,7 +279,6 @@ export const T = {
     heroSub: 'Fjölskyldubakarí í Kópavogi síðan 1994.',
     heroLine: 'Súrdeigsbrauð, vínarbrauð, kökur og kaffi, allt bakað á staðnum frá grunni.',
     heroPhotoCaption: 'Deigið mótað, Reynir bakari',
-    hoursShort: ['Mán til fös 6 til 17', 'Lau 6 til 17, sun 7 til 17'],
     menuMasthead: 'Matseðillinn',
     ovenTitle: 'Úr ofninum',
     ovenIntro: 'Bakað ferskt yfir morguninn. Verð eins og þau birtast á aha.is.',
@@ -306,17 +306,13 @@ export const T = {
       'Rjóma, marsípan og súkkulaðitertur fyrir stóru stundirnar, ásamt veisluþjónustu fyrir hvers kyns viðburði. Segið okkur frá tilefninu og við gerum tilboð.',
     cateringCta: 'Senda fyrirspurn',
     trustLine: '4,5 á Google úr 63 umsögnum. 92% mæla með á Facebook (21 umsögn).',
-    visitKicker: 'Tveir staðir',
+    visitKicker: 'Opið alla daga',
     visitTitle: 'Finndu okkur',
     mainLabel: 'Bakarí og kaffihús',
     mainName: 'Dalvegur 4, 201 Kópavogur',
     rowHours: 'Opnunartími',
     rowPhone: 'Sími',
     rowEmail: 'Netfang',
-    hoursRows: ['Mán til fös 6:00 til 17:00', 'Lau 6:00 til 17:00', 'Sun 7:00 til 17:00'],
-    secondLabel: 'Einnig í Hamraborg',
-    secondName: 'Hamraborg 14, 200 Kópavogur',
-    secondNote: 'Hitt bakaríið okkar í Kópavogi. Hringið í 554 4200 fyrir opnunartíma.',
     deliveryNote: 'Heimsending um höfuðborgarsvæðið í gegnum aha.is.',
     footerTag: 'Fjölskyldurekið handverksbakarí í Kópavogi síðan 1994',
   },

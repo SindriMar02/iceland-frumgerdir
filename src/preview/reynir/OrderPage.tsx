@@ -66,7 +66,7 @@ function ReynirOrderPageInner() {
   const [lang, setLang] = useLang()
   const t = T[lang]
   const ot = ORDER_T[lang]
-  const { LINKS, hoursRows, hamraborgNote, mainName, secondName } = useSiteContent()
+  const { LINKS, hoursRows, mainName } = useSiteContent()
   const [params] = useSearchParams()
   const preselect = params.get('vara') ?? undefined
 
@@ -111,15 +111,7 @@ function ReynirOrderPageInner() {
             <p className="rb-op-foot-body">
               {mainName}
               <br />
-              {hoursRows[lang].join(' · ')}
-            </p>
-          </div>
-          <div>
-            <div className="rb-op-foot-label">{t.secondLabel}</div>
-            <p className="rb-op-foot-body">
-              {secondName}
-              <br />
-              {hamraborgNote[lang]}
+              {hoursRows[lang].map((r) => `${r.label} ${r.value}`).join(' · ')}
             </p>
           </div>
           <div>

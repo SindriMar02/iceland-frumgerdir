@@ -311,7 +311,7 @@ function ReynirPageInner() {
   const t = T[lang]
   const {
     LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
-    hoursRows, hamraborgNote, mainName, secondName, trustLine,
+    hoursRows, mainName, trustLine,
     heroTitle, heroSub, heroLine, statementQuote, statementWho, storyP1, storyP2,
   } = useSiteContent()
   const rootRef = useRef<HTMLDivElement>(null)
@@ -709,7 +709,6 @@ function ReynirPageInner() {
                 lang={lang}
                 locations={[
                   { label: t.mainLabel, address: mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
-                  { label: t.secondLabel, address: secondName, query: 'Reynir bakari, Hamraborg 14, 200 Kópavogur' },
                 ]}
               />
             </div>
@@ -720,9 +719,9 @@ function ReynirPageInner() {
                 <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 8 }}>{mainName}</div>
                 <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
                   {hoursRows[lang].map((l) => (
-                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
-                      <span>{l.split(/\s(.+)/)[0]}</span>
-                      <span style={{ color: IVORY }}>{l.split(/\s(.+)/)[1]}</span>
+                    <div key={l.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
+                      <span>{l.label}</span>
+                      <span style={{ color: IVORY }}>{l.value}</span>
                     </div>
                   ))}
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
@@ -734,11 +733,6 @@ function ReynirPageInner() {
                     <a href={`mailto:${LINKS.email}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>{LINKS.email}</a>
                   </div>
                 </div>
-              </div>
-              <div style={{ borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 20 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.secondLabel}</div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,24px)', color: IVORY, marginTop: 8 }}>{secondName}</div>
-                <p style={{ fontSize: 14, color: DIM, margin: '8px 0 0', lineHeight: 1.6 }}>{hamraborgNote[lang]}</p>
               </div>
             </div>
           </div>
