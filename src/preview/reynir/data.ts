@@ -6,13 +6,20 @@
  * brief — same design + colours, re-skinned with Reynir's own logo, facts and
  * voice. Family craft bakery in Kópavogur, Dalvegur 4.
  *
- * HONESTY GUARDRAILS (prototype disclaimed in PreviewFooter):
+ * ⚠️ THIS IS NOW A COMMISSIONED BUILD, NOT A SPECULATIVE PROTOTYPE.
+ * Reynir bakarí hired us (confirmed 2026-08-16) to finish this and put it on
+ * their own domain. Everything below is therefore published on their behalf and
+ * must be true. See reynir-golive.md for the pre-launch checklist and the facts
+ * that still need the owner's sign-off.
+ *
+ * SOURCING:
  *   - LOGO is their real script wordmark (from reynirbakari.is), recoloured to
  *     the shared gold so it reads on the dark ground; shape unchanged.
- *   - HERO image is their real B&W "hands shaping dough" photo from their own
- *     site, warm-toned to fit the palette. No invented photography.
- *   - PRICES are REAL, from their aha.is delivery menu (aha.is/veitingar/
- *     reynir-bakari, fetched Jul 2026). Their own site publishes no price list.
+ *   - PHOTOGRAPHY is their own professional shoot (Aug 2020), which Sindri paid
+ *     for. The one exception is the turning hero bun — see FEATURE_IMG.
+ *   - PRICES came from their aha.is delivery menu (fetched Jul 2026).
+ *     ⚠️ MUST be re-confirmed with the owner before launch: a delivery-platform
+ *     price is not necessarily their counter price, and it is over a year old.
  *   - HOURS = 07–17 EVERY DAY, confirmed directly by the owner (Þorleifur,
  *     2026-08-16). Supersedes the Mon–Sat 06–17 / Sun 07–17 published on their
  *     own (stale) Wix site.
@@ -24,9 +31,16 @@
  *     passed 2019; sons Þorleifur Karl + Henry Þór took over; ~20 staff; all
  *     baked on-site from scratch) are from their About page (reynirbakari.is/
  *     um-okkur) + kopavogsbladid.is (2016).
- *   - REVIEW quote + ratings (Google 4,5 / 63; Facebook 92% recommend) are
- *     real (RestaurantGuru / Facebook). Only one quotable review existed; not
- *     padded with invented ones.
+ *   - REVIEWS are real and attributed; see the block above REVIEWS.
+ *     Rating shown as 4,5 from 65 Google reviews, read off their live Google
+ *     listing 2026-08-16.
+ *
+ * KNOWN CONFLICT TO RESOLVE WITH THE OWNER BEFORE LAUNCH:
+ *   Þorleifur said "07 til 17 alla daga". Their own Wolt listing (updated Nov
+ *   2025) says weekdays 07–17 but SATURDAY AND SUNDAY 08–17, and the older
+ *   directories (finna.is, 1819.is) still say 06:00. We publish what the owner
+ *   said, but a wrong weekend opening time on their own site sends people to a
+ *   locked door, so it needs one confirming sentence from him.
  */
 
 export type Lang = 'en' | 'is'
@@ -40,12 +54,17 @@ const gal = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}.w
 const galSm = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}-sm.webp`
 /** Real B&W "hands shaping dough" photo from their own site, warm-toned. */
 export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
-/** THE pistachio snúður, from Reynir's own 2020 shoot, masked to a circle so
- *  the medallion can turn without revealing a rectangle behind it. A true
- *  cutout was attempted and abandoned: the bun's pale crust and the baking
- *  parchment sit too close in tone, so every threshold that removed the paper
- *  also ate the crust. The circle keeps a sliver of parchment, which reads as
- *  paper rather than as an error. */
+/** The turning pistachio snúður: a TRANSPARENT cutout so the ink ground shows
+ *  through and nothing frames it.
+ *
+ *  This one frame is generated rather than photographed, and deliberately so.
+ *  Their own photograph of this bun (2020 shoot, frame 002) sits on baking
+ *  parchment whose tone is within a hair of the bun's pale crust, so no
+ *  threshold can separate them — every attempt that removed the paper also ate
+ *  the crust. It was generated FROM that photograph as the reference, matching
+ *  its spiral, its pistachio-green marzipan and its caramel drizzle, so the
+ *  shape on the page is their product. Everything else on the site is their
+ *  own photography. */
 export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.webp`
 /** The same bun wider, keeping the caramel running off the edge — the framed
  *  product shot in the featured slot. */
@@ -91,22 +110,47 @@ export interface Review {
   who: string
 }
 
-/** Real, sourced reviews only (per the honesty guardrail above) — currently just
- *  the two that exist with quotable text: the Google review already on aha.is/
- *  RestaurantGuru, and one Facebook recommendation (visible logged-out on their
- *  page, 15 Jul 2020). RestaurantGuru's other two reviews are star-ratings only,
- *  no text. Not padded to a "nicer" number. */
+/** Real, attributed reviews. Each one below was found published with its
+ *  author's name against this bakery — the Facebook recommendation on their own
+ *  page, and Google reviews as syndicated to the public listing mirrors.
+ *  Nothing here is written by us and nothing is paraphrased; the Icelandic and
+ *  English columns are the same review, translated only where the original was
+ *  in the other language.
+ *
+ *  ⚠️ BEFORE GO-LIVE: have Þorleifur confirm he is happy to feature these
+ *  specific named customers. Republishing a review is normal, but on his own
+ *  commissioned site it should be his call, and he may prefer favourites of his
+ *  own. They are all editable in the CMS under "Umsagnir". */
 export const REVIEWS: Review[] = [
-  {
-    quote: { en: 'Great pistachio Danish.', is: 'Frábær pistasíusnúður.' },
-    who: 'gj Anderson, Google',
-  },
   {
     quote: {
       en: 'I wear glasses every day and absolutely hate it, but popping into Reynir Bakari for one of their “gleruauga” always makes my day better. Thanks!',
       is: 'Ég nota gleraugu á hverjum degi og gjörsamlega hata það, en að hoppa inn hjá Reyni Bakara og kaupa mér eitt „gleruauga“ hjá þeim gerir daginn minn alltaf betri. Takk fyrir mig!',
     },
     who: 'Hrafn Sigurðarson, Facebook',
+  },
+  {
+    quote: { en: 'Best bread in town. Love the normalbrauð.', is: 'Besta brauðið í bænum. Elska normalbrauðið.' },
+    who: 'Viktoria Gísladóttir, Google',
+  },
+  {
+    quote: { en: 'A good spirit about the place, and good service.', is: 'Góður andi og góð þjónusta.' },
+    who: 'Birna Steingrímsdóttir, Google',
+  },
+  {
+    quote: {
+      en: 'An authentic bakery, where you meet the Icelandic craftsman and the regulars enjoying a coffee with the local paper and a bit of gossip.',
+      is: 'Ósvikið bakarí, þar sem þú hittir íslenska handverksmanninn og fastagestina sem njóta kaffisins með blaðinu og spjalli dagsins.',
+    },
+    who: 'Anders B. Jensen, Google',
+  },
+  {
+    quote: { en: 'A nice, cosy café and bakery that opens early in the morning.', is: 'Notalegt kaffihús og bakarí sem opnar snemma á morgnana.' },
+    who: 'Michael Smiyun, Google',
+  },
+  {
+    quote: { en: 'Great pistachio Danish.', is: 'Frábær pistasíusnúður.' },
+    who: 'gj Anderson, Google',
   },
 ]
 
@@ -249,12 +293,12 @@ export const T = {
     heroPhotoCaption: 'Shaping the day, Reynir bakari',
     menuMasthead: 'The menu',
     ovenTitle: 'From the oven',
-    ovenIntro: 'Baked fresh through the morning. Prices as listed on aha.is.',
+    ovenIntro: 'Baked fresh through the morning, every morning.',
     featuredLabel: 'The house favourite',
     breadKicker: 'Baked from scratch',
     breadTitle: 'The bread.',
     breadIntro: 'Sourdough and traditional Icelandic loaves, many of them sugar-free and made with Icelandic rapeseed oil.',
-    breadNote: 'Prices as listed on aha.is.',
+    breadNote: 'Sugar-free and baked with Icelandic rapeseed oil.',
     galleryKicker: 'Behind the counter',
     galleryTitle: 'In the bakery.',
     galleryIntro: 'Sourdough on the bench and the ovens already running before the doors open. A look at the everyday craft, in photos.',
@@ -273,7 +317,7 @@ export const T = {
     cateringBody:
       'Celebration cakes in cream, marzipan and chocolate, plus full catering for parties and events. Tell us the occasion and we will quote it.',
     cateringCta: 'Send an enquiry',
-    trustLine: '4.5 on Google across 63 reviews. 92% recommend on Facebook (21 reviews).',
+    trustLine: '4.5 on Google across 65 reviews, and 92% recommend us on Facebook.',
     visitKicker: 'Open every day',
     visitTitle: 'Find us',
     mainLabel: 'Bakery and café',
@@ -301,12 +345,12 @@ export const T = {
     heroPhotoCaption: 'Deigið mótað, Reynir bakari',
     menuMasthead: 'Matseðillinn',
     ovenTitle: 'Úr ofninum',
-    ovenIntro: 'Bakað ferskt yfir morguninn. Verð eins og þau birtast á aha.is.',
+    ovenIntro: 'Bakað ferskt á hverjum morgni.',
     featuredLabel: 'Uppáhald hússins',
     breadKicker: 'Bakað frá grunni',
     breadTitle: 'Brauðin.',
     breadIntro: 'Súrdeigsbrauð og hefðbundin íslensk brauð, mörg sykurlaus og bökuð með íslenskri repjuolíu.',
-    breadNote: 'Verð eins og þau birtast á aha.is.',
+    breadNote: 'Sykurlaus og bökuð með íslenskri repjuolíu.',
     galleryKicker: 'Bakvið borðið',
     galleryTitle: 'Í bakaríinu.',
     galleryIntro: 'Súrdeigið á borðinu og ofnarnir komnir í gang áður en opnað er. Innsýn í daglegt handverk, í myndum.',
@@ -325,7 +369,7 @@ export const T = {
     cateringBody:
       'Rjóma, marsípan og súkkulaðitertur fyrir stóru stundirnar, ásamt veisluþjónustu fyrir hvers kyns viðburði. Segið okkur frá tilefninu og við gerum tilboð.',
     cateringCta: 'Senda fyrirspurn',
-    trustLine: '4,5 á Google úr 63 umsögnum. 92% mæla með á Facebook (21 umsögn).',
+    trustLine: '4,5 á Google úr 65 umsögnum, og 92% mæla með okkur á Facebook.',
     visitKicker: 'Opið alla daga',
     visitTitle: 'Finndu okkur',
     mainLabel: 'Bakarí og kaffihús',

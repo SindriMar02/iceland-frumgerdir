@@ -19,7 +19,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { PreviewChrome } from '../PreviewChrome'
-import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
 import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG } from './data'
@@ -56,13 +55,11 @@ const PAGE_CSS = `
   @keyframes rb-marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .rb-marquee-track { display:flex; width:max-content; animation:rb-marquee 36s linear infinite; }
 
-  /* the hero pistachio turns slowly and smoothly, in place. It is a real
-     photograph masked to a circle rather than a cutout, so it carries a gold
-     hairline and a soft drop to read as a struck medallion rather than as a
-     photo that happens to be round. */
+  /* the hero pistachio turns slowly and smoothly, in place — a true cutout on
+     transparency, so the ground shows through and nothing frames it. */
   @keyframes rb-hero-spin { to { transform:rotate(360deg); } }
   .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%;
-    border-radius:50%; box-shadow:0 0 0 1px rgba(238,211,170,.34), 0 34px 70px -22px rgba(0,0,0,.85); }
+    filter:drop-shadow(0 30px 45px rgba(0,0,0,.6)); }
 
   /* ── intro loader: the gold script writes itself on, as if piped ──────────── */
   .rb-intro { position:fixed; inset:0; z-index:9999; background:${INK};
@@ -414,7 +411,12 @@ function ReynirPageInner() {
       window.clearTimeout(timeoutId)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [reduced, lang])
+    // Re-run when the CMS content lands. The page first renders the bundled
+    // photos, then swaps in the Sanity ones — which REPLACES every gallery
+    // tile with a new element (the React key is the image src). Those new
+    // nodes were never observed, so without this dependency they keep the
+    // opacity:0 that revealInit gave them and the whole gallery stays blank.
+  }, [reduced, lang, GALLERY])
 
   const marqueeItems = useMemo(
     () => ['Vínarbrauð', 'Súrdeigsbrauð', 'Snúður', 'Kanillengja', 'Pistasíusnúður', 'Kleina', 'Rúgbrauð', 'Skúffukaka'],
@@ -717,16 +719,42 @@ function ReynirPageInner() {
       <section id="visit" style={{ background: INK, padding: sectionPad }}>
         <div style={wrap}>
           <div className="rb-visit-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,5vw,80px)', alignItems: 'start' }}>
+            {/* Left: everything you need in words. Right: the place itself.
+                One location means the old two-address split left this whole
+                column empty, so the practical detail is gathered here and the
+                photograph and map carry the other side. */}
             <div data-reveal style={revealInit(reduced)}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD, borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>{t.visitKicker}</div>
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT }}>{t.visitTitle}</h2>
-              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold" style={{ marginTop: 'clamp(24px,4vh,36px)' }}>{t.orderPrimary}</a>
-              <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
 
-              {/* The room itself, above the map: their own wall of framed
-                  black-and-white bakery photographs and the tables you can
-                  sit at. A map says where; this says what it is like. */}
-              <figure style={{ margin: 'clamp(24px,3.5vh,32px) 0 0', borderRadius: 4, overflow: 'hidden', border: `1px solid ${HAIR}` }}>
+              <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 'clamp(20px,3vh,28px)' }}>{mainName}</div>
+
+              <div style={{ marginTop: 18, display: 'grid', gap: 12, maxWidth: 420 }}>
+                {hoursRows[lang].map((l) => (
+                  <div key={l.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
+                    <span>{l.label}</span>
+                    <span style={{ color: IVORY }}>{l.value}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
+                  <span style={{ fontSize: 14.5, color: DIM }}>{t.rowPhone}</span>
+                  <a href={`tel:${LINKS.phone}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600 }}>{LINKS.phoneLabel}</a>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                  <span style={{ fontSize: 14.5, color: DIM }}>{t.rowEmail}</span>
+                  <a href={`mailto:${LINKS.email}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>{LINKS.email}</a>
+                </div>
+              </div>
+
+              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold" style={{ marginTop: 'clamp(26px,4vh,36px)' }}>{t.orderPrimary}</a>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
+            </div>
+
+            <div data-reveal style={{ ...revealInit(reduced, 0.1) }}>
+              {/* The room itself: their own wall of framed black-and-white
+                  bakery photographs and the tables you can sit at. A map says
+                  where it is; this says what it is like. */}
+              <figure style={{ margin: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${HAIR}` }}>
                 <img
                   src={SHOP_IMG}
                   alt={lang === 'en' ? 'Inside Reynir bakari on Dalvegur: a wall of framed black-and-white bakery photographs above the tables' : 'Inni í Reyni bakara á Dalvegi: veggur með innrömmuðum svarthvítum myndum úr bakaríinu fyrir ofan borðin'}
@@ -738,36 +766,12 @@ function ReynirPageInner() {
                 />
               </figure>
 
-              {/* the map fills this column's dead space, opposite the addresses */}
               <MapCard
                 lang={lang}
                 locations={[
                   { label: t.mainLabel, address: mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
                 ]}
               />
-            </div>
-
-            <div data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gap: 26 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.mainLabel}</div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 8 }}>{mainName}</div>
-                <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
-                  {hoursRows[lang].map((l) => (
-                    <div key={l.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
-                      <span>{l.label}</span>
-                      <span style={{ color: IVORY }}>{l.value}</span>
-                    </div>
-                  ))}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
-                    <span style={{ fontSize: 14.5, color: DIM }}>{t.rowPhone}</span>
-                    <a href={`tel:${LINKS.phone}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600 }}>{LINKS.phoneLabel}</a>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-                    <span style={{ fontSize: 14.5, color: DIM }}>{t.rowEmail}</span>
-                    <a href={`mailto:${LINKS.email}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>{LINKS.email}</a>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -820,7 +824,6 @@ function ReynirPageInner() {
       )}
 
       <PreviewChrome company={company} />
-      <PreviewFooter company={company} />
     </div>
   )
 }

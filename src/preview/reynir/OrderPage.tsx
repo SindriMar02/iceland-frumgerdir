@@ -14,7 +14,6 @@
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { PreviewChrome } from '../PreviewChrome'
-import { PreviewFooter } from '../PreviewFooter'
 import { getPreviewCompany } from '../companies'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO, T } from './data'
@@ -126,7 +125,6 @@ function ReynirOrderPageInner() {
       </footer>
 
       <PreviewChrome company={company} />
-      <PreviewFooter company={company} />
     </div>
   )
 }
