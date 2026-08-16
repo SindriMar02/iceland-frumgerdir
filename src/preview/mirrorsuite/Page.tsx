@@ -602,9 +602,9 @@ function Reviews() {
           </div>
 
           <div className="ms-rev-body">
-            {/* the placeholder state, said once at full size instead of
-                whispered under the fold */}
-            <p className="ms-rev-badge"><span aria-hidden="true" />Sample wording</p>
+            {/* these are the guests' real words now — say whose, and where
+                from, at full size rather than whispered under the fold */}
+            <p className="ms-rev-badge"><span aria-hidden="true" />Verified on {REVIEWS.source}</p>
 
             <ul className="ms-rev-list">
               {REVIEWS.quotes.map((q, idx) => (
@@ -639,7 +639,7 @@ function Reviews() {
               </div>
             </div>
 
-            <p className="ms-rev-note">{REVIEWS.sampleNote}</p>
+            <p className="ms-rev-note">{REVIEWS.sourceNote}</p>
           </div>
         </div>
       </div>

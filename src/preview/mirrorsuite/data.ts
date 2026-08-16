@@ -1,7 +1,8 @@
 /**
  * The Mirror Suite — „Speglaröðin við sjóinn" (the mirror row by the sea).
- * Facts read off themirrorsuite.com, their Lodgify pages and their own
- * Google widget 2026-08-14/15. English-first (their site is English-only).
+ * Facts read off themirrorsuite.com and their Lodgify pages 2026-08-14/15,
+ * then corrected against their own Airbnb listings 2026-08-16 (four suites,
+ * real reviews, real ratings). English-first (their site is English-only).
  */
 
 const B = `${import.meta.env.BASE_URL}mirrorsuite`
@@ -88,50 +89,74 @@ export const SUITE = {
   ],
 }
 
+/* FOUR suites, not three — corrected 2026-08-16 against their own Airbnb
+   listings, which number them 1 Arctic Thyme, 2 Lupine, 3 Bearberry,
+   4 Gleymmerey, and state that all four are identical in layout, design and
+   amenities. We had been missing Lupine entirely. */
 export const FLORA = {
   lead: 'Named after what grows on the shore.',
   body:
-    'The suites take their names from the flora between the row and the water: Bearberry, sortulyng. Gleymmerey, the forget-me-not. Arctic Thyme, blóðberg. Small, hardy, and entirely of this coast.',
+    'Four suites, identical to each other and named for the flora between the row and the water: Arctic Thyme, blóðberg. Lupine, lúpína. Bearberry, sortulyng. Gleymmerey, the forget-me-not. Small, hardy, and entirely of this coast.',
   names: [
+    { en: 'Arctic Thyme', is: 'Blóðberg' },
+    { en: 'Lupine', is: 'Lúpína' },
     { en: 'Bearberry', is: 'Sortulyng' },
     { en: 'Gleymmerey', is: 'Gleym-mér-ei' },
-    { en: 'Arctic Thyme', is: 'Blóðberg' },
   ],
 }
 
 /**
- * REVIEWS — the score, count and source are VERIFIED (their own Google widget,
- * read 2026-08-15). The three quotes below are SAMPLE COPY standing in for the
- * real review text, which is not published anywhere we can read: the Google
- * reviews show only stars, and their own Lodgify page says "This property has
- * no reviews yet". They are placeholders for the owners' real words, and the
- * shared prototype footer already declares that reviews here are sýnishorn.
- * DO NOT lift quotes from ÖÖD Hekla Horizon (Hella) — that is a different
- * property and its TripAdvisor reviews are not these guests'.
+ * REVIEWS — REAL, and quoted verbatim. Source: the property's own Airbnb
+ * listing "the Mirror Suite 2 - Lupine" (airbnb.com/rooms/1421255223000581372),
+ * read 2026-08-16. Confirmed as theirs by the host: Marat, Superhost, with
+ * Isabelle as co-host — the same two people who run the row.
+ *
+ * Verified on that listing the same day:
+ *   4.98 from 54 reviews · Guest Favourite · 98% of reviews are five stars
+ *   Cleanliness 5.0 · Accuracy 5.0 · Check-in 5.0 · Communication 5.0
+ *   Location 4.9 · Value 4.7
+ *   Host level: Marat holds 4.97 across 133 reviews, Superhost, 1 year hosting
+ *
+ * The old 5.0/10-Google figure is RETIRED: it was the weaker number, and the
+ * claim built on it ("every guest gave it five stars") is now provably false —
+ * Lena left four stars in July 2026. Her review is not quoted here because a
+ * property's own page does not carry its own criticism, but it is recorded in
+ * the build memory because it is material: her point is that the suites are a
+ * row and you can see the neighbouring hot tubs. This page already tells that
+ * truth by concept, since THE ROW is the whole idea.
+ *
+ * DO NOT lift quotes from OOD Hekla Horizon (Hella), WonderInn Arctic (Norway)
+ * or Mirror House Iceland — search results are thick with all three and none of
+ * them are this property.
  */
 export const REVIEWS = {
-  lead: 'Five stars, and not one of them on your own website.',
-  score: '5.0',
-  count: '10 Google reviews',
-  source: 'Google',
-  body: 'Every guest who has reviewed The Mirror Suite gave it five stars. Your booking page says “no reviews yet”. A guest deciding at midnight never sees any of it.',
-  sampleNote:
-    'The 5.0 and its 10 reviews are real, and verified on Google. The wording above is a placeholder: Google publishes only the stars for this property, and your own booking page still says “no reviews yet”. Send us the real sentences and they go straight in.',
+  lead: '4.98 from fifty-four guests, and not one of them on your own website.',
+  score: '4.98',
+  count: '54 reviews · Guest Favourite',
+  source: 'Airbnb',
+  body: 'Ninety-eight per cent of them are five stars, and Marat is a Superhost at 4.97 across 133 stays. Your own booking page still says “no reviews yet”. A guest deciding at midnight never sees any of it.',
+  sourceNote:
+    'Real reviews, quoted verbatim from your Airbnb listing (the Mirror Suite 2, Lupine) on 16 August 2026. On your own site they would sit here, on your own domain, working for you instead of for Airbnb.',
   quotes: [
     {
-      text: 'We sat in the hot tub at one in the morning with the sauna still warm behind us, and the whole sky went green over the fjord.',
-      name: 'Guest',
-      meta: 'Sample review',
+      text: 'The location was amazing! We were able to catch the sunset over the mountain from inside our room and in the private sauna! It was really stunning, and we would highly recommend staying here!',
+      name: 'Brendan',
+      meta: 'Austin, Texas · Airbnb, August 2026',
     },
     {
-      text: 'Three glass walls and nobody for miles. You stop looking at your phone about ten minutes after you arrive.',
-      name: 'Guest',
-      meta: 'Sample review',
+      text: 'This was one of our two favorite places & homes on our entire Iceland trip. Perfect to relax and enjoy. We can only recommend staying here',
+      name: 'Alexandra',
+      meta: 'Eleven years on Airbnb · August 2026',
     },
     {
-      text: 'Fifty metres from the sea, and the tide is the only thing you hear. We have stayed in a lot of places in Iceland; this one we still talk about.',
-      name: 'Guest',
-      meta: 'Sample review',
+      text: 'The mirror suite was cozy, unique, and had beautiful views of both the ocean and the mountains. It was a peaceful place to relax.',
+      name: 'Tamara',
+      meta: 'Orlando, Florida · Airbnb, July 2026',
+    },
+    {
+      text: 'Unique location and it was wonderful to sit in the hot tub overlooking the water.',
+      name: 'Lesley-Anne',
+      meta: 'Thirteen years on Airbnb · July 2026',
     },
   ],
 }
@@ -163,7 +188,7 @@ export const JSON_LD = {
   email: EMAIL,
   url: 'https://www.themirrorsuite.com',
   address: { '@type': 'PostalAddress', streetAddress: 'Ljárskógarströnd 17', postalCode: '371', addressLocality: 'Búðardalur', addressCountry: 'IS' },
-  aggregateRating: { '@type': 'AggregateRating', ratingValue: '5.0', reviewCount: '10', bestRating: '5' },
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.98', reviewCount: '54', bestRating: '5' },
   checkinTime: '15:00',
   checkoutTime: '11:00',
 }
