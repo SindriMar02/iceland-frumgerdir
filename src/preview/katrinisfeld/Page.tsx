@@ -519,7 +519,12 @@ export default function KatrinIsfeldPage() {
         <div className="ki-skra-cols">
           {REGISTER.map((f) => (
             <div key={f.flokkur} className="ki-skra-flokkur ki-rv">
-              <h3 className="ki-skra-cat">{f.flokkur}</h3>
+              <div className="ki-skra-cat-row">
+                <h3 className="ki-skra-cat">{f.flokkur}</h3>
+                <span className="ki-skra-cat-n" aria-hidden="true">
+                  {String(f.verk.length).padStart(2, '0')}
+                </span>
+              </div>
               <ul className="ki-skra-list">
                 {f.verk.map((v) => (
                   <li key={v} className="ki-skra-row"><span>{v}</span></li>
@@ -770,12 +775,29 @@ const CSS = `
 .ki-skra-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: calc(var(--u) * 50); }
 .ki-skra-count { font-family: ${MONO}; font-size: ${fluid(14, 12.5)}; color: var(--ki-mute); margin: 0; }
 .ki-skra-n { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(40, 24)}; color: #EDE7DE; padding: 0 .1em; }
-.ki-skra-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 44); align-items: start; }
-.ki-skra-cat { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .13em; text-transform: uppercase; font-weight: 400; color: var(--ki-copper); margin: 0 0 calc(var(--u) * 18); }
-.ki-skra-list { list-style: none; margin: 0; padding: 0; }
+/* The register reads as a ledger, one full-width band per flokkur, because the
+   old four-up layout gave every category a column of its own: 13 verk beside 6
+   beside 2 beside 2 left three columns of nothing but rule and air. Here each
+   band is only as tall as its own contents and the verk flow across the full
+   measure, so a two-item category costs two rows instead of thirteen. */
+.ki-skra-cols { display: block; }
+.ki-skra-flokkur { border-top: 1px solid rgb(237 231 222 / .26); padding-top: calc(var(--u) * 26); }
+.ki-skra-flokkur + .ki-skra-flokkur { margin-top: calc(var(--u) * 46); }
+.ki-skra-cat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: calc(var(--u) * 16); }
+.ki-skra-cat { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .13em; text-transform: uppercase; font-weight: 400; color: var(--ki-copper); margin: 0; }
+.ki-skra-cat-n { font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .08em; color: var(--ki-mute); font-variant-numeric: tabular-nums; }
+.ki-skra-list {
+  list-style: none; margin: 0; padding: 0;
+  /* an absolute track floor, not a --u-scaled one: the longest title
+     ("Eldhúsrými í skandinavískum stíl") needs the same ~250px whatever the
+     viewport, and scaling the minimum let four tracks form at 982px and wrapped
+     it onto a second line */
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  column-gap: calc(var(--u) * 44);
+}
 .ki-skra-row {
   position: relative; border-top: 1px solid var(--ki-hair);
-  padding: 12px 0; font-size: ${fluid(15.5, 14)};
+  padding: 11px 0; font-size: ${fluid(15.5, 14)};
   transition: color .8s ${OUT};
 }
 .ki-skra-row > span { display: inline-block; transition: transform .8s ${OUT}; }
@@ -815,14 +837,31 @@ const CSS = `
 .ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(56, 26)}; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
 .ki-samband-tel:hover { color: var(--ki-copper); }
 .ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12)}; color: #9AA79F; margin-top: calc(var(--u) * 20); }
+/* A ruled label rather than a filled slab: the page speaks in mono kickers and
+   hairlines, and a cream block was the one heavy object in it. Hover brightens
+   the rule and the label; it deliberately does not go copper, which sits at
+   3.7:1 on this ground and would drop the state below AA. */
 .ki-cta {
-  display: inline-block; font-size: ${fluid(16, 15)}; color: #171310;
-  background: #EDE7DE; padding: calc(var(--u) * 16) calc(var(--u) * 30);
-  text-decoration: none; transition: opacity .25s ${OUT}, transform .16s ${OUT};
+  position: relative; display: inline-block;
+  font-family: ${MONO}; font-size: ${fluid(13, 12)};
+  letter-spacing: .14em; text-transform: uppercase;
+  background: none; padding: 6px 0 10px;
+  text-decoration: none; transition: color .3s ${OUT}, transform .16s ${OUT};
 }
-.ki-cta:hover { opacity: .85; }
+.ki-cta::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px; background: currentColor; opacity: .38;
+  transition: opacity .3s ${OUT};
+}
+@media (hover: hover) and (pointer: fine) {
+  .ki-cta:hover { color: #FFFDF8; }
+  .ki-cta:hover::after { opacity: 1; }
+}
 .ki-cta:active { transform: scale(.97); }
-.ki-italskar .ki-cta, .ki-samband .ki-cta { background: #EDE7DE; color: #171310; }
+.ki-italskar .ki-cta, .ki-samband .ki-cta { color: #EDE7DE; }
+/* the slab carried its own 16px of padding as separation; a ruled label has
+   none, so it needs the gap set explicitly or it crowds the paragraph above */
+.ki-italskar .ki-cta { margin-top: calc(var(--u) * 30); }
 
 /* footer */
 .ki-foot { border-top: 1px solid rgb(237 231 222 / .14); padding: calc(var(--u) * 42) calc(var(--u) * 34) calc(var(--u) * 42); background: ${CHARCOAL}; color: #EDE7DE; }
@@ -835,7 +874,6 @@ const CSS = `
   .ki-verk-grid { grid-template-columns: 1fr; }
   .ki-yfirlit-grid { grid-template-columns: repeat(2, 1fr); }
   .ki-verk-grid .ki-slide:nth-child(2), .ki-verk-grid .ki-slide:nth-child(3) { margin-top: 0; }
-  .ki-skra-cols { grid-template-columns: 1fr 1fr; }
   .ki-foot-grid { grid-template-columns: 1fr; }
   .ki-dome-title { white-space: normal; }
 }
@@ -851,7 +889,6 @@ const CSS = `
   .ki-samband-in { padding: calc(var(--u) * 140) 20px 16px; }
   .ki-samband-row { margin-top: 16px; }
   .ki-samband-addr { margin-top: 10px; }
-  .ki-skra-cols { grid-template-columns: 1fr; }
   .ki-yfirlit { padding-left: 20px; padding-right: 20px; }
   .ki-yfirlit-grid { grid-template-columns: 1fr; }
   .ki-hero-lockup { padding: 0 20px 34px; }
