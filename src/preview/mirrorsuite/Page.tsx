@@ -16,7 +16,7 @@ const company = companyEntry
    is a dark shoreline at dusk, and its signature is THE ROW: four glass
    panels standing side by side like the suites themselves, each expanding
    on hover/focus to hand over its photograph. Second device: the flora
-   nameplates (Bearberry · Gleymmerey · Arctic Thyme), set as engraved
+   nameplates (Arctic Thyme · Lupine · Bearberry · Gleymmerey), engraved
    pairs EN/IS. Engine: vanilla — one shared rAF drift loop + IO reveals,
    flex-grow accordion, no GSAP, no Lenis. ───────────────────────────────── */
 
@@ -337,9 +337,13 @@ export default function Page() {
             </div>
             <div className="ms-suite-photos">
               <Frame src={IMG.int2} alt="Inside a suite, glass facing the fjord" ratio="3/2" drift={10} />
+              {/* tall-9 was here under alt="Suite detail" and is a photograph
+                  of a SNORKELLER — an area-activity shot, not the suite. Both
+                  slots now carry actual suite detail, and both are checked
+                  against the owners' own Airbnb gallery. */}
               <div className="ms-suite-pair">
-                <Frame src={IMG.port1} alt="Suite detail" ratio="3/3.6" drift={8} />
-                <Frame src={IMG.tall9} alt="Suite detail" ratio="3/3.6" drift={9} />
+                <Frame src={IMG.port1} alt="The kitchenette and its coffee" ratio="3/3.6" drift={8} />
+                <Frame src={IMG.tall8} alt="Mirror cladding meeting the dark timber end wall" ratio="3/3.6" drift={9} />
               </div>
             </div>
           </div>
@@ -435,7 +439,7 @@ function HeroMedia() {
      while zero frames are decoded, so it is never blank,
    · canvas.dataset.frame exposes the shown frame so a probe can assert it.
    ──────────────────────────────────────────────────────────────────────── */
-const NIGHT_FRAMES = 214
+const NIGHT_FRAMES = 121
 
 function PanoScrub() {
   const [chap, setChap] = useState(0)
@@ -552,8 +556,11 @@ function PanoScrub() {
   return (
     <section className="ms-pano" ref={wrapRef} aria-label="The night">
       <div className="ms-pano-sticky">
-        <img ref={stillRef} className="ms-pano-still" src={IMG.pano}
-          alt="The suites under the aurora on the shore" loading="eager" decoding="async" />
+        {/* was IMG.pano, which is NOT this property — see data.ts. The still
+            is now their own verified night photograph, and it is also the
+            frame the film is generated from, so poster and first frame agree. */}
+        <img ref={stillRef} className="ms-pano-still" src={IMG.tall5}
+          alt="The suites, the glass sauna and the hot tub under the aurora" loading="eager" decoding="async" />
         <canvas ref={canvasRef} className="ms-pano-canvas" aria-hidden="true" />
 
         {/* THE COMMENTATOR — one line takes the frame at each mark, arriving
@@ -814,7 +821,7 @@ const STYLES = `
 
 /* THE NIGHT — pinned scrub */
 /* three welded takes now run through here, so the pin needs the travel */
-.ms-pano{position:relative;height:430svh}
+.ms-pano{position:relative;height:260svh}
 .ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
 /* the type sits ON the film, so the film has to give it a floor */
 .ms-pano-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:2;pointer-events:none;

@@ -24,7 +24,16 @@ export const IMG = {
   int2: `${B}/int-2.jpg`,
   int3: `${B}/int-3.jpg`,
   int4: `${B}/int-4.jpg`,
-  pano: `${B}/pano.jpg`,
+  /* pano.jpg is REMOVED, 2026-08-16. It was NOT this property. These are
+     OOD-built cabins and OOD's marketing photography circulates across every
+     operator who buys one, so it reaches their site freely — being on
+     themirrorsuite.com never made it a photograph OF the Mirror Suite. Put
+     beside the owners' own Airbnb gallery it is plainly a different place:
+     theirs has an angled glass sauna and a wooden barrel tub on a timber
+     deck; pano had one long cabin, no sauna, no tub, and blue LED strip
+     lights that appear in none of their 22 listing photos. It was the start
+     image of the whole night film, so the film is regenerated from tall-5.
+     Verify images against the OTA listing, never against the client's site. */
   land1: `${B}/land-1.jpg`,
   land2: `${B}/land-2.jpg`,
   tall1: `${B}/tall-1.jpg`,
