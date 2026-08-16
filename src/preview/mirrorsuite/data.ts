@@ -164,6 +164,19 @@ export const REVIEWS = {
 export const PANO = {
   caption: 'Some nights the sky does the decorating.',
   note: 'Scroll to run the night',
+  /* The commentator. One line takes over the film at each mark below, so the
+     scroll-through argues for the place while it plays instead of being a
+     silent pan. Every line is a VERIFIED fact off their own site — fifty
+     metres to the sea, three of four walls glass, the private glass sauna,
+     and the hot tub built to stay warm through winter — in the order the
+     camera reaches them: the shore, the suite, the sauna, the tub, the sky. */
+  chapters: [
+    { at: 0.0, text: 'Fifty metres from the sea.' },
+    { at: 0.22, text: 'Three of the four walls are glass.' },
+    { at: 0.45, text: 'A glass sauna, facing the same water.' },
+    { at: 0.67, text: 'A hot tub kept warm all winter.' },
+    { at: 0.86, text: 'Some nights the sky does the decorating.' },
+  ],
 }
 
 export const HOSTS = {

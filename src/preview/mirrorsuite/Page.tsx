@@ -435,9 +435,10 @@ function HeroMedia() {
      while zero frames are decoded, so it is never blank,
    · canvas.dataset.frame exposes the shown frame so a probe can assert it.
    ──────────────────────────────────────────────────────────────────────── */
-const NIGHT_FRAMES = 121
+const NIGHT_FRAMES = 234
 
 function PanoScrub() {
+  const [chap, setChap] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stillRef = useRef<HTMLImageElement>(null)
@@ -524,6 +525,10 @@ function PanoScrub() {
         const p = Math.min(1, Math.max(0, -r.top / total))
         const idx = Math.min(NIGHT_FRAMES - 1, Math.round(p * (NIGHT_FRAMES - 1)))
         if (idx !== shown) { wanted = idx; paint(idx) }
+        /* the commentator: whichever line the camera has reached */
+        let c = 0
+        for (let k = 0; k < PANO.chapters.length; k += 1) if (p >= PANO.chapters[k].at) c = k
+        setChap((v) => (v === c ? v : c))
       })
     }
 
@@ -550,8 +555,31 @@ function PanoScrub() {
         <img ref={stillRef} className="ms-pano-still" src={IMG.pano}
           alt="The suites under the aurora on the shore" loading="eager" decoding="async" />
         <canvas ref={canvasRef} className="ms-pano-canvas" aria-hidden="true" />
-        <p className="ms-pano-caption">{PANO.caption}</p>
-        <p className="ms-pano-hint" aria-hidden="true">{PANO.note}</p>
+
+        {/* THE COMMENTATOR — one line takes the frame at each mark, arriving
+            word by word out of its own mask. Every line stays mounted and
+            only .is-on moves, which is the reveal pattern that has never
+            failed on these builds. */}
+        <div className="ms-cmt">
+          {PANO.chapters.map((c, idx) => (
+            <p key={c.text} className={`ms-cmt-l ${idx === chap ? 'is-on' : ''}`}>
+              {c.text.split(' ').flatMap((w, k, all) => [
+                <span className="ms-cmt-w" key={`${w}-${k}`}>
+                  <i style={{ transitionDelay: idx === chap ? `${k * 46}ms` : '0ms' }}>{w}</i>
+                </span>,
+                ...(k < all.length - 1 ? [' '] : []),
+              ])}
+            </p>
+          ))}
+        </div>
+
+        <div className="ms-cmt-rail" aria-hidden="true">
+          {PANO.chapters.map((c, idx) => (
+            <span key={c.text} className={idx <= chap ? 'is-on' : ''} />
+          ))}
+        </div>
+
+        <p className={`ms-pano-hint ${chap > 0 ? 'is-gone' : ''}`} aria-hidden="true">{PANO.note}</p>
       </div>
     </section>
   )
@@ -785,14 +813,36 @@ const STYLES = `
 @media (max-width:560px){.ms-suite-pair{grid-template-columns:1fr}}
 
 /* THE NIGHT — pinned scrub */
-.ms-pano{position:relative;height:260svh}
+/* three welded takes now run through here, so the pin needs the travel */
+.ms-pano{position:relative;height:480svh}
 .ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
+/* the type sits ON the film, so the film has to give it a floor */
+.ms-pano-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:2;pointer-events:none;
+  background:linear-gradient(to top,rgba(6,10,14,.74),rgba(6,10,14,.28) 42%,transparent)}
+
+/* ── the commentator ── */
+.ms-cmt{position:absolute;left:clamp(24px,6vw,92px);right:clamp(24px,6vw,92px);
+  bottom:clamp(74px,15vh,140px);z-index:3;display:grid}
+.ms-cmt-l{grid-area:1/1;margin:0;font-family:var(--disp);font-weight:200;
+  font-size:clamp(1.65rem,4.2vw,3.4rem);line-height:1.04;letter-spacing:-.024em;
+  color:#F7FAFB;max-width:19ch;opacity:0;transition:opacity .5s var(--e);
+  text-shadow:0 2px 34px rgba(6,10,14,.6)}
+.ms-cmt-l.is-on{opacity:1}
+.ms-cmt-w{display:inline-block;overflow:hidden;vertical-align:top}
+.ms-cmt-w i{display:inline-block;font-style:normal;opacity:0;transform:translateY(106%);
+  transition:transform .74s var(--e),opacity .5s var(--e)}
+.ms-cmt-l.is-on .ms-cmt-w i{opacity:1;transform:none}
+.ms-cmt-rail{position:absolute;left:clamp(24px,6vw,92px);bottom:clamp(44px,9vh,84px);z-index:3;display:flex;gap:7px}
+.ms-cmt-rail span{width:30px;height:1px;background:rgba(247,250,251,.26);transition:background .5s var(--e)}
+.ms-cmt-rail span.is-on{background:rgba(247,250,251,.9)}
+@media (max-width:640px){.ms-cmt-l{max-width:14ch}.ms-cmt-rail span{width:20px}}
 .ms-pano-media{position:absolute;inset:0;will-change:transform,filter;transform-origin:50% 55%}
 .ms-pano-media img,.ms-pano-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ms-pano-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ms-pano-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .ms-pano-caption{position:absolute;left:0;right:0;bottom:clamp(18px,4vh,40px);text-align:center;color:#F2F6F8;
   font-size:.86rem;letter-spacing:.05em;padding:0 20px;text-shadow:0 1px 18px rgba(15,20,28,.6)}
+.ms-pano-hint.is-gone{opacity:0;transition:opacity .5s var(--e)}
 .ms-pano-hint{position:absolute;left:0;right:0;top:calc(50% + 4px);text-align:center;color:var(--bone-mute);
   font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;pointer-events:none}
 .reduced .ms-pano-canvas,.reduced .ms-pano-hint{display:none}
@@ -918,6 +968,11 @@ const STYLES = `
   .ms-panel{min-height:300px}
   .ms-pano{height:auto}
   .ms-pano-sticky{position:static;height:72svh}
+  /* no scroll to drive the commentator: keep the closing line, drop the rest */
+  .ms-cmt-l{display:none}
+  .ms-cmt-l:last-child{display:block;opacity:1}
+  .ms-cmt-w i{opacity:1 !important;transform:none !important;transition:none}
+  .ms-cmt-rail{display:none}
   .ms-pano-media{transform:none !important;filter:none !important}
   /* every quote is shown at once, so every WORD must be shown too — the
      per-word reveal is keyed off .is-live, which only one <li> ever has */
