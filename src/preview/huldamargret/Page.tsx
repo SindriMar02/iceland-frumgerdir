@@ -102,6 +102,14 @@ function useMotion(ready: boolean) {
       if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
       io.observe(el)
     })
+    /* A scroll fast enough to skip an element's whole box between painted
+       frames never produces an intersecting entry at all. Same sweep the
+       Chris build carries. */
+    const revealPassed = () => {
+      root.querySelectorAll('.hm-rv:not(.is-in)').forEach((el) => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
+      })
+    }
 
     const ctx = gsap.context(() => {
       /* THE WORDMARK — the leaf shutter.
@@ -179,14 +187,20 @@ function useMotion(ready: boolean) {
       }
     }, root)
 
-    lenis.on('scroll', ScrollTrigger.update)
-    const tick = (t: number) => { drift(); lenis.raf(t * 1000) }
+    /* drift + the reveal sweep ride the scroll event, not every ticker frame:
+       between gestures the rects cannot have moved, so a per-frame pass is
+       ~18 getBoundingClientRect reads a frame for no visual change */
+    lenis.on('scroll', () => { ScrollTrigger.update(); drift(); revealPassed() })
+    const tick = (t: number) => { lenis.raf(t * 1000) }
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
     drift()
+    const onResize = () => drift()
+    window.addEventListener('resize', onResize, { passive: true })
 
     return () => {
       io.disconnect()
+      window.removeEventListener('resize', onResize)
       gsap.ticker.remove(tick)
       ctx.revert()
       lenis.destroy()
@@ -609,7 +623,7 @@ const CSS = `
 /* loader */
 .hm-loader {
   position: fixed; inset: 0; z-index: 90; display: grid; place-content: center; gap: 10px;
-  background: ${MORNING}; transition: opacity .8s ease, visibility .8s ease;
+  background: ${MORNING}; transition: opacity .8s cubic-bezier(.16,1,.3,1), visibility .8s cubic-bezier(.16,1,.3,1);
 }
 .hm-loader.is-leaving { opacity: 0; visibility: hidden; }
 .hm-loader-mark {
@@ -758,7 +772,12 @@ const CSS = `
 }
 .hm-marquee-track { display: flex; width: max-content; }
 .hm-js .hm-marquee-track { animation: hm-logo-run 42s linear infinite; }
-.hm-marquee:hover .hm-marquee-track, .hm-marquee:focus-within .hm-marquee-track { animation-play-state: paused; }
+/* hover-pause only where hover is real: on touch a tap fires :hover and
+   sticks, stalling the band with no visible way to start it again */
+@media (hover: hover) and (pointer: fine) {
+  .hm-marquee:hover .hm-marquee-track { animation-play-state: paused; }
+}
+.hm-marquee:focus-within .hm-marquee-track { animation-play-state: paused; }
 @keyframes hm-logo-run { from { transform: translate3d(0,0,0) } to { transform: translate3d(-50%,0,0) } }
 .hm-marquee-run {
   list-style: none; display: flex; align-items: center;
@@ -799,10 +818,10 @@ const CSS = `
 .hm-cta {
   display: inline-block; font-size: ${fluid(16, 15)}; color: var(--hm-c);
   background: var(--hm-ink); padding: calc(var(--u) * 16) calc(var(--u) * 30);
-  text-decoration: none; transition: opacity .25s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1);
+  text-decoration: none; transition: opacity .25s cubic-bezier(.4,0,.2,1), transform .16s cubic-bezier(.4,0,.2,1);
 }
 .hm-cta:hover { opacity: .88; }
-.hm-cta:active { transform: scale(.98); }
+.hm-cta:active { transform: scale(.97); }
 .hm-samband-mail { font-family: ${MONO}; font-size: ${fluid(13, 12)}; color: var(--hm-mute); margin-top: calc(var(--u) * 22); }
 
 /* footer */

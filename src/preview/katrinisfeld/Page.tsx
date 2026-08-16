@@ -62,15 +62,6 @@ function useMotion(ready: boolean) {
     const root = document.querySelector<HTMLElement>('.ki-root')
     if (!root) return
 
-    if (reduced()) {
-      root.classList.add('ki-static')
-      return
-    }
-
-    root.classList.add('ki-js')
-    ScrollTrigger.config({ ignoreMobileResize: true })
-    const lenis = new Lenis({ duration: 1.15, smoothWheel: true })
-
     /* SELF-THEMING CHROME — ERA's signature detail. Each fixed chrome element
        is themed by which section ITS OWN vertical centre is inside, with a
        0.4s colour transition. One read pass per frame, rects cached. */
@@ -98,6 +89,29 @@ function useMotion(ready: boolean) {
       }
     }
 
+    /* Reduced motion still needs the chrome themed. Without this the nav sat
+       at its :not([data-ki-on]) fallback (dark ink) over every dark band, so
+       a visitor with the OS setting on read dark-on-dark for most of the
+       page. Reduced motion means gentler movement, not unreadable text, so
+       the theming runs here off native scroll with no Lenis and no tweens. */
+    if (reduced()) {
+      root.classList.add('ki-static')
+      readBands()
+      themeChrome()
+      const onScroll = () => themeChrome()
+      const onResize = () => { readBands(); themeChrome() }
+      window.addEventListener('scroll', onScroll, { passive: true })
+      window.addEventListener('resize', onResize, { passive: true })
+      return () => {
+        window.removeEventListener('scroll', onScroll)
+        window.removeEventListener('resize', onResize)
+      }
+    }
+
+    root.classList.add('ki-js')
+    ScrollTrigger.config({ ignoreMobileResize: true })
+    const lenis = new Lenis({ duration: 1.15, smoothWheel: true })
+
     /* reveals: IO arms a class; CSS owns transitions (ERA reveal/initial) */
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
@@ -112,6 +126,14 @@ function useMotion(ready: boolean) {
       if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
       io.observe(el)
     })
+    /* A scroll fast enough to skip an element's whole box between painted
+       frames never produces an intersecting entry at all, so it would stay
+       clipped forever. Same sweep the Chris build carries. */
+    const revealPassed = () => {
+      root.querySelectorAll('.ki-rv:not(.is-in), .ki-slide:not(.is-in), .ki-shutter:not(.is-in)').forEach((el) => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
+      })
+    }
 
     const ctx = gsap.context(() => {
       /* dive-in hero: the camera settles into the first room (scale 2 from
@@ -191,8 +213,11 @@ function useMotion(ready: boolean) {
       readBands()
     }, root)
 
-    lenis.on('scroll', ScrollTrigger.update)
-    const tick = (t: number) => { themeChrome(); lenis.raf(t * 1000) }
+    /* theming + the reveal sweep ride the scroll event, not every ticker
+       frame: between gestures nothing they read can have changed, so a
+       per-frame pass is several getBoundingClientRect reads for no result */
+    lenis.on('scroll', () => { ScrollTrigger.update(); themeChrome(); revealPassed() })
+    const tick = (t: number) => { lenis.raf(t * 1000) }
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
     readBands()
@@ -659,7 +684,7 @@ const CSS = `
 .ki-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ki-js .ki-slide { clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%); opacity: 0; }
 .ki-js .ki-slide img { transform: scale(1.28); }
-.ki-js .ki-slide.is-in { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); opacity: 1; transition: clip-path 1.2s ${OUT}, opacity .5s linear; }
+.ki-js .ki-slide.is-in { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); opacity: 1; transition: clip-path 1.2s ${OUT}, opacity .5s ${OUT}; }
 .ki-js .ki-slide.is-in img { transform: scale(1); transition: transform 1.4s ${OUT}; }
 
 /* shutter: converging panels */
@@ -793,10 +818,10 @@ const CSS = `
 .ki-cta {
   display: inline-block; font-size: ${fluid(16, 15)}; color: #171310;
   background: #EDE7DE; padding: calc(var(--u) * 16) calc(var(--u) * 30);
-  text-decoration: none; transition: opacity .25s ${OUT}, transform .25s ${OUT};
+  text-decoration: none; transition: opacity .25s ${OUT}, transform .16s ${OUT};
 }
 .ki-cta:hover { opacity: .85; }
-.ki-cta:active { transform: scale(.98); }
+.ki-cta:active { transform: scale(.97); }
 .ki-italskar .ki-cta, .ki-samband .ki-cta { background: #EDE7DE; color: #171310; }
 
 /* footer */
