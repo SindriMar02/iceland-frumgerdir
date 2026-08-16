@@ -582,29 +582,65 @@ function Reviews() {
           <span className="ms-rev-c">{REVIEWS.count}</span>
           <span className="ms-rev-src">Verified on {REVIEWS.source}</span>
         </div>
-        <div className="ms-rev-quotes">
-          <ul className="ms-rev-list">
+        {/* ── the stage (21st.dev "Design Testimonial", devices transplanted) ──
+            Its asymmetric shape is the point: an oversized ghost ordinal
+            bleeding off the left, a rotated label over a filling progress
+            line, and the quote arriving word by word. Rebuilt on class
+            toggles rather than its framer-motion mount states — every quote
+            stays mounted and only `.is-live` moves, which is the one reveal
+            pattern that has never failed on these builds. */}
+        <div className="ms-rev-stage">
+          <span className="ms-rev-ord" aria-hidden="true">
             {REVIEWS.quotes.map((q, idx) => (
-              <li key={q.text} className={`ms-rev-q ${idx === i ? 'is-live' : ''}`} aria-hidden={idx !== i}>
-                <blockquote>“{q.text}”</blockquote>
-                <cite>{q.name} · {q.meta}</cite>
-              </li>
+              <b key={q.text} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
             ))}
-          </ul>
-          <div className="ms-rev-dots" role="tablist" aria-label="Reviews">
-            {REVIEWS.quotes.map((q, idx) => (
-              <button
-                key={q.text}
-                type="button"
-                role="tab"
-                aria-selected={idx === i}
-                aria-label={`Review ${idx + 1} of ${n}`}
-                className={`ms-rev-dot ${idx === i ? 'is-on' : ''}`}
-                onClick={() => setI(idx)}
-              />
-            ))}
+          </span>
+
+          <div className="ms-rev-rail" aria-hidden="true">
+            <span className="ms-rev-rail-l">Reviews</span>
+            <span className="ms-rev-rail-t"><i style={{ height: `${((i + 1) / n) * 100}%` }} /></span>
           </div>
-          <p className="ms-rev-note">{REVIEWS.sampleNote}</p>
+
+          <div className="ms-rev-body">
+            {/* the placeholder state, said once at full size instead of
+                whispered under the fold */}
+            <p className="ms-rev-badge"><span aria-hidden="true" />Sample wording</p>
+
+            <ul className="ms-rev-list">
+              {REVIEWS.quotes.map((q, idx) => (
+                <li key={q.text} className={`ms-rev-q ${idx === i ? 'is-live' : ''}`} aria-hidden={idx !== i}>
+                  {/* A REAL space text node has to sit between the word spans.
+                      Mapping words to bare <span>s renders them with no
+                      whitespace at all: the gap becomes CSS-only, so the
+                      accessible name, copy-paste and search all read
+                      "Wesatinthehottub..." while it looks correct on screen. */}
+                  <blockquote>
+                    {q.text.split(' ').flatMap((w, k, all) => [
+                      <span className="ms-rev-w" key={`${w}-${k}`}>
+                        <i style={{ transitionDelay: idx === i ? `${k * 38}ms` : '0ms' }}>{w}</i>
+                      </span>,
+                      /* no trailing space, or it gaps the closing quote mark */
+                      ...(k < all.length - 1 ? [' '] : []),
+                    ])}
+                  </blockquote>
+                </li>
+              ))}
+            </ul>
+
+            <div className="ms-rev-foot">
+              <p className="ms-rev-who"><i aria-hidden="true" />{REVIEWS.quotes[i].name} · {REVIEWS.quotes[i].meta}</p>
+              <div className="ms-rev-nav">
+                <button type="button" aria-label="Previous review" onClick={() => setI((v) => (v - 1 + n) % n)}>
+                  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+                <button type="button" aria-label="Next review" onClick={() => setI((v) => (v + 1) % n)}>
+                  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <p className="ms-rev-note">{REVIEWS.sampleNote}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -770,20 +806,57 @@ const STYLES = `
 .ms-rev-stars{color:var(--glass);letter-spacing:.26em;font-size:1rem}
 .ms-rev-c{font-size:.9rem;color:var(--bone-soft)}
 .ms-rev-src{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bone-mute)}
-.ms-rev-quotes{border-top:1px solid var(--hair);padding-top:22px;display:grid;gap:16px}
-.ms-rev-list{list-style:none;padding:0;margin:0;display:grid}
-.ms-rev-q{grid-area:1/1;opacity:0;transform:translateY(10px);pointer-events:none;
-  transition:opacity .7s var(--e),transform .7s var(--e)}
-.ms-rev-q.is-live{opacity:1;transform:none;pointer-events:auto}
+/* ══ review stage ══ */
+.ms-rev-stage{position:relative;display:flex;gap:clamp(20px,3vw,44px);
+  border-top:1px solid var(--hair);padding-top:26px;overflow:hidden}
+/* oversized ghost ordinal, bled off the left edge */
+.ms-rev-ord{position:absolute;left:-.16em;top:50%;transform:translateY(-46%);z-index:0;
+  display:grid;font-family:var(--disp);font-weight:200;font-size:clamp(11rem,26vw,19rem);
+  line-height:.8;letter-spacing:-.05em;color:var(--bone);opacity:.05;pointer-events:none;user-select:none}
+.ms-rev-ord b{grid-area:1/1;font-weight:inherit;opacity:0;transform:scale(1.08);filter:blur(9px);
+  transition:opacity .6s var(--e),transform .6s var(--e),filter .6s var(--e)}
+.ms-rev-ord b.is-on{opacity:1;transform:none;filter:none}
+/* rotated label over a filling progress line */
+.ms-rev-rail{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:16px;
+  padding-right:clamp(16px,2vw,28px);border-right:1px solid var(--hair);flex:none}
+.ms-rev-rail-l{writing-mode:vertical-rl;text-orientation:mixed;font-size:.66rem;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--bone-mute)}
+.ms-rev-rail-t{position:relative;width:1px;flex:1;min-height:70px;background:var(--hair)}
+.ms-rev-rail-t i{position:absolute;inset:0 0 auto 0;width:100%;background:var(--glass);
+  transition:height .55s var(--e)}
+.ms-rev-body{position:relative;z-index:1;flex:1;min-width:0;display:grid;gap:18px;align-content:start}
+/* the placeholder state, at full size */
+.ms-rev-badge{display:inline-flex;align-items:center;gap:9px;justify-self:start;
+  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-soft);
+  border:1px solid var(--hair);border-radius:999px;padding:6px 14px}
+.ms-rev-badge span{width:5px;height:5px;border-radius:50%;background:var(--glass);flex:none}
+/* word-by-word arrival */
+.ms-rev-w{display:inline-block;overflow:hidden;vertical-align:top}
+.ms-rev-w i{display:inline-block;font-style:normal;opacity:0;
+  transform:translateY(104%) rotateX(64deg);transform-origin:top center;
+  transition:transform .66s var(--e),opacity .5s var(--e)}
+.ms-rev-q.is-live .ms-rev-w i{opacity:1;transform:none}
+.ms-rev-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ms-rev-who{display:flex;align-items:center;gap:14px;font-size:.8rem;letter-spacing:.06em;color:var(--bone-mute)}
+.ms-rev-who i{display:block;width:34px;height:1px;background:var(--bone-soft);flex:none}
+.ms-rev-nav{display:flex;gap:10px}
+.ms-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair);
+  display:grid;place-content:center;color:var(--bone-soft);
+  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
+.ms-rev-nav button:hover{color:var(--deep);background:var(--bone);border-color:var(--bone)}
+@media (max-width:640px){
+  .ms-rev-rail{display:none}
+  .ms-rev-ord{font-size:9rem}
+}
+.ms-rev-list{list-style:none;padding:0;margin:0;display:grid;perspective:760px}
+/* the <li> only gates visibility now — the WORDS carry the movement */
+.ms-rev-q{grid-area:1/1;opacity:0;pointer-events:none;transition:opacity .45s var(--e)}
+.ms-rev-q.is-live{opacity:1;pointer-events:auto}
 .ms-rev-q blockquote{margin:0;font-family:var(--disp);font-weight:200;
-  font-size:clamp(1.25rem,2.5vw,2rem);line-height:1.32;max-width:30ch}
-.ms-rev-q cite{display:block;margin-top:14px;font-style:normal;font-size:.8rem;letter-spacing:.06em;color:var(--bone-mute)}
-.ms-rev-dots{display:flex;gap:8px}
-.ms-rev-dot{width:34px;height:2px;background:var(--hair);position:relative;padding:0;
-  transition:background .4s var(--e)}
-.ms-rev-dot::after{content:'';position:absolute;inset:-11px 0}
-.ms-rev-dot.is-on{background:var(--glass)}
-.ms-rev-note{font-size:.74rem;letter-spacing:.04em;color:var(--bone-mute)}
+  font-size:clamp(1.45rem,3vw,2.5rem);line-height:1.24;letter-spacing:-.018em;max-width:24ch}
+.ms-rev-q blockquote::before{content:'\\201C'}
+.ms-rev-q blockquote::after{content:'\\201D'}
+.ms-rev-note{font-size:.74rem;letter-spacing:.04em;color:var(--bone-mute);max-width:62ch}
 @media (max-width:820px){.ms-rev-grid{grid-template-columns:1fr}}
 
 /* flora names */
@@ -846,7 +919,12 @@ const STYLES = `
   .ms-pano{height:auto}
   .ms-pano-sticky{position:static;height:72svh}
   .ms-pano-media{transform:none !important;filter:none !important}
+  /* every quote is shown at once, so every WORD must be shown too — the
+     per-word reveal is keyed off .is-live, which only one <li> ever has */
   .ms-rev-q{grid-area:auto;opacity:1;transform:none;pointer-events:auto;margin-bottom:26px}
+  .ms-rev-w i{opacity:1 !important;transform:none !important;transition:none}
+  .ms-rev-ord b{opacity:0}
+  .ms-rev-ord b.is-on{opacity:1;filter:none;transform:none}
   .ms-loader-horizon::after{animation:none}
 }
 

@@ -115,7 +115,8 @@ export const REVIEWS = {
   count: '10 Google reviews',
   source: 'Google',
   body: 'Every guest who has reviewed The Mirror Suite gave it five stars. Your booking page says “no reviews yet”. A guest deciding at midnight never sees any of it.',
-  sampleNote: 'Sample wording, shown in place of the real review text',
+  sampleNote:
+    'The 5.0 and its 10 reviews are real, and verified on Google. The wording above is a placeholder: Google publishes only the stars for this property, and your own booking page still says “no reviews yet”. Send us the real sentences and they go straight in.',
   quotes: [
     {
       text: 'We sat in the hot tub at one in the morning with the sauna still warm behind us, and the whole sky went green over the fjord.',

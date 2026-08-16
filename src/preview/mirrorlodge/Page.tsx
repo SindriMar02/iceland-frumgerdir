@@ -135,23 +135,50 @@ function Reviews() {
     return () => window.clearInterval(t)
   }, [n])
   return (
+    /* 21st.dev "Design Testimonial", adapted to a COLUMN: this lives inside a
+       ~700px journey panel, so the reference's wide asymmetric split would
+       crush. Its devices survive the change of proportion — the oversized
+       ghost ordinal behind the quote, the word-by-word arrival, the hairline
+       before the attribution — while the vertical rail becomes a horizontal
+       progress line under the quote. Class-toggled, not mount-state. */
     <div className="ml-rev">
-      <p className="ml-eyebrow">Guests</p>
+      <span className="ml-rev-ord" aria-hidden="true">
+        {REVIEWS.quotes.map((q, idx) => (
+          <b key={q.text} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
+        ))}
+      </span>
+
+      <p className="ml-eyebrow ml-rev-eyebrow">Guests</p>
+      <p className="ml-rev-badge"><span aria-hidden="true" />Sample wording</p>
+
       <ul className="ml-rev-list">
         {REVIEWS.quotes.map((q, idx) => (
           <li key={q.text} className={`ml-rev-q ${idx === i ? 'is-live' : ''}`} aria-hidden={idx !== i}>
-            <blockquote>{q.text}</blockquote>
-            <cite>{q.meta}</cite>
+            <blockquote>
+              {q.text.split(' ').flatMap((w, k, all) => [
+                <span className="ml-rev-w" key={`${w}-${k}`}>
+                  <i style={{ transitionDelay: idx === i ? `${k * 34}ms` : '0ms' }}>{w}</i>
+                </span>,
+                ...(k < all.length - 1 ? [' '] : []),
+              ])}
+            </blockquote>
           </li>
         ))}
       </ul>
-      <div className="ml-rev-dots" role="tablist" aria-label="Reviews">
-        {REVIEWS.quotes.map((q, idx) => (
-          <button key={q.text} type="button" role="tab" aria-selected={idx === i}
-            aria-label={`Review ${idx + 1} of ${n}`}
-            className={`ml-rev-dot ${idx === i ? 'is-on' : ''}`} onClick={() => setI(idx)} />
-        ))}
+
+      <div className="ml-rev-foot">
+        <p className="ml-rev-who"><i aria-hidden="true" />{REVIEWS.quotes[i].meta}</p>
+        <div className="ml-rev-nav">
+          <button type="button" aria-label="Previous review" onClick={() => setI((v) => (v - 1 + n) % n)}>
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+          <button type="button" aria-label="Next review" onClick={() => setI((v) => (v + 1) % n)}>
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        </div>
       </div>
+
+      <span className="ml-rev-track" aria-hidden="true"><i style={{ width: `${((i + 1) / n) * 100}%` }} /></span>
       <p className="ml-rev-note">{REVIEWS.sampleNote}</p>
     </div>
   )
@@ -656,11 +683,14 @@ const STYLES = `
 .ml-display .ml-rise-in{display:block;font-family:var(--disp);font-weight:200;
   font-size:clamp(2rem,4.2vw,3.6rem);line-height:.92;letter-spacing:-.03em}
 
-/* per-line masks for the cascade. The mask is .16em taller than the line so
-   descenders are never cropped, and the negative margin takes that height
-   back out so the leading a designer set is the leading that renders. */
-.ml-ln-mask{display:block;overflow:hidden;margin-bottom:-.16em}
-.ml-ln{display:block;padding-bottom:.16em;will-change:transform}
+/* Per-line masks for the cascade. The padding MUST be on both edges: with
+   crowded leading (line-height .92) the line box is SHORTER than the glyphs,
+   so caps and ascenders overflow the top exactly as descenders overflow the
+   bottom — padding only the bottom shears the top off every first line.
+   Each mask is grown at both ends and the matching negative margins take that
+   height straight back out, so the leading that renders is the leading set. */
+.ml-ln-mask{display:block;overflow:hidden;margin-top:-.22em;margin-bottom:-.18em}
+.ml-ln{display:block;padding-top:.22em;padding-bottom:.18em;will-change:transform}
 .ml-body{color:var(--ink-soft);font-size:clamp(1rem,1.15vw,1.08rem);line-height:1.66;max-width:50ch}
 
 /* loader */
@@ -791,21 +821,44 @@ const STYLES = `
 .ml-duo .ml-flip{aspect-ratio:3/4}
 
 /* reviews */
-.ml-rev{display:grid;gap:18px}
-.ml-rev-list{list-style:none;padding:0;margin:0;display:grid}
-.ml-rev-q{grid-area:1/1;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .7s var(--e),transform .7s var(--e)}
-.ml-rev-q.is-live{opacity:1;transform:none;pointer-events:auto}
+.ml-rev{position:relative;display:grid;gap:18px;justify-items:start}
+/* oversized ghost ordinal sitting behind the quote */
+.ml-rev-ord{position:absolute;right:-.06em;top:-.22em;z-index:0;display:grid;
+  font-family:var(--disp);font-weight:200;font-size:clamp(7rem,15vw,11rem);line-height:.78;
+  letter-spacing:-.05em;color:var(--ink);opacity:.055;pointer-events:none;user-select:none}
+.ml-rev-ord b{grid-area:1/1;font-weight:inherit;opacity:0;transform:scale(1.08);filter:blur(8px);
+  transition:opacity .6s var(--e),transform .6s var(--e),filter .6s var(--e)}
+.ml-rev-ord b.is-on{opacity:1;transform:none;filter:none}
+.ml-rev-badge{position:relative;z-index:1;display:inline-flex;align-items:center;gap:9px;
+  font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);
+  border:1px solid var(--hair);border-radius:999px;padding:6px 13px}
+.ml-rev-badge span{width:5px;height:5px;border-radius:50%;background:var(--moss);flex:none}
+.ml-rev-list{position:relative;z-index:1;list-style:none;padding:0;margin:0;display:grid;perspective:720px}
+.ml-rev-q{grid-area:1/1;opacity:0;pointer-events:none;transition:opacity .45s var(--e)}
+.ml-rev-q.is-live{opacity:1;pointer-events:auto}
 .ml-rev-q blockquote{margin:0;font-family:var(--disp);font-weight:200;
   font-size:clamp(1.3rem,2.4vw,2rem);line-height:1.14;letter-spacing:-.02em;max-width:30ch}
 .ml-rev-q blockquote::before{content:'“'}
 .ml-rev-q blockquote::after{content:'”'}
-.ml-rev-q cite{display:block;margin-top:16px;font-style:normal;font-size:.74rem;letter-spacing:.14em;
+/* word-by-word arrival */
+.ml-rev-w{display:inline-block;overflow:hidden;vertical-align:top}
+.ml-rev-w i{display:inline-block;font-style:normal;opacity:0;
+  transform:translateY(104%) rotateX(62deg);transform-origin:top center;
+  transition:transform .62s var(--e),opacity .48s var(--e)}
+.ml-rev-q.is-live .ml-rev-w i{opacity:1;transform:none}
+.ml-rev-foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;
+  gap:18px;width:100%;flex-wrap:wrap}
+.ml-rev-who{display:flex;align-items:center;gap:12px;font-size:.72rem;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink-mute)}
-.ml-rev-dots{display:flex;gap:8px}
-.ml-rev-dot{width:36px;height:1px;background:var(--hair);position:relative;padding:0;transition:background .4s var(--e)}
-.ml-rev-dot::after{content:'';position:absolute;inset:-12px 0}
-.ml-rev-dot.is-on{background:var(--moss)}
-.ml-rev-note{font-size:.72rem;letter-spacing:.04em;color:var(--ink-mute)}
+.ml-rev-who i{display:block;width:30px;height:1px;background:var(--ink-mute);flex:none}
+.ml-rev-nav{display:flex;gap:9px}
+.ml-rev-nav button{width:38px;height:38px;border-radius:50%;border:1px solid var(--hair);
+  display:grid;place-content:center;color:var(--ink-soft);
+  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
+.ml-rev-nav button:hover{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.ml-rev-track{display:block;width:100%;height:1px;background:var(--hair)}
+.ml-rev-track i{display:block;height:100%;background:var(--moss);transition:width .55s var(--e)}
+.ml-rev-note{position:relative;z-index:1;font-size:.72rem;letter-spacing:.04em;color:var(--ink-mute);max-width:46ch}
 
 .ml-progress-rail{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--hair);z-index:4}
 .ml-progress{display:block;height:100%;background:var(--moss);transform:scaleX(0);transform-origin:left}
@@ -872,7 +925,12 @@ const STYLES = `
 @media (prefers-reduced-motion:reduce){
   .ml-gal-track{animation:none;flex-wrap:wrap;width:auto}
   .ml-loader-line::after{animation:none}
+  /* all quotes stack, so every word must show — the per-word reveal keys off
+     .is-live, which only one <li> ever carries */
   .ml-rev-q{grid-area:auto;opacity:1;transform:none;pointer-events:auto;margin-bottom:24px}
+  .ml-rev-w i{opacity:1 !important;transform:none !important;transition:none}
+  .ml-rev-ord b{opacity:0}
+  .ml-rev-ord b.is-on{opacity:1;filter:none;transform:none}
 }
 
 /* ── the SHARED prototype disclaimer, dressed in this page's own language ──

@@ -105,7 +105,8 @@ export const REVIEWS = {
   lead: 'The part of the stay guests write home about.',
   body:
     'Nothing on mirrorlodge.com tells a visitor what a night here is like. No prices, no availability, no guest words: the page ends and the visitor has to email into the dark.',
-  sampleNote: 'Sample wording, shown in place of the real review text',
+  sampleNote:
+    'Placeholder wording. We could not tie a public review listing to this property with confidence, so nothing here is quoted as if it were a real guest. Send us your own reviews and they replace this text exactly as written.',
   quotes: [
     {
       text: 'You lie in bed and the sky is just there, no window frame in the way. We turned the blinds off and watched the light change until we fell asleep.',
