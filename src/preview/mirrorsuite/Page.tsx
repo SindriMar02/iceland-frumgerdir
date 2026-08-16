@@ -435,7 +435,7 @@ function HeroMedia() {
      while zero frames are decoded, so it is never blank,
    · canvas.dataset.frame exposes the shown frame so a probe can assert it.
    ──────────────────────────────────────────────────────────────────────── */
-const NIGHT_FRAMES = 234
+const NIGHT_FRAMES = 214
 
 function PanoScrub() {
   const [chap, setChap] = useState(0)
@@ -495,7 +495,7 @@ function PanoScrub() {
     }
 
     const src = (n: number) =>
-      `${import.meta.env.BASE_URL}mirrorsuite/${dir}/f${String(n + 1).padStart(3, '0')}.jpg`
+      `${import.meta.env.BASE_URL}mirrorsuite/${dir}/f${String(n + 1).padStart(3, '0')}.webp`
 
     /* 14-wide pump, decode() before counting */
     let next = 0
@@ -814,7 +814,7 @@ const STYLES = `
 
 /* THE NIGHT — pinned scrub */
 /* three welded takes now run through here, so the pin needs the travel */
-.ms-pano{position:relative;height:480svh}
+.ms-pano{position:relative;height:430svh}
 .ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
 /* the type sits ON the film, so the film has to give it a floor */
 .ms-pano-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:2;pointer-events:none;
