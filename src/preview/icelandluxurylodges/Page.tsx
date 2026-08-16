@@ -143,12 +143,32 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
    effect, decode() before a frame counts, 14-wide pump, nearest-loaded
    fallback so a partial load still animates, still drawn until the first
    frame decodes, and canvas.dataset.frame exposed for the QA probe. ────── */
-const WALK_FRAMES = 121
+const WALK_FRAMES = 154
+
+/* The tour is FOUR generated moves welded into one continuous take, not one
+   clip. Each move was generated from one of the lodge's real photographs to
+   the NEXT one (Kling start_image → end_image), so every segment both begins
+   and ends on geometry that actually exists; only the few metres between two
+   real rooms are synthesised. The four were then cross-faded together, so the
+   joins — where two takes both sit on the same real room — disappear.
+   That is what makes it read as a walk rather than a nudge: one clip from one
+   still can only drift a few metres before the model runs out of information.
+
+   Because the camera now genuinely arrives somewhere, the tour names the room
+   as you reach it. Progress marks below are where each move LANDS. */
+const WALK_CHAPTERS = [
+  { at: 0.0, n: '01', label: 'The bar' },
+  { at: 0.16, n: '02', label: 'The dining hall' },
+  { at: 0.41, n: '03', label: 'The living room' },
+  { at: 0.65, n: '04', label: 'The spa' },
+  { at: 0.9, n: '05', label: 'The sauna' },
+]
 
 function Walkthrough({ still, label, lead }: { still: string; label: string; lead: string }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stillRef = useRef<HTMLImageElement>(null)
+  const [chap, setChap] = useState(0)
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -220,6 +240,9 @@ function Walkthrough({ still, label, lead }: { still: string; label: string; lea
         const p = Math.min(1, Math.max(0, -r.top / total))
         const idx = Math.min(WALK_FRAMES - 1, Math.round(p * (WALK_FRAMES - 1)))
         if (idx !== shown) { wanted = idx; paint(idx) }
+        let c = 0
+        for (let k = 0; k < WALK_CHAPTERS.length; k += 1) if (p >= WALK_CHAPTERS[k].at) c = k
+        setChap((v) => (v === c ? v : c))
       })
     }
     sizeCanvas(); onScroll()
@@ -244,6 +267,19 @@ function Walkthrough({ still, label, lead }: { still: string; label: string; lea
         <div className="ill-walk-copy">
           <span className="ill-walk-label">{label}</span>
           <p className="ill-walk-lead">{lead}</p>
+        </div>
+        {/* the room you have walked into, named as you arrive */}
+        <div className="ill-walk-chap" aria-live="polite">
+          {WALK_CHAPTERS.map((c, i) => (
+            <span key={c.label} className={`ill-walk-chap-i ${i === chap ? 'is-on' : ''}`}>
+              <i>{c.n}</i>{c.label}
+            </span>
+          ))}
+        </div>
+        <div className="ill-walk-rail" aria-hidden="true">
+          {WALK_CHAPTERS.map((c, i) => (
+            <span key={c.label} className={i <= chap ? 'is-on' : ''} />
+          ))}
         </div>
       </div>
     </section>
@@ -644,14 +680,16 @@ export default function Page() {
         <Walkthrough
           still={IMG.lodgeWide}
           label="Walk through Úlfljótsskáli"
-          lead="Past the bar, through the hall, into the rooms. Scroll to walk."
+          lead="Bar, dining hall, living room, spa, sauna. One unbroken take, and the scroll is the camera."
         />
 
-        {/* ── fourth key: honest text card, no photo exists ── */}
+        {/* ── fourth key: no photograph of it exists, so it is set as type on
+              its own band rather than pretending to be an image tile ── */}
         <section className="ill-fourth">
           <div className="ill-fourth-card">
-            <Rise as="h2" className="ill-fourth-name">{FOURTH_KEY.name}</Rise>
+            <span className="ill-fourth-rule" aria-hidden="true" />
             <Rise as="p" className="ill-fourth-place">{FOURTH_KEY.place}</Rise>
+            <Rise as="h2" className="ill-fourth-name">{FOURTH_KEY.name}</Rise>
             <Rise as="p" className="ill-fourth-body">{FOURTH_KEY.body}</Rise>
           </div>
         </section>
@@ -852,13 +890,28 @@ const STYLES = `
 @media (max-width:640px){.ill-chapter-photos{grid-template-columns:1fr}.ill-frame{aspect-ratio:4/3}}
 
 /* ── THE WALKTHROUGH ── */
-.ill-walk{position:relative;height:300svh}
+/* four welded moves need more travel than one clip did */
+.ill-walk{position:relative;height:440svh}
 .ill-walk-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--ink)}
 .ill-walk-still,.ill-walk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
 .ill-walk-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;z-index:2;pointer-events:none;
   background:linear-gradient(to top,rgba(14,22,29,.72),transparent)}
 .ill-walk-copy{position:absolute;left:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;display:grid;gap:10px}
 .ill-walk-label{font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(239,243,245,.72)}
+/* room nameplate: type on the gradient, never a card */
+.ill-walk-chap{position:absolute;right:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;
+  display:grid;text-align:right}
+.ill-walk-chap-i{grid-area:1/1;display:flex;align-items:baseline;justify-content:flex-end;gap:12px;
+  font-size:clamp(.92rem,1.5vw,1.16rem);letter-spacing:.02em;color:#F4F8F9;white-space:nowrap;
+  opacity:0;transform:translateY(8px);transition:opacity .5s var(--e),transform .5s var(--e);
+  text-shadow:0 1px 16px rgba(10,16,21,.6)}
+.ill-walk-chap-i.is-on{opacity:1;transform:none}
+.ill-walk-chap-i i{font-style:normal;font-size:.7rem;letter-spacing:.22em;color:rgba(244,248,249,.6)}
+.ill-walk-rail{position:absolute;right:clamp(24px,5vw,72px);bottom:clamp(22px,5vh,54px);z-index:3;
+  display:flex;gap:6px}
+.ill-walk-rail span{width:26px;height:1px;background:rgba(244,248,249,.28);transition:background .5s var(--e)}
+.ill-walk-rail span.is-on{background:rgba(244,248,249,.9)}
+@media (max-width:767px){.ill-walk-chap,.ill-walk-rail{display:none}}
 .ill-walk-lead{font-family:var(--serif);font-size:clamp(1.4rem,3vw,2.4rem);line-height:1.2;color:#F4F8F9;max-width:22ch;
   text-shadow:0 2px 24px rgba(14,22,29,.5)}
 .reduced .ill-walk{height:auto}
@@ -871,11 +924,20 @@ const STYLES = `
 }
 
 /* ── fourth key ── */
-.ill-fourth{padding:0 clamp(20px,5vw,64px) clamp(80px,12vh,140px)}
-.ill-fourth-card{max-width:820px;margin:0 auto;background:var(--ink);color:var(--ice);padding:clamp(36px,6vw,72px);text-align:center;display:grid;gap:14px}
-.ill-fourth-name .ill-rise-in{font-family:var(--serif);font-size:clamp(1.5rem,3.2vw,2.3rem);line-height:1.15}
-.ill-fourth-place .ill-rise-in{color:var(--ice-mute);letter-spacing:.14em;text-transform:uppercase;font-size:.76rem;font-weight:400}
-.ill-fourth-body .ill-rise-in{color:var(--ice-soft);max-width:46ch;margin:0 auto}
+/* A dark box floating on a light page, with the page showing down both sides,
+   is a card — the same template tell struck off Mirror Lodge. The fourth key
+   is now its own FULL-BLEED band: the section IS the dark ground, it butts
+   directly against its neighbours with no gap, and the type sits on it,
+   left-ranged, with no container of its own. */
+.ill-fourth{background:var(--ink);color:var(--ice);
+  padding:clamp(78px,13vh,150px) clamp(20px,5vw,64px)}
+.ill-fourth-card{max-width:1100px;margin:0 auto;display:grid;justify-items:start;gap:15px}
+.ill-fourth-place .ill-rise-in{color:var(--ice-mute);letter-spacing:.22em;text-transform:uppercase;
+  font-size:.71rem;font-weight:400}
+.ill-fourth-name .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4.4vw,3.1rem);
+  line-height:1.02;letter-spacing:-.02em}
+.ill-fourth-body .ill-rise-in{color:var(--ice-soft);max-width:52ch}
+.ill-fourth-rule{width:56px;height:1px;background:rgba(233,240,243,.28);margin-bottom:6px}
 
 /* ── quote ── */
 .ill-quote{padding:0 clamp(20px,6vw,72px) clamp(90px,14vh,160px);text-align:center}

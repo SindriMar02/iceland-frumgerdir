@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { SplitText } from 'gsap/SplitText'
 import Lenis from 'lenis'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
@@ -11,7 +12,12 @@ import {
   CABIN, SKY, PLACE, GALLERY, REVIEWS, BOOKING, JSON_LD,
 } from './data'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger, SplitText)
+
+/* ONE house ease, as the reference does — every reveal on the page is this
+   curve, and only structural moves get the inOut variant. */
+const HOUSE = 'power3.out'
+const HOUSE_IO = 'power3.inOut'
 
 const company = companyEntry
 
@@ -223,6 +229,11 @@ export default function Page() {
     root.classList.add('js')
     if (reduced) root.classList.add('reduced')
 
+    /* SplitText instances live out here so teardown can unwrap them by hand —
+       the split rewrites real DOM, and leaving it wrapped across a remount
+       double-splits the headings. */
+    const splits: SplitText[] = []
+
     const ctx = gsap.context(() => {
       /* ── THE SEAM REVEAL ── */
       const seam = root.querySelector<HTMLElement>('.ml-wm-seam')
@@ -263,7 +274,7 @@ export default function Page() {
 
       /* ── flip peels ── */
       const armFlips = (container: (t: Element) => ScrollTrigger.Vars) => {
-        root.querySelectorAll<HTMLElement>('.ml-flip').forEach((fig) => {
+        root.querySelectorAll<HTMLElement>('.ml-flip').forEach((fig, n) => {
           const up = fig.querySelector('.ml-m-up') as HTMLElement
           const src = fig.querySelector('.ml-m-src img') as HTMLElement
           if (!up || !src) return
@@ -271,38 +282,65 @@ export default function Page() {
           const scrub = fig.dataset.mlScrub === '1'
           const clipFrom = dir === 'up' ? 'inset(100% 0% 0% 0%)'
             : dir === 'right' ? 'inset(0% 100% 0% 0%)' : 'inset(0% 0% 0% 100%)'
+          /* PER-INSTANCE timing. The reference drives every peel from its own
+             data-duration/data-start so no two reveals feel struck from the
+             same die; ours all shared one constant, which is exactly what
+             makes a page read as stamped. */
           const tl = gsap.timeline({ paused: true })
           tl.fromTo(up, { clipPath: clipFrom },
-            { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power2.out', immediateRender: true }, 0)
-          tl.from(src, { scale: 1.18, duration: 2, ease: 'power2.out' }, 0)
+            { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.32 + (n % 3) * 0.24, ease: HOUSE_IO, immediateRender: true }, 0)
+          tl.from(src, { scale: 1.13 + (n % 3) * 0.045, duration: 2, ease: HOUSE }, 0)
           ScrollTrigger.create({
             ...container(fig),
             animation: tl,
-            ...(scrub ? { scrub: 0.35, end: '+=75%' } : { toggleActions: 'play none none reverse' }),
+            ...(scrub
+              ? { scrub: 0.28 + (n % 3) * 0.12, end: `+=${68 + (n % 3) * 13}%` }
+              : { toggleActions: 'play none none reverse' }),
           })
           if (fig.classList.contains('ml-par')) {
             const par = gsap.timeline({ paused: true })
-            par.fromTo(src, { yPercent: 5 }, { yPercent: -5, ease: 'none' }, 0)
-            ScrollTrigger.create({ ...container(fig), animation: par, scrub: 0.5, end: '+=120%' })
+            const amp = 4.5 + (n % 3) * 1.6
+            par.fromTo(src, { yPercent: amp }, { yPercent: -amp, ease: 'none' }, 0)
+            ScrollTrigger.create({ ...container(fig), animation: par, scrub: 0.38 + (n % 3) * 0.11, end: '+=120%' })
           }
         })
       }
 
-      /* type: one mask-rise per heading, quiet fades for everything else */
+      /* ── THE SIGNATURE REVEAL ──────────────────────────────────────────────
+         The reference's headings do NOT slide up as one block (which is what
+         ours did, and why the journey read as ordinary). Each heading is split
+         into LINES, every line gets its own overflow mask, and the lines
+         ALTERNATE direction — even lines rise from +110%, odd lines drop from
+         −110% — on OVERLAPPING relative starts so the words cascade past each
+         other instead of marching in step. Duration and overlap vary per
+         instance for the same anti-stamping reason as the peels. */
       const armRises = (container?: (t: Element) => ScrollTrigger.Vars) => {
-        root.querySelectorAll<HTMLElement>('.ml-rise').forEach((el) => {
-          const inJourney = !!el.closest('.ml-journey')
-          const inner = el.querySelector('.ml-rise-in')
+        root.querySelectorAll<HTMLElement>('.ml-rise').forEach((el, n) => {
+          const inner = el.querySelector<HTMLElement>('.ml-rise-in')
           if (!inner) return
-          gsap.fromTo(inner, { yPercent: 118 }, {
-            yPercent: 0, duration: 1.15, ease: 'expo.out',
+          const inJourney = !!el.closest('.ml-journey')
+          const split = new SplitText(inner, { type: 'lines', linesClass: 'ml-ln' })
+          splits.push(split)
+          split.lines.forEach((ln) => {
+            const mask = document.createElement('span')
+            mask.className = 'ml-ln-mask'
+            ln.parentNode?.insertBefore(mask, ln)
+            mask.appendChild(ln)
+          })
+          const dur = 0.6 + (n % 3) * 0.07
+          const lap = 0.05 + (n % 2) * 0.022
+          const tl = gsap.timeline({
             scrollTrigger: (inJourney && container) ? container(el) : { trigger: el, start: 'top 88%', once: true },
           })
+          split.lines.forEach((ln, i) => {
+            tl.fromTo(ln, { yPercent: i % 2 === 0 ? 110 : -110 },
+              { yPercent: 0, duration: dur, ease: HOUSE }, i === 0 ? 0 : `<+=${lap}`)
+          })
         })
-        root.querySelectorAll<HTMLElement>('.ml-fade').forEach((el) => {
+        root.querySelectorAll<HTMLElement>('.ml-fade').forEach((el, n) => {
           const inJourney = !!el.closest('.ml-journey')
-          gsap.fromTo(el, { opacity: 0, y: 18 }, {
-            opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+          gsap.fromTo(el, { opacity: 0, y: 16 }, {
+            opacity: 1, y: 0, duration: 0.58 + (n % 3) * 0.07, ease: HOUSE,
             scrollTrigger: (inJourney && container) ? container(el) : { trigger: el, start: 'top 90%', once: true },
           })
         })
@@ -338,23 +376,93 @@ export default function Page() {
           },
         })
         armFlips((t) => ({ trigger: t, containerAnimation: journeyTween, start: 'left 92%' }))
-        armRises((t) => ({ trigger: t, containerAnimation: journeyTween, start: 'left 86%', once: true }))
 
-        Promise.all([
+        /* Split only once the real faces have loaded — splitting against
+           fallback metrics puts the line breaks in the wrong places and the
+           masks then crop mid-glyph.
+
+           Gate on fonts ONLY, and race a timeout. Waiting on every <img> (as
+           this did) never resolves: most of them are loading="lazy" and far
+           down a horizontal track, so they do not fetch until scrolled to and
+           the promise hangs forever — which silently cost us every heading
+           reveal on the page. */
+        Promise.race([
           document.fonts?.ready ?? Promise.resolve(),
-          ...Array.from(root.querySelectorAll('img')).map((im) =>
-            im.complete ? Promise.resolve() : new Promise((res) => { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }) })),
-        ]).then(() => ScrollTrigger.refresh())
+          new Promise((res) => { window.setTimeout(res, 1800) }),
+        ]).then(() => {
+          armRises((t) => ({ trigger: t, containerAnimation: journeyTween, start: 'left 86%', once: true }))
+          ScrollTrigger.refresh()
+        })
       } else {
         armFlips((t) => ({ trigger: t, start: 'top 86%' }))
-        if (!reduced) armRises()
+        if (!reduced) {
+          Promise.race([
+            document.fonts?.ready ?? Promise.resolve(),
+            new Promise((res) => { window.setTimeout(res, 1800) }),
+          ]).then(() => { armRises(); ScrollTrigger.refresh() })
+        }
       }
     }, rootRef)
 
     return () => {
       ctx.revert()
+      splits.forEach((s) => s.revert())
+      splits.length = 0
       if (pageLenis) { pageLenis.destroy(); pageLenis = null }
       gsap.ticker.lagSmoothing(500, 33)
+    }
+  }, [booted])
+
+  /* ── the connective tissue the reference has and we did not ────────────────
+     A cursor that is part of the design rather than the OS: a dot in
+     mix-blend-mode:difference (so it inverts itself over any ground, light
+     paper or full-bleed photograph), moved by a hand-rolled frame-rate-
+     independent lerp rather than a CSS transition, and it BECOMES a label over
+     any photograph. Off below 950px, which is the reference's one structural
+     breakpoint — there is no cursor to style on a touch device. */
+  useEffect(() => {
+    if (!booted) return
+    const root = rootRef.current
+    if (!root) return
+    const dot = root.querySelector<HTMLElement>('.ml-cursor')
+    if (!dot) return
+    if (!window.matchMedia('(min-width:950px)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const setX = gsap.quickSetter(dot, 'x', 'px')
+    const setY = gsap.quickSetter(dot, 'y', 'px')
+    let tx = window.innerWidth / 2
+    let ty = window.innerHeight / 2
+    let cx = tx
+    let cy = ty
+    const onMove = (e: PointerEvent) => {
+      tx = e.clientX; ty = e.clientY
+      dot.classList.add('is-live')
+    }
+    const tick = (_t: number, dt: number) => {
+      /* damping expressed per-second so the feel is identical at 60 and 120Hz */
+      const k = 1 - Math.pow(0.0012, Math.min(dt, 50) / 1000)
+      cx += (tx - cx) * k; cy += (ty - cy) * k
+      setX(cx); setY(cy)
+    }
+    window.addEventListener('pointermove', onMove, { passive: true })
+    gsap.ticker.add(tick)
+
+    const grow = () => dot.classList.add('is-big')
+    const shrink = () => dot.classList.remove('is-big')
+    const media = Array.from(root.querySelectorAll<HTMLElement>('.ml-flip'))
+    media.forEach((m) => {
+      m.addEventListener('pointerenter', grow)
+      m.addEventListener('pointerleave', shrink)
+    })
+
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      gsap.ticker.remove(tick)
+      media.forEach((m) => {
+        m.removeEventListener('pointerenter', grow)
+        m.removeEventListener('pointerleave', shrink)
+      })
     }
   }, [booted])
 
@@ -375,7 +483,17 @@ export default function Page() {
       <header className="ml-nav">
         <a className="ml-nav-mark" href="#top" onClick={goTo('top')}>MIRROR LODGE</a>
         <nav className="ml-nav-links" aria-label="Sections">
-          {NAV.map((n) => <a key={n.id} href={`#${n.id}`} onClick={goTo(n.id)}>{n.label}</a>)}
+          {/* text ROLLS, it does not fade: the label is duplicated and both
+              copies travel a full line-height, so the second arrives as the
+              first leaves — the reference's odometer swap. */}
+          {NAV.map((n) => (
+            <a key={n.id} href={`#${n.id}`} onClick={goTo(n.id)} className="ml-roll">
+              <span className="ml-roll-in">
+                <i>{n.label}</i>
+                <i aria-hidden="true">{n.label}</i>
+              </span>
+            </a>
+          ))}
         </nav>
         <button className={`ml-burger ${menuOpen ? 'is-x' : ''}`} aria-expanded={menuOpen}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((v) => !v)}>
@@ -388,6 +506,8 @@ export default function Page() {
             onClick={(e) => { setMenuOpen(false); goTo(n.id)(e) }}>{n.label}</a>
         ))}
       </div>
+
+      <div className="ml-cursor" aria-hidden="true"><span>View</span></div>
 
       <main id="top">
         {/* ── HERO ── */}
@@ -533,10 +653,14 @@ const STYLES = `
 
 /* one editorial type system */
 .ml-eyebrow{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);font-weight:400}
-.ml-display{overflow:hidden}
 .ml-display .ml-rise-in{display:block;font-family:var(--disp);font-weight:200;
-  font-size:clamp(2rem,4.2vw,3.6rem);line-height:1.08;letter-spacing:-.012em;
-  padding-bottom:.14em;margin-bottom:-.14em}
+  font-size:clamp(2rem,4.2vw,3.6rem);line-height:.92;letter-spacing:-.03em}
+
+/* per-line masks for the cascade. The mask is .16em taller than the line so
+   descenders are never cropped, and the negative margin takes that height
+   back out so the leading a designer set is the leading that renders. */
+.ml-ln-mask{display:block;overflow:hidden;margin-bottom:-.16em}
+.ml-ln{display:block;padding-bottom:.16em;will-change:transform}
 .ml-body{color:var(--ink-soft);font-size:clamp(1rem,1.15vw,1.08rem);line-height:1.66;max-width:50ch}
 
 /* loader */
@@ -545,7 +669,7 @@ const STYLES = `
   background:linear-gradient(90deg,${INK} 50%,rgba(20,23,26,.16) 50%);background-size:200% 100%;background-position-x:var(--p,100%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .ml-loader-line{width:96px;height:1px;background:var(--hair);margin:0 auto;position:relative;overflow:hidden}
-.ml-loader-line::after{content:'';position:absolute;inset:0;background:var(--moss);transform-origin:left;animation:ml-sweep 1.2s var(--e) infinite}
+.ml-loader-line::after{content:'';position:absolute;inset:0;background:var(--ink);transform-origin:left;animation:ml-sweep 1.2s var(--e) infinite}
 @keyframes ml-sweep{0%{transform:scaleX(0)}55%{transform:scaleX(1);transform-origin:left}56%{transform-origin:right}100%{transform:scaleX(0);transform-origin:right}}
 
 /* nav */
@@ -558,8 +682,26 @@ const STYLES = `
 .ml-nav.is-past::before{opacity:0}
 .ml-nav-mark{font-family:var(--disp);font-weight:300;letter-spacing:.16em;font-size:.92rem}
 .ml-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.82rem;font-weight:400;letter-spacing:.04em}
-.ml-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
-.ml-nav-links a:hover{opacity:1}
+/* odometer roll. The link MUST be locked to a single line-box: without an
+   explicit height it simply grows to fit both copies and overflow:hidden
+   clips nothing, so the duplicate sits visibly under the original. */
+.ml-roll{display:block;overflow:hidden;height:1.4em;line-height:1.4}
+.ml-roll-in{display:block}
+.ml-roll-in i{display:block;height:1.4em;line-height:1.4;font-style:normal;transition:transform .52s var(--e)}
+.ml-roll:hover .ml-roll-in i,.ml-roll:focus-visible .ml-roll-in i{transform:translateY(-100%)}
+
+/* ── the cursor, as a designed object ── */
+.ml-cursor{position:fixed;top:0;left:0;z-index:90;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;
+  border-radius:50%;background:#F3F4F2;mix-blend-mode:difference;pointer-events:none;opacity:0;
+  display:grid;place-content:center;
+  transition:width .5s var(--e),height .5s var(--e),margin .5s var(--e),opacity .3s linear}
+.ml-cursor.is-live{opacity:1}
+.ml-cursor span{font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:#0B0D0F;
+  white-space:nowrap;opacity:0;transition:opacity .34s var(--e)}
+.ml-cursor.is-big{width:100px;height:100px;margin:-50px 0 0 -50px}
+.ml-cursor.is-big span{opacity:1}
+@media (max-width:949px){.ml-cursor{display:none}}
+@media (hover:none){.ml-cursor{display:none}}
 .ml-burger{display:none;width:44px;height:44px;position:relative}
 .ml-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
 .ml-burger i:first-child{top:18px}.ml-burger i:last-child{top:26px}
@@ -608,9 +750,8 @@ const STYLES = `
 
 /* statement */
 .ml-statement{padding:clamp(100px,17vh,190px) clamp(20px,6vw,72px);max-width:1000px;margin:0 auto}
-.ml-statement-lead{overflow:hidden}
 .ml-statement-lead .ml-rise-in{display:block;font-family:var(--disp);font-weight:200;
-  font-size:clamp(1.9rem,4.6vw,3.4rem);line-height:1.12;letter-spacing:-.014em;padding-bottom:.12em;margin-bottom:-.12em}
+  font-size:clamp(1.9rem,4.6vw,3.4rem);line-height:.96;letter-spacing:-.028em}
 .ml-statement-body{margin-top:26px;color:var(--ink-soft);font-size:clamp(1rem,1.5vw,1.15rem);max-width:56ch}
 
 /* ══ THE JOURNEY ══ */
@@ -634,12 +775,12 @@ const STYLES = `
 .ml-type-rev{width:min(92vw,700px)}
 .ml-facts{display:flex;gap:clamp(22px,3vw,46px);margin-top:6px}
 .ml-fact{display:grid;gap:3px}
-.ml-fact-n{font-family:var(--disp);font-weight:200;font-size:clamp(1.9rem,3.2vw,2.7rem);line-height:1;color:var(--moss)}
+.ml-fact-n{font-family:var(--disp);font-weight:200;font-size:clamp(1.9rem,3.2vw,2.7rem);line-height:1;color:var(--ink)}
 .ml-fact-l{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute)}
 .ml-amen,.ml-points{list-style:none;padding:0;display:grid;gap:10px;max-width:42ch;
   border-top:1px solid var(--hair);padding-top:20px}
 .ml-amen li,.ml-points li{position:relative;padding-left:20px;color:var(--ink-soft);font-size:.96rem}
-.ml-amen li::before,.ml-points li::before{content:'';position:absolute;left:0;top:.7em;width:10px;height:1px;background:var(--moss)}
+.ml-amen li::before,.ml-points li::before{content:'';position:absolute;left:0;top:.7em;width:10px;height:1px;background:var(--ink-mute)}
 /* the 1200x600 Geysir frame is too small to bleed; it lives inset */
 .ml-inset{width:100%;aspect-ratio:2/1;overflow:hidden}
 .ml-inset img{filter:saturate(.92)}
@@ -655,7 +796,7 @@ const STYLES = `
 .ml-rev-q{grid-area:1/1;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .7s var(--e),transform .7s var(--e)}
 .ml-rev-q.is-live{opacity:1;transform:none;pointer-events:auto}
 .ml-rev-q blockquote{margin:0;font-family:var(--disp);font-weight:200;
-  font-size:clamp(1.3rem,2.4vw,2rem);line-height:1.34;letter-spacing:-.008em;max-width:30ch}
+  font-size:clamp(1.3rem,2.4vw,2rem);line-height:1.14;letter-spacing:-.02em;max-width:30ch}
 .ml-rev-q blockquote::before{content:'“'}
 .ml-rev-q blockquote::after{content:'”'}
 .ml-rev-q cite{display:block;margin-top:16px;font-style:normal;font-size:.74rem;letter-spacing:.14em;
@@ -724,7 +865,8 @@ const STYLES = `
 .ml-footer-dl dd{color:var(--ink-soft);font-size:.95rem}
 .ml-footer-dl a:hover{color:var(--ink)}
 
-.ml-rise{overflow:hidden}
+/* the container no longer clips — each LINE carries its own mask now */
+.ml-rise{overflow:visible}
 .ml-rise-in{display:block}
 
 @media (prefers-reduced-motion:reduce){
