@@ -132,38 +132,6 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
   )
 }
 
-/* ── THE WALKTHROUGH ──────────────────────────────────────────────────────
-   A pinned band where SCROLL walks you through the lodge: a pre-decoded JPEG
-   frame sequence blitted to a canvas, the scroll position picking the frame.
-   The camera moves exactly as far as you push it and stops when you stop.
-   (Not a <video>: driving currentTime is a decoder seek per frame and cannot
-   be smooth — measured on Mirror House at 104 of 241 frames. And an
-   autoplaying video is not a walkthrough at all, it is a video.)
-   Loader is the hardened Mirror House one: unconditional from a mount
-   effect, decode() before a frame counts, 14-wide pump, nearest-loaded
-   fallback so a partial load still animates, still drawn until the first
-   frame decodes, and canvas.dataset.frame exposed for the QA probe. ────── */
-const WALK_FRAMES = 154
-
-/* The tour is FOUR generated moves welded into one continuous take, not one
-   clip. Each move was generated from one of the lodge's real photographs to
-   the NEXT one (Kling start_image → end_image), so every segment both begins
-   and ends on geometry that actually exists; only the few metres between two
-   real rooms are synthesised. The four were then cross-faded together, so the
-   joins — where two takes both sit on the same real room — disappear.
-   That is what makes it read as a walk rather than a nudge: one clip from one
-   still can only drift a few metres before the model runs out of information.
-
-   Because the camera now genuinely arrives somewhere, the tour names the room
-   as you reach it. Progress marks below are where each move LANDS. */
-const WALK_CHAPTERS = [
-  { at: 0.0, n: '01', label: 'The bar' },
-  { at: 0.16, n: '02', label: 'The dining hall' },
-  { at: 0.41, n: '03', label: 'The living room' },
-  { at: 0.65, n: '04', label: 'The spa' },
-  { at: 0.9, n: '05', label: 'The sauna' },
-]
-
 /* ── GUEST WORDS ──────────────────────────────────────────────────────────
    21st.dev "Design Testimonial" devices, on the night the guests describe:
    Shawn R.'s review says he watched the northern lights FROM THE HOT TUB, so
@@ -172,9 +140,9 @@ const WALK_CHAPTERS = [
    same tub, no people — not a stock night sky.
 
    Class-toggled, never mount-state: every quote stays mounted and only
-   `.is-on` moves. Auto-advances, and any click or key stops the auto-advance
-   for good, because a carousel that keeps yanking itself away from a reader
-   who has taken control is hostile. */
+   `.is-on` moves. Auto-advances, and any click stops the auto-advance for
+   good, because a carousel that keeps yanking itself away from a reader who
+   has taken control is hostile. */
 function Reviews() {
   const [i, setI] = useState(0)
   const [held, setHeld] = useState(false)
@@ -254,128 +222,6 @@ function Reviews() {
         </div>
 
         <p className="ill-rev-note">{REVIEWS.sourceNote}</p>
-      </div>
-    </section>
-  )
-}
-
-function Walkthrough({ still, label, lead }: { still: string; label: string; lead: string }) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const stillRef = useRef<HTMLImageElement>(null)
-  const [chap, setChap] = useState(0)
-
-  useEffect(() => {
-    const wrap = wrapRef.current
-    const canvas = canvasRef.current
-    if (!wrap || !canvas || reduced) return
-    const small = window.matchMedia('(max-width: 767px)').matches
-    const dir = small ? 'walk-lodge-sm' : 'walk-lodge'
-    const ctx = canvas.getContext('2d', { alpha: true })
-    if (!ctx) return
-
-    const imgs: (HTMLImageElement | null)[] = new Array(WALK_FRAMES).fill(null)
-    let shown = -1
-    let wanted = 0
-    let stopped = false
-
-    const sizeCanvas = () => {
-      const dpr = Math.min(1.5, window.devicePixelRatio || 1)
-      canvas.width = Math.round(canvas.clientWidth * dpr)
-      canvas.height = Math.round(canvas.clientHeight * dpr)
-    }
-    const blit = (im: CanvasImageSource, iw: number, ih: number) => {
-      const cw = canvas.width; const ch = canvas.height
-      const s = Math.max(cw / iw, ch / ih)
-      const w = iw * s; const h = ih * s
-      ctx.clearRect(0, 0, cw, ch)
-      ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
-    }
-    const paint = (idx: number) => {
-      let i = idx
-      if (!imgs[i]) {
-        let d = 1
-        while (d < WALK_FRAMES) {
-          if (imgs[Math.max(0, i - d)]) { i = Math.max(0, i - d); break }
-          if (imgs[Math.min(WALK_FRAMES - 1, i + d)]) { i = Math.min(WALK_FRAMES - 1, i + d); break }
-          d += 1
-        }
-      }
-      const im = imgs[i]
-      if (im) { blit(im, im.naturalWidth, im.naturalHeight); shown = i; canvas.dataset.frame = String(i) }
-      else {
-        const st = stillRef.current
-        if (st?.complete && st.naturalWidth) blit(st, st.naturalWidth, st.naturalHeight)
-      }
-    }
-    const src = (n: number) =>
-      `${import.meta.env.BASE_URL}icelandluxurylodges/${dir}/f${String(n + 1).padStart(3, '0')}.jpg`
-    let next = 0
-    const pump = () => {
-      if (stopped || next >= WALK_FRAMES) return
-      const n = next++
-      const im = new Image()
-      im.src = src(n)
-      const done = () => {
-        if (stopped) return
-        imgs[n] = im
-        if (shown < 0 || Math.abs(n - wanted) < 2) paint(wanted)
-        pump()
-      }
-      im.decode().then(done).catch(() => { im.onload = done; im.onerror = () => pump() })
-    }
-    let raf = 0
-    const onScroll = () => {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const r = wrap.getBoundingClientRect()
-        const total = r.height - window.innerHeight
-        if (total <= 0) return
-        const p = Math.min(1, Math.max(0, -r.top / total))
-        const idx = Math.min(WALK_FRAMES - 1, Math.round(p * (WALK_FRAMES - 1)))
-        if (idx !== shown) { wanted = idx; paint(idx) }
-        let c = 0
-        for (let k = 0; k < WALK_CHAPTERS.length; k += 1) if (p >= WALK_CHAPTERS[k].at) c = k
-        setChap((v) => (v === c ? v : c))
-      })
-    }
-    sizeCanvas(); onScroll()
-    const kick = window.setTimeout(() => { for (let k = 0; k < 14; k++) pump() }, 700)
-    const onResize = () => { sizeCanvas(); paint(wanted) }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      stopped = true
-      window.clearTimeout(kick)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [])
-
-  return (
-    <section className="ill-walk" ref={wrapRef} aria-label={label}>
-      <div className="ill-walk-sticky">
-        <img ref={stillRef} className="ill-walk-still" src={still} alt={label} loading="lazy" decoding="async" />
-        <canvas ref={canvasRef} className="ill-walk-canvas" aria-hidden="true" />
-        <div className="ill-walk-copy">
-          <span className="ill-walk-label">{label}</span>
-          <p className="ill-walk-lead">{lead}</p>
-        </div>
-        {/* the room you have walked into, named as you arrive */}
-        <div className="ill-walk-chap" aria-live="polite">
-          {WALK_CHAPTERS.map((c, i) => (
-            <span key={c.label} className={`ill-walk-chap-i ${i === chap ? 'is-on' : ''}`}>
-              <i>{c.n}</i>{c.label}
-            </span>
-          ))}
-        </div>
-        <div className="ill-walk-rail" aria-hidden="true">
-          {WALK_CHAPTERS.map((c, i) => (
-            <span key={c.label} className={i <= chap ? 'is-on' : ''} />
-          ))}
-        </div>
       </div>
     </section>
   )
@@ -771,13 +617,6 @@ export default function Page() {
           </section>
         ))}
 
-        {/* ── THE WALKTHROUGH: scroll walks the lodge ── */}
-        <Walkthrough
-          still={IMG.lodgeWide}
-          label="Walk through Úlfljótsskáli"
-          lead="Bar, dining hall, living room, spa, sauna. One unbroken take, and the scroll is the camera."
-        />
-
         {/* ── fourth key: no photograph of it exists, so it is set as type on
               its own band rather than pretending to be an image tile ── */}
         <section className="ill-fourth">
@@ -983,36 +822,7 @@ const STYLES = `
 
 /* ── THE WALKTHROUGH ── */
 /* four welded moves need more travel than one clip did */
-.ill-walk{position:relative;height:440svh}
-.ill-walk-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--ink)}
-.ill-walk-still,.ill-walk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
-.ill-walk-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;z-index:2;pointer-events:none;
-  background:linear-gradient(to top,rgba(14,22,29,.72),transparent)}
-.ill-walk-copy{position:absolute;left:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;display:grid;gap:10px}
-.ill-walk-label{font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(239,243,245,.72)}
-/* room nameplate: type on the gradient, never a card */
-.ill-walk-chap{position:absolute;right:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;
-  display:grid;text-align:right}
-.ill-walk-chap-i{grid-area:1/1;display:flex;align-items:baseline;justify-content:flex-end;gap:12px;
-  font-size:clamp(.92rem,1.5vw,1.16rem);letter-spacing:.02em;color:#F4F8F9;white-space:nowrap;
-  opacity:0;transform:translateY(8px);transition:opacity .5s var(--e),transform .5s var(--e);
-  text-shadow:0 1px 16px rgba(10,16,21,.6)}
-.ill-walk-chap-i.is-on{opacity:1;transform:none}
-.ill-walk-chap-i i{font-style:normal;font-size:.7rem;letter-spacing:.22em;color:rgba(244,248,249,.6)}
-.ill-walk-rail{position:absolute;right:clamp(24px,5vw,72px);bottom:clamp(22px,5vh,54px);z-index:3;
-  display:flex;gap:6px}
-.ill-walk-rail span{width:26px;height:1px;background:rgba(244,248,249,.28);transition:background .5s var(--e)}
-.ill-walk-rail span.is-on{background:rgba(244,248,249,.9)}
-@media (max-width:767px){.ill-walk-chap,.ill-walk-rail{display:none}}
-.ill-walk-lead{font-family:var(--serif);font-size:clamp(1.4rem,3vw,2.4rem);line-height:1.2;color:#F4F8F9;max-width:22ch;
-  text-shadow:0 2px 24px rgba(14,22,29,.5)}
-.reduced .ill-walk{height:auto}
-.reduced .ill-walk-sticky{position:static;height:76svh}
-.reduced .ill-walk-canvas{display:none}
 @media (prefers-reduced-motion:reduce){
-  .ill-walk{height:auto}
-  .ill-walk-sticky{position:static;height:76svh}
-  .ill-walk-canvas{display:none}
 }
 
 /* ── fourth key ── */
@@ -1099,7 +909,11 @@ const STYLES = `
 /* ── booking ── */
 .ill-book{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(100px,15vh,180px);
   display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:clamp(30px,5vw,70px);align-items:start}
-.ill-book-copy{display:grid;gap:16px;position:sticky;top:110px}
+/* the hairline has to run across BOTH columns. The form carried a border-top
+   and the copy did not, so the two halves of the section started on different
+   lines and the rule looked broken rather than deliberate. */
+.ill-book-copy{display:grid;gap:16px;position:sticky;top:110px;
+  border-top:1px solid var(--hair);padding-top:26px}
 .ill-book-copy h2 .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4vw,3.1rem);line-height:1.1}
 .ill-book-copy p .ill-rise-in{color:var(--ink-soft);max-width:44ch}
 .ill-book-form{display:grid;gap:18px;border-top:1px solid var(--hair);padding-top:26px}

@@ -467,10 +467,26 @@ function PanoScrub() {
       canvas.height = Math.round(canvas.clientHeight * dpr)
     }
 
-    /* cover-fit blit */
+    /* ── fit ────────────────────────────────────────────────────────────────
+       Cover-fit alone destroys this shot on a tall viewport. The frames are
+       5:3; a nearly-square pane (1364x1161 was the real case) forces cover to
+       scale to the HEIGHT and then discard about 30% of the width — 15% off
+       each side. The result reads as "it starts zoomed in", because the
+       establishing frame of a push-in is exactly the frame that needs its
+       full width. Note that exporting taller frames does NOT help: under
+       cover-fit the visible field of view is set by the canvas aspect, not
+       the source aspect.
+
+       So: cover while the crop is mild, and once it would eat more than 12%
+       of the width, fit the WIDTH instead and let the near-black page show
+       above and below. On a night scene against DEEP #0F141C that reads as a
+       letterbox rather than a fault, and the composition survives intact. */
+    const MAX_SIDE_CROP = 0.12
     const draw = (im: CanvasImageSource, iw: number, ih: number) => {
       const cw = canvas.width; const ch = canvas.height
-      const scale = Math.max(cw / iw, ch / ih)
+      const cover = Math.max(cw / iw, ch / ih)
+      const cropped = 1 - cw / (iw * cover)
+      const scale = cropped > MAX_SIDE_CROP ? cw / iw : cover
       const w = iw * scale; const h = ih * scale
       ctx.clearRect(0, 0, cw, ch)
       ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
@@ -822,7 +838,11 @@ const STYLES = `
 /* THE NIGHT — pinned scrub */
 /* three welded takes now run through here, so the pin needs the travel */
 .ms-pano{position:relative;height:260svh}
-.ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
+.ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--deep)}
+/* the poster has to letterbox on exactly the viewports where the canvas does,
+   or the picture jumps the moment the first frame decodes. 1.47 is where the
+   canvas hits its 12% side-crop limit against a 5:3 frame. */
+@media (max-aspect-ratio:147/100){.ms-pano-still{object-fit:contain}}
 /* the type sits ON the film, so the film has to give it a floor */
 .ms-pano-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:2;pointer-events:none;
   background:linear-gradient(to top,rgba(6,10,14,.74),rgba(6,10,14,.28) 42%,transparent)}
