@@ -346,8 +346,15 @@ export default function ChrisLundPage() {
     }
     const prevDescription = meta.content
     meta.content = 'Christopher Lund, ljósmyndari í yfir 20 ár á Íslandi. Landslag, fyrirtæki, arkitektúr og brúðkaup, auk FineArt prentunar og skönnunar. Sími 822 7601.'
+    /* see katrinisfeld/Page.tsx: the shell ships lang="en", which is wrong for
+       an Icelandic page and undercuts the search pitch this build is sold on */
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = 'is'
     setReady(true)
-    return () => { meta.content = prevDescription }
+    return () => {
+      meta.content = prevDescription
+      document.documentElement.lang = prevLang
+    }
   }, [])
 
   useMotion(ready)

@@ -341,9 +341,14 @@ export default function HuldaMargretPage() {
     }
     const prevDescription = meta.content
     meta.content = META.description
+    /* see katrinisfeld/Page.tsx: the shell ships lang="en", which is wrong for
+       an Icelandic page and undercuts the search pitch this build is sold on */
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = 'is'
     setReady(true)
     return () => {
       meta.content = prevDescription
+      document.documentElement.lang = prevLang
     }
   }, [])
 

@@ -359,7 +359,15 @@ export default function KatrinIsfeldPage() {
     meta.content =
       'Katrín Ísfeld innanhússarkitekt hannar innanhús fyrir heimili, gistiheimili, ' +
       'hótel og atvinnurými í Reykjavík: 23 verk, þar á meðal ítalskar innréttingar.'
+    /* The shell ships lang="en" for the catalogue, so an Icelandic page served
+       from it tells Google and every screen reader the wrong language. The
+       outreach for this build is a search-visibility pitch, so the prototype
+       cannot carry the defect it is selling against. Restored on unmount so it
+       does not follow the visitor onto an English preview. */
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = 'is'
     setReady(true)
+    return () => { document.documentElement.lang = prevLang }
   }, [])
 
   useMotion(ready)
