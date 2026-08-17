@@ -18,8 +18,8 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { PreviewChrome } from '../PreviewChrome'
-import { getPreviewCompany } from '../companies'
+import Chrome from './Chrome'
+import { ORDER_PATH, STORY_PATH, LEGAL_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, STORY_ART } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
@@ -29,12 +29,7 @@ import { ORDER_T } from './order'
 import { useLang } from './useLang'
 import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 
-/** The order configurator's own route. */
-const ORDER_PATH = '/preview/reynir/panta'
-/** The story + full photographic archive, on their own route. */
-const STORY_PATH = '/preview/reynir/sagan'
 
-const company = getPreviewCompany('reynir')
 
 // Brand tokens live in tokens.ts so section components share one source of truth.
 /** Base box size of the travelling pistachio medallion (scaled via transform). */
@@ -1133,7 +1128,7 @@ function ReynirPageInner() {
               <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="rb-foot-link">Facebook</a>
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-foot-link">aha.is</a>
               <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-foot-link">Wolt</a>
-              <Link to="/preview/reynir/personuvernd" className="rb-foot-link">{t.legalLink}</Link>
+              <Link to={LEGAL_PATH} className="rb-foot-link">{t.legalLink}</Link>
             </div>
             <div style={{ fontSize: 12, color: FAINT, marginTop: 10 }}>{t.legalLine}</div>
           </div>
@@ -1168,7 +1163,7 @@ function ReynirPageInner() {
         </div>
       )}
 
-      <PreviewChrome company={company} />
+      <Chrome />
     </div>
   )
 }

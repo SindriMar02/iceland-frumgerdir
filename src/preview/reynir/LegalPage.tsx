@@ -16,15 +16,14 @@
 
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { PreviewChrome } from '../PreviewChrome'
-import { getPreviewCompany } from '../companies'
+import Chrome from './Chrome'
+import { HOME_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO } from './data'
 import { useLang } from './useLang'
 import { SiteContentProvider, useSiteContent } from './sanity'
 import { BODY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK_DEEP, IVORY } from './tokens'
 
-const company = getPreviewCompany('reynir')
 
 const CSS = `
   .rb-lg ::selection { background:#5C1C1F; color:${IVORY}; }
@@ -220,11 +219,11 @@ function LegalInner() {
       <style>{CSS}</style>
 
       <header className="rb-lg-bar">
-        <Link to="/preview/reynir" aria-label={lang === 'is' ? 'Til baka á vefinn' : 'Back to the bakery'}>
+        <Link to={HOME_PATH} aria-label={lang === 'is' ? 'Til baka á vefinn' : 'Back to the bakery'}>
           <img src={LOGO} alt="Reynir bakarí" width={124} height={54} decoding="async" style={{ width: 124, height: 'auto', display: 'block' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to="/preview/reynir" className="rb-lg-back">
+          <Link to={HOME_PATH} className="rb-lg-back">
             <svg width="13" height="11" viewBox="0 0 13 11" fill="none" aria-hidden="true">
               <path d="M5.5 1L1 5.5L5.5 10M1 5.5H12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -262,7 +261,7 @@ function LegalInner() {
         </div>
       </main>
 
-      <PreviewChrome company={company} />
+      <Chrome />
     </div>
   )
 }

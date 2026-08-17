@@ -13,8 +13,8 @@
 
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { PreviewChrome } from '../PreviewChrome'
-import { getPreviewCompany } from '../companies'
+import Chrome from './Chrome'
+import { HOME_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO, T } from './data'
 import { ORDER_T } from './order'
@@ -23,7 +23,6 @@ import { useLang } from './useLang'
 import { BODY, DIM, EASE, FAINT, GOLD, GOLD_LIGHT, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
 import { SiteContentProvider, useSiteContent } from './sanity'
 
-const company = getPreviewCompany('reynir')
 
 const PAGE_CSS = `
   .rb-op ::selection { background:#5C1C1F; color:${IVORY}; }
@@ -82,11 +81,11 @@ function ReynirOrderPageInner() {
       <style>{PAGE_CSS}</style>
 
       <header className="rb-op-bar">
-        <Link to="/preview/reynir" aria-label={ot.backToSite}>
+        <Link to={HOME_PATH} aria-label={ot.backToSite}>
           <img src={LOGO} alt="Reynir bakari" width={124} height={54} decoding="async" style={{ width: 124, height: 'auto', display: 'block' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to="/preview/reynir" className="rb-op-back">
+          <Link to={HOME_PATH} className="rb-op-back">
             <svg width="13" height="11" viewBox="0 0 13 11" fill="none" aria-hidden="true">
               <path d="M5.5 1L1 5.5L5.5 10M1 5.5H12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -124,7 +123,7 @@ function ReynirOrderPageInner() {
         </div>
       </footer>
 
-      <PreviewChrome company={company} />
+      <Chrome />
     </div>
   )
 }

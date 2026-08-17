@@ -135,15 +135,27 @@ const PAGES = [
   },
 ]
 
+/* ── standalone mode ──────────────────────────────────────────────────────
+   REYNIR_STANDALONE=1: the dist is the client's own deployment (dist-reynir),
+   where the pages live at the domain root — /, /panta, /sagan, /personuvernd —
+   not under /preview/reynir. Same pages, same meta; only WHERE they live
+   changes, so only page.dir does. */
+const STANDALONE_DIST = process.env.REYNIR_STANDALONE === '1'
+if (STANDALONE_DIST) {
+  for (const p of PAGES) p.dir = p.path === '/' ? '' : p.path.slice(1)
+}
+/** URL for a page — page.dir may be '' (the root) in standalone mode. */
+const urlFor = (p) => `${origin}${prefix}/${p.dir ? p.dir + '/' : ''}`
+
 /* ── schema.org ───────────────────────────────────────────────────────────── */
 const bakery = {
   '@context': 'https://schema.org',
   '@type': 'Bakery',
-  '@id': `${origin}${prefix}/preview/reynir/#bakery`,
+  '@id': `${urlFor(PAGES[0])}#bakery`,
   name: B.name,
   legalName: B.legalName,
   vatID: B.vatID,
-  url: `${origin}${prefix}/preview/reynir/`,
+  url: urlFor(PAGES[0]),
   telephone: B.phone,
   email: B.email,
   foundingDate: B.founded,
@@ -222,10 +234,10 @@ const breadcrumb = (page) => ({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Reynir bakarí', item: `${origin}${prefix}/preview/reynir/` },
+    { '@type': 'ListItem', position: 1, name: 'Reynir bakarí', item: urlFor(PAGES[0]) },
     ...(page.path === '/'
       ? []
-      : [{ '@type': 'ListItem', position: 2, name: page.path === '/panta' ? 'Sérpantanir' : 'Persónuvernd og skilmálar', item: `${origin}${prefix}/${page.dir}/` }]),
+      : [{ '@type': 'ListItem', position: 2, name: page.path === '/panta' ? 'Sérpantanir' : 'Persónuvernd og skilmálar', item: urlFor(page) }]),
   ],
 })
 
@@ -233,7 +245,7 @@ const breadcrumb = (page) => ({
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 function headFor(page) {
-  const url = `${origin}${prefix}/${page.dir}/`
+  const url = urlFor(page)
   const ld = [bakery, breadcrumb(page)]
   if (page.path === '/') ld.push(faq)
   return `
@@ -306,7 +318,7 @@ function inject(page) {
 /** Plain-language facts for answer engines. Served next to the site; on launch
  *  this belongs at the domain root as /llms.txt. */
 function writeLlms() {
-  const dir = join(dist, 'preview/reynir')
+  const dir = join(dist, STANDALONE_DIST ? '' : 'preview/reynir')
   const txt = `# ${B.name}
 
 > Handverksbakarí og kaffihús í Kópavogi, rekið af sömu fjölskyldu síðan ${B.founded}.
@@ -341,9 +353,9 @@ at ${B.street}. Home delivery across the capital area is available through aha.i
 
 /** Ready to move to the domain root on launch day. */
 function writeSitemap() {
-  const dir = join(dist, 'preview/reynir')
+  const dir = join(dist, STANDALONE_DIST ? '' : 'preview/reynir')
   const urls = PAGES.map(
-    (p) => `  <url><loc>${origin}${prefix}/${p.dir}/</loc><changefreq>weekly</changefreq><priority>${p.path === '/' ? '1.0' : '0.8'}</priority></url>`,
+    (p) => `  <url><loc>${urlFor(p)}</loc><changefreq>weekly</changefreq><priority>${p.path === '/' ? '1.0' : '0.8'}</priority></url>`,
   ).join('\n')
   writeFileSync(
     join(dir, 'sitemap.xml'),
