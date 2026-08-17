@@ -662,7 +662,7 @@ function Reviews() {
 
           <div className="ms-rev-rail" aria-hidden="true">
             <span className="ms-rev-rail-l">Reviews</span>
-            <span className="ms-rev-rail-t"><i style={{ height: `${((i + 1) / n) * 100}%` }} /></span>
+            <span className="ms-rev-rail-t"><i style={{ ['--p' as string]: (i + 1) / n }} /></span>
           </div>
 
           <div className="ms-rev-body">
@@ -759,10 +759,12 @@ const STYLES = `
 .ms-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
 .ms-nav-links a:hover{opacity:1}
 .ms-burger{display:none;width:44px;height:44px;position:relative}
-.ms-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
+/* transform only: translateY(±4px) reaches the same centre that animating
+   top from 18/26px to 22px used to, without the layout pass. */
+.ms-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .25s var(--e)}
 .ms-burger i:first-child{top:18px}.ms-burger i:last-child{top:26px}
-.ms-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
-.ms-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
+.ms-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
+.ms-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
 .ms-sheet{position:fixed;inset:0;z-index:55;background:var(--deep);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
@@ -798,18 +800,26 @@ const STYLES = `
 /* THE ROW — accordion */
 .ms-row{padding:0 clamp(8px,1.4vw,20px)}
 .ms-row-track{display:flex;gap:clamp(6px,.9vw,12px);height:min(78svh,760px)}
+/* The flex property is a layout property and this animates four panels at once, which is
+   the one deliberate exception on the page: the flex-grow accordion IS the
+   concept, and the transform equivalent means absolutely positioning four
+   panels and driving their widths by hand, trading a real cost for a real
+   correctness risk. Four elements, once per click, is affordable. 1s was not:
+   it held the layout window open twice as long as the move needs. */
 .ms-panel{position:relative;flex:1;overflow:hidden;isolation:isolate;text-align:left;padding:0;
-  transition:flex 1s var(--e)}
+  transition:flex .55s var(--e)}
 /* entry is driven by the TRACK's is-on, never by a class on the panel itself */
 .js:not(.reduced) .ms-row-track .ms-panel{opacity:0;transform:translateY(26px);
-  transition:flex 1s var(--e),opacity .9s var(--e),transform .9s var(--e)}
+  transition:flex .55s var(--e),opacity .9s var(--e),transform .9s var(--e)}
 .js:not(.reduced) .ms-row-track.is-on .ms-panel{opacity:1;transform:none}
 .ms-row-track .ms-panel:nth-child(2){transition-delay:0s,.08s,.08s}
 .ms-row-track .ms-panel:nth-child(3){transition-delay:0s,.16s,.16s}
 .ms-row-track .ms-panel:nth-child(4){transition-delay:0s,.24s,.24s}
 .ms-panel.is-open{flex:3.2}
 .ms-panel img{position:absolute;inset:0;filter:saturate(.9);transition:transform 1.2s var(--e)}
-.ms-panel:hover img{transform:scale(1.04)}
+@media (hover:hover) and (pointer:fine){
+  .ms-panel:hover img{transform:scale(1.04)}
+}
 .ms-panel-scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,20,28,.82),rgba(15,20,28,.04) 55%)}
 .ms-panel-label{position:absolute;left:18px;bottom:52px;font-family:var(--disp);font-weight:300;font-size:clamp(1.1rem,2vw,1.7rem);letter-spacing:.02em}
 .ms-panel-text{position:absolute;left:18px;right:18px;bottom:18px;font-size:.85rem;color:var(--bone-soft);max-width:44ch;
@@ -912,8 +922,10 @@ const STYLES = `
 .ms-rev-rail-l{writing-mode:vertical-rl;text-orientation:mixed;font-size:.66rem;letter-spacing:.32em;
   text-transform:uppercase;color:var(--bone-mute)}
 .ms-rev-rail-t{position:relative;width:1px;flex:1;min-height:70px;background:var(--hair)}
-.ms-rev-rail-t i{position:absolute;inset:0 0 auto 0;width:100%;background:var(--glass);
-  transition:height .55s var(--e)}
+/* scaleY, not height: a pure progress rail, so the GPU form is exact and
+   costs no layout. The inline style now sets --p. */
+.ms-rev-rail-t i{position:absolute;inset:0;width:100%;background:var(--glass);
+  transform:scaleY(var(--p,0));transform-origin:top;transition:transform .55s var(--e)}
 .ms-rev-body{position:relative;z-index:1;flex:1;min-width:0;display:grid;gap:18px;align-content:start}
 /* the placeholder state, at full size */
 .ms-rev-badge{display:inline-flex;align-items:center;gap:9px;justify-self:start;
@@ -932,8 +944,10 @@ const STYLES = `
 .ms-rev-nav{display:flex;gap:10px}
 .ms-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair);
   display:grid;place-content:center;color:var(--bone-soft);
-  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
-.ms-rev-nav button:hover{color:var(--deep);background:var(--bone);border-color:var(--bone)}
+  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ms-rev-nav button:hover{color:var(--deep);background:var(--bone);border-color:var(--bone)}
+}
 @media (max-width:640px){
   .ms-rev-rail{display:none}
   .ms-rev-ord{font-size:9rem}
@@ -975,7 +989,6 @@ const STYLES = `
   background:var(--bloom);opacity:.42;transform:scaleX(0);transform-origin:left;
   transition:transform 1s var(--e) .16s,opacity .5s var(--e)}
 .ms-flora-row.is-on::after{transform:scaleX(1)}
-.ms-flora-row:hover::after{opacity:1}
 /* The name column is sized to the NAMES, not to a fraction of the row: as an
    fr it took 406px to hold "Sortulyng" and opened a dead channel down the
    middle of the section. max-content would fit each name exactly but every
@@ -991,15 +1004,22 @@ const STYLES = `
   color:var(--bone-mute);padding-top:.62em}
 .ms-flora-mark{display:block;padding-top:.7em}
 .ms-flora-mark i{display:block;width:11px;height:11px;border-radius:50%;background:var(--bloom);
-  opacity:0;transform:scale(.3);
-  transition:transform .8s var(--e) .22s,opacity .6s var(--e) .22s,box-shadow .5s var(--e)}
+  /* scale(.92), not scale(.3): nothing appears from nothing, and from .3 the
+     dot popped into place rather than arriving. */
+  opacity:0;transform:scale(.92);
+  transition:transform .8s var(--e) .22s,opacity .6s var(--e) .22s,box-shadow .2s var(--e)}
 .ms-flora-row.is-on .ms-flora-mark i{opacity:1;transform:none}
-.ms-flora-row:hover .ms-flora-mark i{box-shadow:0 0 0 8px color-mix(in srgb,var(--bloom) 18%,transparent)}
 .ms-flora-name{display:grid;gap:6px;align-content:start}
 .ms-flora-is{font-family:var(--disp);font-weight:200;font-size:clamp(1.5rem,3.1vw,2.25rem);
   line-height:1.04;letter-spacing:-.02em;
-  transition:transform .6s var(--e),color .5s var(--e)}
-.ms-flora-row:hover .ms-flora-is{transform:translateX(7px);color:color-mix(in srgb,var(--bloom) 42%,var(--bone))}
+  transition:transform .2s var(--e),color .2s var(--e)}
+/* All three flora hovers gated together. 600ms was hover feedback moving at
+   reveal speed; the band for something this small is 125-250ms. */
+@media (hover:hover) and (pointer:fine){
+  .ms-flora-row:hover::after{opacity:1}
+  .ms-flora-row:hover .ms-flora-mark i{box-shadow:0 0 0 8px color-mix(in srgb,var(--bloom) 18%,transparent)}
+  .ms-flora-row:hover .ms-flora-is{transform:translateX(7px);color:color-mix(in srgb,var(--bloom) 42%,var(--bone))}
+}
 .ms-flora-en{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-mute)}
 .ms-flora-lat{font-style:italic;font-size:.92rem;color:var(--glass)}
 .ms-flora-note{color:var(--bone-soft);font-size:.95rem;line-height:1.62;max-width:52ch}

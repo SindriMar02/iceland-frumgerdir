@@ -713,11 +713,14 @@ const STYLES = `
 .ill-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
 .ill-nav-links a:hover{opacity:1}
 .ill-burger{display:none;width:44px;height:44px;position:relative}
-.ill-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
+/* The bars close to the X on transform alone. They used to animate top from
+   18/26px to 22px as well, which is a layout property on a control that is
+   tapped on every mobile visit; translateY(±4px) reaches the same centre. */
+.ill-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .25s var(--e)}
 .ill-burger i:first-child{top:18px}
 .ill-burger i:last-child{top:26px}
-.ill-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
-.ill-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
+.ill-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
+.ill-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
 .ill-sheet{position:fixed;inset:0;z-index:55;background:var(--ice);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
@@ -774,8 +777,13 @@ const STYLES = `
   opacity:0;transform:translateY(26px);transition:opacity .9s var(--e),transform .9s var(--e)}
 .ill-door.is-on{opacity:1;transform:none}
 .ill-door-media{position:absolute;inset:0;z-index:-1}
-.ill-door-media img{transform:scale(1.05);transition:transform 1.2s var(--e);filter:saturate(.86)}
-.ill-door:hover .ill-door-media img{transform:scale(1.11)}
+.ill-door-media img{transform:scale(1.05);transition:transform .4s var(--e);filter:saturate(.86)}
+/* Gated: on touch, a tap latches :hover and the door photo stays pushed in
+   until the visitor happens to tap something else. 1.2s also read as lag
+   rather than luxury on the way in. */
+@media (hover:hover) and (pointer:fine){
+  .ill-door:hover .ill-door-media img{transform:scale(1.11)}
+}
 .ill-door::after{content:'';position:absolute;inset:0;z-index:-1;
   background:linear-gradient(to top,rgba(14,22,29,.86) 0%,rgba(14,22,29,.44) 40%,rgba(14,22,29,.1) 100%)}
 .ill-door + .ill-door{box-shadow:inset 1px 0 0 var(--hair-ice)}
@@ -799,8 +807,10 @@ const STYLES = `
 .ill-facts{display:flex;gap:clamp(20px,3vw,40px)}
 .ill-fact{display:grid;gap:2px;opacity:0;transform:translateY(14px);transition:opacity .7s var(--e),transform .7s var(--e)}
 .ill-fact.is-on{opacity:1;transform:none}
-.ill-fact:nth-child(2){transition-delay:.1s}
-.ill-fact:nth-child(3){transition-delay:.2s}
+/* 50/100ms, not 100/200: the stagger band is 30-80ms and the longer gap made
+   a three-item group read as slow rather than sequenced. */
+.ill-fact:nth-child(2){transition-delay:.05s}
+.ill-fact:nth-child(3){transition-delay:.1s}
 .ill-fact-n{font-family:var(--serif);font-size:clamp(1.9rem,3.4vw,2.8rem);line-height:1;color:var(--dusk)}
 .ill-fact-l{font-size:.8rem;letter-spacing:.05em;color:var(--ink-mute)}
 .ill-amen{list-style:none;padding:0;display:grid;gap:9px;max-width:40ch}
@@ -894,8 +904,10 @@ const STYLES = `
 .ill-rev-nav{display:flex;gap:10px}
 .ill-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair-ice);
   display:grid;place-content:center;color:rgba(239,243,245,.85);
-  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
-.ill-rev-nav button:hover{color:#0E161D;background:#EFF3F5;border-color:#EFF3F5}
+  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ill-rev-nav button:hover{color:#0E161D;background:#EFF3F5;border-color:#EFF3F5}
+}
 .ill-rev-rail{display:flex;gap:7px}
 .ill-rev-rail span{width:30px;height:1px;background:var(--hair-ice);transition:background .5s var(--e)}
 .ill-rev-rail span.is-on{background:rgba(239,243,245,.92)}

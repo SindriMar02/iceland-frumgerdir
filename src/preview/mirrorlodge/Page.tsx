@@ -178,7 +178,7 @@ function Reviews() {
         </div>
       </div>
 
-      <span className="ml-rev-track" aria-hidden="true"><i style={{ width: `${((i + 1) / n) * 100}%` }} /></span>
+      <span className="ml-rev-track" aria-hidden="true"><i style={{ ['--p' as string]: (i + 1) / n }} /></span>
       <p className="ml-rev-note">{REVIEWS.sourceNote}</p>
     </div>
   )
@@ -718,26 +718,39 @@ const STYLES = `
    clips nothing, so the duplicate sits visibly under the original. */
 .ml-roll{display:block;overflow:hidden;height:1.4em;line-height:1.4}
 .ml-roll-in{display:block}
-.ml-roll-in i{display:block;height:1.4em;line-height:1.4;font-style:normal;transition:transform .52s var(--e)}
-.ml-roll:hover .ml-roll-in i,.ml-roll:focus-visible .ml-roll-in i{transform:translateY(-100%)}
+.ml-roll-in i{display:block;height:1.4em;line-height:1.4;font-style:normal;transition:transform .22s var(--e)}
+/* Hover motion is gated: on a touch screen a tap latches :hover and the label
+   stays rolled up with no way to roll it back. */
+@media (hover:hover) and (pointer:fine){
+  .ml-roll:hover .ml-roll-in i{transform:translateY(-100%)}
+}
+.ml-roll:focus-visible .ml-roll-in i{transform:translateY(-100%)}
 
-/* ── the cursor, as a designed object ── */
-.ml-cursor{position:fixed;top:0;left:0;z-index:90;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;
-  border-radius:50%;background:#F3F4F2;mix-blend-mode:difference;pointer-events:none;opacity:0;
-  display:grid;place-content:center;
-  transition:width .5s var(--e),height .5s var(--e),margin .5s var(--e),opacity .3s linear}
+/* ── the cursor, as a designed object ──
+   The box is FIXED at its largest size and the disc is a pseudo-element that
+   scales inside it. It used to transition width, height and margin, which is
+   layout + paint + composite on the one element that is repositioned every
+   single frame by the rAF lerp below. The blend stays on the host so the disc
+   and its label still composite as one group before differencing. */
+.ml-cursor{position:fixed;top:0;left:0;z-index:90;width:100px;height:100px;margin:-50px 0 0 -50px;
+  mix-blend-mode:difference;pointer-events:none;opacity:0;
+  display:grid;place-content:center;transition:opacity .3s linear}
+.ml-cursor::before{content:'';position:absolute;inset:0;border-radius:50%;background:#F3F4F2;
+  transform:scale(.11);transition:transform .5s var(--e)}
 .ml-cursor.is-live{opacity:1}
-.ml-cursor span{font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:#0B0D0F;
+.ml-cursor span{position:relative;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:#0B0D0F;
   white-space:nowrap;opacity:0;transition:opacity .34s var(--e)}
-.ml-cursor.is-big{width:100px;height:100px;margin:-50px 0 0 -50px}
+.ml-cursor.is-big::before{transform:none}
 .ml-cursor.is-big span{opacity:1}
 @media (max-width:949px){.ml-cursor{display:none}}
 @media (hover:none){.ml-cursor{display:none}}
 .ml-burger{display:none;width:44px;height:44px;position:relative}
-.ml-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
+/* transform only: translateY(±4px) reaches the same centre that animating
+   top from 18/26px to 22px used to, without the layout pass. */
+.ml-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .25s var(--e)}
 .ml-burger i:first-child{top:18px}.ml-burger i:last-child{top:26px}
-.ml-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
-.ml-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
+.ml-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
+.ml-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
 .ml-sheet{position:fixed;inset:0;z-index:55;background:var(--paper);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
@@ -861,10 +874,15 @@ const STYLES = `
 .ml-rev-nav{display:flex;gap:9px}
 .ml-rev-nav button{width:38px;height:38px;border-radius:50%;border:1px solid var(--hair);
   display:grid;place-content:center;color:var(--ink-soft);
-  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
-.ml-rev-nav button:hover{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ml-rev-nav button:hover{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+}
 .ml-rev-track{display:block;width:100%;height:1px;background:var(--hair)}
-.ml-rev-track i{display:block;height:100%;background:var(--moss);transition:width .55s var(--e)}
+/* scaleX, not width: the rail is a pure progress bar, so the GPU form is an
+   exact substitute and costs no layout. The inline style now sets --p. */
+.ml-rev-track i{display:block;width:100%;height:100%;background:var(--moss);
+  transform:scaleX(var(--p,0));transform-origin:left;transition:transform .55s var(--e)}
 .ml-rev-note{position:relative;z-index:1;font-size:.72rem;letter-spacing:.04em;color:var(--ink-mute);max-width:46ch}
 
 .ml-progress-rail{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--hair);z-index:4}
@@ -913,10 +931,15 @@ const STYLES = `
 /* gallery */
 .ml-gallery{overflow:hidden;padding:clamp(80px,12vh,150px) 0}
 .ml-gal-track{display:flex;gap:clamp(12px,1.6vw,22px);width:max-content;animation:ml-gal 64s linear infinite;padding:0 20px}
-.ml-gallery:hover .ml-gal-track{animation-play-state:paused}
 .ml-gal-item{width:clamp(220px,26vw,380px);aspect-ratio:3/2;overflow:hidden;flex:none}
-.ml-gal-item img{filter:saturate(.9);transition:transform 1.1s var(--e)}
-.ml-gal-item:hover img{transform:scale(1.05)}
+.ml-gal-item img{filter:saturate(.9);transition:transform .4s var(--e)}
+/* Both of these are gated. The pause is the important one: on a touch screen
+   a tap latches :hover, the marquee stops, and there is no gesture that
+   un-hovers it again, so the gallery is simply dead from then on. */
+@media (hover:hover) and (pointer:fine){
+  .ml-gallery:hover .ml-gal-track{animation-play-state:paused}
+  .ml-gal-item:hover img{transform:scale(1.05)}
+}
 @keyframes ml-gal{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .reduced .ml-gal-track{animation:none;flex-wrap:wrap;width:auto}
 
