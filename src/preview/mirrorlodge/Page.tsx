@@ -668,6 +668,7 @@ const STYLES = `
   --disp:'ClashDisplayMl','Helvetica Neue',sans-serif;
   --sans:'GeneralSansMl','Helvetica Neue',Arial,sans-serif;
   --e:cubic-bezier(.25,.9,.25,1);
+  --nav-h:calc(clamp(14px,2.4vw,22px) * 2 + 24px);
   background:var(--paper); color:var(--ink);
   font-family:var(--sans); font-weight:300; line-height:1.6;
   overflow-x:clip;
@@ -800,8 +801,14 @@ const STYLES = `
   color:#F4F7F8;font-size:clamp(.95rem,1.25vw,1.12rem);line-height:1.5;max-width:34ch;
   text-shadow:0 1px 18px rgba(16,20,24,.5)}
 
-/* type panel: air, not a card */
-.ml-type{width:min(88vw,620px);display:grid;align-content:center;gap:20px;padding:0 clamp(28px,4.6vw,84px)}
+/* type panel: air, not a card.
+   The journey is PINNED, so whatever a type panel shows is at REST — a line
+   that lands under the fixed nav can never be scrolled clear of it, unlike a
+   heading on an ordinary page. So the content is centred in the band BELOW
+   the nav, never in the whole viewport. Measured before this: at 1366x700 the
+   first line of "Two glass walls" lost 51px to the nav, permanently. */
+.ml-type{width:min(88vw,620px);display:grid;align-content:center;gap:20px;
+  padding:var(--nav-h) clamp(28px,4.6vw,84px) clamp(18px,3vh,34px)}
 .ml-type-rev{width:min(92vw,700px)}
 .ml-facts{display:flex;gap:clamp(22px,3vw,46px);margin-top:6px}
 .ml-fact{display:grid;gap:3px}
@@ -862,6 +869,33 @@ const STYLES = `
 
 .ml-progress-rail{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--hair);z-index:4}
 .ml-progress{display:block;height:100%;background:var(--moss);transform:scaleX(0);transform-origin:left}
+
+/* ── SHORT WINDOWS ──
+   These must sit AFTER every panel component rule above, not beside .ml-type.
+   They are single-class selectors like the rules they override, so the winner
+   is whichever comes last in the sheet — declared up by .ml-type they lost to
+   .ml-inset and .ml-points and the panel kept overflowing anyway.
+
+   Reserving the nav is not enough on a short window: at 1366x700 the tallest
+   panel ran 700px of content into a 624px band, and because the journey is
+   PINNED there is no scrolling the overflow into view at either edge. Below
+   880px the type steps down so the whole panel fits. */
+@media (min-width:1024px) and (max-height:880px){
+  .ml-type{gap:14px}
+  .ml-type .ml-display .ml-rise-in{font-size:clamp(1.7rem,3vw,2.6rem)}
+  .ml-type .ml-body{font-size:clamp(.92rem,1vw,1rem);line-height:1.55}
+  .ml-fact-n{font-size:clamp(1.55rem,2.4vw,2.05rem)}
+  .ml-amen,.ml-points{gap:7px;padding-top:14px}
+  .ml-amen li,.ml-points li{font-size:.9rem}
+  .ml-inset{aspect-ratio:5/2}
+}
+/* Shorter still: the Geysir panel carries an inset photograph as well as the
+   type, and at 1280x640 it ran 45px past the bottom edge — just as lost as
+   the top. The inset takes the letterbox crop so the panel closes. */
+@media (min-width:1024px) and (max-height:720px){
+  .ml-type{gap:11px}
+  .ml-inset{aspect-ratio:16/5}
+}
 
 /* vertical fallback */
 @media (max-width:1023px){

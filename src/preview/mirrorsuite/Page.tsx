@@ -238,7 +238,7 @@ export default function Page() {
        on hover), so an imperatively-added is-on class is wiped on the next
        render and the whole row vanishes. Reveal the TRACK instead; the panels
        stagger off it in CSS. */
-    root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-name-card, .ms-row-track').forEach((el) => io.observe(el))
+    root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-flora-row, .ms-row-track').forEach((el) => io.observe(el))
     const nav = root.querySelector('.ms-nav')
     const heroEl = root.querySelector('.ms-hero')
     if (nav && heroEl) {
@@ -357,16 +357,29 @@ export default function Page() {
 
         {/* ── the names ── */}
         <section className="ms-flora" id="floran">
-          <Rise as="h2" className="ms-h2 ms-center">{FLORA.lead}</Rise>
-          <Rise as="p" className="ms-body ms-center">{FLORA.body}</Rise>
-          <div className="ms-names">
-            {FLORA.names.map((n, i) => (
-              <div className="ms-name-card" key={n.en} style={{ transitionDelay: `${i * 110}ms` }}>
-                <span className="ms-name-en">{n.en}</span>
-                <span className="ms-name-is">{n.is}</span>
-              </div>
-            ))}
+          <div className="ms-flora-head">
+            <Rise as="h2" className="ms-h2">{FLORA.lead}</Rise>
+            <Rise as="p" className="ms-body">{FLORA.body}</Rise>
           </div>
+          <ol className="ms-flora-index">
+            {FLORA.names.map((n, i) => (
+              <li
+                className="ms-flora-row"
+                key={n.en}
+                style={{ transitionDelay: `${i * 90}ms`, '--bloom': n.bloom } as React.CSSProperties}
+              >
+                <span className="ms-flora-n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="ms-flora-mark" aria-hidden="true"><i /></span>
+                <span className="ms-flora-name">
+                  <span className="ms-flora-is">{n.is}</span>
+                  <span className="ms-flora-en">{n.en}</span>
+                </span>
+                <span className="ms-flora-note">{n.note}</span>
+                <span className="ms-flora-lat">{n.lat}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="ms-flora-foot">{FLORA.foot}</p>
         </section>
 
 
@@ -937,15 +950,73 @@ const STYLES = `
 @media (max-width:820px){.ms-rev-grid{grid-template-columns:1fr}}
 
 /* flora names */
-.ms-flora{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1100px;margin:0 auto;display:grid;gap:22px}
-.ms-names{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);margin-top:clamp(18px,4vh,40px)}
-.ms-name-card{border:1px solid var(--hair);padding:clamp(22px,3.4vw,40px) clamp(16px,2.4vw,28px);display:grid;gap:8px;text-align:center;
-  opacity:0;transform:translateY(20px);transition:opacity .8s var(--e),transform .8s var(--e),border-color .4s var(--e)}
-.ms-name-card.is-on{opacity:1;transform:none}
-.ms-name-card:hover{border-color:var(--glass)}
-.ms-name-en{font-family:var(--disp);font-weight:300;font-size:clamp(1.2rem,2.4vw,1.8rem)}
-.ms-name-is{color:var(--glass);font-size:.86rem;letter-spacing:.08em}
-@media (max-width:700px){.ms-names{grid-template-columns:1fr}}
+/* ══ THE NAMES — a specimen index, not four boxes ══
+   All four suites are identical, so the name is the only thing that separates
+   one from another, and four centred cards said nothing about any of them (and
+   left an orphan on the second row of a three-up grid). This is built as a
+   herbarium index instead: the ordinal, the real Icelandic name set large, the
+   English and the botanical name under it, and one checked line about the
+   plant. Each row carries that plant's OWN flower colour in --bloom, so the
+   palette of the section is taken off the shore it is named after rather than
+   out of the design system. */
+.ms-flora{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1180px;margin:0 auto}
+.ms-flora-head{display:grid;gap:clamp(14px,2.2vw,26px);align-items:end;margin-bottom:clamp(38px,6vh,70px)}
+@media (min-width:900px){
+  .ms-flora-head{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(30px,4vw,70px)}
+}
+.ms-flora-index{list-style:none;padding:0;margin:0;border-top:1px solid var(--hair)}
+.ms-flora-row{position:relative;display:grid;gap:10px;align-items:start;
+  padding:clamp(24px,3.6vh,38px) 0;border-bottom:1px solid var(--hair);
+  opacity:0;transform:translateY(18px);
+  transition:opacity .72s var(--e),transform .72s var(--e)}
+.ms-flora-row.is-on{opacity:1;transform:none}
+/* the bloom-coloured rule draws itself along the row as the row arrives */
+.ms-flora-row::after{content:'';position:absolute;left:0;bottom:-1px;width:100%;height:1px;
+  background:var(--bloom);opacity:.42;transform:scaleX(0);transform-origin:left;
+  transition:transform 1s var(--e) .16s,opacity .5s var(--e)}
+.ms-flora-row.is-on::after{transform:scaleX(1)}
+.ms-flora-row:hover::after{opacity:1}
+/* The name column is sized to the NAMES, not to a fraction of the row: as an
+   fr it took 406px to hold "Sortulyng" and opened a dead channel down the
+   middle of the section. max-content would fit each name exactly but every
+   row is its own grid, so the four columns would no longer line up.
+   The botanical name is then set hard against the right edge, so each row
+   reads end to end under its rule instead of trailing off into 300px of air. */
+@media (min-width:820px){
+  .ms-flora-row{grid-template-columns:clamp(30px,2.6vw,40px) 12px clamp(168px,16vw,240px) minmax(0,1fr) clamp(150px,15vw,215px);
+    column-gap:clamp(13px,1.5vw,22px)}
+  .ms-flora-lat{text-align:right;padding-top:.3em}
+}
+.ms-flora-n{font-family:var(--disp);font-weight:200;font-size:.78rem;letter-spacing:.22em;
+  color:var(--bone-mute);padding-top:.62em}
+.ms-flora-mark{display:block;padding-top:.7em}
+.ms-flora-mark i{display:block;width:11px;height:11px;border-radius:50%;background:var(--bloom);
+  opacity:0;transform:scale(.3);
+  transition:transform .8s var(--e) .22s,opacity .6s var(--e) .22s,box-shadow .5s var(--e)}
+.ms-flora-row.is-on .ms-flora-mark i{opacity:1;transform:none}
+.ms-flora-row:hover .ms-flora-mark i{box-shadow:0 0 0 8px color-mix(in srgb,var(--bloom) 18%,transparent)}
+.ms-flora-name{display:grid;gap:6px;align-content:start}
+.ms-flora-is{font-family:var(--disp);font-weight:200;font-size:clamp(1.5rem,3.1vw,2.25rem);
+  line-height:1.04;letter-spacing:-.02em;
+  transition:transform .6s var(--e),color .5s var(--e)}
+.ms-flora-row:hover .ms-flora-is{transform:translateX(7px);color:color-mix(in srgb,var(--bloom) 42%,var(--bone))}
+.ms-flora-en{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-mute)}
+.ms-flora-lat{font-style:italic;font-size:.92rem;color:var(--glass)}
+.ms-flora-note{color:var(--bone-soft);font-size:.95rem;line-height:1.62;max-width:52ch}
+.ms-flora-foot{margin-top:clamp(26px,4vh,46px);font-size:.8rem;letter-spacing:.03em;
+  color:var(--bone-mute);max-width:54ch}
+/* Narrow: the ordinal and the bloom belong on ONE line above the name, not
+   stacked as two near-empty rows of their own. */
+@media (max-width:819px){
+  .ms-flora-row{grid-template-columns:auto 1fr;
+    grid-template-areas:'n mark' 'name name' 'lat lat' 'note note';
+    column-gap:11px;row-gap:10px;align-items:center}
+  .ms-flora-n{grid-area:n;padding-top:0}
+  .ms-flora-mark{grid-area:mark;justify-self:start;padding-top:0}
+  .ms-flora-name{grid-area:name}
+  .ms-flora-lat{grid-area:lat}
+  .ms-flora-note{grid-area:note}
+}
 
 /* reviews */
 
@@ -989,7 +1060,9 @@ const STYLES = `
 @media (prefers-reduced-motion:reduce){
   .ms-frame-in{position:absolute;inset:0;transform:none !important}
   .ms-hero-line-in,.ms-hero-sub span{transform:none;opacity:1;transition:none}
-  .ms-frame,.ms-fact,.ms-amen li,.ms-name-card,.ms-panel{opacity:1;transform:none;transition:none}
+  .ms-frame,.ms-fact,.ms-amen li,.ms-flora-row,.ms-panel{opacity:1;transform:none;transition:none}
+  .ms-flora-row::after{transform:scaleX(1);transition:none}
+  .ms-flora-mark i{opacity:1;transform:none;transition:none}
   .ms-panel-text{opacity:1;transform:none}
   .ms-row-track{flex-direction:column;height:auto}
   .ms-panel{min-height:300px}

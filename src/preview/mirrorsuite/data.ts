@@ -102,16 +102,69 @@ export const SUITE = {
    listings, which number them 1 Arctic Thyme, 2 Lupine, 3 Bearberry,
    4 Gleymmerey, and state that all four are identical in layout, design and
    amenities. We had been missing Lupine entirely. */
+/**
+ * The botany is REAL and was checked 2026-08-16 against Flóra Íslands
+ * (floraislands.is), Náttúrufræðistofnun (natt.is), Lystigarður Akureyrar and
+ * Skógræktin's 1979 research annual — not written from memory:
+ *   blóðberg      Thymus praecox ssp. arcticus, Lamiaceae. Rose-purple
+ *                 ("rósrauður"), flowers July–August, mats over dry heath,
+ *                 gravel and sand, long used for tea.
+ *   lúpína        Lupinus nootkatensis, Fabaceae. Blue to violet. Hákon
+ *                 Bjarnason collected the seed at College Fjord, Prince
+ *                 William Sound, Alaska in 1945 and brought it home for land
+ *                 reclamation; naturalised through the mid-1950s.
+ *   sortulyng     Arctostaphylos uva-ursi, Ericaceae. Thick glossy evergreen
+ *                 leaves, red fruit, and it will not survive a grazed winter.
+ *   gleym-mér-ei  Myosotis arvensis. Small and blue, in nearly every part of
+ *                 the country. The Icelandic name is the English one, word
+ *                 for word.
+ * `bloom` is that plant's own flower colour, so the section's palette comes
+ * off the shore it is named for rather than out of the design system.
+ * The names themselves are the owners' — their Airbnb listings number the
+ * suites 1 Arctic Thyme, 2 Lupine, 3 Bearberry, 4 Gleymmerey and state that
+ * all four are identical in layout, design and amenities.
+ */
 export const FLORA = {
   lead: 'Named after what grows on the shore.',
   body:
-    'Four suites, identical to each other and named for the flora between the row and the water: Arctic Thyme, blóðberg. Lupine, lúpína. Bearberry, sortulyng. Gleymmerey, the forget-me-not. Small, hardy, and entirely of this coast.',
+    'Four suites, identical to one another, each named for a plant that grows between the row and the water. Small, hardy, and entirely of this coast.',
   names: [
-    { en: 'Arctic Thyme', is: 'Blóðberg' },
-    { en: 'Lupine', is: 'Lúpína' },
-    { en: 'Bearberry', is: 'Sortulyng' },
-    { en: 'Gleymmerey', is: 'Gleym-mér-ei' },
+    {
+      en: 'Arctic Thyme',
+      is: 'Blóðberg',
+      lat: 'Thymus praecox ssp. arcticus',
+      note: 'Of the mint family. It mats over dry gravel and heath, turns rose-purple through July and August, and has been picked for tea here for centuries.',
+      bloom: '#C2698D',
+    },
+    {
+      en: 'Lupine',
+      is: 'Lúpína',
+      lat: 'Lupinus nootkatensis',
+      note: 'Carried back from Alaska in 1945 to hold the loose soil down. It settled in, and it is now the blue that means summer has arrived.',
+      bloom: '#7B84D2',
+    },
+    {
+      en: 'Bearberry',
+      is: 'Sortulyng',
+      lat: 'Arctostaphylos uva-ursi',
+      note: 'Of the heath family. Thick evergreen leaves and red fruit, low to the ground, and it will not survive a winter it has been grazed through.',
+      bloom: '#A8443A',
+    },
+    {
+      /* Every other row pairs the Icelandic name with the English one, so this
+         row cannot show "Gleymmerey" — that is the owners' spelling of the
+         SAME Icelandic word, and printed under Gleym-mér-ei it reads as the
+         word twice over. The English common name goes in the label and their
+         listing spelling is kept in the note, where it is useful to a guest
+         who has to find the suite by that name. */
+      en: 'Forget-me-not',
+      is: 'Gleym-mér-ei',
+      lat: 'Myosotis arvensis',
+      note: 'Small and blue, in nearly every part of the country. The Icelandic name is the English one, word for word. Your listing writes it Gleymmerey.',
+      bloom: '#8FB8DE',
+    },
   ],
+  foot: 'All four suites are identical in layout, design and amenities. The name on the door is the only thing that changes.',
 }
 
 /**
