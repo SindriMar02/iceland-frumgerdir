@@ -42,19 +42,19 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'The Mirror Suite has the best photography and the clearest product of any mirror-cabin operator in Iceland, a row of ocean-front suites with private glass saunas, and presents it through a Wix template whose booking page says "Phone: coming soon" while the brand is scattered across three different booking channels. The prototype gives the row one dark, calm home built from the architecture itself.',
   outreach: {
-    subject: 'The Mirror Suite deserves a site as sharp as the cabins',
+    subject: 'Your booking page still says "Phone: coming soon"',
     body: `Hi Marat and Isabelle,
 
 My name is Sindri and I design websites for Icelandic stays.
 
-I came across The Mirror Suite and stopped at the photography, the row of mirrored suites on Hvammsfjörður at dusk is one of the strongest products I have seen in Icelandic hospitality. The website tells a different story. On the booking page it still says "Phone: coming soon", booking runs through a plain contact form, and on the homepage the headline collides with the logo at the top. Meanwhile your 5.0-star Google rating is invisible on the very page where guests decide.
+I came across The Mirror Suite and stopped at the photography, the row of mirrored suites on Hvammsfjörður at dusk is one of the strongest products I have seen in Icelandic hospitality. A few things on the site work against it. On the booking page it still says "Phone: coming soon", and booking runs through a plain contact form with no dates. The homepage carries a Google badge showing 5.0 from 10 reviews, while your own Airbnb listing holds 4.98 from 54 and Guest Favourite status. Not one sentence a guest has written about you appears anywhere on your own domain.
 
 That felt like a waste, so I sat down and designed a prototype of a new site for you. It costs you nothing and there is no obligation attached.
 
 You can view it here any time, and it works well on a phone:
 [HLEKKUR Á FRUMGERÐ]
 
-The idea comes from the architecture: the page is a dark shoreline at dusk, the suites are a row of glass panels that open, and the names come from the flora of your own shore. Booking becomes a real request with dates, and the Google reviews finally show where they matter.
+The idea comes from the architecture: the page is a dark shoreline at dusk, the suites are a row of glass panels that open, and the names come from the flora of your own shore, with the plant behind each one. Booking becomes a real request with dates, and four of your Airbnb reviews are quoted on the page exactly as your guests wrote them.
 
 If you like it I could finish the full site, and if not I hope you enjoy seeing the idea anyway.
 

@@ -43,14 +43,14 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Iceland Luxury Lodges runs some of the most expensive private stays in the country, a 10-bedroom Golden Circle lodge and two lakefront villas with an infinity hot tub that merges into Álftavatn, behind a 2019 WordPress site whose hero is a black void and whose sitemap still advertises Dubai desert safaris from the theme demo. The prototype gives the collection the structure it actually has: one waterline, four houses, each behind its own door.',
   outreach: {
-    subject: 'Forsíðan ykkar opnast svört — og hugmynd að nýrri',
+    subject: 'Forsíðan ykkar opnast auð, og hugmynd að nýrri',
     body: `Sæl Signý,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska gististaði.
 
-Ég var að skoða icelandluxurylodges.com og tók eftir þrennu sem mig grunar að þið vitið ekki af. Forsíðumyndin birtist alls ekki, síðan opnast bara svört, myndasleðinn nær aldrei að teikna myndina. Í leitarkortinu ykkar eru enn æfingasíður úr sniðmátinu, þar á meðal „Desert Safari Dubai" og „Maldives Resort and Spa", sem Google getur skráð. Og hvergi á síðunni kemur fram að Álftavík heldur 4,94 af 5 í 162 umsögnum á Airbnb.
+Ég var að skoða icelandluxurylodges.com í dag og tók eftir þrennu sem mig grunar að þið vitið ekki af. Forsíðan opnast auð og hvít. Myndin á bak við birtist aldrei, og textinn ykkar er hvítur, svo hann hverfur ofan í auða flötinn. Ég beið í hálfa mínútu og ekkert kom fram. Í leitarkortinu ykkar, wp-sitemap.xml, eru enn æfingasíður úr sniðmátinu sem Google getur skráð, þar á meðal „Desert Safari Dubai" og „Maldives Resort and Spa". Og hvergi á síðunni koma fram umsagnirnar ykkar, þótt Úlfljótsskáli haldi 10 af 10 í 28 umsögnum á Vrbo.
 
-Mér fannst það synd, því safnið ykkar á betra skilið, svo ég settist niður og hannaði frumgerð að nýjum vef fyrir alla eignirnar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, því safnið ykkar á betra skilið, svo ég settist niður og hannaði frumgerð að nýjum vef fyrir allar eignirnar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
@@ -59,7 +59,7 @@ Hugmyndin er einföld: eitt safn, fjögur hús. Forsíðan skiptist í dyr fyrir
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þið hafið gaman af því að skoða hugmyndina.
 
-Endilega láttu mig vita ef þú hefur áhuga.
+Endilega látið mig vita ef þið hafið áhuga.
 
 Bestu kveðjur,
 Sindri Már

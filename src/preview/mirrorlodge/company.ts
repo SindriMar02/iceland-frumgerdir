@@ -42,19 +42,19 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Mirror Lodge is the Golden Circle\'s answer to Mirror House: a mirror-clad glass cabin minutes from Geysir with the strongest location in Icelandic tourism, presented through a 2020 hotel template whose footer admits its age. The prototype lets the cladding design the page: the cabin stands still, the landscape wipes across it, and booking becomes a real flow instead of an email hope.',
   outreach: {
-    subject: 'Mirror Lodge á skilið meira en sniðmát frá 2020',
+    subject: 'Verðin ykkar koma hvergi fram, og hugmynd að nýrri síðu',
     body: `Góðan dag,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska gististaði.
 
-Ég rakst á Mirror Lodge og staldraði við, spegilskáli með stjörnuglugga steinsnar frá Geysi er einstök vara. Vefsíðan segir samt aðra sögu: hún er byggð á keyptu hótelsniðmáti, neðst á henni stendur enn „Copyright © 2020", hvergi er hægt að sjá verð eða laus dagsetningar og bókun fer í gegnum tölvupóstform. Myndirnar í galleríinu birtast auk þess aðeins í 800 punkta upplausn, á síðu þar sem varan er sjónræn upplifun.
+Ég rakst á Mirror Lodge og staldraði við, spegilskáli með stjörnuglugga steinsnar frá Geysi er einstök vara. Vefsíðan segir samt aðra sögu. Hún keyrir á keyptu hótelsniðmáti, Hoteller, og verð koma hvergi fram á henni. Á bókunarsíðunni stendur meira að segja að gestir fái lægra verð á nótt ef þeir dvelja þrjár nætur eða lengur, án þess að verðið sjálft sé nokkurs staðar á síðunni. Myndirnar eru líka mjög smáar, sú stærsta er 1200 punktar á breidd og flestar um 300, á vef þar sem varan sjálf er sjónræn upplifun.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri síðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin kemur frá skálanum sjálfum: spegilklæðningin þýðir að landslagið klæðir húsið. Á síðunni stendur skálinn kyrr á meðan endurspeglunin líður yfir hann, frá snjó yfir í norðurljós, allt með ykkar eigin myndum. Fyrirspurnarform með dagsetningum kemur í stað blinds tölvupósts.
+Hugmyndin kemur frá skálanum sjálfum: spegilklæðningin þýðir að landslagið klæðir húsið. Á síðunni stendur skálinn kyrr á meðan endurspeglunin líður yfir hann, frá snjó yfir í norðurljós, allt með ykkar eigin myndum. Umsagnirnar ykkar á Google, 5,0 í 16 umsögnum þar sem allir gefa fimm stjörnur, fá loksins pláss á ykkar eigin vef.
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þið hafið gaman af því að skoða hugmyndina.
 
