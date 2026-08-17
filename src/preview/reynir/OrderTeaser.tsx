@@ -58,14 +58,20 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
     <section id="order" style={{ background: INK_DEEP, padding: 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
       <style>{TEASER_CSS}</style>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-        <div data-reveal style={{ borderTop: `1px solid ${HAIR}`, paddingTop: 16, maxWidth: 640 }}>
+        {/* The rule spans the container, as it does in every other section;
+            only the text is capped. Carrying the cap on the same element cut
+            the hairline to 640px and made this one divider look broken next
+            to its neighbours. */}
+        <div data-reveal style={{ borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
+          <div style={{ maxWidth: 640 }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>
             {t.kicker}
           </div>
           <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>
             {t.title}
           </h2>
-          <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.intro}</p>
+            <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.intro}</p>
+          </div>
         </div>
 
         <div className="rb-tease-grid">

@@ -31,6 +31,8 @@ import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 
 /** The order configurator's own route. */
 const ORDER_PATH = '/preview/reynir/panta'
+/** The story + full photographic archive, on their own route. */
+const STORY_PATH = '/preview/reynir/sagan'
 
 const company = getPreviewCompany('reynir')
 
@@ -662,7 +664,7 @@ function ReynirPageInner() {
         <nav className="rb-sticky-nav">
           <a href="#menu" className="rb-navlink">{t.navMenu}</a>
           <a href="#bread" className="rb-navlink">{t.navBread}</a>
-          <a href="#story" className="rb-navlink">{t.navStory}</a>
+          <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.6vw,20px)' }}>
@@ -686,7 +688,7 @@ function ReynirPageInner() {
             <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
             {/* a real destination, not an anchor: clicking "Panta" means ordering */}
             <Link to={ORDER_PATH} className="rb-navlink">{ORDER_T[lang].navOrder}</Link>
-            <a href="#story" className="rb-navlink">{t.navStory}</a>
+            <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
             <a href="#visit" className="rb-navlink">{t.navVisit}</a>
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -904,6 +906,11 @@ function ReynirPageInner() {
           <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gap: 'clamp(48px,8vh,96px)' }}>
             <StoryChapter art={STORY_ART.founding} text={storyP1[lang]} reduced={reduced} />
             <StoryChapter art={STORY_ART.today} text={storyP2[lang]} reduced={reduced} flip />
+            {/* the landing page tells the short version; the whole story and
+                the full archive live on their own route */}
+            <div data-reveal style={{ ...revealInit(reduced, 0.1) }}>
+              <Link to={STORY_PATH} className="rb-cta rb-cta-ghost">{t.storyMore}</Link>
+            </div>
           </div>
         </div>
       </section>
@@ -1010,6 +1017,12 @@ function ReynirPageInner() {
           {GALLERY.map((photo, i) => (
             <GalleryTile key={photo.src} photo={photo} lang={lang} onOpen={() => setLightbox(i)} style={revealInit(reduced, Math.min(i, 5) * 0.05)} />
           ))}
+        </div>
+
+        {/* The strip reads as "there are more of these", so give it somewhere
+            to go: the same frames as a full wall on the archive page. */}
+        <div style={{ ...wrap, padding: '0 clamp(20px,4.5vw,72px)', marginTop: 'clamp(24px,3.5vh,36px)' }}>
+          <Link to={STORY_PATH} className="rb-cta rb-cta-ghost">{t.galleryMore}</Link>
         </div>
       </section>
 

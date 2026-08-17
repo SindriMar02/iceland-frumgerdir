@@ -123,6 +123,16 @@ const PAGES = [
     image: img('bud.webp'),
     noindexAlways: true,
   },
+  {
+    dir: 'preview/reynir/sagan',
+    path: '/sagan',
+    title: 'Sagan og myndasafnið — Reynir bakarí',
+    desc:
+      'Fjölskyldubakarí á Dalvegi síðan 1994. Sagan af Reyni bakara og myndasafn úr bakaríinu sjálfu, myndað á einum vinnumorgni.',
+    descEn:
+      'A family bakery on Dalvegur since 1994. The story of Reynir bakarí and a photographic archive from inside the bakery, shot across one working morning.',
+    image: img('gallery/gal-11.webp'),
+  },
 ]
 
 /* ── schema.org ───────────────────────────────────────────────────────────── */

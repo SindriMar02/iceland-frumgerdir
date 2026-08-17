@@ -402,6 +402,16 @@ export const T = {
     galleryTitle: 'In the bakery.',
     galleryIntro: 'Sourdough on the bench and the ovens already running before the doors open. A look at the everyday craft, in photos.',
     galleryClose: 'Close',
+    // the dedicated story/archive page
+    storyPageKicker: 'Since 1994',
+    storyPageTitle: 'The bakery, and the people in it.',
+    storyPageLead:
+      'Reynir bakarí has been baking on Dalvegur since 1994. The ovens are the same ones the family learned on, the bread is still mixed and shaped by hand, and most mornings begin long before the doors open. This is the bakery as it works.',
+    storyPageArchive: 'The archive',
+    storyPageArchiveIntro: 'Photographed across one working morning in the bakery.',
+    storyMore: 'Read the full story',
+    galleryMore: 'See all photographs',
+    storyBack: 'Back to the bakery',
     galleryPrev: 'Previous photo',
     galleryNext: 'Next photo',
     statementKicker: 'Our story',
@@ -458,6 +468,16 @@ export const T = {
     galleryTitle: 'Í bakaríinu.',
     galleryIntro: 'Súrdeigið á borðinu og ofnarnir komnir í gang áður en opnað er. Innsýn í daglegt handverk, í myndum.',
     galleryClose: 'Loka',
+    // sérstaka sögu- og myndasíðan
+    storyPageKicker: 'Síðan 1994',
+    storyPageTitle: 'Bakaríið, og fólkið í því.',
+    storyPageLead:
+      'Reynir bakarí hefur bakað á Dalvegi síðan 1994. Ofnarnir eru þeir sömu og fjölskyldan lærði við, brauðið er enn hnoðað og mótað í höndunum, og flestir morgnar hefjast löngu áður en opnað er. Svona vinnur bakaríið.',
+    storyPageArchive: 'Myndasafnið',
+    storyPageArchiveIntro: 'Myndað á einum vinnumorgni í bakaríinu.',
+    storyMore: 'Lesa alla söguna',
+    galleryMore: 'Sjá allar myndirnar',
+    storyBack: 'Til baka á vefinn',
     galleryPrev: 'Fyrri mynd',
     galleryNext: 'Næsta mynd',
     statementKicker: 'Sagan',
