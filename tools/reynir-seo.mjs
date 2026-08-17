@@ -258,7 +258,15 @@ function headFor(page) {
     <meta name="geo.placename" content="${esc(B.city)}" />
     <meta name="geo.position" content="${B.lat};${B.lon}" />
     <meta name="ICBM" content="${B.lat}, ${B.lon}" />
-    <link rel="icon" href="${prefix}/reynir/brand/logo.webp" type="image/webp" />
+    <!-- Their monogram, not the wordmark. The script logo is beautiful at
+         header size and completely illegible at 32px — the strokes are hair
+         thin and the capital's swash crosses itself, so every crop of it
+         renders as a gold smudge. This is the initial in their own burgundy
+         and gold, in a serif, drawn to survive the size. -->
+    <link rel="icon" href="${prefix}/reynir/brand/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="${prefix}/reynir/brand/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="${prefix}/reynir/brand/apple-touch-icon.png" />
+    <meta name="theme-color" content="#131313" />
 ${ld.map((o) => `    <script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n')}
 `
 }
@@ -277,6 +285,19 @@ function inject(page) {
     .replace(/<title>[^<]*<\/title>/, '')
     .replace(/<meta name="description"[^>]*>/, '')
     .replace(/<meta name="robots"[^>]*>/, '')
+  /* Strip every icon the catalogue shell brought with it.
+   *
+   * Each route is a copy of the catalogue's index.html, which carries its own
+   * `<link rel="icon">` tags pointing at Vite-hashed files under /assets/.
+   * Those are ABSOLUTE and root-relative, so the moment this site is served
+   * from reynirbakari.is they resolve to reynirbakari.is/assets/… — files
+   * that will not exist there — and the tab falls back to whatever the origin
+   * root serves. That is exactly the inheritance trap favicon-guard.mjs
+   * exists to catch. Removing them here leaves only the tags added below, so
+   * these pages are self-contained on any host. */
+    .replace(/<link[^>]+rel="(?:icon|shortcut icon|apple-touch-icon)"[^>]*>/g, '')
+    .replace(/<link[^>]+rel='(?:icon|shortcut icon|apple-touch-icon)'[^>]*>/g, '')
+    .replace(/<meta name="theme-color"[^>]*>/g, '')
   html = html.replace('</head>', `${headFor(page)}  </head>`)
   writeFileSync(file, html)
   console.log(`reynir-seo: ${page.dir} (${LIVE ? 'indexable' : 'noindex — preview host'})`)
