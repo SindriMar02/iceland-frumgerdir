@@ -43,14 +43,26 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Iceland Luxury Lodges runs some of the most expensive private stays in the country, a 10-bedroom Golden Circle lodge and two lakefront villas with an infinity hot tub that merges into Álftavatn, behind a 2019 WordPress site whose hero is a black void and whose sitemap still advertises Dubai desert safaris from the theme demo. The prototype gives the collection the structure it actually has: one waterline, four houses, each behind its own door.',
   outreach: {
-    subject: 'Forsíðan ykkar opnast auð, og hugmynd að nýrri',
-    body: `Sæl Signý,
+    /* Rule 7 format. The symptom-led subject this replaced was my own
+       invention and broke the one hard rule the guide states outright. */
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Iceland Luxury Lodges',
+    /* Her name is SIGYN, not Signý — the two are different Icelandic names and
+       the ASCII mailbox signy@ hides which one. Confirmed on her own LinkedIn:
+       Sigyn Eiríksdóttir, co-founder, financial manager and board member of
+       Iceland Luxury Lodges since August 2015, operating company Luxuria ehf.
+       The patronymic also settles the language question: Icelandic is right
+       for this one. */
+    body: `Sæl Sigyn,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska gististaði.
 
-Ég var að skoða icelandluxurylodges.com í dag og tók eftir þrennu sem mig grunar að þið vitið ekki af. Forsíðan opnast auð og hvít. Myndin á bak við birtist aldrei, og textinn ykkar er hvítur, svo hann hverfur ofan í auða flötinn. Ég beið í hálfa mínútu og ekkert kom fram. Í leitarkortinu ykkar, wp-sitemap.xml, eru enn æfingasíður úr sniðmátinu sem Google getur skráð, þar á meðal „Desert Safari Dubai“ og „Maldives Resort and Spa“. Og hvergi á síðunni koma fram umsagnirnar ykkar, þótt Úlfljótsskáli haldi 10 af 10 í 28 umsögnum á Vrbo.
+Ég var að skoða icelandluxurylodges.com í dag. Vefurinn virkar vel og myndirnar ykkar eru flottar, en mér fannst textinn ekki alveg gera eignunum skil.
 
-Mér fannst það synd, því safnið ykkar á betra skilið, svo ég settist niður og hannaði frumgerð að nýjum vef fyrir allar eignirnar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Á síðunni um Úlfljótsskála, tíu herbergja hús fyrir allt að 19 gesti, eru rúmlega 100 orð alls. Verð koma hvergi fram og ekki er hægt að bóka beint á síðunni, aðeins að hafa samband. Umsagnir gesta sjást heldur ekki, þrátt fyrir að Úlfljótsskáli sé með 10/10 í 28 umsögnum á Vrbo.
+
+Svo tók ég eftir einu tæknilegu atriði sem gæti haft áhrif á Google-leit. Í wp-sitemap.xml eru enn æfingasíður úr sniðmátinu sem Google getur skráð, þar á meðal „Desert Safari Dubai“ og „Maldives Resort and Spa“.
+
+Mér fannst safnið ykkar eiga meira skilið, svo ég settist niður og hannaði frumgerð að nýjum vef fyrir allar eignirnar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]

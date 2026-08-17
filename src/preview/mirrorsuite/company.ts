@@ -42,7 +42,10 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'The Mirror Suite has the best photography and the clearest product of any mirror-cabin operator in Iceland, a row of ocean-front suites with private glass saunas, and presents it through a Wix template whose booking page says "Phone: coming soon" while the brand is scattered across three different booking channels. The prototype gives the row one dark, calm home built from the architecture itself.',
   outreach: {
-    subject: 'Your booking page still says "Phone: coming soon"',
+    /* Rule 7 format, in the letter's own language. English is confirmed
+       correct here: the owners are Marat and Isabelle (their own about page),
+       neither name is Icelandic, and the site has no Icelandic version. */
+    subject: 'An idea for a new website for The Mirror Suite',
     body: `Hi Marat and Isabelle,
 
 My name is Sindri and I design websites for Icelandic stays.
