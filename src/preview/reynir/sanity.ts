@@ -59,7 +59,7 @@ const isPreview =
 
 const STUDIO_URL = (import.meta.env.VITE_REYNIR_SANITY_STUDIO_URL as string | undefined) || 'http://localhost:3333'
 
-const STEGA_SKIP = new Set(['id', 'order', 'active', 'phoneHref', 'email', 'orderEmail', 'ahaUrl', 'facebook', 'instagram', '_id', '_type'])
+const STEGA_SKIP = new Set(['id', 'order', 'active', 'phoneHref', 'email', 'orderEmail', 'ahaUrl', 'woltUrl', 'facebook', 'instagram', '_id', '_type'])
 
 const client = createClient({
   projectId: 'v4v3s4wg',
@@ -221,7 +221,7 @@ const FALLBACK: SiteContent = {
 
 /* ── GROQ: everything editable, in one round trip ───────────────────────── */
 const QUERY = `{
-  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, mainAddress, trustLine},
+  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine},
   "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun},
   "hero": *[_type=="heroSection"][0]{heroTitle, heroSub, heroLine, heroPhotoCaption},
   "story": *[_type=="storySection"][0]{statementQuote, statementWho, storyP1, storyP2},
@@ -299,6 +299,7 @@ function merge(raw: any): SiteContent {
     facebook: s?.facebook || LINKS.facebook,
     instagram: s?.instagram || LINKS.instagram,
     order: s?.ahaUrl || LINKS.order,
+    wolt: s?.woltUrl || LINKS.wolt,
   }
 
   const h = raw?.hours
