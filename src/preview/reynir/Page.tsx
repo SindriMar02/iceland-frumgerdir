@@ -528,15 +528,39 @@ function ReynirPageInner() {
     setThemeColor(INK)
   }, [])
 
-  // Intro loader: the gold script writes itself on, as if piped. Plays on
-  // mount; skips entirely for reduced-motion; click anywhere to dismiss early.
-  const [intro, setIntro] = useState(
-    () => !(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
-  )
+  /* Intro loader: the gold script writes itself on, as if piped.
+   *
+   * ONCE PER SESSION, not once per mount. The order page, the legal page and
+   * the story page are all real routes, so coming back to the landing page
+   * remounts this component — and the curtain was replaying every time, which
+   * turns a brand moment into a toll gate on ordinary navigation.
+   *
+   * sessionStorage rather than localStorage on purpose: it survives navigation
+   * within a visit, which is the bug, but a genuinely new visit tomorrow still
+   * gets the intro. localStorage would mean a returning customer never sees it
+   * again, which throws the moment away to fix a much smaller problem.
+   *
+   * Wrapped in try/catch because sessionStorage throws outright in some
+   * privacy modes; the intro is decorative, so on failure it simply plays. */
+  const [intro, setIntro] = useState(() => {
+    if (typeof window === 'undefined') return false
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+    try {
+      return window.sessionStorage.getItem('rb-intro-seen') !== '1'
+    } catch {
+      return true
+    }
+  })
   useEffect(() => {
     if (!intro) return
     const id = window.setTimeout(() => setIntro(false), 2150)
     return () => window.clearTimeout(id)
+  }, [intro])
+  // Marked as seen as soon as it has played or been dismissed, so a click-to-
+  // skip counts too and the curtain does not return on the next route change.
+  useEffect(() => {
+    if (intro) return
+    try { window.sessionStorage.setItem('rb-intro-seen', '1') } catch { /* private mode */ }
   }, [intro])
 
   useEffect(() => {
