@@ -1039,7 +1039,13 @@ const STYLES = `
 .ms-cta:active{transform:translateY(1px) scale(.99)}
 .ms-book-note{font-size:.78rem;color:var(--bone-mute)}
 .ms-book-done p{font-family:var(--disp);font-weight:300;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch;border-top:1px solid var(--glass);padding-top:22px}
-@media (max-width:860px){.ms-book{grid-template-columns:1fr}}
+/* A 1fr track is minmax(auto,1fr) — the auto floor is content width, so this track
+   held 350px inside a 320px box on a 360px phone and overflowed. overflow-x:
+   clip on .ms-root hid it instead of scrolling. */
+@media (max-width:860px){
+  .ms-book{grid-template-columns:minmax(0,1fr)}
+  .ms-book-copy,.ms-book-form{min-width:0}
+}
 
 /* footer */
 .ms-footer{padding:clamp(60px,10vh,110px) clamp(20px,5vw,64px) 0;border-top:1px solid var(--hair)}
@@ -1113,4 +1119,25 @@ const STYLES = `
   .ms-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
 .ms-footer footer[lang="is"] [data-logotype] > span{color:var(--bone-soft) !important}
+
+/* ── MOBILE FLOORS ── last in the sheet so these single-class rules win.
+   No real text under 13px, no standalone control under 44px. Measured: the
+   flora label, the pano hint and the review source were at 11.5–11.8px on a
+   phone. Inline links inside a sentence stay exempt — padding them to 44px
+   would break the line box. */
+@media (max-width:640px){
+  .ms-eyebrow,.ms-fact-l,.ms-rev-note,.ms-rev-src,.ms-pano-hint,
+  .ms-flora-en,.ms-flora-foot,.ms-rev-badge,.ms-book-note,.ms-footer-dl dt,
+  .ms-field label,.ms-book label{font-size:13px}
+  .ms-rev-nav button{width:44px;height:44px}
+  .ms-nav-mark{padding:10px 0}
+  .ms-footer footer[lang="is"]{font-size:13px}
+  .ms-footer-dl a{display:inline-block;padding:12px 0}
+  .ms-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+/* A grid track may shrink, but a grid ITEM keeps min-width:auto and an
+   <input> has an intrinsic ~180px min-content width, so the row overflowed on
+   a narrow phone regardless of the track. The item and the control release. */
+.ms-field{min-width:0}
+.ms-field input,.ms-field select,.ms-field textarea{min-width:0;width:100%}
 `

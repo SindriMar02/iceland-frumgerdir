@@ -939,7 +939,13 @@ const STYLES = `
 .ml-book-note{font-size:.74rem;color:var(--ink-mute)}
 .ml-book-done p{font-family:var(--disp);font-weight:200;font-size:clamp(1.3rem,2.2vw,1.7rem);line-height:1.4;max-width:34ch;
   border-top:1px solid var(--moss);padding-top:24px}
-@media (max-width:860px){.ml-book{grid-template-columns:1fr}}
+/* A 1fr track is minmax(auto,1fr) — the auto floor is content width, so the track
+   could not shrink under a narrow phone and overflowed behind
+   overflow-x:clip. */
+@media (max-width:860px){
+  .ml-book{grid-template-columns:minmax(0,1fr)}
+  .ml-book-copy,.ml-book-form{min-width:0}
+}
 
 /* footer */
 .ml-footer{background:var(--paper);color:var(--ink);padding:clamp(50px,9vh,100px) clamp(20px,5vw,64px) 0;border-top:1px solid var(--hair)}
@@ -996,4 +1002,23 @@ const STYLES = `
 @media (max-width:760px){
   .ml-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
+
+/* ── MOBILE FLOORS ── last in the sheet so these single-class rules win.
+   No real text under 13px, no standalone control under 44px. Measured: the
+   eyebrows and form labels were at 11.5px on a phone. Inline links inside a
+   sentence stay exempt — padding them to 44px would break the line box. */
+@media (max-width:640px){
+  .ml-eyebrow,.ml-fact-l,.ml-rev-note,.ml-book-note,.ml-rev-badge,
+  .ml-footer-dl dt,.ml-field label,.ml-book label{font-size:13px}
+  .ml-rev-nav button{width:44px;height:44px}
+  .ml-nav-mark{padding:10px 0}
+  .ml-footer footer[lang="is"]{font-size:13px}
+  .ml-footer-dl a{display:inline-block;padding:12px 0}
+  .ml-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+/* A grid track may shrink, but a grid ITEM keeps min-width:auto and an
+   <input> has an intrinsic ~180px min-content width, so the row overflowed on
+   a narrow phone regardless of the track. The item and the control release. */
+.ml-field{min-width:0}
+.ml-field input,.ml-field select,.ml-field textarea{min-width:0;width:100%}
 `

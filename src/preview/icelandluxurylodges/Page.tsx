@@ -866,7 +866,7 @@ const STYLES = `
 .ill-rev-ord b.is-on{opacity:1;transform:none;filter:none}
 .ill-rev-badge{display:inline-flex;align-items:center;gap:9px;
   font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(239,243,245,.82);
-  border:1px solid rgba(239,243,245,.26);border-radius:999px;padding:7px 15px}
+  border:1px solid var(--hair-ice);border-radius:999px;padding:7px 15px}
 .ill-rev-badge span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
 .ill-rev-list{list-style:none;padding:0;margin:0;display:grid;perspective:800px;width:100%}
 /* ASYMMETRIC, not a crossfade. Two stacked display-size quotes fading through
@@ -892,12 +892,12 @@ const STYLES = `
   color:rgba(239,243,245,.72)}
 .ill-rev-who i{display:block;width:32px;height:1px;background:rgba(239,243,245,.6);flex:none}
 .ill-rev-nav{display:flex;gap:10px}
-.ill-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid rgba(239,243,245,.3);
+.ill-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair-ice);
   display:grid;place-content:center;color:rgba(239,243,245,.85);
   transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
 .ill-rev-nav button:hover{color:#0E161D;background:#EFF3F5;border-color:#EFF3F5}
 .ill-rev-rail{display:flex;gap:7px}
-.ill-rev-rail span{width:30px;height:1px;background:rgba(239,243,245,.26);transition:background .5s var(--e)}
+.ill-rev-rail span{width:30px;height:1px;background:var(--hair-ice);transition:background .5s var(--e)}
 .ill-rev-rail span.is-on{background:rgba(239,243,245,.92)}
 .ill-rev-note{font-size:.72rem;letter-spacing:.03em;color:rgba(239,243,245,.55);max-width:62ch}
 @media (max-width:640px){
@@ -932,7 +932,19 @@ const STYLES = `
 .ill-book-done{display:grid;gap:18px;padding-top:26px}
 .ill-book-done-seam{height:1px;background:var(--dusk)}
 .ill-book-done p{font-family:var(--serif);font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch}
-@media (max-width:860px){.ill-book{grid-template-columns:1fr}.ill-book-copy{position:static}.ill-field-row{grid-template-columns:1fr 1fr}.ill-field-row .ill-field:last-child{grid-column:1/-1}}
+/* A 1fr track is minmax(auto,1fr), and that auto floor is the column's CONTENT
+   width — so this track resolved to 350px inside a 320px content box on a
+   360px phone and the section hung 30px off the edge. It never showed up as a
+   horizontal scrollbar because .ill-root carries overflow-x:clip, which
+   silently ate it. minmax(0,1fr) lets the track shrink; min-width:0 lets the
+   children stop propagating their own content floor. */
+@media (max-width:860px){
+  .ill-book{grid-template-columns:minmax(0,1fr)}
+  .ill-book-copy,.ill-book-form{min-width:0}
+  .ill-book-copy{position:static}
+  .ill-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .ill-field-row .ill-field:last-child{grid-column:1/-1}
+}
 
 /* ── footer ── */
 .ill-footer{position:relative;background:var(--ink);color:var(--ice)}
@@ -981,7 +993,15 @@ const STYLES = `
   font-size:.76rem;
   line-height:1.7;
   text-align:left;
-  max-width:1200px;
+  /* It must land on the SAME measure as .ill-footer-grid above it or the
+     footer reads as two stacked designs: the contact rules ran 64→1376 and
+     these ones 120→1320, four hairlines at one width sitting over two more at
+     another. The grid's content box is min(1500px,100%) minus twice its
+     padding, and that must be reproduced as a WIDTH, not max-width + padding:
+     the rule is
+     drawn on this element's border box, so padding would push it full-bleed
+     while the text stayed put. */
+  width:calc(min(1500px, 100%) - 2 * clamp(20px,5vw,64px));
   margin:clamp(38px,6vh,66px) auto 0;
   padding:clamp(22px,3.4vh,34px) 0 clamp(34px,6vh,56px);
   border-top:1px solid var(--hair-ice);
@@ -1000,4 +1020,33 @@ const STYLES = `
 @media (max-width:760px){
   .ill-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
+
+/* ── MOBILE FLOORS ──
+   Last in the sheet on purpose: these are single-class selectors overriding
+   other single-class selectors, so source order is what decides.
+   Two floors, both measured rather than guessed: no real text under 13px, and
+   no standalone control under 44px. The tracked uppercase labels were sitting
+   at 11.4–12.8px on a phone, which is where they stop being quiet and start
+   being unreadable. Inline links inside a sentence are deliberately exempt —
+   padding them to 44px would break the line box. */
+@media (max-width:640px){
+  .ill-eyebrow,.ill-door-kind,.ill-fact-l,.ill-rev-note,.ill-book-note,
+  .ill-rev-badge,.ill-chip,.ill-chip span,.ill-fourth-place .ill-rise-in,.ill-footer-dl dt,
+  .ill-field label,.ill-book label{font-size:13px}
+  .ill-rev-nav button{width:44px;height:44px}
+  .ill-nav-mark{padding:9px 0}
+  /* the shared disclaimer is dressed by this page at .76rem — 12.2px, under
+     the floor. The component itself ships 15px on phones; the override is
+     what dropped it, so the override is what raises it back. */
+  .ill-footer footer[lang="is"]{font-size:13px}
+  /* Contact links are the mobile CTA of the whole page, not links inside a
+     sentence, so they get a real target instead of a 19px line box. */
+  .ill-footer-dl a{display:inline-block;padding:12px 0}
+}
+/* A grid track may shrink, but a grid ITEM still carries min-width:auto, and
+   an <input> has an intrinsic ~180px min-content width — so the two-up field
+   row stayed 7px over the edge on a 360px phone even after the track was
+   changed to minmax(0,1fr). The item and the control both have to release. */
+.ill-field{min-width:0}
+.ill-field input,.ill-field select,.ill-field textarea{min-width:0;width:100%}
 `
