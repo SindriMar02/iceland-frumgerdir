@@ -22,6 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Lang } from './data'
 import {
+  ORDER_FORM_TO,
   ORDER_T,
   PLACEHOLDER_DATA,
   isk,
@@ -332,6 +333,9 @@ export default function OrderSection({
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [triedSubmit, setTriedSubmit] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle')
+  /** True when the relay refused or the network failed — the customer must be
+   *  told, and given the phone number, rather than left thinking it sent. */
+  const [sendError, setSendError] = useState(false)
 
   const earliest = useMemo(() => isoPlusDays(product.leadDays), [product.leadDays])
 
@@ -435,7 +439,7 @@ export default function OrderSection({
 
   const formRef = useRef<HTMLFormElement>(null)
 
-  const onSubmit = (ev: React.FormEvent) => {
+  const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
     setTriedSubmit(true)
     if (Object.keys(errors).length > 0) {
@@ -447,7 +451,75 @@ export default function OrderSection({
       return
     }
     setStatus('sending')
-    window.setTimeout(() => setStatus('done'), 700)
+    setSendError(false)
+
+    const L = ORDER_T.is // the bakery reads its own orders in Icelandic
+    const loc = PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label.is ?? customer.location
+    const occ = OCCASIONS.find((o) => o.id === customer.occasion)?.label.is ?? customer.occasion
+
+    /* The order is SNAPSHOTTED here, not looked up when the email is read.
+       Prices and names are written into the message as they were on screen at
+       the moment of ordering, so a later price change in the CMS can never
+       retroactively alter what a customer was quoted. See reynir-cms-plan.md. */
+    const payload: Record<string, string> = {
+      _subject: `Pöntunarbeiðni: ${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
+      _template: 'table',
+      _captcha: 'false',
+      _honey: '', // honeypot: bots fill it, people never see it
+      'Hver pantar': who === 'company' ? 'Fyrirtæki eða viðburður' : 'Einstaklingur',
+      Vara: product.name.is,
+      Fjöldi: String(qty),
+    }
+    product.groups.forEach((g) => {
+      const chosen = (picked[g.id] ?? [])
+        .map((cid) => {
+          const c = g.choices.find((x) => x.id === cid)
+          if (!c) return null
+          return c.priceDelta > 0 ? `${c.label.is} (+${isk(c.priceDelta)})` : `${c.label.is} (innifalið)`
+        })
+        .filter(Boolean)
+      if (chosen.length) payload[g.label.is] = chosen.join(', ')
+    })
+    if (product.inscription && inscription.trim()) payload['Áletrun'] = inscription.trim()
+    payload['Áætlað verð'] = isk(total)
+
+    if (who === 'company') {
+      payload['Fyrirtæki'] = customer.company
+      payload['Kennitala'] = customer.kennitala
+      payload['Tengiliður'] = customer.contact
+      if (customer.invoiceEmail.trim()) payload['Netfang fyrir reikning'] = customer.invoiceEmail.trim()
+      payload['Tilefni'] = occ
+      if (customer.guests.trim()) payload['Fjöldi gesta'] = customer.guests.trim()
+      payload['Afhending'] = customer.handover === 'delivery' ? 'Sent' : 'Sótt'
+      if (customer.handover === 'delivery') payload['Afhendingarstaður'] = customer.address
+    } else {
+      payload['Nafn'] = customer.name
+    }
+    payload['Sími'] = customer.phone
+    if (customer.email.trim()) payload['Netfang'] = customer.email.trim()
+    payload['Afhendingardagur'] = customer.date
+    if (customer.handover !== 'delivery') payload['Sótt í'] = loc
+    if (customer.notes.trim()) payload['Athugasemdir'] = customer.notes.trim()
+    payload['Sent af vefnum'] = new Date().toLocaleString('is-IS')
+    if (PLACEHOLDER_DATA) {
+      payload['ATH'] = 'Vöruskrá vefsins er enn sýnishorn — verð og valmöguleikar eru ekki endanleg.'
+    }
+
+    try {
+      const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error(String(res.status))
+      setStatus('done')
+    } catch {
+      // Never swallow this: a bakery order that silently vanishes is worse than
+      // one that never started. Fall back to the phone number.
+      setSendError(true)
+      setStatus('idle')
+    }
+    void L
   }
 
   const reset = () => {
@@ -533,7 +605,9 @@ export default function OrderSection({
           <div className="rb-ord-done" style={{ marginTop: 'clamp(30px,4.5vh,46px)' }} role="status">
             <h3 className="rb-ord-done-title" style={{ ...GOLD_TEXT }}>{t.doneTitle}</h3>
             <p style={{ fontSize: 16, color: IVORY, lineHeight: 1.65, margin: '14px auto 0', maxWidth: '46ch' }}>{t.doneBody}</p>
-            <p style={{ fontSize: 13, color: DIM, margin: '14px auto 0', maxWidth: '46ch', fontStyle: 'italic' }}>{t.doneDemo}</p>
+            {PLACEHOLDER_DATA && (
+              <p style={{ fontSize: 13, color: DIM, margin: '14px auto 0', maxWidth: '46ch', fontStyle: 'italic' }}>{t.doneDemo}</p>
+            )}
             <div style={{ marginTop: 22, fontSize: 15, color: GOLD_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
               {t.slipTotal}: {isk(total)}
             </div>
@@ -990,6 +1064,15 @@ export default function OrderSection({
                 </button>
                 {triedSubmit && Object.keys(errors).length > 0 && (
                   <p className="rb-ord-errsummary" role="alert">{t.errSummary}</p>
+                )}
+                {sendError && (
+                  <p className="rb-ord-errsummary" role="alert">
+                    {lang === 'is'
+                      ? 'Ekki tókst að senda pöntunina. Vinsamlegast hringdu í '
+                      : 'We could not send that order. Please call us on '}
+                    <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>
+                    {lang === 'is' ? ' og við klárum hana með þér.' : ' and we will take it down for you.'}
+                  </p>
                 )}
                 <p className="rb-ord-hint" style={{ textAlign: 'center', marginTop: 4 }}>
                   {lang === 'is' ? 'Eða hringdu í ' : 'Or call us on '}

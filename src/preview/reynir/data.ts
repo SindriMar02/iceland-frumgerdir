@@ -73,9 +73,64 @@ export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-bak
 /** The shop itself: their wall of framed black-and-white bakery photographs,
  *  the "HANDVERKSBAKARÍ" sign, and the tables you can sit at. */
 export const SHOP_IMG = `${import.meta.env.BASE_URL}reynir/bud.webp`
+/** The three frames that carry the story section, where the bakery's own
+ *  history is told. Fixed paths rather than indices into GALLERY: the owner
+ *  can reorder gallery photos in the CMS without silently swapping which
+ *  frame fills these specific, deliberately-chosen slots.
+ *
+ *  No year numerals are printed alongside these photographs on purpose. The
+ *  years (1994, 2019) live inside the story paragraphs, which are editable in
+ *  the CMS — repeating them as decorative markers would let the two drift
+ *  apart the first time the owner rewrites a sentence. */
+export const STORY_ART = {
+  /** Frame 11, full-bleed: the deck oven's glow, loaded before opening. */
+  open: { src: gal('11'), w: 2000, h: 1335 },
+  /** Frame 05: dough shaped by hand — the craft that has not changed since
+   *  Reynir opened the doors. Sits with the founding paragraph. */
+  founding: { src: galSm('05'), w: 1335, h: 2000 },
+  /** Frame 17: the room working — the twenty people the story ends on. */
+  today: { src: galSm('17'), w: 2000, h: 1335 },
+}
+
+/** Photography set INTO the menu lists — every frame is from their own 2020
+ *  shoot, colour, and shows the real product family it sits beside. A price
+ *  only appears on a frame when it is exact: the lengjur frame carries
+ *  1.395 kr. because all three listed lengjur cost precisely that. The
+ *  chocolate-glazed case shots (frames 068–070) were considered and rejected
+ *  here: they are doughnuts, not snúðar, and may not carry a snúður price. */
+export type MenuArt = { src: string; w: number; h: number; cap: { en: string; is: string }; price?: string }
+export const MENU_ART: Record<'lengjur' | 'bordid' | 'braud' | 'kaka', MenuArt> = {
+  /** Frame 188: the vínarbrauðslengjur trays — pink glaze, custard, almonds.
+   *  Literally three of the listed items in one photograph. */
+  lengjur: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/lengjur.webp`, w: 1400, h: 933,
+    cap: { en: 'The lengjur, off the morning trays', is: 'Lengjurnar, af morgunbökkunum' },
+    price: '1.395 kr.',
+  },
+  /** Frame 066: the baked pastry pile — croissants and poppyseed moohnsnúðar. */
+  bordid: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/bordid.webp`, w: 1200, h: 1200,
+    cap: { en: 'Fresh into the counter every morning', is: 'Nýbakað í borðið á hverjum morgni' },
+  },
+  /** Frame 147: sourdough rolls on the rack, still dusted. */
+  braud: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/braud.webp`, w: 1100, h: 1375,
+    cap: { en: 'Baked on-site, every morning', is: 'Bakað á staðnum, alla morgna' },
+  },
+  /** Frame 161: a cream cake being finished by hand, cherry by cherry. */
+  kaka: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/kaka.webp`, w: 1400, h: 1050,
+    cap: { en: 'Finished by hand, cherry by cherry', is: 'Handskreytt, eitt ber í einu' },
+  },
+}
 
 export const LINKS = {
   order: 'https://www.aha.is/veitingar/reynir-bakari',
+  /** Their Wolt storefront. The slug really is "reynir-bakarari" — Wolt's own
+   *  spelling, not a typo here; both the is/ and en/ paths return 200
+   *  (verified 2026-08-17). Note Wolt advertises 08:00 at weekends, which the
+   *  owner says is wrong; the site follows the owner, not the listing. */
+  wolt: 'https://wolt.com/is/isl/reykjavik/venue/reynir-bakarari',
   facebook: 'https://www.facebook.com/ReynirBakari',
   instagram: 'https://www.instagram.com/reynir.bakari',
   phone: '+3545644700',
@@ -324,7 +379,9 @@ export const T = {
     navGallery: 'Gallery',
     navStory: 'Our story',
     navVisit: 'Visit',
-    orderPrimary: 'Order delivery',
+    ctaDelivery: 'Order delivery',
+    orderPrimary: 'Order on aha.is',
+    orderWolt: 'Order on Wolt',
     ctaMenu: 'See the menu',
     statusOpen: (t: string) => `Open now, we close at ${t}`,
     statusOpensToday: (t: string) => `Closed, we open at ${t} today`,
@@ -367,7 +424,7 @@ export const T = {
     rowHours: 'Hours',
     rowPhone: 'Phone',
     rowEmail: 'Email',
-    deliveryNote: 'Home delivery across the capital area through aha.is.',
+    deliveryNote: 'Home delivery across the capital area through aha.is and Wolt.',
     footerTag: 'Family-run craft bakery in Kópavogur since 1994',
     legalLink: 'Privacy and terms',
     legalLine: 'Reynir bakari ehf., reg. no. 701195-3029, Dalvegur 4, 201 Kópavogur',
@@ -378,7 +435,9 @@ export const T = {
     navGallery: 'Myndir',
     navStory: 'Sagan',
     navVisit: 'Heimsókn',
-    orderPrimary: 'Panta heim',
+    ctaDelivery: 'Panta heim',
+    orderPrimary: 'Panta á aha.is',
+    orderWolt: 'Panta á Wolt',
     ctaMenu: 'Skoða úrvalið',
     statusOpen: (t: string) => `Opið núna, lokum kl. ${t}`,
     statusOpensToday: (t: string) => `Lokað, opnum kl. ${t} í dag`,
@@ -421,7 +480,7 @@ export const T = {
     rowHours: 'Opnunartími',
     rowPhone: 'Sími',
     rowEmail: 'Netfang',
-    deliveryNote: 'Heimsending um höfuðborgarsvæðið í gegnum aha.is.',
+    deliveryNote: 'Heimsending um höfuðborgarsvæðið í gegnum aha.is og Wolt.',
     footerTag: 'Fjölskyldurekið handverksbakarí í Kópavogi síðan 1994',
     legalLink: 'Persónuvernd og skilmálar',
     legalLine: 'Reynir bakari ehf., kt. 701195-3029, Dalvegi 4, 201 Kópavogi',

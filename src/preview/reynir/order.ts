@@ -26,6 +26,21 @@ import type { Lang } from './data'
 /** Drives the visible sample-data notice. Set false only after the owner confirms every value. */
 export const PLACEHOLDER_DATA = true
 
+/**
+ * Where a submitted order actually lands.
+ *
+ * ⚠️ TEMPORARY: pointed at Sindri's inbox while we test, NOT at the bakery.
+ * On handover this becomes `pantanir@reynirbakari.is` — and the first send to
+ * any new address makes FormSubmit email that address an activation link which
+ * must be clicked once before anything is delivered. Do that before go-live,
+ * not on the morning of it.
+ *
+ * FormSubmit is used rather than a backend because this is a static site: it
+ * relays a form POST to an inbox, needs no server, and costs nothing. It does
+ * require a browser Origin header, so it works from the site but not from curl.
+ */
+export const ORDER_FORM_TO = 'sindri@klubbr.is'
+
 /** Icelandic thousands grouping, done by hand. Never ICU/toLocaleString. */
 export function isk(n: number): string {
   const s = Math.round(Math.abs(n)).toString()
@@ -330,6 +345,8 @@ export interface OrderCopy {
   submitting: string
   doneTitle: string
   doneBody: string
+  /** Only shown while PLACEHOLDER_DATA is true: the order really sends now,
+   *  but the catalogue it was placed against is still sample data. */
   doneDemo: string
   doneAgain: string
   charsLeft: (n: number) => string
@@ -412,7 +429,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     doneTitle: 'Request sent.',
     doneBody:
       'We will call to confirm the details and the final price. Nothing is charged until you collect.',
-    doneDemo: 'This is a prototype, so nothing was actually sent.',
+    doneDemo: 'Note: the range and prices on this page are still samples, so we will go through the details with you on the call.',
     doneAgain: 'Start another order',
     charsLeft: (n: number) => `${n} characters left`,
   },
@@ -491,7 +508,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     doneTitle: 'Beiðnin er komin til okkar.',
     doneBody:
       'Við hringjum og staðfestum útfærslu og endanlegt verð. Ekkert er greitt fyrr en sótt er.',
-    doneDemo: 'Þetta er frumgerð, svo ekkert var í raun sent.',
+    doneDemo: 'Athugið: úrvalið og verðin á þessari síðu eru enn sýnishorn, svo við förum yfir útfærsluna með þér í símtalinu.',
     doneAgain: 'Byrja aðra pöntun',
     charsLeft: (n: number) => `${n} stafir eftir`,
   },
