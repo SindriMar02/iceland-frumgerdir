@@ -38,19 +38,39 @@ raw = raw.split(/\n---/)[0].replace(/\s+$/, '')
 const signIdx = raw.search(/^Bestu kveðjur,/m)
 const prose = signIdx === -1 ? raw : raw.slice(0, signIdx)
 const sign = signIdx === -1 ? '' : raw.slice(signIdx)
-const paras = prose.split(/\n\s*\n/).map(p => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean)
+/* A bare URL on its own line, and a bare attachment filename on its own line, are
+   STRUCTURAL - that is how the sent emails lay the preview out, and flattening them
+   into the sentence above is what made drafts read as condensed. Every other hard
+   wrap is still a leftover from hand-formatting and still gets joined. */
+const isStructuralLine = (l) =>
+  /^https?:\/\/\S+$/.test(l) || /^[\w][\w.-]*\.(png|jpe?g|webp|gif|pdf)$/i.test(l)
+const joinSoftWraps = (p) =>
+  p.split('\n').map(l => l.trim()).filter(Boolean)
+    .reduce((acc, l) => {
+      if (!acc.length || isStructuralLine(l) || isStructuralLine(acc[acc.length - 1]))
+        acc.push(l)
+      else acc[acc.length - 1] += ' ' + l
+      return acc
+    }, []).join('\n')
+const paras = prose.split(/\n\s*\n/).map(p => joinSoftWraps(p).trim()).filter(Boolean)
 const body = paras.join('\n\n') + (sign ? '\n\n' + sign.trim() : '')
 
 // ── the shape checks ────────────────────────────────────────────────────────
 const bodyParas = body.split(/\n\s*\n/).map(s => s.trim()).filter(p => /\p{L}/u.test(p))
 const proseParas = bodyParas.filter(p => !/^Bestu kveðjur,/.test(p))
 const linkOnly = proseParas.filter(p => /^https?:\/\/\S+$/.test(p))
-const hardWrapped = proseParas.filter(p => p.includes('\n'))
+const hardWrapped = proseParas.filter(
+  p => p.split('\n').some((l, i, a) => i > 0 && !isStructuralLine(l) && !isStructuralLine(a[i - 1])))
 /* The greeting and the closing line are SUPPOSED to be one line each — that is
    how a person opens and closes a letter. The tell is the middle being chopped
    into cards, so only the middle is judged. */
 const middle = proseParas.slice(1, -1)
-const fragments = middle.filter(p => p.split(/[.!?]\s/).length < 2)
+/* A one-SENTENCE paragraph is normal letter writing - "Ég heiti Sindri og hanna
+   vefsíður fyrir íslenska gististaði." is a whole paragraph in every sent email.
+   The actual tell is a stub of a few words standing alone like a bullet, so length
+   is what gets measured, and the structural link/attachment lines are exempt. */
+const fragments = middle.filter(
+  p => !p.split('\n').every(isStructuralLine) && p.split(/\s+/).filter(Boolean).length < 8)
 const dashes = (body.match(/[—–]/g) || []).length
 const words = prose.split(/\s+/).filter(Boolean).length
 
@@ -63,8 +83,12 @@ check(hardWrapped.length === 0, 'paragraphs are single lines, wrapped by the rea
   hardWrapped.length ? `${hardWrapped.length} still carry hard line breaks` : '')
 check(linkOnly.length === 0, 'link is folded into a sentence, not set apart as a CTA',
   linkOnly.length ? `${linkOnly.length} link-only paragraph(s)` : '')
-check(middle.length >= 2 && middle.length <= 4, 'reads as continuous prose, not scannable cards',
-  `${middle.length} body paragraphs between greeting and close (want 2-4)`)
+/* Was 2-4, which no sent email has ever satisfied: the Iceland Luxury Lodges mail
+   that went out has 7. Writing down to the old cap is what produced condensed
+   drafts. The shape is greeting / who I am / symptoms / offer / link / what it does
+   / close, plus an optional attachment line. */
+check(middle.length >= 2 && middle.length <= 8, 'reads as continuous prose, not scannable cards',
+  `${middle.length} body paragraphs between greeting and close (want 2-8)`)
 check(fragments.length === 0, 'no one-line fragments in the body',
   fragments.length ? `${fragments.length} found` : '')
 check(dashes === 0, 'no em/en dashes', dashes ? `${dashes} found` : '')
