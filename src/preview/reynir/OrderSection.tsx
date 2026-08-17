@@ -273,6 +273,38 @@ function prettyDate(iso: string, lang: Lang): string {
   return lang === 'is' ? `${d}. ${month}` : `${d} ${month}`
 }
 
+const WEEKDAYS: Record<Lang, string[]> = {
+  is: ['sunnudagur', 'mánudagur', 'þriðjudagur', 'miðvikudagur', 'fimmtudagur', 'föstudagur', 'laugardagur'],
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+}
+/** The date as a baker reads it: with the weekday spelled out.
+ *
+ *  "2026-08-21" tells Þorleifur nothing without a calendar; "fimmtudagur 21.
+ *  ágúst" tells him which shift it lands on. Built from UTC parts rather than
+ *  local-time parsing — `new Date('2026-08-21')` is parsed as UTC midnight, so
+ *  reading it back with local getters can roll the day backwards west of
+ *  Greenwich and name the wrong weekday. */
+function prettyDateFull(iso: string, lang: Lang): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  if (!y || !m || !d) return iso
+  const wd = WEEKDAYS[lang][new Date(Date.UTC(y, m - 1, d)).getUTCDay()] ?? ''
+  return `${wd} ${prettyDate(iso, lang)}`
+}
+
+/** Collection slots, every half hour inside opening hours.
+ *
+ *  A free `type="time"` input lets someone ask for 18:30, which the bakery
+ *  cannot do — and answering that costs an email. A closed list cannot express
+ *  a time they are shut. Last slot is 16:30 so there is a real half hour to
+ *  hand the order over before the doors close at 17:00. */
+const PICKUP_SLOTS: string[] = (() => {
+  const out: string[] = []
+  for (let mins = 7 * 60; mins <= 16 * 60 + 30; mins += 30) {
+    out.push(`${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`)
+  }
+  return out
+})()
+
 const Check = () => (
   <svg width="9" height="7" viewBox="0 0 9 7" fill="none" aria-hidden="true">
     <path d="M1 3.4L3.3 5.7L8 1" stroke="#131313" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -318,6 +350,11 @@ export default function OrderSection({
     phone: '',
     email: '',
     date: '',
+    /** Pickup/delivery time. Collected because without it every single order
+     *  costs Þorleifur a reply asking what time — the most common avoidable
+     *  round trip in the whole flow. Constrained to opening hours below, so a
+     *  customer cannot ask for 18:30 and force a second exchange either. */
+    time: '',
     location: PICKUP_LOCATIONS[0].id,
     notes: '',
     // company only
@@ -432,6 +469,7 @@ export default function OrderSection({
     if (customer.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email.trim())) e.c_email = t.errEmail
     if (!customer.date) e.c_date = t.errDate
     else if (customer.date < earliest) e.c_date = t.errDateTooSoon(prettyDate(earliest, lang))
+    if (!customer.time) e.c_time = t.errTime
     return e
   }, [product, picked, customer, earliest, lang, t, who])
 
@@ -461,49 +499,76 @@ export default function OrderSection({
        Prices and names are written into the message as they were on screen at
        the moment of ordering, so a later price change in the CMS can never
        retroactively alter what a customer was quoted. See reynir-cms-plan.md. */
+    /* The email Þorleifur actually reads.
+     *
+     * FormSubmit renders the keys of this object, in insertion order, as the
+     * rows of the mail — so this object IS the email's layout, and the order
+     * below is the whole design. It is arranged the way a baker triages a
+     * docket, not the way the form happens to be laid out on screen:
+     *
+     *   1. WHEN and WHAT — the two facts that decide whether he can say yes.
+     *   2. Collection or delivery, and where.
+     *   3. The spec: every configured option, with its surcharge.
+     *   4. The price snapshot.
+     *   5. Who to call, together in one block.
+     *   6. Their note, last, because it is the only free text.
+     *
+     * The old order buried the collection date tenth, below every cake option
+     * and the invoicing email, which is exactly backwards: the date is the one
+     * field that determines whether the order is even possible.
+     *
+     * Numeric prefixes keep FormSubmit from reordering keys and, more
+     * usefully, give a human scanning on a phone something to hold onto.
+     * Dates are spelled out with the weekday — an ISO string means nothing to
+     * someone deciding which shift will bake it.
+     */
+    const delivering = who === 'company' && customer.handover === 'delivery'
+    const when = `${prettyDateFull(customer.date, 'is')}, kl. ${customer.time}`
+
     const payload: Record<string, string> = {
-      _subject: `Pöntunarbeiðni: ${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
+      _subject: `${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
       _template: 'table',
       _captcha: 'false',
       _honey: '', // honeypot: bots fill it, people never see it
-      'Hver pantar': who === 'company' ? 'Fyrirtæki eða viðburður' : 'Einstaklingur',
-      Vara: product.name.is,
-      Fjöldi: String(qty),
+
+      '1. Afhending': when,
+      '2. Vara': `${product.name.is}${qty > 1 ? ` — ${qty} stk.` : ''}`,
+      '3. Sótt eða sent': delivering ? `Sent á ${customer.address}` : `Sótt í ${loc}`,
     }
+
+    let n = 4
     product.groups.forEach((g) => {
       const chosen = (picked[g.id] ?? [])
         .map((cid) => {
           const c = g.choices.find((x) => x.id === cid)
           if (!c) return null
-          return c.priceDelta > 0 ? `${c.label.is} (+${isk(c.priceDelta)})` : `${c.label.is} (innifalið)`
+          return c.priceDelta > 0 ? `${c.label.is} (+${isk(c.priceDelta)})` : c.label.is
         })
         .filter(Boolean)
-      if (chosen.length) payload[g.label.is] = chosen.join(', ')
+      if (chosen.length) payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
     })
-    if (product.inscription && inscription.trim()) payload['Áletrun'] = inscription.trim()
-    payload['Áætlað verð'] = isk(total)
+    if (product.inscription && inscription.trim()) payload[`${n++}. Áletrun`] = inscription.trim()
+    payload[`${n++}. Áætlað verð`] = isk(total)
+
+    // Contact details in ONE block, so calling back does not mean hunting
+    // through the mail. Phone first: a bakery rings, it does not email.
+    payload[`${n++}. Sími`] = customer.phone
+    payload[`${n++}. Nafn`] = who === 'company' ? customer.contact : customer.name
+    if (customer.email.trim()) payload[`${n++}. Netfang`] = customer.email.trim()
 
     if (who === 'company') {
-      payload['Fyrirtæki'] = customer.company
-      payload['Kennitala'] = customer.kennitala
-      payload['Tengiliður'] = customer.contact
-      if (customer.invoiceEmail.trim()) payload['Netfang fyrir reikning'] = customer.invoiceEmail.trim()
-      payload['Tilefni'] = occ
-      if (customer.guests.trim()) payload['Fjöldi gesta'] = customer.guests.trim()
-      payload['Afhending'] = customer.handover === 'delivery' ? 'Sent' : 'Sótt'
-      if (customer.handover === 'delivery') payload['Afhendingarstaður'] = customer.address
-    } else {
-      payload['Nafn'] = customer.name
+      payload[`${n++}. Fyrirtæki`] = customer.company
+      payload[`${n++}. Kennitala`] = customer.kennitala
+      if (customer.invoiceEmail.trim()) payload[`${n++}. Netfang fyrir reikning`] = customer.invoiceEmail.trim()
+      payload[`${n++}. Tilefni`] = occ
+      if (customer.guests.trim()) payload[`${n++}. Fjöldi gesta`] = customer.guests.trim()
     }
-    payload['Sími'] = customer.phone
-    if (customer.email.trim()) payload['Netfang'] = customer.email.trim()
-    payload['Afhendingardagur'] = customer.date
-    if (customer.handover !== 'delivery') payload['Sótt í'] = loc
-    if (customer.notes.trim()) payload['Athugasemdir'] = customer.notes.trim()
-    payload['Sent af vefnum'] = new Date().toLocaleString('is-IS')
+
+    if (customer.notes.trim()) payload[`${n++}. Athugasemdir`] = customer.notes.trim()
     if (PLACEHOLDER_DATA) {
-      payload['ATH'] = 'Vöruskrá vefsins er enn sýnishorn — verð og valmöguleikar eru ekki endanleg.'
+      payload[`${n++}. ATH`] = 'Vöruskrá vefsins er enn sýnishorn — verð og valmöguleikar eru ekki endanleg.'
     }
+    payload[`${n++}. Beiðni send`] = new Date().toLocaleString('is-IS')
 
     try {
       const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
@@ -527,7 +592,7 @@ export default function OrderSection({
     setInscription('')
     setQty(1)
     setCustomer({
-      name: '', phone: '', email: '', date: '', location: PICKUP_LOCATIONS[0].id, notes: '',
+      name: '', phone: '', email: '', date: '', time: '', location: PICKUP_LOCATIONS[0].id, notes: '',
       company: '', kennitala: '', contact: '', invoiceEmail: '',
       occasion: OCCASIONS[0].id, guests: '', handover: 'pickup', address: '',
     })
@@ -960,6 +1025,28 @@ export default function OrderSection({
                       : <p className="rb-ord-hint" id="hint_c_date">{t.fieldDateHelp(product.leadDays)}</p>}
                   </div>
 
+                  <div className="rb-ord-field">
+                    <label className="rb-ord-label" htmlFor="rb-ord-time">{t.fieldTime}</label>
+                    <select
+                      id="rb-ord-time"
+                      className="rb-ord-select"
+                      value={customer.time}
+                      data-invalid={showErr('c_time') ? 'true' : undefined}
+                      aria-invalid={!!showErr('c_time')}
+                      aria-describedby={showErr('c_time') ? 'err_c_time' : 'hint_c_time'}
+                      onChange={(e) => setCustomer({ ...customer, time: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, c_time: true })}
+                    >
+                      <option value="">{t.fieldTimePlaceholder}</option>
+                      {PICKUP_SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    {showErr('c_time')
+                      ? <p className="rb-ord-err" id="err_c_time" role="alert">{showErr('c_time')}</p>
+                      : <p className="rb-ord-hint" id="hint_c_time">{t.fieldTimeHelp}</p>}
+                  </div>
+                </div>
+
+                <div className="rb-ord-two">
                   {who === 'company' ? (
                     <div className="rb-ord-field">
                       <label className="rb-ord-label" htmlFor="rb-ord-handover">{t.fieldHandover}</label>

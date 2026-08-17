@@ -329,6 +329,9 @@ export interface OrderCopy {
   fieldEmailHelp: string
   fieldDate: string
   fieldDateHelp: (n: number) => string
+  fieldTime: string
+  fieldTimePlaceholder: string
+  fieldTimeHelp: string
   fieldLocation: string
   fieldNotes: string
   fieldNotesPlaceholder: string
@@ -339,6 +342,7 @@ export interface OrderCopy {
   errPhoneFormat: string
   errEmail: string
   errDate: string
+  errTime: string
   errDateTooSoon: (d: string) => string
   errSummary: string
   submit: string
@@ -412,6 +416,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     fieldEmailHelp: 'Optional, so we can send a written confirmation.',
     fieldDate: 'Collection date',
     fieldDateHelp: (n: number) => `We need at least ${n} days notice for this.`,
+    fieldTime: 'Collection time',
+    fieldTimePlaceholder: 'Choose a time',
+    fieldTimeHelp: 'We are open 07:00 to 17:00 every day.',
     fieldLocation: 'Collect from',
     fieldNotes: 'Anything else we should know',
     fieldNotesPlaceholder: 'Occasion, colours, timing, anything at all.',
@@ -422,6 +429,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     errPhoneFormat: 'That does not look like a phone number we can call.',
     errEmail: 'That email address is missing an @.',
     errDate: 'Choose a collection date.',
+    errTime: 'Choose a collection time.',
     errDateTooSoon: (d: string) => `The earliest we can manage is ${d}.`,
     errSummary: 'A few things still need filling in.',
     submit: 'Send the order request',
@@ -491,6 +499,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     fieldEmailHelp: 'Valfrjálst, svo við getum sent skriflega staðfestingu.',
     fieldDate: 'Afhendingardagur',
     fieldDateHelp: (n: number) => `Við þurfum að minnsta kosti ${n} daga fyrirvara fyrir þetta.`,
+    fieldTime: 'Afhendingartími',
+    fieldTimePlaceholder: 'Veldu tíma',
+    fieldTimeHelp: 'Við höfum opið frá 07:00 til 17:00 alla daga.',
     fieldLocation: 'Sótt í',
     fieldNotes: 'Eitthvað fleira sem við ættum að vita',
     fieldNotesPlaceholder: 'Tilefni, litir, tímasetning, hvað sem er.',
@@ -501,6 +512,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     errPhoneFormat: 'Þetta lítur ekki út eins og símanúmer sem við getum hringt í.',
     errEmail: 'Það vantar @ í netfangið.',
     errDate: 'Veldu afhendingardag.',
+    errTime: 'Veldu afhendingartíma.',
     errDateTooSoon: (d: string) => `Fyrsti mögulegi dagur er ${d}.`,
     errSummary: 'Það vantar enn nokkur atriði.',
     submit: 'Senda pöntunarbeiðni',
