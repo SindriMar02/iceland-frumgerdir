@@ -577,6 +577,23 @@ export default function OrderSection({
         body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error(String(res.status))
+
+      /* A 200 from FormSubmit does NOT mean the mail was sent.
+       *
+       * Found by sending a real test order: FormSubmit answered HTTP 200 with
+       * `{"success":"false","message":"This form needs Activation…"}` and the
+       * page cheerfully told the customer their order had arrived. Nothing had
+       * been sent to the bakery. That is the precise failure this fallback
+       * exists to prevent, and checking only `res.ok` walked straight past it.
+       *
+       * The flag comes back as the STRING "false", not a boolean, so a plain
+       * truthiness check on it is always true. Treat anything that is not an
+       * explicit success as a failure — if we cannot prove the order was
+       * delivered, the customer must be shown the phone number. */
+      const body = await res.json().catch(() => null)
+      const ok = body?.success === true || body?.success === 'true'
+      if (!ok) throw new Error(body?.message ? String(body.message) : 'send-not-confirmed')
+
       setStatus('done')
     } catch {
       // Never swallow this: a bakery order that silently vanishes is worse than
