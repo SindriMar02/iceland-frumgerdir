@@ -60,7 +60,7 @@ If you like it I could finish the full site, and if not I hope you enjoy seeing 
 
 Do let me know if you are interested.
 
-Bestu kveðjur,
+Best regards,
 Sindri Már
 845 1758
 sndr-studio.pages.dev`,

@@ -48,7 +48,7 @@ export const companyEntry: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenska gististaði.
 
-Ég var að skoða icelandluxurylodges.com í dag og tók eftir þrennu sem mig grunar að þið vitið ekki af. Forsíðan opnast auð og hvít. Myndin á bak við birtist aldrei, og textinn ykkar er hvítur, svo hann hverfur ofan í auða flötinn. Ég beið í hálfa mínútu og ekkert kom fram. Í leitarkortinu ykkar, wp-sitemap.xml, eru enn æfingasíður úr sniðmátinu sem Google getur skráð, þar á meðal „Desert Safari Dubai" og „Maldives Resort and Spa". Og hvergi á síðunni koma fram umsagnirnar ykkar, þótt Úlfljótsskáli haldi 10 af 10 í 28 umsögnum á Vrbo.
+Ég var að skoða icelandluxurylodges.com í dag og tók eftir þrennu sem mig grunar að þið vitið ekki af. Forsíðan opnast auð og hvít. Myndin á bak við birtist aldrei, og textinn ykkar er hvítur, svo hann hverfur ofan í auða flötinn. Ég beið í hálfa mínútu og ekkert kom fram. Í leitarkortinu ykkar, wp-sitemap.xml, eru enn æfingasíður úr sniðmátinu sem Google getur skráð, þar á meðal „Desert Safari Dubai“ og „Maldives Resort and Spa“. Og hvergi á síðunni koma fram umsagnirnar ykkar, þótt Úlfljótsskáli haldi 10 af 10 í 28 umsögnum á Vrbo.
 
 Mér fannst það synd, því safnið ykkar á betra skilið, svo ég settist niður og hannaði frumgerð að nýjum vef fyrir allar eignirnar. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 

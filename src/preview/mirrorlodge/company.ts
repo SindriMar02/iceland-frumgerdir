@@ -54,7 +54,7 @@ Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin kemur frá skálanum sjálfum: spegilklæðningin þýðir að landslagið klæðir húsið. Á síðunni stendur skálinn kyrr á meðan endurspeglunin líður yfir hann, frá snjó yfir í norðurljós, allt með ykkar eigin myndum. Umsagnirnar ykkar á Google, 5,0 í 16 umsögnum þar sem allir gefa fimm stjörnur, fá loksins pláss á ykkar eigin vef.
+Hugmyndin kemur frá skálanum sjálfum: spegilklæðningin þýðir að landslagið klæðir húsið. Á síðunni stendur skálinn kyrr á meðan endurspeglunin líður yfir hann, frá snjó yfir í norðurljós, allt með ykkar eigin myndum. Umsagnirnar ykkar á Google, 5,0 í 16 umsögnum, fá loksins pláss á ykkar eigin vef.
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þið hafið gaman af því að skoða hugmyndina.
 
