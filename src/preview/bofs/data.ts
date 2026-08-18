@@ -1147,7 +1147,7 @@ export type NewsTopic = 'barnavernd' | 'medferd' | 'barnahus' | 'samstarf'
 
 export interface NewsItem {
   date: string
-  source: 'BOFS' | 'GEV' | 'Stjórnarráðið' | 'Vísir'
+  source: 'BOFS' | 'GEV' | 'Stjórnarráðið' | 'Umboðsmaður barna' | 'Vísir'
   topic: NewsTopic
   title: L
   /** The publisher's own intro, or a fuller one read off the article body. */
@@ -1176,7 +1176,8 @@ export const NEWS_TOPICS: { id: NewsTopic; label: L }[] = [
 export const NEWS_SOURCES: { id: NewsItem['source']; label: L }[] = [
   { id: 'BOFS', label: t('Fréttir Barna- og fjölskyldustofu á island.is', 'Barna- og fjölskyldustofa newsroom on island.is') },
   { id: 'GEV', label: t('Gæða- og eftirlitsstofnun velferðarmála', 'Quality and Supervisory Agency for Welfare') },
-  { id: 'Stjórnarráðið', label: t('Stjórnarráð Íslands', 'Government of Iceland') },
+  { id: 'Stjórnarráðið', label: t('Mennta- og barnamálaráðuneytið, á vef Stjórnarráðsins', 'Ministry of Education and Children, on the Government of Iceland site') },
+  { id: 'Umboðsmaður barna', label: t('Umboðsmaður barna', 'The Ombudsman for Children') },
   { id: 'Vísir', label: t('Vísir, íslenskur fréttamiðill', 'Vísir, an Icelandic news outlet') },
 ]
 
