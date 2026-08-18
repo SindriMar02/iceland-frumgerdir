@@ -269,7 +269,19 @@ export default function BofsPage() {
 
         {/* ── ABOUT TEASER + history stones ────────────────────────────── */}
         <AboutTeaser />
-        <WaveDivider color={C.deep} className="block w-full" />
+        {/*
+          The wash goes on the WRAPPER, not the divider. .bofs-wash is a
+          ::before overlay with mix-blend-mode:multiply, so it textures whatever
+          the element paints, including SVG fill. Without it this wave painted a
+          flat C.deep while the deep section directly below it is C.deep with
+          the paper texture multiplied over it: the same hex, about 6% apart in
+          practice, and the curve read as a lighter brown than the band it ran
+          into. Every other seam on the site already matches its neighbour's
+          texture state, so only this one is wrapped.
+        */}
+        <span className="bofs-wash block">
+          <WaveDivider color={C.deep} className="block w-full" />
+        </span>
 
         {/* ── HONEST-HOPE BAND (the one deep pause) ────────────────────── */}
         <section className="bofs-wash bofs-bloom" style={{ background: C.deep }}>
