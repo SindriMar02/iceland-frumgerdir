@@ -19,9 +19,7 @@ segir þér hvert á að beina símanum. Þú þarft ekkert að undirbúa. Þett
 eina skrefið sem enginn getur gert fyrir þig, því það þarf að sýna að þú
 ráðir yfir rýminu.
 
-**Svo, þegar Sindri lætur vita: sendu umsagnabeiðni á 10 fyrri viðskiptavini.**
-Sindri skrifar textann, þú sendir hann. Umsagnir eru það sem ræður mestu, bæði
-um röðun hjá Google og hvort gervigreind mælir með þér.
+**Það er allt og sumt.** Umsagnir koma seinna og öðruvísi, sjá hér að neðan.
 
 ---
 
@@ -58,17 +56,61 @@ stoppa. Ef það mistekst segir Google hvers vegna og það má taka upp aftur.
 
 ---
 
-## Tilbúinn texti fyrir umsagnabeiðni
+## Umsagnir: ekki herferð, heldur venja
+
+Fyrsta útgáfan af þessu plani bað Katrínu um að senda beiðni á tíu fyrri
+viðskiptavini. Það er of mikið, og þrennt mælir gegn því:
+
+- **Heimili eru einkamál.** Opinber umsögn þýðir að viðkomandi tengir nafnið
+  sitt við sitt eigið heimili og þá staðreynd að hann réð hönnuð. Sumir vilja
+  það alls ekki, og beiðnin setur þá í óþægilega stöðu. Þetta á ekki við um
+  bakarí eða bílasölu, en það á við hér.
+- **Gömul verkefni eru vandræðaleg.** Að skrifa einhverjum frá 2019 og biðja
+  um greiða er annað en að spyrja þann sem er nýbúinn að flytja inn.
+- **Tíu umsagnir á einni viku á glænýrri síðu er mynstur sem Google síar.**
+  Jöfn dreifing er bæði kurteisari og tæknilega öruggari.
+
+**Í staðinn, í þessari röð:**
+
+1. **Byrja á fyrirtækjunum, ekki heimilunum.** Sex af verkefnunum hennar eru
+   rekstur: Freyja gistiheimili, Freyja lúxusíbúð, Svala Apartments,
+   Sólvallagata, Old Charm og Tannlæknastofan Garðatorgi. Að biðja fyrirtæki um
+   umsögn er venjuleg viðskiptakurteisi, ekki greiði, og þau hafa sjálf hag af
+   sýnileikanum. Tvær eða þrjár af þessum duga til að byrja.
+2. **Gera það að hluta af verklokum héðan í frá.** Besti tíminn til að biðja um
+   umsögn er daginn sem verkefni klárast og fólk er ánægt. Þá er þetta ekki
+   verkefni á lista heldur venja, og hún skilar jöfnum straumi sem er einmitt
+   það sem Google vill sjá.
+3. **Aldrei senda á heimilisviðskiptavin nema sambandið sé hlýtt og nýlegt.**
+
+## Það sem þarf engan greiða
+
+Þetta er sterkara en tíu umsagnir og enginn þarf að segja já:
+
+- **Hús og híbýli.** Verk hennar hafa birst þar oftar en einu sinni, og viðtöl
+  við hana hafa verið birt. Þetta stendur á hennar eigin vef en hvergi á nýja
+  vefnum. Það ætti að vera þar, og það er nákvæmlega sú tegund staðfestingar
+  sem bæði Google og gervigreind taka mark á.
+- **Miðstöð hönnunar og arkitektúrs.** Hún er þegar í félagatali FHI, svo þetta
+  er beiðni en ekki umsókn.
+- **Arrital og Altamarea.** Að vera skráð sem söluaðili á Íslandi er tengill af
+  sterku erlendu léni, og hann kemur með fólk sem er þegar að leita.
+
+---
+
+## Tilbúinn texti fyrir umsagnabeiðni (fyrir fyrirtækjaviðskiptavini)
 
 > Sæl og blessuð,
 >
-> Ég er að setja upp Google-síðu fyrir stúdíóið og umsagnir skipta þar mestu.
-> Ef þú værir til í að skrifa nokkrar línur um verkefnið okkar væri ég mjög
+> Ég er að setja upp Google-síðu fyrir stúdíóið núna og er að safna nokkrum
+> umsögnum. Ef þið væruð til í að skrifa tvær línur um samstarfið væri ég
 > þakklát. Það tekur eina mínútu:
 >
 > [hlekkur]
 >
-> Takk fyrir mig,
+> Ég set ykkur að sjálfsögðu líka inn í verkefnaskrána hjá mér.
+>
+> Kveðja,
 > Katrín
 
 ---
@@ -77,6 +119,8 @@ stoppa. Ef það mistekst segir Google hvers vegna og það má taka upp aftur.
 
 Vika 1: spurningarnar tvær, athuga Maps, fara á staðinn og mynda.
 Vika 2: myndbandið, fylla út síðuna.
-Vika 3: gömlu skráningarnar og bréfin tvö. Umsagnir í gangi allan tímann.
+Vika 3: gömlu skráningarnar, bréfin tvö, og Hús og híbýli inn á vefinn.
+Umsagnir: tvær eða þrjár frá fyrirtækjum þegar síðan er komin upp, svo jafnt
+og þétt eftir því sem verkefni klárast.
 
-Heildartími Katrínar: um klukkutími, plús umsagnabeiðnirnar.
+**Heildartími Katrínar: um hálftími.**
