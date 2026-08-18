@@ -4,3 +4,8 @@ dist
 .DS_Store
 .claude/launch.json
 research-assets/
+dist-katrin
+_ki-*.mjs
+_ki-*.png
+_final-*.png
+_cl*.mjs

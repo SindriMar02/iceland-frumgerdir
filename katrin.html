@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="is">
+  <!-- Katrín Ísfeld's OWN shell.
+
+       The catalogue's index.html is the wrong shell for a client's production
+       site in every way that has bitten this workspace before: lang="en" on
+       an Icelandic page, thirty font families where this site uses three, the
+       catalogue's icons, the catalogue's title. Rather than strip all of that
+       back out afterwards, one regex per symptom, the standalone build starts
+       from a shell that was never wrong.
+
+       tools/katrin-seo.mjs writes the per-route title, description, canonical
+       and JSON-LD on top of this at build time, and tools/katrin-prerender.mjs
+       fills #root with the rendered page, so a crawler that never runs
+       JavaScript still receives the whole document. -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Katrín Ísfeld innanhússarkitekt</title>
+    <meta name="theme-color" content="#1D1B19" />
+    <link rel="icon" href="/katrinisfeld/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/katrinisfeld/brand/apple-touch-icon.png" />
+
+    <!-- The three families this design uses, self-hosted and preloaded. The
+         display face is preloaded because it draws every headline including
+         the h1, and a swap there is the most visible reflow on the page. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/sentient/Sentient-Light.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/archia/Archia-Regular.woff2" />
+    <style>
+      @font-face { font-family: 'Sentient'; src: url('/fonts/sentient/Sentient-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+      @font-face { font-family: 'Sentient'; src: url('/fonts/sentient/Sentient-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'Sentient'; src: url('/fonts/sentient/Sentient-LightItalic.woff2') format('woff2'); font-weight: 300; font-style: italic; font-display: swap; }
+      @font-face { font-family: 'Archia'; src: url('/fonts/archia/Archia-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'Geist Mono'; src: url('/fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+      body { margin: 0; background: #EFEAE2; text-rendering: optimizeLegibility; }
+      h1, h2, h3, h4, p, figure, dl, dd, ul, ol { margin: 0; }
+      ul, ol { padding: 0; }
+      img, picture, svg, video { display: block; max-width: 100%; }
+      button, input, textarea, select { font: inherit; color: inherit; }
+    </style>
+
+    <!-- Runs before first paint. The opening curtain is a brand moment on a
+         first arrival and an obstacle on the fourth, so a visitor who has
+         already seen it this session gets the page without it — and because
+         this is a blocking script in the head, without a frame of curtain
+         appearing and then vanishing. -->
+    <script>
+      try {
+        if (sessionStorage.getItem('ki_seen')) document.documentElement.dataset.kiSeen = '1'
+        else sessionStorage.setItem('ki_seen', '1')
+      } catch (e) { /* private mode: show it, that is the safe side */ }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/katrin-main.tsx"></script>
+  </body>
+</html>

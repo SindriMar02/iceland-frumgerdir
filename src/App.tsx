@@ -390,7 +390,7 @@ export default function App() {
             <Route path="/preview/sigtryggur" element={<SigtryggurPage />} />
             <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
             <Route path="/preview/huldamargret" element={<HuldaMargretPage />} />
-            <Route path="/preview/katrinisfeld" element={<KatrinIsfeldPage />} />
+            <Route path="/preview/katrinisfeld/*" element={<KatrinIsfeldPage />} />
             <Route path="/preview/chrislund" element={<ChrisLundPage />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
             <Route path="/preview/lakeview" element={<LakeviewPage />} />
