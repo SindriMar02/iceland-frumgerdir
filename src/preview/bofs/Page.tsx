@@ -27,7 +27,7 @@ import {
   NewsBand,
   ReportBand,
   StatsBand,
-  AskBand,
+  QuestionBand,
   WayfinderDoors,
 } from './sections'
 
@@ -131,14 +131,15 @@ export default function BofsPage() {
           </motion.div>
         </section>
 
-        {/* ── ASK ──────────────────────────────────────────────────────────
-             Before the curated doors, because nobody arrives at a child
-             protection agency to browse. The doors are our taxonomy; this
-             takes theirs. ───────────────────────────────────────────────── */}
-        <AskBand />
-
         {/* ── WAYFINDER (three doors) ──────────────────────────────────── */}
         <WayfinderDoors />
+
+        {/* ── QUESTIONS ────────────────────────────────────────────────────
+             After the doors, not before them. Scrolling off the hero should
+             reveal what this place IS, not a box asking you to type. The
+             doors are the broad "which of these are you"; these are the
+             specific worry underneath it. ─────────────────────────────── */}
+        <QuestionBand />
 
         {/* ── MISSION + compressed values ─────────────────────────────── */}
         <section className="bofs-wash bofs-bloom relative" style={{ background: C.cream2 }}>
@@ -243,6 +244,12 @@ export default function BofsPage() {
                   <figure className="group relative h-full overflow-hidden rounded-[20px]">
                     <Img
                       src={asset(p.src)}
+                      /* These tiles are 167 to 350px wide on a phone but the
+                         plates were up to 1920px: two of them alone were 21MB
+                         of decoded image memory. Desktop still gets the full
+                         plate for the two large tiles. */
+                      srcSet={`${asset(p.src.replace('.jpg', '-1000.jpg'))} 1000w, ${asset(p.src)} 1920w`}
+                      sizes={i < 2 ? '(min-width: 1024px) 576px, 100vw' : '(min-width: 1024px) 288px, 50vw'}
                       alt={pick(p.alt)}
                       className={`bofs-photo w-full object-cover transition-transform duration-700 group-hover:scale-105 ${i === 0 ? 'h-56 lg:h-full' : i === 1 ? 'h-44 lg:h-full' : 'h-40 lg:h-full'}`}
                       fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"

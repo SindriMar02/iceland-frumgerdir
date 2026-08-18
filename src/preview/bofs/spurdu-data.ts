@@ -58,20 +58,23 @@ const t = (is: string, en: string): L => ({ is, en })
 
 export type Audience = 'barn' | 'foreldri' | 'fagadili'
 
-export const AUDIENCES: { id: Audience; label: L; blurb: L }[] = [
+export const AUDIENCES: { id: Audience; label: L; short: L; blurb: L }[] = [
   {
     id: 'barn',
     label: t('Ég er barn eða ungmenni', 'I am a child or a young person'),
+    short: t('Barn', 'A child'),
     blurb: t('Svör á venjulegu máli, um þig og þitt', 'Answers in plain words, about you'),
   },
   {
     id: 'foreldri',
     label: t('Ég er foreldri eða aðstandandi', 'I am a parent or a relative'),
+    short: t('Foreldri', 'A parent'),
     blurb: t('Um barnið þitt og hvað þú mátt', 'About your child and your rights'),
   },
   {
     id: 'fagadili',
     label: t('Ég vinn með börnum', 'I work with children'),
+    short: t('Vinn með börnum', 'Work with children'),
     blurb: t('Skyldur, frestir og verklag', 'Duties, deadlines and procedure'),
   },
 ]
@@ -748,6 +751,11 @@ export const SPURDU = {
   ),
   carried: t('Spurningin þín:', 'Your question:')
   ,
+  indexEyebrow: t('Spurningar og svör', 'Questions and answers'),
+  indexTitle: t('Það sem fólk spyr okkur að', 'What people ask us'),
+  indexTitleCompact: t('Fleiri spurningar', 'More questions'),
+  indexFilter: t('Hver spyr', 'Who is asking'),
+  indexAll: t('Sjá allar spurningar og svör', 'See all questions and answers'),
   copy: t('Afrita hlekk á þetta svar', 'Copy a link to this answer'),
   copied: t('Hlekkur afritaður', 'Link copied'),
   askHere: t('Spurðu eins og þú talar', 'Ask in your own words'),

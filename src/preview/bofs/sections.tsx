@@ -5,10 +5,10 @@
  * inside a large SVG, reduced-motion renders plainly, AA contrast throughout.
  */
 
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { SPURDU } from './spurdu-data'
+import { AUDIENCES, SPURDU, hashFor, suggestionsFor, type Audience } from './spurdu-data'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
@@ -374,6 +374,9 @@ export function FosterBand() {
               >
                 <Img
                   src={asset('art-plass.jpg')}
+                  /* 1800px plate for a 350px box on a phone. */
+                  srcSet={`${asset('art-plass-1000.jpg')} 1000w, ${asset('art-plass.jpg')} 1800w`}
+                  sizes="(min-width: 1024px) 1152px, 100vw"
                   alt={pick({
                     is: 'Vatnslitamynd: eldhús að kvöldi, borðið lagt, auður stóll með teppi og opnar dyr fram í upplýstan gang',
                     en: 'Watercolor: a kitchen in the evening, the table laid, an empty chair with a blanket, and an open door onto a lit hallway',
@@ -477,6 +480,10 @@ export function DuskBookend() {
       {/* the same painted valley at dusk; darkening veil settles into the footer */}
       <Img
         src={asset('art-dusk.jpg')}
+        /* Decorative and sitting under a dark gradient veil, so the smaller
+           plate on phones is invisible; it saves 8MB of decoded memory. */
+        srcSet={`${asset('art-dusk-1600.jpg')} 1600w, ${asset('art-dusk.jpg')} 2560w`}
+        sizes="100vw"
         alt=""
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover object-[50%_42%]"
@@ -978,84 +985,99 @@ export function HelpBand() {
   )
 }
 
-/* ── Ask field, shared by the landing and every service page ──────────── */
+/* ── Question index, shared by the landing and every service page ─────── */
 
 /*
- * The same component in both places, so the two entry points cannot drift
- * apart in wording or behaviour.
+ * REPLACES an earlier version of this block that was a text input with a
+ * "find answer" button. That was wrong twice over. It wore the exact costume
+ * of the thing this whole concept argues against, a chatbot prompt, so the
+ * site undercut its own strongest claim in its own first screen. And a bare
+ * "ask us anything" box on a child protection landing page invites someone to
+ * type a disclosure into it, which is precisely what /spurdu is built to
+ * prevent.
  *
- * The typed text is handed to /spurdu through router STATE, never through a
- * query string, for the same reason the deep links carry a topic id and not
- * the question: what someone types here can be the most private sentence
- * they have ever written, and a URL is the one part of a page that leaks
- * into history, logs and shared screens.
+ * So there is no input here at all. These are the real questions, already
+ * written, as links. Recognition instead of recall: a frightened person does
+ * not arrive with a sentence ready, they arrive with a situation, and seeing
+ * their own worry written down by somebody else is the thing that helps. It
+ * also tells the truth about the system, which knows a finite set of answers
+ * and should therefore show them rather than pretend to accept anything.
  */
-export function AskField({ variant = 'landing' }: { variant?: 'landing' | 'inline' }) {
+export function QuestionIndex({ compact = false }: { compact?: boolean }) {
   const [, , pick] = useLang()
-  const navigate = useNavigate()
-  const [q, setQ] = useState('')
-  const landing = variant === 'landing'
-  const id = `ask-${variant}`
-
-  const go = (e: FormEvent) => {
-    e.preventDefault()
-    navigate('/preview/bofs/spurdu', { state: q.trim() ? { q: q.trim() } : undefined })
-  }
+  /* Parents are the broadest audience arriving cold, so they are the default
+     view; the chips are a filter, not a gate. */
+  const [aud, setAud] = useState<Audience>('foreldri')
+  const items = suggestionsFor(aud).slice(0, compact ? 4 : 6)
 
   return (
-    <form
-      onSubmit={go}
-      className={landing ? 'rounded-[24px] p-6 sm:p-8' : 'rounded-[22px] p-6 sm:p-7'}
-      style={
-        landing
-          ? { background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }
-          : { background: C.oat }
-      }
-    >
-      <span className="bofs-rule bofs-rule-clay mb-4 block" aria-hidden="true" />
-      <h2
-        className={`bofs-display ${landing ? 'text-[clamp(24px,3.4vw,34px)]' : 'text-[clamp(19px,2.2vw,24px)]'}`}
-      >
-        {pick(landing ? SPURDU.askHere : SPURDU.askInlineTitle)}
-      </h2>
-      <p className="bofs-pretty mt-2 max-w-[60ch] text-[14.5px] leading-relaxed" style={{ color: C.body }}>
-        {pick(landing ? SPURDU.askLead : SPURDU.askInlineLead)}
-      </p>
-
-      <label htmlFor={id} className="sr-only">
-        {pick(SPURDU.inputLabel)}
-      </label>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <input
-          id={id}
-          type="search"
-          enterKeyHint="search"
-          autoComplete="off"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={pick(SPURDU.placeholder)}
-          className="bofs-focus min-w-0 flex-1 rounded-[14px] px-4 py-3 text-[16px]"
-          style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}
-        />
-        <button
-          type="submit"
-          className="bofs-focus rounded-[14px] px-5 py-3 text-[15px] font-bold"
-          style={{ background: C.cocoa, color: C.cream }}
-        >
-          {pick(SPURDU.askSubmit)}
-        </button>
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Eyebrow>{pick(SPURDU.indexEyebrow)}</Eyebrow>
+          <h2
+            className={`bofs-display bofs-balance mt-2 ${compact ? 'text-[clamp(20px,2.4vw,26px)]' : 'text-[clamp(26px,3.6vw,38px)]'}`}
+          >
+            {pick(compact ? SPURDU.indexTitleCompact : SPURDU.indexTitle)}
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={pick(SPURDU.indexFilter)}>
+          {AUDIENCES.map((a) => {
+            const on = aud === a.id
+            return (
+              <button
+                key={a.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setAud(a.id)}
+                className="bofs-focus rounded-[12px] px-3.5 py-2 text-[13.5px] font-bold transition-colors duration-150"
+                style={
+                  on
+                    ? { background: C.cocoa, color: C.cream }
+                    : { background: '#fff', color: C.body, boxShadow: `inset 0 0 0 1px ${C.line}` }
+                }
+              >
+                {pick(a.short)}
+              </button>
+            )
+          })}
+        </div>
       </div>
-    </form>
+
+      <ul className="mt-6 grid gap-2.5 sm:grid-cols-2">
+        {items.map(({ group, variant }) => (
+          <li key={group.id}>
+            <Link
+              to={`/preview/bofs/spurdu${hashFor(aud, group.id)}`}
+              className="bofs-focus flex items-start gap-3 rounded-[16px] px-4 py-3.5 text-[15px] font-semibold leading-snug transition-colors duration-150"
+              style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}
+            >
+              <span className="flex-1">{pick(variant.q)}</span>
+              <Arrow className="mt-1 shrink-0" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        to="/preview/bofs/spurdu"
+        className="bofs-focus mt-5 inline-flex items-center gap-2 rounded py-1 text-[15px] font-bold"
+        style={{ color: C.clayText }}
+      >
+        {pick(SPURDU.indexAll)}
+        <Arrow />
+      </Link>
+    </div>
   )
 }
 
-/** The landing placement: its own band between the hero and the doors. */
-export function AskBand() {
+/** The landing placement: its own band, after the three doors. */
+export function QuestionBand() {
   return (
-    <section className="bofs-wash" style={{ background: C.cream }}>
-      <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
+    <section className="bofs-wash" style={{ background: C.cream2 }}>
+      <div className="mx-auto max-w-5xl px-5 py-16 sm:px-8 sm:py-20">
         <Reveal>
-          <AskField variant="landing" />
+          <QuestionIndex />
         </Reveal>
       </div>
     </section>

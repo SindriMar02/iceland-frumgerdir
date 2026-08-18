@@ -12,7 +12,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
 import { HomeArt, WaveDivider } from './illustrations'
-import { AskField, JourneyStrip, FosterSteps, NotFoundPage } from './sections'
+import { QuestionIndex, JourneyStrip, FosterSteps, NotFoundPage } from './sections'
 import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
 
 /** Addresses that used to be real services and should not dead-end. */
@@ -245,7 +245,7 @@ export default function BofsCentre() {
              page and it did not answer you. ───────────────────────────── */}
         <section style={{ background: C.cream }}>
           <div className="mx-auto max-w-5xl px-5 pb-16 sm:px-8">
-            <AskField variant="inline" />
+            <QuestionIndex compact />
           </div>
         </section>
 
