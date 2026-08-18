@@ -509,10 +509,16 @@ export function DuskBookend() {
  * The display hues (C.sky 3.97:1, C.sage 3.98:1, C.terra 3.20:1) all failed;
  * these measured variants sit between 5.2:1 and 5.9:1.
  */
+/*
+ * Measured against the provenance panel's own C.cream2 ground, not against
+ * the page. C.clay is 4.35:1 there and fails AA at this size; C.clayText is
+ * the token that exists for exactly this, at 5.02:1. Every hue below is >=4.5.
+ */
 const SOURCE_HUE: Record<string, string> = {
-  BOFS: C.clay,
+  BOFS: C.clayText,
   GEV: '#3D6B87',
   'Stjórnarráðið': '#4A6E4A',
+  'Umboðsmaður barna': '#7A5B86',
   'Vísir': '#A8471F',
 }
 
@@ -948,20 +954,29 @@ export function HelpBand() {
           {HELP.lines.map((line, i) => {
             const emphasis = i === 0
             return (
-              <Reveal key={line.value} delay={(i % 2) * 0.08}>
+              /*
+               * h-full on both the grid item and the anchor: without it a card
+               * whose label wraps to two lines is taller than its neighbour and
+               * the row reads as ragged. The ring is 1px on every card too; the
+               * emphasis card used to carry 1.5px, which made it measurably a
+               * different size from the ones beside it.
+               */
+              <Reveal key={line.value} delay={(i % 2) * 0.08} className="h-full">
                 <a
                   href={`tel:${line.value.replace(/\s/g, '')}`}
-                  className="bofs-focus bofs-lift flex items-center gap-4 rounded-[18px] p-5"
+                  className="bofs-focus bofs-lift flex h-full items-center gap-4 rounded-[18px] p-5"
                   style={{
                     background: emphasis ? '#A83A24' : '#fff',
                     color: emphasis ? '#fff' : C.cocoa,
-                    boxShadow: emphasis ? 'inset 0 0 0 1.5px rgba(168,58,36,.55)' : `inset 0 0 0 1px ${C.line}`,
+                    boxShadow: emphasis ? 'inset 0 0 0 1px rgba(255,255,255,.22)' : `inset 0 0 0 1px ${C.line}`,
                   }}
                 >
                   <span
                     className="bofs-display bofs-num grid h-16 shrink-0 place-items-center whitespace-nowrap rounded-2xl px-2.5"
                     style={{
-                      minWidth: 64,
+                      /* One width for every badge, sized to the longest number,
+                         so the labels beside them start on the same line. */
+                      minWidth: 96,
                       fontSize: line.value.length > 6 ? 16 : line.value.length > 3 ? 20 : 24,
                       background: emphasis ? 'rgba(255,255,255,.15)' : C.cream2,
                       color: emphasis ? '#fff' : C.clay,

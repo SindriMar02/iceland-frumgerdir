@@ -353,6 +353,152 @@ export function ValueIcon({ name, color, className }: { name: string; color: str
  * Colours must match the section they pour INTO, or a hairline gap can show.
  */
 
+/* ── seam geometry ────────────────────────────────────────────────────── */
+
+/*
+ * The seams used to get their hand-painted wobble from an SVG filter
+ * (feTurbulence + feDisplacementMap on the <g>). That filter RASTERISES: the
+ * browser renders the filter region to a bitmap in the path's own 1440-unit
+ * coordinate space and then scales that bitmap to the element's real size.
+ * These seams are stretched across the full viewport with
+ * preserveAspectRatio="none", so on a wide or retina screen the bitmap is
+ * upscaled and the edge goes visibly blocky. Safari is the worst of the
+ * engines here because it caps filter raster size and upscales the result.
+ *
+ * So the wobble is now baked into the path itself: the curve is sampled,
+ * displaced by deterministic value noise, and re-emitted as one smooth cubic
+ * spline. Same painterly intent, but pure vector, so it stays crisp at any
+ * width in any engine, and there is one less filter for the compositor to run
+ * while the page scrolls.
+ *
+ * Deterministic on purpose. The shapes must be identical on every render and
+ * every machine, so this uses a hashed value noise rather than Math.random.
+ */
+
+interface Pt {
+  x: number
+  y: number
+}
+
+/** Walk the subset of path commands the seams actually use: M, L, H, Q, T. */
+function samplePath(d: string, step = 10): Pt[] {
+  const out: Pt[] = []
+  let cur: Pt = { x: 0, y: 0 }
+  let lastCtrl: Pt | null = null
+  const quad = (p0: Pt, c: Pt, p1: Pt) => {
+    const n = Math.max(2, Math.round((Math.abs(p1.x - p0.x) + Math.abs(p1.y - p0.y)) / step))
+    for (let i = 1; i <= n; i++) {
+      const t = i / n
+      const u = 1 - t
+      out.push({
+        x: u * u * p0.x + 2 * u * t * c.x + t * t * p1.x,
+        y: u * u * p0.y + 2 * u * t * c.y + t * t * p1.y,
+      })
+    }
+  }
+  for (const tk of d.match(/[MLQTH][^MLQTHVZ]*/gi) ?? []) {
+    const cmd = tk[0].toUpperCase()
+    const a = (tk.slice(1).match(/-?\d*\.?\d+/g) ?? []).map(Number)
+    if (cmd === 'M') {
+      cur = { x: a[0], y: a[1] }
+      out.push(cur)
+      lastCtrl = null
+    } else if (cmd === 'L') {
+      cur = { x: a[0], y: a[1] }
+      out.push(cur)
+      lastCtrl = null
+    } else if (cmd === 'H') {
+      // sampled rather than jumped, so the noise also rides along flat runs
+      const n = Math.max(2, Math.round(Math.abs(a[0] - cur.x) / step))
+      for (let i = 1; i <= n; i++) out.push({ x: cur.x + ((a[0] - cur.x) * i) / n, y: cur.y })
+      cur = { x: a[0], y: cur.y }
+      lastCtrl = null
+    } else if (cmd === 'Q') {
+      const c: Pt = { x: a[0], y: a[1] }
+      const p: Pt = { x: a[2], y: a[3] }
+      quad(cur, c, p)
+      cur = p
+      lastCtrl = c
+    } else if (cmd === 'T') {
+      const c: Pt = lastCtrl ? { x: 2 * cur.x - lastCtrl.x, y: 2 * cur.y - lastCtrl.y } : cur
+      const p = { x: a[0], y: a[1] }
+      quad(cur, c, p)
+      cur = p
+      lastCtrl = c
+    }
+  }
+  return out
+}
+
+const hash = (i: number, seed: number) => {
+  const x = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453
+  return (x - Math.floor(x)) * 2 - 1
+}
+
+/** Smoothed value noise, so the displacement drifts rather than jitters. */
+function valueNoise(t: number, seed: number, wavelength: number) {
+  const p = t / wavelength
+  const i = Math.floor(p)
+  const f = p - i
+  const s = f * f * (3 - 2 * f)
+  return hash(i, seed) * (1 - s) + hash(i + 1, seed) * s
+}
+
+/*
+ * Two octaves, matching the old filter's baseFrequency of 0.004 and 0.011:
+ * a long slow drift with a finer tremor on top. Amplitude ~2.6 reproduces the
+ * old displacement scale of 5 (which displaced by +/- half its value).
+ */
+function wobble(pts: Pt[], seed: number, amp = 2.6): Pt[] {
+  return pts.map((p) => ({
+    x: p.x,
+    y: p.y + amp * (valueNoise(p.x, seed, 250) * 0.72 + valueNoise(p.x, seed + 31, 90) * 0.28),
+  }))
+}
+
+const r1 = (n: number) => Math.round(n * 10) / 10
+
+/** Catmull-Rom through the points, emitted as cubics so the curve stays soft. */
+function toPath(pts: Pt[]): string {
+  if (pts.length < 2) return ''
+  let d = `M${r1(pts[0].x)} ${r1(pts[0].y)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? pts[i + 1]
+    const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 }
+    const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 }
+    d += ` C${r1(c1.x)} ${r1(c1.y)} ${r1(c2.x)} ${r1(c2.y)} ${r1(p2.x)} ${r1(p2.y)}`
+  }
+  return d
+}
+
+/*
+ * Computed once per shape and cached. The pooling stroke rides a SEPARATELY
+ * seeded wobble, so the visible band thickens and thins where the two curves
+ * drift apart. That variation is what the displacement filter used to give
+ * for free, and it is the thing that stops the seam reading as a printed rule.
+ */
+const seamCache = new Map<string, { fill: string; edge: string }>()
+
+function seamGeometry(edgePath: string, bottom: number, seed: number) {
+  const key = `${edgePath}|${bottom}|${seed}`
+  const hit = seamCache.get(key)
+  if (hit) return hit
+  const base = samplePath(edgePath)
+  const fillPts = wobble(base, seed)
+  const edgePts = wobble(base, seed + 17, 3.1)
+  const first = fillPts[0]
+  const last = fillPts[fillPts.length - 1]
+  const made = {
+    fill: `${toPath(fillPts)} L${r1(last.x)} ${bottom} L${r1(first.x)} ${bottom} Z`,
+    edge: toPath(edgePts),
+  }
+  seamCache.set(key, made)
+  return made
+}
+
 /*
  * Each seam is drawn twice: the fill that pours into the next section, and an
  * edge-only stroke along the same curve. The stroke is the pigment pooling
@@ -365,19 +511,23 @@ const SEAM_POOL = 'rgba(58,44,34,.11)'
 
 function Seam({
   viewBox,
-  fillPath,
   edgePath,
+  bottom,
+  seed,
   color,
   flip,
   className,
 }: {
   viewBox: string
-  fillPath: string
   edgePath: string
+  /** y the fill drops to, past the bottom of the viewBox so it never gaps */
+  bottom: number
+  seed: number
   color: string
   flip?: boolean
   className?: string
 }) {
+  const { fill, edge } = seamGeometry(edgePath, bottom, seed)
   /*
    * The pooling stroke is clipped to the fill shape. Displacing a 2.5px line
    * tears it into fragments and flings some of them clear of the edge, which
@@ -400,12 +550,13 @@ function Seam({
     >
       <defs>
         <clipPath id={clipId}>
-          <path d={fillPath} />
+          <path d={fill} />
         </clipPath>
       </defs>
-      <g filter="url(#bofs-seam)">
-        <path d={fillPath} fill={color} />
-        <path d={edgePath} fill="none" stroke={SEAM_POOL} strokeWidth="9" clipPath={`url(#${clipId})`} />
+      {/* No filter. The wobble lives in the path data, so this stays vector. */}
+      <g>
+        <path d={fill} fill={color} />
+        <path d={edge} fill="none" stroke={SEAM_POOL} strokeWidth="9" clipPath={`url(#${clipId})`} />
       </g>
     </svg>
   )
@@ -415,8 +566,9 @@ export function WaveDivider({ color, flip = false, className }: { color: string;
   return (
     <Seam
       viewBox="0 0 1440 80"
-      fillPath="M0 40 Q 360 0 720 40 T 1440 40 V96 H0 Z"
       edgePath="M0 40 Q 360 0 720 40 T 1440 40"
+      bottom={96}
+      seed={11}
       color={color}
       flip={flip}
       className={className}
@@ -428,8 +580,9 @@ export function HillDivider({ color, flip = false, className }: { color: string;
   return (
     <Seam
       viewBox="0 0 1440 90"
-      fillPath="M0 62 Q 300 20 640 52 T 1160 46 Q 1320 40 1440 58 V106 H0 Z"
       edgePath="M0 62 Q 300 20 640 52 T 1160 46 Q 1320 40 1440 58"
+      bottom={106}
+      seed={23}
       color={color}
       flip={flip}
       className={className}
@@ -442,8 +595,9 @@ export function ArchNotchDivider({ color, flip = false, className }: { color: st
     <Seam
       viewBox="0 0 1440 90"
       /* flat horizon that lifts into one central doorway arch */
-      fillPath="M0 66 H620 Q 660 66 686 40 Q 720 6 754 40 Q 780 66 820 66 H1440 V106 H0 Z"
       edgePath="M0 66 H620 Q 660 66 686 40 Q 720 6 754 40 Q 780 66 820 66 H1440"
+      bottom={106}
+      seed={37}
       color={color}
       flip={flip}
       className={className}

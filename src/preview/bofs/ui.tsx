@@ -318,10 +318,6 @@ export function BofsStyles() {
         style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
       >
         <defs>
-          <filter id="bofs-seam" x="-2%" y="-40%" width="104%" height="180%" colorInterpolationFilters="sRGB">
-            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.011" numOctaves="2" seed="11" result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
         </defs>
       </svg>
     </>
@@ -710,74 +706,91 @@ export function Footer() {
   return (
     <footer style={{ background: C.deep, color: C.deepText }}>
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr]">
+        {/*
+          Three groups, not five columns. The old layout stacked five blocks at
+          a 48px gap, which on a phone became a footer taller than the viewport
+          and at tablet width left a single orphan block on its own row. The
+          link lists now sit in their own sub-grid so they pair up on a phone
+          and only spread out when there is room.
+        */}
+        <div className="grid gap-x-10 gap-y-12 lg:grid-cols-[1.15fr_2fr_1fr]">
           <div>
             <Wordmark onDeep />
             <p className="mt-4 max-w-xs text-[15px] leading-relaxed" style={{ color: 'rgba(246,232,213,.75)' }}>
               {pick(UI.footerTagline)}
             </p>
+            <a
+              href="tel:112"
+              className="bofs-focus mt-5 inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13.5px] font-bold"
+              style={{ background: '#A83A24', color: '#fff' }}
+            >
+              <PhoneGlyph />
+              {pick({ is: 'Neyð? Hringdu í 112', en: 'Emergency? Call 112' })}
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-9 sm:grid-cols-3">
+            <div>
+              <h4 className="mb-3 text-[12.5px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
+                {pick(UI.nav.homes)}
+              </h4>
+              <ul className="space-y-0.5 text-[15px]">
+                {homes.map((s) => (
+                  <li key={s.slug}>
+                    <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
+                      {s.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-[12.5px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
+                {pick(UI.footerServices)}
+              </h4>
+              <ul className="space-y-0.5 text-[15px]">
+                {services.map((s) => (
+                  <li key={s.slug}>
+                    <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
+                      {s.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="col-span-2 sm:col-span-1">
+              <h4 className="mb-3 text-[12.5px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
+                {pick(UI.footerSite)}
+              </h4>
+              <ul className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-[15px] sm:grid-cols-1">
+                {[
+                  { label: pick(UI.nav.ask), to: '/preview/bofs/spurdu' },
+                  { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
+                  { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
+                  { label: pick({ is: 'Fréttir', en: 'News' }), to: '/preview/bofs/frettir' },
+                  { label: pick(UI.nav.report), to: '/preview/bofs#tilkynna' },
+                  { label: pick(UI.nav.help), to: '/preview/bofs#help' },
+                  { label: pick({ is: 'Aðgengi', en: 'Accessibility' }), to: '/preview/bofs/adgengi' },
+                  { label: pick({ is: 'Persónuvernd', en: 'Privacy' }), to: '/preview/bofs/personuvernd' },
+                ].map((l) => (
+                  <li key={l.to}>
+                    <Link to={l.to} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div>
-            <h4 className="mb-3 text-[13px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
-              {pick(UI.nav.homes)}
-            </h4>
-            <ul className="space-y-2 text-[15px]">
-              {homes.map((s) => (
-                <li key={s.slug}>
-                  <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
-                    {s.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 text-[13px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
-              {pick(UI.footerServices)}
-            </h4>
-            <ul className="space-y-2 text-[15px]">
-              {services.map((s) => (
-                <li key={s.slug}>
-                  <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
-                    {s.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 text-[13px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
-              {pick(UI.footerSite)}
-            </h4>
-            <ul className="space-y-2 text-[15px]">
-              {[
-                { label: pick(UI.nav.ask), to: '/preview/bofs/spurdu' },
-                { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
-                { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
-                { label: pick({ is: 'Fréttir', en: 'News' }), to: '/preview/bofs/frettir' },
-                { label: pick(UI.nav.report), to: '/preview/bofs#tilkynna' },
-                { label: pick(UI.nav.help), to: '/preview/bofs#help' },
-                { label: pick({ is: 'Aðgengi', en: 'Accessibility' }), to: '/preview/bofs/adgengi' },
-                { label: pick({ is: 'Persónuvernd', en: 'Privacy' }), to: '/preview/bofs/personuvernd' },
-              ].map((l) => (
-                <li key={l.to}>
-                  <Link to={l.to} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 text-[13px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
+            <h4 className="mb-3 text-[12.5px] font-bold uppercase tracking-widest" style={{ color: C.sun }}>
               {pick(UI.footerContact)}
             </h4>
-            <ul className="space-y-2 text-[15px]" style={{ color: 'rgba(246,232,213,.85)' }}>
-              <li>{ORG.address}</li>
+            <ul className="space-y-0.5 text-[15px]" style={{ color: 'rgba(246,232,213,.85)' }}>
+              <li className="py-1">{ORG.address}</li>
               <li>
                 <a className="bofs-focus inline-block rounded py-1 hover:opacity-70" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
                   {ORG.phone}
@@ -788,25 +801,19 @@ export function Footer() {
                   {ORG.email}
                 </a>
               </li>
-              <li className="pt-1 text-[13.5px]" style={{ color: 'rgba(246,232,213,.6)' }}>
-                {pick(ORG.hours)}
-              </li>
             </ul>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-bold" style={{ background: '#A83A24', color: '#fff' }}>
-              <PhoneGlyph /> 112
-            </div>
+            <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'rgba(246,232,213,.6)' }}>
+              {pick(ORG.hours)}
+            </p>
+            <a href="tel:1717" className="bofs-focus mt-4 inline-block rounded py-1 text-[13.5px] leading-relaxed transition-opacity hover:opacity-70" style={{ color: '#C8B6A5' }}>
+              {pick({ is: 'Hjálparsími Rauða krossins 1717, allan sólarhringinn', en: 'Red Cross helpline 1717, around the clock' })}
+            </a>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t pt-6" style={{ borderColor: 'rgba(246,232,213,.16)' }}>
-          <TextSizeControl onDeep />
-          <a href="tel:1717" className="bofs-focus inline-block rounded py-1 text-[13.5px] transition-opacity hover:opacity-70" style={{ color: '#C8B6A5' }}>
-            {pick({ is: 'Hjálparsími Rauða krossins 1717, opinn allan sólarhringinn', en: 'Red Cross helpline 1717, open around the clock' })}
-          </a>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 border-t pt-6 text-[13px] sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'rgba(246,232,213,.16)', color: 'rgba(246,232,213,.6)' }}>
-          <p>
+        {/* One rule at the bottom, not three. */}
+        <div className="mt-14 flex flex-col gap-5 border-t pt-6 text-[13px] sm:flex-row sm:items-start sm:justify-between" style={{ borderColor: 'rgba(246,232,213,.16)', color: 'rgba(246,232,213,.6)' }}>
+          <p className="max-w-md">
             {pick(UI.conceptBadge)}
             <span className="mt-1 block" style={{ color: 'rgba(246,232,213,.75)' }}>
               {pick({
@@ -815,7 +822,8 @@ export function Footer() {
               })}
             </span>
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <TextSizeControl onDeep />
             <p>{pick(UI.rights)} · 2026</p>
             <SndrBadge dark />
           </div>
