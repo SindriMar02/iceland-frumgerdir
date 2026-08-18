@@ -19,6 +19,17 @@
  * she" has no way to choose. The site publishes the address SHE publishes.
  * Fixing the stale directory entries is a task for her, listed in
  * KATRIN-SEO.md.
+ *
+ * CONFIRMED BY A THIRD, INDEPENDENT SOURCE (2026-08-18). Arrital's own store
+ * locator at arrital.com/store-locator lists exactly one Icelandic dealer:
+ *
+ *   ICELAND | Reykjavík — Hönnunar Studio, Katrínartún 4, 105 Reykjavík,
+ *   Tel. +354 663 3414, https://katrinisfeld.is
+ *
+ * An Italian manufacturer maintaining a dealer list has no reason to carry a
+ * stale Icelandic address, and a store locator by definition points at the
+ * room where you can go and see the product. So Katrínartún 4 is not merely
+ * what she publishes, it is where the showroom in her own photographs is.
  */
 
 /** The studio, as she publishes it. */

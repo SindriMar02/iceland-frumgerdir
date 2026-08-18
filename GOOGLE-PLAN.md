@@ -51,8 +51,7 @@ stoppa. Ef það mistekst segir Google hvers vegna og það má taka upp aftur.
   **yelu.is** (rangt heimilisfang, Skipasund 74),
   **starofservice.is** (tvær færslur undir „Studio Ísfeld").
 - Sækja um prófíl á **honnunarmidstod.is** (hún er þegar í félagatali FHI).
-- Senda póst á **Arrital** og **Altamarea** og biðja um að vera skráð sem
-  söluaðili á Íslandi.
+- Arrital er þegar búið að skrá hana, sjá að neðan. Ekkert að senda.
 
 ---
 
@@ -93,8 +92,15 @@ viðskiptavini. Það er of mikið, og þrennt mælir gegn því:
   sem bæði Google og gervigreind taka mark á.
 - **Miðstöð hönnunar og arkitektúrs.** Hún er þegar í félagatali FHI, svo þetta
   er beiðni en ekki umsókn.
-- **Arrital og Altamarea.** Að vera skráð sem söluaðili á Íslandi er tengill af
-  sterku erlendu léni, og hann kemur með fólk sem er þegar að leita.
+- **Arrital: þegar komið.** Söluaðilaskrá Arrital (arrital.com/store-locator)
+  skráir þegar einn íslenskan söluaðila og það er hún:
+  „ICELAND | Reykjavík — Hönnunar Studio, Katrínartún 4, 105 Reykjavík,
+  +354 663 3414, katrinisfeld.is". Tengillinn er til staðar, ekkert að gera.
+  Þetta staðfestir líka heimilisfangið frá þriðja óháða aðila.
+- **Altamarea: ekkert að sækja um.** Þeir reka enga söluaðilaskrá, „Showroom"
+  hjá þeim er þeirra eigið sýningarrými á Ítalíu. Það eina sem væri hægt að
+  spyrja um er umfjöllun í News/Focus, sem er kynningarmál með lélegar líkur,
+  ekki leitarvélavinna. Sleppa því í bili.
 
 ---
 
@@ -119,7 +125,7 @@ viðskiptavini. Það er of mikið, og þrennt mælir gegn því:
 
 Vika 1: spurningarnar tvær, athuga Maps, fara á staðinn og mynda.
 Vika 2: myndbandið, fylla út síðuna.
-Vika 3: gömlu skráningarnar, bréfin tvö, og Hús og híbýli inn á vefinn.
+Vika 3: gömlu skráningarnar og Hús og híbýli inn á vefinn.
 Umsagnir: tvær eða þrjár frá fyrirtækjum þegar síðan er komin upp, svo jafnt
 og þétt eftir því sem verkefni klárast.
 
