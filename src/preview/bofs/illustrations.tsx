@@ -580,7 +580,17 @@ export function HillDivider({ color, flip = false, className }: { color: string;
   return (
     <Seam
       viewBox="0 0 1440 90"
-      edgePath="M0 62 Q 300 20 640 52 T 1160 46 Q 1320 40 1440 58"
+      /*
+       * EVERY SEAM PATH MUST BE C1 CONTINUOUS, so build them from Q followed
+       * by T: T mirrors the previous control point and guarantees the tangent
+       * carries through. This path used to end "T 1160 46 Q 1320 40 1440 58",
+       * where the incoming tangent at x=1160 was (180,-38) rising steeply and
+       * the next control left almost flat. That is a corner, and it rendered
+       * as a visible step on the right of the divider. It was invisible only
+       * because the displacement filter smeared it; deleting the filter
+       * exposed a bug that had been in the geometry all along.
+       */
+      edgePath="M0 58 Q 240 34 480 48 T 960 44 T 1440 52"
       bottom={106}
       seed={23}
       color={color}
