@@ -27,6 +27,7 @@ import {
   NewsBand,
   ReportBand,
   StatsBand,
+  AskBand,
   WayfinderDoors,
 } from './sections'
 
@@ -129,6 +130,12 @@ export default function BofsPage() {
             </svg>
           </motion.div>
         </section>
+
+        {/* ── ASK ──────────────────────────────────────────────────────────
+             Before the curated doors, because nobody arrives at a child
+             protection agency to browse. The doors are our taxonomy; this
+             takes theirs. ───────────────────────────────────────────────── */}
+        <AskBand />
 
         {/* ── WAYFINDER (three doors) ──────────────────────────────────── */}
         <WayfinderDoors />

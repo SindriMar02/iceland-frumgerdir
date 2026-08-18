@@ -496,6 +496,7 @@ export function Header() {
   const homes = SERVICES.filter((s) => s.category === 'heimili')
   const thjonusta = SERVICES.filter((s) => s.category === 'thjonusta')
   const pageLinks = [
+    { label: pick(UI.nav.ask), to: '/preview/bofs/spurdu' },
     { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
     { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
     { label: pick(UI.nav.report), to: `${base}#tilkynna` },
@@ -753,6 +754,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-[15px]">
               {[
+                { label: pick(UI.nav.ask), to: '/preview/bofs/spurdu' },
                 { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
                 { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
                 { label: pick({ is: 'Fréttir', en: 'News' }), to: '/preview/bofs/frettir' },

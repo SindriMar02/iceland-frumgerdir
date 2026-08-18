@@ -71,6 +71,7 @@ const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
 const BofsKerfid = lazy(() => import('./preview/bofs/Kerfid'))
 const BofsUmStofnunina = lazy(() => import('./preview/bofs/UmStofnunina'))
 const BofsFrettir = lazy(() => import('./preview/bofs/Frettir'))
+const BofsSpurdu = lazy(() => import('./preview/bofs/Spurdu'))
 const BofsLegal = lazy(() => import('./preview/bofs/Legal'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 // Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
@@ -230,7 +231,14 @@ function ScrollToTop() {
     if (hash) {
       // honor deep links like /eldhestar#rides (lazy routes mount after the
       // browser's native anchor jump, so do it ourselves)
-      document.querySelector(hash)?.scrollIntoView()
+      // Guarded: a hash is arbitrary user-supplied text, and anything that is
+      // not a valid CSS selector (a slash, a colon, a bare digit) makes
+      // querySelector THROW, which took a whole preview down once.
+      try {
+        document.querySelector(hash)?.scrollIntoView()
+      } catch {
+        /* not a selector, so not an anchor: leave the scroll position alone */
+      }
       return
     }
     // 'instant' so route changes don't animate through the smooth-scroll CSS
@@ -320,6 +328,7 @@ export default function App() {
             <Route path="/preview/bofs/kerfid" element={<BofsKerfid />} />
             <Route path="/preview/bofs/um-stofnunina" element={<BofsUmStofnunina />} />
             <Route path="/preview/bofs/frettir" element={<BofsFrettir />} />
+            <Route path="/preview/bofs/spurdu" element={<BofsSpurdu />} />
             <Route path="/preview/bofs/adgengi" element={<BofsLegal kind="adgengi" />} />
             <Route path="/preview/bofs/personuvernd" element={<BofsLegal kind="personuvernd" />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />

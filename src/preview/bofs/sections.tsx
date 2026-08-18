@@ -5,9 +5,10 @@
  * inside a large SVG, reduced-motion renders plainly, AA contrast throughout.
  */
 
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { SPURDU } from './spurdu-data'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
@@ -972,6 +973,90 @@ export function HelpBand() {
             )
           })}
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── Ask field, shared by the landing and every service page ──────────── */
+
+/*
+ * The same component in both places, so the two entry points cannot drift
+ * apart in wording or behaviour.
+ *
+ * The typed text is handed to /spurdu through router STATE, never through a
+ * query string, for the same reason the deep links carry a topic id and not
+ * the question: what someone types here can be the most private sentence
+ * they have ever written, and a URL is the one part of a page that leaks
+ * into history, logs and shared screens.
+ */
+export function AskField({ variant = 'landing' }: { variant?: 'landing' | 'inline' }) {
+  const [, , pick] = useLang()
+  const navigate = useNavigate()
+  const [q, setQ] = useState('')
+  const landing = variant === 'landing'
+  const id = `ask-${variant}`
+
+  const go = (e: FormEvent) => {
+    e.preventDefault()
+    navigate('/preview/bofs/spurdu', { state: q.trim() ? { q: q.trim() } : undefined })
+  }
+
+  return (
+    <form
+      onSubmit={go}
+      className={landing ? 'rounded-[24px] p-6 sm:p-8' : 'rounded-[22px] p-6 sm:p-7'}
+      style={
+        landing
+          ? { background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }
+          : { background: C.oat }
+      }
+    >
+      <span className="bofs-rule bofs-rule-clay mb-4 block" aria-hidden="true" />
+      <h2
+        className={`bofs-display ${landing ? 'text-[clamp(24px,3.4vw,34px)]' : 'text-[clamp(19px,2.2vw,24px)]'}`}
+      >
+        {pick(landing ? SPURDU.askHere : SPURDU.askInlineTitle)}
+      </h2>
+      <p className="bofs-pretty mt-2 max-w-[60ch] text-[14.5px] leading-relaxed" style={{ color: C.body }}>
+        {pick(landing ? SPURDU.askLead : SPURDU.askInlineLead)}
+      </p>
+
+      <label htmlFor={id} className="sr-only">
+        {pick(SPURDU.inputLabel)}
+      </label>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <input
+          id={id}
+          type="search"
+          enterKeyHint="search"
+          autoComplete="off"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={pick(SPURDU.placeholder)}
+          className="bofs-focus min-w-0 flex-1 rounded-[14px] px-4 py-3 text-[16px]"
+          style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}
+        />
+        <button
+          type="submit"
+          className="bofs-focus rounded-[14px] px-5 py-3 text-[15px] font-bold"
+          style={{ background: C.cocoa, color: C.cream }}
+        >
+          {pick(SPURDU.askSubmit)}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/** The landing placement: its own band between the hero and the doors. */
+export function AskBand() {
+  return (
+    <section className="bofs-wash" style={{ background: C.cream }}>
+      <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
+        <Reveal>
+          <AskField variant="landing" />
+        </Reveal>
       </div>
     </section>
   )
