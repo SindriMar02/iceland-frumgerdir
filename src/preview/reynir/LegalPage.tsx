@@ -63,7 +63,7 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
       p: ['Þegar þú sendir pöntunarbeiðni í gegnum vefinn biðjum við um eftirfarandi:'],
       ul: [
         'Nafn og símanúmer, svo við getum staðfest pöntunina.',
-        'Netfang, ef þú vilt fá skriflega staðfestingu.',
+        'Netfang, valfrjálst, svo hægt sé að ná í þig ef ekki svarast í síma.',
         'Það sem þú pantaðir: vöru, valmöguleika, fjölda, afhendingardag og athugasemdir.',
         'Fyrir fyrirtækjapantanir: nafn fyrirtækis, kennitölu og tengilið, svo hægt sé að gefa út reikning.',
         'Afhendingarstað, ef óskað er eftir sendingu í stað þess að sækja.',
@@ -139,7 +139,7 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
       p: ['When you send an order request through this website we ask for:'],
       ul: [
         'Your name and phone number, so we can confirm the order.',
-        'Your email address, if you would like written confirmation.',
+        'Your email address, optional, so we can reach you if the phone goes unanswered.',
         'What you ordered: the product, the options, the quantity, the collection date and any notes.',
         'For company orders: the company name, its kennitala and a contact person, so an invoice can be issued.',
         'A delivery address, if you ask us to deliver rather than collect.',
