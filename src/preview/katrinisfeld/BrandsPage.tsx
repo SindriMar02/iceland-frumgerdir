@@ -11,7 +11,7 @@
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
-import { BRANDS, STUDIO } from './facts'
+import { BRANDS, STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM } from './facts'
 import { CONTACT_PATH, WORK } from './paths'
 
 export function BrandsPage() {
@@ -72,9 +72,13 @@ export function BrandsPage() {
         <p className="ki-body ki-rv">
           Eldhús og baðherbergi úr verkefnaskránni, ljósmynduð eins og þau standa.
         </p>
+        <p className="ki-body ki-rv">
+          {SHOWROOM.lead} {SHOWROOM.cta} Stúdíóið er á {ADDRESS_LINE}.
+        </p>
         <p className="ki-cta-row ki-rv">
           <Link className="ki-cta" to={WORK}>Verkefnin</Link>
-          <a className="ki-cta" href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a>
+          <Link className="ki-cta" to={CONTACT_PATH}>Fá tíma í stúdíóinu</Link>
+          <a className="ki-cta" href={MAP_URL} target="_blank" rel="noopener">Sjá á korti</a>
         </p>
       </div>
     </Shell>

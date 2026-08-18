@@ -10,8 +10,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
-import { Headline } from './kit'
-import { STUDIO, ADDRESS_LINE } from './facts'
+import { Headline, Slide } from './kit'
+import { STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM } from './facts'
 import { PROCESS } from './content'
 import { WORK } from './paths'
 
@@ -65,7 +65,13 @@ export function ContactPage() {
           <div>
             <h2 className="ki-kicker">Stúdíóið</h2>
             <dl className="ki-dl">
-              <div><dt>Heimilisfang</dt><dd>{STUDIO.street}<br />{STUDIO.postalCode} {STUDIO.city}</dd></div>
+              <div>
+                <dt>Heimilisfang</dt>
+                <dd>
+                  {STUDIO.street}<br />{STUDIO.postalCode} {STUDIO.city}<br />
+                  <a href={MAP_URL} target="_blank" rel="noopener">Sjá á korti</a>
+                </dd>
+              </div>
               <div><dt>Sími</dt><dd><a href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a></dd></div>
               <div><dt>Netfang</dt><dd><a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a></dd></div>
               <div><dt>Opið</dt><dd>{STUDIO.opens}–{STUDIO.closes}</dd></div>
@@ -121,7 +127,26 @@ export function ContactPage() {
         </div>
       </div>
 
+      {/* The showroom is the reason the address matters at all: the Italian
+          cabinetry is a decision nobody makes off a screen. */}
       <div className="ki-wrap" data-ki-band="dark">
+        <div className="ki-split">
+          <Slide id={SHOWROOM.photo} alt={SHOWROOM.alt} sizes="(max-width: 860px) 92vw, 45vw"
+            className="ki-split-fig" variant="shutter" />
+          <div>
+            <p className="ki-kicker">Stúdíóið við {STUDIO.street}</p>
+            <Headline text={SHOWROOM.lead} size={58} floor={28} measure={640} />
+            <p className="ki-body ki-rv">{SHOWROOM.body}</p>
+            <p className="ki-body ki-rv">{SHOWROOM.cta}</p>
+            <p className="ki-cta-row ki-rv">
+              <a className="ki-cta" href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a>
+              <a className="ki-cta" href={MAP_URL} target="_blank" rel="noopener">Sjá á korti</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="ki-wrap" data-ki-band="light">
         <p className="ki-kicker">Ferlið</p>
         <Headline text="Það sem gerist næst." size={62} floor={30} measure={800} />
         <ol className="ki-steps">

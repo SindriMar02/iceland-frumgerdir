@@ -76,6 +76,39 @@ export const STUDIO = {
 
 export const ADDRESS_LINE = `${STUDIO.street}, ${STUDIO.postalCode} ${STUDIO.city}`
 
+/** Directions, by address rather than by place ID — no Google account needed
+ *  and it keeps working if her listing is ever re-created. */
+export const MAP_URL =
+  'https://www.google.com/maps/search/?api=1&query=' +
+  encodeURIComponent(`${STUDIO.street}, ${STUDIO.postalCode} ${STUDIO.city}`)
+
+/**
+ * The showroom.
+ *
+ * WHAT IS ACTUALLY EVIDENCED, because this is where a plausible-sounding
+ * invention would go. Her own project "Hönnunar Studio" is photographed from
+ * inside a street-level room with KATRÍN ÍSFELD HÖNNUNAR STUDIO applied to
+ * the window in vinyl, holding a display kitchen in dark stone and panels of
+ * material samples. So: the space exists, it is hers, and the cabinetry is
+ * in it. That is the whole of what can be said.
+ *
+ * NOT evidenced, and therefore NOT written anywhere on this site: that she
+ * takes walk-ins, that the room is staffed through the stated hours, or which
+ * days it is open. The copy invites people to arrange a visit, which is true
+ * whatever the answer and is the right call for a purchase this size anyway.
+ * If she confirms she welcomes drop-ins, this is the one place to change it.
+ */
+export const SHOWROOM = {
+  photo: 'p-studio-0',
+  alt: 'Sýningarrými stúdíósins við götuna, með eldhúsinnréttingu í dökkum steini og efnissýnishornum',
+  lead: 'Innréttingarnar og efnin eru til sýnis í stúdíóinu.',
+  body:
+    'Munurinn á tveimur steintegundum sést ekki á skjá, og ekki heldur hvernig matt lakk tekur við dagsbirtu. ' +
+    'Í stúdíóinu liggja sýnishorn af borðplötum, framhliðum og efnum, ásamt uppsettri eldhúsinnréttingu, ' +
+    'svo hægt sé að handleika það sem til stendur að velja.',
+  cta: 'Hafðu samband og við finnum tíma sem hentar.',
+} as const
+
 /** Her CV, verbatim in substance from katrinisfeld.is/studioid. */
 export const CV = {
   degree: 'BSc í innanhússarkitektúr',
