@@ -52,10 +52,19 @@ import {
 
 /* ── Preview detection ──────────────────────────────────────────────────── */
 const viewerToken = import.meta.env.VITE_REYNIR_SANITY_VIEWER_TOKEN as string | undefined
+
+/* Every branch below is guarded on `window`, because this module is imported by
+ * the SSR prerender (reynir-entry-server.tsx) where there is no window at all.
+ *
+ * The token requirement is not decoration. Without it, appending ?preview to a
+ * public URL would flip the client to the 'drafts' perspective and pull in the
+ * visual-editing runtime on the CLIENT's own domain — a stranger's URL bar
+ * deciding which content a customer sees. Preview mode is for the studio, so
+ * it now requires the credential only the studio build carries. */
 const isPreview =
   typeof window !== 'undefined' &&
-  (new URLSearchParams(window.location.search).has('preview') ||
-    (window.self !== window.top && !!viewerToken))
+  !!viewerToken &&
+  (new URLSearchParams(window.location.search).has('preview') || window.self !== window.top)
 
 const STUDIO_URL = (import.meta.env.VITE_REYNIR_SANITY_STUDIO_URL as string | undefined) || 'http://localhost:3333'
 

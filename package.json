@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "news:sync": "node scripts/bofs-news-sync.mjs",
-    "build:reynir": "vite build --config vite.reynir.config.ts && node tools/reynir-standalone-post.mjs"
+    "build:reynir": "vite build --config vite.reynir.config.ts && vite build --config vite.reynir.config.ts --ssr src/reynir-entry-server.tsx --outDir dist-reynir-server && node tools/reynir-standalone-post.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.3",

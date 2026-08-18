@@ -56,7 +56,7 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
 
   return (
     <section id="order" style={{ background: INK_DEEP, padding: 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
-      <style>{TEASER_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: TEASER_CSS }} />
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         {/* The rule spans the container, as it does in every other section;
             only the text is capped. Carrying the cap on the same element cut

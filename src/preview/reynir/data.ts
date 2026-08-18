@@ -386,6 +386,11 @@ export const T = {
     statusOpen: (t: string) => `Open now, we close at ${t}`,
     statusOpensToday: (t: string) => `Closed, we open at ${t} today`,
     statusOpensTomorrow: (t: string) => `Closed, we open tomorrow at ${t}`,
+    /* Shown before the clock is known: on the server-rendered HTML, and so in
+       every crawler's copy of the page. It must therefore be true at all times,
+       never 'Closed' — a frozen 'Closed' is what a search result would quote. */
+    statusHours: (o: string, c: string) => `Open every day ${o}–${c}`,
+    statusHoursVaried: 'Opening hours',
     heroTitle: 'HANDMADE',
     heroSub: 'A family bakery in Kópavogur since 1994.',
     heroLine: 'Sourdough, Danish pastries, cakes and coffee, all baked on-site from scratch.',
@@ -452,6 +457,8 @@ export const T = {
     statusOpen: (t: string) => `Opið núna, lokum kl. ${t}`,
     statusOpensToday: (t: string) => `Lokað, opnum kl. ${t} í dag`,
     statusOpensTomorrow: (t: string) => `Lokað, opnum á morgun kl. ${t}`,
+    statusHours: (o: string, c: string) => `Opið alla daga ${o}–${c}`,
+    statusHoursVaried: 'Opnunartímar',
     heroTitle: 'HANDGERT',
     heroSub: 'Fjölskyldubakarí í Kópavogi síðan 1994.',
     heroLine: 'Súrdeigsbrauð, vínarbrauð, kökur og kaffi, allt bakað á staðnum frá grunni.',

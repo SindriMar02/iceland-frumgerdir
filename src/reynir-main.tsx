@@ -7,52 +7,31 @@
  * entry simply never imports any of it, so none of it can leak into the
  * bundle a customer downloads from reynirbakari.is.
  *
+ * HYDRATE, don't render. The build prerenders every route to real HTML
+ * (tools/reynir-prerender.mjs), because AI crawlers do not run JavaScript and
+ * an empty #root is a blank page to them. So #root already holds the finished
+ * markup here; React adopts it instead of throwing it away and rebuilding.
+ * The createRoot fallback covers the case where the HTML somehow arrived
+ * without prerendered content, so a broken prerender degrades to today's
+ * behaviour rather than to a white screen.
+ *
  * Built with `npm run build:reynir` (vite.reynir.config.ts) → dist-reynir/.
  */
-import { StrictMode, Suspense, lazy, useEffect } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { StrictMode } from 'react'
+import { createRoot, hydrateRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
-import { HOME_PATH, ORDER_PATH, STORY_PATH, LEGAL_PATH } from './preview/reynir/paths'
+import { ReynirApp } from './reynir-app'
 
-const Page = lazy(() => import('./preview/reynir/Page'))
-const OrderPage = lazy(() => import('./preview/reynir/OrderPage'))
-const StoryPage = lazy(() => import('./preview/reynir/StoryPage'))
-const LegalPage = lazy(() => import('./preview/reynir/LegalPage'))
+const el = document.getElementById('root')!
 
-/** Same guarded scroll reset as the catalogue's App.tsx — the hash guard
- *  matters: an arbitrary #hash that is not a valid selector makes
- *  querySelector THROW, which once white-screened a whole preview. */
-function ScrollToTop() {
-  const { pathname, hash } = useLocation()
-  useEffect(() => {
-    if (hash) {
-      try {
-        document.querySelector(hash)?.scrollIntoView()
-      } catch {
-        /* not a selector, so not an anchor */
-      }
-      return
-    }
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-  }, [pathname, hash])
-  return null
-}
-
-createRoot(document.getElementById('root')!).render(
+const tree = (
   <StrictMode>
     <BrowserRouter>
-      <ScrollToTop />
-      <Suspense fallback={null}>
-        <Routes>
-          <Route path={HOME_PATH} element={<Page />} />
-          <Route path={ORDER_PATH} element={<OrderPage />} />
-          <Route path={STORY_PATH} element={<StoryPage />} />
-          <Route path={LEGAL_PATH} element={<LegalPage />} />
-          {/* anything else goes home — a bakery site has no useful 404 */}
-          <Route path="*" element={<Page />} />
-        </Routes>
-      </Suspense>
+      <ReynirApp />
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
+
+if (el.childElementCount > 0) hydrateRoot(el, tree)
+else createRoot(el).render(tree)

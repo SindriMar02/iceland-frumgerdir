@@ -23,7 +23,7 @@
  * Usage:  node tools/reynir-standalone-post.mjs
  *         REYNIR_SITE_URL=https://reynirbakari.is node tools/reynir-standalone-post.mjs
  */
-import { cpSync, existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
@@ -49,10 +49,15 @@ for (const entry of readdirSync(dist)) {
 }
 console.log(`reynir-post: pruned ${pruned} catalogue entries from public/`)
 
-/* 3 ── routes answer as real pages */
-for (const r of ['panta', 'sagan', 'personuvernd']) {
-  cpSync(join(dist, 'index.html'), join(dist, r, 'index.html'))
-}
+/* 3 ── routes answer as real pages, with real HTML in them.
+ *
+ * This step used to copy the shell — an empty <div id="root"> — into each
+ * route folder. It made the routes resolve, which was the only thing anyone
+ * checked, but every one of those pages was wordless to a crawler that does
+ * not run JavaScript. Now each route is rendered to markup first, and the
+ * copies inherit content rather than emptiness. */
+execFileSync('node', ['tools/reynir-prerender.mjs'], { stdio: 'inherit' })
+
 writeFileSync(join(dist, '404.html'), readFileSync(join(dist, 'index.html')))
 writeFileSync(join(dist, '_redirects'), '/* /index.html 200\n')
 

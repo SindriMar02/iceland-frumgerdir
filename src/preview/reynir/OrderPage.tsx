@@ -78,7 +78,7 @@ function ReynirOrderPageInner() {
       lang={lang}
       style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
     >
-      <style>{PAGE_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       <header className="rb-op-bar">
         <Link to={HOME_PATH} aria-label={ot.backToSite}>

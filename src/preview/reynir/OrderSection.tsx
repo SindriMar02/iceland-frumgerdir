@@ -654,7 +654,7 @@ export default function OrderSection({
           : 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)',
       }}
     >
-      <style>{ORDER_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: ORDER_CSS }} />
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <div style={{ borderTop: standalone ? 'none' : `1px solid ${HAIR}`, paddingTop: standalone ? 0 : 16, maxWidth: 640 }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>

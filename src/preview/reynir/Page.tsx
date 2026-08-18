@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
 import { ORDER_PATH, STORY_PATH, LEGAL_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
+import { useIsomorphicLayoutEffect } from './ssr'
 import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, STORY_ART } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
@@ -273,10 +274,30 @@ const PAGE_CSS = `
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 const fmtHM = (mins: number) => `${Math.floor(mins / 60)}:${pad2(mins % 60)}`
+/* Zero-padded, for the printed hours line rather than a sentence — "kl. 7:00"
+   reads naturally mid-sentence, "07:00–17:00" reads right as a timetable. */
+const fmtHMPad = (mins: number) => `${pad2(Math.floor(mins / 60))}:${pad2(mins % 60)}`
 
 /** Iceland has no DST, so UTC clock fields equal Iceland local time.
  *  hoursByDay is read live from the CMS (falls back to bundled data.ts) so
  *  the "open now" badge always matches whatever the owner set. */
+/** The status shown before the browser clock is known — i.e. in the
+ *  prerendered HTML, which is the only version a non-JavaScript crawler ever
+ *  reads. It states the opening hours rather than guessing open/closed,
+ *  because a build-time "Lokað" would be frozen into the page for every
+ *  search engine and AI assistant that quotes it. */
+function staticStatus(lang: Lang, hoursByDay: readonly DayHours[]) {
+  const t = T[lang]
+  const days = hoursByDay.filter((d) => !d.closed)
+  const uniform =
+    days.length === hoursByDay.length &&
+    days.every((d) => d.open === days[0].open && d.close === days[0].close)
+  return {
+    open: false,
+    label: uniform ? t.statusHours(fmtHMPad(days[0].open), fmtHMPad(days[0].close)) : t.statusHoursVaried,
+  }
+}
+
 function openStatus(now: number, lang: Lang, hoursByDay: readonly DayHours[]) {
   const d = new Date(now)
   const day = d.getUTCDay()
@@ -512,12 +533,19 @@ function ReynirPageInner() {
     return () => mq.removeEventListener('change', on)
   }, [])
 
-  const [now, setNow] = useState(() => Date.now())
+  /* null until mounted, so the server render and the browser's first render
+     are identical and hydration is clean. Reading the clock during render
+     would bake the build machine's minute into the shipped HTML. */
+  const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
+    setNow(Date.now())
     const id = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(id)
   }, [])
-  const status = useMemo(() => openStatus(now, lang, HOURS_BY_DAY), [now, lang, HOURS_BY_DAY])
+  const status = useMemo(
+    () => (now === null ? staticStatus(lang, HOURS_BY_DAY) : openStatus(now, lang, HOURS_BY_DAY)),
+    [now, lang, HOURS_BY_DAY],
+  )
 
   useEffect(() => {
     setThemeColor(INK)
@@ -537,15 +565,24 @@ function ReynirPageInner() {
    *
    * Wrapped in try/catch because sessionStorage throws outright in some
    * privacy modes; the intro is decorative, so on failure it simply plays. */
-  const [intro, setIntro] = useState(() => {
-    if (typeof window === 'undefined') return false
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  /* Starts false so the server-rendered HTML and the browser's first render
+     agree — deciding this during render read sessionStorage, which the server
+     has no version of, and that single mismatch made React throw away the
+     whole prerendered tree and rebuild it client-side (error #418/#422).
+     The decision moves into a LAYOUT effect, which runs after mount but
+     before the browser paints, so the curtain still covers the first frame
+     the visitor actually sees. */
+  const [intro, setIntro] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let show = true
     try {
-      return window.sessionStorage.getItem('rb-intro-seen') !== '1'
+      show = window.sessionStorage.getItem('rb-intro-seen') !== '1'
     } catch {
-      return true
+      /* private mode: the intro is decorative, so on failure it simply plays */
     }
-  })
+    if (show) setIntro(true)
+  }, [])
   useEffect(() => {
     if (!intro) return
     const id = window.setTimeout(() => setIntro(false), 2150)
@@ -553,8 +590,12 @@ function ReynirPageInner() {
   }, [intro])
   // Marked as seen as soon as it has played or been dismissed, so a click-to-
   // skip counts too and the curtain does not return on the next route change.
+  const introDecided = useRef(false)
   useEffect(() => {
-    if (intro) return
+    if (intro) { introDecided.current = true; return }
+    /* Skip the first pass: intro is false before the layout effect has ruled,
+       and writing the flag then would mark the curtain seen before it plays. */
+    if (!introDecided.current) { introDecided.current = true; return }
     try { window.sessionStorage.setItem('rb-intro-seen', '1') } catch { /* private mode */ }
   }, [intro])
 
@@ -661,7 +702,7 @@ function ReynirPageInner() {
       lang={lang}
       style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
     >
-      <style>{PAGE_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       {intro && (
         <div className="rb-intro" onClick={() => setIntro(false)} aria-hidden="true">

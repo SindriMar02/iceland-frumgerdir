@@ -216,7 +216,7 @@ function LegalInner() {
 
   return (
     <div className="rb-lg" lang={lang} style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}>
-      <style>{CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <header className="rb-lg-bar">
         <Link to={HOME_PATH} aria-label={lang === 'is' ? 'Til baka á vefinn' : 'Back to the bakery'}>

@@ -361,10 +361,30 @@ function writeSitemap() {
     join(dir, 'sitemap.xml'),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
   )
+  /* The AI crawlers are named explicitly, and allowed on purpose.
+   * "User-agent: *" already permits them, but several of these bots are
+   * blocked by default in hosting presets and boilerplate robots files, and a
+   * silent block is indistinguishable from not being found. For a one-shop
+   * bakery, being the answer when someone asks an assistant "where can I order
+   * a cake in Kopavogur" is worth as much as a search ranking. */
+  const AI_AGENTS = [
+    'GPTBot',          // OpenAI training + ChatGPT browsing
+    'OAI-SearchBot',   // ChatGPT search index
+    'ChatGPT-User',    // a user asking ChatGPT to open the page
+    'PerplexityBot',
+    'Perplexity-User',
+    'ClaudeBot',
+    'Claude-User',
+    'Google-Extended', // Gemini / AI Overviews
+    'Applebot-Extended',
+    'Bingbot',         // Copilot
+  ]
   writeFileSync(
     join(dir, 'robots.txt'),
     LIVE
-      ? `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`
+      ? `User-agent: *\nAllow: /\n\n` +
+        AI_AGENTS.map((a) => `User-agent: ${a}\nAllow: /\n`).join('\n') +
+        `\nSitemap: ${origin}/sitemap.xml\n`
       : `# Preview host — the real robots.txt is generated with REYNIR_SITE_URL set.\nUser-agent: *\nDisallow: /\n`,
   )
   console.log('reynir-seo: sitemap.xml + robots.txt')

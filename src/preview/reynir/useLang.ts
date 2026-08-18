@@ -1,31 +1,67 @@
 /**
- * Reynir bakari — language choice, shared across the two routes.
+ * Reynir bakari — language choice, shared across the routes.
  *
  * The order page is its own route, so a visitor reading the site in Icelandic
  * and then tapping "Panta" must not land in English. The choice is persisted so
  * it survives the navigation. Wrapped in try/catch because Safari private mode
  * throws on localStorage access rather than returning null.
+ *
+ * TWO things here are deliberate and easy to "fix" wrongly:
+ *
+ * 1. THE DEFAULT IS ICELANDIC ON THE CLIENT'S OWN DOMAIN. The catalogue
+ *    preview stays English because that is Sindri reading it. But a first-time
+ *    visitor to reynirbakari.is is overwhelmingly a Kopavogur local, and the
+ *    prerendered HTML is what Google and the AI crawlers read — serving them
+ *    English body text inside a lang="is" shell would index the wrong language
+ *    for the whole site.
+ *
+ * 2. THE FIRST RENDER NEVER READS STORAGE. It returns the same constant on the
+ *    server and in the browser, so the prerendered markup and React's first
+ *    client render are identical and hydration is clean. The stored preference
+ *    is applied one tick later, in an effect. Reading localStorage during
+ *    render is the classic way to produce a hydration mismatch.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Lang } from './data'
+import { STANDALONE } from './paths'
 
 const KEY = 'rb-lang'
 
-function read(): Lang {
-  if (typeof window === 'undefined') return 'en'
+/** Compile-time constant: 'is' in the client build, 'en' in the catalogue. */
+const DEFAULT_LANG: Lang = STANDALONE ? 'is' : 'en'
+
+function stored(): Lang | null {
+  if (typeof window === 'undefined') return null
   try {
-    const stored = window.localStorage.getItem(KEY)
-    return stored === 'is' || stored === 'en' ? stored : 'en'
+    const v = window.localStorage.getItem(KEY)
+    return v === 'is' || v === 'en' ? v : null
   } catch {
-    return 'en'
+    return null
   }
 }
 
 export function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLang] = useState<Lang>(read)
+  const [lang, setLang] = useState<Lang>(DEFAULT_LANG)
+  const mounted = useRef(false)
 
+  /* Apply the remembered choice after mount, not during render. */
   useEffect(() => {
+    const s = stored()
+    if (s && s !== lang) setLang(s)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /* Persist only real choices. The first run is always skipped: at that point
+     `lang` is still the default and the effect above may not have applied the
+     stored value yet, so writing here would clobber a returning visitor's
+     choice with the default. A visitor who never touches the switch therefore
+     leaves nothing in localStorage at all. */
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
     try {
       window.localStorage.setItem(KEY, lang)
     } catch {

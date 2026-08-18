@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-reynir
+dist-reynir-server
 *.local
 .DS_Store
 .claude/launch.json

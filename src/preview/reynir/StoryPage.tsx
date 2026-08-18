@@ -127,7 +127,7 @@ function StoryPageInner() {
 
   return (
     <div className="rb-st" style={{ background: INK, color: IVORY, fontFamily: BODY, minHeight: '100vh' }}>
-      <style>{CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="rb-st-bar">
         <Link to={HOME_PATH} className="rb-st-back">
