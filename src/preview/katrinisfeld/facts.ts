@@ -45,9 +45,24 @@ export const STUDIO = {
   phoneHref: 'tel:+3546633414',
   email: 'katrin@katrinisfeld.is',
 
-  /** Já.is lists the same hours for all seven days. */
+  /**
+   * HER OWN SITE STATES A TIME RANGE AND NO DAYS: "Opnunartími 11:00 - 17:00".
+   * Já.is lists that range against all seven days, and an earlier version of
+   * this build repeated the Já.is version as "opið alla daga" — in the page
+   * text, in llms.txt, and in openingHoursSpecification for Monday through
+   * Sunday. That is a claim nobody has made: a one-person studio staffed
+   * 11–17 on a Sunday is implausible on its face, and hours are the one fact
+   * where being wrong actively costs her — Google shows them in the business
+   * panel, somebody walks to Katrínartún on a Sunday, finds a locked door,
+   * and leaves the review that says so.
+   *
+   * So the site now states exactly what she states, and openDays stays null
+   * until she says which days are real. Structured data omits the hours
+   * entirely while it is null, because no hours beat wrong hours.
+   */
   opens: '11:00',
   closes: '17:00',
+  openDays: null as string[] | null,
 
   /** Copyright line on her own site reads "2018 -". */
   founded: '2018',

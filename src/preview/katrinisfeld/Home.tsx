@@ -226,7 +226,7 @@ export function Home() {
             <a className="ki-samband-tel" href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a>
             <Link className="ki-cta" to={CONTACT_PATH}>Fyrirspurnarform</Link>
           </div>
-          <p className="ki-samband-addr">{ADDRESS_LINE} · {STUDIO.email} · Opið alla daga {STUDIO.opens}–{STUDIO.closes}</p>
+          <p className="ki-samband-addr">{ADDRESS_LINE} · {STUDIO.email} · Opnunartími {STUDIO.opens}–{STUDIO.closes}</p>
         </div>
       </section>
     </Shell>

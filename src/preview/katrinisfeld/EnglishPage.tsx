@@ -72,7 +72,7 @@ export function EnglishPage() {
             <div><dt>Studio</dt><dd>{ADDRESS_LINE}, Iceland</dd></div>
             <div><dt>Phone</dt><dd><a href={STUDIO.phoneHref}>+354 {STUDIO.phoneDisplay}</a></dd></div>
             <div><dt>Email</dt><dd><a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a></dd></div>
-            <div><dt>Open</dt><dd>Every day {STUDIO.opens}–{STUDIO.closes}</dd></div>
+            <div><dt>Open</dt><dd>{STUDIO.opens}–{STUDIO.closes}</dd></div>
           </dl>
         </div>
       </div>

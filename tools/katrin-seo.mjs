@@ -108,7 +108,7 @@ const PAGES = [
   {
     clean: '/hafa-samband',
     title: `Hafa samband · ${STUDIO.street}, Reykjavík`,
-    desc: `Katrín Ísfeld innanhússarkitekt, ${ADDRESS_LINE}. Sími ${STUDIO.phoneDisplay}. Opið alla daga ${STUDIO.opens}–${STUDIO.closes}. Sendu stutta verklýsingu og hún hefur samband.`,
+    desc: `Katrín Ísfeld innanhússarkitekt, ${ADDRESS_LINE}. Sími ${STUDIO.phoneDisplay}. Opnunartími ${STUDIO.opens}–${STUDIO.closes}. Sendu stutta verklýsingu og hún hefur samband.`,
     image: photo('s-eldhus-vitt'),
     kind: 'contact',
   },
@@ -155,12 +155,14 @@ const studioNode = {
     addressCountry: STUDIO.country,
   },
   geo: { '@type': 'GeoCoordinates', latitude: STUDIO.lat, longitude: STUDIO.lon },
-  openingHoursSpecification: [{
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    opens: STUDIO.opens,
-    closes: STUDIO.closes,
-  }],
+  /* Omitted until she confirms WHICH days. Google surfaces this in the
+     business panel, so a guess here sends someone to a locked door. */
+  ...(STUDIO.openDays
+    ? { openingHoursSpecification: [{
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: STUDIO.openDays, opens: STUDIO.opens, closes: STUDIO.closes,
+      }] }
+    : {}),
   currenciesAccepted: 'ISK',
   areaServed: [
     { '@type': 'City', name: 'Reykjavík' },
@@ -388,7 +390,7 @@ function writeLlms() {
 - Address: ${ADDRESS_LINE}, Iceland
 - Phone: ${STUDIO.phone}
 - Email: ${STUDIO.email}
-- Opening hours: every day ${STUDIO.opens}–${STUDIO.closes}
+- Opening hours: ${STUDIO.openDays ? STUDIO.openDays.join(', ') + ' ' : ''}${STUDIO.opens}–${STUDIO.closes}${STUDIO.openDays ? '' : ' (days not confirmed by the business)'}
 - Own studio since ${STUDIO.founded}
 - Member of FHI, Félag húsgagna- og innanhússarkitekta (the Icelandic association of furniture and interior architects)
 - ${CV.degree} (BSc in interior architecture), ${CV.school}, Florida. Graduated with honours; second place in a US international design competition.

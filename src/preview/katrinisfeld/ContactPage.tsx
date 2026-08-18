@@ -48,7 +48,7 @@ export function ContactPage() {
     title: `Hafa samband · Katrín Ísfeld innanhússarkitekt, ${STUDIO.street}, Reykjavík`,
     desc:
       `Katrín Ísfeld innanhússarkitekt, ${ADDRESS_LINE}. Sími ${STUDIO.phoneDisplay}, ` +
-      `${STUDIO.email}. Opið alla daga ${STUDIO.opens}–${STUDIO.closes}. Sendu stutta verklýsingu og hún hefur samband.`,
+      `${STUDIO.email}. Opnunartími ${STUDIO.opens}–${STUDIO.closes}. Sendu stutta verklýsingu og hún hefur samband.`,
     clean: '/hafa-samband',
   }
 
@@ -68,7 +68,7 @@ export function ContactPage() {
               <div><dt>Heimilisfang</dt><dd>{STUDIO.street}<br />{STUDIO.postalCode} {STUDIO.city}</dd></div>
               <div><dt>Sími</dt><dd><a href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a></dd></div>
               <div><dt>Netfang</dt><dd><a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a></dd></div>
-              <div><dt>Opið</dt><dd>Alla daga {STUDIO.opens}–{STUDIO.closes}</dd></div>
+              <div><dt>Opið</dt><dd>{STUDIO.opens}–{STUDIO.closes}</dd></div>
               <div>
                 <dt>Samfélagsmiðlar</dt>
                 <dd>

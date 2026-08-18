@@ -93,7 +93,7 @@ export const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Hvar er stúdíóið og hvenær er opið?',
-    a: `Stúdíóið er á ${ADDRESS_LINE}. Opið er alla daga frá ${STUDIO.opens} til ${STUDIO.closes}. Sími ${STUDIO.phoneDisplay}, netfang ${STUDIO.email}.`,
+    a: `Stúdíóið er á ${ADDRESS_LINE}. Opnunartími er frá ${STUDIO.opens} til ${STUDIO.closes}. Sími ${STUDIO.phoneDisplay}, netfang ${STUDIO.email}.`,
   },
   {
     q: 'Vinnur hún utan höfuðborgarsvæðisins?',

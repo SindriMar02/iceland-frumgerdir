@@ -98,7 +98,7 @@ export function Foot() {
             <a href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a> ·{' '}
             <a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>
           </p>
-          <p className="ki-foot-line">Opið alla daga {STUDIO.opens}–{STUDIO.closes}</p>
+          <p className="ki-foot-line">Opnunartími {STUDIO.opens}–{STUDIO.closes}</p>
         </div>
         <nav aria-label="Verkefni">
           <p className="ki-foot-head">Verkefni</p>
