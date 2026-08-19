@@ -119,33 +119,23 @@ const PAGE_CSS = `
      continuously and cost real frames on mobile. */
   ; pointer-events:none; z-index:149; }
 
-  .rb-stickybar { position:fixed; top:0; left:0; right:0; z-index:150;
+  .rb-stickybar { position:fixed; inset:0 0 auto 0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
-    padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px;
-    /* SOLID, and the SAME ink as body and the page ground — deliberately not
-       the old translucent blur. iOS 26 colours the status-bar strip from
-       whichever source it favours (body, a fixed edge element, its own
-       content extension); a translucent bar can never match that strip, so
-       the seam the owner saw behind the clock was structural. One shared
-       colour for body + bar + plate + menu makes the seam impossible
-       whichever source Safari picks. */
-    /* GLASS, not a slab. The status-bar strip above the layout viewport is
-       OS-owned frosted glass over the scrolled page; nothing web-side can
-       paint there (proven with a 120px red test cap in the simulator: not
-       one pixel of it rendered). So no flat bar colour can ever match the
-       strip — the strip GHOSTS the content scrolling under it, and only a
-       bar that ghosts the same way reads as continuous chrome. Same
-       mechanism that makes the mirror builds look native: their .88 LIGHT
-       glass on a light page, ours dark glass on a dark page. background-color
-       stays set (not the shorthand) because Safari's tint sampler reads
-       background-color specifically. Verified in the simulator on iOS 26.5,
-       over bright photos and dark sections both. */
+    padding:10px clamp(16px,4.5vw,72px);
+    /* Brass's .pc-bar, transplanted verbatim in mechanism. Two rules learned
+       the hard way and verified against the one design whose bar behaves:
+       glass (.72 + blur), never a slab — the OS strip above the viewport
+       ghosts the page, and only a bar that ghosts too reads as one chrome —
+       and the hide/show is TRANSFORM ONLY. Animating opacity on an element
+       with backdrop-filter is what split the bar into layers on iOS: the
+       blurred backdrop and border could linger while the element moved.
+       Brass animates transform alone, so nothing can separate. */
     background-color:rgba(11,10,9,.72);
-    -webkit-backdrop-filter:blur(24px) saturate(1.25); backdrop-filter:blur(24px) saturate(1.25);
+    -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
     border-bottom:1px solid rgba(238,211,170,.14);
-    transform:translateY(-101%); opacity:0; pointer-events:none;
-    transition:transform .55s ${EASE}, opacity .35s ${EASE}; }
-  .rb-stickybar[data-on="true"] { transform:none; opacity:1; pointer-events:auto; }
+    transform:translateY(-101%);
+    transition:transform .55s ${EASE}; }
+  .rb-stickybar[data-on="true"] { transform:none; }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
@@ -156,23 +146,12 @@ const PAGE_CSS = `
   /* the open/closed dot, carried into the bar so the status stays visible */
   .rb-sticky-dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
   @media (max-width:820px) { .rb-sticky-nav { display:none; } }
-  /* ── MOBILE: NOTHING FIXED. The Brass/Miette rule, adopted after every
-     attached-bar variant failed on the phone: iOS reserves the status strip
-     as OS glass over the scrolled page, so ANY fixed chrome up there — bar,
-     pill, plate, cap — reads as a floating object over content. Brass ships
-     no persistent header at all: the chrome is in-flow, scrolls away with
-     the hero, and the page is simply the page. Same here. The masthead
-     (logo, language, burger) is at the top where a visitor starts, and the
-     menu carries Order. Desktop keeps the bar — there is no OS strip there. */
-  @media (max-width:820px) {
-    .rb-stickybar { display:none !important; }
-  }
   
   /* "Closed, we open at 7:00 today" will not fit beside a CTA on a phone —
      the dot alone still carries open/closed, so only the words go. */
   @media (max-width:560px) { .rb-sticky-status { display:none; } }
   @media (prefers-reduced-motion: reduce) {
-    .rb-stickybar { transition:opacity .2s linear; }
+    .rb-stickybar { transition:none; }
   }
 
   .rb-cta {
@@ -858,40 +837,6 @@ function ReynirPageInner() {
     return () => io.disconnect()
   }, [])
 
-  /* Scroll direction. The bar behaves like every normal mobile site: scrolling
-     DOWN is reading, so the whole screen belongs to the page and the bar gets
-     out of the way; scrolling UP is looking for something, so the bar returns.
-     (Being past the hero remains a precondition — both must hold.)
-
-     Kept off React's per-frame path: the listener is passive, throttled to one
-     rAF, and setState fires only when the direction actually flips — same-value
-     setState is a React no-op, so reading scroll costs no renders. The two
-     guards matter on iOS: rubber-banding past either end reports scroll deltas
-     in the OPPOSITE direction (overscroll at the bottom reads as "up"), which
-     without the clamp made bars like this one flash at the ends of the page. */
-  const [scrollUp, setScrollUp] = useState(true)
-  useEffect(() => {
-    let lastY = window.scrollY
-    let raf = 0
-    const onScroll = () => {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const y = window.scrollY
-        const max = document.documentElement.scrollHeight - window.innerHeight
-        if (y < 0 || y > max) return
-        const d = y - lastY
-        if (Math.abs(d) < 8) return
-        setScrollUp(d < 0)
-        lastY = y
-      })
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [])
   const closeLightbox = () => setLightbox(null)
   const stepLightbox = (dir: 1 | -1) => setLightbox((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length))
 
@@ -937,7 +882,7 @@ function ReynirPageInner() {
           things people came for: what's on, and how to order it. Hidden while
           the cover is on screen so the hero keeps its full first impression. */}
       
-      <div className="rb-stickybar" data-on={pastCover && scrollUp} aria-hidden={!(pastCover && scrollUp)}>
+      <div className="rb-stickybar" data-on={pastCover} aria-hidden={!pastCover}>
         <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
