@@ -34,7 +34,7 @@ const PAGE_CSS = `
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
 
   .rb-op-bar { display:flex; align-items:center; justify-content:space-between; gap:20px;
-    padding:18px clamp(20px,4.5vw,72px); border-bottom:1px solid ${HAIR_SOFT}; }
+    padding:calc(18px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 18px; border-bottom:1px solid ${HAIR_SOFT}; }
   .rb-op-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:11px 0;
     transition:color .2s ${EASE}; }

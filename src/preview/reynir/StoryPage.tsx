@@ -50,7 +50,7 @@ const CSS = `
     background-size:200px 200px; }
 
   .rb-st-bar { position:sticky; top:0; z-index:150; display:flex; align-items:center;
-    justify-content:space-between; gap:20px; padding:14px clamp(20px,4.5vw,72px);
+    justify-content:space-between; gap:20px; padding:calc(14px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 14px;
     background:rgba(11,10,9,.86); backdrop-filter:blur(14px) saturate(1.15);
     -webkit-backdrop-filter:blur(14px) saturate(1.15); border-bottom:1px solid ${HAIR_SOFT}; }
   .rb-st-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
@@ -82,6 +82,7 @@ const CSS = `
   @media (max-width:820px) { .rb-st-chapter { grid-template-columns:1fr; } }
 
   .rb-lightbox { position:fixed; inset:0; z-index:300; background:rgba(11,10,9,.94);
+    padding-top:env(safe-area-inset-top, 0px);
     display:flex; align-items:center; justify-content:center; padding:clamp(16px,5vh,56px);
     animation:rb-st-lb-in .28s ${EASE} both; }
   @keyframes rb-st-lb-in { from { opacity:0; } to { opacity:1; } }

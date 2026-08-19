@@ -119,7 +119,7 @@ const PAGE_CSS = `
      continuously and cost real frames on mobile. */
   .rb-stickybar { position:fixed; top:0; left:0; right:0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
-    padding:10px clamp(16px,4.5vw,72px);
+    padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px;
     background:rgba(11,10,9,.86);
     backdrop-filter:blur(14px) saturate(1.15); -webkit-backdrop-filter:blur(14px) saturate(1.15);
     border-bottom:1px solid rgba(238,211,170,.14);
@@ -204,7 +204,7 @@ const PAGE_CSS = `
   .rb-menu::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
     background:${INK_DEEP}; }
   .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
-    padding:10px clamp(16px,4.5vw,72px); min-height:64px; }
+    padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px; min-height:64px; }
   .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
     padding:0 clamp(22px,6vw,72px); gap:2px; }
   .rb-menu-link { position:relative; display:block; text-decoration:none;
@@ -293,6 +293,7 @@ const PAGE_CSS = `
   .rb-page section[id] { scroll-margin-top:78px; }
 
   .rb-lightbox { position:fixed; inset:0; z-index:300; background:rgba(11,10,9,.94);
+    padding-top:env(safe-area-inset-top, 0px);
     display:flex; align-items:center; justify-content:center; padding:clamp(16px,5vh,56px);
     animation:rb-lb-in .28s ${EASE} both; }
   @keyframes rb-lb-in { from { opacity:0; } to { opacity:1; } }
@@ -989,7 +990,7 @@ function ReynirPageInner() {
       </div>
 
       {/* ===================== MASTHEAD ===================== */}
-      <header id="top" style={{ position: 'relative', zIndex: 5, padding: '20px clamp(20px,4.5vw,72px) 0' }}>
+      <header id="top" style={{ position: 'relative', zIndex: 5, padding: 'calc(20px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 0' }}>
         <div style={{ ...wrap, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
           <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 132, height: 'auto', display: 'block' }} />
           <nav className="rb-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>

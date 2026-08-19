@@ -12,7 +12,13 @@
        on top at build time. -->
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: without it iOS clips ALL page painting to the safe
+         area, so no element can colour the status-bar strip and Safari fills it
+         by extending the scrolling layer (the "photo above the header" bug).
+         With it the page owns the full screen; every top bar compensates with
+         env(safe-area-inset-top). Must be static — iOS parses it at first
+         paint only. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Reynir bakarí</title>
     <meta name="theme-color" content="#131313" />
     <!-- Safari 26 ignores theme-color; body background-color is its fallback

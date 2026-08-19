@@ -33,7 +33,7 @@ const CSS = `
   .rb-lg ::selection { background:#5C1C1F; color:${IVORY}; }
   .rb-lg a:focus-visible, .rb-lg button:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
   .rb-lg-bar { display:flex; align-items:center; justify-content:space-between; gap:20px;
-    padding:18px clamp(20px,4.5vw,72px); border-bottom:1px solid ${HAIR_SOFT}; }
+    padding:calc(18px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 18px; border-bottom:1px solid ${HAIR_SOFT}; }
   .rb-lg-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:11px 0; transition:color .2s ${EASE}; }
   .rb-lg-back:hover { color:${GOLD_LIGHT}; }

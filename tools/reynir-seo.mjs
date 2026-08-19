@@ -292,6 +292,16 @@ function inject(page) {
   let html = readFileSync(file, 'utf8')
   // an Icelandic page must say so, for screen readers and for search
   html = html.replace('<html lang="en">', '<html lang="is">')
+  // viewport-fit=cover, per route: the shared catalogue shell must NOT get it
+  // (15+ preview pages have unaudited fixed bars), but the Reynir pages need
+  // it or iOS clips their painting out of the status-bar strip — see
+  // [[ios-safe-area-chrome-color]]. Idempotent: skips if already present.
+  if (!html.includes('viewport-fit=cover')) {
+    html = html.replace(
+      /<meta name="viewport" content="width=device-width, initial-scale=1\.0" \/>/,
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />',
+    )
+  }
   // drop the catalogue's own title/description/robots so ours are not duplicates
   html = html
     .replace(/<title>[^<]*<\/title>/, '')
