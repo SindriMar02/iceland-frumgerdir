@@ -36,6 +36,10 @@ import {
 
 
 const CSS = `
+  /* Safari 26 tints its chrome from body's background-color (theme-color is
+     ignored since Liquid Glass) — without this the status-bar strip is WHITE
+     on this ink-dark page. See [[ios-safe-area-chrome-color]]. */
+  html, body { background-color:${INK}; }
   .rb-st ::selection { background:${BURGUNDY}; color:${IVORY}; }
   .rb-st a:focus-visible, .rb-st button:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
 
@@ -126,7 +130,7 @@ function StoryPageInner() {
   const pad = 'clamp(64px,9vh,110px) clamp(20px,4.5vw,72px)'
 
   return (
-    <div className="rb-st" style={{ background: INK, color: IVORY, fontFamily: BODY, minHeight: '100vh' }}>
+    <div className="rb-st" style={{ background: INK, color: IVORY, fontFamily: BODY, minHeight: '100svh' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="rb-st-bar">

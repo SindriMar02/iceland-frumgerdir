@@ -56,6 +56,13 @@ const PAGE_CSS = `
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px;
   }
 
+  /* iOS chrome colour. Safari 26 stopped reading the theme-color meta; it
+     samples fixed edge elements' background-color and falls back to BODY's.
+     html and body had none, so the status-bar strip and the band under the
+     bottom URL bar rendered WHITE on a page that is ink-dark everywhere —
+     see [[ios-safe-area-chrome-color]] before touching any of this. */
+  html, body { background-color:${INK}; }
+
   .rb-cover { min-height:100svh; }
 
   @keyframes rb-rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
@@ -119,6 +126,14 @@ const PAGE_CSS = `
     transform:translateY(-101%); opacity:0; pointer-events:none;
     transition:transform .55s ${EASE}, opacity .35s ${EASE}; }
   .rb-stickybar[data-on="true"] { transform:none; opacity:1; pointer-events:auto; }
+  /* In collapsed Safari the visual viewport extends under the status bar, and
+     that strip shows PAGE CONTENT scrolled beneath it — above the bar's own
+     top:0, which made the bar read as detached from the top of the screen.
+     This cap extends the bar's chrome upward past the viewport edge, so the
+     strip shows bar, not page. It travels with the bar's own transform, so a
+     hidden bar takes its cap with it and the hero owns the strip again. */
+  .rb-stickybar::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
+    background:${INK_DEEP}; }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
@@ -185,6 +200,9 @@ const PAGE_CSS = `
     opacity:0; visibility:hidden;
     transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
   .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
+  /* the same status-bar cap the sticky bar needs, for the same reason */
+  .rb-menu::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
+    background:${INK_DEEP}; }
   .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
     padding:10px clamp(16px,4.5vw,72px); min-height:64px; }
   .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
@@ -322,6 +340,12 @@ const PAGE_CSS = `
     .rb-bread-grid { grid-template-columns:1fr !important; }
     .rb-catering-grid { grid-template-columns:1fr !important; }
     .rb-visit-grid { grid-template-columns:1fr !important; }
+    /* Once the grids are a single column, a frame with its own max-width sits
+       in a much wider column and reads as pushed to one side. Auto margins
+       centre it. Frames that fill their cell are already 100% wide, so this
+       does nothing to them. !important because the width cap and the top
+       margin arrive as inline style. */
+    .rb-menu-art { margin-left:auto !important; margin-right:auto !important; }
     /* the story's two chapters stack, photo always above its paragraph —
        explicit grid-row/column overrides because the flipped chapter pins
        its image to column 2, which would otherwise survive the collapse. */
@@ -690,11 +714,23 @@ function ReynirPageInner() {
 
   useEffect(() => {
     if (!menu) return
-    /* The panel is fixed and covers the page; without this the page behind it
-       scrolls under your finger on iOS. Restored on close, and the previous
-       value is preserved rather than assumed to be ''. */
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    /* The panel is fixed and covers the page, so the page behind it must not
+       scroll. overflow:hidden alone does NOT lock iOS Safari — the page kept
+       scrolling under a finger, and on close the browser could land on a
+       different scroll position, which read as the whole layout having
+       changed. The reliable lock is to fix the body at its current offset;
+       the -top preserves what is on screen, and close restores the exact
+       scroll position with an instant jump (html has scroll-behavior:smooth,
+       which would otherwise animate the restore). */
+    const y = window.scrollY
+    const b = document.body.style
+    const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width, overflow: b.overflow }
+    b.position = 'fixed'
+    b.top = `-${y}px`
+    b.left = '0'
+    b.right = '0'
+    b.width = '100%'
+    b.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
     window.addEventListener('keydown', onKey)
     /* Rotating a phone to landscape can cross the breakpoint that hides the
@@ -703,7 +739,13 @@ function ReynirPageInner() {
     const onWide = (e: MediaQueryListEvent) => { if (e.matches) setMenu(false) }
     mq.addEventListener('change', onWide)
     return () => {
-      document.body.style.overflow = prevOverflow
+      b.position = prev.position
+      b.top = prev.top
+      b.left = prev.left
+      b.right = prev.right
+      b.width = prev.width
+      b.overflow = prev.overflow
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' })
       window.removeEventListener('keydown', onKey)
       mq.removeEventListener('change', onWide)
     }
@@ -1277,7 +1319,14 @@ function ReynirPageInner() {
           Every frame still opens the same lightbox, so the indices below
           continue to line up with GALLERY. */}
       <section id="gallery" style={{ background: INK, padding: 'clamp(56px,9vh,110px) 0 clamp(64px,10vh,120px)' }}>
-        <div style={wrap}>
+        {/* The section itself has no horizontal padding, because the photo
+            strip below bleeds. That left this header with none either, so on
+            anything narrower than the 1180px wrap the kicker, the heading and
+            the paragraph sat hard against the left edge of the screen.
+            It now carries the SAME gutter expression as the strip, so the two
+            share one left edge at every width instead of only agreeing above
+            1180px. */}
+        <div style={{ padding: '0 max(20px, calc((100vw - 1180px) / 2 + 20px))' }}>
           {/* The rule spans the full container, as it does in every other
               section — only the text is capped. Carrying the cap on the same
               element cut the hairline short and broke the page's one

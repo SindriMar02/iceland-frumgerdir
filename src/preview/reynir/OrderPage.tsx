@@ -25,6 +25,10 @@ import { SiteContentProvider, useSiteContent } from './sanity'
 
 
 const PAGE_CSS = `
+  /* Safari 26 tints its chrome from body's background-color (theme-color is
+     ignored since Liquid Glass) — without this the status-bar strip is WHITE
+     on this ink-dark page. See [[ios-safe-area-chrome-color]]. */
+  html, body { background-color:${INK_DEEP}; }
   .rb-op ::selection { background:#5C1C1F; color:${IVORY}; }
   .rb-op a:focus-visible, .rb-op button:focus-visible {
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
