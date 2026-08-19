@@ -36,6 +36,14 @@
     <link rel="icon" href="/reynir/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/reynir/brand/favicon-48.png" type="image/png" sizes="48x48" />
     <link rel="apple-touch-icon" href="/reynir/brand/apple-touch-icon.png" />
+    <!-- Cloudflare Web Analytics: cookieless, stores nothing that identifies a
+         visitor, so no consent banner is required (and the privacy policy says
+         exactly that). The token is injected at build time from
+         VITE_REYNIR_CF_ANALYTICS_TOKEN — with no token the tag is stripped by
+         tools/reynir-standalone-post.mjs and the site ships clean, which is
+         what happens on the preview host. Get the token at Cloudflare
+         dashboard → Web Analytics → the site → JS snippet. -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"__CF_ANALYTICS_TOKEN__"}'></script>
   </head>
   <body>
     <div id="root"></div>

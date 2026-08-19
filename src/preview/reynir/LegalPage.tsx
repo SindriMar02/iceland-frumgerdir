@@ -102,7 +102,8 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Vefkökur',
       p: [
-        'Vefurinn notar engar vefkökur til að rekja þig og enga greiningarþjónustu. Valið þitt á tungumáli er geymt í vafranum þínum svo síðan muni það milli heimsókna; þær upplýsingar fara hvergi.',
+        'Vefurinn notar engar vefkökur til að rekja þig. Valið þitt á tungumáli er geymt í vafranum þínum svo síðan muni það milli heimsókna; þær upplýsingar fara hvergi.',
+        'Við teljum heimsóknir með Cloudflare Web Analytics. Sú talning notar engar vefkökur, geymir enga persónugreinanlega vitneskju um þig og fylgir þér ekki milli vefsvæða. Við sjáum aðeins samtölur: hversu margir komu, hvaða síður voru skoðaðar og í hvaða landi. Þess vegna biðjum við þig ekki um samþykki fyrir vefkökum.',
         'Kortið á síðunni er frá Google og hleðst inn frá þeim.',
       ],
     },
@@ -178,7 +179,8 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Cookies',
       p: [
-        'This site sets no tracking cookies and uses no analytics. Your language choice is stored in your own browser so the page remembers it between visits; that never leaves your device.',
+        'This site sets no tracking cookies. Your language choice is stored in your own browser so the page remembers it between visits; that never leaves your device.',
+        'We count visits with Cloudflare Web Analytics. It uses no cookies, stores nothing that identifies you, and does not follow you between sites. We see totals only: how many people came, which pages they read, and which country they were in. That is why we do not ask you to accept cookies.',
         'The map on the page is served by Google and loads from them.',
       ],
     },

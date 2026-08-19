@@ -49,6 +49,28 @@ for (const entry of readdirSync(dist)) {
 }
 console.log(`reynir-post: pruned ${pruned} catalogue entries from public/`)
 
+/* 2b ── analytics: token in, or the tag out entirely.
+ *
+ * The shell carries a Cloudflare Web Analytics beacon with a placeholder
+ * token. With VITE_REYNIR_CF_ANALYTICS_TOKEN set the placeholder is replaced
+ * and the site counts visits; without it the whole script tag is REMOVED, so
+ * the preview host and any local build ship no beacon at all rather than a
+ * broken one pointing at a placeholder. Cookieless either way — the privacy
+ * policy describes exactly this. */
+const cfToken = process.env.VITE_REYNIR_CF_ANALYTICS_TOKEN
+{
+  const shell = join(dist, 'index.html')
+  let html = readFileSync(shell, 'utf8')
+  if (cfToken) {
+    html = html.replace('__CF_ANALYTICS_TOKEN__', cfToken)
+    console.log('reynir-post: Cloudflare Web Analytics beacon armed')
+  } else {
+    html = html.replace(/\n?\s*<!-- Cloudflare Web Analytics[\s\S]*?<\/script>\n?/, '\n')
+    console.log('reynir-post: no analytics token — beacon removed (set VITE_REYNIR_CF_ANALYTICS_TOKEN to enable)')
+  }
+  writeFileSync(shell, html)
+}
+
 /* 3 ── routes answer as real pages, with real HTML in them.
  *
  * This step used to copy the shell — an empty <div id="root"> — into each
