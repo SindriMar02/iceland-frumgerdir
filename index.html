@@ -84,6 +84,59 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      /* Faxi's loading curtain paints from the shell, before React exists.
+         A curtain that waits for the app bundle is not a loading screen, it is
+         an epilogue: measured on a 1.6Mbps connection the React-rendered version
+         had not appeared at all by 2.4s, so the visitor watched a white page and
+         then a brief flash. This paints on the first frame instead.
+         Path-gated, wrapped in try/catch: any other route is untouched. */
+      (function () {
+        try {
+          if (!/\/preview\/faxibakery(\/|$)/.test(location.pathname)) return
+          var CREAM = '#F1E4CE', INK = '#1B1712', CARAMEL = '#C2773A', MOSS = '#4C5A41'
+          /* the roll's own geometry: an Archimedean spiral, built not inlined */
+          var d = '', TURNS = 3.6, STEPS = 340, B = 4.6
+          for (var i = 0; i <= STEPS; i++) {
+            var t = (i / STEPS) * TURNS * Math.PI * 2, r = B * t * 0.5
+            d += (i ? 'L' : 'M') + (60 + r * Math.cos(t)).toFixed(2) + ' ' + (60 + r * Math.sin(t)).toFixed(2)
+          }
+          var h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Atlantic/Reykjavik', hour: '2-digit', hour12: false }).format(new Date()) % 24
+          var line = (h >= 9 && h < 20) ? 'The ovens are on' : 'First batch at 9'
+          var css = document.createElement('style')
+          css.textContent =
+            'html{background:' + CREAM + '}' +
+            '#faxi-boot{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:' + CREAM + ';transform:translateY(0);transition:transform 1.15s cubic-bezier(.76,0,.24,1)}' +
+            '#faxi-boot.is-lifting{transform:translateY(-101%)}' +
+            '#faxi-boot .fb-mark{display:flex;flex-direction:column;align-items:center;text-align:center}' +
+            '#faxi-boot svg{display:block;width:clamp(104px,12vw,146px);height:auto;margin-bottom:clamp(14px,2.4vh,26px);animation:fb-turn 1750ms cubic-bezier(.33,0,.15,1) both}' +
+            '#faxi-boot svg path:last-child{stroke-dasharray:1;stroke-dashoffset:1;animation:fb-coil 1750ms cubic-bezier(.33,0,.15,1) forwards}' +
+            '@keyframes fb-coil{to{stroke-dashoffset:0}}' +
+            '@keyframes fb-turn{from{transform:rotate(-32deg) scale(.94)}to{transform:none}}' +
+            '#faxi-boot .fb-w,#faxi-boot .fb-s,#faxi-boot .fb-l{opacity:0;animation:fb-in .7s cubic-bezier(.22,.61,.36,1) forwards}' +
+            '#faxi-boot .fb-w{font-family:"Cabinet Grotesk",system-ui,sans-serif;font-weight:800;font-size:clamp(40px,5.6vw,72px);letter-spacing:-.04em;line-height:.9;color:' + INK + ';animation-delay:875ms}' +
+            '#faxi-boot .fb-s{font-family:"Azeret Mono",ui-monospace,monospace;font-size:9.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:' + MOSS + ';margin-top:9px;animation-delay:1050ms}' +
+            '#faxi-boot .fb-l{font-family:"Azeret Mono",ui-monospace,monospace;font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:' + CARAMEL + ';margin-top:20px;animation-delay:1225ms}' +
+            '@keyframes fb-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
+            '@media (prefers-reduced-motion:reduce){#faxi-boot{display:none}}'
+          document.head.appendChild(css)
+          var el = document.createElement('div')
+          el.id = 'faxi-boot'
+          el.setAttribute('role', 'presentation')
+          el.innerHTML =
+            '<div class="fb-mark">' +
+            '<svg viewBox="0 0 120 120" aria-hidden="true">' +
+            '<path d="' + d + '" fill="none" stroke="' + INK + '" stroke-opacity=".08" stroke-width="3.4" stroke-linecap="round"></path>' +
+            '<path d="' + d + '" pathLength="1" fill="none" stroke="' + CARAMEL + '" stroke-width="3.4" stroke-linecap="round"></path>' +
+            '</svg>' +
+            '<div class="fb-w">Faxi</div><div class="fb-s">Bakery &middot; Caf&eacute;</div>' +
+            '<div class="fb-l">' + line + '</div></div>'
+          document.body.appendChild(el)
+          /* the app reads this to know how much of the coil has already played */
+          window.__faxiBootAt = Date.now()
+        } catch (e) {}
+      })()
+    </script>
     <!-- Sibling of #root, never a child: React clears its own container on the
          first render, and this must survive the case where React never runs.
          Names no client and links nowhere, like every other fallback here. -->
