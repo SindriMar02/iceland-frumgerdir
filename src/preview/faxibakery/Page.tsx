@@ -55,7 +55,7 @@ const OPEN_HOUR = 9
 const CLOSE_HOUR = 20
 
 /** Opening reveal: hold on the wordmark, then lift. */
-const BOOT_HOLD = 1150
+const BOOT_HOLD = 1750
 const BOOT_LIFT = 1150
 
 const EASE = 'cubic-bezier(.16,.84,.44,1)'
@@ -152,12 +152,25 @@ const PAGE_CSS = `
                   transform:translateY(0); will-change:transform;
                   transition:transform 1.15s cubic-bezier(.76,0,.24,1); }
   .faxi-ready .faxi-curtain { transform:translateY(-101%); }
-  .faxi-curtain-mark { text-align:center; }
-  .faxi-curtain-rule { width:170px; height:1px; background:${INK}1f; margin:26px auto 14px; overflow:hidden; }
-  .faxi-curtain-rule span { display:block; width:100%; height:100%; background:${CARAMEL};
-                            transform:scaleX(0); transform-origin:left center;
-                            animation:faxi-fill ${BOOT_HOLD}ms cubic-bezier(.4,0,.2,1) forwards; }
-  @keyframes faxi-fill { to { transform:scaleX(1); } }
+  .faxi-curtain-mark { text-align:center; display:flex; flex-direction:column; align-items:center; }
+
+  /* The roll coils itself while the page loads. Drawing from the centre outward
+     is the whole point, so the dash runs 1 -> 0 on a path normalised to 1. */
+  .faxi-spiral { display:block; width:clamp(104px,12vw,146px); height:auto;
+                 margin-bottom:clamp(14px,2.4vh,26px);
+                 animation:faxi-coil-turn ${BOOT_HOLD}ms cubic-bezier(.33,0,.15,1) both; }
+  .faxi-spiral path:last-child { stroke-dasharray:1; stroke-dashoffset:1;
+                 animation:faxi-coil ${BOOT_HOLD}ms cubic-bezier(.33,0,.15,1) forwards; }
+  @keyframes faxi-coil { to { stroke-dashoffset:0; } }
+  @keyframes faxi-coil-turn { from { transform:rotate(-32deg) scale(.94); } to { transform:none; } }
+
+  /* The name arrives once the roll is drawn, not alongside it. */
+  .faxi-curtain-word, .faxi-curtain-sub, .faxi-curtain-line {
+    opacity:0; animation:faxi-curtain-in .7s cubic-bezier(.22,.61,.36,1) forwards; }
+  .faxi-curtain-word { animation-delay:${Math.round(BOOT_HOLD * 0.5)}ms; }
+  .faxi-curtain-sub  { animation-delay:${Math.round(BOOT_HOLD * 0.6)}ms; }
+  .faxi-curtain-line { animation-delay:${Math.round(BOOT_HOLD * 0.7)}ms; }
+  @keyframes faxi-curtain-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 
   /* Hero entrance. Gated on the curtain, never on an observer — an observer
      hands the hero its class at t=0 and the whole entrance plays behind the
@@ -654,6 +667,38 @@ function FilmView({
 
 
 
+/**
+ * The loading mark: a cinnamon roll drawn as what it actually is, a spiral.
+ *
+ * An Archimedean coil that draws itself from the centre outward while the page
+ * loads, so the progress indicator IS the product rather than a generic bar
+ * under a logo. It uncoils as it draws, the way dough goes onto the tray.
+ */
+function RollSpiral() {
+  const d = useMemo(() => {
+    const TURNS = 3.6
+    const STEPS = 340
+    const B = 4.6 // keeps the outer radius just inside the 120 box
+    let out = ''
+    for (let i = 0; i <= STEPS; i++) {
+      const t = (i / STEPS) * TURNS * Math.PI * 2
+      const rad = B * t * 0.5
+      const x = 60 + rad * Math.cos(t)
+      const y = 60 + rad * Math.sin(t)
+      out += `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`
+    }
+    return out
+  }, [])
+
+  return (
+    <svg className="faxi-spiral" viewBox="0 0 120 120" aria-hidden>
+      {/* the ghost of the finished roll, so the coil has somewhere to arrive */}
+      <path d={d} fill="none" stroke={INK} strokeOpacity={0.08} strokeWidth={3.4} strokeLinecap="round" />
+      <path d={d} pathLength={1} fill="none" stroke={CARAMEL} strokeWidth={3.4} strokeLinecap="round" />
+    </svg>
+  )
+}
+
 /** A framed window. Photography always sits inside a frame on this page, and
  *  drifts within it — never a section sliding under the reader. */
 function Frame({
@@ -1054,10 +1099,10 @@ export default function FaxiBakeryPage() {
       {booting && (
         <div className="faxi-curtain" role="presentation">
           <div className="faxi-curtain-mark">
-            <div style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 'clamp(46px,7vw,92px)', letterSpacing: '-.04em', lineHeight: .9, color: INK }}>Faxi</div>
-            <div className="faxi-meta" style={{ color: MOSS, marginTop: 10, fontSize: 10 }}>Bakery · Café</div>
-            <div className="faxi-curtain-rule"><span /></div>
-            <div className="faxi-meta" style={{ color: '#1B171273', fontSize: 9.5 }}>
+            <RollSpiral />
+            <div className="faxi-curtain-word" style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 'clamp(40px,5.6vw,72px)', letterSpacing: '-.04em', lineHeight: .9, color: INK }}>Faxi</div>
+            <div className="faxi-curtain-sub faxi-meta" style={{ color: MOSS, marginTop: 9, fontSize: 9.5 }}>Bakery · Café</div>
+            <div className="faxi-curtain-line faxi-meta" style={{ color: '#1B171266', fontSize: 9, marginTop: 20 }}>
               {oven.open ? 'Next batch in ' : ''}<span style={{ fontVariantNumeric: 'tabular-nums', color: CARAMEL }}>{oven.open ? oven.value : 'First batch at 9'}</span>
             </div>
           </div>
