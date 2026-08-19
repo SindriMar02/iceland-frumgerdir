@@ -854,6 +854,41 @@ function ReynirPageInner() {
     io.observe(cover)
     return () => io.disconnect()
   }, [])
+
+  /* Scroll direction. The bar behaves like every normal mobile site: scrolling
+     DOWN is reading, so the whole screen belongs to the page and the bar gets
+     out of the way; scrolling UP is looking for something, so the bar returns.
+     (Being past the hero remains a precondition — both must hold.)
+
+     Kept off React's per-frame path: the listener is passive, throttled to one
+     rAF, and setState fires only when the direction actually flips — same-value
+     setState is a React no-op, so reading scroll costs no renders. The two
+     guards matter on iOS: rubber-banding past either end reports scroll deltas
+     in the OPPOSITE direction (overscroll at the bottom reads as "up"), which
+     without the clamp made bars like this one flash at the ends of the page. */
+  const [scrollUp, setScrollUp] = useState(true)
+  useEffect(() => {
+    let lastY = window.scrollY
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const y = window.scrollY
+        const max = document.documentElement.scrollHeight - window.innerHeight
+        if (y < 0 || y > max) return
+        const d = y - lastY
+        if (Math.abs(d) < 8) return
+        setScrollUp(d < 0)
+        lastY = y
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
   const closeLightbox = () => setLightbox(null)
   const stepLightbox = (dir: 1 | -1) => setLightbox((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length))
 
@@ -905,7 +940,7 @@ function ReynirPageInner() {
           hero, behind the bar once scrolled — and the status-bar strip stays
           the page's own chrome colour at every scroll position. */}
       <div className="rb-chromeplate" aria-hidden="true" />
-      <div className="rb-stickybar" data-on={pastCover} aria-hidden={!pastCover}>
+      <div className="rb-stickybar" data-on={pastCover && scrollUp} aria-hidden={!(pastCover && scrollUp)}>
         <a href="#top" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
