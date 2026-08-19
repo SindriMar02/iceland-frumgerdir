@@ -36,6 +36,10 @@ import {
 
 
 const CSS = `
+  /* Safari 26 tints its chrome from body's background-color (theme-color is
+     ignored since Liquid Glass) — without this the status-bar strip is WHITE
+     on this ink-dark page. See [[ios-safe-area-chrome-color]]. */
+  html, body { background-color:${INK}; }
   .rb-st ::selection { background:${BURGUNDY}; color:${IVORY}; }
   .rb-st a:focus-visible, .rb-st button:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
 
@@ -46,9 +50,8 @@ const CSS = `
     background-size:200px 200px; }
 
   .rb-st-bar { position:sticky; top:0; z-index:150; display:flex; align-items:center;
-    justify-content:space-between; gap:20px; padding:14px clamp(20px,4.5vw,72px);
-    background:rgba(11,10,9,.86); backdrop-filter:blur(14px) saturate(1.15);
-    -webkit-backdrop-filter:blur(14px) saturate(1.15); border-bottom:1px solid ${HAIR_SOFT}; }
+    justify-content:space-between; gap:20px; padding:calc(14px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 14px;
+    background-color:${INK}; border-bottom:1px solid ${HAIR_SOFT}; }
   .rb-st-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:10px 0; transition:color .2s ${EASE}; }
   .rb-st-back:hover { color:${GOLD_LIGHT}; font-style:italic; }
@@ -78,6 +81,7 @@ const CSS = `
   @media (max-width:820px) { .rb-st-chapter { grid-template-columns:1fr; } }
 
   .rb-lightbox { position:fixed; inset:0; z-index:300; background:rgba(11,10,9,.94);
+    padding-top:env(safe-area-inset-top, 0px);
     display:flex; align-items:center; justify-content:center; padding:clamp(16px,5vh,56px);
     animation:rb-st-lb-in .28s ${EASE} both; }
   @keyframes rb-st-lb-in { from { opacity:0; } to { opacity:1; } }
@@ -126,7 +130,7 @@ function StoryPageInner() {
   const pad = 'clamp(64px,9vh,110px) clamp(20px,4.5vw,72px)'
 
   return (
-    <div className="rb-st" style={{ background: INK, color: IVORY, fontFamily: BODY, minHeight: '100vh' }}>
+    <div className="rb-st" style={{ background: INK, color: IVORY, fontFamily: BODY, minHeight: '100svh' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="rb-st-bar">

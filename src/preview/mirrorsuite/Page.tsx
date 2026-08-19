@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import Lenis from 'lenis'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
@@ -18,7 +17,7 @@ const company = companyEntry
    on hover/focus to hand over its photograph. Second device: the flora
    nameplates (Arctic Thyme · Lupine · Bearberry · Gleymmerey), engraved
    pairs EN/IS. Engine: vanilla — one shared rAF drift loop + IO reveals,
-   flex-grow accordion, no GSAP, no Lenis. ───────────────────────────────── */
+   flex-grow accordion, no GSAP, no Lenis, native scroll. ────────────────── */
 
 /* Palette — dark ocean dusk, computed contrast:
    BONE #EEF0EA on DEEP #0F141C ...... 14.9:1 AAA
@@ -29,10 +28,14 @@ const BONE = '#EEF0EA'
 
 const SEEN_KEY = 'ms_seen'
 
-/* smooth scroll. Lenis scrolls the window for real, so the drift loop's
-   getBoundingClientRect reads and the frame-sequence scrubber's native
-   'scroll' listener both stay correct — no extra plumbing needed. */
-let pageLenis: Lenis | null = null
+/* No smooth-scroll library. Lenis used to run here, contradicting this file's
+   own header ("no GSAP, no Lenis") and the build note for all three mirror
+   previews. On iOS it is the one structural difference between this page and
+   the builds Sindri has approved on his phone (reynir has no Lenis): Safari
+   only minimises its bottom toolbar to the floating pill for a natively
+   scrolled document, so a JS-driven scroll surface keeps the tall opaque
+   toolbar and the page never runs under it. Removed 2026-08-19. Native scroll
+   also keeps the drift loop's getBoundingClientRect reads correct. */
 
 interface DriftNode { el: HTMLElement; d: number }
 const driftSet = new Set<DriftNode>()
@@ -213,18 +216,6 @@ export default function Page() {
     }
   }, [])
 
-  /* ── smooth scroll ── */
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true })
-    pageLenis = lenis
-    let id = requestAnimationFrame(function raf(t: number) {
-      lenis.raf(t)
-      id = requestAnimationFrame(raf)
-    })
-    return () => { cancelAnimationFrame(id); lenis.destroy(); pageLenis = null }
-  }, [])
-
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -262,9 +253,7 @@ export default function Page() {
     e.preventDefault()
     const el = document.getElementById(id)
     if (!el) return
-    /* Lenis reverts native scrollIntoView on the next frame — route through it */
-    if (pageLenis) pageLenis.scrollTo(el, { offset: -10 })
-    else el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+    el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
   }
 
   return (
@@ -499,9 +488,23 @@ function PanoScrub() {
       const cw = canvas.width; const ch = canvas.height
       const cover = Math.max(cw / iw, ch / ih)
       const cropped = 1 - cw / (iw * cover)
-      const scale = cropped > MAX_SIDE_CROP ? cw / iw : cover
+      /* `ch < cw` gates the width-fit fallback to panes that are WIDER than
+         tall, which is the only case the note above describes. On a portrait
+         phone pane it misfired badly: cover crops 72% of a 5:3 frame, so the
+         fallback fired and fit the WIDTH, drawing the frame 375x225 inside an
+         812-tall pane. It bought nothing (width-fit still crops 69%) and it
+         opened two large empty bands. Portrait panes cover, always. */
+      const scale = ch < cw && cropped > MAX_SIDE_CROP ? cw / iw : cover
       const w = iw * scale; const h = ih * scale
-      ctx.clearRect(0, 0, cw, ch)
+      /* Paint DEEP, do not clear to transparent. The note above assumed the
+         bands would reveal the near-black page. They did not: .ms-pano-still
+         sits directly under this canvas, and it is a DIFFERENT photograph
+         (tall-5.jpg, 933x1400 portrait) cover-fitted over the whole pane. So
+         every transparent band showed a second, differently-scaled copy of
+         the same scene, meeting the drawn frame at a hard horizontal seam
+         about 292px down. Reported from a phone, 2026-08-19. */
+      ctx.fillStyle = DEEP
+      ctx.fillRect(0, 0, cw, ch)
       ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
     }
 
@@ -731,6 +734,11 @@ const STYLES = `
   font-family:var(--sans); font-weight:300; line-height:1.6;
   overflow-x:clip;
 }
+/* iOS: with viewport-fit=cover the page paints into the safe area, and Safari 26
+   samples html/body background-color for the bar tint when no fixed element
+   qualifies at an edge. Both were transparent here, so the strips fell back to
+   the browser default instead of the page. See [[ios-safe-area-chrome-color]]. */
+html:has(.ms-root),body:has(.ms-root){background-color:${DEEP}}
 .ms-root *{box-sizing:border-box;margin:0}
 .ms-root img{display:block;width:100%;height:100%;object-fit:cover}
 .ms-root a{color:inherit;text-decoration:none}
@@ -749,6 +757,9 @@ const STYLES = `
 /* nav */
 .ms-nav{position:fixed;inset:0 0 auto 0;z-index:60;display:flex;align-items:center;justify-content:space-between;
   padding:clamp(14px,2.4vw,22px) clamp(18px,3.4vw,44px);color:var(--bone);
+  padding-top:calc(clamp(14px,2.4vw,22px) + env(safe-area-inset-top,0px));
+  padding-left:calc(clamp(18px,3.4vw,44px) + env(safe-area-inset-left,0px));
+  padding-right:calc(clamp(18px,3.4vw,44px) + env(safe-area-inset-right,0px));
   transition:background-color .45s var(--e),backdrop-filter .45s var(--e)}
 .ms-nav::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
   background:linear-gradient(to bottom,rgba(15,20,28,.5),transparent);transition:opacity .45s var(--e)}
@@ -862,10 +873,15 @@ const STYLES = `
 /* three welded takes now run through here, so the pin needs the travel */
 .ms-pano{position:relative;height:260svh}
 .ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--deep)}
-/* the poster has to letterbox on exactly the viewports where the canvas does,
-   or the picture jumps the moment the first frame decodes. 1.47 is where the
-   canvas hits its 12% side-crop limit against a 5:3 frame. */
-@media (max-aspect-ratio:147/100){.ms-pano-still{object-fit:contain}}
+/* A max-aspect-ratio:147/100 rule setting .ms-pano-still to object-fit:contain
+   used to sit here, meant to letterbox the poster wherever the canvas
+   letterboxes. It never ran: the .ms-pano-still object-fit:cover rule further
+   down wins on source order at equal specificity, confirmed by computed style
+   at 375x812 where the query does match. It could not have worked anyway: the
+   poster is 933x1400 portrait and the frames are 1000x600 landscape, so no
+   single object-fit makes the two agree. The canvas paints its own DEEP
+   letterbox now. (No backticks in this file's CSS comments — the whole
+   stylesheet is one template literal.) */
 /* the type sits ON the film, so the film has to give it a floor */
 .ms-pano-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:2;pointer-events:none;
   background:linear-gradient(to top,rgba(6,10,14,.74),rgba(6,10,14,.28) 42%,transparent)}
@@ -1069,6 +1085,10 @@ const STYLES = `
 
 /* footer */
 .ms-footer{padding:clamp(60px,10vh,110px) clamp(20px,5vw,64px) 0;border-top:1px solid var(--hair)}
+/* the last thing on the page must clear the home indicator under cover mode.
+   On .ms-footer itself, which is the real outermost element — there is no
+   .ms-footer-end in the markup. */
+.ms-footer{padding-bottom:env(safe-area-inset-bottom,0px)}
 .ms-footer-horizon{height:1px;background:linear-gradient(90deg,transparent,var(--glass),transparent);max-width:640px;margin:0 auto clamp(30px,6vh,60px)}
 .ms-footer-word{font-family:var(--disp);font-weight:200;font-size:clamp(2rem,7vw,5.2rem);line-height:1.04;text-align:center;margin-bottom:clamp(30px,6vh,60px)}
 .ms-footer-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px;max-width:1200px;margin:0 auto}

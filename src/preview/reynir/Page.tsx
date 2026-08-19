@@ -56,6 +56,13 @@ const PAGE_CSS = `
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px;
   }
 
+  /* iOS chrome colour. Safari 26 stopped reading the theme-color meta; it
+     samples fixed edge elements' background-color and falls back to BODY's.
+     html and body had none, so the status-bar strip and the band under the
+     bottom URL bar rendered WHITE on a page that is ink-dark everywhere —
+     see [[ios-safe-area-chrome-color]] before touching any of this. */
+  html, body { background-color:${INK}; }
+
   .rb-cover { min-height:100svh; }
 
   @keyframes rb-rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
@@ -110,15 +117,40 @@ const PAGE_CSS = `
      listener, so nothing runs per-frame. backdrop-filter is safe here
      because the element is fixed; on a scrolling container it would repaint
      continuously and cost real frames on mobile. */
-  .rb-stickybar { position:fixed; top:0; left:0; right:0; z-index:150;
+  /* THE AWNING — the only thing that can own the Dynamic Island strip.
+     Measured twice in the simulator: a fixed element paints NOTHING above the
+     layout viewport (a 120px red cap: zero pixels), but that strip renders
+     the SCROLLING document — and position:sticky lives in the scrolling
+     layer. Stuck at top:-100px it rests inside the strip itself and paints
+     solid ink where the page used to show through (red-awning test: the
+     strip filled edge to edge). Negative margin cancels its height, so
+     layout is untouched. Requires the page root to use overflow-x:clip —
+     overflow-x:hidden silently kills sticky in every descendant. Gated on
+     the same state as the bar so the hero keeps its clean opening. */
+  /* PERMANENT, from first paint — the strip nothing can leak into. At rest it
+     is a real 70px band at the top of the flow, so the masthead starts below
+     the Dynamic Island zone instead of sliding under it; once scrolling
+     collapses the chrome it sticks 64px above the viewport top and keeps the
+     strip solid ink at every scroll position. No opacity gate: gating it on
+     scroll state is what let the masthead leak into the island at rest. */
+  /* content scrolls under a permanent bar, so anchor jumps must stop short */
+  #menu, #bread, #gallery, #visit { scroll-margin-top: 76px; }
+
+  .rb-awning { position:sticky; top:-100px; height:106px; flex:none;
+    z-index:140; background:${INK}; pointer-events:none; }
+
+  /* SNDR's .bar, verbatim in mechanism (Sindri's own site, the reference he
+     named): fixed at top:0 from FIRST PAINT, always visible, never hides,
+     never transforms — 88% ink glass over blur with a hairline underneath.
+     No observer, no scroll state, no reveal: a header that never moves is a
+     header that can never detach, split, or arrive over content. Present at
+     first paint also means Safari's chrome sampler sees it immediately. */
+  .rb-stickybar { position:fixed; inset:0 0 auto 0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
     padding:10px clamp(16px,4.5vw,72px);
-    background:rgba(11,10,9,.86);
-    backdrop-filter:blur(14px) saturate(1.15); -webkit-backdrop-filter:blur(14px) saturate(1.15);
-    border-bottom:1px solid rgba(238,211,170,.14);
-    transform:translateY(-101%); opacity:0; pointer-events:none;
-    transition:transform .55s ${EASE}, opacity .35s ${EASE}; }
-  .rb-stickybar[data-on="true"] { transform:none; opacity:1; pointer-events:auto; }
+    background-color:rgba(11,10,9,.88);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(238,211,170,.14); }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
@@ -128,13 +160,12 @@ const PAGE_CSS = `
   .rb-sticky-cta:active { transform:scale(.98); }
   /* the open/closed dot, carried into the bar so the status stays visible */
   .rb-sticky-dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
-  @media (max-width:820px) { .rb-sticky-nav { display:none; } }
+  @media (max-width:820px) { .rb-sticky-nav { display:none; } .rb-bar-lang { display:none !important; } }
+  
   /* "Closed, we open at 7:00 today" will not fit beside a CTA on a phone —
      the dot alone still carries open/closed, so only the words go. */
   @media (max-width:560px) { .rb-sticky-status { display:none; } }
-  @media (prefers-reduced-motion: reduce) {
-    .rb-stickybar { transition:opacity .2s linear; }
-  }
+
 
   .rb-cta {
     display:inline-block; text-decoration:none; font-weight:600; font-size:15.5px;
@@ -151,6 +182,82 @@ const PAGE_CSS = `
     font-size:13px; letter-spacing:.08em; color:${FAINT}; transition:color .2s ${EASE}; border-radius:4px; }
   .rb-lang[aria-pressed="true"] { color:${GOLD_LIGHT}; }
   .rb-lang:hover { color:${IVORY}; }
+
+  /* ── mobile menu ─────────────────────────────────────────────────────────
+     Below 620px the masthead nav is hidden, and below 820px the sticky bar's
+     nav goes too — which left a phone with a logo, a status dot and one CTA,
+     and no way to reach the menu, the gallery or the story at all. This is
+     that navigation, not a shrunken copy of the desktop one: six destinations
+     set as a printed list, because the page's whole identity is a serif on
+     paper and a phone is where that reads best.
+
+     The button appears in whichever bar is on screen. They are never both
+     visible: the sticky bar only materialises once the masthead has scrolled
+     away. */
+  .rb-burger { display:none; position:relative; width:44px; height:44px; margin-right:-10px;
+    align-items:center; justify-content:center; background:none; border:none; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; }
+  .rb-burger-line { position:absolute; left:12px; width:20px; height:1.5px; background:${IVORY};
+    border-radius:2px; transition:transform .4s ${EASE}, opacity .2s ${EASE}, background .2s ${EASE}; }
+  .rb-burger-line:nth-child(1) { transform:translateY(-6px); }
+  .rb-burger-line:nth-child(3) { transform:translateY(6px); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line { background:${GOLD_LIGHT}; }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(1) { transform:rotate(45deg); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(2) { opacity:0; transform:scaleX(.4); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(3) { transform:rotate(-45deg); }
+  .rb-burger-close { display:inline-flex; }
+  @media (max-width:820px) { .rb-burger-bar { display:inline-flex; } }
+
+  /* visibility, not display, so the panel can animate out rather than vanish */
+  .rb-menu { position:fixed; inset:0; z-index:300; display:flex; flex-direction:column;
+    background:${INK};
+    background-image:radial-gradient(120% 70% at 50% -10%, rgba(200,168,119,.13), transparent 62%);
+    opacity:0; visibility:hidden;
+    transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
+  .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
+  .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
+    padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px; min-height:64px; }
+  .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:0 clamp(22px,6vw,72px); gap:2px; }
+  .rb-menu-link { position:relative; display:block; text-decoration:none;
+    font-family:${DISPLAY}; font-size:clamp(30px,8.6vw,44px); line-height:1.18; letter-spacing:.01em;
+    padding:clamp(9px,1.5vh,14px) 0; border-bottom:1px solid ${HAIR_SOFT};
+    opacity:0; transform:translateY(16px);
+    transition:opacity .5s ${EASE}, transform .5s ${EASE}; }
+  .rb-menu-link:last-of-type { border-bottom:none; }
+  /* the stagger: each line arrives just after the one above, the way a list
+     is read rather than the way a grid appears */
+  .rb-menu[data-open="true"] .rb-menu-link { opacity:1; transform:none; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(1) { transition-delay:.10s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(2) { transition-delay:.155s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(3) { transition-delay:.21s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(4) { transition-delay:.265s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(5) { transition-delay:.32s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(6) { transition-delay:.375s; }
+  /* index, not decoration: it numbers the list like a printed menu card */
+  .rb-menu-num { font-family:${BODY}; font-size:11px; letter-spacing:.16em; color:${FAINT};
+    vertical-align:super; margin-right:12px; }
+  .rb-menu-link:active { opacity:.72; }
+
+  .rb-menu-foot { padding:clamp(18px,3vh,26px) clamp(22px,6vw,72px) calc(clamp(20px,3vh,30px) + env(safe-area-inset-bottom));
+    border-top:1px solid ${HAIR_SOFT}; display:flex; flex-direction:column; gap:16px;
+    opacity:0; transform:translateY(10px); transition:opacity .45s ${EASE} .34s, transform .45s ${EASE} .34s; }
+  .rb-menu[data-open="true"] .rb-menu-foot { opacity:1; transform:none; }
+  .rb-menu-footrow { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+  .rb-menu-status { display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; }
+  .rb-menu-cta { display:block; text-align:center; text-decoration:none; background:${GOLD};
+    color:${INK_DEEP}; font-family:${BODY}; font-size:16px; font-weight:600; letter-spacing:.02em;
+    padding:15px 24px; border-radius:3px; transition:background .2s ${EASE}, transform .15s ${EASE}; }
+  .rb-menu-cta:active { transform:scale(.985); }
+
+  /* Nothing moves, but nothing disappears either: the panel still opens and
+     closes, it simply arrives at once. */
+  @media (prefers-reduced-motion: reduce) {
+    .rb-menu, .rb-menu-link, .rb-menu-foot, .rb-burger-line {
+      transition-duration:.01ms !important; transition-delay:0s !important; }
+    .rb-menu-link, .rb-menu-foot { opacity:1; transform:none; }
+  }
 
   .rb-row { transition:color .2s ${EASE}; }
   .rb-row:hover .rb-row-name { color:${GOLD_LIGHT}; }
@@ -198,6 +305,7 @@ const PAGE_CSS = `
   .rb-page section[id] { scroll-margin-top:78px; }
 
   .rb-lightbox { position:fixed; inset:0; z-index:300; background:rgba(11,10,9,.94);
+    padding-top:env(safe-area-inset-top, 0px);
     display:flex; align-items:center; justify-content:center; padding:clamp(16px,5vh,56px);
     animation:rb-lb-in .28s ${EASE} both; }
   @keyframes rb-lb-in { from { opacity:0; } to { opacity:1; } }
@@ -245,6 +353,12 @@ const PAGE_CSS = `
     .rb-bread-grid { grid-template-columns:1fr !important; }
     .rb-catering-grid { grid-template-columns:1fr !important; }
     .rb-visit-grid { grid-template-columns:1fr !important; }
+    /* Once the grids are a single column, a frame with its own max-width sits
+       in a much wider column and reads as pushed to one side. Auto margins
+       centre it. Frames that fill their cell are already 100% wide, so this
+       does nothing to them. !important because the width cap and the top
+       margin arrive as inline style. */
+    .rb-menu-art { margin-left:auto !important; margin-right:auto !important; }
     /* the story's two chapters stack, photo always above its paragraph —
        explicit grid-row/column overrides because the flipped chapter pins
        its image to column 2, which would otherwise survive the collapse. */
@@ -590,6 +704,66 @@ function ReynirPageInner() {
   }, [intro])
   // Marked as seen as soon as it has played or been dismissed, so a click-to-
   // skip counts too and the curtain does not return on the next route change.
+  /* ── mobile menu ──────────────────────────────────────────────────────
+     Deterministic false on first render, so the prerendered HTML and the
+     browser agree. */
+  const [menu, setMenu] = useState(false)
+
+  /* Anchor links inside the panel cannot rely on the browser's own jump: at
+     the instant of the click the body is still overflow:hidden for the scroll
+     lock, so the native scroll is discarded, and a plain hash change is not
+     something React Router reports — so nothing scrolled and the section was
+     simply never reached. The target is remembered here and scrolled to after
+     the panel has closed and the lock has been released. */
+  const pendingHash = useRef<string | null>(null)
+  useEffect(() => {
+    if (menu) return
+    const target = pendingHash.current
+    if (!target) return
+    pendingHash.current = null
+    const el = document.querySelector(target)
+    if (el) el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+  }, [menu, reduced])
+
+  useEffect(() => {
+    if (!menu) return
+    /* The panel is fixed and covers the page, so the page behind it must not
+       scroll. overflow:hidden alone does NOT lock iOS Safari — the page kept
+       scrolling under a finger, and on close the browser could land on a
+       different scroll position, which read as the whole layout having
+       changed. The reliable lock is to fix the body at its current offset;
+       the -top preserves what is on screen, and close restores the exact
+       scroll position with an instant jump (html has scroll-behavior:smooth,
+       which would otherwise animate the restore). */
+    const y = window.scrollY
+    const b = document.body.style
+    const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width, overflow: b.overflow }
+    b.position = 'fixed'
+    b.top = `-${y}px`
+    b.left = '0'
+    b.right = '0'
+    b.width = '100%'
+    b.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    window.addEventListener('keydown', onKey)
+    /* Rotating a phone to landscape can cross the breakpoint that hides the
+       button, which would strand the panel open with no way to shut it. */
+    const mq = window.matchMedia('(min-width:821px)')
+    const onWide = (e: MediaQueryListEvent) => { if (e.matches) setMenu(false) }
+    mq.addEventListener('change', onWide)
+    return () => {
+      b.position = prev.position
+      b.top = prev.top
+      b.left = prev.left
+      b.right = prev.right
+      b.width = prev.width
+      b.overflow = prev.overflow
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' })
+      window.removeEventListener('keydown', onKey)
+      mq.removeEventListener('change', onWide)
+    }
+  }, [menu])
+
   const introDecided = useRef(false)
   useEffect(() => {
     if (intro) { introDecided.current = true; return }
@@ -664,15 +838,7 @@ function ReynirPageInner() {
 
   // The sticky bar appears once the cover has scrolled out of view. Watching
   // the cover with an observer rather than polling scrollY keeps this off the
-  // main thread's per-frame path; `pastCover` flips exactly twice per visit.
-  const [pastCover, setPastCover] = useState(false)
-  useEffect(() => {
-    const cover = rootRef.current?.querySelector('.rb-cover')
-    if (!cover) return
-    const io = new IntersectionObserver(([e]) => setPastCover(!e.isIntersecting), { threshold: 0 })
-    io.observe(cover)
-    return () => io.disconnect()
-  }, [])
+
   const closeLightbox = () => setLightbox(null)
   const stepLightbox = (dir: 1 | -1) => setLightbox((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length))
 
@@ -700,7 +866,7 @@ function ReynirPageInner() {
       ref={rootRef}
       className="rb-page"
       lang={lang}
-      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
+      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}
     >
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
@@ -717,17 +883,27 @@ function ReynirPageInner() {
           Not a second navigation so much as a permanent way back to the two
           things people came for: what's on, and how to order it. Hidden while
           the cover is on screen so the hero keeps its full first impression. */}
-      <div className="rb-stickybar" data-on={pastCover} aria-hidden={!pastCover}>
-        <a href="#top" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
+      
+      <div className="rb-awning" id="top" aria-hidden="true" />
+      <div className="rb-stickybar">
+        <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
+        {/* The bar is the only header now, so it carries the full desktop nav
+            the masthead used to — Myndir included. */}
         <nav className="rb-sticky-nav">
           <a href="#menu" className="rb-navlink">{t.navMenu}</a>
           <a href="#bread" className="rb-navlink">{t.navBread}</a>
+          <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
           <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.6vw,20px)' }}>
+          <div className="rb-bar-lang" role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+            <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+            <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
+          </div>
           {/* the open/closed status follows you down the page — for a bakery
               that shuts at 17:00 this is the single most asked question */}
           <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: status.open ? GOLD_LIGHT : FAINT, whiteSpace: 'nowrap' }}>
@@ -735,31 +911,98 @@ function ReynirPageInner() {
             <span className="rb-sticky-status">{status.label}</span>
           </span>
           <Link to={ORDER_PATH} className="rb-sticky-cta">{ORDER_T[lang].navOrder}</Link>
+          <button
+            type="button"
+            className="rb-burger rb-burger-bar"
+            aria-expanded={menu}
+            aria-controls="rb-mobile-menu"
+            aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}
+            onClick={() => setMenu((v) => !v)}
+          >
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+          </button>
         </div>
       </div>
 
-      {/* ===================== MASTHEAD ===================== */}
-      <header id="top" style={{ position: 'relative', zIndex: 5, padding: '20px clamp(20px,4.5vw,72px) 0' }}>
-        <div style={{ ...wrap, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
-          <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 132, height: 'auto', display: 'block' }} />
-          <nav className="rb-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
-            <a href="#menu" className="rb-navlink">{t.navMenu}</a>
-            <a href="#bread" className="rb-navlink">{t.navBread}</a>
-            <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
-            {/* a real destination, not an anchor: clicking "Panta" means ordering */}
-            <Link to={ORDER_PATH} className="rb-navlink">{ORDER_T[lang].navOrder}</Link>
-            <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
-            <a href="#visit" className="rb-navlink">{t.navVisit}</a>
-          </nav>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2 }}>
-              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
-              <span aria-hidden="true" style={{ color: FAINT, alignSelf: 'center' }}>/</span>
-              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
+      {/* ===================== MOBILE MENU =====================
+          The six destinations as a printed list. Panta is not in the list: it
+          is the one thing someone opens this menu to do, so it sits at the
+          bottom as the only filled button, where a thumb already is. */}
+      <div className="rb-menu" id="rb-mobile-menu" data-open={menu} aria-hidden={!menu}>
+        <div className="rb-menu-top">
+          <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 104, height: 'auto', display: 'block' }} />
+          <button
+            type="button"
+            className="rb-burger rb-burger-close"
+            aria-expanded={menu}
+            aria-controls="rb-mobile-menu"
+            aria-label={lang === 'is' ? 'Loka valmynd' : 'Close menu'}
+            onClick={() => setMenu(false)}
+          >
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+          </button>
+        </div>
+
+        <nav className="rb-menu-nav" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
+          {[
+            { href: '#menu', label: t.navMenu },
+            { href: '#bread', label: t.navBread },
+            { href: '#gallery', label: t.navGallery },
+            { to: STORY_PATH, label: t.navStory },
+            { href: '#visit', label: t.navVisit },
+          ].map((item, i) => {
+            const inner = (
+              <>
+                <span className="rb-menu-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                {item.label}
+              </>
+            )
+            const style = { ...GOLD_TEXT, ...LETTERPRESS } as CSSProperties
+            return item.to ? (
+              <Link key={item.label} to={item.to} className="rb-menu-link" style={style} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+                {inner}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="rb-menu-link"
+                style={style}
+                onClick={(e) => {
+                  e.preventDefault()
+                  pendingHash.current = item.href!
+                  setMenu(false)
+                }}
+                tabIndex={menu ? 0 : -1}
+              >
+                {inner}
+              </a>
+            )
+          })}
+        </nav>
+
+        <div className="rb-menu-foot">
+          <div className="rb-menu-footrow">
+            <span className="rb-menu-status" style={{ color: status.open ? GOLD_LIGHT : FAINT }}>
+              <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
+              {status.label}
+            </span>
+            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')} tabIndex={menu ? 0 : -1}>EN</button>
+              <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')} tabIndex={menu ? 0 : -1}>ÍS</button>
             </div>
           </div>
+          <Link to={ORDER_PATH} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+            {ORDER_T[lang].navOrder}
+          </Link>
         </div>
-      </header>
+      </div>
+
 
       {/* ===================== COVER ===================== */}
       <section className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
@@ -1057,7 +1300,14 @@ function ReynirPageInner() {
           Every frame still opens the same lightbox, so the indices below
           continue to line up with GALLERY. */}
       <section id="gallery" style={{ background: INK, padding: 'clamp(56px,9vh,110px) 0 clamp(64px,10vh,120px)' }}>
-        <div style={wrap}>
+        {/* The section itself has no horizontal padding, because the photo
+            strip below bleeds. That left this header with none either, so on
+            anything narrower than the 1180px wrap the kicker, the heading and
+            the paragraph sat hard against the left edge of the screen.
+            It now carries the SAME gutter expression as the strip, so the two
+            share one left edge at every width instead of only agreeing above
+            1180px. */}
+        <div style={{ padding: '0 max(20px, calc((100vw - 1180px) / 2 + 20px))' }}>
           {/* The rule spans the full container, as it does in every other
               section — only the text is capped. Carrying the cap on the same
               element cut the hairline short and broke the page's one

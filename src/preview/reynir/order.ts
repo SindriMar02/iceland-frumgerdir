@@ -351,7 +351,14 @@ export interface OrderCopy {
   doneBody: string
   /** Only shown while PLACEHOLDER_DATA is true: the order really sends now,
    *  but the catalogue it was placed against is still sample data. */
-  doneDemo: string
+  /** "We call during opening hours, every day 7:00 to 17:00." The hours come
+   *  from the CMS so this sentence cannot drift from the printed ones. */
+  doneWhen: (hours: string) => string
+  /** Used when the week is not one single schedule, so no short hours phrase
+   *  exists to name. */
+  doneWhenGeneric: string
+  /** Ends without punctuation: the phone number follows as a tel: link. */
+  doneReach: string
   doneAgain: string
   charsLeft: (n: number) => string
 }
@@ -437,7 +444,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     doneTitle: 'Request sent.',
     doneBody:
       'We will call to confirm the details and the final price. Nothing is charged until you collect.',
-    doneDemo: 'Note: the range and prices on this page are still samples, so we will go through the details with you on the call.',
+    doneWhen: (hours: string) => `That call comes during opening hours, ${hours}.`,
+    doneWhenGeneric: 'That call comes during the bakery opening hours.',
+    doneReach: 'If you need to change anything, or have a question, call',
     doneAgain: 'Start another order',
     charsLeft: (n: number) => `${n} characters left`,
   },
@@ -520,7 +529,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     doneTitle: 'Beiðnin er komin til okkar.',
     doneBody:
       'Við hringjum og staðfestum útfærslu og endanlegt verð. Ekkert er greitt fyrr en sótt er.',
-    doneDemo: 'Athugið: úrvalið og verðin á þessari síðu eru enn sýnishorn, svo við förum yfir útfærsluna með þér í símtalinu.',
+    doneWhen: (hours: string) => `Símtalið kemur á opnunartíma, ${hours}.`,
+    doneWhenGeneric: 'Símtalið kemur á opnunartíma bakarísins.',
+    doneReach: 'Ef þú þarft að breyta einhverju eða hefur spurningu, hringdu í',
     doneAgain: 'Byrja aðra pöntun',
     charsLeft: (n: number) => `${n} stafir eftir`,
   },

@@ -48,4 +48,16 @@ export const GOLD_TEXT = {
   WebkitBackgroundClip: 'text',
   backgroundClip: 'text',
   color: 'transparent',
+  /* Descender guard. background-clip:text paints only inside the element's
+   * box, and every display heading here runs tight leading (0.98 to 1.05)
+   * because that is the look. At 68px Lusitana wants 88px of line box and
+   * gets 71 — so the tails of þ, ð, g, y and í were being sliced off, most
+   * visibly in "Bakaríið, og fólkið í því."
+   *
+   * Raising line-height would fix it and lose the typography. Extending the
+   * paint box downward and pulling the same amount back off the margin fixes
+   * it and changes no layout: the box occupies exactly the height it did
+   * before, the gradient simply reaches further down. */
+  paddingBottom: '0.18em',
+  marginBottom: '-0.18em',
 } as const

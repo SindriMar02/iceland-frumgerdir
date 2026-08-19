@@ -12,9 +12,18 @@
        on top at build time. -->
   <head>
     <meta charset="UTF-8" />
+    <!-- Plain viewport, like Brass. viewport-fit=cover was tried and reverted:
+         measured on the simulator it does not extend the layout viewport in
+         portrait browsing, and the status strip stays OS glass regardless.
+         The bar reads attached because it is GLASS animated by transform only
+         (see .rb-stickybar) — not because of anything in this tag. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reynir bakarí</title>
     <meta name="theme-color" content="#131313" />
+    <!-- Safari 26 ignores theme-color; body background-color is its fallback
+         tint source, and this static rule also kills the white flash before
+         the bundle's CSS arrives. -->
+    <style>html, body { background-color: #131313; }</style>
     <!-- Only the two families this site actually uses. The catalogue shell
          loads ~30 for its hundred designs; shipping that to the bakery's
          customers would be pure waste. -->

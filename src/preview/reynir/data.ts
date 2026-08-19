@@ -345,12 +345,23 @@ export const MENU: MenuItem[] = [
   },
 ]
 
-/** Breads and rolls, verified against their current Wolt listing 2026-08-16. */
+/** Breads and rolls, verified against their current Wolt listing 2026-08-16,
+ *  EXCEPT the two marked below.
+ *
+ *  This list is only what the site shows when Sanity is unreachable. The CMS
+ *  is the source of truth whenever it answers, and it replaces this list
+ *  wholesale rather than merging with it — so an item deleted in the studio
+ *  does not come back from here. That is why it is safe to carry a bread the
+ *  owner may not want: if it is not listed in the CMS, it is not on the site. */
 export const BREAD: MenuItem[] = [
   { name: 'Hvítt súrdeigsbrauð', price: '1.190 kr.', desc: { en: 'White sourdough, slow-proved and baked on-site.', is: 'Hvítt súrdeigsbrauð, hæghefað og bakað á staðnum.' } },
   { name: 'Gróft súrdeigsbrauð', price: '1.190 kr.', desc: { en: 'Wholegrain sourdough with a deep crust.', is: 'Gróft súrdeigsbrauð með þéttri skorpu.' } },
   { name: 'Döðlubrauð', price: '1.110 kr.', desc: { en: 'Naturally sweet date bread.', is: 'Náttúrulega sætt döðlubrauð.' } },
+  /* Not on the Wolt listing — carried here so the fallback matches the CMS.
+     Awaiting the owner's confirmation that both are still baked. */
+  { name: 'Sexkornabrauð', price: '930 kr.', desc: { en: 'A six-grain loaf, hearty and healthy.', is: 'Sexkornabrauð, matarmikið og hollt.' } },
   { name: 'Normalbrauð', price: '930 kr.', desc: { en: 'The everyday standard loaf.', is: 'Venjulega brauðið fyrir hvern dag.' } },
+  { name: 'Þriggja korna brauð', price: '930 kr.', desc: { en: 'Three grains in one everyday loaf.', is: 'Þrjú korn í einu hversdagsbrauði.' } },
   { name: 'Sólkjarnarúnstykki', price: '230 kr.', desc: { en: 'Sunflower-seed roll.', is: 'Rúnstykki með sólkjörnum.' } },
   { name: 'Múslírúnstykki', price: '230 kr.', desc: { en: 'Muesli roll, for the morning.', is: 'Múslírúnstykki, fyrir morguninn.' } },
   { name: 'Ostarúnstykki', price: '200 kr.', desc: { en: 'Cheese roll, straight from the oven.', is: 'Ostarúnstykki, beint úr ofninum.' } },
