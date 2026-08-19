@@ -152,6 +152,83 @@ const PAGE_CSS = `
   .rb-lang[aria-pressed="true"] { color:${GOLD_LIGHT}; }
   .rb-lang:hover { color:${IVORY}; }
 
+  /* ── mobile menu ─────────────────────────────────────────────────────────
+     Below 620px the masthead nav is hidden, and below 820px the sticky bar's
+     nav goes too — which left a phone with a logo, a status dot and one CTA,
+     and no way to reach the menu, the gallery or the story at all. This is
+     that navigation, not a shrunken copy of the desktop one: six destinations
+     set as a printed list, because the page's whole identity is a serif on
+     paper and a phone is where that reads best.
+
+     The button appears in whichever bar is on screen. They are never both
+     visible: the sticky bar only materialises once the masthead has scrolled
+     away. */
+  .rb-burger { display:none; position:relative; width:44px; height:44px; margin-right:-10px;
+    align-items:center; justify-content:center; background:none; border:none; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; }
+  .rb-burger-line { position:absolute; left:12px; width:20px; height:1.5px; background:${IVORY};
+    border-radius:2px; transition:transform .4s ${EASE}, opacity .2s ${EASE}, background .2s ${EASE}; }
+  .rb-burger-line:nth-child(1) { transform:translateY(-6px); }
+  .rb-burger-line:nth-child(3) { transform:translateY(6px); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line { background:${GOLD_LIGHT}; }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(1) { transform:rotate(45deg); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(2) { opacity:0; transform:scaleX(.4); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(3) { transform:rotate(-45deg); }
+  .rb-burger-close { display:inline-flex; }
+  @media (max-width:820px) { .rb-burger-bar { display:inline-flex; } }
+  @media (max-width:620px) { .rb-burger-mast { display:inline-flex; } }
+
+  /* visibility, not display, so the panel can animate out rather than vanish */
+  .rb-menu { position:fixed; inset:0; z-index:300; display:flex; flex-direction:column;
+    background:${INK_DEEP};
+    background-image:radial-gradient(120% 70% at 50% -10%, rgba(200,168,119,.13), transparent 62%);
+    opacity:0; visibility:hidden;
+    transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
+  .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
+  .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
+    padding:10px clamp(16px,4.5vw,72px); min-height:64px; }
+  .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:0 clamp(22px,6vw,72px); gap:2px; }
+  .rb-menu-link { position:relative; display:block; text-decoration:none;
+    font-family:${DISPLAY}; font-size:clamp(30px,8.6vw,44px); line-height:1.18; letter-spacing:.01em;
+    padding:clamp(9px,1.5vh,14px) 0; border-bottom:1px solid ${HAIR_SOFT};
+    opacity:0; transform:translateY(16px);
+    transition:opacity .5s ${EASE}, transform .5s ${EASE}; }
+  .rb-menu-link:last-of-type { border-bottom:none; }
+  /* the stagger: each line arrives just after the one above, the way a list
+     is read rather than the way a grid appears */
+  .rb-menu[data-open="true"] .rb-menu-link { opacity:1; transform:none; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(1) { transition-delay:.10s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(2) { transition-delay:.155s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(3) { transition-delay:.21s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(4) { transition-delay:.265s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(5) { transition-delay:.32s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(6) { transition-delay:.375s; }
+  /* index, not decoration: it numbers the list like a printed menu card */
+  .rb-menu-num { font-family:${BODY}; font-size:11px; letter-spacing:.16em; color:${FAINT};
+    vertical-align:super; margin-right:12px; }
+  .rb-menu-link:active { opacity:.72; }
+
+  .rb-menu-foot { padding:clamp(18px,3vh,26px) clamp(22px,6vw,72px) calc(clamp(20px,3vh,30px) + env(safe-area-inset-bottom));
+    border-top:1px solid ${HAIR_SOFT}; display:flex; flex-direction:column; gap:16px;
+    opacity:0; transform:translateY(10px); transition:opacity .45s ${EASE} .34s, transform .45s ${EASE} .34s; }
+  .rb-menu[data-open="true"] .rb-menu-foot { opacity:1; transform:none; }
+  .rb-menu-footrow { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+  .rb-menu-status { display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; }
+  .rb-menu-cta { display:block; text-align:center; text-decoration:none; background:${GOLD};
+    color:${INK_DEEP}; font-family:${BODY}; font-size:16px; font-weight:600; letter-spacing:.02em;
+    padding:15px 24px; border-radius:3px; transition:background .2s ${EASE}, transform .15s ${EASE}; }
+  .rb-menu-cta:active { transform:scale(.985); }
+
+  /* Nothing moves, but nothing disappears either: the panel still opens and
+     closes, it simply arrives at once. */
+  @media (prefers-reduced-motion: reduce) {
+    .rb-menu, .rb-menu-link, .rb-menu-foot, .rb-burger-line {
+      transition-duration:.01ms !important; transition-delay:0s !important; }
+    .rb-menu-link, .rb-menu-foot { opacity:1; transform:none; }
+  }
+
   .rb-row { transition:color .2s ${EASE}; }
   .rb-row:hover .rb-row-name { color:${GOLD_LIGHT}; }
   .rb-leader { flex:1; align-self:center; height:0; border-bottom:1.5px dotted rgba(238,211,170,.32); margin:0 4px; transform:translateY(2px); }
@@ -590,6 +667,48 @@ function ReynirPageInner() {
   }, [intro])
   // Marked as seen as soon as it has played or been dismissed, so a click-to-
   // skip counts too and the curtain does not return on the next route change.
+  /* ── mobile menu ──────────────────────────────────────────────────────
+     Deterministic false on first render, so the prerendered HTML and the
+     browser agree. */
+  const [menu, setMenu] = useState(false)
+
+  /* Anchor links inside the panel cannot rely on the browser's own jump: at
+     the instant of the click the body is still overflow:hidden for the scroll
+     lock, so the native scroll is discarded, and a plain hash change is not
+     something React Router reports — so nothing scrolled and the section was
+     simply never reached. The target is remembered here and scrolled to after
+     the panel has closed and the lock has been released. */
+  const pendingHash = useRef<string | null>(null)
+  useEffect(() => {
+    if (menu) return
+    const target = pendingHash.current
+    if (!target) return
+    pendingHash.current = null
+    const el = document.querySelector(target)
+    if (el) el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+  }, [menu, reduced])
+
+  useEffect(() => {
+    if (!menu) return
+    /* The panel is fixed and covers the page; without this the page behind it
+       scrolls under your finger on iOS. Restored on close, and the previous
+       value is preserved rather than assumed to be ''. */
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    window.addEventListener('keydown', onKey)
+    /* Rotating a phone to landscape can cross the breakpoint that hides the
+       button, which would strand the panel open with no way to shut it. */
+    const mq = window.matchMedia('(min-width:821px)')
+    const onWide = (e: MediaQueryListEvent) => { if (e.matches) setMenu(false) }
+    mq.addEventListener('change', onWide)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+      mq.removeEventListener('change', onWide)
+    }
+  }, [menu])
+
   const introDecided = useRef(false)
   useEffect(() => {
     if (intro) { introDecided.current = true; return }
@@ -735,6 +854,95 @@ function ReynirPageInner() {
             <span className="rb-sticky-status">{status.label}</span>
           </span>
           <Link to={ORDER_PATH} className="rb-sticky-cta">{ORDER_T[lang].navOrder}</Link>
+          <button
+            type="button"
+            className="rb-burger rb-burger-bar"
+            aria-expanded={menu}
+            aria-controls="rb-mobile-menu"
+            aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}
+            onClick={() => setMenu((v) => !v)}
+          >
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      {/* ===================== MOBILE MENU =====================
+          The six destinations as a printed list. Panta is not in the list: it
+          is the one thing someone opens this menu to do, so it sits at the
+          bottom as the only filled button, where a thumb already is. */}
+      <div className="rb-menu" id="rb-mobile-menu" data-open={menu} aria-hidden={!menu}>
+        <div className="rb-menu-top">
+          <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 104, height: 'auto', display: 'block' }} />
+          <button
+            type="button"
+            className="rb-burger rb-burger-close"
+            aria-expanded={menu}
+            aria-controls="rb-mobile-menu"
+            aria-label={lang === 'is' ? 'Loka valmynd' : 'Close menu'}
+            onClick={() => setMenu(false)}
+          >
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+          </button>
+        </div>
+
+        <nav className="rb-menu-nav" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
+          {[
+            { href: '#menu', label: t.navMenu },
+            { href: '#bread', label: t.navBread },
+            { href: '#gallery', label: t.navGallery },
+            { to: STORY_PATH, label: t.navStory },
+            { href: '#visit', label: t.navVisit },
+          ].map((item, i) => {
+            const inner = (
+              <>
+                <span className="rb-menu-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                {item.label}
+              </>
+            )
+            const style = { ...GOLD_TEXT, ...LETTERPRESS } as CSSProperties
+            return item.to ? (
+              <Link key={item.label} to={item.to} className="rb-menu-link" style={style} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+                {inner}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="rb-menu-link"
+                style={style}
+                onClick={(e) => {
+                  e.preventDefault()
+                  pendingHash.current = item.href!
+                  setMenu(false)
+                }}
+                tabIndex={menu ? 0 : -1}
+              >
+                {inner}
+              </a>
+            )
+          })}
+        </nav>
+
+        <div className="rb-menu-foot">
+          <div className="rb-menu-footrow">
+            <span className="rb-menu-status" style={{ color: status.open ? GOLD_LIGHT : FAINT }}>
+              <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
+              {status.label}
+            </span>
+            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')} tabIndex={menu ? 0 : -1}>EN</button>
+              <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')} tabIndex={menu ? 0 : -1}>ÍS</button>
+            </div>
+          </div>
+          <Link to={ORDER_PATH} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+            {ORDER_T[lang].navOrder}
+          </Link>
         </div>
       </div>
 
@@ -757,6 +965,18 @@ function ReynirPageInner() {
               <span aria-hidden="true" style={{ color: FAINT, alignSelf: 'center' }}>/</span>
               <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
             </div>
+            <button
+              type="button"
+              className="rb-burger rb-burger-mast"
+              aria-expanded={menu}
+              aria-controls="rb-mobile-menu"
+              aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}
+              onClick={() => setMenu((v) => !v)}
+            >
+              <span className="rb-burger-line" aria-hidden="true" />
+              <span className="rb-burger-line" aria-hidden="true" />
+              <span className="rb-burger-line" aria-hidden="true" />
+            </button>
           </div>
         </div>
       </header>
