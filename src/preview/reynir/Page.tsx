@@ -117,8 +117,6 @@ const PAGE_CSS = `
      listener, so nothing runs per-frame. backdrop-filter is safe here
      because the element is fixed; on a scrolling container it would repaint
      continuously and cost real frames on mobile. */
-  ; pointer-events:none; z-index:149; }
-
   .rb-stickybar { position:fixed; inset:0 0 auto 0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
     padding:10px clamp(16px,4.5vw,72px);
@@ -203,7 +201,6 @@ const PAGE_CSS = `
     opacity:0; visibility:hidden;
     transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
   .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
-  ; }
   .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
     padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px; min-height:64px; }
   .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
