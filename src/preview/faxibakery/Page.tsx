@@ -50,6 +50,10 @@ const IG = 'https://www.instagram.com/faxi_bakery_/'
 const BASE_URL = import.meta.env.BASE_URL
 const DISPLAY = "'Cabinet Grotesk', system-ui, sans-serif"
 const MONO = "'Azeret Mono', ui-monospace, SFMono-Regular, monospace"
+/** Faxi's hours, in Iceland time. The ribbon and the ovens both key off these. */
+const OPEN_HOUR = 9
+const CLOSE_HOUR = 20
+
 /** Opening reveal: hold on the wordmark, then lift. */
 const BOOT_HOLD = 1150
 const BOOT_LIFT = 1150
@@ -964,15 +968,32 @@ export default function FaxiBakeryPage() {
     const t = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(t)
   }, [])
-  const freshIn = useMemo(() => {
-    const d = new Date(now)
-    const totalSec = Math.max(
-      0,
-      Math.floor(((60 - d.getMinutes()) * 60000 - d.getSeconds() * 1000) / 1000),
-    )
+  // The oven ribbon reads Faxi's clock, not the visitor's: someone checking from
+  // Berlin at 21:00 is looking at a bakery where it is 19:00 and still open.
+  // Iceland keeps UTC all year, so there is no DST to chase.
+  const oven = useMemo(() => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Atlantic/Reykjavik',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date(now))
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0)
+    const h = get('hour') % 24
+    const m = get('minute')
+    const sec = get('second')
+
+    // Closed: counting down to a batch that is not coming for ten hours is worse
+    // than saying nothing. Say when the ovens start instead.
+    if (h < OPEN_HOUR || h >= CLOSE_HOUR) {
+      // Works at 22:00 and at 07:30 alike, which "closed for the night" does not.
+      return { open: false, label: 'The ovens are off', value: 'first batch at 9' }
+    }
+    const totalSec = (59 - m) * 60 + (60 - sec)
     const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
     const ss = String(totalSec % 60).padStart(2, '0')
-    return `${mm}:${ss}`
+    return { open: true, label: 'Next batch out of the oven in', value: `${mm}:${ss}` }
   }, [now])
 
   useEffect(() => {
@@ -1037,7 +1058,7 @@ export default function FaxiBakeryPage() {
             <div className="faxi-meta" style={{ color: MOSS, marginTop: 10, fontSize: 10 }}>Bakery · Café</div>
             <div className="faxi-curtain-rule"><span /></div>
             <div className="faxi-meta" style={{ color: '#1B171273', fontSize: 9.5 }}>
-              Next batch in <span style={{ fontVariantNumeric: 'tabular-nums', color: CARAMEL }}>{freshIn}</span>
+              {oven.open ? 'Next batch in ' : ''}<span style={{ fontVariantNumeric: 'tabular-nums', color: CARAMEL }}>{oven.open ? oven.value : 'First batch at 9'}</span>
             </div>
           </div>
         </div>
@@ -1097,9 +1118,9 @@ export default function FaxiBakeryPage() {
         {/* ribbon / live clock */}
         <div className="faxi-enter" style={{ display: 'flex', justifyContent: 'center', marginTop: 'clamp(18px,3vh,34px)', transitionDelay: '.80s' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, fontSize: 12.5, fontWeight: 700, letterSpacing: '.12em', color: MOSS, textTransform: 'uppercase' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: CARAMEL, display: 'inline-block', boxShadow: '0 0 0 4px #C2773A22' }} />
-            Next batch out of the oven in{' '}
-            <span style={{ fontVariantNumeric: 'tabular-nums', color: INK, background: '#1B17120D', padding: '2px 8px', borderRadius: 6 }}>{freshIn}</span>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: oven.open ? CARAMEL : '#1B171233', display: 'inline-block', boxShadow: oven.open ? '0 0 0 4px #C2773A22' : 'none' }} />
+            {oven.label}{' '}
+            <span style={{ fontVariantNumeric: 'tabular-nums', color: INK, background: '#1B17120D', padding: '2px 8px', borderRadius: 6 }}>{oven.value}</span>
           </div>
         </div>
 
@@ -1255,9 +1276,6 @@ export default function FaxiBakeryPage() {
               <div data-mask style={{ position: 'relative', flex: '1 1 auto', minHeight: 'clamp(300px,44vh,500px)', borderRadius: 4, overflow: 'hidden' }}>
                 <div data-drift style={{ position: 'absolute', inset: '-6% 0', height: '112%' }}>
                   <ShotView shot={POPULAR[0].shot} style={{ position: 'absolute', inset: 0 }} sizes="(max-width:1000px) 100vw, 55vw" bleed />
-                </div>
-                <div style={{ position: 'absolute', right: 14, bottom: 14, width: 'clamp(96px,13vw,138px)', padding: 5, borderRadius: 4, background: '#F1E4CEdd', boxShadow: '0 14px 34px #1B171233' }}>
-                  <FilmView film={FILMS.oven} reduced={reduced} compact style={{ aspectRatio: '4 / 5', borderRadius: 2 }} />
                 </div>
                 <span className="faxi-meta" style={{ position: 'absolute', top: 14, left: 14, background: INK, color: CREAM_LIGHT, padding: '8px 12px', borderRadius: 2, fontSize: 9.5 }}>
                   {POPULAR[0].tag}

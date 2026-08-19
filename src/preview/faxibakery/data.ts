@@ -131,18 +131,6 @@ export const FILMS = {
     'Locked-off shot out the window: cloud shadow crossing the volcano, steam drifting up from a cup in the near corner of frame. Nothing else happens. That is the shot.',
     '12–20s silent loop · locked tripod · 1080p h.264 + webm · no cuts',
   ),
-  /** Sits inside the feature card — the reason to stop. */
-  oven: film(
-    'video/oven.mp4',
-    shot(
-      'snudur-tray.jpg',
-      'A tray of cinnamon rolls coming out of the oven, steam rising',
-      "A tray of rolls leaving the oven, steam catching the light, the baker's arm in frame.",
-      'food',
-    ),
-    'The tray comes out of the oven, steam lifts, a hand slides it onto the rack. Shoot it at a real batch, not staged.',
-    '6–10s silent loop · handheld is fine · 1080p · portrait 4:5',
-  ),
   /** Closing calm before the practical stuff. */
   dusk: film(
     'video/last-batch.mp4',
