@@ -12,7 +12,7 @@ import {
   useTransform,
 } from 'framer-motion'
 import { MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -43,7 +43,7 @@ import {
   TRUST_STRIP,
 } from './data'
 
-const company = getPreviewCompany('bilageirinn')
+const company = companyEntry
 
 /* ── GRÓFIN BLUEPRINT. Trust through transparency: the page is laid out
       like the shop's own measurement document, drafted live in front of

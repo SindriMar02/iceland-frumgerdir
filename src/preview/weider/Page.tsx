@@ -25,12 +25,12 @@ import {
   X,
   Zap,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 
-const company = getPreviewCompany('weider')
+const company = companyEntry
 
 /* ── brand: ink #08080a · surface #121214 · Weider red #e11d48 · red-light #ff5470 (AA on dark) ──
    Display = Anton (font-poster) with OPEN leading + normal tracking so Icelandic accents

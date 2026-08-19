@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -28,7 +28,7 @@ import {
 } from './data'
 import type { ImgKey } from './data'
 
-const company = getPreviewCompany('vinland')
+const company = companyEntry
 
 /* ── Palette — cream/bone canvas, near-black ink, one rust accent ─────────
  * CREAM  vs INK    : 14.54:1  (body text, AAA)

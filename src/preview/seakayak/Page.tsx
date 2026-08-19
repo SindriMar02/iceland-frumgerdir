@@ -14,14 +14,14 @@ import {
   Users,
   Waves,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
 import { HERO_ID, TRIPS, VOICES } from './data'
 
-const company = getPreviewCompany('seakayak')
+const company = companyEntry
 
 const U = 'https://images.unsplash.com/'
 const heroSrc = `${U}${HERO_ID}?q=80&w=2000&auto=format&fit=crop`

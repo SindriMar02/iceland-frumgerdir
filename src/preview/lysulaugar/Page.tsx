@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { IMG, WATER, FACILITIES, VISIT, TIPS } from './data'
 
-const company = getPreviewCompany('lysulaugar')
+const company = companyEntry
 
 /* Palette — warm, earthy GREEN (distinct from any teal elsewhere) */
 const MOSS = '#2f6b4f'

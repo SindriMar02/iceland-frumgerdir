@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import Lenis from 'lenis'
 import { Mail, Menu, Phone, Send, X } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -18,7 +18,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
 
-const company = getPreviewCompany('kiropraktorstofan')
+const company = companyEntry
 
 /* ── "FYRSTA LEYFIÐ" ──────────────────────────────────────────────────────
    Reference system: rr-tales-design-system.md (Reykjavik Roses "Five tales").

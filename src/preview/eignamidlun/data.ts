@@ -24,7 +24,7 @@
  * the gjaldskrá as a monument you cannot scroll past without reading.
  */
 
-import type { AuditList, PreviewCompany } from '../companies'
+import type { AuditList, PreviewCompany } from '../company-types'
 
 const asset = (p: string) => `${import.meta.env.BASE_URL}eignamidlun/${p}`
 

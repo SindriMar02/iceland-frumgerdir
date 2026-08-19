@@ -14,7 +14,7 @@ import {
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
 import { Car, Check, Copy, MapPin, MessageCircle, Phone, Send } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import BilageirinnLoading from './Loading'
@@ -33,7 +33,7 @@ import {
   SERVICES,
 } from './data'
 
-const company = getPreviewCompany('bilageirinn')
+const company = companyEntry
 
 /* ── TRUE LINE, take two. The founder is a master aircraft mechanic and a
       damaged panel has exactly one correct line — but the page says it with

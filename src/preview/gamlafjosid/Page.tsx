@@ -17,7 +17,7 @@ import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMAGES,
@@ -30,7 +30,7 @@ import {
   type MenuCategory,
 } from './data'
 
-const company = getPreviewCompany('gamlafjosid')
+const company = companyEntry
 
 // ─── PALETTE ─────────────────────────────────────────────────────────────────
 const C = {

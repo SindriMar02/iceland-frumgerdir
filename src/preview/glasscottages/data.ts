@@ -1,4 +1,4 @@
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 /**
  * Glass Cottages — Ari (Superhost, 13 years), Hella. Family-owned, designed by

@@ -4,7 +4,7 @@ import Lenis from 'lenis'
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
 import { Phone, Mail, MapPin } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -50,7 +50,7 @@ import {
 } from './data'
 import type { PriceRow } from './data'
 
-const company = getPreviewCompany('saudakofinn')
+const company = companyEntry
 
 /* ── Palette (art-direction brief, all pairs AA-checked) ─────────────────────
  * CREAM #F3EEE3 ground · INK #221D17 on cream 14.45:1

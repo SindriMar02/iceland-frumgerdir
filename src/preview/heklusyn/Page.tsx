@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import { CustomEase } from 'gsap/CustomEase'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -22,7 +22,7 @@ CustomEase.create('hkIn', '0.5,0,0.75,0')
 CustomEase.create('hkInOut', '0.75,0,0.25,1')
 CustomEase.create('hkDive', '0.6,0,0,1')
 
-const company = getPreviewCompany('heklusyn')
+const company = companyEntry
 
 /* ═════════════════════════════════════════════════════════════════════════
    HEKLUSÝN — "Tólf hús". REBUILD per the ERA-FIDELITY ADDENDUM: this is no

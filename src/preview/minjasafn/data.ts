@@ -1,4 +1,4 @@
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 /* Minjasafn Austurlands — facts verified 2026-08-02 against minjasafn.is (live).
    Every URL below was re-verified against the live homepage nav on 2026-08-02

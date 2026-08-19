@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { MapPin } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -20,7 +20,7 @@ import {
   TOURS,
 } from './data'
 
-const company = getPreviewCompany('eyjatours')
+const company = companyEntry
 
 /* ── Palette — Ocean ink & the puffin spectrum (see design handoff) ────── */
 const INK = '#0C2A31' // primary dark ground

@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { motion, useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -22,7 +22,7 @@ import {
   PHONE_DISPLAY, PHONE_HREF, REVIEWS, SERVICES, TRUST, VISIT,
 } from './data'
 
-const company = getPreviewCompany('geisli')
+const company = companyEntry
 
 /* ── GEISLI · „Gleraugu eru skart" — luminous ivory jewelry boutique.
       Two signatures: (1) the interactive blur⇄sharp lens divider over a

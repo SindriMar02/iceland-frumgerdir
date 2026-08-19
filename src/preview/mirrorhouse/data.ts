@@ -1,4 +1,4 @@
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 /**
  * Mirror House Iceland — Ingibjorg ("Inga"), Ytri-Skeljabrekka, Borgarbyggð.

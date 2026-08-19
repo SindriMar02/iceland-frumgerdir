@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -14,7 +14,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('mirrorhouse')
+const company = companyEntry
 
 /* ── MIRROR HOUSE · "EIN NÓTT" ─────────────────────────────────────────────
    One page, one night. The canvas begins in daylight ice and ends in aurora
@@ -522,7 +522,7 @@ function BookingForm() {
   if (done) {
     return (
       <div className="mh-book-done" role="status">
-        <p className="mh-book-done-title">Request sent.</p>
+        <p className="mh-book-done-title">Your request is on its way.</p>
         <p className="mh-book-done-body">
           {done.date} to {done.endDate}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
           Ingibjörg confirms each request personally. The price for your dates comes with her reply
@@ -530,7 +530,7 @@ function BookingForm() {
         </p>
         <p className="mh-book-note">
           This is a prototype. The request lives only in this browser.{' '}
-          <Link className="mh-a" to="/preview/mirrorhouse/stjornbord">See the owner's side</Link>{' '}
+          <Link className="mh-a" to="/preview/mirrorhouse/stjornbord">View the owner's dashboard</Link>{' '}
           to watch it arrive.
         </p>
         <button type="button" className="mh-ghost" onClick={() => setDone(null)}>
@@ -582,7 +582,7 @@ function BookingForm() {
         </label>
       </div>
       {error && <p className="mh-field-error" role="alert">{error}</p>}
-      <button type="submit" className="mh-cta">Request to book</button>
+      <button type="submit" className="mh-cta">Enquire about your stay</button>
       <p className="mh-book-note">
         No card, no charge. The guest asks, the owner confirms, and payment is
         settled on arrival. The nightly price for your dates comes with the reply.
@@ -703,7 +703,7 @@ export default function MirrorHousePage() {
           <a href="#nottin" onClick={anchor('nottin')}>The night</a>
           <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
         </nav>
-        <a className="mh-nav-cta" href="#boka" onClick={anchor('boka')}>Request to book</a>
+        <a className="mh-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
       </header>
 
       {/* 01 · hero (day) */}
@@ -728,21 +728,24 @@ export default function MirrorHousePage() {
         </h1>
         <div className="mh-hero-block">
           <p className="mh-hero-sub">
-            A one of a kind mirror glass cabin under the cliffs of Borgarbyggð.
-            Sleeps two, an hour from Reykjavík.
+            Mirror House sits quietly under the cliffs of Borgarbyggð, reflecting the
+            mountains, sky and weather that surround it. From a distance it almost
+            disappears. From inside, every pane becomes a window onto Iceland.
+            Sleeps two.
           </p>
-          <a className="mh-hero-link" href="#boka" onClick={anchor('boka')}>Request to book</a>
+          <a className="mh-hero-link" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
         </div>
       </section>
 
       {/* 02 · manifesto */}
       <section className="mh-manifesto" id="husid">
         <div className="mh-manifesto-copy">
-          <Headline text="Built to disappear." size={92} floor={40} measure={620} />
+          <Headline text="The house gives the landscape back." size={92} floor={40} measure={620} />
           <p className="mh-body mh-rv">
-            The shell is mirror glass. It holds the cliff, the grass and whatever
-            the sky is doing, and gives the landscape back to itself. Inside there
-            is floor heating, a double bed, and the view through every pane.
+            The mirrored exterior reflects whatever the day brings. Morning light,
+            drifting cloud, autumn colour or winter snow. Rather than drawing
+            attention to itself, the building allows the landscape to remain
+            uninterrupted.
           </p>
         </div>
         <Frame photo={PHOTO.mirrorEdge} drift={9} className="mh-manifesto-fig" />
@@ -752,11 +755,12 @@ export default function MirrorHousePage() {
       <section className="mh-arrival">
         <div className="mh-arrival-copy">
           <Phase is="Síðdegi" en="Afternoon" />
-          <Headline text="The road ends at a lockbox." size={64} floor={32} measure={560} />
+          <Headline text="The road ends. The stay begins." size={64} floor={32} measure={560} />
           <p className="mh-body mh-rv">
-            A good main road runs almost to the door; the last few metres are
-            gravel, with parking just below the hill. Check-in is after 3 PM,
-            with your own code. No reception, no queue, and no one else around.
+            The final stretch is simple. A good main road runs almost to the door;
+            the last few metres are gravel, with parking just below the hill.
+            Collect your key from the lockbox and step inside. No reception desk.
+            No queue. Just your own code and the sound of the wind.
           </p>
           <dl className="mh-facts mh-rv">
             <div><dt>Check-in</dt><dd>{FACTS.checkIn}</dd></div>
@@ -775,11 +779,12 @@ export default function MirrorHousePage() {
         <Frame photo={PHOTO.bedGlassRoof} drift={12} className="mh-interior-hero" />
         <div className="mh-interior-row">
           <div className="mh-interior-copy">
-            <Headline text="Glass on three sides, and above the bed." size={56} floor={30} measure={520} />
+            <Headline text="Every direction becomes the view." size={56} floor={30} measure={520} />
             <p className="mh-body mh-rv">
-              The double bed faces the panorama, the floor is heated, and the
-              kitchenette makes a slow morning easy. When the weather turns, the
-              house is the best seat for it.
+              Glass surrounds the room so the landscape is never treated as scenery.
+              It becomes part of the room, from sunrise until the last light leaves
+              the mountains. The floor is heated throughout and the kitchenette
+              makes a slow morning easy.
             </p>
           </div>
           <Frame photo={PHOTO.interiorTable} drift={8} className="mh-interior-side" />
@@ -814,7 +819,8 @@ export default function MirrorHousePage() {
             <div className="mh-scrub-captext">
               <p className="mh-scrub-cap mh-scrub-cap-day">Stay one night.</p>
               <p className="mh-scrub-cap mh-scrub-cap-night">
-                In winter, the lights come down to the glass.
+                Clear nights are never promised. Guests have described watching the sky
+                change from bed.
               </p>
             </div>
           </div>
@@ -882,12 +888,12 @@ export default function MirrorHousePage() {
             years and answers within the hour.
           </p>
           <div className="mh-owner-note mh-rv">
-            <p className="mh-owner-note-label">The owner's side</p>
+            <p className="mh-owner-note-label">The owner's dashboard</p>
             <p className="mh-owner-note-body">
               Every request lands in a dashboard built for this house: confirm or
               decline in one tap, watch the week fill up.{' '}
               <Link className="mh-a" to="/preview/mirrorhouse/stjornbord">
-                Open the dashboard demo
+                See how direct bookings would work
               </Link>{' '}
               beside this tab and send yourself a request.
             </p>

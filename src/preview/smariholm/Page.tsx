@@ -3,7 +3,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -28,7 +28,7 @@ import {
   WARRANTY_YEARS,
 } from './data'
 
-const company = getPreviewCompany('smariholm')
+const company = companyEntry
 
 /* ── BRYNJA — "an invisible armor against Icelandic weather." Prolan's real
       differentiator (a flexible lanolin membrane, not a rigid shell) reframed as

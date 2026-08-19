@@ -7,7 +7,7 @@ import {
   type Transition,
 } from 'framer-motion'
 import { Clock, ExternalLink, Flame, MapPin, Phone, Ticket } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -23,7 +23,7 @@ import {
   type Stave,
 } from './data'
 
-const company = getPreviewCompany('galdrasyning')
+const company = companyEntry
 
 const U = 'https://images.unsplash.com/'
 const atmoSrc = `${U}${ATMO_ID}?q=80&w=2000&auto=format&fit=crop`

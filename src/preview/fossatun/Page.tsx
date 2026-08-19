@@ -128,10 +128,31 @@ function Shot({
   )
 }
 
+/**
+ * Open the year spine on the next month that is actually OPEN for business.
+ *
+ * This used to be a hardcoded `7`. Opened on 31 July, the booking calendar then
+ * landed on júlí of the FOLLOWING year: the calendar treats a month with fewer
+ * than four days left as gone and rolls it forward, and rolling July forward
+ * means July 2027. Correct by its own rules and baffling to look at. Anchor to
+ * today instead, and skip December and January, which they are shut.
+ */
+function defaultMonth(): number {
+  const now = new Date()
+  const daysInMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate()
+  // same "fewer than four days left counts as gone" rule the calendar uses
+  const start = now.getUTCMonth() + (daysInMonth - now.getUTCDate() < 4 ? 1 : 0)
+  for (let i = 0; i < 12; i++) {
+    const m = ((start + i) % 12) + 1
+    if (YEAR[m - 1].open) return m
+  }
+  return 7
+}
+
 export default function FossatunPage() {
   useReveal()
   useImageDrift()
-  const [month, setMonth] = useState(7)
+  const [month, setMonth] = useState(defaultMonth)
   const state = YEAR[month - 1]
 
   useEffect(() => {
@@ -218,7 +239,7 @@ export default function FossatunPage() {
               </p>
             </div>
           </div>
-          <div className="fst-wrap fst-rv">
+          <div className="fst-mediawrap fst-rv">
             <Shot src="falls-trollafossar.jpg" ratio="21 / 9" drift={6}
               alt="Tröllafossar í Grímsá, hvítfyssandi vatn milli klettanna" />
           </div>
@@ -268,7 +289,7 @@ export default function FossatunPage() {
 
           {/* the rail is IMAGES. One title, one line. No bullet lists — the
               reference never puts a spec sheet under a picture. */}
-          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(24px,3.5vw,42px)' }}>
+          <div className="fst-rail fst-mediawrap fst-rv" style={{ marginTop: 'clamp(24px,3.5vw,42px)' }}>
             {openStays.map((s) => (
               <article key={s.id} className="fst-stay" data-off={!s.on || undefined}>
                 <div className="fst-stay__fig">
@@ -288,7 +309,7 @@ export default function FossatunPage() {
             ))}
           </div>
 
-          <div className="fst-wrap" style={{ marginTop: 'clamp(22px,3vw,40px)' }}>
+          <div className="fst-mediawrap" style={{ marginTop: 'clamp(22px,3vw,40px)' }}>
             <div className="fst-duo fst-rv">
               <Shot src="pod-aurora-2.jpg" ratio="5 / 4" drift={9}
                 alt="Camping pod að utan að næturlagi undir norðurljósum" />
@@ -297,7 +318,7 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+          <div className="fst-mediawrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
             <div className="fst-duo fst-rv">
               <Shot src="cabins-snow.jpg" ratio="5 / 4" drift={8}
                 alt="Röð af gulum húsum með rauðu þaki í snjó, fjöll í baksýn" />
@@ -307,7 +328,7 @@ export default function FossatunPage() {
           </div>
 
           {/* rooms, as pictures rather than a spec list */}
-          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+          <div className="fst-rail fst-mediawrap fst-rv" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
             {[
               ['hotel-room-2.jpg', 'Tveggja manna herbergi á sveitahótelinu'],
               ['pod-interior-3.jpg', 'Rúm og borð inni í camping pod'],
@@ -359,13 +380,13 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          <div className="fst-wrap fst-rv">
+          <div className="fst-mediawrap fst-rv">
             <Shot src="troll-head-falls.jpg" ratio="21 / 9" drift={7}
               alt="Steypt tröllshöfuð við Tröllafossa með hótelið í baksýn"
               caption="Tröllshöfuðið við fossana." />
           </div>
 
-          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+          <div className="fst-mediawrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
             <div className="fst-duo fst-rv">
               <Shot src="troll-cauldron.jpg" ratio="5 / 4" drift={9}
                 alt="Tröllskessa með pott við gönguleiðina" />
@@ -374,7 +395,7 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+          <div className="fst-mediawrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
             <div className="fst-duo fst-rv">
               <Shot src="troll-tug.jpg" ratio="5 / 4" drift={8}
                 alt="Gestir í reiptogi við tröllaþrautina á túninu" />
@@ -383,7 +404,7 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+          <div className="fst-rail fst-mediawrap fst-rv" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
             {[
               ['troll-play.jpg', 'Tröllaleikir á túninu við gönguleiðina'],
               ['troll-clay.jpg', 'Útskorið tröllshöfuð við ána'],
@@ -427,7 +448,7 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          <div className="fst-wrap">
+          <div className="fst-mediawrap">
             <div className="fst-duo fst-rv">
               <Shot src="gold-records.jpg" ratio="5 / 4" drift={7}
                 alt="Gullplötur í römmum á vegg veitingastaðarins" />
@@ -436,14 +457,14 @@ export default function FossatunPage() {
             </div>
           </div>
 
-          <div className="fst-wrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
+          <div className="fst-mediawrap" style={{ marginTop: 'clamp(12px,1.6vw,22px)' }}>
             <Shot src="conservatory-wide.jpg" ratio="21 / 9" drift={6}
               alt="Glerskálinn á veitingastaðnum, langur salur með útsýni yfir ána"
               caption="Glerskálinn hangir yfir Tröllafossum." />
           </div>
 
           {/* food, plated on records — the identity in a photograph */}
-          <div className="fst-rail fst-wrap fst-rv" style={{ marginTop: 'clamp(16px,2.2vw,28px)' }}>
+          <div className="fst-rail fst-mediawrap fst-rv" style={{ marginTop: 'clamp(16px,2.2vw,28px)' }}>
             {[
               ['cake-on-vinyl.jpg', 'Kaka borin fram á vínylplötu'],
               ['cake-vinyl-2.jpg', 'Sætabrauð á vínylplötu sem diski'],

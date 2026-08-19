@@ -31,12 +31,12 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import { IMAGES, LINKS, NAV, getContent, seasonStatus } from './data'
 import type { Lang, PageKey } from './data'
 
-const company = getPreviewCompany('kirkjubaer')
+const company = companyEntry
 
 // ── Design tokens (from the handoff; small-text colours nudged for WCAG AA) ──
 const PAPER = '#f4ede0' // page background

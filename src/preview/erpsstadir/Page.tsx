@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
 import { FLAVOURS, HOURS, QUOTES } from './data'
 
-const company = getPreviewCompany('erpsstadir')
+const company = companyEntry
 
 const HERO_ID = 'photo-1497034825429-c343d7c6a68f'
 const HERO = `https://images.unsplash.com/${HERO_ID}?q=80&w=2000&auto=format&fit=crop`

@@ -3,7 +3,7 @@ import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ShoppingBag, X, Minus, Plus, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { GITARINN as companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -17,7 +17,7 @@ import type { Budget, Category, Product } from './data'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('gitarinn')
+const company = companyEntry
 
 /* ── GÍTARINN · "VEGGURINN" ────────────────────────────────────────────────
    Reference system: the Coppermine dark-editorial-ecommerce template (see

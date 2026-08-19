@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -25,7 +25,7 @@ import {
   STORY,
 } from './data'
 
-const company = getPreviewCompany('arsol')
+const company = companyEntry
 
 /* ── Ársól — "year-sun". A silkscreen sólarplakat like Sælan's, but its own
       dusk-to-UV run: warm sand paper, a setting-sun in tangerine and coral,

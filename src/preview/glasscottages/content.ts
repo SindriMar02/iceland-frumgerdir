@@ -109,6 +109,23 @@ export const FACTS = {
   licence: 'IG-REK-015406',
 }
 
+/**
+ * The practical spec. Every row is verified: the listing's own amenity list,
+ * glasscottages.com, and the operating licence. Nothing inferred.
+ */
+export const STAY = [
+  { k: 'Sleeps', v: 'Two guests, in one queen bed' },
+  { k: 'Bathroom', v: 'One bathroom, with floor heating throughout' },
+  { k: 'Hot tub', v: 'A private hot tub at each cottage, in the open air' },
+  { k: 'Kitchen', v: 'A compact kitchenette with a window on the field' },
+  { k: 'The roof', v: 'Glass, directly over the bed' },
+  { k: 'The setting', v: '500 hectares of private lava field near Hella' },
+  { k: 'Distance apart', v: 'The two cottages stand 200 metres apart' },
+  { k: 'Parking', v: 'Free parking at the cottage' },
+  { k: 'Day trips', v: 'A base for the Golden Circle and the south coast' },
+  { k: 'Licence', v: 'Operating licence IG-REK-015406' },
+] as const
+
 export const JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'LodgingBusiness',

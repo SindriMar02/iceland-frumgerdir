@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Clock, Flame, Mail, MapPin, Phone, ShoppingBag } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { FLOW, HERO_ID, IMGS, PHONE_PRIMARY, PHONE_SECONDARY, PRODUCTS, SPECS, TAGLINE } from './data'
 
-const company = getPreviewCompany('reykkofinn')
+const company = companyEntry
 
 const IMG = 'https://images.unsplash.com/'
 const HERO = `${IMG}${HERO_ID}`

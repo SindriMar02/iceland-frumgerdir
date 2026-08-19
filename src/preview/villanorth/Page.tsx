@@ -4,7 +4,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
 import { motion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setNoindex, setThemeColor } from '../../lib/preview'
@@ -16,7 +16,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('villanorth')
+const company = companyEntry
 
 /* ── VILLA NORTH · "MÁLSETT" (drawn to measure) ─────────────────────────────
    One page, drawn like an engineer's own drawings: a hairline measure line
@@ -116,14 +116,19 @@ function useMotion(ready: boolean) {
          opacity only, and the tween is created synchronously so gsap.context
          owns it and reverts it on unmount. */
       const wmWords = root.querySelectorAll<HTMLElement>('.vn-wm-word')
+      const wmRule = root.querySelector<HTMLElement>('.vn-wm-rule')
       const measureText = root.querySelector<HTMLElement>('.vn-measure-text')
       if (wmWords.length) {
         gsap.set(wmWords, { yPercent: 120, opacity: 0 })
+        if (wmRule) gsap.set(wmRule, { scaleX: 0 })
         if (measureText) gsap.set(measureText, { opacity: 0, y: 8 })
+        // The guide line is drawn before the name, left to right, the way the
+        // elevation further down is drawn. The words then rise under it.
         const tl = gsap.timeline({ paused: true, delay: 0.25 })
+          .to(wmRule, { scaleX: 1, duration: 0.9, ease: 'expo.out' })
           .to(wmWords, {
             yPercent: 0, opacity: 1, duration: 1.35, ease: 'expo.out', stagger: 0.1,
-          })
+          }, '-=0.55')
           .to(measureText, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.7')
 
         // The entrance is driven by requestAnimationFrame, and rAF is suspended
@@ -134,16 +139,37 @@ function useMotion(ready: boolean) {
         // ticking when rAF does not) that snaps to the resting state if the
         // timeline somehow never ran.
         const play = () => { if (!tl.isActive() && tl.progress() === 0) tl.play() }
-        if (document.visibilityState === 'visible') play()
+        const start = () => { if (document.visibilityState === 'visible') play() }
+        // The loader owns the first moment; the name opens only once the sheet
+        // has been pulled off, otherwise the reveal plays behind it unseen.
+        if (document.querySelector('.vn-loader')) {
+          window.addEventListener('vn:revealed', start, { once: true })
+        } else {
+          start()
+        }
         const onVis = () => { if (document.visibilityState === 'visible') play() }
         document.addEventListener('visibilitychange', onVis)
+        // 6s, not 4s: the loader itself can hold the first 2.4s of that budget.
         const backstop = window.setTimeout(() => {
           if (tl.progress() === 0) tl.progress(1)
-        }, 4000)
+        }, 6000)
         cleanups.push(() => {
           document.removeEventListener('visibilitychange', onVis)
           window.clearTimeout(backstop)
         })
+
+        /* SCROLL AWAY - the drawing is put back in the drawer. Both words
+           retract down into the masks they rose from, the guide line runs on
+           past them and fades. Entrance drives yPercent and the scrub drives
+           y, so the two never contend for one transform component. */
+        const heroEl = root.querySelector<HTMLElement>('.vn-hero')
+        const wmEl = root.querySelector<HTMLElement>('.vn-wordmark')
+        if (heroEl && wmEl) {
+          const away = { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 0.6 }
+          gsap.to(wmWords, { y: 84, ease: 'none', stagger: 0.04, scrollTrigger: away })
+          if (wmRule) gsap.to(wmRule, { scaleX: 2.8, opacity: 0, ease: 'none', scrollTrigger: away })
+          gsap.to(wmEl, { opacity: 0.1, ease: 'none', scrollTrigger: away })
+        }
       }
 
       /* word-mask headline rises */
@@ -392,6 +418,67 @@ function MaterialsExpand() {
 
 /* ── booking form ──────────────────────────────────────────────────────── */
 
+/* ── preloader ──────────────────────────────────────────────────────────────
+   Counts REAL loading (hero decode + fonts.ready), never a fake timer. 1.1s
+   floor so a warm cache does not flash it for one tick, 2.4s cap. Once per
+   session; ?loader forces it for review; never mounts under reduced motion.
+   The sheet is wiped away left to right, the way a drafting sheet is pulled
+   off a board, rather than lifted like the other builds. */
+const shouldShowLoader = () => {
+  if (typeof window === 'undefined' || reduced()) return false
+  if (new URLSearchParams(window.location.search).has('loader')) return true
+  try { return !sessionStorage.getItem('vn_seen') } catch { return true }
+}
+
+function Preloader({ onDone }: { onDone: () => void }) {
+  const [pct, setPct] = useState(0)
+  const [leaving, setLeaving] = useState(false)
+
+  useEffect(() => {
+    try { sessionStorage.setItem('vn_seen', '1') } catch { /* private mode */ }
+    const t0 = performance.now()
+    let raf = 0
+    let shown = 0
+    let heroDone = false
+    const hero = new Image()
+    hero.decoding = 'async'
+    const mark = () => { heroDone = true }
+    hero.addEventListener('load', mark, { once: true })
+    hero.addEventListener('error', mark, { once: true })
+    hero.src = PHOTO.aerialSunset.src
+    if (hero.complete) heroDone = true
+    let fontsDone = false
+    document.fonts.ready.then(() => { fontsDone = true })
+
+    const FLOOR = 1100, CAP = 2400
+    const tick = () => {
+      const t = performance.now() - t0
+      let target = (heroDone ? 55 : Math.min(50, t / 24)) + (fontsDone ? 45 : 0)
+      if (t >= CAP) target = 100
+      shown += (target - shown) * 0.12
+      const display = Math.min(100, Math.round(shown))
+      setPct(display)
+      if (display >= 100 && t >= FLOOR) {
+        setLeaving(true)
+        window.setTimeout(onDone, 950)
+        return
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [onDone])
+
+  return (
+    <div className={`vn-loader ${leaving ? 'is-leaving' : ''}`} aria-hidden="true">
+      <p className="vn-loader-mark" style={{ backgroundPositionX: `${100 - pct}%` }}>
+        VILLA NORTH
+      </p>
+      <p className="vn-loader-pct">{pct}%</p>
+    </div>
+  )
+}
+
 const NIGHT_MS = 86400000
 const plusDays = (d: string, n: number) => {
   const t = new Date(`${d}T12:00:00`)
@@ -539,6 +626,8 @@ export default function VillaNorthPage() {
     }
   }, [])
 
+  const [loading, setLoading] = useState(shouldShowLoader)
+
   const activeRoomData: RoomEntry = ROOMS.find((r) => r.id === activeRoom) ?? ROOMS[0]
 
   const anchor = (id: string) => (e: React.MouseEvent) => {
@@ -558,6 +647,12 @@ export default function VillaNorthPage() {
   return (
     <div ref={rootRef} className="vn-root">
       <style>{CSS}</style>
+      {loading && (
+        <Preloader onDone={() => {
+          setLoading(false)
+          window.dispatchEvent(new Event('vn:revealed'))
+        }} />
+      )}
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={company} />
@@ -579,12 +674,15 @@ export default function VillaNorthPage() {
             alt={PHOTO.aerialSunset.alt} loading="eager" decoding="async" />
         </div>
         <h1 className="vn-wordmark" aria-label="Villa North">
-          <span className="vn-wm-line" aria-hidden="true"><span className="vn-wm-word">VILLA</span></span>
-          {' '}
-          <span className="vn-wm-line" aria-hidden="true"><span className="vn-wm-word">NORTH</span></span>
+          <span className="vn-wm-rule" aria-hidden="true" />
+          <span className="vn-wm-row" aria-hidden="true">
+            <span className="vn-wm-line"><span className="vn-wm-word">VILLA</span></span>
+            {' '}
+            <span className="vn-wm-line"><span className="vn-wm-word">NORTH</span></span>
+          </span>
         </h1>
         <div className="vn-hero-block">
-          <p className="vn-measure-text">Gistir 7 · fjögur svefnherbergi</p>
+          <p className="vn-measure-text">Sleeps 7 · four bedrooms</p>
           <p className="vn-hero-sub">
             Designed with precision, built for gathering. An engineer's house of glass
             and dark timber above Fnjóskadalur, made for seven.
@@ -1014,12 +1112,19 @@ const CSS = `
    matching negative margin) so nothing clips. */
 .vn-wordmark {
   position: absolute; inset: 0; z-index: 2;
-  display: flex; align-items: center; justify-content: center;
-  gap: .3em; margin: 0; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0; margin: 0; pointer-events: none;
   color: #F5F4F1;
   font-family: ${DISPLAY}; font-weight: 700; letter-spacing: .05em;
   font-size: clamp(30px, 8vw, 116px); line-height: 1.08;
   text-shadow: 0 2px 44px rgba(16, 18, 22, .42);
+}
+.vn-wm-row { display: flex; align-items: center; gap: .3em; }
+/* the drafting guide the name is set against */
+.vn-wm-rule {
+  display: block; width: min(40vw, 520px); height: 1px; background: currentColor;
+  opacity: .55; margin-bottom: .3em; transform-origin: 0 50%;
+  will-change: transform, opacity;
 }
 .vn-wm-line {
   display: inline-block; overflow: hidden;
@@ -1307,6 +1412,13 @@ const CSS = `
   max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 48) auto 0; padding: 0 calc(var(--u) * 48);
 }
 .vn-glow-tub-col { display: flex; flex-direction: column; gap: calc(var(--u) * 14); align-items: start; }
+/* Every child of .vn-frame is position:absolute, so the figure has no in-flow
+   content and its fit-content width is 0. In .vn-glow-row (a grid) align-items
+   is the BLOCK axis and items still stretch inline, so the other two frames are
+   fine. In this flex COLUMN align-items is the INLINE axis, so start = shrink
+   to fit = width 0, aspect-ratio then took height to 0, and the photo loaded
+   but never painted. Give width so the maxWidth prop has something to cap. */
+.vn-glow-tub-col > .vn-frame { width: 100%; }
 .vn-glow-fact { font-family: ${MONO}; font-size: ${fluid(12, 12)}; color: var(--vn-mute); margin: 0; max-width: 26ch; }
 .vn-glow-quote { max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 56) auto 0; padding: 0 calc(var(--u) * 48); color: inherit; }
 .vn-glow-quote cite { color: var(--vn-mute); }
@@ -1430,10 +1542,32 @@ const CSS = `
 }
 
 /* reduced motion: everything renders visible statically */
+/* preloader: a paper sheet wiped off the board, left to right */
+.vn-loader {
+  position: fixed; inset: 0; z-index: 60; background: ${PAPER};
+  display: grid; place-content: center;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1s cubic-bezier(.76, 0, .24, 1);
+}
+.vn-loader.is-leaving { clip-path: inset(0 0 0 100%); }
+.vn-loader-mark {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 700; letter-spacing: .05em;
+  font-size: clamp(30px, 7.2vw, 108px); white-space: nowrap; line-height: 1;
+  background-image: linear-gradient(90deg, ${INK} 50%, rgba(23,24,26,.14) 50%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.vn-loader-pct {
+  position: fixed; left: calc(var(--u) * 48); bottom: calc(var(--u) * 40);
+  margin: 0; font-family: ${MONO}; font-size: 12px; letter-spacing: .16em;
+  color: rgba(23,24,26,.5);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vn-root * { transition: none !important; animation: none !important; }
   .vn-word { transform: none !important; opacity: 1 !important; }
   .vn-wm-word { transform: none !important; opacity: 1 !important; }
+  .vn-wm-rule { transform: none !important; opacity: .55 !important; }
   .vn-measure-text { opacity: 1 !important; transform: none !important; }
   .vn-elev-svg { opacity: .12; }
   .vn-elev-photo { opacity: 1; }

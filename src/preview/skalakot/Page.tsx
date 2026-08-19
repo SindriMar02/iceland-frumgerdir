@@ -4,7 +4,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -16,7 +16,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
 
-const company = getPreviewCompany('skalakot')
+const company = companyEntry
 
 /* Module-scoped handle to the desktop horizontal journey so anchor nav can
    map a panel to its vertical scroll offset (labelToScroll pattern). Set and

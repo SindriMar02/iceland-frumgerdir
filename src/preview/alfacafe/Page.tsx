@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -31,7 +31,7 @@ import {
   variantSet,
 } from './data'
 
-const company = getPreviewCompany('alfacafe')
+const company = companyEntry
 
 /* ══════════════════════════════════════════════════════════════════════════
    "Á mörkum heima" — Álfacafé, Bakkagerði.

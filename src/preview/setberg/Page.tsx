@@ -3,7 +3,7 @@ import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
 import { Mail, MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -38,7 +38,7 @@ import {
 } from './data'
 import type { Quote } from './data'
 
-const company = getPreviewCompany('setberg')
+const company = companyEntry
 
 /* ── Palette (brief section C) ─────────────────────────────────────────────
  * GROUND #1C231E moss-basalt · INK #F4EEE0 parchment (AAA on ground)

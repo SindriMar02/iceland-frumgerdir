@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -15,7 +15,7 @@ import {
   WHY_HEADING_A, WHY_HEADING_B, WHY_INTRO, WHY_POINTS,
 } from './data'
 
-const company = getPreviewCompany('prentverk')
+const company = companyEntry
 
 /* ── YFIRPRENT v3 — same two-colour print house, restructured on the
       Bílageirinn pattern: full-bleed photo moments carry the page (hero,

@@ -15,7 +15,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -24,7 +24,7 @@ import { Reveal } from '../../components/Reveal'
 import { StickyCta } from '../../components/StickyCta'
 import { CATEGORIES, HERITAGE, HERO, IMG, JSON_LD, META, NAV, REVIEWS, VISIT } from './data'
 
-const company = getPreviewCompany('una')
+const company = companyEntry
 
 /* ── palette — barn-red accent (company.accent) on warm cream, ink for
       primary text, a muted warm brown for secondary text, moss for a

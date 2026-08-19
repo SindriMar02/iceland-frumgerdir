@@ -23,11 +23,11 @@ import { Img } from '../../components/Img'
 import TextPressure from '../../components/TextPressure'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import { IMAGES, FALLBACK, LOGO, MENU, STATS, HOURS_BY_DAY, VISIT } from './data'
 
-const company = getPreviewCompany('gkbakari')
+const company = companyEntry
 
 // ── Design tokens — identical to Faxi Bakery Café ───────────────────────────
 const CREAM = '#F1E4CE'

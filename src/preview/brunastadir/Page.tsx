@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { PartialPrototypeBanner } from '../PartialPrototypeBanner'
@@ -25,7 +25,7 @@ import {
   u,
 } from './data'
 
-const company = getPreviewCompany('brunastadir')
+const company = companyEntry
 
 const prefersReduced = () =>
   typeof window !== 'undefined' &&

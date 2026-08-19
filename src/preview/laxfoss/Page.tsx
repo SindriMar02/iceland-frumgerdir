@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setNoindex, setThemeColor } from '../../lib/preview'
@@ -15,7 +15,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('laxfoss')
+const company = companyEntry
 
 /* ── LAXFOSS · "NIÐURÁ" (downstream) ────────────────────────────────────────
    The waterfall beside this 1920s house never stops falling, so this is the
@@ -58,6 +58,15 @@ const reduced = () =>
 
 const fluid = (n: number, floor: number) =>
   `clamp(${floor}px, calc(var(--u) * ${n}), ${+(n * 1.15).toFixed(1)}px)`
+
+/** The hero film plays unless motion is reduced or the connection asks not to.
+    A Kling 3.0 ambient loop of THEIR aerial: water moves, nothing else does.
+    Palindrome (last frame = first), poster = the exact first frame. */
+const filmOk = () => {
+  if (typeof window === 'undefined' || reduced()) return false
+  const c = (navigator as { connection?: { saveData?: boolean } }).connection
+  return !c?.saveData
+}
 
 /* ── motion engine ───────────────────────────────────────────────────────── */
 
@@ -146,12 +155,26 @@ function useMotion(ready: boolean) {
 
       /* THE DROP — pinned descent of the falls. One timeline, one scrub.
          The dark aerial rises past the reader while three stations pass:
-         Upstream, The brink, The pool. Desktop pins; under 768px the
-         stations simply stack (no pin, nothing to miss). */
-      const drop = root.querySelector<HTMLElement>('.lx-drop')
-      const dropImg = root.querySelector<HTMLElement>('.lx-drop-img')
-      const stations = root.querySelectorAll<HTMLElement>('.lx-drop-station')
-      if (drop && dropImg && stations.length === 3 && window.innerWidth >= 768) {
+         Upstream, The brink, The pool. Under 768px the river goes sticky and
+         the stations scroll over it in CSS instead (see the phone block).
+
+         THIS MUST BE gsap.matchMedia, NOT a one-time innerWidth check.
+         A plain `innerWidth >= 768` gate is evaluated ONCE at mount, so a
+         visitor who opens the page on a narrow window and then widens it (or
+         rotates a tablet) never gets this block: the phone CSS stops applying,
+         the stations return to position:absolute at full opacity, and because
+         they all sit in the SAME place all three render on top of each other
+         as garbled overlapping copy. Reproduced exactly by loading at 569px
+         and resizing to 1200px. matchMedia sets the block up on entering the
+         query and REVERTS its inline styles on leaving, so both directions are
+         correct however the window changes. */
+      const mm = gsap.matchMedia()
+      cleanups.push(() => mm.revert())
+      mm.add('(min-width: 768px)', () => {
+        const drop = root.querySelector<HTMLElement>('.lx-drop')
+        const dropImg = root.querySelector<HTMLElement>('.lx-drop-img')
+        const stations = root.querySelectorAll<HTMLElement>('.lx-drop-station')
+        if (!drop || !dropImg || stations.length !== 3) return
         gsap.set(stations, { autoAlpha: 0, y: 44 })
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -161,17 +184,28 @@ function useMotion(ready: boolean) {
         })
         dropST = tl.scrollTrigger ?? null
         tl.fromTo(dropImg, { yPercent: 7 }, { yPercent: -13, ease: 'none', duration: 1 }, 0)
+        /* The three stations are absolutely positioned in the SAME place, so
+           their opacities must never overlap: two visible at once renders both
+           texts on top of each other and reads as duplicated, garbled copy.
+           Nor may there be a RANGE with none visible, which reads as an empty,
+           broken section. So the handoff is exact — each station's fade-out
+           ENDS on the frame the next station's fade-in BEGINS:
+             st1  in .02-.11   out .30-.39
+             st2  in .39-.48   out .62-.71
+             st3  in .71-.80   holds to the end                            */
+        const FADE = 0.09
         const beats = [
-          [0.02, 0.3, 0.37],   // in, hold-until, out-done
-          [0.4, 0.62, 0.69],
-          [0.72, 1.0, -1],     // the pool stays
+          [0.02, 0.30],   // [in, start-leaving]
+          [0.39, 0.62],
+          [0.71, -1],     // the pool stays to the end
         ] as const
         stations.forEach((st, i) => {
-          const [inAt, holdTo, outDone] = beats[i]
-          tl.to(st, { autoAlpha: 1, y: 0, duration: 0.09, ease: 'power2.out' }, inAt)
-          if (outDone > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: 0.07, ease: 'power2.in' }, holdTo)
+          const [inAt, leaveAt] = beats[i]
+          tl.to(st, { autoAlpha: 1, y: 0, duration: FADE, ease: 'power2.out' }, inAt)
+          if (leaveAt > 0) tl.to(st, { autoAlpha: 0, y: -34, duration: FADE, ease: 'power2.in' }, leaveAt)
         })
-      }
+        return () => { dropST = null }
+      })
 
       /* focusin failsafe: keyboard users must never land inside hidden copy */
       const onFocusIn = (e: FocusEvent) => {
@@ -194,7 +228,10 @@ function useMotion(ready: boolean) {
         if (!frame) continue
         const r = frame.getBoundingClientRect()
         if (r.bottom < -40 || r.top > vh + 40) continue
-        const p = 1 - (r.top + r.height / 2) / (vh / 2) / 2 // -1..1 across viewport
+        /* clamp: a frame taller than ~vh can push p past ±1 near its exit,
+           which overruns the --dz overhang and bleeds the image edge into
+           the frame (measured 45px on an 843px frame). Bound it. */
+        const p = Math.max(-1, Math.min(1, 1 - (r.top + r.height / 2) / (vh / 2) / 2)) // -1..1 across viewport
         const d = Number(el.dataset.drift || 9)
         writes.push([el, -p * d])
       }
@@ -236,9 +273,12 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
         maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined,
       }}
     >
+      {/* The inter-word space MUST sit outside the overflow-hidden mask: a
+          trailing space inside an inline-block is trimmed by the layout
+          engine, and every word butts against the next. */}
       {words.map((w, i) => (
-        <span className="lx-line" key={i} aria-hidden="true">
-          <span className="lx-word">{w}</span>
+        <span key={i} aria-hidden="true">
+          <span className="lx-line"><span className="lx-word">{w}</span></span>
           {i < words.length - 1 ? ' ' : ''}
         </span>
       ))}
@@ -440,7 +480,7 @@ function Preloader({ onDone }: { onDone: () => void }) {
     const mark = () => { heroDone = true }
     hero.addEventListener('load', mark, { once: true })
     hero.addEventListener('error', mark, { once: true })
-    hero.src = PHOTO.waterfallAerial.src
+    hero.src = `${BASE}laxfoss/hero-poster.jpg`
     if (hero.complete) heroDone = true
     let fontsDone = false
     document.fonts.ready.then(() => { fontsDone = true })
@@ -482,6 +522,8 @@ function Preloader({ onDone }: { onDone: () => void }) {
 export default function LaxfossPage() {
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(shouldShowLoader)
+  const [playFilm] = useState(filmOk)
+  const [filmAlive, setFilmAlive] = useState(true)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -515,19 +557,38 @@ export default function LaxfossPage() {
       {/* capsule nav — a floating frost pill; flips ink over night sections */}
       <header className="lx-nav">
         <a className="lx-nav-mark" href="#top" onClick={anchor('top')}>LAXFOSS</a>
+        {/* laxfoss.org runs Our lodge / History / Gallery / Enquiry. Every one
+            of those already existed here as a section, just unlinked, so the
+            page looked thinner than theirs while actually holding more. The
+            nav now covers their whole structure and adds the falls and the
+            guests, which their site has no page for. */}
         <nav className="lx-nav-links" aria-label="Page">
           <a href="#husid" onClick={anchor('husid')}>The house</a>
+          <a href="#herbergin" onClick={anchor('herbergin')}>Rooms</a>
           <a href="#fossinn" onClick={anchor('fossinn')}>The falls</a>
+          <a href="#saunan" onClick={anchor('saunan')}>Sauna</a>
+          <a href="#sagan" onClick={anchor('sagan')}>History</a>
           <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
         </nav>
-        <a className="lx-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire about your stay</a>
+        <a className="lx-nav-cta" href="#boka" onClick={anchor('boka')}>Enquire</a>
       </header>
 
       {/* 01 · hero — the lodge above its falls */}
       <section className="lx-hero" id="top">
         <div className="lx-hero-media">
-          <img src={PHOTO.waterfallAerial.src} srcSet={srcSet(PHOTO.waterfallAerial.src)} sizes="100vw"
-            alt={PHOTO.waterfallAerial.alt} loading="eager" decoding="async" />
+          {playFilm && filmAlive ? (
+            <video
+              autoPlay muted loop playsInline
+              poster={`${BASE}laxfoss/hero-poster.jpg`}
+              aria-label={PHOTO.waterfallAerial.alt}
+              onError={() => setFilmAlive(false)}
+            >
+              <source src={`${BASE}laxfoss/hero-film.mp4`} type="video/mp4" />
+            </video>
+          ) : (
+            <img src={PHOTO.waterfallAerial.src} srcSet={srcSet(PHOTO.waterfallAerial.src)} sizes="100vw"
+              alt={PHOTO.waterfallAerial.alt} loading="eager" decoding="async" />
+          )}
         </div>
         <h1 className="lx-wm" aria-label="Laxfoss">
           <span className="lx-wm-brink" aria-hidden="true" />
@@ -576,7 +637,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 04 · the 1920s house */}
-      <section className="lx-history">
+      <section className="lx-history" id="sagan">
         <Frame photo={PHOTO.lodgeExterior} drift={9} className="lx-history-fig" />
         <div className="lx-history-copy">
           <Headline text="A century by the water." size={56} floor={30} measure={520} />
@@ -595,7 +656,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 05 · inside + rooms index */}
-      <section className="lx-rooms">
+      <section className="lx-rooms" id="herbergin">
         <div className="lx-rooms-head">
           <Headline text="Five guests, four rooms." size={56} floor={30} measure={560} />
           <p className="lx-body lx-rv">
@@ -629,7 +690,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 06 · sauna night beat */}
-      <section className="lx-sauna" data-lx-dark>
+      <section className="lx-sauna" id="saunan" data-lx-dark>
         <Frame photo={PHOTO.saunaNight} drift={12} className="lx-sauna-bleed" sizes="100vw" priority={false} />
         <div className="lx-sauna-copy">
           <Headline text="Wood smoke, cold air." size={64} floor={32} measure={560} />
@@ -650,7 +711,7 @@ export default function LaxfossPage() {
       </section>
 
       {/* 07 · the river, honestly */}
-      <section className="lx-river">
+      <section className="lx-river" id="ain">
         <div className="lx-river-copy">
           <Headline text="Norðurá, up close." size={56} floor={30} measure={560} />
           <p className="lx-body lx-rv">{RIVER.claim} In season the salmon gather
@@ -776,8 +837,8 @@ const CSS = `
 .lx-nav-links { display: flex; gap: calc(var(--u) * 24); font-size: 14px; letter-spacing: .01em; }
 .lx-nav-links a { opacity: .78; transition: opacity .2s; padding: 8px 0; }
 .lx-nav-links a:hover { opacity: 1; }
-.lx-nav-cta {
-  font-size: 13.5px; font-weight: 500; white-space: nowrap;
+.lx-nav a.lx-nav-cta {
+  font-size: 13.5px; font-weight: 500; white-space: nowrap; color: #fff;
   padding: 9px 18px; border-radius: 999px;
   background: ${RIVER_A}; color: #fff;
   transition: filter .25s, transform .16s cubic-bezier(.23,1,.32,1);
@@ -788,7 +849,7 @@ const CSS = `
 /* ── hero ── */
 .lx-hero { position: relative; min-height: 100svh; display: grid; overflow: hidden; }
 .lx-hero-media { position: absolute; inset: 0; }
-.lx-hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lx-hero-media img, .lx-hero-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lx-hero-media::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(198deg, rgba(11,27,38,.12) 40%, rgba(11,27,38,.66) 100%);
@@ -875,9 +936,16 @@ const CSS = `
 .lx-drop-inner { position: relative; height: 100svh; overflow: hidden; display: grid; place-items: center; }
 .lx-drop-media { position: absolute; inset: -16% 0; }
 .lx-drop-img { width: 100%; height: 100%; object-fit: cover; display: block; will-change: transform; }
+/* The station copy sits over whitewater, which is the brightest thing on the
+   page. The old scrim was an edge vignette — lightest exactly where the text
+   is — so white-on-white made the section read as broken. Two layers now: a
+   soft dark pool under the copy (carries the type to ~5.9:1 over foam), and
+   the original edge vignette behind it. */
 .lx-drop-inner::after {
   content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, rgba(11,27,38,.18) 30%, rgba(11,27,38,.62) 100%);
+  background:
+    radial-gradient(ellipse 64% 48% at center, rgba(6,18,26,.80) 0%, rgba(6,18,26,.56) 44%, rgba(6,18,26,0) 78%),
+    radial-gradient(ellipse at center, rgba(11,27,38,.22) 34%, rgba(11,27,38,.66) 100%);
 }
 .lx-drop-station {
   position: absolute; z-index: 2; text-align: center; max-width: 46ch;
@@ -885,16 +953,63 @@ const CSS = `
 }
 .lx-drop-name {
   margin: 0 0 10px; font-weight: 500; font-size: ${fluid(30, 22)};
-  letter-spacing: -.02em; color: #fff;
+  letter-spacing: -.02em; color: #fff; text-shadow: 0 2px 22px rgba(6,18,26,.6);
 }
-.lx-drop-body { margin: 0; font-size: ${fluid(16, 14.5)}; line-height: 1.6; color: rgba(232,238,242,.88); }
-/* no-JS / reduced-motion: stations flow under the image instead of hiding */
-@media (prefers-reduced-motion: reduce), (max-width: 767px) {
+.lx-drop-body {
+  margin: 0; font-size: ${fluid(16, 14.5)}; line-height: 1.6;
+  color: rgba(236,242,246,.94); text-shadow: 0 1px 18px rgba(6,18,26,.55);
+}
+/* no-JS / reduced-motion: stations flow under the image instead of hiding.
+   No sticky, no overlap, nothing that depends on frames. */
+@media (prefers-reduced-motion: reduce) {
   .lx-drop-inner { height: auto; display: block; }
   .lx-drop-media { position: relative; inset: auto; aspect-ratio: 3 / 2; }
   .lx-drop-inner::after { content: none; }
   .lx-drop-station { position: static; opacity: 1 !important; transform: none !important; visibility: visible !important; text-align: left; max-width: 56ch; padding: 28px 20px 0; }
   .lx-drop { padding-bottom: 48px; }
+}
+
+/* PHONE — the descent, translated rather than discarded.
+   The old mobile fallback dropped the pin and left one big rapids photo with
+   three headings stacked underneath it on flat navy: the copy lost its river
+   and the section stopped meaning anything. Here the river is STICKY and the
+   three stations scroll over it, one screen each, which is the desktop idea
+   in pure CSS. No ScrollTrigger, no JS, nothing to starve on a phone. */
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  /* overflow MUST be cleared here: the desktop rule sets overflow:hidden on
+     this element, and an overflow:hidden ancestor silently disables position
+     sticky in a descendant. Measured symptom was the river scrolling straight
+     off the top (top 0 to -2228) while the stations passed correctly. */
+  .lx-drop-inner { height: auto; display: block; position: relative; overflow: visible; }
+  .lx-drop-media {
+    /* inset MUST come before top: it is the shorthand for all four sides, so
+       declaring top first and inset:auto after resets top straight back to
+       auto and the element never sticks. Computed style read top:auto until
+       this was reordered. */
+    position: sticky; inset: auto; top: 0; height: 100svh; z-index: 0;
+  }
+  .lx-drop-img { height: 100%; }
+  .lx-drop-inner::after { content: none; }
+  .lx-drop-station {
+    position: relative; z-index: 2;
+    opacity: 1 !important; visibility: visible !important; transform: none !important;
+    min-height: 88svh; display: flex; flex-direction: column; justify-content: center;
+    max-width: none; text-align: left; padding: 0 22px;
+  }
+  /* No negative margin to pull the first station up over the river. The
+     sticky media only stays put for (container height - its own height), so
+     stealing 100svh back would end the stick a station early and strand
+     "The pool" on flat navy. Letting the river hold one screen on its own
+     first also matches desktop, where the photograph is there before the
+     first station fades in. */
+  /* each station carries its own pool of shade, so the type stays legible
+     wherever the whitewater happens to sit behind it */
+  .lx-drop-station::before {
+    content: ''; position: absolute; inset: -6% -22px; z-index: -1;
+    background: radial-gradient(120% 68% at 50% 50%,
+      rgba(6,18,26,.86) 0%, rgba(6,18,26,.66) 46%, rgba(6,18,26,0) 82%);
+  }
+  .lx-drop { padding-bottom: 0; }
 }
 
 /* ── history ── */

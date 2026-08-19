@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ArrowUpRight, Facebook, Instagram, Mail, MapPin } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -11,7 +11,7 @@ import {
 } from './data'
 import type { OpenState } from './data'
 
-const company = getPreviewCompany('minjasafn')
+const company = companyEntry
 
 /* ── JARÐLÖG (strata) ─────────────────────────────────────────────────────
    One continuous dig. The hero peels three strata of the museum's own TIME

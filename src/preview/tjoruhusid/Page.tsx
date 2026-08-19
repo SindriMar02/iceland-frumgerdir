@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -16,7 +16,7 @@ import {
   variant,
 } from './data'
 
-const company = getPreviewCompany('tjoruhusid')
+const company = companyEntry
 
 /** A small flame glyph for section markers — decorative. */
 function Flame({ className }: { className?: string }) {

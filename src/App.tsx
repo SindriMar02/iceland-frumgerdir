@@ -48,6 +48,9 @@ const VellirPage = lazy(() => import('./preview/vellir/Page'))
 // Bakery scout round 8 — Passion Reykjavík (GK skeleton, their own dark-gold brand)
 // Reynir bakari — clones the Passion design + palette, re-skinned to their brand
 const ReynirPage = lazy(() => import('./preview/reynir/Page'))
+const ReynirOrderPage = lazy(() => import('./preview/reynir/OrderPage'))
+const ReynirLegalPage = lazy(() => import('./preview/reynir/LegalPage'))
+const ReynirStoryPage = lazy(() => import('./preview/reynir/StoryPage'))
 // Standalone lead — e-commerce showroom redesign (Shopify-migratable)
 const HeitirpottarPage = lazy(() => import('./preview/heitirpottar/Page'))
 const HeitirpottarStock = lazy(() => import('./preview/heitirpottar/Stock'))
@@ -63,6 +66,7 @@ const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
 const BofsKerfid = lazy(() => import('./preview/bofs/Kerfid'))
 const BofsUmStofnunina = lazy(() => import('./preview/bofs/UmStofnunina'))
 const BofsFrettir = lazy(() => import('./preview/bofs/Frettir'))
+const BofsSpurdu = lazy(() => import('./preview/bofs/Spurdu'))
 const BofsLegal = lazy(() => import('./preview/bofs/Legal'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 // Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
@@ -125,6 +129,10 @@ const IssiPage = lazy(() => import('./preview/issi/Page'))
 // Húnabúð — Blönduós café/flower/gift shop, "Þrennt undir einu þaki" concept
 const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const BudirPage = lazy(() => import('./preview/budir/Page'))
+const DrangarPage = lazy(() => import('./preview/drangar/Page'))
+const IcelandLuxuryLodgesPage = lazy(() => import('./preview/icelandluxurylodges/Page'))
+const MirrorLodgePage = lazy(() => import('./preview/mirrorlodge/Page'))
+const MirrorSuitePage = lazy(() => import('./preview/mirrorsuite/Page'))
 const SjavarborgPage = lazy(() => import('./preview/sjavarborg/Page'))
 const BragdavellirPage = lazy(() => import('./preview/bragdavellir/Page'))
 /* Alrún now ships as a standalone static site under public/preview/alrun/, so
@@ -160,7 +168,12 @@ const VillaNorthPage = lazy(() => import('./preview/villanorth/Page'))
 const LaxfossPage = lazy(() => import('./preview/laxfoss/Page'))
 const LaxfossDashboard = lazy(() => import('./preview/laxfoss/Dashboard'))
 const GlassCottagesPage = lazy(() => import('./preview/glasscottages/Page'))
+const RakararnirPage = lazy(() => import('./preview/rakararnir/Page'))
 const GlassCottagesDashboard = lazy(() => import('./preview/glasscottages/Dashboard'))
+const GlasshousePage = lazy(() => import('./preview/glasshouse/Page'))
+const GlasshouseDashboard = lazy(() => import('./preview/glasshouse/Dashboard'))
+const SvartaborgPage = lazy(() => import('./preview/svartaborg/Page'))
+const SvartaborgDashboard = lazy(() => import('./preview/svartaborg/Dashboard'))
 const VillaNorthDashboard = lazy(() => import('./preview/villanorth/Dashboard'))
 const FossatunDashboard = lazy(() => import('./preview/fossatun/Dashboard'))
 const TannlaeknavaktinPage = lazy(() => import('./preview/tannlaeknavaktin/Page'))
@@ -215,8 +228,15 @@ function ScrollToTop() {
   useEffect(() => {
     if (hash) {
       // honor deep links like /eldhestar#rides (lazy routes mount after the
-      // browser's native anchor jump, so do it ourselves)
-      document.querySelector(hash)?.scrollIntoView()
+      // browser's native anchor jump, so do it ourselves).
+      // Guarded: a hash is arbitrary user-supplied text, and anything that is
+      // not a valid CSS selector (a slash, a colon, a bare digit) makes
+      // querySelector THROW, which took a whole preview down once.
+      try {
+        document.querySelector(hash)?.scrollIntoView()
+      } catch {
+        /* not a selector, so not an anchor: leave the scroll position alone */
+      }
       return
     }
     // 'instant' so route changes don't animate through the smooth-scroll CSS
@@ -279,6 +299,9 @@ export default function App() {
             <Route path="/preview/vinland" element={<VinlandPage />} />
             <Route path="/preview/vellir" element={<VellirPage />} />
             <Route path="/preview/reynir" element={<ReynirPage />} />
+            <Route path="/preview/reynir/panta" element={<ReynirOrderPage />} />
+            <Route path="/preview/reynir/personuvernd" element={<ReynirLegalPage />} />
+            <Route path="/preview/reynir/sagan" element={<ReynirStoryPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
             <Route path="/preview/heitirpottar/lager" element={<HeitirpottarStock />} />
             <Route path="/preview/sportsol" element={<SportsolPage />} />
@@ -290,6 +313,7 @@ export default function App() {
             <Route path="/preview/bofs/kerfid" element={<BofsKerfid />} />
             <Route path="/preview/bofs/um-stofnunina" element={<BofsUmStofnunina />} />
             <Route path="/preview/bofs/frettir" element={<BofsFrettir />} />
+            <Route path="/preview/bofs/spurdu" element={<BofsSpurdu />} />
             <Route path="/preview/bofs/adgengi" element={<BofsLegal kind="adgengi" />} />
             <Route path="/preview/bofs/personuvernd" element={<BofsLegal kind="personuvernd" />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />
@@ -326,6 +350,10 @@ export default function App() {
             <Route path="/preview/issi" element={<IssiPage />} />
             <Route path="/preview/hunabud" element={<HunabudPage />} />
             <Route path="/preview/budir" element={<BudirPage />} />
+            <Route path="/preview/drangar" element={<DrangarPage />} />
+            <Route path="/preview/icelandluxurylodges" element={<IcelandLuxuryLodgesPage />} />
+            <Route path="/preview/mirrorlodge" element={<MirrorLodgePage />} />
+            <Route path="/preview/mirrorsuite" element={<MirrorSuitePage />} />
             <Route path="/preview/sjavarborg" element={<SjavarborgPage />} />
             <Route path="/preview/bragdavellir" element={<BragdavellirPage />} />
             <Route path="/preview/alrun" element={<AlrunPage />} />
@@ -353,8 +381,13 @@ export default function App() {
             <Route path="/preview/villanorth/stjornbord" element={<VillaNorthDashboard />} />
             <Route path="/preview/laxfoss" element={<LaxfossPage />} />
             <Route path="/preview/laxfoss/stjornbord" element={<LaxfossDashboard />} />
+            <Route path="/preview/rakararnir" element={<RakararnirPage />} />
             <Route path="/preview/glasscottages" element={<GlassCottagesPage />} />
             <Route path="/preview/glasscottages/stjornbord" element={<GlassCottagesDashboard />} />
+            <Route path="/preview/glasshouse" element={<GlasshousePage />} />
+            <Route path="/preview/glasshouse/stjornbord" element={<GlasshouseDashboard />} />
+            <Route path="/preview/svartaborg" element={<SvartaborgPage />} />
+            <Route path="/preview/svartaborg/stjornbord" element={<SvartaborgDashboard />} />
             <Route path="/preview/fossatun/stjornbord" element={<FossatunDashboard />} />
             <Route path="/demo/bokun" element={<BokunDemo />} />
             <Route path="/preview/kiropraktorstofan" element={<KiropraktorstofanPage />} />

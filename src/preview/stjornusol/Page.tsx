@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -19,7 +19,7 @@ import {
   TOWN,
 } from './data'
 
-const company = getPreviewCompany('stjornusol')
+const company = companyEntry
 
 /* ── "Vélin vaknar" — the K11 render's own materials: obsidian room,
       champagne metal, violet LED light, and the brand's magenta star ──── */

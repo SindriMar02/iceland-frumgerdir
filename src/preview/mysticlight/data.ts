@@ -1,4 +1,4 @@
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 /**
  * Mystic Light Lodge (Mirror Cabin) — Esther & Pierre, Búðardalur, Dalabyggð.

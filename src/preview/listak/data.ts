@@ -1,4 +1,4 @@
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 /* Listasafnið á Akureyri — facts verified 2026-08-02 against listak.is (live).
    BUILD AGENT: replace/extend this file wholesale; keep the export names. */

@@ -4,7 +4,7 @@ import { ArrowUpRight, Play } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './data'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -17,7 +17,7 @@ import type { OpenStatus, Show } from './data'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('listak')
+const company = companyEntry
 
 /* ── SÝNINGARGANGURINN — the gallery corridor ──────────────────────────────
    Listasafnið á Akureyri runs NINE exhibitions at once in numbered halls

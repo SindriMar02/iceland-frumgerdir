@@ -13,13 +13,13 @@ import {
   Star,
   Utensils,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
 
-const company = getPreviewCompany('kaffihornid')
+const company = companyEntry
 
 const TEL = 'tel:+3544782600'
 

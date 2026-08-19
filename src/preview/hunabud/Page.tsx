@@ -42,7 +42,7 @@ import { useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Clock, MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -69,7 +69,7 @@ import {
   type Pillar,
 } from './data'
 
-const company = getPreviewCompany('hunabud')
+const company = companyEntry
 const EASE = [0.22, 1, 0.36, 1] as const
 const asset = (p: string) => import.meta.env.BASE_URL + p
 

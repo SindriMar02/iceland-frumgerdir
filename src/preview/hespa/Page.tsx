@@ -12,14 +12,14 @@ import {
   ShoppingBag,
   Truck,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { DYES, HERO_ID, MARKS, STUDIO, YARNS } from './data'
 import type { DyeColour, Yarn } from './data'
 
-const company = getPreviewCompany('hespa')
+const company = companyEntry
 
 const Q = '&auto=format&fit=crop'
 const HERO = `https://images.unsplash.com/${HERO_ID}`

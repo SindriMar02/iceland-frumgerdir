@@ -17,7 +17,7 @@ import { Reveal } from '../../components/Reveal'
 import ScrollStack, { ScrollStackItem } from '../../components/ScrollStack'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import {
   HERO,
@@ -34,7 +34,7 @@ import {
   IMAGES,
 } from './data'
 
-const company = getPreviewCompany('cavesofhella')
+const company = companyEntry
 
 // ---------------------------------------------------------------------------
 // Palette constants (not Tailwind — used in inline styles for scroll-driven values)

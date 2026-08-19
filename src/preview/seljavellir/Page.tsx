@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { useScroll, useMotionValueEvent } from 'framer-motion'
 import { Phone, Mail, MapPin } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -33,7 +33,7 @@ import {
 } from './data'
 import type { Room } from './data'
 
-const company = getPreviewCompany('seljavellir')
+const company = companyEntry
 
 /* ── Palette — pulled from the photography (brief section C), not a default ──
  * GROUND #0F1210 near-black warm charcoal (mountain silhouettes)

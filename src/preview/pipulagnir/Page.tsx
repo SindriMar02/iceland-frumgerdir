@@ -17,7 +17,7 @@ import type { FormEvent, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useReducedMotion } from 'framer-motion'
 import { MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -45,7 +45,7 @@ import {
   u,
 } from './data'
 
-const company = getPreviewCompany('pipulagnir')
+const company = companyEntry
 
 /* Palette — AA verified 2026-07-13 (WCAG relative-luminance math):
    ink on bone 15.55 · red #921B1E on bone 7.83 · blue #1E4E63 on bone 8.08

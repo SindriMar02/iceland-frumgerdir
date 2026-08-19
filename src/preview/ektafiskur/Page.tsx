@@ -9,14 +9,14 @@ import {
   ShoppingBag,
   Waves,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { Reveal } from '../../components/Reveal'
 import { HERO_ID, MARKS, PRODUCTS, SHOP_STEPS } from './data'
 
-const company = getPreviewCompany('ektafiskur')
+const company = companyEntry
 
 const HERO = `https://images.unsplash.com/${HERO_ID}`
 const Q = '&auto=format&fit=crop'

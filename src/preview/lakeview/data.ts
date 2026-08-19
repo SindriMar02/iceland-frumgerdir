@@ -1,4 +1,4 @@
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 /**
  * Iceland Lakeview Retreat — hýst af "Visiting Iceland" (gestir kalla hann

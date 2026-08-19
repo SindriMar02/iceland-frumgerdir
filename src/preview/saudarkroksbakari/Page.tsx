@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion, useScroll, useTransform, motion, AnimatePresence } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -9,7 +9,7 @@ import { CATERING_PLATTERS, DIETARY, HOURS, IMG, MENU, PRODUCTS, SOCIAL, VISIT }
 import { ExpandMap } from './ExpandMap'
 import CurvedLoop from '../../components/CurvedLoop'
 
-const company = getPreviewCompany('saudarkroksbakari')
+const company = companyEntry
 
 /* Asset base — must honor Vite's base so direct <img src> work under the
    GitHub Pages subpath (/iceland-frumgerdir/), not just at local-dev root. */

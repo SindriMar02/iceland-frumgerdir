@@ -6,7 +6,7 @@ import type {
 } from 'react'
 import Lenis from 'lenis'
 import { Phone, MapPin, ArrowUpRight, ArrowLeftRight, Check, Building2, Home } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -16,7 +16,7 @@ import {
   RESTAURANT, CHARACTER, STORY, CAMPSITE, REVIEWS, PRACTICAL, CLOSING, STICKY, JSON_LD,
 } from './data'
 
-const company = getPreviewCompany('bjarkalundur')
+const company = companyEntry
 
 /* Module-scoped Lenis handle so anchor nav can route through the same smooth-
    scroll instance the page owns, instead of fighting it with native

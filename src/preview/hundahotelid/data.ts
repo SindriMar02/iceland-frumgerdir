@@ -50,7 +50,7 @@
  * reassurance an owner leaving a dog actually needs.
  */
 
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 const asset = (p: string) => `${import.meta.env.BASE_URL}hundahotelid/img/${p}`
 

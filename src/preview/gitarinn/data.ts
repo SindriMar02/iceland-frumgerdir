@@ -34,7 +34,7 @@
  * their own um-okkur page.
  */
 
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 const asset = (p: string) => `${import.meta.env.BASE_URL}gitarinn/${p}`
 const shopImg = (p: string) => `https://gitarinn.is/wp-content/uploads/${p}`

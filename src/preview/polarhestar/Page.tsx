@@ -18,7 +18,7 @@ import {
   Quote,
   Star,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -27,7 +27,7 @@ import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
 import { SiteContentProvider, useSiteContent, type Pic, type TourX } from './sanity'
 
-const company = getPreviewCompany('polarhestar')
+const company = companyEntry
 
 /* ── Palette — Polar North, built from the logo: glacier white, the logo's
       navy #202070, fjord blue from its gradient, ice-blue highlights ── */

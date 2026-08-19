@@ -5,3 +5,12 @@ dist
 .claude/launch.json
 research-assets/
 .claude/worktrees/
+
+# Probe output and one-off verification scripts. Regenerable; they were filling
+# the repo root 100 files at a time.
+/_*.png
+/_*.mjs
+/_*.webp
+# Standalone Reynir build output (the main build writes to dist/, ignored above).
+/dist-reynir/
+/dist-reynir-server/

@@ -1,0 +1,126 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mark Áslaug Saja's signatures</title>
+<style>
+  :root { color-scheme: dark }
+  body { margin:0; background:#0d0d0d; color:#eee; font:13px/1.5 ui-monospace,SFMono-Regular,monospace }
+  header { position:sticky; top:0; z-index:5; background:#141414; border-bottom:1px solid #262626;
+           padding:10px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap }
+  button { background:#222; color:#eee; border:1px solid #3a3a3a; padding:6px 12px; cursor:pointer; font:inherit }
+  button:hover { background:#2c2c2c }
+  button.primary { background:#1e5f3a; border-color:#2c7d4f }
+  #stage { position:relative; margin:16px auto; width:min(1500px,96vw) }
+  #img { width:100%; display:block; cursor:crosshair; user-select:none }
+  #box { position:absolute; border:2px solid #4ade80; background:rgba(74,222,128,.14); pointer-events:none; display:none }
+  .hint { color:#888 }
+  .ok { color:#4ade80 }
+  #out { width:100%; height:130px; background:#111; color:#8ef0a8; border:1px solid #333; font:inherit; padding:8px }
+  kbd { background:#262626; border:1px solid #3a3a3a; padding:1px 5px; border-radius:3px }
+</style>
+
+<header>
+  <button id="prev">◀ prev</button>
+  <span id="pos" class="hint"></span>
+  <button id="next">next ▶</button>
+  <span id="name" class="ok"></span>
+  <span class="hint">— drag a box around the signature. <kbd>S</kbd> skip · <kbd>U</kbd> undo · <kbd>Z</kbd> zoom corner</span>
+  <button id="copy" class="primary">Copy JSON</button>
+  <span id="count" class="hint"></span>
+</header>
+
+<div id="stage">
+  <img id="img" alt="">
+  <div id="box"></div>
+</div>
+
+<div style="padding:0 16px 24px">
+  <textarea id="out" readonly placeholder="marked signatures appear here as JSON"></textarea>
+</div>
+
+<script>window.__WORKS__ = ["andi", "arstidir-i-gardinum", "athena", "bergmal-1", "bjartur-dagur-1", "blomgun", "blomgun-ad-vori", "blomgun-duo", "brum", "brum-ii", "brum-iii", "brum-iv", "bylur-1", "dogg", "draumur-3", "draumur-raetist", "eldar-i", "eldar-ii", "eldvirkni", "fell", "fjallasyn-4", "fjoll-og-firnindi", "fjolublar-draumur-1", "fljotandi", "flugpostur", "foss-2", "foss-ii-1", "freknott-jord", "ganga", "giljabui", "gluggi", "godar-frettir", "graedlingar", "groandi", "haedir", "haflod-1", "hallormsstadur-1", "hamur", "hamur-iii", "hamur-iv", "haustar-1", "haustmoi-1", "hnjukur", "hrid", "hridin", "hrim", "i-fjarska-1", "i-skjoli-laufa", "i-straumi", "ida", "islenska-sumar", "kerfill-i", "kerfill-i-kvoldsol", "kof", "kristallast", "kul", "lagt-i-ann", "landslag", "lauf-ii", "laufthykkni", "laugar", "leikandi-laekur", "liljur-i-athenu", "litaland", "litir-ii", "litir-iii", "ljosaskipti", "lyng-eftirprent", "minningar", "mjukur-tango", "moi-1", "morgungola", "myrarraudi-1", "natturufreknur", "netlur", "olifa", "olifutre", "olifutre-ii", "omur-2", "opnun", "ord", "oteljandi-holar", "palmar", "palmi", "raektun", "saetir-kossar", "samruni", "siglt", "sinfonia", "skammdegi", "skyjaglopur", "slaeda", "snjoar-i-fjoll", "snjotittlingar", "solarlag-3", "stilla-3", "stilla-ii", "strond", "sumar-i-evropu", "sumarnott", "svartar-olifur-i-almenningsgardi", "sykursaett-sumar", "thyrlast", "tindur", "tira", "tira-ii", "tofa-a-haed", "tonar", "toppur", "ungfru-mosi", "utsyni", "vatn-2", "vegir", "vetrarljomi", "vetrarnott", "vetur-7", "vida-verold", "vidsyni", "von-um-vor", "vor-i-lofti", "vor-i-paris", "vorbodi", "zen", "zen-ii"];
+window.__SEED__ = {"ida": {"x0": 655, "y0": 1088, "w": 147, "h": 62, "W": 864, "H": 1200}, "lyng-eftirprent": {"x0": 725, "y0": 1078, "w": 87, "h": 52, "W": 841, "H": 1200}};
+if(!localStorage.getItem('saja-marks')) localStorage.setItem('saja-marks', JSON.stringify(window.__SEED__));
+</script>
+<script>
+// Works list is injected by the generator; falls back to fetching the index.
+const WORKS = window.__WORKS__ || [];
+const marks = JSON.parse(localStorage.getItem('saja-marks') || '{}');
+let i = 0, zoom = false;
+const img = document.getElementById('img'), box = document.getElementById('box');
+const out = document.getElementById('out');
+
+function src(n){ return `work/${n}.jpg`; }
+function show(){
+  const n = WORKS[i];
+  document.getElementById('name').textContent = n;
+  document.getElementById('pos').textContent = `${i+1} / ${WORKS.length}`;
+  img.src = src(n);
+  img.style.objectFit = 'contain';
+  box.style.display = marks[n] ? 'block' : 'none';
+  if (marks[n]) placeBox(marks[n]);
+  render();
+}
+function placeBox(m){
+  const r = img.getBoundingClientRect(), s = img.naturalWidth / r.width;
+  box.style.left = (m.x0/s) + 'px'; box.style.top = (m.y0/s) + 'px';
+  box.style.width = (m.w/s) + 'px'; box.style.height = (m.h/s) + 'px';
+  box.style.display = 'block';
+}
+function render(){
+  const done = Object.keys(marks).length;
+  document.getElementById('count').textContent = `${done} marked`;
+  out.value = JSON.stringify(marks, null, 1);
+  localStorage.setItem('saja-marks', JSON.stringify(marks));
+}
+let start = null;
+img.addEventListener('pointerdown', e => {
+  const r = img.getBoundingClientRect();
+  start = { x: e.clientX - r.left, y: e.clientY - r.top };
+  box.style.display = 'block';
+});
+img.addEventListener('pointermove', e => {
+  if (!start) return;
+  const r = img.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  box.style.left = Math.min(start.x, x) + 'px';
+  box.style.top = Math.min(start.y, y) + 'px';
+  box.style.width = Math.abs(x - start.x) + 'px';
+  box.style.height = Math.abs(y - start.y) + 'px';
+});
+img.addEventListener('pointerup', e => {
+  if (!start) return;
+  const r = img.getBoundingClientRect(), s = img.naturalWidth / r.width;
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  const w = Math.abs(x - start.x), h = Math.abs(y - start.y);
+  if (w > 6 && h > 4) {
+    marks[WORKS[i]] = {
+      x0: Math.round(Math.min(start.x, x) * s), y0: Math.round(Math.min(start.y, y) * s),
+      w: Math.round(w * s), h: Math.round(h * s),
+      W: img.naturalWidth, H: img.naturalHeight,
+    };
+    render();
+    setTimeout(() => { if (i < WORKS.length - 1) { i++; show(); } }, 120);
+  }
+  start = null;
+});
+document.getElementById('next').onclick = () => { if (i < WORKS.length-1) { i++; show(); } };
+document.getElementById('prev').onclick = () => { if (i > 0) { i--; show(); } };
+document.getElementById('copy').onclick = () => {
+  out.select(); navigator.clipboard.writeText(out.value);
+  document.getElementById('copy').textContent = 'Copied ✓';
+  setTimeout(()=>document.getElementById('copy').textContent='Copy JSON', 1200);
+};
+addEventListener('keydown', e => {
+  if (e.key === 's' || e.key === 'S') { if (i < WORKS.length-1) { i++; show(); } }
+  if (e.key === 'u' || e.key === 'U') { delete marks[WORKS[i]]; box.style.display='none'; render(); }
+  if (e.key === 'z' || e.key === 'Z') {
+    zoom = !zoom;
+    img.style.objectFit = zoom ? 'none' : 'contain';
+    img.style.objectPosition = zoom ? '100% 100%' : 'center';
+    img.style.height = zoom ? '70vh' : 'auto';
+  }
+  if (e.key === 'ArrowRight') { if (i < WORKS.length-1) { i++; show(); } }
+  if (e.key === 'ArrowLeft') { if (i > 0) { i--; show(); } }
+});
+show();
+</script>

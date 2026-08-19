@@ -230,7 +230,7 @@ export const AUDIT = {
 
 /* ── the catalogue entry ─────────────────────────────────────────────────── */
 
-import type { PreviewCompany } from '../companies'
+import type { PreviewCompany } from '../company-types'
 
 export const FOSSATUN_ENTRY: PreviewCompany = {
   slug: 'fossatun',

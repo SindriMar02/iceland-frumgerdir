@@ -3,7 +3,7 @@ import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
 import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -26,7 +26,7 @@ import {
   UNITS,
 } from './data'
 
-const company = getPreviewCompany('nypugardar')
+const company = companyEntry
 
 /* ── Palette (from the farm's own photography — dusk sun, cabin lamplight, ice)
  * INK on GROUND ≈ 15:1 (AAA) · ACCENT on GROUND ≈ 5.5:1 (AA, large + labels)

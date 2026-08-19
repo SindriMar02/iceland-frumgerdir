@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -10,7 +10,7 @@ import { ADDRESS, CLOSE_MIN, DISCLAIMER, EMAIL, IMG, MAPS_URL, OPEN_MIN, PHONE, 
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('naustid')
+const company = companyEntry
 
 /* ══════════════════════════════════════════════════════════════════════════
  * NAUSTIÐ — "Gluggar" (windows), full site

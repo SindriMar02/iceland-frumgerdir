@@ -36,7 +36,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -45,7 +45,7 @@ import { Reveal } from '../../components/Reveal'
 import { StickyCta } from '../../components/StickyCta'
 import { COLLECTION, HERO, IMG, JSON_LD, META, NAV, PRODUCTS, STORY, VISIT } from './data'
 
-const company = getPreviewCompany('fotografi')
+const company = companyEntry
 
 const GROUND = '#141210' /* darkroom near-black, warm red-black cast */
 const PAPER = '#EFE9DD' /* warm cream — contrast section (Vörur) */
