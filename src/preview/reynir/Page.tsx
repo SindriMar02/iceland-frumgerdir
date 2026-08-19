@@ -889,9 +889,12 @@ function ReynirPageInner() {
         <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
+        {/* The bar is the only header now, so it carries the full desktop nav
+            the masthead used to — Myndir included. */}
         <nav className="rb-sticky-nav">
           <a href="#menu" className="rb-navlink">{t.navMenu}</a>
           <a href="#bread" className="rb-navlink">{t.navBread}</a>
+          <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
           <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
