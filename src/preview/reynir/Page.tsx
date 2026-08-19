@@ -133,26 +133,24 @@ const PAGE_CSS = `
      collapses the chrome it sticks 64px above the viewport top and keeps the
      strip solid ink at every scroll position. No opacity gate: gating it on
      scroll state is what let the masthead leak into the island at rest. */
+  /* content scrolls under a permanent bar, so anchor jumps must stop short */
+  #menu, #bread, #gallery, #visit { scroll-margin-top: 76px; }
+
   .rb-awning { position:sticky; top:-100px; height:106px; flex:none;
     z-index:140; background:${INK}; pointer-events:none; }
 
+  /* SNDR's .bar, verbatim in mechanism (Sindri's own site, the reference he
+     named): fixed at top:0 from FIRST PAINT, always visible, never hides,
+     never transforms — 88% ink glass over blur with a hairline underneath.
+     No observer, no scroll state, no reveal: a header that never moves is a
+     header that can never detach, split, or arrive over content. Present at
+     first paint also means Safari's chrome sampler sees it immediately. */
   .rb-stickybar { position:fixed; inset:0 0 auto 0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
     padding:10px clamp(16px,4.5vw,72px);
-    /* Brass's .pc-bar, transplanted verbatim in mechanism. Two rules learned
-       the hard way and verified against the one design whose bar behaves:
-       glass (.72 + blur), never a slab — the OS strip above the viewport
-       ghosts the page, and only a bar that ghosts too reads as one chrome —
-       and the hide/show is TRANSFORM ONLY. Animating opacity on an element
-       with backdrop-filter is what split the bar into layers on iOS: the
-       blurred backdrop and border could linger while the element moved.
-       Brass animates transform alone, so nothing can separate. */
-    background-color:rgba(11,10,9,.72);
-    -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
-    border-bottom:1px solid rgba(238,211,170,.14);
-    transform:translateY(-101%);
-    transition:transform .55s ${EASE}; }
-  .rb-stickybar[data-on="true"] { transform:none; }
+    background-color:rgba(11,10,9,.88);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(238,211,170,.14); }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
@@ -162,14 +160,12 @@ const PAGE_CSS = `
   .rb-sticky-cta:active { transform:scale(.98); }
   /* the open/closed dot, carried into the bar so the status stays visible */
   .rb-sticky-dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
-  @media (max-width:820px) { .rb-sticky-nav { display:none; } }
+  @media (max-width:820px) { .rb-sticky-nav { display:none; } .rb-bar-lang { display:none !important; } }
   
   /* "Closed, we open at 7:00 today" will not fit beside a CTA on a phone —
      the dot alone still carries open/closed, so only the words go. */
   @media (max-width:560px) { .rb-sticky-status { display:none; } }
-  @media (prefers-reduced-motion: reduce) {
-    .rb-stickybar { transition:none; }
-  }
+
 
   .rb-cta {
     display:inline-block; text-decoration:none; font-weight:600; font-size:15.5px;
@@ -211,7 +207,6 @@ const PAGE_CSS = `
   .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(3) { transform:rotate(-45deg); }
   .rb-burger-close { display:inline-flex; }
   @media (max-width:820px) { .rb-burger-bar { display:inline-flex; } }
-  @media (max-width:620px) { .rb-burger-mast { display:inline-flex; } }
 
   /* visibility, not display, so the panel can animate out rather than vanish */
   .rb-menu { position:fixed; inset:0; z-index:300; display:flex; flex-direction:column;
@@ -843,15 +838,6 @@ function ReynirPageInner() {
 
   // The sticky bar appears once the cover has scrolled out of view. Watching
   // the cover with an observer rather than polling scrollY keeps this off the
-  // main thread's per-frame path; `pastCover` flips exactly twice per visit.
-  const [pastCover, setPastCover] = useState(false)
-  useEffect(() => {
-    const cover = rootRef.current?.querySelector('.rb-cover')
-    if (!cover) return
-    const io = new IntersectionObserver(([e]) => setPastCover(!e.isIntersecting), { threshold: 0 })
-    io.observe(cover)
-    return () => io.disconnect()
-  }, [])
 
   const closeLightbox = () => setLightbox(null)
   const stepLightbox = (dir: 1 | -1) => setLightbox((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length))
@@ -898,8 +884,8 @@ function ReynirPageInner() {
           things people came for: what's on, and how to order it. Hidden while
           the cover is on screen so the hero keeps its full first impression. */}
       
-      <div className="rb-awning" aria-hidden="true" />
-      <div className="rb-stickybar" data-on={pastCover} aria-hidden={!pastCover}>
+      <div className="rb-awning" id="top" aria-hidden="true" />
+      <div className="rb-stickybar">
         <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
@@ -910,6 +896,11 @@ function ReynirPageInner() {
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.6vw,20px)' }}>
+          <div className="rb-bar-lang" role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+            <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+            <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
+          </div>
           {/* the open/closed status follows you down the page — for a bakery
               that shuts at 17:00 this is the single most asked question */}
           <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: status.open ? GOLD_LIGHT : FAINT, whiteSpace: 'nowrap' }}>
@@ -1009,40 +1000,6 @@ function ReynirPageInner() {
         </div>
       </div>
 
-      {/* ===================== MASTHEAD ===================== */}
-      <header id="top" style={{ position: 'relative', zIndex: 5, padding: '10px clamp(20px,4.5vw,72px) 0' }}>
-        <div style={{ ...wrap, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
-          <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 132, height: 'auto', display: 'block' }} />
-          <nav className="rb-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
-            <a href="#menu" className="rb-navlink">{t.navMenu}</a>
-            <a href="#bread" className="rb-navlink">{t.navBread}</a>
-            <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
-            {/* a real destination, not an anchor: clicking "Panta" means ordering */}
-            <Link to={ORDER_PATH} className="rb-navlink">{ORDER_T[lang].navOrder}</Link>
-            <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
-            <a href="#visit" className="rb-navlink">{t.navVisit}</a>
-          </nav>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2 }}>
-              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
-              <span aria-hidden="true" style={{ color: FAINT, alignSelf: 'center' }}>/</span>
-              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
-            </div>
-            <button
-              type="button"
-              className="rb-burger rb-burger-mast"
-              aria-expanded={menu}
-              aria-controls="rb-mobile-menu"
-              aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}
-              onClick={() => setMenu((v) => !v)}
-            >
-              <span className="rb-burger-line" aria-hidden="true" />
-              <span className="rb-burger-line" aria-hidden="true" />
-              <span className="rb-burger-line" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </header>
 
       {/* ===================== COVER ===================== */}
       <section className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
