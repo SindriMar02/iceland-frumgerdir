@@ -20,7 +20,7 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import './index.css'
+import './reynir.css'
 import { ReynirApp } from './reynir-app'
 
 const el = document.getElementById('root')!
