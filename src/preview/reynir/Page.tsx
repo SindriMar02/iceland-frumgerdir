@@ -117,18 +117,7 @@ const PAGE_CSS = `
      listener, so nothing runs per-frame. backdrop-filter is safe here
      because the element is fixed; on a scrolling container it would repaint
      continuously and cost real frames on mobile. */
-  /* THE CHROME PLATE — how the status-bar strip actually gets its colour on
-     iOS 26. Safari paints that strip itself: it extends a full-width fixed
-     element's background-color into it IF one is present AT PAINT TIME, and
-     otherwise extends the scrolling canvas — which is what put a pastry photo
-     above the bar. The sampler does not react to mutations, and the sticky
-     bar arrives by mutating transform/opacity on an always-present node, so
-     Safari never re-sampled it. The plate is instead MOUNTED and UNMOUNTED
-     with the bar (a real DOM insertion, which does trigger re-sampling), full
-     width, solid background-color, sitting invisibly behind the bar. Proven
-     empirically in the iOS simulator; see [[ios-safe-area-chrome-color]]. */
-  .rb-chromeplate { position:fixed; top:0; left:0; right:0; height:6px;
-    background-color:${INK}; pointer-events:none; z-index:149; }
+  ; pointer-events:none; z-index:149; }
 
   .rb-stickybar { position:fixed; top:0; left:0; right:0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
@@ -167,6 +156,18 @@ const PAGE_CSS = `
   /* the open/closed dot, carried into the bar so the status stays visible */
   .rb-sticky-dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
   @media (max-width:820px) { .rb-sticky-nav { display:none; } }
+  /* ── MOBILE: NOTHING FIXED. The Brass/Miette rule, adopted after every
+     attached-bar variant failed on the phone: iOS reserves the status strip
+     as OS glass over the scrolled page, so ANY fixed chrome up there — bar,
+     pill, plate, cap — reads as a floating object over content. Brass ships
+     no persistent header at all: the chrome is in-flow, scrolls away with
+     the hero, and the page is simply the page. Same here. The masthead
+     (logo, language, burger) is at the top where a visitor starts, and the
+     menu carries Order. Desktop keeps the bar — there is no OS strip there. */
+  @media (max-width:820px) {
+    .rb-stickybar { display:none !important; }
+  }
+  
   /* "Closed, we open at 7:00 today" will not fit beside a CTA on a phone —
      the dot alone still carries open/closed, so only the words go. */
   @media (max-width:560px) { .rb-sticky-status { display:none; } }
@@ -935,15 +936,9 @@ function ReynirPageInner() {
           Not a second navigation so much as a permanent way back to the two
           things people came for: what's on, and how to order it. Hidden while
           the cover is on screen so the hero keeps its full first impression. */}
-      {/* ALWAYS mounted. Safari samples the top-edge element ONCE, at first
-          paint — a later DOM insertion is ignored (tested in the simulator:
-          a plate mounted on scroll never took). So the plate exists from the
-          first frame: 6px of ink at the very top, imperceptible over the dark
-          hero, behind the bar once scrolled — and the status-bar strip stays
-          the page's own chrome colour at every scroll position. */}
-      <div className="rb-chromeplate" aria-hidden="true" />
+      
       <div className="rb-stickybar" data-on={pastCover && scrollUp} aria-hidden={!(pastCover && scrollUp)}>
-        <a href="#top" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
+        <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
         <nav className="rb-sticky-nav">
