@@ -66,7 +66,15 @@ const isPreview =
   !!viewerToken &&
   (new URLSearchParams(window.location.search).has('preview') || window.self !== window.top)
 
-const STUDIO_URL = (import.meta.env.VITE_REYNIR_SANITY_STUDIO_URL as string | undefined) || 'http://localhost:3333'
+/* Where the click-to-edit overlays point back to. This defaulted to
+ * localhost:3333, which is correct while developing and wrong in every
+ * shipped build — the deployed bundle carried a studio address that exists
+ * only on our own machine, so an owner clicking an element in the preview
+ * would be sent nowhere. The deployed studio is the right default; the env
+ * var still overrides it for local studio work. */
+const STUDIO_URL =
+  (import.meta.env.VITE_REYNIR_SANITY_STUDIO_URL as string | undefined) ||
+  'https://reynir-bakari.sanity.studio'
 
 const STEGA_SKIP = new Set(['id', 'order', 'active', 'phoneHref', 'email', 'orderEmail', 'ahaUrl', 'woltUrl', 'facebook', 'instagram', '_id', '_type'])
 
