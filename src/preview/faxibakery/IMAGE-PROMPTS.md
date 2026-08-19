@@ -32,7 +32,7 @@ on the horizon, calm. Appetizing, photoreal, never staged-looking.
 | `seating.jpg` | 4:5 | **needed** | Interior seating: plants, warm wood, the window wall doing the work. From the door, mid-morning, real customers if they consent. |
 | `kitchen.jpg` | 16:10 | **needed** | The open kitchen: hands shaping dough on a floured bench, flour in the air, the theatre customers actually watch. Tight, warm, no flash. |
 
-## Film — three silent loops
+## Film — two silent loops
 
 No audio, no cuts, no titles. These autoplay muted and loop, and are skipped
 entirely under reduced-motion. Ship `.mp4` (h.264); a `.webm` sibling is a bonus.
@@ -40,7 +40,6 @@ entirely under reduced-motion. Ship `.mp4` (h.264); a `.webm` sibling is a bonus
 | File | Aspect | Spec | What happens |
 |---|---|---|---|
 | `video/window-view.mp4` | 16:9 | 12–20s, locked tripod, 1080p | Cloud shadow crossing the volcano, steam drifting up from a cup in the near corner of frame. Nothing else happens. That is the shot. |
-| `video/oven.mp4` | 4:5 | 6–10s, handheld fine, 1080p | The tray comes out of the oven, steam lifts, a hand slides it onto the rack. Shoot a real batch, not a staged one. |
 | `video/last-batch.mp4` | 3:1 | 15–25s, locked tripod, 1080p | The last light going off the mountain while the road keeps moving. Slow, wide, patient. |
 
 ## Food — the four on the "Out of the oven" board and the menu previews
@@ -49,7 +48,6 @@ entirely under reduced-motion. Ship `.mp4` (h.264); a `.webm` sibling is a bonus
 |---|---|---|---|
 | `hero.jpg` | — | **done** | Single cinnamon roll, extreme close-up, plain warm cream ground. |
 | `snudur.jpg` | 4:5 | stand-in | One roll, close, glaze still wet, soft crumb visible where it is pulled open. Warm natural light, shallow depth. |
-| `snudur-tray.jpg` | 4:5 | **needed** | A tray of rolls leaving the oven, steam catching the light, the baker's arm in frame. (Poster for `video/oven.mp4`.) |
 | `snudur-cream.jpg` | 4:5 | **needed** | Sourdough roll under cream cheese frosting, three-quarter angle, frosting still soft and slumping, one pulled apart beside it. |
 | `samloka.jpg` | 4:5 | **needed** | The Faxi sub cut on the diagonal so the fill shows, on a board, on a real table by the window with the view soft behind it. |
 | `hjonabandssaela.jpg` | 4:5 | **needed** | One slice of hjónabandssæla on a plain ceramic plate, crumb scattered, rustic, warm side light. |
