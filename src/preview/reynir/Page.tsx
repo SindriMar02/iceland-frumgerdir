@@ -140,19 +140,23 @@ const PAGE_CSS = `
        the seam the owner saw behind the clock was structural. One shared
        colour for body + bar + plate + menu makes the seam impossible
        whichever source Safari picks. */
-    background-color:${INK};
+    /* GLASS, not a slab. The status-bar strip above the layout viewport is
+       OS-owned frosted glass over the scrolled page; nothing web-side can
+       paint there (proven with a 120px red test cap in the simulator: not
+       one pixel of it rendered). So no flat bar colour can ever match the
+       strip — the strip GHOSTS the content scrolling under it, and only a
+       bar that ghosts the same way reads as continuous chrome. Same
+       mechanism that makes the mirror builds look native: their .88 LIGHT
+       glass on a light page, ours dark glass on a dark page. background-color
+       stays set (not the shorthand) because Safari's tint sampler reads
+       background-color specifically. Verified in the simulator on iOS 26.5,
+       over bright photos and dark sections both. */
+    background-color:rgba(11,10,9,.72);
+    -webkit-backdrop-filter:blur(24px) saturate(1.25); backdrop-filter:blur(24px) saturate(1.25);
     border-bottom:1px solid rgba(238,211,170,.14);
     transform:translateY(-101%); opacity:0; pointer-events:none;
     transition:transform .55s ${EASE}, opacity .35s ${EASE}; }
   .rb-stickybar[data-on="true"] { transform:none; opacity:1; pointer-events:auto; }
-  /* In collapsed Safari the visual viewport extends under the status bar, and
-     that strip shows PAGE CONTENT scrolled beneath it — above the bar's own
-     top:0, which made the bar read as detached from the top of the screen.
-     This cap extends the bar's chrome upward past the viewport edge, so the
-     strip shows bar, not page. It travels with the bar's own transform, so a
-     hidden bar takes its cap with it and the hero owns the strip again. */
-  .rb-stickybar::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
-    background:${INK}; }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
@@ -219,9 +223,7 @@ const PAGE_CSS = `
     opacity:0; visibility:hidden;
     transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
   .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
-  /* the same status-bar cap the sticky bar needs, for the same reason */
-  .rb-menu::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
-    background:${INK}; }
+  ; }
   .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
     padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px; min-height:64px; }
   .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
