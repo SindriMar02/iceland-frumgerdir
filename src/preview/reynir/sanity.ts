@@ -229,7 +229,7 @@ const FALLBACK: SiteContent = {
 }
 
 /* ── GROQ: everything editable, in one round trip ───────────────────────── */
-const QUERY = `{
+export const QUERY = `{
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine},
   "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun},
   "hero": *[_type=="heroSection"][0]{heroTitle, heroSub, heroLine, heroPhotoCaption},
@@ -297,7 +297,11 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
     .filter((p) => p.id && (p.name.en || p.name.is) && p.groups.length > 0)
 }
 
-function merge(raw: any): SiteContent {
+/* Exported so the CMS behaviour can be exercised directly in tests: what the
+ * site does with a missing document, a cleared field, a half-deleted list or a
+ * malformed payload is exactly what decides whether an owner editing content
+ * can break the page. See tools/reynir-cms-scenarios.mjs. */
+export function merge(raw: any): SiteContent {
   const s = raw?.settings
   const linksMerged = {
     ...LINKS,
@@ -394,8 +398,48 @@ const LISTEN = `*[_type in ["siteSettings","openingHours","heroSection","storySe
 
 const Ctx = createContext<SiteContent>(FALLBACK)
 
+/* ── content baked in at build time ──────────────────────────────────────
+ * The pages are prerendered, and effects do not run during a server render,
+ * so without this the prerendered HTML always carried the BUNDLED content —
+ * meaning an owner could edit a price in the CMS, see it change in his
+ * browser, and Google and the AI crawlers would keep reading the old copy
+ * until somebody rebuilt the site. Silent, and exactly the kind of surprise
+ * a handover must not contain.
+ *
+ * So the prerender fetches the CMS, renders from it, and writes the same
+ * payload into the HTML. The browser's FIRST render parses that payload, so
+ * the server markup and the client markup are identical and hydration stays
+ * clean; the effect below then refetches for anything published since the
+ * build.
+ *
+ * A page without the payload (the catalogue preview) simply starts from the
+ * bundled content exactly as before. */
+let ssrRaw: unknown = null
+/** Called by the prerender before rendering. No effect in a browser. */
+export function setPrerenderRaw(raw: unknown) {
+  ssrRaw = raw
+}
+
+let bakedCache: SiteContent | undefined
+function bakedContent(): SiteContent {
+  if (bakedCache) return bakedCache
+  let raw: unknown = ssrRaw
+  if (typeof document !== 'undefined') {
+    const el = document.getElementById('__reynir_cms')
+    if (el?.textContent) {
+      try {
+        raw = JSON.parse(el.textContent)
+      } catch {
+        /* a corrupt payload must not white-screen the page */
+      }
+    }
+  }
+  bakedCache = raw ? merge(raw) : FALLBACK
+  return bakedCache
+}
+
 export function SiteContentProvider({ children }: { children: ReactNode }) {
-  const [content, setContent] = useState<SiteContent>(FALLBACK)
+  const [content, setContent] = useState<SiteContent>(bakedContent)
   useEffect(() => {
     let live = true
     const load = () =>

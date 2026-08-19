@@ -35,7 +35,52 @@ if (!existsSync(serverEntry)) {
   process.exit(1)
 }
 
-const { render, PRERENDER_ROUTES } = await import(pathToFileURL(serverEntry).href)
+const { render, PRERENDER_ROUTES, setPrerenderRaw, QUERY } = await import(pathToFileURL(serverEntry).href)
+
+/* ── bake the CMS into the HTML ────────────────────────────────────────────
+ * Without this the prerendered pages carry the bundled fallback, because
+ * effects do not run during a server render. The owner would edit a price,
+ * watch it change in his own browser, and every crawler would go on reading
+ * the old one. So the content is fetched here, rendered from, and written
+ * into the page for the browser to hydrate from.
+ *
+ * A failure is a WARNING, not an error: shipping the bundled content is the
+ * old behaviour and still a working site. Shipping nothing is not. */
+const PROJECT = 'v4v3s4wg'
+const DATASET = 'production'
+let cmsRaw = null
+try {
+  const url =
+    `https://${PROJECT}.api.sanity.io/v2025-08-15/data/query/${DATASET}` +
+    `?query=${encodeURIComponent(QUERY)}&returnQuery=false&perspective=published`
+  const res = await fetch(url, { signal: AbortSignal.timeout(30_000) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  cmsRaw = (await res.json()).result ?? null
+  const counts = Object.entries(cmsRaw || {})
+    .map(([k, v]) => `${k} ${Array.isArray(v) ? v.length : v ? 'ok' : 'MISSING'}`)
+    .join(', ')
+  console.log(`reynir-prerender: CMS fetched — ${counts}`)
+} catch (err) {
+  console.warn(
+    `reynir-prerender: WARNING — CMS fetch failed (${err.message}).\n` +
+      '  The pages will be built from the bundled content, which is a working\n' +
+      '  site but will not reflect anything the owner has edited since the last\n' +
+      '  successful build. Re-run the build once the CMS is reachable.',
+  )
+}
+setPrerenderRaw(cmsRaw)
+
+/* Escaped so the payload cannot terminate the script element or break the
+   HTML parser; the ampersand matters because this sits in a data island. */
+const cmsScript = cmsRaw
+  ? `<script id="__reynir_cms" type="application/json">${JSON.stringify(cmsRaw)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/&/g, '\\u0026')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029')}</script>`
+  : ''
+
 
 const shell = readFileSync(join(dist, 'index.html'), 'utf8')
 if (!shell.includes('<div id="root"></div>')) {
@@ -79,7 +124,7 @@ for (const route of PRERENDER_ROUTES) {
     process.exit(1)
   }
 
-  const html = shell.replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+  const html = shell.replace('<div id="root"></div>', `<div id="root">${body}</div>${cmsScript}`)
 
   const dir = route === '/' ? dist : join(dist, route.replace(/^\//, ''))
   mkdirSync(dir, { recursive: true })

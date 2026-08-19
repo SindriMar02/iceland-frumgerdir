@@ -18,6 +18,10 @@ import { StaticRouter } from 'react-router-dom'
 import { ReynirApp } from './reynir-app'
 
 export { PRERENDER_ROUTES } from './reynir-app'
+/* The prerender fetches the CMS itself and hands the payload in here before
+   rendering, so the emitted HTML carries the owner's live content rather than
+   the bundled fallback. */
+export { setPrerenderRaw, QUERY } from './preview/reynir/sanity'
 
 export function render(path: string): Promise<string> {
   return new Promise((resolve, reject) => {
