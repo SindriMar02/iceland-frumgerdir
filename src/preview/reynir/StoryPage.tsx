@@ -51,8 +51,7 @@ const CSS = `
 
   .rb-st-bar { position:sticky; top:0; z-index:150; display:flex; align-items:center;
     justify-content:space-between; gap:20px; padding:calc(14px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 14px;
-    background:rgba(11,10,9,.86); backdrop-filter:blur(14px) saturate(1.15);
-    -webkit-backdrop-filter:blur(14px) saturate(1.15); border-bottom:1px solid ${HAIR_SOFT}; }
+    background-color:${INK}; border-bottom:1px solid ${HAIR_SOFT}; }
   .rb-st-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:10px 0; transition:color .2s ${EASE}; }
   .rb-st-back:hover { color:${GOLD_LIGHT}; font-style:italic; }

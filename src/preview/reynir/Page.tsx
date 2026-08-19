@@ -117,11 +117,30 @@ const PAGE_CSS = `
      listener, so nothing runs per-frame. backdrop-filter is safe here
      because the element is fixed; on a scrolling container it would repaint
      continuously and cost real frames on mobile. */
+  /* THE CHROME PLATE — how the status-bar strip actually gets its colour on
+     iOS 26. Safari paints that strip itself: it extends a full-width fixed
+     element's background-color into it IF one is present AT PAINT TIME, and
+     otherwise extends the scrolling canvas — which is what put a pastry photo
+     above the bar. The sampler does not react to mutations, and the sticky
+     bar arrives by mutating transform/opacity on an always-present node, so
+     Safari never re-sampled it. The plate is instead MOUNTED and UNMOUNTED
+     with the bar (a real DOM insertion, which does trigger re-sampling), full
+     width, solid background-color, sitting invisibly behind the bar. Proven
+     empirically in the iOS simulator; see [[ios-safe-area-chrome-color]]. */
+  .rb-chromeplate { position:fixed; top:0; left:0; right:0; height:6px;
+    background-color:${INK}; pointer-events:none; z-index:149; }
+
   .rb-stickybar { position:fixed; top:0; left:0; right:0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
     padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px;
-    background:rgba(11,10,9,.86);
-    backdrop-filter:blur(14px) saturate(1.15); -webkit-backdrop-filter:blur(14px) saturate(1.15);
+    /* SOLID, and the SAME ink as body and the page ground — deliberately not
+       the old translucent blur. iOS 26 colours the status-bar strip from
+       whichever source it favours (body, a fixed edge element, its own
+       content extension); a translucent bar can never match that strip, so
+       the seam the owner saw behind the clock was structural. One shared
+       colour for body + bar + plate + menu makes the seam impossible
+       whichever source Safari picks. */
+    background-color:${INK};
     border-bottom:1px solid rgba(238,211,170,.14);
     transform:translateY(-101%); opacity:0; pointer-events:none;
     transition:transform .55s ${EASE}, opacity .35s ${EASE}; }
@@ -133,7 +152,7 @@ const PAGE_CSS = `
      strip shows bar, not page. It travels with the bar's own transform, so a
      hidden bar takes its cap with it and the hero owns the strip again. */
   .rb-stickybar::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
-    background:${INK_DEEP}; }
+    background:${INK}; }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
@@ -195,14 +214,14 @@ const PAGE_CSS = `
 
   /* visibility, not display, so the panel can animate out rather than vanish */
   .rb-menu { position:fixed; inset:0; z-index:300; display:flex; flex-direction:column;
-    background:${INK_DEEP};
+    background:${INK};
     background-image:radial-gradient(120% 70% at 50% -10%, rgba(200,168,119,.13), transparent 62%);
     opacity:0; visibility:hidden;
     transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
   .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
   /* the same status-bar cap the sticky bar needs, for the same reason */
   .rb-menu::before { content:''; position:absolute; left:0; right:0; bottom:100%; height:120px;
-    background:${INK_DEEP}; }
+    background:${INK}; }
   .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
     padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px; min-height:64px; }
   .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
@@ -879,6 +898,13 @@ function ReynirPageInner() {
           Not a second navigation so much as a permanent way back to the two
           things people came for: what's on, and how to order it. Hidden while
           the cover is on screen so the hero keeps its full first impression. */}
+      {/* ALWAYS mounted. Safari samples the top-edge element ONCE, at first
+          paint — a later DOM insertion is ignored (tested in the simulator:
+          a plate mounted on scroll never took). So the plate exists from the
+          first frame: 6px of ink at the very top, imperceptible over the dark
+          hero, behind the bar once scrolled — and the status-bar strip stays
+          the page's own chrome colour at every scroll position. */}
+      <div className="rb-chromeplate" aria-hidden="true" />
       <div className="rb-stickybar" data-on={pastCover} aria-hidden={!pastCover}>
         <a href="#top" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
