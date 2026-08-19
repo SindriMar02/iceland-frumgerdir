@@ -117,6 +117,25 @@ const PAGE_CSS = `
      listener, so nothing runs per-frame. backdrop-filter is safe here
      because the element is fixed; on a scrolling container it would repaint
      continuously and cost real frames on mobile. */
+  /* THE AWNING — the only thing that can own the Dynamic Island strip.
+     Measured twice in the simulator: a fixed element paints NOTHING above the
+     layout viewport (a 120px red cap: zero pixels), but that strip renders
+     the SCROLLING document — and position:sticky lives in the scrolling
+     layer. Stuck at top:-100px it rests inside the strip itself and paints
+     solid ink where the page used to show through (red-awning test: the
+     strip filled edge to edge). Negative margin cancels its height, so
+     layout is untouched. Requires the page root to use overflow-x:clip —
+     overflow-x:hidden silently kills sticky in every descendant. Gated on
+     the same state as the bar so the hero keeps its clean opening. */
+  /* PERMANENT, from first paint — the strip nothing can leak into. At rest it
+     is a real 70px band at the top of the flow, so the masthead starts below
+     the Dynamic Island zone instead of sliding under it; once scrolling
+     collapses the chrome it sticks 64px above the viewport top and keeps the
+     strip solid ink at every scroll position. No opacity gate: gating it on
+     scroll state is what let the masthead leak into the island at rest. */
+  .rb-awning { position:sticky; top:-100px; height:106px; flex:none;
+    z-index:140; background:${INK}; pointer-events:none; }
+
   .rb-stickybar { position:fixed; inset:0 0 auto 0; z-index:150;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
     padding:10px clamp(16px,4.5vw,72px);
@@ -861,7 +880,7 @@ function ReynirPageInner() {
       ref={rootRef}
       className="rb-page"
       lang={lang}
-      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
+      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}
     >
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
@@ -879,6 +898,7 @@ function ReynirPageInner() {
           things people came for: what's on, and how to order it. Hidden while
           the cover is on screen so the hero keeps its full first impression. */}
       
+      <div className="rb-awning" aria-hidden="true" />
       <div className="rb-stickybar" data-on={pastCover} aria-hidden={!pastCover}>
         <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
@@ -990,7 +1010,7 @@ function ReynirPageInner() {
       </div>
 
       {/* ===================== MASTHEAD ===================== */}
-      <header id="top" style={{ position: 'relative', zIndex: 5, padding: 'calc(20px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 0' }}>
+      <header id="top" style={{ position: 'relative', zIndex: 5, padding: '10px clamp(20px,4.5vw,72px) 0' }}>
         <div style={{ ...wrap, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
           <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 132, height: 'auto', display: 'block' }} />
           <nav className="rb-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
