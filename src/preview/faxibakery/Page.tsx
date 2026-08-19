@@ -147,31 +147,6 @@ const PAGE_CSS = `
      Lifting uncovers the page bottom-first, so the entrance delays below run in
      that order too: the roll and the strapline arrive before the headline, and
      the chrome last. Each delay sits just after its own uncover moment. */
-  .faxi-curtain { position:fixed; inset:0; z-index:60; display:flex; align-items:center;
-                  justify-content:center; background:${CREAM};
-                  transform:translateY(0); will-change:transform;
-                  transition:transform 1.15s cubic-bezier(.76,0,.24,1); }
-  .faxi-ready .faxi-curtain { transform:translateY(-101%); }
-  .faxi-curtain-mark { text-align:center; display:flex; flex-direction:column; align-items:center; }
-
-  /* The roll coils itself while the page loads. Drawing from the centre outward
-     is the whole point, so the dash runs 1 -> 0 on a path normalised to 1. */
-  .faxi-spiral { display:block; width:clamp(104px,12vw,146px); height:auto;
-                 margin-bottom:clamp(14px,2.4vh,26px);
-                 animation:faxi-coil-turn ${BOOT_HOLD}ms cubic-bezier(.33,0,.15,1) both; }
-  .faxi-spiral path:last-child { stroke-dasharray:1; stroke-dashoffset:1;
-                 animation:faxi-coil ${BOOT_HOLD}ms cubic-bezier(.33,0,.15,1) forwards; }
-  @keyframes faxi-coil { to { stroke-dashoffset:0; } }
-  @keyframes faxi-coil-turn { from { transform:rotate(-32deg) scale(.94); } to { transform:none; } }
-
-  /* The name arrives once the roll is drawn, not alongside it. */
-  .faxi-curtain-word, .faxi-curtain-sub, .faxi-curtain-line {
-    opacity:0; animation:faxi-curtain-in .7s cubic-bezier(.22,.61,.36,1) forwards; }
-  .faxi-curtain-word { animation-delay:${Math.round(BOOT_HOLD * 0.5)}ms; }
-  .faxi-curtain-sub  { animation-delay:${Math.round(BOOT_HOLD * 0.6)}ms; }
-  .faxi-curtain-line { animation-delay:${Math.round(BOOT_HOLD * 0.7)}ms; }
-  @keyframes faxi-curtain-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
-
   /* Hero entrance. Gated on the curtain, never on an observer — an observer
      hands the hero its class at t=0 and the whole entrance plays behind the
      curtain, arriving on a page that is already static. */
@@ -667,38 +642,6 @@ function FilmView({
 
 
 
-/**
- * The loading mark: a cinnamon roll drawn as what it actually is, a spiral.
- *
- * An Archimedean coil that draws itself from the centre outward while the page
- * loads, so the progress indicator IS the product rather than a generic bar
- * under a logo. It uncoils as it draws, the way dough goes onto the tray.
- */
-function RollSpiral() {
-  const d = useMemo(() => {
-    const TURNS = 3.6
-    const STEPS = 340
-    const B = 4.6 // keeps the outer radius just inside the 120 box
-    let out = ''
-    for (let i = 0; i <= STEPS; i++) {
-      const t = (i / STEPS) * TURNS * Math.PI * 2
-      const rad = B * t * 0.5
-      const x = 60 + rad * Math.cos(t)
-      const y = 60 + rad * Math.sin(t)
-      out += `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`
-    }
-    return out
-  }, [])
-
-  return (
-    <svg className="faxi-spiral" viewBox="0 0 120 120" aria-hidden>
-      {/* the ghost of the finished roll, so the coil has somewhere to arrive */}
-      <path d={d} fill="none" stroke={INK} strokeOpacity={0.08} strokeWidth={3.4} strokeLinecap="round" />
-      <path d={d} pathLength={1} fill="none" stroke={CARAMEL} strokeWidth={3.4} strokeLinecap="round" />
-    </svg>
-  )
-}
-
 /** A framed window. Photography always sits inside a frame on this page, and
  *  drifts within it — never a section sliding under the reader. */
 function Frame({
@@ -1048,16 +991,35 @@ export default function FaxiBakeryPage() {
   // The opening reveal. `booting` outlives the lift on purpose: a curtain whose
   // display is removed on the same tick as its transition hard-cuts instead of
   // lifting, which is exactly how the Brass loader failed.
-  const [booting, setBooting] = useState(!reduced)
+  const [booting, setBooting] = useState(() => !reduced && typeof document !== 'undefined' && !!document.getElementById('faxi-boot'))
   const [lifted, setLifted] = useState(false)
   useEffect(() => {
-    if (reduced) return
-    const lift = window.setTimeout(() => setLifted(true), BOOT_HOLD)
+    const node = document.getElementById('faxi-boot')
+    // No curtain (reduced motion, or the shell script did not run): show the
+    // page rather than leaving the hero hidden behind a class that never lifts.
+    if (reduced || !node) {
+      // Under reduced motion the shell hides the curtain with CSS; take it out
+      // of the document too rather than leaving an invisible fixed overlay.
+      node?.remove()
+      setBooting(false)
+      setLifted(true)
+      return
+    }
+    // The coil started painting the moment the document did, long before this
+    // bundle arrived. Only wait out whatever is left of it — on a slow
+    // connection that is nothing, and the page lifts as soon as it is ready.
+    const started = (window as unknown as { __faxiBootAt?: number }).__faxiBootAt ?? Date.now()
+    const remaining = Math.max(0, BOOT_HOLD - (Date.now() - started))
+    const lift = window.setTimeout(() => {
+      node.classList.add('is-lifting')
+      setLifted(true)
+    }, remaining)
     const done = window.setTimeout(() => {
+      node.remove()
       setBooting(false)
       // Positions measured while the page was covered are not to be trusted.
       ScrollTrigger.refresh()
-    }, BOOT_HOLD + BOOT_LIFT + 260)
+    }, remaining + BOOT_LIFT + 260)
     return () => {
       window.clearTimeout(lift)
       window.clearTimeout(done)
@@ -1094,20 +1056,6 @@ export default function FaxiBakeryPage() {
       }}
     >
       <style>{PAGE_CSS}</style>
-
-      {/* ===================== OPENING ===================== */}
-      {booting && (
-        <div className="faxi-curtain" role="presentation">
-          <div className="faxi-curtain-mark">
-            <RollSpiral />
-            <div className="faxi-curtain-word" style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 'clamp(40px,5.6vw,72px)', letterSpacing: '-.04em', lineHeight: .9, color: INK }}>Faxi</div>
-            <div className="faxi-curtain-sub faxi-meta" style={{ color: MOSS, marginTop: 9, fontSize: 9.5 }}>Bakery · Café</div>
-            <div className="faxi-curtain-line faxi-meta" style={{ color: '#1B171266', fontSize: 9, marginTop: 20 }}>
-              {oven.open ? 'Next batch in ' : ''}<span style={{ fontVariantNumeric: 'tabular-nums', color: CARAMEL }}>{oven.open ? oven.value : 'First batch at 9'}</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ===================== HERO ===================== */}
       <section
