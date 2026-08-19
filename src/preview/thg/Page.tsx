@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import { CustomEase } from 'gsap/CustomEase'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor, setNoindex } from '../../lib/preview'
@@ -23,7 +23,7 @@ CustomEase.create('thgIn', '0.5,0,0.75,0')
 CustomEase.create('thgInOut', '0.75,0,0.25,1')
 CustomEase.create('thgDive', '0.6,0,0,1')
 
-const company = getPreviewCompany('thg')
+const company = companyEntry
 
 /* ═════════════════════════════════════════════════════════════════════════
    THG ARKITEKTAR — "Staðarandi", rebuilt as an EXACT transplant of the
