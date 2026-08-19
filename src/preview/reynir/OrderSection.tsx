@@ -330,7 +330,7 @@ export default function OrderSection({
   initialProductId?: string
 }) {
   const t = ORDER_T[lang]
-  const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS } = useSiteContent()
+  const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS, hoursRows } = useSiteContent()
 
   const [productId, setProductId] = useState(
     () => (initialProductId && ORDER_PRODUCTS.some((p) => p.id === initialProductId) ? initialProductId : ORDER_PRODUCTS[0].id),
@@ -687,9 +687,20 @@ export default function OrderSection({
           <div className="rb-ord-done" style={{ marginTop: 'clamp(30px,4.5vh,46px)' }} role="status">
             <h3 className="rb-ord-done-title" style={{ ...GOLD_TEXT }}>{t.doneTitle}</h3>
             <p style={{ fontSize: 16, color: IVORY, lineHeight: 1.65, margin: '14px auto 0', maxWidth: '46ch' }}>{t.doneBody}</p>
-            {PLACEHOLDER_DATA && (
-              <p style={{ fontSize: 13, color: DIM, margin: '14px auto 0', maxWidth: '46ch', fontStyle: 'italic' }}>{t.doneDemo}</p>
-            )}
+            {/* WHEN, and how to reach us. Silence is the thing that makes an
+                order feel lost: someone ordering on a Saturday evening cannot
+                tell a slow reply from a failed submission. The hours phrase is
+                built from the CMS hours, so it can never contradict the ones
+                printed elsewhere on the site, and it degrades to a generic
+                sentence if the week is not one single schedule. */}
+            <p style={{ fontSize: 14.5, color: DIM, margin: '12px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
+              {hoursRows[lang].length === 1
+                ? t.doneWhen(`${hoursRows[lang][0].label.toLowerCase()} ${hoursRows[lang][0].value}`)
+                : t.doneWhenGeneric}
+              <br />
+              {t.doneReach}{' '}
+              <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>.
+            </p>
             <div style={{ marginTop: 22, fontSize: 15, color: GOLD_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
               {t.slipTotal}: {isk(total)}
             </div>
