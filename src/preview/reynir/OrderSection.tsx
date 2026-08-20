@@ -414,25 +414,6 @@ const ORDER_CSS = `
   }
 `
 
-/**
- * The order docket as plain text, in the order a baker triages it.
- *
- * The payload object is already arranged that way — when and what first,
- * because they decide whether the order is even possible, then the spec, the
- * price, and the contact block together — so this only has to render it and
- * not re-decide anything. Numeric prefixes are stripped: they exist to stop
- * the keys being reordered in transit, and they are noise to read.
- */
-function orderText(payload: Record<string, string>): string {
-  const lines: string[] = ['NÝ PÖNTUNARBEIÐNI — Reynir bakarí', '']
-  for (const [k, v] of Object.entries(payload)) {
-    if (k.startsWith('_')) continue
-    lines.push(`${k.replace(/^\d+\.\s*/, '')}: ${v}`)
-  }
-  lines.push('', 'Svaraðu þessum pósti til að svara viðskiptavininum.')
-  return lines.join('\n')
-}
-
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /** Local-date ISO string. Never toISOString(), which is UTC and can shift the day. */
@@ -844,6 +825,11 @@ export default function OrderSection({
       '3. Sótt eða sent': delivering ? `Sent á ${customer.address}` : `Sótt í ${loc}`,
     }
 
+    /* The same rows the slip showed, shaped for the docket. Built from the
+     * SNAPSHOT above rather than recomputed, so the mail can never disagree
+     * with what the customer was quoted. */
+    const mailRows: { label: string; value: string; note?: string; money?: boolean }[] = []
+
     let n = 4
     payload[`${n++}. Pöntunarnúmer`] = ref
     product.groups.forEach((g) => {
@@ -860,19 +846,40 @@ export default function OrderSection({
           return c.priceDelta > 0 ? `${label} (+${isk(c.priceDelta)})` : label
         })
         .filter(Boolean)
-      if (chosen.length) payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
+      if (chosen.length) {
+        payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
+        /* The size row carries the rate as its note, because "30 manna" beside
+         * "930 kr. á mann" is the whole arithmetic of the price in one line. */
+        const isSize = !!product.pricePerPerson && g.id === product.sizeGroupId
+        mailRows.push({
+          label: g.label.is,
+          value: chosen.join(', '),
+          note: isSize && product.pricePerPerson ? `${isk(product.pricePerPerson)} á mann` : undefined,
+        })
+      }
     })
-    if (product.inscription && inscription.trim()) payload[`${n++}. Áletrun`] = inscription.trim()
+    if (product.inscription && inscription.trim()) {
+      payload[`${n++}. Áletrun`] = inscription.trim()
+      mailRows.push({ label: product.inscription.label.is, value: inscription.trim() })
+    }
+    mailRows.push({ label: 'Pöntunarnúmer', value: ref })
     /* Never send a number for a bespoke cake. An estimate in the inbox becomes
        the price the customer believes they were given. */
     payload[`${n++}. Áætlað verð`] = quote
       ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
       : `${isk(total)}${size ? ` (${size.serves} manns × ${isk(product.pricePerPerson as number)})` : ''}`
     if (wantsPhoto) {
-      payload[`${n++}. Mynd`] = photo
+      const note = photo
         ? `Fylgir þessum pósti sem viðhengi (${photo.name})`
         : `Viðskiptavinur ætlar að senda mynd og vísa í ${ref}`
+      payload[`${n++}. Mynd`] = note
+      mailRows.push({ label: 'Mynd', value: note })
     }
+    mailRows.push({
+      label: 'Samtals',
+      value: quote ? 'Tilboð óskast' : isk(total),
+      money: true,
+    })
 
     // Contact details in ONE block, so calling back does not mean hunting
     // through the mail. Phone first: a bakery rings, it does not email.
@@ -913,8 +920,29 @@ export default function OrderSection({
         'order',
         JSON.stringify({
           subject: payload._subject,
-          text: orderText(payload),
           replyTo: customer.email.trim() || customer.invoiceEmail.trim() || '',
+          /* STRUCTURED, not a finished message. The sender renders the docket
+           * from these fields, so the mail design lives with the sender rather
+           * than being duplicated into this bundle, and every value is escaped
+           * on the way in. The rows are already in triage order: the two facts
+           * that decide whether the order is possible, then the spec, then the
+           * total. */
+          mail: {
+            product: product.name.is,
+            quantity: qty,
+            pickupWhen: when,
+            pickupWhere: delivering ? `Sent á ${customer.address}` : loc,
+            customerName: who === 'company' ? customer.contact : customer.name,
+            customerPhone: customer.phone.trim(),
+            customerEmail: customer.email.trim(),
+            company: who === 'company' ? customer.company.trim() : '',
+            kennitala: who === 'company' ? customer.kennitala.trim() : '',
+            occasion: who === 'company' ? occ : '',
+            message: customer.notes.trim(),
+            totalIsk: quote ? 0 : total,
+            provisional: PLACEHOLDER_DATA,
+            options: mailRows,
+          },
         }),
       )
       if (photo) fd.append('mynd', photo, photo.name)
