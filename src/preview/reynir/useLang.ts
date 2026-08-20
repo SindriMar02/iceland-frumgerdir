@@ -8,12 +8,19 @@
  *
  * TWO things here are deliberate and easy to "fix" wrongly:
  *
- * 1. THE DEFAULT IS ICELANDIC ON THE CLIENT'S OWN DOMAIN. The catalogue
- *    preview stays English because that is Sindri reading it. But a first-time
- *    visitor to reynirbakari.is is overwhelmingly a Kopavogur local, and the
- *    prerendered HTML is what Google and the AI crawlers read — serving them
- *    English body text inside a lang="is" shell would index the wrong language
- *    for the whole site.
+ * 1. THE DEFAULT IS ICELANDIC EVERYWHERE, catalogue preview included.
+ *
+ *    It used to be English on the catalogue, on the reasoning that the
+ *    catalogue is Sindri reading his own work. That was wrong twice over. The
+ *    preview URL is the link SENT TO THE OWNER and to prospects, so the first
+ *    thing an Icelandic baker saw of his own site was in English. And the
+ *    shell already declares lang="is" on every route, so the page was telling
+ *    Google and screen readers Icelandic while serving them English body text:
+ *    a contradiction that indexes the wrong language for the whole site.
+ *
+ *    A first-time visitor to reynirbakari.is is overwhelmingly a Kopavogur
+ *    local. English stays one tap away in the header for everyone else, and
+ *    the choice is remembered.
  *
  * 2. THE FIRST RENDER NEVER READS STORAGE. It returns the same constant on the
  *    server and in the browser, so the prerendered markup and React's first
@@ -24,12 +31,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Lang } from './data'
-import { STANDALONE } from './paths'
 
 const KEY = 'rb-lang'
 
-/** Compile-time constant: 'is' in the client build, 'en' in the catalogue. */
-const DEFAULT_LANG: Lang = STANDALONE ? 'is' : 'en'
+/** Icelandic bakery, Icelandic default, on whichever host it is served from. */
+const DEFAULT_LANG: Lang = 'is'
 
 function stored(): Lang | null {
   if (typeof window === 'undefined') return null
