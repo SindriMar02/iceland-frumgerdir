@@ -246,9 +246,10 @@ export const QUERY = `{
   "reviews": *[_type=="review"]|order(order asc){quote, who},
   "gallery": *[_type=="galleryImage"]|order(order asc){image{asset,hotspot}, caption},
   "orderProducts": *[_type=="orderProduct" && active != false]|order(order asc){
-    "id": id.current, name, blurb, basePrice, leadDays, inscription, image{asset,hotspot},
+    "id": id.current, name, blurb, basePrice, pricePerPerson, "sizeGroupId": sizeGroupId.current,
+    leadDays, inscription, image{asset,hotspot},
     groups[]{"id": id.current, kind, label, help, required, max,
-      choices[]{"id": id.current, label, priceDelta, note}}
+      choices[]{"id": id.current, label, priceDelta, note, serves, quoteOnly, needsPhoto, freeText}}
   },
   "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label},
   "pickupLocations": *[_type=="pickupLocation"]|order(order asc){"id": id.current, label}
@@ -272,6 +273,12 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
       name: biSelf(d.name),
       blurb: biSelf(d.blurb),
       basePrice: typeof d.basePrice === 'number' ? d.basePrice : 0,
+      // A per-person rate of 0 is not a rate, it is an empty field. Treated as
+      // absent so the product falls back to basePrice instead of pricing every
+      // size at nothing.
+      pricePerPerson:
+        typeof d.pricePerPerson === 'number' && d.pricePerPerson > 0 ? d.pricePerPerson : undefined,
+      sizeGroupId: d.sizeGroupId ? String(d.sizeGroupId) : undefined,
       // CMS photo when uploaded, otherwise the bundled crop for a product we
       // already ship one for. A brand-new product with neither still renders.
       image: mkProductPic(d.image) ?? ORDER_PRODUCTS.find((p) => p.id === String(d.id || ''))?.image,
@@ -297,6 +304,17 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
                   label: biSelf(c.label),
                   priceDelta: typeof c.priceDelta === 'number' ? c.priceDelta : 0,
                   note: c.note ? biSelf(c.note) : undefined,
+                  serves: typeof c.serves === 'number' && c.serves > 0 ? c.serves : undefined,
+                  quoteOnly: c.quoteOnly === true,
+                  needsPhoto: c.needsPhoto === true,
+                  freeText: c.freeText?.label
+                    ? {
+                        label: biSelf(c.freeText.label),
+                        placeholder: biSelf(c.freeText.placeholder),
+                        maxLength:
+                          typeof c.freeText.maxLength === 'number' ? c.freeText.maxLength : 120,
+                      }
+                    : undefined,
                 }))
               : [],
           }))

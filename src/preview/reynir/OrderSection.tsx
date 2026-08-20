@@ -25,7 +25,11 @@ import {
   ORDER_FORM_TO,
   ORDER_T,
   PLACEHOLDER_DATA,
+  freeTextChoices,
+  isQuoteRequest,
   isk,
+  needsPhoto,
+  sizeChoiceOf,
   type OrderGroup,
   type OrderProduct,
 } from './order'
@@ -134,6 +138,12 @@ const ORDER_CSS = `
   .rb-ord-choice-price { margin-left:auto; padding-left:12px; font-size:14px; color:${GOLD}; white-space:nowrap;
     font-variant-numeric:tabular-nums; }
   .rb-ord-choice-price[data-free="true"] { color:${FAINT}; font-size:12.5px; }
+  /* The field a choice opens. Indented under its row and sharing the row's
+     gold edge, so it reads as part of that choice rather than a new question. */
+  .rb-ord-extra { margin:8px 0 2px 14px; padding-left:16px; border-left:2px solid rgba(200,168,119,.34);
+    animation:rb-ord-extrain .32s ${EASE} both; }
+  @keyframes rb-ord-extrain { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce) { .rb-ord-extra { animation:none; } }
 
   /* text + form fields */
   .rb-ord-field { display:block; margin-top:18px; }
@@ -187,6 +197,10 @@ const ORDER_CSS = `
   .rb-ord-slipline { animation:rb-ord-linein .26s ${EASE} both; }
   @keyframes rb-ord-bump { 0% { transform:none; } 38% { transform:scale(1.07); } 100% { transform:none; } }
   .rb-ord-total-value[data-bump="true"] { animation:rb-ord-bump .34s ${EASE}; }
+  /* A quote is words, not a number, so it must not sit at display size where a
+     price belongs. Shrinking it is what stops it reading as an amount. */
+  .rb-ord-total-value[data-quote="true"], .rb-ord-mobiletotal-value[data-quote="true"] {
+    font-family:${BODY}; font-size:14px; letter-spacing:.01em; color:${GOLD_LIGHT}; }
   @keyframes rb-ord-groupin { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
   .rb-ord-groups[data-key] { animation:rb-ord-groupin .38s ${EASE} both; }
 
@@ -315,7 +329,12 @@ interface SlipLine {
   key: string
   name: string
   sub?: string
+  /** A real number, or null for something that costs nothing. */
   price: number | null
+  /** Nothing has been chosen yet, so there is no price to show. Distinct from
+   *  a price of null: "included" is an answer, and a size nobody has picked is
+   *  not free, it is unanswered. */
+  pending?: boolean
 }
 
 export default function OrderSection({
@@ -345,6 +364,12 @@ export default function OrderSection({
   const [qty, setQty] = useState(1)
   const [picked, setPicked] = useState<Record<string, string[]>>({})
   const [inscription, setInscription] = useState('')
+  /** Free text belonging to a CHOICE, keyed `group_choice`. "Another colour"
+   *  and "photo on the cake" are worthless without it: the order would arrive
+   *  saying only "another colour" and cost exactly the phone call this form
+   *  exists to remove. Kept in its own map rather than inside `picked` so that
+   *  deselecting and reselecting a choice does not silently lose the typing. */
+  const [extras, setExtras] = useState<Record<string, string>>({})
   const [customer, setCustomer] = useState({
     name: '',
     phone: '',
@@ -373,6 +398,10 @@ export default function OrderSection({
   /** True when the relay refused or the network failed — the customer must be
    *  told, and given the phone number, rather than left thinking it sent. */
   const [sendError, setSendError] = useState(false)
+  /** Reference for THIS order, generated at submit time (never during render,
+   *  which would differ between the prerendered HTML and the hydrated page).
+   *  It exists so a photo sent afterwards can be tied to the right order. */
+  const [orderRef, setOrderRef] = useState('')
 
   const earliest = useMemo(() => isoPlusDays(product.leadDays), [product.leadDays])
 
@@ -380,6 +409,7 @@ export default function OrderSection({
   useEffect(() => {
     setPicked({})
     setInscription('')
+    setExtras({})
     setTouched((prev) => {
       const next: Record<string, boolean> = {}
       for (const k of Object.keys(prev)) if (k.startsWith('c_')) next[k] = prev[k]
@@ -403,22 +433,51 @@ export default function OrderSection({
     setTouched((prev) => ({ ...prev, [`g_${group.id}`]: true }))
   }
 
+  /** The size choice a per-person product is priced from, and whether anything
+   *  picked has made this a quote rather than a price. */
+  const size = useMemo(() => sizeChoiceOf(product, picked), [product, picked])
+  const quote = useMemo(() => isQuoteRequest(product, picked), [product, picked])
+  const wantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
+
   const { lines, total } = useMemo(() => {
-    const out: SlipLine[] = [{ key: 'base', name: product.name[lang], sub: t.slipBase, price: product.basePrice }]
-    let sum = product.basePrice
+    const out: SlipLine[] = []
+    const perPerson = product.pricePerPerson
+    let sum: number
+
+    if (perPerson) {
+      /* Priced by headcount: the size IS the price, so it leads the slip and
+       * there is no separate base line to add it to. Before a size is picked
+       * the slip says so rather than showing 0 kr., which would read as free. */
+      sum = size ? perPerson * (size.serves as number) : 0
+      out.push({
+        key: 'size',
+        name: size ? size.label[lang] : t.slipPickSize,
+        sub: `${isk(perPerson)} ${t.perPerson}`,
+        price: size ? sum : null,
+        pending: !size,
+      })
+    } else {
+      sum = product.basePrice
+      out.push({ key: 'base', name: product.name[lang], sub: t.slipBase, price: product.basePrice })
+    }
+
     for (const group of product.groups) {
+      // The size group is already the line above; listing it twice reads as a charge.
+      if (perPerson && group.id === product.sizeGroupId) continue
       for (const id of picked[group.id] ?? []) {
         const choice = group.choices.find((c) => c.id === id)
         if (!choice) continue
         sum += choice.priceDelta
+        const typed = choice.freeText ? (extras[`${group.id}_${choice.id}`] ?? '').trim() : ''
         out.push({
           key: `${group.id}_${choice.id}`,
-          name: choice.label[lang],
+          name: typed ? `${choice.label[lang]}: ${typed}` : choice.label[lang],
           sub: group.label[lang],
           price: choice.priceDelta > 0 ? choice.priceDelta : null,
         })
       }
     }
+
     const written = inscription.trim()
     if (written && product.inscription) {
       out.push({ key: 'inscription', name: `“${written}”`, sub: product.inscription.label[lang], price: null })
@@ -429,7 +488,14 @@ export default function OrderSection({
       out.push({ key: 'qty', name: t.slipQty(qty), sub: `× ${isk(sum)}`, price: sum * qty })
     }
     return { lines: out, total: sum * qty }
-  }, [product, picked, inscription, lang, qty, t])
+  }, [product, picked, inscription, lang, qty, t, size, extras])
+
+  /** Nothing to total yet. Showing "0 kr." here reads as a free cake, which is
+   *  the one number this form must never put in front of a customer. */
+  const unpriced = !!product.pricePerPerson && !size
+  /** What stands where the total goes when there is no number to put there. */
+  const totalText = quote ? t.quoteTotal : unpriced ? t.slipPickSize : isk(total)
+  const softTotal = quote || unpriced
 
   // Bump the total when it changes, so the price movement is felt, not just read.
   const [bump, setBump] = useState(false)
@@ -448,6 +514,14 @@ export default function OrderSection({
       if (!group.required) continue
       if ((picked[group.id] ?? []).length === 0) {
         e[`g_${group.id}`] = group.kind === 'single' ? t.errRequiredGroup : t.errRequiredMulti
+      }
+    }
+    /* A choice that opens a field has not really been answered until the field
+     * is filled. Without this the form happily submits "Annar litur" with no
+     * colour, which is the same phone call as having asked nothing at all. */
+    for (const { group, choice } of freeTextChoices(product, picked)) {
+      if (!(extras[`${group.id}_${choice.id}`] ?? '').trim()) {
+        e[`x_${group.id}_${choice.id}`] = t.errFreeText
       }
     }
     if (who === 'person') {
@@ -471,7 +545,7 @@ export default function OrderSection({
     else if (customer.date < earliest) e.c_date = t.errDateTooSoon(prettyDate(earliest, lang))
     if (!customer.time) e.c_time = t.errTime
     return e
-  }, [product, picked, customer, earliest, lang, t, who])
+  }, [product, picked, customer, earliest, lang, t, who, extras])
 
   const showErr = (key: string) => (touched[key] || triedSubmit ? errors[key] : undefined)
 
@@ -490,6 +564,13 @@ export default function OrderSection({
     }
     setStatus('sending')
     setSendError(false)
+
+    /* Reference for this order. Date-stamped so it sorts, with four random
+       digits so two orders on one day cannot collide. Generated here rather
+       than during render: a clock or a random number read while rendering
+       would differ between the prerendered HTML and the hydrated page. */
+    const ref = `RB-${customer.date.slice(5).replace('-', '')}-${Math.floor(1000 + Math.random() * 9000)}`
+    setOrderRef(ref)
 
     const L = ORDER_T.is // the bakery reads its own orders in Icelandic
     const loc = PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label.is ?? customer.location
@@ -526,7 +607,7 @@ export default function OrderSection({
     const when = `${prettyDateFull(customer.date, 'is')}, kl. ${customer.time}`
 
     const payload: Record<string, string> = {
-      _subject: `${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
+      _subject: `${ref} · ${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${quote ? 'TILBOÐ ÓSKAST — ' : ''}${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
       _template: 'table',
       _captcha: 'false',
       _honey: '', // honeypot: bots fill it, people never see it
@@ -537,18 +618,32 @@ export default function OrderSection({
     }
 
     let n = 4
+    payload[`${n++}. Pöntunarnúmer`] = ref
     product.groups.forEach((g) => {
       const chosen = (picked[g.id] ?? [])
         .map((cid) => {
           const c = g.choices.find((x) => x.id === cid)
           if (!c) return null
-          return c.priceDelta > 0 ? `${c.label.is} (+${isk(c.priceDelta)})` : c.label.is
+          // What they typed belongs ON the option, not in a separate row further
+          // down: "Annar litur" and "lavender" are one answer, and splitting them
+          // is how a baker ends up reading half of it.
+          const typed = c.freeText ? (extras[`${g.id}_${c.id}`] ?? '').trim() : ''
+          const label = typed ? `${c.label.is}: ${typed}` : c.label.is
+          if (c.quoteOnly) return `${label} (tilboð)`
+          return c.priceDelta > 0 ? `${label} (+${isk(c.priceDelta)})` : label
         })
         .filter(Boolean)
       if (chosen.length) payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
     })
     if (product.inscription && inscription.trim()) payload[`${n++}. Áletrun`] = inscription.trim()
-    payload[`${n++}. Áætlað verð`] = isk(total)
+    /* Never send a number for a bespoke cake. An estimate in the inbox becomes
+       the price the customer believes they were given. */
+    payload[`${n++}. Áætlað verð`] = quote
+      ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
+      : `${isk(total)}${size ? ` (${size.serves} manns × ${isk(product.pricePerPerson as number)})` : ''}`
+    if (wantsPhoto) {
+      payload[`${n++}. Mynd`] = `Viðskiptavinur ætlar að senda mynd og vísa í ${ref}`
+    }
 
     // Contact details in ONE block, so calling back does not mean hunting
     // through the mail. Phone first: a bakery rings, it does not email.
@@ -607,6 +702,8 @@ export default function OrderSection({
   const reset = () => {
     setPicked({})
     setInscription('')
+    setExtras({})
+    setOrderRef('')
     setQty(1)
     setCustomer({
       name: '', phone: '', email: '', date: '', time: '', location: PICKUP_LOCATIONS[0].id, notes: '',
@@ -631,16 +728,18 @@ export default function OrderSection({
             </span>
             <span className="rb-ord-slipline-dots" aria-hidden="true" />
             <span className="rb-ord-slipline-price" data-free={line.price === null}>
-              {line.price === null ? t.included : isk(line.price)}
+              {line.pending ? '' : line.price === null ? t.included : isk(line.price)}
             </span>
           </div>
         ))}
       </div>
       <div className="rb-ord-total">
         <span className="rb-ord-total-label">{t.slipTotal}</span>
-        <span className="rb-ord-total-value" data-bump={bump} aria-live="polite">{isk(total)}</span>
+        <span className="rb-ord-total-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
+          {totalText}
+        </span>
       </div>
-      <p className="rb-ord-slip-note">{t.slipNote}</p>
+      <p className="rb-ord-slip-note">{quote ? t.quoteNote : t.slipNote}</p>
     </div>
   )
 
@@ -702,8 +801,32 @@ export default function OrderSection({
               <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>.
             </p>
             <div style={{ marginTop: 22, fontSize: 15, color: GOLD_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
-              {t.slipTotal}: {isk(total)}
+              {quote ? t.quoteTotal : `${t.slipTotal}: ${isk(total)}`}
             </div>
+            {/* The order's own reference, and the only reason it exists: a
+                customer who owes us a photo can now send one that lands
+                attached to their order instead of alone in an inbox. */}
+            {orderRef && (
+              <div
+                style={{
+                  marginTop: 18,
+                  fontSize: 13,
+                  letterSpacing: '.08em',
+                  textTransform: 'uppercase',
+                  color: FAINT,
+                }}
+              >
+                {t.refLabel}: <strong style={{ color: IVORY, letterSpacing: '.04em' }}>{orderRef}</strong>
+              </div>
+            )}
+            {wantsPhoto && orderRef && (
+              <p style={{ fontSize: 14.5, color: DIM, margin: '10px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
+                {t.photoHow(orderRef)}{' '}
+                <a href={`mailto:${LINKS.orderEmail}?subject=${encodeURIComponent(orderRef)}`} className="rb-ord-tel">
+                  {LINKS.orderEmail}
+                </a>
+              </p>
+            )}
             <button type="button" className="rb-ord-submit" style={{ width: 'auto', marginTop: 24 }} onClick={reset}>
               {t.doneAgain}
             </button>
@@ -714,7 +837,9 @@ export default function OrderSection({
               {/* running total, mobile only */}
               <div className="rb-ord-mobiletotal">
                 <span className="rb-ord-mobiletotal-label">{t.slipTotal}</span>
-                <span className="rb-ord-mobiletotal-value" data-bump={bump} aria-live="polite">{isk(total)}</span>
+                <span className="rb-ord-mobiletotal-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
+                  {totalText}
+                </span>
               </div>
 
               {/* 1 — who is ordering (drives which details are asked for later) */}
@@ -760,7 +885,11 @@ export default function OrderSection({
                         </span>
                       )}
                       <span className="rb-ord-prod-name">{p.name[lang]}</span>
-                      <span className="rb-ord-prod-from">{lang === 'is' ? 'frá' : 'from'} {isk(p.basePrice)}</span>
+                      <span className="rb-ord-prod-from">
+                        {p.pricePerPerson
+                          ? `${isk(p.pricePerPerson)} ${t.perPerson}`
+                          : `${lang === 'is' ? 'frá' : 'from'} ${isk(p.basePrice)}`}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -775,6 +904,14 @@ export default function OrderSection({
                     const cur = picked[group.id] ?? []
                     const atMax = !!group.max && cur.length >= group.max
                     const err = showErr(`g_${group.id}`)
+                    const isSizeGroup = !!product.pricePerPerson && group.id === product.sizeGroupId
+                    /* If nothing in the group changes the price, the price
+                       column says "included" five times and communicates
+                       nothing. Drop it entirely and the choices read as what
+                       they are: a taste, not a tariff. It reappears the moment
+                       the owner puts a surcharge on any one of them. */
+                    const groupHasPrices =
+                      isSizeGroup || group.choices.some((c) => c.priceDelta > 0 || c.quoteOnly)
                     return (
                       <fieldset className="rb-ord-group" key={group.id}>
                         <legend className="rb-ord-legend">
@@ -790,33 +927,78 @@ export default function OrderSection({
                           {group.choices.map((choice) => {
                             const on = cur.includes(choice.id)
                             const off = !on && atMax
+                            /* On a per-person product the size chips carry the
+                               REAL price of that size, not a surcharge. That is
+                               the whole point of the owner's model: the customer
+                               picks how many people are coming and reads the
+                               finished price off the same row. */
+                            const sizePrice =
+                              isSizeGroup && typeof choice.serves === 'number' && product.pricePerPerson
+                                ? product.pricePerPerson * choice.serves
+                                : null
+                            const fx = choice.freeText
+                            const fxKey = `${group.id}_${choice.id}`
+                            const fxErr = showErr(`x_${fxKey}`)
                             return (
-                              <label
-                                key={choice.id}
-                                className="rb-ord-choice"
-                                data-on={on}
-                                data-off={off}
-                              >
-                                <input
-                                  type={group.kind === 'single' ? 'radio' : 'checkbox'}
-                                  name={`rb-ord-${group.id}`}
-                                  checked={on}
-                                  disabled={off}
-                                  data-invalid={err ? 'true' : undefined}
-                                  aria-describedby={err ? `err_g_${group.id}` : undefined}
-                                  onChange={() => toggle(group, choice.id)}
-                                />
-                                <span className="rb-ord-mark" data-shape={group.kind === 'single' ? 'round' : 'box'} aria-hidden="true">
-                                  <Check />
-                                </span>
-                                <span className="rb-ord-choice-label">
-                                  {choice.label[lang]}
-                                  {choice.note && <span className="rb-ord-choice-note">{choice.note[lang]}</span>}
-                                </span>
-                                <span className="rb-ord-choice-price" data-free={choice.priceDelta === 0}>
-                                  {choice.priceDelta === 0 ? t.included : `+ ${isk(choice.priceDelta)}`}
-                                </span>
-                              </label>
+                              <div key={choice.id}>
+                                <label className="rb-ord-choice" data-on={on} data-off={off}>
+                                  <input
+                                    type={group.kind === 'single' ? 'radio' : 'checkbox'}
+                                    name={`rb-ord-${group.id}`}
+                                    checked={on}
+                                    disabled={off}
+                                    data-invalid={err ? 'true' : undefined}
+                                    aria-describedby={err ? `err_g_${group.id}` : undefined}
+                                    onChange={() => toggle(group, choice.id)}
+                                  />
+                                  <span className="rb-ord-mark" data-shape={group.kind === 'single' ? 'round' : 'box'} aria-hidden="true">
+                                    <Check />
+                                  </span>
+                                  <span className="rb-ord-choice-label">
+                                    {choice.label[lang]}
+                                    {choice.note && <span className="rb-ord-choice-note">{choice.note[lang]}</span>}
+                                  </span>
+                                  {groupHasPrices && (
+                                    <span
+                                      className="rb-ord-choice-price"
+                                      data-free={sizePrice === null && choice.priceDelta === 0 && !choice.quoteOnly}
+                                    >
+                                      {sizePrice !== null
+                                        ? isk(sizePrice)
+                                        : choice.quoteOnly
+                                          ? t.quoteTotal
+                                          : choice.priceDelta === 0
+                                            ? t.included
+                                            : `+ ${isk(choice.priceDelta)}`}
+                                    </span>
+                                  )}
+                                </label>
+                                {/* The field belonging to this choice, revealed only
+                                    when it is picked. Rendering it inside the row it
+                                    belongs to is what keeps "another colour" from
+                                    submitting as just "another colour". */}
+                                {fx && on && (
+                                  <div className="rb-ord-extra">
+                                    <label className="rb-ord-label" htmlFor={`rb-ord-x-${fxKey}`}>
+                                      {fx.label[lang]}
+                                    </label>
+                                    <input
+                                      id={`rb-ord-x-${fxKey}`}
+                                      className="rb-ord-input"
+                                      type="text"
+                                      maxLength={fx.maxLength}
+                                      placeholder={fx.placeholder[lang]}
+                                      value={extras[fxKey] ?? ''}
+                                      data-invalid={fxErr ? 'true' : undefined}
+                                      aria-invalid={!!fxErr}
+                                      aria-describedby={fxErr ? `err_x_${fxKey}` : undefined}
+                                      onChange={(e) => setExtras((x) => ({ ...x, [fxKey]: e.target.value }))}
+                                      onBlur={() => setTouched((prev) => ({ ...prev, [`x_${fxKey}`]: true }))}
+                                    />
+                                    {fxErr && <p className="rb-ord-err" id={`err_x_${fxKey}`} role="alert">{fxErr}</p>}
+                                  </div>
+                                )}
+                              </div>
                             )
                           })}
                         </div>
@@ -1175,7 +1357,7 @@ export default function OrderSection({
                 </div>
 
                 <button type="submit" className="rb-ord-submit" disabled={status === 'sending'}>
-                  {status === 'sending' ? `${t.submitting}...` : t.submit}
+                  {status === 'sending' ? `${t.submitting}...` : quote ? t.submitQuote : t.submit}
                 </button>
                 {triedSubmit && Object.keys(errors).length > 0 && (
                   <p className="rb-ord-errsummary" role="alert">{t.errSummary}</p>
