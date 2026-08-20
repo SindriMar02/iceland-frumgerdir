@@ -314,6 +314,23 @@ const ORDER_CSS = `
   .rb-ord-done { border:1px solid ${GOLD}; border-radius:6px; padding:clamp(26px,4vw,40px);
     background:rgba(200,168,119,.07); text-align:center; animation:rb-ord-groupin .4s ${EASE} both; }
   .rb-ord-done-title { font-family:${DISPLAY}; font-size:clamp(26px,3.4vw,38px); margin:0; ${''} }
+  /* The receipt stub. Two facts, equal weight, one hairline between them, so
+     the screen has a shape instead of being five centred paragraphs. */
+  .rb-ord-stub { display:flex; margin:22px auto 0; max-width:400px;
+    border:1px solid rgba(238,211,170,.26); border-radius:4px; background:rgba(11,10,9,.28); }
+  .rb-ord-stub-cell { flex:1 1 0; display:flex; flex-direction:column; gap:5px; align-items:center;
+    padding:13px 12px; min-width:0; }
+  .rb-ord-stub-cell + .rb-ord-stub-cell { border-left:1px solid rgba(238,211,170,.2); }
+  .rb-ord-stub-key { font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:${FAINT}; }
+  .rb-ord-stub-val { font-size:15px; color:${IVORY}; font-variant-numeric:tabular-nums;
+    letter-spacing:.02em; white-space:nowrap; }
+  .rb-ord-stub-val[data-price="true"] { font-family:${DISPLAY}; font-size:19px; color:${GOLD}; }
+  .rb-ord-done-line { font-size:14px; color:${DIM}; margin:14px auto 0; max-width:44ch; line-height:1.6; }
+  .rb-ord-done-line[data-good="true"] { color:${GOLD_LIGHT}; }
+  /* The tel link carries tap padding, which reads as a gap in a sentence; pull
+     it back so the line stays a line. */
+  .rb-ord-done-line .rb-ord-tel { padding:6px 2px; }
 
   .rb-ord-sample { display:flex; gap:11px; align-items:flex-start; margin-top:20px; padding:12px 15px;
     border:1px dashed rgba(238,211,170,.3); border-radius:4px; background:rgba(243,234,211,.025); }
@@ -376,6 +393,90 @@ const ORDER_CSS = `
     .rb-ord-prod:active, .rb-ord-choice:active, .rb-ord-submit:active { transform:none; }
   }
 `
+
+/**
+ * Post an order that carries a photo.
+ *
+ * The relay only keeps attachments on its plain endpoint, which replies with a
+ * redirect rather than JSON, so a normal fetch can neither send the file the
+ * right way nor read the answer. This builds a real multipart form, aims it at
+ * a hidden iframe so the page never navigates, and treats the send as
+ * successful ONLY when that iframe comes back to our own origin, which is where
+ * `_next` sends it. Anything else, including a silent failure on their side,
+ * leaves the iframe cross-origin and unreadable and this rejects.
+ *
+ * Resolving early on a mere `load` event would be the bug worth avoiding: the
+ * iframe fires load for THEIR error page too.
+ */
+function postWithAttachment(payload: Record<string, string>, photo: File): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const landing = new URL(`${import.meta.env.BASE_URL}reynir/brand/favicon-32.png`, location.origin).href
+    const name = `rb-ord-${Math.random().toString(36).slice(2)}`
+
+    const frame = document.createElement('iframe')
+    frame.name = name
+    frame.setAttribute('aria-hidden', 'true')
+    frame.style.cssText = 'position:absolute;width:0;height:0;border:0;left:-9999px'
+
+    const form = document.createElement('form')
+    form.action = `https://formsubmit.co/${ORDER_FORM_TO}`
+    form.method = 'POST'
+    form.enctype = 'multipart/form-data'
+    form.target = name
+    form.style.display = 'none'
+
+    const hidden = (k: string, v: string) => {
+      const i = document.createElement('input')
+      i.type = 'hidden'
+      i.name = k
+      i.value = v
+      form.appendChild(i)
+    }
+    for (const [k, v] of Object.entries(payload)) {
+      // _template is a JSON-endpoint nicety; the plain endpoint uses _next.
+      if (k !== '_template') hidden(k, v)
+    }
+    hidden('_next', landing)
+
+    const file = document.createElement('input')
+    file.type = 'file'
+    file.name = 'mynd'
+    const dt = new DataTransfer()
+    dt.items.add(photo)
+    file.files = dt.files
+    form.appendChild(file)
+
+    let settled = false
+    const cleanup = () => {
+      window.clearInterval(poll)
+      window.clearTimeout(timer)
+      frame.remove()
+      form.remove()
+    }
+    const done = (ok: boolean) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      ok ? resolve() : reject(new Error('attachment-send-not-confirmed'))
+    }
+
+    /* Same-origin means the redirect completed, which means the relay accepted
+       the order. Reading href on a cross-origin document throws, so the throw
+       IS the "not yet" signal, not an error to report. */
+    const poll = window.setInterval(() => {
+      try {
+        if (frame.contentWindow?.location.href.startsWith(location.origin)) done(true)
+      } catch {
+        /* still on their domain */
+      }
+    }, 250)
+    const timer = window.setTimeout(() => done(false), 30_000)
+
+    document.body.appendChild(frame)
+    document.body.appendChild(form)
+    form.submit()
+  })
+}
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
@@ -836,34 +937,32 @@ export default function OrderSection({
     payload[`${n++}. Beiðni send`] = new Date().toLocaleString('is-IS')
 
     try {
-      /* Two shapes, one endpoint.
+      /* TWO DIFFERENT ENDPOINTS, because the relay cannot do both jobs at once.
        *
-       * JSON is the well-tested path and stays the default for the vast
-       * majority of orders, which carry no picture. A photo cannot travel as
-       * JSON, so an order with one is sent as multipart instead and the file
-       * rides along as a mail attachment: the site is static and has nowhere
-       * to store an upload, but the relay accepts the file and hands it to the
-       * bakery attached to the order it belongs to. Verified against the live
-       * relay before this was built, rather than assumed. */
-      const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
-        method: 'POST',
-        ...(photo
-          ? {
-              // No Content-Type header: the browser has to set the multipart
-              // boundary itself, and setting it by hand breaks the parse.
-              body: (() => {
-                const fd = new FormData()
-                for (const [k, v] of Object.entries(payload)) fd.append(k, v)
-                fd.append('mynd', photo, photo.name)
-                return fd
-              })(),
-            }
-          : {
-              headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-              body: JSON.stringify(payload),
-            }),
-      })
-      if (!res.ok) throw new Error(String(res.status))
+       * The JSON endpoint answers with a result we can check, which is the only
+       * reason the "did this actually send" guard below works at all. It also
+       * SILENTLY DISCARDS attachments: posting a file to it returns
+       * {"success":"true"} and the mail arrives with no photo. That was found
+       * by sending one and looking in the inbox, and their own documentation
+       * confirms it: files do not work with AJAX submissions.
+       *
+       * So an order carrying a photo goes to the plain endpoint as a real
+       * multipart form POST, which does keep the file. That endpoint answers
+       * with a redirect instead of JSON, so the success check is rebuilt rather
+       * than dropped: `_next` points at a URL on OUR origin, the form targets a
+       * hidden iframe, and the send counts as delivered only once that iframe
+       * actually lands back on our own origin. If the relay fails, the iframe
+       * stays on their domain, we cannot read it, and it times out into the
+       * error state. It fails closed, which is the whole point. */
+      if (photo) {
+        await postWithAttachment(payload, photo)
+      } else {
+        const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) throw new Error(String(res.status))
 
       /* A 200 from FormSubmit does NOT mean the mail was sent.
        *
@@ -877,9 +976,10 @@ export default function OrderSection({
        * truthiness check on it is always true. Treat anything that is not an
        * explicit success as a failure — if we cannot prove the order was
        * delivered, the customer must be shown the phone number. */
-      const body = await res.json().catch(() => null)
-      const ok = body?.success === true || body?.success === 'true'
-      if (!ok) throw new Error(body?.message ? String(body.message) : 'send-not-confirmed')
+        const body = await res.json().catch(() => null)
+        const ok = body?.success === true || body?.success === 'true'
+        if (!ok) throw new Error(body?.message ? String(body.message) : 'send-not-confirmed')
+      }
 
       setStatus('done')
     } catch {
@@ -1002,47 +1102,47 @@ export default function OrderSection({
                 built from the CMS hours, so it can never contradict the ones
                 printed elsewhere on the site, and it degrades to a generic
                 sentence if the week is not one single schedule. */}
-            <p style={{ fontSize: 14.5, color: DIM, margin: '12px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
+            {/* One stub carrying the two facts worth keeping: what it costs and
+                what to quote when ringing. Side by side, because a receipt is
+                read at a glance and five centred paragraphs are not. */}
+            <div className="rb-ord-stub">
+              <div className="rb-ord-stub-cell">
+                <span className="rb-ord-stub-key">{t.refLabel}</span>
+                <span className="rb-ord-stub-val">{orderRef || '—'}</span>
+              </div>
+              <div className="rb-ord-stub-cell">
+                <span className="rb-ord-stub-key">{t.slipTotal}</span>
+                <span className="rb-ord-stub-val" data-price="true">
+                  {quote ? t.quoteTotal : isk(total)}
+                </span>
+              </div>
+            </div>
+
+            {/* When we ring, and the number, on one line rather than two
+                paragraphs saying nearly the same thing. */}
+            <p className="rb-ord-done-line">
               {hoursRows[lang].length === 1
                 ? t.doneWhen(`${hoursRows[lang][0].label.toLowerCase()} ${hoursRows[lang][0].value}`)
-                : t.doneWhenGeneric}
-              <br />
+                : t.doneWhenGeneric}{' '}
               {t.doneReach}{' '}
-              <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>.
+              <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>
             </p>
-            <div style={{ marginTop: 22, fontSize: 15, color: GOLD_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
-              {quote ? t.quoteTotal : `${t.slipTotal}: ${isk(total)}`}
-            </div>
-            {/* The order's own reference, and the only reason it exists: a
-                customer who owes us a photo can now send one that lands
-                attached to their order instead of alone in an inbox. */}
-            {orderRef && (
-              <div
-                style={{
-                  marginTop: 18,
-                  fontSize: 13,
-                  letterSpacing: '.08em',
-                  textTransform: 'uppercase',
-                  color: FAINT,
-                }}
-              >
-                {t.refLabel}: <strong style={{ color: IVORY, letterSpacing: '.04em' }}>{orderRef}</strong>
-              </div>
-            )}
-            {wantsPhoto && orderRef && (
+
+            {wantsPhoto && (
               photo ? (
-                <p style={{ fontSize: 14.5, color: GOLD_LIGHT, margin: '10px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
-                  {t.photoSent}
-                </p>
+                <p className="rb-ord-done-line" data-good="true">{t.photoSent}</p>
               ) : (
-                <p style={{ fontSize: 14.5, color: DIM, margin: '10px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
-                  {t.photoHow(orderRef)}{' '}
-                  <a href={`mailto:${LINKS.orderEmail}?subject=${encodeURIComponent(orderRef)}`} className="rb-ord-tel">
-                    {LINKS.orderEmail}
-                  </a>
-                </p>
+                orderRef && (
+                  <p className="rb-ord-done-line">
+                    {t.photoHow(orderRef)}{' '}
+                    <a href={`mailto:${LINKS.orderEmail}?subject=${encodeURIComponent(orderRef)}`} className="rb-ord-tel">
+                      {LINKS.orderEmail}
+                    </a>
+                  </p>
+                )
               )
             )}
+
             <button type="button" className="rb-ord-submit" style={{ width: 'auto', marginTop: 24 }} onClick={reset}>
               {t.doneAgain}
             </button>

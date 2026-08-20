@@ -825,7 +825,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     photoCta: 'Choose a photo',
     photoHint: 'JPG or PNG, up to 5 MB. You can also send it later if it is easier.',
     photoRemove: 'Remove',
-    photoSent: 'Your photo came with the order, so there is nothing else to send.',
+    photoSent: 'Your photo came with it.',
     errPhotoType: 'That file is not an image. Choose a JPG or a PNG.',
     errPhotoSize: 'That photo is over 5 MB. Choose a smaller one, or send it to us afterwards.',
     photoHow: (ref) =>
@@ -862,9 +862,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     doneTitle: 'Request sent.',
     doneBody:
       'We will call to confirm the details and the final price. Nothing is charged until you collect.',
-    doneWhen: (hours: string) => `That call comes during opening hours, ${hours}.`,
-    doneWhenGeneric: 'That call comes during the bakery opening hours.',
-    doneReach: 'If you need to change anything, or have a question, call',
+    doneWhen: (hours: string) => `We call during opening hours, ${hours}.`,
+    doneWhenGeneric: 'We call during the bakery opening hours.',
+    doneReach: 'Questions or changes:',
     doneAgain: 'Start another order',
     charsLeft: (n: number) => `${n} characters left`,
   },
@@ -929,7 +929,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     photoCta: 'Velja mynd',
     photoHint: 'JPG eða PNG, mest 5 MB. Þú getur líka sent hana síðar ef það er einfaldara.',
     photoRemove: 'Fjarlægja',
-    photoSent: 'Myndin fylgdi pöntuninni, svo það er ekkert annað sem þarf að senda.',
+    photoSent: 'Myndin fylgdi með.',
     errPhotoType: 'Þetta er ekki mynd. Veldu JPG eða PNG.',
     errPhotoSize: 'Myndin er stærri en 5 MB. Veldu minni mynd, eða sendu hana á okkur á eftir.',
     photoHow: (ref) =>
@@ -966,9 +966,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     doneTitle: 'Beiðnin er komin til okkar.',
     doneBody:
       'Við hringjum og staðfestum útfærslu og endanlegt verð. Ekkert er greitt fyrr en sótt er.',
-    doneWhen: (hours: string) => `Símtalið kemur á opnunartíma, ${hours}.`,
-    doneWhenGeneric: 'Símtalið kemur á opnunartíma bakarísins.',
-    doneReach: 'Ef þú þarft að breyta einhverju eða hefur spurningu, hringdu í',
+    doneWhen: (hours: string) => `Við hringjum á opnunartíma, ${hours}.`,
+    doneWhenGeneric: 'Við hringjum á opnunartíma bakarísins.',
+    doneReach: 'Spurningar eða breytingar:',
     doneAgain: 'Byrja aðra pöntun',
     charsLeft: (n: number) => `${n} stafir eftir`,
   },
