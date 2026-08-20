@@ -1,31 +1,35 @@
 /**
  * Reynir bakari — CUSTOM ORDER CONFIGURATOR DATA.
  *
- * ⚠️ EVERY PRODUCT, OPTION AND PRICE IN THIS FILE IS A PLACEHOLDER. ⚠️
+ * Every product, size, rate and surcharge below is CONFIRMED by the owner
+ * (Þorleifur, 2026-08-20). It was placeholder data until then; it is not now.
  *
- * Nothing here has been confirmed by Reynir bakari. It exists so the ordering
- * flow can be designed, demoed and discussed before the real catalogue is
- * known. The structure is the deliverable; the content is a stand-in.
+ * What he confirmed, and what each thing means here:
+ *   - Marsipanterta and kransakaka are 930 kr. PER PERSON. Rice Crispies turn
+ *     is 555. Per-product rates are why `pricePerPerson` lives on the product
+ *     rather than being one global number.
+ *   - Marsipanterta sizes are his list (20, 25, 30, 40, 50, 60, 70); kransakaka
+ *     runs 20 to 70 in fives; the turn runs 20 to 40. Nothing smaller than 20
+ *     manna is made, which is why the size group says so rather than leaving a
+ *     customer to guess.
+ *   - The standard cake is marzipan base, raspberry jam, cocktail fruit and the
+ *     mousse you pick. SIX fillings, and three of them change what is under the
+ *     mousse: chocolate swaps pears in for the cocktail fruit, caramel swaps in
+ *     daim, sherry adds crushed macaroons. That rule is the reason `composition`
+ *     and `swap` exist: it is the question customers ring up to ask.
+ *   - Standard decoration AND the writing are included in the rate.
+ *   - Fresh strawberries +500. Photo on the cake +2300. Bespoke stays a quote.
+ *   - 48 hours' notice, so leadDays is 2.
  *
- * CONFIRMED BY THE OWNER (Þorleifur, 2026-08-20), and already applied below:
- *   - The marsipanterta is priced PER PERSON at 930 kr., not from a table.
- *   - Its sizes are 20, 25, 30, 40, 50, 60 and 70 manna.
- *   - The customer picks the headcount first and sees the final price at once.
+ * STILL UNCONFIRMED, and both are soft fields carrying no price:
+ *   1. The colour list is mine, asked as a preference rather than offered as a
+ *      range. He confirmed the standard decoration is included but never gave
+ *      colours.
+ *   2. The OCCASIONS list further down, used only for company orders.
  *
- * STILL OPEN, and each one is a single edit when the answer lands:
- *   1. The four filling NAMES. He confirmed there are exactly four but wrote
- *      them as "Fylling 1..4", so the four labels in the `fylling` group are
- *      the only thing waiting.
- *   2. Whether everything is included in the 930, or whether "Mynd á tertu"
- *      and "Sérhönnun" carry a surcharge. If they do, set priceDelta on those
- *      two choices; sérhönnun is already quoteOnly so it never shows a firm
- *      number either way.
- *   3. The real lead time, and whether the biggest cakes need longer.
- *   4. The per-person rate for the OTHER cakes, so each becomes its own
- *      product with its own pricePerPerson.
- *   5. Whether anything smaller than 20 manna can be ordered this way.
- *   6. Platters and pastry trays below are still entirely my assumption:
- *      unconfirmed products, prices and lead times.
+ * Platters and pastry trays were REMOVED, not left as samples: they were my
+ * assumption from the start and he has never confirmed them. If he wants them
+ * orderable, they come back as their own products with real prices.
  *
  * The page renders a visible "these are sample options" notice for as long as
  * PLACEHOLDER_DATA below is true. Flip it to false only once every value here
@@ -34,8 +38,15 @@
 
 import type { Lang } from './data'
 
-/** Drives the visible sample-data notice. Set false only after the owner confirms every value. */
-export const PLACEHOLDER_DATA = true
+/**
+ * Drives the visible sample-data notice.
+ *
+ * FALSE since 2026-08-20: every product, size and price in this file came from
+ * the owner. Leaving the notice up would now be its own inaccuracy, telling
+ * customers that real prices are made up. Set it back to true the moment
+ * anything unconfirmed is added to the catalogue.
+ */
+export const PLACEHOLDER_DATA = false
 
 /**
  * Where a submitted order actually lands.
@@ -66,6 +77,17 @@ export function isk(n: number): string {
 export interface Bilingual {
   en: string
   is: string
+}
+
+/**
+ * One layer of what a product is built from. Given an id rather than matched by
+ * text so a choice can replace it (pears instead of cocktail fruit) without the
+ * two strings having to agree, and so renaming a layer in the CMS does not
+ * quietly break the swap that points at it.
+ */
+export interface CompositionLayer {
+  id: string
+  label: Bilingual
 }
 
 export interface OrderChoice {
@@ -110,6 +132,20 @@ export interface OrderChoice {
    * uploader; nothing else about the flow has to change.
    */
   needsPhoto?: boolean
+  /**
+   * Layers this choice puts ON TOP of the standard build, e.g. the mousse a
+   * filling is named for. This is what makes the spec panel live: choosing a
+   * filling visibly changes what is in the cake instead of being a word on a
+   * list.
+   */
+  adds?: Bilingual[]
+  /**
+   * Replaces one standard layer. The bakery's own rule, straight from the
+   * owner: a chocolate cake comes with pears instead of the cocktail fruit,
+   * caramel with daim. Customers ask this constantly, so showing it beats
+   * answering it.
+   */
+  swap?: { layerId: string; label: Bilingual }
 }
 
 export interface OrderGroup {
@@ -154,6 +190,36 @@ export function isQuoteRequest(
   return product.groups.some((g) =>
     (picked[g.id] ?? []).some((id) => g.choices.find((c) => c.id === id)?.quoteOnly),
   )
+}
+
+/**
+ * What the configured product is actually made of, top layer first, with every
+ * choice applied: mousses added on top, and any layer a choice replaces already
+ * substituted. `changed` marks a layer that is not the standard build, so the
+ * page can show WHY it differs rather than silently rendering a different list.
+ */
+export function compositionOf(
+  product: OrderProduct,
+  picked: Record<string, string[]>,
+): { label: Bilingual; changed: boolean }[] {
+  if (!product.composition) return []
+  const added: Bilingual[] = []
+  const swaps = new Map<string, Bilingual>()
+  for (const group of product.groups) {
+    for (const id of picked[group.id] ?? []) {
+      const choice = group.choices.find((c) => c.id === id)
+      if (!choice) continue
+      if (choice.adds) added.push(...choice.adds)
+      if (choice.swap) swaps.set(choice.swap.layerId, choice.swap.label)
+    }
+  }
+  return [
+    ...added.map((label) => ({ label, changed: true })),
+    ...product.composition.map((layer) => {
+      const swapped = swaps.get(layer.id)
+      return { label: swapped ?? layer.label, changed: !!swapped }
+    }),
+  ]
 }
 
 /** True when any picked choice expects the customer to send a picture. */
@@ -208,6 +274,16 @@ export interface OrderProduct {
   pricePerPerson?: number
   /** Which group carries the `serves` counts. Required when pricePerPerson is set. */
   sizeGroupId?: string
+  /**
+   * What the product is built from, TOP LAYER FIRST, shown as a spec that
+   * updates as options are chosen. A marsipanterta is not one thing: what is
+   * inside it changes with the filling, and the customer cannot see that from
+   * a list of six flavour names.
+   */
+  composition?: CompositionLayer[]
+  /** The spec panel is rendered directly under this group, so the choice that
+   *  changes it and the change itself are never on separate screens. */
+  compositionGroupId?: string
   /** Square product photo. OPTIONAL on purpose: a product the owner adds in
    *  the CMS before uploading a picture must still render a correct card, so
    *  every card treats the image as an enhancement, never as structure. */
@@ -225,17 +301,23 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
     id: 'marsipanterta',
     name: { en: 'Marzipan cake', is: 'Marsipanterta' },
     blurb: {
-      en: 'Priced per person, so choose how many you are feeding and the price is the price.',
-      is: 'Verðlögð á mann. Veldu fyrir hvað marga hún á að vera og verðið liggur strax fyrir.',
+      en: 'Marzipan base, raspberry jam and cocktail fruit, with the mousse of your choosing. Priced per person, from 20 upwards.',
+      is: 'Marsipanbotn, hindberjasulta og kokteilávextir, með þeim frómas sem þið veljið. Verðlögð á mann, frá 20 manns.',
     },
-    /* Priced per person, so basePrice is unused and deliberately 0. */
     basePrice: 0,
-    /* The owner's own rate (Thorleifur, 2026-08-20). Sizes below are his list. */
     pricePerPerson: 930,
     sizeGroupId: 'staerd',
+    compositionGroupId: 'fylling',
+    /* Top layer first. The mousse is not here: it comes from the filling, which
+       is the whole reason this panel is worth rendering. */
+    composition: [
+      { id: 'avextir', label: { en: 'Cocktail fruit', is: 'Kokteilávextir' } },
+      { id: 'sulta', label: { en: 'Raspberry jam', is: 'Hindberjasulta' } },
+      { id: 'botn', label: { en: 'Marzipan base', is: 'Marsipanbotn' } },
+    ],
     image: `${import.meta.env.BASE_URL}reynir/order/terta.webp`,
-    /* PLACEHOLDER: real notice period is question 3 to the owner, still open. */
-    leadDays: 3,
+    /* 48 hours (owner, 2026-08-20). */
+    leadDays: 2,
     inscription: {
       label: { en: 'Writing on the cake', is: 'Texti á tertuna' },
       placeholder: {
@@ -249,6 +331,10 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         id: 'staerd',
         kind: 'single',
         label: { en: 'How many is the cake for?', is: 'Fyrir hvað marga á tertan að vera?' },
+        help: {
+          en: 'The smallest marzipan cake we make is for 20.',
+          is: 'Minnsta marsipantertan sem við gerum er 20 manna.',
+        },
         required: true,
         choices: [
           { id: 's20', label: { en: 'Serves 20', is: '20 manna' }, priceDelta: 0, serves: 20 },
@@ -261,25 +347,80 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         ],
       },
       {
-        /* PLACEHOLDER NAMES. The owner confirmed there are exactly FOUR
-           fillings but wrote them as "Fylling 1..4", so these four strings are
-           the only thing waiting on his answer to question 1. Swap the labels,
-           change nothing else. */
         id: 'fylling',
         kind: 'single',
         label: { en: 'Filling', is: 'Fylling' },
+        help: {
+          en: 'The mousse the cake is built around. Some fillings change what sits under it.',
+          is: 'Frómasinn sem tertan er byggð í kringum. Sumar fyllingar breyta því sem liggur undir honum.',
+        },
         required: true,
         choices: [
-          { id: 'f1', label: { en: 'Cream and strawberries', is: 'Rjómi og jarðarber' }, priceDelta: 0 },
-          { id: 'f2', label: { en: 'Chocolate mousse', is: 'Súkkulaðimús' }, priceDelta: 0 },
-          { id: 'f3', label: { en: 'Salted caramel', is: 'Saltkaramella' }, priceDelta: 0 },
-          { id: 'f4', label: { en: 'Vanilla cream', is: 'Vanillukrem' }, priceDelta: 0 },
+          {
+            id: 'jardarberja',
+            label: { en: 'Strawberry', is: 'Jarðarberja' },
+            priceDelta: 0,
+            note: { en: 'Our most popular', is: 'Vinsælasta fyllingin' },
+            adds: [{ en: 'Strawberry mousse', is: 'Jarðarberjafrómas' }],
+          },
+          {
+            id: 'sukkuladi',
+            label: { en: 'Chocolate', is: 'Súkkulaði' },
+            priceDelta: 0,
+            adds: [{ en: 'Chocolate mousse', is: 'Súkkulaðifrómas' }],
+            swap: { layerId: 'avextir', label: { en: 'Pears', is: 'Perur' } },
+          },
+          {
+            id: 'karamellu',
+            label: { en: 'Caramel', is: 'Karamellu' },
+            priceDelta: 0,
+            adds: [{ en: 'Caramel mousse', is: 'Karamellufrómas' }],
+            swap: { layerId: 'avextir', label: { en: 'Daim', is: 'Daim' } },
+          },
+          {
+            id: 'vanillu',
+            label: { en: 'Vanilla', is: 'Vanillu' },
+            priceDelta: 0,
+            adds: [{ en: 'Vanilla mousse', is: 'Vanillufrómas' }],
+          },
+          {
+            id: 'sherry',
+            label: { en: 'Sherry', is: 'Sherry' },
+            priceDelta: 0,
+            adds: [
+              { en: 'Sherry mousse', is: 'Sherrýfrómas' },
+              { en: 'Crushed macaroons', is: 'Muldar makkarónur' },
+            ],
+          },
+          {
+            id: 'astaraldin',
+            label: { en: 'Passion fruit', is: 'Ástaraldin' },
+            priceDelta: 0,
+            adds: [{ en: 'Passion fruit mousse', is: 'Ástaraldinsfrómas' }],
+          },
+        ],
+      },
+      {
+        id: 'vidbot',
+        kind: 'multi',
+        label: { en: 'Add to it', is: 'Bæta við' },
+        choices: [
+          {
+            id: 'ektajardarber',
+            label: { en: 'Fresh strawberries', is: 'Ekta jarðarber' },
+            priceDelta: 500,
+            adds: [{ en: 'Fresh strawberries', is: 'Ekta jarðarber' }],
+          },
         ],
       },
       {
         id: 'utlit',
         kind: 'single',
         label: { en: 'Look and occasion', is: 'Útlit og tilefni' },
+        help: {
+          en: 'The standard decoration and the writing are both included in the price.',
+          is: 'Hefðbundin skreyting og texti á tertuna eru innifalin í verðinu.',
+        },
         required: true,
         choices: [
           { id: 'hefd', label: { en: 'Classic marzipan cake', is: 'Hefðbundin marsipanterta' }, priceDelta: 0 },
@@ -289,7 +430,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
           {
             id: 'mynd',
             label: { en: 'Photo on the cake', is: 'Mynd á tertu' },
-            priceDelta: 0,
+            priceDelta: 2300,
             needsPhoto: true,
             freeText: {
               label: { en: 'What should the photo be of?', is: 'Hvaða mynd á að fara á tertuna?' },
@@ -304,9 +445,6 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
             id: 'serhonnun',
             label: { en: 'Bespoke design', is: 'Sérhönnun' },
             priceDelta: 0,
-            /* A bespoke cake is not the standard product, so it cannot carry
-               the standard per-person rate. Quoting it at 930 a head would
-               under-price the one order most likely to cost more. */
             quoteOnly: true,
             needsPhoto: true,
             freeText: {
@@ -321,10 +459,13 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         ],
       },
       {
+        /* A PREFERENCE, not a product spec: the owner confirmed the standard
+           decoration is included but never gave a colour list, so this asks
+           rather than promises, and carries no price. */
         id: 'litur',
         kind: 'single',
-        label: { en: 'Colour', is: 'Litur' },
-        required: true,
+        label: { en: 'Colour, if you have a preference', is: 'Litur, ef þið hafið ósk' },
+        required: false,
         choices: [
           { id: 'hvit', label: { en: 'White', is: 'Hvít' }, priceDelta: 0 },
           { id: 'bleik', label: { en: 'Pink', is: 'Bleik' }, priceDelta: 0 },
@@ -359,76 +500,90 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
     ],
   },
   {
-    id: 'veislubakki',
-    name: { en: 'Party platter', is: 'Veislubakki' },
+    id: 'kransakaka',
+    name: { en: 'Kransakaka', is: 'Kransakaka' },
     blurb: {
-      en: 'Open sandwiches and savouries, made up the morning you collect them.',
-      is: 'Snittur og brauðréttir, lagað að morgni þess dags sem sótt er.',
+      en: 'The traditional ring cake, built to the size of the gathering. Priced per person, in steps of five.',
+      is: 'Hefðbundin kransakaka, byggð eftir stærð hópsins. Verðlögð á mann, í fimm manna þrepum.',
     },
-    basePrice: 6400,
-    image: `${import.meta.env.BASE_URL}reynir/order/veislubakki.webp`,
+    basePrice: 0,
+    pricePerPerson: 930,
+    sizeGroupId: 'staerd',
     leadDays: 2,
     groups: [
       {
-        id: 'fjoldi',
+        id: 'staerd',
         kind: 'single',
-        label: { en: 'Serves', is: 'Fjöldi' },
+        label: { en: 'How many is it for?', is: 'Fyrir hvað marga á hún að vera?' },
         required: true,
         choices: [
-          { id: 'p10', label: { en: '10 people', is: '10 manns' }, priceDelta: 0 },
-          { id: 'p20', label: { en: '20 people', is: '20 manns' }, priceDelta: 6100 },
-          { id: 'p30', label: { en: '30 people', is: '30 manns' }, priceDelta: 12200 },
+          { id: 's20', label: { en: 'Serves 20', is: '20 manna' }, priceDelta: 0, serves: 20 },
+          { id: 's25', label: { en: 'Serves 25', is: '25 manna' }, priceDelta: 0, serves: 25 },
+          { id: 's30', label: { en: 'Serves 30', is: '30 manna' }, priceDelta: 0, serves: 30 },
+          { id: 's35', label: { en: 'Serves 35', is: '35 manna' }, priceDelta: 0, serves: 35 },
+          { id: 's40', label: { en: 'Serves 40', is: '40 manna' }, priceDelta: 0, serves: 40 },
+          { id: 's45', label: { en: 'Serves 45', is: '45 manna' }, priceDelta: 0, serves: 45 },
+          { id: 's50', label: { en: 'Serves 50', is: '50 manna' }, priceDelta: 0, serves: 50 },
+          { id: 's55', label: { en: 'Serves 55', is: '55 manna' }, priceDelta: 0, serves: 55 },
+          { id: 's60', label: { en: 'Serves 60', is: '60 manna' }, priceDelta: 0, serves: 60 },
+          { id: 's65', label: { en: 'Serves 65', is: '65 manna' }, priceDelta: 0, serves: 65 },
+          { id: 's70', label: { en: 'Serves 70', is: '70 manna' }, priceDelta: 0, serves: 70 },
         ],
       },
       {
-        id: 'alegg',
+        id: 'ofnaemi',
         kind: 'multi',
-        label: { en: 'Toppings', is: 'Álegg' },
-        help: { en: 'Choose up to three.', is: 'Veljið allt að þremur.' },
-        required: true,
-        max: 3,
+        label: { en: 'Allergies to work around', is: 'Ofnæmi sem þarf að taka tillit til' },
+        help: {
+          en: 'Tell us here and we will confirm what is possible when we call.',
+          is: 'Látið vita hér og við staðfestum hvað er mögulegt þegar við hringjum.',
+        },
         choices: [
-          { id: 'skinka', label: { en: 'Ham', is: 'Skinka' }, priceDelta: 0 },
-          { id: 'roastbeef', label: { en: 'Roast beef', is: 'Roast beef' }, priceDelta: 800 },
-          { id: 'raekjur', label: { en: 'Prawns', is: 'Rækjur' }, priceDelta: 1100 },
-          { id: 'graenmeti', label: { en: 'Vegetarian', is: 'Grænmeti' }, priceDelta: 0 },
+          { id: 'hnetur', label: { en: 'Nuts', is: 'Hnetur' }, priceDelta: 0 },
+          { id: 'gluten', label: { en: 'Gluten', is: 'Glúten' }, priceDelta: 0 },
+          { id: 'laktosi', label: { en: 'Lactose', is: 'Laktósi' }, priceDelta: 0 },
         ],
       },
     ],
   },
   {
-    id: 'bakkelsi',
-    name: { en: 'Pastry tray', is: 'Bakkelsisbakki' },
+    id: 'ricecrispies',
+    name: { en: 'Rice Krispies tower', is: 'Rice Crispies turn' },
     blurb: {
-      en: 'A tray of the morning bake for meetings and gatherings.',
-      is: 'Bakki af bakkelsi dagsins fyrir fundi og mannfagnaði.',
+      en: 'A tower for the children, and for everyone who says it is for the children. From 20 up to 40.',
+      is: 'Turn fyrir börnin, og fyrir alla hina sem segjast vera að panta fyrir börnin. Frá 20 upp í 40 manns.',
     },
-    basePrice: 4900,
-    image: `${import.meta.env.BASE_URL}reynir/order/bakkelsi.webp`,
+    basePrice: 0,
+    pricePerPerson: 555,
+    sizeGroupId: 'staerd',
     leadDays: 2,
     groups: [
       {
-        id: 'stk',
+        id: 'staerd',
         kind: 'single',
-        label: { en: 'Pieces', is: 'Fjöldi stykkja' },
+        label: { en: 'How many is it for?', is: 'Fyrir hvað marga á hann að vera?' },
+        help: { en: 'Up to 40 people.', is: 'Mest 40 manna.' },
         required: true,
         choices: [
-          { id: 'x12', label: { en: '12 pieces', is: '12 stykki' }, priceDelta: 0 },
-          { id: 'x24', label: { en: '24 pieces', is: '24 stykki' }, priceDelta: 4400 },
-          { id: 'x36', label: { en: '36 pieces', is: '36 stykki' }, priceDelta: 8800 },
+          { id: 's20', label: { en: 'Serves 20', is: '20 manna' }, priceDelta: 0, serves: 20 },
+          { id: 's25', label: { en: 'Serves 25', is: '25 manna' }, priceDelta: 0, serves: 25 },
+          { id: 's30', label: { en: 'Serves 30', is: '30 manna' }, priceDelta: 0, serves: 30 },
+          { id: 's35', label: { en: 'Serves 35', is: '35 manna' }, priceDelta: 0, serves: 35 },
+          { id: 's40', label: { en: 'Serves 40', is: '40 manna' }, priceDelta: 0, serves: 40 },
         ],
       },
       {
-        id: 'urval',
+        id: 'ofnaemi',
         kind: 'multi',
-        label: { en: 'Selection', is: 'Úrval' },
-        help: { en: 'Choose as many as you like.', is: 'Veljið eins margt og þið viljið.' },
-        required: true,
+        label: { en: 'Allergies to work around', is: 'Ofnæmi sem þarf að taka tillit til' },
+        help: {
+          en: 'Tell us here and we will confirm what is possible when we call.',
+          is: 'Látið vita hér og við staðfestum hvað er mögulegt þegar við hringjum.',
+        },
         choices: [
-          { id: 'snudar', label: { en: 'Snúðar', is: 'Snúðar' }, priceDelta: 0 },
-          { id: 'vinarbraud', label: { en: 'Danish pastries', is: 'Vínarbrauð' }, priceDelta: 0 },
-          { id: 'kleinur', label: { en: 'Kleinur', is: 'Kleinur' }, priceDelta: 0 },
-          { id: 'pistasiu', label: { en: 'Pistachio snúður', is: 'Pistasíusnúður' }, priceDelta: 700 },
+          { id: 'hnetur', label: { en: 'Nuts', is: 'Hnetur' }, priceDelta: 0 },
+          { id: 'gluten', label: { en: 'Gluten', is: 'Glúten' }, priceDelta: 0 },
+          { id: 'laktosi', label: { en: 'Lactose', is: 'Laktósi' }, priceDelta: 0 },
         ],
       },
     ],
@@ -503,6 +658,10 @@ export interface OrderCopy {
   slipNote: string
   /** "930 kr. á mann", the rate shown beside a per-person product's size. */
   perPerson: string
+  /** Heading over the live spec panel. */
+  specTitle: string
+  /** Shown in the panel before a filling has been picked. */
+  specPending: string
   /** Stands in for the price line before a size has been picked, so an
    *  unconfigured per-person cake never renders as 0 kr. */
   slipPickSize: string
@@ -612,6 +771,8 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     slipTotal: 'Estimated total',
     slipNote: 'We confirm the final price when we call.',
     perPerson: 'per person',
+    specTitle: 'What is in it',
+    specPending: 'Choose a filling to see the whole cake.',
     slipPickSize: 'Choose a size',
     quoteTotal: 'We will quote you',
     quoteNote:
@@ -707,6 +868,8 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     slipTotal: 'Áætlað verð',
     slipNote: 'Við staðfestum endanlegt verð þegar við hringjum.',
     perPerson: 'á mann',
+    specTitle: 'Svona er hún',
+    specPending: 'Veldu fyllingu til að sjá tertuna alla.',
     slipPickSize: 'Veldu stærð',
     quoteTotal: 'Við gerum tilboð',
     quoteNote:

@@ -247,9 +247,11 @@ export const QUERY = `{
   "gallery": *[_type=="galleryImage"]|order(order asc){image{asset,hotspot}, caption},
   "orderProducts": *[_type=="orderProduct" && active != false]|order(order asc){
     "id": id.current, name, blurb, basePrice, pricePerPerson, "sizeGroupId": sizeGroupId.current,
+    "compositionGroupId": compositionGroupId.current, composition[]{"id": id.current, label},
     leadDays, inscription, image{asset,hotspot},
     groups[]{"id": id.current, kind, label, help, required, max,
-      choices[]{"id": id.current, label, priceDelta, note, serves, quoteOnly, needsPhoto, freeText}}
+      choices[]{"id": id.current, label, priceDelta, note, serves, quoteOnly, needsPhoto, freeText,
+        adds, swap{"layerId": layerId.current, label}}}
   },
   "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label},
   "pickupLocations": *[_type=="pickupLocation"]|order(order asc){"id": id.current, label}
@@ -279,6 +281,12 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
       pricePerPerson:
         typeof d.pricePerPerson === 'number' && d.pricePerPerson > 0 ? d.pricePerPerson : undefined,
       sizeGroupId: d.sizeGroupId ? String(d.sizeGroupId) : undefined,
+      compositionGroupId: d.compositionGroupId ? String(d.compositionGroupId) : undefined,
+      composition: Array.isArray(d.composition)
+        ? d.composition
+            .filter((l: any) => l?.id && (l.label?.is || l.label?.en))
+            .map((l: any) => ({ id: String(l.id), label: biSelf(l.label) }))
+        : undefined,
       // CMS photo when uploaded, otherwise the bundled crop for a product we
       // already ship one for. A brand-new product with neither still renders.
       image: mkProductPic(d.image) ?? ORDER_PRODUCTS.find((p) => p.id === String(d.id || ''))?.image,
@@ -306,6 +314,13 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
                   note: c.note ? biSelf(c.note) : undefined,
                   serves: typeof c.serves === 'number' && c.serves > 0 ? c.serves : undefined,
                   quoteOnly: c.quoteOnly === true,
+                  adds: Array.isArray(c.adds)
+                    ? c.adds.filter((a: any) => a?.is || a?.en).map((a: any) => biSelf(a))
+                    : undefined,
+                  // A swap with no target layer would silently replace nothing.
+                  swap: c.swap?.layerId
+                    ? { layerId: String(c.swap.layerId), label: biSelf(c.swap.label) }
+                    : undefined,
                   needsPhoto: c.needsPhoto === true,
                   freeText: c.freeText?.label
                     ? {

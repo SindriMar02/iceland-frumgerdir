@@ -255,7 +255,20 @@ c = run('live merge', () => merge(clone(LIVE)))
   const all = (c?.ORDER_PRODUCTS || []).flatMap((p) => p.groups).flatMap((g) => g.choices)
   check('quote-only choices survive the merge', all.some((ch) => ch.quoteOnly === true))
   check('the field a choice opens survives the merge', all.some((ch) => !!ch.freeText?.label?.is))
+  check('ingredients a choice adds survive the merge', all.some((ch) => !!ch.adds?.length))
+  check('a layer swap survives the merge', all.some((ch) => !!ch.swap?.layerId))
 }
+
+/* A swap pointing at a layer that no longer exists replaces nothing and the
+   customer is quietly shown the wrong recipe. Catch the dangling reference. */
+for (const p of (LIVE.orderProducts || [])) {
+  const ids = new Set((p.composition || []).map((l) => l.id))
+  for (const g of p.groups || [])
+    for (const c of g.choices || [])
+      if (c.swap?.layerId && !ids.has(c.swap.layerId))
+        bad(`orderProduct "${p.name?.is}" / "${c.label?.is}": swaps out layer "${c.swap.layerId}", which is not in the recipe`)
+}
+check('no choice swaps out a layer that does not exist', problems === 0, `${problems} problem(s)`)
 
 rmSync(tmp, { recursive: true, force: true })
 console.log(`\n${pass} scenario check(s) passed, ${fail} failed, ${problems} content problem(s)\n`)

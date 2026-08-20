@@ -25,6 +25,7 @@ import {
   ORDER_FORM_TO,
   ORDER_T,
   PLACEHOLDER_DATA,
+  compositionOf,
   freeTextChoices,
   isQuoteRequest,
   isk,
@@ -143,6 +144,27 @@ const ORDER_CSS = `
   .rb-ord-extra { margin:8px 0 2px 14px; padding-left:16px; border-left:2px solid rgba(200,168,119,.34);
     animation:rb-ord-extrain .32s ${EASE} both; }
   @keyframes rb-ord-extrain { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
+  /* The live spec. Reads as a cross-section: layers stacked in the order they
+     sit in the cake, hairline between each, the ones a choice changed picked
+     out in gold so the substitution is the thing you notice. */
+  .rb-ord-spec { margin-top:20px; padding:16px 18px 6px; border:1px solid ${HAIR};
+    border-radius:5px; background:linear-gradient(180deg, rgba(200,168,119,.05), rgba(200,168,119,0)); }
+  .rb-ord-spec-title { font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+    color:${GOLD}; }
+  .rb-ord-spec-list { list-style:none; margin:12px 0 0; padding:0; }
+  .rb-ord-spec-row { display:flex; align-items:center; gap:11px; padding:9px 0;
+    font-size:14.5px; color:${DIM}; border-bottom:1px solid ${HAIR_SOFT};
+    animation:rb-ord-layerin .34s ${EASE} both; }
+  .rb-ord-spec-row:last-child { border-bottom:0; }
+  .rb-ord-spec-dot { flex:none; width:5px; height:5px; border-radius:50%; background:${HAIR};
+    transition:background .3s ${EASE}, box-shadow .3s ${EASE}; }
+  .rb-ord-spec-row[data-changed="true"] { color:${IVORY}; }
+  .rb-ord-spec-row[data-changed="true"] .rb-ord-spec-dot { background:${GOLD};
+    box-shadow:0 0 0 3px rgba(200,168,119,.14); }
+  .rb-ord-spec-pending { margin:10px 0 12px; font-size:14px; color:${FAINT}; line-height:1.5; }
+  @keyframes rb-ord-layerin { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce) { .rb-ord-spec-row { animation:none; } }
   @media (prefers-reduced-motion: reduce) { .rb-ord-extra { animation:none; } }
 
   /* text + form fields */
@@ -438,6 +460,9 @@ export default function OrderSection({
   const size = useMemo(() => sizeChoiceOf(product, picked), [product, picked])
   const quote = useMemo(() => isQuoteRequest(product, picked), [product, picked])
   const wantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
+  /** The cake as configured, so the filling that swaps pears in for cocktail
+   *  fruit shows the swap instead of hiding it in a footnote. */
+  const layers = useMemo(() => compositionOf(product, picked), [product, picked])
 
   const { lines, total } = useMemo(() => {
     const out: SlipLine[] = []
@@ -1003,6 +1028,31 @@ export default function OrderSection({
                           })}
                         </div>
                         {err && <p className="rb-ord-err" id={`err_g_${group.id}`} role="alert">{err}</p>}
+                        {/* The spec sits under the group that changes it, so the
+                            choice and its consequence are never on separate
+                            screens. Stacked top layer down, because that is the
+                            order the layers are actually in. */}
+                        {product.compositionGroupId === group.id && (
+                          <div className="rb-ord-spec" aria-live="polite">
+                            <div className="rb-ord-spec-title">{t.specTitle}</div>
+                            {layers.length ? (
+                              <ul className="rb-ord-spec-list">
+                                {layers.map((l) => (
+                                  <li
+                                    key={`${l.label.is}_${l.changed}`}
+                                    className="rb-ord-spec-row"
+                                    data-changed={l.changed}
+                                  >
+                                    <span className="rb-ord-spec-dot" aria-hidden="true" />
+                                    {l.label[lang]}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="rb-ord-spec-pending">{t.specPending}</p>
+                            )}
+                          </div>
+                        )}
                       </fieldset>
                     )
                   })}

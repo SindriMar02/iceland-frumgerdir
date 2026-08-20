@@ -92,6 +92,10 @@ const docs = PRODUCTS.map((p, i) => {
         ...(typeof c.serves === 'number' ? { serves: c.serves } : {}),
         ...(c.quoteOnly ? { quoteOnly: true } : {}),
         ...(c.needsPhoto ? { needsPhoto: true } : {}),
+        ...(c.adds ? { adds: c.adds.map(loc) } : {}),
+        ...(c.swap
+          ? { swap: { layerId: slug(c.swap.layerId), label: loc(c.swap.label) } }
+          : {}),
         ...(c.freeText
           ? {
               freeText: {
@@ -105,6 +109,10 @@ const docs = PRODUCTS.map((p, i) => {
     })),
   }
   if (p.pricePerPerson) d.pricePerPerson = p.pricePerPerson
+  if (p.composition) {
+    d.composition = p.composition.map((l) => ({ _key: l.id, id: slug(l.id), label: loc(l.label) }))
+  }
+  if (p.compositionGroupId) d.compositionGroupId = slug(p.compositionGroupId)
   if (p.sizeGroupId) d.sizeGroupId = slug(p.sizeGroupId)
   if (p.inscription) {
     d.inscription = {
