@@ -222,6 +222,10 @@ export function compositionOf(
   picked: Record<string, string[]>,
 ): { label: Bilingual; changed: boolean }[] {
   if (!product.composition) return []
+  /* Nothing to describe until the recipe is complete. The standard layers on
+   * their own are three of five, and listing them under "what is in it" before
+   * a filling is chosen describes a cake nobody is ordering. */
+  if (product.compositionGroupId && !(picked[product.compositionGroupId] ?? []).length) return []
   const added: Bilingual[] = []
   const swaps = new Map<string, Bilingual>()
   for (const group of product.groups) {
@@ -300,8 +304,11 @@ export interface OrderProduct {
    * a list of six flavour names.
    */
   composition?: CompositionLayer[]
-  /** The spec panel is rendered directly under this group, so the choice that
-   *  changes it and the change itself are never on separate screens. */
+  /**
+   * Which group's choices complete the recipe. Until something in this group is
+   * picked there is no whole product to describe, only a half cake, so the
+   * summary stays hidden rather than listing three of five layers.
+   */
   compositionGroupId?: string
   /** Square product photo. OPTIONAL on purpose: a product the owner adds in
    *  the CMS before uploading a picture must still render a correct card, so
@@ -387,6 +394,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
             id: 'sukkuladi',
             label: { en: 'Chocolate', is: 'Súkkulaði' },
             priceDelta: 0,
+            note: { en: 'Pears instead of the cocktail fruit', is: 'Perur í stað kokteilávaxta' },
             adds: [{ en: 'Chocolate mousse', is: 'Súkkulaðifrómas' }],
             swap: { layerId: 'avextir', label: { en: 'Pears', is: 'Perur' } },
           },
@@ -394,6 +402,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
             id: 'karamellu',
             label: { en: 'Caramel', is: 'Karamellu' },
             priceDelta: 0,
+            note: { en: 'Daim instead of the cocktail fruit', is: 'Daim í stað kokteilávaxta' },
             adds: [{ en: 'Caramel mousse', is: 'Karamellufrómas' }],
             swap: { layerId: 'avextir', label: { en: 'Daim', is: 'Daim' } },
           },
@@ -407,6 +416,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
             id: 'sherry',
             label: { en: 'Sherry', is: 'Sherry' },
             priceDelta: 0,
+            note: { en: 'With crushed macaroons as well', is: 'Muldar makkarónur fylgja með' },
             adds: [
               { en: 'Sherry mousse', is: 'Sherrýfrómas' },
               { en: 'Crushed macaroons', is: 'Muldar makkarónur' },
@@ -683,8 +693,6 @@ export interface OrderCopy {
   perPerson: string
   /** Heading over the live spec panel. */
   specTitle: string
-  /** Shown in the panel before a filling has been picked. */
-  specPending: string
   /** The empty option at the top of a size dropdown. */
   sizePrompt: string
   /** Stands in for the price line before a size has been picked, so an
@@ -698,8 +706,17 @@ export interface OrderCopy {
   /** Order reference, shown on the done screen and carried in the email
    *  subject so a photo sent afterwards can be matched to its order. */
   refLabel: string
-  /** How to send a photo, shown only when the order needs one. */
+  /** How to send a photo, shown only when the order needs one and none was
+   *  attached. */
   photoHow: (ref: string) => string
+  photoLabel: string
+  photoCta: string
+  photoHint: string
+  photoRemove: string
+  /** Confirmation that the picture travelled with the order. */
+  photoSent: string
+  errPhotoType: string
+  errPhotoSize: string
   included: string
   required: string
   optional: string
@@ -797,7 +814,6 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     slipNote: 'We confirm the final price when we call.',
     perPerson: 'per person',
     specTitle: 'What is in it',
-    specPending: 'Choose a filling to see the whole cake.',
     sizePrompt: 'Choose a size',
     slipPickSize: 'Choose a size',
     quoteTotal: 'We will quote you',
@@ -805,6 +821,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
       'A bespoke cake is priced on what it takes to make, so we send you a price before anything is baked.',
     submitQuote: 'Send enquiry',
     refLabel: 'Order reference',
+    photoLabel: 'Send the photo with the order',
+    photoCta: 'Choose a photo',
+    photoHint: 'JPG or PNG, up to 5 MB. You can also send it later if it is easier.',
+    photoRemove: 'Remove',
+    photoSent: 'Your photo came with the order, so there is nothing else to send.',
+    errPhotoType: 'That file is not an image. Choose a JPG or a PNG.',
+    errPhotoSize: 'That photo is over 5 MB. Choose a smaller one, or send it to us afterwards.',
     photoHow: (ref) =>
       `Send us the photo with ${ref} in the subject line and we will match it to your order.`,
     included: 'included',
@@ -895,7 +918,6 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     slipNote: 'Við staðfestum endanlegt verð þegar við hringjum.',
     perPerson: 'á mann',
     specTitle: 'Svona er hún',
-    specPending: 'Veldu fyllingu til að sjá tertuna alla.',
     sizePrompt: 'Veldu stærð',
     slipPickSize: 'Veldu stærð',
     quoteTotal: 'Við gerum tilboð',
@@ -903,6 +925,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
       'Sérhönnuð terta er verðlögð eftir því sem hún kallar á, þannig að við sendum þér verð áður en nokkuð er bakað.',
     submitQuote: 'Senda fyrirspurn',
     refLabel: 'Pöntunarnúmer',
+    photoLabel: 'Sendu myndina með pöntuninni',
+    photoCta: 'Velja mynd',
+    photoHint: 'JPG eða PNG, mest 5 MB. Þú getur líka sent hana síðar ef það er einfaldara.',
+    photoRemove: 'Fjarlægja',
+    photoSent: 'Myndin fylgdi pöntuninni, svo það er ekkert annað sem þarf að senda.',
+    errPhotoType: 'Þetta er ekki mynd. Veldu JPG eða PNG.',
+    errPhotoSize: 'Myndin er stærri en 5 MB. Veldu minni mynd, eða sendu hana á okkur á eftir.',
     photoHow: (ref) =>
       `Sendu okkur myndina með ${ref} í efnislínunni, þá tengjum við hana við pöntunina þína.`,
     included: 'innifalið',

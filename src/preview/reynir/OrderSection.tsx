@@ -40,6 +40,12 @@ import { useSiteContent } from './sanity'
 const ORDER_CSS = `
   /* layout: functional split, the slip reacts to the choices */
   .rb-ord-grid { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:clamp(28px,4vw,64px); align-items:start; }
+  /* The slip's column has to run the FULL height of the form, or sticky has
+     nowhere to travel: with align-items:start the column hugged the slip
+     (520px inside a 3000px form) and the running total scrolled away the
+     moment anyone started choosing, which is the one thing it exists not to
+     do. Stretch the column, not the slip. */
+  .rb-ord-slipwrap { align-self:stretch; }
 
   .rb-ord-step { border-top:1px solid ${HAIR}; padding-top:18px; margin-top:clamp(30px,4.5vh,46px); }
   .rb-ord-steplabel { font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:${GOLD}; }
@@ -89,7 +95,7 @@ const ORDER_CSS = `
   .rb-ord-prod:hover { border-color:rgba(238,211,170,.4); background:rgba(243,234,211,.05); }
   .rb-ord-prod:active { transform:scale(.99); }
   .rb-ord-prod[data-on="true"] { border-color:${GOLD}; background:rgba(200,168,119,.09); }
-  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:19px; line-height:1.15; color:${IVORY}; padding-right:24px; }
+  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:19px; line-height:1.15; color:${IVORY}; padding-right:36px; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-name { color:${GOLD_LIGHT}; }
   .rb-ord-prod-from { font-size:12.5px; color:${DIM}; font-variant-numeric:tabular-nums; }
   /* z-index is load-bearing, not decoration: the product photo carries a
@@ -106,12 +112,22 @@ const ORDER_CSS = `
   .rb-ord-prod-mark svg { opacity:0; transform:scale(.6); transition:opacity .18s ${EASE}, transform .18s ${EASE}; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-mark svg { opacity:1; transform:none; }
 
-  /* option groups */
-  .rb-ord-group { margin:0; padding:34px 0 0; border:0; }
+  /* Option groups.
+     MARGIN, never padding. A <legend> is laid out above the fieldset's content
+     box, so padding-top pushes the QUESTION'S OWN help text and choices down
+     while leaving the heading itself hard against the previous group. Every
+     heading on the page was bound to the answer above it instead of to its own
+     options, which is what made the spacing read as broken. Margin moves the
+     whole fieldset, legend included. */
+  .rb-ord-group { margin:32px 0 0; padding:0; border:0; }
+  .rb-ord-groups > .rb-ord-group:first-child { margin-top:20px; }
   .rb-ord-legend { padding:0; font-family:${DISPLAY}; font-size:clamp(19px,2vw,23px); color:${IVORY}; }
+  /* Flex, so a tag that does not fit beside a long question wraps to the left
+     margin instead of hanging indented under it like a stray word. */
+  .rb-ord-legend-row { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
   .rb-ord-help { font-size:13.5px; color:${DIM}; margin:6px 0 0; line-height:1.5; }
   .rb-ord-tag { font-family:${BODY}; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-    color:${FAINT}; margin-left:10px; vertical-align:middle; }
+    color:${FAINT}; white-space:nowrap; }
 
   .rb-ord-choices { display:grid; gap:8px; margin-top:14px; }
   .rb-ord-choice { position:relative; display:flex; align-items:baseline; gap:10px; cursor:pointer;
@@ -176,35 +192,68 @@ const ORDER_CSS = `
   }
   /* The field a choice opens. Indented under its row and sharing the row's
      gold edge, so it reads as part of that choice rather than a new question. */
-  .rb-ord-extra { margin:8px 0 2px 14px; padding-left:16px; border-left:2px solid rgba(200,168,119,.34);
+  /* Indent matches the choice above it: the rule sits under the row's own left
+     padding (15px) and the text lands where the label starts (15 + 15px mark +
+     10px gap), so the answer sits under the question rather than beside it. */
+  .rb-ord-extra { margin:8px 0 2px 15px; padding-left:25px; border-left:2px solid rgba(200,168,119,.34);
     animation:rb-ord-extrain .32s ${EASE} both; }
   @keyframes rb-ord-extrain { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
 
-  /* The live spec. Reads as a cross-section: layers stacked in the order they
-     sit in the cake, hairline between each, the ones a choice changed picked
-     out in gold so the substitution is the thing you notice. */
-  .rb-ord-spec { margin-top:20px; padding:16px 18px 6px; border:1px solid ${HAIR};
-    border-radius:5px; background:linear-gradient(180deg, rgba(200,168,119,.05), rgba(200,168,119,0)); }
-  .rb-ord-spec-title { font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
-    color:${GOLD}; }
-  .rb-ord-spec-list { list-style:none; margin:12px 0 0; padding:0; }
-  .rb-ord-spec-row { display:flex; align-items:center; gap:11px; padding:9px 0;
-    font-size:14.5px; color:${DIM}; border-bottom:1px solid ${HAIR_SOFT};
-    animation:rb-ord-layerin .34s ${EASE} both; }
-  .rb-ord-spec-row:last-child { border-bottom:0; }
-  .rb-ord-spec-dot { flex:none; width:5px; height:5px; border-radius:50%; background:${HAIR};
-    transition:background .3s ${EASE}, box-shadow .3s ${EASE}; }
+  /* Photo upload. The dashed edge says "drop something here" without pretending
+     to be a drop zone the phone cannot use, and it stays clearly secondary to
+     the choice it belongs to. */
+  .rb-ord-photo { margin-top:12px; }
+  .rb-ord-photo-pick { display:flex; align-items:center; gap:12px; cursor:pointer;
+    padding:13px 15px; border:1px dashed rgba(238,211,170,.34); border-radius:4px;
+    background:rgba(243,234,211,.02); transition:border-color .2s ${EASE}, background .2s ${EASE}; }
+  .rb-ord-photo-pick:hover { border-color:${GOLD}; background:rgba(200,168,119,.06); }
+  .rb-ord-photo-pick input { position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; }
+  .rb-ord-photo-pick:has(input:focus-visible) { outline:2px solid ${GOLD}; outline-offset:3px; }
+  .rb-ord-photo-cta { flex:none; font-size:13px; font-weight:600; color:${INK}; background:${GOLD};
+    padding:7px 13px; border-radius:3px; white-space:nowrap; }
+  .rb-ord-photo-label { font-size:13.5px; color:${DIM}; line-height:1.4; }
+  .rb-ord-photo-has { display:flex; align-items:center; gap:13px; padding:11px 13px;
+    border:1px solid ${GOLD}; border-radius:4px; background:rgba(200,168,119,.07); }
+  .rb-ord-photo-thumb { flex:none; width:46px; height:46px; object-fit:cover; border-radius:3px;
+    border:1px solid rgba(238,211,170,.3); }
+  .rb-ord-photo-meta { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .rb-ord-photo-name { font-size:13.5px; color:${IVORY}; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; }
+  .rb-ord-photo-size { font-size:12px; color:${FAINT}; font-variant-numeric:tabular-nums; }
+  .rb-ord-photo-clear { margin-left:auto; flex:none; background:none; border:0; cursor:pointer;
+    font-family:${BODY}; font-size:12.5px; color:${DIM}; padding:10px 6px; text-decoration:underline;
+    text-underline-offset:3px; }
+  .rb-ord-photo-clear:hover { color:${IVORY}; }
+  .rb-ord-photo-clear:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:3px; }
+  @media (max-width:520px) {
+    /* The button and its sentence stop fitting side by side well before this. */
+    .rb-ord-photo-pick { flex-direction:column; align-items:flex-start; gap:9px; }
+  }
+
+  /* "What is in it", inside the slip. The form is where a cake is chosen and
+     the slip is where it is described, so the layers live here rather than
+     floating between two questions. No border of its own: it is already inside
+     the slip's frame, and a box inside a box is one line too many. */
+  .rb-ord-spec { margin-top:12px; padding-top:12px; border-top:1px solid ${HAIR_SOFT}; }
+  .rb-ord-spec-title { font-size:10.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:${FAINT}; }
+  .rb-ord-spec-list { list-style:none; margin:8px 0 0; padding:0; }
+  .rb-ord-spec-row { display:flex; align-items:center; gap:9px; padding:4px 0;
+    font-size:13px; color:${DIM}; animation:rb-ord-layerin .34s ${EASE} both; }
+  .rb-ord-spec-dot { flex:none; width:4px; height:4px; border-radius:50%; background:${HAIR};
+    transition:background .3s ${EASE}; }
   .rb-ord-spec-row[data-changed="true"] { color:${IVORY}; }
-  .rb-ord-spec-row[data-changed="true"] .rb-ord-spec-dot { background:${GOLD};
-    box-shadow:0 0 0 3px rgba(200,168,119,.14); }
-  .rb-ord-spec-pending { margin:10px 0 12px; font-size:14px; color:${FAINT}; line-height:1.5; }
+  .rb-ord-spec-row[data-changed="true"] .rb-ord-spec-dot { background:${GOLD}; }
   @keyframes rb-ord-layerin { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:none; } }
   @media (prefers-reduced-motion: reduce) { .rb-ord-spec-row { animation:none; } }
   @media (prefers-reduced-motion: reduce) { .rb-ord-extra { animation:none; } }
 
   /* text + form fields */
   .rb-ord-field { display:block; margin-top:18px; }
-  .rb-ord-label { display:block; font-size:13px; letter-spacing:.02em; color:${GOLD_LIGHT}; margin-bottom:7px; }
+  /* Same flex row as a legend, so the optional tag keeps its gap now that the
+     tag itself no longer carries a margin, and wraps left instead of indented. */
+  .rb-ord-label { display:flex; align-items:baseline; flex-wrap:wrap; gap:3px 9px;
+    font-size:13px; letter-spacing:.02em; color:${GOLD_LIGHT}; margin-bottom:7px; }
   .rb-ord-input, .rb-ord-select, .rb-ord-textarea {
     width:100%; box-sizing:border-box; font-family:${BODY}; font-size:16px; color:${IVORY};
     background:rgba(11,10,9,.5); border:1px solid ${HAIR}; border-radius:4px; padding:13px 14px;
@@ -283,7 +332,7 @@ const ORDER_CSS = `
   .rb-ord-tel { display:inline-block; padding:13px 10px; color:${GOLD_LIGHT}; text-decoration:none;
     border-bottom:1px solid rgba(238,211,170,.32); }
   .rb-ord-tel:hover { color:${IVORY}; border-bottom-color:${GOLD}; }
-  .rb-ord-tel:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:3px; }
+  .rb-ord-tel:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:4px; }
 
   @media (max-width:900px) {
     .rb-ord-grid { grid-template-columns:1fr; gap:0; }
@@ -311,10 +360,12 @@ const ORDER_CSS = `
   }
   @media (max-width:520px) {
     .rb-ord-two { grid-template-columns:1fr; gap:0; }
-    .rb-ord-choice-price { margin-left:0; padding-left:0; width:100%; }
+    /* Wrapping is right on a narrow screen, but the price then has to land
+       under the LABEL, not under the radio it has nothing to do with. */
+    .rb-ord-choice-price { margin-left:0; padding-left:25px; width:100%; }
     /* Two per row on a phone: three would put "18.600 kr." on two lines. */
     .rb-ord-choices[data-layout="grid"] { grid-template-columns:repeat(2, minmax(0, 1fr)); }
-    .rb-ord-choices[data-layout="grid"] .rb-ord-choice-price { width:auto; }
+    .rb-ord-choices[data-layout="grid"] .rb-ord-choice-price { width:auto; padding-left:0; }
     .rb-ord-choice { flex-wrap:wrap; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -462,6 +513,18 @@ export default function OrderSection({
    *  which would differ between the prerendered HTML and the hydrated page).
    *  It exists so a photo sent afterwards can be tied to the right order. */
   const [orderRef, setOrderRef] = useState('')
+  /**
+   * The picture the customer wants on the cake, or the one they want us to work
+   * from. It travels WITH the order as a mail attachment rather than being
+   * uploaded anywhere: the site is static and has no storage, but the relay
+   * accepts multipart, so the photo lands in the bakery's inbox attached to the
+   * order it belongs to. Deliberately optional. Someone whose photo is on
+   * another phone must still be able to place the order, and the order
+   * reference covers sending it afterwards.
+   */
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [photoErr, setPhotoErr] = useState('')
 
   const earliest = useMemo(() => isoPlusDays(product.leadDays), [product.leadDays])
 
@@ -470,6 +533,7 @@ export default function OrderSection({
     setPicked({})
     setInscription('')
     setExtras({})
+    clearPhoto()
     setTouched((prev) => {
       const next: Record<string, boolean> = {}
       for (const k of Object.keys(prev)) if (k.startsWith('c_')) next[k] = prev[k]
@@ -481,6 +545,31 @@ export default function OrderSection({
   useEffect(() => {
     setCustomer((c) => (c.date && c.date < earliest ? { ...c, date: '' } : c))
   }, [earliest])
+
+  const MAX_PHOTO = 5 * 1024 * 1024 // the relay's attachment ceiling
+
+  const choosePhoto = (file: File | null) => {
+    setPhotoErr('')
+    if (!file) return
+    if (!file.type.startsWith('image/')) return setPhotoErr(t.errPhotoType)
+    if (file.size > MAX_PHOTO) return setPhotoErr(t.errPhotoSize)
+    setPhoto(file)
+    setPhotoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+  }
+  const clearPhoto = () => {
+    setPhotoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return ''
+    })
+    setPhoto(null)
+    setPhotoErr('')
+  }
+  // Revoke on unmount too: without this every preview held its blob for the
+  // life of the tab.
+  useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl) }, [photoUrl])
 
   const toggle = (group: OrderGroup, choiceId: string) => {
     setPicked((prev) => {
@@ -523,13 +612,18 @@ export default function OrderSection({
        * there is no separate base line to add it to. Before a size is picked
        * the slip says so rather than showing 0 kr., which would read as free. */
       sum = size ? perPerson * (size.serves as number) : 0
-      out.push({
-        key: 'size',
-        name: size ? size.label[lang] : t.slipPickSize,
-        sub: `${isk(perPerson)} ${t.perPerson}`,
-        price: size ? sum : null,
-        pending: !size,
-      })
+      /* Only once a size exists. An unchosen size used to render as a row whose
+       * dotted leader ran to an empty price, above a total that repeated the
+       * same "choose a size" prompt: two placeholders saying one thing. The
+       * slip's own empty state already covers this. */
+      if (size) {
+        out.push({
+          key: 'size',
+          name: size.label[lang],
+          sub: `${isk(perPerson)} ${t.perPerson}`,
+          price: sum,
+        })
+      }
     } else {
       sum = product.basePrice
       out.push({ key: 'base', name: product.name[lang], sub: t.slipBase, price: product.basePrice })
@@ -716,7 +810,9 @@ export default function OrderSection({
       ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
       : `${isk(total)}${size ? ` (${size.serves} manns × ${isk(product.pricePerPerson as number)})` : ''}`
     if (wantsPhoto) {
-      payload[`${n++}. Mynd`] = `Viðskiptavinur ætlar að senda mynd og vísa í ${ref}`
+      payload[`${n++}. Mynd`] = photo
+        ? `Fylgir þessum pósti sem viðhengi (${photo.name})`
+        : `Viðskiptavinur ætlar að senda mynd og vísa í ${ref}`
     }
 
     // Contact details in ONE block, so calling back does not mean hunting
@@ -740,10 +836,32 @@ export default function OrderSection({
     payload[`${n++}. Beiðni send`] = new Date().toLocaleString('is-IS')
 
     try {
+      /* Two shapes, one endpoint.
+       *
+       * JSON is the well-tested path and stays the default for the vast
+       * majority of orders, which carry no picture. A photo cannot travel as
+       * JSON, so an order with one is sent as multipart instead and the file
+       * rides along as a mail attachment: the site is static and has nowhere
+       * to store an upload, but the relay accepts the file and hands it to the
+       * bakery attached to the order it belongs to. Verified against the live
+       * relay before this was built, rather than assumed. */
       const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
+        ...(photo
+          ? {
+              // No Content-Type header: the browser has to set the multipart
+              // boundary itself, and setting it by hand breaks the parse.
+              body: (() => {
+                const fd = new FormData()
+                for (const [k, v] of Object.entries(payload)) fd.append(k, v)
+                fd.append('mynd', photo, photo.name)
+                return fd
+              })(),
+            }
+          : {
+              headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+              body: JSON.stringify(payload),
+            }),
       })
       if (!res.ok) throw new Error(String(res.status))
 
@@ -777,6 +895,7 @@ export default function OrderSection({
     setPicked({})
     setInscription('')
     setExtras({})
+    clearPhoto()
     setOrderRef('')
     setQty(1)
     setCustomer({
@@ -794,6 +913,10 @@ export default function OrderSection({
       <div className="rb-ord-slip-title">{t.slipTitle}</div>
       <div className="rb-ord-slip-rule" aria-hidden="true" />
       <div>
+        {/* The empty state was written but never rendered: before anything was
+            chosen the slip showed a placeholder row instead, complete with a
+            dotted leader to nowhere. */}
+        {lines.length === 0 && <p className="rb-ord-slip-empty">{t.slipEmpty}</p>}
         {lines.map((line) => (
           <div className="rb-ord-slipline" key={line.key}>
             <span className="rb-ord-slipline-name">
@@ -807,6 +930,19 @@ export default function OrderSection({
           </div>
         ))}
       </div>
+      {layers.length > 0 && (
+        <div className="rb-ord-spec">
+          <div className="rb-ord-spec-title">{t.specTitle}</div>
+          <ul className="rb-ord-spec-list">
+            {layers.map((l) => (
+              <li key={`${l.label.is}_${l.changed}`} className="rb-ord-spec-row" data-changed={l.changed}>
+                <span className="rb-ord-spec-dot" aria-hidden="true" />
+                {l.label[lang]}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="rb-ord-total">
         <span className="rb-ord-total-label">{t.slipTotal}</span>
         <span className="rb-ord-total-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
@@ -894,12 +1030,18 @@ export default function OrderSection({
               </div>
             )}
             {wantsPhoto && orderRef && (
-              <p style={{ fontSize: 14.5, color: DIM, margin: '10px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
-                {t.photoHow(orderRef)}{' '}
-                <a href={`mailto:${LINKS.orderEmail}?subject=${encodeURIComponent(orderRef)}`} className="rb-ord-tel">
-                  {LINKS.orderEmail}
-                </a>
-              </p>
+              photo ? (
+                <p style={{ fontSize: 14.5, color: GOLD_LIGHT, margin: '10px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
+                  {t.photoSent}
+                </p>
+              ) : (
+                <p style={{ fontSize: 14.5, color: DIM, margin: '10px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
+                  {t.photoHow(orderRef)}{' '}
+                  <a href={`mailto:${LINKS.orderEmail}?subject=${encodeURIComponent(orderRef)}`} className="rb-ord-tel">
+                    {LINKS.orderEmail}
+                  </a>
+                </p>
+              )
             )}
             <button type="button" className="rb-ord-submit" style={{ width: 'auto', marginTop: 24 }} onClick={reset}>
               {t.doneAgain}
@@ -989,8 +1131,10 @@ export default function OrderSection({
                     return (
                       <fieldset className="rb-ord-group" key={group.id}>
                         <legend className="rb-ord-legend">
-                          {group.label[lang]}
-                          <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
+                          <span className="rb-ord-legend-row">
+                            {group.label[lang]}
+                            <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
+                          </span>
                         </legend>
                         {(group.help || group.max) && (
                           <p className="rb-ord-help">
@@ -1119,6 +1263,45 @@ export default function OrderSection({
                                       onBlur={() => setTouched((prev) => ({ ...prev, [`x_${fxKey}`]: true }))}
                                     />
                                     {fxErr && <p className="rb-ord-err" id={`err_x_${fxKey}`} role="alert">{fxErr}</p>}
+                                    {/* The upload belongs to the choice that
+                                        needs a picture, not to a general
+                                        attachments box further down the form. */}
+                                    {choice.needsPhoto && (
+                                      <div className="rb-ord-photo">
+                                        {photo ? (
+                                          <div className="rb-ord-photo-has">
+                                            <img className="rb-ord-photo-thumb" src={photoUrl} alt="" />
+                                            <div className="rb-ord-photo-meta">
+                                              <span className="rb-ord-photo-name">{photo.name}</span>
+                                              {/* KB below a megabyte: a small
+                                                  photo reading "0.0 MB" looks
+                                                  like nothing attached. */}
+                                              <span className="rb-ord-photo-size">
+                                                {photo.size < 1024 * 1024
+                                                  ? `${Math.max(1, Math.round(photo.size / 1024))} KB`
+                                                  : `${(photo.size / 1024 / 1024).toFixed(1)} MB`}
+                                              </span>
+                                            </div>
+                                            <button type="button" className="rb-ord-photo-clear" onClick={clearPhoto}>
+                                              {t.photoRemove}
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <label className="rb-ord-photo-pick">
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)}
+                                            />
+                                            <span className="rb-ord-photo-cta">{t.photoCta}</span>
+                                            <span className="rb-ord-photo-label">{t.photoLabel}</span>
+                                          </label>
+                                        )}
+                                        {photoErr
+                                          ? <p className="rb-ord-err" role="alert">{photoErr}</p>
+                                          : <p className="rb-ord-hint">{t.photoHint}</p>}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1127,31 +1310,6 @@ export default function OrderSection({
                         </div>
                         )}
                         {err && <p className="rb-ord-err" id={`err_g_${group.id}`} role="alert">{err}</p>}
-                        {/* The spec sits under the group that changes it, so the
-                            choice and its consequence are never on separate
-                            screens. Stacked top layer down, because that is the
-                            order the layers are actually in. */}
-                        {product.compositionGroupId === group.id && (
-                          <div className="rb-ord-spec" aria-live="polite">
-                            <div className="rb-ord-spec-title">{t.specTitle}</div>
-                            {layers.length ? (
-                              <ul className="rb-ord-spec-list">
-                                {layers.map((l) => (
-                                  <li
-                                    key={`${l.label.is}_${l.changed}`}
-                                    className="rb-ord-spec-row"
-                                    data-changed={l.changed}
-                                  >
-                                    <span className="rb-ord-spec-dot" aria-hidden="true" />
-                                    {l.label[lang]}
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p className="rb-ord-spec-pending">{t.specPending}</p>
-                            )}
-                          </div>
-                        )}
                       </fieldset>
                     )
                   })}

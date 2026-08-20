@@ -80,7 +80,7 @@ function ReynirOrderPageInner() {
     <div
       className="rb-op"
       lang={lang}
-      style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
+      style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}
     >
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 

@@ -71,6 +71,7 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
         'Það sem þú pantaðir: vöru, valmöguleika, fjölda, afhendingardag og athugasemdir.',
         'Fyrir fyrirtækjapantanir: nafn fyrirtækis, kennitölu og tengilið, svo hægt sé að gefa út reikning.',
         'Afhendingarstað, ef óskað er eftir sendingu í stað þess að sækja.',
+        'Mynd, ef þú velur að senda mynd með pöntun, til dæmis mynd sem á að fara á tertu eða mynd sem við eigum að vinna út frá. Myndin fylgir pöntunarbeiðninni sem viðhengi í tölvupósti. Vefurinn geymir hana ekki og hún er hvergi vistuð á netinu.',
       ],
       },
     {
@@ -148,6 +149,7 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
         'What you ordered: the product, the options, the quantity, the collection date and any notes.',
         'For company orders: the company name, its kennitala and a contact person, so an invoice can be issued.',
         'A delivery address, if you ask us to deliver rather than collect.',
+        'A photo, if you choose to send one with an order, for example a picture to go on a cake or one for us to work from. It travels with the order request as an email attachment. The website does not store it and it is not held anywhere online.',
       ],
     },
     {
