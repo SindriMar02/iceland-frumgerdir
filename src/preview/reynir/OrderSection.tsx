@@ -22,7 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Lang } from './data'
 import {
-  ORDER_FORM_TO,
+  ORDER_ENDPOINT,
   ORDER_T,
   PHOTO_UPLOAD_ENABLED,
   PLACEHOLDER_DATA,
@@ -415,87 +415,22 @@ const ORDER_CSS = `
 `
 
 /**
- * Post an order that carries a photo.
+ * The order docket as plain text, in the order a baker triages it.
  *
- * The relay only keeps attachments on its plain endpoint, which replies with a
- * redirect rather than JSON, so a normal fetch can neither send the file the
- * right way nor read the answer. This builds a real multipart form, aims it at
- * a hidden iframe so the page never navigates, and treats the send as
- * successful ONLY when that iframe comes back to our own origin, which is where
- * `_next` sends it. Anything else, including a silent failure on their side,
- * leaves the iframe cross-origin and unreadable and this rejects.
- *
- * Resolving early on a mere `load` event would be the bug worth avoiding: the
- * iframe fires load for THEIR error page too.
+ * The payload object is already arranged that way — when and what first,
+ * because they decide whether the order is even possible, then the spec, the
+ * price, and the contact block together — so this only has to render it and
+ * not re-decide anything. Numeric prefixes are stripped: they exist to stop
+ * the keys being reordered in transit, and they are noise to read.
  */
-function postWithAttachment(payload: Record<string, string>, photo: File): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const landing = new URL(`${import.meta.env.BASE_URL}reynir/brand/favicon-32.png`, location.origin).href
-    const name = `rb-ord-${Math.random().toString(36).slice(2)}`
-
-    const frame = document.createElement('iframe')
-    frame.name = name
-    frame.setAttribute('aria-hidden', 'true')
-    frame.style.cssText = 'position:absolute;width:0;height:0;border:0;left:-9999px'
-
-    const form = document.createElement('form')
-    form.action = `https://formsubmit.co/${ORDER_FORM_TO}`
-    form.method = 'POST'
-    form.enctype = 'multipart/form-data'
-    form.target = name
-    form.style.display = 'none'
-
-    const hidden = (k: string, v: string) => {
-      const i = document.createElement('input')
-      i.type = 'hidden'
-      i.name = k
-      i.value = v
-      form.appendChild(i)
-    }
-    for (const [k, v] of Object.entries(payload)) {
-      // _template is a JSON-endpoint nicety; the plain endpoint uses _next.
-      if (k !== '_template') hidden(k, v)
-    }
-    hidden('_next', landing)
-
-    const file = document.createElement('input')
-    file.type = 'file'
-    file.name = 'mynd'
-    const dt = new DataTransfer()
-    dt.items.add(photo)
-    file.files = dt.files
-    form.appendChild(file)
-
-    let settled = false
-    const cleanup = () => {
-      window.clearInterval(poll)
-      window.clearTimeout(timer)
-      frame.remove()
-      form.remove()
-    }
-    const done = (ok: boolean) => {
-      if (settled) return
-      settled = true
-      cleanup()
-      ok ? resolve() : reject(new Error('attachment-send-not-confirmed'))
-    }
-
-    /* Same-origin means the redirect completed, which means the relay accepted
-       the order. Reading href on a cross-origin document throws, so the throw
-       IS the "not yet" signal, not an error to report. */
-    const poll = window.setInterval(() => {
-      try {
-        if (frame.contentWindow?.location.href.startsWith(location.origin)) done(true)
-      } catch {
-        /* still on their domain */
-      }
-    }, 250)
-    const timer = window.setTimeout(() => done(false), 30_000)
-
-    document.body.appendChild(frame)
-    document.body.appendChild(form)
-    form.submit()
-  })
+function orderText(payload: Record<string, string>): string {
+  const lines: string[] = ['NÝ PÖNTUNARBEIÐNI — Reynir bakarí', '']
+  for (const [k, v] of Object.entries(payload)) {
+    if (k.startsWith('_')) continue
+    lines.push(`${k.replace(/^\d+\.\s*/, '')}: ${v}`)
+  }
+  lines.push('', 'Svaraðu þessum pósti til að svara viðskiptavininum.')
+  return lines.join('\n')
 }
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
@@ -634,6 +569,9 @@ export default function OrderSection({
    *  which would differ between the prerendered HTML and the hydrated page).
    *  It exists so a photo sent afterwards can be tied to the right order. */
   const [orderRef, setOrderRef] = useState('')
+  /** Whether the photo actually travelled, as reported by the send, not
+   *  assumed from the fact that one was chosen. */
+  const [photoDelivered, setPhotoDelivered] = useState(false)
   /**
    * The picture the customer wants on the cake, or the one they want us to work
    * from. It travels WITH the order as a mail attachment rather than being
@@ -897,9 +835,9 @@ export default function OrderSection({
 
     const payload: Record<string, string> = {
       _subject: `${ref} · ${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${quote ? 'TILBOÐ ÓSKAST — ' : ''}${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
-      _template: 'table',
-      _captcha: 'false',
-      _honey: '', // honeypot: bots fill it, people never see it
+      /* _template/_captcha/_honey are gone with the relay that read them. The
+         underscore prefix still means "not a docket row": orderText skips
+         these, so _subject can sit here beside the rows it summarises. */
 
       '1. Afhending': when,
       '2. Vara': `${product.name.is}${qty > 1 ? ` — ${qty} stk.` : ''}`,
@@ -957,49 +895,43 @@ export default function OrderSection({
     payload[`${n++}. Beiðni send`] = new Date().toLocaleString('is-IS')
 
     try {
-      /* TWO DIFFERENT ENDPOINTS, because the relay cannot do both jobs at once.
+      /* ONE endpoint, ours, and an answer we can check.
        *
-       * The JSON endpoint answers with a result we can check, which is the only
-       * reason the "did this actually send" guard below works at all. It also
-       * SILENTLY DISCARDS attachments: posting a file to it returns
-       * {"success":"true"} and the mail arrives with no photo. That was found
-       * by sending one and looking in the inbox, and their own documentation
-       * confirms it: files do not work with AJAX submissions.
+       * The order is sent as multipart so the photograph can ride with it as a
+       * real attachment. The Worker replies with the id of a message the mail
+       * provider ACCEPTED, and nothing below treats the order as sent without
+       * one — which is the whole reason the old relay was replaced. It would
+       * answer {"success":"true"} for a mail it delivered with no attachment,
+       * and had already once answered success for a form that was not even
+       * activated. A 200 meant "got your POST", never "did what you asked".
        *
-       * So an order carrying a photo goes to the plain endpoint as a real
-       * multipart form POST, which does keep the file. That endpoint answers
-       * with a redirect instead of JSON, so the success check is rebuilt rather
-       * than dropped: `_next` points at a URL on OUR origin, the form targets a
-       * hidden iframe, and the send counts as delivered only once that iframe
-       * actually lands back on our own origin. If the relay fails, the iframe
-       * stays on their domain, we cannot read it, and it times out into the
-       * error state. It fails closed, which is the whole point. */
-      if (photo) {
-        await postWithAttachment(payload, photo)
-      } else {
-        const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify(payload),
-        })
-        if (!res.ok) throw new Error(String(res.status))
+       * Everything here fails CLOSED: any non-2xx, any missing id, any network
+       * error drops into the catch below and shows the phone number. A bakery
+       * order that silently vanishes is worse than one that never started. */
+      const fd = new FormData()
+      fd.append(
+        'order',
+        JSON.stringify({
+          subject: payload._subject,
+          text: orderText(payload),
+          replyTo: customer.email.trim() || customer.invoiceEmail.trim() || '',
+        }),
+      )
+      if (photo) fd.append('mynd', photo, photo.name)
 
-      /* A 200 from FormSubmit does NOT mean the mail was sent.
-       *
-       * Found by sending a real test order: FormSubmit answered HTTP 200 with
-       * `{"success":"false","message":"This form needs Activation…"}` and the
-       * page cheerfully told the customer their order had arrived. Nothing had
-       * been sent to the bakery. That is the precise failure this fallback
-       * exists to prevent, and checking only `res.ok` walked straight past it.
-       *
-       * The flag comes back as the STRING "false", not a boolean, so a plain
-       * truthiness check on it is always true. Treat anything that is not an
-       * explicit success as a failure — if we cannot prove the order was
-       * delivered, the customer must be shown the phone number. */
-        const body = await res.json().catch(() => null)
-        const ok = body?.success === true || body?.success === 'true'
-        if (!ok) throw new Error(body?.message ? String(body.message) : 'send-not-confirmed')
+      // No Content-Type header: the browser must set the multipart boundary
+      // itself, and setting it by hand breaks the parse on the other side.
+      const res = await fetch(ORDER_ENDPOINT, { method: 'POST', body: fd })
+      const body = (await res.json().catch(() => null)) as
+        | { ok?: boolean; id?: string; attached?: boolean; reason?: string }
+        | null
+      if (!res.ok || !body?.ok || !body.id) {
+        throw new Error(body?.reason ? String(body.reason) : `http-${res.status}`)
       }
+      /* Only now is it true. `attached` is the provider's own account of
+       * whether the picture went with it, so the confirmation screen says what
+       * happened rather than what we hoped. */
+      setPhotoDelivered(!!body.attached)
 
       setStatus('done')
     } catch {
@@ -1149,7 +1081,7 @@ export default function OrderSection({
             </p>
 
             {wantsPhoto && (
-              photo ? (
+              photoDelivered ? (
                 <p className="rb-ord-done-line" data-good="true">{t.photoSent}</p>
               ) : (
                 orderRef && (

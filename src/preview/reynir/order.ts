@@ -64,30 +64,41 @@ export const PLACEHOLDER_DATA = false
 export const ORDER_FORM_TO = 'sindri@klubbr.is'
 
 /**
+ * Where an order is sent: OUR OWN Worker, at 04-platform/reynir-order.
+ *
+ * It replaced a third-party form relay that could not carry the photograph a
+ * customer chose to send and would not admit it: post a file and it answers
+ * {"success":"true"} while delivering the mail with nothing attached. Their
+ * documentation says it in one line, files do not work with AJAX submissions,
+ * and a multipart post to their other endpoint lost the photo too.
+ *
+ * What this endpoint gives that the relay could not:
+ *   - the photo arrives, as a real attachment on the order
+ *   - the answer is CHECKABLE. It returns the id of a message the mail
+ *     provider accepted, and the page shows "sent" only when it has one.
+ *     Every failure is a non-2xx with a reason, so nobody is told their order
+ *     arrived when it did not.
+ *   - it stores nothing. The photo is read, attached, dropped.
+ *
+ * Mail is sent from a domain we already control, with Reply-To set to the
+ * customer, so reynirbakari.is and their Google Workspace mail are untouched
+ * until launch.
+ */
+export const ORDER_ENDPOINT = 'https://reynir-order.sindri-381.workers.dev/order'
+
+/**
  * Whether the form accepts a photo directly.
  *
- * OFF, and it must stay off until an attachment is proven to ARRIVE.
+ * ON. Verified end to end on 2026-08-20: message accepted, attachment listed
+ * on the sent mail, delivered.
  *
- * The relay cannot carry one. Its JSON endpoint accepts the file, answers
- * {"success":"true"} and delivers the mail with nothing attached, which their
- * own documentation confirms: files do not work with AJAX submissions. Its
- * plain endpoint is documented to keep files, and a multipart post to it via a
- * hidden iframe completed and redirected back to our origin, and the photo
- * still did not arrive. Two mechanisms, both reporting success, both losing
- * the picture.
- *
- * An upload control that silently discards what a customer gave it is worse
- * than no upload control: they believe the bakery has their photo, and nobody
- * finds out until the cake is wrong. So the flow falls back to what does work
- * and is honest about it, which is the order reference plus an address to send
- * the picture to.
- *
- * Turning it back on is this one line, once orders post to the sndr-platform
- * Worker instead: the designed Reynir docket already lives there in
- * src/mail-reynir.ts, Resend carries attachments, and it returns a message id,
- * so delivery becomes something we can actually check rather than assume.
+ * It was off while the form posted to the old relay. If this is ever pointed
+ * at anything that cannot PROVE delivery, turn it off again. An upload control
+ * that silently discards what a customer gave it is worse than none: they
+ * believe the bakery has their photo, and nobody finds out until the cake is
+ * wrong.
  */
-export const PHOTO_UPLOAD_ENABLED = false
+export const PHOTO_UPLOAD_ENABLED = true
 
 /** Icelandic thousands grouping, done by hand. Never ICU/toLocaleString. */
 export function isk(n: number): string {
