@@ -139,6 +139,41 @@ const ORDER_CSS = `
   .rb-ord-choice-price { margin-left:auto; padding-left:12px; font-size:14px; color:${GOLD}; white-space:nowrap;
     font-variant-numeric:tabular-nums; }
   .rb-ord-choice-price[data-free="true"] { color:${FAINT}; font-size:12.5px; }
+
+  /* Size tiles. Eleven kransakaka sizes as full-width rows is a wall to scroll
+     past; as tiles it is three tidy lines with every price still readable. The
+     radio dot is dropped because the tile itself carries the selected state,
+     and a dot inside a small tile is a bullet, not a control. */
+  .rb-ord-choices[data-layout="grid"] { grid-template-columns:repeat(auto-fill, minmax(112px, 1fr)); gap:7px; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice { flex-direction:column; align-items:flex-start;
+    gap:3px; padding:12px 13px; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-mark { display:none; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice-label { font-size:15px; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice-price { margin-left:0; padding-left:0;
+    font-size:12.5px; letter-spacing:.01em; }
+  /* Selection has to survive a colour-blind reader, so the tile also thickens
+     its edge rather than only turning gold. */
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice[data-on="true"] { box-shadow:inset 0 0 0 1px ${GOLD}; }
+  /* A tile that opens a field would trap it in a narrow column. */
+  .rb-ord-choices[data-layout="grid"] > div:has(.rb-ord-extra) { grid-column:1 / -1; }
+
+  /* Size row: one control, and the price it produces sitting beside it at the
+     size a price deserves. The dropdown carries the choosing; the number
+     carries the meaning. */
+  .rb-ord-sizerow { display:flex; align-items:center; gap:18px; margin-top:14px; flex-wrap:wrap; }
+  .rb-ord-sizeselect { flex:1 1 190px; max-width:280px; margin:0; }
+  .rb-ord-sizeprice { display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .rb-ord-sizeprice-num { font-family:${DISPLAY}; font-size:clamp(24px,3vw,31px); line-height:1.05;
+    color:${GOLD}; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .rb-ord-sizeprice-num[data-bump="true"] { animation:rb-ord-bump .34s ${EASE}; }
+  .rb-ord-sizeprice-rate { font-size:12.5px; color:${FAINT}; letter-spacing:.02em; white-space:nowrap; }
+  @media (prefers-reduced-motion: reduce) { .rb-ord-sizeprice-num[data-bump="true"] { animation:none; } }
+  @media (max-width: 560px) {
+    /* Stacking keeps the number full size rather than squeezing it next to a
+       control that already wants the whole width. */
+    .rb-ord-sizerow { gap:12px; }
+    .rb-ord-sizeselect { flex:1 1 100%; max-width:none; }
+  }
   /* The field a choice opens. Indented under its row and sharing the row's
      gold edge, so it reads as part of that choice rather than a new question. */
   .rb-ord-extra { margin:8px 0 2px 14px; padding-left:16px; border-left:2px solid rgba(200,168,119,.34);
@@ -277,6 +312,9 @@ const ORDER_CSS = `
   @media (max-width:520px) {
     .rb-ord-two { grid-template-columns:1fr; gap:0; }
     .rb-ord-choice-price { margin-left:0; padding-left:0; width:100%; }
+    /* Two per row on a phone: three would put "18.600 kr." on two lines. */
+    .rb-ord-choices[data-layout="grid"] { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .rb-ord-choices[data-layout="grid"] .rb-ord-choice-price { width:auto; }
     .rb-ord-choice { flex-wrap:wrap; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -463,6 +501,17 @@ export default function OrderSection({
   /** The cake as configured, so the filling that swaps pears in for cocktail
    *  fruit shows the swap instead of hiding it in a footnote. */
   const layers = useMemo(() => compositionOf(product, picked), [product, picked])
+  /**
+   * Photos in the picker are all-or-nothing.
+   *
+   * One product with a photograph beside two without does not read as "two are
+   * missing a picture", it reads as broken: the row stretches to the tall card
+   * and the other two sit in empty boxes. So the picker shows photos only when
+   * every product has one, and otherwise renders three equal cards that look
+   * deliberate. Photographing the kransakaka brings the images back on their
+   * own, here and in the CMS, with nothing to change.
+   */
+  const showPics = useMemo(() => ORDER_PRODUCTS.every((p) => !!p.image), [ORDER_PRODUCTS])
 
   const { lines, total } = useMemo(() => {
     const out: SlipLine[] = []
@@ -904,7 +953,7 @@ export default function OrderSection({
                         onChange={() => setProductId(p.id)}
                       />
                       <span className="rb-ord-prod-mark" aria-hidden="true"><Check /></span>
-                      {p.image && (
+                      {showPics && p.image && (
                         <span className="rb-ord-prod-pic">
                           <img src={p.image} alt="" loading="lazy" decoding="async" width={1400} height={1400} />
                         </span>
@@ -948,7 +997,56 @@ export default function OrderSection({
                             {group.help ? group.help[lang] : t.chooseUpTo(group.max as number)}
                           </p>
                         )}
-                        <div className="rb-ord-choices">
+                        {group.layout === 'select' ? (
+                          /* One row instead of eleven. The price is not hidden by
+                             the dropdown, it is promoted out of it: chosen size
+                             at display size on the right, rate underneath, and
+                             every option still carries its own price when the
+                             list is open. */
+                          <div className="rb-ord-sizerow">
+                            <select
+                              className="rb-ord-select rb-ord-sizeselect"
+                              value={cur[0] ?? ''}
+                              data-invalid={err ? 'true' : undefined}
+                              aria-invalid={!!err}
+                              aria-label={group.label[lang]}
+                              aria-describedby={err ? `err_g_${group.id}` : undefined}
+                              onChange={(e) => toggle(group, e.target.value)}
+                            >
+                              <option value="" disabled style={{ background: INK }}>
+                                {t.sizePrompt}
+                              </option>
+                              {group.choices.map((choice) => {
+                                const sp =
+                                  typeof choice.serves === 'number' && product.pricePerPerson
+                                    ? product.pricePerPerson * choice.serves
+                                    : null
+                                return (
+                                  <option key={choice.id} value={choice.id} style={{ background: INK }}>
+                                    {choice.label[lang]}
+                                    {sp !== null ? `  ·  ${isk(sp)}` : ''}
+                                  </option>
+                                )
+                              })}
+                            </select>
+                            <div className="rb-ord-sizeprice" aria-live="polite">
+                              {/* No placeholder glyph before a size is picked: a
+                                  dash where a price goes reads as broken, and the
+                                  rate alone already answers "what does it cost". */}
+                              {isSizeGroup && size && (
+                                <span className="rb-ord-sizeprice-num" data-bump={bump}>
+                                  {isk(product.pricePerPerson! * (size.serves as number))}
+                                </span>
+                              )}
+                              {product.pricePerPerson && (
+                                <span className="rb-ord-sizeprice-rate">
+                                  {isk(product.pricePerPerson)} {t.perPerson}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                        <div className="rb-ord-choices" data-layout={group.layout ?? 'list'}>
                           {group.choices.map((choice) => {
                             const on = cur.includes(choice.id)
                             const off = !on && atMax
@@ -1027,6 +1125,7 @@ export default function OrderSection({
                             )
                           })}
                         </div>
+                        )}
                         {err && <p className="rb-ord-err" id={`err_g_${group.id}`} role="alert">{err}</p>}
                         {/* The spec sits under the group that changes it, so the
                             choice and its consequence are never on separate

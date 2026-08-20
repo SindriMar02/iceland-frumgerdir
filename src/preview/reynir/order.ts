@@ -157,6 +157,25 @@ export interface OrderGroup {
   required?: boolean
   /** multi only: cap on how many can be picked. Omitted = no cap. */
   max?: number
+  /**
+   * How the choices are laid out.
+   *
+   * 'grid' packs short labels into compact tiles: good for a handful of short
+   * options like colours.
+   *
+   * 'select' collapses the group to ONE row. A kransakaka has eleven sizes,
+   * and neither eleven stacked rows nor eleven tiles is something anyone wants
+   * to read on the way to the rest of the form. The usual objection to a
+   * dropdown is that it hides the prices, so this layout answers it: the price
+   * of the chosen size is rendered beside the control at display size, the
+   * per-person rate sits under it, and every option carries its own price in
+   * the open list. Picking a size is one tap, and on a phone it is the OS
+   * wheel picker rather than a scroll through a wall of cards.
+   *
+   * Neither grid nor select suits a choice with a note or a field of its own;
+   * those belong in the default list.
+   */
+  layout?: 'list' | 'grid' | 'select'
   choices: OrderChoice[]
 }
 
@@ -331,6 +350,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         id: 'staerd',
         kind: 'single',
         label: { en: 'How many is the cake for?', is: 'Fyrir hvað marga á tertan að vera?' },
+        layout: 'select',
         help: {
           en: 'The smallest marzipan cake we make is for 20.',
           is: 'Minnsta marsipantertan sem við gerum er 20 manna.',
@@ -465,6 +485,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         id: 'litur',
         kind: 'single',
         label: { en: 'Colour, if you have a preference', is: 'Litur, ef þið hafið ósk' },
+        layout: 'grid',
         required: false,
         choices: [
           { id: 'hvit', label: { en: 'White', is: 'Hvít' }, priceDelta: 0 },
@@ -515,6 +536,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         id: 'staerd',
         kind: 'single',
         label: { en: 'How many is it for?', is: 'Fyrir hvað marga á hún að vera?' },
+        layout: 'select',
         required: true,
         choices: [
           { id: 's20', label: { en: 'Serves 20', is: '20 manna' }, priceDelta: 0, serves: 20 },
@@ -562,6 +584,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         id: 'staerd',
         kind: 'single',
         label: { en: 'How many is it for?', is: 'Fyrir hvað marga á hann að vera?' },
+        layout: 'select',
         help: { en: 'Up to 40 people.', is: 'Mest 40 manna.' },
         required: true,
         choices: [
@@ -662,6 +685,8 @@ export interface OrderCopy {
   specTitle: string
   /** Shown in the panel before a filling has been picked. */
   specPending: string
+  /** The empty option at the top of a size dropdown. */
+  sizePrompt: string
   /** Stands in for the price line before a size has been picked, so an
    *  unconfigured per-person cake never renders as 0 kr. */
   slipPickSize: string
@@ -773,6 +798,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     perPerson: 'per person',
     specTitle: 'What is in it',
     specPending: 'Choose a filling to see the whole cake.',
+    sizePrompt: 'Choose a size',
     slipPickSize: 'Choose a size',
     quoteTotal: 'We will quote you',
     quoteNote:
@@ -870,6 +896,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     perPerson: 'á mann',
     specTitle: 'Svona er hún',
     specPending: 'Veldu fyllingu til að sjá tertuna alla.',
+    sizePrompt: 'Veldu stærð',
     slipPickSize: 'Veldu stærð',
     quoteTotal: 'Við gerum tilboð',
     quoteNote:

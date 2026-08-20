@@ -249,7 +249,7 @@ export const QUERY = `{
     "id": id.current, name, blurb, basePrice, pricePerPerson, "sizeGroupId": sizeGroupId.current,
     "compositionGroupId": compositionGroupId.current, composition[]{"id": id.current, label},
     leadDays, inscription, image{asset,hotspot},
-    groups[]{"id": id.current, kind, label, help, required, max,
+    groups[]{"id": id.current, kind, label, help, required, max, layout,
       choices[]{"id": id.current, label, priceDelta, note, serves, quoteOnly, needsPhoto, freeText,
         adds, swap{"layerId": layerId.current, label}}}
   },
@@ -306,6 +306,7 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
             help: g.help ? biSelf(g.help) : undefined,
             required: g.required !== false,
             max: typeof g.max === 'number' ? g.max : undefined,
+            layout: g.layout === 'grid' || g.layout === 'select' ? g.layout : undefined,
             choices: Array.isArray(g.choices)
               ? g.choices.map((c: any): OrderChoice => ({
                   id: String(c.id || ''),

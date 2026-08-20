@@ -82,6 +82,7 @@ const docs = PRODUCTS.map((p, i) => {
       ...(g.help ? { help: locT(g.help) } : {}),
       required: g.required !== false,
       ...(g.max ? { max: g.max } : {}),
+      ...(g.layout ? { layout: g.layout } : {}),
       choices: g.choices.map((c) => ({
         _type: 'orderChoice',
         _key: c.id,
