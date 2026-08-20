@@ -367,7 +367,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
       { id: 'sulta', label: { en: 'Raspberry jam', is: 'Hindberjasulta' } },
       { id: 'botn', label: { en: 'Marzipan base', is: 'Marsipanbotn' } },
     ],
-    image: `${import.meta.env.BASE_URL}reynir/order/terta.webp`,
+    image: `${import.meta.env.BASE_URL}reynir/order/marsipanterta.webp`,
     /* 48 hours (owner, 2026-08-20). */
     leadDays: 2,
     inscription: {
@@ -566,6 +566,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
     basePrice: 0,
     pricePerPerson: 930,
     sizeGroupId: 'staerd',
+    image: `${import.meta.env.BASE_URL}reynir/order/kransakaka.webp`,
     leadDays: 2,
     groups: [
       {
@@ -615,6 +616,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
     basePrice: 0,
     pricePerPerson: 555,
     sizeGroupId: 'staerd',
+    image: `${import.meta.env.BASE_URL}reynir/order/ricecrispies.webp`,
     leadDays: 2,
     groups: [
       {
