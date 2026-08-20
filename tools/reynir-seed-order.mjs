@@ -80,7 +80,8 @@ const docs = PRODUCTS.map((p, i) => {
       kind: g.kind,
       label: loc(g.label),
       ...(g.help ? { help: locT(g.help) } : {}),
-      required: g.required !== false,
+      // Same opt-in rule as the merge: absent means optional.
+      required: g.required === true,
       ...(g.max ? { max: g.max } : {}),
       ...(g.layout ? { layout: g.layout } : {}),
       choices: g.choices.map((c) => ({

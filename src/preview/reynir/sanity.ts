@@ -304,7 +304,10 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
             kind: g.kind === 'multi' ? 'multi' : 'single',
             label: biSelf(g.label),
             help: g.help ? biSelf(g.help) : undefined,
-            required: g.required !== false,
+            // Opt IN, never out. `!== false` made every group whose flag was
+            // simply absent compulsory, which is how the allergy question
+            // ended up marked REQUIRED: nobody has to have an allergy.
+            required: g.required === true,
             max: typeof g.max === 'number' ? g.max : undefined,
             layout: g.layout === 'grid' || g.layout === 'select' ? g.layout : undefined,
             choices: Array.isArray(g.choices)

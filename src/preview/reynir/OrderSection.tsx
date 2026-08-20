@@ -259,6 +259,17 @@ const ORDER_CSS = `
     background:rgba(11,10,9,.5); border:1px solid ${HAIR}; border-radius:4px; padding:13px 14px;
     transition:border-color .2s ${EASE}, background .2s ${EASE}; color-scheme:dark; }
   .rb-ord-textarea { min-height:92px; resize:vertical; line-height:1.55; }
+  /* Date and time inputs size themselves from their own contents on iOS and
+     ignore a percentage width, so the collection-date field grew past the
+     right edge of the phone while every other field stopped at the margin.
+     min-width:0 is the part that actually does it: without it the intrinsic
+     width wins over width:100%. */
+  .rb-ord-input[type="date"], .rb-ord-input[type="time"] {
+    -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; }
+  .rb-ord-input[type="date"]::-webkit-date-and-time-value { text-align:left; margin:0; }
+  .rb-ord-input[type="date"]::-webkit-calendar-picker-indicator { margin:0 0 0 auto; }
+  /* Belt and braces: nothing inside the form may be wider than the form. */
+  .rb-ord-formwrap input, .rb-ord-formwrap select, .rb-ord-formwrap textarea { max-width:100%; }
   .rb-ord-input::placeholder, .rb-ord-textarea::placeholder { color:${DIM}; opacity:1; }
   .rb-ord-input:hover, .rb-ord-select:hover, .rb-ord-textarea:hover { border-color:rgba(238,211,170,.3); }
   .rb-ord-input:focus-visible, .rb-ord-select:focus-visible, .rb-ord-textarea:focus-visible {
@@ -269,7 +280,9 @@ const ORDER_CSS = `
   /* A settled, unchangeable value — shown instead of a pointless one-option
      dropdown when there is only one collection point. Reads as information,
      not as a control the visitor failed to notice they could change. */
-  .rb-ord-readout { font-family:${BODY}; font-size:16px; color:${IVORY}; padding:13px 0 0; line-height:1.4; }
+  /* The label already carries its own bottom margin; another 13px on top of it
+     floated the address away from the thing naming it. */
+  .rb-ord-readout { font-family:${BODY}; font-size:16px; color:${IVORY}; padding:2px 0 0; line-height:1.4; }
   .rb-ord-two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
   /* the slip */
