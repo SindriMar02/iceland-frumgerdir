@@ -24,6 +24,7 @@ import type { Lang } from './data'
 import {
   ORDER_FORM_TO,
   ORDER_T,
+  PHOTO_UPLOAD_ENABLED,
   PLACEHOLDER_DATA,
   compositionOf,
   freeTextChoices,
@@ -121,10 +122,16 @@ const ORDER_CSS = `
      whole fieldset, legend included. */
   .rb-ord-group { margin:32px 0 0; padding:0; border:0; }
   .rb-ord-groups > .rb-ord-group:first-child { margin-top:20px; }
-  .rb-ord-legend { padding:0; font-family:${DISPLAY}; font-size:clamp(19px,2vw,23px); color:${IVORY}; }
-  /* Flex, so a tag that does not fit beside a long question wraps to the left
-     margin instead of hanging indented under it like a stray word. */
-  .rb-ord-legend-row { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
+  .rb-ord-legend { padding:0; width:100%; font-family:${DISPLAY}; font-size:clamp(19px,2vw,23px); color:${IVORY}; }
+  /* The tag is pinned to the top RIGHT of the question, never set inline after
+     it. Inline, it sat beside short headings and dropped onto its own line
+     under long ones, so half the questions looked one way and half the other
+     and the long ones ended with a stray word. Pinned, every question reads
+     identically however the heading wraps. */
+  .rb-ord-legend-row { display:flex; align-items:baseline; justify-content:space-between;
+    gap:14px; width:100%; }
+  .rb-ord-legend-text { flex:1 1 auto; min-width:0; }
+  .rb-ord-tag { flex:none; }
   .rb-ord-help { font-size:13.5px; color:${DIM}; margin:6px 0 0; line-height:1.5; }
   .rb-ord-tag { font-family:${BODY}; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
     color:${FAINT}; white-space:nowrap; }
@@ -1245,7 +1252,7 @@ export default function OrderSection({
                       <fieldset className="rb-ord-group" key={group.id}>
                         <legend className="rb-ord-legend">
                           <span className="rb-ord-legend-row">
-                            {group.label[lang]}
+                            <span className="rb-ord-legend-text">{group.label[lang]}</span>
                             <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
                           </span>
                         </legend>
@@ -1286,21 +1293,20 @@ export default function OrderSection({
                                 )
                               })}
                             </select>
-                            <div className="rb-ord-sizeprice" aria-live="polite">
-                              {/* No placeholder glyph before a size is picked: a
-                                  dash where a price goes reads as broken, and the
-                                  rate alone already answers "what does it cost". */}
-                              {isSizeGroup && size && (
+                            {/* Only once there is a price. The rate on its own,
+                                hanging under an empty dropdown, was a line of
+                                text belonging to nothing. It lives in the help
+                                line above until a size makes it a real price. */}
+                            {isSizeGroup && size && (
+                              <div className="rb-ord-sizeprice" aria-live="polite">
                                 <span className="rb-ord-sizeprice-num" data-bump={bump}>
                                   {isk(product.pricePerPerson! * (size.serves as number))}
                                 </span>
-                              )}
-                              {product.pricePerPerson && (
                                 <span className="rb-ord-sizeprice-rate">
-                                  {isk(product.pricePerPerson)} {t.perPerson}
+                                  {isk(product.pricePerPerson!)} {t.perPerson}
                                 </span>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                         <div className="rb-ord-choices" data-layout={group.layout ?? 'list'}>
@@ -1379,7 +1385,7 @@ export default function OrderSection({
                                     {/* The upload belongs to the choice that
                                         needs a picture, not to a general
                                         attachments box further down the form. */}
-                                    {choice.needsPhoto && (
+                                    {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && (
                                       <div className="rb-ord-photo">
                                         {photo ? (
                                           <div className="rb-ord-photo-has">

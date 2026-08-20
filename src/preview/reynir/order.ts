@@ -63,6 +63,32 @@ export const PLACEHOLDER_DATA = false
  */
 export const ORDER_FORM_TO = 'sindri@klubbr.is'
 
+/**
+ * Whether the form accepts a photo directly.
+ *
+ * OFF, and it must stay off until an attachment is proven to ARRIVE.
+ *
+ * The relay cannot carry one. Its JSON endpoint accepts the file, answers
+ * {"success":"true"} and delivers the mail with nothing attached, which their
+ * own documentation confirms: files do not work with AJAX submissions. Its
+ * plain endpoint is documented to keep files, and a multipart post to it via a
+ * hidden iframe completed and redirected back to our origin, and the photo
+ * still did not arrive. Two mechanisms, both reporting success, both losing
+ * the picture.
+ *
+ * An upload control that silently discards what a customer gave it is worse
+ * than no upload control: they believe the bakery has their photo, and nobody
+ * finds out until the cake is wrong. So the flow falls back to what does work
+ * and is honest about it, which is the order reference plus an address to send
+ * the picture to.
+ *
+ * Turning it back on is this one line, once orders post to the sndr-platform
+ * Worker instead: the designed Reynir docket already lives there in
+ * src/mail-reynir.ts, Resend carries attachments, and it returns a message id,
+ * so delivery becomes something we can actually check rather than assume.
+ */
+export const PHOTO_UPLOAD_ENABLED = false
+
 /** Icelandic thousands grouping, done by hand. Never ICU/toLocaleString. */
 export function isk(n: number): string {
   const s = Math.round(Math.abs(n)).toString()
@@ -359,8 +385,8 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         label: { en: 'How many is the cake for?', is: 'Fyrir hvað marga á tertan að vera?' },
         layout: 'select',
         help: {
-          en: 'The smallest marzipan cake we make is for 20.',
-          is: 'Minnsta marsipantertan sem við gerum er 20 manna.',
+          en: '930 kr. per person. The smallest marzipan cake we make is for 20.',
+          is: '930 kr. á mann. Minnsta marsipantertan sem við gerum er 20 manna.',
         },
         required: true,
         choices: [
@@ -546,6 +572,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         id: 'staerd',
         kind: 'single',
         label: { en: 'How many is it for?', is: 'Fyrir hvað marga á hún að vera?' },
+        help: { en: '930 kr. per person.', is: '930 kr. á mann.' },
         layout: 'select',
         required: true,
         choices: [
@@ -595,7 +622,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         kind: 'single',
         label: { en: 'How many is it for?', is: 'Fyrir hvað marga á hann að vera?' },
         layout: 'select',
-        help: { en: 'Up to 40 people.', is: 'Mest 40 manna.' },
+        help: { en: '555 kr. per person, up to 40 people.', is: '555 kr. á mann, mest 40 manna.' },
         required: true,
         choices: [
           { id: 's20', label: { en: 'Serves 20', is: '20 manna' }, priceDelta: 0, serves: 20 },
