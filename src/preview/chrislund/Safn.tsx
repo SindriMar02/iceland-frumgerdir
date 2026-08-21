@@ -7,12 +7,12 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  CONTACT, JSON_LD, SERIES_META, WORKS, seriesName, srcSet,
+  CONTACT, JSON_LD, SERIES_META, WORKS, arOf, seriesName, srcSet,
 } from './data'
 import type { Work } from './data'
 import {
-  ClFoot, ClNav, CursorRing, Headline, Rule, SHARED_CSS,
-  createLenis, fluid, reduced,
+  BackLink, ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
+  buildEntrance, createLenis, createRevealSweep, fluid, reduced,
 } from './shared'
 import type { SmoothScroller } from './shared'
 
@@ -34,6 +34,7 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
     if (!el) return
     if (reduced()) {
       el.classList.add('cl-static')
+      el.classList.remove('cl-pre')
       return
     }
     el.classList.add('cl-js')
@@ -42,20 +43,14 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
       { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     )
-    const observe = () => {
-      el.querySelectorAll('.cl-rv:not(.is-in)').forEach((n) => {
-        if (n.getBoundingClientRect().top < window.innerHeight) n.classList.add('is-in')
-        io.observe(n)
-      })
-    }
-    observe()
+    el.querySelectorAll('.cl-rv:not(.is-in)').forEach((n) => {
+      if (n.getBoundingClientRect().top < window.innerHeight) n.classList.add('is-in')
+      io.observe(n)
+    })
 
-    const sweep = () => {
-      ScrollTrigger.update()
-      el.querySelectorAll('.cl-rv:not(.is-in)').forEach((n) => {
-        if (n.getBoundingClientRect().top < window.innerHeight) n.classList.add('is-in')
-      })
-    }
+    const entrance = buildEntrance(el)
+    const revealSweep = createRevealSweep(el)
+    const sweep = () => { ScrollTrigger.update(); revealSweep.tick() }
     window.addEventListener('scroll', sweep, { passive: true })
 
     let lenis: SmoothScroller | null = null
@@ -75,6 +70,7 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
     return () => {
       disposed = true
       io.disconnect()
+      entrance.kill()
       if (tick) gsap.ticker.remove(tick)
       window.removeEventListener('scroll', sweep)
       lenis?.destroy()
@@ -83,6 +79,10 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
   }, [ready, root])
 }
 
+/* Both grids here are already grouped by series, so a series tag on every
+   thumbnail is noise; the caption is the wall label and nothing else. Widths
+   come from each photograph's own ratio (see .cl-jrow) so a row of mixed
+   crops hangs at ONE height and the captions land on one line. */
 function Thumb({ w, active, onPick, sizes }: {
   w: Work; active: boolean; onPick: (id: string) => void; sizes: string
 }) {
@@ -90,6 +90,7 @@ function Thumb({ w, active, onPick, sizes }: {
     <button
       type="button"
       className={`cl-thumb ${active ? 'is-selected' : ''}`}
+      style={{ '--ar': arOf(w.photo.ratio) } as React.CSSProperties}
       onClick={() => onPick(w.id)}
       data-cursor="Skoða"
       aria-label={`${w.title}, ${seriesName(w.series)}`}
@@ -102,7 +103,6 @@ function Thumb({ w, active, onPick, sizes }: {
       </span>
       <span className="cl-thumb-cap">
         <span className="cl-thumb-title">{w.title}</span>
-        <span className="cl-thumb-series">{seriesName(w.series)}</span>
       </span>
     </button>
   )
@@ -112,6 +112,8 @@ export default function ChrisLundSafnPage() {
   const [ready, setReady] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const [params, setParams] = useSearchParams()
+  /* the holding class must be on the first painted frame, never set in an effect */
+  const holdRef = useRef(!reduced())
 
   const selected = useMemo(() => {
     const id = params.get('verk')
@@ -156,19 +158,45 @@ export default function ChrisLundSafnPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready])
 
+  const scroller = () =>
+    (window as unknown as { __clLenis?: { scrollTo: (t: number | Element, o?: object) => void } | null }).__clLenis
+
   const pick = (id: string) => {
     setParams({ verk: id }, { replace: false })
-    const lenis = (window as unknown as { __clLenis?: { scrollTo: (t: number | Element, o?: object) => void } | null }).__clLenis
+    const lenis = scroller()
     if (lenis && !reduced()) lenis.scrollTo(0)
     else window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' })
   }
+
+  const jumpToSeries = (key: string) => {
+    const el = document.getElementById(`rod-${key}`)
+    if (!el) return
+    const lenis = scroller()
+    if (lenis && !reduced()) lenis.scrollTo(el)
+    else el.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' })
+  }
+
+  /* A series with a single work (Vitni) unmounts the siblings section, so the
+     next selection remounts a .cl-rv the mount-time observer never saw. Catch
+     those up whenever the selection changes, or they stay clipped forever. */
+  useEffect(() => {
+    if (reduced()) return
+    const el = rootRef.current
+    if (!el) return
+    const t = window.setTimeout(() => {
+      el.querySelectorAll('.cl-rv:not(.is-in)').forEach((n) => {
+        if (n.getBoundingClientRect().top < window.innerHeight * 1.2) n.classList.add('is-in')
+      })
+    }, 80)
+    return () => window.clearTimeout(t)
+  }, [selected])
 
   const idx = WORKS.findIndex((w) => w.id === selected.id)
   const prev = WORKS[(idx - 1 + WORKS.length) % WORKS.length]
   const next = WORKS[(idx + 1) % WORKS.length]
 
   return (
-    <div ref={rootRef} className="cl-root cl-safn-root">
+    <div ref={rootRef} className={`cl-root cl-safn-root ${holdRef.current ? 'cl-pre' : ''}`}>
       <style>{SHARED_CSS + CSS}</style>
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
@@ -179,20 +207,23 @@ export default function ChrisLundSafnPage() {
       <main>
       {/* the stage: the chosen work hung on ink, uncropped */}
       <section className="cl-stage" aria-label="Valið verk">
-        <div className="cl-stage-media">
+        <div className="cl-stage-back">
+          <BackLink light fallback={ROUTE} label="Til baka á vegginn" />
+        </div>
+        <div className="cl-stage-media" data-cl-enter="media">
           <figure className="cl-stage-fig" key={selected.id}>
             <img
               src={selected.photo.src} srcSet={srcSet(selected.photo.src)}
               sizes="(max-width: 991px) 100vw, 62vw"
-              alt={selected.photo.alt} decoding="async"
+              alt={selected.photo.alt} decoding="async" {...{ fetchpriority: 'high' }}
             />
           </figure>
         </div>
         <div className="cl-stage-rail">
-          <p className="cl-stage-kicker">Safnið · {seriesName(selected.series)}</p>
-          <Headline as="h1" key={`t-${selected.id}`} text={selected.title} size={64} floor={30} />
-          <p className="cl-body cl-stage-note">{selected.note}</p>
-          <dl className="cl-stage-facts">
+          <p className="cl-stage-kicker" data-cl-enter="item">Safnið · {seriesName(selected.series)}</p>
+          <Headline as="h1" key={`t-${selected.id}`} text={selected.title} size={64} floor={30} enter />
+          <p className="cl-body cl-stage-note" data-cl-enter="item">{selected.note}</p>
+          <dl className="cl-stage-facts" data-cl-enter="item">
             <div>
               <dt>Myndaröð</dt>
               <dd>{seriesName(selected.series)}</dd>
@@ -204,10 +235,10 @@ export default function ChrisLundSafnPage() {
               </div>
             )}
           </dl>
-          <div className="cl-stage-ctas">
+          <div className="cl-stage-ctas" data-cl-enter="item">
             <a className="cl-stage-tel" href={CONTACT.phoneHref}>Spyrja um verkið · {CONTACT.phone}</a>
           </div>
-          <div className="cl-stage-steps" aria-label="Fletta verkum">
+          <div className="cl-stage-steps" data-cl-enter="item" aria-label="Fletta verkum">
             <button type="button" className="cl-step" onClick={() => pick(prev.id)}>&larr; {prev.title}</button>
             <button type="button" className="cl-step cl-step-next" onClick={() => pick(next.id)}>{next.title} &rarr;</button>
           </div>
@@ -217,11 +248,18 @@ export default function ChrisLundSafnPage() {
       {/* the same series, directly beneath the chosen work */}
       {siblings.length > 0 && (
         <section className="cl-sibl" aria-label="Svipuð verk">
-          <Rule label={`Fleiri úr ${seriesName(selected.series)}`} />
-          <div className="cl-sibl-grid">
+          <Rule
+            label="Meira úr sömu röð"
+            right={(
+              <button type="button" className="cl-rulehead-jump" onClick={() => jumpToSeries(selected.series)}>
+                {seriesName(selected.series)}, öll röðin ({siblings.length + 1}) &darr;
+              </button>
+            )}
+          />
+          <div className="cl-jrow cl-jrow-sibl">
             {siblings.map((w) => (
               <Thumb key={w.id} w={w} active={false} onPick={pick}
-                sizes="(max-width: 760px) 92vw, (max-width: 1200px) 44vw, 30vw" />
+                sizes="(max-width: 700px) 92vw, (max-width: 1200px) 46vw, 34vw" />
             ))}
           </div>
         </section>
@@ -242,10 +280,10 @@ export default function ChrisLundSafnPage() {
                 <h3 className="cl-cat-series-name">{s.name}</h3>
                 <span className="cl-cat-series-note">{s.note}</span>
               </div>
-              <div className="cl-cat-grid">
+              <div className="cl-jrow cl-jrow-cat">
                 {works.map((w) => (
                   <Thumb key={w.id} w={w} active={w.id === selected.id} onPick={pick}
-                    sizes="(max-width: 760px) 92vw, (max-width: 1200px) 44vw, 22vw" />
+                    sizes="(max-width: 700px) 92vw, (max-width: 1200px) 34vw, 25vw" />
                 ))}
               </div>
             </div>
@@ -272,10 +310,15 @@ const CSS = `
 
 /* the stage */
 .cl-stage {
-  display: grid; grid-template-columns: 1.6fr 1fr; gap: calc(var(--u) * 60);
+  display: grid; grid-template-columns: 1.6fr 1fr;
+  column-gap: calc(var(--u) * 60); row-gap: calc(var(--u) * 24);
+  grid-template-rows: auto 1fr;
   align-items: center; min-height: 100svh; background: #131311; color: #EFEDE7;
-  padding: calc(var(--u) * 110) calc(var(--u) * 34) calc(var(--u) * 70);
+  padding: calc(var(--u) * 96) calc(var(--u) * 34) calc(var(--u) * 70);
 }
+.cl-stage-back { grid-column: 1 / -1; grid-row: 1; align-self: start; }
+.cl-stage-media { grid-row: 2; }
+.cl-stage-rail { grid-row: 2; }
 .cl-stage-media { display: grid; place-items: center; min-height: 0; }
 .cl-stage-fig { margin: 0; width: 100%; display: grid; place-items: center; }
 .cl-stage-fig img {
@@ -314,32 +357,56 @@ const CSS = `
 .cl-step:hover { color: #EFEDE7; }
 
 /* siblings + catalogue share the paper ground */
-.cl-sibl { background: var(--cl-paper); padding: calc(var(--u) * 110) calc(var(--u) * 34) calc(var(--u) * 40); }
-.cl-sibl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 40); align-items: start; }
+.cl-sibl { background: var(--cl-paper); padding: calc(var(--u) * 76) calc(var(--u) * 34) calc(var(--u) * 30); }
 
-.cl-cat { background: var(--cl-paper); padding: calc(var(--u) * 110) calc(var(--u) * 34) calc(var(--u) * 60); }
+/* JUSTIFIED ROWS — the gallery-wall fix for mixed crops.
+   In equal-width columns, photographs of different shapes end at different
+   heights and the captions land on three different lines, which reads as an
+   accident. Here every item's width is proportional to its own aspect ratio
+   (basis AND grow both scale with --ar), so a row resolves to width = ar * K
+   for one shared K: every photograph in the row is exactly the same height,
+   every caption sits on one line, and the row is flush left and right. It
+   also means a series of any length lays out with no empty cell, because
+   there are no cells. */
+.cl-jrow { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 30); align-items: flex-start; }
+.cl-jrow .cl-thumb {
+  flex-grow: var(--ar); flex-shrink: 0;
+  flex-basis: calc(var(--ar) * var(--rowh));
+  /* keeps a short last row from stretching one print across the page */
+  max-width: calc(var(--ar) * var(--rowh) * 1.42);
+}
+.cl-jrow-sibl { --rowh: clamp(184px, 19vw, 292px); }
+.cl-jrow-cat { --rowh: clamp(150px, 13.6vw, 208px); }
+
+.cl-cat { background: var(--cl-paper); padding: calc(var(--u) * 90) calc(var(--u) * 34) calc(var(--u) * 60); }
 .cl-cat-head { margin-bottom: calc(var(--u) * 40); }
 .cl-cat-series { padding: calc(var(--u) * 30) 0 calc(var(--u) * 20); }
 .cl-cat-series { scroll-margin-top: calc(var(--u) * 70 + 24px); }
 .cl-cat-series-head { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; margin-bottom: calc(var(--u) * 24); padding-top: 14px; border-top: 1px solid var(--cl-hair); }
 .cl-cat-series-name { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(30, 21)}; margin: 0; }
 .cl-cat-series-note { font-size: ${fluid(13.5, 12.5)}; color: var(--cl-mute); }
-.cl-cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 34); align-items: start; }
 
 /* thumbnails */
 .cl-thumb {
-  display: block; width: 100%; padding: 0; margin: 0; background: none; border: none;
+  display: block; padding: 0; margin: 0; background: none; border: none;
   text-align: left; color: inherit; cursor: pointer; font-family: inherit;
 }
 .cl-thumb-media { display: block; overflow: hidden; background: #E4E2DB; }
-.cl-thumb-media img { width: 100%; height: auto; display: block; transition: transform .8s cubic-bezier(.23,1,.32,1), filter .5s; }
+.cl-thumb-media img { width: 100%; height: auto; display: block; transition: transform .8s cubic-bezier(.23,1,.32,1); }
 @media (hover: hover) and (pointer: fine) {
   .cl-thumb:hover .cl-thumb-media img { transform: scale(1.035); }
 }
-.cl-thumb-cap { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 10px; }
-.cl-thumb-title { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(17, 14.5)}; transition: color .3s; }
-.cl-thumb-series { flex: none; font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11, 10.5)}; letter-spacing: .13em; text-transform: uppercase; color: var(--cl-mute); }
+.cl-thumb-cap { display: block; padding-top: 10px; }
+.cl-thumb-title { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(16.5, 14.5)}; transition: color .3s; }
 .cl-thumb:hover .cl-thumb-title { color: var(--cl-gold-text); }
+
+/* the jump from a work's siblings to that whole series in the catalogue */
+.cl-rulehead-jump {
+  background: none; border: none; padding: 0; cursor: pointer; color: var(--cl-gold-text);
+  font: inherit; letter-spacing: inherit; text-transform: inherit;
+  transition: color .3s cubic-bezier(.16,1,.3,1);
+}
+.cl-rulehead-jump:hover { color: var(--cl-ink); }
 .cl-thumb.is-selected .cl-thumb-media { outline: 2px solid var(--cl-gold); outline-offset: 4px; }
 .cl-thumb.is-selected .cl-thumb-title::after { content: ' · valið'; font-family: 'Space Mono', ui-monospace, monospace; font-size: .72em; letter-spacing: .1em; text-transform: uppercase; color: var(--cl-gold-text); }
 
@@ -355,13 +422,21 @@ const CSS = `
 
 /* responsive */
 @media (max-width: 991px) {
-  .cl-stage { grid-template-columns: 1fr; gap: calc(var(--u) * 30); min-height: 0; padding-top: calc(var(--u) * 90); }
+  .cl-stage {
+    grid-template-columns: 1fr; grid-template-rows: auto auto auto;
+    row-gap: calc(var(--u) * 26); min-height: 0; padding-top: calc(var(--u) * 84);
+  }
+  .cl-stage-media { grid-row: 2; }
+  .cl-stage-rail { grid-row: 3; }
   .cl-stage-fig img { max-height: 62svh; }
-  .cl-sibl-grid { grid-template-columns: repeat(2, 1fr); }
-  .cl-cat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* below the point where a justified row can hold two prints, one print per
+   row: two thumbnails on a phone are smaller than the work deserves */
+@media (max-width: 700px) {
+  .cl-jrow { gap: 26px; }
+  .cl-jrow .cl-thumb { flex: 1 1 100%; max-width: none; }
 }
 @media (max-width: 640px) {
   .cl-stage, .cl-sibl, .cl-cat, .cl-safn-close { padding-left: 20px; padding-right: 20px; }
-  .cl-sibl-grid, .cl-cat-grid { grid-template-columns: 1fr; gap: 26px; }
 }
 `

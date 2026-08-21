@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { CONTACT } from './data'
 
 /* ── Shared chrome for the Christopher Lund pages ───────────────────────────
-   One token set, one nav, one cursor, one reveal system: the front page, the
-   gallery (safn) and the three service pages must read as one building.
-   Everything stays prefix-scoped to .cl- ([[no-style-bleed-between-designs]]). */
+   One token set, one nav, one cursor, one reveal system, one opening
+   sequence: the front page, the gallery (safn) and the three service pages
+   must read as one building. Everything stays prefix-scoped to .cl-
+   ([[no-style-bleed-between-designs]]). */
 
 export const PAPER = '#F5F4F1'
 export const INK = '#191917'
@@ -48,15 +49,85 @@ export const createLenis = async (): Promise<SmoothScroller | null> => {
   return new Lenis({ duration: 1.1, smoothWheel: true }) as unknown as SmoothScroller
 }
 
+/* ── reveal backstop ────────────────────────────────────────────────────────
+   IntersectionObserver is the primary trigger; this sweep only catches
+   elements a chaotic scroll skipped entirely between painted frames. The
+   naive version measured EVERY unrevealed element on EVERY scroll frame,
+   which is the exact main-thread cost the Sandholt purge removed
+   ([[sandholt-wordmark-lag-purge]]). So: throttle to 5x/sec, keep a cached
+   list, and prune it as elements resolve. */
+export function createRevealSweep(root: HTMLElement) {
+  let pending: Element[] = []
+  let last = 0
+  const refresh = () => { pending = Array.from(root.querySelectorAll('.cl-rv:not(.is-in)')) }
+  refresh()
+  return {
+    refresh,
+    tick() {
+      if (!pending.length) return
+      const now = performance.now()
+      if (now - last < 200) return
+      last = now
+      const vh = window.innerHeight
+      const still: Element[] = []
+      for (const el of pending) {
+        if (el.getBoundingClientRect().top < vh) el.classList.add('is-in')
+        else still.push(el)
+      }
+      pending = still
+    },
+  }
+}
+
+/* ── the opening sequence ───────────────────────────────────────────────────
+   ONE timeline so the parts are genuinely synchronised rather than four
+   independent tweens that drift: the photograph settles and the header
+   arrives together, the wordmark rises out of it, the reading text last.
+
+   The resting state in CSS is the VISIBLE one. `.cl-pre` (added during the
+   very first render, never in an effect) holds the from-state so there is no
+   flash before JS runs, and the class comes off in the same frame the
+   timeline stamps its own from-values. Nothing here is gated on rAF, which
+   would strand the page in a backgrounded tab. */
+export function buildEntrance(root: HTMLElement): gsap.core.Timeline {
+  const tl = gsap.timeline()
+  const media = root.querySelector<HTMLElement>('[data-cl-enter="media"]')
+  const nav = root.querySelector<HTMLElement>('.cl-nav')
+  const words = root.querySelectorAll<HTMLElement>('[data-cl-enter="word"] .cl-word')
+  const items = root.querySelectorAll<HTMLElement>('[data-cl-enter="item"]')
+
+  if (media) {
+    tl.fromTo(media, { autoAlpha: 0, scale: 1.06 },
+      { autoAlpha: 1, scale: 1, duration: 1.7, ease: 'expo.out' }, 0)
+  }
+  if (nav) {
+    tl.fromTo(nav, { autoAlpha: 0, y: -18 },
+      { autoAlpha: 1, y: 0, duration: 1, ease: 'expo.out' }, 0.1)
+  }
+  if (words.length) {
+    tl.fromTo(words, { yPercent: 118, autoAlpha: 0 },
+      { yPercent: 0, autoAlpha: 1, duration: 1.15, ease: 'expo.out', stagger: 0.07 }, 0.34)
+  }
+  if (items.length) {
+    tl.fromTo(items, { y: 22, autoAlpha: 0 },
+      { y: 0, autoAlpha: 1, duration: 0.9, ease: 'expo.out', stagger: 0.09 }, 0.56)
+  }
+  /* every fromTo above has already stamped its from-state inline, so dropping
+     the holding class cannot flash */
+  root.classList.remove('cl-pre')
+  return tl
+}
+
 /* ── primitives ────────────────────────────────────────────────────────── */
 
-export function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }: {
+export function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure, enter }: {
   text: string; size: number; floor: number
-  as?: 'h1' | 'h2' | 'h3'; className?: string; measure?: number
+  as?: 'h1' | 'h2' | 'h3'; className?: string; measure?: number; enter?: boolean
 }) {
   return (
     <Tag
       data-cl-headline
+      data-cl-enter={enter ? 'word' : undefined}
       aria-label={text}
       className={`cl-headline ${className}`}
       style={{
@@ -75,12 +146,40 @@ export function Headline({ text, size, floor, as: Tag = 'h2', className = '', me
 }
 
 /** Drawn-rule section head (Búðir's SectionHead, gallery-labelled). */
-export function Rule({ label }: { label: string }) {
+export function Rule({ label, right }: { label: string; right?: React.ReactNode }) {
   return (
     <div className="cl-rulehead cl-rv">
       <span className="cl-rule" aria-hidden="true" />
-      <span className="cl-rulehead-label">{label}</span>
+      <span className="cl-rulehead-row">
+        <span className="cl-rulehead-label">{label}</span>
+        {right ? <span className="cl-rulehead-right">{right}</span> : null}
+      </span>
     </div>
+  )
+}
+
+/* ── backtracking ───────────────────────────────────────────────────────────
+   A work opened from the wall has to be closeable. If this entry came from
+   inside the site there is real history to step back through (and the front
+   page restores the exact spot on the wall it was left at); on a cold deep
+   link there is none, so the control routes to a sensible parent instead of
+   dumping the visitor out of the site. React Router stamps the very first
+   entry with key 'default', which is the honest test for which case we are
+   in. */
+export function BackLink({ fallback, label = 'Til baka', light = false }: {
+  fallback: string; label?: string; light?: boolean
+}) {
+  const navigate = useNavigate()
+  const { key } = useLocation()
+  const go = () => {
+    if (key !== 'default') navigate(-1)
+    else navigate(fallback)
+  }
+  return (
+    <button type="button" className={`cl-back ${light ? 'is-light' : ''}`} onClick={go}>
+      <span className="cl-back-arrow" aria-hidden="true">&larr;</span>
+      <span>{label}</span>
+    </button>
   )
 }
 
@@ -122,10 +221,10 @@ export function ClNav({ home, onAnchor, tone = 'blend' }: {
 
 /* ── the circle cursor Chris asked for ──────────────────────────────────────
    A small gold dot that follows the pointer; over anything tagged
-   [data-cursor] it opens into a frosted hairline circle carrying the
-   element's own label ("Skoða", "Opna"...). Fine pointers only, never under
-   reduced motion; the lerped position is written straight to the node via
-   gsap's ticker, never through React state. */
+   [data-cursor] it opens into a hairline circle carrying the element's own
+   label ("Skoða", "Opna"...). Fine pointers only, never under reduced
+   motion; the lerped position is written straight to the node via gsap's
+   ticker, never through React state. */
 
 export function CursorRing() {
   const ref = useRef<HTMLDivElement>(null)
@@ -137,11 +236,20 @@ export function CursorRing() {
     const label = labelRef.current
     if (!el || !label) return
 
-    let x = 0; let y = 0; let tx = 0; let ty = 0; let live = false
+    let x = 0; let y = 0; let tx = 0; let ty = 0; let live = false; let grown = false
+    /* quickSetter keeps the per-frame write off the style-parsing path */
+    const put = gsap.quickSetter(el, 'css') as (v: object) => void
     const tick = () => {
-      x += (tx - x) * 0.18
-      y += (ty - y) * 0.18
-      el.style.transform = `translate3d(${(x - 52).toFixed(1)}px, ${(y - 52).toFixed(1)}px, 0)`
+      const dx = tx - x
+      const dy = ty - y
+      /* A lerp only ever approaches its target, so without this gate the ring
+         keeps writing a transform every frame forever -- including through
+         every scroll, when the pointer is parked and nothing is moving. A
+         parked cursor must cost nothing. */
+      if (dx * dx + dy * dy < 0.02) return
+      x += dx * 0.18
+      y += dy * 0.18
+      put({ x: x - 52, y: y - 52 })
     }
     gsap.ticker.add(tick)
 
@@ -149,16 +257,27 @@ export function CursorRing() {
       tx = e.clientX; ty = e.clientY
       if (!live) { live = true; x = tx; y = ty; el.classList.add('is-live') }
     }
+    /* pointerover fires for every element that slides under a STILL pointer
+       during a scroll, so this runs constantly on the pinned wall; only touch
+       the class list when the state actually flips. */
     const over = (e: Event) => {
       const t = (e.target as Element | null)?.closest?.('[data-cursor]')
-      if (t) {
+      if (t && !grown) {
+        grown = true
         label.textContent = t.getAttribute('data-cursor') || ''
         el.classList.add('is-grown')
-      } else {
+      } else if (t && grown) {
+        const next = t.getAttribute('data-cursor') || ''
+        if (label.textContent !== next) label.textContent = next
+      } else if (!t && grown) {
+        grown = false
         el.classList.remove('is-grown')
       }
     }
-    const leave = () => { live = false; el.classList.remove('is-live') }
+    const leave = () => {
+      live = false; grown = false
+      el.classList.remove('is-live'); el.classList.remove('is-grown')
+    }
 
     window.addEventListener('pointermove', move, { passive: true })
     document.addEventListener('pointerover', over, true)
@@ -232,6 +351,12 @@ html, body { background-color: ${PAPER}; }
 .cl-root ::selection { background: var(--cl-gold); color: #FFFDF8; }
 .cl-root :focus-visible { outline: 2px solid var(--cl-gold-text); outline-offset: 3px; border-radius: 2px; }
 
+/* opening sequence: holding state only, the resting state is visible */
+.cl-pre .cl-nav,
+.cl-pre [data-cl-enter="media"],
+.cl-pre [data-cl-enter="item"] { opacity: 0; visibility: hidden; }
+.cl-pre [data-cl-enter="word"] .cl-word { opacity: 0; visibility: hidden; }
+
 /* nav: difference-blend, no bar */
 .cl-nav {
   position: fixed; inset: 0 0 auto 0; z-index: 40;
@@ -259,10 +384,28 @@ html, body { background-color: ${PAPER}; }
 .cl-rule { display: block; height: 1px; background: var(--cl-ink); opacity: .5; transform-origin: left; }
 .cl-js .cl-rulehead .cl-rule { transform: scaleX(0); }
 .cl-js .cl-rulehead.is-in .cl-rule { transform: none; transition: transform 1.1s cubic-bezier(.16,1,.3,1); }
-.cl-rulehead-label {
-  display: inline-block; padding-top: 10px; font-family: ${MONO};
-  font-size: ${fluid(12, 11)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-mute);
+.cl-rulehead-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 20px;
+  padding-top: 10px;
 }
+.cl-rulehead-label, .cl-rulehead-right {
+  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--cl-mute);
+}
+.cl-rulehead-right { flex: none; }
+
+/* backtracking control */
+.cl-back {
+  display: inline-flex; align-items: center; gap: 10px; background: none; border: none;
+  padding: 4px 0; margin: 0; cursor: pointer; font-family: ${MONO};
+  font-size: ${fluid(12, 11)}; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--cl-mute); transition: color .3s cubic-bezier(.16,1,.3,1);
+}
+.cl-back:hover { color: var(--cl-ink); }
+.cl-back-arrow { display: inline-block; transition: transform .5s cubic-bezier(.16,1,.3,1); }
+.cl-back:hover .cl-back-arrow { transform: translateX(-5px); }
+.cl-back.is-light { color: #8F8D84; }
+.cl-back.is-light:hover { color: #EFEDE7; }
 
 /* reveals */
 .cl-js .cl-rv { opacity: 0; transform: translateY(26px); }
@@ -272,13 +415,15 @@ html, body { background-color: ${PAPER}; }
   .cl-word { transform: none !important; opacity: 1 !important; }
 }
 
-/* the circle cursor: gold dot at rest, frosted hairline circle over
-   [data-cursor] targets. The system cursor stays visible everywhere except
-   over the tagged targets, where the ring IS the pointer. */
+/* the circle cursor: gold dot at rest, hairline circle over [data-cursor]
+   targets. No backdrop-filter: it re-samples the backdrop every frame on an
+   element that moves every frame, and a flat tint is indistinguishable over
+   photography ([[sandholt-wordmark-lag-purge]]). */
 .cl-cursor {
   position: fixed; top: 0; left: 0; width: 104px; height: 104px; z-index: 70;
   pointer-events: none; display: grid; place-items: center;
-  opacity: 0; transform: translate3d(-300px, -300px, 0); transition: opacity .25s;
+  opacity: 0; transform: translate3d(-300px, -300px, 0);
+  transition: opacity .25s; will-change: transform;
 }
 .cl-cursor::before {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
@@ -289,14 +434,13 @@ html, body { background-color: ${PAPER}; }
 .cl-cursor.is-live { opacity: 1; }
 .cl-cursor.is-grown::before {
   transform: scale(1);
-  background: rgb(17 17 15 / .22); border-color: rgb(255 255 255 / .55);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: rgb(17 17 15 / .34); border-color: rgb(255 255 255 / .6);
 }
 .cl-cursor-label {
   position: relative; font-family: ${MONO}; font-size: 11px; letter-spacing: .2em;
   text-transform: uppercase; color: #F4F1EA; opacity: 0; transform: translateY(8px);
   transition: opacity .3s .06s, transform .5s cubic-bezier(.23,1,.32,1);
-  text-shadow: 0 1px 8px rgb(0 0 0 / .35);
+  text-shadow: 0 1px 8px rgb(0 0 0 / .45);
 }
 .cl-cursor.is-grown .cl-cursor-label { opacity: 1; transform: none; }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {

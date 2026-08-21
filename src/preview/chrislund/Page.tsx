@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigationType } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { getPreviewCompany } from '../companies'
@@ -8,13 +8,21 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   BOOK, CONTACT, JSON_LD, LOGO, PHOTO, SERIES, SERVICES, TESTIMONIALS, WORKS,
-  seriesName, srcSet,
+  arOf, seriesName, srcSet,
 } from './data'
 import {
   ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
-  createLenis, finePointer, fluid, reduced,
+  buildEntrance, createLenis, createRevealSweep, finePointer, fluid, reduced,
 } from './shared'
 import type { SmoothScroller } from './shared'
+
+/** Where the visitor stood on the front page when they opened a work. */
+const WALL_Y = 'cl-wall-y'
+
+/** Remember the spot so the back button returns to it, not to the top. */
+const rememberSpot = () => {
+  try { sessionStorage.setItem(WALL_Y, String(Math.round(window.scrollY))) } catch { /* private mode */ }
+}
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -47,15 +55,9 @@ const WALL = WALL_ORDER
   .map((id) => WORKS.find((w) => w.id === id && w.wall))
   .filter((w): w is NonNullable<typeof w> => !!w)
 
-const reveal = (root: HTMLElement) => {
-  root.querySelectorAll('.cl-rv:not(.is-in)').forEach((el) => {
-    if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-in')
-  })
-}
-
 /* ── motion engine ─────────────────────────────────────────────────────── */
 
-function useMotion(ready: boolean) {
+function useMotion(ready: boolean, restoring: boolean) {
   useEffect(() => {
     if (!ready) return
     const root = document.querySelector<HTMLElement>('.cl-root')
@@ -63,6 +65,7 @@ function useMotion(ready: boolean) {
 
     if (reduced()) {
       root.classList.add('cl-static')
+      root.classList.remove('cl-pre')
       return
     }
 
@@ -83,11 +86,20 @@ function useMotion(ready: boolean) {
     const wallPinActive = window.matchMedia('(min-width: 992px)').matches
 
     const ctx = gsap.context(() => {
+      /* THE OPENING — one timeline: photograph and header together, the
+         wordmark out of them, the reading text last. Skipped entirely when
+         we are restoring a scroll position, because an entrance that plays
+         while the visitor is being put back mid-page is just a flash. */
+      if (!restoring) buildEntrance(root)
+      else root.classList.remove('cl-pre')
+
       /* word-mask rises. Desktop: wall headlines ride the pinned
          containerAnimation below instead. Mobile/tablet: the wall never
-         pins, so give them this same generic rise or they'd never animate. */
+         pins, so give them this same generic rise or they'd never animate.
+         The hero title is owned by the opening timeline, not by a trigger. */
       root.querySelectorAll<HTMLElement>('[data-cl-headline]').forEach((h) => {
         if (h.closest('.cl-wall') && wallPinActive) return
+        if (h.dataset.clEnter === 'word' && !restoring) return
         const words = h.querySelectorAll<HTMLElement>('.cl-word')
         if (!words.length) return
         gsap.fromTo(words,
@@ -98,10 +110,9 @@ function useMotion(ready: boolean) {
           })
       })
 
-      /* hero settle */
+      /* hero drift (the settle itself belongs to the opening timeline) */
       const heroImg = root.querySelector<HTMLElement>('.cl-hero img')
       if (heroImg) {
-        gsap.fromTo(heroImg, { scale: 1.08 }, { scale: 1, duration: 2.1, ease: 'expo.out' })
         gsap.to(heroImg, {
           yPercent: 8, ease: 'none',
           scrollTrigger: { trigger: '.cl-hero', start: 'top top', end: 'bottom top', scrub: 0.6 },
@@ -205,9 +216,31 @@ function useMotion(ready: boolean) {
     // IntersectionObserver is the primary reveal trigger, but a scroll fast
     // enough to skip an element's whole bounding box between painted frames
     // can leave it with no frame ever observed inside the viewport -- is-in
-    // never lands, so it stays clipped forever. Sweep on every scroll tick.
-    const sweep = () => { ScrollTrigger.update(); reveal(root) }
+    // never lands, so it stays clipped forever. The backstop is throttled and
+    // self-pruning; measuring every unrevealed element every frame is the
+    // main-thread cost the Sandholt purge removed.
+    const revealSweep = createRevealSweep(root)
+    const sweep = () => { ScrollTrigger.update(); revealSweep.tick() }
     window.addEventListener('scroll', sweep, { passive: true })
+
+    /* The track is measured before the wall's lazy photographs have laid out,
+       so re-measure once the page is really settled -- and only then put the
+       visitor back exactly where they left the wall. */
+    let restored = false
+    const settleAndRestore = () => {
+      ScrollTrigger.refresh()
+      revealSweep.refresh()
+      if (restored || !restoring) return
+      restored = true
+      const y = Number(sessionStorage.getItem(WALL_Y) || 0)
+      if (y > 0) {
+        window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior })
+        ScrollTrigger.update()
+      }
+      sessionStorage.removeItem(WALL_Y)
+    }
+    const settleTimer = window.setTimeout(settleAndRestore, 260)
+    window.addEventListener('load', settleAndRestore)
 
     /* smooth scroll attaches async, and only ever on fine pointers */
     let lenis: SmoothScroller | null = null
@@ -228,12 +261,14 @@ function useMotion(ready: boolean) {
       disposed = true
       io.disconnect()
       if (tick) gsap.ticker.remove(tick)
+      window.clearTimeout(settleTimer)
       window.removeEventListener('scroll', sweep)
+      window.removeEventListener('load', settleAndRestore)
       ctx.revert()
       lenis?.destroy()
       ;(window as unknown as { __clLenis?: SmoothScroller | null }).__clLenis = null
     }
-  }, [ready])
+  }, [ready, restoring])
 }
 
 /* ── series picker: the preview comes to the cursor ─────────────────────────
@@ -296,6 +331,7 @@ function SeriesPicker() {
             <Link
               className={`cl-series-row ${i === active ? 'is-active' : ''}`}
               to={`${ROUTE}/safn?rod=${it.key}`}
+              onClick={rememberSpot}
               onMouseEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
             >
@@ -334,6 +370,12 @@ function SeriesPicker() {
 export default function ChrisLundPage() {
   const [ready, setReady] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  /* arriving via the browser's back button means the visitor is returning to
+     a spot on the wall, not opening the site */
+  const restoring = useNavigationType() === 'POP' && !!sessionStorage.getItem(WALL_Y)
+  /* the holding class has to be on the very first painted frame, so it is
+     decided during render and never inside an effect */
+  const holdRef = useRef(!reduced() && !restoring)
 
   useEffect(() => {
     setThemeColor('#F5F4F1')
@@ -356,7 +398,7 @@ export default function ChrisLundPage() {
     }
   }, [])
 
-  useMotion(ready)
+  useMotion(ready, restoring)
 
   const anchor = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
@@ -369,7 +411,7 @@ export default function ChrisLundPage() {
   }
 
   return (
-    <div ref={rootRef} className="cl-root">
+    <div ref={rootRef} className={`cl-root ${holdRef.current ? 'cl-pre' : ''}`}>
       <style>{SHARED_CSS + CSS}</style>
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
@@ -380,11 +422,12 @@ export default function ChrisLundPage() {
       {/* 01 · hero slab */}
       <main>
       <section className="cl-hero" id="top">
-        <img src={PHOTO.vestrahorn.src} srcSet={srcSet(PHOTO.vestrahorn.src)} sizes="100vw"
-          alt={PHOTO.vestrahorn.alt} loading="eager" decoding="async" />
-        <Headline as="h1" className="cl-hero-title" text="Christopher Lund" size={120} floor={40} />
+        <img data-cl-enter="media" src={PHOTO.vestrahorn.src} srcSet={srcSet(PHOTO.vestrahorn.src)} sizes="100vw"
+          alt={PHOTO.vestrahorn.alt} loading="eager" decoding="async"
+          {...{ fetchpriority: 'high' }} />
+        <Headline as="h1" className="cl-hero-title" text="Christopher Lund" size={120} floor={40} enter />
         <div className="cl-hero-block">
-          <p className="cl-hero-sub">
+          <p className="cl-hero-sub" data-cl-enter="item">
             Ljósmyndari í yfir tuttugu ár: landslag, fyrirtæki og arkitektúr, ásamt
             FineArt prentun.
           </p>
@@ -432,6 +475,7 @@ export default function ChrisLundPage() {
                 key={w.id}
                 className="cl-plate cl-plate-full cl-plate-vitni"
                 to={`${ROUTE}/safn?verk=${w.id}`}
+                onClick={rememberSpot}
                 data-cursor="Skoða"
                 aria-label={`${w.title}: skoða í safninu`}
               >
@@ -456,6 +500,7 @@ export default function ChrisLundPage() {
                 key={w.id}
                 className="cl-plate cl-plate-full"
                 to={`${ROUTE}/safn?verk=${w.id}`}
+                onClick={rememberSpot}
                 data-cursor="Skoða"
                 aria-label={`${w.title}: skoða í safninu`}
               >
@@ -505,21 +550,32 @@ export default function ChrisLundPage() {
             stuðlaberg á móti mosa. Hver mynd fær rými til að anda.
           </p>
         </div>
-        {BOOK.pairs.map((pair, i) => (
-          <figure key={i} className={`cl-bok-pair ${i % 2 ? 'is-flip' : ''}`}>
-            <div className="cl-bok-fig cl-bok-fig-a cl-rv">
-              <img src={pair.a.src} srcSet={srcSet(pair.a.src)}
-                sizes="(max-width: 991px) 92vw, 44vw" style={{ aspectRatio: pair.a.ratio }}
-                alt={pair.a.alt} loading="lazy" decoding="async" />
-            </div>
-            <div className="cl-bok-fig cl-bok-fig-b cl-rv">
-              <img src={pair.b.src} srcSet={srcSet(pair.b.src)}
-                sizes="(max-width: 991px) 92vw, 38vw" style={{ aspectRatio: pair.b.ratio }}
-                alt={pair.b.alt} loading="lazy" decoding="async" />
-            </div>
-            <figcaption className="cl-bok-cap cl-rv">{pair.cap}</figcaption>
-          </figure>
-        ))}
+        {BOOK.pairs.map((pair, i) => {
+          const arA = arOf(pair.a.ratio)
+          const arB = arOf(pair.b.ratio)
+          /* the two portrait spreads need their own proportions, or a tall
+             photograph in a wide track either overruns the viewport or is
+             capped and leaves the track half empty */
+          const port = arA < 1
+          return (
+            <figure
+              key={i}
+              className={`cl-bok-pair ${i % 2 ? 'is-flip' : ''} ${port ? 'is-port' : ''}`}
+            >
+              <div className="cl-bok-fig cl-bok-fig-a cl-rv" style={{ '--ar': arA } as React.CSSProperties}>
+                <img src={pair.a.src} srcSet={srcSet(pair.a.src)}
+                  sizes="(max-width: 991px) 92vw, 52vw" style={{ aspectRatio: pair.a.ratio }}
+                  alt={pair.a.alt} loading="lazy" decoding="async" />
+              </div>
+              <figcaption className="cl-bok-cap cl-rv">{pair.cap}</figcaption>
+              <div className="cl-bok-fig cl-bok-fig-b cl-rv" style={{ '--ar': arB } as React.CSSProperties}>
+                <img src={pair.b.src} srcSet={srcSet(pair.b.src)}
+                  sizes="(max-width: 991px) 78vw, 34vw" style={{ aspectRatio: pair.b.ratio }}
+                  alt={pair.b.alt} loading="lazy" decoding="async" />
+              </div>
+            </figure>
+          )
+        })}
         <p className="cl-bok-specline cl-rv">{BOOK.specLine}</p>
       </section>
 
@@ -535,7 +591,7 @@ export default function ChrisLundPage() {
           <ul className="cl-services">
             {SERVICES.map((s) => (
               <li key={s.slug} className="cl-rv">
-                <Link className="cl-service" to={`${ROUTE}/${s.slug}`} data-cursor="Opna">
+                <Link className="cl-service" to={`${ROUTE}/${s.slug}`} onClick={rememberSpot} data-cursor="Opna">
                   <span className="cl-service-top">
                     <span className="cl-service-name">{s.name}</span>
                     <span className="cl-service-arrow" aria-hidden="true">&rarr;</span>
@@ -760,27 +816,43 @@ const CSS = `
 /* the book: photographs hung in pairs, no frames */
 .cl-bok { padding: calc(var(--u) * 140) calc(var(--u) * 34); background: #ECEAE4; }
 .cl-bok-head { max-width: calc(var(--u) * 860); margin-bottom: calc(var(--u) * 70); }
+/* Each photograph is sized from its OWN aspect ratio against a shared
+   height budget, so a landscape spread fills its track and a portrait one
+   stays inside the viewport instead of either overrunning it or shrinking
+   to its natural pixel size and stranding the column. The caption hangs
+   under the large print like a wall label; the second print sits low in the
+   facing column so the pair reads as two works answering each other. */
 .cl-bok-pair {
-  display: grid; grid-template-columns: 7fr 5fr; gap: calc(var(--u) * 60);
-  align-items: center; margin: 0 0 calc(var(--u) * 90); position: relative;
+  --bokh: min(72vh, calc(var(--u) * 660));
+  display: grid; grid-template-columns: 7fr 5fr;
+  column-gap: calc(var(--u) * 64); row-gap: 16px;
+  align-items: start; margin: 0 0 calc(var(--u) * 108);
+}
+.cl-bok-fig-a { grid-column: 1; grid-row: 1; width: min(100%, calc(var(--bokh) * var(--ar))); }
+.cl-bok-cap   { grid-column: 1; grid-row: 2; align-self: start; }
+.cl-bok-fig-b {
+  grid-column: 2; grid-row: 1 / span 2; align-self: end;
+  width: min(100%, calc(var(--bokh) * .72 * var(--ar)));
 }
 .cl-bok-pair.is-flip { grid-template-columns: 5fr 7fr; }
-.cl-bok-pair.is-flip .cl-bok-fig-a { order: 2; }
-.cl-bok-pair.is-flip .cl-bok-fig-b { order: 1; }
+.cl-bok-pair.is-flip .cl-bok-fig-a,
+.cl-bok-pair.is-flip .cl-bok-cap { grid-column: 2; }
+.cl-bok-pair.is-flip .cl-bok-fig-b { grid-column: 1; justify-self: start; }
+.cl-bok-pair.is-flip .cl-bok-cap { text-align: right; }
+/* two portraits: content-sized tracks pushed apart, so the pair sits as a
+   duo rather than as two islands in half-empty columns */
+.cl-bok-pair.is-port {
+  grid-template-columns: max-content max-content; justify-content: space-between;
+  max-width: calc(var(--u) * 1040); margin-inline: auto;
+}
+.cl-bok-pair.is-port .cl-bok-fig-a { width: calc(var(--bokh) * var(--ar)); }
+.cl-bok-pair.is-port .cl-bok-fig-b { width: calc(var(--bokh) * .72 * var(--ar)); }
 .cl-bok-fig { will-change: transform; }
-/* portraits cap at 74vh instead of filling their track, or a 5/7 photo in a
-   7fr column runs past the viewport ([[ledger]]: portrait full-bleed trap) */
-.cl-bok-fig img { width: auto; max-width: 100%; max-height: 74vh; height: auto; object-fit: cover; display: block; }
-.cl-bok-pair.is-flip .cl-bok-fig-a img { margin-left: auto; }
-.cl-bok-fig-a { margin-top: calc(var(--u) * -30); }
-.cl-bok-fig-b { margin-top: calc(var(--u) * 60); width: 84%; justify-self: end; }
-.cl-bok-pair.is-flip .cl-bok-fig-b { justify-self: start; }
+.cl-bok-fig img { width: 100%; height: auto; object-fit: cover; display: block; }
 .cl-bok-cap {
-  position: absolute; left: 0; bottom: calc(var(--u) * -34);
   font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)};
   letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute);
 }
-.cl-bok-pair.is-flip .cl-bok-cap { left: auto; right: 0; }
 .cl-bok-specline {
   margin: calc(var(--u) * 40) 0 0; font-family: 'Space Mono', ui-monospace, monospace;
   font-size: ${fluid(12.5, 11.5)}; letter-spacing: .1em; color: var(--cl-mute);
@@ -837,12 +909,19 @@ const CSS = `
   .cl-thjonusta { grid-template-columns: 1fr; }
   .cl-thjonusta-fig { justify-self: start; max-width: 100%; }
   .cl-um { grid-template-columns: 1fr; }
-  .cl-bok-pair, .cl-bok-pair.is-flip { grid-template-columns: 1fr; gap: calc(var(--u) * 26); margin-bottom: calc(var(--u) * 80); }
-  .cl-bok-pair.is-flip .cl-bok-fig-a { order: 1; }
-  .cl-bok-pair.is-flip .cl-bok-fig-b { order: 2; }
-  .cl-bok-fig-a { margin-top: 0; }
-  .cl-bok-fig-b { margin-top: 0; width: 78%; }
-  .cl-bok-cap { position: static; padding-top: 6px; }
+  .cl-bok-pair, .cl-bok-pair.is-flip, .cl-bok-pair.is-port {
+    grid-template-columns: 1fr; column-gap: 0; row-gap: calc(var(--u) * 26);
+    margin: 0 0 calc(var(--u) * 80); max-width: none; justify-content: start;
+  }
+  .cl-bok-pair .cl-bok-fig-a, .cl-bok-pair.is-flip .cl-bok-fig-a, .cl-bok-pair.is-port .cl-bok-fig-a {
+    grid-column: 1; grid-row: 1; width: 100%;
+  }
+  .cl-bok-pair .cl-bok-fig-b, .cl-bok-pair.is-flip .cl-bok-fig-b, .cl-bok-pair.is-port .cl-bok-fig-b {
+    grid-column: 1; grid-row: 2; width: 76%; justify-self: end; align-self: auto;
+  }
+  .cl-bok-pair .cl-bok-cap, .cl-bok-pair.is-flip .cl-bok-cap {
+    grid-column: 1; grid-row: 3; text-align: left; padding-top: 2px;
+  }
 }
 @media (max-width: 760px) {
   .cl-series { grid-template-columns: 1fr; gap: calc(var(--u) * 26); }

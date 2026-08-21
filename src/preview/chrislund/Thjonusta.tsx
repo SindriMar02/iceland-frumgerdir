@@ -10,8 +10,8 @@ import {
   CONTACT, JSON_LD, SERVICE_PAGES, TESTIMONIALS, srcSet,
 } from './data'
 import {
-  ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
-  createLenis, fluid, reduced,
+  BackLink, ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
+  buildEntrance, createLenis, createRevealSweep, fluid, reduced,
 } from './shared'
 import type { SmoothScroller } from './shared'
 
@@ -33,6 +33,7 @@ function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement |
     if (!el) return
     if (reduced()) {
       el.classList.add('cl-static')
+      el.classList.remove('cl-pre')
       return
     }
     el.classList.add('cl-js')
@@ -47,7 +48,10 @@ function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement |
     })
 
     const ctx = gsap.context(() => {
+      buildEntrance(el)
       el.querySelectorAll<HTMLElement>('[data-cl-headline]').forEach((h) => {
+        /* the page title belongs to the opening timeline */
+        if (h.dataset.clEnter === 'word') return
         const words = h.querySelectorAll<HTMLElement>('.cl-word')
         if (!words.length) return
         gsap.fromTo(words,
@@ -59,12 +63,8 @@ function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement |
       })
     }, el)
 
-    const sweep = () => {
-      ScrollTrigger.update()
-      el.querySelectorAll('.cl-rv:not(.is-in)').forEach((n) => {
-        if (n.getBoundingClientRect().top < window.innerHeight) n.classList.add('is-in')
-      })
-    }
+    const revealSweep = createRevealSweep(el)
+    const sweep = () => { ScrollTrigger.update(); revealSweep.tick() }
     window.addEventListener('scroll', sweep, { passive: true })
 
     let lenis: SmoothScroller | null = null
@@ -95,6 +95,8 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
   const page = SERVICE_PAGES.find((p) => p.slug === slug) ?? SERVICE_PAGES[0]
   const [ready, setReady] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  /* the holding class must be on the first painted frame, never set in an effect */
+  const holdRef = useRef(!reduced())
 
   useEffect(() => {
     setThemeColor('#F5F4F1')
@@ -121,7 +123,7 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
   const others = SERVICE_PAGES.filter((p) => p.slug !== page.slug)
 
   return (
-    <div ref={rootRef} className="cl-root">
+    <div ref={rootRef} className={`cl-root ${holdRef.current ? 'cl-pre' : ''}`}>
       <style>{SHARED_CSS + CSS}</style>
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
@@ -132,9 +134,12 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
       <main>
       {/* header */}
       <section className="cl-sv-head">
-        <p className="cl-sv-kicker">Frá töku að prenti · {page.nr} af {String(SERVICE_PAGES.length).padStart(2, '0')}</p>
-        <Headline as="h1" text={page.title} size={96} floor={36} measure={880} />
-        <p className="cl-body cl-sv-intro cl-rv">{page.intro}</p>
+        <div className="cl-sv-back">
+          <BackLink fallback={`${ROUTE}#thjonusta`} label="Til baka" />
+        </div>
+        <p className="cl-sv-kicker" data-cl-enter="item">Frá töku að prenti · {page.nr} af {String(SERVICE_PAGES.length).padStart(2, '0')}</p>
+        <Headline as="h1" text={page.title} size={96} floor={36} measure={880} enter />
+        <p className="cl-body cl-sv-intro" data-cl-enter="item">{page.intro}</p>
       </section>
 
       {/* the craft: photos + facts side by side */}
@@ -233,7 +238,8 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
 }
 
 const CSS = `
-.cl-sv-head { padding: calc(var(--u) * 170) calc(var(--u) * 34) calc(var(--u) * 40); }
+.cl-sv-head { padding: calc(var(--u) * 130) calc(var(--u) * 34) calc(var(--u) * 40); }
+.cl-sv-back { margin-bottom: calc(var(--u) * 40); }
 .cl-sv-kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-gold-text); margin: 0 0 calc(var(--u) * 20); }
 .cl-sv-intro { max-width: 62ch; font-size: ${fluid(19, 16)}; }
 
