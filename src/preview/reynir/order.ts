@@ -690,6 +690,13 @@ export interface OrderCopy {
   intro: string
   sampleNotice: string
   stepWho: string
+  /**
+   * The two branches split on WHO PAYS AND HOW, not on the size of the
+   * occasion. "Company or event" conflated them: someone planning a
+   * fermingarveisla read "event", chose it, and was then asked for a company
+   * name and a kennitala they do not have. A private person's party is still a
+   * private order.
+   */
   whoPerson: string
   whoCompany: string
   whoPersonHint: string
@@ -813,9 +820,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     sampleNotice:
       'Sample options. The real range, prices and lead times are set by the bakery.',
     stepWho: 'Who is ordering?',
-    whoPerson: 'For myself',
-    whoCompany: 'Company or event',
-    whoPersonHint: 'A single order to collect yourself.',
+    whoPerson: 'Myself',
+    whoCompany: 'A company',
+    whoPersonHint: 'Pay when you collect. Birthdays, confirmations and parties too.',
     whoCompanyHint: 'Invoiced to a kennitala, with delivery if you need it.',
     stepProduct: 'What are we baking?',
     stepOptions: 'Make it yours',
@@ -917,9 +924,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     sampleNotice:
       'Sýnishorn af valmöguleikum. Bakaríið ákveður raunverulegt úrval, verð og afgreiðslutíma.',
     stepWho: 'Hver er að panta?',
-    whoPerson: 'Fyrir mig',
-    whoCompany: 'Fyrirtæki eða viðburður',
-    whoPersonHint: 'Ein pöntun sem þú sækir sjálf eða sjálfur.',
+    whoPerson: 'Einstaklingur',
+    whoCompany: 'Fyrirtæki',
+    whoPersonHint: 'Greitt þegar þú sækir. Líka fyrir afmæli, fermingar og veislur.',
     whoCompanyHint: 'Reikningur á kennitölu, með sendingu ef þið þurfið.',
     stepProduct: 'Hvað eigum við að baka?',
     stepOptions: 'Sníddu að þér',
