@@ -24,9 +24,40 @@ export const DISPLAY = "'Lusitana', Georgia, serif"
 export const BODY = "'Source Serif 4', 'Source Serif Pro', Georgia, serif"
 export const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)'
 
+/** Archival toning for the black-and-white photography.
+ *
+ *  The photographer's mono selects are neutral grey, which on a warm near-black
+ *  ground reads as "desaturated digital photo" rather than as a print. A light
+ *  sepia pulls them toward the page's own ivory/gold and makes them read as
+ *  what they are: a record of a bakery that has been running since 1994. Kept
+ *  well under a half-strength sepia — past roughly .4 it stops looking like a
+ *  warm print and starts looking like an Instagram filter. */
+export const ARCHIVAL = 'sepia(.32) saturate(.88) contrast(1.05)'
+/** The same frame, warmed back toward true on hover — the photograph "comes
+ *  up" under the cursor without the tone visibly switching off. */
+export const ARCHIVAL_LIVE = 'sepia(.12) saturate(1) contrast(1.03)'
+
+/** A printed-on-paper depth for the gold display type. GOLD_TEXT clips a
+ *  gradient to the glyphs, which makes the text itself transparent — so a
+ *  text-shadow would paint through it and a drop-shadow filter is the only
+ *  thing that reads. One pixel, hard, no blur: debossed, not glowing. */
+export const LETTERPRESS = { filter: 'drop-shadow(0 1px 0 rgba(0,0,0,.55))' } as const
+
 export const GOLD_TEXT = {
   background: `linear-gradient(180deg, ${GOLD_LIGHT} 6%, ${GOLD} 58%, #A98C5F 100%)`,
   WebkitBackgroundClip: 'text',
   backgroundClip: 'text',
   color: 'transparent',
+  /* Descender guard. background-clip:text paints only inside the element's
+   * box, and every display heading here runs tight leading (0.98 to 1.05)
+   * because that is the look. At 68px Lusitana wants 88px of line box and
+   * gets 71 — so the tails of þ, ð, g, y and í were being sliced off, most
+   * visibly in "Bakaríið, og fólkið í því."
+   *
+   * Raising line-height would fix it and lose the typography. Extending the
+   * paint box downward and pulling the same amount back off the margin fixes
+   * it and changes no layout: the box occupies exactly the height it did
+   * before, the gradient simply reaches further down. */
+  paddingBottom: '0.18em',
+  marginBottom: '-0.18em',
 } as const

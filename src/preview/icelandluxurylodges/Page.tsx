@@ -6,7 +6,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, INSTAGRAM, FACEBOOK,
-  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, QUOTE, BOOKING, JSON_LD,
+  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, JSON_LD,
 } from './data'
 
 const company = companyEntry
@@ -132,155 +132,96 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
   )
 }
 
-/* ── THE WALKTHROUGH ──────────────────────────────────────────────────────
-   A pinned band where SCROLL walks you through the lodge: a pre-decoded JPEG
-   frame sequence blitted to a canvas, the scroll position picking the frame.
-   The camera moves exactly as far as you push it and stops when you stop.
-   (Not a <video>: driving currentTime is a decoder seek per frame and cannot
-   be smooth — measured on Mirror House at 104 of 241 frames. And an
-   autoplaying video is not a walkthrough at all, it is a video.)
-   Loader is the hardened Mirror House one: unconditional from a mount
-   effect, decode() before a frame counts, 14-wide pump, nearest-loaded
-   fallback so a partial load still animates, still drawn until the first
-   frame decodes, and canvas.dataset.frame exposed for the QA probe. ────── */
-const WALK_FRAMES = 154
+/* ── GUEST WORDS ──────────────────────────────────────────────────────────
+   21st.dev "Design Testimonial" devices, on the night the guests describe:
+   Shawn R.'s review says he watched the northern lights FROM THE HOT TUB, so
+   the quotes sit on that exact deck, at night, with the aurora moving. The
+   film is their own verified photograph relit — same lodge, same fire pit,
+   same tub, no people — not a stock night sky.
 
-/* The tour is FOUR generated moves welded into one continuous take, not one
-   clip. Each move was generated from one of the lodge's real photographs to
-   the NEXT one (Kling start_image → end_image), so every segment both begins
-   and ends on geometry that actually exists; only the few metres between two
-   real rooms are synthesised. The four were then cross-faded together, so the
-   joins — where two takes both sit on the same real room — disappear.
-   That is what makes it read as a walk rather than a nudge: one clip from one
-   still can only drift a few metres before the model runs out of information.
-
-   Because the camera now genuinely arrives somewhere, the tour names the room
-   as you reach it. Progress marks below are where each move LANDS. */
-const WALK_CHAPTERS = [
-  { at: 0.0, n: '01', label: 'The bar' },
-  { at: 0.16, n: '02', label: 'The dining hall' },
-  { at: 0.41, n: '03', label: 'The living room' },
-  { at: 0.65, n: '04', label: 'The spa' },
-  { at: 0.9, n: '05', label: 'The sauna' },
-]
-
-function Walkthrough({ still, label, lead }: { still: string; label: string; lead: string }) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const stillRef = useRef<HTMLImageElement>(null)
-  const [chap, setChap] = useState(0)
+   Class-toggled, never mount-state: every quote stays mounted and only
+   `.is-on` moves. Auto-advances, and any click stops the auto-advance for
+   good, because a carousel that keeps yanking itself away from a reader who
+   has taken control is hostile. */
+function Reviews() {
+  const [i, setI] = useState(0)
+  const [held, setHeld] = useState(false)
+  const [film, setFilm] = useState(false)
+  const n = REVIEWS.quotes.length
 
   useEffect(() => {
-    const wrap = wrapRef.current
-    const canvas = canvasRef.current
-    if (!wrap || !canvas || reduced) return
-    const small = window.matchMedia('(max-width: 767px)').matches
-    const dir = small ? 'walk-lodge-sm' : 'walk-lodge'
-    const ctx = canvas.getContext('2d', { alpha: true })
-    if (!ctx) return
+    if (reduced || held) return
+    const t = window.setInterval(() => setI((v) => (v + 1) % n), 7000)
+    return () => window.clearInterval(t)
+  }, [n, held])
 
-    const imgs: (HTMLImageElement | null)[] = new Array(WALK_FRAMES).fill(null)
-    let shown = -1
-    let wanted = 0
-    let stopped = false
-
-    const sizeCanvas = () => {
-      const dpr = Math.min(1.5, window.devicePixelRatio || 1)
-      canvas.width = Math.round(canvas.clientWidth * dpr)
-      canvas.height = Math.round(canvas.clientHeight * dpr)
-    }
-    const blit = (im: CanvasImageSource, iw: number, ih: number) => {
-      const cw = canvas.width; const ch = canvas.height
-      const s = Math.max(cw / iw, ch / ih)
-      const w = iw * s; const h = ih * s
-      ctx.clearRect(0, 0, cw, ch)
-      ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
-    }
-    const paint = (idx: number) => {
-      let i = idx
-      if (!imgs[i]) {
-        let d = 1
-        while (d < WALK_FRAMES) {
-          if (imgs[Math.max(0, i - d)]) { i = Math.max(0, i - d); break }
-          if (imgs[Math.min(WALK_FRAMES - 1, i + d)]) { i = Math.min(WALK_FRAMES - 1, i + d); break }
-          d += 1
-        }
-      }
-      const im = imgs[i]
-      if (im) { blit(im, im.naturalWidth, im.naturalHeight); shown = i; canvas.dataset.frame = String(i) }
-      else {
-        const st = stillRef.current
-        if (st?.complete && st.naturalWidth) blit(st, st.naturalWidth, st.naturalHeight)
-      }
-    }
-    const src = (n: number) =>
-      `${import.meta.env.BASE_URL}icelandluxurylodges/${dir}/f${String(n + 1).padStart(3, '0')}.jpg`
-    let next = 0
-    const pump = () => {
-      if (stopped || next >= WALK_FRAMES) return
-      const n = next++
-      const im = new Image()
-      im.src = src(n)
-      const done = () => {
-        if (stopped) return
-        imgs[n] = im
-        if (shown < 0 || Math.abs(n - wanted) < 2) paint(wanted)
-        pump()
-      }
-      im.decode().then(done).catch(() => { im.onload = done; im.onerror = () => pump() })
-    }
-    let raf = 0
-    const onScroll = () => {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const r = wrap.getBoundingClientRect()
-        const total = r.height - window.innerHeight
-        if (total <= 0) return
-        const p = Math.min(1, Math.max(0, -r.top / total))
-        const idx = Math.min(WALK_FRAMES - 1, Math.round(p * (WALK_FRAMES - 1)))
-        if (idx !== shown) { wanted = idx; paint(idx) }
-        let c = 0
-        for (let k = 0; k < WALK_CHAPTERS.length; k += 1) if (p >= WALK_CHAPTERS[k].at) c = k
-        setChap((v) => (v === c ? v : c))
-      })
-    }
-    sizeCanvas(); onScroll()
-    const kick = window.setTimeout(() => { for (let k = 0; k < 14; k++) pump() }, 700)
-    const onResize = () => { sizeCanvas(); paint(wanted) }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      stopped = true
-      window.clearTimeout(kick)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
-    }
+  useEffect(() => {
+    if (reduced) return
+    const con = (navigator as { connection?: { saveData?: boolean } }).connection
+    if (con?.saveData) return
+    setFilm(true)
   }, [])
 
+  const go = (d: number) => { setHeld(true); setI((v) => (v + d + n) % n) }
+  const cur = REVIEWS.quotes[i]
+
   return (
-    <section className="ill-walk" ref={wrapRef} aria-label={label}>
-      <div className="ill-walk-sticky">
-        <img ref={stillRef} className="ill-walk-still" src={still} alt={label} loading="lazy" decoding="async" />
-        <canvas ref={canvasRef} className="ill-walk-canvas" aria-hidden="true" />
-        <div className="ill-walk-copy">
-          <span className="ill-walk-label">{label}</span>
-          <p className="ill-walk-lead">{lead}</p>
+    <section className="ill-rev" aria-label="Guest reviews">
+      <div className="ill-rev-bed" aria-hidden="true">
+        <img src={IMG.auroraStill} alt="" loading="lazy" decoding="async" />
+        {film && (
+          <video className="ill-rev-film" src={IMG.auroraFilm} poster={IMG.auroraStill}
+            autoPlay muted loop playsInline aria-hidden="true" />
+        )}
+      </div>
+
+      <div className="ill-rev-inner">
+        <span className="ill-rev-ord" aria-hidden="true">
+          {REVIEWS.quotes.map((q, idx) => (
+            <b key={q.name} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
+          ))}
+        </span>
+
+        <p className="ill-rev-badge">
+          <span aria-hidden="true" />{REVIEWS.score} · {REVIEWS.count} · verified on {REVIEWS.source}
+        </p>
+
+        <ul className="ill-rev-list">
+          {REVIEWS.quotes.map((q, idx) => (
+            <li key={q.name} className={`ill-rev-q ${idx === i ? 'is-on' : ''}`} aria-hidden={idx !== i}>
+              <blockquote>
+                {q.text.split(' ').flatMap((w, k, all) => [
+                  <span className="ill-rev-w" key={`${w}-${k}`}>
+                    {/* +200ms so the words start only after the outgoing
+                        quote has cleared the cell */}
+                    <i style={{ transitionDelay: idx === i ? `${200 + Math.min(k, 26) * 26}ms` : '0ms' }}>{w}</i>
+                  </span>,
+                  ...(k < all.length - 1 ? [' '] : []),
+                ])}
+              </blockquote>
+            </li>
+          ))}
+        </ul>
+
+        <div className="ill-rev-foot">
+          <p className="ill-rev-who"><i aria-hidden="true" />{cur.name} · {cur.meta}</p>
+          <div className="ill-rev-nav">
+            <button type="button" aria-label="Previous review" onClick={() => go(-1)}>
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <button type="button" aria-label="Next review" onClick={() => go(1)}>
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          </div>
         </div>
-        {/* the room you have walked into, named as you arrive */}
-        <div className="ill-walk-chap" aria-live="polite">
-          {WALK_CHAPTERS.map((c, i) => (
-            <span key={c.label} className={`ill-walk-chap-i ${i === chap ? 'is-on' : ''}`}>
-              <i>{c.n}</i>{c.label}
-            </span>
+
+        <div className="ill-rev-rail" aria-hidden="true">
+          {REVIEWS.quotes.map((q, idx) => (
+            <span key={q.name} className={idx === i ? 'is-on' : ''} />
           ))}
         </div>
-        <div className="ill-walk-rail" aria-hidden="true">
-          {WALK_CHAPTERS.map((c, i) => (
-            <span key={c.label} className={i <= chap ? 'is-on' : ''} />
-          ))}
-        </div>
+
+        <p className="ill-rev-note">{REVIEWS.sourceNote}</p>
       </div>
     </section>
   )
@@ -676,13 +617,6 @@ export default function Page() {
           </section>
         ))}
 
-        {/* ── THE WALKTHROUGH: scroll walks the lodge ── */}
-        <Walkthrough
-          still={IMG.lodgeWide}
-          label="Walk through Úlfljótsskáli"
-          lead="Bar, dining hall, living room, spa, sauna. One unbroken take, and the scroll is the camera."
-        />
-
         {/* ── fourth key: no photograph of it exists, so it is set as type on
               its own band rather than pretending to be an image tile ── */}
         <section className="ill-fourth">
@@ -695,10 +629,7 @@ export default function Page() {
         </section>
 
         {/* ── quote ── */}
-        <section className="ill-quote">
-          <Rise as="p" className="ill-quote-text">“{QUOTE.text}”</Rise>
-          <Rise as="p" className="ill-quote-meta">{QUOTE.name} · {QUOTE.meta}</Rise>
-        </section>
+        <Reviews />
 
         {/* ── request-to-book ── */}
         <section className="ill-book" id="bokun">
@@ -782,11 +713,14 @@ const STYLES = `
 .ill-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
 .ill-nav-links a:hover{opacity:1}
 .ill-burger{display:none;width:44px;height:44px;position:relative}
-.ill-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
+/* The bars close to the X on transform alone. They used to animate top from
+   18/26px to 22px as well, which is a layout property on a control that is
+   tapped on every mobile visit; translateY(±4px) reaches the same centre. */
+.ill-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .25s var(--e)}
 .ill-burger i:first-child{top:18px}
 .ill-burger i:last-child{top:26px}
-.ill-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
-.ill-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
+.ill-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
+.ill-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
 .ill-sheet{position:fixed;inset:0;z-index:55;background:var(--ice);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
@@ -843,8 +777,13 @@ const STYLES = `
   opacity:0;transform:translateY(26px);transition:opacity .9s var(--e),transform .9s var(--e)}
 .ill-door.is-on{opacity:1;transform:none}
 .ill-door-media{position:absolute;inset:0;z-index:-1}
-.ill-door-media img{transform:scale(1.05);transition:transform 1.2s var(--e);filter:saturate(.86)}
-.ill-door:hover .ill-door-media img{transform:scale(1.11)}
+.ill-door-media img{transform:scale(1.05);transition:transform .4s var(--e);filter:saturate(.86)}
+/* Gated: on touch, a tap latches :hover and the door photo stays pushed in
+   until the visitor happens to tap something else. 1.2s also read as lag
+   rather than luxury on the way in. */
+@media (hover:hover) and (pointer:fine){
+  .ill-door:hover .ill-door-media img{transform:scale(1.11)}
+}
 .ill-door::after{content:'';position:absolute;inset:0;z-index:-1;
   background:linear-gradient(to top,rgba(14,22,29,.86) 0%,rgba(14,22,29,.44) 40%,rgba(14,22,29,.1) 100%)}
 .ill-door + .ill-door{box-shadow:inset 1px 0 0 var(--hair-ice)}
@@ -868,8 +807,10 @@ const STYLES = `
 .ill-facts{display:flex;gap:clamp(20px,3vw,40px)}
 .ill-fact{display:grid;gap:2px;opacity:0;transform:translateY(14px);transition:opacity .7s var(--e),transform .7s var(--e)}
 .ill-fact.is-on{opacity:1;transform:none}
-.ill-fact:nth-child(2){transition-delay:.1s}
-.ill-fact:nth-child(3){transition-delay:.2s}
+/* 50/100ms, not 100/200: the stagger band is 30-80ms and the longer gap made
+   a three-item group read as slow rather than sequenced. */
+.ill-fact:nth-child(2){transition-delay:.05s}
+.ill-fact:nth-child(3){transition-delay:.1s}
 .ill-fact-n{font-family:var(--serif);font-size:clamp(1.9rem,3.4vw,2.8rem);line-height:1;color:var(--dusk)}
 .ill-fact-l{font-size:.8rem;letter-spacing:.05em;color:var(--ink-mute)}
 .ill-amen{list-style:none;padding:0;display:grid;gap:9px;max-width:40ch}
@@ -891,36 +832,7 @@ const STYLES = `
 
 /* ── THE WALKTHROUGH ── */
 /* four welded moves need more travel than one clip did */
-.ill-walk{position:relative;height:440svh}
-.ill-walk-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--ink)}
-.ill-walk-still,.ill-walk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
-.ill-walk-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:46%;z-index:2;pointer-events:none;
-  background:linear-gradient(to top,rgba(14,22,29,.72),transparent)}
-.ill-walk-copy{position:absolute;left:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;display:grid;gap:10px}
-.ill-walk-label{font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(239,243,245,.72)}
-/* room nameplate: type on the gradient, never a card */
-.ill-walk-chap{position:absolute;right:clamp(24px,5vw,72px);bottom:clamp(36px,8vh,84px);z-index:3;
-  display:grid;text-align:right}
-.ill-walk-chap-i{grid-area:1/1;display:flex;align-items:baseline;justify-content:flex-end;gap:12px;
-  font-size:clamp(.92rem,1.5vw,1.16rem);letter-spacing:.02em;color:#F4F8F9;white-space:nowrap;
-  opacity:0;transform:translateY(8px);transition:opacity .5s var(--e),transform .5s var(--e);
-  text-shadow:0 1px 16px rgba(10,16,21,.6)}
-.ill-walk-chap-i.is-on{opacity:1;transform:none}
-.ill-walk-chap-i i{font-style:normal;font-size:.7rem;letter-spacing:.22em;color:rgba(244,248,249,.6)}
-.ill-walk-rail{position:absolute;right:clamp(24px,5vw,72px);bottom:clamp(22px,5vh,54px);z-index:3;
-  display:flex;gap:6px}
-.ill-walk-rail span{width:26px;height:1px;background:rgba(244,248,249,.28);transition:background .5s var(--e)}
-.ill-walk-rail span.is-on{background:rgba(244,248,249,.9)}
-@media (max-width:767px){.ill-walk-chap,.ill-walk-rail{display:none}}
-.ill-walk-lead{font-family:var(--serif);font-size:clamp(1.4rem,3vw,2.4rem);line-height:1.2;color:#F4F8F9;max-width:22ch;
-  text-shadow:0 2px 24px rgba(14,22,29,.5)}
-.reduced .ill-walk{height:auto}
-.reduced .ill-walk-sticky{position:static;height:76svh}
-.reduced .ill-walk-canvas{display:none}
 @media (prefers-reduced-motion:reduce){
-  .ill-walk{height:auto}
-  .ill-walk-sticky{position:static;height:76svh}
-  .ill-walk-canvas{display:none}
 }
 
 /* ── fourth key ── */
@@ -940,15 +852,80 @@ const STYLES = `
 .ill-fourth-rule{width:56px;height:1px;background:rgba(233,240,243,.28);margin-bottom:6px}
 
 /* ── quote ── */
-.ill-quote{padding:0 clamp(20px,6vw,72px) clamp(90px,14vh,160px);text-align:center}
-.ill-quote-text .ill-rise-in{font-family:var(--serif);font-size:clamp(1.5rem,3.4vw,2.5rem);line-height:1.3;max-width:26ch;margin:0 auto}
-.ill-quote-meta{margin-top:16px}
-.ill-quote-meta .ill-rise-in{font-size:.85rem;color:var(--ink-mute)}
+/* ══ guest words, on the night they describe ══ */
+.ill-rev{position:relative;isolation:isolate;overflow:hidden;background:#080d12;
+  padding:clamp(80px,14vh,150px) clamp(20px,6vw,80px) clamp(74px,12vh,130px)}
+.ill-rev-bed{position:absolute;inset:0;z-index:0}
+.ill-rev-bed img,.ill-rev-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ill-rev-film{z-index:1}
+/* the type sits on the film, so the film needs a floor */
+/* two scrims, not one: a lateral wash so the column always has a dark ground,
+   and a top band because the quote's first line sits against open sky, which
+   is the brightest part of the frame */
+.ill-rev::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(to bottom,rgba(6,11,16,.72),rgba(6,11,16,.18) 42%,transparent 62%),
+    linear-gradient(to right,rgba(6,11,16,.88),rgba(6,11,16,.6) 48%,rgba(6,11,16,.2) 82%)}
+.ill-rev-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;justify-items:start;gap:20px}
+/* oversized ghost ordinal, bled off the right */
+.ill-rev-ord{position:absolute;right:-.08em;top:-.3em;z-index:0;display:grid;
+  font-family:var(--serif);font-size:clamp(8rem,17vw,15rem);line-height:.76;letter-spacing:-.04em;
+  color:#EFF3F5;opacity:.07;pointer-events:none;user-select:none}
+.ill-rev-ord b{grid-area:1/1;font-weight:400;opacity:0;transform:scale(1.08);filter:blur(9px);
+  transition:opacity .6s var(--e),transform .6s var(--e),filter .6s var(--e)}
+.ill-rev-ord b.is-on{opacity:1;transform:none;filter:none}
+.ill-rev-badge{display:inline-flex;align-items:center;gap:9px;
+  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(239,243,245,.82);
+  border:1px solid var(--hair-ice);border-radius:999px;padding:7px 15px}
+.ill-rev-badge span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
+.ill-rev-list{list-style:none;padding:0;margin:0;display:grid;perspective:800px;width:100%}
+/* ASYMMETRIC, not a crossfade. Two stacked display-size quotes fading through
+   each other overlap into unreadable mush for the whole transition. Leaving is
+   efficiency (fast, no delay); arriving is ceremony (waits for the outgoing to
+   clear, then comes in word by word). */
+.ill-rev-q{grid-area:1/1;opacity:0;pointer-events:none;transition:opacity .18s var(--e)}
+.ill-rev-q.is-on{opacity:1;pointer-events:auto;transition:opacity .3s var(--e) .2s}
+.ill-rev-q blockquote{margin:0;font-family:var(--serif);
+  font-size:clamp(1.35rem,2.7vw,2.25rem);line-height:1.2;letter-spacing:-.012em;
+  color:#F7FAFB;max-width:26ch;text-shadow:0 2px 30px rgba(4,8,12,.6)}
+.ill-rev-q blockquote::before{content:'\\201C'}
+.ill-rev-q blockquote::after{content:'\\201D'}
+/* word-by-word arrival */
+.ill-rev-w{display:inline-block;overflow:hidden;vertical-align:top}
+.ill-rev-w i{display:inline-block;font-style:normal;opacity:0;
+  transform:translateY(104%) rotateX(58deg);transform-origin:top center;
+  transition:transform .66s var(--e),opacity .48s var(--e)}
+.ill-rev-q.is-on .ill-rev-w i{opacity:1;transform:none}
+.ill-rev-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  width:100%;flex-wrap:wrap;margin-top:4px}
+.ill-rev-who{display:flex;align-items:center;gap:13px;font-size:.76rem;letter-spacing:.08em;
+  color:rgba(239,243,245,.72)}
+.ill-rev-who i{display:block;width:32px;height:1px;background:rgba(239,243,245,.6);flex:none}
+.ill-rev-nav{display:flex;gap:10px}
+.ill-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair-ice);
+  display:grid;place-content:center;color:rgba(239,243,245,.85);
+  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ill-rev-nav button:hover{color:#0E161D;background:#EFF3F5;border-color:#EFF3F5}
+}
+.ill-rev-rail{display:flex;gap:7px}
+.ill-rev-rail span{width:30px;height:1px;background:var(--hair-ice);transition:background .5s var(--e)}
+.ill-rev-rail span.is-on{background:rgba(239,243,245,.92)}
+.ill-rev-note{font-size:.72rem;letter-spacing:.03em;color:rgba(239,243,245,.55);max-width:62ch}
+@media (max-width:640px){
+  .ill-rev::after{background:linear-gradient(to top,rgba(6,11,16,.9),rgba(6,11,16,.55) 60%,rgba(6,11,16,.35))}
+  .ill-rev-q blockquote{max-width:18ch}
+  .ill-rev-ord{font-size:7rem}
+}
 
 /* ── booking ── */
 .ill-book{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(100px,15vh,180px);
   display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:clamp(30px,5vw,70px);align-items:start}
-.ill-book-copy{display:grid;gap:16px;position:sticky;top:110px}
+/* the hairline has to run across BOTH columns. The form carried a border-top
+   and the copy did not, so the two halves of the section started on different
+   lines and the rule looked broken rather than deliberate. */
+.ill-book-copy{display:grid;gap:16px;position:sticky;top:110px;
+  border-top:1px solid var(--hair);padding-top:26px}
 .ill-book-copy h2 .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4vw,3.1rem);line-height:1.1}
 .ill-book-copy p .ill-rise-in{color:var(--ink-soft);max-width:44ch}
 .ill-book-form{display:grid;gap:18px;border-top:1px solid var(--hair);padding-top:26px}
@@ -967,7 +944,19 @@ const STYLES = `
 .ill-book-done{display:grid;gap:18px;padding-top:26px}
 .ill-book-done-seam{height:1px;background:var(--dusk)}
 .ill-book-done p{font-family:var(--serif);font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch}
-@media (max-width:860px){.ill-book{grid-template-columns:1fr}.ill-book-copy{position:static}.ill-field-row{grid-template-columns:1fr 1fr}.ill-field-row .ill-field:last-child{grid-column:1/-1}}
+/* A 1fr track is minmax(auto,1fr), and that auto floor is the column's CONTENT
+   width — so this track resolved to 350px inside a 320px content box on a
+   360px phone and the section hung 30px off the edge. It never showed up as a
+   horizontal scrollbar because .ill-root carries overflow-x:clip, which
+   silently ate it. minmax(0,1fr) lets the track shrink; min-width:0 lets the
+   children stop propagating their own content floor. */
+@media (max-width:860px){
+  .ill-book{grid-template-columns:minmax(0,1fr)}
+  .ill-book-copy,.ill-book-form{min-width:0}
+  .ill-book-copy{position:static}
+  .ill-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .ill-field-row .ill-field:last-child{grid-column:1/-1}
+}
 
 /* ── footer ── */
 .ill-footer{position:relative;background:var(--ink);color:var(--ice)}
@@ -994,6 +983,14 @@ const STYLES = `
   .ill-hero-line-in,.ill-hero-sub-in{transform:none;opacity:1;transition:none}
   .ill-door,.ill-fact,.ill-amen li,.ill-frame{opacity:1;transform:none;transition:none}
   .ill-loader-line::after{animation:none}
+  /* no auto-advance and no film: every quote is shown at once, so every WORD
+     must show too — the per-word reveal keys off .is-on, which only one <li>
+     ever carries */
+  .ill-rev-q{grid-area:auto;opacity:1;pointer-events:auto;margin-bottom:28px}
+  .ill-rev-w i{opacity:1 !important;transform:none !important;transition:none}
+  .ill-rev-ord b{opacity:0}
+  .ill-rev-ord b.is-on{opacity:1;filter:none;transform:none}
+  .ill-rev-rail,.ill-rev-nav{display:none}
 }
 
 /* ── the SHARED prototype disclaimer, dressed in this page's own language ──
@@ -1008,7 +1005,15 @@ const STYLES = `
   font-size:.76rem;
   line-height:1.7;
   text-align:left;
-  max-width:1200px;
+  /* It must land on the SAME measure as .ill-footer-grid above it or the
+     footer reads as two stacked designs: the contact rules ran 64→1376 and
+     these ones 120→1320, four hairlines at one width sitting over two more at
+     another. The grid's content box is min(1500px,100%) minus twice its
+     padding, and that must be reproduced as a WIDTH, not max-width + padding:
+     the rule is
+     drawn on this element's border box, so padding would push it full-bleed
+     while the text stayed put. */
+  width:calc(min(1500px, 100%) - 2 * clamp(20px,5vw,64px));
   margin:clamp(38px,6vh,66px) auto 0;
   padding:clamp(22px,3.4vh,34px) 0 clamp(34px,6vh,56px);
   border-top:1px solid var(--hair-ice);
@@ -1027,4 +1032,33 @@ const STYLES = `
 @media (max-width:760px){
   .ill-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
+
+/* ── MOBILE FLOORS ──
+   Last in the sheet on purpose: these are single-class selectors overriding
+   other single-class selectors, so source order is what decides.
+   Two floors, both measured rather than guessed: no real text under 13px, and
+   no standalone control under 44px. The tracked uppercase labels were sitting
+   at 11.4–12.8px on a phone, which is where they stop being quiet and start
+   being unreadable. Inline links inside a sentence are deliberately exempt —
+   padding them to 44px would break the line box. */
+@media (max-width:640px){
+  .ill-eyebrow,.ill-door-kind,.ill-fact-l,.ill-rev-note,.ill-book-note,
+  .ill-rev-badge,.ill-chip,.ill-chip span,.ill-fourth-place .ill-rise-in,.ill-footer-dl dt,
+  .ill-field label,.ill-book label{font-size:13px}
+  .ill-rev-nav button{width:44px;height:44px}
+  .ill-nav-mark{padding:9px 0}
+  /* the shared disclaimer is dressed by this page at .76rem — 12.2px, under
+     the floor. The component itself ships 15px on phones; the override is
+     what dropped it, so the override is what raises it back. */
+  .ill-footer footer[lang="is"]{font-size:13px}
+  /* Contact links are the mobile CTA of the whole page, not links inside a
+     sentence, so they get a real target instead of a 19px line box. */
+  .ill-footer-dl a{display:inline-block;padding:12px 0}
+}
+/* A grid track may shrink, but a grid ITEM still carries min-width:auto, and
+   an <input> has an intrinsic ~180px min-content width — so the two-up field
+   row stayed 7px over the edge on a 360px phone even after the track was
+   changed to minmax(0,1fr). The item and the control both have to release. */
+.ill-field{min-width:0}
+.ill-field input,.ill-field select,.ill-field textarea{min-width:0;width:100%}
 `

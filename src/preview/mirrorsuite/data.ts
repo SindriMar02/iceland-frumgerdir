@@ -24,7 +24,16 @@ export const IMG = {
   int2: `${B}/int-2.jpg`,
   int3: `${B}/int-3.jpg`,
   int4: `${B}/int-4.jpg`,
-  pano: `${B}/pano.jpg`,
+  /* pano.jpg is REMOVED, 2026-08-16. It was NOT this property. These are
+     OOD-built cabins and OOD's marketing photography circulates across every
+     operator who buys one, so it reaches their site freely — being on
+     themirrorsuite.com never made it a photograph OF the Mirror Suite. Put
+     beside the owners' own Airbnb gallery it is plainly a different place:
+     theirs has an angled glass sauna and a wooden barrel tub on a timber
+     deck; pano had one long cabin, no sauna, no tub, and blue LED strip
+     lights that appear in none of their 22 listing photos. It was the start
+     image of the whole night film, so the film is regenerated from tall-5.
+     Verify images against the OTA listing, never against the client's site. */
   land1: `${B}/land-1.jpg`,
   land2: `${B}/land-2.jpg`,
   tall1: `${B}/tall-1.jpg`,
@@ -93,16 +102,69 @@ export const SUITE = {
    listings, which number them 1 Arctic Thyme, 2 Lupine, 3 Bearberry,
    4 Gleymmerey, and state that all four are identical in layout, design and
    amenities. We had been missing Lupine entirely. */
+/**
+ * The botany is REAL and was checked 2026-08-16 against Flóra Íslands
+ * (floraislands.is), Náttúrufræðistofnun (natt.is), Lystigarður Akureyrar and
+ * Skógræktin's 1979 research annual — not written from memory:
+ *   blóðberg      Thymus praecox ssp. arcticus, Lamiaceae. Rose-purple
+ *                 ("rósrauður"), flowers July–August, mats over dry heath,
+ *                 gravel and sand, long used for tea.
+ *   lúpína        Lupinus nootkatensis, Fabaceae. Blue to violet. Hákon
+ *                 Bjarnason collected the seed at College Fjord, Prince
+ *                 William Sound, Alaska in 1945 and brought it home for land
+ *                 reclamation; naturalised through the mid-1950s.
+ *   sortulyng     Arctostaphylos uva-ursi, Ericaceae. Thick glossy evergreen
+ *                 leaves, red fruit, and it will not survive a grazed winter.
+ *   gleym-mér-ei  Myosotis arvensis. Small and blue, in nearly every part of
+ *                 the country. The Icelandic name is the English one, word
+ *                 for word.
+ * `bloom` is that plant's own flower colour, so the section's palette comes
+ * off the shore it is named for rather than out of the design system.
+ * The names themselves are the owners' — their Airbnb listings number the
+ * suites 1 Arctic Thyme, 2 Lupine, 3 Bearberry, 4 Gleymmerey and state that
+ * all four are identical in layout, design and amenities.
+ */
 export const FLORA = {
   lead: 'Named after what grows on the shore.',
   body:
-    'Four suites, identical to each other and named for the flora between the row and the water: Arctic Thyme, blóðberg. Lupine, lúpína. Bearberry, sortulyng. Gleymmerey, the forget-me-not. Small, hardy, and entirely of this coast.',
+    'Four suites, identical to one another, each named for a plant that grows between the row and the water. Small, hardy, and entirely of this coast.',
   names: [
-    { en: 'Arctic Thyme', is: 'Blóðberg' },
-    { en: 'Lupine', is: 'Lúpína' },
-    { en: 'Bearberry', is: 'Sortulyng' },
-    { en: 'Gleymmerey', is: 'Gleym-mér-ei' },
+    {
+      en: 'Arctic Thyme',
+      is: 'Blóðberg',
+      lat: 'Thymus praecox ssp. arcticus',
+      note: 'Of the mint family. It mats over dry gravel and heath, turns rose-purple through July and August, and has been picked for tea here for centuries.',
+      bloom: '#C2698D',
+    },
+    {
+      en: 'Lupine',
+      is: 'Lúpína',
+      lat: 'Lupinus nootkatensis',
+      note: 'Carried back from Alaska in 1945 to hold the loose soil down. It settled in, and it is now the blue that means summer has arrived.',
+      bloom: '#7B84D2',
+    },
+    {
+      en: 'Bearberry',
+      is: 'Sortulyng',
+      lat: 'Arctostaphylos uva-ursi',
+      note: 'Of the heath family. Thick evergreen leaves and red fruit, low to the ground, and it will not survive a winter it has been grazed through.',
+      bloom: '#A8443A',
+    },
+    {
+      /* Every other row pairs the Icelandic name with the English one, so this
+         row cannot show "Gleymmerey" — that is the owners' spelling of the
+         SAME Icelandic word, and printed under Gleym-mér-ei it reads as the
+         word twice over. The English common name goes in the label and their
+         listing spelling is kept in the note, where it is useful to a guest
+         who has to find the suite by that name. */
+      en: 'Forget-me-not',
+      is: 'Gleym-mér-ei',
+      lat: 'Myosotis arvensis',
+      note: 'Small and blue, in nearly every part of the country. The Icelandic name is the English one, word for word. Your listing writes it Gleymmerey.',
+      bloom: '#8FB8DE',
+    },
   ],
+  foot: 'All four suites are identical in layout, design and amenities. The name on the door is the only thing that changes.',
 }
 
 /**
@@ -164,6 +226,19 @@ export const REVIEWS = {
 export const PANO = {
   caption: 'Some nights the sky does the decorating.',
   note: 'Scroll to run the night',
+  /* The commentator. One line takes over the film at each mark below, so the
+     scroll-through argues for the place while it plays instead of being a
+     silent pan. Every line is a VERIFIED fact off their own site — fifty
+     metres to the sea, three of four walls glass, the private glass sauna,
+     and the hot tub built to stay warm through winter — in the order the
+     camera reaches them: the shore, the suite, the sauna, the tub, the sky. */
+  chapters: [
+    { at: 0.0, text: 'Fifty metres from the sea.' },
+    { at: 0.22, text: 'Three of the four walls are glass.' },
+    { at: 0.45, text: 'A glass sauna, facing the same water.' },
+    { at: 0.67, text: 'A hot tub kept warm all winter.' },
+    { at: 0.86, text: 'Some nights the sky does the decorating.' },
+  ],
 }
 
 export const HOSTS = {

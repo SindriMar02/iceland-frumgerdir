@@ -83,7 +83,7 @@ export default function MapCard({ lang, locations }: { lang: Lang; locations: Ma
 
   return (
     <div className="rb-map">
-      <style>{MAP_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: MAP_CSS }} />
 
       {locations.length > 1 && (
         <div className="rb-map-switch" role="tablist" aria-label={lang === 'is' ? 'Veldu stað' : 'Choose a location'}>

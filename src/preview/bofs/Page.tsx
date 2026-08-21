@@ -27,6 +27,7 @@ import {
   NewsBand,
   ReportBand,
   StatsBand,
+  QuestionBand,
   WayfinderDoors,
 } from './sections'
 
@@ -133,6 +134,13 @@ export default function BofsPage() {
         {/* ── WAYFINDER (three doors) ──────────────────────────────────── */}
         <WayfinderDoors />
 
+        {/* ── QUESTIONS ────────────────────────────────────────────────────
+             After the doors, not before them. Scrolling off the hero should
+             reveal what this place IS, not a box asking you to type. The
+             doors are the broad "which of these are you"; these are the
+             specific worry underneath it. ─────────────────────────────── */}
+        <QuestionBand />
+
         {/* ── MISSION + compressed values ─────────────────────────────── */}
         <section className="bofs-wash bofs-bloom relative" style={{ background: C.cream2 }}>
           <div className="mx-auto max-w-5xl px-5 py-20 text-center sm:px-8 sm:py-28">
@@ -236,6 +244,12 @@ export default function BofsPage() {
                   <figure className="group relative h-full overflow-hidden rounded-[20px]">
                     <Img
                       src={asset(p.src)}
+                      /* These tiles are 167 to 350px wide on a phone but the
+                         plates were up to 1920px: two of them alone were 21MB
+                         of decoded image memory. Desktop still gets the full
+                         plate for the two large tiles. */
+                      srcSet={`${asset(p.src.replace('.jpg', '-1000.jpg'))} 1000w, ${asset(p.src)} 1920w`}
+                      sizes={i < 2 ? '(min-width: 1024px) 576px, 100vw' : '(min-width: 1024px) 288px, 50vw'}
                       alt={pick(p.alt)}
                       className={`bofs-photo w-full object-cover transition-transform duration-700 group-hover:scale-105 ${i === 0 ? 'h-56 lg:h-full' : i === 1 ? 'h-44 lg:h-full' : 'h-40 lg:h-full'}`}
                       fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
@@ -255,7 +269,19 @@ export default function BofsPage() {
 
         {/* ── ABOUT TEASER + history stones ────────────────────────────── */}
         <AboutTeaser />
-        <WaveDivider color={C.deep} className="block w-full" />
+        {/*
+          The wash goes on the WRAPPER, not the divider. .bofs-wash is a
+          ::before overlay with mix-blend-mode:multiply, so it textures whatever
+          the element paints, including SVG fill. Without it this wave painted a
+          flat C.deep while the deep section directly below it is C.deep with
+          the paper texture multiplied over it: the same hex, about 6% apart in
+          practice, and the curve read as a lighter brown than the band it ran
+          into. Every other seam on the site already matches its neighbour's
+          texture state, so only this one is wrapped.
+        */}
+        <span className="bofs-wash block">
+          <WaveDivider color={C.deep} className="block w-full" />
+        </span>
 
         {/* ── HONEST-HOPE BAND (the one deep pause) ────────────────────── */}
         <section className="bofs-wash bofs-bloom" style={{ background: C.deep }}>

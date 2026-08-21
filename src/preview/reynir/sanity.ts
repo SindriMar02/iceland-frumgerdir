@@ -52,14 +52,31 @@ import {
 
 /* ── Preview detection ──────────────────────────────────────────────────── */
 const viewerToken = import.meta.env.VITE_REYNIR_SANITY_VIEWER_TOKEN as string | undefined
+
+/* Every branch below is guarded on `window`, because this module is imported by
+ * the SSR prerender (reynir-entry-server.tsx) where there is no window at all.
+ *
+ * The token requirement is not decoration. Without it, appending ?preview to a
+ * public URL would flip the client to the 'drafts' perspective and pull in the
+ * visual-editing runtime on the CLIENT's own domain — a stranger's URL bar
+ * deciding which content a customer sees. Preview mode is for the studio, so
+ * it now requires the credential only the studio build carries. */
 const isPreview =
   typeof window !== 'undefined' &&
-  (new URLSearchParams(window.location.search).has('preview') ||
-    (window.self !== window.top && !!viewerToken))
+  !!viewerToken &&
+  (new URLSearchParams(window.location.search).has('preview') || window.self !== window.top)
 
-const STUDIO_URL = (import.meta.env.VITE_REYNIR_SANITY_STUDIO_URL as string | undefined) || 'http://localhost:3333'
+/* Where the click-to-edit overlays point back to. This defaulted to
+ * localhost:3333, which is correct while developing and wrong in every
+ * shipped build — the deployed bundle carried a studio address that exists
+ * only on our own machine, so an owner clicking an element in the preview
+ * would be sent nowhere. The deployed studio is the right default; the env
+ * var still overrides it for local studio work. */
+const STUDIO_URL =
+  (import.meta.env.VITE_REYNIR_SANITY_STUDIO_URL as string | undefined) ||
+  'https://reynir-bakari.sanity.studio'
 
-const STEGA_SKIP = new Set(['id', 'order', 'active', 'phoneHref', 'email', 'orderEmail', 'ahaUrl', 'facebook', 'instagram', '_id', '_type'])
+const STEGA_SKIP = new Set(['id', 'order', 'active', 'phoneHref', 'email', 'orderEmail', 'ahaUrl', 'woltUrl', 'facebook', 'instagram', '_id', '_type'])
 
 const client = createClient({
   projectId: 'v4v3s4wg',
@@ -86,9 +103,18 @@ const client = createClient({
 const builder = imageUrlBuilder({ projectId: 'v4v3s4wg', dataset: 'production' })
 
 type RawImg = { asset?: { _ref?: string }; hotspot?: { x?: number; y?: number } } | null | undefined
-function mkGalleryPic(img: RawImg, fallback: GalleryPhoto): { src: string; w: number; h: number } {
-  if (!img?.asset?._ref) return { src: fallback.src, w: fallback.w, h: fallback.h }
-  return { src: builder.image(img).width(1600).quality(80).auto('format').url(), w: fallback.w, h: fallback.h }
+/** A CMS gallery upload, rendered at both sizes the tile/lightbox pair needs.
+ *  Falls back to the bundled frame whole — never half-CMS, half-bundle. */
+function mkGalleryPic(img: RawImg, fallback: GalleryPhoto): { src: string; srcSm: string; w: number; h: number } {
+  if (!img?.asset?._ref) return { src: fallback.src, srcSm: fallback.srcSm, w: fallback.w, h: fallback.h }
+  const at = (w: number) => builder.image(img).width(w).quality(80).auto('format').url()
+  return { src: at(2000), srcSm: at(800), w: fallback.w, h: fallback.h }
+}
+
+/** A CMS product photo, square to match the bundled crops. */
+function mkProductPic(img: RawImg): string | undefined {
+  if (!img?.asset?._ref) return undefined
+  return builder.image(img).width(1400).height(1400).fit('crop').quality(84).auto('format').url()
 }
 
 /* ── Hours: 7-entry array (0=Sun..6=Sat), minutes-from-midnight, matches
@@ -115,13 +141,26 @@ const DAY_ABBR: Record<Lang, string[]> = {
   is: ['Mán', 'Þri', 'Mið', 'Fim', 'Fös', 'Lau', 'Sun'],
 }
 
-/** Groups consecutive days sharing identical hours into one line, e.g.
- *  "Mon to Sat 6:00 to 17:00" + "Sun 7:00 to 17:00" — generated FROM the
- *  live hours so the displayed text and the live open/closed badge can
- *  never disagree (a two-source-of-truth trust-breaker, see cms-setup-sanity
- *  memory's editability-audit lesson). */
-function buildHoursRows(days: readonly DayHours[], lang: Lang): string[] {
-  const rows: string[] = []
+/** One printed hours line, kept as two fields rather than one string: the
+ *  visit strip lays the day out opposite the time, and splitting a joined
+ *  string on its first space silently mangles any multi-word day label
+ *  ("Every day 7:00 to 17:00" → "Every" / "day 7:00 to 17:00"). */
+export interface HoursRow {
+  label: string
+  value: string
+}
+
+/** Groups consecutive days sharing identical hours into one line — "Every day
+ *  7:00 to 17:00" when the whole week matches, otherwise "Mon to Sat …" plus
+ *  the exceptions. Generated FROM the live hours so the printed text and the
+ *  live open/closed badge can never disagree (a two-source-of-truth
+ *  trust-breaker, see cms-setup-sanity memory's editability-audit lesson). */
+function buildHoursRows(days: readonly DayHours[], lang: Lang): HoursRow[] {
+  const to = lang === 'en' ? 'to' : 'til'
+  const value = (h: DayHours) =>
+    h.closed ? (lang === 'en' ? 'Closed' : 'Lokað') : `${fmtHM(h.open)} ${to} ${fmtHM(h.close)}`
+
+  const rows: HoursRow[] = []
   let i = 0
   while (i < DISPLAY_ORDER.length) {
     const h = days[DISPLAY_ORDER[i]]
@@ -131,10 +170,14 @@ function buildHoursRows(days: readonly DayHours[], lang: Lang): string[] {
       if (next.open === h.open && next.close === h.close && !!next.closed === !!h.closed) j++
       else break
     }
-    const startLabel = DAY_ABBR[lang][i]
-    const dayLabel = i === j ? startLabel : `${startLabel} ${lang === 'en' ? 'to' : 'til'} ${DAY_ABBR[lang][j]}`
-    const hoursLabel = h.closed ? (lang === 'en' ? 'Closed' : 'Lokað') : `${fmtHM(h.open)} ${lang === 'en' ? 'to' : 'til'} ${fmtHM(h.close)}`
-    rows.push(`${dayLabel} ${hoursLabel}`)
+    // The whole week on one schedule reads better as "Every day" than "Mon to Sun".
+    const label =
+      i === 0 && j === DISPLAY_ORDER.length - 1
+        ? lang === 'en' ? 'Every day' : 'Alla daga'
+        : i === j
+          ? DAY_ABBR[lang][i]
+          : `${DAY_ABBR[lang][i]} ${to} ${DAY_ABBR[lang][j]}`
+    rows.push({ label, value: value(h) })
     i = j + 1
   }
   return rows
@@ -144,10 +187,8 @@ function buildHoursRows(days: readonly DayHours[], lang: Lang): string[] {
 export interface SiteContent {
   LINKS: typeof LINKS
   HOURS_BY_DAY: readonly DayHours[]
-  hoursRows: Record<Lang, string[]>
-  hamraborgNote: Bilingual
+  hoursRows: Record<Lang, HoursRow[]>
   mainName: string
-  secondName: string
   trustLine: Bilingual
   heroTitle: Bilingual
   heroSub: Bilingual
@@ -171,10 +212,10 @@ export interface SiteContent {
 const FALLBACK: SiteContent = {
   LINKS,
   HOURS_BY_DAY,
-  hoursRows: { en: [...T.en.hoursRows], is: [...T.is.hoursRows] },
-  hamraborgNote: { en: T.en.secondNote, is: T.is.secondNote },
+  // Generated from HOURS_BY_DAY, never typed out separately — so the printed
+  // hours and the live open/closed badge cannot drift apart.
+  hoursRows: { en: buildHoursRows(HOURS_BY_DAY, 'en'), is: buildHoursRows(HOURS_BY_DAY, 'is') },
   mainName: T.en.mainName,
-  secondName: T.en.secondName,
   trustLine: { en: T.en.trustLine, is: T.is.trustLine },
   heroTitle: { en: T.en.heroTitle, is: T.is.heroTitle },
   heroSub: { en: T.en.heroSub, is: T.is.heroSub },
@@ -196,18 +237,21 @@ const FALLBACK: SiteContent = {
 }
 
 /* ── GROQ: everything editable, in one round trip ───────────────────────── */
-const QUERY = `{
-  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, phone2Label, email, orderEmail, facebook, instagram, ahaUrl, mainAddress, secondAddress, trustLine},
-  "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun, hamraborgNote},
+export const QUERY = `{
+  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine},
+  "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun},
   "hero": *[_type=="heroSection"][0]{heroTitle, heroSub, heroLine, heroPhotoCaption},
   "story": *[_type=="storySection"][0]{statementQuote, statementWho, storyP1, storyP2},
   "menuItems": *[_type=="menuItem"]|order(order asc){category, name, price, tag, desc},
   "reviews": *[_type=="review"]|order(order asc){quote, who},
   "gallery": *[_type=="galleryImage"]|order(order asc){image{asset,hotspot}, caption},
   "orderProducts": *[_type=="orderProduct" && active != false]|order(order asc){
-    "id": id.current, name, blurb, basePrice, leadDays, inscription,
-    groups[]{"id": id.current, kind, label, help, required, max,
-      choices[]{"id": id.current, label, priceDelta, note}}
+    "id": id.current, name, blurb, basePrice, pricePerPerson, "sizeGroupId": sizeGroupId.current,
+    "compositionGroupId": compositionGroupId.current, composition[]{"id": id.current, label},
+    leadDays, inscription, image{asset,hotspot},
+    groups[]{"id": id.current, kind, label, help, required, max, layout,
+      choices[]{"id": id.current, label, priceDelta, note, serves, quoteOnly, needsPhoto, freeText,
+        adds, swap{"layerId": layerId.current, label}}}
   },
   "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label},
   "pickupLocations": *[_type=="pickupLocation"]|order(order asc){"id": id.current, label}
@@ -231,6 +275,21 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
       name: biSelf(d.name),
       blurb: biSelf(d.blurb),
       basePrice: typeof d.basePrice === 'number' ? d.basePrice : 0,
+      // A per-person rate of 0 is not a rate, it is an empty field. Treated as
+      // absent so the product falls back to basePrice instead of pricing every
+      // size at nothing.
+      pricePerPerson:
+        typeof d.pricePerPerson === 'number' && d.pricePerPerson > 0 ? d.pricePerPerson : undefined,
+      sizeGroupId: d.sizeGroupId ? String(d.sizeGroupId) : undefined,
+      compositionGroupId: d.compositionGroupId ? String(d.compositionGroupId) : undefined,
+      composition: Array.isArray(d.composition)
+        ? d.composition
+            .filter((l: any) => l?.id && (l.label?.is || l.label?.en))
+            .map((l: any) => ({ id: String(l.id), label: biSelf(l.label) }))
+        : undefined,
+      // CMS photo when uploaded, otherwise the bundled crop for a product we
+      // already ship one for. A brand-new product with neither still renders.
+      image: mkProductPic(d.image) ?? ORDER_PRODUCTS.find((p) => p.id === String(d.id || ''))?.image,
       leadDays: typeof d.leadDays === 'number' ? d.leadDays : 0,
       inscription: d.inscription?.label
         ? {
@@ -245,14 +304,36 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
             kind: g.kind === 'multi' ? 'multi' : 'single',
             label: biSelf(g.label),
             help: g.help ? biSelf(g.help) : undefined,
-            required: g.required !== false,
+            // Opt IN, never out. `!== false` made every group whose flag was
+            // simply absent compulsory, which is how the allergy question
+            // ended up marked REQUIRED: nobody has to have an allergy.
+            required: g.required === true,
             max: typeof g.max === 'number' ? g.max : undefined,
+            layout: g.layout === 'grid' || g.layout === 'select' ? g.layout : undefined,
             choices: Array.isArray(g.choices)
               ? g.choices.map((c: any): OrderChoice => ({
                   id: String(c.id || ''),
                   label: biSelf(c.label),
                   priceDelta: typeof c.priceDelta === 'number' ? c.priceDelta : 0,
                   note: c.note ? biSelf(c.note) : undefined,
+                  serves: typeof c.serves === 'number' && c.serves > 0 ? c.serves : undefined,
+                  quoteOnly: c.quoteOnly === true,
+                  adds: Array.isArray(c.adds)
+                    ? c.adds.filter((a: any) => a?.is || a?.en).map((a: any) => biSelf(a))
+                    : undefined,
+                  // A swap with no target layer would silently replace nothing.
+                  swap: c.swap?.layerId
+                    ? { layerId: String(c.swap.layerId), label: biSelf(c.swap.label) }
+                    : undefined,
+                  needsPhoto: c.needsPhoto === true,
+                  freeText: c.freeText?.label
+                    ? {
+                        label: biSelf(c.freeText.label),
+                        placeholder: biSelf(c.freeText.placeholder),
+                        maxLength:
+                          typeof c.freeText.maxLength === 'number' ? c.freeText.maxLength : 120,
+                      }
+                    : undefined,
                 }))
               : [],
           }))
@@ -261,18 +342,22 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
     .filter((p) => p.id && (p.name.en || p.name.is) && p.groups.length > 0)
 }
 
-function merge(raw: any): SiteContent {
+/* Exported so the CMS behaviour can be exercised directly in tests: what the
+ * site does with a missing document, a cleared field, a half-deleted list or a
+ * malformed payload is exactly what decides whether an owner editing content
+ * can break the page. See tools/reynir-cms-scenarios.mjs. */
+export function merge(raw: any): SiteContent {
   const s = raw?.settings
   const linksMerged = {
     ...LINKS,
     phone: s?.phoneHref || LINKS.phone,
     phoneLabel: s?.phoneDisplay || LINKS.phoneLabel,
-    phone2Label: s?.phone2Label || LINKS.phone2Label,
     email: s?.email || LINKS.email,
     orderEmail: s?.orderEmail || LINKS.orderEmail,
     facebook: s?.facebook || LINKS.facebook,
     instagram: s?.instagram || LINKS.instagram,
     order: s?.ahaUrl || LINKS.order,
+    wolt: s?.woltUrl || LINKS.wolt,
   }
 
   const h = raw?.hours
@@ -314,7 +399,7 @@ function merge(raw: any): SiteContent {
     ? raw.gallery.map((g: any, i: number) => {
         const fb = GALLERY[i % GALLERY.length]
         const pic = mkGalleryPic(g?.image, fb)
-        return { src: pic.src, w: pic.w, h: pic.h, caption: g?.caption ? biSelf(g.caption) : fb.caption }
+        return { src: pic.src, srcSm: pic.srcSm, w: pic.w, h: pic.h, caption: g?.caption ? biSelf(g.caption) : fb.caption }
       })
     : GALLERY
 
@@ -330,9 +415,7 @@ function merge(raw: any): SiteContent {
     LINKS: linksMerged,
     HOURS_BY_DAY: hoursByDay,
     hoursRows: { en: buildHoursRows(hoursByDay, 'en'), is: buildHoursRows(hoursByDay, 'is') },
-    hamraborgNote: h?.hamraborgNote ? biSelf(h.hamraborgNote) : FALLBACK.hamraborgNote,
     mainName: FALLBACK.mainName,
-    secondName: FALLBACK.secondName,
     trustLine: s?.trustLine ? biSelf(s.trustLine) : FALLBACK.trustLine,
     heroTitle: raw?.hero?.heroTitle ? biPick(raw.hero.heroTitle, FALLBACK.heroTitle) : FALLBACK.heroTitle,
     heroSub: raw?.hero?.heroSub ? biPick(raw.hero.heroSub, FALLBACK.heroSub) : FALLBACK.heroSub,
@@ -360,8 +443,48 @@ const LISTEN = `*[_type in ["siteSettings","openingHours","heroSection","storySe
 
 const Ctx = createContext<SiteContent>(FALLBACK)
 
+/* ── content baked in at build time ──────────────────────────────────────
+ * The pages are prerendered, and effects do not run during a server render,
+ * so without this the prerendered HTML always carried the BUNDLED content —
+ * meaning an owner could edit a price in the CMS, see it change in his
+ * browser, and Google and the AI crawlers would keep reading the old copy
+ * until somebody rebuilt the site. Silent, and exactly the kind of surprise
+ * a handover must not contain.
+ *
+ * So the prerender fetches the CMS, renders from it, and writes the same
+ * payload into the HTML. The browser's FIRST render parses that payload, so
+ * the server markup and the client markup are identical and hydration stays
+ * clean; the effect below then refetches for anything published since the
+ * build.
+ *
+ * A page without the payload (the catalogue preview) simply starts from the
+ * bundled content exactly as before. */
+let ssrRaw: unknown = null
+/** Called by the prerender before rendering. No effect in a browser. */
+export function setPrerenderRaw(raw: unknown) {
+  ssrRaw = raw
+}
+
+let bakedCache: SiteContent | undefined
+function bakedContent(): SiteContent {
+  if (bakedCache) return bakedCache
+  let raw: unknown = ssrRaw
+  if (typeof document !== 'undefined') {
+    const el = document.getElementById('__reynir_cms')
+    if (el?.textContent) {
+      try {
+        raw = JSON.parse(el.textContent)
+      } catch {
+        /* a corrupt payload must not white-screen the page */
+      }
+    }
+  }
+  bakedCache = raw ? merge(raw) : FALLBACK
+  return bakedCache
+}
+
 export function SiteContentProvider({ children }: { children: ReactNode }) {
-  const [content, setContent] = useState<SiteContent>(FALLBACK)
+  const [content, setContent] = useState<SiteContent>(bakedContent)
   useEffect(() => {
     let live = true
     const load = () =>

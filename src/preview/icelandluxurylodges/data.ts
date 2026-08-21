@@ -41,6 +41,16 @@ export const IMG = {
   aslundurLiving: `${B}/aslundur-living.jpg`,
   aslundurBath: `${B}/aslundur-bath.jpg`,
   aslundurTwin: `${B}/aslundur-twin.jpg`,
+  /* Úlfljótsskáli's own verified Vrbo photograph (the fire-pit deck with the
+     hot tub), relit to night with an aurora and the guests removed. The
+     architecture, deck, fire pit, tub and planters are untouched — only the
+     hour and the sky changed. It exists because Shawn R.'s review on that
+     listing says he watched the northern lights from that hot tub, and no
+     photograph of that night exists. The loop is palindromed, so it has no
+     seam; the generated camera drifted despite being asked to stay locked,
+     and the reversal turns that drift into a slow breath instead of a jump. */
+  auroraStill: `${B}/aurora-night.jpg`,
+  auroraFilm: `${B}/aurora-night.mp4`,
 }
 
 export const NAV = [
@@ -215,10 +225,65 @@ export const FOURTH_KEY = {
   body: 'The city key of the collection: a private apartment in Reykjavík for the nights before and after the lake. Ask us for details and dates.',
 }
 
-export const QUOTE = {
-  text: 'Amazing stay at a wonderful property.',
-  name: 'Joshua S.',
-  meta: 'Vrbo guest review of Álftavík, July 2025, rated 10/10',
+/**
+ * REVIEWS — REAL, quoted verbatim from their own Vrbo listing for Úlfljótsskáli
+ * ("10 bedroom Luxury Lodge with a Hot Tub, Spa, Sauna, Gym and Game Room",
+ * vrbo.com/3969806ha), read 2026-08-16. Confirmed theirs by the reviews
+ * themselves, which name the hosts: Jill B. writes "Signy and her sister Sigyn
+ * were wonderful to deal with" — so the business is run by TWO sisters, which
+ * our copy did not previously say.
+ *
+ * Verified on the listing the same day: 10/10 Exceptional across 28 reviews,
+ * with every sub-score at 10/10 — cleanliness, check-in, communication,
+ * location and listing accuracy. There is no rating below 10 on the histogram.
+ *
+ * Long reviews are cut at a sentence boundary, never paraphrased and never
+ * completed by us. Joshua S. is retained from the ÁLFTAVÍK listing and is
+ * labelled as such, because this is an umbrella of three houses and the
+ * flagship's reviews should not be made to speak for the others.
+ *
+ * What guests actually praise, in order of frequency: the host (by name), the
+ * chef and guide she arranges, the hot tub, and the common areas for big
+ * groups. That is the real product, and the page should say so.
+ */
+export const REVIEWS = {
+  score: '10/10',
+  count: '28 reviews',
+  source: 'Vrbo',
+  sourceNote:
+    'Real reviews, quoted verbatim from your Vrbo listing on 16 August 2026, where Úlfljótsskáli holds 10/10 across 28 reviews with every sub-score at 10. On your own site they would sit here, on your own domain, working for you instead of for Vrbo.',
+  /* Each quote is ONE sentence, cut verbatim at a sentence boundary from a
+     longer review — never paraphrased, never stitched from two places. Set at
+     display size, a 40-word Vrbo review overflows its own section and the
+     words scatter; one sentence is also simply the better pull-quote. The
+     full reviews are on the listing, and the note below says where. */
+  quotes: [
+    {
+      text: 'We were able to see the Northern Lights from the hot tub.',
+      name: 'Shawn R.',
+      meta: 'Úlfljótsskáli · Vrbo, November 2024 · 10/10',
+    },
+    {
+      text: 'This was the perfect place to bring our family to celebrate our wedding.',
+      name: 'Carrie S.',
+      meta: 'Úlfljótsskáli · Vrbo, May 2025 · 10/10',
+    },
+    {
+      text: 'Our stay at this property was absolutely incredible — the house itself is simply beyond nice.',
+      name: 'Patricia P.',
+      meta: 'Úlfljótsskáli · Vrbo, March 2026 · 10/10',
+    },
+    {
+      text: 'The common areas are extremely well designed for a large gathering, with everything you need provided.',
+      name: 'Blair B.',
+      meta: 'Úlfljótsskáli · Vrbo, January 2025 · 10/10',
+    },
+    {
+      text: 'Amazing stay at a wonderful property.',
+      name: 'Joshua S.',
+      meta: 'Álftavík · Vrbo, July 2025 · 10/10',
+    },
+  ],
 }
 
 export const BOOKING = {

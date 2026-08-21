@@ -13,9 +13,8 @@
 
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { PreviewChrome } from '../PreviewChrome'
-import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import Chrome from './Chrome'
+import { HOME_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO, T } from './data'
 import { ORDER_T } from './order'
@@ -24,15 +23,18 @@ import { useLang } from './useLang'
 import { BODY, DIM, EASE, FAINT, GOLD, GOLD_LIGHT, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
 import { SiteContentProvider, useSiteContent } from './sanity'
 
-const company = getPreviewCompany('reynir')
 
 const PAGE_CSS = `
+  /* Safari 26 tints its chrome from body's background-color (theme-color is
+     ignored since Liquid Glass) — without this the status-bar strip is WHITE
+     on this ink-dark page. See [[ios-safe-area-chrome-color]]. */
+  html, body { background-color:${INK_DEEP}; }
   .rb-op ::selection { background:#5C1C1F; color:${IVORY}; }
   .rb-op a:focus-visible, .rb-op button:focus-visible {
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
 
   .rb-op-bar { display:flex; align-items:center; justify-content:space-between; gap:20px;
-    padding:18px clamp(20px,4.5vw,72px); border-bottom:1px solid ${HAIR_SOFT}; }
+    padding:calc(18px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 18px; border-bottom:1px solid ${HAIR_SOFT}; }
   .rb-op-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:11px 0;
     transition:color .2s ${EASE}; }
@@ -66,7 +68,7 @@ function ReynirOrderPageInner() {
   const [lang, setLang] = useLang()
   const t = T[lang]
   const ot = ORDER_T[lang]
-  const { LINKS, hoursRows, hamraborgNote, mainName, secondName } = useSiteContent()
+  const { LINKS, hoursRows, mainName } = useSiteContent()
   const [params] = useSearchParams()
   const preselect = params.get('vara') ?? undefined
 
@@ -78,16 +80,16 @@ function ReynirOrderPageInner() {
     <div
       className="rb-op"
       lang={lang}
-      style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
+      style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}
     >
-      <style>{PAGE_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       <header className="rb-op-bar">
-        <Link to="/preview/reynir" aria-label={ot.backToSite}>
+        <Link to={HOME_PATH} aria-label={ot.backToSite}>
           <img src={LOGO} alt="Reynir bakari" width={124} height={54} decoding="async" style={{ width: 124, height: 'auto', display: 'block' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to="/preview/reynir" className="rb-op-back">
+          <Link to={HOME_PATH} className="rb-op-back">
             <svg width="13" height="11" viewBox="0 0 13 11" fill="none" aria-hidden="true">
               <path d="M5.5 1L1 5.5L5.5 10M1 5.5H12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -111,15 +113,7 @@ function ReynirOrderPageInner() {
             <p className="rb-op-foot-body">
               {mainName}
               <br />
-              {hoursRows[lang].join(' · ')}
-            </p>
-          </div>
-          <div>
-            <div className="rb-op-foot-label">{t.secondLabel}</div>
-            <p className="rb-op-foot-body">
-              {secondName}
-              <br />
-              {hamraborgNote[lang]}
+              {hoursRows[lang].map((r) => `${r.label} ${r.value}`).join(' · ')}
             </p>
           </div>
           <div>
@@ -133,8 +127,7 @@ function ReynirOrderPageInner() {
         </div>
       </footer>
 
-      <PreviewChrome company={company} />
-      <PreviewFooter company={company} />
+      <Chrome />
     </div>
   )
 }

@@ -2067,8 +2067,9 @@ ${SIGN}`,
     },
   },
   {
-    // Reynir bakari — family craft bakery in Kópavogur since 1994 (Dalvegur 4 +
-    // Hamraborg 14). Founder Reynir (Carl) Þorleifsson; passed 2019; sons
+    // Reynir bakari — family craft bakery in Kópavogur since 1994 (Dalvegur 4;
+    // their Hamraborg 14 shop closed ~2024, per the owner 2026-08-16).
+    // Founder Reynir (Carl) Þorleifsson; passed 2019; sons
     // Þorleifur Karl + Henry Þór took over. Google 4,5/63, Facebook 92% recommend.
     // Current site: dated Wix, "© 2020 by Undireins", no menu/prices online.
     // Prototype CLONES the Passion design + palette per Sindri's brief, re-skinned
@@ -2093,7 +2094,7 @@ ${SIGN}`,
       strengths: [
         'Rótgróið fjölskyldubakarí í Kópavogi síðan 1994, allt bakað á staðnum frá grunni',
         '4,5 í einkunn á Google úr 63 umsögnum og 92% mæla með þeim á Facebook',
-        'Tveir staðir (Dalvegur og Hamraborg), rómuð vínarbrauð og hefðbundin súrdeigsbrauð',
+        'Rómuð vínarbrauð og hefðbundin súrdeigsbrauð, bökuð á staðnum við Dalveg',
       ],
       weaknesses: [
         'Vefsíðan er gömul Wix síða, merkt "© 2020 by Undireins", og virkar úrelt',
@@ -2121,7 +2122,7 @@ Mér fannst það synd fyrir svona rótgróið bakarí, svo ég settist niður o
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Síðan notar merkið ykkar, sýnir matseðilinn og verðin, segir söguna frá 1994 og bendir á báða staðina, Dalveg og Hamraborg. Hún er á ensku fyrir ferðafólk með íslensku í einum smelli.
+Síðan notar merkið ykkar, sýnir matseðilinn og verðin, segir söguna frá 1994 og vísar á Dalveg. Hún er á ensku fyrir ferðafólk með íslensku í einum smelli.
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur. Endilega heyrið í mér ef þetta kveikir í ykkur.
 

@@ -39,6 +39,64 @@ const OUT = join(HERE, '..', 'src', 'preview', 'bofs', 'news.generated.ts')
 const FEED = 'https://island.is/s/bofs/frett'
 const ARTICLE = (slug) => `https://island.is/s/bofs/frett/${slug}`
 
+/*
+ * Sources beyond the agency's own newsroom.
+ *
+ * BOFS publishes rarely (weeks can pass), so a page fed only by them looks
+ * abandoned even when the sync is working perfectly. These four carry the
+ * rest of the picture, and every one of them is a body the agency actually
+ * answers to, is overseen by, or works alongside.
+ *
+ * Deliberately NOT included, having been fetched and read:
+ *  - Felags-og-fjolskyldumal.rss: two items, about nursing homes and
+ *    marriage law. Wrong department.
+ *  - Ursk.-velf.-Barnaverndarmal.rss: real, but every title is of the form
+ *    "Mál nr. 640/2025-Úrskurður" and the newest is from January. Opaque
+ *    filler that would push real news down the page.
+ */
+const GEV_FEED = 'https://island.is/s/gev/frett'
+const GEV_ARTICLE = (slug) => `https://island.is/s/gev/frett/${slug}`
+const RSS_SOURCES = [
+  {
+    source: 'Stjórnarráðið',
+    url: 'https://www.stjornarradid.is/extensions/news/rss/Mennta-og-barnamalaraduneytid.rss',
+    max: 4,
+  },
+  {
+    source: 'Umboðsmaður barna',
+    url: 'https://www.barn.is/frettir/rss.xml',
+    max: 4,
+  },
+]
+
+/*
+ * A relevance gate, because these feeds are not about this agency.
+ *
+ * FIRST ATTEMPT MATCHED TOO MUCH, and the failure is worth recording: it
+ * scanned title AND description for broad words like "barn" and "foreldri".
+ * But an ombudsman FOR CHILDREN and an education ministry mention children in
+ * practically everything they publish, so the gate passed a school grading
+ * change, a maths curriculum survey, summer opening hours and a science
+ * school. The grading item then sorted to the top and became the lead story
+ * on a child protection newsroom.
+ *
+ * So: remit-specific terms, matched against the HEADLINE only. On a page like
+ * this a false positive is far more damaging than a false negative. One
+ * irrelevant item makes the whole page look unconsidered, whereas a missed
+ * item is merely a missed item.
+ */
+const RELEVANT = [
+  'barnavernd', 'barnahús', 'barnahus', 'fóstur', 'fósturforeldr', 'farsæld',
+  'meðferðarheimil', 'meðferðarúrræð', 'stuðla', 'vanræksl', 'ofbeldi',
+  'útivistartím', 'barnasáttmál', 'réttindi barna', 'bið barna',
+  'samþætting', 'áhættuhegðun', 'neyðarvistun', 'umsjá barna',
+]
+/* Headline only. Passing the description in is what broke it before. */
+const isRelevant = (title) => {
+  const hay = (title || '').toLowerCase()
+  return RELEVANT.some((k) => hay.includes(k))
+}
+
 /* ── Copy hygiene ─────────────────────────────────────────────────────── */
 
 const warnings = []
@@ -179,8 +237,8 @@ const EXTERNAL = [
 
 /* ── Fetch and build ──────────────────────────────────────────────────── */
 
-async function fetchFeed() {
-  const res = await fetch(FEED, { headers: { 'user-agent': 'bofs-concept-news-sync' } })
+async function fetchFeed(url = FEED) {
+  const res = await fetch(url, { headers: { 'user-agent': 'bofs-concept-news-sync' } })
   if (!res.ok) throw new Error(`feed ${res.status}`)
   const html = await res.text()
   const m = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
@@ -245,11 +303,133 @@ const fromFeed = feed.map((n) => {
   return item
 })
 
+/* ── GEV, same island.is machinery, different newsroom ────────────────── */
+
+let fromGev = []
+try {
+  const gev = await fetchFeed(GEV_FEED)
+  fromGev = gev
+    .filter((n) => isRelevant(n.title))
+    .slice(0, 4)
+    .map((n) => {
+      const titleIs = undash(n.title, `gev-title/${n.slug}`)
+      const intro = undash(n.intro, `gev-intro/${n.slug}`)
+      const item = {
+        date: isoToDots(n.date),
+        source: 'GEV',
+        topic: inferTopic(titleIs, intro),
+        title: { is: titleIs, en: titleIs },
+        href: GEV_ARTICLE(n.slug),
+        untranslated: true,
+      }
+      if (intro) {
+        item.summary = { is: intro, en: intro }
+        item.summaryUntranslated = true
+      }
+      return item
+    })
+  console.log(`gev:  ${fromGev.length} relevant of ${gev.length} from ${GEV_FEED}`)
+} catch (err) {
+  // A third-party newsroom going down must never fail the whole sync and
+  // leave the page stale; the agency's own feed is what matters.
+  warnings.push(`GEV feed unavailable, skipped: ${err.message}`)
+}
+
+/* ── RSS sources ──────────────────────────────────────────────────────── */
+
+/*
+ * A deliberately small XML reader rather than a dependency. These two feeds
+ * are plain RSS 2.0 and the fields we need are flat.
+ */
+const unescapeXml = (t = '') =>
+  t
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const tag = (block, name) => {
+  const m = new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`).exec(block)
+  return m ? unescapeXml(m[1]) : ''
+}
+
+async function fetchRss({ source, url, max }) {
+  const res = await fetch(url, { headers: { 'user-agent': 'bofs-concept-news-sync' } })
+  if (!res.ok) throw new Error(`${source} rss ${res.status}`)
+  const xml = await res.text()
+  const blocks = xml.split(/<item[\s>]/).slice(1)
+  const out = []
+  let seen = 0
+  for (const b of blocks) {
+    const title = tag(b, 'title')
+    const link = tag(b, 'link')
+    const desc = tag(b, 'description')
+    const pub = tag(b, 'pubDate')
+    if (!title || !link || !pub) continue
+    seen++
+    if (!isRelevant(title)) continue
+    const d = new Date(pub)
+    if (Number.isNaN(d.getTime())) continue
+    const dd = String(d.getDate()).padStart(2, '0')
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const titleIs = undash(title, `rss-title/${source}`)
+    /* The ombudsman's descriptions run to full paragraphs; trim to a lead
+       rather than reprinting somebody else's article on our page. */
+    let sum = undash(desc, `rss-desc/${source}`)
+    if (sum.length > 260) sum = sum.slice(0, 257).replace(/\s+\S*$/, '') + '...'
+    const item = {
+      date: `${dd}.${mm}.${d.getFullYear()}`,
+      source,
+      topic: inferTopic(titleIs, sum),
+      title: { is: titleIs, en: titleIs },
+      href: link,
+      untranslated: true,
+    }
+    if (sum && sum !== titleIs) {
+      item.summary = { is: sum, en: sum }
+      item.summaryUntranslated = true
+    }
+    out.push(item)
+    if (out.length >= max) break
+  }
+  console.log(`rss:  ${out.length} relevant of ${seen} from ${source}`)
+  return out
+}
+
+const fromRss = []
+for (const src of RSS_SOURCES) {
+  try {
+    fromRss.push(...(await fetchRss(src)))
+  } catch (err) {
+    warnings.push(`${src.source} feed unavailable, skipped: ${err.message}`)
+  }
+}
+
 const toDate = (d) => {
   const [dd, mm, yy] = d.split('.')
   return new Date(`${yy}-${mm}-${dd}`)
 }
-const items = [...fromFeed, ...EXTERNAL].sort((a, b) => toDate(b.date) - toDate(a.date))
+
+/*
+ * The agency's own feed wins every collision: the hand-maintained EXTERNAL
+ * entries carry verified figures and real translations, and two of the feeds
+ * can now surface the same article they were written for.
+ */
+const seenHref = new Set()
+const items = [...fromFeed, ...EXTERNAL, ...fromGev, ...fromRss]
+  .filter((n) => {
+    const key = n.href.replace(/\/$/, '').toLowerCase()
+    if (seenHref.has(key)) return false
+    seenHref.add(key)
+    return true
+  })
+  .sort((a, b) => toDate(b.date) - toDate(a.date))
 
 /**
  * Confirm every article link still resolves before it is written.

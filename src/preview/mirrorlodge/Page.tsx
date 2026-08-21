@@ -149,7 +149,7 @@ function Reviews() {
       </span>
 
       <p className="ml-eyebrow ml-rev-eyebrow">Guests</p>
-      <p className="ml-rev-badge"><span aria-hidden="true" />Sample wording</p>
+      <p className="ml-rev-badge"><span aria-hidden="true" />Verified on {REVIEWS.source}</p>
 
       <ul className="ml-rev-list">
         {REVIEWS.quotes.map((q, idx) => (
@@ -178,8 +178,8 @@ function Reviews() {
         </div>
       </div>
 
-      <span className="ml-rev-track" aria-hidden="true"><i style={{ width: `${((i + 1) / n) * 100}%` }} /></span>
-      <p className="ml-rev-note">{REVIEWS.sampleNote}</p>
+      <span className="ml-rev-track" aria-hidden="true"><i style={{ ['--p' as string]: (i + 1) / n }} /></span>
+      <p className="ml-rev-note">{REVIEWS.sourceNote}</p>
     </div>
   )
 }
@@ -668,6 +668,7 @@ const STYLES = `
   --disp:'ClashDisplayMl','Helvetica Neue',sans-serif;
   --sans:'GeneralSansMl','Helvetica Neue',Arial,sans-serif;
   --e:cubic-bezier(.25,.9,.25,1);
+  --nav-h:calc(clamp(14px,2.4vw,22px) * 2 + 24px);
   background:var(--paper); color:var(--ink);
   font-family:var(--sans); font-weight:300; line-height:1.6;
   overflow-x:clip;
@@ -717,26 +718,39 @@ const STYLES = `
    clips nothing, so the duplicate sits visibly under the original. */
 .ml-roll{display:block;overflow:hidden;height:1.4em;line-height:1.4}
 .ml-roll-in{display:block}
-.ml-roll-in i{display:block;height:1.4em;line-height:1.4;font-style:normal;transition:transform .52s var(--e)}
-.ml-roll:hover .ml-roll-in i,.ml-roll:focus-visible .ml-roll-in i{transform:translateY(-100%)}
+.ml-roll-in i{display:block;height:1.4em;line-height:1.4;font-style:normal;transition:transform .22s var(--e)}
+/* Hover motion is gated: on a touch screen a tap latches :hover and the label
+   stays rolled up with no way to roll it back. */
+@media (hover:hover) and (pointer:fine){
+  .ml-roll:hover .ml-roll-in i{transform:translateY(-100%)}
+}
+.ml-roll:focus-visible .ml-roll-in i{transform:translateY(-100%)}
 
-/* ── the cursor, as a designed object ── */
-.ml-cursor{position:fixed;top:0;left:0;z-index:90;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;
-  border-radius:50%;background:#F3F4F2;mix-blend-mode:difference;pointer-events:none;opacity:0;
-  display:grid;place-content:center;
-  transition:width .5s var(--e),height .5s var(--e),margin .5s var(--e),opacity .3s linear}
+/* ── the cursor, as a designed object ──
+   The box is FIXED at its largest size and the disc is a pseudo-element that
+   scales inside it. It used to transition width, height and margin, which is
+   layout + paint + composite on the one element that is repositioned every
+   single frame by the rAF lerp below. The blend stays on the host so the disc
+   and its label still composite as one group before differencing. */
+.ml-cursor{position:fixed;top:0;left:0;z-index:90;width:100px;height:100px;margin:-50px 0 0 -50px;
+  mix-blend-mode:difference;pointer-events:none;opacity:0;
+  display:grid;place-content:center;transition:opacity .3s linear}
+.ml-cursor::before{content:'';position:absolute;inset:0;border-radius:50%;background:#F3F4F2;
+  transform:scale(.11);transition:transform .5s var(--e)}
 .ml-cursor.is-live{opacity:1}
-.ml-cursor span{font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:#0B0D0F;
+.ml-cursor span{position:relative;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:#0B0D0F;
   white-space:nowrap;opacity:0;transition:opacity .34s var(--e)}
-.ml-cursor.is-big{width:100px;height:100px;margin:-50px 0 0 -50px}
+.ml-cursor.is-big::before{transform:none}
 .ml-cursor.is-big span{opacity:1}
 @media (max-width:949px){.ml-cursor{display:none}}
 @media (hover:none){.ml-cursor{display:none}}
 .ml-burger{display:none;width:44px;height:44px;position:relative}
-.ml-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
+/* transform only: translateY(±4px) reaches the same centre that animating
+   top from 18/26px to 22px used to, without the layout pass. */
+.ml-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .25s var(--e)}
 .ml-burger i:first-child{top:18px}.ml-burger i:last-child{top:26px}
-.ml-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
-.ml-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
+.ml-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
+.ml-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
 .ml-sheet{position:fixed;inset:0;z-index:55;background:var(--paper);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
@@ -800,8 +814,14 @@ const STYLES = `
   color:#F4F7F8;font-size:clamp(.95rem,1.25vw,1.12rem);line-height:1.5;max-width:34ch;
   text-shadow:0 1px 18px rgba(16,20,24,.5)}
 
-/* type panel: air, not a card */
-.ml-type{width:min(88vw,620px);display:grid;align-content:center;gap:20px;padding:0 clamp(28px,4.6vw,84px)}
+/* type panel: air, not a card.
+   The journey is PINNED, so whatever a type panel shows is at REST — a line
+   that lands under the fixed nav can never be scrolled clear of it, unlike a
+   heading on an ordinary page. So the content is centred in the band BELOW
+   the nav, never in the whole viewport. Measured before this: at 1366x700 the
+   first line of "Two glass walls" lost 51px to the nav, permanently. */
+.ml-type{width:min(88vw,620px);display:grid;align-content:center;gap:20px;
+  padding:var(--nav-h) clamp(28px,4.6vw,84px) clamp(18px,3vh,34px)}
 .ml-type-rev{width:min(92vw,700px)}
 .ml-facts{display:flex;gap:clamp(22px,3vw,46px);margin-top:6px}
 .ml-fact{display:grid;gap:3px}
@@ -854,14 +874,46 @@ const STYLES = `
 .ml-rev-nav{display:flex;gap:9px}
 .ml-rev-nav button{width:38px;height:38px;border-radius:50%;border:1px solid var(--hair);
   display:grid;place-content:center;color:var(--ink-soft);
-  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
-.ml-rev-nav button:hover{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ml-rev-nav button:hover{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+}
 .ml-rev-track{display:block;width:100%;height:1px;background:var(--hair)}
-.ml-rev-track i{display:block;height:100%;background:var(--moss);transition:width .55s var(--e)}
+/* scaleX, not width: the rail is a pure progress bar, so the GPU form is an
+   exact substitute and costs no layout. The inline style now sets --p. */
+.ml-rev-track i{display:block;width:100%;height:100%;background:var(--moss);
+  transform:scaleX(var(--p,0));transform-origin:left;transition:transform .55s var(--e)}
 .ml-rev-note{position:relative;z-index:1;font-size:.72rem;letter-spacing:.04em;color:var(--ink-mute);max-width:46ch}
 
 .ml-progress-rail{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--hair);z-index:4}
 .ml-progress{display:block;height:100%;background:var(--moss);transform:scaleX(0);transform-origin:left}
+
+/* ── SHORT WINDOWS ──
+   These must sit AFTER every panel component rule above, not beside .ml-type.
+   They are single-class selectors like the rules they override, so the winner
+   is whichever comes last in the sheet — declared up by .ml-type they lost to
+   .ml-inset and .ml-points and the panel kept overflowing anyway.
+
+   Reserving the nav is not enough on a short window: at 1366x700 the tallest
+   panel ran 700px of content into a 624px band, and because the journey is
+   PINNED there is no scrolling the overflow into view at either edge. Below
+   880px the type steps down so the whole panel fits. */
+@media (min-width:1024px) and (max-height:880px){
+  .ml-type{gap:14px}
+  .ml-type .ml-display .ml-rise-in{font-size:clamp(1.7rem,3vw,2.6rem)}
+  .ml-type .ml-body{font-size:clamp(.92rem,1vw,1rem);line-height:1.55}
+  .ml-fact-n{font-size:clamp(1.55rem,2.4vw,2.05rem)}
+  .ml-amen,.ml-points{gap:7px;padding-top:14px}
+  .ml-amen li,.ml-points li{font-size:.9rem}
+  .ml-inset{aspect-ratio:5/2}
+}
+/* Shorter still: the Geysir panel carries an inset photograph as well as the
+   type, and at 1280x640 it ran 45px past the bottom edge — just as lost as
+   the top. The inset takes the letterbox crop so the panel closes. */
+@media (min-width:1024px) and (max-height:720px){
+  .ml-type{gap:11px}
+  .ml-inset{aspect-ratio:16/5}
+}
 
 /* vertical fallback */
 @media (max-width:1023px){
@@ -879,10 +931,15 @@ const STYLES = `
 /* gallery */
 .ml-gallery{overflow:hidden;padding:clamp(80px,12vh,150px) 0}
 .ml-gal-track{display:flex;gap:clamp(12px,1.6vw,22px);width:max-content;animation:ml-gal 64s linear infinite;padding:0 20px}
-.ml-gallery:hover .ml-gal-track{animation-play-state:paused}
 .ml-gal-item{width:clamp(220px,26vw,380px);aspect-ratio:3/2;overflow:hidden;flex:none}
-.ml-gal-item img{filter:saturate(.9);transition:transform 1.1s var(--e)}
-.ml-gal-item:hover img{transform:scale(1.05)}
+.ml-gal-item img{filter:saturate(.9);transition:transform .4s var(--e)}
+/* Both of these are gated. The pause is the important one: on a touch screen
+   a tap latches :hover, the marquee stops, and there is no gesture that
+   un-hovers it again, so the gallery is simply dead from then on. */
+@media (hover:hover) and (pointer:fine){
+  .ml-gallery:hover .ml-gal-track{animation-play-state:paused}
+  .ml-gal-item:hover img{transform:scale(1.05)}
+}
 @keyframes ml-gal{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .reduced .ml-gal-track{animation:none;flex-wrap:wrap;width:auto}
 
@@ -905,7 +962,13 @@ const STYLES = `
 .ml-book-note{font-size:.74rem;color:var(--ink-mute)}
 .ml-book-done p{font-family:var(--disp);font-weight:200;font-size:clamp(1.3rem,2.2vw,1.7rem);line-height:1.4;max-width:34ch;
   border-top:1px solid var(--moss);padding-top:24px}
-@media (max-width:860px){.ml-book{grid-template-columns:1fr}}
+/* A 1fr track is minmax(auto,1fr) — the auto floor is content width, so the track
+   could not shrink under a narrow phone and overflowed behind
+   overflow-x:clip. */
+@media (max-width:860px){
+  .ml-book{grid-template-columns:minmax(0,1fr)}
+  .ml-book-copy,.ml-book-form{min-width:0}
+}
 
 /* footer */
 .ml-footer{background:var(--paper);color:var(--ink);padding:clamp(50px,9vh,100px) clamp(20px,5vw,64px) 0;border-top:1px solid var(--hair)}
@@ -962,4 +1025,23 @@ const STYLES = `
 @media (max-width:760px){
   .ml-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
+
+/* ── MOBILE FLOORS ── last in the sheet so these single-class rules win.
+   No real text under 13px, no standalone control under 44px. Measured: the
+   eyebrows and form labels were at 11.5px on a phone. Inline links inside a
+   sentence stay exempt — padding them to 44px would break the line box. */
+@media (max-width:640px){
+  .ml-eyebrow,.ml-fact-l,.ml-rev-note,.ml-book-note,.ml-rev-badge,
+  .ml-footer-dl dt,.ml-field label,.ml-book label{font-size:13px}
+  .ml-rev-nav button{width:44px;height:44px}
+  .ml-nav-mark{padding:10px 0}
+  .ml-footer footer[lang="is"]{font-size:13px}
+  .ml-footer-dl a{display:inline-block;padding:12px 0}
+  .ml-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+/* A grid track may shrink, but a grid ITEM keeps min-width:auto and an
+   <input> has an intrinsic ~180px min-content width, so the row overflowed on
+   a narrow phone regardless of the track. The item and the control release. */
+.ml-field{min-width:0}
+.ml-field input,.ml-field select,.ml-field textarea{min-width:0;width:100%}
 `

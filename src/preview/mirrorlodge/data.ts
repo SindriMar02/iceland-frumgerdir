@@ -94,31 +94,52 @@ export const GALLERY: { img: keyof typeof IMG; alt: string }[] = [
 ]
 
 /**
- * TESTIMONIALS — sample copy. Mirror Lodge publishes no review text on their
- * own site, and their Airbnb listing cannot be tied to them with certainty
- * (their site carries licence HG-00016971 while the Laugarás mirror listing
- * shows HG-00017975 — two different registrations, see the scout record).
- * So these stand in for the owners' real guest words, labelled on the face of
- * the component. Never attribute another mirror property's reviews to them.
+ * TESTIMONIALS — REAL, quoted verbatim from the property's own Google Business
+ * listing ("Mirror Lodge Iceland", maps place g/11qnzkb3x7, linked to
+ * mirrorlodge.com and marked "Identifies as women-owned"), read 2026-08-16.
+ *
+ * Verified there the same day: 5.0 from 16 reviews, and the histogram puts ALL
+ * SIXTEEN in the five-star bucket — there is no 4, 3, 2 or 1. Google's own
+ * extracted topics: hot tub (9 mentions), kind host (3), responsive host (2),
+ * stunning views (2). The owner replies to reviews by name, which is where
+ * "responsive host" comes from.
+ *
+ * WHAT IS QUOTED: Google truncates each review and only fetches the remainder
+ * on a real user expand, which would not fire under automation. Each quote
+ * below is therefore the review's OPENING, verbatim and unedited, cut at a
+ * clause boundary — never paraphrased, never completed by us. Olaf's original
+ * runs on past this point with a typo ("in front of the and one side"); we cut
+ * before it rather than silently repair his words.
+ *
+ * Dates are converted from Google's relative stamps ("3 months ago",
+ * "4 months ago") read on 2026-08-16, so they are accurate to about a month.
+ *
+ * NOT THEIRS, never borrow: "Mirror House Iceland" is a DIFFERENT property —
+ * licence HG-00017975 against Mirror Lodge's HG-00016971, and its own Google
+ * entry (4.9 from 7, Skeljabrekka). Nor ÖÖD Hekla Horizon, nor The Mirror
+ * Suite in Búðardalur.
  */
 export const REVIEWS = {
-  lead: 'The part of the stay guests write home about.',
+  lead: 'Sixteen guests, sixteen five-star reviews, and none of them on your website.',
   body:
-    'Nothing on mirrorlodge.com tells a visitor what a night here is like. No prices, no availability, no guest words: the page ends and the visitor has to email into the dark.',
-  sampleNote:
-    'Placeholder wording. We could not tie a public review listing to this property with confidence, so nothing here is quoted as if it were a real guest. Send us your own reviews and they replace this text exactly as written.',
+    'Every review Mirror Lodge has on Google is a five. Nothing on mirrorlodge.com says so: no prices, no availability, not one guest word. The page ends and the visitor has to email into the dark.',
+  sourceNote:
+    'Real reviews, quoted verbatim from your Google listing on 16 August 2026, where you hold 5.0 from 16 reviews — every one of them five stars. Each quote is the opening of a longer review. On your own site they would sit here, on your own domain, working for you.',
+  score: '5.0',
+  count: '16 Google reviews · all five stars',
+  source: 'Google',
   quotes: [
     {
-      text: 'You lie in bed and the sky is just there, no window frame in the way. We turned the blinds off and watched the light change until we fell asleep.',
-      meta: 'Sample review',
+      text: 'The Mirror Lodge is nestled in between pure nature: no artificial garden, just a road that ends at the lodge.',
+      meta: 'Olaf Riedel · Google, May 2026',
     },
     {
-      text: 'Geysir erupts down the road, but the best part was after the buses left. Total silence, the hot tub steaming, the mountains going pink.',
-      meta: 'Sample review',
+      text: 'We had the pleasure of staying at the Mirror Lodge in Iceland for three days — and it was absolutely fantastic!',
+      meta: 'Katharina Wolf · Google, April 2026',
     },
     {
-      text: 'From the outside it disappears into the field. From the inside you are sitting in the middle of Iceland with a kitchen and a hot shower.',
-      meta: 'Sample review',
+      text: 'We absolutely loved our stay at the Mirror Lodge, it was such a wonderful experience from start to finish.',
+      meta: 'Saurabh · Google, April 2026',
     },
   ],
 }

@@ -4,62 +4,154 @@
  * Clones the Passion Reykjavík design system (near-black #131313 ground,
  * antique-gold serif, deep burgundy, ivory; Lusitana + Source Serif 4) per the
  * brief — same design + colours, re-skinned with Reynir's own logo, facts and
- * voice. Family craft bakery in Kópavogur, Dalvegur 4 + Hamraborg 14.
+ * voice. Family craft bakery in Kópavogur, Dalvegur 4.
  *
- * HONESTY GUARDRAILS (prototype disclaimed in PreviewFooter):
+ * ⚠️ THIS IS NOW A COMMISSIONED BUILD, NOT A SPECULATIVE PROTOTYPE.
+ * Reynir bakarí hired us (confirmed 2026-08-16) to finish this and put it on
+ * their own domain. Everything below is therefore published on their behalf and
+ * must be true. See reynir-golive.md for the pre-launch checklist and the facts
+ * that still need the owner's sign-off.
+ *
+ * SOURCING:
  *   - LOGO is their real script wordmark (from reynirbakari.is), recoloured to
  *     the shared gold so it reads on the dark ground; shape unchanged.
- *   - HERO image is their real B&W "hands shaping dough" photo from their own
- *     site, warm-toned to fit the palette. No invented photography.
- *   - PRICES are REAL, from their aha.is delivery menu (aha.is/veitingar/
- *     reynir-bakari, fetched Jul 2026). Their own site publishes no price list.
- *   - HOURS = their own site (Dalvegur): Mon–Sat 06–17, Sun 07–17. Hamraborg
- *     hours conflict across sources + are not on their site → we direct to a
- *     phone call rather than state a possibly-wrong time.
+ *   - PHOTOGRAPHY is their own professional shoot (Aug 2020), which Sindri paid
+ *     for. The one exception is the turning hero bun — see FEATURE_IMG.
+ *   - PRICES + PRODUCTS are verified against Reynir's OWN current Wolt listing
+ *     (fetched 2026-08-16). Every price previously taken from aha.is matched
+ *     Wolt exactly, which is as close to confirmation as we get without the
+ *     till. Note both are delivery platforms, so if their counter price differs
+ *     the owner should say so — but two independent listings agreeing is a
+ *     strong signal.
+ *   - HOURS = 07–17 EVERY DAY, confirmed directly by the owner (Þorleifur,
+ *     2026-08-16). Supersedes the Mon–Sat 06–17 / Sun 07–17 published on their
+ *     own (stale) Wix site.
+ *   - ONE LOCATION. Their Hamraborg 14 shop CLOSED around 2024 — confirmed by
+ *     the owner 2026-08-16. Their live Wix site, Google and aha.is may still
+ *     list it; this site must not. (The earlier caution here — that Hamraborg
+ *     hours "conflict across sources" — turned out to be because it was shut.)
  *   - STORY facts (founded 1 Feb 1994; founder Reynir (Carl) Þorleifsson;
  *     passed 2019; sons Þorleifur Karl + Henry Þór took over; ~20 staff; all
  *     baked on-site from scratch) are from their About page (reynirbakari.is/
  *     um-okkur) + kopavogsbladid.is (2016).
- *   - REVIEW quote + ratings (Google 4,5 / 63; Facebook 92% recommend) are
- *     real (RestaurantGuru / Facebook). Only one quotable review existed; not
- *     padded with invented ones.
+ *   - REVIEWS are real and attributed; see the block above REVIEWS.
+ *     Rating shown as 4,5 from 65 Google reviews, read off their live Google
+ *     listing 2026-08-16.
+ *
+ * HOURS: settled. Þorleifur reconfirmed 07–17 EVERY DAY (2026-08-16) after we
+ * put the weekend discrepancy to him — their Wolt listing says 08:00 at
+ * weekends and the old directories say 06:00, and both are wrong. The owner's
+ * word is the source of truth and those listings need updating, not this site.
  */
 
 export type Lang = 'en' | 'is'
 
 export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo.webp`
+/** Full-size gallery frame (lightbox). */
 const gal = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}.webp`
+/** 800px variant of the same frame, for the masonry tiles — the grid renders
+ *  them around 380px wide, so shipping the 2000px file to every tile would
+ *  cost ~5.8MB for a gallery that needs 600KB. Paired via srcset. */
+const galSm = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}-sm.webp`
 /** Real B&W "hands shaping dough" photo from their own site, warm-toned. */
 export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
-/** Pistachio snúður, cut out to a TRANSPARENT background (Higgsfield asset,
- *  cutout via corner floodfill — see IMAGE-PROMPTS.md). Transparent so only the
- *  bun rotates as it travels, with no square/ghost background behind it. */
+/** The turning pistachio snúður: a TRANSPARENT cutout so the ink ground shows
+ *  through and nothing frames it.
+ *
+ *  This one frame is generated rather than photographed, and deliberately so.
+ *  Their own photograph of this bun (2020 shoot, frame 002) sits on baking
+ *  parchment whose tone is within a hair of the bun's pale crust, so no
+ *  threshold can separate them — every attempt that removed the paper also ate
+ *  the crust. It was generated FROM that photograph as the reference, matching
+ *  its spiral, its pistachio-green marzipan and its caramel drizzle, so the
+ *  shape on the page is their product. Everything else on the site is their
+ *  own photography. */
 export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.webp`
-/** Torn-open, gooey pistachio snúður (Higgsfield) — the framed product shot in
- *  the featured slot. */
-export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-torn.jpg`
+/** The same bun wider, keeping the caramel running off the edge — the framed
+ *  product shot in the featured slot. */
+export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-bakki.jpg`
+/** The shop itself: their wall of framed black-and-white bakery photographs,
+ *  the "HANDVERKSBAKARÍ" sign, and the tables you can sit at. */
+export const SHOP_IMG = `${import.meta.env.BASE_URL}reynir/bud.webp`
+/** The three frames that carry the story section, where the bakery's own
+ *  history is told. Fixed paths rather than indices into GALLERY: the owner
+ *  can reorder gallery photos in the CMS without silently swapping which
+ *  frame fills these specific, deliberately-chosen slots.
+ *
+ *  No year numerals are printed alongside these photographs on purpose. The
+ *  years (1994, 2019) live inside the story paragraphs, which are editable in
+ *  the CMS — repeating them as decorative markers would let the two drift
+ *  apart the first time the owner rewrites a sentence. */
+export const STORY_ART = {
+  /** Frame 11, full-bleed: the deck oven's glow, loaded before opening. */
+  open: { src: gal('11'), w: 2000, h: 1335 },
+  /** Frame 05: dough shaped by hand — the craft that has not changed since
+   *  Reynir opened the doors. Sits with the founding paragraph. */
+  founding: { src: galSm('05'), w: 1335, h: 2000 },
+  /** Frame 17: the room working — the twenty-five people the story ends on. */
+  today: { src: galSm('17'), w: 2000, h: 1335 },
+}
+
+/** Photography set INTO the menu lists — every frame is from their own 2020
+ *  shoot, colour, and shows the real product family it sits beside. A price
+ *  only appears on a frame when it is exact: the lengjur frame carries
+ *  1.395 kr. because all three listed lengjur cost precisely that. The
+ *  chocolate-glazed case shots (frames 068–070) were considered and rejected
+ *  here: they are doughnuts, not snúðar, and may not carry a snúður price. */
+export type MenuArt = { src: string; w: number; h: number; cap: { en: string; is: string }; price?: string }
+export const MENU_ART: Record<'lengjur' | 'bordid' | 'braud' | 'kaka', MenuArt> = {
+  /** Frame 188: the vínarbrauðslengjur trays — pink glaze, custard, almonds.
+   *  Literally three of the listed items in one photograph. */
+  lengjur: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/lengjur.webp`, w: 1400, h: 933,
+    cap: { en: 'The lengjur, off the morning trays', is: 'Lengjurnar, af morgunbökkunum' },
+    price: '1.395 kr.',
+  },
+  /** Frame 066: the baked pastry pile — croissants and poppyseed moohnsnúðar. */
+  bordid: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/bordid.webp`, w: 1200, h: 1200,
+    cap: { en: 'Fresh into the counter every morning', is: 'Nýbakað í borðið á hverjum morgni' },
+  },
+  /** Frame 147: sourdough rolls on the rack, still dusted. */
+  braud: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/braud.webp`, w: 1100, h: 1375,
+    cap: { en: 'Baked on-site, every morning', is: 'Bakað á staðnum, alla morgna' },
+  },
+  /** Frame 161: a cream cake being finished by hand, cherry by cherry. */
+  kaka: {
+    src: `${import.meta.env.BASE_URL}reynir/menu/kaka.webp`, w: 1400, h: 1050,
+    cap: { en: 'Finished by hand, cherry by cherry', is: 'Handskreytt, eitt ber í einu' },
+  },
+}
 
 export const LINKS = {
   order: 'https://www.aha.is/veitingar/reynir-bakari',
+  /** Their Wolt storefront. The slug really is "reynir-bakarari" — Wolt's own
+   *  spelling, not a typo here; both the is/ and en/ paths return 200
+   *  (verified 2026-08-17). Note Wolt advertises 08:00 at weekends, which the
+   *  owner says is wrong; the site follows the owner, not the listing. */
+  wolt: 'https://wolt.com/is/isl/reykjavik/venue/reynir-bakarari',
   facebook: 'https://www.facebook.com/ReynirBakari',
   instagram: 'https://www.instagram.com/reynir.bakari',
   phone: '+3545644700',
   phoneLabel: '564 4700',
-  phone2Label: '554 4200',
   email: 'reynirbakari@reynirbakari.is',
   orderEmail: 'pantanir@reynirbakari.is',
 } as const
 
-/** Weekly hours, minutes-from-midnight, UTC (Iceland has no DST). Dalvegur,
- *  from their own site: Mon–Sat 06–17, Sun 07–17. */
+/** Weekly hours, minutes-from-midnight, UTC (Iceland has no DST). 07–17 every
+ *  day, confirmed by the owner 2026-08-16. This array is the ONE source the
+ *  hours come from: the live open/closed badge reads it, and the printed
+ *  "Every day 7:00 to 17:00" line is generated from it (see sanity.ts's
+ *  buildHoursRows) rather than written out a second time by hand. */
 export const HOURS_BY_DAY = [
   { open: 7 * 60, close: 17 * 60 }, // Sun
-  { open: 6 * 60, close: 17 * 60 }, // Mon
-  { open: 6 * 60, close: 17 * 60 }, // Tue
-  { open: 6 * 60, close: 17 * 60 }, // Wed
-  { open: 6 * 60, close: 17 * 60 }, // Thu
-  { open: 6 * 60, close: 17 * 60 }, // Fri
-  { open: 6 * 60, close: 17 * 60 }, // Sat
+  { open: 7 * 60, close: 17 * 60 }, // Mon
+  { open: 7 * 60, close: 17 * 60 }, // Tue
+  { open: 7 * 60, close: 17 * 60 }, // Wed
+  { open: 7 * 60, close: 17 * 60 }, // Thu
+  { open: 7 * 60, close: 17 * 60 }, // Fri
+  { open: 7 * 60, close: 17 * 60 }, // Sat
 ] as const
 
 export interface MenuItem {
@@ -74,16 +166,18 @@ export interface Review {
   who: string
 }
 
-/** Real, sourced reviews only (per the honesty guardrail above) — currently just
- *  the two that exist with quotable text: the Google review already on aha.is/
- *  RestaurantGuru, and one Facebook recommendation (visible logged-out on their
- *  page, 15 Jul 2020). RestaurantGuru's other two reviews are star-ratings only,
- *  no text. Not padded to a "nicer" number. */
+/** Real, attributed reviews. Each one below was found published with its
+ *  author's name against this bakery — the Facebook recommendation on their own
+ *  page, and Google reviews as syndicated to the public listing mirrors.
+ *  Nothing here is written by us and nothing is paraphrased; the Icelandic and
+ *  English columns are the same review, translated only where the original was
+ *  in the other language.
+ *
+ *  ⚠️ BEFORE GO-LIVE: have Þorleifur confirm he is happy to feature these
+ *  specific named customers. Republishing a review is normal, but on his own
+ *  commissioned site it should be his call, and he may prefer favourites of his
+ *  own. They are all editable in the CMS under "Umsagnir". */
 export const REVIEWS: Review[] = [
-  {
-    quote: { en: 'Great pistachio Danish.', is: 'Frábær pistasíusnúður.' },
-    who: 'gj Anderson, Google',
-  },
   {
     quote: {
       en: 'I wear glasses every day and absolutely hate it, but popping into Reynir Bakari for one of their “gleruauga” always makes my day better. Thanks!',
@@ -91,37 +185,69 @@ export const REVIEWS: Review[] = [
     },
     who: 'Hrafn Sigurðarson, Facebook',
   },
+  {
+    quote: { en: 'Best bread in town. Love the normalbrauð.', is: 'Besta brauðið í bænum. Elska normalbrauðið.' },
+    who: 'Viktoria Gísladóttir, Google',
+  },
+  {
+    quote: { en: 'A good spirit about the place, and good service.', is: 'Góður andi og góð þjónusta.' },
+    who: 'Birna Steingrímsdóttir, Google',
+  },
+  {
+    quote: {
+      en: 'An authentic bakery, where you meet the Icelandic craftsman and the regulars enjoying a coffee with the local paper and a bit of gossip.',
+      is: 'Ósvikið bakarí, þar sem þú hittir íslenska handverksmanninn og fastagestina sem njóta kaffisins með blaðinu og spjalli dagsins.',
+    },
+    who: 'Anders B. Jensen, Google',
+  },
+  {
+    quote: { en: 'A nice, cosy café and bakery that opens early in the morning.', is: 'Notalegt kaffihús og bakarí sem opnar snemma á morgnana.' },
+    who: 'Michael Smiyun, Google',
+  },
+  {
+    quote: { en: 'Great pistachio Danish.', is: 'Frábær pistasíusnúður.' },
+    who: 'gj Anderson, Google',
+  },
 ]
 
 export interface GalleryPhoto {
+  /** Full-size frame, used by the lightbox. */
   src: string
+  /** 800px variant for the masonry tile; paired with src via srcset. */
+  srcSm: string
   /** Intrinsic pixel size, used only to reserve aspect ratio (no layout shift). */
   w: number
   h: number
   caption: { en: string; is: string }
 }
 
-/** Candid black-and-white bakery photography, harvested from their own site
- *  (reynirbakari.is/um-okkur) at full native resolution — real bakers, real
- *  ovens, the shop floor. Two near-duplicate rack shots were dropped from the
- *  live site's set of 18; the rest is shown here. */
+/** Reynir's own professional shoot (August 2020), in the photographer's own
+ *  black-and-white selects, at full resolution from the originals — these
+ *  replace the ~1700px versions previously harvested off their Wix site.
+ *
+ *  Ordered as one morning rather than as sixteen nice pictures: the dough is
+ *  mixed, weighed and shaped, the cinnamon goes on, the rolls are cut, the
+ *  ovens are loaded and emptied, the cakes and sandwiches are finished, and
+ *  the room is working. Chosen from 220 frames; see reynir-photo-map.md for
+ *  the full selection and what was left out. */
 export const GALLERY: GalleryPhoto[] = [
-  { src: gal('01'), w: 1564, h: 1426, caption: { en: 'Shaping the morning’s first loaves', is: 'Fyrstu brauðin mótuð að morgni' } },
-  { src: gal('02'), w: 1700, h: 1134, caption: { en: 'Into the deck oven', is: 'Í ofninn' } },
-  { src: gal('03'), w: 1088, h: 1120, caption: { en: 'Building the day’s sandwiches', is: 'Samlokur settar saman' } },
-  { src: gal('04'), w: 1700, h: 1360, caption: { en: 'Checking the bread rack', is: 'Litið eftir brauðunum' } },
-  { src: gal('05'), w: 1700, h: 1359, caption: { en: 'Sourdough, shaped by hand', is: 'Súrdeig mótað í höndunum' } },
-  { src: gal('08'), w: 1360, h: 1700, caption: { en: 'Working the dough', is: 'Deigið hnoðað' } },
-  { src: gal('07'), w: 1700, h: 1133, caption: { en: 'A slice of the day’s cake', is: 'Sneið af dagsins köku' } },
-  { src: gal('14'), w: 1360, h: 1700, caption: { en: 'Loading the deck oven', is: 'Brauðin sett í ofninn' } },
-  { src: gal('12'), w: 1700, h: 1360, caption: { en: 'The old Fortuna mixer, still at work', is: 'Gamla Fortuna-hrærivélin enn í notkun' } },
-  { src: gal('17'), w: 1134, h: 1700, caption: { en: 'Cutting the dough to weight', is: 'Deigið vigtað og skorið' } },
-  { src: gal('11'), w: 1565, h: 1252, caption: { en: 'Cream puffs, fresh', is: 'Rjómabollur, nýjar' } },
-  { src: gal('18'), w: 1134, h: 1700, caption: { en: 'The final shape, by hand', is: 'Lokahnykkurinn, með höndunum' } },
-  { src: gal('15'), w: 1134, h: 1700, caption: { en: 'Shaping the rolls', is: 'Bollur mótaðar' } },
-  { src: gal('09'), w: 640, h: 428, caption: { en: 'Fresh from the counter', is: 'Nýbakað úr búðinni' } },
-  { src: gal('10'), w: 1200, h: 800, caption: { en: 'A celebration cake, plated', is: 'Tertan tilbúin' } },
-  { src: gal('13'), w: 640, h: 960, caption: { en: 'A finished creation', is: 'Fullbúið verk' } },
+  { src: gal('01'), srcSm: galSm('01'), w: 1335, h: 2000, caption: { en: 'Lifting the dough from the tub', is: 'Deigið lyft upp úr karinu' } },
+  { src: gal('02'), srcSm: galSm('02'), w: 1335, h: 2000, caption: { en: 'The dough goes in to rest', is: 'Deigið sett í kar' } },
+  { src: gal('03'), srcSm: galSm('03'), w: 2000, h: 1335, caption: { en: 'Flour across the bench', is: 'Hveiti yfir borðið' } },
+  { src: gal('04'), srcSm: galSm('04'), w: 1335, h: 2000, caption: { en: 'Cutting the dough to weight', is: 'Deigið vigtað og skorið' } },
+  { src: gal('05'), srcSm: galSm('05'), w: 1335, h: 2000, caption: { en: 'Shaped by hand', is: 'Mótað í höndunum' } },
+  { src: gal('06'), srcSm: galSm('06'), w: 1335, h: 2000, caption: { en: 'Spreading the cinnamon', is: 'Kanilsmjörið smurt á' } },
+  { src: gal('07'), srcSm: galSm('07'), w: 1335, h: 2000, caption: { en: 'Cutting the roll', is: 'Rúllan skorin' } },
+  { src: gal('08'), srcSm: galSm('08'), w: 1335, h: 2000, caption: { en: 'The scissor cut that makes a snúður', is: 'Klippt í snúða' } },
+  { src: gal('09'), srcSm: galSm('09'), w: 1335, h: 2000, caption: { en: 'A tray, shaped and ready', is: 'Bakkinn mótaður og tilbúinn' } },
+  { src: gal('10'), srcSm: galSm('10'), w: 2000, h: 1335, caption: { en: 'Into the deck oven', is: 'Sett í steinofninn' } },
+  { src: gal('11'), srcSm: galSm('11'), w: 2000, h: 1335, caption: { en: 'The oven’s glow', is: 'Ofninn glóir' } },
+  { src: gal('12'), srcSm: galSm('12'), w: 1335, h: 2000, caption: { en: 'The tin loaf, out', is: 'Formbrauðið úr ofninum' } },
+  { src: gal('13'), srcSm: galSm('13'), w: 1335, h: 2000, caption: { en: 'Straight from the oven', is: 'Beint úr ofninum' } },
+  { src: gal('14'), srcSm: galSm('14'), w: 1335, h: 2000, caption: { en: 'Glazing the buns', is: 'Bollurnar gljáðar' } },
+  { src: gal('15'), srcSm: galSm('15'), w: 1335, h: 2000, caption: { en: 'The cake gets its cream', is: 'Rjóminn á tertuna' } },
+  { src: gal('16'), srcSm: galSm('16'), w: 1335, h: 2000, caption: { en: 'Building the day’s sandwiches', is: 'Samlokur dagsins settar saman' } },
+  { src: gal('17'), srcSm: galSm('17'), w: 2000, h: 1335, caption: { en: 'The bakery at work', is: 'Bakaríið að störfum' } },
 ]
 
 /** The house favourite — the pistachio Danish guests single out. */
@@ -134,7 +260,10 @@ export const FEATURE: MenuItem = {
   },
 }
 
-/** Pastries — real names + aha.is prices. */
+/** Pastries. Every item and price below is verified against Reynir's OWN
+ *  current Wolt listing (fetched 2026-08-16) — and every price we already had
+ *  from aha.is matched it exactly, which is the closest thing to confirmation
+ *  we can get without the owner's till. */
 export const MENU: MenuItem[] = [
   {
     name: 'Vínarbrauðslengja með súkkulaði',
@@ -154,11 +283,35 @@ export const MENU: MenuItem[] = [
     },
   },
   {
+    name: 'Vínarbrauðslengja með bleikum glassúr',
+    price: '1.395 kr.',
+    desc: {
+      en: 'The same length under the pink glaze instead.',
+      is: 'Sama lengja, með bleikum glassúr í staðinn.',
+    },
+  },
+  {
+    name: 'Gleraugu',
+    price: '620 kr.',
+    desc: {
+      en: 'The two-eyed Danish that regulars ask for by name.',
+      is: 'Gleraugun sem fastagestir biðja um með nafni.',
+    },
+  },
+  {
     name: 'Snúður með súkkulaði glassúr',
     price: '550 kr.',
     desc: {
       en: 'The classic Icelandic snúður under a real chocolate glaze.',
       is: 'Klassíski snúðurinn undir súkkulaðiglassúr.',
+    },
+  },
+  {
+    name: 'Snúður með bleikum glassúr',
+    price: '550 kr.',
+    desc: {
+      en: 'The same bun, the pink glaze everyone grew up on.',
+      is: 'Sami snúður, bleiki glassúrinn sem allir ólust upp við.',
     },
   },
   {
@@ -178,6 +331,11 @@ export const MENU: MenuItem[] = [
     },
   },
   {
+    name: 'Ostaslaufa',
+    price: '640 kr.',
+    desc: { en: 'Cheese pastry, for when it should be savoury.', is: 'Ostaslaufa, þegar það á að vera salt.' },
+  },
+  {
     name: 'Kleina',
     price: '395 kr.',
     desc: {
@@ -187,20 +345,40 @@ export const MENU: MenuItem[] = [
   },
 ]
 
-/** Traditional breads — real names + aha.is prices. */
+/** Breads and rolls, verified against their current Wolt listing 2026-08-16,
+ *  EXCEPT the two marked below.
+ *
+ *  This list is only what the site shows when Sanity is unreachable. The CMS
+ *  is the source of truth whenever it answers, and it replaces this list
+ *  wholesale rather than merging with it — so an item deleted in the studio
+ *  does not come back from here. That is why it is safe to carry a bread the
+ *  owner may not want: if it is not listed in the CMS, it is not on the site. */
 export const BREAD: MenuItem[] = [
   { name: 'Hvítt súrdeigsbrauð', price: '1.190 kr.', desc: { en: 'White sourdough, slow-proved and baked on-site.', is: 'Hvítt súrdeigsbrauð, hæghefað og bakað á staðnum.' } },
   { name: 'Gróft súrdeigsbrauð', price: '1.190 kr.', desc: { en: 'Wholegrain sourdough with a deep crust.', is: 'Gróft súrdeigsbrauð með þéttri skorpu.' } },
   { name: 'Döðlubrauð', price: '1.110 kr.', desc: { en: 'Naturally sweet date bread.', is: 'Náttúrulega sætt döðlubrauð.' } },
+  /* Not on the Wolt listing — carried here so the fallback matches the CMS.
+     Awaiting the owner's confirmation that both are still baked. */
   { name: 'Sexkornabrauð', price: '930 kr.', desc: { en: 'A six-grain loaf, hearty and healthy.', is: 'Sexkornabrauð, matarmikið og hollt.' } },
-  { name: 'Þriggja korna brauð', price: '930 kr.', desc: { en: 'Three grains in one everyday loaf.', is: 'Þrjú korn í einu hversdagsbrauði.' } },
   { name: 'Normalbrauð', price: '930 kr.', desc: { en: 'The everyday standard loaf.', is: 'Venjulega brauðið fyrir hvern dag.' } },
+  { name: 'Þriggja korna brauð', price: '930 kr.', desc: { en: 'Three grains in one everyday loaf.', is: 'Þrjú korn í einu hversdagsbrauði.' } },
+  { name: 'Sólkjarnarúnstykki', price: '230 kr.', desc: { en: 'Sunflower-seed roll.', is: 'Rúnstykki með sólkjörnum.' } },
+  { name: 'Múslírúnstykki', price: '230 kr.', desc: { en: 'Muesli roll, for the morning.', is: 'Múslírúnstykki, fyrir morguninn.' } },
+  { name: 'Ostarúnstykki', price: '200 kr.', desc: { en: 'Cheese roll, straight from the oven.', is: 'Ostarúnstykki, beint úr ofninum.' } },
+  { name: 'Birkirúnstykki', price: '180 kr.', desc: { en: 'The plain birki roll.', is: 'Klassíska birkirúnstykkið.' } },
 ]
 
-/** Celebration cakes — real names + aha.is prices. */
+/** Cakes, verified against their current Wolt listing 2026-08-16. Celebration
+ *  cakes to order are handled separately in the order flow. */
 export const CAKES: MenuItem[] = [
   { name: 'Skúffukaka', price: '1.920 kr.', desc: { en: '', is: '' } },
   { name: 'Gulrótarkaka', price: '1.920 kr.', desc: { en: '', is: '' } },
+  { name: 'Karamellukaka', price: '1.920 kr.', desc: { en: '', is: '' } },
+  { name: 'Eplakaka', price: '1.920 kr.', desc: { en: '', is: '' } },
+  { name: 'Sítrónukaka', price: '1.620 kr.', desc: { en: '', is: '' } },
+  { name: 'Appelsínuhringur', price: '1.620 kr.', desc: { en: '', is: '' } },
+  { name: 'Marmarakaka', price: '1.470 kr.', desc: { en: '', is: '' } },
+  { name: 'Möndlukaka', price: '1.470 kr.', desc: { en: '', is: '' } },
   { name: 'Djöflaterta', price: '3.480 kr.', desc: { en: '', is: '' } },
   { name: 'Hressóterta', price: '7.600 kr.', desc: { en: '', is: '' } },
 ]
@@ -212,28 +390,44 @@ export const T = {
     navGallery: 'Gallery',
     navStory: 'Our story',
     navVisit: 'Visit',
-    orderPrimary: 'Order delivery',
+    ctaDelivery: 'Order delivery',
+    orderPrimary: 'Order on aha.is',
+    orderWolt: 'Order on Wolt',
     ctaMenu: 'See the menu',
     statusOpen: (t: string) => `Open now, we close at ${t}`,
     statusOpensToday: (t: string) => `Closed, we open at ${t} today`,
     statusOpensTomorrow: (t: string) => `Closed, we open tomorrow at ${t}`,
+    /* Shown before the clock is known: on the server-rendered HTML, and so in
+       every crawler's copy of the page. It must therefore be true at all times,
+       never 'Closed' — a frozen 'Closed' is what a search result would quote. */
+    statusHours: (o: string, c: string) => `Open every day ${o}–${c}`,
+    statusHoursVaried: 'Opening hours',
     heroTitle: 'HANDMADE',
     heroSub: 'A family bakery in Kópavogur since 1994.',
     heroLine: 'Sourdough, Danish pastries, cakes and coffee, all baked on-site from scratch.',
     heroPhotoCaption: 'Shaping the day, Reynir bakari',
-    hoursShort: ['Mon to Fri 6 to 17', 'Sat 6 to 17, Sun 7 to 17'],
     menuMasthead: 'The menu',
     ovenTitle: 'From the oven',
-    ovenIntro: 'Baked fresh through the morning. Prices as listed on aha.is.',
+    ovenIntro: 'Baked fresh through the morning, every morning.',
     featuredLabel: 'The house favourite',
     breadKicker: 'Baked from scratch',
     breadTitle: 'The bread.',
     breadIntro: 'Sourdough and traditional Icelandic loaves, many of them sugar-free and made with Icelandic rapeseed oil.',
-    breadNote: 'Prices as listed on aha.is.',
+    breadNote: 'Sugar-free and baked with Icelandic rapeseed oil.',
     galleryKicker: 'Behind the counter',
     galleryTitle: 'In the bakery.',
-    galleryIntro: 'Sourdough on the bench, the ovens running since six every morning. A look at the everyday craft, in photos.',
+    galleryIntro: 'Sourdough on the bench and the ovens already running before the doors open. A look at the everyday craft, in photos.',
     galleryClose: 'Close',
+    // the dedicated story/archive page
+    storyPageKicker: 'Since 1994',
+    storyPageTitle: 'The bakery, and the people in it.',
+    storyPageLead:
+      'Reynir bakarí has been baking on Dalvegur since 1994. The ovens are the same ones the family learned on, the bread is still mixed and shaped by hand, and most mornings begin long before the doors open. This is the bakery as it works.',
+    storyPageArchive: 'The archive',
+    storyPageArchiveIntro: 'Photographed across one working morning in the bakery.',
+    storyMore: 'Read the full story',
+    galleryMore: 'See all photographs',
+    storyBack: 'Back to the bakery',
     galleryPrev: 'Previous photo',
     galleryNext: 'Next photo',
     statementKicker: 'Our story',
@@ -242,26 +436,24 @@ export const T = {
     storyP1:
       'Reynir Þorleifsson opened the bakery with his family in 1994 and became one of the people who built up the Kópavogur valley. Everything is still baked on-site, from scratch.',
     storyP2:
-      'When Reynir passed away in 2019, his sons Þorleifur Karl and Henry Þór took over the ovens they had learned at. Around twenty people bake here.',
+      'When Reynir passed away in 2019, his sons Þorleifur Karl and Henry Þór took over the ovens they had learned at. Twenty-five people work here.',
     cateringKicker: 'Cakes & catering',
     cateringTitle: 'Baked for the occasion.',
     cateringBody:
       'Celebration cakes in cream, marzipan and chocolate, plus full catering for parties and events. Tell us the occasion and we will quote it.',
     cateringCta: 'Send an enquiry',
-    trustLine: '4.5 on Google across 63 reviews. 92% recommend on Facebook (21 reviews).',
-    visitKicker: 'Two locations',
+    trustLine: '4.5 on Google across 65 reviews, and 92% recommend us on Facebook.',
+    visitKicker: 'Open every day',
     visitTitle: 'Find us',
     mainLabel: 'Bakery and café',
     mainName: 'Dalvegur 4, 201 Kópavogur',
     rowHours: 'Hours',
     rowPhone: 'Phone',
     rowEmail: 'Email',
-    hoursRows: ['Mon to Fri 6:00 to 17:00', 'Sat 6:00 to 17:00', 'Sun 7:00 to 17:00'],
-    secondLabel: 'Also in Hamraborg',
-    secondName: 'Hamraborg 14, 200 Kópavogur',
-    secondNote: 'Our second Kópavogur bakery. Call 554 4200 for its opening hours.',
-    deliveryNote: 'Home delivery across the capital area through aha.is.',
+    deliveryNote: 'Home delivery across the capital area through aha.is and Wolt.',
     footerTag: 'Family-run craft bakery in Kópavogur since 1994',
+    legalLink: 'Privacy and terms',
+    legalLine: 'Reynir bakari ehf., reg. no. 701195-3029, Dalvegur 4, 201 Kópavogur',
   },
   is: {
     navMenu: 'Úr ofninum',
@@ -269,28 +461,41 @@ export const T = {
     navGallery: 'Myndir',
     navStory: 'Sagan',
     navVisit: 'Heimsókn',
-    orderPrimary: 'Panta heim',
+    ctaDelivery: 'Panta heim',
+    orderPrimary: 'Panta á aha.is',
+    orderWolt: 'Panta á Wolt',
     ctaMenu: 'Skoða úrvalið',
     statusOpen: (t: string) => `Opið núna, lokum kl. ${t}`,
     statusOpensToday: (t: string) => `Lokað, opnum kl. ${t} í dag`,
     statusOpensTomorrow: (t: string) => `Lokað, opnum á morgun kl. ${t}`,
+    statusHours: (o: string, c: string) => `Opið alla daga ${o}–${c}`,
+    statusHoursVaried: 'Opnunartímar',
     heroTitle: 'HANDGERT',
     heroSub: 'Fjölskyldubakarí í Kópavogi síðan 1994.',
     heroLine: 'Súrdeigsbrauð, vínarbrauð, kökur og kaffi, allt bakað á staðnum frá grunni.',
     heroPhotoCaption: 'Deigið mótað, Reynir bakari',
-    hoursShort: ['Mán til fös 6 til 17', 'Lau 6 til 17, sun 7 til 17'],
     menuMasthead: 'Matseðillinn',
     ovenTitle: 'Úr ofninum',
-    ovenIntro: 'Bakað ferskt yfir morguninn. Verð eins og þau birtast á aha.is.',
+    ovenIntro: 'Bakað ferskt á hverjum morgni.',
     featuredLabel: 'Uppáhald hússins',
     breadKicker: 'Bakað frá grunni',
     breadTitle: 'Brauðin.',
     breadIntro: 'Súrdeigsbrauð og hefðbundin íslensk brauð, mörg sykurlaus og bökuð með íslenskri repjuolíu.',
-    breadNote: 'Verð eins og þau birtast á aha.is.',
+    breadNote: 'Sykurlaus og bökuð með íslenskri repjuolíu.',
     galleryKicker: 'Bakvið borðið',
     galleryTitle: 'Í bakaríinu.',
-    galleryIntro: 'Súrdeigið á borðinu, ofnarnir í gangi frá klukkan sex á morgnana. Innsýn í daglegt handverk, í myndum.',
+    galleryIntro: 'Súrdeigið á borðinu og ofnarnir komnir í gang áður en opnað er. Innsýn í daglegt handverk, í myndum.',
     galleryClose: 'Loka',
+    // sérstaka sögu- og myndasíðan
+    storyPageKicker: 'Síðan 1994',
+    storyPageTitle: 'Bakaríið, og fólkið í því.',
+    storyPageLead:
+      'Reynir bakarí hefur bakað á Dalvegi síðan 1994. Ofnarnir eru þeir sömu og fjölskyldan lærði við, brauðið er enn hnoðað og mótað í höndunum, og flestir morgnar hefjast löngu áður en opnað er. Svona vinnur bakaríið.',
+    storyPageArchive: 'Myndasafnið',
+    storyPageArchiveIntro: 'Myndað á einum vinnumorgni í bakaríinu.',
+    storyMore: 'Lesa alla söguna',
+    galleryMore: 'Sjá allar myndirnar',
+    storyBack: 'Til baka á vefinn',
     galleryPrev: 'Fyrri mynd',
     galleryNext: 'Næsta mynd',
     statementKicker: 'Sagan',
@@ -299,25 +504,23 @@ export const T = {
     storyP1:
       'Reynir Þorleifsson opnaði bakaríið með fjölskyldu sinni árið 1994 og varð einn af frumkvöðlum atvinnulífsins í Kópavogsdalnum. Enn í dag er allt bakað á staðnum, frá grunni.',
     storyP2:
-      'Þegar Reynir féll frá árið 2019 tóku synir hans, Þorleifur Karl og Henry Þór, við ofnunum sem þeir lærðu við. Um tuttugu manns baka hér.',
+      'Þegar Reynir féll frá árið 2019 tóku synir hans, Þorleifur Karl og Henry Þór, við ofnunum sem þeir lærðu við. Tuttugu og fimm manns starfa hér.',
     cateringKicker: 'Tertur og veislur',
     cateringTitle: 'Bakað fyrir tilefnið.',
     cateringBody:
       'Rjóma, marsípan og súkkulaðitertur fyrir stóru stundirnar, ásamt veisluþjónustu fyrir hvers kyns viðburði. Segið okkur frá tilefninu og við gerum tilboð.',
     cateringCta: 'Senda fyrirspurn',
-    trustLine: '4,5 á Google úr 63 umsögnum. 92% mæla með á Facebook (21 umsögn).',
-    visitKicker: 'Tveir staðir',
+    trustLine: '4,5 á Google úr 65 umsögnum, og 92% mæla með okkur á Facebook.',
+    visitKicker: 'Opið alla daga',
     visitTitle: 'Finndu okkur',
     mainLabel: 'Bakarí og kaffihús',
     mainName: 'Dalvegur 4, 201 Kópavogur',
     rowHours: 'Opnunartími',
     rowPhone: 'Sími',
     rowEmail: 'Netfang',
-    hoursRows: ['Mán til fös 6:00 til 17:00', 'Lau 6:00 til 17:00', 'Sun 7:00 til 17:00'],
-    secondLabel: 'Einnig í Hamraborg',
-    secondName: 'Hamraborg 14, 200 Kópavogur',
-    secondNote: 'Hitt bakaríið okkar í Kópavogi. Hringið í 554 4200 fyrir opnunartíma.',
-    deliveryNote: 'Heimsending um höfuðborgarsvæðið í gegnum aha.is.',
+    deliveryNote: 'Heimsending um höfuðborgarsvæðið í gegnum aha.is og Wolt.',
     footerTag: 'Fjölskyldurekið handverksbakarí í Kópavogi síðan 1994',
+    legalLink: 'Persónuvernd og skilmálar',
+    legalLine: 'Reynir bakari ehf., kt. 701195-3029, Dalvegi 4, 201 Kópavogi',
   },
 } as const

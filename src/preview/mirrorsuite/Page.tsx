@@ -16,7 +16,7 @@ const company = companyEntry
    is a dark shoreline at dusk, and its signature is THE ROW: four glass
    panels standing side by side like the suites themselves, each expanding
    on hover/focus to hand over its photograph. Second device: the flora
-   nameplates (Bearberry · Gleymmerey · Arctic Thyme), set as engraved
+   nameplates (Arctic Thyme · Lupine · Bearberry · Gleymmerey), engraved
    pairs EN/IS. Engine: vanilla — one shared rAF drift loop + IO reveals,
    flex-grow accordion, no GSAP, no Lenis. ───────────────────────────────── */
 
@@ -238,7 +238,7 @@ export default function Page() {
        on hover), so an imperatively-added is-on class is wiped on the next
        render and the whole row vanishes. Reveal the TRACK instead; the panels
        stagger off it in CSS. */
-    root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-name-card, .ms-row-track').forEach((el) => io.observe(el))
+    root.querySelectorAll('.ms-rise, .ms-frame, .ms-fact, .ms-amen li, .ms-flora-row, .ms-row-track').forEach((el) => io.observe(el))
     const nav = root.querySelector('.ms-nav')
     const heroEl = root.querySelector('.ms-hero')
     if (nav && heroEl) {
@@ -337,9 +337,13 @@ export default function Page() {
             </div>
             <div className="ms-suite-photos">
               <Frame src={IMG.int2} alt="Inside a suite, glass facing the fjord" ratio="3/2" drift={10} />
+              {/* tall-9 was here under alt="Suite detail" and is a photograph
+                  of a SNORKELLER — an area-activity shot, not the suite. Both
+                  slots now carry actual suite detail, and both are checked
+                  against the owners' own Airbnb gallery. */}
               <div className="ms-suite-pair">
-                <Frame src={IMG.port1} alt="Suite detail" ratio="3/3.6" drift={8} />
-                <Frame src={IMG.tall9} alt="Suite detail" ratio="3/3.6" drift={9} />
+                <Frame src={IMG.port1} alt="The kitchenette and its coffee" ratio="3/3.6" drift={8} />
+                <Frame src={IMG.tall8} alt="Mirror cladding meeting the dark timber end wall" ratio="3/3.6" drift={9} />
               </div>
             </div>
           </div>
@@ -353,16 +357,29 @@ export default function Page() {
 
         {/* ── the names ── */}
         <section className="ms-flora" id="floran">
-          <Rise as="h2" className="ms-h2 ms-center">{FLORA.lead}</Rise>
-          <Rise as="p" className="ms-body ms-center">{FLORA.body}</Rise>
-          <div className="ms-names">
-            {FLORA.names.map((n, i) => (
-              <div className="ms-name-card" key={n.en} style={{ transitionDelay: `${i * 110}ms` }}>
-                <span className="ms-name-en">{n.en}</span>
-                <span className="ms-name-is">{n.is}</span>
-              </div>
-            ))}
+          <div className="ms-flora-head">
+            <Rise as="h2" className="ms-h2">{FLORA.lead}</Rise>
+            <Rise as="p" className="ms-body">{FLORA.body}</Rise>
           </div>
+          <ol className="ms-flora-index">
+            {FLORA.names.map((n, i) => (
+              <li
+                className="ms-flora-row"
+                key={n.en}
+                style={{ transitionDelay: `${i * 90}ms`, '--bloom': n.bloom } as React.CSSProperties}
+              >
+                <span className="ms-flora-n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="ms-flora-mark" aria-hidden="true"><i /></span>
+                <span className="ms-flora-name">
+                  <span className="ms-flora-is">{n.is}</span>
+                  <span className="ms-flora-en">{n.en}</span>
+                </span>
+                <span className="ms-flora-note">{n.note}</span>
+                <span className="ms-flora-lat">{n.lat}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="ms-flora-foot">{FLORA.foot}</p>
         </section>
 
 
@@ -438,6 +455,7 @@ function HeroMedia() {
 const NIGHT_FRAMES = 121
 
 function PanoScrub() {
+  const [chap, setChap] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stillRef = useRef<HTMLImageElement>(null)
@@ -462,10 +480,26 @@ function PanoScrub() {
       canvas.height = Math.round(canvas.clientHeight * dpr)
     }
 
-    /* cover-fit blit */
+    /* ── fit ────────────────────────────────────────────────────────────────
+       Cover-fit alone destroys this shot on a tall viewport. The frames are
+       5:3; a nearly-square pane (1364x1161 was the real case) forces cover to
+       scale to the HEIGHT and then discard about 30% of the width — 15% off
+       each side. The result reads as "it starts zoomed in", because the
+       establishing frame of a push-in is exactly the frame that needs its
+       full width. Note that exporting taller frames does NOT help: under
+       cover-fit the visible field of view is set by the canvas aspect, not
+       the source aspect.
+
+       So: cover while the crop is mild, and once it would eat more than 12%
+       of the width, fit the WIDTH instead and let the near-black page show
+       above and below. On a night scene against DEEP #0F141C that reads as a
+       letterbox rather than a fault, and the composition survives intact. */
+    const MAX_SIDE_CROP = 0.12
     const draw = (im: CanvasImageSource, iw: number, ih: number) => {
       const cw = canvas.width; const ch = canvas.height
-      const scale = Math.max(cw / iw, ch / ih)
+      const cover = Math.max(cw / iw, ch / ih)
+      const cropped = 1 - cw / (iw * cover)
+      const scale = cropped > MAX_SIDE_CROP ? cw / iw : cover
       const w = iw * scale; const h = ih * scale
       ctx.clearRect(0, 0, cw, ch)
       ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h)
@@ -494,7 +528,7 @@ function PanoScrub() {
     }
 
     const src = (n: number) =>
-      `${import.meta.env.BASE_URL}mirrorsuite/${dir}/f${String(n + 1).padStart(3, '0')}.jpg`
+      `${import.meta.env.BASE_URL}mirrorsuite/${dir}/f${String(n + 1).padStart(3, '0')}.webp`
 
     /* 14-wide pump, decode() before counting */
     let next = 0
@@ -524,6 +558,10 @@ function PanoScrub() {
         const p = Math.min(1, Math.max(0, -r.top / total))
         const idx = Math.min(NIGHT_FRAMES - 1, Math.round(p * (NIGHT_FRAMES - 1)))
         if (idx !== shown) { wanted = idx; paint(idx) }
+        /* the commentator: whichever line the camera has reached */
+        let c = 0
+        for (let k = 0; k < PANO.chapters.length; k += 1) if (p >= PANO.chapters[k].at) c = k
+        setChap((v) => (v === c ? v : c))
       })
     }
 
@@ -547,11 +585,37 @@ function PanoScrub() {
   return (
     <section className="ms-pano" ref={wrapRef} aria-label="The night">
       <div className="ms-pano-sticky">
-        <img ref={stillRef} className="ms-pano-still" src={IMG.pano}
-          alt="The suites under the aurora on the shore" loading="eager" decoding="async" />
+        {/* was IMG.pano, which is NOT this property — see data.ts. The still
+            is now their own verified night photograph, and it is also the
+            frame the film is generated from, so poster and first frame agree. */}
+        <img ref={stillRef} className="ms-pano-still" src={IMG.tall5}
+          alt="The suites, the glass sauna and the hot tub under the aurora" loading="eager" decoding="async" />
         <canvas ref={canvasRef} className="ms-pano-canvas" aria-hidden="true" />
-        <p className="ms-pano-caption">{PANO.caption}</p>
-        <p className="ms-pano-hint" aria-hidden="true">{PANO.note}</p>
+
+        {/* THE COMMENTATOR — one line takes the frame at each mark, arriving
+            word by word out of its own mask. Every line stays mounted and
+            only .is-on moves, which is the reveal pattern that has never
+            failed on these builds. */}
+        <div className="ms-cmt">
+          {PANO.chapters.map((c, idx) => (
+            <p key={c.text} className={`ms-cmt-l ${idx === chap ? 'is-on' : ''}`}>
+              {c.text.split(' ').flatMap((w, k, all) => [
+                <span className="ms-cmt-w" key={`${w}-${k}`}>
+                  <i style={{ transitionDelay: idx === chap ? `${k * 46}ms` : '0ms' }}>{w}</i>
+                </span>,
+                ...(k < all.length - 1 ? [' '] : []),
+              ])}
+            </p>
+          ))}
+        </div>
+
+        <div className="ms-cmt-rail" aria-hidden="true">
+          {PANO.chapters.map((c, idx) => (
+            <span key={c.text} className={idx <= chap ? 'is-on' : ''} />
+          ))}
+        </div>
+
+        <p className={`ms-pano-hint ${chap > 0 ? 'is-gone' : ''}`} aria-hidden="true">{PANO.note}</p>
       </div>
     </section>
   )
@@ -598,7 +662,7 @@ function Reviews() {
 
           <div className="ms-rev-rail" aria-hidden="true">
             <span className="ms-rev-rail-l">Reviews</span>
-            <span className="ms-rev-rail-t"><i style={{ height: `${((i + 1) / n) * 100}%` }} /></span>
+            <span className="ms-rev-rail-t"><i style={{ ['--p' as string]: (i + 1) / n }} /></span>
           </div>
 
           <div className="ms-rev-body">
@@ -695,10 +759,12 @@ const STYLES = `
 .ms-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
 .ms-nav-links a:hover{opacity:1}
 .ms-burger{display:none;width:44px;height:44px;position:relative}
-.ms-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .45s var(--e),top .45s var(--e)}
+/* transform only: translateY(±4px) reaches the same centre that animating
+   top from 18/26px to 22px used to, without the layout pass. */
+.ms-burger i{position:absolute;left:11px;right:11px;height:1.5px;background:currentColor;transition:transform .25s var(--e)}
 .ms-burger i:first-child{top:18px}.ms-burger i:last-child{top:26px}
-.ms-burger.is-x i:first-child{top:22px;transform:rotate(45deg)}
-.ms-burger.is-x i:last-child{top:22px;transform:rotate(-45deg)}
+.ms-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
+.ms-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
 .ms-sheet{position:fixed;inset:0;z-index:55;background:var(--deep);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
@@ -734,18 +800,26 @@ const STYLES = `
 /* THE ROW — accordion */
 .ms-row{padding:0 clamp(8px,1.4vw,20px)}
 .ms-row-track{display:flex;gap:clamp(6px,.9vw,12px);height:min(78svh,760px)}
+/* The flex property is a layout property and this animates four panels at once, which is
+   the one deliberate exception on the page: the flex-grow accordion IS the
+   concept, and the transform equivalent means absolutely positioning four
+   panels and driving their widths by hand, trading a real cost for a real
+   correctness risk. Four elements, once per click, is affordable. 1s was not:
+   it held the layout window open twice as long as the move needs. */
 .ms-panel{position:relative;flex:1;overflow:hidden;isolation:isolate;text-align:left;padding:0;
-  transition:flex 1s var(--e)}
+  transition:flex .55s var(--e)}
 /* entry is driven by the TRACK's is-on, never by a class on the panel itself */
 .js:not(.reduced) .ms-row-track .ms-panel{opacity:0;transform:translateY(26px);
-  transition:flex 1s var(--e),opacity .9s var(--e),transform .9s var(--e)}
+  transition:flex .55s var(--e),opacity .9s var(--e),transform .9s var(--e)}
 .js:not(.reduced) .ms-row-track.is-on .ms-panel{opacity:1;transform:none}
 .ms-row-track .ms-panel:nth-child(2){transition-delay:0s,.08s,.08s}
 .ms-row-track .ms-panel:nth-child(3){transition-delay:0s,.16s,.16s}
 .ms-row-track .ms-panel:nth-child(4){transition-delay:0s,.24s,.24s}
 .ms-panel.is-open{flex:3.2}
 .ms-panel img{position:absolute;inset:0;filter:saturate(.9);transition:transform 1.2s var(--e)}
-.ms-panel:hover img{transform:scale(1.04)}
+@media (hover:hover) and (pointer:fine){
+  .ms-panel:hover img{transform:scale(1.04)}
+}
 .ms-panel-scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,20,28,.82),rgba(15,20,28,.04) 55%)}
 .ms-panel-label{position:absolute;left:18px;bottom:52px;font-family:var(--disp);font-weight:300;font-size:clamp(1.1rem,2vw,1.7rem);letter-spacing:.02em}
 .ms-panel-text{position:absolute;left:18px;right:18px;bottom:18px;font-size:.85rem;color:var(--bone-soft);max-width:44ch;
@@ -785,14 +859,40 @@ const STYLES = `
 @media (max-width:560px){.ms-suite-pair{grid-template-columns:1fr}}
 
 /* THE NIGHT — pinned scrub */
+/* three welded takes now run through here, so the pin needs the travel */
 .ms-pano{position:relative;height:260svh}
-.ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
+.ms-pano-sticky{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--deep)}
+/* the poster has to letterbox on exactly the viewports where the canvas does,
+   or the picture jumps the moment the first frame decodes. 1.47 is where the
+   canvas hits its 12% side-crop limit against a 5:3 frame. */
+@media (max-aspect-ratio:147/100){.ms-pano-still{object-fit:contain}}
+/* the type sits ON the film, so the film has to give it a floor */
+.ms-pano-sticky::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:2;pointer-events:none;
+  background:linear-gradient(to top,rgba(6,10,14,.74),rgba(6,10,14,.28) 42%,transparent)}
+
+/* ── the commentator ── */
+.ms-cmt{position:absolute;left:clamp(24px,6vw,92px);right:clamp(24px,6vw,92px);
+  bottom:clamp(74px,15vh,140px);z-index:3;display:grid}
+.ms-cmt-l{grid-area:1/1;margin:0;font-family:var(--disp);font-weight:200;
+  font-size:clamp(1.65rem,4.2vw,3.4rem);line-height:1.04;letter-spacing:-.024em;
+  color:#F7FAFB;max-width:19ch;opacity:0;transition:opacity .5s var(--e);
+  text-shadow:0 2px 34px rgba(6,10,14,.6)}
+.ms-cmt-l.is-on{opacity:1}
+.ms-cmt-w{display:inline-block;overflow:hidden;vertical-align:top}
+.ms-cmt-w i{display:inline-block;font-style:normal;opacity:0;transform:translateY(106%);
+  transition:transform .74s var(--e),opacity .5s var(--e)}
+.ms-cmt-l.is-on .ms-cmt-w i{opacity:1;transform:none}
+.ms-cmt-rail{position:absolute;left:clamp(24px,6vw,92px);bottom:clamp(44px,9vh,84px);z-index:3;display:flex;gap:7px}
+.ms-cmt-rail span{width:30px;height:1px;background:rgba(247,250,251,.26);transition:background .5s var(--e)}
+.ms-cmt-rail span.is-on{background:rgba(247,250,251,.9)}
+@media (max-width:640px){.ms-cmt-l{max-width:14ch}.ms-cmt-rail span{width:20px}}
 .ms-pano-media{position:absolute;inset:0;will-change:transform,filter;transform-origin:50% 55%}
 .ms-pano-media img,.ms-pano-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ms-pano-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ms-pano-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .ms-pano-caption{position:absolute;left:0;right:0;bottom:clamp(18px,4vh,40px);text-align:center;color:#F2F6F8;
   font-size:.86rem;letter-spacing:.05em;padding:0 20px;text-shadow:0 1px 18px rgba(15,20,28,.6)}
+.ms-pano-hint.is-gone{opacity:0;transition:opacity .5s var(--e)}
 .ms-pano-hint{position:absolute;left:0;right:0;top:calc(50% + 4px);text-align:center;color:var(--bone-mute);
   font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;pointer-events:none}
 .reduced .ms-pano-canvas,.reduced .ms-pano-hint{display:none}
@@ -822,8 +922,10 @@ const STYLES = `
 .ms-rev-rail-l{writing-mode:vertical-rl;text-orientation:mixed;font-size:.66rem;letter-spacing:.32em;
   text-transform:uppercase;color:var(--bone-mute)}
 .ms-rev-rail-t{position:relative;width:1px;flex:1;min-height:70px;background:var(--hair)}
-.ms-rev-rail-t i{position:absolute;inset:0 0 auto 0;width:100%;background:var(--glass);
-  transition:height .55s var(--e)}
+/* scaleY, not height: a pure progress rail, so the GPU form is exact and
+   costs no layout. The inline style now sets --p. */
+.ms-rev-rail-t i{position:absolute;inset:0;width:100%;background:var(--glass);
+  transform:scaleY(var(--p,0));transform-origin:top;transition:transform .55s var(--e)}
 .ms-rev-body{position:relative;z-index:1;flex:1;min-width:0;display:grid;gap:18px;align-content:start}
 /* the placeholder state, at full size */
 .ms-rev-badge{display:inline-flex;align-items:center;gap:9px;justify-self:start;
@@ -842,8 +944,10 @@ const STYLES = `
 .ms-rev-nav{display:flex;gap:10px}
 .ms-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair);
   display:grid;place-content:center;color:var(--bone-soft);
-  transition:color .35s var(--e),border-color .35s var(--e),background-color .35s var(--e)}
-.ms-rev-nav button:hover{color:var(--deep);background:var(--bone);border-color:var(--bone)}
+  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ms-rev-nav button:hover{color:var(--deep);background:var(--bone);border-color:var(--bone)}
+}
 @media (max-width:640px){
   .ms-rev-rail{display:none}
   .ms-rev-ord{font-size:9rem}
@@ -860,15 +964,79 @@ const STYLES = `
 @media (max-width:820px){.ms-rev-grid{grid-template-columns:1fr}}
 
 /* flora names */
-.ms-flora{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1100px;margin:0 auto;display:grid;gap:22px}
-.ms-names{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);margin-top:clamp(18px,4vh,40px)}
-.ms-name-card{border:1px solid var(--hair);padding:clamp(22px,3.4vw,40px) clamp(16px,2.4vw,28px);display:grid;gap:8px;text-align:center;
-  opacity:0;transform:translateY(20px);transition:opacity .8s var(--e),transform .8s var(--e),border-color .4s var(--e)}
-.ms-name-card.is-on{opacity:1;transform:none}
-.ms-name-card:hover{border-color:var(--glass)}
-.ms-name-en{font-family:var(--disp);font-weight:300;font-size:clamp(1.2rem,2.4vw,1.8rem)}
-.ms-name-is{color:var(--glass);font-size:.86rem;letter-spacing:.08em}
-@media (max-width:700px){.ms-names{grid-template-columns:1fr}}
+/* ══ THE NAMES — a specimen index, not four boxes ══
+   All four suites are identical, so the name is the only thing that separates
+   one from another, and four centred cards said nothing about any of them (and
+   left an orphan on the second row of a three-up grid). This is built as a
+   herbarium index instead: the ordinal, the real Icelandic name set large, the
+   English and the botanical name under it, and one checked line about the
+   plant. Each row carries that plant's OWN flower colour in --bloom, so the
+   palette of the section is taken off the shore it is named after rather than
+   out of the design system. */
+.ms-flora{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1180px;margin:0 auto}
+.ms-flora-head{display:grid;gap:clamp(14px,2.2vw,26px);align-items:end;margin-bottom:clamp(38px,6vh,70px)}
+@media (min-width:900px){
+  .ms-flora-head{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(30px,4vw,70px)}
+}
+.ms-flora-index{list-style:none;padding:0;margin:0;border-top:1px solid var(--hair)}
+.ms-flora-row{position:relative;display:grid;gap:10px;align-items:start;
+  padding:clamp(24px,3.6vh,38px) 0;border-bottom:1px solid var(--hair);
+  opacity:0;transform:translateY(18px);
+  transition:opacity .72s var(--e),transform .72s var(--e)}
+.ms-flora-row.is-on{opacity:1;transform:none}
+/* the bloom-coloured rule draws itself along the row as the row arrives */
+.ms-flora-row::after{content:'';position:absolute;left:0;bottom:-1px;width:100%;height:1px;
+  background:var(--bloom);opacity:.42;transform:scaleX(0);transform-origin:left;
+  transition:transform 1s var(--e) .16s,opacity .5s var(--e)}
+.ms-flora-row.is-on::after{transform:scaleX(1)}
+/* The name column is sized to the NAMES, not to a fraction of the row: as an
+   fr it took 406px to hold "Sortulyng" and opened a dead channel down the
+   middle of the section. max-content would fit each name exactly but every
+   row is its own grid, so the four columns would no longer line up.
+   The botanical name is then set hard against the right edge, so each row
+   reads end to end under its rule instead of trailing off into 300px of air. */
+@media (min-width:820px){
+  .ms-flora-row{grid-template-columns:clamp(30px,2.6vw,40px) 12px clamp(168px,16vw,240px) minmax(0,1fr) clamp(150px,15vw,215px);
+    column-gap:clamp(13px,1.5vw,22px)}
+  .ms-flora-lat{text-align:right;padding-top:.3em}
+}
+.ms-flora-n{font-family:var(--disp);font-weight:200;font-size:.78rem;letter-spacing:.22em;
+  color:var(--bone-mute);padding-top:.62em}
+.ms-flora-mark{display:block;padding-top:.7em}
+.ms-flora-mark i{display:block;width:11px;height:11px;border-radius:50%;background:var(--bloom);
+  /* scale(.92), not scale(.3): nothing appears from nothing, and from .3 the
+     dot popped into place rather than arriving. */
+  opacity:0;transform:scale(.92);
+  transition:transform .8s var(--e) .22s,opacity .6s var(--e) .22s,box-shadow .2s var(--e)}
+.ms-flora-row.is-on .ms-flora-mark i{opacity:1;transform:none}
+.ms-flora-name{display:grid;gap:6px;align-content:start}
+.ms-flora-is{font-family:var(--disp);font-weight:200;font-size:clamp(1.5rem,3.1vw,2.25rem);
+  line-height:1.04;letter-spacing:-.02em;
+  transition:transform .2s var(--e),color .2s var(--e)}
+/* All three flora hovers gated together. 600ms was hover feedback moving at
+   reveal speed; the band for something this small is 125-250ms. */
+@media (hover:hover) and (pointer:fine){
+  .ms-flora-row:hover::after{opacity:1}
+  .ms-flora-row:hover .ms-flora-mark i{box-shadow:0 0 0 8px color-mix(in srgb,var(--bloom) 18%,transparent)}
+  .ms-flora-row:hover .ms-flora-is{transform:translateX(7px);color:color-mix(in srgb,var(--bloom) 42%,var(--bone))}
+}
+.ms-flora-en{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-mute)}
+.ms-flora-lat{font-style:italic;font-size:.92rem;color:var(--glass)}
+.ms-flora-note{color:var(--bone-soft);font-size:.95rem;line-height:1.62;max-width:52ch}
+.ms-flora-foot{margin-top:clamp(26px,4vh,46px);font-size:.8rem;letter-spacing:.03em;
+  color:var(--bone-mute);max-width:54ch}
+/* Narrow: the ordinal and the bloom belong on ONE line above the name, not
+   stacked as two near-empty rows of their own. */
+@media (max-width:819px){
+  .ms-flora-row{grid-template-columns:auto 1fr;
+    grid-template-areas:'n mark' 'name name' 'lat lat' 'note note';
+    column-gap:11px;row-gap:10px;align-items:center}
+  .ms-flora-n{grid-area:n;padding-top:0}
+  .ms-flora-mark{grid-area:mark;justify-self:start;padding-top:0}
+  .ms-flora-name{grid-area:name}
+  .ms-flora-lat{grid-area:lat}
+  .ms-flora-note{grid-area:note}
+}
 
 /* reviews */
 
@@ -891,7 +1059,13 @@ const STYLES = `
 .ms-cta:active{transform:translateY(1px) scale(.99)}
 .ms-book-note{font-size:.78rem;color:var(--bone-mute)}
 .ms-book-done p{font-family:var(--disp);font-weight:300;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch;border-top:1px solid var(--glass);padding-top:22px}
-@media (max-width:860px){.ms-book{grid-template-columns:1fr}}
+/* A 1fr track is minmax(auto,1fr) — the auto floor is content width, so this track
+   held 350px inside a 320px box on a 360px phone and overflowed. overflow-x:
+   clip on .ms-root hid it instead of scrolling. */
+@media (max-width:860px){
+  .ms-book{grid-template-columns:minmax(0,1fr)}
+  .ms-book-copy,.ms-book-form{min-width:0}
+}
 
 /* footer */
 .ms-footer{padding:clamp(60px,10vh,110px) clamp(20px,5vw,64px) 0;border-top:1px solid var(--hair)}
@@ -912,12 +1086,19 @@ const STYLES = `
 @media (prefers-reduced-motion:reduce){
   .ms-frame-in{position:absolute;inset:0;transform:none !important}
   .ms-hero-line-in,.ms-hero-sub span{transform:none;opacity:1;transition:none}
-  .ms-frame,.ms-fact,.ms-amen li,.ms-name-card,.ms-panel{opacity:1;transform:none;transition:none}
+  .ms-frame,.ms-fact,.ms-amen li,.ms-flora-row,.ms-panel{opacity:1;transform:none;transition:none}
+  .ms-flora-row::after{transform:scaleX(1);transition:none}
+  .ms-flora-mark i{opacity:1;transform:none;transition:none}
   .ms-panel-text{opacity:1;transform:none}
   .ms-row-track{flex-direction:column;height:auto}
   .ms-panel{min-height:300px}
   .ms-pano{height:auto}
   .ms-pano-sticky{position:static;height:72svh}
+  /* no scroll to drive the commentator: keep the closing line, drop the rest */
+  .ms-cmt-l{display:none}
+  .ms-cmt-l:last-child{display:block;opacity:1}
+  .ms-cmt-w i{opacity:1 !important;transform:none !important;transition:none}
+  .ms-cmt-rail{display:none}
   .ms-pano-media{transform:none !important;filter:none !important}
   /* every quote is shown at once, so every WORD must be shown too — the
      per-word reveal is keyed off .is-live, which only one <li> ever has */
@@ -958,4 +1139,25 @@ const STYLES = `
   .ms-footer footer[lang="is"]{padding-bottom:clamp(84px,14vh,112px)}
 }
 .ms-footer footer[lang="is"] [data-logotype] > span{color:var(--bone-soft) !important}
+
+/* ── MOBILE FLOORS ── last in the sheet so these single-class rules win.
+   No real text under 13px, no standalone control under 44px. Measured: the
+   flora label, the pano hint and the review source were at 11.5–11.8px on a
+   phone. Inline links inside a sentence stay exempt — padding them to 44px
+   would break the line box. */
+@media (max-width:640px){
+  .ms-eyebrow,.ms-fact-l,.ms-rev-note,.ms-rev-src,.ms-pano-hint,
+  .ms-flora-en,.ms-flora-foot,.ms-rev-badge,.ms-book-note,.ms-footer-dl dt,
+  .ms-field label,.ms-book label{font-size:13px}
+  .ms-rev-nav button{width:44px;height:44px}
+  .ms-nav-mark{padding:10px 0}
+  .ms-footer footer[lang="is"]{font-size:13px}
+  .ms-footer-dl a{display:inline-block;padding:12px 0}
+  .ms-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+/* A grid track may shrink, but a grid ITEM keeps min-width:auto and an
+   <input> has an intrinsic ~180px min-content width, so the row overflowed on
+   a narrow phone regardless of the track. The item and the control release. */
+.ms-field{min-width:0}
+.ms-field input,.ms-field select,.ms-field textarea{min-width:0;width:100%}
 `

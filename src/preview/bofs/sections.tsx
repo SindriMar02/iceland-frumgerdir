@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { AUDIENCES, SPURDU, hashFor, suggestionsFor, type Audience } from './spurdu-data'
 import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
@@ -373,6 +374,9 @@ export function FosterBand() {
               >
                 <Img
                   src={asset('art-plass.jpg')}
+                  /* 1800px plate for a 350px box on a phone. */
+                  srcSet={`${asset('art-plass-1000.jpg')} 1000w, ${asset('art-plass.jpg')} 1800w`}
+                  sizes="(min-width: 1024px) 1152px, 100vw"
                   alt={pick({
                     is: 'Vatnslitamynd: eldhús að kvöldi, borðið lagt, auður stóll með teppi og opnar dyr fram í upplýstan gang',
                     en: 'Watercolor: a kitchen in the evening, the table laid, an empty chair with a blanket, and an open door onto a lit hallway',
@@ -476,6 +480,10 @@ export function DuskBookend() {
       {/* the same painted valley at dusk; darkening veil settles into the footer */}
       <Img
         src={asset('art-dusk.jpg')}
+        /* Decorative and sitting under a dark gradient veil, so the smaller
+           plate on phones is invisible; it saves 8MB of decoded memory. */
+        srcSet={`${asset('art-dusk-1600.jpg')} 1600w, ${asset('art-dusk.jpg')} 2560w`}
+        sizes="100vw"
         alt=""
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover object-[50%_42%]"
@@ -501,10 +509,16 @@ export function DuskBookend() {
  * The display hues (C.sky 3.97:1, C.sage 3.98:1, C.terra 3.20:1) all failed;
  * these measured variants sit between 5.2:1 and 5.9:1.
  */
+/*
+ * Measured against the provenance panel's own C.cream2 ground, not against
+ * the page. C.clay is 4.35:1 there and fails AA at this size; C.clayText is
+ * the token that exists for exactly this, at 5.02:1. Every hue below is >=4.5.
+ */
 const SOURCE_HUE: Record<string, string> = {
-  BOFS: C.clay,
+  BOFS: C.clayText,
   GEV: '#3D6B87',
   'Stjórnarráðið': '#4A6E4A',
+  'Umboðsmaður barna': '#7A5B86',
   'Vísir': '#A8471F',
 }
 
@@ -940,20 +954,29 @@ export function HelpBand() {
           {HELP.lines.map((line, i) => {
             const emphasis = i === 0
             return (
-              <Reveal key={line.value} delay={(i % 2) * 0.08}>
+              /*
+               * h-full on both the grid item and the anchor: without it a card
+               * whose label wraps to two lines is taller than its neighbour and
+               * the row reads as ragged. The ring is 1px on every card too; the
+               * emphasis card used to carry 1.5px, which made it measurably a
+               * different size from the ones beside it.
+               */
+              <Reveal key={line.value} delay={(i % 2) * 0.08} className="h-full">
                 <a
                   href={`tel:${line.value.replace(/\s/g, '')}`}
-                  className="bofs-focus bofs-lift flex items-center gap-4 rounded-[18px] p-5"
+                  className="bofs-focus bofs-lift flex h-full items-center gap-4 rounded-[18px] p-5"
                   style={{
                     background: emphasis ? '#A83A24' : '#fff',
                     color: emphasis ? '#fff' : C.cocoa,
-                    boxShadow: emphasis ? 'inset 0 0 0 1.5px rgba(168,58,36,.55)' : `inset 0 0 0 1px ${C.line}`,
+                    boxShadow: emphasis ? 'inset 0 0 0 1px rgba(255,255,255,.22)' : `inset 0 0 0 1px ${C.line}`,
                   }}
                 >
                   <span
                     className="bofs-display bofs-num grid h-16 shrink-0 place-items-center whitespace-nowrap rounded-2xl px-2.5"
                     style={{
-                      minWidth: 64,
+                      /* One width for every badge, sized to the longest number,
+                         so the labels beside them start on the same line. */
+                      minWidth: 96,
                       fontSize: line.value.length > 6 ? 16 : line.value.length > 3 ? 20 : 24,
                       background: emphasis ? 'rgba(255,255,255,.15)' : C.cream2,
                       color: emphasis ? '#fff' : C.clay,
@@ -972,6 +995,105 @@ export function HelpBand() {
             )
           })}
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── Question index, shared by the landing and every service page ─────── */
+
+/*
+ * REPLACES an earlier version of this block that was a text input with a
+ * "find answer" button. That was wrong twice over. It wore the exact costume
+ * of the thing this whole concept argues against, a chatbot prompt, so the
+ * site undercut its own strongest claim in its own first screen. And a bare
+ * "ask us anything" box on a child protection landing page invites someone to
+ * type a disclosure into it, which is precisely what /spurdu is built to
+ * prevent.
+ *
+ * So there is no input here at all. These are the real questions, already
+ * written, as links. Recognition instead of recall: a frightened person does
+ * not arrive with a sentence ready, they arrive with a situation, and seeing
+ * their own worry written down by somebody else is the thing that helps. It
+ * also tells the truth about the system, which knows a finite set of answers
+ * and should therefore show them rather than pretend to accept anything.
+ */
+export function QuestionIndex({ compact = false }: { compact?: boolean }) {
+  const [, , pick] = useLang()
+  /* Parents are the broadest audience arriving cold, so they are the default
+     view; the chips are a filter, not a gate. */
+  const [aud, setAud] = useState<Audience>('foreldri')
+  const items = suggestionsFor(aud).slice(0, compact ? 4 : 6)
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Eyebrow>{pick(SPURDU.indexEyebrow)}</Eyebrow>
+          <h2
+            className={`bofs-display bofs-balance mt-2 ${compact ? 'text-[clamp(20px,2.4vw,26px)]' : 'text-[clamp(26px,3.6vw,38px)]'}`}
+          >
+            {pick(compact ? SPURDU.indexTitleCompact : SPURDU.indexTitle)}
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={pick(SPURDU.indexFilter)}>
+          {AUDIENCES.map((a) => {
+            const on = aud === a.id
+            return (
+              <button
+                key={a.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setAud(a.id)}
+                className="bofs-focus rounded-[12px] px-3.5 py-2 text-[13.5px] font-bold transition-colors duration-150"
+                style={
+                  on
+                    ? { background: C.cocoa, color: C.cream }
+                    : { background: '#fff', color: C.body, boxShadow: `inset 0 0 0 1px ${C.line}` }
+                }
+              >
+                {pick(a.short)}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <ul className="mt-6 grid gap-2.5 sm:grid-cols-2">
+        {items.map(({ group, variant }) => (
+          <li key={group.id}>
+            <Link
+              to={`/preview/bofs/spurdu${hashFor(aud, group.id)}`}
+              className="bofs-focus flex items-start gap-3 rounded-[16px] px-4 py-3.5 text-[15px] font-semibold leading-snug transition-colors duration-150"
+              style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}
+            >
+              <span className="flex-1">{pick(variant.q)}</span>
+              <Arrow className="mt-1 shrink-0" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        to="/preview/bofs/spurdu"
+        className="bofs-focus mt-5 inline-flex items-center gap-2 rounded py-1 text-[15px] font-bold"
+        style={{ color: C.clayText }}
+      >
+        {pick(SPURDU.indexAll)}
+        <Arrow />
+      </Link>
+    </div>
+  )
+}
+
+/** The landing placement: its own band, after the three doors. */
+export function QuestionBand() {
+  return (
+    <section className="bofs-wash" style={{ background: C.cream2 }}>
+      <div className="mx-auto max-w-5xl px-5 py-16 sm:px-8 sm:py-20">
+        <Reveal>
+          <QuestionIndex />
+        </Reveal>
       </div>
     </section>
   )

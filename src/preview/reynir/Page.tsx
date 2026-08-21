@@ -18,32 +18,50 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { PreviewChrome } from '../PreviewChrome'
-import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import Chrome from './Chrome'
+import { ORDER_PATH, STORY_PATH, LEGAL_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
-import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, LOGO, FEATURE_IMG, PRODUCT_IMG } from './data'
-import { BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY } from './tokens'
+import { useIsomorphicLayoutEffect } from './ssr'
+import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, STORY_ART } from './data'
+import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
 import MapCard from './MapCard'
 import { ORDER_T } from './order'
 import { useLang } from './useLang'
 import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 
-/** The order configurator's own route. */
-const ORDER_PATH = '/preview/reynir/panta'
 
-const company = getPreviewCompany('reynir')
 
 // Brand tokens live in tokens.ts so section components share one source of truth.
 /** Base box size of the travelling pistachio medallion (scaled via transform). */
 const MED_BASE = 440
 
 const PAGE_CSS = `
+  /* ── paper grain ────────────────────────────────────────────────────────
+     The single cheapest thing that separates "dark website" from "printed on
+     something". A fixed, non-interactive noise plate over the whole page, at
+     an opacity low enough that you read it as paper tooth rather than as
+     texture. Fixed rather than attached to a scrolling container on purpose:
+     a noise layer inside the scroll flow repaints on every frame and drops
+     mobile framerate, and it would also swim against the page instead of
+     sitting still like a surface. z-index sits under the lightbox (300) and
+     the intro curtain (9999) so neither picks up grain. */
+  .rb-page::after { content:''; position:fixed; inset:0; z-index:200; pointer-events:none;
+    opacity:.055; mix-blend-mode:overlay; will-change:auto;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size:200px 200px; }
+
   .rb-page ::selection { background:${BURGUNDY}; color:${IVORY}; }
   .rb-page a:focus-visible, .rb-page button:focus-visible {
     outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px;
   }
+
+  /* iOS chrome colour. Safari 26 stopped reading the theme-color meta; it
+     samples fixed edge elements' background-color and falls back to BODY's.
+     html and body had none, so the status-bar strip and the band under the
+     bottom URL bar rendered WHITE on a page that is ink-dark everywhere —
+     see [[ios-safe-area-chrome-color]] before touching any of this. */
+  html, body { background-color:${INK}; }
 
   .rb-cover { min-height:100svh; }
 
@@ -56,9 +74,16 @@ const PAGE_CSS = `
   @keyframes rb-marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   .rb-marquee-track { display:flex; width:max-content; animation:rb-marquee 36s linear infinite; }
 
-  /* the hero pistachio turns slowly and smoothly, in place */
+  /* the hero pistachio turns slowly and smoothly, in place — a true cutout on
+     transparency, so the ground shows through and nothing frames it. */
   @keyframes rb-hero-spin { to { transform:rotate(360deg); } }
-  .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%; }
+  .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%;
+    filter:drop-shadow(0 30px 45px rgba(0,0,0,.6)); }
+
+  /* the one full-bleed break: a slow, held breath rather than a static plate */
+  @keyframes rb-break-zoom { from { transform:scale(1.08); } to { transform:scale(1); } }
+  .rb-break-img { animation:rb-break-zoom 12s ${EASE} both; }
+  @media (prefers-reduced-motion: reduce) { .rb-break-img { animation:none; } }
 
   /* ── intro loader: the gold script writes itself on, as if piped ──────────── */
   .rb-intro { position:fixed; inset:0; z-index:9999; background:${INK};
@@ -77,8 +102,70 @@ const PAGE_CSS = `
   @keyframes rb-tip { 0% { left:0%; opacity:0; } 9% { opacity:1; } 86% { opacity:1; } 100% { left:100%; opacity:0; } }
   @keyframes rb-intro-out { to { opacity:0; visibility:hidden; } }
 
-  .rb-navlink { color:${DIM}; text-decoration:none; font-size:14.5px; transition:color .2s ${EASE}; }
-  .rb-navlink:hover { color:${GOLD_LIGHT}; }
+  /* Italic on hover, not a colour-only shift: on a serif identity the type
+     itself can carry the state, and Lusitana's italic is a real cut. */
+  .rb-navlink { color:${DIM}; text-decoration:none; font-size:14.5px;
+    transition:color .2s ${EASE}; }
+  .rb-navlink:hover, .rb-navlink:focus-visible { color:${GOLD_LIGHT}; font-style:italic; }
+
+  /* ── sticky bar ─────────────────────────────────────────────────────────
+     The masthead is position:relative and scrolls away with the hero, which
+     left the entire rest of the page with no navigation and — more costly —
+     no way to order without scrolling back. This bar materialises once the
+     cover has left the viewport and keeps one action permanently reachable.
+     Driven by IntersectionObserver on the cover rather than a scroll
+     listener, so nothing runs per-frame. backdrop-filter is safe here
+     because the element is fixed; on a scrolling container it would repaint
+     continuously and cost real frames on mobile. */
+  /* THE AWNING — the only thing that can own the Dynamic Island strip.
+     Measured twice in the simulator: a fixed element paints NOTHING above the
+     layout viewport (a 120px red cap: zero pixels), but that strip renders
+     the SCROLLING document — and position:sticky lives in the scrolling
+     layer. Stuck at top:-100px it rests inside the strip itself and paints
+     solid ink where the page used to show through (red-awning test: the
+     strip filled edge to edge). Negative margin cancels its height, so
+     layout is untouched. Requires the page root to use overflow-x:clip —
+     overflow-x:hidden silently kills sticky in every descendant. Gated on
+     the same state as the bar so the hero keeps its clean opening. */
+  /* PERMANENT, from first paint — the strip nothing can leak into. At rest it
+     is a real 70px band at the top of the flow, so the masthead starts below
+     the Dynamic Island zone instead of sliding under it; once scrolling
+     collapses the chrome it sticks 64px above the viewport top and keeps the
+     strip solid ink at every scroll position. No opacity gate: gating it on
+     scroll state is what let the masthead leak into the island at rest. */
+  /* content scrolls under a permanent bar, so anchor jumps must stop short */
+  #menu, #bread, #gallery, #visit { scroll-margin-top: 76px; }
+
+  .rb-awning { position:sticky; top:-100px; height:106px; flex:none;
+    z-index:140; background:${INK}; pointer-events:none; }
+
+  /* SNDR's .bar, verbatim in mechanism (Sindri's own site, the reference he
+     named): fixed at top:0 from FIRST PAINT, always visible, never hides,
+     never transforms — 88% ink glass over blur with a hairline underneath.
+     No observer, no scroll state, no reveal: a header that never moves is a
+     header that can never detach, split, or arrive over content. Present at
+     first paint also means Safari's chrome sampler sees it immediately. */
+  .rb-stickybar { position:fixed; inset:0 0 auto 0; z-index:150;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    padding:10px clamp(16px,4.5vw,72px);
+    background-color:rgba(11,10,9,.88);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(238,211,170,.14); }
+  .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
+  .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
+    background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
+    letter-spacing:.02em; padding:9px 17px; border-radius:2px; white-space:nowrap;
+    transition:background .2s ${EASE}, transform .15s ${EASE}; }
+  .rb-sticky-cta:hover { background:${GOLD_LIGHT}; }
+  .rb-sticky-cta:active { transform:scale(.98); }
+  /* the open/closed dot, carried into the bar so the status stays visible */
+  .rb-sticky-dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
+  @media (max-width:820px) { .rb-sticky-nav { display:none; } .rb-bar-lang { display:none !important; } }
+  
+  /* "Closed, we open at 7:00 today" will not fit beside a CTA on a phone —
+     the dot alone still carries open/closed, so only the words go. */
+  @media (max-width:560px) { .rb-sticky-status { display:none; } }
+
 
   .rb-cta {
     display:inline-block; text-decoration:none; font-weight:600; font-size:15.5px;
@@ -96,6 +183,82 @@ const PAGE_CSS = `
   .rb-lang[aria-pressed="true"] { color:${GOLD_LIGHT}; }
   .rb-lang:hover { color:${IVORY}; }
 
+  /* ── mobile menu ─────────────────────────────────────────────────────────
+     Below 620px the masthead nav is hidden, and below 820px the sticky bar's
+     nav goes too — which left a phone with a logo, a status dot and one CTA,
+     and no way to reach the menu, the gallery or the story at all. This is
+     that navigation, not a shrunken copy of the desktop one: six destinations
+     set as a printed list, because the page's whole identity is a serif on
+     paper and a phone is where that reads best.
+
+     The button appears in whichever bar is on screen. They are never both
+     visible: the sticky bar only materialises once the masthead has scrolled
+     away. */
+  .rb-burger { display:none; position:relative; width:44px; height:44px; margin-right:-10px;
+    align-items:center; justify-content:center; background:none; border:none; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; }
+  .rb-burger-line { position:absolute; left:12px; width:20px; height:1.5px; background:${IVORY};
+    border-radius:2px; transition:transform .4s ${EASE}, opacity .2s ${EASE}, background .2s ${EASE}; }
+  .rb-burger-line:nth-child(1) { transform:translateY(-6px); }
+  .rb-burger-line:nth-child(3) { transform:translateY(6px); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line { background:${GOLD_LIGHT}; }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(1) { transform:rotate(45deg); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(2) { opacity:0; transform:scaleX(.4); }
+  .rb-burger[aria-expanded="true"] .rb-burger-line:nth-child(3) { transform:rotate(-45deg); }
+  .rb-burger-close { display:inline-flex; }
+  @media (max-width:820px) { .rb-burger-bar { display:inline-flex; } }
+
+  /* visibility, not display, so the panel can animate out rather than vanish */
+  .rb-menu { position:fixed; inset:0; z-index:300; display:flex; flex-direction:column;
+    background:${INK};
+    background-image:radial-gradient(120% 70% at 50% -10%, rgba(200,168,119,.13), transparent 62%);
+    opacity:0; visibility:hidden;
+    transition:opacity .42s ${EASE}, visibility 0s linear .42s; }
+  .rb-menu[data-open="true"] { opacity:1; visibility:visible; transition:opacity .42s ${EASE}, visibility 0s; }
+  .rb-menu-top { display:flex; align-items:center; justify-content:space-between;
+    padding:calc(10px + env(safe-area-inset-top, 0px)) clamp(16px,4.5vw,72px) 10px; min-height:64px; }
+  .rb-menu-nav { flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:0 clamp(22px,6vw,72px); gap:2px; }
+  .rb-menu-link { position:relative; display:block; text-decoration:none;
+    font-family:${DISPLAY}; font-size:clamp(30px,8.6vw,44px); line-height:1.18; letter-spacing:.01em;
+    padding:clamp(9px,1.5vh,14px) 0; border-bottom:1px solid ${HAIR_SOFT};
+    opacity:0; transform:translateY(16px);
+    transition:opacity .5s ${EASE}, transform .5s ${EASE}; }
+  .rb-menu-link:last-of-type { border-bottom:none; }
+  /* the stagger: each line arrives just after the one above, the way a list
+     is read rather than the way a grid appears */
+  .rb-menu[data-open="true"] .rb-menu-link { opacity:1; transform:none; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(1) { transition-delay:.10s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(2) { transition-delay:.155s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(3) { transition-delay:.21s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(4) { transition-delay:.265s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(5) { transition-delay:.32s; }
+  .rb-menu[data-open="true"] .rb-menu-link:nth-of-type(6) { transition-delay:.375s; }
+  /* index, not decoration: it numbers the list like a printed menu card */
+  .rb-menu-num { font-family:${BODY}; font-size:11px; letter-spacing:.16em; color:${FAINT};
+    vertical-align:super; margin-right:12px; }
+  .rb-menu-link:active { opacity:.72; }
+
+  .rb-menu-foot { padding:clamp(18px,3vh,26px) clamp(22px,6vw,72px) calc(clamp(20px,3vh,30px) + env(safe-area-inset-bottom));
+    border-top:1px solid ${HAIR_SOFT}; display:flex; flex-direction:column; gap:16px;
+    opacity:0; transform:translateY(10px); transition:opacity .45s ${EASE} .34s, transform .45s ${EASE} .34s; }
+  .rb-menu[data-open="true"] .rb-menu-foot { opacity:1; transform:none; }
+  .rb-menu-footrow { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+  .rb-menu-status { display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; }
+  .rb-menu-cta { display:block; text-align:center; text-decoration:none; background:${GOLD};
+    color:${INK_DEEP}; font-family:${BODY}; font-size:16px; font-weight:600; letter-spacing:.02em;
+    padding:15px 24px; border-radius:3px; transition:background .2s ${EASE}, transform .15s ${EASE}; }
+  .rb-menu-cta:active { transform:scale(.985); }
+
+  /* Nothing moves, but nothing disappears either: the panel still opens and
+     closes, it simply arrives at once. */
+  @media (prefers-reduced-motion: reduce) {
+    .rb-menu, .rb-menu-link, .rb-menu-foot, .rb-burger-line {
+      transition-duration:.01ms !important; transition-delay:0s !important; }
+    .rb-menu-link, .rb-menu-foot { opacity:1; transform:none; }
+  }
+
   .rb-row { transition:color .2s ${EASE}; }
   .rb-row:hover .rb-row-name { color:${GOLD_LIGHT}; }
   .rb-leader { flex:1; align-self:center; height:0; border-bottom:1.5px dotted rgba(238,211,170,.32); margin:0 4px; transform:translateY(2px); }
@@ -106,23 +269,43 @@ const PAGE_CSS = `
   .rb-cover-art { position:absolute; top:50%; right:clamp(-30px,0vw,20px); transform:translateY(-50%);
     width:clamp(300px,40vw,${MED_BASE}px); z-index:1; pointer-events:none; display:flex; align-items:center; justify-content:center; }
 
-  /* ── photo gallery: print-style contact sheet, columns masonry ─────────── */
-  .rb-gallery-grid { column-count:3; column-gap:14px; }
+  /* ── photo gallery: one horizontal strip, scroll-snapped ───────────────── */
+  .rb-gallery-strip { display:flex; gap:14px; overflow-x:auto; overflow-y:hidden;
+    scroll-snap-type:x mandatory; scroll-padding-left:max(20px,calc((100vw - 1180px) / 2 + 20px));
+    padding:4px max(20px,calc((100vw - 1180px) / 2 + 20px)) 18px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:thin;
+    scrollbar-color:rgba(238,211,170,.28) transparent; }
+  .rb-gallery-strip::-webkit-scrollbar { height:6px; }
+  .rb-gallery-strip::-webkit-scrollbar-track { background:transparent; }
+  .rb-gallery-strip::-webkit-scrollbar-thumb { background:rgba(238,211,170,.28); border-radius:3px; }
+  .rb-gallery-strip::-webkit-scrollbar-thumb:hover { background:rgba(238,211,170,.45); }
+  /* fixed HEIGHT, auto width: mixed portrait/landscape frames keep their own
+     aspect ratios and simply occupy more or less of the strip, which is what
+     makes a filmstrip read as a filmstrip rather than as cropped tiles. */
+  .rb-gallery-strip .rb-gallery-item { flex:0 0 auto; width:auto; height:clamp(300px,46vh,440px);
+    margin:0; scroll-snap-align:start; }
+  .rb-gallery-strip .rb-gallery-item img { height:100%; width:auto; }
+
+  /* ── the story: two mirrored chapters over a full-bleed opening plate ──── */
+  @keyframes rb-story-zoom { from { transform:scale(1.07); } to { transform:scale(1); } }
+  .rb-story-img { animation:rb-story-zoom 14s ${EASE} both; filter:${ARCHIVAL}; }
+  .rb-story-chapter > img { filter:${ARCHIVAL}; }
+
   .rb-gallery-item { break-inside:avoid; margin:0 0 14px; padding:0; border:0; display:block; width:100%;
     position:relative; overflow:hidden; border-radius:3px; cursor:zoom-in; background:${INK_DEEP};
     box-shadow:0 1px 0 rgba(238,211,170,.06); }
   .rb-gallery-item::after { content:''; position:absolute; inset:0; border-radius:3px;
     border:1px solid rgba(238,211,170,0); transition:border-color .3s ${EASE}; pointer-events:none; }
   .rb-gallery-item:hover::after, .rb-gallery-item:focus-visible::after { border-color:rgba(238,211,170,.4); }
-  .rb-gallery-item img { width:100%; height:auto; display:block; transition:transform .6s ${EASE}, filter .6s ${EASE}; }
-  .rb-gallery-item:hover img, .rb-gallery-item:focus-visible img { transform:scale(1.045); }
-  .rb-gallery-cap { position:absolute; left:0; right:0; bottom:0; padding:26px 14px 12px;
-    background:linear-gradient(0deg, rgba(11,10,9,.88) 0%, rgba(11,10,9,0) 100%);
-    opacity:0; transform:translateY(6px); transition:opacity .35s ${EASE}, transform .35s ${EASE};
-    text-align:left; font-family:${BODY}; font-size:12.5px; color:${GOLD_LIGHT}; letter-spacing:.01em; }
-  .rb-gallery-item:hover .rb-gallery-cap, .rb-gallery-item:focus-visible .rb-gallery-cap { opacity:1; transform:none; }
+  .rb-gallery-item img { width:100%; height:auto; display:block; filter:${ARCHIVAL};
+    transition:transform .6s ${EASE}, filter .6s ${EASE}; }
+  .rb-gallery-item:hover img, .rb-gallery-item:focus-visible img { transform:scale(1.045); filter:${ARCHIVAL_LIVE}; }
+  /* Anchor targets must clear the sticky bar (63px) or a jumped-to heading
+     lands underneath it. */
+  .rb-page section[id] { scroll-margin-top:78px; }
 
   .rb-lightbox { position:fixed; inset:0; z-index:300; background:rgba(11,10,9,.94);
+    padding-top:env(safe-area-inset-top, 0px);
     display:flex; align-items:center; justify-content:center; padding:clamp(16px,5vh,56px);
     animation:rb-lb-in .28s ${EASE} both; }
   @keyframes rb-lb-in { from { opacity:0; } to { opacity:1; } }
@@ -152,12 +335,9 @@ const PAGE_CSS = `
   .rb-testi-dot[data-active="true"]::after { background:${GOLD}; border-color:${GOLD}; }
 
   @media (max-width:820px) {
-    .rb-gallery-grid { column-count:2; column-gap:10px; }
+    .rb-gallery-strip { gap:10px; }
     .rb-gallery-item { margin-bottom:10px; }
     .rb-lb-prev { left:4px; } .rb-lb-next { right:4px; }
-  }
-  @media (max-width:480px) {
-    .rb-gallery-cap { opacity:1; transform:none; padding:18px 10px 9px; font-size:11.5px; }
   }
 
   @media (max-width:980px) {
@@ -173,6 +353,18 @@ const PAGE_CSS = `
     .rb-bread-grid { grid-template-columns:1fr !important; }
     .rb-catering-grid { grid-template-columns:1fr !important; }
     .rb-visit-grid { grid-template-columns:1fr !important; }
+    /* Once the grids are a single column, a frame with its own max-width sits
+       in a much wider column and reads as pushed to one side. Auto margins
+       centre it. Frames that fill their cell are already 100% wide, so this
+       does nothing to them. !important because the width cap and the top
+       margin arrive as inline style. */
+    .rb-menu-art { margin-left:auto !important; margin-right:auto !important; }
+    /* the story's two chapters stack, photo always above its paragraph —
+       explicit grid-row/column overrides because the flipped chapter pins
+       its image to column 2, which would otherwise survive the collapse. */
+    .rb-story-chapter { grid-template-columns:1fr !important; }
+    .rb-story-chapter > img { grid-column:1 !important; grid-row:1 !important; }
+    .rb-story-chapter > p { grid-column:1 !important; grid-row:2 !important; }
   }
   @media (max-width:620px) {
     .rb-nav-links { display:none !important; }
@@ -189,15 +381,37 @@ const PAGE_CSS = `
     .rb-gallery-item:hover img { transform:none; }
     .rb-lightbox, .rb-lightbox-fig img { animation:none; }
     .rb-testi-fade { animation:none; }
+    .rb-story-img { animation:none; }
+    .rb-gallery-strip { scroll-snap-type:none; }
   }
 `
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 const fmtHM = (mins: number) => `${Math.floor(mins / 60)}:${pad2(mins % 60)}`
+/* Zero-padded, for the printed hours line rather than a sentence — "kl. 7:00"
+   reads naturally mid-sentence, "07:00–17:00" reads right as a timetable. */
+const fmtHMPad = (mins: number) => `${pad2(Math.floor(mins / 60))}:${pad2(mins % 60)}`
 
 /** Iceland has no DST, so UTC clock fields equal Iceland local time.
  *  hoursByDay is read live from the CMS (falls back to bundled data.ts) so
  *  the "open now" badge always matches whatever the owner set. */
+/** The status shown before the browser clock is known — i.e. in the
+ *  prerendered HTML, which is the only version a non-JavaScript crawler ever
+ *  reads. It states the opening hours rather than guessing open/closed,
+ *  because a build-time "Lokað" would be frozen into the page for every
+ *  search engine and AI assistant that quotes it. */
+function staticStatus(lang: Lang, hoursByDay: readonly DayHours[]) {
+  const t = T[lang]
+  const days = hoursByDay.filter((d) => !d.closed)
+  const uniform =
+    days.length === hoursByDay.length &&
+    days.every((d) => d.open === days[0].open && d.close === days[0].close)
+  return {
+    open: false,
+    label: uniform ? t.statusHours(fmtHMPad(days[0].open), fmtHMPad(days[0].close)) : t.statusHoursVaried,
+  }
+}
+
 function openStatus(now: number, lang: Lang, hoursByDay: readonly DayHours[]) {
   const d = new Date(now)
   const day = d.getUTCDay()
@@ -239,12 +453,117 @@ function MenuRow({ item, lang }: { item: MenuItem; lang: Lang }) {
   )
 }
 
+/** A photograph set among the menu rows — printed on the page, not boxed in a
+ *  card. No border, no shadow, no padding: the photo bleeds to its column
+ *  width and stops at a single hairline, the same rule every row below it
+ *  stops at. That hairline is the page's one recurring device; the photos
+ *  now use it instead of inventing a second one. `fill` lets a frame stretch
+ *  to whatever height its row asks for (the bread photo does) rather than
+ *  being capped at its own intrinsic aspect ratio and leaving air beneath. */
+function MenuArtFrame({ art, lang, fill, style }: { art: MenuArt; lang: Lang; fill?: boolean; style?: CSSProperties }) {
+  return (
+    <figure className="rb-menu-art" style={{ margin: 0, display: 'flex', flexDirection: 'column', height: fill ? '100%' : undefined, ...style }}>
+      <div style={{ overflow: 'hidden', borderRadius: 3, flex: fill ? '1 1 auto' : undefined, aspectRatio: fill ? undefined : `${art.w} / ${art.h}` }}>
+        <img
+          src={art.src}
+          alt={art.cap[lang]}
+          loading="lazy"
+          decoding="async"
+          width={art.w}
+          height={art.h}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      </div>
+      <figcaption style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '16px 0 14px', borderBottom: `1px solid ${HAIR_SOFT}` }}>
+        <span style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 'clamp(15px,1.5vw,17px)', color: FAINT }}>{art.cap[lang]}</span>
+        {art.price && (
+          <>
+            <span className="rb-leader" aria-hidden="true" />
+            <span style={{ fontSize: 14, fontWeight: 600, color: GOLD, whiteSpace: 'nowrap' }}>{art.price}</span>
+          </>
+        )}
+      </figcaption>
+    </figure>
+  )
+}
+
+/** One beat of the story: a black-and-white frame beside its paragraph, with
+ *  a burgundy rule marking the text. `flip` mirrors the pair so the two
+ *  chapters alternate sides and the eye crosses the page. The paragraph is
+ *  vertically centred against the photograph rather than top-aligned, because
+ *  the two frames have very different heights (one portrait, one landscape). */
+function StoryChapter({ art, text, reduced, flip }: { art: { src: string; w: number; h: number }; text: string; reduced: boolean; flip?: boolean }) {
+  return (
+    <div
+      data-reveal
+      className="rb-story-chapter"
+      style={{
+        ...revealInit(reduced, 0.08),
+        display: 'grid',
+        /* The photo track is capped rather than fluid: one source is portrait
+           (1335×2000) and at a full fr it would render nearly 1000px tall and
+           swallow the chapter. The text track is sized to its own measure so
+           the paragraph doesn't float in a column twice its width. */
+        gridTemplateColumns: flip
+          ? 'minmax(280px,420px) minmax(0,480px)'
+          : 'minmax(0,480px) minmax(280px,420px)',
+        gap: 'clamp(28px,5vw,72px)',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <img
+        src={art.src}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width={art.w}
+        height={art.h}
+        style={{ gridColumn: flip ? 2 : 1, gridRow: 1, width: '100%', height: 'auto', display: 'block', borderRadius: 3 }}
+      />
+      <p
+        style={{
+          gridColumn: flip ? 1 : 2,
+          gridRow: 1,
+          margin: 0,
+          borderLeft: `2px solid ${BURGUNDY}`,
+          paddingLeft: 'clamp(18px,2.4vw,32px)',
+          fontSize: 'clamp(17px,1.9vw,21px)',
+          lineHeight: 1.72,
+          color: 'rgba(243,234,211,.86)',
+        }}
+      >
+        {text}
+      </p>
+    </div>
+  )
+}
+
 /** One gallery photo: hover reveals a gold caption over a dark scrim; click opens the lightbox. */
 function GalleryTile({ photo, lang, onOpen, style }: { photo: GalleryPhoto; lang: Lang; onOpen: () => void; style?: CSSProperties }) {
   return (
     <button type="button" className="rb-gallery-item" data-reveal style={style} onClick={onOpen} aria-label={photo.caption[lang]}>
-      <img src={photo.src} alt={photo.caption[lang]} loading="lazy" decoding="async" style={{ aspectRatio: `${photo.w} / ${photo.h}` }} />
-      <span className="rb-gallery-cap" aria-hidden="true">{photo.caption[lang]}</span>
+      {/* Tiles render around 380px wide, so let the browser take the 800px
+          variant here and keep the 2000px file for the lightbox. */}
+      <img
+        src={photo.srcSm}
+        srcSet={`${photo.srcSm} 800w, ${photo.src} 2000w`}
+        /* The tile is 31vw only until the 1180px container caps it at 384px
+           (1180 minus two 14px gaps, over three columns). Saying "31vw" past
+           that point overstates the slot, and on a 2× screen the browser then
+           reaches past the 800px file for the 2000px one — which is exactly
+           the download the small variant exists to avoid. */
+        sizes="(max-width:480px) 92vw, (max-width:820px) 46vw, (max-width:1239px) 31vw, 384px"
+        alt={photo.caption[lang]}
+        loading="lazy"
+        decoding="async"
+        style={{ aspectRatio: `${photo.w} / ${photo.h}` }}
+      />
+      {/* No caption overlay on hover. These read as stray explanatory labels
+          floating over the photographs in a filmstrip, and the caption is
+          already shown properly in the lightbox on click. The button keeps
+          its aria-label, so nothing is lost for screen readers. */}
     </button>
   )
 }
@@ -311,9 +630,12 @@ function ReynirPageInner() {
   const t = T[lang]
   const {
     LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
-    hoursRows, hamraborgNote, mainName, secondName, trustLine,
+    hoursRows, mainName, trustLine,
     heroTitle, heroSub, heroLine, statementQuote, statementWho, storyP1, storyP2,
   } = useSiteContent()
+  // The left menu column opens with a landscape frame, the right one closes
+  // with a square frame — one extra row on the left keeps the feet level.
+  const menuSplit = Math.min(MENU.length, Math.ceil(MENU.length / 2) + 1)
   const rootRef = useRef<HTMLDivElement>(null)
   const [reduced, setReduced] = useState(false)
 
@@ -325,26 +647,130 @@ function ReynirPageInner() {
     return () => mq.removeEventListener('change', on)
   }, [])
 
-  const [now, setNow] = useState(() => Date.now())
+  /* null until mounted, so the server render and the browser's first render
+     are identical and hydration is clean. Reading the clock during render
+     would bake the build machine's minute into the shipped HTML. */
+  const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
+    setNow(Date.now())
     const id = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(id)
   }, [])
-  const status = useMemo(() => openStatus(now, lang, HOURS_BY_DAY), [now, lang, HOURS_BY_DAY])
+  const status = useMemo(
+    () => (now === null ? staticStatus(lang, HOURS_BY_DAY) : openStatus(now, lang, HOURS_BY_DAY)),
+    [now, lang, HOURS_BY_DAY],
+  )
 
   useEffect(() => {
     setThemeColor(INK)
   }, [])
 
-  // Intro loader: the gold script writes itself on, as if piped. Plays on
-  // mount; skips entirely for reduced-motion; click anywhere to dismiss early.
-  const [intro, setIntro] = useState(
-    () => !(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
-  )
+  /* Intro loader: the gold script writes itself on, as if piped.
+   *
+   * ONCE PER SESSION, not once per mount. The order page, the legal page and
+   * the story page are all real routes, so coming back to the landing page
+   * remounts this component — and the curtain was replaying every time, which
+   * turns a brand moment into a toll gate on ordinary navigation.
+   *
+   * sessionStorage rather than localStorage on purpose: it survives navigation
+   * within a visit, which is the bug, but a genuinely new visit tomorrow still
+   * gets the intro. localStorage would mean a returning customer never sees it
+   * again, which throws the moment away to fix a much smaller problem.
+   *
+   * Wrapped in try/catch because sessionStorage throws outright in some
+   * privacy modes; the intro is decorative, so on failure it simply plays. */
+  /* Starts false so the server-rendered HTML and the browser's first render
+     agree — deciding this during render read sessionStorage, which the server
+     has no version of, and that single mismatch made React throw away the
+     whole prerendered tree and rebuild it client-side (error #418/#422).
+     The decision moves into a LAYOUT effect, which runs after mount but
+     before the browser paints, so the curtain still covers the first frame
+     the visitor actually sees. */
+  const [intro, setIntro] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let show = true
+    try {
+      show = window.sessionStorage.getItem('rb-intro-seen') !== '1'
+    } catch {
+      /* private mode: the intro is decorative, so on failure it simply plays */
+    }
+    if (show) setIntro(true)
+  }, [])
   useEffect(() => {
     if (!intro) return
     const id = window.setTimeout(() => setIntro(false), 2150)
     return () => window.clearTimeout(id)
+  }, [intro])
+  // Marked as seen as soon as it has played or been dismissed, so a click-to-
+  // skip counts too and the curtain does not return on the next route change.
+  /* ── mobile menu ──────────────────────────────────────────────────────
+     Deterministic false on first render, so the prerendered HTML and the
+     browser agree. */
+  const [menu, setMenu] = useState(false)
+
+  /* Anchor links inside the panel cannot rely on the browser's own jump: at
+     the instant of the click the body is still overflow:hidden for the scroll
+     lock, so the native scroll is discarded, and a plain hash change is not
+     something React Router reports — so nothing scrolled and the section was
+     simply never reached. The target is remembered here and scrolled to after
+     the panel has closed and the lock has been released. */
+  const pendingHash = useRef<string | null>(null)
+  useEffect(() => {
+    if (menu) return
+    const target = pendingHash.current
+    if (!target) return
+    pendingHash.current = null
+    const el = document.querySelector(target)
+    if (el) el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+  }, [menu, reduced])
+
+  useEffect(() => {
+    if (!menu) return
+    /* The panel is fixed and covers the page, so the page behind it must not
+       scroll. overflow:hidden alone does NOT lock iOS Safari — the page kept
+       scrolling under a finger, and on close the browser could land on a
+       different scroll position, which read as the whole layout having
+       changed. The reliable lock is to fix the body at its current offset;
+       the -top preserves what is on screen, and close restores the exact
+       scroll position with an instant jump (html has scroll-behavior:smooth,
+       which would otherwise animate the restore). */
+    const y = window.scrollY
+    const b = document.body.style
+    const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width, overflow: b.overflow }
+    b.position = 'fixed'
+    b.top = `-${y}px`
+    b.left = '0'
+    b.right = '0'
+    b.width = '100%'
+    b.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    window.addEventListener('keydown', onKey)
+    /* Rotating a phone to landscape can cross the breakpoint that hides the
+       button, which would strand the panel open with no way to shut it. */
+    const mq = window.matchMedia('(min-width:821px)')
+    const onWide = (e: MediaQueryListEvent) => { if (e.matches) setMenu(false) }
+    mq.addEventListener('change', onWide)
+    return () => {
+      b.position = prev.position
+      b.top = prev.top
+      b.left = prev.left
+      b.right = prev.right
+      b.width = prev.width
+      b.overflow = prev.overflow
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' })
+      window.removeEventListener('keydown', onKey)
+      mq.removeEventListener('change', onWide)
+    }
+  }, [menu])
+
+  const introDecided = useRef(false)
+  useEffect(() => {
+    if (intro) { introDecided.current = true; return }
+    /* Skip the first pass: intro is false before the layout effect has ruled,
+       and writing the flag then would mark the curtain seen before it plays. */
+    if (!introDecided.current) { introDecided.current = true; return }
+    try { window.sessionStorage.setItem('rb-intro-seen', '1') } catch { /* private mode */ }
   }, [intro])
 
   useEffect(() => {
@@ -395,7 +821,12 @@ function ReynirPageInner() {
       window.clearTimeout(timeoutId)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [reduced, lang])
+    // Re-run when the CMS content lands. The page first renders the bundled
+    // photos, then swaps in the Sanity ones — which REPLACES every gallery
+    // tile with a new element (the React key is the image src). Those new
+    // nodes were never observed, so without this dependency they keep the
+    // opacity:0 that revealInit gave them and the whole gallery stays blank.
+  }, [reduced, lang, GALLERY])
 
   const marqueeItems = useMemo(
     () => ['Vínarbrauð', 'Súrdeigsbrauð', 'Snúður', 'Kanillengja', 'Pistasíusnúður', 'Kleina', 'Rúgbrauð', 'Skúffukaka'],
@@ -404,6 +835,10 @@ function ReynirPageInner() {
 
   // Gallery lightbox: null when closed, otherwise the open photo's index.
   const [lightbox, setLightbox] = useState<number | null>(null)
+
+  // The sticky bar appears once the cover has scrolled out of view. Watching
+  // the cover with an observer rather than polling scrollY keeps this off the
+
   const closeLightbox = () => setLightbox(null)
   const stepLightbox = (dir: 1 | -1) => setLightbox((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length))
 
@@ -431,9 +866,9 @@ function ReynirPageInner() {
       ref={rootRef}
       className="rb-page"
       lang={lang}
-      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}
+      style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}
     >
-      <style>{PAGE_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       {intro && (
         <div className="rb-intro" onClick={() => setIntro(false)} aria-hidden="true">
@@ -444,28 +879,130 @@ function ReynirPageInner() {
         </div>
       )}
 
-      {/* ===================== MASTHEAD ===================== */}
-      <header style={{ position: 'relative', zIndex: 5, padding: '20px clamp(20px,4.5vw,72px) 0' }}>
-        <div style={{ ...wrap, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
-          <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 132, height: 'auto', display: 'block' }} />
-          <nav className="rb-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
-            <a href="#menu" className="rb-navlink">{t.navMenu}</a>
-            <a href="#bread" className="rb-navlink">{t.navBread}</a>
-            <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
-            {/* a real destination, not an anchor: clicking "Panta" means ordering */}
-            <Link to={ORDER_PATH} className="rb-navlink">{ORDER_T[lang].navOrder}</Link>
-            <a href="#story" className="rb-navlink">{t.navStory}</a>
-            <a href="#visit" className="rb-navlink">{t.navVisit}</a>
-          </nav>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2 }}>
-              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
-              <span aria-hidden="true" style={{ color: FAINT, alignSelf: 'center' }}>/</span>
-              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
+      {/* ===================== STICKY BAR =====================
+          Not a second navigation so much as a permanent way back to the two
+          things people came for: what's on, and how to order it. Hidden while
+          the cover is on screen so the hero keeps its full first impression. */}
+      
+      <div className="rb-awning" id="top" aria-hidden="true" />
+      <div className="rb-stickybar">
+        <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
+          <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
+        </a>
+        {/* The bar is the only header now, so it carries the full desktop nav
+            the masthead used to — Myndir included. */}
+        <nav className="rb-sticky-nav">
+          <a href="#menu" className="rb-navlink">{t.navMenu}</a>
+          <a href="#bread" className="rb-navlink">{t.navBread}</a>
+          <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
+          <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
+          <a href="#visit" className="rb-navlink">{t.navVisit}</a>
+        </nav>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.6vw,20px)' }}>
+          <div className="rb-bar-lang" role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+            <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+            <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
+          </div>
+          {/* the open/closed status follows you down the page — for a bakery
+              that shuts at 17:00 this is the single most asked question */}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: status.open ? GOLD_LIGHT : FAINT, whiteSpace: 'nowrap' }}>
+            <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
+            <span className="rb-sticky-status">{status.label}</span>
+          </span>
+          <Link to={ORDER_PATH} className="rb-sticky-cta">{ORDER_T[lang].navOrder}</Link>
+          <button
+            type="button"
+            className="rb-burger rb-burger-bar"
+            aria-expanded={menu}
+            aria-controls="rb-mobile-menu"
+            aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}
+            onClick={() => setMenu((v) => !v)}
+          >
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      {/* ===================== MOBILE MENU =====================
+          The six destinations as a printed list. Panta is not in the list: it
+          is the one thing someone opens this menu to do, so it sits at the
+          bottom as the only filled button, where a thumb already is. */}
+      <div className="rb-menu" id="rb-mobile-menu" data-open={menu} aria-hidden={!menu}>
+        <div className="rb-menu-top">
+          <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 104, height: 'auto', display: 'block' }} />
+          <button
+            type="button"
+            className="rb-burger rb-burger-close"
+            aria-expanded={menu}
+            aria-controls="rb-mobile-menu"
+            aria-label={lang === 'is' ? 'Loka valmynd' : 'Close menu'}
+            onClick={() => setMenu(false)}
+          >
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+            <span className="rb-burger-line" aria-hidden="true" />
+          </button>
+        </div>
+
+        <nav className="rb-menu-nav" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
+          {[
+            { href: '#menu', label: t.navMenu },
+            { href: '#bread', label: t.navBread },
+            { href: '#gallery', label: t.navGallery },
+            { to: STORY_PATH, label: t.navStory },
+            { href: '#visit', label: t.navVisit },
+          ].map((item, i) => {
+            const inner = (
+              <>
+                <span className="rb-menu-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                {item.label}
+              </>
+            )
+            const style = { ...GOLD_TEXT, ...LETTERPRESS } as CSSProperties
+            return item.to ? (
+              <Link key={item.label} to={item.to} className="rb-menu-link" style={style} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+                {inner}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="rb-menu-link"
+                style={style}
+                onClick={(e) => {
+                  e.preventDefault()
+                  pendingHash.current = item.href!
+                  setMenu(false)
+                }}
+                tabIndex={menu ? 0 : -1}
+              >
+                {inner}
+              </a>
+            )
+          })}
+        </nav>
+
+        <div className="rb-menu-foot">
+          <div className="rb-menu-footrow">
+            <span className="rb-menu-status" style={{ color: status.open ? GOLD_LIGHT : FAINT }}>
+              <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
+              {status.label}
+            </span>
+            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')} tabIndex={menu ? 0 : -1}>EN</button>
+              <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')} tabIndex={menu ? 0 : -1}>ÍS</button>
             </div>
           </div>
+          <Link to={ORDER_PATH} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+            {ORDER_T[lang].navOrder}
+          </Link>
         </div>
-      </header>
+      </div>
+
 
       {/* ===================== COVER ===================== */}
       <section className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
@@ -489,7 +1026,7 @@ function ReynirPageInner() {
               </span>
             </div>
 
-            <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT }}>
+            <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>
               {heroTitle[lang]}
             </h1>
 
@@ -501,7 +1038,9 @@ function ReynirPageInner() {
             </p>
 
             <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
-              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.orderPrimary}</a>
+              {/* generic in the hero: the platform choice belongs further
+                  down, where both options can be shown side by side */}
+              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.ctaDelivery}</a>
               <a href="#menu" className="rb-cta rb-cta-ghost">{t.ctaMenu}</a>
             </div>
           </div>
@@ -529,7 +1068,7 @@ function ReynirPageInner() {
         <div style={wrap}>
           <div data-reveal style={revealInit(reduced)}>
             <div style={{ borderTop: `1px solid ${HAIR}`, paddingTop: 16, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.menuMasthead}</div>
-            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>{t.ovenTitle}</h2>
+            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.ovenTitle}</h2>
             <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
           </div>
 
@@ -553,7 +1092,7 @@ function ReynirPageInner() {
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: GOLD }}>{t.featuredLabel}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, flexWrap: 'wrap', marginTop: 14 }}>
-                <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5vw,64px)', margin: 0, ...GOLD_TEXT }}>{FEATURE.name}</h3>
+                <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5vw,64px)', margin: 0, ...GOLD_TEXT, ...LETTERPRESS }}>{FEATURE.name}</h3>
                 <span style={{ fontSize: 22, fontWeight: 600, color: GOLD }}>{FEATURE.price}</span>
               </div>
               <p style={{ fontSize: 17, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '46ch' }}>{FEATURE.desc[lang]}</p>
@@ -573,7 +1112,7 @@ function ReynirPageInner() {
                   boxShadow: '0 34px 70px -24px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.06)',
                 }}
               >
-                <div style={{ borderRadius: 10, overflow: 'hidden', aspectRatio: '1 / 1' }}>
+                <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '1 / 1' }}>
                   <img
                     src={PRODUCT_IMG}
                     alt={lang === 'en' ? 'A Reynir pistachio snúður torn open, gooey pistachio glaze stretching between the halves' : 'Pistasíusnúður frá Reyni rifinn í sundur, pistasíugljái teygist á milli helminganna'}
@@ -581,34 +1120,100 @@ function ReynirPageInner() {
                     decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
+                  {/* the same small tag-pill already used on Kanillengja in the
+                      menu (not a new device) marks this as the signature item —
+                      quiet on the photo, not a banner across it. */}
+                  <span
+                    style={{
+                      position: 'absolute', top: 14, left: 14,
+                      fontFamily: BODY, fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em',
+                      textTransform: 'uppercase', color: GOLD_LIGHT, background: BURGUNDY,
+                      padding: '4px 9px', borderRadius: 4,
+                      boxShadow: '0 6px 16px -6px rgba(0,0,0,.6)',
+                    }}
+                  >
+                    {t.featuredLabel}
+                  </span>
                 </div>
               </figure>
             </div>
           </div>
 
-          {/* the menu, as an editorial list with dotted price leaders */}
+          {/* The menu, as an editorial list with dotted price leaders — with
+              their own photography set diagonally among the rows like plates
+              on a menu spread: the lengjur trays open the left column, the
+              pastry pile closes the right. The left column takes one extra row
+              because a landscape frame is shorter than a square one. */}
           <div className="rb-menu-cols" data-reveal style={{ ...revealInit(reduced, 0.12), display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 'clamp(40px,6vw,88px)', rowGap: 0, marginTop: 'clamp(36px,5vh,56px)' }}>
-            {MENU.map((item) => (
-              <MenuRow key={item.name} item={item} lang={lang} />
-            ))}
+            <div style={{ display: 'grid', alignContent: 'start' }}>
+              <MenuArtFrame art={MENU_ART.lengjur} lang={lang} style={{ marginBottom: 14 }} />
+              {MENU.slice(0, menuSplit).map((item) => (
+                <MenuRow key={item.name} item={item} lang={lang} />
+              ))}
+            </div>
+            <div style={{ display: 'grid', alignContent: 'start' }}>
+              {MENU.slice(menuSplit).map((item) => (
+                <MenuRow key={item.name} item={item} lang={lang} />
+              ))}
+              <MenuArtFrame art={MENU_ART.bordid} lang={lang} style={{ marginTop: 26 }} />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ===================== STATEMENT (burgundy) ===================== */}
-      <section id="story" style={{ background: BURGUNDY, padding: 'clamp(96px,15vh,180px) clamp(20px,4.5vw,72px)' }}>
-        <div style={{ maxWidth: 980, margin: '0 auto' }}>
-          <div data-reveal style={{ ...revealInit(reduced), fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD_LIGHT }}>
-            {t.statementKicker}
-          </div>
-          <blockquote data-reveal style={{ ...revealInit(reduced, 0.08), fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,5.4vw,76px)', lineHeight: 1.12, letterSpacing: '.005em', color: IVORY, margin: '24px 0 0' }}>
-            “{statementQuote[lang]}”
-          </blockquote>
-          <div data-reveal style={{ ...revealInit(reduced, 0.14), fontSize: 14, color: 'rgba(243,234,211,.7)', marginTop: 22 }}>{statementWho[lang]}</div>
+      {/* ===================== THE STORY (photo essay) =====================
+          The bakery's own history, told on its own photographs. This replaces
+          two sections that used to fight each other: a full-bleed photo that
+          hard-cut into a flat burgundy slab, with the actual story — a family
+          business since 1994, the founder's death in 2019, the two sons who
+          took over his ovens — set as plain text on colour while seventeen
+          beautiful black-and-white craft frames sat unused in a grid further
+          down. The photographs now carry the story instead of decorating it.
 
-          <div data-reveal style={{ ...revealInit(reduced, 0.2), display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(24px,4vw,64px)', marginTop: 'clamp(48px,7vh,88px)', maxWidth: 820 }} className="rb-catering-grid">
-            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{storyP1[lang]}</p>
-            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: 'rgba(243,234,211,.86)', margin: 0 }}>{storyP2[lang]}</p>
+          Burgundy survives as an accent (the rule beside each chapter, the
+          scrim's warm floor) rather than as a flat plane, which is what made
+          the seam so hard in the first place. */}
+      <section id="story" style={{ background: INK_DEEP }}>
+        {/* the opening plate: the quote laid over the oven's glow. The scrim
+            resolves to INK_DEEP at the bottom edge so the photograph hands
+            off to the section below it instead of butting against it. */}
+        <div className="rb-story-open" style={{ position: 'relative', height: 'clamp(380px,72vh,760px)', overflow: 'hidden' }}>
+          <img
+            src={STORY_ART.open.src}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            width={STORY_ART.open.w}
+            height={STORY_ART.open.h}
+            className="rb-story-img"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(0deg, ${INK_DEEP} 0%, rgba(11,10,9,.78) 22%, rgba(92,28,31,.28) 62%, rgba(11,10,9,.45) 100%)` }} />
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 'clamp(28px,5vw,72px)' }}>
+            <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+              <div data-reveal style={{ ...revealInit(reduced), fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD_LIGHT }}>
+                {t.statementKicker}
+              </div>
+              <blockquote data-reveal style={{ ...revealInit(reduced, 0.08), fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(32px,5.4vw,76px)', lineHeight: 1.1, letterSpacing: '.005em', color: IVORY, margin: '18px 0 0', maxWidth: '18ch' }}>
+                “{statementQuote[lang]}”
+              </blockquote>
+              <div data-reveal style={{ ...revealInit(reduced, 0.14), fontSize: 14, color: 'rgba(243,234,211,.72)', marginTop: 18 }}>{statementWho[lang]}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* the two chapters, each a photograph beside its paragraph, mirrored
+            so the eye crosses the page rather than running down one gutter */}
+        <div style={{ padding: 'clamp(56px,9vh,110px) clamp(20px,4.5vw,72px) clamp(72px,11vh,140px)' }}>
+          <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gap: 'clamp(48px,8vh,96px)' }}>
+            <StoryChapter art={STORY_ART.founding} text={storyP1[lang]} reduced={reduced} />
+            <StoryChapter art={STORY_ART.today} text={storyP2[lang]} reduced={reduced} flip />
+            {/* the landing page tells the short version; the whole story and
+                the full archive live on their own route */}
+            <div data-reveal style={{ ...revealInit(reduced, 0.1) }}>
+              <Link to={STORY_PATH} className="rb-cta rb-cta-ghost">{t.storyMore}</Link>
+            </div>
           </div>
         </div>
       </section>
@@ -619,13 +1224,19 @@ function ReynirPageInner() {
           <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
             <div style={{ maxWidth: 620 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.breadKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT }}>{t.breadTitle}</h2>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.breadTitle}</h2>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0' }}>{t.breadIntro}</p>
             </div>
             <div style={{ fontSize: 13.5, color: FAINT, fontStyle: 'italic' }}>{t.breadNote}</div>
           </div>
 
-          <div className="rb-bread-grid" data-reveal style={{ ...revealInit(reduced, 0.12), display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 'clamp(40px,6vw,88px)', marginTop: 'clamp(36px,5vh,56px)' }}>
+          {/* The loaves themselves carry the left of this section — the rack
+              of sourdough rolls from their own shoot, stretched the full
+              height of the list beside it (fill) rather than stopping at its
+              own aspect ratio and leaving the column short. */}
+          <div className="rb-bread-grid" data-reveal style={{ ...revealInit(reduced, 0.12), display: 'grid', gridTemplateColumns: 'minmax(260px,400px) minmax(0,1fr)', columnGap: 'clamp(40px,6vw,88px)', alignItems: 'stretch', marginTop: 'clamp(36px,5vh,56px)' }}>
+            <MenuArtFrame art={MENU_ART.braud} lang={lang} fill />
+            <div>
             {BREAD.map((b) => (
               <div key={b.name} style={{ padding: '16px 0', borderBottom: '1px solid rgba(243,234,211,.1)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
@@ -636,23 +1247,7 @@ function ReynirPageInner() {
                 <div style={{ fontSize: 13.5, color: DIM, marginTop: 5, lineHeight: 1.5 }}>{b.desc[lang]}</div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== GALLERY ===================== */}
-      <section id="gallery" style={{ background: INK, padding: sectionPad }}>
-        <div style={wrap}>
-          <div data-reveal style={{ ...revealInit(reduced), borderTop: `1px solid ${HAIR}`, paddingTop: 16, maxWidth: 640 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.galleryKicker}</div>
-            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>{t.galleryTitle}</h2>
-            <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.galleryIntro}</p>
-          </div>
-
-          <div className="rb-gallery-grid" style={{ marginTop: 'clamp(32px,5vh,52px)' }}>
-            {GALLERY.map((photo, i) => (
-              <GalleryTile key={photo.src} photo={photo} lang={lang} onOpen={() => setLightbox(i)} style={revealInit(reduced, (i % 4) * 0.07)} />
-            ))}
+            </div>
           </div>
         </div>
       </section>
@@ -663,9 +1258,11 @@ function ReynirPageInner() {
           <div className="rb-catering-grid" data-reveal style={{ ...revealInit(reduced), display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(28px,5vw,80px)', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.cateringKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,3.6vw,50px)', margin: '16px 0 0', ...GOLD_TEXT }}>{t.cateringTitle}</h2>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,3.6vw,50px)', margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.cateringTitle}</h2>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '46ch' }}>{t.cateringBody}</p>
               <a href={`mailto:${LINKS.orderEmail}`} className="rb-cta rb-cta-ghost" style={{ marginTop: 'clamp(20px,3vh,28px)' }}>{t.cateringCta}</a>
+              {/* the baker's hand placing the cherries — craft, not catalogue */}
+              <MenuArtFrame art={MENU_ART.kaka} lang={lang} style={{ marginTop: 'clamp(28px,4vh,40px)', maxWidth: 480 }} />
             </div>
             <div>
               {/* real celebration-cake prices, as a compact list */}
@@ -694,52 +1291,115 @@ function ReynirPageInner() {
           story. See OrderPage.tsx. */}
       <OrderTeaser lang={lang} orderPath={ORDER_PATH} />
 
+      {/* ===================== GALLERY (closing strip) =====================
+          These seventeen frames used to sit in a tall masonry wall ABOVE the
+          order teaser — roughly five screens of scrolling between "I want to
+          order a cake" and the button that lets you. The photographs are the
+          best thing here, so none were cut; they now run as one horizontal
+          strip below the order CTA, taking a single screen instead of five.
+          Every frame still opens the same lightbox, so the indices below
+          continue to line up with GALLERY. */}
+      <section id="gallery" style={{ background: INK, padding: 'clamp(56px,9vh,110px) 0 clamp(64px,10vh,120px)' }}>
+        {/* The section itself has no horizontal padding, because the photo
+            strip below bleeds. That left this header with none either, so on
+            anything narrower than the 1180px wrap the kicker, the heading and
+            the paragraph sat hard against the left edge of the screen.
+            It now carries the SAME gutter expression as the strip, so the two
+            share one left edge at every width instead of only agreeing above
+            1180px. */}
+        <div style={{ padding: '0 max(20px, calc((100vw - 1180px) / 2 + 20px))' }}>
+          {/* The rule spans the full container, as it does in every other
+              section — only the text is capped. Carrying the cap on the same
+              element cut the hairline short and broke the page's one
+              recurring device. */}
+          <div data-reveal style={{ ...revealInit(reduced), borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
+            <div style={{ maxWidth: 640 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.galleryKicker}</div>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4vw,52px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.galleryTitle}</h2>
+              <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.galleryIntro}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bleeds past the wrap on purpose: a strip that starts at the text's
+            left edge but runs off the right tells you it scrolls. */}
+        <div className="rb-gallery-strip" style={{ marginTop: 'clamp(28px,4vh,44px)' }}>
+          {GALLERY.map((photo, i) => (
+            <GalleryTile key={photo.src} photo={photo} lang={lang} onOpen={() => setLightbox(i)} style={revealInit(reduced, Math.min(i, 5) * 0.05)} />
+          ))}
+        </div>
+
+        {/* The strip reads as "there are more of these", so give it somewhere
+            to go: the same frames as a full wall on the archive page. */}
+        <div style={{ ...wrap, padding: '0 clamp(20px,4.5vw,72px)', marginTop: 'clamp(24px,3.5vh,36px)' }}>
+          <Link to={STORY_PATH} className="rb-cta rb-cta-ghost">{t.galleryMore}</Link>
+        </div>
+      </section>
+
       {/* ===================== VISIT STRIP ===================== */}
       <section id="visit" style={{ background: INK, padding: sectionPad }}>
         <div style={wrap}>
           <div className="rb-visit-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,5vw,80px)', alignItems: 'start' }}>
+            {/* Left: everything you need in words. Right: the place itself.
+                One location means the old two-address split left this whole
+                column empty, so the practical detail is gathered here and the
+                photograph and map carry the other side. */}
             <div data-reveal style={revealInit(reduced)}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD, borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>{t.visitKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT }}>{t.visitTitle}</h2>
-              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold" style={{ marginTop: 'clamp(24px,4vh,36px)' }}>{t.orderPrimary}</a>
-              <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
+              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.visitTitle}</h2>
 
-              {/* the map fills this column's dead space, opposite the addresses */}
+              <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 'clamp(20px,3vh,28px)' }}>{mainName}</div>
+
+              <div style={{ marginTop: 18, display: 'grid', gap: 12, maxWidth: 420 }}>
+                {hoursRows[lang].map((l) => (
+                  <div key={l.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
+                    <span>{l.label}</span>
+                    <span style={{ color: IVORY }}>{l.value}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
+                  <span style={{ fontSize: 14.5, color: DIM }}>{t.rowPhone}</span>
+                  <a href={`tel:${LINKS.phone}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600 }}>{LINKS.phoneLabel}</a>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                  <span style={{ fontSize: 14.5, color: DIM }}>{t.rowEmail}</span>
+                  <a href={`mailto:${LINKS.email}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>{LINKS.email}</a>
+                </div>
+              </div>
+
+              {/* Both delivery platforms they actually trade on, side by side.
+                  aha.is stays the primary because it is the one they already
+                  advertise; Wolt sat unlinked even though their storefront is
+                  live and was the source we price-checked the menu against. */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 'clamp(26px,4vh,36px)' }}>
+                <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.orderPrimary}</a>
+                <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost">{t.orderWolt}</a>
+              </div>
+              <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
+            </div>
+
+            <div data-reveal style={{ ...revealInit(reduced, 0.1) }}>
+              {/* The room itself: their own wall of framed black-and-white
+                  bakery photographs and the tables you can sit at. A map says
+                  where it is; this says what it is like. */}
+              <figure style={{ margin: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${HAIR}` }}>
+                <img
+                  src={SHOP_IMG}
+                  alt={lang === 'en' ? 'Inside Reynir bakari on Dalvegur: a wall of framed black-and-white bakery photographs above the tables' : 'Inni í Reyni bakara á Dalvegi: veggur með innrömmuðum svarthvítum myndum úr bakaríinu fyrir ofan borðin'}
+                  width={1900}
+                  height={1400}
+                  loading="lazy"
+                  decoding="async"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+              </figure>
+
               <MapCard
                 lang={lang}
                 locations={[
                   { label: t.mainLabel, address: mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
-                  { label: t.secondLabel, address: secondName, query: 'Reynir bakari, Hamraborg 14, 200 Kópavogur' },
                 ]}
               />
-            </div>
-
-            <div data-reveal style={{ ...revealInit(reduced, 0.1), display: 'grid', gap: 26 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.mainLabel}</div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 8 }}>{mainName}</div>
-                <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
-                  {hoursRows[lang].map((l) => (
-                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
-                      <span>{l.split(/\s(.+)/)[0]}</span>
-                      <span style={{ color: IVORY }}>{l.split(/\s(.+)/)[1]}</span>
-                    </div>
-                  ))}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
-                    <span style={{ fontSize: 14.5, color: DIM }}>{t.rowPhone}</span>
-                    <a href={`tel:${LINKS.phone}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600 }}>{LINKS.phoneLabel}</a>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-                    <span style={{ fontSize: 14.5, color: DIM }}>{t.rowEmail}</span>
-                    <a href={`mailto:${LINKS.email}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600, wordBreak: 'break-all' }}>{LINKS.email}</a>
-                  </div>
-                </div>
-              </div>
-              <div style={{ borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 20 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: GOLD }}>{t.secondLabel}</div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2vw,24px)', color: IVORY, marginTop: 8 }}>{secondName}</div>
-                <p style={{ fontSize: 14, color: DIM, margin: '8px 0 0', lineHeight: 1.6 }}>{hamraborgNote[lang]}</p>
-              </div>
             </div>
           </div>
         </div>
@@ -754,11 +1414,14 @@ function ReynirPageInner() {
           </div>
           <div style={{ fontSize: 13.5, color: DIM, lineHeight: 1.8, textAlign: 'right' }}>
             <div>{mainName} · {LINKS.phoneLabel}</div>
-            <div style={{ display: 'flex', gap: 18, justifyContent: 'flex-end', marginTop: 6 }}>
+            <div style={{ display: 'flex', gap: 18, justifyContent: 'flex-end', marginTop: 6, flexWrap: 'wrap' }}>
               <a href={LINKS.instagram} target="_blank" rel="noreferrer" className="rb-foot-link">Instagram</a>
               <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="rb-foot-link">Facebook</a>
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-foot-link">aha.is</a>
+              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-foot-link">Wolt</a>
+              <Link to={LEGAL_PATH} className="rb-foot-link">{t.legalLink}</Link>
             </div>
+            <div style={{ fontSize: 12, color: FAINT, marginTop: 10 }}>{t.legalLine}</div>
           </div>
         </div>
       </footer>
@@ -791,8 +1454,7 @@ function ReynirPageInner() {
         </div>
       )}
 
-      <PreviewChrome company={company} />
-      <PreviewFooter company={company} />
+      <Chrome />
     </div>
   )
 }

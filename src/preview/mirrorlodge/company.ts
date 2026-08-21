@@ -42,25 +42,25 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Mirror Lodge is the Golden Circle\'s answer to Mirror House: a mirror-clad glass cabin minutes from Geysir with the strongest location in Icelandic tourism, presented through a 2020 hotel template whose footer admits its age. The prototype lets the cladding design the page: the cabin stands still, the landscape wipes across it, and booking becomes a real flow instead of an email hope.',
   outreach: {
-    subject: 'Mirror Lodge á skilið meira en sniðmát frá 2020',
-    body: `Góðan dag,
+    subject: 'An idea for a new website for Mirror Lodge',
+    body: `Hi Rebecca,
 
-Ég heiti Sindri og hanna vefsíður fyrir íslenska gististaði.
+My name is Sindri and I design websites for Icelandic stays.
 
-Ég rakst á Mirror Lodge og staldraði við, spegilskáli með stjörnuglugga steinsnar frá Geysi er einstök vara. Vefsíðan segir samt aðra sögu: hún er byggð á keyptu hótelsniðmáti, neðst á henni stendur enn „Copyright © 2020", hvergi er hægt að sjá verð eða laus dagsetningar og bókun fer í gegnum tölvupóstform. Myndirnar í galleríinu birtast auk þess aðeins í 800 punkta upplausn, á síðu þar sem varan er sjónræn upplifun.
+I came across Mirror Lodge and stopped: a mirror-clad cabin with a skylight over the bed, five minutes from Geysir, is a genuinely rare product. The website tells a different story. It runs on a bought hotel theme, Hoteller, and no price appears anywhere on it. The booking page even offers a lower nightly rate for stays of three nights or more without ever naming the rate. The photographs are small too, the largest is 1200 pixels wide and most are around 300, on a site where the product itself is a visual experience.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri síðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+That felt like a waste, so I sat down and designed a prototype of a new site for you. It costs you nothing and there is no obligation attached.
 
-Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+You can view it here any time, and it works well on a phone:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin kemur frá skálanum sjálfum: spegilklæðningin þýðir að landslagið klæðir húsið. Á síðunni stendur skálinn kyrr á meðan endurspeglunin líður yfir hann, frá snjó yfir í norðurljós, allt með ykkar eigin myndum. Fyrirspurnarform með dagsetningum kemur í stað blinds tölvupósts.
+The idea comes from the cabin itself: mirror cladding means the landscape wears the house. On the page the cabin stays still while the reflection moves across it, from snow through to the northern lights, all of it your own photography. And your Google reviews, 5.0 from 16, finally get room on your own site instead of only on Google.
 
-Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þið hafið gaman af því að skoða hugmyndina.
+If you like it I could finish the full site, and if not I hope you enjoy seeing the idea anyway.
 
-Endilega látið mig vita ef þið hafið áhuga.
+Do let me know if you are interested.
 
-Bestu kveðjur,
+Best regards,
 Sindri Már
 845 1758
 sndr-studio.pages.dev`,

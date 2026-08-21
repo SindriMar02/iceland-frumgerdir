@@ -76,6 +76,12 @@ export default function BofsKerfid() {
               <figure className="bofs-wet overflow-hidden">
                 <Img
                   src={asset('art-kerfid.jpg')}
+                  /* 3024px wide for a 350px box on a phone was 92% wasted
+                     pixels and 15MB of decoded image memory. Desktop still
+                     gets the full plate: at max-w-6xl on a 2x screen the box
+                     genuinely needs ~2176px. */
+                  srcSet={`${asset('art-kerfid-1600.jpg')} 1600w, ${asset('art-kerfid.jpg')} 3024w`}
+                  sizes="(min-width: 640px) 1152px, 100vw"
                   alt={pick({ is: 'Vatnslitamynd: stígurinn liðast yfir hæðir, framhjá vörðu og brú, að húsi með ljós í glugga', en: 'Watercolor: the path winds over hills, past a cairn and a bridge, to a house with a lit window' })}
                   className="h-[220px] w-full object-cover sm:h-[320px]"
                   fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
