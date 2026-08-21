@@ -385,10 +385,23 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
     .rb-ord-prods > * { max-width:100%; flex-basis:100%; }
-    /* Cards go full width here, so a square photo would be ~390px tall each
-       and push the actual choices three screens down. A letterbox keeps the
-       product visible without burying the form. */
-    .rb-ord-prod-pic { aspect-ratio:16 / 9; }
+    /* On a phone the picker becomes a LIST, not three posters.
+       Full-width cards with a letterbox photo came to 849px for three
+       products: more than a whole screen of pictures before the customer
+       reaches the first question. A thumbnail beside the name says exactly as
+       much at a quarter of the height, and choosing between three things you
+       can see at once is easier than scrolling past them one at a time.
+       Grid areas rather than a wrapper element, so a product with no photo
+       still lays out correctly: the column simply collapses. */
+    .rb-ord-prods { gap:8px; }
+    .rb-ord-prod { display:grid; grid-template-columns:auto minmax(0,1fr);
+      grid-template-areas:"pic name" "pic from"; align-content:center;
+      column-gap:13px; row-gap:2px; padding:10px 12px; }
+    .rb-ord-prod-pic { grid-area:pic; margin:0; width:62px; height:62px;
+      aspect-ratio:1 / 1; border-radius:3px; align-self:center; }
+    .rb-ord-prod-name { grid-area:name; align-self:end; font-size:17px; padding-right:30px; }
+    .rb-ord-prod-from { grid-area:from; align-self:start; }
+    .rb-ord-prod-mark { top:50%; margin-top:-9px; right:12px; }
     /* the sticky bar already draws a divider, so the step right under it must
        not draw a second one. Adjacent-sibling, not :first-of-type, because the
        bar is itself the first div sibling. */
