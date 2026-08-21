@@ -169,6 +169,8 @@ const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
 const HuldaMargretPage = lazy(() => import('./preview/huldamargret/Page'))
 const KatrinIsfeldPage = lazy(() => import('./preview/katrinisfeld/Page'))
 const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
+const ChrisLundSafnPage = lazy(() => import('./preview/chrislund/Safn'))
+const ChrisLundServicePage = lazy(() => import('./preview/chrislund/Thjonusta'))
 const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
 const LakeviewPage = lazy(() => import('./preview/lakeview/Page'))
 const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
@@ -392,6 +394,10 @@ export default function App() {
             <Route path="/preview/huldamargret" element={<HuldaMargretPage />} />
             <Route path="/preview/katrinisfeld" element={<KatrinIsfeldPage />} />
             <Route path="/preview/chrislund" element={<ChrisLundPage />} />
+            <Route path="/preview/chrislund/safn" element={<ChrisLundSafnPage />} />
+            <Route path="/preview/chrislund/prentun" element={<ChrisLundServicePage slug="prentun" />} />
+            <Route path="/preview/chrislund/skonnun" element={<ChrisLundServicePage slug="skonnun" />} />
+            <Route path="/preview/chrislund/litgreining" element={<ChrisLundServicePage slug="litgreining" />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
             <Route path="/preview/lakeview" element={<LakeviewPage />} />
             <Route path="/preview/lakeview/stjornbord" element={<LakeviewDashboard />} />
