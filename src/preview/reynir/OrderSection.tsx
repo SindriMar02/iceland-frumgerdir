@@ -888,11 +888,11 @@ export default function OrderSection({
       payload[`${n++}. Mynd`] = note
       mailRows.push({ label: 'Mynd', value: note })
     }
-    mailRows.push({
-      label: 'Samtals',
-      value: quote ? 'Tilboð óskast' : isk(total),
-      money: true,
-    })
+    /* NO total row here. The docket renders its own from `totalIsk`, so adding
+     * one produced "SAMTALS 37.200 kr." twice in a row. Caught by rendering the
+     * mail and looking at it, which is the only way that kind of duplication
+     * ever shows up. A quote has no number, so it says so in its own row. */
+    if (quote) mailRows.push({ label: 'Verð', value: 'Tilboð óskast' })
 
     // Contact details in ONE block, so calling back does not mean hunting
     // through the mail. Phone first: a bakery rings, it does not email.
