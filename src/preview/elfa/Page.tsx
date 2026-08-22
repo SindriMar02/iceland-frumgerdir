@@ -387,7 +387,7 @@ export default function ElfaPage() {
             </div>
 
             <div data-rv className="mt-5">
-              <Headline as="h1" id="hero-h" text={HERO.headline} size={86} measure={640} />
+              <Headline as="h1" id="hero-h" text={HERO.headline} size={54} measure={560} />
             </div>
 
             <div data-rv className="eg-rv mt-7">
@@ -455,7 +455,7 @@ export default function ElfaPage() {
         <section id="thjonusta" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="serv-h">
           <div className="mx-auto max-w-[1180px]">
             <div data-rv>
-              <Headline id="serv-h" text="Almennar tannlækningar og skurðaðgerðir" size={66} measure={780} />
+              <Headline id="serv-h" text="Almennar tannlækningar og skurðaðgerðir" size={42} measure={680} />
             </div>
             <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
               <p data-rv className="eg-rv max-w-[46ch] text-[16px] leading-relaxed sm:text-[17px]"
@@ -495,7 +495,7 @@ export default function ElfaPage() {
         >
           <div className="mx-auto max-w-[1180px]">
             <div data-rv>
-              <Headline id="path-h" text="Frá Húsavík til Alabama og aftur heim" size={66} measure={820} />
+              <Headline id="path-h" text="Frá Húsavík til Alabama og aftur heim" size={42} measure={700} />
             </div>
             <ol data-rv className="eg-rv mt-12">
               {CAREER.map((c) => (
@@ -517,7 +517,7 @@ export default function ElfaPage() {
         <section id="verdskra" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="price-h">
           <div className="mx-auto max-w-[1180px]">
             <div data-rv>
-              <Headline id="price-h" text="Verðskráin, uppi á borðum" size={66} measure={700} />
+              <Headline id="price-h" text="Verðskráin, uppi á borðum" size={42} measure={620} />
             </div>
             <p data-rv className="eg-rv mt-6 max-w-[62ch] text-[15px] leading-relaxed" style={{ color: MINERAL }}>
               {PRICE_NOTE}
@@ -552,7 +552,7 @@ export default function ElfaPage() {
         >
           <div className="mx-auto max-w-[1180px]">
             <div data-rv>
-              <Headline id="people-h" text="Tvær á stofunni, sömu tvær síðan 2009" size={62} measure={860} />
+              <Headline id="people-h" text="Tvær á stofunni, sömu tvær síðan 2009" size={42} measure={720} />
             </div>
 
             <div className="mt-14 grid gap-12 lg:grid-cols-[420px_1fr] lg:gap-20">
@@ -597,7 +597,7 @@ export default function ElfaPage() {
         <section id="hafa-samband" className="scroll-mt-16 px-5 pb-28 pt-20 sm:px-10 sm:pt-28" aria-labelledby="c-h">
           <div className="mx-auto max-w-[1180px]">
             <div data-rv>
-              <Headline id="c-h" text="Salavegur 2, Kópavogi" size={70} measure={720} />
+              <Headline id="c-h" text="Salavegur 2, Kópavogi" size={44} measure={640} />
             </div>
 
             <div data-rv className="eg-rv mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
