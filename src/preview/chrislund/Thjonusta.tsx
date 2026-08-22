@@ -150,7 +150,8 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
           {page.photos.map((p, i) => (
             <figure key={i} className="cl-sv-fig cl-rv">
               <img src={p.photo.src} srcSet={srcSet(p.photo.src)}
-                sizes="(max-width: 991px) 92vw, 40vw" style={{ aspectRatio: p.photo.ratio }}
+                sizes={page.photos.length > 1 ? '(max-width: 991px) 46vw, 22vw' : '(max-width: 991px) 92vw, 42vw'}
+                style={{ aspectRatio: p.photo.ratio }}
                 alt={p.photo.alt} loading="lazy" decoding="async" />
               <figcaption className="cl-fig-cap">{p.cap}</figcaption>
             </figure>
@@ -249,9 +250,13 @@ const CSS = `
   display: grid; grid-template-columns: 1fr 1.05fr; gap: calc(var(--u) * 80);
   align-items: start; padding: calc(var(--u) * 60) calc(var(--u) * 34) calc(var(--u) * 110);
 }
-.cl-sv-figs { display: grid; gap: calc(var(--u) * 44); }
-.cl-sv-figs.is-two { grid-template-columns: 1fr; }
-.cl-sv-figs.is-two .cl-sv-fig:nth-child(2) { width: 78%; justify-self: end; margin-top: calc(var(--u) * -10); }
+.cl-sv-figs { display: grid; gap: calc(var(--u) * 44); align-content: start; }
+/* Two photographs sit SIDE BY SIDE, not stacked. Stacked, two portraits in
+   this column ran 1653px tall against a 557px column of specs beside them,
+   which read as an empty page. The slight drop on the second keeps the pair
+   from looking like a rigid diptych. */
+.cl-sv-figs.is-two { grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 26); align-items: start; }
+.cl-sv-figs.is-two .cl-sv-fig:nth-child(2) { margin-top: calc(var(--u) * 40); }
 .cl-sv-fig { margin: 0; }
 .cl-sv-fig img { width: 100%; height: auto; object-fit: cover; display: block; }
 .cl-sv-facts { margin: 0 0 calc(var(--u) * 44); }
@@ -301,7 +306,7 @@ const CSS = `
 
 @media (max-width: 991px) {
   .cl-sv-craft { grid-template-columns: 1fr; gap: calc(var(--u) * 44); }
-  .cl-sv-figs.is-two .cl-sv-fig:nth-child(2) { width: 100%; margin-top: 0; }
+  .cl-sv-figs.is-two .cl-sv-fig:nth-child(2) { margin-top: 0; }
   .cl-sv-steps-list { grid-template-columns: 1fr; gap: 26px; }
 }
 @media (max-width: 640px) {

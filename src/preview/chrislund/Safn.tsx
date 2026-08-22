@@ -7,7 +7,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
-  CONTACT, JSON_LD, SERIES_META, WORKS, arOf, seriesName, srcSet,
+  CONTACT, JSON_LD, SERIES_META, WORKS, seriesName, srcSet,
 } from './data'
 import type { Work } from './data'
 import {
@@ -80,9 +80,9 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
 }
 
 /* Both grids here are already grouped by series, so a series tag on every
-   thumbnail is noise; the caption is the wall label and nothing else. Widths
-   come from each photograph's own ratio (see .cl-jrow) so a row of mixed
-   crops hangs at ONE height and the captions land on one line. */
+   thumbnail is noise; the caption is the wall label and nothing else. The
+   cell owns the aspect ratio (see .cl-jrow) so the index stays regular; the
+   uncropped photograph lives on the stage above. */
 function Thumb({ w, active, onPick, sizes }: {
   w: Work; active: boolean; onPick: (id: string) => void; sizes: string
 }) {
@@ -90,7 +90,6 @@ function Thumb({ w, active, onPick, sizes }: {
     <button
       type="button"
       className={`cl-thumb ${active ? 'is-selected' : ''}`}
-      style={{ '--ar': arOf(w.photo.ratio) } as React.CSSProperties}
       onClick={() => onPick(w.id)}
       data-cursor="Skoða"
       aria-label={`${w.title}, ${seriesName(w.series)}`}
@@ -98,7 +97,6 @@ function Thumb({ w, active, onPick, sizes }: {
     >
       <span className="cl-thumb-media">
         <img src={w.photo.src} srcSet={srcSet(w.photo.src)} sizes={sizes}
-          style={{ aspectRatio: w.photo.ratio }}
           alt={w.photo.alt} loading="lazy" decoding="async" />
       </span>
       <span className="cl-thumb-cap">
@@ -260,7 +258,7 @@ export default function ChrisLundSafnPage() {
           <div className="cl-jrow cl-jrow-sibl">
             {siblings.map((w) => (
               <Thumb key={w.id} w={w} active={false} onPick={pick}
-                sizes="(max-width: 700px) 92vw, (max-width: 1200px) 46vw, 34vw" />
+                sizes="(max-width: 560px) 92vw, (max-width: 860px) 46vw, 30vw" />
             ))}
           </div>
         </section>
@@ -284,7 +282,7 @@ export default function ChrisLundSafnPage() {
               <div className="cl-jrow cl-jrow-cat">
                 {works.map((w) => (
                   <Thumb key={w.id} w={w} active={w.id === selected.id} onPick={pick}
-                    sizes="(max-width: 700px) 92vw, (max-width: 1200px) 34vw, 25vw" />
+                    sizes="(max-width: 560px) 92vw, (max-width: 860px) 46vw, (max-width: 1100px) 31vw, 23vw" />
                 ))}
               </div>
             </div>
@@ -367,24 +365,19 @@ const CSS = `
 /* siblings + catalogue share the paper ground */
 .cl-sibl { background: var(--cl-paper); padding: calc(var(--u) * 76) calc(var(--u) * 34) calc(var(--u) * 30); }
 
-/* JUSTIFIED ROWS — the gallery-wall fix for mixed crops.
-   In equal-width columns, photographs of different shapes end at different
-   heights and the captions land on three different lines, which reads as an
-   accident. Here every item's width is proportional to its own aspect ratio
-   (basis AND grow both scale with --ar), so a row resolves to width = ar * K
-   for one shared K: every photograph in the row is exactly the same height,
-   every caption sits on one line, and the row is flush left and right. It
-   also means a series of any length lays out with no empty cell, because
-   there are no cells. */
-.cl-jrow { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 30); align-items: flex-start; }
-.cl-jrow .cl-thumb {
-  flex-grow: var(--ar); flex-shrink: 0;
-  flex-basis: calc(var(--ar) * var(--rowh));
-  /* keeps a short last row from stretching one print across the page */
-  max-width: calc(var(--ar) * var(--rowh) * 1.42);
-}
-.cl-jrow-sibl { --rowh: clamp(184px, 19vw, 292px); }
-.cl-jrow-cat { --rowh: clamp(150px, 13.6vw, 208px); }
+/* UNIFORM GRID — an index wants regularity, not a bespoke row shape.
+   Justified rows sized every image from its own ratio, which aligned the
+   captions but made each ROW a different height: a trailing row of two ran
+   21% taller than the three above it, and a single leftover work sat 29%
+   taller while filling a fifth of the width. Measured, that reads as an
+   accident rather than a composition.
+   Fixed cells remove the whole problem class: every work is the same size,
+   every caption lands on the same line, and a short last row is simply a
+   row with fewer cells. The crop is only ever on the INDEX -- the stage
+   above and the wall on the front page both show the work uncropped. */
+.cl-jrow { display: grid; gap: calc(var(--u) * 34) calc(var(--u) * 26); align-items: start; }
+.cl-jrow-sibl { grid-template-columns: repeat(3, 1fr); }
+.cl-jrow-cat { grid-template-columns: repeat(4, 1fr); }
 
 .cl-cat { background: var(--cl-paper); padding: calc(var(--u) * 90) calc(var(--u) * 34) calc(var(--u) * 60); }
 .cl-cat-head { margin-bottom: calc(var(--u) * 40); }
@@ -399,8 +392,8 @@ const CSS = `
   display: block; padding: 0; margin: 0; background: none; border: none;
   text-align: left; color: inherit; cursor: pointer; font-family: inherit;
 }
-.cl-thumb-media { display: block; overflow: hidden; background: #E4E2DB; }
-.cl-thumb-media img { width: 100%; height: auto; display: block; transition: transform 200ms cubic-bezier(.23,1,.32,1); }
+.cl-thumb-media { display: block; overflow: hidden; background: #E4E2DB; aspect-ratio: 4 / 3; }
+.cl-thumb-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: transform 200ms cubic-bezier(.23,1,.32,1); }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .cl-thumb:hover .cl-thumb-media img { transform: scale(1.035); }
 }
@@ -443,11 +436,15 @@ const CSS = `
   .cl-stage-rail { grid-row: 3; }
   .cl-stage-fig img { max-height: 62svh; }
 }
-/* below the point where a justified row can hold two prints, one print per
-   row: two thumbnails on a phone are smaller than the work deserves */
-@media (max-width: 700px) {
+@media (max-width: 1100px) { .cl-jrow-cat { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 860px) {
+  .cl-jrow-sibl, .cl-jrow-cat { grid-template-columns: repeat(2, 1fr); }
+}
+/* one per row on a phone: two thumbnails at 375px are smaller than the work
+   deserves, and a single column keeps the tap targets full width */
+@media (max-width: 560px) {
   .cl-jrow { gap: 26px; }
-  .cl-jrow .cl-thumb { flex: 1 1 100%; max-width: none; }
+  .cl-jrow-sibl, .cl-jrow-cat { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .cl-stage, .cl-sibl, .cl-cat, .cl-safn-close { padding-left: 20px; padding-right: 20px; }
