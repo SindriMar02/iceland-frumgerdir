@@ -6,7 +6,37 @@ import {
   useReducedMotion,
   useScroll,
 } from "framer-motion";
-import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
+import {
+  ArrowUpRight,
+  Armchair,
+  CigaretteOff,
+  Flower2,
+  Footprints,
+  Mail,
+  MapPin,
+  Phone,
+  SquareParking,
+  Sparkles,
+  UtensilsCrossed,
+  Users,
+  Wifi,
+  Wine,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+/** One mark per facility, keyed off the exact strings in FACILITIES. Kept here
+ *  rather than in data.ts so the content file stays free of components. */
+const FACILITY_ICON: Record<string, LucideIcon> = {
+  Restaurant: UtensilsCrossed,
+  Bar: Wine,
+  "Free WiFi": Wifi,
+  "Free private parking": SquareParking,
+  Garden: Flower2,
+  Terrace: Armchair,
+  Hiking: Footprints,
+  "Family rooms": Users,
+  "Non-smoking rooms": CigaretteOff,
+};
 import { companyEntry } from "./company";
 import { PreviewChrome } from "../PreviewChrome";
 import { PreviewFooter } from "../PreviewFooter";
@@ -293,6 +323,79 @@ function BookLink({
       </span>
     </span>
   );
+}
+
+/** Guest quotes, three at a time, rotating through the full set.
+ *
+ * Six real Booking.com reviews rather than a fixed trio. Auto-advance pauses on
+ * hover and on keyboard focus, and does not run at all under
+ * prefers-reduced-motion — an unattended slideshow is exactly the kind of motion
+ * that rule exists for. The dots are real buttons so the set is reachable
+ * without waiting, and the live region is polite rather than assertive so a
+ * screen reader is not interrupted mid-sentence by a timer.
+ */
+function QuoteRotator({ reduced }: { reduced: boolean }) {
+  const PER_PAGE = 3
+  const pages = Math.ceil(QUOTES.length / PER_PAGE)
+  const [page, setPage] = useState(0)
+  const [held, setHeld] = useState(false)
+
+  useEffect(() => {
+    if (reduced || held || pages < 2) return
+    const id = window.setInterval(() => setPage((p) => (p + 1) % pages), 7000)
+    return () => window.clearInterval(id)
+  }, [reduced, held, pages])
+
+  const shown = QUOTES.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE)
+
+  return (
+    <div
+      onMouseEnter={() => setHeld(true)}
+      onMouseLeave={() => setHeld(false)}
+      onFocusCapture={() => setHeld(true)}
+      onBlurCapture={() => setHeld(false)}
+    >
+      <div
+        key={page}
+        aria-live="polite"
+        className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8"
+        style={
+          reduced
+            ? undefined
+            : { animation: `quoteIn 0.55s ${EASE} both` }
+        }
+      >
+        {shown.map((q) => (
+          <blockquote key={q.name} className="border-t pt-6" style={{ borderColor: HAIR }}>
+            <p className="leading-relaxed text-[#F4EEE2]/85">“{q.text}”</p>
+            <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
+              {q.name}, {q.place}
+              {q.note ? <span className="mt-1 block text-[#F4EEE2]/60">{q.note}</span> : null}
+            </footer>
+          </blockquote>
+        ))}
+      </div>
+
+      {pages > 1 ? (
+        <div className="mt-10 flex items-center gap-3">
+          {Array.from({ length: pages }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setPage(i)}
+              aria-label={`Show guest reviews, set ${i + 1} of ${pages}`}
+              aria-current={i === page}
+              className={`h-8 w-8 rounded-full border transition-colors duration-200 ${FOCUS}`}
+              style={{
+                borderColor: i === page ? ACCENT : HAIR,
+                background: i === page ? ACCENT : 'transparent',
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 export default function Page() {
@@ -1114,31 +1217,47 @@ export default function Page() {
             </div>
 
             <Reveal delay={120}>
-              <div
-                className="mt-16 border-t pt-10"
-                style={{ borderColor: HAIR }}
-              >
-                <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
-                  And breakfast before you go
-                </h3>
-                <p
-                  className="mt-4 max-w-[54ch] leading-relaxed"
-                  style={{ color: BODY }}
-                >
-                  A buffet in the same room, with the same view. Guests rate it
-                  highly, and we can cover most ways of eating.
-                </p>
-                <ul className="mt-7 flex flex-wrap gap-x-3 gap-y-2.5">
-                  {BREAKFAST.map((b) => (
-                    <li
-                      key={b}
-                      className="border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/70"
-                      style={{ borderColor: HAIR }}
-                    >
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-16 border-t pt-10 md:mt-20 md:pt-12" style={{ borderColor: HAIR }}>
+                <div className="grid gap-10 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14">
+                  <ClipImg
+                    src={IMG.breakfast}
+                    alt="The breakfast buffet laid out at Nýpugarðar: bread, cold cuts, jams and a coffee pot"
+                    aspect="aspect-[4/3]"
+                    caption="The breakfast table"
+                  />
+                  <div>
+                    <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
+                      And breakfast before you go
+                    </h3>
+                    <p className="mt-4 max-w-[46ch] leading-relaxed" style={{ color: BODY }}>
+                      A buffet in the same room, with the same view. Guests rate it highly, and
+                      the kitchen can cover most ways of eating.
+                    </p>
+                    <dl className="mt-8 space-y-5">
+                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
+                        <dt className="w-32 shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/50">
+                          Served
+                        </dt>
+                        <dd className="text-[15px] text-[#F4EEE2]/85">
+                          {BREAKFAST.served.join(' · ')}
+                        </dd>
+                      </div>
+                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
+                        <dt className="w-32 shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/50">
+                          We can cover
+                        </dt>
+                        <dd className="text-[15px] text-[#F4EEE2]/85">
+                          {BREAKFAST.diets.join(' · ')}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p className="mt-7 text-[15px] leading-relaxed" style={{ color: BODY }}>
+                      Driving to the glacier lagoon before the room opens?{' '}
+                      <span style={{ color: ACCENT }}>{BREAKFAST.toGo}</span> — say so the night
+                      before and it will be waiting.
+                    </p>
+                  </div>
+                </div>
               </div>
             </Reveal>
           </div>
@@ -1226,28 +1345,7 @@ export default function Page() {
               </Reveal>
             </div>
 
-            <div className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
-              {QUOTES.map((q, i) => (
-                <Reveal key={q.name} delay={i * 100}>
-                  <blockquote
-                    className="border-t pt-6"
-                    style={{ borderColor: HAIR }}
-                  >
-                    <p className="leading-relaxed text-[#F4EEE2]/85">
-                      “{q.text}”
-                    </p>
-                    <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
-                      {q.name}, {q.place}
-                      {q.note ? (
-                        <span className="mt-1 block text-[#F4EEE2]/60">
-                          {q.note}
-                        </span>
-                      ) : null}
-                    </footer>
-                  </blockquote>
-                </Reveal>
-              ))}
-            </div>
+            <QuoteRotator reduced={reduced} />
             <Reveal delay={140}>
               <p className="mt-10 text-sm text-[#F4EEE2]/50">
                 Guest reviews via{" "}
@@ -1321,16 +1419,21 @@ export default function Page() {
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
                     On the property
                   </p>
-                  <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-2.5">
-                    {FACILITIES.map((f) => (
-                      <li
-                        key={f}
-                        className="border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/70"
-                        style={{ borderColor: HAIR }}
-                      >
-                        {f}
-                      </li>
-                    ))}
+                  <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                    {FACILITIES.map((f) => {
+                      const Icon = FACILITY_ICON[f] ?? Sparkles
+                      return (
+                        <li key={f} className="flex items-center gap-2.5">
+                          <Icon
+                            className="h-4 w-4 shrink-0"
+                            strokeWidth={1.5}
+                            style={{ color: ACCENT }}
+                            aria-hidden="true"
+                          />
+                          <span className="text-[14px] leading-tight text-[#F4EEE2]/80">{f}</span>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </Reveal>
               </div>

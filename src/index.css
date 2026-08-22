@@ -377,3 +377,13 @@ html.lenis body {
   font-style: normal;
   font-display: swap;
 }
+
+
+/* Nypugardar — the guest-quote rotator's entry. Transform + opacity only, so it
+   stays off the main thread; suppressed entirely under reduced motion, which is
+   handled in the component rather than here because the auto-advance timer must
+   stop too, not just the animation. */
+@keyframes quoteIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

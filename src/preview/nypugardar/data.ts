@@ -92,9 +92,16 @@ export const FACILITIES = [
   'Garden', 'Terrace', 'Hiking', 'Family rooms', 'Non-smoking rooms',
 ] as const
 
-/** Booking.com breakfast detail, verified 2026-08-21. Worth surfacing: the
- *  dietary range is a real selling point the old site never mentioned. */
-export const BREAKFAST = ['Buffet', 'Continental', 'Vegetarian', 'Vegan', 'Gluten-free', 'Breakfast to go'] as const
+/** Booking.com breakfast detail, verified 2026-08-21. Grouped rather than kept
+ *  as one flat list, because these are three different kinds of fact: how it is
+ *  served, which diets the kitchen covers, and the packed option for guests
+ *  leaving before the room opens. That last one is a booking reason on a farm
+ *  47 km from Jökulsárlón, so it gets its own line instead of a chip. */
+export const BREAKFAST = {
+  served: ['Buffet', 'Continental'],
+  diets: ['Vegetarian', 'Vegan', 'Gluten-free'],
+  toGo: 'Breakfast to go',
+} as const
 
 /** Booking.com location facts, verified live 2026-08-21 */
 export const DISTANCES = [
@@ -121,7 +128,10 @@ export const SCORE = {
   ],
 } as const
 
-/** Real, attributed quotes from Booking.com's review widget, live 2026-07-18. */
+/** Real, attributed quotes from Booking.com's review widget. First three
+ *  captured 2026-07-18, last three added from the live page 2026-08-21 — all
+ *  six verbatim, all still on the listing. Six so the section can rotate two
+ *  sets of three rather than showing the same trio forever. */
 export const DINNER_QUOTE = {
   text: 'I could not hype this place enough. It was wonderful!! In the middle of grassy planes with sheep grazing. Amazing views of the mountains that you could see even when in bed! Local Cuisine with farm to table ingredients! Happy staff!!',
   name: 'Stefanos',
@@ -146,6 +156,24 @@ export const QUOTES = [
     name: 'Paolo',
     place: 'Italy',
     note: 'Translated from Italian',
+  },
+  {
+    text: 'Beautiful views, good breakfast, friendly staff. Nothing to complain :)',
+    name: 'Samppa',
+    place: 'Finland',
+    note: null,
+  },
+  {
+    text: 'Nice place. Middle of nature with great view on the glacier! And on the sheeps ;)',
+    name: 'Jeremy',
+    place: 'France',
+    note: null,
+  },
+  {
+    text: 'Very clean. Good food for dinner as well. Quiet location.',
+    name: 'Olivia',
+    place: 'Switzerland',
+    note: null,
   },
 ] as const
 
