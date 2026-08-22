@@ -250,7 +250,7 @@ function Steam({ reduced }: { reduced: boolean }) {
       const h = 64 + rnd(i, 3) * 78
       const dur = (4.4 + rnd(i, 4) * 3.2) / speed
       const delay = -rnd(i, 5) * dur
-      const blur = 6 + rnd(i, 6) * 6
+      const blur = 3 + rnd(i, 6) * 3
       const name = i % 2 ? 'faxi-steamA' : 'faxi-steamB'
       out.push(
         <span
@@ -277,6 +277,7 @@ function Steam({ reduced }: { reduced: boolean }) {
   return (
     <div
       aria-hidden
+      className="faxi-steam"
       style={{
         position: 'absolute',
         left: '50%',
@@ -642,6 +643,52 @@ function FilmView({
 
 
 
+/**
+ * The oven ribbon owns its own clock.
+ *
+ * It used to sit on the page component, so the one-second tick re-rendered every
+ * section on the page, the whole menu stage included, once a second forever.
+ * Isolating it keeps each tick to these three spans.
+ */
+function OvenRibbon() {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(t)
+  }, [])
+
+  // Faxi's clock, not the visitor's: someone checking from Berlin at 21:00 is
+  // looking at a bakery where it is 19:00 and still open. Iceland keeps UTC all
+  // year, so there is no DST to chase.
+  const oven = useMemo(() => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Atlantic/Reykjavik',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date(now))
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0)
+    const h = get('hour') % 24
+    if (h < OPEN_HOUR || h >= CLOSE_HOUR) {
+      // True at 22:00 and at 07:30 alike, which "closed for the night" is not.
+      return { open: false, label: 'The ovens are off', value: 'first batch at 9' }
+    }
+    const totalSec = (59 - get('minute')) * 60 + (60 - get('second'))
+    const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
+    const ss = String(totalSec % 60).padStart(2, '0')
+    return { open: true, label: 'Next batch out of the oven in', value: `${mm}:${ss}` }
+  }, [now])
+
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, fontSize: 12.5, fontWeight: 700, letterSpacing: '.12em', color: MOSS, textTransform: 'uppercase' }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: oven.open ? CARAMEL : '#1B171233', display: 'inline-block', boxShadow: oven.open ? '0 0 0 4px #C2773A22' : 'none' }} />
+      {oven.label}{' '}
+      <span style={{ fontVariantNumeric: 'tabular-nums', color: INK, background: '#1B17120D', padding: '2px 8px', borderRadius: 6 }}>{oven.value}</span>
+    </div>
+  )
+}
+
 /** A framed window. Photography always sits inside a frame on this page, and
  *  drifts within it — never a section sliding under the reader. */
 function Frame({
@@ -849,7 +896,7 @@ function MenuStagePinned() {
                       padding: 0,
                       cursor: 'pointer',
                       color: gi === i ? CREAM_LIGHT : `${CREAM_LIGHT}59`,
-                      transition: `color .55s ${EASE}, font-weight .55s ${EASE}`,
+                      transition: `color .55s ${EASE}`,
                     }}
                   >
                     {g.label}
@@ -950,40 +997,6 @@ export default function FaxiBakeryPage() {
   const reduced = useReducedMotion() ?? false
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // Live "fresh in" countdown to the top of the next hour.
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), 1000)
-    return () => window.clearInterval(t)
-  }, [])
-  // The oven ribbon reads Faxi's clock, not the visitor's: someone checking from
-  // Berlin at 21:00 is looking at a bakery where it is 19:00 and still open.
-  // Iceland keeps UTC all year, so there is no DST to chase.
-  const oven = useMemo(() => {
-    const parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Atlantic/Reykjavik',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).formatToParts(new Date(now))
-    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0)
-    const h = get('hour') % 24
-    const m = get('minute')
-    const sec = get('second')
-
-    // Closed: counting down to a batch that is not coming for ten hours is worse
-    // than saying nothing. Say when the ovens start instead.
-    if (h < OPEN_HOUR || h >= CLOSE_HOUR) {
-      // Works at 22:00 and at 07:30 alike, which "closed for the night" does not.
-      return { open: false, label: 'The ovens are off', value: 'first batch at 9' }
-    }
-    const totalSec = (59 - m) * 60 + (60 - sec)
-    const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
-    const ss = String(totalSec % 60).padStart(2, '0')
-    return { open: true, label: 'Next batch out of the oven in', value: `${mm}:${ss}` }
-  }, [now])
-
   useEffect(() => {
     setThemeColor(CREAM)
   }, [])
@@ -1024,6 +1037,25 @@ export default function FaxiBakeryPage() {
       window.clearTimeout(lift)
       window.clearTimeout(done)
     }
+  }, [reduced])
+
+  // The steam is hero decoration: nine blurred, animating, layer-promoted spans.
+  // Left alone they keep animating and re-rasterising for the whole page, so
+  // they are switched off the moment the hero leaves and back on when it returns.
+  useLayoutEffect(() => {
+    if (reduced) return
+    const hero = heroRef.current
+    if (!hero) return
+    const st = ScrollTrigger.create({
+      trigger: hero,
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => {
+        const el = rootRef.current?.querySelector<HTMLElement>('.faxi-steam')
+        if (el) el.style.display = self.isActive ? '' : 'none'
+      },
+    })
+    return () => st.kill()
   }, [reduced])
 
   // One motion language for the whole page: Lenis, masked image wipes, line-split
@@ -1110,11 +1142,7 @@ export default function FaxiBakeryPage() {
 
         {/* ribbon / live clock */}
         <div className="faxi-enter" style={{ display: 'flex', justifyContent: 'center', marginTop: 'clamp(18px,3vh,34px)', transitionDelay: '.80s' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, fontSize: 12.5, fontWeight: 700, letterSpacing: '.12em', color: MOSS, textTransform: 'uppercase' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: oven.open ? CARAMEL : '#1B171233', display: 'inline-block', boxShadow: oven.open ? '0 0 0 4px #C2773A22' : 'none' }} />
-            {oven.label}{' '}
-            <span style={{ fontVariantNumeric: 'tabular-nums', color: INK, background: '#1B17120D', padding: '2px 8px', borderRadius: 6 }}>{oven.value}</span>
-          </div>
+          <OvenRibbon />
         </div>
 
         {/* headline */}
