@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CSSProperties, MouseEvent, ReactNode } from 'react'
-import Lenis from 'lenis'
-import { useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
-import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react'
-import { companyEntry } from './company'
-import { PreviewChrome } from '../PreviewChrome'
-import { PreviewFooter } from '../PreviewFooter'
-import { Img } from '../../components/Img'
-import { setThemeColor } from '../../lib/preview'
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import Lenis from "lenis";
+import {
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+} from "framer-motion";
+import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
+import { companyEntry } from "./company";
+import { PreviewChrome } from "../PreviewChrome";
+import { PreviewFooter } from "../PreviewFooter";
+import { Img } from "../../components/Img";
+import { setThemeColor } from "../../lib/preview";
 import {
   ADDRESS,
   DINNER_QUOTE,
@@ -27,53 +31,53 @@ import {
   ROOM_PHOTOS,
   SCORE,
   UNITS,
-} from './data'
-import { bookingHref, bookingReady, PLACEHOLDER_NOTE } from './godo'
-import BookingBar from './BookingBar'
+} from "./data";
+import { bookingHref, bookingReady, PLACEHOLDER_NOTE } from "./godo";
+import BookingBar from "./BookingBar";
 
-const company = companyEntry
+const company = companyEntry;
 
 /* ── Palette (from the farm's own photography — dusk sun, cabin lamplight, ice)
  * INK on GROUND ≈ 15:1 (AAA) · ACCENT on GROUND ≈ 5.5:1 (AA, large + labels)
  * GROUND text on ACCENT fill ≈ 5.5:1 (AA) — CTA labels are dark-on-amber. */
-const GROUND = '#15130F' // night has fallen, dinner is lit
-const ACCENT = '#D97D3D' // dinner-table ember
-const HAIR = 'rgba(244,238,226,0.14)'
-const BODY = 'rgba(244,238,226,0.76)'
+const GROUND = "#15130F"; // night has fallen, dinner is lit
+const ACCENT = "#D97D3D"; // dinner-table ember
+const HAIR = "rgba(244,238,226,0.14)";
+const BODY = "rgba(244,238,226,0.76)";
 
-const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 const FOCUS =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F4EEE2]'
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F4EEE2]";
 
 /* ── The evening arc: one scrollYProgress drives sky colour + eyebrow ink +
  * the section rule fills, all computed from the raw value in ONE callback. */
-type Stop = [number, [number, number, number]]
+type Stop = [number, [number, number, number]];
 const SKY_STOPS: Stop[] = [
   [0, [220, 228, 230]], // pale cold daylight (#DCE4E6)
   [0.55, [217, 125, 61]], // ember amber (#D97D3D)
   [1, [21, 19, 15]], // night = ground (#15130F), so the arc resolves seamlessly
-]
+];
 const INK_STOPS: Stop[] = [
   [0, [185, 203, 214]], // glacier ice
   [0.5, [217, 125, 61]], // ember
   [1, [217, 125, 61]],
-]
-const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
+];
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 function atStops(stops: Stop[], v: number): string {
-  const t = clamp01(v)
-  let a = stops[0]
-  let b = stops[stops.length - 1]
+  const t = clamp01(v);
+  let a = stops[0];
+  let b = stops[stops.length - 1];
   for (let i = 0; i < stops.length - 1; i++) {
     if (t >= stops[i][0] && t <= stops[i + 1][0]) {
-      a = stops[i]
-      b = stops[i + 1]
-      break
+      a = stops[i];
+      b = stops[i + 1];
+      break;
     }
   }
-  const span = b[0] - a[0] || 1
-  const k = (t - a[0]) / span
-  const c = a[1].map((n, i) => Math.round(n + (b[1][i] - n) * k))
-  return `rgb(${c[0]},${c[1]},${c[2]})`
+  const span = b[0] - a[0] || 1;
+  const k = (t - a[0]) / span;
+  const c = a[1].map((n, i) => Math.round(n + (b[1][i] - n) * k));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
 /* ── Reveal — IntersectionObserver on an untransformed wrapper; the failsafe is
@@ -82,49 +86,54 @@ function Reveal({
   children,
   delay = 0,
   y = 22,
-  className = '',
+  className = "",
 }: {
-  children: ReactNode
-  delay?: number
-  y?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  y?: number;
+  className?: string;
 }) {
-  const reduced = useReducedMotion() ?? false
-  const ref = useRef<HTMLDivElement>(null)
-  const [shown, setShown] = useState(false)
+  const reduced = useReducedMotion() ?? false;
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
   useEffect(() => {
-    if (reduced) return
-    const el = ref.current
-    if (!el) return
-    const r = el.getBoundingClientRect()
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
     if (r.top < window.innerHeight * 0.92 && r.bottom > 0) {
-      const t = window.setTimeout(() => setShown(true), 60)
-      return () => window.clearTimeout(t)
+      const t = window.setTimeout(() => setShown(true), 60);
+      return () => window.clearTimeout(t);
     }
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          setShown(true)
-          io.disconnect()
+          setShown(true);
+          io.disconnect();
         }
       },
-      { rootMargin: '0px 0px -9% 0px', threshold: 0.15 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [reduced])
+      { rootMargin: "0px 0px -9% 0px", threshold: 0.15 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
   const style: CSSProperties | undefined = reduced
     ? undefined
     : {
         opacity: shown ? 1 : 0,
-        transform: shown ? 'none' : `translateY(${y}px)`,
+        transform: shown ? "none" : `translateY(${y}px)`,
         transition: `opacity 0.75s ${EASE} ${delay}ms, transform 0.75s ${EASE} ${delay}ms`,
-      }
+      };
   return (
-    <div ref={ref} className={className} style={style} data-show={shown || reduced}>
+    <div
+      ref={ref}
+      className={className}
+      style={style}
+      data-show={shown || reduced}
+    >
       {children}
     </div>
-  )
+  );
 }
 
 /* ── ClipImg — clip-path reveal for STANDALONE content photos only (explicit
@@ -135,42 +144,42 @@ function ClipImg({
   aspect,
   caption,
   delay = 0,
-  className = '',
-  imgClassName = '',
+  className = "",
+  imgClassName = "",
 }: {
-  src: string
-  alt: string
-  aspect: string
-  caption?: string
-  delay?: number
-  className?: string
-  imgClassName?: string
+  src: string;
+  alt: string;
+  aspect: string;
+  caption?: string;
+  delay?: number;
+  className?: string;
+  imgClassName?: string;
 }) {
-  const reduced = useReducedMotion() ?? false
-  const ref = useRef<HTMLElement>(null)
-  const [shown, setShown] = useState(false)
+  const reduced = useReducedMotion() ?? false;
+  const ref = useRef<HTMLElement>(null);
+  const [shown, setShown] = useState(false);
   useEffect(() => {
-    if (reduced) return
-    const el = ref.current
-    if (!el) return
-    const r = el.getBoundingClientRect()
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
     if (r.top < window.innerHeight * 0.92 && r.bottom > 0) {
-      const t = window.setTimeout(() => setShown(true), 80)
-      return () => window.clearTimeout(t)
+      const t = window.setTimeout(() => setShown(true), 80);
+      return () => window.clearTimeout(t);
     }
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          setShown(true)
-          io.disconnect()
+          setShown(true);
+          io.disconnect();
         }
       },
-      { rootMargin: '0px 0px -6% 0px', threshold: 0.15 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [reduced])
-  const on = shown || reduced
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.15 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
+  const on = shown || reduced;
   return (
     <figure ref={ref} className={className}>
       <div className={`${aspect} overflow-hidden rounded-sm`}>
@@ -182,8 +191,8 @@ function ClipImg({
             reduced
               ? undefined
               : {
-                  clipPath: on ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
-                  transform: on ? 'scale(1)' : 'scale(1.06)',
+                  clipPath: on ? "inset(0 0 0 0)" : "inset(0 0 100% 0)",
+                  transform: on ? "scale(1)" : "scale(1.06)",
                   transition: `clip-path 0.95s ${EASE} ${delay}ms, transform 1.25s ${EASE} ${delay}ms`,
                 }
           }
@@ -195,7 +204,7 @@ function ClipImg({
         </figcaption>
       ) : null}
     </figure>
-  )
+  );
 }
 
 /* ── Eyebrow — carries the evening-arc signature: mono label tinted by the sky
@@ -205,222 +214,243 @@ function Eyebrow({
   label,
   register,
   reduced,
-  className = '',
+  className = "",
 }: {
-  label: string
-  register: (el: HTMLSpanElement) => () => void
-  reduced: boolean
-  className?: string
+  label: string;
+  register: (el: HTMLSpanElement) => () => void;
+  reduced: boolean;
+  className?: string;
 }) {
-  const ref = useRef<HTMLSpanElement>(null)
+  const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    return register(el)
-  }, [register])
+    const el = ref.current;
+    if (!el) return;
+    return register(el);
+  }, [register]);
   return (
     <span className={`block ${className}`}>
       <span
         className="font-mono text-[11px] uppercase tracking-[0.24em]"
-        style={{ color: 'var(--skyink, #B9CBD6)' }}
+        style={{ color: "var(--skyink, #B9CBD6)" }}
       >
         {label}
       </span>
-      <span ref={ref} className="mt-2.5 block h-[2px] w-28 rounded-full bg-[#F4EEE2]/15">
+      <span
+        ref={ref}
+        className="mt-2.5 block h-[2px] w-28 rounded-full bg-[#F4EEE2]/15"
+      >
         <span
           className="block h-full w-full origin-left rounded-full bg-[#D97D3D]"
-          style={{ transform: reduced ? 'scaleX(1)' : 'scaleX(var(--rule, 0))' }}
+          style={{
+            transform: reduced ? "scaleX(1)" : "scaleX(var(--rule, 0))",
+          }}
         />
       </span>
     </span>
-  )
+  );
 }
 
 /* ── CTA — dark ink on amber (AA). */
 function BookLink({
   children,
-  className = '',
+  className = "",
   onClick,
 }: {
-  children: ReactNode
-  className?: string
-  onClick?: () => void
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
 }) {
-  return (
-    bookingReady() ? (
-      <a
-        href={bookingHref()!}
-        onClick={onClick}
-        className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
+  return bookingReady() ? (
+    <a
+      href={bookingHref()!}
+      onClick={onClick}
+      className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
+    >
+      {children}
+      <span className="grid h-8 w-8 place-items-center rounded-full bg-[#15130F]/10 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px">
+        <ArrowUpRight
+          className="h-4 w-4"
+          strokeWidth={1.5}
+          aria-hidden="true"
+        />
+      </span>
+    </a>
+  ) : (
+    <span className={`inline-flex flex-col gap-1.5 ${className}`}>
+      <button
+        type="button"
+        disabled
+        className="inline-flex cursor-not-allowed items-center gap-2 border border-dashed px-6 py-3.5 font-supreme text-[15px] font-semibold"
+        style={{
+          borderColor: "rgba(217,125,61,0.55)",
+          color: "rgba(217,125,61,0.85)",
+        }}
       >
         {children}
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-[#15130F]/10 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px">
-          <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-        </span>
-      </a>
-    ) : (
-      <span className={`inline-flex flex-col gap-1.5 ${className}`}>
-        <button
-          type="button"
-          disabled
-          className="inline-flex cursor-not-allowed items-center gap-2 border border-dashed px-6 py-3.5 font-supreme text-[15px] font-semibold"
-          style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
-        >
-          {children}
-        </button>
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#F4EEE2]/40">
-          {PLACEHOLDER_NOTE}
-        </span>
+      </button>
+      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#F4EEE2]/40">
+        {PLACEHOLDER_NOTE}
       </span>
-    )
-  )
+    </span>
+  );
 }
 
 export default function Page() {
-  const reduced = useReducedMotion() ?? false
-  const rootRef = useRef<HTMLDivElement>(null)
-  const rules = useRef(new Set<HTMLSpanElement>())
-  const [mounted, setMounted] = useState(false)
-  const [barShown, setBarShown] = useState(false)
-  const barRef = useRef(false)
-  const { scrollYProgress } = useScroll()
+  const reduced = useReducedMotion() ?? false;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const rules = useRef(new Set<HTMLSpanElement>());
+  const [mounted, setMounted] = useState(false);
+  const [barShown, setBarShown] = useState(false);
+  const barRef = useRef(false);
+  const { scrollYProgress } = useScroll();
 
   /* ── Mobile menu — hamburger state, measured nav height (so the overlay's
    * padding-top lines up under the real nav bar), body-scroll lock + Escape. */
-  const [menuOpen, setMenuOpen] = useState(false)
-  const navRowRef = useRef<HTMLDivElement>(null)
-  const [navHeight, setNavHeight] = useState(84)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navRowRef = useRef<HTMLDivElement>(null);
+  const [navHeight, setNavHeight] = useState(84);
 
   useEffect(() => {
-    const el = navRowRef.current
-    if (!el) return
-    const measure = () => setNavHeight(el.getBoundingClientRect().height)
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [])
+    const el = navRowRef.current;
+    if (!el) return;
+    const measure = () => setNavHeight(el.getBoundingClientRect().height);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   useEffect(() => {
-    if (!menuOpen) return
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    if (!menuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false)
-    }
-    window.addEventListener('keydown', onKey)
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prevOverflow
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [menuOpen])
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   const register = useCallback((el: HTMLSpanElement) => {
-    rules.current.add(el)
+    rules.current.add(el);
     return () => {
-      rules.current.delete(el)
-    }
-  }, [])
+      rules.current.delete(el);
+    };
+  }, []);
 
   /* Close the overlay first, then hand off to the browser's smooth scroll on
    * the next frame — never both at once. */
   const handleNavLinkClick = useCallback(
     (e: MouseEvent<HTMLAnchorElement>, href: string) => {
-      e.preventDefault()
-      setMenuOpen(false)
+      e.preventDefault();
+      setMenuOpen(false);
       requestAnimationFrame(() => {
-        document.querySelector(href)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
-      })
+        document
+          .querySelector(href)
+          ?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+      });
     },
     [reduced],
-  )
+  );
 
   /* The ONE signature: sky colour, eyebrow ink and every rule fill are derived
    * from the raw progress value inside this single callback — no sibling
    * useTransform .get() reads, no CSS transitions on scrubbed values. */
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    if (reduced) return
-    const root = rootRef.current
-    if (!root) return
-    root.style.setProperty('--sky', atStops(SKY_STOPS, v))
-    root.style.setProperty('--skyink', atStops(INK_STOPS, v))
-    const vh = window.innerHeight || 800
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (reduced) return;
+    const root = rootRef.current;
+    if (!root) return;
+    root.style.setProperty("--sky", atStops(SKY_STOPS, v));
+    root.style.setProperty("--skyink", atStops(INK_STOPS, v));
+    const vh = window.innerHeight || 800;
     rules.current.forEach((el) => {
-      const r = el.getBoundingClientRect()
-      el.style.setProperty('--rule', clamp01((vh * 0.86 - r.top) / (vh * 0.52)).toFixed(4))
-    })
+      const r = el.getBoundingClientRect();
+      el.style.setProperty(
+        "--rule",
+        clamp01((vh * 0.86 - r.top) / (vh * 0.52)).toFixed(4),
+      );
+    });
     if (!barRef.current && v > 0.02) {
-      barRef.current = true
-      setBarShown(true)
+      barRef.current = true;
+      setBarShown(true);
     }
-  })
+  });
 
   /* Lenis smooth scroll — skipped entirely under prefers-reduced-motion. */
   useEffect(() => {
-    if (reduced) return
-    const lenis = new Lenis({ duration: 1.1 })
-    let raf = 0
+    if (reduced) return;
+    const lenis = new Lenis({ duration: 1.1 });
+    let raf = 0;
     const loop = (t: number) => {
-      lenis.raf(t)
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
+      lenis.raf(t);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
     return () => {
-      cancelAnimationFrame(raf)
-      lenis.destroy()
-    }
-  }, [reduced])
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, [reduced]);
 
   useEffect(() => {
-    if (reduced) setBarShown(true)
-    const t = window.setTimeout(() => setMounted(true), 40)
-    return () => window.clearTimeout(t)
-  }, [reduced])
+    if (reduced) setBarShown(true);
+    const t = window.setTimeout(() => setMounted(true), 40);
+    return () => window.clearTimeout(t);
+  }, [reduced]);
 
   useEffect(() => {
-    document.title = 'Nýpugarðar · Kvöldverðurinn á Mýrum'
-    setThemeColor(GROUND)
-    const s = document.createElement('script')
-    s.type = 'application/ld+json'
+    document.title = "Nýpugarðar · Kvöldverðurinn á Mýrum";
+    setThemeColor(GROUND);
+    const s = document.createElement("script");
+    s.type = "application/ld+json";
     s.text = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BedAndBreakfast',
-      name: 'Nýpugarðar',
-      telephone: '+354 893 1826',
+      "@context": "https://schema.org",
+      "@type": "BedAndBreakfast",
+      name: "Nýpugarðar",
+      telephone: "+354 893 1826",
       email: EMAIL,
       address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Nýpugarðar',
-        addressLocality: 'Höfn í Hornafirði',
-        postalCode: '781',
-        addressCountry: 'IS',
+        "@type": "PostalAddress",
+        streetAddress: "Nýpugarðar",
+        addressLocality: "Höfn í Hornafirði",
+        postalCode: "781",
+        addressCountry: "IS",
       },
       petsAllowed: false,
-      checkinTime: '16:00',
-      checkoutTime: '11:00',
-    })
-    document.head.appendChild(s)
+      checkinTime: "16:00",
+      checkoutTime: "11:00",
+    });
+    document.head.appendChild(s);
     return () => {
-      document.head.removeChild(s)
-    }
-  }, [])
+      document.head.removeChild(s);
+    };
+  }, []);
 
-  const on = mounted || reduced
+  const on = mounted || reduced;
   const rise = (i: number): CSSProperties =>
     reduced
       ? {}
       : {
           opacity: on ? 1 : 0,
-          transform: on ? 'none' : 'translateY(26px)',
-          filter: on ? 'none' : 'blur(6px)',
+          transform: on ? "none" : "translateY(26px)",
+          filter: on ? "none" : "blur(6px)",
           transition: `opacity 0.85s ${EASE} ${140 + i * 90}ms, transform 0.85s ${EASE} ${140 + i * 90}ms, filter 0.85s ${EASE} ${140 + i * 90}ms`,
-        }
+        };
 
   return (
     <div
       ref={rootRef}
       lang="en"
       className="min-h-screen font-supreme text-[#F4EEE2] antialiased"
-      style={{ background: GROUND, '--sky': '#DCE4E6', '--skyink': '#B9CBD6' } as CSSProperties}
+      style={
+        {
+          background: GROUND,
+          "--sky": "#DCE4E6",
+          "--skyink": "#B9CBD6",
+        } as CSSProperties
+      }
     >
       <PreviewChrome company={company} />
 
@@ -430,7 +460,10 @@ export default function Page() {
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[44vh]"
-        style={{ background: 'linear-gradient(to bottom, var(--sky), transparent)', opacity: 0.32 }}
+        style={{
+          background: "linear-gradient(to bottom, var(--sky), transparent)",
+          opacity: 0.32,
+        }}
       />
 
       {/* ── 1 · HERO — Arrival ─────────────────────────────────────────── */}
@@ -452,7 +485,7 @@ export default function Page() {
               ? undefined
               : {
                   opacity: on ? 1 : 0,
-                  transform: on ? 'scale(1)' : 'scale(1.05)',
+                  transform: on ? "scale(1)" : "scale(1.05)",
                   transition: `opacity 1.4s ${EASE}, transform 2.2s ${EASE}`,
                 }
           }
@@ -470,15 +503,18 @@ export default function Page() {
           className="absolute inset-x-0 top-0 z-40"
           aria-label="Main"
           style={{
-            background: menuOpen ? GROUND : 'transparent',
-            transition: reduced ? 'none' : `background-color 0.3s ${EASE}`,
+            background: menuOpen ? GROUND : "transparent",
+            transition: reduced ? "none" : `background-color 0.3s ${EASE}`,
           }}
         >
           <div
             ref={navRowRef}
             className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8"
           >
-            <a href="#top" className={`font-erode text-xl tracking-tight ${FOCUS}`}>
+            <a
+              href="#top"
+              className={`font-erode text-xl tracking-tight ${FOCUS}`}
+            >
               Nýpugarðar
             </a>
             <div className="hidden items-center gap-7 md:flex">
@@ -502,7 +538,10 @@ export default function Page() {
             ) : (
               <span
                 className="hidden border border-dashed px-4 py-2 text-[13px] font-semibold sm:inline-block"
-                style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
+                style={{
+                  borderColor: "rgba(217,125,61,0.55)",
+                  color: "rgba(217,125,61,0.85)",
+                }}
                 title={PLACEHOLDER_NOTE}
               >
                 Check availability
@@ -513,24 +552,32 @@ export default function Page() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
               className={`-mr-2.5 flex h-11 w-11 items-center justify-center md:hidden ${FOCUS}`}
             >
               <span aria-hidden="true" className="relative block h-4 w-6">
                 <span
                   className="absolute left-0 top-0 block h-[2px] w-6 rounded-full"
                   style={{
-                    background: menuOpen ? ACCENT : '#F4EEE2',
-                    transform: menuOpen ? 'translateY(7px) rotate(45deg)' : 'translateY(0) rotate(0deg)',
-                    transition: reduced ? 'none' : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
+                    background: menuOpen ? ACCENT : "#F4EEE2",
+                    transform: menuOpen
+                      ? "translateY(7px) rotate(45deg)"
+                      : "translateY(0) rotate(0deg)",
+                    transition: reduced
+                      ? "none"
+                      : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
                   }}
                 />
                 <span
                   className="absolute bottom-0 left-0 block h-[2px] w-6 rounded-full"
                   style={{
-                    background: menuOpen ? ACCENT : '#F4EEE2',
-                    transform: menuOpen ? 'translateY(-7px) rotate(-45deg)' : 'translateY(0) rotate(0deg)',
-                    transition: reduced ? 'none' : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
+                    background: menuOpen ? ACCENT : "#F4EEE2",
+                    transform: menuOpen
+                      ? "translateY(-7px) rotate(-45deg)"
+                      : "translateY(0) rotate(0deg)",
+                    transition: reduced
+                      ? "none"
+                      : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
                   }}
                 />
               </span>
@@ -538,34 +585,54 @@ export default function Page() {
           </div>
         </nav>
 
-        <div id="top" className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 pt-28 md:px-8 md:pb-20 md:pt-0">
-          <p
-            lang="is"
-            className="font-mono text-[11.5px] uppercase tracking-[0.26em] text-[#B9CBD6]"
-            style={rise(0)}
-          >
-            Kvöldverðurinn á Mýrum
-          </p>
-          <h1
-            className="mt-4 max-w-4xl font-erode text-[clamp(3.1rem,9vw,6.5rem)] font-medium leading-[1.16] tracking-tight"
-            style={rise(1)}
-          >
-            Nýpugarðar
-          </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#F4EEE2]/85" style={rise(2)}>
-            A working sheep farm between Höfn and Jökulsárlón. Stay the night and sit
-            down to dinner.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-4" style={rise(3)}>
-            <a
-              href={PHONE_HREF}
-              className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
-            >
-              <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-              {PHONE}
-            </a>
+        <div
+          id="top"
+          className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 pt-28 md:px-8 md:pb-20 md:pt-0"
+        >
+          {/* Editorial split: the headline holds the left, the booking card sits
+           * on the right at lg and above. Below that it stacks back under the
+           * copy, which is the right order on a phone — read first, book second. */}
+          <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-end lg:gap-14">
+            <div>
+              <p
+                lang="is"
+                className="font-mono text-[11.5px] uppercase tracking-[0.26em] text-[#B9CBD6]"
+                style={rise(0)}
+              >
+                Kvöldverðurinn á Mýrum
+              </p>
+              <h1
+                className="mt-4 max-w-4xl font-erode text-[clamp(3.1rem,9vw,6.5rem)] font-medium leading-[1.16] tracking-tight"
+                style={rise(1)}
+              >
+                Nýpugarðar
+              </h1>
+              <p
+                className="mt-5 max-w-xl text-lg leading-relaxed text-[#F4EEE2]/85"
+                style={rise(2)}
+              >
+                A working sheep farm between Höfn and Jökulsárlón. Stay the
+                night and sit down to dinner.
+              </p>
+              <div
+                className="mt-8 flex flex-wrap items-center gap-4"
+                style={rise(3)}
+              >
+                <a
+                  href={PHONE_HREF}
+                  className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
+                >
+                  <Phone
+                    className="h-4 w-4"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                  {PHONE}
+                </a>
+              </div>
+            </div>
+            <BookingBar variant="card" className="mt-10 lg:mt-0" />
           </div>
-          <BookingBar className="mt-8 max-w-4xl" />
         </div>
       </header>
 
@@ -585,20 +652,23 @@ export default function Page() {
         aria-modal="true"
         aria-label="Site menu"
         aria-hidden={!menuOpen}
-        className={`fixed inset-0 z-30 flex flex-col md:hidden ${menuOpen ? '' : 'pointer-events-none'}`}
+        className={`fixed inset-0 z-30 flex flex-col md:hidden ${menuOpen ? "" : "pointer-events-none"}`}
         style={{
           background: GROUND,
           paddingTop: navHeight,
           opacity: menuOpen ? 1 : 0,
-          visibility: menuOpen ? 'visible' : 'hidden',
+          visibility: menuOpen ? "visible" : "hidden",
           transition: reduced
-            ? 'none'
+            ? "none"
             : menuOpen
               ? `opacity 0.3s ${EASE}, visibility 0s`
               : `opacity 0.3s ${EASE}, visibility 0s 0.3s`,
         }}
       >
-        <nav className="flex flex-1 flex-col justify-center px-6" aria-label="Mobile">
+        <nav
+          className="flex flex-1 flex-col justify-center px-6"
+          aria-label="Mobile"
+        >
           <ul className="space-y-1">
             {NAV.map((n, i) => (
               <li key={n.id} className="overflow-hidden">
@@ -607,9 +677,12 @@ export default function Page() {
                   onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
                   className={`block py-2 font-erode text-[clamp(2.5rem,13vw,4.5rem)] font-medium leading-[1.1] tracking-tight text-[#F4EEE2] ${FOCUS}`}
                   style={{
-                    transform: menuOpen || reduced ? 'translateY(0%)' : 'translateY(100%)',
+                    transform:
+                      menuOpen || reduced
+                        ? "translateY(0%)"
+                        : "translateY(100%)",
                     transition: reduced
-                      ? 'none'
+                      ? "none"
                       : `transform 0.6s ${EASE} ${menuOpen ? 60 + i * 60 : 0}ms`,
                   }}
                 >
@@ -623,9 +696,9 @@ export default function Page() {
             className="mt-8 block h-[2px] w-16 origin-left rounded-full"
             style={{
               background: ACCENT,
-              transform: menuOpen || reduced ? 'scaleX(1)' : 'scaleX(0)',
+              transform: menuOpen || reduced ? "scaleX(1)" : "scaleX(0)",
               transition: reduced
-                ? 'none'
+                ? "none"
                 : `transform 0.5s ${EASE} ${menuOpen ? 60 + NAV.length * 60 : 0}ms`,
             }}
           />
@@ -642,30 +715,47 @@ export default function Page() {
 
       <main className="relative z-[1]">
         {/* ── 2 · THE FARM — sheep ─────────────────────────────────────── */}
-        <section id="farm" className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
+        <section
+          id="farm"
+          className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32"
+        >
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
             <div>
-              <Eyebrow label="The flock" register={register} reduced={reduced} />
+              <Eyebrow
+                label="The flock"
+                register={register}
+                reduced={reduced}
+              />
               <Reveal delay={60}>
                 <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
                   A working farm, not a themed hotel
                 </h2>
               </Reveal>
               <Reveal delay={140}>
-                <p className="mt-6 max-w-[58ch] leading-relaxed" style={{ color: BODY }}>
-                  Nýpugarðar is a real working farm, not a themed hotel. The flock shares the
-                  hill with a dog and a cat, and wild reindeer come down onto the land. In
-                  spring, guests are welcome to watch the lambing. In winter, you can lend a
-                  hand with light farm work if you feel like it.
+                <p
+                  className="mt-6 max-w-[58ch] leading-relaxed"
+                  style={{ color: BODY }}
+                >
+                  Nýpugarðar is a real working farm, not a themed hotel. The
+                  flock shares the hill with a dog and a cat, and wild reindeer
+                  come down onto the land. In spring, guests are welcome to
+                  watch the lambing. In winter, you can lend a hand with light
+                  farm work if you feel like it.
                 </p>
               </Reveal>
               <Reveal delay={220}>
-                <dl className="mt-10 grid grid-cols-2 gap-6 border-t pt-8" style={{ borderColor: HAIR }}>
+                <dl
+                  className="mt-10 grid grid-cols-2 gap-6 border-t pt-8"
+                  style={{ borderColor: HAIR }}
+                >
                   <div>
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
                       Guests when full
                     </dt>
-                    <dd className="mt-1 font-erode text-4xl" style={{ color: ACCENT }}>
+                    <dd
+                      className="mt-1 font-erode text-4xl"
+                      style={{ color: ACCENT }}
+                    >
                       24
                     </dd>
                   </div>
@@ -673,7 +763,10 @@ export default function Page() {
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
                       Open
                     </dt>
-                    <dd className="mt-1 font-erode text-4xl" style={{ color: ACCENT }}>
+                    <dd
+                      className="mt-1 font-erode text-4xl"
+                      style={{ color: ACCENT }}
+                    >
                       All year
                     </dd>
                   </div>
@@ -701,7 +794,11 @@ export default function Page() {
             className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/55 to-[#15130F]/20"
           />
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-16 pt-40 md:px-8 md:pb-20">
-            <Eyebrow label="The glacier light" register={register} reduced={reduced} />
+            <Eyebrow
+              label="The glacier light"
+              register={register}
+              reduced={reduced}
+            />
             <Reveal delay={60}>
               <h2 className="mt-6 max-w-3xl font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
                 A small hill with the whole horizon
@@ -709,19 +806,21 @@ export default function Page() {
             </Reveal>
             <Reveal delay={140}>
               <p className="mt-5 max-w-[60ch] leading-relaxed text-[#F4EEE2]/85">
-                The guesthouse stands on a low hill above the lowlands of Mýrar. The bright rooms
-                look out over Hornafjörður fjord and Hvannadalshnjúkur, the highest mountain in
-                Iceland.
+                The guesthouse stands on a low hill above the lowlands of Mýrar.
+                The bright rooms look out over Hornafjörður fjord and
+                Hvannadalshnjúkur, the highest mountain in Iceland.
               </p>
             </Reveal>
             <Reveal delay={220}>
               <dl
                 className="mt-10 grid grid-cols-1 gap-6 border-t pt-8 sm:grid-cols-3"
-                style={{ borderColor: 'rgba(244,238,226,0.25)' }}
+                style={{ borderColor: "rgba(244,238,226,0.25)" }}
               >
                 {DISTANCES.map((d) => (
                   <div key={d.label}>
-                    <dd className="font-erode text-3xl text-[#F4EEE2] md:text-4xl">{d.n}</dd>
+                    <dd className="font-erode text-3xl text-[#F4EEE2] md:text-4xl">
+                      {d.n}
+                    </dd>
                     <dt className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
                       {d.label}
                     </dt>
@@ -748,11 +847,15 @@ export default function Page() {
                 </h2>
               </Reveal>
               <Reveal delay={90}>
-                <p className="mt-5 max-w-[56ch] leading-relaxed" style={{ color: BODY }}>
-                  The farm sits a short drive off Route 1, a little east of the river Hólmsá.
-                  Close enough for a morning at Jökulsárlón, far enough that the evenings stay
-                  quiet. Hólmi Zoo is 5 km away, and Þórbergssetur museum and the Hornafjörður
-                  swimming pool are both within half an hour.
+                <p
+                  className="mt-5 max-w-[56ch] leading-relaxed"
+                  style={{ color: BODY }}
+                >
+                  The farm sits a short drive off Route 1, a little east of the
+                  river Hólmsá. Close enough for a morning at Jökulsárlón, far
+                  enough that the evenings stay quiet. Hólmi Zoo is 5 km away,
+                  and Þórbergssetur museum and the Hornafjörður swimming pool
+                  are both within half an hour.
                 </p>
               </Reveal>
             </div>
@@ -770,9 +873,13 @@ export default function Page() {
                 </h2>
               </Reveal>
               <Reveal delay={90}>
-                <p className="max-w-[52ch] leading-relaxed md:justify-self-end" style={{ color: BODY }}>
-                  Bright, warm rooms in the main house and two small cottages with their own
-                  bathrooms. Nothing fussy, everything you need, and that view from the pillow.
+                <p
+                  className="max-w-[52ch] leading-relaxed md:justify-self-end"
+                  style={{ color: BODY }}
+                >
+                  Bright, warm rooms in the main house and two small cottages
+                  with their own bathrooms. Nothing fussy, everything you need,
+                  and that view from the pillow.
                 </p>
               </Reveal>
             </div>
@@ -784,7 +891,10 @@ export default function Page() {
               >
                 {UNITS.map((u) => (
                   <div key={u.label}>
-                    <dd className="font-erode text-5xl" style={{ color: ACCENT }}>
+                    <dd
+                      className="font-erode text-5xl"
+                      style={{ color: ACCENT }}
+                    >
                       {u.n}
                     </dd>
                     <dt className="mt-2 max-w-[16ch] font-mono text-[11px] uppercase leading-relaxed tracking-[0.16em] text-[#F4EEE2]/60">
@@ -817,17 +927,21 @@ export default function Page() {
                   </h3>
                 </Reveal>
                 <Reveal delay={90}>
-                  <p className="mt-5 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
-                    Two timber cottages of 20 and 25 square metres stand beside the main house,
-                    each with its own bathroom. Room for two to four guests, with the fields
-                    right outside the door.
+                  <p
+                    className="mt-5 max-w-[52ch] leading-relaxed"
+                    style={{ color: BODY }}
+                  >
+                    Two timber cottages of 20 and 25 square metres stand beside
+                    the main house, each with its own bathroom. Room for two to
+                    four guests, with the fields right outside the door.
                   </p>
                 </Reveal>
                 <Reveal delay={220}>
                   <div className="mt-9 flex flex-wrap items-center gap-4">
                     <BookLink>Check availability</BookLink>
                     <p className="text-sm text-[#F4EEE2]/55">
-                      Live dates and prices come straight from our booking system
+                      Live dates and prices come straight from our booking
+                      system
                     </p>
                   </div>
                 </Reveal>
@@ -885,12 +999,14 @@ export default function Page() {
                         <span
                           aria-hidden="true"
                           className="mt-[0.45em] h-px w-4 shrink-0"
-                          style={{ background: 'rgba(244,238,226,0.3)' }}
+                          style={{ background: "rgba(244,238,226,0.3)" }}
                         />
                         <span className="text-[15px] leading-snug text-[#F4EEE2]/85">
                           {h.rule}
                           {h.note ? (
-                            <span className="text-[#F4EEE2]/50">, {h.note}</span>
+                            <span className="text-[#F4EEE2]/50">
+                              , {h.note}
+                            </span>
                           ) : null}
                         </span>
                       </li>
@@ -905,18 +1021,26 @@ export default function Page() {
         {/* ── 6 · THE DINNER BUFFET — the signature offering ───────────── */}
         <section id="dinner" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label="Dinner is served" register={register} reduced={reduced} />
+            <Eyebrow
+              label="Dinner is served"
+              register={register}
+              reduced={reduced}
+            />
             <Reveal delay={60}>
               <h2 className="mt-6 max-w-3xl font-erode text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight">
                 A dinner buffet with lamb
               </h2>
             </Reveal>
             <Reveal delay={140}>
-              <p className="mt-6 max-w-[62ch] text-lg leading-relaxed" style={{ color: BODY }}>
-                This is what guests remember. Booking.com describes Nýpugarðar simply: a sheep
-                farm with simple, fresh rooms, a home-cooked breakfast and a dinner buffet with
-                lamb. Traditional Icelandic cooking with local ingredients, eaten in a dining
-                room whose windows face the ice.
+              <p
+                className="mt-6 max-w-[62ch] text-lg leading-relaxed"
+                style={{ color: BODY }}
+              >
+                This is what guests remember. Booking.com describes Nýpugarðar
+                simply: a sheep farm with simple, fresh rooms, a home-cooked
+                breakfast and a dinner buffet with lamb. Traditional Icelandic
+                cooking with local ingredients, eaten in a dining room whose
+                windows face the ice.
               </p>
             </Reveal>
 
@@ -934,18 +1058,22 @@ export default function Page() {
                   <p className="font-erode text-2xl italic leading-[1.4] text-[#F4EEE2]/90 md:text-[1.7rem]">
                     “{DINNER_QUOTE.text}”
                   </p>
-                  <footer className="mt-5 font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-                    {DINNER_QUOTE.name}, {DINNER_QUOTE.place} · guest review on Booking.com
+                  <footer
+                    className="mt-5 font-mono text-[11px] uppercase tracking-[0.2em]"
+                    style={{ color: ACCENT }}
+                  >
+                    {DINNER_QUOTE.name}, {DINNER_QUOTE.place} · guest review on
+                    Booking.com
                   </footer>
                 </blockquote>
               </Reveal>
               <div>
                 <Reveal delay={80}>
                   <p className="leading-relaxed" style={{ color: BODY }}>
-                    Dinner is served here on the farm, in the dining room with the windows
-                    facing the glacier. There is nothing to book ahead and nothing to arrange
-                    online. Tell us when you arrive that you would like to eat, and a place is
-                    set for you.
+                    Dinner is served here on the farm, in the dining room with
+                    the windows facing the glacier. There is nothing to book
+                    ahead and nothing to arrange online. Tell us when you arrive
+                    that you would like to eat, and a place is set for you.
                   </p>
                 </Reveal>
                 <Reveal delay={160}>
@@ -954,14 +1082,22 @@ export default function Page() {
                       href={PHONE_HREF}
                       className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-5 py-3 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
                     >
-                      <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                      <Phone
+                        className="h-4 w-4"
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                      />
                       {PHONE}
                     </a>
                     <a
                       href={`mailto:${EMAIL}`}
                       className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-5 py-3 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
                     >
-                      <Mail className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                      <Mail
+                        className="h-4 w-4"
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                      />
                       {EMAIL}
                     </a>
                   </div>
@@ -978,13 +1114,19 @@ export default function Page() {
             </div>
 
             <Reveal delay={120}>
-              <div className="mt-16 border-t pt-10" style={{ borderColor: HAIR }}>
+              <div
+                className="mt-16 border-t pt-10"
+                style={{ borderColor: HAIR }}
+              >
                 <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
                   And breakfast before you go
                 </h3>
-                <p className="mt-4 max-w-[54ch] leading-relaxed" style={{ color: BODY }}>
-                  A buffet in the same room, with the same view. Guests rate it highly, and we
-                  can cover most ways of eating.
+                <p
+                  className="mt-4 max-w-[54ch] leading-relaxed"
+                  style={{ color: BODY }}
+                >
+                  A buffet in the same room, with the same view. Guests rate it
+                  highly, and we can cover most ways of eating.
                 </p>
                 <ul className="mt-7 flex flex-wrap gap-x-3 gap-y-2.5">
                   {BREAKFAST.map((b) => (
@@ -1011,19 +1153,27 @@ export default function Page() {
                 <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
                   Spring is for lambing
                 </h3>
-                <p className="mt-4 max-w-[50ch] leading-relaxed" style={{ color: BODY }}>
-                  When the lambs arrive, guests are welcome in the sheep shed to watch. It is the
-                  busiest, loudest, best time of year on the farm.
+                <p
+                  className="mt-4 max-w-[50ch] leading-relaxed"
+                  style={{ color: BODY }}
+                >
+                  When the lambs arrive, guests are welcome in the sheep shed to
+                  watch. It is the busiest, loudest, best time of year on the
+                  farm.
                 </p>
               </Reveal>
               <Reveal delay={110} className="md:pl-14">
                 <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
                   Winter is for dark skies
                 </h3>
-                <p className="mt-4 max-w-[50ch] leading-relaxed" style={{ color: BODY }}>
-                  The house is open all year. Guide to Iceland calls it an ideal location for
-                  spotting the northern lights in the winter months, and there is light farm
-                  work to join if you want to earn your dinner.
+                <p
+                  className="mt-4 max-w-[50ch] leading-relaxed"
+                  style={{ color: BODY }}
+                >
+                  The house is open all year. Guide to Iceland calls it an ideal
+                  location for spotting the northern lights in the winter
+                  months, and there is light farm work to join if you want to
+                  earn your dinner.
                 </p>
               </Reveal>
             </div>
@@ -1031,7 +1181,11 @@ export default function Page() {
         </section>
 
         {/* ── 8 · REVIEWS ──────────────────────────────────────────────── */}
-        <section id="reviews" className="border-t" style={{ borderColor: HAIR }}>
+        <section
+          id="reviews"
+          className="border-t"
+          style={{ borderColor: HAIR }}
+        >
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label="Guests" register={register} reduced={reduced} />
             <h2 className="sr-only">Guest reviews</h2>
@@ -1052,8 +1206,15 @@ export default function Page() {
               <Reveal delay={100}>
                 <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
                   {SCORE.categories.map((c) => (
-                    <div key={c.label} className="border-t pt-3" style={{ borderColor: HAIR }}>
-                      <dd className="font-erode text-2xl" style={{ color: ACCENT }}>
+                    <div
+                      key={c.label}
+                      className="border-t pt-3"
+                      style={{ borderColor: HAIR }}
+                    >
+                      <dd
+                        className="font-erode text-2xl"
+                        style={{ color: ACCENT }}
+                      >
                         {c.n}
                       </dd>
                       <dt className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/55">
@@ -1068,11 +1229,20 @@ export default function Page() {
             <div className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
               {QUOTES.map((q, i) => (
                 <Reveal key={q.name} delay={i * 100}>
-                  <blockquote className="border-t pt-6" style={{ borderColor: HAIR }}>
-                    <p className="leading-relaxed text-[#F4EEE2]/85">“{q.text}”</p>
+                  <blockquote
+                    className="border-t pt-6"
+                    style={{ borderColor: HAIR }}
+                  >
+                    <p className="leading-relaxed text-[#F4EEE2]/85">
+                      “{q.text}”
+                    </p>
                     <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
                       {q.name}, {q.place}
-                      {q.note ? <span className="mt-1 block text-[#F4EEE2]/60">{q.note}</span> : null}
+                      {q.note ? (
+                        <span className="mt-1 block text-[#F4EEE2]/60">
+                          {q.note}
+                        </span>
+                      ) : null}
                     </footer>
                   </blockquote>
                 </Reveal>
@@ -1080,7 +1250,7 @@ export default function Page() {
             </div>
             <Reveal delay={140}>
               <p className="mt-10 text-sm text-[#F4EEE2]/50">
-                Guest reviews via{' '}
+                Guest reviews via{" "}
                 <a
                   href={REVIEWS_URL}
                   target="_blank"
@@ -1126,7 +1296,11 @@ export default function Page() {
                     href={`mailto:${EMAIL}`}
                     className={`mt-2 inline-flex items-center gap-3 text-xl text-[#F4EEE2]/90 underline-offset-4 hover:underline md:text-2xl ${FOCUS}`}
                   >
-                    <Mail className="h-5 w-5 text-[#B9CBD6]" strokeWidth={1.5} aria-hidden="true" />
+                    <Mail
+                      className="h-5 w-5 text-[#B9CBD6]"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
                     {EMAIL}
                   </a>
                 </Reveal>
@@ -1135,7 +1309,11 @@ export default function Page() {
                     The address
                   </p>
                   <p className="mt-2 flex items-start gap-3 text-xl text-[#F4EEE2]/90 md:text-2xl">
-                    <MapPin className="mt-1.5 h-5 w-5 shrink-0 text-[#B9CBD6]" strokeWidth={1.5} aria-hidden="true" />
+                    <MapPin
+                      className="mt-1.5 h-5 w-5 shrink-0 text-[#B9CBD6]"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
                     {ADDRESS}
                   </p>
                 </Reveal>
@@ -1159,14 +1337,18 @@ export default function Page() {
               <div>
                 <Reveal delay={100}>
                   <p className="leading-relaxed" style={{ color: BODY }}>
-                    Book directly with us and you deal with the farm, not an agency. Dates and
-                    availability are live. Nýpugarðar is also listed on Booking.com, HeyIceland
-                    and Guide to Iceland if you would rather book there. For anything else, the
-                    phone is quickest.
+                    Book directly with us and you deal with the farm, not an
+                    agency. Dates and availability are live. Nýpugarðar is also
+                    listed on Booking.com, HeyIceland and Guide to Iceland if
+                    you would rather book there. For anything else, the phone is
+                    quickest.
                   </p>
                 </Reveal>
                 <Reveal delay={180}>
-                  <ul className="mt-8 space-y-2.5 border-t pt-7" style={{ borderColor: HAIR }}>
+                  <ul
+                    className="mt-8 space-y-2.5 border-t pt-7"
+                    style={{ borderColor: HAIR }}
+                  >
                     {DISTANCES.map((d) => (
                       <li
                         key={d.label}
@@ -1182,7 +1364,8 @@ export default function Page() {
                 </Reveal>
                 <Reveal delay={240}>
                   <p className="mt-8 text-sm text-[#F4EEE2]/60">
-                    Nýpugarðar ehf. is an active, registered Icelandic company, kt. 510805-0380.
+                    Nýpugarðar ehf. is an active, registered Icelandic company,
+                    kt. 510805-0380.
                   </p>
                 </Reveal>
               </div>
@@ -1203,7 +1386,11 @@ export default function Page() {
           />
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 pt-40 text-center md:px-8 md:pb-28">
             <div className="mx-auto w-fit">
-              <Eyebrow label="Nightfall" register={register} reduced={reduced} />
+              <Eyebrow
+                label="Nightfall"
+                register={register}
+                reduced={reduced}
+              />
             </div>
             <Reveal delay={60}>
               <h2 className="mx-auto mt-6 max-w-3xl font-erode text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight">
@@ -1212,8 +1399,8 @@ export default function Page() {
             </Reveal>
             <Reveal delay={140}>
               <p className="mx-auto mt-5 max-w-xl leading-relaxed text-[#F4EEE2]/85">
-                A room with the horizon in the window, and a seat at the table when the lamb
-                comes out of the kitchen.
+                A room with the horizon in the window, and a seat at the table
+                when the lamb comes out of the kitchen.
               </p>
             </Reveal>
             <Reveal delay={220}>
@@ -1223,7 +1410,11 @@ export default function Page() {
                   href={PHONE_HREF}
                   className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
                 >
-                  <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                  <Phone
+                    className="h-4 w-4"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
                   {PHONE}
                 </a>
               </div>
@@ -1234,7 +1425,9 @@ export default function Page() {
         {/* Honesty note — required disclosure before the shared footer */}
         <section className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-4xl px-5 py-10 md:px-8">
-            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">{FOOTNOTE}</p>
+            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">
+              {FOOTNOTE}
+            </p>
           </div>
         </section>
       </main>
@@ -1246,11 +1439,12 @@ export default function Page() {
         className="fixed inset-x-0 bottom-0 z-40 border-t md:hidden"
         style={{
           borderColor: HAIR,
-          background: 'rgba(21,19,15,0.94)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          transform: barShown && !menuOpen ? 'translateY(0)' : 'translateY(110%)',
-          transition: reduced ? 'none' : `transform 0.5s ${EASE}`,
+          background: "rgba(21,19,15,0.94)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          transform:
+            barShown && !menuOpen ? "translateY(0)" : "translateY(110%)",
+          transition: reduced ? "none" : `transform 0.5s ${EASE}`,
         }}
       >
         <div className="flex items-stretch gap-3 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
@@ -1260,12 +1454,19 @@ export default function Page() {
               className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
             >
               Check availability
-              <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+              <ArrowUpRight
+                className="h-4 w-4"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
             </a>
           ) : (
             <span
               className="flex flex-1 items-center justify-center gap-2 border border-dashed px-4 py-3 text-[15px] font-semibold"
-              style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
+              style={{
+                borderColor: "rgba(217,125,61,0.55)",
+                color: "rgba(217,125,61,0.85)",
+              }}
               title={PLACEHOLDER_NOTE}
             >
               Check availability
@@ -1283,5 +1484,5 @@ export default function Page() {
 
       <PreviewFooter company={company} />
     </div>
-  )
+  );
 }

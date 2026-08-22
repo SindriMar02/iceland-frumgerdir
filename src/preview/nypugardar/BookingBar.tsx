@@ -100,12 +100,17 @@ export default function BookingBar({
   room = null,
   className = '',
   label = 'Check availability',
+  variant = 'bar',
 }: {
   /** Focus the booking page on one unit type, when placed inside a room card. */
   room?: GodoRoomKey | null
   className?: string
   label?: string
+  /** 'bar' is the wide five-across row; 'card' stacks for a narrow column,
+   *  which is what the hero uses so it can sit beside the headline. */
+  variant?: 'bar' | 'card'
 }) {
+  const isCard = variant === 'card'
   const today = useMemo(() => startOfDay(new Date()), [])
   const [checkin, setCheckin] = useState<Date>(() => addDays(today, 1))
   const [checkout, setCheckout] = useState<Date>(() => addDays(today, 3))
@@ -140,9 +145,22 @@ export default function BookingBar({
   return (
     <div
       className={`border ${className}`}
-      style={{ borderColor: HAIR, background: 'rgba(244,238,226,0.03)' }}
+      style={{
+        borderColor: HAIR,
+        /* The card sits over the hero photograph, so it needs a real surface to
+         * stay legible; the wide bar sits over flat ground and can stay nearly
+         * transparent. No backdrop-blur — the hero scrolls, and blurring a
+         * scrolling layer is a guaranteed mobile frame drop. */
+        background: isCard ? 'rgba(21,19,15,0.78)' : 'rgba(244,238,226,0.03)',
+      }}
     >
-      <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-[1fr_1fr_auto_auto_auto] md:items-end md:gap-7">
+      <div
+        className={
+          isCard
+            ? 'flex flex-col gap-5 p-5 sm:p-6'
+            : 'grid gap-6 p-5 sm:p-6 md:grid-cols-[1fr_1fr_auto_auto_auto] md:items-end md:gap-7'
+        }
+      >
         <div className="flex flex-col gap-2">
           <label
             htmlFor={inId}
@@ -181,13 +199,22 @@ export default function BookingBar({
           />
         </div>
 
-        <Stepper label="Adults" value={adults} min={1} max={12} onChange={setAdults} />
-        <Stepper label="Children" value={children} min={0} max={8} onChange={setChildren} />
+        {isCard ? (
+          <div className="grid grid-cols-2 gap-4">
+            <Stepper label="Adults" value={adults} min={1} max={12} onChange={setAdults} />
+            <Stepper label="Children" value={children} min={0} max={8} onChange={setChildren} />
+          </div>
+        ) : (
+          <>
+            <Stepper label="Adults" value={adults} min={1} max={12} onChange={setAdults} />
+            <Stepper label="Children" value={children} min={0} max={8} onChange={setChildren} />
+          </>
+        )}
 
         {ready && href ? (
           <a
             href={href}
-            className={`group inline-flex items-center justify-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS}`}
+            className={`group inline-flex items-center justify-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${isCard ? 'w-full' : ''} ${FOCUS}`}
           >
             {label}
             <span className="grid h-8 w-8 place-items-center rounded-full bg-[#15130F]/10 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px">
@@ -199,7 +226,7 @@ export default function BookingBar({
             type="button"
             disabled
             aria-describedby={`${inId}-placeholder`}
-            className="inline-flex cursor-not-allowed items-center justify-center gap-2 border border-dashed px-6 py-3.5 font-supreme text-[15px] font-semibold"
+            className={`inline-flex cursor-not-allowed items-center justify-center gap-2 border border-dashed px-6 py-3.5 font-supreme text-[15px] font-semibold ${isCard ? 'w-full' : ''}`}
             style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
           >
             {label}
