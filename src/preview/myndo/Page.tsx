@@ -98,7 +98,7 @@ html,body{background:${GROUND}}
 @media (prefers-reduced-motion:reduce){.my-btn__roll{transition:none}}
 
 /* Catalogue row: fixed tile height, width set by the photograph's own ratio. */
-.my-rail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
+.my-rail{--th:clamp(300px,34vw,470px);display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
   scrollbar-width:none;-ms-overflow-style:none;padding-bottom:2px}
 .my-rail::-webkit-scrollbar{display:none}
 .my-tile{flex:none;scroll-snap-align:start;text-decoration:none;color:${INK};display:block}
@@ -115,9 +115,26 @@ html,body{background:${GROUND}}
 
 /* Two images side by side, caption under each. */
 .my-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.my-2>*{min-width:0}
 .my-2 figure{margin:0}
 .my-2 img{display:block;width:100%;height:auto}
 .my-2 figcaption{padding-top:9px;max-width:62ch}
+
+/* Chapter: one tall frame left, text and its two supporting frames right, both
+   columns locked to the same height. Their b-media-with-text carries six lines
+   of body copy in that right column; her stage descriptions are one sentence,
+   so the column strands unless the supporting frames come up into it. */
+.my-ch{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr);gap:8px;height:clamp(420px,62vh,680px)}
+.my-ch>*{min-height:0;min-width:0}
+.my-ch>img{width:100%;height:100%;object-fit:cover;object-position:center 28%;display:block}
+.my-ch__side{display:flex;flex-direction:column;gap:12px;min-height:0}
+.my-ch__pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1 1 auto;min-height:0}
+.my-ch__pair img{width:100%;height:100%;object-fit:cover;object-position:center 26%;display:block}
+@media (max-width:800px){
+  .my-ch{grid-template-columns:1fr;grid-template-rows:auto;height:auto}
+  .my-ch>img{height:clamp(300px,58vh,480px)}
+  .my-ch__pair{height:230px}
+}
 
 /* Image left, text right. */
 .my-mt{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
@@ -144,11 +161,19 @@ html,body{background:${GROUND}}
 .my-botpad{height:64px}
 @media (max-width:800px){.my-botpad{height:120px}}
 @media (max-width:800px){
+  .my-rail{--th:clamp(190px,42vw,260px)}
   .my-2,.my-mt{grid-template-columns:1fr;gap:8px}
   .my-sec{margin-top:40px}
   .my-nav-desk{display:none !important}
   .my-nav-mob{display:block}
   .my-h1,.my-h2{overflow-wrap:break-word}
+  /* A table cannot shrink below its min-content width; with nowrap prices that
+     floor was 415px on a 390px phone and it pushed the whole document wide.
+     Stack the rows instead, which also reads better on a phone. */
+  .my-tbl,.my-tbl tbody,.my-tbl tr,.my-tbl td{display:block;width:auto}
+  .my-tbl tr{border-bottom:1px solid ${RULE};padding:13px 0}
+  .my-tbl td{border:0;padding:0;text-align:left !important}
+  .my-tbl td+td{padding-top:5px}
 }
 `
 
@@ -270,7 +295,7 @@ export default function MyndoPage() {
   }, [menu])
 
   const stage = (id: string) => STAGES.find((s) => s.id === id)!
-  const TH = 'clamp(300px, 34vw, 470px)'
+  const TH = 'var(--th)'
 
   return (
     <div className="my">
@@ -369,32 +394,23 @@ export default function MyndoPage() {
               <Spy className="my-sec my-sec--rule">
                 <div className="my-w">
                   <h2 className="my-h2" style={{ marginBottom: 20 }}>{s.name}</h2>
-                  <div className="my-mt">
+                  <div className="my-ch">
                     <img src={s.photo} alt={s.alt} loading="lazy" />
-                    <div>
-                      <p className="my-lede">{s.body}</p>
-                      {s.price && (
-                        <p className="my-lab my-mute" style={{ paddingTop: 16 }}>
-                          {s.price} kr. · {s.dur}{pkg ? ` · ${pkg.incl}` : ''}
-                        </p>
-                      )}
+                    <div className="my-ch__side">
+                      <div>
+                        <p className="my-lede">{s.body}</p>
+                        {pkg && <p className="my-cap my-mute" style={{ paddingTop: 10 }}>{pkg.fits}</p>}
+                        {s.price && (
+                          <p className="my-lab" style={{ paddingTop: 12 }}>
+                            {s.price} kr. · {s.dur}{pkg ? ` · ${pkg.incl}` : ''}
+                          </p>
+                        )}
+                      </div>
+                      <div className="my-ch__pair">
+                        <img src={c.a} alt={`${s.name} hjá Myndó.`} loading="lazy" />
+                        <img src={c.b} alt={`${s.name} hjá Myndó.`} loading="lazy" />
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </Spy>
-              <Spy className="my-sec">
-                <div className="my-w">
-                  <div className="my-2">
-                    <figure>
-                      <img src={c.a} alt={`${s.name}, mynd úr myndasafni Myndó.`} loading="lazy" />
-                      <figcaption className="my-cap">{s.body}</figcaption>
-                    </figure>
-                    <figure>
-                      <img src={c.b} alt={`${s.name}, mynd úr myndasafni Myndó.`} loading="lazy" />
-                      <figcaption className="my-cap">
-                        {pkg ? `${pkg.fits} ${pkg.incl}, ${pkg.dur}.` : 'Hafðu samband fyrir verðtilboð.'}
-                      </figcaption>
-                    </figure>
                   </div>
                 </div>
               </Spy>
