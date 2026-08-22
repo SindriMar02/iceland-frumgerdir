@@ -1,608 +1,267 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { companyEntry as company } from './company'
 import {
-  BRAND, HERO, SPEC, COLOURWAYS, TIMELINE, RECOGNITION,
-  RETAILERS, MAKER, LAMPS, IMAGES, TRIVIA,
+  BRAND, SPEC, COLOURWAYS, TIMELINE, RECOGNITION,
+  RETAILERS, MAKER, LAMPS, IMAGES, TRIVIA, WORK,
 } from './data'
 
-/* ------------------------------------------------------------------ tokens */
+/* ------------------------------------------------------------------ tokens
+ * Rebuilt against wakawaka.world, MEASURED rather than eyeballed (2026-08-22):
+ * image-area ratio 1.004, 128 images, h2 14px, body 10px. The first build was
+ * 0.264 / 6 images / h2 86px, which is a text page with pictures, and Sindri
+ * called it correctly. The grammar here is: the work fills the page, the type
+ * whispers, and there is exactly one display moment.
+ *
+ * The ground is paper, not the dark slab of the first attempt. It comes from
+ * their own five-language advertisement, printed white with a magenta banner,
+ * and MAGENTA below is sampled out of that artwork rather than chosen.
+ */
 
-const BASALT = '#14110F'
-const ASH = '#201B18'
-const WOOL = '#EDE7DF'
-const SLATE = '#8C837A'
-const PINK = '#B8256B'
+const PAPER = '#EDE9E2'
+const CARD = '#F7F4EF'
+const INK = '#17140F'
+const MUTE = '#635C54'
+const MAGENTA = '#872684'
 
-const DISPLAY = "'Cabinet Grotesk', system-ui, sans-serif"
-const BODY = "'Schibsted Grotesk', system-ui, sans-serif"
+const SANS = "'Schibsted Grotesk', system-ui, sans-serif"
 const MONO = "'Space Mono', ui-monospace, monospace"
 
-const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent'
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
 
-/* ------------------------------------------------------------------ styles */
-
-/**
- * Scoped to `.fz-root` and prefixed `fz-` so nothing bleeds into another
- * preview ([[no-style-bleed-between-designs]]). Injected via
- * dangerouslySetInnerHTML because a React <style>{...}</style> child gets
- * HTML-escaped during prerender and `content:''` arrives as `content:&#x27;&#x27;`.
- */
 const CSS = `
-.fz-root{background:var(--fz-ground,${BASALT});color:${WOOL};font-family:${BODY};
-  transition:background-color 600ms cubic-bezier(.22,1,.36,1);overflow-x:clip}
-.fz-root ::selection{background:${PINK};color:#fff}
-
-/* every child of a full-bleed grid cell must be positioned, or a positioned
-   sibling paints over static text regardless of DOM order (ledger #73) */
+.fz-root{background:var(--fz-ground,${PAPER});color:${INK};font-family:${SANS};
+  font-size:13px;line-height:1.5;transition:background-color 600ms cubic-bezier(.22,1,.36,1);
+  overflow-x:clip}
+.fz-root ::selection{background:${MAGENTA};color:#fff}
 .fz-bleed > *{position:relative}
 
-.fz-display{font-family:${DISPLAY};font-weight:800;letter-spacing:-.035em;line-height:1.16}
-.fz-mono{font-family:${MONO};font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.fz-lab{font-family:${MONO};font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${MUTE}}
+.fz-cap{font-family:${MONO};font-size:10px;letter-spacing:.04em;color:${MUTE};line-height:1.45}
+.fz-anchor{font-size:clamp(26px,3.4vw,40px);line-height:1.16;letter-spacing:-.025em;font-weight:600}
+.fz-sub{font-size:13px;line-height:1.6;color:${MUTE}}
 
-/* ---- per-word headline rise (Daylight device, words never characters) ---- */
-/* inline-block, not block: a per-word block puts every word on its own line and
-   reads as broken (ledger #74). padding-top keeps Í Á Ó Ú Ý off the mask edge. */
-.fz-ln{display:inline-block;overflow:hidden;vertical-align:bottom;
-  padding-top:.18em;margin-top:-.18em}
-.fz-w{display:inline-block;transform:translateY(105%);opacity:0;
-  transition:transform 900ms cubic-bezier(.16,1,.3,1),opacity 700ms linear}
-.fz-in .fz-w{transform:translateY(0);opacity:1}
-
-/* ---- reveal ---- */
-.fz-rv{opacity:0;transform:translateY(22px);
-  transition:opacity 700ms cubic-bezier(.16,1,.3,1),transform 700ms cubic-bezier(.16,1,.3,1)}
+.fz-rv{opacity:0;transform:translateY(14px);
+  transition:opacity 620ms cubic-bezier(.16,1,.3,1),transform 620ms cubic-bezier(.16,1,.3,1)}
 .fz-in.fz-rv,.fz-in .fz-rv{opacity:1;transform:none}
 
-/* ---- THE SIGNATURE: the fleece edge -------------------------------------
-   A dense field of thin strands. As the divider crosses the viewport the
-   strands lean, the way a sheepskin shows which way it was stroked. Driven by
-   a CSS view() timeline so there is no scroll listener at all. */
-/* clip-path, NOT overflow:hidden. overflow:hidden would make this element its
-   own scrollport, and a view() timeline resolves against the nearest scrollport,
-   so the strands would freeze inside a box that never scrolls. Same family as
-   [[overflow-hidden-breaks-sticky]]. clip-path clips without that side effect. */
-.fz-fibre{position:relative;height:74px;clip-path:inset(0);pointer-events:none}
-.fz-fibre-in{position:absolute;inset:-14% -6%;
-  background:
-    repeating-linear-gradient(90deg,
-      rgba(237,231,223,.00) 0px, rgba(237,231,223,.19) 1px, rgba(237,231,223,.00) 2px,
-      rgba(237,231,223,.00) 3px, rgba(237,231,223,.11) 4px, rgba(237,231,223,.00) 6px),
-    repeating-linear-gradient(90deg,
-      rgba(237,231,223,.00) 0px, rgba(237,231,223,.07) 1px, rgba(237,231,223,.00) 5px);
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 42%,#000 58%,transparent);
-  mask-image:linear-gradient(to bottom,transparent,#000 42%,#000 58%,transparent);
-  transform:skewX(0deg)}
-@supports (animation-timeline: view()){
-  @media (prefers-reduced-motion:no-preference){
-    /* LONGHAND on purpose. The animation shorthand resets animation-duration
-       to 0s, and a scroll-driven timeline with a 0s duration never progresses,
-       so the strands sit frozen at their midpoint. Verified by measuring the
-       same element at three scroll depths (ledger #42). */
-    .fz-fibre-in{
-      animation-name:fz-lean;
-      animation-duration:auto;
-      animation-timing-function:linear;
-      animation-fill-mode:both;
-      animation-timeline:view();
-      animation-range:entry 0% exit 100%}
-  }
-}
-@keyframes fz-lean{from{transform:skewX(-11deg) translateX(-8px)}
-  to{transform:skewX(11deg) translateX(8px)}}
-
-/* ---- links, buttons ---- */
-.fz-link{position:relative;display:inline-block}
-.fz-link::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;
-  background:currentColor;transform:scaleX(0);transform-origin:left;
-  transition:transform 200ms cubic-bezier(.16,1,.3,1)}
-.fz-link:hover::after,.fz-link:focus-visible::after{transform:scaleX(1)}
-.fz-btn{transition:background-color 180ms ease,color 180ms ease,transform 160ms ease}
-.fz-btn:active{transform:scale(.985)}
-
-/* ---- colourway chips ---- */
-.fz-chip{position:relative;border-radius:999px;transition:transform 180ms cubic-bezier(.16,1,.3,1)}
-.fz-chip:active{transform:scale(.96)}
-.fz-chip[aria-pressed="true"]{box-shadow:0 0 0 1px ${BASALT},0 0 0 3px ${PINK}}
-
-/* ---- product stage: swap dips, never blanks (ledger #209) ---- */
-.fz-stage img{transition:opacity 260ms ease,filter 260ms ease}
-.fz-stage.fz-swap img{opacity:.38}
-
-/* ---- retailer rows ---- */
-.fz-row{transition:background-color 180ms ease,padding-left 200ms cubic-bezier(.16,1,.3,1)}
+/* THE INDEX. Twelve columns, every item a different span, so the page reads as
+   a wall of work rather than a stack of sections. */
+.fz-index{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+.fz-item{grid-column:span 12;margin:0}
+@media (min-width:760px){.fz-item{grid-column:span var(--sp,6)}}
+.fz-item img{display:block;width:100%;height:auto;background:${CARD};
+  transition:filter 460ms ease,transform 560ms cubic-bezier(.16,1,.3,1)}
+.fz-item figcaption{margin-top:7px}
 @media (hover:hover) and (pointer:fine){
   @media (prefers-reduced-motion:no-preference){
-    .fz-row:hover{background:rgba(237,231,223,.045);padding-left:14px}
+    .fz-index:hover .fz-item img{filter:grayscale(.4) brightness(.93)}
+    .fz-item:hover img{filter:none;transform:scale(1.012)}
   }
 }
-.fz-row:active{background:rgba(237,231,223,.07)}
+
+.fz-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(126px,1fr);
+  gap:8px;overflow-x:auto;scroll-snap-type:x proximity}
+.fz-chip{border:1px solid rgba(23,20,15,.16);background:${CARD};padding:9px 12px;
+  display:flex;align-items:center;gap:9px;min-height:44px;
+  transition:border-color 180ms ease,transform 160ms ease}
+.fz-chip:active{transform:scale(.985)}
+.fz-chip[aria-pressed="true"]{border-color:${MAGENTA};box-shadow:inset 0 0 0 1px ${MAGENTA}}
+
+.fz-row{display:grid;gap:6px;padding:10px 0;border-top:1px solid rgba(23,20,15,.14)}
+@media (min-width:700px){.fz-row{grid-template-columns:minmax(160px,.8fr) 1.6fr auto;gap:18px;align-items:baseline}}
+.fz-link{position:relative;display:inline-block}
+.fz-link::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;
+  background:currentColor;transform:scaleX(0);transform-origin:left;
+  transition:transform 190ms cubic-bezier(.16,1,.3,1)}
+.fz-link:hover::after,.fz-link:focus-visible::after{transform:scaleX(1)}
+.fz-btn{transition:background-color 170ms ease,transform 150ms ease}
+.fz-btn:active{transform:scale(.985)}
 
 @media (prefers-reduced-motion:reduce){
-  .fz-w{transform:none;opacity:1;transition:none}
   .fz-rv{opacity:1;transform:none;transition:none}
-  .fz-fibre-in{animation:none;transform:none}
-  .fz-row:hover{padding-left:0;background:none}
+  .fz-item img{transition:none}
+  .fz-index:hover .fz-item img{filter:none}
 }
 `
 
-/* ------------------------------------------------------------- primitives */
-
-/** Splits per WORD. Icelandic accents make per-character splits a trap. */
-function Headline({
-  text, id, className = '', size = 96, measure, as: Tag = 'h2',
-}: {
-  text: string; id?: string; className?: string; size?: number; measure?: number
-  as?: 'h1' | 'h2'
-}) {
-  const words = useMemo(() => text.split(' '), [text])
-  return (
-    <Tag
-      id={id}
-      aria-label={text}
-      className={`fz-display ${className}`}
-      style={{
-        fontSize: `clamp(30px, ${size / 19}vw, ${size}px)`,
-        maxWidth: measure ? `${measure}px` : undefined,
-        textWrap: 'balance',
-      }}
-    >
-      {/* one correctly spaced copy for assistive tech and crawlers */}
-      <span className="sr-only">{text}</span>
-      <span aria-hidden="true">
-        {words.map((w, i) => (
-          // the space is a SIBLING of the clipped box; inside it, overflow:hidden
-          // eats it and the words run together (ledger #74a)
-          <span key={`${w}-${i}`}>
-            <span className="fz-ln">
-              <span className="fz-w" style={{ transitionDelay: `${i * 44}ms` }}>
-                {w}
-              </span>
-            </span>
-            {i < words.length - 1 ? ' ' : ''}
-          </span>
-        ))}
-      </span>
-    </Tag>
-  )
-}
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="fz-mono" style={{ color: SLATE }}>{children}</p>
-}
-
-/** The fleece-edge divider. Decorative only. */
-function Fibre() {
-  return (
-    <div className="fz-fibre" aria-hidden="true">
-      <div className="fz-fibre-in" />
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------- page */
-
 export default function FuzzyPage() {
-  const [colour, setColour] = useState<(typeof COLOURWAYS)[number]>(COLOURWAYS[0])
-  const [swapping, setSwapping] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const [colour, setColour] = useState<(typeof COLOURWAYS)[number]>(COLOURWAYS[0])
 
-  /* Reveal on enter. IntersectionObserver, never a scroll listener. */
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-rv]'))
-    if (reduce) {
-      targets.forEach((t) => t.classList.add('fz-in'))
-      return
-    }
+    if (reduce) { targets.forEach((t) => t.classList.add('fz-in')); return }
     const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('fz-in')
-            io.unobserve(e.target)
-          }
-        })
-      },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.18 },
+      (es) => es.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('fz-in'); io.unobserve(e.target) }
+      }),
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
     )
     targets.forEach((t) => io.observe(t))
     return () => io.disconnect()
   }, [])
 
-  function pick(c: (typeof COLOURWAYS)[number]) {
-    if (c.id === colour.id) return
-    setSwapping(true)
-    window.setTimeout(() => {
-      setColour(c)
-      setSwapping(false)
-    }, 160)
-  }
-
-  const nav = [
-    { label: 'Kollurinn', href: '#kollurinn' },
-    { label: 'Gæran', href: '#gaeran' },
-    { label: 'Bílskúrinn', href: '#bilskurinn' },
-    { label: 'Söluaðilar', href: '#soluadilar' },
-  ]
-
   return (
-    <div
-      ref={rootRef}
-      className="fz-root"
-      style={{ ['--fz-ground' as string]: colour.ground }}
-    >
+    <div ref={rootRef} className="fz-root">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* ---------------------------------------------------------- header */}
-      <header
-        className="absolute left-0 right-0 top-0 z-30 px-5 pt-6 sm:px-10"
-        style={{ color: WOOL }}
-      >
-        <div className="mx-auto flex max-w-[1360px] items-baseline justify-between gap-6">
-          <a
-            href="#top"
-            className={`fz-display ${FOCUS}`}
-            style={{
-              fontSize: 26, letterSpacing: '-.05em', color: WOOL,
-              minHeight: 44, display: 'inline-flex', alignItems: 'center',
-            }}
-          >
-            fuzzy
+      <header className="sticky top-0 z-30 px-4 py-3 sm:px-6"
+              style={{ background: PAPER, borderBottom: '1px solid rgba(23,20,15,.14)' }}>
+        <div className="mx-auto flex max-w-[1560px] items-center justify-between gap-6">
+          <a href="#top" className={`fz-lab ${FOCUS}`}
+             style={{ color: INK, fontWeight: 700, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>
+            FUZZY · MÓDEL-HÚSGÖGN
           </a>
-          <nav className="hidden gap-8 sm:flex" aria-label="Aðalvalmynd">
-            {nav.map((n) => (
-              <a
-                key={n.href}
-                href={n.href}
-                className={`fz-link fz-mono ${FOCUS}`}
-                style={{ color: WOOL, minHeight: 44, lineHeight: '44px' }}
-              >
-                {n.label}
-              </a>
+          <nav className="hidden gap-6 sm:flex" aria-label="Valmynd">
+            {[['Verkin', '#verkin'], ['Kollurinn', '#kollurinn'], ['Söluaðilar', '#soluadilar']].map(([l, h]) => (
+              <a key={h} href={h} className={`fz-link fz-lab ${FOCUS}`}
+                 style={{ color: INK, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{l}</a>
             ))}
           </nav>
+          <a href={`tel:${BRAND.phones[1].replace(/\D/g, '')}`} className={`fz-link fz-lab ${FOCUS}`}
+             style={{ color: MAGENTA, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>
+            {BRAND.phones[1]}
+          </a>
         </div>
       </header>
 
       <main id="top">
-        {/* ------------------------------------------------------------ hero */}
-        <section
-          className="fz-bleed relative grid min-h-[100svh] place-items-center px-5 pb-24 pt-32 sm:px-10"
-          aria-labelledby="hero-h"
-        >
-          <div className="mx-auto w-full max-w-[1360px]">
-            <div data-rv className="fz-rv">
-              <Eyebrow>{HERO.eyebrow}</Eyebrow>
-            </div>
-
-            <div data-rv className="mt-6">
-              <Headline as="h1" id="hero-h" text={HERO.headline} size={104} measure={1180} />
-            </div>
-
-            <div data-rv className="fz-rv mt-8 flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
-              <p
-                className="max-w-[46ch] text-[16px] leading-relaxed sm:text-[17px]"
-                style={{ color: SLATE }}
-              >
-                {HERO.lede}
-              </p>
-              <a
-                href={HERO.cta.href}
-                className={`fz-btn fz-mono inline-flex shrink-0 items-center justify-center rounded-full px-8 ${FOCUS}`}
-                style={{ background: PINK, color: '#fff', minHeight: 52 }}
-              >
-                {HERO.cta.label}
-              </a>
-            </div>
-
-            {/* the real range photograph, background knocked out */}
-            <div data-rv className="fz-rv fz-stage mt-14 sm:mt-20">
-              <img
-                src={IMAGES.range}
-                srcSet={`${IMAGES.rangeSm} 1200w, ${IMAGES.range} 2400w`}
-                sizes="(max-width: 900px) 100vw, 1360px"
-                width={2400}
-                height={992}
-                alt="Fimm Fuzzy kollar í ólíkum gærulitum ásamt upprunalega kassanum."
-                className="h-auto w-full"
-                loading="eager"
-                decoding="async"
-              />
+        <section className="px-4 pb-10 pt-10 sm:px-6 sm:pb-14 sm:pt-14" aria-labelledby="h1">
+          <div className="mx-auto max-w-[1560px]">
+            <div data-rv className="fz-rv grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-14">
+              <div className="self-end">
+                <p className="fz-lab">Reykjavík · síðan 1972</p>
+                <h1 id="h1" className="fz-anchor mt-4" style={{ maxWidth: '19ch' }}>
+                  Sami maðurinn hefur smíðað hvern einasta koll síðan 1972.
+                </h1>
+                <p className="fz-sub mt-5" style={{ maxWidth: '44ch' }}>
+                  Fuzzy er lítill íslenskur gærukollur. Sigurður Már hannaði hann 1972
+                  og smíðar hann enn sjálfur í bílskúrnum sínum.
+                </p>
+                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <a href="#verkin" className={`fz-btn fz-lab inline-flex items-center justify-center px-6 ${FOCUS}`}
+                     style={{ background: MAGENTA, color: '#fff', minHeight: 44 }}>Sjá verkin</a>
+                  <span className="fz-cap">{SPEC.dims} · {SPEC.weight}</span>
+                </div>
+              </div>
+              <figure className="m-0">
+                <img src={IMAGES.bench} width={1280} height={853} loading="eager" decoding="async"
+                     alt="Sigurður Már Helgason rennur viðarfætur í bílskúrnum sínum."
+                     className="block h-auto w-full" />
+                <figcaption className="fz-cap mt-2">
+                  Bílskúrinn í Reykjavík. Hver einasti Fuzzy er smíðaður hér.
+                </figcaption>
+              </figure>
             </div>
           </div>
         </section>
 
-        <Fibre />
-
-        {/* ------------------------------------------------------- the object */}
-        <section id="kollurinn" className="scroll-mt-20 px-5 py-24 sm:px-10 sm:py-32" aria-labelledby="spec-h">
-          <div className="mx-auto max-w-[1360px]">
-            <div data-rv>
-              {/* the Waka Waka lockup: name, then the real measurements */}
-              <h2 id="spec-h" className="fz-display" style={{ fontSize: 'clamp(30px,6vw,86px)' }}>
-                {SPEC.title}{' '}
-                <span style={{ fontFamily: MONO, fontSize: '.34em', letterSpacing: '.02em', color: SLATE }}>
-                  ({SPEC.dims} · {SPEC.weight})
-                </span>
-              </h2>
+        <section id="verkin" className="scroll-mt-14 px-4 pb-16 sm:px-6" aria-label="Verkin">
+          <div className="mx-auto max-w-[1560px]">
+            <div className="fz-index" data-rv>
+              {WORK.map((w) => (
+                <figure key={w.src} className="fz-item" style={{ ['--sp' as string]: w.span }}>
+                  <img src={`/fuzzy/${w.src}.webp`} loading="lazy" decoding="async"
+                       alt={w.cap} className="h-auto w-full" />
+                  <figcaption className="fz-cap">{w.cap}</figcaption>
+                </figure>
+              ))}
             </div>
+          </div>
+        </section>
 
-            <div className="mt-14 grid gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
+        <section id="kollurinn" className="scroll-mt-14 px-4 py-14 sm:px-6"
+                 style={{ borderTop: '1px solid rgba(23,20,15,.14)' }} aria-labelledby="k-h">
+          <div className="mx-auto max-w-[1560px]">
+            <p className="fz-lab" id="k-h">Kollurinn</p>
+            <div className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
               <div data-rv className="fz-rv">
-                <img
-                  src={IMAGES.home}
-                  width={1170}
-                  height={611}
-                  alt="Hvítur Fuzzy kollur á viðargólfi við hliðina á minni Fuzzy undir glerkúpli."
-                  className="h-auto w-full rounded-[4px]"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <img src={IMAGES.range} srcSet={`${IMAGES.rangeSm} 1200w, ${IMAGES.range} 2400w`}
+                     sizes="(max-width:900px) 100vw, 60vw" width={2400} height={992}
+                     alt="Fimm Fuzzy kollar í ólíkum gærulitum ásamt kassanum."
+                     className="h-auto w-full" loading="lazy" decoding="async" />
+                <div className="fz-strip mt-4" role="group" aria-label="Veldu gærulit">
+                  {COLOURWAYS.map((c) => (
+                    <button key={c.id} type="button" onClick={() => setColour(c)}
+                            aria-pressed={c.id === colour.id} className={`fz-chip ${FOCUS}`}>
+                      <span aria-hidden="true" style={{ width: 14, height: 14, background: c.hex,
+                            border: '1px solid rgba(23,20,15,.2)', display: 'inline-block' }} />
+                      <span className="fz-lab" style={{ color: c.id === colour.id ? INK : MUTE }}>{c.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="fz-cap mt-3" aria-live="polite">
+                  {colour.name} · {colour.note} · litur mældur úr þeirra eigin ljósmynd
+                </p>
               </div>
-
-              <dl data-rv className="fz-rv self-center">
+              <dl data-rv className="fz-rv m-0">
                 {SPEC.rows.map((r) => (
-                  <div
-                    key={r.k}
-                    className="grid grid-cols-[104px_1fr] gap-6 py-5"
-                    style={{ borderTop: '1px solid rgba(237,231,223,.14)' }}
-                  >
-                    <dt className="fz-mono" style={{ color: SLATE }}>{r.k}</dt>
-                    <dd className="text-[15px] leading-relaxed sm:text-[16px]">{r.v}</dd>
+                  <div key={r.k} className="fz-row">
+                    <dt className="fz-lab">{r.k}</dt>
+                    <dd className="m-0">{r.v}</dd>
                   </div>
                 ))}
-                <div className="pt-8">
-                  {TRIVIA.map((t) => (
-                    <p key={t} className="text-[14px] leading-relaxed" style={{ color: SLATE }}>{t}</p>
-                  ))}
+                <div className="fz-row">
+                  <dt className="fz-lab">Vissir þú</dt>
+                  <dd className="m-0">{TRIVIA.join(' ')}</dd>
                 </div>
               </dl>
             </div>
           </div>
         </section>
 
-        {/* --------------------------------------------------------- the wool */}
-        <section id="gaeran" className="fz-bleed scroll-mt-20" aria-labelledby="wool-h">
-          <div className="relative">
-            <img
-              src={IMAGES.fleece}
-              width={2200}
-              height={372}
-              alt="Nærmynd af gærunni: löng, mjúk íslensk ull."
-              className="h-[46vh] w-full object-cover sm:h-[58vh]"
-              loading="lazy"
-              decoding="async"
-            />
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{ background: `linear-gradient(to top, ${colour.ground} 4%, rgba(0,0,0,.25) 46%, rgba(0,0,0,.05))` }}
-            />
-          </div>
-
-          <div className="mx-auto max-w-[1360px] px-5 py-20 sm:px-10 sm:py-28">
-            <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-20">
-              <div data-rv>
-                <Headline id="wool-h" text="Ekta íslensk gæra, ekkert annað" size={72} measure={620} />
-              </div>
-              <div data-rv className="fz-rv self-end">
-                <p className="max-w-[52ch] text-[16px] leading-relaxed sm:text-[18px]">
-                  Setan er bólstruð með ekta íslenskri gæru og fæturnir eru fjórir ávalir,
-                  renndir viðarfætur. Ullin er löng og heldur lögun sinni, og hver gæra er
-                  ólík þeirri næstu, svo engir tveir kollar eru eins.
-                </p>
-                <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
-                  {RECOGNITION.map((r) => (
-                    <li key={r} className="fz-mono" style={{ color: SLATE }}>{r}</li>
-                  ))}
-                </ul>
-              </div>
+        <section className="px-4 py-14 sm:px-6" style={{ borderTop: '1px solid rgba(23,20,15,.14)' }}
+                 aria-labelledby="m-h">
+          <div className="mx-auto grid max-w-[1560px] gap-10 lg:grid-cols-[1fr_1.25fr] lg:gap-16">
+            <div data-rv className="fz-rv">
+              <p className="fz-lab" id="m-h">Hönnuðurinn</p>
+              <p className="mt-4 text-[15px] font-semibold">{MAKER.name}</p>
+              <p className="fz-cap mt-1">{MAKER.role}</p>
+              {MAKER.body.map((b) => (
+                <p key={b.slice(0, 18)} className="fz-sub mt-4" style={{ maxWidth: '46ch' }}>{b}</p>
+              ))}
+              <ul className="mt-7 grid gap-1">
+                {RECOGNITION.map((r) => <li key={r} className="fz-cap">{r}</li>)}
+              </ul>
             </div>
+            <ol data-rv className="fz-rv m-0">
+              {TIMELINE.map((t) => (
+                <li key={t.year} className="fz-row">
+                  <span className="fz-lab" style={{ color: MAGENTA }}>{t.year}</span>
+                  <span>
+                    <span className="font-semibold">{t.title}.</span>{' '}
+                    <span style={{ color: MUTE }}>{t.body}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
-        <Fibre />
-
-        {/* ------------------------------------------------------- colourways */}
-        <section id="litir" className="scroll-mt-20 px-5 py-24 sm:px-10 sm:py-32" aria-labelledby="col-h">
-          <div className="mx-auto max-w-[1360px]">
-            <div data-rv>
-              <Headline id="col-h" text="Hver gæra hefur sinn lit" size={72} measure={720} />
-            </div>
-            <p data-rv className="fz-rv mt-6 max-w-[54ch] text-[16px] leading-relaxed" style={{ color: SLATE }}>
-              Litirnir hér að neðan eru mældir beint úr ljósmynd Sigurðar Más af kollunum,
-              ekki valdir af okkur. Veldu lit og síðan tekur á sig tóninn af gærunni.
-            </p>
-
-            <div
-              data-rv
-              className="fz-rv mt-12 flex flex-wrap items-center gap-3"
-              role="group"
-              aria-label="Veldu gærulit"
-            >
-              {COLOURWAYS.map((c) => {
-                const on = c.id === colour.id
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => pick(c)}
-                    aria-pressed={on}
-                    className={`fz-chip fz-mono inline-flex items-center gap-3 px-5 ${FOCUS}`}
-                    style={{
-                      minHeight: 48,
-                      color: on ? WOOL : SLATE,
-                      background: on ? 'rgba(237,231,223,.07)' : 'transparent',
-                      border: '1px solid rgba(237,231,223,.16)',
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="inline-block rounded-full"
-                      style={{ width: 20, height: 20, background: c.hex, border: '1px solid rgba(237,231,223,.2)' }}
-                    />
-                    {c.name}
-                  </button>
-                )
-              })}
-            </div>
-
-            <p className="fz-mono mt-6" style={{ color: SLATE }} aria-live="polite">
-              {colour.name} · {colour.note} · {colour.hex}
-            </p>
-
-            <div className={`fz-stage mt-12 ${swapping ? 'fz-swap' : ''}`}>
-              <img
-                src={IMAGES.range}
-                width={2400}
-                height={992}
-                alt="Úrval Fuzzy kolla í ólíkum gærulitum."
-                className="h-auto w-full"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
+        <section className="px-4 py-14 sm:px-6" style={{ borderTop: '1px solid rgba(23,20,15,.14)' }}
+                 aria-labelledby="l-h">
+          <div className="mx-auto max-w-[1560px]">
+            <p className="fz-lab" id="l-h">{LAMPS.title}</p>
+            <p data-rv className="fz-rv fz-sub mt-4" style={{ maxWidth: '70ch' }}>{LAMPS.body}</p>
           </div>
         </section>
 
-        <Fibre />
-
-        {/* --------------------------------------------------------- the maker */}
-        <section
-          id="bilskurinn"
-          className="scroll-mt-20 px-5 py-24 sm:px-10 sm:py-32"
-          style={{ background: ASH }}
-          aria-labelledby="maker-h"
-        >
-          <div className="mx-auto max-w-[1360px]">
-            <div data-rv>
-              <Headline
-                id="maker-h"
-                text="Enn þann dag í dag smíðar hann þá sjálfur"
-                size={80}
-                measure={900}
-              />
-            </div>
-
-            <div className="mt-14 grid gap-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-20">
-              <div data-rv className="fz-rv">
-                <p className="fz-mono" style={{ color: PINK }}>{MAKER.role}</p>
-                <p className="fz-display mt-3" style={{ fontSize: 'clamp(24px,3vw,34px)' }}>
-                  {MAKER.name}
-                </p>
-                {MAKER.body.map((p) => (
-                  <p key={p.slice(0, 24)} className="mt-5 max-w-[46ch] text-[15px] leading-relaxed sm:text-[16px]"
-                     style={{ color: SLATE }}>
-                    {p}
-                  </p>
-                ))}
-              </div>
-
-              {/* dated timeline: a genuine sequence, so numbering is honest here */}
-              <ol data-rv className="fz-rv">
-                {TIMELINE.map((t) => (
-                  <li
-                    key={t.year}
-                    className="grid grid-cols-[92px_1fr] gap-6 py-6 sm:grid-cols-[120px_1fr]"
-                    style={{ borderTop: '1px solid rgba(237,231,223,.14)' }}
-                  >
-                    <span className="fz-mono" style={{ color: PINK }}>{t.year}</span>
-                    <div>
-                      <p className="text-[16px] font-semibold sm:text-[17px]">{t.title}</p>
-                      <p className="mt-2 text-[14px] leading-relaxed sm:text-[15px]" style={{ color: SLATE }}>
-                        {t.body}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- travels */}
-        <section className="px-5 py-24 sm:px-10 sm:py-32" aria-labelledby="far-h">
-          <div className="mx-auto max-w-[1360px]">
-            <div data-rv>
-              <Headline id="far-h" text="Kollurinn hefur farið víða" size={72} measure={680} />
-            </div>
-            <div className="mt-14 grid gap-8 sm:grid-cols-[1.25fr_.75fr] sm:gap-10">
-              <figure data-rv className="fz-rv m-0">
-                <img
-                  src={IMAGES.stockist}
-                  width={1400}
-                  height={2100}
-                  alt="Fuzzy kollur til sýnis í verslun erlendis, við hlið uppstoppaðs ísbjarnar."
-                  className="h-full max-h-[70vh] w-full rounded-[4px] object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <figcaption className="fz-mono mt-4" style={{ color: SLATE }}>
-                  Fuzzy erlendis, meðal annars í Nordatlantisk Hus í Danmörku og í Kanada
-                </figcaption>
-              </figure>
-              <figure data-rv className="fz-rv m-0 self-end">
-                <img
-                  src={IMAGES.press}
-                  width={1100}
-                  height={1414}
-                  alt="Umfjöllun um Fuzzy í Iceland Review."
-                  className="h-auto w-full rounded-[4px]"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <figcaption className="fz-mono mt-4" style={{ color: SLATE }}>
-                  Iceland Review, Made in Iceland
-                </figcaption>
-              </figure>
-            </div>
-          </div>
-        </section>
-
-        <Fibre />
-
-        {/* ----------------------------------------------------------- lamps */}
-        <section className="px-5 py-24 sm:px-10 sm:py-28" aria-labelledby="lamp-h">
-          <div className="mx-auto grid max-w-[1360px] gap-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-20">
-            <div data-rv>
-              <Headline id="lamp-h" text={LAMPS.title} size={58} measure={420} />
-            </div>
-            <p data-rv className="fz-rv max-w-[60ch] self-center text-[16px] leading-relaxed sm:text-[18px]"
-               style={{ color: SLATE }}>
-              {LAMPS.body}
-            </p>
-          </div>
-        </section>
-
-        {/* ------------------------------------------------------- retailers */}
-        <section
-          id="soluadilar"
-          className="scroll-mt-20 px-5 py-24 sm:px-10 sm:py-32"
-          style={{ background: ASH }}
-          aria-labelledby="ret-h"
-        >
-          <div className="mx-auto max-w-[1360px]">
-            <div data-rv>
-              <Headline id="ret-h" text="Fæst hjá tíu verslunum" size={72} measure={640} />
-            </div>
-            <ul data-rv className="fz-rv mt-12">
+        <section id="soluadilar" className="scroll-mt-14 px-4 py-14 sm:px-6"
+                 style={{ borderTop: '1px solid rgba(23,20,15,.14)' }} aria-labelledby="r-h">
+          <div className="mx-auto max-w-[1560px]">
+            <p className="fz-lab" id="r-h">Fæst hjá tíu verslunum</p>
+            <ul data-rv className="fz-rv mt-6">
               {RETAILERS.map((r) => (
-                <li
-                  key={r.name}
-                  className="fz-row grid grid-cols-1 gap-1 py-5 sm:grid-cols-[minmax(200px,.8fr)_1.4fr_auto] sm:items-baseline sm:gap-8"
-                  style={{ borderTop: '1px solid rgba(237,231,223,.14)' }}
-                >
-                  <span className="text-[16px] font-semibold sm:text-[17px]">{r.name}</span>
-                  <span className="text-[14px] sm:text-[15px]" style={{ color: SLATE }}>{r.addr}</span>
-                  <a
-                    href={`tel:${r.tel.replace(/\s/g, '')}`}
-                    className={`fz-link fz-mono ${FOCUS}`}
-                    style={{ color: WOOL, minHeight: 44, lineHeight: '44px' }}
-                  >
+                <li key={r.name} className="fz-row">
+                  <span className="font-semibold">{r.name}</span>
+                  <span style={{ color: MUTE }}>{r.addr}</span>
+                  <a href={`tel:${r.tel.replace(/\s/g, '')}`} className={`fz-link fz-cap ${FOCUS}`}
+                     style={{ color: INK, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>
                     {r.tel}
                   </a>
                 </li>
@@ -611,33 +270,19 @@ export default function FuzzyPage() {
           </div>
         </section>
 
-        <Fibre />
-
-        {/* ---------------------------------------------------------- closer */}
-        <section className="px-5 pb-32 pt-24 sm:px-10 sm:pt-28" aria-labelledby="closer-h">
-          <div className="mx-auto max-w-[1360px]">
-            <div data-rv>
-              <Headline id="closer-h" text="Sérsmíði og fyrirspurnir" size={76} measure={760} />
-            </div>
-            <div data-rv className="fz-rv mt-10 flex flex-wrap items-center gap-x-10 gap-y-5">
+        <section className="px-4 pb-24 pt-14 sm:px-6" style={{ borderTop: '1px solid rgba(23,20,15,.14)' }}
+                 aria-labelledby="c-h">
+          <div className="mx-auto max-w-[1560px]">
+            <p className="fz-lab" id="c-h">Sérsmíði og fyrirspurnir</p>
+            <div className="mt-5 flex flex-wrap items-baseline gap-x-8 gap-y-3">
               {BRAND.phones.map((p) => (
-                <a
-                  key={p}
-                  href={`tel:${p.replace(/[^\d]/g, '')}`}
-                  className={`fz-display ${FOCUS}`}
-                  style={{
-                    fontSize: 'clamp(26px,4vw,46px)', color: PINK,
-                    minHeight: 48, display: 'inline-flex', alignItems: 'center',
-                  }}
-                >
-                  {p}
-                </a>
+                <a key={p} href={`tel:${p.replace(/\D/g, '')}`} className={`fz-link ${FOCUS}`}
+                   style={{ color: MAGENTA, fontSize: 22, fontWeight: 600, minHeight: 44,
+                            display: 'inline-flex', alignItems: 'center' }}>{p}</a>
               ))}
             </div>
-            <p data-rv className="fz-rv mt-8 text-[15px] leading-relaxed" style={{ color: SLATE }}>
-              {BRAND.legal} · {BRAND.address}
-              <br />
-              Kennitala {BRAND.kt} · skráð {BRAND.founded}
+            <p className="fz-cap mt-6">
+              {BRAND.legal} · {BRAND.address} · kt. {BRAND.kt} · skráð {BRAND.founded}
             </p>
           </div>
         </section>

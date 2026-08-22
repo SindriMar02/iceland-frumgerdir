@@ -52,10 +52,10 @@ export const SPEC = {
  * (public/fuzzy/range.webp) with PIL, not picked by eye.
  */
 export const COLOURWAYS = [
-  { id: 'hvitt', name: 'Hvítt', hex: '#DBD2C8', ground: '#1B1613', note: 'Ólituð hvít gæra' },
-  { id: 'graatt', name: 'Grátt', hex: '#9C928A', ground: '#14171B', note: 'Grásprengd gæra' },
-  { id: 'mobrunt', name: 'Móbrúnt', hex: '#5C442E', ground: '#1E150D', note: 'Móbrún gæra' },
-  { id: 'svart', name: 'Svart', hex: '#1F1B1A', ground: '#0E0D0D', note: 'Kolsvört gæra' },
+  { id: 'hvitt', name: 'Hvítt', hex: '#DBD2C8', paper: '#EDE9E2', note: 'Ólituð hvít gæra' },
+  { id: 'graatt', name: 'Grátt', hex: '#9C928A', paper: '#E9E9E8', note: 'Grásprengd gæra' },
+  { id: 'mobrunt', name: 'Móbrúnt', hex: '#5C442E', paper: '#EDE7DD', note: 'Móbrún gæra' },
+  { id: 'svart', name: 'Svart', hex: '#1F1B1A', paper: '#E8E6E3', note: 'Kolsvört gæra' },
 ] as const
 
 /** Dated, sourced. Two years appear on their own site; both are shown. */
@@ -125,11 +125,46 @@ export const LAMPS = {
     'Fætur ljóssins eru þeir sömu og á Fuzzy, í formi vatnsdropa sem er undirstaða alls lífs. Hver glerkúpull er stæling á fyrirbrigði úr íslenskri náttúru, svo sem fjallavatni eða eldfjalli.',
 } as const
 
+/**
+ * The work index. 29 real photographs harvested from their own gallery page,
+ * which the first build never reached. `span` drives the index grid: the page is
+ * mostly picture and the type recedes, which is the grammar of wakawaka.world
+ * (image-area ratio 1.004, h2 14px, body 10px) measured 2026-08-22.
+ */
+export const WORK = [
+  { src: 'hraun', span: 7, cap: 'Fuzzy í hrauni' },
+  { src: 'ad-is', span: 3, cap: 'Kveðja frá Íslandi' },
+  { src: 'ad-en', span: 3, cap: 'Greetings from Iceland' },
+  { src: 'ad-de', span: 3, cap: 'Grüße aus Island' },
+  { src: 'ad-es', span: 3, cap: 'Saludos desde Islandia' },
+  { src: 'refur', span: 6, cap: 'Gæran og refurinn' },
+  { src: 'gras', span: 6, cap: 'Tveir hvítir, úti í grasi' },
+  { src: 'press', span: 5, cap: 'Íslensk klassík, umfjöllun um hönnuðinn' },
+  { src: 'syning1', span: 7, cap: 'Á sýningu' },
+  { src: 'kaupmannahofn', span: 6, cap: 'Fatasýning, Kaupmannahöfn' },
+  { src: 'syning2', span: 6, cap: 'Gallerý Gersemi' },
+  { src: 'budur1', span: 4, cap: 'Í verslun' },
+  { src: 'budur2', span: 4, cap: 'Í verslun' },
+  { src: 'budur3', span: 4, cap: 'Jólaglugginn' },
+  { src: 'budur4', span: 6, cap: 'Uppstilling' },
+  { src: 'budur5', span: 6, cap: 'Fjórir saman' },
+  { src: 'ad-old', span: 5, cap: 'Gömul auglýsing' },
+  { src: 'ad-zh', span: 3, cap: '来自冰岛的问候' },
+  { src: 'barn', span: 4, cap: 'Rétt stærð fyrir lítinn mann' },
+  { src: 'svart', span: 6, cap: 'Svört gæra' },
+  { src: 'budur6', span: 6, cap: 'Í sýningarrými' },
+  { src: 'bjorn', span: 4, cap: 'Í búðarglugga erlendis' },
+  { src: 'verdlaun', span: 8, cap: 'Verðlaunagripurinn' },
+  { src: 'review', span: 4, cap: 'Iceland Review' },
+  { src: 'kambur', span: 6, cap: 'Fuzzy kambur' },
+  { src: 'ljos1', span: 3, cap: 'Ljós íslenskrar náttúru' },
+  { src: 'ljos2', span: 3, cap: 'Glerkúpull, stæling á fyrirbrigði úr náttúrunni' },
+  { src: 'ljos3', span: 6, cap: 'Ljósin á jólum' },
+] as const
+
 export const IMAGES = {
   range: '/fuzzy/range.webp',
   rangeSm: '/fuzzy/range-sm.webp',
   fleece: '/fuzzy/fleece-macro.webp',
-  home: '/fuzzy/stool-home.webp',
-  stockist: '/fuzzy/stockist.webp',
-  press: '/fuzzy/press-icelandreview.webp',
+  bench: '/fuzzy/bench.webp',
 } as const
