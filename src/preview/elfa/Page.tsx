@@ -103,6 +103,38 @@ const CSS = `
 
 .eg-card{background:${ENAMEL};border:1px solid ${LINE};border-radius:14px}
 
+/* ---- mobile nav: the header had no way into the sections below 900px ---- */
+.eg-burger{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;
+  width:44px;height:44px;background:none;border:0;cursor:pointer;padding:0 10px}
+@media (min-width:900px){.eg-burger{display:none}}
+.eg-burger i{display:block;height:1.5px;background:${INK};border-radius:2px;
+  transition:transform 260ms cubic-bezier(.16,1,.3,1),opacity 180ms ease}
+.eg-burger[aria-expanded="true"] i:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.eg-burger[aria-expanded="true"] i:nth-child(2){opacity:0}
+.eg-burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+.eg-panel{position:fixed;inset:0;z-index:70;background:${CHALK};
+  display:flex;flex-direction:column;padding:20px;
+  opacity:0;visibility:hidden;transform:translateY(-8px);
+  transition:opacity 240ms ease,transform 300ms cubic-bezier(.16,1,.3,1),visibility 240ms}
+.eg-panel a{display:block;padding:16px 0;border-bottom:1px solid ${LINE};
+  font-size:20px;font-weight:600;min-height:44px}
+.eg-panel-foot{margin-top:auto;padding-top:24px}
+
+/* ---- sticky call bar, mobile only. The shared preview chrome floats at 80px,
+       so a full-width bar at the very bottom sits cleanly under it. ---- */
+.eg-callbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:10px;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  background:${ENAMEL};border-top:1px solid ${LINE}}
+@media (min-width:900px){.eg-callbar{display:none}}
+.eg-callbar a{flex:1;display:inline-flex;align-items:center;justify-content:center;
+  min-height:48px;font-size:15px;font-weight:600;border-radius:999px;
+  transition:transform 150ms ease,background-color 170ms ease}
+.eg-callbar a:active{transform:scale(.985)}
+.eg-cb-call{background:${EG};color:#fff}
+.eg-cb-tel{border:1px solid ${LINE};color:${EG_TEXT};background:${CHALK}}
+@media (max-width:899px){.eg-root{padding-bottom:78px}}
+
 /* ---- the annotated anatomical plate ---- */
 .eg-plate{position:relative;margin:0 auto;max-width:1180px}
 .eg-plate-img{display:block;width:100%;height:auto}
@@ -277,6 +309,7 @@ export default function ElfaPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const [draw, setDraw] = useState(false)
+  const [menu, setMenu] = useState(false)
 
   /* The opening stroke plays ONCE per visit, not on every return to the top
      (ledger #213). The flag is read during render so there is no flash. */
@@ -289,6 +322,16 @@ export default function ElfaPage() {
       try { sessionStorage.setItem('eg:intro', '1') } catch { /* private mode */ }
     }
   }, [])
+
+  /* panel: lock the page behind it and let Escape out, or it traps a phone user */
+  useEffect(() => {
+    if (!menu) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+  }, [menu])
 
   useEffect(() => {
     const root = rootRef.current
@@ -347,6 +390,17 @@ export default function ElfaPage() {
 
       <header className="eg-head">
         <div className="eg-head-in">
+          <button
+            type="button"
+            className={`eg-burger ${FOCUS}`}
+            aria-expanded={menu}
+            aria-controls="eg-menu"
+            aria-label={menu ? 'Loka valmynd' : 'Opna valmynd'}
+            onClick={() => setMenu((v) => !v)}
+          >
+            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+          </button>
+
           <nav className="eg-navset" aria-label="Valmynd, vinstri">
             {SECTIONS.slice(1, 4).map((n) => (
               <a key={n.id} href={`#${n.id}`} className={`eg-link eg-navlink ${FOCUS}`}>{n.label}</a>
@@ -375,6 +429,50 @@ export default function ElfaPage() {
           </nav>
         </div>
       </header>
+
+      {/* full-screen menu, mobile only */}
+      <div
+        className="eg-panel"
+        id="eg-menu"
+        data-open={menu}
+        aria-hidden={!menu}
+        style={{
+          opacity: menu ? 1 : 0,
+          visibility: menu ? 'visible' : 'hidden',
+          transform: menu ? 'none' : 'translateY(-8px)',
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="eg-eyebrow" style={{ color: MINERAL }}>{CLINIC.name}</span>
+          <button type="button" className={`eg-burger ${FOCUS}`} aria-expanded={menu}
+                  aria-label="Loka valmynd" onClick={() => setMenu(false)}
+                  style={{ display: 'inline-flex' }}>
+            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+          </button>
+        </div>
+        <nav className="mt-6" aria-label="Aðalvalmynd">
+          {SECTIONS.map((sx) => (
+            <a key={sx.id} href={`#${sx.id}`} className={FOCUS}
+               onClick={() => setMenu(false)} style={{ color: INK }}>{sx.label}</a>
+          ))}
+        </nav>
+        <div className="eg-panel-foot">
+          <p className="eg-eyebrow" style={{ color: MINERAL }}>Tímapantanir</p>
+          <a href={`tel:${CLINIC.telHref}`} className={`eg-num ${FOCUS}`}
+             style={{ color: EG_TEXT, fontSize: 26, fontWeight: 600, borderBottom: 0 }}>
+            {CLINIC.tel}
+          </a>
+          <p className="eg-eyebrow mt-4" style={{ color: MINERAL }}>Opnunartími {CLINIC.hours}</p>
+        </div>
+      </div>
+
+      {/* sticky call bar, mobile only */}
+      <div className="eg-callbar">
+        <a href={`tel:${CLINIC.telHref}`} className={`eg-cb-call ${FOCUS}`}>Panta tíma</a>
+        <a href={`tel:${CLINIC.emergencyHref}`} className={`eg-cb-tel eg-num ${FOCUS}`}>
+          Neyðarþjónusta
+        </a>
+      </div>
 
       <main id="top">
         {/* ------------------------------------------------------------ hero
