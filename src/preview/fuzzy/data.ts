@@ -168,3 +168,80 @@ export const IMAGES = {
   fleece: '/fuzzy/fleece-macro.webp',
   bench: '/fuzzy/bench.webp',
 } as const
+
+/* ------------------------------------------------------------------------
+ * TRANSPLANT: the Fríða engine (01-live/frida), measured 2026-08-22.
+ * Its signature is that the catalogue IS a dateline: a sticky rail of honest
+ * dated stations that light as you read, and each chapter is a museum
+ * accession entry (station, name, SOURCE, body, quote, count).
+ * Fuzzy earns that structure because its whole argument is a dateline, and
+ * every station below has a real, checkable source.
+ * Reference numbers to hit: image ratio .322, ~12 images, h1 32 / h2 45 /
+ * body 17, about 12 screens.
+ * ------------------------------------------------------------------------ */
+
+export const STATIONS = ['1971', '1972', '8. áratugurinn', 'Erlendis', 'Í dag'] as const
+
+export const CHAPTERS = [
+  {
+    id: 'skraning', station: '1971', img: 'press',
+    name: 'Módel-húsgögn skráð',
+    source: 'Fyrirtækjaskrá Skattsins: Módel-húsgögn ehf., kt. 540671-0609, skráð 14. júní 1971.',
+    body: 'Verkstæðið er eldra en kollurinn. Fyrirtækið er enn skráð á sömu kennitölu og hefur skilað ársreikningi á hverju ári síðan.',
+    quote: 'Sigurður Már er lærður húsgagnabólstrari.',
+    count: '55 ár',
+    alt: 'Umfjöllun um Fuzzy og hönnuðinn í tímariti.',
+  },
+  {
+    id: 'honnun', station: '1972', img: 'ad-old',
+    name: 'Kollurinn hannaður',
+    source: 'Þeirra eigin síða: hannaður 1972. Umbúðirnar fengu umbúðaverðlaun Samtaka iðnaðarins sama ár.',
+    body: 'Lítill koll­ur með sútaðri lambsgæru og fjórum ávölum viðarfótum. Nafnið er latína: lítill loðinn karl.',
+    quote: 'Fuzzy merkir lítill loðinn karl á latínu.',
+    count: '4 fætur',
+    alt: 'Gömul auglýsing fyrir Fuzzy kollinn.',
+  },
+  {
+    id: 'vinsaeldir', station: '8. áratugurinn', img: 'barn',
+    name: 'Á hverju heimili',
+    source: 'Þeirra eigin frásögn: kollurinn naut strax mikilla vinsælda á áttunda áratugnum.',
+    body: 'Rétt stærð fyrir lítinn mann, og nógu léttur til að vera dreginn milli herbergja. Þess vegna eiga svo margir Íslendingar mynd af sér á Fuzzy.',
+    quote: 'Fuzzy hefur aldrei verið vinsælli.',
+    count: '3 kg',
+    alt: 'Barn situr á Fuzzy kolli.',
+  },
+  {
+    id: 'erlendis', station: 'Erlendis', img: 'kaupmannahofn',
+    name: 'Kaupmannahöfn, Kanada',
+    source: 'Þeirra eigin fréttasíða: Fuzzy í Nordatlantisk Hus í Danmörku og í Kanada, auk sýninga á borð við Scandinavian Design.',
+    body: 'Sami kollurinn, smíðaður í sama bílskúrnum, stendur í sýningarrýmum erlendis og í Epal heima.',
+    quote: 'Fuzzy-kollurinn hefur farið víða.',
+    count: '10 söluaðilar',
+    alt: 'Fuzzy á fatasýningu í Kaupmannahöfn.',
+  },
+  {
+    id: 'idag', station: 'Í dag', img: 'bench',
+    name: 'Enn í sama bílskúrnum',
+    source: 'Ársreikningi 2025 skilað 28. febrúar 2026. Þeirra eigin síða: hann smíðar kollana sjálfur.',
+    body: 'Fimmtíu og þremur árum eftir fyrsta kollinn rennur Sigurður Már fæturna sjálfur, einn í einu, í bílskúrnum heima hjá sér.',
+    quote: 'Enn þann dag í dag býr Sigurður Már til Fuzzy-kollana sjálfur í bílskúrnum sínum.',
+    count: 'einn í einu',
+    alt: 'Sigurður Már Helgason rennur viðarfætur í bílskúrnum sínum.',
+  },
+] as const
+
+export const CH_HEAD = {
+  eyebrow: 'Heimildir',
+  title: 'Hver koll­ur á sér dagsetningu',
+  lead: 'Fuzzy er ekki verksmiðjuvara með uppfundna sögu. Hver áfangi hér að neðan er dagsettur og á sér heimild, ýmist í fyrirtækjaskrá eða á þeirra eigin síðu.',
+  sourceLabel: 'Heimild',
+  countLabel: '',
+}
+
+export const WORKSHOP = {
+  eyebrow: 'Verkstæðið',
+  title: 'Bílskúrinn í Reykjavík',
+  body: 'Sigurður Már er lærður húsgagnabólstrari og hefur bæði hannað og bólstrað húsgögn samhliða smíðinni, ásamt því að smíða leiktæki fyrir börn. Fuzzy er þó það sem hann er þekktastur fyrir.',
+  noteLabel: 'Athugið',
+  note: 'Hver gæra er ólík þeirri næstu, svo engir tveir kollar eru nákvæmlega eins.',
+}
