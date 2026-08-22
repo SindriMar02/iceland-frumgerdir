@@ -22,7 +22,10 @@ if (!draftPath) { console.error('usage: outreach-draft-gate.mjs <draft.md> [payl
 const outPath = process.argv[3] || draftPath.replace(/\.md$/, '') + '.payload.json'
 const src = readFileSync(draftPath, 'utf8')
 
-const to = (src.match(/\*\*To:\*\*\s*(.+)/) || [, ''])[1].trim()
+/* [^\S\n]* not \s*: with an EMPTY To: line (a lead with no published address,
+   which is a supported case) \s* crossed the newline and captured the Subject
+   line as the recipient, so Mail opened addressed to '**Subject:** ...'. */
+const to = (src.match(/\*\*To:\*\*[^\S\n]*(.*)/) || [, ''])[1].trim()
 const subject = (src.match(/\*\*Subject:\*\*\s*(.+)/) || [])[1]?.trim()
 const greetingRe = /^(Sæl og blessuð|Sæl|Sæll|Góðan dag|Komdu sæl)/m
 const gm = src.match(greetingRe)
