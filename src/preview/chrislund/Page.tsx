@@ -12,7 +12,7 @@ import {
 } from './data'
 import {
   ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
-  buildEntrance, createLenis, createRevealSweep, finePointer, fluid, reduced,
+  buildEntrance, createLenis, createRevealSweep, finePointer, fluid, openingPlayed, reduced,
 } from './shared'
 import type { SmoothScroller } from './shared'
 
@@ -57,7 +57,7 @@ const WALL = WALL_ORDER
 
 /* ── motion engine ─────────────────────────────────────────────────────── */
 
-function useMotion(ready: boolean, restoring: boolean) {
+function useMotion(ready: boolean, restoring: boolean, play: boolean) {
   useEffect(() => {
     if (!ready) return
     const root = document.querySelector<HTMLElement>('.cl-root')
@@ -90,7 +90,7 @@ function useMotion(ready: boolean, restoring: boolean) {
          wordmark out of them, the reading text last. Skipped entirely when
          we are restoring a scroll position, because an entrance that plays
          while the visitor is being put back mid-page is just a flash. */
-      if (!restoring) buildEntrance(root)
+      if (play) buildEntrance(root)
       else root.classList.remove('cl-pre')
 
       /* word-mask rises. Desktop: wall headlines ride the pinned
@@ -99,7 +99,9 @@ function useMotion(ready: boolean, restoring: boolean) {
          The hero title is owned by the opening timeline, not by a trigger. */
       root.querySelectorAll<HTMLElement>('[data-cl-headline]').forEach((h) => {
         if (h.closest('.cl-wall') && wallPinActive) return
-        if (h.dataset.clEnter === 'word' && !restoring) return
+        /* entrance-owned headlines are never scroll-triggered: either the
+           opening animates them, or (on a repeat visit) they are simply at rest */
+        if (h.dataset.clEnter === 'word') return
         const words = h.querySelectorAll<HTMLElement>('.cl-word')
         if (!words.length) return
         gsap.fromTo(words,
@@ -268,7 +270,7 @@ function useMotion(ready: boolean, restoring: boolean) {
       lenis?.destroy()
       ;(window as unknown as { __clLenis?: SmoothScroller | null }).__clLenis = null
     }
-  }, [ready, restoring])
+  }, [ready, restoring, play])
 }
 
 /* ── series picker: the preview comes to the cursor ─────────────────────────
@@ -375,7 +377,8 @@ export default function ChrisLundPage() {
   const restoring = useNavigationType() === 'POP' && !!sessionStorage.getItem(WALL_Y)
   /* the holding class has to be on the very first painted frame, so it is
      decided during render and never inside an effect */
-  const holdRef = useRef(!reduced() && !restoring)
+  const playRef = useRef(!reduced() && !restoring && !openingPlayed())
+  const holdRef = playRef
 
   useEffect(() => {
     setThemeColor('#F5F4F1')
@@ -398,7 +401,7 @@ export default function ChrisLundPage() {
     }
   }, [])
 
-  useMotion(ready, restoring)
+  useMotion(ready, restoring, playRef.current)
 
   const anchor = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
@@ -716,11 +719,15 @@ const CSS = `
   position: relative; display: block; width: 100vw; height: 100svh;
   color: inherit; text-decoration: none; overflow: hidden;
 }
-.cl-plate-media { position: absolute; inset: 0; overflow: hidden; background: #1D1D1A; transition: transform .8s cubic-bezier(.23,1,.32,1); }
+.cl-plate-media { position: absolute; inset: 0; overflow: hidden; background: #1D1D1A; transition: transform 200ms cubic-bezier(.23,1,.32,1); }
 .cl-plate-media img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .cl-plate-full:hover .cl-plate-media { transform: scale(1.015); }
 }
+/* the wall plates are the primary control and had no press state at all */
+.cl-plate-full { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
+.cl-plate-full:active { transform: scale(.99); }
+@media (prefers-reduced-motion: reduce) { .cl-plate-full:active { transform: none; } }
 .cl-plate-scrim {
   position: absolute; inset: auto 0 0 0; height: 34%; z-index: 1; pointer-events: none;
   background: linear-gradient(180deg, transparent, rgb(10 10 8 / .62));
@@ -779,11 +786,11 @@ const CSS = `
 .cl-series-row-inner {
   display: grid; gap: 4px;
   transform: translateX(calc(var(--on) * 18px));
-  transition: transform .5s cubic-bezier(.16,1,.3,1);
+  transition: transform 260ms cubic-bezier(.16,1,.3,1);
 }
 .cl-series-top { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 .cl-series-name { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(34, 22)}; line-height: 1.15; transition: color .3s cubic-bezier(.16,1,.3,1); }
-.cl-series-arrow { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-size: ${fluid(22, 17)}; opacity: 0; transform: translateX(-8px); transition: opacity .35s, transform .5s cubic-bezier(.16,1,.3,1); color: var(--cl-gold-text); }
+.cl-series-arrow { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-size: ${fluid(22, 17)}; opacity: 0; transform: translateX(-8px); transition: opacity 200ms, transform 200ms cubic-bezier(.16,1,.3,1); color: var(--cl-gold-text); }
 .cl-series-row.is-active .cl-series-name { color: var(--cl-gold-text); }
 .cl-series-row.is-active .cl-series-arrow, .cl-series-row:focus-visible .cl-series-arrow { opacity: 1; transform: none; }
 .cl-series-note { font-size: ${fluid(14, 13)}; color: var(--cl-mute); }
@@ -847,7 +854,6 @@ const CSS = `
 }
 .cl-bok-pair.is-port .cl-bok-fig-a { width: calc(var(--bokh) * var(--ar)); }
 .cl-bok-pair.is-port .cl-bok-fig-b { width: calc(var(--bokh) * .72 * var(--ar)); }
-.cl-bok-fig { will-change: transform; }
 .cl-bok-fig img { width: 100%; height: auto; object-fit: cover; display: block; }
 .cl-bok-cap {
   font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)};
@@ -864,7 +870,7 @@ const CSS = `
 .cl-service { display: grid; gap: 6px; padding: 18px 0; border-top: 1px solid var(--cl-hair); color: inherit; text-decoration: none; }
 .cl-service-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .cl-service-name { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(26, 19)}; transition: color .3s cubic-bezier(.16,1,.3,1); }
-.cl-service-arrow { flex: none; font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-size: ${fluid(20, 16)}; color: var(--cl-gold-text); opacity: 0; transform: translateX(-8px); transition: opacity .35s, transform .5s cubic-bezier(.16,1,.3,1); }
+.cl-service-arrow { flex: none; font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-size: ${fluid(20, 16)}; color: var(--cl-gold-text); opacity: 0; transform: translateX(-8px); transition: opacity 200ms, transform 200ms cubic-bezier(.16,1,.3,1); }
 .cl-service:hover .cl-service-name, .cl-service:focus-visible .cl-service-name { color: var(--cl-gold-text); }
 .cl-service:hover .cl-service-arrow, .cl-service:focus-visible .cl-service-arrow { opacity: 1; transform: none; }
 .cl-service-note { font-size: ${fluid(14, 13)}; color: var(--cl-mute); }

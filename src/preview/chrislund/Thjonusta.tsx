@@ -11,7 +11,7 @@ import {
 } from './data'
 import {
   BackLink, ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
-  buildEntrance, createLenis, createRevealSweep, fluid, reduced,
+  buildEntrance, createLenis, createRevealSweep, fluid, openingPlayed, reduced,
 } from './shared'
 import type { SmoothScroller } from './shared'
 
@@ -26,7 +26,7 @@ const company = getPreviewCompany('chrislund')
    register on the litgreining page (Kjarval, Mikines, RAX...) is the honest
    numbers device: his actual client list, no invention needed. */
 
-function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement | null>) {
+function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement | null>, play: boolean) {
   useEffect(() => {
     if (!ready) return
     const el = root.current
@@ -48,7 +48,8 @@ function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement |
     })
 
     const ctx = gsap.context(() => {
-      buildEntrance(el)
+      if (play) buildEntrance(el)
+      else el.classList.remove('cl-pre')
       el.querySelectorAll<HTMLElement>('[data-cl-headline]').forEach((h) => {
         /* the page title belongs to the opening timeline */
         if (h.dataset.clEnter === 'word') return
@@ -88,7 +89,7 @@ function useServiceMotion(ready: boolean, root: React.RefObject<HTMLDivElement |
       ctx.revert()
       lenis?.destroy()
     }
-  }, [ready, root])
+  }, [ready, root, play])
 }
 
 export default function ChrisLundServicePage({ slug }: { slug: string }) {
@@ -96,7 +97,8 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
   const [ready, setReady] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   /* the holding class must be on the first painted frame, never set in an effect */
-  const holdRef = useRef(!reduced())
+  const playRef = useRef(!reduced() && !openingPlayed())
+  const holdRef = playRef
 
   useEffect(() => {
     setThemeColor('#F5F4F1')
@@ -118,7 +120,7 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
     }
   }, [page])
 
-  useServiceMotion(ready, rootRef)
+  useServiceMotion(ready, rootRef, playRef.current)
 
   const others = SERVICE_PAGES.filter((p) => p.slug !== page.slug)
 

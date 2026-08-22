@@ -79,6 +79,15 @@ export function createRevealSweep(root: HTMLElement) {
   }
 }
 
+/* The opening is a first-impression device, not chrome, so it plays ONCE per
+   visit. Without this, clicking the wordmark home from a service page replays
+   the full 1.7s sequence, and that is a tens-per-session action. The back
+   button already skips it via the scroll-restore path. */
+const OPENED_KEY = 'cl-opening-played'
+export const openingPlayed = () => {
+  try { return sessionStorage.getItem(OPENED_KEY) === '1' } catch { return false }
+}
+
 /* ── the opening sequence ───────────────────────────────────────────────────
    ONE timeline so the parts are genuinely synchronised rather than four
    independent tweens that drift: the photograph settles and the header
@@ -110,11 +119,12 @@ export function buildEntrance(root: HTMLElement): gsap.core.Timeline {
   }
   if (items.length) {
     tl.fromTo(items, { y: 22, autoAlpha: 0 },
-      { y: 0, autoAlpha: 1, duration: 0.9, ease: 'expo.out', stagger: 0.09 }, 0.56)
+      { y: 0, autoAlpha: 1, duration: 0.9, ease: 'expo.out', stagger: 0.06 }, 0.56)
   }
   /* every fromTo above has already stamped its from-state inline, so dropping
      the holding class cannot flash */
   root.classList.remove('cl-pre')
+  try { sessionStorage.setItem(OPENED_KEY, '1') } catch { /* private mode */ }
   return tl
 }
 
@@ -402,7 +412,7 @@ html, body { background-color: ${PAPER}; }
   color: var(--cl-mute); transition: color .3s cubic-bezier(.16,1,.3,1);
 }
 .cl-back:hover { color: var(--cl-ink); }
-.cl-back-arrow { display: inline-block; transition: transform .5s cubic-bezier(.16,1,.3,1); }
+.cl-back-arrow { display: inline-block; transition: transform 180ms cubic-bezier(.16,1,.3,1); }
 .cl-back:hover .cl-back-arrow { transform: translateX(-5px); }
 .cl-back.is-light { color: #8F8D84; }
 .cl-back.is-light:hover { color: #EFEDE7; }
@@ -429,7 +439,7 @@ html, body { background-color: ${PAPER}; }
   content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: var(--cl-gold); border: 1px solid transparent;
   transform: scale(.105);
-  transition: transform .5s cubic-bezier(.23,1,.32,1), background-color .3s, border-color .3s;
+  transition: transform 240ms cubic-bezier(.23,1,.32,1), background-color .24s, border-color .24s;
 }
 .cl-cursor.is-live { opacity: 1; }
 .cl-cursor.is-grown::before {
@@ -439,7 +449,7 @@ html, body { background-color: ${PAPER}; }
 .cl-cursor-label {
   position: relative; font-family: ${MONO}; font-size: 11px; letter-spacing: .2em;
   text-transform: uppercase; color: #F4F1EA; opacity: 0; transform: translateY(8px);
-  transition: opacity .3s .06s, transform .5s cubic-bezier(.23,1,.32,1);
+  transition: opacity .24s .04s, transform 240ms cubic-bezier(.23,1,.32,1);
   text-shadow: 0 1px 8px rgb(0 0 0 / .45);
 }
 .cl-cursor.is-grown .cl-cursor-label { opacity: 1; transform: none; }

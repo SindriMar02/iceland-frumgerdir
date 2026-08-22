@@ -12,7 +12,7 @@ import {
 import type { Work } from './data'
 import {
   BackLink, ClFoot, ClNav, CursorRing, Headline, ROUTE, Rule, SHARED_CSS,
-  buildEntrance, createLenis, createRevealSweep, fluid, reduced,
+  buildEntrance, createLenis, createRevealSweep, fluid, openingPlayed, reduced,
 } from './shared'
 import type { SmoothScroller } from './shared'
 
@@ -27,7 +27,7 @@ const company = getPreviewCompany('chrislund')
    Clicking any thumbnail re-hangs the stage; the URL carries the selection
    (?verk=) so a single work can be sent as a link. */
 
-function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | null>) {
+function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | null>, play: boolean) {
   useEffect(() => {
     if (!ready) return
     const el = root.current
@@ -48,7 +48,7 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
       io.observe(n)
     })
 
-    const entrance = buildEntrance(el)
+    const entrance = play ? buildEntrance(el) : (el.classList.remove('cl-pre'), null)
     const revealSweep = createRevealSweep(el)
     const sweep = () => { ScrollTrigger.update(); revealSweep.tick() }
     window.addEventListener('scroll', sweep, { passive: true })
@@ -70,13 +70,13 @@ function useSafnMotion(ready: boolean, root: React.RefObject<HTMLDivElement | nu
     return () => {
       disposed = true
       io.disconnect()
-      entrance.kill()
+      entrance?.kill()
       if (tick) gsap.ticker.remove(tick)
       window.removeEventListener('scroll', sweep)
       lenis?.destroy()
       ;(window as unknown as { __clLenis?: SmoothScroller | null }).__clLenis = null
     }
-  }, [ready, root])
+  }, [ready, root, play])
 }
 
 /* Both grids here are already grouped by series, so a series tag on every
@@ -113,7 +113,8 @@ export default function ChrisLundSafnPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [params, setParams] = useSearchParams()
   /* the holding class must be on the first painted frame, never set in an effect */
-  const holdRef = useRef(!reduced())
+  const playRef = useRef(!reduced() && !openingPlayed())
+  const holdRef = playRef
 
   const selected = useMemo(() => {
     const id = params.get('verk')
@@ -146,7 +147,7 @@ export default function ChrisLundSafnPage() {
     // title/description follow the selection
   }, [selected])
 
-  useSafnMotion(ready, rootRef)
+  useSafnMotion(ready, rootRef, playRef.current)
 
   /* land on a series when the front page's picker sent one */
   useEffect(() => {
@@ -326,12 +327,19 @@ const CSS = `
   display: block; background: #1D1D1A;
   box-shadow: 0 30px 80px rgb(0 0 0 / .45);
 }
-.cl-js .cl-stage-fig { animation: cl-stage-in 1s cubic-bezier(.23,1,.32,1) both; }
-@keyframes cl-stage-in {
-  from { opacity: 0; transform: translateY(18px) scale(.985); }
-  to { opacity: 1; transform: none; }
+.cl-js .cl-stage-fig {
+  opacity: 1; transform: none;
+  transition: opacity 200ms cubic-bezier(.23,1,.32,1), transform 200ms cubic-bezier(.23,1,.32,1);
 }
-@media (prefers-reduced-motion: reduce) { .cl-stage-fig { animation: none !important; } }
+/* A swap starts at 0.38, not 0. Selecting a work replaces the element, so a
+   0 start means the stage is BLANK for a frame on every click while browsing;
+   dipping instead reads as the print being changed, and at 200ms the dip is
+   barely a blink. The full fade-from-nothing belongs to the page entrance,
+   which lives on the parent .cl-stage-media. */
+@starting-style { .cl-js .cl-stage-fig { opacity: .38; transform: translateY(6px) scale(.995); } }
+@media (prefers-reduced-motion: reduce) {
+  .cl-js .cl-stage-fig { transition: none; opacity: 1; transform: none; }
+}
 .cl-stage-kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-gold); margin: 0 0 calc(var(--u) * 18); }
 .cl-stage-rail .cl-headline { color: #F4F1EA; }
 .cl-stage-note { color: #B9B7AE; }
@@ -392,12 +400,17 @@ const CSS = `
   text-align: left; color: inherit; cursor: pointer; font-family: inherit;
 }
 .cl-thumb-media { display: block; overflow: hidden; background: #E4E2DB; }
-.cl-thumb-media img { width: 100%; height: auto; display: block; transition: transform .8s cubic-bezier(.23,1,.32,1); }
-@media (hover: hover) and (pointer: fine) {
+.cl-thumb-media img { width: 100%; height: auto; display: block; transition: transform 200ms cubic-bezier(.23,1,.32,1); }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .cl-thumb:hover .cl-thumb-media img { transform: scale(1.035); }
 }
+/* press feedback: on touch there is no hover, so without this a tap on a
+   thumbnail gives nothing back until the route changes */
+.cl-thumb { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
+.cl-thumb:active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) { .cl-thumb:active { transform: none; } }
 .cl-thumb-cap { display: block; padding-top: 10px; }
-.cl-thumb-title { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(16.5, 14.5)}; transition: color .3s; }
+.cl-thumb-title { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(16.5, 14.5)}; transition: color .3s cubic-bezier(.16,1,.3,1); }
 .cl-thumb:hover .cl-thumb-title { color: var(--cl-gold-text); }
 
 /* the jump from a work's siblings to that whole series in the catalogue */
