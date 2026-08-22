@@ -10,21 +10,25 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
-  BOOKING_URL,
   DINNER_QUOTE,
   DISTANCES,
   EMAIL,
   FOOTNOTE,
   HOUSE_RULES,
+  BREAKFAST,
+  FACILITIES,
   IMG,
   NAV,
   PHONE,
+  REVIEWS_URL,
   PHONE_HREF,
   QUOTES,
   ROOM_PHOTOS,
   SCORE,
   UNITS,
 } from './data'
+import { bookingHref, bookingReady, PLACEHOLDER_NOTE } from './godo'
+import BookingBar from './BookingBar'
 
 const company = companyEntry
 
@@ -242,16 +246,30 @@ function BookLink({
   onClick?: () => void
 }) {
   return (
-    <a
-      href={BOOKING_URL}
-      target="_blank"
-      rel="noreferrer"
-      onClick={onClick}
-      className={`inline-flex items-center gap-2 bg-[#D97D3D] px-6 py-3.5 font-sans text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
-    >
-      {children}
-      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-    </a>
+    bookingReady() ? (
+      <a
+        href={bookingHref()!}
+        onClick={onClick}
+        className={`inline-flex items-center gap-2 bg-[#D97D3D] px-6 py-3.5 font-sans text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
+      >
+        {children}
+        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+      </a>
+    ) : (
+      <span className={`inline-flex flex-col gap-1.5 ${className}`}>
+        <button
+          type="button"
+          disabled
+          className="inline-flex cursor-not-allowed items-center gap-2 border border-dashed px-6 py-3.5 font-sans text-[15px] font-semibold"
+          style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
+        >
+          {children}
+        </button>
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#F4EEE2]/40">
+          {PLACEHOLDER_NOTE}
+        </span>
+      </span>
+    )
   )
 }
 
@@ -471,14 +489,22 @@ export default function Page() {
                 </a>
               ))}
             </div>
-            <a
-              href={BOOKING_URL}
-              target="_blank"
-              rel="noreferrer"
-              className={`hidden bg-[#D97D3D] px-4 py-2 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
-            >
-              Check availability
-            </a>
+            {bookingReady() ? (
+              <a
+                href={bookingHref()!}
+                className={`hidden bg-[#D97D3D] px-4 py-2 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
+              >
+                Check availability
+              </a>
+            ) : (
+              <span
+                className="hidden border border-dashed px-4 py-2 text-[13px] font-semibold sm:inline-block"
+                style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
+                title={PLACEHOLDER_NOTE}
+              >
+                Check availability
+              </span>
+            )}
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
@@ -509,7 +535,7 @@ export default function Page() {
           </div>
         </nav>
 
-        <div id="top" className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-20">
+        <div id="top" className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 pt-28 md:px-8 md:pb-20 md:pt-0">
           <p
             lang="is"
             className="font-mono text-[11.5px] uppercase tracking-[0.26em] text-[#B9CBD6]"
@@ -524,11 +550,10 @@ export default function Page() {
             Nýpugarðar
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#F4EEE2]/85" style={rise(2)}>
-            A working sheep and horse farm between Höfn and Jökulsárlón. Stay the night and sit
+            A working sheep farm between Höfn and Jökulsárlón. Stay the night and sit
             down to dinner.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4" style={rise(3)}>
-            <BookLink>Check availability</BookLink>
             <a
               href={PHONE_HREF}
               className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
@@ -537,6 +562,7 @@ export default function Page() {
               {PHONE}
             </a>
           </div>
+          <BookingBar className="mt-8 max-w-4xl" />
         </div>
       </header>
 
@@ -619,83 +645,44 @@ export default function Page() {
               <Eyebrow label="The flock" register={register} reduced={reduced} />
               <Reveal delay={60}>
                 <h2 className="mt-6 font-display text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  About 600 sheep, give or take
+                  A working farm, not a themed hotel
                 </h2>
               </Reveal>
               <Reveal delay={140}>
                 <p className="mt-6 max-w-[58ch] leading-relaxed" style={{ color: BODY }}>
-                  Nýpugarðar is a real working farm, not a themed hotel. The sheep share the hill
-                  with the horses, a dog and a cat. In spring, guests are welcome to watch the
-                  lambing. In winter, you can lend a hand with light farm work if you feel like
-                  it.
+                  Nýpugarðar is a real working farm, not a themed hotel. The flock shares the
+                  hill with a dog and a cat, and wild reindeer come down onto the land. In
+                  spring, guests are welcome to watch the lambing. In winter, you can lend a
+                  hand with light farm work if you feel like it.
                 </p>
               </Reveal>
               <Reveal delay={220}>
                 <dl className="mt-10 grid grid-cols-2 gap-6 border-t pt-8" style={{ borderColor: HAIR }}>
                   <div>
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                      Sheep on the farm
+                      Guests when full
                     </dt>
                     <dd className="mt-1 font-display text-4xl" style={{ color: ACCENT }}>
-                      ~600
+                      24
                     </dd>
                   </div>
                   <div>
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                      Horses
+                      Open
                     </dt>
                     <dd className="mt-1 font-display text-4xl" style={{ color: ACCENT }}>
-                      ~20
+                      All year
                     </dd>
                   </div>
                 </dl>
               </Reveal>
             </div>
             <ClipImg
-              src={IMG.sheep}
-              alt="Two white Icelandic sheep on a green hillside, looking at the camera"
+              src={IMG.reindeer}
+              alt="Two wild reindeer grazing on the open land at Nýpugarðar"
               aspect="aspect-[4/3]"
-              caption="Icelandic sheep in summer pasture"
+              caption="Wild reindeer on the land"
             />
-          </div>
-        </section>
-
-        {/* ── 3 · THE FARM — horses ────────────────────────────────────── */}
-        <section className="relative flex min-h-[82svh] items-end overflow-hidden">
-          <Img
-            src={IMG.horses}
-            alt="Five Icelandic horses of different coat colours grazing together under a mountain ridge"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/55 to-[#15130F]/20"
-          />
-          <div className="relative mx-auto w-full max-w-6xl px-5 pb-16 pt-40 md:px-8 md:pb-20">
-            <div className="grid items-end gap-10 md:grid-cols-[1fr_auto]">
-              <div>
-                <Eyebrow label="The horses" register={register} reduced={reduced} />
-                <Reveal delay={60}>
-                  <h2 className="mt-6 max-w-2xl font-display text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                    About twenty horses share the hill
-                  </h2>
-                </Reveal>
-                <Reveal delay={140}>
-                  <p className="mt-5 max-w-[54ch] leading-relaxed text-[#F4EEE2]/85">
-                    The herd grazes the slopes around the guesthouse. You will hear them before
-                    breakfast and pass them on the way to your car.
-                  </p>
-                </Reveal>
-              </div>
-              <ClipImg
-                src={IMG.horsesPair}
-                alt="Two Icelandic horses, one black and one brown, standing nose to nose on grassland"
-                aspect="aspect-[4/3]"
-                delay={160}
-                className="hidden w-72 md:block"
-                caption="Nose to nose on the grassland"
-              />
-            </div>
           </div>
         </section>
 
@@ -848,7 +835,9 @@ export default function Page() {
                 <Reveal delay={220}>
                   <div className="mt-9 flex flex-wrap items-center gap-4">
                     <BookLink>Check availability</BookLink>
-                    <p className="text-sm text-[#F4EEE2]/55">Live dates and prices on Booking.com</p>
+                    <p className="text-sm text-[#F4EEE2]/55">
+                      Live dates and prices come straight from our booking system
+                    </p>
                   </div>
                 </Reveal>
               </div>
@@ -911,9 +900,10 @@ export default function Page() {
               <div>
                 <Reveal delay={80}>
                   <p className="leading-relaxed" style={{ color: BODY }}>
-                    Breakfast comes with the room. Dinner is cooked when it is ordered ahead, so
-                    tell the farm you want a seat at the table when you book. The restaurant is
-                    on site and opens for dinner, and prices are confirmed when you order.
+                    Dinner is served here on the farm, in the dining room with the windows
+                    facing the glacier. There is nothing to book ahead and nothing to arrange
+                    online. Tell us when you arrive that you would like to eat, and a place is
+                    set for you.
                   </p>
                 </Reveal>
                 <Reveal delay={160}>
@@ -944,6 +934,29 @@ export default function Page() {
                 />
               </div>
             </div>
+
+            <Reveal delay={120}>
+              <div className="mt-16 border-t pt-10" style={{ borderColor: HAIR }}>
+                <h3 className="font-display text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
+                  And breakfast before you go
+                </h3>
+                <p className="mt-4 max-w-[54ch] leading-relaxed" style={{ color: BODY }}>
+                  A buffet in the same room, with the same view. Guests rate it highly, and we
+                  can cover most ways of eating.
+                </p>
+                <ul className="mt-7 flex flex-wrap gap-x-3 gap-y-2.5">
+                  {BREAKFAST.map((b) => (
+                    <li
+                      key={b}
+                      className="border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/70"
+                      style={{ borderColor: HAIR }}
+                    >
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
           </div>
         </section>
 
@@ -1027,7 +1040,7 @@ export default function Page() {
               <p className="mt-10 text-sm text-[#F4EEE2]/50">
                 Guest reviews via{' '}
                 <a
-                  href={BOOKING_URL}
+                  href={REVIEWS_URL}
                   target="_blank"
                   rel="noreferrer"
                   className={`underline underline-offset-4 hover:text-[#F4EEE2]/80 ${FOCUS}`}
@@ -1084,13 +1097,30 @@ export default function Page() {
                     {ADDRESS}
                   </p>
                 </Reveal>
+                <Reveal delay={220}>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
+                    On the property
+                  </p>
+                  <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-2.5">
+                    {FACILITIES.map((f) => (
+                      <li
+                        key={f}
+                        className="border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/70"
+                        style={{ borderColor: HAIR }}
+                      >
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
               </div>
               <div>
                 <Reveal delay={100}>
                   <p className="leading-relaxed" style={{ color: BODY }}>
-                    Booking works instantly through Booking.com, where the farm keeps its live
-                    availability. Nýpugarðar is also listed with HeyIceland and Guide to Iceland.
-                    For dinner pre-orders and anything else, the phone is quickest.
+                    Book directly with us and you deal with the farm, not an agency. Dates and
+                    availability are live. Nýpugarðar is also listed on Booking.com, HeyIceland
+                    and Guide to Iceland if you would rather book there. For anything else, the
+                    phone is quickest.
                   </p>
                 </Reveal>
                 <Reveal delay={180}>
@@ -1182,15 +1212,23 @@ export default function Page() {
         }}
       >
         <div className="flex items-stretch gap-3 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <a
-            href={BOOKING_URL}
-            target="_blank"
-            rel="noreferrer"
-            className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
-          >
-            Check availability
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </a>
+          {bookingReady() ? (
+            <a
+              href={bookingHref()!}
+              className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
+            >
+              Check availability
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          ) : (
+            <span
+              className="flex flex-1 items-center justify-center gap-2 border border-dashed px-4 py-3 text-[15px] font-semibold"
+              style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
+              title={PLACEHOLDER_NOTE}
+            >
+              Check availability
+            </span>
+          )}
           <a
             href={PHONE_HREF}
             aria-label={`Call Nýpugarðar, ${PHONE}`}

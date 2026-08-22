@@ -26,7 +26,7 @@ export interface PreviewCompany {
   accent: string
   /** Is the page background dark? (drives shared chrome contrast) */
   dark: boolean
-  status: 'Concept ready'
+  status: 'Concept ready' | 'In build' | 'Live'
   thumb: string
   audit: AuditList
   /** One-paragraph positioning the redesign is built on */
