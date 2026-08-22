@@ -367,7 +367,7 @@ html, body { background-color: ${PAPER}; }
 }
 .cl-nav a { pointer-events: auto; color: inherit; text-decoration: none; transition: opacity .2s cubic-bezier(.16,1,.3,1); }
 .cl-nav a:hover { opacity: .7; }
-.cl-nav-mark { font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .13em; }
+.cl-nav-mark { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .13em; }
 .cl-nav-links { display: flex; gap: calc(var(--u) * 26); font-size: ${fluid(14, 13)}; }
 .cl-nav-cta { font-family: ${MONO}; font-size: ${fluid(14, 13)}; border-bottom: 1px solid currentColor; padding-bottom: 2px; }
 .cl-nav.is-ink { mix-blend-mode: normal; color: var(--cl-ink); }
@@ -389,7 +389,7 @@ html, body { background-color: ${PAPER}; }
   padding-top: 10px;
 }
 .cl-rulehead-label, .cl-rulehead-right {
-  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .16em;
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; letter-spacing: .16em;
   text-transform: uppercase; color: var(--cl-mute);
 }
 .cl-rulehead-right { flex: none; }
@@ -398,7 +398,7 @@ html, body { background-color: ${PAPER}; }
 .cl-back {
   display: inline-flex; align-items: center; gap: 10px; background: none; border: none;
   padding: 4px 0; margin: 0; cursor: pointer; font-family: ${MONO};
-  font-size: ${fluid(12, 11)}; letter-spacing: .16em; text-transform: uppercase;
+  font-size: ${fluid(12, 12)}; letter-spacing: .16em; text-transform: uppercase;
   color: var(--cl-mute); transition: color .3s cubic-bezier(.16,1,.3,1);
 }
 .cl-back:hover { color: var(--cl-ink); }
@@ -450,10 +450,29 @@ html, body { background-color: ${PAPER}; }
   .cl-cursor { display: none; }
 }
 
+/* TOUCH TARGETS — a text-scale control on a phone is only as tappable as its
+   line box, which put the nav mark at 18px and most links at 22-27px. Expand
+   the hit area to the 44px minimum with an overlay rather than padding, so
+   nothing in the layout moves, and vertically only, so a control can never
+   steal a tap from its neighbour. */
+@media (pointer: coarse) {
+  .cl-nav-mark, .cl-nav-cta, .cl-nav-links a, .cl-back,
+  .cl-bridge-safn, .cl-bridge-tel, .cl-stage-tel, .cl-step,
+  .cl-sv-other, .cl-thjonusta-cta, .cl-foot-tel, .cl-rulehead-jump {
+    position: relative;
+  }
+  .cl-nav-mark::after, .cl-nav-cta::after, .cl-nav-links a::after, .cl-back::after,
+  .cl-bridge-safn::after, .cl-bridge-tel::after, .cl-stage-tel::after, .cl-step::after,
+  .cl-sv-other::after, .cl-thjonusta-cta::after, .cl-foot-tel::after, .cl-rulehead-jump::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 50%;
+    height: 44px; transform: translateY(-50%);
+  }
+}
+
 /* footer */
 .cl-foot { border-top: 1px solid var(--cl-hair); padding: calc(var(--u) * 54) calc(var(--u) * 34) calc(var(--u) * 70); background: var(--cl-paper); }
 .cl-foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 34); }
-.cl-foot-mark { font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .14em; margin: 0 0 10px; }
+.cl-foot-mark { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .14em; margin: 0 0 10px; }
 .cl-foot-line { font-size: ${fluid(13.5, 12.5)}; color: var(--cl-mute); margin: 0 0 6px; line-height: 1.6; }
 .cl-foot-tel { color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; }
 @media (max-width: 991px) { .cl-foot-grid { grid-template-columns: 1fr; } }

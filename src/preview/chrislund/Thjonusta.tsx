@@ -240,7 +240,7 @@ export default function ChrisLundServicePage({ slug }: { slug: string }) {
 const CSS = `
 .cl-sv-head { padding: calc(var(--u) * 130) calc(var(--u) * 34) calc(var(--u) * 40); }
 .cl-sv-back { margin-bottom: calc(var(--u) * 40); }
-.cl-sv-kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-gold-text); margin: 0 0 calc(var(--u) * 20); }
+.cl-sv-kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-gold-text); margin: 0 0 calc(var(--u) * 20); }
 .cl-sv-intro { max-width: 62ch; font-size: ${fluid(19, 16)}; }
 
 .cl-sv-craft {
@@ -254,7 +254,7 @@ const CSS = `
 .cl-sv-fig img { width: 100%; height: auto; object-fit: cover; display: block; }
 .cl-sv-facts { margin: 0 0 calc(var(--u) * 44); }
 .cl-sv-facts div { display: grid; grid-template-columns: minmax(120px, 32%) 1fr; gap: 18px; padding: 13px 0; border-top: 1px solid var(--cl-hair); }
-.cl-sv-facts dt { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11.5, 11)}; letter-spacing: .13em; text-transform: uppercase; color: var(--cl-mute); padding-top: 2px; }
+.cl-sv-facts dt { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11.5, 11.5)}; letter-spacing: .13em; text-transform: uppercase; color: var(--cl-mute); padding-top: 2px; }
 .cl-sv-facts dd { margin: 0; font-size: ${fluid(15.5, 14)}; line-height: 1.55; }
 .cl-sv-block { margin-top: calc(var(--u) * 36); }
 .cl-sv-block-h { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(26, 19)}; margin: 0 0 calc(var(--u) * 14); }
@@ -271,13 +271,13 @@ const CSS = `
 .cl-sv-reg-list { list-style: none; margin: calc(var(--u) * 40) 0 0; padding: 0; }
 .cl-sv-reg-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 14px 0; border-top: 1px solid var(--cl-hair); }
 .cl-sv-reg-name { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(34, 21)}; letter-spacing: -.01em; }
-.cl-sv-reg-note { flex: none; font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11.5, 10.5)}; letter-spacing: .13em; text-transform: uppercase; color: var(--cl-mute); }
+.cl-sv-reg-note { flex: none; font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11.5, 11.5)}; letter-spacing: .13em; text-transform: uppercase; color: var(--cl-mute); }
 .cl-sv-reg-foot { max-width: 68ch; margin: calc(var(--u) * 36) 0 0; font-size: ${fluid(14.5, 13)}; line-height: 1.65; color: var(--cl-mute); }
 
 .cl-sv-quotes { padding: calc(var(--u) * 110) calc(var(--u) * 34) calc(var(--u) * 40); display: grid; gap: calc(var(--u) * 70); }
 .cl-sv-quote { margin: 0 auto; max-width: calc(var(--u) * 880); text-align: center; }
 .cl-sv-quote p { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(30, 19)}; line-height: 1.34; letter-spacing: -.01em; margin: 0 0 calc(var(--u) * 20); }
-.cl-sv-quote footer { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); }
+.cl-sv-quote footer { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12.5, 12)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); }
 
 .cl-sv-close { text-align: center; padding: calc(var(--u) * 110) calc(var(--u) * 34) calc(var(--u) * 120); }
 .cl-sv-close .cl-headline { margin-inline: auto; }
@@ -287,9 +287,9 @@ const CSS = `
   transition: color .3s cubic-bezier(.16,1,.3,1); font-variant-numeric: tabular-nums;
 }
 .cl-sv-close-tel:hover { color: var(--cl-gold-text); }
-.cl-sv-close-addr { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(13, 12)}; color: var(--cl-mute); margin-top: calc(var(--u) * 18); }
+.cl-sv-close-addr { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(13, 12.5)}; color: var(--cl-mute); margin-top: calc(var(--u) * 18); }
 .cl-sv-others { display: flex; justify-content: center; align-items: baseline; gap: calc(var(--u) * 36); flex-wrap: wrap; margin-top: calc(var(--u) * 54); }
-.cl-sv-others-label { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11.5, 11)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-mute); }
+.cl-sv-others-label { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(11.5, 11.5)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-mute); }
 .cl-sv-other {
   font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(19, 16)};
   color: var(--cl-ink); text-decoration: none; border-bottom: 1px solid var(--cl-hair); padding-bottom: 2px;

@@ -692,7 +692,7 @@ const CSS = `
 .cl-edit { padding: calc(var(--u) * 150) calc(var(--u) * 34); }
 .cl-edit-nums { display: flex; align-items: baseline; gap: calc(var(--u) * 44); flex-wrap: wrap; margin-bottom: calc(var(--u) * 36); }
 .cl-edit-n { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(190, 72)}; line-height: 1; letter-spacing: -.03em; display: block; font-variant-numeric: tabular-nums; }
-.cl-edit-l { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .12em; text-transform: uppercase; color: var(--cl-mute); display: block; margin-top: 10px; }
+.cl-edit-l { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12.5, 12)}; letter-spacing: .12em; text-transform: uppercase; color: var(--cl-mute); display: block; margin-top: 10px; }
 .cl-edit-slash { width: 1px; align-self: stretch; background: var(--cl-hair); }
 
 /* the wall: full-bleed plates */
@@ -701,7 +701,7 @@ const CSS = `
 .cl-wall-progress { display: block; height: 100%; background: var(--cl-gold); transform: scaleX(0); transform-origin: left; }
 .cl-wall-count {
   position: absolute; top: calc(var(--u) * 74); right: calc(var(--u) * 34); z-index: 5;
-  font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)};
+  font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)};
   letter-spacing: .18em; color: rgb(239 237 231 / .75); font-variant-numeric: tabular-nums;
 }
 .cl-wall-track { display: flex; align-items: stretch; width: max-content; will-change: transform; }
@@ -710,7 +710,7 @@ const CSS = `
   width: 62vw; height: 100svh; display: grid; align-content: center;
   padding: calc(var(--u) * 70) calc(var(--u) * 44);
 }
-.cl-plate-kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-gold); margin: 0 0 calc(var(--u) * 18); }
+.cl-plate-kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .16em; text-transform: uppercase; color: var(--cl-gold); margin: 0 0 calc(var(--u) * 18); }
 .cl-plate-intro .cl-body { color: #B9B7AE; }
 .cl-plate-full {
   position: relative; display: block; width: 100vw; height: 100svh;
@@ -731,12 +731,12 @@ const CSS = `
   padding: 0 calc(var(--u) * 44) calc(var(--u) * 34);
 }
 .cl-plate-title { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(30, 20)}; letter-spacing: -.01em; color: #F4F1EA; }
-.cl-plate-meta { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .14em; text-transform: uppercase; color: rgb(244 241 234 / .82); flex: none; }
+.cl-plate-meta { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .14em; text-transform: uppercase; color: rgb(244 241 234 / .82); flex: none; }
 .cl-plate-vitni .cl-vitni-lockup {
   position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; text-align: center;
   padding: calc(var(--u) * 60); pointer-events: none;
 }
-.cl-vitni-eyebrow { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .18em; text-transform: uppercase; color: #EFEDE7; margin: 0 0 14px; }
+.cl-vitni-eyebrow { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .18em; text-transform: uppercase; color: #EFEDE7; margin: 0 0 14px; }
 .cl-vitni-title { color: #F4F1EA; mix-blend-mode: difference; font-weight: 500; letter-spacing: .04em; margin: 0; }
 @media (max-width: 991px) {
   .cl-wall-track { display: block; width: auto; }
@@ -789,7 +789,7 @@ const CSS = `
 .cl-series-note { font-size: ${fluid(14, 13)}; color: var(--cl-mute); }
 .cl-series-preview { position: sticky; top: calc(var(--u) * 80); margin: 0; }
 .cl-series-preview img { width: 100%; aspect-ratio: 4 / 3.4; object-fit: cover; background: #E4E2DB; }
-.cl-series-preview figcaption { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
+.cl-series-preview figcaption { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
 /* the float never exists for touch or reduced motion */
 .cl-series-float { display: none; }
 
@@ -850,12 +850,12 @@ const CSS = `
 .cl-bok-fig { will-change: transform; }
 .cl-bok-fig img { width: 100%; height: auto; object-fit: cover; display: block; }
 .cl-bok-cap {
-  font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)};
+  font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)};
   letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute);
 }
 .cl-bok-specline {
   margin: calc(var(--u) * 40) 0 0; font-family: 'Space Mono', ui-monospace, monospace;
-  font-size: ${fluid(12.5, 11.5)}; letter-spacing: .1em; color: var(--cl-mute);
+  font-size: ${fluid(12.5, 12)}; letter-spacing: .1em; color: var(--cl-mute);
 }
 
 /* services */
@@ -877,13 +877,13 @@ const CSS = `
 .cl-thjonusta-cta:hover { color: var(--cl-ink); }
 .cl-thjonusta-fig { margin: 0; max-width: calc(var(--u) * 460); justify-self: end; }
 .cl-thjonusta-fig img { width: 100%; aspect-ratio: 5 / 7; object-fit: cover; }
-.cl-fig-cap { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 11)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
+.cl-fig-cap { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12, 12)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); padding-top: 10px; }
 
 /* the RAX quote */
 .cl-quote { padding: calc(var(--u) * 40) calc(var(--u) * 34) calc(var(--u) * 120); }
 .cl-quote-block { margin: 0 auto; max-width: calc(var(--u) * 880); text-align: center; }
 .cl-quote-block p { font-family: 'Cabinet Grotesk', system-ui, sans-serif; font-weight: 500; font-size: ${fluid(34, 21)}; line-height: 1.32; letter-spacing: -.01em; margin: 0 0 calc(var(--u) * 22); }
-.cl-quote-block footer { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12.5, 11.5)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); }
+.cl-quote-block footer { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(12.5, 12)}; letter-spacing: .14em; text-transform: uppercase; color: var(--cl-mute); }
 
 /* about: his own portrait from his own About page */
 .cl-um { display: grid; grid-template-columns: 1.15fr 1fr; gap: calc(var(--u) * 70); align-items: center; padding: calc(var(--u) * 40) calc(var(--u) * 34) calc(var(--u) * 130); }
@@ -902,7 +902,7 @@ const CSS = `
   transition: color .3s cubic-bezier(.16,1,.3,1); font-variant-numeric: tabular-nums;
 }
 .cl-samband-tel:hover { color: var(--cl-gold-text); }
-.cl-samband-addr { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(13, 12)}; color: var(--cl-mute); margin-top: calc(var(--u) * 20); }
+.cl-samband-addr { font-family: 'Space Mono', ui-monospace, monospace; font-size: ${fluid(13, 12.5)}; color: var(--cl-mute); margin-top: calc(var(--u) * 20); }
 
 /* responsive */
 @media (max-width: 991px) {
