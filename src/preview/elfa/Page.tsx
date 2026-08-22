@@ -4,7 +4,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { companyEntry as company } from './company'
 import {
   CLINIC, LICENCES, HERO, GENERAL, SPECIALITIES, PRICES, PRICE_NOTE,
-  CANCELLATION, CAREER, ELFA, HREFNA, WELCOME, IMAGES,
+  CANCELLATION, CAREER, ELFA, HREFNA, WELCOME, IMAGES, PLATE, PLATE_CAPTION,
 } from './data'
 
 /* ------------------------------------------------------------------ tokens */
@@ -103,6 +103,31 @@ const CSS = `
 
 .eg-card{background:${ENAMEL};border:1px solid ${LINE};border-radius:14px}
 
+/* ---- the annotated anatomical plate ---- */
+.eg-plate{position:relative;margin:0 auto;max-width:1180px}
+.eg-plate-img{display:block;width:100%;height:auto}
+.eg-plate-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.eg-lead{fill:none;stroke:${EG};stroke-width:1.25;opacity:1;
+  stroke-dasharray:var(--len,400);stroke-dashoffset:var(--len,400);
+  transition:stroke-dashoffset 900ms cubic-bezier(.16,1,.3,1)}
+.eg-in .eg-lead{stroke-dashoffset:0}
+.eg-dot{fill:${EG};opacity:0;transition:opacity 300ms ease 700ms}
+.eg-in .eg-dot{opacity:1}
+.eg-tag{position:absolute;max-width:230px;opacity:0;transform:translateY(8px);
+  transition:opacity 500ms ease,transform 500ms cubic-bezier(.16,1,.3,1)}
+.eg-in .eg-tag{opacity:1;transform:none}
+.eg-tag[data-side="left"]{text-align:right}
+/* below the plate breakpoint the margins vanish, so the same items become a list */
+.eg-plate-list{display:grid;gap:14px}
+@media (min-width:1000px){.eg-plate-list{display:none}}
+@media (max-width:999px){.eg-tag,.eg-plate-svg{display:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .eg-lead{stroke-dashoffset:0;transition:none}
+  .eg-dot{opacity:1;transition:none}
+  .eg-tag{opacity:1;transform:none;transition:none}
+}
+
 /* ---- header: nav either side of the mark, sitting on the hero ---- */
 .eg-head{position:relative;z-index:26;padding:18px 20px;background:${CHALK};
   border-bottom:1px solid ${LINE}}
@@ -171,6 +196,78 @@ function Headline({
         ))}
       </span>
     </Tag>
+  )
+}
+
+/** The annotated plate: her surgical specialisations mapped onto the arch. */
+function Plate() {
+  return (
+    <>
+      <div className="eg-plate" data-rv>
+        {/* margin space either side for the labels */}
+        <div style={{ padding: '0 clamp(0px, 22vw, 260px)' }}>
+          <img
+            src={IMAGES.jaw}
+            className="eg-plate-img"
+            width={1200}
+            height={1009}
+            alt="Skýringarmynd af tanngarði: efri og neðri gómur í biti."
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        <svg className="eg-plate-svg" viewBox="0 0 100 84" preserveAspectRatio="none" aria-hidden="true">
+          {PLATE.map((p) => {
+            // the drawing occupies the middle band; labels live in the margins
+            const inset = 22
+            const ax = inset + (p.ax / 100) * (100 - inset * 2)
+            const ay = (p.ay / 100) * 84
+            const lx = p.side === 'left' ? 20 : 80
+            const ly = (p.ly / 100) * 84 + 3
+            const len = Math.hypot(ax - lx, ay - ly) + 6
+            return (
+              <g key={p.id}>
+                <path
+                  className="eg-lead"
+                  style={{ ['--len' as string]: len }}
+                  d={`M ${lx} ${ly} L ${(lx + ax) / 2} ${ly} L ${ax} ${ay}`}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <circle className="eg-dot" cx={ax} cy={ay} r={0.55} vectorEffect="non-scaling-stroke" />
+              </g>
+            )
+          })}
+        </svg>
+
+        {PLATE.map((p) => (
+          <div
+            key={p.id}
+            className="eg-tag"
+            data-side={p.side}
+            style={{
+              top: `${p.ly}%`,
+              left: p.side === 'left' ? 0 : undefined,
+              right: p.side === 'right' ? 0 : undefined,
+              transitionDelay: `${p.ly * 4}ms`,
+            }}
+          >
+            <p className="eg-eyebrow" style={{ color: EG_TEXT }}>{p.title}</p>
+            <p className="mt-1.5 text-[13px] leading-snug" style={{ color: MINERAL }}>{p.note}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* the same information, as a list, wherever the margins are too tight */}
+      <ul className="eg-plate-list mt-8" data-rv>
+        {PLATE.map((p) => (
+          <li key={p.id} className="py-3" style={{ borderTop: `1px solid ${LINE}` }}>
+            <p className="eg-eyebrow" style={{ color: EG_TEXT }}>{p.title}</p>
+            <p className="mt-1.5 text-[14px] leading-snug" style={{ color: MINERAL }}>{p.note}</p>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 
@@ -377,6 +474,15 @@ export default function ElfaPage() {
                 </ul>
               </div>
             </div>
+
+            {/* the plate turns that list into a map of where she operates */}
+            <figure className="mt-24 sm:mt-32">
+              <Plate />
+              <figcaption data-rv className="eg-rv mx-auto mt-10 max-w-[62ch] text-[14px] leading-relaxed"
+                          style={{ color: MINERAL }}>
+                {PLATE_CAPTION}
+              </figcaption>
+            </figure>
           </div>
         </section>
 

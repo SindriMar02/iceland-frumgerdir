@@ -145,7 +145,35 @@ export const HREFNA = {
 export const WELCOME =
   'Við bjóðum alla velkomna og leggjum okkur fram við að bjóða upp á árangursríka og þægilega heimsókn sem einkennist af persónulegu viðmóti og faglegri þjónustu.'
 
+/**
+ * The annotated plate. Anchor points are percentages of the drawing's own box,
+ * chosen off an elementFromPoint ink map of jaw.svg rather than by eye, so every
+ * leader line lands on drawn anatomy. `side` puts the label in the left or right
+ * margin. Each note is one of her own stated specialisations, verbatim.
+ */
+export const PLATE = [
+  { id: 'sinus', side: 'right', ly: 8, ax: 60, ay: 18,
+    title: 'Sínuslift',
+    note: 'Beinuppbygging í efri gómi, ofan við aftari jaxla, áður en tannplanti er settur.' },
+  { id: 'endajaxl', side: 'right', ly: 40, ax: 70, ay: 38,
+    title: 'Endajaxlar',
+    note: 'Endajaxlataka og allur almennur tanndráttur.' },
+  { id: 'planti', side: 'right', ly: 74, ax: 55, ay: 52,
+    title: 'Tannplantar',
+    note: 'Ísetning tannplanta með eða án beinígræðslu.' },
+  { id: 'tannhals', side: 'left', ly: 26, ax: 16, ay: 33,
+    title: 'Berir tannhálsar',
+    note: 'Tannholdsaðgerðir til að hylja bera tannhálsa.' },
+  { id: 'rot', side: 'left', ly: 70, ax: 30, ay: 64,
+    title: 'Rótarendi',
+    note: 'Rótarendaaðgerðir, þar sem rótarendinn situr í kjálkabeininu.' },
+] as const
+
+export const PLATE_CAPTION =
+  'Elfa lauk meistaranámi í munn- og kjálkaskurðlækningum við UAB, University of Alabama at Birmingham, árið 2009. Myndin er stílfærð skýringarmynd, ekki klínísk teikning, og sýnir í grófum dráttum hvar á tanngarðinum þessar aðgerðir fara fram.'
+
 export const IMAGES = {
+  jaw: '/elfa/jaw.svg',
   portraitTall: '/elfa/portrait-tall.webp',
   portraitTallSm: '/elfa/portrait-tall-sm.webp',
   mark: '/elfa/mark.webp',
