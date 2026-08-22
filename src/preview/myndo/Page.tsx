@@ -4,7 +4,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { companyEntry as company } from './company'
 import {
   STUDIO, HERO, STAGES, PACKAGES, PRINTS, PRICE_NOTE,
-  PROCESS, SCHOOLS, OTHER, OLINA, IMAGES,
+  PROCESS, SCHOOLS, OTHER, OLINA, IMAGES, GALLERY,
 } from './data'
 
 /* ------------------------------------------------------------------ tokens */
@@ -180,7 +180,11 @@ export default function MyndoPage() {
     return () => io.disconnect()
   }, [])
 
-  const hero = STAGES.find((s) => s.id === 'nyburi')!
+  /* the hero wants the WIDE frame; the rail card keeps its own tighter crop */
+  const hero = {
+    photo: '/myndo/nyburi.webp',
+    alt: 'Svarthvít mynd af nýfæddu barni sofandi, vafið í prjónaefni.',
+  }
 
   return (
     <div ref={rootRef} className="my-root">
@@ -228,7 +232,7 @@ export default function MyndoPage() {
                 <p className="my-eyebrow" style={{ color: STONE }}>{HERO.eyebrow}</p>
               </div>
               <div data-rv className="mt-4">
-                <Headline as="h1" id="hero-h" text={HERO.headline} size={92} measure={860} />
+                <Headline as="h1" id="hero-h" text={HERO.headline} size={58} measure={640} />
               </div>
               <div data-rv className="my-rv mt-7 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <p className="max-w-[48ch] text-[16px] leading-relaxed sm:text-[17px]" style={{ color: STONE }}>
@@ -248,7 +252,7 @@ export default function MyndoPage() {
         <section id="aeviskeidin" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="ae-h">
           <div className="mx-auto max-w-[1340px]">
             <div data-rv>
-              <Headline id="ae-h" text="Ein ævi, einn ljósmyndari" size={68} measure={720} />
+              <Headline id="ae-h" text="Ein ævi, einn ljósmyndari" size={44} measure={560} />
             </div>
             <p data-rv className="my-rv mt-6 max-w-[58ch] text-[16px] leading-relaxed" style={{ color: STONE }}>
               Þjónustan hjá Myndó, lesin í þeirri röð sem lífið gerist. Flestir koma fyrst með bumbuna
@@ -259,14 +263,8 @@ export default function MyndoPage() {
               <ul className="my-rail" role="list">
                 {STAGES.map((s) => (
                   <li key={s.id} className="my-stage" tabIndex={0}>
-                    {s.photo
-                      ? <img className="my-stage-img" src={s.photo} width={1600} height={1200}
-                             alt={s.alt} loading="lazy" decoding="async" />
-                      : <div className="my-stage-blank" aria-hidden="true">
-                          <span className="my-display" style={{ fontSize: 46, color: 'rgba(42,36,32,.16)' }}>
-                            {s.n}
-                          </span>
-                        </div>}
+                    <img className="my-stage-img" src={s.photo} width={1400} height={1050}
+                         alt={s.alt} loading="lazy" decoding="async" />
                     <div className="flex flex-1 flex-col p-6">
                       <p className="my-eyebrow my-num" style={{ color: MOSS }}>{s.n} · {s.name}</p>
                       <p className="mt-3 flex-1 text-[14px] leading-relaxed" style={{ color: STONE }}>{s.body}</p>
@@ -284,12 +282,25 @@ export default function MyndoPage() {
           </div>
         </section>
 
+        {/* ---------------------------------------------------- her own frames */}
+        <section className="px-5 pb-20 sm:px-10" aria-label="Úr myndasafninu">
+          <div className="mx-auto max-w-[1340px]">
+            <div data-rv className="my-rv grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              {GALLERY.map((g) => (
+                <img key={g} src={`/myndo/${g}.webp`} alt="Mynd úr safni Myndó."
+                     className="block h-full w-full object-cover" style={{ aspectRatio: '3 / 4' }}
+                     loading="lazy" decoding="async" />
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ---------------------------------------------------------- process */}
         <section id="ferlid" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-24"
                  style={{ background: BONE, borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}
                  aria-labelledby="fe-h">
           <div className="mx-auto max-w-[1340px]">
-            <div data-rv><Headline id="fe-h" text="Þrjú skref" size={58} measure={480} /></div>
+            <div data-rv><Headline id="fe-h" text="Þrjú skref" size={40} measure={420} /></div>
             <ol data-rv className="my-rv mt-12 grid gap-10 md:grid-cols-3 md:gap-16">
               {PROCESS.map((p) => (
                 <li key={p.n} style={{ borderTop: `1px solid ${LINE}` }} className="pt-6">
@@ -305,7 +316,7 @@ export default function MyndoPage() {
         {/* --------------------------------------------------------- prices */}
         <section id="verdskra" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="vs-h">
           <div className="mx-auto max-w-[1340px]">
-            <div data-rv><Headline id="vs-h" text="Verðskráin" size={68} measure={520} /></div>
+            <div data-rv><Headline id="vs-h" text="Verðskráin" size={44} measure={460} /></div>
             <p data-rv className="my-rv mt-6 max-w-[62ch] text-[15px] leading-relaxed" style={{ color: STONE }}>
               {PRICE_NOTE}
             </p>
@@ -345,7 +356,7 @@ export default function MyndoPage() {
         <section id="skolamyndir" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-24"
                  style={{ background: BONE, borderTop: `1px solid ${LINE}` }} aria-labelledby="sk-h">
           <div className="mx-auto grid max-w-[1340px] gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
-            <div data-rv><Headline id="sk-h" text={SCHOOLS.title} size={56} measure={380} /></div>
+            <div data-rv><Headline id="sk-h" text={SCHOOLS.title} size={40} measure={340} /></div>
             <div data-rv className="my-rv self-center">
               <p className="max-w-[56ch] text-[16px] leading-relaxed sm:text-[17px]">{SCHOOLS.body}</p>
               <a href={`tel:${STUDIO.telHref}`}
@@ -360,7 +371,7 @@ export default function MyndoPage() {
         {/* ------------------------------------------------------- about */}
         <section className="px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="um-h">
           <div className="mx-auto max-w-[1340px]">
-            <div data-rv><Headline id="um-h" text="Ólína á bak við vélina" size={62} measure={640} /></div>
+            <div data-rv><Headline id="um-h" text="Ólína á bak við vélina" size={44} measure={560} /></div>
             <div className="mt-12 grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-20">
               <div data-rv className="my-rv">
                 <img src={IMAGES.olina} width={1140} height={604}
@@ -395,7 +406,7 @@ export default function MyndoPage() {
                    className="h-[240px] w-full object-cover sm:h-[320px]" loading="lazy" decoding="async" />
             </div>
             <div data-rv className="mt-12">
-              <Headline id="cl-h" text="Bókaðu myndatöku" size={68} measure={560} />
+              <Headline id="cl-h" text="Bókaðu myndatöku" size={46} measure={520} />
             </div>
             <a data-rv href={`tel:${STUDIO.telHref}`}
                className={`my-link my-display my-num my-rv mt-6 inline-flex ${FOCUS}`}

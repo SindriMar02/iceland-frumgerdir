@@ -35,41 +35,51 @@ export const STAGES = [
   {
     id: 'bumba', n: '01', name: 'Bumba',
     body: 'Meðgöngumyndataka. Listrænar og fallegar myndir af bumbunni áður en barnið kemur.',
-    price: null, dur: null, photo: null,
+    price: null, dur: null, photo: '/myndo/stage-bumba.webp',
+    alt: 'Meðgöngumyndataka hjá Myndó.',
   },
   {
     id: 'nyburi', n: '02', name: 'Nýburi',
     body: 'Fer yfirleitt fram á fyrstu tíu dögum barnsins. Hlýtt og þægilegt umhverfi er í algjörum forgangi og myndatakan miðast við þarfir barnsins.',
-    price: '48.200', dur: '2 til 4 klst', photo: '/myndo/nyburi.webp',
-    alt: 'Svarthvít mynd af nýfæddu barni sofandi, vafið í prjónaefni.',
+    price: '48.200', dur: '2 til 4 klst', photo: '/myndo/stage-nyburi.webp',
+    alt: 'Svarthvít mynd af nýfæddu barni sofandi.',
   },
   {
     id: 'born', n: '03', name: 'Börn',
     body: 'Barnamyndataka í stúdíóinu, þar sem börnin fá að vera þau sjálf.',
-    price: '33.800', dur: 'um 30 mín', photo: null,
+    price: '33.800', dur: 'um 30 mín', photo: '/myndo/stage-born.webp',
+    alt: 'Barnamyndataka í ljósmyndastofunni.',
   },
   {
     id: 'ferming', n: '04', name: 'Ferming',
     body: 'Fermingarmyndataka. Myndirnar rata í albúm, á vegg og í boðskortin.',
-    price: '33.800', dur: 'um 30 mín', photo: null,
+    price: '33.800', dur: 'um 30 mín', photo: '/myndo/stage-ferming.webp',
+    alt: 'Fermingarmyndataka hjá Myndó.',
   },
   {
     id: 'utskrift', n: '05', name: 'Útskrift',
     body: 'Stúdentsmyndataka, ein eða með systkinum og fjölskyldu.',
-    price: '39.800', dur: 'um 60 mín', photo: null,
+    price: '39.800', dur: 'um 60 mín', photo: '/myndo/stage-utskrift.webp',
+    alt: 'Stúdentsmyndataka hjá Myndó.',
   },
   {
     id: 'gifting', n: '06', name: 'Gifting',
     body: 'Brúðkaupsmyndataka, hvort sem er í stúdíóinu eða úti í íslenskri náttúru.',
-    price: null, dur: null, photo: '/myndo/gifting.webp',
-    alt: 'Brúðhjón standa saman í íslensku hrauni.',
+    price: null, dur: null, photo: '/myndo/stage-gifting.webp',
+    alt: 'Brúðkaupsmyndataka hjá Myndó.',
   },
   {
     id: 'fjolskyldan', n: '07', name: 'Fjölskyldan',
     body: 'Allt að tíu manns saman, eða stórfjölskyldan með ömmu, afa og barnabörnum, öll saman og í sitthvoru lagi.',
-    price: '39.800', dur: 'um 60 mín', photo: '/myndo/fjolskyldan.webp',
-    alt: 'Fjölskylda saman við stóran glugga í ljósmyndastofunni.',
+    price: '39.800', dur: 'um 60 mín', photo: '/myndo/stage-fjolskyldan.webp',
+    alt: 'Fjölskyldumyndataka hjá Myndó.',
   },
+] as const
+
+/** Extra frames from her own galleries, for the wide band. */
+export const GALLERY = [
+  'extra-born-0', 'extra-ferming-2', 'extra-gifting-4',
+  'extra-born-1', 'extra-ferming-3', 'extra-gifting-5',
 ] as const
 
 /** Her verðskrá, verbatim. */

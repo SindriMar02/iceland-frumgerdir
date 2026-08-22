@@ -1,0 +1,47 @@
+{
+ "stages": {
+  "bumba": {
+   "w": 1000,
+   "h": 722,
+   "src": "bumba__126-039.jpg"
+  },
+  "nyburi": {
+   "w": 1400,
+   "h": 990,
+   "src": "ungaborn__233-009a3.jpg"
+  },
+  "born": {
+   "w": 1400,
+   "h": 1939,
+   "src": "born__566-037.jpg"
+  },
+  "ferming": {
+   "w": 1400,
+   "h": 1939,
+   "src": "ferming___MG_0510.jpg"
+  },
+  "utskrift": {
+   "w": 1000,
+   "h": 1000,
+   "src": "student__katrin-035.jpg"
+  },
+  "gifting": {
+   "w": 1400,
+   "h": 1939,
+   "src": "gifting__593-234.jpg"
+  },
+  "fjolskyldan": {
+   "w": 1000,
+   "h": 800,
+   "src": "fjoelskyldan__alladora-0106stk.jpg"
+  }
+ },
+ "extra": [
+  "extra-born-0",
+  "extra-born-1",
+  "extra-ferming-2",
+  "extra-ferming-3",
+  "extra-gifting-4",
+  "extra-gifting-5"
+ ]
+}
