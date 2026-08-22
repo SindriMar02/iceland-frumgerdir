@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { companyEntry as company } from './company'
@@ -104,6 +104,36 @@ const CSS = `
 
 /* ---- price rows ---- */
 .my-pack{background:${BONE};border:1px solid ${LINE};border-radius:4px}
+
+/* ---- mobile nav: below 920px the header hid every section link ---- */
+.my-burger{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;
+  width:44px;height:44px;background:none;border:0;cursor:pointer;padding:0 10px}
+@media (min-width:920px){.my-burger{display:none}}
+.my-burger i{display:block;height:1.5px;background:${UMBER};border-radius:2px;
+  transition:transform 260ms cubic-bezier(.16,1,.3,1),opacity 180ms ease}
+.my-burger[aria-expanded="true"] i:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.my-burger[aria-expanded="true"] i:nth-child(2){opacity:0}
+.my-burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+.my-panel{position:fixed;inset:0;z-index:70;background:${LINEN};
+  display:flex;flex-direction:column;padding:20px;
+  transition:opacity 240ms ease,transform 300ms cubic-bezier(.16,1,.3,1)}
+.my-panel a.my-panel-link{display:block;padding:16px 0;border-bottom:1px solid ${LINE};
+  font-family:${DISPLAY};font-size:24px;min-height:44px;color:${UMBER}}
+.my-panel-foot{margin-top:auto;padding-top:24px}
+
+/* ---- sticky booking bar, mobile only; shared chrome floats at 80px ---- */
+.my-callbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:10px;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  background:${BONE};border-top:1px solid ${LINE}}
+@media (min-width:920px){.my-callbar{display:none}}
+.my-callbar a{flex:1;display:inline-flex;align-items:center;justify-content:center;
+  min-height:48px;font-size:15px;font-weight:600;border-radius:999px;
+  transition:transform 150ms ease}
+.my-callbar a:active{transform:scale(.985)}
+.my-cb-book{background:${MOSS};color:#fff}
+.my-cb-tel{border:1px solid ${LINE};color:${MOSS};background:${LINEN}}
+@media (max-width:919px){.my-root{padding-bottom:78px}}
 .my-print{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:baseline;
   padding:12px 0;border-bottom:1px dotted rgba(42,36,32,.24)}
 .my-print:last-child{border-bottom:0}
@@ -163,6 +193,17 @@ function Headline({
 
 export default function MyndoPage() {
   const rootRef = useRef<HTMLDivElement>(null)
+  const [menu, setMenu] = useState(false)
+
+  /* lock the page behind the panel and let Escape out */
+  useEffect(() => {
+    if (!menu) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+  }, [menu])
 
   useEffect(() => {
     const root = rootRef.current
@@ -192,6 +233,12 @@ export default function MyndoPage() {
 
       <header className="my-head">
         <div className="my-head-in">
+          <button type="button" className={`my-burger ${FOCUS}`} aria-expanded={menu}
+                  aria-controls="my-menu" aria-label={menu ? 'Loka valmynd' : 'Opna valmynd'}
+                  onClick={() => setMenu((v) => !v)}>
+            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+          </button>
+
           <nav className="my-navset" aria-label="Valmynd, vinstri">
             {NAV.slice(0, 2).map((n) => (
               <a key={n.id} href={`#${n.id}`} className={`my-link my-navlink ${FOCUS}`}>{n.label}</a>
@@ -211,6 +258,41 @@ export default function MyndoPage() {
           </nav>
         </div>
       </header>
+
+      {/* full-screen menu, mobile only. Visibility is state-driven inline so it
+          cannot lose a specificity race in the cascade. */}
+      <div className="my-panel" id="my-menu" aria-hidden={!menu}
+           style={{ opacity: menu ? 1 : 0, visibility: menu ? 'visible' : 'hidden',
+                    transform: menu ? 'none' : 'translateY(-8px)' }}>
+        <div className="flex items-center justify-between">
+          <span className="my-eyebrow" style={{ color: STONE }}>{STUDIO.name}</span>
+          <button type="button" className={`my-burger ${FOCUS}`} aria-expanded={menu}
+                  aria-label="Loka valmynd" onClick={() => setMenu(false)}
+                  style={{ display: 'inline-flex' }}>
+            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+          </button>
+        </div>
+        <nav className="mt-6" aria-label="Aðalvalmynd">
+          {NAV.map((n) => (
+            <a key={n.id} href={`#${n.id}`} className={`my-panel-link ${FOCUS}`}
+               onClick={() => setMenu(false)}>{n.label}</a>
+          ))}
+        </nav>
+        <div className="my-panel-foot">
+          <p className="my-eyebrow" style={{ color: STONE }}>Bókanir</p>
+          <a href={`tel:${STUDIO.telHref}`} className={`my-num ${FOCUS}`}
+             style={{ color: MOSS, fontSize: 28, fontWeight: 600, display: 'inline-block', marginTop: 6 }}>
+            {STUDIO.tel}
+          </a>
+          <p className="my-eyebrow mt-4" style={{ color: STONE }}>{STUDIO.address}</p>
+        </div>
+      </div>
+
+      {/* sticky booking bar, mobile only */}
+      <div className="my-callbar">
+        <a href={`tel:${STUDIO.telHref}`} className={`my-cb-book ${FOCUS}`}>Bóka myndatöku</a>
+        <a href={`#verdskra`} className={`my-cb-tel ${FOCUS}`}>Verðskrá</a>
+      </div>
 
       <main id="top">
         {/* ------------------------------------------------------------ hero */}
