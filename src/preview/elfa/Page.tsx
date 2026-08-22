@@ -442,7 +442,7 @@ export default function ElfaPage() {
           transform: menu ? 'none' : 'translateY(-8px)',
         }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-row-reverse items-center justify-between">
           <span className="eg-eyebrow" style={{ color: MINERAL }}>{CLINIC.name}</span>
           <button type="button" className={`eg-burger ${FOCUS}`} aria-expanded={menu}
                   aria-label="Loka valmynd" onClick={() => setMenu(false)}

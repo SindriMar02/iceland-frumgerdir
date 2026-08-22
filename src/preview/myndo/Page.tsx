@@ -264,7 +264,7 @@ export default function MyndoPage() {
       <div className="my-panel" id="my-menu" aria-hidden={!menu}
            style={{ opacity: menu ? 1 : 0, visibility: menu ? 'visible' : 'hidden',
                     transform: menu ? 'none' : 'translateY(-8px)' }}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-row-reverse items-center justify-between">
           <span className="my-eyebrow" style={{ color: STONE }}>{STUDIO.name}</span>
           <button type="button" className={`my-burger ${FOCUS}`} aria-expanded={menu}
                   aria-label="Loka valmynd" onClick={() => setMenu(false)}
