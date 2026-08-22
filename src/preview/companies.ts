@@ -66,6 +66,7 @@ import { companyEntry as UNA_ENTRY } from './una/company'
 import { companyEntry as FOTOGRAFI_ENTRY } from './fotografi/company'
 import { companyEntry as FUZZY_ENTRY } from './fuzzy/company'
 import { companyEntry as ELFA_ENTRY } from './elfa/company'
+import { companyEntry as MYNDO_ENTRY } from './myndo/company'
 import { companyEntry as SELJAVELLIR_ENTRY } from './seljavellir/company'
 import { companyEntry as LANGAHOLT_ENTRY } from './langaholt/company'
 import { companyEntry as FISKKOMPANI_ENTRY } from './fiskkompani/company'
@@ -171,6 +172,7 @@ export const PREVIEW_COMPANIES: PreviewCompany[] = [
   FOTOGRAFI_ENTRY,
   FUZZY_ENTRY,
   ELFA_ENTRY,
+  MYNDO_ENTRY,
   SELJAVELLIR_ENTRY,
   LANGAHOLT_ENTRY,
   FISKKOMPANI_ENTRY,
