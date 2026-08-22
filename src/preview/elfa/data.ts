@@ -146,9 +146,8 @@ export const WELCOME =
   'Við bjóðum alla velkomna og leggjum okkur fram við að bjóða upp á árangursríka og þægilega heimsókn sem einkennist af persónulegu viðmóti og faglegri þjónustu.'
 
 export const IMAGES = {
-  hero: '/elfa/hero.webp',
-  heroSm: '/elfa/hero-sm.webp',
-  heroMob: '/elfa/hero-mob.webp',
+  portraitTall: '/elfa/portrait-tall.webp',
+  portraitTallSm: '/elfa/portrait-tall-sm.webp',
   mark: '/elfa/mark.webp',
   lockup: '/elfa/lockup.webp',
   portrait: '/elfa/elfa.webp',

@@ -78,12 +78,7 @@ const CSS = `
 @keyframes eg-seat{0%{transform:scaleX(1)}45%{transform:scaleX(.9)}100%{transform:scaleX(1)}}
 
 /* mobile: the same notches as a top rail */
-.eg-rail{position:sticky;top:0;z-index:24;display:flex;gap:4px;padding:10px 20px;
-  background:${CHALK};border-bottom:1px solid ${LINE}}
-@media (min-width:1560px){.eg-rail{display:none}}
-.eg-rail i{flex:1;height:2px;background:${INK};opacity:.16;border-radius:2px;
   transition:opacity 240ms ease,background-color 240ms ease}
-.eg-rail i[data-on="1"]{opacity:1;background:${EG}}
 
 /* ---- her mark: one continuous stroke, swept in once per visit ---- */
 .eg-mark{-webkit-mask-image:linear-gradient(100deg,#000 0 var(--eg-p,100%),transparent calc(var(--eg-p,100%) + 7%));
@@ -109,7 +104,8 @@ const CSS = `
 .eg-card{background:${ENAMEL};border:1px solid ${LINE};border-radius:14px}
 
 /* ---- header: nav either side of the mark, sitting on the hero ---- */
-.eg-head{position:absolute;left:0;right:0;top:0;z-index:26;padding:20px}
+.eg-head{position:relative;z-index:26;padding:18px 20px;background:${CHALK};
+  border-bottom:1px solid ${LINE}}
 .eg-head-in{margin:0 auto;max-width:1320px;display:grid;align-items:center;
   grid-template-columns:1fr auto 1fr;gap:20px}
 .eg-navset{display:none;gap:26px}
@@ -119,13 +115,19 @@ const CSS = `
   color:${INK};min-height:44px;display:inline-flex;align-items:center}
 
 /* ---- full-bleed hero ---- */
-.eg-hero{position:relative;min-height:clamp(520px,86svh,880px);display:grid;
-  isolation:isolate}
-.eg-hero > *{grid-area:1/1}
-.eg-hero-img{width:100%;height:100%;object-fit:cover;object-position:60% 45%}
-.eg-hero-veil{background:
-  linear-gradient(to top, ${CHALK} 2%, rgba(242,240,236,.92) 20%, rgba(242,240,236,.35) 48%, rgba(242,240,236,0) 72%)}
-.eg-hero-body{align-self:end}
+.eg-hero{display:grid;grid-template-columns:1fr;align-items:stretch}
+@media (min-width:960px){
+  .eg-hero{grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);
+    min-height:clamp(600px,88svh,900px)}
+}
+.eg-hero-type{display:flex;flex-direction:column;justify-content:center;
+  padding:56px 20px}
+@media (min-width:960px){.eg-hero-type{padding:80px 56px 80px 40px}}
+@media (min-width:1320px){.eg-hero-type{padding-left:max(40px,calc((100vw - 1320px)/2))}}
+.eg-hero-photo{position:relative;background:#8E9095;min-height:64svh}
+@media (min-width:960px){.eg-hero-photo{min-height:0}}
+.eg-hero-photo img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:50% 18%}
 
 @media (prefers-reduced-motion:reduce){
   .eg-w{transform:none;opacity:1;transition:none}
@@ -245,9 +247,6 @@ export default function ElfaPage() {
         ))}
       </nav>
 
-      <div className="eg-rail" aria-hidden="true">
-        {SECTIONS.map((s, i) => <i key={s.id} data-on={i <= active ? '1' : '0'} />)}
-      </div>
 
       <header className="eg-head">
         <div className="eg-head-in">
@@ -281,47 +280,55 @@ export default function ElfaPage() {
       </header>
 
       <main id="top">
-        {/* ------------------------------------------------------------ hero */}
-        <section id="stofan" className="eg-bleed eg-hero scroll-mt-16" aria-labelledby="hero-h">
-          <picture>
-            <source media="(max-width: 700px)" srcSet={IMAGES.heroMob} />
-            <source media="(max-width: 1300px)" srcSet={IMAGES.heroSm} />
+        {/* ------------------------------------------------------------ hero
+            A solo practice sells the person. Her portrait carries the hero and
+            the type sits beside it, rather than a decorative image behind text. */}
+        <section id="stofan" className="eg-hero scroll-mt-16" aria-labelledby="hero-h">
+          <div className="eg-hero-type">
+            <div data-rv className="eg-rv">
+              <p className="eg-eyebrow" style={{ color: MINERAL }}>{HERO.eyebrow}</p>
+            </div>
+
+            <div data-rv className="mt-5">
+              <Headline as="h1" id="hero-h" text={HERO.headline} size={86} measure={640} />
+            </div>
+
+            <div data-rv className="eg-rv mt-7">
+              <p className="max-w-[46ch] text-[16px] leading-relaxed sm:text-[17px]" style={{ color: MINERAL }}>
+                {HERO.lede}
+              </p>
+            </div>
+
+            <div data-rv className="eg-rv mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <a
+                href={HERO.cta.href}
+                className={`eg-btn inline-flex items-center justify-center rounded-full px-8 text-[15px] font-semibold ${FOCUS}`}
+                style={{ background: EG, color: '#fff', minHeight: 52 }}
+              >
+                {HERO.cta.label}
+              </a>
+              <a
+                href={`tel:${CLINIC.telHref}`}
+                className={`eg-link eg-num text-[19px] font-semibold ${FOCUS}`}
+                style={{ color: EG_TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}
+              >
+                {CLINIC.tel}
+              </a>
+            </div>
+          </div>
+
+          <div className="eg-hero-photo">
             <img
-              src={IMAGES.hero}
-              width={2400}
-              height={1029}
-              alt="Ljós sem fellur eftir mjúkri, gegnsærri bogadreginni ferlu."
-              className="eg-hero-img"
+              src={IMAGES.portraitTall}
+              srcSet={`${IMAGES.portraitTallSm} 760w, ${IMAGES.portraitTall} 1500w`}
+              sizes="(max-width: 960px) 100vw, 46vw"
+              width={1500}
+              height={2301}
+              alt="Elfa Guðmundsdóttir tannlæknir."
               loading="eager"
               decoding="async"
               fetchPriority="high"
             />
-          </picture>
-          <div className="eg-hero-veil" aria-hidden="true" />
-
-          <div className="eg-hero-body w-full px-5 pb-14 sm:px-10 sm:pb-20">
-            <div className="mx-auto w-full max-w-[1320px]">
-              <div data-rv className="eg-rv">
-                <p className="eg-eyebrow" style={{ color: MINERAL }}>{HERO.eyebrow}</p>
-              </div>
-
-              <div data-rv className="mt-4">
-                <Headline as="h1" id="hero-h" text={HERO.headline} size={96} measure={1000} />
-              </div>
-
-              <div data-rv className="eg-rv mt-7 flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
-                <p className="max-w-[50ch] text-[16px] leading-relaxed sm:text-[17px]" style={{ color: MINERAL }}>
-                  {HERO.lede}
-                </p>
-                <a
-                  href={HERO.cta.href}
-                  className={`eg-btn inline-flex shrink-0 items-center justify-center rounded-full px-8 text-[15px] font-semibold ${FOCUS}`}
-                  style={{ background: EG, color: '#fff', minHeight: 52 }}
-                >
-                  {HERO.cta.label}
-                </a>
-              </div>
-            </div>
           </div>
         </section>
 
