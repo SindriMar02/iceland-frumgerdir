@@ -39,6 +39,20 @@ const RULES = [
       ? 'has a fixed top bar but never uses env(safe-area-inset-top)' : null,
   },
   {
+    id: 'native-date-control',
+    why: 'An iOS <input type="date"> is a native control whose shadow DOM keeps its own intrinsic width. minmax(0,1fr) on the track and min-width:0 on the item are NOT enough — the two date fields still collided and ran off the right edge on a 430pt iPhone (mirrorsuite, reported 2026-08-19). No headless browser on this Mac reproduces it, because none of them render that control. So the rule is structural: drop the native appearance, and never place two of them side by side on a phone.',
+    test: s => {
+      if (!/type=["']date["']/.test(s)) return null
+      const missing = []
+      if (!/input\[type=["']date["']\][^{]*\{[^}]*appearance:\s*none/.test(s)) missing.push('no appearance:none')
+      /* a 2-track row must collapse to one column somewhere under 640px */
+      const stacks = /@media[^{]*max-width:\s*(?:[0-5]?\d{1,2}|6[0-4]\d)px[^{]*\{[\s\S]*?grid-template-columns:\s*1fr\s*[;}]/.test(s)
+      if (/grid-template-columns:\s*(?:minmax\(0,\s*1fr\)|1fr)\s+(?:minmax\(0,\s*1fr\)|1fr)/.test(s) && !stacks)
+        missing.push('two-track field row never collapses to one column on phones')
+      return missing.length ? missing.join('; ') : null
+    },
+  },
+  {
     id: 'svh-not-vh',
     why: 'In-app browsers (Instagram/Facebook WKWebView) collapse their chrome on scroll, so 100vh resizes mid-scroll and bottom-anchored hero content snaps. 100svh is stable.',
     test: s => {

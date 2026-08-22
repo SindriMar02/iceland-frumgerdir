@@ -111,6 +111,24 @@ for (const p of LIVE.orderProducts || []) {
   loc(p.name, `orderProduct "${nm}".name`)
   for (const f of ['basePrice','leadDays']) if (p[f] == null) bad(`orderProduct "${nm}".${f}: empty`)
   if (!(p.groups || []).length) bad(`orderProduct "${nm}": no option groups — it is dropped from the form`)
+  /* Per-person pricing has one way to go wrong silently: the rate is set but
+     the sizes carry no headcount, so every cake computes to 0 kr. and the page
+     cheerfully offers free cakes. Catch it here, not in a customer's basket. */
+  if (p.pricePerPerson) {
+    const sizeId = p.sizeGroupId
+    const sizeGroup = (p.groups || []).find((g) => g.id === sizeId)
+    if (!sizeId) {
+      bad(`orderProduct "${nm}": priced per person but no size group named — every size would cost 0 kr.`)
+    } else if (!sizeGroup) {
+      bad(`orderProduct "${nm}": size group "${sizeId}" does not exist — every size would cost 0 kr.`)
+    } else {
+      for (const [ci, c] of (sizeGroup.choices || []).entries()) {
+        if (!(typeof c.serves === 'number' && c.serves > 0)) {
+          bad(`orderProduct "${nm}" / size choice ${ci} "${c.label?.is || ci}": no headcount — it would price at 0 kr.`)
+        }
+      }
+    }
+  }
   for (const g of p.groups || []) {
     const gl = g.label?.is || '(unlabelled)'
     if (!g.id) bad(`orderProduct "${nm}" / group "${gl}": no id — the choice is not recorded on the order`)
@@ -118,6 +136,18 @@ for (const p of LIVE.orderProducts || []) {
     for (const [ci, c] of (g.choices || []).entries()) {
       if (!c.id) bad(`orderProduct "${nm}" / "${gl}" / choice ${ci}: no id`)
       loc(c.label, `orderProduct "${nm}" / "${gl}" / choice ${ci}.label`)
+      // A surcharge on an option that shows no price is a number nobody sees.
+      if (c.quoteOnly && c.priceDelta > 0) {
+        bad(`orderProduct "${nm}" / "${gl}" / "${c.label?.is || ci}": quote-only but carries a +${c.priceDelta} kr. surcharge that is never shown`)
+      }
+      // A field with no question is a blank box the customer cannot answer.
+      if (c.freeText && !(c.freeText.label?.is || c.freeText.label?.en)) {
+        bad(`orderProduct "${nm}" / "${gl}" / "${c.label?.is || ci}": opens a text field with no question on it`)
+      }
+      // Asking for a photo without asking what of leaves the baker guessing.
+      if (c.needsPhoto && !c.freeText) {
+        bad(`orderProduct "${nm}" / "${gl}" / "${c.label?.is || ci}": expects a photo but never asks what it should be of`)
+      }
     }
   }
 }
@@ -192,6 +222,53 @@ for (const [name, payload] of Object.entries({
 raw = clone(LIVE); raw.hours.sun = { closed: true }
 c = run('sunday closed', () => merge(raw))
 check('marking a day closed is reflected', c?.HOURS_BY_DAY[0].closed === true)
+
+/* Per-person pricing, the way it actually gets broken in a studio: someone
+   edits the size list and drops the headcount off a row. The merge must not
+   invent one, and the price must not silently become 0 kr. */
+raw = clone(LIVE)
+{
+  const p = (raw.orderProducts || []).find((x) => x.pricePerPerson)
+  const g = p && (p.groups || []).find((x) => x.id === p.sizeGroupId)
+  if (g) g.choices = g.choices.map((ch) => ({ ...ch, serves: undefined }))
+  c = run('per-person edit', () => merge(raw))
+  const merged = c?.ORDER_PRODUCTS.find((x) => x.pricePerPerson)
+  const sizeGroup = merged && merged.groups.find((x) => x.id === merged.sizeGroupId)
+  check('a size stripped of its headcount stays unpriced rather than becoming free',
+    !!sizeGroup && sizeGroup.choices.every((ch) => ch.serves === undefined))
+}
+
+/* The rate itself emptied. Falling back to basePrice is right; pricing every
+   size at 0 kr. is not. */
+raw = clone(LIVE)
+{
+  for (const p of raw.orderProducts || []) if (p.pricePerPerson) p.pricePerPerson = 0
+  c = run('per-person edit', () => merge(raw))
+  check('a per-person rate of 0 is treated as unset, not as free cakes',
+    c?.ORDER_PRODUCTS.every((p) => p.pricePerPerson === undefined))
+}
+
+/* Quote-only and the field a choice opens have to survive the CMS round trip,
+   or a bespoke cake starts quoting the standard rate again. */
+c = run('live merge', () => merge(clone(LIVE)))
+{
+  const all = (c?.ORDER_PRODUCTS || []).flatMap((p) => p.groups).flatMap((g) => g.choices)
+  check('quote-only choices survive the merge', all.some((ch) => ch.quoteOnly === true))
+  check('the field a choice opens survives the merge', all.some((ch) => !!ch.freeText?.label?.is))
+  check('ingredients a choice adds survive the merge', all.some((ch) => !!ch.adds?.length))
+  check('a layer swap survives the merge', all.some((ch) => !!ch.swap?.layerId))
+}
+
+/* A swap pointing at a layer that no longer exists replaces nothing and the
+   customer is quietly shown the wrong recipe. Catch the dangling reference. */
+for (const p of (LIVE.orderProducts || [])) {
+  const ids = new Set((p.composition || []).map((l) => l.id))
+  for (const g of p.groups || [])
+    for (const c of g.choices || [])
+      if (c.swap?.layerId && !ids.has(c.swap.layerId))
+        bad(`orderProduct "${p.name?.is}" / "${c.label?.is}": swaps out layer "${c.swap.layerId}", which is not in the recipe`)
+}
+check('no choice swaps out a layer that does not exist', problems === 0, `${problems} problem(s)`)
 
 rmSync(tmp, { recursive: true, force: true })
 console.log(`\n${pass} scenario check(s) passed, ${fail} failed, ${problems} content problem(s)\n`)

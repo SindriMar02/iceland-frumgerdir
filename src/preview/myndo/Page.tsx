@@ -1,201 +1,265 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { companyEntry as company } from './company'
 import {
   STUDIO, HERO, STAGES, PACKAGES, PRINTS, PRICE_NOTE,
-  PROCESS, SCHOOLS, OTHER, OLINA, IMAGES, GALLERY,
+  PROCESS, SCHOOLS, OTHER, OLINA, IMAGES,
 } from './data'
 
-/* ------------------------------------------------------------------ tokens */
+/* ------------------------------------------------------------------ tokens
+   Transplanted from blastation.com, measured live at 1440x900 and 565x777 on
+   2026-08-22. Their entire system is one typeface, four greys and no accent
+   colour at all; the colour is supposed to come from the photographs. That is
+   why it suits a photographer better than it suits a furniture maker.
+   Two honest deviations from the measured original, both forced:
+     - secondary text is #6E6E6E, not their #7F7F7F, which is 3.74:1 on the
+       ground and fails AA for small text.
+     - display line-height is 1.06, not their 1.0, because Icelandic uppercase
+       carries acutes above the cap line and 1.0 clips them.                   */
 
-const LINEN = '#F3EFE9'
-const BONE = '#FBF8F3'
-const UMBER = '#2A2420'
-const MOSS = '#3F5140'
-const STONE = '#6B645C' /* 5.09:1 on linen, so secondary text clears AA */
-const LINE = 'rgba(42,36,32,.14)'
+const INK = '#000000'
+const GROUND = '#F7F7F7'
+const PAPER = '#FFFFFF'
+const RULE = '#E7E7E7'
+const MUTE = '#6E6E6E'
 
-/* Serif is justified here: what she actually sells is a printed heirloom album,
-   and the studio is nineteen years of family portraiture. Newsreader, not one of
-   the four display serifs that read as slop on a page like this. */
-const DISPLAY = "'Newsreader', Georgia, serif"
-const BODY = "'Schibsted Grotesk', system-ui, sans-serif"
+/* Their exact stack. No webfont, nothing to download. */
+const FACE = '"Helvetica Neue", Helvetica, Arial, sans-serif'
 
-const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
+/* Their measured fluid curve, solved through both breakpoints. */
+const T_H1 = 'clamp(36.75px, 22.54px + 2.514vw, 58.75px)'
+const T_H2 = 'clamp(27.56px, 19.45px + 1.436vw, 40.12px)'
+const T_BODY = 'clamp(21px, 19.75px + 0.221vw, 22.93px)'
+const T_LABEL = 'clamp(11.81px, 11.11px + 0.125vw, 12.9px)'
 
 const NAV = [
   { id: 'aeviskeidin', label: 'Æviskeiðin' },
-  { id: 'ferlid', label: 'Ferlið' },
   { id: 'verdskra', label: 'Verðskrá' },
+  { id: 'ferlid', label: 'Ferlið' },
   { id: 'skolamyndir', label: 'Skólamyndir' },
+  { id: 'stofan', label: 'Stofan' },
+]
+
+/* Real proportions, so a tile's width tracks its own photograph the way a
+   Bla Station tile tracks its product. */
+const RATIO: Record<string, number> = {
+  bumba: 1000 / 722, nyburi: 1400 / 990, born: 1400 / 1939,
+  ferming: 1400 / 1939, utskrift: 1, gifting: 1400 / 1939,
+  fjolskyldan: 1000 / 800,
+}
+
+/* The three stages she has more than one frame for get a full chapter. */
+const CHAPTERS = [
+  { id: 'born', a: '/myndo/extra-born-0.webp', b: '/myndo/extra-born-1.webp', wide: '/myndo/stage-bumba.webp' },
+  { id: 'ferming', a: '/myndo/extra-ferming-2.webp', b: '/myndo/extra-ferming-3.webp', wide: '/myndo/stage-utskrift.webp' },
+  { id: 'gifting', a: '/myndo/extra-gifting-4.webp', b: '/myndo/extra-gifting-5.webp', wide: '/myndo/fjolskyldan.webp' },
 ]
 
 /* ------------------------------------------------------------------ styles */
 
 const CSS = `
-.my-root{background:${LINEN};color:${UMBER};font-family:${BODY}}
-.my-root ::selection{background:${MOSS};color:#fff}
-.my-bleed > *{position:relative}
-.my-display{font-family:${DISPLAY};font-weight:500;letter-spacing:-.02em;line-height:1.16}
-.my-eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
-.my-num{font-variant-numeric:tabular-nums}
+html,body{background:${GROUND}}
+.my{background:${GROUND};color:${INK};font-family:${FACE};-webkit-font-smoothing:antialiased}
+.my *{box-sizing:border-box}
+.my-w{width:100%;max-width:1440px;margin:0 auto;padding:0 15px}
 
-/* ---- header band ---- */
-.my-head{position:relative;z-index:20;padding:18px 20px;background:${LINEN};
-  border-bottom:1px solid ${LINE}}
-.my-head-in{margin:0 auto;max-width:1340px;display:grid;align-items:center;
-  grid-template-columns:1fr auto 1fr;gap:20px}
-.my-navset{display:none;gap:26px}
-@media (min-width:920px){.my-navset{display:flex}}
-.my-navset.is-right{justify-content:flex-end}
-.my-navlink{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
-  color:${UMBER};min-height:44px;display:inline-flex;align-items:center}
+/* Their type roles. Display is 700 uppercase with 0.25px tracking, labels are
+   500 uppercase at 12.9px, and body copy is LARGER than the labels by 1.78x. */
+.my-h1{font-size:${T_H1};font-weight:700;line-height:1.06;letter-spacing:.25px;text-transform:uppercase;margin:0}
+.my-h2{font-size:${T_H2};font-weight:700;line-height:1.06;letter-spacing:.25px;text-transform:uppercase;margin:0}
+.my-lede{font-size:${T_BODY};font-weight:400;line-height:1.25;margin:0}
+.my-lab{font-size:${T_LABEL};font-weight:500;line-height:1.333;letter-spacing:.25px;text-transform:uppercase}
+.my-code{font-size:${T_LABEL};font-weight:400;line-height:1.333;letter-spacing:.25px}
+.my-cap{font-size:13.5px;font-weight:400;line-height:1.42;color:${INK}}
+.my-mute{color:${MUTE}}
 
-/* ---- headline rise ---- */
-.my-ln{display:inline-block;overflow:hidden;vertical-align:bottom;
-  padding-top:.2em;margin-top:-.2em}
-.my-w{display:inline-block;transform:translateY(105%);opacity:0;
-  transition:transform 860ms cubic-bezier(.16,1,.3,1),opacity 640ms linear}
-.my-in .my-w{transform:translateY(0);opacity:1}
-.my-rv{opacity:0;transform:translateY(20px);
-  transition:opacity 660ms cubic-bezier(.16,1,.3,1),transform 660ms cubic-bezier(.16,1,.3,1)}
-.my-in.my-rv,.my-in .my-rv{opacity:1;transform:none}
+/* A chapter opens on a 1px hairline that runs the container width. */
+.my-sec{position:relative;padding-top:15.3px;margin-top:56px}
+.my [id]{scroll-margin-top:60px}
+.my-sec--rule::before{content:"";position:absolute;top:0;left:15px;right:15px;height:1px;background:${RULE}}
 
-/* ---- hero ---- */
-/* On a phone the text block is tall enough to climb off the veil and land on
-   the bright part of the photograph, so the hero STACKS below 760px: the picture
-   keeps its own band and the type sits on linen where it is always readable.
-   Above that the two share one grid cell and the veil does the work. */
-.my-hero{position:relative;display:grid;isolation:isolate}
-.my-hero img{width:100%;height:100%;object-fit:cover;object-position:50% 38%}
-.my-hero-veil{display:none}
-.my-hero-img{height:56svh;min-height:330px}
-.my-hero-body{padding-top:34px}
-@media (min-width:760px){
-  .my-hero{min-height:clamp(520px,80svh,780px)}
-  .my-hero > *{grid-area:1/1}
-  .my-hero-img{height:auto;min-height:0}
-  .my-hero-veil{display:block;background:linear-gradient(to top,
-    ${LINEN} 1%, rgba(243,239,233,.92) 26%, rgba(243,239,233,.34) 56%, rgba(243,239,233,0) 78%)}
-  .my-hero-body{align-self:end;padding-top:0}
-}
+/* Reveal is opacity ONLY. They animate no transform anywhere on the page:
+   base 0.7s ease-in-out, and the in-view state overrides to 0.25s ease-out,
+   so it fades in quickly and would fade out slowly. */
+.my-spy{opacity:0;transition:opacity .7s ease-in-out}
+.my-spy.is-in{opacity:1;transition:opacity .25s ease-out}
+@media (prefers-reduced-motion:reduce){.my-spy{opacity:1;transition:none}}
 
-/* ---- THE SIGNATURE: the life rail ---------------------------------------
-   Her service list in the order a life happens. The interaction is a focus
-   pull, which is a camera truth rather than a decorative hover: the stage the
-   pointer is on resolves, the rest soften. Touch has no hover, so on a phone
-   every card simply stays sharp. */
-.my-rail{display:grid;gap:18px;grid-auto-flow:column;
-  grid-auto-columns:minmax(255px,1fr);overflow-x:auto;scroll-snap-type:x mandatory;
-  padding-bottom:10px;scrollbar-width:thin}
-.my-stage{scroll-snap-align:start;background:${BONE};border:1px solid ${LINE};
-  border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
-  transition:filter 260ms ease,opacity 260ms ease,transform 260ms cubic-bezier(.16,1,.3,1)}
-@media (hover:hover) and (pointer:fine){
-  @media (prefers-reduced-motion:no-preference){
-    .my-rail:hover .my-stage,.my-rail:focus-within .my-stage{filter:blur(2.5px);opacity:.5}
-    .my-rail .my-stage:hover,.my-rail .my-stage:focus-within{filter:none;opacity:1;transform:translateY(-3px)}
-  }
-}
-.my-stage-img{aspect-ratio:4/3;width:100%;object-fit:cover;display:block}
-.my-stage-blank{aspect-ratio:4/3;width:100%;display:grid;place-items:center;
-  background:linear-gradient(160deg, rgba(63,81,64,.07), rgba(42,36,32,.05))}
+/* The black bar. Two stacked copies of the label; the wrapper rolls up by one
+   line-height on hover so the second copy takes the first one's place. */
+.my-btn{display:block;width:100%;background:${INK};color:${PAPER};border-radius:3.8px;
+  padding:11.5px;text-decoration:none;border:0;cursor:pointer;text-align:center}
+.my-btn__vp{display:block;height:17.2px;overflow:hidden}
+.my-btn__roll{display:block;transition:transform .3s ease-in-out}
+.my-btn__c{display:flex;align-items:center;justify-content:center;gap:10px;height:17.2px}
+.my-btn:hover .my-btn__roll,.my-btn:focus-visible .my-btn__roll{transform:translateY(-17.2px)}
+.my-btn svg{width:13px;height:13px;flex:none;stroke:currentColor;stroke-width:2;fill:none}
+@media (prefers-reduced-motion:reduce){.my-btn__roll{transition:none}}
 
-/* ---- price rows ---- */
-.my-pack{background:${BONE};border:1px solid ${LINE};border-radius:4px}
+/* Catalogue row: fixed tile height, width set by the photograph's own ratio. */
+.my-rail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
+  scrollbar-width:none;-ms-overflow-style:none;padding-bottom:2px}
+.my-rail::-webkit-scrollbar{display:none}
+.my-tile{flex:none;scroll-snap-align:start;text-decoration:none;color:${INK};display:block}
+.my-tile__f{background:${PAPER};display:flex;align-items:center;justify-content:center;overflow:hidden}
+.my-tile img{display:block;height:100%;width:100%;object-fit:cover}
+.my-tile__m{display:flex;gap:8px;align-items:baseline;padding-top:9px}
 
-/* ---- mobile nav: below 920px the header hid every section link ---- */
-.my-burger{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;
-  width:44px;height:44px;background:none;border:0;cursor:pointer;padding:0 10px}
-@media (min-width:920px){.my-burger{display:none}}
-.my-burger i{display:block;height:1.5px;background:${UMBER};border-radius:2px;
-  transition:transform 260ms cubic-bezier(.16,1,.3,1),opacity 180ms ease}
-.my-burger[aria-expanded="true"] i:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
-.my-burger[aria-expanded="true"] i:nth-child(2){opacity:0}
-.my-burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.my-dot{width:7px;height:7px;background:${RULE};border:0;padding:0;cursor:pointer}
+.my-dot[data-on="1"]{background:${INK}}
+.my-arw{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  background:none;border:0;cursor:pointer;color:${INK}}
+.my-arw:disabled{opacity:.25;cursor:default}
+.my-arw svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
 
-.my-panel{position:fixed;inset:0;z-index:70;background:${LINEN};
-  display:flex;flex-direction:column;padding:20px;
-  transition:opacity 240ms ease,transform 300ms cubic-bezier(.16,1,.3,1)}
-.my-panel a.my-panel-link{display:block;padding:16px 0;border-bottom:1px solid ${LINE};
-  font-family:${DISPLAY};font-size:24px;min-height:44px;color:${UMBER}}
-.my-panel-foot{margin-top:auto;padding-top:24px}
+/* Two images side by side, caption under each. */
+.my-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.my-2 figure{margin:0}
+.my-2 img{display:block;width:100%;height:auto}
+.my-2 figcaption{padding-top:9px;max-width:62ch}
 
-/* ---- sticky booking bar, mobile only; shared chrome floats at 80px ---- */
-.my-callbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:10px;
-  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
-  background:${BONE};border-top:1px solid ${LINE}}
-@media (min-width:920px){.my-callbar{display:none}}
-.my-callbar a{flex:1;display:inline-flex;align-items:center;justify-content:center;
-  min-height:48px;font-size:15px;font-weight:600;border-radius:999px;
-  transition:transform 150ms ease}
-.my-callbar a:active{transform:scale(.985)}
-.my-cb-book{background:${MOSS};color:#fff}
-.my-cb-tel{border:1px solid ${LINE};color:${MOSS};background:${LINEN}}
-@media (max-width:919px){.my-root{padding-bottom:78px}}
-.my-print{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:baseline;
-  padding:12px 0;border-bottom:1px dotted rgba(42,36,32,.24)}
-.my-print:last-child{border-bottom:0}
+/* Image left, text right. */
+.my-mt{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
+.my-mt img{display:block;width:100%;height:auto}
 
-/* ---- links ---- */
-.my-link{position:relative;display:inline-block}
-.my-link::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;
-  background:currentColor;transform:scaleX(0);transform-origin:left;
-  transition:transform 190ms cubic-bezier(.16,1,.3,1)}
-.my-link:hover::after,.my-link:focus-visible::after{transform:scaleX(1)}
-.my-btn{transition:background-color 170ms ease,transform 150ms ease}
-.my-btn:active{transform:scale(.985)}
+.my-fixed{position:fixed;top:0;left:0;right:0;z-index:60;background:${GROUND};border-bottom:1px solid ${RULE}}
+.my-mark{background:${INK};color:${PAPER};display:inline-block;padding:5px 9px 6px;
+  font-weight:700;letter-spacing:.25px;font-size:17px;line-height:1;text-transform:uppercase}
+.my-navlink{text-decoration:none;color:${INK};position:relative}
+.my-navlink::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;
+  background:${INK};transform:scaleX(0);transform-origin:left;transition:transform .3s ease-in-out}
+.my-navlink:hover::after,.my-navlink:focus-visible::after{transform:scaleX(1)}
 
-@media (prefers-reduced-motion:reduce){
-  .my-w{transform:none;opacity:1;transition:none}
-  .my-rv{opacity:1;transform:none;transition:none}
-  .my-stage{transition:none}
+.my-hgrid{display:flex;flex-direction:row;align-items:flex-start;margin:0 -7.64px}
+.my-hgrid>*{flex:0 1 50%;min-width:0;padding:0 7.64px}
+@media (max-width:800px){.my-hgrid{display:block;margin:0}.my-hgrid>*{padding:0}.my-hgrid>*+*{padding-top:14px}}
+.my-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.my-tbl{width:100%;border-collapse:collapse}
+.my-tbl td{padding:14px 0;border-bottom:1px solid ${RULE};vertical-align:top}
+
+.my :focus-visible{outline:2px solid ${INK};outline-offset:3px}
+
+.my-nav-mob{display:none}
+.my-botpad{height:64px}
+@media (max-width:800px){.my-botpad{height:120px}}
+@media (max-width:800px){
+  .my-2,.my-mt{grid-template-columns:1fr;gap:8px}
+  .my-sec{margin-top:40px}
+  .my-nav-desk{display:none !important}
+  .my-nav-mob{display:block}
+  .my-h1,.my-h2{overflow-wrap:break-word}
 }
 `
 
-/* ------------------------------------------------------------- primitives */
+/* ------------------------------------------------------------------ pieces */
 
-function Headline({
-  text, id, size = 88, measure, as: Tag = 'h2', className = '',
-}: {
-  text: string; id?: string; size?: number; measure?: number
-  as?: 'h1' | 'h2'; className?: string
-}) {
-  const words = useMemo(() => text.split(' '), [text])
+function Arrow() {
   return (
-    <Tag
-      id={id}
-      aria-label={text}
-      className={`my-display ${className}`}
-      style={{
-        fontSize: `clamp(30px, ${size / 19}vw, ${size}px)`,
-        maxWidth: measure ? `${measure}px` : undefined,
-        textWrap: 'balance',
-      }}
-    >
-      <span className="sr-only">{text}</span>
-      <span aria-hidden="true">
-        {words.map((w, i) => (
-          <span key={`${w}-${i}`}>
-            <span className="my-ln">
-              <span className="my-w" style={{ transitionDelay: `${i * 44}ms` }}>{w}</span>
-            </span>
-            {i < words.length - 1 ? ' ' : ''}
-          </span>
-        ))}
-      </span>
-    </Tag>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 12h20M12 2l10 10L12 22" strokeMiterlimit="10" />
+    </svg>
   )
 }
 
-/* ------------------------------------------------------------------- page */
+/** Their button: an arrow, then the label, duplicated and rolled on hover. */
+function Bar({ href, label, onClick }: { href?: string; label: string; onClick?: () => void }) {
+  const inner = (
+    <span className="my-btn__vp">
+      <span className="my-btn__roll">
+        <span className="my-btn__c my-lab"><Arrow />{label}</span>
+        <span className="my-btn__c my-lab" aria-hidden="true"><Arrow />{label}</span>
+      </span>
+    </span>
+  )
+  if (onClick) return <button type="button" className="my-btn" onClick={onClick}>{inner}</button>
+  return <a className="my-btn" href={href}>{inner}</a>
+}
+
+/** Opacity-only reveal, per their scrollspy. */
+function Spy({ children, as = 'section', ...rest }: any) {
+  const ref = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add('is-in'); io.unobserve(el) } }),
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.06 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const Tag = as as any
+  const { className, ...attrs } = rest
+  return <Tag ref={ref} {...attrs} className={`my-spy ${className || ''}`}>{children}</Tag>
+}
+
+/** The catalogue row: title, count, square dots, prev/next, snapping tiles. */
+function Rail({ id, title, count, children, n }:
+  { id?: string; title: string; count: string; children: React.ReactNode; n: number }) {
+  const rail = useRef<HTMLDivElement | null>(null)
+  const [i, setI] = useState(0)
+  const [ends, setEnds] = useState({ s: true, e: false })
+
+  useEffect(() => {
+    const el = rail.current
+    if (!el) return
+    const onScroll = () => {
+      const step = el.scrollWidth / Math.max(1, n)
+      setI(Math.min(n - 1, Math.round(el.scrollLeft / Math.max(1, step))))
+      setEnds({ s: el.scrollLeft <= 2, e: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 })
+    }
+    onScroll()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => { el.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll) }
+  }, [n])
+
+  const go = (d: number) => {
+    const el = rail.current
+    if (!el) return
+    const first = el.firstElementChild as HTMLElement | null
+    el.scrollBy({ left: d * ((first?.offsetWidth || 320) + 8), behavior: 'smooth' })
+  }
+
+  return (
+    <Spy className="my-sec my-sec--rule" id={id}>
+      <div className="my-w">
+        <div className="my-row" style={{ marginBottom: 20 }}>
+          <h2 className="my-h2">{title}</h2>
+          <div className="my-row" style={{ gap: 18, flex: '0 0 auto' }}>
+            <span className="my-lab">{count}</span>
+            <span style={{ display: 'flex', gap: 5 }}>
+              {Array.from({ length: n }).map((_, k) => (
+                <button key={k} type="button" className="my-dot" data-on={k === i ? '1' : '0'}
+                  aria-label={`Fara á ${k + 1}`}
+                  onClick={() => rail.current?.scrollTo({
+                    left: k * (((rail.current.firstElementChild as HTMLElement)?.offsetWidth || 320) + 8),
+                    behavior: 'smooth',
+                  })} />
+              ))}
+            </span>
+            <span style={{ display: 'flex' }}>
+              <button type="button" className="my-arw" onClick={() => go(-1)} disabled={ends.s} aria-label="Fyrri">
+                <svg viewBox="0 0 24 24"><path d="M15 3L6 12l9 9" /></svg>
+              </button>
+              <button type="button" className="my-arw" onClick={() => go(1)} disabled={ends.e} aria-label="Næsta">
+                <svg viewBox="0 0 24 24"><path d="M9 3l9 9-9 9" /></svg>
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="my-w"><div className="my-rail" ref={rail}>{children}</div></div>
+    </Spy>
+  )
+}
+
+/* -------------------------------------------------------------------- page */
 
 export default function MyndoPage() {
-  const rootRef = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = useState(false)
 
-  /* lock the page behind the panel and let Escape out */
   useEffect(() => {
     if (!menu) return
     const prev = document.body.style.overflow
@@ -205,306 +269,260 @@ export default function MyndoPage() {
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
   }, [menu])
 
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-rv]'))
-    if (reduce) { targets.forEach((t) => t.classList.add('my-in')); return }
-    const io = new IntersectionObserver(
-      (es) => es.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('my-in'); io.unobserve(e.target) }
-      }),
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.16 },
-    )
-    targets.forEach((t) => io.observe(t))
-    return () => io.disconnect()
-  }, [])
-
-  /* the hero wants the WIDE frame; the rail card keeps its own tighter crop */
-  const hero = {
-    photo: '/myndo/nyburi.webp',
-    alt: 'Svarthvít mynd af nýfæddu barni sofandi, vafið í prjónaefni.',
-  }
+  const stage = (id: string) => STAGES.find((s) => s.id === id)!
+  const TH = 'clamp(300px, 34vw, 470px)'
 
   return (
-    <div ref={rootRef} className="my-root">
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+    <div className="my">
+      <style>{CSS}</style>
+      <PreviewChrome company={company} />
 
-      <header className="my-head">
-        <div className="my-head-in">
-          <button type="button" className={`my-burger ${FOCUS}`} aria-expanded={menu}
-                  aria-controls="my-menu" aria-label={menu ? 'Loka valmynd' : 'Opna valmynd'}
-                  onClick={() => setMenu((v) => !v)}>
-            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+      {/* header: black-box wordmark left, nav distributed, actions right */}
+      <header className="my-fixed">
+        <div className="my-w" style={{ display: 'flex', alignItems: 'center', gap: 20, height: 46 }}>
+          <a href="#top" className="my-mark" style={{ textDecoration: 'none', flex: '0 0 auto' }}>Myndó</a>
+          <nav aria-label="Aðalvalmynd"
+            style={{ display: 'flex', flex: 1, justifyContent: 'space-evenly' }}
+            className="my-lab my-nav-desk">
+            {NAV.map((n) => <a key={n.id} className="my-navlink" href={`#${n.id}`}>{n.label}</a>)}
+          </nav>
+          <a href={`tel:${STUDIO.telHref}`} className="my-lab my-navlink my-nav-desk"
+            style={{ flex: '0 0 auto' }}>{STUDIO.tel}</a>
+          <button type="button" onClick={() => setMenu(true)} aria-label="Opna valmynd" aria-expanded={menu}
+            className="my-nav-mob" style={{ marginLeft: 'auto', background: 'none', border: 0, padding: 6, cursor: 'pointer' }}>
+            <span style={{ display: 'block', width: 20, height: 1.5, background: INK, marginBottom: 5 }} />
+            <span style={{ display: 'block', width: 20, height: 1.5, background: INK }} />
           </button>
-
-          <nav className="my-navset" aria-label="Valmynd, vinstri">
-            {NAV.slice(0, 2).map((n) => (
-              <a key={n.id} href={`#${n.id}`} className={`my-link my-navlink ${FOCUS}`}>{n.label}</a>
-            ))}
-          </nav>
-          <a href="#top" className={`my-display justify-self-center ${FOCUS}`}
-             style={{ fontSize: 25, letterSpacing: '-.01em', color: UMBER, minHeight: 44,
-                      display: 'inline-flex', alignItems: 'center' }}>
-            Myndó
-          </a>
-          <nav className="my-navset is-right" aria-label="Valmynd, hægri">
-            {NAV.slice(2).map((n) => (
-              <a key={n.id} href={`#${n.id}`} className={`my-link my-navlink ${FOCUS}`}>{n.label}</a>
-            ))}
-            <a href={`tel:${STUDIO.telHref}`} className={`my-link my-navlink my-num ${FOCUS}`}
-               style={{ color: MOSS }}>{STUDIO.tel}</a>
-          </nav>
         </div>
       </header>
 
-      {/* full-screen menu, mobile only. Visibility is state-driven inline so it
-          cannot lose a specificity race in the cascade. */}
-      <div className="my-panel" id="my-menu" aria-hidden={!menu}
-           style={{ opacity: menu ? 1 : 0, visibility: menu ? 'visible' : 'hidden',
-                    transform: menu ? 'none' : 'translateY(-8px)' }}>
-        <div className="flex flex-row-reverse items-center justify-between">
-          <span className="my-eyebrow" style={{ color: STONE }}>{STUDIO.name}</span>
-          <button type="button" className={`my-burger ${FOCUS}`} aria-expanded={menu}
-                  aria-label="Loka valmynd" onClick={() => setMenu(false)}
-                  style={{ display: 'inline-flex' }}>
-            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+      {/* mobile panel: X sits where the burger was */}
+      <div role="dialog" aria-modal="true" aria-label="Valmynd"
+        style={{
+          position: 'fixed', inset: 0, zIndex: 70, background: GROUND,
+          opacity: menu ? 1 : 0, visibility: menu ? 'visible' : 'hidden',
+          transition: 'opacity .3s ease-in-out, visibility .3s',
+        }}>
+        <div className="my-w" style={{ height: 46, display: 'flex', alignItems: 'center', borderBottom: `1px solid ${RULE}` }}>
+          <button type="button" onClick={() => setMenu(false)} aria-label="Loka valmynd"
+            style={{ marginLeft: 'auto', background: 'none', border: 0, padding: 6, cursor: 'pointer', lineHeight: 0 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" stroke={INK} strokeWidth="1.5" fill="none">
+              <path d="M4 4l16 16M20 4L4 20" />
+            </svg>
           </button>
         </div>
-        <nav className="mt-6" aria-label="Aðalvalmynd">
+        <nav className="my-w" style={{ paddingTop: 26, display: 'grid', gap: 18 }}>
           {NAV.map((n) => (
-            <a key={n.id} href={`#${n.id}`} className={`my-panel-link ${FOCUS}`}
-               onClick={() => setMenu(false)}>{n.label}</a>
+            <a key={n.id} href={`#${n.id}`} onClick={() => setMenu(false)}
+              className="my-h2" style={{ textDecoration: 'none', color: INK }}>{n.label}</a>
           ))}
+          <div style={{ paddingTop: 18 }}>
+            <Bar href={`tel:${STUDIO.telHref}`} label={`Hringja ${STUDIO.tel}`} />
+          </div>
         </nav>
-        <div className="my-panel-foot">
-          <p className="my-eyebrow" style={{ color: STONE }}>Bókanir</p>
-          <a href={`tel:${STUDIO.telHref}`} className={`my-num ${FOCUS}`}
-             style={{ color: MOSS, fontSize: 28, fontWeight: 600, display: 'inline-block', marginTop: 6 }}>
-            {STUDIO.tel}
-          </a>
-          <p className="my-eyebrow mt-4" style={{ color: STONE }}>{STUDIO.address}</p>
-        </div>
       </div>
 
-      {/* sticky booking bar, mobile only */}
-      <div className="my-callbar">
-        <a href={`tel:${STUDIO.telHref}`} className={`my-cb-book ${FOCUS}`}>Bóka myndatöku</a>
-        <a href={`#verdskra`} className={`my-cb-tel ${FOCUS}`}>Verðskrá</a>
-      </div>
-
-      <main id="top">
-        {/* ------------------------------------------------------------ hero */}
-        <section className="my-bleed my-hero" aria-labelledby="hero-h">
-          <img
-            className="my-hero-img"
-            src={hero.photo!}
-            width={1600}
-            height={621}
-            alt={hero.alt!}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
-          <div className="my-hero-veil" aria-hidden="true" />
-          <div className="my-hero-body w-full px-5 pb-12 sm:px-10 sm:pb-16">
-            <div className="mx-auto w-full max-w-[1340px]">
-              <div data-rv className="my-rv">
-                <p className="my-eyebrow" style={{ color: STONE }}>{HERO.eyebrow}</p>
-              </div>
-              <div data-rv className="mt-4">
-                <Headline as="h1" id="hero-h" text={HERO.headline} size={58} measure={640} />
-              </div>
-              <div data-rv className="my-rv mt-7 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-                <p className="max-w-[48ch] text-[16px] leading-relaxed sm:text-[17px]" style={{ color: STONE }}>
-                  {HERO.lede}
-                </p>
-                <a href={HERO.cta.href}
-                   className={`my-btn inline-flex shrink-0 items-center justify-center rounded-full px-8 text-[15px] font-semibold ${FOCUS}`}
-                   style={{ background: MOSS, color: '#fff', minHeight: 52 }}>
-                  {HERO.cta.label}
-                </a>
+      <main id="top" style={{ paddingTop: 46 }}>
+        {/* hero: image, title, lede, black bar */}
+        <section className="my-w" style={{ paddingTop: 8 }}>
+          <img src={stage('nyburi').photo} alt={stage('nyburi').alt}
+            width={1400} height={990} fetchPriority="high"
+            style={{ display: 'block', width: '100%', height: 'clamp(420px,72vh,780px)', objectFit: 'cover' }} />
+          <div className="my-hgrid" style={{ paddingTop: 18 }}>
+            <div><h1 className="my-h1">{HERO.headline}</h1></div>
+            <div>
+              <p className="my-lede">{HERO.lede}</p>
+              <div style={{ paddingTop: 20 }}>
+                <Bar href={HERO.cta.href} label={HERO.cta.label} />
               </div>
             </div>
           </div>
         </section>
 
-        {/* ------------------------------------------------- THE LIFE RAIL */}
-        <section id="aeviskeidin" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="ae-h">
-          <div className="mx-auto max-w-[1340px]">
-            <div data-rv>
-              <Headline id="ae-h" text="Ein ævi, einn ljósmyndari" size={44} measure={560} />
-            </div>
-            <p data-rv className="my-rv mt-6 max-w-[58ch] text-[16px] leading-relaxed" style={{ color: STONE }}>
-              Þjónustan hjá Myndó, lesin í þeirri röð sem lífið gerist. Flestir koma fyrst með bumbuna
-              og eru enn að koma þegar barnið útskrifast.
-            </p>
+        {/* the family: seven life stages as one catalogue row */}
+        <Rail id="aeviskeidin" title="Æviskeiðin" count={`${STAGES.length} æviskeið`} n={STAGES.length}>
+          {STAGES.map((s) => (
+            <a key={s.id} className="my-tile"
+              href={CHAPTERS.some((c) => c.id === s.id) ? `#kafli-${s.id}` : '#verdskra'}
+              style={{ width: `calc(${TH} * ${RATIO[s.id].toFixed(3)})` }}>
+              <span className="my-tile__f" style={{ height: TH }}>
+                <img src={s.photo} alt={s.alt} loading="lazy" />
+              </span>
+              <span className="my-tile__m">
+                <span className="my-code my-mute">{s.n}</span>
+                <span className="my-lab">{s.name}</span>
+                {s.price && <span className="my-code my-mute" style={{ marginLeft: 'auto' }}>{s.price} kr.</span>}
+              </span>
+            </a>
+          ))}
+        </Rail>
 
-            <div data-rv className="my-rv mt-12">
-              <ul className="my-rail" role="list">
-                {STAGES.map((s) => (
-                  <li key={s.id} className="my-stage" tabIndex={0}>
-                    <img className="my-stage-img" src={s.photo} width={1400} height={1050}
-                         alt={s.alt} loading="lazy" decoding="async" />
-                    <div className="flex flex-1 flex-col p-6">
-                      <p className="my-eyebrow my-num" style={{ color: MOSS }}>{s.n} · {s.name}</p>
-                      <p className="mt-3 flex-1 text-[14px] leading-relaxed" style={{ color: STONE }}>{s.body}</p>
-                      <p className="my-num mt-5 text-[14px]">
-                        {s.price
-                          ? <><span className="font-semibold">{s.price} kr.</span>
-                              <span style={{ color: STONE }}> · {s.dur}</span></>
-                          : <span style={{ color: STONE }}>Verð eftir umfangi, hafðu samband</span>}
-                      </p>
+        {/* their b-cards--1: a single full-width frame, no title, as a breather */}
+        {(() => null)()}
+
+        {/* three chapters, for the stages she has more than one frame of */}
+        {CHAPTERS.map((c) => {
+          const s = stage(c.id)
+          const pkg = PACKAGES.find((p) => p.price === s.price)
+          return (
+            <div key={c.id} id={`kafli-${c.id}`}>
+              <Spy className="my-sec my-sec--rule">
+                <div className="my-w">
+                  <h2 className="my-h2" style={{ marginBottom: 20 }}>{s.name}</h2>
+                  <div className="my-mt">
+                    <img src={s.photo} alt={s.alt} loading="lazy" />
+                    <div>
+                      <p className="my-lede">{s.body}</p>
+                      {s.price && (
+                        <p className="my-lab my-mute" style={{ paddingTop: 16 }}>
+                          {s.price} kr. · {s.dur}{pkg ? ` · ${pkg.incl}` : ''}
+                        </p>
+                      )}
                     </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------- her own frames */}
-        <section className="px-5 pb-20 sm:px-10" aria-label="Úr myndasafninu">
-          <div className="mx-auto max-w-[1340px]">
-            <div data-rv className="my-rv grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-              {GALLERY.map((g) => (
-                <img key={g} src={`/myndo/${g}.webp`} alt="Mynd úr safni Myndó."
-                     className="block h-full w-full object-cover" style={{ aspectRatio: '3 / 4' }}
-                     loading="lazy" decoding="async" />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- process */}
-        <section id="ferlid" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-24"
-                 style={{ background: BONE, borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}
-                 aria-labelledby="fe-h">
-          <div className="mx-auto max-w-[1340px]">
-            <div data-rv><Headline id="fe-h" text="Þrjú skref" size={40} measure={420} /></div>
-            <ol data-rv className="my-rv mt-12 grid gap-10 md:grid-cols-3 md:gap-16">
-              {PROCESS.map((p) => (
-                <li key={p.n} style={{ borderTop: `1px solid ${LINE}` }} className="pt-6">
-                  <p className="my-eyebrow my-num" style={{ color: MOSS }}>{p.n}</p>
-                  <p className="my-display mt-3" style={{ fontSize: 24 }}>{p.t}</p>
-                  <p className="mt-3 text-[15px] leading-relaxed" style={{ color: STONE }}>{p.b}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* --------------------------------------------------------- prices */}
-        <section id="verdskra" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="vs-h">
-          <div className="mx-auto max-w-[1340px]">
-            <div data-rv><Headline id="vs-h" text="Verðskráin" size={44} measure={460} /></div>
-            <p data-rv className="my-rv mt-6 max-w-[62ch] text-[15px] leading-relaxed" style={{ color: STONE }}>
-              {PRICE_NOTE}
-            </p>
-
-            <div data-rv className="my-rv mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {PACKAGES.map((p) => (
-                <article key={p.name} className="my-pack flex flex-col p-7">
-                  <p className="my-display" style={{ fontSize: 23 }}>{p.name}</p>
-                  <p className="my-num mt-2 text-[26px] font-semibold" style={{ color: MOSS }}>{p.price} kr.</p>
-                  <p className="my-eyebrow my-num mt-1" style={{ color: STONE }}>{p.dur}</p>
-                  <p className="mt-5 flex-1 text-[14px] leading-relaxed" style={{ color: STONE }}>{p.fits}</p>
-                  <p className="mt-4 text-[13px]" style={{ color: STONE, borderTop: `1px solid ${LINE}`, paddingTop: 14 }}>
-                    Innifalið: {p.incl}
-                  </p>
-                </article>
-              ))}
-            </div>
-
-            <div data-rv className="my-rv mt-16 max-w-[720px]">
-              <p className="my-eyebrow" style={{ color: MOSS }}>Prentun</p>
-              <div className="mt-4">
-                {PRINTS.map((r) => (
-                  <div key={r.k} className="my-print">
-                    <span className="text-[15px]">
-                      {r.k}
-                      {r.note ? <span className="block text-[13px]" style={{ color: STONE }}>{r.note}</span> : null}
-                    </span>
-                    <span className="my-num text-[15px] font-semibold whitespace-nowrap">{r.v}</span>
                   </div>
+                </div>
+              </Spy>
+              <Spy className="my-sec">
+                <div className="my-w">
+                  <div className="my-2">
+                    <figure>
+                      <img src={c.a} alt={`${s.name}, mynd úr myndasafni Myndó.`} loading="lazy" />
+                      <figcaption className="my-cap">{s.body}</figcaption>
+                    </figure>
+                    <figure>
+                      <img src={c.b} alt={`${s.name}, mynd úr myndasafni Myndó.`} loading="lazy" />
+                      <figcaption className="my-cap">
+                        {pkg ? `${pkg.fits} ${pkg.incl}, ${pkg.dur}.` : 'Hafðu samband fyrir verðtilboð.'}
+                      </figcaption>
+                    </figure>
+                  </div>
+                </div>
+              </Spy>
+              <Spy className="my-sec">
+                <div className="my-w">
+                  <img src={c.wide} alt={`${s.name} hjá Myndó.`} loading="lazy"
+                    style={{ display: 'block', width: '100%', height: 'clamp(360px,64vh,700px)', objectFit: 'cover' }} />
+                </div>
+              </Spy>
+            </div>
+          )
+        })}
+
+        {/* verðskrá, in the same catalogue grammar */}
+        <Spy className="my-sec my-sec--rule" id="verdskra">
+          <div className="my-w">
+            <div className="my-row" style={{ marginBottom: 20 }}>
+              <h2 className="my-h2">Verðskrá</h2>
+              <span className="my-lab">{PACKAGES.length} pakkar</span>
+            </div>
+            <table className="my-tbl">
+              <tbody>
+                {PACKAGES.map((p) => (
+                  <tr key={p.name}>
+                    <td style={{ width: '30%' }}>
+                      <span className="my-lab">{p.name}</span><br />
+                      <span className="my-code my-mute">{p.dur}</span>
+                    </td>
+                    <td className="my-cap" style={{ paddingRight: 24 }}>{p.fits}<br />
+                      <span className="my-mute">{p.incl}</span></td>
+                    <td className="my-lab" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{p.price} kr.</td>
+                  </tr>
                 ))}
-              </div>
+                {PRINTS.map((p) => (
+                  <tr key={p.k}>
+                    <td><span className="my-lab">{p.k}</span></td>
+                    <td className="my-cap my-mute">{p.note}</td>
+                    <td className="my-lab" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{p.v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="my-cap my-mute" style={{ paddingTop: 16, maxWidth: '72ch' }}>{PRICE_NOTE}</p>
+          </div>
+        </Spy>
+
+        {/* ferlið */}
+        <Spy className="my-sec my-sec--rule" id="ferlid">
+          <div className="my-w">
+            <div className="my-row" style={{ marginBottom: 20 }}>
+              <h2 className="my-h2">Ferlið</h2>
+              <span className="my-lab">{PROCESS.length} skref</span>
+            </div>
+            <div className="my-2" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+              {PROCESS.map((p) => (
+                <div key={p.n} style={{ borderTop: `1px solid ${RULE}`, paddingTop: 14 }}>
+                  <span className="my-code my-mute">{p.n}</span>
+                  <h3 className="my-lab" style={{ paddingTop: 6 }}>{p.t}</h3>
+                  <p className="my-cap" style={{ paddingTop: 8 }}>{p.b}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </section>
+        </Spy>
 
-        {/* ------------------------------------------------------ schools */}
-        <section id="skolamyndir" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-24"
-                 style={{ background: BONE, borderTop: `1px solid ${LINE}` }} aria-labelledby="sk-h">
-          <div className="mx-auto grid max-w-[1340px] gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
-            <div data-rv><Headline id="sk-h" text={SCHOOLS.title} size={40} measure={340} /></div>
-            <div data-rv className="my-rv self-center">
-              <p className="max-w-[56ch] text-[16px] leading-relaxed sm:text-[17px]">{SCHOOLS.body}</p>
-              <a href={`tel:${STUDIO.telHref}`}
-                 className={`my-btn mt-8 inline-flex items-center justify-center rounded-full px-8 text-[15px] font-semibold ${FOCUS}`}
-                 style={{ background: MOSS, color: '#fff', minHeight: 52 }}>
-                Fyrirspurn fyrir skóla
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* ------------------------------------------------------- about */}
-        <section className="px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="um-h">
-          <div className="mx-auto max-w-[1340px]">
-            <div data-rv><Headline id="um-h" text="Ólína á bak við vélina" size={44} measure={560} /></div>
-            <div className="mt-12 grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-20">
-              <div data-rv className="my-rv">
-                <img src={IMAGES.olina} width={1140} height={604}
-                     alt="Ólína Kristín Margeirsdóttir í ljósmyndastofunni."
-                     className="h-auto w-full rounded-[4px]" style={{ border: `1px solid ${LINE}` }}
-                     loading="lazy" decoding="async" />
-              </div>
-              <div data-rv className="my-rv self-center">
-                <p className="my-display" style={{ fontSize: 26 }}>{OLINA.name}</p>
-                <p className="my-eyebrow mt-2" style={{ color: MOSS }}>{OLINA.role}</p>
-                {OLINA.body.map((b) => (
-                  <p key={b.slice(0, 20)} className="mt-5 max-w-[52ch] text-[15px] leading-relaxed sm:text-[16px]"
-                     style={{ color: STONE }}>{b}</p>
-                ))}
-                <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+        {/* skólamyndir */}
+        <Spy className="my-sec my-sec--rule" id="skolamyndir">
+          <div className="my-w">
+            <h2 className="my-h2" style={{ marginBottom: 20 }}>{SCHOOLS.title}</h2>
+            <div className="my-mt">
+              <img src={IMAGES.nyburi2} alt="Mynd úr myndasafni Myndó." loading="lazy" />
+              <div>
+                <p className="my-lede">{SCHOOLS.body}</p>
+                <div style={{ paddingTop: 20 }}>
+                  <Bar href={`tel:${STUDIO.telHref}`} label="Hafa samband um skólamyndir" />
+                </div>
+                <p className="my-lab my-mute" style={{ paddingTop: 22 }}>Einnig</p>
+                <ul style={{ listStyle: 'none', margin: 0, padding: '8px 0 0' }}>
                   {OTHER.map((o) => (
-                    <li key={o} className="my-eyebrow" style={{ color: STONE }}>{o}</li>
+                    <li key={o} className="my-cap" style={{ borderTop: `1px solid ${RULE}`, padding: '10px 0' }}>{o}</li>
                   ))}
                 </ul>
               </div>
             </div>
           </div>
-        </section>
+        </Spy>
 
-        {/* ------------------------------------------------------- closer */}
-        <section className="my-bleed px-5 pb-28 sm:px-10" aria-labelledby="cl-h">
-          <div className="mx-auto max-w-[1340px]">
-            <div data-rv className="my-rv overflow-hidden rounded-[4px]"
-                 style={{ border: `1px solid ${LINE}` }}>
-              <img src={IMAGES.nyburi2} width={707} height={500}
-                   alt="Svarthvít mynd af sofandi nýbura."
-                   className="h-[240px] w-full object-cover sm:h-[320px]" loading="lazy" decoding="async" />
+        {/* stofan */}
+        <Spy className="my-sec my-sec--rule" id="stofan">
+          <div className="my-w">
+            <h2 className="my-h2" style={{ marginBottom: 20 }}>Stofan</h2>
+            <div className="my-mt">
+              <img src={IMAGES.olina} alt={`${OLINA.name}, ljósmyndari Myndó.`} loading="lazy" />
+              <div>
+                <span className="my-code my-mute">{OLINA.role}</span>
+                <h3 className="my-lab" style={{ paddingTop: 4 }}>{OLINA.name}</h3>
+                {OLINA.body.map((b) => (
+                  <p key={b} className="my-lede" style={{ paddingTop: 12 }}>{b}</p>
+                ))}
+                <p className="my-lab my-mute" style={{ paddingTop: 18 }}>
+                  {STUDIO.address} · Stofnuð {STUDIO.founded}
+                </p>
+              </div>
             </div>
-            <div data-rv className="mt-12">
-              <Headline id="cl-h" text="Bókaðu myndatöku" size={46} measure={520} />
+          </div>
+        </Spy>
+
+        {/* contact, in their "THE LATEST" shape: title left, black bar right */}
+        <Spy className="my-sec my-sec--rule" id="hafa-samband">
+          <div className="my-w">
+            <div className="my-mt" style={{ alignItems: 'center' }}>
+              <h2 className="my-h2">Bóka myndatöku</h2>
+              <Bar href={`tel:${STUDIO.telHref}`} label={`Hringja ${STUDIO.tel}`} />
             </div>
-            <a data-rv href={`tel:${STUDIO.telHref}`}
-               className={`my-link my-display my-num my-rv mt-6 inline-flex ${FOCUS}`}
-               style={{ fontSize: 'clamp(30px,5vw,58px)', color: MOSS, minHeight: 52, alignItems: 'center' }}>
-              {STUDIO.tel}
-            </a>
-            <p data-rv className="my-rv mt-8 text-[14px] leading-relaxed" style={{ color: STONE }}>
-              {STUDIO.legal} · {STUDIO.address}
-              <br />
-              Kennitala {STUDIO.kt} · stofnuð {STUDIO.founded} · félagi í {STUDIO.member}
+            <p className="my-cap my-mute" style={{ paddingTop: 16 }}>
+              {STUDIO.legal} · kt. {STUDIO.kt} · {STUDIO.address} · {STUDIO.member}
             </p>
           </div>
-        </section>
+        </Spy>
+
+        <div className="my-botpad" style={{ height: 64 }} />
       </main>
 
-      <PreviewChrome company={company} />
+      {/* mobile: the call bar is always reachable */}
+      <div className="my-nav-mob" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 55, padding: '8px 15px calc(8px + env(safe-area-inset-bottom))', background: GROUND, borderTop: `1px solid ${RULE}` }}>
+        <Bar href={`tel:${STUDIO.telHref}`} label={`Hringja ${STUDIO.tel}`} />
+      </div>
+
       <PreviewFooter company={company} />
     </div>
   )

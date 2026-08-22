@@ -1173,11 +1173,26 @@ html:has(.ms-root),body:has(.ms-root){background-color:${DEEP}}
   .ms-nav-mark{padding:10px 0}
   .ms-footer footer[lang="is"]{font-size:13px}
   .ms-footer-dl a{display:inline-block;padding:12px 0}
-  .ms-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  /* One column on phones. minmax(0,1fr) + min-width:0 releases the GRID and
+     the item, but an iOS <input type="date"> is a native control whose shadow
+     DOM keeps its own intrinsic width, so the two date fields still collided
+     and ran off the right edge on a 430pt iPhone (reported from Instagram's
+     in-app browser, 2026-08-19). Chrome does not reproduce it at any width,
+     because it does not render the same control. Stacking removes the class:
+     a single full-width column cannot collide with a neighbour no matter what
+     the control decides it wants to be. */
+  .ms-field-row{grid-template-columns:1fr;gap:16px}
 }
 /* A grid track may shrink, but a grid ITEM keeps min-width:auto and an
    <input> has an intrinsic ~180px min-content width, so the row overflowed on
    a narrow phone regardless of the track. The item and the control release. */
 .ms-field{min-width:0}
 .ms-field input,.ms-field select,.ms-field textarea{min-width:0;width:100%}
+/* iOS ignores width on a date input until its native appearance is dropped,
+   and its inner value box carries its own min-width. Belt to the stacking
+   braces above: with both, the control cannot exceed its column. */
+.ms-field input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left}
+.ms-field input[type="date"]::-webkit-date-and-time-value{text-align:left;min-width:0;margin:0}
+.ms-field input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0}
+.ms-field input[type="date"]::-webkit-calendar-picker-indicator{margin-inline-start:auto}
 `

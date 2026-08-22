@@ -88,7 +88,7 @@ export const STORY_ART = {
   /** Frame 05: dough shaped by hand — the craft that has not changed since
    *  Reynir opened the doors. Sits with the founding paragraph. */
   founding: { src: galSm('05'), w: 1335, h: 2000 },
-  /** Frame 17: the room working — the twenty people the story ends on. */
+  /** Frame 17: the room working — the twenty-five people the story ends on. */
   today: { src: galSm('17'), w: 2000, h: 1335 },
 }
 
@@ -436,7 +436,7 @@ export const T = {
     storyP1:
       'Reynir Þorleifsson opened the bakery with his family in 1994 and became one of the people who built up the Kópavogur valley. Everything is still baked on-site, from scratch.',
     storyP2:
-      'When Reynir passed away in 2019, his sons Þorleifur Karl and Henry Þór took over the ovens they had learned at. Around twenty people bake here.',
+      'When Reynir passed away in 2019, his sons Þorleifur Karl and Henry Þór took over the ovens they had learned at. Twenty-five people work here.',
     cateringKicker: 'Cakes & catering',
     cateringTitle: 'Baked for the occasion.',
     cateringBody:
@@ -504,7 +504,7 @@ export const T = {
     storyP1:
       'Reynir Þorleifsson opnaði bakaríið með fjölskyldu sinni árið 1994 og varð einn af frumkvöðlum atvinnulífsins í Kópavogsdalnum. Enn í dag er allt bakað á staðnum, frá grunni.',
     storyP2:
-      'Þegar Reynir féll frá árið 2019 tóku synir hans, Þorleifur Karl og Henry Þór, við ofnunum sem þeir lærðu við. Um tuttugu manns baka hér.',
+      'Þegar Reynir féll frá árið 2019 tóku synir hans, Þorleifur Karl og Henry Þór, við ofnunum sem þeir lærðu við. Tuttugu og fimm manns starfa hér.',
     cateringKicker: 'Tertur og veislur',
     cateringTitle: 'Bakað fyrir tilefnið.',
     cateringBody:

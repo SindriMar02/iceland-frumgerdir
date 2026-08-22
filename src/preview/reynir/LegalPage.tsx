@@ -71,6 +71,7 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
         'Það sem þú pantaðir: vöru, valmöguleika, fjölda, afhendingardag og athugasemdir.',
         'Fyrir fyrirtækjapantanir: nafn fyrirtækis, kennitölu og tengilið, svo hægt sé að gefa út reikning.',
         'Afhendingarstað, ef óskað er eftir sendingu í stað þess að sækja.',
+        'Mynd, ef þú velur að senda mynd með pöntun, til dæmis mynd sem á að fara á tertu eða mynd sem við eigum að vinna út frá. Myndin fylgir pöntunarbeiðninni sem viðhengi í tölvupósti. Vefurinn geymir hana ekki og hún er hvergi vistuð á netinu.',
       ],
       },
     {
@@ -102,7 +103,8 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Vefkökur',
       p: [
-        'Vefurinn notar engar vefkökur til að rekja þig og enga greiningarþjónustu. Valið þitt á tungumáli er geymt í vafranum þínum svo síðan muni það milli heimsókna; þær upplýsingar fara hvergi.',
+        'Vefurinn notar engar vefkökur til að rekja þig. Valið þitt á tungumáli er geymt í vafranum þínum svo síðan muni það milli heimsókna; þær upplýsingar fara hvergi.',
+        'Við teljum heimsóknir með Cloudflare Web Analytics. Sú talning notar engar vefkökur, geymir enga persónugreinanlega vitneskju um þig og fylgir þér ekki milli vefsvæða. Við sjáum aðeins samtölur: hversu margir komu, hvaða síður voru skoðaðar og í hvaða landi. Þess vegna biðjum við þig ekki um samþykki fyrir vefkökum.',
         'Kortið á síðunni er frá Google og hleðst inn frá þeim.',
       ],
     },
@@ -147,6 +149,7 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
         'What you ordered: the product, the options, the quantity, the collection date and any notes.',
         'For company orders: the company name, its kennitala and a contact person, so an invoice can be issued.',
         'A delivery address, if you ask us to deliver rather than collect.',
+        'A photo, if you choose to send one with an order, for example a picture to go on a cake or one for us to work from. It travels with the order request as an email attachment. The website does not store it and it is not held anywhere online.',
       ],
     },
     {
@@ -178,7 +181,8 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Cookies',
       p: [
-        'This site sets no tracking cookies and uses no analytics. Your language choice is stored in your own browser so the page remembers it between visits; that never leaves your device.',
+        'This site sets no tracking cookies. Your language choice is stored in your own browser so the page remembers it between visits; that never leaves your device.',
+        'We count visits with Cloudflare Web Analytics. It uses no cookies, stores nothing that identifies you, and does not follow you between sites. We see totals only: how many people came, which pages they read, and which country they were in. That is why we do not ask you to accept cookies.',
         'The map on the page is served by Google and loads from them.',
       ],
     },

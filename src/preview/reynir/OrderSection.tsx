@@ -22,10 +22,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Lang } from './data'
 import {
-  ORDER_FORM_TO,
+  ORDER_ENDPOINT,
   ORDER_T,
+  PHOTO_UPLOAD_ENABLED,
   PLACEHOLDER_DATA,
+  compositionOf,
+  freeTextChoices,
+  isQuoteRequest,
   isk,
+  needsPhoto,
+  sizeChoiceOf,
   type OrderGroup,
   type OrderProduct,
 } from './order'
@@ -35,6 +41,12 @@ import { useSiteContent } from './sanity'
 const ORDER_CSS = `
   /* layout: functional split, the slip reacts to the choices */
   .rb-ord-grid { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:clamp(28px,4vw,64px); align-items:start; }
+  /* The slip's column has to run the FULL height of the form, or sticky has
+     nowhere to travel: with align-items:start the column hugged the slip
+     (520px inside a 3000px form) and the running total scrolled away the
+     moment anyone started choosing, which is the one thing it exists not to
+     do. Stretch the column, not the slip. */
+  .rb-ord-slipwrap { align-self:stretch; }
 
   .rb-ord-step { border-top:1px solid ${HAIR}; padding-top:18px; margin-top:clamp(30px,4.5vh,46px); }
   .rb-ord-steplabel { font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:${GOLD}; }
@@ -84,7 +96,7 @@ const ORDER_CSS = `
   .rb-ord-prod:hover { border-color:rgba(238,211,170,.4); background:rgba(243,234,211,.05); }
   .rb-ord-prod:active { transform:scale(.99); }
   .rb-ord-prod[data-on="true"] { border-color:${GOLD}; background:rgba(200,168,119,.09); }
-  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:19px; line-height:1.15; color:${IVORY}; padding-right:24px; }
+  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:19px; line-height:1.15; color:${IVORY}; padding-right:36px; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-name { color:${GOLD_LIGHT}; }
   .rb-ord-prod-from { font-size:12.5px; color:${DIM}; font-variant-numeric:tabular-nums; }
   /* z-index is load-bearing, not decoration: the product photo carries a
@@ -101,12 +113,28 @@ const ORDER_CSS = `
   .rb-ord-prod-mark svg { opacity:0; transform:scale(.6); transition:opacity .18s ${EASE}, transform .18s ${EASE}; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-mark svg { opacity:1; transform:none; }
 
-  /* option groups */
-  .rb-ord-group { margin:0; padding:34px 0 0; border:0; }
-  .rb-ord-legend { padding:0; font-family:${DISPLAY}; font-size:clamp(19px,2vw,23px); color:${IVORY}; }
+  /* Option groups.
+     MARGIN, never padding. A <legend> is laid out above the fieldset's content
+     box, so padding-top pushes the QUESTION'S OWN help text and choices down
+     while leaving the heading itself hard against the previous group. Every
+     heading on the page was bound to the answer above it instead of to its own
+     options, which is what made the spacing read as broken. Margin moves the
+     whole fieldset, legend included. */
+  .rb-ord-group { margin:32px 0 0; padding:0; border:0; }
+  .rb-ord-groups > .rb-ord-group:first-child { margin-top:20px; }
+  .rb-ord-legend { padding:0; width:100%; font-family:${DISPLAY}; font-size:clamp(19px,2vw,23px); color:${IVORY}; }
+  /* The tag is pinned to the top RIGHT of the question, never set inline after
+     it. Inline, it sat beside short headings and dropped onto its own line
+     under long ones, so half the questions looked one way and half the other
+     and the long ones ended with a stray word. Pinned, every question reads
+     identically however the heading wraps. */
+  .rb-ord-legend-row { display:flex; align-items:baseline; justify-content:space-between;
+    gap:14px; width:100%; }
+  .rb-ord-legend-text { flex:1 1 auto; min-width:0; }
+  .rb-ord-tag { flex:none; }
   .rb-ord-help { font-size:13.5px; color:${DIM}; margin:6px 0 0; line-height:1.5; }
   .rb-ord-tag { font-family:${BODY}; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-    color:${FAINT}; margin-left:10px; vertical-align:middle; }
+    color:${FAINT}; white-space:nowrap; }
 
   .rb-ord-choices { display:grid; gap:8px; margin-top:14px; }
   .rb-ord-choice { position:relative; display:flex; align-items:baseline; gap:10px; cursor:pointer;
@@ -135,14 +163,120 @@ const ORDER_CSS = `
     font-variant-numeric:tabular-nums; }
   .rb-ord-choice-price[data-free="true"] { color:${FAINT}; font-size:12.5px; }
 
+  /* Size tiles. Eleven kransakaka sizes as full-width rows is a wall to scroll
+     past; as tiles it is three tidy lines with every price still readable. The
+     radio dot is dropped because the tile itself carries the selected state,
+     and a dot inside a small tile is a bullet, not a control. */
+  .rb-ord-choices[data-layout="grid"] { grid-template-columns:repeat(auto-fill, minmax(112px, 1fr)); gap:7px; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice { flex-direction:column; align-items:flex-start;
+    gap:3px; padding:12px 13px; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-mark { display:none; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice-label { font-size:15px; }
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice-price { margin-left:0; padding-left:0;
+    font-size:12.5px; letter-spacing:.01em; }
+  /* Selection has to survive a colour-blind reader, so the tile also thickens
+     its edge rather than only turning gold. */
+  .rb-ord-choices[data-layout="grid"] .rb-ord-choice[data-on="true"] { box-shadow:inset 0 0 0 1px ${GOLD}; }
+  /* A tile that opens a field would trap it in a narrow column. */
+  .rb-ord-choices[data-layout="grid"] > div:has(.rb-ord-extra) { grid-column:1 / -1; }
+
+  /* Size row: one control, and the price it produces sitting beside it at the
+     size a price deserves. The dropdown carries the choosing; the number
+     carries the meaning. */
+  .rb-ord-sizerow { display:flex; align-items:center; gap:18px; margin-top:14px; flex-wrap:wrap; }
+  .rb-ord-sizeselect { flex:1 1 190px; max-width:280px; margin:0; }
+  .rb-ord-sizeprice { display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .rb-ord-sizeprice-num { font-family:${DISPLAY}; font-size:clamp(24px,3vw,31px); line-height:1.05;
+    color:${GOLD}; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .rb-ord-sizeprice-num[data-bump="true"] { animation:rb-ord-bump .34s ${EASE}; }
+  .rb-ord-sizeprice-rate { font-size:12.5px; color:${FAINT}; letter-spacing:.02em; white-space:nowrap; }
+  @media (prefers-reduced-motion: reduce) { .rb-ord-sizeprice-num[data-bump="true"] { animation:none; } }
+  @media (max-width: 560px) {
+    /* Stacking keeps the number full size rather than squeezing it next to a
+       control that already wants the whole width. */
+    .rb-ord-sizerow { gap:12px; }
+    .rb-ord-sizeselect { flex:1 1 100%; max-width:none; }
+  }
+  /* The field a choice opens. Indented under its row and sharing the row's
+     gold edge, so it reads as part of that choice rather than a new question. */
+  /* Indent matches the choice above it: the rule sits under the row's own left
+     padding (15px) and the text lands where the label starts (15 + 15px mark +
+     10px gap), so the answer sits under the question rather than beside it. */
+  .rb-ord-extra { margin:8px 0 2px 15px; padding-left:25px; border-left:2px solid rgba(200,168,119,.34);
+    animation:rb-ord-extrain .32s ${EASE} both; }
+  @keyframes rb-ord-extrain { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
+  /* Photo upload. The dashed edge says "drop something here" without pretending
+     to be a drop zone the phone cannot use, and it stays clearly secondary to
+     the choice it belongs to. */
+  .rb-ord-photo { margin-top:12px; }
+  .rb-ord-photo-pick { display:flex; align-items:center; gap:12px; cursor:pointer;
+    padding:13px 15px; border:1px dashed rgba(238,211,170,.34); border-radius:4px;
+    background:rgba(243,234,211,.02); transition:border-color .2s ${EASE}, background .2s ${EASE}; }
+  .rb-ord-photo-pick:hover { border-color:${GOLD}; background:rgba(200,168,119,.06); }
+  .rb-ord-photo-pick input { position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; }
+  .rb-ord-photo-pick:has(input:focus-visible) { outline:2px solid ${GOLD}; outline-offset:3px; }
+  .rb-ord-photo-cta { flex:none; font-size:13px; font-weight:600; color:${INK}; background:${GOLD};
+    padding:7px 13px; border-radius:3px; white-space:nowrap; }
+  .rb-ord-photo-label { font-size:13.5px; color:${DIM}; line-height:1.4; }
+  .rb-ord-photo-has { display:flex; align-items:center; gap:13px; padding:11px 13px;
+    border:1px solid ${GOLD}; border-radius:4px; background:rgba(200,168,119,.07); }
+  .rb-ord-photo-thumb { flex:none; width:46px; height:46px; object-fit:cover; border-radius:3px;
+    border:1px solid rgba(238,211,170,.3); }
+  .rb-ord-photo-meta { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .rb-ord-photo-name { font-size:13.5px; color:${IVORY}; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; }
+  .rb-ord-photo-size { font-size:12px; color:${FAINT}; font-variant-numeric:tabular-nums; }
+  .rb-ord-photo-clear { margin-left:auto; flex:none; background:none; border:0; cursor:pointer;
+    font-family:${BODY}; font-size:12.5px; color:${DIM}; padding:10px 6px; text-decoration:underline;
+    text-underline-offset:3px; }
+  .rb-ord-photo-clear:hover { color:${IVORY}; }
+  .rb-ord-photo-clear:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:3px; }
+  @media (max-width:520px) {
+    /* The button and its sentence stop fitting side by side well before this. */
+    .rb-ord-photo-pick { flex-direction:column; align-items:flex-start; gap:9px; }
+  }
+
+  /* "What is in it", inside the slip. The form is where a cake is chosen and
+     the slip is where it is described, so the layers live here rather than
+     floating between two questions. No border of its own: it is already inside
+     the slip's frame, and a box inside a box is one line too many. */
+  .rb-ord-spec { margin-top:12px; padding-top:12px; border-top:1px solid ${HAIR_SOFT}; }
+  .rb-ord-spec-title { font-size:10.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:${FAINT}; }
+  .rb-ord-spec-list { list-style:none; margin:8px 0 0; padding:0; }
+  .rb-ord-spec-row { display:flex; align-items:center; gap:9px; padding:4px 0;
+    font-size:13px; color:${DIM}; animation:rb-ord-layerin .34s ${EASE} both; }
+  .rb-ord-spec-dot { flex:none; width:4px; height:4px; border-radius:50%; background:${HAIR};
+    transition:background .3s ${EASE}; }
+  .rb-ord-spec-row[data-changed="true"] { color:${IVORY}; }
+  .rb-ord-spec-row[data-changed="true"] .rb-ord-spec-dot { background:${GOLD}; }
+  @keyframes rb-ord-layerin { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce) { .rb-ord-spec-row { animation:none; } }
+  @media (prefers-reduced-motion: reduce) { .rb-ord-extra { animation:none; } }
+
   /* text + form fields */
   .rb-ord-field { display:block; margin-top:18px; }
-  .rb-ord-label { display:block; font-size:13px; letter-spacing:.02em; color:${GOLD_LIGHT}; margin-bottom:7px; }
+  /* Same flex row as a legend, so the optional tag keeps its gap now that the
+     tag itself no longer carries a margin, and wraps left instead of indented. */
+  .rb-ord-label { display:flex; align-items:baseline; flex-wrap:wrap; gap:3px 9px;
+    font-size:13px; letter-spacing:.02em; color:${GOLD_LIGHT}; margin-bottom:7px; }
   .rb-ord-input, .rb-ord-select, .rb-ord-textarea {
     width:100%; box-sizing:border-box; font-family:${BODY}; font-size:16px; color:${IVORY};
     background:rgba(11,10,9,.5); border:1px solid ${HAIR}; border-radius:4px; padding:13px 14px;
     transition:border-color .2s ${EASE}, background .2s ${EASE}; color-scheme:dark; }
   .rb-ord-textarea { min-height:92px; resize:vertical; line-height:1.55; }
+  /* Date and time inputs size themselves from their own contents on iOS and
+     ignore a percentage width, so the collection-date field grew past the
+     right edge of the phone while every other field stopped at the margin.
+     min-width:0 is the part that actually does it: without it the intrinsic
+     width wins over width:100%. */
+  .rb-ord-input[type="date"], .rb-ord-input[type="time"] {
+    -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; }
+  .rb-ord-input[type="date"]::-webkit-date-and-time-value { text-align:left; margin:0; }
+  .rb-ord-input[type="date"]::-webkit-calendar-picker-indicator { margin:0 0 0 auto; }
+  /* Belt and braces: nothing inside the form may be wider than the form. */
+  .rb-ord-formwrap input, .rb-ord-formwrap select, .rb-ord-formwrap textarea { max-width:100%; }
   .rb-ord-input::placeholder, .rb-ord-textarea::placeholder { color:${DIM}; opacity:1; }
   .rb-ord-input:hover, .rb-ord-select:hover, .rb-ord-textarea:hover { border-color:rgba(238,211,170,.3); }
   .rb-ord-input:focus-visible, .rb-ord-select:focus-visible, .rb-ord-textarea:focus-visible {
@@ -153,7 +287,9 @@ const ORDER_CSS = `
   /* A settled, unchangeable value — shown instead of a pointless one-option
      dropdown when there is only one collection point. Reads as information,
      not as a control the visitor failed to notice they could change. */
-  .rb-ord-readout { font-family:${BODY}; font-size:16px; color:${IVORY}; padding:13px 0 0; line-height:1.4; }
+  /* The label already carries its own bottom margin; another 13px on top of it
+     floated the address away from the thing naming it. */
+  .rb-ord-readout { font-family:${BODY}; font-size:16px; color:${IVORY}; padding:2px 0 0; line-height:1.4; }
   .rb-ord-two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
   /* the slip */
@@ -187,6 +323,10 @@ const ORDER_CSS = `
   .rb-ord-slipline { animation:rb-ord-linein .26s ${EASE} both; }
   @keyframes rb-ord-bump { 0% { transform:none; } 38% { transform:scale(1.07); } 100% { transform:none; } }
   .rb-ord-total-value[data-bump="true"] { animation:rb-ord-bump .34s ${EASE}; }
+  /* A quote is words, not a number, so it must not sit at display size where a
+     price belongs. Shrinking it is what stops it reading as an amount. */
+  .rb-ord-total-value[data-quote="true"], .rb-ord-mobiletotal-value[data-quote="true"] {
+    font-family:${BODY}; font-size:14px; letter-spacing:.01em; color:${GOLD_LIGHT}; }
   @keyframes rb-ord-groupin { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
   .rb-ord-groups[data-key] { animation:rb-ord-groupin .38s ${EASE} both; }
 
@@ -194,6 +334,23 @@ const ORDER_CSS = `
   .rb-ord-done { border:1px solid ${GOLD}; border-radius:6px; padding:clamp(26px,4vw,40px);
     background:rgba(200,168,119,.07); text-align:center; animation:rb-ord-groupin .4s ${EASE} both; }
   .rb-ord-done-title { font-family:${DISPLAY}; font-size:clamp(26px,3.4vw,38px); margin:0; ${''} }
+  /* The receipt stub. Two facts, equal weight, one hairline between them, so
+     the screen has a shape instead of being five centred paragraphs. */
+  .rb-ord-stub { display:flex; margin:22px auto 0; max-width:400px;
+    border:1px solid rgba(238,211,170,.26); border-radius:4px; background:rgba(11,10,9,.28); }
+  .rb-ord-stub-cell { flex:1 1 0; display:flex; flex-direction:column; gap:5px; align-items:center;
+    padding:13px 12px; min-width:0; }
+  .rb-ord-stub-cell + .rb-ord-stub-cell { border-left:1px solid rgba(238,211,170,.2); }
+  .rb-ord-stub-key { font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:${FAINT}; }
+  .rb-ord-stub-val { font-size:15px; color:${IVORY}; font-variant-numeric:tabular-nums;
+    letter-spacing:.02em; white-space:nowrap; }
+  .rb-ord-stub-val[data-price="true"] { font-family:${DISPLAY}; font-size:19px; color:${GOLD}; }
+  .rb-ord-done-line { font-size:14px; color:${DIM}; margin:14px auto 0; max-width:44ch; line-height:1.6; }
+  .rb-ord-done-line[data-good="true"] { color:${GOLD_LIGHT}; }
+  /* The tel link carries tap padding, which reads as a gap in a sentence; pull
+     it back so the line stays a line. */
+  .rb-ord-done-line .rb-ord-tel { padding:6px 2px; }
 
   .rb-ord-sample { display:flex; gap:11px; align-items:flex-start; margin-top:20px; padding:12px 15px;
     border:1px dashed rgba(238,211,170,.3); border-radius:4px; background:rgba(243,234,211,.025); }
@@ -212,7 +369,7 @@ const ORDER_CSS = `
   .rb-ord-tel { display:inline-block; padding:13px 10px; color:${GOLD_LIGHT}; text-decoration:none;
     border-bottom:1px solid rgba(238,211,170,.32); }
   .rb-ord-tel:hover { color:${IVORY}; border-bottom-color:${GOLD}; }
-  .rb-ord-tel:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:3px; }
+  .rb-ord-tel:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:4px; }
 
   @media (max-width:900px) {
     .rb-ord-grid { grid-template-columns:1fr; gap:0; }
@@ -228,10 +385,23 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
     .rb-ord-prods > * { max-width:100%; flex-basis:100%; }
-    /* Cards go full width here, so a square photo would be ~390px tall each
-       and push the actual choices three screens down. A letterbox keeps the
-       product visible without burying the form. */
-    .rb-ord-prod-pic { aspect-ratio:16 / 9; }
+    /* On a phone the picker becomes a LIST, not three posters.
+       Full-width cards with a letterbox photo came to 849px for three
+       products: more than a whole screen of pictures before the customer
+       reaches the first question. A thumbnail beside the name says exactly as
+       much at a quarter of the height, and choosing between three things you
+       can see at once is easier than scrolling past them one at a time.
+       Grid areas rather than a wrapper element, so a product with no photo
+       still lays out correctly: the column simply collapses. */
+    .rb-ord-prods { gap:8px; }
+    .rb-ord-prod { display:grid; grid-template-columns:auto minmax(0,1fr);
+      grid-template-areas:"pic name" "pic from"; align-content:center;
+      column-gap:13px; row-gap:2px; padding:10px 12px; }
+    .rb-ord-prod-pic { grid-area:pic; margin:0; width:62px; height:62px;
+      aspect-ratio:1 / 1; border-radius:3px; align-self:center; }
+    .rb-ord-prod-name { grid-area:name; align-self:end; font-size:17px; padding-right:30px; }
+    .rb-ord-prod-from { grid-area:from; align-self:start; }
+    .rb-ord-prod-mark { top:50%; margin-top:-9px; right:12px; }
     /* the sticky bar already draws a divider, so the step right under it must
        not draw a second one. Adjacent-sibling, not :first-of-type, because the
        bar is itself the first div sibling. */
@@ -240,7 +410,12 @@ const ORDER_CSS = `
   }
   @media (max-width:520px) {
     .rb-ord-two { grid-template-columns:1fr; gap:0; }
-    .rb-ord-choice-price { margin-left:0; padding-left:0; width:100%; }
+    /* Wrapping is right on a narrow screen, but the price then has to land
+       under the LABEL, not under the radio it has nothing to do with. */
+    .rb-ord-choice-price { margin-left:0; padding-left:25px; width:100%; }
+    /* Two per row on a phone: three would put "18.600 kr." on two lines. */
+    .rb-ord-choices[data-layout="grid"] { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .rb-ord-choices[data-layout="grid"] .rb-ord-choice-price { width:auto; padding-left:0; }
     .rb-ord-choice { flex-wrap:wrap; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -315,7 +490,12 @@ interface SlipLine {
   key: string
   name: string
   sub?: string
+  /** A real number, or null for something that costs nothing. */
   price: number | null
+  /** Nothing has been chosen yet, so there is no price to show. Distinct from
+   *  a price of null: "included" is an answer, and a size nobody has picked is
+   *  not free, it is unanswered. */
+  pending?: boolean
 }
 
 export default function OrderSection({
@@ -345,6 +525,12 @@ export default function OrderSection({
   const [qty, setQty] = useState(1)
   const [picked, setPicked] = useState<Record<string, string[]>>({})
   const [inscription, setInscription] = useState('')
+  /** Free text belonging to a CHOICE, keyed `group_choice`. "Another colour"
+   *  and "photo on the cake" are worthless without it: the order would arrive
+   *  saying only "another colour" and cost exactly the phone call this form
+   *  exists to remove. Kept in its own map rather than inside `picked` so that
+   *  deselecting and reselecting a choice does not silently lose the typing. */
+  const [extras, setExtras] = useState<Record<string, string>>({})
   const [customer, setCustomer] = useState({
     name: '',
     phone: '',
@@ -373,6 +559,25 @@ export default function OrderSection({
   /** True when the relay refused or the network failed — the customer must be
    *  told, and given the phone number, rather than left thinking it sent. */
   const [sendError, setSendError] = useState(false)
+  /** Reference for THIS order, generated at submit time (never during render,
+   *  which would differ between the prerendered HTML and the hydrated page).
+   *  It exists so a photo sent afterwards can be tied to the right order. */
+  const [orderRef, setOrderRef] = useState('')
+  /** Whether the photo actually travelled, as reported by the send, not
+   *  assumed from the fact that one was chosen. */
+  const [photoDelivered, setPhotoDelivered] = useState(false)
+  /**
+   * The picture the customer wants on the cake, or the one they want us to work
+   * from. It travels WITH the order as a mail attachment rather than being
+   * uploaded anywhere: the site is static and has no storage, but the relay
+   * accepts multipart, so the photo lands in the bakery's inbox attached to the
+   * order it belongs to. Deliberately optional. Someone whose photo is on
+   * another phone must still be able to place the order, and the order
+   * reference covers sending it afterwards.
+   */
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [photoErr, setPhotoErr] = useState('')
 
   const earliest = useMemo(() => isoPlusDays(product.leadDays), [product.leadDays])
 
@@ -380,6 +585,8 @@ export default function OrderSection({
   useEffect(() => {
     setPicked({})
     setInscription('')
+    setExtras({})
+    clearPhoto()
     setTouched((prev) => {
       const next: Record<string, boolean> = {}
       for (const k of Object.keys(prev)) if (k.startsWith('c_')) next[k] = prev[k]
@@ -392,6 +599,31 @@ export default function OrderSection({
     setCustomer((c) => (c.date && c.date < earliest ? { ...c, date: '' } : c))
   }, [earliest])
 
+  const MAX_PHOTO = 5 * 1024 * 1024 // the relay's attachment ceiling
+
+  const choosePhoto = (file: File | null) => {
+    setPhotoErr('')
+    if (!file) return
+    if (!file.type.startsWith('image/')) return setPhotoErr(t.errPhotoType)
+    if (file.size > MAX_PHOTO) return setPhotoErr(t.errPhotoSize)
+    setPhoto(file)
+    setPhotoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+  }
+  const clearPhoto = () => {
+    setPhotoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return ''
+    })
+    setPhoto(null)
+    setPhotoErr('')
+  }
+  // Revoke on unmount too: without this every preview held its blob for the
+  // life of the tab.
+  useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl) }, [photoUrl])
+
   const toggle = (group: OrderGroup, choiceId: string) => {
     setPicked((prev) => {
       const cur = prev[group.id] ?? []
@@ -403,22 +635,70 @@ export default function OrderSection({
     setTouched((prev) => ({ ...prev, [`g_${group.id}`]: true }))
   }
 
+  /** The size choice a per-person product is priced from, and whether anything
+   *  picked has made this a quote rather than a price. */
+  const size = useMemo(() => sizeChoiceOf(product, picked), [product, picked])
+  const quote = useMemo(() => isQuoteRequest(product, picked), [product, picked])
+  const wantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
+  /** The cake as configured, so the filling that swaps pears in for cocktail
+   *  fruit shows the swap instead of hiding it in a footnote. */
+  const layers = useMemo(() => compositionOf(product, picked), [product, picked])
+  /**
+   * Photos in the picker are all-or-nothing.
+   *
+   * One product with a photograph beside two without does not read as "two are
+   * missing a picture", it reads as broken: the row stretches to the tall card
+   * and the other two sit in empty boxes. So the picker shows photos only when
+   * every product has one, and otherwise renders three equal cards that look
+   * deliberate. Photographing the kransakaka brings the images back on their
+   * own, here and in the CMS, with nothing to change.
+   */
+  const showPics = useMemo(() => ORDER_PRODUCTS.every((p) => !!p.image), [ORDER_PRODUCTS])
+
   const { lines, total } = useMemo(() => {
-    const out: SlipLine[] = [{ key: 'base', name: product.name[lang], sub: t.slipBase, price: product.basePrice }]
-    let sum = product.basePrice
+    const out: SlipLine[] = []
+    const perPerson = product.pricePerPerson
+    let sum: number
+
+    if (perPerson) {
+      /* Priced by headcount: the size IS the price, so it leads the slip and
+       * there is no separate base line to add it to. Before a size is picked
+       * the slip says so rather than showing 0 kr., which would read as free. */
+      sum = size ? perPerson * (size.serves as number) : 0
+      /* Only once a size exists. An unchosen size used to render as a row whose
+       * dotted leader ran to an empty price, above a total that repeated the
+       * same "choose a size" prompt: two placeholders saying one thing. The
+       * slip's own empty state already covers this. */
+      if (size) {
+        out.push({
+          key: 'size',
+          name: size.label[lang],
+          sub: `${isk(perPerson)} ${t.perPerson}`,
+          price: sum,
+        })
+      }
+    } else {
+      sum = product.basePrice
+      out.push({ key: 'base', name: product.name[lang], sub: t.slipBase, price: product.basePrice })
+    }
+
     for (const group of product.groups) {
+      // The size group is already the line above; listing it twice reads as a charge.
+      if (perPerson && group.id === product.sizeGroupId) continue
       for (const id of picked[group.id] ?? []) {
         const choice = group.choices.find((c) => c.id === id)
         if (!choice) continue
         sum += choice.priceDelta
+        const typed = choice.freeText ? (extras[`${group.id}_${choice.id}`] ?? '').trim() : ''
         out.push({
           key: `${group.id}_${choice.id}`,
-          name: choice.label[lang],
+          name: typed ? `${choice.label[lang]}: ${typed}` : choice.label[lang],
           sub: group.label[lang],
           price: choice.priceDelta > 0 ? choice.priceDelta : null,
         })
       }
     }
+
     const written = inscription.trim()
     if (written && product.inscription) {
       out.push({ key: 'inscription', name: `“${written}”`, sub: product.inscription.label[lang], price: null })
@@ -429,7 +709,14 @@ export default function OrderSection({
       out.push({ key: 'qty', name: t.slipQty(qty), sub: `× ${isk(sum)}`, price: sum * qty })
     }
     return { lines: out, total: sum * qty }
-  }, [product, picked, inscription, lang, qty, t])
+  }, [product, picked, inscription, lang, qty, t, size, extras])
+
+  /** Nothing to total yet. Showing "0 kr." here reads as a free cake, which is
+   *  the one number this form must never put in front of a customer. */
+  const unpriced = !!product.pricePerPerson && !size
+  /** What stands where the total goes when there is no number to put there. */
+  const totalText = quote ? t.quoteTotal : unpriced ? t.slipPickSize : isk(total)
+  const softTotal = quote || unpriced
 
   // Bump the total when it changes, so the price movement is felt, not just read.
   const [bump, setBump] = useState(false)
@@ -448,6 +735,14 @@ export default function OrderSection({
       if (!group.required) continue
       if ((picked[group.id] ?? []).length === 0) {
         e[`g_${group.id}`] = group.kind === 'single' ? t.errRequiredGroup : t.errRequiredMulti
+      }
+    }
+    /* A choice that opens a field has not really been answered until the field
+     * is filled. Without this the form happily submits "Annar litur" with no
+     * colour, which is the same phone call as having asked nothing at all. */
+    for (const { group, choice } of freeTextChoices(product, picked)) {
+      if (!(extras[`${group.id}_${choice.id}`] ?? '').trim()) {
+        e[`x_${group.id}_${choice.id}`] = t.errFreeText
       }
     }
     if (who === 'person') {
@@ -471,7 +766,7 @@ export default function OrderSection({
     else if (customer.date < earliest) e.c_date = t.errDateTooSoon(prettyDate(earliest, lang))
     if (!customer.time) e.c_time = t.errTime
     return e
-  }, [product, picked, customer, earliest, lang, t, who])
+  }, [product, picked, customer, earliest, lang, t, who, extras])
 
   const showErr = (key: string) => (touched[key] || triedSubmit ? errors[key] : undefined)
 
@@ -490,6 +785,13 @@ export default function OrderSection({
     }
     setStatus('sending')
     setSendError(false)
+
+    /* Reference for this order. Date-stamped so it sorts, with four random
+       digits so two orders on one day cannot collide. Generated here rather
+       than during render: a clock or a random number read while rendering
+       would differ between the prerendered HTML and the hydrated page. */
+    const ref = `RB-${customer.date.slice(5).replace('-', '')}-${Math.floor(1000 + Math.random() * 9000)}`
+    setOrderRef(ref)
 
     const L = ORDER_T.is // the bakery reads its own orders in Icelandic
     const loc = PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label.is ?? customer.location
@@ -526,29 +828,71 @@ export default function OrderSection({
     const when = `${prettyDateFull(customer.date, 'is')}, kl. ${customer.time}`
 
     const payload: Record<string, string> = {
-      _subject: `${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
-      _template: 'table',
-      _captcha: 'false',
-      _honey: '', // honeypot: bots fill it, people never see it
+      _subject: `${ref} · ${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${quote ? 'TILBOÐ ÓSKAST — ' : ''}${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
+      /* _template/_captcha/_honey are gone with the relay that read them. The
+         underscore prefix still means "not a docket row": orderText skips
+         these, so _subject can sit here beside the rows it summarises. */
 
       '1. Afhending': when,
       '2. Vara': `${product.name.is}${qty > 1 ? ` — ${qty} stk.` : ''}`,
       '3. Sótt eða sent': delivering ? `Sent á ${customer.address}` : `Sótt í ${loc}`,
     }
 
+    /* The same rows the slip showed, shaped for the docket. Built from the
+     * SNAPSHOT above rather than recomputed, so the mail can never disagree
+     * with what the customer was quoted. */
+    const mailRows: { label: string; value: string; note?: string; money?: boolean }[] = []
+
     let n = 4
+    payload[`${n++}. Pöntunarnúmer`] = ref
     product.groups.forEach((g) => {
       const chosen = (picked[g.id] ?? [])
         .map((cid) => {
           const c = g.choices.find((x) => x.id === cid)
           if (!c) return null
-          return c.priceDelta > 0 ? `${c.label.is} (+${isk(c.priceDelta)})` : c.label.is
+          // What they typed belongs ON the option, not in a separate row further
+          // down: "Annar litur" and "lavender" are one answer, and splitting them
+          // is how a baker ends up reading half of it.
+          const typed = c.freeText ? (extras[`${g.id}_${c.id}`] ?? '').trim() : ''
+          const label = typed ? `${c.label.is}: ${typed}` : c.label.is
+          if (c.quoteOnly) return `${label} (tilboð)`
+          return c.priceDelta > 0 ? `${label} (+${isk(c.priceDelta)})` : label
         })
         .filter(Boolean)
-      if (chosen.length) payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
+      if (chosen.length) {
+        payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
+        /* The size row carries the rate as its note, because "30 manna" beside
+         * "930 kr. á mann" is the whole arithmetic of the price in one line. */
+        const isSize = !!product.pricePerPerson && g.id === product.sizeGroupId
+        mailRows.push({
+          label: g.label.is,
+          value: chosen.join(', '),
+          note: isSize && product.pricePerPerson ? `${isk(product.pricePerPerson)} á mann` : undefined,
+        })
+      }
     })
-    if (product.inscription && inscription.trim()) payload[`${n++}. Áletrun`] = inscription.trim()
-    payload[`${n++}. Áætlað verð`] = isk(total)
+    if (product.inscription && inscription.trim()) {
+      payload[`${n++}. Áletrun`] = inscription.trim()
+      mailRows.push({ label: product.inscription.label.is, value: inscription.trim() })
+    }
+    mailRows.push({ label: 'Pöntunarnúmer', value: ref })
+    /* Never send a number for a bespoke cake. An estimate in the inbox becomes
+       the price the customer believes they were given. */
+    payload[`${n++}. Áætlað verð`] = quote
+      ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
+      : `${isk(total)}${size ? ` (${size.serves} manns × ${isk(product.pricePerPerson as number)})` : ''}`
+    if (wantsPhoto) {
+      const note = photo
+        ? `Fylgir þessum pósti sem viðhengi (${photo.name})`
+        : `Viðskiptavinur ætlar að senda mynd og vísa í ${ref}`
+      payload[`${n++}. Mynd`] = note
+      mailRows.push({ label: 'Mynd', value: note })
+    }
+    /* NO total row here. The docket renders its own from `totalIsk`, so adding
+     * one produced "SAMTALS 37.200 kr." twice in a row. Caught by rendering the
+     * mail and looking at it, which is the only way that kind of duplication
+     * ever shows up. A quote has no number, so it says so in its own row. */
+    if (quote) mailRows.push({ label: 'Verð', value: 'Tilboð óskast' })
 
     // Contact details in ONE block, so calling back does not mean hunting
     // through the mail. Phone first: a bakery rings, it does not email.
@@ -571,28 +915,64 @@ export default function OrderSection({
     payload[`${n++}. Beiðni send`] = new Date().toLocaleString('is-IS')
 
     try {
-      const res = await fetch(`https://formsubmit.co/ajax/${ORDER_FORM_TO}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error(String(res.status))
+      /* ONE endpoint, ours, and an answer we can check.
+       *
+       * The order is sent as multipart so the photograph can ride with it as a
+       * real attachment. The Worker replies with the id of a message the mail
+       * provider ACCEPTED, and nothing below treats the order as sent without
+       * one — which is the whole reason the old relay was replaced. It would
+       * answer {"success":"true"} for a mail it delivered with no attachment,
+       * and had already once answered success for a form that was not even
+       * activated. A 200 meant "got your POST", never "did what you asked".
+       *
+       * Everything here fails CLOSED: any non-2xx, any missing id, any network
+       * error drops into the catch below and shows the phone number. A bakery
+       * order that silently vanishes is worse than one that never started. */
+      const fd = new FormData()
+      fd.append(
+        'order',
+        JSON.stringify({
+          subject: payload._subject,
+          replyTo: customer.email.trim() || customer.invoiceEmail.trim() || '',
+          /* STRUCTURED, not a finished message. The sender renders the docket
+           * from these fields, so the mail design lives with the sender rather
+           * than being duplicated into this bundle, and every value is escaped
+           * on the way in. The rows are already in triage order: the two facts
+           * that decide whether the order is possible, then the spec, then the
+           * total. */
+          mail: {
+            product: product.name.is,
+            quantity: qty,
+            pickupWhen: when,
+            pickupWhere: delivering ? `Sent á ${customer.address}` : loc,
+            customerName: who === 'company' ? customer.contact : customer.name,
+            customerPhone: customer.phone.trim(),
+            customerEmail: customer.email.trim(),
+            company: who === 'company' ? customer.company.trim() : '',
+            kennitala: who === 'company' ? customer.kennitala.trim() : '',
+            occasion: who === 'company' ? occ : '',
+            message: customer.notes.trim(),
+            totalIsk: quote ? 0 : total,
+            provisional: PLACEHOLDER_DATA,
+            options: mailRows,
+          },
+        }),
+      )
+      if (photo) fd.append('mynd', photo, photo.name)
 
-      /* A 200 from FormSubmit does NOT mean the mail was sent.
-       *
-       * Found by sending a real test order: FormSubmit answered HTTP 200 with
-       * `{"success":"false","message":"This form needs Activation…"}` and the
-       * page cheerfully told the customer their order had arrived. Nothing had
-       * been sent to the bakery. That is the precise failure this fallback
-       * exists to prevent, and checking only `res.ok` walked straight past it.
-       *
-       * The flag comes back as the STRING "false", not a boolean, so a plain
-       * truthiness check on it is always true. Treat anything that is not an
-       * explicit success as a failure — if we cannot prove the order was
-       * delivered, the customer must be shown the phone number. */
-      const body = await res.json().catch(() => null)
-      const ok = body?.success === true || body?.success === 'true'
-      if (!ok) throw new Error(body?.message ? String(body.message) : 'send-not-confirmed')
+      // No Content-Type header: the browser must set the multipart boundary
+      // itself, and setting it by hand breaks the parse on the other side.
+      const res = await fetch(ORDER_ENDPOINT, { method: 'POST', body: fd })
+      const body = (await res.json().catch(() => null)) as
+        | { ok?: boolean; id?: string; attached?: boolean; reason?: string }
+        | null
+      if (!res.ok || !body?.ok || !body.id) {
+        throw new Error(body?.reason ? String(body.reason) : `http-${res.status}`)
+      }
+      /* Only now is it true. `attached` is the provider's own account of
+       * whether the picture went with it, so the confirmation screen says what
+       * happened rather than what we hoped. */
+      setPhotoDelivered(!!body.attached)
 
       setStatus('done')
     } catch {
@@ -607,6 +987,9 @@ export default function OrderSection({
   const reset = () => {
     setPicked({})
     setInscription('')
+    setExtras({})
+    clearPhoto()
+    setOrderRef('')
     setQty(1)
     setCustomer({
       name: '', phone: '', email: '', date: '', time: '', location: PICKUP_LOCATIONS[0].id, notes: '',
@@ -623,6 +1006,10 @@ export default function OrderSection({
       <div className="rb-ord-slip-title">{t.slipTitle}</div>
       <div className="rb-ord-slip-rule" aria-hidden="true" />
       <div>
+        {/* The empty state was written but never rendered: before anything was
+            chosen the slip showed a placeholder row instead, complete with a
+            dotted leader to nowhere. */}
+        {lines.length === 0 && <p className="rb-ord-slip-empty">{t.slipEmpty}</p>}
         {lines.map((line) => (
           <div className="rb-ord-slipline" key={line.key}>
             <span className="rb-ord-slipline-name">
@@ -631,16 +1018,31 @@ export default function OrderSection({
             </span>
             <span className="rb-ord-slipline-dots" aria-hidden="true" />
             <span className="rb-ord-slipline-price" data-free={line.price === null}>
-              {line.price === null ? t.included : isk(line.price)}
+              {line.pending ? '' : line.price === null ? t.included : isk(line.price)}
             </span>
           </div>
         ))}
       </div>
+      {layers.length > 0 && (
+        <div className="rb-ord-spec">
+          <div className="rb-ord-spec-title">{t.specTitle}</div>
+          <ul className="rb-ord-spec-list">
+            {layers.map((l) => (
+              <li key={`${l.label.is}_${l.changed}`} className="rb-ord-spec-row" data-changed={l.changed}>
+                <span className="rb-ord-spec-dot" aria-hidden="true" />
+                {l.label[lang]}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="rb-ord-total">
         <span className="rb-ord-total-label">{t.slipTotal}</span>
-        <span className="rb-ord-total-value" data-bump={bump} aria-live="polite">{isk(total)}</span>
+        <span className="rb-ord-total-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
+          {totalText}
+        </span>
       </div>
-      <p className="rb-ord-slip-note">{t.slipNote}</p>
+      <p className="rb-ord-slip-note">{quote ? t.quoteNote : t.slipNote}</p>
     </div>
   )
 
@@ -693,17 +1095,47 @@ export default function OrderSection({
                 built from the CMS hours, so it can never contradict the ones
                 printed elsewhere on the site, and it degrades to a generic
                 sentence if the week is not one single schedule. */}
-            <p style={{ fontSize: 14.5, color: DIM, margin: '12px auto 0', maxWidth: '46ch', lineHeight: 1.6 }}>
+            {/* One stub carrying the two facts worth keeping: what it costs and
+                what to quote when ringing. Side by side, because a receipt is
+                read at a glance and five centred paragraphs are not. */}
+            <div className="rb-ord-stub">
+              <div className="rb-ord-stub-cell">
+                <span className="rb-ord-stub-key">{t.refLabel}</span>
+                <span className="rb-ord-stub-val">{orderRef || '—'}</span>
+              </div>
+              <div className="rb-ord-stub-cell">
+                <span className="rb-ord-stub-key">{t.slipTotal}</span>
+                <span className="rb-ord-stub-val" data-price="true">
+                  {quote ? t.quoteTotal : isk(total)}
+                </span>
+              </div>
+            </div>
+
+            {/* When we ring, and the number, on one line rather than two
+                paragraphs saying nearly the same thing. */}
+            <p className="rb-ord-done-line">
               {hoursRows[lang].length === 1
                 ? t.doneWhen(`${hoursRows[lang][0].label.toLowerCase()} ${hoursRows[lang][0].value}`)
-                : t.doneWhenGeneric}
-              <br />
+                : t.doneWhenGeneric}{' '}
               {t.doneReach}{' '}
-              <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>.
+              <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>
             </p>
-            <div style={{ marginTop: 22, fontSize: 15, color: GOLD_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
-              {t.slipTotal}: {isk(total)}
-            </div>
+
+            {wantsPhoto && (
+              photoDelivered ? (
+                <p className="rb-ord-done-line" data-good="true">{t.photoSent}</p>
+              ) : (
+                orderRef && (
+                  <p className="rb-ord-done-line">
+                    {t.photoHow(orderRef)}{' '}
+                    <a href={`mailto:${LINKS.orderEmail}?subject=${encodeURIComponent(orderRef)}`} className="rb-ord-tel">
+                      {LINKS.orderEmail}
+                    </a>
+                  </p>
+                )
+              )
+            )}
+
             <button type="button" className="rb-ord-submit" style={{ width: 'auto', marginTop: 24 }} onClick={reset}>
               {t.doneAgain}
             </button>
@@ -714,7 +1146,9 @@ export default function OrderSection({
               {/* running total, mobile only */}
               <div className="rb-ord-mobiletotal">
                 <span className="rb-ord-mobiletotal-label">{t.slipTotal}</span>
-                <span className="rb-ord-mobiletotal-value" data-bump={bump} aria-live="polite">{isk(total)}</span>
+                <span className="rb-ord-mobiletotal-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
+                  {totalText}
+                </span>
               </div>
 
               {/* 1 — who is ordering (drives which details are asked for later) */}
@@ -754,13 +1188,17 @@ export default function OrderSection({
                         onChange={() => setProductId(p.id)}
                       />
                       <span className="rb-ord-prod-mark" aria-hidden="true"><Check /></span>
-                      {p.image && (
+                      {showPics && p.image && (
                         <span className="rb-ord-prod-pic">
                           <img src={p.image} alt="" loading="lazy" decoding="async" width={1400} height={1400} />
                         </span>
                       )}
                       <span className="rb-ord-prod-name">{p.name[lang]}</span>
-                      <span className="rb-ord-prod-from">{lang === 'is' ? 'frá' : 'from'} {isk(p.basePrice)}</span>
+                      <span className="rb-ord-prod-from">
+                        {p.pricePerPerson
+                          ? `${isk(p.pricePerPerson)} ${t.perPerson}`
+                          : `${lang === 'is' ? 'frá' : 'from'} ${isk(p.basePrice)}`}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -775,51 +1213,194 @@ export default function OrderSection({
                     const cur = picked[group.id] ?? []
                     const atMax = !!group.max && cur.length >= group.max
                     const err = showErr(`g_${group.id}`)
+                    const isSizeGroup = !!product.pricePerPerson && group.id === product.sizeGroupId
+                    /* If nothing in the group changes the price, the price
+                       column says "included" five times and communicates
+                       nothing. Drop it entirely and the choices read as what
+                       they are: a taste, not a tariff. It reappears the moment
+                       the owner puts a surcharge on any one of them. */
+                    const groupHasPrices =
+                      isSizeGroup || group.choices.some((c) => c.priceDelta > 0 || c.quoteOnly)
                     return (
                       <fieldset className="rb-ord-group" key={group.id}>
                         <legend className="rb-ord-legend">
-                          {group.label[lang]}
-                          <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
+                          <span className="rb-ord-legend-row">
+                            <span className="rb-ord-legend-text">{group.label[lang]}</span>
+                            <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
+                          </span>
                         </legend>
                         {(group.help || group.max) && (
                           <p className="rb-ord-help">
                             {group.help ? group.help[lang] : t.chooseUpTo(group.max as number)}
                           </p>
                         )}
-                        <div className="rb-ord-choices">
+                        {group.layout === 'select' ? (
+                          /* One row instead of eleven. The price is not hidden by
+                             the dropdown, it is promoted out of it: chosen size
+                             at display size on the right, rate underneath, and
+                             every option still carries its own price when the
+                             list is open. */
+                          <div className="rb-ord-sizerow">
+                            <select
+                              className="rb-ord-select rb-ord-sizeselect"
+                              value={cur[0] ?? ''}
+                              data-invalid={err ? 'true' : undefined}
+                              aria-invalid={!!err}
+                              aria-label={group.label[lang]}
+                              aria-describedby={err ? `err_g_${group.id}` : undefined}
+                              onChange={(e) => toggle(group, e.target.value)}
+                            >
+                              <option value="" disabled style={{ background: INK }}>
+                                {t.sizePrompt}
+                              </option>
+                              {group.choices.map((choice) => {
+                                const sp =
+                                  typeof choice.serves === 'number' && product.pricePerPerson
+                                    ? product.pricePerPerson * choice.serves
+                                    : null
+                                return (
+                                  <option key={choice.id} value={choice.id} style={{ background: INK }}>
+                                    {choice.label[lang]}
+                                    {sp !== null ? `  ·  ${isk(sp)}` : ''}
+                                  </option>
+                                )
+                              })}
+                            </select>
+                            {/* Only once there is a price. The rate on its own,
+                                hanging under an empty dropdown, was a line of
+                                text belonging to nothing. It lives in the help
+                                line above until a size makes it a real price. */}
+                            {isSizeGroup && size && (
+                              <div className="rb-ord-sizeprice" aria-live="polite">
+                                <span className="rb-ord-sizeprice-num" data-bump={bump}>
+                                  {isk(product.pricePerPerson! * (size.serves as number))}
+                                </span>
+                                <span className="rb-ord-sizeprice-rate">
+                                  {isk(product.pricePerPerson!)} {t.perPerson}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                        <div className="rb-ord-choices" data-layout={group.layout ?? 'list'}>
                           {group.choices.map((choice) => {
                             const on = cur.includes(choice.id)
                             const off = !on && atMax
+                            /* On a per-person product the size chips carry the
+                               REAL price of that size, not a surcharge. That is
+                               the whole point of the owner's model: the customer
+                               picks how many people are coming and reads the
+                               finished price off the same row. */
+                            const sizePrice =
+                              isSizeGroup && typeof choice.serves === 'number' && product.pricePerPerson
+                                ? product.pricePerPerson * choice.serves
+                                : null
+                            const fx = choice.freeText
+                            const fxKey = `${group.id}_${choice.id}`
+                            const fxErr = showErr(`x_${fxKey}`)
                             return (
-                              <label
-                                key={choice.id}
-                                className="rb-ord-choice"
-                                data-on={on}
-                                data-off={off}
-                              >
-                                <input
-                                  type={group.kind === 'single' ? 'radio' : 'checkbox'}
-                                  name={`rb-ord-${group.id}`}
-                                  checked={on}
-                                  disabled={off}
-                                  data-invalid={err ? 'true' : undefined}
-                                  aria-describedby={err ? `err_g_${group.id}` : undefined}
-                                  onChange={() => toggle(group, choice.id)}
-                                />
-                                <span className="rb-ord-mark" data-shape={group.kind === 'single' ? 'round' : 'box'} aria-hidden="true">
-                                  <Check />
-                                </span>
-                                <span className="rb-ord-choice-label">
-                                  {choice.label[lang]}
-                                  {choice.note && <span className="rb-ord-choice-note">{choice.note[lang]}</span>}
-                                </span>
-                                <span className="rb-ord-choice-price" data-free={choice.priceDelta === 0}>
-                                  {choice.priceDelta === 0 ? t.included : `+ ${isk(choice.priceDelta)}`}
-                                </span>
-                              </label>
+                              <div key={choice.id}>
+                                <label className="rb-ord-choice" data-on={on} data-off={off}>
+                                  <input
+                                    type={group.kind === 'single' ? 'radio' : 'checkbox'}
+                                    name={`rb-ord-${group.id}`}
+                                    checked={on}
+                                    disabled={off}
+                                    data-invalid={err ? 'true' : undefined}
+                                    aria-describedby={err ? `err_g_${group.id}` : undefined}
+                                    onChange={() => toggle(group, choice.id)}
+                                  />
+                                  <span className="rb-ord-mark" data-shape={group.kind === 'single' ? 'round' : 'box'} aria-hidden="true">
+                                    <Check />
+                                  </span>
+                                  <span className="rb-ord-choice-label">
+                                    {choice.label[lang]}
+                                    {choice.note && <span className="rb-ord-choice-note">{choice.note[lang]}</span>}
+                                  </span>
+                                  {groupHasPrices && (
+                                    <span
+                                      className="rb-ord-choice-price"
+                                      data-free={sizePrice === null && choice.priceDelta === 0 && !choice.quoteOnly}
+                                    >
+                                      {sizePrice !== null
+                                        ? isk(sizePrice)
+                                        : choice.quoteOnly
+                                          ? t.quoteTotal
+                                          : choice.priceDelta === 0
+                                            ? t.included
+                                            : `+ ${isk(choice.priceDelta)}`}
+                                    </span>
+                                  )}
+                                </label>
+                                {/* The field belonging to this choice, revealed only
+                                    when it is picked. Rendering it inside the row it
+                                    belongs to is what keeps "another colour" from
+                                    submitting as just "another colour". */}
+                                {fx && on && (
+                                  <div className="rb-ord-extra">
+                                    <label className="rb-ord-label" htmlFor={`rb-ord-x-${fxKey}`}>
+                                      {fx.label[lang]}
+                                    </label>
+                                    <input
+                                      id={`rb-ord-x-${fxKey}`}
+                                      className="rb-ord-input"
+                                      type="text"
+                                      maxLength={fx.maxLength}
+                                      placeholder={fx.placeholder[lang]}
+                                      value={extras[fxKey] ?? ''}
+                                      data-invalid={fxErr ? 'true' : undefined}
+                                      aria-invalid={!!fxErr}
+                                      aria-describedby={fxErr ? `err_x_${fxKey}` : undefined}
+                                      onChange={(e) => setExtras((x) => ({ ...x, [fxKey]: e.target.value }))}
+                                      onBlur={() => setTouched((prev) => ({ ...prev, [`x_${fxKey}`]: true }))}
+                                    />
+                                    {fxErr && <p className="rb-ord-err" id={`err_x_${fxKey}`} role="alert">{fxErr}</p>}
+                                    {/* The upload belongs to the choice that
+                                        needs a picture, not to a general
+                                        attachments box further down the form. */}
+                                    {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && (
+                                      <div className="rb-ord-photo">
+                                        {photo ? (
+                                          <div className="rb-ord-photo-has">
+                                            <img className="rb-ord-photo-thumb" src={photoUrl} alt="" />
+                                            <div className="rb-ord-photo-meta">
+                                              <span className="rb-ord-photo-name">{photo.name}</span>
+                                              {/* KB below a megabyte: a small
+                                                  photo reading "0.0 MB" looks
+                                                  like nothing attached. */}
+                                              <span className="rb-ord-photo-size">
+                                                {photo.size < 1024 * 1024
+                                                  ? `${Math.max(1, Math.round(photo.size / 1024))} KB`
+                                                  : `${(photo.size / 1024 / 1024).toFixed(1)} MB`}
+                                              </span>
+                                            </div>
+                                            <button type="button" className="rb-ord-photo-clear" onClick={clearPhoto}>
+                                              {t.photoRemove}
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <label className="rb-ord-photo-pick">
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)}
+                                            />
+                                            <span className="rb-ord-photo-cta">{t.photoCta}</span>
+                                            <span className="rb-ord-photo-label">{t.photoLabel}</span>
+                                          </label>
+                                        )}
+                                        {photoErr
+                                          ? <p className="rb-ord-err" role="alert">{photoErr}</p>
+                                          : <p className="rb-ord-hint">{t.photoHint}</p>}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             )
                           })}
                         </div>
+                        )}
                         {err && <p className="rb-ord-err" id={`err_g_${group.id}`} role="alert">{err}</p>}
                       </fieldset>
                     )
@@ -1175,7 +1756,7 @@ export default function OrderSection({
                 </div>
 
                 <button type="submit" className="rb-ord-submit" disabled={status === 'sending'}>
-                  {status === 'sending' ? `${t.submitting}...` : t.submit}
+                  {status === 'sending' ? `${t.submitting}...` : quote ? t.submitQuote : t.submit}
                 </button>
                 {triedSubmit && Object.keys(errors).length > 0 && (
                   <p className="rb-ord-errsummary" role="alert">{t.errSummary}</p>
