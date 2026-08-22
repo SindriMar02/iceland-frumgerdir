@@ -250,7 +250,7 @@ function BookLink({
       <a
         href={bookingHref()!}
         onClick={onClick}
-        className={`inline-flex items-center gap-2 bg-[#D97D3D] px-6 py-3.5 font-sans text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
+        className={`inline-flex items-center gap-2 bg-[#D97D3D] px-6 py-3.5 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
       >
         {children}
         <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -260,7 +260,7 @@ function BookLink({
         <button
           type="button"
           disabled
-          className="inline-flex cursor-not-allowed items-center gap-2 border border-dashed px-6 py-3.5 font-sans text-[15px] font-semibold"
+          className="inline-flex cursor-not-allowed items-center gap-2 border border-dashed px-6 py-3.5 font-supreme text-[15px] font-semibold"
           style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
         >
           {children}
@@ -416,7 +416,7 @@ export default function Page() {
     <div
       ref={rootRef}
       lang="en"
-      className="min-h-screen font-sans text-[#F4EEE2] antialiased"
+      className="min-h-screen font-supreme text-[#F4EEE2] antialiased"
       style={{ background: GROUND, '--sky': '#DCE4E6', '--skyink': '#B9CBD6' } as CSSProperties}
     >
       <PreviewChrome company={company} />
@@ -475,7 +475,7 @@ export default function Page() {
             ref={navRowRef}
             className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8"
           >
-            <a href="#top" className={`font-display text-xl tracking-tight ${FOCUS}`}>
+            <a href="#top" className={`font-erode text-xl tracking-tight ${FOCUS}`}>
               Nýpugarðar
             </a>
             <div className="hidden items-center gap-7 md:flex">
@@ -544,7 +544,7 @@ export default function Page() {
             Kvöldverðurinn á Mýrum
           </p>
           <h1
-            className="mt-4 max-w-4xl font-display text-[clamp(3.1rem,9vw,6.5rem)] font-medium leading-[1.16] tracking-tight"
+            className="mt-4 max-w-4xl font-erode text-[clamp(3.1rem,9vw,6.5rem)] font-medium leading-[1.16] tracking-tight"
             style={rise(1)}
           >
             Nýpugarðar
@@ -602,7 +602,7 @@ export default function Page() {
                 <a
                   href={`#${n.id}`}
                   onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
-                  className={`block py-2 font-display text-[clamp(2.5rem,13vw,4.5rem)] font-medium leading-[1.1] tracking-tight text-[#F4EEE2] ${FOCUS}`}
+                  className={`block py-2 font-erode text-[clamp(2.5rem,13vw,4.5rem)] font-medium leading-[1.1] tracking-tight text-[#F4EEE2] ${FOCUS}`}
                   style={{
                     transform: menuOpen || reduced ? 'translateY(0%)' : 'translateY(100%)',
                     transition: reduced
@@ -644,7 +644,7 @@ export default function Page() {
             <div>
               <Eyebrow label="The flock" register={register} reduced={reduced} />
               <Reveal delay={60}>
-                <h2 className="mt-6 font-display text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
+                <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
                   A working farm, not a themed hotel
                 </h2>
               </Reveal>
@@ -662,7 +662,7 @@ export default function Page() {
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
                       Guests when full
                     </dt>
-                    <dd className="mt-1 font-display text-4xl" style={{ color: ACCENT }}>
+                    <dd className="mt-1 font-erode text-4xl" style={{ color: ACCENT }}>
                       24
                     </dd>
                   </div>
@@ -670,7 +670,7 @@ export default function Page() {
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
                       Open
                     </dt>
-                    <dd className="mt-1 font-display text-4xl" style={{ color: ACCENT }}>
+                    <dd className="mt-1 font-erode text-4xl" style={{ color: ACCENT }}>
                       All year
                     </dd>
                   </div>
@@ -700,7 +700,7 @@ export default function Page() {
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-16 pt-40 md:px-8 md:pb-20">
             <Eyebrow label="The glacier light" register={register} reduced={reduced} />
             <Reveal delay={60}>
-              <h2 className="mt-6 max-w-3xl font-display text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
+              <h2 className="mt-6 max-w-3xl font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
                 A small hill with the whole horizon
               </h2>
             </Reveal>
@@ -718,7 +718,7 @@ export default function Page() {
               >
                 {DISTANCES.map((d) => (
                   <div key={d.label}>
-                    <dd className="font-display text-3xl text-[#F4EEE2] md:text-4xl">{d.n}</dd>
+                    <dd className="font-erode text-3xl text-[#F4EEE2] md:text-4xl">{d.n}</dd>
                     <dt className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
                       {d.label}
                     </dt>
@@ -740,7 +740,7 @@ export default function Page() {
             />
             <div>
               <Reveal>
-                <h2 className="font-display text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
+                <h2 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
                   Four kilometres off the Ring Road, then quiet
                 </h2>
               </Reveal>
@@ -762,7 +762,7 @@ export default function Page() {
             <Eyebrow label="Your room" register={register} reduced={reduced} />
             <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
               <Reveal>
-                <h2 className="font-display text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
+                <h2 className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
                   Thirteen simple places to sleep
                 </h2>
               </Reveal>
@@ -781,7 +781,7 @@ export default function Page() {
               >
                 {UNITS.map((u) => (
                   <div key={u.label}>
-                    <dd className="font-display text-5xl" style={{ color: ACCENT }}>
+                    <dd className="font-erode text-5xl" style={{ color: ACCENT }}>
                       {u.n}
                     </dd>
                     <dt className="mt-2 max-w-[16ch] font-mono text-[11px] uppercase leading-relaxed tracking-[0.16em] text-[#F4EEE2]/60">
@@ -809,7 +809,7 @@ export default function Page() {
             <div className="mt-20 grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
               <div>
                 <Reveal>
-                  <h3 className="font-display text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
+                  <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
                     The two cottages
                   </h3>
                 </Reveal>
@@ -865,7 +865,7 @@ export default function Page() {
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label="Dinner is served" register={register} reduced={reduced} />
             <Reveal delay={60}>
-              <h2 className="mt-6 max-w-3xl font-display text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight">
+              <h2 className="mt-6 max-w-3xl font-erode text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight">
                 A dinner buffet with lamb
               </h2>
             </Reveal>
@@ -889,7 +889,7 @@ export default function Page() {
             <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-14">
               <Reveal>
                 <blockquote>
-                  <p className="font-display text-2xl italic leading-[1.4] text-[#F4EEE2]/90 md:text-[1.7rem]">
+                  <p className="font-erode text-2xl italic leading-[1.4] text-[#F4EEE2]/90 md:text-[1.7rem]">
                     “{DINNER_QUOTE.text}”
                   </p>
                   <footer className="mt-5 font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
@@ -937,7 +937,7 @@ export default function Page() {
 
             <Reveal delay={120}>
               <div className="mt-16 border-t pt-10" style={{ borderColor: HAIR }}>
-                <h3 className="font-display text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
+                <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
                   And breakfast before you go
                 </h3>
                 <p className="mt-4 max-w-[54ch] leading-relaxed" style={{ color: BODY }}>
@@ -966,7 +966,7 @@ export default function Page() {
             <h2 className="sr-only">The seasons at Nýpugarðar</h2>
             <div className="grid gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-[#F4EEE2]/15">
               <Reveal className="md:pr-14">
-                <h3 className="font-display text-3xl font-medium leading-[1.16] tracking-tight">
+                <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
                   Spring is for lambing
                 </h3>
                 <p className="mt-4 max-w-[50ch] leading-relaxed" style={{ color: BODY }}>
@@ -975,7 +975,7 @@ export default function Page() {
                 </p>
               </Reveal>
               <Reveal delay={110} className="md:pl-14">
-                <h3 className="font-display text-3xl font-medium leading-[1.16] tracking-tight">
+                <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
                   Winter is for dark skies
                 </h3>
                 <p className="mt-4 max-w-[50ch] leading-relaxed" style={{ color: BODY }}>
@@ -996,7 +996,7 @@ export default function Page() {
             <div className="mt-8 grid items-end gap-10 md:grid-cols-[auto_1fr] md:gap-16">
               <Reveal>
                 <p className="flex items-baseline gap-3">
-                  <span className="font-display text-[6rem] leading-none text-[#F4EEE2] md:text-[8rem]">
+                  <span className="font-erode text-[6rem] leading-none text-[#F4EEE2] md:text-[8rem]">
                     {SCORE.value}
                   </span>
                   <span className="font-mono text-sm uppercase tracking-[0.18em] text-[#B9CBD6]">
@@ -1011,7 +1011,7 @@ export default function Page() {
                 <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
                   {SCORE.categories.map((c) => (
                     <div key={c.label} className="border-t pt-3" style={{ borderColor: HAIR }}>
-                      <dd className="font-display text-2xl" style={{ color: ACCENT }}>
+                      <dd className="font-erode text-2xl" style={{ color: ACCENT }}>
                         {c.n}
                       </dd>
                       <dt className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/55">
@@ -1058,7 +1058,7 @@ export default function Page() {
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label="Finding us" register={register} reduced={reduced} />
             <Reveal delay={60}>
-              <h2 className="mt-6 font-display text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
+              <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
                 Easy to reach, hard to leave
               </h2>
             </Reveal>
@@ -1070,7 +1070,7 @@ export default function Page() {
                   </p>
                   <a
                     href={PHONE_HREF}
-                    className={`mt-2 inline-block font-display text-5xl transition-colors duration-200 hover:text-[#E68C4C] md:text-6xl ${FOCUS}`}
+                    className={`mt-2 inline-block font-erode text-5xl transition-colors duration-200 hover:text-[#E68C4C] md:text-6xl ${FOCUS}`}
                     style={{ color: ACCENT }}
                   >
                     {PHONE}
@@ -1164,7 +1164,7 @@ export default function Page() {
               <Eyebrow label="Nightfall" register={register} reduced={reduced} />
             </div>
             <Reveal delay={60}>
-              <h2 className="mx-auto mt-6 max-w-3xl font-display text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight">
+              <h2 className="mx-auto mt-6 max-w-3xl font-erode text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight">
                 Book your evening at Nýpugarðar
               </h2>
             </Reveal>

@@ -45,7 +45,8 @@
   --font-fragment: "Fragment Mono", ui-monospace, monospace;  /* KIDKA — care-label spec voice */
   --font-arkipelago: "Arkipelago", cursive;                   /* KIDKA — handwritten margin notes */
   --font-karrik: "Karrik", Georgia, serif;                    /* KIDKA — raw grotesque, chart voice */
-  --font-supreme: "Supreme", system-ui, sans-serif;           /* KIDKA — body */
+  --font-supreme: "Supreme", system-ui, sans-serif;           /* Nypugardar — body (was KIDKA, unused) */
+  --font-erode: "Erode", Georgia, serif;                      /* Nypugardar — weathered farm serif */
   --font-servermono: "Server Mono", ui-monospace, monospace;  /* KIDKA — chart coordinates */
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace; /* FIMM data voice */
@@ -355,6 +356,17 @@ html.lenis body {
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: "Server Mono"; src: url("./assets/fonts/ServerMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+/* Nypugardar "Kvoldverdurinn a Myrum" — Erode (weathered serif, display) over
+   Supreme (warm neutral grotesk, body). Both Fontshare, both local, both with
+   full Icelandic incl. the d/th/ae/O set the wordmark needs. Supreme already
+   had 500/700 here; 400 added below. Supreme has no Semibold master, so the
+   Bold file answers 600-700 and font-semibold resolves to it. */
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Semibold.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 600 700; font-style: normal; font-display: swap; }
 
 /* Naustið (Gluggar) — Gambarino display serif (Fontshare FFL, local; Icelandic ✓
    including the in-house-synthesised Þ Ð Æ Ö set). Single weight by design. */

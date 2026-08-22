@@ -79,7 +79,7 @@ function Stepper({
         </button>
         <output
           id={id}
-          className="min-w-[1.5ch] text-center font-display text-2xl tabular-nums"
+          className="min-w-[1.5ch] text-center font-erode text-2xl tabular-nums"
           style={{ color: PAPER }}
         >
           {value}
@@ -137,7 +137,7 @@ export default function BookingBar({
 
   /** h-8 matches the stepper buttons so every label in the row shares a baseline. */
   const field =
-    'h-8 w-full bg-transparent font-display text-lg leading-8 tracking-tight [color-scheme:dark] ' +
+    'h-8 w-full bg-transparent font-erode text-lg leading-8 tracking-tight [color-scheme:dark] ' +
     FOCUS
 
   return (
@@ -190,7 +190,7 @@ export default function BookingBar({
         {ready && href ? (
           <a
             href={href}
-            className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 font-sans text-[15px] font-semibold transition-[transform,background-color] duration-200 ease-out active:scale-[0.98] ${FOCUS}`}
+            className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 font-supreme text-[15px] font-semibold transition-[transform,background-color] duration-200 ease-out active:scale-[0.98] ${FOCUS}`}
             style={{ background: EMBER, color: INK }}
             onMouseEnter={(e) => (e.currentTarget.style.background = EMBER_LIFT)}
             onMouseLeave={(e) => (e.currentTarget.style.background = EMBER)}
@@ -203,7 +203,7 @@ export default function BookingBar({
             type="button"
             disabled
             aria-describedby={`${inId}-placeholder`}
-            className="inline-flex cursor-not-allowed items-center justify-center gap-2 border border-dashed px-6 py-3.5 font-sans text-[15px] font-semibold"
+            className="inline-flex cursor-not-allowed items-center justify-center gap-2 border border-dashed px-6 py-3.5 font-supreme text-[15px] font-semibold"
             style={{ borderColor: 'rgba(217,125,61,0.55)', color: 'rgba(217,125,61,0.85)' }}
           >
             {label}
