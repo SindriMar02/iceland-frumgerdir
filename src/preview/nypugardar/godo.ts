@@ -56,6 +56,9 @@ export type BookingQuery = {
   children?: number
   room?: GodoRoomKey | null
   lang?: 'en' | 'is'
+  /** Where Godo returns the guest after booking. Also settable in the control
+   *  panel as Booking Return URL. See [[booking-systems-integration]]. */
+  redirect?: string
 }
 
 /** Beds24 expects `2026-9-12`, not `2026-09-12`. Local time, not UTC. */
@@ -87,6 +90,7 @@ export function godoBookingUrl(q: BookingQuery = {}): string {
   const roomId = q.room ? GODO_ROOM_IDS[q.room] : ''
   if (roomId) p.set('roomid', roomId)
 
+  if (q.redirect) p.set('redirect', q.redirect)
   p.set('lang', q.lang ?? 'en')
   /** Lets us prove in Godo's reports how many bookings this site sent. */
   p.set('referer', 'nypugardar-web')
