@@ -25,9 +25,6 @@ import {
  */
 
 const PAPER = '#F4EEE2'
-const INK = '#15130F'
-const EMBER = '#D97D3D'
-const EMBER_LIFT = '#E68C4C'
 const HAIR = 'rgba(244,238,226,0.14)'
 const FOCUS =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#15130F]'
@@ -75,7 +72,7 @@ function Stepper({
           className={`grid h-11 w-11 place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
           style={{ borderColor: HAIR, color: PAPER }}
         >
-          <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+          <Minus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
         </button>
         <output
           id={id}
@@ -92,7 +89,7 @@ function Stepper({
           className={`grid h-11 w-11 place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
           style={{ borderColor: HAIR, color: PAPER }}
         >
-          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          <Plus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -190,13 +187,12 @@ export default function BookingBar({
         {ready && href ? (
           <a
             href={href}
-            className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 font-supreme text-[15px] font-semibold transition-[transform,background-color] duration-200 ease-out active:scale-[0.98] ${FOCUS}`}
-            style={{ background: EMBER, color: INK }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = EMBER_LIFT)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = EMBER)}
+            className={`group inline-flex items-center justify-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS}`}
           >
             {label}
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#15130F]/10 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px">
+              <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+            </span>
           </a>
         ) : (
           <button

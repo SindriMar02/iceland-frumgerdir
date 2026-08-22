@@ -69,15 +69,21 @@ export const UNITS = [
   { n: '24', label: 'guests when the house is full' },
 ] as const
 
-/** Booking.com house rules + ferdalag.is, 2026-07-18 */
+/** Booking.com house rules, re-verified live 2026-08-21.
+ *  Split into times and policies so the two facts guests actually look up
+ *  (when can I arrive, when must I leave) can be given real weight instead of
+ *  being buried in a flat list of seven identical lines. */
+export const CHECK_TIMES = [
+  { label: 'Arrive', value: '16:00', tail: 'until 23:30' },
+  { label: 'Leave', value: '11:00', tail: 'from 07:30' },
+] as const
+
 export const HOUSE_RULES = [
-  'Check-in 16:00–23:30',
-  'Check-out 07:30–11:00',
-  'Open all year',
-  'No pets',
-  'No smoking',
-  'Children welcome, guests 7 and older pay as adults',
-  'No extra beds available',
+  { rule: 'Open all year', note: null },
+  { rule: 'Children welcome', note: 'guests 7 and older pay as adults' },
+  { rule: 'No extra beds', note: 'the cottages sleep up to four' },
+  { rule: 'No pets', note: null },
+  { rule: 'No smoking', note: null },
 ] as const
 
 /** Booking.com facilities list, re-verified live 2026-08-21. */

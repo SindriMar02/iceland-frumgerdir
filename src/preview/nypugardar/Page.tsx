@@ -15,6 +15,7 @@ import {
   EMAIL,
   FOOTNOTE,
   HOUSE_RULES,
+  CHECK_TIMES,
   BREAKFAST,
   FACILITIES,
   IMG,
@@ -250,10 +251,12 @@ function BookLink({
       <a
         href={bookingHref()!}
         onClick={onClick}
-        className={`inline-flex items-center gap-2 bg-[#D97D3D] px-6 py-3.5 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
+        className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
       >
         {children}
-        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-[#15130F]/10 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px">
+          <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+        </span>
       </a>
     ) : (
       <span className={`inline-flex flex-col gap-1.5 ${className}`}>
@@ -558,7 +561,7 @@ export default function Page() {
               href={PHONE_HREF}
               className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
             >
-              <Phone className="h-4 w-4" aria-hidden="true" />
+              <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
               {PHONE}
             </a>
           </div>
@@ -820,18 +823,6 @@ export default function Page() {
                     right outside the door.
                   </p>
                 </Reveal>
-                <Reveal delay={160}>
-                  <ul className="mt-8 space-y-2.5 border-t pt-7" style={{ borderColor: HAIR }}>
-                    {HOUSE_RULES.map((h) => (
-                      <li
-                        key={h}
-                        className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/65"
-                      >
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
-                </Reveal>
                 <Reveal delay={220}>
                   <div className="mt-9 flex flex-wrap items-center gap-4">
                     <BookLink>Check availability</BookLink>
@@ -857,6 +848,57 @@ export default function Page() {
                 />
               </div>
             </div>
+
+            {/* Practical facts, pulled out of the cottage column so nobody scrolls
+             * past them. The two times carry the weight because they are what
+             * guests actually look up; the policies sit under as a plain list. */}
+            <Reveal delay={80}>
+              <div
+                className="mt-20 border-t pt-10 md:mt-24 md:pt-12"
+                style={{ borderColor: HAIR }}
+              >
+                <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
+                  Before you come
+                </h3>
+                <div className="mt-8 grid gap-10 md:grid-cols-[auto_1fr] md:gap-20">
+                  <dl className="flex gap-12 sm:gap-16">
+                    {CHECK_TIMES.map((t) => (
+                      <div key={t.label}>
+                        <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/55">
+                          {t.label}
+                        </dt>
+                        <dd
+                          className="mt-2 font-erode text-5xl leading-none tracking-tight tabular-nums md:text-6xl"
+                          style={{ color: ACCENT }}
+                        >
+                          {t.value}
+                        </dd>
+                        <dd className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/45">
+                          {t.tail}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2 md:self-center">
+                    {HOUSE_RULES.map((h) => (
+                      <li key={h.rule} className="flex items-baseline gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="mt-[0.45em] h-px w-4 shrink-0"
+                          style={{ background: 'rgba(244,238,226,0.3)' }}
+                        />
+                        <span className="text-[15px] leading-snug text-[#F4EEE2]/85">
+                          {h.rule}
+                          {h.note ? (
+                            <span className="text-[#F4EEE2]/50">, {h.note}</span>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </section>
 
@@ -912,14 +954,14 @@ export default function Page() {
                       href={PHONE_HREF}
                       className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-5 py-3 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
                     >
-                      <Phone className="h-4 w-4" aria-hidden="true" />
+                      <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                       {PHONE}
                     </a>
                     <a
                       href={`mailto:${EMAIL}`}
                       className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-5 py-3 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
                     >
-                      <Mail className="h-4 w-4" aria-hidden="true" />
+                      <Mail className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                       {EMAIL}
                     </a>
                   </div>
@@ -1084,7 +1126,7 @@ export default function Page() {
                     href={`mailto:${EMAIL}`}
                     className={`mt-2 inline-flex items-center gap-3 text-xl text-[#F4EEE2]/90 underline-offset-4 hover:underline md:text-2xl ${FOCUS}`}
                   >
-                    <Mail className="h-5 w-5 text-[#B9CBD6]" aria-hidden="true" />
+                    <Mail className="h-5 w-5 text-[#B9CBD6]" strokeWidth={1.5} aria-hidden="true" />
                     {EMAIL}
                   </a>
                 </Reveal>
@@ -1093,7 +1135,7 @@ export default function Page() {
                     The address
                   </p>
                   <p className="mt-2 flex items-start gap-3 text-xl text-[#F4EEE2]/90 md:text-2xl">
-                    <MapPin className="mt-1.5 h-5 w-5 shrink-0 text-[#B9CBD6]" aria-hidden="true" />
+                    <MapPin className="mt-1.5 h-5 w-5 shrink-0 text-[#B9CBD6]" strokeWidth={1.5} aria-hidden="true" />
                     {ADDRESS}
                   </p>
                 </Reveal>
@@ -1181,7 +1223,7 @@ export default function Page() {
                   href={PHONE_HREF}
                   className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
                 >
-                  <Phone className="h-4 w-4" aria-hidden="true" />
+                  <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
                   {PHONE}
                 </a>
               </div>
@@ -1218,7 +1260,7 @@ export default function Page() {
               className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
             >
               Check availability
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
             </a>
           ) : (
             <span
@@ -1234,7 +1276,7 @@ export default function Page() {
             aria-label={`Call Nýpugarðar, ${PHONE}`}
             className={`flex w-14 items-center justify-center border border-[#F4EEE2]/35 ${FOCUS}`}
           >
-            <Phone className="h-5 w-5" aria-hidden="true" />
+            <Phone className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
           </a>
         </div>
       </div>
