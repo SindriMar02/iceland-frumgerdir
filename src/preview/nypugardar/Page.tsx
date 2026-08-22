@@ -412,6 +412,7 @@ export default function Page() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navRowRef = useRef<HTMLDivElement>(null);
   const [navHeight, setNavHeight] = useState(84);
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
     const el = navRowRef.current;
@@ -449,13 +450,26 @@ export default function Page() {
     (e: MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
       setMenuOpen(false);
+      /* One frame, so the mobile menu has released body overflow before we move. */
       requestAnimationFrame(() => {
-        document
-          .querySelector(href)
-          ?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+        const target = document.querySelector<HTMLElement>(href);
+        if (!target) return;
+        const lenis = lenisRef.current;
+        if (lenis) {
+          /* Negative offset clears the fixed nav so the section heading is not
+           * left sitting underneath it on arrival. */
+          lenis.scrollTo(target, { offset: -navHeight, duration: 1.2 });
+        } else {
+          window.scrollTo({
+            top: target.getBoundingClientRect().top + window.scrollY - navHeight,
+            behavior: reduced ? "auto" : "smooth",
+          });
+        }
+        /* Keep the address bar honest without letting the browser jump. */
+        window.history.replaceState(null, "", href);
       });
     },
-    [reduced],
+    [reduced, navHeight],
   );
 
   /* The ONE signature: sky colour, eyebrow ink and every rule fill are derived
@@ -481,10 +495,17 @@ export default function Page() {
     }
   });
 
-  /* Lenis smooth scroll — skipped entirely under prefers-reduced-motion. */
+  /* Lenis smooth scroll — skipped entirely under prefers-reduced-motion.
+   * Held in a ref as well, because anchor clicks have to be routed through
+   * Lenis by hand: index.css sets `.lenis { scroll-behavior: auto !important }`
+   * for Lenis's whole mounted lifetime (deliberately, so the browser's own
+   * easing does not fight Lenis's rAF loop). That also cancels the native
+   * smooth scroll a plain `#id` link or scrollIntoView would rely on, so
+   * without this the nav jumps instantly. */
   useEffect(() => {
     if (reduced) return;
     const lenis = new Lenis({ duration: 1.1 });
+    lenisRef.current = lenis;
     let raf = 0;
     const loop = (t: number) => {
       lenis.raf(t);
@@ -494,6 +515,7 @@ export default function Page() {
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, [reduced]);
 
@@ -625,6 +647,7 @@ export default function Page() {
                 <a
                   key={n.id}
                   href={`#${n.id}`}
+                  onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
                   className={`font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/80 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
                 >
                   {n.label}
