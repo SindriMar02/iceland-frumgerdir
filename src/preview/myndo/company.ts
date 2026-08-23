@@ -48,7 +48,7 @@ export const companyEntry: PreviewCompany = {
     ],
   },
   outreach: {
-    subject: 'myndo.is er læst í tölvubreidd og hleypur saman í síma',
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Myndó ljósmyndastofu',
     body: `Sæl Ólína.
 
 Ég var að skoða myndo.is í símanum. Síðan opnast, en hún er ekki gerð fyrir símaskjá, svo hún birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á. Foreldrar sem eru að leita að fermingar- eða nýburamyndatöku eru nánast alltaf í síma, og þar ræðst oftast hvort haft er samband.

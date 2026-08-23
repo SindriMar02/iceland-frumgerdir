@@ -47,7 +47,7 @@ export const companyEntry: PreviewCompany = {
     ],
   },
   outreach: {
-    subject: 'Forsíðan á tannlaeknir.is nefnir hvergi meistaragráðuna þína',
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Tannlæknastofu EG',
     body: `Sæl Elfa.
 
 Ég var að skoða tannlaeknir.is og það sem stakk mig mest er að forsíðan segir hvergi hver þú ert. Þar stendur símanúmer, opnunartími, heimilisfang og reikningsnúmer, en hvorki að þú hafir rekið stofuna frá 1999 né að þú sért með mastersgráðu í munn- og kjálkaskurðlækningum frá UAB. Það stendur á starfsfólkssíðunni, þangað sem fæstir rata.
