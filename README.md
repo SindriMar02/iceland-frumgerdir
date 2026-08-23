@@ -140,3 +140,38 @@ prototype disclaimers) are in `src/components/`.
 All prices, review quotes and ratings in the prototypes are **illustrative samples**, clearly
 disclaimed in each page footer ("Prototype only — redesign concept"). Replace them with real
 data before any production use.
+
+## Branching and deploys — read before starting a build
+
+**`main` is the only branch that ships.** GitHub Pages builds `iceland-frumgerdir`
+from `main` via Actions, and each deploy replaces `dist/` wholesale.
+
+That last part is the trap. A route missing from the `postbuild` list in
+`package.json` does not go stale, it **stops existing**, and the SPA serves the
+neutral NotFound page. In July 2026 five previews (`eignamidlun`, `gitarinn`,
+`hundahotelid`, `kiropraktorstofan`, `sjukrathjalfarinn`) were built, audited and
+deployed from a long-lived side branch, then silently went 404 the next time a
+deploy ran from `main`, whose route list never had them. Nothing detected it for
+almost a month.
+
+So:
+
+1. **Branch from `main`, merge back to `main`.** Do not let a side branch collect
+   client work over weeks; that is how the two-mains problem started.
+2. **Wire a new preview in three places or its link 404s:** `src/App.tsx`,
+   `src/preview/companies.ts`, and the `postbuild` route list in `package.json`.
+3. **Then record it as live:** `node tools/route-guard.mjs --update`, committed in
+   the same change. `route-guard` runs in the deploy workflow and fails the build
+   if a route already recorded as live disappears. Adding routes never fails.
+4. **Assets must carry the base.** This is a *project* Pages site, so a
+   root-absolute `/slug/x.webp` resolves against the domain root and 404s while
+   the page still returns 200 and renders. Use
+   `` `${import.meta.env.BASE_URL}slug/x.webp` ``.
+5. **A 200 is not proof.** The static shell returns 200 for any listed path.
+   Verify by loading the page and asserting on real text and on images having a
+   non-zero `naturalWidth`.
+
+The second host, `iceland-redesigns` (`gh-pages`), mirrors the same site so links
+sent under either base resolve. Refresh it after a deploy with
+`BASE_PATH=/iceland-redesigns/ npm run build`, then publish `dist/` to that
+repo's `gh-pages`.

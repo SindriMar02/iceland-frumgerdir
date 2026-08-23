@@ -50,6 +50,14 @@ jobs:
       - name: favicon-guard (blocks the deploy if any page lacks a usable icon)
         run: node tools/favicon-guard.mjs dist --base=/iceland-frumgerdir/
 
+      # A deploy replaces dist/ wholesale, so a route missing from the postbuild
+      # list stops existing rather than going stale, and the SPA serves NotFound.
+      # That is how five deployed previews silently went 404 in July when a
+      # deploy ran from a branch whose route list never had them. Blocks the
+      # artifact if a route recorded as live disappears.
+      - name: route-guard (blocks the deploy if a published route would 404)
+        run: node tools/route-guard.mjs dist
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
