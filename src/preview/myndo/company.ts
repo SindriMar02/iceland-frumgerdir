@@ -51,15 +51,11 @@ export const companyEntry: PreviewCompany = {
     subject: 'myndo.is er læst í tölvubreidd og hleypur saman í síma',
     body: `Sæl Ólína.
 
-Ég var að skoða myndo.is í símanum. Síðan opnast, en hún er ekki gerð fyrir símaskjá, svo hún birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á. Foreldrar sem eru að leita að fermingar- eða nýburamyndatöku eru nánast alltaf í síma.
+Ég var að skoða myndo.is í símanum. Síðan opnast, en hún er ekki gerð fyrir símaskjá, svo hún birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á. Foreldrar sem eru að leita að fermingar- eða nýburamyndatöku eru nánast alltaf í síma, og þar ræðst oftast hvort haft er samband.
 
-Hitt sem ég tók eftir er að verðskráin ykkar er heil og heiðarleg, en hún er á síðu sem er einmitt ólesin í símanum.
+Hitt sem ég tók eftir er að þjónustan ykkar spannar heila ævi, frá bumbu og nýbura að fermingu, útskrift og brúðkaupi. Mér fannst það sterkasta röksemdin fyrir því að halda sig við sömu stofuna, og síðan segir það hvergi. Verðin ykkar eru líka heil og öllum sýnileg, sem er sjaldgæft, en þau eru á síðu sem er einmitt ólæsileg í símanum.
 
-Ég gerði tillögu að nýrri forsíðu, ykkur að kostnaðarlausu og án skuldbindinga:
-
-${'{{PREVIEW_URL}}'}
-
-Ef hún hittir ekki í mark máttu einfaldlega henda henni.
+Ég gerði tillögu að nýrri forsíðu sem byggir á þessu, ykkur að kostnaðarlausu og án skuldbindinga, og hún er hér: ${'{{PREVIEW_URL}}'}. Ef hún hittir ekki í mark máttu einfaldlega henda henni.
 
 ${SIGN}`,
   },

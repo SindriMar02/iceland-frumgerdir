@@ -50,15 +50,11 @@ export const companyEntry: PreviewCompany = {
     subject: 'tannlaeknir.is birtist sem „ekki örugg“ í vafranum',
     body: `Sæl Elfa.
 
-Ég var að skoða tannlaeknir.is og tók eftir tvennu. Síðan er á http en ekki https, svo vafrar merkja hana „ekki örugg“, og það stendur við hliðina á netfangi móttökunnar. Hitt er að síðan er ekki gerð fyrir síma, svo hún birtist sem örsmá mynd sem þarf að þysja inn á.
+Ég var að skoða tannlaeknir.is og tók eftir tvennu. Síðan er á http en ekki https, svo vafrar merkja hana „ekki örugg", og sú merking stendur beint við hliðina á netfangi móttökunnar. Hitt er að síðan er ekki gerð fyrir síma, svo hún birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á, og þangað fer nánast allt fólk sem leitar að tannlækni.
 
-Það sem mér fannst mest um vert er að verðskráin ykkar er falin í Google-skjali á bak við litla hnappamynd. Hún er heiðarleg og heil, og hún ætti að vera það fyrsta sem fólk sér.
+Það sem mér fannst þó mest um vert er að verðin ykkar eru falin í Google-skjali á bak við litla hnappamynd. Þau eru heil og heiðarleg, verð á hverju verki, og þau ættu að vera það fyrsta sem fólk sér frekar en það síðasta sem það finnur. Sama gildir um það að þú hefur rekið stofuna frá 1999 og ert með meistaragráðu í munn- og kjálkaskurðlækningum, sem hvergi sést strax.
 
-Ég gerði tillögu að nýrri forsíðu, án endurgjalds og án skuldbindinga:
-
-${'{{PREVIEW_URL}}'}
-
-Ef hún hittir ekki í mark máttu einfaldlega henda henni.
+Ég gerði tillögu að nýrri forsíðu sem byggir á þessu, ykkur að kostnaðarlausu og án skuldbindinga, og hún er hér: ${'{{PREVIEW_URL}}'}. Ef hún hittir ekki í mark máttu einfaldlega henda henni.
 
 ${SIGN}`,
   },
