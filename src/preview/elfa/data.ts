@@ -172,11 +172,14 @@ export const PLATE = [
 export const PLATE_CAPTION =
   'Elfa lauk meistaranámi í munn- og kjálkaskurðlækningum við UAB, University of Alabama at Birmingham, árið 2009. Myndin er stílfærð skýringarmynd, ekki klínísk teikning, og sýnir í grófum dráttum hvar á tanngarðinum þessar aðgerðir fara fram.'
 
+/* Served from a project Pages path, so every asset must carry the base. */
+const A = import.meta.env.BASE_URL
+
 export const IMAGES = {
-  jaw: '/elfa/jaw.svg',
-  portraitTall: '/elfa/portrait-tall.webp',
-  portraitTallSm: '/elfa/portrait-tall-sm.webp',
-  mark: '/elfa/mark.webp',
-  lockup: '/elfa/lockup.webp',
-  portrait: '/elfa/elfa.webp',
+  jaw: `${A}elfa/jaw.svg`,
+  portraitTall: `${A}elfa/portrait-tall.webp`,
+  portraitTallSm: `${A}elfa/portrait-tall-sm.webp`,
+  mark: `${A}elfa/mark.webp`,
+  lockup: `${A}elfa/lockup.webp`,
+  portrait: `${A}elfa/elfa.webp`,
 } as const

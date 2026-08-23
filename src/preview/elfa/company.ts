@@ -5,6 +5,8 @@ import { SIGN } from '../outreach-sign'
  * Private brief + outreach copy for Tannlæknastofa EG. Stays in this folder so
  * the preview route ships only its own record. See [[preview-link-isolation]].
  */
+const A = import.meta.env.BASE_URL
+
 export const companyEntry: PreviewCompany = {
   slug: 'elfa',
   route: '/preview/elfa',
@@ -21,7 +23,7 @@ export const companyEntry: PreviewCompany = {
   accent: '#5C68DC',
   dark: false,
   status: 'Concept ready',
-  thumb: '/elfa/lockup.webp',
+  thumb: `${A}elfa/lockup.webp`,
   ownPhotography: true,
   positioning:
     'Elfa Guðmundsdóttir hefur rekið eigin stofu frá 1999 og er með meistaragráðu í munn- og kjálkaskurðlækningum frá UAB. Hún birtir alla sína verðskrá. Síðan á að sýna hvort tveggja strax, í stað þess að fela það á bak við hnapp.',

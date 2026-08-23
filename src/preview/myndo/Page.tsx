@@ -41,6 +41,8 @@ const NAV = [
   { id: 'stofan', label: 'Stofan' },
 ]
 
+const AB = import.meta.env.BASE_URL
+
 /* Real proportions, so a tile's width tracks its own photograph the way a
    Bla Station tile tracks its product. */
 const RATIO: Record<string, number> = {
@@ -51,9 +53,9 @@ const RATIO: Record<string, number> = {
 
 /* The three stages she has more than one frame for get a full chapter. */
 const CHAPTERS = [
-  { id: 'born', a: '/myndo/extra-born-0.webp', b: '/myndo/extra-born-1.webp', wide: '/myndo/stage-bumba.webp' },
-  { id: 'ferming', a: '/myndo/extra-ferming-2.webp', b: '/myndo/extra-ferming-3.webp', wide: '/myndo/stage-utskrift.webp' },
-  { id: 'gifting', a: '/myndo/extra-gifting-4.webp', b: '/myndo/extra-gifting-5.webp', wide: '/myndo/fjolskyldan.webp' },
+  { id: 'born', a: `${AB}myndo/extra-born-0.webp`, b: `${AB}myndo/extra-born-1.webp`, wide: `${AB}myndo/stage-bumba.webp` },
+  { id: 'ferming', a: `${AB}myndo/extra-ferming-2.webp`, b: `${AB}myndo/extra-ferming-3.webp`, wide: `${AB}myndo/stage-utskrift.webp` },
+  { id: 'gifting', a: `${AB}myndo/extra-gifting-4.webp`, b: `${AB}myndo/extra-gifting-5.webp`, wide: `${AB}myndo/fjolskyldan.webp` },
 ]
 
 /* ------------------------------------------------------------------ styles */

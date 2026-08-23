@@ -7,6 +7,9 @@
  * stage; elsewhere the card says to get in touch rather than inventing a price.
  */
 
+/* Served from a project Pages path, so every asset must carry the base. */
+const A = import.meta.env.BASE_URL
+
 export const STUDIO = {
   name: 'Myndó ljósmyndastofa',
   legal: 'Myndó ljósmyndastofa ehf',
@@ -35,43 +38,43 @@ export const STAGES = [
   {
     id: 'bumba', n: '01', name: 'Bumba',
     body: 'Meðgöngumyndataka. Listrænar og fallegar myndir af bumbunni áður en barnið kemur.',
-    price: null, dur: null, photo: '/myndo/stage-bumba.webp',
+    price: null, dur: null, photo: `${A}myndo/stage-bumba.webp`,
     alt: 'Meðgöngumyndataka hjá Myndó.',
   },
   {
     id: 'nyburi', n: '02', name: 'Nýburi',
     body: 'Fer yfirleitt fram á fyrstu tíu dögum barnsins. Hlýtt og þægilegt umhverfi er í algjörum forgangi og myndatakan miðast við þarfir barnsins.',
-    price: '48.200', dur: '2 til 4 klst', photo: '/myndo/stage-nyburi.webp',
+    price: '48.200', dur: '2 til 4 klst', photo: `${A}myndo/stage-nyburi.webp`,
     alt: 'Svarthvít mynd af nýfæddu barni sofandi.',
   },
   {
     id: 'born', n: '03', name: 'Börn',
     body: 'Barnamyndataka í stúdíóinu, þar sem börnin fá að vera þau sjálf.',
-    price: '33.800', dur: 'um 30 mín', photo: '/myndo/stage-born.webp',
+    price: '33.800', dur: 'um 30 mín', photo: `${A}myndo/stage-born.webp`,
     alt: 'Barnamyndataka í ljósmyndastofunni.',
   },
   {
     id: 'ferming', n: '04', name: 'Ferming',
     body: 'Fermingarmyndataka. Myndirnar rata í albúm, á vegg og í boðskortin.',
-    price: '33.800', dur: 'um 30 mín', photo: '/myndo/stage-ferming.webp',
+    price: '33.800', dur: 'um 30 mín', photo: `${A}myndo/stage-ferming.webp`,
     alt: 'Fermingarmyndataka hjá Myndó.',
   },
   {
     id: 'utskrift', n: '05', name: 'Útskrift',
     body: 'Stúdentsmyndataka, ein eða með systkinum og fjölskyldu.',
-    price: '39.800', dur: 'um 60 mín', photo: '/myndo/stage-utskrift.webp',
+    price: '39.800', dur: 'um 60 mín', photo: `${A}myndo/stage-utskrift.webp`,
     alt: 'Stúdentsmyndataka hjá Myndó.',
   },
   {
     id: 'gifting', n: '06', name: 'Gifting',
     body: 'Brúðkaupsmyndataka, hvort sem er í stúdíóinu eða úti í íslenskri náttúru.',
-    price: null, dur: null, photo: '/myndo/stage-gifting.webp',
+    price: null, dur: null, photo: `${A}myndo/stage-gifting.webp`,
     alt: 'Brúðkaupsmyndataka hjá Myndó.',
   },
   {
     id: 'fjolskyldan', n: '07', name: 'Fjölskyldan',
     body: 'Allt að tíu manns saman, eða stórfjölskyldan með ömmu, afa og barnabörnum, öll saman og í sitthvoru lagi.',
-    price: '39.800', dur: 'um 60 mín', photo: '/myndo/stage-fjolskyldan.webp',
+    price: '39.800', dur: 'um 60 mín', photo: `${A}myndo/stage-fjolskyldan.webp`,
     alt: 'Fjölskyldumyndataka hjá Myndó.',
   },
 ] as const
@@ -134,6 +137,6 @@ export const OLINA = {
 } as const
 
 export const IMAGES = {
-  olina: '/myndo/olina.webp',
-  nyburi2: '/myndo/nyburi2.webp',
+  olina: `${A}myndo/olina.webp`,
+  nyburi2: `${A}myndo/nyburi2.webp`,
 } as const

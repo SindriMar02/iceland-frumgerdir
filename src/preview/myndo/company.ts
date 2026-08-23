@@ -5,6 +5,8 @@ import { SIGN } from '../outreach-sign'
  * Private brief + outreach copy for Myndó. Stays in this folder so the preview
  * route ships only its own record. See [[preview-link-isolation]].
  */
+const A = import.meta.env.BASE_URL
+
 export const companyEntry: PreviewCompany = {
   slug: 'myndo',
   route: '/preview/myndo',
@@ -21,7 +23,7 @@ export const companyEntry: PreviewCompany = {
   accent: '#3F5140',
   dark: false,
   status: 'Concept ready',
-  thumb: '/myndo/nyburi.webp',
+  thumb: `${A}myndo/nyburi.webp`,
   ownPhotography: true,
   positioning:
     'Ólína myndar sömu fjölskyldurnar aftur og aftur, frá bumbu að brúðkaupi. Þjónustulistinn hennar er í raun heil ævi í réttri röð, og það er sterkasta röksemdin fyrir því að halda sig við einn ljósmyndara. Síðan á að segja það, og virka í síma.',
