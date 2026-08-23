@@ -48,13 +48,20 @@ export const companyEntry: PreviewCompany = {
   },
   outreach: {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Tannlæknastofu EG',
-    body: `Sæl Elfa.
+    body: `Góðan dag,
 
-Ég var að skoða tannlaeknir.is og það sem stakk mig mest er að forsíðan segir hvergi hver þú ert. Þar stendur símanúmer, opnunartími, heimilisfang og reikningsnúmer, en hvorki að þú hafir rekið stofuna frá 1999 né að þú sért með mastersgráðu í munn- og kjálkaskurðlækningum frá UAB. Það stendur á starfsfólkssíðunni, þangað sem fæstir rata.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og sjálfstæðar stofur.
 
-Tvennt annað sem ég tók eftir. Síðan er ekki gerð fyrir síma, hún er án viewport-merkingar og birtist því sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á, og þangað fer nánast allt fólk sem leitar að tannlækni. Svo er hún á http en ekki https, sem vafrar merkja sérstaklega, og verðin ykkar eru falin í Google-skjali á bak við litla hnappamynd þótt þau séu heil og heiðarleg.
+Mér finnst tvennt eftirtektarvert við Tannlæknastofu EG. Þið birtið verðin ykkar opinberlega, sem er sjaldgæft í þessari grein, og það hafa verið sömu tvær manneskjurnar á stofunni síðan 2009. Það eina sem mig vantaði að sjá var vefsíða sem segir þetta, því eins og staðan er í dag stendur á forsíðunni símanúmer, opnunartími og reikningsnúmer, en hvergi að stofan hafi verið rekin síðan 1999 eða að þar sé mastersgráða í skurðlækningum á munni og kjálka.
 
-Ég gerði tillögu að nýrri forsíðu sem byggir á þessu, ykkur að kostnaðarlausu og án skuldbindinga, og hún er hér: ${'{{PREVIEW_URL}}'}. Ef hún hittir ekki í mark máttu einfaldlega henda henni.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+${'{{PREVIEW_URL}}'}
+
+Hugmyndin er einföld. Að fólk sem leitar að tannlækni finni ykkur, sjái strax hver tekur á móti því og hvað hlutirnir kosta, og geti hringt beint úr símanum. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
   },

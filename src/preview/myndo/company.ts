@@ -49,13 +49,20 @@ export const companyEntry: PreviewCompany = {
   },
   outreach: {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Myndó ljósmyndastofu',
-    body: `Sæl Ólína.
+    body: `Góðan dag,
 
-Ég var að skoða myndo.is í símanum. Síðan opnast, en hún er ekki gerð fyrir símaskjá, svo hún birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á. Foreldrar sem eru að leita að fermingar- eða nýburamyndatöku eru nánast alltaf í síma, og þar ræðst oftast hvort haft er samband.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki og sjálfstæðar stofur.
 
-Hitt sem ég tók eftir er að þjónustan ykkar spannar heila ævi, frá bumbu og nýbura að fermingu, útskrift og brúðkaupi. Mér fannst það sterkasta röksemdin fyrir því að halda sig við sömu stofuna, og síðan segir það hvergi. Verðin ykkar eru líka heil og öllum sýnileg, sem er sjaldgæft, en þau eru á síðu sem er einmitt ólæsileg í símanum.
+Það sem mér finnst sterkast við Myndó er að þjónustan ykkar spannar heila ævi, frá bumbu og nýbura að fermingu, útskrift og brúðkaupi, og að þið hafið myndað fjölskyldur í Mosfellsbæ síðan 2007. Mér finnst það sterkasta röksemdin fyrir því að fjölskylda haldi sig við sömu stofuna. Það eina sem mig vantaði að sjá var vefsíða sem segir þetta, því eins og staðan er í dag er síðan ekki gerð fyrir símaskjá og birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á.
 
-Ég gerði tillögu að nýrri forsíðu sem byggir á þessu, ykkur að kostnaðarlausu og án skuldbindinga, og hún er hér: ${'{{PREVIEW_URL}}'}. Ef hún hittir ekki í mark máttu einfaldlega henda henni.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
+${'{{PREVIEW_URL}}'}
+
+Hugmyndin er einföld. Að foreldrar sem eru að leita að myndatöku fyrir fermingu eða nýbura finni ykkur í símanum, sjái æviskeiðin og verðin strax, og geti hringt beint þaðan. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
   },
