@@ -51,11 +51,18 @@ const RATIO: Record<string, number> = {
   fjolskyldan: 1000 / 800,
 }
 
-/* The three stages she has more than one frame for get a full chapter. */
+/* The three stages she has more than one frame for get a full chapter.
+   `wide` is the full-width breather, and it may ONLY ever be one of her three
+   true panoramas (1600x621, the banners her own site runs). Feeding a 1:1 or a
+   1.385 portrait frame into a 2.5-wide band crops away three quarters of the
+   photograph — that is what the belly frame and the student frame were doing. */
 const CHAPTERS = [
-  { id: 'born', a: `${AB}myndo/extra-born-0.webp`, b: `${AB}myndo/extra-born-1.webp`, wide: `${AB}myndo/stage-bumba.webp` },
-  { id: 'ferming', a: `${AB}myndo/extra-ferming-2.webp`, b: `${AB}myndo/extra-ferming-3.webp`, wide: `${AB}myndo/stage-utskrift.webp` },
-  { id: 'gifting', a: `${AB}myndo/extra-gifting-4.webp`, b: `${AB}myndo/extra-gifting-5.webp`, wide: `${AB}myndo/fjolskyldan.webp` },
+  { id: 'born', a: `${AB}myndo/extra-born-0.webp`, b: `${AB}myndo/extra-born-1.webp`,
+    wide: `${AB}myndo/nyburi.webp`, wideAlt: 'Svarthvít mynd af sofandi nýbura, tekin hjá Myndó.' },
+  { id: 'ferming', a: `${AB}myndo/extra-ferming-2.webp`, b: `${AB}myndo/extra-ferming-3.webp`,
+    wide: `${AB}myndo/fjolskyldan.webp`, wideAlt: 'Fjölskylda með unglingum í myndatöku hjá Myndó.' },
+  { id: 'gifting', a: `${AB}myndo/extra-gifting-4.webp`, b: `${AB}myndo/extra-gifting-5.webp`,
+    wide: `${AB}myndo/gifting.webp`, wideAlt: 'Brúðhjón í íslensku hrauni, mynd frá Myndó.' },
 ]
 
 /* ------------------------------------------------------------------ styles */
@@ -152,6 +159,13 @@ html,body{background:${GROUND}}
   .my-ch>img,.my-ch>.my-zoom{height:clamp(300px,58vh,480px)}
   .my-ch__pair{height:230px}
 }
+
+/* The breather band carries the photograph's OWN ratio instead of a fixed
+   height, so nothing is enlarged to fill it. A fixed 360px floor on a 390px
+   phone was showing the middle seventh of a panorama. */
+.my-band{display:block;width:100%;aspect-ratio:1600/621}
+.my-band>img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+@media (max-width:800px){.my-band{aspect-ratio:2/1}}
 
 /* Image left, text right. */
 .my-mt{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
@@ -468,10 +482,8 @@ export default function MyndoPage() {
               </Spy>
               <Spy className="my-sec">
                 <div className="my-w">
-                  <span className="my-zoom" data-ev="in-view"
-                    style={{ height: 'clamp(360px,64vh,700px)' }}>
-                    <img src={c.wide} alt={`${s.name} hjá Myndó.`} loading="lazy"
-                      style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <span className="my-zoom my-band" data-ev="in-view">
+                    <img src={c.wide} alt={c.wideAlt} loading="lazy" />
                   </span>
                 </div>
               </Spy>
