@@ -47,12 +47,12 @@ export const companyEntry: PreviewCompany = {
     ],
   },
   outreach: {
-    subject: 'tannlaeknir.is birtist sem „ekki örugg“ í vafranum',
+    subject: 'Forsíðan á tannlaeknir.is nefnir hvergi meistaragráðuna þína',
     body: `Sæl Elfa.
 
-Ég var að skoða tannlaeknir.is og tók eftir tvennu. Síðan er á http en ekki https, svo vafrar merkja hana „ekki örugg", og sú merking stendur beint við hliðina á netfangi móttökunnar. Hitt er að síðan er ekki gerð fyrir síma, svo hún birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á, og þangað fer nánast allt fólk sem leitar að tannlækni.
+Ég var að skoða tannlaeknir.is og það sem stakk mig mest er að forsíðan segir hvergi hver þú ert. Þar stendur símanúmer, opnunartími, heimilisfang og reikningsnúmer, en hvorki að þú hafir rekið stofuna frá 1999 né að þú sért með mastersgráðu í munn- og kjálkaskurðlækningum frá UAB. Það stendur á starfsfólkssíðunni, þangað sem fæstir rata.
 
-Það sem mér fannst þó mest um vert er að verðin ykkar eru falin í Google-skjali á bak við litla hnappamynd. Þau eru heil og heiðarleg, verð á hverju verki, og þau ættu að vera það fyrsta sem fólk sér frekar en það síðasta sem það finnur. Sama gildir um það að þú hefur rekið stofuna frá 1999 og ert með meistaragráðu í munn- og kjálkaskurðlækningum, sem hvergi sést strax.
+Tvennt annað sem ég tók eftir. Síðan er ekki gerð fyrir síma, hún er án viewport-merkingar og birtist því sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á, og þangað fer nánast allt fólk sem leitar að tannlækni. Svo er hún á http en ekki https, sem vafrar merkja sérstaklega, og verðin ykkar eru falin í Google-skjali á bak við litla hnappamynd þótt þau séu heil og heiðarleg.
 
 Ég gerði tillögu að nýrri forsíðu sem byggir á þessu, ykkur að kostnaðarlausu og án skuldbindinga, og hún er hér: ${'{{PREVIEW_URL}}'}. Ef hún hittir ekki í mark máttu einfaldlega henda henni.
 
