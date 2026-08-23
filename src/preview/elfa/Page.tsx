@@ -1,0 +1,745 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { PreviewChrome } from '../PreviewChrome'
+import { PreviewFooter } from '../PreviewFooter'
+import { companyEntry as company } from './company'
+import {
+  CLINIC, LICENCES, HERO, GENERAL, SPECIALITIES, PRICES, PRICE_NOTE,
+  CANCELLATION, CAREER, ELFA, HREFNA, WELCOME, IMAGES, PLATE, PLATE_CAPTION,
+} from './data'
+
+/* ------------------------------------------------------------------ tokens */
+
+const CHALK = '#F2F0EC'
+const ENAMEL = '#FBFAF8'
+const INK = '#1E2329'
+const MINERAL = '#666D78' /* 4.59:1 on chalk, so secondary text clears AA */
+const EG = '#5C68DC' /* sampled off her own logo, not chosen. Fills only. */
+/* Her logo blue is 4.13:1 on chalk, which fails AA for small text. Fills keep
+   the true brand colour (white on it is 5.22:1); text uses this darker step. */
+const EG_TEXT = '#5261D4'
+const LINE = 'rgba(30,35,41,.13)'
+
+const DISPLAY = "'Satoshi', system-ui, sans-serif"
+const BODY = "'Schibsted Grotesk', system-ui, sans-serif"
+
+const FOCUS =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
+
+const SECTIONS = [
+  { id: 'stofan', label: 'Stofan' },
+  { id: 'thjonusta', label: 'Þjónusta' },
+  { id: 'ferillinn', label: 'Ferillinn' },
+  { id: 'verdskra', label: 'Verðskrá' },
+  { id: 'folkid', label: 'Fólkið' },
+  { id: 'hafa-samband', label: 'Hafa samband' },
+]
+
+/* ------------------------------------------------------------------ styles */
+
+const CSS = `
+.eg-root{background:${CHALK};color:${INK};font-family:${BODY}}
+.eg-root ::selection{background:${EG};color:#fff}
+.eg-bleed > *{position:relative}
+.eg-display{font-family:${DISPLAY};font-weight:700;letter-spacing:-.03em;line-height:1.16}
+.eg-eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase}
+.eg-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---- headline rise, per word ---- */
+.eg-ln{display:inline-block;overflow:hidden;vertical-align:bottom;
+  padding-top:.18em;margin-top:-.18em}
+.eg-w{display:inline-block;transform:translateY(105%);opacity:0;
+  transition:transform 820ms cubic-bezier(.16,1,.3,1),opacity 620ms linear}
+.eg-in .eg-w{transform:translateY(0);opacity:1}
+
+.eg-rv{opacity:0;transform:translateY(20px);
+  transition:opacity 640ms cubic-bezier(.16,1,.3,1),transform 640ms cubic-bezier(.16,1,.3,1)}
+.eg-in.eg-rv,.eg-in .eg-rv{opacity:1;transform:none}
+
+/* ---- THE SIGNATURE: the career spine ------------------------------------
+   Not a scroll-progress bar. Discrete notches, one per section, that SEAT
+   with a small click when the scroll reaches them, the way a step in a
+   sequence lands. The sequence is real: her dated career. */
+.eg-spine{position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:25;
+  display:none}
+/* only where the gutter genuinely clears the 1180px content column,
+   otherwise the active label lands on top of the lede */
+@media (min-width:1560px){.eg-spine{display:block}}
+.eg-notch{display:flex;align-items:center;gap:12px;padding:9px 0;background:none;border:0;
+  cursor:pointer;color:${MINERAL}}
+.eg-tick{display:block;width:16px;height:2px;background:${INK};opacity:.22;
+  transition:width 260ms cubic-bezier(.16,1,.3,1),opacity 260ms ease,background-color 260ms ease}
+.eg-notch[aria-current="true"] .eg-tick{width:34px;opacity:1;background:${EG};
+  animation:eg-seat 200ms cubic-bezier(.34,1.56,.64,1)}
+.eg-notch:hover .eg-tick{width:26px;opacity:.6}
+.eg-label{font-size:11px;letter-spacing:.13em;text-transform:uppercase;opacity:0;
+  transform:translateX(-6px);transition:opacity 200ms ease,transform 200ms ease}
+.eg-notch[aria-current="true"] .eg-label,.eg-notch:hover .eg-label{opacity:1;transform:none}
+.eg-notch[aria-current="true"] .eg-label{color:${EG_TEXT}}
+@keyframes eg-seat{0%{transform:scaleX(1)}45%{transform:scaleX(.9)}100%{transform:scaleX(1)}}
+
+/* mobile: the same notches as a top rail */
+  transition:opacity 240ms ease,background-color 240ms ease}
+
+/* ---- her mark: one continuous stroke, swept in once per visit ---- */
+.eg-mark{-webkit-mask-image:linear-gradient(100deg,#000 0 var(--eg-p,100%),transparent calc(var(--eg-p,100%) + 7%));
+  mask-image:linear-gradient(100deg,#000 0 var(--eg-p,100%),transparent calc(var(--eg-p,100%) + 7%))}
+.eg-mark[data-draw="1"]{animation:eg-draw 1100ms cubic-bezier(.65,0,.35,1) both}
+@keyframes eg-draw{from{--eg-p:0%}to{--eg-p:100%}}
+@property --eg-p{syntax:'<percentage>';inherits:false;initial-value:100%}
+
+/* ---- links, buttons, rows ---- */
+.eg-link{position:relative;display:inline-block}
+.eg-link::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;
+  background:currentColor;transform:scaleX(0);transform-origin:left;
+  transition:transform 190ms cubic-bezier(.16,1,.3,1)}
+.eg-link:hover::after,.eg-link:focus-visible::after{transform:scaleX(1)}
+.eg-btn{transition:background-color 170ms ease,transform 150ms ease,box-shadow 170ms ease}
+.eg-btn:active{transform:scale(.985)}
+
+/* ---- price rows: dotted leader, tabular figures ---- */
+.eg-price{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:10px;
+  padding:11px 0;border-bottom:1px dotted rgba(30,35,41,.22)}
+.eg-price:last-child{border-bottom:0}
+
+.eg-card{background:${ENAMEL};border:1px solid ${LINE};border-radius:14px}
+
+/* ---- mobile nav: the header had no way into the sections below 900px ---- */
+.eg-burger{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;
+  width:44px;height:44px;background:none;border:0;cursor:pointer;padding:0 10px}
+@media (min-width:900px){.eg-burger{display:none}}
+.eg-burger i{display:block;height:1.5px;background:${INK};border-radius:2px;
+  transition:transform 260ms cubic-bezier(.16,1,.3,1),opacity 180ms ease}
+.eg-burger[aria-expanded="true"] i:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.eg-burger[aria-expanded="true"] i:nth-child(2){opacity:0}
+.eg-burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+.eg-panel{position:fixed;inset:0;z-index:70;background:${CHALK};
+  display:flex;flex-direction:column;padding:20px;
+  opacity:0;visibility:hidden;transform:translateY(-8px);
+  transition:opacity 240ms ease,transform 300ms cubic-bezier(.16,1,.3,1),visibility 240ms}
+.eg-panel a{display:block;padding:16px 0;border-bottom:1px solid ${LINE};
+  font-size:20px;font-weight:600;min-height:44px}
+.eg-panel-foot{margin-top:auto;padding-top:24px}
+
+/* ---- sticky call bar, mobile only. The shared preview chrome floats at 80px,
+       so a full-width bar at the very bottom sits cleanly under it. ---- */
+.eg-callbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:10px;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  background:${ENAMEL};border-top:1px solid ${LINE}}
+@media (min-width:900px){.eg-callbar{display:none}}
+.eg-callbar a{flex:1;display:inline-flex;align-items:center;justify-content:center;
+  min-height:48px;font-size:15px;font-weight:600;border-radius:999px;
+  transition:transform 150ms ease,background-color 170ms ease}
+.eg-callbar a:active{transform:scale(.985)}
+.eg-cb-call{background:${EG};color:#fff}
+.eg-cb-tel{border:1px solid ${LINE};color:${EG_TEXT};background:${CHALK}}
+@media (max-width:899px){.eg-root{padding-bottom:78px}}
+
+/* ---- the annotated anatomical plate ---- */
+.eg-plate{position:relative;margin:0 auto;max-width:1180px}
+.eg-plate-img{display:block;width:100%;height:auto}
+.eg-plate-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.eg-lead{fill:none;stroke:${EG};stroke-width:1.25;opacity:1;
+  stroke-dasharray:var(--len,400);stroke-dashoffset:var(--len,400);
+  transition:stroke-dashoffset 900ms cubic-bezier(.16,1,.3,1)}
+.eg-in .eg-lead{stroke-dashoffset:0}
+.eg-dot{fill:${EG};opacity:0;transition:opacity 300ms ease 700ms}
+.eg-in .eg-dot{opacity:1}
+.eg-tag{position:absolute;max-width:230px;opacity:0;transform:translateY(8px);
+  transition:opacity 500ms ease,transform 500ms cubic-bezier(.16,1,.3,1)}
+.eg-in .eg-tag{opacity:1;transform:none}
+.eg-tag[data-side="left"]{text-align:right}
+/* below the plate breakpoint the margins vanish, so the same items become a list */
+.eg-plate-list{display:grid;gap:14px}
+@media (min-width:1000px){.eg-plate-list{display:none}}
+@media (max-width:999px){.eg-tag,.eg-plate-svg{display:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .eg-lead{stroke-dashoffset:0;transition:none}
+  .eg-dot{opacity:1;transition:none}
+  .eg-tag{opacity:1;transform:none;transition:none}
+}
+
+/* ---- header: nav either side of the mark, sitting on the hero ---- */
+.eg-head{position:relative;z-index:26;padding:18px 20px;background:${CHALK};
+  border-bottom:1px solid ${LINE}}
+.eg-head-in{margin:0 auto;max-width:1320px;display:grid;align-items:center;
+  grid-template-columns:1fr auto 1fr;gap:20px}
+.eg-navset{display:none;gap:26px}
+@media (min-width:900px){.eg-navset{display:flex}}
+.eg-navset.is-right{justify-content:flex-end}
+.eg-navlink{font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-weight:600;
+  color:${INK};min-height:44px;display:inline-flex;align-items:center}
+
+/* ---- full-bleed hero ---- */
+.eg-hero{display:grid;grid-template-columns:1fr;align-items:stretch}
+@media (min-width:960px){
+  .eg-hero{grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);
+    min-height:clamp(600px,88svh,900px)}
+}
+.eg-hero-type{display:flex;flex-direction:column;justify-content:center;
+  padding:56px 20px}
+@media (min-width:960px){.eg-hero-type{padding:80px 56px 80px 40px}}
+@media (min-width:1320px){.eg-hero-type{padding-left:max(40px,calc((100vw - 1320px)/2))}}
+.eg-hero-photo{position:relative;background:#8E9095;min-height:64svh}
+@media (min-width:960px){.eg-hero-photo{min-height:0}}
+.eg-hero-photo img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:50% 18%}
+
+@media (prefers-reduced-motion:reduce){
+  .eg-w{transform:none;opacity:1;transition:none}
+  .eg-rv{opacity:1;transform:none;transition:none}
+  .eg-mark[data-draw="1"]{animation:none}
+  .eg-tick,.eg-label{transition:none}
+  .eg-notch[aria-current="true"] .eg-tick{animation:none}
+  .eg-notch:hover .eg-tick{width:16px;opacity:.22}
+}
+`
+
+/* ------------------------------------------------------------- primitives */
+
+function Headline({
+  text, id, className = '', size = 92, measure, as: Tag = 'h2',
+}: {
+  text: string; id?: string; className?: string; size?: number; measure?: number
+  as?: 'h1' | 'h2'
+}) {
+  const words = useMemo(() => text.split(' '), [text])
+  return (
+    <Tag
+      id={id}
+      aria-label={text}
+      className={`eg-display ${className}`}
+      style={{
+        fontSize: `clamp(29px, ${size / 19}vw, ${size}px)`,
+        maxWidth: measure ? `${measure}px` : undefined,
+        textWrap: 'balance',
+      }}
+    >
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">
+        {words.map((w, i) => (
+          <span key={`${w}-${i}`}>
+            <span className="eg-ln">
+              <span className="eg-w" style={{ transitionDelay: `${i * 42}ms` }}>{w}</span>
+            </span>
+            {i < words.length - 1 ? ' ' : ''}
+          </span>
+        ))}
+      </span>
+    </Tag>
+  )
+}
+
+/** The annotated plate: her surgical specialisations mapped onto the arch. */
+function Plate() {
+  return (
+    <>
+      <div className="eg-plate" data-rv>
+        {/* margin space either side for the labels */}
+        <div style={{ padding: '0 clamp(0px, 22vw, 260px)' }}>
+          <img
+            src={IMAGES.jaw}
+            className="eg-plate-img"
+            width={1200}
+            height={1009}
+            alt="Skýringarmynd af tanngarði: efri og neðri gómur í biti."
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        <svg className="eg-plate-svg" viewBox="0 0 100 84" preserveAspectRatio="none" aria-hidden="true">
+          {PLATE.map((p) => {
+            // the drawing occupies the middle band; labels live in the margins
+            const inset = 22
+            const ax = inset + (p.ax / 100) * (100 - inset * 2)
+            const ay = (p.ay / 100) * 84
+            const lx = p.side === 'left' ? 20 : 80
+            const ly = (p.ly / 100) * 84 + 3
+            const len = Math.hypot(ax - lx, ay - ly) + 6
+            return (
+              <g key={p.id}>
+                <path
+                  className="eg-lead"
+                  style={{ ['--len' as string]: len }}
+                  d={`M ${lx} ${ly} L ${(lx + ax) / 2} ${ly} L ${ax} ${ay}`}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <circle className="eg-dot" cx={ax} cy={ay} r={0.55} vectorEffect="non-scaling-stroke" />
+              </g>
+            )
+          })}
+        </svg>
+
+        {PLATE.map((p) => (
+          <div
+            key={p.id}
+            className="eg-tag"
+            data-side={p.side}
+            style={{
+              top: `${p.ly}%`,
+              left: p.side === 'left' ? 0 : undefined,
+              right: p.side === 'right' ? 0 : undefined,
+              transitionDelay: `${p.ly * 4}ms`,
+            }}
+          >
+            <p className="eg-eyebrow" style={{ color: EG_TEXT }}>{p.title}</p>
+            <p className="mt-1.5 text-[13px] leading-snug" style={{ color: MINERAL }}>{p.note}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* the same information, as a list, wherever the margins are too tight */}
+      <ul className="eg-plate-list mt-8" data-rv>
+        {PLATE.map((p) => (
+          <li key={p.id} className="py-3" style={{ borderTop: `1px solid ${LINE}` }}>
+            <p className="eg-eyebrow" style={{ color: EG_TEXT }}>{p.title}</p>
+            <p className="mt-1.5 text-[14px] leading-snug" style={{ color: MINERAL }}>{p.note}</p>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------- page */
+
+export default function ElfaPage() {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(0)
+  const [draw, setDraw] = useState(false)
+  const [menu, setMenu] = useState(false)
+
+  /* The opening stroke plays ONCE per visit, not on every return to the top
+     (ledger #213). The flag is read during render so there is no flash. */
+  useEffect(() => {
+    let seen = false
+    try { seen = sessionStorage.getItem('eg:intro') === '1' } catch { seen = false }
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!seen && !reduce) {
+      setDraw(true)
+      try { sessionStorage.setItem('eg:intro', '1') } catch { /* private mode */ }
+    }
+  }, [])
+
+  /* panel: lock the page behind it and let Escape out, or it traps a phone user */
+  useEffect(() => {
+    if (!menu) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+  }, [menu])
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-rv]'))
+    if (reduce) targets.forEach((t) => t.classList.add('eg-in'))
+
+    const io = reduce
+      ? null
+      : new IntersectionObserver(
+          (es) => es.forEach((e) => {
+            if (e.isIntersecting) { e.target.classList.add('eg-in'); io?.unobserve(e.target) }
+          }),
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.16 },
+        )
+    if (io) targets.forEach((t) => io.observe(t))
+
+    /* spine: which section owns the viewport */
+    const secs = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean) as HTMLElement[]
+    const spy = new IntersectionObserver(
+      (es) => {
+        es.forEach((e) => {
+          if (!e.isIntersecting) return
+          const i = secs.indexOf(e.target as HTMLElement)
+          if (i >= 0) setActive(i)
+        })
+      },
+      { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+    )
+    secs.forEach((s) => spy.observe(s))
+
+    return () => { io?.disconnect(); spy.disconnect() }
+  }, [])
+
+  return (
+    <div ref={rootRef} className="eg-root">
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+
+      {/* ------------------------------------------------- the career spine */}
+      <nav className="eg-spine" aria-label="Kaflar">
+        {SECTIONS.map((s, i) => (
+          <button
+            key={s.id}
+            type="button"
+            className={`eg-notch ${FOCUS}`}
+            aria-current={i === active}
+            onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span className="eg-tick" aria-hidden="true" />
+            <span className="eg-label">{s.label}</span>
+          </button>
+        ))}
+      </nav>
+
+
+      <header className="eg-head">
+        <div className="eg-head-in">
+          <button
+            type="button"
+            className={`eg-burger ${FOCUS}`}
+            aria-expanded={menu}
+            aria-controls="eg-menu"
+            aria-label={menu ? 'Loka valmynd' : 'Opna valmynd'}
+            onClick={() => setMenu((v) => !v)}
+          >
+            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+          </button>
+
+          <nav className="eg-navset" aria-label="Valmynd, vinstri">
+            {SECTIONS.slice(1, 4).map((n) => (
+              <a key={n.id} href={`#${n.id}`} className={`eg-link eg-navlink ${FOCUS}`}>{n.label}</a>
+            ))}
+          </nav>
+
+          <a href="#top" className={`justify-self-center ${FOCUS}`} aria-label="Tannlæknastofa EG, forsíða">
+            <img
+              src={IMAGES.mark}
+              data-draw={draw ? '1' : '0'}
+              className="eg-mark"
+              width={707}
+              height={700}
+              alt=""
+              style={{ width: 'clamp(52px,5.4vw,74px)', height: 'auto', display: 'block' }}
+              loading="eager"
+              decoding="async"
+            />
+          </a>
+
+          <nav className="eg-navset is-right" aria-label="Valmynd, hægri">
+            <a href={`#${SECTIONS[4].id}`} className={`eg-link eg-navlink ${FOCUS}`}>{SECTIONS[4].label}</a>
+            <a href={`tel:${CLINIC.telHref}`} className={`eg-link eg-navlink ${FOCUS}`} style={{ color: EG_TEXT }}>
+              {CLINIC.tel}
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      {/* full-screen menu, mobile only */}
+      <div
+        className="eg-panel"
+        id="eg-menu"
+        data-open={menu}
+        aria-hidden={!menu}
+        style={{
+          opacity: menu ? 1 : 0,
+          visibility: menu ? 'visible' : 'hidden',
+          transform: menu ? 'none' : 'translateY(-8px)',
+        }}
+      >
+        <div className="flex flex-row-reverse items-center justify-between">
+          <span className="eg-eyebrow" style={{ color: MINERAL }}>{CLINIC.name}</span>
+          <button type="button" className={`eg-burger ${FOCUS}`} aria-expanded={menu}
+                  aria-label="Loka valmynd" onClick={() => setMenu(false)}
+                  style={{ display: 'inline-flex' }}>
+            <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+          </button>
+        </div>
+        <nav className="mt-6" aria-label="Aðalvalmynd">
+          {SECTIONS.map((sx) => (
+            <a key={sx.id} href={`#${sx.id}`} className={FOCUS}
+               onClick={() => setMenu(false)} style={{ color: INK }}>{sx.label}</a>
+          ))}
+        </nav>
+        <div className="eg-panel-foot">
+          <p className="eg-eyebrow" style={{ color: MINERAL }}>Tímapantanir</p>
+          <a href={`tel:${CLINIC.telHref}`} className={`eg-num ${FOCUS}`}
+             style={{ color: EG_TEXT, fontSize: 26, fontWeight: 600, borderBottom: 0 }}>
+            {CLINIC.tel}
+          </a>
+          <p className="eg-eyebrow mt-4" style={{ color: MINERAL }}>Opnunartími {CLINIC.hours}</p>
+        </div>
+      </div>
+
+      {/* sticky call bar, mobile only */}
+      <div className="eg-callbar">
+        <a href={`tel:${CLINIC.telHref}`} className={`eg-cb-call ${FOCUS}`}>Panta tíma</a>
+        <a href={`tel:${CLINIC.emergencyHref}`} className={`eg-cb-tel eg-num ${FOCUS}`}>
+          Neyðarþjónusta
+        </a>
+      </div>
+
+      <main id="top">
+        {/* ------------------------------------------------------------ hero
+            A solo practice sells the person. Her portrait carries the hero and
+            the type sits beside it, rather than a decorative image behind text. */}
+        <section id="stofan" className="eg-hero scroll-mt-16" aria-labelledby="hero-h">
+          <div className="eg-hero-type">
+            <div data-rv className="eg-rv">
+              <p className="eg-eyebrow" style={{ color: MINERAL }}>{HERO.eyebrow}</p>
+            </div>
+
+            <div data-rv className="mt-5">
+              <Headline as="h1" id="hero-h" text={HERO.headline} size={54} measure={560} />
+            </div>
+
+            <div data-rv className="eg-rv mt-7">
+              <p className="max-w-[46ch] text-[16px] leading-relaxed sm:text-[17px]" style={{ color: MINERAL }}>
+                {HERO.lede}
+              </p>
+            </div>
+
+            <div data-rv className="eg-rv mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <a
+                href={HERO.cta.href}
+                className={`eg-btn inline-flex items-center justify-center rounded-full px-8 text-[15px] font-semibold ${FOCUS}`}
+                style={{ background: EG, color: '#fff', minHeight: 52 }}
+              >
+                {HERO.cta.label}
+              </a>
+              <a
+                href={`tel:${CLINIC.telHref}`}
+                className={`eg-link eg-num text-[19px] font-semibold ${FOCUS}`}
+                style={{ color: EG_TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}
+              >
+                {CLINIC.tel}
+              </a>
+            </div>
+          </div>
+
+          <div className="eg-hero-photo">
+            <img
+              src={IMAGES.portraitTall}
+              srcSet={`${IMAGES.portraitTallSm} 760w, ${IMAGES.portraitTall} 1500w`}
+              sizes="(max-width: 960px) 100vw, 46vw"
+              width={1500}
+              height={2301}
+              alt="Elfa Guðmundsdóttir tannlæknir."
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </div>
+        </section>
+
+        {/* hours and the two numbers, straight under the hero */}
+        <section className="px-5 sm:px-10" aria-label="Opnunartími, netfang og neyðarþjónusta">
+          <dl data-rv className="eg-rv mx-auto grid max-w-[1320px] gap-px sm:grid-cols-3"
+              style={{ background: LINE, border: `1px solid ${LINE}`, borderRadius: 14, overflow: 'hidden' }}>
+            {[
+              /* The hero already carries "Panta tíma" and the main number, so this
+                 strip must not repeat them. Three distinct channels instead:
+                 when she is open, how to write, and what to do out of hours. */
+              { k: 'Opnunartími', v: CLINIC.hours },
+              { k: 'Netfang', v: CLINIC.email, href: `mailto:${CLINIC.email}` },
+              { k: 'Neyðarþjónusta', v: CLINIC.emergency, href: `tel:${CLINIC.emergencyHref}` },
+            ].map((c) => (
+              <div key={c.k} className="px-6 py-6" style={{ background: ENAMEL }}>
+                <dt className="eg-eyebrow" style={{ color: MINERAL }}>{c.k}</dt>
+                <dd className="eg-num mt-2 font-semibold" style={{ fontSize: c.k === 'Netfang' ? 17 : 22 }}>
+                  {c.href
+                    ? <a href={c.href} className={`eg-link ${FOCUS}`}
+                         style={{ color: EG_TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{c.v}</a>
+                    : c.v}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* -------------------------------------------------------- services */}
+        <section id="thjonusta" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="serv-h">
+          <div className="mx-auto max-w-[1180px]">
+            <div data-rv>
+              <Headline id="serv-h" text="Almennar tannlækningar og skurðaðgerðir" size={42} measure={680} />
+            </div>
+            <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
+              <p data-rv className="eg-rv max-w-[46ch] text-[16px] leading-relaxed sm:text-[17px]"
+                 style={{ color: MINERAL }}>
+                {GENERAL}
+              </p>
+              <div data-rv className="eg-rv">
+                <p className="eg-eyebrow" style={{ color: EG_TEXT }}>Sérhæfing</p>
+                <ul className="mt-5">
+                  {SPECIALITIES.map((s) => (
+                    <li key={s} className="py-4 text-[15px] leading-relaxed sm:text-[16px]"
+                        style={{ borderTop: `1px solid ${LINE}` }}>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* the plate turns that list into a map of where she operates */}
+            <figure className="mt-24 sm:mt-32">
+              <Plate />
+              <figcaption data-rv className="eg-rv mx-auto mt-10 max-w-[62ch] text-[14px] leading-relaxed"
+                          style={{ color: MINERAL }}>
+                {PLATE_CAPTION}
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        {/* -------------------------------------------------------- the path */}
+        <section
+          id="ferillinn"
+          className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28"
+          style={{ background: ENAMEL, borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}
+          aria-labelledby="path-h"
+        >
+          <div className="mx-auto max-w-[1180px]">
+            <div data-rv>
+              <Headline id="path-h" text="Frá Húsavík til Alabama og aftur heim" size={42} measure={700} />
+            </div>
+            <ol data-rv className="eg-rv mt-12">
+              {CAREER.map((c) => (
+                <li key={c.year}
+                    className="grid grid-cols-[76px_1fr] gap-6 py-6 sm:grid-cols-[120px_1fr] sm:gap-10"
+                    style={{ borderTop: `1px solid ${LINE}` }}>
+                  <span className="eg-num eg-eyebrow pt-1" style={{ color: EG_TEXT }}>{c.year}</span>
+                  <div>
+                    <p className="text-[17px] font-semibold sm:text-[18px]">{c.title}</p>
+                    <p className="mt-2 max-w-[62ch] text-[15px] leading-relaxed" style={{ color: MINERAL }}>{c.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------ the prices */}
+        <section id="verdskra" className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28" aria-labelledby="price-h">
+          <div className="mx-auto max-w-[1180px]">
+            <div data-rv>
+              <Headline id="price-h" text="Verðskráin, uppi á borðum" size={42} measure={620} />
+            </div>
+            <p data-rv className="eg-rv mt-6 max-w-[62ch] text-[15px] leading-relaxed" style={{ color: MINERAL }}>
+              {PRICE_NOTE}
+            </p>
+
+            <div data-rv className="eg-rv mt-12 grid gap-x-16 gap-y-12 md:grid-cols-2">
+              {PRICES.map((g) => (
+                <section key={g.group} aria-label={g.group}>
+                  <h3 className="eg-eyebrow" style={{ color: EG_TEXT }}>{g.group}</h3>
+                  <div className="mt-4">
+                    {g.rows.map((r) => (
+                      <div key={r.k} className="eg-price">
+                        <span className="text-[15px] leading-snug">{r.k}</span>
+                        <span className="eg-num text-[15px] font-semibold whitespace-nowrap">{r.v} kr.</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+
+            <p data-rv className="eg-rv mt-12 text-[14px]" style={{ color: MINERAL }}>{CANCELLATION}</p>
+          </div>
+        </section>
+
+        {/* -------------------------------------------------------- the people */}
+        <section
+          id="folkid"
+          className="scroll-mt-16 px-5 py-20 sm:px-10 sm:py-28"
+          style={{ background: ENAMEL, borderTop: `1px solid ${LINE}` }}
+          aria-labelledby="people-h"
+        >
+          <div className="mx-auto max-w-[1180px]">
+            <div data-rv>
+              <Headline id="people-h" text="Tvær á stofunni, sömu tvær síðan 2009" size={42} measure={720} />
+            </div>
+
+            <div className="mt-14 grid gap-12 lg:grid-cols-[420px_1fr] lg:gap-20">
+              <div data-rv className="eg-rv">
+                <img
+                  src={IMAGES.portrait}
+                  width={1100}
+                  height={1633}
+                  alt="Elfa Guðmundsdóttir tannlæknir."
+                  className="h-auto w-full rounded-[14px]"
+                  style={{ border: `1px solid ${LINE}` }}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div data-rv className="eg-rv">
+                <p className="eg-display" style={{ fontSize: 'clamp(23px,2.6vw,30px)' }}>{ELFA.name}</p>
+                <p className="eg-eyebrow mt-2" style={{ color: EG_TEXT }}>{ELFA.creds}</p>
+                {ELFA.body.map((p) => (
+                  <p key={p.slice(0, 22)} className="mt-5 max-w-[58ch] text-[15px] leading-relaxed sm:text-[16px]"
+                     style={{ color: MINERAL }}>
+                    {p}
+                  </p>
+                ))}
+
+                <div className="eg-card mt-10 p-7">
+                  <p className="text-[17px] font-semibold">{HREFNA.name}</p>
+                  <p className="mt-2 max-w-[54ch] text-[15px] leading-relaxed" style={{ color: MINERAL }}>
+                    {HREFNA.body}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p data-rv className="eg-rv mt-14 max-w-[62ch] text-[16px] leading-relaxed sm:text-[18px]">
+              {WELCOME}
+            </p>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------- contact */}
+        <section id="hafa-samband" className="scroll-mt-16 px-5 pb-28 pt-20 sm:px-10 sm:pt-28" aria-labelledby="c-h">
+          <div className="mx-auto max-w-[1180px]">
+            <div data-rv>
+              <Headline id="c-h" text="Salavegur 2, Kópavogi" size={44} measure={640} />
+            </div>
+
+            <div data-rv className="eg-rv mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { k: 'Tímapantanir', v: CLINIC.tel, href: `tel:${CLINIC.telHref}` },
+                { k: 'Neyðarþjónusta', v: CLINIC.emergency, href: `tel:${CLINIC.emergencyHref}` },
+                { k: 'Netfang', v: CLINIC.email, href: `mailto:${CLINIC.email}` },
+                { k: 'Opnunartími', v: CLINIC.hours },
+              ].map((c) => (
+                <div key={c.k}>
+                  <p className="eg-eyebrow" style={{ color: MINERAL }}>{c.k}</p>
+                  <p className="eg-num mt-2 text-[17px] font-semibold break-words">
+                    {c.href
+                      ? <a href={c.href} className={`eg-link ${FOCUS}`}
+                           style={{ color: EG_TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{c.v}</a>
+                      : c.v}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* her real licences, named on her own site */}
+            <dl data-rv className="eg-rv mt-16">
+              {LICENCES.map((l) => (
+                <div key={l.label} className="grid gap-1 py-5 sm:grid-cols-[300px_1fr] sm:gap-8"
+                     style={{ borderTop: `1px solid ${LINE}` }}>
+                  <dt className="eg-eyebrow pt-1" style={{ color: MINERAL }}>{l.label}</dt>
+                  <dd className="text-[15px]">{l.body}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <p data-rv className="eg-rv mt-10 text-[14px] leading-relaxed" style={{ color: MINERAL }}>
+              {CLINIC.legal} · {CLINIC.address} · kennitala {CLINIC.kt} · stofnuð {CLINIC.founded}
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <PreviewChrome company={company} />
+      <PreviewFooter company={company} />
+    </div>
+  )
+}

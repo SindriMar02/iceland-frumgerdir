@@ -6,3 +6,5 @@ dist-reynir-server
 .DS_Store
 .claude/launch.json
 research-assets/
+
+.claude/worktrees/

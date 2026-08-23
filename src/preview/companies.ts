@@ -33,7 +33,7 @@ export interface PreviewCompany {
   accent: string
   /** Is the page background dark? (drives shared chrome contrast) */
   dark: boolean
-  status: 'Concept ready'
+  status: 'Concept ready' | 'In build' | 'Live'
   thumb: string
   audit: AuditList
   /** One-paragraph positioning the redesign is built on */
@@ -4491,6 +4491,8 @@ import { companyEntry as MIRRORSUITE_ENTRY } from './mirrorsuite/company'
 PREVIEW_COMPANIES.push(MIRRORSUITE_ENTRY)
 
 import { companyEntry as ASLAUGSAJA_ENTRY } from './aslaugsaja/data'
+import { companyEntry as ELFA_ENTRY } from './elfa/company'
+import { companyEntry as MYNDO_ENTRY } from './myndo/company'
 PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)
 
 /* ── Three architecture practices on the Heklusýn machine, 2026-08-10 ──── */
@@ -4700,3 +4702,5 @@ ${SIGN}`,
   },
 }
 PREVIEW_COMPANIES.push(TARK_ENTRY)
+PREVIEW_COMPANIES.push(ELFA_ENTRY)
+PREVIEW_COMPANIES.push(MYNDO_ENTRY)
