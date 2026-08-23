@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, Check, Clock, Mail, MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -19,7 +19,7 @@ import {
 } from './data'
 import type { Availability, Piece, VesselShape } from './data'
 
-const company = getPreviewCompany('kogga')
+const company = companyEntry
 
 const { ground, ground2, clay, porcelain, glaze, oxblood, ink } = PALETTE
 

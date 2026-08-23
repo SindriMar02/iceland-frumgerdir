@@ -13,7 +13,7 @@ import {
   Mountain,
   Wheat,
 } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -31,7 +31,7 @@ import {
 } from './data'
 import type { Beer as BeerType } from './data'
 
-const company = getPreviewCompany('austri')
+const company = companyEntry
 
 const U = 'https://images.unsplash.com/'
 const heroSrc = `${U}${HERO_ID}?q=80&w=2000&auto=format&fit=crop`

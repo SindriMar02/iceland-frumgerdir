@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { PartialPrototypeBanner } from '../PartialPrototypeBanner'
@@ -29,7 +29,7 @@ import {
 } from './data'
 import type { Cottage } from './data'
 
-const company = getPreviewCompany('sireksstadir')
+const company = companyEntry
 
 /* ── Palette — misty East-Iceland stone & clay (see brief rationale) ────── */
 const GROUND = '#EAE7E0' // cool stone-oat

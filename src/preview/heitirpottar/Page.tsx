@@ -6,7 +6,7 @@ import { Reveal } from '../../components/Reveal'
 import { StickyCta } from '../../components/StickyCta'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import {
   CATEGORIES,
   DEALS,
@@ -36,7 +36,7 @@ import {
 const EASE = 'cubic-bezier(0.23,1,0.32,1)'
 const SLIDE_MS = 6000
 
-const company = getPreviewCompany('heitirpottar')
+const company = companyEntry
 
 /* ------------------------------------------------------------ sections */
 

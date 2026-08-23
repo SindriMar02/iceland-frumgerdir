@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -23,7 +23,7 @@ import {
   TOUR,
 } from './data'
 
-const company = getPreviewCompany('beffatours')
+const company = companyEntry
 
 const U = 'https://images.unsplash.com/'
 const photo = (id: string, w = 1400) => `${U}${id}?q=80&w=${w}&auto=format&fit=crop`

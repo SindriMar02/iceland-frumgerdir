@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { useMotionValueEvent, useScroll } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -41,7 +41,7 @@ import {
   ROOMS,
 } from './data'
 
-const company = getPreviewCompany('litlahof')
+const company = companyEntry
 
 /* ── Palette (from the brief, AA-checked there) ──────────────────────────── */
 const GROUND = '#F4F1E9' // warm overcast-sky paper

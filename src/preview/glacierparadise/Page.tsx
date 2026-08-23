@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { PartialPrototypeBanner } from '../PartialPrototypeBanner'
@@ -32,7 +32,7 @@ import {
   TRUST,
 } from './data'
 
-const company = getPreviewCompany('glacierparadise')
+const company = companyEntry
 
 /* ── Unsplash helpers ─────────────────────────────────────────────────────── */
 const u = (id: string, w = 1280) =>

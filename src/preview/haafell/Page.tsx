@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import { ArrowRight, Clock, MapPin, Ticket } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -22,7 +22,7 @@ import {
 } from './data'
 import type { Lang, LocPair, Product } from './data'
 
-const company = getPreviewCompany('haafell')
+const company = companyEntry
 
 /* ────────────────────────────────────────────────────────────────────
    FARM ALMANAC design system.

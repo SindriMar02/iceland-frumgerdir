@@ -1,0 +1,66 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { padding: 40px 48px; }
+  .head { font-family: var(--font-bold); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pink-tx); margin: 0 0 18px; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 22px 0; border-top: 1px solid var(--hair); flex-wrap: wrap; }
+  .row:first-of-type { border-top: none; }
+  .lbl { width: 130px; flex-shrink: 0; font-size: 0.74rem; color: var(--body); font-family: ui-monospace, monospace; }
+  .dark-row { background: var(--dusk); border-radius: 18px; padding: 22px 24px; margin-top: 6px; }
+  .dark-row .lbl { color: var(--dusk-body); }
+
+  .btn { font-family: var(--font-bold); font-weight: 700; font-size: 0.95rem; border-radius: var(--r-pill); border: none; cursor: pointer; transition: filter var(--dur) ease, transform var(--dur) ease; }
+  .btn:active { transform: scale(0.98); transition-duration: 150ms; }
+  .btn-fill { background: var(--pink-deep); color: #fff; padding: 0.9rem 1.6rem; }
+  .btn-fill:hover { filter: brightness(1.06); }
+  .btn-cta { display: inline-flex; align-items: center; gap: 0.65rem; background: var(--pink-deep); color: #fff; padding: 0.75rem 0.75rem 0.75rem 1.5rem; }
+  .btn-cta:hover { filter: brightness(1.06); }
+  .btn-cta .chip-icon { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: rgba(255,255,255,0.2); transition: transform 500ms var(--ease); }
+  .btn-cta:hover .chip-icon { transform: translate(2px, -2px); }
+  .btn-outline { background: transparent; border: 1px solid #30103140; color: var(--ink); padding: 0.85rem 1.5rem; }
+  .btn-outline:hover { background: #3010310d; }
+  .btn-outline-dark { background: transparent; border: 1px solid #ffffff45; color: var(--dusk-ink); padding: 0.85rem 1.5rem; }
+  .btn-outline-dark:hover { background: rgba(255,255,255,0.1); }
+  .btn-toggle { background: #FFF3EA; color: var(--dusk); padding: 0.9rem 1.6rem; }
+  .btn-toggle:hover { filter: brightness(1.04); }
+  .btn:focus-visible { outline: 2px solid var(--pink-deep); outline-offset: 3px; }
+</style></head>
+<body>
+  <p class="head">Buttons — one pill radius, one accent, real hover + press feedback</p>
+
+  <div class="row">
+    <span class="lbl">Primary CTA</span>
+    <button class="btn btn-cta">Bóka tíma <span class="chip-icon">↗</span></button>
+    <span style="font-size:0.78rem;color:var(--body)">nav · hero · final band · sticky mobile bar — one intent, one label, everywhere</span>
+  </div>
+  <div class="row">
+    <span class="lbl">Filled, no icon</span>
+    <button class="btn btn-fill">Skrá mig í áskrift</button>
+    <button class="btn btn-fill">Kaupa Frelsi</button>
+    <button class="btn btn-fill">Bóka í Hamraborg</button>
+  </div>
+  <div class="row">
+    <span class="lbl">Outline (light)</span>
+    <button class="btn btn-outline">Sjá verðskrá</button>
+    <button class="btn btn-outline">Opna í kortum</button>
+  </div>
+
+  <div class="dark-row">
+    <div class="row" style="border:none;padding:0">
+      <span class="lbl">On dusk</span>
+      <button class="btn btn-outline-dark">Slökkva</button>
+      <button class="btn btn-toggle">Bóka infrared tíma</button>
+    </div>
+  </div>
+
+  <p class="head" style="margin-top:32px">Interaction spec</p>
+  <ul style="font-size:0.85rem;line-height:1.8;color:var(--body);max-width:64ch">
+    <li><b style="color:var(--ink)">Hover</b> — filled buttons: <code>filter:brightness(1.06)</code>, 300ms. Outline buttons: background tint <code>#3010310d</code>, 300ms.</li>
+    <li><b style="color:var(--ink)">Active</b> — <code>scale(0.98)</code>, 150ms (snappier than hover so the press reads as a press).</li>
+    <li><b style="color:var(--ink)">Focus-visible</b> — 2px pink-deep outline, 3px offset. Never overridden with a border-radius reset (the outline must trace the pill's own radius).</li>
+    <li><b style="color:var(--ink)">One CTA intent per label</b> — do not introduce a second "book" verb ("Panta tíma", "Fá tíma"). "Bóka tíma" is the only booking verb on the site.</li>
+  </ul>
+</body></html>

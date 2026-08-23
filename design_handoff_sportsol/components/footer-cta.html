@@ -1,0 +1,25 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { margin: 0; background: var(--dusk); min-height: 100vh; position: relative; overflow: hidden; }
+  .glow { position: absolute; inset-inline: 0; bottom: 0; height: 66%; background: radial-gradient(90% 100% at 50% 100%, #FF775259 0%, #F810F033 45%, transparent 75%); }
+  .sun { position: absolute; bottom: -7rem; left: 50%; transform: translateX(-50%); width: 14rem; height: 14rem; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #FFE9A8, var(--gold) 50%, var(--coral)); box-shadow: 0 0 140px 50px #FF775255; }
+  .content { position: relative; max-width: 42rem; margin: 0 auto; padding: 8rem 2rem; text-align: center; }
+  h2 { font-family: var(--font-display); font-weight: 800; font-size: 3.4rem; color: var(--dusk-ink); margin: 0; }
+  p { color: var(--dusk-body); max-width: 30ch; margin: 1.2rem auto 0; }
+  .row { margin-top: 2.2rem; display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap; }
+  .btn { background: #FFF3EA; color: var(--dusk); border-radius: 999px; padding: 0.9rem 1.6rem; font-family: var(--font-bold); font-weight: 700; }
+  .btn-o { border: 1px solid #ffffff40; color: var(--dusk-ink); border-radius: 999px; padding: 0.9rem 1.6rem; font-family: var(--font-bold); font-weight: 700; }
+</style></head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="sun" aria-hidden="true"></div>
+  <div class="content">
+    <h2>Sólin bíður</h2>
+    <p>Lausir tímar í báðum stofum birtast í rauntíma á Noona.</p>
+    <div class="row"><a class="btn" href="#">Bóka tíma</a><a class="btn-o" href="#">554 3799</a></div>
+  </div>
+</body></html>

@@ -1,0 +1,319 @@
+/* SJÚKRAÞJÁLFARINN — self-hosted fonts + prefixed keyframes/utilities.
+   Everything in this file is namespaced with `sjr-` so nothing here can leak
+   into or collide with any other preview page. */
+
+@font-face {
+  font-family: 'SJR Gabarito';
+  src: url('/sjukrathjalfarinn/fonts/Gabarito-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Gabarito';
+  src: url('/sjukrathjalfarinn/fonts/Gabarito-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Gabarito';
+  src: url('/sjukrathjalfarinn/fonts/Gabarito-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Gabarito';
+  src: url('/sjukrathjalfarinn/fonts/Gabarito-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Switzer';
+  src: url('/sjukrathjalfarinn/fonts/Switzer-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Switzer';
+  src: url('/sjukrathjalfarinn/fonts/Switzer-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Switzer';
+  src: url('/sjukrathjalfarinn/fonts/Switzer-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Plex Mono';
+  src: url('/sjukrathjalfarinn/fonts/IBMPlexMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SJR Plex Mono';
+  src: url('/sjukrathjalfarinn/fonts/IBMPlexMono-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── shared section heading type (keeps every h2 on the page in step) ── */
+.sjr-h2 {
+  font-family: 'SJR Gabarito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4.6vw, 3.1rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: #15191c;
+}
+
+/* ── scrubbed content rise (driven by --rv, written by the rAF engine) ── */
+.sjr-rise {
+  --rv: 0;
+  opacity: calc(0.08 + var(--rv) * 0.92);
+  transform: translate3d(0, calc((1 - var(--rv)) * 24px), 0);
+  will-change: opacity, transform;
+}
+
+/* ── scrubbed media reveal: feathered sweep + blur falling away ── */
+.sjr-plate {
+  --rv: 0;
+  position: relative;
+  overflow: hidden;
+  background: #e8f0ec;
+}
+.sjr-plate img {
+  position: absolute;
+  left: -3%;
+  top: -3%;
+  width: 106%;
+  height: 106%;
+  max-width: none;
+  object-fit: cover;
+  transform: scale(calc(1.08 - var(--rv) * 0.08)) translate3d(0, calc((1 - var(--rv)) * 3%), 0);
+  filter: blur(calc((1 - var(--rv)) * 12px)) saturate(calc(0.6 + var(--rv) * 0.4));
+  -webkit-mask-image: linear-gradient(100deg, #000 calc(var(--rv) * 160% - 40%), transparent calc(var(--rv) * 160% - 4%));
+  mask-image: linear-gradient(100deg, #000 calc(var(--rv) * 160% - 40%), transparent calc(var(--rv) * 160% - 4%));
+  will-change: transform, filter;
+}
+.sjr-plate[data-parallax] img {
+  transform: scale(calc(1.14 - var(--rv) * 0.08)) translate3d(0, calc((1 - var(--rv)) * 3% - var(--pv, 0) * 1px), 0);
+}
+
+/* ── hero media: a pure CSS one-shot entrance (never gated on our rAF
+   engine), so the hero is fully painted and readable even if scripting is
+   frozen or a screenshot lands before the first animation frame runs. ── */
+@keyframes sjr-hero-in {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: scale(1.05);
+  }
+  to {
+    clip-path: inset(0 0 0% 0);
+    transform: scale(1);
+  }
+}
+.sjr-hero-plate {
+  position: relative;
+  overflow: hidden;
+  background: #e8f0ec;
+}
+.sjr-hero-plate img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: sjr-hero-in 1s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: 0.15s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sjr-hero-plate img {
+    animation: none;
+    clip-path: none;
+    transform: none;
+  }
+}
+
+/* ── the direction reversing marquee track ── */
+@keyframes sjr-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.sjr-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: sjr-marquee 34s linear infinite;
+  animation-play-state: var(--sjr-marquee-state, running);
+}
+
+/* ── quiz body map selection ring (self-drawing, device 8) ──
+   `--ring-len` is set inline per circle to its own circumference so the
+   dash pattern fully hides the stroke at rest and draws it in on select. */
+.sjr-ring {
+  stroke-dasharray: var(--ring-len, 170);
+  stroke-dashoffset: var(--ring-len, 170);
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.sjr-ring[data-drawn='true'] {
+  stroke-dashoffset: 0;
+}
+
+/* ── quiz body map layout: mobile = plain responsive grid of real buttons,
+   sm and up = the same buttons repositioned over the silhouette art.
+   No duplicate DOM, only the position changes at the breakpoint. ── */
+.sjr-bodymap {
+  position: relative;
+}
+.sjr-bodymap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+.sjr-bodymap-btn {
+  position: relative;
+}
+@media (min-width: 640px) {
+  .sjr-bodymap-grid {
+    display: block;
+    min-height: 26rem;
+  }
+  .sjr-bodymap-btn {
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+  .sjr-bodymap-btn[data-region='hofud'] {
+    top: 9%;
+    left: 50%;
+  }
+  .sjr-bodymap-btn[data-region='axlir'] {
+    top: 28%;
+    left: 26%;
+  }
+  .sjr-bodymap-btn[data-region='mjobak'] {
+    top: 52%;
+    left: 70%;
+  }
+  .sjr-bodymap-btn[data-region='hne'] {
+    top: 76%;
+    left: 32%;
+  }
+  .sjr-bodymap-btn[data-region='annad'] {
+    top: 95%;
+    left: 50%;
+  }
+}
+
+/* ── draggable snap row ── */
+.sjr-drag-row {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  cursor: grab;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.sjr-drag-row::-webkit-scrollbar {
+  display: none;
+}
+.sjr-drag-row.sjr-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+.sjr-drag-row > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+/* ── link underline idiom ── */
+.sjr-link {
+  position: relative;
+}
+.sjr-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.sjr-link:hover::after,
+.sjr-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ── preloader frame ── */
+.sjr-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #15191c;
+  display: grid;
+  place-items: center;
+}
+.sjr-preloader-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+}
+.sjr-preloader-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sjr-preloader-skip {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 101;
+  min-height: 44px;
+  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: 'SJR Plex Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sjr-rise {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sjr-plate img {
+    filter: none !important;
+    transform: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+  .sjr-marquee-track {
+    animation: none !important;
+  }
+  .sjr-ring {
+    transition: none !important;
+  }
+}

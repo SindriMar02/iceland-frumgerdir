@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -14,7 +14,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('alrun')
+const company = companyEntry
 
 /* ── ALRÚN on the CENTREMARSEA.COM system ─────────────────────────────────
    Recreated from centremarsea.com, measured live off the DOM — not described:

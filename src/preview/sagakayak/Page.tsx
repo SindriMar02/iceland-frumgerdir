@@ -3,7 +3,7 @@ import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion'
 import { Instagram, Mail, MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -33,7 +33,7 @@ import {
 } from './data'
 import type { BookingChoice } from './data'
 
-const company = getPreviewCompany('sagakayak')
+const company = companyEntry
 
 /* ── Palette (sampled from Saga Kayak's own verðskrá graphic + fjord photos)
  * GROUND #F5F0E8 · DARK #12181C · INK #2B2A26 (12.7:1 on ground, AAA)

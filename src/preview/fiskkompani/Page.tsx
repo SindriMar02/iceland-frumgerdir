@@ -9,7 +9,7 @@ import {
   useTransform,
 } from 'framer-motion'
 import { Minus, Plus, ShoppingBasket, X } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -41,7 +41,7 @@ import {
 } from './data'
 import type { CatId, Product } from './data'
 
-const company = getPreviewCompany('fiskkompani')
+const company = companyEntry
 
 /* ── FISK KOMPANÍ · „Dagsins afli, loksins á netinu"
       The real fish counter, finally open online. Palette pulled from the

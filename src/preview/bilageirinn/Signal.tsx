@@ -12,7 +12,7 @@ import {
   useVelocity,
 } from 'framer-motion'
 import { ChevronLeft, ChevronRight, MapPin, Phone } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -42,7 +42,7 @@ import {
   TRUST_STRIP,
 } from './data'
 
-const company = getPreviewCompany('bilageirinn')
+const company = companyEntry
 
 /* ── SIGNAL YELLOW. Industrial confidence: work-site hazard yellow, ink
       black, off-white paper bands. Tool-brand energy, not luxury. The page

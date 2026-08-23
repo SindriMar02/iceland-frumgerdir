@@ -400,7 +400,7 @@ export default function MyndoPage() {
           <span className="my-zoom" data-ev="on-load"
             style={{ height: 'clamp(420px,72vh,780px)' }}>
             <img src={stage('nyburi').photo} alt={stage('nyburi').alt}
-              width={1400} height={990} fetchPriority="high"
+              width={1400} height={990}
               style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
           </span>
           <div className="my-hgrid" style={{ paddingTop: 18 }}>

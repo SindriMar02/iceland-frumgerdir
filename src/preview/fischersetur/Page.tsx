@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { PartialPrototypeBanner } from '../PartialPrototypeBanner'
@@ -26,7 +26,7 @@ import {
   type Placed,
 } from './data'
 
-const company = getPreviewCompany('fischersetur')
+const company = companyEntry
 
 /* ── Palette (brief) ─────────────────────────────────────────────────────── */
 const GROUND = '#0B0C0E' // near-black ink ground

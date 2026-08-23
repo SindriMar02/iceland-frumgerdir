@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import Lenis from 'lenis'
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -32,7 +32,7 @@ import {
   SURROUNDINGS,
 } from './data'
 
-const company = getPreviewCompany('langaholt')
+const company = companyEntry
 
 /* ── „Sjóndeildarhringurinn" — one horizon line runs the whole page.
    Sky above carries the family's story; the shore below carries rooms,

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -28,7 +28,7 @@ import {
   TIMES,
 } from './data'
 
-const company = getPreviewCompany('saelan')
+const company = companyEntry
 
 /* ── Sólplakat — a silkscreened solarium poster. The page IS the logo's
       sun yellow; red and warm ink are the two print colors. One black

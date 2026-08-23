@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import Lenis from 'lenis'
 import { ArrowDown, ArrowUpRight, Mail, MapPin, Phone, ShoppingBag } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -13,7 +13,7 @@ import LiquidEther from './LiquidEther'
 import GradientText from './GradientText'
 import type { Beat, Spirit } from './data'
 
-const company = getPreviewCompany('reykjavikdistillery')
+const company = companyEntry
 
 /* Stable reference — prevents remount on scroll. Palette maps low→high velocity.
    Stops must be near-luminous: the shader multiplies by velocity magnitude (0..1),

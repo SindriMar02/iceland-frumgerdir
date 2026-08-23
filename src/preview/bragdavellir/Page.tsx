@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -15,7 +15,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger)
 
-const company = getPreviewCompany('bragdavellir')
+const company = companyEntry
 
 /* ── BRAGÐAVELLIR í fötum thepopuphotel.com ───────────────────────────────
    Structure and design recreated from THE POP-UP HOTEL (thepopuphotel.com),

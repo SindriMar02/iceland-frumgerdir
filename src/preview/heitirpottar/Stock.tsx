@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import {
   INVENTORY,
   STOCK_LOCATIONS,
@@ -34,7 +34,7 @@ import {
  * Every number below maps 1:1 to a Shopify InventoryLevel per Location.
  */
 
-const company = getPreviewCompany('heitirpottar')
+const company = companyEntry
 
 const STATUS: Record<StockStatus, { label: string; text: string; chip: string; dot: string }> = {
   ok: { label: 'Til á lager', text: 'text-[#8FCBA3]', chip: 'bg-[#8FCBA3]/12', dot: 'bg-[#8FCBA3]' },

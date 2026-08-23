@@ -1,0 +1,52 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { padding: 5vw; background: #FFF3E2; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; max-width: 68rem; margin: 0 auto; }
+  .shell { border-radius: var(--r-shell); padding: 0.375rem; transition: transform 450ms var(--ease), box-shadow 450ms ease; }
+  .shell:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -26px rgba(48,16,49,.32); }
+  .shell.plain { background: #3010310a; border: 1px solid var(--hair); }
+  .shell.feat { background: linear-gradient(150deg, var(--pink), var(--coral)); box-shadow: 0 34px 70px -35px rgba(196,41,121,0.55); }
+  .card { border-radius: var(--r-shell-inner); background: var(--card); padding: 1.75rem; height: 100%; display: flex; flex-direction: column; }
+  h3 { font-family: var(--font-bold); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin: 0; color: var(--body); }
+  .feat h3 { color: var(--pink-tx); }
+  .price { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; color: var(--ink); margin: 1rem 0 0; }
+  .perday { color: var(--pink-tx); font-family: var(--font-med); font-size: 0.85rem; margin: 0.2rem 0 0; }
+  .detail { font-size: 0.9rem; color: var(--body); margin: 1rem 0 0; flex: 1; }
+  .cancel { font-size: 0.75rem; color: var(--body); margin: 1rem 0 0; }
+  .btn { margin-top: 1.2rem; text-align: center; border-radius: 999px; padding: 0.75rem; font-family: var(--font-bold); font-weight: 700; font-size: 0.9rem; text-decoration: none; display: block; }
+  .btn.fill { background: var(--pink-deep); color: #fff; }
+  .btn.line { border: 1px solid var(--hair); color: var(--ink); }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="shell feat"><div class="card">
+      <h3>Áskrift</h3>
+      <p class="price">8.990 kr.<span style="font-size:0.9rem;color:var(--body);font-family:var(--font-body)"> á mánuði</span></p>
+      <p class="perday">um 299 kr. á dag</p>
+      <p class="detail">15 mínútna ljósatími eða infrared tími alla daga, allan ársins hring. Gildir í báðum stofum.</p>
+      <p class="cancel">Þriggja mánaða uppsagnarfrestur</p>
+      <a class="btn fill" href="#">Skrá mig í áskrift</a>
+    </div></div>
+    <div class="shell plain"><div class="card">
+      <h3>Áskrift, styttri binding</h3>
+      <p class="price">9.990 kr.<span style="font-size:0.9rem;color:var(--body);font-family:var(--font-body)"> á mánuði</span></p>
+      <p class="perday">um 330 kr. á dag</p>
+      <p class="detail">Sama áskrift, styttri uppsagnarfrestur. 15 mínútna ljósatími eða infrared tími alla daga.</p>
+      <p class="cancel">Eins mánaðar uppsagnarfrestur</p>
+      <a class="btn line" href="#">Skrá mig í áskrift</a>
+    </div></div>
+    <div class="shell plain"><div class="card">
+      <h3>Infrared áskrift</h3>
+      <p class="price">4.990 kr.<span style="font-size:0.9rem;color:var(--body);font-family:var(--font-body)"> á mánuði</span></p>
+      <p class="perday">um 166 kr. á dag</p>
+      <p class="detail">15 eða 20 mínútna infrared tími alla daga. Hreint handklæði og sturtuaðstaða í einkaklefa fylgja. Veitir ekki aðgang að hefðbundnum ljósabekkjum.</p>
+      <p class="cancel">Þriggja mánaða uppsagnarfrestur</p>
+      <a class="btn line" href="#">Skrá mig í áskrift</a>
+    </div></div>
+  </div>
+  <p style="text-align:center;max-width:60ch;margin:2rem auto 0;font-size:0.78rem;color:var(--body)">Hover any card — real shadow response on the lift (not just a static shadow that never changes). The featured plan is the only place the pink→coral gradient shell appears; all others use the plain 5%-ink shell.</p>
+</body></html>

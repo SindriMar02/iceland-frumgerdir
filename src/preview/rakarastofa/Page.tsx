@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -20,7 +20,7 @@ import {
   STORY,
 } from './data'
 
-const company = getPreviewCompany('rakarastofa')
+const company = companyEntry
 
 /* ── Klippt síðan 1948 — dark, cinematic, modern. Warm charcoal, warm off-white,
       one muted barber-red. Full-bleed photography carries it; motion is a slow

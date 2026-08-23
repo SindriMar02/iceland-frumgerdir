@@ -31,7 +31,7 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Reveal } from '../../components/Reveal'
@@ -40,7 +40,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { ABOUT, CARE, HERO, IMG, JSON_LD, LOGO, META, NAV, PROCESS, REVIEWS, SERVICES, TRUST, VISIT } from './data'
 
-const company = getPreviewCompany('hudflur')
+const company = companyEntry
 
 /* ── palette ────────────────────────────────────────────────────────────────
    Near-black ink ground, off-white ink text, ONE accent — deep ink-crimson,

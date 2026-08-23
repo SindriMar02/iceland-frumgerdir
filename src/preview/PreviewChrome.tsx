@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Check, Copy, ExternalLink, Mail, Send, X } from 'lucide-react'
 import { fromGallery } from '../lib/preview'
-import type { PreviewCompany } from './companies'
+import type { PreviewCompany } from './company-types'
 
 const BASE_KEY = 'frumgerd-preview-base'
 const DEFAULT_BASE = 'https://sindrimar02.github.io/iceland-frumgerdir'

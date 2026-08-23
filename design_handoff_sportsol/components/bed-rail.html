@@ -1,0 +1,53 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../foundations/fonts.css">
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { padding: 5vw 0; }
+  h2 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; color: var(--ink); margin: 0 5vw 0.5rem; }
+  .lede { color: var(--body); margin: 0 5vw 1.6rem; max-width: 46ch; }
+  .rail { display: flex; gap: 1.1rem; overflow-x: auto; padding: 0 5vw 1rem; scrollbar-width: none; }
+  .rail::-webkit-scrollbar { display: none; }
+  .shell { flex: 0 0 21rem; border-radius: var(--r-shell); padding: 0.375rem; background: #3010310a; border: 1px solid var(--hair); transition: transform 450ms var(--ease); }
+  .shell:hover { transform: translateY(-6px); }
+  .card { border-radius: var(--r-shell-inner); min-height: 22rem; display: flex; flex-direction: column; justify-content: space-between; padding: 1.75rem; }
+  .tag { display: inline-flex; border-radius: 999px; padding: 0.25rem 0.65rem; font-size: 0.7rem; font-family: var(--font-bold); font-weight: 700; margin-right: 0.4rem; }
+  h3 { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; margin: 1.2rem 0 0; }
+  p.tag-line { font-size: 0.9rem; margin: 0.7rem 0 0; }
+  .minutes { font-family: var(--font-bold); font-weight: 700; font-size: 0.9rem; margin-top: 1.4rem; }
+
+  .pink  { background: radial-gradient(120% 90% at 20% 10%, #F810F02b, transparent 60%), linear-gradient(160deg, #FFE3EF, #FFD3E6); }
+  .coral { background: radial-gradient(120% 90% at 80% 0%, #FF775233, transparent 55%), linear-gradient(160deg, #FFE8D8, #FFD8C4); }
+  .gold  { background: radial-gradient(120% 90% at 30% 0%, #FFB53C40, transparent 55%), linear-gradient(160deg, #FFF0CE, #FFE2B8); }
+  .ember { background: radial-gradient(120% 120% at 50% 110%, #FF775255, transparent 60%), linear-gradient(160deg, #3A1430, #170623); color: #FFF3EA; }
+  .light-tag { background: #30103114; color: var(--ink); }
+  .dark-tag { background: #ffffff22; color: #FFD9C9; }
+</style></head>
+<body>
+  <h2>Hvaða bekkur hentar þér?</h2>
+  <p class="lede">Fimm gerðir af bekkjum, hver með sinn karakter. Renndu í gegn og finndu þinn.</p>
+  <div class="rail">
+    <div class="shell"><div class="card pink">
+      <div><span class="tag light-tag">Hamraborg</span><span class="tag light-tag">Hverafold</span><h3>Luxura JEWEL</h3><p class="tag-line">Djásnið frá Luxura. Háþróuð ljósatækni og hámarksþægindi.</p></div>
+      <p class="minutes" style="color:var(--pink-tx)">10, 15 eða 20 mínútur</p>
+    </div></div>
+    <div class="shell"><div class="card coral">
+      <div><span class="tag light-tag">Hamraborg</span><h3>Luxura Vegaz</h3><p class="tag-line">Nýr hágæða lúxusbekkur. Þú velur styrkleikann, Túrbó eða venjulegan.</p></div>
+      <p class="minutes" style="color:var(--pink-tx)">10, 15 eða 20 mínútur</p>
+    </div></div>
+    <div class="shell"><div class="card gold">
+      <div><span class="tag light-tag">Hverafold</span><h3>Luxura X10 og X10 Túrbó</h3><p class="tag-line">Mildur og þægilegur bekkur með stillanlegum styrkleika. Túrbó útgáfan er sú öflugri.</p></div>
+      <p class="minutes" style="color:var(--pink-tx)">10, 15 eða 20 mínútur</p>
+    </div></div>
+    <div class="shell"><div class="card gold">
+      <div><span class="tag light-tag">Hamraborg</span><span class="tag light-tag">Hverafold</span><h3>Standandi bekkur</h3><p class="tag-line">Hraður standandi tími þar sem þú stillir styrkleikann sjálf eða sjálfur.</p></div>
+      <p class="minutes" style="color:var(--pink-tx)">7 til 18 mínútur</p>
+    </div></div>
+    <div class="shell"><div class="card ember">
+      <div><span class="tag dark-tag">Hamraborg</span><h3>American M7 infrared</h3><p class="tag-line" style="color:#EFC9BC">Innrautt ljós, djúp og kraftmikil meðferð á aðeins 15 mínútum.</p></div>
+      <p class="minutes" style="color:#FF9E7A">15 eða 20 mínútur</p>
+    </div></div>
+  </div>
+  <p style="margin:1.4rem 5vw 0;font-size:0.78rem;color:var(--body)">Scroll-snap rail, <code>role="region"</code> + <code>tabIndex</code> for keyboard scrolling. Each card's art is a two-layer gradient keyed to a tone: pink / coral / gold / ember (dark, the infrared bed only).</p>
+</body></html>

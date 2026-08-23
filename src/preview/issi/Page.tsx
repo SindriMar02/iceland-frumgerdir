@@ -8,7 +8,7 @@ import {
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, PHONE_DISPLAY, PHONE_HREF, EMAIL, EMAIL_HREF, FACEBOOK, THORFISH, TRIPADVISOR,
@@ -16,7 +16,7 @@ import {
   OWNER_IMG, HJORDIS_WINDOW_IMG, LOGO_WIDE,
 } from './data'
 
-const company = getPreviewCompany('issi')
+const company = companyEntry
 const BASE = import.meta.env.BASE_URL
 
 /* ISSI – Fish & Chips — "Ljósið í kofanum" redesign.

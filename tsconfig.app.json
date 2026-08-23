@@ -23,5 +23,16 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* Parked, orphaned files from the abandoned _thg-wt worktree (commit a997fdd).
+     THG is closed-lost and none of these are imported by any route; Stadarandi
+     imports a VIK export that was never written, which fails `tsc -b` and so
+     stops `vite build` from ever running. Kept in git as parked, excluded from
+     the build. Delete the folder outright if THG is never re-aimed. */
+  "exclude": [
+    "src/preview/thg/Stadarandi.tsx",
+    "src/preview/thg/WorkList.tsx",
+    "src/preview/thg/Register.tsx",
+    "src/preview/thg/MobileNav.tsx"
+  ]
 }

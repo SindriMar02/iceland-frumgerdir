@@ -21,13 +21,13 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTra
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import { FILMS, FULL_MENU, IMAGES, MENU_NOTE, POPULAR, SHOTS, STATS, VISIT } from './data'
 import type { Film, MenuGroup, Shot, Tone } from './data'
 import { MOTION_CSS, usePageMotion } from './motion'
 
-const company = getPreviewCompany('faxibakery')
+const company = companyEntry
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 // Cream is sampled EXACTLY from the hero photo's own background edge (#F0E4CF),

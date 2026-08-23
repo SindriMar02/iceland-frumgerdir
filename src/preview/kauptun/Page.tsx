@@ -16,13 +16,13 @@ import {
   ShoppingBasket,
 } from 'lucide-react'
 import { Img } from '../../components/Img'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { HeroReveal } from './HeroReveal'
 import { CONTACT, HOURS, IMG, OFFERINGS, QUOTES, computeStatus, type OpenStatus } from './data'
 
-const company = getPreviewCompany('kauptun')
+const company = companyEntry
 const EASE = [0.16, 1, 0.3, 1] as const
 
 const OFFERING_ICONS = {

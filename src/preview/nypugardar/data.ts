@@ -1,6 +1,6 @@
 /**
  * Nýpugarðar — "Kvöldverðurinn á Mýrum"
- * One real evening at a working sheep and horse farm on Mýrar in Hornafjörður:
+ * One real evening at a working sheep farm on Mýrar in Hornafjörður:
  * arrive among the animals, watch the glacier catch the last light, then sit
  * down with everyone else to the lamb dinner buffet. The page itself darkens
  * from daylight to night as you scroll (the "evening arc" signature).
@@ -14,27 +14,40 @@
 const BASE = import.meta.env.BASE_URL
 
 /** Local, vetted photos (copied from the prep manifest into public/nypugardar/). */
-export const p = (file: string) => `${BASE}nypugardar/${file}`
+export const p = (file: string) => `${BASE}nypugardar/full/${file}`
 
 export const IMG = {
-  hero: p('bk_14_10523864.jpg'), // turf hut + guesthouse + glacier, one frame
-  glacier: p('bk_15_10523812.jpg'), // wide glacier tongue over green farmland
-  ridge: p('bk_09_125644995.jpg'), // snow-capped ridge, blue sky
-  dining: p('bk_17_305950064.jpg'), // the real dining room, glacier-view windows
-  deck: p('bk_05_510526816.jpg'), // dusk from the guesthouse deck
-  dusk: p('bk_13_125645022.jpg'), // sunset over the grassland
-  cottage1: p('bk_08_510524232.jpg'),
-  cottage2: p('bk_36_510524306.jpg'),
-  room1: p('bk_02_510526820.jpg'), // pine cabin room, sofa nook
-  room2: p('bk_06_510524066.jpg'), // bedroom window framing farmland
-  room3: p('bk_18_510521394.jpg'), // twin room, red-framed window
-  bath: p('bk_03_510524063.jpg'), // clean modern bathroom
-  sheep: p('us_sheep_7ye9WrKyxl8.jpg'), // Icelandic sheep, Unsplash (Zosia Szopka)
-  horses: p('us_horses_diMBLU4FzDQ.jpg'), // Icelandic horses, Unsplash (Vladimir Riabinin)
-  horsesPair: p('us_horses_R_rnbkwudCw.jpg'), // two horses nose to nose (Claire Nolan)
+  /** All frames below are Nýpugarðar's own photographs, pulled at full resolution
+   *  from their Booking.com gallery on 2026-08-21 (47 in total, see public/
+   *  nypugardar/full/). Booking.com serves the originals, so these are the
+   *  largest versions that exist. No stock imagery is used anywhere on this page. */
+  hero: p('bk_908946914.jpg'),        // aerial: the farm, its land and the glacier beyond
+  exterior: p('bk_258957593.jpg'),    // guesthouse and deck in winter, glacier behind
+  building: p('bk_92332508.jpg'),     // the main guesthouse building
+  farmland: p('bk_614398038.jpg'),    // the farm against the coastline
+  glacier: p('bk_10523812.jpg'),      // glacier tongue over green farmland
+  ridge: p('bk_125644995.jpg'),       // snow-capped ridge
+  dusk: p('bk_125645022.jpg'),        // sun going down over the grassland
+  deck: p('bk_510526816.jpg'),        // the terrace at dusk
+  dining: p('bk_305950064.jpg'),      // the dining room, glacier-view windows
+  breakfast: p('bk_259128011.jpg'),   // the breakfast buffet laid out
+  reindeer: p('bk_10523758.jpg'),     // wild reindeer on the land
+  cottage1: p('bk_510524232.jpg'),    // cottage exterior, red roof
+  cottage2: p('bk_510524306.jpg'),    // second cottage exterior
+  cottageIn1: p('bk_510524196.jpg'),  // pine-lined cottage interior
+  cottageIn2: p('bk_510526820.jpg'),  // cottage interior with table and beds
+  room1: p('bk_510523433.jpg'),       // twin room, red-framed window
+  room2: p('bk_510524066.jpg'),       // room looking over farmland
+  room3: p('bk_539099044.jpg'),       // twin room, wide window
+  room4: p('bk_510521394.jpg'),       // twin room with dark curtains
+  bath: p('bk_510524063.jpg'),        // bathroom
 } as const
 
 export const BOOKING_URL = 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html'
+/** Her Booking.com property page. Used only for review attribution — never as a
+ *  booking call to action, since bookings now go direct through Godo. */
+export const REVIEWS_URL = 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html'
+
 export const PHONE = '893 1826'
 export const PHONE_HREF = 'tel:+3548931826'
 export const EMAIL = 'nypu@simnet.is'
@@ -56,17 +69,41 @@ export const UNITS = [
   { n: '24', label: 'guests when the house is full' },
 ] as const
 
-/** Booking.com house rules + ferdalag.is, 2026-07-18 */
-export const HOUSE_RULES = [
-  'Check-in 16:00–23:30',
-  'Check-out 07:30–11:00',
-  'Open all year',
-  'No pets',
-  'No smoking',
-  'Children welcome, guests 7 and older pay as adults',
+/** Booking.com house rules, re-verified live 2026-08-21.
+ *  Split into times and policies so the two facts guests actually look up
+ *  (when can I arrive, when must I leave) can be given real weight instead of
+ *  being buried in a flat list of seven identical lines. */
+export const CHECK_TIMES = [
+  { label: 'Arrive', value: '16:00', tail: 'until 23:30' },
+  { label: 'Leave', value: '11:00', tail: 'from 07:30' },
 ] as const
 
-/** Booking.com location facts, 2026-07-18 */
+export const HOUSE_RULES = [
+  { rule: 'Open all year', note: null },
+  { rule: 'Children welcome', note: 'guests 7 and older pay as adults' },
+  { rule: 'No extra beds', note: 'the cottages sleep up to four' },
+  { rule: 'No pets', note: null },
+  { rule: 'No smoking', note: null },
+] as const
+
+/** Booking.com facilities list, re-verified live 2026-08-21. */
+export const FACILITIES = [
+  'Restaurant', 'Bar', 'Free WiFi', 'Free private parking',
+  'Garden', 'Terrace', 'Hiking', 'Family rooms', 'Non-smoking rooms',
+] as const
+
+/** Booking.com breakfast detail, verified 2026-08-21. Grouped rather than kept
+ *  as one flat list, because these are three different kinds of fact: how it is
+ *  served, which diets the kitchen covers, and the packed option for guests
+ *  leaving before the room opens. That last one is a booking reason on a farm
+ *  47 km from Jökulsárlón, so it gets its own line instead of a chip. */
+export const BREAKFAST = {
+  served: ['Buffet', 'Continental'],
+  diets: ['Vegetarian', 'Vegan', 'Gluten-free'],
+  toGo: 'Breakfast to go',
+} as const
+
+/** Booking.com location facts, verified live 2026-08-21 */
 export const DISTANCES = [
   { n: '4 km', label: 'off Route 1, the Ring Road' },
   { n: '25 min', label: 'drive to Höfn' },
@@ -77,7 +114,10 @@ export const DISTANCES = [
 export const SCORE = {
   value: '8.8',
   word: 'Fabulous',
-  count: '2,233',
+  /** Re-verified live on Booking.com 2026-08-21: 8.8 "Fabulous", 2,265 reviews
+   *  (was 2,233 on 2026-07-18). The count drifts every week, so the page says
+   *  "over 2,200" rather than a figure that goes stale between deploys. */
+  count: 'over 2,200',
   categories: [
     { label: 'Host', n: '9.3' },
     { label: 'Free WiFi', n: '9.2' },
@@ -88,7 +128,10 @@ export const SCORE = {
   ],
 } as const
 
-/** Real, attributed quotes from Booking.com's review widget, live 2026-07-18. */
+/** Real, attributed quotes from Booking.com's review widget. First three
+ *  captured 2026-07-18, last three added from the live page 2026-08-21 — all
+ *  six verbatim, all still on the listing. Six so the section can rotate two
+ *  sets of three rather than showing the same trio forever. */
 export const DINNER_QUOTE = {
   text: 'I could not hype this place enough. It was wonderful!! In the middle of grassy planes with sheep grazing. Amazing views of the mountains that you could see even when in bed! Local Cuisine with farm to table ingredients! Happy staff!!',
   name: 'Stefanos',
@@ -114,15 +157,33 @@ export const QUOTES = [
     place: 'Italy',
     note: 'Translated from Italian',
   },
+  {
+    text: 'Beautiful views, good breakfast, friendly staff. Nothing to complain :)',
+    name: 'Samppa',
+    place: 'Finland',
+    note: null,
+  },
+  {
+    text: 'Nice place. Middle of nature with great view on the glacier! And on the sheeps ;)',
+    name: 'Jeremy',
+    place: 'France',
+    note: null,
+  },
+  {
+    text: 'Very clean. Good food for dinner as well. Quiet location.',
+    name: 'Olivia',
+    place: 'Switzerland',
+    note: null,
+  },
 ] as const
 
 /** Room photo mosaic — captions describe only what each photo shows. */
 export const ROOM_PHOTOS = [
-  { src: IMG.room1, alt: 'Pine-walled cabin room at Nýpugarðar with twin beds and a small sofa nook', caption: 'Pine cabin room' },
-  { src: IMG.room2, alt: 'Bedroom at Nýpugarðar with a window framing open farmland to the horizon', caption: 'Room with a farmland view' },
-  { src: IMG.room3, alt: 'Twin room at Nýpugarðar with a red-framed window looking over the fields', caption: 'Twin room' },
-  { src: IMG.bath, alt: 'Modern white-tiled bathroom with a shower at Nýpugarðar', caption: 'Bathroom' },
+  { src: IMG.room1, alt: 'Twin room at Nýpugarðar with a red-framed window looking over the fields', caption: 'Twin room' },
+  { src: IMG.room2, alt: 'Room at Nýpugarðar with a window framing open farmland to the horizon', caption: 'Room with a farmland view' },
+  { src: IMG.cottageIn1, alt: 'Pine-lined interior of one of the cottages at Nýpugarðar', caption: 'Inside a cottage' },
+  { src: IMG.bath, alt: 'White-tiled private bathroom with a shower at Nýpugarðar', caption: 'Private bathroom' },
 ] as const
 
 export const FOOTNOTE =
-  'This page is a redesign concept built by SNDR Studio from publicly available information (Booking.com, HeyIceland, Ferðalag.is) as of July 2026. It is a sample layout, not the official website of Nýpugarðar. Guest quotes are real and attributed to Booking.com; individual review dates were not published there. Nightly rates and the dinner buffet price are deliberately not shown because they change with the season. Please confirm current prices and availability on the linked Booking.com page or directly with the farm.'
+  'Guest ratings and quotes are from Booking.com, verified 21 August 2026. Photographs are our own. Room rates and availability come live from our booking system. The dinner is arranged with us when you arrive.'

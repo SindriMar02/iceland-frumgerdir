@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
@@ -34,7 +34,7 @@ import {
 } from './data'
 import type { RoomType } from './data'
 
-const company = getPreviewCompany('vellir')
+const company = companyEntry
 
 /* ── Palette — cream/bone canvas, near-black ink, one cool slate-blue accent ─
  * GROUND/CREAM   #F4EFE6  ·  INK on GROUND          15.16:1 (AAA)

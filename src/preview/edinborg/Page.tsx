@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { PartialPrototypeBanner } from '../PartialPrototypeBanner'
@@ -23,7 +23,7 @@ import {
   RATINGS,
 } from './data'
 
-const company = getPreviewCompany('edinborg')
+const company = companyEntry
 
 /* ── Palette — Harbour-dusk system (slate ink on warm ecru, one oxblood thread) ── */
 const GROUND = '#EDE4D3' // warm hand-set paper

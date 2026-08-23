@@ -1,4 +1,4 @@
-import { IMG } from './data'
+import { IMG } from './images'
 
 /**
  * Loading curtain for the "Ljósbrot" concept — bright paper ground (glass itself is

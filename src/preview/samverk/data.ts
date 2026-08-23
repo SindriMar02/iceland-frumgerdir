@@ -39,15 +39,9 @@ export const LOCATIONS = [
   },
 ]
 
-const A = `${import.meta.env.BASE_URL}img/samverk/`
+import { IMG } from './images'
 
-export const IMG = {
-  logo: `${A}logo.png`,
-  glerveggur: `${A}glerveggur.jpg`,
-  sturtugler: `${A}sturtugler.jpg`,
-  glerhandrid: `${A}glerhandrid.jpg`,
-  speglar: `${A}speglar.jpg`,
-}
+export { IMG }
 
 /** Real founding facts, from samverk.is/um-samverk + web search corroboration. */
 export const FOUNDED_YEAR = 1969

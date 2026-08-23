@@ -3,7 +3,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -15,7 +15,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
 
-const company = getPreviewCompany('sjavarborg')
+const company = companyEntry
 
 /* ── „Borgin við sjóinn" — the sea-castle at the harbour. ─────────────────
    One green house on the Stykkishólmur harbour front has been an ice store,

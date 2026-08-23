@@ -28,7 +28,7 @@ import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { Img } from '../../components/Img'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { setThemeColor } from '../../lib/preview'
 import {
   T,
@@ -44,7 +44,7 @@ import {
   REVIEWS,
 } from './data'
 
-const company = getPreviewCompany('passion')
+const company = companyEntry
 
 // ── Brand tokens (sampled from their own logo + site) ───────────────────────
 // #131313 = the exact flattened background of the Higgsfield Cinnabon shot —

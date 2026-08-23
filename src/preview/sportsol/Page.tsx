@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -22,7 +22,7 @@ import {
   WEEKEND_OFFER,
 } from './data'
 
-const company = getPreviewCompany('sportsol')
+const company = companyEntry
 
 /* ── Palette — Sunhouse: sun-white, deep plum ink, the brand pink, and a
       dawn-to-dusk gradient reserved for the sky and the infrared chapter ── */

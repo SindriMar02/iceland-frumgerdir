@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -28,7 +28,7 @@ import {
 } from './data'
 import type { Product, ProductCat } from './data'
 
-const company = getPreviewCompany('seidkarlinn')
+const company = companyEntry
 
 /* ── Galdraskráin — the sorcerer's price-sheet as a printed broadside.
       Built from THEIR assets: the boxed wordmark is the masthead, their

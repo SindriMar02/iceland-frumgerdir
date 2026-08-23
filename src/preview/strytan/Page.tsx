@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -22,7 +22,7 @@ import {
   TRIPADVISOR,
 } from './data'
 
-const company = getPreviewCompany('strytan')
+const company = companyEntry
 
 /* ── Niður að strýtunni — the page sinks from the silver surface down through
       the blue to the glowing hydrothermal chimney. A fixed canvas carries the

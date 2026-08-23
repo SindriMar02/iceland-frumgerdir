@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, Clock, Mail, MapPin, Menu, Phone, ShieldCheck, X } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -33,7 +33,7 @@ import {
   TRUST_STRIP,
 } from './data'
 
-const company = getPreviewCompany('bilageirinn')
+const company = companyEntry
 
 /* ── CARNOV. Rebuilt 2026-07-15 at the client's direct request: the other
       three concepts (this one included, formerly "Langa línan" — a slow

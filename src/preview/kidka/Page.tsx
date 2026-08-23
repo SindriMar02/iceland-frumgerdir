@@ -41,7 +41,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { DraggableContainer, GridBody, GridItem } from '../../components/InfiniteDragGallery'
 import { Yoke } from './Yoke'
 import { PreviewChrome } from '../PreviewChrome'
@@ -64,7 +64,7 @@ import {
   type Stage,
 } from './data'
 
-const company = getPreviewCompany('kidka')
+const company = companyEntry
 
 /** The swatch wall: KIDKA's own photographs, repeated to tile the field. */
 const WALL: string[] = [

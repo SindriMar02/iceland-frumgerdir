@@ -3,7 +3,7 @@ import type { ReactNode, RefObject } from 'react'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowDown, ArrowUpRight, Check, ChevronDown, Info, MapPin, Menu as MenuIcon, Phone, Search, X } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -24,7 +24,7 @@ import {
 import type { Car } from './data'
 import { carKm, parseQuery, searchCars } from './search'
 
-const company = getPreviewCompany('bilas')
+const company = companyEntry
 
 /* ── Á STAÐNUM. The whole site is the lot itself: the dealer's own photos
       of the 24 cars physically parked at Smiðjuvellir right now, with the

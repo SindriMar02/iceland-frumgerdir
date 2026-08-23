@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import Lenis from 'lenis'
 import { useReducedMotion } from 'framer-motion'
 import { BadgeCheck, Factory, Mail, MapPin, Phone, Ruler } from 'lucide-react'
-import { getPreviewCompany } from '../companies'
+import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -23,7 +23,7 @@ import {
   QUALITY_BODY,
 } from './data'
 
-const company = getPreviewCompany('samverk')
+const company = companyEntry
 
 /* ── LJÓSBROT ("light refraction") — Samverk's whole value is glass: clarity,
       precision, light passing through. Every real photo is shown as a square

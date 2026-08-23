@@ -1,4 +1,4 @@
-import type { PreviewCompany } from './companies'
+import type { PreviewCompany } from './company-types'
 import { SndrBadge } from './SndrBadge'
 
 /**
