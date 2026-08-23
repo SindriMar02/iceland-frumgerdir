@@ -16,7 +16,7 @@ export const STUDIO = {
   kt: '460607-1670',
   founded: '20.04.2007',
   owner: 'Ólína Kristín Margeirsdóttir',
-  address: 'Hrafnshöfða 14, 270 Mosfellsbær',
+  address: 'Þverholt 5, 270 Mosfellsbær',
   tel: '898 1744',
   telHref: '8981744',
   member: 'Ljósmyndarafélag Íslands',
@@ -131,7 +131,7 @@ export const OLINA = {
   name: 'Ólína Kristín Margeirsdóttir',
   role: 'Ljósmyndari',
   body: [
-    'Ólína hefur rekið Myndó frá 2007 og myndar fjölskyldur á höfuðborgarsvæðinu, oftast í stúdíóinu á Hrafnshöfða í Mosfellsbæ.',
+    'Ólína hefur rekið Myndó frá 2007 og myndar fjölskyldur á höfuðborgarsvæðinu, oftast í stúdíóinu á Þverholti í Mosfellsbæ.',
     'Hún er félagi í Ljósmyndarafélagi Íslands.',
   ],
 } as const

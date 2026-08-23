@@ -12,7 +12,7 @@ export const companyEntry: PreviewCompany = {
   route: '/preview/myndo',
   name: 'Myndó ljósmyndastofa',
   sector: 'Ljósmyndastofa',
-  location: 'Hrafnshöfða 14, 270 Mosfellsbær',
+  location: 'Þverholt 5, 270 Mosfellsbær',
   region: 'Capital',
   established: 'Stofnuð 20.04.2007',
   currentUrl: 'https://www.myndo.is',
