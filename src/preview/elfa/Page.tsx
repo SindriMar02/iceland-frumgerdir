@@ -528,17 +528,20 @@ export default function ElfaPage() {
         </section>
 
         {/* hours and the two numbers, straight under the hero */}
-        <section className="px-5 sm:px-10" aria-label="Opnunartími og símanúmer">
+        <section className="px-5 sm:px-10" aria-label="Opnunartími, netfang og neyðarþjónusta">
           <dl data-rv className="eg-rv mx-auto grid max-w-[1320px] gap-px sm:grid-cols-3"
               style={{ background: LINE, border: `1px solid ${LINE}`, borderRadius: 14, overflow: 'hidden' }}>
             {[
+              /* The hero already carries "Panta tíma" and the main number, so this
+                 strip must not repeat them. Three distinct channels instead:
+                 when she is open, how to write, and what to do out of hours. */
               { k: 'Opnunartími', v: CLINIC.hours },
-              { k: 'Tímapantanir', v: CLINIC.tel, href: `tel:${CLINIC.telHref}` },
+              { k: 'Netfang', v: CLINIC.email, href: `mailto:${CLINIC.email}` },
               { k: 'Neyðarþjónusta', v: CLINIC.emergency, href: `tel:${CLINIC.emergencyHref}` },
             ].map((c) => (
               <div key={c.k} className="px-6 py-6" style={{ background: ENAMEL }}>
                 <dt className="eg-eyebrow" style={{ color: MINERAL }}>{c.k}</dt>
-                <dd className="eg-num mt-2 text-[22px] font-semibold sm:text-[24px]">
+                <dd className="eg-num mt-2 font-semibold" style={{ fontSize: c.k === 'Netfang' ? 17 : 22 }}>
                   {c.href
                     ? <a href={c.href} className={`eg-link ${FOCUS}`}
                          style={{ color: EG_TEXT, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{c.v}</a>

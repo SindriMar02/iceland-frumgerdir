@@ -86,6 +86,17 @@ html,body{background:${GROUND}}
 .my-spy.is-in{opacity:1;transition:opacity .25s ease-out}
 @media (prefers-reduced-motion:reduce){.my-spy{opacity:1;transition:none}}
 
+/* c-zoom, straight off the reference: overflow:hidden wrapper, the image
+   settles from 1.025 to 1 over 1s. data-ev="on-load" on the hero, "in-view"
+   on the rest, exactly as theirs are marked. */
+.my-zoom{display:block;overflow:hidden;position:relative}
+.my-zoom>img{transform:scale(var(--zs,1.025));transition:transform var(--zd,1s) cubic-bezier(.22,.61,.36,1)}
+.my-zoom.is-z>img{transform:scale(1)}
+
+/* Their b-media-with-text__content-inner is position:sticky, so the text holds
+   while the tall frame scrolls past it. Desktop only. */
+@media (min-width:801px){.my-stick{position:sticky;top:66px}}
+
 /* The black bar. Two stacked copies of the label; the wrapper rolls up by one
    line-height on hover so the second copy takes the first one's place. */
 .my-btn{display:block;width:100%;background:${INK};color:${PAPER};border-radius:3.8px;
@@ -95,7 +106,8 @@ html,body{background:${GROUND}}
 .my-btn__c{display:flex;align-items:center;justify-content:center;gap:10px;height:17.2px}
 .my-btn:hover .my-btn__roll,.my-btn:focus-visible .my-btn__roll{transform:translateY(-17.2px)}
 .my-btn svg{width:13px;height:13px;flex:none;stroke:currentColor;stroke-width:2;fill:none}
-@media (prefers-reduced-motion:reduce){.my-btn__roll{transition:none}}
+@media (prefers-reduced-motion:reduce){.my-btn__roll{transition:none}
+.my-zoom>img{transform:none;transition:none}}
 
 /* Catalogue row: fixed tile height, width set by the photograph's own ratio. */
 .my-rail{--th:clamp(300px,34vw,470px);display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
@@ -106,9 +118,11 @@ html,body{background:${GROUND}}
 .my-tile img{display:block;height:100%;width:100%;object-fit:cover}
 .my-tile__m{display:flex;gap:8px;align-items:baseline;padding-top:9px}
 
-.my-dot{width:7px;height:7px;background:${RULE};border:0;padding:0;cursor:pointer}
-.my-dot[data-on="1"]{background:${INK}}
-.my-arw{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+.my-dot{width:22px;height:44px;background:none;border:0;padding:0;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center}
+.my-dot::before{content:"";width:7px;height:7px;background:${RULE}}
+.my-dot[data-on="1"]::before{background:${INK}}
+.my-arw{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
   background:none;border:0;cursor:pointer;color:${INK}}
 .my-arw:disabled{opacity:.25;cursor:default}
 .my-arw svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
@@ -126,24 +140,26 @@ html,body{background:${GROUND}}
    so the column strands unless the supporting frames come up into it. */
 .my-ch{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr);gap:8px;height:clamp(420px,62vh,680px)}
 .my-ch>*{min-height:0;min-width:0}
-.my-ch>img{width:100%;height:100%;object-fit:cover;object-position:center 28%;display:block}
+.my-ch>img,.my-ch>.my-zoom{width:100%;height:100%}
+.my-ch>.my-zoom>img,.my-ch>img{width:100%;height:100%;object-fit:cover;object-position:center 28%;display:block}
 .my-ch__side{display:flex;flex-direction:column;gap:12px;min-height:0}
 .my-ch__pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1 1 auto;min-height:0}
 .my-ch__pair img{width:100%;height:100%;object-fit:cover;object-position:center 26%;display:block}
 @media (max-width:800px){
   .my-ch{grid-template-columns:1fr;grid-template-rows:auto;height:auto}
-  .my-ch>img{height:clamp(300px,58vh,480px)}
+  .my-ch>img,.my-ch>.my-zoom{height:clamp(300px,58vh,480px)}
   .my-ch__pair{height:230px}
 }
 
 /* Image left, text right. */
 .my-mt{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
 .my-mt img{display:block;width:100%;height:auto}
+.my-mt>.my-zoom{width:100%}
 
 .my-fixed{position:fixed;top:0;left:0;right:0;z-index:60;background:${GROUND};border-bottom:1px solid ${RULE}}
-.my-mark{background:${INK};color:${PAPER};display:inline-block;padding:5px 9px 6px;
+.my-mark{background:${INK};color:${PAPER};display:inline-flex;align-items:center;padding:5px 9px 6px;
   font-weight:700;letter-spacing:.25px;font-size:17px;line-height:1;text-transform:uppercase}
-.my-navlink{text-decoration:none;color:${INK};position:relative}
+.my-navlink{text-decoration:none;color:${INK};position:relative;display:inline-flex;align-items:center;min-height:44px}
 .my-navlink::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;
   background:${INK};transform:scaleX(0);transform-origin:left;transition:transform .3s ease-in-out}
 .my-navlink:hover::after,.my-navlink:focus-visible::after{transform:scaleX(1)}
@@ -158,9 +174,16 @@ html,body{background:${GROUND}}
 .my :focus-visible{outline:2px solid ${INK};outline-offset:3px}
 
 .my-nav-mob{display:none}
+/* 44px minimum tap targets (audit found the burger at 32x20) */
+.my-tap{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.my-taprow{min-height:44px;display:flex;align-items:center}
 .my-botpad{height:64px}
 @media (max-width:800px){.my-botpad{height:120px}}
 @media (max-width:800px){
+  .my-btn{padding:13.5px}
+  /* seven 44px-tall dots overflow the header row on a phone, and a touch user
+     swipes the rail directly, so the dots go and the arrows stay */
+  .my-dots{display:none !important}
   .my-rail{--th:clamp(190px,42vw,260px)}
   .my-2,.my-mt{grid-template-columns:1fr;gap:8px}
   .my-sec{margin-top:40px}
@@ -254,7 +277,7 @@ function Rail({ id, title, count, children, n }:
           <h2 className="my-h2">{title}</h2>
           <div className="my-row" style={{ gap: 18, flex: '0 0 auto' }}>
             <span className="my-lab">{count}</span>
-            <span style={{ display: 'flex', gap: 5 }}>
+            <span className="my-dots" style={{ display: 'flex', gap: 5 }}>
               {Array.from({ length: n }).map((_, k) => (
                 <button key={k} type="button" className="my-dot" data-on={k === i ? '1' : '0'}
                   aria-label={`Fara á ${k + 1}`}
@@ -294,6 +317,24 @@ export default function MyndoPage() {
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
   }, [menu])
 
+  /* One observer for every zoom wrapper. on-load fires next frame so the
+     transition has a start value to animate from. */
+  useEffect(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const zs = Array.from(document.querySelectorAll<HTMLElement>('.my-zoom'))
+    if (reduce) { zs.forEach((z) => z.classList.add('is-z')); return }
+    const load = zs.filter((z) => z.dataset.ev === 'on-load')
+    const raf = requestAnimationFrame(() => load.forEach((z) => z.classList.add('is-z')))
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('is-z'); io.unobserve(e.target) }
+      }),
+      { rootMargin: '0px 0px -6% 0px', threshold: 0.05 },
+    )
+    zs.filter((z) => z.dataset.ev !== 'on-load').forEach((z) => io.observe(z))
+    return () => { cancelAnimationFrame(raf); io.disconnect() }
+  }, [])
+
   const stage = (id: string) => STAGES.find((s) => s.id === id)!
   const TH = 'var(--th)'
 
@@ -305,7 +346,10 @@ export default function MyndoPage() {
       {/* header: black-box wordmark left, nav distributed, actions right */}
       <header className="my-fixed">
         <div className="my-w" style={{ display: 'flex', alignItems: 'center', gap: 20, height: 46 }}>
-          <a href="#top" className="my-mark" style={{ textDecoration: 'none', flex: '0 0 auto' }}>Myndó</a>
+          <a href="#top" style={{ textDecoration: 'none', flex: '0 0 auto', display: 'inline-flex',
+            alignItems: 'center', minHeight: 44 }} aria-label="Myndó, efst á síðu">
+            <span className="my-mark">Myndó</span>
+          </a>
           <nav aria-label="Aðalvalmynd"
             style={{ display: 'flex', flex: 1, justifyContent: 'space-evenly' }}
             className="my-lab my-nav-desk">
@@ -314,8 +358,8 @@ export default function MyndoPage() {
           <a href={`tel:${STUDIO.telHref}`} className="my-lab my-navlink my-nav-desk"
             style={{ flex: '0 0 auto' }}>{STUDIO.tel}</a>
           <button type="button" onClick={() => setMenu(true)} aria-label="Opna valmynd" aria-expanded={menu}
-            className="my-nav-mob" style={{ marginLeft: 'auto', background: 'none', border: 0, padding: 6, cursor: 'pointer' }}>
-            <span style={{ display: 'block', width: 20, height: 1.5, background: INK, marginBottom: 5 }} />
+            className="my-nav-mob my-tap" style={{ marginLeft: 'auto', background: 'none', border: 0, cursor: 'pointer', flexDirection: 'column', gap: 5 }}>
+            <span style={{ display: 'block', width: 20, height: 1.5, background: INK }} />
             <span style={{ display: 'block', width: 20, height: 1.5, background: INK }} />
           </button>
         </div>
@@ -330,7 +374,8 @@ export default function MyndoPage() {
         }}>
         <div className="my-w" style={{ height: 46, display: 'flex', alignItems: 'center', borderBottom: `1px solid ${RULE}` }}>
           <button type="button" onClick={() => setMenu(false)} aria-label="Loka valmynd"
-            style={{ marginLeft: 'auto', background: 'none', border: 0, padding: 6, cursor: 'pointer', lineHeight: 0 }}>
+            className="my-tap"
+            style={{ marginLeft: 'auto', background: 'none', border: 0, cursor: 'pointer', lineHeight: 0 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" stroke={INK} strokeWidth="1.5" fill="none">
               <path d="M4 4l16 16M20 4L4 20" />
             </svg>
@@ -339,7 +384,7 @@ export default function MyndoPage() {
         <nav className="my-w" style={{ paddingTop: 26, display: 'grid', gap: 18 }}>
           {NAV.map((n) => (
             <a key={n.id} href={`#${n.id}`} onClick={() => setMenu(false)}
-              className="my-h2" style={{ textDecoration: 'none', color: INK }}>{n.label}</a>
+              className="my-h2 my-taprow" style={{ textDecoration: 'none', color: INK }}>{n.label}</a>
           ))}
           <div style={{ paddingTop: 18 }}>
             <Bar href={`tel:${STUDIO.telHref}`} label={`Hringja ${STUDIO.tel}`} />
@@ -350,9 +395,12 @@ export default function MyndoPage() {
       <main id="top" style={{ paddingTop: 46 }}>
         {/* hero: image, title, lede, black bar */}
         <section className="my-w" style={{ paddingTop: 8 }}>
-          <img src={stage('nyburi').photo} alt={stage('nyburi').alt}
-            width={1400} height={990} fetchPriority="high"
-            style={{ display: 'block', width: '100%', height: 'clamp(420px,72vh,780px)', objectFit: 'cover' }} />
+          <span className="my-zoom" data-ev="on-load"
+            style={{ height: 'clamp(420px,72vh,780px)' }}>
+            <img src={stage('nyburi').photo} alt={stage('nyburi').alt}
+              width={1400} height={990} fetchPriority="high"
+              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+          </span>
           <div className="my-hgrid" style={{ paddingTop: 18 }}>
             <div><h1 className="my-h1">{HERO.headline}</h1></div>
             <div>
@@ -395,7 +443,9 @@ export default function MyndoPage() {
                 <div className="my-w">
                   <h2 className="my-h2" style={{ marginBottom: 20 }}>{s.name}</h2>
                   <div className="my-ch">
-                    <img src={s.photo} alt={s.alt} loading="lazy" />
+                    <span className="my-zoom" data-ev="in-view">
+                      <img src={s.photo} alt={s.alt} loading="lazy" />
+                    </span>
                     <div className="my-ch__side">
                       <div>
                         <p className="my-lede">{s.body}</p>
@@ -416,8 +466,11 @@ export default function MyndoPage() {
               </Spy>
               <Spy className="my-sec">
                 <div className="my-w">
-                  <img src={c.wide} alt={`${s.name} hjá Myndó.`} loading="lazy"
-                    style={{ display: 'block', width: '100%', height: 'clamp(360px,64vh,700px)', objectFit: 'cover' }} />
+                  <span className="my-zoom" data-ev="in-view"
+                    style={{ height: 'clamp(360px,64vh,700px)' }}>
+                    <img src={c.wide} alt={`${s.name} hjá Myndó.`} loading="lazy"
+                      style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </span>
                 </div>
               </Spy>
             </div>
@@ -481,8 +534,10 @@ export default function MyndoPage() {
           <div className="my-w">
             <h2 className="my-h2" style={{ marginBottom: 20 }}>{SCHOOLS.title}</h2>
             <div className="my-mt">
-              <img src={IMAGES.nyburi2} alt="Mynd úr myndasafni Myndó." loading="lazy" />
-              <div>
+              <span className="my-zoom" data-ev="in-view">
+                <img src={IMAGES.nyburi2} alt="Mynd úr myndasafni Myndó." loading="lazy" />
+              </span>
+              <div className="my-stick">
                 <p className="my-lede">{SCHOOLS.body}</p>
                 <div style={{ paddingTop: 20 }}>
                   <Bar href={`tel:${STUDIO.telHref}`} label="Hafa samband um skólamyndir" />
@@ -503,8 +558,10 @@ export default function MyndoPage() {
           <div className="my-w">
             <h2 className="my-h2" style={{ marginBottom: 20 }}>Stofan</h2>
             <div className="my-mt">
-              <img src={IMAGES.olina} alt={`${OLINA.name}, ljósmyndari Myndó.`} loading="lazy" />
-              <div>
+              <span className="my-zoom" data-ev="in-view">
+                <img src={IMAGES.olina} alt={`${OLINA.name}, ljósmyndari Myndó.`} loading="lazy" />
+              </span>
+              <div className="my-stick">
                 <span className="my-code my-mute">{OLINA.role}</span>
                 <h3 className="my-lab" style={{ paddingTop: 4 }}>{OLINA.name}</h3>
                 {OLINA.body.map((b) => (
