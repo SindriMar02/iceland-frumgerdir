@@ -16,7 +16,7 @@ export const companyEntry: PreviewCompany = {
   region: 'Capital',
   established: 'Stofnuð 20.04.2007',
   currentUrl: 'https://www.myndo.is',
-  ownerEmail: '',
+  ownerEmail: 'myndo@myndo.is',
   concept: 'Æviskeiðin',
   conceptTagline:
     'Her own service list, read in the right order, is a human lifetime. That becomes the spine of the page and the argument for staying with one photographer.',
@@ -55,7 +55,9 @@ export const companyEntry: PreviewCompany = {
 
 Það sem mér finnst sterkast við Myndó er að þjónustan ykkar spannar heila ævi, frá bumbu og nýbura að fermingu, útskrift og brúðkaupi, og að þið hafið myndað fjölskyldur í Mosfellsbæ síðan 2007. Mér finnst það sterkasta röksemdin fyrir því að fjölskylda haldi sig við sömu stofuna. Það eina sem mig vantaði að sjá var vefsíða sem segir þetta, því eins og staðan er í dag er síðan ekki gerð fyrir símaskjá og birtist sem örsmá útgáfa af tölvusíðunni sem þarf að þysja inn á.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Ég rakst líka á eitt sem ég held að þið viljið vita af. Síðan þar sem foreldrar eiga að panta myndir úr skólamyndatöku skilar villu og opnast ekki, og ég fékk sömu niðurstöðu þegar ég reyndi aftur.
+
+Mér fannst þetta synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 ${'{{PREVIEW_URL}}'}
