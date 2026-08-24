@@ -18,15 +18,14 @@
  */
 
 /**
- * Her numeric property id, from Settings → Properties in the Godo control panel.
- * Requested from Godo 2026-08-21.
+ * Her numeric property id. Supplied by Godo (Ármann) 2026-08-22 and verified
+ * against the live booking page, which renders "Nýpugarðar" and all seven of
+ * her room types.
  *
- * THIS IS THE ONLY THING THAT HAS TO CHANGE TO GO LIVE. While it is empty,
- * `bookingReady()` is false and every booking control renders as an inert
- * placeholder holding Godo's spot. Fill it in (plus GODO_ROOM_IDS) and the
- * whole booking flow switches on.
+ * Safe to keep in the repo: propid appears in every public booking URL. The
+ * propKey is NOT here and must never be — see the note at the foot of this file.
  */
-export const GODO_PROPID = ''
+export const GODO_PROPID = '62130'
 
 /** Base booking page. Same host serves the control panel and the API. */
 const GODO_BOOKING_BASE = 'https://property.godo.is/booking2.php'
@@ -38,12 +37,35 @@ const GODO_BOOKING_BASE = 'https://property.godo.is/booking2.php'
  * shows everything, which is the correct default for the main call to action.
  */
 export const GODO_ROOM_IDS = {
-  ensuite: '',
-  shared: '',
-  cottage: '',
+  twinSharedEconomy: '477163',
+  doubleTwinShared: '145056',
+  doubleTwinPrivate: '145057',
+  doublePrivateExtraBed: '145058',
+  double: '259673',
+  cottage3: '145059',
+  familyCottage: '182212',
 } as const
 
 export type GodoRoomKey = keyof typeof GODO_ROOM_IDS
+
+/** Godo's own names for each type, so the site never invents a room name that
+ *  does not match what the guest sees on the booking page. */
+export const GODO_ROOM_NAMES: Record<GodoRoomKey, string> = {
+  twinSharedEconomy: 'Twin room with shared bathroom, economy',
+  doubleTwinShared: 'Double/Twin room with shared bathroom',
+  doubleTwinPrivate: 'Double/twin room with private bath',
+  doublePrivateExtraBed: 'Double private with extra bed',
+  double: 'Double',
+  cottage3: 'Cottage, 3 persons',
+  familyCottage: 'Family Cottage',
+}
+
+/** The three groups the page presents, mapped onto Godo's seven types. */
+export const ROOM_GROUPS = {
+  shared: ['twinSharedEconomy', 'doubleTwinShared'],
+  private: ['doubleTwinPrivate', 'doublePrivateExtraBed', 'double'],
+  cottage: ['cottage3', 'familyCottage'],
+} as const satisfies Record<string, readonly GodoRoomKey[]>
 
 export type BookingQuery = {
   /** Arrival date. Beds24 wants Y-M-D and tolerates unpadded month/day. */
@@ -135,3 +157,17 @@ export function parseInputDate(v: string): Date | null {
   if (!y || !m || !d) return null
   return new Date(y, m - 1, d)
 }
+
+
+/**
+ * NOT IN THIS FILE, ON PURPOSE: the property key.
+ *
+ * Godo supplied a propKey on 2026-08-22. It is a live credential against her
+ * real inventory, so it belongs in an environment variable read server-side,
+ * never in a committed source file and never in anything shipped to a browser.
+ * It is also unusable on its own — the v1 JSON API needs an account-level
+ * apiKey alongside it, which Godo has not sent yet.
+ *
+ * When the API route is built: put it in .env.local as GODO_PROP_KEY, keep that
+ * file gitignored, and read it only inside the cached proxy.
+ */

@@ -8,3 +8,8 @@ dist-reynir-server
 research-assets/
 
 .claude/worktrees/
+
+# Local secrets (Godo propKey/apiKey etc) — never commit
+.env
+.env.local
+.env.*.local
