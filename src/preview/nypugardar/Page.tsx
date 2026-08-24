@@ -63,6 +63,9 @@ import {
   UNITS,
 } from "./data";
 import { bookingHref, bookingReady, PLACEHOLDER_NOTE } from "./godo";
+import { useLang } from './useLang';
+import { COPY } from './copy';
+import type { Lang } from './copy';
 import BookingBar from "./BookingBar";
 
 const company = companyEntry;
@@ -280,19 +283,49 @@ function Eyebrow({
   );
 }
 
+/* Language switch. A single button, not a two-option segmented control: with
+ * exactly two languages the current one is already visible in the page around
+ * it, so the button names the language you would GET, which is the thing the
+ * visitor is deciding. aria-label spells it out for screen readers. */
+function LangToggle({
+  lang,
+  setLang,
+  t,
+  className = '',
+}: {
+  lang: 'is' | 'en'
+  setLang: (l: 'is' | 'en') => void
+  t: (typeof COPY)['en']
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => setLang(lang === 'is' ? 'en' : 'is')}
+      aria-label={t.switchTo}
+      lang={lang === 'is' ? 'en' : 'is'}
+      className={`font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS} ${className}`}
+    >
+      {t.otherLangName}
+    </button>
+  )
+}
+
 /* ── CTA — dark ink on amber (AA). */
 function BookLink({
   children,
   className = "",
   onClick,
+  lang,
 }: {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  lang: Lang;
 }) {
   return bookingReady() ? (
     <a
-      href={bookingHref()!}
+      href={bookingHref({ lang })!}
       onClick={onClick}
       className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
     >
@@ -334,7 +367,7 @@ function BookLink({
  * without waiting, and the live region is polite rather than assertive so a
  * screen reader is not interrupted mid-sentence by a timer.
  */
-function QuoteRotator({ reduced }: { reduced: boolean }) {
+function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en'] }) {
   const PER_PAGE = 3
   const pages = Math.ceil(QUOTES.length / PER_PAGE)
   const [page, setPage] = useState(0)
@@ -370,7 +403,7 @@ function QuoteRotator({ reduced }: { reduced: boolean }) {
             <p className="leading-relaxed text-[#F4EEE2]/85">“{q.text}”</p>
             <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
               {q.name}, {q.place}
-              {q.note ? <span className="mt-1 block text-[#F4EEE2]/60">{q.note}</span> : null}
+              {q.note ? <span className="mt-1 block text-[#F4EEE2]/60">{t.reviews.translatedFromItalian}</span> : null}
             </footer>
           </blockquote>
         ))}
@@ -383,7 +416,7 @@ function QuoteRotator({ reduced }: { reduced: boolean }) {
               key={i}
               type="button"
               onClick={() => setPage(i)}
-              aria-label={`Show guest reviews, set ${i + 1} of ${pages}`}
+              aria-label={`${t.reviews.setLabel} ${i + 1} ${t.reviews.of} ${pages}`}
               aria-current={i === page}
               className={`h-8 w-8 rounded-full border transition-colors duration-200 ${FOCUS}`}
               style={{
@@ -399,6 +432,8 @@ function QuoteRotator({ reduced }: { reduced: boolean }) {
 }
 
 export default function Page() {
+  const [lang, setLang] = useLang();
+  const t = COPY[lang];
   const reduced = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
   const rules = useRef(new Set<HTMLSpanElement>());
@@ -601,7 +636,7 @@ export default function Page() {
       <header className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
         <Img
           src={IMG.hero}
-          alt="Turf-roofed farm outbuilding and the red-roofed guesthouse at Nýpugarðar, a glacier tongue in the distance"
+          alt={t.closing.heroAlt}
           fetchpriority="high"
           loading="eager"
           className="absolute inset-0 h-full w-full object-cover"
@@ -650,16 +685,17 @@ export default function Page() {
                   onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
                   className={`font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/80 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
                 >
-                  {n.label}
+                  {t.nav[n.id as keyof typeof t.nav]}
                 </a>
               ))}
+              <LangToggle lang={lang} setLang={setLang} t={t} className="ml-2" />
             </div>
             {bookingReady() ? (
               <a
-                href={bookingHref()!}
+                href={bookingHref({ lang })!}
                 className={`hidden bg-[#D97D3D] px-4 py-2 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
               >
-                Check availability
+                {t.cta.check}
               </a>
             ) : (
               <span
@@ -668,9 +704,9 @@ export default function Page() {
                   borderColor: "rgba(217,125,61,0.55)",
                   color: "rgba(217,125,61,0.85)",
                 }}
-                title={PLACEHOLDER_NOTE}
+                title={t.booking.placeholder}
               >
-                Check availability
+                {t.cta.check}
               </span>
             )}
             <button
@@ -725,7 +761,7 @@ export default function Page() {
                 className="font-mono text-[11.5px] uppercase tracking-[0.26em] text-[#B9CBD6]"
                 style={rise(0)}
               >
-                Kvöldverðurinn á Mýrum
+                {t.hero.eyebrow}
               </p>
               <h1
                 className="mt-4 max-w-4xl font-erode text-[clamp(3.1rem,9vw,6.5rem)] font-medium leading-[1.16] tracking-tight"
@@ -737,8 +773,7 @@ export default function Page() {
                 className="mt-5 max-w-xl text-lg leading-relaxed text-[#F4EEE2]/85"
                 style={rise(2)}
               >
-                A working sheep farm between Höfn and Jökulsárlón. Stay the
-                night and sit down to dinner.
+                {t.hero.sub}
               </p>
               <div
                 className="mt-8 flex flex-wrap items-center gap-4"
@@ -757,7 +792,7 @@ export default function Page() {
                 </a>
               </div>
             </div>
-            <BookingBar variant="card" className="mt-10 lg:mt-0" />
+            <BookingBar variant="card" className="mt-10 lg:mt-0" t={t} lang={lang} />
           </div>
         </div>
       </header>
@@ -776,7 +811,7 @@ export default function Page() {
         id="mobile-menu"
         role="dialog"
         aria-modal="true"
-        aria-label="Site menu"
+        aria-label={t.nav.menu}
         aria-hidden={!menuOpen}
         className={`fixed inset-0 z-30 flex flex-col md:hidden ${menuOpen ? "" : "pointer-events-none"}`}
         style={{
@@ -812,7 +847,7 @@ export default function Page() {
                       : `transform 0.6s ${EASE} ${menuOpen ? 60 + i * 60 : 0}ms`,
                   }}
                 >
-                  {n.label}
+                  {t.nav[n.id as keyof typeof t.nav]}
                 </a>
               </li>
             ))}
@@ -830,11 +865,18 @@ export default function Page() {
           />
         </nav>
         <div className="px-6 pb-[calc(1.75rem+env(safe-area-inset-bottom))] pt-4">
+          <LangToggle
+            lang={lang}
+            setLang={setLang}
+            t={t}
+            className="mb-5 block text-[13px]"
+          />
           <BookLink
+            lang={lang}
             className="w-full justify-center py-4 text-base"
             onClick={() => setMenuOpen(false)}
           >
-            Check availability
+            {t.cta.check}
           </BookLink>
         </div>
       </div>
@@ -848,13 +890,13 @@ export default function Page() {
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
             <div>
               <Eyebrow
-                label="The flock"
+                label={t.farm.eyebrow}
                 register={register}
                 reduced={reduced}
               />
               <Reveal delay={60}>
                 <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  A working farm, not a themed hotel
+                  {t.farm.heading}
                 </h2>
               </Reveal>
               <Reveal delay={140}>
@@ -862,11 +904,7 @@ export default function Page() {
                   className="mt-6 max-w-[58ch] leading-relaxed"
                   style={{ color: BODY }}
                 >
-                  Nýpugarðar is a real working farm, not a themed hotel. The
-                  flock shares the hill with a dog and a cat, and wild reindeer
-                  come down onto the land. In spring, guests are welcome to
-                  watch the lambing. In winter, you can lend a hand with light
-                  farm work if you feel like it.
+                  {t.farm.body}
                 </p>
               </Reveal>
               <Reveal delay={220}>
@@ -876,7 +914,7 @@ export default function Page() {
                 >
                   <div>
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                      Guests when full
+                      {t.farm.guestsFull}
                     </dt>
                     <dd
                       className="mt-1 font-erode text-4xl"
@@ -887,13 +925,13 @@ export default function Page() {
                   </div>
                   <div>
                     <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                      Open
+                      {t.farm.open}
                     </dt>
                     <dd
                       className="mt-1 font-erode text-4xl"
                       style={{ color: ACCENT }}
                     >
-                      All year
+                      {t.farm.allYear}
                     </dd>
                   </div>
                 </dl>
@@ -901,9 +939,9 @@ export default function Page() {
             </div>
             <ClipImg
               src={IMG.reindeer}
-              alt="Two wild reindeer grazing on the open land at Nýpugarðar"
+              alt={t.farm.reindeerAlt}
               aspect="aspect-[4/3]"
-              caption="Wild reindeer on the land"
+              caption={t.farm.reindeerCaption}
             />
           </div>
         </section>
@@ -921,20 +959,18 @@ export default function Page() {
           />
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-16 pt-40 md:px-8 md:pb-20">
             <Eyebrow
-              label="The glacier light"
+              label={t.hill.eyebrow}
               register={register}
               reduced={reduced}
             />
             <Reveal delay={60}>
               <h2 className="mt-6 max-w-3xl font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                A small hill with the whole horizon
+                {t.hill.heading}
               </h2>
             </Reveal>
             <Reveal delay={140}>
               <p className="mt-5 max-w-[60ch] leading-relaxed text-[#F4EEE2]/85">
-                The guesthouse stands on a low hill above the lowlands of Mýrar.
-                The bright rooms look out over Hornafjörður fjord and
-                Hvannadalshnjúkur, the highest mountain in Iceland.
+                {t.hill.body}
               </p>
             </Reveal>
             <Reveal delay={220}>
@@ -943,12 +979,12 @@ export default function Page() {
                 style={{ borderColor: "rgba(244,238,226,0.25)" }}
               >
                 {DISTANCES.map((d) => (
-                  <div key={d.label}>
+                  <div key={t.distances[d.key as keyof typeof t.distances] ?? d.label}>
                     <dd className="font-erode text-3xl text-[#F4EEE2] md:text-4xl">
                       {d.n}
                     </dd>
                     <dt className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
-                      {d.label}
+                      {t.distances[d.key as keyof typeof t.distances] ?? d.label}
                     </dt>
                   </div>
                 ))}
@@ -964,12 +1000,12 @@ export default function Page() {
               src={IMG.ridge}
               alt="Snow-capped mountain ridge with a glacier at its base under a blue sky"
               aspect="aspect-[4/3]"
-              caption="The ridge behind the farm"
+              caption={t.hill.ridgeEyebrow}
             />
             <div>
               <Reveal>
                 <h2 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
-                  Four kilometres off the Ring Road, then quiet
+                  {t.place.heading}
                 </h2>
               </Reveal>
               <Reveal delay={90}>
@@ -977,11 +1013,7 @@ export default function Page() {
                   className="mt-5 max-w-[56ch] leading-relaxed"
                   style={{ color: BODY }}
                 >
-                  The farm sits a short drive off Route 1, a little east of the
-                  river Hólmsá. Close enough for a morning at Jökulsárlón, far
-                  enough that the evenings stay quiet. Hólmi Zoo is 5 km away,
-                  and Þórbergssetur museum and the Hornafjörður swimming pool
-                  are both within half an hour.
+                  {t.place.body}
                 </p>
               </Reveal>
             </div>
@@ -991,11 +1023,11 @@ export default function Page() {
         {/* ── 5 · ACCOMMODATION ────────────────────────────────────────── */}
         <section id="rooms" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label="Your room" register={register} reduced={reduced} />
+            <Eyebrow label={t.rooms.eyebrow} register={register} reduced={reduced} />
             <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
               <Reveal>
                 <h2 className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  Thirteen simple places to sleep
+                  {t.rooms.heading}
                 </h2>
               </Reveal>
               <Reveal delay={90}>
@@ -1003,9 +1035,7 @@ export default function Page() {
                   className="max-w-[52ch] leading-relaxed md:justify-self-end"
                   style={{ color: BODY }}
                 >
-                  Bright, warm rooms in the main house and two small cottages
-                  with their own bathrooms. Nothing fussy, everything you need,
-                  and that view from the pillow.
+                  {t.rooms.body}
                 </p>
               </Reveal>
             </div>
@@ -1016,7 +1046,7 @@ export default function Page() {
                 style={{ borderColor: HAIR }}
               >
                 {UNITS.map((u) => (
-                  <div key={u.label}>
+                  <div key={t.units[u.key as keyof typeof t.units] ?? u.label}>
                     <dd
                       className="font-erode text-5xl"
                       style={{ color: ACCENT }}
@@ -1024,7 +1054,7 @@ export default function Page() {
                       {u.n}
                     </dd>
                     <dt className="mt-2 max-w-[16ch] font-mono text-[11px] uppercase leading-relaxed tracking-[0.16em] text-[#F4EEE2]/60">
-                      {u.label}
+                      {t.units[u.key as keyof typeof t.units] ?? u.label}
                     </dt>
                   </div>
                 ))}
@@ -1038,7 +1068,7 @@ export default function Page() {
                   src={r.src}
                   alt={r.alt}
                   aspect="aspect-[3/4]"
-                  caption={r.caption}
+                  caption={t.roomPhotos[r.key as keyof typeof t.roomPhotos] ?? r.caption}
                   delay={i * 90}
                 />
               ))}
@@ -1049,7 +1079,7 @@ export default function Page() {
               <div>
                 <Reveal>
                   <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
-                    The two cottages
+                    {t.rooms.cottagesHeading}
                   </h3>
                 </Reveal>
                 <Reveal delay={90}>
@@ -1057,17 +1087,14 @@ export default function Page() {
                     className="mt-5 max-w-[52ch] leading-relaxed"
                     style={{ color: BODY }}
                   >
-                    Two timber cottages of 20 and 25 square metres stand beside
-                    the main house, each with its own bathroom. Room for two to
-                    four guests, with the fields right outside the door.
+                    {t.rooms.cottagesBody}
                   </p>
                 </Reveal>
                 <Reveal delay={220}>
                   <div className="mt-9 flex flex-wrap items-center gap-4">
-                    <BookLink>Check availability</BookLink>
+                    <BookLink lang={lang}>{t.cta.check}</BookLink>
                     <p className="text-sm text-[#F4EEE2]/55">
-                      Live dates and prices come straight from our booking
-                      system
+                      {t.cta.liveFromGodo}
                     </p>
                   </div>
                 </Reveal>
@@ -1075,15 +1102,15 @@ export default function Page() {
               <div className="grid grid-cols-2 gap-4 md:gap-5">
                 <ClipImg
                   src={IMG.cottage1}
-                  alt="Red-roofed cottage at Nýpugarðar in warm evening light with snow on the ground"
+                  alt={t.rooms.cottage1Alt}
                   aspect="aspect-[3/4]"
-                  caption="Cottage in winter light"
+                  caption={t.rooms.cottage1Caption}
                 />
                 <ClipImg
                   src={IMG.cottage2}
-                  alt="Second cottage at Nýpugarðar under a dusk sky, green grass around it"
+                  alt={t.rooms.cottage2Alt}
                   aspect="aspect-[3/4]"
-                  caption="Cottage at dusk"
+                  caption={t.rooms.cottage2Caption}
                   delay={110}
                 />
               </div>
@@ -1098,40 +1125,40 @@ export default function Page() {
                 style={{ borderColor: HAIR }}
               >
                 <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
-                  Before you come
+                  {t.rooms.beforeYouCome}
                 </h3>
                 <div className="mt-8 grid gap-10 md:grid-cols-[auto_1fr] md:gap-20">
                   <dl className="flex gap-12 sm:gap-16">
-                    {CHECK_TIMES.map((t) => (
-                      <div key={t.label}>
+                    {CHECK_TIMES.map((ct) => (
+                      <div key={ct.key === "arrive" ? t.rooms.arrive : t.rooms.leave}>
                         <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/55">
-                          {t.label}
+                          {ct.key === "arrive" ? t.rooms.arrive : t.rooms.leave}
                         </dt>
                         <dd
                           className="mt-2 font-erode text-5xl leading-none tracking-tight tabular-nums md:text-6xl"
                           style={{ color: ACCENT }}
                         >
-                          {t.value}
+                          {ct.value}
                         </dd>
                         <dd className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/45">
-                          {t.tail}
+                          {ct.key === "arrive" ? t.rooms.until : t.rooms.from}
                         </dd>
                       </div>
                     ))}
                   </dl>
                   <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2 md:self-center">
                     {HOUSE_RULES.map((h) => (
-                      <li key={h.rule} className="flex items-baseline gap-3">
+                      <li key={t.rules[h.key as keyof typeof t.rules] ?? h.rule} className="flex items-baseline gap-3">
                         <span
                           aria-hidden="true"
                           className="mt-[0.45em] h-px w-4 shrink-0"
                           style={{ background: "rgba(244,238,226,0.3)" }}
                         />
                         <span className="text-[15px] leading-snug text-[#F4EEE2]/85">
-                          {h.rule}
+                          {t.rules[h.key as keyof typeof t.rules] ?? h.rule}
                           {h.note ? (
                             <span className="text-[#F4EEE2]/50">
-                              , {h.note}
+                              , {h.noteKey ? t.rules[h.noteKey as keyof typeof t.rules] : null}
                             </span>
                           ) : null}
                         </span>
@@ -1148,13 +1175,13 @@ export default function Page() {
         <section id="dinner" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow
-              label="Dinner is served"
+              label={t.dinner.eyebrow}
               register={register}
               reduced={reduced}
             />
             <Reveal delay={60}>
               <h2 className="mt-6 max-w-3xl font-erode text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight">
-                A dinner buffet with lamb
+                {t.dinner.heading}
               </h2>
             </Reveal>
             <Reveal delay={140}>
@@ -1162,11 +1189,7 @@ export default function Page() {
                 className="mt-6 max-w-[62ch] text-lg leading-relaxed"
                 style={{ color: BODY }}
               >
-                This is what guests remember. Booking.com describes Nýpugarðar
-                simply: a sheep farm with simple, fresh rooms, a home-cooked
-                breakfast and a dinner buffet with lamb. Traditional Icelandic
-                cooking with local ingredients, eaten in a dining room whose
-                windows face the ice.
+                {t.dinner.intro}
               </p>
             </Reveal>
 
@@ -1174,7 +1197,7 @@ export default function Page() {
               src={IMG.dining}
               alt="The dining room at Nýpugarðar, tables set for about twenty guests in front of full-height windows facing the glacier"
               aspect="aspect-[1280/577]"
-              caption="The dining room, windows facing the glacier"
+              caption={t.dinner.diningCaption}
               className="mt-12"
             />
 
@@ -1196,10 +1219,7 @@ export default function Page() {
               <div>
                 <Reveal delay={80}>
                   <p className="leading-relaxed" style={{ color: BODY }}>
-                    Dinner is served here on the farm, in the dining room with
-                    the windows facing the glacier. There is nothing to book
-                    ahead and nothing to arrange online. Tell us when you arrive
-                    that you would like to eat, and a place is set for you.
+                    {t.dinner.body}
                   </p>
                 </Reveal>
                 <Reveal delay={160}>
@@ -1232,7 +1252,7 @@ export default function Page() {
                   src={IMG.deck}
                   alt="Dusk view from the guesthouse deck at Nýpugarðar, benches facing wide grassland and a low sun"
                   aspect="aspect-[3/4]"
-                  caption="The deck, just before dinner"
+                  caption={t.dinner.deckCaption}
                   delay={200}
                   className="mt-8 max-w-xs"
                 />
@@ -1244,40 +1264,41 @@ export default function Page() {
                 <div className="grid gap-10 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14">
                   <ClipImg
                     src={IMG.breakfast}
-                    alt="The breakfast buffet laid out at Nýpugarðar: bread, cold cuts, jams and a coffee pot"
+                    alt={t.dinner.breakfastAlt}
                     aspect="aspect-[4/3]"
-                    caption="The breakfast table"
+                    caption={t.dinner.breakfastCaption}
                   />
                   <div>
                     <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
-                      And breakfast before you go
+                      {t.dinner.breakfastHeading}
                     </h3>
                     <p className="mt-4 max-w-[46ch] leading-relaxed" style={{ color: BODY }}>
-                      A buffet in the same room, with the same view. Guests rate it highly, and
-                      the kitchen can cover most ways of eating.
+                      {t.dinner.breakfastBody}
                     </p>
                     <dl className="mt-8 space-y-5">
                       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
                         <dt className="w-32 shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/50">
-                          Served
+                          {t.dinner.served}
                         </dt>
                         <dd className="text-[15px] text-[#F4EEE2]/85">
-                          {BREAKFAST.served.join(' · ')}
+                          {BREAKFAST.served.map((b) => t.breakfast[b as keyof typeof t.breakfast] ?? b).join(' · ')}
                         </dd>
                       </div>
                       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
                         <dt className="w-32 shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/50">
-                          We can cover
+                          {t.dinner.weCanCover}
                         </dt>
                         <dd className="text-[15px] text-[#F4EEE2]/85">
-                          {BREAKFAST.diets.join(' · ')}
+                          {BREAKFAST.diets.map((b) => t.breakfast[b as keyof typeof t.breakfast] ?? b).join(' · ')}
                         </dd>
                       </div>
                     </dl>
                     <p className="mt-7 text-[15px] leading-relaxed" style={{ color: BODY }}>
-                      Driving to the glacier lagoon before the room opens?{' '}
-                      <span style={{ color: ACCENT }}>{BREAKFAST.toGo}</span> — say so the night
-                      before and it will be waiting.
+                      {t.dinner.toGoLead}{' '}
+                      <span style={{ color: ACCENT }}>
+                        {t.breakfast[BREAKFAST.toGo as keyof typeof t.breakfast] ?? BREAKFAST.toGo}
+                      </span>
+                      . {t.dinner.toGoTail}
                     </p>
                   </div>
                 </div>
@@ -1289,33 +1310,28 @@ export default function Page() {
         {/* ── 7 · SEASONS ──────────────────────────────────────────────── */}
         <section className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
-            <h2 className="sr-only">The seasons at Nýpugarðar</h2>
+            <h2 className="sr-only">{t.seasons.srHeading}</h2>
             <div className="grid gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-[#F4EEE2]/15">
               <Reveal className="md:pr-14">
                 <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
-                  Spring is for lambing
+                  {t.seasons.springHeading}
                 </h3>
                 <p
                   className="mt-4 max-w-[50ch] leading-relaxed"
                   style={{ color: BODY }}
                 >
-                  When the lambs arrive, guests are welcome in the sheep shed to
-                  watch. It is the busiest, loudest, best time of year on the
-                  farm.
+                  {t.seasons.springBody}
                 </p>
               </Reveal>
               <Reveal delay={110} className="md:pl-14">
                 <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
-                  Winter is for dark skies
+                  {t.seasons.winterHeading}
                 </h3>
                 <p
                   className="mt-4 max-w-[50ch] leading-relaxed"
                   style={{ color: BODY }}
                 >
-                  The house is open all year. Guide to Iceland calls it an ideal
-                  location for spotting the northern lights in the winter
-                  months, and there is light farm work to join if you want to
-                  earn your dinner.
+                  {t.seasons.winterBody}
                 </p>
               </Reveal>
             </div>
@@ -1329,8 +1345,8 @@ export default function Page() {
           style={{ borderColor: HAIR }}
         >
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label="Guests" register={register} reduced={reduced} />
-            <h2 className="sr-only">Guest reviews</h2>
+            <Eyebrow label={t.reviews.eyebrow} register={register} reduced={reduced} />
+            <h2 className="sr-only">{t.reviews.srHeading}</h2>
             <div className="mt-8 grid items-end gap-10 md:grid-cols-[auto_1fr] md:gap-16">
               <Reveal>
                 <p className="flex items-baseline gap-3">
@@ -1342,14 +1358,14 @@ export default function Page() {
                   </span>
                 </p>
                 <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.2em] text-[#F4EEE2]/70">
-                  “{SCORE.word}” · {SCORE.count} guest reviews on Booking.com
+                  “{t.reviews.scoreWord}” · {SCORE.count} {t.reviews.reviewsOn}
                 </p>
               </Reveal>
               <Reveal delay={100}>
                 <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
                   {SCORE.categories.map((c) => (
                     <div
-                      key={c.label}
+                      key={t.scoreCats[c.label as keyof typeof t.scoreCats] ?? c.label}
                       className="border-t pt-3"
                       style={{ borderColor: HAIR }}
                     >
@@ -1360,7 +1376,7 @@ export default function Page() {
                         {c.n}
                       </dd>
                       <dt className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/55">
-                        {c.label}
+                        {t.scoreCats[c.label as keyof typeof t.scoreCats] ?? c.label}
                       </dt>
                     </div>
                   ))}
@@ -1368,10 +1384,10 @@ export default function Page() {
               </Reveal>
             </div>
 
-            <QuoteRotator reduced={reduced} />
+            <QuoteRotator reduced={reduced} t={t} />
             <Reveal delay={140}>
               <p className="mt-10 text-sm text-[#F4EEE2]/50">
-                Guest reviews via{" "}
+                {t.reviews.srHeading} via{" "}
                 <a
                   href={REVIEWS_URL}
                   target="_blank"
@@ -1380,7 +1396,7 @@ export default function Page() {
                 >
                   Booking.com
                 </a>
-                . Individual review dates are not published there.
+                {t.reviews.noDates}
               </p>
             </Reveal>
           </div>
@@ -1389,17 +1405,17 @@ export default function Page() {
         {/* ── 9 · PRACTICAL INFO ───────────────────────────────────────── */}
         <section id="info" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label="Finding us" register={register} reduced={reduced} />
+            <Eyebrow label={t.info.eyebrow} register={register} reduced={reduced} />
             <Reveal delay={60}>
               <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                Easy to reach, hard to leave
+                {t.info.heading}
               </h2>
             </Reveal>
             <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-16">
               <div className="space-y-8">
                 <Reveal>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    Call the farm
+                    {t.info.callFarm}
                   </p>
                   <a
                     href={PHONE_HREF}
@@ -1411,7 +1427,7 @@ export default function Page() {
                 </Reveal>
                 <Reveal delay={80}>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    Write to us
+                    {t.info.writeToUs}
                   </p>
                   <a
                     href={`mailto:${EMAIL}`}
@@ -1427,7 +1443,7 @@ export default function Page() {
                 </Reveal>
                 <Reveal delay={160}>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    The address
+                    {t.info.address}
                   </p>
                   <p className="mt-2 flex items-start gap-3 text-xl text-[#F4EEE2]/90 md:text-2xl">
                     <MapPin
@@ -1440,7 +1456,7 @@ export default function Page() {
                 </Reveal>
                 <Reveal delay={220}>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    On the property
+                    {t.info.onTheProperty}
                   </p>
                   <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                     {FACILITIES.map((f) => {
@@ -1453,7 +1469,7 @@ export default function Page() {
                             style={{ color: ACCENT }}
                             aria-hidden="true"
                           />
-                          <span className="text-[14px] leading-tight text-[#F4EEE2]/80">{f}</span>
+                          <span className="text-[14px] leading-tight text-[#F4EEE2]/80">{t.facilities[f as keyof typeof t.facilities] ?? f}</span>
                         </li>
                       )
                     })}
@@ -1463,11 +1479,7 @@ export default function Page() {
               <div>
                 <Reveal delay={100}>
                   <p className="leading-relaxed" style={{ color: BODY }}>
-                    Book directly with us and you deal with the farm, not an
-                    agency. Dates and availability are live. Nýpugarðar is also
-                    listed on Booking.com, HeyIceland and Guide to Iceland if
-                    you would rather book there. For anything else, the phone is
-                    quickest.
+                    {t.info.bookDirect}
                   </p>
                 </Reveal>
                 <Reveal delay={180}>
@@ -1477,21 +1489,20 @@ export default function Page() {
                   >
                     {DISTANCES.map((d) => (
                       <li
-                        key={d.label}
+                        key={t.distances[d.key as keyof typeof t.distances] ?? d.label}
                         className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/65"
                       >
-                        {d.n} · {d.label}
+                        {d.n} · {t.distances[d.key as keyof typeof t.distances] ?? d.label}
                       </li>
                     ))}
                     <li className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/65">
-                      Open all year
+                      {t.rules.openAllYear}
                     </li>
                   </ul>
                 </Reveal>
                 <Reveal delay={240}>
                   <p className="mt-8 text-sm text-[#F4EEE2]/60">
-                    Nýpugarðar ehf. is an active, registered Icelandic company,
-                    kt. 510805-0380.
+                    {t.footer.company}
                   </p>
                 </Reveal>
               </div>
@@ -1513,25 +1524,24 @@ export default function Page() {
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 pt-40 text-center md:px-8 md:pb-28">
             <div className="mx-auto w-fit">
               <Eyebrow
-                label="Nightfall"
+                label={t.seasons.duskEyebrow}
                 register={register}
                 reduced={reduced}
               />
             </div>
             <Reveal delay={60}>
               <h2 className="mx-auto mt-6 max-w-3xl font-erode text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight">
-                Book your evening at Nýpugarðar
+                {t.closing.heading}
               </h2>
             </Reveal>
             <Reveal delay={140}>
               <p className="mx-auto mt-5 max-w-xl leading-relaxed text-[#F4EEE2]/85">
-                A room with the horizon in the window, and a seat at the table
-                when the lamb comes out of the kitchen.
+                {t.closing.body}
               </p>
             </Reveal>
             <Reveal delay={220}>
               <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-                <BookLink>Book your evening at Nýpugarðar</BookLink>
+                <BookLink lang={lang}>{t.closing.heading}</BookLink>
                 <a
                   href={PHONE_HREF}
                   className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
@@ -1576,10 +1586,10 @@ export default function Page() {
         <div className="flex items-stretch gap-3 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           {bookingReady() ? (
             <a
-              href={bookingHref()!}
+              href={bookingHref({ lang })!}
               className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
             >
-              Check availability
+              {t.cta.check}
               <ArrowUpRight
                 className="h-4 w-4"
                 strokeWidth={1.5}
@@ -1593,9 +1603,9 @@ export default function Page() {
                 borderColor: "rgba(217,125,61,0.55)",
                 color: "rgba(217,125,61,0.85)",
               }}
-              title={PLACEHOLDER_NOTE}
+              title={t.booking.placeholder}
             >
-              Check availability
+              {t.cta.check}
             </span>
           )}
           <a

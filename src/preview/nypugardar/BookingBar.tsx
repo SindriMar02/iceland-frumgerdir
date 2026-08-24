@@ -1,13 +1,13 @@
 import { useId, useMemo, useState } from 'react'
 import { ArrowUpRight, Minus, Plus } from 'lucide-react'
+import type { Copy, Lang } from './copy'
 import {
   bookingHref,
   bookingReady,
   inputDate,
   nightsBetween,
   parseInputDate,
-  PLACEHOLDER_NOTE,
-  type GodoRoomKey,
+    type GodoRoomKey,
 } from './godo'
 
 /**
@@ -99,17 +99,20 @@ function Stepper({
 export default function BookingBar({
   room = null,
   className = '',
-  label = 'Check availability',
   variant = 'bar',
+  t,
+  lang,
 }: {
   /** Focus the booking page on one unit type, when placed inside a room card. */
   room?: GodoRoomKey | null
   className?: string
-  label?: string
+  t: Copy
+  lang: Lang
   /** 'bar' is the wide five-across row; 'card' stacks for a narrow column,
    *  which is what the hero uses so it can sit beside the headline. */
   variant?: 'bar' | 'card'
 }) {
+  const label = t.cta.check
   const isCard = variant === 'card'
   const today = useMemo(() => startOfDay(new Date()), [])
   const [checkin, setCheckin] = useState<Date>(() => addDays(today, 1))
@@ -123,7 +126,7 @@ export default function BookingBar({
   const nights = nightsBetween(checkin, checkout)
   const ready = bookingReady()
 
-  const href = bookingHref({ checkin, checkout, adults, children, room, lang: 'en' })
+  const href = bookingHref({ checkin, checkout, adults, children, room, lang })
 
   function onCheckin(v: string) {
     const d = parseInputDate(v)
@@ -167,7 +170,7 @@ export default function BookingBar({
             className="font-mono text-[10px] uppercase tracking-[0.16em]"
             style={{ color: 'rgba(244,238,226,0.55)' }}
           >
-            Arriving
+            {t.booking.arriving}
           </label>
           <input
             id={inId}
@@ -186,7 +189,7 @@ export default function BookingBar({
             className="font-mono text-[10px] uppercase tracking-[0.16em]"
             style={{ color: 'rgba(244,238,226,0.55)' }}
           >
-            Leaving
+            {t.booking.leaving}
           </label>
           <input
             id={outId}
@@ -201,13 +204,13 @@ export default function BookingBar({
 
         {isCard ? (
           <div className="grid grid-cols-2 gap-4">
-            <Stepper label="Adults" value={adults} min={1} max={12} onChange={setAdults} />
-            <Stepper label="Children" value={children} min={0} max={8} onChange={setChildren} />
+            <Stepper label={t.booking.adults} value={adults} min={1} max={12} onChange={setAdults} />
+            <Stepper label={t.booking.children} value={children} min={0} max={8} onChange={setChildren} />
           </div>
         ) : (
           <>
-            <Stepper label="Adults" value={adults} min={1} max={12} onChange={setAdults} />
-            <Stepper label="Children" value={children} min={0} max={8} onChange={setChildren} />
+            <Stepper label={t.booking.adults} value={adults} min={1} max={12} onChange={setAdults} />
+            <Stepper label={t.booking.children} value={children} min={0} max={8} onChange={setChildren} />
           </>
         )}
 
@@ -241,12 +244,12 @@ export default function BookingBar({
       >
         {ready ? (
           <>
-            {nights} {nights === 1 ? 'night' : 'nights'} · guests 7 and older count as adults ·
-            prices shown on the next step
+            {nights} {nights === 1 ? t.booking.night : t.booking.nights} · {t.booking.ageNote} ·{' '}
+            {t.booking.pricesNext}
           </>
         ) : (
           <>
-            {nights} {nights === 1 ? 'night' : 'nights'} · {PLACEHOLDER_NOTE}
+            {nights} {nights === 1 ? t.booking.night : t.booking.nights} · {t.booking.placeholder}
           </>
         )}
       </p>

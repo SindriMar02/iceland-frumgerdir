@@ -63,10 +63,10 @@ export const NAV = [
 
 /** ferdalag.is unit breakdown, 2026-07-18 */
 export const UNITS = [
-  { n: '9', label: 'rooms with private bathroom' },
-  { n: '2', label: 'rooms with shared bathroom' },
-  { n: '2', label: 'cottages for 2 to 4 guests' },
-  { n: '24', label: 'guests when the house is full' },
+  { n: '9', key: 'privateBath', label: 'rooms with private bathroom' },
+  { n: '2', key: 'sharedBath', label: 'rooms with shared bathroom' },
+  { n: '2', key: 'cottages', label: 'cottages for 2 to 4 guests' },
+  { n: '24', key: 'guestsFull', label: 'guests when the house is full' },
 ] as const
 
 /** Booking.com house rules, re-verified live 2026-08-21. The earlier
@@ -77,15 +77,15 @@ export const UNITS = [
  *  (when can I arrive, when must I leave) can be given real weight instead of
  *  being buried in a flat list of seven identical lines. */
 export const CHECK_TIMES = [
-  { label: 'Arrive', value: '16:00', tail: 'until 23:30' },
-  { label: 'Leave', value: '11:00', tail: 'from 07:30' },
+  { key: 'arrive', label: 'Arrive', value: '16:00', tail: 'until 23:30' },
+  { key: 'leave', label: 'Leave', value: '11:00', tail: 'from 07:30' },
 ] as const
 
 export const HOUSE_RULES = [
-  { rule: 'Open all year', note: null },
-  { rule: 'Children welcome', note: 'guests 7 and older pay as adults' },
-  { rule: 'No pets', note: null },
-  { rule: 'No smoking', note: null },
+  { key: 'openAllYear', rule: 'Open all year', noteKey: null, note: null },
+  { key: 'childrenWelcome', rule: 'Children welcome', noteKey: 'childrenNote', note: 'guests 7 and older pay as adults' },
+  { key: 'noPets', rule: 'No pets', noteKey: null, note: null },
+  { key: 'noSmoking', rule: 'No smoking', noteKey: null, note: null },
 ] as const
 
 /** Booking.com facilities list, re-verified live 2026-08-21. */
@@ -107,9 +107,9 @@ export const BREAKFAST = {
 
 /** Booking.com location facts, verified live 2026-08-21 */
 export const DISTANCES = [
-  { n: '4 km', label: 'off Route 1, the Ring Road' },
-  { n: '25 min', label: 'drive to Höfn' },
-  { n: '47 km', label: 'to Jökulsárlón glacier lagoon' },
+  { n: '4 km', key: 'offRoute1', label: 'off Route 1, the Ring Road' },
+  { n: '25 min', key: 'driveToHofn', label: 'drive to Höfn' },
+  { n: '47 km', key: 'toGlacierLagoon', label: 'to Jökulsárlón glacier lagoon' },
 ] as const
 
 /** Booking.com live score, fetched 2026-07-18 */
@@ -181,10 +181,10 @@ export const QUOTES = [
 
 /** Room photo mosaic — captions describe only what each photo shows. */
 export const ROOM_PHOTOS = [
-  { src: IMG.room1, alt: 'Twin room at Nýpugarðar with a red-framed window looking over the fields', caption: 'Twin room' },
-  { src: IMG.room2, alt: 'Room at Nýpugarðar with a window framing open farmland to the horizon', caption: 'Room with a farmland view' },
-  { src: IMG.cottageIn1, alt: 'Pine-lined interior of one of the cottages at Nýpugarðar', caption: 'Inside a cottage' },
-  { src: IMG.bath, alt: 'White-tiled private bathroom with a shower at Nýpugarðar', caption: 'Private bathroom' },
+  { src: IMG.room1, alt: 'Twin room at Nýpugarðar with a red-framed window looking over the fields', caption: 'Twin room', key: 'Twin room' },
+  { src: IMG.room2, alt: 'Room at Nýpugarðar with a window framing open farmland to the horizon', caption: 'Room with a farmland view', key: 'Room with a farmland view' },
+  { src: IMG.cottageIn1, alt: 'Pine-lined interior of one of the cottages at Nýpugarðar', caption: 'Inside a cottage', key: 'Inside a cottage' },
+  { src: IMG.bath, alt: 'White-tiled private bathroom with a shower at Nýpugarðar', caption: 'Private bathroom', key: 'Private bathroom' },
 ] as const
 
 export const FOOTNOTE =
