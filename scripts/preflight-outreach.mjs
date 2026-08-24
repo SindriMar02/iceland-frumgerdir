@@ -38,10 +38,37 @@ const browser = await puppeteer.launch({
   executablePath: CHROME, headless: 'new', args: ['--hide-scrollbars'],
 })
 
-/** Is a canvas actually showing an image, or is it one flat colour? */
-const canvasPainted = (page, sel) => page.evaluate((s) => {
+/** Is a canvas actually showing an image, or is it one flat colour?
+ *  A WebGL canvas cannot hand back a 2d context (and without preserveDrawingBuffer
+ *  its pixels are gone by the time we ask), so those are sampled from a real
+ *  screenshot of the canvas box instead of from getImageData. */
+const canvasPainted = async (page, sel) => {
+  const kind = await page.evaluate((s) => {
+    const c = document.querySelector(s)
+    if (!c || !c.width || !c.height) return { present: !!c, zero: true }
+    // a canvas that is nowhere near the viewport has not been asked to draw yet;
+    // asserting it is painted would fail every lazily-initialised scene
+    const r = c.getBoundingClientRect()
+    if (r.bottom < -innerHeight || r.top > innerHeight * 2) return { present: true, offscreen: true }
+    let two = false
+    try { two = !!c.getContext('2d') } catch { two = false }
+    return { present: true, zero: false, two }
+  }, sel)
+  if (!kind.present) return { present: false, painted: false, why: 'missing' }
+  if (kind.offscreen) return { present: true, painted: true, why: 'offscreen, not asserted' }
+  if (kind.zero) return { present: true, painted: false, why: 'zero-sized' }
+  if (!kind.two) {
+    // WebGL: screenshot the canvas and check the pixels are not all one colour
+    const el = await page.$(sel)
+    if (!el) return { present: false, painted: false, why: 'missing' }
+    const buf = await el.screenshot({ type: 'png' })
+    // PNG bytes vary hugely between a flat fill and real imagery; a flat canvas
+    // compresses to almost nothing at this size
+    const painted = buf.length > 6000
+    return { present: true, painted, why: painted ? '' : `webgl canvas looks flat (${buf.length}B png)` }
+  }
+  return page.evaluate((s) => {
   const c = document.querySelector(s)
-  if (!c || !c.width || !c.height) return { present: !!c, painted: false, why: 'missing or zero-sized' }
   const x = c.getContext('2d')
   const at = (fx, fy) => {
     const d = x.getImageData(Math.floor(c.width * fx), Math.floor(c.height * fy), 1, 1).data
@@ -50,7 +77,8 @@ const canvasPainted = (page, sel) => page.evaluate((s) => {
   const pts = [at(0.15, 0.15), at(0.5, 0.5), at(0.85, 0.85), at(0.5, 0.15)]
   const flat = pts.every((p) => p.every((v, i) => Math.abs(v - pts[0][i]) < 10))
   return { present: true, painted: !flat, pts, why: flat ? 'every sample the same colour' : '' }
-}, sel)
+  }, sel)
+}
 
 /* ── 1 · cold first visit, whole page, watching for broken assets ───────── */
 {
@@ -69,12 +97,19 @@ const canvasPainted = (page, sel) => page.evaluate((s) => {
     noindex: (document.querySelector('meta[name=robots]') || {}).content || null,
     jsonld: !!document.querySelector('script[type="application/ld+json"]'),
     imgs: [...document.images].length,
-    brokenImgs: [...document.images].filter((i) => i.complete && i.naturalWidth === 0).length,
+    /* An <img> with NO src is not broken, it is unloaded. Builds with a memory-window
+       loader (smekkleysa's record roll strips src off every plate outside the read
+       window, by design) parked 57 such elements on the page and this check called
+       them all broken while every VISIBLE sleeve painted. Count only images that were
+       actually asked to load something and failed. */
+    brokenImgs: [...document.images].filter((i) => i.complete && i.naturalWidth === 0 && i.getAttribute('src')).length,
+    deferredImgs: [...document.images].filter((i) => !i.getAttribute('src')).length,
   }))
   note(!!boot.title && boot.title !== 'Endurhannanir', 'page boots with its own title', boot.title)
   note(/noindex/.test(boot.noindex || ''), 'noindex present', boot.noindex || 'MISSING')
   note(boot.jsonld, 'JSON-LD schema present')
-  note(boot.brokenImgs === 0, 'no broken <img>', `${boot.brokenImgs} broken of ${boot.imgs}`)
+  note(boot.brokenImgs === 0, 'no broken <img>',
+    `${boot.brokenImgs} broken of ${boot.imgs}` + (boot.deferredImgs ? `, ${boot.deferredImgs} deferred (no src yet)` : ''))
   note(bad.length === 0, 'no 4xx assets', bad.slice(0, 4).join(', '))
   await p.close()
 }

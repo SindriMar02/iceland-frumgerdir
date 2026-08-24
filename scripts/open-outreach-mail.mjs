@@ -16,7 +16,7 @@ if (!payloadPath) {
   process.exit(1)
 }
 
-const { to = '', subject, body, revealBanner = true } = JSON.parse(readFileSync(payloadPath, 'utf8'))
+const { to = '', cc = '', subject, body, revealBanner = true } = JSON.parse(readFileSync(payloadPath, 'utf8'))
 if (!subject || !body) {
   console.error('payload needs { subject, body } (to may be empty)')
   process.exit(1)
@@ -26,13 +26,13 @@ if (!subject || !body) {
    an empty recipient opens a normal compose window with the subject and body
    filled and the To: field blank, ready to address or copy out. */
 
-const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+const mailto = `mailto:${to}?${cc ? `cc=${encodeURIComponent(cc)}&` : ''}subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 
 // -a Mail forces Apple Mail specifically (not whatever the system mailto default is),
 // and execFileSync with an argv array never touches a shell, so nothing here can be
 // mis-escaped regardless of accents, quotes, or newlines in the Icelandic text.
 execFileSync('open', ['-a', 'Mail', mailto])
-console.log(`Opened a new Mail.app message to ${to}`)
+console.log(`Opened a new Mail.app message to ${to}${cc ? ` (cc ${cc})` : ''}`)
 
 if (revealBanner) {
   const banner = `${homedir()}/Downloads/sndr-scouting-banner.png`

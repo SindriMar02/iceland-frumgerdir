@@ -26,6 +26,9 @@ const src = readFileSync(draftPath, 'utf8')
    which is a supported case) \s* crossed the newline and captured the Subject
    line as the recipient, so Mail opened addressed to '**Subject:** ...'. */
 const to = (src.match(/\*\*To:\*\*[^\S\n]*(.*)/) || [, ''])[1].trim()
+/* Optional. Some letters go to a named owner with a second mailbox in copy
+   (Smekkleysa: asi@ with kiddi@ in cc). Same [^\S\n]* guard as To:. */
+const cc = (src.match(/\*\*Cc:\*\*[^\S\n]*(.*)/) || [, ''])[1].trim()
 const subject = (src.match(/\*\*Subject:\*\*\s*(.+)/) || [])[1]?.trim()
 const greetingRe = /^(Sæl og blessuð|Sæl|Sæll|Góðan dag|Komdu sæl)/m
 const gm = src.match(greetingRe)
@@ -105,6 +108,6 @@ check(/^Bestu kveðjur,\nSindri Már\n845 1758\nsndr-studio\.pages\.dev$/m.test(
   'sign-off is the canonical four lines')
 
 if (bad) { console.error(`\n${bad} problem(s). No payload written.`); process.exit(1) }
-writeFileSync(outPath, JSON.stringify({ to, subject, body, revealBanner: false }, null, 2))
+writeFileSync(outPath, JSON.stringify({ to, cc, subject, body, revealBanner: false }, null, 2))
 console.log(`\nDraft is clean. Payload: ${outPath}`)
 console.log(`Longest paragraph: ${Math.max(...proseParas.map(p => p.length))} chars on ONE line.`)
