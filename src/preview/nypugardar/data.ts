@@ -69,7 +69,10 @@ export const UNITS = [
   { n: '24', label: 'guests when the house is full' },
 ] as const
 
-/** Booking.com house rules, re-verified live 2026-08-21.
+/** Booking.com house rules, re-verified live 2026-08-21. The earlier
+ *  "no extra beds" line is gone: Godo lists a bookable room type literally
+ *  named "Double Private with extra bed" (145058), so Booking.com's blanket
+ *  statement is wrong for direct bookings and the site should not repeat it.
  *  Split into times and policies so the two facts guests actually look up
  *  (when can I arrive, when must I leave) can be given real weight instead of
  *  being buried in a flat list of seven identical lines. */
@@ -81,7 +84,6 @@ export const CHECK_TIMES = [
 export const HOUSE_RULES = [
   { rule: 'Open all year', note: null },
   { rule: 'Children welcome', note: 'guests 7 and older pay as adults' },
-  { rule: 'No extra beds', note: 'the cottages sleep up to four' },
   { rule: 'No pets', note: null },
   { rule: 'No smoking', note: null },
 ] as const
