@@ -37,8 +37,12 @@ export const IMG = {
   dusk: photo('125645022'),
   /** Wild reindeer come down onto the land in winter. */
   reindeer: photo('10523758'),
-  /** The guesthouse deck and the cottages under snow, glacier plain behind. */
+  /** The guesthouse deck and the cottages under snow, glacier plain behind.
+   *  Runs beside the winter column in the seasons section. */
   house: photo('258957593'),
+  /** The old turf-roofed outbuilding on green grass — the same farm in the
+   *  other half of the year, which is what the spring column needed. */
+  green: photo('10523864'),
   /** The terrace, two benches, evening. */
   deck: photo('510526816'),
   /** The dining room, windows the whole length of it. */
@@ -50,6 +54,17 @@ export const IMG = {
   /** The cottage for three. */
   cottage2: photo('510524306'),
 } as const
+
+/**
+ * The ids the page shows as full frames above the gallery. The gallery
+ * subtracts these, which is what keeps every photograph to exactly one
+ * appearance — see the rule at the top of photos.ts. Derived from IMG rather
+ * than written out again, so promoting or demoting a frame is one edit and the
+ * two can never drift.
+ */
+export const FEATURED_IDS: ReadonlySet<string> = new Set(
+  Object.values(IMG).map((p) => p.id),
+)
 
 export const BOOKING_URL = 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html'
 /** Her Booking.com property page. Used only for review attribution — never as a

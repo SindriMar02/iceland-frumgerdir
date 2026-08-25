@@ -57,6 +57,7 @@ import {
   PHONE,
   REVIEWS_URL,
   PHONE_HREF,
+  FEATURED_IDS,
   QUOTES,
   SCORE,
   UNITS,
@@ -71,10 +72,10 @@ import {
 } from "./godo";
 import { useStay, type Stay } from "./stay";
 import {
-  byCat,
-  forRoom,
+  galleryFor,
   largest,
   leadFor,
+  restFor,
   src as photoSrc,
   srcSet,
   type Photo,
@@ -105,16 +106,25 @@ function photoAlt(p: Photo, t: Copy, lang: Lang): string {
 }
 
 /**
- * Everything left over once the room types have taken their own photographs.
- * Between these three and the seven room groups, all 43 of her photographs are
- * on the page — nothing she owns sits unused in the repo, and nothing on the
- * page is filler from somewhere else.
+ * Everything left over once the room types and the featured frames have taken
+ * their own photographs. Between these three and the seven room groups, all 43
+ * of her photographs are on the page — each of them exactly once. Nothing she
+ * owns sits unused in the repo, nothing on the page is filler from somewhere
+ * else, and no picture is printed twice to fill a hole.
  */
-const GALLERY_REST = [
-  { key: "table", photos: byCat("table") },
-  { key: "house", photos: byCat("house") },
-  { key: "land", photos: byCat("land") },
-] as const;
+const GALLERY_REST = (
+  [
+    { key: "table", photos: restFor(["table"], FEATURED_IDS) },
+    { key: "house", photos: restFor(["house"], FEATURED_IDS) },
+    { key: "land", photos: restFor(["land"], FEATURED_IDS) },
+  ] as const
+).filter((g) => g.photos.length > 0);
+
+/* Both of her dining-room frames and both house frames now run full width
+ * higher up the page, so those two groups come out empty here. An empty group
+ * still rendered its heading — a label with nothing under it, which reads as a
+ * loading bug. Groups with no photographs left are dropped, and the whole
+ * block goes with them if nothing survives. */
 
 /** Explicit display order for the room table: cheapest first, cottages last,
  *  which is the order a guest scans for a price. */
@@ -1668,6 +1678,18 @@ export default function Page() {
                 >
                   {t.seasons.springBody}
                 </p>
+                {/* The farm in green, against the snow on the other side of the
+                  * divider. One column carrying a photograph and the other
+                  * carrying nothing read as a layout that had lost an image. */}
+                <ClipImg
+                  photo={IMG.green}
+                  sizes="(min-width: 768px) 46vw, 92vw"
+                  alt={t.seasons.springAlt}
+                  aspect="aspect-[3/2]"
+                  caption={t.seasons.springCaption}
+                  delay={140}
+                  className="mt-8"
+                />
               </Reveal>
               <Reveal delay={110} className="md:pl-14">
                 <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
@@ -1679,6 +1701,19 @@ export default function Page() {
                 >
                   {t.seasons.winterBody}
                 </p>
+                {/* Her best winter frame, and it was sitting in IMG declared but
+                  * never rendered — so the page said "winter" in words with no
+                  * picture, while the photograph waited in the gallery among the
+                  * thumbnails. It belongs here. */}
+                <ClipImg
+                  photo={IMG.house}
+                  sizes="(min-width: 768px) 46vw, 92vw"
+                  alt={t.seasons.winterAlt}
+                  aspect="aspect-[3/2]"
+                  caption={t.seasons.winterCaption}
+                  delay={140}
+                  className="mt-8"
+                />
               </Reveal>
             </div>
           </div>
@@ -1719,7 +1754,9 @@ export default function Page() {
              * bedrooms and the bathroom that goes with them. A guest can point
              * at a row and know that is what arrives when they book it. */}
             {ROOM_ORDER.map((k) => {
-              const shots = forRoom(k);
+              /* Minus this row's own thumbnail up in the price list, and minus
+               * anything already running as a full frame higher up the page. */
+              const shots = galleryFor(k, FEATURED_IDS);
               if (!shots.length) return null;
               return (
                 <div key={k} className="mt-10">
@@ -1760,12 +1797,14 @@ export default function Page() {
               );
             })}
 
-            <h3
-              className="mt-16 border-t pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55"
-              style={{ borderColor: HAIR }}
-            >
-              {t.gallery.andTheRest}
-            </h3>
+            {GALLERY_REST.length ? (
+              <h3
+                className="mt-16 border-t pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55"
+                style={{ borderColor: HAIR }}
+              >
+                {t.gallery.andTheRest}
+              </h3>
+            ) : null}
 
             {GALLERY_REST.map((g) => (
               <div key={g.key} className="mt-10">

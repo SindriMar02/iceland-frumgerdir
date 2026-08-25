@@ -144,6 +144,12 @@ const en = {
     winterHeading: 'Winter is for dark skies',
     winterBody:
       'The house is open all year. Guide to Iceland calls it an ideal location for spotting the northern lights in the winter months, and there is light farm work to join if you want to earn your dinner.',
+    springAlt:
+      'An old turf-roofed outbuilding at Nýpugarðar standing in deep green summer grass',
+    springCaption: 'The old shed on the hill',
+    winterAlt:
+      'The guesthouse deck at Nýpugarðar under deep snow, the plain and the mountains white to the horizon',
+    winterCaption: 'The deck in winter',
     duskAlt:
       'The sun setting over open grassland at Nýpugarðar, mountains silhouetted on the horizon',
     duskEyebrow: 'Nightfall',
@@ -385,6 +391,12 @@ const is: typeof en = {
     winterHeading: 'Veturinn er dimmur himinn',
     winterBody:
       'Húsið er opið allt árið. Guide to Iceland kallar staðinn kjörinn til að sjá norðurljósin yfir vetrarmánuðina, og það má taka þátt í léttum bústörfum ef þú vilt vinna fyrir kvöldmatnum.',
+    springAlt:
+      'Gamalt torfþakið útihús á Nýpugörðum í djúpgrænu sumargrasi',
+    springCaption: 'Gamla húsið í brekkunni',
+    winterAlt:
+      'Veröndin á Nýpugörðum í djúpum snjó, sléttan og fjöllin hvít alla leið að sjóndeildarhring',
+    winterCaption: 'Veröndin að vetri',
     duskAlt:
       'Sólin sest yfir opnum túnum á Nýpugörðum, fjöll skuggamynduð við sjóndeildarhringinn',
     duskEyebrow: 'Þegar dimmir',

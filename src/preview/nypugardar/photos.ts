@@ -13,9 +13,14 @@
  * has no room — the land, the house, the dining room — it simply has none, and
  * the page must not imply one.
  *
- * Nothing in here is decorative filler: `BY_CAT` covers all 43, so a frame that
- * is not featured anywhere still reaches the gallery instead of sitting unused
- * in the repo.
+ * EVERY PHOTOGRAPH APPEARS ON THE PAGE EXACTLY ONCE. That is a rule, not an
+ * accident: an audit on 2026-08-25 found 19 of the 43 rendering twice — the
+ * hero also sat in the gallery's land row, each room-list thumbnail repeated as
+ * the first tile of its own gallery row, and two photos filed under two room
+ * types each showed up in both. She has 43 photographs and the page has room
+ * for 43, so a repeat is never filling a gap, it just reads as though she ran
+ * out. The gallery is therefore "everything not already shown above" — see
+ * `galleryFor` and `restFor` — and every photo has exactly one `room`.
  */
 
 import type { GodoRoomKey } from './godo'
@@ -90,7 +95,11 @@ export const PHOTOS: readonly Photo[] = [
   { id: '510521438', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
   { id: '510523433', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
   { id: '510523430', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
-  { id: '510523749', cat: 'bath', room: ['doubleTwinShared', 'twinSharedEconomy'], widths: TILE, portrait: true, shared: true },
+  /* The bathroom the two shared-bathroom types share. Booking files it under
+   * both, and it used to render under both — which is how the same photograph
+   * appeared twice in one section. It is listed under the economy twin only,
+   * and its caption says "shared", which is the fact that matters. */
+  { id: '510523749', cat: 'bath', room: ['twinSharedEconomy'], widths: TILE, portrait: true, shared: true },
 
   // ── Double/twin, private bathroom
   { id: '510523878', cat: 'room', room: ['doubleTwinPrivate'], widths: TILE, portrait: true },
@@ -123,7 +132,10 @@ export const PHOTOS: readonly Photo[] = [
   { id: '510524196', cat: 'cottageIn', room: ['familyCottage'], widths: TILE, portrait: true },
   { id: '510524189', cat: 'bath', room: ['familyCottage'], widths: TILE, portrait: true },
   { id: '510524232', cat: 'cottageOut', room: ['familyCottage'], widths: TILE, portrait: true },
-  { id: '510529210', cat: 'cottageOut', room: ['familyCottage', 'cottage3'], widths: TILE, portrait: true },
+  /* Both cottages stand in this frame, so Booking files it under both. It sits
+   * with the family cottage only — the cottage for three keeps 510524307, so
+   * each row still has an exterior and no photograph is shown twice. */
+  { id: '510529210', cat: 'cottageOut', room: ['familyCottage'], widths: TILE, portrait: true },
 ]
 
 const byId = new Map(PHOTOS.map((p) => [p.id, p]))
@@ -164,4 +176,23 @@ export function leadFor(key: GodoRoomKey): Photo | null {
 
 export function byCat(...cats: PhotoCat[]): Photo[] {
   return PHOTOS.filter((p) => cats.includes(p.cat))
+}
+
+/**
+ * The gallery row for one room type: everything Booking files under it, minus
+ * whatever the page has already shown — the frame the room list uses as that
+ * row's thumbnail, and any frame promoted to a full-width feature above.
+ *
+ * `double` legitimately comes out at one tile. She has only uploaded two
+ * photographs of that room type and the room list is already using one; the
+ * answer is a photograph from her, not the same picture printed twice.
+ */
+export function galleryFor(key: GodoRoomKey, used: ReadonlySet<string>): Photo[] {
+  const lead = leadFor(key)
+  return forRoom(key).filter((p) => p.id !== lead?.id && !used.has(p.id))
+}
+
+/** Same rule for the non-room groups at the foot of the gallery. */
+export function restFor(cats: PhotoCat[], used: ReadonlySet<string>): Photo[] {
+  return byCat(...cats).filter((p) => !used.has(p.id))
 }
