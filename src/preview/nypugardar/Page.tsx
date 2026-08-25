@@ -62,8 +62,27 @@ import {
   SCORE,
   UNITS,
 } from "./data";
-import { bookingHref, bookingReady, PLACEHOLDER_NOTE } from "./godo";
+import {
+  bookingHref,
+  bookingReady,
+  GODO_ROOM_NAMES,
+  GODO_ROOM_NAMES_IS,
+  type GodoRoomKey,
+} from "./godo";
+
+/** Explicit display order for the room table: cheapest first, cottages last,
+ *  which is the order a guest scans for a price. */
+const ROOM_ORDER: GodoRoomKey[] = [
+  'twinSharedEconomy',
+  'doubleTwinShared',
+  'double',
+  'doubleTwinPrivate',
+  'doublePrivateExtraBed',
+  'cottage3',
+  'familyCottage',
+];
 import { useLang } from './useLang';
+import PRICES from './prices.json';
 import { COPY } from './copy';
 import type { Lang } from './copy';
 import BookingBar from "./BookingBar";
@@ -352,7 +371,7 @@ function BookLink({
         {children}
       </button>
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#F4EEE2]/40">
-        {PLACEHOLDER_NOTE}
+        {COPY[lang].booking.placeholder}
       </span>
     </span>
   );
@@ -1059,6 +1078,45 @@ export default function Page() {
                   </div>
                 ))}
               </dl>
+            </Reveal>
+
+            <Reveal delay={160}>
+              <div className="mt-14 border-t pt-10" style={{ borderColor: HAIR }}>
+                <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
+                  {t.price.roomTypes}
+                </h3>
+                <ul className="mt-6 flex flex-col gap-1px">
+                  {ROOM_ORDER.map((k) => {
+                    const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]
+                      ?.from
+                    const name = lang === 'is' ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]
+                    return (
+                      <li
+                        key={k}
+                        className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b py-3.5"
+                        style={{ borderColor: HAIR }}
+                      >
+                        <span className="text-[15px] leading-snug text-[#F4EEE2]/85">{name}</span>
+                        {typeof price === 'number' ? (
+                          <span className="shrink-0 font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
+                            {t.price.from}{' '}
+                            <span
+                              className="font-erode text-2xl tracking-tight tabular-nums"
+                              style={{ color: ACCENT }}
+                            >
+                              {price}
+                            </span>{' '}
+                            &euro; {t.price.perNight}
+                          </span>
+                        ) : null}
+                      </li>
+                    )
+                  })}
+                </ul>
+                <p className="mt-5 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/45">
+                  {t.price.pricesNote}
+                </p>
+              </div>
             </Reveal>
 
             <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">

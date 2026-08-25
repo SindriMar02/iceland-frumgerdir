@@ -28,6 +28,13 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Refresh Nýpugarðar prices from Godo before building. Never fails the
+      # build: without secrets, or if Godo is down, the committed prices.json
+      # from the last successful run ships instead.
+      - run: node tools/nypugardar-prices.mjs
+        env:
+          GODO_API_KEY: ${{ secrets.GODO_API_KEY }}
+          GODO_PROP_KEY: ${{ secrets.GODO_PROP_KEY }}
       - run: npm run build
         env:
           BASE_PATH: /iceland-frumgerdir/

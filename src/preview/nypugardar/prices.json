@@ -1,0 +1,40 @@
+{
+  "currency": "EUR",
+  "fetchedAt": "2026-08-25",
+  "horizonDays": 365,
+  "rooms": {
+    "twinSharedEconomy": {
+      "from": 87,
+      "bookableNights": 265
+    },
+    "doubleTwinShared": {
+      "from": 109,
+      "bookableNights": 246
+    },
+    "doubleTwinPrivate": {
+      "from": 129,
+      "bookableNights": 198
+    },
+    "doublePrivateExtraBed": {
+      "from": 129,
+      "bookableNights": 275
+    },
+    "double": {
+      "from": 119,
+      "bookableNights": 230
+    },
+    "cottage3": {
+      "from": 149,
+      "bookableNights": 273
+    },
+    "familyCottage": {
+      "from": 149,
+      "bookableNights": 240
+    }
+  },
+  "groups": {
+    "shared": 87,
+    "private": 119,
+    "cottage": 149
+  }
+}

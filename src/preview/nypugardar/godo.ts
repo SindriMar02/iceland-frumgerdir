@@ -73,6 +73,20 @@ export const GODO_ROOM_NAMES: Record<GodoRoomKey, string> = {
   familyCottage: 'Family Cottage',
 }
 
+/** Icelandic room names. Godo only stores the English ones, so these are ours,
+ *  kept beside them deliberately: a guest reading the site in Icelandic still
+ *  lands on a Godo page labelled in English, and the names must be recognisable
+ *  across that jump rather than inventive. */
+export const GODO_ROOM_NAMES_IS: Record<GodoRoomKey, string> = {
+  twinSharedEconomy: 'Tveggja manna herbergi með sameiginlegu baði, hagkvæmt',
+  doubleTwinShared: 'Tveggja manna herbergi með sameiginlegu baði',
+  doubleTwinPrivate: 'Tveggja manna herbergi með eigin baði',
+  doublePrivateExtraBed: 'Tveggja manna herbergi með eigin baði og aukarúmi',
+  double: 'Tveggja manna herbergi',
+  cottage3: 'Sumarhús fyrir 3',
+  familyCottage: 'Fjölskyldusumarhús',
+}
+
 /** The three groups the page presents, mapped onto Godo's seven types. */
 export const ROOM_GROUPS = {
   shared: ['twinSharedEconomy', 'doubleTwinShared'],

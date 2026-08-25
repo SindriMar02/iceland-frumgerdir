@@ -184,6 +184,14 @@ const en = {
     company: 'Nýpugarðar ehf. is an active, registered Icelandic company, kt. 510805-0380.',
   },
 
+  price: {
+    from: 'from',
+    perNight: 'per night',
+    roomTypes: 'Room types and prices',
+    pricesNote: 'Lowest nightly rate seen in the next twelve months. The exact price for your dates is shown when you check availability.',
+    checkedOn: 'Prices checked',
+  },
+
   units: {
     privateBath: 'rooms with private bathroom',
     sharedBath: 'rooms with shared bathroom',
@@ -396,6 +404,14 @@ const is: typeof en = {
 
   footer: {
     company: 'Nýpugarðar ehf. er skráð og starfandi íslenskt félag, kt. 510805-0380.',
+  },
+
+  price: {
+    from: 'frá',
+    perNight: 'á nótt',
+    roomTypes: 'Herbergisgerðir og verð',
+    pricesNote: 'Lægsta verð á nótt sem sést á næstu tólf mánuðum. Nákvæmt verð fyrir þínar dagsetningar birtist þegar þú kannar laus herbergi.',
+    checkedOn: 'Verð sótt',
   },
 
   units: {
