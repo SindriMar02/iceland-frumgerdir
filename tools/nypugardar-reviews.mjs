@@ -3,10 +3,16 @@
  *
  *   node tools/nypugardar-reviews.mjs out.json [pages]
  *
- * Writes the raw pool; the twenty-four that ship are curated by hand out of it
- * into QUOTES in src/preview/nypugardar/data.ts. Nothing here writes into the
- * site directly, on purpose: which reviews a business puts on its own homepage
- * is a judgement call, not something a script should make.
+ * Writes the raw pool. Two things then read it:
+ *   - tools/nypugardar-reviews-build.mjs turns it into the ~1,400 reviews the
+ *     page ships as a lazily-loaded chunk;
+ *   - the twenty-four in QUOTES (data.ts) were curated by hand out of the same
+ *     pool and render on first paint, so the section is never empty while the
+ *     full file is still in flight.
+ *
+ * Nothing here writes into the site directly, on purpose: which reviews a
+ * business puts on its own homepage is a judgement call, not something a
+ * script should make.
  *
  * THREE THINGS THIS GETS RIGHT THAT THE OBVIOUS VERSION DOES NOT:
  *
@@ -113,12 +119,22 @@ const grab = () => p.evaluate(() => [...document.querySelectorAll('[data-testid=
   const g = t => clean(c.querySelector(`[data-testid="${t}"]`)?.textContent)
   const gRaw = t => raw(c.querySelector(`[data-testid="${t}"]`)?.innerText)
   const av = c.querySelector('[data-testid="review-avatar"]')
-  /* Name is the DIV, country the SPAN. Taking "the first two text leaves"
-   * silently promotes the next field into `country` when a reviewer has no
-   * country on their profile. */
-  const name = clean(av?.querySelector('div[class*="b08850ce41"]')?.textContent)
-    || clean([...(av?.querySelectorAll('div') || [])].find(e => e.children.length === 0)?.textContent)
-  const country = clean(av?.querySelector('span')?.textContent)
+  /* Name and country are separate leaves in the avatar block. Two wrong ways
+   * to read them, both of which produced live bugs:
+   *   - "the first two text leaves" promotes the NEXT field into `country`
+   *     when a reviewer has no country on their profile.
+   *   - "the first <span>" picks up the initial drawn inside the avatar
+   *     circle, so Zachary from the United States came out as "Zachary, Z".
+   * So: take the leaves, drop the avatar initial (a single character) and drop
+   * anything equal to the name. Whatever is left is the country, and an empty
+   * country stays empty rather than borrowing a neighbour's text. */
+  const leaves = av
+    ? [...av.querySelectorAll('*')]
+        .filter((e) => e.children.length === 0 && (e.textContent || '').trim())
+        .map((e) => clean(e.textContent))
+    : []
+  const name = clean(av?.querySelector('div[class*="b08850ce41"]')?.textContent) || leaves[0] || ''
+  const country = leaves.find((v) => v !== name && v.length > 2) || ''
   return {
     name, country,
     room: g('review-room-name'), stay: g('review-stay-date'), type: g('review-traveler-type'),
@@ -144,9 +160,22 @@ for (let i = 0; i < PAGES; i++) {
   if ((i + 1) % 5 === 0) console.log(`  page ${i + 1}, ${all.length} reviews`)
 }
 
+/* Booking repeats a few cards across page transitions, so the list has to be
+ * deduped — but on the WHOLE record, not on name+date+title. 836 of these
+ * reviews are a score with no words and no title, so that shorter key throws
+ * away two different guests who share a first name and reviewed on the same
+ * day. On this listing the loose key dropped 317; the strict one drops far
+ * fewer, and every one it drops is a byte-for-byte repeat. */
 const seen = new Set()
-const uniq = all.filter(x => { const k = x.name + '|' + x.date + '|' + x.title; if (seen.has(k)) return false; seen.add(k); return true })
+const uniq = all.filter((x) => {
+  const k = JSON.stringify([x.name, x.country, x.date, x.title, x.score, x.pos, x.neg])
+  if (seen.has(k)) return false
+  seen.add(k)
+  return true
+})
 writeFileSync(OUT, JSON.stringify(uniq, null, 1))
 console.log(`\n${all.length} scraped, ${uniq.length} unique → ${OUT}`)
-console.log('score 10:', uniq.filter(x => x.score === 10).length, '| translated:', uniq.filter(x => x.translated).length, '| named country:', uniq.filter(x => x.country).length)
+const withText = uniq.filter(x => (x.pos && x.pos.trim().length > 1) || (x.neg && x.neg.trim().length > 1))
+console.log('with written text:', withText.length, '| score only:', uniq.length - withText.length)
+console.log('score 10:', uniq.filter(x => x.score === 10).length, '| countries:', new Set(uniq.map(x => x.country)).size)
 await b.close()

@@ -150,9 +150,18 @@ export const DINNER_QUOTE = {
 } as const
 
 /**
- * Twenty-four real, attributed guest reviews, harvested from her Booking.com
- * listing on 2026-08-25 by tools/nypugardar-reviews.mjs — twenty-three
+ * THE SEED. Twenty-four real, attributed guest reviews — twenty-three
  * countries, June 2024 to August 2026, every one scored 9 or 10.
+ *
+ * These are not the whole set any more. All ~1,400 written reviews ship in
+ * reviews.json and the rotator loads them as it approaches the viewport; these
+ * twenty-four are what renders on first paint, so the section is never empty
+ * and never waits on a network round trip. They lead the rotation because they
+ * are the strongest of the pool, and the full file is appended behind them
+ * with these twenty-four filtered out.
+ *
+ * Harvested from her Booking.com listing on 2026-08-25 by
+ * tools/nypugardar-reviews.mjs.
  *
  * THE TEXT IS VERBATIM, INCLUDING THE LINE BREAKS. Several of these were
  * written as short stacked lines rather than sentences, and the earlier

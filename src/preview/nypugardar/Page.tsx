@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import Lenis from "lenis";
 import {
@@ -142,6 +142,7 @@ const GROUND = "#15130F"; // night has fallen, dinner is lit
 const ACCENT = "#D97D3D"; // dinner-table ember
 const HAIR = "rgba(244,238,226,0.14)";
 const BODY = "rgba(244,238,226,0.76)";
+const PAPER = "#F4EEE2";
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 const FOCUS =
@@ -493,20 +494,118 @@ function BookLink({
   );
 }
 
-/** Guest quotes, three at a time, rotating through the full set.
+/**
+ * Guest reviews, three at a time, rotating through every written review she has.
  *
- * Six real Booking.com reviews rather than a fixed trio. Auto-advance pauses on
- * hover and on keyboard focus, and does not run at all under
- * prefers-reduced-motion — an unattended slideshow is exactly the kind of motion
- * that rule exists for. The dots are real buttons so the set is reachable
- * without waiting, and the live region is polite rather than assertive so a
- * screen reader is not interrupted mid-sentence by a timer.
+ * WHAT "ALL OF THEM" MEANS HERE, PRECISELY. Booking lists 2,268 stays. Around
+ * 840 of those are a score with no words attached, and a card with no sentence
+ * in it is a blank card rather than a review — those are already represented on
+ * this page, inside the 8.8 and inside the count above. The rotator therefore
+ * carries every review that has words in it, roughly 1,100, and the line under
+ * it states both numbers so nothing is quietly rounded.
+ *
+ * WHAT EACH GUEST LIKED, NOT WHAT THEY DID NOT. 807 of these reviews also
+ * carry a "what could be better" note. Sindri's call on 2026-08-25 was to run
+ * the praise only, which is why the payload does not even carry those strings
+ * — a card that is nothing but a complaint is not a testimonial, and this
+ * rotator sits on Bogga's own homepage. The consequence is stated rather than
+ * hidden: 15 guests wrote only a criticism and cannot appear here at all, and
+ * the line under the rotator points at Booking, where the unedited text and
+ * every one of those 15 is one click away.
+ *
+ * LOADED IN TWO STAGES. The twenty-four curated quotes in data.ts render on
+ * first paint, so the section is never empty and never waits on a network
+ * round trip; the full file is ~1,100 records and is fetched only once the
+ * section is within a screen of the viewport. A visitor who never scrolls this
+ * far never downloads it.
+ *
+ * Auto-advance pauses on hover and on keyboard focus, and does not run at all
+ * under prefers-reduced-motion — an unattended slideshow is exactly the kind of
+ * motion that rule exists for. The controls are real buttons so the set is
+ * reachable without waiting, and the live region is polite rather than
+ * assertive so a screen reader is not interrupted mid-sentence by a timer.
  */
+
+type Review = {
+  /** What the guest liked. Never empty — see the note above. */
+  t: string
+  n: string
+  c: string
+  d: string
+  s: number | null
+  /** Set only on the curated seed, for the one review shown in translation. */
+  note?: string | null
+}
+
+type ReviewFile = {
+  written: number
+  scoreOnly: number
+  criticismOnly: number
+  withCriticism: number
+  reviews: Review[]
+}
+
+const PER_PAGE = 3
+
+/** The curated twenty-four, in the shape the rotator uses for everything. */
+const SEED: Review[] = QUOTES.map((q) => ({
+  t: q.text,
+  n: q.name,
+  c: q.place,
+  d: q.date,
+  s: q.score,
+  note: q.note,
+}))
+
 function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en'] }) {
-  const PER_PAGE = 3
-  const pages = Math.ceil(QUOTES.length / PER_PAGE)
+  const [full, setFull] = useState<ReviewFile | null>(null)
   const [page, setPage] = useState(0)
   const [held, setHeld] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  /* Fetch the full set when the section is within a screen of the viewport.
+   * rootMargin does the work: by the time the reader arrives the swap has
+   * already happened, so the counter never visibly jumps under them. */
+  useEffect(() => {
+    const el = ref.current
+    if (!el || full) return
+    let cancelled = false
+    const load = () => {
+      import('./reviews.json')
+        .then((m) => {
+          if (!cancelled) setFull((m.default ?? m) as unknown as ReviewFile)
+        })
+        .catch(() => {
+          /* Offline or a failed chunk: the twenty-four seeded reviews are
+             already on screen, so there is nothing to fall back to. */
+        })
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          load()
+          io.disconnect()
+        }
+      },
+      { rootMargin: '100% 0px' },
+    )
+    io.observe(el)
+    return () => {
+      cancelled = true
+      io.disconnect()
+    }
+  }, [full])
+
+  /* Seed first — they are the strongest and they are already painted — then
+   * everything else in Booking's own order, minus the seeded ones. */
+  const pool = useMemo(() => {
+    if (!full) return SEED
+    const seen = new Set(SEED.map((s) => `${s.n}|${s.d}`))
+    const rest = full.reviews.filter((r) => !seen.has(`${r.n}|${r.d}`))
+    return [...SEED, ...rest]
+  }, [full])
+
+  const pages = Math.ceil(pool.length / PER_PAGE)
 
   useEffect(() => {
     if (reduced || held || pages < 2) return
@@ -514,10 +613,14 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
     return () => window.clearInterval(id)
   }, [reduced, held, pages])
 
-  const shown = QUOTES.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE)
+  const start = page * PER_PAGE
+  const shown = pool.slice(start, start + PER_PAGE)
+
+  const step = (d: number) => setPage((p) => (p + d + pages) % pages)
 
   return (
     <div
+      ref={ref}
       onMouseEnter={() => setHeld(true)}
       onMouseLeave={() => setHeld(false)}
       onFocusCapture={() => setHeld(true)}
@@ -527,52 +630,74 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
         key={page}
         aria-live="polite"
         className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8"
-        style={
-          reduced
-            ? undefined
-            : { animation: `quoteIn 0.55s ${EASE} both` }
-        }
+        style={reduced ? undefined : { animation: `quoteIn 0.55s ${EASE} both` }}
       >
-        {shown.map((q) => (
-          <blockquote key={q.name + q.date} className="border-t pt-6" style={{ borderColor: HAIR }}>
-            {/* pre-line, because several of these were written as stacked short
+        {shown.map((q: Review) => (
+          <blockquote
+            key={`${q.n}|${q.d}|${q.t.slice(0, 24)}`}
+            className="border-t pt-6"
+            style={{ borderColor: HAIR }}
+          >
+            {/* pre-line, because plenty of these were written as stacked short
               * lines rather than sentences. Collapsing them and inserting full
               * stops would be editing somebody else's review. */}
-            <p className="whitespace-pre-line leading-relaxed text-[#F4EEE2]/85">“{q.text}”</p>
+            <p className="whitespace-pre-line leading-relaxed text-[#F4EEE2]/85">“{q.t}”</p>
             <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
-              {q.name}, {q.place}
-              <span className="mt-1 block text-[#F4EEE2]/45">{q.date}</span>
-              {q.note ? <span className="mt-1 block text-[#F4EEE2]/60">{t.reviews.translatedFromItalian}</span> : null}
+              {q.n}
+              {q.c ? `, ${q.c}` : ''}
+              <span className="mt-1 block text-[#F4EEE2]/45">
+                {q.d}
+                {typeof q.s === 'number' ? (
+                  <span style={{ color: ACCENT }}> · {q.s}/10</span>
+                ) : null}
+              </span>
+              {q.note ? (
+                <span className="mt-1 block text-[#F4EEE2]/60">
+                  {t.reviews.translatedFromItalian}
+                </span>
+              ) : null}
             </footer>
           </blockquote>
         ))}
       </div>
 
-      {/* Eight sets now, not two. Eight 32px filled circles read as a control
-       * panel; the dot is drawn small and the button stays 32px so the tap
-       * target survives the restraint. */}
+      {/* Dots died with the sixth quote. At 368 sets a dot row is not a
+        * control, it is wallpaper — so this is a step pair and a plain count of
+        * where you are in the whole pile. */}
       {pages > 1 ? (
-        <div className="mt-10 flex items-center gap-1">
-          {Array.from({ length: pages }, (_, i) => (
+        <div className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <div className="flex items-center gap-2">
             <button
-              key={i}
               type="button"
-              onClick={() => setPage(i)}
-              aria-label={`${t.reviews.setLabel} ${i + 1} ${t.reviews.of} ${pages}`}
-              aria-current={i === page}
-              className={`grid h-8 w-8 place-items-center rounded-full ${FOCUS}`}
+              onClick={() => step(-1)}
+              aria-label={t.reviews.prevSet}
+              className={`grid h-11 w-11 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 md:h-9 md:w-9 ${FOCUS}`}
+              style={{ borderColor: HAIR, color: PAPER }}
             >
-              <span
+              <ArrowUpRight
+                className="h-4 w-4 -rotate-[135deg]"
+                strokeWidth={1.5}
                 aria-hidden="true"
-                className="block rounded-full transition-all duration-300 ease-out"
-                style={{
-                  width: i === page ? 22 : 7,
-                  height: 7,
-                  background: i === page ? ACCENT : 'rgba(244,238,226,0.28)',
-                }}
               />
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => step(1)}
+              aria-label={t.reviews.nextSet}
+              className={`grid h-11 w-11 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 md:h-9 md:w-9 ${FOCUS}`}
+              style={{ borderColor: HAIR, color: PAPER }}
+            >
+              <ArrowUpRight
+                className="h-4 w-4 rotate-45"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/45 tabular-nums">
+            {start + 1}&ndash;{Math.min(start + PER_PAGE, pool.length)} {t.reviews.of}{' '}
+            {pool.length.toLocaleString('en-US')} {t.reviews.written}
+          </p>
         </div>
       ) : null}
     </div>
