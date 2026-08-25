@@ -717,9 +717,15 @@ export default function Page() {
                 }
           }
         />
+        {/* Lighter than it looks it should be, on purpose. The hero frame is
+         * her best photograph and the whole top two thirds of it is the light
+         * on the ice; a scrim heavy enough to be safe everywhere turns that
+         * into brown haze. The headline sits in the bottom third, where the
+         * gradient is at full strength, so legibility is paid for down there
+         * and the picture is left alone up here. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/45 to-[#15130F]/25"
+          className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/50 to-transparent"
         />
         <div
           aria-hidden="true"
