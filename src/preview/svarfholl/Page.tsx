@@ -1270,7 +1270,12 @@ function BookingSection() {
         if (r.status === 503 && d.reason === 'paused') { setErr(`Online requests are paused right now. Call ${PHONE_DISPLAY}.`); return }
         setErr(d.messages?.[0] ?? `The request did not go through. Call ${PHONE_DISPLAY} or write to ${EMAIL}.`)
       })
-      .catch(() => { setSending(false); setErr(`The booking desk cannot be reached right now. Call ${PHONE_DISPLAY} or write to ${EMAIL}.`) })
+      .catch(() => {
+        setSending(false)
+        setErr(/github\.io$/.test(location.hostname)
+          ? `Online requests are not switched on in this design preview. Call ${PHONE_DISPLAY} or write to ${EMAIL}.`
+          : `The booking desk cannot be reached right now. Call ${PHONE_DISPLAY} or write to ${EMAIL}.`)
+      })
   }
 
   const inputCls = 'w-full min-h-[46px] border px-3 py-2 text-[15px]'
