@@ -11,36 +11,44 @@
  * (unverifiable / dynamic). Guest quotes are real and attributed.
  */
 
-const BASE = import.meta.env.BASE_URL
+import { photo } from './photos'
 
-/** Local, vetted photos (copied from the prep manifest into public/nypugardar/). */
-export const p = (file: string) => `${BASE}nypugardar/full/${file}`
-
+/**
+ * The frames the page features by name. Everything else reaches the reader
+ * through the gallery, which walks the whole library in photos.ts — so no
+ * photograph she owns is left sitting unused in the repo.
+ *
+ * All 43 come from her own Booking.com listing. Four images the first harvest
+ * picked up turned out to belong to a neighbouring property and are gone,
+ * including the aerial that used to be the hero; see the provenance note at the
+ * top of tools/nypugardar-photos.mjs.
+ */
 export const IMG = {
-  /** All frames below are Nýpugarðar's own photographs, pulled at full resolution
-   *  from their Booking.com gallery on 2026-08-21 (47 in total, see public/
-   *  nypugardar/full/). Booking.com serves the originals, so these are the
-   *  largest versions that exist. No stock imagery is used anywhere on this page. */
-  hero: p('bk_908946914.jpg'),        // aerial: the farm, its land and the glacier beyond
-  exterior: p('bk_258957593.jpg'),    // guesthouse and deck in winter, glacier behind
-  building: p('bk_92332508.jpg'),     // the main guesthouse building
-  farmland: p('bk_614398038.jpg'),    // the farm against the coastline
-  glacier: p('bk_10523812.jpg'),      // glacier tongue over green farmland
-  ridge: p('bk_125644995.jpg'),       // snow-capped ridge
-  dusk: p('bk_125645022.jpg'),        // sun going down over the grassland
-  deck: p('bk_510526816.jpg'),        // the terrace at dusk
-  dining: p('bk_305950064.jpg'),      // the dining room, glacier-view windows
-  breakfast: p('bk_259128011.jpg'),   // the breakfast buffet laid out
-  reindeer: p('bk_10523758.jpg'),     // wild reindeer on the land
-  cottage1: p('bk_510524232.jpg'),    // cottage exterior, red roof
-  cottage2: p('bk_510524306.jpg'),    // second cottage exterior
-  cottageIn1: p('bk_510524196.jpg'),  // pine-lined cottage interior
-  cottageIn2: p('bk_510526820.jpg'),  // cottage interior with table and beds
-  room1: p('bk_510523433.jpg'),       // twin room, red-framed window
-  room2: p('bk_510524066.jpg'),       // room looking over farmland
-  room3: p('bk_539099044.jpg'),       // twin room, wide window
-  room4: p('bk_510521394.jpg'),       // twin room with dark curtains
-  bath: p('bk_510524063.jpg'),        // bathroom
+  /** Low sun raking across Mýrar, the outlet glaciers along the whole horizon.
+   *  Her largest file by some distance (5312×2988 as uploaded) and the one
+   *  frame that is the page's own premise: the glacier catching the last
+   *  light. */
+  hero: photo('125645004'),
+  /** The same plain in the other direction, Vestrahorn under snow. */
+  glacier: photo('125645011'),
+  /** Snow ridge above the fields. */
+  ridge: photo('125644995'),
+  /** The sun going down at the end of the scroll. */
+  dusk: photo('125645022'),
+  /** Wild reindeer come down onto the land in winter. */
+  reindeer: photo('10523758'),
+  /** The guesthouse deck and the cottages under snow, glacier plain behind. */
+  house: photo('258957593'),
+  /** The terrace, two benches, evening. */
+  deck: photo('510526816'),
+  /** The dining room, windows the whole length of it. */
+  dining: photo('305950064'),
+  /** The breakfast buffet laid out. */
+  breakfast: photo('259128011'),
+  /** The family cottage from outside. */
+  cottage1: photo('510524232'),
+  /** The cottage for three. */
+  cottage2: photo('510524306'),
 } as const
 
 export const BOOKING_URL = 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html'
@@ -57,6 +65,7 @@ export const NAV = [
   { id: 'farm', label: 'The farm' },
   { id: 'rooms', label: 'Rooms' },
   { id: 'dinner', label: 'Dinner' },
+  { id: 'gallery', label: 'Photos' },
   { id: 'reviews', label: 'Guests' },
   { id: 'info', label: 'Find us' },
 ] as const
@@ -177,14 +186,6 @@ export const QUOTES = [
     place: 'Switzerland',
     note: null,
   },
-] as const
-
-/** Room photo mosaic — captions describe only what each photo shows. */
-export const ROOM_PHOTOS = [
-  { src: IMG.room1, alt: 'Twin room at Nýpugarðar with a red-framed window looking over the fields', caption: 'Twin room', key: 'Twin room' },
-  { src: IMG.room2, alt: 'Room at Nýpugarðar with a window framing open farmland to the horizon', caption: 'Room with a farmland view', key: 'Room with a farmland view' },
-  { src: IMG.cottageIn1, alt: 'Pine-lined interior of one of the cottages at Nýpugarðar', caption: 'Inside a cottage', key: 'Inside a cottage' },
-  { src: IMG.bath, alt: 'White-tiled private bathroom with a shower at Nýpugarðar', caption: 'Private bathroom', key: 'Private bathroom' },
 ] as const
 
 export const FOOTNOTE =

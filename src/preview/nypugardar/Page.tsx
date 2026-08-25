@@ -58,7 +58,6 @@ import {
   REVIEWS_URL,
   PHONE_HREF,
   QUOTES,
-  ROOM_PHOTOS,
   SCORE,
   UNITS,
 } from "./data";
@@ -67,8 +66,54 @@ import {
   bookingReady,
   GODO_ROOM_NAMES,
   GODO_ROOM_NAMES_IS,
+  ROOM_SLEEPS,
   type GodoRoomKey,
 } from "./godo";
+import {
+  byCat,
+  forRoom,
+  largest,
+  leadFor,
+  src as photoSrc,
+  srcSet,
+  type Photo,
+} from "./photos";
+
+/** Every photograph on the page goes out as a srcset across the widths that
+ *  actually exist on disk, with a `sizes` hint so a phone never pulls a 2000w
+ *  file for a tile it renders at 160px. The widths come from photos.ts, which
+ *  is generated alongside the files themselves, so the two cannot drift. */
+function frame(p: Photo, sizes: string) {
+  return { src: largest(p), srcSet: srcSet(p), sizes };
+}
+
+/**
+ * What a gallery tile is a picture of. A photograph Booking has filed under a
+ * room type is labelled with that room type's own name, because that is her
+ * filing rather than our reading of the picture. Everything else gets its
+ * category, and a bathroom two room types share is never called private.
+ */
+function photoAlt(p: Photo, t: Copy, lang: Lang): string {
+  if (p.cat === "bath")
+    return p.shared ? t.gallery.alt.bathShared : t.gallery.alt.bathPrivate;
+  if (p.room?.length)
+    return lang === "is"
+      ? GODO_ROOM_NAMES_IS[p.room[0]]
+      : GODO_ROOM_NAMES[p.room[0]];
+  return t.gallery.alt[p.cat as "land" | "house" | "table"];
+}
+
+/**
+ * Everything left over once the room types have taken their own photographs.
+ * Between these three and the seven room groups, all 43 of her photographs are
+ * on the page — nothing she owns sits unused in the repo, and nothing on the
+ * page is filler from somewhere else.
+ */
+const GALLERY_REST = [
+  { key: "table", photos: byCat("table") },
+  { key: "house", photos: byCat("house") },
+  { key: "land", photos: byCat("land") },
+] as const;
 
 /** Explicit display order for the room table: cheapest first, cottages last,
  *  which is the order a guest scans for a price. */
@@ -84,7 +129,7 @@ const ROOM_ORDER: GodoRoomKey[] = [
 import { useLang } from './useLang';
 import PRICES from './prices.json';
 import { COPY } from './copy';
-import type { Lang } from './copy';
+import type { Copy, Lang } from './copy';
 import BookingBar from "./BookingBar";
 
 const company = companyEntry;
@@ -191,7 +236,8 @@ function Reveal({
 /* ── ClipImg — clip-path reveal for STANDALONE content photos only (explicit
  * aspect on the wrapper; the observer target never transforms itself). */
 function ClipImg({
-  src,
+  photo,
+  sizes,
   alt,
   aspect,
   caption,
@@ -199,7 +245,9 @@ function ClipImg({
   className = "",
   imgClassName = "",
 }: {
-  src: string;
+  photo: Photo;
+  /** What width this tile actually renders at, per breakpoint. */
+  sizes: string;
   alt: string;
   aspect: string;
   caption?: string;
@@ -236,7 +284,7 @@ function ClipImg({
     <figure ref={ref} className={className}>
       <div className={`${aspect} overflow-hidden rounded-sm`}>
         <Img
-          src={src}
+          {...frame(photo, sizes)}
           alt={alt}
           className={`h-full w-full object-cover ${imgClassName}`}
           style={
@@ -654,7 +702,7 @@ export default function Page() {
        * overlay's comment right after </header>. */}
       <header className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
         <Img
-          src={IMG.hero}
+          {...frame(IMG.hero, "100vw")}
           alt={t.closing.heroAlt}
           fetchpriority="high"
           loading="eager"
@@ -957,7 +1005,8 @@ export default function Page() {
               </Reveal>
             </div>
             <ClipImg
-              src={IMG.reindeer}
+              photo={IMG.reindeer}
+              sizes="(min-width: 768px) 46vw, 92vw"
               alt={t.farm.reindeerAlt}
               aspect="aspect-[4/3]"
               caption={t.farm.reindeerCaption}
@@ -968,8 +1017,8 @@ export default function Page() {
         {/* ── 4 · GLACIER & SETTING ────────────────────────────────────── */}
         <section className="relative flex min-h-[86svh] items-end overflow-hidden">
           <Img
-            src={IMG.glacier}
-            alt="A wide glacier tongue descending between mountains, with green farmland in the foreground"
+            {...frame(IMG.glacier, "100vw")}
+            alt={t.hill.glacierAlt}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div
@@ -1016,8 +1065,9 @@ export default function Page() {
         <section className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-28">
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
             <ClipImg
-              src={IMG.ridge}
-              alt="Snow-capped mountain ridge with a glacier at its base under a blue sky"
+              photo={IMG.ridge}
+              sizes="(min-width: 768px) 46vw, 92vw"
+              alt={t.hill.ridgeAlt}
               aspect="aspect-[4/3]"
               caption={t.hill.ridgeEyebrow}
             />
@@ -1085,18 +1135,38 @@ export default function Page() {
                 <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
                   {t.price.roomTypes}
                 </h3>
-                <ul className="mt-6 flex flex-col gap-1px">
+                <ul className="mt-6 flex flex-col">
                   {ROOM_ORDER.map((k) => {
                     const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]
                       ?.from
                     const name = lang === 'is' ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]
+                    /* Her own photograph of this exact type, as she filed it on
+                     * Booking — never a stand-in from a different room. */
+                    const lead = leadFor(k)
                     return (
                       <li
                         key={k}
-                        className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b py-3.5"
+                        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b py-4"
                         style={{ borderColor: HAIR }}
                       >
-                        <span className="text-[15px] leading-snug text-[#F4EEE2]/85">{name}</span>
+                        <div className="flex min-w-0 items-center gap-4">
+                          {lead ? (
+                            <Img
+                              src={photoSrc(lead.id, 480)}
+                              alt=""
+                              aria-hidden="true"
+                              className="h-14 w-20 shrink-0 rounded-sm object-cover sm:h-16 sm:w-24"
+                            />
+                          ) : null}
+                          <div className="min-w-0">
+                            <span className="block text-[15px] leading-snug text-[#F4EEE2]/85">
+                              {name}
+                            </span>
+                            <span className="mt-1 block font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/45">
+                              {t.price.sleeps} {ROOM_SLEEPS[k]}
+                            </span>
+                          </div>
+                        </div>
                         {typeof price === 'number' ? (
                           <span className="shrink-0 font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
                             {t.price.from}{' '}
@@ -1118,19 +1188,6 @@ export default function Page() {
                 </p>
               </div>
             </Reveal>
-
-            <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
-              {ROOM_PHOTOS.map((r, i) => (
-                <ClipImg
-                  key={r.src}
-                  src={r.src}
-                  alt={r.alt}
-                  aspect="aspect-[3/4]"
-                  caption={t.roomPhotos[r.key as keyof typeof t.roomPhotos] ?? r.caption}
-                  delay={i * 90}
-                />
-              ))}
-            </div>
 
             {/* Cottages */}
             <div className="mt-20 grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
@@ -1159,13 +1216,15 @@ export default function Page() {
               </div>
               <div className="grid grid-cols-2 gap-4 md:gap-5">
                 <ClipImg
-                  src={IMG.cottage1}
+                  photo={IMG.cottage1}
+                  sizes="(min-width: 768px) 27vw, 44vw"
                   alt={t.rooms.cottage1Alt}
                   aspect="aspect-[3/4]"
                   caption={t.rooms.cottage1Caption}
                 />
                 <ClipImg
-                  src={IMG.cottage2}
+                  photo={IMG.cottage2}
+                  sizes="(min-width: 768px) 27vw, 44vw"
                   alt={t.rooms.cottage2Alt}
                   aspect="aspect-[3/4]"
                   caption={t.rooms.cottage2Caption}
@@ -1252,8 +1311,9 @@ export default function Page() {
             </Reveal>
 
             <ClipImg
-              src={IMG.dining}
-              alt="The dining room at Nýpugarðar, tables set for about twenty guests in front of full-height windows facing the glacier"
+              photo={IMG.dining}
+              sizes="(min-width: 1200px) 1088px, 92vw"
+              alt={t.dinner.diningAlt}
               aspect="aspect-[1280/577]"
               caption={t.dinner.diningCaption}
               className="mt-12"
@@ -1307,8 +1367,9 @@ export default function Page() {
                   </div>
                 </Reveal>
                 <ClipImg
-                  src={IMG.deck}
-                  alt="Dusk view from the guesthouse deck at Nýpugarðar, benches facing wide grassland and a low sun"
+                  photo={IMG.deck}
+                  sizes="320px"
+                  alt={t.dinner.deckAlt}
                   aspect="aspect-[3/4]"
                   caption={t.dinner.deckCaption}
                   delay={200}
@@ -1321,7 +1382,8 @@ export default function Page() {
               <div className="mt-16 border-t pt-10 md:mt-20 md:pt-12" style={{ borderColor: HAIR }}>
                 <div className="grid gap-10 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14">
                   <ClipImg
-                    src={IMG.breakfast}
+                    photo={IMG.breakfast}
+                    sizes="(min-width: 768px) 46vw, 92vw"
                     alt={t.dinner.breakfastAlt}
                     aspect="aspect-[4/3]"
                     caption={t.dinner.breakfastCaption}
@@ -1393,6 +1455,101 @@ export default function Page() {
                 </p>
               </Reveal>
             </div>
+          </div>
+        </section>
+
+        {/* ── 7b · THE FULL LIBRARY ────────────────────────────────────
+         * Whatever the featured frames above did not use ends up here, grouped
+         * the way a guest actually asks about a place: the rooms, the cottages,
+         * the bathrooms, the table, the house, the land. All 43 photographs are
+         * hers, and the room groups are labelled with the room type Booking has
+         * each photo filed under, so a tile can be trusted as the room it says
+         * it is. */}
+        <section id="gallery" className="border-t" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
+            <Eyebrow label={t.gallery.eyebrow} register={register} reduced={reduced} />
+            <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
+              <Reveal>
+                <h2 className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
+                  {t.gallery.heading}
+                </h2>
+              </Reveal>
+              <Reveal delay={90}>
+                <p className="max-w-[52ch] leading-relaxed md:justify-self-end" style={{ color: BODY }}>
+                  {t.gallery.body}
+                </p>
+              </Reveal>
+            </div>
+
+            <h3
+              className="mt-14 border-t pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55"
+              style={{ borderColor: HAIR }}
+            >
+              {t.gallery.byRoom}
+            </h3>
+
+            {/* One row per bookable type, in the same order as the price list
+             * above, carrying every photo Booking has filed under it — the
+             * bedrooms and the bathroom that goes with them. A guest can point
+             * at a row and know that is what arrives when they book it. */}
+            {ROOM_ORDER.map((k) => {
+              const shots = forRoom(k);
+              if (!shots.length) return null;
+              return (
+                <div key={k} className="mt-10">
+                  <p className="flex flex-wrap items-baseline gap-x-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/70">
+                    {lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]}
+                    <span className="text-[#F4EEE2]/35">
+                      {t.price.sleeps} {ROOM_SLEEPS[k]}
+                    </span>
+                  </p>
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-6">
+                    {shots.map((ph, i) => (
+                      <ClipImg
+                        key={ph.id}
+                        photo={ph}
+                        sizes="(min-width: 1024px) 17vw, (min-width: 640px) 30vw, 46vw"
+                        alt={photoAlt(ph, t, lang)}
+                        aspect="aspect-[3/4]"
+                        /* Cap the stagger: a six-across row should ripple, not
+                         * queue up behind half a second of delay. */
+                        delay={Math.min(i, 5) * 70}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            <h3
+              className="mt-16 border-t pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55"
+              style={{ borderColor: HAIR }}
+            >
+              {t.gallery.andTheRest}
+            </h3>
+
+            {GALLERY_REST.map((g) => (
+              <div key={g.key} className="mt-10">
+                <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/70">
+                  {t.gallery.groups[g.key]}
+                </p>
+                {/* These three groups are landscape frames — a wide view of
+                  * Mýrar cropped into a portrait tile throws away the half of
+                  * the picture that is the reason for the picture. */}
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
+                  {g.photos.map((ph, i) => (
+                    <ClipImg
+                      key={ph.id}
+                      photo={ph}
+                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 30vw, 46vw"
+                      alt={photoAlt(ph, t, lang)}
+                      aspect="aspect-[4/3]"
+                      delay={Math.min(i, 3) * 70}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -1571,8 +1728,8 @@ export default function Page() {
         {/* ── 10 · FINAL CTA — night ───────────────────────────────────── */}
         <section className="relative flex min-h-[92svh] items-end overflow-hidden">
           <Img
-            src={IMG.dusk}
-            alt="The sun setting over open grassland at Nýpugarðar, mountains silhouetted on the horizon"
+            {...frame(IMG.dusk, "100vw")}
+            alt={t.seasons.duskAlt}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div

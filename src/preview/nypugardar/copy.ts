@@ -38,6 +38,7 @@ const en = {
     farm: 'The farm',
     rooms: 'Rooms',
     dinner: 'Dinner',
+    gallery: 'Photos',
     reviews: 'Guests',
     info: 'Find us',
     menu: 'Site menu',
@@ -82,7 +83,7 @@ const en = {
     eyebrow: 'The glacier light',
     heading: 'A small hill with the whole horizon',
     body: 'The guesthouse stands on a low hill above the lowlands of Mýrar. The bright rooms look out over Hornafjörður fjord and Hvannadalshnjúkur, the highest mountain in Iceland.',
-    glacierAlt: 'A wide glacier tongue descending between mountains, with green farmland in the foreground',
+    glacierAlt: 'Snow-covered peaks standing over the flats of Mýrar, the fjord catching the light behind them',
     ridgeEyebrow: 'The ridge behind the farm',
     ridgeAlt: 'Snow-capped mountain ridge with a glacier at its base under a blue sky',
   },
@@ -98,10 +99,10 @@ const en = {
     body: 'Bright, warm rooms in the main house and two small cottages with their own bathrooms. Nothing fussy, everything you need, and that view from the pillow.',
     cottagesHeading: 'The two cottages',
     cottagesBody: 'Two timber cottages of 20 and 25 square metres stand beside the main house, each with its own bathroom. Room for two to four guests, with the fields right outside the door.',
-    cottage1Alt: 'Red-roofed cottage at Nýpugarðar in warm evening light with snow on the ground',
-    cottage1Caption: 'Cottage in winter light',
-    cottage2Alt: 'Second cottage at Nýpugarðar under a dusk sky, green grass around it',
-    cottage2Caption: 'Cottage at dusk',
+    cottage1Alt: 'The family cottage at Nýpugarðar, red roof and a timber porch, standing on the grass',
+    cottage1Caption: 'The family cottage, sleeps four',
+    cottage2Alt: 'The cottage for three at Nýpugarðar, seen across the field behind it',
+    cottage2Caption: 'The cottage for three',
     beforeYouCome: 'Before you come',
     arrive: 'Arrive',
     leave: 'Leave',
@@ -177,7 +178,7 @@ const en = {
     heading: 'Book your evening at Nýpugarðar',
     body: 'A room with the horizon in the window, and a seat at the table when the lamb comes out of the kitchen.',
     heroAlt:
-      'Turf-roofed farm outbuilding and the red-roofed guesthouse at Nýpugarðar, a glacier tongue in the distance',
+      'Low evening sun raking across the flats at Nýpugarðar, outlet glaciers and snow peaks along the whole horizon',
   },
 
   footer: {
@@ -188,6 +189,7 @@ const en = {
     from: 'from',
     perNight: 'per night',
     roomTypes: 'Room types and prices',
+    sleeps: 'Sleeps',
     pricesNote: 'Lowest nightly rate seen in the next twelve months. The exact price for your dates is shown when you check availability.',
     checkedOn: 'Prices checked',
   },
@@ -228,11 +230,24 @@ const en = {
     'Breakfast to go': 'Breakfast to go',
   },
 
-  roomPhotos: {
-    'Twin room': 'Twin room',
-    'Room with a farmland view': 'Room with a farmland view',
-    'Inside a cottage': 'Inside a cottage',
-    'Private bathroom': 'Private bathroom',
+  gallery: {
+    eyebrow: 'Every frame',
+    heading: 'The whole place, room by room',
+    body: 'Every photograph here is Nýpugarðar\u2019s own, and every room below is grouped exactly as it is bookable \u2014 so the pictures under a room type really are that room type.',
+    byRoom: 'Every room type, with its own bathroom',
+    andTheRest: 'And the rest of it',
+    groups: {
+      table: 'The dining room',
+      house: 'The house and the deck',
+      land: 'The land around it',
+    },
+    alt: {
+      land: 'The land around Nýpugarðar',
+      house: 'The guesthouse at Nýpugarðar',
+      table: 'The dining room at Nýpugarðar',
+      bathPrivate: 'Private bathroom at Nýpugarðar',
+      bathShared: 'Shared bathroom at Nýpugarðar',
+    },
   },
 
   distances: {
@@ -260,6 +275,7 @@ const is: typeof en = {
     farm: 'Bærinn',
     rooms: 'Gisting',
     dinner: 'Matur',
+    gallery: 'Myndir',
     reviews: 'Umsagnir',
     info: 'Að rata',
     menu: 'Valmynd',
@@ -304,7 +320,7 @@ const is: typeof en = {
     eyebrow: 'Jökulbirtan',
     heading: 'Lítill hóll með allan sjóndeildarhringinn',
     body: 'Gistihúsið stendur á lágum hól upp af Mýrunum. Björt herbergin snúa út að Hornafirði og Hvannadalshnjúki, hæsta fjalli landsins.',
-    glacierAlt: 'Breið jökultunga gengur niður á milli fjalla, með grænt ræktarland í forgrunni',
+    glacierAlt: 'Snævi þaktir tindar yfir Mýrunum, fjörðurinn tekur birtuna fyrir aftan þá',
     ridgeEyebrow: 'Fjallgarðurinn að baki',
     ridgeAlt: 'Snævi þakinn fjallgarður með jökul við rætur sínar undir bláum himni',
   },
@@ -320,10 +336,10 @@ const is: typeof en = {
     body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baði. Ekkert prjál, allt sem þarf, og útsýnið beint úr rúminu.',
     cottagesHeading: 'Sumarhúsin tvö',
     cottagesBody: 'Tvö timburhús, 20 og 25 fermetra, standa við hlið aðalhússins og hvort um sig með eigin baðherbergi. Pláss fyrir tvo til fjóra gesti og túnin beint fyrir utan dyrnar.',
-    cottage1Alt: 'Sumarhús með rauðu þaki á Nýpugörðum í hlýrri kvöldbirtu með snjó á jörðu',
-    cottage1Caption: 'Sumarhús í vetrarbirtu',
-    cottage2Alt: 'Hitt sumarhúsið á Nýpugörðum undir kvöldhimni, grænt gras allt um kring',
-    cottage2Caption: 'Sumarhús í kvöldsól',
+    cottage1Alt: 'Fjölskyldusumarhúsið á Nýpugörðum, rautt þak og timburverönd, stendur á grasinu',
+    cottage1Caption: 'Fjölskyldusumarhúsið, fyrir fjóra',
+    cottage2Alt: 'Sumarhúsið fyrir þrjá á Nýpugörðum, séð yfir túnið fyrir aftan það',
+    cottage2Caption: 'Sumarhúsið fyrir þrjá',
     beforeYouCome: 'Áður en þú kemur',
     arrive: 'Koma',
     leave: 'Brottför',
@@ -399,7 +415,7 @@ const is: typeof en = {
     heading: 'Bókaðu kvöldið á Nýpugörðum',
     body: 'Herbergi með sjóndeildarhringinn í glugganum, og sæti við borðið þegar lambið kemur úr eldhúsinu.',
     heroAlt:
-      'Torfþakið útihús og gistihúsið með rauða þakinu á Nýpugörðum, jökultunga í fjarska',
+      'Lágstæð kvöldsól strýkur yfir flatlendið á Nýpugörðum, skriðjöklar og snævi þaktir tindar við sjóndeildarhringinn',
   },
 
   footer: {
@@ -410,6 +426,7 @@ const is: typeof en = {
     from: 'frá',
     perNight: 'á nótt',
     roomTypes: 'Herbergisgerðir og verð',
+    sleeps: 'Fyrir',
     pricesNote: 'Lægsta verð á nótt sem sést á næstu tólf mánuðum. Nákvæmt verð fyrir þínar dagsetningar birtist þegar þú kannar laus herbergi.',
     checkedOn: 'Verð sótt',
   },
@@ -450,11 +467,24 @@ const is: typeof en = {
     'Breakfast to go': 'Morgunmatur með í nesti',
   },
 
-  roomPhotos: {
-    'Twin room': 'Tveggja manna herbergi',
-    'Room with a farmland view': 'Herbergi með útsýni yfir túnin',
-    'Inside a cottage': 'Inni í sumarhúsi',
-    'Private bathroom': 'Eigið baðherbergi',
+  gallery: {
+    eyebrow: 'Allar myndirnar',
+    heading: 'Allur staðurinn, herbergi fyrir herbergi',
+    body: 'Allar myndir hér eru frá Nýpugörðum sjálfum og hver herbergisgerð er flokkuð nákvæmlega eins og hún er bókanleg \u2014 svo myndirnar undir hverri gerð eru sannarlega af henni.',
+    byRoom: 'Hver herbergisgerð, með sínu baðherbergi',
+    andTheRest: 'Og allt hitt',
+    groups: {
+      table: 'Matsalurinn',
+      house: 'Húsið og veröndin',
+      land: 'Landið í kring',
+    },
+    alt: {
+      land: 'Landið umhverfis Nýpugarða',
+      house: 'Gistihúsið á Nýpugörðum',
+      table: 'Matsalurinn á Nýpugörðum',
+      bathPrivate: 'Eigið baðherbergi á Nýpugörðum',
+      bathShared: 'Sameiginlegt baðherbergi á Nýpugörðum',
+    },
   },
 
   distances: {

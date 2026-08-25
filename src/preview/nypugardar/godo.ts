@@ -7,24 +7,16 @@
  * echo back into the booking page, prices render in ISK, and each room exposes
  * its offers as `br1-<roomid>` controls.
  *
- * DELIBERATELY NO API USE, and that is a standing decision, not a gap.
- * Godo issued API credentials on 2026-08-24, so access is no longer the
- * blocker. The site still does not use them, because:
+ * NO API CALL EVER HAPPENS IN THE BROWSER, and that has not changed. Godo
+ * issued API credentials on 2026-08-24 and the site now uses them, but only at
+ * BUILD time: tools/nypugardar-prices.mjs reads her lowest bookable rate per
+ * room and bakes the result into prices.json, which the page imports as inert
+ * data. The keys are read-write against her live inventory, so they live in
+ * .env.local and in GitHub repo secrets and are never shipped to a client.
  *
- *   - This build is STATIC. The keys are read-write against her live
- *     inventory, so they can never reach a browser, which means using them
- *     requires standing up a server-side cached proxy. That is a backend, not
- *     a feature flag.
- *   - The only thing they buy is "from X €" on the room cards and greying out
- *     sold-out dates in the picker. Her real prices are already one click
- *     away on the Godo page, which is the authoritative source and cannot
- *     drift.
- *   - It adds a failure mode the site currently does not have: API down or
- *     rate-limited, and the page has to decide what to show.
- *
- * Revisit only if she asks for prices on the page, or if the booking numbers
- * suggest people are dropping at the handoff. The layering point still holds:
- * live prices can be added later without changing this handoff at all.
+ * The handoff below is untouched by that. Availability, the exact rate for a
+ * guest's dates, and the booking itself all still happen on Godo's page, which
+ * remains the only authoritative source and cannot drift.
  *
  * Payment never touches this site: the guest completes the booking on Godo's
  * page, so no card data reaches us and we stay out of PCI scope.
@@ -60,6 +52,38 @@ export const GODO_ROOM_IDS = {
 } as const
 
 export type GodoRoomKey = keyof typeof GODO_ROOM_IDS
+
+/**
+ * The same seven types as Booking.com knows them, read off her live listing on
+ * 2026-08-25. Kept here because it is what lets the site place her photographs
+ * on the right room: Booking stores an `associated_rooms` list per photo, and
+ * these ids are the join. The pairing was checked on bed counts, not on names
+ * alone — Booking's "Family Room" is four single beds for four guests, which is
+ * Godo's Family Cottage, and Booking's "Standard Bungalow" is two singles plus
+ * a sofa bed, which is Godo's Cottage for three.
+ */
+export const BOOKING_ROOM_IDS: Record<GodoRoomKey, string> = {
+  twinSharedEconomy: '41994909',
+  doubleTwinShared: '41994901',
+  doubleTwinPrivate: '41994903',
+  doublePrivateExtraBed: '41994904',
+  double: '41994907',
+  cottage3: '41994908',
+  familyCottage: '41994905',
+}
+
+/** How many guests each type sleeps, from Booking's bed configuration on
+ *  2026-08-25. The two cottage figures agree with the names Godo gives them,
+ *  which is the cross-check that makes the mapping above safe to rely on. */
+export const ROOM_SLEEPS: Record<GodoRoomKey, number> = {
+  twinSharedEconomy: 2,
+  doubleTwinShared: 2,
+  doubleTwinPrivate: 2,
+  doublePrivateExtraBed: 3,
+  double: 2,
+  cottage3: 3,
+  familyCottage: 4,
+}
 
 /** Godo's own names for each type, so the site never invents a room name that
  *  does not match what the guest sees on the booking page. */
