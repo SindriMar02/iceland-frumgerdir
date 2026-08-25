@@ -70,7 +70,7 @@ const SERIF = "'Boska', 'Cormorant Garamond', Georgia, serif"
 const FONTS = `${import.meta.env.BASE_URL}fonts/boska/`
 
 const FOCUS =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A8802F]'
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A6403A]'
 
 const prefersReduced = () =>
   typeof window !== 'undefined' &&
@@ -166,6 +166,15 @@ const PAGE_STYLES = `
 .sv-chars { line-height: 1.28 !important; }
 
 .sv-vert { writing-mode: vertical-rl; transform: rotate(180deg); }
+
+/* Seamless chrome: no bar, no hairline. The nav is painted near-wool and
+   difference-blended, so it inverts against whatever passes beneath it —
+   ink over the wool ground, wool over the dark panels, the photo's own
+   inverted tone across images. (Sindri: "the header should be seamless and
+   not have a background, everything should just be fullbleed and flow.") */
+.sv-nav-blend { mix-blend-mode: difference; color: #F6F2E9; }
+.sv-nav-blend button, .sv-nav-blend a { color: inherit !important; }
+.sv-nav-blend .sv-ul::after { background: currentColor; }
 
 /* Photo base saturation. The come-closer zoom lives on .sv-media-down (never
    a GSAP target — the peel/parallax animate .sv-media-up / .sv-media-source,
@@ -501,16 +510,8 @@ function SectionHead({ index, label, tone = 'light' }: {
 
 /* ═══════════════ Header + full-screen bone menu ══════════════════════════ */
 function TopNav() {
-  const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const reduced = prefersReduced()
-
-  useEffect(() => {
-    const onScroll = () => setScrolled((window.scrollY || 0) > 40)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -546,43 +547,34 @@ function TopNav() {
       }
     }, 40)
   }
-  const solid = scrolled || open
-
   return (
     <>
-      <nav aria-label="Main menu" className="fixed inset-x-0 top-0 z-40"
-        style={{
-          background: solid ? 'rgba(244,240,231,.94)' : 'transparent',
-          borderBottom: `1px solid ${solid ? HAIR_INK : 'transparent'}`,
-          backdropFilter: solid ? 'blur(8px)' : undefined,
-          WebkitBackdropFilter: solid ? 'blur(8px)' : undefined,
-          transition: 'background .35s ease, border-color .35s ease',
-        }}>
+      <nav aria-label="Main menu" className="sv-nav-blend fixed inset-x-0 top-0 z-40">
         <div className="flex items-center justify-between px-5 py-4 md:px-8">
           <button type="button"
             onClick={() => { setOpen(false); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }) }}
             className={`min-h-[44px] text-[12px] font-semibold uppercase tracking-[0.32em] ${FOCUS}`}
-            style={{ fontFamily: GROTESK, color: INK }}>
+            style={{ fontFamily: GROTESK }}>
             Svarfhóll
           </button>
           <div className="hidden items-center gap-8 lg:flex">
             {NAV.map((n) => (
               <button key={n.id} type="button" onClick={() => go(n.id)}
                 className={`min-h-[44px] text-[12px] font-medium uppercase tracking-[0.18em] transition-opacity hover:opacity-60 ${FOCUS}`}
-                style={{ fontFamily: GROTESK, color: INK }}>
+                style={{ fontFamily: GROTESK }}>
                 {n.label}
               </button>
             ))}
           </div>
           <div className="flex items-center gap-5">
             <a href={PHONE_HREF}
-              className={`hidden min-h-[44px] items-center text-[12px] tracking-[0.06em] sm:flex ${FOCUS}`}
-              style={{ fontFamily: GROTESK, color: INK_SOFT }}>
+              className={`hidden min-h-[44px] items-center text-[12px] tracking-[0.06em] opacity-75 sm:flex ${FOCUS}`}
+              style={{ fontFamily: GROTESK }}>
               {PHONE_DISPLAY}
             </a>
             <button type="button" onClick={() => go('boka')}
               className={`sv-ul flex min-h-[44px] items-center text-[13px] font-medium tracking-[0.04em] ${FOCUS}`}
-              style={{ fontFamily: GROTESK, color: INK }}>
+              style={{ fontFamily: GROTESK }}>
               (Book)
             </button>
             <button type="button" aria-label={open ? 'Close menu' : 'Open menu'}
@@ -591,13 +583,13 @@ function TopNav() {
               className={`relative flex h-11 w-11 items-center justify-center lg:hidden ${FOCUS}`}>
               <span aria-hidden className="absolute block h-px w-6"
                 style={{
-                  background: INK,
+                  background: 'currentColor',
                   transform: open ? 'rotate(45deg)' : 'translateY(-4px)',
                   transition: reduced ? 'none' : 'transform .32s cubic-bezier(.22,1,.36,1)',
                 }} />
               <span aria-hidden className="absolute block h-px w-6"
                 style={{
-                  background: INK,
+                  background: 'currentColor',
                   transform: open ? 'rotate(-45deg)' : 'translateY(4px)',
                   transition: reduced ? 'none' : 'transform .32s cubic-bezier(.22,1,.36,1)',
                 }} />
