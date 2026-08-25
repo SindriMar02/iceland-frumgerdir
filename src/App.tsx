@@ -134,6 +134,7 @@ const IssiPage = lazy(() => import('./preview/issi/Page'))
 // Húnabúð — Blönduós café/flower/gift shop, "Þrennt undir einu þaki" concept
 const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const BudirPage = lazy(() => import('./preview/budir/Page'))
+const SvarfhollPage = lazy(() => import('./preview/svarfholl/Page'))
 const DrangarPage = lazy(() => import('./preview/drangar/Page'))
 const IcelandLuxuryLodgesPage = lazy(() => import('./preview/icelandluxurylodges/Page'))
 const MirrorLodgePage = lazy(() => import('./preview/mirrorlodge/Page'))
@@ -369,6 +370,7 @@ export default function App() {
             <Route path="/preview/issi" element={<IssiPage />} />
             <Route path="/preview/hunabud" element={<HunabudPage />} />
             <Route path="/preview/budir" element={<BudirPage />} />
+            <Route path="/preview/svarfholl" element={<SvarfhollPage />} />
             <Route path="/preview/drangar" element={<DrangarPage />} />
             <Route path="/preview/icelandluxurylodges" element={<IcelandLuxuryLodgesPage />} />
             <Route path="/preview/mirrorlodge" element={<MirrorLodgePage />} />
