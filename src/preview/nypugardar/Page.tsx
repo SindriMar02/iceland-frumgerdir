@@ -534,18 +534,25 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
         }
       >
         {shown.map((q) => (
-          <blockquote key={q.name} className="border-t pt-6" style={{ borderColor: HAIR }}>
-            <p className="leading-relaxed text-[#F4EEE2]/85">“{q.text}”</p>
+          <blockquote key={q.name + q.date} className="border-t pt-6" style={{ borderColor: HAIR }}>
+            {/* pre-line, because several of these were written as stacked short
+              * lines rather than sentences. Collapsing them and inserting full
+              * stops would be editing somebody else's review. */}
+            <p className="whitespace-pre-line leading-relaxed text-[#F4EEE2]/85">“{q.text}”</p>
             <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
               {q.name}, {q.place}
+              <span className="mt-1 block text-[#F4EEE2]/45">{q.date}</span>
               {q.note ? <span className="mt-1 block text-[#F4EEE2]/60">{t.reviews.translatedFromItalian}</span> : null}
             </footer>
           </blockquote>
         ))}
       </div>
 
+      {/* Eight sets now, not two. Eight 32px filled circles read as a control
+       * panel; the dot is drawn small and the button stays 32px so the tap
+       * target survives the restraint. */}
       {pages > 1 ? (
-        <div className="mt-10 flex items-center gap-3">
+        <div className="mt-10 flex items-center gap-1">
           {Array.from({ length: pages }, (_, i) => (
             <button
               key={i}
@@ -553,12 +560,18 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
               onClick={() => setPage(i)}
               aria-label={`${t.reviews.setLabel} ${i + 1} ${t.reviews.of} ${pages}`}
               aria-current={i === page}
-              className={`h-8 w-8 rounded-full border transition-colors duration-200 ${FOCUS}`}
-              style={{
-                borderColor: i === page ? ACCENT : HAIR,
-                background: i === page ? ACCENT : 'transparent',
-              }}
-            />
+              className={`grid h-8 w-8 place-items-center rounded-full ${FOCUS}`}
+            >
+              <span
+                aria-hidden="true"
+                className="block rounded-full transition-all duration-300 ease-out"
+                style={{
+                  width: i === page ? 22 : 7,
+                  height: 7,
+                  background: i === page ? ACCENT : 'rgba(244,238,226,0.28)',
+                }}
+              />
+            </button>
           ))}
         </div>
       ) : null}
@@ -1712,7 +1725,7 @@ export default function Page() {
                 >
                   Booking.com
                 </a>
-                {t.reviews.noDates}
+                {t.reviews.sourceNote}
               </p>
             </Reveal>
           </div>
