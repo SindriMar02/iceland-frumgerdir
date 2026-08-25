@@ -69,6 +69,7 @@ import {
   ROOM_SLEEPS,
   type GodoRoomKey,
 } from "./godo";
+import { useStay, type Stay } from "./stay";
 import {
   byCat,
   forRoom,
@@ -379,6 +380,73 @@ function LangToggle({
 }
 
 /* ── CTA — dark ink on amber (AA). */
+/**
+ * The per-room call to action in the room list.
+ *
+ * Verified live against Godo on 2026-08-25: passing `roomid` opens the booking
+ * page on that one type, priced, with the guest's own nights already applied
+ * (see the note in godo.ts). So this is a real shortcut, not a filter the guest
+ * has to set again on the other side.
+ *
+ * Deliberately quiet. Seven of these sit in a row, and seven orange buttons
+ * would shout down the one primary call to action at the top of the page and
+ * turn a readable price list into a wall of chrome. A rule that fills on hover
+ * is enough affordance next to a price, and the whole row is not made clickable
+ * because the price and the photograph are worth reading without a cursor
+ * suggesting they are a link.
+ *
+ * The accessible name carries the room, because "Book · Book · Book" seven
+ * times is useless to anyone listing the links on a screen reader.
+ */
+function RoomBookLink({
+  room,
+  name,
+  stay,
+  lang,
+  t,
+}: {
+  room: GodoRoomKey;
+  name: string;
+  stay: Stay;
+  lang: Lang;
+  t: Copy;
+}) {
+  if (!bookingReady()) return null;
+  const href = bookingHref({
+    room,
+    checkin: stay.checkin,
+    checkout: stay.checkout,
+    adults: stay.adults,
+    children: stay.children,
+    lang,
+  });
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      aria-label={`${t.cta.bookRoom} ${name}`}
+      /* py-3 on a phone, not for the look but for the thumb: the label itself
+       * is only about 22px tall, which is half a tap target. The negative
+       * margin keeps the row height where the design put it. */
+      className={`group -my-2 inline-flex shrink-0 items-center gap-1.5 py-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/60 transition-colors duration-200 hover:text-[#F4EEE2] md:my-0 md:py-1 ${FOCUS}`}
+    >
+      <span className="relative py-1">
+        {t.cta.bookRoom}
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100"
+          style={{ background: ACCENT }}
+        />
+      </span>
+      <ArrowUpRight
+        className="h-3.5 w-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px"
+        strokeWidth={1.5}
+        aria-hidden="true"
+      />
+    </a>
+  );
+}
+
 function BookLink({
   children,
   className = "",
@@ -501,6 +569,9 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
 export default function Page() {
   const [lang, setLang] = useLang();
   const t = COPY[lang];
+  /* One stay for the whole page: the hero picker writes it, the room list reads
+   * it, so "book this room" carries the nights the guest already chose. */
+  const { stay, setStay, today } = useStay();
   const reduced = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
   const rules = useRef(new Set<HTMLSpanElement>());
@@ -865,7 +936,15 @@ export default function Page() {
                 </a>
               </div>
             </div>
-            <BookingBar variant="card" className="mt-10 lg:mt-0" t={t} lang={lang} />
+            <BookingBar
+              variant="card"
+              className="mt-10 lg:mt-0"
+              t={t}
+              lang={lang}
+              stay={stay}
+              onStay={setStay}
+              today={today}
+            />
           </div>
         </div>
       </header>
@@ -1173,18 +1252,21 @@ export default function Page() {
                             </span>
                           </div>
                         </div>
-                        {typeof price === 'number' ? (
-                          <span className="shrink-0 font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
-                            {t.price.from}{' '}
-                            <span
-                              className="font-erode text-2xl tracking-tight tabular-nums"
-                              style={{ color: ACCENT }}
-                            >
-                              {price}
-                            </span>{' '}
-                            &euro; {t.price.perNight}
-                          </span>
-                        ) : null}
+                        <div className="flex shrink-0 items-center gap-6">
+                          {typeof price === 'number' ? (
+                            <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
+                              {t.price.from}{' '}
+                              <span
+                                className="font-erode text-2xl tracking-tight tabular-nums"
+                                style={{ color: ACCENT }}
+                              >
+                                {price}
+                              </span>{' '}
+                              &euro; {t.price.perNight}
+                            </span>
+                          ) : null}
+                          <RoomBookLink room={k} name={name} stay={stay} lang={lang} t={t} />
+                        </div>
                       </li>
                     )
                   })}
@@ -1503,12 +1585,25 @@ export default function Page() {
               if (!shots.length) return null;
               return (
                 <div key={k} className="mt-10">
-                  <p className="flex flex-wrap items-baseline gap-x-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/70">
-                    {lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]}
-                    <span className="text-[#F4EEE2]/35">
-                      {t.price.sleeps} {ROOM_SLEEPS[k]}
-                    </span>
-                  </p>
+                  {/* Same quiet link as the price list. Someone who has scrolled
+                    * this far is looking at the photographs of one specific
+                    * room, which is exactly the moment to let them book that
+                    * room instead of sending them back up the page. */}
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <p className="flex flex-wrap items-baseline gap-x-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/70">
+                      {lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]}
+                      <span className="text-[#F4EEE2]/35">
+                        {t.price.sleeps} {ROOM_SLEEPS[k]}
+                      </span>
+                    </p>
+                    <RoomBookLink
+                      room={k}
+                      name={lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]}
+                      stay={stay}
+                      lang={lang}
+                      t={t}
+                    />
+                  </div>
                   <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-6">
                     {shots.map((ph, i) => (
                       <ClipImg

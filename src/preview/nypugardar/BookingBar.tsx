@@ -1,14 +1,16 @@
-import { useId, useMemo, useState } from 'react'
+import { useId } from 'react'
 import { ArrowUpRight, Minus, Plus } from 'lucide-react'
 import type { Copy, Lang } from './copy'
 import {
+  addDays,
   bookingHref,
   bookingReady,
   inputDate,
   nightsBetween,
   parseInputDate,
-    type GodoRoomKey,
+  type GodoRoomKey,
 } from './godo'
+import type { Stay } from './stay'
 
 /**
  * Date and guest picker that hands off to Godo's booking page.
@@ -22,23 +24,17 @@ import {
  * purpose. Until her property id is filled into godo.ts the submit control
  * renders as an inert placeholder holding Godo's spot, so the layout is final
  * and switching it on is a one-line change.
+ *
+ * THE DATES ARE NOT OWNED HERE. They live one level up in Page, because the
+ * room list further down carries its own per-room booking links and those have
+ * to hand Godo the same nights the guest just picked up here. Two independent
+ * copies of "when are you coming" is how a guest ends up choosing dates twice.
  */
 
 const PAPER = '#F4EEE2'
 const HAIR = 'rgba(244,238,226,0.14)'
 const FOCUS =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#15130F]'
-
-function startOfDay(d: Date) {
-  const x = new Date(d)
-  x.setHours(0, 0, 0, 0)
-  return x
-}
-function addDays(d: Date, n: number) {
-  const x = new Date(d)
-  x.setDate(x.getDate() + n)
-  return x
-}
 
 function Stepper({
   label,
@@ -102,6 +98,9 @@ export default function BookingBar({
   variant = 'bar',
   t,
   lang,
+  stay,
+  onStay,
+  today,
 }: {
   /** Focus the booking page on one unit type, when placed inside a room card. */
   room?: GodoRoomKey | null
@@ -111,14 +110,13 @@ export default function BookingBar({
   /** 'bar' is the wide five-across row; 'card' stacks for a narrow column,
    *  which is what the hero uses so it can sit beside the headline. */
   variant?: 'bar' | 'card'
+  stay: Stay
+  onStay: (next: Partial<Stay>) => void
+  today: Date
 }) {
   const label = t.cta.check
   const isCard = variant === 'card'
-  const today = useMemo(() => startOfDay(new Date()), [])
-  const [checkin, setCheckin] = useState<Date>(() => addDays(today, 1))
-  const [checkout, setCheckout] = useState<Date>(() => addDays(today, 3))
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
+  const { checkin, checkout, adults, children } = stay
 
   const inId = useId()
   const outId = useId()
@@ -131,13 +129,15 @@ export default function BookingBar({
   function onCheckin(v: string) {
     const d = parseInputDate(v)
     if (!d) return
-    setCheckin(d)
-    if (checkout <= d) setCheckout(addDays(d, 1))
+    /* Both fields go in one update: a check-out that is now in the past has to
+     * move with the arrival, and doing it in two setState calls lets an
+     * impossible pair exist for a frame and reach the room links. */
+    onStay(checkout <= d ? { checkin: d, checkout: addDays(d, 1) } : { checkin: d })
   }
   function onCheckout(v: string) {
     const d = parseInputDate(v)
     if (!d) return
-    setCheckout(d > checkin ? d : addDays(checkin, 1))
+    onStay({ checkout: d > checkin ? d : addDays(checkin, 1) })
   }
 
   /** h-8 matches the stepper buttons so every label in the row shares a baseline. */
@@ -204,13 +204,13 @@ export default function BookingBar({
 
         {isCard ? (
           <div className="grid grid-cols-2 gap-4">
-            <Stepper label={t.booking.adults} value={adults} min={1} max={12} onChange={setAdults} />
-            <Stepper label={t.booking.children} value={children} min={0} max={8} onChange={setChildren} />
+            <Stepper label={t.booking.adults} value={adults} min={1} max={12} onChange={(n) => onStay({ adults: n })} />
+            <Stepper label={t.booking.children} value={children} min={0} max={8} onChange={(n) => onStay({ children: n })} />
           </div>
         ) : (
           <>
-            <Stepper label={t.booking.adults} value={adults} min={1} max={12} onChange={setAdults} />
-            <Stepper label={t.booking.children} value={children} min={0} max={8} onChange={setChildren} />
+            <Stepper label={t.booking.adults} value={adults} min={1} max={12} onChange={(n) => onStay({ adults: n })} />
+            <Stepper label={t.booking.children} value={children} min={0} max={8} onChange={(n) => onStay({ children: n })} />
           </>
         )}
 

@@ -48,6 +48,7 @@ const en = {
     check: 'Check availability',
     bookEvening: 'Book your evening at Nýpugarðar',
     callFarm: 'Call the farm',
+    bookRoom: 'Book',
     liveFromGodo: 'Live dates and prices come straight from our booking system',
   },
 
@@ -285,6 +286,7 @@ const is: typeof en = {
     check: 'Kanna laus herbergi',
     bookEvening: 'Bókaðu kvöldið á Nýpugörðum',
     callFarm: 'Hringdu í bæinn',
+    bookRoom: 'Bóka',
     liveFromGodo: 'Laus herbergi og verð koma beint úr bókunarkerfinu okkar',
   },
 

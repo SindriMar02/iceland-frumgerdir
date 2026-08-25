@@ -188,6 +188,21 @@ export function bookingHref(q: BookingQuery = {}): string | null {
 /** Shown wherever a booking control sits while Godo is not yet connected. */
 export const PLACEHOLDER_NOTE = 'Godo booking connects here'
 
+/**
+ * VERIFIED LIVE 2026-08-25 against property.godo.is: passing `roomid` renders
+ * that ONE room type and nothing else. With a date that has inventory
+ * (roomid=145056, 17–18 Oct) the page came back "Double/Twin room with shared
+ * bathroom · Quantity 1 · from 98.10€"; with the same roomid on a sold-out date
+ * it came back with the same single room and "Not available". So a per-room
+ * call to action is a real handoff, not a filter the guest has to redo.
+ *
+ * One thing to know about that headline figure: Godo advertises the
+ * non-refundable rate (p2, 90% of p1) while this site quotes the standard rate
+ * (p1). A guest therefore sees a LOWER number on Godo than on the site, which
+ * is the safe direction to be wrong in — nobody arrives at checkout to find the
+ * price went up.
+ */
+
 /** Nights between two dates, floored at 1. */
 export function nightsBetween(a: Date, b: Date): number {
   const ms = b.getTime() - a.getTime()
@@ -222,3 +237,17 @@ export function parseInputDate(v: string): Date | null {
  * When and if the API route is built: GODO_PROP_KEY and GODO_API_KEY in
  * .env.local (already gitignored), read only inside the server-side proxy.
  */
+
+/** Midnight local. Dates are compared and formatted in local time throughout;
+ *  a UTC midnight would land on the previous day west of Greenwich. */
+export function startOfDay(d: Date): Date {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
+
+export function addDays(d: Date, n: number): Date {
+  const x = new Date(d)
+  x.setDate(x.getDate() + n)
+  return x
+}
