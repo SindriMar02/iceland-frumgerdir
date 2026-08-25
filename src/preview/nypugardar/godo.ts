@@ -7,11 +7,24 @@
  * echo back into the booking page, prices render in ISK, and each room exposes
  * its offers as `br1-<roomid>` controls.
  *
- * DELIBERATELY NO API USE. Godo exposes the Beds24 JSON API (v1 at /api/json/*,
- * v2 at /api/v2/*), but whether Nýpugarðar's plan is entitled to use it is not
- * confirmed yet. Everything here depends only on the public booking page, which
- * is verified to work. If API access is later granted, live per-room prices can
- * be layered on top without changing this handoff.
+ * DELIBERATELY NO API USE, and that is a standing decision, not a gap.
+ * Godo issued API credentials on 2026-08-24, so access is no longer the
+ * blocker. The site still does not use them, because:
+ *
+ *   - This build is STATIC. The keys are read-write against her live
+ *     inventory, so they can never reach a browser, which means using them
+ *     requires standing up a server-side cached proxy. That is a backend, not
+ *     a feature flag.
+ *   - The only thing they buy is "from X €" on the room cards and greying out
+ *     sold-out dates in the picker. Her real prices are already one click
+ *     away on the Godo page, which is the authoritative source and cannot
+ *     drift.
+ *   - It adds a failure mode the site currently does not have: API down or
+ *     rate-limited, and the page has to decide what to show.
+ *
+ * Revisit only if she asks for prices on the page, or if the booking numbers
+ * suggest people are dropping at the handoff. The layering point still holds:
+ * live prices can be added later without changing this handoff at all.
  *
  * Payment never touches this site: the guest completes the booking on Godo's
  * page, so no card data reaches us and we stay out of PCI scope.
@@ -165,9 +178,9 @@ export function parseInputDate(v: string): Date | null {
  * Godo supplied a propKey on 2026-08-22. It is a live credential against her
  * real inventory, so it belongs in an environment variable read server-side,
  * never in a committed source file and never in anything shipped to a browser.
- * It is also unusable on its own — the v1 JSON API needs an account-level
- * apiKey alongside it, which Godo has not sent yet.
+ * The account-level apiKey arrived on 2026-08-24 and is subject to exactly the
+ * same rule: env var only, never committed, never shipped to a browser.
  *
- * When the API route is built: put it in .env.local as GODO_PROP_KEY, keep that
- * file gitignored, and read it only inside the cached proxy.
+ * When and if the API route is built: GODO_PROP_KEY and GODO_API_KEY in
+ * .env.local (already gitignored), read only inside the server-side proxy.
  */
