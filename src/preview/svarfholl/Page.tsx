@@ -699,7 +699,7 @@ function Hero() {
               className="sv-hero-word m-0 whitespace-nowrap text-center font-extralight"
               style={{
                 fontFamily: SERIF, fontWeight: 200, color: INK,
-                fontSize: 'min(19.5vw, 36svh)', letterSpacing: '-0.02em',
+                fontSize: 'min(17vw, 33svh)', letterSpacing: '-0.02em',
               }}>
               {heroChars.map((ch, i) => (
                 <span key={`${ch}-${i}`} aria-hidden
@@ -748,7 +748,7 @@ function Rails() {
   return (
     <section aria-label="Búðir" className="sv-rails-sec sv-p-rails relative flex min-h-[92svh] flex-col"
       style={{ background: 'var(--sv-ground)', overflowX: 'clip' }}>
-      <div className="px-5 pt-14 md:px-8">
+      <div className="px-5 pt-24 md:px-8">
         <SectionHead index="01" label={HERO.word} />
       </div>
       <div className="flex flex-1 flex-col justify-center gap-6 px-5 py-20 md:gap-8 md:px-8">
@@ -756,9 +756,9 @@ function Rails() {
           const [first, ...rest] = phrase.split(' ')
           return (
             <div key={phrase} className="sv-mask sv-rail overflow-hidden"
-              style={{ paddingLeft: `${i * 7}%` }}>
+              style={{ paddingLeft: `${4 + i * 6}%` }}>
               <p className="sv-mrise m-0 whitespace-nowrap"
-                style={{ lineHeight: 1.26, fontSize: 'clamp(1.9rem, 6.6vw, 5.6rem)' }}>
+                style={{ lineHeight: 1.26, fontSize: 'clamp(1.7rem, 5.4vw, 4.8rem)' }}>
                 <span className="font-semibold uppercase"
                   style={{ fontFamily: GROTESK, letterSpacing: '-0.01em', color: INK }}>
                   {first}
@@ -894,7 +894,7 @@ function Restaurant() {
   const [barBefore, barAfter] = RESTAURANT.barLine.split(RESTAURANT.barEm)
   return (
     <section id="ljosin" className="sv-p-rest scroll-mt-16" style={{ background: INK }}>
-      <div className="sv-rest-inner px-5 pb-20 pt-14 md:px-8 md:pb-28">
+      <div className="sv-rest-inner px-5 pb-20 pt-24 md:px-8 md:pb-28">
         <div className="sv-rest-head">
           <SectionHead index="03" label={NAV[1].label} tone="dark" />
         </div>
@@ -965,7 +965,7 @@ function Saga() {
   return (
     <section id="gestabok" className="sv-p-saga scroll-mt-16 overflow-hidden"
       style={{ background: 'var(--sv-ground)' }}>
-      <div className="sv-saga-head px-5 pt-14 md:px-8">
+      <div className="sv-saga-head px-5 pt-24 md:px-8">
         <SectionHead index="04" label={NAV[2].label} />
         <div className="flex items-end justify-between gap-8">
           <h2 className="sv-lines mb-0 mt-10 max-w-[30rem]"
@@ -987,14 +987,21 @@ function Saga() {
           const photo = sagaPhotos[i]
           return (
             <div key={step.era} className="sv-saga-step mt-16 md:mt-0">
-              {/* The era numeral crosses its photo — INK over the bone ground,
-                  BONE where it crosses the darkened photo. Centered, so every
-                  glyph (incl. the leading "1", "Í") stays fully in view on
-                  mobile — no bleed-off-left amputation. */}
-              <HueHeading text={step.era} level={3} photoFile={photo.file}
-                photoAlt={photo.alt} flip={sagaFlip[i]}
-                fontSize="clamp(3.6rem, 18vw, 12rem)"
-                figClass="w-[min(60vw,280px)]" wrapClass="sv-saga-hue" />
+              {/* Solid ink monuments (the hue blend made the numbers murky over
+                  these photos — Sindri: "can barely read the numbers"). The
+                  numeral stands alone on the ground, a roof-red rule beneath,
+                  the photo as its own card below. Legibility first. */}
+              <h3 className="sv-chars m-0 text-center"
+                style={{
+                  fontFamily: SERIF, fontWeight: 200, color: INK,
+                  fontSize: 'clamp(4rem, 15vw, 11rem)', lineHeight: 1,
+                }}>
+                {step.era}
+              </h3>
+              <span aria-hidden className="mx-auto mt-4 block h-px w-16" style={{ background: BRASS }} />
+              <div className="mx-auto mt-8 w-[min(60vw,280px)]">
+                <Photo src={IMG(photo.file)} alt={photo.alt} aspect="aspect-[3/4]" flip={sagaFlip[i]} />
+              </div>
               <p className="sv-lines sv-saga-text mx-auto mt-8 max-w-[26rem] px-5 text-[15px] leading-[1.8] md:px-0"
                 style={{ fontFamily: GROTESK, color: INK_SOFT }}>
                 {step.text}
@@ -1011,7 +1018,7 @@ function Saga() {
 function Weddings() {
   return (
     <section id="beidni" className="sv-p-wed scroll-mt-16" style={{ background: 'var(--sv-ground)' }}>
-      <div className="sv-wed-inner px-5 pb-24 pt-14 md:px-8 md:pb-32">
+      <div className="sv-wed-inner px-5 pb-24 pt-24 md:px-8 md:pb-32">
         <div className="sv-wed-head">
           <SectionHead index="05" label="The request" />
         </div>
@@ -1051,7 +1058,7 @@ function Place() {
   const slabs = [PHOTOS.aerial, PHOTOS.beach] as const
   return (
     <section id="stadurinn" className="sv-p-place scroll-mt-16" style={{ background: 'var(--sv-ground)' }}>
-      <div className="sv-place-inner px-5 pb-24 pt-14 md:px-8 md:pb-32">
+      <div className="sv-place-inner px-5 pb-24 pt-24 md:px-8 md:pb-32">
         <div className="sv-place-head">
           <SectionHead index="06" label={NAV[3].label} />
         </div>
@@ -1284,7 +1291,7 @@ function BookingSection() {
 
   return (
     <section id="boka" aria-label="Request dates" style={{ background: 'var(--sv-ground)' }}>
-      <div className="px-5 pb-24 pt-14 md:px-8 md:pb-28">
+      <div className="px-5 pb-24 pt-24 md:px-8 md:pb-28">
         <SectionHead index="07" label={NAV[4].label} />
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:gap-20">
           <div className="max-w-[26rem]">
@@ -1686,8 +1693,8 @@ export default function Page() {
            on mobile they are the halved vertical-trigger versions. */
         const amp = c.desktop ? 1 : 0.5
         const railsSec = q('.sv-rails-sec')[0]
-        const railFrom = [-14, 14, -10]
-        const railTo = [4, -4, 6]
+        const railFrom = [-3, 8, -5]
+        const railTo = [3, -3, 3]
         q('.sv-rail').forEach((el, i) => {
           gsap.fromTo(el, { x: `${railFrom[i] * amp}vw` }, {
             x: `${railTo[i] * amp}vw`, ease: 'none',

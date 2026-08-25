@@ -52,7 +52,7 @@ export const HERO = {
   wordPrefix: 'Farm stay',
   sub: 'A farm stay in the quiet of Dalir, west Iceland. Three timber chalets and rooms in the old farmhouse, with the sheep at the fence and the sky doing the entertaining.',
   cta: 'Request dates',
-  photoAlt: 'The farm at Svarfhóll under the fell, seen across the home field.',
+  photoAlt: 'Chalet 3 and its timber deck in the evening sun, the fell behind.',
 }
 
 /* ── Their own three phrases (registry + listing copy, quoted) ───────── */
@@ -81,8 +81,8 @@ export const ROOMS: RoomCat[] = [
     name: 'Chalet 3',
     wing: 'Bakkaflöt',
     body: 'The second chalet sleeps four as well, with a deck for the evenings when the valley goes gold. Rated 4.85 by its guests.',
-    img: 'chalet3-deck.webp',
-    alt: 'Chalet 3 with its timber deck and outdoor table in the evening light.',
+    img: 'room-chalet3.webp',
+    alt: 'The sleeping loft in Chalet 3, beds made up under the timber roof.',
   },
   {
     key: 'farmhouse-room',
@@ -151,7 +151,7 @@ export const PLACE = {
 
 /* ── Photo registry (all their own) ──────────────────────────────────── */
 export const PHOTOS = {
-  heroWater: { file: 'hero-farm.webp', alt: 'The farm at Svarfhóll under the fell, across the home field.' },
+  heroWater: { file: 'chalet3-deck.webp', alt: 'Chalet 3 and its timber deck in the evening sun.' },
   coast: { file: 'rainbow.webp', alt: 'A rainbow landing on the home field at golden hour.' },
   aerial: { file: 'valley.webp', alt: 'The broad valley in Dalir under a spring sky.' },
   snow: { file: 'winter.webp', alt: 'The farm in snow at winter dusk.' },
