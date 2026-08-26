@@ -89,8 +89,8 @@ export const ROOMS: RoomCat[] = [
     name: 'The old farmhouse',
     wing: 'Heima á bæ',
     body: 'Simple rooms for up to three in the white farmhouse with the red roof, sharing the family kitchen and the stairs that creak honestly.',
-    img: 'farm-room.webp',
-    alt: 'A twin room in the old farmhouse with a window towards the fell.',
+    img: 'farmhouse-white.webp',
+    alt: 'The white farmhouse with the red roof, its own hot pot by the door.',
   },
   {
     key: 'hot-pot',
