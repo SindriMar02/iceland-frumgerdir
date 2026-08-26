@@ -1219,7 +1219,16 @@ export default function Page() {
     s.type = 'application/ld+json'
     s.textContent = JSON.stringify(JSON_LD)
     document.head.appendChild(s)
-    return () => { s.remove() }
+    /* Preload the display font: the preloader waits for it (FOUT guard below),
+       so the earlier the request starts, the shorter that wait. */
+    const preloads = ['Boska-Extralight.woff2', 'Boska-Light.woff2'].map((f) => {
+      const l = document.createElement('link')
+      l.rel = 'preload'; l.as = 'font'; l.type = 'font/woff2'
+      l.crossOrigin = 'anonymous'; l.href = `${FONTS}${f}`
+      document.head.appendChild(l)
+      return l
+    })
+    return () => { s.remove(); preloads.forEach((l) => l.remove()) }
   }, [])
 
   /* Preloader timeline — ≤1.6s: chars rise from the masked baseline, the
@@ -1233,7 +1242,13 @@ export default function Page() {
     document.body.style.overflow = 'hidden'
     const chars = el.querySelectorAll('.sk-pre-char')
     const rule = el.querySelector('.sk-pre-rule')
+    /* FOUT guard (found on Svarfhóll, same preloader): the chars stay masked
+       until Boska has loaded, otherwise the Georgia fallback flashes a visibly
+       bolder wordmark for a beat before the swap. Capped at 900ms so the
+       preloader can never become load-bearing on a slow connection. */
+    gsap.set(chars, { yPercent: 115 })
     const tl = gsap.timeline({
+      paused: true,
       onComplete: () => {
         setPre(false)
         ScrollTrigger.refresh()
@@ -1242,7 +1257,16 @@ export default function Page() {
     tl.fromTo(chars, { yPercent: 115 }, { yPercent: 0, duration: 0.75, ease: 'power4.out', stagger: 0.05 }, 0)
       .fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: 'power2.inOut' }, 0.2)
       .to(el, { yPercent: -100, duration: 0.55, ease: 'power3.inOut' }, 1.05)
+    let cancelled = false
+    Promise.race([
+      Promise.all([
+        document.fonts.load("200 1em 'Boska'"),
+        document.fonts.load("300 1em 'Boska'"),
+      ]).catch(() => undefined),
+      new Promise((resolve) => { setTimeout(resolve, 900) }),
+    ]).then(() => { if (!cancelled) tl.play() })
     return () => {
+      cancelled = true
       document.body.style.overflow = prevOverflow
       tl.kill()
     }
