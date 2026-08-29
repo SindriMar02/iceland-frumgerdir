@@ -9,8 +9,9 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
+import { bookingReady, godoBookingUrl } from './godo'
 import {
-  BATH_NOTE, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, REVIEW_THEMES,
+  AERIAL_FILM, BATH_NOTE, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, REVIEW_THEMES,
   ROOMS, VALLEY, WELCOME_RITUAL, srcSet, type Photo, type RoomEntry,
 } from './content'
 
@@ -773,10 +774,23 @@ function BookingForm() {
         </label>
       </div>
       {error && <p className="vn-field-error" role="alert">{error}</p>}
-      <button type="submit" className="vn-cta vn-cta-block">Enquire about your stay</button>
+      {bookingReady() ? (
+        /* The GODO handoff: the same dates the guest just picked, carried
+           straight onto the secure booking page. Live the moment the propid
+           lands in godo.ts. */
+        <a
+          className="vn-cta vn-cta-block"
+          href={godoBookingUrl({ checkin: stay.from, checkout: stay.to, adults: people })}
+        >
+          Continue to secure booking
+        </a>
+      ) : (
+        <button type="submit" className="vn-cta vn-cta-block">Enquire about your stay</button>
+      )}
       <p className="vn-book-note">
-        No payment today. Send your preferred dates and the owner replies with
-        availability and the nightly price. Payment is settled on arrival.
+        {bookingReady()
+          ? 'Your dates carry over. Availability, the exact price and payment are all handled on the secure booking page.'
+          : 'No payment today. Send your preferred dates and the owner replies with availability and the nightly price. Payment is settled on arrival.'}
       </p>
     </form>
   )
@@ -788,6 +802,7 @@ export default function VillaNorthPage() {
   const [ready, setReady] = useState(false)
   const [activeRoom, setActiveRoom] = useState<string>(ROOMS[0].id)
   const [glowErrored, setGlowErrored] = useState(false)
+  const [aerialErrored, setAerialErrored] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const roomBtnRefs = useRef<Array<HTMLButtonElement | null>>([])
   const glowVideoRef = useRef<HTMLVideoElement>(null)
@@ -852,6 +867,8 @@ export default function VillaNorthPage() {
         <nav className="vn-nav-links" aria-label="Page">
           <a href="#drawing" onClick={anchor('drawing')}>The house</a>
           <a href="#rooms" onClick={anchor('rooms')}>Rooms</a>
+          <a href="#gallery" onClick={anchor('gallery')}>Gallery</a>
+          <a href="#tours" onClick={anchor('tours')}>Tours</a>
           <a href="#guests" onClick={anchor('guests')}>Guests</a>
         </nav>
         <a className="vn-nav-cta" href="#booking" onClick={anchor('booking')}>Enquire about your stay</a>
@@ -962,7 +979,44 @@ export default function VillaNorthPage() {
         </div>
       </section>
 
-      {/* 04 · rooms to measure */}
+      {/* 04 · from the air — their own drone film, shown full bleed. A muted
+          loop with the poster as permanent fallback (glow-film pattern: the
+          film must never be the section's single point of failure). */}
+      <section className="vn-film" id="film" aria-label="Aerial film of the house">
+        <div className="vn-film-bleed">
+          <img
+            src={AERIAL_FILM.poster}
+            srcSet={`${AERIAL_FILM.posterSmall} 800w, ${AERIAL_FILM.poster} 1120w`}
+            sizes="100vw"
+            alt={PHOTO.aerialSunset.alt}
+            loading="lazy"
+            decoding="async"
+            className="vn-film-poster"
+          />
+          <video
+            className={`vn-film-video ${aerialErrored ? 'is-errored' : ''}`}
+            poster={AERIAL_FILM.poster}
+            autoPlay={!reduced()}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden="true"
+            onError={() => setAerialErrored(true)}
+          >
+            <source src={AERIAL_FILM.src} type="video/mp4" />
+          </video>
+          <div className="vn-film-caps">
+            <p className="vn-film-label">Úr lofti</p>
+            <p className="vn-film-cap">
+              The house, the hillside and the whole run of the valley, in one pass.
+            </p>
+          </div>
+        </div>
+        <p className="vn-film-credit vn-rv">{AERIAL_FILM.credit}</p>
+      </section>
+
+      {/* 05 · rooms to measure */}
       <section className="vn-rooms" id="rooms">
         <Headline text="Plan who sleeps where." size={64} floor={32} measure={620} />
         <p className="vn-body vn-rv">
@@ -1125,7 +1179,62 @@ export default function VillaNorthPage() {
         </div>
       </section>
 
-      {/* 08 · guests */}
+      {/* 08 · gallery — the photo set, plainly. The call asked for a photo
+          gallery page; on a one-page prototype it is a section, and each frame
+          keeps the same drift device as everywhere else. */}
+      <section className="vn-gallery" id="gallery">
+        <div className="vn-gallery-head">
+          <Headline text="The house in pictures." size={56} floor={30} measure={560} />
+          <p className="vn-body vn-rv">
+            Every photograph is the house itself, from the listing's own set.
+            The full gallery grows as new photography arrives.
+          </p>
+        </div>
+        <div className="vn-gallery-grid">
+          <Frame photo={PHOTO.glassGrid} className="vn-g-a" drift={8} />
+          <Frame photo={PHOTO.mezzanine} className="vn-g-b" drift={6} />
+          <Frame photo={PHOTO.kitchenRun} className="vn-g-c" drift={7} />
+          <Frame photo={PHOTO.living} className="vn-g-d" drift={6} />
+          <Frame photo={PHOTO.bedroomAttic} className="vn-g-e" drift={8} />
+          <Frame photo={PHOTO.walkway} className="vn-g-f" drift={6} />
+          <Frame photo={PHOTO.gridSunset} className="vn-g-g" drift={9} />
+          <Frame photo={PHOTO.bath} className="vn-g-h" drift={6} />
+          <Frame photo={PHOTO.claddingDetail} className="vn-g-i" drift={7} />
+        </div>
+      </section>
+
+      {/* 09 · tours — the placeholder is deliberate and visible: the slot is
+          drawn, the engine (TourDesk or Bókun) is the client's choice, and the
+          cards are marked as examples rather than sold as real inventory. */}
+      <section className="vn-tours" id="tours">
+        <div className="vn-tours-head">
+          <Headline text="Trips from the door." size={56} floor={30} measure={560} />
+          <p className="vn-body vn-rv">
+            The valley is a base as much as a destination. This is where guests
+            will browse and book tours without leaving the page.
+          </p>
+        </div>
+        <div className="vn-tours-grid vn-rv">
+          {[
+            ['Whale watching', 'From Akureyri harbour, twenty minutes away'],
+            ['Goðafoss and Mývatn', 'A day east along the Ring Road'],
+            ['Riding in the valley', 'Icelandic horses, an hour or an afternoon'],
+          ].map(([name, note]) => (
+            <div className="vn-tour-card" key={name}>
+              <p className="vn-tour-name">{name}</p>
+              <p className="vn-tour-note">{note}</p>
+              <p className="vn-tour-tag">Example</p>
+            </div>
+          ))}
+        </div>
+        <p className="vn-tours-wire vn-rv">
+          Tour booking connects here — TourDesk or Bókun, whichever is chosen.
+          Guests book trips on the spot, and the house earns a commission on
+          every seat.
+        </p>
+      </section>
+
+      {/* 10 · guests */}
       <section className="vn-guests" id="guests">
         <Headline text="What guests keep saying." size={64} floor={32} measure={620} />
         <p className="vn-guests-meta vn-rv">
@@ -1171,6 +1280,43 @@ export default function VillaNorthPage() {
       </section>
 
       {/* 10 · footer facts */}
+      {/* 11 · finding the house — contact block + a live map. The map iframe
+          is keyless (google output=embed), lazy, and boxed in a hairline frame
+          so it reads as a drawing plate rather than a widget. */}
+      <section className="vn-contact" id="contact">
+        <div className="vn-contact-copy">
+          <Headline text="Finding the house." size={56} floor={30} measure={520} />
+          <dl className="vn-contact-list vn-rv">
+            <div>
+              <dt>Where</dt>
+              <dd>Fnjóskadalur, Þingeyjarsveit, North Iceland</dd>
+            </div>
+            <div>
+              <dt>From Akureyri</dt>
+              <dd>Fifteen to twenty minutes through Vaðlaheiðargöng</dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd><a className="vn-a" href="tel:+3548449808">+354 844 9808</a></dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd><a className="vn-a" href="mailto:villanorthiceland@gmail.com">villanorthiceland@gmail.com</a></dd>
+            </div>
+          </dl>
+        </div>
+        <div className="vn-contact-map vn-rv">
+          <iframe
+            title="Map of Fnjóskadalur, North Iceland"
+            src="https://www.google.com/maps?q=Fnj%C3%B3skadalur%2C%20%C3%9Eingeyjarsveit&z=10&output=embed"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+          <p className="vn-map-cap">Fnjóskadalur — the valley east of Akureyri.</p>
+        </div>
+      </section>
+
       <footer className="vn-foot">
         <div className="vn-foot-grid">
           <div>
@@ -1744,6 +1890,74 @@ const CSS = `
 }
 .vn-ghost:hover { border-color: var(--vn-amber); }
 
+/* the aerial film — full bleed, same fallback contract as the glow */
+.vn-film { margin: calc(var(--u) * 140) 0 calc(var(--u) * 40); }
+.vn-film-bleed { position: relative; aspect-ratio: 21 / 9; overflow: hidden; background: ${NIGHT}; }
+.vn-film-poster, .vn-film-video {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.vn-film-video { z-index: 1; transition: opacity .4s ease; }
+.vn-film-video.is-errored { opacity: 0; }
+.vn-film-caps {
+  position: absolute; z-index: 2; left: calc(var(--u) * 48); bottom: calc(var(--u) * 36);
+  max-width: 46ch;
+  /* same device as the glow: a pool anchored under the type, not the film's
+     shifting light, so legibility does not depend on the current frame */
+  padding: calc(var(--u) * 18) calc(var(--u) * 22);
+  background: radial-gradient(120% 140% at 20% 100%, rgba(16,18,22,.62) 0%, rgba(16,18,22,.34) 55%, transparent 100%);
+}
+.vn-film-label { margin: 0 0 6px; font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .14em; text-transform: uppercase; color: var(--vn-amber); }
+.vn-film-cap { margin: 0; color: #F2F1EE; font-size: ${fluid(16, 14)}; line-height: 1.5; }
+.vn-film-credit {
+  max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 14) auto 0;
+  padding: 0 calc(var(--u) * 48);
+  font-family: ${MONO}; font-size: ${fluid(11, 11)}; color: var(--vn-mute); letter-spacing: .04em;
+}
+
+/* gallery — three columns, ratios as shot, drift everywhere */
+.vn-gallery { max-width: calc(var(--u) * 1440); margin: 0 auto; padding: calc(var(--u) * 120) calc(var(--u) * 48) 0; }
+.vn-gallery-head { max-width: 56ch; }
+.vn-gallery-grid {
+  margin-top: calc(var(--u) * 48);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 20);
+  align-items: start;
+}
+
+/* tours — the drawn slot for the engine that is not chosen yet */
+.vn-tours { max-width: calc(var(--u) * 1440); margin: 0 auto; padding: calc(var(--u) * 120) calc(var(--u) * 48) 0; }
+.vn-tours-head { max-width: 56ch; }
+.vn-tours-grid { margin-top: calc(var(--u) * 44); display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 20); }
+.vn-tour-card {
+  position: relative; border: 1px dashed color-mix(in srgb, var(--vn-ink) 34%, transparent);
+  border-radius: 2px; padding: calc(var(--u) * 26) calc(var(--u) * 24) calc(var(--u) * 22);
+  min-height: calc(var(--u) * 150);
+}
+.vn-tour-name { margin: 0; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(20, 17)}; }
+.vn-tour-note { margin: calc(var(--u) * 8) 0 0; color: var(--vn-mute); font-size: ${fluid(14, 13)}; line-height: 1.55; }
+.vn-tour-tag {
+  position: absolute; top: calc(var(--u) * 14); right: calc(var(--u) * 16); margin: 0;
+  font-family: ${MONO}; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--vn-mute);
+}
+.vn-tours-wire {
+  margin: calc(var(--u) * 26) 0 0; max-width: 62ch;
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; line-height: 1.7; color: var(--vn-amber-text);
+}
+
+/* contact — the drawing plate with a live map */
+.vn-contact {
+  display: grid; grid-template-columns: 5fr 6fr; gap: calc(var(--u) * 88); align-items: start;
+  max-width: calc(var(--u) * 1440); margin: 0 auto;
+  padding: calc(var(--u) * 40) calc(var(--u) * 48) calc(var(--u) * 150);
+}
+.vn-contact-list { margin: calc(var(--u) * 36) 0 0; display: grid; gap: calc(var(--u) * 18); }
+.vn-contact-list div { display: grid; grid-template-columns: calc(var(--u) * 150) 1fr; gap: calc(var(--u) * 16); align-items: baseline; }
+.vn-contact-list dt { font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .12em; text-transform: uppercase; color: var(--vn-mute); }
+.vn-contact-list dd { margin: 0; font-size: ${fluid(16, 15)}; line-height: 1.55; }
+.vn-contact-map { border: 1px solid var(--vn-hair); border-radius: 2px; padding: calc(var(--u) * 14); background: color-mix(in srgb, var(--vn-ink) 4%, var(--vn-c)); }
+.vn-contact-map iframe { display: block; width: 100%; aspect-ratio: 4 / 3; border: 0; filter: grayscale(1) contrast(1.02); }
+.vn-map-cap { margin: calc(var(--u) * 12) 0 0; font-family: ${MONO}; font-size: ${fluid(11, 11)}; color: var(--vn-mute); letter-spacing: .04em; }
+
 /* footer */
 .vn-foot { border-top: 1px solid var(--vn-hair); }
 .vn-foot-grid {
@@ -1769,6 +1983,13 @@ const CSS = `
   .vn-mat-expand { height: calc(var(--u) * 340); }
   .vn-quotes { grid-template-columns: 1fr; gap: 32px; }
   .vn-book-grid { grid-template-columns: 1fr; }
+  .vn-gallery, .vn-tours { padding-left: 20px; padding-right: 20px; }
+  .vn-gallery-grid { grid-template-columns: 1fr 1fr; }
+  .vn-tours-grid { grid-template-columns: 1fr; }
+  .vn-contact { grid-template-columns: 1fr; gap: 40px; padding-left: 20px; padding-right: 20px; }
+  .vn-film-caps { left: 20px; right: 20px; bottom: 20px; }
+  .vn-film-bleed { aspect-ratio: 16 / 10; }
+  .vn-film-credit { padding: 0 20px; }
   /* one month at a time below the desktop column width: two would squeeze the
      cells under a usable tap target. The arrows still reach every month. */
   .vn-cal-months { grid-template-columns: 1fr; }
@@ -1806,6 +2027,8 @@ const CSS = `
      of real information beat five columns of squeezed hairline */
   .vn-cal-dim { grid-template-columns: 1fr auto 1fr; gap: 12px; }
   .vn-cal-dim-rule { display: none; }
+  .vn-gallery-grid { grid-template-columns: 1fr; }
+  .vn-contact-list div { grid-template-columns: 1fr; gap: 4px; }
 }
 
 /* reduced motion: everything renders visible statically */

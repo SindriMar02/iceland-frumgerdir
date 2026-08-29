@@ -463,15 +463,30 @@ function BookLink({
   className = "",
   onClick,
   lang,
+  stay,
 }: {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
   lang: Lang;
+  /** The page's one copy of the dates (stay.ts). Every general call to action
+      must carry it, or a guest who picked nights at the top is asked for them
+      again on Godo — the exact failure the stay hook exists to prevent. */
+  stay?: Stay;
 }) {
   return bookingReady() ? (
     <a
-      href={bookingHref({ lang })!}
+      href={bookingHref(
+        stay
+          ? {
+              lang,
+              checkin: stay.checkin,
+              checkout: stay.checkout,
+              adults: stay.adults,
+              children: stay.children,
+            }
+          : { lang },
+      )!}
       onClick={onClick}
       className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
     >
@@ -984,7 +999,13 @@ export default function Page() {
             </div>
             {bookingReady() ? (
               <a
-                href={bookingHref({ lang })!}
+                href={bookingHref({
+                  lang,
+                  checkin: stay.checkin,
+                  checkout: stay.checkout,
+                  adults: stay.adults,
+                  children: stay.children,
+                })!}
                 className={`hidden bg-[#D97D3D] px-4 py-2 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
               >
                 {t.cta.check}
@@ -1173,6 +1194,7 @@ export default function Page() {
           />
           <BookLink
             lang={lang}
+            stay={stay}
             className="w-full justify-center py-4 text-base"
             onClick={() => setMenuOpen(false)}
           >
@@ -1443,7 +1465,7 @@ export default function Page() {
                 </Reveal>
                 <Reveal delay={220}>
                   <div className="mt-9 flex flex-wrap items-center gap-4">
-                    <BookLink lang={lang}>{t.cta.check}</BookLink>
+                    <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
                     <p className="text-sm text-[#F4EEE2]/55">
                       {t.cta.liveFromGodo}
                     </p>
@@ -2034,7 +2056,7 @@ export default function Page() {
             </Reveal>
             <Reveal delay={220}>
               <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-                <BookLink lang={lang}>{t.closing.heading}</BookLink>
+                <BookLink lang={lang} stay={stay}>{t.closing.heading}</BookLink>
                 <a
                   href={PHONE_HREF}
                   className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
@@ -2079,7 +2101,13 @@ export default function Page() {
         <div className="flex items-stretch gap-3 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           {bookingReady() ? (
             <a
-              href={bookingHref({ lang })!}
+              href={bookingHref({
+                lang,
+                checkin: stay.checkin,
+                checkout: stay.checkout,
+                adults: stay.adults,
+                children: stay.children,
+              })!}
               className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
             >
               {t.cta.check}

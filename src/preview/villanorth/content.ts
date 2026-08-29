@@ -281,6 +281,19 @@ export const FACTS = {
   water: 'The hot tub has no gate or lock; a river runs nearby',
 }
 
+/**
+ * Their own drone film — the landing video on the current villanorth.is,
+ * published there by the owners (YouTube "Villa north drone1", 34s). Pulled
+ * 2026-08-29, re-encoded to a muted web loop (1120px, denoised, no audio).
+ * Poster is the film's own frame at 2s, so the handover cannot flash.
+ */
+export const AERIAL_FILM = {
+  src: `${B}aerial-film.mp4`,
+  poster: `${B}aerial-film-poster.jpg`,
+  posterSmall: `${B}aerial-film-poster-800.jpg`,
+  credit: "Villa North's own aerial film, from their current site.",
+} as const
+
 export const JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'LodgingBusiness',
