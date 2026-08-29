@@ -116,6 +116,7 @@ const AlfacafePage = lazy(() => import('./preview/alfacafe/Page'))
 const SetbergPage = lazy(() => import('./preview/setberg/Page'))
 // Nýpugarðar — Mýrar farm guesthouse & dinner buffet, "Kvöldverðurinn á Mýrum" concept
 const NypugardarPage = lazy(() => import('./preview/nypugardar/Page'))
+const NypugardarRooms = lazy(() => import('./preview/nypugardar/RoomsPage'))
 // Litla-Hof — Öræfi farm guesthouse, "Hjá torfkirkjunni" concept
 const LitlahofPage = lazy(() => import('./preview/litlahof/Page'))
 // Saga Kayak — Vopnafjörður kayak & fishing tours, "Róið inn fjörðinn" concept
@@ -361,6 +362,7 @@ export default function App() {
             <Route path="/preview/alfacafe" element={<AlfacafePage />} />
             <Route path="/preview/setberg" element={<SetbergPage />} />
             <Route path="/preview/nypugardar" element={<NypugardarPage />} />
+            <Route path="/preview/nypugardar/herbergi" element={<NypugardarRooms />} />
             <Route path="/preview/litlahof" element={<LitlahofPage />} />
             <Route path="/preview/sagakayak" element={<SagakayakPage />} />
             <Route path="/preview/saudakofinn" element={<SaudakofinnPage />} />

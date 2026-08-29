@@ -48,8 +48,6 @@ import {
   DISTANCES,
   EMAIL,
   FOOTNOTE,
-  HOUSE_RULES,
-  CHECK_TIMES,
   BREAKFAST,
   FACILITIES,
   IMG,
@@ -67,12 +65,10 @@ import {
   bookingReady,
   GODO_ROOM_NAMES,
   GODO_ROOM_NAMES_IS,
-  ROOM_SLEEPS,
   type GodoRoomKey,
 } from "./godo";
 import { useStay, type Stay } from "./stay";
 import {
-  galleryFor,
   largest,
   leadFor,
   restFor,
@@ -84,7 +80,7 @@ import {
  *  actually exist on disk, with a `sizes` hint so a phone never pulls a 2000w
  *  file for a tile it renders at 160px. The widths come from photos.ts, which
  *  is generated alongside the files themselves, so the two cannot drift. */
-function frame(p: Photo, sizes: string) {
+export function frame(p: Photo, sizes: string) {
   return { src: largest(p), srcSet: srcSet(p), sizes };
 }
 
@@ -94,7 +90,7 @@ function frame(p: Photo, sizes: string) {
  * filing rather than our reading of the picture. Everything else gets its
  * category, and a bathroom two room types share is never called private.
  */
-function photoAlt(p: Photo, t: Copy, lang: Lang): string {
+export function photoAlt(p: Photo, t: Copy, lang: Lang): string {
   if (p.cat === "bath")
     return p.shared ? t.gallery.alt.bathShared : t.gallery.alt.bathPrivate;
   if (p.room?.length)
@@ -111,7 +107,7 @@ function photoAlt(p: Photo, t: Copy, lang: Lang): string {
  * owns sits unused in the repo, nothing on the page is filler from somewhere
  * else, and no picture is printed twice to fill a hole.
  */
-const GALLERY_REST = (
+export const GALLERY_REST = (
   [
     { key: "table", photos: restFor(["table"], FEATURED_IDS) },
     { key: "house", photos: restFor(["house"], FEATURED_IDS) },
@@ -127,7 +123,7 @@ const GALLERY_REST = (
 
 /** Explicit display order for the room table: cheapest first, cottages last,
  *  which is the order a guest scans for a price. */
-const ROOM_ORDER: GodoRoomKey[] = [
+export const ROOM_ORDER: GodoRoomKey[] = [
   'twinSharedEconomy',
   'doubleTwinShared',
   'double',
@@ -136,8 +132,8 @@ const ROOM_ORDER: GodoRoomKey[] = [
   'cottage3',
   'familyCottage',
 ];
+import { Link } from "react-router-dom";
 import { useLang } from './useLang';
-import PRICES from './prices.json';
 import { COPY } from './copy';
 import type { Copy, Lang } from './copy';
 import BookingBar from "./BookingBar";
@@ -148,16 +144,16 @@ const company = companyEntry;
  * INK on GROUND ≈ 15:1 (AAA) · ACCENT on GROUND ≈ 5.5:1 (AA, large + labels)
  * GROUND text on ACCENT fill ≈ 5.5:1 (AA) — CTA labels are dark-on-amber. */
 const GROUND = "#15130F"; // night has fallen, dinner is lit
-const ACCENT = "#D97D3D"; // dinner-table ember
-const HAIR = "rgba(244,238,226,0.14)";
-const BODY = "rgba(244,238,226,0.76)";
-const PAPER = "#F4EEE2";
+export const ACCENT = "#D97D3D"; // dinner-table ember
+export const HAIR = "rgba(244,238,226,0.14)";
+export const BODY = "rgba(244,238,226,0.76)";
+export const PAPER = "#F4EEE2";
 
-const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+export const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 /** The reveal curve: slower into rest than EASE, so images settle rather than
  *  snap. Used only by the entrance reveals, never by hover states. */
-const EASE_SOFT = "cubic-bezier(0.16, 1, 0.3, 1)";
-const FOCUS =
+export const EASE_SOFT = "cubic-bezier(0.16, 1, 0.3, 1)";
+export const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F4EEE2]";
 
 /* ── The evening arc: one scrollYProgress drives sky colour + eyebrow ink +
@@ -193,7 +189,7 @@ function atStops(stops: Stop[], v: number): string {
 
 /* ── Reveal — IntersectionObserver on an untransformed wrapper; the failsafe is
  * gated by viewport position (never an unconditional timeout). */
-function Reveal({
+export function Reveal({
   children,
   delay = 0,
   y = 22,
@@ -249,7 +245,7 @@ function Reveal({
 
 /* ── ClipImg — clip-path reveal for STANDALONE content photos only (explicit
  * aspect on the wrapper; the observer target never transforms itself). */
-function ClipImg({
+export function ClipImg({
   photo,
   sizes,
   alt,
@@ -381,7 +377,7 @@ function ClipImg({
 /* ── Eyebrow — carries the evening-arc signature: mono label tinted by the sky
  * (--skyink) + a thin rule that fills as the section passes the viewport
  * centre band. --rule is written raw per frame in the single scroll callback. */
-function Eyebrow({
+export function Eyebrow({
   label,
   register,
   reduced,
@@ -425,7 +421,7 @@ function Eyebrow({
  * exactly two languages the current one is already visible in the page around
  * it, so the button names the language you would GET, which is the thing the
  * visitor is deciding. aria-label spells it out for screen readers. */
-function LangToggle({
+export function LangToggle({
   lang,
   setLang,
   t,
@@ -468,7 +464,7 @@ function LangToggle({
  * The accessible name carries the room, because "Book · Book · Book" seven
  * times is useless to anyone listing the links on a screen reader.
  */
-function RoomBookLink({
+export function RoomBookLink({
   room,
   name,
   stay,
@@ -517,7 +513,7 @@ function RoomBookLink({
   );
 }
 
-function BookLink({
+export function BookLink({
   children,
   className = "",
   onClick,
@@ -1404,6 +1400,11 @@ export default function Page() {
         </section>
 
         {/* ── 5 · ACCOMMODATION ────────────────────────────────────────── */}
+        {/* ── 5 · ROOMS, the short version ──────────────────────────────
+          * The bands, the cottages and the full gallery live on their own
+          * page now: seven screens of inventory sat between dinner and the
+          * reviews, and the homepage read as a catalogue. Here: the counts,
+          * three frames as a taste, and the door through. */}
         <section id="rooms" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label={t.rooms.eyebrow} register={register} reduced={reduced} />
@@ -1414,10 +1415,7 @@ export default function Page() {
                 </h2>
               </Reveal>
               <Reveal delay={90}>
-                <p
-                  className="max-w-[52ch] leading-relaxed md:justify-self-end"
-                  style={{ color: BODY }}
-                >
+                <p className="max-w-[52ch] leading-relaxed md:justify-self-end" style={{ color: BODY }}>
                   {t.rooms.body}
                 </p>
               </Reveal>
@@ -1430,10 +1428,7 @@ export default function Page() {
               >
                 {UNITS.map((u) => (
                   <div key={t.units[u.key as keyof typeof t.units] ?? u.label}>
-                    <dd
-                      className="font-erode text-5xl"
-                      style={{ color: ACCENT }}
-                    >
+                    <dd className="font-erode text-5xl" style={{ color: ACCENT }}>
                       {u.n}
                     </dd>
                     <dt className="mt-2 max-w-[16ch] font-mono text-[11px] uppercase leading-relaxed tracking-[0.16em] text-[#F4EEE2]/60">
@@ -1444,198 +1439,43 @@ export default function Page() {
               </dl>
             </Reveal>
 
-            {/* ── ONE BAND PER ROOM TYPE ────────────────────────────────
-              * Was a price TABLE (thumbnail, name, price, Book) sitting above
-              * a gallery section that listed every one of these types AGAIN
-              * with its own photos and its own Book link. Each room appeared
-              * twice, so the page asked the reader to hold seven names in
-              * their head across two screens, and the table read like an OTA
-              * results list rather than somewhere to sleep.
-              *
-              * Now each type is stated once, with room to breathe: its own
-              * photographs on one side, its name, price and booking on the
-              * other, sides alternating so the eye has a rhythm to follow.
-              * The gallery below keeps the farm and the landscape, and stops
-              * repeating the rooms. */}
-            <div className="mt-16 border-t md:mt-20" style={{ borderColor: HAIR }}>
-              {ROOM_ORDER.map((k, idx) => {
-                const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]?.from
-                const name = lang === 'is' ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]
-                const lead = leadFor(k)
-                /* This type's other photographs, minus the lead and minus
-                 * anything already running full-frame higher up the page. */
-                const rest = galleryFor(k, FEATURED_IDS).filter((ph) => ph.id !== lead?.id).slice(0, 2)
-                const flip = idx % 2 === 1
+            {/* Three real leads: a double with its own bath, the family
+              * cottage, a twin with the plain in the window. leadFor reads
+              * her own Booking photo files, so these can never be stand-ins
+              * from a different room. */}
+            <div className="mt-12 grid grid-cols-3 gap-3 md:gap-5">
+              {(['double', 'familyCottage', 'doubleTwinPrivate'] as const).map((k, i) => {
+                const ph = leadFor(k)
+                if (!ph) return null
                 return (
-                  <div
+                  <ClipImg
                     key={k}
-                    className={`grid items-center gap-8 border-b py-12 md:gap-14 md:py-16 ${
-                      flip ? 'md:grid-cols-[0.85fr_1.15fr]' : 'md:grid-cols-[1.15fr_0.85fr]'
-                    }`}
-                    style={{ borderColor: HAIR }}
-                  >
-                    <div className={flip ? 'md:order-2' : ''}>
-                      {lead ? (
-                        <ClipImg
-                          photo={lead}
-                          sizes="(min-width: 768px) 52vw, 92vw"
-                          alt={photoAlt(lead, t, lang)}
-                          aspect="aspect-[4/3]"
-                        />
-                      ) : null}
-                      {rest.length ? (
-                        <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:gap-4">
-                          {rest.map((ph, i) => (
-                            <ClipImg
-                              key={ph.id}
-                              photo={ph}
-                              sizes="(min-width: 768px) 26vw, 46vw"
-                              alt={photoAlt(ph, t, lang)}
-                              aspect="aspect-[4/3]"
-                              delay={90 + i * 80}
-                            />
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-
-                    <div className={flip ? 'md:order-1' : ''}>
-                      <Reveal>
-                        <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
-                          {name}
-                        </h3>
-                      </Reveal>
-                      <Reveal delay={70}>
-                        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/45">
-                          {t.price.sleeps} {ROOM_SLEEPS[k]}
-                        </p>
-                      </Reveal>
-                      {typeof price === 'number' ? (
-                        <Reveal delay={120}>
-                          <p className="mt-6 font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
-                            {t.price.from}{' '}
-                            <span
-                              className="font-erode text-4xl tracking-tight tabular-nums md:text-5xl"
-                              style={{ color: ACCENT }}
-                            >
-                              {price}
-                            </span>{' '}
-                            &euro; {t.price.perNight}
-                          </p>
-                        </Reveal>
-                      ) : null}
-                      <Reveal delay={170}>
-                        <div className="mt-6">
-                          <RoomBookLink room={k} name={name} stay={stay} lang={lang} t={t} />
-                        </div>
-                      </Reveal>
-                    </div>
-                  </div>
+                    photo={ph}
+                    sizes="31vw"
+                    alt={photoAlt(ph, t, lang)}
+                    aspect="aspect-[4/3]"
+                    delay={i * 90}
+                  />
                 )
               })}
-              <p className="mt-8 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/45">
-                {t.price.pricesNote}
-              </p>
             </div>
 
-            {/* Cottages */}
-            <div className="mt-20 grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
-              <div>
-                <Reveal>
-                  <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
-                    {t.rooms.cottagesHeading}
-                  </h3>
-                </Reveal>
-                <Reveal delay={90}>
-                  <p
-                    className="mt-5 max-w-[52ch] leading-relaxed"
-                    style={{ color: BODY }}
-                  >
-                    {t.rooms.cottagesBody}
-                  </p>
-                </Reveal>
-                <Reveal delay={220}>
-                  <div className="mt-9 flex flex-wrap items-center gap-4">
-                    <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
-                    <p className="text-sm text-[#F4EEE2]/55">
-                      {t.cta.liveFromGodo}
-                    </p>
-                  </div>
-                </Reveal>
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:gap-5">
-                <ClipImg
-                  photo={IMG.cottage1}
-                  sizes="(min-width: 768px) 27vw, 44vw"
-                  alt={t.rooms.cottage1Alt}
-                  aspect="aspect-[3/4]"
-                  caption={t.rooms.cottage1Caption}
-                />
-                <ClipImg
-                  photo={IMG.cottage2}
-                  sizes="(min-width: 768px) 27vw, 44vw"
-                  alt={t.rooms.cottage2Alt}
-                  aspect="aspect-[3/4]"
-                  caption={t.rooms.cottage2Caption}
-                  delay={110}
-                />
-              </div>
-            </div>
-
-            {/* Practical facts, pulled out of the cottage column so nobody scrolls
-             * past them. The two times carry the weight because they are what
-             * guests actually look up; the policies sit under as a plain list. */}
-            <Reveal delay={80}>
-              <div
-                className="mt-20 border-t pt-10 md:mt-24 md:pt-12"
-                style={{ borderColor: HAIR }}
-              >
-                <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
-                  {t.rooms.beforeYouCome}
-                </h3>
-                <div className="mt-8 grid gap-10 md:grid-cols-[auto_1fr] md:gap-20">
-                  <dl className="flex gap-12 sm:gap-16">
-                    {CHECK_TIMES.map((ct) => (
-                      <div key={ct.key === "arrive" ? t.rooms.arrive : t.rooms.leave}>
-                        <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/55">
-                          {ct.key === "arrive" ? t.rooms.arrive : t.rooms.leave}
-                        </dt>
-                        <dd
-                          className="mt-2 font-erode text-5xl leading-none tracking-tight tabular-nums md:text-6xl"
-                          style={{ color: ACCENT }}
-                        >
-                          {ct.value}
-                        </dd>
-                        <dd className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/45">
-                          {ct.key === "arrive" ? t.rooms.until : t.rooms.from}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2 md:self-center">
-                    {HOUSE_RULES.map((h) => (
-                      <li key={t.rules[h.key as keyof typeof t.rules] ?? h.rule} className="flex items-baseline gap-3">
-                        <span
-                          aria-hidden="true"
-                          className="mt-[0.45em] h-px w-4 shrink-0"
-                          style={{ background: "rgba(244,238,226,0.3)" }}
-                        />
-                        <span className="text-[15px] leading-snug text-[#F4EEE2]/85">
-                          {t.rules[h.key as keyof typeof t.rules] ?? h.rule}
-                          {h.note ? (
-                            <span className="text-[#F4EEE2]/50">
-                              , {h.noteKey ? t.rules[h.noteKey as keyof typeof t.rules] : null}
-                            </span>
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <Reveal delay={120}>
+              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+                <Link
+                  to="/preview/nypugardar/herbergi"
+                  className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-3 pl-6 pr-6 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS}`}
+                >
+                  {t.rooms.seeAll}
+                </Link>
+                <p className="max-w-[40ch] text-sm leading-relaxed text-[#F4EEE2]/55">
+                  {t.rooms.seeAllNote}
+                </p>
               </div>
             </Reveal>
           </div>
         </section>
+
 
         {/* ── 6 · THE DINNER BUFFET — the signature offering ───────────── */}
         <section id="dinner" className="border-t" style={{ borderColor: HAIR }}>
@@ -1839,54 +1679,6 @@ export default function Page() {
          * hers, and the room groups are labelled with the room type Booking has
          * each photo filed under, so a tile can be trusted as the room it says
          * it is. */}
-        <section id="gallery" className="border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label={t.gallery.eyebrow} register={register} reduced={reduced} />
-            <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
-              <Reveal>
-                <h2 className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  {t.gallery.heading}
-                </h2>
-              </Reveal>
-              <Reveal delay={90}>
-                <p className="max-w-[52ch] leading-relaxed md:justify-self-end" style={{ color: BODY }}>
-                  {t.gallery.body}
-                </p>
-              </Reveal>
-            </div>
-
-            {/* The rooms are stated once, up in their own section. This is
-              * the farm and the land around it, which is the other half of
-              * what a guest is choosing. */}
-            {GALLERY_REST.length ? (
-              <div className="mt-14 border-t" style={{ borderColor: HAIR }} />
-            ) : null}
-
-            {GALLERY_REST.map((g) => (
-              <div key={g.key} className="mt-10">
-                <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/70">
-                  {t.gallery.groups[g.key]}
-                </p>
-                {/* These three groups are landscape frames — a wide view of
-                  * Mýrar cropped into a portrait tile throws away the half of
-                  * the picture that is the reason for the picture. */}
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
-                  {g.photos.map((ph, i) => (
-                    <ClipImg
-                      key={ph.id}
-                      photo={ph}
-                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 30vw, 46vw"
-                      alt={photoAlt(ph, t, lang)}
-                      aspect="aspect-[4/3]"
-                      delay={Math.min(i, 3) * 70}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* ── 8 · REVIEWS ──────────────────────────────────────────────── */}
         <section
           id="reviews"

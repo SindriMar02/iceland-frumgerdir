@@ -80,7 +80,6 @@ export const NAV = [
   { id: 'farm', label: 'The farm' },
   { id: 'rooms', label: 'Rooms' },
   { id: 'dinner', label: 'Dinner' },
-  { id: 'gallery', label: 'Photos' },
   { id: 'reviews', label: 'Guests' },
   { id: 'info', label: 'Find us' },
 ] as const
