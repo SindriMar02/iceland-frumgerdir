@@ -20,10 +20,10 @@ export const srcSet = (src: string) =>
   `${src.replace(/\.jpg$/, '-800.jpg')} 800w, ${src} 1200w`
 
 export const HOST = {
-  name: 'Eyþór',
+  name: 'the owner',
   superhost: true,
   yearsHosting: 3,
-  profession: 'Engineer, by his own host profile',
+  profession: 'Engineer, by the host profile',
   responseRate: '100%',
   respondsWithin: 'within an hour',
   rating: 5.0,
@@ -223,12 +223,12 @@ export const GLOW = {
     when: 'September 2025',
   },
   filmCredit:
-    "The loop above is generated, made from one of Eyþór's own winter-night photographs: the house itself is locked frame to frame, and only the steam, a faint aurora and the falling snow move.",
+    "The loop above is generated, made from one of the owner's own winter-night photographs: the house itself is locked frame to frame, and only the steam, a faint aurora and the falling snow move.",
 }
 
 /**
  * THE GLOW's film: a Higgsfield loop generated from winter-night.jpg
- * (Eyþór's own photograph, see PHOTO.winterNight above). The house was
+ * (the owner's own photograph, see PHOTO.winterNight above). The house was
  * verified locked frame to frame; only steam, a faint aurora and snow
  * glitter move. Palindromic (last frame = first), so it loops with no seam.
  * glow-poster.jpg / glow-poster-800.jpg are the exact first frame, used as

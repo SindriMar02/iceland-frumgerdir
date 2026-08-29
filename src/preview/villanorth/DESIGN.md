@@ -65,7 +65,7 @@ COLD light page. Not cream, not beige.
    Hospitality 20; quotes Eric (Jun 2026), Naomi (Jul 2026), Kris (Aug 2025).
 9. Booking: request form with guest count up to 7 (their max), date + nights;
    demoStore (villanorth_demo_*) → /preview/villanorth/stjornbord.
-10. Footer: host Eyþór (Superhost, 3 years, engineer per his profile),
+10. Footer: the host (Superhost, 3 years, engineer per the host profile),
    check-in 16:00 / out 11:00, self check-in lockbox, exterior cameras
    disclosed (their safety listing). No licence number shown — none printed.
 
@@ -88,3 +88,11 @@ plays time-based (no pin), room index becomes an accordion.
   ring, arrow keys optional).
 - Page-scoped `vn-` classes, --u on .vn-root, page-local keyframes, noindex
   + JSON-LD, srcset -800 variants.
+
+## Owner name: deliberately neutral (2026-08-29)
+
+Every guest-facing reference to the owner reads "the owner" / "the host", never a
+personal name. The Airbnb host profile says **Eyþór**; villanorth.is names
+**Þórir Hólmgeirsson**. Same house, confirmed by photograph, not by name. Rather
+than ship a guess into the first paragraph of body copy, the name was removed.
+Re-personalise only once the real name is confirmed by the client directly.

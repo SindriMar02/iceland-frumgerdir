@@ -527,7 +527,7 @@ function BookingForm() {
         <p className="vn-book-done-title">Your request is on its way.</p>
         <p className="vn-book-done-body">
           {done.date} to {done.endDate}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
-          Eyþór confirms each request personally. The price for your dates comes with his reply
+          The owner confirms each request personally. The price for your dates comes with the reply
           to {done.customer.email}.
         </p>
         <p className="vn-book-note">
@@ -578,14 +578,14 @@ function BookingForm() {
             onChange={(e) => setPhone(e.target.value)} />
         </label>
         <label className="vn-field vn-field-wide">
-          <span className="vn-field-label">Anything you would like Eyþór to know <span className="vn-optional">(optional)</span></span>
+          <span className="vn-field-label">Anything you would like the owner to know <span className="vn-optional">(optional)</span></span>
           <textarea rows={3} name="note" value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
       </div>
       {error && <p className="vn-field-error" role="alert">{error}</p>}
       <button type="submit" className="vn-cta vn-cta-block">Enquire about your stay</button>
       <p className="vn-book-note">
-        No payment today. Send your preferred dates and Eyþór replies with
+        No payment today. Send your preferred dates and the owner replies with
         availability and the nightly price. Payment is settled on arrival.
       </p>
     </form>
@@ -696,7 +696,7 @@ export default function VillaNorthPage() {
         <div className="vn-drawing-copy">
           <Headline text="Every angle, decided first." size={64} floor={32} measure={600} />
           <p className="vn-body vn-rv">
-            Eyþór trained as an engineer, and every line feels intentional: an
+            The owner trained as an engineer, and every line feels intentional: an
             asymmetric roofline, long glass on one side and dark timber cladding on
             the other, cut into a hillside above Fnjóskadalur.
           </p>
@@ -737,7 +737,7 @@ export default function VillaNorthPage() {
           </div>
         </div>
         <p className="vn-elev-credit vn-rv">
-          Traced to the pixel from this exact photograph, Eyþór's own: the roofline, both
+          Traced to the pixel from this exact photograph, the owner's own: the roofline, both
           posts, the window grid and the ground it stands on.
         </p>
         <div className="vn-drawing-inside">
@@ -987,7 +987,7 @@ export default function VillaNorthPage() {
             <p className="vn-foot-mark">VILLA NORTH</p>
             <p className="vn-foot-line">Fnjóskadalur valley, Þingeyjarsveit, North Iceland</p>
             <p className="vn-foot-line">
-              Host: {HOST.name}, Superhost, {HOST.yearsHosting} years hosting. {HOST.profession}.
+              Superhost, {HOST.yearsHosting} years hosting. {HOST.profession}.
             </p>
           </div>
           <div>
@@ -1003,7 +1003,7 @@ export default function VillaNorthPage() {
               {' '}{FACTS.security}. {FACTS.water}.
             </p>
             <p className="vn-foot-line">
-              Photography throughout this prototype comes directly from Eyþór's Airbnb
+              Photography throughout this prototype comes directly from the Villa North Airbnb
               listing, retrieved August 2026.
             </p>
             <p className="vn-foot-line">{GLOW.filmCredit}</p>

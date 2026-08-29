@@ -1,5 +1,5 @@
 /**
- * THE OWNER SIDE — a demo of the dashboard Eyþór would run.
+ * THE OWNER SIDE — a demo of the dashboard the owner would run.
  *
  * Deliberately a SEPARATE page from the guest prototype: the two have
  * different audiences, and mixing them is what makes demos misleading. The
@@ -10,7 +10,7 @@
  * The loop that sells it: make a request on the redesign, watch it arrive
  * here as a pending row. Both tabs update live (see demoStore.ts).
  *
- * In Icelandic, because its audience is Eyþór. (Lineage: mirrorhouse/Dashboard.tsx.)
+ * In Icelandic, because its audience is the owner. (Lineage: mirrorhouse/Dashboard.tsx.)
  */
 
 import { useEffect, useMemo, useState } from 'react'

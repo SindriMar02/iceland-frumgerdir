@@ -1,7 +1,7 @@
 import type { PreviewCompany } from '../companies'
 
 /**
- * Villa North — Eyþór (verkfræðingur skv. eigin gestgjafasniði), Fnjóskadalur,
+ * Villa North — eigandi (verkfræðingur skv. eigin gestgjafasniði), Fnjóskadalur,
  * Þingeyjarsveit. Heimild: Airbnb-skráningin (room 897747788867680607), sótt
  * 2026-08-04. 23 myndir sóttar og yfirfarnar (auk 5 amenity-mynda).
  * Engin eigin vefsíða fannst (aðeins northiceland.info-skráning, cozycozy,
@@ -32,7 +32,7 @@ export const companyEntry: PreviewCompany = {
   noOwnSite: true,
   currentLabel: 'Airbnb-skráning',
   photoCredit:
-    'Allar myndir eru raunverulegar myndir úr Airbnb-skráningu Eyþórs (23 myndir), sóttar 2026-08-04.',
+    'Allar myndir eru raunverulegar myndir úr Airbnb-skráningu Villa North (23 myndir), sóttar 2026-08-04.',
   audit: {
     strengths: [
       '5,0 í einkunn yfir 54 umsagnir, efstu 10% skráninga. Gestir kalla húsið "the real deal"',
@@ -51,7 +51,7 @@ export const companyEntry: PreviewCompany = {
     ],
   },
   positioning:
-    'Hús sem er hannað og byggt af verkfræðingi, með Minotti-húsgögnum og 5,0 í einkunn, á skilið meira en skráningarsíðu. Frumgerðin teiknar húsið eins og teikningarnar hans Eyþórs og svarar spurningunni sem hver hópur spyr: hver sefur hvar.',
+    'Hús sem er hannað og byggt af verkfræðingi, með Minotti-húsgögnum og 5,0 í einkunn, á skilið meira en skráningarsíðu. Frumgerðin teiknar húsið eins og teikningar eigandans og svarar spurningunni sem hver hópur spyr: hver sefur hvar.',
   outreach: {
     subject: 'Villa North á eigin vef',
     body: `Húsið þitt teiknað eins og teikningarnar þínar, með beinni fyrirspurn. Frumgerð: https://sindrimar02.github.io/iceland-frumgerdir/preview/villanorth`,
