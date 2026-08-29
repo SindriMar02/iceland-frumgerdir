@@ -717,11 +717,14 @@ function BookingForm() {
   }
 
   if (done) {
+    /* endDate is optional on the shared Booking shape; a stay submitted here
+       always has one, but the type has to be satisfied rather than asserted. */
+    const leaves = done.endDate ?? done.date
     return (
       <div className="vn-book-done" role="status">
         <p className="vn-book-done-title">Your request is on its way.</p>
         <p className="vn-book-done-body">
-          {prettyDate(done.date)} to {prettyDate(done.endDate)}, {done.quote.units}{' '}
+          {prettyDate(done.date)} to {prettyDate(leaves)}, {done.quote.units}{' '}
           {done.quote.units === 1 ? 'night' : 'nights'}, {done.people}{' '}
           {done.people === 1 ? 'guest' : 'guests'}.
           The owner confirms each request personally. The price for your dates comes with the reply
