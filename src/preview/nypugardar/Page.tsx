@@ -303,7 +303,9 @@ function ClipImg({
         img.addEventListener("load", done, { once: true });
         img.addEventListener("error", done, { once: true });
       },
-      { rootMargin: "800px 0px" },
+      /* A screen and a half of runway. At a fast flick 800px was still being
+         overtaken, and a tile that has not decoded cannot reveal. */
+      { rootMargin: "1400px 0px" },
     );
     warm.observe(el);
     return () => warm.disconnect();
@@ -325,7 +327,13 @@ function ClipImg({
           io.disconnect();
         }
       },
-      { rootMargin: "0px 0px -6% 0px", threshold: 0.15 },
+      /* Fire as the tile's leading edge crosses into view, not once it is
+         already a sixth of the way up the screen. threshold 0.15 with a
+         negative margin meant the wipe began when the photograph was well
+         inside the viewport, so the reader watched it appear instead of
+         watching it arrive. A hair of negative margin keeps it from firing
+         on something still technically below the fold. */
+      { rootMargin: "0px 0px -40px 0px", threshold: 0 },
     );
     io.observe(el);
     return () => io.disconnect();

@@ -72,7 +72,7 @@ const en = {
   farm: {
     eyebrow: 'The flock',
     heading: 'A working farm, not a themed hotel',
-    body: 'Nýpugarðar is a real working farm, not a themed hotel. The flock shares the hill with a dog and a cat, and wild reindeer come down onto the land. In spring, guests are welcome to watch the lambing. In winter, you can lend a hand with light farm work if you feel like it.',
+    body: 'The flock shares the hill with a dog and a cat, and wild reindeer come down onto the land. In spring, guests are welcome to watch the lambing. In winter, you can lend a hand with light farm work if you feel like it.',
     guestsFull: 'Guests when full',
     open: 'Open',
     allYear: 'All year',
@@ -97,7 +97,7 @@ const en = {
   rooms: {
     eyebrow: 'Your room',
     heading: 'Thirteen simple places to sleep',
-    body: 'Bright, warm rooms in the main house and two small cottages with their own bathrooms. Nothing fussy, everything you need, and that view from the pillow.',
+    body: 'Bright, warm rooms in the main house, and two small cottages with bathrooms of their own. Plain, comfortable, and that view from the pillow.',
     cottagesHeading: 'The two cottages',
     cottagesBody: 'Two timber cottages of 20 and 25 square metres stand beside the main house, each with its own bathroom. Room for two to four guests, with the fields right outside the door.',
     cottage1Alt: 'The family cottage at Nýpugarðar, red roof and a timber porch, standing on the grass',
@@ -162,7 +162,7 @@ const en = {
     scoreWord: 'Fabulous',
     reviewsOn: 'guest reviews on Booking.com',
     via: 'Guest reviews via',
-    sourceNote: ', harvested 25 August 2026 — every review where a guest wrote something. The other stays left a score and no words, and what guests said could be better is on Booking.',
+    sourceNote: ', harvested 25 August 2026. Every review where a guest wrote something is here. The other stays left a score and no words, and what guests said could be better is on Booking.',
     translatedFromItalian: 'Translated from Italian',
     setLabel: 'Show guest reviews, set',
     of: 'of',
@@ -174,7 +174,7 @@ const en = {
 
   info: {
     eyebrow: 'Finding us',
-    heading: 'Easy to reach, hard to leave',
+    heading: 'Four kilometres off the road, and then nothing',
     callFarm: 'Call the farm',
     writeToUs: 'Write to us',
     address: 'The address',
@@ -243,7 +243,7 @@ const en = {
   gallery: {
     eyebrow: 'Every frame',
     heading: 'The whole place, room by room',
-    body: 'Every photograph here is Nýpugarðar\u2019s own, and every room below is grouped exactly as it is bookable \u2014 so the pictures under a room type really are that room type.',
+    body: 'Every photograph here is Nýpugarðar\u2019s own. Each room below is grouped exactly as it is bookable, so the pictures under a room type really are that room type.',
     byRoom: 'Every room type, with its own bathroom',
     andTheRest: 'And the rest of it',
     groups: {
@@ -409,7 +409,7 @@ const is: typeof en = {
     scoreWord: 'Frábært',
     reviewsOn: 'umsagnir gesta á Booking.com',
     via: 'Umsagnir gesta af',
-    sourceNote: ', sóttar 25. ágúst 2026 — allar umsagnir þar sem gestur skrifaði eitthvað. Hinar dvalirnar skildu aðeins eftir einkunn, og það sem gestir sögðu að mætti bæta er á Booking.',
+    sourceNote: ', sóttar 25. ágúst 2026. Hér eru allar umsagnir þar sem gestur skrifaði eitthvað. Hinar dvalirnar skildu aðeins eftir einkunn, og það sem gestir sögðu að mætti bæta er á Booking.',
     translatedFromItalian: 'Þýtt úr ítölsku',
     setLabel: 'Sýna umsagnir gesta, hópur',
     of: 'af',
@@ -490,7 +490,7 @@ const is: typeof en = {
   gallery: {
     eyebrow: 'Allar myndirnar',
     heading: 'Allur staðurinn, herbergi fyrir herbergi',
-    body: 'Allar myndir hér eru frá Nýpugörðum sjálfum og hver herbergisgerð er flokkuð nákvæmlega eins og hún er bókanleg \u2014 svo myndirnar undir hverri gerð eru sannarlega af henni.',
+    body: 'Allar myndir hér eru frá Nýpugörðum sjálfum. Hver herbergisgerð er flokkuð nákvæmlega eins og hún er bókanleg, svo myndirnar undir hverri gerð eru sannarlega af henni.',
     byRoom: 'Hver herbergisgerð, með sínu baðherbergi',
     andTheRest: 'Og allt hitt',
     groups: {
