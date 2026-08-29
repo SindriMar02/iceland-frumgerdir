@@ -272,20 +272,56 @@ function ClipImg({
 }) {
   const reduced = useReducedMotion() ?? false;
   const ref = useRef<HTMLElement>(null);
-  const [shown, setShown] = useState(false);
+  const [inView, setInView] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  /* WARM PASS. The reveal used to open a clip-path over an image the browser
+     had not downloaded yet: the observer fires on a NEGATIVE margin, so by
+     then the tile is already 15% on screen, while `loading="lazy"` had not
+     necessarily even started the fetch. The result was a carefully eased
+     1.15s wipe playing over an empty box, with the photograph popping in at
+     the end. That pop is what reads as a glitch, and easing could never fix
+     it because the easing was not what was wrong.
+     So: a full screen ahead of the reveal, force the fetch and wait for the
+     bitmap to be decodable. */
+  useEffect(() => {
+    if (reduced) { setReady(true); return; }
+    const el = ref.current;
+    if (!el) return;
+    const img = el.querySelector("img");
+    if (!img) { setReady(true); return; }
+    const done = () => setReady(true);
+    const warm = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        warm.disconnect();
+        /* lazy stays the right default on a page this long; it just has to
+           stop being lazy once the tile is nearly needed. */
+        img.loading = "eager";
+        if (img.complete && img.naturalWidth > 0) { done(); return; }
+        if (typeof img.decode === "function") img.decode().then(done, done);
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      },
+      { rootMargin: "800px 0px" },
+    );
+    warm.observe(el);
+    return () => warm.disconnect();
+  }, [reduced]);
+
   useEffect(() => {
     if (reduced) return;
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     if (r.top < window.innerHeight * 0.92 && r.bottom > 0) {
-      const t = window.setTimeout(() => setShown(true), 80);
+      const t = window.setTimeout(() => setInView(true), 80);
       return () => window.clearTimeout(t);
     }
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          setShown(true);
+          setInView(true);
           io.disconnect();
         }
       },
@@ -294,7 +330,16 @@ function ClipImg({
     io.observe(el);
     return () => io.disconnect();
   }, [reduced]);
-  const on = shown || reduced;
+
+  /* Belt and braces: a tile must never stay hidden because a decode never
+     settled. If it has been in view for a second and a half, reveal it. */
+  useEffect(() => {
+    if (!inView || ready) return;
+    const t = window.setTimeout(() => setReady(true), 1500);
+    return () => window.clearTimeout(t);
+  }, [inView, ready]);
+
+  const on = (inView && ready) || reduced;
   return (
     <figure ref={ref} className={className}>
       <div className={`${aspect} overflow-hidden rounded-sm`}>

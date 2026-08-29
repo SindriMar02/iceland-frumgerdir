@@ -17,9 +17,10 @@
 
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const draftPath = process.argv[2]
+const proposal = process.argv.includes('--proposal')
+const draftPath = process.argv.filter((a) => a !== '--proposal')[2]
 if (!draftPath) { console.error('usage: outreach-draft-gate.mjs <draft.md> [payload.json]'); process.exit(1) }
-const outPath = process.argv[3] || draftPath.replace(/\.md$/, '') + '.payload.json'
+const outPath = process.argv.filter((a) => a !== '--proposal')[3] || draftPath.replace(/\.md$/, '') + '.payload.json'
 const src = readFileSync(draftPath, 'utf8')
 
 /* [^\S\n]* not \s*: with an EMPTY To: line (a lead with no published address,
@@ -30,7 +31,11 @@ const to = (src.match(/\*\*To:\*\*[^\S\n]*(.*)/) || [, ''])[1].trim()
    (Smekkleysa: asi@ with kiddi@ in cc). Same [^\S\n]* guard as To:. */
 const cc = (src.match(/\*\*Cc:\*\*[^\S\n]*(.*)/) || [, ''])[1].trim()
 const subject = (src.match(/\*\*Subject:\*\*\s*(.+)/) || [])[1]?.trim()
-const greetingRe = /^(Sæl og blessuð|Sæl|Sæll|Góðan dag|Komdu sæl)/m
+/* English greetings are here because English drafts are a real case, not an
+   exception: Mystic Light went out in English, and Villa North's manager is
+   Austrian and writes English. The gate refused those drafts purely for being
+   in the language the recipient actually reads. */
+const greetingRe = /^(Sæl og blessuð|Sæl|Sæll|Góðan dag|Komdu sæl|Hi|Hello|Dear|Good morning)\b/m
 const gm = src.match(greetingRe)
 if (!subject || !gm) { console.error('FAIL  draft needs a **Subject:** line and a greeting'); process.exit(1) }
 
@@ -87,23 +92,51 @@ const check = (ok, name, detail = '') => {
 }
 check(hardWrapped.length === 0, 'paragraphs are single lines, wrapped by the reader\'s client',
   hardWrapped.length ? `${hardWrapped.length} still carry hard line breaks` : '')
-check(linkOnly.length === 0, 'link is folded into a sentence, not set apart as a CTA',
-  linkOnly.length ? `${linkOnly.length} link-only paragraph(s)` : '')
+/* CORRECTED. This used to demand the link be folded into a sentence, which is
+   the opposite of every email that has actually gone out: they put the bare URL
+   on its own line under a line ending in a colon ("...og hún virkar vel í síma:").
+   Four Kaktus drafts were rejected for satisfying the old rule. What actually
+   marks a newsletter is a naked link with nothing introducing it, so that is
+   what gets checked now. */
+const orphanLinks = linkOnly.filter((p) => {
+  const i = proseParas.indexOf(p)
+  return i < 1 || !/:$/.test(proseParas[i - 1].trim())
+})
+check(orphanLinks.length === 0, 'every link is introduced by a line ending in a colon',
+  orphanLinks.length ? `${orphanLinks.length} link(s) with no lead-in` : '')
 /* Was 2-4, which no sent email has ever satisfied: the Iceland Luxury Lodges mail
    that went out has 7. Writing down to the old cap is what produced condensed
    drafts. The shape is greeting / who I am / symptoms / offer / link / what it does
    / close, plus an optional attachment line. */
-check(middle.length >= 2 && middle.length <= 8, 'reads as continuous prose, not scannable cards',
-  `${middle.length} body paragraphs between greeting and close (want 2-8)`)
+/* Count PROSE paragraphs only: a bare-URL line is structure, not a scannable
+   card, and counting it inflated a normal letter into a "13 paragraph" failure.
+   Proposal mode allows more, for the same reason it allows more words — a
+   proposal after a call carries the offer plus reference links, and cannot be
+   said in eight. */
+const middleProse = middle.filter((p) => !p.split('\n').every(isStructuralLine))
+const paraCap = proposal ? 11 : 8
+check(middleProse.length >= 2 && middleProse.length <= paraCap,
+  'reads as continuous prose, not scannable cards',
+  `${middleProse.length} prose paragraphs between greeting and close (want 2-${paraCap})`)
 check(fragments.length === 0, 'no one-line fragments in the body',
   fragments.length ? `${fragments.length} found` : '')
 check(dashes === 0, 'no em/en dashes', dashes ? `${dashes} found` : '')
 check(/https?:\/\//.test(body), 'the preview link is present')
-check(words >= 120 && words <= 300, 'length is warmth, not terseness', `${words} words`)
+check(words >= 120 && words <= (proposal ? 600 : 300), 'length is warmth, not terseness',
+  `${words} words${proposal ? ' (proposal mode: up to 600)' : ''}`)
 check(!/(gera við hana|megið eiga|ykkar eign|frítt að nota)/i.test(body),
   'no clause handing the prototype over')
-check(!/\d[\d.]*\s*(kr|ISK)\b|verðskrá|áskrift á|á mánuði/i.test(body),
-  'no pricing in the body')
+/* Cold outreach must never quote a price (outreach-email-guide rule 11).
+   A PROPOSAL after a call is the opposite: the owner asked for the number. */
+if (proposal) {
+  /* `ISK` as well as `kr`: an English proposal to a foreign reader labels the
+     currency with the international code, and the check's intent is only that
+     a proposal names a number at all. */
+  check(/\d[\d.]*\s*(kr|ISK)\b/.test(body), 'proposal states a price', 'proposal mode')
+} else {
+  check(!/\d[\d.]*\s*(kr|ISK)\b|verðskrá|áskrift á|á mánuði/i.test(body),
+    'no pricing in the body')
+}
 check(/^Bestu kveðjur,\nSindri Már\n845 1758\nsndr-studio\.pages\.dev$/m.test(body.trim()),
   'sign-off is the canonical four lines')
 
