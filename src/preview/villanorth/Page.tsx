@@ -1986,11 +1986,19 @@ const CSS = `
 }
 .vn-film-video { z-index: 1; transition: opacity .4s ease; }
 .vn-film-video.is-errored { opacity: 0; }
-.vn-film-caps {
-  position: absolute; z-index: 2; left: calc(var(--u) * 48); bottom: calc(var(--u) * 30);
-  padding: 8px 12px;
-  background: rgba(16, 18, 22, .38);
+/* A low scrim across the film's foot, not a filled chip behind the words: a
+   box floating on a photograph reads as a UI sticker, and its width tracks
+   the text so it never sits right. The scrim spans the frame, so the label
+   is legible on any frame of a bright daytime pass.
+   Amber is deliberately NOT used here the way it is on the night film — this
+   footage is pale sky and sunlit hillside, and near-white is the only value
+   that holds against it. */
+.vn-film-bleed::after {
+  content: ''; position: absolute; z-index: 2; inset: auto 0 0 0; height: 38%;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(16, 18, 22, .58), rgba(16, 18, 22, .22) 46%, transparent);
 }
+.vn-film-caps { position: absolute; z-index: 3; left: calc(var(--u) * 48); bottom: calc(var(--u) * 30); }
 .vn-film-label { margin: 0; font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .14em; text-transform: uppercase; color: #F2F1EE; }
 
 /* gallery — three columns, ratios as shot, drift everywhere */
@@ -2144,7 +2152,7 @@ const CSS = `
   .vn-g-f { grid-column: 1 / -1; }
   .vn-tours-grid { grid-template-columns: 1fr 1fr; }
   .vn-contact { grid-template-columns: 1fr; gap: 40px; padding-left: 20px; padding-right: 20px; }
-  .vn-film-caps { left: 20px; right: 20px; bottom: 20px; }
+  .vn-film-caps { left: 20px; bottom: 20px; }
   .vn-film-bleed { aspect-ratio: 16 / 10; }
   .vn-film-credit { padding: 0 20px; }
   /* one month at a time below the desktop column width: two would squeeze the
