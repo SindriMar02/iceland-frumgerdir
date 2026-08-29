@@ -319,7 +319,7 @@ const is: typeof en = {
   farm: {
     eyebrow: 'Féð',
     heading: 'Alvöru bú, ekki hótel með sveitaþema',
-    body: 'Á Nýpugörðum er alvöru búskapur í fullum rekstri, ekki hótel með sveitaþema. Féð deilir hólnum með hundi og ketti, og villt hreindýr koma niður á landið. Á vorin eru gestir velkomnir að fylgjast með sauðburði. Á veturna má taka til hendinni í léttum bústörfum ef þig langar til þess.',
+    body: 'Féð deilir hólnum með hundi og ketti, og villt hreindýr koma niður á landið. Á vorin eru gestir velkomnir að fylgjast með sauðburði. Á veturna má taka til hendinni í léttum bústörfum ef þig langar til þess.',
     guestsFull: 'Gestir þegar fullt er',
     open: 'Opið',
     allYear: 'Allt árið',
@@ -344,7 +344,7 @@ const is: typeof en = {
   rooms: {
     eyebrow: 'Herbergið þitt',
     heading: 'Þrettán einfaldar vistarverur',
-    body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baði. Ekkert prjál, allt sem þarf, og útsýnið beint úr rúminu.',
+    body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baðherbergi. Einfalt, notalegt, og útsýnið beint úr rúminu.',
     cottagesHeading: 'Sumarhúsin tvö',
     cottagesBody: 'Tvö timburhús, 20 og 25 fermetra, standa við hlið aðalhússins og hvort um sig með eigin baðherbergi. Pláss fyrir tvo til fjóra gesti og túnin beint fyrir utan dyrnar.',
     cottage1Alt: 'Fjölskyldusumarhúsið á Nýpugörðum, rautt þak og timburverönd, stendur á grasinu',
@@ -421,7 +421,7 @@ const is: typeof en = {
 
   info: {
     eyebrow: 'Að rata til okkar',
-    heading: 'Auðvelt að finna, erfitt að yfirgefa',
+    heading: 'Tuttugu og fimm mínútur frá Höfn',
     callFarm: 'Hringdu í bæinn',
     writeToUs: 'Sendu okkur línu',
     address: 'Heimilisfangið',
@@ -489,7 +489,7 @@ const is: typeof en = {
 
   gallery: {
     eyebrow: 'Allar myndirnar',
-    heading: 'Allur staðurinn, herbergi fyrir herbergi',
+    heading: 'Bærinn, landið og borðið',
     body: 'Allar myndir hér eru frá Nýpugörðum sjálfum. Herbergin eiga sinn eigin kafla hér að ofan; hér er bærinn, landið og borðið.',
     byRoom: 'Hver herbergisgerð, með sínu baðherbergi',
     andTheRest: 'Og allt hitt',
