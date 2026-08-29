@@ -76,7 +76,6 @@ import {
   largest,
   leadFor,
   restFor,
-  src as photoSrc,
   srcSet,
   type Photo,
 } from "./photos";
@@ -1445,67 +1444,99 @@ export default function Page() {
               </dl>
             </Reveal>
 
-            <Reveal delay={160}>
-              <div className="mt-14 border-t pt-10" style={{ borderColor: HAIR }}>
-                <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
-                  {t.price.roomTypes}
-                </h3>
-                <ul className="mt-6 flex flex-col">
-                  {ROOM_ORDER.map((k) => {
-                    const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]
-                      ?.from
-                    const name = lang === 'is' ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]
-                    /* Her own photograph of this exact type, as she filed it on
-                     * Booking — never a stand-in from a different room. */
-                    const lead = leadFor(k)
-                    return (
-                      <li
-                        key={k}
-                        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b py-4"
-                        style={{ borderColor: HAIR }}
-                      >
-                        <div className="flex min-w-0 items-center gap-4">
-                          {lead ? (
-                            <Img
-                              src={photoSrc(lead.id, 480)}
-                              alt=""
-                              aria-hidden="true"
-                              className="h-14 w-20 shrink-0 rounded-sm object-cover sm:h-16 sm:w-24"
+            {/* ── ONE BAND PER ROOM TYPE ────────────────────────────────
+              * Was a price TABLE (thumbnail, name, price, Book) sitting above
+              * a gallery section that listed every one of these types AGAIN
+              * with its own photos and its own Book link. Each room appeared
+              * twice, so the page asked the reader to hold seven names in
+              * their head across two screens, and the table read like an OTA
+              * results list rather than somewhere to sleep.
+              *
+              * Now each type is stated once, with room to breathe: its own
+              * photographs on one side, its name, price and booking on the
+              * other, sides alternating so the eye has a rhythm to follow.
+              * The gallery below keeps the farm and the landscape, and stops
+              * repeating the rooms. */}
+            <div className="mt-16 border-t md:mt-20" style={{ borderColor: HAIR }}>
+              {ROOM_ORDER.map((k, idx) => {
+                const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]?.from
+                const name = lang === 'is' ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]
+                const lead = leadFor(k)
+                /* This type's other photographs, minus the lead and minus
+                 * anything already running full-frame higher up the page. */
+                const rest = galleryFor(k, FEATURED_IDS).filter((ph) => ph.id !== lead?.id).slice(0, 2)
+                const flip = idx % 2 === 1
+                return (
+                  <div
+                    key={k}
+                    className={`grid items-center gap-8 border-b py-12 md:gap-14 md:py-16 ${
+                      flip ? 'md:grid-cols-[0.85fr_1.15fr]' : 'md:grid-cols-[1.15fr_0.85fr]'
+                    }`}
+                    style={{ borderColor: HAIR }}
+                  >
+                    <div className={flip ? 'md:order-2' : ''}>
+                      {lead ? (
+                        <ClipImg
+                          photo={lead}
+                          sizes="(min-width: 768px) 52vw, 92vw"
+                          alt={photoAlt(lead, t, lang)}
+                          aspect="aspect-[4/3]"
+                        />
+                      ) : null}
+                      {rest.length ? (
+                        <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:gap-4">
+                          {rest.map((ph, i) => (
+                            <ClipImg
+                              key={ph.id}
+                              photo={ph}
+                              sizes="(min-width: 768px) 26vw, 46vw"
+                              alt={photoAlt(ph, t, lang)}
+                              aspect="aspect-[4/3]"
+                              delay={90 + i * 80}
                             />
-                          ) : null}
-                          <div className="min-w-0">
-                            <span className="block text-[15px] leading-snug text-[#F4EEE2]/85">
-                              {name}
-                            </span>
-                            <span className="mt-1 block font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/45">
-                              {t.price.sleeps} {ROOM_SLEEPS[k]}
-                            </span>
-                          </div>
+                          ))}
                         </div>
-                        <div className="flex shrink-0 items-center gap-6">
-                          {typeof price === 'number' ? (
-                            <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
-                              {t.price.from}{' '}
-                              <span
-                                className="font-erode text-2xl tracking-tight tabular-nums"
-                                style={{ color: ACCENT }}
-                              >
-                                {price}
-                              </span>{' '}
-                              &euro; {t.price.perNight}
-                            </span>
-                          ) : null}
+                      ) : null}
+                    </div>
+
+                    <div className={flip ? 'md:order-1' : ''}>
+                      <Reveal>
+                        <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
+                          {name}
+                        </h3>
+                      </Reveal>
+                      <Reveal delay={70}>
+                        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/45">
+                          {t.price.sleeps} {ROOM_SLEEPS[k]}
+                        </p>
+                      </Reveal>
+                      {typeof price === 'number' ? (
+                        <Reveal delay={120}>
+                          <p className="mt-6 font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/55">
+                            {t.price.from}{' '}
+                            <span
+                              className="font-erode text-4xl tracking-tight tabular-nums md:text-5xl"
+                              style={{ color: ACCENT }}
+                            >
+                              {price}
+                            </span>{' '}
+                            &euro; {t.price.perNight}
+                          </p>
+                        </Reveal>
+                      ) : null}
+                      <Reveal delay={170}>
+                        <div className="mt-6">
                           <RoomBookLink room={k} name={name} stay={stay} lang={lang} t={t} />
                         </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-                <p className="mt-5 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/45">
-                  {t.price.pricesNote}
-                </p>
-              </div>
-            </Reveal>
+                      </Reveal>
+                    </div>
+                  </div>
+                )
+              })}
+              <p className="mt-8 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/45">
+                {t.price.pricesNote}
+              </p>
+            </div>
 
             {/* Cottages */}
             <div className="mt-20 grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
@@ -1824,68 +1855,11 @@ export default function Page() {
               </Reveal>
             </div>
 
-            <h3
-              className="mt-14 border-t pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55"
-              style={{ borderColor: HAIR }}
-            >
-              {t.gallery.byRoom}
-            </h3>
-
-            {/* One row per bookable type, in the same order as the price list
-             * above, carrying every photo Booking has filed under it — the
-             * bedrooms and the bathroom that goes with them. A guest can point
-             * at a row and know that is what arrives when they book it. */}
-            {ROOM_ORDER.map((k) => {
-              /* Minus this row's own thumbnail up in the price list, and minus
-               * anything already running as a full frame higher up the page. */
-              const shots = galleryFor(k, FEATURED_IDS);
-              if (!shots.length) return null;
-              return (
-                <div key={k} className="mt-10">
-                  {/* Same quiet link as the price list. Someone who has scrolled
-                    * this far is looking at the photographs of one specific
-                    * room, which is exactly the moment to let them book that
-                    * room instead of sending them back up the page. */}
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                    <p className="flex flex-wrap items-baseline gap-x-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/70">
-                      {lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]}
-                      <span className="text-[#F4EEE2]/35">
-                        {t.price.sleeps} {ROOM_SLEEPS[k]}
-                      </span>
-                    </p>
-                    <RoomBookLink
-                      room={k}
-                      name={lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]}
-                      stay={stay}
-                      lang={lang}
-                      t={t}
-                    />
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-6">
-                    {shots.map((ph, i) => (
-                      <ClipImg
-                        key={ph.id}
-                        photo={ph}
-                        sizes="(min-width: 1024px) 17vw, (min-width: 640px) 30vw, 46vw"
-                        alt={photoAlt(ph, t, lang)}
-                        aspect="aspect-[3/4]"
-                        /* Cap the stagger: a six-across row should ripple, not
-                         * queue up behind half a second of delay. */
-                        delay={Math.min(i, 5) * 70}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-
+            {/* The rooms are stated once, up in their own section. This is
+              * the farm and the land around it, which is the other half of
+              * what a guest is choosing. */}
             {GALLERY_REST.length ? (
-              <h3
-                className="mt-16 border-t pt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55"
-                style={{ borderColor: HAIR }}
-              >
-                {t.gallery.andTheRest}
-              </h3>
+              <div className="mt-14 border-t" style={{ borderColor: HAIR }} />
             ) : null}
 
             {GALLERY_REST.map((g) => (

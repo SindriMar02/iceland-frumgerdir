@@ -174,7 +174,7 @@ const en = {
 
   info: {
     eyebrow: 'Finding us',
-    heading: 'Four kilometres off the road, and then nothing',
+    heading: 'Twenty five minutes from Höfn',
     callFarm: 'Call the farm',
     writeToUs: 'Write to us',
     address: 'The address',
@@ -242,8 +242,8 @@ const en = {
 
   gallery: {
     eyebrow: 'Every frame',
-    heading: 'The whole place, room by room',
-    body: 'Every photograph here is Nýpugarðar\u2019s own. Each room below is grouped exactly as it is bookable, so the pictures under a room type really are that room type.',
+    heading: 'The farm, the land and the table',
+    body: 'Every photograph here is Nýpugarðar\u2019s own. The rooms have their own section above; this is the farm, the land and the table.',
     byRoom: 'Every room type, with its own bathroom',
     andTheRest: 'And the rest of it',
     groups: {
@@ -490,7 +490,7 @@ const is: typeof en = {
   gallery: {
     eyebrow: 'Allar myndirnar',
     heading: 'Allur staðurinn, herbergi fyrir herbergi',
-    body: 'Allar myndir hér eru frá Nýpugörðum sjálfum. Hver herbergisgerð er flokkuð nákvæmlega eins og hún er bókanleg, svo myndirnar undir hverri gerð eru sannarlega af henni.',
+    body: 'Allar myndir hér eru frá Nýpugörðum sjálfum. Herbergin eiga sinn eigin kafla hér að ofan; hér er bærinn, landið og borðið.',
     byRoom: 'Hver herbergisgerð, með sínu baðherbergi',
     andTheRest: 'Og allt hitt',
     groups: {
