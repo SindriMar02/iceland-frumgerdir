@@ -155,6 +155,9 @@ const BODY = "rgba(244,238,226,0.76)";
 const PAPER = "#F4EEE2";
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+/** The reveal curve: slower into rest than EASE, so images settle rather than
+ *  snap. Used only by the entrance reveals, never by hover states. */
+const EASE_SOFT = "cubic-bezier(0.16, 1, 0.3, 1)";
 const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F4EEE2]";
 
@@ -230,8 +233,8 @@ function Reveal({
     ? undefined
     : {
         opacity: shown ? 1 : 0,
-        transform: shown ? "none" : `translateY(${y}px)`,
-        transition: `opacity 0.75s ${EASE} ${delay}ms, transform 0.75s ${EASE} ${delay}ms`,
+        transform: shown ? "none" : `translateY(${Math.min(y, 16)}px)`,
+        transition: `opacity 0.9s ${EASE_SOFT} ${delay}ms, transform 0.9s ${EASE_SOFT} ${delay}ms`,
       };
   return (
     <div
@@ -303,9 +306,13 @@ function ClipImg({
             reduced
               ? undefined
               : {
+                  /* Three layers settle at three speeds: the wipe leads, the
+                     zoom trails it, and the light arrives last — the image
+                     lands like dusk settling rather than a shutter opening. */
                   clipPath: on ? "inset(0 0 0 0)" : "inset(0 0 100% 0)",
-                  transform: on ? "scale(1)" : "scale(1.06)",
-                  transition: `clip-path 0.95s ${EASE} ${delay}ms, transform 1.25s ${EASE} ${delay}ms`,
+                  transform: on ? "scale(1) translateY(0)" : "scale(1.07) translateY(1.5%)",
+                  filter: on ? "brightness(1)" : "brightness(1.14)",
+                  transition: `clip-path 1.15s ${EASE_SOFT} ${delay}ms, transform 1.6s ${EASE_SOFT} ${delay}ms, filter 1.6s ${EASE_SOFT} ${delay}ms`,
                 }
           }
         />

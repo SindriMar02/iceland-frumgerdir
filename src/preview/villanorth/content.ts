@@ -287,11 +287,18 @@ export const FACTS = {
  * 2026-08-29, re-encoded to a muted web loop (1120px, denoised, no audio).
  * Poster is the film's own frame at 2s, so the handover cannot flash.
  */
+/** The tour placeholders: clearly-marked examples of what the area sells,
+ *  shared by the tours sheet and the hero's small rotating window. */
+export const EXAMPLE_TOURS = [
+  { name: 'Whale watching', note: 'From Akureyri harbour, twenty minutes away' },
+  { name: 'Goðafoss and Mývatn', note: 'A day east along the Ring Road' },
+  { name: 'Riding in the valley', note: 'Icelandic horses, an hour or an afternoon' },
+] as const
+
 export const AERIAL_FILM = {
   src: `${B}aerial-film.mp4`,
   poster: `${B}aerial-film-poster.jpg`,
   posterSmall: `${B}aerial-film-poster-800.jpg`,
-  credit: "Villa North's own aerial film, from their current site.",
 } as const
 
 export const JSON_LD = {
