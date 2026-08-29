@@ -485,31 +485,226 @@ const plusDays = (d: string, n: number) => {
   return new Date(t.getTime() + n * NIGHT_MS).toISOString().slice(0, 10)
 }
 
+/* ── the stay calendar ──────────────────────────────────────────────────────
+   Replaces a native date input and a "nights" dropdown, neither of which
+   belongs on a page whose whole argument is that this house was drawn before
+   it was built. The chosen nights read as a MEASURED SPAN: ticked at both
+   ends, with the night count sitting in a break in the hairline exactly the
+   way the figure sits in the dimension line on the elevation above.
+
+   Dates are 'YYYY-MM-DD' strings throughout and every Date object is anchored
+   at T12:00:00, so no timezone can shift a day. */
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+const isoOf = (y: number, m: number, d: number) => `${y}-${pad2(m + 1)}-${pad2(d)}`
+const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate()
+/* Monday-first: JS Sunday is 0, and Sunday ends the week here. */
+const firstCol = (y: number, m: number) => (new Date(y, m, 1).getDay() + 6) % 7
+const nightsBetween = (a: string, b: string) =>
+  Math.round((new Date(`${b}T12:00:00`).getTime() - new Date(`${a}T12:00:00`).getTime()) / NIGHT_MS)
+/* Fixed three-letter tables rather than toLocaleDateString: en-GB emits
+   "Sept" for one month out of twelve, which breaks the tabular alignment the
+   dimension line depends on. */
+const MON3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const DAY3 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const prettyDate = (d: string) => {
+  const t = new Date(`${d}T12:00:00`)
+  return `${DAY3[t.getDay()]} ${t.getDate()} ${MON3[t.getMonth()]}`
+}
+const monthLabel = (y: number, m: number) =>
+  new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+
+const DOW = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+
+export type Stay = { from: string | null; to: string | null }
+
+function StayCalendar({ stay, onChange, minDate }: {
+  stay: Stay
+  onChange: (s: Stay) => void
+  minDate: string
+}) {
+  const startMonth = useMemo(() => {
+    const d = new Date(`${minDate}T12:00:00`)
+    return { y: d.getFullYear(), m: d.getMonth() }
+  }, [minDate])
+  const [cursor, setCursor] = useState(startMonth)
+  const [hover, setHover] = useState<string | null>(null)
+  const [focused, setFocused] = useState<string>(stay.from || minDate)
+  const keyNav = useRef(false)
+
+  /* The provisional end while the guest is still choosing: the real departure
+     if it exists, otherwise whatever they are hovering, so the span is drawn
+     before it is committed. */
+  const end = stay.to ?? (stay.from && hover && hover > stay.from ? hover : null)
+
+  const shift = (n: number) => setCursor((c) => {
+    const d = new Date(c.y, c.m + n, 1)
+    const next = { y: d.getFullYear(), m: d.getMonth() }
+    if (next.y * 12 + next.m < startMonth.y * 12 + startMonth.m) return c
+    return next
+  })
+  const atStart = cursor.y * 12 + cursor.m <= startMonth.y * 12 + startMonth.m
+
+  const pick = (d: string) => {
+    /* Second click only closes the range when it lands after the arrival.
+       Anything else starts a new one from there, which is what a guest
+       correcting themselves actually means. */
+    if (!stay.from || stay.to || d <= stay.from) onChange({ from: d, to: null })
+    else onChange({ from: stay.from, to: d })
+  }
+
+  /* Roving focus: arrows walk the grid, and the view follows if the walk
+     leaves the two visible months. */
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const step: Record<string, number> = {
+      ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7, PageUp: -28, PageDown: 28,
+    }
+    const n = step[e.key]
+    if (n === undefined) return
+    e.preventDefault()
+    /* Walk from the day that actually has focus, not from state: the two are
+       the same for a real keypress, but reading the DOM cannot go stale. */
+    const origin = (e.target as HTMLElement).dataset?.vnDay || focused
+    const next = plusDays(origin, n)
+    if (next < minDate) return
+    keyNav.current = true
+    setFocused(next)
+    const [ny, nm] = [Number(next.slice(0, 4)), Number(next.slice(5, 7)) - 1]
+    const idx = ny * 12 + nm
+    const left = cursor.y * 12 + cursor.m
+    if (idx < left) setCursor({ y: ny, m: nm })
+    else if (idx > left + 1) {
+      const back = new Date(ny, nm - 1, 1)
+      setCursor({ y: back.getFullYear(), m: back.getMonth() })
+    }
+  }
+
+  useEffect(() => {
+    if (!keyNav.current) return
+    keyNav.current = false
+    const el = document.querySelector<HTMLButtonElement>(`[data-vn-day="${focused}"]`)
+    el?.focus()
+  }, [focused])
+
+  const renderMonth = (offset: number) => {
+    const d = new Date(cursor.y, cursor.m + offset, 1)
+    const y = d.getFullYear()
+    const m = d.getMonth()
+    const cells: (string | null)[] = Array.from({ length: firstCol(y, m) }, () => null)
+    for (let i = 1; i <= daysInMonth(y, m); i++) cells.push(isoOf(y, m, i))
+    while (cells.length % 7) cells.push(null)
+
+    return (
+      <div className="vn-cal-month" key={`${y}-${m}`}>
+        <p className="vn-cal-title">{monthLabel(y, m)}</p>
+        <div className="vn-cal-dows" aria-hidden="true">
+          {DOW.map((w, i) => <span className="vn-cal-dow" key={i}>{w}</span>)}
+        </div>
+        <div className="vn-cal-grid" role="grid" onKeyDown={onKeyDown}>
+          {cells.map((day, i) => {
+            if (!day) return <span className="vn-cal-cell is-blank" key={`b${i}`} />
+            const past = day < minDate
+            const isFrom = day === stay.from
+            const isTo = !!end && day === end
+            const inside = !!stay.from && !!end && day > stay.from && day < end
+            const cls = [
+              'vn-cal-cell',
+              isFrom ? 'is-from' : '',
+              isTo ? 'is-to' : '',
+              inside ? 'is-in' : '',
+            ].filter(Boolean).join(' ')
+            return (
+              <span className={cls} key={day}>
+                <button
+                  type="button"
+                  data-vn-day={day}
+                  className={`vn-cal-day ${isFrom || isTo ? 'is-end' : ''}`}
+                  disabled={past}
+                  tabIndex={day === focused ? 0 : -1}
+                  aria-label={prettyDate(day)}
+                  aria-pressed={isFrom || isTo}
+                  onFocus={() => setFocused(day)}
+                  onMouseEnter={() => setHover(day)}
+                  onMouseLeave={() => setHover(null)}
+                  onClick={() => pick(day)}
+                >
+                  {Number(day.slice(8))}
+                </button>
+              </span>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  const nights = stay.from && end ? nightsBetween(stay.from, end) : 0
+
+  return (
+    <div className="vn-cal">
+      <div className="vn-cal-head">
+        <span className="vn-field-label">Your dates</span>
+        <span className="vn-cal-nav">
+          <button type="button" onClick={() => shift(-1)} disabled={atStart} aria-label="Previous month">&#8592;</button>
+          <button type="button" onClick={() => shift(1)} aria-label="Next month">&#8594;</button>
+        </span>
+      </div>
+
+      <div className="vn-cal-months">{renderMonth(0)}{renderMonth(1)}</div>
+
+      {/* the dimension line: ticked at both ends, the figure breaking the rule */}
+      <div className="vn-cal-dim" aria-live="polite">
+        {stay.from && end ? (
+          <>
+            <span className="vn-cal-dim-end">
+              <em>Arrival</em>{prettyDate(stay.from)}
+            </span>
+            <span className="vn-cal-dim-rule is-left" />
+            <span className="vn-cal-dim-figure">{nights} {nights === 1 ? 'night' : 'nights'}</span>
+            <span className="vn-cal-dim-rule is-right" />
+            <span className="vn-cal-dim-end is-right">
+              <em>Departure</em>{prettyDate(end)}
+            </span>
+          </>
+        ) : (
+          <p className="vn-cal-dim-empty">
+            {stay.from ? 'Now choose the day you leave.' : 'Choose the day you arrive.'}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function BookingForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [date, setDate] = useState('')
-  const [nights, setNights] = useState(2)
+  const [stay, setStay] = useState<Stay>({ from: null, to: null })
   const [people, setPeople] = useState(7)
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<DemoBooking | null>(null)
 
   const minDate = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const nights = stay.from && stay.to ? nightsBetween(stay.from, stay.to) : 0
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !email.trim() || !date) {
-      setError('Name, email and an arrival date are needed to send a request.')
+    if (!stay.from || !stay.to) {
+      setError('Choose the day you arrive and the day you leave.')
+      return
+    }
+    if (!name.trim() || !email.trim()) {
+      setError('A name and an email are needed so the owner can reply.')
       return
     }
     setError(null)
     const b: DemoBooking = {
       id: `vn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       resourceId: 'villanorth',
-      date,
-      endDate: plusDays(date, nights),
+      date: stay.from,
+      endDate: stay.to,
       people,
       customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
       note: note.trim() || undefined,
@@ -526,7 +721,9 @@ function BookingForm() {
       <div className="vn-book-done" role="status">
         <p className="vn-book-done-title">Your request is on its way.</p>
         <p className="vn-book-done-body">
-          {done.date} to {done.endDate}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
+          {prettyDate(done.date)} to {prettyDate(done.endDate)}, {done.quote.units}{' '}
+          {done.quote.units === 1 ? 'night' : 'nights'}, {done.people}{' '}
+          {done.people === 1 ? 'guest' : 'guests'}.
           The owner confirms each request personally. The price for your dates comes with the reply
           to {done.customer.email}.
         </p>
@@ -545,18 +742,8 @@ function BookingForm() {
   return (
     <form className="vn-book-form" onSubmit={submit} noValidate>
       <div className="vn-book-grid">
-        <label className="vn-field">
-          <span className="vn-field-label">Arrival</span>
-          <input type="date" name="arrival" autoComplete="off" min={minDate} value={date} required
-            onChange={(e) => setDate(e.target.value)} />
-        </label>
-        <label className="vn-field">
-          <span className="vn-field-label">Nights</span>
-          <select name="nights" value={nights} onChange={(e) => setNights(Number(e.target.value))}>
-            {[1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </label>
-        <label className="vn-field">
+        <StayCalendar stay={stay} onChange={setStay} minDate={minDate} />
+        <label className="vn-field vn-field-guests">
           <span className="vn-field-label">Guests</span>
           <select name="guests" value={people} onChange={(e) => setPeople(Number(e.target.value))}>
             {[1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
@@ -1473,6 +1660,74 @@ const CSS = `
 }
 .vn-field textarea { min-height: 0; resize: vertical; }
 .vn-field-error { color: #A5462F; font-size: ${fluid(14, 13)}; margin: calc(var(--u) * 16) 0 0; }
+
+/* the stay calendar — a drafting sheet, not a date picker. The chosen nights
+   are a measured span: an amber band through the grid, ink squares on the two
+   endpoints, and a dimension line beneath with the figure breaking the rule. */
+.vn-cal { grid-column: 1 / -1; }
+.vn-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: calc(var(--u) * 14); }
+.vn-cal-nav { display: flex; gap: 6px; }
+.vn-cal-nav button {
+  width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer;
+  font: inherit; font-size: 14px; line-height: 1; color: var(--vn-ink);
+  background: var(--vn-c); border: 1px solid var(--vn-hair); border-radius: 2px;
+  transition: border-color .2s ease, opacity .2s ease;
+}
+.vn-cal-nav button:disabled { opacity: .3; cursor: default; }
+.vn-cal-nav button:not(:disabled):hover { border-color: var(--vn-amber); }
+.vn-cal-months { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 34); }
+.vn-cal-title {
+  font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--vn-ink); margin: 0 0 calc(var(--u) * 10);
+}
+.vn-cal-dows, .vn-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.vn-cal-dow {
+  font-family: ${MONO}; font-size: 10px; letter-spacing: .06em; text-align: center;
+  color: var(--vn-mute); padding-bottom: 7px; border-bottom: 1px solid var(--vn-hair);
+}
+.vn-cal-cell { position: relative; }
+/* the band sits behind the numerals and runs edge to edge, so consecutive
+   cells read as one continuous span rather than seven separate chips */
+.vn-cal-cell.is-in::before, .vn-cal-cell.is-from::before, .vn-cal-cell.is-to::before {
+  content: ''; position: absolute; top: 3px; bottom: 3px; left: 0; right: 0;
+  background: color-mix(in srgb, var(--vn-amber) 20%, transparent);
+}
+.vn-cal-cell.is-from::before { left: 50%; }
+.vn-cal-cell.is-to::before { right: 50%; }
+.vn-cal-day {
+  position: relative; width: 100%; min-height: 38px; cursor: pointer;
+  font-family: ${MONO}; font-size: ${fluid(13, 13)}; font-variant-numeric: tabular-nums;
+  color: var(--vn-ink); background: none; border: 0; border-radius: 2px; padding: 0;
+  transition: box-shadow .15s ease, background-color .15s ease, color .15s ease;
+}
+.vn-cal-day:disabled { color: color-mix(in srgb, var(--vn-ink) 24%, transparent); cursor: default; }
+.vn-cal-day:not(:disabled):hover { box-shadow: inset 0 0 0 1px var(--vn-line); }
+.vn-cal-day.is-end { background: var(--vn-ink); color: var(--vn-c); font-weight: 500; }
+.vn-cal-day.is-end:hover { box-shadow: none; }
+
+.vn-cal-dim {
+  display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center;
+  gap: calc(var(--u) * 12); min-height: 46px;
+  margin-top: calc(var(--u) * 20); padding-top: calc(var(--u) * 18);
+  border-top: 1px solid var(--vn-hair);
+}
+.vn-cal-dim-end { font-family: ${MONO}; font-size: ${fluid(13, 12)}; font-variant-numeric: tabular-nums; }
+.vn-cal-dim-end.is-right { text-align: right; }
+.vn-cal-dim-end em {
+  display: block; font-style: normal; font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--vn-mute); margin-bottom: 3px;
+}
+/* terminal ticks, drawn only on the outer ends the way a dimension is */
+.vn-cal-dim-rule { position: relative; height: 1px; background: var(--vn-line); }
+.vn-cal-dim-rule::before { content: ''; position: absolute; top: -4px; width: 1px; height: 9px; background: var(--vn-line); }
+.vn-cal-dim-rule.is-left::before { left: 0; }
+.vn-cal-dim-rule.is-right::before { right: 0; }
+.vn-cal-dim-figure {
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--vn-amber-text); white-space: nowrap;
+}
+.vn-cal-dim-empty { margin: 0; grid-column: 1 / -1; font-size: ${fluid(13, 13)}; color: var(--vn-mute); }
+
 .vn-owner-note { margin-top: calc(var(--u) * 44); padding-top: calc(var(--u) * 22); border-top: 1px solid var(--vn-hair); }
 .vn-owner-note-label { font-family: ${MONO}; font-size: ${fluid(11, 12)}; letter-spacing: .12em; text-transform: uppercase; color: var(--vn-amber-text); margin: 0 0 calc(var(--u) * 10); }
 .vn-owner-note-body { font-size: ${fluid(14, 13)}; line-height: 1.6; color: var(--vn-mute); margin: 0; max-width: 44ch; }
@@ -1511,6 +1766,11 @@ const CSS = `
   .vn-mat-expand { height: calc(var(--u) * 340); }
   .vn-quotes { grid-template-columns: 1fr; gap: 32px; }
   .vn-book-grid { grid-template-columns: 1fr; }
+  /* one month at a time below the desktop column width: two would squeeze the
+     cells under a usable tap target. The arrows still reach every month. */
+  .vn-cal-months { grid-template-columns: 1fr; }
+  .vn-cal-month + .vn-cal-month { display: none; }
+  .vn-cal-day { min-height: 44px; }
   .vn-glow-row { grid-template-columns: 1fr; }
   .vn-foot-grid { grid-template-columns: 1fr; gap: 24px; padding: 36px 20px; }
 }
@@ -1539,6 +1799,10 @@ const CSS = `
      only a height override collapses to 0 - override the whole shorthand
      with a real basis instead. */
   .vn-mat-panel { flex: 0 0 160px !important; }
+  /* the dimension line loses its rules rather than its figures: three columns
+     of real information beat five columns of squeezed hairline */
+  .vn-cal-dim { grid-template-columns: 1fr auto 1fr; gap: 12px; }
+  .vn-cal-dim-rule { display: none; }
 }
 
 /* reduced motion: everything renders visible statically */
