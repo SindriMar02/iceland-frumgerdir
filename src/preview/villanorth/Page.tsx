@@ -2297,7 +2297,8 @@ const CSS = `
 }
 .vn-hero-tours:hover {
   border-color: rgba(242, 241, 238, .82);
-  transform: translateY(-4px);
+  /* Grows rather than lifts, for the same reason the plates do. */
+  transform: scale(1.015);
   box-shadow: 0 34px 74px -30px rgba(16, 18, 22, .95);
 }
 .vn-ht-stack { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: ${NIGHT}; }
@@ -2398,13 +2399,30 @@ const CSS = `
  * effect no one there can trigger on purpose.
  */
 @media (hover: hover) and (pointer: fine) {
-  .vn-tours-grid:hover .vn-tour-ghost:not(:hover) { filter: blur(3px); opacity: .45; }
-  .vn-tours-grid:hover .vn-tour-plate:not(:hover),
+  /*
+   * :has, NOT :hover, on the grid. A plain .vn-tours-grid:hover is true whenever the
+   * pointer is anywhere in the grid INCLUDING the gutters between cards, so
+   * sweeping along the row blurred all four for the moment the pointer crossed
+   * each gap. Gated on a plate actually being hovered, the gutters do nothing.
+   *
+   * The ghost carries .vn-tour-plate too, so it is already covered here; the
+   * separate rule it used to have was gated differently and blurred it alone
+   * in the gutter, which is its own flicker.
+   */
+  .vn-tours-grid:has(.vn-tour-plate:hover) .vn-tour-plate:not(:hover),
   .vn-tours-grid:focus-within .vn-tour-plate:not(:focus-within) {
     filter: blur(3px) saturate(.72); opacity: .5; transform: scale(.99);
   }
+  /*
+   * Scale UP, never translate. A hover transform moves the element's hit box as
+   * well as its paint: lifting the card 5px slid its lower edge out from under
+   * a pointer resting near the bottom, which dropped the hover, which dropped
+   * the lift, which restored the hover - an oscillation for as long as the
+   * pointer sat there. Growing from the centre moves every edge AWAY from the
+   * pointer, so hover can never be lost to the effect itself.
+   */
   .vn-tour-plate:hover, .vn-tour-plate:focus-within {
-    transform: translateY(-5px);
+    transform: scale(1.02);
     box-shadow: 0 22px 44px -20px rgba(16, 18, 22, .6);
   }
 }
