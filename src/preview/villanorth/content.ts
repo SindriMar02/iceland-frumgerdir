@@ -43,8 +43,10 @@ export const HOST = {
   responseRate: '100%',
   respondsWithin: 'within an hour',
   rating: 5.0,
-  reviewCount: 54,
-  badges: ['Guest favorite', 'Top 10% of homes'],
+  /* Re-read off the live listing 2026-08-30: 58 reviews, and the highlight
+     has moved from top 10% to top 5%. */
+  reviewCount: 58,
+  badges: ['Guest favorite', 'Top 5% of homes'],
 }
 
 export interface Photo {
@@ -350,7 +352,7 @@ export const JSON_LD = {
   aggregateRating: {
     '@type': 'AggregateRating',
     ratingValue: 5.0,
-    reviewCount: 54,
+    reviewCount: 58,
     // Source: the live Airbnb listing, 2026-08-04.
   },
   amenityFeature: [
