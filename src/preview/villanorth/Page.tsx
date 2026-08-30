@@ -915,9 +915,19 @@ export default function VillaNorthPage() {
 
   const anchor = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
+    const go = () => {
+      document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' })
+      history.replaceState(null, '', `#${id}`)
+    }
+    if (!menuOpen) { go(); return }
+    /* The sheet locks body overflow while it is open, and that lock is only
+       released by the menu effect's cleanup, which runs AFTER this render
+       commits. Scrolling in the same tick therefore scrolls a locked
+       document and silently does nothing: on the phone the sheet closed and
+       the page stayed exactly where it was. Close first, scroll once the
+       lock is actually gone. */
     setMenuOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' })
-    history.replaceState(null, '', `#${id}`)
+    requestAnimationFrame(() => requestAnimationFrame(go))
   }
 
   /* Escape closes, and the page underneath is locked while the sheet is open
