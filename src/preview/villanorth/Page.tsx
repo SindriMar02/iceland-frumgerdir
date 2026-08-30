@@ -1008,6 +1008,16 @@ export default function VillaNorthPage() {
   const roomBtnRefs = useRef<Array<HTMLButtonElement | null>>([])
   const glowVideoRef = useRef<HTMLVideoElement>(null)
   const aerialVideoRef = useRef<HTMLVideoElement>(null)
+  /*
+   * The two films are 9.3MB and 1.8MB. With a <source> in the DOM from first
+   * render, autoPlay plus the forced play() below started BOTH downloading on
+   * arrival, while they were still several screens away - 11MB of cellular
+   * data before a phone has seen anything but the hero. The source is attached
+   * only once its section is near, so the poster carries the section until
+   * then and the bytes are spent by someone actually scrolling to them.
+   */
+  const [aerialNear, setAerialNear] = useState(false)
+  const [glowNear, setGlowNear] = useState(false)
 
   useEffect(() => {
     setThemeColor(PAPER)
@@ -1026,6 +1036,28 @@ export default function VillaNorthPage() {
      dismissed and the element paints black (seen live on the aerial film,
      2026-08-29). Force the property first, then play. Never runs under
      reduced motion — the poster stands in. */
+  /* One observer for both films, a viewport and a half of lead time so the
+     file has a chance to arrive before the section does. */
+  useEffect(() => {
+    const pairs: Array<[React.RefObject<HTMLVideoElement>, (v: boolean) => void]> = [
+      [aerialVideoRef, setAerialNear],
+      [glowVideoRef, setGlowNear],
+    ]
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue
+          const hit = pairs.find(([ref]) => ref.current === e.target)
+          hit?.[1](true)
+          io.unobserve(e.target)
+        }
+      },
+      { rootMargin: '150% 0px' },
+    )
+    for (const [ref] of pairs) if (ref.current) io.observe(ref.current)
+    return () => io.disconnect()
+  }, [])
+
   useEffect(() => {
     if (reduced()) return
     const cleanups: Array<() => void> = []
@@ -1043,7 +1075,8 @@ export default function VillaNorthPage() {
       })
     }
     return () => cleanups.forEach((fn) => fn())
-  }, [])
+    /* Re-runs when a source is attached: on mount there is nothing to play. */
+  }, [aerialNear, glowNear])
 
   const [loading, setLoading] = useState(shouldShowLoader)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -1283,11 +1316,11 @@ export default function VillaNorthPage() {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload={aerialNear ? 'metadata' : 'none'}
             aria-hidden="true"
             onError={() => setAerialErrored(true)}
           >
-            <source src={AERIAL_FILM.src} type="video/mp4" />
+            {aerialNear ? <source src={AERIAL_FILM.src} type="video/mp4" /> : null}
           </video>
           <div className="vn-film-caps">
             <p className="vn-film-label">Úr lofti</p>
@@ -1415,11 +1448,11 @@ export default function VillaNorthPage() {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload={glowNear ? 'metadata' : 'none'}
             aria-hidden="true"
             onError={() => setGlowErrored(true)}
           >
-            <source src={GLOW_FILM.src} type="video/mp4" />
+            {glowNear ? <source src={GLOW_FILM.src} type="video/mp4" /> : null}
           </video>
           <div className="vn-glow-caps">
             <p className="vn-glow-label">Glóðin</p>
@@ -1738,6 +1771,27 @@ html, body { background-color: ${PAPER}; }
  * the no-JS .vn-static path is correct without running anything.
  */
 .vn-nav.is-ink { color: var(--vn-ink); }
+/*
+ * The bar brings its own ground rather than trusting whatever scrolls beneath
+ * it. Section-switching alone still leaves one hole: a DARK photograph inside a
+ * light section (a mosaic cell, a glow frame) can pass under the bar while it
+ * is in ink mode, and ink on a dark photo is the same failure in reverse. The
+ * scrim is dark under light type and paper under ink type, so contrast holds
+ * over anything. Over the cream sections the paper scrim is invisible, being
+ * the ground colour already. Fades out rather than ending on a hard edge.
+ */
+.vn-nav::before {
+  /* Extends past the bar so the fade is gentle rather than a hard edge, and so
+     the strong end of it sits behind the type rather than above it. Alpha is
+     solved from the measured worst case: the brightest sky under the bar is
+     211, and #F2F1EE needs the backdrop at or under ~107 for 4.5:1. */
+  content: ''; position: absolute; inset: 0 0 -28px 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(16,18,22,.74) 0%, rgba(16,18,22,.62) 45%, rgba(16,18,22,.22) 78%, rgba(16,18,22,0) 100%);
+  transition: background .35s ease;
+}
+.vn-nav.is-ink::before {
+  background: linear-gradient(180deg, ${PAPER} 0%, color-mix(in srgb, ${PAPER} 88%, transparent) 45%, color-mix(in srgb, ${PAPER} 34%, transparent) 78%, transparent 100%);
+}
 .vn-nav-mark {
   font-family: ${DISPLAY}; font-weight: 700; letter-spacing: .06em; text-decoration: none;
   font-size: ${fluid(16, 15)}; color: inherit;
@@ -1832,9 +1886,7 @@ html, body { background-color: ${PAPER}; }
    * The bar needs no scrim over the cream sections (difference gives ~18:1)
    * or the night footer, which is why this lives on the hero, not on .vn-nav.
    */
-  background:
-    linear-gradient(180deg, rgba(16,18,22,.60) 0%, rgba(16,18,22,.54) 7%, rgba(16,18,22,.16) 14%, transparent 21%),
-    linear-gradient(200deg, transparent 46%, rgba(16,18,22,.62) 100%);
+  background: linear-gradient(200deg, transparent 46%, rgba(16,18,22,.62) 100%);
 }
 .vn-hero-block {
   position: relative; align-self: end; z-index: 1;
