@@ -35,6 +35,22 @@ export function setThemeColor(color: string): void {
 }
 
 /**
+ * Override the shell's meta description for one route, restoring it on the way
+ * out. index.html carries the gallery's own Icelandic description, which is
+ * what a chat app or mail client shows when someone forwards a preview link -
+ * so an English-facing preview needs its own, or the client sees Icelandic
+ * marketing copy about prototypes in the link card. Returns a cleanup for
+ * useEffect.
+ */
+export function setMetaDescription(text: string): () => void {
+  const tag = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+  if (!tag) return () => {}
+  const prev = tag.content
+  tag.content = text
+  return () => { tag.content = prev }
+}
+
+/**
  * Toggle a robots noindex directive for routes that should not be indexed
  * (the FIMM opportunity thesis names unconsented third parties). Returns a
  * cleanup that restores indexing — call from a useEffect.

@@ -16,7 +16,7 @@ const CSS = `
 }
 `
 
-export function SndrBadge({ dark = false, className = '' }: { dark?: boolean; className?: string }) {
+export function SndrBadge({ dark = false, className = '', english = false }: { dark?: boolean; className?: string; english?: boolean }) {
   const ink = dark ? 'rgba(255,255,255,0.72)' : 'rgba(23,23,23,0.72)'
   const ember = dark ? '#FF8A3D' : '#C4531B'
   return (
@@ -26,7 +26,7 @@ export function SndrBadge({ dark = false, className = '' }: { dark?: boolean; cl
         href="https://sndr-studio.pages.dev"
         target="_blank"
         rel="noreferrer"
-        aria-label="Hannað af SNDR Studio"
+        aria-label={english ? 'Designed by SNDR Studio' : 'Hannað af SNDR Studio'}
         /* a logotype, so the mobile minimum type size does not apply to the
            10.5px "STUDIO" lockup — see scripts/mobile-audit.mjs */
         data-logotype

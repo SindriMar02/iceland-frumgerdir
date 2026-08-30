@@ -67,7 +67,7 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
         </a>
       </p>
       <div className={`mx-auto mt-6 flex justify-center border-t pt-6 ${dark ? 'border-white/10' : 'border-neutral-200'}`}>
-        <SndrBadge dark={dark} />
+        <SndrBadge dark={dark} english={en} />
       </div>
     </footer>
   )

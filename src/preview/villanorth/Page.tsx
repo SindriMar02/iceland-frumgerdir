@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { setNoindex, setThemeColor } from '../../lib/preview'
+import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
 import { bookingReady, godoBookingUrl } from './godo'
 import {
@@ -1025,6 +1025,14 @@ export default function VillaNorthPage() {
     setReady(true)
   }, [])
   useEffect(() => setNoindex(true), [])
+  /* The shell's own description is Icelandic; this page is English. */
+  useEffect(
+    () =>
+      setMetaDescription(
+        'Villa North: an architect-designed villa above Fnjoskadalur in north Iceland. Sleeps seven across four bedrooms, with a private hot tub on the sundeck, twenty minutes from Akureyri.',
+      ),
+    [],
+  )
 
   useMotion(ready)
 
