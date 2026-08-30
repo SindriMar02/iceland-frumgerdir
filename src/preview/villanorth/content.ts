@@ -105,6 +105,12 @@ export const PHOTO = {
   /** THE GLOW: the villa lit at night, snow on the ground, the hot tub deck visible. */
   winterNight: { src: `${B}winter-night.jpg`, alt: 'Villa North lit up at dusk in winter, snow patches on the ground and the hot tub visible on its deck', ratio: '3 / 2' } as Photo,
   /** A second winter aerial: the river system tracing through the valley at dusk. */
+  /* Stock, and deliberately so: the tours sheet is an example of a section
+     that does not exist yet, so it must not imply the house owns these
+     photographs. Unsplash, cropped 3/2 to match the card grid. */
+  tourWhales: { src: `${B}tour-whales.jpg`, alt: 'A whale surfacing in open water off the north coast', ratio: '3 / 2' } as Photo,
+  tourGodafoss: { src: `${B}tour-godafoss.jpg`, alt: 'A wide waterfall breaking over a dark basalt lip', ratio: '3 / 2' } as Photo,
+  tourHorses: { src: `${B}tour-horses.jpg`, alt: 'Icelandic horses grazing below a mountain ridge', ratio: '3 / 2' } as Photo,
   winterRiver: { src: `${B}winter-river.jpg`, alt: 'An aerial dusk view in winter, the river system tracing through the valley beyond the lit house', ratio: '3 / 2' } as Photo,
   /** Two wine glasses on the deck rail at golden hour, the same amber light strip beneath. THE GLOW's golden-hour beat, and the pallurinn room photo. */
   wineGlasses: { src: `${B}wine-glasses.jpg`, alt: 'Two wine glasses on the deck rail at golden hour, an amber light strip glowing beneath the rail', ratio: '3 / 2' } as Photo,
@@ -305,10 +311,37 @@ export const FACTS = {
  */
 /** The tour placeholders: clearly-marked examples of what the area sells,
  *  shared by the tours sheet and the hero's small rotating window. */
+/**
+ * The tours portal URL, once the account is live. TourDesk hands partners a
+ * hosted portal on their own subdomain (`<brand>.tourdesk.com`) and publishes
+ * no embed widget or catalogue API, so linking out is the honest integration
+ * until they confirm otherwise. See [[booking-systems-integration]]. Filling
+ * this one string turns every card's button into a real link.
+ */
+export const TOURS_PORTAL = ''
+
 export const EXAMPLE_TOURS = [
-  { name: 'Whale watching', note: 'From Akureyri harbour, twenty minutes away' },
-  { name: 'Goðafoss and Mývatn', note: 'A day east along the Ring Road' },
-  { name: 'Riding in the valley', note: 'Icelandic horses, an hour or an afternoon' },
+  {
+    name: 'Whale watching',
+    note: 'From Akureyri harbour, twenty minutes away',
+    photo: PHOTO.tourWhales,
+    duration: '3 hours',
+    cta: 'See times',
+  },
+  {
+    name: 'Goðafoss and Mývatn',
+    note: 'A day east along the Ring Road',
+    photo: PHOTO.tourGodafoss,
+    duration: 'Full day',
+    cta: 'See times',
+  },
+  {
+    name: 'Riding in the valley',
+    note: 'Icelandic horses, an hour or an afternoon',
+    photo: PHOTO.tourHorses,
+    duration: 'From 1 hour',
+    cta: 'See times',
+  },
 ] as const
 
 export const AERIAL_FILM = {

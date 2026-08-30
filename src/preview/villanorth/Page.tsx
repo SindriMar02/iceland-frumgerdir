@@ -11,7 +11,7 @@ import { setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
 import { bookingReady, godoBookingUrl } from './godo'
 import {
-  AERIAL_FILM, BATH_NOTE, EXAMPLE_TOURS, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, REVIEW_THEMES,
+  AERIAL_FILM, BATH_NOTE, EXAMPLE_TOURS, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, REVIEW_THEMES, TOURS_PORTAL,
   ROOMS, VALLEY, WELCOME_RITUAL, srcSet, type Photo, type RoomEntry,
 } from './content'
 
@@ -48,6 +48,9 @@ const MONO = "'Azeret Mono', ui-monospace, monospace"
    near-square on its own) so the row reads as a set, stacked or not. */
 const GLOW_SIZES = '(min-width: 1440px) 432px, (min-width: 992px) 30vw, 100vw'
 const GLOW_RATIO = '3 / 2'
+/* Tours sheet: four cells inside a 1440 measure that is already inset by the
+   section padding and the sheet's own padding, so a cell is around 300px. */
+const TOUR_SIZES = '(min-width: 1200px) 300px, (min-width: 700px) 44vw, 90vw'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -1380,11 +1383,37 @@ export default function VillaNorthPage() {
           </div>
           <div className="vn-tours-grid vn-rv">
             {EXAMPLE_TOURS.map((tour) => (
-              <div className="vn-tour-card" key={tour.name}>
-                <p className="vn-tour-tag">Example</p>
-                <p className="vn-tour-name">{tour.name}</p>
-                <p className="vn-tour-note">{tour.note}</p>
-              </div>
+              <article className="vn-tour-card" key={tour.name}>
+                <Frame photo={tour.photo} className="vn-tour-shot" sizes={TOUR_SIZES} drift={6} />
+                <div className="vn-tour-body">
+                  <p className="vn-tour-tag">
+                    <span>Example</span>
+                    <span className="vn-tour-dur">{tour.duration}</span>
+                  </p>
+                  <p className="vn-tour-name">{tour.name}</p>
+                  <p className="vn-tour-note">{tour.note}</p>
+                  {/* With no portal configured the card still has to SHOW its
+                      call to action, so the button is drawn either way and only
+                      becomes a link once TOURS_PORTAL is filled in. An inert
+                      anchor would lie about where it goes. */}
+                  {TOURS_PORTAL ? (
+                    <a
+                      className="vn-tour-cta"
+                      href={TOURS_PORTAL}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {tour.cta}
+                      <span aria-hidden="true">→</span>
+                    </a>
+                  ) : (
+                    <span className="vn-tour-cta is-example" aria-hidden="true">
+                      {tour.cta}
+                      <span>→</span>
+                    </span>
+                  )}
+                </div>
+              </article>
             ))}
             <div className="vn-tour-card vn-tour-ghost">
               <p className="vn-tour-ghost-plus" aria-hidden="true">+</p>
@@ -2247,19 +2276,40 @@ const CSS = `
 .vn-tours-grid { margin-top: calc(var(--u) * 40); display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 20); align-items: stretch; }
 .vn-tour-card {
   position: relative; background: color-mix(in srgb, var(--vn-ink) 4%, var(--vn-c));
-  border: 1px solid var(--vn-hair); border-radius: 2px;
-  padding: calc(var(--u) * 48) calc(var(--u) * 22) calc(var(--u) * 22);
+  border: 1px solid var(--vn-hair); border-radius: 2px; overflow: hidden;
+  display: flex; flex-direction: column;
 }
+.vn-tour-shot { width: 100%; }
+.vn-tour-body {
+  display: flex; flex-direction: column; align-items: start;
+  padding: calc(var(--u) * 18) calc(var(--u) * 20) calc(var(--u) * 18);
+  /* The button sits on the card's floor whatever the note's length, so a row
+     of cards has one button line rather than three. */
+  flex: 1;
+}
+.vn-tour-cta {
+  margin-top: auto; padding-top: calc(var(--u) * 16);
+  display: inline-flex; align-items: center; gap: calc(var(--u) * 8);
+  font-family: ${MONO}; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--vn-ink); text-decoration: none;
+}
+.vn-tour-cta span:last-child { transition: transform .3s cubic-bezier(.25,1,.5,1); }
+.vn-tour-cta:hover span:last-child, .vn-tour-cta:focus-visible span:last-child { transform: translateX(4px); }
+.vn-tour-cta.is-example { color: var(--vn-mute); }
 .vn-tour-name { margin: 0; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(19, 16)}; }
 .vn-tour-note { margin: calc(var(--u) * 8) 0 0; color: var(--vn-mute); font-size: ${fluid(13.5, 13)}; line-height: 1.55; }
 .vn-tour-tag {
-  position: absolute; top: calc(var(--u) * 14); left: calc(var(--u) * 22); margin: 0;
+  margin: 0 0 calc(var(--u) * 10); width: 100%;
+  display: flex; justify-content: space-between; gap: calc(var(--u) * 10);
   font-family: ${MONO}; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--vn-amber-text);
 }
+.vn-tour-dur { color: var(--vn-mute); letter-spacing: .06em; text-transform: none; }
+/* The ghost has no photo and no body wrapper, so it carries the padding the
+   real cards get from .vn-tour-body. */
 .vn-tour-ghost {
   background: none; border: 1px dashed color-mix(in srgb, var(--vn-ink) 30%, transparent);
-  display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 8);
-  padding-top: calc(var(--u) * 22);
+  justify-content: center; gap: calc(var(--u) * 8);
+  padding: calc(var(--u) * 22) calc(var(--u) * 20);
 }
 .vn-tour-ghost-plus { margin: 0; font-family: ${MONO}; font-size: ${fluid(22, 20)}; line-height: 1; color: var(--vn-mute); }
 
