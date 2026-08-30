@@ -30,9 +30,12 @@ export const companyEntry: PreviewCompany = {
   thumb: import.meta.env.BASE_URL + 'villanorth/glass-grid.jpg',
   ownPhotography: true,
   noOwnSite: true,
-  currentLabel: 'Airbnb-skráning',
+  /* Astrid manages Villa North from Austria and its guests are the Airbnb
+     audience, so the shared disclaimer speaks English here. */
+  english: true,
+  currentLabel: 'Airbnb listing',
   photoCredit:
-    'Allar myndir eru raunverulegar myndir úr Airbnb-skráningu Villa North (23 myndir), sóttar 2026-08-04.',
+    "All photographs are real pictures from Villa North's own Airbnb listing (23 images), taken 2026-08-04.",
   audit: {
     strengths: [
       '5,0 í einkunn yfir 54 umsagnir, efstu 10% skráninga. Gestir kalla húsið "the real deal"',

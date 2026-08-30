@@ -58,4 +58,12 @@ export interface PreviewCompany {
    * generic Unsplash line nor `ownPhotography`.
    */
   photoCredit?: string
+  /**
+   * Set when the preview's audience reads English rather than Icelandic - an
+   * Airbnb or hotel operator whose guests and, often, whose own manager are
+   * not Icelandic speakers. Switches this shared footer's disclaimer and its
+   * lang attribute; the page's own copy is a separate decision made in that
+   * build. Defaults to Icelandic, which is right for nearly every preview.
+   */
+  english?: boolean
 }

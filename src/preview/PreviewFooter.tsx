@@ -9,9 +9,10 @@ import { SndrBadge } from './SndrBadge'
  */
 export function PreviewFooter({ company }: { company: PreviewCompany }) {
   const dark = company.dark
+  const en = company.english === true
   return (
     <footer
-      lang="is"
+      lang={en ? 'en' : 'is'}
       /* text-sm on phones, text-xs from md up: at text-xs this footer rendered
          at 12px on a 390px screen, below the legibility floor the previews now
          hold to. Desktop is unchanged. */
@@ -21,24 +22,38 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
     >
       <p className="mx-auto max-w-2xl">
         <strong className={dark ? 'text-white/80' : 'text-neutral-600'}>
-          Frumgerð: hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.
+          {en
+            ? "Prototype: a design concept, not the company's real website."
+            : 'Frumgerð: hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.'}
         </strong>{' '}
-        Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept).{' '}
+        {en
+          ? 'All text, prices and reviews are samples.'
+          : 'Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept).'}{' '}
         {company.photoCredit
           ? company.photoCredit
           : company.ownPhotography
-            ? 'Ljósmyndir eru raunverulegar myndir af staðnum, ekki sýnishorn.'
-            : 'Myndir frá Unsplash, af núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess.'}{' '}
+            ? en
+              ? 'The photographs are real pictures of the property, not stand-ins.'
+              : 'Ljósmyndir eru raunverulegar myndir af staðnum, ekki sýnishorn.'
+            : en
+              ? "Images from Unsplash, from the company's current site, or worked up from its product photography."
+              : 'Myndir frá Unsplash, af núverandi vef fyrirtækisins eða unnar upp úr vörumyndum þess.'}{' '}
         {company.noOwnSite ? (
           <>
-            Fyrirtækið á enga eigin vefsíðu í dag. {company.currentLabel ?? 'Núverandi bókunarsíða (ekki í eigu fyrirtækisins)'}:{' '}
+            {en
+              ? 'The company has no website of its own today.'
+              : 'Fyrirtækið á enga eigin vefsíðu í dag.'}{' '}
+            {company.currentLabel ??
+              (en
+                ? 'Current booking page (not owned by the company)'
+                : 'Núverandi bókunarsíða (ekki í eigu fyrirtækisins)')}:{' '}
             <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
               {company.currentUrl.replace('https://', '').replace('www.', '')}
             </a>
           </>
         ) : (
           <>
-            Núverandi vefsíða:{' '}
+            {en ? 'Current website' : 'Núverandi vefsíða'}:{' '}
             <a href={company.currentUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
               {company.currentUrl.replace('https://', '').replace('www.', '')}
             </a>
@@ -46,7 +61,7 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
         )}
       </p>
       <p className="mt-3">
-        © 2026 · Hugmynd og hönnun:{' '}
+        © 2026 · {en ? 'Concept and design' : 'Hugmynd og hönnun'}:{' '}
         <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
           sindrimar02@gmail.com
         </a>

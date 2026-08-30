@@ -65,6 +65,10 @@ export interface PreviewCompany {
    * generic Unsplash line nor `ownPhotography`.
    */
   photoCredit?: string
+  /** See the twin field in company-types.ts: English audience for the shared
+   *  preview disclaimer. NOTE: PreviewCompany is declared in BOTH files and
+   *  they must be kept in step. */
+  english?: boolean
 }
 
 const SIGN = `Bestu kveðjur,
