@@ -2034,7 +2034,11 @@ export default function Page() {
             </Reveal>
             <Reveal delay={220}>
               <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-                <BookLink lang={lang} stay={stay}>{t.closing.heading}</BookLink>
+                {/* Not the heading again: the h2 two lines up already says
+                  * "Book your evening…", and a sentence repeated as a button
+                  * reads as an echo. Every other booking control on the page
+                  * says exactly this, and consistency is the affordance. */}
+                <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
                 <a
                   href={PHONE_HREF}
                   className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
