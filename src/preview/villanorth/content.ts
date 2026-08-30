@@ -16,8 +16,24 @@
 const B = import.meta.env.BASE_URL + 'villanorth/'
 
 /** Phones get the -800 set; desktop gets the full-res original. */
-export const srcSet = (src: string) =>
-  `${src.replace(/\.jpg$/, '-800.jpg')} 800w, ${src} 1200w`
+/**
+ * Two harvested photos are smaller than the 1200px the rest of the set is, and
+ * tub-night-small is smaller than its own -800 variant (520 vs 800). A srcset
+ * descriptor is a promise about a file's real width: claim 1200w on a 520px
+ * file and the browser happily picks it for a wide slot and renders it soft.
+ * See [[srcset-descriptor-lies]]. Measured widths win over the default.
+ */
+const INTRINSIC_W: Record<string, number> = {
+  'tub-night-small.jpg': 520,
+  'winter-river.jpg': 800,
+}
+
+export const srcSet = (src: string) => {
+  const w = INTRINSIC_W[src.split('/').pop() ?? ''] ?? 1200
+  const small = `${src.replace(/\.jpg$/, '-800.jpg')} 800w`
+  /* Nothing to choose between when the base is no wider than the -800. */
+  return w <= 800 && w !== 520 ? small : `${small}, ${src} ${w}w`
+}
 
 export const HOST = {
   name: 'the owner',

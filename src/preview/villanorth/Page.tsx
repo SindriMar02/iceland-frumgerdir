@@ -43,6 +43,11 @@ const NIGHT = '#101216'
 const DISPLAY = "'Apfel Grotezk', system-ui, sans-serif"
 const BODY = "'Onest', system-ui, sans-serif"
 const MONO = "'Azeret Mono', ui-monospace, monospace"
+/* Glóðin row: three equal cells in a 1440 measure with 48 padding and 24 gaps,
+   so each cell tops out around 432px. One crop for all three (the tub photo is
+   near-square on its own) so the row reads as a set, stacked or not. */
+const GLOW_SIZES = '(min-width: 1440px) 432px, (min-width: 992px) 30vw, 100vw'
+const GLOW_RATIO = '3 / 2'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -381,7 +386,13 @@ function Frame({ photo, className = '', priority = false, maxWidth, sizes, drift
   return (
     <figure
       className={`vn-frame vn-rv ${className}`}
-      style={{ aspectRatio: ratio ?? photo.ratio, maxWidth: maxWidth ? `${maxWidth}px` : undefined }}
+      /* Custom properties rather than inline aspect-ratio/max-width: an inline
+         value beats every stylesheet rule, so a stacked mobile layout could
+         never equalise frames that carry a desktop width cap. */
+      style={{
+        '--vn-ar': ratio ?? photo.ratio,
+        ...(maxWidth ? { '--vn-fw': `${maxWidth}px` } : null),
+      } as React.CSSProperties}
     >
       <svg className="vn-frame-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <rect x="0.6" y="0.6" width="98.8" height="98.8" />
@@ -1289,13 +1300,17 @@ export default function VillaNorthPage() {
             <p className="vn-glow-cap">{GLOW.intro}</p>
           </div>
         </div>
+        {/* Three equal cells. No per-frame width cap and no per-photo ratio:
+            the row is one measure, so the frames read as a set rather than
+            three loose sizes (worst stacked on a phone). .vn-glow-row owns
+            both the width and the crop. */}
         <div className="vn-glow-row">
-          <Frame photo={PHOTO.wineGlasses} className="vn-glow-wine" drift={9} />
+          <Frame photo={PHOTO.wineGlasses} className="vn-glow-wine" ratio={GLOW_RATIO} sizes={GLOW_SIZES} drift={9} />
           <div className="vn-glow-tub-col">
-            <Frame photo={PHOTO.tubNightSmall} className="vn-glow-tub" maxWidth={240} sizes="240px" drift={6} />
+            <Frame photo={PHOTO.tubNightSmall} className="vn-glow-tub" ratio={GLOW_RATIO} sizes={GLOW_SIZES} drift={6} />
             <p className="vn-glow-fact">{GLOW.auroraFact}</p>
           </div>
-          <Frame photo={PHOTO.winterRiver} className="vn-glow-river" maxWidth={420} sizes="420px" drift={7} />
+          <Frame photo={PHOTO.winterRiver} className="vn-glow-river" ratio={GLOW_RATIO} sizes={GLOW_SIZES} drift={7} />
         </div>
         <blockquote className="vn-quote-block vn-glow-quote vn-rv">
           <p>{'“'}{GLOW.quote.quote}{'”'}</p>
@@ -1751,7 +1766,12 @@ const CSS = `
    sets a transform here. The <img> inside it fills the wrapper at 100%/100%
    and owns the mask sweep + blur/saturate reveal only - no transform, no
    oversize of its own. */
-.vn-frame { position: relative; overflow: hidden; margin: 0; background: color-mix(in srgb, var(--vn-ink) 6%, transparent); }
+.vn-frame {
+  position: relative; overflow: hidden; margin: 0;
+  background: color-mix(in srgb, var(--vn-ink) 6%, transparent);
+  aspect-ratio: var(--vn-ar);
+  max-width: var(--vn-fw, none);
+}
 .vn-frame-in { position: absolute; inset: calc(var(--dz, 9%) * -1) 0; }
 @media (min-width: 992px) { .vn-frame-in { will-change: transform; } }
 .vn-frame-in img {
@@ -1970,9 +1990,13 @@ const CSS = `
 .vn-glow-label { font-family: ${MONO}; font-size: ${fluid(12, 12)}; letter-spacing: .16em; text-transform: uppercase; color: #D9A968; margin: 0 0 calc(var(--u) * 10); }
 .vn-glow-cap { margin: 0; font-family: ${DISPLAY}; font-weight: 500; font-size: ${fluid(24, 17)}; line-height: 1.3; }
 .vn-glow-row {
-  display: grid; grid-template-columns: 2fr 1fr 1fr; gap: calc(var(--u) * 24); align-items: start;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 24); align-items: start;
   max-width: calc(var(--u) * 1440); margin: calc(var(--u) * 48) auto 0; padding: 0 calc(var(--u) * 48);
 }
+/* Custom properties obey the cascade, so a rule here could not beat Frame's
+   inline --vn-ar; the crop is equalised through the ratio prop instead
+   (GLOW_RATIO). This only has to fill the cell. */
+.vn-glow-row .vn-frame { width: 100%; }
 .vn-glow-tub-col { display: flex; flex-direction: column; gap: calc(var(--u) * 14); align-items: start; }
 /* Every child of .vn-frame is position:absolute, so the figure has no in-flow
    content and its fit-content width is 0. In .vn-glow-row (a grid) align-items
@@ -2324,7 +2348,10 @@ const CSS = `
   .vn-cal-months { grid-template-columns: 1fr; }
   .vn-cal-month + .vn-cal-month { display: none; }
   .vn-cal-day { min-height: 44px; }
-  .vn-glow-row { grid-template-columns: 1fr; }
+  /* Stacked, the three glow frames read as three different sizes: two of them
+     carry desktop width caps and all three crop differently. One width, one
+     ratio, for all of them. */
+  .vn-glow-row { grid-template-columns: 1fr; gap: 16px; }
   .vn-foot-grid { grid-template-columns: 1fr; gap: 24px; padding: 36px 20px; }
 }
 
