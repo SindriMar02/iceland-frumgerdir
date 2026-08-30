@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import Lenis from 'lenis'
+import type Lenis from 'lenis'
 import { motion } from 'framer-motion'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
@@ -103,7 +103,31 @@ function useMotion(ready: boolean) {
        same scroll position every frame (the judder), and a JS-scrolled
        document keeps Safari's tall bottom toolbar for the whole visit, so the
        last ~90px of every screen goes dead. Desktop keeps it. */
-    const lenis = isTouch() ? null : new Lenis({ duration: 1.1, smoothWheel: true })
+    /* Imported lazily, not just left unconstructed: a static import ships the
+       library to every phone that will never run it. */
+    let lenis: Lenis | null = null
+    let lenisDead = false
+    if (!isTouch()) {
+      void import('lenis').then(({ default: L }) => {
+        if (lenisDead) return
+        lenis = new L({ duration: 1.1, smoothWheel: true })
+        lenis.on('scroll', ScrollTrigger.update)
+      })
+    }
+
+    /* Which surface is under the fixed bar right now. The band is expressed as
+       a percentage so it never needs recomputing on resize - rebuilding an
+       observer mid-fling is what kills momentum on iOS. */
+    const navEl = root.querySelector('.vn-nav')
+    const darkUnderBar = new Set<Element>()
+    const navIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => (e.isIntersecting ? darkUnderBar.add(e.target) : darkUnderBar.delete(e.target)))
+        navEl?.classList.toggle('is-ink', darkUnderBar.size === 0)
+      },
+      { rootMargin: '0px 0px -94% 0px' },
+    )
+    root.querySelectorAll('[data-nav-light]').forEach((el) => navIo.observe(el))
 
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
@@ -320,9 +344,33 @@ function useMotion(ready: boolean) {
     })
 
     /* Without Lenis the browser scrolls natively, so ScrollTrigger listens to
-       the real scroll event and the ticker only drives the drift. */
-    if (lenis) lenis.on('scroll', ScrollTrigger.update)
-    const tick = (t: number) => { drift(); lenis?.raf(t * 1000) }
+       the real scroll event and the ticker only drives the drift. The scroll
+       subscription is wired where the instance is created, since it does not
+       exist yet at this point. */
+    /*
+     * drift() reads a bounding rect for all 29 framed photographs. Running it
+     * on every ticker frame meant ~1700 layout reads a second while the page
+     * sat perfectly still - work that produces an identical result each time
+     * and, on a phone, keeps the compositor from ever going idle. It only has
+     * an answer that can change when the scroll position changes, so that is
+     * when it runs. A resize re-runs it explicitly below.
+     */
+    let lastY = -1
+    const tick = (t: number) => {
+      const y = window.scrollY
+      if (y !== lastY) { lastY = y; drift() }
+      lenis?.raf(t * 1000)
+    }
+    /* Layout can move without the page scrolling - a late image decode, a font
+       swap - and drift would otherwise hold a stale transform until the next
+       scroll. Cheap to re-run on those two, and only those two. */
+    const reflow = () => { lastY = -1 }
+    window.addEventListener('resize', reflow)
+    window.addEventListener('orientationchange', reflow)
+    cleanups.push(() => {
+      window.removeEventListener('resize', reflow)
+      window.removeEventListener('orientationchange', reflow)
+    })
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
     drift()
@@ -330,8 +378,10 @@ function useMotion(ready: boolean) {
     return () => {
       gsap.ticker.remove(tick)
       io.disconnect()
+      navIo.disconnect()
       cleanups.forEach((fn) => fn())
       ctx.revert()
+      lenisDead = true
       lenis?.destroy()
     }
   }, [ready])
@@ -1106,7 +1156,7 @@ export default function VillaNorthPage() {
       </div>
 
       {/* 01 · hero */}
-      <section className="vn-hero" id="top">
+      <section className="vn-hero" id="top" data-nav-light>
         <div className="vn-hero-media vn-rv">
           <img src={PHOTO.aerialSunset.src} srcSet={srcSet(PHOTO.aerialSunset.src)} sizes="100vw"
             alt={PHOTO.aerialSunset.alt} loading="eager" decoding="async" />
@@ -1215,10 +1265,10 @@ export default function VillaNorthPage() {
           loop with the poster as permanent fallback (glow-film pattern: the
           film must never be the section's single point of failure). */}
       <section className="vn-film" id="film" aria-label="Aerial film of the house">
-        <div className="vn-film-bleed">
+        <div className="vn-film-bleed" data-nav-light>
           <img
             src={AERIAL_FILM.poster}
-            srcSet={`${AERIAL_FILM.posterSmall} 800w, ${AERIAL_FILM.poster} 1120w`}
+            srcSet={`${AERIAL_FILM.posterSmall} 800w, ${AERIAL_FILM.poster} 1600w`}
             sizes="100vw"
             alt={PHOTO.aerialSunset.alt}
             loading="lazy"
@@ -1341,8 +1391,8 @@ export default function VillaNorthPage() {
       </section>
 
       {/* 06 · the glow */}
-      <section className="vn-glow" id="glow">
-        <div className="vn-glow-bleed">
+      <section className="vn-glow" id="glow" data-nav-light>
+        <div className="vn-glow-bleed" data-nav-light>
           {/* The still is a real <img>, not just the <video poster="">: if the
               film errors or never loads, this is the permanent fallback and
               the section still looks complete. It is also what paints first
@@ -1350,7 +1400,7 @@ export default function VillaNorthPage() {
               pixel the film's own first frame, so there is no handover flash. */}
           <img
             src={GLOW_FILM.poster}
-            srcSet={`${GLOW_FILM.posterSmall} 800w, ${GLOW_FILM.poster} 1280w`}
+            srcSet={`${GLOW_FILM.posterSmall} 800w, ${GLOW_FILM.poster} 1200w`}
             sizes="100vw"
             alt={PHOTO.winterNight.alt}
             loading="lazy"
@@ -1569,7 +1619,7 @@ export default function VillaNorthPage() {
       {/* The close: the page returns to night (the glow's ground), the
           wordmark comes back one last time at size with the monogram above
           it, and the practical rows sit quiet beneath a hairline. */}
-      <footer className="vn-foot">
+      <footer className="vn-foot" data-nav-light>
         <div className="vn-foot-hero">
           {/* No monogram here: the fixed nav's own mark parks directly over
               this corner at rest, and two marks double-print. The wordmark
@@ -1622,6 +1672,13 @@ const CSS = `
 @font-face { font-family: 'Azeret Mono'; src: url('${BASE}fonts/azeret-mono/AzeretMono-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Azeret Mono'; src: url('${BASE}fonts/azeret-mono/AzeretMono-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
 
+/* Safari 26 tints the status and home-indicator strips from a qualifying fixed
+   element's background-color, and falls back to BODY when none qualifies. This
+   page's fixed bar is a transparent difference-blend, so it never qualifies -
+   painting the ground on .vn-root alone left both strips on the browser
+   default. See [[ios-safe-area-chrome-color]]. */
+html, body { background-color: ${PAPER}; }
+
 .vn-root {
   --u: clamp(.44px, 100vw / 1440, 1.15px);
   --vn-c: ${PAPER};
@@ -1661,10 +1718,26 @@ const CSS = `
 .vn-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 40;
   display: flex; align-items: center; gap: calc(var(--u) * 36);
-  padding: calc(var(--u) * 18) calc(var(--u) * 44);
+  /* A fixed top bar slides under the notch without this. */
+  padding: calc(calc(var(--u) * 18) + env(safe-area-inset-top, 0px)) calc(var(--u) * 44) calc(var(--u) * 18);
   color: #F2F1EE;
-  mix-blend-mode: difference;
+  transition: color .35s ease;
 }
+/*
+ * This bar used to be mix-blend-mode: difference, which self-inverts against
+ * dark and light backdrops but collapses to ~1:1 on MID-TONES. The hero sky
+ * under the bar measures 138-211 brightness - the dead zone. Measured worst
+ * case across the band was 1.76:1, and NO scrim rescues it: darkening pushes a
+ * bright sky INTO the dead zone (0.35 alpha measured 1.00:1), and clearing it
+ * needs ~0.8 alpha, a near-solid black band across the hero.
+ *
+ * So the colour is deterministic instead of computed: light by default, ink
+ * once the bar is over a light section. An IntersectionObserver watches
+ * [data-nav-light] surfaces through a band the height of the bar itself. Light
+ * is the default precisely because it is what the top of the page needs, so
+ * the no-JS .vn-static path is correct without running anything.
+ */
+.vn-nav.is-ink { color: var(--vn-ink); }
 .vn-nav-mark {
   font-family: ${DISPLAY}; font-weight: 700; letter-spacing: .06em; text-decoration: none;
   font-size: ${fluid(16, 15)}; color: inherit;
@@ -1748,7 +1821,20 @@ const CSS = `
 .vn-hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .vn-hero-media::after {
   content: ''; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(200deg, transparent 46%, rgba(16,18,22,.62) 100%);
+  /*
+   * Two scrims. The 200deg one is the composition's own, weighting the lower
+   * right. The vertical one exists for the fixed bar: .vn-nav is a
+   * difference-blend, which inverts cleanly against dark and light backdrops
+   * but collapses toward 1:1 on MID-TONES - and the hero's sunset sky is
+   * exactly that. Measured at 375px before this scrim, the VILLA NORTH
+   * wordmark failed AA in 7 of 10 samples across its own box, worst 2.40:1.
+   * Darkening the top band puts the blend back in its light-text range.
+   * The bar needs no scrim over the cream sections (difference gives ~18:1)
+   * or the night footer, which is why this lives on the hero, not on .vn-nav.
+   */
+  background:
+    linear-gradient(180deg, rgba(16,18,22,.60) 0%, rgba(16,18,22,.54) 7%, rgba(16,18,22,.16) 14%, transparent 21%),
+    linear-gradient(200deg, transparent 46%, rgba(16,18,22,.62) 100%);
 }
 .vn-hero-block {
   position: relative; align-self: end; z-index: 1;
@@ -2565,6 +2651,27 @@ const CSS = `
 }
 
 @media (max-width: 767px) {
+  /*
+   * Tap targets. Every padding on this page is expressed in --u, and --u clamps
+   * to its .44px floor below 1440px wide, so a control sized generously on a
+   * desktop collapses to ~32px on a phone. Measured at 375px: both Book now
+   * buttons and the enquiry submit came out 32px tall and the calendar's month
+   * arrows 32x32, all under the 44px floor - on a page whose entire job is
+   * taking a booking. Floors are set in px here precisely BECAUSE --u cannot be
+   * trusted to carry them at this width.
+   */
+  .vn-cta { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding-inline: 20px; }
+  .vn-cal-nav button { width: 44px; height: 44px; }
+  .vn-cal-nav { gap: 8px; }
+  /* Standalone contact links are 18-19px of text in a stack. Padding alone is
+     the wrong tool: on an INLINE box it grows the hit area without growing the
+     layout box, so stacked links end up with overlapping targets - a worse bug
+     than small ones, and one this audit created before catching it. inline-flex
+     makes the hit box a real layout box, so the list's own gap keeps them
+     apart by construction. */
+  .vn-contact-list dd a, .vn-foot-a, .vn-menu-foot a, .vn-a {
+    display: inline-flex; align-items: center; min-height: 44px;
+  }
   .vn-hero-tours { display: none; }
   .vn-rooms-index, .vn-rooms-pane { display: none; }
   .vn-rooms-acc { display: block; }

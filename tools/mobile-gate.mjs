@@ -21,8 +21,23 @@ const RULES = [
   {
     id: 'no-smooth-scroll-lib',
     why: 'iOS Safari only minimises its bottom toolbar to the floating pill for a NATIVELY scrolled document. A JS scroll surface (Lenis/locomotive) keeps the tall opaque toolbar and the page never runs under it. Reported on mirrorsuite 2026-08-19; reynir, which Sindri approved on-device, has no such library.',
-    test: s => /^\s*import\s+.*\bfrom\s+['"](lenis|locomotive-scroll|@studio-freight)/m.test(s)
-      ? 'imports a smooth-scroll library' : null,
+    test: s => {
+      const LIB = "(lenis|locomotive-scroll|@studio-freight)"
+      // `import type` is erased at build and ships nothing, so it cannot put a
+      // scroll surface on a phone. A dynamic import() CAN, so it still counts.
+      const staticImport = new RegExp(`^\\s*import\\s+(?!type\\b)[^\\n]*\\bfrom\\s+['"]${LIB}`, 'm')
+      const dynamicImport = new RegExp(`\\bimport\\(\\s*['"]${LIB}`)
+      if (!staticImport.test(s) && !dynamicImport.test(s)) return null
+      // Recognised escape hatch, and the ONLY one: the library is both loaded
+      // and constructed behind an explicit touch guard, so a phone never gets a
+      // JS scroll surface. Verified on-device for villanorth 2026-08-30 (Safari
+      // collapsed its toolbar to the floating pill, which only happens for a
+      // natively scrolled document). A build that constructs it unguarded still
+      // fails, which is the case this rule was written for.
+      const guarded = /isTouch\(\)/.test(s)
+        && !/^(?:(?!isTouch)[^\n])*\bnew\s+Lenis\s*\(/m.test(s)
+      return guarded ? null : 'imports a smooth-scroll library'
+    },
   },
   {
     id: 'edge-tint-source',
