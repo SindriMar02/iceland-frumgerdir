@@ -129,9 +129,12 @@ function useMotion(ready: boolean) {
     )
     root.querySelectorAll('[data-nav-light]').forEach((el) => navIo.observe(el))
 
+    /* threshold 0 with a bottom inset, not 0.2: a fifth of a TALL element never
+       enters the viewport at all, and for everything else 0.2 fires late enough
+       that the reveal happens after the reader is already looking at it. */
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
-      { threshold: 0.2 },
+      { threshold: 0, rootMargin: '0px 0px -10% 0px' },
     )
     root.querySelectorAll('.vn-rv').forEach((el) => io.observe(el))
 
@@ -1320,8 +1323,8 @@ export default function VillaNorthPage() {
               alt={PHOTO.glassGrid.alt} loading="lazy" decoding="async" />
           </div>
           <div className="vn-elev-caps">
-            <p className="vn-elev-cap vn-elev-cap-sketch">The elevation, traced from the photograph line for line.</p>
-            <p className="vn-elev-cap vn-elev-cap-photo">Villa North, Fnjóskadalur valley.</p>
+            <p className="vn-elev-cap vn-elev-cap-sketch vn-rv">The elevation, traced from the photograph line for line.</p>
+            <p className="vn-elev-cap vn-elev-cap-photo vn-rv">Villa North, Fnjóskadalur valley.</p>
           </div>
         </div>
         <p className="vn-elev-credit vn-rv">
@@ -1330,8 +1333,8 @@ export default function VillaNorthPage() {
         </p>
         <div className="vn-drawing-inside">
           <div className="vn-drawing-inside-copy">
-            <p className="vn-drawing-inside-kicker">The same roof, from inside</p>
-            <p className="vn-drawing-inside-line">
+            <p className="vn-drawing-inside-kicker vn-rv">The same roof, from inside</p>
+            <p className="vn-drawing-inside-line vn-rv">
               The angle drawn above is the same angle overhead in here. The roofline
               traced outside is the ceiling line inside.
             </p>
@@ -2010,6 +2013,36 @@ html, body { background-color: ${PAPER}; }
 /* The word is the unbreakable unit; the character is what animates. No
    overflow clip any more: the reveal is a blur and a lift, not a mask, and a
    clip would cut the blur radius off at the line box. */
+/*
+ * THE SUPPORTING REVEAL. .vn-rv was on paragraphs, meta lines, rows and cards
+ * all over this page, but the only rules reading it were the two .vn-frame ones
+ * below - so everything that was not an image simply appeared, fully formed,
+ * while the headline above it resolved character by character. This gives the
+ * rest of the page the same move at a calmer weight: the element lifts out of a
+ * light blur as a whole, rather than per character, which would be unreadable
+ * on body copy and far more expensive.
+ *
+ * Scoped to .vn-js, so with no JS (and under reduced motion, which never adds
+ * that class) nothing is ever hidden.
+ *
+ * :has() excludes any element CONTAINING a frame: a parent fading in from
+ * opacity 0 would swallow its own child's mask reveal and the two would fight.
+ */
+.vn-js .vn-rv:not(.vn-frame):not(:has(.vn-frame)) {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(5px);
+  transition:
+    opacity .9s ease,
+    transform .9s cubic-bezier(.25, 1, .5, 1),
+    filter .9s ease;
+}
+.vn-js .vn-rv.is-in:not(.vn-frame):not(:has(.vn-frame)) {
+  opacity: 1;
+  transform: none;
+  filter: blur(0px);
+}
+
 .vn-word { display: inline-block; white-space: nowrap; }
 .vn-char { display: inline-block; will-change: opacity, transform; }
 .vn-body {
