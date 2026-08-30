@@ -419,6 +419,42 @@ function Frame({ photo, className = '', priority = false, maxWidth, sizes, drift
 }
 
 /**
+ * One tour, drawn as a plate: the photograph fills the card, a scrim carries
+ * the name at its foot, and the button is a hairline pill that inverts under
+ * the pointer. The whole plate is the hover target, so the leader rule, the
+ * arrow and the pill all answer to it - a button that only reacts when the
+ * cursor is exactly on it reads as dead on a card this size.
+ *
+ * With no portal configured the pill is still DRAWN, because the card has to
+ * show what it will do; it just is not an anchor. An inert link would lie
+ * about where it goes.
+ */
+function TourPlate({ tour }: { tour: (typeof EXAMPLE_TOURS)[number] }) {
+  const body = (
+    <>
+      <Frame photo={tour.photo} className="vn-tour-shot" ratio="4 / 5" sizes={TOUR_SIZES} drift={5} />
+      <span className="vn-tour-veil" aria-hidden="true" />
+      <span className="vn-tour-over">
+        <span className="vn-tour-place">{tour.place}</span>
+        <span className="vn-tour-name">{tour.name}</span>
+        <span className="vn-tour-cta">
+          See times
+          <span aria-hidden="true">→</span>
+        </span>
+      </span>
+    </>
+  )
+  /* tabIndex on the non-link case so the plate is still reachable by keyboard:
+     the focus-within rule is what gives a keyboard user the same reveal a
+     pointer user gets from hover. */
+  return TOURS_PORTAL ? (
+    <a className="vn-tour-plate" href={TOURS_PORTAL} target="_blank" rel="noreferrer">{body}</a>
+  ) : (
+    <article className="vn-tour-plate" tabIndex={0}>{body}</article>
+  )
+}
+
+/**
  * Materials hover-expand: concrete / cladding / walkway share one row at
  * equal thirds and one fixed height; the hovered or focused tile grows to
  * roughly its resting width's high side while the other two give up the
@@ -732,25 +768,54 @@ function StayCalendar({ stay, onChange, minDate }: {
 }
 
 /* ── the hero's tour window ─────────────────────────────────────────────────
-   A small card pinned to the hero's lower-right that flips through the
-   example tours and leads to the tours sheet. Advance is time-based and
-   pauses under reduced motion (the first tour simply stands). */
+   A window onto the tours, not a text ticker: every tour photograph is
+   mounted at once and stacked, and the flip is a slow crossfade between them
+   with the outgoing frame easing back a hair, so it reads as one image
+   dissolving into the next rather than a slide swapping out. All three load
+   eagerly - a crossfade to an image that has not arrived is a flash of empty
+   frame. Advance pauses under reduced motion (the first tour simply stands). */
 function ToursTicker({ onOpen }: { onOpen: (e: React.MouseEvent) => void }) {
   const [idx, setIdx] = useState(0)
   useEffect(() => {
     if (reduced()) return
-    const t = window.setInterval(() => setIdx((i) => (i + 1) % EXAMPLE_TOURS.length), 3800)
+    const t = window.setInterval(() => setIdx((i) => (i + 1) % EXAMPLE_TOURS.length), 4600)
     return () => window.clearInterval(t)
   }, [])
   const tour = EXAMPLE_TOURS[idx]
   return (
     <a className="vn-hero-tours" href="#tours" onClick={onOpen} aria-label="See example tours">
-      <span className="vn-ht-label">Tours · examples</span>
-      <span className="vn-ht-item" key={tour.name}>
-        <span className="vn-ht-name">{tour.name}</span>
-        <span className="vn-ht-note">{tour.note}</span>
+      <span className="vn-ht-stack">
+        {EXAMPLE_TOURS.map((t, i) => (
+          <img
+            key={t.name}
+            className={`vn-ht-img ${i === idx ? 'is-on' : ''}`}
+            src={t.photo.src}
+            srcSet={srcSet(t.photo.src)}
+            sizes="260px"
+            alt=""
+            loading="eager"
+            decoding="async"
+          />
+        ))}
+        <span className="vn-ht-veil" />
+        <span className="vn-ht-ticks" aria-hidden="true">
+          {EXAMPLE_TOURS.map((t, i) => (
+            <span key={t.name} className={`vn-ht-tick ${i === idx ? 'is-on' : ''}`} />
+          ))}
+        </span>
+        <span className="vn-ht-stamp">Tours · examples</span>
+        {/* Keyed on the name so the overline and title re-mount together and
+            replay their own, much shorter fade under the photograph's longer
+            crossfade. Same two-line anatomy as the plates below. */}
+        <span className="vn-ht-body" key={tour.name}>
+          <span className="vn-ht-place">{tour.place}</span>
+          <span className="vn-ht-name">{tour.name}</span>
+        </span>
+        <span className="vn-ht-cta">
+          See tours
+          <span aria-hidden="true">→</span>
+        </span>
       </span>
-      <span className="vn-ht-count">{idx + 1} / {EXAMPLE_TOURS.length}</span>
     </a>
   )
 }
@@ -1381,49 +1446,26 @@ export default function VillaNorthPage() {
               and book tours right here, without leaving the page.
             </p>
           </div>
+          {/* Each tour is one plate: the photograph IS the card and carries a
+              place overline, the tour's name and a button, nothing else.
+              Pointing at one plate pulls it forward and pushes every sibling
+              back behind a blur, so the row reads as a stack of photographs
+              being sorted through rather than four tiles sitting still.
+              Mechanism after a 21st.dev reference (lavikatiyar/cards); the
+              skin, type and amber are ours. */}
           <div className="vn-tours-grid vn-rv">
             {EXAMPLE_TOURS.map((tour) => (
-              <article className="vn-tour-card" key={tour.name}>
-                <Frame photo={tour.photo} className="vn-tour-shot" sizes={TOUR_SIZES} drift={6} />
-                <div className="vn-tour-body">
-                  <p className="vn-tour-tag">
-                    <span>Example</span>
-                    <span className="vn-tour-dur">{tour.duration}</span>
-                  </p>
-                  <p className="vn-tour-name">{tour.name}</p>
-                  <p className="vn-tour-note">{tour.note}</p>
-                  {/* With no portal configured the card still has to SHOW its
-                      call to action, so the button is drawn either way and only
-                      becomes a link once TOURS_PORTAL is filled in. An inert
-                      anchor would lie about where it goes. */}
-                  {TOURS_PORTAL ? (
-                    <a
-                      className="vn-tour-cta"
-                      href={TOURS_PORTAL}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {tour.cta}
-                      <span aria-hidden="true">→</span>
-                    </a>
-                  ) : (
-                    <span className="vn-tour-cta is-example" aria-hidden="true">
-                      {tour.cta}
-                      <span>→</span>
-                    </span>
-                  )}
-                </div>
-              </article>
+              <TourPlate key={tour.name} tour={tour} />
             ))}
-            <div className="vn-tour-card vn-tour-ghost">
-              <p className="vn-tour-ghost-plus" aria-hidden="true">+</p>
-              <p className="vn-tour-note">
-                The live tours land here, from TourDesk or Bókun, whichever is
-                chosen. Guests book on the spot and the house earns a commission
-                on every seat.
-              </p>
+            <div className="vn-tour-plate vn-tour-ghost">
+              <span className="vn-tour-ghost-plus" aria-hidden="true">+</span>
+              <p className="vn-tour-ghost-note">The rest land here</p>
             </div>
           </div>
+          <p className="vn-tours-foot">
+            The live tours come from TourDesk or Bókun, whichever is chosen.
+            Guests book on the spot and the house earns a commission on every seat.
+          </p>
         </div>
       </section>
 
@@ -2243,19 +2285,55 @@ const CSS = `
 /* the hero's tour window */
 .vn-hero-tours {
   position: absolute; right: calc(var(--u) * 44); bottom: calc(var(--u) * 40); z-index: 3;
-  display: flex; flex-direction: column; gap: 8px;
-  width: calc(var(--u) * 250); padding: calc(var(--u) * 16) calc(var(--u) * 18);
+  display: block; width: calc(var(--u) * 260); overflow: hidden;
   border: 1px solid rgba(242, 241, 238, .34); border-radius: 2px;
   background: rgba(16, 18, 22, .44); color: #F2F1EE; text-decoration: none;
-  transition: border-color .25s ease, background-color .25s ease;
+  transition: border-color .25s ease;
 }
-.vn-hero-tours:hover { border-color: rgba(242, 241, 238, .7); background: rgba(16, 18, 22, .58); }
-.vn-ht-label { font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--vn-amber); }
-.vn-ht-item { display: block; min-height: calc(var(--u) * 52); animation: vn-ht-in .5s ease both; }
-@keyframes vn-ht-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.vn-ht-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(16, 15)}; }
-.vn-ht-note { display: block; margin-top: 3px; font-size: ${fluid(12, 12)}; line-height: 1.5; color: rgba(242, 241, 238, .72); }
-.vn-ht-count { font-family: ${MONO}; font-size: 10px; letter-spacing: .1em; color: rgba(242, 241, 238, .6); }
+.vn-hero-tours:hover { border-color: rgba(242, 241, 238, .78); }
+.vn-ht-stack { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: ${NIGHT}; }
+/* Every tour photograph is mounted; only opacity and a hair of scale move, so
+   the flip is one image dissolving into the next. The outgoing frame eases
+   BACK rather than forward, which keeps the incoming one reading as the
+   subject instead of two images fighting. */
+.vn-ht-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transform: scale(1.045);
+  transition: opacity 1.1s cubic-bezier(.33,1,.68,1), transform 1.6s cubic-bezier(.33,1,.68,1);
+}
+.vn-ht-img.is-on { opacity: 1; transform: scale(1); }
+/* Same anatomy as the plates in the tours section: everything is drawn ON the
+   photograph, overline then title then button, bottom left. */
+.vn-ht-veil {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(16,18,22,.46) 0%, rgba(16,18,22,0) 34%, rgba(16,18,22,.26) 56%, rgba(16,18,22,.84) 100%);
+}
+.vn-ht-ticks { position: absolute; top: calc(var(--u) * 13); left: calc(var(--u) * 15); display: flex; gap: 4px; }
+.vn-ht-tick { display: block; width: calc(var(--u) * 16); height: 1px; background: rgba(242, 241, 238, .38); transition: background-color .5s ease; }
+.vn-ht-tick.is-on { background: var(--vn-amber); }
+.vn-ht-stamp {
+  position: absolute; top: calc(var(--u) * 22); left: calc(var(--u) * 15);
+  font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(242, 241, 238, .72);
+}
+.vn-ht-body {
+  position: absolute; left: calc(var(--u) * 15); right: calc(var(--u) * 15); bottom: calc(var(--u) * 52);
+  display: flex; flex-direction: column;
+  animation: vn-ht-in .55s cubic-bezier(.25,1,.5,1) both;
+}
+@keyframes vn-ht-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+.vn-ht-place { font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--vn-amber); margin-bottom: calc(var(--u) * 6); }
+.vn-ht-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(17, 15)}; line-height: 1.15; }
+.vn-ht-cta {
+  position: absolute; left: calc(var(--u) * 15); bottom: calc(var(--u) * 15);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border: 1px solid rgba(242, 241, 238, .5); border-radius: 999px;
+  font-family: ${MONO}; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  transition: background-color .32s ease, color .32s ease, border-color .32s ease;
+}
+.vn-ht-cta span { transition: transform .32s cubic-bezier(.25,1,.5,1); }
+.vn-hero-tours:hover .vn-ht-cta { background: #F2F1EE; border-color: #F2F1EE; color: ${NIGHT}; }
+.vn-hero-tours:hover .vn-ht-cta span { transform: translateX(3px); }
 
 /* tours — one dashed example sheet with a title stamp; the cards inside feel real */
 .vn-tours { max-width: calc(var(--u) * 1440); margin: 0 auto; padding: calc(var(--u) * 120) calc(var(--u) * 48) 0; }
@@ -2274,44 +2352,71 @@ const CSS = `
 .vn-tours-stamp-b { font-family: ${MONO}; font-size: 10px; letter-spacing: .06em; color: var(--vn-mute); }
 .vn-tours-head { max-width: 56ch; }
 .vn-tours-grid { margin-top: calc(var(--u) * 40); display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 20); align-items: stretch; }
-.vn-tour-card {
-  position: relative; background: color-mix(in srgb, var(--vn-ink) 4%, var(--vn-c));
-  border: 1px solid var(--vn-hair); border-radius: 2px; overflow: hidden;
-  display: flex; flex-direction: column;
+/* The plate: photograph edge to edge, everything else drawn ON it. */
+.vn-tour-plate {
+  position: relative; display: block; overflow: hidden; border-radius: 2px;
+  color: #F2F1EE; text-decoration: none; isolation: isolate;
+  transition: transform .5s cubic-bezier(.25,1,.5,1), filter .5s ease, opacity .5s ease, box-shadow .5s ease;
+}
+.vn-tour-plate:focus-visible { outline: 1px solid var(--vn-amber); outline-offset: 3px; }
+/*
+ * The reveal, after a 21st.dev reference (lavikatiyar/cards): the plate under
+ * the pointer comes forward and every OTHER plate falls back behind a blur, so
+ * attention is taken away from the rest of the row rather than merely added to
+ * one card. :focus-within gives a keyboard user the identical reveal.
+ *
+ * Gated on a real pointer. On a touch screen :hover latches after a tap and
+ * would leave three cards permanently blurred, and blurring a filter over a
+ * photograph that is still drifting on scroll is expensive on a phone for an
+ * effect no one there can trigger on purpose.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .vn-tours-grid:hover .vn-tour-ghost:not(:hover) { filter: blur(3px); opacity: .45; }
+  .vn-tours-grid:hover .vn-tour-plate:not(:hover),
+  .vn-tours-grid:focus-within .vn-tour-plate:not(:focus-within) {
+    filter: blur(3px) saturate(.72); opacity: .5; transform: scale(.99);
+  }
+  .vn-tour-plate:hover, .vn-tour-plate:focus-within {
+    transform: translateY(-5px);
+    box-shadow: 0 22px 44px -20px rgba(16, 18, 22, .6);
+  }
 }
 .vn-tour-shot { width: 100%; }
-.vn-tour-body {
+.vn-tour-veil {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(16,18,22,.40) 0%, rgba(16,18,22,0) 34%, rgba(16,18,22,.24) 56%, rgba(16,18,22,.82) 100%);
+  transition: opacity .55s cubic-bezier(.25,1,.5,1);
+}
+.vn-tour-plate:hover .vn-tour-veil { opacity: .88; }
+.vn-tour-over {
+  position: absolute; z-index: 3; left: calc(var(--u) * 16); right: calc(var(--u) * 16); bottom: calc(var(--u) * 15);
   display: flex; flex-direction: column; align-items: start;
-  padding: calc(var(--u) * 18) calc(var(--u) * 20) calc(var(--u) * 18);
-  /* The button sits on the card's floor whatever the note's length, so a row
-     of cards has one button line rather than three. */
-  flex: 1;
 }
+.vn-tour-place {
+  font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--vn-amber); margin-bottom: calc(var(--u) * 6);
+}
+.vn-tour-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(19, 16)}; line-height: 1.15; }
 .vn-tour-cta {
-  margin-top: auto; padding-top: calc(var(--u) * 16);
-  display: inline-flex; align-items: center; gap: calc(var(--u) * 8);
-  font-family: ${MONO}; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--vn-ink); text-decoration: none;
+  margin-top: calc(var(--u) * 12);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border: 1px solid rgba(242, 241, 238, .5); border-radius: 999px;
+  font-family: ${MONO}; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  transition: background-color .32s ease, color .32s ease, border-color .32s ease;
 }
-.vn-tour-cta span:last-child { transition: transform .3s cubic-bezier(.25,1,.5,1); }
-.vn-tour-cta:hover span:last-child, .vn-tour-cta:focus-visible span:last-child { transform: translateX(4px); }
-.vn-tour-cta.is-example { color: var(--vn-mute); }
-.vn-tour-name { margin: 0; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(19, 16)}; }
-.vn-tour-note { margin: calc(var(--u) * 8) 0 0; color: var(--vn-mute); font-size: ${fluid(13.5, 13)}; line-height: 1.55; }
-.vn-tour-tag {
-  margin: 0 0 calc(var(--u) * 10); width: 100%;
-  display: flex; justify-content: space-between; gap: calc(var(--u) * 10);
-  font-family: ${MONO}; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--vn-amber-text);
-}
-.vn-tour-dur { color: var(--vn-mute); letter-spacing: .06em; text-transform: none; }
-/* The ghost has no photo and no body wrapper, so it carries the padding the
-   real cards get from .vn-tour-body. */
+.vn-tour-cta span { transition: transform .32s cubic-bezier(.25,1,.5,1); }
+.vn-tour-plate:hover .vn-tour-cta { background: #F2F1EE; border-color: #F2F1EE; color: ${NIGHT}; }
+.vn-tour-plate:hover .vn-tour-cta span { transform: translateX(3px); }
+/* The ghost keeps the plates' proportion so the row stays one rhythm. */
 .vn-tour-ghost {
-  background: none; border: 1px dashed color-mix(in srgb, var(--vn-ink) 30%, transparent);
-  justify-content: center; gap: calc(var(--u) * 8);
-  padding: calc(var(--u) * 22) calc(var(--u) * 20);
+  aspect-ratio: 4 / 5; color: var(--vn-ink);
+  transition: filter .5s ease, opacity .5s ease, transform .5s cubic-bezier(.25,1,.5,1);
+  border: 1px dashed color-mix(in srgb, var(--vn-ink) 30%, transparent);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 8);
 }
-.vn-tour-ghost-plus { margin: 0; font-family: ${MONO}; font-size: ${fluid(22, 20)}; line-height: 1; color: var(--vn-mute); }
+.vn-tour-ghost-plus { font-family: ${MONO}; font-size: ${fluid(22, 20)}; line-height: 1; color: var(--vn-mute); }
+.vn-tour-ghost-note { margin: 0; font-family: ${MONO}; font-size: 11px; letter-spacing: .04em; color: var(--vn-mute); }
+.vn-tours-foot { margin: calc(var(--u) * 26) 0 0; max-width: 62ch; font-size: ${fluid(13.5, 13)}; line-height: 1.6; color: var(--vn-mute); }
 
 /* contact — the drawing plate with a live map */
 .vn-contact {
@@ -2372,6 +2477,11 @@ const CSS = `
   .vn-nav-cta { display: none; }
   .vn-burger { display: block; }
   .vn-hero-block { padding: 0 20px 40px; }
+  /* The corner window is 260px wide over a 375px hero, so at phone widths it
+     sat straight on top of the intro copy. Narrow tablets get a smaller one;
+     phones lose it entirely below, because a card squeezed next to the
+     headline is worse than no card and the tour plates are one screen down. */
+  .vn-hero-tours { right: 20px; bottom: calc(var(--u) * 30); width: calc(var(--u) * 200); }
   .vn-wordmark { font-size: clamp(28px, 10vw, 52px); }
   .vn-valley, .vn-rooms-explorer, .vn-welcome, .vn-book, .vn-drawing-inside {
     grid-template-columns: 1fr; gap: 40px;
@@ -2406,6 +2516,7 @@ const CSS = `
 }
 
 @media (max-width: 767px) {
+  .vn-hero-tours { display: none; }
   .vn-rooms-index, .vn-rooms-pane { display: none; }
   .vn-rooms-acc { display: block; }
   .vn-rooms-acc-item + .vn-rooms-acc-item { margin-top: 10px; }

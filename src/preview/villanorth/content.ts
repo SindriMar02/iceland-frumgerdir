@@ -321,27 +321,12 @@ export const FACTS = {
 export const TOURS_PORTAL = ''
 
 export const EXAMPLE_TOURS = [
-  {
-    name: 'Whale watching',
-    note: 'From Akureyri harbour, twenty minutes away',
-    photo: PHOTO.tourWhales,
-    duration: '3 hours',
-    cta: 'See times',
-  },
-  {
-    name: 'Goðafoss and Mývatn',
-    note: 'A day east along the Ring Road',
-    photo: PHOTO.tourGodafoss,
-    duration: 'Full day',
-    cta: 'See times',
-  },
-  {
-    name: 'Riding in the valley',
-    note: 'Icelandic horses, an hour or an afternoon',
-    photo: PHOTO.tourHorses,
-    duration: 'From 1 hour',
-    cta: 'See times',
-  },
+  /* `place` is the card's overline and `name` the title under it. Two lines is
+     the whole card: a tour card on an example sheet has no business carrying a
+     duration and a paragraph as well. */
+  { place: 'Akureyri', name: 'Whale watching', note: 'From Akureyri harbour, twenty minutes away', photo: PHOTO.tourWhales },
+  { place: 'Mývatn', name: 'Goðafoss and Mývatn', note: 'A day east along the Ring Road', photo: PHOTO.tourGodafoss },
+  { place: 'Fnjóskadalur', name: 'Riding in the valley', note: 'Icelandic horses, an hour or an afternoon', photo: PHOTO.tourHorses },
 ] as const
 
 export const AERIAL_FILM = {
