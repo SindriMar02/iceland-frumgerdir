@@ -11,7 +11,7 @@ import { setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
 import { bookingReady, godoBookingUrl } from './godo'
 import {
-  AERIAL_FILM, BATH_NOTE, EXAMPLE_TOURS, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, REVIEW_THEMES, TOURS_PORTAL,
+  AERIAL_FILM, BATH_NOTE, EXAMPLE_TOURS, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, TOURS_PORTAL,
   ROOMS, VALLEY, WELCOME_RITUAL, srcSet, type Photo, type RoomEntry,
 } from './content'
 
@@ -51,6 +51,9 @@ const GLOW_RATIO = '3 / 2'
 /* Tours sheet: four cells inside a 1440 measure that is already inset by the
    section padding and the sheet's own padding, so a cell is around 300px. */
 const TOUR_SIZES = '(min-width: 1200px) 300px, (min-width: 700px) 44vw, 90vw'
+/* One constant for the hero window's dwell: the interval that flips the
+   photograph and the rule that draws down to the flip must not drift apart. */
+const TOUR_DWELL = 4600
 
 const BASE = import.meta.env.BASE_URL
 
@@ -437,10 +440,7 @@ function TourPlate({ tour }: { tour: (typeof EXAMPLE_TOURS)[number] }) {
       <span className="vn-tour-over">
         <span className="vn-tour-place">{tour.place}</span>
         <span className="vn-tour-name">{tour.name}</span>
-        <span className="vn-tour-cta">
-          See times
-          <span aria-hidden="true">→</span>
-        </span>
+        <span className="vn-tour-cta" aria-hidden="true">→</span>
       </span>
     </>
   )
@@ -778,7 +778,7 @@ function ToursTicker({ onOpen }: { onOpen: (e: React.MouseEvent) => void }) {
   const [idx, setIdx] = useState(0)
   useEffect(() => {
     if (reduced()) return
-    const t = window.setInterval(() => setIdx((i) => (i + 1) % EXAMPLE_TOURS.length), 4600)
+    const t = window.setInterval(() => setIdx((i) => (i + 1) % EXAMPLE_TOURS.length), TOUR_DWELL)
     return () => window.clearInterval(t)
   }, [])
   const tour = EXAMPLE_TOURS[idx]
@@ -798,12 +798,23 @@ function ToursTicker({ onOpen }: { onOpen: (e: React.MouseEvent) => void }) {
           />
         ))}
         <span className="vn-ht-veil" />
-        <span className="vn-ht-ticks" aria-hidden="true">
-          {EXAMPLE_TOURS.map((t, i) => (
-            <span key={t.name} className={`vn-ht-tick ${i === idx ? 'is-on' : ''}`} />
-          ))}
+        {/* Registration marks and a mat-board hairline: the page's drawing-sheet
+            vocabulary, so the window reads as a plate pinned to the hero rather
+            than a card floating on it. */}
+        <span className="vn-ht-marks" aria-hidden="true" />
+        <span className="vn-ht-mat" aria-hidden="true" />
+        {/* The dwell, drawn. A rule creeping across the top edge says the
+            photograph is about to change; three static pips only say there are
+            three. Keyed on the index so the fill restarts with each flip, and
+            timed off the same constant as the interval so the rule lands
+            exactly as the image turns over. */}
+        <span className="vn-ht-prog" aria-hidden="true">
+          <span className="vn-ht-prog-fill" key={idx} style={{ animationDuration: `${TOUR_DWELL}ms` }} />
         </span>
-        <span className="vn-ht-stamp">Tours · examples</span>
+        <span className="vn-ht-stamp">
+          Tours · examples
+          <span className="vn-ht-count">{String(idx + 1).padStart(2, '0')}</span>
+        </span>
         {/* Keyed on the name so the overline and title re-mount together and
             replay their own, much shorter fade under the photograph's longer
             crossfade. Same two-line anatomy as the plates below. */}
@@ -811,10 +822,7 @@ function ToursTicker({ onOpen }: { onOpen: (e: React.MouseEvent) => void }) {
           <span className="vn-ht-place">{tour.place}</span>
           <span className="vn-ht-name">{tour.name}</span>
         </span>
-        <span className="vn-ht-cta">
-          See tours
-          <span aria-hidden="true">→</span>
-        </span>
+        <span className="vn-ht-cta" aria-hidden="true">→</span>
       </span>
     </a>
   )
@@ -1475,33 +1483,25 @@ export default function VillaNorthPage() {
         <p className="vn-guests-meta vn-rv">
           {HOST.rating.toFixed(1)} of 5 across {HOST.reviewCount} reviews · {HOST.badges.join(' · ')}
         </p>
-        {/* An infinite marquee (the 21st.dev testimonials-with-marquee
-            mechanism: duplicated track at -50%, pause on hover, edge fades),
-            re-drawn in this page's own materials. Real quotes interleaved
-            with real counts from the review index — never invented filler. */}
-        <div className="vn-marquee vn-rv" aria-label="Guest reviews">
-          <div className="vn-marquee-track">
-            {[0, 1].map((copy) => (
-              <div className="vn-marquee-set" aria-hidden={copy === 1} key={copy}>
-                {REVIEW_QUOTES.map((q) => (
-                  <figure className="vn-mq-card" key={`${copy}-${q.author}`}>
-                    <blockquote><p>{'“'}{q.quote}{'”'}</p></blockquote>
-                    <figcaption>{q.author} · {q.when}</figcaption>
-                  </figure>
-                ))}
-                {REVIEW_THEMES.map((th) => (
-                  <div className="vn-mq-card vn-mq-stat" key={`${copy}-${th.theme}`}>
-                    <p className="vn-mq-stat-n">{th.mentions}</p>
-                    <p className="vn-mq-stat-l">reviews mention {th.theme.toLowerCase()}</p>
-                  </div>
-                ))}
-                <div className="vn-mq-card vn-mq-stat">
-                  <p className="vn-mq-stat-n">{HOST.rating.toFixed(1)}</p>
-                  <p className="vn-mq-stat-l">across {HOST.reviewCount} reviews</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Reviews people actually wrote, with the name and the month they
+            wrote them, standing still so they can be read. The counts that used
+            to scroll past between them ("24 reviews mention location") were the
+            listing's own analytics, not anything a guest said. Only three quotes
+            are on file, so three is what the section shows: padding it out would
+            mean inventing reviews. */}
+        <div className="vn-reviews vn-rv">
+          {REVIEW_QUOTES.map((q) => (
+            <figure className="vn-review" key={q.author}>
+              <span className="vn-review-rule" aria-hidden="true" />
+              <blockquote className="vn-review-quote">
+                <p>{'“'}{q.quote}{'”'}</p>
+              </blockquote>
+              <figcaption className="vn-review-by">
+                <span className="vn-review-name">{q.author}</span>
+                <span className="vn-review-when">{q.when}</span>
+              </figcaption>
+            </figure>
+          ))}
         </div>
       </section>
 
@@ -2098,29 +2098,33 @@ const CSS = `
 .vn-guests-meta { font-family: ${MONO}; font-size: ${fluid(13, 12)}; color: var(--vn-mute); margin: calc(var(--u) * 20) 0 0; }
 /* the review marquee: duplicated track at -50%, pause on hover, edge fades
    to the page ground. width: max-content is what makes -50% exact. */
-.vn-marquee { position: relative; margin-top: calc(var(--u) * 56); overflow: hidden; }
-.vn-marquee::before, .vn-marquee::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: calc(var(--u) * 140); z-index: 1; pointer-events: none;
+/* Three written reviews, standing still. The quote leads at a size meant to be
+   read; the name and month sit under a hairline, so the card is a page from a
+   guest book rather than a tile in a carousel. */
+.vn-reviews {
+  margin-top: calc(var(--u) * 56);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 28);
+  align-items: start;
 }
-.vn-marquee::before { left: 0; background: linear-gradient(90deg, var(--vn-c), transparent); }
-.vn-marquee::after { right: 0; background: linear-gradient(270deg, var(--vn-c), transparent); }
-.vn-marquee-track { display: flex; width: max-content; animation: vn-mq 56s linear infinite; }
-.vn-marquee:hover .vn-marquee-track { animation-play-state: paused; }
-@keyframes vn-mq { to { transform: translateX(-50%); } }
-.vn-marquee-set { display: flex; gap: calc(var(--u) * 20); padding-right: calc(var(--u) * 20); }
-.vn-mq-card {
-  width: calc(var(--u) * 330); flex: none; margin: 0;
-  background: color-mix(in srgb, var(--vn-ink) 4%, var(--vn-c));
-  border: 1px solid var(--vn-hair); border-radius: 2px;
-  padding: calc(var(--u) * 26) calc(var(--u) * 26) calc(var(--u) * 22);
-  display: flex; flex-direction: column; justify-content: space-between; gap: calc(var(--u) * 18);
+.vn-review {
+  margin: 0; display: flex; flex-direction: column;
+  padding-top: calc(var(--u) * 22);
 }
-.vn-mq-card blockquote { margin: 0; }
-.vn-mq-card blockquote p { margin: 0; font-size: ${fluid(17, 15)}; line-height: 1.5; }
-.vn-mq-card figcaption { font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .06em; color: var(--vn-mute); }
-.vn-mq-stat { justify-content: center; align-items: flex-start; width: calc(var(--u) * 210); }
-.vn-mq-stat-n { margin: 0; font-family: ${MONO}; font-variant-numeric: tabular-nums; font-size: ${fluid(40, 30)}; line-height: 1; color: var(--vn-amber-text); }
-.vn-mq-stat-l { margin: 0; font-size: ${fluid(13, 12)}; line-height: 1.45; color: var(--vn-mute); max-width: 16ch; }
+.vn-review-rule { display: block; width: calc(var(--u) * 34); height: 1px; background: var(--vn-amber-text); margin-bottom: calc(var(--u) * 20); }
+.vn-review-quote { margin: 0; }
+.vn-review-quote p {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 500;
+  font-size: ${fluid(21, 17)}; line-height: 1.42; text-wrap: pretty;
+}
+.vn-review-by {
+  margin-top: calc(var(--u) * 22); padding-top: calc(var(--u) * 14);
+  border-top: 1px solid var(--vn-hair);
+  display: flex; justify-content: space-between; gap: calc(var(--u) * 12);
+  font-family: ${MONO}; font-size: 11px; letter-spacing: .06em;
+}
+.vn-review-name { color: var(--vn-ink); }
+.vn-review-when { color: var(--vn-mute); }
+
 .vn-themes {
   display: flex; flex-wrap: wrap; gap: calc(var(--u) * 48) calc(var(--u) * 64);
   margin: calc(var(--u) * 72) 0 0; padding: calc(var(--u) * 24) 0 0; border-top: 1px solid var(--vn-hair);
@@ -2285,12 +2289,17 @@ const CSS = `
 /* the hero's tour window */
 .vn-hero-tours {
   position: absolute; right: calc(var(--u) * 44); bottom: calc(var(--u) * 40); z-index: 3;
-  display: block; width: calc(var(--u) * 260); overflow: hidden;
+  display: block; width: calc(var(--u) * 268); overflow: hidden;
   border: 1px solid rgba(242, 241, 238, .34); border-radius: 2px;
   background: rgba(16, 18, 22, .44); color: #F2F1EE; text-decoration: none;
-  transition: border-color .25s ease;
+  box-shadow: 0 26px 60px -30px rgba(16, 18, 22, .85);
+  transition: border-color .35s ease, transform .55s cubic-bezier(.25,1,.5,1), box-shadow .55s ease;
 }
-.vn-hero-tours:hover { border-color: rgba(242, 241, 238, .78); }
+.vn-hero-tours:hover {
+  border-color: rgba(242, 241, 238, .82);
+  transform: translateY(-4px);
+  box-shadow: 0 34px 74px -30px rgba(16, 18, 22, .95);
+}
 .vn-ht-stack { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: ${NIGHT}; }
 /* Every tour photograph is mounted; only opacity and a hair of scale move, so
    the flip is one image dissolving into the next. The outgoing frame eases
@@ -2306,34 +2315,52 @@ const CSS = `
    photograph, overline then title then button, bottom left. */
 .vn-ht-veil {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(16,18,22,.46) 0%, rgba(16,18,22,0) 34%, rgba(16,18,22,.26) 56%, rgba(16,18,22,.84) 100%);
+  background: linear-gradient(180deg, rgba(16,18,22,.62) 0%, rgba(16,18,22,.12) 30%, rgba(16,18,22,.46) 54%, rgba(16,18,22,.92) 100%);
 }
-.vn-ht-ticks { position: absolute; top: calc(var(--u) * 13); left: calc(var(--u) * 15); display: flex; gap: 4px; }
-.vn-ht-tick { display: block; width: calc(var(--u) * 16); height: 1px; background: rgba(242, 241, 238, .38); transition: background-color .5s ease; }
-.vn-ht-tick.is-on { background: var(--vn-amber); }
+/* The dwell drawn as a rule along the top edge, so the window is visibly
+   counting down to the next photograph rather than just cycling. */
+.vn-ht-prog { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: rgba(242, 241, 238, .26); z-index: 4; }
+.vn-ht-prog-fill { display: block; height: 100%; width: 0; background: var(--vn-amber); animation: vn-ht-fill linear forwards; }
+@keyframes vn-ht-fill { from { width: 0; } to { width: 100%; } }
+/* A mat-board hairline, the way a photograph is framed rather than printed to
+   the edge, and registration marks at the sheet's head. Both belong to the
+   drawing vocabulary the rest of the page is built on. */
+.vn-ht-mat { position: absolute; inset: calc(var(--u) * 9); z-index: 4; pointer-events: none; border: 1px solid rgba(242, 241, 238, .26); }
+.vn-ht-marks {
+  position: absolute; inset: calc(var(--u) * 9); z-index: 4; pointer-events: none;
+  --m: rgba(242, 241, 238, .85); --len: calc(var(--u) * 11);
+  background:
+    linear-gradient(var(--m), var(--m)) left top / 1px var(--len) no-repeat,
+    linear-gradient(var(--m), var(--m)) left top / var(--len) 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) right top / 1px var(--len) no-repeat,
+    linear-gradient(var(--m), var(--m)) right top / var(--len) 1px no-repeat;
+}
 .vn-ht-stamp {
-  position: absolute; top: calc(var(--u) * 22); left: calc(var(--u) * 15);
+  position: absolute; top: calc(var(--u) * 24); left: calc(var(--u) * 22); right: calc(var(--u) * 22);
+  display: flex; justify-content: space-between; align-items: baseline; gap: calc(var(--u) * 10);
   font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
-  color: rgba(242, 241, 238, .72);
+  color: #F2F1EE;
 }
+.vn-ht-count { color: var(--vn-amber); letter-spacing: .1em; }
 .vn-ht-body {
-  position: absolute; left: calc(var(--u) * 15); right: calc(var(--u) * 15); bottom: calc(var(--u) * 52);
+  position: absolute; left: calc(var(--u) * 22); right: calc(var(--u) * 74); bottom: calc(var(--u) * 24);
   display: flex; flex-direction: column;
   animation: vn-ht-in .55s cubic-bezier(.25,1,.5,1) both;
 }
 @keyframes vn-ht-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-.vn-ht-place { font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--vn-amber); margin-bottom: calc(var(--u) * 6); }
-.vn-ht-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(17, 15)}; line-height: 1.15; }
+.vn-ht-place { font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #F2F1EE; margin-bottom: calc(var(--u) * 6); }
+.vn-ht-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(17, 15)}; line-height: 1.15; color: #F2F1EE; }
 .vn-ht-cta {
-  position: absolute; left: calc(var(--u) * 15); bottom: calc(var(--u) * 15);
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 13px; border: 1px solid rgba(242, 241, 238, .5); border-radius: 999px;
-  font-family: ${MONO}; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
-  transition: background-color .32s ease, color .32s ease, border-color .32s ease;
+  position: absolute; right: calc(var(--u) * 22); bottom: calc(var(--u) * 22);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(var(--u) * 34); height: calc(var(--u) * 34);
+  border: 1px solid rgba(242, 241, 238, .65); border-radius: 999px;
+  font-size: 13px; line-height: 1; color: #F2F1EE;
+  transition: background-color .32s ease, color .32s ease, border-color .32s ease, transform .32s cubic-bezier(.25,1,.5,1);
 }
-.vn-ht-cta span { transition: transform .32s cubic-bezier(.25,1,.5,1); }
-.vn-hero-tours:hover .vn-ht-cta { background: #F2F1EE; border-color: #F2F1EE; color: ${NIGHT}; }
-.vn-hero-tours:hover .vn-ht-cta span { transform: translateX(3px); }
+.vn-hero-tours:hover .vn-ht-cta {
+  background: #F2F1EE; border-color: #F2F1EE; color: ${NIGHT}; transform: translateX(3px);
+}
 
 /* tours — one dashed example sheet with a title stamp; the cards inside feel real */
 .vn-tours { max-width: calc(var(--u) * 1440); margin: 0 auto; padding: calc(var(--u) * 120) calc(var(--u) * 48) 0; }
@@ -2397,16 +2424,20 @@ const CSS = `
   color: var(--vn-amber); margin-bottom: calc(var(--u) * 6);
 }
 .vn-tour-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(19, 16)}; line-height: 1.15; }
+/* The control is an arrow and nothing else. A labelled pill on a photograph
+   this size was more chrome than the card could carry, and the plate is
+   already the click target - the disc only has to say which way it goes. */
 .vn-tour-cta {
-  margin-top: calc(var(--u) * 12);
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 13px; border: 1px solid rgba(242, 241, 238, .5); border-radius: 999px;
-  font-family: ${MONO}; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
-  transition: background-color .32s ease, color .32s ease, border-color .32s ease;
+  margin-top: calc(var(--u) * 13);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(var(--u) * 34); height: calc(var(--u) * 34);
+  border: 1px solid rgba(242, 241, 238, .55); border-radius: 999px;
+  font-size: 13px; line-height: 1; color: #F2F1EE;
+  transition: background-color .32s ease, color .32s ease, border-color .32s ease, transform .32s cubic-bezier(.25,1,.5,1);
 }
-.vn-tour-cta span { transition: transform .32s cubic-bezier(.25,1,.5,1); }
-.vn-tour-plate:hover .vn-tour-cta { background: #F2F1EE; border-color: #F2F1EE; color: ${NIGHT}; }
-.vn-tour-plate:hover .vn-tour-cta span { transform: translateX(3px); }
+.vn-tour-plate:hover .vn-tour-cta {
+  background: #F2F1EE; border-color: #F2F1EE; color: ${NIGHT}; transform: translateX(3px);
+}
 /* The ghost keeps the plates' proportion so the row stays one rhythm. */
 .vn-tour-ghost {
   aspect-ratio: 4 / 5; color: var(--vn-ink);
@@ -2490,7 +2521,7 @@ const CSS = `
     padding-left: 20px; padding-right: 20px;
   }
   .vn-mat-expand { height: calc(var(--u) * 340); }
-  .vn-mq-card { width: 280px; }
+  .vn-reviews { grid-template-columns: 1fr; gap: calc(var(--u) * 34); }
   .vn-foot-hero { padding: 56px 20px 40px; }
   .vn-foot-base { padding-left: 20px; padding-right: 20px; }
   .vn-book-grid { grid-template-columns: 1fr; }
@@ -2571,6 +2602,9 @@ const CSS = `
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* No interval runs under reduced motion, so a rule creeping to a flip that
+     never comes would be a lie. Show it filled and still. */
+  .vn-ht-prog-fill { animation: none; width: 100%; }
   .vn-root * { transition: none !important; animation: none !important; }
   .vn-word { transform: none !important; opacity: 1 !important; }
   .vn-wm-word { transform: none !important; opacity: 1 !important; }
