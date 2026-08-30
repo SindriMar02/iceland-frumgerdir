@@ -241,13 +241,25 @@ function useMotion(ready: boolean) {
         if (!chars.length) return
         gsap.fromTo(
           chars,
-          { opacity: 0, y: 10, ...(BLUR_OK ? { filter: 'blur(12px)' } : null) },
+          { opacity: 0, y: 14, ...(BLUR_OK ? { filter: 'blur(10px)' } : null) },
           {
             opacity: 1, y: 0, ...(BLUR_OK ? { filter: 'blur(0px)' } : null),
-            duration: 0.6, ease: 'power2.out', stagger: 0.02,
+            /* Slower and softer than it was (0.6s / power2). power3 spends more
+               of the tween near the end, so the glyph settles out of the blur
+               instead of snapping the last of it away. */
+            duration: 1.05,
+            ease: 'power3.out',
+            /* `amount`, not a per-character step: a fixed 0.02 per char meant a
+               six-word headline took three times as long to finish as a two-word
+               one. This spreads ONE budget across however many characters the
+               line has, so every headline reads at the same pace. */
+            stagger: { amount: 0.55, from: 'start' },
             /* clears the inline filter so no glyph is left on its own layer */
             clearProps: BLUR_OK ? 'filter' : '',
-            scrollTrigger: { trigger: h, start: 'top 88%', once: true },
+            /* Starts a little earlier to match the longer tween, so a headline
+               still finishes near the middle of the screen rather than after
+               the reader has scrolled past it. */
+            scrollTrigger: { trigger: h, start: 'top 92%', once: true },
           },
         )
       })
