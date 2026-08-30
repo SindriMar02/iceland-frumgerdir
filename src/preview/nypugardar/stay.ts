@@ -15,6 +15,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { addDays, startOfDay } from './godo'
+import { firstBookableCheckin } from './avail'
 
 export type Stay = {
   checkin: Date
@@ -33,14 +34,20 @@ export function useStay(): {
      would give the picker a different "today" than the min= it validates
      against, which is a bug that only ever shows up at 00:00. */
   const today = useMemo(() => startOfDay(new Date()), [])
-  const [stay, set] = useState<Stay>(() => ({
-    /* Tomorrow, two nights: the shortest stay that is not "tonight", which on a
-       farm 4 km off the Ring Road is almost never what someone is booking. */
-    checkin: addDays(today, 1),
-    checkout: addDays(today, 3),
-    adults: 2,
-    children: 0,
-  }))
+  const [stay, set] = useState<Stay>(() => {
+    /* The first two-night window a single room can actually hold, per the
+       availability baked at build time. "Tomorrow" was the old seed; her near
+       window is often fully sold, and defaulting a guest onto dates Godo will
+       reject makes the very first click a dead end. Falls back to tomorrow
+       when the snapshot is stale. */
+    const checkin = firstBookableCheckin(2)
+    return {
+      checkin,
+      checkout: addDays(checkin, 2),
+      adults: 2,
+      children: 0,
+    }
+  })
 
   const setStay = useCallback((next: Partial<Stay>) => {
     set((prev) => ({ ...prev, ...next }))

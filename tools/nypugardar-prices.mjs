@@ -91,21 +91,41 @@ const iso = (d) => d.toISOString().slice(0, 10)
 async function main() {
   const today = new Date()
   const end = new Date(today.getTime() + HORIZON_DAYS * 86_400_000)
+  const startISO = iso(today)
+
+  /* Day index for the availability strings: 0 = today, in the property's own
+   * dates as Godo returns them (keys are YYYY-MM-DD). */
+  const dayIndex = (dateStr) => {
+    /* Godo keys these YYYYMMDD, no separators. */
+    const m = String(dateStr).match(/^(\d{4})(\d{2})(\d{2})$/)
+    const isoKey = m ? `${m[1]}-${m[2]}-${m[3]}` : String(dateStr)
+    const d = Math.round((Date.parse(isoKey) - Date.parse(startISO)) / 86_400_000)
+    return Number.isFinite(d) && d >= 0 && d < HORIZON_DAYS ? d : null
+  }
 
   const rooms = {}
+  const availRooms = {}
   for (const [key, id] of Object.entries(ROOM_IDS)) {
     try {
       const dates = await getRoomDates(id, iso(today), iso(end))
       let min = null
       let nights = 0
-      for (const v of Object.values(dates)) {
+      /* One digit per day: how many of this room type are free (capped at 9).
+       * '0' = sold out or closed. A string, so the whole year is ~365 bytes
+       * per room and diffs stay readable in git. */
+      const inv = Array(HORIZON_DAYS).fill('0')
+      for (const [dateStr, v] of Object.entries(dates)) {
         if (!v || typeof v !== 'object') continue
-        if (Number(v.i ?? 0) <= 0) continue /* not bookable, so not a real price */
+        const i = Number(v.i ?? 0)
+        const di = dayIndex(dateStr)
+        if (di !== null && i > 0) inv[di] = String(Math.min(9, i))
+        if (i <= 0) continue /* not bookable, so not a real price */
         nights += 1
         const p = Number(v.p1)
         if (Number.isFinite(p) && p > 0 && (min === null || p < min)) min = p
       }
       rooms[key] = { from: min, bookableNights: nights }
+      availRooms[key] = inv.join('')
       console.log(`  ${key.padEnd(24)} from ${min ?? '-'}  (${nights} bookable nights)`)
     } catch (e) {
       /* One room failing must not poison the whole file. */
@@ -133,6 +153,13 @@ async function main() {
     horizonDays: HORIZON_DAYS,
     rooms,
     groups,
+    /* Per-day inventory, one digit per day from `start`. The page uses it to
+     * grey out sold-out nights in the date picker and to open the default stay
+     * on dates that can actually be booked. Refreshed on every deploy, like
+     * the prices; between deploys Godo remains the source of truth, which is
+     * why the picker's caption still says prices and final availability come
+     * on the next step. */
+    availability: { start: startISO, days: HORIZON_DAYS, rooms: availRooms },
   }
   writeFileSync(OUT, JSON.stringify(payload, null, 2) + '\n')
   console.log(`\n[nypugardar-prices] wrote ${OUT}`)

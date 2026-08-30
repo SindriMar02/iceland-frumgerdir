@@ -1,15 +1,14 @@
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { ArrowUpRight, Minus, Plus } from 'lucide-react'
 import type { Copy, Lang } from './copy'
 import {
-  addDays,
   bookingHref,
   bookingReady,
-  inputDate,
   nightsBetween,
-  parseInputDate,
   type GodoRoomKey,
 } from './godo'
+import { availKnown, stayBookable } from './avail'
+import DateRangeField from './DateRangeField'
 import type { Stay } from './stay'
 
 /**
@@ -35,6 +34,21 @@ const PAPER = '#F4EEE2'
 const HAIR = 'rgba(244,238,226,0.14)'
 const FOCUS =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#15130F]'
+
+/** Two calendar months fit above 768px; below it one month is the whole
+ *  screen. Tracks the media query live so a rotation re-fits the popover. */
+function useWide(): boolean {
+  const [wide, setWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    const on = () => setWide(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return wide
+}
 
 function Stepper({
   label,
@@ -65,7 +79,7 @@ function Stepper({
           aria-label={`One fewer ${label.toLowerCase()}`}
           disabled={value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
-          className={`grid h-11 w-11 place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
+          className={`grid h-11 w-11 [touch-action:manipulation] place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
           style={{ borderColor: HAIR, color: PAPER }}
         >
           <Minus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
@@ -82,7 +96,7 @@ function Stepper({
           aria-label={`One more ${label.toLowerCase()}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
-          className={`grid h-11 w-11 place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
+          className={`grid h-11 w-11 [touch-action:manipulation] place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
           style={{ borderColor: HAIR, color: PAPER }}
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
@@ -116,34 +130,21 @@ export default function BookingBar({
 }) {
   const label = t.cta.check
   const isCard = variant === 'card'
+  const wide = useWide()
   const { checkin, checkout, adults, children } = stay
 
   const inId = useId()
-  const outId = useId()
 
   const nights = nightsBetween(checkin, checkout)
   const ready = bookingReady()
 
   const href = bookingHref({ checkin, checkout, adults, children, room, lang })
 
-  function onCheckin(v: string) {
-    const d = parseInputDate(v)
-    if (!d) return
-    /* Both fields go in one update: a check-out that is now in the past has to
-     * move with the arrival, and doing it in two setState calls lets an
-     * impossible pair exist for a frame and reach the room links. */
-    onStay(checkout <= d ? { checkin: d, checkout: addDays(d, 1) } : { checkin: d })
-  }
-  function onCheckout(v: string) {
-    const d = parseInputDate(v)
-    if (!d) return
-    onStay({ checkout: d > checkin ? d : addDays(checkin, 1) })
-  }
-
-  /** h-8 matches the stepper buttons so every label in the row shares a baseline. */
-  const field =
-    'h-8 w-full bg-transparent font-erode text-lg leading-8 tracking-tight [color-scheme:dark] ' +
-    FOCUS
+  /* The one soft warning this side of Godo: the picked nights fit no single
+   * room on our last snapshot. The CTA stays live — the snapshot ages between
+   * deploys and Godo has the final word — but the guest is told before the
+   * jump instead of after it. */
+  const looksFull = availKnown() && !stayBookable(checkin, checkout)
 
   return (
     <div
@@ -161,46 +162,22 @@ export default function BookingBar({
         className={
           isCard
             ? 'flex flex-col gap-5 p-5 sm:p-6'
-            : 'grid gap-6 p-5 sm:p-6 md:grid-cols-[1fr_1fr_auto_auto_auto] md:items-end md:gap-7'
+            : /* The old md five-across grid did not fit at 768 and pushed the
+               * CTA 26px past the viewport (measured). Two rows at md, one at
+               * lg, where the row actually has room. */
+              'grid gap-6 p-5 sm:p-6 md:grid-cols-[auto_auto_1fr] md:items-end md:gap-7 lg:grid-cols-[minmax(0,1.35fr)_auto_auto_minmax(11rem,auto)]'
         }
       >
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor={inId}
-            className="font-mono text-[10px] uppercase tracking-[0.16em]"
-            style={{ color: 'rgba(244,238,226,0.55)' }}
-          >
-            {t.booking.arriving}
-          </label>
-          <input
-            id={inId}
-            type="date"
-            value={inputDate(checkin)}
-            min={inputDate(today)}
-            onChange={(e) => onCheckin(e.target.value)}
-            className={field}
-            style={{ color: PAPER }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor={outId}
-            className="font-mono text-[10px] uppercase tracking-[0.16em]"
-            style={{ color: 'rgba(244,238,226,0.55)' }}
-          >
-            {t.booking.leaving}
-          </label>
-          <input
-            id={outId}
-            type="date"
-            value={inputDate(checkout)}
-            min={inputDate(addDays(checkin, 1))}
-            onChange={(e) => onCheckout(e.target.value)}
-            className={field}
-            style={{ color: PAPER }}
-          />
-        </div>
+        <DateRangeField
+          checkin={checkin}
+          checkout={checkout}
+          onRange={(ci, co) => onStay({ checkin: ci, checkout: co })}
+          lang={lang}
+          t={t}
+          months={!isCard && wide ? 2 : 1}
+          today={today}
+          className={isCard ? '' : 'md:col-span-3 lg:col-span-1'}
+        />
 
         {isCard ? (
           <div className="grid grid-cols-2 gap-4">
@@ -237,22 +214,31 @@ export default function BookingBar({
         )}
       </div>
 
-      <p
+      <div
         className="border-t px-5 py-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.14em] sm:px-6"
-        style={{ borderColor: HAIR, color: 'rgba(244,238,226,0.45)' }}
+        style={{ borderColor: HAIR, color: 'rgba(244,238,226,0.6)' }}
         id={ready ? undefined : `${inId}-placeholder`}
       >
-        {ready ? (
-          <>
-            {nights} {nights === 1 ? t.booking.night : t.booking.nights} · {t.booking.ageNote} ·{' '}
-            {t.booking.pricesNext}
-          </>
-        ) : (
-          <>
-            {nights} {nights === 1 ? t.booking.night : t.booking.nights} · {t.booking.placeholder}
-          </>
-        )}
-      </p>
+        <p>
+          {ready ? (
+            <>
+              {nights} {nights === 1 ? t.booking.night : t.booking.nights} · {t.booking.ageNote} ·{' '}
+              {t.booking.pricesNext}
+            </>
+          ) : (
+            <>
+              {nights} {nights === 1 ? t.booking.night : t.booking.nights} · {t.booking.placeholder}
+            </>
+          )}
+        </p>
+        {looksFull ? (
+          /* aria-live: the warning appears in reaction to a date change made
+           * somewhere above it, so a screen reader should hear it too. */
+          <p aria-live="polite" className="mt-1.5" style={{ color: 'rgba(217,125,61,0.95)' }}>
+            {t.booking.mayBeFull}
+          </p>
+        ) : null}
+      </div>
     </div>
   )
 }

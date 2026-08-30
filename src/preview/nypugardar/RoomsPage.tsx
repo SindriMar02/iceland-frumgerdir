@@ -24,7 +24,7 @@ import { useReducedMotion } from "framer-motion";
 import BookingBar from "./BookingBar";
 import PRICES from "./prices.json";
 import { leadFor, galleryFor } from "./photos";
-import { IMG, FEATURED_IDS, UNITS, PHONE_HREF, CHECK_TIMES, HOUSE_RULES } from "./data";
+import { IMG, FEATURED_IDS, PHONE_HREF, CHECK_TIMES, HOUSE_RULES } from "./data";
 import { GODO_ROOM_NAMES, GODO_ROOM_NAMES_IS, ROOM_SLEEPS } from "./godo";
 import {
   Eyebrow, Reveal, ClipImg, RoomBookLink, BookLink, LangToggle, photoAlt,
@@ -41,6 +41,15 @@ export default function RoomsPage() {
   const register = useMemo(() => () => () => {}, []);
 
   useEffect(() => setNoindex(true), []);
+  useEffect(() => {
+    /* Body carries the page ink so Safari's own chrome and the zoom dialog's
+     * top layer never flash the shared shell's light background. */
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = "#15130F";
+    return () => {
+      document.body.style.backgroundColor = prev;
+    };
+  }, []);
   useEffect(() => {
     document.title = lang === "is"
       ? "Herbergi og myndir · Nýpugarðar"
@@ -80,7 +89,7 @@ export default function RoomsPage() {
 
       <main>
         {/* the page states its business, then the picker, then everything */}
-        <section className="mx-auto max-w-6xl px-5 pt-16 md:px-8 md:pt-24">
+        <section className="mx-auto max-w-6xl px-5 pb-12 pt-16 md:px-8 md:pb-16 md:pt-24">
           <Reveal>
             <h1 className="font-erode text-4xl font-medium leading-[1.14] tracking-tight md:text-6xl">
               {t.rooms.heading}
@@ -96,31 +105,34 @@ export default function RoomsPage() {
               <BookingBar t={t} lang={lang} stay={stay} onStay={setStay} today={today} />
             </div>
           </Reveal>
+
+          {/* Room index: one chip per type, cheapest first, carrying its from-
+            * price — the price scan the old table did well, without the OTA
+            * look. Jumps down a list seven bands long. */}
+          <Reveal delay={220}>
+            <nav aria-label={t.rooms.heading} className="mt-8 flex flex-wrap gap-2.5">
+              {ROOM_ORDER.map((k) => {
+                const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]?.from
+                return (
+                  <a
+                    key={k}
+                    href={`#room-${k}`}
+                    className={`inline-flex items-baseline gap-2 border px-3.5 py-2.5 [touch-action:manipulation] font-mono text-[11px] uppercase tracking-[0.12em] text-[#F4EEE2]/75 transition-colors duration-200 hover:border-[#F4EEE2]/45 hover:text-[#F4EEE2] ${FOCUS}`}
+                    style={{ borderColor: HAIR }}
+                  >
+                    {t.rooms.short[k]}
+                    {typeof price === 'number' ? (
+                      <span style={{ color: ACCENT }}>{price}&euro;</span>
+                    ) : null}
+                  </a>
+                )
+              })}
+            </nav>
+          </Reveal>
         </section>
 
         <section className="border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Reveal delay={140}>
-              <dl
-                className="mt-12 grid grid-cols-2 gap-x-6 gap-y-8 border-t pt-8 md:grid-cols-4"
-                style={{ borderColor: HAIR }}
-              >
-                {UNITS.map((u) => (
-                  <div key={t.units[u.key as keyof typeof t.units] ?? u.label}>
-                    <dd
-                      className="font-erode text-5xl"
-                      style={{ color: ACCENT }}
-                    >
-                      {u.n}
-                    </dd>
-                    <dt className="mt-2 max-w-[16ch] font-mono text-[11px] uppercase leading-relaxed tracking-[0.16em] text-[#F4EEE2]/60">
-                      {t.units[u.key as keyof typeof t.units] ?? u.label}
-                    </dt>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
-
+          <div className="mx-auto max-w-6xl px-5 py-4 md:px-8 md:py-6">
             {/* ── ONE BAND PER ROOM TYPE ────────────────────────────────
               * Was a price TABLE (thumbnail, name, price, Book) sitting above
               * a gallery section that listed every one of these types AGAIN
@@ -133,8 +145,12 @@ export default function RoomsPage() {
               * photographs on one side, its name, price and booking on the
               * other, sides alternating so the eye has a rhythm to follow.
               * The gallery below keeps the farm and the landscape, and stops
-              * repeating the rooms. */}
-            <div className="mt-16 border-t md:mt-20" style={{ borderColor: HAIR }}>
+              * repeating the rooms.
+              *
+              * No rule of its own up here: the section's border-t already owns
+              * this gap, and the measured 144px double-rule void at the top of
+              * this page came exactly from stacking a second one under it. */}
+            <div>
               {ROOM_ORDER.map((k, idx) => {
                 const price = (PRICES.rooms as Record<string, { from: number | null }>)[k]?.from
                 const name = lang === 'is' ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k]
@@ -146,7 +162,8 @@ export default function RoomsPage() {
                 return (
                   <div
                     key={k}
-                    className={`grid items-center gap-8 border-b py-12 md:gap-14 md:py-16 ${
+                    id={`room-${k}`}
+                    className={`grid scroll-mt-14 items-center gap-8 border-b py-12 md:gap-14 md:py-16 ${
                       flip ? 'md:grid-cols-[0.85fr_1.15fr]' : 'md:grid-cols-[1.15fr_0.85fr]'
                     }`}
                     style={{ borderColor: HAIR }}
@@ -158,6 +175,7 @@ export default function RoomsPage() {
                           sizes="(min-width: 768px) 52vw, 92vw"
                           alt={photoAlt(lead, t, lang)}
                           aspect="aspect-[4/3]"
+                          zoom
                         />
                       ) : null}
                       {rest.length ? (
@@ -170,6 +188,7 @@ export default function RoomsPage() {
                               alt={photoAlt(ph, t, lang)}
                               aspect="aspect-[4/3]"
                               delay={90 + i * 80}
+                              zoom
                             />
                           ))}
                         </div>
@@ -183,7 +202,7 @@ export default function RoomsPage() {
                         </h3>
                       </Reveal>
                       <Reveal delay={70}>
-                        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/45">
+                        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/60">
                           {t.price.sleeps} {ROOM_SLEEPS[k]}
                         </p>
                       </Reveal>
@@ -210,7 +229,7 @@ export default function RoomsPage() {
                   </div>
                 )
               })}
-              <p className="mt-8 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/45">
+              <p className="mt-8 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/60">
                 {t.price.pricesNote}
               </p>
             </div>
@@ -247,6 +266,7 @@ export default function RoomsPage() {
                   alt={t.rooms.cottage1Alt}
                   aspect="aspect-[3/4]"
                   caption={t.rooms.cottage1Caption}
+                  zoom
                 />
                 <ClipImg
                   photo={IMG.cottage2}
@@ -255,6 +275,7 @@ export default function RoomsPage() {
                   aspect="aspect-[3/4]"
                   caption={t.rooms.cottage2Caption}
                   delay={110}
+                  zoom
                 />
               </div>
             </div>
@@ -283,7 +304,7 @@ export default function RoomsPage() {
                         >
                           {ct.value}
                         </dd>
-                        <dd className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/45">
+                        <dd className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/60">
                           {ct.key === "arrive" ? t.rooms.until : t.rooms.from}
                         </dd>
                       </div>
@@ -355,6 +376,7 @@ export default function RoomsPage() {
                       alt={photoAlt(ph, t, lang)}
                       aspect="aspect-[4/3]"
                       delay={Math.min(i, 3) * 70}
+                      zoom
                     />
                   ))}
                 </div>

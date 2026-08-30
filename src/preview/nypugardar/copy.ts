@@ -67,6 +67,12 @@ const en = {
     ageNote: 'guests 7 and older count as adults',
     pricesNext: 'prices shown on the next step',
     placeholder: 'Godo booking connects here',
+    datesAria: 'Choose your arrival and departure dates',
+    openCalendar: 'Open the calendar',
+    prevMonth: 'Previous month',
+    nextMonth: 'Next month',
+    strikeNote: 'Crossed-out nights were fully booked at our last check',
+    mayBeFull: 'Those nights looked fully booked at our last check. The booking page has the final word.',
   },
 
   farm: {
@@ -100,6 +106,16 @@ const en = {
     body: 'Bright, warm rooms in the main house, and two small cottages with bathrooms of their own. Plain, comfortable, and that view from the pillow.',
     seeAll: 'See every room and photo',
     seeAllNote: 'Seven room types and the two cottages, each with its own photographs and its own price, on a page of their own.',
+    /** Short forms for the room index chips; the bands carry the full Godo names. */
+    short: {
+      twinSharedEconomy: 'Twin, economy',
+      doubleTwinShared: 'Double/twin, shared bath',
+      double: 'Double',
+      doubleTwinPrivate: 'Double/twin, private bath',
+      doublePrivateExtraBed: 'Double + extra bed',
+      cottage3: 'Cottage for 3',
+      familyCottage: 'Family cottage',
+    },
     cottagesHeading: 'The two cottages',
     cottagesBody: 'Two timber cottages of 20 and 25 square metres stand beside the main house, each with its own bathroom. Room for two to four guests, with the fields right outside the door.',
     cottage1Alt: 'The family cottage at Nýpugarðar, red roof and a timber porch, standing on the grass',
@@ -316,6 +332,12 @@ const is: typeof en = {
     ageNote: 'gestir 7 ára og eldri teljast fullorðnir',
     pricesNext: 'verð birtast í næsta skrefi',
     placeholder: 'Godo bókun tengist hér',
+    datesAria: 'Veldu komu- og brottfarardag',
+    openCalendar: 'Opna dagatalið',
+    prevMonth: 'Fyrri mánuður',
+    nextMonth: 'Næsti mánuður',
+    strikeNote: 'Yfirstrikaðar nætur voru fullbókaðar við síðustu athugun',
+    mayBeFull: 'Þessar nætur virtust fullbókaðar við síðustu athugun. Bókunarsíðan ræður úrslitum.',
   },
 
   farm: {
@@ -349,6 +371,15 @@ const is: typeof en = {
     body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baðherbergi. Einfalt, notalegt, og útsýnið beint úr rúminu.',
     seeAll: 'Skoða öll herbergi og myndir',
     seeAllNote: 'Sjö herbergisgerðir og sumarhúsin tvö, hver með sínum myndum og sínu verði, á sérsíðu.',
+    short: {
+      twinSharedEconomy: 'Hagkvæmt, sameiginlegt bað',
+      doubleTwinShared: 'Sameiginlegt bað',
+      double: 'Tveggja manna',
+      doubleTwinPrivate: 'Eigin bað',
+      doublePrivateExtraBed: 'Eigin bað og aukarúm',
+      cottage3: 'Sumarhús fyrir 3',
+      familyCottage: 'Fjölskyldusumarhús',
+    },
     cottagesHeading: 'Sumarhúsin tvö',
     cottagesBody: 'Tvö timburhús, 20 og 25 fermetra, standa við hlið aðalhússins og hvort um sig með eigin baðherbergi. Pláss fyrir tvo til fjóra gesti og túnin beint fyrir utan dyrnar.',
     cottage1Alt: 'Fjölskyldusumarhúsið á Nýpugörðum, rautt þak og timburverönd, stendur á grasinu',

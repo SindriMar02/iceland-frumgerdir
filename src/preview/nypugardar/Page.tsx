@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
-import Lenis from "lenis";
+import type Lenis from "lenis";
 import {
   useMotionValueEvent,
   useReducedMotion,
@@ -133,6 +133,9 @@ export const ROOM_ORDER: GodoRoomKey[] = [
   'familyCottage',
 ];
 import { Link } from "react-router-dom";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
+import PRICES from './prices.json';
 import { useLang } from './useLang';
 import { COPY } from './copy';
 import type { Copy, Lang } from './copy';
@@ -185,6 +188,31 @@ function atStops(stops: Stop[], v: number): string {
   const k = (t - a[0]) / span;
   const c = a[1].map((n, i) => Math.round(n + (b[1][i] - n) * k));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* Adopted via 21st.dev "Zoomable Image" (id 20027): the engine underneath is
+ * react-medium-image-zoom, a medium.com-style click-to-zoom. Every selector it
+ * ships is scoped to [data-rmiz] attributes, so the global stylesheet import
+ * cannot leak into the other previews. These overrides re-ink its white
+ * overlay to the farm's night ground; injected once, by id. */
+const ZOOM_CSS = `
+.nyp-zoom [data-rmiz-modal-overlay="visible"] { background: rgba(21, 19, 15, 0.96); }
+.nyp-zoom [data-rmiz-btn-unzoom] {
+  background: rgba(244, 238, 226, 0.12); color: #F4EEE2;
+  border-radius: 0; box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nyp-zoom [data-rmiz-modal-img], .nyp-zoom [data-rmiz-modal-overlay] { transition-duration: 0.01ms !important; }
+}
+`
+function useZoomCss(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || document.getElementById("nyp-zoom-css")) return
+    const el = document.createElement("style")
+    el.id = "nyp-zoom-css"
+    el.textContent = ZOOM_CSS
+    document.head.appendChild(el)
+  }, [enabled])
 }
 
 /* ── Reveal — IntersectionObserver on an untransformed wrapper; the failsafe is
@@ -254,6 +282,7 @@ export function ClipImg({
   delay = 0,
   className = "",
   imgClassName = "",
+  zoom = false,
 }: {
   photo: Photo;
   /** What width this tile actually renders at, per breakpoint. */
@@ -264,6 +293,10 @@ export function ClipImg({
   delay?: number;
   className?: string;
   imgClassName?: string;
+  /** Click-to-zoom lightbox. On the rooms page only: a portrait photograph in
+   *  a 4:3 tile loses half its frame, and the zoom is how a guest gets it
+   *  back. The homepage tiles stay plain — narrative flow, not inventory. */
+  zoom?: boolean;
 }) {
   const reduced = useReducedMotion() ?? false;
   const ref = useRef<HTMLElement>(null);
@@ -342,10 +375,10 @@ export function ClipImg({
     return () => window.clearTimeout(t);
   }, [inView, ready]);
 
+  useZoomCss(zoom);
+
   const on = (inView && ready) || reduced;
-  return (
-    <figure ref={ref} className={className}>
-      <div className={`${aspect} overflow-hidden rounded-sm`}>
+  const img = (
         <Img
           {...frame(photo, sizes)}
           alt={alt}
@@ -364,6 +397,21 @@ export function ClipImg({
                 }
           }
         />
+  );
+  return (
+    <figure ref={ref} className={className}>
+      <div className={`${aspect} overflow-hidden rounded-sm`}>
+        {zoom ? (
+          <Zoom
+            classDialog="nyp-zoom"
+            zoomMargin={16}
+            zoomImg={{ src: largest(photo), alt }}
+          >
+            {img}
+          </Zoom>
+        ) : (
+          img
+        )}
       </div>
       {caption ? (
         <figcaption className="mt-2.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/55">
@@ -543,7 +591,7 @@ export function BookLink({
           : { lang },
       )!}
       onClick={onClick}
-      className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
+      className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-[160ms] ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
     >
       {children}
       <span className="grid h-8 w-8 place-items-center rounded-full bg-[#15130F]/10 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px">
@@ -637,6 +685,15 @@ const SEED: Review[] = QUOTES.map((q) => ({
   note: q.note,
 }))
 
+/* The swap dips to 0.38 rather than blanking: the stage should read as the
+ * quotes being changed, not emptied ([[redesign-craft-ledger]] #209). The
+ * keyframes live here, scoped by name: the original `quoteIn` rule had been
+ * deleted from the shared stylesheet by an unrelated commit and nothing
+ * noticed, because an undefined animation fails silently. */
+const QUOTE_KEYFRAMES = `
+@keyframes nypQuoteIn { from { opacity: 0.38; transform: translateY(6px); } }
+`
+
 function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en'] }) {
   const [full, setFull] = useState<ReviewFile | null>(null)
   const [page, setPage] = useState(0)
@@ -702,30 +759,36 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
     <div
       ref={ref}
       onMouseEnter={() => setHeld(true)}
+      data-quote-rotator
       onMouseLeave={() => setHeld(false)}
       onFocusCapture={() => setHeld(true)}
       onBlurCapture={() => setHeld(false)}
     >
+      <style dangerouslySetInnerHTML={{ __html: QUOTE_KEYFRAMES }} />
       <div
         key={page}
         aria-live="polite"
         className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8"
-        style={reduced ? undefined : { animation: `quoteIn 0.55s ${EASE} both` }}
+        style={reduced ? undefined : { animation: `nypQuoteIn 0.35s ${EASE} both` }}
       >
         {shown.map((q: Review) => (
           <blockquote
             key={`${q.n}|${q.d}|${q.t.slice(0, 24)}`}
-            className="border-t pt-6"
+            /* min-w-0: a grid column otherwise refuses to shrink below its
+             * longest unbreakable token, and 20 of these reviews carry words
+             * up to 61 characters — measured as 34px of horizontal page
+             * scroll whenever one rotated in. */
+            className="min-w-0 border-t pt-6"
             style={{ borderColor: HAIR }}
           >
             {/* pre-line, because plenty of these were written as stacked short
               * lines rather than sentences. Collapsing them and inserting full
               * stops would be editing somebody else's review. */}
-            <p className="whitespace-pre-line leading-relaxed text-[#F4EEE2]/85">“{q.t}”</p>
+            <p className="whitespace-pre-line leading-relaxed text-[#F4EEE2]/85 [overflow-wrap:anywhere]">“{q.t}”</p>
             <footer className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
               {q.n}
               {q.c ? `, ${q.c}` : ''}
-              <span className="mt-1 block text-[#F4EEE2]/45">
+              <span className="mt-1 block text-[#F4EEE2]/60">
                 {q.d}
                 {typeof q.s === 'number' ? (
                   <span style={{ color: ACCENT }}> · {q.s}/10</span>
@@ -774,8 +837,8 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
               />
             </button>
           </div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/45 tabular-nums">
-            {start + 1}&ndash;{Math.min(start + PER_PAGE, pool.length)} {t.reviews.of}{' '}
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/60 tabular-nums">
+            {start + 1}-{Math.min(start + PER_PAGE, pool.length)} {t.reviews.of}{' '}
             {pool.length.toLocaleString('en-US')} {t.reviews.written}
           </p>
         </div>
@@ -792,10 +855,15 @@ export default function Page() {
   const { stay, setStay, today } = useStay();
   const reduced = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const rules = useRef(new Set<HTMLSpanElement>());
   const [mounted, setMounted] = useState(false);
-  const [barShown, setBarShown] = useState(false);
-  const barRef = useRef(false);
+  /* True once the hero has scrolled past under the bar. Drives BOTH the nav's
+   * material (transparent over its own photograph, ink glass over content — a
+   * colour swap, never a hide/reveal) and the mobile bottom CTA, which must
+   * not cover a hero that already carries the booking card and its own CTA. */
+  const [pastHero, setPastHero] = useState(false);
+  const pastHeroRef = useRef(false);
   const { scrollYProgress } = useScroll();
 
   /* ── Mobile menu — hamburger state, measured nav height (so the overlay's
@@ -816,14 +884,36 @@ export default function Page() {
 
   useEffect(() => {
     if (!menuOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    /* Fixed-body scroll lock, not overflow:hidden — turning body into a
+     * scroll container kills every sticky descendant and lets the page leak
+     * into the iOS status-bar strip ([[mobile-chrome-standard]] trap 2). */
+    const y = window.scrollY;
+    const b = document.body.style;
+    const prev = {
+      position: b.position,
+      top: b.top,
+      left: b.left,
+      right: b.right,
+      width: b.width,
+    };
+    b.position = "fixed";
+    b.top = `-${y}px`;
+    b.left = "0";
+    b.right = "0";
+    b.width = "100%";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMenuOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prevOverflow;
+      b.position = prev.position;
+      b.top = prev.top;
+      b.left = prev.left;
+      b.right = prev.right;
+      b.width = prev.width;
+      window.scrollTo(0, y);
+      /* With Lenis alive, restore through it too or the page snaps to top. */
+      lenisRef.current?.scrollTo(y, { immediate: true });
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
@@ -867,6 +957,14 @@ export default function Page() {
    * from the raw progress value inside this single callback — no sibling
    * useTransform .get() reads, no CSS transitions on scrubbed values. */
   useMotionValueEvent(scrollYProgress, "change", (v) => {
+    /* Chrome state is not motion: reduced-motion users scroll too, and the
+     * bar's material and the bottom CTA must still follow the hero for them. */
+    const hb = headerRef.current?.getBoundingClientRect().bottom ?? Infinity;
+    const past = hb <= navHeight;
+    if (past !== pastHeroRef.current) {
+      pastHeroRef.current = past;
+      setPastHero(past);
+    }
     if (reduced) return;
     const root = rootRef.current;
     if (!root) return;
@@ -880,10 +978,6 @@ export default function Page() {
         clamp01((vh * 0.86 - r.top) / (vh * 0.52)).toFixed(4),
       );
     });
-    if (!barRef.current && v > 0.02) {
-      barRef.current = true;
-      setBarShown(true);
-    }
   });
 
   /* Lenis smooth scroll — skipped entirely under prefers-reduced-motion.
@@ -895,36 +989,54 @@ export default function Page() {
    * without this the nav jumps instantly. */
   useEffect(() => {
     if (reduced) return;
-    const lenis = new Lenis({ duration: 1.1 });
-    lenisRef.current = lenis;
+    /* Fine pointers only, via dynamic import: a JS smooth-scroll library on a
+     * touch device breaks iOS momentum and chrome on its own
+     * ([[lenis-mobile-damage]]), and the gate being at the import means a
+     * phone never even downloads the library. */
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    let disposed = false;
+    let lenis: Lenis | null = null;
     let raf = 0;
-    const loop = (t: number) => {
-      lenis.raf(t);
+    import("lenis").then(({ default: L }) => {
+      if (disposed) return;
+      lenis = new L({ duration: 1.1 });
+      lenisRef.current = lenis;
+      const loop = (t: number) => {
+        lenis!.raf(t);
+        raf = requestAnimationFrame(loop);
+      };
       raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
+    });
     return () => {
+      disposed = true;
       cancelAnimationFrame(raf);
-      lenis.destroy();
+      lenis?.destroy();
       lenisRef.current = null;
     };
   }, [reduced]);
 
   useEffect(() => {
-    if (reduced) setBarShown(true);
     const t = window.setTimeout(() => setMounted(true), 40);
     return () => window.clearTimeout(t);
-  }, [reduced]);
+  }, []);
 
   useEffect(() => {
     document.title = "Nýpugarðar · Kvöldverðurinn á Mýrum";
     setThemeColor(GROUND);
+    /* Safari paints its own chrome and the strip under the URL bar from the
+     * BODY background, and the shared preview shell's body is light — visible
+     * as a white flash whenever the zoom dialog's top layer opens. The page
+     * ink has to live on body itself for this route. */
+    const prevBodyBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = GROUND;
     const s = document.createElement("script");
     s.type = "application/ld+json";
     s.text = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "BedAndBreakfast",
       name: "Nýpugarðar",
+      url: "https://glacierview.is",
+      image: new URL(largest(IMG.hero), window.location.origin).href,
       telephone: "+354 893 1826",
       email: EMAIL,
       address: {
@@ -934,12 +1046,21 @@ export default function Page() {
         postalCode: "781",
         addressCountry: "IS",
       },
+      /* Booking.com headline figures, last read live 2026-08-25. */
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: 8.8,
+        bestRating: 10,
+        reviewCount: 2268,
+      },
+      priceRange: "EUR 87 to 149 per night",
       petsAllowed: false,
       checkinTime: "16:00",
       checkoutTime: "11:00",
     });
     document.head.appendChild(s);
     return () => {
+      document.body.style.backgroundColor = prevBodyBg;
       document.head.removeChild(s);
     };
   }, []);
@@ -958,8 +1079,8 @@ export default function Page() {
   return (
     <div
       ref={rootRef}
-      lang="en"
-      className="min-h-screen font-supreme text-[#F4EEE2] antialiased"
+      lang={lang}
+      className="min-h-screen overflow-x-clip font-supreme text-[#F4EEE2] antialiased"
       style={
         {
           background: GROUND,
@@ -989,7 +1110,10 @@ export default function Page() {
        * it z-auto lets the nav bar's own z-40 rank above the overlay while
        * the hero photo/copy (z-auto/5/10) stay ranked below it — see the
        * overlay's comment right after </header>. */}
-      <header className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
+      <header
+        ref={headerRef}
+        className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden"
+      >
         <Img
           {...frame(IMG.hero, "100vw")}
           alt={t.closing.heroAlt}
@@ -1021,12 +1145,28 @@ export default function Page() {
           className="absolute inset-x-0 top-0 z-[5] h-40 bg-gradient-to-b from-[#15130F]/75 to-transparent"
         />
 
+        {/* CONSTANT bar ([[mobile-chrome-standard]], Kleif amendment): fixed
+         * from first paint, never hides, never transforms. Over its own hero
+         * photograph it is transparent; past the hero it turns ink glass so
+         * the wordmark, menu and booking CTA ride the whole page. A colour
+         * swap is not a forbidden transform. */}
         <nav
-          className="absolute inset-x-0 top-0 z-40"
+          className="fixed inset-x-0 top-0 z-40"
           aria-label="Main"
           style={{
-            background: menuOpen ? GROUND : "transparent",
-            transition: reduced ? "none" : `background-color 0.3s ${EASE}`,
+            background: menuOpen
+              ? GROUND
+              : pastHero
+                ? "rgba(21,19,15,0.88)"
+                : "transparent",
+            backdropFilter: pastHero && !menuOpen ? "blur(10px)" : undefined,
+            WebkitBackdropFilter:
+              pastHero && !menuOpen ? "blur(10px)" : undefined,
+            boxShadow:
+              pastHero && !menuOpen ? `0 1px 0 ${HAIR}` : "0 1px 0 transparent",
+            transition: reduced
+              ? "none"
+              : `background-color 0.3s ${EASE}, box-shadow 0.3s ${EASE}`,
           }}
         >
           <div
@@ -1220,7 +1360,7 @@ export default function Page() {
                         : "translateY(100%)",
                     transition: reduced
                       ? "none"
-                      : `transform 0.6s ${EASE} ${menuOpen ? 60 + i * 60 : 0}ms`,
+                      : `transform 0.3s ${EASE} ${menuOpen ? 40 + i * 35 : 0}ms`,
                   }}
                 >
                   {t.nav[n.id as keyof typeof t.nav]}
@@ -1236,7 +1376,7 @@ export default function Page() {
               transform: menuOpen || reduced ? "scaleX(1)" : "scaleX(0)",
               transition: reduced
                 ? "none"
-                : `transform 0.5s ${EASE} ${menuOpen ? 60 + NAV.length * 60 : 0}ms`,
+                : `transform 0.3s ${EASE} ${menuOpen ? 40 + NAV.length * 35 : 0}ms`,
             }}
           />
         </nav>
@@ -1262,7 +1402,7 @@ export default function Page() {
         {/* ── 2 · THE FARM — sheep ─────────────────────────────────────── */}
         <section
           id="farm"
-          className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32"
+          className="mx-auto max-w-6xl scroll-mt-16 px-5 py-24 md:px-8 md:py-32"
         >
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
             <div>
@@ -1405,7 +1545,7 @@ export default function Page() {
           * page now: seven screens of inventory sat between dinner and the
           * reviews, and the homepage read as a catalogue. Here: the counts,
           * three frames as a taste, and the door through. */}
-        <section id="rooms" className="border-t" style={{ borderColor: HAIR }}>
+        <section id="rooms" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label={t.rooms.eyebrow} register={register} reduced={reduced} />
             <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
@@ -1462,14 +1602,26 @@ export default function Page() {
 
             <Reveal delay={120}>
               <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+                {/* Outline, not ember: on a phone this section shares the
+                  * viewport with the sticky booking bar, and two orange
+                  * primaries stacked in one screen fight each other. Booking
+                  * keeps the ember; this is navigation. */}
                 <Link
                   to="/preview/nypugardar/herbergi"
-                  className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-3 pl-6 pr-6 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-200 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS}`}
+                  className={`group inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3 text-[15px] font-medium transition-[transform,border-color] duration-200 ease-out hover:border-[#F4EEE2]/70 active:scale-[0.98] ${FOCUS}`}
                 >
                   {t.rooms.seeAll}
+                  <ArrowUpRight
+                    className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
                 </Link>
                 <p className="max-w-[40ch] text-sm leading-relaxed text-[#F4EEE2]/55">
-                  {t.rooms.seeAllNote}
+                  {t.rooms.seeAllNote}{' '}
+                  <span className="whitespace-nowrap font-mono text-[12px] uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
+                    {t.price.from} {PRICES.groups.shared}&euro; {t.price.perNight}
+                  </span>
                 </p>
               </div>
             </Reveal>
@@ -1478,7 +1630,7 @@ export default function Page() {
 
 
         {/* ── 6 · THE DINNER BUFFET — the signature offering ───────────── */}
-        <section id="dinner" className="border-t" style={{ borderColor: HAIR }}>
+        <section id="dinner" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow
               label={t.dinner.eyebrow}
@@ -1682,7 +1834,7 @@ export default function Page() {
         {/* ── 8 · REVIEWS ──────────────────────────────────────────────── */}
         <section
           id="reviews"
-          className="border-t"
+          className="scroll-mt-16 border-t"
           style={{ borderColor: HAIR }}
         >
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
@@ -1744,7 +1896,7 @@ export default function Page() {
         </section>
 
         {/* ── 9 · PRACTICAL INFO ───────────────────────────────────────── */}
-        <section id="info" className="border-t" style={{ borderColor: HAIR }}>
+        <section id="info" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label={t.info.eyebrow} register={register} reduced={reduced} />
             <Reveal delay={60}>
@@ -1919,8 +2071,12 @@ export default function Page() {
           background: "rgba(21,19,15,0.94)",
           backdropFilter: "blur(10px)",
           WebkitBackdropFilter: "blur(10px)",
+          /* Only once the hero — which carries the booking card and its own
+           * CTA — has scrolled past. Two stacked orange CTAs in one viewport
+           * was the measured duplication; and it slides back away if the
+           * guest returns to the top. */
           transform:
-            barShown && !menuOpen ? "translateY(0)" : "translateY(110%)",
+            pastHero && !menuOpen ? "translateY(0)" : "translateY(110%)",
           transition: reduced ? "none" : `transform 0.5s ${EASE}`,
         }}
       >
