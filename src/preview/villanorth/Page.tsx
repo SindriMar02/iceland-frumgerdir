@@ -1264,7 +1264,7 @@ export default function VillaNorthPage() {
         </p>
         <div className="vn-drawing-inside">
           <div className="vn-drawing-inside-copy">
-            <p className="vn-drawing-inside-kicker">Sama þakið, að innan</p>
+            <p className="vn-drawing-inside-kicker">The same roof, from inside</p>
             <p className="vn-drawing-inside-line">
               The angle drawn above is the same angle overhead in here. The roofline
               traced outside is the ceiling line inside.
@@ -1323,7 +1323,7 @@ export default function VillaNorthPage() {
             {aerialNear ? <source src={AERIAL_FILM.src} type="video/mp4" /> : null}
           </video>
           <div className="vn-film-caps">
-            <p className="vn-film-label">Úr lofti</p>
+            <p className="vn-film-label">From the air</p>
           </div>
         </div>
       </section>
@@ -1333,18 +1333,17 @@ export default function VillaNorthPage() {
         <Headline text="Plan who sleeps where." size={64} floor={32} measure={620} />
         <p className="vn-body vn-rv">
           A simple guide to how the villa flows: four bedrooms, the sitting room, the
-          kitchen and the sundeck. Einföld skýringarmynd, ekki í mælikvarða: a
-          schematic, not to scale.
+          kitchen and the sundeck. A schematic, not to scale.
         </p>
         <Frame photo={PHOTO.mezzanine} className="vn-rooms-lead" drift={11} />
 
         <div className="vn-rooms-explorer">
-          <div className="vn-rooms-index" role="group" aria-label="Herbergi">
+          <div className="vn-rooms-index" role="group" aria-label="Rooms">
             {ROOMS.map((r, i) => (
               <div key={r.id} className="vn-rooms-index-item">
                 {(i === 0 || ROOMS[i - 1].level !== r.level) && (
                   <p className="vn-rooms-zone-label">
-                    {r.level === 'efri' ? 'Efri hæð (upstairs)' : 'Neðri hæð (main level)'}
+                    {r.level === 'efri' ? 'Upstairs' : 'Main level'}
                   </p>
                 )}
                 <button
@@ -1404,7 +1403,7 @@ export default function VillaNorthPage() {
           <Frame photo={BATH_NOTE.photo} className="vn-rooms-bath-frame" drift={6} />
           <div>
             <p className="vn-rooms-bath-fact">{BATH_NOTE.fact}</p>
-            <p className="vn-rooms-bath-detail">ATH: {BATH_NOTE.detail}</p>
+            <p className="vn-rooms-bath-detail">Note: {BATH_NOTE.detail}</p>
           </div>
         </div>
       </section>
@@ -1455,7 +1454,7 @@ export default function VillaNorthPage() {
             {glowNear ? <source src={GLOW_FILM.src} type="video/mp4" /> : null}
           </video>
           <div className="vn-glow-caps">
-            <p className="vn-glow-label">Glóðin</p>
+            <p className="vn-glow-label">After dark</p>
             <p className="vn-glow-cap">{GLOW.intro}</p>
           </div>
         </div>

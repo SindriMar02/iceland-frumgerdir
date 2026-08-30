@@ -149,7 +149,7 @@ export const ROOMS: RoomEntry[] = [
   {
     id: 'br1',
     level: 'efri',
-    label: 'Svefnherbergi 1',
+    label: 'Bedroom 1',
     fact: '1 king + 2 single beds',
     note: 'Upstairs. No bathroom on this floor.',
     photo: PHOTO.bedroomAttic,
@@ -157,22 +157,22 @@ export const ROOMS: RoomEntry[] = [
   {
     id: 'br2',
     level: 'nedri',
-    label: 'Svefnherbergi 2',
+    label: 'Bedroom 2',
     fact: '1 queen bed',
     photo: PHOTO.bedroom,
   },
   {
     id: 'br3',
     level: 'nedri',
-    label: 'Svefnherbergi 3',
+    label: 'Bedroom 3',
     fact: '1 queen bed',
     photo: PHOTO.bedroom,
-    photoNote: 'Same room type as Svefnherbergi 2; the photo is shared.',
+    photoNote: 'Same room type as Bedroom 2; the photo is shared.',
   },
   {
     id: 'br4',
     level: 'nedri',
-    label: 'Svefnherbergi 4',
+    label: 'Bedroom 4',
     fact: '1 single bed',
     photo: PHOTO.bedroom,
     photoNote: 'The smallest room; the photo is shared with the two queen rooms.',
@@ -180,7 +180,7 @@ export const ROOMS: RoomEntry[] = [
   {
     id: 'stofa',
     level: 'nedri',
-    label: 'Stofa',
+    label: 'Sitting room',
     fact: 'The sitting room',
     note: 'Floor to ceiling glass on the valley side.',
     photo: PHOTO.living,
@@ -188,7 +188,7 @@ export const ROOMS: RoomEntry[] = [
   {
     id: 'eldhus',
     level: 'nedri',
-    label: 'Eldhús',
+    label: 'Kitchen',
     fact: 'The kitchen',
     note: 'Miele appliances, very well stocked, open to the dining table.',
     photo: PHOTO.kitchenRun,
@@ -196,7 +196,7 @@ export const ROOMS: RoomEntry[] = [
   {
     id: 'pallur',
     level: 'nedri',
-    label: 'Pallurinn',
+    label: 'Sundeck',
     fact: 'The sundeck',
     note: 'The hot tub sits at its edge: trees on one side, the valley on the other.',
     photo: PHOTO.wineGlasses,
@@ -205,7 +205,7 @@ export const ROOMS: RoomEntry[] = [
 
 export const BATH_NOTE = {
   fact: '1.5 bathrooms, both on the main level',
-  detail: 'The upstairs bedroom (Svefnherbergi 1) has no bathroom of its own; both bathrooms are downstairs.',
+  detail: 'The upstairs bedroom (Bedroom 1) has no bathroom of its own; both bathrooms are downstairs.',
   photo: PHOTO.bath,
 }
 
