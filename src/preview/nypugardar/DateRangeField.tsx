@@ -187,7 +187,7 @@ export default function DateRangeField({
           </label>
           <Button
             aria-label={t.booking.openCalendar}
-            className="grid h-11 w-11 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#15130F] md:h-8 md:w-8"
+            className="grid h-11 w-11 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#15130F] md:h-8 md:w-8"
             style={{ borderColor: HAIR, color: PAPER }}
           >
             <CalendarDays className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
@@ -228,7 +228,7 @@ export default function DateRangeField({
                   <Button
                     slot="previous"
                     aria-label={t.booking.prevMonth}
-                    className="grid h-9 w-9 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 disabled:opacity-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D]"
+                    className="grid h-9 w-9 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 disabled:opacity-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D]"
                     style={{ borderColor: HAIR, color: PAPER }}
                   >
                     <ChevronLeft className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
@@ -236,7 +236,7 @@ export default function DateRangeField({
                   <Button
                     slot="next"
                     aria-label={t.booking.nextMonth}
-                    className="grid h-9 w-9 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 disabled:opacity-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D]"
+                    className="grid h-9 w-9 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 disabled:opacity-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97D3D]"
                     style={{ borderColor: HAIR, color: PAPER }}
                   >
                     <ChevronRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
@@ -270,11 +270,18 @@ export default function DateRangeField({
         dangerouslySetInnerHTML={{
           __html: `
 .nyp-cal-pop[data-entering] { animation: nypCalIn 0.18s ${EASE}; }
-.nyp-cal-pop[data-exiting] { animation: nypCalOut 0.12s ease-in forwards; }
+/* ease-OUT on the way out too. ease-in delays the frames the user is watching
+ * hardest — the moment they clicked to dismiss — and reads as the panel
+ * sticking to the cursor before it goes. */
+.nyp-cal-pop[data-exiting] { animation: nypCalOut 0.12s ${EASE} forwards; }
 @keyframes nypCalIn { from { opacity: 0; transform: scale(0.98) translateY(-4px); } }
 @keyframes nypCalOut { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .nyp-cal-pop[data-entering], .nyp-cal-pop[data-exiting] { animation: none; }
+  /* Gentler, not gone: the scale and the lift go, a short fade stays so the
+   * panel still reads as arriving and leaving rather than blinking. */
+  .nyp-cal-pop[data-entering] { animation: nypCalFade 0.12s linear; }
+  .nyp-cal-pop[data-exiting] { animation: nypCalOut 0.12s linear forwards; }
+  @keyframes nypCalFade { from { opacity: 0; } }
 }
 `,
         }}

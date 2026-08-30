@@ -201,8 +201,17 @@ const ZOOM_CSS = `
   background: rgba(244, 238, 226, 0.12); color: #F4EEE2;
   border-radius: 0; box-shadow: none;
 }
+/* The library ships transform .3s ease on the opening image. Plain ease is the
+ * weak built-in and this is an ENTERING element, so it gets the strong
+ * ease-out curve instead. */
+.nyp-zoom [data-rmiz-modal-img] { transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important; }
 @media (prefers-reduced-motion: reduce) {
-  .nyp-zoom [data-rmiz-modal-img], .nyp-zoom [data-rmiz-modal-overlay] { transition-duration: 0.01ms !important; }
+  /* Gentler, not zero: the movement goes, the fade stays, so the lightbox is
+   * still legibly *arriving* rather than teleporting. A blanket
+   * transition-duration:0.01ms would have killed the fade too
+   * ([[redesign-craft-ledger]] #179). */
+  .nyp-zoom [data-rmiz-modal-img] { transition-property: opacity !important; transition-duration: 0.2s !important; }
+  .nyp-zoom [data-rmiz-modal-overlay] { transition-duration: 0.2s !important; }
 }
 `
 function useZoomCss(enabled: boolean) {
@@ -548,7 +557,7 @@ export function RoomBookLink({
         {t.cta.bookRoom}
         <span
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100"
+          className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-200 ease-out group-hover:scale-x-100"
           style={{ background: ACCENT }}
         />
       </span>
@@ -686,19 +695,39 @@ const SEED: Review[] = QUOTES.map((q) => ({
 }))
 
 /* The swap dips to 0.38 rather than blanking: the stage should read as the
- * quotes being changed, not emptied ([[redesign-craft-ledger]] #209). The
- * keyframes live here, scoped by name: the original `quoteIn` rule had been
- * deleted from the shared stylesheet by an unrelated commit and nothing
- * noticed, because an undefined animation fails silently. */
-const QUOTE_KEYFRAMES = `
-@keyframes nypQuoteIn { from { opacity: 0.38; transform: translateY(6px); } }
-`
+ * quotes being changed, not emptied ([[redesign-craft-ledger]] #209).
+ *
+ * A TRANSITION, NOT A KEYFRAME, AND NOT A KEYED REMOUNT. Both of those restart
+ * from zero when a second step arrives mid-flight, which is exactly what the
+ * step buttons invite. Measured on the keyframe version: two clicks 180ms
+ * apart drove opacity up to 0.916 and then SNAPPED it back to 0.38 — a visible
+ * stutter. Holding one element and transitioning its opacity means an
+ * interrupted swap retargets from wherever it currently is. */
 
 function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en'] }) {
   const [full, setFull] = useState<ReviewFile | null>(null)
   const [page, setPage] = useState(0)
   const [held, setHeld] = useState(false)
+  /* false for exactly one frame after the quotes change: the stage dips, then
+   * transitions back. Interrupting mid-dip retargets instead of restarting. */
+  const [settled, setSettled] = useState(true)
   const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (reduced) return
+    setSettled(false)
+    /* Two frames: one to paint the dipped state, one to transition out of it.
+     * A single rAF is coalesced with the state change in some browsers and the
+     * dip never renders. */
+    let inner = 0
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setSettled(true))
+    })
+    return () => {
+      cancelAnimationFrame(outer)
+      cancelAnimationFrame(inner)
+    }
+  }, [page, reduced])
 
   /* Fetch the full set when the section is within a screen of the viewport.
    * rootMargin does the work: by the time the reader arrives the swap has
@@ -764,12 +793,18 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
       onFocusCapture={() => setHeld(true)}
       onBlurCapture={() => setHeld(false)}
     >
-      <style dangerouslySetInnerHTML={{ __html: QUOTE_KEYFRAMES }} />
       <div
-        key={page}
         aria-live="polite"
         className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8"
-        style={reduced ? undefined : { animation: `nypQuoteIn 0.35s ${EASE} both` }}
+        style={
+          reduced
+            ? undefined
+            : {
+                opacity: settled ? 1 : 0.38,
+                transform: settled ? "none" : "translateY(6px)",
+                transition: `opacity 0.35s ${EASE}, transform 0.35s ${EASE}`,
+              }
+        }
       >
         {shown.map((q: Review) => (
           <blockquote
@@ -814,7 +849,7 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
               type="button"
               onClick={() => step(-1)}
               aria-label={t.reviews.prevSet}
-              className={`grid h-11 w-11 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 md:h-9 md:w-9 ${FOCUS}`}
+              className={`grid h-11 w-11 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 md:h-9 md:w-9 ${FOCUS}`}
               style={{ borderColor: HAIR, color: PAPER }}
             >
               <ArrowUpRight
@@ -827,7 +862,7 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
               type="button"
               onClick={() => step(1)}
               aria-label={t.reviews.nextSet}
-              className={`grid h-11 w-11 place-items-center border transition-colors duration-200 hover:border-[#F4EEE2]/45 md:h-9 md:w-9 ${FOCUS}`}
+              className={`grid h-11 w-11 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 md:h-9 md:w-9 ${FOCUS}`}
               style={{ borderColor: HAIR, color: PAPER }}
             >
               <ArrowUpRight
@@ -1073,7 +1108,7 @@ export default function Page() {
           opacity: on ? 1 : 0,
           transform: on ? "none" : "translateY(26px)",
           filter: on ? "none" : "blur(6px)",
-          transition: `opacity 0.85s ${EASE} ${140 + i * 90}ms, transform 0.85s ${EASE} ${140 + i * 90}ms, filter 0.85s ${EASE} ${140 + i * 90}ms`,
+          transition: `opacity 0.85s ${EASE} ${140 + i * 70}ms, transform 0.85s ${EASE} ${140 + i * 70}ms, filter 0.85s ${EASE} ${140 + i * 70}ms`,
         };
 
   return (
@@ -2081,7 +2116,10 @@ export default function Page() {
            * guest returns to the top. */
           transform:
             pastHero && !menuOpen ? "translateY(0)" : "translateY(110%)",
-          transition: reduced ? "none" : `transform 0.5s ${EASE}`,
+          /* 300ms, not 500: this used to appear once on the way down, but it
+           * now toggles every time the hero boundary is crossed, which puts it
+           * in UI territory rather than one-shot drawer territory. */
+          transition: reduced ? "none" : `transform 0.3s ${EASE}`,
         }}
       >
         <div className="flex items-stretch gap-3 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">

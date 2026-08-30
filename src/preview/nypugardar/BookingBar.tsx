@@ -79,7 +79,7 @@ function Stepper({
           aria-label={`One fewer ${label.toLowerCase()}`}
           disabled={value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
-          className={`grid h-11 w-11 [touch-action:manipulation] place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
+          className={`grid h-11 w-11 [touch-action:manipulation] place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
           style={{ borderColor: HAIR, color: PAPER }}
         >
           <Minus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
@@ -96,7 +96,7 @@ function Stepper({
           aria-label={`One more ${label.toLowerCase()}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
-          className={`grid h-11 w-11 [touch-action:manipulation] place-items-center border transition-colors disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
+          className={`grid h-11 w-11 [touch-action:manipulation] place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 disabled:opacity-30 md:h-8 md:w-8 ${FOCUS}`}
           style={{ borderColor: HAIR, color: PAPER }}
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
