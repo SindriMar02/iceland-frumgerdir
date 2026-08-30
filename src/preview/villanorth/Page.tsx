@@ -46,6 +46,18 @@ const MONO = "'Azeret Mono', ui-monospace, monospace"
 
 const BASE = import.meta.env.BASE_URL
 
+/* A phone, not a narrow window. Guarding on width would strip the damped feel
+   from a small desktop window, which is not the thing that breaks. */
+const isTouch = () =>
+  typeof matchMedia !== 'undefined' &&
+  matchMedia('(hover: none) and (pointer: coarse)').matches
+
+/* iOS delivers scroll events async with rendering, so a synchronous scrub
+   lands a frame late against a smoothly moving page and visibly steps. A
+   small numeric scrub re-times it. Desktop keeps true, where Lenis has
+   already smoothed the event flow. */
+const SCRUB: number | true = isTouch() ? 0.35 : true
+
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
@@ -76,7 +88,11 @@ function useMotion(ready: boolean) {
 
     root.classList.add('vn-js')
     ScrollTrigger.config({ ignoreMobileResize: true })
-    const lenis = new Lenis({ duration: 1.1, smoothWheel: true })
+    /* SKIPPED on touch, never tuned. Lenis and iOS momentum fight over the
+       same scroll position every frame (the judder), and a JS-scrolled
+       document keeps Safari's tall bottom toolbar for the whole visit, so the
+       last ~90px of every screen goes dead. Desktop keeps it. */
+    const lenis = isTouch() ? null : new Lenis({ duration: 1.1, smoothWheel: true })
 
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
@@ -219,7 +235,7 @@ function useMotion(ready: boolean) {
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: drawWrap, start: 'top top', end: '+=220%',
-              pin: true, scrub: true, anticipatePin: 1, invalidateOnRefresh: true,
+              pin: true, scrub: SCRUB, anticipatePin: 1, invalidateOnRefresh: true,
             },
           })
           scrubST = tl.scrollTrigger ?? null
@@ -278,8 +294,10 @@ function useMotion(ready: boolean) {
       drawSection?.removeEventListener('focusout', onFocusOut)
     })
 
-    lenis.on('scroll', ScrollTrigger.update)
-    const tick = (t: number) => { drift(); lenis.raf(t * 1000) }
+    /* Without Lenis the browser scrolls natively, so ScrollTrigger listens to
+       the real scroll event and the ticker only drives the drift. */
+    if (lenis) lenis.on('scroll', ScrollTrigger.update)
+    const tick = (t: number) => { drift(); lenis?.raf(t * 1000) }
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
     drift()
@@ -289,7 +307,7 @@ function useMotion(ready: boolean) {
       io.disconnect()
       cleanups.forEach((fn) => fn())
       ctx.revert()
-      lenis.destroy()
+      lenis?.destroy()
     }
   }, [ready])
 }
