@@ -189,15 +189,29 @@ function useMotion(ready: boolean) {
         }
       }
 
-      /* word-mask headline rises */
+      /* HEADLINE BLUR REVEAL, per character, driven by the page's own
+         ScrollTrigger rather than a second motion library: running
+         framer-motion's whileInView beside GSAP would put two engines on the
+         same elements. Timings are the reference's: stagger 0.03/1.5, duration
+         0.3/0.5, from blur(12px) + y 10 + opacity 0.
+
+         The blur is DESKTOP ONLY. A per-character filter animation promotes a
+         layer per glyph and repaints each one every frame; on a phone that is
+         paid for in exactly the momentum this build just spent a pass
+         protecting. Touch keeps the rise and the fade, which carries the same
+         reveal without the repaint. */
+      const BLUR_OK = !isTouch()
       root.querySelectorAll<HTMLElement>('[data-vn-headline]').forEach((h) => {
-        const words = h.querySelectorAll<HTMLElement>('.vn-word')
-        if (!words.length) return
+        const chars = h.querySelectorAll<HTMLElement>('.vn-char')
+        if (!chars.length) return
         gsap.fromTo(
-          words,
-          { yPercent: 116, opacity: 0 },
+          chars,
+          { opacity: 0, y: 10, ...(BLUR_OK ? { filter: 'blur(12px)' } : null) },
           {
-            yPercent: 0, opacity: 1, duration: 1.0, ease: 'expo.out', stagger: 0.06,
+            opacity: 1, y: 0, ...(BLUR_OK ? { filter: 'blur(0px)' } : null),
+            duration: 0.6, ease: 'power2.out', stagger: 0.02,
+            /* clears the inline filter so no glyph is left on its own layer */
+            clearProps: BLUR_OK ? 'filter' : '',
             scrollTrigger: { trigger: h, start: 'top 88%', once: true },
           },
         )
@@ -329,10 +343,16 @@ function Headline({ text, size, floor, as: Tag = 'h2', className = '', measure }
         maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined,
       }}
     >
+      {/* Split to CHARACTERS for the blur reveal, but each word stays one
+          unbreakable inline-block so a line never breaks mid-word. The
+          aria-label above carries the real string, so the split is invisible
+          to assistive tech. */}
       {text.split(' ').map((w, i, arr) => (
-        <span key={i} aria-hidden="true">
-          <span className="vn-line"><span className="vn-word">{w}</span></span>
-          {i < arr.length - 1 ? ' ' : ''}
+        <span key={i} className="vn-word" aria-hidden="true">
+          {Array.from(w).map((c, j) => (
+            <span key={j} className="vn-char">{c}</span>
+          ))}
+          {i < arr.length - 1 ? <span className="vn-char">{'\u00A0'}</span> : null}
         </span>
       ))}
     </Tag>
@@ -889,14 +909,30 @@ export default function VillaNorthPage() {
   }, [])
 
   const [loading, setLoading] = useState(shouldShowLoader)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const activeRoomData: RoomEntry = ROOMS.find((r) => r.id === activeRoom) ?? ROOMS[0]
 
   const anchor = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
+    setMenuOpen(false)
     document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' })
     history.replaceState(null, '', `#${id}`)
   }
+
+  /* Escape closes, and the page underneath is locked while the sheet is open
+     so a scroll gesture on the overlay cannot carry the page with it. */
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
 
   const onRoomKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
     if (!['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(e.key)) return
@@ -932,7 +968,45 @@ export default function VillaNorthPage() {
           <a href="#guests" onClick={anchor('guests')}>Guests</a>
         </nav>
         <a className="vn-nav-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+
+        {/* Phone only. Two rules from the fleet: a tap fires pointer events AND
+            click, so this is bound to onClick alone and never to hover; and the
+            bars are drawn with currentColor so the whole control keeps the
+            header's difference blend rather than sitting on a plate. */}
+        <button
+          type="button"
+          className={`vn-burger ${menuOpen ? 'is-open' : ''}`}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="vn-menu"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </button>
       </header>
+
+      {/* The sheet. Ink ground rather than a blur: a translucent blurred layer
+          over a scrolling page is a guaranteed dropped frame on iOS. */}
+      <div
+        id="vn-menu"
+        className={`vn-menu ${menuOpen ? 'is-open' : ''}`}
+        aria-hidden={!menuOpen}
+      >
+        <nav className="vn-menu-links" aria-label="Sections">
+          <a href="#drawing" onClick={anchor('drawing')}>The house</a>
+          <a href="#rooms" onClick={anchor('rooms')}>Rooms</a>
+          <a href="#gallery" onClick={anchor('gallery')}>Gallery</a>
+          <a href="#tours" onClick={anchor('tours')}>Tours</a>
+          <a href="#guests" onClick={anchor('guests')}>Guests</a>
+          <a href="#contact" onClick={anchor('contact')}>Finding the house</a>
+        </nav>
+        <a className="vn-menu-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+        <p className="vn-menu-foot">
+          <a href="tel:+3548449808">+354 844 9808</a>
+          <a href="mailto:villanorthiceland@gmail.com">villanorthiceland@gmail.com</a>
+        </p>
+      </div>
 
       {/* 01 · hero */}
       <section className="vn-hero" id="top">
@@ -1514,6 +1588,64 @@ const CSS = `
 }
 .vn-nav-cta:hover { border-color: currentColor; }
 
+/* ── the phone menu ────────────────────────────────────────────────────────
+   Desktop never sees any of this. The trigger is two rules drawn in
+   currentColor so it inherits the header's difference blend exactly like the
+   wordmark does, and becomes an X by rotating the same two rules. */
+.vn-burger {
+  display: none; margin-left: auto; position: relative;
+  width: 44px; height: 44px; padding: 0;
+  background: none; border: 0; color: inherit; cursor: pointer;
+}
+.vn-burger span {
+  position: absolute; left: 11px; width: 22px; height: 1.5px;
+  background: currentColor;
+  transition: transform .38s cubic-bezier(.76,0,.24,1), opacity .2s ease;
+}
+.vn-burger span:nth-child(1) { top: 19px; }
+.vn-burger span:nth-child(2) { top: 25px; }
+.vn-burger.is-open span:nth-child(1) { transform: translateY(3px) rotate(45deg); }
+.vn-burger.is-open span:nth-child(2) { transform: translateY(-3px) rotate(-45deg); }
+
+/* svh, never dvh: dvh re-lays out every frame while the iOS URL bar moves,
+   which is a full-screen relayout during a scroll. */
+.vn-menu {
+  position: fixed; inset: 0; z-index: 39;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: calc(var(--u) * 34);
+  padding: 96px 24px calc(40px + env(safe-area-inset-bottom, 0px));
+  min-height: 100svh;
+  background: var(--vn-night); color: #F2F1EE;
+  /* visibility, not the hidden attribute: toggling display in the same frame
+     as the class kills the transition, and visibility still takes the links
+     out of the tab order while closed. */
+  opacity: 0; visibility: hidden;
+  transition: opacity .34s ease, visibility 0s linear .34s;
+}
+.vn-menu.is-open {
+  opacity: 1; visibility: visible;
+  transition: opacity .34s ease, visibility 0s linear 0s;
+}
+.vn-menu-links { display: flex; flex-direction: column; gap: calc(var(--u) * 8); }
+.vn-menu-links a {
+  display: inline-flex; align-items: center; min-height: 52px;
+  font-family: ${DISPLAY}; font-weight: 700; letter-spacing: -.01em;
+  font-size: clamp(28px, 8.5vw, 40px); line-height: 1.05;
+  color: inherit; text-decoration: none;
+}
+.vn-menu-links a:active { color: var(--vn-amber); }
+.vn-menu-cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 56px; padding: 0 calc(var(--u) * 26);
+  background: var(--vn-amber); color: ${INK};
+  font-weight: 500; font-size: 16px; text-decoration: none; border-radius: 2px;
+}
+.vn-menu-foot {
+  margin: 0; display: flex; flex-direction: column; gap: 8px;
+  font-family: ${MONO}; font-size: 12px; letter-spacing: .04em;
+}
+.vn-menu-foot a { color: rgba(242, 241, 238, .62); text-decoration: none; }
+
 /* hero */
 .vn-hero { position: relative; min-height: 100svh; display: grid; }
 .vn-hero-media { position: absolute; inset: 0; overflow: hidden; }
@@ -1576,11 +1708,11 @@ const CSS = `
   margin: 0; font-family: ${DISPLAY}; font-weight: 700; letter-spacing: -.01em;
   line-height: 1.14; text-wrap: balance;
 }
-.vn-line {
-  display: inline-block; overflow: hidden; vertical-align: bottom;
-  padding: .2em .04em .12em; margin: -.2em -.04em -.12em;
-}
-.vn-word { display: inline-block; }
+/* The word is the unbreakable unit; the character is what animates. No
+   overflow clip any more: the reveal is a blur and a lift, not a mask, and a
+   clip would cut the blur radius off at the line box. */
+.vn-word { display: inline-block; white-space: nowrap; }
+.vn-char { display: inline-block; will-change: opacity, transform; }
 .vn-body {
   font-size: ${fluid(17, 15)}; line-height: 1.6; font-weight: 400;
   color: var(--vn-mute); max-width: 58ch; margin: calc(var(--u) * 24) 0 0;
@@ -2148,9 +2280,13 @@ const CSS = `
 
 /* ── responsive ── */
 @media (max-width: 991px) {
-  .vn-nav { padding: 10px 20px; gap: 16px; }
-  .vn-nav-mark, .vn-nav-cta, .vn-nav-links a { display: inline-flex; align-items: center; min-height: 44px; }
+  .vn-nav { padding: 10px 12px 10px 20px; gap: 16px; }
+  .vn-nav-mark, .vn-nav-links a { display: inline-flex; align-items: center; min-height: 44px; }
   .vn-nav-links { display: none; }
+  /* Book now moves INTO the sheet on a phone, so the header carries the
+     wordmark and one control instead of two competing ones. */
+  .vn-nav-cta { display: none; }
+  .vn-burger { display: block; }
   .vn-hero-block { padding: 0 20px 40px; }
   .vn-wordmark { font-size: clamp(28px, 10vw, 52px); }
   .vn-valley, .vn-rooms-explorer, .vn-welcome, .vn-book, .vn-drawing-inside {
