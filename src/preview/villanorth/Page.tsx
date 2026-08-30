@@ -848,11 +848,6 @@ function ToursTicker({ onOpen }: { onOpen: (e: React.MouseEvent) => void }) {
           />
         ))}
         <span className="vn-ht-veil" />
-        {/* Registration marks and a mat-board hairline: the page's drawing-sheet
-            vocabulary, so the window reads as a plate pinned to the hero rather
-            than a card floating on it. */}
-        <span className="vn-ht-marks" aria-hidden="true" />
-        <span className="vn-ht-mat" aria-hidden="true" />
         {/* The dwell, drawn. A rule creeping across the top edge says the
             photograph is about to change; three static pips only say there are
             three. Keyed on the index so the fill restarts with each flip, and
@@ -1036,14 +1031,6 @@ export default function VillaNorthPage() {
 
   useMotion(ready)
 
-  /* Both films: a defensive nudge for browsers that refuse the autoplay.
-     Two causes, both real: Safari sometimes needs an explicit play() even
-     with the attribute set, and React applies `muted` as a PROPERTY after
-     the element is inserted, so Chrome can evaluate autoplay eligibility
-     against an unmuted video and block it — by then the poster is already
-     dismissed and the element paints black (seen live on the aerial film,
-     2026-08-29). Force the property first, then play. Never runs under
-     reduced motion — the poster stands in. */
   /* One observer for both films, a viewport and a half of lead time so the
      file has a chance to arrive before the section does. */
   useEffect(() => {
@@ -1066,24 +1053,83 @@ export default function VillaNorthPage() {
     return () => io.disconnect()
   }, [])
 
+  /*
+   * Autoplay, defensively. Every one of these has a real cause:
+   *
+   * - React sets `muted` as a PROPERTY after insertion, so an engine judging
+   *   autoplay eligibility from the ATTRIBUTE can decide the video is unmuted
+   *   and refuse. Both are set here (seen live on the aerial film 2026-08-29).
+   * - play() returns a promise that REJECTS when a policy blocks it. A single
+   *   call at mount silently loses; every readiness event retries.
+   * - The source is attached late, so the element may still be NETWORK_EMPTY
+   *   when the first attempt runs - load() is called before playing.
+   * - A blocked video can usually be started from any user gesture, so the
+   *   first pointer, touch or key press retries once.
+   * - Returning to a backgrounded tab leaves them paused; visibilitychange
+   *   retries.
+   * - A pause we did not ask for (policy, power saving, decoder pressure) is
+   *   retried, but only while the film is actually on screen, which also stops
+   *   an off-screen film burning battery.
+   *
+   * A film that still refuses is not a broken section: the poster is a real
+   * <img> underneath and carries it, which is why none of this throws.
+   */
   useEffect(() => {
     if (reduced()) return
-    const cleanups: Array<() => void> = []
-    for (const ref of [glowVideoRef, aerialVideoRef]) {
-      const v = ref.current
-      if (!v) continue
+    const els = [aerialVideoRef.current, glowVideoRef.current].filter(
+      (v): v is HTMLVideoElement => v != null,
+    )
+    if (!els.length) return
+
+    const onScreen = new Set<HTMLVideoElement>()
+    const attempt = (v: HTMLVideoElement) => {
       v.muted = true
-      const tryPlay = () => { v.muted = true; v.play()?.catch(() => {}) }
-      v.addEventListener('canplay', tryPlay)
-      v.addEventListener('loadeddata', tryPlay)
-      tryPlay()
-      cleanups.push(() => {
-        v.removeEventListener('canplay', tryPlay)
-        v.removeEventListener('loadeddata', tryPlay)
-      })
+      v.setAttribute('muted', '')
+      v.playsInline = true
+      if (v.networkState === v.NETWORK_EMPTY && v.querySelector('source')) {
+        try { v.load() } catch { /* nothing to load yet */ }
+      }
+      void v.play()?.catch(() => { /* blocked; a later retry or a gesture gets it */ })
     }
-    return () => cleanups.forEach((fn) => fn())
-    /* Re-runs when a source is attached: on mount there is nothing to play. */
+
+    const cleanups: Array<() => void> = []
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const v = e.target as HTMLVideoElement
+          if (e.isIntersecting) { onScreen.add(v); attempt(v) }
+          else { onScreen.delete(v); if (!v.paused) v.pause() }
+        }
+      },
+      { threshold: 0.01 },
+    )
+
+    const READY = ['loadedmetadata', 'loadeddata', 'canplay', 'canplaythrough'] as const
+    for (const v of els) {
+      io.observe(v)
+      const onReady = () => { if (onScreen.has(v)) attempt(v) }
+      const onPause = () => { if (onScreen.has(v) && !document.hidden) attempt(v) }
+      READY.forEach((ev) => v.addEventListener(ev, onReady))
+      v.addEventListener('pause', onPause)
+      cleanups.push(() => {
+        READY.forEach((ev) => v.removeEventListener(ev, onReady))
+        v.removeEventListener('pause', onPause)
+      })
+      attempt(v)
+    }
+
+    const retryAll = () => { for (const v of els) if (onScreen.has(v)) attempt(v) }
+    const GESTURES = ['pointerdown', 'touchstart', 'keydown'] as const
+    GESTURES.forEach((g) => window.addEventListener(g, retryAll, { passive: true }))
+    const onVis = () => { if (!document.hidden) retryAll() }
+    document.addEventListener('visibilitychange', onVis)
+
+    return () => {
+      io.disconnect()
+      cleanups.forEach((fn) => fn())
+      GESTURES.forEach((g) => window.removeEventListener(g, retryAll))
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [aerialNear, glowNear])
 
   const [loading, setLoading] = useState(shouldShowLoader)
@@ -2434,7 +2480,7 @@ html, body { background-color: ${PAPER}; }
 /* the hero's tour window */
 .vn-hero-tours {
   position: absolute; right: calc(var(--u) * 44); bottom: calc(var(--u) * 40); z-index: 3;
-  display: block; width: calc(var(--u) * 268); overflow: hidden;
+  display: block; width: calc(var(--u) * 208); overflow: hidden;
   border: 1px solid rgba(242, 241, 238, .34); border-radius: 2px;
   background: rgba(16, 18, 22, .44); color: #F2F1EE; text-decoration: none;
   box-shadow: 0 26px 60px -30px rgba(16, 18, 22, .85);
@@ -2468,38 +2514,25 @@ html, body { background-color: ${PAPER}; }
 .vn-ht-prog { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: rgba(242, 241, 238, .26); z-index: 4; }
 .vn-ht-prog-fill { display: block; height: 100%; width: 0; background: var(--vn-amber); animation: vn-ht-fill linear forwards; }
 @keyframes vn-ht-fill { from { width: 0; } to { width: 100%; } }
-/* A mat-board hairline, the way a photograph is framed rather than printed to
-   the edge, and registration marks at the sheet's head. Both belong to the
-   drawing vocabulary the rest of the page is built on. */
-.vn-ht-mat { position: absolute; inset: calc(var(--u) * 9); z-index: 4; pointer-events: none; border: 1px solid rgba(242, 241, 238, .26); }
-.vn-ht-marks {
-  position: absolute; inset: calc(var(--u) * 9); z-index: 4; pointer-events: none;
-  --m: rgba(242, 241, 238, .85); --len: calc(var(--u) * 11);
-  background:
-    linear-gradient(var(--m), var(--m)) left top / 1px var(--len) no-repeat,
-    linear-gradient(var(--m), var(--m)) left top / var(--len) 1px no-repeat,
-    linear-gradient(var(--m), var(--m)) right top / 1px var(--len) no-repeat,
-    linear-gradient(var(--m), var(--m)) right top / var(--len) 1px no-repeat;
-}
 .vn-ht-stamp {
-  position: absolute; top: calc(var(--u) * 24); left: calc(var(--u) * 22); right: calc(var(--u) * 22);
+  position: absolute; top: calc(var(--u) * 20); left: calc(var(--u) * 18); right: calc(var(--u) * 18);
   display: flex; justify-content: space-between; align-items: baseline; gap: calc(var(--u) * 10);
   font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
   color: #F2F1EE;
 }
 .vn-ht-count { color: var(--vn-amber); letter-spacing: .1em; }
 .vn-ht-body {
-  position: absolute; left: calc(var(--u) * 22); right: calc(var(--u) * 74); bottom: calc(var(--u) * 24);
+  position: absolute; left: calc(var(--u) * 18); right: calc(var(--u) * 60); bottom: calc(var(--u) * 20);
   display: flex; flex-direction: column;
   animation: vn-ht-in .55s cubic-bezier(.25,1,.5,1) both;
 }
 @keyframes vn-ht-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 .vn-ht-place { font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #F2F1EE; margin-bottom: calc(var(--u) * 6); }
-.vn-ht-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(17, 15)}; line-height: 1.15; color: #F2F1EE; }
+.vn-ht-name { display: block; font-family: ${DISPLAY}; font-weight: 700; font-size: ${fluid(15, 14)}; line-height: 1.18; color: #F2F1EE; }
 .vn-ht-cta {
-  position: absolute; right: calc(var(--u) * 22); bottom: calc(var(--u) * 22);
+  position: absolute; right: calc(var(--u) * 18); bottom: calc(var(--u) * 18);
   display: inline-flex; align-items: center; justify-content: center;
-  width: calc(var(--u) * 34); height: calc(var(--u) * 34);
+  width: calc(var(--u) * 30); height: calc(var(--u) * 30);
   border: 1px solid rgba(242, 241, 238, .65); border-radius: 999px;
   font-size: 13px; line-height: 1; color: #F2F1EE;
   transition: background-color .32s ease, color .32s ease, border-color .32s ease, transform .32s cubic-bezier(.25,1,.5,1);
@@ -2675,7 +2708,7 @@ html, body { background-color: ${PAPER}; }
      sat straight on top of the intro copy. Narrow tablets get a smaller one;
      phones lose it entirely below, because a card squeezed next to the
      headline is worse than no card and the tour plates are one screen down. */
-  .vn-hero-tours { right: 20px; bottom: calc(var(--u) * 30); width: calc(var(--u) * 200); }
+  .vn-hero-tours { right: 20px; bottom: calc(var(--u) * 30); width: calc(var(--u) * 172); }
   .vn-wordmark { font-size: clamp(28px, 10vw, 52px); }
   .vn-valley, .vn-rooms-explorer, .vn-welcome, .vn-book, .vn-drawing-inside {
     grid-template-columns: 1fr; gap: 40px;
