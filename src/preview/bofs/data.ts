@@ -1329,7 +1329,6 @@ export const UI = {
     home: t('Forsíða', 'Home'),
     homes: t('Meðferðarheimili', 'Treatment homes'),
     services: t('Úrræðin', 'Services'),
-    ask: t('Spurðu', 'Ask'),
     system: t('Kerfið', 'The system'),
     about: t('Um stofnunina', 'About'),
     report: t('Tilkynna áhyggjur', 'Report a concern'),
