@@ -399,6 +399,8 @@ const ORDER_CSS = `
   .rb-ord-qty[data-small] .rb-ord-qty-val { min-width:30px; font-size:16px; }
   .rb-ord-kjornudge { font-size:12.5px; color:${GOLD_LIGHT}; margin:12px 0 0; line-height:1.5;
     padding:9px 11px; border:1px dashed rgba(200,168,119,.35); border-radius:4px; }
+  /* Quieter than the nudge: a standing fact, not a prompt. */
+  .rb-ord-kjorinfo { font-size:12px; color:${FAINT}; margin:12px 0 0; line-height:1.5; }
 
   /* mobile running total, sticks under the page header, never at the bottom
      (a bottom-fixed bar would collide with the preview chrome) */
@@ -1135,6 +1137,15 @@ export default function OrderSection({
     const cakeName = (c: CakeInOrder) =>
       `${c.product.name.is}${c.size ? ` (${c.size.label.is})` : ''}${c.qty > 1 ? ` — ${c.qty} stk.` : ''}`
 
+    /* ⚠️ ONLY `_subject` LEAVES THIS OBJECT.
+     *
+     * These numbered keys are a leftover from the FormSubmit era, when the
+     * relay rendered an object's keys as the rows of the email. The order now
+     * goes to our own Worker, which reads `mail` below and ignores this
+     * entirely — so a field added here and nowhere else is collected from the
+     * customer and silently thrown away. That already happened twice, to the
+     * invoicing address and the guest count. Add to `mail` (or to `mailRows`,
+     * which becomes mail.options), never only to this. */
     const payload: Record<string, string> = {
       _subject: `${ref} · ${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${anyQuote ? 'TILBOÐ ÓSKAST — ' : ''}${
         multi
@@ -1265,6 +1276,18 @@ export default function OrderSection({
       payload[`${n++}. Kennitala`] = customer.kennitala
       if (customer.invoiceEmail.trim()) payload[`${n++}. Netfang fyrir reikning`] = customer.invoiceEmail.trim()
       if (customer.guests.trim()) payload[`${n++}. Fjöldi gesta`] = customer.guests.trim()
+      /* ...and again as docket rows, because the numbered object above is NOT
+       * what gets sent (see its declaration). These two were collected from
+       * every company order and reached nobody: a firm typed its invoicing
+       * address and its headcount into the form and Þorleifur never saw
+       * either. They go through `options`, which the Worker already renders,
+       * rather than as new top-level fields, so no Worker change is needed. */
+      if (customer.invoiceEmail.trim()) {
+        mailRows.push({ label: 'Netfang fyrir reikning', value: customer.invoiceEmail.trim() })
+      }
+      if (customer.guests.trim()) {
+        mailRows.push({ label: 'Fjöldi gesta', value: customer.guests.trim() })
+      }
     }
     /* Both kinds of customer now, and only when there is one — an absent
        occasion is a real answer to an optional question, not a blank row. */
@@ -1509,6 +1532,14 @@ export default function OrderSection({
       {!kjor && !anyQuote && cakesSubtotal >= VEISLUKJOR.nudgeFrom && cakesSubtotal < VEISLUKJOR.threshold && (
         <p className="rb-ord-kjornudge">
           {t.kjorNudge(isk(VEISLUKJOR.threshold - cakesSubtotal), VEISLUKJOR.discountPct)}
+        </p>
+      )}
+      {/* Below the nudge band the rule is simply STATED, so the threshold is
+          knowable from the start rather than appearing out of nowhere once an
+          order happens to get big enough. The nudge takes over from halfway. */}
+      {!kjor && !anyQuote && cakesSubtotal < VEISLUKJOR.nudgeFrom && (
+        <p className="rb-ord-kjorinfo">
+          {t.kjorRule(isk(VEISLUKJOR.threshold), VEISLUKJOR.discountPct)}
         </p>
       )}
       <p className="rb-ord-slip-note">{anyQuote ? t.quoteNote : t.slipNote}</p>

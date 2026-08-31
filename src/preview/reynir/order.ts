@@ -1134,6 +1134,7 @@ export interface OrderCopy {
   kjorLine: string
   kjorSub: (pct: number) => string
   kjorNudge: (missing: string, pct: number) => string
+  kjorRule: (threshold: string, pct: number) => string
   kjorQuoteNote: string
   errNoCake: string
   occasionHelp: string
@@ -1281,6 +1282,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     kjorLine: 'Party rate',
     kjorSub: (pct) => `−${pct}% off the cakes — indicative, confirmed by phone`,
     kjorNudge: (missing, pct) => `${missing} more in cakes unlocks the party rate (−${pct}% and party prices on extras).`,
+    kjorRule: (threshold, pct) => `Party rate from ${threshold} of cakes: −${pct}% and party prices on the extras.`,
     kjorQuoteNote: 'The party rate is applied to the confirmed price when we call.',
     errNoCake: 'Pick a cake to order.',
     occasionHelp: 'Optional, and it helps us: it tells us how the cake should be finished before we call you.',
@@ -1409,6 +1411,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     kjorLine: 'Veislukjör',
     kjorSub: (pct) => `−${pct}% af kökum — til viðmiðunar, staðfest símleiðis`,
     kjorNudge: (missing, pct) => `${missing} í viðbót í kökum og pöntunin fær veislukjör (−${pct}% og veisluverð á meðlæti).`,
+    kjorRule: (threshold, pct) => `Veislukjör frá ${threshold} í kökum: −${pct}% og veisluverð á meðlæti.`,
     kjorQuoteNote: 'Veislukjör reiknast af staðfestu verði þegar við hringjum.',
     errNoCake: 'Veldu köku til að panta.',
     occasionHelp: 'Valfrjálst, en það hjálpar okkur: það segir okkur hvernig kakan á að vera skreytt áður en við hringjum.',
