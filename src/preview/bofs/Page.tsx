@@ -27,7 +27,6 @@ import {
   NewsBand,
   ReportBand,
   StatsBand,
-  QuestionBand,
   WayfinderDoors,
 } from './sections'
 
@@ -133,13 +132,6 @@ export default function BofsPage() {
 
         {/* ── WAYFINDER (three doors) ──────────────────────────────────── */}
         <WayfinderDoors />
-
-        {/* ── QUESTIONS ────────────────────────────────────────────────────
-             After the doors, not before them. Scrolling off the hero should
-             reveal what this place IS, not a box asking you to type. The
-             doors are the broad "which of these are you"; these are the
-             specific worry underneath it. ─────────────────────────────── */}
-        <QuestionBand />
 
         {/* ── MISSION + compressed values ─────────────────────────────── */}
         <section className="bofs-wash bofs-bloom relative" style={{ background: C.cream2 }}>
