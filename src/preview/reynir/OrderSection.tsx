@@ -57,6 +57,14 @@ const ORDER_CSS = `
 
   .rb-ord-step { border-top:1px solid ${HAIR}; padding-top:18px; margin-top:clamp(30px,4.5vh,46px); }
   .rb-ord-steplabel { font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:${GOLD}; }
+  /* The numbered step head — the wizard-rail idea (21st "Wizard Steps",
+     checkout breadcrumbs) set in this page's own editorial language: a serif
+     numeral and a hairline instead of circles and checkmarks. The number is
+     what makes the form legible as a SEQUENCE at a glance. */
+  .rb-ord-stephead { display:flex; align-items:baseline; gap:14px;
+    border-top:1px solid ${HAIR}; padding-top:20px; }
+  .rb-ord-stepnum { font-family:${DISPLAY}; font-style:italic; font-size:26px; line-height:1;
+    color:${GOLD_LIGHT}; min-width:36px; }
 
   /* Who is ordering. Two lanes, not a dropdown: it changes which fields appear. */
   .rb-ord-who { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
@@ -1576,32 +1584,13 @@ export default function OrderSection({
                 </span>
               </div>
 
-              {/* 1 — who is ordering (drives which details are asked for later) */}
-              <div className="rb-ord-step" style={{ marginTop: 22 }}>
-                <div className="rb-ord-steplabel">{t.stepWho}</div>
-                <div className="rb-ord-who" role="radiogroup" aria-label={t.stepWho}>
-                  {([
-                    { id: 'person' as const, name: t.whoPerson, hint: t.whoPersonHint },
-                    { id: 'company' as const, name: t.whoCompany, hint: t.whoCompanyHint },
-                  ]).map((o) => (
-                    <label key={o.id} className="rb-ord-wholane" data-on={who === o.id}>
-                      <input
-                        type="radio"
-                        name="rb-ord-who"
-                        checked={who === o.id}
-                        onChange={() => setWho(o.id)}
-                      />
-                      <span className="rb-ord-wholane-name">{o.name}</span>
-                      <span className="rb-ord-wholane-hint">{o.hint}</span>
-                    </label>
-                  ))}
-                </div>
-                {who === 'company' && <p className="rb-ord-help" style={{ marginTop: 12 }}>{t.bigOrderNote}</p>}
-              </div>
-
-              {/* 2 — product */}
+              {/* 01 — the cakes. The form opens with the thing the customer
+                  came for. */}
               <div className="rb-ord-step">
-                <div className="rb-ord-steplabel">{t.stepProduct}</div>
+                <div className="rb-ord-stephead">
+                  <span className="rb-ord-stepnum" aria-hidden="true">01</span>
+                  <span className="rb-ord-steplabel">{t.stepProduct}</span>
+                </div>
                 <div className="rb-ord-prods" role="radiogroup" aria-label={t.stepProduct}>
                   {ORDER_PRODUCTS.map((p) => (
                     <label key={p.id} className="rb-ord-prod" data-on={p.id === productId}>
@@ -1634,72 +1623,6 @@ export default function OrderSection({
                 </p>
                 {showErr('g_product') && <p className="rb-ord-err" role="alert">{errors.g_product}</p>}
               </div>
-
-              {/* 3 — what the order is for.
-                  Sits HERE, between the product and its options, for two
-                  reasons: it is a fact about the order rather than a detail
-                  about the customer, and the answer feeds the writing-on-the-
-                  cake field a few lines below. Asked after that field it could
-                  not suggest anything; asked down in the contact details, next
-                  to a kennitala, it read as paperwork. */}
-              {askOccasion && (
-                <div className="rb-ord-step">
-                  <div className="rb-ord-steplabel">{t.stepOccasion}</div>
-                  <p className="rb-ord-help" style={{ margin: '10px 0 0' }}>{t.occasionHelp}</p>
-                  <div className="rb-ord-choices" data-layout="grid" style={{ marginTop: 14 }} role="radiogroup" aria-label={t.stepOccasion}>
-                    {occasionList.map((o) => {
-                      const on = customer.occasion === o.id
-                      return (
-                        <div key={o.id}>
-                          <label className="rb-ord-choice" data-on={on}>
-                            <input
-                              type="radio"
-                              name="rb-ord-occasion"
-                              checked={on}
-                              /* Optional means genuinely optional: picking the
-                                 same chip again clears it, so nobody is stuck
-                                 having told us something they did not mean to. */
-                              onClick={() => {
-                                if (on) setCustomer((c) => ({ ...c, occasion: '', occasionOther: '' }))
-                              }}
-                              onChange={() => setCustomer((c) => ({ ...c, occasion: o.id }))}
-                            />
-                            <span className="rb-ord-mark" data-shape="round" aria-hidden="true">
-                              <Check />
-                            </span>
-                            <span className="rb-ord-choice-label">{o.label[lang]}</span>
-                          </label>
-                          {/* "Annað" alone tells the bakery nothing, and finding
-                              out costs the phone call this form exists to
-                              remove. Same rule as an option's freeText. */}
-                          {on && o.freeText && (
-                            <div className="rb-ord-field" style={{ marginTop: 10 }}>
-                              <label className="rb-ord-label" htmlFor="rb-ord-occasion-other">
-                                {t.occasionOtherLabel}
-                              </label>
-                              <input
-                                id="rb-ord-occasion-other"
-                                className="rb-ord-input"
-                                type="text"
-                                maxLength={90}
-                                placeholder={t.occasionOtherPlaceholder}
-                                value={customer.occasionOther}
-                                data-invalid={showErr('occasionOther') ? 'true' : undefined}
-                                aria-invalid={!!showErr('occasionOther')}
-                                onChange={(e) => setCustomer((c) => ({ ...c, occasionOther: e.target.value }))}
-                                onBlur={() => setTouched((prev) => ({ ...prev, occasionOther: true }))}
-                              />
-                              {showErr('occasionOther') && (
-                                <p className="rb-ord-err">{t.errOccasionOther}</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* 4 — options. Only while a cake is being configured: between
                   committing one cake and choosing the next there is nothing
@@ -1935,7 +1858,10 @@ export default function OrderSection({
                   Every figure on the kjör side is a PLACEHOLDER until the
                   owner sets real ones — see VEISLUKJOR in order.ts. */}
               <div className="rb-ord-step">
-                <div className="rb-ord-steplabel">{t.stepExtras}</div>
+                <div className="rb-ord-stephead">
+                  <span className="rb-ord-stepnum" aria-hidden="true">02</span>
+                  <span className="rb-ord-steplabel">{t.stepExtras}</span>
+                </div>
                 <p className="rb-ord-help" style={{ marginTop: 10 }}>{kjor ? t.extrasKjorIntro : t.extrasIntro}</p>
                 {/* Photo cards, not text rows — the sweetgreen add-on
                     pattern: the product is the photograph and the stepper
@@ -1976,9 +1902,235 @@ export default function OrderSection({
                 </div>
               </div>
 
-              {/* 6 — customer */}
+              {/* 03 — when and where. Pulled OUT of the contact blob it used
+                  to hide in: for a bakery with 48 hours' notice, the date is
+                  the one field that decides whether the order is possible at
+                  all, and it was buried below a kennitala. Crumbl gives this
+                  moment its own screen; here it gets its own numbered step. */}
               <div className="rb-ord-step">
-                <div className="rb-ord-steplabel">{t.stepDetails}</div>
+                <div className="rb-ord-stephead">
+                  <span className="rb-ord-stepnum" aria-hidden="true">03</span>
+                  <span className="rb-ord-steplabel">{t.stepWhen}</span>
+                </div>
+                <div className="rb-ord-two">
+                  <div className="rb-ord-field">
+                    <label className="rb-ord-label" htmlFor="rb-ord-date">{t.fieldDate}</label>
+                    <input
+                      id="rb-ord-date"
+                      className="rb-ord-input"
+                      type="date"
+                      min={earliest}
+                      value={customer.date}
+                      data-invalid={showErr('c_date') ? 'true' : undefined}
+                      aria-invalid={!!showErr('c_date')}
+                      aria-describedby={showErr('c_date') ? 'err_c_date' : 'hint_c_date'}
+                      onChange={(e) => setCustomer({ ...customer, date: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, c_date: true })}
+                    />
+                    {showErr('c_date')
+                      ? <p className="rb-ord-err" id="err_c_date" role="alert">{showErr('c_date')}</p>
+                      : <p className="rb-ord-hint" id="hint_c_date">{t.fieldDateHelp(product.leadDays)}</p>}
+                  </div>
+
+                  <div className="rb-ord-field">
+                    <label className="rb-ord-label" htmlFor="rb-ord-time">{t.fieldTime}</label>
+                    <select
+                      id="rb-ord-time"
+                      className="rb-ord-select"
+                      value={customer.time}
+                      data-invalid={showErr('c_time') ? 'true' : undefined}
+                      aria-invalid={!!showErr('c_time')}
+                      aria-describedby={showErr('c_time') ? 'err_c_time' : 'hint_c_time'}
+                      onChange={(e) => setCustomer({ ...customer, time: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, c_time: true })}
+                    >
+                      <option value="">{t.fieldTimePlaceholder}</option>
+                      {PICKUP_SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    {showErr('c_time')
+                      ? <p className="rb-ord-err" id="err_c_time" role="alert">{showErr('c_time')}</p>
+                      : <p className="rb-ord-hint" id="hint_c_time">{t.fieldTimeHelp}</p>}
+                  </div>
+                </div>
+
+                <div className="rb-ord-two">
+                  {who === 'company' ? (
+                    <div className="rb-ord-field">
+                      <label className="rb-ord-label" htmlFor="rb-ord-handover">{t.fieldHandover}</label>
+                      <select
+                        id="rb-ord-handover"
+                        className="rb-ord-select"
+                        value={customer.handover}
+                        onChange={(e) => setCustomer({ ...customer, handover: e.target.value as 'pickup' | 'delivery' })}
+                      >
+                        <option value="pickup" style={{ background: INK }}>{t.handoverPickup}</option>
+                        <option value="delivery" style={{ background: INK }}>{t.handoverDelivery}</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="rb-ord-field">
+                      {PICKUP_LOCATIONS.length > 1 ? (
+                        <>
+                          <label className="rb-ord-label" htmlFor="rb-ord-location">{t.fieldLocation}</label>
+                          <select
+                            id="rb-ord-location"
+                            className="rb-ord-select"
+                            value={customer.location}
+                            onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
+                          >
+                            {PICKUP_LOCATIONS.map((l) => (
+                              <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
+                            ))}
+                          </select>
+                        </>
+                      ) : (
+                        <>
+                          <span className="rb-ord-label">{t.fieldLocation}</span>
+                          <div className="rb-ord-readout">{PICKUP_LOCATIONS[0].label[lang]}</div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {who === 'company' && customer.handover === 'pickup' && (
+                  <div className="rb-ord-field">
+                    {PICKUP_LOCATIONS.length > 1 ? (
+                      <>
+                        <label className="rb-ord-label" htmlFor="rb-ord-location-co">{t.fieldLocation}</label>
+                        <select
+                          id="rb-ord-location-co"
+                          className="rb-ord-select"
+                          value={customer.location}
+                          onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
+                        >
+                          {PICKUP_LOCATIONS.map((l) => (
+                            <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      <>
+                        <span className="rb-ord-label">{t.fieldLocation}</span>
+                        <div className="rb-ord-readout">{PICKUP_LOCATIONS[0].label[lang]}</div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {who === 'company' && customer.handover === 'delivery' && (
+                  <div className="rb-ord-field">
+                    <label className="rb-ord-label" htmlFor="rb-ord-address">{t.fieldAddress}</label>
+                    <input
+                      id="rb-ord-address"
+                      className="rb-ord-input"
+                      type="text"
+                      autoComplete="street-address"
+                      value={customer.address}
+                      data-invalid={showErr('c_address') ? 'true' : undefined}
+                      aria-invalid={!!showErr('c_address')}
+                      aria-describedby={showErr('c_address') ? 'err_c_address' : 'hint_c_address'}
+                      onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
+                      onBlur={() => setTouched({ ...touched, c_address: true })}
+                    />
+                    {showErr('c_address')
+                      ? <p className="rb-ord-err" id="err_c_address" role="alert">{showErr('c_address')}</p>
+                      : <p className="rb-ord-hint" id="hint_c_address">{t.fieldAddressHint}</p>}
+                  </div>
+                )}
+
+              </div>
+
+              {/* 04 — who is ordering. LAST, where every reference puts
+                  identity: nobody arrives at a bakery form to declare their
+                  legal status. The person/company lanes decide which fields
+                  follow AND which occasion list is offered, so the occasion
+                  chips live directly under them. */}
+              <div className="rb-ord-step">
+                <div className="rb-ord-stephead">
+                  <span className="rb-ord-stepnum" aria-hidden="true">04</span>
+                  <span className="rb-ord-steplabel">{t.stepWho}</span>
+                </div>
+                <div className="rb-ord-who" role="radiogroup" aria-label={t.stepWho}>
+                  {([
+                    { id: 'person' as const, name: t.whoPerson, hint: t.whoPersonHint },
+                    { id: 'company' as const, name: t.whoCompany, hint: t.whoCompanyHint },
+                  ]).map((o) => (
+                    <label key={o.id} className="rb-ord-wholane" data-on={who === o.id}>
+                      <input
+                        type="radio"
+                        name="rb-ord-who"
+                        checked={who === o.id}
+                        onChange={() => setWho(o.id)}
+                      />
+                      <span className="rb-ord-wholane-name">{o.name}</span>
+                      <span className="rb-ord-wholane-hint">{o.hint}</span>
+                    </label>
+                  ))}
+                </div>
+                {who === 'company' && <p className="rb-ord-help" style={{ marginTop: 12 }}>{t.bigOrderNote}</p>}
+
+              {askOccasion && (
+                <div style={{ marginTop: 26 }}>
+                  <div className="rb-ord-steplabel">{t.stepOccasion}</div>
+                  <p className="rb-ord-help" style={{ margin: '10px 0 0' }}>{t.occasionHelp}</p>
+                  <div className="rb-ord-choices" data-layout="grid" style={{ marginTop: 14 }} role="radiogroup" aria-label={t.stepOccasion}>
+                    {occasionList.map((o) => {
+                      const on = customer.occasion === o.id
+                      return (
+                        <div key={o.id}>
+                          <label className="rb-ord-choice" data-on={on}>
+                            <input
+                              type="radio"
+                              name="rb-ord-occasion"
+                              checked={on}
+                              /* Optional means genuinely optional: picking the
+                                 same chip again clears it, so nobody is stuck
+                                 having told us something they did not mean to. */
+                              onClick={() => {
+                                if (on) setCustomer((c) => ({ ...c, occasion: '', occasionOther: '' }))
+                              }}
+                              onChange={() => setCustomer((c) => ({ ...c, occasion: o.id }))}
+                            />
+                            <span className="rb-ord-mark" data-shape="round" aria-hidden="true">
+                              <Check />
+                            </span>
+                            <span className="rb-ord-choice-label">{o.label[lang]}</span>
+                          </label>
+                          {/* "Annað" alone tells the bakery nothing, and finding
+                              out costs the phone call this form exists to
+                              remove. Same rule as an option's freeText. */}
+                          {on && o.freeText && (
+                            <div className="rb-ord-field" style={{ marginTop: 10 }}>
+                              <label className="rb-ord-label" htmlFor="rb-ord-occasion-other">
+                                {t.occasionOtherLabel}
+                              </label>
+                              <input
+                                id="rb-ord-occasion-other"
+                                className="rb-ord-input"
+                                type="text"
+                                maxLength={90}
+                                placeholder={t.occasionOtherPlaceholder}
+                                value={customer.occasionOther}
+                                data-invalid={showErr('occasionOther') ? 'true' : undefined}
+                                aria-invalid={!!showErr('occasionOther')}
+                                onChange={(e) => setCustomer((c) => ({ ...c, occasionOther: e.target.value }))}
+                                onBlur={() => setTouched((prev) => ({ ...prev, occasionOther: true }))}
+                              />
+                              {showErr('occasionOther') && (
+                                <p className="rb-ord-err">{t.errOccasionOther}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+
+                <div className="rb-ord-steplabel" style={{ marginTop: 26 }}>{t.stepDetails}</div>
 
                 {/* A committed cake asked for a photo and the inline picker
                     left with its configurator — the order still needs the
@@ -2150,133 +2302,6 @@ export default function OrderSection({
                     {showErr('c_invoiceEmail')
                       ? <p className="rb-ord-err" id="err_c_invoiceEmail" role="alert">{showErr('c_invoiceEmail')}</p>
                       : <p className="rb-ord-hint" id="hint_c_invoiceEmail">{t.fieldInvoiceEmailHint}</p>}
-                  </div>
-                )}
-
-                <div className="rb-ord-two">
-                  <div className="rb-ord-field">
-                    <label className="rb-ord-label" htmlFor="rb-ord-date">{t.fieldDate}</label>
-                    <input
-                      id="rb-ord-date"
-                      className="rb-ord-input"
-                      type="date"
-                      min={earliest}
-                      value={customer.date}
-                      data-invalid={showErr('c_date') ? 'true' : undefined}
-                      aria-invalid={!!showErr('c_date')}
-                      aria-describedby={showErr('c_date') ? 'err_c_date' : 'hint_c_date'}
-                      onChange={(e) => setCustomer({ ...customer, date: e.target.value })}
-                      onBlur={() => setTouched({ ...touched, c_date: true })}
-                    />
-                    {showErr('c_date')
-                      ? <p className="rb-ord-err" id="err_c_date" role="alert">{showErr('c_date')}</p>
-                      : <p className="rb-ord-hint" id="hint_c_date">{t.fieldDateHelp(product.leadDays)}</p>}
-                  </div>
-
-                  <div className="rb-ord-field">
-                    <label className="rb-ord-label" htmlFor="rb-ord-time">{t.fieldTime}</label>
-                    <select
-                      id="rb-ord-time"
-                      className="rb-ord-select"
-                      value={customer.time}
-                      data-invalid={showErr('c_time') ? 'true' : undefined}
-                      aria-invalid={!!showErr('c_time')}
-                      aria-describedby={showErr('c_time') ? 'err_c_time' : 'hint_c_time'}
-                      onChange={(e) => setCustomer({ ...customer, time: e.target.value })}
-                      onBlur={() => setTouched({ ...touched, c_time: true })}
-                    >
-                      <option value="">{t.fieldTimePlaceholder}</option>
-                      {PICKUP_SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    {showErr('c_time')
-                      ? <p className="rb-ord-err" id="err_c_time" role="alert">{showErr('c_time')}</p>
-                      : <p className="rb-ord-hint" id="hint_c_time">{t.fieldTimeHelp}</p>}
-                  </div>
-                </div>
-
-                <div className="rb-ord-two">
-                  {who === 'company' ? (
-                    <div className="rb-ord-field">
-                      <label className="rb-ord-label" htmlFor="rb-ord-handover">{t.fieldHandover}</label>
-                      <select
-                        id="rb-ord-handover"
-                        className="rb-ord-select"
-                        value={customer.handover}
-                        onChange={(e) => setCustomer({ ...customer, handover: e.target.value as 'pickup' | 'delivery' })}
-                      >
-                        <option value="pickup" style={{ background: INK }}>{t.handoverPickup}</option>
-                        <option value="delivery" style={{ background: INK }}>{t.handoverDelivery}</option>
-                      </select>
-                    </div>
-                  ) : (
-                    <div className="rb-ord-field">
-                      {PICKUP_LOCATIONS.length > 1 ? (
-                        <>
-                          <label className="rb-ord-label" htmlFor="rb-ord-location">{t.fieldLocation}</label>
-                          <select
-                            id="rb-ord-location"
-                            className="rb-ord-select"
-                            value={customer.location}
-                            onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
-                          >
-                            {PICKUP_LOCATIONS.map((l) => (
-                              <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
-                            ))}
-                          </select>
-                        </>
-                      ) : (
-                        <>
-                          <span className="rb-ord-label">{t.fieldLocation}</span>
-                          <div className="rb-ord-readout">{PICKUP_LOCATIONS[0].label[lang]}</div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {who === 'company' && customer.handover === 'pickup' && (
-                  <div className="rb-ord-field">
-                    {PICKUP_LOCATIONS.length > 1 ? (
-                      <>
-                        <label className="rb-ord-label" htmlFor="rb-ord-location-co">{t.fieldLocation}</label>
-                        <select
-                          id="rb-ord-location-co"
-                          className="rb-ord-select"
-                          value={customer.location}
-                          onChange={(e) => setCustomer({ ...customer, location: e.target.value })}
-                        >
-                          {PICKUP_LOCATIONS.map((l) => (
-                            <option key={l.id} value={l.id} style={{ background: INK }}>{l.label[lang]}</option>
-                          ))}
-                        </select>
-                      </>
-                    ) : (
-                      <>
-                        <span className="rb-ord-label">{t.fieldLocation}</span>
-                        <div className="rb-ord-readout">{PICKUP_LOCATIONS[0].label[lang]}</div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {who === 'company' && customer.handover === 'delivery' && (
-                  <div className="rb-ord-field">
-                    <label className="rb-ord-label" htmlFor="rb-ord-address">{t.fieldAddress}</label>
-                    <input
-                      id="rb-ord-address"
-                      className="rb-ord-input"
-                      type="text"
-                      autoComplete="street-address"
-                      value={customer.address}
-                      data-invalid={showErr('c_address') ? 'true' : undefined}
-                      aria-invalid={!!showErr('c_address')}
-                      aria-describedby={showErr('c_address') ? 'err_c_address' : 'hint_c_address'}
-                      onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
-                      onBlur={() => setTouched({ ...touched, c_address: true })}
-                    />
-                    {showErr('c_address')
-                      ? <p className="rb-ord-err" id="err_c_address" role="alert">{showErr('c_address')}</p>
-                      : <p className="rb-ord-hint" id="hint_c_address">{t.fieldAddressHint}</p>}
                   </div>
                 )}
 

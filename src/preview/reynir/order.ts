@@ -1082,6 +1082,7 @@ export interface OrderCopy {
   stepProduct: string
   stepOptions: string
   stepOccasion: string
+  stepWhen: string
   stepExtras: string
   extrasIntro: string
   extrasKjorIntro: string
@@ -1225,6 +1226,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepProduct: 'What are we baking?',
     stepOptions: 'Make it yours',
     stepOccasion: 'What is it for?',
+    stepWhen: 'When and where?',
     stepExtras: 'More for the party table',
     extrasIntro: 'Kleinur, pastries and rolls to go with the order. Party rate on these from 50.000 kr. of cakes.',
     extrasKjorIntro: 'Party rate applied — these are the party prices, confirmed with the rest by phone.',
@@ -1349,6 +1351,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepProduct: 'Hvað eigum við að baka?',
     stepOptions: 'Sníddu að þér',
     stepOccasion: 'Hvert er tilefnið?',
+    stepWhen: 'Hvenær og hvar?',
     stepExtras: 'Meira á veisluborðið',
     extrasIntro: 'Kleinur, lengjur og rúnstykki með pöntuninni. Veisluverð á þessu þegar kökur ná 50.000 kr.',
     extrasKjorIntro: 'Veislukjör virk — hér gilda veisluverðin, staðfest símleiðis með öðru.',
