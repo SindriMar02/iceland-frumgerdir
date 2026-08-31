@@ -32,6 +32,8 @@ import {
   isk,
   needsPhoto,
   sizeChoiceOf,
+  choicePriceOf,
+  fromPriceOf,
   type OrderGroup,
   type OrderProduct,
 } from './order'
@@ -658,13 +660,18 @@ export default function OrderSection({
   const { lines, total } = useMemo(() => {
     const out: SlipLine[] = []
     const perPerson = product.pricePerPerson
+    /* Sized products price themselves off the chosen size, whichever model
+     * they use: a rate times a headcount, or a price stated per size. Either
+     * way the size IS the price, so it leads the slip and there is no base
+     * line to add it to. Only a product with no size group at all falls back
+     * to a flat base price. */
+    const sized = !!product.sizeGroupId
     let sum: number
 
-    if (perPerson) {
-      /* Priced by headcount: the size IS the price, so it leads the slip and
-       * there is no separate base line to add it to. Before a size is picked
-       * the slip says so rather than showing 0 kr., which would read as free. */
-      sum = size ? perPerson * (size.serves as number) : 0
+    if (sized) {
+      /* Before a size is picked the slip says so rather than showing 0 kr.,
+       * which would read as free. */
+      sum = size ? (choicePriceOf(product, size) ?? 0) : 0
       /* Only once a size exists. An unchosen size used to render as a row whose
        * dotted leader ran to an empty price, above a total that repeated the
        * same "choose a size" prompt: two placeholders saying one thing. The
@@ -673,7 +680,12 @@ export default function OrderSection({
         out.push({
           key: 'size',
           name: size.label[lang],
-          sub: `${isk(perPerson)} ${t.perPerson}`,
+          /* The rate explains a per-person price: "30 manna" over "930 kr. á
+           * mann" is the arithmetic in two lines. A flat size price has no
+           * arithmetic to show, and labelling it "Grunnverð" was actively
+           * wrong — 6.950 kr. is what the 20-25 cake costs, not a base that
+           * something gets added to. So it gets no sub-line at all. */
+          sub: perPerson ? `${isk(perPerson)} ${t.perPerson}` : undefined,
           price: sum,
         })
       }
@@ -684,7 +696,7 @@ export default function OrderSection({
 
     for (const group of product.groups) {
       // The size group is already the line above; listing it twice reads as a charge.
-      if (perPerson && group.id === product.sizeGroupId) continue
+      if (sized && group.id === product.sizeGroupId) continue
       for (const id of picked[group.id] ?? []) {
         const choice = group.choices.find((c) => c.id === id)
         if (!choice) continue
@@ -713,7 +725,7 @@ export default function OrderSection({
 
   /** Nothing to total yet. Showing "0 kr." here reads as a free cake, which is
    *  the one number this form must never put in front of a customer. */
-  const unpriced = !!product.pricePerPerson && !size
+  const unpriced = !!product.sizeGroupId && !size
   /** What stands where the total goes when there is no number to put there. */
   const totalText = quote ? t.quoteTotal : unpriced ? t.slipPickSize : isk(total)
   const softTotal = quote || unpriced
@@ -878,9 +890,17 @@ export default function OrderSection({
     mailRows.push({ label: 'Pöntunarnúmer', value: ref })
     /* Never send a number for a bespoke cake. An estimate in the inbox becomes
        the price the customer believes they were given. */
+    /* The arithmetic in brackets only belongs to a per-person price. A flat
+       size price has none to show, and reaching for `serves` and the rate on a
+       product that has neither put "(undefined manns × NaN kr.)" in the
+       bakery's own order email. */
+    const priceWorking =
+      size && product.pricePerPerson && typeof size.serves === 'number'
+        ? ` (${size.serves} manns × ${isk(product.pricePerPerson)})`
+        : ''
     payload[`${n++}. Áætlað verð`] = quote
       ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
-      : `${isk(total)}${size ? ` (${size.serves} manns × ${isk(product.pricePerPerson as number)})` : ''}`
+      : `${isk(total)}${priceWorking}`
     if (wantsPhoto) {
       const note = photo
         ? `Fylgir þessum pósti sem viðhengi (${photo.name})`
@@ -1197,7 +1217,7 @@ export default function OrderSection({
                       <span className="rb-ord-prod-from">
                         {p.pricePerPerson
                           ? `${isk(p.pricePerPerson)} ${t.perPerson}`
-                          : `${lang === 'is' ? 'frá' : 'from'} ${isk(p.basePrice)}`}
+                          : `${lang === 'is' ? 'frá' : 'from'} ${isk(fromPriceOf(p))}`}
                       </span>
                     </label>
                   ))}
@@ -1213,7 +1233,7 @@ export default function OrderSection({
                     const cur = picked[group.id] ?? []
                     const atMax = !!group.max && cur.length >= group.max
                     const err = showErr(`g_${group.id}`)
-                    const isSizeGroup = !!product.pricePerPerson && group.id === product.sizeGroupId
+                    const isSizeGroup = !!product.sizeGroupId && group.id === product.sizeGroupId
                     /* If nothing in the group changes the price, the price
                        column says "included" five times and communicates
                        nothing. Drop it entirely and the choices read as what
@@ -1254,10 +1274,7 @@ export default function OrderSection({
                                 {t.sizePrompt}
                               </option>
                               {group.choices.map((choice) => {
-                                const sp =
-                                  typeof choice.serves === 'number' && product.pricePerPerson
-                                    ? product.pricePerPerson * choice.serves
-                                    : null
+                                const sp = choicePriceOf(product, choice)
                                 return (
                                   <option key={choice.id} value={choice.id} style={{ background: INK }}>
                                     {choice.label[lang]}
@@ -1273,11 +1290,16 @@ export default function OrderSection({
                             {isSizeGroup && size && (
                               <div className="rb-ord-sizeprice" aria-live="polite">
                                 <span className="rb-ord-sizeprice-num" data-bump={bump}>
-                                  {isk(product.pricePerPerson! * (size.serves as number))}
+                                  {isk(choicePriceOf(product, size) ?? 0)}
                                 </span>
-                                <span className="rb-ord-sizeprice-rate">
-                                  {isk(product.pricePerPerson!)} {t.perPerson}
-                                </span>
+                                {/* The rate underneath explains a per-person
+                                    number. A flat size price is the whole
+                                    story and gets no second line. */}
+                                {product.pricePerPerson && (
+                                  <span className="rb-ord-sizeprice-rate">
+                                    {isk(product.pricePerPerson)} {t.perPerson}
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -1286,15 +1308,14 @@ export default function OrderSection({
                           {group.choices.map((choice) => {
                             const on = cur.includes(choice.id)
                             const off = !on && atMax
-                            /* On a per-person product the size chips carry the
-                               REAL price of that size, not a surcharge. That is
-                               the whole point of the owner's model: the customer
-                               picks how many people are coming and reads the
-                               finished price off the same row. */
-                            const sizePrice =
-                              isSizeGroup && typeof choice.serves === 'number' && product.pricePerPerson
-                                ? product.pricePerPerson * choice.serves
-                                : null
+                            /* Size chips carry the REAL price of that size, not
+                               a surcharge. That is the whole point of the
+                               owner's model: the customer picks how many people
+                               are coming and reads the finished price off the
+                               same row. True of both pricing models — the rate
+                               times the headcount, or the price he set for that
+                               size — which is why it goes through one helper. */
+                            const sizePrice = isSizeGroup ? choicePriceOf(product, choice) : null
                             const fx = choice.freeText
                             const fxKey = `${group.id}_${choice.id}`
                             const fxErr = showErr(`x_${fxKey}`)

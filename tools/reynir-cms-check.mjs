@@ -128,6 +128,24 @@ for (const p of LIVE.orderProducts || []) {
         }
       }
     }
+  } else if (p.sizeGroupId) {
+    /* The flat-priced twin of the same failure. A sized product with no
+       per-person rate takes its price from `price` on each size choice; a
+       choice missing it falls through to a basePrice that these products
+       deliberately leave at 0, so the cake is offered free. Half-priced groups
+       are the real risk — the owner adds a third size in the studio and does
+       not fill the price in — so every choice in the group is required to
+       carry one, not just the first. */
+    const sizeGroup = (p.groups || []).find((g) => g.id === p.sizeGroupId)
+    if (!sizeGroup) {
+      bad(`orderProduct "${nm}": size group "${p.sizeGroupId}" does not exist — every size would cost 0 kr.`)
+    } else {
+      for (const [ci, c] of (sizeGroup.choices || []).entries()) {
+        if (!(typeof c.price === 'number' && c.price > 0)) {
+          bad(`orderProduct "${nm}" / size choice ${ci} "${c.label?.is || ci}": no price — it would be offered at 0 kr.`)
+        }
+      }
+    }
   }
   for (const g of p.groups || []) {
     const gl = g.label?.is || '(unlabelled)'
@@ -236,6 +254,53 @@ raw = clone(LIVE)
   const sizeGroup = merged && merged.groups.find((x) => x.id === merged.sizeGroupId)
   check('a size stripped of its headcount stays unpriced rather than becoming free',
     !!sizeGroup && sizeGroup.choices.every((ch) => ch.serves === undefined))
+}
+
+/* The same edit on a flat-priced product: someone clears the price off a size
+   row. It must survive as "no price", never as a free cake.
+
+   Built here rather than read off the live CMS on purpose. This asserts what
+   the MERGE does with a flat-priced product, which is a property of the code;
+   whether the studio has actually been seeded with one yet is a launch step,
+   and tying a code test to it would go red for the wrong reason. */
+const flatProduct = (priced) => ({
+  id: 'flattest',
+  name: { is: 'Prófvara', en: 'Test product' },
+  blurb: { is: 'Prófun', en: 'Test' },
+  basePrice: 0,
+  sizeGroupId: 'staerd',
+  leadDays: 2,
+  groups: [
+    {
+      id: 'staerd', kind: 'single', required: true,
+      label: { is: 'Stærð', en: 'Size' },
+      choices: [
+        { id: 's10', label: { is: '10-15 manna', en: 'Serves 10-15' }, priceDelta: 0, ...(priced ? { price: 5500 } : {}) },
+        { id: 's20', label: { is: '20-25 manna', en: 'Serves 20-25' }, priceDelta: 0, ...(priced ? { price: 6950 } : {}) },
+      ],
+    },
+  ],
+})
+
+raw = clone(LIVE)
+{
+  raw.orderProducts = [...(raw.orderProducts || []), flatProduct(false)]
+  c = run('flat-price edit', () => merge(raw))
+  const merged = c?.ORDER_PRODUCTS.find((x) => x.id === 'flattest')
+  const sizeGroup = merged && merged.groups.find((x) => x.id === merged.sizeGroupId)
+  check('a flat size stripped of its price stays unpriced rather than becoming free',
+    !!sizeGroup && sizeGroup.choices.every((ch) => typeof ch.price !== 'number'))
+}
+
+raw = clone(LIVE)
+{
+  raw.orderProducts = [...(raw.orderProducts || []), flatProduct(true)]
+  c = run('flat-price merge', () => merge(raw))
+  const merged = c?.ORDER_PRODUCTS.find((x) => x.id === 'flattest')
+  const g = merged && merged.groups.find((x) => x.id === merged.sizeGroupId)
+  const prices = (g?.choices || []).map((ch) => ch.price)
+  check('fixed size prices come back through the merge exactly as typed',
+    prices.length === 2 && prices[0] === 5500 && prices[1] === 6950)
 }
 
 /* The rate itself emptied. Falling back to basePrice is right; pricing every

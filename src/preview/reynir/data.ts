@@ -368,6 +368,42 @@ export const BREAD: MenuItem[] = [
   { name: 'Birkirúnstykki', price: '180 kr.', desc: { en: 'The plain birki roll.', is: 'Klassíska birkirúnstykkið.' } },
 ]
 
+/** One counter cake, photographed twice: the whole tray, and a portion served.
+ *
+ *  The cake list beside this is ten names and ten prices, which tells a
+ *  customer what things cost and nothing about what they are. This pair
+ *  answers the two questions the list cannot: what 1.920 kr. actually buys
+ *  (a whole skúffa, not a slice), and what it looks like on a plate.
+ *
+ *  It is ONE figure with TWO images and ONE caption, not two frames side by
+ *  side, because both photographs are the same cake — a pair of separate
+ *  captioned frames would read as two products. The caption carries the price
+ *  the same way the lengjur frame does, and for the same reason: it is exact
+ *  for the item named in it. Four cakes on the list share 1.920 kr., so the
+ *  caption has to name the Eplakaka or the number means nothing.
+ *
+ *  Photographs from the owner (2026-08-31), shot on his own neutral backdrop.
+ *  This is the format to ask for when more cakes are photographed. */
+export type CakeArt = {
+  frames: { src: string; w: number; h: number; alt: { en: string; is: string } }[]
+  cap: { en: string; is: string }
+  price?: string
+}
+export const CAKE_ART: CakeArt = {
+  frames: [
+    {
+      src: `${import.meta.env.BASE_URL}reynir/menu/eplakaka-skuffa.webp`, w: 900, h: 720,
+      alt: { en: 'A whole apple cake in its tray, crumble baked golden', is: 'Heil eplakaka í skúffu, mylsnan bökuð gyllt' },
+    },
+    {
+      src: `${import.meta.env.BASE_URL}reynir/menu/eplakaka-borin.webp`, w: 900, h: 720,
+      alt: { en: 'A portion of apple cake on a plate with whipped cream', is: 'Sneið af eplaköku á diski með þeyttum rjóma' },
+    },
+  ],
+  cap: { en: 'Eplakaka — the whole tray, and served', is: 'Eplakaka — heil skúffa, og borin fram' },
+  price: '1.920 kr.',
+}
+
 /** Cakes, verified against their current Wolt listing 2026-08-16. Celebration
  *  cakes to order are handled separately in the order flow. */
 export const CAKES: MenuItem[] = [

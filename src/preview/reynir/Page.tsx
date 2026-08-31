@@ -22,7 +22,7 @@ import Chrome from './Chrome'
 import { ORDER_PATH, STORY_PATH, LEGAL_PATH } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { useIsomorphicLayoutEffect } from './ssr'
-import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, STORY_ART } from './data'
+import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
 import MapCard from './MapCard'
@@ -473,6 +473,50 @@ function MenuArtFrame({ art, lang, fill, style }: { art: MenuArt; lang: Lang; fi
           height={art.h}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
+      </div>
+      <figcaption style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '16px 0 14px', borderBottom: `1px solid ${HAIR_SOFT}` }}>
+        <span style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 'clamp(15px,1.5vw,17px)', color: FAINT }}>{art.cap[lang]}</span>
+        {art.price && (
+          <>
+            <span className="rb-leader" aria-hidden="true" />
+            <span style={{ fontSize: 14, fontWeight: 600, color: GOLD, whiteSpace: 'nowrap' }}>{art.price}</span>
+          </>
+        )}
+      </figcaption>
+    </figure>
+  )
+}
+
+/** One cake, two views, one caption — the pair that sits above the cake list.
+ *
+ *  Built on MenuArtFrame's rule rather than beside it: no card, no shadow, no
+ *  padding, and the whole figure stops at the same hairline every price row
+ *  below it stops at. The only thing added is the split: two images sharing a
+ *  single caption, so they read as one product photographed twice instead of
+ *  as two products.
+ *
+ *  The images keep their own aspect ratio and equal width, which is what makes
+ *  the pair read as a pair. Under 640px the section is already one column, so
+ *  the two frames stay side by side there too — halving a 5:4 frame still
+ *  leaves a legible photograph, and stacking them would push the price list a
+ *  full screen further down for no gain. */
+function CakeArtPair({ art, lang, style }: { art: CakeArt; lang: Lang; style?: CSSProperties }) {
+  return (
+    <figure className="rb-menu-art" style={{ margin: 0, ...style }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${art.frames.length}, 1fr)`, gap: 10 }}>
+        {art.frames.map((f) => (
+          <div key={f.src} style={{ overflow: 'hidden', borderRadius: 3, aspectRatio: `${f.w} / ${f.h}` }}>
+            <img
+              src={f.src}
+              alt={f.alt[lang]}
+              loading="lazy"
+              decoding="async"
+              width={f.w}
+              height={f.h}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
+        ))}
       </div>
       <figcaption style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '16px 0 14px', borderBottom: `1px solid ${HAIR_SOFT}` }}>
         <span style={{ fontFamily: DISPLAY, fontStyle: 'italic', fontSize: 'clamp(15px,1.5vw,17px)', color: FAINT }}>{art.cap[lang]}</span>
@@ -1265,13 +1309,28 @@ function ReynirPageInner() {
               <MenuArtFrame art={MENU_ART.kaka} lang={lang} style={{ marginTop: 'clamp(28px,4vh,40px)', maxWidth: 480 }} />
             </div>
             <div>
+              {/* One cake photographed, then the counter prices. Colour is the
+                  product and black-and-white is the craft: the baker's hands
+                  stay in the left column, what you can actually buy sits over
+                  here. */}
+              <CakeArtPair art={CAKE_ART} lang={lang} style={{ marginBottom: 'clamp(20px,3vh,30px)' }} />
               {/* real celebration-cake prices, as a compact list */}
               <div style={{ display: 'grid', gap: 0 }}>
                 {CAKES.map((c) => (
-                  <div key={c.name} style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '13px 0', borderBottom: `1px solid ${HAIR_SOFT}` }}>
-                    <span style={{ fontFamily: DISPLAY, fontSize: 'clamp(18px,1.8vw,22px)', color: IVORY }}>{c.name}</span>
-                    <span className="rb-leader" aria-hidden="true" />
-                    <span style={{ fontSize: 15, fontWeight: 600, color: GOLD, whiteSpace: 'nowrap' }}>{c.price}</span>
+                  <div key={c.name} style={{ padding: '13px 0', borderBottom: `1px solid ${HAIR_SOFT}` }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontFamily: DISPLAY, fontSize: 'clamp(18px,1.8vw,22px)', color: IVORY }}>{c.name}</span>
+                      <span className="rb-leader" aria-hidden="true" />
+                      <span style={{ fontSize: 15, fontWeight: 600, color: GOLD, whiteSpace: 'nowrap' }}>{c.price}</span>
+                    </div>
+                    {/* Every cake here currently ships without one. The line is
+                        rendered anyway so that a description typed into the CMS
+                        appears on the site instead of landing in a field the
+                        page never reads — the failure this build has already
+                        hit twice, in the other direction. */}
+                    {c.desc[lang] && (
+                      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: DIM, margin: '6px 0 0', maxWidth: '44ch' }}>{c.desc[lang]}</p>
+                    )}
                   </div>
                 ))}
               </div>

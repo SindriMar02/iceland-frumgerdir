@@ -250,7 +250,7 @@ export const QUERY = `{
     "compositionGroupId": compositionGroupId.current, composition[]{"id": id.current, label},
     leadDays, inscription, image{asset,hotspot},
     groups[]{"id": id.current, kind, label, help, required, max, layout,
-      choices[]{"id": id.current, label, priceDelta, note, serves, quoteOnly, needsPhoto, freeText,
+      choices[]{"id": id.current, label, priceDelta, note, serves, price, quoteOnly, needsPhoto, freeText,
         adds, swap{"layerId": layerId.current, label}}}
   },
   "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label},
@@ -317,6 +317,9 @@ function mergeOrderProducts(raw: any[]): OrderProduct[] {
                   priceDelta: typeof c.priceDelta === 'number' ? c.priceDelta : 0,
                   note: c.note ? biSelf(c.note) : undefined,
                   serves: typeof c.serves === 'number' && c.serves > 0 ? c.serves : undefined,
+                  /* Same guard as `serves`, for the same reason: a size price
+                     of 0 is an empty field in the studio, not a free cake. */
+                  price: typeof c.price === 'number' && c.price > 0 ? c.price : undefined,
                   quoteOnly: c.quoteOnly === true,
                   adds: Array.isArray(c.adds)
                     ? c.adds.filter((a: any) => a?.is || a?.en).map((a: any) => biSelf(a))

@@ -92,6 +92,7 @@ const docs = PRODUCTS.map((p, i) => {
         priceDelta: c.priceDelta,
         ...(c.note ? { note: locT(c.note) } : {}),
         ...(typeof c.serves === 'number' ? { serves: c.serves } : {}),
+        ...(typeof c.price === 'number' ? { price: c.price } : {}),
         ...(c.quoteOnly ? { quoteOnly: true } : {}),
         ...(c.needsPhoto ? { needsPhoto: true } : {}),
         ...(c.adds ? { adds: c.adds.map(loc) } : {}),
@@ -138,7 +139,14 @@ const orphans = live.filter((l) => !wantIds.has(l._id))
 console.log('\nBundled catalogue → Sanity\n')
 for (const d of docs) {
   const was = live.find((l) => l._id === d._id)
-  const price = d.pricePerPerson ? `${d.pricePerPerson} kr./mann` : `frá ${d.basePrice} kr.`
+  /* Read the same way the site reads it. Taking basePrice directly reported
+     the children's cake as "frá 0 kr." — the exact misprice this seeder exists
+     to stop reaching the studio. */
+  const sizeGroup = d.sizeGroupId ? (d.groups || []).find((g) => g.id?.current === d.sizeGroupId?.current) : null
+  const sizePrices = (sizeGroup?.choices || []).map((c) => c.price).filter((n) => typeof n === 'number')
+  const price = d.pricePerPerson
+    ? `${d.pricePerPerson} kr./mann`
+    : `frá ${sizePrices.length ? Math.min(...sizePrices) : d.basePrice} kr.`
   console.log(`  ${was ? 'replace' : 'CREATE '}  ${d._id.padEnd(28)} ${String(d.name.is).padEnd(18)} ${price}`)
 }
 for (const o of orphans) {

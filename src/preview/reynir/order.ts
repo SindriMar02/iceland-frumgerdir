@@ -2,16 +2,21 @@
  * Reynir bakari — CUSTOM ORDER CONFIGURATOR DATA.
  *
  * Every product, size, rate and surcharge below is CONFIRMED by the owner
- * (Þorleifur, 2026-08-20). It was placeholder data until then; it is not now.
+ * (Þorleifur, 2026-08-20, and the children's cake 2026-08-31). It was
+ * placeholder data until then; it is not now.
  *
  * What he confirmed, and what each thing means here:
  *   - Marsipanterta and kransakaka are 930 kr. PER PERSON. Rice Crispies turn
  *     is 555. Per-product rates are why `pricePerPerson` lives on the product
  *     rather than being one global number.
+ *   - The children's birthday cake is NOT priced per person: 5.500 kr. at
+ *     10-15 and 6.950 kr. at 20-25, two prices off his own list. That is what
+ *     `price` on a size choice is for, and it is why the size logic runs
+ *     through `choicePriceOf` instead of assuming a rate exists.
  *   - Marsipanterta sizes are his list (20, 25, 30, 40, 50, 60, 70); kransakaka
- *     runs 20 to 70 in fives; the turn runs 20 to 40. Nothing smaller than 20
- *     manna is made, which is why the size group says so rather than leaving a
- *     customer to guess.
+ *     runs 20 to 70 in fives; the turn runs 20 to 40. Those three start at 20
+ *     manna, which their own size groups say. It is a per-product minimum, not
+ *     a house rule — the children's cake starts at 10.
  *   - The standard cake is marzipan base, raspberry jam, cocktail fruit and the
  *     mousse you pick. SIX fillings, and three of them change what is under the
  *     mousse: chocolate swaps pears in for the cocktail fruit, caramel swaps in
@@ -20,6 +25,13 @@
  *   - Standard decoration AND the writing are included in the rate.
  *   - Fresh strawberries +500. Photo on the cake +2300. Bespoke stays a quote.
  *   - 48 hours' notice, so leadDays is 2.
+ *
+ * THE ONE CONTRADICTION, and it must be settled before launch: a photo on the
+ * cake is +2300 on the marsipanterta (2026-08-20) and +3000 on the children's
+ * cake (2026-08-31). Both are as he gave them, so both are here, but one site
+ * quoting two prices for the same words is a question waiting to be asked at
+ * the counter. If 3000 is simply the new rate, the marsipanterta's has to move
+ * with it.
  *
  * STILL UNCONFIRMED, and both are soft fields carrying no price:
  *   1. The colour list is mine, asked as a preference rather than offered as a
@@ -45,6 +57,13 @@ import type { Lang } from './data'
  * the owner. Leaving the notice up would now be its own inaccuracy, telling
  * customers that real prices are made up. Set it back to true the moment
  * anything unconfirmed is added to the catalogue.
+ *
+ * Held at false when the children's cake landed (2026-08-31) on purpose. Every
+ * PRICE on it is his; the only assumed value is its 48-hour lead time, copied
+ * from the other cakes. Raising a "these are sample options" banner over four
+ * products because one lead time is unconfirmed would say something less true
+ * than saying nothing. The assumption is marked at the product instead, and it
+ * is on the pre-launch list.
  */
 export const PLACEHOLDER_DATA = false
 
@@ -143,6 +162,24 @@ export interface OrderChoice {
    */
   serves?: number
   /**
+   * The finished price of the product AT THIS SIZE, replacing the base price
+   * rather than adding to it. Only meaningful on a size group.
+   *
+   * This is the flat-price twin of `pricePerPerson`, and it exists for the
+   * same reason: the owner quotes real prices, not surcharges. A children's
+   * birthday cake is 5.500 kr. at 10-15 and 6.950 kr. at 20-25 — two numbers
+   * he can read off his own list. Expressed as a base plus a delta the page
+   * would say "5.500 kr." and "+1.450 kr.", which totals correctly and matches
+   * nothing he would ever say out loud.
+   *
+   * Per-person products keep deriving their size price from the rate; this is
+   * for products whose sizes are priced individually, where no single rate
+   * exists to derive from. Set it on EVERY choice in the group or none: a
+   * group where some sizes carry a price and others fall back to the base is
+   * the drift this is meant to prevent, and the CMS check flags it.
+   */
+  price?: number
+  /**
    * This choice cannot be priced up front, so picking it turns the whole order
    * into a quote request: the total stops showing a number, the submit button
    * changes, and the email is marked so nobody reads an estimate as a promise.
@@ -225,12 +262,56 @@ export function sizeChoiceOf(
   product: OrderProduct,
   picked: Record<string, string[]>,
 ): OrderChoice | null {
-  if (!product.pricePerPerson || !product.sizeGroupId) return null
+  if (!product.sizeGroupId) return null
   const group = product.groups.find((g) => g.id === product.sizeGroupId)
   if (!group) return null
   const id = (picked[group.id] ?? [])[0]
   const choice = group.choices.find((c) => c.id === id)
-  return choice && typeof choice.serves === 'number' ? choice : null
+  if (!choice) return null
+  return choicePriceOf(product, choice) === null ? null : choice
+}
+
+/**
+ * What one size choice costs, finished — the ONE place that knows how a sized
+ * product is priced.
+ *
+ * Two models answer to it. A per-person product multiplies its rate by the
+ * headcount; a flat-priced product states each size's price outright. Both
+ * return the price of the whole cake at that size, never a surcharge, so
+ * every caller — the slip, the promoted price beside the dropdown, the price
+ * on each option in the open list — can print the number without knowing
+ * which model it came from.
+ *
+ * `null` means this choice cannot be priced (a size on a per-person product
+ * with no `serves`, or on a flat product with no `price`). Callers must treat
+ * that as "no price yet" rather than as zero: a cake shown at 0 kr. is the one
+ * number this form must never put in front of a customer.
+ */
+export function choicePriceOf(product: OrderProduct, choice: OrderChoice): number | null {
+  if (product.pricePerPerson) {
+    return typeof choice.serves === 'number' ? product.pricePerPerson * choice.serves : null
+  }
+  return typeof choice.price === 'number' ? choice.price : null
+}
+
+/**
+ * The "from" figure on a product card — the smallest real price the product
+ * can be bought for.
+ *
+ * A flat-priced sized product carries no meaningful `basePrice` (its sizes
+ * hold the prices), so reading the base directly printed "frá 0 kr." on the
+ * card: a free cake, advertised on the picker. This takes the cheapest
+ * priceable size instead, and only falls back to `basePrice` for products
+ * that genuinely have one, like a platter.
+ */
+export function fromPriceOf(product: OrderProduct): number {
+  const group = product.sizeGroupId
+    ? product.groups.find((g) => g.id === product.sizeGroupId)
+    : undefined
+  const prices = (group?.choices ?? [])
+    .map((c) => choicePriceOf(product, c))
+    .filter((p): p is number => typeof p === 'number')
+  return prices.length ? Math.min(...prices) : product.basePrice
 }
 
 /**
@@ -660,6 +741,98 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
         ],
       },
     ],
+  },
+
+  /* Children's birthday cake — the owner's own product and his own prices
+   * (Þorleifur, 2026-08-31): 5.500 kr. for 10-15, 6.950 kr. for 20-25, and
+   * 3.000 kr. on top for a photo on the cake.
+   *
+   * The FIRST product here that is not priced per person. Two sizes, two
+   * prices he can read off his own list — 5.500 and 6.950 are not a rate times
+   * a headcount (that would be 440 and 309 a head, two different rates), so
+   * they are stated outright on the size choices. See `price` on OrderChoice.
+   *
+   * It is also the first product under 20 manna. That minimum was never a
+   * house rule, only help text inside the marsipanterta's own size group, so
+   * nothing on the page contradicts a 10-manna cake.
+   *
+   * OPEN, and it must not ship unanswered: the photo surcharge here is 3.000
+   * kr. while the marsipanterta's has been 2.300 kr. since 2026-08-20. Two
+   * prices for the same words on one site. Confirm which is current before
+   * launch — if 3.000 is the new rate, the marsipanterta's needs to move with
+   * it. Lead time is assumed to match everything else at 48 hours; not
+   * confirmed for this product. */
+  {
+    id: 'barnaterta',
+    name: { en: "Children's birthday cake", is: 'Barnaafmælisterta' },
+    blurb: {
+      en: 'Chocolate cream cake under a pile of Smarties and jelly sweets, in two sizes.',
+      is: 'Súkkulaðirjómaterta á kafi í smartís og hlaupkörlum, í tveimur stærðum.',
+    },
+    /* Unused: every size states its own finished price. `fromPriceOf` reads
+       the cheapest size for the card rather than this. */
+    basePrice: 0,
+    sizeGroupId: 'staerd',
+    image: `${import.meta.env.BASE_URL}reynir/order/barnaterta.webp`,
+    /* Assumed from the other cakes, NOT confirmed for this one. */
+    leadDays: 2,
+    groups: [
+      {
+        id: 'staerd',
+        kind: 'single',
+        label: { en: 'How many is the cake for?', is: 'Fyrir hvað marga á tertan að vera?' },
+        /* Two options, so they read better as a pair of cards than collapsed
+           into a dropdown — `select` earns its place on the kransakaka's
+           eleven sizes, not here. */
+        layout: 'grid',
+        required: true,
+        choices: [
+          { id: 's10', label: { en: 'Serves 10-15', is: '10-15 manna' }, priceDelta: 0, price: 5500 },
+          { id: 's20', label: { en: 'Serves 20-25', is: '20-25 manna' }, priceDelta: 0, price: 6950 },
+        ],
+      },
+      {
+        id: 'mynd',
+        kind: 'multi',
+        label: { en: 'Photo on the cake', is: 'Mynd á tertu' },
+        max: 1,
+        choices: [
+          {
+            id: 'mynd',
+            label: { en: 'Put a photo on the cake', is: 'Setja mynd á tertuna' },
+            priceDelta: 3000,
+            needsPhoto: true,
+            freeText: {
+              label: { en: 'What should the photo be of?', is: 'Hvaða mynd á að fara á tertuna?' },
+              placeholder: {
+                en: 'For example a photo of the birthday child.',
+                is: 'Til dæmis mynd af afmælisbarninu.',
+              },
+              maxLength: 140,
+            },
+          },
+        ],
+      },
+      {
+        id: 'ofnaemi',
+        kind: 'multi',
+        label: { en: 'Allergies to work around', is: 'Ofnæmi sem þarf að taka tillit til' },
+        help: {
+          en: 'Tell us here and we will confirm what is possible when we call.',
+          is: 'Látið vita hér og við staðfestum hvað er mögulegt þegar við hringjum.',
+        },
+        choices: [
+          { id: 'hnetur', label: { en: 'Nuts', is: 'Hnetur' }, priceDelta: 0 },
+          { id: 'gluten', label: { en: 'Gluten', is: 'Glúten' }, priceDelta: 0 },
+          { id: 'laktosi', label: { en: 'Lactose', is: 'Laktósi' }, priceDelta: 0 },
+        ],
+      },
+    ],
+    inscription: {
+      label: { en: 'Writing on the cake', is: 'Áletrun á tertuna' },
+      placeholder: { en: 'For example: Til hamingju Emma, 6 ára', is: 'Til dæmis: Til hamingju Emma, 6 ára' },
+      maxLength: 60,
+    },
   },
 ]
 
