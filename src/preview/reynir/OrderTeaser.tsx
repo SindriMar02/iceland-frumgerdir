@@ -12,16 +12,23 @@
 
 import { Link } from 'react-router-dom'
 import type { Lang } from './data'
-import { ORDER_T, isk } from './order'
+import { ORDER_T, isk, fromPriceOf } from './order'
 import { DIM, DISPLAY, EASE, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, INK_DEEP, IVORY } from './tokens'
 import { useSiteContent } from './sanity'
 
 const TEASER_CSS = `
-  /* Flex + centred remainder, not a 3-col grid: the owner can add or remove a
-     product in the CMS and the row never leaves an empty cell. See OrderSection. */
-  .rb-tease-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+  /* The column count is CHOSEN, not fixed at three, because the owner adds
+     products in the CMS and a hard three-across leaves the fourth one sitting
+     alone under a full row. \`--tease-cols\` is computed per render (see
+     columnsFor) so four products lay out 2x2 rather than 3+1.
+
+     Tracks are capped at 386px — the width a card has at three across, which
+     is the proportion this section was designed at — and the whole grid is
+     centred. So two products read as two cards of the normal size in the
+     middle of the page, not two half-page slabs. */
+  .rb-tease-grid { display:grid; justify-content:center; gap:10px;
+    grid-template-columns:repeat(var(--tease-cols,3), minmax(0,386px));
     margin-top:clamp(26px,4vh,38px); }
-  .rb-tease-grid > * { flex:1 1 240px; max-width:calc(33.333% - 7px); }
   .rb-tease-card { display:flex; flex-direction:column; gap:7px; text-decoration:none;
     padding:20px 18px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
     overflow:hidden;
@@ -43,16 +50,35 @@ const TEASER_CSS = `
     margin-top:clamp(26px,4vh,36px); }
   .rb-tease-note { font-size:13.5px; color:${DIM}; line-height:1.55; max-width:44ch; }
 
-  @media (max-width:860px) { .rb-tease-grid > * { max-width:100%; flex-basis:100%; } }
+  /* Below the desktop layout the chosen count stops mattering: two across
+     while the cards still hold a photograph and a blurb, then one. */
+  @media (max-width:860px) { .rb-tease-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:620px) { .rb-tease-grid { grid-template-columns:minmax(0,1fr); } }
   @media (prefers-reduced-motion: reduce) {
     .rb-tease-card { transition:none; }
     .rb-tease-card:hover { transform:none; }
   }
 `
 
+/**
+ * How many across, so the last row is never one lonely card.
+ *
+ * Three is the design, and it holds whenever it divides cleanly. The rule is
+ * simply that `n % cols` must not be 1: four products across three columns
+ * leaves a single card stranded under a full row, which is the gap this fixes.
+ * Preference order is 3, then 2, then 4 — so 4 becomes 2x2, 5 stays 3+2, and
+ * 7 becomes 4+3 rather than 3+3+1.
+ */
+function columnsFor(n: number): number {
+  if (n <= 3) return Math.max(n, 1)
+  for (const cols of [3, 2, 4]) if (n % cols !== 1) return cols
+  return 3
+}
+
 export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath: string }) {
   const t = ORDER_T[lang]
   const { ORDER_PRODUCTS } = useSiteContent()
+  const cols = columnsFor(ORDER_PRODUCTS.length)
 
   return (
     <section id="order" style={{ background: INK_DEEP, padding: 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
@@ -74,7 +100,7 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
           </div>
         </div>
 
-        <div className="rb-tease-grid">
+        <div className="rb-tease-grid" style={{ ['--tease-cols' as string]: String(cols) }}>
           {ORDER_PRODUCTS.map((p) => (
             <Link key={p.id} to={`${orderPath}?vara=${p.id}`} className="rb-tease-card">
               {p.image && (
@@ -83,7 +109,17 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
                 </span>
               )}
               <span className="rb-tease-name">{p.name[lang]}</span>
-              <span className="rb-tease-from">{lang === 'is' ? 'frá' : 'from'} {isk(p.basePrice)}</span>
+              {/* Read the price the way the configurator reads it. This said
+                  "frá 0 kr." on every celebration cake from the day they moved
+                  to per-person pricing: their basePrice is 0 because the SIZE
+                  carries the price, so the homepage was advertising free
+                  cakes. A per-person product shows its rate; anything else
+                  shows the cheapest size it can actually be bought at. */}
+              <span className="rb-tease-from">
+                {p.pricePerPerson
+                  ? `${isk(p.pricePerPerson)} ${t.perPerson}`
+                  : `${lang === 'is' ? 'frá' : 'from'} ${isk(fromPriceOf(p))}`}
+              </span>
               <span className="rb-tease-blurb">{p.blurb[lang]}</span>
             </Link>
           ))}
