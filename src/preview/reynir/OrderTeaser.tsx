@@ -63,7 +63,8 @@ const TEASER_CSS = `
 export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath: string }) {
   const t = ORDER_T[lang]
   const { ORDER_PRODUCTS } = useSiteContent()
-  const cols = columnsFor(ORDER_PRODUCTS.length)
+  /* The teaser spans the full container, so it can carry four across. */
+  const cols = columnsFor(ORDER_PRODUCTS.length, 4)
 
   return (
     <section id="order" style={{ background: INK_DEEP, padding: 'clamp(80px,11vh,140px) clamp(20px,4.5vw,72px)' }}>

@@ -1071,22 +1071,23 @@ export const ORDER_EXTRAS: OrderExtra[] = [
  *  kjör price under veislukjör, kjör price again past the item's own
  *  quantity break, counter price otherwise. */
 /**
- * How many cards across, so the last row is never one stranded card.
+ * How many cards across, so the last row is never one stranded card AND the
+ * cards never balloon to fill a row that is too short.
  *
- * Three is the design and it holds whenever it divides cleanly; the rule is
- * that `n % cols` must not be 1, preferring 3, then 2, then 4. Four products
- * lay out 2x2 rather than 3+1, five stay 3+2, seven become 4+3.
+ * `max` is what the container can actually carry: the homepage teaser spans
+ * the full 1180px and takes four, the picker inside the form column takes
+ * three. Without it the rule optimised for "nothing stranded" alone and put
+ * four products in a 2x2 of enormous photo cards — technically unstranded,
+ * two screens tall, and worse than the problem it solved.
  *
- * Lives HERE, beside the catalogue, because three separate grids present
- * these same lists — the homepage teaser, the picker inside the form, and the
- * extras cards. It was written for the teaser alone and the picker kept its
- * own `max-width:33.333%`, which is exactly why a fourth cake sat stranded
- * under a full row the moment the children's cake shipped.
+ * So: if they fit in one row, use one row. Otherwise pick a count where
+ * `n % cols` is not 1, preferring 3, then 4, then 2 — five stay 3+2, seven
+ * become 4+3 rather than 3+3+1.
  */
-export function columnsFor(n: number): number {
-  if (n <= 3) return Math.max(n, 1)
-  for (const cols of [3, 2, 4]) if (n % cols !== 1) return cols
-  return 3
+export function columnsFor(n: number, max = 3): number {
+  if (n <= max) return Math.max(n, 1)
+  for (const cols of [3, 4, 2]) if (cols <= max && n % cols !== 1) return cols
+  return Math.min(3, max)
 }
 
 export function extraUnitPrice(ex: OrderExtra, qty: number, kjor: boolean): number {

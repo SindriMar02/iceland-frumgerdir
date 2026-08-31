@@ -1332,7 +1332,7 @@ function ReynirPageInner() {
       {/* ===================== BREAD BOARD ===================== */}
       <section id="bread" style={{ background: INK_DEEP, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
+          <div className="rb-wipe" data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
             <div style={{ maxWidth: 620 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.breadKicker}</div>
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.breadTitle}</h2>
