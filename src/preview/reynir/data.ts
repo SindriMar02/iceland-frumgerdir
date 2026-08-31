@@ -438,8 +438,6 @@ export const T = {
        never 'Closed' — a frozen 'Closed' is what a search result would quote. */
     statusHours: (o: string, c: string) => `Open every day ${o}–${c}`,
     /* Their own title's words: "handverksbakarí í Kópavogi síðan 1994". */
-    handLine: 'Every cake is written by hand.',
-    handCta: 'Order one for',
     statusHoursVaried: 'Opening hours',
     heroTitle: 'HANDMADE',
     heroSub: 'A family bakery in Kópavogur since 1994.',
@@ -508,8 +506,6 @@ export const T = {
     statusOpensToday: (t: string) => `Lokað, opnum kl. ${t} í dag`,
     statusOpensTomorrow: (t: string) => `Lokað, opnum á morgun kl. ${t}`,
     statusHours: (o: string, c: string) => `Opið alla daga ${o}–${c}`,
-    handLine: 'Hver terta er skrifuð í höndunum.',
-    handCta: 'Pantaðu fyrir',
     statusHoursVaried: 'Opnunartímar',
     heroTitle: 'HANDGERT',
     heroSub: 'Fjölskyldubakarí í Kópavogi síðan 1994.',

@@ -25,7 +25,7 @@ import { useIsomorphicLayoutEffect } from './ssr'
 import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
-import { ORDER_T, OCCASIONS, occasionsFor } from './order'
+import { ORDER_T } from './order'
 import { useLang } from './useLang'
 import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 
@@ -114,6 +114,23 @@ const PAGE_CSS = `
   .rb-mapband-cta:focus-visible { outline:2px solid ${GOLD}; outline-offset:4px; border-radius:2px; }
   /* Squarer on a phone: 21:9 of map on a 375px screen is a 160px sliver. */
   @media (max-width:760px) { .rb-mapband { aspect-ratio:4 / 5; } }
+
+  /* The black-and-white craft band. ARCHIVAL is the same warm tone every
+     other mono photograph on this page carries, so it belongs to the set
+     rather than reading as a stray greyscale image. */
+  .rb-craftband { position:relative; z-index:2; display:block; overflow:hidden;
+    margin-inline:calc(-1 * clamp(20px,4.5vw,72px));
+    border-top:1px solid ${HAIR}; border-bottom:1px solid ${HAIR}; background:${INK_DEEP}; }
+  .rb-craftband img { display:block; width:100%; height:100%; object-fit:cover;
+    aspect-ratio:1900 / 882; max-height:clamp(190px,26vh,300px); filter:${ARCHIVAL}; }
+  @media (max-width:760px) { .rb-craftband img { max-height:none; aspect-ratio:3 / 2; } }
+
+  /* Section intros. Full-bleed ones are centred and carry no rule; the
+     kicker's letterspacing already reads as a masthead without one. */
+  .rb-sec-intro { text-align:center; }
+  .rb-sec-kicker { font-size:12px; font-weight:700; letter-spacing:.24em; text-transform:uppercase;
+    color:${GOLD}; }
+  .rb-sec-lede { margin-inline:auto; }
 
   /* Section intros. Full-bleed ones are centred and carry no rule; the
      kicker's letterspacing already reads as a masthead without one. */
@@ -1198,51 +1215,32 @@ function ReynirPageInner() {
           </div>
         </div>
 
-        {/* The lettering band.
-            What was here before was a scrolling marquee of product nouns, then
-            a rail of three facts — and the facts were all already on the page
-            (status in the sticky bar, address in the visit block and footer,
-            "síðan 1994" in the hero). Both versions filled the space without
-            adding anything.
+        {/* A breath between the hero and the menu: one black-and-white craft
+            frame, full width, and nothing else on it.
 
-            This is the one thing the bakery has that no competitor can show
-            and the site never used: a baker mid-stroke, writing a cake by
-            hand. The photo-library notes call it "the brand, and the site does
-            not use it". It carries information found nowhere else on the page,
-            and it WORKS — each occasion opens the order flow with that
-            occasion already chosen.
+            Two earlier attempts filled this space with information — a
+            scrolling marquee of product nouns, then a rail of facts that were
+            already elsewhere on the page. Neither was needed. The site's own
+            organising rule is "black and white is the craft, colour is the
+            product", so the quiet answer is a craft frame: hands snipping
+            poppy-seed rolls into shape. No text, no links, nothing to read.
 
-            The customer's name piped on the foreground cake sits upside down
-            and small, so it is not legible; the library notes are explicit
-            that real names must not be put on the page. */}
-        <section className="rb-hand" aria-label={t.handLine}>
+            z-index:2 is not decoration and must not be removed. `.rb-cover-art`
+            is absolutely positioned, vertically centred and z-index:1, so it
+            overflows its own grid and paints over anything that follows it
+            inside the cover — which is exactly what happened to the version of
+            this band that did not set it. */}
+        <section className="rb-craftband" aria-hidden="true">
           <img
-            className="rb-hand-img"
-            src={`${import.meta.env.BASE_URL}reynir/letter/hond.webp`}
-            alt={lang === 'is'
-              ? 'Bakari skrifar fermingartertu í höndunum með sprautupoka'
-              : 'A baker hand-writing a confirmation cake with a piping bag'}
-            width={1800}
-            height={960}
+            src={`${import.meta.env.BASE_URL}reynir/band/handverk.webp`}
+            alt=""
+            width={1900}
+            height={882}
             loading="lazy"
             decoding="async"
           />
-          <span className="rb-hand-veil" aria-hidden="true" />
-          <div className="rb-hand-body">
-            <p className="rb-hand-line">{t.handLine}</p>
-            <div className="rb-hand-links">
-              <span className="rb-hand-cta">{t.handCta}</span>
-              {occasionsFor(OCCASIONS, 'person')
-                .filter((o) => !o.freeText)
-                .slice(0, 4)
-                .map((o) => (
-                  <Link key={o.id} to={`${ORDER_PATH}?tilefni=${o.id}`} className="rb-hand-link">
-                    {o.label[lang]}
-                  </Link>
-                ))}
-            </div>
-          </div>
         </section>
+
       </section>
 
       {/* ===================== THE MENU ===================== */}

@@ -116,19 +116,22 @@ const ORDER_CSS = `
      last row (4 products = one stranded card beside two gaps), whereas wrapped
      flex + centred remainder reads as deliberate at 1, 2, 4, 5 or 7 products.
      max-width caps each card at a third so a short row never stretches. */
-  /* Explicit columns from columnsFor(), not a hard third: with four cakes a
-     33.333% cap left the fourth stranded alone under a full row. Tracks cap
-     at the width a card has at three across so two or four products read as
-     normal cards centred, never as half-page slabs. */
-  .rb-ord-prods { display:grid; justify-content:center; gap:10px; margin-top:16px;
-    grid-template-columns:repeat(var(--prod-cols,3), minmax(0,230px)); }
-  .rb-ord-prod { position:relative; display:flex; flex-direction:column; gap:6px; text-align:left; cursor:pointer;
-    padding:16px 15px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
+  /* A compact dock of cards side by side — not four posters.
+     These were square-photo cards at a third of the row: in the order form's
+     column four of them stacked 2x2 and ran close to a thousand pixels, a
+     whole screen of pictures before the first question. The photo is now a
+     shallow 5:3 band capped in height, the padding is tighter and the type a
+     step down, so all four sit in one row and stay comparable at a glance. */
+  .rb-ord-prods { display:grid; gap:10px; margin-top:16px;
+    grid-template-columns:repeat(var(--prod-cols,4), minmax(0,1fr)); }
+  .rb-ord-prod { position:relative; display:flex; flex-direction:column; gap:4px; text-align:left; cursor:pointer;
+    padding:10px 12px 12px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
     overflow:hidden;
     transition:border-color .22s ${EASE}, background .22s ${EASE}, transform .16s ${EASE}; }
   /* Product photo. The card is built so this can be absent — a product added
      in the CMS before its picture exists simply renders the text card. */
-  .rb-ord-prod-pic { margin:-16px -15px 10px; aspect-ratio:1 / 1; overflow:hidden; background:${INK}; }
+  .rb-ord-prod-pic { margin:-10px -12px 8px; aspect-ratio:5 / 3; max-height:132px;
+    overflow:hidden; background:${INK}; }
   .rb-ord-prod-pic img { width:100%; height:100%; object-fit:cover; display:block;
     filter:saturate(.96) brightness(.94); transition:transform .5s ${EASE}, filter .35s ${EASE}; }
   .rb-ord-prod:hover .rb-ord-prod-pic img { transform:scale(1.04); filter:saturate(1) brightness(1); }
@@ -136,7 +139,7 @@ const ORDER_CSS = `
   .rb-ord-prod:hover { border-color:rgba(238,211,170,.4); background:rgba(243,234,211,.05); }
   .rb-ord-prod:active { transform:scale(.99); }
   .rb-ord-prod[data-on="true"] { border-color:${GOLD}; background:rgba(200,168,119,.09); }
-  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:19px; line-height:1.15; color:${IVORY}; padding-right:36px; }
+  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:16.5px; line-height:1.15; color:${IVORY}; padding-right:24px; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-name { color:${GOLD_LIGHT}; }
   .rb-ord-prod-from { font-size:12.5px; color:${DIM}; font-variant-numeric:tabular-nums; }
   /* z-index is load-bearing, not decoration: the product photo carries a
@@ -145,7 +148,7 @@ const ORDER_CSS = `
      the later <img> on top of this earlier absolute mark and hiding the
      selected state entirely. The ring behind it keeps the mark legible over
      a photograph rather than only over the dark card. */
-  .rb-ord-prod-mark { position:absolute; z-index:2; top:14px; right:14px; width:17px; height:17px; border-radius:50%;
+  .rb-ord-prod-mark { position:absolute; z-index:2; top:10px; right:10px; width:17px; height:17px; border-radius:50%;
     border:1px solid rgba(238,211,170,.55); display:flex; align-items:center; justify-content:center;
     background:rgba(11,10,9,.45); box-shadow:0 0 0 3px rgba(11,10,9,.35);
     transition:border-color .2s ${EASE}, background .2s ${EASE}; }
@@ -494,7 +497,15 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-label { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:${FAINT}; }
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
+    /* Below the dock's usable width the picker becomes a list: a thumbnail
+       beside the name says as much at a quarter of the height. */
     .rb-ord-prods { grid-template-columns:minmax(0,1fr); }
+    .rb-ord-prod { display:grid; grid-template-columns:auto minmax(0,1fr);
+      grid-template-areas:"pic name" "pic from"; align-content:center; row-gap:2px; }
+    .rb-ord-prod-pic { grid-area:pic; aspect-ratio:1 / 1; max-height:none;
+      align-self:center; border-radius:3px; }
+    .rb-ord-prod-name { grid-area:name; align-self:end; }
+    .rb-ord-prod-from { grid-area:from; align-self:start; }
     .rb-ord-extras { grid-template-columns:repeat(2,minmax(0,1fr)); }
     /* On a phone the picker becomes a LIST, not three posters.
        Full-width cards with a letterbox photo came to 849px for three
@@ -504,14 +515,9 @@ const ORDER_CSS = `
        can see at once is easier than scrolling past them one at a time.
        Grid areas rather than a wrapper element, so a product with no photo
        still lays out correctly: the column simply collapses. */
-    .rb-ord-prods { gap:8px; }
-    .rb-ord-prod { display:grid; grid-template-columns:auto minmax(0,1fr);
-      grid-template-areas:"pic name" "pic from"; align-content:center;
-      column-gap:13px; row-gap:2px; padding:10px 12px; }
-    .rb-ord-prod-pic { grid-area:pic; margin:0; width:62px; height:62px;
-      aspect-ratio:1 / 1; border-radius:3px; align-self:center; }
-    .rb-ord-prod-name { grid-area:name; align-self:end; font-size:17px; padding-right:30px; }
-    .rb-ord-prod-from { grid-area:from; align-self:start; }
+    .rb-ord-prod { column-gap:13px; padding:10px 12px; }
+    .rb-ord-prod-pic { margin:0; width:62px; height:62px; }
+    .rb-ord-prod-name { font-size:17px; padding-right:30px; }
     .rb-ord-prod-mark { top:50%; margin-top:-9px; right:12px; }
     /* the sticky bar already draws a divider, so the step right under it must
        not draw a second one. Adjacent-sibling, not :first-of-type, because the
@@ -1750,7 +1756,8 @@ export default function OrderSection({
                   className="rb-ord-prods"
                   role="radiogroup"
                   aria-label={t.stepProduct}
-                  style={{ ['--prod-cols' as string]: String(columnsFor(ORDER_PRODUCTS.length)) }}
+                  /* The dock spans the form column, so it carries up to four. */
+                  style={{ ['--prod-cols' as string]: String(columnsFor(ORDER_PRODUCTS.length, 4)) }}
                 >
                   {ORDER_PRODUCTS.map((p) => (
                     <label key={p.id} className="rb-ord-prod" data-on={p.id === productId}>
