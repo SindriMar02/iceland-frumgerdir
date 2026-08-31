@@ -1013,6 +1013,19 @@ export interface OrderExtra {
   /** Stepper increment — kleinur move in fives, lengjur one at a time. */
   step: number
   max: number
+  /**
+   * Quantity break: at this many units the kjörPrice applies on its own,
+   * cakes or no cakes. PLACEHOLDER like every kjör figure.
+   *
+   * This is how bulk extras earn their discount, and it is deliberately a
+   * per-item case price rather than counting extras toward the veislukjör
+   * threshold — that route would mean a customer at 49.000 kr. of kleinur
+   * adds five more and the TOTAL drops by thousands, which reads as a broken
+   * till. A visible "30+ stk. á 330 kr." on the card is the pricing every
+   * bakery counter already speaks, and crossing it is the sale working as
+   * intended, not an exploit.
+   */
+  bulkAt: number
   /** Square card photo, from the bakery's own library. The extras render as
    *  photo cards (the sweetgreen add-on pattern: the quantity control lives ON
    *  the thing it counts), so an extra without a photo does not ship — see the
@@ -1037,28 +1050,32 @@ export const ORDER_EXTRAS: OrderExtra[] = [
   {
     id: 'kleinur',
     label: { en: 'Kleinur', is: 'Kleinur' },
-    unitPrice: 395, kjorPrice: 330, step: 5, max: 100,
+    unitPrice: 395, kjorPrice: 330, step: 5, max: 100, bulkAt: 30,
     image: `${import.meta.env.BASE_URL}reynir/order/extra-kleinur.webp`,
   },
   {
     id: 'lengjur',
     label: { en: 'Vínarbrauðslengjur', is: 'Vínarbrauðslengjur' },
-    unitPrice: 1395, kjorPrice: 1180, step: 1, max: 10,
+    unitPrice: 1395, kjorPrice: 1180, step: 1, max: 10, bulkAt: 4,
     image: `${import.meta.env.BASE_URL}reynir/order/extra-lengjur.webp`,
   },
   {
     id: 'pistasiusnudar',
     label: { en: 'Pistachio snúðar', is: 'Pistasíusnúðar' },
-    unitPrice: 610, kjorPrice: 515, step: 5, max: 60,
+    unitPrice: 610, kjorPrice: 515, step: 5, max: 60, bulkAt: 20,
     image: `${import.meta.env.BASE_URL}reynir/order/extra-pistasiu.webp`,
   },
 ]
 
+/** The one place that knows what a unit of an extra costs right now:
+ *  kjör price under veislukjör, kjör price again past the item's own
+ *  quantity break, counter price otherwise. */
+export function extraUnitPrice(ex: OrderExtra, qty: number, kjor: boolean): number {
+  return kjor || qty >= ex.bulkAt ? ex.kjorPrice : ex.unitPrice
+}
+
 export function extrasTotal(qty: Record<string, number>, kjor: boolean): number {
-  return ORDER_EXTRAS.reduce((sum, e) => {
-    const n = qty[e.id] ?? 0
-    return sum + n * (kjor ? e.kjorPrice : e.unitPrice)
-  }, 0)
+  return ORDER_EXTRAS.reduce((sum, e) => sum + (qty[e.id] ?? 0) * extraUnitPrice(e, qty[e.id] ?? 0, kjor), 0)
 }
 
 export interface OrderCopy {
@@ -1087,6 +1104,8 @@ export interface OrderCopy {
   extrasIntro: string
   extrasKjorIntro: string
   extrasKjorTag: string
+  extrasBulkTag: string
+  extrasBulkLine: (n: number, price: string) => string
   addAnother: string
   pickNextCake: string
   cancelDraftCake: string
@@ -1228,9 +1247,11 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepOccasion: 'What is it for?',
     stepWhen: 'When and where?',
     stepExtras: 'More for the party table',
-    extrasIntro: 'Kleinur, pastries and rolls to go with the order. Party rate on these from 50.000 kr. of cakes.',
+    extrasIntro: 'Kleinur, lengjur and snúðar to go with the order. Bulk prices on larger amounts, and the party rate from 50.000 kr. of cakes.',
     extrasKjorIntro: 'Party rate applied — these are the party prices, confirmed with the rest by phone.',
     extrasKjorTag: 'party price',
+    extrasBulkTag: 'bulk price',
+    extrasBulkLine: (n, price) => `${n}+ at ${price} each`,
     addAnother: 'Add another cake',
     pickNextCake: 'Pick the next cake above, or carry on with the order.',
     cancelDraftCake: 'Skip this cake',
@@ -1353,9 +1374,11 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepOccasion: 'Hvert er tilefnið?',
     stepWhen: 'Hvenær og hvar?',
     stepExtras: 'Meira á veisluborðið',
-    extrasIntro: 'Kleinur, lengjur og rúnstykki með pöntuninni. Veisluverð á þessu þegar kökur ná 50.000 kr.',
+    extrasIntro: 'Kleinur, lengjur og snúðar með pöntuninni. Magnverð á stærri skömmtum, og veisluverð þegar kökur ná 50.000 kr.',
     extrasKjorIntro: 'Veislukjör virk — hér gilda veisluverðin, staðfest símleiðis með öðru.',
     extrasKjorTag: 'veisluverð',
+    extrasBulkTag: 'magnverð',
+    extrasBulkLine: (n, price) => `${n}+ stk. á ${price}`,
     addAnother: 'Bæta annarri köku við',
     pickNextCake: 'Veldu næstu köku hér fyrir ofan, eða haltu áfram með pöntunina.',
     cancelDraftCake: 'Sleppa þessari köku',

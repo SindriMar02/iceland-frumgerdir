@@ -38,6 +38,7 @@ import {
   ORDER_EXTRAS,
   VEISLUKJOR,
   extrasTotal,
+  extraUnitPrice,
   type OrderGroup,
   type OrderProduct,
   type OrderChoice,
@@ -366,6 +367,7 @@ const ORDER_CSS = `
   .rb-ord-extra-price s { opacity:.55; margin-right:4px; }
   .rb-ord-extra-price em { font-style:normal; color:${GOLD}; margin-left:6px; font-size:10.5px;
     text-transform:uppercase; letter-spacing:.08em; }
+  .rb-ord-extra-bulk { font-size:11.5px; color:${GOLD}; font-variant-numeric:tabular-nums; min-height:15px; }
   .rb-ord-extra-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:2px; }
   .rb-ord-extra-sum { text-align:right; font-size:13.5px; color:${GOLD}; font-variant-numeric:tabular-nums; }
   .rb-ord-qty[data-small] { margin-top:0; }
@@ -1189,8 +1191,9 @@ export default function OrderSection({
     const chosenExtras = ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0)
     for (const ex of chosenExtras) {
       const exQty = extrasQty[ex.id] ?? 0
-      const exUnit = kjor ? ex.kjorPrice : ex.unitPrice
-      const line = `${exQty} stk. á ${isk(exUnit)}${kjor ? ' (veisluverð)' : ''} — ${isk(exQty * exUnit)}`
+      const exUnit = extraUnitPrice(ex, exQty, kjor)
+      const cutNote = exUnit < ex.unitPrice ? (kjor ? ' (veisluverð)' : ' (magnverð)') : ''
+      const line = `${exQty} stk. á ${isk(exUnit)}${cutNote} — ${isk(exQty * exUnit)}`
       payload[`${n++}. ${ex.label.is}`] = line
       mailRows.push({ label: ex.label.is, value: line, money: true })
     }
@@ -1448,16 +1451,22 @@ export default function OrderSection({
           <span className="rb-ord-slipline-price">{isk(-kjorDiscount)}</span>
         </div>
       )}
-      {ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0).map((ex) => (
-        <div className="rb-ord-slipline" key={`extra_${ex.id}`}>
-          <span className="rb-ord-slipline-name">
-            {ex.label[lang]} ×{extrasQty[ex.id]}
-            {kjor && <span className="rb-ord-slipline-sub">{t.extrasKjorTag}</span>}
-          </span>
-          <span className="rb-ord-slipline-dots" aria-hidden="true" />
-          <span className="rb-ord-slipline-price">{isk((extrasQty[ex.id] ?? 0) * (kjor ? ex.kjorPrice : ex.unitPrice))}</span>
-        </div>
-      ))}
+      {ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0).map((ex) => {
+        const exQty = extrasQty[ex.id] ?? 0
+        const exUnit = extraUnitPrice(ex, exQty, kjor)
+        return (
+          <div className="rb-ord-slipline" key={`extra_${ex.id}`}>
+            <span className="rb-ord-slipline-name">
+              {ex.label[lang]} ×{exQty}
+              {exUnit < ex.unitPrice && (
+                <span className="rb-ord-slipline-sub">{kjor ? t.extrasKjorTag : t.extrasBulkTag}</span>
+              )}
+            </span>
+            <span className="rb-ord-slipline-dots" aria-hidden="true" />
+            <span className="rb-ord-slipline-price">{isk(exQty * exUnit)}</span>
+          </div>
+        )
+      })}
       <div className="rb-ord-total">
         <span className="rb-ord-total-label">{t.slipTotal}</span>
         <span className="rb-ord-total-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
@@ -1871,7 +1880,8 @@ export default function OrderSection({
                 <div className="rb-ord-extras">
                   {ORDER_EXTRAS.map((ex) => {
                     const nQty = extrasQty[ex.id] ?? 0
-                    const unit = kjor ? ex.kjorPrice : ex.unitPrice
+                    const unit = extraUnitPrice(ex, nQty, kjor)
+                    const cut = unit < ex.unitPrice
                     return (
                       <div className="rb-ord-extra" key={ex.id} data-on={nQty > 0 || undefined}>
                         <span className="rb-ord-extra-pic">
@@ -1879,14 +1889,21 @@ export default function OrderSection({
                         </span>
                         <span className="rb-ord-extra-name">{ex.label[lang]}</span>
                         <span className="rb-ord-extra-price">
-                          {kjor ? (
+                          {cut ? (
                             <>
                               <s>{isk(ex.unitPrice)}</s> {isk(ex.kjorPrice)}
-                              <em>{t.extrasKjorTag}</em>
+                              <em>{kjor ? t.extrasKjorTag : t.extrasBulkTag}</em>
                             </>
                           ) : (
                             `${isk(ex.unitPrice)} ${lang === 'is' ? 'stk.' : 'each'}`
                           )}
+                        </span>
+                        {/* The case price is ADVERTISED, not hidden behind the
+                            crossing — the whole point is that people order in
+                            bulk for events, so the card sells the bulk. Once
+                            the cut is live the line has done its job. */}
+                        <span className="rb-ord-extra-bulk">
+                          {cut ? '\u00a0' : t.extrasBulkLine(ex.bulkAt, isk(ex.kjorPrice))}
                         </span>
                         <span className="rb-ord-extra-foot">
                           <span className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
