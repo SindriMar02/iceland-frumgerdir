@@ -74,13 +74,16 @@ const ORDER_CSS = `
   .rb-ord-ctx-field { display:flex; flex-direction:column; gap:8px; }
   .rb-ord-ctx-label { font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
     color:${FAINT}; }
-  .rb-ord-ctx-select { min-width:200px; }
+  /* The bar is a slimmer register than the form below it, so both of its
+     controls sit at 44px — previously the select was 52 and the toggle 42,
+     side by side, which is most of why it read as broken. */
+  .rb-ord-ctx-select { min-width:210px; padding-top:0; padding-bottom:0; height:44px; line-height:44px; }
   .rb-ord-seg { display:inline-flex; border:1px solid ${HAIR}; border-radius:4px; overflow:hidden; }
   .rb-ord-seg label { position:relative; }
   .rb-ord-seg label + label { border-left:1px solid ${HAIR}; }
   .rb-ord-seg input { position:absolute; inset:0; opacity:0; cursor:pointer; }
-  .rb-ord-seg span { display:block; padding:10px 18px; font-size:13.5px; color:${DIM};
-    transition:background .2s ${EASE}, color .2s ${EASE}; }
+  .rb-ord-seg span { display:flex; align-items:center; height:42px; padding:0 18px; font-size:13.5px;
+    color:${DIM}; transition:background .2s ${EASE}, color .2s ${EASE}; }
   .rb-ord-seg label[data-on="true"] span { background:rgba(200,168,119,.14); color:${GOLD_LIGHT}; }
   .rb-ord-seg input:focus-visible + span { outline:2px solid ${GOLD}; outline-offset:-2px; }
 
@@ -303,6 +306,17 @@ const ORDER_CSS = `
     background:rgba(11,10,9,.5); border:1px solid ${HAIR}; border-radius:4px; padding:13px 14px;
     transition:border-color .2s ${EASE}, background .2s ${EASE}; color-scheme:dark; }
   .rb-ord-textarea { min-height:92px; resize:vertical; line-height:1.55; }
+  /* Every <select> on this form was rendering the OS's own control — native
+     arrow, native chip, none of it this page's language, and glaringly so on
+     a near-black ground beside hand-styled inputs and the segmented toggle.
+     appearance:none strips it; the chevron is drawn here in the page's gold
+     so all three selects (occasion, size, pickup time) match the rest of the
+     form. padding-right keeps the longest option off the chevron. */
+  .rb-ord-select {
+    -webkit-appearance:none; appearance:none; padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1.25 1.25L5.5 5.5l4.25-4.25' fill='none' stroke='%23C8A877' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; }
+  .rb-ord-select::-ms-expand { display:none; }
   /* Date and time inputs size themselves from their own contents on iOS and
      ignore a percentage width, so the collection-date field grew past the
      right edge of the phone while every other field stopped at the margin.
