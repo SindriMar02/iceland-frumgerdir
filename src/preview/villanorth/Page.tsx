@@ -774,7 +774,13 @@ function StayCalendar({ stay, onChange, minDate }: {
                 <button
                   type="button"
                   data-vn-day={day}
-                  className={`vn-cal-day ${isFrom || isTo ? 'is-end' : ''}`}
+                  /* A hovered checkout is drawn as a PREVIEW, not as a chosen
+                     endpoint: the solid ink square is reserved for a date the
+                     guest has actually clicked, so the grid never claims a
+                     selection the guest has not made. */
+                  className={`vn-cal-day ${
+                    isFrom || (isTo && stay.to) ? 'is-end' : isTo ? 'is-preview' : ''
+                  }`}
                   disabled={past}
                   tabIndex={day === focused ? 0 : -1}
                   aria-label={prettyDate(day)}
@@ -1597,9 +1603,9 @@ export default function VillaNorthPage() {
             with an architect's title stamp in the corner, real-feeling cards
             inside it. The placeholder is the sheet, not the cards. */}
         <div className="vn-tours-sheet">
-          <p className="vn-tours-stamp" aria-label="Example section">
+          <p className="vn-tours-stamp">
             <span className="vn-tours-stamp-a">Example section</span>
-            <span className="vn-tours-stamp-b">Tour booking connects here</span>
+            <span className="vn-tours-stamp-b">tour booking connects here</span>
           </p>
           <div className="vn-tours-head">
             <Headline text="Trips from the door." size={56} floor={30} measure={560} />
@@ -2238,10 +2244,13 @@ html, body { background-color: ${PAPER}; }
 .vn-rooms-pane-note { font-family: ${MONO}; font-size: ${fluid(12, 12)}; color: var(--vn-mute); margin: calc(var(--u) * 10) 0 0; }
 .vn-rooms-acc { display: none; }
 .vn-rooms-bath {
-  display: flex; align-items: center; gap: calc(var(--u) * 24);
+  display: flex; align-items: center; gap: calc(var(--u) * 36);
   margin-top: calc(var(--u) * 64); padding-top: calc(var(--u) * 32); border-top: 1px solid var(--vn-hair);
 }
-.vn-rooms-bath-frame { width: calc(var(--u) * 220); flex: none; }
+/* 220 left this photograph reading as a thumbnail beside its own note; at 340
+   it carries the same weight as the frames above it. The note's 46ch measure
+   still has room beside it at 1440. */
+.vn-rooms-bath-frame { width: calc(var(--u) * 340); flex: none; }
 .vn-rooms-bath-fact { font-weight: 500; font-size: ${fluid(16, 15)}; margin: 0; }
 .vn-rooms-bath-detail { font-size: ${fluid(14, 13)}; color: var(--vn-mute); margin: calc(var(--u) * 8) 0 0; line-height: 1.5; max-width: 46ch; }
 
@@ -2395,8 +2404,9 @@ html, body { background-color: ${PAPER}; }
   max-width: calc(var(--u) * 1440); margin: 0 auto; align-items: start;
 }
 .vn-book-form, .vn-book-done {
-  background: color-mix(in srgb, var(--vn-ink) 4%, var(--vn-c));
-  border: 1px solid var(--vn-hair); border-radius: 2px; padding: calc(var(--u) * 40);
+  background: color-mix(in srgb, var(--vn-ink) 3.5%, var(--vn-c));
+  border: 1px solid var(--vn-hair); border-radius: 3px;
+  padding: calc(var(--u) * 52) calc(var(--u) * 48) calc(var(--u) * 48);
 }
 .vn-book-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 20); }
 .vn-field { display: flex; flex-direction: column; gap: 6px; }
@@ -2416,10 +2426,10 @@ html, body { background-color: ${PAPER}; }
    endpoints, and a dimension line beneath with the figure breaking the rule. */
 .vn-cal { grid-column: 1 / -1; }
 .vn-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: calc(var(--u) * 14); }
-.vn-cal-nav { display: flex; gap: 6px; }
+.vn-cal-nav { display: flex; gap: 8px; }
 .vn-cal-nav button {
-  width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer;
-  font: inherit; font-size: 14px; line-height: 1; color: var(--vn-ink);
+  width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+  font: inherit; font-size: 15px; line-height: 1; color: var(--vn-ink);
   background: var(--vn-c); border: 1px solid var(--vn-hair); border-radius: 2px;
   transition: border-color .2s ease, opacity .2s ease;
 }
@@ -2445,7 +2455,7 @@ html, body { background-color: ${PAPER}; }
 .vn-cal-cell.is-from::before { left: 50%; }
 .vn-cal-cell.is-to::before { right: 50%; }
 .vn-cal-day {
-  position: relative; width: 100%; min-height: 38px; cursor: pointer;
+  position: relative; width: 100%; min-height: 42px; cursor: pointer;
   font-family: ${MONO}; font-size: ${fluid(13, 13)}; font-variant-numeric: tabular-nums;
   color: var(--vn-ink); background: none; border: 0; border-radius: 2px; padding: 0;
   transition: box-shadow .15s ease, background-color .15s ease, color .15s ease;
@@ -2453,6 +2463,9 @@ html, body { background-color: ${PAPER}; }
 .vn-cal-day:disabled { color: color-mix(in srgb, var(--vn-ink) 24%, transparent); cursor: default; }
 .vn-cal-day:not(:disabled):hover { box-shadow: inset 0 0 0 1px var(--vn-line); }
 .vn-cal-day.is-end { background: var(--vn-ink); color: var(--vn-c); font-weight: 500; }
+/* The hovered day while a checkout is still being chosen: a dashed outline says
+   "this is where it would end" without claiming it has been chosen. */
+.vn-cal-day.is-preview { box-shadow: inset 0 0 0 1px var(--vn-amber); }
 .vn-cal-day.is-end:hover { box-shadow: none; }
 
 .vn-cal-dim {
@@ -2606,20 +2619,29 @@ html, body { background-color: ${PAPER}; }
 }
 
 /* tours — one dashed example sheet with a title stamp; the cards inside feel real */
-.vn-tours { max-width: calc(var(--u) * 1440); margin: 0 auto; padding: calc(var(--u) * 120) calc(var(--u) * 48) 0; }
+/* The section is given room on both sides of the panel so the panel reads as a
+   contained module sitting ON the page rather than as the page itself. */
+.vn-tours { max-width: calc(var(--u) * 1440); margin: 0 auto; padding: calc(var(--u) * 130) calc(var(--u) * 48) calc(var(--u) * 40); }
+/* A real box: its own surface, a solid hairline, and enough padding that the
+   contents are not pressed against the edge. The dashed outline it used to have
+   said "unfinished" about the whole section; the one small note now carries
+   that meaning, and the dashes are left to the ghost tile, which is the only
+   part that genuinely is a placeholder. */
 .vn-tours-sheet {
-  position: relative; border: 1px dashed color-mix(in srgb, var(--vn-ink) 38%, transparent);
-  border-radius: 2px; padding: calc(var(--u) * 48) calc(var(--u) * 44) calc(var(--u) * 44);
+  position: relative;
+  background: color-mix(in srgb, var(--vn-ink) 3.5%, var(--vn-c));
+  border: 1px solid var(--vn-hair); border-radius: 3px;
+  padding: calc(var(--u) * 64) calc(var(--u) * 56) calc(var(--u) * 56);
 }
+/* One quiet line at the top of the panel, not a bordered block hanging off the
+   corner competing with the headline. */
 .vn-tours-stamp {
-  position: absolute; top: 0; right: 0; margin: 0;
-  display: flex; flex-direction: column; gap: 3px; text-align: right;
-  border-left: 1px dashed color-mix(in srgb, var(--vn-ink) 38%, transparent);
-  border-bottom: 1px dashed color-mix(in srgb, var(--vn-ink) 38%, transparent);
-  padding: calc(var(--u) * 14) calc(var(--u) * 18);
+  margin: 0 0 calc(var(--u) * 26); display: flex; align-items: baseline; gap: calc(var(--u) * 10);
+  font-family: ${MONO}; font-size: 10px;
 }
-.vn-tours-stamp-a { font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--vn-amber-text); }
-.vn-tours-stamp-b { font-family: ${MONO}; font-size: 10px; letter-spacing: .06em; color: var(--vn-mute); }
+.vn-tours-stamp-a { letter-spacing: .16em; text-transform: uppercase; color: var(--vn-amber-text); }
+.vn-tours-stamp-b { letter-spacing: .06em; color: var(--vn-mute); }
+.vn-tours-stamp-b::before { content: '— '; }
 .vn-tours-head { max-width: 56ch; }
 .vn-tours-grid { margin-top: calc(var(--u) * 40); display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 20); align-items: stretch; }
 /* The plate: photograph edge to edge, everything else drawn ON it. */
@@ -2818,6 +2840,7 @@ html, body { background-color: ${PAPER}; }
   .vn-foot-base { padding-left: 20px; padding-right: 20px; }
   .vn-book-grid { grid-template-columns: 1fr; }
   .vn-gallery, .vn-tours { padding-left: 20px; padding-right: 20px; }
+  .vn-tours-sheet { padding: 28px 20px 32px; }
   .vn-gallery-grid { grid-template-columns: 1fr 1fr; }
   .vn-g-a, .vn-g-b, .vn-g-c, .vn-g-d, .vn-g-e { grid-column: auto; }
   .vn-g-f { grid-column: 1 / -1; }
