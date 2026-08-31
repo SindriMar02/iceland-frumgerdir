@@ -1013,28 +1013,44 @@ export interface OrderExtra {
   /** Stepper increment — kleinur move in fives, lengjur one at a time. */
   step: number
   max: number
+  /** Square card photo, from the bakery's own library. The extras render as
+   *  photo cards (the sweetgreen add-on pattern: the quantity control lives ON
+   *  the thing it counts), so an extra without a photo does not ship — see the
+   *  roster note below. */
+  image: string
 }
 
+/**
+ * The roster is exactly what the library photographs HONESTLY, no more:
+ *
+ *   - Kleinur — their own Wolt shot, the kleina beside a coffee.
+ *   - Vínarbrauðslengjur — frame 188, the lengjur trays.
+ *   - Pistasíusnúðar — the house signature, their own tray shot, real 610 kr.
+ *     menu price. A better upsell than a cheese roll anyway.
+ *
+ * Rúnstykki were CUT, not forgotten: the only roll close-ups in the shoot
+ * (frames 085/086) are poppy-seed rolls, and labelling them Sólkjarnarúnstykki
+ * would be the same wrong-product mistake as the hlaupkarlar blurb. They come
+ * back when the owner confirms the extras list and someone photographs them.
+ */
 export const ORDER_EXTRAS: OrderExtra[] = [
   {
     id: 'kleinur',
     label: { en: 'Kleinur', is: 'Kleinur' },
     unitPrice: 395, kjorPrice: 330, step: 5, max: 100,
+    image: `${import.meta.env.BASE_URL}reynir/order/extra-kleinur.webp`,
   },
   {
     id: 'lengjur',
     label: { en: 'Vínarbrauðslengjur', is: 'Vínarbrauðslengjur' },
     unitPrice: 1395, kjorPrice: 1180, step: 1, max: 10,
+    image: `${import.meta.env.BASE_URL}reynir/order/extra-lengjur.webp`,
   },
   {
-    id: 'solkjarna',
-    label: { en: 'Sunflower-seed rolls', is: 'Sólkjarnarúnstykki' },
-    unitPrice: 230, kjorPrice: 195, step: 10, max: 200,
-  },
-  {
-    id: 'ostarunstykki',
-    label: { en: 'Cheese rolls', is: 'Ostarúnstykki' },
-    unitPrice: 200, kjorPrice: 170, step: 10, max: 200,
+    id: 'pistasiusnudar',
+    label: { en: 'Pistachio snúðar', is: 'Pistasíusnúðar' },
+    unitPrice: 610, kjorPrice: 515, step: 5, max: 60,
+    image: `${import.meta.env.BASE_URL}reynir/order/extra-pistasiu.webp`,
   },
 ]
 

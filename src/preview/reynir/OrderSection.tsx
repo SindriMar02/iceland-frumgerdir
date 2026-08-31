@@ -335,19 +335,34 @@ const ORDER_CSS = `
   .rb-ord-linkbtn { background:none; border:0; padding:0; cursor:pointer; font-size:13px; color:${FAINT};
     text-decoration:underline; text-underline-offset:3px; }
   .rb-ord-linkbtn:hover { color:${GOLD_LIGHT}; }
-  /* ── counter extras ── */
-  .rb-ord-extras { display:grid; gap:0; margin-top:14px; max-width:560px; }
-  .rb-ord-extra { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid ${HAIR_SOFT}; }
-  .rb-ord-extra-name { flex:1; font-size:14.5px; color:${IVORY}; display:flex; flex-direction:column; gap:3px; }
-  .rb-ord-extra-price { font-size:12.5px; color:${FAINT}; font-variant-numeric:tabular-nums; }
+  /* ── counter extras: photo cards, the quantity control on the thing it
+     counts. Same card grammar as the product picker so the two read as one
+     form: hairline border, photo bleeding to the card edge, gold when live. */
+  /* min(180px,100%), not a bare 180px: a hard minimum is also the grid's
+     min-content width, and inside the form's grid column that stretched the
+     whole step to 560px on a 375px phone — two of the three cards sat clipped
+     off the right edge. Capping the minimum at the container's own width lets
+     the tracks collapse instead of the layout. */
+  .rb-ord-extras { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+    gap:10px; margin-top:14px; max-width:640px; }
+  .rb-ord-extra { display:flex; flex-direction:column; gap:6px; padding:0 14px 12px;
+    border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02); overflow:hidden;
+    transition:border-color .24s ${EASE}, background .24s ${EASE}; }
+  .rb-ord-extra[data-on] { border-color:${GOLD}; background:rgba(200,168,119,.07); }
+  .rb-ord-extra-pic { margin:0 -14px 6px; aspect-ratio:5 / 3; overflow:hidden; background:${INK_DEEP}; }
+  .rb-ord-extra-pic img { width:100%; height:100%; object-fit:cover; display:block;
+    filter:saturate(.96) brightness(.92); transition:transform .55s ${EASE}, filter .4s ${EASE}; }
+  .rb-ord-extra:hover .rb-ord-extra-pic img { transform:scale(1.045); filter:saturate(1) brightness(1); }
+  .rb-ord-extra-name { font-family:${DISPLAY}; font-size:17px; color:${IVORY}; line-height:1.2; }
+  .rb-ord-extra-price { font-size:12.5px; color:${FAINT}; font-variant-numeric:tabular-nums; min-height:16px; }
   .rb-ord-extra-price s { opacity:.55; margin-right:4px; }
   .rb-ord-extra-price em { font-style:normal; color:${GOLD}; margin-left:6px; font-size:10.5px;
     text-transform:uppercase; letter-spacing:.08em; }
-  .rb-ord-extra-sum { min-width:86px; text-align:right; font-size:13.5px; color:${GOLD};
-    font-variant-numeric:tabular-nums; }
+  .rb-ord-extra-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:2px; }
+  .rb-ord-extra-sum { text-align:right; font-size:13.5px; color:${GOLD}; font-variant-numeric:tabular-nums; }
   .rb-ord-qty[data-small] { margin-top:0; }
-  .rb-ord-qty[data-small] button { width:36px; height:36px; }
-  .rb-ord-qty[data-small] .rb-ord-qty-val { min-width:34px; font-size:16px; }
+  .rb-ord-qty[data-small] button { width:34px; height:34px; }
+  .rb-ord-qty[data-small] .rb-ord-qty-val { min-width:30px; font-size:16px; }
   .rb-ord-kjornudge { font-size:12.5px; color:${GOLD_LIGHT}; margin:12px 0 0; line-height:1.5;
     padding:9px 11px; border:1px dashed rgba(200,168,119,.35); border-radius:4px; }
 
@@ -414,7 +429,14 @@ const ORDER_CSS = `
     /* the slip moves below the choices; a slim sticky bar carries the total instead */
     .rb-ord-slipwrap { order:2; margin-top:clamp(28px,4vh,40px); }
     .rb-ord-slip { position:static; }
-    .rb-ord-formwrap { order:1; }
+    .rb-ord-formwrap { min-width:0;
+    /* min-width:0 because this is a grid item, and a grid item's default
+       min-width:auto lets any wide child (the extras card grid was the one
+       that did it) stretch the whole form column past the phone's viewport
+       instead of shrinking. The clipped result LOOKED fine in overflow checks
+       because an ancestor hid the scroll — two of three cards were simply
+       unreachable. */
+    order:1; }
     .rb-ord-mobiletotal { display:flex; position:sticky; top:0; z-index:6; align-items:baseline; gap:10px;
       margin:0 calc(clamp(20px,4.5vw,72px) * -1); padding:11px clamp(20px,4.5vw,72px);
       background:rgba(11,10,9,.94); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
@@ -1915,31 +1937,39 @@ export default function OrderSection({
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepExtras}</div>
                 <p className="rb-ord-help" style={{ marginTop: 10 }}>{kjor ? t.extrasKjorIntro : t.extrasIntro}</p>
+                {/* Photo cards, not text rows — the sweetgreen add-on
+                    pattern: the product is the photograph and the stepper
+                    lives ON the card it counts. Skinned to this page's
+                    language (ink ground, hairline border, Lusitana, gold
+                    when active), not the reference's white cards. */}
                 <div className="rb-ord-extras">
                   {ORDER_EXTRAS.map((ex) => {
                     const nQty = extrasQty[ex.id] ?? 0
                     const unit = kjor ? ex.kjorPrice : ex.unitPrice
                     return (
-                      <div className="rb-ord-extra" key={ex.id}>
-                        <span className="rb-ord-extra-name">
-                          {ex.label[lang]}
-                          <span className="rb-ord-extra-price">
-                            {kjor ? (
-                              <>
-                                <s>{isk(ex.unitPrice)}</s> {isk(ex.kjorPrice)}
-                                <em>{t.extrasKjorTag}</em>
-                              </>
-                            ) : (
-                              `${isk(ex.unitPrice)} ${lang === 'is' ? 'stk.' : 'each'}`
-                            )}
-                          </span>
+                      <div className="rb-ord-extra" key={ex.id} data-on={nQty > 0 || undefined}>
+                        <span className="rb-ord-extra-pic">
+                          <img src={ex.image} alt="" loading="lazy" decoding="async" width={480} height={480} />
                         </span>
-                        <div className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
-                          <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label="−">−</button>
-                          <span className="rb-ord-qty-val" aria-live="polite">{nQty}</span>
-                          <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label="+">+</button>
-                        </div>
-                        <span className="rb-ord-extra-sum" aria-live="polite">{nQty > 0 ? isk(nQty * unit) : ''}</span>
+                        <span className="rb-ord-extra-name">{ex.label[lang]}</span>
+                        <span className="rb-ord-extra-price">
+                          {kjor ? (
+                            <>
+                              <s>{isk(ex.unitPrice)}</s> {isk(ex.kjorPrice)}
+                              <em>{t.extrasKjorTag}</em>
+                            </>
+                          ) : (
+                            `${isk(ex.unitPrice)} ${lang === 'is' ? 'stk.' : 'each'}`
+                          )}
+                        </span>
+                        <span className="rb-ord-extra-foot">
+                          <span className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
+                            <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label="−">−</button>
+                            <span className="rb-ord-qty-val" aria-live="polite">{nQty}</span>
+                            <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label="+">+</button>
+                          </span>
+                          <span className="rb-ord-extra-sum" aria-live="polite">{nQty > 0 ? isk(nQty * unit) : ''}</span>
+                        </span>
                       </div>
                     )
                   })}
