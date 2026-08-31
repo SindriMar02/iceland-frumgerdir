@@ -1070,6 +1070,25 @@ export const ORDER_EXTRAS: OrderExtra[] = [
 /** The one place that knows what a unit of an extra costs right now:
  *  kjör price under veislukjör, kjör price again past the item's own
  *  quantity break, counter price otherwise. */
+/**
+ * How many cards across, so the last row is never one stranded card.
+ *
+ * Three is the design and it holds whenever it divides cleanly; the rule is
+ * that `n % cols` must not be 1, preferring 3, then 2, then 4. Four products
+ * lay out 2x2 rather than 3+1, five stay 3+2, seven become 4+3.
+ *
+ * Lives HERE, beside the catalogue, because three separate grids present
+ * these same lists — the homepage teaser, the picker inside the form, and the
+ * extras cards. It was written for the teaser alone and the picker kept its
+ * own `max-width:33.333%`, which is exactly why a fourth cake sat stranded
+ * under a full row the moment the children's cake shipped.
+ */
+export function columnsFor(n: number): number {
+  if (n <= 3) return Math.max(n, 1)
+  for (const cols of [3, 2, 4]) if (n % cols !== 1) return cols
+  return 3
+}
+
 export function extraUnitPrice(ex: OrderExtra, qty: number, kjor: boolean): number {
   return kjor || qty >= ex.bulkAt ? ex.kjorPrice : ex.unitPrice
 }

@@ -12,7 +12,7 @@
 
 import { Link } from 'react-router-dom'
 import type { Lang } from './data'
-import { ORDER_T, isk, fromPriceOf } from './order'
+import { ORDER_T, isk, fromPriceOf, columnsFor } from './order'
 import { DIM, DISPLAY, EASE, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, INK_DEEP, IVORY } from './tokens'
 import { useSiteContent } from './sanity'
 
@@ -59,21 +59,6 @@ const TEASER_CSS = `
     .rb-tease-card:hover { transform:none; }
   }
 `
-
-/**
- * How many across, so the last row is never one lonely card.
- *
- * Three is the design, and it holds whenever it divides cleanly. The rule is
- * simply that `n % cols` must not be 1: four products across three columns
- * leaves a single card stranded under a full row, which is the gap this fixes.
- * Preference order is 3, then 2, then 4 — so 4 becomes 2x2, 5 stays 3+2, and
- * 7 becomes 4+3 rather than 3+3+1.
- */
-function columnsFor(n: number): number {
-  if (n <= 3) return Math.max(n, 1)
-  for (const cols of [3, 2, 4]) if (n % cols !== 1) return cols
-  return 3
-}
 
 export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath: string }) {
   const t = ORDER_T[lang]

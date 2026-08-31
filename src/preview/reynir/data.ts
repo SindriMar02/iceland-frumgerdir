@@ -437,6 +437,8 @@ export const T = {
        every crawler's copy of the page. It must therefore be true at all times,
        never 'Closed' — a frozen 'Closed' is what a search result would quote. */
     statusHours: (o: string, c: string) => `Open every day ${o}–${c}`,
+    /* Their own title's words: "handverksbakarí í Kópavogi síðan 1994". */
+    factSince: 'A craft bakery since 1994',
     statusHoursVaried: 'Opening hours',
     heroTitle: 'HANDMADE',
     heroSub: 'A family bakery in Kópavogur since 1994.',
@@ -505,6 +507,7 @@ export const T = {
     statusOpensToday: (t: string) => `Lokað, opnum kl. ${t} í dag`,
     statusOpensTomorrow: (t: string) => `Lokað, opnum á morgun kl. ${t}`,
     statusHours: (o: string, c: string) => `Opið alla daga ${o}–${c}`,
+    factSince: 'Handverksbakarí síðan 1994',
     statusHoursVaried: 'Opnunartímar',
     heroTitle: 'HANDGERT',
     heroSub: 'Fjölskyldubakarí í Kópavogi síðan 1994.',

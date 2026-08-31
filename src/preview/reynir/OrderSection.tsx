@@ -39,6 +39,7 @@ import {
   VEISLUKJOR,
   extrasTotal,
   extraUnitPrice,
+  columnsFor,
   type OrderGroup,
   type OrderProduct,
   type OrderChoice,
@@ -112,8 +113,12 @@ const ORDER_CSS = `
      last row (4 products = one stranded card beside two gaps), whereas wrapped
      flex + centred remainder reads as deliberate at 1, 2, 4, 5 or 7 products.
      max-width caps each card at a third so a short row never stretches. */
-  .rb-ord-prods { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:16px; }
-  .rb-ord-prods > * { flex:1 1 210px; max-width:calc(33.333% - 7px); }
+  /* Explicit columns from columnsFor(), not a hard third: with four cakes a
+     33.333% cap left the fourth stranded alone under a full row. Tracks cap
+     at the width a card has at three across so two or four products read as
+     normal cards centred, never as half-page slabs. */
+  .rb-ord-prods { display:grid; justify-content:center; gap:10px; margin-top:16px;
+    grid-template-columns:repeat(var(--prod-cols,3), minmax(0,230px)); }
   .rb-ord-prod { position:relative; display:flex; flex-direction:column; gap:6px; text-align:left; cursor:pointer;
     padding:16px 15px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
     overflow:hidden;
@@ -368,8 +373,11 @@ const ORDER_CSS = `
      whole step to 560px on a 375px phone — two of the three cards sat clipped
      off the right edge. Capping the minimum at the container's own width lets
      the tracks collapse instead of the layout. */
-  .rb-ord-extras { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(180px, 100%), 1fr));
-    gap:10px; margin-top:14px; max-width:640px; }
+  /* Same rule as the picker. auto-fill stranded a fourth extra the moment
+     the owner adds one, and minmax(0,…) keeps the min-content blow-out fixed
+     without needing the min() guard. */
+  .rb-ord-extras { display:grid; justify-content:start; gap:10px; margin-top:14px; max-width:640px;
+    grid-template-columns:repeat(var(--extra-cols,3), minmax(0,200px)); }
   .rb-ord-extra { display:flex; flex-direction:column; gap:6px; padding:0 14px 12px;
     border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02); overflow:hidden;
     transition:border-color .24s ${EASE}, background .24s ${EASE}; }
@@ -470,7 +478,8 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-label { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:${FAINT}; }
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
-    .rb-ord-prods > * { max-width:100%; flex-basis:100%; }
+    .rb-ord-prods { grid-template-columns:minmax(0,1fr); }
+    .rb-ord-extras { grid-template-columns:repeat(2,minmax(0,1fr)); }
     /* On a phone the picker becomes a LIST, not three posters.
        Full-width cards with a letterbox photo came to 849px for three
        products: more than a whole screen of pictures before the customer
@@ -1687,7 +1696,12 @@ export default function OrderSection({
                   <span className="rb-ord-stepnum" aria-hidden="true">01</span>
                   <span className="rb-ord-steplabel">{t.stepProduct}</span>
                 </div>
-                <div className="rb-ord-prods" role="radiogroup" aria-label={t.stepProduct}>
+                <div
+                  className="rb-ord-prods"
+                  role="radiogroup"
+                  aria-label={t.stepProduct}
+                  style={{ ['--prod-cols' as string]: String(columnsFor(ORDER_PRODUCTS.length)) }}
+                >
                   {ORDER_PRODUCTS.map((p) => (
                     <label key={p.id} className="rb-ord-prod" data-on={p.id === productId}>
                       <input
@@ -1964,7 +1978,7 @@ export default function OrderSection({
                     lives ON the card it counts. Skinned to this page's
                     language (ink ground, hairline border, Lusitana, gold
                     when active), not the reference's white cards. */}
-                <div className="rb-ord-extras">
+                <div className="rb-ord-extras" style={{ ['--extra-cols' as string]: String(columnsFor(ORDER_EXTRAS.length)) }}>
                   {ORDER_EXTRAS.map((ex) => {
                     const nQty = extrasQty[ex.id] ?? 0
                     const unit = extraUnitPrice(ex, nQty, kjor)

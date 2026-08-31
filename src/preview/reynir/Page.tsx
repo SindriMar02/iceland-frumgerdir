@@ -71,8 +71,59 @@ const PAGE_CSS = `
   .rb-enter-3 { animation:rb-rise .9s ${EASE} .26s both; }
   .rb-enter-4 { animation:rb-rise .9s ${EASE} .38s both; }
 
-  @keyframes rb-marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-  .rb-marquee-track { display:flex; width:max-content; animation:rb-marquee 36s linear infinite; }
+  /* ── Scroll motion ──
+     The page revealed each block as one lump: everything fades up together,
+     which reads as a template. Two additions, both driven by the same
+     observer via [data-shown] and both pure CSS, because framer's
+     mount/state animations are unreliable in this app.
+
+     1. HEADING WIPE. A display heading is masked and rises into view rather
+        than fading — the move that separates an editorial site from a
+        generated one. It runs on the h2 itself, so the gold gradient and the
+        letterpress shadow are untouched.
+     2. STAGGER. Direct children of a marked block arrive in sequence, ~70ms
+        apart, so the eye is led down the section instead of being handed it
+        all at once. */
+  .rb-wipe > h2, h2.rb-wipe { clip-path:inset(0 0 110% 0); transform:translateY(.14em);
+    transition:clip-path 1.05s ${EASE}, transform 1.05s ${EASE}; will-change:clip-path, transform; }
+  [data-shown="true"].rb-wipe > h2, h2[data-shown="true"].rb-wipe,
+  [data-shown="true"] > .rb-wipe > h2 { clip-path:inset(0 0 -0.22em 0); transform:none; }
+  .rb-stagger > * { opacity:0; transform:translateY(14px);
+    transition:opacity .8s ${EASE}, transform .8s ${EASE}; }
+  .rb-stagger[data-shown="true"] > * { opacity:1; transform:none; }
+  .rb-stagger[data-shown="true"] > *:nth-child(2) { transition-delay:.07s; }
+  .rb-stagger[data-shown="true"] > *:nth-child(3) { transition-delay:.14s; }
+  .rb-stagger[data-shown="true"] > *:nth-child(4) { transition-delay:.21s; }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-wipe > h2, h2.rb-wipe { clip-path:none; transform:none; transition:none; }
+    .rb-stagger > * { opacity:1; transform:none; transition:none; }
+  }
+
+  /* Section intros. Full-bleed ones are centred and carry no rule; the
+     kicker's letterspacing already reads as a masthead without one. */
+  .rb-sec-intro { text-align:center; }
+  .rb-sec-kicker { font-size:12px; font-weight:700; letter-spacing:.24em; text-transform:uppercase;
+    color:${GOLD}; }
+  .rb-sec-lede { margin-inline:auto; }
+
+  /* The counter rail that replaced the scrolling marquee. Static by design:
+     the facts ARE the content, so there is nothing to animate. */
+  .rb-facts-strip { border-top:1px solid ${HAIR}; border-bottom:1px solid ${HAIR};
+    padding:16px clamp(20px,4.5vw,72px); position:relative; z-index:2; }
+  .rb-facts { display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+    gap:0 clamp(14px,2vw,26px); max-width:1180px; margin:0 auto; }
+  .rb-fact { display:inline-flex; align-items:center; gap:9px; font-family:${DISPLAY};
+    font-size:clamp(15px,1.5vw,18px); color:${IVORY}; }
+  .rb-fact-sep { width:4px; height:4px; border-radius:50%; background:${GOLD}; opacity:.55; }
+  .rb-fact-dot { width:7px; height:7px; border-radius:50%; background:${FAINT};
+    box-shadow:0 0 0 3px rgba(243,234,211,.06); }
+  .rb-fact[data-open="true"] .rb-fact-dot { background:${GOLD};
+    box-shadow:0 0 0 3px rgba(200,168,119,.16); }
+  /* Stacked on a phone: three facts on one line would set 11px type. */
+  @media (max-width:760px) {
+    .rb-facts { flex-direction:column; gap:7px; }
+    .rb-fact-sep { display:none; }
+  }
 
   /* the hero pistachio turns slowly and smoothly, in place — a true cutout on
      transparency, so the ground shows through and nothing frames it. */
@@ -373,7 +424,6 @@ const PAGE_CSS = `
   }
   @media (prefers-reduced-motion: reduce) {
     .rb-enter, .rb-enter-2, .rb-enter-3, .rb-enter-4 { animation:none; }
-    .rb-marquee-track { animation:none; }
     .rb-hero-spin { animation:none; }
     .rb-cta { transition:none; }
     .rb-cta:active { transform:none; }
@@ -822,9 +872,15 @@ function ReynirPageInner() {
     const root = rootRef.current
     if (!root || !('IntersectionObserver' in window)) return
 
+    /* Sets the inline pair the old reveal always set, AND flips a data flag
+     * so CSS can carry motion the inline style cannot express — a mask wipe
+     * on a heading, a stagger across children. The flag is what the richer
+     * animations key off; the inline pair stays because every existing
+     * data-reveal block still relies on it. */
     const reveal = (el: HTMLElement) => {
       el.style.opacity = '1'
       el.style.transform = 'none'
+      el.setAttribute('data-shown', 'true')
     }
 
     const io = new IntersectionObserver(
@@ -872,10 +928,6 @@ function ReynirPageInner() {
     // opacity:0 that revealInit gave them and the whole gallery stays blank.
   }, [reduced, lang, GALLERY])
 
-  const marqueeItems = useMemo(
-    () => ['Vínarbrauð', 'Súrdeigsbrauð', 'Snúður', 'Kanillengja', 'Pistasíusnúður', 'Kleina', 'Rúgbrauð', 'Skúffukaka'],
-    [],
-  )
 
   // Gallery lightbox: null when closed, otherwise the open photo's index.
   const [lightbox, setLightbox] = useState<number | null>(null)
@@ -1090,19 +1142,26 @@ function ReynirPageInner() {
           </div>
         </div>
 
-        {/* gold marquee of the day's bakes */}
-        <div style={{ borderTop: `1px solid ${HAIR}`, borderBottom: `1px solid ${HAIR}`, padding: '18px 0', overflow: 'hidden', position: 'relative', zIndex: 2 }}>
-          <div className="rb-marquee-track" aria-hidden="true">
-            {[0, 1].map((dup) => (
-              <div key={dup} style={{ display: 'flex', alignItems: 'center' }}>
-                {marqueeItems.map((it, i) => (
-                  <span key={`${dup}-${i}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: DISPLAY, fontSize: 'clamp(20px,2.4vw,30px)', color: i % 2 ? GOLD : GOLD_LIGHT, padding: '0 26px' }}>{it}</span>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, opacity: 0.6 }} />
-                  </span>
-                ))}
-              </div>
-            ))}
+        {/* The counter rail.
+            This was an infinitely scrolling marquee of product nouns — the
+            most recognisable tell of a generated landing page, and it carried
+            no information: nothing to buy, no prices, it simply moved. Every
+            real ordering product puts FACTS in this band instead (DoorDash's
+            store-info block, sweetgreen's "Pickup from … Opens Thursday at
+            10:00am", Square's Location & Hours), so it now answers the three
+            things a bakery is actually asked above the fold: are you open,
+            where are you, how long have you been here. Nothing moves; the only
+            live part is the status the page already computes. */}
+        <div className="rb-facts-strip">
+          <div className="rb-facts">
+            <span className="rb-fact" data-open={status.open}>
+              <span className="rb-fact-dot" aria-hidden="true" />
+              {status.label}
+            </span>
+            <span className="rb-fact-sep" aria-hidden="true" />
+            <span className="rb-fact">{mainName}</span>
+            <span className="rb-fact-sep" aria-hidden="true" />
+            <span className="rb-fact">{t.factSince}</span>
           </div>
         </div>
       </section>
@@ -1110,10 +1169,18 @@ function ReynirPageInner() {
       {/* ===================== THE MENU ===================== */}
       <section id="menu" style={{ background: INK, borderTop: `1px solid ${HAIR_SOFT}`, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={revealInit(reduced)}>
-            <div style={{ borderTop: `1px solid ${HAIR}`, paddingTop: 16, fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.menuMasthead}</div>
+          {/* Centred, and the rule above the kicker is gone.
+              The hairline survives where it does WORK — separating the menu
+              rows below, closing a photo frame — but above a heading it was
+              only decoration, and a rule plus a left edge plus a masthead is
+              three devices doing one job. A full-bleed section intro is
+              centred; a header that heads a COLUMN (bread, cakes, visit)
+              stays left-aligned with its column. That is the rule, so the
+              page reads as a system rather than as two moods. */}
+          <div className="rb-sec-intro rb-wipe rb-stagger" data-reveal style={revealInit(reduced)}>
+            <div className="rb-sec-kicker">{t.menuMasthead}</div>
             <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.ovenTitle}</h2>
-            <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
+            <p className="rb-sec-lede" style={{ fontSize: 16, color: DIM, margin: '16px auto 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
           </div>
 
           {/* featured item — the signature pistachio snúður, shown as a rich
@@ -1265,7 +1332,7 @@ function ReynirPageInner() {
       {/* ===================== BREAD BOARD ===================== */}
       <section id="bread" style={{ background: INK_DEEP, padding: sectionPad }}>
         <div style={wrap}>
-          <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
+          <div data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
             <div style={{ maxWidth: 620 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.breadKicker}</div>
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.breadTitle}</h2>
@@ -1371,9 +1438,9 @@ function ReynirPageInner() {
               section — only the text is capped. Carrying the cap on the same
               element cut the hairline short and broke the page's one
               recurring device. */}
-          <div data-reveal style={{ ...revealInit(reduced), borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
-            <div style={{ maxWidth: 640 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.galleryKicker}</div>
+          <div className="rb-sec-intro rb-wipe" data-reveal style={revealInit(reduced)}>
+            <div style={{ maxWidth: 640, marginInline: 'auto' }}>
+              <div className="rb-sec-kicker">{t.galleryKicker}</div>
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4vw,52px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.galleryTitle}</h2>
               <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.galleryIntro}</p>
             </div>
@@ -1404,7 +1471,7 @@ function ReynirPageInner() {
                 column empty, so the practical detail is gathered here and the
                 photograph and map carry the other side. */}
             <div data-reveal style={revealInit(reduced)}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD, borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>{t.visitKicker}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.visitKicker}</div>
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.visitTitle}</h2>
 
               <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 'clamp(20px,3vh,28px)' }}>{mainName}</div>
