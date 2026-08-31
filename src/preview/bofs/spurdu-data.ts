@@ -621,6 +621,21 @@ const SUGGESTED: Record<Audience, string[]> = {
   fagadili: ['ekki-viss', 'hvad-gerist-eftir', 'foreldrar-vita', 'talsmadur', 'hver-barnavernd', 'barnahus-hvad'],
 }
 
+/**
+ * Every question this audience has an answer to, ordered for reading:
+ * danger first, then the ones people ask most, then the rest.
+ */
+export function allFor(audience: Audience): Hit[] {
+  const rank = (g: QGroup) => {
+    if (g.emergency) return 0
+    const i = SUGGESTED[audience].indexOf(g.id)
+    return i === -1 ? 99 : 1 + i
+  }
+  return GROUPS.filter((g) => g.variants[audience])
+    .map((group) => ({ group, variant: group.variants[audience]!, score: 0 }))
+    .sort((a, b) => rank(a.group) - rank(b.group))
+}
+
 export function suggestionsFor(audience: Audience): Hit[] {
   return SUGGESTED[audience]
     .map((id) => {

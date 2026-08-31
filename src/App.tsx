@@ -71,7 +71,6 @@ const BofsCentre = lazy(() => import('./preview/bofs/Centre'))
 const BofsKerfid = lazy(() => import('./preview/bofs/Kerfid'))
 const BofsUmStofnunina = lazy(() => import('./preview/bofs/UmStofnunina'))
 const BofsFrettir = lazy(() => import('./preview/bofs/Frettir'))
-const BofsSpurdu = lazy(() => import('./preview/bofs/Spurdu'))
 const BofsLegal = lazy(() => import('./preview/bofs/Legal'))
 const FlatbakanPage = lazy(() => import('./preview/flatbakan/Page'))
 // Eldofninn — clones the flatbakan redesign's exact template, re-skinned to this brand
@@ -334,7 +333,6 @@ export default function App() {
             <Route path="/preview/bofs/kerfid" element={<BofsKerfid />} />
             <Route path="/preview/bofs/um-stofnunina" element={<BofsUmStofnunina />} />
             <Route path="/preview/bofs/frettir" element={<BofsFrettir />} />
-            <Route path="/preview/bofs/spurdu" element={<BofsSpurdu />} />
             <Route path="/preview/bofs/adgengi" element={<BofsLegal kind="adgengi" />} />
             <Route path="/preview/bofs/personuvernd" element={<BofsLegal kind="personuvernd" />} />
             <Route path="/preview/bofs/:slug" element={<BofsCentre />} />

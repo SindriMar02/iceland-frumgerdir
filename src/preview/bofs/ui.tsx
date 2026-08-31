@@ -492,7 +492,6 @@ export function Header() {
   const homes = SERVICES.filter((s) => s.category === 'heimili')
   const thjonusta = SERVICES.filter((s) => s.category === 'thjonusta')
   const pageLinks = [
-    { label: pick(UI.nav.ask), to: '/preview/bofs/spurdu' },
     { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
     { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
     { label: pick(UI.nav.report), to: `${base}#tilkynna` },
@@ -766,8 +765,7 @@ export function Footer() {
               </h4>
               <ul className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-[15px] sm:grid-cols-1">
                 {[
-                  { label: pick(UI.nav.ask), to: '/preview/bofs/spurdu' },
-                  { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
+                    { label: pick(UI.nav.system), to: '/preview/bofs/kerfid' },
                   { label: pick(UI.nav.about), to: '/preview/bofs/um-stofnunina' },
                   { label: pick({ is: 'Fréttir', en: 'News' }), to: '/preview/bofs/frettir' },
                   { label: pick(UI.nav.report), to: '/preview/bofs#tilkynna' },
