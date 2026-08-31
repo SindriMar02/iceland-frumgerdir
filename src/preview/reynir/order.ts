@@ -1117,6 +1117,7 @@ export interface OrderCopy {
   kjorQuoteNote: string
   errNoCake: string
   occasionHelp: string
+  occasionNone: string
   occasionOtherLabel: string
   occasionOtherPlaceholder: string
   inscriptionNeutral: string
@@ -1263,6 +1264,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     kjorQuoteNote: 'The party rate is applied to the confirmed price when we call.',
     errNoCake: 'Pick a cake to order.',
     occasionHelp: 'Optional, and it helps us: it tells us how the cake should be finished before we call you.',
+    occasionNone: 'Nothing in particular',
     occasionOtherLabel: 'What is the occasion?',
     occasionOtherPlaceholder: 'Tell us in a few words.',
     inscriptionNeutral: 'For example a name, or leave it blank.',
@@ -1390,6 +1392,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     kjorQuoteNote: 'Veislukjör reiknast af staðfestu verði þegar við hringjum.',
     errNoCake: 'Veldu köku til að panta.',
     occasionHelp: 'Valfrjálst, en það hjálpar okkur: það segir okkur hvernig kakan á að vera skreytt áður en við hringjum.',
+    occasionNone: 'Ekkert sérstakt',
     occasionOtherLabel: 'Hvert er tilefnið?',
     occasionOtherPlaceholder: 'Segðu okkur það í stuttu máli.',
     inscriptionNeutral: 'Til dæmis nafn, eða skildu reitinn eftir auðan.',
