@@ -35,8 +35,12 @@ import {
   choicePriceOf,
   fromPriceOf,
   occasionsFor,
+  ORDER_EXTRAS,
+  VEISLUKJOR,
+  extrasTotal,
   type OrderGroup,
   type OrderProduct,
+  type OrderChoice,
 } from './order'
 import { BODY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
 import { useSiteContent } from './sanity'
@@ -315,6 +319,37 @@ const ORDER_CSS = `
   .rb-ord-total-value { margin-left:auto; font-family:${DISPLAY}; font-size:27px; color:${GOLD};
     font-variant-numeric:tabular-nums; }
   .rb-ord-slip-note { font-size:12px; color:${DIM}; margin:12px 0 0; line-height:1.5; }
+  /* ── the basket ── */
+  .rb-ord-cake { border-bottom:1px dashed rgba(238,211,170,.18); padding-bottom:6px; margin-bottom:4px; }
+  .rb-ord-cakebtns { display:flex; gap:14px; margin:0 0 6px; }
+  .rb-ord-cakebtns button { background:none; border:0; padding:0; cursor:pointer; font-size:12px;
+    color:${FAINT}; text-decoration:underline; text-underline-offset:3px; }
+  .rb-ord-cakebtns button:hover { color:${GOLD_LIGHT}; }
+  .rb-ord-cakebtns button:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; }
+  .rb-ord-addcake { display:flex; align-items:center; gap:18px; margin-top:20px; flex-wrap:wrap; }
+  .rb-ord-addbtn { padding:12px 22px; background:none; border:1px solid ${HAIR}; border-radius:4px;
+    color:${GOLD_LIGHT}; font-size:14px; cursor:pointer;
+    transition:border-color .2s ${EASE}, background .2s ${EASE}; }
+  .rb-ord-addbtn:hover { border-color:${GOLD}; background:rgba(200,168,119,.08); }
+  .rb-ord-addbtn:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; }
+  .rb-ord-linkbtn { background:none; border:0; padding:0; cursor:pointer; font-size:13px; color:${FAINT};
+    text-decoration:underline; text-underline-offset:3px; }
+  .rb-ord-linkbtn:hover { color:${GOLD_LIGHT}; }
+  /* ── counter extras ── */
+  .rb-ord-extras { display:grid; gap:0; margin-top:14px; max-width:560px; }
+  .rb-ord-extra { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid ${HAIR_SOFT}; }
+  .rb-ord-extra-name { flex:1; font-size:14.5px; color:${IVORY}; display:flex; flex-direction:column; gap:3px; }
+  .rb-ord-extra-price { font-size:12.5px; color:${FAINT}; font-variant-numeric:tabular-nums; }
+  .rb-ord-extra-price s { opacity:.55; margin-right:4px; }
+  .rb-ord-extra-price em { font-style:normal; color:${GOLD}; margin-left:6px; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; }
+  .rb-ord-extra-sum { min-width:86px; text-align:right; font-size:13.5px; color:${GOLD};
+    font-variant-numeric:tabular-nums; }
+  .rb-ord-qty[data-small] { margin-top:0; }
+  .rb-ord-qty[data-small] button { width:36px; height:36px; }
+  .rb-ord-qty[data-small] .rb-ord-qty-val { min-width:34px; font-size:16px; }
+  .rb-ord-kjornudge { font-size:12.5px; color:${GOLD_LIGHT}; margin:12px 0 0; line-height:1.5;
+    padding:9px 11px; border:1px dashed rgba(200,168,119,.35); border-radius:4px; }
 
   /* mobile running total, sticks under the page header, never at the bottom
      (a bottom-fixed bar would collide with the preview chrome) */
@@ -525,6 +560,39 @@ export default function OrderSection({
 
   /** A private order and a company order need different fields, not a different form. */
   const [who, setWho] = useState<'person' | 'company'>('person')
+
+  /**
+   * The order is a LIST of cakes now, not one. A ferming needs a
+   * marsipanterta AND a kransakaka, and making that two separate orders meant
+   * two forms, two references, two phone calls — and no way to price the
+   * event as one thing, which is what veislukjör needs.
+   *
+   * The configurator below always edits ONE cake, the draft. "Bæta annarri
+   * köku við" snapshots the draft into this list and clears the configurator;
+   * the snapshot keeps the lines and totals AS SHOWN when it was added, the
+   * same rule the order email follows, so nothing recomputes behind the
+   * customer's back. `draftActive` is false between committing one cake and
+   * choosing the next — the product radio deselects, and the draft's own
+   * validation goes quiet until a product wakes it again.
+   */
+  interface CakeInOrder {
+    key: string
+    product: OrderProduct
+    picked: Record<string, string[]>
+    extrasText: Record<string, string>
+    inscription: string
+    qty: number
+    lines: SlipLine[]
+    total: number
+    quote: boolean
+    wantsPhoto: boolean
+    size: OrderChoice | null
+  }
+  const [cakes, setCakes] = useState<CakeInOrder[]>([])
+  const [draftActive, setDraftActive] = useState(true)
+  /** Counter extras on the order — kleinur ×20 etc. Quantities only; prices
+   *  live on ORDER_EXTRAS and switch with veislukjör. */
+  const [extrasQty, setExtrasQty] = useState<Record<string, number>>({})
   const [qty, setQty] = useState(1)
   const [picked, setPicked] = useState<Record<string, string[]>>({})
   const [inscription, setInscription] = useState('')
@@ -585,12 +653,31 @@ export default function OrderSection({
 
   const earliest = useMemo(() => isoPlusDays(product.leadDays), [product.leadDays])
 
+  /* Refs the product-switch effect reads without re-firing on their changes:
+   * the committed cakes (a photo one of them attached must survive the switch)
+   * and a cake being loaded back in for editing (whose restored choices the
+   * effect must not wipe). */
+  const cakesRef = useRef<CakeInOrder[]>(cakes)
+  cakesRef.current = cakes
+  const restoreRef = useRef<CakeInOrder | null>(null)
+
   // Switching product invalidates every previous choice, so start that product clean.
   useEffect(() => {
+    /* Unless the switch IS a restore: "Breyta" on a committed cake sets the
+     * choices and then changes the product, and this effect used to fire
+     * after both and wipe the restored size — the cake came back to the
+     * configurator empty. Caught by clicking Breyta and reading the total. */
+    if (restoreRef.current?.product.id === productId) {
+      restoreRef.current = null
+      return
+    }
     setPicked({})
     setInscription('')
     setExtras({})
-    clearPhoto()
+    /* The photo belongs to the ORDER now. Clearing it because the customer
+     * moved on to configuring their second cake would silently discard the
+     * picture their first, committed cake asked for. */
+    if (!cakesRef.current.some((c) => c.wantsPhoto)) clearPhoto()
     setTouched((prev) => {
       const next: Record<string, boolean> = {}
       for (const k of Object.keys(prev)) if (k.startsWith('c_')) next[k] = prev[k]
@@ -650,14 +737,23 @@ export default function OrderSection({
    * just chose. Otherwise the list is whichever half matches the person or
    * company they said they were. */
   const occasionList = useMemo(() => occasionsFor(OCCASIONS, who), [OCCASIONS, who])
-  const occasionAnswered = product.occasionId
-    ? OCCASIONS.find((o) => o.id === product.occasionId)
-    : undefined
+  /* With a basket, the product only answers the occasion when EVERY cake in
+   * the order names the same one. A barnaafmæliskaka alone needs no question;
+   * add a kransakaka beside it and the question is open again. */
+  const occasionIds = [...cakes.map((c) => c.product.occasionId), ...(draftActive ? [product.occasionId] : [])]
+  const occasionAnswered =
+    occasionIds.length > 0 && occasionIds[0] && occasionIds.every((id) => id === occasionIds[0])
+      ? OCCASIONS.find((o) => o.id === occasionIds[0])
+      : undefined
   const askOccasion = !occasionAnswered && occasionList.length > 0
   const occasion = occasionAnswered
     ?? occasionList.find((o) => o.id === customer.occasion)
   const quote = useMemo(() => isQuoteRequest(product, picked), [product, picked])
-  const wantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
+  const draftWantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
+  /* The photo belongs to the ORDER (one attachment rides the email), so the
+   * upload section stays open if ANY cake in the basket asked for one — not
+   * just the cake currently being configured. */
+  const wantsPhoto = cakes.some((c) => c.wantsPhoto) || (draftActive && draftWantsPhoto)
   /** The cake as configured, so the filling that swaps pears in for cocktail
    *  fruit shows the swap instead of hiding it in a footnote. */
   const layers = useMemo(() => compositionOf(product, picked), [product, picked])
@@ -741,24 +837,52 @@ export default function OrderSection({
 
   /** Nothing to total yet. Showing "0 kr." here reads as a free cake, which is
    *  the one number this form must never put in front of a customer. */
-  const unpriced = !!product.sizeGroupId && !size
+  const unpriced = draftActive && !!product.sizeGroupId && !size
+
+  /* ── The order's own arithmetic: cakes → veislukjör → extras. ──
+   *
+   * The draft counts while it is active and priced; committed cakes carry
+   * their snapshotted totals. A quote anywhere makes the whole order a quote —
+   * a percentage of a number that does not exist is not a discount, so the
+   * kjör line disappears and a note says it lands on the confirmed price.
+   *
+   * The threshold reads CAKES ONLY. Extras never unlock the rate they are
+   * discounted by, or forty cheap rúnstykki become a key to cheaper rúnstykki. */
+  const draftCounts = draftActive && !quote && !unpriced && (size !== null || !product.sizeGroupId)
+  const cakesSubtotal = cakes.reduce((s2, c) => s2 + (c.quote ? 0 : c.total), 0) + (draftCounts ? total : 0)
+  const anyQuote = cakes.some((c) => c.quote) || (draftActive && quote)
+  const kjor = !anyQuote && cakesSubtotal >= VEISLUKJOR.threshold
+  const kjorDiscount = kjor ? Math.round((cakesSubtotal * VEISLUKJOR.discountPct) / 100) : 0
+  const extrasSum = extrasTotal(extrasQty, kjor)
+  const orderTotal = cakesSubtotal - kjorDiscount + extrasSum
+
   /** What stands where the total goes when there is no number to put there. */
-  const totalText = quote ? t.quoteTotal : unpriced ? t.slipPickSize : isk(total)
-  const softTotal = quote || unpriced
+  const totalText = anyQuote
+    ? t.quoteTotal
+    : cakes.length === 0 && unpriced && extrasSum === 0
+      ? t.slipPickSize
+      : isk(orderTotal)
+  const softTotal = anyQuote || (cakes.length === 0 && unpriced && extrasSum === 0)
 
   // Bump the total when it changes, so the price movement is felt, not just read.
   const [bump, setBump] = useState(false)
-  const prevTotal = useRef(total)
+  const prevTotal = useRef(orderTotal)
   useEffect(() => {
-    if (prevTotal.current === total) return
-    prevTotal.current = total
+    if (prevTotal.current === orderTotal) return
+    prevTotal.current = orderTotal
     setBump(true)
     const id = window.setTimeout(() => setBump(false), 360)
     return () => window.clearTimeout(id)
-  }, [total])
+  }, [orderTotal])
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {}
+    /* Draft-cake rules apply only while a draft is live. Between committing
+     * one cake and choosing the next there is no half-configured cake to
+     * complain about — but there must still BE a cake somewhere, or the
+     * order is extras floating free of the thing they accompany. */
+    if (!draftActive && cakes.length === 0) e.g_product = t.errNoCake
+    if (draftActive) {
     for (const group of product.groups) {
       if (!group.required) continue
       if ((picked[group.id] ?? []).length === 0) {
@@ -772,6 +896,7 @@ export default function OrderSection({
       if (!(extras[`${group.id}_${choice.id}`] ?? '').trim()) {
         e[`x_${group.id}_${choice.id}`] = t.errFreeText
       }
+    }
     }
     /* The occasion is optional. What it OPENS is not: having chosen "Annað",
        leaving the box empty submits an order whose occasion is the word
@@ -801,9 +926,79 @@ export default function OrderSection({
     else if (customer.date < earliest) e.c_date = t.errDateTooSoon(prettyDate(earliest, lang))
     if (!customer.time) e.c_time = t.errTime
     return e
-  }, [product, picked, customer, earliest, lang, t, who, extras])
+  }, [product, picked, customer, earliest, lang, t, who, extras, draftActive, cakes.length])
 
   const showErr = (key: string) => (touched[key] || triedSubmit ? errors[key] : undefined)
+
+  /* ── The basket handlers. ──
+   * Everything the email needs is snapshotted at commit time — lines, total,
+   * quote — the same never-recompute rule the mail itself follows. */
+  const draftErrorKeys = useMemo(
+    () => Object.keys(errors).filter((k) => k.startsWith('g_') || k.startsWith('x_')),
+    [errors],
+  )
+  const snapshotDraft = (): CakeInOrder => ({
+    key: `${productId}-${Date.now()}`,
+    product,
+    picked,
+    extrasText: extras,
+    inscription,
+    qty,
+    lines,
+    total,
+    quote,
+    wantsPhoto: draftWantsPhoto,
+    size,
+  })
+  const clearDraft = () => {
+    setPicked({})
+    setInscription('')
+    setExtras({})
+    setQty(1)
+  }
+  const commitDraft = (): boolean => {
+    if (draftErrorKeys.length > 0) {
+      /* Same treatment as submit: mark and take the customer to the first
+       * thing missing, rather than silently refusing the button. */
+      setTouched((prev) => ({ ...prev, ...Object.fromEntries(draftErrorKeys.map((k) => [k, true])) }))
+      const first = formRef.current?.querySelector<HTMLElement>('[data-invalid="true"]')
+      first?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      return false
+    }
+    setCakes((prev) => [...prev, snapshotDraft()])
+    clearDraft()
+    setDraftActive(false)
+    return true
+  }
+  const cancelDraft = () => {
+    clearDraft()
+    setDraftActive(false)
+  }
+  const removeCake = (key: string) => setCakes((prev) => prev.filter((c) => c.key !== key))
+  const editCake = (key: string) => {
+    const cake = cakes.find((c) => c.key === key)
+    if (!cake) return
+    /* A live, half-built draft must not be silently thrown away to make room.
+     * If it commits, fine; if it cannot, the errors are now on screen and the
+     * committed cake stays untouched. An inactive draft has nothing to lose. */
+    if (draftActive && !commitDraft()) return
+    setCakes((prev) => prev.filter((c) => c.key !== key))
+    restoreRef.current = cake
+    setProductId(cake.product.id)
+    setPicked(cake.picked)
+    setExtras(cake.extrasText)
+    setInscription(cake.inscription)
+    setQty(cake.qty)
+    setDraftActive(true)
+  }
+  const stepExtra = (id: string, dir: 1 | -1) => {
+    const ex = ORDER_EXTRAS.find((e) => e.id === id)
+    if (!ex) return
+    setExtrasQty((prev) => {
+      const next = Math.min(ex.max, Math.max(0, (prev[id] ?? 0) + dir * ex.step))
+      return { ...prev, [id]: next }
+    })
+  }
 
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -870,68 +1065,119 @@ export default function OrderSection({
     const delivering = who === 'company' && customer.handover === 'delivery'
     const when = `${prettyDateFull(customer.date, 'is')}, kl. ${customer.time}`
 
+    /* Every cake in the order: the committed ones plus the draft on screen,
+     * if one is live. Validation upstream guarantees a live draft is complete
+     * and that an empty order cannot reach this line. */
+    const allCakes: CakeInOrder[] = [...cakes, ...(draftActive ? [snapshotDraft()] : [])]
+    const multi = allCakes.length > 1
+    const cakeName = (c: CakeInOrder) =>
+      `${c.product.name.is}${c.size ? ` (${c.size.label.is})` : ''}${c.qty > 1 ? ` — ${c.qty} stk.` : ''}`
+
     const payload: Record<string, string> = {
-      _subject: `${ref} · ${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${quote ? 'TILBOÐ ÓSKAST — ' : ''}${product.name.is}${qty > 1 ? ` (${qty} stk.)` : ''} — ${who === 'company' ? customer.company : customer.name}`,
+      _subject: `${ref} · ${prettyDateFull(customer.date, 'is')} kl. ${customer.time} — ${anyQuote ? 'TILBOÐ ÓSKAST — ' : ''}${
+        multi
+          ? `${allCakes.length} kökur: ${allCakes.map((c) => c.product.name.is).join(' + ')}`
+          : cakeName(allCakes[0])
+      } — ${who === 'company' ? customer.company : customer.name}`,
       /* _template/_captcha/_honey are gone with the relay that read them. The
          underscore prefix still means "not a docket row": orderText skips
          these, so _subject can sit here beside the rows it summarises. */
 
       '1. Afhending': when,
-      '2. Vara': `${product.name.is}${qty > 1 ? ` — ${qty} stk.` : ''}`,
+      '2. Vara': multi ? allCakes.map(cakeName).join(' + ') : cakeName(allCakes[0]),
       '3. Sótt eða sent': delivering ? `Sent á ${customer.address}` : `Sótt í ${loc}`,
     }
 
     /* The same rows the slip showed, shaped for the docket. Built from the
-     * SNAPSHOT above rather than recomputed, so the mail can never disagree
+     * SNAPSHOTS above rather than recomputed, so the mail can never disagree
      * with what the customer was quoted. */
     const mailRows: { label: string; value: string; note?: string; money?: boolean }[] = []
 
     let n = 4
     payload[`${n++}. Pöntunarnúmer`] = ref
-    product.groups.forEach((g) => {
-      const chosen = (picked[g.id] ?? [])
-        .map((cid) => {
-          const c = g.choices.find((x) => x.id === cid)
-          if (!c) return null
-          // What they typed belongs ON the option, not in a separate row further
-          // down: "Annar litur" and "lavender" are one answer, and splitting them
-          // is how a baker ends up reading half of it.
-          const typed = c.freeText ? (extras[`${g.id}_${c.id}`] ?? '').trim() : ''
-          const label = typed ? `${c.label.is}: ${typed}` : c.label.is
-          if (c.quoteOnly) return `${label} (tilboð)`
-          return c.priceDelta > 0 ? `${label} (+${isk(c.priceDelta)})` : label
-        })
-        .filter(Boolean)
-      if (chosen.length) {
-        payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
-        /* The size row carries the rate as its note, because "30 manna" beside
-         * "930 kr. á mann" is the whole arithmetic of the price in one line. */
-        const isSize = !!product.pricePerPerson && g.id === product.sizeGroupId
-        mailRows.push({
-          label: g.label.is,
-          value: chosen.join(', '),
-          note: isSize && product.pricePerPerson ? `${isk(product.pricePerPerson)} á mann` : undefined,
-        })
+    allCakes.forEach((cake, i) => {
+      /* With more than one cake each gets a header row carrying its own
+       * price, so the docket reads as sections, not one long spec. The
+       * numeric prefixes keep every payload key unique even when two cakes
+       * share a group label. */
+      if (multi) {
+        const head = `Kaka ${i + 1}: ${cakeName(cake)}`
+        payload[`${n++}. ${head}`] = cake.quote ? 'Tilboð óskast' : isk(cake.total)
+        mailRows.push({ label: `— ${head}`, value: cake.quote ? 'Tilboð óskast' : isk(cake.total), money: true })
+      }
+      cake.product.groups.forEach((g) => {
+        const chosen = (cake.picked[g.id] ?? [])
+          .map((cid) => {
+            const c = g.choices.find((x) => x.id === cid)
+            if (!c) return null
+            // What they typed belongs ON the option, not in a separate row further
+            // down: "Annar litur" and "lavender" are one answer, and splitting them
+            // is how a baker ends up reading half of it.
+            const typed = c.freeText ? (cake.extrasText[`${g.id}_${c.id}`] ?? '').trim() : ''
+            const label = typed ? `${c.label.is}: ${typed}` : c.label.is
+            if (c.quoteOnly) return `${label} (tilboð)`
+            return c.priceDelta > 0 ? `${label} (+${isk(c.priceDelta)})` : label
+          })
+          .filter(Boolean)
+        if (chosen.length) {
+          payload[`${n++}. ${g.label.is}`] = chosen.join(', ')
+          /* The size row carries the rate as its note, because "30 manna" beside
+           * "930 kr. á mann" is the whole arithmetic of the price in one line. */
+          const isSize = !!cake.product.pricePerPerson && g.id === cake.product.sizeGroupId
+          mailRows.push({
+            label: g.label.is,
+            value: chosen.join(', '),
+            note: isSize && cake.product.pricePerPerson ? `${isk(cake.product.pricePerPerson)} á mann` : undefined,
+          })
+        }
+      })
+      if (cake.product.inscription && cake.inscription.trim()) {
+        payload[`${n++}. Áletrun`] = cake.inscription.trim()
+        mailRows.push({ label: cake.product.inscription.label.is, value: cake.inscription.trim() })
       }
     })
-    if (product.inscription && inscription.trim()) {
-      payload[`${n++}. Áletrun`] = inscription.trim()
-      mailRows.push({ label: product.inscription.label.is, value: inscription.trim() })
-    }
     mailRows.push({ label: 'Pöntunarnúmer', value: ref })
+
+    /* ── The order-level money block: cakes, kjör, extras, total. ── */
+    if (multi && !anyQuote) {
+      payload[`${n++}. Kökur samtals`] = isk(cakesSubtotal)
+      mailRows.push({ label: 'Kökur samtals', value: isk(cakesSubtotal), money: true })
+    }
+    if (kjor) {
+      /* The mail says out loud what the code knows: the percentage is a
+       * placeholder. Þorleifur must see that on every order until he sets the
+       * real number, because this line is a price HE is being committed to. */
+      payload[`${n++}. Veislukjör`] =
+        `−${isk(kjorDiscount)} (${VEISLUKJOR.discountPct}% af kökum — TIL VIÐMIÐUNAR, prósenta óstaðfest)`
+      mailRows.push({
+        label: 'Veislukjör',
+        value: `−${isk(kjorDiscount)} (${VEISLUKJOR.discountPct}%)`,
+        note: 'til viðmiðunar — prósentan er ekki staðfest',
+        money: true,
+      })
+    }
+    const chosenExtras = ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0)
+    for (const ex of chosenExtras) {
+      const exQty = extrasQty[ex.id] ?? 0
+      const exUnit = kjor ? ex.kjorPrice : ex.unitPrice
+      const line = `${exQty} stk. á ${isk(exUnit)}${kjor ? ' (veisluverð)' : ''} — ${isk(exQty * exUnit)}`
+      payload[`${n++}. ${ex.label.is}`] = line
+      mailRows.push({ label: ex.label.is, value: line, money: true })
+    }
     /* Never send a number for a bespoke cake. An estimate in the inbox becomes
        the price the customer believes they were given. */
-    /* The arithmetic in brackets only belongs to a per-person price. A flat
-       size price has none to show, and reaching for `serves` and the rate on a
-       product that has neither put "(undefined manns × NaN kr.)" in the
-       bakery's own order email. */
+    /* The arithmetic in brackets only belongs to a single per-person cake
+       standing alone. The moment kjör or extras join in, the total is no
+       longer that multiplication and the brackets would be a lie. */
+    const single = allCakes[0]
     const priceWorking =
-      size && product.pricePerPerson && typeof size.serves === 'number'
-        ? ` (${size.serves} manns × ${isk(product.pricePerPerson)})`
+      !multi && !kjor && chosenExtras.length === 0 &&
+      single.size && single.product.pricePerPerson && typeof single.size.serves === 'number'
+        ? ` (${single.size.serves} manns × ${isk(single.product.pricePerPerson)})`
         : ''
-    payload[`${n++}. Áætlað verð`] = quote
+    payload[`${n++}. Áætlað verð`] = anyQuote
       ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
-      : `${isk(total)}${priceWorking}`
+      : `${isk(orderTotal)}${priceWorking}`
     if (wantsPhoto) {
       const note = photo
         ? `Fylgir þessum pósti sem viðhengi (${photo.name})`
@@ -943,7 +1189,7 @@ export default function OrderSection({
      * one produced "SAMTALS 37.200 kr." twice in a row. Caught by rendering the
      * mail and looking at it, which is the only way that kind of duplication
      * ever shows up. A quote has no number, so it says so in its own row. */
-    if (quote) mailRows.push({ label: 'Verð', value: 'Tilboð óskast' })
+    if (anyQuote) mailRows.push({ label: 'Verð', value: 'Tilboð óskast' })
 
     // Contact details in ONE block, so calling back does not mean hunting
     // through the mail. Phone first: a bakery rings, it does not email.
@@ -994,8 +1240,8 @@ export default function OrderSection({
            * that decide whether the order is possible, then the spec, then the
            * total. */
           mail: {
-            product: product.name.is,
-            quantity: qty,
+            product: multi ? allCakes.map((c) => c.product.name.is).join(' + ') : allCakes[0].product.name.is,
+            quantity: multi ? 1 : allCakes[0].qty,
             pickupWhen: when,
             pickupWhere: delivering ? `Sent á ${customer.address}` : loc,
             customerName: who === 'company' ? customer.contact : customer.name,
@@ -1005,13 +1251,16 @@ export default function OrderSection({
             kennitala: who === 'company' ? customer.kennitala.trim() : '',
             occasion: occ,
             message: customer.notes.trim(),
-            totalIsk: quote ? 0 : total,
+            totalIsk: anyQuote ? 0 : orderTotal,
             provisional: PLACEHOLDER_DATA,
             options: mailRows,
           },
         }),
       )
-      if (photo) fd.append('mynd', photo, photo.name)
+      /* Only when a cake in the order still asks for it — a photo chosen for
+       * an option later deselected must not ride along as a stray attachment
+       * with no row explaining it. */
+      if (photo && wantsPhoto) fd.append('mynd', photo, photo.name)
 
       // No Content-Type header: the browser must set the multipart boundary
       // itself, and setting it by hand breaks the parse on the other side.
@@ -1038,6 +1287,9 @@ export default function OrderSection({
   }
 
   const reset = () => {
+    setCakes([])
+    setExtrasQty({})
+    setDraftActive(true)
     setPicked({})
     setInscription('')
     setExtras({})
@@ -1054,6 +1306,49 @@ export default function OrderSection({
     setStatus('idle')
   }
 
+  /* The photo picker, defined once because it now has two homes: inline
+   * under the "mynd á tertu" choice while that cake is being configured, and
+   * again in the details step when a committed cake wants a photo but the
+   * configurator has moved on to another cake — without this second home,
+   * committing a photo-cake HID the uploader while the order still needed
+   * the picture. */
+  const photoPicker = (
+    <div className="rb-ord-photo">
+    {photo ? (
+      <div className="rb-ord-photo-has">
+        <img className="rb-ord-photo-thumb" src={photoUrl} alt="" />
+        <div className="rb-ord-photo-meta">
+          <span className="rb-ord-photo-name">{photo.name}</span>
+          {/* KB below a megabyte: a small
+              photo reading "0.0 MB" looks
+              like nothing attached. */}
+          <span className="rb-ord-photo-size">
+            {photo.size < 1024 * 1024
+              ? `${Math.max(1, Math.round(photo.size / 1024))} KB`
+              : `${(photo.size / 1024 / 1024).toFixed(1)} MB`}
+          </span>
+        </div>
+        <button type="button" className="rb-ord-photo-clear" onClick={clearPhoto}>
+          {t.photoRemove}
+        </button>
+      </div>
+    ) : (
+      <label className="rb-ord-photo-pick">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)}
+        />
+        <span className="rb-ord-photo-cta">{t.photoCta}</span>
+        <span className="rb-ord-photo-label">{t.photoLabel}</span>
+      </label>
+    )}
+    {photoErr
+      ? <p className="rb-ord-err" role="alert">{photoErr}</p>
+      : <p className="rb-ord-hint">{t.photoHint}</p>}
+    </div>
+  )
+
   const slip = (
     <div className="rb-ord-slip">
       <div className="rb-ord-slip-title">{t.slipTitle}</div>
@@ -1062,8 +1357,28 @@ export default function OrderSection({
         {/* The empty state was written but never rendered: before anything was
             chosen the slip showed a placeholder row instead, complete with a
             dotted leader to nowhere. */}
-        {lines.length === 0 && <p className="rb-ord-slip-empty">{t.slipEmpty}</p>}
-        {lines.map((line) => (
+        {cakes.length === 0 && lines.length === 0 && <p className="rb-ord-slip-empty">{t.slipEmpty}</p>}
+        {/* Cakes already in the order, exactly as priced when they were added.
+            Each is one row — the full option spec lives in the email — plus
+            the two small controls that keep the basket honest: change it, or
+            take it out. */}
+        {cakes.map((c) => (
+          <div className="rb-ord-cake" key={c.key}>
+            <div className="rb-ord-slipline">
+              <span className="rb-ord-slipline-name">
+                {c.product.name[lang]}{c.qty > 1 ? ` ×${c.qty}` : ''}
+                {c.size && <span className="rb-ord-slipline-sub">{c.size.label[lang]}</span>}
+              </span>
+              <span className="rb-ord-slipline-dots" aria-hidden="true" />
+              <span className="rb-ord-slipline-price">{c.quote ? t.quoteTotal : isk(c.total)}</span>
+            </div>
+            <div className="rb-ord-cakebtns">
+              <button type="button" onClick={() => editCake(c.key)}>{t.btnEditCake}</button>
+              <button type="button" onClick={() => removeCake(c.key)}>{t.btnRemoveCake}</button>
+            </div>
+          </div>
+        ))}
+        {draftActive && lines.map((line) => (
           <div className="rb-ord-slipline" key={line.key}>
             <span className="rb-ord-slipline-name">
               {line.name}
@@ -1076,7 +1391,7 @@ export default function OrderSection({
           </div>
         ))}
       </div>
-      {layers.length > 0 && (
+      {draftActive && layers.length > 0 && (
         <div className="rb-ord-spec">
           <div className="rb-ord-spec-title">{t.specTitle}</div>
           <ul className="rb-ord-spec-list">
@@ -1089,13 +1404,48 @@ export default function OrderSection({
           </ul>
         </div>
       )}
+      {/* The order-level lines: the automatic party rate, then the counter
+          extras. A quote suppresses the kjör line — a percentage of a number
+          that does not exist is not a discount — and a note below says where
+          it lands instead. */}
+      {kjor && !anyQuote && (
+        <div className="rb-ord-slipline">
+          <span className="rb-ord-slipline-name">
+            {t.kjorLine}
+            <span className="rb-ord-slipline-sub">{t.kjorSub(VEISLUKJOR.discountPct)}</span>
+          </span>
+          <span className="rb-ord-slipline-dots" aria-hidden="true" />
+          <span className="rb-ord-slipline-price">{isk(-kjorDiscount)}</span>
+        </div>
+      )}
+      {ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0).map((ex) => (
+        <div className="rb-ord-slipline" key={`extra_${ex.id}`}>
+          <span className="rb-ord-slipline-name">
+            {ex.label[lang]} ×{extrasQty[ex.id]}
+            {kjor && <span className="rb-ord-slipline-sub">{t.extrasKjorTag}</span>}
+          </span>
+          <span className="rb-ord-slipline-dots" aria-hidden="true" />
+          <span className="rb-ord-slipline-price">{isk((extrasQty[ex.id] ?? 0) * (kjor ? ex.kjorPrice : ex.unitPrice))}</span>
+        </div>
+      ))}
       <div className="rb-ord-total">
         <span className="rb-ord-total-label">{t.slipTotal}</span>
         <span className="rb-ord-total-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
           {totalText}
         </span>
       </div>
-      <p className="rb-ord-slip-note">{quote ? t.quoteNote : t.slipNote}</p>
+      {/* The nudge only speaks past the halfway mark. A parent ordering one
+          5.500 kr. barnaafmæliskaka must not be told to spend 44.500 kr.
+          more; someone at 40.000 kr. is genuinely one kransakaka away. */}
+      {!kjor && !anyQuote && cakesSubtotal >= VEISLUKJOR.nudgeFrom && cakesSubtotal < VEISLUKJOR.threshold && (
+        <p className="rb-ord-kjornudge">
+          {t.kjorNudge(isk(VEISLUKJOR.threshold - cakesSubtotal), VEISLUKJOR.discountPct)}
+        </p>
+      )}
+      <p className="rb-ord-slip-note">{anyQuote ? t.quoteNote : t.slipNote}</p>
+      {anyQuote && cakesSubtotal + extrasSum > 0 && (
+        <p className="rb-ord-slip-note">{t.kjorQuoteNote}</p>
+      )}
     </div>
   )
 
@@ -1237,8 +1587,8 @@ export default function OrderSection({
                         type="radio"
                         name="rb-ord-product"
                         value={p.id}
-                        checked={p.id === productId}
-                        onChange={() => setProductId(p.id)}
+                        checked={draftActive && p.id === productId}
+                        onChange={() => { setProductId(p.id); setDraftActive(true) }}
                       />
                       <span className="rb-ord-prod-mark" aria-hidden="true"><Check /></span>
                       {showPics && p.image && (
@@ -1255,7 +1605,12 @@ export default function OrderSection({
                     </label>
                   ))}
                 </div>
-                <p className="rb-ord-help" style={{ marginTop: 12 }}>{product.blurb[lang]}</p>
+                {/* Between cakes the picker sits deselected and says so; the
+                    blurb belongs to a cake actually being configured. */}
+                <p className="rb-ord-help" style={{ marginTop: 12 }}>
+                  {draftActive ? product.blurb[lang] : t.pickNextCake}
+                </p>
+                {showErr('g_product') && <p className="rb-ord-err" role="alert">{errors.g_product}</p>}
               </div>
 
               {/* 3 — what the order is for.
@@ -1324,7 +1679,10 @@ export default function OrderSection({
                 </div>
               )}
 
-              {/* 4 — options */}
+              {/* 4 — options. Only while a cake is being configured: between
+                  committing one cake and choosing the next there is nothing
+                  to option. */}
+              {draftActive && (
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepOptions}</div>
                 <div className="rb-ord-groups" data-key={product.id} key={product.id}>
@@ -1478,42 +1836,7 @@ export default function OrderSection({
                                     {/* The upload belongs to the choice that
                                         needs a picture, not to a general
                                         attachments box further down the form. */}
-                                    {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && (
-                                      <div className="rb-ord-photo">
-                                        {photo ? (
-                                          <div className="rb-ord-photo-has">
-                                            <img className="rb-ord-photo-thumb" src={photoUrl} alt="" />
-                                            <div className="rb-ord-photo-meta">
-                                              <span className="rb-ord-photo-name">{photo.name}</span>
-                                              {/* KB below a megabyte: a small
-                                                  photo reading "0.0 MB" looks
-                                                  like nothing attached. */}
-                                              <span className="rb-ord-photo-size">
-                                                {photo.size < 1024 * 1024
-                                                  ? `${Math.max(1, Math.round(photo.size / 1024))} KB`
-                                                  : `${(photo.size / 1024 / 1024).toFixed(1)} MB`}
-                                              </span>
-                                            </div>
-                                            <button type="button" className="rb-ord-photo-clear" onClick={clearPhoto}>
-                                              {t.photoRemove}
-                                            </button>
-                                          </div>
-                                        ) : (
-                                          <label className="rb-ord-photo-pick">
-                                            <input
-                                              type="file"
-                                              accept="image/*"
-                                              onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)}
-                                            />
-                                            <span className="rb-ord-photo-cta">{t.photoCta}</span>
-                                            <span className="rb-ord-photo-label">{t.photoLabel}</span>
-                                          </label>
-                                        )}
-                                        {photoErr
-                                          ? <p className="rb-ord-err" role="alert">{photoErr}</p>
-                                          : <p className="rb-ord-hint">{t.photoHint}</p>}
-                                      </div>
-                                    )}
+                                    {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && photoPicker}
                                   </div>
                                 )}
                               </div>
@@ -1569,12 +1892,73 @@ export default function OrderSection({
                     </div>
                     <p className="rb-ord-hint">{t.fieldQtyHint}</p>
                   </div>
+
+                  {/* One order can hold the whole event — the ferming needs a
+                      marsipanterta AND a kransakaka, and splitting that into
+                      two orders meant two references and two phone calls.
+                      Committing here snapshots this cake into the slip exactly
+                      as priced, then hands the picker back. */}
+                  <div className="rb-ord-addcake">
+                    <button type="button" className="rb-ord-addbtn" onClick={commitDraft}>{t.addAnother}</button>
+                    {cakes.length > 0 && (
+                      <button type="button" className="rb-ord-linkbtn" onClick={cancelDraft}>{t.cancelDraftCake}</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {/* 5 — counter extras. Always offered; the veislukjör price
+                  takes over automatically when the cakes reach the threshold.
+                  Every figure on the kjör side is a PLACEHOLDER until the
+                  owner sets real ones — see VEISLUKJOR in order.ts. */}
+              <div className="rb-ord-step">
+                <div className="rb-ord-steplabel">{t.stepExtras}</div>
+                <p className="rb-ord-help" style={{ marginTop: 10 }}>{kjor ? t.extrasKjorIntro : t.extrasIntro}</p>
+                <div className="rb-ord-extras">
+                  {ORDER_EXTRAS.map((ex) => {
+                    const nQty = extrasQty[ex.id] ?? 0
+                    const unit = kjor ? ex.kjorPrice : ex.unitPrice
+                    return (
+                      <div className="rb-ord-extra" key={ex.id}>
+                        <span className="rb-ord-extra-name">
+                          {ex.label[lang]}
+                          <span className="rb-ord-extra-price">
+                            {kjor ? (
+                              <>
+                                <s>{isk(ex.unitPrice)}</s> {isk(ex.kjorPrice)}
+                                <em>{t.extrasKjorTag}</em>
+                              </>
+                            ) : (
+                              `${isk(ex.unitPrice)} ${lang === 'is' ? 'stk.' : 'each'}`
+                            )}
+                          </span>
+                        </span>
+                        <div className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
+                          <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label="−">−</button>
+                          <span className="rb-ord-qty-val" aria-live="polite">{nQty}</span>
+                          <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label="+">+</button>
+                        </div>
+                        <span className="rb-ord-extra-sum" aria-live="polite">{nQty > 0 ? isk(nQty * unit) : ''}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
-              {/* 4 — customer */}
+              {/* 6 — customer */}
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepDetails}</div>
+
+                {/* A committed cake asked for a photo and the inline picker
+                    left with its configurator — the order still needs the
+                    picture, so it is asked for here instead. */}
+                {PHOTO_UPLOAD_ENABLED && cakes.some((c) => c.wantsPhoto) && !(draftActive && draftWantsPhoto) && (
+                  <div className="rb-ord-field" style={{ marginTop: 4 }}>
+                    <span className="rb-ord-label">{t.photoLabel}</span>
+                    {photoPicker}
+                  </div>
+                )}
 
                 {who === 'company' && (
                   <>

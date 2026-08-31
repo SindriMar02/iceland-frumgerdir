@@ -952,6 +952,99 @@ export const PICKUP_LOCATIONS: { id: string; label: Bilingual }[] = [
   { id: 'dalvegur', label: { en: 'Dalvegur 4, Kópavogur', is: 'Dalvegur 4, Kópavogi' } },
 ]
 
+/**
+ * VEISLUKJÖR — the automatic party rate.
+ *
+ * Þorleifur has said he can offer good discounts on event orders. What he has
+ * NOT said is the numbers, so every figure here is a PLACEHOLDER: the
+ * threshold, the percentage, and every kjörPrice on the extras below. They
+ * exist so the mechanism can be built and shown to him; they must be replaced
+ * with his numbers before launch, the same way the order catalogue was.
+ *
+ * Why it is built this way, and not as a discount the customer claims:
+ *
+ *   THE TRIGGER IS THE ORDER, NOT A CLAIM. The discount unlocks when the
+ *   cakes in the order reach a value — a fact the order itself proves — never
+ *   from what the customer says the event is. An occasion checkbox that cut
+ *   prices would be free to tick and impossible to police, and nobody at a
+ *   bakery counter is going to challenge a grieving family over a discount.
+ *   Someone who orders 74.000 kr. of cake has a real event, whatever they
+ *   ticked.
+ *
+ *   IT IS STILL AN ESTIMATE. Nothing on this site takes payment; every total
+ *   is "áætlað verð" confirmed by phone. So the kjör line is part of the
+ *   estimate and says so — which also means a placeholder percentage cannot
+ *   overcharge anyone. The phone call is where the real number lands, and the
+ *   screen quoting standard-or-better means that call is only ever good news.
+ */
+export const VEISLUKJOR = {
+  /** Cakes (not extras) at or over this unlock the rate. PLACEHOLDER. */
+  threshold: 50_000,
+  /** Percent off the cakes. PLACEHOLDER. */
+  discountPct: 5,
+  /** The nudge ("X kr. until veislukjör") stays hidden below this, so a
+   *  parent ordering one 5.500 kr. barnaafmæliskaka is not told to spend
+   *  44.500 kr. more. Halfway reads as "nearly there"; under it, silence. */
+  nudgeFrom: 25_000,
+} as const
+
+/**
+ * Counter goods commonly added to a party order — kleinur with the kransakaka,
+ * rúnstykki for the reception table.
+ *
+ * `unitPrice` is the REAL counter price, taken from the verified menu in
+ * data.ts (Wolt-checked 2026-08-16) — never invent these. `kjorPrice` is the
+ * per-unit price once veislukjör unlocks, and is a PLACEHOLDER (~15% off)
+ * until Þorleifur sets real ones.
+ *
+ * BUNDLED-ONLY for now: this list is not in Sanity yet, so the studio cannot
+ * edit it. That is a deliberate v1 cut — the whole feature is placeholder
+ * until he confirms the numbers, and schema for unconfirmed numbers is
+ * premature. When the numbers land, this moves into the CMS with the same
+ * per-audience care the occasions got.
+ */
+export interface OrderExtra {
+  id: string
+  label: Bilingual
+  /** Real counter price per unit, from data.ts. */
+  unitPrice: number
+  /** Per-unit price under veislukjör. PLACEHOLDER. */
+  kjorPrice: number
+  /** Stepper increment — kleinur move in fives, lengjur one at a time. */
+  step: number
+  max: number
+}
+
+export const ORDER_EXTRAS: OrderExtra[] = [
+  {
+    id: 'kleinur',
+    label: { en: 'Kleinur', is: 'Kleinur' },
+    unitPrice: 395, kjorPrice: 330, step: 5, max: 100,
+  },
+  {
+    id: 'lengjur',
+    label: { en: 'Vínarbrauðslengjur', is: 'Vínarbrauðslengjur' },
+    unitPrice: 1395, kjorPrice: 1180, step: 1, max: 10,
+  },
+  {
+    id: 'solkjarna',
+    label: { en: 'Sunflower-seed rolls', is: 'Sólkjarnarúnstykki' },
+    unitPrice: 230, kjorPrice: 195, step: 10, max: 200,
+  },
+  {
+    id: 'ostarunstykki',
+    label: { en: 'Cheese rolls', is: 'Ostarúnstykki' },
+    unitPrice: 200, kjorPrice: 170, step: 10, max: 200,
+  },
+]
+
+export function extrasTotal(qty: Record<string, number>, kjor: boolean): number {
+  return ORDER_EXTRAS.reduce((sum, e) => {
+    const n = qty[e.id] ?? 0
+    return sum + n * (kjor ? e.kjorPrice : e.unitPrice)
+  }, 0)
+}
+
 export interface OrderCopy {
   navOrder: string
   kicker: string
@@ -973,6 +1066,20 @@ export interface OrderCopy {
   stepProduct: string
   stepOptions: string
   stepOccasion: string
+  stepExtras: string
+  extrasIntro: string
+  extrasKjorIntro: string
+  extrasKjorTag: string
+  addAnother: string
+  pickNextCake: string
+  cancelDraftCake: string
+  btnEditCake: string
+  btnRemoveCake: string
+  kjorLine: string
+  kjorSub: (pct: number) => string
+  kjorNudge: (missing: string, pct: number) => string
+  kjorQuoteNote: string
+  errNoCake: string
   occasionHelp: string
   occasionOtherLabel: string
   occasionOtherPlaceholder: string
@@ -1102,6 +1209,20 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepProduct: 'What are we baking?',
     stepOptions: 'Make it yours',
     stepOccasion: 'What is it for?',
+    stepExtras: 'More for the party table',
+    extrasIntro: 'Kleinur, pastries and rolls to go with the order. Party rate on these from 50.000 kr. of cakes.',
+    extrasKjorIntro: 'Party rate applied — these are the party prices, confirmed with the rest by phone.',
+    extrasKjorTag: 'party price',
+    addAnother: 'Add another cake',
+    pickNextCake: 'Pick the next cake above, or carry on with the order.',
+    cancelDraftCake: 'Skip this cake',
+    btnEditCake: 'Edit',
+    btnRemoveCake: 'Remove',
+    kjorLine: 'Party rate',
+    kjorSub: (pct) => `−${pct}% off the cakes — indicative, confirmed by phone`,
+    kjorNudge: (missing, pct) => `${missing} more in cakes unlocks the party rate (−${pct}% and party prices on extras).`,
+    kjorQuoteNote: 'The party rate is applied to the confirmed price when we call.',
+    errNoCake: 'Pick a cake to order.',
     occasionHelp: 'Optional, and it helps us: it tells us how the cake should be finished before we call you.',
     occasionOtherLabel: 'What is the occasion?',
     occasionOtherPlaceholder: 'Tell us in a few words.',
@@ -1212,6 +1333,20 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepProduct: 'Hvað eigum við að baka?',
     stepOptions: 'Sníddu að þér',
     stepOccasion: 'Hvert er tilefnið?',
+    stepExtras: 'Meira á veisluborðið',
+    extrasIntro: 'Kleinur, lengjur og rúnstykki með pöntuninni. Veisluverð á þessu þegar kökur ná 50.000 kr.',
+    extrasKjorIntro: 'Veislukjör virk — hér gilda veisluverðin, staðfest símleiðis með öðru.',
+    extrasKjorTag: 'veisluverð',
+    addAnother: 'Bæta annarri köku við',
+    pickNextCake: 'Veldu næstu köku hér fyrir ofan, eða haltu áfram með pöntunina.',
+    cancelDraftCake: 'Sleppa þessari köku',
+    btnEditCake: 'Breyta',
+    btnRemoveCake: 'Fjarlægja',
+    kjorLine: 'Veislukjör',
+    kjorSub: (pct) => `−${pct}% af kökum — til viðmiðunar, staðfest símleiðis`,
+    kjorNudge: (missing, pct) => `${missing} í viðbót í kökum og pöntunin fær veislukjör (−${pct}% og veisluverð á meðlæti).`,
+    kjorQuoteNote: 'Veislukjör reiknast af staðfestu verði þegar við hringjum.',
+    errNoCake: 'Veldu köku til að panta.',
     occasionHelp: 'Valfrjálst, en það hjálpar okkur: það segir okkur hvernig kakan á að vera skreytt áður en við hringjum.',
     occasionOtherLabel: 'Hvert er tilefnið?',
     occasionOtherPlaceholder: 'Segðu okkur það í stuttu máli.',
