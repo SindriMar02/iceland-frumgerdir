@@ -1204,7 +1204,10 @@ export default function VillaNorthPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={company} />
 
-      <header className="vn-nav">
+      {/* While the sheet is open the bar sits on the night sheet, not on the
+          page, so the section observer's verdict is wrong for it: is-ink would
+          print dark type and a PAPER scrim across a black panel. */}
+      <header className={`vn-nav ${menuOpen ? 'is-over-sheet' : ''}`}>
         <a className="vn-nav-mark" href="#top" onClick={anchor('top')}>
           <span className="vn-logo-mark" aria-hidden="true" />
           VILLA&nbsp;NORTH
@@ -1705,30 +1708,34 @@ export default function VillaNorthPage() {
             </div>
           </dl>
         </div>
-        <div className="vn-contact-map vn-rv">
-          <iframe
-            title="Map of Fnjóskadalur, North Iceland"
-            src="https://www.google.com/maps?q=Fnj%C3%B3skadalur%2C%20%C3%9Eingeyjarsveit&z=10&output=embed"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-          <p className="vn-map-cap">Fnjóskadalur — the valley east of Akureyri.</p>
-        </div>
+      </section>
+
+      {/* The map is a full-bleed band rather than a panel inside the grid, and
+          it is darkened to the page's night so it runs INTO the footer instead
+          of interrupting the cream with a boxed widget one screen from the end.
+          data-nav-light because the fixed bar crosses it. */}
+      <section className="vn-map vn-rv" aria-label="Where Villa North is" data-nav-light>
+        <iframe
+          title="Map of Fnjóskadalur, North Iceland"
+          src="https://www.google.com/maps?q=Fnj%C3%B3skadalur%2C%20%C3%9Eingeyjarsveit&z=10&output=embed"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
+        <span className="vn-map-veil" aria-hidden="true" />
+        <p className="vn-map-cap">Fnjóskadalur — the valley east of Akureyri.</p>
       </section>
 
       {/* The close: the page returns to night (the glow's ground), the
           wordmark comes back one last time at size with the monogram above
           it, and the practical rows sit quiet beneath a hairline. */}
       <footer className="vn-foot" data-nav-light>
-        <div className="vn-foot-hero">
-          {/* No monogram here: the fixed nav's own mark parks directly over
-              this corner at rest, and two marks double-print. The wordmark
-              carries the close alone. */}
-          <p className="vn-foot-wordmark" aria-hidden="true">VILLA NORTH</p>
-          <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
-        </div>
-        <div className="vn-foot-grid">
+        <div className="vn-foot-top">
+          <div className="vn-foot-say">
+            <p className="vn-foot-eyebrow">Ready when you are</p>
+            <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+          </div>
+          <div className="vn-foot-grid">
           <div>
             <p className="vn-foot-label">Find us</p>
             <p className="vn-foot-line">Fnjóskadalur, Þingeyjarsveit, North Iceland</p>
@@ -1748,12 +1755,19 @@ export default function VillaNorthPage() {
             <p className="vn-foot-line">Washer and dryer are outside the main house</p>
           </div>
         </div>
+        </div>
         <div className="vn-foot-base">
           <p className="vn-foot-line">© 2026 Villa North</p>
           <a className="vn-foot-a vn-foot-sndr" href="https://sndr-studio.pages.dev" target="_blank" rel="noopener">
             Designed by SNDR Studio
           </a>
         </div>
+        {/* The close. It sits on the FLOOR of the page rather than at the top
+            of the footer, sized in vw so it reaches both edges at any width,
+            and cropped tight to its caps so it reads as the ground the page
+            ends on. No monogram beside it: the fixed bar's own mark parks over
+            this corner at rest and two marks double-print. */}
+        <p className="vn-foot-wordmark" aria-hidden="true">VILLA NORTH</p>
       </footer>
 
       <PreviewFooter company={company} />
@@ -1857,6 +1871,11 @@ html, body { background-color: ${PAPER}; }
   background: linear-gradient(180deg, rgba(16,18,22,.74) 0%, rgba(16,18,22,.62) 45%, rgba(16,18,22,.22) 78%, rgba(16,18,22,0) 100%);
   transition: background .35s ease;
 }
+.vn-nav.is-over-sheet { color: #F2F1EE; }
+/* The sheet is already the darkest surface on the page; a scrim on top of it
+   would only be a smear. */
+.vn-nav.is-over-sheet::before, .vn-nav.is-over-sheet.is-ink::before { background: none; }
+.vn-nav.is-over-sheet.is-ink { color: #F2F1EE; }
 .vn-nav.is-ink::before {
   background: linear-gradient(180deg, ${PAPER} 0%, color-mix(in srgb, ${PAPER} 88%, transparent) 45%, color-mix(in srgb, ${PAPER} 34%, transparent) 78%, transparent 100%);
 }
@@ -2692,37 +2711,66 @@ html, body { background-color: ${PAPER}; }
 
 /* contact — the drawing plate with a live map */
 .vn-contact {
-  display: grid; grid-template-columns: 5fr 6fr; gap: calc(var(--u) * 88); align-items: start;
   max-width: calc(var(--u) * 1440); margin: 0 auto;
-  padding: calc(var(--u) * 40) calc(var(--u) * 48) calc(var(--u) * 150);
+  padding: calc(var(--u) * 40) calc(var(--u) * 48) calc(var(--u) * 96);
 }
+.vn-contact-copy { max-width: calc(var(--u) * 620); }
 .vn-contact-list { margin: calc(var(--u) * 36) 0 0; display: grid; gap: calc(var(--u) * 18); }
 .vn-contact-list div { display: grid; grid-template-columns: calc(var(--u) * 150) 1fr; gap: calc(var(--u) * 16); align-items: baseline; }
 .vn-contact-list dt { font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .12em; text-transform: uppercase; color: var(--vn-mute); }
 .vn-contact-list dd { margin: 0; font-size: ${fluid(16, 15)}; line-height: 1.55; }
-.vn-contact-map { border: 1px solid var(--vn-hair); border-radius: 2px; padding: calc(var(--u) * 14); background: color-mix(in srgb, var(--vn-ink) 4%, var(--vn-c)); }
-.vn-contact-map iframe { display: block; width: 100%; aspect-ratio: 4 / 3; border: 0; filter: grayscale(1) contrast(1.02); }
-.vn-map-cap { margin: calc(var(--u) * 12) 0 0; font-family: ${MONO}; font-size: ${fluid(11, 11)}; color: var(--vn-mute); letter-spacing: .04em; }
+/* The map band. Same 21/9 proportion as the film and glow bleeds, so it is the
+   page's third full-bleed strip rather than a new kind of object. */
+.vn-map { position: relative; display: block; overflow: hidden; background: ${NIGHT}; aspect-ratio: 21 / 9; }
+.vn-map iframe {
+  position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;
+  /* Google only serves a LIGHT map to a keyless embed, and a styled dark one
+     needs an API key and a map id. Inverting and rotating the hue back is the
+     only way to get night out of it; the saturate/contrast trim keeps the
+     inversion from going blue and chalky. */
+  filter: invert(.93) hue-rotate(180deg) saturate(.22) contrast(.86) brightness(.94);
+}
+/* Both scrims are pointer-events:none so the map stays draggable underneath. */
+.vn-map-veil {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(16,18,22,.58) 0%, rgba(16,18,22,0) 22%, rgba(16,18,22,0) 58%, rgba(16,18,22,.78) 100%);
+}
+.vn-map-cap {
+  position: absolute; left: calc(var(--u) * 48); bottom: calc(var(--u) * 58); margin: 0; pointer-events: none;
+  font-family: ${MONO}; font-size: ${fluid(11, 11)}; letter-spacing: .06em; color: rgba(242, 241, 238, .92);
+}
 
 /* footer — the night close */
-.vn-foot { background: var(--vn-night); color: #F2F1EE; }
-.vn-foot-hero {
+.vn-foot {
+  background: var(--vn-night); color: #F2F1EE;
+  /* The wordmark is nowrap and sized in vw; if a font ever measures a hair wider
+     than the coefficient assumes, this clips it instead of giving the whole page
+     a horizontal scrollbar. No sticky or fixed child lives in here. */
+  overflow: hidden;
+}
+.vn-foot-top {
   max-width: calc(var(--u) * 1440); margin: 0 auto;
-  padding: calc(var(--u) * 96) calc(var(--u) * 48) calc(var(--u) * 64);
-  display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--u) * 22);
+  padding: calc(var(--u) * 92) calc(var(--u) * 48) calc(var(--u) * 56);
+  display: grid; grid-template-columns: 4fr 7fr; gap: calc(var(--u) * 72); align-items: start;
+}
+.vn-foot-say { display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--u) * 18); }
+.vn-foot-eyebrow {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 700; line-height: 1.08;
+  font-size: ${fluid(34, 26)}; color: #F2F1EE; max-width: 18ch; text-wrap: balance;
 }
 .vn-logo-mark-big { width: calc(var(--u) * 64); height: calc(var(--u) * 44); }
+/* Edge to edge at every width, so it is sized in vw rather than in --u: --u
+   clamps below 1440 and would leave the wordmark stranded mid-line on a phone.
+   line-height crops to the caps (there are no descenders in VILLA NORTH) so it
+   sits ON the page's floor rather than floating above a band of leading. */
 .vn-foot-wordmark {
-  margin: 0; font-family: ${DISPLAY}; font-weight: 700; line-height: .96;
-  font-size: clamp(44px, calc(var(--u) * 124), 142px); letter-spacing: .015em;
+  margin: 0; padding: 0 calc(var(--u) * 40) calc(var(--u) * 26);
+  font-family: ${DISPLAY}; font-weight: 700;
+  font-size: 16.1vw; line-height: .74; letter-spacing: -.012em;
+  white-space: nowrap; color: #F2F1EE;
 }
-.vn-foot-hero .vn-cta { margin-top: calc(var(--u) * 10); }
-.vn-foot-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 44);
-  max-width: calc(var(--u) * 1440); margin: 0 auto;
-  padding: calc(var(--u) * 44) calc(var(--u) * 48) calc(var(--u) * 52);
-  border-top: 1px solid rgba(242, 241, 238, .14);
-}
+.vn-foot-say .vn-cta { margin-top: 0; }
+.vn-foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 40); }
 .vn-foot-label {
   margin: 0 0 calc(var(--u) * 14); font-family: ${MONO}; font-size: ${fluid(11, 11)};
   letter-spacing: .14em; text-transform: uppercase; color: var(--vn-amber);
@@ -2763,7 +2811,10 @@ html, body { background-color: ${PAPER}; }
   }
   .vn-mat-expand { height: calc(var(--u) * 340); }
   .vn-reviews { grid-template-columns: 1fr; gap: calc(var(--u) * 34); }
-  .vn-foot-hero { padding: 56px 20px 40px; }
+  .vn-foot-top { grid-template-columns: 1fr; gap: 36px; padding: 56px 20px 36px; }
+  .vn-foot-wordmark { padding: 0 16px 18px; font-size: 15.6vw; }
+  .vn-map { aspect-ratio: 1 / 1; }
+  .vn-map-cap { left: 20px; bottom: 58px; }
   .vn-foot-base { padding-left: 20px; padding-right: 20px; }
   .vn-book-grid { grid-template-columns: 1fr; }
   .vn-gallery, .vn-tours { padding-left: 20px; padding-right: 20px; }
@@ -2771,7 +2822,7 @@ html, body { background-color: ${PAPER}; }
   .vn-g-a, .vn-g-b, .vn-g-c, .vn-g-d, .vn-g-e { grid-column: auto; }
   .vn-g-f { grid-column: 1 / -1; }
   .vn-tours-grid { grid-template-columns: 1fr 1fr; }
-  .vn-contact { grid-template-columns: 1fr; gap: 40px; padding-left: 20px; padding-right: 20px; }
+  .vn-contact { padding-left: 20px; padding-right: 20px; padding-bottom: 60px; }
   .vn-film-caps { left: 20px; bottom: 20px; }
   .vn-film-bleed { aspect-ratio: 16 / 10; }
   .vn-film-credit { padding: 0 20px; }
@@ -2784,7 +2835,7 @@ html, body { background-color: ${PAPER}; }
      carry desktop width caps and all three crop differently. One width, one
      ratio, for all of them. */
   .vn-glow-row { grid-template-columns: 1fr; gap: 16px; }
-  .vn-foot-grid { grid-template-columns: 1fr; gap: 24px; padding: 36px 20px; }
+  .vn-foot-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 @media (max-width: 767px) {
