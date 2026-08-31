@@ -34,6 +34,7 @@ import {
   sizeChoiceOf,
   choicePriceOf,
   fromPriceOf,
+  occasionsFor,
   type OrderGroup,
   type OrderProduct,
 } from './order'
@@ -550,7 +551,8 @@ export default function OrderSection({
     kennitala: '',
     contact: '',
     invoiceEmail: '',
-    occasion: OCCASIONS[0].id,
+    occasion: '',
+    occasionOther: '',
     guests: '',
     handover: 'pickup' as 'pickup' | 'delivery',
     address: '',
@@ -640,6 +642,20 @@ export default function OrderSection({
   /** The size choice a per-person product is priced from, and whether anything
    *  picked has made this a quote rather than a price. */
   const size = useMemo(() => sizeChoiceOf(product, picked), [product, picked])
+
+  /* The occasion, and whether it is even worth asking about.
+   *
+   * A product that names its own occasion has already answered the question,
+   * so the step disappears rather than asking a customer to confirm what they
+   * just chose. Otherwise the list is whichever half matches the person or
+   * company they said they were. */
+  const occasionList = useMemo(() => occasionsFor(OCCASIONS, who), [OCCASIONS, who])
+  const occasionAnswered = product.occasionId
+    ? OCCASIONS.find((o) => o.id === product.occasionId)
+    : undefined
+  const askOccasion = !occasionAnswered && occasionList.length > 0
+  const occasion = occasionAnswered
+    ?? occasionList.find((o) => o.id === customer.occasion)
   const quote = useMemo(() => isQuoteRequest(product, picked), [product, picked])
   const wantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
   /** The cake as configured, so the filling that swaps pears in for cocktail
@@ -757,6 +773,13 @@ export default function OrderSection({
         e[`x_${group.id}_${choice.id}`] = t.errFreeText
       }
     }
+    /* The occasion is optional. What it OPENS is not: having chosen "Annað",
+       leaving the box empty submits an order whose occasion is the word
+       "other", which is worse than not asking. Nothing here blocks a customer
+       who simply skipped the step. */
+    if (occasion?.freeText && !customer.occasionOther.trim()) {
+      e.occasionOther = t.errOccasionOther
+    }
     if (who === 'person') {
       if (!customer.name.trim()) e.c_name = t.errName
     } else {
@@ -807,7 +830,15 @@ export default function OrderSection({
 
     const L = ORDER_T.is // the bakery reads its own orders in Icelandic
     const loc = PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label.is ?? customer.location
-    const occ = OCCASIONS.find((o) => o.id === customer.occasion)?.label.is ?? customer.occasion
+    /* "Annað: sextugsafmæli" beats "Annað". The typed answer rides WITH the
+       label rather than as a separate row further down, so whoever reads the
+       order sees the occasion and its detail as one thing. */
+    const occTyped = customer.occasionOther.trim()
+    const occ = occasion
+      ? occasion.freeText && occTyped
+        ? `${occasion.label.is}: ${occTyped}`
+        : occasion.label.is
+      : ''
 
     /* The order is SNAPSHOTTED here, not looked up when the email is read.
        Prices and names are written into the message as they were on screen at
@@ -924,9 +955,11 @@ export default function OrderSection({
       payload[`${n++}. Fyrirtæki`] = customer.company
       payload[`${n++}. Kennitala`] = customer.kennitala
       if (customer.invoiceEmail.trim()) payload[`${n++}. Netfang fyrir reikning`] = customer.invoiceEmail.trim()
-      payload[`${n++}. Tilefni`] = occ
       if (customer.guests.trim()) payload[`${n++}. Fjöldi gesta`] = customer.guests.trim()
     }
+    /* Both kinds of customer now, and only when there is one — an absent
+       occasion is a real answer to an optional question, not a blank row. */
+    if (occ) payload[`${n++}. Tilefni`] = occ
 
     if (customer.notes.trim()) payload[`${n++}. Athugasemdir`] = customer.notes.trim()
     if (PLACEHOLDER_DATA) {
@@ -970,7 +1003,7 @@ export default function OrderSection({
             customerEmail: customer.email.trim(),
             company: who === 'company' ? customer.company.trim() : '',
             kennitala: who === 'company' ? customer.kennitala.trim() : '',
-            occasion: who === 'company' ? occ : '',
+            occasion: occ,
             message: customer.notes.trim(),
             totalIsk: quote ? 0 : total,
             provisional: PLACEHOLDER_DATA,
@@ -1014,7 +1047,7 @@ export default function OrderSection({
     setCustomer({
       name: '', phone: '', email: '', date: '', time: '', location: PICKUP_LOCATIONS[0].id, notes: '',
       company: '', kennitala: '', contact: '', invoiceEmail: '',
-      occasion: OCCASIONS[0].id, guests: '', handover: 'pickup', address: '',
+      occasion: '', occasionOther: '', guests: '', handover: 'pickup', address: '',
     })
     setTouched({})
     setTriedSubmit(false)
@@ -1225,7 +1258,73 @@ export default function OrderSection({
                 <p className="rb-ord-help" style={{ marginTop: 12 }}>{product.blurb[lang]}</p>
               </div>
 
-              {/* 3 — options */}
+              {/* 3 — what the order is for.
+                  Sits HERE, between the product and its options, for two
+                  reasons: it is a fact about the order rather than a detail
+                  about the customer, and the answer feeds the writing-on-the-
+                  cake field a few lines below. Asked after that field it could
+                  not suggest anything; asked down in the contact details, next
+                  to a kennitala, it read as paperwork. */}
+              {askOccasion && (
+                <div className="rb-ord-step">
+                  <div className="rb-ord-steplabel">{t.stepOccasion}</div>
+                  <p className="rb-ord-help" style={{ margin: '10px 0 0' }}>{t.occasionHelp}</p>
+                  <div className="rb-ord-choices" data-layout="grid" style={{ marginTop: 14 }} role="radiogroup" aria-label={t.stepOccasion}>
+                    {occasionList.map((o) => {
+                      const on = customer.occasion === o.id
+                      return (
+                        <div key={o.id}>
+                          <label className="rb-ord-choice" data-on={on}>
+                            <input
+                              type="radio"
+                              name="rb-ord-occasion"
+                              checked={on}
+                              /* Optional means genuinely optional: picking the
+                                 same chip again clears it, so nobody is stuck
+                                 having told us something they did not mean to. */
+                              onClick={() => {
+                                if (on) setCustomer((c) => ({ ...c, occasion: '', occasionOther: '' }))
+                              }}
+                              onChange={() => setCustomer((c) => ({ ...c, occasion: o.id }))}
+                            />
+                            <span className="rb-ord-mark" data-shape="round" aria-hidden="true">
+                              <Check />
+                            </span>
+                            <span className="rb-ord-choice-label">{o.label[lang]}</span>
+                          </label>
+                          {/* "Annað" alone tells the bakery nothing, and finding
+                              out costs the phone call this form exists to
+                              remove. Same rule as an option's freeText. */}
+                          {on && o.freeText && (
+                            <div className="rb-ord-field" style={{ marginTop: 10 }}>
+                              <label className="rb-ord-label" htmlFor="rb-ord-occasion-other">
+                                {t.occasionOtherLabel}
+                              </label>
+                              <input
+                                id="rb-ord-occasion-other"
+                                className="rb-ord-input"
+                                type="text"
+                                maxLength={90}
+                                placeholder={t.occasionOtherPlaceholder}
+                                value={customer.occasionOther}
+                                data-invalid={showErr('occasionOther') ? 'true' : undefined}
+                                aria-invalid={!!showErr('occasionOther')}
+                                onChange={(e) => setCustomer((c) => ({ ...c, occasionOther: e.target.value }))}
+                                onBlur={() => setTouched((prev) => ({ ...prev, occasionOther: true }))}
+                              />
+                              {showErr('occasionOther') && (
+                                <p className="rb-ord-err">{t.errOccasionOther}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 4 — options */}
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepOptions}</div>
                 <div className="rb-ord-groups" data-key={product.id} key={product.id}>
@@ -1438,7 +1537,22 @@ export default function OrderSection({
                         className="rb-ord-input"
                         type="text"
                         maxLength={product.inscription.maxLength}
-                        placeholder={product.inscription.placeholder[lang]}
+                        /* The occasion writes the example. "Til hamingju Emma,
+                           6 ára" is a far better prompt than a generic one,
+                           and it is the difference between a field people fill
+                           in and one they skip.
+
+                           Once an occasion IS picked the product's own
+                           placeholder is never used again, even as a fallback.
+                           The marsipanterta's is "Til hamingju með 50 ára
+                           afmælið", so falling back to it offered a funeral
+                           reception congratulations. An occasion with nothing
+                           cheerful to say gets a neutral line instead. */
+                        placeholder={
+                          occasion
+                            ? (occasion.suggests?.[lang] ?? t.inscriptionNeutral)
+                            : product.inscription.placeholder[lang]
+                        }
                         value={inscription}
                         onChange={(e) => setInscription(e.target.value)}
                       />
@@ -1502,21 +1616,11 @@ export default function OrderSection({
                       </div>
                     </div>
 
+                    {/* The occasion used to sit here, beside the guest count.
+                        It moved up to its own step: it is a fact about the
+                        order, not an administrative detail, and both private
+                        and company customers are asked it now. */}
                     <div className="rb-ord-two">
-                      <div className="rb-ord-field">
-                        <label className="rb-ord-label" htmlFor="rb-ord-occasion">{t.fieldOccasion}</label>
-                        <select
-                          id="rb-ord-occasion"
-                          className="rb-ord-select"
-                          value={customer.occasion}
-                          onChange={(e) => setCustomer({ ...customer, occasion: e.target.value })}
-                        >
-                          {OCCASIONS.map((o) => (
-                            <option key={o.id} value={o.id} style={{ background: INK }}>{o.label[lang]}</option>
-                          ))}
-                        </select>
-                      </div>
-
                       <div className="rb-ord-field">
                         <label className="rb-ord-label" htmlFor="rb-ord-guests">{t.fieldGuests}</label>
                         <input

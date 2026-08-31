@@ -432,6 +432,15 @@ export interface OrderProduct {
    *  the CMS before uploading a picture must still render a correct card, so
    *  every card treats the image as an enhancement, never as structure. */
   image?: string
+  /**
+   * This product already answers "what is it for", so don't ask.
+   *
+   * A children's birthday cake buried in smarties is not ordered for a
+   * conference. Naming the occasion here preselects it and hides the question
+   * entirely, which is the difference between a form that knows what you just
+   * told it and one that asks you twice.
+   */
+  occasionId?: string
   /** Minimum days of notice. Drives the earliest selectable pickup date. */
   leadDays: number
   /** Free-text line piped onto the product, e.g. writing on a cake. */
@@ -773,6 +782,8 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
        the cheapest size for the card rather than this. */
     basePrice: 0,
     sizeGroupId: 'staerd',
+    /* It is in the name. The occasion step does not appear for this one. */
+    occasionId: 'barnaafmaeli',
     image: `${import.meta.env.BASE_URL}reynir/order/barnaterta.webp`,
     /* Assumed from the other cakes, NOT confirmed for this one. */
     leadDays: 2,
@@ -836,16 +847,89 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
   },
 ]
 
-/** Occasions a company might be ordering for. PLACEHOLDER: confirm the list with the owner. */
-export const OCCASIONS: { id: string; label: Bilingual }[] = [
-  { id: 'fundur', label: { en: 'Meeting', is: 'Fundur' } },
-  { id: 'radstefna', label: { en: 'Conference', is: 'Ráðstefna' } },
-  { id: 'arshatid', label: { en: 'Staff party', is: 'Árshátíð eða starfsmannahittingur' } },
-  { id: 'afmaeli', label: { en: 'Anniversary', is: 'Afmæli' } },
-  { id: 'opnun', label: { en: 'Opening or launch', is: 'Opnun eða kynning' } },
-  { id: 'erfidrykkja', label: { en: 'Funeral reception', is: 'Erfidrykkja' } },
-  { id: 'annad', label: { en: 'Something else', is: 'Annað' } },
+/**
+ * What the order is FOR.
+ *
+ * This used to be a company-only field sitting near the bottom of the customer
+ * details, between a kennitala and an invoice address, and private customers
+ * were never asked at all. That was the wrong way round for a bakery: a
+ * company ordering for a fundur wants a tray of the usual, while the private
+ * occasions are the ones that change the cake. A fermingarterta, a child's
+ * birthday cake and an erfidrykkja are three different objects, and the
+ * bakery was finding out which one it was baking over the phone.
+ *
+ * So the same question is now asked of both, early, in each side's own
+ * vocabulary. `audience` is what splits the list. It is one list rather than
+ * two exports so the CMS keeps ONE document type with one extra field, and so
+ * an occasion the owner adds cannot go missing by being filed in the list
+ * nobody reads.
+ *
+ * PLACEHOLDER, both halves: the company list has been unconfirmed since it was
+ * written, and the private list is mine. These are vocabulary, not prices —
+ * nothing here costs money — but they are the words a grieving customer reads,
+ * so they want the owner's eye before launch.
+ */
+export interface Occasion {
+  id: string
+  label: Bilingual
+  /** Which side of the person/company split offers this. */
+  audience: 'person' | 'company'
+  /**
+   * Opens a required text field, the same rule as an OrderChoice's `freeText`:
+   * "Annað" on its own tells the bakery nothing, and finding out costs the
+   * phone call this form exists to remove.
+   */
+  freeText?: boolean
+  /**
+   * What to suggest in the "writing on the cake" field once this is picked.
+   *
+   * Absent ON PURPOSE for erfidrykkja, and absent must be SAFE. The first
+   * version let it fall back to the product's own placeholder, which sounded
+   * neutral until you read one: the marsipanterta suggests "Til hamingju með
+   * 50 ára afmælið". Picking erfidrykkja therefore offered congratulations to
+   * somebody ordering a cake for a funeral — the one mistake in this form that
+   * would actually hurt, and it took driving the form to see it.
+   *
+   * So an occasion with no suggestion falls back to a NEUTRAL line, never to
+   * the product's. That also protects occasions the owner adds in the studio
+   * without filling this in, which is the likely case for the solemn ones.
+   */
+  suggests?: Bilingual
+}
+
+export const OCCASIONS: Occasion[] = [
+  /* Private customers. Ordered roughly by how often a bakery in Kópavogur
+     sees them, not alphabetically. */
+  { id: 'afmaeli', audience: 'person', label: { en: 'Birthday', is: 'Afmæli' },
+    suggests: { en: 'Happy birthday Anna', is: 'Til hamingju með afmælið, Anna' } },
+  { id: 'barnaafmaeli', audience: 'person', label: { en: "Child's birthday", is: 'Barnaafmæli' },
+    suggests: { en: 'Happy birthday Emma, 6 today', is: 'Til hamingju Emma, 6 ára' } },
+  { id: 'ferming', audience: 'person', label: { en: 'Confirmation', is: 'Ferming' },
+    suggests: { en: 'Confirmation day, 25 April', is: 'Fermingardagurinn, 25. apríl' } },
+  { id: 'skirn', audience: 'person', label: { en: 'Christening', is: 'Skírn' },
+    suggests: { en: 'Christening day', is: 'Skírnardagurinn' } },
+  { id: 'brudkaup', audience: 'person', label: { en: 'Wedding', is: 'Brúðkaup' },
+    suggests: { en: 'Anna & Jón', is: 'Anna og Jón' } },
+  { id: 'utskrift', audience: 'person', label: { en: 'Graduation', is: 'Útskrift' },
+    suggests: { en: 'Congratulations on your graduation', is: 'Til hamingju með útskriftina' } },
+  /* No `suggests`. See the field's note. */
+  { id: 'erfidrykkja-p', audience: 'person', label: { en: 'Funeral reception', is: 'Erfidrykkja' } },
+  { id: 'annad-p', audience: 'person', label: { en: 'Something else', is: 'Annað' }, freeText: true },
+
+  /* Companies. The list as it has stood since 2026-08-11. */
+  { id: 'fundur', audience: 'company', label: { en: 'Meeting', is: 'Fundur' } },
+  { id: 'radstefna', audience: 'company', label: { en: 'Conference', is: 'Ráðstefna' } },
+  { id: 'arshatid', audience: 'company', label: { en: 'Staff party', is: 'Árshátíð eða starfsmannahittingur' } },
+  { id: 'afmaeli-f', audience: 'company', label: { en: 'Anniversary', is: 'Afmæli' } },
+  { id: 'opnun', audience: 'company', label: { en: 'Opening or launch', is: 'Opnun eða kynning' } },
+  { id: 'erfidrykkja', audience: 'company', label: { en: 'Funeral reception', is: 'Erfidrykkja' } },
+  { id: 'annad', audience: 'company', label: { en: 'Something else', is: 'Annað' }, freeText: true },
 ]
+
+/** The half of the list this customer is being shown. */
+export function occasionsFor(list: Occasion[], who: 'person' | 'company'): Occasion[] {
+  return list.filter((o) => o.audience === who)
+}
 
 /** Real, not placeholder. ONE location: the Hamraborg 14 shop closed around
  *  2024 (owner, 2026-08-16), so it is not a collection point. The form renders
@@ -876,6 +960,13 @@ export interface OrderCopy {
   whoCompanyHint: string
   stepProduct: string
   stepOptions: string
+  stepOccasion: string
+  occasionHelp: string
+  occasionSkip: string
+  occasionOtherLabel: string
+  occasionOtherPlaceholder: string
+  inscriptionNeutral: string
+  errOccasionOther: string
   stepDetails: string
   fieldQty: string
   fieldQtyHint: string
@@ -999,6 +1090,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     whoCompanyHint: 'Invoiced to a kennitala, with delivery if you need it.',
     stepProduct: 'What are we baking?',
     stepOptions: 'Make it yours',
+    stepOccasion: 'What is it for?',
+    occasionHelp: 'Optional, and it helps us: it tells us how the cake should be finished before we call you.',
+    occasionSkip: 'Rather not say',
+    occasionOtherLabel: 'What is the occasion?',
+    occasionOtherPlaceholder: 'Tell us in a few words.',
+    inscriptionNeutral: 'For example a name, or leave it blank.',
+    errOccasionOther: 'Tell us what the occasion is, or pick something else above.',
     stepDetails: 'Your details',
     fieldQty: 'How many?',
     fieldQtyHint: 'The same order, this many times over.',
@@ -1103,6 +1201,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     whoCompanyHint: 'Reikningur á kennitölu, með sendingu ef þið þurfið.',
     stepProduct: 'Hvað eigum við að baka?',
     stepOptions: 'Sníddu að þér',
+    stepOccasion: 'Hvert er tilefnið?',
+    occasionHelp: 'Valfrjálst, en hjálpar okkur: það segir okkur hvernig kakan á að vera skreytt áður en við hringjum.',
+    occasionSkip: 'Vil ekki tilgreina',
+    occasionOtherLabel: 'Hvert er tilefnið?',
+    occasionOtherPlaceholder: 'Segðu okkur það í stuttu máli.',
+    inscriptionNeutral: 'Til dæmis nafn, eða skildu reitinn eftir auðan.',
+    errOccasionOther: 'Segðu okkur hvert tilefnið er, eða veldu annað hér fyrir ofan.',
     stepDetails: 'Upplýsingar um þig',
     fieldQty: 'Hversu mörg?',
     fieldQtyHint: 'Sama pöntun, svona oft.',

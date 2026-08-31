@@ -303,6 +303,36 @@ raw = clone(LIVE)
     prices.length === 2 && prices[0] === 5500 && prices[1] === 6950)
 }
 
+/* Occasions merge per audience, not wholesale. The studio's seven occasions
+   all predate the person/company split and carry no audience, so a wholesale
+   replace would leave the private list empty — and an empty list HIDES the
+   step. Both halves must survive the live payload. */
+raw = clone(LIVE)
+{
+  c = run('occasions, live payload', () => merge(raw))
+  const occ = c?.OCCASIONS || []
+  const persons = occ.filter((o) => o.audience === 'person')
+  const companies = occ.filter((o) => o.audience === 'company')
+  check('the private occasion list survives a studio that only has company ones',
+    persons.length > 0 && companies.length > 0)
+  /* Sanity returns null, not undefined, for a field a document never set. */
+  check('an occasion saved with no audience counts as a company one',
+    (raw.occasions || []).every((o) => o.audience == null) &&
+    companies.length === (raw.occasions || []).length)
+}
+
+/* And the owner writing his own private list replaces ONLY that half. */
+raw = clone(LIVE)
+{
+  raw.occasions = [...(raw.occasions || []), { id: 'brudkaup', label: { is: 'Brúðkaup', en: 'Wedding' }, audience: 'person' }]
+  c = run('occasions, owner adds one', () => merge(raw))
+  const occ = c?.OCCASIONS || []
+  const persons = occ.filter((o) => o.audience === 'person')
+  check('an owner-written private occasion takes over that half alone',
+    persons.length === 1 && persons[0].id === 'brudkaup' &&
+    occ.filter((o) => o.audience === 'company').length > 1)
+}
+
 /* The rate itself emptied. Falling back to basePrice is right; pricing every
    size at 0 kr. is not. */
 raw = clone(LIVE)

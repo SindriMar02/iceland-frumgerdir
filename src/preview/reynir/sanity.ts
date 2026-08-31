@@ -253,7 +253,7 @@ export const QUERY = `{
       choices[]{"id": id.current, label, priceDelta, note, serves, price, quoteOnly, needsPhoto, freeText,
         adds, swap{"layerId": layerId.current, label}}}
   },
-  "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label},
+  "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label, audience, freeText, suggests},
   "pickupLocations": *[_type=="pickupLocation"]|order(order asc){"id": id.current, label}
 }`
 
@@ -407,9 +407,35 @@ export function merge(raw: any): SiteContent {
     : GALLERY
 
   const orderProducts = mergeOrderProducts(Array.isArray(raw?.orderProducts) ? raw.orderProducts : [])
-  const occasions = Array.isArray(raw?.occasions) && raw.occasions.length
-    ? raw.occasions.map((o: any) => ({ id: String(o.id || ''), label: biSelf(o.label) })).filter((o: any) => o.id && (o.label.en || o.label.is))
-    : OCCASIONS
+  /* Merged PER AUDIENCE, not wholesale.
+   *
+   * The studio's occasions predate the person/company split and are all
+   * company ones, so a wholesale replace would hand the private half an empty
+   * list — and an empty list hides the step entirely. The feature would have
+   * been invisible on the live site with nothing to show for it, which is the
+   * same shape of fault as the order catalogue needing a seed.
+   *
+   * So each half falls back on its own: the owner can rewrite either list from
+   * the studio, and the half he has not touched keeps working. An occasion
+   * saved without an audience is treated as a company one, which is what every
+   * existing document is. */
+  const occasions = (() => {
+    const fromCms = Array.isArray(raw?.occasions)
+      ? raw.occasions
+          .map((o: any) => ({
+            id: String(o.id || ''),
+            label: biSelf(o.label),
+            audience: o.audience === 'person' ? ('person' as const) : ('company' as const),
+            freeText: o.freeText === true,
+            suggests: o.suggests && (o.suggests.is || o.suggests.en) ? biSelf(o.suggests) : undefined,
+          }))
+          .filter((o: any) => o.id && (o.label.en || o.label.is))
+      : []
+    return (['person', 'company'] as const).flatMap((aud) => {
+      const mine = fromCms.filter((o: any) => o.audience === aud)
+      return mine.length ? mine : OCCASIONS.filter((o) => o.audience === aud)
+    })
+  })()
   const pickupLocations = Array.isArray(raw?.pickupLocations) && raw.pickupLocations.length
     ? raw.pickupLocations.map((l: any) => ({ id: String(l.id || ''), label: biSelf(l.label) })).filter((l: any) => l.id && (l.label.en || l.label.is))
     : PICKUP_LOCATIONS
