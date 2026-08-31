@@ -773,10 +773,22 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
    * confirmed for this product. */
   {
     id: 'barnaterta',
-    name: { en: "Children's birthday cake", is: 'Barnaafmælisterta' },
+    /* HIS word, not mine. He wrote "barna afmæliskökum með smartís", so the
+       product is a KAKA, not a terta. The id stays `barnaterta` because it is
+       already seeded to Sanity under that name and renaming it would leave the
+       old document behind, still active, offering the cake twice. */
+    name: { en: "Children's birthday cake", is: 'Barnaafmæliskaka' },
+    /* Describes only what is actually visible in his photographs and what he
+       himself said. The first draft called it a "súkkulaðirjómaterta á kafi í
+       smartís og hlaupkörlum" and got three things wrong at once: rjómaterta
+       claims whipped cream when the piping looks like buttercream and nobody
+       here has asked; "á kafi í" means submerged, not covered; and hlaupkarlar
+       are the HUMAN-shaped jellies, while the photographs plainly show bears.
+       UNCONFIRMED, ask Þorleifur: what the sponge and the cream actually are.
+       Until he says, the copy does not guess. */
     blurb: {
-      en: 'Chocolate cream cake under a pile of Smarties and jelly sweets, in two sizes.',
-      is: 'Súkkulaðirjómaterta á kafi í smartís og hlaupkörlum, í tveimur stærðum.',
+      en: 'A birthday cake for the children, covered in Smarties and jelly bears. Two sizes.',
+      is: 'Afmæliskaka fyrir börnin, þakin smartís og hlaupböngsum. Tvær stærðir.',
     },
     /* Unused: every size states its own finished price. `fromPriceOf` reads
        the cheapest size for the card rather than this. */
@@ -962,7 +974,6 @@ export interface OrderCopy {
   stepOptions: string
   stepOccasion: string
   occasionHelp: string
-  occasionSkip: string
   occasionOtherLabel: string
   occasionOtherPlaceholder: string
   inscriptionNeutral: string
@@ -1092,7 +1103,6 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepOptions: 'Make it yours',
     stepOccasion: 'What is it for?',
     occasionHelp: 'Optional, and it helps us: it tells us how the cake should be finished before we call you.',
-    occasionSkip: 'Rather not say',
     occasionOtherLabel: 'What is the occasion?',
     occasionOtherPlaceholder: 'Tell us in a few words.',
     inscriptionNeutral: 'For example a name, or leave it blank.',
@@ -1202,12 +1212,11 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     stepProduct: 'Hvað eigum við að baka?',
     stepOptions: 'Sníddu að þér',
     stepOccasion: 'Hvert er tilefnið?',
-    occasionHelp: 'Valfrjálst, en hjálpar okkur: það segir okkur hvernig kakan á að vera skreytt áður en við hringjum.',
-    occasionSkip: 'Vil ekki tilgreina',
+    occasionHelp: 'Valfrjálst, en það hjálpar okkur: það segir okkur hvernig kakan á að vera skreytt áður en við hringjum.',
     occasionOtherLabel: 'Hvert er tilefnið?',
     occasionOtherPlaceholder: 'Segðu okkur það í stuttu máli.',
     inscriptionNeutral: 'Til dæmis nafn, eða skildu reitinn eftir auðan.',
-    errOccasionOther: 'Segðu okkur hvert tilefnið er, eða veldu annað hér fyrir ofan.',
+    errOccasionOther: 'Segðu okkur hvert tilefnið er, eða veldu annað hér að ofan.',
     stepDetails: 'Upplýsingar um þig',
     fieldQty: 'Hversu mörg?',
     fieldQtyHint: 'Sama pöntun, svona oft.',
