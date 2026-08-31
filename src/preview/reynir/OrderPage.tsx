@@ -71,6 +71,10 @@ function ReynirOrderPageInner() {
   const { LINKS, hoursRows, mainName } = useSiteContent()
   const [params] = useSearchParams()
   const preselect = params.get('vara') ?? undefined
+  /* ?tilefni= comes from the lettering band on the homepage: a visitor who
+     clicked "Ferming" there has already answered the occasion question, so
+     the form must not ask it again. */
+  const preselectOccasion = params.get('tilefni') ?? undefined
 
   useEffect(() => {
     setThemeColor(INK_DEEP)
@@ -103,7 +107,7 @@ function ReynirOrderPageInner() {
         </div>
       </header>
 
-      <OrderSection lang={lang} standalone initialProductId={preselect} />
+      <OrderSection lang={lang} standalone initialProductId={preselect} initialOccasionId={preselectOccasion} />
 
       {/* only what supports the task: where to collect, and a human to call */}
       <footer className="rb-op-foot">

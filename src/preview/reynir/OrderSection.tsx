@@ -599,10 +599,12 @@ export default function OrderSection({
   standalone = false,
   /** Lets the homepage teaser deep-link straight into a product. */
   initialProductId,
+  initialOccasionId,
 }: {
   lang: Lang
   standalone?: boolean
   initialProductId?: string
+  initialOccasionId?: string
 }) {
   const t = ORDER_T[lang]
   const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS, hoursRows } = useSiteContent()
@@ -676,7 +678,10 @@ export default function OrderSection({
     kennitala: '',
     contact: '',
     invoiceEmail: '',
-    occasion: '',
+    /* Preselected when the visitor arrived from the homepage lettering band
+       having already picked an occasion. Validated against the list so a
+       hand-typed ?tilefni= cannot put an unknown value on the order. */
+    occasion: initialOccasionId && OCCASIONS.some((o) => o.id === initialOccasionId) ? initialOccasionId : '',
     occasionOther: '',
     guests: '',
     handover: 'pickup' as 'pickup' | 'delivery',

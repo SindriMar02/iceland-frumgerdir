@@ -25,8 +25,7 @@ import { useIsomorphicLayoutEffect } from './ssr'
 import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
-import MapCard from './MapCard'
-import { ORDER_T } from './order'
+import { ORDER_T, OCCASIONS, occasionsFor } from './order'
 import { useLang } from './useLang'
 import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 
@@ -97,6 +96,63 @@ const PAGE_CSS = `
   @media (prefers-reduced-motion: reduce) {
     .rb-wipe > h2, h2.rb-wipe { clip-path:none; transform:none; transition:none; }
     .rb-stagger > * { opacity:1; transform:none; transition:none; }
+  }
+
+  /* The edge-to-edge map band that closes the page. */
+  .rb-mapband { position:relative; display:block; overflow:hidden; background:${INK_DEEP};
+    aspect-ratio:21 / 9; }
+  .rb-mapband iframe { position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+    filter:invert(1) hue-rotate(180deg) saturate(.14) brightness(.86) contrast(1.08); }
+  .rb-mapband-veil { position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(11,10,9,.55) 0%, rgba(11,10,9,0) 20%,
+      rgba(11,10,9,0) 55%, rgba(11,10,9,.92) 100%); }
+  .rb-mapband-cta { position:absolute; left:clamp(20px,4.5vw,72px); bottom:clamp(20px,3vh,34px);
+    font-family:${DISPLAY}; font-size:clamp(16px,1.7vw,20px); color:${IVORY}; text-decoration:none;
+    border-bottom:1px solid rgba(200,168,119,.5); padding-bottom:3px;
+    transition:color .2s ${EASE}, border-color .2s ${EASE}; }
+  .rb-mapband-cta:hover { color:${GOLD_LIGHT}; border-bottom-color:${GOLD}; }
+  .rb-mapband-cta:focus-visible { outline:2px solid ${GOLD}; outline-offset:4px; border-radius:2px; }
+  /* Squarer on a phone: 21:9 of map on a 375px screen is a 160px sliver. */
+  @media (max-width:760px) { .rb-mapband { aspect-ratio:4 / 5; } }
+
+  /* Section intros. Full-bleed ones are centred and carry no rule; the
+     kicker's letterspacing already reads as a masthead without one. */
+  .rb-sec-intro { text-align:center; }
+  .rb-sec-kicker { font-size:12px; font-weight:700; letter-spacing:.24em; text-transform:uppercase;
+    color:${GOLD}; }
+  .rb-sec-lede { margin-inline:auto; }
+
+  /* The lettering band under the hero. Full-bleed photograph, the text
+     sitting on a veil at the bottom so the craft is the thing you see first
+     and the links are the thing you act on. */
+  /* Escapes .rb-cover's horizontal padding so the photograph runs edge to
+     edge. The band lives inside the cover section (it belongs to the hero,
+     not to the menu that follows), so it cannot simply be moved out — the
+     negative margin is what full-bleeds it from inside a padded parent. */
+  .rb-hand { position:relative; display:block; overflow:hidden; background:${INK_DEEP};
+    margin-inline:calc(-1 * clamp(20px,4.5vw,72px));
+    border-top:1px solid ${HAIR}; border-bottom:1px solid ${HAIR}; }
+  .rb-hand-img { display:block; width:100%; height:100%; object-fit:cover;
+    aspect-ratio:1800 / 960; max-height:clamp(300px,42vh,460px); }
+  .rb-hand-veil { position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(11,10,9,.30) 0%, rgba(11,10,9,0) 30%,
+      rgba(11,10,9,.55) 62%, rgba(11,10,9,.93) 100%); }
+  .rb-hand-body { position:absolute; left:clamp(20px,4.5vw,72px); right:clamp(20px,4.5vw,72px);
+    bottom:clamp(18px,3vh,30px); display:flex; align-items:flex-end; justify-content:space-between;
+    gap:18px; flex-wrap:wrap; }
+  .rb-hand-line { margin:0; font-family:${DISPLAY}; font-size:clamp(19px,2.4vw,32px);
+    color:${IVORY}; line-height:1.15; max-width:16ch; }
+  .rb-hand-links { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+  .rb-hand-cta { font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+    color:${FAINT}; }
+  .rb-hand-link { font-family:${DISPLAY}; font-size:clamp(15px,1.5vw,18px); color:${GOLD_LIGHT};
+    text-decoration:none; border-bottom:1px solid rgba(200,168,119,.4); padding-bottom:2px;
+    transition:color .2s ${EASE}, border-color .2s ${EASE}; }
+  .rb-hand-link:hover { color:${IVORY}; border-bottom-color:${GOLD}; }
+  .rb-hand-link:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; border-radius:2px; }
+  @media (max-width:760px) {
+    .rb-hand-body { flex-direction:column; align-items:flex-start; gap:10px; }
+    .rb-hand-img { max-height:none; aspect-ratio:4 / 3; }
   }
 
   /* Section intros. Full-bleed ones are centred and carry no rule; the
@@ -1142,28 +1198,51 @@ function ReynirPageInner() {
           </div>
         </div>
 
-        {/* The counter rail.
-            This was an infinitely scrolling marquee of product nouns — the
-            most recognisable tell of a generated landing page, and it carried
-            no information: nothing to buy, no prices, it simply moved. Every
-            real ordering product puts FACTS in this band instead (DoorDash's
-            store-info block, sweetgreen's "Pickup from … Opens Thursday at
-            10:00am", Square's Location & Hours), so it now answers the three
-            things a bakery is actually asked above the fold: are you open,
-            where are you, how long have you been here. Nothing moves; the only
-            live part is the status the page already computes. */}
-        <div className="rb-facts-strip">
-          <div className="rb-facts">
-            <span className="rb-fact" data-open={status.open}>
-              <span className="rb-fact-dot" aria-hidden="true" />
-              {status.label}
-            </span>
-            <span className="rb-fact-sep" aria-hidden="true" />
-            <span className="rb-fact">{mainName}</span>
-            <span className="rb-fact-sep" aria-hidden="true" />
-            <span className="rb-fact">{t.factSince}</span>
+        {/* The lettering band.
+            What was here before was a scrolling marquee of product nouns, then
+            a rail of three facts — and the facts were all already on the page
+            (status in the sticky bar, address in the visit block and footer,
+            "síðan 1994" in the hero). Both versions filled the space without
+            adding anything.
+
+            This is the one thing the bakery has that no competitor can show
+            and the site never used: a baker mid-stroke, writing a cake by
+            hand. The photo-library notes call it "the brand, and the site does
+            not use it". It carries information found nowhere else on the page,
+            and it WORKS — each occasion opens the order flow with that
+            occasion already chosen.
+
+            The customer's name piped on the foreground cake sits upside down
+            and small, so it is not legible; the library notes are explicit
+            that real names must not be put on the page. */}
+        <section className="rb-hand" aria-label={t.handLine}>
+          <img
+            className="rb-hand-img"
+            src={`${import.meta.env.BASE_URL}reynir/letter/hond.webp`}
+            alt={lang === 'is'
+              ? 'Bakari skrifar fermingartertu í höndunum með sprautupoka'
+              : 'A baker hand-writing a confirmation cake with a piping bag'}
+            width={1800}
+            height={960}
+            loading="lazy"
+            decoding="async"
+          />
+          <span className="rb-hand-veil" aria-hidden="true" />
+          <div className="rb-hand-body">
+            <p className="rb-hand-line">{t.handLine}</p>
+            <div className="rb-hand-links">
+              <span className="rb-hand-cta">{t.handCta}</span>
+              {occasionsFor(OCCASIONS, 'person')
+                .filter((o) => !o.freeText)
+                .slice(0, 4)
+                .map((o) => (
+                  <Link key={o.id} to={`${ORDER_PATH}?tilefni=${o.id}`} className="rb-hand-link">
+                    {o.label[lang]}
+                  </Link>
+                ))}
+            </div>
           </div>
-        </div>
+        </section>
       </section>
 
       {/* ===================== THE MENU ===================== */}
@@ -1520,19 +1599,46 @@ function ReynirPageInner() {
                 />
               </figure>
 
-              <MapCard
-                lang={lang}
-                locations={[
-                  { label: t.mainLabel, address: mainName, query: 'Reynir bakari, Dalvegur 4, 201 Kópavogur' },
-                ]}
-              />
             </div>
           </div>
         </div>
       </section>
 
+      {/* The map, edge to edge, the way Villa North closes.
+          It was a 4:3 widget boxed in a rounded border inside the visit grid —
+          a panel of Google's chrome interrupting the page one screen from the
+          end. Full-bleed it stops being a widget and becomes the ground the
+          footer sits on: the veil takes the bottom of the map down to INK_DEEP,
+          which is the footer's own colour, so the two meet with no seam.
+
+          The filter is the same trick MapCard used and for the same reason —
+          a keyless Google embed only ever serves a LIGHT map, so night has to
+          be taken out of it by inverting and rotating the hue back. Both scrims
+          are pointer-events:none, so the map stays draggable underneath. */}
+      <section className="rb-mapband" aria-label={t.mainLabel}>
+        <iframe
+          title={`${t.mainLabel}: ${mainName}`}
+          src="https://maps.google.com/maps?q=Reynir%20bakari%2C%20Dalvegur%204%2C%20201%20K%C3%B3pavogur&z=15&output=embed&hl=is"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
+        <span className="rb-mapband-veil" aria-hidden="true" />
+        <a
+          className="rb-mapband-cta"
+          href="https://maps.google.com/?q=Reynir+bakari,+Dalvegur+4,+201+K%C3%B3pavogur"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {mainName}
+        </a>
+      </section>
+
       {/* ===================== FOOTER ===================== */}
-      <footer style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: '52px clamp(20px,4.5vw,72px)' }}>
+      {/* No borderTop: the map band above ends in a veil that has already
+          reached INK_DEEP, so a hairline here would draw the seam the veil
+          exists to hide. */}
+      <footer style={{ background: INK_DEEP, padding: '52px clamp(20px,4.5vw,72px)' }}>
         <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 22 }}>
           <div>
             <img src={LOGO} alt="" aria-hidden="true" width={120} height={52} loading="lazy" decoding="async" style={{ width: 120, height: 'auto', display: 'block' }} />
