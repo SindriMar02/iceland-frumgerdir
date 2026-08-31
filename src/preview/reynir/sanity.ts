@@ -42,6 +42,7 @@ import {
 } from './data'
 import {
   OCCASIONS,
+  type Occasion,
   ORDER_PRODUCTS,
   PICKUP_LOCATIONS,
   type Bilingual,
@@ -205,7 +206,7 @@ export interface SiteContent {
   REVIEWS: Review[]
   GALLERY: GalleryPhoto[]
   ORDER_PRODUCTS: OrderProduct[]
-  OCCASIONS: { id: string; label: Bilingual }[]
+  OCCASIONS: Occasion[]
   PICKUP_LOCATIONS: { id: string; label: Bilingual }[]
 }
 
