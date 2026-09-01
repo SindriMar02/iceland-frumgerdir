@@ -601,7 +601,7 @@ export function checkSeries(
       // counted against the next occurrence, so a series cannot overbook itself
       provisional.push({
         ...r, id: `series-provisional-${i}`, status: 'CONFIRMED',
-        quote: { lines: [], total: 0, deposit: 0, units: 0 }, createdAt: now.toISOString(),
+        quote: { lines: [], total: 0, deposit: 0, units: 0, estimate: false }, createdAt: now.toISOString(),
       })
     }
     return { index: i + 1, date: r.date, request: r, decision }
