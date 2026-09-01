@@ -417,21 +417,30 @@ const ORDER_CSS = `
      without needing the min() guard. */
   .rb-ord-extras { display:grid; justify-content:start; gap:10px; margin-top:14px; max-width:640px;
     grid-template-columns:repeat(var(--extra-cols,3), minmax(0,200px)); }
-  .rb-ord-extra { display:flex; flex-direction:column; gap:6px; padding:0 14px 12px;
-    border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02); overflow:hidden;
-    transition:border-color .24s ${EASE}, background .24s ${EASE}; }
-  .rb-ord-extra[data-on] { border-color:${GOLD}; background:rgba(200,168,119,.07); }
-  .rb-ord-extra-pic { margin:0 -14px 6px; aspect-ratio:5 / 3; overflow:hidden; background:${INK_DEEP}; }
+  /* Same rule as the cake cards: the photograph IS the card. The picture used
+     to be a shallow band with a dark block of text and a stepper beneath it;
+     now it fills the tile and the whole body — name, price, the bulk line and
+     the stepper — rides a scrim over its foot. */
+  .rb-ord-extra { position:relative; display:block; aspect-ratio:3 / 4; padding:0;
+    border:1px solid ${HAIR}; border-radius:4px; background:${INK_DEEP}; overflow:hidden;
+    transition:border-color .24s ${EASE}; }
+  .rb-ord-extra[data-on] { border-color:${GOLD}; }
+  .rb-ord-extra-pic { position:absolute; inset:0; margin:0; overflow:hidden; background:${INK_DEEP}; }
+  .rb-ord-extra-pic::after { content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(11,10,9,0) 26%, rgba(11,10,9,.68) 56%, rgba(11,10,9,.95) 100%); }
+  .rb-ord-extra-body { position:absolute; z-index:2; left:12px; right:12px; bottom:10px;
+    display:flex; flex-direction:column; gap:3px; }
   .rb-ord-extra-pic img { width:100%; height:100%; object-fit:cover; display:block;
     filter:saturate(.96) brightness(.92); transition:transform .55s ${EASE}, filter .4s ${EASE}; }
   .rb-ord-extra:hover .rb-ord-extra-pic img { transform:scale(1.045); filter:saturate(1) brightness(1); }
-  .rb-ord-extra-name { font-family:${DISPLAY}; font-size:17px; color:${IVORY}; line-height:1.2; }
+  .rb-ord-extra-name { font-family:${DISPLAY}; font-size:16.5px; color:${IVORY}; line-height:1.15;
+    overflow-wrap:anywhere; }
   .rb-ord-extra-price { font-size:12.5px; color:${FAINT}; font-variant-numeric:tabular-nums; min-height:16px; }
   .rb-ord-extra-price s { opacity:.55; margin-right:4px; }
   .rb-ord-extra-price em { font-style:normal; color:${GOLD}; margin-left:6px; font-size:10.5px;
     text-transform:uppercase; letter-spacing:.08em; }
   .rb-ord-extra-bulk { font-size:11.5px; color:${GOLD}; font-variant-numeric:tabular-nums; min-height:15px; }
-  .rb-ord-extra-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:2px; }
+  .rb-ord-extra-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
   .rb-ord-extra-sum { text-align:right; font-size:13.5px; color:${GOLD}; font-variant-numeric:tabular-nums; }
   .rb-ord-qty[data-small] { margin-top:0; }
   .rb-ord-qty[data-small] button { width:34px; height:34px; }
@@ -531,7 +540,12 @@ const ORDER_CSS = `
     .rb-ord-prod-pic::after { display:none; }
     .rb-ord-prod-name { position:static; grid-area:name; align-self:end; }
     .rb-ord-prod-from { position:static; grid-area:from; align-self:start; }
-    .rb-ord-extras { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    /* One per row on a phone: two 3:4 tiles side by side left the longer
+       names wrapping into a sliver and the steppers cramped. Full width with
+       a shallower crop gives the photograph more of the screen, not less. */
+    .rb-ord-extras { grid-template-columns:minmax(0,1fr); max-width:none; }
+    .rb-ord-extra { aspect-ratio:16 / 10; }
+    .rb-ord-extra-body { left:14px; right:14px; bottom:12px; }
     /* On a phone the picker becomes a LIST, not three posters.
        Full-width cards with a letterbox photo came to 849px for three
        products: more than a whole screen of pictures before the customer
@@ -2070,6 +2084,7 @@ export default function OrderSection({
                         <span className="rb-ord-extra-pic">
                           <img src={ex.image} alt="" loading="lazy" decoding="async" width={480} height={480} />
                         </span>
+                        <span className="rb-ord-extra-body">
                         <span className="rb-ord-extra-name">{ex.label[lang]}</span>
                         <span className="rb-ord-extra-price">
                           {cut ? (
@@ -2095,6 +2110,7 @@ export default function OrderSection({
                             <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label="+">+</button>
                           </span>
                           <span className="rb-ord-extra-sum" aria-live="polite">{nQty > 0 ? isk(nQty * unit) : ''}</span>
+                        </span>
                         </span>
                       </div>
                     )
