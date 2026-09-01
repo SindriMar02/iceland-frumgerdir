@@ -39,8 +39,8 @@ export const IMG = {
   aslundurPatio: `${B}/aslundur-patio.jpg`,
   aslundurDining: `${B}/aslundur-dining.jpg`,
   aslundurLiving: `${B}/aslundur-living.jpg`,
-  aslundurBath: `${B}/aslundur-bath.jpg`,
-  aslundurTwin: `${B}/aslundur-twin.jpg`,
+  aslundurTerrace: `${B}/aslundur-terrace.jpg`,
+  aslundurMaster: `${B}/aslundur-master.jpg`,
   /* Úlfljótsskáli's own verified Vrbo photograph (the fire-pit deck with the
      hot tub), relit to night with an aurora and the guests removed. The
      architecture, deck, fire pit, tub and planters are untouched — only the
@@ -210,10 +210,10 @@ export const CHAPTERS: Chapter[] = [
     ],
     photos: [
       { img: 'aslundurPatio', alt: 'Patio and hot tub', wide: true },
-      { img: 'aslundurDining', alt: 'Dining and kitchen' },
-      { img: 'aslundurLiving', alt: 'Dining and living room' },
-      { img: 'aslundurBath', alt: 'Suite bathroom' },
-      { img: 'aslundurTwin', alt: 'Twin bedroom with full bathroom' },
+      { img: 'aslundurLiving', alt: 'Living room with the loft above and the fireplace lit' },
+      { img: 'aslundurDining', alt: 'Dining table facing Álftavatn through the glass' },
+      { img: 'aslundurTerrace', alt: 'Covered terrace looking across the lake to the mountain' },
+      { img: 'aslundurMaster', alt: 'Master bedroom with robes laid out' },
     ],
   },
 ]
