@@ -77,11 +77,19 @@ const ORDER_CSS = `
   /* The bar is a slimmer register than the form below it, so both of its
      controls sit at 44px — previously the select was 52 and the toggle 42,
      side by side, which is most of why it read as broken. */
-  /* No line-height here. Setting it to the full 44px on a <select> made
-     Chrome render the closed value as clipped fragments — the "dots" that
-     looked like a broken control. Height plus symmetric padding lets the
-     browser centre the text itself, which it does correctly. */
-  .rb-ord-ctx-select { min-width:210px; height:44px; padding-top:0; padding-bottom:0; }
+  /* The height comes from PADDING, never from a fixed height.
+     Two goes at this were wrong. line-height:44px made Chrome render the
+     closed value as sliced fragments — the "dots". Replacing it with
+     height:44px + zero vertical padding still clipped the ascenders, because
+     an appearance:none select does not centre its text inside a forced box;
+     it lays the text out from the top of the content area and the fixed
+     height crops it. Letting padding define the height removes the box that
+     was doing the cropping: 9 + 24 line + 9 + 2 border lands at 44px, the
+     same height as the toggle beside it, with the text sitting naturally. */
+  /* Two classes deep on purpose: this block sits ABOVE the shared
+     .rb-ord-input/.rb-ord-select rule in the stylesheet, so a single class
+     loses the cascade to it and the padding here was being ignored. */
+  .rb-ord-select.rb-ord-ctx-select { min-width:210px; height:auto; padding:9px 38px 9px 14px; }
   .rb-ord-seg { display:inline-flex; border:1px solid ${HAIR}; border-radius:4px; overflow:hidden; }
   .rb-ord-seg label { position:relative; }
   .rb-ord-seg label + label { border-left:1px solid ${HAIR}; }
