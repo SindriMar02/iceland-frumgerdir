@@ -77,7 +77,11 @@ const ORDER_CSS = `
   /* The bar is a slimmer register than the form below it, so both of its
      controls sit at 44px — previously the select was 52 and the toggle 42,
      side by side, which is most of why it read as broken. */
-  .rb-ord-ctx-select { min-width:210px; padding-top:0; padding-bottom:0; height:44px; line-height:44px; }
+  /* No line-height here. Setting it to the full 44px on a <select> made
+     Chrome render the closed value as clipped fragments — the "dots" that
+     looked like a broken control. Height plus symmetric padding lets the
+     browser centre the text itself, which it does correctly. */
+  .rb-ord-ctx-select { min-width:210px; height:44px; padding-top:0; padding-bottom:0; }
   .rb-ord-seg { display:inline-flex; border:1px solid ${HAIR}; border-radius:4px; overflow:hidden; }
   .rb-ord-seg label { position:relative; }
   .rb-ord-seg label + label { border-left:1px solid ${HAIR}; }
@@ -124,24 +128,34 @@ const ORDER_CSS = `
      step down, so all four sit in one row and stay comparable at a glance. */
   .rb-ord-prods { display:grid; gap:10px; margin-top:16px;
     grid-template-columns:repeat(var(--prod-cols,4), minmax(0,1fr)); }
-  .rb-ord-prod { position:relative; display:flex; flex-direction:column; gap:4px; text-align:left; cursor:pointer;
-    padding:10px 12px 12px; border:1px solid ${HAIR}; border-radius:4px; background:rgba(243,234,211,.02);
+  /* The photograph IS the card. Name and price used to sit in a dark block
+     beneath a letterboxed photo, which gave the picture a third of the card
+     and a hard edge across the middle of it. Now the image fills the whole
+     tile and the text rides on a scrim over its foot, so the cake is what you
+     see and the words stay legible on top of it. */
+  .rb-ord-prod { position:relative; display:block; aspect-ratio:4 / 5; text-align:left; cursor:pointer;
+    padding:0; border:1px solid ${HAIR}; border-radius:4px; background:${INK};
     overflow:hidden;
-    transition:border-color .22s ${EASE}, background .22s ${EASE}, transform .16s ${EASE}; }
+    transition:border-color .22s ${EASE}, transform .16s ${EASE}; }
   /* Product photo. The card is built so this can be absent — a product added
      in the CMS before its picture exists simply renders the text card. */
-  .rb-ord-prod-pic { margin:-10px -12px 8px; aspect-ratio:5 / 3; max-height:132px;
-    overflow:hidden; background:${INK}; }
+  .rb-ord-prod-pic { position:absolute; inset:0; margin:0; overflow:hidden; background:${INK}; }
+  /* The scrim lives on the picture, so a product with no photo simply has no
+     scrim and its text still reads on the card's own ground. */
+  .rb-ord-prod-pic::after { content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(11,10,9,0) 38%, rgba(11,10,9,.62) 68%, rgba(11,10,9,.93) 100%); }
   .rb-ord-prod-pic img { width:100%; height:100%; object-fit:cover; display:block;
     filter:saturate(.96) brightness(.94); transition:transform .5s ${EASE}, filter .35s ${EASE}; }
   .rb-ord-prod:hover .rb-ord-prod-pic img { transform:scale(1.04); filter:saturate(1) brightness(1); }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-pic img { filter:saturate(1) brightness(1); }
-  .rb-ord-prod:hover { border-color:rgba(238,211,170,.4); background:rgba(243,234,211,.05); }
+  .rb-ord-prod:hover { border-color:rgba(238,211,170,.4); }
   .rb-ord-prod:active { transform:scale(.99); }
-  .rb-ord-prod[data-on="true"] { border-color:${GOLD}; background:rgba(200,168,119,.09); }
-  .rb-ord-prod-name { font-family:${DISPLAY}; font-size:16.5px; line-height:1.15; color:${IVORY}; padding-right:24px; }
+  .rb-ord-prod[data-on="true"] { border-color:${GOLD}; }
+  .rb-ord-prod-name { position:absolute; z-index:2; left:12px; right:12px; bottom:26px;
+    font-family:${DISPLAY}; font-size:16.5px; line-height:1.15; color:${IVORY}; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-name { color:${GOLD_LIGHT}; }
-  .rb-ord-prod-from { font-size:12.5px; color:${DIM}; font-variant-numeric:tabular-nums; }
+  .rb-ord-prod-from { position:absolute; z-index:2; left:12px; right:12px; bottom:9px;
+    font-size:12.5px; color:${DIM}; font-variant-numeric:tabular-nums; }
   /* z-index is load-bearing, not decoration: the product photo carries a
      filter, which gives it its own stacking context, and a stacking context
      with z-index:auto paints in the positioned layer in DOM order — putting
@@ -501,11 +515,14 @@ const ORDER_CSS = `
        beside the name says as much at a quarter of the height. */
     .rb-ord-prods { grid-template-columns:minmax(0,1fr); }
     .rb-ord-prod { display:grid; grid-template-columns:auto minmax(0,1fr);
-      grid-template-areas:"pic name" "pic from"; align-content:center; row-gap:2px; }
-    .rb-ord-prod-pic { grid-area:pic; aspect-ratio:1 / 1; max-height:none;
+      grid-template-areas:"pic name" "pic from"; align-content:center; row-gap:2px;
+      aspect-ratio:auto; }
+    .rb-ord-prod-pic { position:static; grid-area:pic; aspect-ratio:1 / 1;
       align-self:center; border-radius:3px; }
-    .rb-ord-prod-name { grid-area:name; align-self:end; }
-    .rb-ord-prod-from { grid-area:from; align-self:start; }
+    /* No scrim on a 62px thumbnail — the text sits beside it, not on it. */
+    .rb-ord-prod-pic::after { display:none; }
+    .rb-ord-prod-name { position:static; grid-area:name; align-self:end; }
+    .rb-ord-prod-from { position:static; grid-area:from; align-self:start; }
     .rb-ord-extras { grid-template-columns:repeat(2,minmax(0,1fr)); }
     /* On a phone the picker becomes a LIST, not three posters.
        Full-width cards with a letterbox photo came to 849px for three
