@@ -105,6 +105,38 @@ export function loadOn(
     .reduce((sum, b) => sum + b.people, 0)
 }
 
+/**
+ * How full a resource is, in the terms the capacity check compares against.
+ *
+ * A NIGHT resource is a room, a chalet, an apartment. It is let to ONE party,
+ * and `capacity` is how many people that party may bring, not how many parties
+ * fit. Summing people across bookings had that backwards: with the Penthouse at
+ * capacity 8, a family of two CONFIRMED for the 10th and a family of three
+ * asking for the same night summed to five, and check() said yes. Two families
+ * at one door. Proven 2026-09-01, and true of every accommodation tenant on the
+ * platform, none of which sells a bed in a shared room.
+ *
+ * So for NIGHT the first live booking fills the resource, unless the resource
+ * says `shared` — a dormitory, where a bed really is the countable thing. DAY
+ * and SLOT keep the sum: a seat on a departure or a place in a class is exactly
+ * what shared capacity means, and Pólar Hestar's eight saddles depend on it.
+ *
+ * Channel blocks were already doing this by hand — blocksAsBookings sets
+ * people to the full capacity — which is why an Airbnb night was safe and a
+ * direct night was not.
+ */
+export function occupancy(
+  resource: Resource,
+  bookings: Booking[],
+  unit: Unit,
+  date: DateStr,
+  startMinute?: Minutes,
+): number {
+  const used = loadOn(bookings, unit, resource.id, date, startMinute)
+  if (unit === 'NIGHT' && !resource.shared && used > 0) return resource.capacity
+  return used
+}
+
 /* ── the decision ─────────────────────────────────────────────────────── */
 
 export function check(
@@ -158,7 +190,7 @@ export function check(
   // capacity, checked on every occupied date
   if (req.people < 1) reasons.push('OVER_CAPACITY')
   for (const d of dates) {
-    const used = loadOn(bookings, cfg.unit, req.resourceId, d, req.startMinute)
+    const used = occupancy(resource, bookings, cfg.unit, d, req.startMinute)
     if (used + req.people > resource.capacity) {
       reasons.push(used >= resource.capacity ? 'ALREADY_BOOKED' : 'OVER_CAPACITY')
       break
@@ -322,7 +354,7 @@ export function openDates(
     const anyRoom = cfg.resources
       .filter((r) => r.active !== false)
       .filter((r) => isOpenOn(resolve(cfg, r).availability, d))
-      .some((r) => loadOn(bookings, cfg.unit, r.id, d) + people <= r.capacity)
+      .some((r) => occupancy(r, bookings, cfg.unit, d) + people <= r.capacity)
     if (anyRoom) out.push(d)
   }
   return out
@@ -339,7 +371,7 @@ export function freeSlots(
   if (!resource) return []
   const { availability } = resolve(cfg, resource)
   return slotStarts(availability, date, resource).filter(
-    (m) => loadOn(bookings, cfg.unit, resourceId, date, m) < resource.capacity,
+    (m) => occupancy(resource, bookings, cfg.unit, date, m) < resource.capacity,
   )
 }
 
@@ -498,5 +530,86 @@ export function allowedActions(booking: Booking): BookingAction[] {
     case 'DECLINED':
     case 'CANCELLED':
       return []
+  }
+}
+
+/* ── recurring bookings ────────────────────────────────────────────────────
+   A course of eight weekly sessions, a haircut every fourth Thursday, a lane
+   every Monday for a term. See `seriesId` on Booking for why this produces N
+   ordinary bookings rather than one record with a repeat rule. */
+
+/**
+ * The same request, moved forward `everyDays` at a time.
+ *
+ * For NIGHT the departure travels with the arrival, so a two night stay
+ * repeated weekly stays two nights and does not creep longer each time. That
+ * is the bug this function exists to make impossible at the call site.
+ */
+export function seriesRequests(
+  req: BookingRequest, count: number, everyDays: number,
+): BookingRequest[] {
+  if (!Number.isInteger(count) || count < 1) return []
+  if (!Number.isInteger(everyDays) || everyDays < 1) return []
+  const span = req.endDate ? daysBetween(req.date, req.endDate) : 0
+  return Array.from({ length: count }, (_, i) => {
+    const date = addDays(req.date, i * everyDays)
+    return { ...req, date, ...(req.endDate ? { endDate: addDays(date, span) } : {}) }
+  })
+}
+
+export interface SeriesOccurrence {
+  index: number
+  date: DateStr
+  request: BookingRequest
+  decision: Decision
+}
+
+export interface SeriesDecision {
+  ok: boolean
+  occurrences: SeriesOccurrence[]
+  /** The ones that cannot be booked, so a caller can say WHICH rather than "no". */
+  blocked: SeriesOccurrence[]
+}
+
+/**
+ * Check every occurrence, and report per date rather than as one verdict.
+ *
+ * ALL OR NOTHING BY DEFAULT. Somebody signing up for an eight week course does
+ * not want weeks one to five: a partial series is a different product from the
+ * one they asked for, and silently selling it is how a customer arrives on week
+ * six to a room that was never theirs. `allowPartial` exists because a standing
+ * haircut is the opposite case, where six of eight is genuinely fine.
+ *
+ * Either way `blocked` names the dates, so the answer is never a bare no.
+ *
+ * Occurrences are checked against the bookings that exist NOW, plus the
+ * occurrences already accepted in this same series: two sessions of one course
+ * on the same day would otherwise both pass while together exceeding capacity.
+ */
+export function checkSeries(
+  cfg: BusinessConfig,
+  bookings: Booking[],
+  req: BookingRequest,
+  opts: { count: number; everyDays: number; allowPartial?: boolean },
+  now: Date = new Date(),
+): SeriesDecision {
+  const requests = seriesRequests(req, opts.count, opts.everyDays)
+  const provisional: Booking[] = []
+  const occurrences: SeriesOccurrence[] = requests.map((r, i) => {
+    const decision = check(cfg, [...bookings, ...provisional], r, now)
+    if (decision.ok) {
+      // counted against the next occurrence, so a series cannot overbook itself
+      provisional.push({
+        ...r, id: `series-provisional-${i}`, status: 'CONFIRMED',
+        quote: { lines: [], total: 0, deposit: 0, units: 0 }, createdAt: now.toISOString(),
+      })
+    }
+    return { index: i + 1, date: r.date, request: r, decision }
+  })
+  const blocked = occurrences.filter((o) => !o.decision.ok)
+  return {
+    ok: opts.allowPartial ? blocked.length < occurrences.length : blocked.length === 0,
+    occurrences,
+    blocked,
   }
 }

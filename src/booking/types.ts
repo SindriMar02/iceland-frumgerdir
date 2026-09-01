@@ -44,6 +44,13 @@ export interface Resource {
   /** How many of the countable thing fit at once: guests, seats, vehicles. */
   capacity: number
   /**
+   * NIGHT only. Set when a bed, not the room, is the thing being sold — a
+   * dormitory. Unset, a NIGHT resource is let to ONE party and `capacity` is
+   * the most that party may bring; the first live booking fills it. See
+   * occupancy() in engine.ts for the double booking that made this explicit.
+   */
+  shared?: boolean
+  /**
    * Extra units that may be booked alongside, priced separately. A loaner car,
    * a cot, wetsuit hire. Kept on the resource because availability is per
    * resource, not global.
@@ -261,7 +268,13 @@ export type BookingStatus = 'REQUESTED' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED'
  * that existed before owner entry; treating undefined as WEB keeps every record
  * already in storage readable.
  */
-export type BookingSource = 'WEB' | 'PHONE' | 'EMAIL' | 'WALK_IN'
+/**
+ * Where the booking came from. ICAL is not a booking somebody made here: it is
+ * a night another channel has already sold, read out of their calendar feed, so
+ * that our engine refuses to sell it a second time. It is never decidable and
+ * never stored under the booking prefix; see channels.ts.
+ */
+export type BookingSource = 'WEB' | 'PHONE' | 'EMAIL' | 'WALK_IN' | 'ICAL'
 
 /**
  * WHAT HAPPENED TO A BOOKING, in order, and who did it.
@@ -279,6 +292,8 @@ export type BookingEventKind =
   | 'CONFIRMED'
   | 'DECLINED'
   | 'CANCELLED'
+  /** Dates or resource changed after the fact. The old values live in `detail`. */
+  | 'MOVED'
   | 'OVERRIDE'
   | 'NOTIFIED'
   | 'NOTIFY_FAILED'
@@ -316,6 +331,24 @@ export interface Booking extends BookingRequest {
    * than a mystery over-capacity departure nobody can explain later.
    */
   overrode?: string
+  /**
+   * A SERIES IS N ORDINARY BOOKINGS SHARING AN ID, not a new kind of record.
+   *
+   * That is the whole design and it is deliberate. Capacity, availability,
+   * conflict detection, the calendar feed, the owner's timeline and every
+   * price already work on ordinary bookings; a course of eight sessions
+   * modelled as ONE record with a repeat rule would have required every one of
+   * those to learn about repeats, and each is a place the eighth week could
+   * quietly stop being counted against capacity. Linked singles cost one
+   * optional field and nothing else changes.
+   *
+   * Absent on a one-off booking, which is almost all of them.
+   */
+  seriesId?: string
+  /** 1-based position in the series, for "3. tími af 8" without a lookup. */
+  seriesIndex?: number
+  /** How many there are in total, stored so one record can describe itself. */
+  seriesCount?: number
 }
 
 /* ── results ──────────────────────────────────────────────────────────── */
