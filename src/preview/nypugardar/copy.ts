@@ -54,7 +54,10 @@ const en = {
 
   hero: {
     eyebrow: 'Kvöldverðurinn á Mýrum',
-    sub: 'A working sheep farm between Höfn and Jökulsárlón. Stay the night and sit down to dinner.',
+    /** Second line of the h1: what the place is and where, in the words a
+     *  traveller types into a search box. */
+    tagline: 'Farm guesthouse between Höfn and Jökulsárlón',
+    sub: 'A working sheep farm on Mýrar. Stay the night and sit down to dinner.',
   },
 
   booking: {
@@ -106,6 +109,12 @@ const en = {
     body: 'Bright, warm rooms in the main house, and two small cottages with bathrooms of their own. Plain, comfortable, and that view from the pillow.',
     seeAll: 'See every room and photo',
     seeAllNote: 'Seven room types and the two cottages, each with its own photographs and its own price, on a page of their own.',
+    /** The horizontal strip of room types under the counts. */
+    stripLabel: 'Room types',
+    prevRooms: 'Previous room types',
+    nextRooms: 'Next room types',
+    stripHint: 'Left and right arrow keys move between room types.',
+    openRoom: 'Photos and details',
     /** Short forms for the room index chips; the bands carry the full Godo names. */
     short: {
       twinSharedEconomy: 'Twin, economy',
@@ -319,7 +328,8 @@ const is: typeof en = {
 
   hero: {
     eyebrow: 'Kvöldverðurinn á Mýrum',
-    sub: 'Sauðfjárbú í fullum rekstri milli Hafnar og Jökulsárlóns. Gistu nóttina og seztu að kvöldverði.',
+    tagline: 'Sveitagisting milli Hafnar og Jökulsárlóns',
+    sub: 'Sauðfjárbú í fullum rekstri á Mýrum. Gistu nóttina og sestu að kvöldverði.',
   },
 
   booking: {
@@ -371,6 +381,11 @@ const is: typeof en = {
     body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baðherbergi. Einfalt, notalegt, og útsýnið beint úr rúminu.',
     seeAll: 'Skoða öll herbergi og myndir',
     seeAllNote: 'Sjö herbergisgerðir og sumarhúsin tvö, hver með sínum myndum og sínu verði, á sérsíðu.',
+    stripLabel: 'Herbergisgerðir',
+    prevRooms: 'Fyrri herbergisgerðir',
+    nextRooms: 'Næstu herbergisgerðir',
+    stripHint: 'Örvatakkar til vinstri og hægri fletta milli herbergisgerða.',
+    openRoom: 'Myndir og nánar',
     short: {
       twinSharedEconomy: 'Hagkvæmt, sameiginlegt bað',
       doubleTwinShared: 'Sameiginlegt bað',

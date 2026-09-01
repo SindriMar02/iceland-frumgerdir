@@ -1,0 +1,55 @@
+/**
+ * Nýpugarðar — the client build's own stylesheet.
+ *
+ * The catalogue's index.css carries Tailwind scanned across ~120 previews,
+ * thirty font families and every shared preview utility. This file carries
+ * Tailwind scanned across THIS design's folder only, its two typefaces, and
+ * the three base rules the pages lean on. Anything added here ships to the
+ * farm's guests; keep it that short.
+ *
+ * source(none) switches off Tailwind's automatic source detection, which
+ * would otherwise walk the whole workspace and emit a class for every
+ * preview ever built. The one @source below is the whole surface.
+ */
+@import "tailwindcss" source(none);
+@source "./preview/nypugardar";
+
+@theme {
+  --font-supreme: "Supreme", system-ui, sans-serif;
+  --font-erode: "Erode", Georgia, serif;
+}
+
+/* Erode (weathered serif, display) over Supreme (warm neutral grotesk,
+   body). Both Fontshare, both local, both with the full Icelandic set the
+   wordmark needs. Supreme ships no Semibold master, so Bold answers 600. */
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Semibold.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 600 700; font-style: normal; font-display: swap; }
+
+/* Safari 26 tints the status and home-indicator strips from html/body
+   background-color. The night ground lives here, statically, so the strips
+   are never the browser default even before a byte of script has run. */
+html, body { background-color: #15130F; color-scheme: dark; }
+
+/* Lenis smooth scroll (desktop, fine pointers only; the page never loads it
+   on a phone). Native CSS smooth scrolling is cancelled for Lenis's whole
+   mounted lifetime, or the browser's own easing fights Lenis's rAF loop and
+   the double-smoothing reads as input lag. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

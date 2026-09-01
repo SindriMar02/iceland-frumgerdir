@@ -209,14 +209,14 @@ export function nightsBetween(a: Date, b: Date): number {
   return Math.max(1, Math.round(ms / 86_400_000))
 }
 
-/** `YYYY-MM-DD` for <input type="date">, which does want zero padding. */
+/** `YYYY-MM-DD` for <input type=date>, which does want zero padding. */
 export function inputDate(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${d.getFullYear()}-${m}-${day}`
 }
 
-/** Parse an <input type="date"> value as a local date, not UTC midnight. */
+/** Parse an <input type=date> value as a local date, not UTC midnight. */
 export function parseInputDate(v: string): Date | null {
   if (!v) return null
   const [y, m, d] = v.split('-').map(Number)

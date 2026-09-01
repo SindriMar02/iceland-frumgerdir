@@ -26,9 +26,10 @@ import PRICES from "./prices.json";
 import { leadFor, galleryFor } from "./photos";
 import { IMG, FEATURED_IDS, PHONE_HREF, CHECK_TIMES, HOUSE_RULES } from "./data";
 import { GODO_ROOM_NAMES, GODO_ROOM_NAMES_IS, ROOM_SLEEPS } from "./godo";
+import { STANDALONE, homePath } from "./paths";
 import {
-  Eyebrow, Reveal, ClipImg, RoomBookLink, BookLink, LangToggle, photoAlt,
-  ROOM_ORDER, GALLERY_REST, HAIR, BODY, ACCENT, FOCUS, PAPER,
+  Eyebrow, Reveal, ClipImg, MaskHeading, RoomBookLink, BookLink, LangToggle, photoAlt,
+  usePageCss, ROOM_ORDER, GALLERY_REST, HAIR, BODY, ACCENT, FOCUS, PAPER,
 } from "./Page";
 
 export default function RoomsPage() {
@@ -36,11 +37,14 @@ export default function RoomsPage() {
   const t: Copy = COPY[lang];
   const reduced = useReducedMotion() ?? false;
   const { stay, setStay, today } = useStay();
+  usePageCss();
   /* No scroll-driven rule fill on this page; the Eyebrow contract wants a
      register function, so it gets one that registers nothing. */
   const register = useMemo(() => () => () => {}, []);
 
-  useEffect(() => setNoindex(true), []);
+  /* Catalogue only. On her own domain this page is the inventory and must be
+     indexed; the standalone SEO injector writes the real robots tag. */
+  useEffect(() => (STANDALONE ? undefined : setNoindex(true)), []);
   useEffect(() => {
     /* Body carries the page ink so Safari's own chrome and the zoom dialog's
      * top layer never flash the shared shell's light background. */
@@ -68,17 +72,17 @@ export default function RoomsPage() {
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 md:px-8">
           <Link
-            to="/preview/nypugardar"
-            className={`flex items-baseline gap-3 ${FOCUS}`}
+            to={homePath(lang)}
+            className={`-my-2 flex items-baseline gap-3 py-2 ${FOCUS}`}
           >
             <span aria-hidden="true" className="font-mono text-[13px]">&larr;</span>
             <span className="font-erode text-xl tracking-tight">Nýpugarðar</span>
           </Link>
           <div className="flex items-center gap-6">
-            <LangToggle lang={lang} setLang={setLang} t={t} />
+            <LangToggle lang={lang} setLang={setLang} t={t} className="-my-3 py-3" />
             <a
               href={PHONE_HREF}
-              className={`hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] sm:inline-flex ${FOCUS}`}
+              className={`-my-2 hidden items-center gap-2 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] sm:inline-flex ${FOCUS}`}
             >
               <Phone className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
               893 1826
@@ -90,11 +94,11 @@ export default function RoomsPage() {
       <main>
         {/* the page states its business, then the picker, then everything */}
         <section className="mx-auto max-w-6xl px-5 pb-12 pt-16 md:px-8 md:pb-16 md:pt-24">
-          <Reveal>
-            <h1 className="font-erode text-4xl font-medium leading-[1.14] tracking-tight md:text-6xl">
-              {t.rooms.heading}
-            </h1>
-          </Reveal>
+          <MaskHeading
+            as="h1"
+            text={t.rooms.heading}
+            className="font-erode text-4xl font-medium leading-[1.14] tracking-tight md:text-6xl"
+          />
           <Reveal delay={90}>
             <p className="mt-5 max-w-[56ch] leading-relaxed" style={{ color: BODY }}>
               {t.rooms.body}
@@ -117,7 +121,7 @@ export default function RoomsPage() {
                   <a
                     key={k}
                     href={`#room-${k}`}
-                    className={`inline-flex items-baseline gap-2 border px-3.5 py-2.5 [touch-action:manipulation] font-mono text-[11px] uppercase tracking-[0.12em] text-[#F4EEE2]/75 transition-colors duration-200 hover:border-[#F4EEE2]/45 hover:text-[#F4EEE2] ${FOCUS}`}
+                    className={`inline-flex items-baseline gap-2 border px-3.5 py-3.5 [touch-action:manipulation] font-mono text-[11px] uppercase tracking-[0.12em] text-[#F4EEE2]/75 transition-colors duration-200 hover:border-[#F4EEE2]/45 hover:text-[#F4EEE2] md:py-2.5 ${FOCUS}`}
                     style={{ borderColor: HAIR }}
                   >
                     {t.rooms.short[k]}
@@ -196,13 +200,13 @@ export default function RoomsPage() {
                     </div>
 
                     <div className={flip ? 'md:order-1' : ''}>
-                      <Reveal>
-                        <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
-                          {name}
-                        </h3>
-                      </Reveal>
+                      <MaskHeading
+                        as="h3"
+                        text={name}
+                        className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl"
+                      />
                       <Reveal delay={70}>
-                        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/60">
+                        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/60">
                           {t.price.sleeps} {ROOM_SLEEPS[k]}
                         </p>
                       </Reveal>
@@ -229,7 +233,7 @@ export default function RoomsPage() {
                   </div>
                 )
               })}
-              <p className="mt-8 max-w-[62ch] text-[13px] leading-relaxed text-[#F4EEE2]/60">
+              <p className="mt-8 max-w-[62ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">
                 {t.price.pricesNote}
               </p>
             </div>
@@ -237,11 +241,11 @@ export default function RoomsPage() {
             {/* Cottages */}
             <div className="mt-20 grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
               <div>
-                <Reveal>
-                  <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
-                    {t.rooms.cottagesHeading}
-                  </h3>
-                </Reveal>
+                <MaskHeading
+                  as="h3"
+                  text={t.rooms.cottagesHeading}
+                  className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl"
+                />
                 <Reveal delay={90}>
                   <p
                     className="mt-5 max-w-[52ch] leading-relaxed"
@@ -253,7 +257,7 @@ export default function RoomsPage() {
                 <Reveal delay={220}>
                   <div className="mt-9 flex flex-wrap items-center gap-4">
                     <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
-                    <p className="text-sm text-[#F4EEE2]/55">
+                    <p className="max-w-[36ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">
                       {t.cta.liveFromGodo}
                     </p>
                   </div>
@@ -339,18 +343,16 @@ export default function RoomsPage() {
         <section id="gallery" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
             <Eyebrow label={t.gallery.eyebrow} register={register} reduced={reduced} />
-            <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
-              <Reveal>
-                <h2 className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  {t.gallery.heading}
-                </h2>
-              </Reveal>
-              <Reveal delay={90}>
-                <p className="max-w-[52ch] leading-relaxed md:justify-self-end" style={{ color: BODY }}>
-                  {t.gallery.body}
-                </p>
-              </Reveal>
-            </div>
+            <MaskHeading
+              delay={60}
+              text={t.gallery.heading}
+              className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
+            />
+            <Reveal delay={90}>
+              <p className="mt-5 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
+                {t.gallery.body}
+              </p>
+            </Reveal>
 
             {/* The rooms are stated once, up in their own section. This is
               * the farm and the land around it, which is the other half of
@@ -390,8 +392,8 @@ export default function RoomsPage() {
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-14 md:px-8">
             <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
             <Link
-              to="/preview/nypugardar"
-              className={`font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/60 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
+              to={homePath(lang)}
+              className={`-my-3 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/60 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
             >
               &larr; {lang === "is" ? "Aftur á forsíðuna" : "Back to the front page"}
             </Link>

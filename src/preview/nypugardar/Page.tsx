@@ -1,5 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type {
+  CSSProperties,
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent,
+  PointerEvent,
+  ReactNode,
+} from "react";
+import { Suspense, lazy } from "react";
 import type Lenis from "lenis";
 import {
   useMotionValueEvent,
@@ -9,6 +25,8 @@ import {
 import {
   ArrowUpRight,
   Armchair,
+  ChevronLeft,
+  ChevronRight,
   CigaretteOff,
   Flower2,
   Footprints,
@@ -37,9 +55,6 @@ const FACILITY_ICON: Record<string, LucideIcon> = {
   "Family rooms": Users,
   "Non-smoking rooms": CigaretteOff,
 };
-import { companyEntry } from "./company";
-import { PreviewChrome } from "../PreviewChrome";
-import { PreviewFooter } from "../PreviewFooter";
 import { Img } from "../../components/Img";
 import { setThemeColor } from "../../lib/preview";
 import {
@@ -65,8 +80,10 @@ import {
   bookingReady,
   GODO_ROOM_NAMES,
   GODO_ROOM_NAMES_IS,
+  ROOM_SLEEPS,
   type GodoRoomKey,
 } from "./godo";
+import { STANDALONE, counterpart, roomsPath } from "./paths";
 import { useStay, type Stay } from "./stay";
 import {
   largest,
@@ -132,7 +149,7 @@ export const ROOM_ORDER: GodoRoomKey[] = [
   'cottage3',
   'familyCottage',
 ];
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import PRICES from './prices.json';
@@ -141,7 +158,14 @@ import { COPY } from './copy';
 import type { Copy, Lang } from './copy';
 import BookingBar from "./BookingBar";
 
-const company = companyEntry;
+/* The catalogue's chrome (the "send prototype" tools, the shared footer)
+ * and the private company brief behind it are reachable ONLY through this
+ * lazy import, and only when STANDALONE is false. In the client build that
+ * constant is baked true at compile time, the branch is dead code, and
+ * Rollup emits no chunk: the separation is enforced by the bundler, not by
+ * discipline. tools/nypugardar-standalone-post.mjs greps the output to prove
+ * it. */
+const PreviewShell = STANDALONE ? null : lazy(() => import("./PreviewShell"));
 
 /* ── Palette (from the farm's own photography — dusk sun, cabin lamplight, ice)
  * INK on GROUND ≈ 15:1 (AAA) · ACCENT on GROUND ≈ 5.5:1 (AA, large + labels)
@@ -158,6 +182,64 @@ export const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 export const EASE_SOFT = "cubic-bezier(0.16, 1, 0.3, 1)";
 export const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F4EEE2]";
+
+/* ── Reveals are armed by JavaScript, never by markup.
+ *
+ * Every reveal on this page renders in its RESTING state first: fully
+ * visible, no transform, no transition. Only once the page is actually
+ * running in a browser does a layout effect (which fires before the first
+ * paint, so there is no flash) hide the element and hand it to an observer.
+ * Three reasons, each of which shipped as a bug somewhere:
+ *   - the standalone build prerenders these pages to real HTML for the
+ *     crawlers that do not run JavaScript; an inline opacity:0 in that HTML
+ *     is a page of invisible text to them and to anyone whose script failed;
+ *   - a server render and a client's first render must be byte-identical or
+ *     React throws the prerendered tree away and rebuilds it from nothing;
+ *   - a background tab never fires the observer, and content that is hidden
+ *     until a callback runs is content that stays hidden.
+ * useLayoutEffect warns on the server, so it is swapped for a plain effect
+ * there, where it never runs anyway. */
+export const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+type Phase = "static" | "hidden" | "shown";
+
+/** Hide now, show when in view. The shared arming logic behind every reveal:
+ *  if the element is already on screen it is shown a beat after paint, else
+ *  an observer shows it as its leading edge arrives. Returns the phase. */
+function useRevealPhase(
+  ref: { current: HTMLElement | null },
+  reduced: boolean,
+  opts: { settle?: number; rootMargin?: string; threshold?: number } = {},
+): Phase {
+  const [phase, setPhase] = useState<Phase>("static");
+  useIsoLayoutEffect(() => {
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    setPhase("hidden");
+    const r = el.getBoundingClientRect();
+    if (r.top < window.innerHeight * 0.92 && r.bottom > 0) {
+      const t = window.setTimeout(() => setPhase("shown"), opts.settle ?? 60);
+      return () => window.clearTimeout(t);
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setPhase("shown");
+          io.disconnect();
+        }
+      },
+      {
+        rootMargin: opts.rootMargin ?? "0px 0px -9% 0px",
+        threshold: opts.threshold ?? 0.15,
+      },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduced]);
+  return phase;
+}
 
 /* ── The evening arc: one scrollYProgress drives sky colour + eyebrow ink +
  * the section rule fills, all computed from the raw value in ONE callback. */
@@ -201,6 +283,8 @@ const ZOOM_CSS = `
   background: rgba(244, 238, 226, 0.12); color: #F4EEE2;
   border-radius: 0; box-shadow: none;
 }
+/* The library's keyboard affordance is an 18px button; a thumb needs 44. */
+[data-rmiz-btn-zoom] { width: 44px; height: 44px; }
 /* The library ships transform .3s ease on the opening image. Plain ease is the
  * weak built-in and this is an ENTERING element, so it gets the strong
  * ease-out curve instead. */
@@ -224,6 +308,26 @@ function useZoomCss(enabled: boolean) {
   }, [enabled])
 }
 
+/* Safari 26 tints its status strip and home-indicator strip from html/body
+ * background-color when no fixed element reaches that edge. The shared
+ * catalogue shell's body is light, so the night ground goes onto html and
+ * body themselves for as long as one of these pages is mounted, and comes
+ * off again on the way out so it cannot follow a visitor to another preview.
+ * (The standalone shell carries the same rule statically.) */
+const PAGE_CSS = `html, body { background-color: #15130F; }`
+export function usePageCss() {
+  useIsoLayoutEffect(() => {
+    if (document.getElementById("nyp-page-css")) return
+    const el = document.createElement("style")
+    el.id = "nyp-page-css"
+    el.textContent = PAGE_CSS
+    document.head.appendChild(el)
+    return () => {
+      el.remove()
+    }
+  }, [])
+}
+
 /* ── Reveal — IntersectionObserver on an untransformed wrapper; the failsafe is
  * gated by viewport position (never an unconditional timeout). */
 export function Reveal({
@@ -239,44 +343,146 @@ export function Reveal({
 }) {
   const reduced = useReducedMotion() ?? false;
   const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    if (reduced) return;
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    if (r.top < window.innerHeight * 0.92 && r.bottom > 0) {
-      const t = window.setTimeout(() => setShown(true), 60);
-      return () => window.clearTimeout(t);
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -9% 0px", threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [reduced]);
-  const style: CSSProperties | undefined = reduced
-    ? undefined
-    : {
-        opacity: shown ? 1 : 0,
-        transform: shown ? "none" : `translateY(${Math.min(y, 16)}px)`,
-        transition: `opacity 0.9s ${EASE_SOFT} ${delay}ms, transform 0.9s ${EASE_SOFT} ${delay}ms`,
-      };
+  const phase = useRevealPhase(ref, reduced);
+  const style: CSSProperties | undefined =
+    phase === "static"
+      ? undefined
+      : {
+          opacity: phase === "shown" ? 1 : 0,
+          transform:
+            phase === "shown" ? "none" : `translateY(${Math.min(y, 16)}px)`,
+          transition: `opacity 0.9s ${EASE_SOFT} ${delay}ms, transform 0.9s ${EASE_SOFT} ${delay}ms`,
+        };
   return (
     <div
       ref={ref}
       className={className}
       style={style}
-      data-show={shown || reduced}
+      data-show={phase !== "hidden"}
     >
       {children}
     </div>
+  );
+}
+
+/* ── MaskHeading — a heading whose words rise out of a clipped line.
+ *
+ * The fade-up the rest of the page uses is right for a paragraph, which is
+ * read as a block. A heading is read word by word, and this reveal follows
+ * that: each word sits in its own overflow-hidden mask and slides up into
+ * place with a 40ms stagger, so a two-line title arrives left to right, top
+ * to bottom, the way the eye takes it. Transform only, one element per word,
+ * no measurement, no font split, so it costs nothing and survives any
+ * typeface and any line wrap. The masks carry a little padding below the
+ * line box so descenders (g, y, p, ð) are never clipped at rest. Renders as
+ * a plain heading until JavaScript arms it, like every reveal here. */
+export function MaskHeading({
+  text,
+  as: Tag = "h2",
+  className = "",
+  delay = 0,
+  stagger = 40,
+  style,
+}: {
+  text: string;
+  as?: "h1" | "h2" | "h3" | "p";
+  className?: string;
+  delay?: number;
+  stagger?: number;
+  style?: CSSProperties;
+}) {
+  const reduced = useReducedMotion() ?? false;
+  const ref = useRef<HTMLElement>(null);
+  const phase = useRevealPhase(ref, reduced, { settle: 80 });
+  const words = text.split(" ");
+  return (
+    <Tag
+      ref={ref as never}
+      className={`text-balance ${className}`}
+      style={style}
+      data-show={phase !== "hidden"}
+    >
+      {words.map((w, i) => (
+        <Fragment key={i}>
+          <span className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-baseline">
+            <span
+              className="inline-block"
+              style={
+                phase === "static"
+                  ? undefined
+                  : {
+                      transform:
+                        phase === "shown" ? "none" : "translateY(120%)",
+                      transition: `transform 0.85s ${EASE_SOFT} ${delay + i * stagger}ms`,
+                    }
+              }
+            >
+              {w}
+            </span>
+          </span>
+          {i < words.length - 1 ? " " : null}
+        </Fragment>
+      ))}
+    </Tag>
+  );
+}
+
+/* ── Count — a figure that counts up to itself when it comes into view.
+ *
+ * Used for the one number this page is built around, the 8.8, and the six
+ * category scores beside it. The final value is what is rendered in the
+ * markup, so the prerender and any reader without JavaScript see the real
+ * figure; the browser only zeroes it a moment before paint and then tweens
+ * it back with a strong ease-out, writing straight to the text node so React
+ * never re-renders for a frame. One second, once, never on hover. */
+export function Count({
+  value,
+  decimals = 1,
+  delay = 0,
+  className = "",
+  style,
+}: {
+  value: number;
+  decimals?: number;
+  delay?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const reduced = useReducedMotion() ?? false;
+  const ref = useRef<HTMLSpanElement>(null);
+  const phase = useRevealPhase(ref, reduced, { settle: 120, threshold: 0.5 });
+  const fmt = (n: number) => n.toFixed(decimals);
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || phase === "static") return;
+    if (phase === "hidden") {
+      el.textContent = fmt(0);
+      return;
+    }
+    let raf = 0;
+    let start = 0;
+    const dur = 1100;
+    const tick = (now: number) => {
+      if (!start) start = now;
+      const t = Math.min(1, (now - start - delay) / dur);
+      if (t < 0) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      /* ease-out quart: fast off the mark, long settle onto the real figure */
+      const e = 1 - Math.pow(1 - t, 4);
+      el.textContent = fmt(value * e);
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else el.textContent = fmt(value);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+  return (
+    <span ref={ref} className={`tabular-nums ${className}`} style={style}>
+      {fmt(value)}
+    </span>
   );
 }
 
@@ -292,6 +498,7 @@ export function ClipImg({
   className = "",
   imgClassName = "",
   zoom = false,
+  hover = false,
 }: {
   photo: Photo;
   /** What width this tile actually renders at, per breakpoint. */
@@ -306,11 +513,20 @@ export function ClipImg({
    *  a 4:3 tile loses half its frame, and the zoom is how a guest gets it
    *  back. The homepage tiles stay plain — narrative flow, not inventory. */
   zoom?: boolean;
+  /** Answer the cursor with a slow swell. Implied by zoom; set explicitly for
+   *  a tile that is a link rather than a lightbox. */
+  hover?: boolean;
 }) {
   const reduced = useReducedMotion() ?? false;
   const ref = useRef<HTMLElement>(null);
   const [inView, setInView] = useState(false);
   const [ready, setReady] = useState(false);
+  /* Armed before first paint by a layout effect, never by markup: the
+     prerendered HTML carries the photograph fully open. See useIsoLayoutEffect. */
+  const [armed, setArmed] = useState(false);
+  useIsoLayoutEffect(() => {
+    if (!reduced) setArmed(true);
+  }, [reduced]);
 
   /* WARM PASS. The reveal used to open a clip-path over an image the browser
      had not downloaded yet: the observer fires on a NEGATIVE margin, so by
@@ -341,8 +557,10 @@ export function ClipImg({
         img.addEventListener("error", done, { once: true });
       },
       /* A screen and a half of runway. At a fast flick 800px was still being
-         overtaken, and a tile that has not decoded cannot reveal. */
-      { rootMargin: "1400px 0px" },
+         overtaken, and a tile that has not decoded cannot reveal. Sideways
+         too, for the room strip: a card clipped by its scroller is not
+         intersecting, and it must be decoded before it is dragged into view. */
+      { rootMargin: "1400px 1600px" },
     );
     warm.observe(el);
     return () => warm.disconnect();
@@ -391,9 +609,10 @@ export function ClipImg({
         <Img
           {...frame(photo, sizes)}
           alt={alt}
+          draggable={false}
           className={`h-full w-full object-cover ${imgClassName}`}
           style={
-            reduced
+            reduced || !armed
               ? undefined
               : {
                   /* Three layers settle at three speeds: the wipe leads, the
@@ -407,23 +626,35 @@ export function ClipImg({
           }
         />
   );
+  /* A clickable photograph answers the cursor: a slow 3.5% swell inside its
+   * frame, on fine pointers only (Tailwind v4 gates hover: behind
+   * @media (hover:hover)). The reveal owns the img's own transform, so the
+   * hover lives one wrapper up. */
+  const framed =
+    zoom || hover ? (
+      <div className="h-full w-full transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+        {img}
+      </div>
+    ) : (
+      img
+    );
   return (
     <figure ref={ref} className={className}>
-      <div className={`${aspect} overflow-hidden rounded-sm`}>
+      <div className={`${aspect} group overflow-hidden rounded-sm`}>
         {zoom ? (
           <Zoom
             classDialog="nyp-zoom"
             zoomMargin={16}
             zoomImg={{ src: largest(photo), alt }}
           >
-            {img}
+            {framed}
           </Zoom>
         ) : (
-          img
+          framed
         )}
       </div>
       {caption ? (
-        <figcaption className="mt-2.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#F4EEE2]/55">
+        <figcaption className="mt-2.5 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/60">
           {caption}
         </figcaption>
       ) : null}
@@ -446,11 +677,22 @@ export function Eyebrow({
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    /* The rule renders full in the markup (no JavaScript, no scroll, a
+       finished rule) and is set to its true scroll position here, before
+       paint, so it never flashes from full to empty on load. */
+    if (!reduced) {
+      const vh = window.innerHeight || 800;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty(
+        "--rule",
+        clamp01((vh * 0.86 - r.top) / (vh * 0.52)).toFixed(4),
+      );
+    }
     return register(el);
-  }, [register]);
+  }, [register, reduced]);
   return (
     <span className={`block ${className}`}>
       <span
@@ -465,9 +707,7 @@ export function Eyebrow({
       >
         <span
           className="block h-full w-full origin-left rounded-full bg-[#D97D3D]"
-          style={{
-            transform: reduced ? "scaleX(1)" : "scaleX(var(--rule, 0))",
-          }}
+          style={{ transform: "scaleX(var(--rule, 1))" }}
         />
       </span>
     </span>
@@ -489,13 +729,33 @@ export function LangToggle({
   t: (typeof COPY)['en']
   className?: string
 }) {
+  const other: Lang = lang === 'is' ? 'en' : 'is'
+  const { pathname, hash } = useLocation()
+  const cls = `-my-2 inline-block py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS} ${className}`
+  /* On the client's own domain the other language is another ADDRESS, so this
+     is a real link: crawlers can follow it to the Icelandic pages, and it
+     works before any script has run. In the catalogue the language is a
+     remembered toggle on one route, so it stays a button. */
+  if (STANDALONE) {
+    return (
+      <Link
+        to={counterpart(pathname, hash, other)}
+        hrefLang={other}
+        lang={other}
+        aria-label={t.switchTo}
+        className={cls}
+      >
+        {t.otherLangName}
+      </Link>
+    )
+  }
   return (
     <button
       type="button"
-      onClick={() => setLang(lang === 'is' ? 'en' : 'is')}
+      onClick={() => setLang(other)}
       aria-label={t.switchTo}
-      lang={lang === 'is' ? 'en' : 'is'}
-      className={`font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS} ${className}`}
+      lang={other}
+      className={cls}
     >
       {t.otherLangName}
     </button>
@@ -882,17 +1142,290 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
   )
 }
 
+/* ── RoomStrip — every room type in one horizontal strip.
+ *
+ * Three cropped 4:3 tiles used to stand in for thirteen beds. Her room
+ * photographs are 810x1080 phone portraits, and a 3:4 card is the one frame
+ * that shows all of one without cropping, so the strip carries all seven
+ * types at their true aspect, each with its name, what it sleeps, its lowest
+ * nightly rate and its own booking link. The reader sees the whole inventory
+ * from the homepage instead of a sample.
+ *
+ * Native scroll-snap, not a transform carousel: momentum, rubber-banding and
+ * the back-swipe on iOS all stay the browser's, which no library reproduces
+ * faithfully. On top of that, only what the browser lacks: drag-to-scroll
+ * for a mouse (a trackpad already swipes natively), arrow keys on the focused
+ * strip, and a live count. The keyboard and ARIA contract follows the 21st.dev
+ * "Snap Carousel" (23559): role group, aria-roledescription carousel, a
+ * described hint, arrow and Home/End keys, a polite live region.
+ *
+ * Deliberately NOT data-lenis-prevent: the catalogue's index.css gives that
+ * attribute overscroll-behavior:contain, and on a strip with no vertical
+ * overflow that would swallow the wheel and stop the page scrolling while
+ * the cursor is over it. Lenis leaves purely horizontal gestures to the
+ * browser on its own. */
+function RoomStrip({
+  t,
+  lang,
+  stay,
+  reduced,
+}: {
+  t: Copy;
+  lang: Lang;
+  stay: Stay;
+  reduced: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const hintId = useId();
+  const [at, setAt] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const swallow = useRef(false);
+
+  const cards = ROOM_ORDER.map((k) => ({
+    k,
+    photo: leadFor(k),
+    price:
+      (PRICES.rooms as Record<string, { from: number | null }>)[k]?.from ?? null,
+    name: lang === "is" ? GODO_ROOM_NAMES_IS[k] : GODO_ROOM_NAMES[k],
+  }));
+
+  /* One card plus the gap: the distance the arrows move, and the divisor
+     behind the live count. Read live so a resize cannot stale it. */
+  const stepWidth = () => {
+    const el = ref.current;
+    const first = el?.firstElementChild as HTMLElement | null;
+    if (!el || !first) return 0;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    return first.getBoundingClientRect().width + gap;
+  };
+  const go = (dir: 1 | -1) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * stepWidth(), behavior: reduced ? "auto" : "smooth" });
+  };
+  const onScroll = () => {
+    const el = ref.current;
+    const w = stepWidth();
+    if (!el || !w) return;
+    const i = Math.max(0, Math.min(cards.length - 1, Math.round(el.scrollLeft / w)));
+    setAt((p) => (p === i ? p : i));
+  };
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
+    else if (e.key === "Home") { e.preventDefault(); ref.current?.scrollTo({ left: 0, behavior: reduced ? "auto" : "smooth" }); }
+    else if (e.key === "End") { e.preventDefault(); ref.current?.scrollTo({ left: ref.current.scrollWidth, behavior: reduced ? "auto" : "smooth" }); }
+  };
+
+  /* Mouse drag. Listeners go on the window for the duration rather than
+     capturing the pointer: pointer capture would retarget the click at the
+     strip and every card link would go dead. A drag that moved swallows the
+     click that follows it, so letting go over a card does not open it. */
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    const el = ref.current;
+    if (!el) return;
+    drag.current = { x: e.clientX, left: el.scrollLeft, moved: false };
+    setDragging(true);
+    const move = (ev: { clientX: number }) => {
+      const d = drag.current;
+      if (!d) return;
+      const dx = ev.clientX - d.x;
+      if (Math.abs(dx) > 6) d.moved = true;
+      el.scrollLeft = d.left - dx;
+    };
+    const up = () => {
+      swallow.current = drag.current?.moved ?? false;
+      drag.current = null;
+      setDragging(false);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
+  const onClickCapture = (e: MouseEvent<HTMLDivElement>) => {
+    if (!swallow.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    swallow.current = false;
+  };
+
+  const btn = `grid h-11 w-11 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 md:h-9 md:w-9 ${FOCUS}`;
+
+  return (
+    <div className="mt-12">
+      <div
+        ref={ref}
+        role="group"
+        aria-roledescription="carousel"
+        aria-label={t.rooms.stripLabel}
+        aria-describedby={hintId}
+        tabIndex={0}
+        onScroll={onScroll}
+        onKeyDown={onKeyDown}
+        onPointerDown={onPointerDown}
+        onClickCapture={onClickCapture}
+        /* Snap is suspended for the length of a mouse drag, or the browser
+           fights every pixel of it; it re-snaps to the nearest card on release. */
+        style={{ scrollSnapType: dragging ? "none" : undefined }}
+        className={`-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-5 px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:-mx-8 md:gap-5 md:scroll-px-8 md:px-8 [@media(pointer:fine)]:cursor-grab ${dragging ? "select-none [@media(pointer:fine)]:cursor-grabbing" : ""} ${FOCUS}`}
+      >
+        {cards.map((c, i) => (
+          <article
+            key={c.k}
+            aria-label={`${i + 1} ${t.reviews.of} ${cards.length}`}
+            className="w-[70vw] shrink-0 snap-start sm:w-[42vw] md:w-[30vw] lg:w-[262px]"
+          >
+            <Link
+              to={`${roomsPath(lang)}#room-${c.k}`}
+              aria-label={`${c.name}: ${t.rooms.openRoom}`}
+              draggable={false}
+              className={`block ${FOCUS}`}
+            >
+              {c.photo ? (
+                <ClipImg
+                  photo={c.photo}
+                  sizes="(min-width: 1024px) 262px, (min-width: 768px) 30vw, (min-width: 640px) 42vw, 70vw"
+                  alt={photoAlt(c.photo, t, lang)}
+                  aspect="aspect-[3/4]"
+                  delay={Math.min(i, 3) * 60}
+                  hover
+                />
+              ) : null}
+            </Link>
+            <h3 className="mt-4 font-erode text-xl font-medium leading-[1.2] tracking-tight">
+              {c.name}
+            </h3>
+            <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/60">
+              {t.price.sleeps} {ROOM_SLEEPS[c.k]}
+            </p>
+            <div
+              className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-t pt-3"
+              style={{ borderColor: HAIR }}
+            >
+              {typeof c.price === "number" ? (
+                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/60">
+                  {t.price.from}{" "}
+                  <span
+                    className="font-erode text-2xl tracking-tight tabular-nums"
+                    style={{ color: ACCENT }}
+                  >
+                    {c.price}
+                  </span>{" "}
+                  &euro; {t.price.perNight}
+                </p>
+              ) : (
+                <span />
+              )}
+              <RoomBookLink room={c.k} name={c.name} stay={stay} lang={lang} t={t} />
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => go(-1)} aria-label={t.rooms.prevRooms} className={btn} style={{ borderColor: HAIR, color: PAPER }}>
+            <ChevronLeft className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={() => go(1)} aria-label={t.rooms.nextRooms} className={btn} style={{ borderColor: HAIR, color: PAPER }}>
+            <ChevronRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+        </div>
+        <p aria-live="polite" className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/60 tabular-nums">
+          {at + 1} {t.reviews.of} {cards.length} · {t.rooms.stripLabel}
+        </p>
+        <span id={hintId} className="sr-only">{t.rooms.stripHint}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── HeroFilm — her own photograph, moving.
+ *
+ * The hero still (her largest frame: low sun across Mýrar, the outlet
+ * glaciers along the whole horizon) was handed to an image-to-video model
+ * and asked for nothing but what the evening itself does: clouds drift, the
+ * light shifts on the ice, the grass moves, a slow push in. Ten seconds,
+ * crossfaded tail-to-head into an 8.7 s loop whose seam measures the same as
+ * any two adjacent frames. Nothing in it is invented; it is the photograph
+ * with the weather running.
+ *
+ * It costs 470 KB and it is a LUXURY, so it is fetched only where it can be
+ * seen and afforded: fine, wide screens, no reduced-motion preference, no
+ * Save-Data. Phones never request it. The still underneath is the LCP
+ * element on every visit and stays exactly where it was; the film fades over
+ * it once the browser reports it is actually playing, so a stalled video is
+ * simply the photograph. Rendered client-side only, so the prerendered
+ * markup carries no <video> for a crawler to weigh. */
+function HeroFilm({ reduced, on }: { reduced: boolean; on: boolean }) {
+  const [wanted, setWanted] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (reduced) return;
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (nav.connection?.saveData) return;
+    const mq = window.matchMedia("(min-width: 1024px) and (pointer: fine)");
+    const decide = () => setWanted(mq.matches);
+    decide();
+    mq.addEventListener("change", decide);
+    return () => mq.removeEventListener("change", decide);
+  }, [reduced]);
+  if (!wanted) return null;
+  return (
+    <video
+      ref={(el) => {
+        /* The muted PROPERTY is what autoplay policy checks; React sets it,
+           but a belt-and-braces play() catches the browsers that still wait
+           for a gesture and lets the still stand in. */
+        if (!el) return;
+        el.muted = true;
+        el.play().catch(() => {});
+      }}
+      className="absolute inset-0 h-full w-full object-cover"
+      style={{
+        opacity: playing && on ? 1 : 0,
+        transition: `opacity 1.6s ${EASE}`,
+      }}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      aria-hidden="true"
+      tabIndex={-1}
+      disablePictureInPicture
+      disableRemotePlayback
+      onPlaying={() => setPlaying(true)}
+    >
+      <source
+        src={`${import.meta.env.BASE_URL}nypugardar/film/hero-1600.mp4`}
+        type="video/mp4"
+      />
+    </video>
+  );
+}
+
 export default function Page() {
   const [lang, setLang] = useLang();
   const t = COPY[lang];
+  usePageCss();
   /* One stay for the whole page: the hero picker writes it, the room list reads
    * it, so "book this room" carries the nights the guest already chose. */
   const { stay, setStay, today } = useStay();
   const reduced = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  /* The hero's picture (still and film together). Written to directly from
+     the scroll callback for the parallax: no React state per frame. */
+  const heroMediaRef = useRef<HTMLDivElement>(null);
   const rules = useRef(new Set<HTMLSpanElement>());
-  const [mounted, setMounted] = useState(false);
+  /* The hero's entrance: static in the markup, hidden before first paint,
+     shown a beat later. See useIsoLayoutEffect for why not a mount flag. */
+  const [heroPhase, setHeroPhase] = useState<Phase>("static");
   /* True once the hero has scrolled past under the bar. Drives BOTH the nav's
    * material (transparent over its own photograph, ink glass over content — a
    * colour swap, never a hide/reveal) and the mobile bottom CTA, which must
@@ -1006,6 +1539,17 @@ export default function Page() {
     root.style.setProperty("--sky", atStops(SKY_STOPS, v));
     root.style.setProperty("--skyink", atStops(INK_STOPS, v));
     const vh = window.innerHeight || 800;
+    /* Parallax on the hero picture only: it scrolls at 78% of the page, so
+       the plain and the ice sink away under the heading a shade more slowly
+       than the words leave. The exposed strip this opens at the top of the
+       header is always already above the viewport. Stops writing once the
+       hero is gone. */
+    const media = heroMediaRef.current;
+    if (media) {
+      const y = window.scrollY;
+      if (y < vh * 1.3)
+        media.style.transform = `translate3d(0, ${(Math.min(y, vh) * 0.22).toFixed(1)}px, 0)`;
+    }
     rules.current.forEach((el) => {
       const r = el.getBoundingClientRect();
       el.style.setProperty(
@@ -1050,10 +1594,12 @@ export default function Page() {
     };
   }, [reduced]);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => setMounted(true), 40);
+  useIsoLayoutEffect(() => {
+    if (reduced) return;
+    setHeroPhase("hidden");
+    const t = window.setTimeout(() => setHeroPhase("shown"), 40);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [reduced]);
 
   useEffect(() => {
     document.title = "Nýpugarðar · Kvöldverðurinn á Mýrum";
@@ -1100,9 +1646,9 @@ export default function Page() {
     };
   }, []);
 
-  const on = mounted || reduced;
+  const on = heroPhase === "shown";
   const rise = (i: number): CSSProperties =>
-    reduced
+    heroPhase === "static"
       ? {}
       : {
           opacity: on ? 1 : 0,
@@ -1124,7 +1670,11 @@ export default function Page() {
         } as CSSProperties
       }
     >
-      <PreviewChrome company={company} />
+      {PreviewShell ? (
+        <Suspense fallback={null}>
+          <PreviewShell part="chrome" />
+        </Suspense>
+      ) : null}
 
       {/* The sky band — a thin fixed atmosphere behind the headlines. Its colour
        * IS the evening: daylight blue at the top of the page, ember by dinner,
@@ -1149,22 +1699,25 @@ export default function Page() {
         ref={headerRef}
         className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden"
       >
-        <Img
-          {...frame(IMG.hero, "100vw")}
-          alt={t.closing.heroAlt}
-          fetchpriority="high"
-          loading="eager"
-          className="absolute inset-0 h-full w-full object-cover"
-          style={
-            reduced
-              ? undefined
-              : {
-                  opacity: on ? 1 : 0,
-                  transform: on ? "scale(1)" : "scale(1.05)",
-                  transition: `opacity 1.4s ${EASE}, transform 2.2s ${EASE}`,
-                }
-          }
-        />
+        <div ref={heroMediaRef} className="absolute inset-0">
+          <Img
+            {...frame(IMG.hero, "100vw")}
+            alt={t.closing.heroAlt}
+            fetchpriority="high"
+            loading="eager"
+            className="absolute inset-0 h-full w-full object-cover"
+            style={
+              heroPhase === "static"
+                ? undefined
+                : {
+                    opacity: on ? 1 : 0,
+                    transform: on ? "scale(1)" : "scale(1.05)",
+                    transition: `opacity 1.4s ${EASE}, transform 2.2s ${EASE}`,
+                  }
+            }
+          />
+          <HeroFilm reduced={reduced} on={on} />
+        </div>
         {/* Lighter than it looks it should be, on purpose. The hero frame is
          * her best photograph and the whole top two thirds of it is the light
          * on the ice; a scrim heavy enough to be safe everywhere turns that
@@ -1210,7 +1763,7 @@ export default function Page() {
           >
             <a
               href="#top"
-              className={`font-erode text-xl tracking-tight ${FOCUS}`}
+              className={`-my-2 py-2 font-erode text-xl tracking-tight ${FOCUS}`}
             >
               Nýpugarðar
             </a>
@@ -1220,7 +1773,7 @@ export default function Page() {
                   key={n.id}
                   href={`#${n.id}`}
                   onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
-                  className={`font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/80 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
+                  className={`-my-2 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/80 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
                 >
                   {t.nav[n.id as keyof typeof t.nav]}
                 </a>
@@ -1236,7 +1789,7 @@ export default function Page() {
                   adults: stay.adults,
                   children: stay.children,
                 })!}
-                className={`hidden bg-[#D97D3D] px-4 py-2 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
+                className={`hidden bg-[#D97D3D] px-4 py-2.5 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
               >
                 {t.cta.check}
               </a>
@@ -1311,9 +1864,15 @@ export default function Page() {
                 style={rise(1)}
               >
                 Nýpugarðar
+                {/* The heading's second line, not a subtitle: what this place
+                  * is and where, in the words a traveller types into a search
+                  * box. A wordmark on its own tells a search engine nothing. */}
+                <span className="mt-3 block max-w-xl font-supreme text-lg font-normal leading-relaxed tracking-normal text-[#F4EEE2]/85 md:text-xl">
+                  {t.hero.tagline}
+                </span>
               </h1>
               <p
-                className="mt-5 max-w-xl text-lg leading-relaxed text-[#F4EEE2]/85"
+                className="mt-4 max-w-xl text-[15px] leading-relaxed text-[#F4EEE2]/70 md:text-base"
                 style={rise(2)}
               >
                 {t.hero.sub}
@@ -1420,7 +1979,7 @@ export default function Page() {
             lang={lang}
             setLang={setLang}
             t={t}
-            className="mb-5 block text-[13px]"
+            className="-my-3 mb-2 block py-3 text-[13px]"
           />
           <BookLink
             lang={lang}
@@ -1446,11 +2005,11 @@ export default function Page() {
                 register={register}
                 reduced={reduced}
               />
-              <Reveal delay={60}>
-                <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  {t.farm.heading}
-                </h2>
-              </Reveal>
+              <MaskHeading
+                delay={60}
+                text={t.farm.heading}
+                className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
+              />
               <Reveal delay={140}>
                 <p
                   className="mt-6 max-w-[58ch] leading-relaxed"
@@ -1516,11 +2075,11 @@ export default function Page() {
               register={register}
               reduced={reduced}
             />
-            <Reveal delay={60}>
-              <h2 className="mt-6 max-w-3xl font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                {t.hill.heading}
-              </h2>
-            </Reveal>
+            <MaskHeading
+              delay={60}
+              text={t.hill.heading}
+              className="mt-6 max-w-3xl font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
+            />
             <Reveal delay={140}>
               <p className="mt-5 max-w-[60ch] leading-relaxed text-[#F4EEE2]/85">
                 {t.hill.body}
@@ -1557,11 +2116,10 @@ export default function Page() {
               caption={t.hill.ridgeEyebrow}
             />
             <div>
-              <Reveal>
-                <h2 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl">
-                  {t.place.heading}
-                </h2>
-              </Reveal>
+              <MaskHeading
+                text={t.place.heading}
+                className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl"
+              />
               <Reveal delay={90}>
                 <p
                   className="mt-5 max-w-[56ch] leading-relaxed"
@@ -1582,19 +2140,19 @@ export default function Page() {
           * three frames as a taste, and the door through. */}
         <section id="rooms" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label={t.rooms.eyebrow} register={register} reduced={reduced} />
-            <div className="mt-6 grid gap-10 md:grid-cols-2 md:items-end">
-              <Reveal>
-                <h2 className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                  {t.rooms.heading}
-                </h2>
-              </Reveal>
-              <Reveal delay={90}>
-                <p className="max-w-[52ch] leading-relaxed md:justify-self-end" style={{ color: BODY }}>
-                  {t.rooms.body}
-                </p>
-              </Reveal>
-            </div>
+            {/* Stacked, not a split header: one heading, then its sentence
+              * under it at reading width. The old left-title / right-explainer
+              * pair asked the eye to cross the page for a single thought. No
+              * eyebrow either; see the note at the reviews section. */}
+            <MaskHeading
+              text={t.rooms.heading}
+              className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
+            />
+            <Reveal delay={90}>
+              <p className="mt-5 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
+                {t.rooms.body}
+              </p>
+            </Reveal>
 
             <Reveal delay={140}>
               <dl
@@ -1614,35 +2172,19 @@ export default function Page() {
               </dl>
             </Reveal>
 
-            {/* Three real leads: a double with its own bath, the family
-              * cottage, a twin with the plain in the window. leadFor reads
-              * her own Booking photo files, so these can never be stand-ins
+            {/* Every type, its own photograph, its own price. leadFor reads
+              * her Booking photo filing, so a card can never show a stand-in
               * from a different room. */}
-            <div className="mt-12 grid grid-cols-3 gap-3 md:gap-5">
-              {(['double', 'familyCottage', 'doubleTwinPrivate'] as const).map((k, i) => {
-                const ph = leadFor(k)
-                if (!ph) return null
-                return (
-                  <ClipImg
-                    key={k}
-                    photo={ph}
-                    sizes="31vw"
-                    alt={photoAlt(ph, t, lang)}
-                    aspect="aspect-[4/3]"
-                    delay={i * 90}
-                  />
-                )
-              })}
-            </div>
+            <RoomStrip t={t} lang={lang} stay={stay} reduced={reduced} />
 
             <Reveal delay={120}>
-              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
                 {/* Outline, not ember: on a phone this section shares the
                   * viewport with the sticky booking bar, and two orange
                   * primaries stacked in one screen fight each other. Booking
                   * keeps the ember; this is navigation. */}
                 <Link
-                  to="/preview/nypugardar/herbergi"
+                  to={roomsPath(lang)}
                   className={`group inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3 text-[15px] font-medium transition-[transform,border-color] duration-200 ease-out hover:border-[#F4EEE2]/70 active:scale-[0.98] ${FOCUS}`}
                 >
                   {t.rooms.seeAll}
@@ -1652,11 +2194,8 @@ export default function Page() {
                     aria-hidden="true"
                   />
                 </Link>
-                <p className="max-w-[40ch] text-sm leading-relaxed text-[#F4EEE2]/55">
-                  {t.rooms.seeAllNote}{' '}
-                  <span className="whitespace-nowrap font-mono text-[12px] uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
-                    {t.price.from} {PRICES.groups.shared}&euro; {t.price.perNight}
-                  </span>
+                <p className="max-w-[44ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">
+                  {t.rooms.seeAllNote}
                 </p>
               </div>
             </Reveal>
@@ -1672,11 +2211,11 @@ export default function Page() {
               register={register}
               reduced={reduced}
             />
-            <Reveal delay={60}>
-              <h2 className="mt-6 max-w-3xl font-erode text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight">
-                {t.dinner.heading}
-              </h2>
-            </Reveal>
+            <MaskHeading
+              delay={60}
+              text={t.dinner.heading}
+              className="mt-6 max-w-3xl font-erode text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight"
+            />
             <Reveal delay={140}>
               <p
                 className="mt-6 max-w-[62ch] text-lg leading-relaxed"
@@ -1705,8 +2244,7 @@ export default function Page() {
                     className="mt-5 font-mono text-[11px] uppercase tracking-[0.2em]"
                     style={{ color: ACCENT }}
                   >
-                    {DINNER_QUOTE.name}, {DINNER_QUOTE.place} · guest review on
-                    Booking.com
+                    {DINNER_QUOTE.name}, {DINNER_QUOTE.place} · {t.reviews.guestReviewOn}
                   </footer>
                 </blockquote>
               </Reveal>
@@ -1765,9 +2303,11 @@ export default function Page() {
                     caption={t.dinner.breakfastCaption}
                   />
                   <div>
-                    <h3 className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl">
-                      {t.dinner.breakfastHeading}
-                    </h3>
+                    <MaskHeading
+                      as="h3"
+                      text={t.dinner.breakfastHeading}
+                      className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl"
+                    />
                     <p className="mt-4 max-w-[46ch] leading-relaxed" style={{ color: BODY }}>
                       {t.dinner.breakfastBody}
                     </p>
@@ -1809,9 +2349,11 @@ export default function Page() {
             <h2 className="sr-only">{t.seasons.srHeading}</h2>
             <div className="grid gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-[#F4EEE2]/15">
               <Reveal className="md:pr-14">
-                <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
-                  {t.seasons.springHeading}
-                </h3>
+                <MaskHeading
+                  as="h3"
+                  text={t.seasons.springHeading}
+                  className="font-erode text-3xl font-medium leading-[1.16] tracking-tight"
+                />
                 <p
                   className="mt-4 max-w-[50ch] leading-relaxed"
                   style={{ color: BODY }}
@@ -1832,9 +2374,12 @@ export default function Page() {
                 />
               </Reveal>
               <Reveal delay={110} className="md:pl-14">
-                <h3 className="font-erode text-3xl font-medium leading-[1.16] tracking-tight">
-                  {t.seasons.winterHeading}
-                </h3>
+                <MaskHeading
+                  as="h3"
+                  delay={110}
+                  text={t.seasons.winterHeading}
+                  className="font-erode text-3xl font-medium leading-[1.16] tracking-tight"
+                />
                 <p
                   className="mt-4 max-w-[50ch] leading-relaxed"
                   style={{ color: BODY }}
@@ -1873,14 +2418,19 @@ export default function Page() {
           style={{ borderColor: HAIR }}
         >
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label={t.reviews.eyebrow} register={register} reduced={reduced} />
+            {/* No eyebrow here: "Guests" above an eight-foot 8.8 labels the
+              * obvious. The four eyebrows that remain on this page each name
+              * an hour of the evening (the flock, the glacier light, dinner,
+              * nightfall), which is the arc the sky band follows; a category
+              * label is not one of those. */}
             <h2 className="sr-only">{t.reviews.srHeading}</h2>
-            <div className="mt-8 grid items-end gap-10 md:grid-cols-[auto_1fr] md:gap-16">
+            <div className="grid items-end gap-10 md:grid-cols-[auto_1fr] md:gap-16">
               <Reveal>
                 <p className="flex items-baseline gap-3">
-                  <span className="font-erode text-[6rem] leading-none text-[#F4EEE2] md:text-[8rem]">
-                    {SCORE.value}
-                  </span>
+                  <Count
+                    value={Number(SCORE.value)}
+                    className="font-erode text-[6rem] leading-none text-[#F4EEE2] md:text-[8rem]"
+                  />
                   <span className="font-mono text-sm uppercase tracking-[0.18em] text-[#B9CBD6]">
                     / 10
                   </span>
@@ -1891,19 +2441,16 @@ export default function Page() {
               </Reveal>
               <Reveal delay={100}>
                 <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
-                  {SCORE.categories.map((c) => (
+                  {SCORE.categories.map((c, i) => (
                     <div
                       key={t.scoreCats[c.label as keyof typeof t.scoreCats] ?? c.label}
                       className="border-t pt-3"
                       style={{ borderColor: HAIR }}
                     >
-                      <dd
-                        className="font-erode text-2xl"
-                        style={{ color: ACCENT }}
-                      >
-                        {c.n}
+                      <dd className="font-erode text-2xl" style={{ color: ACCENT }}>
+                        <Count value={Number(c.n)} delay={120 + i * 70} />
                       </dd>
-                      <dt className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/55">
+                      <dt className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/60">
                         {t.scoreCats[c.label as keyof typeof t.scoreCats] ?? c.label}
                       </dt>
                     </div>
@@ -1914,7 +2461,7 @@ export default function Page() {
 
             <QuoteRotator reduced={reduced} t={t} />
             <Reveal delay={140}>
-              <p className="mt-10 text-sm text-[#F4EEE2]/50">
+              <p className="mt-10 max-w-[70ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">
                 {t.reviews.srHeading} via{" "}
                 <a
                   href={REVIEWS_URL}
@@ -1933,12 +2480,10 @@ export default function Page() {
         {/* ── 9 · PRACTICAL INFO ───────────────────────────────────────── */}
         <section id="info" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow label={t.info.eyebrow} register={register} reduced={reduced} />
-            <Reveal delay={60}>
-              <h2 className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl">
-                {t.info.heading}
-              </h2>
-            </Reveal>
+            <MaskHeading
+              text={t.info.heading}
+              className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
+            />
             <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-16">
               <div className="space-y-8">
                 <Reveal>
@@ -1959,7 +2504,7 @@ export default function Page() {
                   </p>
                   <a
                     href={`mailto:${EMAIL}`}
-                    className={`mt-2 inline-flex items-center gap-3 text-xl text-[#F4EEE2]/90 underline-offset-4 hover:underline md:text-2xl ${FOCUS}`}
+                    className={`-my-2 mt-0 inline-flex items-center gap-3 py-2 text-xl text-[#F4EEE2]/90 underline-offset-4 hover:underline md:text-2xl ${FOCUS}`}
                   >
                     <Mail
                       className="h-5 w-5 text-[#B9CBD6]"
@@ -1997,7 +2542,7 @@ export default function Page() {
                             style={{ color: ACCENT }}
                             aria-hidden="true"
                           />
-                          <span className="text-[14px] leading-tight text-[#F4EEE2]/80">{t.facilities[f as keyof typeof t.facilities] ?? f}</span>
+                          <span className="text-[15px] leading-tight text-[#F4EEE2]/80">{t.facilities[f as keyof typeof t.facilities] ?? f}</span>
                         </li>
                       )
                     })}
@@ -2057,11 +2602,11 @@ export default function Page() {
                 reduced={reduced}
               />
             </div>
-            <Reveal delay={60}>
-              <h2 className="mx-auto mt-6 max-w-3xl font-erode text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight">
-                {t.closing.heading}
-              </h2>
-            </Reveal>
+            <MaskHeading
+              delay={60}
+              text={t.closing.heading}
+              className="mx-auto mt-6 max-w-3xl font-erode text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight"
+            />
             <Reveal delay={140}>
               <p className="mx-auto mt-5 max-w-xl leading-relaxed text-[#F4EEE2]/85">
                 {t.closing.body}
@@ -2163,7 +2708,11 @@ export default function Page() {
         </div>
       </div>
 
-      <PreviewFooter company={company} />
+      {PreviewShell ? (
+        <Suspense fallback={null}>
+          <PreviewShell part="footer" />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

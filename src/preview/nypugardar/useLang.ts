@@ -1,8 +1,19 @@
 /**
  * Nýpugarðar — language choice.
  *
- * Modelled on reynir bakarí's hook, which earned its comments the hard way.
- * Two things carried over unchanged because they are easy to "fix" wrongly:
+ * TWO HOMES, TWO MECHANICS (paths.ts explains the split):
+ *
+ * STANDALONE (glacierview.is): the language IS the URL. English at the root,
+ * Icelandic under /is/. There is nothing to remember and nothing to read from
+ * storage: the route decides, the server and the browser agree on the first
+ * render by construction, and every page exists at one address per language,
+ * which is what lets Google index the Icelandic pages and what hreflang
+ * points at. Switching languages navigates to the counterpart URL.
+ *
+ * CATALOGUE (/preview/nypugardar): one route, a toggle remembered in the
+ * browser. Modelled on reynir bakarí's hook, which earned its comments the
+ * hard way. Two things carried over unchanged because they are easy to "fix"
+ * wrongly:
  *
  * 1. THE FIRST RENDER NEVER READS STORAGE. It returns the same constant on the
  *    server and in the browser, so prerendered markup and React's first client
@@ -26,13 +37,15 @@
  * thing and indexes the wrong language for the whole page.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { Lang } from './copy'
+import { STANDALONE, counterpart, langFromPath } from './paths'
 
 const KEY = 'nyp-lang'
 
 /** Foreign-guest property, English default. See the note above before flipping. */
-const DEFAULT_LANG: Lang = 'en'
+export const DEFAULT_LANG: Lang = 'en'
 
 function stored(): Lang | null {
   if (typeof window === 'undefined') return null
@@ -46,28 +59,35 @@ function stored(): Lang | null {
 }
 
 export function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLang] = useState<Lang>(DEFAULT_LANG)
+  const { pathname, hash } = useLocation()
+  const navigate = useNavigate()
+  const [remembered, setRemembered] = useState<Lang>(DEFAULT_LANG)
   const mounted = useRef(false)
 
-  /* Apply the remembered choice after mount, not during render. */
+  const lang: Lang = STANDALONE ? (langFromPath(pathname) ?? DEFAULT_LANG) : remembered
+
+  /* Apply the remembered choice after mount, not during render. Catalogue only:
+     in the standalone build the address already says. */
   useEffect(() => {
+    if (STANDALONE) return
     const s = stored()
-    if (s && s !== lang) setLang(s)
+    if (s && s !== remembered) setRemembered(s)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   /* Persist only real choices; skip the first run. */
   useEffect(() => {
+    if (STANDALONE) return
     if (!mounted.current) {
       mounted.current = true
       return
     }
     try {
-      window.localStorage.setItem(KEY, lang)
+      window.localStorage.setItem(KEY, remembered)
     } catch {
       /* storage unavailable; the in-memory choice still works for this visit */
     }
-  }, [lang])
+  }, [remembered])
 
   /* Keep the declared document language honest, and put it back on the way out
      so it cannot follow a visitor onto a different preview route. */
@@ -78,6 +98,14 @@ export function useLang(): [Lang, (l: Lang) => void] {
       document.documentElement.lang = prev
     }
   }, [lang])
+
+  const setLang = useCallback(
+    (l: Lang) => {
+      if (STANDALONE) navigate(counterpart(pathname, hash, l))
+      else setRemembered(l)
+    },
+    [navigate, pathname, hash],
+  )
 
   return [lang, setLang]
 }

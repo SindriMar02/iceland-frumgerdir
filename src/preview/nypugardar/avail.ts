@@ -59,6 +59,14 @@ export function availKnown(): boolean {
   return !!AVAIL && !STALE
 }
 
+/** The day the snapshot was taken: a date that is the SAME on the build
+ *  machine and in every browser, which is what the first render needs as its
+ *  "today" so prerendered markup and the client's first render agree. The
+ *  real clock replaces it in an effect. */
+export function snapshotDate(): Date | null {
+  return START ? new Date(START) : null
+}
+
 /** True when at least one room type has inventory for the NIGHT starting `d`.
  *  Out-of-range or stale data answers true — unknown is not sold out. */
 export function anyRoomFree(d: Date): boolean {
@@ -108,8 +116,8 @@ export function stayBookable(checkin: Date, checkout: Date): boolean {
  * consecutive free nights — the honest default check-in. Falls back to
  * tomorrow when data is stale or nothing matches inside the horizon.
  */
-export function firstBookableCheckin(nights = 2): Date {
-  const tomorrow = addDays(startOfDay(new Date()), 1)
+export function firstBookableCheckin(nights = 2, from: Date = new Date()): Date {
+  const tomorrow = addDays(startOfDay(from), 1)
   if (!availKnown()) return tomorrow
   for (let probe = tomorrow, n = 0; n < AVAIL!.days; n++, probe = addDays(probe, 1)) {
     if (dayIndex(probe) === null) break

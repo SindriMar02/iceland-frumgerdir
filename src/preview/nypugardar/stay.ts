@@ -13,9 +13,9 @@
  * wiring a provider for two consumers.
  */
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { addDays, startOfDay } from './godo'
-import { firstBookableCheckin } from './avail'
+import { firstBookableCheckin, snapshotDate } from './avail'
 
 export type Stay = {
   checkin: Date
@@ -30,24 +30,41 @@ export function useStay(): {
   setStay: (next: Partial<Stay>) => void
   today: Date
 } {
-  /* One `new Date()` for the whole page. Two calls either side of midnight
-     would give the picker a different "today" than the min= it validates
-     against, which is a bug that only ever shows up at 00:00. */
-  const today = useMemo(() => startOfDay(new Date()), [])
-  const [stay, set] = useState<Stay>(() => {
+  /* THE FIRST RENDER DOES NOT READ THE CLOCK. It seeds "today" from the date
+     the availability snapshot was taken, which is bundled data and therefore
+     identical on the build machine and in every browser, so the prerendered
+     markup and the client's first render agree and hydration is clean. The
+     real clock replaces it in the effect below, one tick later; the visible
+     difference is usually nil, because the snapshot is refreshed on every
+     deploy. (Reynir's open/closed badge once froze the build machine's minute
+     into the HTML for every crawler; this is the same trap.) */
+  const [today, setToday] = useState<Date>(
+    () => snapshotDate() ?? startOfDay(new Date()),
+  )
+  const seed = (from: Date): Stay => {
     /* The first two-night window a single room can actually hold, per the
        availability baked at build time. "Tomorrow" was the old seed; her near
        window is often fully sold, and defaulting a guest onto dates Godo will
        reject makes the very first click a dead end. Falls back to tomorrow
        when the snapshot is stale. */
-    const checkin = firstBookableCheckin(2)
-    return {
-      checkin,
-      checkout: addDays(checkin, 2),
-      adults: 2,
-      children: 0,
-    }
-  })
+    const checkin = firstBookableCheckin(2, from)
+    return { checkin, checkout: addDays(checkin, 2), adults: 2, children: 0 }
+  }
+  const [stay, set] = useState<Stay>(() => seed(today))
+
+  useEffect(() => {
+    /* One `new Date()` for the whole page. Two calls either side of midnight
+       would give the picker a different "today" than the min= it validates
+       against, which is a bug that only ever shows up at 00:00. */
+    const real = startOfDay(new Date())
+    setToday(real)
+    /* Re-seed only if the snapshot-based default has fallen into the past;
+       a guest who has already picked dates keeps them. */
+    set((prev) =>
+      prev.checkin.getTime() <= real.getTime() ? seed(real) : prev,
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const setStay = useCallback((next: Partial<Stay>) => {
     set((prev) => ({ ...prev, ...next }))

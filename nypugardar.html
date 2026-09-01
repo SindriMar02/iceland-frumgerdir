@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <!-- Nýpugarðar's OWN shell: the standalone build's index.html.
+
+       The catalogue's index.html is the wrong shell for a client's production
+       site in every way that has bitten us: the catalogue's title, its icons,
+       thirty font families when this site uses two, and a blanket noindex.
+       Instead of stripping that back out afterwards, the standalone build
+       starts from a shell that was never wrong. tools/nypugardar-seo.mjs
+       injects each route's own lang, title, description, canonical, hreflang
+       pair, Open Graph card and structured data on top at build time. -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nýpugarðar</title>
+    <meta name="theme-color" content="#15130F" />
+    <!-- Safari 26 ignores theme-color; body background-color is its fallback
+         tint source, and this static rule also kills the white flash before
+         the bundle's CSS arrives. -->
+    <style>html, body { background-color: #15130F; }</style>
+    <link rel="icon" href="/nypugardar/brand/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/nypugardar/brand/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/nypugardar/brand/apple-touch-icon.png" />
+    <!-- The hero photograph is the largest contentful paint on every visit;
+         asking for it before the bundle has parsed shaves the whole script
+         round-trip off it. Same file the page picks at desktop widths. -->
+    <link rel="preload" as="image" href="/nypugardar/photos/125645004-2000.jpg" imagesrcset="/nypugardar/photos/125645004-640.jpg 640w, /nypugardar/photos/125645004-1280.jpg 1280w, /nypugardar/photos/125645004-2000.jpg 2000w, /nypugardar/photos/125645004-2600.jpg 2600w" imagesizes="100vw" fetchpriority="high" />
+    <!-- Cloudflare Web Analytics: cookieless, stores nothing that identifies a
+         visitor, so no consent banner is required. The token is injected at
+         build time from VITE_NYPUGARDAR_CF_ANALYTICS_TOKEN; with no token the
+         tag is stripped by tools/nypugardar-standalone-post.mjs and the site
+         ships clean. Get the token at Cloudflare dashboard → Web Analytics →
+         the site → JS snippet. -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"__CF_ANALYTICS_TOKEN__"}'></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/nypugardar-main.tsx"></script>
+  </body>
+</html>

@@ -61,6 +61,11 @@ export type Photo = {
 }
 
 const TILE = [480, 900] as const
+/** The twelve frames the page leans on hardest (every room lead, the cottage
+ *  exteriors, the reindeer, the shed, the deck), upscaled from her 810x1080
+ *  phone originals to 2K by Higgsfield on 2026-09-01 so a retina room card
+ *  and the lightbox are no longer soft. Same photographs, more pixels. */
+const TILE_HI = [480, 900, 1400, 1800] as const
 const WIDE = [480, 1100, 2000] as const
 const HERO = [640, 1280, 2000, 2600] as const
 
@@ -74,24 +79,24 @@ export const PHOTOS: readonly Photo[] = [
   { id: '125645022', cat: 'land', widths: WIDE, portrait: false },
   { id: '125644995', cat: 'land', widths: WIDE, portrait: false },
   { id: '10523812', cat: 'land', widths: WIDE, portrait: false },
-  { id: '10523758', cat: 'land', widths: TILE, portrait: false },
-  { id: '10523864', cat: 'land', widths: TILE, portrait: false },
+  { id: '10523758', cat: 'land', widths: TILE_HI, portrait: false },
+  { id: '10523864', cat: 'land', widths: TILE_HI, portrait: false },
 
   // ── The house
   { id: '258957593', cat: 'house', widths: WIDE, portrait: false, credit: 'wiebke-schellers' },
-  { id: '510526816', cat: 'house', widths: TILE, portrait: true },
+  { id: '510526816', cat: 'house', widths: TILE_HI, portrait: true },
 
   // ── The table
   { id: '305950064', cat: 'table', widths: WIDE, portrait: false },
   { id: '259128011', cat: 'table', widths: WIDE, portrait: false },
 
   // ── Small twin, shared bathroom
-  { id: '539099044', cat: 'room', room: ['twinSharedEconomy'], widths: TILE, portrait: false },
+  { id: '539099044', cat: 'room', room: ['twinSharedEconomy'], widths: TILE_HI, portrait: false },
   { id: '539099047', cat: 'room', room: ['twinSharedEconomy'], widths: TILE, portrait: false },
   { id: '539099049', cat: 'room', room: ['twinSharedEconomy'], widths: TILE, portrait: false },
 
   // ── Double/twin, shared bathroom
-  { id: '510521394', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
+  { id: '510521394', cat: 'room', room: ['doubleTwinShared'], widths: TILE_HI, portrait: true },
   { id: '510521438', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
   { id: '510523433', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
   { id: '510523430', cat: 'room', room: ['doubleTwinShared'], widths: TILE, portrait: true },
@@ -102,13 +107,13 @@ export const PHOTOS: readonly Photo[] = [
   { id: '510523749', cat: 'bath', room: ['twinSharedEconomy'], widths: TILE, portrait: true, shared: true },
 
   // ── Double/twin, private bathroom
-  { id: '510523878', cat: 'room', room: ['doubleTwinPrivate'], widths: TILE, portrait: true },
+  { id: '510523878', cat: 'room', room: ['doubleTwinPrivate'], widths: TILE_HI, portrait: true },
   { id: '510523877', cat: 'room', room: ['doubleTwinPrivate'], widths: TILE, portrait: true },
   { id: '510523966', cat: 'room', room: ['doubleTwinPrivate'], widths: TILE, portrait: true },
   { id: '510523968', cat: 'bath', room: ['doubleTwinPrivate'], widths: TILE, portrait: true },
 
   // ── Double/twin with an extra bed
-  { id: '510524066', cat: 'room', room: ['doublePrivateExtraBed'], widths: TILE, portrait: true },
+  { id: '510524066', cat: 'room', room: ['doublePrivateExtraBed'], widths: TILE_HI, portrait: true },
   { id: '510524029', cat: 'room', room: ['doublePrivateExtraBed'], widths: TILE, portrait: true },
   { id: '510524067', cat: 'room', room: ['doublePrivateExtraBed'], widths: TILE, portrait: true },
   { id: '510524064', cat: 'room', room: ['doublePrivateExtraBed'], widths: TILE, portrait: true },
@@ -116,22 +121,22 @@ export const PHOTOS: readonly Photo[] = [
   { id: '510524065', cat: 'bath', room: ['doublePrivateExtraBed'], widths: TILE, portrait: true },
 
   // ── Double
-  { id: '510523622', cat: 'room', room: ['double'], widths: TILE, portrait: true },
+  { id: '510523622', cat: 'room', room: ['double'], widths: TILE_HI, portrait: true },
   { id: '510523625', cat: 'bath', room: ['double'], widths: TILE, portrait: true },
 
   // ── Cottage for three
-  { id: '510526820', cat: 'cottageIn', room: ['cottage3'], widths: TILE, portrait: true },
+  { id: '510526820', cat: 'cottageIn', room: ['cottage3'], widths: TILE_HI, portrait: true },
   { id: '510524300', cat: 'cottageIn', room: ['cottage3'], widths: TILE, portrait: true },
   { id: '510524299', cat: 'bath', room: ['cottage3'], widths: TILE, portrait: true },
-  { id: '510524306', cat: 'cottageOut', room: ['cottage3'], widths: TILE, portrait: true },
+  { id: '510524306', cat: 'cottageOut', room: ['cottage3'], widths: TILE_HI, portrait: true },
   { id: '510524307', cat: 'cottageOut', room: ['cottage3'], widths: TILE, portrait: true },
 
   // ── Family cottage
-  { id: '510524188', cat: 'cottageIn', room: ['familyCottage'], widths: TILE, portrait: true },
+  { id: '510524188', cat: 'cottageIn', room: ['familyCottage'], widths: TILE_HI, portrait: true },
   { id: '510524194', cat: 'cottageIn', room: ['familyCottage'], widths: TILE, portrait: true },
   { id: '510524196', cat: 'cottageIn', room: ['familyCottage'], widths: TILE, portrait: true },
   { id: '510524189', cat: 'bath', room: ['familyCottage'], widths: TILE, portrait: true },
-  { id: '510524232', cat: 'cottageOut', room: ['familyCottage'], widths: TILE, portrait: true },
+  { id: '510524232', cat: 'cottageOut', room: ['familyCottage'], widths: TILE_HI, portrait: true },
   /* Both cottages stand in this frame, so Booking files it under both. It sits
    * with the family cottage only — the cottage for three keeps 510524307, so
    * each row still has an exterior and no photograph is shown twice. */

@@ -13,3 +13,5 @@ research-assets/
 .env
 .env.local
 .env.*.local
+dist-nypugardar
+dist-nypugardar-server

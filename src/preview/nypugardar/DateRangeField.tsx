@@ -19,7 +19,7 @@
  * remains the only authority (avail.ts).
  */
 
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import {
   Button,
   CalendarCell,
@@ -27,16 +27,55 @@ import {
   CalendarGridBody,
   CalendarGridHeader,
   CalendarHeaderCell,
+  CalendarStateContext,
   DateInput,
   DateRangePicker,
   DateSegment,
   Dialog,
   Group,
-  Heading,
   I18nProvider,
   Popover,
   RangeCalendar,
 } from 'react-aria-components'
+
+/* THE LOCALE IS en-GB IN BOTH LANGUAGES, ON PURPOSE. Browsers ship no
+ * Icelandic Intl data: Intl.DateTimeFormat('is-IS') silently resolves to
+ * en-GB in Safari and Chrome, while Node (which prerenders these pages) has
+ * full ICU and formats the same date as 22.10.2026. Two renders of one date
+ * that disagree is a hydration mismatch, and React then throws the whole
+ * prerendered Icelandic page away. So the numbers are formatted the one way
+ * every runtime agrees on, and the words a guest actually reads in Icelandic,
+ * the month and the weekdays, come from this file rather than from Intl.
+ * ([[intl-has-no-icelandic]] has the measurements.) */
+const MONTHS = {
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  is: ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'],
+} as const
+const WEEKDAYS_IS: Record<string, string> = {
+  Mon: 'mán', Tue: 'þri', Wed: 'mið', Thu: 'fim', Fri: 'fös', Sat: 'lau', Sun: 'sun',
+}
+
+/** The month (or two) on show, in the page's language. Replaces react-aria's
+ *  Heading, which would have asked Intl. */
+function MonthTitle({ lang, months }: { lang: Lang; months: 1 | 2 }) {
+  const state = useContext(CalendarStateContext)
+  if (!state) return null
+  const a = state.visibleRange.start
+  const b = state.visibleRange.end
+  const names = MONTHS[lang]
+  const join = lang === 'is' ? ' til ' : ' to '
+  const text =
+    months === 2 && b.month !== a.month
+      ? a.year === b.year
+        ? `${names[a.month - 1]}${join}${names[b.month - 1]} ${a.year}`
+        : `${names[a.month - 1]} ${a.year}${join}${names[b.month - 1]} ${b.year}`
+      : `${names[a.month - 1]} ${a.year}`
+  return (
+    <h2 aria-live="polite" className="font-erode text-lg tracking-tight" style={{ color: PAPER }}>
+      {text}
+    </h2>
+  )
+}
 import type { DateValue } from 'react-aria-components'
 import { CalendarDate } from '@internationalized/date'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -55,7 +94,7 @@ const fromCal = (c: DateValue) => new Date(c.year, c.month - 1, c.day)
 function FieldLabel({ children }: { children: string }) {
   return (
     <span
-      className="font-mono text-[10px] uppercase tracking-[0.16em]"
+      className="font-mono text-[11px] uppercase tracking-[0.16em]"
       style={{ color: 'rgba(244,238,226,0.55)' }}
     >
       {children}
@@ -80,7 +119,7 @@ function Segments({ slot }: { slot: 'start' | 'end' }) {
   )
 }
 
-function Month({ offset }: { offset?: number }) {
+function Month({ offset, lang }: { offset?: number; lang: Lang }) {
   return (
     <CalendarGrid
       offset={offset ? { months: offset } : undefined}
@@ -89,8 +128,8 @@ function Month({ offset }: { offset?: number }) {
     >
       <CalendarGridHeader>
         {(day) => (
-          <CalendarHeaderCell className="pb-2 font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-[#F4EEE2]/45">
-            {day}
+          <CalendarHeaderCell className="pb-2 font-mono text-[11px] font-normal uppercase tracking-[0.14em] text-[#F4EEE2]/50">
+            {lang === 'is' ? (WEEKDAYS_IS[day] ?? day) : day}
           </CalendarHeaderCell>
         )}
       </CalendarGridHeader>
@@ -161,7 +200,7 @@ export default function DateRangeField({
   }, [])
 
   return (
-    <I18nProvider locale={lang === 'is' ? 'is-IS' : 'en-GB'}>
+    <I18nProvider locale="en-GB">
       <DateRangePicker
         aria-label={t.booking.datesAria}
         value={value}
@@ -223,7 +262,7 @@ export default function DateRangeField({
               className="w-fit outline-none"
             >
               <header className="mb-3 flex items-center justify-between gap-3">
-                <Heading className="font-erode text-lg tracking-tight" style={{ color: PAPER }} />
+                <MonthTitle lang={lang} months={months} />
                 <div className="flex items-center gap-1.5">
                   <Button
                     slot="previous"
@@ -244,15 +283,15 @@ export default function DateRangeField({
                 </div>
               </header>
               <div className={months === 2 ? 'flex gap-8' : ''}>
-                <Month />
-                {months === 2 ? <Month offset={1} /> : null}
+                <Month lang={lang} />
+                {months === 2 ? <Month offset={1} lang={lang} /> : null}
               </div>
               {/* Legend width: w-0 + min-w-full takes the grid's width instead
                 * of contributing its own, so a long sentence wraps rather than
                 * widening the panel. */}
               {availKnown() ? (
                 <p
-                  className="mt-3 w-0 min-w-full border-t pt-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.14em]"
+                  className="mt-3 w-0 min-w-full border-t pt-3 font-mono text-[11px] uppercase leading-relaxed tracking-[0.14em]"
                   style={{ borderColor: HAIR, color: 'rgba(244,238,226,0.6)' }}
                 >
                   {t.booking.strikeNote}

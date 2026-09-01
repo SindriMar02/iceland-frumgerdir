@@ -38,12 +38,15 @@ const FOCUS =
 /** Two calendar months fit above 768px; below it one month is the whole
  *  screen. Tracks the media query live so a rotation re-fits the popover. */
 function useWide(): boolean {
-  const [wide, setWide] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches,
-  )
+  /* false on the first render everywhere, then measured in an effect: the
+     prerendered markup and the browser's first render must agree, and the
+     server cannot know the viewport. The only thing riding on it is how many
+     calendar months the popover shows, which is not open at first paint. */
+  const [wide, setWide] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)')
     const on = () => setWide(mq.matches)
+    on()
     mq.addEventListener('change', on)
     return () => mq.removeEventListener('change', on)
   }, [])
@@ -68,8 +71,8 @@ function Stepper({
     <div className="flex flex-col gap-2">
       <label
         htmlFor={id}
-        className="font-mono text-[10px] uppercase tracking-[0.16em]"
-        style={{ color: 'rgba(244,238,226,0.55)' }}
+        className="font-mono text-[11px] uppercase tracking-[0.16em]"
+        style={{ color: 'rgba(244,238,226,0.6)' }}
       >
         {label}
       </label>
@@ -143,8 +146,11 @@ export default function BookingBar({
   /* The one soft warning this side of Godo: the picked nights fit no single
    * room on our last snapshot. The CTA stays live — the snapshot ages between
    * deploys and Godo has the final word — but the guest is told before the
-   * jump instead of after it. */
-  const looksFull = availKnown() && !stayBookable(checkin, checkout)
+   * jump instead of after it. Only once mounted: whether the snapshot counts
+   * as fresh depends on today's date, which the prerender does not know. */
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const looksFull = mounted && availKnown() && !stayBookable(checkin, checkout)
 
   return (
     <div
@@ -215,8 +221,8 @@ export default function BookingBar({
       </div>
 
       <div
-        className="border-t px-5 py-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.14em] sm:px-6"
-        style={{ borderColor: HAIR, color: 'rgba(244,238,226,0.6)' }}
+        className="border-t px-5 py-3 font-mono text-[11px] uppercase leading-relaxed tracking-[0.14em] sm:px-6"
+        style={{ borderColor: HAIR, color: 'rgba(244,238,226,0.62)' }}
         id={ready ? undefined : `${inId}-placeholder`}
       >
         <p>
