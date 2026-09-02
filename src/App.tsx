@@ -188,6 +188,8 @@ const GlasshousePage = lazy(() => import('./preview/glasshouse/Page'))
 const GlasshouseDashboard = lazy(() => import('./preview/glasshouse/Dashboard'))
 const SvartaborgPage = lazy(() => import('./preview/svartaborg/Page'))
 const SvartaborgDashboard = lazy(() => import('./preview/svartaborg/Dashboard'))
+const SvartLodgePage = lazy(() => import('./preview/svartlodge/Page'))
+const SvartLodgeDashboard = lazy(() => import('./preview/svartlodge/Dashboard'))
 const VillaNorthDashboard = lazy(() => import('./preview/villanorth/Dashboard'))
 const Comparison = lazy(() => import('./preview/Comparison'))
 const ElfaPage = lazy(() => import('./preview/elfa/Page'))
@@ -420,6 +422,8 @@ export default function App() {
             <Route path="/preview/glasshouse/stjornbord" element={<GlasshouseDashboard />} />
             <Route path="/preview/svartaborg" element={<SvartaborgPage />} />
             <Route path="/preview/svartaborg/stjornbord" element={<SvartaborgDashboard />} />
+            <Route path="/preview/svartlodge" element={<SvartLodgePage />} />
+            <Route path="/preview/svartlodge/stjornbord" element={<SvartLodgeDashboard />} />
             <Route path="/preview/elfa" element={<ElfaPage />} />
             <Route path="/preview/myndo" element={<MyndoPage />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the

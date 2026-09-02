@@ -396,7 +396,7 @@ const PAGE_STYLES = `
 @media (max-width: 1023px) {
   .nl-track { display: block; width: 100%; }
   .nl-panel { height: auto; width: 100% !important; }
-  .nl-hero { min-height: 100svh; display: flex; flex-direction: column; }
+  .nl-hero { min-height: 0; display: flex; flex-direction: column; padding-bottom: 1rem; }
   /* .nl-root p/h1 zero their margins at higher specificity; match it here */
   .nl-root .nl-hero-kicker { position: static; margin: 7.4rem 1.65rem 0; }
   .nl-root .nl-hero-word { position: relative; left: auto; top: auto; transform: none; font-size: min(19.5vw, 16svh); text-align: center; margin-top: 1.2rem; }

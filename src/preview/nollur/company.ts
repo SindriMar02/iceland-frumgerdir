@@ -67,9 +67,9 @@ Search is the other half. Today "villa Akureyri" belongs to Vrbo's titles rather
 
 If you like it, I can finish the whole site, including request-to-book on your own domain with the Vrbo and Expedia calendars kept in sync. If not, I hope you enjoy looking at the idea.
 
-Best regards,
+Bestu kveðjur,
 Sindri Már
-+354 845 1758
+845 1758
 sndr-studio.pages.dev`,
   },
 }

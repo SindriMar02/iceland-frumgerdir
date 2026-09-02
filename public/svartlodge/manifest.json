@@ -1,0 +1,128 @@
+{
+ "sunset-house": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-13.jpeg",
+  "trueWidth": 8640,
+  "trueHeight": 5760,
+  "ratio": 1.5
+ },
+ "shore-house": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-02.jpg",
+  "trueWidth": 3543,
+  "trueHeight": 2362,
+  "ratio": 1.5
+ },
+ "fjord-wide": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-14.jpg",
+  "trueWidth": 3543,
+  "trueHeight": 2362,
+  "ratio": 1.5
+ },
+ "roofs-forest": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-15.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2247,
+  "ratio": 1.335
+ },
+ "shore-rocks": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-16.jpg",
+  "trueWidth": 2995,
+  "trueHeight": 1997,
+  "ratio": 1.5
+ },
+ "living-fire": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-03.jpg",
+  "trueWidth": 8640,
+  "trueHeight": 5760,
+  "ratio": 1.5
+ },
+ "dining-evening": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-09.jpg",
+  "trueWidth": 9504,
+  "trueHeight": 6336,
+  "ratio": 1.5
+ },
+ "bedroom-pool": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-21.jpg",
+  "trueWidth": 8242,
+  "trueHeight": 6200,
+  "ratio": 1.329
+ },
+ "kitchen-island": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-04.jpg",
+  "trueWidth": 6200,
+  "trueHeight": 8272,
+  "ratio": 0.75
+ },
+ "living-day": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-22.jpg",
+  "trueWidth": 9126,
+  "trueHeight": 6993,
+  "ratio": 1.305
+ },
+ "living-wide": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-26.jpg",
+  "trueWidth": 8246,
+  "trueHeight": 6200,
+  "ratio": 1.33
+ },
+ "kitchen-row": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-23.jpg",
+  "trueWidth": 8202,
+  "trueHeight": 6200,
+  "ratio": 1.323
+ },
+ "bath-shower": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-19.jpg",
+  "trueWidth": 8235,
+  "trueHeight": 6200,
+  "ratio": 1.328
+ },
+ "chair-window": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-17.jpg",
+  "trueWidth": 6993,
+  "trueHeight": 8818,
+  "ratio": 0.793
+ },
+ "bench-hall": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-05.jpg",
+  "trueWidth": 6171,
+  "trueHeight": 8098,
+  "ratio": 0.762
+ },
+ "bedroom-fire": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-07.jpg",
+  "trueWidth": 6169,
+  "trueHeight": 7924,
+  "ratio": 0.779
+ },
+ "mirror": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-18.jpg",
+  "trueWidth": 6159,
+  "trueHeight": 8206,
+  "ratio": 0.751
+ },
+ "bedroom-view": {
+  "source": "svartlodge.is Wix media original",
+  "file": "svart-20.jpg",
+  "trueWidth": 2362,
+  "trueHeight": 3543,
+  "ratio": 0.667
+ }
+}
