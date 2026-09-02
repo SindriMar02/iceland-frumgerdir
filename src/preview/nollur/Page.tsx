@@ -7,6 +7,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
+import { StayPicker, STAY_CSS, fmtLong, type Stay } from './StayPicker'
 import {
   IMG, EMAIL, EMAIL_HREF, CAMERAS, PANORAMA, HOUSES, PLACES, HOTSPOTS, T, JSON_LD,
 } from './data'
@@ -397,6 +398,35 @@ const PAGE_STYLES = `
   color: ${PLASTER_MUTE}; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
 .nl-footer-credit { position: relative; z-index: 2; margin-top: 1rem; color: rgba(232,233,230,.4); font-size: 11px; line-height: 1.6; max-width: 46rem; }
 
+/* booking */
+.nl-book { background: ${PLASTER_2}; border-top: 1px solid var(--nl-line); }
+.nl-book-in { max-width: 1240px; margin: 0 auto; padding: 5.5rem 1.65rem 6rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3.4rem; align-items: start; }
+.nl-book-kicker { margin: 0 0 1.2rem; }
+.nl-book-word { margin: 0; font-family: ${DISPLAY}; font-size: clamp(2.4rem, 5vw, 4.2rem); line-height: .96; letter-spacing: -.01em; }
+.nl-book-sub { margin: 1.6rem 0 0; max-width: 30rem; font-size: .95rem; line-height: 1.6; color: ${INK_SOFT}; }
+.nl-book-form { display: block; }
+.nl-book-houses { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; margin-bottom: 1rem; }
+.nl-book-house { appearance: none; border: 1px solid var(--nl-line); background: none; cursor: pointer;
+  font: inherit; font-size: 12px; letter-spacing: .02em; color: ${INK_SOFT}; padding: .6rem .5rem; min-height: 44px;
+  text-align: left; transition: background .25s ease, color .25s ease, border-color .25s ease; }
+.nl-book-house[aria-pressed='true'] { background: ${INK}; color: ${PLASTER}; border-color: ${INK}; }
+.nl-book-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-top: 1rem; }
+.nl-book-field { display: grid; gap: 6px; }
+.nl-book-field--wide { grid-column: 1 / -1; }
+.nl-book-field span { font-family: 'Commit Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: ${INK_MUTE}; }
+.nl-book-field input, .nl-book-field textarea { font: inherit; font-size: 16px; color: ${INK}; background: ${PLASTER};
+  border: 1px solid var(--nl-line); border-radius: 0; padding: 12px; width: 100%; min-height: 46px; }
+.nl-book-field textarea { resize: vertical; }
+.nl-book-err { margin: .9rem 0 0; font-size: 13px; color: #9A3B2A; }
+.nl-book-cta { margin-top: 1rem; width: 100%; min-height: 50px; cursor: pointer; border: 0; border-radius: 0;
+  font: inherit; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; background: ${INK}; color: ${PLASTER};
+  transition: filter .25s ease, transform .15s ease; }
+.nl-book-cta:hover { filter: brightness(1.35); }
+.nl-book-cta:active { transform: scale(.99); }
+.nl-book-foot { margin: 1rem 0 0; font-size: 12.5px; line-height: 1.6; color: ${INK_MUTE}; }
+${STAY_CSS}
+
 /* ══ MOBILE / VERTICAL ══ */
 @media (max-width: 1023px) {
   .nl-track { display: block; width: 100%; }
@@ -408,6 +438,20 @@ const PAGE_STYLES = `
      third of the phone hero was empty plaster. The word sits lower and larger
      and the house comes up to meet it, which also deepens the occlusion the
      hero exists for. */
+  /* mix-blend-mode: difference keeps the WORDMARK legible over anything, which
+     is why this bar never carried a background. It does nothing for the text
+     scrolling underneath it, though: headlines and dated rows came up THROUGH
+     the mark and through the DEUTSCH pill and read as a rendering fault. On a
+     phone the bar takes the ground of whatever chapter sits under it, the same
+     answer as the other two builds, and the blend goes with it. */
+  .nl-book-in { grid-template-columns: 1fr; gap: 2.2rem; padding: 3.6rem 1.2rem 4rem; }
+  .nl-book-houses { grid-template-columns: 1fr 1fr; }
+  .nl-book-fields { grid-template-columns: 1fr; }
+  .nl-top { mix-blend-mode: normal; color: ${INK};
+    background: linear-gradient(180deg, ${PLASTER} 0%, ${PLASTER} 66%, rgba(232,233,230,0) 100%);
+    padding-bottom: 1.9rem; }
+  .nl-root.is-dark .nl-top { color: ${PLASTER};
+    background: linear-gradient(180deg, ${INK} 0%, ${INK} 66%, rgba(18,20,21,0) 100%); }
   .nl-root .nl-hero-word { top: 19svh; font-size: min(21.5vw, 21svh); }
   .nl-hero-cut { width: 116vw; bottom: 3svh; overflow: visible; }
   /* The four material pins are a HOVER device positioned in fractions of a
@@ -427,7 +471,8 @@ const PAGE_STYLES = `
   /* The caption sat at the very bottom on a translucent panel over the house,
      which left the band between the wordmark and the roof empty. Read in
      order it belongs there: name, sentence, materials, house. */
-  .nl-root .nl-hero-sub { position: absolute; top: 33svh; right: 1.65rem; bottom: auto; left: 1.65rem; max-width: none; margin: 0; }
+  .nl-root .nl-hero-sub { position: absolute; top: 33svh; right: 1.65rem; bottom: auto; left: 1.65rem; max-width: none; margin: 0;
+    background: none; backdrop-filter: none; border-top: 0; padding: 0; }
   .nl-hero-rotmenu, .nl-hero-copy { display: none; }
   .nl-spot span { font-size: 9.5px; }
   .nl-arrival { width: 100%; }
@@ -548,6 +593,85 @@ function Media(props: {
   )
 }
 
+/* ── the booking form ───────────────────────────────────────────────────────
+   Nollur runs no booking engine of its own and every Book button on their
+   current site hands the guest to Vrbo or Expedia. The point of this block is
+   that a request can be made HERE, already carrying the house, the dates and
+   the party, so the family answers a request rather than a question. Until a
+   real engine is wired the dates leave in a prefilled mail; nothing here is a
+   dead control. */
+type Copy = (typeof T)[Lang]
+
+function BookingForm({ t }: { t: Copy }) {
+  const [houseId, setHouseId] = useState(HOUSES[0].id)
+  const [stay, setStay] = useState<Stay>({ start: null, end: null })
+  const [guests, setGuests] = useState(2)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  const house = HOUSES.find((h) => h.id === houseId) ?? HOUSES[0]
+  const maxGuests = Math.max(1, parseInt(String(house.sleeps), 10) || 6)
+  const nights = stay.start && stay.end
+    ? Math.round((stay.end.getTime() - stay.start.getTime()) / 86_400_000) : 0
+
+  /* A house that sleeps six cannot keep a party of eight chosen against the
+     previous house, and a range picked against one house is still valid for
+     another, so only the party is clamped. */
+  useEffect(() => { setGuests((g) => Math.min(g, maxGuests)) }, [maxGuests])
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!stay.start || !stay.end) { setError(t.book.needDates); return }
+    if (!name.trim() || !email.trim()) { setError(t.book.needName); return }
+    setError(null)
+    const L = t.book.L
+    const lines = [
+      `${house.name}, ${fmtLong(stay.start, L)} ${L.checkOut.toLowerCase()} ${fmtLong(stay.end, L)} (${nights} ${nights === 1 ? L.night : L.nights})`,
+      `${L.guests}: ${guests}`,
+      '',
+      message.trim(),
+      '',
+      name.trim(),
+      email.trim(),
+    ].filter((x, i) => x !== '' || i > 1)
+    window.location.href = `${EMAIL_HREF}?subject=${encodeURIComponent(`${house.name}: ${fmtLong(stay.start, L)}`)}&body=${encodeURIComponent(lines.join('\n'))}`
+  }
+
+  return (
+    <form className="nl-book-form" onSubmit={submit} noValidate>
+      <div className="nl-book-houses" role="group" aria-label={t.book.houseLabel}>
+        {HOUSES.map((h) => (
+          <button key={h.id} type="button" className="nl-book-house" aria-pressed={h.id === houseId}
+            onClick={() => setHouseId(h.id)}>{h.name}</button>
+        ))}
+      </div>
+      <StayPicker stay={stay} onStay={setStay} guests={guests} onGuests={setGuests}
+        maxGuests={maxGuests} L={t.book.L} />
+      <div className="nl-book-fields">
+        <label className="nl-book-field">
+          <span>{t.book.name}</span>
+          <input type="text" name="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="nl-book-field">
+          <span>{t.book.email}</span>
+          <input type="email" name="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        <label className="nl-book-field nl-book-field--wide">
+          <span>{t.book.message} {t.book.optional}</span>
+          <textarea rows={3} name="message" value={message} onChange={(e) => setMessage(e.target.value)} />
+        </label>
+      </div>
+      {error && <p className="nl-book-err" role="alert">{error}</p>}
+      <button type="submit" className="nl-book-cta">
+        {nights > 0 ? t.book.submitDates(nights) : t.book.submit}
+      </button>
+      <p className="nl-book-foot">{t.book.foot}</p>
+    </form>
+  )
+}
+
 export default function NollurPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
@@ -574,6 +698,22 @@ export default function NollurPage() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [menuOpen])
+
+  /* Which chapter sits under the bar. The bar takes its ground, and only five
+     of the panels are dark, so an observer on those is enough. */
+  useEffect(() => {
+    const root = document.querySelector('.nl-root')
+    if (!root) return
+    const darks = root.querySelectorAll('.nl-barn, .nl-isl, .nl-summer, .nl-cierre, .nl-footer')
+    if (!darks.length) return
+    const on = new Set<Element>()
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) { if (e.isIntersecting) on.add(e.target); else on.delete(e.target) }
+      root.classList.toggle('is-dark', on.size > 0)
+    }, { rootMargin: '0px 0px -92% 0px', threshold: 0 })
+    darks.forEach((d) => io.observe(d))
+    return () => { io.disconnect(); root.classList.remove('is-dark') }
+  }, [lang])
 
   useEffect(() => {
     setThemeColor(PLASTER)
@@ -1402,6 +1542,19 @@ export default function NollurPage() {
             </section>
           </div>
         </div>
+
+        <section className="nl-book" id="book" aria-label={t.book.kicker}>
+          <div className="nl-book-in">
+            <div className="nl-book-copy">
+              <p className="nl-book-kicker nl-caps">{t.book.kicker}</p>
+              <h2 className="nl-book-word">
+                <span>{t.book.a}</span><br /><em className="nl-it">{t.book.b}</em>
+              </h2>
+              <p className="nl-book-sub">{t.book.sub}</p>
+            </div>
+            <BookingForm t={t} />
+          </div>
+        </section>
 
         <footer className="nl-footer" id="contact">
           <svg className="nl-footer-gable" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
