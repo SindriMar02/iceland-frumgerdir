@@ -24,21 +24,6 @@ const B = import.meta.env.BASE_URL + 'svartlodge/'
 export const srcSet = (src: string) =>
   `${src.replace(/\.jpg$/, '-800.jpg')} 800w, ${src} 1800w`
 
-/**
- * The black form, traced from the sunset photograph (image space 2160x1440):
- * the house stands on the right of the frame, its roof rising out of the top
- * edge, the sea and the steam of the pool to the left. Loader, hero clip and
- * the shore band share it. HORIZON is the sea line in the same space: the hero
- * releases from there, not from the ground.
- */
-export const SILHOUETTE = {
-  viewBox: '0 0 2160 1440',
-  path: 'M 1428 1440 L 1428 788 L 1440 756 L 1452 728 L 1464 696 L 1476 664 L 1488 628 L 1500 600 L 1512 568 L 1524 536 L 1536 424 L 1548 392 L 1560 356 L 1572 320 L 1584 288 L 1596 260 L 1608 248 L 1620 244 L 1632 240 L 1644 236 L 1656 228 L 1668 224 L 1680 216 L 1692 212 L 1704 208 L 1716 200 L 1728 196 L 1740 192 L 1752 188 L 1764 180 L 1776 176 L 1788 172 L 1800 168 L 1812 164 L 1824 156 L 1836 152 L 1848 148 L 1860 144 L 1872 136 L 1884 132 L 1896 128 L 1908 124 L 1920 116 L 1932 112 L 1944 108 L 1956 104 L 1968 96 L 1980 92 L 1992 88 L 2004 64 L 2016 60 L 2028 72 L 2040 68 L 2052 60 L 2064 56 L 2076 52 L 2088 28 L 2100 40 L 2112 36 L 2124 32 L 2136 4 L 2148 20 L 2156 0 L 2160 1440 Z',
-  /** where the house begins, from the left, in viewBox units */
-  left: 1428,
-  /** centre of the release: the house's midline on the sea horizon */
-  origin: { x: 2000, y: 930 },
-}
 
 export const PHOTO = {
   sunsetHouse: { src: `${B}sunset-house.jpg`, alt: 'The black gable end of Svart Lodge at sunset, steam rising off the pool, the fjord beyond', ratio: '3 / 2' },

@@ -8,7 +8,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
-import { AREA, COMPANY, FACTS, JSON_LD, OWN_WORDS, PHOTO, PROOF, SILHOUETTE, srcSet } from './content'
+import { AREA, COMPANY, FACTS, JSON_LD, OWN_WORDS, PHOTO, PROOF, srcSet } from './content'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -16,20 +16,13 @@ const company = getPreviewCompany('svartlodge')
 
 type Photo = { src: string; alt: string; ratio: string }
 
-/* ── SVART LODGE · "The fjord, through the house" ───────────────────────────
-   Svartaborg's "Svarta formið" moved whole (../svartaborg, declined 2026-09,
-   never sent): the building's silhouette is a filled mask through which the
-   photography shows. Here the form is traced from the owner's own sunset
-   frame, the black gable end on the right of the picture with its roof rising
-   out of the top edge, and the wordmark stands at the scale of the house
-   itself (the MODUS board). What Svartaborg never had is a sea horizon: the
-   hero releases from the sea line, not from the ground.
-
-   One geometry, three uses: the loader fills the form on real progress; the
-   hero shows the sunset only inside the form and scroll opens it to full
-   bleed; the shore band holds the summer roofs inside the form over the
-   faint fjord. Motion identity: the form releases, reveals slide laterally
-   (x -14 → 0) like the long low building. Dark page, Familjen Grotesk only. */
+/* ── SVART LODGE · a plain landing page, Svartaborg's DNA without the cutout ─
+   Same lineage as Svartaborg (../svartaborg, its declined design, never sent):
+   dark page, Familjen Grotesk only, reveals that slide laterally (x -14 → 0)
+   like the long low building. The house-silhouette clip mask that page used
+   for its hero and seasons band is deliberately NOT reused here — a full-bleed
+   photograph carries the hero instead, wordmark set over it the ordinary way,
+   the MODUS board's scale kept but without the trace-dependent mask. */
 
 const BLACK = '#0F1113'        // their cladding, re-sampled from the sunset frame
 const BONE = '#E9E6E0'
@@ -48,11 +41,6 @@ const reduced = () =>
 const fluid = (n: number, floor: number) =>
   `clamp(${floor}px, calc(var(--u) * ${n}), ${+(n * 1.15).toFixed(1)}px)`
 
-/** The release origin: the house's midline on the sea horizon, in viewBox
-    space. GSAP's transformOrigin on an SVG element is relative to the element's
-    OWN bounding box, so svgOrigin (absolute) is the one that means this. */
-const C = SILHOUETTE.origin
-
 /* ── motion engine ───────────────────────────────────────────────────────── */
 
 function useMotion(ready: boolean) {
@@ -63,7 +51,6 @@ function useMotion(ready: boolean) {
 
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true })
     const cleanups: Array<() => void> = []
-    let heroST: ScrollTrigger | null = null
 
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-in')),
@@ -83,15 +70,8 @@ function useMotion(ready: boolean) {
         )
       })
 
-      /* THE WORDMARK + THE FORM. The letters rise out of their masks while the
-         sunset lives only inside the house shape. Scroll releases the form
-         from the sea horizon until the photograph runs full bleed. */
+      /* THE WORDMARK. Letters rise once, set directly over the full-bleed photo. */
       const wmWords = root.querySelectorAll<HTMLElement>('.sl-wm-word')
-      const wmEl = root.querySelector<HTMLElement>('.sl-wm')
-      const clipGroup = root.querySelector<SVGPathElement>('.sl-clip-scale')
-      const heroEl = root.querySelector<HTMLElement>('.sl-hero')
-      const heroCap = root.querySelector<HTMLElement>('.sl-hero-cap')
-
       if (wmWords.length) {
         gsap.set(wmWords, { yPercent: 120, opacity: 0 })
         let opened = false
@@ -108,33 +88,9 @@ function useMotion(ready: boolean) {
         window.setTimeout(openWordmark, 3600)
       }
 
-      if (heroEl && clipGroup && wmEl) {
-        /* the form sits on the right; scaling 4.5x about a point on the horizon near its right edge
-           covers the whole 2160x1440 box, leftwards across the sea first */
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: heroEl, start: 'top top', end: '+=150%',
-            pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true,
-          },
-        })
-        heroST = tl.scrollTrigger ?? null
-        tl.fromTo(clipGroup,
-          { svgOrigin: `${C.x} ${C.y}`, scale: 1 },
-          { scale: 4.5, ease: 'none', duration: 1 }, 0)
-        tl.to(wmEl, { opacity: 0, y: -60, ease: 'none', duration: 0.5 }, 0.1)
-        if (heroCap) tl.to(heroCap, { autoAlpha: 1, duration: 0.2, ease: 'none' }, 0.72)
-      }
-
-      /* the shore band: the summer roofs inside the form over the faint fjord;
-         crossing the viewport releases it partway and pulls it back. */
-      const shore = root.querySelector<HTMLElement>('.sl-shore')
-      const shoreClip = root.querySelector<SVGPathElement>('.sl-shore-scale')
-      if (shore && shoreClip) {
-        gsap.fromTo(shoreClip,
-          { svgOrigin: `${C.x} ${C.y}`, scale: 0.9 },
-          { scale: 2.2, ease: 'none',
-            scrollTrigger: { trigger: shore, start: 'top 85%', end: 'bottom 15%', scrub: 0.7 } })
-      }
+      /* the hero photo settles in from a slight zoom on load, nothing more */
+      const heroImg = root.querySelector<HTMLElement>('.sl-hero-media img')
+      if (heroImg) gsap.fromTo(heroImg, { scale: 1.08 }, { scale: 1, duration: 2.6, ease: 'power2.out' })
 
       const onFocusIn = (e: FocusEvent) => {
         const rv = (e.target as HTMLElement).closest?.('.sl-rv')
@@ -146,7 +102,6 @@ function useMotion(ready: boolean) {
 
     const driftEls = Array.from(root.querySelectorAll<HTMLElement>('.sl-frame-in'))
     const drift = () => {
-      if (heroST?.isActive) return
       const vh = window.innerHeight
       const writes: Array<[HTMLElement, number]> = []
       for (const el of driftEls) {
@@ -207,29 +162,6 @@ function Frame({ photo, className = '', priority = false, drift = 9, sizes }: {
           alt={photo.alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
       </div>
     </figure>
-  )
-}
-
-/** The measured form as an SVG image clipped to the silhouette. <image> +
-    clipPath share one viewBox with slice, so the crop matches object-fit:
-    cover exactly at every width. */
-function FormFigure({ photo, clipId, groupClass, full, fullOpacity = 0.34, align = 'xMidYMid' }: {
-  photo: Photo; clipId: string; groupClass: string; full?: Photo; fullOpacity?: number; align?: 'xMidYMid' | 'xMaxYMid'
-}) {
-  return (
-    <svg className="sl-form-svg" viewBox={SILHOUETTE.viewBox} preserveAspectRatio={`${align} slice`} role="img" aria-label={photo.alt}>
-      <defs>
-        <clipPath id={clipId}>
-          {/* the path carries the animated transform: a <g> inside <clipPath>
-             is ignored by Chromium and the clip resolves empty */}
-          <path className={groupClass} d={SILHOUETTE.path} />
-        </clipPath>
-      </defs>
-      {full && (
-        <image href={full.src} width="2160" height="1440" preserveAspectRatio="xMidYMid slice" opacity={fullOpacity} />
-      )}
-      <image href={photo.src} width="2160" height="1440" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId})`} />
-    </svg>
   )
 }
 
@@ -387,13 +319,10 @@ function Preloader({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={`sl-loader ${leaving ? 'is-leaving' : ''}`} aria-hidden="true">
-      <svg className="sl-loader-form" viewBox={`${SILHOUETTE.left - 80} 0 ${2160 - SILHOUETTE.left + 80} 1440`} preserveAspectRatio="xMidYMid meet">
-        <path d={SILHOUETTE.path} fill="none" stroke={MUTE} strokeWidth="3" />
-        <clipPath id="sl-loader-clip">
-          <rect x="0" y={1440 - 14.4 * pct} width="2160" height={14.4 * pct} />
-        </clipPath>
-        <path d={SILHOUETTE.path} fill={BONE} clipPath="url(#sl-loader-clip)" />
-      </svg>
+      <div className="sl-loader-word">
+        {'SVART LODGE'.split('').map((c, i) => <span key={i}>{c === ' ' ? '  ' : c}</span>)}
+      </div>
+      <div className="sl-loader-bar"><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
       <p className="sl-loader-pct">{pct}%</p>
     </div>
   )
@@ -442,11 +371,15 @@ export default function SvartLodgePage() {
         <a className="sl-nav-cta" href="#boka" onClick={anchor('boka')}>Ask for your nights</a>
       </header>
 
-      {/* 01 · hero: the sunset only through the house, released from the sea */}
+      {/* 01 · hero: the house at sunset, full bleed, wordmark set over it */}
       <section className="sl-hero" id="top">
         <div className="sl-hero-stage">
-          <FormFigure photo={PHOTO.sunsetHouse} clipId="sl-hero-clip" groupClass="sl-clip-scale" align="xMaxYMid" />
-          <div className="sl-wm" aria-hidden="false">
+          <div className="sl-hero-media">
+            <img src={PHOTO.sunsetHouse.src} srcSet={srcSet(PHOTO.sunsetHouse.src)} sizes="100vw"
+              alt={PHOTO.sunsetHouse.alt} loading="eager" decoding="async" />
+          </div>
+          <div className="sl-hero-scrim" aria-hidden="true" />
+          <div className="sl-wm">
             <h1 className="sl-wm-h" aria-label="Svart Lodge">
               <span className="sl-wm-line" aria-hidden="true"><span className="sl-wm-word">SVART</span></span>
               <span className="sl-wm-line" aria-hidden="true"><span className="sl-wm-word">LODGE</span></span>
@@ -457,7 +390,7 @@ export default function SvartLodgePage() {
               fjord in the glass.
             </p>
           </div>
-          <p className="sl-hero-cap" aria-hidden="true">The view the house was built to hold.</p>
+          <p className="sl-hero-cap">The view the house was built to hold.</p>
         </div>
       </section>
 
@@ -547,13 +480,14 @@ export default function SvartLodgePage() {
         <Frame photo={PHOTO.fjordWide} drift={9} className="sl-circle-fig" />
       </section>
 
-      {/* 07 · the form on the shore: summer roofs inside the house over the faint fjord */}
+      {/* 07 · the shore, full bleed: the house from above */}
       <section className="sl-shore">
         <div className="sl-shore-stage">
-          <FormFigure photo={PHOTO.roofsForest} full={PHOTO.shoreHouse} clipId="sl-shore-clip" groupClass="sl-shore-scale" fullOpacity={0.3} />
+          <img className="sl-shore-img" src={PHOTO.roofsForest.src} srcSet={srcSet(PHOTO.roofsForest.src)} sizes="100vw"
+            alt={PHOTO.roofsForest.alt} loading="lazy" decoding="async" />
           <p className="sl-shore-cap sl-rv">
-            The house from above, held in its own shape; the shore it stands
-            on around it.
+            The house from above, in the spruce and poplar of Hagaskógur, the
+            shore it stands on around it.
           </p>
         </div>
       </section>
@@ -654,11 +588,13 @@ const CSS = `
 .sl-nav-cta { font-size: ${fluid(14, 13)}; font-weight: 500; padding: calc(var(--u) * 10) calc(var(--u) * 20);
   border: 1px solid ${HAIR}; border-radius: 0; transition: background .25s ease, color .25s ease, border-color .25s ease; }
 
-/* hero: the wordmark at the scale of the house */
+/* hero: a plain full-bleed photograph, the wordmark set over it */
 .sl-hero { position: relative; }
-.sl-hero-stage { position: relative; height: 100svh; overflow: hidden; }
-.sl-form-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.sl-hero .sl-form-svg { background: var(--sl-black); }
+.sl-hero-stage { position: relative; height: 100svh; overflow: hidden; background: var(--sl-black); }
+.sl-hero-media { position: absolute; inset: 0; z-index: 0; }
+.sl-hero-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.sl-hero-scrim { position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(0deg, rgba(15,17,19,.75) 0%, rgba(15,17,19,.34) 34%, rgba(15,17,19,0) 60%); }
 .sl-wm { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: flex-start;
   justify-content: flex-end; pointer-events: none;
   padding: 0 calc(var(--u) * 44) calc(calc(var(--u) * 56) + env(safe-area-inset-bottom, 0px)); }
@@ -667,7 +603,7 @@ const CSS = `
 .sl-wm-word { display: inline-block; }
 .sl-wm-sub { margin: calc(var(--u) * 22) 0 0; max-width: 42ch; font-size: ${fluid(17, 15)}; line-height: 1.55; color: var(--sl-mute); }
 .sl-hero-cap { position: absolute; right: calc(var(--u) * 44); bottom: calc(var(--u) * 40); z-index: 2; margin: 0;
-  font-size: ${fluid(14, 13)}; color: var(--sl-mute); opacity: 0; visibility: hidden; }
+  font-size: ${fluid(14, 13)}; color: var(--sl-mute); }
 
 /* headlines */
 .sl-headline { margin: 0; font-weight: 500; letter-spacing: -.015em; line-height: 1.08; text-wrap: balance; }
@@ -723,9 +659,10 @@ const CSS = `
 .sl-circle-note { font-size: ${fluid(15, 14)}; color: var(--sl-mute); }
 .sl-circle-dist { font-size: ${fluid(14, 13)}; color: ${HAZE_TEXT}; white-space: nowrap; }
 
-/* the shore band */
+/* the shore band, full bleed */
 .sl-shore { padding: calc(var(--u) * 60) 0 calc(var(--u) * 110); }
 .sl-shore-stage { position: relative; height: min(88svh, calc(var(--u) * 760)); overflow: hidden; }
+.sl-shore-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .sl-shore-cap { position: absolute; left: calc(var(--u) * 44); bottom: calc(var(--u) * 36); margin: 0; z-index: 2;
   font-size: ${fluid(16, 14)}; color: var(--sl-bone); text-shadow: 0 1px 18px rgba(15,17,19,.6); max-width: 40ch; }
 
@@ -784,12 +721,15 @@ const CSS = `
 .sl-foot-mark { font-weight: 500; letter-spacing: .2em; font-size: ${fluid(13, 13)}; margin: 0 0 calc(var(--u) * 12); }
 .sl-foot-line { font-size: ${fluid(13, 13)}; line-height: 1.6; color: var(--sl-mute); margin: 0 0 calc(var(--u) * 8); }
 
-/* loader */
-.sl-loader { position: fixed; inset: 0; z-index: 60; background: ${BLACK}; display: grid; place-content: center; transition: opacity .55s ease .3s; }
-.sl-loader-form { width: min(46vw, 420px); height: auto; transition: transform .9s cubic-bezier(.76, 0, .24, 1); }
+/* loader: wordmark + a thin bar, no house shape to fill */
+.sl-loader { position: fixed; inset: 0; z-index: 60; background: ${BLACK}; color: ${BONE};
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 30);
+  transition: opacity .55s ease .3s; }
+.sl-loader-word { font-weight: 500; letter-spacing: .1em; font-size: clamp(20px, 2.6vw, 30px); }
+.sl-loader-bar { position: relative; width: min(40vw, 300px); height: 1px; background: ${HAIR}; }
+.sl-loader-bar i { position: absolute; inset: 0; transform-origin: left center; background: ${HAZE}; }
 .sl-loader.is-leaving { opacity: 0; pointer-events: none; }
-.sl-loader.is-leaving .sl-loader-form { transform: scale(7); }
-.sl-loader-pct { position: fixed; left: calc(var(--u) * 44); bottom: calc(var(--u) * 38); margin: 0; font-size: 12px; letter-spacing: .16em; color: ${MUTE}; }
+.sl-loader-pct { margin: 0; font-size: 12px; letter-spacing: .16em; color: ${MUTE}; }
 
 /* responsive */
 @media (max-width: 991px) {
@@ -812,6 +752,7 @@ const CSS = `
   .sl-fields { grid-template-columns: 1fr; }
   .sl-wm-h { font-size: clamp(56px, 21vw, 110px); }
   .sl-wm-sub { max-width: none; font-size: 15px; }
+  .sl-hero-cap { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -819,6 +760,6 @@ const CSS = `
   .sl-rv { opacity: 1 !important; transform: none !important; }
   .sl-word, .sl-wm-word { transform: none !important; opacity: 1 !important; }
   .sl-frame-in { inset: 0; transform: none !important; }
-  .sl-hero-cap { opacity: 1 !important; visibility: visible !important; }
+  .sl-hero-media img { transform: none !important; }
 }
 `
