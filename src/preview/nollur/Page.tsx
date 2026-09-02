@@ -460,14 +460,23 @@ ${STAY_CSS}
      labels are on at once and sit on top of each other. They become the row of
      materials they were always naming, in the band above the house, and still
      jump to the materials chapter. */
-  .nl-hero-hotspots { position: absolute; left: 0; right: 0; top: auto; bottom: calc(100% + 3rem);
-    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .45rem .5rem; padding: 0 1.2rem; }
+  /* The row lived inside .nl-hero-cut, which is 116vw so the house can bleed
+     past both edges, and inherited that width: the tags were centred on a box
+     wider than the screen and the outer two were clipped by the viewport. It
+     takes the VIEWPORT's width instead, and the pin dots go, because in a row
+     of material names a dot carries nothing (it was a map pin on the
+     photograph) and the four of them cost 84px that four tags at 355pt do not
+     have to spare. */
+  .nl-hero-hotspots { position: absolute; left: 50%; right: auto; top: auto; bottom: calc(100% + 3rem);
+    width: 100vw; max-width: 100vw; transform: translateX(-50%);
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .4rem .45rem; padding: 0 1.1rem; }
+  /* 23px high was well under the 44pt target, and these are buttons: they jump
+     to the materials chapter. The label keeps its size, the button grows
+     around it. */
+  .nl-hero-hotspots .nl-spot { gap: 0; padding: 0; min-height: 44px; display: inline-flex; align-items: center; }
+  .nl-hero-hotspots .nl-spot i { display: none; }
   /* the fractions are inline styles, so the row has to outrank them */
   .nl-root .nl-spot { position: relative; left: auto !important; top: auto !important; transform: none; }
-  /* Out of the pin context a 12px plaster disc inside a ring reads as an empty
-     radio button, so the marker becomes a plain bullet in the row. */
-  .nl-hero-hotspots .nl-spot i { width: 5px; height: 5px; background: ${INK}; }
-  .nl-hero-hotspots .nl-spot i::after { display: none; }
   /* The caption sat at the very bottom on a translucent panel over the house,
      which left the band between the wordmark and the roof empty. Read in
      order it belongs there: name, sentence, materials, house. */
