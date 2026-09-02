@@ -71,13 +71,6 @@ const ROOF_VILLA =
 const ROOF_FARM =
   'M0,240 L120,240 L200,150 L300,150 L380,86 L520,86 L600,150 L700,150 L760,200 L900,200 L1000,240'
 
-const readLang = (): Lang => {
-  if (typeof window === 'undefined') return 'en'
-  const q = new URLSearchParams(window.location.search).get('lang')
-  if (q === 'de' || q === 'en') return q
-  try { if (sessionStorage.getItem('nl_lang') === 'de') return 'de' } catch { /* private mode */ }
-  return 'en'
-}
 
 const PAGE_STYLES = `
 @font-face { font-family: 'Redaction 35'; src: url('${FONTS}Redaction_35-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
@@ -441,7 +434,7 @@ ${STAY_CSS}
   /* mix-blend-mode: difference keeps the WORDMARK legible over anything, which
      is why this bar never carried a background. It does nothing for the text
      scrolling underneath it, though: headlines and dated rows came up THROUGH
-     the mark and through the DEUTSCH pill and read as a rendering fault. On a
+     the mark and through the burger and read as a rendering fault. On a
      phone the bar takes the ground of whatever chapter sits under it, the same
      answer as the other two builds, and the blend goes with it. */
   .nl-book-in { grid-template-columns: 1fr; gap: 2.2rem; padding: 3.6rem 1.2rem 4rem; }
@@ -536,8 +529,7 @@ ${STAY_CSS}
 @media (max-width: 1023px), (pointer: coarse) {
   .nl-btn { padding: calc(1.15em - 1px) calc(2.1em - 1px); }
   .nl-top .nl-wordmark { padding: .55rem .6rem; margin: -.55rem -.6rem; }
-  .nl-lang { padding: .7em .9em; font-size: 10px; }
-  .nl-footer dd a, .nl-menu-foot a { display: inline-block; padding: .62rem 0; margin: -.42rem 0; }
+    .nl-footer dd a, .nl-menu-foot a { display: inline-block; padding: .62rem 0; margin: -.42rem 0; }
   .nl-cierre-ctas .nl-under { display: inline-block; padding: .85rem 0; margin: -.55rem 0; }
   .nl-spot { padding: .6rem; }
   .nl-acc-list .nl-acc-hr { display: inline-block; padding: .5rem 0; margin: -.5rem 0; }
@@ -684,7 +676,7 @@ function BookingForm({ t }: { t: Copy }) {
 export default function NollurPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
-  const [lang] = useState<Lang>(readLang)
+  const lang: Lang = 'en'
   const t = T[lang]
   const [menuOpen, setMenuOpen] = useState(false)
   const [loaderDone, setLoaderDone] = useState(() => {
@@ -692,14 +684,6 @@ export default function NollurPage() {
     try { return sessionStorage.getItem('nl_seen') === '1' } catch { return false }
   })
   useBodyLock(menuOpen)
-
-  const switchLang = () => {
-    const next: Lang = lang === 'en' ? 'de' : 'en'
-    try { sessionStorage.setItem('nl_lang', next); sessionStorage.setItem('nl_seen', '1') } catch { /* private mode */ }
-    const u = new URL(window.location.href)
-    u.searchParams.set('lang', next)
-    window.location.href = u.toString()
-  }
 
   useEffect(() => {
     if (!menuOpen) return
@@ -1289,15 +1273,12 @@ export default function NollurPage() {
       <header>
         <div className="nl-top">
           <a href="#top" className={`nl-wordmark ${FOCUS}`} onClick={(e) => { e.preventDefault(); go('top') }}>Nollur</a>
-          <nav className="nl-top-links" aria-label={lang === 'de' ? 'Hauptmenü' : 'Main menu'}>
+          <nav className="nl-top-links" aria-label="Main menu">
             {t.nav.map((n) => (
               <a key={n.id} href={`#${n.id}`} className={`nl-rollify ${FOCUS}`} onClick={(e) => { e.preventDefault(); go(n.id) }}>{n.label}</a>
             ))}
           </nav>
           <div className="nl-top-right">
-            <button type="button" className={`nl-lang ${FOCUS}`} onClick={switchLang} lang={lang === 'en' ? 'de' : 'en'} aria-label={lang === 'en' ? 'Auf Deutsch lesen' : 'Read in English'}>
-              {t.switchLabel}
-            </button>
             <button className={`nl-burger ${FOCUS}`} aria-expanded={menuOpen} aria-label={menuOpen ? t.menuClose : t.menuOpen} onClick={() => setMenuOpen((v) => !v)}>
               <i /><i />
             </button>
@@ -1345,7 +1326,7 @@ export default function NollurPage() {
               </h1>
               <figure className="nl-hero-cut">
                 <img src={IMG.heroCut} srcSet={`${IMG.heroCut900} 900w, ${IMG.heroCut} 1800w`} sizes="88vw"
-                  alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss' : 'Hrafnabjörg from the drive: a glass box over shale and walnut'}
+                  alt="Hrafnabjörg from the drive: a glass box over shale and walnut"
                   loading="eager" decoding="async" />
                 <div className="nl-hero-hotspots" aria-hidden="false">
                   {HOTSPOTS.map((h) => (
@@ -1356,7 +1337,7 @@ export default function NollurPage() {
                 </div>
               </figure>
               <p className="nl-hero-sub">{t.hero.sub}</p>
-              <nav className="nl-hero-rotmenu nl-caps" aria-label={lang === 'de' ? 'Direktlinks' : 'Shortcuts'}>
+              <nav className="nl-hero-rotmenu nl-caps" aria-label="Shortcuts">
                 {t.hero.rot.map((r) => (
                   <a key={r.id} href={`#${r.id}`} className={FOCUS} onClick={(e) => { e.preventDefault(); go(r.id) }}>{r.label}</a>
                 ))}
@@ -1372,7 +1353,7 @@ export default function NollurPage() {
             </section>
 
             {/* 2 ── STATEMENT */}
-            <section className="nl-panel nl-statement" aria-label={lang === 'de' ? 'Über Nollur' : 'About Nollur'}>
+            <section className="nl-panel nl-statement" aria-label="About Nollur">
               <div className="nl-statement-in">
                 {t.statement.lines.map((line, i) => (
                   <h2 className="nl-sline nl-display" key={i}>
