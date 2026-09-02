@@ -56,8 +56,8 @@ const en = {
     eyebrow: 'Kvöldverðurinn á Mýrum',
     /** Second line of the h1: what the place is and where, in the words a
      *  traveller types into a search box. */
-    tagline: 'Farm guesthouse between Höfn and Jökulsárlón',
-    sub: 'A working sheep farm on Mýrar. Stay the night and sit down to dinner.',
+    tagline: 'Sheep farm guesthouse between Höfn and Jökulsárlón',
+    sub: 'Glaciers in the window, lamb on the table, a bed for the night.',
   },
 
   booking: {
@@ -80,7 +80,7 @@ const en = {
 
   farm: {
     eyebrow: 'The flock',
-    heading: 'A working farm, not a themed hotel',
+    heading: 'Sheep on the hill, reindeer on the flats',
     body: 'The flock shares the hill with a dog and a cat, and wild reindeer come down onto the land. In spring, guests are welcome to watch the lambing. In winter, you can lend a hand with light farm work if you feel like it.',
     guestsFull: 'Guests when full',
     open: 'Open',
@@ -91,7 +91,7 @@ const en = {
 
   hill: {
     eyebrow: 'The glacier light',
-    heading: 'A small hill with the whole horizon',
+    heading: 'Iceland’s highest mountain in the window',
     body: 'The guesthouse stands on a low hill above the lowlands of Mýrar. The bright rooms look out over Hornafjörður fjord and Hvannadalshnjúkur, the highest mountain in Iceland.',
     glacierAlt: 'Snow-covered peaks standing over the flats of Mýrar, the fjord catching the light behind them',
     ridgeEyebrow: 'The ridge behind the farm',
@@ -105,7 +105,7 @@ const en = {
 
   rooms: {
     eyebrow: 'Your room',
-    heading: 'Thirteen simple places to sleep',
+    heading: 'Thirteen places to sleep, one big view',
     body: 'Bright, warm rooms in the main house, and two small cottages with bathrooms of their own. Plain, comfortable, and that view from the pillow.',
     seeAll: 'See every room and photo',
     seeAllNote: 'Seven room types and the two cottages, each with its own photographs and its own price, on a page of their own.',
@@ -141,7 +141,7 @@ const en = {
 
   dinner: {
     eyebrow: 'Dinner is served',
-    heading: 'A dinner buffet with lamb',
+    heading: 'Lamb for dinner, the\u00a0glacier for company',
     intro:
       'This is what guests remember. Booking.com describes Nýpugarðar simply: a sheep farm with simple, fresh rooms, a home-cooked breakfast and a dinner buffet with lamb. Traditional Icelandic cooking with local ingredients, eaten in a dining room whose windows face the ice.',
     body: 'Dinner is served here on the farm, in the dining room with the windows facing the glacier. There is nothing to book ahead and nothing to arrange online. Tell us when you arrive that you would like to eat, and a place is set for you.',
@@ -151,7 +151,7 @@ const en = {
     deckAlt:
       'Dusk view from the guesthouse deck at Nýpugarðar, benches facing wide grassland and a low sun',
     deckCaption: 'The deck, just before dinner',
-    breakfastHeading: 'And breakfast before you go',
+    breakfastHeading: 'And breakfast in the same window',
     breakfastBody:
       'A buffet in the same room, with the same view. Guests rate it highly, and the kitchen can cover most ways of eating.',
     breakfastAlt:
@@ -165,10 +165,10 @@ const en = {
 
   seasons: {
     srHeading: 'The seasons at Nýpugarðar',
-    springHeading: 'Spring is for lambing',
+    springHeading: 'Come and watch the lambing in spring',
     springBody:
       'When the lambs arrive, guests are welcome in the sheep shed to watch. It is the busiest, loudest, best time of year on the farm.',
-    winterHeading: 'Winter is for dark skies',
+    winterHeading: 'Northern lights over the winter farm',
     winterBody:
       'The house is open all year. Guide to Iceland calls it an ideal location for spotting the northern lights in the winter months, and there is light farm work to join if you want to earn your dinner.',
     springAlt:
@@ -214,7 +214,7 @@ const en = {
   },
 
   closing: {
-    heading: 'Book your evening at Nýpugarðar',
+    heading: 'Stay the night, and stay for dinner',
     body: 'A room with the horizon in the window, and a seat at the table when the lamb comes out of the kitchen.',
     heroAlt:
       'Low evening sun raking across the flats at Nýpugarðar, outlet glaciers and snow peaks along the whole horizon',
@@ -330,8 +330,8 @@ const is: typeof en = {
 
   hero: {
     eyebrow: 'Kvöldverðurinn á Mýrum',
-    tagline: 'Sveitagisting milli Hafnar og Jökulsárlóns',
-    sub: 'Sauðfjárbú í fullum rekstri á Mýrum. Gistu nóttina og sestu að kvöldverði.',
+    tagline: 'Gistihús á sauðfjárbúi milli Hafnar og Jökulsárlóns',
+    sub: 'Jöklar í glugganum, lamb á borðinu og rúm fyrir nóttina.',
   },
 
   booking: {
@@ -354,7 +354,7 @@ const is: typeof en = {
 
   farm: {
     eyebrow: 'Féð',
-    heading: 'Alvöru bú, ekki hótel með sveitaþema',
+    heading: 'Fé á hólnum, hreindýr á sléttunni',
     body: 'Féð deilir hólnum með hundi og ketti, og villt hreindýr koma niður á landið. Á vorin eru gestir velkomnir að fylgjast með sauðburði. Á veturna má taka til hendinni í léttum bústörfum ef þig langar til þess.',
     guestsFull: 'Gestir þegar fullt er',
     open: 'Opið',
@@ -365,7 +365,7 @@ const is: typeof en = {
 
   hill: {
     eyebrow: 'Jökulbirtan',
-    heading: 'Lítill hóll með allan sjóndeildarhringinn',
+    heading: 'Hæsta fjall Íslands í glugganum',
     body: 'Gistihúsið stendur á lágum hól upp af Mýrunum. Björt herbergin snúa út að Hornafirði og Hvannadalshnjúki, hæsta fjalli landsins.',
     glacierAlt: 'Snævi þaktir tindar yfir Mýrunum, fjörðurinn tekur birtuna fyrir aftan þá',
     ridgeEyebrow: 'Fjallgarðurinn að baki',
@@ -379,7 +379,7 @@ const is: typeof en = {
 
   rooms: {
     eyebrow: 'Herbergið þitt',
-    heading: 'Þrettán einfaldar vistarverur',
+    heading: 'Þrettán vistarverur, eitt stórt útsýni',
     body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baðherbergi. Einfalt, notalegt, og útsýnið beint úr rúminu.',
     seeAll: 'Skoða öll herbergi og myndir',
     seeAllNote: 'Sjö herbergisgerðir og sumarhúsin tvö, hver með sínum myndum og sínu verði, á sérsíðu.',
@@ -413,7 +413,7 @@ const is: typeof en = {
 
   dinner: {
     eyebrow: 'Kvöldmaturinn',
-    heading: 'Kvöldhlaðborð með lambakjöti',
+    heading: 'Lamb í kvöldmat og jökullinn til borðs',
     intro:
       'Þetta er það sem gestir muna. Booking.com lýsir Nýpugörðum einfaldlega svona: sauðfjárbú með einföldum og hreinlegum herbergjum, heimalöguðum morgunmat og kvöldhlaðborði með lambakjöti. Hefðbundin íslensk matargerð úr hráefni úr héraðinu, borðuð í matsal þar sem gluggarnir snúa að jöklinum.',
     body: 'Kvöldmaturinn er borinn fram hér á bænum, í matsalnum þar sem gluggarnir snúa að jöklinum. Það þarf ekkert að panta fyrirfram og ekkert að ganga frá á netinu. Láttu okkur vita þegar þú kemur að þú viljir borða, og þá er lagt á borð fyrir þig.',
@@ -423,7 +423,7 @@ const is: typeof en = {
     deckAlt:
       'Kvöldútsýni af veröndinni á Nýpugörðum, bekkir snúa að víðum túnum og lágri sól',
     deckCaption: 'Veröndin, rétt fyrir kvöldmat',
-    breakfastHeading: 'Og morgunmatur áður en þú ferð',
+    breakfastHeading: 'Og morgunmatur í sama glugga',
     breakfastBody:
       'Hlaðborð í sama sal, með sama útsýni. Gestir gefa því háa einkunn og eldhúsið ræður við flestar tegundir mataræðis.',
     breakfastAlt:
@@ -437,10 +437,10 @@ const is: typeof en = {
 
   seasons: {
     srHeading: 'Árstíðirnar á Nýpugörðum',
-    springHeading: 'Vorið er sauðburður',
+    springHeading: 'Komdu og fylgstu með sauðburðinum á vorin',
     springBody:
       'Þegar lömbin koma eru gestir velkomnir í fjárhúsin að fylgjast með. Það er annasamasti, hávaðasamasti og besti tími ársins á bænum.',
-    winterHeading: 'Veturinn er dimmur himinn',
+    winterHeading: 'Norðurljós yfir bænum á veturna',
     winterBody:
       'Húsið er opið allt árið. Guide to Iceland kallar staðinn kjörinn til að sjá norðurljósin yfir vetrarmánuðina, og það má taka þátt í léttum bústörfum ef þú vilt vinna fyrir kvöldmatnum.',
     springAlt:
@@ -486,7 +486,7 @@ const is: typeof en = {
   },
 
   closing: {
-    heading: 'Bókaðu kvöldið á Nýpugörðum',
+    heading: 'Gistu nóttina og vertu í kvöldmat',
     body: 'Herbergi með sjóndeildarhringinn í glugganum, og sæti við borðið þegar lambið kemur úr eldhúsinu.',
     heroAlt:
       'Lágstæð kvöldsól strýkur yfir flatlendið á Nýpugörðum, skriðjöklar og snævi þaktir tindar við sjóndeildarhringinn',
