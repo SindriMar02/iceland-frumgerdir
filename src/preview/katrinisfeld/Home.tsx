@@ -51,15 +51,14 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
    centred deck: a wide room low and left, a tall room high and right, a
    detail cutting the middle. */
 const PLATES: ReadonlyArray<PlxPlate> = [
-  { id: 's-eldhus-vitt', k: 70, x: -4, y: 8, w: 62, priority: true,
+  // 1 · the backdrop, opaque and full bleed
+  { id: 's-eldhus-vitt', k: 70, x: -6, y: -4, w: 112, priority: true,
     alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
-  { id: 'p-skuggahverfi-0', k: 55, x: 58, y: -6, w: 46,
+  // 2 · the middle plane, feathered
+  { id: 'plate-mid', k: 55, x: -4, y: 16, w: 108, plate: true,
     alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
-  /* the detail crosses HIGH, not low. Placed over the headline it dropped
-     the title's worst-pixel contrast to 1.0 — cream on a bright photograph,
-     literally invisible. The reference can pass its front plate over its
-     heading because that heading is decorative; this one is her h1. */
-  { id: 'p-badherbergi-0', k: 10, x: 30, y: -12, w: 27,
+  // 4 · the near plane, feathered, crossing lowest and moving least
+  { id: 'plate-front', k: 10, x: -6, y: 54, w: 112, plate: true,
     alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu' },
 ]
 

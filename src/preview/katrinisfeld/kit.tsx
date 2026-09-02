@@ -300,6 +300,9 @@ export function HorizontalChapter({ eyebrow, panels }: {
 export interface PlxPlate {
   id: string
   alt: string
+  /** a pre-cut plate carrying alpha, served straight rather than through
+      PHOTO_DIMS — see the note on the component */
+  plate?: boolean
   /** how far this plate travels, as a percentage of its own height */
   k: number
   /** the plate's box, as percentages of the stage */
@@ -325,6 +328,22 @@ export interface PlxPlate {
  * 60 KB to compute four multiplications — and Lenis in particular kills iOS
  * momentum and freezes nested scrollers.
  *
+ * THE PLATES CARRY ALPHA, which is the part that took two attempts to get
+ * right. Pulling the reference's own three layer images apart settles what
+ * the device actually needs: all three are the SAME 2000x1906 canvas,
+ * registered exactly on top of each other — layer 1 fully opaque, layer 2
+ * 50.4% transparent, layer 4 70.2% transparent. It is one backdrop plus two
+ * CUT-OUTS, not a deck of rectangles. Without alpha the layers just slide
+ * over each other and the depth never appears, which is what the first
+ * attempt here looked like.
+ *
+ * Her photography cannot be cut that way: these are single-plane interiors,
+ * and a background remover run on one returned a 99.7%-transparent fragment
+ * because a room has no "subject" to isolate. So the plates are feathered
+ * instead of cut — her own rooms, alpha-vignetted to 24% and 21% transparent,
+ * so they overlap as planes with no hard rectangle edge. Same structure as
+ * the reference, honest about the source material, nothing generated.
+ *
  * THE PLATES ARE NOT A ROW. The registry demo stacks its images dead centre,
  * which with opaque rectangles reads as a deck of cards sliding. These are
  * placed as an asymmetric composition — a wide plate low and left, a tall one
@@ -347,7 +366,16 @@ export function ParallaxHero({ plates, children }: {
             data-ki-layer={p.k}
             style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, zIndex: Math.round(100 - p.k) }}
           >
-            <Photo id={p.id} alt={p.alt} sizes={`${Math.round(p.w)}vw`} priority={p.priority} />
+            {p.plate ? (
+              <picture>
+                <source type="image/avif" srcSet={`${DIR}/${p.id}.avif`} />
+                <source type="image/webp" srcSet={`${DIR}/${p.id}.webp`} />
+                <img src={`${DIR}/${p.id}.webp`} width={2000} height={p.id === 'plate-mid' ? 820 : 900}
+                  alt={p.alt} loading="eager" decoding="async" />
+              </picture>
+            ) : (
+              <Photo id={p.id} alt={p.alt} sizes={`${Math.round(p.w)}vw`} priority={p.priority} />
+            )}
           </span>
         ))}
         {/* the title rides its own layer, sandwiched between the plates */}
