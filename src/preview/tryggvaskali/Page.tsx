@@ -14,20 +14,23 @@
  * fades. Lenis is wired once at the page root (see Page() below), not per
  * section, exactly as sjavarborg's own single-instance convention.
  *
- * FONTS (teardown section 10.3):
- * - Display (quiche-sans substitute): Valley Sans, weight 500 (a true
- *   Medium cut exists), self-hosted from the local design-fonts library
- *   (211 families, Ísl-verified — SOURCE.txt confirms Þ Ð Æ Ö + acutes
- *   present via cmap check, no synthesis needed). quiche-sans itself is an
- *   Adobe Fonts kit (Adam Ladd, commercial subscription required) with
- *   UNMEASURED Icelandic coverage, so per the teardown's own two-path
- *   recommendation (10.3) this build takes path (b), a substitute.
- * - Body: Noto Sans, exactly the family the teardown specifies (OFL 1.1,
- *   self-hosted, `fonts/NotoSans-*` in the reference bundle). Fetched from
- *   Google Fonts' own build (variable, latin subset covers the full
- *   Icelandic set — Þ Ð Æ Ö Á É Í Ó Ú Ý and lowercase all sit in U+0000-00FF)
- *   and self-hosted here rather than added to the shared app-wide Google
- *   Fonts <link> in index.html, which this build does not touch.
+ * FONTS (teardown section 10.3, REVISED 2026-09-02):
+ * - Display (quiche-sans substitute): originally Valley Sans, replaced after
+ *   review ("generic fonts all across the page") with Erode (Fontshare, ITF
+ *   Free License, weight 500/Medium), a bookish serif with real character —
+ *   fitting for a house built in 1890, and the same face already proven on
+ *   Sjávarborg's heritage-timeline build in this workspace. quiche-sans
+ *   itself is an Adobe Fonts kit (Adam Ladd, commercial subscription
+ *   required) with UNMEASURED Icelandic coverage, so per the teardown's own
+ *   two-path recommendation (10.3) this build takes path (b), a substitute
+ *   — now a more deliberate one than the first pass's plain-grotesk pick.
+ * - Body: originally Noto Sans (the teardown's own literal family, OFL 1.1),
+ *   replaced with Hanken Grotesk (Google Fonts, OFL), a warm humanist sans
+ *   rather than a neutral system-UI face, at the same weight 300 the type
+ *   scale already called for — so this is a face swap, not a weight change.
+ *   Both self-hosted from the local design-fonts library (211 families,
+ *   Ísl-verified — SOURCE.txt confirms Þ Ð Æ Ö + acutes present via cmap
+ *   check, no synthesis needed).
  * - Font files live in /public/tryggvaskali/fonts/ (not under this src
  *   folder) because a relative url() inside a statically-imported .css file
  *   does not get this repo's dynamic BASE_PATH prefix at build time — see
@@ -194,8 +197,22 @@ function PageStyles() {
         --ts-titleSize: 3.75em;
         --ts-vpad: 1.6rem;
         --ts-container-pad: var(--ts-vpad);
-        --ts-font-display: 'TS Display', 'Valley Sans', system-ui, sans-serif;
-        --ts-font-body: 'TS Body', 'Noto Sans', system-ui, sans-serif;
+        /* Type pick 2026-09-02 (Sindri: "generic fonts all across the page,
+           go through our font library and find a perfect font for the
+           project"). The build had shipped Valley Sans (display) and Noto
+           Sans (body) — real, licensed, self-hostable fonts, but both read
+           as flat/characterless at the sizes and weights this page uses,
+           especially the display face carrying "TRYGGVASKÁLI" and the
+           pinned zoom cards. Replaced with the SAME pairing already proven
+           on this exact brief in this workspace (Gamla Fjósið, another
+           historic Icelandic house, and Sjávarborg, a heritage-timeline
+           build): Erode (Fontshare, ITF Free) for display — a bookish
+           serif with real bite, fitting for a house built in 1890 — and
+           Hanken Grotesk (Google Fonts, OFL) for body, a warm humanist
+           sans rather than a neutral system-UI face. Both fully Icelandic
+           per ~/Design fonts/INDEX.md. */
+        --ts-font-display: 'TS Display', 'Erode', Georgia, serif;
+        --ts-font-body: 'TS Body', 'Hanken Grotesk', system-ui, sans-serif;
       }
       @media screen and (min-width: 36em) { .ts-root { --ts-vpad: 2.7rem; } }
       @media screen and (min-width: 48em) { .ts-root { --ts-vpad: 3.3rem; } }
@@ -203,28 +220,28 @@ function PageStyles() {
 
       @font-face {
         font-family: 'TS Display';
-        src: url('${asset('fonts/valleysans-medium.woff2')}') format('woff2');
+        src: url('${asset('fonts/erode-medium.woff2')}') format('woff2');
         font-weight: 500;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: 'TS Display';
-        src: url('${asset('fonts/valleysans-regular.woff2')}') format('woff2');
+        src: url('${asset('fonts/erode-regular.woff2')}') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: 'TS Body';
-        src: url('${asset('fonts/notosans-var.woff2')}') format('woff2');
+        src: url('${asset('fonts/hankengrotesk-300.woff2')}') format('woff2');
         font-weight: 300 700;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: 'TS Body';
-        src: url('${asset('fonts/notosans-italic-var.woff2')}') format('woff2');
+        src: url('${asset('fonts/hankengrotesk-300italic.woff2')}') format('woff2');
         font-weight: 300 700;
         font-style: italic;
         font-display: swap;
