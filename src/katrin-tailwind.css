@@ -1,0 +1,33 @@
+/**
+ * Tailwind for the Katrín standalone build — utilities ONLY.
+ *
+ * WHY THIS FILE EXISTS
+ * Her build ships no CSS bundle at all: the whole stylesheet is a template
+ * literal in styles.ts injected at runtime. So a Tailwind-based component
+ * dropped into this page (the 21st.dev ones) rendered with every utility
+ * class resolving to nothing. This makes the page able to host them.
+ *
+ * WHY NOT JUST `@import "tailwindcss"`
+ * That pulls three things, and two of them are damaging here:
+ *   · theme     — wanted (utilities need the scale)
+ *   · utilities — wanted (the entire point)
+ *   · PREFLIGHT — not wanted. Preflight is a global reset: it zeroes margins
+ *     on every heading and paragraph, strips list styling, and re-sets border
+ *     and box-sizing on *, ::before and ::after. This design was not built on
+ *     top of a reset, and its own rules are scoped under .ki-root, so
+ *     preflight would silently restyle every page on the site to fix one
+ *     button. Importing the layers individually leaves it out.
+ *
+ * Importing the catalogue's own src/index.css was the other option and is
+ * worse: it carries the @theme block for a hundred other prototypes' fonts,
+ * and it emitted 351 KB because Tailwind then scanned the whole catalogue for
+ * class names. source(none) plus two explicit @source roots scans only the
+ * files that can actually contain classes for this site.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "./preview/katrinisfeld";
+@source "./components/ui";

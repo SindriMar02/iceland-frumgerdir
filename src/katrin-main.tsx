@@ -13,6 +13,9 @@
  *
  *   npm run build:katrin   →  dist-katrin/
  */
+/* utilities-only Tailwind, so this page can host the 21st.dev
+   components without taking their reset — see katrin-tailwind.css */
+import './katrin-tailwind.css'
 import { StrictMode, useEffect } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter, useLocation } from 'react-router-dom'
