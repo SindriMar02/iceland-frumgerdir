@@ -404,9 +404,26 @@ const PAGE_STYLES = `
   .nl-hero { height: 100svh; padding-bottom: 1rem; }
   /* .nl-root p/h1 zero their margins at higher specificity; match it here */
   .nl-root .nl-hero-kicker { position: absolute; top: 7.4rem; left: 1.65rem; margin: 0; }
-  .nl-root .nl-hero-word { top: 15svh; font-size: min(23vw, 20svh); }
-  .nl-hero-cut { width: 100vw; bottom: 8svh; }
-  .nl-root .nl-hero-sub { position: absolute; top: auto; right: 1.65rem; bottom: 1.2rem; left: 1.65rem; max-width: none; margin: 0; }
+  /* The wordmark ended at about 208pt and the house began at about 410pt, so a
+     third of the phone hero was empty plaster. The word sits lower and larger
+     and the house comes up to meet it, which also deepens the occlusion the
+     hero exists for. */
+  .nl-root .nl-hero-word { top: 19svh; font-size: min(21.5vw, 21svh); }
+  .nl-hero-cut { width: 116vw; bottom: 3svh; overflow: visible; }
+  /* The four material pins are a HOVER device positioned in fractions of a
+     1500px frame. On a 440pt photograph they land within about 150pt of each
+     other, and a phone has no hover to show them one at a time, so all four
+     labels are on at once and sit on top of each other. They become the row of
+     materials they were always naming, in the band above the house, and still
+     jump to the materials chapter. */
+  .nl-hero-hotspots { position: absolute; left: 0; right: 0; top: auto; bottom: calc(100% + 3.6rem);
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .45rem .5rem; padding: 0 1.2rem; }
+  /* the fractions are inline styles, so the row has to outrank them */
+  .nl-root .nl-spot { position: relative; left: auto !important; top: auto !important; transform: none; }
+  /* The caption sat at the very bottom on a translucent panel over the house,
+     which left the band between the wordmark and the roof empty. Read in
+     order it belongs there: name, sentence, materials, house. */
+  .nl-root .nl-hero-sub { position: absolute; top: 33svh; right: 1.65rem; bottom: auto; left: 1.65rem; max-width: none; margin: 0; }
   .nl-hero-rotmenu, .nl-hero-copy { display: none; }
   .nl-spot span { font-size: 9.5px; }
   .nl-arrival { width: 100%; }
@@ -559,7 +576,21 @@ export default function NollurPage() {
     document.title = t.docTitle
     const prevLang = document.documentElement.lang
     document.documentElement.lang = t.htmlLang
-    return () => { document.documentElement.lang = prevLang || 'en' }
+    /* Safari samples html/body background-color for the status and
+       home-indicator strips when no fixed or sticky element qualifies at that
+       edge. This build paints its ground on .nl-root, so both strips fell back
+       to the browser default and rendered as pale bars around the page.
+       Route-scoped, restored on the way out so the catalogue is unaffected. */
+    const root = document.documentElement
+    const prevRootBg = root.style.backgroundColor
+    const prevBodyBg = document.body.style.backgroundColor
+    root.style.backgroundColor = PLASTER
+    document.body.style.backgroundColor = PLASTER
+    return () => {
+      document.documentElement.lang = prevLang || 'en'
+      root.style.backgroundColor = prevRootBg
+      document.body.style.backgroundColor = prevBodyBg
+    }
   }, [t])
 
   /* preloader, bounded (arm once) */
