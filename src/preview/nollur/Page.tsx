@@ -211,7 +211,11 @@ const PAGE_STYLES = `
 /* ══ THE JOURNEY ══ */
 .nl-journey { position: relative; overflow: clip; }
 .nl-track { display: flex; width: fit-content; }
-.nl-panel { position: relative; height: var(--nl-100vh); flex: none; }
+/* 1px overlap: adjacent panels in a translated track otherwise show a hairline
+   at the join on fractional transforms. The edge gradients used to cover that
+   too; they are gone (they read as a hazy dissolve over a photograph), so the
+   overlap does the job on its own. */
+.nl-panel { position: relative; height: var(--nl-100vh); flex: none; margin-right: -1px; }
 
 /* hero: the wordmark stands full width and the HOUSE ITSELF stands in front of
    it, so the roof genuinely occludes the letters. The cutout is a real alpha
@@ -339,18 +343,6 @@ const PAGE_STYLES = `
 .nl-barn-cell figcaption { position: absolute; left: 0; bottom: 0; z-index: 2; padding: .5em .85em; background: rgba(18,20,21,.72); color: ${PLASTER};
   font-family: ${MONO}; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; }
 
-/* dusk edges: the page goes to night once (the farm and the lights), then to
-   walnut, then to ink, and each of those arrives over a slow gradient rather
-   than a cut */
-.nl-barn::before { content: ''; position: absolute; left: -2px; top: 0; bottom: 0; width: 18vw; z-index: 5; pointer-events: none;
-  background: linear-gradient(90deg, ${PLASTER}, rgba(232,233,230,0)); }
-.nl-isl::after { content: ''; position: absolute; right: -2px; top: 0; bottom: 0; width: 20vw; z-index: 3; pointer-events: none;
-  background: linear-gradient(270deg, ${PLASTER}, rgba(232,233,230,0)); }
-.nl-summer::after { content: ''; position: absolute; right: -2px; top: 0; bottom: 0; width: 20vw; z-index: 3; pointer-events: none;
-  background: linear-gradient(270deg, ${ACCENT}, rgba(122,78,46,0)); }
-.nl-footer::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 16svh; z-index: 1; pointer-events: none;
-  background: linear-gradient(180deg, ${ACCENT}, rgba(122,78,46,0)); }
-
 /* the lights, full bleed */
 .nl-isl { width: 100vw; position: relative; }
 .nl-isl .nl-flip { position: absolute; inset: 0; }
@@ -408,7 +400,7 @@ const PAGE_STYLES = `
 /* ══ MOBILE / VERTICAL ══ */
 @media (max-width: 1023px) {
   .nl-track { display: block; width: 100%; }
-  .nl-panel { height: auto; width: 100% !important; }
+  .nl-panel { height: auto; width: 100% !important; margin-right: 0; }
   .nl-hero { height: 100svh; padding-bottom: 1rem; }
   /* .nl-root p/h1 zero their margins at higher specificity; match it here */
   .nl-root .nl-hero-kicker { position: absolute; top: 7.4rem; left: 1.65rem; margin: 0; }
@@ -454,9 +446,6 @@ const PAGE_STYLES = `
   .nl-barn-cell { height: 52svh; margin-bottom: 1rem; }
   .nl-isl { height: 72svh; }
   .nl-summer { height: 62svh; }
-  .nl-barn::before { left: 0; right: 0; top: -2px; bottom: auto; width: auto; height: 18svh; background: linear-gradient(180deg, ${PLASTER}, rgba(232,233,230,0)); }
-  .nl-isl::after { left: 0; right: 0; top: auto; bottom: -2px; width: auto; height: 18svh; background: linear-gradient(0deg, ${PLASTER}, rgba(232,233,230,0)); }
-  .nl-summer::after { left: 0; right: 0; top: auto; bottom: -2px; width: auto; height: 18svh; background: linear-gradient(0deg, ${ACCENT}, rgba(122,78,46,0)); }
   .nl-saga { display: block; padding: 4.5rem 1.65rem; }
   .nl-saga-fig { width: 100%; height: 46svh; margin-bottom: 2.2rem; }
   .nl-cierre { padding: 5rem 0; }
