@@ -24,13 +24,17 @@ const company = getPreviewCompany('nollur')
    padding-parallax materials with a cursor that becomes content, a pin-in-pin
    filmstrip for the farm, edge-aware button fills, odometer rollovers, flip
    peels, and a footer where the glass villa's flat roofline morphs into the
-   farmhouse gable. New here: the hero, built on Drangar's own hero pattern —
-   the wordmark sits on the plain paper ground, a waterline divides it from a
-   fixed-height photo band below, no clip-path, nothing traced from the
-   photograph's pixels. Two rounds of a house-silhouette cutout (first a
-   pixel-scan, then a hand-corrected one) both still read as a bad cutout once
-   live; the fix is not a better trace, it is not tracing at all. The owner's
-   four materials are tagged as hotspots on the photo band. ──────────────── */
+   farmhouse gable. New here: the hero. Two rounds of a house-silhouette
+   cutout (a pixel-scan, then a hand-corrected one checked against an overlay
+   at every corner) both still read as a bad cutout once live — the fix was
+   never a better trace. The wordmark now rests with its own foot tucked a
+   little behind the house from the very first frame, held there by a SOFT
+   mask-image on the photo's own top edge (transparent to opaque over a few
+   rem — a straight, photo-agnostic fade, not a shape read from the picture),
+   and scrolling through the hero sends the word further down behind the
+   opaque photo until it is gone, exactly the "left left" journey-scoped
+   scrub already used for the barn and the cierre panel. The owner's four
+   materials are tagged as hotspots on the photo. ─────────────────────────── */
 
 const PLASTER = '#E8E9E6'
 const PLASTER_2 = '#DDDFDA'
@@ -209,18 +213,23 @@ const PAGE_STYLES = `
 .nl-track { display: flex; width: fit-content; }
 .nl-panel { position: relative; height: var(--nl-100vh); flex: none; }
 
-/* hero: the wordmark stands on the plain ground; a waterline, then a fixed-
-   height photo band carries the house. No clip-path, nothing traced from the
-   photograph — the mechanism Drangar proved, not a silhouette cutout. */
-.nl-hero { width: 100vw; display: grid; grid-template-rows: 1fr auto; background: ${PLASTER}; }
-.nl-hero-word-zone { position: relative; display: flex; align-items: flex-end; justify-content: center; }
+/* hero: the wordmark rests a little behind the house from the start (its own
+   foot tucked under a SOFT mask edge, not a shape traced from the photo), and
+   sinks further behind it as the journey moves on. Two rounds of tracing the
+   real roofline for a clip-path both still read as a bad cutout live; a
+   straight mask edge on the PHOTO's own top, faded rather than hard, needs no
+   trace at all and works on any photo. */
+.nl-hero { width: 100vw; position: relative; overflow: clip; background: ${PLASTER}; }
+.nl-hero-word-zone { position: absolute; inset: 0 0 auto 0; height: calc(100% - 42svh + 3.4rem);
+  display: flex; align-items: flex-end; justify-content: center; z-index: 1; }
 .nl-hero-word { position: relative; font-family: ${DISPLAY}; font-size: min(15.5vw, 34svh); line-height: .82;
-  letter-spacing: .01em; white-space: nowrap; color: ${INK}; }
+  letter-spacing: .01em; white-space: nowrap; color: ${INK}; will-change: transform; }
 .nl-hero-word .nl-hero-mask { display: block; overflow: clip; padding-top: .18em; }
 .nl-hero-word .nl-hero-mask span { display: inline-block; }
-.nl-hero-waterline { position: relative; height: 1px; background: ${INK}; margin: 0 1.65rem; }
-.nl-hero-band { position: relative; height: 42svh; margin: 0; }
-.nl-hero-band .nl-flip { position: absolute; inset: 0; }
+.nl-hero-house { position: absolute; left: 0; right: 0; bottom: 0; height: 42svh; z-index: 2;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 3.4rem);
+  mask-image: linear-gradient(180deg, transparent 0, #000 3.4rem); }
+.nl-hero-house .nl-flip { position: absolute; inset: 0; }
 .nl-hero-hotspots { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .nl-spot { position: absolute; z-index: 3; pointer-events: auto; transform: translate(-50%, -50%); display: flex; align-items: center; gap: .55rem;
   background: none; border: 0; padding: 0; cursor: pointer; color: ${PLASTER}; }
@@ -401,14 +410,13 @@ const PAGE_STYLES = `
 @media (max-width: 1023px) {
   .nl-track { display: block; width: 100%; }
   .nl-panel { height: auto; width: 100% !important; }
-  .nl-hero { grid-template-rows: none; display: flex; flex-direction: column; height: auto; min-height: 100svh; padding-bottom: 1rem; }
-  .nl-hero-word-zone { display: block; }
+  .nl-hero { height: 100svh; padding-bottom: 1rem; }
   /* .nl-root p/h1 zero their margins at higher specificity; match it here */
-  .nl-root .nl-hero-kicker { position: static; margin: 7.4rem 1.65rem 0; }
-  .nl-root .nl-hero-word { position: relative; font-size: min(19.5vw, 16svh); text-align: center; margin-top: 1.2rem; }
-  .nl-hero-waterline { margin: 1.4rem 1.65rem; }
-  .nl-hero-band { height: 46svh; }
-  .nl-root .nl-hero-sub { position: static; max-width: none; margin: 1.4rem 1.65rem 0; }
+  .nl-root .nl-hero-kicker { position: absolute; top: 7.4rem; left: 1.65rem; margin: 0; }
+  .nl-root .nl-hero-word { font-size: min(19.5vw, 16svh); text-align: center; }
+  .nl-hero-word-zone { height: calc(100% - 46svh + 2.2rem); }
+  .nl-hero-house { height: 46svh; }
+  .nl-root .nl-hero-sub { position: absolute; top: 10.6rem; left: 1.65rem; max-width: 15rem; margin: 0; }
   .nl-hero-rotmenu, .nl-hero-copy { display: none; }
   .nl-spot span { font-size: 9.5px; }
   .nl-arrival { width: 100%; }
@@ -714,7 +722,6 @@ export default function NollurPage() {
         const intro = gsap.timeline({ paused: true })
         const heroMasks = Array.from(root.querySelectorAll('.nl-hero-mask span'))
         intro.from(heroMasks, { yPercent: 120, duration: 1.1, stagger: { each: 0.06, from: 'center' }, ease: 'power3.out' }, 0.15)
-        intro.from(root.querySelector('.nl-hero-waterline'), { scaleX: 0, transformOrigin: 'center', duration: 1.1, ease: 'power2.inOut' }, 0.1)
         intro.from(root.querySelectorAll('.nl-spot'), { scale: 0, opacity: 0, duration: 0.5, stagger: 0.12, ease: 'back.out(2)' }, 1.25)
         const kick = root.querySelector('.nl-hero-kicker')
         if (kick) cascade(kick, intro, 0.55)
@@ -785,6 +792,23 @@ export default function NollurPage() {
         journeyNav = { master, track, lenis }
 
         const onJourney = (tr: Element, start: string): ScrollTrigger.Vars => ({ trigger: tr, containerAnimation: journeyTween, start })
+
+        /* the wordmark already rests with its foot tucked under the house's
+           soft-masked top edge (the CSS overlap); scrolling through the hero
+           sends it further down, behind the opaque photo, until it is gone. */
+        /* the sink has to finish EARLY: the hero panel is also sliding left as
+           the journey advances, and a slow sink spent fighting that sideways
+           motion reads as a messy half-hidden, half-shifted word rather than a
+           clean disappearance. Ending at -18% closes it while the panel has
+           barely moved. */
+        const heroPanelEl = root.querySelector<HTMLElement>('.nl-hero')
+        const heroWord = root.querySelector<HTMLElement>('.nl-hero-word')
+        if (heroPanelEl && heroWord) {
+          gsap.fromTo(heroWord, { yPercent: 0 }, {
+            yPercent: 130, ease: 'none',
+            scrollTrigger: { ...onJourney(heroPanelEl, 'left 0%'), end: 'left -18%', scrub: true },
+          })
+        }
 
         ScrollTrigger.create({
           ...onJourney(accItems[0], '0% 80%'),
@@ -948,6 +972,13 @@ export default function NollurPage() {
         })
       } else {
         heroIntro(false).timeScale(TS).play()
+        const heroWordM = root.querySelector<HTMLElement>('.nl-hero-word')
+        if (heroWordM) {
+          gsap.fromTo(heroWordM, { yPercent: 0 }, {
+            yPercent: 130, ease: 'none',
+            scrollTrigger: { trigger: root.querySelector('.nl-hero'), start: 'top top', end: 'bottom top', scrub: true },
+          })
+        }
         root.querySelectorAll('.nl-statement .nl-sline, .nl-barn-title, .nl-saga-title, .nl-cierre-word').forEach((el) => {
           const tl = gsap.timeline({ paused: true })
           cascade(el, tl, 0)
@@ -1142,17 +1173,14 @@ export default function NollurPage() {
                   </span>
                 </h1>
               </div>
-              <div>
-                <div className="nl-hero-waterline" />
-                <div className="nl-hero-band">
-                  <Media src={IMG.heroHouse} alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss, dahinter die Berge' : 'Hrafnabjörg from the drive: a glass box over shale and walnut, the mountains behind'} dir="up" eager />
-                  <div className="nl-hero-hotspots" aria-hidden="false">
-                    {HOTSPOTS.map((h) => (
-                      <button key={h.key} type="button" className={`nl-spot ${FOCUS}`} style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%` }} onClick={() => go('materials')} aria-label={t.hero.spot[h.key]}>
-                        <i /><span>{t.hero.spot[h.key]}</span>
-                      </button>
-                    ))}
-                  </div>
+              <div className="nl-hero-house">
+                <Media src={IMG.heroHouse} alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss, dahinter die Berge' : 'Hrafnabjörg from the drive: a glass box over shale and walnut, the mountains behind'} dir="up" eager />
+                <div className="nl-hero-hotspots" aria-hidden="false">
+                  {HOTSPOTS.map((h) => (
+                    <button key={h.key} type="button" className={`nl-spot ${FOCUS}`} style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%` }} onClick={() => go('materials')} aria-label={t.hero.spot[h.key]}>
+                      <i /><span>{t.hero.spot[h.key]}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
               <p className="nl-hero-sub">{t.hero.sub}</p>

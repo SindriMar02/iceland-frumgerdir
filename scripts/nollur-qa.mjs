@@ -38,7 +38,7 @@ report.h1 = await page.evaluate(() => {
   return { ariaLabel: h?.getAttribute('aria-label'), text: h?.textContent?.trim().slice(0, 40), lang: document.documentElement.lang, title: document.title }
 })
 report.hero = await page.evaluate(() => {
-  const band = document.querySelector('.nl-hero-band')
+  const band = document.querySelector('.nl-hero-house')
   const word = document.querySelector('.nl-hero-word')
   const r = band?.getBoundingClientRect(), w = word?.getBoundingClientRect()
   return { bandTop: Math.round(r?.top ?? -1), bandH: Math.round(r?.height ?? -1), wordTop: Math.round(w?.top ?? -1), wordBottom: Math.round(w?.bottom ?? -1), spots: document.querySelectorAll('.nl-spot').length }
