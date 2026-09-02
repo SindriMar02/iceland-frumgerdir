@@ -16,7 +16,10 @@
  */
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide, CardFigure, MaterialBands, type MaterialBand } from './kit'
+import {
+  Headline, Photo, Slide, CardFigure, MaterialBands, HorizontalChapter,
+  type MaterialBand, type HPanel,
+} from './kit'
 import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
@@ -35,6 +38,22 @@ const MATERIALS: ReadonlyArray<MaterialBand> = [
   { id: 'm-eik', name: 'Eik', hex: '#8E7054', alt: 'Eikarborð með opinni æð og sýnilegri sagaráferð', dark: true },
   { id: 'm-vinraut', name: 'Vínrautt', hex: '#8C3A34', alt: 'Vínrauður mattur lakkflötur með fíngerðri áferð', dark: true },
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
+]
+
+/** One from each kind of room she is asked for, travelling sideways. */
+const CHAPTER: ReadonlyArray<HPanel> = [
+  { id: 's-eldhus-vitt', title: 'Nýbyggt hús í Súluhöfða', meta: 'Heimili', to: projPath('nybyggt-hus-i-suluhofda'),
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+  { id: 'p-oldcharm-1', title: 'Old Charm Reykjavik', meta: 'Gistiheimili', to: projPath('old-charm-reykjavik-apartment'),
+    alt: 'Svefnherbergi undir upprunalegum timburbitum' },
+  { id: 'p-skuggahverfi-0', title: 'Eldhúsrými í Skuggahverfi', meta: 'Heimili', to: projPath('eldhusrymi-i-skuggahverfi'),
+    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
+  { id: 'p-svala-0', title: 'Svala Apartments', meta: 'Gistiheimili', to: projPath('svala-apartments'),
+    alt: 'Gestaherbergi með grænum vegg og listaverki af hesti' },
+  { id: 'p-tannlaeknar-0', title: 'Tannlæknastofan Garðatorgi', meta: 'Atvinnuhúsnæði', to: projPath('tannlaeknastofan-gardatorgi'),
+    alt: 'Móttaka tannlæknastofu með ljósum afgreiðsluborði' },
+  { id: 'p-alfheimar-0', title: 'Álfheimar', meta: 'Heimili', to: projPath('alfheimar'),
+    alt: 'Stofa með dökkum sófa og stóru listaverki á vegg' },
 ]
 const ORDER: CategorySlug[] = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
 const SHOWN = 6
@@ -105,6 +124,9 @@ export function Home() {
 
       {/* 02b · the same five colours, carried by the materials they came from */}
       <MaterialBands bands={MATERIALS} />
+
+      {/* 02c · one room of each kind, travelling sideways */}
+      <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
 
       {/* 03 · the overview, clustered by buyer type */}
       <section className="ki-wrap" id="verkefni" data-ki-band="dark">

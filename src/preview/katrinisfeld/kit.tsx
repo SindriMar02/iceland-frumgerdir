@@ -31,6 +31,7 @@
  *    data-lenis-prevent.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { PHOTO_DIMS } from './photo-dims'
 import { PHOTO_COLORS } from './photo-colors'
 
@@ -146,6 +147,58 @@ export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide'
     <figure className={`${cls} ${className}`} style={ratio ? { aspectRatio: ratio } : undefined}>
       <Photo id={id} alt={alt} sizes={sizes} priority={priority} />
     </figure>
+  )
+}
+
+/**
+ * A horizontal chapter: the page pins and the projects travel sideways.
+ *
+ * The pin only happens on a real pointer. On touch this is a native
+ * scroll-snap strip instead, because a scroll-jacked pin on a phone is the
+ * exact thing that got called "jittery and doesn't work well" on
+ * Sauðárkróksbakarí — the page holds still for a whole viewport and a
+ * visitor reads that as broken. Native horizontal scrolling on touch is
+ * both nicer and honest about what the finger is doing.
+ *
+ * The travel is written synchronously in the scroll handler with NO CSS
+ * transition on the transform: a transition on a value rewritten every
+ * scroll tick chases a moving target and smears.
+ */
+export interface HPanel {
+  id: string
+  title: string
+  meta: string
+  to: string
+  alt: string
+}
+
+export function HorizontalChapter({ eyebrow, panels }: {
+  eyebrow: string; panels: ReadonlyArray<HPanel>
+}) {
+  return (
+    <section className="ki-hs" data-ki-band="dark" data-ki-hscroll>
+      <div className="ki-hs-pin">
+        <div className="ki-hs-track">
+          <div className="ki-hs-intro">
+            <p className="ki-kicker">{eyebrow}</p>
+            <p className="ki-hs-count">
+              <span className="ki-num">{String(panels.length).padStart(2, '0')}</span> verk
+            </p>
+          </div>
+          {panels.map((p) => (
+            <article key={p.id} className="ki-hs-panel">
+              <Link to={p.to} className="ki-hs-fig">
+                <Photo id={p.id} alt={p.alt} sizes="(max-width: 860px) 86vw, 46vw" />
+              </Link>
+              <div className="ki-hs-meta">
+                <h3 className="ki-hs-title"><Link to={p.to}>{p.title}</Link></h3>
+                <p className="ki-hs-sub">{p.meta}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -275,6 +328,9 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       el: HTMLElement; kind: ParKind; words: HTMLElement[]
       start: number; end: number; em: number
     }> = []
+    /* horizontal chapters: pinned on a pointer, native scroll-snap on touch */
+    let hs: Array<{ track: HTMLElement; start: number; end: number; distance: number }> = []
+    const canPin = window.matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches
 
     const measure = () => {
       const sy = window.scrollY
@@ -324,6 +380,30 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
           em: spreads ? parseFloat(getComputedStyle(sizedFrom).fontSize) || 60 : 0,
         }
       })
+
+      /* A horizontal chapter buys its sideways travel with vertical scroll:
+         the section is made exactly as tall as the track overflows wide, so
+         the distance the page scrolls is the distance the track moves. */
+      hs = []
+      for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
+        const track = sec.querySelector<HTMLElement>('.ki-hs-track')
+        if (!track) continue
+        if (!canPin) { sec.style.height = ''; track.style.transform = ''; continue }
+        const distance = Math.max(0, track.scrollWidth - window.innerWidth)
+        sec.style.height = `${vh + distance}px`
+        const top = sec.getBoundingClientRect().top + sy
+        hs.push({ track, start: top, end: top + distance, distance })
+      }
+    }
+
+    const runHScroll = () => {
+      if (!hs.length) return
+      const sy = window.scrollY
+      for (const h of hs) {
+        const t = Math.min(1, Math.max(0, (sy - h.start) / (h.end - h.start || 1)))
+        // written raw, never through a transition — see the note on the component
+        h.track.style.transform = `translate3d(${(-t * h.distance).toFixed(2)}px, 0, 0)`
+      }
     }
 
     const runParallax = () => {
@@ -371,8 +451,11 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       if (navEl.dataset.kiCondensed !== want) navEl.dataset.kiCondensed = want
     }
 
-    const onFrame = () => { themeChrome(); sweepReveals(); runParallax(); condenseNav() }
-    const onFrameStill = () => { themeChrome(); sweepReveals(); condenseNav() }
+    const onFrame = () => { themeChrome(); sweepReveals(); runParallax(); runHScroll(); condenseNav() }
+    /* reduced motion keeps the horizontal chapter too: it is navigation, not
+       decoration, and the alternative is a track the visitor cannot reach.
+       What it loses is the parallax, which is the part that is decoration. */
+    const onFrameStill = () => { themeChrome(); sweepReveals(); runHScroll(); condenseNav() }
 
     let rafId = 0
     const onResize = () => {

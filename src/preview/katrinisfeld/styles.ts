@@ -258,6 +258,41 @@ export const CSS = `
 .ki-card a::after { content: ''; position: absolute; inset: 0; }
 .ki-card-cat { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; color: var(--ki-mute); white-space: nowrap; }
 
+/* ── the horizontal chapter ───────────────────────────────────────────── */
+/* Default is the TOUCH build: a native scroll-snap strip. The pinned version
+   is layered on only where there is a real pointer, because a scroll-jacked
+   pin on a phone reads as a page that has stopped working. */
+.ki-hs { position: relative; background: ${CHARCOAL}; }
+.ki-hs-pin { overflow: hidden; }
+.ki-hs-track {
+  display: flex; align-items: center; gap: calc(var(--u) * 34);
+  padding: calc(var(--u) * 54) calc(var(--u) * 34);
+  overflow-x: auto; scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.ki-hs-track::-webkit-scrollbar { display: none; }
+.ki-hs-intro { flex: 0 0 auto; align-self: flex-start; padding-top: calc(var(--u) * 10); }
+.ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: 10px 0 0; }
+.ki-hs-panel { flex: 0 0 86vw; scroll-snap-align: center; margin: 0; }
+.ki-hs-fig { display: block; overflow: hidden; background: rgb(0 0 0 / .2); }
+.ki-hs-fig picture, .ki-hs-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.ki-hs-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 14px; }
+.ki-hs-title { margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 19)}; }
+.ki-hs-title a { color: inherit; text-decoration: none; }
+.ki-hs-sub { margin: 0; font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; text-transform: uppercase; color: var(--ki-mute); white-space: nowrap; }
+
+@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
+  /* the section's height is written by the engine: viewport + how far the
+     track overflows, so vertical distance buys horizontal distance 1:1 */
+  .ki-hs-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; }
+  .ki-hs-track {
+    overflow: visible; scroll-snap-type: none; padding: 0 calc(var(--u) * 34);
+    gap: calc(var(--u) * 40); will-change: transform;
+  }
+  .ki-hs-panel { flex: 0 0 46vw; }
+  .ki-hs-intro { align-self: center; padding-right: calc(var(--u) * 20); }
+}
+
 /* ── material bands: the palette, carried by the material ─────────────── */
 .ki-mat { margin-top: calc(var(--u) * 56); }
 .ki-mat-band {
