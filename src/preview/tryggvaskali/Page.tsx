@@ -722,30 +722,112 @@ function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
         <span style={{ width: '1.5em', height: 1, background: C.cream, display: 'block' }} />
       </button>
 
-      <a
-        href="#top"
-        className="no-underline"
-        style={{
-          fontFamily: 'var(--ts-font-display)',
-          fontSize: '15px',
-          lineHeight: 1,
-          fontWeight: 500,
-          letterSpacing: '.14em',
-          textTransform: 'uppercase',
-          color: C.cream,
-        }}
-      >
-        {/* Wordmark: UNKNOWN — no client logo file published in usable
-            form (teardown 9.1). Set as a proper small logotype in the
-            display face (the reference's own header text is visually
-            hidden behind its crest image, text-indent:105%, so there is
-            no reference SIZE to match here) until a real mark is supplied. */}
-        Tryggvaskáli
-      </a>
+      {/* The wordmark itself now lives in <HeroWordmark> below: one element
+          that IS both the splash title and the header logotype, scroll-
+          docked into this row's centre. This empty middle is deliberate —
+          justify-between plus the spacer still balances the burger. */}
 
       {/* Spacer to balance the burger and keep the wordmark visually centred */}
       <span style={{ width: 48 }} aria-hidden />
     </header>
+  )
+}
+
+// ─── HERO WORDMARK (new, not in the reference): a large, clean, centred
+// splash title that docks smoothly into the header on scroll ─────────────
+// Paszkowski's own collapsed hero has no visible text at all (see the Hero
+// component's header comment: its brand presence is a crest image hidden
+// behind text-indent:105%). Sindri asked directly (2026-09-02) for
+// "TRYGGVASKÁLI... large clean wordmark centred and then slowly and
+// seamlessly move into header via scroll" with a smooth opening reveal.
+// One element plays both roles — the splash title AND the header logotype
+// — so there is never a swap or a cut: its font-size, vertical position and
+// letter-spacing are scroll-scrubbed from a big centred hero state into the
+// header's own resting slot. The docking target is MEASURED off the real
+// header at runtime (its fixed row never moves), so it can never drift out
+// of alignment with it.
+function HeroWordmark() {
+  const linkRef = useRef<HTMLAnchorElement>(null)
+
+  useEffect(() => {
+    const link = linkRef.current
+    const header = document.querySelector<HTMLElement>('.ts-header')
+    if (!link || !header) return
+
+    const mm = gsap.matchMedia()
+    mm.add(
+      { desktop: '(min-width: 768px)', mobile: '(max-width: 767px)' },
+      (context) => {
+        const { desktop } = context.conditions as { desktop: boolean }
+        const bigSize = desktop ? 120 : 40
+        const startTop = window.innerHeight * 0.4
+        const headerRect = header.getBoundingClientRect()
+        const dockTop = headerRect.top + headerRect.height / 2
+
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (reduced) {
+          // No splash, no scrub: land directly on the small, always-docked
+          // wordmark, exactly where the plain header version used to sit.
+          gsap.set(link, { fontSize: 15, top: dockTop, letterSpacing: '.14em', opacity: 1 })
+          return undefined
+        }
+
+        // Smooth opening reveal: rises and fades in once, on mount, before
+        // any scroll has happened.
+        gsap.fromTo(link, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1.1, delay: 0.15, ease: 'power2.out' })
+
+        // The dock itself: scrubbed to scroll position (via Lenis -> a
+        // ScrollTrigger.update on 'scroll', the same driver every other
+        // scrubbed device on this page already uses), not a fixed duration
+        // — "slowly and seamlessly" means it tracks the scrollbar, it does
+        // not play a timed animation.
+        const tween = gsap.fromTo(
+          link,
+          { fontSize: bigSize, top: startTop, letterSpacing: '.01em' },
+          {
+            fontSize: 15,
+            top: dockTop,
+            letterSpacing: '.14em',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: document.body,
+              start: 'top top',
+              end: () => '+=' + Math.round(window.innerHeight * 0.6),
+              scrub: true,
+            },
+          },
+        )
+        return () => {
+          tween.scrollTrigger?.kill()
+          tween.kill()
+        }
+      },
+    )
+
+    return () => mm.revert()
+  }, [])
+
+  return (
+    <a
+      ref={linkRef}
+      href="#top"
+      className="no-underline"
+      style={{
+        position: 'fixed',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 110,
+        opacity: 0,
+        fontFamily: 'var(--ts-font-display)',
+        lineHeight: 1,
+        fontWeight: 500,
+        textTransform: 'uppercase',
+        color: C.cream,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      Tryggvaskáli
+    </a>
   )
 }
 
@@ -944,54 +1026,59 @@ function Hero() {
           background: 'linear-gradient(to top, rgba(21,18,13,.88), rgba(21,18,13,.35) 60%, transparent)',
         }}
       >
-        <p
-          style={{
-            ...TYPE.legal,
-            color: C.cream,
-            opacity: 0.75,
-            margin: '0 0 .5em',
-            letterSpacing: '.16em',
-          }}
-        >
-          Síðan 1890 · Selfoss
-        </p>
-        <p
-          style={{
-            fontFamily: 'var(--ts-font-display)',
-            fontSize: 'clamp(20px, 2.6vw, 30px)',
-            lineHeight: 1.25,
-            fontWeight: 500,
-            color: C.cream,
-            maxWidth: '18em',
-            margin: '0 0 1.1em',
-          }}
-        >
-          Veitingastaður í elsta húsi Selfoss, við bakka Ölfusár.
-        </p>
-        <div className="flex flex-wrap items-center" style={{ gap: '1.2em' }}>
-          {/* The reference's own outlined-button device: transparent fill,
-              border in currentColor, squared corners, no-icon weight 300
-              (css/main.1.css .button--outlined/--squared/--no-icon). */}
-          <a
-            href={BOOKING.easyTableUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="no-underline"
+        {/* Smooth opening reveal, staggered just after the big wordmark's
+            own fade-in above (which starts at .15s, runs 1.1s). whileInView
+            fires immediately since this sits above the fold at mount. */}
+        <Reveal delay={0.5}>
+          <p
             style={{
-              ...TYPE.button,
+              ...TYPE.legal,
               color: C.cream,
-              border: `1px solid ${C.cream}`,
-              borderRadius: 0,
-              padding: '.9em 1.6em',
-              display: 'inline-block',
+              opacity: 0.75,
+              margin: '0 0 .5em',
+              letterSpacing: '.16em',
             }}
           >
-            Bóka borð
-          </a>
-          <a href={`tel:${BOOKING.tel}`} className="no-underline" style={{ ...TYPE.button, color: C.cream, opacity: 0.85 }}>
-            Sími {BOOKING.telDisplay}
-          </a>
-        </div>
+            Síðan 1890 · Selfoss
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--ts-font-display)',
+              fontSize: 'clamp(20px, 2.6vw, 30px)',
+              lineHeight: 1.25,
+              fontWeight: 500,
+              color: C.cream,
+              maxWidth: '18em',
+              margin: '0 0 1.1em',
+            }}
+          >
+            Veitingastaður í elsta húsi Selfoss, við bakka Ölfusár.
+          </p>
+          <div className="flex flex-wrap items-center" style={{ gap: '1.2em' }}>
+            {/* The reference's own outlined-button device: transparent fill,
+                border in currentColor, squared corners, no-icon weight 300
+                (css/main.1.css .button--outlined/--squared/--no-icon). */}
+            <a
+              href={BOOKING.easyTableUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="no-underline"
+              style={{
+                ...TYPE.button,
+                color: C.cream,
+                border: `1px solid ${C.cream}`,
+                borderRadius: 0,
+                padding: '.9em 1.6em',
+                display: 'inline-block',
+              }}
+            >
+              Bóka borð
+            </a>
+            <a href={`tel:${BOOKING.tel}`} className="no-underline" style={{ ...TYPE.button, color: C.cream, opacity: 0.85 }}>
+              Sími {BOOKING.telDisplay}
+            </a>
+          </div>
+        </Reveal>
       </div>
     </div>
   )
@@ -2444,6 +2531,7 @@ export default function Page() {
       <PreviewChrome company={company} />
 
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <HeroWordmark />
       <OffCanvasMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <main id="page-content">
