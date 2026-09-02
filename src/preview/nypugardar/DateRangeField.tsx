@@ -302,25 +302,37 @@ export default function DateRangeField({
         </Popover>
       </DateRangePicker>
 
-      {/* Popover entrance: 180ms ease-out from 98% + fade; exit instant-fast.
+      {/* Popover entrance: 180ms ease-out from 98% + fade; exit faster.
+        * TRANSITIONS, not keyframes: a popover the guest can open and close
+        * twice in a second must retarget from wherever it is, and a keyframe
+        * restarts from zero. @starting-style is the entry state; react-aria
+        * keeps [data-exiting] on the element until the transition ends.
+        * The panel scales from its edge nearest the trigger, not from its
+        * centre: it is anchored to the field it came out of.
         * Written as a plain style tag with prefixed selectors so nothing
         * leaks into the other previews sharing this app. */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
-.nyp-cal-pop[data-entering] { animation: nypCalIn 0.18s ${EASE}; }
-/* ease-OUT on the way out too. ease-in delays the frames the user is watching
- * hardest — the moment they clicked to dismiss — and reads as the panel
- * sticking to the cursor before it goes. */
-.nyp-cal-pop[data-exiting] { animation: nypCalOut 0.12s ${EASE} forwards; }
-@keyframes nypCalIn { from { opacity: 0; transform: scale(0.98) translateY(-4px); } }
-@keyframes nypCalOut { to { opacity: 0; } }
+.nyp-cal-pop {
+  opacity: 1;
+  transform: none;
+  transform-origin: top;
+  transition: opacity 0.18s ${EASE}, transform 0.18s ${EASE};
+}
+.nyp-cal-pop[data-placement="top"] { transform-origin: bottom; }
+@starting-style {
+  .nyp-cal-pop { opacity: 0; transform: scale(0.98) translateY(-4px); }
+  .nyp-cal-pop[data-placement="top"] { transform: scale(0.98) translateY(4px); }
+}
+/* ease-OUT on the way out too, and quicker: the frames the user watches
+ * hardest are the ones right after they clicked to dismiss. */
+.nyp-cal-pop[data-exiting] { opacity: 0; transition-duration: 0.12s; }
 @media (prefers-reduced-motion: reduce) {
   /* Gentler, not gone: the scale and the lift go, a short fade stays so the
    * panel still reads as arriving and leaving rather than blinking. */
-  .nyp-cal-pop[data-entering] { animation: nypCalFade 0.12s linear; }
-  .nyp-cal-pop[data-exiting] { animation: nypCalOut 0.12s linear forwards; }
-  @keyframes nypCalFade { from { opacity: 0; } }
+  .nyp-cal-pop { transition: opacity 0.12s linear; }
+  @starting-style { .nyp-cal-pop, .nyp-cal-pop[data-placement="top"] { transform: none; } }
 }
 `,
         }}

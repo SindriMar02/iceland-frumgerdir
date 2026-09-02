@@ -196,6 +196,8 @@ const en = {
     written: 'written reviews',
     prevSet: 'Previous reviews',
     nextSet: 'Next reviews',
+    pause: 'Pause the reviews',
+    resume: 'Resume the reviews',
     guestReviewOn: 'guest review on Booking.com',
   },
 
@@ -466,6 +468,8 @@ const is: typeof en = {
     written: 'skrifuðum umsögnum',
     prevSet: 'Fyrri umsagnir',
     nextSet: 'Næstu umsagnir',
+    pause: 'Stöðva umsagnirnar',
+    resume: 'Halda áfram með umsagnirnar',
     guestReviewOn: 'umsögn gests á Booking.com',
   },
 

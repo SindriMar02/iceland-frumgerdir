@@ -32,7 +32,9 @@ import {
   Footprints,
   Mail,
   MapPin,
+  Pause,
   Phone,
+  Play,
   SquareParking,
   Sparkles,
   UtensilsCrossed,
@@ -499,6 +501,7 @@ export function ClipImg({
   imgClassName = "",
   zoom = false,
   hover = false,
+  observe,
 }: {
   photo: Photo;
   /** What width this tile actually renders at, per breakpoint. */
@@ -516,6 +519,14 @@ export function ClipImg({
   /** Answer the cursor with a slow swell. Implied by zoom; set explicitly for
    *  a tile that is a link rather than a lightbox. */
   hover?: boolean;
+  /** Reveal when THIS element enters the viewport instead of the tile
+   *  itself. The room strip passes its scroller: every card in it opens
+   *  together, staggered, as the strip arrives, and a card the guest then
+   *  drags into view is already a finished photograph. Measured before this
+   *  existed: a card pulled in by four arrow clicks entered at 491 ms and was
+   *  still clipped at 1.6 s. A gesture the guest makes must never be
+   *  answered with an empty frame. */
+  observe?: { current: HTMLElement | null };
 }) {
   const reduced = useReducedMotion() ?? false;
   const ref = useRef<HTMLElement>(null);
@@ -568,7 +579,7 @@ export function ClipImg({
 
   useEffect(() => {
     if (reduced) return;
-    const el = ref.current;
+    const el = observe?.current ?? ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     if (r.top < window.innerHeight * 0.92 && r.bottom > 0) {
@@ -592,7 +603,8 @@ export function ClipImg({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [reduced]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduced, observe]);
 
   /* Belt and braces: a tile must never stay hidden because a decode never
      settled. If it has been in view for a second and a half, reveal it. */
@@ -615,13 +627,16 @@ export function ClipImg({
             reduced || !armed
               ? undefined
               : {
-                  /* Three layers settle at three speeds: the wipe leads, the
-                     zoom trails it, and the light arrives last — the image
-                     lands like dusk settling rather than a shutter opening. */
+                  /* Two layers settle at two speeds: the wipe leads and the
+                     zoom trails it, so the image lands like dusk settling
+                     rather than a shutter opening. A third, brightness, used
+                     to ride along; filter is the one property here that is
+                     neither transform nor opacity, and on the rooms page it
+                     was animating on 43 photographs at once. The other two
+                     carry the reveal on their own. */
                   clipPath: on ? "inset(0 0 0 0)" : "inset(0 0 100% 0)",
                   transform: on ? "scale(1) translateY(0)" : "scale(1.07) translateY(1.5%)",
-                  filter: on ? "brightness(1)" : "brightness(1.14)",
-                  transition: `clip-path 1.15s ${EASE_SOFT} ${delay}ms, transform 1.6s ${EASE_SOFT} ${delay}ms, filter 1.6s ${EASE_SOFT} ${delay}ms`,
+                  transition: `clip-path 1.15s ${EASE_SOFT} ${delay}ms, transform 1.6s ${EASE_SOFT} ${delay}ms`,
                 }
           }
         />
@@ -632,7 +647,7 @@ export function ClipImg({
    * hover lives one wrapper up. */
   const framed =
     zoom || hover ? (
-      <div className="h-full w-full transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+      <div className="h-full w-full transition-transform duration-[420ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100">
         {img}
       </div>
     ) : (
@@ -665,6 +680,15 @@ export function ClipImg({
 /* ── Eyebrow — carries the evening-arc signature: mono label tinted by the sky
  * (--skyink) + a thin rule that fills as the section passes the viewport
  * centre band. --rule is written raw per frame in the single scroll callback. */
+/** The two leaves the scroll callback writes to directly: the fill span gets
+ *  its transform, the label span gets its ink. Never a CSS variable on an
+ *  ancestor; see the note in the scroll callback. */
+export type EyebrowRefs = { fill: HTMLSpanElement; label: HTMLSpanElement };
+
+/** How far the rule has filled for an element at this viewport position. */
+export const ruleProgress = (top: number, vh: number) =>
+  clamp01((vh * 0.86 - top) / (vh * 0.52)).toFixed(4);
+
 export function Eyebrow({
   label,
   register,
@@ -672,42 +696,39 @@ export function Eyebrow({
   className = "",
 }: {
   label: string;
-  register: (el: HTMLSpanElement) => () => void;
+  register: (refs: EyebrowRefs) => () => void;
   reduced: boolean;
   className?: string;
 }) {
-  const ref = useRef<HTMLSpanElement>(null);
+  const fillRef = useRef<HTMLSpanElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
   useIsoLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const fill = fillRef.current;
+    const labelEl = labelRef.current;
+    if (!fill || !labelEl) return;
     /* The rule renders full in the markup (no JavaScript, no scroll, a
        finished rule) and is set to its true scroll position here, before
        paint, so it never flashes from full to empty on load. */
     if (!reduced) {
       const vh = window.innerHeight || 800;
-      const r = el.getBoundingClientRect();
-      el.style.setProperty(
-        "--rule",
-        clamp01((vh * 0.86 - r.top) / (vh * 0.52)).toFixed(4),
-      );
+      fill.style.transform = `scaleX(${ruleProgress(fill.getBoundingClientRect().top, vh)})`;
     }
-    return register(el);
+    return register({ fill, label: labelEl });
   }, [register, reduced]);
   return (
     <span className={`block ${className}`}>
       <span
+        ref={labelRef}
         className="font-mono text-[11px] uppercase tracking-[0.24em]"
-        style={{ color: "var(--skyink, #B9CBD6)" }}
+        style={{ color: "#B9CBD6" }}
       >
         {label}
       </span>
-      <span
-        ref={ref}
-        className="mt-2.5 block h-[2px] w-28 rounded-full bg-[#F4EEE2]/15"
-      >
+      <span className="mt-2.5 block h-[2px] w-28 rounded-full bg-[#F4EEE2]/15">
         <span
+          ref={fillRef}
           className="block h-full w-full origin-left rounded-full bg-[#D97D3D]"
-          style={{ transform: "scaleX(var(--rule, 1))" }}
+          style={{ transform: "scaleX(1)" }}
         />
       </span>
     </span>
@@ -968,6 +989,11 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
   const [full, setFull] = useState<ReviewFile | null>(null)
   const [page, setPage] = useState(0)
   const [held, setHeld] = useState(false)
+  /* An explicit stop. Hover and focus already hold the timer, but content
+   * that changes itself every seven seconds needs a control a reader can
+   * SEE, and a screen-reader user hearing the live region turn over needs
+   * one they can press. */
+  const [paused, setPaused] = useState(false)
   /* false for exactly one frame after the quotes change: the stage dips, then
    * transitions back. Interrupting mid-dip retargets instead of restarting. */
   const [settled, setSettled] = useState(true)
@@ -1034,10 +1060,10 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
   const pages = Math.ceil(pool.length / PER_PAGE)
 
   useEffect(() => {
-    if (reduced || held || pages < 2) return
+    if (reduced || held || paused || pages < 2) return
     const id = window.setInterval(() => setPage((p) => (p + 1) % pages), 7000)
     return () => window.clearInterval(id)
-  }, [reduced, held, pages])
+  }, [reduced, held, paused, pages])
 
   const start = page * PER_PAGE
   const shown = pool.slice(start, start + PER_PAGE)
@@ -1131,6 +1157,22 @@ function QuoteRotator({ reduced, t }: { reduced: boolean; t: (typeof COPY)['en']
                 aria-hidden="true"
               />
             </button>
+            {reduced ? null : (
+              <button
+                type="button"
+                onClick={() => setPaused((p) => !p)}
+                aria-pressed={paused}
+                aria-label={paused ? t.reviews.resume : t.reviews.pause}
+                className={`grid h-11 w-11 place-items-center border transition-[transform,border-color] duration-[160ms] ease-out hover:border-[#F4EEE2]/45 active:scale-[0.97] motion-reduce:active:scale-100 md:h-9 md:w-9 ${FOCUS}`}
+                style={{ borderColor: HAIR, color: PAPER }}
+              >
+                {paused ? (
+                  <Play className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                ) : (
+                  <Pause className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                )}
+              </button>
+            )}
           </div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/60 tabular-nums">
             {start + 1}-{Math.min(start + PER_PAGE, pool.length)} {t.reviews.of}{' '}
@@ -1179,7 +1221,15 @@ function RoomStrip({
   const hintId = useId();
   const [at, setAt] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const drag = useRef<{
+    x: number;
+    left: number;
+    moved: boolean;
+    /** Last sample, for the release velocity (px per ms). */
+    lastX: number;
+    lastT: number;
+    v: number;
+  } | null>(null);
   const swallow = useRef(false);
 
   const cards = ROOM_ORDER.map((k) => ({
@@ -1226,7 +1276,14 @@ function RoomStrip({
     if (e.pointerType !== "mouse" || e.button !== 0) return;
     const el = ref.current;
     if (!el) return;
-    drag.current = { x: e.clientX, left: el.scrollLeft, moved: false };
+    drag.current = {
+      x: e.clientX,
+      left: el.scrollLeft,
+      moved: false,
+      lastX: e.clientX,
+      lastT: performance.now(),
+      v: 0,
+    };
     setDragging(true);
     const move = (ev: { clientX: number }) => {
       const d = drag.current;
@@ -1234,11 +1291,23 @@ function RoomStrip({
       const dx = ev.clientX - d.x;
       if (Math.abs(dx) > 6) d.moved = true;
       el.scrollLeft = d.left - dx;
+      const now = performance.now();
+      const dt = now - d.lastT;
+      if (dt > 0) d.v = (ev.clientX - d.lastX) / dt;
+      d.lastX = ev.clientX;
+      d.lastT = now;
     };
     const up = () => {
-      swallow.current = drag.current?.moved ?? false;
+      const d = drag.current;
+      swallow.current = d?.moved ?? false;
+      const v = d?.v ?? 0;
       drag.current = null;
       setDragging(false);
+      /* A flick carries. The strip keeps moving in proportion to the release
+         velocity and the snap catches it at the end, which is what a finger
+         gets from the browser for free and a mouse otherwise never does. */
+      if (Math.abs(v) > 0.25)
+        el.scrollBy({ left: -v * 180, behavior: reduced ? "auto" : "smooth" });
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
@@ -1292,8 +1361,9 @@ function RoomStrip({
                   sizes="(min-width: 1024px) 262px, (min-width: 768px) 30vw, (min-width: 640px) 42vw, 70vw"
                   alt={photoAlt(c.photo, t, lang)}
                   aspect="aspect-[3/4]"
-                  delay={Math.min(i, 3) * 60}
+                  delay={i * 60}
                   hover
+                  observe={ref}
                 />
               ) : null}
             </Link>
@@ -1422,7 +1492,9 @@ export default function Page() {
   /* The hero's picture (still and film together). Written to directly from
      the scroll callback for the parallax: no React state per frame. */
   const heroMediaRef = useRef<HTMLDivElement>(null);
-  const rules = useRef(new Set<HTMLSpanElement>());
+  /* The fixed sky band; its gradient colour is written directly per frame. */
+  const skyRef = useRef<HTMLDivElement>(null);
+  const rules = useRef(new Set<EyebrowRefs>());
   /* The hero's entrance: static in the markup, hidden before first paint,
      shown a beat later. See useIsoLayoutEffect for why not a mount flag. */
   const [heroPhase, setHeroPhase] = useState<Phase>("static");
@@ -1486,10 +1558,10 @@ export default function Page() {
     };
   }, [menuOpen]);
 
-  const register = useCallback((el: HTMLSpanElement) => {
-    rules.current.add(el);
+  const register = useCallback((refs: EyebrowRefs) => {
+    rules.current.add(refs);
     return () => {
-      rules.current.delete(el);
+      rules.current.delete(refs);
     };
   }, []);
 
@@ -1507,7 +1579,11 @@ export default function Page() {
         if (lenis) {
           /* Negative offset clears the fixed nav so the section heading is not
            * left sitting underneath it on arrival. */
-          lenis.scrollTo(target, { offset: -navHeight, duration: 1.2 });
+          /* 0.9 s, not 1.2: a nav click is a request, and the travel is the
+             answer. Long enough to read as movement across the page, short
+             enough that the heading is under the cursor before the eye asks
+             where it went. */
+          lenis.scrollTo(target, { offset: -navHeight, duration: 0.9 });
         } else {
           window.scrollTo({
             top: target.getBoundingClientRect().top + window.scrollY - navHeight,
@@ -1534,11 +1610,19 @@ export default function Page() {
       setPastHero(past);
     }
     if (reduced) return;
-    const root = rootRef.current;
-    if (!root) return;
-    root.style.setProperty("--sky", atStops(SKY_STOPS, v));
-    root.style.setProperty("--skyink", atStops(INK_STOPS, v));
     const vh = window.innerHeight || 800;
+    /* DIRECT WRITES ON THE LEAVES, never a custom property on an ancestor.
+       The first version set --sky and --skyink on the page root and --rule
+       on each eyebrow every scroll frame, and a variable changed on the root
+       invalidates the style of every element under it. Measured on the live
+       page over a 5.6 s wheel scroll: 723 style recalcs costing 961 ms,
+       against 340 recalcs costing 28 ms with those writes stubbed. The same
+       three colours and one transform, written straight onto the sky band,
+       the label spans and the fill spans, cost the browser only those
+       elements. */
+    if (skyRef.current)
+      skyRef.current.style.backgroundImage = `linear-gradient(to bottom, ${atStops(SKY_STOPS, v)}, transparent)`;
+    const ink = atStops(INK_STOPS, v);
     /* Parallax on the hero picture only: it scrolls at 78% of the page, so
        the plain and the ice sink away under the heading a shade more slowly
        than the words leave. The exposed strip this opens at the top of the
@@ -1550,12 +1634,9 @@ export default function Page() {
       if (y < vh * 1.3)
         media.style.transform = `translate3d(0, ${(Math.min(y, vh) * 0.22).toFixed(1)}px, 0)`;
     }
-    rules.current.forEach((el) => {
-      const r = el.getBoundingClientRect();
-      el.style.setProperty(
-        "--rule",
-        clamp01((vh * 0.86 - r.top) / (vh * 0.52)).toFixed(4),
-      );
+    rules.current.forEach(({ fill, label }) => {
+      fill.style.transform = `scaleX(${ruleProgress(fill.getBoundingClientRect().top, vh)})`;
+      label.style.color = ink;
     });
   });
 
@@ -1662,13 +1743,7 @@ export default function Page() {
       ref={rootRef}
       lang={lang}
       className="min-h-screen overflow-x-clip font-supreme text-[#F4EEE2] antialiased"
-      style={
-        {
-          background: GROUND,
-          "--sky": "#DCE4E6",
-          "--skyink": "#B9CBD6",
-        } as CSSProperties
-      }
+      style={{ background: GROUND }}
     >
       {PreviewShell ? (
         <Suspense fallback={null}>
@@ -1680,10 +1755,11 @@ export default function Page() {
        * IS the evening: daylight blue at the top of the page, ember by dinner,
        * and exactly the ground colour by the final CTA, so it melts into night. */}
       <div
+        ref={skyRef}
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[44vh]"
         style={{
-          background: "linear-gradient(to bottom, var(--sky), transparent)",
+          backgroundImage: "linear-gradient(to bottom, #DCE4E6, transparent)",
           opacity: 0.32,
         }}
       />
