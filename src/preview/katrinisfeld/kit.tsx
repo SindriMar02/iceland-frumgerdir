@@ -161,25 +161,36 @@ export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide'
  * way to ship something that measures 2:1 in the bright corner, so there is
  * a real gradient under the text and the contrast is measured, not hoped for.
  */
-export function StatementOverlay({ id, alt, lines, sub }: {
-  id: string; alt: string; lines: ReadonlyArray<string>; sub: string
+export interface StatementWord {
+  /** the word */
+  t: string
+  /** left offset as a percentage of the frame, measured off the reference */
+  x: number
+  /** top offset as a percentage of the frame */
+  y: number
+}
+
+export function StatementOverlay({ id, alt, words, sub }: {
+  id: string; alt: string; words: ReadonlyArray<StatementWord>; sub: string
 }) {
   return (
     <section className="ki-stmt" data-ki-band="dark">
       <Photo id={id} alt={alt} sizes="100vw" />
       <div className="ki-stmt-scrim" aria-hidden="true" />
-      <div className="ki-stmt-in">
-        {/* .ki-rv here is only the trigger — the sweep already watches for it,
-            so the masks below need no new selector in the engine */}
-        <p className="ki-stmt-lines ki-rv">
-          {lines.map((l, i) => (
-            <span key={l} className="ki-stmt-line" style={{ ['--s' as string]: i }}>
-              <i>{l}</i>
-            </span>
-          ))}
-        </p>
-        <p className="ki-stmt-sub">{sub}</p>
-      </div>
+      {/* .ki-rv is only the trigger — the sweep already watches for it */}
+      <p className="ki-stmt-words ki-rv" aria-label={words.map((w) => w.t).join(' ')}>
+        {words.map((w, i) => (
+          <span
+            key={w.t + i}
+            className="ki-stmt-word"
+            style={{ left: `${w.x}%`, top: `${w.y}%`, ['--s' as string]: i }}
+            aria-hidden="true"
+          >
+            <i>{w.t}</i>
+          </span>
+        ))}
+      </p>
+      <p className="ki-stmt-sub">{sub}</p>
     </section>
   )
 }
@@ -204,11 +215,38 @@ export interface HPanel {
   meta: string
   to: string
   alt: string
+  /** a full-bleed slab: the whole viewport is the photograph, with one chip */
+  bleed?: boolean
 }
 
+/**
+ * The horizontal journey, on the Búðir engine.
+ *
+ * The first version of this was a row of equal cards that slid sideways, and
+ * it was correctly called out: sliding a contact sheet is not a journey. The
+ * three devices that make the Búðir version read as one are all here, with
+ * that build's own measured values:
+ *
+ *  1. FULL-BLEED SLABS between the cards. Búðir alternates panels with
+ *     100vw × 100svh photographs carrying a single corner chip (kicker +
+ *     roman numeral), so the eye gets a horizon between groups instead of a
+ *     uniform rhythm of thumbnails.
+ *  2. THE PEEL. A panel does not fade in — it is uncovered. Búðir animates a
+ *     clip-path inset and NEVER a transform, because both layers are the same
+ *     photograph and a translate just slides a duplicate away. Scrubbed
+ *     across the band [left − 0.88·vw, left − 0.42·vw]: the reveal happens
+ *     while the panel crosses the right-hand two thirds of the screen.
+ *  3. INNER COUNTER-PARALLAX. The photograph inside each frame runs
+ *     xPercent +7.5 → −7.5 at a constant scale 1.16 while the frame travels
+ *     the other way, so the image looks into the frame rather than riding it.
+ *
+ * All three are driven off the same scroll arithmetic the rest of this site
+ * uses — no GSAP, no containerAnimation, no Lenis.
+ */
 export function HorizontalChapter({ eyebrow, panels }: {
   eyebrow: string; panels: ReadonlyArray<HPanel>
 }) {
+  let bleedNo = 0
   return (
     <section className="ki-hs" data-ki-band="dark" data-ki-hscroll>
       <div className="ki-hs-pin">
@@ -219,19 +257,45 @@ export function HorizontalChapter({ eyebrow, panels }: {
               <span className="ki-num">{String(panels.length).padStart(2, '0')}</span> verk
             </p>
           </div>
-          {panels.map((p) => (
-            <article key={p.id} className="ki-hs-panel">
-              <Link to={p.to} className="ki-hs-fig">
-                <Photo id={p.id} alt={p.alt} sizes="(max-width: 860px) 86vw, 46vw" />
-              </Link>
-              <div className="ki-hs-meta">
-                <h3 className="ki-hs-title"><Link to={p.to}>{p.title}</Link></h3>
-                <p className="ki-hs-sub">{p.meta}</p>
-              </div>
-            </article>
-          ))}
+          {panels.map((p, i) => {
+            if (p.bleed) bleedNo++
+            return (
+              <article
+                key={p.id + i}
+                className={`ki-hs-panel ${p.bleed ? 'is-bleed' : ''}`}
+                data-ki-hpanel
+              >
+                <Link to={p.to} className="ki-hs-fig">
+                  <span className="ki-hs-img" data-ki-hpar>
+                    <Photo
+                      id={p.id}
+                      alt={p.alt}
+                      sizes={p.bleed ? '100vw' : '(max-width: 860px) 86vw, 46vw'}
+                    />
+                  </span>
+                </Link>
+                {p.bleed ? (
+                  <div className="ki-hs-chip">
+                    <p className="ki-kicker">{p.meta}</p>
+                    <h3 className="ki-hs-chip-title"><Link to={p.to}>{p.title}</Link></h3>
+                    <span className="ki-hs-chip-no" aria-hidden="true">
+                      {['I', 'II', 'III', 'IV', 'V'][bleedNo - 1] ?? bleedNo}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="ki-hs-meta">
+                    <h3 className="ki-hs-title"><Link to={p.to}>{p.title}</Link></h3>
+                    <p className="ki-hs-sub">{p.meta}</p>
+                  </div>
+                )}
+              </article>
+            )
+          })}
         </div>
       </div>
+      {/* the journey's own progress, the way Búðir scales a bar off the
+          master tween's progress rather than off page scroll */}
+      <div className="ki-hs-prog" aria-hidden="true"><i /></div>
     </section>
   )
 }
@@ -264,12 +328,30 @@ export interface MaterialBand {
   dark?: boolean
 }
 
+/**
+ * ON A POINTER THIS IS AN ACCORDION, the 21st.dev image-gallery device: the
+ * five materials stand side by side as columns, and the one under the cursor
+ * grows while its neighbours give way, over 500ms. Two changes from the
+ * reference, both forced by what this content is rather than by taste:
+ *
+ *   · the reference expands the hovered panel to w-full, which crushes the
+ *     others to a sliver. These are a PALETTE — all five have to stay legible
+ *     as colour even while one is open — so it is a flex ratio (1 → 3.4)
+ *     instead, and the four resting columns keep real width.
+ *   · the reference reveals the title only on hover. Here the material's name
+ *     is the content, so the name never hides; what the expansion buys is the
+ *     hex and the full still-life, which a narrow column crops away.
+ *
+ * On touch it stays the stacked strip it already was. An accordion driven by
+ * hover is unreachable without a pointer, and making it tap-to-open turns a
+ * palette into a widget people have to learn.
+ */
 export function MaterialBands({ bands }: { bands: ReadonlyArray<MaterialBand> }) {
   return (
     <div className="ki-mat">
       {bands.map((b) => (
-        <figure key={b.id} className={`ki-mat-band ki-rv ${b.dark ? 'is-dark' : ''}`}>
-          <Photo id={b.id} alt={b.alt} sizes="100vw" />
+        <figure key={b.id} className={`ki-mat-band ki-rv ${b.dark ? 'is-dark' : ''}`} tabIndex={0}>
+          <Photo id={b.id} alt={b.alt} sizes="(max-width: 860px) 100vw, 60vw" />
           <figcaption className="ki-mat-name">
             <span>{b.name}</span>
             <span className="ki-mat-hex" aria-hidden="true">{b.hex.toUpperCase()}</span>
@@ -363,8 +445,13 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       start: number; end: number; em: number
     }> = []
     /* horizontal chapters: pinned on a pointer, native scroll-snap on touch */
-    let hs: Array<{ track: HTMLElement; start: number; end: number; distance: number }> = []
+    let hs: Array<{
+      track: HTMLElement; start: number; end: number; distance: number
+      prog: HTMLElement | null
+      frames: Array<{ img: HTMLElement; left: number; width: number }>
+    }> = []
     const canPin = window.matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches
+    const motion = !reduced()
 
     const measure = () => {
       const sy = window.scrollY
@@ -422,21 +509,69 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
         const track = sec.querySelector<HTMLElement>('.ki-hs-track')
         if (!track) continue
-        if (!canPin) { sec.style.height = ''; track.style.transform = ''; continue }
+        if (!canPin) {
+          sec.style.height = ''; track.style.transform = ''
+          // leave nothing clipped or offset behind on the touch build
+          for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
+            el.style.transform = ''
+          }
+          continue
+        }
         const distance = Math.max(0, track.scrollWidth - window.innerWidth)
         sec.style.height = `${vh + distance}px`
         const top = sec.getBoundingClientRect().top + sy
-        hs.push({ track, start: top, end: top + distance, distance })
+        /* Each panel's offset INSIDE the track, measured once. offsetLeft is
+           relative to the track's padding box and so is unaffected by the
+           translate that is about to be written to it — reading a rect here
+           would fold the current scroll position into the constant. */
+        const frames: Array<{ img: HTMLElement; left: number; width: number }> = []
+        for (const panel of Array.from(track.querySelectorAll<HTMLElement>('[data-ki-hpanel]'))) {
+          const img = panel.querySelector<HTMLElement>('[data-ki-hpar]')
+          if (img) frames.push({ img, left: panel.offsetLeft, width: panel.offsetWidth })
+        }
+        hs.push({
+          track, start: top, end: top + distance, distance, frames,
+          prog: sec.querySelector<HTMLElement>('.ki-hs-prog > i'),
+        })
       }
     }
 
     const runHScroll = () => {
       if (!hs.length) return
       const sy = window.scrollY
+      const vw = window.innerWidth
       for (const h of hs) {
         const t = Math.min(1, Math.max(0, (sy - h.start) / (h.end - h.start || 1)))
+        const shift = -t * h.distance
         // written raw, never through a transition — see the note on the component
-        h.track.style.transform = `translate3d(${(-t * h.distance).toFixed(2)}px, 0, 0)`
+        h.track.style.transform = `translate3d(${shift.toFixed(2)}px, 0, 0)`
+        if (h.prog) h.prog.style.transform = `scaleX(${t.toFixed(4)})`
+
+        /* The track still travels under reduced motion — the chapter is
+           navigation, and a strip nobody can reach is worse than a moving
+           one. The peel and the counter-move are the decorative half, so
+           they are the half that stops. */
+        if (!motion) continue
+
+        for (const f of h.frames) {
+          const x = f.left + shift // the panel's left edge, in viewport coords
+
+          /* NO PEEL. Búðir's clip-wipe reveal was transplanted here and then
+             taken back out: on a track that is ALREADY moving sideways, a
+             panel that is also being uncovered left-to-right just looks like
+             a photograph that has half loaded. The wipe works there because
+             those panels arrive at rest; here the horizontal travel is the
+             reveal, and stacking a second one on top of it read as broken
+             rather than as motion.
+
+             INNER COUNTER-PARALLAX stays — xPercent +7.5 → −7.5 at a constant
+             scale 1.16 across the panel's passage through view. It never
+             exposes an edge (that is what the scale is for) so it reads as
+             depth rather than as an unfinished image. */
+          const q = (x + f.width) / (vw + f.width) // 1 entering right, 0 leaving left
+          const px = (q - 0.5) * 15
+          f.img.style.transform = `translate3d(${px.toFixed(2)}%, 0, 0) scale(1.16)`
+        }
       }
     }
 

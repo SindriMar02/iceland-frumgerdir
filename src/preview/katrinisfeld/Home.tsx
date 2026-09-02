@@ -41,19 +41,27 @@ const MATERIALS: ReadonlyArray<MaterialBand> = [
 ]
 
 /** One from each kind of room she is asked for, travelling sideways. */
+/* One from each kind of room she is asked for, travelling sideways — but
+   grouped the way Búðir groups its journey rather than run out as an even
+   row of cards. Every third stop is a FULL-BLEED slab: the whole viewport
+   becomes one photograph with a single corner chip, so the eye gets a
+   horizon between the groups instead of a metronome of equal thumbnails.
+   Slabs take the widest, most spatial shots; the cards take the details. */
 const CHAPTER: ReadonlyArray<HPanel> = [
   { id: 's-eldhus-vitt', title: 'Nýbyggt hús í Súluhöfða', meta: 'Heimili', to: projPath('nybyggt-hus-i-suluhofda'),
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn', bleed: true },
   { id: 'p-oldcharm-1', title: 'Old Charm Reykjavik', meta: 'Gistiheimili', to: projPath('old-charm-reykjavik-apartment'),
     alt: 'Svefnherbergi undir upprunalegum timburbitum' },
   { id: 'p-skuggahverfi-0', title: 'Eldhúsrými í Skuggahverfi', meta: 'Heimili', to: projPath('eldhusrymi-i-skuggahverfi'),
     alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
+  { id: 'p-alfheimar-0', title: 'Álfheimar', meta: 'Heimili', to: projPath('alfheimar'),
+    alt: 'Stofa með dökkum sófa og stóru listaverki á vegg', bleed: true },
   { id: 'p-svala-0', title: 'Svala Apartments', meta: 'Gistiheimili', to: projPath('svala-apartments'),
     alt: 'Gestaherbergi með grænum vegg og listaverki af hesti' },
   { id: 'p-tannlaeknar-0', title: 'Tannlæknastofan Garðatorgi', meta: 'Atvinnuhúsnæði', to: projPath('tannlaeknastofan-gardatorgi'),
     alt: 'Móttaka tannlæknastofu með ljósum afgreiðsluborði' },
-  { id: 'p-alfheimar-0', title: 'Álfheimar', meta: 'Heimili', to: projPath('alfheimar'),
-    alt: 'Stofa með dökkum sófa og stóru listaverki á vegg' },
+  { id: 'p-badherbergi-0', title: 'Baðherbergi', meta: 'Heimili', to: projPath('badherbergi'),
+    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu', bleed: true },
 ]
 const ORDER: CategorySlug[] = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
 const SHOWN = 6
@@ -131,10 +139,18 @@ export function Home() {
       {/* 02d · her own sentence from Stúdíóið, stepped down a photograph.
           Not a new claim: this is the line that separates her from someone
           brought in after the builders have gone. */}
+      {/* x/y are the reference board's own word positions, as percentages of
+          the frame: left, right, left, right — a zigzag down through the top
+          sixth to the bottom third, not a stacked headline. */}
       <StatementOverlay
         id="f-eldhus"
         alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
-        lines={['Rýmið', 'er teiknað', 'með húsinu.']}
+        words={[
+          { t: 'Rýmið', x: 21, y: 15 },
+          { t: 'er teiknað', x: 46, y: 28 },
+          { t: 'með', x: 19, y: 50 },
+          { t: 'húsinu.', x: 37, y: 70 },
+        ]}
         sub="Ekki lagt ofan á það þegar smíðinni er lokið"
       />
 

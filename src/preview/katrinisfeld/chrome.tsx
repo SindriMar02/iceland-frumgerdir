@@ -15,7 +15,7 @@
  */
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
+import { STUDIO } from './facts'
 import { CATEGORIES } from './projects'
 import { HOME, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH, EN_PATH, category } from './paths'
 
@@ -89,17 +89,11 @@ export function Nav() {
 export function Foot() {
   return (
     <footer className="ki-foot" data-ki-band="dark">
+      {/* The contact block directly above this one already carries the
+          address, the phone, the email and the hours. Repeating all five
+          lines here was pure duplication — the grid is the link graph
+          only. */}
       <div className="ki-foot-grid">
-        <div>
-          <p className="ki-foot-mark">KATRÍN ÍSFELD</p>
-          <p className="ki-foot-line">{STUDIO.role} · {STUDIO.name}</p>
-          <p className="ki-foot-line">{ADDRESS_LINE}</p>
-          <p className="ki-foot-line">
-            <a href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a> ·{' '}
-            <a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>
-          </p>
-          <p className="ki-foot-line">Opnunartími {STUDIO.opens}–{STUDIO.closes} {HOURS_DAYS_IS}, eftir samkomulagi</p>
-        </div>
         <nav aria-label="Verkefni">
           <p className="ki-foot-head">Verkefni</p>
           {(['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi'] as const).map((c) => (
@@ -127,12 +121,26 @@ export function Foot() {
       </p>
 
       {/* The name is the last thing on the page and the largest thing on it.
-          Two words in their own masks: each rises on the reveal sweep, and the
-          pair drifts apart as the footer comes up, on the spread primitive the
-          scroll engine already runs. */}
-      <div className="ki-footwm ki-rv" data-ki-par="spread-in" aria-hidden="true">
-        <span className="ki-footwm-word"><i>KATRÍN</i></span>
-        <span className="ki-footwm-word"><i>ÍSFELD</i></span>
+          Two words in their own masks, each rising on the reveal sweep with
+          the second delayed. The scroll-linked lateral spread came off with
+          the side-by-side layout: stacked, a horizontal drift of a few pixels
+          moves each word independently of the other and just looks loose. */}
+      <div className="ki-footwm ki-rv" aria-hidden="true">
+        {['KATRÍN', 'ÍSFELD'].map((word) => (
+          <span key={word} className="ki-footwm-word">
+            <i>
+              {/* Measured: at one size KATRÍN sets 88.5% of the line and
+                  ÍSFELD only 81.8% — six characters each, but Í is narrow, so
+                  stacking them left-aligned leaves a ragged right edge on a
+                  mark that wants to be a solid block. Each letter is its own
+                  cell and the row is justified, so both lines land flush on
+                  both margins. The two words carry slightly different tracking
+                  as a result, which is what justification always does and what
+                  makes the block read as deliberate. */}
+              {word.split('').map((ch, i) => <span key={i}>{ch}</span>)}
+            </i>
+          </span>
+        ))}
       </div>
     </footer>
   )

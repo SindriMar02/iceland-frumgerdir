@@ -36,6 +36,8 @@ export const CSS = `
   --ki-ease-primary: cubic-bezier(.83, 0, .17, 1);
   --ki-ease-secondary: cubic-bezier(.16, 1, .3, 1);
   --ki-ease-cross: cubic-bezier(.76, 0, .24, 1);
+  /* the CTA arrow, as a mask so it inherits currentColor on every band */
+  --ki-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
   background: var(--ki-ground);
   color: var(--ki-ink);
   font-family: ${SANS};
@@ -258,47 +260,84 @@ export const CSS = `
 .ki-card a::after { content: ''; position: absolute; inset: 0; }
 .ki-card-cat { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; color: var(--ki-mute); white-space: nowrap; }
 
-/* ── the statement over a photograph ──────────────────────────────────── */
-.ki-stmt { position: relative; overflow: hidden; min-height: min(92svh, 820px); display: grid; }
+/* ── the statement over a photograph ──────────────────────────────────────
+   Geometry taken off the reference board rather than approximated. The
+   device there is NOT a stacked headline with indents — that was the first
+   attempt and it read as an ordinary left-aligned title. The words ZIGZAG:
+   each one sits at its own point in the frame, alternating side to side and
+   descending through roughly the top sixth to the bottom third, so the eye
+   travels the photograph instead of scanning a block. Measured positions
+   live on the component as x/y percentages; only the type and the masks are
+   here.
+
+   Two consequences of scattering that the stacked version did not have:
+
+   1. The scrim must be EVEN. A 105deg gradient was fine when every word sat
+      on the dark left end; with words at 49% and 68% across, half of them
+      would land on the thin end of it and fail contrast.
+   2. Below 860px absolute placement collapses — long Icelandic words at 49%
+      of a 375px frame overlap each other — so the whole thing reverts to
+      static flow with a small step. */
+.ki-stmt { position: relative; overflow: hidden; min-height: min(96svh, 900px); }
 .ki-root .ki-stmt > picture, .ki-root .ki-stmt > picture > img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
-/* measured, not guessed: see the note on the component */
+/* Scattering the words made the FLAT veil untenable: measured on the worst
+   pixel under each word, a flat .46 left "húsinu." at 2.65 — failing even the
+   3:1 large-text line — because it lands on the bright lower third of the
+   kitchen. A flat veil heavy enough to fix it (.64) murks the whole
+   photograph. This gradient is solved, not chosen: it weights the dimming
+   toward the bottom where her picture is bright and leaves the top open.
+   Worst word 5.02, subline 9.5 — clearing the strict 4.5 body threshold
+   everywhere, not merely the large-text allowance.
+   RE-MEASURE THIS IF THE PHOTOGRAPH OR ANY WORD POSITION CHANGES. */
 .ki-stmt-scrim {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, rgb(16 13 11 / .74) 0%, rgb(16 13 11 / .62) 46%, rgb(16 13 11 / .34) 100%);
+  background: linear-gradient(
+    to bottom,
+    rgb(18 15 13 / .38) 0%,
+    rgb(18 15 13 / .56) 32%,
+    rgb(18 15 13 / .62) 62%,
+    rgb(18 15 13 / .78) 100%);
 }
-.ki-stmt-in {
-  position: relative; align-self: center;
-  padding: calc(var(--u) * 70) calc(var(--u) * 34);
-  width: 100%;
-}
-.ki-stmt-lines { margin: 0; display: flex; flex-direction: column; align-items: flex-start; }
-/* each line steps further across than the one above it */
-.ki-stmt-line { display: block; overflow: hidden; margin-left: calc(var(--s, 0) * clamp(14px, 6vw, 108px)); }
-.ki-stmt-line i {
+.ki-stmt-words { position: absolute; inset: 0; margin: 0; }
+.ki-stmt-word { position: absolute; display: block; overflow: hidden; padding-bottom: .06em; }
+.ki-stmt-word i {
   display: block; font-style: normal;
-  font-family: ${DISPLAY}; font-weight: 300;
-  font-size: ${fluid(76, 32)}; line-height: 1.06; letter-spacing: .004em;
-  color: #F4EEE6; transform: translateY(0);
-}
-.ki-js .ki-stmt-lines:not(.is-in) .ki-stmt-line i { transform: translateY(108%); }
-.ki-js .ki-stmt-lines.is-in .ki-stmt-line i {
+  /* the reference is a clean grotesk in wide caps, not a serif — Archia is
+     the sans this site already carries */
+  font-family: ${SANS}; font-weight: 400;
+  font-size: ${fluid(84, 34)}; line-height: .96; letter-spacing: .055em;
+  text-transform: uppercase; color: #FFFFFF; white-space: nowrap;
   transform: translateY(0);
-  transition: transform .95s ${OUT}; transition-delay: calc(var(--s, 0) * 90ms);
 }
-.ki-static .ki-stmt-line i { transform: translateY(0); }
+.ki-js .ki-stmt-words:not(.is-in) .ki-stmt-word i { transform: translateY(106%); }
+.ki-js .ki-stmt-words.is-in .ki-stmt-word i {
+  transform: translateY(0);
+  transition: transform 1.05s ${OUT}; transition-delay: calc(var(--s, 0) * 120ms);
+}
+.ki-static .ki-stmt-word i { transform: translateY(0); }
+/* the reference sets its subline centred against the bottom edge, well clear
+   of the last word */
 .ki-stmt-sub {
-  margin: calc(var(--u) * 30) 0 0;
-  font-family: ${MONO}; font-size: ${fluid(12.5, 12)}; letter-spacing: .16em;
-  /* cream, not a dimmed grey: #D8CFC4 measured 4.31 against the lighter end
-     of the scrim and failed AA. The hierarchy comes from size and tracking
-     instead, which costs nothing legible. */
-  text-transform: uppercase; color: #F4EEE6; max-width: 62ch;
+  position: absolute; left: 50%; bottom: calc(var(--u) * 46); transform: translateX(-50%);
+  margin: 0; width: max-content; max-width: calc(100% - var(--u) * 60); text-align: center;
+  font-family: ${MONO}; font-size: ${fluid(12.5, 11)}; letter-spacing: .2em;
+  /* cream, not a dimmed grey: #D8CFC4 measured 4.31 and failed AA */
+  text-transform: uppercase; color: #F4EEE6;
 }
-@media (max-width: 640px) {
-  .ki-stmt { min-height: 78svh; }
-  .ki-stmt-sub { letter-spacing: .1em; }
+@media (max-width: 860px) {
+  .ki-stmt { min-height: 0; padding: calc(var(--u) * 96) calc(var(--u) * 30) calc(var(--u) * 84); }
+  .ki-stmt-words { position: relative; inset: auto; }
+  .ki-stmt-word {
+    position: relative; left: auto !important; top: auto !important;
+    margin-left: calc(var(--s, 0) * 5vw);
+  }
+  .ki-stmt-word i { white-space: normal; }
+  .ki-stmt-sub {
+    position: relative; left: auto; bottom: auto; transform: none; text-align: left;
+    margin-top: calc(var(--u) * 34); letter-spacing: .12em; width: auto; max-width: none;
+  }
 }
 
 /* ── the horizontal chapter ───────────────────────────────────────────── */
@@ -316,9 +355,32 @@ export const CSS = `
 .ki-hs-track::-webkit-scrollbar { display: none; }
 .ki-hs-intro { flex: 0 0 auto; align-self: flex-start; padding-top: calc(var(--u) * 10); }
 .ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: 10px 0 0; }
-.ki-hs-panel { flex: 0 0 86vw; scroll-snap-align: center; margin: 0; }
+.ki-hs-panel { flex: 0 0 86vw; scroll-snap-align: center; margin: 0; position: relative; }
 .ki-hs-fig { display: block; overflow: hidden; background: rgb(0 0 0 / .2); }
+/* the parallax layer sits inside the peel: the peel clips, the layer moves */
+.ki-hs-img { display: block; overflow: hidden; }
 .ki-hs-fig picture, .ki-hs-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+/* a slab: the whole panel is the photograph, with one chip in its corner */
+.ki-hs-panel.is-bleed .ki-hs-fig picture, .ki-hs-panel.is-bleed .ki-hs-fig img { aspect-ratio: 3 / 4; }
+/* ONE CORNER CHIP, not a caption bar. Stretched left-to-right it became a
+   band across the bottom of the photograph, which is the thing a full-bleed
+   slab exists to avoid: the reference puts a small ink block in a single
+   corner and lets the picture hold the rest of the frame. */
+.ki-hs-chip {
+  position: absolute; left: calc(var(--u) * 30); bottom: calc(var(--u) * 30);
+  display: grid; grid-template-columns: auto auto; align-items: end;
+  gap: calc(var(--u) * 6) calc(var(--u) * 26);
+  padding: calc(var(--u) * 20) calc(var(--u) * 26);
+  max-width: min(78vw, calc(var(--u) * 520));
+  background: rgb(20 17 15 / .78); color: #F4EEE6;
+}
+.ki-hs-chip .ki-kicker { grid-column: 1; color: #C9C0B4; margin: 0; }
+.ki-hs-chip-title { grid-column: 1; margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(30, 21)}; line-height: 1.06; }
+.ki-hs-chip-title a { color: inherit; text-decoration: none; }
+.ki-hs-chip-no {
+  grid-column: 2; grid-row: 1 / 3; align-self: end;
+  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .2em; color: var(--ki-copper);
+}
 .ki-hs-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 14px; }
 .ki-hs-title { margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 19)}; }
 .ki-hs-title a { color: inherit; text-decoration: none; }
@@ -334,34 +396,139 @@ export const CSS = `
   }
   .ki-hs-panel { flex: 0 0 46vw; }
   .ki-hs-intro { align-self: center; padding-right: calc(var(--u) * 20); }
+  /* the slab is the full viewport, edge to edge, and it cancels the track's
+     side padding so nothing shows beside it */
+  .ki-hs-panel.is-bleed { flex: 0 0 100vw; margin: 0 calc(var(--u) * -40); }
+  .ki-hs-panel.is-bleed .ki-hs-fig { height: 100svh; }
+  .ki-hs-panel.is-bleed .ki-hs-fig picture,
+  .ki-hs-panel.is-bleed .ki-hs-fig img { aspect-ratio: auto; height: 100%; }
+  .ki-hs-panel.is-bleed .ki-hs-img { height: 100%; }
+  /* the counter-move is written by the engine every frame, so it must never
+     carry a transition — but it DOES need a starting state for the moment
+     before the first scroll frame lands. No clip starting state: the peel
+     was removed (see the note in the engine). */
+  .ki-js .ki-hs-img[data-ki-hpar] { transform: translate3d(7.5%, 0, 0) scale(1.16); }
+}
+/* the journey's progress, drawn under the pinned viewport */
+.ki-hs-prog { display: none; }
+@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
+  .ki-hs-prog {
+    display: block; position: sticky; bottom: 0; z-index: 2;
+    height: 2px; background: rgb(237 231 222 / .12);
+  }
+  .ki-hs-prog > i { display: block; height: 100%; background: var(--ki-copper); transform: scaleX(0); transform-origin: left; }
+}
+/* no pin, no counter-move: reduced motion gets the plain strip */
+@media (prefers-reduced-motion: reduce) {
+  .ki-js .ki-hs-img[data-ki-hpar] { transform: none !important; }
+  .ki-hs-prog { display: none; }
 }
 
 /* ── material bands: the palette, carried by the material ─────────────── */
+/* default is the TOUCH build — a stacked strip. The accordion is layered on
+   only where there is a real pointer; see the note on the component. */
 .ki-mat { margin-top: calc(var(--u) * 56); }
+/* Taller than the first cut. At 168px a band was an 8.5:1 letterbox, and the
+   styled object in each frame — the bowl, the olive branch, the stacked
+   plates — was sliced through the middle by it. The still-life is the whole
+   point of the composition, so the band has to be tall enough to hold one. */
 .ki-mat-band {
   position: relative; margin: 0; overflow: hidden;
-  height: clamp(104px, calc(var(--u) * 168), 200px);
+  height: clamp(150px, calc(var(--u) * 244), 290px);
 }
 .ki-root .ki-mat-band picture, .ki-root .ki-mat-band picture > img {
   width: 100%; height: 100%; object-fit: cover;
 }
+/* The name was set in Geist Mono at label size, the same weight and size as
+   the hex beside it, which is why the board read as a swatch library rather
+   than a material study: mono at 13px IS the typography of a spec sheet.
+   The material takes the display serif at heading size, in her own mixed
+   case, and the hex drops to a quiet mono caption UNDER it — a real
+   hierarchy instead of two equal strings side by side. */
 .ki-mat-name {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  gap: calc(var(--u) * 26);
-  font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .28em;
-  text-transform: uppercase; color: ${INK};
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: calc(var(--u) * 7);
+  color: ${INK};
 }
-.ki-mat-hex { opacity: .55; letter-spacing: .12em; }
+.ki-mat-name > span:first-child {
+  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(38, 24)};
+  letter-spacing: .012em; line-height: 1;
+}
+.ki-mat-hex {
+  font-family: ${MONO}; font-size: ${fluid(11, 10.5)}; letter-spacing: .2em;
+  /* .62 measured 3.85 on copper and failed AA: at 11px this is body text and
+     owes 4.5:1, and the size difference against the 38px name already carries
+     the hierarchy without dimming it as well */
+  opacity: .82;
+}
 /* The three dark materials take cream type over a scrim; the two light ones
    need neither — ink measures 7.12:1 and 4.93:1 on their WORST pixel under
    the label, not their average. .45 rather than .35 because eik is the
    weakest of the three (6.44 -> 7.91) and read soft on screen even though
    the lower value technically passed. Re-measure if a texture changes. */
+/* THE VEIL IS LOCAL, NOT FULL-BLEED. A flat scrim across the whole band did
+   fix the label contrast, and in doing so bleached every material back to
+   beige — which is the one thing a colour board cannot do, since the colour
+   is the entire content. So the veil is an ellipse centred on the label: at
+   its middle it is strong enough to carry the type, and by the edges of the
+   band it is gone and the material is her measured colour again.
+   (ellipse, with two radii — a percentage radius is invalid for a circle
+   keyword and silently drops the whole gradient to none.) */
+.ki-mat-band .ki-mat-name::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+}
 .ki-mat-band.is-dark .ki-mat-name { color: #F4EEE6; }
 .ki-mat-band.is-dark .ki-mat-name::before {
-  content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / .45);
+  background: radial-gradient(ellipse 34% 74% at 50% 50%,
+    rgb(0 0 0 / .70) 0%, rgb(0 0 0 / .52) 52%, rgb(0 0 0 / 0) 82%);
+}
+/* the light bands need the veil in the other direction: ink on the deep
+   folds of the linen and the copper measured 3.27 and 3.57 on the worst
+   pixel, and this label is a 300-weight serif, where the 3:1 large-text
+   allowance assumes normal weight */
+.ki-mat-band:not(.is-dark) .ki-mat-name::before {
+  background: radial-gradient(ellipse 34% 74% at 50% 50%,
+    rgb(243 239 232 / .78) 0%, rgb(243 239 232 / .52) 52%, rgb(243 239 232 / 0) 82%);
 }
 .ki-mat-band.is-dark .ki-mat-name > * { position: relative; }
+
+/* THE ACCORDION MUST COME AFTER THE BASE RULES. Placed above them it lost
+   every tie on source order — .ki-mat-hex{opacity:.82} beat the media
+   query's opacity:0, so all five columns showed their hex at rest. */
+@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
+  .ki-mat { display: flex; height: clamp(320px, calc(var(--u) * 560), 640px); }
+  .ki-mat-band {
+    flex: 1 1 0; height: 100%; min-width: 0;
+    transition: flex-grow .5s cubic-bezier(.62,.05,.01,.99);
+    outline-offset: -3px;
+  }
+  /* 3.4 rather than the reference's w-full: all five must stay readable as
+     colour even while one is open */
+  .ki-mat-band:hover, .ki-mat-band:focus-visible { flex-grow: 3.4; }
+  /* the name stands upright in a narrow column and turns horizontal as the
+     column opens — the label never disappears, only the hex waits */
+  .ki-mat-name { flex-direction: column; gap: calc(var(--u) * 10); }
+  .ki-mat-hex {
+    opacity: 0; transform: translateY(6px);
+    transition: opacity .42s ${OUT} .06s, transform .42s ${OUT} .06s;
+  }
+  .ki-mat-band:hover .ki-mat-hex, .ki-mat-band:focus-visible .ki-mat-hex {
+    opacity: .82; transform: none;
+  }
+  /* the veil is an upright ellipse while the column is narrow, and relaxes
+     into the wide one as it opens */
+  .ki-mat-band .ki-mat-name::before {
+    background: radial-gradient(ellipse 92% 32% at 50% 50%,
+      rgb(0 0 0 / .70) 0%, rgb(0 0 0 / .52) 52%, rgb(0 0 0 / 0) 82%);
+  }
+  .ki-mat-band:not(.is-dark) .ki-mat-name::before {
+    background: radial-gradient(ellipse 92% 32% at 50% 50%,
+      rgb(243 239 232 / .80) 0%, rgb(243 239 232 / .54) 52%, rgb(243 239 232 / 0) 82%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ki-mat-band, .ki-mat-hex { transition: none !important; }
+}
 @media (max-width: 640px) {
   .ki-mat-name { flex-direction: column; gap: 4px; letter-spacing: .2em; }
 }
@@ -439,17 +606,34 @@ export const CSS = `
 .ki-faq details[open] summary::after { transform: translateY(-20%) rotate(-135deg); }
 .ki-faq .ki-body { padding: 0 0 calc(var(--u) * 24); }
 
-/* ── contact ──────────────────────────────────────────────────────────── */
-.ki-samband { padding: calc(var(--u) * 60) 0 0; }
-.ki-samband-in { text-align: center; padding: calc(var(--u) * 130) calc(var(--u) * 34) calc(var(--u) * 64);
-  background: #16211E; color: #E9EDE8;
-  border-radius: calc(var(--u) * 420) calc(var(--u) * 420) 0 0; overflow: hidden;
-  box-shadow: inset 0 1px 0 rgb(237 231 222 / .22); }
-.ki-samband-in .ki-headline { margin-inline: auto; }
-.ki-samband-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--u) * 34); margin-top: calc(var(--u) * 26); }
-.ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(56, 30)}; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
+/* ── contact: the head of the footer, not a card in front of it ──────────
+   REBUILT. What was here was a centred green capsule under a 420px arch,
+   and three things were wrong with it:
+
+     · the arch. A giant border-radius is a shape the rest of this site
+       never makes anywhere else, so it read as decoration bolted on rather
+       than as part of the language.
+     · the colour. #16211E is a dark GREEN. Every other dark band on the
+       site is charcoal, so the contact block alone drifted to a hue that
+       appears nowhere in her palette — and it sat directly above the
+       charcoal footer, which made the seam obvious.
+     · the centring. This site is asymmetric everywhere else; a centred
+       manifesto block is the one layout that says nothing about her.
+
+   Now it is simply the top of one continuous dark footer: same charcoal,
+   left-aligned, no seam between the invitation and the links below it. */
+.ki-samband { padding: 0; background: ${CHARCOAL}; }
+.ki-samband-in {
+  padding: calc(var(--u) * 128) calc(var(--u) * 34) calc(var(--u) * 74);
+  color: #EDE7DE; max-width: calc(var(--u) * 1180);
+}
+.ki-samband-row {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: calc(var(--u) * 44); margin-top: calc(var(--u) * 40);
+}
+.ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(64, 32)}; line-height: 1; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
 @media (hover: hover) and (pointer: fine) { .ki-samband-tel:hover { color: var(--ki-copper); } }
-.ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; color: #9AA79F; margin-top: calc(var(--u) * 20); }
+.ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .05em; color: #B9B1A5; margin-top: calc(var(--u) * 30); max-width: 64ch; line-height: 1.7; }
 .ki-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 70); align-items: start; }
 .ki-dl { margin: 0; }
 .ki-dl div { display: flex; gap: 16px; padding: 14px 0; border-top: 1px solid var(--ki-hair); }
@@ -458,19 +642,60 @@ export const CSS = `
 .ki-dl a { display: inline-block; padding: 3px 0; color: inherit; text-decoration: none; border-bottom: 1px solid var(--ki-hair); }
 @media (hover: hover) and (pointer: fine) { .ki-dl a:hover { border-bottom-color: currentColor; } }
 
+/* ── the link button ──────────────────────────────────────────────────────
+   The 21st.dev link-button device, ported rather than installed. That
+   component is Tailwind utilities plus lucide-react, and this site has no
+   Tailwind classes and no icon library, so what comes across is the
+   BEHAVIOUR with its own measured values:
+
+     · the underline FLIPS ITS ORIGIN between states. At rest it is
+       scaleX(0) from the RIGHT; on hover it is scaleX(1) from the LEFT. So
+       it wipes in from one side and out to the other instead of growing
+       symmetrically, which is the entire reason it reads as directional.
+       Its curve is the reference's own: cubic-bezier(.62,.05,.01,.99), .5s.
+     · the arrow rotates -45deg on the same curve, so it turns from "along"
+       to "away" as the underline lands.
+
+   Both are pseudo-elements, which is why none of the 36 existing call sites
+   had to change: the arrow is ::before pinned right, the rule is ::after
+   stopping short of it. The arrow is a masked data URI, not a url() to a
+   file — a relative url() resolves against the stylesheet in dev and against
+   the bundle root in the build, and 404s silently in one of them. */
 .ki-cta { position: relative; display: inline-block;
   font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .14em; text-transform: uppercase;
-  background: none; padding: 10px 0 12px; color: inherit;
+  background: none; padding: 10px 1.55em 12px 0; color: inherit;
   text-decoration: none; transition: color .3s ${OUT}, transform .16s ${OUT}; }
-.ki-cta::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 1px;
-  background: currentColor; opacity: .38; transition: opacity .3s ${OUT}; }
-@media (hover: hover) and (pointer: fine) { .ki-cta:hover::after { opacity: 1; } }
+/* the rule underlines the LABEL and stops before the arrow */
+.ki-cta::after { content: ''; position: absolute; left: 0; right: 1.55em; bottom: 4px; height: 1.5px;
+  background: currentColor; transform: scaleX(0); transform-origin: right;
+  transition: transform .5s cubic-bezier(.62,.05,.01,.99); }
+.ki-cta::before {
+  content: ''; position: absolute; right: 0; bottom: .52em;
+  width: .95em; height: .95em; background: currentColor;
+  -webkit-mask: var(--ki-arrow) center / contain no-repeat;
+  mask: var(--ki-arrow) center / contain no-repeat;
+  transition: transform .5s cubic-bezier(.62,.05,.01,.99);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ki-cta:hover::after, .ki-cta:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+  .ki-cta:hover::before, .ki-cta:focus-visible::before { transform: rotate(-45deg); }
+}
+/* Touch has no hover, so the rule would never appear at all — the reference
+   solves this by toggling on tap, but a link that needs two taps is a bug.
+   It simply rests in the drawn state instead. */
+@media (hover: none), (pointer: coarse) {
+  .ki-cta::after { transform: scaleX(1); transform-origin: left; opacity: .55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ki-cta::after { transform: scaleX(1); transform-origin: left; transition: none; }
+  .ki-cta::before { transition: none; }
+}
 .ki-cta:active { transform: scale(.97); }
 .ki-cta-row { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 40); margin-top: calc(var(--u) * 30); }
 
 /* ── footer ───────────────────────────────────────────────────────────── */
 .ki-foot { border-top: 1px solid rgb(237 231 222 / .14); padding: calc(var(--u) * 60) calc(var(--u) * 34) calc(var(--u) * 40); background: ${CHARCOAL}; color: #EDE7DE; }
-.ki-foot-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: calc(var(--u) * 34); }
+.ki-foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 34); }
 .ki-foot-grid nav, .ki-foot-grid > div { display: flex; flex-direction: column; align-items: flex-start; }
 .ki-foot-mark { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .14em; margin: 0 0 12px; }
 .ki-foot-head { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .14em; text-transform: uppercase; color: #9C948A; margin: 0 0 12px; }
@@ -487,26 +712,44 @@ export const CSS = `
    on the reveal sweep with the second delayed, and the pair drifting apart
    under the scroll-linked spread primitive. No GSAP, no Lenis — the two
    motions already existed here. */
-.ki-footwm {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  gap: .4em; margin-top: calc(var(--u) * 46); padding-right: .06em;
+/* Laid out side by side with space-between, the two words sat at opposite
+   margins with a hole between them — at 9.4vw they only filled about
+   two-thirds of the line each side, so it read as two separate labels rather
+   than one mark. Stacked instead, which the letterforms actually invite:
+   KATRÍN and ÍSFELD are BOTH exactly six characters, so one above the other
+   they set as a rectangle flush on both edges with no tracking games. The
+   size is measured to fill the footer's content width, not guessed. */
+.ki-footwm { display: block; margin-top: calc(var(--u) * 54); }
+/* THE MASK MUST NOT EAT THE ACCENTS. At line-height .84 the line box is
+   shorter than the glyph box by 47.5px top and bottom at this size, and
+   overflow:hidden cut the acute off every Í — in her own name, twice. The
+   padding widens the CLIP region (overflow clips at the padding edge) and the
+   negative margin takes that space back out of layout, so the rhythm between
+   the two lines is unchanged and the accents survive. */
+/* The size lives HERE rather than on the <i>, because the padding below is in
+   em and em resolves against THIS element's own font-size. Declared on the
+   inner <i> it inherited the footer's 14px, so .1em came out as 1.4px of
+   relief instead of 32px and the accents stayed cut. */
+.ki-footwm-word {
+  display: block; overflow: hidden;
+  font-size: clamp(3rem, 23.8vw, 20rem);
+  padding: .12em 0; margin: -.12em 0;
 }
-.ki-footwm-word { display: block; overflow: hidden; }
 .ki-footwm-word i {
-  display: block; font-style: normal;
+  display: flex; justify-content: space-between; font-style: normal;
   font-family: ${DISPLAY}; font-weight: 300;
-  /* 14.6vw is the reference's number, and it was set for SKY/RETREAT: ten
-     characters in a narrow grotesk. KATRÍN/ÍSFELD is twelve in Sentient,
-     which is much wider, so the pair collided in the middle and clipped both
-     edges. Sized to the actual string instead, and space-between still
-     pushes the two words to the margins the way the reference does. */
-  font-size: clamp(2rem, 9.4vw, 8.6rem); line-height: .92;
-  letter-spacing: -.01em; color: #EDE7DE;
+  /* size comes from the mask above; 23.8vw sets each word at roughly 95% of
+     the line on its own, so justification adds a little air between letters
+     rather than a lot */
+  line-height: .84;
+  letter-spacing: 0; color: #EDE7DE;
   /* default is STANDING: no JS and reduced motion must never hide her name */
   transform: translateY(0);
 }
 /* only once the engine is running does it start hidden and rise */
-.ki-js .ki-footwm:not(.is-in) .ki-footwm-word i { transform: translateY(105%); }
+/* 118%, not 105%: the mask is now .1em taller than the line box at each edge,
+   so a 105% drop left the word peeking below the clip before it rose */
+.ki-js .ki-footwm:not(.is-in) .ki-footwm-word i { transform: translateY(118%); }
 .ki-js .ki-footwm.is-in .ki-footwm-word i { transform: translateY(0); transition: transform 1s ${OUT}; }
 .ki-js .ki-footwm.is-in .ki-footwm-word:last-child i { transition-delay: .09s; }
 .ki-static .ki-footwm-word i { transform: translateY(0); }
@@ -514,7 +757,8 @@ export const CSS = `
    motion, so cancel the reveal kit's own lift and keep just its fade */
 .ki-js .ki-footwm.ki-rv { transform: none; }
 @media (max-width: 640px) {
-  .ki-footwm { flex-direction: column; align-items: flex-start; gap: 0; margin-top: calc(var(--u) * 34); }
+  .ki-footwm { margin-top: calc(var(--u) * 34); }
+  .ki-footwm-word { font-size: 21.4vw; }
 }
 
 /* ── the opening: arch curtain + dive, both CSS only ──────────────────────
@@ -642,7 +886,8 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
   .ki-grid { --cols: 1; }
   .ki-proj-gallery { grid-template-columns: 1fr; }
   .ki-proj-gallery > *:nth-child(3n+1) { grid-column: auto; }
-  .ki-samband-in { padding: calc(var(--u) * 130) 20px 28px; border-radius: calc(var(--u) * 620) calc(var(--u) * 620) 0 0; }
+  .ki-samband-in { padding: 88px 20px 48px; }
+  .ki-samband-row { gap: 22px; margin-top: 26px; }
   .ki-foot { padding: 40px 20px 28px; }
   .ki-foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .ki-facts { gap: 26px 40px; }
