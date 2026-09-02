@@ -125,6 +125,15 @@ export function Foot() {
         © {STUDIO.founded}–2026 {STUDIO.name}. Allar verkefnaljósmyndir eru af eigin verkefnum
         Katrínar. Efnisreinarnar á forsíðunni eru myndgerðar efnisstúdíur í litum verkefnanna.
       </p>
+
+      {/* The name is the last thing on the page and the largest thing on it.
+          Two words in their own masks: each rises on the reveal sweep, and the
+          pair drifts apart as the footer comes up, on the spread primitive the
+          scroll engine already runs. */}
+      <div className="ki-footwm ki-rv" data-ki-par="spread-in" aria-hidden="true">
+        <span className="ki-footwm-word"><i>KATRÍN</i></span>
+        <span className="ki-footwm-word"><i>ÍSFELD</i></span>
+      </div>
     </footer>
   )
 }

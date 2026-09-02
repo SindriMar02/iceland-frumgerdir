@@ -403,6 +403,42 @@ export const CSS = `
 @media (hover: hover) and (pointer: fine) { .ki-foot-link:hover, .ki-foot-line a:hover { color: #EDE7DE; border-bottom-color: currentColor; } }
 .ki-foot-fine { font-family: ${MONO}; font-size: 12px; color: #9C948A; margin: calc(var(--u) * 40) 0 0; }
 
+/* ── the name, as the last statement on the page ──────────────────────── */
+/* Transplanted from the Sky Retreat footer, device for device, on this
+   site's own engine: two words each in an overflow mask, rising from 105%
+   on the reveal sweep with the second delayed, and the pair drifting apart
+   under the scroll-linked spread primitive. No GSAP, no Lenis — the two
+   motions already existed here. */
+.ki-footwm {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: .4em; margin-top: calc(var(--u) * 46); padding-right: .06em;
+}
+.ki-footwm-word { display: block; overflow: hidden; }
+.ki-footwm-word i {
+  display: block; font-style: normal;
+  font-family: ${DISPLAY}; font-weight: 300;
+  /* 14.6vw is the reference's number, and it was set for SKY/RETREAT: ten
+     characters in a narrow grotesk. KATRÍN/ÍSFELD is twelve in Sentient,
+     which is much wider, so the pair collided in the middle and clipped both
+     edges. Sized to the actual string instead, and space-between still
+     pushes the two words to the margins the way the reference does. */
+  font-size: clamp(2rem, 9.4vw, 8.6rem); line-height: .92;
+  letter-spacing: -.01em; color: #EDE7DE;
+  /* default is STANDING: no JS and reduced motion must never hide her name */
+  transform: translateY(0);
+}
+/* only once the engine is running does it start hidden and rise */
+.ki-js .ki-footwm:not(.is-in) .ki-footwm-word i { transform: translateY(105%); }
+.ki-js .ki-footwm.is-in .ki-footwm-word i { transform: translateY(0); transition: transform 1s ${OUT}; }
+.ki-js .ki-footwm.is-in .ki-footwm-word:last-child i { transition-delay: .09s; }
+.ki-static .ki-footwm-word i { transform: translateY(0); }
+/* the container carries .ki-rv only as the trigger — the mask rise is the
+   motion, so cancel the reveal kit's own lift and keep just its fade */
+.ki-js .ki-footwm.ki-rv { transform: none; }
+@media (max-width: 640px) {
+  .ki-footwm { flex-direction: column; align-items: flex-start; gap: 0; margin-top: calc(var(--u) * 34); }
+}
+
 /* ── the opening: arch curtain + dive, both CSS only ──────────────────────
    These run off the prerendered HTML, before React has parsed. The curtain is
    removed from the flow the instant its animation ends so it can never eat a

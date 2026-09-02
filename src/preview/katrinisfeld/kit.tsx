@@ -248,7 +248,16 @@ export function CardFigure({ photos, sizes }: {
  * that constant plus scrollY. Comparing that against cached band boundaries is
  * pure arithmetic.
  */
-type ParKind = 'rise' | 'spread'
+/**
+ * 'spread-in' exists because 'spread' cannot work at the end of the document.
+ * Spread measures progress across an element's whole passage THROUGH the
+ * viewport, which an element in the footer never completes — the page runs
+ * out of scroll first, so the footer wordmark drifted by under a pixel.
+ * 'spread-in' measures the footer's ARRIVAL instead: from the moment its top
+ * crosses the bottom of the viewport until it sits a quarter of the way up.
+ * Same word arithmetic, a range the page can actually deliver.
+ */
+type ParKind = 'rise' | 'spread' | 'spread-in'
 
 export function useKiMotion(ready: boolean, deps: unknown[] = []) {
   useEffect(() => {
@@ -293,16 +302,26 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         const r = el.getBoundingClientRect()
         const top = r.top + sy
         const kind = el.dataset.kiPar as ParKind
-        const words = kind === 'spread'
+        const spreads = kind === 'spread' || kind === 'spread-in'
+        const words = spreads
           ? Array.from(el.querySelectorAll<HTMLElement>(':scope > span'))
           : []
+        // rise: from the moment its top enters the viewport until it is a
+        // third of the way up. spread: across its own passage through view.
+        // spread-in: across its ARRIVAL, which is all a footer ever gets.
+        let start: number, end: number
+        if (kind === 'rise') { start = top - vh; end = top - vh * 0.3 }
+        else if (kind === 'spread-in') { start = top - vh; end = top - vh * 0.25 }
+        else { start = top - vh * 0.95; end = top + r.height - vh * 0.3 }
+        /* The drift is scaled by the type it is moving, so measure the type,
+           not the box. The footer wordmark sets its size on an inner <i>
+           inside each word's mask, and the container is still inheriting the
+           footer's 14px — reading the container made the words drift by one
+           pixel instead of forty. */
+        const sizedFrom = words[0]?.querySelector('i') ?? el
         return {
-          el, kind, words,
-          // rise: from the moment its top enters the viewport until it is a
-          // third of the way up. spread: across its own passage through view.
-          start: kind === 'rise' ? top - vh : top - vh * 0.95,
-          end: kind === 'rise' ? top - vh * 0.3 : top + r.height - vh * 0.3,
-          em: kind === 'spread' ? parseFloat(getComputedStyle(el).fontSize) || 60 : 0,
+          el, kind, words, start, end,
+          em: spreads ? parseFloat(getComputedStyle(sizedFrom).fontSize) || 60 : 0,
         }
       })
     }
