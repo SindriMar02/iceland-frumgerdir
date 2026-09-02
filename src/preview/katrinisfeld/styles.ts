@@ -448,21 +448,45 @@ export const CSS = `
 .ki-curtain {
   position: fixed; inset: 0; z-index: 90; background: ${CHARCOAL};
   display: grid; place-content: end center; pointer-events: none;
-  animation: ki-curtain-lift .9s cubic-bezier(.7,0,.2,1) .35s both;
+  /* it LIFTS now rather than fading — the aperture gesture the rest of the
+     site is built on, and it uncovers the hero instead of dissolving over it */
+  animation: ki-curtain-lift 1.05s cubic-bezier(.76,0,.24,1) 1.35s both;
 }
 .ki-curtain-arch {
   width: min(74vw, 520px); height: min(56vh, 520px);
   border: 1px solid rgb(237 231 222 / .3); border-bottom: none;
   border-radius: calc(var(--u) * 400) calc(var(--u) * 400) 0 0;
   display: grid; place-content: center; text-align: center;
-  animation: ki-arch-rise .95s ${OUT} both;
+  animation: ki-arch-rise 1.1s ${OUT} both;
 }
-.ki-curtain-mark { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(38, 24)}; color: #EDE7DE; letter-spacing: .06em; margin: 0; }
+.ki-curtain-mark {
+  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(38, 24)};
+  color: #EDE7DE; letter-spacing: .06em; margin: 0;
+  display: flex; justify-content: center;
+}
+/* each letter in its own mask, rising on a stagger — the same move the
+   footer wordmark makes, so the page opens and closes on one gesture */
+.ki-curtain-l { display: block; overflow: hidden; }
+.ki-curtain-l i {
+  display: block; font-style: normal;
+  transform: translateY(110%);
+  animation: ki-letter-rise .8s ${OUT} both;
+  animation-delay: calc(.15s + var(--i, 0) * 30ms);
+}
+.ki-curtain-sp { display: block; width: .34em; }
+/* a hairline that opens under the name once the letters have landed */
+.ki-curtain-rule {
+  display: block; height: 1px; width: min(52vw, 300px); margin: calc(var(--u) * 22) auto 0;
+  background: rgb(237 231 222 / .38); transform: scaleX(0);
+  animation: ki-rule-open .7s ${OUT} .82s both;
+}
+@keyframes ki-letter-rise { from { transform: translateY(110%) } to { transform: translateY(0) } }
+@keyframes ki-rule-open { from { transform: scaleX(0) } to { transform: scaleX(1) } }
 @keyframes ki-arch-rise { from { transform: translateY(16%); opacity: 0 } to { transform: none; opacity: 1 } }
 @keyframes ki-curtain-lift {
-  from { opacity: 1; visibility: visible }
-  99%  { opacity: 0; visibility: visible }
-  to   { opacity: 0; visibility: hidden; display: none }
+  from { transform: translateY(0); visibility: visible }
+  99%  { transform: translateY(-100%); visibility: visible }
+  to   { transform: translateY(-100%); visibility: hidden; display: none }
 }
 html[data-ki-seen] .ki-curtain { display: none; }
 @media (prefers-reduced-motion: reduce) { .ki-curtain { display: none; } }

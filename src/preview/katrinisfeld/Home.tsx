@@ -52,8 +52,20 @@ export function Home() {
   return (
     <Shell head={head}>
       {/* the arch aperture: CSS only, hidden on a repeat visit before paint */}
+      {/* The opening. Her name rises letter by letter out of its own mask,
+          the same gesture the footer closes on, so the page opens and ends
+          on the one move. Prerendered, so it plays before React exists. */}
       <div className="ki-curtain" aria-hidden="true">
-        <div className="ki-curtain-arch"><p className="ki-curtain-mark">KATRÍN ÍSFELD</p></div>
+        <div className="ki-curtain-arch">
+          <p className="ki-curtain-mark">
+            {'KATRÍN ÍSFELD'.split('').map((ch, i) => (
+              ch === ' '
+                ? <span key={i} className="ki-curtain-sp"> </span>
+                : <span key={i} className="ki-curtain-l"><i style={{ ['--i' as string]: i }}>{ch}</i></span>
+            ))}
+          </p>
+          <span className="ki-curtain-rule" />
+        </div>
       </div>
 
       {/* 01 · the first room, dived into */}
