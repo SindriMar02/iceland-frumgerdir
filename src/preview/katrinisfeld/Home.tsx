@@ -50,18 +50,24 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
    front of her name. The boxes are an asymmetric composition rather than a
    centred deck: a wide room low and left, a tall room high and right, a
    detail cutting the middle. */
+/* The opening is a MATERIAL IN THREE PLANES that the page scrolls into —
+   Sindri's brief, built the way the reference stacks its own layers: three
+   registered full-bleed images, one opaque backdrop and two real cut-outs,
+   moving at 17.8% / 35.3% / 88.2% of scroll speed so the stone opens up as
+   you descend into it.
+
+   The two cut-outs are genuine alpha, keyed off a white ground rather than
+   feathered: 51.9% and 45.3% transparent, against the reference's own 50.4%
+   and 70.2%. They are graded for aerial perspective — the far slab lighter
+   (#584232), the near ledge darkest (#3A2A1F) — over a backdrop on her own
+   steinn hex, so the depth reads as distance rather than as three pictures. */
 const PLATES: ReadonlyArray<PlxPlate> = [
-  /* 1 · THE MATERIAL. The backdrop moves at ~18% of scroll speed, so this is
-     the plane you scroll into rather than past: her stone, graded to the hex
-     the rest of the site uses. */
   { id: 'hero-steinn', k: 70, plate: true, pw: 2400, ph: 1768, priority: true,
     alt: 'Dökkur náttúrusteinn með mattri slípun og fínum ljósum æðum' },
-  // 2 · a room emerging out of the material
-  { id: 'plate-mid', k: 55, plate: true,
-    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
-  // 4 · the nearest plane, leaving at almost page speed
-  { id: 'plate-front', k: 10, plate: true,
-    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu' },
+  { id: 'stone-slab', k: 55, plate: true, pw: 2400, ph: 1768,
+    alt: '' },
+  { id: 'stone-ledge', k: 10, plate: true, pw: 2400, ph: 1768,
+    alt: '' },
 ]
 
 /** One from each kind of room she is asked for, travelling sideways. */
