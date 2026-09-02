@@ -258,6 +258,36 @@ export const CSS = `
 .ki-card a::after { content: ''; position: absolute; inset: 0; }
 .ki-card-cat { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; color: var(--ki-mute); white-space: nowrap; }
 
+/* ── material bands: the palette, carried by the material ─────────────── */
+.ki-mat { margin-top: calc(var(--u) * 56); }
+.ki-mat-band {
+  position: relative; margin: 0; overflow: hidden;
+  height: clamp(104px, calc(var(--u) * 168), 200px);
+}
+.ki-root .ki-mat-band picture, .ki-root .ki-mat-band picture > img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.ki-mat-name {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  gap: calc(var(--u) * 26);
+  font-family: ${MONO}; font-size: ${fluid(13, 12)}; letter-spacing: .28em;
+  text-transform: uppercase; color: ${INK};
+}
+.ki-mat-hex { opacity: .55; letter-spacing: .12em; }
+/* The three dark materials take cream type over a scrim; the two light ones
+   need neither — ink measures 7.12:1 and 4.93:1 on their WORST pixel under
+   the label, not their average. .45 rather than .35 because eik is the
+   weakest of the three (6.44 -> 7.91) and read soft on screen even though
+   the lower value technically passed. Re-measure if a texture changes. */
+.ki-mat-band.is-dark .ki-mat-name { color: #F4EEE6; }
+.ki-mat-band.is-dark .ki-mat-name::before {
+  content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / .45);
+}
+.ki-mat-band.is-dark .ki-mat-name > * { position: relative; }
+@media (max-width: 640px) {
+  .ki-mat-name { flex-direction: column; gap: 4px; letter-spacing: .2em; }
+}
+
 /* ── project page ─────────────────────────────────────────────────────── */
 /* Arrival: the hero pins and the first section rises over it.
    Pure CSS — .ki-root uses overflow-x: clip, never hidden, so sticky

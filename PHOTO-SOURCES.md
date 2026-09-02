@@ -47,3 +47,26 @@ Matched 2026-09-02 by 12x12 grayscale fingerprint against a crawl of her live si
 Three originals turned out LARGER on her site than the copies harvested in August
 (p-freyja-1, p-solvallagata-1, p-svala-0); those were re-taken from source rather than
 upscaled, because real pixels beat generated ones.
+
+## The material bands are NOT her photography
+
+The five bands on the home page (hör, kopar, eik, vínrautt, steinn) are
+generated material studies — Recraft V4.1, prompted for matt, non-reflective
+close-ups — not photographs of her work. They are here because five flat
+colour discs, the first attempt at the same idea, read as a colour-picker
+bolted onto a photography site.
+
+What IS hers is the colour. Each band was graded after generation so that its
+MEAN colour is exactly a hex sampled from her own photographs:
+
+| band | hex | sampled from |
+|---|---|---|
+| Hör | #E0D5CD | Hús í Garðabæ |
+| Kopar | #D09957 | Old Charm Reykjavik Apartment |
+| Eik | #8E7054 | Sumarhús í Fljótshlíðinni (bitar) |
+| Vínrautt | #8C3A34 | the Súluhöfða island, and this site's own accent |
+| Steinn | #4A3527 | Sumarhús í Fljótshlíðinni (eyja) |
+
+The footer says so in as many words, because the previous wording ("allar
+ljósmyndir eru af eigin verkefnum Katrínar") stopped being true the moment
+these landed. It now separates verkefnaljósmyndir from the efnisstúdíur.

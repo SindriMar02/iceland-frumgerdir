@@ -150,6 +150,50 @@ export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide'
 }
 
 /**
+ * The material bands: her palette, carried by the material rather than shown
+ * as a swatch.
+ *
+ * The first attempt at this was five flat colour discs, and Sindri was right
+ * to kill it — a circle of colour is a colour-picker, not a material. These
+ * are the same five colours, each one sampled from a real photograph of her
+ * work (photo-colors.ts) or from her own brand wine, but carried on the
+ * material her copy already names: hör, kopar, eik, vínrautt, steinn.
+ *
+ * The textures are generated (Recraft), then graded so the mean colour of
+ * each band is EXACTLY the sampled hex — the colour is hers even though the
+ * weave is not. See PHOTO-SOURCES.md for the honesty line on this.
+ *
+ * Label colour is per band, decided by measuring the worst local pixel under
+ * the label rather than the band's average: ink on the two light materials
+ * (7.12:1 and 4.93:1), cream over a scrim on the three dark ones.
+ */
+export interface MaterialBand {
+  id: string
+  /** the material, in her own words */
+  name: string
+  hex: string
+  alt: string
+  /** true where the band is dark enough to need cream type over a scrim */
+  dark?: boolean
+}
+
+export function MaterialBands({ bands }: { bands: ReadonlyArray<MaterialBand> }) {
+  return (
+    <div className="ki-mat">
+      {bands.map((b) => (
+        <figure key={b.id} className={`ki-mat-band ki-rv ${b.dark ? 'is-dark' : ''}`}>
+          <Photo id={b.id} alt={b.alt} sizes="100vw" />
+          <figcaption className="ki-mat-name">
+            <span>{b.name}</span>
+            <span className="ki-mat-hex" aria-hidden="true">{b.hex.toUpperCase()}</span>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  )
+}
+
+/**
  * A project card's photograph, standing on its own colour.
  *
  * Two things happen here that a plain <figure> did not do. The ground under

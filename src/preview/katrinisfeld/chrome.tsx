@@ -122,7 +122,8 @@ export function Foot() {
         </div>
       </div>
       <p className="ki-foot-fine">
-        © {STUDIO.founded}–2026 {STUDIO.name}. Allar ljósmyndir eru af eigin verkefnum Katrínar.
+        © {STUDIO.founded}–2026 {STUDIO.name}. Allar verkefnaljósmyndir eru af eigin verkefnum
+        Katrínar. Efnisreinarnar á forsíðunni eru myndgerðar efnisstúdíur í litum verkefnanna.
       </p>
     </footer>
   )

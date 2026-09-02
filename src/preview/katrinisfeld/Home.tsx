@@ -16,12 +16,26 @@
  */
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide, CardFigure } from './kit'
+import { Headline, Photo, Slide, CardFigure, MaterialBands, type MaterialBand } from './kit'
 import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
 
 const CARD_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw'
+
+/**
+ * The five materials her own copy names, each carrying a colour taken from
+ * her own photographs — hör and kopar from Hús í Garðabæ and Old Charm, eik
+ * from the summer house beams, steinn from the Fljótshlíð island, and the
+ * wine that is the Súluhöfða kitchen and this site's own accent.
+ */
+const MATERIALS: ReadonlyArray<MaterialBand> = [
+  { id: 'm-hor', name: 'Hör', hex: '#E0D5CD', alt: 'Hör í mjúkum fellingum, grófur vefnaður í dagsbirtu' },
+  { id: 'm-kopar', name: 'Kopar', hex: '#D09957', alt: 'Koparflötur með mattri áferð og fínum slípuðum þráðum' },
+  { id: 'm-eik', name: 'Eik', hex: '#8E7054', alt: 'Eikarborð með opinni æð og sýnilegri sagaráferð', dark: true },
+  { id: 'm-vinraut', name: 'Vínrautt', hex: '#8C3A34', alt: 'Vínrauður mattur lakkflötur með fíngerðri áferð', dark: true },
+  { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
+]
 const ORDER: CategorySlug[] = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
 const SHOWN = 6
 
@@ -76,6 +90,9 @@ export function Home() {
           þau voru ljósmynduð.
         </p>
       </section>
+
+      {/* 02b · the same five colours, carried by the materials they came from */}
+      <MaterialBands bands={MATERIALS} />
 
       {/* 03 · the overview, clustered by buyer type */}
       <section className="ki-wrap" id="verkefni" data-ki-band="dark">

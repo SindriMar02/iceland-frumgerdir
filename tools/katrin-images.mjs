@@ -62,6 +62,8 @@ const BIG = new Set([
   'p-skrifstofa-0', 'p-tannlaeknar-0',
   // the dome on the home page
   's-sturta',
+  // the material bands run edge to edge
+  'm-hor', 'm-kopar', 'm-eik', 'm-vinraut', 'm-steinn',
 ])
 
 mkdirSync(OUT, { recursive: true })
