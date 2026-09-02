@@ -302,8 +302,10 @@ export interface PlxPlate {
   alt: string
   /** how far this layer travels, as a percentage of its OWN height */
   k: number
-  /** a pre-cut plate carrying alpha, served straight rather than via PHOTO_DIMS */
+  /** a pre-cut plate served straight rather than via PHOTO_DIMS */
   plate?: boolean
+  /** intrinsic size of a plate, so the box is reserved before it decodes */
+  pw?: number; ph?: number
   priority?: boolean
 }
 
@@ -353,7 +355,7 @@ export function ParallaxHero({ plates, children }: {
               <picture>
                 <source type="image/avif" srcSet={`${DIR}/${p.id}.avif`} />
                 <source type="image/webp" srcSet={`${DIR}/${p.id}.webp`} />
-                <img src={`${DIR}/${p.id}.webp`} width={2000} height={1586}
+                <img src={`${DIR}/${p.id}.webp`} width={p.pw ?? 2000} height={p.ph ?? 1586}
                   alt={p.alt} loading="eager" decoding="async" />
               </picture>
             ) : (

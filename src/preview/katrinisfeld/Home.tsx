@@ -54,8 +54,8 @@ const PLATES: ReadonlyArray<PlxPlate> = [
   /* 1 · THE MATERIAL. The backdrop moves at ~18% of scroll speed, so this is
      the plane you scroll into rather than past: her stone, graded to the hex
      the rest of the site uses. */
-  { id: 'm-steinn', k: 70, priority: true,
-    alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum' },
+  { id: 'hero-steinn', k: 70, plate: true, pw: 2400, ph: 1768, priority: true,
+    alt: 'Dökkur náttúrusteinn með mattri slípun og fínum ljósum æðum' },
   // 2 · a room emerging out of the material
   { id: 'plate-mid', k: 55, plate: true,
     alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
