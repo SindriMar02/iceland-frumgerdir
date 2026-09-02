@@ -10,8 +10,8 @@
  */
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo } from './kit'
-import { STUDIO, ADDRESS_LINE } from './facts'
+import { Headline, Photo, CardFigure } from './kit'
+import { STUDIO, ADDRESS_LINE, APPOINTMENT_NOTE_EN } from './facts'
 import { EN } from './content'
 import { PROJECTS, byCategory, hasPage } from './projects'
 import { project as projPath, HOME, WORK } from './paths'
@@ -53,9 +53,7 @@ export function EnglishPage() {
           <ul className="ki-grid" style={{ marginTop: 'calc(var(--u) * 40)' }}>
             {hospitality.map((p) => (
               <li key={p.slug} className="ki-card ki-rv">
-                <figure className="ki-card-fig">
-                  <Photo id={p.photos[0].id} alt={p.photos[0].alt} sizes={CARD_SIZES} />
-                </figure>
+                <CardFigure photos={p.photos} sizes={CARD_SIZES} />
                 <div className="ki-card-meta">
                   <span className="ki-card-name"><Link to={projPath(p.slug)}>{p.title}</Link></span>
                 </div>
@@ -72,7 +70,10 @@ export function EnglishPage() {
             <div><dt>Studio</dt><dd>{ADDRESS_LINE}, Iceland</dd></div>
             <div><dt>Phone</dt><dd><a href={STUDIO.phoneHref}>+354 {STUDIO.phoneDisplay}</a></dd></div>
             <div><dt>Email</dt><dd><a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a></dd></div>
-            <div><dt>Open</dt><dd>{STUDIO.opens}–{STUDIO.closes}</dd></div>
+            <div>
+              <dt>Open</dt>
+              <dd>{STUDIO.opens}–{STUDIO.closes} weekdays<br />{APPOINTMENT_NOTE_EN}</dd>
+            </div>
           </dl>
         </div>
       </div>

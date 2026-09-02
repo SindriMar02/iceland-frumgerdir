@@ -74,8 +74,8 @@ export function StudioPage() {
         <p className="ki-kicker">Ferlið</p>
         <Headline text="Hvernig verkefni byrjar." size={64} floor={30} measure={800} />
         <ol className="ki-steps">
-          {PROCESS.map((s) => (
-            <li key={s.title} className="ki-rv"><h3>{s.title}</h3><p>{s.body}</p></li>
+          {PROCESS.map((s, i) => (
+            <li key={s.title} className="ki-rv" style={{ ['--i' as string]: i }}><h3>{s.title}</h3><p>{s.body}</p></li>
           ))}
         </ol>
       </div>

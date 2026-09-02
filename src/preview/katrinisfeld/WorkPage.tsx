@@ -10,7 +10,7 @@
  */
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo } from './kit'
+import { Headline, CardFigure } from './kit'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
 
@@ -21,9 +21,7 @@ function Card({ slug, title, cat }: { slug: string; title: string; cat?: string 
   const p = PROJECTS.find((x) => x.slug === slug)!
   return (
     <li className="ki-card ki-rv">
-      <figure className="ki-card-fig">
-        <Photo id={p.photos[0].id} alt={p.photos[0].alt} sizes={CARD_SIZES} />
-      </figure>
+      <CardFigure photos={p.photos} sizes={CARD_SIZES} />
       <div className="ki-card-meta">
         <span className="ki-card-name"><Link to={projPath(p.slug)}>{title}</Link></span>
         {cat && <span className="ki-card-cat">{cat}</span>}

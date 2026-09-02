@@ -31,7 +31,9 @@
  *    data-lenis-prevent.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { PHOTO_DIMS } from './photo-dims'
+import { PHOTO_COLORS } from './photo-colors'
 
 const BASE = import.meta.env.BASE_URL
 const DIR = `${BASE}katrinisfeld`
@@ -148,6 +150,84 @@ export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide'
   )
 }
 
+/**
+ * A tile whose photograph is hidden under its own real colour until touched.
+ *
+ * The resting field is the photo's OWN average colour (photo-colors.ts,
+ * sampled from the source file, never invented) — this is what makes
+ * "litirnir eru teknar beint úr verkefnunum sjálfum" a thing the page DOES
+ * rather than a sentence it states. A mouse reveals the photo in a small
+ * circle that follows the pointer, written straight to a CSS custom property
+ * on pointermove (no React state, no rerender — same discipline as the
+ * scroll engine above). Touch has no pointer to follow, so a tap/focus
+ * reveals the whole photo at a low opacity instead, same shape as the resting
+ * state everywhere else. `prefers-reduced-motion` gets the mask removed
+ * entirely and the photo always visible: the movement is optional, the photo
+ * is not.
+ */
+export function ColorReveal({ id, alt, to, sizes, label }: {
+  id: string; alt: string; to: string; sizes: string; label: string
+}) {
+  // measured against the DISC, not the link: the link is taller than the
+  // circle now that the caption sits under it, and the reveal follows the
+  // circle the pointer is actually over
+  const disc = useRef<HTMLSpanElement>(null)
+  const onMove = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse' || !disc.current) return
+    const r = disc.current.getBoundingClientRect()
+    disc.current.style.setProperty('--mx', `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`)
+    disc.current.style.setProperty('--my', `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`)
+  }
+  return (
+    <Link to={to} className="ki-litheim" onPointerMove={onMove}>
+      <span ref={disc} className="ki-litheim-disc" style={{ background: PHOTO_COLORS[id] }}>
+        <span className="ki-litheim-photo">
+          <Photo id={id} alt="" sizes={sizes} />
+        </span>
+      </span>
+      <span className="ki-litheim-label">{label}</span>
+      <span className="ki-sr">. {alt}</span>
+    </Link>
+  )
+}
+
+/**
+ * A project card's photograph, standing on its own colour.
+ *
+ * Two things happen here that a plain <figure> did not do. The ground under
+ * the photograph is that photograph's OWN sampled colour rather than a
+ * generic grey, so a card that has not decoded yet already shows the room's
+ * real colour instead of a hole — the same litheim data as ColorReveal.
+ *
+ * And where a project has a second photograph, hovering crossfades to it.
+ * The second image is only MOUNTED once a pointer or the keyboard has
+ * actually reached the card, so an index page costs a visitor who never
+ * hovers exactly the bytes it cost before: a hidden <img> still downloads,
+ * an unmounted one does not. Touch never arms it at all.
+ */
+export function CardFigure({ photos, sizes }: {
+  photos: ReadonlyArray<{ id: string; alt: string }>; sizes: string
+}) {
+  const [armed, setArmed] = useState(false)
+  const second = photos[1]
+  const arm = second && !armed ? () => setArmed(true) : undefined
+  return (
+    <figure
+      className="ki-card-fig"
+      style={{ background: PHOTO_COLORS[photos[0].id] }}
+      onPointerEnter={arm}
+      onFocusCapture={arm}
+    >
+      <Photo id={photos[0].id} alt={photos[0].alt} sizes={sizes} />
+      {second && armed && (
+        <span className="ki-card-fig-alt" aria-hidden="true">
+          <Photo id={second.id} alt="" sizes={sizes} />
+        </span>
+      )}
+    </figure>
+  )
+}
+
 /* ── motion: reveals + self-theming chrome, at zero layout cost ─────────── */
 
 /**
@@ -175,8 +255,10 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     if (!root) return
 
     const chromeEls = Array.from(root.querySelectorAll<HTMLElement>('[data-ki-chrome]'))
+    const navEl = root.querySelector<HTMLElement>('.ki-nav')
     let bands: Array<{ top: number; bottom: number; dark: boolean }> = []
     let chromeCentres: number[] = []
+    let condenseAt = Infinity
     let reveals: Array<{ el: Element; at: number }> = []
     let pars: Array<{
       el: HTMLElement; kind: ParKind; words: HTMLElement[]
@@ -194,6 +276,9 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         return r.top + r.height / 2
       })
       const vh = window.innerHeight
+      // condense past roughly one viewport of scroll, regardless of how tall
+      // any given page's hero is — a flat threshold that works on all 26 routes
+      condenseAt = vh * 0.6
       reveals = Array.from(root.querySelectorAll(
         '.ki-rv:not(.is-in), .ki-slide:not(.is-in), .ki-shutter:not(.is-in), .ki-rv-h:not(.is-in)'))
         .map((el) => ({ el, at: el.getBoundingClientRect().top + sy - vh * 0.92 }))
@@ -259,8 +344,14 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       if (n) reveals = reveals.slice(n)
     }
 
-    const onFrame = () => { themeChrome(); sweepReveals(); runParallax() }
-    const onFrameStill = () => { themeChrome(); sweepReveals() }
+    const condenseNav = () => {
+      if (!navEl) return
+      const want = window.scrollY > condenseAt ? 'true' : ''
+      if (navEl.dataset.kiCondensed !== want) navEl.dataset.kiCondensed = want
+    }
+
+    const onFrame = () => { themeChrome(); sweepReveals(); runParallax(); condenseNav() }
+    const onFrameStill = () => { themeChrome(); sweepReveals(); condenseNav() }
 
     let rafId = 0
     const onResize = () => {

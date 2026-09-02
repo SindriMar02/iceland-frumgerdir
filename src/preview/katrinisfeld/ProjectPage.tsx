@@ -39,28 +39,34 @@ export function ProjectPage({ slug }: { slug: string }) {
 
   return (
     <Shell head={head}>
-      <section className="ki-proj-hero" data-ki-band="dark">
-        <Photo id={hero.id} alt={hero.alt} sizes={HERO_SIZES} priority />
-      </section>
+      {/* Arrival: the hero holds still while the first section rises over it.
+          The pin is bounded by this wrapper — once the text has covered the
+          photograph the hero releases, so nothing stays composited down the
+          rest of the page. */}
+      <div className="ki-proj-arrival">
+        <section className="ki-proj-hero" data-ki-band="dark">
+          <Photo id={hero.id} alt={hero.alt} sizes={HERO_SIZES} priority />
+        </section>
 
-      <div className="ki-wrap" data-ki-band="light">
-        <p className="ki-crumbs">
-          <Link to="/">Forsíða</Link><span>·</span>
-          <Link to={WORK}>Verkefni</Link><span>·</span>
-          <Link to={catPath(p.category)}>{c.nav}</Link>
-        </p>
-        <div className="ki-proj-body">
-          <div>
-            <Headline as="h1" text={p.title} size={62} floor={30} />
-            <p className="ki-lead">{p.lead}</p>
-            {p.facts && (
-              <dl className="ki-facts ki-rv">
-                {p.facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
-              </dl>
-            )}
-          </div>
-          <div>
-            {p.body.map((t, i) => <p key={i} className="ki-body ki-rv">{t}</p>)}
+        <div className="ki-wrap ki-proj-cover" data-ki-band="light">
+          <p className="ki-crumbs">
+            <Link to="/">Forsíða</Link><span>·</span>
+            <Link to={WORK}>Verkefni</Link><span>·</span>
+            <Link to={catPath(p.category)}>{c.nav}</Link>
+          </p>
+          <div className="ki-proj-body">
+            <div>
+              <Headline as="h1" text={p.title} size={62} floor={30} />
+              <p className="ki-lead">{p.lead}</p>
+              {p.facts && (
+                <dl className="ki-facts ki-rv">
+                  {p.facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+                </dl>
+              )}
+            </div>
+            <div>
+              {p.body.map((t, i) => <p key={i} className="ki-body ki-rv">{t}</p>)}
+            </div>
           </div>
         </div>
       </div>

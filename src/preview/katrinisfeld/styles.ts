@@ -30,6 +30,12 @@ export const CSS = `
   --ki-ink: ${INK};
   --ki-wine: ${WINE};
   --ki-copper: #C68A5E;
+  /* Easing measured off the two dissected references, not invented — see
+     DESIGN.md. primary/secondary are OH Architecture's own two curves,
+     cross is the one it crossfades its facade/interior pair on. */
+  --ki-ease-primary: cubic-bezier(.83, 0, .17, 1);
+  --ki-ease-secondary: cubic-bezier(.16, 1, .3, 1);
+  --ki-ease-cross: cubic-bezier(.76, 0, .24, 1);
   background: var(--ki-ground);
   color: var(--ki-ink);
   font-family: ${SANS};
@@ -89,6 +95,15 @@ export const CSS = `
 .ki-burger-bars i + i { margin-top: 7px; }
 .ki-burger[aria-expanded='true'] .ki-burger-bars i:first-child { transform: translateY(4px) rotate(9deg); }
 .ki-burger[aria-expanded='true'] .ki-burger-bars i:last-child { transform: translateY(-4px) rotate(-9deg); }
+
+/* condensed past one viewport of scroll: the full nav gives way to just the
+   mark and the panel trigger, so the header stops competing with the page */
+.ki-nav { transition: padding .5s ${OUT}; }
+.ki-nav[data-ki-condensed='true'] { padding-top: calc(var(--u) * 13); padding-bottom: calc(var(--u) * 13); }
+.ki-nav-links, .ki-nav-cta { transition: opacity .35s ${OUT}, transform .35s ${OUT}; }
+.ki-nav[data-ki-condensed='true'] .ki-nav-links,
+.ki-nav[data-ki-condensed='true'] .ki-nav-cta { opacity: 0; pointer-events: none; transform: translateY(-4px); }
+.ki-nav[data-ki-condensed='true'] .ki-burger { display: block; }
 
 .ki-panel {
   position: fixed; inset: 0; z-index: 39; background: ${CHARCOAL}; color: #EDE7DE;
@@ -210,20 +225,90 @@ export const CSS = `
   gap: calc(var(--u) * 40) calc(var(--u) * 28); }
 .ki-cluster + .ki-cluster { margin-top: calc(var(--u) * 76); }
 .ki-card { position: relative; }
-.ki-card-fig { margin: 0; overflow: hidden; background: rgb(0 0 0 / .18); }
+/* the ground is set per card to that photograph's own sampled colour, so the
+   fallback here only ever shows for a card with no colour on file */
+.ki-card-fig { margin: 0; overflow: hidden; position: relative; background: rgb(0 0 0 / .18); }
 .ki-card-fig picture, .ki-card-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .ki-card-fig img { transition: transform .7s ${OUT}; }
-@media (hover: hover) and (pointer: fine) { .ki-card:hover .ki-card-fig img { transform: scale(1.045); } }
+/* second photograph, mounted only once the card has been reached */
+.ki-card-fig-alt { position: absolute; inset: 0; opacity: 0; transition: opacity 1s var(--ki-ease-cross); }
+.ki-card-fig-alt picture, .ki-card-fig-alt img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
+@media (hover: hover) and (pointer: fine) {
+  .ki-card:hover .ki-card-fig img { transform: scale(1.045); }
+  .ki-card:hover .ki-card-fig-alt, .ki-card:focus-within .ki-card-fig-alt { opacity: 1; }
+}
+.ki-static .ki-card-fig-alt { display: none; }
 .ki-card-meta { padding-top: 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .ki-card-name { font-size: ${fluid(16.5, 15)}; }
-.ki-card-name a { display: inline-block; padding: 3px 0; }
+.ki-card-name a { display: inline-block; padding: 3px 0; position: relative; }
+.ki-card-name a::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 1px; height: 1px;
+  background: currentColor; transform: scaleX(0); transform-origin: left;
+  transition: transform .725s var(--ki-ease-primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ki-card:hover .ki-card-name a::after, .ki-card-name a:focus-visible::after { transform: none; }
+}
 .ki-card a { color: inherit; text-decoration: none; }
 /* the whole card is the hit area, without nesting anything inside the link */
 .ki-card a::after { content: ''; position: absolute; inset: 0; }
 .ki-card-cat { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; color: var(--ki-mute); white-space: nowrap; }
 
+/* ── litheim: a project's own colour, until touched ──────────────────── */
+.ki-litheim-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: calc(var(--u) * 20); margin-top: calc(var(--u) * 44); }
+@media (max-width: 640px) { .ki-litheim-row { grid-template-columns: repeat(3, 1fr); } }
+.ki-litheim { display: block; text-decoration: none; color: inherit; }
+.ki-litheim-disc {
+  position: relative; display: block; aspect-ratio: 1; border-radius: 999px; overflow: hidden;
+}
+.ki-litheim-photo {
+  position: absolute; inset: 0; opacity: 0;
+  transition: opacity .5s ${OUT};
+  /* --mx/--my are set on the DISC by the pointermove handler and inherit
+     down to here — declaring a local default on THIS element would shadow
+     that inherited value, so the fallback lives in var() instead.
+     radial-gradient's radius also takes a length, never a percentage: a
+     bare "%" there is invalid and drops the whole property silently. */
+  -webkit-mask-image: radial-gradient(70px circle at var(--mx, 50%) var(--my, 50%), #000 55%, transparent 100%);
+  mask-image: radial-gradient(70px circle at var(--mx, 50%) var(--my, 50%), #000 55%, transparent 100%);
+}
+.ki-litheim-photo picture, .ki-litheim-photo img { width: 100%; height: 100%; object-fit: cover; }
+@media (hover: hover) and (pointer: fine) {
+  .ki-litheim:hover .ki-litheim-photo, .ki-litheim:focus-visible .ki-litheim-photo { opacity: 1; }
+}
+@media (hover: none) {
+  .ki-litheim:active .ki-litheim-photo, .ki-litheim:focus-visible .ki-litheim-photo {
+    opacity: .42; -webkit-mask-image: none; mask-image: none;
+  }
+}
+/* The caption sits UNDER the disc, not on it. Inside the circle it clipped
+   ("TANNLÆKNASTO…") — Icelandic project names are long and a small circle
+   will never hold them across viewports — and white-on-tile measured 2.92:1
+   against the pale Baðherbergi ground (#D4E5E6), failing AA. Below the disc
+   it is ordinary ink on the page ground, legible at every width, no scrim. */
+.ki-litheim-label {
+  display: block; margin-top: 10px; text-align: center;
+  font-family: ${MONO}; font-size: 12px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ki-mute);
+  overflow-wrap: anywhere;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ki-litheim:hover .ki-litheim-label { color: var(--ki-ink); }
+}
+/* reduced motion: the photo is always the point, the veil is not */
+.ki-static .ki-litheim-photo { opacity: 1; -webkit-mask-image: none; mask-image: none; }
+
 /* ── project page ─────────────────────────────────────────────────────── */
-.ki-proj-hero { position: relative; height: min(78svh, 760px); min-height: 420px; overflow: hidden; }
+/* Arrival: the hero pins and the first section rises over it.
+   Pure CSS — .ki-root uses overflow-x: clip, never hidden, so sticky
+   survives (hidden would make the root a scroll container and every sticky
+   descendant would silently scroll away instead of pinning).
+   The pin is bounded by .ki-proj-arrival: once its bottom passes, the hero
+   releases rather than staying composited for the whole page. */
+.ki-proj-arrival { position: relative; }
+.ki-proj-cover { position: relative; z-index: 1; }
+.ki-proj-hero { position: sticky; top: 0; z-index: 0; height: min(78svh, 760px); min-height: 420px; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .ki-proj-hero { position: relative; } }
 .ki-root .ki-proj-hero picture, .ki-root .ki-proj-hero picture > img { width: 100%; height: 100%; object-fit: cover; }
 /* Seventeen project photographs, every one a different exposure, and the
    fixed chrome sits on top of all of them. A scrim at the top is the only

@@ -15,7 +15,7 @@
  */
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { STUDIO, ADDRESS_LINE } from './facts'
+import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES } from './projects'
 import { HOME, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH, EN_PATH, category } from './paths'
 
@@ -98,7 +98,7 @@ export function Foot() {
             <a href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a> ·{' '}
             <a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a>
           </p>
-          <p className="ki-foot-line">Opnunartími {STUDIO.opens}–{STUDIO.closes}</p>
+          <p className="ki-foot-line">Opnunartími {STUDIO.opens}–{STUDIO.closes} {HOURS_DAYS_IS}, eftir samkomulagi</p>
         </div>
         <nav aria-label="Verkefni">
           <p className="ki-foot-head">Verkefni</p>

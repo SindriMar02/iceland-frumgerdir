@@ -57,23 +57,17 @@ export const STUDIO = {
   email: 'katrin@katrinisfeld.is',
 
   /**
-   * HER OWN SITE STATES A TIME RANGE AND NO DAYS: "Opnunartími 11:00 - 17:00".
-   * Já.is lists that range against all seven days, and an earlier version of
-   * this build repeated the Já.is version as "opið alla daga" — in the page
-   * text, in llms.txt, and in openingHoursSpecification for Monday through
-   * Sunday. That is a claim nobody has made: a one-person studio staffed
-   * 11–17 on a Sunday is implausible on its face, and hours are the one fact
-   * where being wrong actively costs her — Google shows them in the business
-   * panel, somebody walks to Katrínartún on a Sunday, finds a locked door,
-   * and leaves the review that says so.
-   *
-   * So the site now states exactly what she states, and openDays stays null
-   * until she says which days are real. Structured data omits the hours
-   * entirely while it is null, because no hours beat wrong hours.
+   * CONFIRMED 2026-09-02 (Sindri, direct from Katrín): 11:00–17:00, weekdays.
+   * The room at Katrínartún 4 holds a display kitchen and material samples,
+   * not staffed retail hours — clients book a time by phone or email rather
+   * than walking in. So the hours are published alongside an appointment
+   * note everywhere they appear, and the room is never described as a
+   * shop with drop-in hours. See [[APPOINTMENT_NOTE]] below.
    */
   opens: '11:00',
   closes: '17:00',
-  openDays: null as string[] | null,
+  /** schema.org day names, Monday–Friday. */
+  openDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as string[],
 
   /** Copyright line on her own site reads "2018 -". */
   founded: '2018',
@@ -93,6 +87,17 @@ export const MAP_URL =
   'https://www.google.com/maps/search/?api=1&query=' +
   encodeURIComponent(`${STUDIO.street}, ${STUDIO.postalCode} ${STUDIO.city}`)
 
+/** Icelandic word for the confirmed day range — used everywhere the hours
+ *  are displayed, so "virka daga" is written once. */
+export const HOURS_DAYS_IS = 'virka daga'
+/** The appointment framing, confirmed alongside the hours: the room is a
+ *  display space, not staffed retail, so every mention of hours carries
+ *  this rather than implying anyone can walk in. */
+export const APPOINTMENT_NOTE_IS =
+  'Best er að hafa samband fyrirfram og bóka tíma, símleiðis eða í tölvupósti.'
+export const APPOINTMENT_NOTE_EN =
+  'Please get in touch beforehand, by phone or email, to arrange a time.'
+
 /**
  * The showroom.
  *
@@ -103,11 +108,11 @@ export const MAP_URL =
  * material samples. So: the space exists, it is hers, and the cabinetry is
  * in it. That is the whole of what can be said.
  *
- * NOT evidenced, and therefore NOT written anywhere on this site: that she
- * takes walk-ins, that the room is staffed through the stated hours, or which
- * days it is open. The copy invites people to arrange a visit, which is true
- * whatever the answer and is the right call for a purchase this size anyway.
- * If she confirms she welcomes drop-ins, this is the one place to change it.
+ * CONFIRMED 2026-09-02: she does not take walk-ins. Clients book a time by
+ * phone or email; the room is a display space for an appointment, not a
+ * staffed shop. The copy invites people to arrange a visit rather than
+ * implying anyone can drop by, which is the right call for a purchase this
+ * size regardless.
  */
 export const SHOWROOM = {
   photo: 'p-studio-0',

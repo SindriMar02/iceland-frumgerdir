@@ -11,7 +11,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
-import { STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM } from './facts'
+import { STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM, HOURS_DAYS_IS, APPOINTMENT_NOTE_IS } from './facts'
 import { PROCESS } from './content'
 import { WORK } from './paths'
 
@@ -48,7 +48,7 @@ export function ContactPage() {
     title: `Hafa samband · Katrín Ísfeld innanhússarkitekt, ${STUDIO.street}, Reykjavík`,
     desc:
       `Katrín Ísfeld innanhússarkitekt, ${ADDRESS_LINE}. Sími ${STUDIO.phoneDisplay}, ` +
-      `${STUDIO.email}. Opnunartími ${STUDIO.opens}–${STUDIO.closes}. Sendu stutta verklýsingu og hún hefur samband.`,
+      `${STUDIO.email}. Opnunartími ${STUDIO.opens}–${STUDIO.closes} ${HOURS_DAYS_IS}, eftir samkomulagi. Sendu stutta verklýsingu og hún hefur samband.`,
     clean: '/hafa-samband',
   }
 
@@ -74,7 +74,13 @@ export function ContactPage() {
               </div>
               <div><dt>Sími</dt><dd><a href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a></dd></div>
               <div><dt>Netfang</dt><dd><a href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a></dd></div>
-              <div><dt>Opið</dt><dd>{STUDIO.opens}–{STUDIO.closes}</dd></div>
+              <div>
+                <dt>Opið</dt>
+                <dd>
+                  {STUDIO.opens}–{STUDIO.closes} {HOURS_DAYS_IS}<br />
+                  {APPOINTMENT_NOTE_IS}
+                </dd>
+              </div>
               <div>
                 <dt>Samfélagsmiðlar</dt>
                 <dd>
@@ -150,7 +156,9 @@ export function ContactPage() {
         <p className="ki-kicker">Ferlið</p>
         <Headline text="Það sem gerist næst." size={62} floor={30} measure={800} />
         <ol className="ki-steps">
-          {PROCESS.map((s) => <li key={s.title} className="ki-rv"><h3>{s.title}</h3><p>{s.body}</p></li>)}
+          {PROCESS.map((s, i) => (
+            <li key={s.title} className="ki-rv" style={{ ['--i' as string]: i }}><h3>{s.title}</h3><p>{s.body}</p></li>
+          ))}
         </ol>
         <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}>Sjá verkefnin fyrst</Link></p>
       </div>

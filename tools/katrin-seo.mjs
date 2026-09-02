@@ -155,8 +155,7 @@ const studioNode = {
     addressCountry: STUDIO.country,
   },
   geo: { '@type': 'GeoCoordinates', latitude: STUDIO.lat, longitude: STUDIO.lon },
-  /* Omitted until she confirms WHICH days. Google surfaces this in the
-     business panel, so a guess here sends someone to a locked door. */
+  /* Confirmed 2026-09-02: Monday–Friday. See facts.ts. */
   ...(STUDIO.openDays
     ? { openingHoursSpecification: [{
         '@type': 'OpeningHoursSpecification',
@@ -390,7 +389,7 @@ function writeLlms() {
 - Address: ${ADDRESS_LINE}, Iceland
 - Phone: ${STUDIO.phone}
 - Email: ${STUDIO.email}
-- Opening hours: ${STUDIO.openDays ? STUDIO.openDays.join(', ') + ' ' : ''}${STUDIO.opens}–${STUDIO.closes}${STUDIO.openDays ? '' : ' (days not confirmed by the business)'}
+- Opening hours: ${STUDIO.openDays.join(', ')} ${STUDIO.opens}–${STUDIO.closes}. The studio is a display space, not staffed retail — clients book a time by phone or email rather than walking in.
 - Own studio since ${STUDIO.founded}
 - Member of FHI, Félag húsgagna- og innanhússarkitekta (the Icelandic association of furniture and interior architects)
 - ${CV.degree} (BSc in interior architecture), ${CV.school}, Florida. Graduated with honours; second place in a US international design competition.
