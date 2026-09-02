@@ -36,6 +36,11 @@ Every device below is implemented in plain CSS transitions/custom properties
 + vanilla JS (rAF for continuous values, IntersectionObserver for reveals),
 matching what's already in `kit.tsx`/`Page.tsx`. No new npm packages.
 
+## Status, 2026-09-02 (commit 9b99595)
+
+Built and verified: 1, 2, 3, 5, 6, 8. Deliberately skipped: 7. Blocked on
+photography from Katrín: 4. Detail against each device below.
+
 ## Devices (numbered to match the plan doc, real parameters from the dissected references)
 
 1. **Reveal-on-interaction photography** (from IDST idst.ae, live-measured).
@@ -52,16 +57,24 @@ matching what's already in `kit.tsx`/`Page.tsx`. No new npm packages.
    stays visible at the pin boundary until covered. Project-detail pages
    only.
 4. **Facade→interior crossfade** (from OH, real eased values:
-   `cubic-bezier(.76,0,.24,1)`, .875–1s) — needs real before-photography,
-   see plan doc §5. Blocked until Katrín supplies it.
+   `cubic-bezier(.76,0,.24,1)`, .875–1s). **PARTLY SHIPPED as the card
+   crossfade** — OH's mechanic is "one photograph crossfades to another on
+   hover", and she already has a second photograph for most projects, so
+   `CardFigure` runs it on photo[0]→photo[1] at 1s on `--ki-ease-cross`.
+   The BEFORE/AFTER version of the same device still needs real
+   before-photography from Katrín, plan doc §5.
 5. **Motion-treated process section** — stage her EXISTING 4-step "Hvernig
    verkefni byrjar" copy (do not invent new steps) with real sequential
    reveal, inspired by OH's numbered-stage treatment.
 6. **Condensing nav** (from OH's mechanic, Katrín's own type/case, not OH's
    uppercase MENU pill) — full nav collapses to a minimal state past hero.
-7. **Progress-tied preloader** — only if genuinely needed; her current
-   build's LCP is already 744ms measured, so skip unless a device above
-   introduces real load weight.
+7. **Progress-tied preloader** — **DELIBERATELY NOT BUILT.** OH needs one
+   because its Webflow/GSAP/Lenis stack is 535 KB and its images stall; this
+   build is 281 KB of JS with a measured 744ms LCP and already opens through
+   a pure-CSS arch curtain that plays off the prerendered HTML before React
+   parses. A progress bar here would be an animation waiting on nothing —
+   inventing load weight in order to decorate it. Revisit only if a future
+   device actually makes the page slow.
 8. **Underline-hover + image-hover-zoom** on project-index cards (from OH,
    `.725s`/`.875s`, same custom eases as #4).
 
