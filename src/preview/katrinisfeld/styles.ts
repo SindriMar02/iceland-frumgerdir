@@ -124,7 +124,11 @@ export const CSS = `
   .ki-nav-links, .ki-nav-cta { display: none; }
   .ki-burger { display: block; }
 }
-@media (min-width: 861px) { .ki-panel { display: none; } }
+/* The panel used to be hard-hidden above 861px, because the burger only
+   existed on phones. The condensing nav puts a burger on desktop too, so
+   that rule made the desktop burger open nothing at all. Visibility is
+   already state-driven: React sets the hidden attribute when closed and
+   .ki-panel[hidden] hides it, so the width rule was redundant AND the bug. */
 
 /* ── type ─────────────────────────────────────────────────────────────── */
 .ki-headline { font-family: ${DISPLAY}; font-weight: 300; line-height: 1.13; letter-spacing: .002em; margin: 0 0 calc(var(--u) * 24); }
@@ -253,50 +257,6 @@ export const CSS = `
 /* the whole card is the hit area, without nesting anything inside the link */
 .ki-card a::after { content: ''; position: absolute; inset: 0; }
 .ki-card-cat { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; color: var(--ki-mute); white-space: nowrap; }
-
-/* ── litheim: a project's own colour, until touched ──────────────────── */
-.ki-litheim-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: calc(var(--u) * 20); margin-top: calc(var(--u) * 44); }
-@media (max-width: 640px) { .ki-litheim-row { grid-template-columns: repeat(3, 1fr); } }
-.ki-litheim { display: block; text-decoration: none; color: inherit; }
-.ki-litheim-disc {
-  position: relative; display: block; aspect-ratio: 1; border-radius: 999px; overflow: hidden;
-}
-.ki-litheim-photo {
-  position: absolute; inset: 0; opacity: 0;
-  transition: opacity .5s ${OUT};
-  /* --mx/--my are set on the DISC by the pointermove handler and inherit
-     down to here — declaring a local default on THIS element would shadow
-     that inherited value, so the fallback lives in var() instead.
-     radial-gradient's radius also takes a length, never a percentage: a
-     bare "%" there is invalid and drops the whole property silently. */
-  -webkit-mask-image: radial-gradient(70px circle at var(--mx, 50%) var(--my, 50%), #000 55%, transparent 100%);
-  mask-image: radial-gradient(70px circle at var(--mx, 50%) var(--my, 50%), #000 55%, transparent 100%);
-}
-.ki-litheim-photo picture, .ki-litheim-photo img { width: 100%; height: 100%; object-fit: cover; }
-@media (hover: hover) and (pointer: fine) {
-  .ki-litheim:hover .ki-litheim-photo, .ki-litheim:focus-visible .ki-litheim-photo { opacity: 1; }
-}
-@media (hover: none) {
-  .ki-litheim:active .ki-litheim-photo, .ki-litheim:focus-visible .ki-litheim-photo {
-    opacity: .42; -webkit-mask-image: none; mask-image: none;
-  }
-}
-/* The caption sits UNDER the disc, not on it. Inside the circle it clipped
-   ("TANNLÆKNASTO…") — Icelandic project names are long and a small circle
-   will never hold them across viewports — and white-on-tile measured 2.92:1
-   against the pale Baðherbergi ground (#D4E5E6), failing AA. Below the disc
-   it is ordinary ink on the page ground, legible at every width, no scrim. */
-.ki-litheim-label {
-  display: block; margin-top: 10px; text-align: center;
-  font-family: ${MONO}; font-size: 12px; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--ki-mute);
-  overflow-wrap: anywhere;
-}
-@media (hover: hover) and (pointer: fine) {
-  .ki-litheim:hover .ki-litheim-label { color: var(--ki-ink); }
-}
-/* reduced motion: the photo is always the point, the veil is not */
-.ki-static .ki-litheim-photo { opacity: 1; -webkit-mask-image: none; mask-image: none; }
 
 /* ── project page ─────────────────────────────────────────────────────── */
 /* Arrival: the hero pins and the first section rises over it.

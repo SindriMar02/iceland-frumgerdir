@@ -16,7 +16,7 @@
  */
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide, ColorReveal, CardFigure } from './kit'
+import { Headline, Photo, Slide, CardFigure } from './kit'
 import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
@@ -75,18 +75,6 @@ export function Home() {
           eru ekki valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og
           þau voru ljósmynduð.
         </p>
-        <div className="ki-litheim-row ki-rv" aria-label="Litheimur fimm verkefna, farðu með músina yfir eða snertu til að sjá ljósmyndina">
-          <ColorReveal id="p-freyja-0" to={projPath('freyja-gistiheimili')} sizes="18vw"
-            alt="Gestaherbergi á Freyju með bláum vegg og ljósum gluggatjöldum" label="Freyja" />
-          <ColorReveal id="p-oldcharm-1" to={projPath('old-charm-reykjavik-apartment')} sizes="18vw"
-            alt="Svefnherbergi undir upprunalegum timburbitum" label="Old Charm" />
-          <ColorReveal id="p-badherbergi-0" to={projPath('badherbergi')} sizes="18vw"
-            alt="Baðherbergi með sporöskjulaga spegli og dökkri innréttingu" label="Baðherbergi" />
-          <ColorReveal id="p-tannlaeknar-0" to={projPath('tannlaeknastofan-gardatorgi')} sizes="18vw"
-            alt="Móttaka tannlæknastofu með ljósum afgreiðsluborði" label="Tannlæknastofan" />
-          <ColorReveal id="p-skuggahverfi-0" to={projPath('eldhusrymi-i-skuggahverfi')} sizes="18vw"
-            alt="Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu" label="Skuggahverfi" />
-        </div>
       </section>
 
       {/* 03 · the overview, clustered by buyer type */}

@@ -31,7 +31,6 @@
  *    data-lenis-prevent.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { PHOTO_DIMS } from './photo-dims'
 import { PHOTO_COLORS } from './photo-colors'
 
@@ -147,47 +146,6 @@ export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide'
     <figure className={`${cls} ${className}`} style={ratio ? { aspectRatio: ratio } : undefined}>
       <Photo id={id} alt={alt} sizes={sizes} priority={priority} />
     </figure>
-  )
-}
-
-/**
- * A tile whose photograph is hidden under its own real colour until touched.
- *
- * The resting field is the photo's OWN average colour (photo-colors.ts,
- * sampled from the source file, never invented) — this is what makes
- * "litirnir eru teknar beint úr verkefnunum sjálfum" a thing the page DOES
- * rather than a sentence it states. A mouse reveals the photo in a small
- * circle that follows the pointer, written straight to a CSS custom property
- * on pointermove (no React state, no rerender — same discipline as the
- * scroll engine above). Touch has no pointer to follow, so a tap/focus
- * reveals the whole photo at a low opacity instead, same shape as the resting
- * state everywhere else. `prefers-reduced-motion` gets the mask removed
- * entirely and the photo always visible: the movement is optional, the photo
- * is not.
- */
-export function ColorReveal({ id, alt, to, sizes, label }: {
-  id: string; alt: string; to: string; sizes: string; label: string
-}) {
-  // measured against the DISC, not the link: the link is taller than the
-  // circle now that the caption sits under it, and the reveal follows the
-  // circle the pointer is actually over
-  const disc = useRef<HTMLSpanElement>(null)
-  const onMove = (e: React.PointerEvent) => {
-    if (e.pointerType !== 'mouse' || !disc.current) return
-    const r = disc.current.getBoundingClientRect()
-    disc.current.style.setProperty('--mx', `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`)
-    disc.current.style.setProperty('--my', `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`)
-  }
-  return (
-    <Link to={to} className="ki-litheim" onPointerMove={onMove}>
-      <span ref={disc} className="ki-litheim-disc" style={{ background: PHOTO_COLORS[id] }}>
-        <span className="ki-litheim-photo">
-          <Photo id={id} alt="" sizes={sizes} />
-        </span>
-      </span>
-      <span className="ki-litheim-label">{label}</span>
-      <span className="ki-sr">. {alt}</span>
-    </Link>
   )
 }
 
