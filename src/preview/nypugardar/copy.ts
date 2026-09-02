@@ -106,7 +106,7 @@ const en = {
   rooms: {
     eyebrow: 'Your room',
     heading: 'Thirteen places to sleep, one big view',
-    body: 'Bright, warm rooms in the main house, and two small cottages with bathrooms of their own. Plain, comfortable, and that view from the pillow.',
+    body: 'Nine rooms with a bathroom of their own, two that share, and two cottages beside the house. Plain, comfortable, and that view from the pillow.',
     seeAll: 'See every room and photo',
     seeAllNote: 'Seven room types and the two cottages, each with its own photographs and its own price, on a page of their own.',
     /** The horizontal strip of room types under the counts. */
@@ -125,13 +125,13 @@ const en = {
       cottage3: 'Cottage for 3',
       familyCottage: 'Family cottage',
     },
-    cottagesHeading: 'The two cottages',
-    cottagesBody: 'Two timber cottages of 20 and 25 square metres stand beside the main house, each with its own bathroom. Room for two to four guests, with the fields right outside the door.',
+    cottagesHeading: 'Two cottages beside the house',
+    cottagesBody: 'Two timber cottages, 20 and 25 square metres, each with its own bathroom. Room for two to four guests, with the fields right outside the door.',
     cottage1Alt: 'The family cottage at Nýpugarðar, red roof and a timber porch, standing on the grass',
     cottage1Caption: 'The family cottage, sleeps four',
     cottage2Alt: 'The cottage for three at Nýpugarðar, seen across the field behind it',
     cottage2Caption: 'The cottage for three',
-    beforeYouCome: 'Before you come',
+    beforeYouCome: 'Before you arrive',
     arrive: 'Arrive',
     leave: 'Leave',
     until: 'until 23:30',
@@ -229,8 +229,44 @@ const en = {
     perNight: 'per night',
     roomTypes: 'Room types and prices',
     sleeps: 'Sleeps',
-    pricesNote: 'Lowest nightly rate seen in the next twelve months. The exact price for your dates is shown when you check availability.',
+    pricesNote: 'The lowest nightly rate in the next twelve months. The exact price for your dates comes up when you check availability.',
     checkedOn: 'Prices checked',
+  },
+
+  /* The six questions guests actually ask before booking. These are RENDERED
+   * on the rooms page and mirrored into FAQPage structured data by
+   * tools/nypugardar-seo.mjs, which fails the build if the two drift apart.
+   * That order matters: schema answering something the page does not say is
+   * the fastest way to a manual penalty, so the page is the source and the
+   * schema follows it. Every answer opens with the fact, not with a greeting. */
+  faq: {
+    heading: 'Questions guests ask',
+    items: [
+      {
+        q: 'How far is Jökulsárlón from the farm?',
+        a: 'Jökulsárlón is 47 km away, a little under an hour along Route 1. Höfn is a 25 minute drive, and the farm sits 4 km off the Ring Road.',
+      },
+      {
+        q: 'Can I have dinner at the farm?',
+        a: 'Yes, a buffet with lamb and traditional Icelandic cooking, served in the dining room facing the glacier. There is nothing to book ahead, just tell us when you arrive.',
+      },
+      {
+        q: 'What do you serve for breakfast?',
+        a: 'A buffet in the same room, with the same view, and the kitchen covers vegetarian, vegan and gluten-free. Breakfast to go if you are leaving for the glacier lagoon before the room opens.',
+      },
+      {
+        q: 'What time can I check in and out?',
+        a: 'Check in from 16:00 to 23:30, and check out from 07:30 to 11:00.',
+      },
+      {
+        q: 'Can I bring a pet, and are children welcome?',
+        a: 'No pets, and the whole house is non-smoking. Children are welcome, and guests aged 7 and over are charged as adults.',
+      },
+      {
+        q: 'Can I book directly with the farm?',
+        a: 'Yes, dates and prices here are live and the booking goes through our own system, so you deal with the farm and not an agency. Nýpugarðar is also on Booking.com, HeyIceland and Guide to Iceland.',
+      },
+    ],
   },
 
   units: {
@@ -272,7 +308,7 @@ const en = {
   gallery: {
     eyebrow: 'Every frame',
     heading: 'The farm, the land and the table',
-    body: 'Every photograph here is Nýpugarðar\u2019s own. The rooms have their own section above; this is the farm, the land and the table.',
+    body: 'Every photograph here is our own. The rooms have their own section above, so this is the farm, the land and the table.',
     byRoom: 'Every room type, with its own bathroom',
     andTheRest: 'And the rest of it',
     groups: {
@@ -380,7 +416,7 @@ const is: typeof en = {
   rooms: {
     eyebrow: 'Herbergið þitt',
     heading: 'Þrettán vistarverur, eitt stórt útsýni',
-    body: 'Björt og hlý herbergi í aðalhúsinu og tvö lítil sumarhús með eigin baðherbergi. Einfalt, notalegt, og útsýnið beint úr rúminu.',
+    body: 'Níu herbergi með eigin baði, tvö með sameiginlegu og tvö sumarhús við hlið hússins. Einfalt, notalegt, og útsýnið beint úr rúminu.',
     seeAll: 'Skoða öll herbergi og myndir',
     seeAllNote: 'Sjö herbergisgerðir og sumarhúsin tvö, hver með sínum myndum og sínu verði, á sérsíðu.',
     stripLabel: 'Herbergisgerðir',
@@ -397,8 +433,8 @@ const is: typeof en = {
       cottage3: 'Sumarhús fyrir 3',
       familyCottage: 'Fjölskyldusumarhús',
     },
-    cottagesHeading: 'Sumarhúsin tvö',
-    cottagesBody: 'Tvö timburhús, 20 og 25 fermetra, standa við hlið aðalhússins og hvort um sig með eigin baðherbergi. Pláss fyrir tvo til fjóra gesti og túnin beint fyrir utan dyrnar.',
+    cottagesHeading: 'Tvö sumarhús við hlið hússins',
+    cottagesBody: 'Tvö timburhús, 20 og 25 fermetra, hvort um sig með eigin baðherbergi. Pláss fyrir tvo til fjóra gesti og túnin beint fyrir utan dyrnar.',
     cottage1Alt: 'Fjölskyldusumarhúsið á Nýpugörðum, rautt þak og timburverönd, stendur á grasinu',
     cottage1Caption: 'Fjölskyldusumarhúsið, fyrir fjóra',
     cottage2Alt: 'Sumarhúsið fyrir þrjá á Nýpugörðum, séð yfir túnið fyrir aftan það',
@@ -501,8 +537,38 @@ const is: typeof en = {
     perNight: 'á nótt',
     roomTypes: 'Herbergisgerðir og verð',
     sleeps: 'Fyrir',
-    pricesNote: 'Lægsta verð á nótt sem sést á næstu tólf mánuðum. Nákvæmt verð fyrir þínar dagsetningar birtist þegar þú kannar laus herbergi.',
+    pricesNote: 'Lægsta verð á nótt næstu tólf mánuði. Nákvæmt verð fyrir þínar dagsetningar birtist þegar þú kannar laus herbergi.',
     checkedOn: 'Verð sótt',
+  },
+
+  faq: {
+    heading: 'Spurningar sem gestir spyrja',
+    items: [
+      {
+        q: 'Hvað er langt að Jökulsárlóni?',
+        a: 'Jökulsárlón er í 47 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar er 25 mínútna akstur og bærinn stendur 4 km frá hringveginum.',
+      },
+      {
+        q: 'Er hægt að fá kvöldmat á bænum?',
+        a: 'Já, hlaðborð með lambakjöti og hefðbundinni íslenskri matargerð, borið fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram, láttu bara vita þegar þú kemur.',
+      },
+      {
+        q: 'Hvað er í morgunmat?',
+        a: 'Hlaðborð í sama sal, með sama útsýni, og eldhúsið ræður við grænmetisfæði, vegan og glútenlaust. Morgunmat má fá með í nesti ef þú leggur af stað að Jökulsárlóni áður en salurinn opnar.',
+      },
+      {
+        q: 'Hvenær er innritun og útritun?',
+        a: 'Innritun er frá 16:00 til 23:30 og útritun frá 07:30 til 11:00.',
+      },
+      {
+        q: 'Mega gæludýr koma og eru börn velkomin?',
+        a: 'Gæludýr eru ekki leyfð og húsið er reyklaust. Börn eru velkomin og gestir 7 ára og eldri greiða sem fullorðnir.',
+      },
+      {
+        q: 'Get ég bókað beint hjá bænum?',
+        a: 'Já, dagsetningar og verð hér uppfærast jafnóðum og bókunin fer í gegnum okkar eigið kerfi, svo þú ert í samskiptum við bæinn en ekki milliliði. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.',
+      },
+    ],
   },
 
   units: {
@@ -544,7 +610,7 @@ const is: typeof en = {
   gallery: {
     eyebrow: 'Allar myndirnar',
     heading: 'Bærinn, landið og borðið',
-    body: 'Allar myndir hér eru frá Nýpugörðum sjálfum. Herbergin eiga sinn eigin kafla hér að ofan; hér er bærinn, landið og borðið.',
+    body: 'Allar myndir hér eru okkar eigin. Herbergin eiga sinn eigin kafla hér að ofan, svo hér er bærinn, landið og borðið.',
     byRoom: 'Hver herbergisgerð, með sínu baðherbergi',
     andTheRest: 'Og allt hitt',
     groups: {

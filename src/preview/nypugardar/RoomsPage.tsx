@@ -339,6 +339,40 @@ export default function RoomsPage() {
           </div>
         </section>
 
+        {/* ── THE QUESTIONS, ON THE PAGE ────────────────────────────────
+          * These six existed only as FAQPage structured data: real answers
+          * that no guest could read, written for crawlers alone. Schema is
+          * supposed to describe what a page says, so the page now says it,
+          * and tools/nypugardar-seo.mjs mirrors these exact strings and
+          * fails the build if the two ever drift.
+          *
+          * A plain list, not an accordion. Six short answers hidden behind
+          * six taps is work for the reader and a keyboard trap to get wrong,
+          * and the whole set costs less height than the cottage photographs
+          * above it. */}
+        <section id="questions" className="scroll-mt-14 border-t" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
+            <MaskHeading
+              as="h2"
+              text={t.faq.heading}
+              className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl"
+            />
+            <dl className="mt-10 grid gap-x-14 gap-y-8 md:grid-cols-2 md:gap-y-10">
+              {t.faq.items.map((item, i) => (
+                <Reveal key={item.q} delay={Math.min(i, 3) * 60}>
+                  <div className="border-t pt-5" style={{ borderColor: HAIR }}>
+                    <dt className="font-erode text-xl font-medium leading-[1.25] tracking-tight">
+                      {item.q}
+                    </dt>
+                    <dd className="mt-3 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
+                      {item.a}
+                    </dd>
+                  </div>
+                </Reveal>
+              ))}
+            </dl>
+          </div>
+        </section>
 
         <section id="gallery" className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">

@@ -90,6 +90,27 @@ const fromPrice = (key) => PRICES.rooms?.[key]?.from ?? null
 const lowest = PRICES.groups?.shared ?? Math.min(...ROOMS.map((r) => fromPrice(r.key)).filter((n) => typeof n === 'number'))
 const highest = Math.max(...ROOMS.map((r) => fromPrice(r.key)).filter((n) => typeof n === 'number'))
 
+/* ── The six questions, mirrored from src/preview/nypugardar/copy.ts ─────
+ * The rooms page renders these; the drift guard asserts they are still
+ * there before the build may publish them as FAQPage structured data. */
+const FAQ_EN = [
+  ['How far is Jökulsárlón from the farm?', 'Jökulsárlón is 47 km away, a little under an hour along Route 1. Höfn is a 25 minute drive, and the farm sits 4 km off the Ring Road.'],
+  ['Can I have dinner at the farm?', 'Yes, a buffet with lamb and traditional Icelandic cooking, served in the dining room facing the glacier. There is nothing to book ahead, just tell us when you arrive.'],
+  ['What do you serve for breakfast?', 'A buffet in the same room, with the same view, and the kitchen covers vegetarian, vegan and gluten-free. Breakfast to go if you are leaving for the glacier lagoon before the room opens.'],
+  ['What time can I check in and out?', 'Check in from 16:00 to 23:30, and check out from 07:30 to 11:00.'],
+  ['Can I bring a pet, and are children welcome?', 'No pets, and the whole house is non-smoking. Children are welcome, and guests aged 7 and over are charged as adults.'],
+  ['Can I book directly with the farm?', 'Yes, dates and prices here are live and the booking goes through our own system, so you deal with the farm and not an agency. Nýpugarðar is also on Booking.com, HeyIceland and Guide to Iceland.'],
+]
+
+const FAQ_IS = [
+  ['Hvað er langt að Jökulsárlóni?', 'Jökulsárlón er í 47 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar er 25 mínútna akstur og bærinn stendur 4 km frá hringveginum.'],
+  ['Er hægt að fá kvöldmat á bænum?', 'Já, hlaðborð með lambakjöti og hefðbundinni íslenskri matargerð, borið fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram, láttu bara vita þegar þú kemur.'],
+  ['Hvað er í morgunmat?', 'Hlaðborð í sama sal, með sama útsýni, og eldhúsið ræður við grænmetisfæði, vegan og glútenlaust. Morgunmat má fá með í nesti ef þú leggur af stað að Jökulsárlóni áður en salurinn opnar.'],
+  ['Hvenær er innritun og útritun?', 'Innritun er frá 16:00 til 23:30 og útritun frá 07:30 til 11:00.'],
+  ['Mega gæludýr koma og eru börn velkomin?', 'Gæludýr eru ekki leyfð og húsið er reyklaust. Börn eru velkomin og gestir 7 ára og eldri greiða sem fullorðnir.'],
+  ['Get ég bókað beint hjá bænum?', 'Já, dagsetningar og verð hér uppfærast jafnóðum og bókunin fer í gegnum okkar eigið kerfi, svo þú ert í samskiptum við bæinn en ekki milliliði. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.'],
+]
+
 /* ── Drift guard ──────────────────────────────────────────────────────── */
 function assertMatchesSource() {
   const data = 'src/preview/nypugardar/data.ts'
@@ -106,6 +127,18 @@ function assertMatchesSource() {
     [`'${B.email}'`, 'email'],
   ]) if (!d.includes(needle)) bad.push(what)
   for (const r of ROOMS) if (!g.includes(`'${r.id}'`)) bad.push(`room id ${r.id} (${r.key})`)
+  /* Every FAQ answer must still be rendered on the rooms page. Structured
+   * data describing content the page does not carry is exactly what earns a
+   * manual action, and the copy is the thing that will be edited. */
+  const copyPath = 'src/preview/nypugardar/copy.ts'
+  if (existsSync(copyPath)) {
+    const copy = readFileSync(copyPath, 'utf8')
+    for (const [lang, table] of [['en', FAQ_EN], ['is', FAQ_IS]])
+      for (const [q, a] of table) {
+        if (!copy.includes(q)) bad.push(`FAQ question missing from the page (${lang}): "${q.slice(0, 40)}"`)
+        if (!copy.includes(a)) bad.push(`FAQ answer missing from the page (${lang}): "${q.slice(0, 40)}"`)
+      }
+  }
   if (bad.length) {
     console.error(
       `nypugardar-seo: these no longer match the source: ${bad.join(', ')}.\n` +
@@ -246,26 +279,13 @@ function lodging(lang) {
 
 /** Real questions a traveller asks. Every answer is a fact stated on the
  *  page; FAQ schema that answers something the page does not say is the
- *  fastest way to a manual penalty. */
+ *  fastest way to a manual penalty.
+ *
+ *  THESE ARE MIRRORED FROM copy.ts, where the rooms page renders them
+ *  visibly. The drift guard below asserts each one still appears there, so
+ *  the schema cannot outlive the copy it claims to describe. */
 function faq(lang) {
-  const qa =
-    lang === 'en'
-      ? [
-          ['How far is Nýpugarðar from Jökulsárlón glacier lagoon?', 'Jökulsárlón is 47 km away, a little under an hour along Route 1. Höfn is a 25 minute drive. The farm sits 4 km off the Ring Road, on Mýrar in Hornafjörður.'],
-          ['Is dinner served at Nýpugarðar?', 'Yes. A dinner buffet with lamb, traditional Icelandic cooking with local ingredients, is served in the dining room facing the glacier. There is nothing to book ahead; tell us when you arrive that you would like to eat.'],
-          ['What is breakfast like?', 'A breakfast buffet in the same dining room, with the same view. Buffet and continental, with vegetarian, vegan and gluten-free options, and breakfast to go if you are leaving for the glacier lagoon before it opens.'],
-          ['What are the check-in and check-out times?', `Check-in is from ${B.checkin} to 23:30 and check-out from 07:30 to ${B.checkout}.`],
-          ['Are pets allowed, and can children stay?', 'No pets, and the house is non-smoking. Children are welcome; guests aged 7 and over are charged as adults.'],
-          ['Can I book Nýpugarðar directly?', 'Yes. Dates and availability are live on this site and every booking goes through our own booking system, so you deal with the farm and not an agency. Nýpugarðar is also listed on Booking.com, HeyIceland and Guide to Iceland.'],
-        ]
-      : [
-          ['Hvað eru Nýpugarðar langt frá Jökulsárlóni?', 'Jökulsárlón er í 47 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar er 25 mínútna akstur. Bærinn stendur 4 km frá hringveginum, á Mýrum í Hornafirði.'],
-          ['Er kvöldmatur í boði á Nýpugörðum?', 'Já. Kvöldhlaðborð með lambakjöti, hefðbundin íslensk matargerð úr hráefni úr héraðinu, er borið fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram; láttu vita þegar þú kemur að þú viljir borða.'],
-          ['Hvernig er morgunmaturinn?', 'Morgunverðarhlaðborð í sama matsal, með sama útsýni. Hlaðborð og meginlandsmorgunverður, með grænmetis-, vegan- og glútenlausum kostum, og morgunmatur með í nesti ef þú ferð að Jökulsárlóni áður en salurinn opnar.'],
-          ['Hvenær er innritun og útritun?', `Innritun er frá ${B.checkin} til 23:30 og útritun frá 07:30 til ${B.checkout}.`],
-          ['Eru gæludýr leyfð og mega börn gista?', 'Gæludýr eru ekki leyfð og reykingar bannaðar. Börn eru velkomin; gestir 7 ára og eldri greiða sem fullorðnir.'],
-          ['Get ég bókað beint hjá Nýpugörðum?', 'Já. Dagsetningar og laus herbergi uppfærast jafnóðum á þessari síðu og allar bókanir fara í gegnum okkar eigið bókunarkerfi, svo þú ert í samskiptum við bæinn, ekki milliliði. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.'],
-        ]
+  const qa = lang === 'en' ? FAQ_EN : FAQ_IS
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -291,7 +311,11 @@ function headFor(page) {
   const url = urlFor(page)
   const other = twin(page)
   const ld = [lodging(page.lang), breadcrumb(page)]
-  if (page.key === 'home') ld.push(faq(page.lang))
+  /* The FAQ schema goes on the page that CARRIES the questions, which is the
+   * rooms page, not the home page. Structured data is a description of the
+   * document it sits in; putting it on the home page would have described
+   * content that is one click away. */
+  if (page.key === 'rooms') ld.push(faq(page.lang))
   const alternates = other
     ? [
         `    <link rel="alternate" hreflang="${page.lang}" href="${url}" />`,
