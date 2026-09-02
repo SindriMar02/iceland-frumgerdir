@@ -213,23 +213,21 @@ const PAGE_STYLES = `
 .nl-track { display: flex; width: fit-content; }
 .nl-panel { position: relative; height: var(--nl-100vh); flex: none; }
 
-/* hero: the wordmark rests a little behind the house from the start (its own
-   foot tucked under a SOFT mask edge, not a shape traced from the photo), and
-   sinks further behind it as the journey moves on. Two rounds of tracing the
-   real roofline for a clip-path both still read as a bad cutout live; a
-   straight mask edge on the PHOTO's own top, faded rather than hard, needs no
-   trace at all and works on any photo. */
+/* hero: the wordmark stands full width and the HOUSE ITSELF stands in front of
+   it, so the roof genuinely occludes the letters. The cutout is a real alpha
+   channel (Higgsfield's segmenter on their own photograph, then filled down
+   per column so the lawn stays solid) — not a clip-path traced by hand, which
+   is what made the first two attempts read as a bad cutout. Scroll sinks the
+   word down behind the house until it is gone. */
 .nl-hero { width: 100vw; position: relative; overflow: clip; background: ${PLASTER}; }
-.nl-hero-word-zone { position: absolute; inset: 0 0 auto 0; height: calc(100% - 42svh + 3.4rem);
-  display: flex; align-items: flex-end; justify-content: center; z-index: 1; }
-.nl-hero-word { position: relative; font-family: ${DISPLAY}; font-size: min(15.5vw, 34svh); line-height: .82;
-  letter-spacing: .01em; white-space: nowrap; color: ${INK}; will-change: transform; }
+.nl-hero-word { position: absolute; left: 50%; top: 10.5svh; transform: translateX(-50%); z-index: 1;
+  font-family: ${DISPLAY}; font-size: min(20.5vw, 41svh); line-height: .82;
+  letter-spacing: .01em; white-space: nowrap; color: ${INK}; will-change: transform, opacity; }
 .nl-hero-word .nl-hero-mask { display: block; overflow: clip; padding-top: .18em; }
 .nl-hero-word .nl-hero-mask span { display: inline-block; }
-.nl-hero-house { position: absolute; left: 0; right: 0; bottom: 0; height: 42svh; z-index: 2;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 3.4rem);
-  mask-image: linear-gradient(180deg, transparent 0, #000 3.4rem); }
-.nl-hero-house .nl-flip { position: absolute; inset: 0; }
+.nl-hero-cut { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2;
+  margin: 0; width: 88vw; max-width: 1500px; }
+.nl-hero-cut > img { display: block; width: 100%; height: auto; }
 .nl-hero-hotspots { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .nl-spot { position: absolute; z-index: 3; pointer-events: auto; transform: translate(-50%, -50%); display: flex; align-items: center; gap: .55rem;
   background: none; border: 0; padding: 0; cursor: pointer; color: ${PLASTER}; }
@@ -243,14 +241,15 @@ const PAGE_STYLES = `
   transition: background .3s, color .3s; }
 .nl-spot:hover span, .nl-spot:focus-visible span { background: ${PLASTER}; color: ${INK}; }
 .nl-hero-kicker { position: absolute; top: calc(1.1rem + 54px); left: 1.65rem; color: ${INK_MUTE}; }
-/* sits directly under the kicker, out of the wordmark's own centred band
-   (Drangar's spacing, same collision it was written to avoid) */
-.nl-hero-sub { position: absolute; left: 1.65rem; top: calc(1.1rem + 5.2rem); max-width: 14rem;
-  font-size: .85rem; line-height: 1.5; color: ${INK_SOFT}; }
+/* bottom right, clear of the wordmark's own band: the word runs nearly the full
+   width now, so anything parked beside it at mid height collides with a letter */
+.nl-hero-sub { position: absolute; right: 1.65rem; bottom: 1.4rem; z-index: 4; max-width: 17rem;
+  padding: .85rem 1rem; background: ${PLASTER_SOFT}; backdrop-filter: blur(4px);
+  border-top: 1px solid var(--nl-line); font-size: .82rem; line-height: 1.5; color: ${INK_SOFT}; }
 .nl-hero-rotmenu { position: absolute; top: calc(1.1rem + 54px); right: .55rem; transform-origin: bottom right;
   transform: rotate(-90deg); display: flex; gap: 1.2rem; color: ${INK_MUTE}; white-space: nowrap; }
 .nl-hero-rotmenu a { color: inherit; text-decoration: none; }
-.nl-hero-copy { position: absolute; left: 1.65rem; bottom: calc(42svh + 1.2rem); color: ${INK_MUTE}; }
+.nl-hero-copy { position: absolute; left: 1.65rem; bottom: 1.2rem; z-index: 4; color: ${INK_MUTE}; }
 
 /* arrival */
 .nl-arrival { width: 76vw; background: ${PLASTER}; }
@@ -335,7 +334,7 @@ const PAGE_STYLES = `
 .nl-barn-title em { font-style: italic; }
 .nl-barn-body { margin-top: 1.6rem; max-width: 24rem; color: ${PLASTER_MUTE}; font-size: .85rem; line-height: 1.6; }
 .nl-barn-strip { position: absolute; top: 0; left: 54vw; width: 40vw; will-change: transform; }
-.nl-barn-cell { position: relative; height: 44svh; margin-bottom: 2svh; overflow: clip; }
+.nl-barn-cell { position: relative; height: 62svh; margin-bottom: 3svh; overflow: clip; }
 .nl-barn-cell img { width: 100%; height: 100%; object-fit: cover; }
 .nl-barn-cell figcaption { position: absolute; left: 0; bottom: 0; z-index: 2; padding: .5em .85em; background: rgba(18,20,21,.72); color: ${PLASTER};
   font-family: ${MONO}; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; }
@@ -343,12 +342,12 @@ const PAGE_STYLES = `
 /* dusk edges: the page goes to night once (the farm and the lights), then to
    walnut, then to ink, and each of those arrives over a slow gradient rather
    than a cut */
-.nl-barn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 12vw; z-index: 5; pointer-events: none;
+.nl-barn::before { content: ''; position: absolute; left: -2px; top: 0; bottom: 0; width: 18vw; z-index: 5; pointer-events: none;
   background: linear-gradient(90deg, ${PLASTER}, rgba(232,233,230,0)); }
-.nl-isl::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 16vw; z-index: 3; pointer-events: none;
+.nl-isl::after { content: ''; position: absolute; right: -2px; top: 0; bottom: 0; width: 20vw; z-index: 3; pointer-events: none;
   background: linear-gradient(270deg, ${PLASTER}, rgba(232,233,230,0)); }
-.nl-cierre::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 16vw; z-index: 1; pointer-events: none;
-  background: linear-gradient(90deg, ${PLASTER}, rgba(232,233,230,0)); }
+.nl-summer::after { content: ''; position: absolute; right: -2px; top: 0; bottom: 0; width: 20vw; z-index: 3; pointer-events: none;
+  background: linear-gradient(270deg, ${ACCENT}, rgba(122,78,46,0)); }
 .nl-footer::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 16svh; z-index: 1; pointer-events: none;
   background: linear-gradient(180deg, ${ACCENT}, rgba(122,78,46,0)); }
 
@@ -413,10 +412,9 @@ const PAGE_STYLES = `
   .nl-hero { height: 100svh; padding-bottom: 1rem; }
   /* .nl-root p/h1 zero their margins at higher specificity; match it here */
   .nl-root .nl-hero-kicker { position: absolute; top: 7.4rem; left: 1.65rem; margin: 0; }
-  .nl-root .nl-hero-word { font-size: min(19.5vw, 16svh); text-align: center; }
-  .nl-hero-word-zone { height: calc(100% - 46svh + 2.2rem); }
-  .nl-hero-house { height: 46svh; }
-  .nl-root .nl-hero-sub { position: absolute; top: 10.6rem; left: 1.65rem; max-width: 15rem; margin: 0; }
+  .nl-root .nl-hero-word { top: 15svh; font-size: min(23vw, 20svh); }
+  .nl-hero-cut { width: 100vw; bottom: 8svh; }
+  .nl-root .nl-hero-sub { position: absolute; top: auto; right: 1.65rem; bottom: 1.2rem; left: 1.65rem; max-width: none; margin: 0; }
   .nl-hero-rotmenu, .nl-hero-copy { display: none; }
   .nl-spot span { font-size: 9.5px; }
   .nl-arrival { width: 100%; }
@@ -453,12 +451,12 @@ const PAGE_STYLES = `
   .nl-barn-stage { position: static; width: 100%; height: auto; }
   .nl-barn-content { position: static; width: 100%; padding: 4.5rem 1.65rem 1rem; }
   .nl-barn-strip { position: static; width: 100%; padding: 0 1.65rem 3rem; }
-  .nl-barn-cell { height: 46svh; margin-bottom: 1rem; }
+  .nl-barn-cell { height: 52svh; margin-bottom: 1rem; }
   .nl-isl { height: 72svh; }
   .nl-summer { height: 62svh; }
-  .nl-barn::before { right: 0; bottom: auto; width: auto; height: 14svh; background: linear-gradient(180deg, ${PLASTER}, rgba(232,233,230,0)); }
-  .nl-isl::after { left: 0; top: auto; width: auto; height: 14svh; background: linear-gradient(0deg, ${PLASTER}, rgba(232,233,230,0)); }
-  .nl-cierre::before { right: 0; bottom: auto; width: auto; height: 14svh; background: linear-gradient(180deg, ${PLASTER}, rgba(232,233,230,0)); }
+  .nl-barn::before { left: 0; right: 0; top: -2px; bottom: auto; width: auto; height: 18svh; background: linear-gradient(180deg, ${PLASTER}, rgba(232,233,230,0)); }
+  .nl-isl::after { left: 0; right: 0; top: auto; bottom: -2px; width: auto; height: 18svh; background: linear-gradient(0deg, ${PLASTER}, rgba(232,233,230,0)); }
+  .nl-summer::after { left: 0; right: 0; top: auto; bottom: -2px; width: auto; height: 18svh; background: linear-gradient(0deg, ${ACCENT}, rgba(122,78,46,0)); }
   .nl-saga { display: block; padding: 4.5rem 1.65rem; }
   .nl-saga-fig { width: 100%; height: 46svh; margin-bottom: 2.2rem; }
   .nl-cierre { padding: 5rem 0; }
@@ -799,14 +797,15 @@ export default function NollurPage() {
         /* the sink has to finish EARLY: the hero panel is also sliding left as
            the journey advances, and a slow sink spent fighting that sideways
            motion reads as a messy half-hidden, half-shifted word rather than a
-           clean disappearance. Ending at -18% closes it while the panel has
-           barely moved. */
+           clean disappearance. Ending at -20% closes it while the panel has
+           barely moved. The roof does most of the hiding; the opacity fade only
+           clears the letter ends that stick out past the house's silhouette. */
         const heroPanelEl = root.querySelector<HTMLElement>('.nl-hero')
         const heroWord = root.querySelector<HTMLElement>('.nl-hero-word')
         if (heroPanelEl && heroWord) {
-          gsap.fromTo(heroWord, { yPercent: 0 }, {
-            yPercent: 130, ease: 'none',
-            scrollTrigger: { ...onJourney(heroPanelEl, 'left 0%'), end: 'left -18%', scrub: true },
+          gsap.fromTo(heroWord, { yPercent: 0, opacity: 1 }, {
+            yPercent: 46, opacity: 0, ease: 'none',
+            scrollTrigger: { ...onJourney(heroPanelEl, 'left 0%'), end: 'left -20%', scrub: true },
           })
         }
 
@@ -900,14 +899,14 @@ export default function NollurPage() {
           const stage = barn.querySelector<HTMLElement>('.nl-barn-stage')!
           const strip = barn.querySelector<HTMLElement>('.nl-barn-strip')!
           const cells = barn.querySelectorAll<HTMLElement>('.nl-barn-cell').length
-          const stripH = cells * 46 - 2
-          const yFrom = 10
+          const stripH = cells * 65 - 3
+          const yFrom = 4
           const yTo = -(stripH - 100)
           const travel = 120
           const bTl = gsap.timeline({ paused: true })
           bTl.fromTo(stage, { x: '0vw' }, { x: `${travel}vw`, duration: 1, ease: 'none' }, 0)
           bTl.fromTo(strip, { y: `${yFrom}svh` }, { y: `${yTo}svh`, duration: 1, ease: 'none' }, 0)
-          ScrollTrigger.create({ ...onJourney(barn, 'left 0%'), animation: bTl, end: `left -${travel}%`, scrub: 0 })
+          ScrollTrigger.create({ ...onJourney(barn, 'left 0%'), animation: bTl, end: `left -${travel}%`, scrub: 0.7 })
           const bTitle = barn.querySelector('.nl-barn-title')
           if (bTitle) {
             const tl = gsap.timeline({ paused: true })
@@ -974,9 +973,9 @@ export default function NollurPage() {
         heroIntro(false).timeScale(TS).play()
         const heroWordM = root.querySelector<HTMLElement>('.nl-hero-word')
         if (heroWordM) {
-          gsap.fromTo(heroWordM, { yPercent: 0 }, {
-            yPercent: 130, ease: 'none',
-            scrollTrigger: { trigger: root.querySelector('.nl-hero'), start: 'top top', end: 'bottom top', scrub: true },
+          gsap.fromTo(heroWordM, { yPercent: 0, opacity: 1 }, {
+            yPercent: 46, opacity: 0, ease: 'none',
+            scrollTrigger: { trigger: root.querySelector('.nl-hero'), start: 'top top', end: 'center top', scrub: true },
           })
         }
         root.querySelectorAll('.nl-statement .nl-sline, .nl-barn-title, .nl-saga-title, .nl-cierre-word').forEach((el) => {
@@ -1166,15 +1165,15 @@ export default function NollurPage() {
             {/* 1 ── HERO: the wordmark on its own ground, the house right below it */}
             <section className="nl-panel nl-hero" aria-label="Nollur">
               <p className="nl-hero-kicker nl-caps">{t.hero.kicker}</p>
-              <div className="nl-hero-word-zone">
-                <h1 className="nl-hero-word" aria-label="Nollur">
-                  <span className="nl-hero-mask" aria-hidden="true">
-                    {'NOLLUR'.split('').map((c, i) => <span key={i}>{c}</span>)}
-                  </span>
-                </h1>
-              </div>
-              <div className="nl-hero-house">
-                <Media src={IMG.heroHouse} alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss, dahinter die Berge' : 'Hrafnabjörg from the drive: a glass box over shale and walnut, the mountains behind'} dir="up" eager />
+              <h1 className="nl-hero-word" aria-label="Nollur">
+                <span className="nl-hero-mask" aria-hidden="true">
+                  {'NOLLUR'.split('').map((c, i) => <span key={i}>{c}</span>)}
+                </span>
+              </h1>
+              <figure className="nl-hero-cut">
+                <img src={IMG.heroCut} srcSet={`${IMG.heroCut900} 900w, ${IMG.heroCut} 1800w`} sizes="88vw"
+                  alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss' : 'Hrafnabjörg from the drive: a glass box over shale and walnut'}
+                  loading="eager" decoding="async" />
                 <div className="nl-hero-hotspots" aria-hidden="false">
                   {HOTSPOTS.map((h) => (
                     <button key={h.key} type="button" className={`nl-spot ${FOCUS}`} style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%` }} onClick={() => go('materials')} aria-label={t.hero.spot[h.key]}>
@@ -1182,7 +1181,7 @@ export default function NollurPage() {
                     </button>
                   ))}
                 </div>
-              </div>
+              </figure>
               <p className="nl-hero-sub">{t.hero.sub}</p>
               <nav className="nl-hero-rotmenu nl-caps" aria-label={lang === 'de' ? 'Direktlinks' : 'Shortcuts'}>
                 {t.hero.rot.map((r) => (
@@ -1311,7 +1310,7 @@ export default function NollurPage() {
                   <p className="nl-barn-body">{t.farm.body}</p>
                 </div>
                 <div className="nl-barn-strip">
-                  {[IMG.nfKaldDeck, IMG.nfKrysDusk, IMG.nfFnjoLiving, IMG.nfSulurKitchen].map((src, i) => (
+                  {[IMG.nfKaldDeck, IMG.nfKrysDusk, IMG.nfFnjoLiving].map((src, i) => (
                     <figure className="nl-barn-cell" key={src} style={{ margin: 0 }}>
                       <img src={src} alt={t.farm.alts[i]} loading="eager" decoding="async" />
                       <figcaption>{t.farm.caps[i]}</figcaption>

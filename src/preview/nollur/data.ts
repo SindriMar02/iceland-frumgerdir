@@ -10,6 +10,11 @@ const A = `${import.meta.env.BASE_URL}nollur/`
 
 export const IMG = {
   heroHouse: `${A}hero-house.webp`,          // Hrafnabjörg from the drive, glass box over shale
+  /* the same frame with the sky segmented out (Higgsfield background remover,
+     then filled down per column so the lawn stays solid) — the hero's house
+     stands in front of the wordmark and occludes it with its real roofline */
+  heroCut: `${A}hero-cutout.webp`,
+  heroCut900: `${A}hero-cutout-900.webp`,
   arrivalView: `${A}arrival-view.webp`,      // through the glass wall to Akureyri across the water
   arrivalPool: `${A}arrival-pool.webp`,      // the villa mirrored in its pool
   matWalnut: `${A}mat-walnut.webp`,
@@ -190,8 +195,8 @@ export const T = {
       title: 'Nollur',
       titleTail: ', the farm on the rock',
       body: 'Four houses on a hill above the fjord, 30 kilometres north of Akureyri. Kaldbakur with its 60 m² room to the water and a hot tub under the roof; the loft at Fnjóská, made for two; Krýsuvík and Súlur, designed by the Swiss architect Roland Burkard and completed in 2009, heated with natural hot water.',
-      caps: ['Kaldbakur, the deck', 'Krýsuvík at dusk', 'Fnjóská, the loft', 'Súlur, the kitchen'],
-      alts: ['The deck and sunken hot tub at Kaldbakur', 'Krýsuvík at dusk with its blue-lit windows', 'The walnut living room of the Fnjóská loft', 'The green kitchen at Súlur'],
+      caps: ['Kaldbakur, the deck', 'Krýsuvík at dusk', 'Fnjóská, the loft'],
+      alts: ['The deck and sunken hot tub at Kaldbakur', 'Krýsuvík at dusk with its blue-lit windows', 'The walnut living room of the Fnjóská loft'],
     },
     lights: {
       kicker: 'From the villa, in winter',
@@ -302,8 +307,8 @@ export const T = {
       title: 'Nollur',
       titleTail: ', der Hof auf dem Felsen',
       body: 'Vier Häuser auf einem Hügel über dem Fjord, 30 Kilometer nördlich von Akureyri. Kaldbakur mit seinem 60 m² Raum zum Wasser und einem Hot Tub unter dem Dach; das Loft Fnjóská für zwei; Krýsuvík und Súlur, vom Schweizer Architekten Roland Burkard entworfen und 2009 fertiggestellt, geheizt mit natürlichem Heisswasser.',
-      caps: ['Kaldbakur, die Terrasse', 'Krýsuvík in der Dämmerung', 'Fnjóská, das Loft', 'Súlur, die Küche'],
-      alts: ['Terrasse und versenkter Hot Tub in Kaldbakur', 'Krýsuvík in der Dämmerung mit blau erleuchteten Fenstern', 'Das Walnuss-Wohnzimmer des Lofts Fnjóská', 'Die grüne Küche in Súlur'],
+      caps: ['Kaldbakur, die Terrasse', 'Krýsuvík in der Dämmerung', 'Fnjóská, das Loft'],
+      alts: ['Terrasse und versenkter Hot Tub in Kaldbakur', 'Krýsuvík in der Dämmerung mit blau erleuchteten Fenstern', 'Das Walnuss-Wohnzimmer des Lofts Fnjóská'],
     },
     lights: {
       kicker: 'Von der Villa aus, im Winter',
