@@ -11,7 +11,6 @@ import {
   IMG, EMAIL, EMAIL_HREF, CAMERAS, PANORAMA, HOUSES, PLACES, HOTSPOTS, T, JSON_LD,
 } from './data'
 import type { Lang } from './data'
-import { SIL, SIL_RATIO } from './sil'
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
 if (typeof window !== 'undefined') (window as unknown as { ScrollTrigger?: typeof ScrollTrigger }).ScrollTrigger = ScrollTrigger
@@ -25,9 +24,13 @@ const company = getPreviewCompany('nollur')
    padding-parallax materials with a cursor that becomes content, a pin-in-pin
    filmstrip for the farm, edge-aware button fills, odometer rollovers, flip
    peels, and a footer where the glass villa's flat roofline morphs into the
-   farmhouse gable. New here: the hero, where the wordmark stands in the sky
-   BEHIND the house (the roofline traced from the photograph's own pixels) and
-   the owner's four materials are tagged on the building. ────────────────── */
+   farmhouse gable. New here: the hero, built on Drangar's own hero pattern —
+   the wordmark sits on the plain paper ground, a waterline divides it from a
+   fixed-height photo band below, no clip-path, nothing traced from the
+   photograph's pixels. Two rounds of a house-silhouette cutout (first a
+   pixel-scan, then a hand-corrected one) both still read as a bad cutout once
+   live; the fix is not a better trace, it is not tracing at all. The owner's
+   four materials are tagged as hotspots on the photo band. ──────────────── */
 
 const PLASTER = '#E8E9E6'
 const PLASTER_2 = '#DDDFDA'
@@ -71,8 +74,6 @@ const readLang = (): Lang => {
   return 'en'
 }
 
-const CLIP = `polygon(0% 100%, ${SIL.map(([x, y]) => `${(x * 100).toFixed(2)}% ${(y * 100).toFixed(2)}%`).join(', ')}, 100% 100%)`
-
 const PAGE_STYLES = `
 @font-face { font-family: 'Redaction 35'; src: url('${FONTS}Redaction_35-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Redaction 35'; src: url('${FONTS}Redaction_35-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
@@ -85,7 +86,6 @@ const PAGE_STYLES = `
 .nl-root {
   --nl-line: ${LINE};
   --nl-100vh: 100svh;
-  --nl-sil: ${SIL_RATIO};
   background: ${PLASTER};
   color: ${INK};
   font-family: ${GROTESK};
@@ -209,16 +209,20 @@ const PAGE_STYLES = `
 .nl-track { display: flex; width: fit-content; }
 .nl-panel { position: relative; height: var(--nl-100vh); flex: none; }
 
-/* hero: the wordmark in the sky, the house in front of it */
-.nl-hero { width: 100vw; background: ${PLASTER}; overflow: clip; }
-.nl-hero-word { position: absolute; left: 50%; top: 8.5svh; transform: translateX(-50%); z-index: 1;
-  font-family: ${DISPLAY}; font-size: min(21.5vw, 44svh); line-height: .82; letter-spacing: .01em; white-space: nowrap; color: ${INK}; }
+/* hero: the wordmark stands on the plain ground; a waterline, then a fixed-
+   height photo band carries the house. No clip-path, nothing traced from the
+   photograph — the mechanism Drangar proved, not a silhouette cutout. */
+.nl-hero { width: 100vw; display: grid; grid-template-rows: 1fr auto; background: ${PLASTER}; }
+.nl-hero-word-zone { position: relative; display: flex; align-items: flex-end; justify-content: center; }
+.nl-hero-word { position: relative; font-family: ${DISPLAY}; font-size: min(15.5vw, 34svh); line-height: .82;
+  letter-spacing: .01em; white-space: nowrap; color: ${INK}; }
 .nl-hero-word .nl-hero-mask { display: block; overflow: clip; padding-top: .18em; }
 .nl-hero-word .nl-hero-mask span { display: inline-block; }
-.nl-hero-fig { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; margin: 0;
-  width: 78vw; aspect-ratio: var(--nl-sil); clip-path: ${CLIP}; }
-.nl-hero-fig > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.nl-spot { position: absolute; z-index: 3; transform: translate(-50%, -50%); display: flex; align-items: center; gap: .55rem;
+.nl-hero-waterline { position: relative; height: 1px; background: ${INK}; margin: 0 1.65rem; }
+.nl-hero-band { position: relative; height: 42svh; margin: 0; }
+.nl-hero-band .nl-flip { position: absolute; inset: 0; }
+.nl-hero-hotspots { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.nl-spot { position: absolute; z-index: 3; pointer-events: auto; transform: translate(-50%, -50%); display: flex; align-items: center; gap: .55rem;
   background: none; border: 0; padding: 0; cursor: pointer; color: ${PLASTER}; }
 .nl-spot i { position: relative; display: block; width: 12px; height: 12px; border-radius: 50%; background: ${PLASTER};
   box-shadow: 0 0 0 1px rgba(18,20,21,.35); }
@@ -229,14 +233,15 @@ const PAGE_STYLES = `
   padding: .45em .7em; background: rgba(18,20,21,.72); color: ${PLASTER}; backdrop-filter: blur(3px); white-space: nowrap;
   transition: background .3s, color .3s; }
 .nl-spot:hover span, .nl-spot:focus-visible span { background: ${PLASTER}; color: ${INK}; }
-.nl-hero-kicker { position: absolute; top: calc(1.1rem + 54px); left: 1.65rem; z-index: 3; color: ${INK_MUTE}; }
-.nl-hero-sub { position: absolute; right: 1.65rem; bottom: 1.4rem; z-index: 3; max-width: 17rem; padding: .85rem 1rem;
-  background: ${PLASTER_SOFT}; backdrop-filter: blur(4px); border-top: 1px solid var(--nl-line);
-  font-size: .82rem; line-height: 1.5; color: ${INK_SOFT}; }
-.nl-hero-rotmenu { position: absolute; top: calc(1.1rem + 54px); right: .55rem; z-index: 3; transform-origin: bottom right;
+.nl-hero-kicker { position: absolute; top: calc(1.1rem + 54px); left: 1.65rem; color: ${INK_MUTE}; }
+/* sits directly under the kicker, out of the wordmark's own centred band
+   (Drangar's spacing, same collision it was written to avoid) */
+.nl-hero-sub { position: absolute; left: 1.65rem; top: calc(1.1rem + 5.2rem); max-width: 14rem;
+  font-size: .85rem; line-height: 1.5; color: ${INK_SOFT}; }
+.nl-hero-rotmenu { position: absolute; top: calc(1.1rem + 54px); right: .55rem; transform-origin: bottom right;
   transform: rotate(-90deg); display: flex; gap: 1.2rem; color: ${INK_MUTE}; white-space: nowrap; }
 .nl-hero-rotmenu a { color: inherit; text-decoration: none; }
-.nl-hero-copy { position: absolute; left: 1.65rem; bottom: 1.2rem; z-index: 3; color: ${INK_MUTE}; }
+.nl-hero-copy { position: absolute; left: 1.65rem; bottom: calc(42svh + 1.2rem); color: ${INK_MUTE}; }
 
 /* arrival */
 .nl-arrival { width: 76vw; background: ${PLASTER}; }
@@ -396,12 +401,14 @@ const PAGE_STYLES = `
 @media (max-width: 1023px) {
   .nl-track { display: block; width: 100%; }
   .nl-panel { height: auto; width: 100% !important; }
-  .nl-hero { min-height: 0; display: flex; flex-direction: column; padding-bottom: 1rem; }
+  .nl-hero { grid-template-rows: none; display: flex; flex-direction: column; height: auto; min-height: 100svh; padding-bottom: 1rem; }
+  .nl-hero-word-zone { display: block; }
   /* .nl-root p/h1 zero their margins at higher specificity; match it here */
   .nl-root .nl-hero-kicker { position: static; margin: 7.4rem 1.65rem 0; }
-  .nl-root .nl-hero-word { position: relative; left: auto; top: auto; transform: none; font-size: min(19.5vw, 16svh); text-align: center; margin-top: 1.2rem; }
-  .nl-hero-fig { position: relative; left: auto; bottom: auto; transform: none; width: 100vw; margin-top: -9vw; }
-  .nl-root .nl-hero-sub { position: static; max-width: none; background: none; border: 0; padding: 0; backdrop-filter: none; margin: 1.4rem 1.65rem 2rem; }
+  .nl-root .nl-hero-word { position: relative; font-size: min(19.5vw, 16svh); text-align: center; margin-top: 1.2rem; }
+  .nl-hero-waterline { margin: 1.4rem 1.65rem; }
+  .nl-hero-band { height: 46svh; }
+  .nl-root .nl-hero-sub { position: static; max-width: none; margin: 1.4rem 1.65rem 0; }
   .nl-hero-rotmenu, .nl-hero-copy { display: none; }
   .nl-spot span { font-size: 9.5px; }
   .nl-arrival { width: 100%; }
@@ -707,7 +714,7 @@ export default function NollurPage() {
         const intro = gsap.timeline({ paused: true })
         const heroMasks = Array.from(root.querySelectorAll('.nl-hero-mask span'))
         intro.from(heroMasks, { yPercent: 120, duration: 1.1, stagger: { each: 0.06, from: 'center' }, ease: 'power3.out' }, 0.15)
-        intro.from(root.querySelector('.nl-hero-fig'), { yPercent: 8, opacity: 0, duration: 1.1, ease: 'power3.out' }, 0.55)
+        intro.from(root.querySelector('.nl-hero-waterline'), { scaleX: 0, transformOrigin: 'center', duration: 1.1, ease: 'power2.inOut' }, 0.1)
         intro.from(root.querySelectorAll('.nl-spot'), { scale: 0, opacity: 0, duration: 0.5, stagger: 0.12, ease: 'back.out(2)' }, 1.25)
         const kick = root.querySelector('.nl-hero-kicker')
         if (kick) cascade(kick, intro, 0.55)
@@ -1125,22 +1132,29 @@ export default function NollurPage() {
         <div className="nl-journey">
           <div className="nl-track">
 
-            {/* 1 ── HERO: the word in the sky, the house in front */}
+            {/* 1 ── HERO: the wordmark on its own ground, the house right below it */}
             <section className="nl-panel nl-hero" aria-label="Nollur">
               <p className="nl-hero-kicker nl-caps">{t.hero.kicker}</p>
-              <h1 className="nl-hero-word" aria-label="Nollur">
-                <span className="nl-hero-mask" aria-hidden="true">
-                  {'NOLLUR'.split('').map((c, i) => <span key={i}>{c}</span>)}
-                </span>
-              </h1>
-              <figure className="nl-hero-fig">
-                <img src={IMG.heroHouse} alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss, dahinter die Berge' : 'Hrafnabjörg from the drive: a glass box over shale and walnut, the mountains behind'} loading="eager" decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} />
-                {HOTSPOTS.map((h) => (
-                  <button key={h.key} type="button" className={`nl-spot ${FOCUS}`} style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%` }} onClick={() => go('materials')} aria-label={t.hero.spot[h.key]}>
-                    <i /><span>{t.hero.spot[h.key]}</span>
-                  </button>
-                ))}
-              </figure>
+              <div className="nl-hero-word-zone">
+                <h1 className="nl-hero-word" aria-label="Nollur">
+                  <span className="nl-hero-mask" aria-hidden="true">
+                    {'NOLLUR'.split('').map((c, i) => <span key={i}>{c}</span>)}
+                  </span>
+                </h1>
+              </div>
+              <div>
+                <div className="nl-hero-waterline" />
+                <div className="nl-hero-band">
+                  <Media src={IMG.heroHouse} alt={lang === 'de' ? 'Hrafnabjörg von der Einfahrt aus: ein Glaskörper über Schiefer und Walnuss, dahinter die Berge' : 'Hrafnabjörg from the drive: a glass box over shale and walnut, the mountains behind'} dir="up" eager />
+                  <div className="nl-hero-hotspots" aria-hidden="false">
+                    {HOTSPOTS.map((h) => (
+                      <button key={h.key} type="button" className={`nl-spot ${FOCUS}`} style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%` }} onClick={() => go('materials')} aria-label={t.hero.spot[h.key]}>
+                        <i /><span>{t.hero.spot[h.key]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               <p className="nl-hero-sub">{t.hero.sub}</p>
               <nav className="nl-hero-rotmenu nl-caps" aria-label={lang === 'de' ? 'Direktlinks' : 'Shortcuts'}>
                 {t.hero.rot.map((r) => (

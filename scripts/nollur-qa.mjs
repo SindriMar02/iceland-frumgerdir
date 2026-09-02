@@ -38,10 +38,10 @@ report.h1 = await page.evaluate(() => {
   return { ariaLabel: h?.getAttribute('aria-label'), text: h?.textContent?.trim().slice(0, 40), lang: document.documentElement.lang, title: document.title }
 })
 report.hero = await page.evaluate(() => {
-  const fig = document.querySelector('.nl-hero-fig')
+  const band = document.querySelector('.nl-hero-band')
   const word = document.querySelector('.nl-hero-word')
-  const r = fig?.getBoundingClientRect(), w = word?.getBoundingClientRect()
-  return { figTop: Math.round(r?.top ?? -1), figW: Math.round(r?.width ?? -1), wordTop: Math.round(w?.top ?? -1), wordBottom: Math.round(w?.bottom ?? -1), clip: getComputedStyle(fig).clipPath.slice(0, 40), spots: document.querySelectorAll('.nl-spot').length }
+  const r = band?.getBoundingClientRect(), w = word?.getBoundingClientRect()
+  return { bandTop: Math.round(r?.top ?? -1), bandH: Math.round(r?.height ?? -1), wordTop: Math.round(w?.top ?? -1), wordBottom: Math.round(w?.bottom ?? -1), spots: document.querySelectorAll('.nl-spot').length }
 })
 report.broken = await page.evaluate(() => [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.src.slice(-50)))
 
