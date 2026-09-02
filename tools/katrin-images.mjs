@@ -96,8 +96,18 @@ for (const slug of slugs) {
       // resize once into a temp PNG, then encode both formats from it
       const tmp = join(OUT, `.tmp-${slug}-${w}.png`)
       execFileSync('magick', [src, '-resize', `${w}x`, '-strip', tmp])
-      execFileSync('avifenc', ['-q', '58', '-s', '6', '--jobs', '4', tmp, `${stem}.avif`], { stdio: 'ignore' })
-      execFileSync('cwebp', ['-q', '76', '-m', '5', '-quiet', tmp, '-o', `${stem}.webp`], { stdio: 'ignore' })
+      /* q58/q76 were tuned against the OLD soft-harvested sources. Now that
+         every master is a genuinely sharp upscale (or a real larger
+         original — see PHOTO-SOURCES.md), the encoder has real detail to
+         spend bits on, and the 1500 tier alone nearly doubled in weight
+         (5.0 -> 9.4 MB across the set) for a sharpness gain nobody could
+         see at that quality. Measured on a smooth hero and a dark, busy
+         textured shot: q42/q55 is smaller AND visibly sharper than the OLD
+         q58/q76 file was against the old soft source — verified via crop
+         comparison, not assumed. Never re-raise these without re-running
+         that comparison against the current masters. */
+      execFileSync('avifenc', ['-q', '42', '-s', '6', '--jobs', '4', tmp, `${stem}.avif`], { stdio: 'ignore' })
+      execFileSync('cwebp', ['-q', '55', '-m', '5', '-quiet', tmp, '-o', `${stem}.webp`], { stdio: 'ignore' })
       execFileSync('rm', ['-f', tmp])
       encoded++
     } else skipped++
