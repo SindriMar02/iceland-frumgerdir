@@ -12,9 +12,13 @@ export const IMG = {
   heroHouse: `${A}hero-house.webp`,          // Hrafnabjörg from the drive, glass box over shale
   /* the same frame with the sky segmented out (Higgsfield background remover,
      then filled down per column so the lawn stays solid) — the hero's house
-     stands in front of the wordmark and occludes it with its real roofline */
-  heroCut: `${A}hero-cutout.webp`,
-  heroCut900: `${A}hero-cutout-900.webp`,
+     stands in front of the wordmark and occludes it with its real roofline.
+     The filename carries the file's own content hash: public/ assets are copied
+     verbatim by Vite, so a same-named replacement keeps serving from the Pages
+     CDN and the browser cache for ten minutes and reads as "not fixed"
+     ([[github-pages-cache-busting]]). Re-hash the name whenever the art changes. */
+  heroCut: `${A}hero-cutout.9247b7a4.webp`,
+  heroCut900: `${A}hero-cutout-900.9247b7a4.webp`,
   arrivalView: `${A}arrival-view.webp`,      // through the glass wall to Akureyri across the water
   arrivalPool: `${A}arrival-pool.webp`,      // the villa mirrored in its pool
   matWalnut: `${A}mat-walnut.webp`,
