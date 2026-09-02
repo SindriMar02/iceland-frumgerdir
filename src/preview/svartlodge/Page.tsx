@@ -8,6 +8,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setNoindex, setThemeColor } from '../../lib/preview'
 import { demo, type DemoBooking } from './demoStore'
+import { StayPicker, STAY_CSS, dayKey, fmtLong, type Stay } from './StayPicker'
 import { AREA, COMPANY, FACTS, JSON_LD, OWN_WORDS, PHOTO, PROOF, srcSet } from './content'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -167,36 +168,36 @@ function Frame({ photo, className = '', priority = false, drift = 9, sizes }: {
 
 /* ── booking form ───────────────────────────────────────────────────────── */
 
-const plusDays = (d: string, n: number) => {
-  const t = new Date(`${d}T12:00:00`)
-  t.setDate(t.getDate() + n)
-  return t.toISOString().slice(0, 10)
-}
+const nightsOf = (s: Stay) =>
+  s.start && s.end ? Math.round((s.end.getTime() - s.start.getTime()) / 86_400_000) : 0
 
 function BookingForm() {
+  const [stay, setStay] = useState<Stay>({ start: null, end: null })
+  const [people, setPeople] = useState(6)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [date, setDate] = useState('')
-  const [nights, setNights] = useState(3)
-  const [people, setPeople] = useState(6)
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<DemoBooking | null>(null)
-  const minDate = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const nights = nightsOf(stay)
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !email.trim() || !date) {
-      setError('Name, email and an arrival date are needed to send a request.')
+    if (!stay.start || !stay.end) {
+      setError('Pick an arrival and a checkout on the calendar, then send the request.')
+      return
+    }
+    if (!name.trim() || !email.trim()) {
+      setError('A name and an email address are needed so the owners can answer you.')
       return
     }
     setError(null)
     const b: DemoBooking = {
       id: `sl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       resourceId: 'svartlodge',
-      date,
-      endDate: plusDays(date, nights),
+      date: dayKey(stay.start),
+      endDate: dayKey(stay.end),
       people,
       customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
       note: note.trim() || undefined,
@@ -212,6 +213,10 @@ function BookingForm() {
     return (
       <div className="sl-book-done" role="status">
         <p className="sl-book-done-title">Your request is on its way.</p>
+        <p className="sl-book-done-dates">
+          {stay.start ? fmtLong(stay.start) : done.date} to {stay.end ? fmtLong(stay.end) : done.endDate}
+          {' · '}{nights} {nights === 1 ? 'night' : 'nights'} · {people} {people === 1 ? 'guest' : 'guests'}
+        </p>
         <p className="sl-body">
           In the finished site this lands with the owners directly, and the
           price for your dates comes with the reply.
@@ -219,7 +224,7 @@ function BookingForm() {
         <p className="sl-body">
           <Link className="sl-a" to="/preview/svartlodge/stjornbord">View the owner’s dashboard</Link>{' '}
           to see where the request arrives, or{' '}
-          <button type="button" className="sl-ghost" onClick={() => setDone(null)}>make another request</button>
+          <button type="button" className="sl-ghost" onClick={() => { setDone(null); setStay({ start: null, end: null }) }}>make another request</button>
         </p>
       </div>
     )
@@ -227,28 +232,13 @@ function BookingForm() {
 
   return (
     <form className="sl-book-form" onSubmit={submit} noValidate>
+      <StayPicker stay={stay} onStay={setStay} guests={people} onGuests={setPeople} maxGuests={FACTS.guests} />
       <div className="sl-fields">
         <label className="sl-field">
-          <span className="sl-field-label">Arrival</span>
-          <input type="date" name="date" min={minDate} value={date} required onChange={(e) => setDate(e.target.value)} />
-        </label>
-        <label className="sl-field">
-          <span className="sl-field-label">Nights</span>
-          <select name="nights" value={nights} onChange={(e) => setNights(Number(e.target.value))}>
-            {[2, 3, 4, 5, 6, 7, 10, 14].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </label>
-        <label className="sl-field">
-          <span className="sl-field-label">Guests</span>
-          <select name="people" value={people} onChange={(e) => setPeople(Number(e.target.value))}>
-            {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </label>
-        <label className="sl-field sl-field-wide">
           <span className="sl-field-label">Name</span>
           <input type="text" name="name" autoComplete="name" value={name} required onChange={(e) => setName(e.target.value)} />
         </label>
-        <label className="sl-field sl-field-wide">
+        <label className="sl-field">
           <span className="sl-field-label">Email</span>
           <input type="email" name="email" autoComplete="email" inputMode="email" value={email} required onChange={(e) => setEmail(e.target.value)} />
         </label>
@@ -262,7 +252,9 @@ function BookingForm() {
         </label>
       </div>
       {error && <p className="sl-field-error" role="alert">{error}</p>}
-      <button type="submit" className="sl-cta">Ask for your nights</button>
+      <button type="submit" className="sl-cta" data-ready={nights > 0 ? '' : undefined}>
+        {nights > 0 ? `Ask for these ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Ask for your nights'}
+      </button>
       <p className="sl-book-note">
         No card, no charge. The request goes straight to the owners, and the
         price for your dates comes with the reply.
@@ -693,7 +685,7 @@ const CSS = `
 .sl-owner-note-body { margin: calc(var(--u) * 10) 0 0; font-size: ${fluid(15, 14)}; line-height: 1.6; color: var(--sl-mute); }
 
 .sl-book-form { align-self: start; }
-.sl-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 16); }
+.sl-fields { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 16); margin-top: calc(var(--u) * 20); }
 .sl-field { display: grid; gap: 8px; }
 .sl-field-wide { grid-column: 1 / -1; }
 .sl-field-label { font-size: 12.5px; font-weight: 500; letter-spacing: .05em; }
@@ -713,6 +705,9 @@ const CSS = `
 .sl-book-note { margin: calc(var(--u) * 16) 0 0; font-size: ${fluid(13, 12.5)}; color: var(--sl-mute); line-height: 1.6; }
 .sl-book-done { border: 1px solid var(--sl-hair); background: #17191B; padding: calc(var(--u) * 36); align-self: start; }
 .sl-book-done-title { margin: 0; font-weight: 500; font-size: ${fluid(24, 19)}; }
+.sl-book-done-dates { margin: calc(var(--u) * 12) 0 0; font-size: 14px; letter-spacing: .03em; color: ${HAZE_TEXT}; font-variant-numeric: tabular-nums; }
+
+${STAY_CSS}
 
 /* footer */
 .sl-foot { border-top: 1px solid var(--sl-hair); }
@@ -742,14 +737,15 @@ const CSS = `
   .sl-geo-row, .sl-corners-row { grid-template-columns: 1fr; }
   .sl-geo-side { margin-top: 0; }
   .sl-foot-grid { grid-template-columns: 1fr; padding-left: 20px; padding-right: 20px; }
-  .sl-fields { grid-template-columns: 1fr 1fr; }
   .sl-view-copy { padding-left: 20px; padding-right: 20px; }
   .sl-shore-cap { left: 20px; right: 20px; }
   .sl-circle-list li { grid-template-columns: 1fr auto; }
   .sl-circle-note { grid-column: 1 / -1; }
 }
-@media (max-width: 767px) {
+@media (max-width: 619px) {
   .sl-fields { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
   .sl-wm-h { font-size: clamp(56px, 21vw, 110px); }
   .sl-wm-sub { max-width: none; font-size: 15px; }
   .sl-hero-cap { display: none; }
