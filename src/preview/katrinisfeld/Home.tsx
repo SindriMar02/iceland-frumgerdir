@@ -51,14 +51,16 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
    centred deck: a wide room low and left, a tall room high and right, a
    detail cutting the middle. */
 const PLATES: ReadonlyArray<PlxPlate> = [
-  // 1 · the backdrop, opaque and full bleed
-  { id: 's-eldhus-vitt', k: 70, x: -6, y: -4, w: 112, priority: true,
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
-  // 2 · the middle plane, feathered
-  { id: 'plate-mid', k: 55, x: -4, y: 16, w: 108, plate: true,
+  /* 1 · THE MATERIAL. The backdrop moves at ~18% of scroll speed, so this is
+     the plane you scroll into rather than past: her stone, graded to the hex
+     the rest of the site uses. */
+  { id: 'm-steinn', k: 70, priority: true,
+    alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum' },
+  // 2 · a room emerging out of the material
+  { id: 'plate-mid', k: 55, plate: true,
     alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
-  // 4 · the near plane, feathered, crossing lowest and moving least
-  { id: 'plate-front', k: 10, x: -6, y: 54, w: 112, plate: true,
+  // 4 · the nearest plane, leaving at almost page speed
+  { id: 'plate-front', k: 10, plate: true,
     alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu' },
 ]
 

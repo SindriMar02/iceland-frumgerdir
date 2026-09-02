@@ -340,49 +340,70 @@ export const CSS = `
   }
 }
 
-/* ── the layered opening ──────────────────────────────────────────────────
-   The section is taller than the viewport and the stage is stuck to the top
-   of it, so the scroll that passes the section is spent moving the plates
-   rather than moving the page. Height sets how long the pass lasts: 190svh
-   gives roughly one screen of travel after the stack has settled. */
-.ki-plx { position: relative; height: 190svh; background: ${CHARCOAL}; }
-.ki-plx-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-.ki-plx-plate { position: absolute; display: block; will-change: transform; }
-.ki-root .ki-plx-plate picture, .ki-root .ki-plx-plate picture > img { width: 100%; height: auto; }
+/* ── the layered opening: a material you scroll into ─────────────────────
+   Every number here is measured off the running reference, because the
+   registry ships that component with no CSS whatsoever.
+
+     .parallax__visuals / __layers   one box, overflow hidden
+     every layer img                 width 100%, height 117.5% of the box,
+                                     top -17.5%, object-fit cover
+     .parallax__fade                 top 80%, height 20%, above the layers
+     .parallax__black-line-overflow  2px on the very bottom edge
+
+   AND CRUCIALLY: no pin. The section scrolls away normally and the layers
+   translate DOWN against it. Measured across a full pass of the real demo,
+   the layers end up moving at 17.8% / 35.3% / 66.7% / 88.2% of scroll speed
+   — the backdrop nearly still while the nearest plane leaves at almost page
+   speed. Pinning a sticky stage, which is what was here before, produces a
+   completely different effect. */
+.ki-plx { position: relative; height: 120svh; background: ${CHARCOAL}; overflow: hidden; }
+.ki-plx-layers { position: absolute; inset: 0; overflow: hidden; }
+.ki-plx-plate {
+  position: absolute; left: 0; top: -17.5%; width: 100%; height: 117.5%;
+  display: block; will-change: transform;
+}
+.ki-root .ki-plx-plate picture, .ki-root .ki-plx-plate picture > img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* the title is layer 3, but it sits ABOVE the plates rather than between
+   them: the reference can pass its front layer over its heading because that
+   heading is decorative, and this one is her h1 */
 .ki-plx-lockup {
   position: absolute; left: calc(var(--u) * 34); right: calc(var(--u) * 34);
-  bottom: calc(var(--u) * 96); z-index: 60; color: #F4EEE6;
-  will-change: transform;
+  top: 0; height: 100svh; z-index: 25; color: #F4EEE6;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding-bottom: calc(var(--u) * 120); will-change: transform;
 }
-/* the reference's __fade — the stack resolves into the page rather than
-   ending on a cut */
-.ki-plx-fade {
-  /* z 55 puts it ABOVE the two receding plates (30, 45) and BELOW both the
-     title (60) and the foreground plate (90). At 95 it painted over the
-     headline itself, dimming the one thing on the screen that has to stay
-     legible; below the front plate it also lets that plate keep crossing the
-     composition, which is the depth cue the whole device exists for. */
-  position: absolute; inset: auto 0 0 0; height: 62%; z-index: 55; pointer-events: none;
-  /* SOLVED, not chosen. The headline sits over the big receding plate, and
-     cream on a bright kitchen measured 1.0 on its worst pixel — the h1 was
-     invisible. Sampled across the whole pass (scroll 0, 300, 600, 810) over
-     every word, the sub and both CTAs, this reaches 7.75 at the worst pixel.
-     RE-SOLVE IF A PLATE, ITS BOX, OR THE LOCKUP MOVES. */
+/* THE HEADLINE CARRIES ITS OWN GROUND. Widening the section fade could not
+   fix this — even starting it at 20% the h1 only reached 2.03 on its worst
+   pixel, because the plates behind it move and there is no fixed depth at
+   which the type is safe. A scrim tied to the LOCKUP travels with the text
+   instead. At .90 alpha, cream stays above 6:1 even if a pure white plate
+   passes underneath, so this holds whatever the layers do. */
+.ki-plx-lockup::before {
+  content: ''; position: absolute; inset: -14% calc(var(--u) * -34) 0;
+  z-index: -1; pointer-events: none;
   background: linear-gradient(to bottom,
-    rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .72) 30%, rgb(29 27 25 / .94) 62%, ${CHARCOAL} 100%);
-} 100%);
+    rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .58) 34%, rgb(29 27 25 / .90) 68%, rgb(29 27 25 / .96) 100%);
 }
-/* No pin and no travel without JS or with reduced motion: the plates simply
-   stand where they were placed, which is a composition rather than a broken
-   animation. */
-.ki-plx:not(.ki-js *) { height: auto; }
+.ki-plx-fade {
+  /* z 22, not the reference's 30: there the fade sits above the title layer
+     because its heading is centred well clear of it. Hers is a bottom-set h1
+     inside the fade's band, so at 30 the fade dimmed the headline itself. */
+  position: absolute; left: 0; right: 0; top: 62%; height: 38%; z-index: 22;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .72) 46%, rgb(29 27 25 / .94) 76%, ${CHARCOAL} 100%);
+}
+.ki-plx-line { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: ${CHARCOAL}; z-index: 20; }
+/* no JS and reduced motion: the layers simply stand where they were placed */
 @media (prefers-reduced-motion: reduce) {
   .ki-plx { height: 100svh; }
   .ki-plx-plate, .ki-plx-lockup { transform: none !important; }
 }
 @media (max-width: 860px) {
-  .ki-plx { height: 150svh; }
-  .ki-plx-lockup { bottom: calc(var(--u) * 60); }
+  .ki-plx { height: 112svh; }
+  .ki-plx-lockup { padding-bottom: calc(var(--u) * 80); }
 }
 
 /* ── the horizontal chapter ───────────────────────────────────────────── */

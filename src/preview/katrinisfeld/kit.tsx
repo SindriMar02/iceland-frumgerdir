@@ -300,90 +300,72 @@ export function HorizontalChapter({ eyebrow, panels }: {
 export interface PlxPlate {
   id: string
   alt: string
-  /** a pre-cut plate carrying alpha, served straight rather than through
-      PHOTO_DIMS — see the note on the component */
-  plate?: boolean
-  /** how far this plate travels, as a percentage of its own height */
+  /** how far this layer travels, as a percentage of its OWN height */
   k: number
-  /** the plate's box, as percentages of the stage */
-  x: number; y: number; w: number
+  /** a pre-cut plate carrying alpha, served straight rather than via PHOTO_DIMS */
+  plate?: boolean
   priority?: boolean
 }
 
 /**
- * The layered opening — the 21st.dev parallax component's mechanic, on this
- * site's own scroll engine.
+ * The layered opening: a material you scroll into.
  *
- * WHAT THE REFERENCE ACTUALLY DOES, once you read past the GSAP: four layers
- * stacked in one box, every one tweened at the SAME timeline position (each
- * added at "<" rather than in sequence) with a different magnitude —
- * yPercent 70 / 55 / 40 / 10, `ease: "none"`, `scrub: 0`, running from the
- * stack's top hitting the viewport top to its bottom hitting it. One scroll
- * input, four displacements: the 60-point spread between the back plate and
- * the front one IS the depth. Those four numbers are kept exactly.
+ * MEASURED OFF THE LIVE COMPONENT, not inferred from its source. The registry
+ * ships @osmosupply/parallax-scrolling with no CSS at all, so the code alone
+ * cannot tell you what it looks like — reading the running demo's computed
+ * styles can, and it turned out I had built something else entirely:
  *
- * WHAT IS NOT KEPT is GSAP, ScrollTrigger and Lenis. The maths is
- * `y = k * progress`; this file already runs a scroll handler that does
- * arithmetic against a cached offset, so the three libraries would have been
- * 60 KB to compute four multiplications — and Lenis in particular kills iOS
- * momentum and freezes nested scrollers.
+ *   · there is NO PIN. The section scrolls normally; the layers translate
+ *     DOWN to counteract it, and the difference is the depth. My first pass
+ *     pinned a sticky stage, which is a different effect altogether.
+ *   · every layer is the SAME full-bleed box, stacked exactly: width 100%,
+ *     height 117.5% of the container, top -17.5%, object-fit cover. The
+ *     oversize is what gives them room to travel. They are not plates at
+ *     different sizes and positions, which is what I had.
+ *   · the container clips (overflow hidden), a fade covers the bottom 20%,
+ *     and a 2px line sits on the very bottom edge to kill the seam.
  *
- * THE PLATES CARRY ALPHA, which is the part that took two attempts to get
- * right. Pulling the reference's own three layer images apart settles what
- * the device actually needs: all three are the SAME 2000x1906 canvas,
- * registered exactly on top of each other — layer 1 fully opaque, layer 2
- * 50.4% transparent, layer 4 70.2% transparent. It is one backdrop plus two
- * CUT-OUTS, not a deck of rectangles. Without alpha the layers just slide
- * over each other and the depth never appears, which is what the first
- * attempt here looked like.
+ * The magnitudes are the reference's own: 70 / 55 / 40 / 10 percent of each
+ * layer's own height, every layer on the SAME timeline position (the demo
+ * adds each at "<"), ease none, scrub 0, running from the box's top meeting
+ * the viewport top to its bottom meeting it. One progress, four
+ * displacements.
  *
- * Her photography cannot be cut that way: these are single-plane interiors,
- * and a background remover run on one returned a 99.7%-transparent fragment
- * because a room has no "subject" to isolate. So the plates are feathered
- * instead of cut — her own rooms, alpha-vignetted to 24% and 21% transparent,
- * so they overlap as planes with no hard rectangle edge. Same structure as
- * the reference, honest about the source material, nothing generated.
+ * THE CONCEPT IS SINDRI'S: the backdrop is a MATERIAL and the scroll carries
+ * you into it, with her rooms emerging out of the material as nearer planes.
+ * That is why layer 1 is stone rather than a room — it is the ground the
+ * whole practice rests on, and it makes the opening say "efnin bera rýmið"
+ * before the copy does.
  *
- * THE PLATES ARE NOT A ROW. The registry demo stacks its images dead centre,
- * which with opaque rectangles reads as a deck of cards sliding. These are
- * placed as an asymmetric composition — a wide plate low and left, a tall one
- * high and right, a small detail crossing the middle — so the layers overlap
- * at different points and the depth reads as a room rather than a stack. The
- * title is layer three, BETWEEN the plates, so the foreground detail travels
- * across the front of her name exactly as the reference passes its own front
- * plate over its heading.
+ * ONE DELIBERATE DEPARTURE: the reference lets its front layer pass over its
+ * heading, because that heading is decorative. This one is her h1, so the
+ * lockup sits above the layers. Her name is never occluded.
  */
 export function ParallaxHero({ plates, children }: {
   plates: ReadonlyArray<PlxPlate>; children: ReactNode
 }) {
   return (
     <section className="ki-plx" id="top" data-ki-band="dark" data-ki-plx>
-      <div className="ki-plx-stage">
+      <div className="ki-plx-layers">
         {plates.map((p) => (
-          <span
-            key={p.id}
-            className="ki-plx-plate"
-            data-ki-layer={p.k}
-            style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, zIndex: Math.round(100 - p.k) }}
-          >
+          <span key={p.id} className="ki-plx-plate" data-ki-layer={p.k}>
             {p.plate ? (
               <picture>
                 <source type="image/avif" srcSet={`${DIR}/${p.id}.avif`} />
                 <source type="image/webp" srcSet={`${DIR}/${p.id}.webp`} />
-                <img src={`${DIR}/${p.id}.webp`} width={2000} height={p.id === 'plate-mid' ? 820 : 900}
+                <img src={`${DIR}/${p.id}.webp`} width={2000} height={1586}
                   alt={p.alt} loading="eager" decoding="async" />
               </picture>
             ) : (
-              <Photo id={p.id} alt={p.alt} sizes={`${Math.round(p.w)}vw`} priority={p.priority} />
+              <Photo id={p.id} alt={p.alt} sizes="100vw" priority={p.priority} />
             )}
           </span>
         ))}
-        {/* the title rides its own layer, sandwiched between the plates */}
-        <div className="ki-plx-lockup" data-ki-layer="40">{children}</div>
-        {/* the reference's __fade: the stack resolves into the page instead of
-            ending on a hard edge */}
-        <div className="ki-plx-fade" aria-hidden="true" />
       </div>
+      {/* layer 3 — the title, on the same timeline as the plates */}
+      <div className="ki-plx-lockup" data-ki-layer="40">{children}</div>
+      <div className="ki-plx-fade" aria-hidden="true" />
+      <div className="ki-plx-line" aria-hidden="true" />
     </section>
   )
 }
