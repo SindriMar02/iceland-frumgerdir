@@ -4487,6 +4487,8 @@ PREVIEW_COMPANIES.push(GLASSCOTTAGES_ENTRY)
 
 import { companyEntry as RAKARARNIR_ENTRY } from './rakararnir/company'
 PREVIEW_COMPANIES.push(RAKARARNIR_ENTRY)
+import { companyEntry as NOLLUR_ENTRY } from './nollur/company'
+PREVIEW_COMPANIES.push(NOLLUR_ENTRY)
 import { companyEntry as ILL_ENTRY } from './icelandluxurylodges/company'
 PREVIEW_COMPANIES.push(ILL_ENTRY)
 import { companyEntry as MIRRORLODGE_ENTRY } from './mirrorlodge/company'

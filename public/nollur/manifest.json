@@ -1,0 +1,282 @@
+{
+ "hero-house": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/hrafn-01.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1452,
+  "width": 2560,
+  "bytes": 717106
+ },
+ "arrival-pool": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-31.jpg",
+  "trueWidth": 3230,
+  "trueHeight": 2000,
+  "width": 2400,
+  "bytes": 677736
+ },
+ "mat-walnut": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-34.jpg",
+  "trueWidth": 3313,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 207394
+ },
+ "mat-shale": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-28.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 47120
+ },
+ "mat-glass": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-15.jpg",
+  "trueWidth": 3185,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 184694
+ },
+ "mat-revox": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-09.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 82664
+ },
+ "quote-chair": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/hrafn-07.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1707,
+  "width": 1600,
+  "bytes": 97238
+ },
+ "quote-tub": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-21.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 104906
+ },
+ "ak-pool": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-36.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 2000,
+  "bytes": 389932
+ },
+ "ak-leifs": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/leifs-04.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1200,
+  "bytes": 210678
+ },
+ "ak-living": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/hrafn-03.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1707,
+  "width": 2000,
+  "bytes": 334104
+ },
+ "ak-leifs-house": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/leifs-05.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1600,
+  "bytes": 110232
+ },
+ "gr-shore": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/vall-03.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1669,
+  "width": 2000,
+  "bytes": 317302
+ },
+ "gr-laug": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/laug-01.jpg",
+  "trueWidth": 1200,
+  "trueHeight": 800,
+  "width": 1200,
+  "bytes": 68550
+ },
+ "gr-lawn": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/vall-01.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1707,
+  "width": 2000,
+  "bytes": 142922
+ },
+ "gr-vall-house": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/vall-04.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1708,
+  "width": 1600,
+  "bytes": 233906
+ },
+ "nf-kald": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/kald-01.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1467,
+  "width": 2000,
+  "bytes": 368274
+ },
+ "nf-sulur": {
+  "source": "Expedia h33925140 gallery (media.vrbo.com)",
+  "file": "vrbo/fnj-01.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1200,
+  "bytes": 143990
+ },
+ "nf-kald-deck": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/kald-02.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1542,
+  "width": 1600,
+  "bytes": 243926
+ },
+ "nf-krys-dusk": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/krys-02.jpg",
+  "trueWidth": 3802,
+  "trueHeight": 2000,
+  "width": 1600,
+  "bytes": 125772
+ },
+ "nf-fnjo-living": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/fnjo-05.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1707,
+  "width": 1600,
+  "bytes": 131462
+ },
+ "nf-kald-fjord": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/kald-03.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1671,
+  "width": 2000,
+  "bytes": 410128
+ },
+ "fjord-aurora": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/krys-21.jpg",
+  "trueWidth": 3480,
+  "trueHeight": 2000,
+  "width": 2400,
+  "bytes": 416238
+ },
+ "town-aurora": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-13.jpg",
+  "trueWidth": 3480,
+  "trueHeight": 2000,
+  "width": 2400,
+  "bytes": 416238
+ },
+ "saga-house": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-45.jpg",
+  "trueWidth": 3526,
+  "trueHeight": 2000,
+  "width": 1800,
+  "bytes": 356420
+ },
+ "cierre-drive": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-29.jpg",
+  "trueWidth": 3552,
+  "trueHeight": 2000,
+  "width": 1600,
+  "bytes": 306458
+ },
+ "menu-night": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/hrafn-13.jpg",
+  "trueWidth": 3480,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 154738
+ },
+ "gr-window": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/vall-05.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1760,
+  "width": 1400,
+  "bytes": 80682
+ },
+ "nf-krys-house": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/krys-01.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1648,
+  "width": 1600,
+  "bytes": 169146
+ },
+ "nf-fnjo-house": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/fnjo-02.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1526,
+  "width": 1600,
+  "bytes": 186278
+ },
+ "nf-sulur-house": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/sulur-01.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1707,
+  "width": 1600,
+  "bytes": 230608
+ },
+ "gr-bakk": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/bakk-13.jpg",
+  "trueWidth": 1200,
+  "trueHeight": 1796,
+  "width": 900,
+  "bytes": 34136
+ },
+ "nf-krys-room": {
+  "source": "Vrbo gallery (media.vrbo.com)",
+  "file": "vrbo/krys-03.jpg",
+  "trueWidth": 3257,
+  "trueHeight": 2000,
+  "width": 1400,
+  "bytes": 96658
+ },
+ "nf-sulur-kitchen": {
+  "source": "Expedia h33925140 gallery (media.vrbo.com)",
+  "file": "vrbo/fnj-32.jpg",
+  "trueWidth": 3000,
+  "trueHeight": 2000,
+  "width": 1600,
+  "bytes": 120574
+ },
+ "arrival-view": {
+  "source": "nollur.is (WordPress upload, photo Reto Kuhn)",
+  "file": "site/hrafn-02.jpg",
+  "trueWidth": 2560,
+  "trueHeight": 1561,
+  "width": 2560,
+  "bytes": 753598
+ }
+}
