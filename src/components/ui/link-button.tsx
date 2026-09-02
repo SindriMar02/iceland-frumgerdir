@@ -1,5 +1,3 @@
-// Built using Hyperiux Vault: https://vault.hyperiux.com
-
 "use client";
 
 import { ArrowRight } from "lucide-react";

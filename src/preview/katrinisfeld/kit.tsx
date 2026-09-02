@@ -293,9 +293,69 @@ export function HorizontalChapter({ eyebrow, panels }: {
           })}
         </div>
       </div>
-      {/* the journey's own progress, the way Búðir scales a bar off the
-          master tween's progress rather than off page scroll */}
-      <div className="ki-hs-prog" aria-hidden="true"><i /></div>
+    </section>
+  )
+}
+
+export interface PlxPlate {
+  id: string
+  alt: string
+  /** how far this plate travels, as a percentage of its own height */
+  k: number
+  /** the plate's box, as percentages of the stage */
+  x: number; y: number; w: number
+  priority?: boolean
+}
+
+/**
+ * The layered opening — the 21st.dev parallax component's mechanic, on this
+ * site's own scroll engine.
+ *
+ * WHAT THE REFERENCE ACTUALLY DOES, once you read past the GSAP: four layers
+ * stacked in one box, every one tweened at the SAME timeline position (each
+ * added at "<" rather than in sequence) with a different magnitude —
+ * yPercent 70 / 55 / 40 / 10, `ease: "none"`, `scrub: 0`, running from the
+ * stack's top hitting the viewport top to its bottom hitting it. One scroll
+ * input, four displacements: the 60-point spread between the back plate and
+ * the front one IS the depth. Those four numbers are kept exactly.
+ *
+ * WHAT IS NOT KEPT is GSAP, ScrollTrigger and Lenis. The maths is
+ * `y = k * progress`; this file already runs a scroll handler that does
+ * arithmetic against a cached offset, so the three libraries would have been
+ * 60 KB to compute four multiplications — and Lenis in particular kills iOS
+ * momentum and freezes nested scrollers.
+ *
+ * THE PLATES ARE NOT A ROW. The registry demo stacks its images dead centre,
+ * which with opaque rectangles reads as a deck of cards sliding. These are
+ * placed as an asymmetric composition — a wide plate low and left, a tall one
+ * high and right, a small detail crossing the middle — so the layers overlap
+ * at different points and the depth reads as a room rather than a stack. The
+ * title is layer three, BETWEEN the plates, so the foreground detail travels
+ * across the front of her name exactly as the reference passes its own front
+ * plate over its heading.
+ */
+export function ParallaxHero({ plates, children }: {
+  plates: ReadonlyArray<PlxPlate>; children: ReactNode
+}) {
+  return (
+    <section className="ki-plx" id="top" data-ki-band="dark" data-ki-plx>
+      <div className="ki-plx-stage">
+        {plates.map((p) => (
+          <span
+            key={p.id}
+            className="ki-plx-plate"
+            data-ki-layer={p.k}
+            style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, zIndex: Math.round(100 - p.k) }}
+          >
+            <Photo id={p.id} alt={p.alt} sizes={`${Math.round(p.w)}vw`} priority={p.priority} />
+          </span>
+        ))}
+        {/* the title rides its own layer, sandwiched between the plates */}
+        <div className="ki-plx-lockup" data-ki-layer="40">{children}</div>
+        {/* the reference's __fade: the stack resolves into the page instead of
+            ending on a hard edge */}
+        <div className="ki-plx-fade" aria-hidden="true" />
+      </div>
     </section>
   )
 }
@@ -445,9 +505,10 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       start: number; end: number; em: number
     }> = []
     /* horizontal chapters: pinned on a pointer, native scroll-snap on touch */
+    /* layered parallax groups: one progress, many magnitudes */
+    let plx: Array<{ start: number; end: number; layers: Array<{ el: HTMLElement; k: number }> }> = []
     let hs: Array<{
       track: HTMLElement; start: number; end: number; distance: number
-      prog: HTMLElement | null
       frames: Array<{ img: HTMLElement; left: number; width: number }>
     }> = []
     const canPin = window.matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches
@@ -502,6 +563,20 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         }
       })
 
+      /* The layered stack runs from its top meeting the viewport top to its
+         bottom meeting it — the reference's own 0%/0% -> 100%/0% range. */
+      plx = Array.from(root.querySelectorAll<HTMLElement>('[data-ki-plx]')).map((g) => {
+        const r = g.getBoundingClientRect()
+        const top = r.top + sy
+        return {
+          start: top,
+          end: top + r.height,
+          layers: Array.from(g.querySelectorAll<HTMLElement>('[data-ki-layer]')).map((el) => ({
+            el, k: parseFloat(el.dataset.kiLayer || '0'),
+          })),
+        }
+      })
+
       /* A horizontal chapter buys its sideways travel with vertical scroll:
          the section is made exactly as tall as the track overflows wide, so
          the distance the page scrolls is the distance the track moves. */
@@ -531,8 +606,19 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         }
         hs.push({
           track, start: top, end: top + distance, distance, frames,
-          prog: sec.querySelector<HTMLElement>('.ki-hs-prog > i'),
         })
+      }
+    }
+
+    const runLayers = () => {
+      if (!plx.length || !motion) return
+      const sy = window.scrollY
+      for (const g of plx) {
+        const p = Math.min(1, Math.max(0, (sy - g.start) / (g.end - g.start || 1)))
+        for (const l of g.layers) {
+          // ease "none": the reference maps scroll to displacement linearly
+          l.el.style.transform = `translate3d(0, ${(l.k * p).toFixed(3)}%, 0)`
+        }
       }
     }
 
@@ -545,8 +631,6 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         const shift = -t * h.distance
         // written raw, never through a transition — see the note on the component
         h.track.style.transform = `translate3d(${shift.toFixed(2)}px, 0, 0)`
-        if (h.prog) h.prog.style.transform = `scaleX(${t.toFixed(4)})`
-
         /* The track still travels under reduced motion — the chapter is
            navigation, and a strip nobody can reach is worse than a moving
            one. The peel and the counter-move are the decorative half, so
@@ -620,7 +704,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       if (navEl.dataset.kiCondensed !== want) navEl.dataset.kiCondensed = want
     }
 
-    const onFrame = () => { themeChrome(); sweepReveals(); runParallax(); runHScroll(); condenseNav() }
+    const onFrame = () => { themeChrome(); sweepReveals(); runParallax(); runLayers(); runHScroll(); condenseNav() }
     /* reduced motion keeps the horizontal chapter too: it is navigation, not
        decoration, and the alternative is a track the visitor cannot reach.
        What it loses is the parallax, which is the part that is decoration. */

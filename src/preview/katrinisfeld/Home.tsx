@@ -17,9 +17,12 @@
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
-  Headline, Photo, Slide, CardFigure, MaterialBands, HorizontalChapter, StatementOverlay,
-  type MaterialBand, type HPanel,
+  Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay, ParallaxHero,
+  type HPanel, type PlxPlate,
 } from './kit'
+/* the 21st.dev prebuiltui/image-gallery accordion, installed with the shadcn
+   CLI and pointed at her materials — see the note on the component */
+import ImageGallery, { type GalleryItem } from '@/components/ui/image-gallery'
 import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
@@ -32,12 +35,32 @@ const CARD_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw'
  * from the summer house beams, steinn from the Fljótshlíð island, and the
  * wine that is the Súluhöfða kitchen and this site's own accent.
  */
-const MATERIALS: ReadonlyArray<MaterialBand> = [
+const MATERIALS: ReadonlyArray<GalleryItem> = [
   { id: 'm-hor', name: 'Hör', hex: '#E0D5CD', alt: 'Hör í mjúkum fellingum, grófur vefnaður í dagsbirtu' },
   { id: 'm-kopar', name: 'Kopar', hex: '#D09957', alt: 'Koparflötur með mattri áferð og fínum slípuðum þráðum' },
   { id: 'm-eik', name: 'Eik', hex: '#8E7054', alt: 'Eikarborð með opinni æð og sýnilegri sagaráferð', dark: true },
   { id: 'm-vinraut', name: 'Vínrautt', hex: '#8C3A34', alt: 'Vínrauður mattur lakkflötur með fíngerðri áferð', dark: true },
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
+]
+
+/* The four layers of the opening, with the reference's own magnitudes:
+   70 / 55 / 40 / 10 percent of each plate's height, all driven off one
+   progress. 40 belongs to the title, which is why it is absent here — it
+   sits between the tall plate and the detail, so the detail crosses in
+   front of her name. The boxes are an asymmetric composition rather than a
+   centred deck: a wide room low and left, a tall room high and right, a
+   detail cutting the middle. */
+const PLATES: ReadonlyArray<PlxPlate> = [
+  { id: 's-eldhus-vitt', k: 70, x: -4, y: 8, w: 62, priority: true,
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+  { id: 'p-skuggahverfi-0', k: 55, x: 58, y: -6, w: 46,
+    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
+  /* the detail crosses HIGH, not low. Placed over the headline it dropped
+     the title's worst-pixel contrast to 1.0 — cream on a bright photograph,
+     literally invisible. The reference can pass its front plate over its
+     heading because that heading is decorative; this one is her h1. */
+  { id: 'p-badherbergi-0', k: 10, x: 30, y: -12, w: 27,
+    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu' },
 ]
 
 /** One from each kind of room she is asked for, travelling sideways. */
@@ -95,29 +118,18 @@ export function Home() {
         </div>
       </div>
 
-      {/* 01 · the first room, dived into */}
-      <section className="ki-hero" id="top" data-ki-band="dark">
-        <div className="ki-hero-media">
-          <Photo
-            id="s-eldhus-vitt"
-            alt="Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn"
-            sizes="100vw"
-            priority
-          />
-        </div>
-        <div className="ki-hero-scrim" aria-hidden="true" />
-        <div className="ki-hero-lockup">
-          <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={100} floor={36} />
-          <p className="ki-hero-sub">
-            Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
-            hótel og atvinnurými, hönnuð frá grunni.
-          </p>
-          <p className="ki-hero-cta">
-            <Link className="ki-cta" to={WORK}>Verkefnin</Link>
-            <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
-          </p>
-        </div>
-      </section>
+      {/* 01 · the layered opening */}
+      <ParallaxHero plates={PLATES}>
+        <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={100} floor={36} />
+        <p className="ki-hero-sub">
+          Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
+          hótel og atvinnurými, hönnuð frá grunni.
+        </p>
+        <p className="ki-hero-cta">
+          <Link className="ki-cta" to={WORK}>Verkefnin</Link>
+          <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
+        </p>
+      </ParallaxHero>
 
       {/* 02 · intent */}
       <section className="ki-wrap" data-ki-band="light">
@@ -129,9 +141,6 @@ export function Home() {
           þau voru ljósmynduð.
         </p>
       </section>
-
-      {/* 02b · the same five colours, carried by the materials they came from */}
-      <MaterialBands bands={MATERIALS} />
 
       {/* 02c · one room of each kind, travelling sideways */}
       <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
@@ -222,6 +231,13 @@ export function Home() {
           húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
         </p>
       </section>
+
+      {/* 05b · the same five colours, carried by the materials they came from.
+          It lives HERE rather than up under the litheim copy: this is the
+          materials section, and the strip was taking a full screen near the
+          top of the page for something that reads better as a coda to
+          "Efnin bera rýmið" than as an event of its own. */}
+      <ImageGallery items={MATERIALS} />
 
       {/* 06 · the Italian lines, named */}
       <section className="ki-wrap ki-italskar" data-ki-band="dark">

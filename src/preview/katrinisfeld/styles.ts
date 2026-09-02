@@ -340,6 +340,51 @@ export const CSS = `
   }
 }
 
+/* ── the layered opening ──────────────────────────────────────────────────
+   The section is taller than the viewport and the stage is stuck to the top
+   of it, so the scroll that passes the section is spent moving the plates
+   rather than moving the page. Height sets how long the pass lasts: 190svh
+   gives roughly one screen of travel after the stack has settled. */
+.ki-plx { position: relative; height: 190svh; background: ${CHARCOAL}; }
+.ki-plx-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.ki-plx-plate { position: absolute; display: block; will-change: transform; }
+.ki-root .ki-plx-plate picture, .ki-root .ki-plx-plate picture > img { width: 100%; height: auto; }
+.ki-plx-lockup {
+  position: absolute; left: calc(var(--u) * 34); right: calc(var(--u) * 34);
+  bottom: calc(var(--u) * 96); z-index: 60; color: #F4EEE6;
+  will-change: transform;
+}
+/* the reference's __fade — the stack resolves into the page rather than
+   ending on a cut */
+.ki-plx-fade {
+  /* z 55 puts it ABOVE the two receding plates (30, 45) and BELOW both the
+     title (60) and the foreground plate (90). At 95 it painted over the
+     headline itself, dimming the one thing on the screen that has to stay
+     legible; below the front plate it also lets that plate keep crossing the
+     composition, which is the depth cue the whole device exists for. */
+  position: absolute; inset: auto 0 0 0; height: 62%; z-index: 55; pointer-events: none;
+  /* SOLVED, not chosen. The headline sits over the big receding plate, and
+     cream on a bright kitchen measured 1.0 on its worst pixel — the h1 was
+     invisible. Sampled across the whole pass (scroll 0, 300, 600, 810) over
+     every word, the sub and both CTAs, this reaches 7.75 at the worst pixel.
+     RE-SOLVE IF A PLATE, ITS BOX, OR THE LOCKUP MOVES. */
+  background: linear-gradient(to bottom,
+    rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .72) 30%, rgb(29 27 25 / .94) 62%, ${CHARCOAL} 100%);
+} 100%);
+}
+/* No pin and no travel without JS or with reduced motion: the plates simply
+   stand where they were placed, which is a composition rather than a broken
+   animation. */
+.ki-plx:not(.ki-js *) { height: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .ki-plx { height: 100svh; }
+  .ki-plx-plate, .ki-plx-lockup { transform: none !important; }
+}
+@media (max-width: 860px) {
+  .ki-plx { height: 150svh; }
+  .ki-plx-lockup { bottom: calc(var(--u) * 60); }
+}
+
 /* ── the horizontal chapter ───────────────────────────────────────────── */
 /* Default is the TOUCH build: a native scroll-snap strip. The pinned version
    is layered on only where there is a real pointer, because a scroll-jacked
@@ -409,19 +454,9 @@ export const CSS = `
      was removed (see the note in the engine). */
   .ki-js .ki-hs-img[data-ki-hpar] { transform: translate3d(7.5%, 0, 0) scale(1.16); }
 }
-/* the journey's progress, drawn under the pinned viewport */
-.ki-hs-prog { display: none; }
-@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
-  .ki-hs-prog {
-    display: block; position: sticky; bottom: 0; z-index: 2;
-    height: 2px; background: rgb(237 231 222 / .12);
-  }
-  .ki-hs-prog > i { display: block; height: 100%; background: var(--ki-copper); transform: scaleX(0); transform-origin: left; }
-}
 /* no pin, no counter-move: reduced motion gets the plain strip */
 @media (prefers-reduced-motion: reduce) {
   .ki-js .ki-hs-img[data-ki-hpar] { transform: none !important; }
-  .ki-hs-prog { display: none; }
 }
 
 /* ── material bands: the palette, carried by the material ─────────────── */
