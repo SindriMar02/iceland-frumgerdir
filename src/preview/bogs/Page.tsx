@@ -140,6 +140,10 @@ function PageFonts() {
       }
       * { -webkit-font-smoothing: antialiased; }
       .bs-h1 { font-family: ${FONT_FAMILY}; color: ${C.ink}; font-size: ${CLAMP.h1}; line-height: ${LINE_HEIGHT.heading}; font-weight: 400; letter-spacing: ${LETTER_SPACING.heading}; }
+      /* .bs-h2 was never defined and CLAMP.h2 was dead code, so the
+         offering h2 borrowed .bs-h1 and shouted at the same 69px as the
+         page title (audit 2026-09-02). */
+      .bs-h2 { font-family: ${FONT_FAMILY}; color: ${C.ink}; font-size: ${CLAMP.h2}; line-height: ${LINE_HEIGHT.heading}; font-weight: 400; letter-spacing: ${LETTER_SPACING.heading}; }
       .bs-h3 { font-family: ${FONT_FAMILY}; font-size: ${CLAMP.h3}; line-height: ${LINE_HEIGHT.paragraph}; font-weight: 400; letter-spacing: ${LETTER_SPACING.heading}; }
       .bs-h4 { font-family: ${FONT_FAMILY}; font-size: ${CLAMP.h4}; line-height: ${LINE_HEIGHT.heading}; font-weight: 400; letter-spacing: ${LETTER_SPACING.smallHeading}; }
       .bs-h6 { font-family: ${FONT_FAMILY}; color: ${C.ink}; font-size: ${CLAMP.h6}; line-height: ${LINE_HEIGHT.heading}; font-weight: 400; letter-spacing: ${LETTER_SPACING.smallHeading}; }
@@ -345,8 +349,11 @@ function TopNav({ lenisRef }: { lenisRef: MutableRefObject<Lenis | null> }) {
           B&amp;S Restaurant
         </a>
         <div className="flex items-center" style={{ gap: CLAMP.gap2 }}>
-          <span className="bs-p-medium" style={{ opacity: 1 }}>is</span>
-          <span className="bs-p-medium" style={{ opacity: 0.5 }}>en</span>
+          {/* The is/en pair that sat here was REMOVED 2026-09-02. It was two
+              plain spans: unfocusable, inoperable, and pointing at an English
+              page that does not exist, while the faded "en" also failed
+              contrast at 3.43:1. A control that cannot be used is worse than
+              no control. Restore it as real links the day an /en route ships. */}
           <BtnIcon href={CONTACT.phoneHref} label="Hringja 453 5060" variant="primary" />
         </div>
       </div>
@@ -489,8 +496,17 @@ function SiteFooter() {
             they sit far under the h3 role band, so tagging them h3 read as a
             heading-level/visual-scale mismatch (flagged on repair). They are
             still visually distinct labels, just not document headings. */}
+        <style>{`
+          /* The four footer blocks kept span-3 on a 12-col grid at 390px,
+             i.e. 76px columns, and the address line overprinted the
+             opening-hours column beside it (audit 2026-09-02). Two up
+             on a phone, four from 768. */
+          @media (max-width: 767px) {
+            .bs-footer-col { grid-column: span 6 !important; }
+          }
+        `}</style>
         <div style={GRID_STYLE}>
-          <div style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
+          <div className="bs-footer-col" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
             <p className="bs-h6" style={{ color: C.ink, margin: 0 }}>Sitemap</p>
             {SITEMAP.map((s) => (
               <a key={s.href} href={s.href} data-underline-link className="bs-p-small" style={{ color: C.ink }}>
@@ -498,19 +514,19 @@ function SiteFooter() {
               </a>
             ))}
           </div>
-          <div style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
+          <div className="bs-footer-col" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
             <p className="bs-h6" style={{ color: C.ink, margin: 0 }}>Traust</p>
             <a href={TRIPADVISOR_LINK.href} target="_blank" rel="noreferrer" data-underline-link className="bs-p-small" style={{ color: C.ink }}>
               {TRIPADVISOR_LINK.label}
             </a>
           </div>
-          <div style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
+          <div className="bs-footer-col" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
             <p className="bs-h6" style={{ color: C.ink, margin: 0 }}>Hafa samband</p>
             <span className="bs-p-small">{CONTACT.addressLine1}, {CONTACT.addressLine2}</span>
             <a href={CONTACT.phoneHref} data-underline-link className="bs-p-small" style={{ color: C.ink }}>{CONTACT.phoneDisplay}</a>
             <a href={`mailto:${CONTACT.email}`} data-underline-link className="bs-p-small" style={{ color: C.ink }}>{CONTACT.email}</a>
           </div>
-          <div style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
+          <div className="bs-footer-col" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: CLAMP.gap2 }}>
             <p className="bs-h6" style={{ color: C.ink, margin: 0 }}>Opnunartími</p>
             <p className="bs-p-small">{HOURS_LINE}</p>
           </div>
@@ -521,7 +537,7 @@ function SiteFooter() {
             plain text-as-SVG PLACEHOLDER, see IMAGES.footerWordmark. */}
         <Img
           src={IMAGES.footerWordmark}
-          alt="B&S Restaurant"
+          alt="Veitingastaður við þjóðveg, sýnishorn"
           style={{ width: '100%', maxWidth: 640, height: 'auto', display: 'block' }}
         />
         <p className="bs-p-small" style={{ color: C.ink }}>© B&amp;S Restaurant</p>
@@ -585,12 +601,29 @@ function Hero() {
             type: 'lines',
             mask: 'lines',
             autoSplit: true,
+                        /*
+             * Own ScrollTrigger, not a tween appended to `tl`. With
+             * autoSplit the split can resolve AFTER the timeline's
+             * `once: true` trigger has already fired (or after the
+             * timeline finished), so an appended tween renders in the
+             * past and the text stays at opacity 0 permanently. The
+             * motion audit on 2026-09-02 measured exactly that: the hero
+             * subline, the About copy and this facts paragraph were never
+             * seen by any visitor at any scroll depth.
+             */
             onSplit: (self) =>
-              tl.fromTo(
+              gsap.fromTo(
                 self.lines,
                 { yPercent: 150, opacity: 0 },
-                { yPercent: 0, opacity: 1, duration: 1.5, ease: 'power3.out', stagger: { amount: 0.2 } },
-                0.2,
+                {
+                  yPercent: 0,
+                  opacity: 1,
+                  duration: 1.5,
+                  ease: 'power3.out',
+                  stagger: { amount: 0.2 },
+                  delay: 0.2,
+                  scrollTrigger: { trigger: root, start: 'top 80%', once: true },
+                },
               ),
           }),
         )
@@ -603,6 +636,11 @@ function Hero() {
       // hidden headline — force everything visible after a beat.
       const failsafe = window.setTimeout(() => {
         gsap.set(q('.bs-hero-eyebrow, .bs-hero-h1, .bs-hero-p, .bs-hero-cta'), { clearProps: 'opacity,visibility,transform' })
+        /* ...and the SplitText-generated children, which is where the
+           opacity:0 actually lives. Clearing only the parent left the
+           text invisible forever whenever the split resolved after its
+           own once:true trigger had already fired. */
+        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
       }, 2400)
 
       // D7: hero image parallax, scrubbed against the section's own scroll
@@ -681,7 +719,7 @@ function Hero() {
             data.ts IMAGES.hero, replace before sending. */}
         <Img
           src={IMAGES.hero}
-          alt="Fjölskylduveitingastaður við þjóðveg eitt"
+          alt="Veitingastaður við þjóðveg, sýnishorn"
           fetchpriority="high"
           className="bs-hero-img absolute inset-0 h-full w-full object-cover"
           fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#cfcfcf] to-[#8f8f8f]"
@@ -749,6 +787,11 @@ function Offering() {
       // Failsafe: see Hero's identical guard above.
       const failsafe = window.setTimeout(() => {
         gsap.set(q('.bs-offer-eyebrow, .bs-offer-h2, .bs-offer-card'), { clearProps: 'opacity,visibility,transform' })
+        /* ...and the SplitText-generated children, which is where the
+           opacity:0 actually lives. Clearing only the parent left the
+           text invisible forever whenever the split resolved after its
+           own once:true trigger had already fired. */
+        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
       }, 2400)
 
       return () => {
@@ -798,7 +841,7 @@ function Offering() {
           <p className="bs-h6 bs-offer-eyebrow" style={{ margin: 0 }}>
             Okkar framboð
           </p>
-          <h2 className="bs-h1 bs-offer-h2" style={{ margin: 0 }}>
+          <h2 className="bs-h2 bs-offer-h2" style={{ margin: 0 }}>
             Matur, hópar og fundarrými á Norðurlandsvegi 4
           </h2>
         </div>
@@ -896,12 +939,29 @@ function AboutTeaser() {
             type: 'lines',
             mask: 'lines',
             autoSplit: true,
+            /*
+             * Its OWN ScrollTrigger, not a tween appended to `tl`.
+             * Appending here was the bug (audit 2026-09-02): `tl`'s trigger
+             * is `once: true`, and with autoSplit the split can resolve
+             * AFTER that trigger has already fired, so the tween landed on
+             * a finished timeline, rendered in its past, and left every
+             * line at opacity 0 permanently. This section rendered as an
+             * empty dark block on every device. A self-contained trigger
+             * cannot land in the past, and it re-arms correctly on each
+             * autoSplit re-split.
+             */
             onSplit: (self) =>
-              tl.fromTo(
+              gsap.fromTo(
                 self.lines,
                 { yPercent: 150, opacity: 0 },
-                { yPercent: 0, opacity: 1, duration: 1.5, ease: 'power3.out', stagger: { amount: 0.2 } },
-                0.1,
+                {
+                  yPercent: 0,
+                  opacity: 1,
+                  duration: 1.5,
+                  ease: 'power3.out',
+                  stagger: { amount: 0.2 },
+                  scrollTrigger: { trigger: root, start: 'top 80%', once: true },
+                },
               ),
           }),
         )
@@ -912,6 +972,11 @@ function AboutTeaser() {
       // Failsafe: see Hero's identical guard above.
       const failsafe = window.setTimeout(() => {
         gsap.set(q('.bs-about-eyebrow, .bs-about-p, .bs-about-cta'), { clearProps: 'opacity,visibility,transform' })
+        /* ...and the SplitText-generated children, which is where the
+           opacity:0 actually lives. Clearing only the parent left the
+           text invisible forever whenever the split resolved after its
+           own once:true trigger had already fired. */
+        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
       }, 2400)
 
       return () => {
@@ -1014,7 +1079,7 @@ function FullBleedPhoto() {
           data.ts IMAGES.interior, replace before sending. */}
       <Img
         src={IMAGES.interior}
-        alt="Borðsalur á B&S Restaurant við þjóðveg eitt í Blönduósi"
+        alt="Borðsalur veitingastaðar, sýnishorn"
         className="bs-plate-img h-full w-full"
         fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#cfcfcf] to-[#8f8f8f]"
       />
@@ -1056,12 +1121,29 @@ function HouseFacts() {
             type: 'lines',
             mask: 'lines',
             autoSplit: true,
+                        /*
+             * Own ScrollTrigger, not a tween appended to `tl`. With
+             * autoSplit the split can resolve AFTER the timeline's
+             * `once: true` trigger has already fired (or after the
+             * timeline finished), so an appended tween renders in the
+             * past and the text stays at opacity 0 permanently. The
+             * motion audit on 2026-09-02 measured exactly that: the hero
+             * subline, the About copy and this facts paragraph were never
+             * seen by any visitor at any scroll depth.
+             */
             onSplit: (self) =>
-              tl.fromTo(
+              gsap.fromTo(
                 self.lines,
                 { yPercent: 150, opacity: 0 },
-                { yPercent: 0, opacity: 1, duration: 1.5, ease: 'power3.out', stagger: { amount: 0.2 } },
-                0,
+                {
+                  yPercent: 0,
+                  opacity: 1,
+                  duration: 1.5,
+                  ease: 'power3.out',
+                  stagger: { amount: 0.2 },
+                  delay: 0,
+                  scrollTrigger: { trigger: root, start: 'top 80%', once: true },
+                },
               ),
           }),
         )
@@ -1070,6 +1152,7 @@ function HouseFacts() {
       // Failsafe: see Hero's identical guard above.
       const failsafe = window.setTimeout(() => {
         gsap.set(q('.bs-facts-p'), { clearProps: 'opacity,transform' })
+        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
       }, 2400)
 
       return () => {
@@ -1106,7 +1189,7 @@ function HouseFacts() {
         <div className="bs-facts-photo-1 bs-facts-img" style={{ gridColumn: '1 / span 2' }}>
           <Img
             src={IMAGES.factsPhoto}
-            alt="Þjóðvegur eitt við B&S Restaurant í Blönduósi"
+            alt="Þjóðvegur í íslensku landslagi, sýnishorn"
             className="h-full w-full object-cover"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />
@@ -1114,7 +1197,7 @@ function HouseFacts() {
         <div className="bs-facts-photo-2 bs-facts-img" style={{ gridColumn: '3 / span 2', marginTop: CLAMP.gap4 }}>
           <Img
             src={IMAGES.factsPhoto2}
-            alt="Útsýni frá B&S Restaurant við þjóðveg eitt"
+            alt="Útsýni yfir sveit, sýnishorn"
             className="h-full w-full object-cover"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />
@@ -1227,7 +1310,7 @@ function ImageGallery() {
               category), replace before sending. */}
           <Img
             src={IMAGES.gallerySmall}
-            alt="Ristað brauð með áleggi á matseðli B&S Restaurant"
+            alt="Ristað brauð með áleggi, sýnishorn"
             className="bs-gallery-img h-full w-full"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />
@@ -1244,7 +1327,7 @@ function ImageGallery() {
         >
           <Img
             src={IMAGES.galleryAccent}
-            alt="Kaffi og kaka frá Kaffitár á B&S Restaurant"
+            alt="Kaffibolli og kaka, sýnishorn"
             className="bs-gallery-img h-full w-full"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />
@@ -1256,7 +1339,7 @@ function ImageGallery() {
         >
           <Img
             src={IMAGES.galleryAccent2}
-            alt="Morgunverðarborð á B&S Restaurant"
+            alt="Morgunverðarborð, sýnishorn"
             className="bs-gallery-img h-full w-full"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />
@@ -1272,7 +1355,7 @@ function ImageGallery() {
               before sending. */}
           <Img
             src={IMAGES.galleryLarge}
-            alt="Húsið og þjóðvegur eitt við B&S Restaurant í Blönduósi"
+            alt="Hús við þjóðveg, sýnishorn"
             className="bs-gallery-img h-full w-full"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />
@@ -1386,6 +1469,11 @@ function Faq() {
       // Failsafe: see Hero's identical guard above.
       const failsafe = window.setTimeout(() => {
         gsap.set(q('.bs-faq-eyebrow, .bs-faq-h2, .bs-faq-item'), { clearProps: 'opacity,visibility,transform' })
+        /* ...and the SplitText-generated children, which is where the
+           opacity:0 actually lives. Clearing only the parent left the
+           text invisible forever whenever the split resolved after its
+           own once:true trigger had already fired. */
+        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
       }, 3000)
 
       return () => {
@@ -1496,8 +1584,15 @@ export default function Page() {
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
-    document.title = 'B&S Restaurant — Blönduós'
+    /* Em dash out, and the page declares Icelandic (the shared shell
+       ships lang="en"). Audit 2026-09-02. */
+    document.title = 'B&S Restaurant, Blönduós'
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = 'is'
     setThemeColor(C.paper)
+    return () => {
+      document.documentElement.lang = prevLang
+    }
   }, [])
 
   /* D1 Lenis (teardown 10.2 item 1, verbatim): one instance for the whole

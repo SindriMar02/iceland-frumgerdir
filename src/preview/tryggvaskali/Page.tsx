@@ -54,7 +54,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { companyEntry } from './company'
-import { NAV_MAIN, NAV_SIDE, BOOKING, IMAGES, PAGE_TITLE, AMBIENCE_GALLERY, HOUSE_HEADING, HOUSE_FACTS, RESTAURANT_HEADING, FOOD_GALLERY, GIFT_HEADING, GIFT_CARD, HOURS_NOTE_IS, WINTER_BREAK_IS } from './data'
+import { NAV_MAIN, NAV_SIDE, BOOKING, IMAGES, PAGE_TITLE, AMBIENCE_GALLERY, HOUSE_HEADING, HOUSE_FACTS, RESTAURANT_HEADING, FOOD_GALLERY, GIFT_HEADING, GIFT_CARD, WINTER_BREAK_IS } from './data'
 
 // Registered once at module scope. Safe to call again from a later section's
 // file — gsap.registerPlugin is idempotent. SplitText added for H2's
@@ -123,6 +123,24 @@ export const TYPE = {
     lineHeight: 1.0,
     fontWeight: 500,
     textTransform: 'uppercase' as const,
+    /* Uppercase at display size needs tracking or the counters close up.
+       Audit 2026-09-02 found every uppercase run on this page at
+       letter-spacing:normal. */
+    letterSpacing: '.04em',
+  },
+  /* SECTION HEADING, added 2026-09-02. The build shipped ONE display token
+     spread onto the h1 AND all three h2s, so every section title rendered
+     at the same 60px as the page title and the page read flat with no
+     hierarchy (audit finding 1, and the likeliest cause of the "feels
+     off" review). 0.62x the display size, the same step the reference's
+     own title1 -> title2 ladder uses. */
+  displayH2: {
+    fontFamily: 'var(--ts-font-display)',
+    fontSize: 'clamp(24px, 4vw, 38px)',
+    lineHeight: 1.05,
+    fontWeight: 500,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '.04em',
   },
   navLink: {
     fontFamily: 'var(--ts-font-display)',
@@ -130,6 +148,7 @@ export const TYPE = {
     lineHeight: 1.0,
     fontWeight: 500,
     textTransform: 'uppercase' as const,
+    letterSpacing: '.04em',
   },
   menuHead: {
     fontFamily: 'var(--ts-font-display)',
@@ -137,6 +156,7 @@ export const TYPE = {
     lineHeight: 1.0,
     fontWeight: 500,
     textTransform: 'uppercase' as const,
+    letterSpacing: '.05em',
   },
   body: {
     fontFamily: 'var(--ts-font-body)',
@@ -147,10 +167,13 @@ export const TYPE = {
   },
   menuItemName: {
     fontFamily: 'var(--ts-font-body)',
-    fontSize: '15.2px',
-    lineHeight: 1.3, // 19.76px
+    /* was 15.2px, 0.8px off TYPE.body's 16px and doing the same job
+       (audit finding 8, near-duplicate sizes). Collapsed onto 16px. */
+    fontSize: '16px',
+    lineHeight: 1.3,
     fontWeight: 400,
     textTransform: 'uppercase' as const,
+    letterSpacing: '.08em',
   },
   footerTitle: {
     fontFamily: 'var(--ts-font-body)',
@@ -158,13 +181,17 @@ export const TYPE = {
     lineHeight: 1.5, // 21.6px
     fontWeight: 400,
     textTransform: 'uppercase' as const,
+    letterSpacing: '.08em',
   },
   button: {
     fontFamily: 'var(--ts-font-body)',
-    fontSize: '13.6px',
-    lineHeight: 1.2, // 16.32px
+    /* was 13.6px; collapsed to 14px, one step clear of legal's 12px
+       (audit finding 8). */
+    fontSize: '14px',
+    lineHeight: 1.2,
     fontWeight: 300,
     textTransform: 'uppercase' as const,
+    letterSpacing: '.1em',
   },
   legal: {
     fontFamily: 'var(--ts-font-body)',
@@ -248,6 +275,10 @@ function PageStyles() {
       }
 
       /* .container formula, teardown 3.1, four width ceilings */
+      /* The four nav anchors landed with their first text inside the
+         96px header band; a 10px scroll up then re-covered the heading. */
+      #saga, #veitingastadur, #brunch, #gjafabref { scroll-margin-top: 104px; }
+
       .ts-container {
         display: block;
         margin: 0 auto;
@@ -565,9 +596,18 @@ function PageStyles() {
          masters (829x1244 and 719x1080, teardown 4.1 H6 "Media") as a
          staggered pair rather than a single image. */
       .ts-house__frame { position: relative; overflow: hidden; background: ${C.paleGrey}; flex: none; }
+      /* 60% + 38% + a 1em gap is 98% PLUS 16px, which overflowed the column
+         and pushed the accent frame ~5px past the container's right edge at
+         1440 and ~10px at 768 (audit 2026-09-02). The gap now comes out of
+         the accent frame's own width so the pair fits exactly. */
       .ts-house__frame--main { width: 60%; aspect-ratio: 829 / 1244; }
-      .ts-house__frame--accent { width: 38%; aspect-ratio: 719 / 1080; align-self: flex-start; margin-top: 14%; }
-      .ts-house__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .ts-house__frame--accent { width: calc(38% - 1em); aspect-ratio: 719 / 1080; align-self: flex-start; margin-top: 14%; }
+      /* OVERSCAN. The GSAP column-drift below translates this image inside the
+         frame; at height:100% that exposed up to 48px of the frame's own
+         background along the bottom edge (audit 2026-09-02). 120% with a
+         -10% offset gives the drift room to travel behind the frame, the
+         same trick .ts-ambience__img already uses. */
+      .ts-house__img { width: 100%; height: 120%; top: -10%; position: relative; object-fit: cover; display: block; }
 
       .ts-house__facts { display: grid; gap: 1.4em; margin-top: 1.6em; }
       .ts-house__fact-year { display: block; letter-spacing: .08em; }
@@ -771,6 +811,33 @@ function HeroWordmark() {
     const header = document.querySelector<HTMLElement>('.ts-header')
     if (!link || !header) return
 
+    /*
+     * FOLLOW THE HEADER. The wordmark is a fixed sibling of <header>, so it
+     * did not inherit the header's own hide-on-scroll transform: the header
+     * lifted away on scroll-down and took its ink scrim with it, leaving a
+     * cream wordmark floating over whatever happened to be behind it. The
+     * motion audit measured 1.00:1 contrast (i.e. invisible) at 8 of 22
+     * sampled scroll depths, over roughly 45% of the page. Mirroring the
+     * header's class onto this element keeps ONE source of truth for the
+     * hide logic, which still lives in Hero's own ScrollTrigger.
+     */
+    const syncWithHeader = () => {
+      const up = header.classList.contains('ts-header-up')
+      /* Through GSAP, not element.style.transform: the dock tween and the
+         mount reveal already own this element's transform, and writing to
+         it directly would fight them. autoAlpha also takes visibility, so
+         a hidden wordmark stops being a tab stop. */
+      gsap.to(link, {
+        autoAlpha: up ? 0 : 1,
+        yPercent: up ? -160 : 0,
+        duration: 0.35,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      })
+    }
+    const headerWatch = new MutationObserver(syncWithHeader)
+    headerWatch.observe(header, { attributes: true, attributeFilter: ['class'] })
+
     const mm = gsap.matchMedia()
     mm.add(
       { desktop: '(min-width: 768px)', mobile: '(max-width: 767px)' },
@@ -821,7 +888,10 @@ function HeroWordmark() {
       },
     )
 
-    return () => mm.revert()
+    return () => {
+      headerWatch.disconnect()
+      mm.revert()
+    }
   }, [])
 
   return (
@@ -1069,7 +1139,7 @@ function Hero() {
               margin: '0 0 1.1em',
             }}
           >
-            Veitingastaður í elsta húsi Selfoss, við bakka Ölfusár.
+            Veitingastaður í fyrsta húsinu sem reist var á Selfossi, við bakka Ölfusár.
           </p>
           <div className="flex flex-wrap items-center" style={{ gap: '1.2em' }}>
             {/* The reference's own outlined-button device: transparent fill,
@@ -1358,11 +1428,11 @@ function AmbienceGallery() {
               type="button"
               className="ts-ambience__slide-btn"
               onClick={() => setLightboxIndex(i)}
-              aria-label="Stækka mynd"
+              aria-label={`Stækka mynd ${i + 1} af ${AMBIENCE_GALLERY.length}`}
             >
               <Img
                 src={src}
-                alt="Andrúmsloft í Tryggvaskála"
+                alt="Veitingasalur að kvöldi, sýnishorn"
                 className="ts-ambience__img"
                 fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
               />
@@ -1409,7 +1479,7 @@ function AmbienceGallery() {
           <img
             key={lightboxIndex}
             src={AMBIENCE_GALLERY[lightboxIndex]}
-            alt="Andrúmsloft í Tryggvaskála"
+            alt="Veitingasalur að kvöldi, sýnishorn"
             className="ts-lightbox__img"
             onClick={(e) => e.stopPropagation()}
           />
@@ -1689,7 +1759,7 @@ function HouseHistory() {
     <div ref={rootRef} id="saga" className="ts-container ts-container--normal ts-mb-lg">
       <div className="ts-house">
         <Reveal className="ts-house__text">
-          <h2 style={{ ...TYPE.display, color: C.ink, margin: 0 }}>{HOUSE_HEADING.is}</h2>
+          <h2 style={{ ...TYPE.displayH2, color: C.ink, margin: 0 }}>{HOUSE_HEADING.is}</h2>
           <div className="ts-house__facts">
             {HOUSE_FACTS.map((fact, i) => (
               <div key={i}>
@@ -1711,7 +1781,7 @@ function HouseHistory() {
           <div className="ts-house__frame ts-house__frame--main">
             <Img
               src={IMAGES.houseExterior}
-              alt="Tryggvaskáli, húsið frá 1890"
+              alt="Gamalt timburhús við á, sýnishorn"
               loading="lazy"
               className="ts-house__img"
               fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
@@ -1720,7 +1790,7 @@ function HouseHistory() {
           <div className="ts-house__frame ts-house__frame--accent">
             <Img
               src={IMAGES.bridgeDetail}
-              alt="Ölfusárbrúin við Tryggvaskála"
+              alt="Brú yfir á, sýnishorn"
               loading="lazy"
               className="ts-house__img"
               fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
@@ -1771,17 +1841,17 @@ function StampIcon() {
       </defs>
       <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="1" />
-      <text fontSize="11" letterSpacing="3" fill="currentColor">
+      <text fontSize="11" letterSpacing="3" fill="currentColor" style={{ fontFamily: 'var(--ts-font-display)' }}>
         <textPath href="#ts-stamp-arc-top" startOffset="50%" textAnchor="middle">
           TRYGGVASKÁLI
         </textPath>
       </text>
-      <text fontSize="11" letterSpacing="3" fill="currentColor">
+      <text fontSize="11" letterSpacing="3" fill="currentColor" style={{ fontFamily: 'var(--ts-font-display)' }}>
         <textPath href="#ts-stamp-arc-bottom" startOffset="50%" textAnchor="middle">
           · ÖLFUSÁ ·
         </textPath>
       </text>
-      <text x="100" y="110" fontSize="32" textAnchor="middle" fill="currentColor" style={{ letterSpacing: '.02em' }}>
+      <text x="100" y="110" fontSize="32" textAnchor="middle" fill="currentColor" style={{ letterSpacing: '.02em', fontFamily: 'var(--ts-font-display)' }}>
         1890
       </text>
     </svg>
@@ -1918,24 +1988,40 @@ function RestaurantStatement() {
     <div id="veitingastadur" style={{ background: C.paleGrey }}>
       <div
         ref={rootRef}
-        className="ts-container ts-container--xnarrow"
+        className="ts-container ts-container--xnarrow text-center"
         style={{ paddingTop: 'var(--ts-vpad)', paddingBottom: 'var(--ts-vpad)' }}
       >
-        {/* Start-aligned per teardown heading-alignment gate ("majority
-            start; centre only hero H1") — this section previously carried
-            text-center alongside the hero, leaving 2 of 4 page headings
-            centred against the gate's single-exception rule. */}
-        <h2 style={{ ...TYPE.display, color: C.ink, margin: 0 }}>{RESTAURANT_HEADING.is}</h2>
+        {/*
+         * CENTRED 2026-09-02, reversing an earlier change. This was
+         * start-aligned to satisfy the teardown's heading-alignment gate
+         * ("majority start, centre only hero H1"). That gate counts
+         * HEADINGS across the whole page; obeying it here produced a
+         * 600px left-aligned, ragged-right column stranded mid-canvas
+         * with ~420px of dead cream on BOTH flanks and nothing else in
+         * the section, between two centred xnarrow siblings. That is the
+         * "asymmetrical?" the review flagged. The gate is still met by
+         * the start-aligned saga and gift sections, which have media
+         * beside them to justify the rail; this one has none.
+         */}
+        <h2 style={{ ...TYPE.displayH2, color: C.ink, margin: 0 }}>{RESTAURANT_HEADING.is}</h2>
         <Reveal>
-          <p style={{ ...TYPE.body, color: C.bodyGrey, margin: '.8em 0 0' }}>
+          {/* "elsta húsi Selfoss" (the OLDEST house in Selfoss) was a
+              stronger claim than the verified fact, which is that this was
+              the FIRST house built there. Corrected 2026-09-02, matching
+              the wording the page's own h1 already uses. */}
+          <p style={{ ...TYPE.body, color: C.bodyGrey, margin: '.8em auto 0', maxWidth: '34em' }}>
             Veitingastaðurinn í Tryggvaskála er opinn dag hvern: brunch um helgar, kvöldverður alla
-            daga, í elsta húsi Selfoss við bakka Ölfusár.
+            daga, í fyrsta húsinu sem reist var á Selfossi, við bakka Ölfusár.
           </p>
-          <p style={{ ...TYPE.legal, color: C.bodyGrey, marginTop: '1em', marginBottom: 0 }}>
-            {HOURS_NOTE_IS}
-          </p>
-          <p style={{ ...TYPE.legal, color: C.bodyGrey, marginTop: '.4em', marginBottom: 0 }}>
-            {WINTER_BREAK_IS}
+          {/* The detailed hours block that sat here was PULLED 2026-09-02.
+              It was read off the client's live site, but it is
+              season-dependent, data.ts's own rule says it does not ship
+              until the owner confirms the season, and one of its lines
+              (kitchen opens 17:00) contradicted the weekend brunch at
+              11:30 two lines above it. What stays is the generic seasonal
+              note plus a pointer to the phone, which is true year round. */}
+          <p style={{ ...TYPE.legal, color: C.bodyGrey, margin: '1em auto 0', maxWidth: '34em' }}>
+            {WINTER_BREAK_IS} Opnunartímar eru staðfestir í síma {BOOKING.telDisplay}.
           </p>
           <p style={{ marginTop: '1.5em', marginBottom: 0 }}>
             <ReadMore href="https://tryggvaskali.com/" external>
@@ -2068,11 +2154,11 @@ function FoodGallery() {
                 type="button"
                 className="ts-ambience__slide-btn"
                 onClick={() => setLightboxIndex(i)}
-                aria-label="Stækka mynd af mat"
+                aria-label={`Stækka mynd ${i + 1} af ${FOOD_GALLERY.length}`}
               >
                 <Img
                   src={src}
-                  alt="Matur í Tryggvaskála"
+                  alt="Réttur borinn fram, sýnishorn"
                   className="ts-ambience__img"
                   fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
                 />
@@ -2119,7 +2205,7 @@ function FoodGallery() {
             <img
               key={lightboxIndex}
               src={FOOD_GALLERY[lightboxIndex]}
-              alt="Matur í Tryggvaskála"
+              alt="Réttur borinn fram, sýnishorn"
               className="ts-lightbox__img"
               onClick={(e) => e.stopPropagation()}
             />
@@ -2283,7 +2369,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory2}
-              alt="Andrúmsloft í Tryggvaskála"
+              alt="Veitingasalur að kvöldi, sýnishorn"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2291,7 +2377,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory3}
-              alt="Andrúmsloft í Tryggvaskála"
+              alt="Veitingasalur að kvöldi, sýnishorn"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2302,7 +2388,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__picture">
             <Img
               src={IMAGES.sensory1}
-              alt="Upplifun í Tryggvaskála"
+              alt="Kvöldverður í sal, sýnishorn"
               loading="lazy"
               className="ts-zoom__img"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
@@ -2316,7 +2402,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory3}
-              alt="Andrúmsloft í Tryggvaskála"
+              alt="Veitingasalur að kvöldi, sýnishorn"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2324,7 +2410,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory2}
-              alt="Andrúmsloft í Tryggvaskála"
+              alt="Veitingasalur að kvöldi, sýnishorn"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2464,7 +2550,7 @@ function GiftCertificates() {
     <div ref={rootRef} id="gjafabref" className="ts-gift" style={{ background: C.ink }}>
       <div className="ts-gift__grid">
         <Reveal className="ts-gift__text">
-          <h2 style={{ ...TYPE.display, color: C.cream, margin: 0 }}>{GIFT_HEADING.is}</h2>
+          <h2 style={{ ...TYPE.displayH2, color: C.cream, margin: 0 }}>{GIFT_HEADING.is}</h2>
           <p style={{ ...TYPE.body, color: 'rgba(250,248,243,.7)', margin: '.8em 0 0', maxWidth: '32em' }}>
             {/* PLACEHOLDER: body copy is UNKNOWN (teardown 9.2 H12) — only
                 VERIFIED facts stated: a gift certificate exists, its amount
@@ -2511,8 +2597,16 @@ export default function Page() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    document.title = 'Tryggvaskáli — Fyrsta húsið á Selfossi, 1890'
+    /* Em dash out of the title, and the page declares its own language:
+       the shared preview shell ships lang="en" on <html> while every word
+       here is Icelandic (audit 2026-09-02). */
+    document.title = 'Tryggvaskáli, fyrsta húsið á Selfossi 1890'
+    const prevLang = document.documentElement.lang
+    document.documentElement.lang = 'is'
     setThemeColor(C.ink)
+    return () => {
+      document.documentElement.lang = prevLang
+    }
   }, [])
 
   // ── PAGE-LEVEL LENIS (sjavarborg wiring pattern, src/preview/sjavarborg/

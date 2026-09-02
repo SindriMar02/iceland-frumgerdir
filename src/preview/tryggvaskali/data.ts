@@ -20,7 +20,10 @@ export const IMAGES = {
   // H5 wide parallax plate: landscape of house + bridge
   riverBridge: u('photo-1500534623283-312aade485b7', 1800), // river bridge, overcast Nordic light
   // H6 two-column history: the house, the bridge
-  houseExterior: u('photo-1518709268805-4e9042af2176', 1300), // timber-clad historic house exterior
+  /* REPLACED 2026-09-02: the previous id (photo-1518709268805-...) returns
+     404 from Unsplash, so this frame rendered as a bare olive gradient
+     fallback, not a photo. Verified 200 before swapping in. */
+  houseExterior: u('photo-1507807823252-1870c299a391', 1300), // Icelandic farm buildings under a glacier
   bridgeDetail: u('photo-1483354483454-4cd359948304', 1300), // suspension bridge over a river
   // H8/H9 restaurant + food gallery
   diningRoom: u('photo-1414235077428-338989a2e8c0', 1300), // warm, elevated dining room interior
@@ -50,25 +53,23 @@ export const PAGE_TITLE = {
 // count) — the client's own interior/exterior photographs are unknown to be
 // available; swap every entry for real photography first (memory:
 // feedback-use-client-assets-first).
+/* DEDUPLICATED 2026-09-02. This array padded 8 photos out to 18 by
+   repeating them, purely to hit the transplant gate's image-count band.
+   The cost: the same picture appeared three times in one strip, and the
+   marquee generated 18 focusable buttons all labelled "Stækka mynd", i.e.
+   18 identical tab stops (accessibility audit). It also still contained
+   photo-1518709268805-..., which 404s from Unsplash and rendered as a bare
+   gradient. Now the distinct, verified-200 set only. A count is not worth
+   showing the same room three times. */
 export const AMBIENCE_GALLERY = [
   u('photo-1476514525535-07fb3b4ae5f1', 1000),
-  u('photo-1518709268805-4e9042af2176', 1000),
   u('photo-1483354483454-4cd359948304', 1000),
   u('photo-1500534623283-312aade485b7', 1000),
   u('photo-1414235077428-338989a2e8c0', 1000),
   u('photo-1517248135467-4c7edcad34c4', 1000),
   u('photo-1481833761820-0509d3217039', 1000),
   u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1476514525535-07fb3b4ae5f1', 1000),
-  u('photo-1518709268805-4e9042af2176', 1000),
-  u('photo-1483354483454-4cd359948304', 1000),
-  u('photo-1500534623283-312aade485b7', 1000),
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1517248135467-4c7edcad34c4', 1000),
-  u('photo-1481833761820-0509d3217039', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1476514525535-07fb3b4ae5f1', 1000),
-  u('photo-1518709268805-4e9042af2176', 1000),
+  u('photo-1507807823252-1870c299a391', 1000),
 ] as const
 
 // H9 food gallery (teardown 4.1 H9, 9.2 H9: "Food photographs: UNKNOWN
@@ -77,25 +78,14 @@ export const AMBIENCE_GALLERY = [
 // gap, distinct from AMBIENCE_GALLERY's own house/exterior set — swap every
 // entry for the client's own food photography before sending (memory:
 // feedback-use-client-assets-first).
+/* DEDUPLICATED 2026-09-02, same reason as AMBIENCE_GALLERY above: this
+   was 4 photos repeated to 18. Replace all four with the client's own food
+   photography before sending. */
 export const FOOD_GALLERY = [
   u('photo-1414235077428-338989a2e8c0', 1000),
   u('photo-1533777857889-4be7c70b33f7', 1000),
   u('photo-1517248135467-4c7edcad34c4', 1000),
   u('photo-1481833761820-0509d3217039', 1000),
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1517248135467-4c7edcad34c4', 1000),
-  u('photo-1481833761820-0509d3217039', 1000),
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1517248135467-4c7edcad34c4', 1000),
-  u('photo-1481833761820-0509d3217039', 1000),
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1517248135467-4c7edcad34c4', 1000),
-  u('photo-1481833761820-0509d3217039', 1000),
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
 ] as const
 
 // H6 section heading (teardown 4.1 H6, 9.2 H6). Distinct from PAGE_TITLE
@@ -129,8 +119,14 @@ export const HOUSE_FACTS: HouseFact[] = [
   },
   {
     year: '1891',
-    is: 'Sumarið 1891 fylgdi svo Ölfusárbrúin, hengibrúin sem enn stendur við húsið.',
-    en: 'The Ölfusá suspension bridge followed in the summer of 1891, and still stands beside the house.',
+    /* CORRECTED 2026-09-02 against the client's own history page
+       (tryggvaskali.com/saga-hussins/): the 1891 suspension bridge was
+       formally opened 8 September 1891, and it is NOT the bridge standing
+       there today — "Ný Ölfusábrú var svo tekin í notkun 22. desember
+       1945". The previous copy claimed the 1891 bridge still stands,
+       which any Selfoss local would catch on sight. */
+    is: 'Hengibrúin yfir Ölfusá var opnuð 8. september 1891, fyrir forgöngu Tryggva Gunnarssonar sem skálinn heitir eftir.',
+    en: 'The Ölfusá suspension bridge opened on 8 September 1891, led by Tryggvi Gunnarsson, after whom the house is named.',
   },
 ]
 
@@ -171,7 +167,10 @@ export const NAV_MAIN: NavLink[] = [
   { is: 'Veitingastaður', en: 'Restaurant', href: '#veitingastadur' },
   { is: 'Brunch', en: 'Brunch', href: '#brunch' },
   { is: 'Gjafabréf', en: 'Gift certificates', href: '#gjafabref' },
-  { is: 'Matseðlar', en: 'Menus', href: 'https://tryggvaskali.com/', external: true },
+  /* The label promises menus; the old site publishes them as PDFs off
+     its own front page, so the link is honest only if the label says
+     where it goes (audit 2026-09-02). */
+  { is: 'Matseðlar á núverandi vef', en: 'Menus on the current site', href: 'https://tryggvaskali.com/', external: true },
 ]
 
 export const NAV_SIDE: NavLink[] = [
@@ -181,7 +180,10 @@ export const NAV_SIDE: NavLink[] = [
     href: 'https://book.easytable.com/book/?id=89b52',
     external: true,
   },
-  { is: 'Hafa samband', en: 'Contact', href: '#hafa-samband' },
+  /* Was href '#hafa-samband', an id that does not exist on this page
+     (audit 2026-09-02). This page has no contact SECTION, so the honest
+     target is the phone itself. */
+  { is: 'Hafa samband', en: 'Contact', href: 'tel:+3544821390' },
 ]
 
 // Booking + gift certificates: the client's own live nav targets, teardown 9.1 / 9.2 H10, H12.
@@ -221,15 +223,21 @@ export const SOCIALS = {
 // Hours as printed on the live home page, fetched 2026-09-02 (teardown
 // section 9, section 9.7). The build value stays UNKNOWN until the client
 // confirms the current season — do not ship these without that check.
+/* NOT RENDERED. Kept for the client conversation only. These times were
+   read off the live site on 2026-09-02, but they are season-dependent and
+   this file's own rule is that they do not ship until the owner confirms
+   the current season. They were briefly rendered on 2026-09-02 and pulled
+   again the same day: seven precise time claims, one of which (kitchen
+   opens 17:00) contradicts the weekend brunch service at 11:30. */
 export const HOURS_NOTE_IS =
-  'Brunch allar helgar 11:30–15:00. Happy Hour 16:00–18:00 (11:30–18:00 um helgar). ' +
-  'Mán.–fim. 16:00–21:30, fös. 16:00–22:00, lau. 11:30–22:00, sun. 11:30–21:00. ' +
-  'Eldhúsið opnar kl. 17:00 og er lokað 15:00–17:00 um helgar.'
+  'Brunch allar helgar 11:30 til 15:00. Happy Hour 16:00 til 18:00 (11:30 til 18:00 um helgar). ' +
+  'Mán. til fim. 16:00 til 21:30, fös. 16:00 til 22:00, lau. 11:30 til 22:00, sun. 11:30 til 21:00. ' +
+  'Eldhúsið opnar kl. 17:00 og er lokað 15:00 til 17:00 um helgar.'
 
 export const HOURS_NOTE_EN =
-  'Brunch every weekend 11:30–15:00. Happy Hour 16:00–18:00 (11:30–18:00 on weekends). ' +
-  'Mon–Thu 16:00–21:30, Fri 16:00–22:00, Sat 11:30–22:00, Sun 11:30–21:00. ' +
-  'The kitchen opens at 17:00 and is closed 15:00–17:00 on weekends.'
+  'Brunch every weekend 11:30 to 15:00. Happy Hour 16:00 to 18:00 (11:30 to 18:00 on weekends). ' +
+  'Mon to Thu 16:00 to 21:30, Fri 16:00 to 22:00, Sat 11:30 to 22:00, Sun 11:30 to 21:00. ' +
+  'The kitchen opens at 17:00 and is closed 15:00 to 17:00 on weekends.'
 
 // Generic seasonal-closure line, no specific date (memory rule: do not print
 // a fixed annual date, the pattern varies year to year).

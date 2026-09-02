@@ -95,7 +95,7 @@ export const HERO = {
   // This line now states only the confirmed nav categories plus signage
   // Kaffitár and the "opið alla daga" framing rule 2 also requires.
   paragraph:
-    'Morgunverður, ristað brauð með áleggi og Kaffitár á Norðurlandsvegi 4 — opið alla daga.',
+    'Morgunverður, ristað brauð með áleggi og kaffi frá Kaffitár, á Norðurlandsvegi 4 við þjóðveg eitt.',
   ctaPrimary: { label: 'Hringja 453 5060', href: 'tel:+3544535060' },
   ctaSecondary: { label: 'Sjá matseðil', href: '#offering' },
 } as const
@@ -119,14 +119,14 @@ export const OFFER_CARDS: OfferCard[] = [
     // task's own facts block does not carry.
     eyebrow: 'Matseðill',
     title: 'Maturinn',
-    body: 'Morgunverður, ristað brauð með áleggi, og kaffi og kaka frá Kaffitár.',
+    body: 'Morgunverður, ristað brauð með áleggi, kaffi frá Kaffitár og meðlæti.',
     href: '#offering',
     image: IMAGES.offerFood,
   },
   {
     eyebrow: 'Hópar',
     title: 'Hópar og rútur',
-    body: 'Hópamatseðlar fyrir rútuhópa á leið um Norðurland. Fjöldi, innihald og verð: samkvæmt samkomulagi, hafið samband fyrirfram.',
+    body: 'Hópamatseðill er í boði. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
     href: '#offering',
     image: IMAGES.offerGroup,
   },
@@ -141,7 +141,7 @@ export const OFFER_CARDS: OfferCard[] = [
     // confirmed bogs.is nav item, so it stays.
     eyebrow: 'Hópa- og fundarrými',
     title: 'Eyvindarstofa',
-    body: 'Sérstakt rými fyrir hópa og fundi, aðskilið frá aðalsalnum. Nánari upplýsingar og bókanir í síma 453 5060.',
+    body: 'Eyvindarstofa er á staðnum. Nánari upplýsingar og bókanir í síma 453 5060.',
     href: '#offering',
     image: IMAGES.offerHall,
   },
@@ -154,7 +154,7 @@ export const ABOUT_TEASER = {
   // B&S has published only the founding year and location, so this stays
   // short and states only those two facts plus the ring-road setting.
   paragraph:
-    'B&S Restaurant hefur verið fjölskylduveitingastaður og kaffihús á Norðurlandsvegi 4 í Blönduósi síðan 2007, opið alla daga árið um kring, beint við þjóðveg eitt.',
+    'B&S Restaurant hefur verið fjölskylduveitingastaður og kaffihús á Norðurlandsvegi 4 í Blönduósi síðan 2007, beint við þjóðveg eitt.',
   cta: { label: 'Um B&S', href: '#about' },
 } as const
 
@@ -167,7 +167,7 @@ export const ABOUT_TEASER = {
 // three verified facts, stated plainly, with no invented sentiment.
 export const HOUSE_FACTS = {
   paragraph:
-    'Opið er alla daga, allt árið um kring, hvort sem komið er við á leið um þjóðveg eitt eða keyrt sérstaklega. Morgunverður er á matseðlinum frá morgni, og hópar og rútur eru boðnir sérstaklega velkomnir, með eigin hópamatseðlum fyrir ferðahópa á Norðurlandi.',
+    'Staðurinn stendur við þjóðveg eitt í Blönduósi, hvort sem komið er við á leiðinni eða keyrt sérstaklega. Morgunverður er á matseðlinum, og hópamatseðill er í boði fyrir hópa.',
 } as const
 
 // ─── 4.7 FAQ (13 questions in the reference; we answer only what is known) ───
@@ -182,23 +182,23 @@ export interface FaqItem {
 export const FAQ: FaqItem[] = [
   {
     q: 'Hvar er B&S Restaurant?',
-    a: 'Norðurlandsvegur 4, 540 Blönduós — beint við þjóðveg eitt.',
+    a: 'Norðurlandsvegur 4, 540 Blönduós, beint við þjóðveg eitt.',
   },
   {
     q: 'Hvenær er opið?',
-    a: 'Opið alla daga. B&S auglýsir sjálft 09:00 til 21:00, en TripAdvisor skráir 11:00 til 21:00 — við höfum ekki fengið þetta staðfest og birtum bæði svo þið getið hringt og fengið úr því skorið fyrirfram.',
+    a: 'B&S auglýsir sjálft 09:00 til 21:00, en TripAdvisor skráir 11:00 til 21:00. Við höfum ekki fengið þetta staðfest og birtum því bæði. Best er að hringja í 453 5060 og fá úr því skorið.',
   },
   {
-    q: 'Er opið allt árið?',
-    a: 'Já, B&S er opið allt árið.',
+    q: 'Hvenær er opið?',
+    a: 'Opnunartímar eru staðfestir í síma 453 5060. Á vef staðarins stendur 09:00 til 21:00 og á TripAdvisor 11:00 til 21:00, svo rétt er að hringja á undan sér.',
   },
   {
     q: 'Er hægt að fá morgunverð?',
-    a: 'Já, morgunverður er á matseðlinum. Tímasetning: hafið samband til að staðfesta.',
+    a: 'Já, morgunverður er á matseðlinum. Hafið samband til að staðfesta hvenær hann er borinn fram.',
   },
   {
-    q: 'Takið þið á móti rútuhópum?',
-    a: 'Já, B&S er með hópamatseðla fyrir rútuhópa. Fjöldi, innihald og verð eru afgreidd í samtali fyrirfram.',
+    q: 'Takið þið á móti hópum?',
+    a: 'Já, hópamatseðill er í boði. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
   },
   {
     // RESOLVED on repair (was "FLAG FOR ORCHESTRATOR"): same call as
@@ -206,7 +206,7 @@ export const FAQ: FaqItem[] = [
     // section 9, not this task's VERIFIED CLIENT FACTS block, which only
     // authorizes a generic description. Rolled back accordingly.
     q: 'Er hægt að funda í Eyvindarstofu?',
-    a: 'Já, Eyvindarstofa er sérstakt rými fyrir hópa og fundi. Hafið samband til að fá nánari upplýsingar og bóka.',
+    a: 'Eyvindarstofa er á staðnum. Hafið samband í síma 453 5060 til að fá nánari upplýsingar.',
   },
   {
     q: 'Hvernig næ ég sambandi við ykkur?',
@@ -226,7 +226,7 @@ export const CONTACT = {
 // PLACEHOLDER: opening hours are disputed between bogs.is (09:00-21:00) and
 // TripAdvisor (11:00-21:00); this states the conflict rather than picking one.
 export const HOURS_LINE =
-  'Opið alla daga (B&S auglýsir 09:00-21:00, TripAdvisor skráir 11:00-21:00 — tímar óstaðfestir).'
+  'Opnunartímar óstaðfestir: B&S auglýsir 09:00 til 21:00, TripAdvisor skráir 11:00 til 21:00.'
 
 export const SITEMAP = [
   { label: 'Heim', href: '/preview/bogs' },
@@ -244,5 +244,5 @@ export const TRIPADVISOR_LINK = {
   label: '260 umsagnir á TripAdvisor',
   // PLACEHOLDER: exact TripAdvisor listing URL not yet located, needs the
   // real permalink before send.
-  href: 'https://www.tripadvisor.com/',
+  href: 'https://www.tripadvisor.com/Search?q=B%26S%20Restaurant%20Bl%C3%B6ndu%C3%B3s',
 } as const
