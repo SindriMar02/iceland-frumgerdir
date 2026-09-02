@@ -722,10 +722,24 @@ function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
         <span style={{ width: '1.5em', height: 1, background: C.cream, display: 'block' }} />
       </button>
 
-      <a href="#top" className="no-underline" style={{ ...TYPE.body, color: C.cream, fontWeight: 300, letterSpacing: '.02em' }}>
+      <a
+        href="#top"
+        className="no-underline"
+        style={{
+          fontFamily: 'var(--ts-font-display)',
+          fontSize: '15px',
+          lineHeight: 1,
+          fontWeight: 500,
+          letterSpacing: '.14em',
+          textTransform: 'uppercase',
+          color: C.cream,
+        }}
+      >
         {/* Wordmark: UNKNOWN — no client logo file published in usable
-            form (teardown 9.1). Set type as the placeholder wordmark until
-            one is supplied. */}
+            form (teardown 9.1). Set as a proper small logotype in the
+            display face (the reference's own header text is visually
+            hidden behind its crest image, text-indent:105%, so there is
+            no reference SIZE to match here) until a real mark is supplied. */}
         Tryggvaskáli
       </a>
 
@@ -909,6 +923,76 @@ function Hero() {
         style={{ filter: 'grayscale(1)', objectPosition: 'center' }}
         fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#221f1a] to-[#15120D]"
       />
+      {/*
+       * DECLARED DEVIATION from the reference (see file header comment
+       * above `function Hero()`): Paszkowski's own collapsed hero really
+       * does carry no text at all — its brand presence there is a small
+       * crest image (img/svg/pzk-paszkowski.svg) hidden behind
+       * text-indent:105%, and its big statement lives in the separate
+       * PageTitle section below. Tryggvaskáli has no crest asset to stand
+       * in for that, and a bare full-bleed photo with no CTA read as a
+       * broken page on review (Sindri, 2026-09-02: "no Large wordmark and
+       * cta buttons and info"). So this hero gets a bottom-anchored scrim
+       * with a one-line fact and a real booking CTA, deliberately smaller
+       * than PageTitle's h1 below so the two do not compete.
+       */}
+      <div
+        className="absolute inset-x-0 bottom-0"
+        style={{
+          padding: 'var(--ts-vpad)',
+          paddingTop: '30vh',
+          background: 'linear-gradient(to top, rgba(21,18,13,.88), rgba(21,18,13,.35) 60%, transparent)',
+        }}
+      >
+        <p
+          style={{
+            ...TYPE.legal,
+            color: C.cream,
+            opacity: 0.75,
+            margin: '0 0 .5em',
+            letterSpacing: '.16em',
+          }}
+        >
+          Síðan 1890 · Selfoss
+        </p>
+        <p
+          style={{
+            fontFamily: 'var(--ts-font-display)',
+            fontSize: 'clamp(20px, 2.6vw, 30px)',
+            lineHeight: 1.25,
+            fontWeight: 500,
+            color: C.cream,
+            maxWidth: '18em',
+            margin: '0 0 1.1em',
+          }}
+        >
+          Veitingastaður í elsta húsi Selfoss, við bakka Ölfusár.
+        </p>
+        <div className="flex flex-wrap items-center" style={{ gap: '1.2em' }}>
+          {/* The reference's own outlined-button device: transparent fill,
+              border in currentColor, squared corners, no-icon weight 300
+              (css/main.1.css .button--outlined/--squared/--no-icon). */}
+          <a
+            href={BOOKING.easyTableUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="no-underline"
+            style={{
+              ...TYPE.button,
+              color: C.cream,
+              border: `1px solid ${C.cream}`,
+              borderRadius: 0,
+              padding: '.9em 1.6em',
+              display: 'inline-block',
+            }}
+          >
+            Bóka borð
+          </a>
+          <a href={`tel:${BOOKING.tel}`} className="no-underline" style={{ ...TYPE.button, color: C.cream, opacity: 0.85 }}>
+            Sími {BOOKING.telDisplay}
+          </a>
+        </div>
+      </div>
     </div>
   )
 }
