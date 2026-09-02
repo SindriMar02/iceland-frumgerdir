@@ -18,10 +18,12 @@ const OUT_FILE = 'src/preview/katrinisfeld/photo-colors.ts'
 
 const bySlug = new Map()
 for (const f of readdirSync(SRC)) {
-  const m = /^(.+)-(960|1920)\.jpg$/.exec(f)
+  const m = /^(.+)-(960|1920|2400)\.jpg$/.exec(f)
   if (!m) continue
-  // prefer the larger source for sampling accuracy
-  if (m[2] === '1920' || !bySlug.has(m[1])) bySlug.set(m[1], f)
+  // prefer the largest source for sampling accuracy
+  const rank = { '960': 0, '1920': 1, '2400': 2 }
+  const prev = bySlug.get(m[1])
+  if (!prev || rank[m[2]] > rank[prev.tier]) bySlug.set(m[1], { file: f, tier: m[2] })
 }
 
 /** HSL saturation + lightness, 0-1, from an 0-255 RGB triple. */
@@ -43,7 +45,7 @@ for (const slug of slugs) {
   // in a sane lightness range: that is the accent her own copy describes
   // ("vínrautt og kopar"), not the wall colour behind it.
   const out = execFileSync('magick', [
-    join(SRC, bySlug.get(slug)), '-resize', '300x300', '+dither', '-colors', '6', '-unique-colors', 'txt:-',
+    join(SRC, bySlug.get(slug).file), '-resize', '300x300', '+dither', '-colors', '6', '-unique-colors', 'txt:-',
   ], { encoding: 'utf8' })
   const candidates = [...out.matchAll(/\((\d+),(\d+),(\d+)\)\s+#([0-9A-Fa-f]{6})/g)]
     .map((m) => ({ r: +m[1], g: +m[2], b: +m[3], hex: `#${m[4]}` }))

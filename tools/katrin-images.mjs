@@ -22,7 +22,11 @@ import { join } from 'node:path'
 const SRC = 'public/katrinisfeld'
 const OUT = 'public/katrinisfeld/rs'
 const FORCE = process.argv.includes('--force')
-const WIDTHS = [480, 900, 1500]
+/* 2400 exists because her masters do now: the harvested files capped at 1500,
+   which is soft on a full-bleed hero at 2× DPR. Only the photographs actually
+   DISPLAYED that large get the top width — see BIG below — because a 2400
+   variant of a card thumbnail is weight nothing will ever request. */
+const WIDTHS = [480, 900, 1500, 2400]
 
 /** Real [width, height] from the JPEG SOF marker — no image library needed. */
 function jpegSize(buf) {
@@ -39,12 +43,33 @@ function jpegSize(buf) {
   throw new Error('no SOF marker')
 }
 
+/**
+ * The photographs that are actually displayed near full width, and so are the
+ * only ones a 2400 variant is worth encoding for: every project page's hero
+ * (photos[0] of each project in projects.ts, sizes="100vw"), plus the home
+ * hero and the dome on the home page (72vw). Everything else on this site
+ * tops out at 46vw, where the 1500 already covers 2× DPR.
+ *
+ * Regenerate with:
+ *   node -e "…split projects.ts on slug, take the first P('…') of each…"
+ * If a project's first photograph changes, this list needs the new id.
+ */
+const BIG = new Set([
+  // project heroes
+  's-eldhus-vitt', 'f-stofa', 'p-skuggahverfi-0', 'p-skandinaviskt-0', 'p-eldhusrymi-0',
+  'p-alfheimar-0', 'p-gardabaer-0', 'p-badherbergi-0', 'p-barnaherbergi-0', 'p-studio-1',
+  'p-freyja-0', 'p-freyjalux-0', 'p-svala-0', 'p-solvallagata-1', 'p-oldcharm-1',
+  'p-skrifstofa-0', 'p-tannlaeknar-0',
+  // the dome on the home page
+  's-sturta',
+])
+
 mkdirSync(OUT, { recursive: true })
 
 /* Group the two derivatives of each photo and keep the larger as the source. */
 const bySlug = new Map()
 for (const f of readdirSync(SRC)) {
-  const m = /^(.+)-(960|1920)\.jpg$/.exec(f)
+  const m = /^(.+)-(960|1920|2400)\.jpg$/.exec(f)
   if (!m) continue
   const [w, h] = jpegSize(readFileSync(join(SRC, f)))
   const prev = bySlug.get(m[1])
@@ -59,8 +84,9 @@ let encoded = 0, skipped = 0
 for (const slug of slugs) {
   const { file, w: sw, h: sh } = bySlug.get(slug)
   const src = join(SRC, file)
-  // never upscale: a 900px-wide source gets no 1500 variant
-  const widths = WIDTHS.filter((w) => w <= sw)
+  // never upscale: a 900px-wide source gets no 1500 variant. And only the
+  // photographs displayed near full width earn the 2400.
+  const widths = WIDTHS.filter((w) => w <= sw && (w < 2400 || BIG.has(slug)))
   if (!widths.includes(sw) && widths[widths.length - 1] !== sw && sw < Math.max(...WIDTHS)) widths.push(sw)
   const variants = []
   for (const w of widths) {
