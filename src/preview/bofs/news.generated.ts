@@ -6,12 +6,12 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-09-01T11:39:07.930Z
+ * Last synced: 2026-09-02T11:18:24.648Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 1. september 2026', en: 'Updated 1 September 2026' }
+export const SYNCED_AT = { is: 'Uppfært 2. september 2026', en: 'Updated 2 September 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
   {
@@ -53,27 +53,27 @@ export const SYNCED_NEWS: NewsItem[] = [
       "is": "Frumvarpsdrög um breyttan útivistartíma barna kynnt til samráðs",
       "en": "Frumvarpsdrög um breyttan útivistartíma barna kynnt til samráðs"
     },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026/07/23/-Frumvarpsdrog-um-breyttan-utivistartima-barna-kynnt-til-samrads/",
+    "href": "/efst-a-baugi/frettir/stok-frett/2026-07-23--Frumvarpsdrog-um-breyttan-utivistartima-barna-kynnt-til-samrads",
     "untranslated": true,
     "summary": {
-      "is": "Mennta- og barnamálaráðuneytið hefur birt í Samráðsgátt stjórnvalda drög að frumvarpi um breytingu á barnaverndarlögum, nr. 80/2002, sem varðar útivistartíma barna.",
-      "en": "Mennta- og barnamálaráðuneytið hefur birt í Samráðsgátt stjórnvalda drög að frumvarpi um breytingu á barnaverndarlögum, nr. 80/2002, sem varðar útivistartíma barna."
+      "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; hefur birt &#237; Samr&#225;&#240;sg&#225;tt stj&#243;rnvalda dr&#246;g a&#240; frumvarpi um breytingu &#225; barnaverndarl&#246;gum, nr. 80/2002, sem var&#240;ar &#250;tivistart&#237;ma barna.",
+      "en": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; hefur birt &#237; Samr&#225;&#240;sg&#225;tt stj&#243;rnvalda dr&#246;g a&#240; frumvarpi um breytingu &#225; barnaverndarl&#246;gum, nr. 80/2002, sem var&#240;ar &#250;tivistart&#237;ma barna."
     },
     "summaryUntranslated": true
   },
   {
     "date": "21.07.2026",
     "source": "Stjórnarráðið",
-    "topic": "medferd",
+    "topic": "barnavernd",
     "title": {
       "is": "Endurskoðuð drög að nýjum heildarlögum um barnavernd kynnt til umsagnar",
       "en": "Endurskoðuð drög að nýjum heildarlögum um barnavernd kynnt til umsagnar"
     },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026/07/21/Endurskodud-drog-ad-nyjum-heildarlogum-um-barnavernd-kynnt-til-umsagnar/",
+    "href": "/efst-a-baugi/frettir/stok-frett/2026-07-21-Endurskodud-drog-ad-nyjum-heildarlogum-um-barnavernd-kynnt-til-umsagnar",
     "untranslated": true,
     "summary": {
-      "is": "Mennta- og barnamálaráðuneytið hefur birt að nýju í Samráðsgátt stjórnvalda drög að nýjum heildarlögum um barnavernd. Drögin hafa verið endurskoðuð með hliðsjón af áliti velferðarnefndar Alþingis og þeim breytingum sem nefndin lagði til við meðferð...",
-      "en": "Mennta- og barnamálaráðuneytið hefur birt að nýju í Samráðsgátt stjórnvalda drög að nýjum heildarlögum um barnavernd. Drögin hafa verið endurskoðuð með hliðsjón af áliti velferðarnefndar Alþingis og þeim breytingum sem nefndin lagði til við meðferð..."
+      "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; hefur birt a&#240; n&#253;ju &#237; Samr&#225;&#240;sg&#225;tt stj&#243;rnvalda dr&#246;g a&#240; n&#253;jum heildarl&#246;gum um barnavernd. Dr&#246;gin hafa veri&#240; endursko&#240;u&#240; me&#240;...",
+      "en": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; hefur birt a&#240; n&#253;ju &#237; Samr&#225;&#240;sg&#225;tt stj&#243;rnvalda dr&#246;g a&#240; n&#253;jum heildarl&#246;gum um barnavernd. Dr&#246;gin hafa veri&#240; endursko&#240;u&#240; me&#240;..."
     },
     "summaryUntranslated": true
   },
