@@ -258,6 +258,49 @@ export const CSS = `
 .ki-card a::after { content: ''; position: absolute; inset: 0; }
 .ki-card-cat { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; color: var(--ki-mute); white-space: nowrap; }
 
+/* ── the statement over a photograph ──────────────────────────────────── */
+.ki-stmt { position: relative; overflow: hidden; min-height: min(92svh, 820px); display: grid; }
+.ki-root .ki-stmt > picture, .ki-root .ki-stmt > picture > img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+/* measured, not guessed: see the note on the component */
+.ki-stmt-scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, rgb(16 13 11 / .74) 0%, rgb(16 13 11 / .62) 46%, rgb(16 13 11 / .34) 100%);
+}
+.ki-stmt-in {
+  position: relative; align-self: center;
+  padding: calc(var(--u) * 70) calc(var(--u) * 34);
+  width: 100%;
+}
+.ki-stmt-lines { margin: 0; display: flex; flex-direction: column; align-items: flex-start; }
+/* each line steps further across than the one above it */
+.ki-stmt-line { display: block; overflow: hidden; margin-left: calc(var(--s, 0) * clamp(14px, 6vw, 108px)); }
+.ki-stmt-line i {
+  display: block; font-style: normal;
+  font-family: ${DISPLAY}; font-weight: 300;
+  font-size: ${fluid(76, 32)}; line-height: 1.06; letter-spacing: .004em;
+  color: #F4EEE6; transform: translateY(0);
+}
+.ki-js .ki-stmt-lines:not(.is-in) .ki-stmt-line i { transform: translateY(108%); }
+.ki-js .ki-stmt-lines.is-in .ki-stmt-line i {
+  transform: translateY(0);
+  transition: transform .95s ${OUT}; transition-delay: calc(var(--s, 0) * 90ms);
+}
+.ki-static .ki-stmt-line i { transform: translateY(0); }
+.ki-stmt-sub {
+  margin: calc(var(--u) * 30) 0 0;
+  font-family: ${MONO}; font-size: ${fluid(12.5, 12)}; letter-spacing: .16em;
+  /* cream, not a dimmed grey: #D8CFC4 measured 4.31 against the lighter end
+     of the scrim and failed AA. The hierarchy comes from size and tracking
+     instead, which costs nothing legible. */
+  text-transform: uppercase; color: #F4EEE6; max-width: 62ch;
+}
+@media (max-width: 640px) {
+  .ki-stmt { min-height: 78svh; }
+  .ki-stmt-sub { letter-spacing: .1em; }
+}
+
 /* ── the horizontal chapter ───────────────────────────────────────────── */
 /* Default is the TOUCH build: a native scroll-snap strip. The pinned version
    is layered on only where there is a real pointer, because a scroll-jacked

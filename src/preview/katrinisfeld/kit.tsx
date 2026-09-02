@@ -151,6 +151,40 @@ export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide'
 }
 
 /**
+ * A full-bleed photograph with a sentence stepped down it.
+ *
+ * Each line sits further across than the last, so the eye walks the picture
+ * diagonally instead of reading a centred block laid on top of it. The lines
+ * rise out of their own masks on the reveal sweep, one after another.
+ *
+ * The scrim is not decoration: white type over a photograph is the classic
+ * way to ship something that measures 2:1 in the bright corner, so there is
+ * a real gradient under the text and the contrast is measured, not hoped for.
+ */
+export function StatementOverlay({ id, alt, lines, sub }: {
+  id: string; alt: string; lines: ReadonlyArray<string>; sub: string
+}) {
+  return (
+    <section className="ki-stmt" data-ki-band="dark">
+      <Photo id={id} alt={alt} sizes="100vw" />
+      <div className="ki-stmt-scrim" aria-hidden="true" />
+      <div className="ki-stmt-in">
+        {/* .ki-rv here is only the trigger — the sweep already watches for it,
+            so the masks below need no new selector in the engine */}
+        <p className="ki-stmt-lines ki-rv">
+          {lines.map((l, i) => (
+            <span key={l} className="ki-stmt-line" style={{ ['--s' as string]: i }}>
+              <i>{l}</i>
+            </span>
+          ))}
+        </p>
+        <p className="ki-stmt-sub">{sub}</p>
+      </div>
+    </section>
+  )
+}
+
+/**
  * A horizontal chapter: the page pins and the projects travel sideways.
  *
  * The pin only happens on a real pointer. On touch this is a native

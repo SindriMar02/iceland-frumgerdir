@@ -17,7 +17,7 @@
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
-  Headline, Photo, Slide, CardFigure, MaterialBands, HorizontalChapter,
+  Headline, Photo, Slide, CardFigure, MaterialBands, HorizontalChapter, StatementOverlay,
   type MaterialBand, type HPanel,
 } from './kit'
 import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
@@ -127,6 +127,16 @@ export function Home() {
 
       {/* 02c · one room of each kind, travelling sideways */}
       <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
+
+      {/* 02d · her own sentence from Stúdíóið, stepped down a photograph.
+          Not a new claim: this is the line that separates her from someone
+          brought in after the builders have gone. */}
+      <StatementOverlay
+        id="f-eldhus"
+        alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
+        lines={['Rýmið', 'er teiknað', 'með húsinu.']}
+        sub="Ekki lagt ofan á það þegar smíðinni er lokið"
+      />
 
       {/* 03 · the overview, clustered by buyer type */}
       <section className="ki-wrap" id="verkefni" data-ki-band="dark">
