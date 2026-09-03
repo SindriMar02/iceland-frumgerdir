@@ -358,6 +358,7 @@ export function ParallaxHero({ plates, children }: {
             key={p.id}
             className="ki-plx-plate"
             data-ki-layer={p.k}
+            {...(p.plate ? { 'data-ki-ground': '' } : null)}
             style={p.hCss ? { height: p.hCss, top: p.topCss ?? '0' } : undefined}
           >
             {p.plate ? (
@@ -375,6 +376,15 @@ export function ParallaxHero({ plates, children }: {
       </div>
       {/* layer 3 — the title, on the same timeline as the plates */}
       <div className="ki-plx-lockup" data-ki-layer="40">{children}</div>
+      {/* THE DARKENING IS SCROLL-DRIVEN, not baked into the plates. Baked in
+          as depth it only arrived once the leading edge had left the screen —
+          bright veining for three quarters of the rise, then a gradient
+          pooling at the bottom. This dims the whole frame evenly toward the
+          page colour as you descend, so the material darkens as it rises. */}
+      <div className="ki-plx-dark" data-ki-plx-dark aria-hidden="true" />
+      {/* grain sits ABOVE the dimmer, so the end state is dark AND textured —
+          the same noise the page below carries, so they are one surface */}
+      <div className="ki-plx-grain" aria-hidden="true" />
       <div className="ki-plx-fade" aria-hidden="true" />
       <div className="ki-plx-line" aria-hidden="true" />
     </section>
@@ -527,7 +537,9 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     }> = []
     /* horizontal chapters: pinned on a pointer, native scroll-snap on touch */
     /* layered parallax groups: one progress, many magnitudes */
-    let plx: Array<{ start: number; end: number; layers: Array<{ el: HTMLElement; k: number }> }> = []
+    let plx: Array<{ start: number; end: number; dark: HTMLElement | null
+      ground: HTMLElement[]
+      layers: Array<{ el: HTMLElement; k: number }> }> = []
     let hs: Array<{
       track: HTMLElement; start: number; end: number; distance: number
       frames: Array<{ img: HTMLElement; left: number; width: number }>
@@ -592,6 +604,8 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         return {
           start: top,
           end: top + r.height,
+          dark: g.querySelector<HTMLElement>('[data-ki-plx-dark]'),
+          ground: Array.from(g.querySelectorAll<HTMLElement>('[data-ki-ground]')),
           layers: Array.from(g.querySelectorAll<HTMLElement>('[data-ki-layer]')).map((el) => ({
             el, k: parseFloat(el.dataset.kiLayer || '0'),
           })),
@@ -639,6 +653,26 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         for (const l of g.layers) {
           // ease "none": the reference maps scroll to displacement linearly
           l.el.style.transform = `translate3d(0, ${(l.k * p).toFixed(3)}%, 0)`
+        }
+        /* THE STONE DARKENS, NOT THE FRAME.
+           A full-bleed dimmer pushed the photograph above and the stone below
+           toward the same colour at the same rate, so by the middle of the
+           descent the boundary between them had no contrast left — the edge
+           is geometrically just as broken the whole way up (329px of spread,
+           measured), but it READ as a ruler-straight line because you could
+           no longer see it. Darkening the plates themselves keeps the edge
+           legible while the material goes down.
+
+           brightness(.55) lands the marble almost exactly on the page's own
+           ground colour: mean #4A3527 x .55 = (41,29,21) = #291D15. */
+        const b = Math.min(1, Math.max(0, (p - 0.06) / 0.40))
+        const bright = (1 - b * 0.45).toFixed(3)
+        for (const el of g.ground) el.style.filter = `brightness(${bright})`
+        /* The frame-wide dim only finishes off the last strip of photograph,
+           long after the stone has taken most of the screen. */
+        if (g.dark) {
+          const o = Math.min(1, Math.max(0, (p - 0.30) / 0.20))
+          g.dark.style.opacity = o.toFixed(3)
         }
       }
     }

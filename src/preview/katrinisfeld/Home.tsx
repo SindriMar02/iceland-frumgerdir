@@ -43,26 +43,34 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
 ]
 
-/* THE DESCENT — the vista swallowed by its own ground.
-   Watched the reference run rather than reasoned about it, and the motion is
-   the opposite of what I first built. The scene does NOT leave to reveal
-   what is behind it. The scene STAYS, and the dark foreground mass RISES UP
-   from the bottom edge and eats the frame, until nothing is left but the
-   mass — which is the same colour as the page beneath, so the ending is a
-   dissolve you cannot see.
+/* THE DESCENT — her room, swallowed by a rising Emperador ground.
+   The ground is a SURFACE, not objects. Three strata of the same dark
+   Emperador marble rising nearly in sync — k 14 / 10 / 6 is only an 8%
+   spread, so they read as the thickness of one stone mass rather than three
+   shapes travelling separately.
 
-   Which fixes the assignment:
-     the room  is the FAR plane — slow (18%), it holds and gets buried
-     the stone is the NEAR plane — fast (88%), bottom-anchored, barely
-               showing at rest, climbing until it has taken the whole frame
+   THE STRATA SHARE ONE LOW-FREQUENCY SILHOUETTE. Given three DIFFERENT
+   irregular edges, the visible boundary is the upper envelope of all three —
+   and the max of several noisy curves is smoother than any of them, so as
+   the layers converged the edge visibly ironed itself flat halfway through
+   the descent. Sharing the big shape keeps the envelope irregular at every
+   overlap (336px of spread on screen, unchanged even when fully coincident);
+   only the fine detail differs, so they still read as separate stone. Her room
+   sits far behind at k 70 and barely moves, so it is occluded rather than
+   pushed away.
 
-   Then the page below is that same stone, so you simply end up standing on
-   the ground you descended into, with her work laid over it. */
+   The darkening is BAKED INTO the strata, not laid over them: each plate is
+   lit marble at its leading edge and resolves down its own height to
+   #291D15, which is exactly the page background below. So the material gets
+   darker simply because more of its lower body is on screen, and the moment
+   it has filled the frame it already IS the page — there is no transition to
+   see, because there is no transition. */
 const PLATES: ReadonlyArray<PlxPlate> = [
   { id: 's-eldhus-vitt', k: 70, priority: true,
     alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
-  { id: 'stone-slab', k: 55, plate: true, pw: 2400, ph: 1768, alt: '' },
-  { id: 'stone-ledge', k: 10, plate: true, pw: 2400, ph: 1768, alt: '' },
+  { id: 'ground-far-v3',  k: 14, plate: true, pw: 2000, ph: 3200, hCss: '250svh', topCss: '71svh', alt: '' },
+  { id: 'ground-mid-v3',  k: 10, plate: true, pw: 2000, ph: 3200, hCss: '250svh', topCss: '76svh', alt: '' },
+  { id: 'ground-near-v3', k: 6,  plate: true, pw: 2000, ph: 3200, hCss: '250svh', topCss: '79svh', alt: '' },
 ]
 
 /* One from each kind of room she is asked for, travelling sideways — but

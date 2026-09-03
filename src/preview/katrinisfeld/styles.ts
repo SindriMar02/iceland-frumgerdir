@@ -11,9 +11,6 @@
  */
 import { fluid } from './kit'
 
-/* absolute, never relative: a relative url() resolves differently in dev and
-   in the build and silently 404s in one of them */
-const ASSETS = `${import.meta.env.BASE_URL}katrinisfeld`
 
 const CREAM = '#EFEAE2'
 const INK = '#231F1B'
@@ -21,8 +18,11 @@ const CHARCOAL = '#1D1B19'
 const WINE = '#8C3A34'
 /* her steinn — the ground the descent resolves into */
 const STONE = '#4A3527'
+/* what the descent RESOLVES to — the exact bottom of the ground plates, so
+   the hero and the page below are one continuous surface */
+const GROUND = '#291D15'
 
-export const COLOURS = { CREAM, INK, CHARCOAL, WINE, STONE }
+export const COLOURS = { CREAM, INK, CHARCOAL, WINE, STONE, GROUND }
 
 const DISPLAY = "'Sentient', Georgia, serif"
 const SANS = "'Archia', system-ui, sans-serif"
@@ -368,7 +368,7 @@ export const CSS = `
    lower — so the travel has to be long enough to cover the gap. At the
    reference's 1.2 there were 180px of scroll while the stage still filled
    the viewport, which is a jump, not a descent. */
-.ki-plx { position: relative; height: 250svh; background: ${STONE}; overflow: hidden; }
+.ki-plx { position: relative; height: 250svh; background: ${GROUND}; overflow: hidden; }
 .ki-plx-layers { position: absolute; inset: 0; overflow: hidden; }
 .ki-plx-plate {
   position: absolute; left: 0; top: -17.5%; width: 100%; height: 117.5%;
@@ -398,6 +398,18 @@ export const CSS = `
   background: linear-gradient(to bottom,
     rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .58) 34%, rgb(29 27 25 / .90) 68%, rgb(29 27 25 / .96) 100%);
 }
+/* the whole frame dimmed toward the page colour, opacity written per frame
+   by the engine — see the note on the component */
+.ki-plx-dark {
+  position: absolute; inset: 0; z-index: 18; pointer-events: none;
+  background: ${GROUND}; opacity: 0;
+}
+/* the same grain the page below carries, so the end state is one surface */
+.ki-plx-grain {
+  position: absolute; inset: 0; z-index: 19; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
+  background-repeat: repeat; background-size: 140px 140px;
+}
 .ki-plx-fade {
   /* z 22, not the reference's 30: there the fade sits above the title layer
      because its heading is centred well clear of it. Hers is a bottom-set h1
@@ -408,26 +420,36 @@ export const CSS = `
      because black is the page underneath it; the equivalent here is her
      steinn, and the section below carries the same colour and texture, so
      the descent ends with the ground simply having become the page. */
+  /* the strata already resolve to the page colour on their own, so this is
+     only insurance against a sliver of room showing at the very bottom */
   background: linear-gradient(to bottom,
-    rgb(74 53 39 / 0) 0%, rgb(74 53 39 / .72) 46%, rgb(74 53 39 / .94) 76%, ${STONE} 100%);
+    rgb(41 29 21 / 0) 0%, rgb(41 29 21 / .55) 60%, ${GROUND} 100%);
 }
-.ki-plx-line { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: ${STONE}; z-index: 20; }
+.ki-plx-line { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: ${GROUND}; z-index: 20; }
 
 /* THE GROUND, CONTINUED. Whatever follows the descent stands on the same
    stone, so there is nothing to see at the join. */
+/* The ground, continued. This is not a picture of stone — the descent ends
+   on a flat dark field, so the page continues that exact colour with the same
+   grain over it. Anything else would put a visible line at the join. */
 .ki-stone {
-  background-color: ${STONE};
-  background-image: linear-gradient(rgb(74 53 39 / .58), rgb(74 53 39 / .58)), url("${ASSETS}/hero-steinn.webp");
-  background-size: cover; background-position: center; background-repeat: no-repeat;
+  background-color: ${GROUND};
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
+  background-repeat: repeat; background-size: 140px 140px;
   color: #EFE7DC;
 }
 /* no JS and reduced motion: the layers simply stand where they were placed */
 @media (prefers-reduced-motion: reduce) {
   .ki-plx { height: 100svh; }
   .ki-plx-plate, .ki-plx-lockup { transform: none !important; }
+  /* no descent to watch, so it simply rests on the ground it would end on */
+  .ki-plx-dark { opacity: 1 !important; }
 }
 @media (max-width: 860px) {
-  .ki-plx { height: 200svh; }
+  /* The section height must stay 250svh at every width. The plates are
+     positioned and sized in svh, so shortening the section on narrow screens
+     desynced the two: the strata slid below the fold and the ground stopped
+     peeking at rest entirely — the descent only began once you scrolled. */
   .ki-plx-lockup { padding-bottom: calc(var(--u) * 80); }
 }
 
