@@ -139,19 +139,33 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      with nothing left to seam against. */
 
   /* far plane — behind, slower, mostly swallowed by the near one */
-  { layer: '2', width: 2880, height: 5850,
-    src: `${ASSET}/terrain-plate-far.webp`, alt: '',
-    yPercent: -46.7,
-    geom: { top: '3.5%', height: 'auto', aspectRatio: '2880 / 5850' } },
+
 
   /* near plane — the ground the camera actually descends past. Pinned, the
      page supplies none of the travel, so the rise is entirely this tween:
      -78% of its own height carries the edge from 89% of the viewport to just
      above the top, with 851px of stone still under it on an 800px frame. */
-  { layer: '4', width: 2880, height: 5850,
-    src: `${ASSET}/terrain-plate.webp`, alt: '',
-    yPercent: -70,
-    geom: { top: '8.5%', height: 'auto', aspectRatio: '2880 / 5850' } },
+  /* THREE PLANES, one photograph. All three are windows cut at different
+     horizontal offsets from the same graded basalt (one mirrored), so no two
+     crests line up and it never reads as the same picture repeated — but the
+     rock, its light and its scale are literally identical, because they are
+     the same pixels. Depth is carried by the travel: 1400 / 1780 / 2200 over
+     the descent, far to near. That ratio IS the depth; nothing is scaled.
+
+     Their crests sit 86% / 88% / 90% down at rest, so the ground shows as a
+     layered 14% band at the bottom and the room keeps the frame. */
+  { layer: '2', width: 2400, height: 5850,
+    src: `${ASSET}/stone-far.webp`, alt: '',
+    yPercent: -44.9,
+    geom: { top: '-10.5%', height: 'auto', aspectRatio: '2400 / 5850' } },
+  { layer: '5', width: 2400, height: 5850,
+    src: `${ASSET}/stone-mid.webp`, alt: '',
+    yPercent: -57.1,
+    geom: { top: '-8.5%', height: 'auto', aspectRatio: '2400 / 5850' } },
+  { layer: '4', width: 2400, height: 5850,
+    src: `${ASSET}/stone-near.webp`, alt: '',
+    yPercent: -70.5,
+    geom: { top: '-6.5%', height: 'auto', aspectRatio: '2400 / 5850' } },
 ]
 
 

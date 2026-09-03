@@ -29,7 +29,7 @@ import './parallax-scrolling.css'
 
 export interface ParallaxLayer {
   /** layer 1 is furthest away, 4 is nearest — the registry's own numbering */
-  layer: '1' | '2' | '4'
+  layer: '1' | '2' | '5' | '4'
   src: string
   srcAvif?: string
   alt: string
@@ -115,9 +115,9 @@ export function ParallaxComponent({
          (the room), a foreground volume (the ground) and the type between
          them — and the ground has to rise through the frame rather than
          drift with it. */
-      const DEFAULTS: Record<string, number> = { '1': 70, '2': 55, '3': 40, '4': 10 }
+      const DEFAULTS: Record<string, number> = { '1': 70, '2': 55, '5': 48, '3': 40, '4': 10 }
       const overrides = new Map<string, ParallaxLayer>(layers.map((l) => [l.layer, l]))
-      const spec = ['1', '2', '3', '4'].map((layer) => ({
+      const spec = ['1', '2', '5', '3', '4'].map((layer) => ({
         layer,
         yPercent: layer === '3' && titleYPercent !== undefined
           ? titleYPercent
@@ -222,7 +222,14 @@ export function ParallaxComponent({
                 replaced-element sizing algorithm to misfire. Costs the AVIF
                 source (image-set() was untested after two format bugs in a
                 row here) - webp only, which is still real compression. */}
-            {layers.map((l) => (
+            {/* PAINT ORDER IS THE OCCLUSION. The registry writes 1, 2, 3, 4
+                for a reason: the title sits at 3 so that layer 4, the nearest
+                plane, paints OVER it. Rendering every image first and the
+                title after — which is what this did — puts the wordmark on
+                top of the near stone, where the rising ground can never
+                cover it. Behind the rock is the whole point, so the title
+                goes back between the far planes and the near one. */}
+            {layers.filter((l) => l.layer !== '4').map((l) => (
               <div
                 key={l.layer}
                 data-parallax-layer={l.layer}
@@ -236,6 +243,17 @@ export function ParallaxComponent({
             <div data-parallax-layer="3" className="parallax__layer-title">
               {title}
             </div>
+            {layers.filter((l) => l.layer === '4').map((l) => (
+              <div
+                key={l.layer}
+                data-parallax-layer={l.layer}
+                className="parallax__layer-img"
+                role={l.alt ? 'img' : undefined}
+                aria-label={l.alt || undefined}
+                aria-hidden={l.alt ? undefined : true}
+                style={{ backgroundImage: `url(${l.src})`, ...l.geom }}
+              />
+            ))}
             {deep && (
               <div data-parallax-deep className="parallax__deep">{deep}</div>
             )}
