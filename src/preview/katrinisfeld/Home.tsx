@@ -139,19 +139,19 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      with nothing left to seam against. */
 
   /* far plane — behind, slower, mostly swallowed by the near one */
-  { layer: '2', width: 2400, height: 4875,
+  { layer: '2', width: 2880, height: 5850,
     src: `${ASSET}/terrain-plate-far.webp`, alt: '',
-    yPercent: -61.5,
-    geom: { top: '75%', height: 'auto', aspectRatio: '2400 / 4875' } },
+    yPercent: -46.7,
+    geom: { top: '3.5%', height: 'auto', aspectRatio: '2880 / 5850' } },
 
   /* near plane — the ground the camera actually descends past. Pinned, the
      page supplies none of the travel, so the rise is entirely this tween:
      -78% of its own height carries the edge from 89% of the viewport to just
      above the top, with 851px of stone still under it on an 800px frame. */
-  { layer: '4', width: 2400, height: 4875,
+  { layer: '4', width: 2880, height: 5850,
     src: `${ASSET}/terrain-plate.webp`, alt: '',
-    yPercent: -92.3,
-    geom: { top: '80%', height: 'auto', aspectRatio: '2400 / 4875' } },
+    yPercent: -70,
+    geom: { top: '8.5%', height: 'auto', aspectRatio: '2880 / 5850' } },
 ]
 
 

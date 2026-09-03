@@ -63,6 +63,17 @@
   inset: 0;
 }
 
+/* THE FADE HAS TO GO WHEN PINNED. The registry uses it to dissolve its layer
+   box into the page below, which it needs because its layers just end. Here
+   the material grades into the ground on its own, so all this does is paint a
+   160px wash of ground colour across the bottom fifth of EVERY frame — above
+   everything, at z-index 30, including the copy that lands on the stone. That
+   permanent soft band across the bottom is the blur. */
+.parallax--sticky .parallax__fade,
+.parallax--sticky .parallax__black-line-overflow {
+  display: none;
+}
+
 /* extends a fifth of a screen BELOW the header, so the fade finishes over the
    top of whatever follows instead of stopping at a hard edge */
 .parallax__visuals {
