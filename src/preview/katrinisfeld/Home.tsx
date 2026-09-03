@@ -105,23 +105,32 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      too — 1280px of width became 1920 — and that lateral growth is the most
      legible thing on screen, so the whole effect read as zooming into the
      rock instead of the rock drifting up. The scale was only ever propping
-     up a plate too short to keep the frame covered by translation alone;
-     the plate is taller now (2254 against 1626) and carries it honestly. */
+     up a plate too short to keep the frame covered by translation alone.
+
+     The plate is now the keyed edge crossfaded into a second Higgsfield
+     render — a continuous basalt face lit at the top and falling to true
+     black — so the body below the edge is REAL MATERIAL the whole way down,
+     darkening because the light stops reaching it. It used to be a 2x
+     vertical stretch of one strip washed to flat colour, which is why the
+     second half of the descent was empty rather than stone. Its deepest
+     region is graded onto #1d1b19 so the pin releases straight onto the
+     page's own ground. 1600px tall rendered against an 800px frame, so
+     yPercent is small: -47% of its own height IS the 750px of travel. */
 
   /* far plane — behind, slower, mostly swallowed by the near one */
-  { layer: '2', width: 3000, height: 2254,
+  { layer: '2', width: 2400, height: 3000,
     src: `${ASSET}/terrain-plate-far.webp`, alt: '',
-    yPercent: -52,
-    geom: { top: '75%', height: 'auto', aspectRatio: '3000 / 2254' } },
+    yPercent: -31,
+    geom: { top: '75%', height: 'auto', aspectRatio: '2400 / 3000' } },
 
   /* near plane — the ground the camera actually descends past. Pinned, the
      page supplies none of the travel, so the rise is entirely this tween:
      -78% of its own height carries the edge from 89% of the viewport to just
      above the top, with 851px of stone still under it on an 800px frame. */
-  { layer: '4', width: 3000, height: 2254,
+  { layer: '4', width: 2400, height: 3000,
     src: `${ASSET}/terrain-plate.webp`, alt: '',
-    yPercent: -78,
-    geom: { top: '80%', height: 'auto', aspectRatio: '3000 / 2254' } },
+    yPercent: -47,
+    geom: { top: '80%', height: 'auto', aspectRatio: '2400 / 3000' } },
 ]
 
 
@@ -183,19 +192,15 @@ export function Home() {
       <ParallaxComponent
         layers={HERO_LAYERS}
         sticky
+        smooth
         titleYPercent={-55}
         title={
           <div className="ki-plx-scene">
+            {/* her name, not a headline — a sentence has to be read, a name
+                only has to be seen, and this one is going under the stone */}
             <div className="ki-plx-lockup">
-              <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={132} floor={40} />
-              <p className="ki-hero-sub">
-                Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
-                hótel og atvinnurými, hönnuð frá grunni.
-              </p>
-              <p className="ki-hero-cta">
-                <Link className="ki-cta" to={WORK}>Verkefnin</Link>
-                <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
-              </p>
+              <h1 className="ki-plx-name">Katrín Ísfeld</h1>
+              <p className="ki-plx-role">innanhússarkitekt</p>
             </div>
           </div>
         }

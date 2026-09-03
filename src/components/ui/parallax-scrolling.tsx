@@ -111,7 +111,7 @@ export function ParallaxComponent({
          them — and the ground has to rise through the frame rather than
          drift with it. */
       const DEFAULTS: Record<string, number> = { '1': 70, '2': 55, '3': 40, '4': 10 }
-      const overrides = new Map(layers.map((l) => [l.layer, l]))
+      const overrides = new Map<string, ParallaxLayer>(layers.map((l) => [l.layer, l]))
       const spec = ['1', '2', '3', '4'].map((layer) => ({
         layer,
         yPercent: layer === '3' && titleYPercent !== undefined
@@ -138,12 +138,21 @@ export function ParallaxComponent({
        correctly (start 0, end 1080) but its own scroll getter kept returning
        0 while window.scrollY was 540, so progress never moved and every
        layer sat at translate 0. This is the same wiring Lenis provides. */
+    /* Lenis on the pointer, never on touch. Hijacked wheel scrolling is what
+       makes a long pinned descent feel weighted on a trackpad, but on iOS it
+       replaces real momentum with a JS approximation and freezes any nested
+       scroller — and this page has a horizontal one. So the smooth path is
+       gated to a fine pointer and the native path stays for everything else. */
+    const fine = typeof window.matchMedia === 'function'
+      && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    const useLenis = smooth && fine
+
     const onScroll = () => ScrollTrigger.update()
-    if (!smooth) window.addEventListener('scroll', onScroll, { passive: true })
+    if (!useLenis) window.addEventListener('scroll', onScroll, { passive: true })
 
     let lenis: Lenis | undefined
     let ticker: ((t: number) => void) | undefined
-    if (smooth) {
+    if (useLenis) {
       lenis = new Lenis()
       lenis.on('scroll', ScrollTrigger.update)
       ticker = (time: number) => lenis?.raf(time * 1000)

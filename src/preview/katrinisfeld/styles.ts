@@ -352,9 +352,12 @@ export const CSS = `
    which the component centres for us — so the old absolute positioning is
    gone and what is left is the scale and the scrim.
 
-   The reference sets a single huge centred title. Hers is the same gesture at
-   her own weight: Sentient rather than a grotesk, and a real subhead and CTAs
-   under it, because this is a working landing page and not a demo. */
+   It is her NAME, not a headline. A sentence needs to be read and then
+   argued with; a name only needs to be seen, which is what survives being
+   carried under the stone. And it is set in Archia rather than the site's
+   Sentient: wide, uppercase, heavily tracked — a name cut into a face of
+   material rather than a literary line. The serif still owns every other
+   heading on the site, so the hero reads as its own moment. */
 .ki-plx-lockup {
   display: flex; flex-direction: column; align-items: center; text-align: center;
   width: 100%; max-width: calc(var(--u) * 1180); color: #F6F1E9;
@@ -368,14 +371,27 @@ export const CSS = `
   background: radial-gradient(ellipse 62% 52% at 50% 50%,
     rgb(24 17 12 / .82) 0%, rgb(24 17 12 / .62) 46%, rgb(24 17 12 / 0) 78%);
 }
-.ki-plx-lockup .ki-hero-title { margin-bottom: calc(var(--u) * 18); }
-.ki-plx-lockup .ki-hero-sub {
-  max-width: 46ch; margin: 0 auto; color: #E4DACB;
-  font-size: ${fluid(18, 15.5)}; line-height: 1.6;
+.ki-plx-name {
+  margin: 0;
+  font-family: ${SANS};
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: ${fluid(92, 30)};
+  line-height: 1.04;
+  /* the trailing letter carries its own tracking, which throws a centred
+     line to the left by half of it — the indent puts it back */
+  letter-spacing: .17em;
+  text-indent: .17em;
+  color: #F6F1E9;
 }
-.ki-plx-lockup .ki-hero-cta {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: calc(var(--u) * 44); margin-top: calc(var(--u) * 30);
+.ki-plx-role {
+  margin: calc(var(--u) * 26) 0 0;
+  font-family: ${MONO};
+  text-transform: uppercase;
+  font-size: ${fluid(13.5, 11)};
+  letter-spacing: .36em;
+  text-indent: .36em;
+  color: #CFC6B9;
 }
 
 /* THE GROUND, CONTINUED.
