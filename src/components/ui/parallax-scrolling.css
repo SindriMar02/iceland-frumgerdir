@@ -41,6 +41,28 @@
   padding: calc(var(--u, 1px) * 100) calc(var(--u, 1px) * 34);
 }
 
+/* PINNED MODE — the hero holds the frame while the ground rises through it.
+   The wrapper is tall; the header sticks to the top for the difference, which
+   is the scroll distance the descent gets to play out over.
+
+   Note .parallax's own overflow:hidden has to go here: an ancestor with
+   overflow:hidden is a scrollport, and position:sticky sticks to THAT, which
+   silently means it does not stick at all. The clip moves onto the header,
+   which is the element whose contents actually need clipping. */
+.parallax--sticky {
+  height: var(--parallax-scroll, 240svh);
+  overflow: visible;
+}
+.parallax--sticky .parallax__header {
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+/* nothing hangs below the header any more — it would show past the pin */
+.parallax--sticky .parallax__visuals {
+  inset: 0;
+}
+
 /* extends a fifth of a screen BELOW the header, so the fade finishes over the
    top of whatever follows instead of stopping at a hard edge */
 .parallax__visuals {

@@ -71,7 +71,12 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      while the camera descends past the foreground. */
   { layer: '1', width: 2400, height: 1800,
     src: `${ASSET}/rs/s-eldhus-vitt-1500.webp`,
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn',
+    /* pinned, the page no longer drags the layers, so the distant plane is
+       only as still as its own tween: a few percent of drift, no scale. A
+       scaled photograph reads as a zoom, which is the thing this hero was
+       accused of doing and the thing it must not do. */
+    yPercent: 5 },
 
   /* Layer 4 — the stone. ONE monolithic mass of honed basalt, quarried and
      dressed, with a single clean fractured top edge: the kind of stone she
@@ -91,12 +96,18 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      than a black overlay dropped on top. */
   { layer: '4', width: 3000, height: 1626,
     src: `${ASSET}/terrain-plate.webp`, alt: '',
-    yPercent: 25, scaleTo: 1.5,
-    /* top is a % of the LAYER BOX, which is 120% of the viewport (the
-       registry hangs .parallax__visuals 20% below the header), so 66.5% of
-       it is ~80% of the viewport; the edge sits 10.5% down the plate, which
-       puts it at ~89%. */
-    geom: { top: '66.5%', height: 'auto', aspectRatio: '3000 / 1626' } },
+    /* NEGATIVE, because pinned the page scroll no longer supplies any of the
+       upward travel — the tween is now the whole motion, so the stone has to
+       be told to rise. -114% of its own height carries the edge from 89% of
+       the viewport to just above the top, and the scale about that top edge
+       keeps its body covering the frame all the way down (891px of stone on
+       an 800px frame at the end). Translation dominates scale, so it reads as
+       approach rather than zoom. */
+    yPercent: -114, scaleTo: 1.5,
+    /* pinned, .parallax__visuals is inset:0, so the layer box IS the viewport
+       and this is a straight viewport percentage: the edge sits 10.5% down
+       the plate, so 80% + 10.5% of 694px puts it at ~89% at rest. */
+    geom: { top: '80%', height: 'auto', aspectRatio: '3000 / 1626' } },
 ]
 
 
@@ -157,6 +168,8 @@ export function Home() {
       {/* 01 · the descent */}
       <ParallaxComponent
         layers={HERO_LAYERS}
+        sticky
+        titleYPercent={-55}
         title={
           <div className="ki-plx-scene">
             <div className="ki-plx-lockup">

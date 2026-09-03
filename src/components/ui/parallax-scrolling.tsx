@@ -56,9 +56,35 @@ export interface ParallaxProps {
    *  nested scrollers, and this site drives its other effects from real
    *  scroll offsets. The parallax itself does not need it. */
   smooth?: boolean
+  /** Pin the hero for the length of the descent.
+   *
+   *  The registry does NOT do this, and for the registry's own effect it is
+   *  right not to: there, the foreground rushing away as the hero leaves IS
+   *  the effect — a departure, played out in the moment the section exits.
+   *
+   *  This hero is the opposite. It has to hold the frame while the ground
+   *  rises through it. Unpinned, the header is 100svh of ordinary page: it
+   *  has scrolled off before the timeline is 83% done, so the descent never
+   *  gets to happen on screen — the hero just shrinks into the top of the
+   *  viewport while the next section pushes up underneath, and the only
+   *  change still legible in that shrinking window is the scale. Which is
+   *  precisely what it looked like: "it only zooms the stone."
+   *
+   *  Pinned, the header sticks for `scroll` and the timeline runs against
+   *  the wrapper instead of the layer box, so the ground actually travels. */
+  sticky?: boolean
+  /** total height of the pinned wrapper; the descent gets this minus 100svh */
+  scroll?: string
+  /** layer 3's yPercent. The registry's +40 drifts the type DOWN, which is
+   *  right when the whole hero is scrolling away underneath it and wrong
+   *  when it is pinned — there it has to leave upward, ahead of the ground. */
+  titleYPercent?: number
 }
 
-export function ParallaxComponent({ layers, title, children, smooth = false }: ParallaxProps) {
+export function ParallaxComponent({
+  layers, title, children, smooth = false, sticky = false, scroll = '240svh',
+  titleYPercent,
+}: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,11 +93,17 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
     const triggerElement = parallaxRef.current?.querySelector('[data-parallax-layers]')
     const ctx = gsap.context(() => {
       if (!triggerElement) return
+      /* Unpinned, the registry runs the timeline across the layer box passing
+         the viewport top. Pinned, the layer box no longer moves — the wrapper
+         does — so the timeline has to run against that instead, from the
+         wrapper's top hitting the viewport top to its bottom hitting the
+         viewport bottom, which is exactly the length the header is stuck. */
       const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: triggerElement, start: '0% 0%', end: '100% 0%', scrub: 0,
-          invalidateOnRefresh: true,
-        },
+        scrollTrigger: sticky
+          ? { trigger: parallaxRef.current!, start: 'top top', end: 'bottom bottom',
+              scrub: 0, invalidateOnRefresh: true }
+          : { trigger: triggerElement, start: '0% 0%', end: '100% 0%',
+              scrub: 0, invalidateOnRefresh: true },
       })
       /* The registry's own values. A layer may override its yPercent, because
          here the layers are not four bands of one photograph but a backdrop
@@ -82,7 +114,9 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
       const overrides = new Map(layers.map((l) => [l.layer, l]))
       const spec = ['1', '2', '3', '4'].map((layer) => ({
         layer,
-        yPercent: overrides.get(layer)?.yPercent ?? DEFAULTS[layer],
+        yPercent: layer === '3' && titleYPercent !== undefined
+          ? titleYPercent
+          : overrides.get(layer)?.yPercent ?? DEFAULTS[layer],
         scaleTo: overrides.get(layer)?.scaleTo,
       }))
       spec.forEach((o, idx) => {
@@ -140,10 +174,14 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
       if (ticker) gsap.ticker.remove(ticker)
       lenis?.destroy()
     }
-  }, [smooth, layers])
+  }, [smooth, layers, sticky, titleYPercent])
 
   return (
-    <div className="parallax" ref={parallaxRef}>
+    <div
+      className={sticky ? 'parallax parallax--sticky' : 'parallax'}
+      ref={parallaxRef}
+      style={sticky ? ({ '--parallax-scroll': scroll } as CSSProperties) : undefined}
+    >
       <section className="parallax__header">
         <div className="parallax__visuals">
           <div className="parallax__black-line-overflow" />
