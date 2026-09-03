@@ -362,13 +362,13 @@ export const CSS = `
    — the backdrop nearly still while the nearest plane leaves at almost page
    speed. Pinning a sticky stage, which is what was here before, produces a
    completely different effect. */
-/* 190svh, not the reference's 120. Theirs works at 1.2 because a full black
-   section follows immediately and the blend finishes off-screen; here the
-   descent itself is the content, and at 1.2 there were only 180px of scroll
-   while the section still filled the viewport — the room barely receded
-   before the section left. 190svh buys ~90vh of travel with the stage on
-   screen, which is what makes it a descent rather than a jump. */
-.ki-plx { position: relative; height: 190svh; background: ${STONE}; overflow: hidden; }
+/* 250svh. The descent has to satisfy two things at once: the ground shows
+   only a SLIVER at rest, and it has completely taken the frame by the end.
+   Those pull against each other — starting the stone lower also ends it
+   lower — so the travel has to be long enough to cover the gap. At the
+   reference's 1.2 there were 180px of scroll while the stage still filled
+   the viewport, which is a jump, not a descent. */
+.ki-plx { position: relative; height: 250svh; background: ${STONE}; overflow: hidden; }
 .ki-plx-layers { position: absolute; inset: 0; overflow: hidden; }
 .ki-plx-plate {
   position: absolute; left: 0; top: -17.5%; width: 100%; height: 117.5%;
@@ -427,7 +427,7 @@ export const CSS = `
   .ki-plx-plate, .ki-plx-lockup { transform: none !important; }
 }
 @media (max-width: 860px) {
-  .ki-plx { height: 165svh; }
+  .ki-plx { height: 200svh; }
   .ki-plx-lockup { padding-bottom: calc(var(--u) * 80); }
 }
 

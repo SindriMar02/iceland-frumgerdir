@@ -43,34 +43,28 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
 ]
 
-/* The four layers of the opening, with the reference's own magnitudes:
-   70 / 55 / 40 / 10 percent of each plate's height, all driven off one
-   progress. 40 belongs to the title, which is why it is absent here — it
-   sits between the tall plate and the detail, so the detail crosses in
-   front of her name. The boxes are an asymmetric composition rather than a
-   centred deck: a wide room low and left, a tall room high and right, a
-   detail cutting the middle. */
-/* THE DESCENT. You arrive on one of her rooms with the ground barely showing
-   at the bottom edge, and scrolling sinks you into it: the photograph rises
-   away at 88% of scroll speed while the stone holds at 18%, so the ground
-   grows to fill the frame and simply becomes the page. The section below
-   carries the same stone, and the fade resolves to flat #4A3527, so there is
-   no seam to see — the reference does exactly this into black.
+/* THE DESCENT — the vista swallowed by its own ground.
+   Watched the reference run rather than reasoned about it, and the motion is
+   the opposite of what I first built. The scene does NOT leave to reveal
+   what is behind it. The scene STAYS, and the dark foreground mass RISES UP
+   from the bottom edge and eats the frame, until nothing is left but the
+   mass — which is the same colour as the page beneath, so the ending is a
+   dissolve you cannot see.
 
-   Depth order follows the physics rather than the layer numbers: the room is
-   the NEAR plane (fast, in front), the stone is FAR (slow, behind), and the
-   room uncovers the stone as it leaves. The room's box is deliberately short
-   of full bleed so the ground shows under it before anything moves. */
+   Which fixes the assignment:
+     the room  is the FAR plane — slow (18%), it holds and gets buried
+     the stone is the NEAR plane — fast (88%), bottom-anchored, barely
+               showing at rest, climbing until it has taken the whole frame
+
+   Then the page below is that same stone, so you simply end up standing on
+   the ground you descended into, with her work laid over it. */
 const PLATES: ReadonlyArray<PlxPlate> = [
-  { id: 'hero-steinn', k: 70, plate: true, pw: 2400, ph: 1768, priority: true,
-    alt: '' },
-  { id: 'stone-ledge', k: 55, plate: true, pw: 2400, ph: 1768,
-    alt: '' },
-  { id: 's-eldhus-vitt', k: 10, priority: true, hCss: '94svh', topCss: '0',
+  { id: 's-eldhus-vitt', k: 70, priority: true,
     alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+  { id: 'stone-slab', k: 55, plate: true, pw: 2400, ph: 1768, alt: '' },
+  { id: 'stone-ledge', k: 10, plate: true, pw: 2400, ph: 1768, alt: '' },
 ]
 
-/** One from each kind of room she is asked for, travelling sideways. */
 /* One from each kind of room she is asked for, travelling sideways — but
    grouped the way Búðir groups its journey rather than run out as an even
    row of cards. Every third stop is a FULL-BLEED slab: the whole viewport
