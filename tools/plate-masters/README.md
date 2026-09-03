@@ -1,9 +1,24 @@
 # Parallax depth plates — masters
 
-`plate-mid.png` and `plate-front.png` are the alpha masters for the layered
-opening on the home page. They live here rather than in `public/` because
-nothing loads the PNG: the page serves `plate-*.avif` / `plate-*.webp`, and a
-3.3 MB pair of unreferenced PNGs was shipping in the deploy.
+`emperador-mid.png` / `emperador-near.png` are the alpha masters for the two
+marble layers in the hero parallax (`src/components/ui/parallax-scrolling`).
+They live here rather than in `public/` because nothing loads the PNG: the
+page serves `emperador-*.avif` / `emperador-*.webp`.
+
+The alpha edge is fractal midpoint displacement (the standard terrain-
+generation algorithm) rendered as a polygon and then Gaussian-blurred for a
+real feather — NOT a sine wave. A fixed-period sine mask reads as a
+repeating decorative scallop, a hand-drawn zigzag, not a stone edge; the
+21st.dev reference's own layers are real photographic depth-cut mattes with
+soft antialiased edges, which is the bar this is trying to hit without a
+subject to rotoscope. `mid` and `near` share the same coarse displacement
+pass (`SHARED` seed) so their macro silhouette stays coherent where the two
+layers overlap, and diverge only in the fine-detail pass. Regenerate with `gen_masks.py` in this directory.
+
+`plate-mid.png` and `plate-front.png` (below) are an OLDER, separate pair of
+alpha masters for interior-photo vignettes, superseded by the marble plates
+above for the current hero. They live here for the same reason — nothing
+loads the PNG.
 
 They are her own photographs, feathered — NOT cut out. The reference component
 (21st.dev @osmosupply/parallax-scrolling) uses three registered 2000x1906

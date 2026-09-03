@@ -130,11 +130,26 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
         <div className="parallax__visuals">
           <div className="parallax__black-line-overflow" />
           <div data-parallax-layers className="parallax__layers">
+            {/* background-image, not <img>: an absolutely positioned <img> at
+                width/height:100% inside this oversized (-17.5%/117.5%) box
+                computed its height from its own intrinsic aspect ratio instead
+                of the parent's actual height in this engine (2000x1906 ->
+                1220px against a 1128px parent, confirmed live), and whatever
+                else that touched off left large stretches of these transform-
+                driven layers unpainted mid-scroll. A background div has no
+                replaced-element sizing algorithm to misfire. Costs the AVIF
+                source (image-set() was untested after two format bugs in a
+                row here) - webp only, which is still real compression. */}
             {layers.map((l) => (
-              <picture key={l.layer} data-parallax-layer={l.layer} className="parallax__layer-img">
-                {l.srcAvif && <source type="image/avif" srcSet={l.srcAvif} />}
-                <img src={l.src} alt={l.alt} width={l.width} height={l.height} loading="eager" decoding="async" />
-              </picture>
+              <div
+                key={l.layer}
+                data-parallax-layer={l.layer}
+                className="parallax__layer-img"
+                role={l.alt ? 'img' : undefined}
+                aria-label={l.alt || undefined}
+                aria-hidden={l.alt ? undefined : true}
+                style={{ backgroundImage: `url(${l.src})` }}
+              />
             ))}
             <div data-parallax-layer="3" className="parallax__layer-title">
               {title}

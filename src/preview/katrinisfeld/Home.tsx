@@ -48,22 +48,38 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
 ]
 
-/* The three image layers, on the reference's own numbering.
-   Layer 1 is her room — real work, not stock. Layers 2 and 4 are Emperador
-   marble generated for this page and cut to the reference's exact canvas
-   geometry: its layer 2 artwork spans 43.5%->100% of the canvas and layer 4
-   spans 48.7%->100%, which is what puts the ground across the bottom 60% of
-   the frame at rest. Matching the artwork means the component's own CSS
-   produces its own composition with nothing overridden. */
+/* The three image layers, on the reference's own numbering — reinterpreted
+   so the layer stack is one coherent physical scene instead of two unrelated
+   pictures on a timer. In the reference, layers 1/2/4 are the SAME
+   photograph pre-cut into depth bands; here, layers 1/2/4 are three
+   overlapping crops of ONE Higgsfield stone-material generation (2880x5120,
+   raking light, deepening from a legible detailed surface at the bottom of
+   the source toward near-black at the top), so their veins and lighting are
+   literally the same pixels, not three separate renders pretending to match.
+   Layer 1 = the deepest crop (darkest, dominates once yPercent 70 pulls it
+   back into view), layer 2 = the middle crop, layer 4 = the nearest crop,
+   masked to a soft feathered sliver so only ~14% of the viewport shows at
+   rest. The kitchen photo is no longer one of these three — it now rides
+   layer 3 (the title slot), where the reference puts its subject, so the
+   room sits IN the stone environment rather than under a stone curtain. */
 const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
-  { layer: '1', width: 2400, height: 1800,
-    src: `${ASSET}/rs/s-eldhus-vitt-1500.webp`, srcAvif: `${ASSET}/rs/s-eldhus-vitt-2400.avif`,
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+  { layer: '1', width: 2000, height: 1906,
+    src: `${ASSET}/stone-deep.webp`, srcAvif: `${ASSET}/stone-deep.avif`, alt: '' },
   { layer: '2', width: 2000, height: 1906,
-    src: `${ASSET}/emperador-mid.webp`, srcAvif: `${ASSET}/emperador-mid.avif`, alt: '' },
+    src: `${ASSET}/stone-mid.webp`, srcAvif: `${ASSET}/stone-mid.avif`, alt: '' },
   { layer: '4', width: 2000, height: 1906,
-    src: `${ASSET}/emperador-near.webp`, srcAvif: `${ASSET}/emperador-near.avif`, alt: '' },
+    src: `${ASSET}/stone-near.webp`, srcAvif: `${ASSET}/stone-near.avif`, alt: '' },
 ]
+
+/* Same photograph as elsewhere on the page, but with its own top/bottom 16-18%
+   pre-faded to transparent (baked alpha, not a live CSS mask — mask-image on
+   this component's compositing stack rendered wrong in the preview browser:
+   it hid the fully-opaque middle of the photo along with the edges, so the
+   fade is now in the asset itself, same as the stone-near plate). */
+const HERO_PHOTO = {
+  src: `${ASSET}/photo-plx.webp`, srcAvif: `${ASSET}/photo-plx.avif`,
+  alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn',
+}
 
 /* One from each kind of room she is asked for, travelling sideways — but
    grouped the way Búðir groups its journey rather than run out as an even
@@ -123,16 +139,24 @@ export function Home() {
       <ParallaxComponent
         layers={HERO_LAYERS}
         title={
-          <div className="ki-plx-lockup">
-            <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={132} floor={40} />
-            <p className="ki-hero-sub">
-              Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
-              hótel og atvinnurými, hönnuð frá grunni.
-            </p>
-            <p className="ki-hero-cta">
-              <Link className="ki-cta" to={WORK}>Verkefnin</Link>
-              <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
-            </p>
+          <div className="ki-plx-scene">
+            <div
+              className="ki-plx-photo"
+              role="img"
+              aria-label={HERO_PHOTO.alt}
+              style={{ backgroundImage: `url(${HERO_PHOTO.src})` }}
+            />
+            <div className="ki-plx-lockup">
+              <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={132} floor={40} />
+              <p className="ki-hero-sub">
+                Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
+                hótel og atvinnurými, hönnuð frá grunni.
+              </p>
+              <p className="ki-hero-cta">
+                <Link className="ki-cta" to={WORK}>Verkefnin</Link>
+                <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
+              </p>
+            </div>
           </div>
         }
       />
