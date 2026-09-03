@@ -69,9 +69,21 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      which let the stone through ABOVE the kitchen and built a cave ceiling.
      yPercent 70 leaves it nearly static on screen — the world stays put
      while the camera descends past the foreground. */
-  { layer: '1', width: 2400, height: 1800,
-    src: `${ASSET}/rs/s-eldhus-vitt-1500.webp`,
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn',
+  /* Skuggahverfi, not Súluhöfða. Two reasons, both measured rather than
+     preferred. The wordmark carries no scrim any more, and cream type over
+     the Súluhöfða kitchen scored a worst-case contrast of 1.09 where it
+     crossed the window and the fjord — invisible. Every band of this one
+     scores 11.5 to 12.2, because the island is a dark mass and the light is
+     behind it. And thematically it already contains the idea: the island IS
+     a monolithic dark stone volume in the foreground, so the stone that
+     rises continues the photograph's own material instead of contradicting
+     it, and the descent from a dark room into dark rock is one tonal
+     journey rather than a bright room being buried. Cropped 1604x1178 from
+     her own 2400 original — native resolution, no upscale — at almost
+     exactly the layer box's aspect, so cover barely trims it. */
+  { layer: '1', width: 1604, height: 1178,
+    src: `${ASSET}/hero-skuggahverfi.webp`,
+    alt: 'Eldhúsrými í Skuggahverfi: dökk steineyja í forgrunni, viðarinnrétting og dagsbirta handan hennar',
     /* pinned, the page no longer drags the layers, so the distant plane is
        only as still as its own tween: a few percent of drift, no scale. A
        scaled photograph reads as a zoom, which is the thing this hero was

@@ -28,12 +28,17 @@
       href="/fonts/sentient/Sentient-Light.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin
       href="/fonts/archia/Archia-Regular.woff2" />
+    <!-- the wordmark's own face, preloaded for the same reason as Sentient:
+         it sets the first thing on the page and a swap would reflow it -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/melodrama/Melodrama-Regular.woff2" />
     <style>
       @font-face { font-family: 'Sentient'; src: url('/fonts/sentient/Sentient-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
       @font-face { font-family: 'Sentient'; src: url('/fonts/sentient/Sentient-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
       @font-face { font-family: 'Sentient'; src: url('/fonts/sentient/Sentient-LightItalic.woff2') format('woff2'); font-weight: 300; font-style: italic; font-display: swap; }
       @font-face { font-family: 'Archia'; src: url('/fonts/archia/Archia-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
       @font-face { font-family: 'Geist Mono'; src: url('/fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'Melodrama'; src: url('/fonts/melodrama/Melodrama-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
       *, *::before, *::after { box-sizing: border-box; }
       html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
       @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

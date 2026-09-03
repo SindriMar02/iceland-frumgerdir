@@ -25,6 +25,9 @@ const GROUND = '#291D15'
 export const COLOURS = { CREAM, INK, CHARCOAL, WINE, STONE, GROUND }
 
 const DISPLAY = "'Sentient', Georgia, serif"
+/* the wordmark only — high-contrast display, deliberately not the face that
+   sets the rest of the site */
+const DISPLAY_ALT = "'Melodrama', 'Sentient', Georgia, serif"
 const SANS = "'Archia', system-ui, sans-serif"
 const MONO = "'Geist Mono', ui-monospace, monospace"
 const OUT = 'cubic-bezier(.25,1,.5,1)'
@@ -354,35 +357,41 @@ export const CSS = `
 
    It is her NAME, not a headline. A sentence needs to be read and then
    argued with; a name only needs to be seen, which is what survives being
-   carried under the stone. And it is set in Archia rather than the site's
-   Sentient: wide, uppercase, heavily tracked — a name cut into a face of
-   material rather than a literary line. The serif still owns every other
-   heading on the site, so the hero reads as its own moment. */
+   carried under the stone.
+
+   Set in Melodrama — a high-contrast display face, hairline thins against
+   full stems. It is the couture register rather than the architectural one,
+   and that is the point: the type is the one delicate thing in a frame that
+   is otherwise a photograph and a tonne of rock. Neither Sentient nor Archia
+   could do that; both are even-weight and read as ordinary at this size.
+   Verified before committing to it — internal name really is Melodrama (the
+   library has mislabelled display fonts) and it carries every Icelandic
+   glyph, which is not optional for Katrín Ísfeld.
+
+   NO SCRIM. The lockup used to sit on a radial wash of near-black, which is
+   the cheapest possible way to buy contrast and it fogged the photograph it
+   was sitting on. Instead the lockup sits LOW in the frame, over the island
+   and cabinetry, which is the dark part of her photograph — the composition
+   earns the contrast rather than a gradient faking it. It also puts her name
+   right above the stone edge, so the thing that goes under first is the
+   thing the stone reaches first. */
 .ki-plx-lockup {
   display: flex; flex-direction: column; align-items: center; text-align: center;
   width: 100%; max-width: calc(var(--u) * 1180); color: #F6F1E9;
   position: relative;
 }
-/* legibility over a moving photograph: measured against a pure white plate
-   filling the frame, which is the worst the layers can ever put behind it */
-.ki-plx-lockup::before {
-  content: ''; position: absolute; inset: -58% -12% -46%;
-  z-index: -1; pointer-events: none;
-  background: radial-gradient(ellipse 62% 52% at 50% 50%,
-    rgb(24 17 12 / .82) 0%, rgb(24 17 12 / .62) 46%, rgb(24 17 12 / 0) 78%);
-}
 .ki-plx-name {
   margin: 0;
-  font-family: ${SANS};
+  font-family: ${DISPLAY_ALT};
   font-weight: 400;
   text-transform: uppercase;
-  font-size: ${fluid(92, 30)};
-  line-height: 1.04;
+  font-size: ${fluid(104, 34)};
+  line-height: 1.02;
   /* the trailing letter carries its own tracking, which throws a centred
      line to the left by half of it — the indent puts it back */
-  letter-spacing: .17em;
-  text-indent: .17em;
-  color: #F6F1E9;
+  letter-spacing: .1em;
+  text-indent: .1em;
+  color: #F8F4EE;
 }
 .ki-plx-role {
   margin: calc(var(--u) * 26) 0 0;

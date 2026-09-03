@@ -101,13 +101,18 @@
   will-change: transform;
 }
 
+/* the wordmark sits LOW, not centred: the middle of her photograph is the
+   window and the fjord, which is the brightest thing in the frame, and the
+   lockup no longer carries a scrim to survive it. Low in the frame it sits
+   over the island and the cabinetry — the dark part — and it is also where
+   the stone reaches first, so her name is what goes under first. */
 .ki-plx-scene {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 0 calc(var(--u, 1px) * 34);
+  padding: 0 calc(var(--u, 1px) * 34) calc(var(--u, 1px) * 96);
 }
 
 /* The stone planes are not full-bleed: they enter from the bottom edge on
