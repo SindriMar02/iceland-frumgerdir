@@ -23,10 +23,13 @@ import {
 /* 21st.dev @osmosupply/parallax-scrolling, integrated as shipped — GSAP +
    ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
    it is the one the registry omits, measured off the running demo. */
-import { ParallaxComponent, type ParallaxLayer } from '@/components/ui/parallax-scrolling'
+import { ParallaxComponent, type ParallaxLayer, type ParallaxPlate } from '@/components/ui/parallax-scrolling'
 /* the 21st.dev prebuiltui/image-gallery accordion, installed with the shadcn
    CLI and pointed at her materials — see the note on the component */
 import ImageGallery, { type GalleryItem } from '@/components/ui/image-gallery'
+/* the gate's own light has to be the page's cream to the level, not a second
+   near-cream picked by eye — it releases straight onto the section below it */
+import { COLOURS } from './styles'
 import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
@@ -48,124 +51,106 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
 ]
 
-/* The three image layers, on the reference's own numbering — reinterpreted
-   so the layer stack is one coherent physical scene instead of two unrelated
-   pictures on a timer. In the reference, layers 1/2/4 are the SAME
-   photograph pre-cut into depth bands; here, layers 1/2/4 are three
-   overlapping crops of ONE Higgsfield stone-material generation (2880x5120,
-   raking light, deepening from a legible detailed surface at the bottom of
-   the source toward near-black at the top), so their veins and lighting are
-   literally the same pixels, not three separate renders pretending to match.
-   Layer 1 = the deepest crop (darkest, dominates once yPercent 70 pulls it
-   back into view), layer 2 = the middle crop, layer 4 = the nearest crop,
-   masked to a soft feathered sliver so only ~14% of the viewport shows at
-   rest. The kitchen photo is no longer one of these three — it now rides
-   layer 3 (the title slot), where the reference puts its subject, so the
-   room sits IN the stone environment rather than under a stone curtain. */
-const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
-  /* Layer 1 — the room. A full-bleed OPAQUE backdrop on the registry's own
-     geometry, exactly what the reference puts on its layer 1. It is not
-     masked or faded at any edge: the previous version feathered its top,
-     which let the stone through ABOVE the kitchen and built a cave ceiling.
-     yPercent 70 leaves it nearly static on screen — the world stays put
-     while the camera descends past the foreground. */
-  /* Skuggahverfi, not Súluhöfða. Two reasons, both measured rather than
-     preferred. The wordmark carries no scrim any more, and cream type over
-     the Súluhöfða kitchen scored a worst-case contrast of 1.09 where it
-     crossed the window and the fjord — invisible. Every band of this one
-     scores 11.5 to 12.2, because the island is a dark mass and the light is
-     behind it. And thematically it already contains the idea: the island IS
-     a monolithic dark stone volume in the foreground, so the stone that
-     rises continues the photograph's own material instead of contradicting
-     it, and the descent from a dark room into dark rock is one tonal
-     journey rather than a bright room being buried. Cropped 1604x1178 from
-     her own 2400 original — native resolution, no upscale — at almost
-     exactly the layer box's aspect, so cover barely trims it. */
-  { layer: '1', width: 1604, height: 1178,
+/* THE TWO GATES.
+   The page opens by descending into rock and returns to the light by climbing
+   back out of it, and both moves are the same component, the same photograph
+   and the same grade — only the direction, the formation and what is behind
+   the stone differ. In the reference, layers 1/2/4 are one photograph pre-cut
+   into depth bands; here layer 1 is the world behind (her kitchen at the
+   entry, the light at the exit) and 2/5/4 are three windows cut at different
+   horizontal offsets from ONE Higgsfield basalt generation, one of them
+   mirrored, so no two crests line up and it never reads as the same picture
+   repeated — but the rock, its light and its scale are literally identical,
+   because they are the same pixels.
+
+   Everything about a plate is expressed in FRAME HEIGHTS (see ParallaxPlate).
+   The previous geometry was written in percentages of a box sized by aspect
+   ratio, which ties the whole effect to viewport WIDTH: at 390x844 the crest
+   that should sit at 90% of the frame sat at 21%, so the phone opened on a
+   wall of rock, and the descent then ran out of travel 90px short of the top.
+   Nothing here is scaled — the 1.75 / 2.225 / 2.75 travel ratio IS the depth,
+   and a scaled plate reads as a zoom into the rock rather than rock drifting
+   past the camera. */
+
+/* Layer 1 — the room. A full-bleed OPAQUE backdrop on the registry's own
+   geometry, exactly what the reference puts on its layer 1. It is not masked
+   or faded at any edge: an earlier version feathered its top, which let the
+   stone through ABOVE the kitchen and built a cave ceiling.
+
+   Skuggahverfi, not Súluhöfða. Two reasons, both measured rather than
+   preferred. The wordmark carries no scrim any more, and cream type over the
+   Súluhöfða kitchen scored a worst-case contrast of 1.09 where it crossed the
+   window and the fjord — invisible. Every band of this one scores 11.5 to
+   12.2, because the island is a dark mass and the light is behind it. And
+   thematically it already contains the idea: the island IS a monolithic dark
+   stone volume in the foreground, so the stone that rises continues the
+   photograph's own material instead of contradicting it, and the descent from
+   a dark room into dark rock is one tonal journey rather than a bright room
+   being buried. Cropped 1604x1178 from her own 2400 original — native
+   resolution, no upscale — at almost exactly the layer box's aspect. */
+const HERO_ROOM: ReadonlyArray<ParallaxLayer> = [
+  { layer: '1',
     src: `${ASSET}/hero-skuggahverfi.webp`,
     alt: 'Eldhúsrými í Skuggahverfi: dökk steineyja í forgrunni, viðarinnrétting og dagsbirta handan hennar',
     /* pinned, the page no longer drags the layers, so the distant plane is
-       only as still as its own tween: a few percent of drift, no scale. A
-       scaled photograph reads as a zoom, which is the thing this hero was
-       accused of doing and the thing it must not do. */
+       only as still as its own tween: a few percent of drift, no scale */
     yPercent: 5 },
+]
 
-  /* Layer 4 — the stone. ONE monolithic mass of honed basalt, quarried and
-     dressed, with a single clean fractured top edge: the kind of stone she
-     would actually specify. The first attempt at this was a lava field, and
-     a lava field is loose aggregate — rising over her kitchen it read as a
-     construction site, which is the opposite of what the page sells. The
-     background above the block is keyed off (block 31-57 luminance, ground
-     224-233), so the silhouette is the stone's own fracture line rather than
-     a curve drawn in a mask.
+/* THE DESCENT. Three planes of columnar basalt whose crests sit at 86 / 88 /
+   90% of the frame at rest, so the ground shows as a layered 14% band along
+   the bottom and the room keeps the frame. They rise 1.75 / 2.225 / 2.75
+   frames over the pin, far to near, and the near one overtakes the other two
+   on the way up — which is what makes three flat planes read as depth.
 
-     It is NOT full-bleed. It enters from the BOTTOM EDGE only: at rest its
-     edge sits at ~89% of the viewport, so the room keeps the frame. Scroll
-     rises it and scales it about its top edge — the camera descending toward
-     stone it is about to pass under — until it occludes the room from the
-     bottom upward. Its own deeper material is graded into #1d1b19, so the
-     descent lands on the site's ground colour through the material rather
-     than a black overlay dropped on top. */
-  /* THE TWO STONE PLANES. Same photographed block, so the material is one
-     material; the far one is mirrored so it is not a literal repeat of the
-     near one. They differ only in where they sit and how fast they rise —
-     750px against 500px over the descent — and that ratio IS the depth. It
-     is the same relationship the reference has between its own layers 4 and
-     2, and it is the only thing that makes a flat plane read as near.
+   Each plate's body is REAL MATERIAL the whole way down, darkening because
+   the light stops reaching it, and its own last rows resolve to the colour in
+   `fill`, which then continues below the image for as far as the frame needs.
+   So the descent lands on the page's own ground through the material rather
+   than on a black overlay dropped on top of it, and there is nothing left to
+   seam against. */
+const FLOOR = '#1D1B19'
+const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
+  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 2800,
+    crest: 0.0662, restAt: 0.86, travel: -1.75,  fill: FLOOR },
+  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 2800,
+    crest: 0.0709, restAt: 0.88, travel: -2.225, fill: FLOOR },
+  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 2800,
+    crest: 0.0758, restAt: 0.90, travel: -2.75,  fill: FLOOR },
+]
 
-     NO SCALE, on either. Scale about a top origin grows the plate sideways
-     too — 1280px of width became 1920 — and that lateral growth is the most
-     legible thing on screen, so the whole effect read as zooming into the
-     rock instead of the rock drifting up. The scale was only ever propping
-     up a plate too short to keep the frame covered by translation alone.
+/* THE ASCENT — the same move turned over.
+   Where the dark chapter hands back to the light one, the page climbs out of
+   the rock instead of cutting to a white template: the planes SINK, the sky
+   arrives from above behind them, and the ridges peel away one at a time
+   until there is only light. A different formation on purpose — stacked
+   basalt shelves rather than the entry's standing columns — so it reads as
+   somewhere else in the same quarry rather than as the landing page mirrored.
 
-     The plate is now the keyed edge crossfaded into a second Higgsfield
-     render — a continuous basalt face lit at the top and falling to true
-     black — so the body below the edge is REAL MATERIAL the whole way down,
-     darkening because the light stops reaching it. It used to be a 2x
-     vertical stretch of one strip washed to flat colour, which is why the
-     second half of the descent was empty rather than stone. Its deepest
-     region is graded onto #1d1b19 so the pin releases straight onto the
-     page's own ground.
+   At rest every crest is above the frame and the near plane's own floor
+   fills it, which is the exact colour the dark chapter above is painted in,
+   so the gate begins as a continuation of the page rather than as a section.
+   They clear the bottom at 0.60 / 0.75 / 0.90 of the scrub, near first —
+   nearest things move fastest — leaving a tenth of the pin as pure light
+   before it releases into the cream below.
 
-     THE TRAVEL HAS TO REACH THE DARK. The plate was 1600px rendered and the
-     travel 750px, so the last frame of the descent was showing plate rows
-     6.9% to 56.9% — and the falloff into ground colour did not start until
-     62%. The descent literally never reached the dark part of its own
-     material: it ended on lit rock and then cut to the page. The plate is
-     2600px rendered now with the falloff running 20% to 67%, and the travel
-     is 2400px, which puts the final frame at rows 67.7% to 98.5% — entirely
-     ground colour. So it darkens the whole way down and lands on #1d1b19
-     with nothing left to seam against. */
-
-  /* far plane — behind, slower, mostly swallowed by the near one */
-
-
-  /* near plane — the ground the camera actually descends past. Pinned, the
-     page supplies none of the travel, so the rise is entirely this tween:
-     -78% of its own height carries the edge from 89% of the viewport to just
-     above the top, with 851px of stone still under it on an 800px frame. */
-  /* THREE PLANES, one photograph. All three are windows cut at different
-     horizontal offsets from the same graded basalt (one mirrored), so no two
-     crests line up and it never reads as the same picture repeated — but the
-     rock, its light and its scale are literally identical, because they are
-     the same pixels. Depth is carried by the travel: 1400 / 1780 / 2200 over
-     the descent, far to near. That ratio IS the depth; nothing is scaled.
-
-     Their crests sit 86% / 88% / 90% down at rest, so the ground shows as a
-     layered 14% band at the bottom and the room keeps the frame. */
-  { layer: '2', width: 2400, height: 5850,
-    src: `${ASSET}/stone-far.webp`, alt: '',
-    yPercent: -44.9,
-    geom: { top: '-10.5%', height: 'auto', aspectRatio: '2400 / 5850' } },
-  { layer: '5', width: 2400, height: 5850,
-    src: `${ASSET}/stone-mid.webp`, alt: '',
-    yPercent: -57.1,
-    geom: { top: '-8.5%', height: 'auto', aspectRatio: '2400 / 5850' } },
-  { layer: '4', width: 2400, height: 5850,
-    src: `${ASSET}/stone-near.webp`, alt: '',
-    yPercent: -70.5,
-    geom: { top: '-6.5%', height: 'auto', aspectRatio: '2400 / 5850' } },
+   THE MIDDLE PLANE SITS WHERE IT DOES TO KEEP THE THREE APART. Three crests
+   moving at three speeds cross each other three times, and the first set of
+   numbers put all three crossings inside p 0.34-0.48: for a third of the
+   descent the ridges lay on top of one another and the whole thing read as
+   ONE cliff sinking, which is what two of the three planes are there to
+   prevent. Pulling the middle plane up to -0.62 and slowing it to match
+   spreads the crossings to 0.17 / 0.40 / 0.57, so from a third of the way
+   down there are three and then four distinct bands in the frame — near
+   ridge, middle ridge, far ridge, sky — and they peel off the bottom one at
+   a time. That staggering IS the depth; nothing here is scaled. */
+const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
+  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
+    crest: 0.1438, restAt: -0.06, travel: 1.178, fill: FLOOR },
+  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 1461,
+    crest: 0.1406, restAt: -0.62, travel: 2.16,  fill: FLOOR },
+  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 1461,
+    crest: 0.1423, restAt: -0.75, travel: 2.917, fill: FLOOR },
 ]
 
 
@@ -225,7 +210,8 @@ export function Home() {
 
       {/* 01 · the descent */}
       <ParallaxComponent
-        layers={HERO_LAYERS}
+        layers={HERO_ROOM}
+        plates={HERO_PLATES}
         sticky
         smooth
         titleYPercent={-55}
@@ -245,9 +231,12 @@ export function Home() {
         deep={
           <div className="ki-plx-deep">
             <p className="ki-plx-deep-kicker">Rýmið man</p>
+            {/* it used to open on "Efnin bera rýmið", which is the heading the
+                light chapter arrives on further down the page — the same
+                sentence twice, once here and once there */}
             <p className="ki-plx-deep-line">
-              Efnin bera rýmið. Steinn, eik, hör og kopar — valin úr
-              verkefnunum sjálfum, ekki úr litakorti.
+              Steinn, eik, hör og kopar. Efnin eru valin úr verkefnunum
+              sjálfum, ekki úr litakorti.
             </p>
             <p className="ki-plx-deep-cta">
               <Link className="ki-cta" to={WORK}>Verkefnin</Link>
@@ -256,6 +245,17 @@ export function Home() {
         }
       />
 
+      {/* THE BEDROCK.
+          Everything between the two gates is INSIDE the rock, so it is laid on
+          the rock: the same photograph both gates are cut from, taken from
+          well below the crest where there is no sky in it, on the same grade,
+          crushed to a texture rather than a picture. The sections inside give
+          up their own flat darks to it (see .ki-bedrock in styles.ts) so it is
+          one continuous surface from the bottom of the descent to the top of
+          the ascent, not a stack of charcoal boxes. It fades in from flat
+          charcoal at the top and back to flat at the bottom, so neither gate
+          has a texture edge to cross. */}
+      <div className="ki-bedrock">
       {/* 02 · intent — standing on the ground the descent just arrived at */}
       <section className="ki-wrap ki-stone" data-ki-band="dark">
         <span className="ki-rule ki-rv" aria-hidden="true" />
@@ -344,10 +344,38 @@ export function Home() {
           <Link className="ki-cta" to={projPath('nybyggt-hus-i-suluhofda')}>Sjá verkefnið</Link>
         </p>
       </section>
+      </div>
 
-      {/* 05 · the dome: materials */}
+      {/* 04b · THE GATE OUT.
+          The descent's own move, turned over. The stacked shelves sink, her
+          own light arrives from above behind them, and the ridges peel away
+          one at a time until the frame is the cream the rest of the page is
+          set on — which is the section immediately below, so the pin releases
+          onto the colour it has already finished on.
+
+          The heading rides it rather than sitting in the section underneath:
+          it is the sentence the light chapter is about, and it should be said
+          at the moment the light gets there. Behind the near plane, so a ridge
+          that has not sunk past it yet crosses in front of the type. */}
+      <ParallaxComponent
+        plates={EXIT_PLATES}
+        sticky
+        smooth
+        backdrop={`linear-gradient(to bottom, #FBF8F2 0%, ${COLOURS.CREAM} 62%)`}
+        ground={COLOURS.CREAM}
+        deepAt={0.6}
+        deepBehind
+        deep={
+          <div className="ki-gate-deep">
+            <span className="ki-gate-rule" aria-hidden="true" />
+            <h2 className="ki-gate-title">Efnin bera rýmið.</h2>
+          </div>
+        }
+      />
+
+      {/* 05 · the dome: materials. Its heading is the one the gate above
+          arrives on — saying it twice, forty pixels apart, would undo it. */}
       <section className="ki-dome" data-ki-band="light">
-        <Headline className="ki-dome-title" text="Efnin bera rýmið." size={84} floor={32} />
         <div className="ki-dome-arch" data-ki-par="rise">
           <Photo id="s-sturta" alt="Sturturými með dökkum steinvegg og grænni plöntu" sizes="(max-width: 991px) 94vw, 72vw" />
         </div>

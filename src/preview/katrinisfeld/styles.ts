@@ -444,6 +444,48 @@ export const CSS = `
   color: #EFE7DC;
 }
 
+/* ── THE BEDROCK ──────────────────────────────────────────────────────────
+   The hero descends INTO the rock and the gate at the other end climbs back
+   out of it. Everything between the two is therefore inside the material,
+   and painting that stretch flat charcoal made the descent a decoration: you
+   arrived somewhere and then the page went back to being a page.
+
+   public/katrinisfeld/bedrock.webp is cut from the SAME photograph both
+   gates are cut from, well below the crest where there is no sky in it, put
+   through the identical grade and then crushed to a texture — mean luminance
+   34 against the page's own 29, sigma 9. That is a whisper on purpose:
+   anything louder competes with her photography, which is the one thing on
+   this page that has to win. It is seamless vertically by mirror rather than
+   by a cross-fade, so the repeat has no join at all, and background-size
+   100% auto means it never repeats sideways.
+
+   It fades in from flat charcoal over the first 34vh and back to flat over
+   the last 40vh, so neither gate ever has a texture edge to cross: both of
+   them resolve to plain ${CHARCOAL}, and so does the surface they meet. */
+.ki-bedrock {
+  position: relative;
+  background-color: ${CHARCOAL};
+  background-image:
+    linear-gradient(to bottom, ${CHARCOAL}, rgb(29 27 25 / 0)),
+    linear-gradient(to top, ${CHARCOAL}, rgb(29 27 25 / 0)),
+    url("${import.meta.env.BASE_URL}katrinisfeld/bedrock.webp");
+  background-repeat: no-repeat, no-repeat, repeat-y;
+  background-position: top center, bottom center, top center;
+  background-size: 100% 34vh, 100% 40vh, 100% auto;
+}
+/* the sections inside it give up their own flat darks, or there is no point:
+   an opaque box on top of the rock is the flat page again, one layer up */
+.ki-bedrock [data-ki-band='dark'],
+.ki-bedrock .ki-hs,
+.ki-bedrock .ki-verk-sulu,
+.ki-bedrock .ki-stone {
+  background-color: transparent;
+  background-image: none;
+}
+/* the horizontal chapter's own figures keep their frames — it is only the
+   section plates that dissolve */
+.ki-bedrock .ki-hs-fig { background: rgb(0 0 0 / .22); }
+
 /* ── the horizontal chapter ───────────────────────────────────────────── */
 /* Default is the TOUCH build: a native scroll-snap strip. The pinned version
    is layered on only where there is a real pointer, because a scroll-jacked
@@ -954,14 +996,39 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
   .ki-verk-grid .ki-slide:nth-child(2), .ki-verk-grid .ki-slide:nth-child(3) { margin-top: 0; }
 }
 
-/* the dome */
-.ki-dome { padding: calc(var(--u) * 150) calc(var(--u) * 34) calc(var(--u) * 120); text-align: center; overflow: hidden; }
-.ki-dome-title { margin-inline: auto; white-space: nowrap; }
+/* WHAT ARRIVES ON THE LIGHT.
+   The counterpart of .ki-plx-deep, and deliberately its opposite: the
+   descent's copy is quiet because by then the frame has almost no light left
+   in it, and this one is the heading of the whole chapter below, said at the
+   moment the light actually gets there. Ink on cream, no scrim, nothing
+   between the type and the sky. It rides BEHIND the near plane, so a ridge
+   that has not sunk past it yet crosses in front of the words. */
+.ki-gate-deep {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  width: 100%; max-width: calc(var(--u) * 900);
+}
+.ki-gate-rule {
+  display: block; width: calc(var(--u) * 120); height: 1px;
+  background: ${INK}; opacity: .28; margin-bottom: calc(var(--u) * 40);
+}
+.ki-gate-title {
+  margin: 0;
+  font-family: ${DISPLAY};
+  font-weight: 300;
+  font-size: ${fluid(84, 32)};
+  line-height: 1.13;
+  letter-spacing: .002em;
+  color: ${INK};
+}
+
+/* the dome. Its heading is on the gate above it now, so it opens on the
+   photograph and the padding closes up to meet the pin's release. */
+.ki-dome { padding: calc(var(--u) * 60) calc(var(--u) * 34) calc(var(--u) * 120); text-align: center; overflow: hidden; }
+.ki-dome .ki-dome-arch { margin-top: 0; }
 .ki-dome-arch { width: min(100%, calc(var(--u) * 900)); margin: calc(var(--u) * 40) auto 0;
   border-radius: calc(var(--u) * 450) calc(var(--u) * 450) 0 0; overflow: hidden; }
 .ki-dome-arch picture, .ki-dome-arch img { width: 100%; aspect-ratio: 4 / 4.4; object-fit: cover; }
 .ki-dome-body { margin: calc(var(--u) * 44) auto 0; }
-@media (max-width: 991px) { .ki-dome-title { white-space: normal; } }
 @media (max-width: 640px) { .ki-dome { padding-left: 20px; padding-right: 20px; } }
 
 /* THE GROUND, CARRIED DOWN THE PAGE.

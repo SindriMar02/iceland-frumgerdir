@@ -126,16 +126,16 @@
   padding: 0 calc(var(--u, 1px) * 34) calc(var(--u, 1px) * 96);
 }
 
-/* The stone planes are not full-bleed: they enter from the bottom edge on
-   their own geometry (see HERO_LAYERS in Home.tsx), so their background must
-   sit flush to the top of its own box rather than being centre-cropped, or
-   the keyed edge would be trimmed away. */
-.parallax__layer-img[data-parallax-layer='2'],
-.parallax__layer-img[data-parallax-layer='5'],
-.parallax__layer-img[data-parallax-layer='4'] {
-  background-position: top center;
-  background-size: 100% 100%;
-}
+/* The stone planes are not full-bleed and they are not sized here: every
+   number for them is derived in plateStyle() in the component, because the
+   box height has to be in frame units while the image inside it is in
+   viewport widths, and only one of those two can be written in CSS. What
+   they do inherit from .parallax__layer-img is left/width/will-change; top,
+   height and all four background properties arrive inline. */
+
+/* the light the exit gate opens onto — behind every layer, painted by the
+   header rather than the wrapper so it is clipped with everything else */
+.parallax__backdrop { position: absolute; inset: 0; }
 
 /* what arrives on the stone. Above every layer, because by the time it lands
    the frame IS the near plate and it has to sit on it, not behind it. */
@@ -152,6 +152,10 @@
   visibility: hidden;
   opacity: 0;
 }
+/* written on the sky rather than on the rock: it sits in the paint order
+   between the far planes and the near one, so a ridge that has not sunk past
+   it yet crosses in front of it instead of being printed over. */
+.parallax__deep--behind { z-index: auto; }
 /* the block itself is inert; only what is genuinely clickable takes pointers */
 .parallax__deep > * { pointer-events: none; }
 .parallax__deep a { pointer-events: auto; }
