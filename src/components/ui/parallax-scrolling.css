@@ -110,10 +110,11 @@
   padding: 0 calc(var(--u, 1px) * 34);
 }
 
-/* The ground layer is not full-bleed: it enters from the bottom edge on its
-   own geometry (see HERO_LAYERS in Home.tsx), so its background must sit
-   flush to the top of its own box rather than being centre-cropped, or the
-   keyed contour would be trimmed away. */
+/* The stone planes are not full-bleed: they enter from the bottom edge on
+   their own geometry (see HERO_LAYERS in Home.tsx), so their background must
+   sit flush to the top of its own box rather than being centre-cropped, or
+   the keyed edge would be trimmed away. */
+.parallax__layer-img[data-parallax-layer='2'],
 .parallax__layer-img[data-parallax-layer='4'] {
   background-position: top center;
   background-size: 100% 100%;

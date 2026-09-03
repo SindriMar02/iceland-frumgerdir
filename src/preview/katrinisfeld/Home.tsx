@@ -94,20 +94,34 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      bottom upward. Its own deeper material is graded into #1d1b19, so the
      descent lands on the site's ground colour through the material rather
      than a black overlay dropped on top. */
-  { layer: '4', width: 3000, height: 1626,
+  /* THE TWO STONE PLANES. Same photographed block, so the material is one
+     material; the far one is mirrored so it is not a literal repeat of the
+     near one. They differ only in where they sit and how fast they rise —
+     750px against 500px over the descent — and that ratio IS the depth. It
+     is the same relationship the reference has between its own layers 4 and
+     2, and it is the only thing that makes a flat plane read as near.
+
+     NO SCALE, on either. Scale about a top origin grows the plate sideways
+     too — 1280px of width became 1920 — and that lateral growth is the most
+     legible thing on screen, so the whole effect read as zooming into the
+     rock instead of the rock drifting up. The scale was only ever propping
+     up a plate too short to keep the frame covered by translation alone;
+     the plate is taller now (2254 against 1626) and carries it honestly. */
+
+  /* far plane — behind, slower, mostly swallowed by the near one */
+  { layer: '2', width: 3000, height: 2254,
+    src: `${ASSET}/terrain-plate-far.webp`, alt: '',
+    yPercent: -52,
+    geom: { top: '75%', height: 'auto', aspectRatio: '3000 / 2254' } },
+
+  /* near plane — the ground the camera actually descends past. Pinned, the
+     page supplies none of the travel, so the rise is entirely this tween:
+     -78% of its own height carries the edge from 89% of the viewport to just
+     above the top, with 851px of stone still under it on an 800px frame. */
+  { layer: '4', width: 3000, height: 2254,
     src: `${ASSET}/terrain-plate.webp`, alt: '',
-    /* NEGATIVE, because pinned the page scroll no longer supplies any of the
-       upward travel — the tween is now the whole motion, so the stone has to
-       be told to rise. -114% of its own height carries the edge from 89% of
-       the viewport to just above the top, and the scale about that top edge
-       keeps its body covering the frame all the way down (891px of stone on
-       an 800px frame at the end). Translation dominates scale, so it reads as
-       approach rather than zoom. */
-    yPercent: -114, scaleTo: 1.5,
-    /* pinned, .parallax__visuals is inset:0, so the layer box IS the viewport
-       and this is a straight viewport percentage: the edge sits 10.5% down
-       the plate, so 80% + 10.5% of 694px puts it at ~89% at rest. */
-    geom: { top: '80%', height: 'auto', aspectRatio: '3000 / 1626' } },
+    yPercent: -78,
+    geom: { top: '80%', height: 'auto', aspectRatio: '3000 / 2254' } },
 ]
 
 
