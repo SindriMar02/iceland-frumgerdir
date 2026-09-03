@@ -346,111 +346,50 @@ export const CSS = `
   }
 }
 
-/* ── the layered opening: a material you scroll into ─────────────────────
-   Every number here is measured off the running reference, because the
-   registry ships that component with no CSS whatsoever.
+/* ── the descent lockup ──────────────────────────────────────────────────
+   The hero itself is the 21st.dev component now (.parallax*, styled by
+   parallax-scrolling.css). This is only the type that rides its layer 3,
+   which the component centres for us — so the old absolute positioning is
+   gone and what is left is the scale and the scrim.
 
-     .parallax__visuals / __layers   one box, overflow hidden
-     every layer img                 width 100%, height 117.5% of the box,
-                                     top -17.5%, object-fit cover
-     .parallax__fade                 top 80%, height 20%, above the layers
-     .parallax__black-line-overflow  2px on the very bottom edge
-
-   AND CRUCIALLY: no pin. The section scrolls away normally and the layers
-   translate DOWN against it. Measured across a full pass of the real demo,
-   the layers end up moving at 17.8% / 35.3% / 66.7% / 88.2% of scroll speed
-   — the backdrop nearly still while the nearest plane leaves at almost page
-   speed. Pinning a sticky stage, which is what was here before, produces a
-   completely different effect. */
-/* 250svh. The descent has to satisfy two things at once: the ground shows
-   only a SLIVER at rest, and it has completely taken the frame by the end.
-   Those pull against each other — starting the stone lower also ends it
-   lower — so the travel has to be long enough to cover the gap. At the
-   reference's 1.2 there were 180px of scroll while the stage still filled
-   the viewport, which is a jump, not a descent. */
-.ki-plx { position: relative; height: 250svh; background: ${GROUND}; overflow: hidden; }
-.ki-plx-layers { position: absolute; inset: 0; overflow: hidden; }
-.ki-plx-plate {
-  position: absolute; left: 0; top: -17.5%; width: 100%; height: 117.5%;
-  display: block; will-change: transform;
-}
-.ki-root .ki-plx-plate picture, .ki-root .ki-plx-plate picture > img {
-  width: 100%; height: 100%; object-fit: cover;
-}
-/* the title is layer 3, but it sits ABOVE the plates rather than between
-   them: the reference can pass its front layer over its heading because that
-   heading is decorative, and this one is her h1 */
+   The reference sets a single huge centred title. Hers is the same gesture at
+   her own weight: Sentient rather than a grotesk, and a real subhead and CTAs
+   under it, because this is a working landing page and not a demo. */
 .ki-plx-lockup {
-  position: absolute; left: calc(var(--u) * 34); right: calc(var(--u) * 34);
-  top: 0; height: 100svh; z-index: 25; color: #F4EEE6;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding-bottom: calc(var(--u) * 120); will-change: transform;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  width: 100%; max-width: calc(var(--u) * 1180); color: #F6F1E9;
+  position: relative;
 }
-/* THE HEADLINE CARRIES ITS OWN GROUND. Widening the section fade could not
-   fix this — even starting it at 20% the h1 only reached 2.03 on its worst
-   pixel, because the plates behind it move and there is no fixed depth at
-   which the type is safe. A scrim tied to the LOCKUP travels with the text
-   instead. At .90 alpha, cream stays above 6:1 even if a pure white plate
-   passes underneath, so this holds whatever the layers do. */
+/* legibility over a moving photograph: measured against a pure white plate
+   filling the frame, which is the worst the layers can ever put behind it */
 .ki-plx-lockup::before {
-  content: ''; position: absolute; inset: -14% calc(var(--u) * -34) 0;
+  content: ''; position: absolute; inset: -58% -12% -46%;
   z-index: -1; pointer-events: none;
-  background: linear-gradient(to bottom,
-    rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .58) 34%, rgb(29 27 25 / .90) 68%, rgb(29 27 25 / .96) 100%);
+  background: radial-gradient(ellipse 62% 52% at 50% 50%,
+    rgb(24 17 12 / .82) 0%, rgb(24 17 12 / .62) 46%, rgb(24 17 12 / 0) 78%);
 }
-/* the whole frame dimmed toward the page colour, opacity written per frame
-   by the engine — see the note on the component */
-.ki-plx-dark {
-  position: absolute; inset: 0; z-index: 18; pointer-events: none;
-  background: ${GROUND}; opacity: 0;
+.ki-plx-lockup .ki-hero-title { margin-bottom: calc(var(--u) * 18); }
+.ki-plx-lockup .ki-hero-sub {
+  max-width: 46ch; margin: 0 auto; color: #E4DACB;
+  font-size: ${fluid(18, 15.5)}; line-height: 1.6;
 }
-/* the same grain the page below carries, so the end state is one surface */
-.ki-plx-grain {
-  position: absolute; inset: 0; z-index: 19; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
-  background-repeat: repeat; background-size: 140px 140px;
+.ki-plx-lockup .ki-hero-cta {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: calc(var(--u) * 44); margin-top: calc(var(--u) * 30);
 }
-.ki-plx-fade {
-  /* z 22, not the reference's 30: there the fade sits above the title layer
-     because its heading is centred well clear of it. Hers is a bottom-set h1
-     inside the fade's band, so at 30 the fade dimmed the headline itself. */
-  position: absolute; left: 0; right: 0; top: 62%; height: 38%; z-index: 22;
-  pointer-events: none;
-  /* resolves to FLAT STONE, not charcoal. The reference dissolves into black
-     because black is the page underneath it; the equivalent here is her
-     steinn, and the section below carries the same colour and texture, so
-     the descent ends with the ground simply having become the page. */
-  /* the strata already resolve to the page colour on their own, so this is
-     only insurance against a sliver of room showing at the very bottom */
-  background: linear-gradient(to bottom,
-    rgb(41 29 21 / 0) 0%, rgb(41 29 21 / .55) 60%, ${GROUND} 100%);
-}
-.ki-plx-line { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: ${GROUND}; z-index: 20; }
 
-/* THE GROUND, CONTINUED. Whatever follows the descent stands on the same
-   stone, so there is nothing to see at the join. */
-/* The ground, continued. This is not a picture of stone — the descent ends
-   on a flat dark field, so the page continues that exact colour with the same
-   grain over it. Anything else would put a visible line at the join. */
+/* THE GROUND, CONTINUED.
+   This rule used to live inside the old hero's CSS block and was deleted with
+   it, so the section below the descent fell back to the site charcoal while
+   the hero resolved to its own darker brown — two different darks meeting on
+   a hard line, exactly the seam the whole descent exists to avoid. The
+   descent now resolves to CHARCOAL, the same dark every other band uses, and
+   this carries the grain across the join so both sides are one surface. */
 .ki-stone {
-  background-color: ${GROUND};
+  background-color: ${CHARCOAL};
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
   background-repeat: repeat; background-size: 140px 140px;
   color: #EFE7DC;
-}
-/* no JS and reduced motion: the layers simply stand where they were placed */
-@media (prefers-reduced-motion: reduce) {
-  .ki-plx { height: 100svh; }
-  .ki-plx-plate, .ki-plx-lockup { transform: none !important; }
-  /* no descent to watch, so it simply rests on the ground it would end on */
-  .ki-plx-dark { opacity: 1 !important; }
-}
-@media (max-width: 860px) {
-  /* The section height must stay 250svh at every width. The plates are
-     positioned and sized in svh, so shortening the section on narrow screens
-     desynced the two: the strata slid below the fold and the ground stopped
-     peeking at rest entirely — the descent only began once you scrolled. */
-  .ki-plx-lockup { padding-bottom: calc(var(--u) * 80); }
 }
 
 /* ── the horizontal chapter ───────────────────────────────────────────── */

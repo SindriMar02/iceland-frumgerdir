@@ -1,0 +1,119 @@
+/**
+ * The stylesheet 21st.dev does NOT ship with @osmosupply/parallax-scrolling.
+ *
+ * The registry entry contains the GSAP wiring only — no CSS and no
+ * registryDependencies — so the component renders as unstyled markup out of
+ * the box. Every number below was read off the running demo's computed styles
+ * (cdn.21st.dev bundle, 1280x720), not invented:
+ *
+ *   .parallax__visuals            inset 0 0 -144px on a 720 header  -> -20%
+ *   .parallax__layers             overflow hidden, same box
+ *   .parallax__layer-img          width 100%, height 1015.2 of 864  -> 117.5%
+ *                                 top -151.195 of 864               -> -17.5%
+ *                                 object-fit cover
+ *   .parallax__layer-title        inset 0 0 144px                   -> 0 0 20%
+ *   .parallax__fade               top 691.2 of 864 -> 80%, height 20%, z 30
+ *   .parallax__black-line-overflow  2px on the bottom edge, z 20
+ *
+ * The 117.5% height with a -17.5% top is the whole trick: every layer is the
+ * same oversized full-bleed box, stacked exactly, and the overhang is the
+ * room the yPercent translate moves into.
+ *
+ * The fade resolves to the colour of whatever the page is underneath — black
+ * in the demo. Here it is --parallax-ground so the descent lands on Katrín's
+ * own stone and the section below can carry the identical colour.
+ */
+
+.parallax {
+  /* the site's own charcoal, not a bespoke brown: the descent has to resolve
+     to the exact colour the section below it uses, or the join is a line */
+  --parallax-ground: #1d1b19;
+  position: relative;
+  overflow: hidden;
+  background: var(--parallax-ground);
+}
+
+.parallax__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100svh;
+  padding: calc(var(--u, 1px) * 100) calc(var(--u, 1px) * 34);
+}
+
+/* extends a fifth of a screen BELOW the header, so the fade finishes over the
+   top of whatever follows instead of stopping at a hard edge */
+.parallax__visuals {
+  position: absolute;
+  inset: 0 0 -20%;
+}
+
+.parallax__layers {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.parallax__layer-img {
+  position: absolute;
+  left: 0;
+  top: -17.5%;
+  width: 100%;
+  height: 117.5%;
+  display: block;
+  will-change: transform;
+}
+.parallax__layer-img > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* layer 3 — the title rides between the plates, on the same timeline */
+.parallax__layer-title {
+  position: absolute;
+  inset: 0 0 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 calc(var(--u, 1px) * 34);
+  will-change: transform;
+}
+
+.parallax__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 80%;
+  height: 20%;
+  z-index: 30;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(29 27 25 / 0) 0%,
+    rgb(29 27 25 / 0.28) 43.5%,
+    rgb(29 27 25 / 0.54) 66%,
+    rgb(29 27 25 / 0.74) 81%,
+    var(--parallax-ground) 100%
+  );
+}
+
+/* the demo's own seam-killer: 2px of solid page colour on the bottom edge, so
+   the oversized layer box can never show a hairline against the page */
+.parallax__black-line-overflow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  z-index: 20;
+  background: var(--parallax-ground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parallax__layer-img,
+  .parallax__layer-title {
+    transform: none !important;
+  }
+}

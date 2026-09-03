@@ -17,9 +17,13 @@
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
-  Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay, ParallaxHero,
-  type HPanel, type PlxPlate,
+  Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay,
+  type HPanel,
 } from './kit'
+/* 21st.dev @osmosupply/parallax-scrolling, integrated as shipped — GSAP +
+   ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
+   it is the one the registry omits, measured off the running demo. */
+import { ParallaxComponent, type ParallaxLayer } from '@/components/ui/parallax-scrolling'
 /* the 21st.dev prebuiltui/image-gallery accordion, installed with the shadcn
    CLI and pointed at her materials — see the note on the component */
 import ImageGallery, { type GalleryItem } from '@/components/ui/image-gallery'
@@ -27,6 +31,7 @@ import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
 
+const ASSET = `${import.meta.env.BASE_URL}katrinisfeld`
 const CARD_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw'
 
 /**
@@ -43,34 +48,21 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
 ]
 
-/* THE DESCENT — her room, swallowed by a rising Emperador ground.
-   The ground is a SURFACE, not objects. Three strata of the same dark
-   Emperador marble rising nearly in sync — k 14 / 10 / 6 is only an 8%
-   spread, so they read as the thickness of one stone mass rather than three
-   shapes travelling separately.
-
-   THE STRATA SHARE ONE LOW-FREQUENCY SILHOUETTE. Given three DIFFERENT
-   irregular edges, the visible boundary is the upper envelope of all three —
-   and the max of several noisy curves is smoother than any of them, so as
-   the layers converged the edge visibly ironed itself flat halfway through
-   the descent. Sharing the big shape keeps the envelope irregular at every
-   overlap (336px of spread on screen, unchanged even when fully coincident);
-   only the fine detail differs, so they still read as separate stone. Her room
-   sits far behind at k 70 and barely moves, so it is occluded rather than
-   pushed away.
-
-   The darkening is BAKED INTO the strata, not laid over them: each plate is
-   lit marble at its leading edge and resolves down its own height to
-   #291D15, which is exactly the page background below. So the material gets
-   darker simply because more of its lower body is on screen, and the moment
-   it has filled the frame it already IS the page — there is no transition to
-   see, because there is no transition. */
-const PLATES: ReadonlyArray<PlxPlate> = [
-  { id: 's-eldhus-vitt', k: 70, priority: true,
+/* The three image layers, on the reference's own numbering.
+   Layer 1 is her room — real work, not stock. Layers 2 and 4 are Emperador
+   marble generated for this page and cut to the reference's exact canvas
+   geometry: its layer 2 artwork spans 43.5%->100% of the canvas and layer 4
+   spans 48.7%->100%, which is what puts the ground across the bottom 60% of
+   the frame at rest. Matching the artwork means the component's own CSS
+   produces its own composition with nothing overridden. */
+const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
+  { layer: '1', width: 2400, height: 1800,
+    src: `${ASSET}/rs/s-eldhus-vitt-1500.webp`, srcAvif: `${ASSET}/rs/s-eldhus-vitt-2400.avif`,
     alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
-  { id: 'ground-far-v3',  k: 14, plate: true, pw: 2000, ph: 3200, hCss: '250svh', topCss: '71svh', alt: '' },
-  { id: 'ground-mid-v3',  k: 10, plate: true, pw: 2000, ph: 3200, hCss: '250svh', topCss: '76svh', alt: '' },
-  { id: 'ground-near-v3', k: 6,  plate: true, pw: 2000, ph: 3200, hCss: '250svh', topCss: '79svh', alt: '' },
+  { layer: '2', width: 2000, height: 1906,
+    src: `${ASSET}/emperador-mid.webp`, srcAvif: `${ASSET}/emperador-mid.avif`, alt: '' },
+  { layer: '4', width: 2000, height: 1906,
+    src: `${ASSET}/emperador-near.webp`, srcAvif: `${ASSET}/emperador-near.avif`, alt: '' },
 ]
 
 /* One from each kind of room she is asked for, travelling sideways — but
@@ -127,18 +119,23 @@ export function Home() {
         </div>
       </div>
 
-      {/* 01 · the layered opening */}
-      <ParallaxHero plates={PLATES}>
-        <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={100} floor={36} />
-        <p className="ki-hero-sub">
-          Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
-          hótel og atvinnurými, hönnuð frá grunni.
-        </p>
-        <p className="ki-hero-cta">
-          <Link className="ki-cta" to={WORK}>Verkefnin</Link>
-          <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
-        </p>
-      </ParallaxHero>
+      {/* 01 · the descent */}
+      <ParallaxComponent
+        layers={HERO_LAYERS}
+        title={
+          <div className="ki-plx-lockup">
+            <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={132} floor={40} />
+            <p className="ki-hero-sub">
+              Katrín Ísfeld, innanhússarkitekt í Reykjavík. Heimili, gistiheimili,
+              hótel og atvinnurými, hönnuð frá grunni.
+            </p>
+            <p className="ki-hero-cta">
+              <Link className="ki-cta" to={WORK}>Verkefnin</Link>
+              <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
+            </p>
+          </div>
+        }
+      />
 
       {/* 02 · intent — standing on the ground the descent just arrived at */}
       <section className="ki-wrap ki-stone" data-ki-band="dark">
