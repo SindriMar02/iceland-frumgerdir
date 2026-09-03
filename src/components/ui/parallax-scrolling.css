@@ -67,11 +67,12 @@
   background-repeat: no-repeat;
 }
 
-/* layer 3 — the room rides between the stone plates, on the same timeline.
-   It is the subject in the reference's own sense: at rest it is what the
-   visitor reads first, and the stone layers behind/below it (1, 2, 4) are
-   hidden simply because this layer paints over them, not by any mask on
-   their side. */
+/* layer 3 — the type, riding between the room and the ground on the same
+   timeline, exactly as the reference's own <h2> does. The room is NOT in
+   here: it is layer 1, the full-bleed backdrop. Putting the photograph in
+   this slot is what produced the stone ceiling, because the slot has to
+   feather at its edges to sit among the other layers, and a feathered top
+   on the room let the stone through above it. */
 .parallax__layer-title {
   position: absolute;
   inset: 0 0 20%;
@@ -87,25 +88,13 @@
   padding: 0 calc(var(--u, 1px) * 34);
 }
 
-/* full-bleed against the layer-title box, ignoring its padding, so the room
-   fills the same frame the stone plates do. The top/bottom feather is baked
-   into the image's own alpha (see HERO_PHOTO in Home.tsx) rather than a live
-   CSS mask — so the deep/mid stone (1, 2) can show through at the top as the
-   descent pulls them into view, and the near stone (4) shows through
-   underneath, without butting against a visible edge. */
-/* background-image, not <img>: an absolutely positioned <img> with inset:0
-   AND an explicit height:100% still computed to its own intrinsic aspect
-   ratio (1280x960 off a 2400x1800 source) instead of the definite 768px
-   parent height, in this engine - confirmed live, top/bottom both resolved
-   to 0px and height was STILL wrong. A div with background-size:cover has
-   no replaced-element sizing algorithm to misfire. */
-.ki-plx-photo {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+/* The ground layer is not full-bleed: it enters from the bottom edge on its
+   own geometry (see HERO_LAYERS in Home.tsx), so its background must sit
+   flush to the top of its own box rather than being centre-cropped, or the
+   keyed contour would be trimmed away. */
+.parallax__layer-img[data-parallax-layer='4'] {
+  background-position: top center;
+  background-size: 100% 100%;
 }
 
 .parallax__fade {

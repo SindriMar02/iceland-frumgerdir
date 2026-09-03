@@ -63,23 +63,34 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
    layer 3 (the title slot), where the reference puts its subject, so the
    room sits IN the stone environment rather than under a stone curtain. */
 const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
-  { layer: '1', width: 2000, height: 1906,
-    src: `${ASSET}/stone-deep.webp`, srcAvif: `${ASSET}/stone-deep.avif`, alt: '' },
-  { layer: '2', width: 2000, height: 1906,
-    src: `${ASSET}/stone-mid.webp`, srcAvif: `${ASSET}/stone-mid.avif`, alt: '' },
-  { layer: '4', width: 2000, height: 1906,
-    src: `${ASSET}/stone-near.webp`, srcAvif: `${ASSET}/stone-near.avif`, alt: '' },
+  /* Layer 1 — the room. A full-bleed OPAQUE backdrop on the registry's own
+     geometry, exactly what the reference puts on its layer 1. It is not
+     masked or faded at any edge: the previous version feathered its top,
+     which let the stone through ABOVE the kitchen and built a cave ceiling.
+     yPercent 70 leaves it nearly static on screen — the world stays put
+     while the camera descends past the foreground. */
+  { layer: '1', width: 2400, height: 1800,
+    src: `${ASSET}/rs/s-eldhus-vitt-1500.webp`,
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+
+  /* Layer 4 — the ground. One photograph of Icelandic basalt terrain, shot
+     from ground level, its sky keyed off so the silhouette is the real
+     contour of the lava field rather than a curve drawn in a mask. It enters
+     from the BOTTOM EDGE only: at rest its contour sits at ~89% of the
+     viewport, so the room keeps the frame. Scrolling rises it and scales it
+     about its top edge — the camera descending toward ground it is about to
+     go under — until it occludes the room from the bottom up. Its own deeper
+     material is graded into #1d1b19, so the descent ends on the site's ground
+     colour by the material rather than by a black overlay dropped on top. */
+  { layer: '4', width: 3000, height: 1641,
+    src: `${ASSET}/terrain-plate.webp`, alt: '',
+    yPercent: 22, scaleTo: 1.5,
+    /* top is a % of the LAYER BOX, which is 120% of the viewport (the
+       registry hangs .parallax__visuals 20% below the header) — 62.5% of
+       that is 75% of the viewport, which puts the keyed contour at ~89%. */
+    geom: { top: '62.5%', height: 'auto', aspectRatio: '3000 / 1641' } },
 ]
 
-/* Same photograph as elsewhere on the page, but with its own top/bottom 16-18%
-   pre-faded to transparent (baked alpha, not a live CSS mask — mask-image on
-   this component's compositing stack rendered wrong in the preview browser:
-   it hid the fully-opaque middle of the photo along with the edges, so the
-   fade is now in the asset itself, same as the stone-near plate). */
-const HERO_PHOTO = {
-  src: `${ASSET}/photo-plx.webp`, srcAvif: `${ASSET}/photo-plx.avif`,
-  alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn',
-}
 
 /* One from each kind of room she is asked for, travelling sideways — but
    grouped the way Búðir groups its journey rather than run out as an even
@@ -140,12 +151,6 @@ export function Home() {
         layers={HERO_LAYERS}
         title={
           <div className="ki-plx-scene">
-            <div
-              className="ki-plx-photo"
-              role="img"
-              aria-label={HERO_PHOTO.alt}
-              style={{ backgroundImage: `url(${HERO_PHOTO.src})` }}
-            />
             <div className="ki-plx-lockup">
               <Headline as="h1" className="ki-hero-title" text="Innanhús, hugsað í heild." size={132} floor={40} />
               <p className="ki-hero-sub">

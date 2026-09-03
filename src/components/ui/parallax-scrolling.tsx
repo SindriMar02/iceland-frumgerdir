@@ -21,7 +21,7 @@
  * SAME timeline position (each added at '<'), ease none, scrub 0, running
  * from the layer box's top hitting the viewport top to its bottom hitting it.
  */
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -35,6 +35,15 @@ export interface ParallaxLayer {
   alt: string
   width: number
   height: number
+  /** overrides the registry's yPercent for this layer */
+  yPercent?: number
+  /** scroll-driven scale, about the top edge — a near layer the camera is
+   *  descending toward grows as it is approached. 1 = no scale. */
+  scaleTo?: number
+  /** geometry override. The registry's own is top:-17.5%/height:117.5%, which
+   *  is right for a full-bleed backdrop and wrong for a foreground volume
+   *  that has to enter from the bottom edge. */
+  geom?: CSSProperties
 }
 
 export interface ParallaxProps {
@@ -64,18 +73,27 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
           invalidateOnRefresh: true,
         },
       })
-      const spec = [
-        { layer: '1', yPercent: 70 },
-        { layer: '2', yPercent: 55 },
-        { layer: '3', yPercent: 40 },
-        { layer: '4', yPercent: 10 },
-      ]
+      /* The registry's own values. A layer may override its yPercent, because
+         here the layers are not four bands of one photograph but a backdrop
+         (the room), a foreground volume (the ground) and the type between
+         them — and the ground has to rise through the frame rather than
+         drift with it. */
+      const DEFAULTS: Record<string, number> = { '1': 70, '2': 55, '3': 40, '4': 10 }
+      const overrides = new Map(layers.map((l) => [l.layer, l]))
+      const spec = ['1', '2', '3', '4'].map((layer) => ({
+        layer,
+        yPercent: overrides.get(layer)?.yPercent ?? DEFAULTS[layer],
+        scaleTo: overrides.get(layer)?.scaleTo,
+      }))
       spec.forEach((o, idx) => {
-        tl.to(
-          triggerElement.querySelectorAll(`[data-parallax-layer="${o.layer}"]`),
-          { yPercent: o.yPercent, ease: 'none' },
-          idx === 0 ? undefined : '<',
-        )
+        const targets = triggerElement.querySelectorAll(`[data-parallax-layer="${o.layer}"]`)
+        if (!targets.length) return
+        const vars: gsap.TweenVars = { yPercent: o.yPercent, ease: 'none' }
+        if (o.scaleTo) {
+          vars.scale = o.scaleTo
+          vars.transformOrigin = '50% 0%'
+        }
+        tl.to(targets, vars, idx === 0 ? undefined : '<')
       })
     }, parallaxRef)
 
@@ -122,7 +140,7 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
       if (ticker) gsap.ticker.remove(ticker)
       lenis?.destroy()
     }
-  }, [smooth])
+  }, [smooth, layers])
 
   return (
     <div className="parallax" ref={parallaxRef}>
@@ -148,7 +166,7 @@ export function ParallaxComponent({ layers, title, children, smooth = false }: P
                 role={l.alt ? 'img' : undefined}
                 aria-label={l.alt || undefined}
                 aria-hidden={l.alt ? undefined : true}
-                style={{ backgroundImage: `url(${l.src})` }}
+                style={{ backgroundImage: `url(${l.src})`, ...l.geom }}
               />
             ))}
             <div data-parallax-layer="3" className="parallax__layer-title">
