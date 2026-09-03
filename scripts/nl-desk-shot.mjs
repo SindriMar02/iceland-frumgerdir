@@ -1,0 +1,10 @@
+import puppeteer from 'puppeteer-core'
+const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', userDataDir: '/tmp/nl-dshot' })
+const p = await b.newPage()
+await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 })
+await p.evaluateOnNewDocument(() => sessionStorage.setItem('nl_seen','1'))
+await p.goto('http://localhost:5299/preview/nollur', { waitUntil: 'domcontentloaded' })
+await new Promise(r => setTimeout(r, 4500))
+await p.screenshot({ path: 'scripts/nollur-shots/desk-hero.png' })
+console.log('ok')
+await b.close()

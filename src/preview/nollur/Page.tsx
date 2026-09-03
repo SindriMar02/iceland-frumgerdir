@@ -223,7 +223,13 @@ const PAGE_STYLES = `
   letter-spacing: .01em; white-space: nowrap; color: ${INK}; will-change: transform, opacity; }
 .nl-hero-word .nl-hero-mask { display: block; overflow: clip; padding-top: .18em; }
 .nl-hero-word .nl-hero-mask span { display: inline-block; }
-.nl-hero-cut { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2;
+/* The house sat at bottom: 0 and swallowed 71% of the wordmark's height, so on
+   a desktop screen you read the tops of six letterforms and could not tell they
+   said NOLLUR. It sits 8svh lower now: about 45% covered, which still reads as
+   the house standing in front of the word (the whole point of the hero) while
+   leaving enough of the letters to be read. The hero clips, and the image is
+   taller than the panel, so the lawn still reaches the bottom edge. */
+.nl-hero-cut { position: absolute; left: 50%; bottom: -8svh; transform: translateX(-50%); z-index: 2;
   margin: 0; width: 88vw; max-width: 1500px; }
 .nl-hero-cut > img { display: block; width: 100%; height: auto; }
 .nl-hero-hotspots { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
