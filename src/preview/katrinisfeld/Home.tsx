@@ -361,6 +361,7 @@ export function Home() {
         plates={EXIT_PLATES}
         sticky
         smooth
+        gate
         backdrop={`linear-gradient(to bottom, #FBF8F2 0%, ${COLOURS.CREAM} 62%)`}
         ground={COLOURS.CREAM}
         deepAt={0.6}

@@ -136,6 +136,11 @@ export interface ParallaxProps {
   deep?: ReactNode
   /** where on the scrub it arrives, 0..1 */
   deepAt?: number
+  /** this is the ASCENT, not the descent. Only reduced motion cares: with the
+   *  movement gone, the descent's rest state still says everything and the
+   *  ascent's is a blank dark wall, so they collapse to opposite halves of
+   *  themselves. See the reduced-motion block in the stylesheet. */
+  gate?: boolean
   /** paint it BEHIND the nearest plane, so the rock can cross in front of it.
    *  Right for the exit, where the copy is written on the sky and the ridge
    *  is still sinking past it; wrong for the entry, where the copy is
@@ -196,7 +201,7 @@ function plateStyle(p: ParallaxPlate): CSSProperties {
 export function ParallaxComponent({
   layers = [], plates = [], title, children, smooth = false, sticky = false,
   scroll = '240svh', titleYPercent, backdrop, ground, deep, deepAt = 0.55,
-  deepBehind = false,
+  deepBehind = false, gate = false,
 }: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
@@ -339,7 +344,8 @@ export function ParallaxComponent({
 
   return (
     <div
-      className={sticky ? 'parallax parallax--sticky' : 'parallax'}
+      className={['parallax', sticky && 'parallax--sticky', gate && 'parallax--gate']
+        .filter(Boolean).join(' ')}
       ref={parallaxRef}
       style={{
         ...(sticky ? { '--parallax-scroll': scroll } : null),

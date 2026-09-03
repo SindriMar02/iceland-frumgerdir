@@ -160,10 +160,6 @@
 .parallax__deep > * { pointer-events: none; }
 .parallax__deep a { pointer-events: auto; }
 
-@media (prefers-reduced-motion: reduce) {
-  .parallax__deep { visibility: visible !important; opacity: 1 !important; }
-}
-
 .parallax__fade {
   position: absolute;
   left: 0;
@@ -194,9 +190,39 @@
   background: var(--parallax-ground);
 }
 
+/* REDUCED MOTION.
+   Freezing the transforms is not enough on its own: a pin is 140svh of scroll
+   whose entire content is the movement, so with the movement gone it becomes
+   a tall section in which nothing whatsoever happens. Both gates collapse to
+   one screen.
+
+   What that one screen should hold differs, and it is the only thing the two
+   gates disagree about. The DESCENT already has a rest state that says
+   everything — the room, her name, and the band of ground it is standing on —
+   so it keeps its planes and drops the copy that was written to arrive at the
+   bottom of a descent that is not going to happen. (That copy is centred in
+   the frame and the wordmark sits low in it: shown together and motionless
+   they overlap. The section immediately below carries the same idea in her
+   own words, which is the better place for it to be read anyway.)
+
+   The ASCENT has the opposite problem. Its rest state is the wall it begins
+   behind — a screen of flat charcoal — so holding that still leaves a blank
+   dark panel where a handoff should be. It drops the stone instead and keeps
+   what the move was carrying: her light, and the sentence written on it. */
 @media (prefers-reduced-motion: reduce) {
   .parallax__layer-img,
   .parallax__layer-title {
     transform: none !important;
+  }
+  .parallax--sticky { height: 100svh; }
+  .parallax__deep { display: none; }
+  .parallax--gate .parallax__layer-img { display: none; }
+  /* !important because GSAP's own fromTo writes visibility:hidden and
+     opacity:0 inline before the scrub ever starts, and an inline style beats
+     a stylesheet however specific it is */
+  .parallax--gate .parallax__deep {
+    display: flex;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }

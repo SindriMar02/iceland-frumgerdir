@@ -42,7 +42,16 @@
       *, *::before, *::after { box-sizing: border-box; }
       html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
       @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-      body { margin: 0; background: #EFEAE2; text-rendering: optimizeLegibility; }
+      /* CHARCOAL, not the cream the page is mostly set in. This colour is not
+         the page background — .ki-root paints that, and every band paints its
+         own on top — it is what iOS Safari tints the status strip and the
+         overscroll with. Measured in the Simulator: the strip takes THIS,
+         not the section under it and not the theme-color meta, so with cream
+         here the phone opened on a pale band sitting above a dark hero, which
+         reads as a rendering fault rather than as a page. The site opens on
+         the descent and is dark for most of its length, so dark is the honest
+         answer, and it now matches the theme-color above. */
+      body { margin: 0; background: #1D1B19; text-rendering: optimizeLegibility; }
       h1, h2, h3, h4, p, figure, dl, dd, ul, ol { margin: 0; }
       ul, ol { padding: 0; }
       img, picture, svg, video { display: block; max-width: 100%; }
