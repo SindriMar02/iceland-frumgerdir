@@ -306,6 +306,10 @@ export interface PlxPlate {
   plate?: boolean
   /** intrinsic size of a plate, so the box is reserved before it decodes */
   pw?: number; ph?: number
+  /** override the layer box with raw CSS — the content photo is sized against
+      the VIEWPORT, not the section, so lengthening the descent does not also
+      grow the photo and cover the ground peeking beneath it */
+  hCss?: string; topCss?: string
   priority?: boolean
 }
 
@@ -350,7 +354,12 @@ export function ParallaxHero({ plates, children }: {
     <section className="ki-plx" id="top" data-ki-band="dark" data-ki-plx>
       <div className="ki-plx-layers">
         {plates.map((p) => (
-          <span key={p.id} className="ki-plx-plate" data-ki-layer={p.k}>
+          <span
+            key={p.id}
+            className="ki-plx-plate"
+            data-ki-layer={p.k}
+            style={p.hCss ? { height: p.hCss, top: p.topCss ?? '0' } : undefined}
+          >
             {p.plate ? (
               <picture>
                 <source type="image/avif" srcSet={`${DIR}/${p.id}.avif`} />

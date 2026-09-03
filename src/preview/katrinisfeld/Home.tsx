@@ -50,24 +50,24 @@ const MATERIALS: ReadonlyArray<GalleryItem> = [
    front of her name. The boxes are an asymmetric composition rather than a
    centred deck: a wide room low and left, a tall room high and right, a
    detail cutting the middle. */
-/* The opening is a MATERIAL IN THREE PLANES that the page scrolls into —
-   Sindri's brief, built the way the reference stacks its own layers: three
-   registered full-bleed images, one opaque backdrop and two real cut-outs,
-   moving at 17.8% / 35.3% / 88.2% of scroll speed so the stone opens up as
-   you descend into it.
+/* THE DESCENT. You arrive on one of her rooms with the ground barely showing
+   at the bottom edge, and scrolling sinks you into it: the photograph rises
+   away at 88% of scroll speed while the stone holds at 18%, so the ground
+   grows to fill the frame and simply becomes the page. The section below
+   carries the same stone, and the fade resolves to flat #4A3527, so there is
+   no seam to see — the reference does exactly this into black.
 
-   The two cut-outs are genuine alpha, keyed off a white ground rather than
-   feathered: 51.9% and 45.3% transparent, against the reference's own 50.4%
-   and 70.2%. They are graded for aerial perspective — the far slab lighter
-   (#584232), the near ledge darkest (#3A2A1F) — over a backdrop on her own
-   steinn hex, so the depth reads as distance rather than as three pictures. */
+   Depth order follows the physics rather than the layer numbers: the room is
+   the NEAR plane (fast, in front), the stone is FAR (slow, behind), and the
+   room uncovers the stone as it leaves. The room's box is deliberately short
+   of full bleed so the ground shows under it before anything moves. */
 const PLATES: ReadonlyArray<PlxPlate> = [
   { id: 'hero-steinn', k: 70, plate: true, pw: 2400, ph: 1768, priority: true,
-    alt: 'Dökkur náttúrusteinn með mattri slípun og fínum ljósum æðum' },
-  { id: 'stone-slab', k: 55, plate: true, pw: 2400, ph: 1768,
     alt: '' },
-  { id: 'stone-ledge', k: 10, plate: true, pw: 2400, ph: 1768,
+  { id: 'stone-ledge', k: 55, plate: true, pw: 2400, ph: 1768,
     alt: '' },
+  { id: 's-eldhus-vitt', k: 10, priority: true, hCss: '94svh', topCss: '0',
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
 ]
 
 /** One from each kind of room she is asked for, travelling sideways. */
@@ -138,8 +138,8 @@ export function Home() {
         </p>
       </ParallaxHero>
 
-      {/* 02 · intent */}
-      <section className="ki-wrap" data-ki-band="light">
+      {/* 02 · intent — standing on the ground the descent just arrived at */}
+      <section className="ki-wrap ki-stone" data-ki-band="dark">
         <span className="ki-rule ki-rv" aria-hidden="true" />
         <Headline text="Hvert verkefni fær sinn eigin litheim." size={72} floor={32} measure={780} />
         <p className="ki-body ki-rv">

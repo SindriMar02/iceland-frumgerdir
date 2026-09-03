@@ -11,12 +11,18 @@
  */
 import { fluid } from './kit'
 
+/* absolute, never relative: a relative url() resolves differently in dev and
+   in the build and silently 404s in one of them */
+const ASSETS = `${import.meta.env.BASE_URL}katrinisfeld`
+
 const CREAM = '#EFEAE2'
 const INK = '#231F1B'
 const CHARCOAL = '#1D1B19'
 const WINE = '#8C3A34'
+/* her steinn — the ground the descent resolves into */
+const STONE = '#4A3527'
 
-export const COLOURS = { CREAM, INK, CHARCOAL, WINE }
+export const COLOURS = { CREAM, INK, CHARCOAL, WINE, STONE }
 
 const DISPLAY = "'Sentient', Georgia, serif"
 const SANS = "'Archia', system-ui, sans-serif"
@@ -356,7 +362,13 @@ export const CSS = `
    — the backdrop nearly still while the nearest plane leaves at almost page
    speed. Pinning a sticky stage, which is what was here before, produces a
    completely different effect. */
-.ki-plx { position: relative; height: 120svh; background: ${CHARCOAL}; overflow: hidden; }
+/* 190svh, not the reference's 120. Theirs works at 1.2 because a full black
+   section follows immediately and the blend finishes off-screen; here the
+   descent itself is the content, and at 1.2 there were only 180px of scroll
+   while the section still filled the viewport — the room barely receded
+   before the section left. 190svh buys ~90vh of travel with the stage on
+   screen, which is what makes it a descent rather than a jump. */
+.ki-plx { position: relative; height: 190svh; background: ${STONE}; overflow: hidden; }
 .ki-plx-layers { position: absolute; inset: 0; overflow: hidden; }
 .ki-plx-plate {
   position: absolute; left: 0; top: -17.5%; width: 100%; height: 117.5%;
@@ -392,17 +404,30 @@ export const CSS = `
      inside the fade's band, so at 30 the fade dimmed the headline itself. */
   position: absolute; left: 0; right: 0; top: 62%; height: 38%; z-index: 22;
   pointer-events: none;
+  /* resolves to FLAT STONE, not charcoal. The reference dissolves into black
+     because black is the page underneath it; the equivalent here is her
+     steinn, and the section below carries the same colour and texture, so
+     the descent ends with the ground simply having become the page. */
   background: linear-gradient(to bottom,
-    rgb(29 27 25 / 0) 0%, rgb(29 27 25 / .72) 46%, rgb(29 27 25 / .94) 76%, ${CHARCOAL} 100%);
+    rgb(74 53 39 / 0) 0%, rgb(74 53 39 / .72) 46%, rgb(74 53 39 / .94) 76%, ${STONE} 100%);
 }
-.ki-plx-line { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: ${CHARCOAL}; z-index: 20; }
+.ki-plx-line { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: ${STONE}; z-index: 20; }
+
+/* THE GROUND, CONTINUED. Whatever follows the descent stands on the same
+   stone, so there is nothing to see at the join. */
+.ki-stone {
+  background-color: ${STONE};
+  background-image: linear-gradient(rgb(74 53 39 / .58), rgb(74 53 39 / .58)), url("${ASSETS}/hero-steinn.webp");
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  color: #EFE7DC;
+}
 /* no JS and reduced motion: the layers simply stand where they were placed */
 @media (prefers-reduced-motion: reduce) {
   .ki-plx { height: 100svh; }
   .ki-plx-plate, .ki-plx-lockup { transform: none !important; }
 }
 @media (max-width: 860px) {
-  .ki-plx { height: 112svh; }
+  .ki-plx { height: 165svh; }
   .ki-plx-lockup { padding-bottom: calc(var(--u) * 80); }
 }
 
