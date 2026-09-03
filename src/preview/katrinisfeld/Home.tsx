@@ -73,22 +73,30 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
     src: `${ASSET}/rs/s-eldhus-vitt-1500.webp`,
     alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
 
-  /* Layer 4 — the ground. One photograph of Icelandic basalt terrain, shot
-     from ground level, its sky keyed off so the silhouette is the real
-     contour of the lava field rather than a curve drawn in a mask. It enters
-     from the BOTTOM EDGE only: at rest its contour sits at ~89% of the
-     viewport, so the room keeps the frame. Scrolling rises it and scales it
-     about its top edge — the camera descending toward ground it is about to
-     go under — until it occludes the room from the bottom up. Its own deeper
-     material is graded into #1d1b19, so the descent ends on the site's ground
-     colour by the material rather than by a black overlay dropped on top. */
-  { layer: '4', width: 3000, height: 1641,
+  /* Layer 4 — the stone. ONE monolithic mass of honed basalt, quarried and
+     dressed, with a single clean fractured top edge: the kind of stone she
+     would actually specify. The first attempt at this was a lava field, and
+     a lava field is loose aggregate — rising over her kitchen it read as a
+     construction site, which is the opposite of what the page sells. The
+     background above the block is keyed off (block 31-57 luminance, ground
+     224-233), so the silhouette is the stone's own fracture line rather than
+     a curve drawn in a mask.
+
+     It is NOT full-bleed. It enters from the BOTTOM EDGE only: at rest its
+     edge sits at ~89% of the viewport, so the room keeps the frame. Scroll
+     rises it and scales it about its top edge — the camera descending toward
+     stone it is about to pass under — until it occludes the room from the
+     bottom upward. Its own deeper material is graded into #1d1b19, so the
+     descent lands on the site's ground colour through the material rather
+     than a black overlay dropped on top. */
+  { layer: '4', width: 3000, height: 1626,
     src: `${ASSET}/terrain-plate.webp`, alt: '',
-    yPercent: 22, scaleTo: 1.5,
+    yPercent: 25, scaleTo: 1.5,
     /* top is a % of the LAYER BOX, which is 120% of the viewport (the
-       registry hangs .parallax__visuals 20% below the header) — 62.5% of
-       that is 75% of the viewport, which puts the keyed contour at ~89%. */
-    geom: { top: '62.5%', height: 'auto', aspectRatio: '3000 / 1641' } },
+       registry hangs .parallax__visuals 20% below the header), so 66.5% of
+       it is ~80% of the viewport; the edge sits 10.5% down the plate, which
+       puts it at ~89%. */
+    geom: { top: '66.5%', height: 'auto', aspectRatio: '3000 / 1626' } },
 ]
 
 

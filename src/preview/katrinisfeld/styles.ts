@@ -912,6 +912,35 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
 @media (max-width: 991px) { .ki-dome-title { white-space: normal; } }
 @media (max-width: 640px) { .ki-dome { padding-left: 20px; padding-right: 20px; } }
 
+/* THE GROUND, CARRIED DOWN THE PAGE.
+   The hero descends into #1d1b19 and the page stays in that ground for the
+   whole projects journey — but where it finally returned to the light
+   palette it did it on a hard horizontal line, which reads as the page
+   cutting to a white template rather than as the ground giving way. Both
+   light bands sit directly under a dark one, so the change dissolves over a
+   band instead of cutting. The dissolve is painted on the BOTTOM of the dark
+   section rather than the top of the light one: fading a section into cream
+   from its own colour has nothing to mismatch, whereas starting a gradient
+   at CHARCOAL under a section that is actually rgb(36,27,25) left a visible
+   line. And it is a background-image, not a ::before, because a positioned
+   pseudo-element paints ABOVE in-flow text and would grey the copy. */
+[data-ki-band='dark']:has(+ [data-ki-band='light']) {
+  background-image: linear-gradient(
+    to bottom,
+    rgb(239 234 226 / 0) 0,
+    rgb(239 234 226 / 0.10) 30%,
+    rgb(239 234 226 / 0.38) 58%,
+    rgb(239 234 226 / 0.74) 82%,
+    ${CREAM} 100%
+  );
+  background-repeat: no-repeat;
+  background-position: bottom;
+  /* kept under the 86px of clearance the nearest copy in these sections has
+     above their bottom edge — a taller band washes cream up behind
+     "Fjölmiðlar"/"Stemning" and collapses their contrast */
+  background-size: 100% clamp(52px, 7vh, 80px);
+}
+
 /* ── responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 991px) {
   .ki-grid { --cols: 2; }
