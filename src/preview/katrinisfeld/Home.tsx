@@ -126,23 +126,32 @@ const HERO_LAYERS: ReadonlyArray<ParallaxLayer> = [
      vertical stretch of one strip washed to flat colour, which is why the
      second half of the descent was empty rather than stone. Its deepest
      region is graded onto #1d1b19 so the pin releases straight onto the
-     page's own ground. 1600px tall rendered against an 800px frame, so
-     yPercent is small: -47% of its own height IS the 750px of travel. */
+     page's own ground.
+
+     THE TRAVEL HAS TO REACH THE DARK. The plate was 1600px rendered and the
+     travel 750px, so the last frame of the descent was showing plate rows
+     6.9% to 56.9% — and the falloff into ground colour did not start until
+     62%. The descent literally never reached the dark part of its own
+     material: it ended on lit rock and then cut to the page. The plate is
+     2600px rendered now with the falloff running 20% to 67%, and the travel
+     is 2400px, which puts the final frame at rows 67.7% to 98.5% — entirely
+     ground colour. So it darkens the whole way down and lands on #1d1b19
+     with nothing left to seam against. */
 
   /* far plane — behind, slower, mostly swallowed by the near one */
-  { layer: '2', width: 2400, height: 3000,
+  { layer: '2', width: 2400, height: 4875,
     src: `${ASSET}/terrain-plate-far.webp`, alt: '',
-    yPercent: -31,
-    geom: { top: '75%', height: 'auto', aspectRatio: '2400 / 3000' } },
+    yPercent: -61.5,
+    geom: { top: '75%', height: 'auto', aspectRatio: '2400 / 4875' } },
 
   /* near plane — the ground the camera actually descends past. Pinned, the
      page supplies none of the travel, so the rise is entirely this tween:
      -78% of its own height carries the edge from 89% of the viewport to just
      above the top, with 851px of stone still under it on an 800px frame. */
-  { layer: '4', width: 2400, height: 3000,
+  { layer: '4', width: 2400, height: 4875,
     src: `${ASSET}/terrain-plate.webp`, alt: '',
-    yPercent: -47,
-    geom: { top: '80%', height: 'auto', aspectRatio: '2400 / 3000' } },
+    yPercent: -92.3,
+    geom: { top: '80%', height: 'auto', aspectRatio: '2400 / 4875' } },
 ]
 
 
@@ -214,6 +223,21 @@ export function Home() {
               <h1 className="ki-plx-name">Katrín Ísfeld</h1>
               <p className="ki-plx-role">innanhússarkitekt</p>
             </div>
+          </div>
+        }
+        /* arrives once the frame is stone rather than room — the page's own
+           name, said at the point the descent has actually reached the
+           material it is named after */
+        deep={
+          <div className="ki-plx-deep">
+            <p className="ki-plx-deep-kicker">Rýmið man</p>
+            <p className="ki-plx-deep-line">
+              Efnin bera rýmið. Steinn, eik, hör og kopar — valin úr
+              verkefnunum sjálfum, ekki úr litakorti.
+            </p>
+            <p className="ki-plx-deep-cta">
+              <Link className="ki-cta" to={WORK}>Verkefnin</Link>
+            </p>
           </div>
         }
       />

@@ -403,6 +403,33 @@ export const CSS = `
   color: #CFC6B9;
 }
 
+/* WHAT ARRIVES ON THE STONE.
+   It lands at 0.55 of the descent, by which point the frame is material
+   rather than room, and it is deliberately quiet: at that depth the light
+   in the photograph has nearly gone, so the type carries almost all of the
+   contrast on its own and does not need to compete with anything. */
+.ki-plx-deep {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  width: 100%; max-width: calc(var(--u) * 720);
+}
+.ki-plx-deep-kicker {
+  margin: 0 0 calc(var(--u) * 22);
+  font-family: ${MONO};
+  text-transform: uppercase;
+  font-size: ${fluid(12.5, 11)};
+  letter-spacing: .34em; text-indent: .34em;
+  color: #A79C8C;
+}
+.ki-plx-deep-line {
+  margin: 0;
+  font-family: ${DISPLAY};
+  font-weight: 300;
+  font-size: ${fluid(34, 21)};
+  line-height: 1.32;
+  color: #F2ECE3;
+}
+.ki-plx-deep-cta { margin: calc(var(--u) * 34) 0 0; }
+
 /* THE GROUND, CONTINUED.
    This rule used to live inside the old hero's CSS block and was deleted with
    it, so the section below the descent fell back to the site charcoal while

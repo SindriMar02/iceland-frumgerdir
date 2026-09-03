@@ -125,6 +125,29 @@
   background-size: 100% 100%;
 }
 
+/* what arrives on the stone. Above every layer, because by the time it lands
+   the frame IS the near plate and it has to sit on it, not behind it. */
+.parallax__deep {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 calc(var(--u, 1px) * 34);
+  /* GSAP sets this, but the prerendered HTML is served before GSAP parses and
+     the copy would flash on the room for a frame */
+  visibility: hidden;
+  opacity: 0;
+}
+/* the block itself is inert; only what is genuinely clickable takes pointers */
+.parallax__deep > * { pointer-events: none; }
+.parallax__deep a { pointer-events: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .parallax__deep { visibility: visible !important; opacity: 1 !important; }
+}
+
 .parallax__fade {
   position: absolute;
   left: 0;

@@ -79,11 +79,16 @@ export interface ParallaxProps {
    *  right when the whole hero is scrolling away underneath it and wrong
    *  when it is pinned — there it has to leave upward, ahead of the ground. */
   titleYPercent?: number
+  /** Content that arrives ON the stone, once the descent is deep enough that
+   *  the frame is material rather than room. It is not part of the layer
+   *  stack: the layers all run at timeline position 0, and this has to land
+   *  late, so it gets its own tween further down the same scrub. */
+  deep?: ReactNode
 }
 
 export function ParallaxComponent({
   layers, title, children, smooth = false, sticky = false, scroll = '240svh',
-  titleYPercent,
+  titleYPercent, deep,
 }: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
@@ -119,16 +124,28 @@ export function ParallaxComponent({
           : overrides.get(layer)?.yPercent ?? DEFAULTS[layer],
         scaleTo: overrides.get(layer)?.scaleTo,
       }))
-      spec.forEach((o, idx) => {
+      spec.forEach((o) => {
         const targets = triggerElement.querySelectorAll(`[data-parallax-layer="${o.layer}"]`)
         if (!targets.length) return
-        const vars: gsap.TweenVars = { yPercent: o.yPercent, ease: 'none' }
+        const vars: gsap.TweenVars = { yPercent: o.yPercent, ease: 'none', duration: 1 }
         if (o.scaleTo) {
           vars.scale = o.scaleTo
           vars.transformOrigin = '50% 0%'
         }
-        tl.to(targets, vars, idx === 0 ? undefined : '<')
+        tl.to(targets, vars, 0)
       })
+
+      /* The stone fills the frame from roughly the middle of the descent, so
+         this arrives at 0.55 — late enough that it lands on material rather
+         than on the room, early enough to be read before the bottom. The
+         layer tweens all sit at position 0 with duration 1, which is what
+         makes this position mean what it says. */
+      const deepEl = triggerElement.querySelector('[data-parallax-deep]')
+      if (deepEl) {
+        tl.fromTo(deepEl,
+          { autoAlpha: 0, y: 34 },
+          { autoAlpha: 1, y: 0, ease: 'none', duration: 0.26 }, 0.55)
+      }
     }, parallaxRef)
 
     /* WITHOUT LENIS, NOTHING DRIVES ScrollTrigger HERE.
@@ -183,7 +200,7 @@ export function ParallaxComponent({
       if (ticker) gsap.ticker.remove(ticker)
       lenis?.destroy()
     }
-  }, [smooth, layers, sticky, titleYPercent])
+  }, [smooth, layers, sticky, titleYPercent, deep])
 
   return (
     <div
@@ -219,6 +236,9 @@ export function ParallaxComponent({
             <div data-parallax-layer="3" className="parallax__layer-title">
               {title}
             </div>
+            {deep && (
+              <div data-parallax-deep className="parallax__deep">{deep}</div>
+            )}
           </div>
           <div className="parallax__fade" />
         </div>
