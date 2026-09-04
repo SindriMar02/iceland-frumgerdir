@@ -130,76 +130,33 @@ const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
     crest: 0.0523, restAt: 0.88, travel: -1.82, tail: ROCK, fill: FLOOR },
   { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
     crest: 0.0559, restAt: 0.90, travel: -2.25, tail: ROCK, fill: FLOOR },
-
-  /* AND THE SAME DESCENT CLOSING FROM ABOVE.
-     The ground rising was only half of it. Everything below the hero used to
-     begin with rock arriving upside down in a NEW section, which is exactly
-     what it looked like: a random inverted seam, stones suddenly the wrong
-     way up, a thing that started rather than a thing that continued. These
-     three are on the hero's own timeline, so it is one move — the ground
-     comes up, the ceiling comes down to meet it, and by the bottom of the
-     pin the frame is sealed. There is no stone anywhere on the page after it.
-
-     THE SAME THREE FILES, MIRRORED. Not a second formation — the identical
-     photographs, flipped, so every column in the ceiling is the same column
-     as the one rising to meet it, in the same place across the frame, at the
-     same scale. Their silhouettes are therefore exact mirrors of each other,
-     and when the two edges pass at 0.29 of the scrub they interlock tooth
-     for tooth: one stone mass closing, not two rocks arriving. Using a
-     different formation up there was what made it read as an inverted seam.
-
-     Rest positions are the ground's own, mirrored (0.14 / 0.12 / 0.10 from
-     the top) and then carried up half a frame so nothing shows at the top
-     before the descent starts — the landing frame is the room, her name and
-     one band of ground along the bottom, exactly as it was. Travel keeps the
-     ground's ratio, scaled so the near plate's lit edge is far enough past
-     the bottom by the end that the last frame is floor colour to within
-     three levels — the colour the journey below is painted in. */
-  { layer: '6', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
-    crest: 0.0488, restAt: -0.48, travel: 1.65, tail: ROCK, fill: FLOOR, flip: true },
-  { layer: '7', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
-    crest: 0.0523, restAt: -0.50, travel: 2.10, tail: ROCK, fill: FLOOR, flip: true },
-  { layer: '8', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
-    crest: 0.0559, restAt: -0.52, travel: 2.60, tail: ROCK, fill: FLOOR, flip: true },
 ]
 
-/* THE ASCENT — the same move turned over.
-   Where the passage ends, the page climbs out of the rock instead of cutting
-   to a white template: the stacked shelves SINK, her light arrives from above
-   behind them, and the ridges peel away one at a time until the frame is the
-   cream the whole rest of the page is set on. A different formation on
-   purpose — stacked basalt shelves rather than the passage's standing columns
-   — so it reads as somewhere else in the same quarry rather than as the
-   landing page mirrored.
+/* THE END OF THE STONE IS THE START OF IT, MIRRORED AND RUN BACKWARDS.
+   The descent's three plates, the same three files, flipped — so the body
+   hangs ABOVE the silhouette instead of below it and every column is the same
+   column, in the same place across the frame, at the same scale. Then the
+   descent's own numbers, turned over and reversed in time: where the ground
+   rose from 0.90 / 0.88 / 0.86 of the frame and travelled 2.25 / 1.82 / 1.43
+   of it upward, this starts 2.25 / 1.82 / 1.43 BELOW its mirrored rest and
+   travels back to 0.10 / 0.12 / 0.14 from the top.
 
-   At rest every crest is above the frame and the near plane's own tail fills
-   it, which is the same rock the passage just travelled along, so the gate
-   begins as a continuation of the journey rather than as a section. They
-   clear the bottom at 0.60 / 0.75 / 0.90 of the scrub, near first — nearest
-   things move fastest — leaving a tenth of the pin as pure light before it
-   releases into the cream below.
-
-   THE MIDDLE PLANE SITS WHERE IT DOES TO KEEP THE THREE APART. Three crests
-   at three speeds cross each other three times, and the first set of numbers
-   put all three crossings inside p 0.34-0.48: for a third of the descent the
-   ridges lay on top of one another and it read as ONE cliff sinking, which is
-   what two of the three planes exist to prevent. -0.62 spreads the crossings
-   to 0.17 / 0.40 / 0.57, so there are three and then four distinct bands in
-   the frame and they peel off the bottom one at a time. */
-/* THE OVERHANG IS GONE. Twice now the horizontal chapter has been given stone
-   of its own — a mirror-tiled wall, then the descent's plates flipped — and
-   both times it read as a second, separate stone event arriving after the
-   first had finished. The stone is ONE move now and it happens in the hero:
-   the ground rises, the ceiling closes, done. This section is simply the dark
-   that move ends on, and there is no stone background anywhere below it. */
+   Which means the last frame of the stone is the first frame of it upside
+   down: three ragged edges sixteen pixels apart along the TOP, and her light
+   under them, exactly as the landing frame is three edges along the bottom
+   with the room above. The gate begins on the journey's own floor colour to
+   within a level, because at that point the frame is the same plate body the
+   descent ended in, and it finishes on the cream the section below is painted
+   in. Nothing enters from the top on the landing page; the stone starts the
+   way it starts and ends the way it started, mirrored. */
 
 const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
-  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
-    crest: 0.1438, restAt: -0.06, travel: 1.178, tail: ROCK, fill: FLOOR },
-  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 1461,
-    crest: 0.1406, restAt: -0.62, travel: 2.16,  tail: ROCK, fill: FLOOR },
-  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 1461,
-    crest: 0.1423, restAt: -0.75, travel: 2.917, tail: ROCK, fill: FLOOR },
+  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
+    crest: 0.0488, restAt: 1.57, travel: -1.43, tail: ROCK, fill: FLOOR, flip: true },
+  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
+    crest: 0.0523, restAt: 1.94, travel: -1.82, tail: ROCK, fill: FLOOR, flip: true },
+  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
+    crest: 0.0559, restAt: 2.35, travel: -2.25, tail: ROCK, fill: FLOOR, flip: true },
 ]
 
 /* THE PASSAGE.
@@ -329,9 +286,14 @@ export function Home() {
         sticky
         smooth
         gate
-        backdrop={`linear-gradient(to bottom, #FBF8F2 0%, ${COLOURS.CREAM} 62%)`}
+        /* the lift sits in the MIDDLE and both edges are the section's own
+           cream. Put at the bottom it read 14 levels brighter than the
+           section the pin releases onto — a hard line at the one join that
+           has to be invisible; put at the top it is behind the rock and never
+           seen at all. */
+        backdrop={`linear-gradient(to bottom, ${COLOURS.CREAM} 0%, #F7F3EC 54%, ${COLOURS.CREAM} 100%)`}
         ground={COLOURS.CREAM}
-        deepAt={0.6}
+        deepAt={0.68}
         deepBehind
         deep={
           <div className="ki-gate-deep">
