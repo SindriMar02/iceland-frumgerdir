@@ -265,7 +265,8 @@ function StoryPageInner() {
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7 3L13 9L7 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
           <figure className="rb-lightbox-fig" onClick={(e) => e.stopPropagation()}>
-            <img key={GALLERY[lightbox].src} src={GALLERY[lightbox].src} alt={GALLERY[lightbox].caption[lang]} decoding="async" />
+            <img key={GALLERY[lightbox].src} src={GALLERY[lightbox].src} alt={GALLERY[lightbox].caption[lang]}
+              width={GALLERY[lightbox].w} height={GALLERY[lightbox].h} decoding="async" />
             <figcaption className="rb-lightbox-cap">{GALLERY[lightbox].caption[lang]}</figcaption>
           </figure>
         </div>

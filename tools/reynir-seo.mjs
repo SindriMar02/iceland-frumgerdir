@@ -90,6 +90,20 @@ function assertMatchesData() {
 const addr = `${B.street}, ${B.postal} ${B.city}`
 const img = (p) => `${origin}${prefix}/reynir/${p}`
 
+/* Social cards, cut to 1.91:1 on purpose.
+ *
+ * These used to reuse the page's own photography — including a 1400x1400
+ * square on /panta. Facebook, Messenger and X all render summary_large_image
+ * at 1.91:1, so a square was centre-cropped and the cake lost its top and
+ * bottom in every share of the page people actually share. These four are
+ * crops of the same photographs at exactly the ratio the crawlers use, so
+ * what is composed here is what gets posted. Declaring the dimensions
+ * alongside them is what stops Facebook rendering a text-only card the first
+ * time it scrapes a URL, before it has fetched the image. */
+const og = (p) => `${origin}${prefix}/reynir/og/${p}`
+const OG_W = 1200
+const OG_H = 630
+
 /* ── Pages ────────────────────────────────────────────────────────────────── */
 const PAGES = [
   {
@@ -100,17 +114,20 @@ const PAGES = [
       'Handverksbakarí og kaffihús á Dalvegi 4 í Kópavogi. Súrdeigsbrauð, vínarbrauð, snúðar og tertur, allt bakað á staðnum frá grunni. Opið alla daga 07–17.',
     descEn:
       'A family craft bakery and café at Dalvegur 4 in Kópavogur. Sourdough, Danish pastries and cakes, all baked on-site from scratch. Open every day 07:00–17:00.',
-    image: img('gallery/gal-11.webp'),
+    image: og('heim.jpg'),
+    imageAlt: 'Bakari við steinofninn í Reyni bakara, brauð inni í ofninum',
   },
   {
     dir: 'preview/reynir/panta',
     path: '/panta',
-    title: 'Sérpantanir — Reynir bakarí',
+    crumb: 'Sérpantanir',
+    title: 'Panta tertu eða veislubakka — Reynir bakarí í Kópavogi',
     desc:
-      'Pantaðu tertu, veislubakka eða bakkelsi hjá Reyni bakara í Kópavogi. Við staðfestum símleiðis og greitt er þegar sótt er.',
+      'Pantaðu tertu, veislubakka eða bakkelsi hjá Reyni bakara á Dalvegi 4 í Kópavogi. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
     descEn:
-      'Order a celebration cake, party platter or pastry tray from Reynir bakarí in Kópavogur. We confirm by phone and you pay on collection.',
-    image: img('order/terta.webp'),
+      'Order a celebration cake, party platter or pastry tray from Reynir bakarí at Dalvegur 4 in Kópavogur. We confirm the order by phone and you pay on collection.',
+    image: og('panta.jpg'),
+    imageAlt: 'Rjómaterta frá Reyni bakara skreytt með rjómatoppum og kokteilberjum',
   },
   {
     dir: 'preview/reynir/personuvernd',
@@ -120,18 +137,22 @@ const PAGES = [
       'Hvaða upplýsingum Reynir bakarí safnar þegar þú sendir pöntunarbeiðni, af hverju, hversu lengi þær eru geymdar og hver réttindi þín eru. Ásamt skilmálum sérpantana.',
     descEn:
       'What Reynir bakarí collects when you send an order request, why, how long it is kept and what your rights are. Plus the terms for custom orders.',
-    image: img('bud.webp'),
+    image: og('personuvernd.jpg'),
+    imageAlt: 'Myndaveggurinn í búðinni hjá Reyni bakara á Dalvegi',
+    crumb: 'Persónuvernd og skilmálar',
     noindexAlways: true,
   },
   {
     dir: 'preview/reynir/sagan',
     path: '/sagan',
-    title: 'Sagan og myndasafnið — Reynir bakarí',
+    crumb: 'Sagan og myndasafnið',
+    title: 'Sagan af Reyni bakara — fjölskyldubakarí í Kópavogi frá 1994',
     desc:
-      'Fjölskyldubakarí á Dalvegi síðan 1994. Sagan af Reyni bakara og myndasafn úr bakaríinu sjálfu, myndað á einum vinnumorgni.',
+      'Fjölskyldubakarí á Dalvegi í Kópavogi síðan 1994. Sagan af Reyni bakara og myndasafn úr bakaríinu sjálfu, myndað á einum vinnumorgni í ágúst.',
     descEn:
-      'A family bakery on Dalvegur since 1994. The story of Reynir bakarí and a photographic archive from inside the bakery, shot across one working morning.',
-    image: img('gallery/gal-11.webp'),
+      'A family bakery on Dalvegur in Kópavogur since 1994. The story of Reynir bakarí and a photographic archive from inside the bakery, shot across one working morning in August.',
+    image: og('sagan.jpg'),
+    imageAlt: 'Bakari stráir hveiti yfir vinnuborðið í Reyni bakara',
   },
 ]
 
@@ -230,21 +251,38 @@ const faq = {
   ],
 }
 
-const breadcrumb = (page) => ({
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Reynir bakarí', item: urlFor(PAGES[0]) },
-    ...(page.path === '/'
-      ? []
-      : [{ '@type': 'ListItem', position: 2, name: page.path === '/panta' ? 'Sérpantanir' : 'Persónuvernd og skilmálar', item: urlFor(page) }]),
-  ],
-})
+/* Each page carries its own `crumb`. This was a two-way ternary — "/panta ?
+ * 'Sérpantanir' : 'Persónuvernd og skilmálar'" — written when there were
+ * three pages, and adding /sagan silently made it publish the story page to
+ * Google as "Reynir bakarí › Persónuvernd og skilmálar". A breadcrumb that
+ * contradicts the page is exactly the structured-data error Google acts on by
+ * hand, so the name now comes from the page, and a new page without a crumb
+ * fails the build rather than borrowing someone else's name. */
+const breadcrumb = (page) => {
+  if (page.path !== '/' && !page.crumb) {
+    console.error(`reynir-seo: ${page.path} has no crumb — add one to PAGES.`)
+    process.exit(1)
+  }
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Reynir bakarí', item: urlFor(PAGES[0]) },
+      ...(page.path === '/'
+        ? []
+        : [{ '@type': 'ListItem', position: 2, name: page.crumb, item: urlFor(page) }]),
+    ],
+  }
+}
 
 /* ── Injection ────────────────────────────────────────────────────────────── */
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 function headFor(page) {
+  if (!page.imageAlt) {
+    console.error(`reynir-seo: ${page.path} has no imageAlt — add one to PAGES.`)
+    process.exit(1)
+  }
   const url = urlFor(page)
   const ld = [bakery, breadcrumb(page)]
   if (page.path === '/') ld.push(faq)
@@ -256,17 +294,31 @@ function headFor(page) {
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${esc(B.name)}" />
     <meta property="og:locale" content="is_IS" />
-    <meta property="og:locale:alternate" content="en_GB" />
     <meta property="og:title" content="${esc(page.title)}" />
     <meta property="og:description" content="${esc(page.desc)}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:image" content="${page.image}" />
-    <meta property="og:image:alt" content="${esc(B.name)}, ${esc(addr)}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="${OG_W}" />
+    <meta property="og:image:height" content="${OG_H}" />
+    <meta property="og:image:alt" content="${esc(page.imageAlt)}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${esc(page.title)}" />
     <meta name="twitter:description" content="${esc(page.desc)}" />
     <meta name="twitter:image" content="${page.image}" />
-    <meta name="geo.region" content="IS" />
+${
+      page.path === '/'
+        ? `    <!-- The LCP element. It is the pistachio snúður floating in the hero,
+         and without this hint the browser does not discover it until the
+         React bundle has parsed and the component has mounted. fetchpriority
+         is set here rather than on the <img>, because react-dom 18.3 does not
+         know the property and would render it with a console warning; as a
+         preload it is plain HTML that starts the fetch before any script
+         runs. Home only — on /panta and /personuvernd this image never
+         appears, and preloading it there would be 172 KB of waste. -->
+    <link rel="preload" as="image" href="${prefix}/reynir/pistasiusnudur.webp" type="image/webp" fetchpriority="high" />\n`
+        : ''
+    }    <meta name="geo.region" content="IS" />
     <meta name="geo.placename" content="${esc(B.city)}" />
     <meta name="geo.position" content="${B.lat};${B.lon}" />
     <meta name="ICBM" content="${B.lat}, ${B.lon}" />
@@ -354,9 +406,14 @@ at ${B.street}. Home delivery across the capital area is available through aha.i
 /** Ready to move to the domain root on launch day. */
 function writeSitemap() {
   const dir = join(dist, STANDALONE_DIST ? '' : 'preview/reynir')
-  const urls = PAGES.map(
-    (p) => `  <url><loc>${urlFor(p)}</loc><changefreq>weekly</changefreq><priority>${p.path === '/' ? '1.0' : '0.8'}</priority></url>`,
-  ).join('\n')
+  /* A page carrying `noindex` has no business in the sitemap: the sitemap says
+   * "index this", the meta says "do not", and Search Console reports the pair
+   * as an error for a page nobody wanted indexed in the first place. */
+  const urls = PAGES.filter((p) => !p.noindexAlways)
+    .map(
+      (p) => `  <url><loc>${urlFor(p)}</loc><changefreq>weekly</changefreq><priority>${p.path === '/' ? '1.0' : '0.8'}</priority></url>`,
+    )
+    .join('\n')
   writeFileSync(
     join(dir, 'sitemap.xml'),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,

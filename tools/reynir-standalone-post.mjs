@@ -39,7 +39,7 @@ if (existsSync(join(dist, 'reynir.html'))) {
 }
 
 /* 2 ── prune everything the bakery does not own */
-const KEEP = new Set(['index.html', '404.html', 'assets', 'reynir', '_redirects', 'robots.txt', 'sitemap.xml', 'llms.txt'])
+const KEEP = new Set(['index.html', '404.html', 'assets', 'reynir', 'robots.txt', 'sitemap.xml', 'llms.txt'])
 let pruned = 0
 for (const entry of readdirSync(dist)) {
   if (!KEEP.has(entry)) {
@@ -80,14 +80,36 @@ const cfToken = process.env.VITE_REYNIR_CF_ANALYTICS_TOKEN
  * copies inherit content rather than emptiness. */
 execFileSync('node', ['tools/reynir-prerender.mjs'], { stdio: 'inherit' })
 
-writeFileSync(join(dist, '404.html'), readFileSync(join(dist, 'index.html')))
-writeFileSync(join(dist, '_redirects'), '/* /index.html 200\n')
-
 /* 4 ── head injection at the clean paths */
 execFileSync('node', ['tools/reynir-seo.mjs', dist, '--base=/'], {
   stdio: 'inherit',
   env: { ...process.env, REYNIR_STANDALONE: '1' },
 })
+
+/* 3b ── the not-found page, written from the finished index.html.
+ *
+ * There used to be a `_redirects` rule here reading `/* /index.html 200`, the
+ * standard SPA catch-all. It is wrong for THIS site: every route is
+ * prerendered to a real file, so the rule never fires for a real page — it
+ * fires only for URLs that do not exist, and answers them with the homepage
+ * under HTTP 200. That is a soft 404. An old flyer's URL, a typo, a stale
+ * Facebook link: each becomes another address serving the homepage's words,
+ * and Google reports the lot in Search Console rather than simply dropping
+ * them. Without the rule Cloudflare Pages serves this file with a real 404.
+ *
+ * The body is still the homepage — a lost visitor to a four-page bakery site
+ * is best served by the bakery, not by an apology — but the head is corrected:
+ * a 404 must never claim to be the canonical homepage, and must not invite
+ * indexing under its own URL. */
+{
+  let html = readFileSync(join(dist, 'index.html'), 'utf8')
+  html = html
+    .replace(/\s*<link rel="canonical"[^>]*>/, '')
+    .replace(/<meta name="robots" content="[^"]*"/, '<meta name="robots" content="noindex, follow"')
+    .replace(/<title>[^<]*<\/title>/, '<title>Síðan fannst ekki — Reynir bakarí</title>')
+  writeFileSync(join(dist, '404.html'), html)
+  console.log('reynir-post: 404.html (noindex, no canonical, real 404 status — no SPA catch-all)')
+}
 
 /* 5 ── icon inheritance guard */
 execFileSync('node', ['tools/favicon-guard.mjs', dist], { stdio: 'inherit' })
