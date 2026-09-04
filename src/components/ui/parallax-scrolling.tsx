@@ -237,7 +237,14 @@ function plateGeom(p: ParallaxPlate) {
      on the way out that duplicate crest landed in the middle of the frame at
      rest with its lit band under it. Below the hem is flat fill, which those
      rows already are, so there is nothing to see and nothing repeats. */
-  const HEM = 0.25
+  /* 0.36, not 0.25. On a 1490x1230 frame the image plus a quarter-height hem
+     ran out 600px before the bottom of the descent's last frame, and the
+     way out's first frame sat even further up the tail — both landed on flat
+     fill, which is the "generic brown background" back again. 36% is as far
+     as the mirror can go before it runs back up into the lit falloff (the
+     last 37% of the plate is floor); below that the fill carries grain of
+     its own, so no frame is ever a painted colour. */
+  const HEM = 0.36
   const hem: CSSProperties = {
     height: `${(HEM * K).toFixed(3)}vw`,
     backgroundImage: `url(${p.src})`,

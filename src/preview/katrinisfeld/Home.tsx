@@ -120,7 +120,12 @@ const HERO_ROOM: ReadonlyArray<ParallaxLayer> = [
    bottom edge — the same row of pixels meeting itself, seamless by
    construction rather than by encoding — and then FLOOR, which is the colour
    those rows already resolve to. Nothing is tiled anywhere on this page. */
-const FLOOR = '#1D1B19'
+/* 3.5 levels UNDER the page's charcoal, deliberately. The tail below every
+   plate carries a grain overlay, and overlay is not quite mean-neutral on a
+   base this dark — measured, it lifted the region to 30.5 against the hem's
+   27, a faint line inside the way out's rest frame. Fill plus grain now lands
+   on 27, which is what the hem is and what the page is. */
+const FLOOR = '#181614'
 
 const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
   { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,

@@ -157,6 +157,20 @@
   background-size: 100% auto;
 }
 .parallax__plate-tail { bottom: 0; }
+/* the last resort under the hem, for frames taller than the mirror can cover:
+   grain, not a pattern — fractal noise at a few levels' amplitude has nothing
+   in it to recognise or to repeat, so the deepest fill still reads as material
+   rather than as paint. OVERLAY, not a plain composite: noise averages
+   mid-grey, and laid straight over the fill at 7.5% it lifted the whole
+   region six levels, which put a step back at the one join that has to be
+   invisible. Overlay with mid-grey is the identity, so the mean stays exactly
+   the fill's and only the grain is added. */
+.parallax__plate-tail::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat; background-size: 220px 220px;
+  mix-blend-mode: overlay; opacity: .55;
+}
 /* NO REPEAT ANYWHERE. One mirror of the plate's own last rows, then the fill
    those rows already resolve to. Repeating anything here — even a tile built
    to be seamless on both axes — puts the same shape down the screen over and
