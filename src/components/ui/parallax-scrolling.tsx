@@ -317,13 +317,22 @@ export function ParallaxComponent({
         tl.fromTo(deepEl,
           { autoAlpha: 0, y: 34 },
           { autoAlpha: 1, y: 0, ease: 'none', duration: 0.26 }, deepAt)
-        /* anything inside it marked for a stagger lands one after another,
-           just behind the block itself — strata settling, not a list popping */
+        /* the headline arrives a word at a time — WhisperText's own move, on
+           this scrub instead of its own trigger, because its trigger element is
+           on screen from the moment the pin engages */
+        const words = deepEl.querySelectorAll('[data-parallax-word]')
+        if (words.length) {
+          tl.fromTo(words,
+            { autoAlpha: 0, x: -14 },
+            { autoAlpha: 1, x: 0, ease: 'power2.out', duration: 0.08, stagger: 0.025 }, deepAt + 0.02)
+        }
+        /* and anything else marked for a stagger lands after it, one by one —
+           specimens set down on a shelf, not a list popping */
         const stag = deepEl.querySelectorAll('[data-parallax-stagger]')
         if (stag.length) {
           tl.fromTo(stag,
-            { autoAlpha: 0, y: 16 },
-            { autoAlpha: 1, y: 0, ease: 'none', duration: 0.10, stagger: 0.035 }, deepAt + 0.06)
+            { autoAlpha: 0, y: 18 },
+            { autoAlpha: 1, y: 0, ease: 'none', duration: 0.10, stagger: 0.04 }, deepAt + 0.12)
         }
       }
       const cornerEl = triggerElement.querySelector('[data-parallax-corner]')

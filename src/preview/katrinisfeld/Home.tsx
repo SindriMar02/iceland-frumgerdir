@@ -24,6 +24,8 @@ import {
    ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
    it is the one the registry omits, measured off the running demo. */
 import { ParallaxComponent, type ParallaxLayer, type ParallaxPlate } from '@/components/ui/parallax-scrolling'
+/* 21st.dev WhisperText, in managed mode: the pinned scrub owns its timing */
+import { WhisperText } from '@/components/ui/whisper-text'
 /* the gate's own light has to be the page's cream to the level, not a second
    near-cream picked by eye — it releases straight onto the section below it */
 import { COLOURS } from './styles'
@@ -40,15 +42,13 @@ const CARD_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw'
  * from the summer house beams, steinn from the Fljótshlíð island, and the
  * wine that is the Súluhöfða kitchen and this site's own accent.
  */
-interface Material { id: string; name: string; hex: string; alt: string; dark?: boolean }
+interface Material { id: string; name: string; hex: string; alt: string }
 const MATERIALS: ReadonlyArray<Material> = [
   { id: 'm-hor', name: 'Hör', hex: '#E0D5CD', alt: 'Hör í mjúkum fellingum, grófur vefnaður í dagsbirtu' },
   { id: 'm-kopar', name: 'Kopar', hex: '#D09957', alt: 'Koparflötur með mattri áferð og fínum slípuðum þráðum' },
-  /* eik reads as light now: the swatch was re-cropped to the lit oak, and
-     cream type on it was invisible — measured, the crop averages #9D7D60 */
   { id: 'm-eik', name: 'Eik', hex: '#8E7054', alt: 'Eikarborð með opinni æð og sýnilegri sagaráferð' },
-  { id: 'm-vinraut', name: 'Vínrautt', hex: '#8C3A34', alt: 'Vínrauður mattur lakkflötur með fíngerðri áferð', dark: true },
-  { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
+  { id: 'm-vinraut', name: 'Vínrautt', hex: '#8C3A34', alt: 'Vínrauður mattur lakkflötur með fíngerðri áferð' },
+  { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum' },
 ]
 
 /* THE TWO GATES.
@@ -222,6 +222,12 @@ export function Home() {
         plates={HERO_PLATES}
         sticky
         smooth
+        /* 210, not 240: the swallow is done by 0.4 and the specimens are set
+           down by 0.9, and the rest was dark with nothing in it. Travel is in
+           frame heights, so a shorter pin only changes how much scroll the
+           same move takes — the geometry is identical. */
+        scroll="210svh"
+        deepAt={0.5}
         titleYPercent={-55}
         title={
           <div className="ki-plx-scene">
@@ -261,11 +267,18 @@ export function Home() {
         deep={
           <div className="ki-plx-deep ki-plx-deep--strata">
             <p className="ki-plx-deep-kicker">Rýmið man</p>
-            <h2 className="ki-strata-title">Efnin bera rýmið.</h2>
+            <WhisperText as="h2" text="Efnin bera rýmið." className="ki-strata-title" managed />
+            {/* SPECIMENS, NOT A TABLE. Five samples standing on a shelf: cut to
+                no two the same height, a hairline mount around each, and the
+                name set BELOW the material rather than on it, so the material
+                is only ever itself. The first version was five equal bands in
+                a box with the label printed across them — a colour picker. */}
             <ul className="ki-strata">
               {MATERIALS.map((m) => (
-                <li key={m.id} className={`ki-stratum${m.dark ? ' is-dark' : ''}`} data-parallax-stagger>
-                  <Photo id={m.id} alt={m.alt} sizes="(max-width: 860px) 92vw, 660px" />
+                <li key={m.id} className="ki-stratum" data-parallax-stagger>
+                  <figure className="ki-stratum-fig">
+                    <Photo id={m.id} alt={m.alt} sizes="(max-width: 860px) 44vw, 170px" />
+                  </figure>
                   <span className="ki-stratum-name">{m.name}</span>
                   <span className="ki-stratum-hex">{m.hex}</span>
                 </li>
@@ -292,8 +305,10 @@ export function Home() {
         <p className="ki-strata-title">Efnin bera rýmið.</p>
         <ul className="ki-strata">
           {MATERIALS.map((m) => (
-            <li key={m.id} className={`ki-stratum${m.dark ? ' is-dark' : ''}`}>
-              <Photo id={m.id} alt="" sizes="(max-width: 860px) 92vw, 660px" />
+            <li key={m.id} className="ki-stratum">
+              <figure className="ki-stratum-fig">
+                <Photo id={m.id} alt="" sizes="(max-width: 860px) 44vw, 170px" />
+              </figure>
               <span className="ki-stratum-name">{m.name}</span>
               <span className="ki-stratum-hex">{m.hex}</span>
             </li>
@@ -313,6 +328,12 @@ export function Home() {
         sticky
         smooth
         gate
+        /* 170: the light shows once the near plate's crest clears the frame's
+           bottom, 0.6 of the way through, and at 240svh that was 670px of
+           dark rock between the last line on the stone and the first light —
+           "the stone background lasts too long after Efnin bera rýmið". At 170
+           it is 340px, and the whole lift is over in 560. */
+        scroll="170svh"
         backdrop={`linear-gradient(to bottom, ${COLOURS.CREAM} 0%, #F7F3EC 54%, ${COLOURS.CREAM} 100%)`}
         ground={COLOURS.CREAM}
         deepAt={0.66}
@@ -320,7 +341,7 @@ export function Home() {
         deep={
           <div className="ki-gate-deep">
             <span className="ki-gate-rule" aria-hidden="true" />
-            <h2 className="ki-gate-title">Hvert verkefni fær sinn eigin litheim.</h2>
+            <WhisperText as="h2" text="Hvert verkefni fær sinn eigin litheim." className="ki-gate-title" managed />
             <p className="ki-gate-body">
               Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir eru ekki
               valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og

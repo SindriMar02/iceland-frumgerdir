@@ -432,36 +432,59 @@ export const CSS = `
 }
 .ki-plx-deep-cta { margin: calc(var(--u) * 34) 0 0; }
 
-/* ── THE STRATA ──────────────────────────────────────────────────────────
-   Her five materials as five layers of real material, stacked the way rock
-   is, found at the bottom of the descent. Each carries its name and the exact
-   colour the site uses for it; the name goes light or dark by the material
-   under it, because hör is nearly white and steinn nearly black. */
-.ki-plx-deep--strata { max-width: calc(var(--u) * 700); }
+/* ── THE SPECIMENS ───────────────────────────────────────────────────────
+   Her five materials, found at the bottom of the descent — as five samples
+   standing on a shelf rather than as a table. No box. Cut to no two the same
+   height, so they read as hand-cut; a hairline mount around each, the same
+   one the newest-project card carries; and the name set BELOW the material
+   in the display face, with the site's own colour value under it as a quiet
+   specimen label. The material is only ever itself. */
+.ki-plx-deep--strata { max-width: calc(var(--u) * 1100); width: 100%; }
 .ki-strata-title {
-  margin: 0 0 calc(var(--u) * 30);
+  margin: 0 0 calc(var(--u) * 44);
   font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
   font-size: ${fluid(58, 32)}; color: #F2ECE3;
 }
-.ki-strata { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 2px; }
-.ki-stratum {
-  position: relative; overflow: hidden; margin: 0;
-  height: clamp(42px, 6.4svh, 58px);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 calc(var(--u) * 22);
-  color: ${INK};
+.ki-strata {
+  list-style: none; margin: 0; padding: 0; width: 100%;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  /* room to breathe: these are the only photographs the page has made for
+     itself, and they were being shown at a hundred and fifty pixels */
+  gap: calc(var(--u) * 44); align-items: end;
 }
-.ki-stratum.is-dark { color: #F4EEE6; }
-.ki-stratum picture, .ki-stratum img {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; margin: 0;
+.ki-stratum { margin: 0; display: grid; gap: 4px; justify-items: start; text-align: left; }
+.ki-stratum-fig {
+  width: 100%; margin: 0 0 12px; overflow: hidden;
+  outline: 1px solid rgb(242 236 227 / .18); outline-offset: 5px;
 }
-.ki-stratum-name, .ki-stratum-hex { position: relative; }
-.ki-stratum-name { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(22, 17)}; letter-spacing: .012em; }
-.ki-stratum-hex { font-family: ${MONO}; font-size: ${fluid(11, 10.5)}; letter-spacing: .18em; opacity: .78; }
-.ki-plx-deep--strata .ki-cta { color: #F2ECE3; }
+/* hand-cut: the shelf is level and the tops are not */
+.ki-stratum:nth-child(1) .ki-stratum-fig { aspect-ratio: 4 / 5.3; }
+.ki-stratum:nth-child(2) .ki-stratum-fig { aspect-ratio: 4 / 4.5; }
+.ki-stratum:nth-child(3) .ki-stratum-fig { aspect-ratio: 4 / 5.0; }
+.ki-stratum:nth-child(4) .ki-stratum-fig { aspect-ratio: 4 / 4.2; }
+.ki-stratum:nth-child(5) .ki-stratum-fig { aspect-ratio: 4 / 5.6; }
+.ki-stratum-fig picture, .ki-stratum-fig img { width: 100%; height: 100%; object-fit: cover; margin: 0; }
+.ki-stratum-name { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(24, 17)}; letter-spacing: .01em; color: #F2ECE3; }
+.ki-stratum-hex { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .18em; color: #9E9385; }
 .ki-strata-line {
-  margin: calc(var(--u) * 30) 0 0; max-width: 46ch;
+  margin: calc(var(--u) * 40) auto 0; max-width: 46ch;
   font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(22, 17)}; line-height: 1.42; color: #D9D1C5;
+}
+.ki-plx-deep--strata .ki-cta { color: #F2ECE3; }
+/* words arrive one at a time; each is its own box so it can move alone */
+.ki-whisper > span { display: inline-block; white-space: nowrap; }
+.ki-whisper > span + span { margin-left: .26em; }
+/* on a phone five columns are sixty pixels each: it becomes a shelf you
+   swipe along instead, the same native strip the journey uses on touch */
+@media (max-width: 860px) {
+  .ki-plx-deep--strata { max-width: none; }
+  .ki-strata {
+    display: flex; align-items: flex-end; gap: 14px;
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    padding: 6px 4px 6px; margin-left: -4px;
+  }
+  .ki-strata::-webkit-scrollbar { display: none; }
+  .ki-stratum { flex: 0 0 44vw; scroll-snap-align: center; }
 }
 /* the reduced-motion copy, in flow, hidden everywhere else */
 .ki-strata-static { display: none; padding: calc(var(--u) * 90) calc(var(--u) * 34); text-align: center; }
@@ -475,9 +498,25 @@ export const CSS = `
    the frame, which is the one place on the landing page that is not her
    photograph, and it is the one thing there that asks to be clicked. */
 .ki-newest {
+  position: relative;
   display: flex; align-items: center; gap: calc(var(--u) * 18);
   color: #F2ECE3; text-decoration: none;
-  max-width: calc(var(--u) * 360);
+  /* 360u collapsed the text column to 126px on a 912-wide frame, so BOTH the
+     kicker and the name broke over two lines each and it read as a cramped
+     block rather than as a label. Sized off the frame with a real cap: the
+     name gets one line where it fits and two clean ones where it does not. */
+  max-width: min(calc(100vw - clamp(120px, 22vw, 260px)), calc(var(--u) * 430));
+}
+/* NOT A BOX. The same soft radial the material captions use, inset NEGATIVE so
+   it has no edge of its own — it fades out before the card's own bounds and
+   simply stops the type depending on what the photograph happens to be doing
+   underneath it. On the island it is nearly invisible; over the lit teeth of
+   the rock it is the difference between legible and not. */
+.ki-newest::before {
+  content: ''; position: absolute; inset: -22px -34px -20px -26px; z-index: -1;
+  background: radial-gradient(72% 120% at 52% 50%,
+    rgb(12 10 9 / .78) 0%, rgb(12 10 9 / .52) 48%, rgb(12 10 9 / 0) 82%);
+  pointer-events: none;
 }
 .ki-newest-fig {
   flex: 0 0 auto; width: calc(var(--u) * 96); aspect-ratio: 4 / 3; overflow: hidden;
@@ -485,9 +524,10 @@ export const CSS = `
   transition: outline-color .5s ${OUT};
 }
 .ki-newest-fig picture, .ki-newest-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ${OUT}; }
-.ki-newest-text { display: grid; gap: 4px; min-width: 0; }
-.ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #E6DCCD; }
-.ki-newest-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(18, 15)}; line-height: 1.2; }
+.ki-newest-text { display: grid; gap: 5px; min-width: 0; }
+/* the label is a label: it never breaks */
+.ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #E6DCCD; white-space: nowrap; }
+.ki-newest-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(19, 16)}; line-height: 1.24; text-wrap: balance; }
 .ki-newest-arrow {
   flex: 0 0 auto; width: 18px; height: 18px; background: #D9A87E;
   -webkit-mask: var(--ki-arrow) center / contain no-repeat;
