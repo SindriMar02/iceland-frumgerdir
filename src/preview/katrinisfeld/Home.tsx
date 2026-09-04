@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
   Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay,
-  type HPanel, type HOver,
+  type HPanel,
 } from './kit'
 /* 21st.dev @osmosupply/parallax-scrolling, integrated as shipped — GSAP +
    ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
@@ -130,6 +130,37 @@ const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
     crest: 0.0523, restAt: 0.88, travel: -1.82, tail: ROCK, fill: FLOOR },
   { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
     crest: 0.0559, restAt: 0.90, travel: -2.25, tail: ROCK, fill: FLOOR },
+
+  /* AND THE SAME DESCENT CLOSING FROM ABOVE.
+     The ground rising was only half of it. Everything below the hero used to
+     begin with rock arriving upside down in a NEW section, which is exactly
+     what it looked like: a random inverted seam, stones suddenly the wrong
+     way up, a thing that started rather than a thing that continued. These
+     three are on the hero's own timeline, so it is one move — the ground
+     comes up, the ceiling comes down to meet it, and by the bottom of the
+     pin the frame is sealed. There is no stone anywhere on the page after it.
+
+     THE SAME THREE FILES, MIRRORED. Not a second formation — the identical
+     photographs, flipped, so every column in the ceiling is the same column
+     as the one rising to meet it, in the same place across the frame, at the
+     same scale. Their silhouettes are therefore exact mirrors of each other,
+     and when the two edges pass at 0.29 of the scrub they interlock tooth
+     for tooth: one stone mass closing, not two rocks arriving. Using a
+     different formation up there was what made it read as an inverted seam.
+
+     Rest positions are the ground's own, mirrored (0.14 / 0.12 / 0.10 from
+     the top) and then carried up half a frame so nothing shows at the top
+     before the descent starts — the landing frame is the room, her name and
+     one band of ground along the bottom, exactly as it was. Travel keeps the
+     ground's ratio, scaled so the near plate's lit edge is far enough past
+     the bottom by the end that the last frame is floor colour to within
+     three levels — the colour the journey below is painted in. */
+  { layer: '6', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
+    crest: 0.0488, restAt: -0.48, travel: 1.65, tail: ROCK, fill: FLOOR, flip: true },
+  { layer: '7', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
+    crest: 0.0523, restAt: -0.50, travel: 2.10, tail: ROCK, fill: FLOOR, flip: true },
+  { layer: '8', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
+    crest: 0.0559, restAt: -0.52, travel: 2.60, tail: ROCK, fill: FLOOR, flip: true },
 ]
 
 /* THE ASCENT — the same move turned over.
@@ -155,30 +186,12 @@ const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
    what two of the three planes exist to prevent. -0.62 spreads the crossings
    to 0.17 / 0.40 / 0.57, so there are three and then four distinct bands in
    the frame and they peel off the bottom one at a time. */
-/* THE OVERHANG — the descent's own three plates, upside down.
-   The passage used to sit on a mirror-tiled stone texture, and a mirror-tiled
-   texture is cropped and pasted stone: at any contrast where the rock is
-   legible the repeat is legible too. These are the SAME FILES the descent
-   uses, flipped in CSS so the silhouette hangs downward, so it is real
-   photographed rock with a real fractured edge and nothing is repeated.
-
-   They come from ABOVE and deepen as the journey runs — the descent's move
-   reversed, because the ground does not rise from the bottom twice. Every
-   crest starts just OFF the top of the frame, so the passage begins on the
-   same dark the descent ends on and the rock arrives as you start moving:
-   started on screen, the overhang's shadowed rock met the descent's lit floor
-   on a hard line, 13 levels apart. By the end it is a quarter of the frame.
-   They drift left with the strip at three different rates, which is the
-   depth. The panels ride low enough that the deepest plate never reaches
-   them. */
-const OVERHANG: ReadonlyArray<HOver> = [
-  { src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800, crest: 0.0488,
-    from: -0.03, to: 0.215, drift: 0.090 },
-  { src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800, crest: 0.0523,
-    from: -0.06, to: 0.240, drift: 0.120 },
-  { src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800, crest: 0.0559,
-    from: -0.09, to: 0.270, drift: 0.145 },
-]
+/* THE OVERHANG IS GONE. Twice now the horizontal chapter has been given stone
+   of its own — a mirror-tiled wall, then the descent's plates flipped — and
+   both times it read as a second, separate stone event arriving after the
+   first had finished. The stone is ONE move now and it happens in the hero:
+   the ground rises, the ceiling closes, done. This section is simply the dark
+   that move ends on, and there is no stone background anywhere below it. */
 
 const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
   { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
@@ -283,7 +296,7 @@ export function Home() {
         }
       />
 
-      {/* 02 · THE PASSAGE — the distance travelled inside the rock.
+      {/* 02 · the journey sideways, on the dark the descent sealed over.
           The opening line used to be a section of its own, sitting still on
           the stone above this; it is the chapter's first panel now, so the
           journey starts by being introduced rather than by a card sliding in.
@@ -298,7 +311,6 @@ export function Home() {
           'þau voru ljósmynduð.'
         }
         panels={CHAPTER}
-        over={OVERHANG}
       />
 
       {/* 03 · THE GATE OUT — fired the moment the passage ends.

@@ -21,6 +21,15 @@ const geo = await page.evaluate(()=>{
 })
 console.log('hero', geo.hero, '\npassage', geo.pass, '\ngate', geo.gate, '\ndoc', geo.doc, 'track', geo.track)
 const shots = {
+  'h-00': geo.hero.top,
+  'h-10': geo.hero.top + (geo.hero.h-800)*0.10,
+  'h-20': geo.hero.top + (geo.hero.h-800)*0.20,
+  'h-29': geo.hero.top + (geo.hero.h-800)*0.29,
+  'h-35': geo.hero.top + (geo.hero.h-800)*0.35,
+  'h-50': geo.hero.top + (geo.hero.h-800)*0.50,
+  'h-62': geo.hero.top + (geo.hero.h-800)*0.62,
+  'h-75': geo.hero.top + (geo.hero.h-800)*0.75,
+  'h-88': geo.hero.top + (geo.hero.h-800)*0.88,
   'hero-end':   geo.hero.top + geo.hero.h - 800,
   'pass-00':    geo.pass.top,
   'pass-25':    geo.pass.top + (geo.pass.h-800)*0.25,

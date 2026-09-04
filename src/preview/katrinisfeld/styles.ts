@@ -441,17 +441,17 @@ export const CSS = `
    rock moves sideways now, with the journey, on the same scroll arithmetic
    as the track: a wall at 0.18 of its speed and a nearer mass along the
    bottom at 0.55. Depth from the ratio, as in both gates; nothing scaled. */
-/* the shadow under an overhang, not a background: one lighting gradient, no
-   texture and nothing tiled. The rock above it is real and photographed; this
-   is what is under it. */
+/* THE DARK THE DESCENT SEALED OVER. No stone of its own: the whole stone move
+   — ground up, ceiling down — happens once, in the hero, and finishes on
+   exactly this colour. This section is what it finished on. */
 .ki-hs {
   position: relative;
-  /* it dips and comes back: the section is 5300px tall and the sticky frame
-     travels down it, so this is the tone of the journey over time — deepest in
-     the middle of the passage, and back on the descent's own floor colour at
-     both ends, because those are the two frames that have to match the plate
-     above it and the gate below it exactly */
-  background: linear-gradient(to bottom, ${CHARCOAL} 0%, #17150F 50%, ${CHARCOAL} 100%);
+    /* it dips and comes back: the section is 5000px tall and the sticky frame
+     travels down it, so this is the tone of the journey over time — a little
+     deeper in the middle, and back on the descent's own floor colour at both
+     ends, because those are the two frames that have to match the sealed
+     frame above it and the gate's own rest state below it, exactly */
+  background: linear-gradient(to bottom, ${CHARCOAL} 0%, #191714 50%, ${CHARCOAL} 100%);
 }
 /* THE BAND HAS TO BE TALLER THAN THE STRIP ON TOUCH.
    Without this the section is exactly as tall as one row of cards — 370px on
@@ -462,28 +462,6 @@ export const CSS = `
   min-height: 74svh; display: flex; align-items: flex-end;
   padding-bottom: calc(var(--u) * 40);
 }
-.ki-hs-rock { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-/* 130% wide with 15% hanging off each side, so the plate still covers the
-   frame after it has drifted with the strip */
-.ki-hs-over { position: absolute; left: -15%; width: 130%; display: block; will-change: transform; }
-.ki-hs-over-face {
-  position: absolute; inset: 0; display: block;
-  background-repeat: no-repeat; background-position: top center; background-size: 100% auto;
-  /* THE WHOLE TRICK: the descent's own plate, turned over. The silhouette
-     that rose out of the bottom of the landing page hangs down from the top
-     of this one, and it is the same file — same rock, same keyed fracture,
-     same grade — so nothing had to be invented, cropped or repeated. */
-  transform: scaleY(-1);
-  /* AN OVERHANG IS LIT FROM ABOVE, WHICH MEANS ITS UNDERSIDE IS NOT.
-     The band the plate is keyed along is its LIT one — on the landing page
-     that band is the ground at the bottom of the frame catching the sky, and
-     it is right that it is the brightest thing there. Flipped to the top of
-     this frame it became a glowing ceiling: physically backwards, and the
-     brightest object on a screen whose whole job is her photographs. Dropped
-     into shadow it is the same rock in the place the light does not reach. */
-  filter: brightness(0.4) saturate(0.92);
-}
-
 .ki-hs-track {
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: calc(var(--u) * 96);
@@ -558,7 +536,6 @@ export const CSS = `
 /* no pin, no counter-move: reduced motion gets the plain strip */
 @media (prefers-reduced-motion: reduce) {
   .ki-js .ki-hs-img[data-ki-hpar] { transform: none !important; }
-  .ki-hs-over { transform: none !important; }
 }
 
 /* ── material bands: the palette, carried by the material ─────────────── */

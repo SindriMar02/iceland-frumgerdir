@@ -150,6 +150,7 @@
 }
 .parallax__plate-face {
   top: 0;
+  bottom: auto;
   background-repeat: no-repeat;
   background-position: top center;
   background-size: 100% auto;

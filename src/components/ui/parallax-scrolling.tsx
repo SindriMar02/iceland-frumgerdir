@@ -86,8 +86,9 @@ export interface ParallaxLayer {
  * keeps its timing.
  */
 export interface ParallaxPlate {
-  /** the registry's numbering: 2 and 5 sit behind the type, 4 in front */
-  layer: '2' | '5' | '4'
+  /** the registry's numbering: 2 and 5 sit behind the type, 4 in front.
+   *  6/7/8 are in front of 4 — the ceiling that closes over the ground. */
+  layer: '2' | '5' | '4' | '6' | '7' | '8'
   src: string
   /** the plate's own pixels, for the image's aspect */
   width: number
@@ -97,6 +98,12 @@ export interface ParallaxPlate {
   travel: number
   tail: string
   fill: string
+  /** TURNED OVER: the silhouette points DOWN and the body hangs above it, so
+   *  the plate closes over the frame from the top instead of rising into it
+   *  from the bottom. Same file either way — the descent's second half is the
+   *  same rock coming the other way, not a different asset and not a
+   *  different section. */
+  flip?: boolean
   alt?: string
 }
 
@@ -197,22 +204,24 @@ function plateGeom(p: ParallaxPlate) {
   /* the image is laid at 100% of the box width, so its rendered height is a
      fixed number of viewport widths and the rock keeps its proportions */
   const K = (100 * p.height) / p.width
-  const box: CSSProperties = {
-    top: `calc(${(p.restAt * 100).toFixed(3)}% - ${(p.crest * K).toFixed(3)}vw)`,
-    /* six frames of box plus the image itself. Six covers every case: the
-       furthest the box top ever sits above the frame is
-       (1 - restAt + |travel|) frames, and that is 4.7 at the very worst. */
-    height: `calc(600% + ${K.toFixed(3)}vw)`,
-  }
-  const face: CSSProperties = {
-    height: `${K.toFixed(3)}vw`,
-    backgroundImage: `url(${p.src})`,
-  }
-  const tail: CSSProperties = {
-    top: `${K.toFixed(3)}vw`,
-    backgroundColor: p.fill,
-    backgroundImage: `url(${p.tail})`,
-  }
+  /* six frames of box plus the image itself. Six covers every case: the
+     furthest the box edge ever sits outside the frame is
+     (1 - restAt + |travel|) frames, and that is 4.7 at the very worst. */
+  const height = `calc(600% + ${K.toFixed(3)}vw)`
+  const box: CSSProperties = p.flip
+    /* top:auto is not decoration: .parallax__layer-img carries the registry's
+       own top:-17.5%, and when top, bottom and height are all set CSS keeps
+       top and throws bottom away — the flipped plates were silently sitting
+       where the un-flipped ones do and never appeared at all */
+    ? { top: 'auto', bottom: `calc(${((1 - p.restAt) * 100).toFixed(3)}% - ${(p.crest * K).toFixed(3)}vw)`, height }
+    : { top: `calc(${(p.restAt * 100).toFixed(3)}% - ${(p.crest * K).toFixed(3)}vw)`, height }
+  const face: CSSProperties = p.flip
+    ? { bottom: 0, top: 'auto', height: `${K.toFixed(3)}vw`, backgroundImage: `url(${p.src})`,
+        transform: 'scaleY(-1)' }
+    : { height: `${K.toFixed(3)}vw`, backgroundImage: `url(${p.src})` }
+  const tail: CSSProperties = p.flip
+    ? { top: 0, bottom: `${K.toFixed(3)}vw`, backgroundColor: p.fill, backgroundImage: `url(${p.tail})` }
+    : { top: `${K.toFixed(3)}vw`, backgroundColor: p.fill, backgroundImage: `url(${p.tail})` }
   return { box, face, tail }
 }
 
@@ -399,14 +408,14 @@ export function ParallaxComponent({
                 style={{ backgroundImage: `url(${l.src})` }}
               />
             ))}
-            {plates.filter((p) => p.layer !== '4').map(plate)}
+            {plates.filter((p) => p.layer === '2' || p.layer === '5').map(plate)}
             {hasTitle && (
               <div data-parallax-layer="3" className="parallax__layer-title">
                 {title}
               </div>
             )}
             {deepBehind && deepNode}
-            {plates.filter((p) => p.layer === '4').map(plate)}
+            {plates.filter((p) => p.layer !== '2' && p.layer !== '5').map(plate)}
             {!deepBehind && deepNode}
           </div>
           <div className="parallax__fade" />

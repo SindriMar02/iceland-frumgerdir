@@ -13,19 +13,16 @@ await (await page.createCDPSession()).send('Emulation.setEmulatedMedia',{feature
 await page.goto(`http://localhost:${port}/`,{waitUntil:'networkidle0'})
 await page.evaluate(()=>{document.querySelector('.ki-curtain')?.remove();document.documentElement.style.scrollBehavior='auto'})
 await new Promise(r=>setTimeout(r,1000))
-const top = await page.evaluate(()=>{const e=document.querySelector('.ki-hs');return e.getBoundingClientRect().top+window.scrollY})
-for (const [n,dy,sl] of [['m-pass-a',0,0],['m-pass-b',0,900],['m-pass-c',0,2600]]) {
-  await page.evaluate((y,sl)=>{window.scrollTo(0,y);const t=document.querySelector('.ki-hs-track');t.scrollLeft=sl;t.dispatchEvent(new Event('scroll'));window.dispatchEvent(new Event('scroll'))}, top+dy, sl)
-  await new Promise(r=>setTimeout(r,350))
+const g = await page.evaluate(()=>{const e=document.querySelector('.parallax--sticky')
+  return {top:e.getBoundingClientRect().top+window.scrollY, span:e.getBoundingClientRect().height - e.querySelector('.parallax__header').clientHeight}})
+for (const [n,p] of [['m-h-40',0.40],['m-h-58',0.58],['m-h-72',0.72],['m-h-100',1.0]]) {
+  for (let k=0;k<3;k++){ await page.evaluate((y)=>{window.scrollTo(0,y);window.dispatchEvent(new Event('scroll'))}, g.top+g.span*p); await new Promise(r=>setTimeout(r,120)) }
   await page.screenshot({path:`/tmp/ki-gate/${n}.png`})
 }
 const st = await page.evaluate(()=>{
-  const sec=document.querySelector('.ki-hs'), pin=document.querySelector('.ki-hs-pin')
-  const rock=document.querySelector('.ki-hs-rock'), tr=document.querySelector('.ki-hs-track')
-  const R=(e)=>{const r=e.getBoundingClientRect();return `${Math.round(r.top)}..${Math.round(r.bottom)} (h ${Math.round(r.height)})`}
-  return { sec:R(sec), pin:R(pin), rock:R(rock), track:R(tr),
-    trackScrollW: tr.scrollWidth, trackClientW: tr.clientWidth,
-    over:[...document.querySelectorAll('.ki-hs-over')].map(e=>R(e)+' '+getComputedStyle(e).transform) }
+  const H = document.querySelector('.parallax__header').getBoundingClientRect()
+  return ['6','7','8'].map(l=>{const e=document.querySelector(`[data-parallax-layer="${l}"]`)
+    const r=e.getBoundingClientRect(); return `L${l} bottom ${Math.round(r.bottom-H.top)}`}).join('  ')
 })
-console.log(JSON.stringify(st,null,1))
+console.log('mobile, end of descent:', st)
 await br.close(); srv.close()

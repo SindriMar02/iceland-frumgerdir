@@ -87,7 +87,7 @@ for (const v of VIEWS) {
         const gate = document.querySelectorAll('.parallax--sticky')[gi]
         const H = gate.querySelector('.parallax__header').getBoundingClientRect()
         const out = {}
-        for (const l of ['1','2','5','3','4']) {
+        for (const l of ['1','2','5','3','4','6','7','8']) {
           const el = gate.querySelector(`[data-parallax-layer="${l}"]`)
           if (!el) continue
           const r = el.getBoundingClientRect()

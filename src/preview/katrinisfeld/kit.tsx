@@ -267,63 +267,16 @@ export interface HPanel {
  * thing that got called "jittery and doesn't work well" on Sauðárkróksbakarí
  * — but the rock still travels there, driven off the strip's own scrollLeft.
  */
-/** an overhang plate: the landing page's own stone, upside down.
- *  crest is where the silhouette sits in the source image (0..1 from ITS
- *  top); flipped, it lands at (1 - crest) of the element. from/to are where
- *  that silhouette sits in the frame at the start and the end of the journey,
- *  as fractions of the frame height; drift is how far it slides left over the
- *  same journey, as a fraction of the frame width. */
-export interface HOver {
-  src: string
-  width: number
-  height: number
-  crest: number
-  from: number
-  to: number
-  drift: number
-}
-
-export function HorizontalChapter({ eyebrow, headline, body, panels, over }: {
+export function HorizontalChapter({ eyebrow, headline, body, panels }: {
   eyebrow: string
   headline: string
   body: string
   panels: ReadonlyArray<HPanel>
-  over: ReadonlyArray<HOver>
 }) {
   const count = panels.filter((p) => p.to).length
   return (
     <section className="ki-hs" data-ki-band="dark" data-ki-hscroll>
       <div className="ki-hs-pin">
-        {/* THE OVERHANG — the landing page's stones, upside down.
-            It used to be a mirror-tiled texture, and a mirror-tiled texture is
-            cropped and pasted stone: at any contrast where the rock is legible
-            the repeat is legible too, and it looked exactly like what it was.
-            These are the SAME THREE PLATES the descent uses, the same keyed
-            photograph, flipped so the silhouette hangs downward — real rock
-            with a real edge, and nothing repeated. They come from above and
-            deepen as the journey runs, which is the descent's own move
-            reversed; the ground does not rise from the bottom twice. */}
-        <div className="ki-hs-rock" aria-hidden="true">
-          {over.map((o, i) => {
-            /* the box is 130% wide so it still covers the frame after it has
-               drifted; the image is laid at 100% of THAT, so its rendered
-               height is 130 x its own aspect, in viewport widths */
-            const K = 130 * (o.height / o.width)
-            return (
-              <span
-                key={i}
-                className="ki-hs-over"
-                data-ki-hover={`${o.from} ${o.to} ${o.drift}`}
-                style={{
-                  top: `calc(${(o.from * 100).toFixed(3)}% - ${((1 - o.crest) * K).toFixed(3)}vw)`,
-                  height: `${K.toFixed(3)}vw`,
-                }}
-              >
-                <span className="ki-hs-over-face" style={{ backgroundImage: `url(${o.src})` }} />
-              </span>
-            )
-          })}
-        </div>
         <div className="ki-hs-track">
           <div className="ki-hs-open" data-ki-hpanel>
             <p className="ki-kicker">{eyebrow}</p>
@@ -612,27 +565,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     let hs: Array<{
       track: HTMLElement; start: number; end: number; distance: number
       frames: Array<{ img: HTMLElement; left: number; width: number }>
-      rocks: Array<{ el: HTMLElement; from: number; to: number; drift: number }>
     }> = []
-    /* THE OVERHANG'S OWN MOVE. Down, because it hangs from above and this is
-       the descent reversed; and sideways with the journey, at three different
-       rates, which is the only depth cue here exactly as it is in both gates.
-       The vertical is eased out so most of the deepening happens early — a
-       ceiling that keeps closing at a constant rate for five screens reads as
-       a machine rather than as a place. */
-    const overhang = (r: { el: HTMLElement; from: number; to: number; drift: number }, t: number) => {
-      /* against the BAND, not the window: from/to are already written as
-         percentages of this box in the element's own `top`, and on touch the
-         band is not the viewport — a plate that positioned itself against one
-         and moved against the other landed hundreds of pixels out */
-      const box = (r.el.parentElement ?? r.el).getBoundingClientRect()
-      const e = 1 - (1 - t) * (1 - t)
-      return `translate3d(${(-t * r.drift * box.width).toFixed(2)}px, `
-        + `${((r.to - r.from) * e * box.height).toFixed(2)}px, 0)`
-    }
-    /* the touch build drives the rock off the strip's own scrollLeft, so those
-       listeners have to be taken off again on every re-measure and on unmount */
-    let trackScroll: Array<[HTMLElement, () => void]> = []
     const canPin = window.matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches
     const motion = !reduced()
 
@@ -705,33 +638,15 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
          the section is made exactly as tall as the track overflows wide, so
          the distance the page scrolls is the distance the track moves. */
       hs = []
-      for (const [el, fn] of trackScroll) el.removeEventListener('scroll', fn)
-      trackScroll = []
       for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
         const track = sec.querySelector<HTMLElement>('.ki-hs-track')
         if (!track) continue
-        const rocks = Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hover]'))
-          .map((el) => {
-            const [from, to, drift] = (el.dataset.kiHover || '0 0 0').split(' ').map(parseFloat)
-            return { el, from, to, drift }
-          })
         if (!canPin) {
           sec.style.height = ''; track.style.transform = ''
           // leave nothing clipped or offset behind on the touch build
           for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
             el.style.transform = ''
           }
-          /* the rock still travels on touch — driven off the strip's own
-             scrollLeft rather than off the page, because here the finger is
-             moving the strip and the page is standing still */
-          const onTrack = () => {
-            const d = Math.max(1, track.scrollWidth - track.clientWidth)
-            const t = Math.min(1, Math.max(0, track.scrollLeft / d))
-            for (const r of rocks) r.el.style.transform = overhang(r, t)
-          }
-          track.addEventListener('scroll', onTrack, { passive: true })
-          trackScroll.push([track, onTrack])
-          onTrack()
           continue
         }
         const distance = Math.max(0, track.scrollWidth - window.innerWidth)
@@ -747,7 +662,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
           if (img) frames.push({ img, left: panel.offsetLeft, width: panel.offsetWidth })
         }
         hs.push({
-          track, start: top, end: top + distance, distance, frames, rocks,
+          track, start: top, end: top + distance, distance, frames,
         })
       }
     }
@@ -797,7 +712,6 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
            arithmetic as the track, at a fraction of its speed: the projects
            cross a rock face instead of sitting on a picture of one, and the
            only motion on screen is the one the visitor is making. */
-        for (const r of h.rocks) r.el.style.transform = overhang(r, t)
         /* The track still travels under reduced motion — the chapter is
            navigation, and a strip nobody can reach is worse than a moving
            one. The peel and the counter-move are the decorative half, so
@@ -908,7 +822,6 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     return () => {
       window.removeEventListener('scroll', onFrame)
       window.removeEventListener('resize', onResize)
-      for (const [el, fn] of trackScroll) el.removeEventListener('scroll', fn)
       cancelAnimationFrame(rafId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
