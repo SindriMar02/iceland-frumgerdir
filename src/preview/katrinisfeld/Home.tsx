@@ -24,13 +24,10 @@ import {
    ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
    it is the one the registry omits, measured off the running demo. */
 import { ParallaxComponent, type ParallaxLayer, type ParallaxPlate } from '@/components/ui/parallax-scrolling'
-/* the 21st.dev prebuiltui/image-gallery accordion, installed with the shadcn
-   CLI and pointed at her materials — see the note on the component */
-import ImageGallery, { type GalleryItem } from '@/components/ui/image-gallery'
 /* the gate's own light has to be the page's cream to the level, not a second
    near-cream picked by eye — it releases straight onto the section below it */
 import { COLOURS } from './styles'
-import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
+import { STUDIO, ADDRESS_LINE, HOURS_DAYS_IS, SHOWROOM } from './facts'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH } from './paths'
 
@@ -43,10 +40,13 @@ const CARD_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 46vw, 30vw'
  * from the summer house beams, steinn from the Fljótshlíð island, and the
  * wine that is the Súluhöfða kitchen and this site's own accent.
  */
-const MATERIALS: ReadonlyArray<GalleryItem> = [
+interface Material { id: string; name: string; hex: string; alt: string; dark?: boolean }
+const MATERIALS: ReadonlyArray<Material> = [
   { id: 'm-hor', name: 'Hör', hex: '#E0D5CD', alt: 'Hör í mjúkum fellingum, grófur vefnaður í dagsbirtu' },
   { id: 'm-kopar', name: 'Kopar', hex: '#D09957', alt: 'Koparflötur með mattri áferð og fínum slípuðum þráðum' },
-  { id: 'm-eik', name: 'Eik', hex: '#8E7054', alt: 'Eikarborð með opinni æð og sýnilegri sagaráferð', dark: true },
+  /* eik reads as light now: the swatch was re-cropped to the lit oak, and
+     cream type on it was invisible — measured, the crop averages #9D7D60 */
+  { id: 'm-eik', name: 'Eik', hex: '#8E7054', alt: 'Eikarborð með opinni æð og sýnilegri sagaráferð' },
   { id: 'm-vinraut', name: 'Vínrautt', hex: '#8C3A34', alt: 'Vínrauður mattur lakkflötur með fíngerðri áferð', dark: true },
   { id: 'm-steinn', name: 'Steinn', hex: '#4A3527', alt: 'Dökkur náttúrusteinn með mattri slípun og fínum æðum', dark: true },
 ]
@@ -176,8 +176,16 @@ const CHAPTER: ReadonlyArray<HPanel> = [
   { id: 'p-badherbergi-0', title: 'Baðherbergi', meta: 'Heimili', to: projPath('badherbergi'),
     alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu', wide: true },
 ]
-const ORDER: CategorySlug[] = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
+/* every category, so the grid is the ONLY listing of the work on this page —
+   the register that used to duplicate it further down is gone, and what the
+   grid cannot show as a card it names in a line underneath */
+const ORDER = Object.keys(CATEGORIES) as CategorySlug[]
 const SHOWN = 6
+/* She publishes no dates, so "newest" is the project she lists first — the
+   new-build, the one every other section already treats as the current one.
+   If she ever tells us otherwise, this is the one line to change. */
+const NEWEST = PROJECTS[0]
+const NEWEST_PHOTO = 's-eldhus-vitt'
 
 export function Home() {
   const head: Head = {
@@ -225,46 +233,86 @@ export function Home() {
             </div>
           </div>
         }
-        /* arrives once the frame is stone rather than room — the page's own
-           name, said at the point the descent has actually reached the
-           material it is named after */
+        /* THE NEWEST PROJECT, resting on the ground in the corner. A small
+           photograph, the name, and an arrow that keeps nudging — the one
+           thing on the landing frame that asks to be clicked. It rides above
+           the planes and is gone by a fifth of the descent. */
+        corner={
+          <Link className="ki-newest" to={projPath(NEWEST.slug)}>
+            <span className="ki-newest-fig">
+              <Photo id={NEWEST_PHOTO} alt="" sizes="140px" />
+            </span>
+            <span className="ki-newest-text">
+              <span className="ki-newest-kicker">Nýjasta verkefnið</span>
+              <span className="ki-newest-title">{NEWEST.title}</span>
+            </span>
+            <span className="ki-newest-arrow" aria-hidden="true" />
+          </Link>
+        }
+        /* WHAT IS DOWN HERE: the materials, as strata.
+           The descent has put the visitor inside a material, and the one
+           thing that is true at that depth is her palette — five materials
+           whose colours are taken from the projects themselves, not from a
+           chart. They arrive as five layers of real material, stacked the way
+           rock is, each with its name and the exact colour the site uses for
+           it. It is "Efnin bera rýmið" said where it can be shown rather than
+           asserted, and it ends on the one sentence a screen cannot deliver:
+           the samples are in the studio. */
         deep={
-          <div className="ki-plx-deep">
+          <div className="ki-plx-deep ki-plx-deep--strata">
             <p className="ki-plx-deep-kicker">Rýmið man</p>
-            {/* it used to open on "Efnin bera rýmið", which is the heading the
-                light chapter arrives on further down the page — the same
-                sentence twice, once here and once there */}
-            <p className="ki-plx-deep-line">
-              Steinn, eik, hör og kopar. Efnin eru valin úr verkefnunum
-              sjálfum, ekki úr litakorti.
+            <h2 className="ki-strata-title">Efnin bera rýmið.</h2>
+            <ul className="ki-strata">
+              {MATERIALS.map((m) => (
+                <li key={m.id} className={`ki-stratum${m.dark ? ' is-dark' : ''}`} data-parallax-stagger>
+                  <Photo id={m.id} alt={m.alt} sizes="(max-width: 860px) 92vw, 660px" />
+                  <span className="ki-stratum-name">{m.name}</span>
+                  <span className="ki-stratum-hex">{m.hex}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="ki-strata-line">
+              Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist
+              með húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
             </p>
             <p className="ki-plx-deep-cta">
-              <Link className="ki-cta" to={WORK}>Verkefnin</Link>
+              <Link className="ki-cta" to={CONTACT_PATH}>Sýnishornin eru í stúdíóinu</Link>
             </p>
           </div>
         }
       />
 
-      {/* 02 · THE WAY OUT — fired the moment the descent finishes.
-          The stone is the shortest thing on the page now: the ground rises and
-          takes the room, and the page comes straight back out into her light.
-          Everything below this is light, and there is no second stone event
-          anywhere — no wall behind the journey, nothing at the far end.
+      {/* the same strata, in flow, for reduced motion only: the descent
+          collapses to one still frame there and its arriving copy is hidden,
+          because it would sit on top of her name. This is where those
+          visitors get the materials instead. Hidden from assistive tech, so
+          the page does not announce the heading twice. */}
+      <section className="ki-strata-static" aria-hidden="true" data-ki-band="dark">
+        <p className="ki-plx-deep-kicker">Rýmið man</p>
+        <p className="ki-strata-title">Efnin bera rýmið.</p>
+        <ul className="ki-strata">
+          {MATERIALS.map((m) => (
+            <li key={m.id} className={`ki-stratum${m.dark ? ' is-dark' : ''}`}>
+              <Photo id={m.id} alt="" sizes="(max-width: 860px) 92vw, 660px" />
+              <span className="ki-stratum-name">{m.name}</span>
+              <span className="ki-stratum-hex">{m.hex}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-          The chapter's own heading rides it and lands on the cream, because a
-          sentence about every project having its own colour world is exactly
-          what the light arriving is FOR. Behind the near plane, so a shelf
-          that has not lifted past it yet crosses in front of the type. */}
+      {/* 02 · THE WAY OUT — fired the moment the descent finishes.
+          The stone is the shortest thing on the page: the ground rises and
+          takes the room, and the page comes straight back out into her light.
+          Everything below this is light until the Italian lines, and there is
+          no second stone event anywhere. The chapter's own heading rides it
+          and lands on the cream, because a sentence about every project having
+          its own colour world is exactly what the light arriving is FOR. */}
       <ParallaxComponent
         plates={EXIT_PLATES}
         sticky
         smooth
         gate
-        /* the lift sits in the MIDDLE and both edges are the section's own
-           cream. Put at the bottom it read 14 levels brighter than the
-           section the pin releases onto — a hard line at the one join that
-           has to be invisible; put at the top it is behind the rock and never
-           seen at all. */
         backdrop={`linear-gradient(to bottom, ${COLOURS.CREAM} 0%, #F7F3EC 54%, ${COLOURS.CREAM} 100%)`}
         ground={COLOURS.CREAM}
         deepAt={0.66}
@@ -282,54 +330,13 @@ export function Home() {
         }
       />
 
-      {/* 03 · the journey sideways, in the light the way out opened onto.
-          Its heading is on the gate above it — said at the moment the light
-          arrives, which is what the light is for — so the strip opens on the
-          eyebrow and the count and gets straight to the work. */}
+      {/* 03 · the journey sideways — one room of each kind she is asked for */}
       <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
 
-      {/* 03 · the overview, clustered by buyer type */}
-      <section className="ki-wrap" id="verkefni" data-ki-band="light">
-        <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 60)' }}>
-          <p className="ki-kicker">Verkefni</p>
-          <Headline text="Heimili, gistiheimili, hótel og atvinnurými." size={78} floor={32} measure={880} />
-          <p className="ki-body ki-rv">
-            {PROJECTS.length} verk í skránni, í fjórum flokkum. Hér er úrval úr hverjum
-            flokki fyrir sig, hvert með sinni eigin ljósmynd.
-          </p>
-        </div>
-        {ORDER.map((c) => {
-          const items = byCategory(c).filter(hasPage).slice(0, SHOWN)
-          if (!items.length) return null
-          return (
-            <div key={c} className="ki-cluster">
-              <p className="ki-cat-head ki-rv">
-                {CATEGORIES[c].nav}
-                <span className="ki-cat-head-n">{byCategory(c).length} verk</span>
-                <Link to={catPath(c)}>Sjá flokkinn</Link>
-              </p>
-              <ul className="ki-grid">
-                {items.map((p) => (
-                  <li key={p.slug} className="ki-card ki-rv">
-                    <CardFigure photos={p.photos} sizes={CARD_SIZES} />
-                    <div className="ki-card-meta">
-                      <span className="ki-card-name"><Link to={projPath(p.slug)}>{p.title}</Link></span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
-        <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}>Öll {PROJECTS.length} verkin</Link></p>
-      </section>
-
-      {/* 02d · her own sentence from Stúdíóið, stepped down a photograph.
-          Not a new claim: this is the line that separates her from someone
-          brought in after the builders have gone. */}
-      {/* x/y are the reference board's own word positions, as percentages of
-          the frame: left, right, left, right — a zigzag down through the top
-          sixth to the bottom third, not a stacked headline. */}
+      {/* 04 · her own sentence from Stúdíóið, stepped down a photograph. Not
+          a new claim: this is the line that separates her from someone
+          brought in after the builders have gone — and it sits right after
+          the work, as the reason the work looks the way it does. */}
       <StatementOverlay
         id="f-eldhus"
         alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
@@ -342,7 +349,7 @@ export function Home() {
         sub="Ekki lagt ofan á það þegar smíðinni er lokið"
       />
 
-      {/* 04 · one project in depth, so the overview has a floor */}
+      {/* 05 · one project in full, so the work has a floor */}
       <section className="ki-wrap" data-ki-band="light">
         <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 50)' }}>
           <p className="ki-kicker">Eitt verk í nærmynd</p>
@@ -363,27 +370,66 @@ export function Home() {
         </p>
       </section>
 
-      {/* 05 · the dome: materials */}
-      <section className="ki-dome" data-ki-band="light">
-        <Headline className="ki-dome-title" text="Efnin bera rýmið." size={84} floor={32} />
-        <div className="ki-dome-arch" data-ki-par="rise">
-          <Photo id="s-sturta" alt="Sturturými með dökkum steinvegg og grænni plöntu" sizes="(max-width: 991px) 94vw, 72vw" />
+      {/* 06 · the work, clustered by buyer type — the ONLY listing on the
+          page. The register that duplicated it is gone; whatever a cluster
+          cannot show as a card it names in a line, so nothing she has
+          published is missing from the page. */}
+      <section className="ki-wrap" id="verkefni" data-ki-band="light">
+        <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 60)' }}>
+          <p className="ki-kicker">Verkefni</p>
+          <Headline text="Heimili, gistiheimili, hótel og atvinnurými." size={78} floor={32} measure={880} />
+          <p className="ki-body ki-rv">
+            {PROJECTS.length} verk í skránni, í fjórum flokkum. Hér er úrval úr hverjum
+            flokki fyrir sig, hvert með sinni eigin ljósmynd.
+          </p>
         </div>
-        <p className="ki-body ki-dome-body ki-rv">
-          Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist með
-          húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
-        </p>
+        {ORDER.map((c) => {
+          const all = byCategory(c)
+          if (!all.length) return null
+          const items = all.filter(hasPage).slice(0, SHOWN)
+          const rest = all.filter((p) => !items.includes(p))
+          return (
+            <div key={c} className="ki-cluster">
+              <p className="ki-cat-head ki-rv">
+                {CATEGORIES[c].nav}
+                <span className="ki-cat-head-n">{all.length} verk</span>
+                <Link to={catPath(c)}>Sjá flokkinn</Link>
+              </p>
+              {items.length > 0 && (
+                <ul className="ki-grid">
+                  {items.map((p) => (
+                    <li key={p.slug} className="ki-card ki-rv">
+                      <CardFigure photos={p.photos} sizes={CARD_SIZES} />
+                      <div className="ki-card-meta">
+                        <span className="ki-card-name"><Link to={projPath(p.slug)}>{p.title}</Link></span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {rest.length > 0 && (
+                <p className="ki-cluster-rest ki-rv">
+                  <span>Einnig</span>{' '}
+                  {rest.map((p, i) => (
+                    <span key={p.slug}>
+                      {hasPage(p) ? <Link to={projPath(p.slug)}>{p.title}</Link> : p.title}
+                      {i < rest.length - 1 ? ' · ' : ''}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </div>
+          )
+        })}
+        <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}>Öll {PROJECTS.length} verkin</Link></p>
       </section>
 
-      {/* 05b · the same five colours, carried by the materials they came from.
-          It lives HERE rather than up under the litheim copy: this is the
-          materials section, and the strip was taking a full screen near the
-          top of the page for something that reads better as a coda to
-          "Efnin bera rýmið" than as an event of its own. */}
-      <ImageGallery items={MATERIALS} />
-
-      {/* 06 · the Italian lines, named */}
-      <section className="ki-wrap ki-italskar" data-ki-band="light">
+      {/* 07 · the Italian lines, and the studio they are standing in.
+          One warm dark band in the light run — the commercial section earns
+          the emphasis, and it stops nine thousand pixels of cream going flat.
+          The showroom used to live only on the contact page; here it follows
+          the materials the page has already put in the visitor's hands. */}
+      <section className="ki-wrap ki-italskar" data-ki-band="dark">
         <div className="ki-split">
           <div>
             <p className="ki-kicker">Arrital og Altamarea</p>
@@ -399,38 +445,17 @@ export function Home() {
           </div>
           <Slide id="f-eyja" alt="Dökk eldhúseyja með blómum úr sumarhúsi í Fljótshlíðinni" sizes="(max-width: 860px) 92vw, 42vw" className="ki-split-fig" />
         </div>
-      </section>
-
-      {/* 07 · the register, every entry a link where a page exists */}
-      <section className="ki-wrap" id="skra" data-ki-band="light">
-        <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 44)' }}>
-          <Headline text="Skráin öll." size={84} floor={34} />
-          <p className="ki-body ki-rv">
-            Verkefnaskráin í heild eins og hún er birt, {PROJECTS.length} verk í fjórum flokkum.
-          </p>
-          <p className="ki-skra-count ki-rv">
-            <span className="ki-skra-n">{PROJECTS.length}</span> verk ·{' '}
-            <span className="ki-skra-n">{Object.keys(CATEGORIES).length}</span> flokkar
-          </p>
+        <div className="ki-split ki-italskar-studio">
+          <Slide id={SHOWROOM.photo} alt={SHOWROOM.alt} sizes="(max-width: 860px) 92vw, 42vw" className="ki-split-fig" variant="shutter" />
+          <div>
+            <p className="ki-kicker">Stúdíóið við {STUDIO.street}</p>
+            <Headline text={SHOWROOM.lead} size={54} floor={28} measure={600} />
+            <p className="ki-body ki-rv">{SHOWROOM.body}</p>
+            <p className="ki-cta-row ki-rv">
+              <Link className="ki-cta" to={CONTACT_PATH}>Finna tíma í stúdíóinu</Link>
+            </p>
+          </div>
         </div>
-        {(Object.keys(CATEGORIES) as CategorySlug[]).map((c) => {
-          const items = byCategory(c)
-          return (
-            <div key={c} className="ki-skra-flokkur ki-rv">
-              <div className="ki-skra-cat-row">
-                <h3 className="ki-skra-cat">{CATEGORIES[c].nav}</h3>
-                <span className="ki-skra-cat-n" aria-hidden="true">{String(items.length).padStart(2, '0')}</span>
-              </div>
-              <ul className="ki-skra-list">
-                {items.map((p) => (
-                  <li key={p.slug} className="ki-skra-row">
-                    {hasPage(p) ? <Link to={projPath(p.slug)}>{p.title}</Link> : <span>{p.title}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
       </section>
 
       {/* 08 · the studio */}

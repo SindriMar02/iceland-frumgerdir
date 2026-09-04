@@ -167,6 +167,20 @@
   background-size: 100% auto;
 }
 
+/* the corner: above every plane, pointer-active, and gone as soon as the
+   descent starts — it is a landing-page affordance, not part of the move */
+.parallax__corner {
+  position: absolute;
+  /* in from the edge far enough that the arrow lands on the island, not on
+     the pale floorboards at the frame's right edge, where copper vanished */
+  right: calc(var(--u, 1px) * 84);
+  /* just ABOVE the ground's crest at rest (90% of the frame), on the dark of
+     the island rather than across the lit teeth of the rock, where a 10px
+     kicker had nothing to sit on */
+  bottom: calc(var(--u, 1px) * 118);
+  z-index: 12;
+}
+
 /* the light the exit gate opens onto — behind every layer, painted by the
    header rather than the wrapper so it is clipped with everything else */
 .parallax__backdrop { position: absolute; inset: 0; }
@@ -250,6 +264,7 @@
   }
   .parallax--sticky { height: 100svh; }
   .parallax__deep { display: none; }
+  .parallax__corner { opacity: 1 !important; visibility: visible !important; }
   .parallax--gate .parallax__layer-img { display: none; }
   /* !important because GSAP's own fromTo writes visibility:hidden and
      opacity:0 inline before the scrub ever starts, and an inline style beats

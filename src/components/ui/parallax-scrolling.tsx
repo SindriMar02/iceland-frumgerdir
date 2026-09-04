@@ -159,6 +159,10 @@ export interface ParallaxProps {
    *  ascent's is a blank dark wall, so they collapse to opposite halves of
    *  themselves. See the reduced-motion block in the stylesheet. */
   gate?: boolean
+  /** a small affordance pinned to the landing frame's corner — above every
+   *  plane, and gone by a fifth of the scrub, because it belongs to the
+   *  landing page and not to the descent */
+  corner?: ReactNode
   /** paint it BEHIND the nearest plane, so the rock can cross in front of it.
    *  Right for the exit, where the copy is written on the sky and the ridge
    *  is still sinking past it; wrong for the entry, where the copy is
@@ -247,7 +251,7 @@ function plateGeom(p: ParallaxPlate) {
 export function ParallaxComponent({
   layers = [], plates = [], title, children, smooth = false, sticky = false,
   scroll = '240svh', titleYPercent, backdrop, ground, deep, deepAt = 0.55,
-  deepBehind = false, gate = false,
+  deepBehind = false, gate = false, corner,
 }: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
@@ -313,6 +317,18 @@ export function ParallaxComponent({
         tl.fromTo(deepEl,
           { autoAlpha: 0, y: 34 },
           { autoAlpha: 1, y: 0, ease: 'none', duration: 0.26 }, deepAt)
+        /* anything inside it marked for a stagger lands one after another,
+           just behind the block itself — strata settling, not a list popping */
+        const stag = deepEl.querySelectorAll('[data-parallax-stagger]')
+        if (stag.length) {
+          tl.fromTo(stag,
+            { autoAlpha: 0, y: 16 },
+            { autoAlpha: 1, y: 0, ease: 'none', duration: 0.10, stagger: 0.035 }, deepAt + 0.06)
+        }
+      }
+      const cornerEl = triggerElement.querySelector('[data-parallax-corner]')
+      if (cornerEl) {
+        tl.to(cornerEl, { autoAlpha: 0, y: -12, ease: 'none', duration: 0.2 }, 0)
       }
     }, parallaxRef)
 
@@ -437,6 +453,9 @@ export function ParallaxComponent({
             {deepBehind && deepNode}
             {plates.filter((p) => p.layer !== '2' && p.layer !== '5').map(plate)}
             {!deepBehind && deepNode}
+            {corner && (
+              <div data-parallax-corner className="parallax__corner">{corner}</div>
+            )}
           </div>
           <div className="parallax__fade" />
         </div>

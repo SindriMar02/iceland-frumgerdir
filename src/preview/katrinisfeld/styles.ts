@@ -149,7 +149,11 @@ export const CSS = `
 .ki-lead { font-size: ${fluid(21, 17)}; line-height: 1.5; color: inherit; max-width: 40ch; margin: 0 0 calc(var(--u) * 30); }
 .ki-stat { font-family: ${MONO}; font-size: ${fluid(12.5, 12)}; color: var(--ki-mute, #6E675D); margin: calc(var(--u) * 30) 0 0; }
 .ki-kicker { font-family: ${MONO}; font-size: ${fluid(12.5, 12)}; letter-spacing: .14em; text-transform: uppercase; color: #8A5A33; margin: 0 0 calc(var(--u) * 16); }
-[data-ki-band='dark'] .ki-kicker { color: #D9A87E; }
+[data-ki-band='dark'] .ki-kicker, .ki-italskar .ki-kicker { color: #D9A87E; }
+/* the one warm dark band in the light run: the commercial section, which
+   earns the emphasis and stops nine thousand pixels of cream going flat */
+.ki-italskar { background: #3B2320; color: #EFE6DC; }
+.ki-italskar-studio { margin-top: calc(var(--u) * 120); padding-top: calc(var(--u) * 90); border-top: 1px solid rgb(239 230 220 / .16); }
 
 /* ── reveals ──────────────────────────────────────────────────────────── */
 /* Word-by-word rise, staggered in CSS off each word's own index, so the
@@ -427,6 +431,84 @@ export const CSS = `
   color: #F2ECE3;
 }
 .ki-plx-deep-cta { margin: calc(var(--u) * 34) 0 0; }
+
+/* ── THE STRATA ──────────────────────────────────────────────────────────
+   Her five materials as five layers of real material, stacked the way rock
+   is, found at the bottom of the descent. Each carries its name and the exact
+   colour the site uses for it; the name goes light or dark by the material
+   under it, because hör is nearly white and steinn nearly black. */
+.ki-plx-deep--strata { max-width: calc(var(--u) * 700); }
+.ki-strata-title {
+  margin: 0 0 calc(var(--u) * 30);
+  font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
+  font-size: ${fluid(58, 32)}; color: #F2ECE3;
+}
+.ki-strata { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 2px; }
+.ki-stratum {
+  position: relative; overflow: hidden; margin: 0;
+  height: clamp(42px, 6.4svh, 58px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 calc(var(--u) * 22);
+  color: ${INK};
+}
+.ki-stratum.is-dark { color: #F4EEE6; }
+.ki-stratum picture, .ki-stratum img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; margin: 0;
+}
+.ki-stratum-name, .ki-stratum-hex { position: relative; }
+.ki-stratum-name { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(22, 17)}; letter-spacing: .012em; }
+.ki-stratum-hex { font-family: ${MONO}; font-size: ${fluid(11, 10.5)}; letter-spacing: .18em; opacity: .78; }
+.ki-plx-deep--strata .ki-cta { color: #F2ECE3; }
+.ki-strata-line {
+  margin: calc(var(--u) * 30) 0 0; max-width: 46ch;
+  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(22, 17)}; line-height: 1.42; color: #D9D1C5;
+}
+/* the reduced-motion copy, in flow, hidden everywhere else */
+.ki-strata-static { display: none; padding: calc(var(--u) * 90) calc(var(--u) * 34); text-align: center; }
+.ki-strata-static .ki-strata { max-width: calc(var(--u) * 700); margin: 0 auto; }
+.ki-strata-static .ki-strata-title { text-align: center; }
+@media (prefers-reduced-motion: reduce) { .ki-strata-static { display: block; } }
+
+/* ── THE NEWEST PROJECT, in the corner of the landing frame ──────────────
+   No box and no glass: a small photograph with a hairline, two lines of type,
+   and an arrow that keeps nudging. It rests on the ground along the bottom of
+   the frame, which is the one place on the landing page that is not her
+   photograph, and it is the one thing there that asks to be clicked. */
+.ki-newest {
+  display: flex; align-items: center; gap: calc(var(--u) * 18);
+  color: #F2ECE3; text-decoration: none;
+  max-width: calc(var(--u) * 360);
+}
+.ki-newest-fig {
+  flex: 0 0 auto; width: calc(var(--u) * 96); aspect-ratio: 4 / 3; overflow: hidden;
+  outline: 1px solid rgb(242 236 227 / .28); outline-offset: 3px;
+  transition: outline-color .5s ${OUT};
+}
+.ki-newest-fig picture, .ki-newest-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ${OUT}; }
+.ki-newest-text { display: grid; gap: 4px; min-width: 0; }
+.ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #E6DCCD; }
+.ki-newest-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(18, 15)}; line-height: 1.2; }
+.ki-newest-arrow {
+  flex: 0 0 auto; width: 18px; height: 18px; background: #D9A87E;
+  -webkit-mask: var(--ki-arrow) center / contain no-repeat;
+  mask: var(--ki-arrow) center / contain no-repeat;
+  animation: ki-nudge 1.9s cubic-bezier(.45, 0, .25, 1) infinite;
+}
+@keyframes ki-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
+.ki-newest:hover .ki-newest-fig { outline-color: rgb(242 236 227 / .7); }
+.ki-newest:hover .ki-newest-fig img { transform: scale(1.06); }
+.ki-newest:hover .ki-newest-arrow { animation-duration: .9s; }
+@media (prefers-reduced-motion: reduce) { .ki-newest-arrow { animation: none; } }
+@media (max-width: 640px) {
+  .ki-newest { max-width: calc(100vw - 40px); }
+  .ki-newest-fig { width: 72px; }
+}
+
+/* what a cluster cannot show as a card, named in a line — the register that
+   used to repeat the whole grid as text is gone */
+.ki-cluster-rest { margin: calc(var(--u) * 26) 0 0; font-size: ${fluid(15, 14)}; line-height: 1.7; color: var(--ki-mute); }
+.ki-cluster-rest > span:first-child { font-family: ${MONO}; font-size: ${fluid(11.5, 11)}; letter-spacing: .12em; text-transform: uppercase; margin-right: 8px; }
+.ki-cluster-rest a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ── THE PASSAGE ──────────────────────────────────────────────────────────
    The only stone section on the page. The descent puts you inside the rock,
@@ -1040,15 +1122,6 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
   color: ${INK};
 }
 
-/* the dome. Its heading is on the gate above it now, so it opens on the
-   photograph and the padding closes up to meet the pin's release. */
-.ki-dome { padding: calc(var(--u) * 60) calc(var(--u) * 34) calc(var(--u) * 120); text-align: center; overflow: hidden; }
-.ki-dome .ki-dome-arch { margin-top: 0; }
-.ki-dome-arch { width: min(100%, calc(var(--u) * 900)); margin: calc(var(--u) * 40) auto 0;
-  border-radius: calc(var(--u) * 450) calc(var(--u) * 450) 0 0; overflow: hidden; }
-.ki-dome-arch picture, .ki-dome-arch img { width: 100%; aspect-ratio: 4 / 4.4; object-fit: cover; }
-.ki-dome-body { margin: calc(var(--u) * 44) auto 0; }
-@media (max-width: 640px) { .ki-dome { padding-left: 20px; padding-right: 20px; } }
 
 /* THE GROUND, CARRIED DOWN THE PAGE.
    The hero descends into #1d1b19 and the page stays in that ground for the

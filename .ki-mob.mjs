@@ -15,7 +15,7 @@ await page.evaluate(()=>{document.querySelector('.ki-curtain')?.remove();documen
 await new Promise(r=>setTimeout(r,1000))
 const g = await page.evaluate(()=>{const e=document.querySelector('.parallax--sticky')
   return {top:e.getBoundingClientRect().top+window.scrollY, span:e.getBoundingClientRect().height - e.querySelector('.parallax__header').clientHeight}})
-for (const [n,p] of [['m-h-40',0.40],['m-h-58',0.58],['m-h-72',0.72],['m-h-100',1.0]]) {
+for (const [n,p] of [['m-h-00',0.0],['m-h-40',0.40],['m-h-90',0.90],['m-h-100',1.0]]) {
   for (let k=0;k<3;k++){ await page.evaluate((y)=>{window.scrollTo(0,y);window.dispatchEvent(new Event('scroll'))}, g.top+g.span*p); await new Promise(r=>setTimeout(r,120)) }
   await page.screenshot({path:`/tmp/ki-gate/${n}.png`})
 }

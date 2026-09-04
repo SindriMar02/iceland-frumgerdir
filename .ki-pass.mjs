@@ -16,7 +16,8 @@ const geo = await page.evaluate(()=>{
   const S=window.scrollY, R=(e)=>{const r=e.getBoundingClientRect();return {top:r.top+S,h:r.height}}
   const g=[...document.querySelectorAll('.parallax--sticky')]
   const hs=document.querySelector('.ki-hs')
-  return { hero:R(g[0]), pass:R(hs), gate:R(g[1]), doc:document.documentElement.scrollHeight,
+  const it=document.querySelector('.ki-italskar'), vk=document.querySelector('#verkefni')
+  return { hero:R(g[0]), pass:R(hs), gate:R(g[1]), ital:R(it), verk:R(vk), doc:document.documentElement.scrollHeight,
            track: document.querySelector('.ki-hs-track').scrollWidth }
 })
 console.log('hero', geo.hero, '\npassage', geo.pass, '\ngate', geo.gate, '\ndoc', geo.doc, 'track', geo.track)
@@ -47,6 +48,10 @@ const shots = {
   'light-c':    geo.doc * 0.78,
   'end':        geo.doc - 900,
   'samband':    geo.doc - 1900,
+  'h-90':       geo.hero.top + (geo.hero.h-800)*0.90,
+  'ital-a':     geo.ital.top + 60,
+  'ital-b':     geo.ital.top + geo.ital.h - 860,
+  'verk-rest':  geo.verk.top + geo.verk.h - 900,
 }
 for (const [n,y] of Object.entries(shots)) {
   for (let k=0;k<3;k++){ await page.evaluate(y=>{window.scrollTo(0,y);window.dispatchEvent(new Event('scroll'))},y); await new Promise(r=>setTimeout(r,140)) }
