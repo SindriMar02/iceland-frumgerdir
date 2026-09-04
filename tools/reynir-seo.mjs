@@ -10,13 +10,21 @@
  * and Messenger link previews, and the AI answer engines, which mostly read
  * raw HTML. So the facts are written into the file after the build.
  *
+ * WHERE THE FACTS COME FROM
+ * The phone number, email and opening hours are edited by the owner in Sanity
+ * and rendered from there — the printed hours line, the open/closed badge and
+ * the phone link all read the CMS. So the structured data reads it too, from
+ * the same payload this build was rendered from. It used to keep its own copy
+ * of 07:00-17:00 and guard it against data.ts, which is the FALLBACK rather
+ * than the truth: the day the owner changed a Sunday, the page would have said
+ * one thing and the schema another, and it is the schema Google prints in the
+ * business panel.
+ *
  * DRIFT GUARD
- * The business facts below are duplicated from src/preview/reynir/data.ts,
- * which is exactly the two-sources-of-truth trap that produces a site whose
- * schema says one thing and whose page says another. So this script READS
- * data.ts and refuses to build if the phone number, address or hours here no
- * longer appear there. A wrong opening time in schema.org is worse than none:
- * Google will show it in the business panel.
+ * What is still written here is the fallback — the values published if Sanity
+ * cannot be reached, which is also what the site itself falls back to. So the
+ * guard still reads data.ts and refuses to build if the two fallbacks have
+ * drifted apart, and warns when the live hours have moved away from them.
  *
  * INDEXING
  * While this lives on the shared preview host it stays `noindex`, because
@@ -61,29 +69,171 @@ const B = {
   priceRange: '$$',
 }
 
-/* ── Drift guard: these must still be true in data.ts ─────────────────────── */
+/* The fallbacks, captured before the CMS overlay below can change them. The
+   drift guard compares THESE against data.ts — comparing the live values would
+   fail the build every time the owner legitimately edited his own hours. */
+const FALLBACK_PHONE = B.phoneDisplay
+const FALLBACK_OPENS = B.opens
+const FALLBACK_CLOSES = B.closes
+const FALLBACK_OPEN_H = Number(FALLBACK_OPENS.split(':')[0])
+const FALLBACK_CLOSE_H = Number(FALLBACK_CLOSES.split(':')[0])
+
+/* ── The live values, from the CMS this build was made from ───────────────
+ *
+ * Read from the payload the prerender baked into this very build where there
+ * is one: that is the exact object the pages were rendered from, so the head
+ * cannot contradict the body even if someone saves in Sanity between the two
+ * steps. Fetched directly otherwise (the catalogue build does not prerender).
+ * If both fail the constants above stand, and say so out loud — that is the
+ * same content the site itself would fall back to, so the two still agree. */
+const CMS_PROJECT = 'v4v3s4wg'
+const CMS_DATASET = 'production'
+const CMS_QUERY =
+  '{"settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram},' +
+  ' "hours": *[_type=="openingHours"][0]{mon,tue,wed,thu,fri,sat,sun}}'
+
+function bakedCms() {
+  const home = process.env.REYNIR_STANDALONE === '1' ? '' : 'preview/reynir'
+  const file = join(dist, home, 'index.html')
+  if (!existsSync(file)) return null
+  const m = /<script id="__reynir_cms" type="application\/json">([\s\S]*?)<\/script>/.exec(
+    readFileSync(file, 'utf8'),
+  )
+  if (!m) return null
+  try {
+    return JSON.parse(m[1])
+  } catch {
+    return null
+  }
+}
+
+async function fetchCms() {
+  const url =
+    `https://${CMS_PROJECT}.api.sanity.io/v2025-08-15/data/query/${CMS_DATASET}` +
+    `?query=${encodeURIComponent(CMS_QUERY)}&returnQuery=false&perspective=published`
+  const res = await fetch(url, { signal: AbortSignal.timeout(20_000) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return (await res.json()).result ?? null
+}
+
+let cms = bakedCms()
+let cmsSource = cms ? 'the payload baked into this build' : ''
+if (!cms) {
+  try {
+    cms = await fetchCms()
+    cmsSource = 'Sanity'
+  } catch (e) {
+    console.warn(
+      `reynir-seo: CMS unavailable (${e.message}) — publishing the fallbacks in this file, ` +
+        'which is what the site falls back to as well.',
+    )
+  }
+}
+
+/* Overlay whatever the CMS actually holds. Anything it does not hold keeps the
+   fallback above, exactly as sanity.ts does for the page. */
+{
+  const c = cms?.settings
+  if (c?.phoneHref) B.phone = c.phoneHref
+  if (c?.phoneDisplay) B.phoneDisplay = c.phoneDisplay
+  if (c?.email) B.email = c.email
+  if (c?.orderEmail) B.orderEmail = c.orderEmail
+  if (c?.facebook) B.facebook = c.facebook
+  if (c?.instagram) B.instagram = c.instagram
+}
+
+/* ── Opening hours, per day, in display order ──────────────────────────── */
+const DAYS = [
+  { key: 'mon', schema: 'Monday', is: 'Mán', en: 'Mon' },
+  { key: 'tue', schema: 'Tuesday', is: 'Þri', en: 'Tue' },
+  { key: 'wed', schema: 'Wednesday', is: 'Mið', en: 'Wed' },
+  { key: 'thu', schema: 'Thursday', is: 'Fim', en: 'Thu' },
+  { key: 'fri', schema: 'Friday', is: 'Fös', en: 'Fri' },
+  { key: 'sat', schema: 'Saturday', is: 'Lau', en: 'Sat' },
+  { key: 'sun', schema: 'Sunday', is: 'Sun', en: 'Sun' },
+]
+const hhmm = (v, fb) => {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(v || '').trim())
+  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : fb
+}
+const HOURS = DAYS.map((d) => {
+  const c = cms?.hours?.[d.key]
+  return { ...d, closed: Boolean(c?.closed), opens: hhmm(c?.open, B.opens), closes: hhmm(c?.close, B.closes) }
+})
+
+/** Consecutive days sharing the same hours, collapsed — "Mán–Fös 07:00–17:00"
+ *  rather than five identical lines. */
+function hourGroups() {
+  const out = []
+  for (const d of HOURS) {
+    const last = out[out.length - 1]
+    if (last && last.closed === d.closed && last.opens === d.opens && last.closes === d.closes) last.days.push(d)
+    else out.push({ closed: d.closed, opens: d.opens, closes: d.closes, days: [d] })
+  }
+  return out
+}
+/** True when all seven days are open on the same hours — the shop's usual case,
+ *  and the only one that can honestly be phrased as "every day". */
+const everyDaySame = () => {
+  const g = hourGroups()
+  return g.length === 1 && !g[0].closed
+}
+const spanOf = (g, lang) => {
+  const names = g.days.map((d) => d[lang])
+  const span = names.length === 1 ? names[0] : `${names[0]}–${names[names.length - 1]}`
+  return g.closed ? `${span} ${lang === 'en' ? 'closed' : 'lokað'}` : `${span} ${g.opens}–${g.closes}`
+}
+/** One sentence of opening hours, for the FAQ answer. */
+function hoursSentence(lang) {
+  const g = hourGroups()
+  if (everyDaySame()) {
+    return lang === 'en'
+      ? `Open every day from ${g[0].opens} to ${g[0].closes}, weekends included.`
+      : `Opið er alla daga frá klukkan ${g[0].opens} til ${g[0].closes}, líka um helgar.`
+  }
+  const spans = g.map((x) => spanOf(x, lang)).join(', ')
+  return lang === 'en' ? `Opening hours: ${spans}.` : `Opnunartími: ${spans}.`
+}
+/** The same, as a fragment for llms.txt. */
+function hoursFragment() {
+  const g = hourGroups()
+  return everyDaySame()
+    ? `every day ${g[0].opens}–${g[0].closes} (including weekends)`
+    : g.map((x) => spanOf(x, 'en')).join(', ')
+}
+
+/* ── Drift guard: the FALLBACKS must still agree with data.ts ─────────────
+ *
+ * data.ts holds what the site shows when Sanity cannot be reached, and this
+ * file holds what the schema publishes in the same situation. If those two
+ * drift apart, an outage produces a page and a schema that disagree — the
+ * failure this guard has always existed to prevent, now aimed at the layer
+ * that can actually still drift. */
 function assertMatchesData() {
   const dataPath = 'src/preview/reynir/data.ts'
   if (!existsSync(dataPath)) return // building from a tree without sources
   const src = readFileSync(dataPath, 'utf8')
   const checks = [
-    [B.phoneDisplay, 'phone number'],
+    [FALLBACK_PHONE, 'phone number'],
     ['Dalvegur 4, 201 Kópavogur', 'address'],
-    ['{ open: 7 * 60, close: 17 * 60 }', 'opening hours'],
+    [`{ open: ${FALLBACK_OPEN_H} * 60, close: ${FALLBACK_CLOSE_H} * 60 }`, 'fallback opening hours'],
   ]
   const bad = checks.filter(([needle]) => !src.includes(needle))
   if (bad.length) {
     console.error(
-      `reynir-seo: these no longer match ${dataPath}: ${bad.map((b) => b[1]).join(', ')}.\n` +
-        'Structured data would publish a fact the page contradicts. Update tools/reynir-seo.mjs.',
+      `reynir-seo: these fallbacks no longer match ${dataPath}: ${bad.map((b) => b[1]).join(', ')}.\n` +
+        'If Sanity were unreachable the page and the schema would disagree. Update tools/reynir-seo.mjs.',
     )
     process.exit(1)
   }
-  // every day must carry the same hours, or "opens 07:00 daily" is a lie
-  const days = (src.match(/\{ open: 7 \* 60, close: 17 \* 60 \}/g) || []).length
-  if (days !== 7) {
-    console.error(`reynir-seo: expected 7 identical day entries in HOURS_BY_DAY, found ${days}.`)
-    process.exit(1)
+  /* Not an error — the owner is allowed to change the hours, that is what the
+     CMS is for. But the fallback is then stale, so say so once per build. */
+  const off = HOURS.filter((h) => h.closed || h.opens !== FALLBACK_OPENS || h.closes !== FALLBACK_CLOSES)
+  if (off.length) {
+    console.warn(
+      `reynir-seo: live hours differ from the fallback on ${off.map((h) => h.en).join(', ')}. ` +
+        'The schema follows the CMS, but consider updating HOURS_BY_DAY in data.ts so an outage matches.',
+    )
   }
 }
 
@@ -266,14 +416,18 @@ const bakeryFor = (lang) => ({
     addressCountry: B.country,
   },
   geo: { '@type': 'GeoCoordinates', latitude: B.lat, longitude: B.lon },
-  openingHoursSpecification: [
-    {
+  /* One entry per block of days sharing the same hours, closed days left out
+     entirely — which is how schema.org says a closed day is expressed. Written
+     from the CMS, so if the owner shortens a Sunday the business panel follows
+     him rather than contradicting his own page. */
+  openingHoursSpecification: hourGroups()
+    .filter((g) => !g.closed)
+    .map((g) => ({
       '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-      opens: B.opens,
-      closes: B.closes,
-    },
-  ],
+      dayOfWeek: g.days.map((d) => d.schema),
+      opens: g.opens,
+      closes: g.closes,
+    })),
   sameAs: [B.facebook, B.instagram],
   areaServed: { '@type': 'City', name: 'Kópavogur' },
 })
@@ -282,11 +436,11 @@ const bakeryFor = (lang) => ({
  *  Every answer here is a fact stated on the page — FAQ schema that answers
  *  something the page does not say is the fastest way to a manual penalty. */
 const FAQ_IS = [
-  ['Hvenær er opið hjá Reyni bakara?', 'Opið er alla daga frá klukkan 07:00 til 17:00, líka um helgar.'],
+  ['Hvenær er opið hjá Reyni bakara?', hoursSentence('is')],
   ['Hvar er Reynir bakarí?', `Reynir bakarí er á ${addr}. Bakaríið er eitt, á Dalvegi.`],
   [
     'Er hægt að panta tertu hjá Reyni bakara?',
-    'Já. Hægt er að panta tertur, veislubakka og bakkelsi fyrirfram á vefnum eða í síma 564 4700. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
+    `Já. Hægt er að panta tertur, veislubakka og bakkelsi fyrirfram á vefnum eða í síma ${B.phoneDisplay}. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.`,
   ],
   [
     'Býður Reynir bakarí upp á veisluþjónustu?',
@@ -299,11 +453,11 @@ const FAQ_IS = [
  * answering on their behalf. Translated, not invented: each answer states the
  * same fact as its Icelandic twin, and the English page says it too. */
 const FAQ_EN = [
-  ['What are the opening hours of Reynir bakarí?', 'Open every day from 07:00 to 17:00, weekends included.'],
+  ['What are the opening hours of Reynir bakarí?', hoursSentence('en')],
   ['Where is Reynir bakarí?', `Reynir bakarí is at ${addr}, Iceland. There is one bakery, on Dalvegur.`],
   [
     'Can I order a cake from Reynir bakarí?',
-    'Yes. Cakes, party platters and pastry trays can be ordered in advance on the website or by phone on +354 564 4700. We confirm the order by phone and you pay on collection.',
+    `Yes. Cakes, party platters and pastry trays can be ordered in advance on the website or by phone on +354 ${B.phoneDisplay}. We confirm the order by phone and you pay on collection.`,
   ],
   [
     'Does Reynir bakarí do catering?',
@@ -474,8 +628,8 @@ function writeLlms() {
 
 ## Facts
 - Address: ${addr}, Iceland
-- Opening hours: every day 07:00–17:00 (including weekends)
-- Phone: ${B.phone}
+- Opening hours: ${hoursFragment()}
+- Phone: +354 ${B.phoneDisplay}
 - Email: ${B.email}
 - Orders: ${B.orderEmail}
 - Founded: ${B.founded} by Reynir Þorleifsson; run today by his sons Þorleifur Karl and Henry Þór

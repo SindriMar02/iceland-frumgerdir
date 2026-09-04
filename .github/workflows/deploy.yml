@@ -4,6 +4,31 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # A Sanity publish rebuilds the site.
+  #
+  # WHY. The pages are prerendered, so the words in the HTML are frozen at the
+  # moment of the last build. A visitor with JavaScript sees the owner's edit
+  # within seconds, because the app refetches Sanity on mount — but GPTBot,
+  # PerplexityBot, ClaudeBot and Facebook's link scraper never run JavaScript
+  # and read what was baked in. The structured data in the head is on that same
+  # frozen side. Without this trigger, a price or an opening hour changed in the
+  # CMS reaches them only when somebody happens to push code.
+  #
+  # TO WIRE IT UP — Sanity dashboard, the project, API, Webhooks, Create:
+  #   URL      https://api.github.com/repos/<owner>/<repo>/dispatches
+  #   Method   POST      Trigger: on Publish (create, update, delete)
+  #   Filter   _type in ["siteSettings","openingHours","menuItem","orderProduct",
+  #                      "occasion","galleryImage","heroSection","storySection",
+  #                      "review","pickupLocation"]
+  #   Body     {"event_type": "sanity-publish"}
+  #   Headers  Authorization: Bearer <fine-grained PAT, Contents: read-write>
+  #            Accept: application/vnd.github+json
+  #
+  # For reynirbakari.is on Cloudflare Pages, use Pages' own Deploy Hook rather
+  # than this: it is a plain POST URL with no token in it at all, so nothing
+  # secret has to be stored in Sanity. Same webhook form, that URL, empty body.
+  repository_dispatch:
+    types: [sanity-publish]
 
 permissions:
   contents: read
