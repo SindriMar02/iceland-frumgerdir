@@ -109,54 +109,46 @@ const HERO_ROOM: ReadonlyArray<ParallaxLayer> = [
    So the descent lands on the page's own ground through the material rather
    than on a black overlay dropped on top of it, and there is nothing left to
    seam against. */
-/* ONE SURFACE, THREE MOVEMENTS.
-   The tail below every plate, the wall the passage travels along, and the
-   floor both gates resolve to are the SAME FILE at the SAME tone. That is the
-   whole fix for "it switches to the dark brown background and looks so poor":
-   the join was never a seam — measured, under one level out of 255 — it was
-   that the material died. You descended through photographed rock with light
-   in it and arrived at a painted wall that then sat still for eleven thousand
-   pixels. Now there is no painted wall anywhere. rock.webp is seamless on both
-   axes, so it tiles down the page under a plate and across the frame behind
-   the passage, and the stone is continuous from the top of the descent to the
-   moment the light takes over. */
+/* WHAT CARRIES ON BELOW A PLATE.
+   The plate is sized off the viewport's WIDTH and travels a distance measured
+   in screen HEIGHTS, so its own image cannot cover the whole descent on a
+   phone — something has to continue past its last row. That used to be a
+   separate rock tile, repeated; and a tile repeats. Even at a four-level
+   range the mirror symmetry inside one was legible in a near-black field, so
+   the bottom of the descent was the same shape down the screen over and over.
+   It is the plate's own last rows now, mirrored ONCE and butted to its own
+   bottom edge — the same row of pixels meeting itself, seamless by
+   construction rather than by encoding — and then FLOOR, which is the colour
+   those rows already resolve to. Nothing is tiled anywhere on this page. */
 const FLOOR = '#1D1B19'
-const ROCK = `${ASSET}/rock.webp`
 
 const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
   { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
-    crest: 0.0488, restAt: 0.86, travel: -1.43, tail: ROCK, fill: FLOOR },
+    crest: 0.0488, restAt: 0.86, travel: -1.43, fill: FLOOR },
   { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
-    crest: 0.0523, restAt: 0.88, travel: -1.82, tail: ROCK, fill: FLOOR },
+    crest: 0.0523, restAt: 0.88, travel: -1.82, fill: FLOOR },
   { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
-    crest: 0.0559, restAt: 0.90, travel: -2.25, tail: ROCK, fill: FLOOR },
+    crest: 0.0559, restAt: 0.90, travel: -2.25, fill: FLOOR },
 ]
 
-/* THE END OF THE STONE IS THE START OF IT, MIRRORED AND RUN BACKWARDS.
-   The descent's three plates, the same three files, flipped — so the body
-   hangs ABOVE the silhouette instead of below it and every column is the same
-   column, in the same place across the frame, at the same scale. Then the
-   descent's own numbers, turned over and reversed in time: where the ground
-   rose from 0.90 / 0.88 / 0.86 of the frame and travelled 2.25 / 1.82 / 1.43
-   of it upward, this starts 2.25 / 1.82 / 1.43 BELOW its mirrored rest and
-   travels back to 0.10 / 0.12 / 0.14 from the top.
+/* THE WAY OUT.
+   Not the descent's own plates mirrored — that read as a copy pasted at the
+   far end of the page. These are the stacked shelves, a different formation
+   from the standing columns that just came up, flipped so the body hangs
+   above the silhouette and the edge lifts UP and out of the frame.
 
-   Which means the last frame of the stone is the first frame of it upside
-   down: three ragged edges sixteen pixels apart along the TOP, and her light
-   under them, exactly as the landing frame is three edges along the bottom
-   with the room above. The gate begins on the journey's own floor colour to
-   within a level, because at that point the frame is the same plate body the
-   descent ended in, and it finishes on the cream the section below is painted
-   in. Nothing enters from the top on the landing page; the stone starts the
-   way it starts and ends the way it started, mirrored. */
-
+   It begins entirely covered by its own tail, which is the floor colour the
+   descent ends on, so the hand-over into it has nothing in it at all; it
+   ends on a band of rock along the top with her light underneath, and that
+   band scrolls away with the pin. Start to finish the stone is now the hero
+   and this, and nothing else on the page is dark until the contact block. */
 const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
-  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
-    crest: 0.0488, restAt: 1.57, travel: -1.43, tail: ROCK, fill: FLOOR, flip: true },
-  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
-    crest: 0.0523, restAt: 1.94, travel: -1.82, tail: ROCK, fill: FLOOR, flip: true },
-  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
-    crest: 0.0559, restAt: 2.35, travel: -2.25, tail: ROCK, fill: FLOOR, flip: true },
+  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
+    crest: 0.1438, restAt: 1.57, travel: -1.43, fill: FLOOR, flip: true },
+  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 1461,
+    crest: 0.1406, restAt: 1.94, travel: -1.82, fill: FLOOR, flip: true },
+  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 1461,
+    crest: 0.1423, restAt: 2.35, travel: -2.25, fill: FLOOR, flip: true },
 ]
 
 /* THE PASSAGE.
@@ -253,34 +245,16 @@ export function Home() {
         }
       />
 
-      {/* 02 · the journey sideways, on the dark the descent sealed over.
-          The opening line used to be a section of its own, sitting still on
-          the stone above this; it is the chapter's first panel now, so the
-          journey starts by being introduced rather than by a card sliding in.
-          The rock behind travels sideways WITH the strip — see the note on
-          the component for why it used to travel vertically against it. */}
-      <HorizontalChapter
-        eyebrow="Þversnið"
-        headline="Hvert verkefni fær sinn eigin litheim."
-        body={
-          'Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir eru ekki ' +
-          'valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og ' +
-          'þau voru ljósmynduð.'
-        }
-        panels={CHAPTER}
-      />
+      {/* 02 · THE WAY OUT — fired the moment the descent finishes.
+          The stone is the shortest thing on the page now: the ground rises and
+          takes the room, and the page comes straight back out into her light.
+          Everything below this is light, and there is no second stone event
+          anywhere — no wall behind the journey, nothing at the far end.
 
-      {/* 03 · THE GATE OUT — fired the moment the passage ends.
-          The descent's own move, turned over. The stacked shelves sink, her
-          own light arrives from above behind them, and the ridges peel away
-          one at a time until the frame is the cream the rest of the page is
-          set on — which is the section immediately below, so the pin releases
-          onto the colour it has already finished on.
-
-          The heading rides it rather than sitting in the section underneath:
-          it is the sentence the light chapter is about, and it should be said
-          at the moment the light gets there. Behind the near plane, so a ridge
-          that has not sunk past it yet crosses in front of the type. */}
+          The chapter's own heading rides it and lands on the cream, because a
+          sentence about every project having its own colour world is exactly
+          what the light arriving is FOR. Behind the near plane, so a shelf
+          that has not lifted past it yet crosses in front of the type. */}
       <ParallaxComponent
         plates={EXIT_PLATES}
         sticky
@@ -293,15 +267,26 @@ export function Home() {
            seen at all. */
         backdrop={`linear-gradient(to bottom, ${COLOURS.CREAM} 0%, #F7F3EC 54%, ${COLOURS.CREAM} 100%)`}
         ground={COLOURS.CREAM}
-        deepAt={0.68}
+        deepAt={0.66}
         deepBehind
         deep={
           <div className="ki-gate-deep">
             <span className="ki-gate-rule" aria-hidden="true" />
-            <h2 className="ki-gate-title">Efnin bera rýmið.</h2>
+            <h2 className="ki-gate-title">Hvert verkefni fær sinn eigin litheim.</h2>
+            <p className="ki-gate-body">
+              Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir eru ekki
+              valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og
+              þau voru ljósmynduð.
+            </p>
           </div>
         }
       />
+
+      {/* 03 · the journey sideways, in the light the way out opened onto.
+          Its heading is on the gate above it — said at the moment the light
+          arrives, which is what the light is for — so the strip opens on the
+          eyebrow and the count and gets straight to the work. */}
+      <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
 
       {/* 03 · the overview, clustered by buyer type */}
       <section className="ki-wrap" id="verkefni" data-ki-band="light">
@@ -378,9 +363,9 @@ export function Home() {
         </p>
       </section>
 
-      {/* 05 · the dome: materials. Its heading is the one the gate above
-          arrives on — saying it twice, forty pixels apart, would undo it. */}
+      {/* 05 · the dome: materials */}
       <section className="ki-dome" data-ki-band="light">
+        <Headline className="ki-dome-title" text="Efnin bera rýmið." size={84} floor={32} />
         <div className="ki-dome-arch" data-ki-par="rise">
           <Photo id="s-sturta" alt="Sturturými með dökkum steinvegg og grænni plöntu" sizes="(max-width: 991px) 94vw, 72vw" />
         </div>

@@ -267,21 +267,17 @@ export interface HPanel {
  * thing that got called "jittery and doesn't work well" on Sauðárkróksbakarí
  * — but the rock still travels there, driven off the strip's own scrollLeft.
  */
-export function HorizontalChapter({ eyebrow, headline, body, panels }: {
+export function HorizontalChapter({ eyebrow, panels }: {
   eyebrow: string
-  headline: string
-  body: string
   panels: ReadonlyArray<HPanel>
 }) {
   const count = panels.filter((p) => p.to).length
   return (
-    <section className="ki-hs" data-ki-band="dark" data-ki-hscroll>
+    <section className="ki-hs" data-ki-band="light" data-ki-hscroll>
       <div className="ki-hs-pin">
         <div className="ki-hs-track">
           <div className="ki-hs-open" data-ki-hpanel>
             <p className="ki-kicker">{eyebrow}</p>
-            <h2 className="ki-hs-lead">{headline}</h2>
-            <p className="ki-body">{body}</p>
             <p className="ki-hs-count">
               <span className="ki-num">{String(count).padStart(2, '0')}</span> verk
             </p>

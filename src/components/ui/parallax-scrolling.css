@@ -142,7 +142,8 @@
    because anything painted behind the face shows through the sky above its
    crest. Both are static; only the box around them is translated. */
 .parallax__plate-face,
-.parallax__plate-tail {
+.parallax__plate-tail,
+.parallax__plate-hem {
   position: absolute;
   left: 0;
   right: 0;
@@ -155,11 +156,14 @@
   background-position: top center;
   background-size: 100% auto;
 }
-.parallax__plate-tail {
-  bottom: 0;
-  background-repeat: repeat;
-  /* stretched to the box width, so the tail's grain is the same size as the
-     face's above it and the join between them is one continuous surface */
+.parallax__plate-tail { bottom: 0; }
+/* NO REPEAT ANYWHERE. One mirror of the plate's own last rows, then the fill
+   those rows already resolve to. Repeating anything here — even a tile built
+   to be seamless on both axes — puts the same shape down the screen over and
+   over, which is legible in a near-black field however low its contrast is. */
+.parallax__plate-hem {
+  background-repeat: no-repeat;
+  background-position: bottom center;
   background-size: 100% auto;
 }
 

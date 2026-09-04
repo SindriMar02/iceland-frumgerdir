@@ -66,19 +66,22 @@ export interface ParallaxLayer {
  *           grows the plate sideways too, and that lateral growth is the
  *           most legible thing on screen: it reads as a zoom into the rock
  *           rather than rock drifting past the camera.
- *   tail    what continues below the image, tiled, for as far as any frame
- *           needs. It used to be a flat colour, and that flat colour was the
- *           single worst thing on the page: you descend through photographed
- *           rock with light in it and arrive at a painted wall. Measured, the
- *           join was under one level out of 255 — it was never a seam, it was
- *           the MATERIAL DYING. The tail is now the same rock, seamless on
- *           both axes, at the tone the image's own last rows resolve to, so
- *           the descent lands on stone rather than on a colour. It matters
- *           most on a phone, where the plate is sized off the viewport's
- *           WIDTH and is simply too short to cover a travel measured in
- *           screen heights — there the tail is most of the descent.
- *   fill    a backstop colour behind the tail, for the frame before it
- *           decodes. Never seen once the tile is in.
+ *   fill    the colour behind everything, for the rare frame the plate's own
+ *           material does not reach.
+ *
+ * WHAT CONTINUES BELOW THE IMAGE. The plate is sized off the viewport's WIDTH
+ * and the travel is measured in screen HEIGHTS, so on a phone the image alone
+ * cannot cover the descent — something has to carry on past its last row.
+ * That was a separate tile, seamless on both axes and repeated; and a tile
+ * repeats. Even at a four-level range the mirror symmetry inside it is legible
+ * in a near-black field, so the bottom of the descent was the same shape over
+ * and over down the screen.
+ *
+ * It is the plate's OWN image now, flipped once and butted to its bottom edge,
+ * so the join is the same row of pixels meeting itself — seamless by
+ * construction rather than by encoding — and there is nothing repeated,
+ * because it happens exactly once and then stops on `fill`, which is the tone
+ * those rows already resolve to.
  *
  * The component turns those into a box whose height is in frame units and an
  * image inside it whose height is in viewport widths, which is the only
@@ -96,7 +99,6 @@ export interface ParallaxPlate {
   crest: number
   restAt: number
   travel: number
-  tail: string
   fill: string
   /** TURNED OVER: the silhouette points DOWN and the body hangs above it, so
    *  the plate closes over the frame from the top instead of rising into it
@@ -220,9 +222,26 @@ function plateGeom(p: ParallaxPlate) {
         transform: 'scaleY(-1)' }
     : { height: `${K.toFixed(3)}vw`, backgroundImage: `url(${p.src})` }
   const tail: CSSProperties = p.flip
-    ? { top: 0, bottom: `${K.toFixed(3)}vw`, backgroundColor: p.fill, backgroundImage: `url(${p.tail})` }
-    : { top: `${K.toFixed(3)}vw`, backgroundColor: p.fill, backgroundImage: `url(${p.tail})` }
-  return { box, face, tail }
+    ? { top: 0, bottom: `${K.toFixed(3)}vw`, backgroundColor: p.fill }
+    : { top: `${K.toFixed(3)}vw`, backgroundColor: p.fill }
+  /* THE HEM — the plate's own last rows, mirrored once, and ONLY those rows.
+     `background-position: bottom` with the box shorter than the image shows
+     the image's bottom quarter and nothing else, which is the part that has
+     already resolved to `fill`; mirroring it means the two rows meeting at
+     the join are the same row of pixels. A quarter, not the whole image:
+     mirroring all of it brings the plate's own crest back a second time, and
+     on the way out that duplicate crest landed in the middle of the frame at
+     rest with its lit band under it. Below the hem is flat fill, which those
+     rows already are, so there is nothing to see and nothing repeats. */
+  const HEM = 0.25
+  const hem: CSSProperties = {
+    height: `${(HEM * K).toFixed(3)}vw`,
+    backgroundImage: `url(${p.src})`,
+    ...(p.flip
+      ? { top: 'auto', bottom: `${K.toFixed(3)}vw` }
+      : { top: `${K.toFixed(3)}vw`, bottom: 'auto', transform: 'scaleY(-1)' }),
+  }
+  return { box, face, tail, hem }
 }
 
 export function ParallaxComponent({
@@ -361,8 +380,9 @@ export function ParallaxComponent({
         aria-hidden={p.alt ? undefined : true}
         style={g.box}
       >
-        <span className="parallax__plate-face" style={g.face} />
         <span className="parallax__plate-tail" style={g.tail} />
+        <span className="parallax__plate-hem" style={g.hem} />
+        <span className="parallax__plate-face" style={g.face} />
       </div>
     )
   }

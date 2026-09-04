@@ -441,27 +441,18 @@ export const CSS = `
    rock moves sideways now, with the journey, on the same scroll arithmetic
    as the track: a wall at 0.18 of its speed and a nearer mass along the
    bottom at 0.55. Depth from the ratio, as in both gates; nothing scaled. */
-/* THE DARK THE DESCENT SEALED OVER. No stone of its own: the whole stone move
-   — ground up, ceiling down — happens once, in the hero, and finishes on
-   exactly this colour. This section is what it finished on. */
-.ki-hs {
-  position: relative;
-    /* it dips and comes back: the section is 5000px tall and the sticky frame
-     travels down it, so this is the tone of the journey over time — a little
-     deeper in the middle, and back on the descent's own floor colour at both
-     ends, because those are the two frames that have to match the sealed
-     frame above it and the gate's own rest state below it, exactly */
-  background: linear-gradient(to bottom, ${CHARCOAL} 0%, #191714 50%, ${CHARCOAL} 100%);
-}
-/* THE BAND HAS TO BE TALLER THAN THE STRIP ON TOUCH.
-   Without this the section is exactly as tall as one row of cards — 370px on
-   a 390 phone — so there was no room above them for the rock at all, and the
-   whole passage arrived on a phone as a thin band with no stone in it. */
+/* THE JOURNEY, IN THE LIGHT.
+   It was dark and sitting on stone; the stone is now the hero and the way out
+   of it, and nothing after that is dark until the contact block. A light
+   strip is also the cleaner hand-over: the pin above it finishes on cream and
+   this begins on cream, so there is no band to cross at all. */
+.ki-hs { position: relative; background: ${CREAM}; }
 .ki-hs-pin {
   position: relative; overflow: hidden;
   min-height: 74svh; display: flex; align-items: flex-end;
   padding-bottom: calc(var(--u) * 40);
 }
+
 .ki-hs-track {
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: calc(var(--u) * 96);
@@ -478,16 +469,10 @@ export const CSS = `
 .ki-hs-open, .ki-hs-say { flex: 0 0 auto; margin: 0; scroll-snap-align: center; }
 .ki-hs-open { width: min(80vw, calc(var(--u) * 540)); }
 .ki-hs-say { width: min(72vw, calc(var(--u) * 460)); }
-.ki-hs-lead {
-  margin: calc(var(--u) * 20) 0 calc(var(--u) * 22);
-  font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
-  font-size: ${fluid(54, 32)}; color: #F2ECE3;
-}
-.ki-hs-open .ki-body { margin-bottom: 0; }
 .ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: calc(var(--u) * 26) 0 0; }
 .ki-hs-say-line {
   margin: 0; font-family: ${DISPLAY}; font-weight: 300; line-height: 1.18;
-  font-size: ${fluid(42, 27)}; color: #F2ECE3;
+  font-size: ${fluid(42, 27)}; color: inherit;
 }
 .ki-hs-say-sub {
   margin: calc(var(--u) * 20) 0 0; font-family: ${MONO};
@@ -1039,6 +1024,11 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
 .ki-gate-rule {
   display: block; width: calc(var(--u) * 120); height: 1px;
   background: ${INK}; opacity: .28; margin-bottom: calc(var(--u) * 40);
+}
+.ki-gate-body {
+  margin: calc(var(--u) * 30) auto 0;
+  max-width: calc(var(--u) * 620);
+  font-size: ${fluid(17, 15.5)}; line-height: 1.68; color: #6E675D;
 }
 .ki-gate-title {
   margin: 0;
