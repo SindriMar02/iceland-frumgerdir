@@ -66,11 +66,19 @@ export interface ParallaxLayer {
  *           grows the plate sideways too, and that lateral growth is the
  *           most legible thing on screen: it reads as a zoom into the rock
  *           rather than rock drifting past the camera.
- *   fill    the colour the image's own bottom rows resolve to. It is painted
- *           as a second background layer below the image and the box is made
- *           tall enough to cover any frame, so the plate never runs out of
- *           material no matter how tall the viewport is. The image ends on
- *           exactly this colour, so there is no join.
+ *   tail    what continues below the image, tiled, for as far as any frame
+ *           needs. It used to be a flat colour, and that flat colour was the
+ *           single worst thing on the page: you descend through photographed
+ *           rock with light in it and arrive at a painted wall. Measured, the
+ *           join was under one level out of 255 — it was never a seam, it was
+ *           the MATERIAL DYING. The tail is now the same rock, seamless on
+ *           both axes, at the tone the image's own last rows resolve to, so
+ *           the descent lands on stone rather than on a colour. It matters
+ *           most on a phone, where the plate is sized off the viewport's
+ *           WIDTH and is simply too short to cover a travel measured in
+ *           screen heights — there the tail is most of the descent.
+ *   fill    a backstop colour behind the tail, for the frame before it
+ *           decodes. Never seen once the tile is in.
  *
  * The component turns those into a box whose height is in frame units and an
  * image inside it whose height is in viewport widths, which is the only
@@ -87,6 +95,7 @@ export interface ParallaxPlate {
   crest: number
   restAt: number
   travel: number
+  tail: string
   fill: string
   alt?: string
 }
@@ -178,24 +187,33 @@ function releaseLenis() {
   lenisRefs = 0
 }
 
-/** the geometry, in one place — see ParallaxPlate for why it is shaped so */
-function plateStyle(p: ParallaxPlate): CSSProperties {
+/** the geometry, in one place — see ParallaxPlate for why it is shaped so.
+ *  The plate is a box GSAP translates, holding two static children: the keyed
+ *  face at the top, and the tiled rock that continues below it. Two elements
+ *  rather than two background layers on one, because the face is transparent
+ *  above its own crest and a background-colour or a second background layer
+ *  behind it would show THROUGH that sky. */
+function plateGeom(p: ParallaxPlate) {
   /* the image is laid at 100% of the box width, so its rendered height is a
      fixed number of viewport widths and the rock keeps its proportions */
   const K = (100 * p.height) / p.width
-  return {
+  const box: CSSProperties = {
     top: `calc(${(p.restAt * 100).toFixed(3)}% - ${(p.crest * K).toFixed(3)}vw)`,
     /* six frames of box plus the image itself. Six covers every case: the
        furthest the box top ever sits above the frame is
-       (1 - restAt + |travel|) frames, and that is 4.7 at the very worst here.
-       Writing the image's own height into the box height is what keeps the
-       fill's size positive at any aspect ratio. */
+       (1 - restAt + |travel|) frames, and that is 4.7 at the very worst. */
     height: `calc(600% + ${K.toFixed(3)}vw)`,
-    backgroundImage: `linear-gradient(${p.fill}, ${p.fill}), url(${p.src})`,
-    backgroundRepeat: 'no-repeat, no-repeat',
-    backgroundPosition: 'bottom center, top center',
-    backgroundSize: `100% calc(100% - ${K.toFixed(3)}vw), 100% auto`,
   }
+  const face: CSSProperties = {
+    height: `${K.toFixed(3)}vw`,
+    backgroundImage: `url(${p.src})`,
+  }
+  const tail: CSSProperties = {
+    top: `${K.toFixed(3)}vw`,
+    backgroundColor: p.fill,
+    backgroundImage: `url(${p.tail})`,
+  }
+  return { box, face, tail }
 }
 
 export function ParallaxComponent({
@@ -322,17 +340,23 @@ export function ParallaxComponent({
      live), and whatever else that touched off left large stretches of these
      transform-driven layers unpainted mid-scroll. A background div has no
      replaced-element sizing algorithm to misfire. */
-  const plate = (p: ParallaxPlate) => (
-    <div
-      key={p.layer}
-      data-parallax-layer={p.layer}
-      className="parallax__layer-img"
-      role={p.alt ? 'img' : undefined}
-      aria-label={p.alt || undefined}
-      aria-hidden={p.alt ? undefined : true}
-      style={plateStyle(p)}
-    />
-  )
+  const plate = (p: ParallaxPlate) => {
+    const g = plateGeom(p)
+    return (
+      <div
+        key={p.layer}
+        data-parallax-layer={p.layer}
+        className="parallax__layer-img"
+        role={p.alt ? 'img' : undefined}
+        aria-label={p.alt || undefined}
+        aria-hidden={p.alt ? undefined : true}
+        style={g.box}
+      >
+        <span className="parallax__plate-face" style={g.face} />
+        <span className="parallax__plate-tail" style={g.tail} />
+      </div>
+    )
+  }
   const deepNode = deep && (
     <div
       data-parallax-deep

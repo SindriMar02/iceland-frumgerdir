@@ -133,6 +133,35 @@
    they do inherit from .parallax__layer-img is left/width/will-change; top,
    height and all four background properties arrive inline. */
 
+/* A PLATE IS A FACE AND A TAIL.
+   The face is the keyed silhouette, transparent above its own crest. The tail
+   is the same rock tiled, continuing below it for as far as the frame needs —
+   which on a phone is most of the descent, because the plate is sized off the
+   viewport's width and cannot be tall enough to cover a travel measured in
+   screen heights. They are two elements and not two background layers on one,
+   because anything painted behind the face shows through the sky above its
+   crest. Both are static; only the box around them is translated. */
+.parallax__plate-face,
+.parallax__plate-tail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: block;
+}
+.parallax__plate-face {
+  top: 0;
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% auto;
+}
+.parallax__plate-tail {
+  bottom: 0;
+  background-repeat: repeat;
+  /* stretched to the box width, so the tail's grain is the same size as the
+     face's above it and the join between them is one continuous surface */
+  background-size: 100% auto;
+}
+
 /* the light the exit gate opens onto — behind every layer, painted by the
    header rather than the wrapper so it is clipped with everything else */
 .parallax__backdrop { position: absolute; inset: 0; }

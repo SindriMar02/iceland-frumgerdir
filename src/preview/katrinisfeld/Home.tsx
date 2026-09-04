@@ -109,72 +109,85 @@ const HERO_ROOM: ReadonlyArray<ParallaxLayer> = [
    So the descent lands on the page's own ground through the material rather
    than on a black overlay dropped on top of it, and there is nothing left to
    seam against. */
+/* ONE SURFACE, THREE MOVEMENTS.
+   The tail below every plate, the wall the passage travels along, and the
+   floor both gates resolve to are the SAME FILE at the SAME tone. That is the
+   whole fix for "it switches to the dark brown background and looks so poor":
+   the join was never a seam — measured, under one level out of 255 — it was
+   that the material died. You descended through photographed rock with light
+   in it and arrived at a painted wall that then sat still for eleven thousand
+   pixels. Now there is no painted wall anywhere. rock.webp is seamless on both
+   axes, so it tiles down the page under a plate and across the frame behind
+   the passage, and the stone is continuous from the top of the descent to the
+   moment the light takes over. */
 const FLOOR = '#1D1B19'
+const ROCK = `${ASSET}/rock.webp`
+
 const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
-  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 2800,
-    crest: 0.0662, restAt: 0.86, travel: -1.75,  fill: FLOOR },
-  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 2800,
-    crest: 0.0709, restAt: 0.88, travel: -2.225, fill: FLOOR },
-  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 2800,
-    crest: 0.0758, restAt: 0.90, travel: -2.75,  fill: FLOOR },
+  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
+    crest: 0.0488, restAt: 0.86, travel: -1.43, tail: ROCK, fill: FLOOR },
+  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
+    crest: 0.0523, restAt: 0.88, travel: -1.82, tail: ROCK, fill: FLOOR },
+  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
+    crest: 0.0559, restAt: 0.90, travel: -2.25, tail: ROCK, fill: FLOOR },
 ]
 
 /* THE ASCENT — the same move turned over.
-   Where the dark chapter hands back to the light one, the page climbs out of
-   the rock instead of cutting to a white template: the planes SINK, the sky
-   arrives from above behind them, and the ridges peel away one at a time
-   until there is only light. A different formation on purpose — stacked
-   basalt shelves rather than the entry's standing columns — so it reads as
-   somewhere else in the same quarry rather than as the landing page mirrored.
+   Where the passage ends, the page climbs out of the rock instead of cutting
+   to a white template: the stacked shelves SINK, her light arrives from above
+   behind them, and the ridges peel away one at a time until the frame is the
+   cream the whole rest of the page is set on. A different formation on
+   purpose — stacked basalt shelves rather than the passage's standing columns
+   — so it reads as somewhere else in the same quarry rather than as the
+   landing page mirrored.
 
-   At rest every crest is above the frame and the near plane's own floor
-   fills it, which is the exact colour the dark chapter above is painted in,
-   so the gate begins as a continuation of the page rather than as a section.
-   They clear the bottom at 0.60 / 0.75 / 0.90 of the scrub, near first —
-   nearest things move fastest — leaving a tenth of the pin as pure light
-   before it releases into the cream below.
+   At rest every crest is above the frame and the near plane's own tail fills
+   it, which is the same rock the passage just travelled along, so the gate
+   begins as a continuation of the journey rather than as a section. They
+   clear the bottom at 0.60 / 0.75 / 0.90 of the scrub, near first — nearest
+   things move fastest — leaving a tenth of the pin as pure light before it
+   releases into the cream below.
 
    THE MIDDLE PLANE SITS WHERE IT DOES TO KEEP THE THREE APART. Three crests
-   moving at three speeds cross each other three times, and the first set of
-   numbers put all three crossings inside p 0.34-0.48: for a third of the
-   descent the ridges lay on top of one another and the whole thing read as
-   ONE cliff sinking, which is what two of the three planes are there to
-   prevent. Pulling the middle plane up to -0.62 and slowing it to match
-   spreads the crossings to 0.17 / 0.40 / 0.57, so from a third of the way
-   down there are three and then four distinct bands in the frame — near
-   ridge, middle ridge, far ridge, sky — and they peel off the bottom one at
-   a time. That staggering IS the depth; nothing here is scaled. */
+   at three speeds cross each other three times, and the first set of numbers
+   put all three crossings inside p 0.34-0.48: for a third of the descent the
+   ridges lay on top of one another and it read as ONE cliff sinking, which is
+   what two of the three planes exist to prevent. -0.62 spreads the crossings
+   to 0.17 / 0.40 / 0.57, so there are three and then four distinct bands in
+   the frame and they peel off the bottom one at a time. */
 const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
   { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
-    crest: 0.1438, restAt: -0.06, travel: 1.178, fill: FLOOR },
+    crest: 0.1438, restAt: -0.06, travel: 1.178, tail: ROCK, fill: FLOOR },
   { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 1461,
-    crest: 0.1406, restAt: -0.62, travel: 2.16,  fill: FLOOR },
+    crest: 0.1406, restAt: -0.62, travel: 2.16,  tail: ROCK, fill: FLOOR },
   { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 1461,
-    crest: 0.1423, restAt: -0.75, travel: 2.917, fill: FLOOR },
+    crest: 0.1423, restAt: -0.75, travel: 2.917, tail: ROCK, fill: FLOOR },
 ]
 
-
-/* One from each kind of room she is asked for, travelling sideways — but
-   grouped the way Búðir groups its journey rather than run out as an even
-   row of cards. Every third stop is a FULL-BLEED slab: the whole viewport
-   becomes one photograph with a single corner chip, so the eye gets a
-   horizon between the groups instead of a metronome of equal thumbnails.
-   Slabs take the widest, most spatial shots; the cards take the details. */
+/* THE PASSAGE.
+   One room of each kind she is asked for, travelling sideways through the
+   rock — but written as a chapter rather than run out as an even row of
+   cards. Two panel sizes, deliberate vertical drops, four times the gap the
+   first version had, and two WRITTEN panels: the opening, which used to be a
+   separate section sitting on the stone doing nothing, and one line partway
+   through where the eye needs somewhere to rest. */
 const CHAPTER: ReadonlyArray<HPanel> = [
   { id: 's-eldhus-vitt', title: 'Nýbyggt hús í Súluhöfða', meta: 'Heimili', to: projPath('nybyggt-hus-i-suluhofda'),
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn', bleed: true },
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn', wide: true },
   { id: 'p-oldcharm-1', title: 'Old Charm Reykjavik', meta: 'Gistiheimili', to: projPath('old-charm-reykjavik-apartment'),
-    alt: 'Svefnherbergi undir upprunalegum timburbitum' },
+    alt: 'Svefnherbergi undir upprunalegum timburbitum', drop: 0.1 },
   { id: 'p-skuggahverfi-0', title: 'Eldhúsrými í Skuggahverfi', meta: 'Heimili', to: projPath('eldhusrymi-i-skuggahverfi'),
-    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
+    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu', drop: -0.06 },
+  { id: 't-mid', title: 'Sama höndin liggur í gegnum þau öll.',
+    body: 'Ólík hús, ólíkir litheimar — en eitt handbragð.' },
   { id: 'p-alfheimar-0', title: 'Álfheimar', meta: 'Heimili', to: projPath('alfheimar'),
-    alt: 'Stofa með dökkum sófa og stóru listaverki á vegg', bleed: true },
+    alt: 'Stofa með dökkum sófa og stóru listaverki á vegg', wide: true },
   { id: 'p-svala-0', title: 'Svala Apartments', meta: 'Gistiheimili', to: projPath('svala-apartments'),
-    alt: 'Gestaherbergi með grænum vegg og listaverki af hesti' },
+    alt: 'Gestaherbergi með grænum vegg og listaverki af hesti', drop: 0.08 },
   { id: 'p-tannlaeknar-0', title: 'Tannlæknastofan Garðatorgi', meta: 'Atvinnuhúsnæði', to: projPath('tannlaeknastofan-gardatorgi'),
-    alt: 'Móttaka tannlæknastofu með ljósum afgreiðsluborði' },
+    alt: 'Móttaka tannlæknastofu með ljósum afgreiðsluborði', drop: -0.05 },
   { id: 'p-badherbergi-0', title: 'Baðherbergi', meta: 'Heimili', to: projPath('badherbergi'),
-    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu', bleed: true },
+    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu', wide: true },
 ]
 const ORDER: CategorySlug[] = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
 const SHOWN = 6
@@ -245,51 +258,55 @@ export function Home() {
         }
       />
 
-      {/* THE BEDROCK.
-          Everything between the two gates is INSIDE the rock, so it is laid on
-          the rock: the same photograph both gates are cut from, taken from
-          well below the crest where there is no sky in it, on the same grade,
-          crushed to a texture rather than a picture. The sections inside give
-          up their own flat darks to it (see .ki-bedrock in styles.ts) so it is
-          one continuous surface from the bottom of the descent to the top of
-          the ascent, not a stack of charcoal boxes. It fades in from flat
-          charcoal at the top and back to flat at the bottom, so neither gate
-          has a texture edge to cross. */}
-      <div className="ki-bedrock">
-      {/* 02 · intent — standing on the ground the descent just arrived at */}
-      <section className="ki-wrap ki-stone" data-ki-band="dark">
-        <span className="ki-rule ki-rv" aria-hidden="true" />
-        <Headline text="Hvert verkefni fær sinn eigin litheim." size={72} floor={32} measure={780} />
-        <p className="ki-body ki-rv">
-          Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir á þessari síðu
-          eru ekki valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og
-          þau voru ljósmynduð.
-        </p>
-      </section>
+      {/* 02 · THE PASSAGE — the distance travelled inside the rock.
+          The opening line used to be a section of its own, sitting still on
+          the stone above this; it is the chapter's first panel now, so the
+          journey starts by being introduced rather than by a card sliding in.
+          The rock behind travels sideways WITH the strip — see the note on
+          the component for why it used to travel vertically against it. */}
+      <HorizontalChapter
+        eyebrow="Þversnið"
+        headline="Hvert verkefni fær sinn eigin litheim."
+        body={
+          'Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir eru ekki ' +
+          'valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og ' +
+          'þau voru ljósmynduð.'
+        }
+        panels={CHAPTER}
+        rock={ROCK}
+        near={`${ASSET}/passage-near.webp`}
+      />
 
-      {/* 02c · one room of each kind, travelling sideways */}
-      <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
+      {/* 03 · THE GATE OUT — fired the moment the passage ends.
+          The descent's own move, turned over. The stacked shelves sink, her
+          own light arrives from above behind them, and the ridges peel away
+          one at a time until the frame is the cream the rest of the page is
+          set on — which is the section immediately below, so the pin releases
+          onto the colour it has already finished on.
 
-      {/* 02d · her own sentence from Stúdíóið, stepped down a photograph.
-          Not a new claim: this is the line that separates her from someone
-          brought in after the builders have gone. */}
-      {/* x/y are the reference board's own word positions, as percentages of
-          the frame: left, right, left, right — a zigzag down through the top
-          sixth to the bottom third, not a stacked headline. */}
-      <StatementOverlay
-        id="f-eldhus"
-        alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
-        words={[
-          { t: 'Rýmið', x: 21, y: 15 },
-          { t: 'er teiknað', x: 46, y: 28 },
-          { t: 'með', x: 19, y: 50 },
-          { t: 'húsinu.', x: 37, y: 70 },
-        ]}
-        sub="Ekki lagt ofan á það þegar smíðinni er lokið"
+          The heading rides it rather than sitting in the section underneath:
+          it is the sentence the light chapter is about, and it should be said
+          at the moment the light gets there. Behind the near plane, so a ridge
+          that has not sunk past it yet crosses in front of the type. */}
+      <ParallaxComponent
+        plates={EXIT_PLATES}
+        sticky
+        smooth
+        gate
+        backdrop={`linear-gradient(to bottom, #FBF8F2 0%, ${COLOURS.CREAM} 62%)`}
+        ground={COLOURS.CREAM}
+        deepAt={0.6}
+        deepBehind
+        deep={
+          <div className="ki-gate-deep">
+            <span className="ki-gate-rule" aria-hidden="true" />
+            <h2 className="ki-gate-title">Efnin bera rýmið.</h2>
+          </div>
+        }
       />
 
       {/* 03 · the overview, clustered by buyer type */}
-      <section className="ki-wrap" id="verkefni" data-ki-band="dark">
+      <section className="ki-wrap" id="verkefni" data-ki-band="light">
         <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 60)' }}>
           <p className="ki-kicker">Verkefni</p>
           <Headline text="Heimili, gistiheimili, hótel og atvinnurými." size={78} floor={32} measure={880} />
@@ -324,8 +341,26 @@ export function Home() {
         <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}>Öll {PROJECTS.length} verkin</Link></p>
       </section>
 
+      {/* 02d · her own sentence from Stúdíóið, stepped down a photograph.
+          Not a new claim: this is the line that separates her from someone
+          brought in after the builders have gone. */}
+      {/* x/y are the reference board's own word positions, as percentages of
+          the frame: left, right, left, right — a zigzag down through the top
+          sixth to the bottom third, not a stacked headline. */}
+      <StatementOverlay
+        id="f-eldhus"
+        alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
+        words={[
+          { t: 'Rýmið', x: 21, y: 15 },
+          { t: 'er teiknað', x: 46, y: 28 },
+          { t: 'með', x: 19, y: 50 },
+          { t: 'húsinu.', x: 37, y: 70 },
+        ]}
+        sub="Ekki lagt ofan á það þegar smíðinni er lokið"
+      />
+
       {/* 04 · one project in depth, so the overview has a floor */}
-      <section className="ki-wrap ki-verk-sulu" data-ki-band="dark">
+      <section className="ki-wrap" data-ki-band="light">
         <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 50)' }}>
           <p className="ki-kicker">Eitt verk í nærmynd</p>
           <Headline text="Nýbyggt hús í Súluhöfða." size={72} floor={32} measure={760} />
@@ -344,35 +379,6 @@ export function Home() {
           <Link className="ki-cta" to={projPath('nybyggt-hus-i-suluhofda')}>Sjá verkefnið</Link>
         </p>
       </section>
-      </div>
-
-      {/* 04b · THE GATE OUT.
-          The descent's own move, turned over. The stacked shelves sink, her
-          own light arrives from above behind them, and the ridges peel away
-          one at a time until the frame is the cream the rest of the page is
-          set on — which is the section immediately below, so the pin releases
-          onto the colour it has already finished on.
-
-          The heading rides it rather than sitting in the section underneath:
-          it is the sentence the light chapter is about, and it should be said
-          at the moment the light gets there. Behind the near plane, so a ridge
-          that has not sunk past it yet crosses in front of the type. */}
-      <ParallaxComponent
-        plates={EXIT_PLATES}
-        sticky
-        smooth
-        gate
-        backdrop={`linear-gradient(to bottom, #FBF8F2 0%, ${COLOURS.CREAM} 62%)`}
-        ground={COLOURS.CREAM}
-        deepAt={0.6}
-        deepBehind
-        deep={
-          <div className="ki-gate-deep">
-            <span className="ki-gate-rule" aria-hidden="true" />
-            <h2 className="ki-gate-title">Efnin bera rýmið.</h2>
-          </div>
-        }
-      />
 
       {/* 05 · the dome: materials. Its heading is the one the gate above
           arrives on — saying it twice, forty pixels apart, would undo it. */}
@@ -394,7 +400,7 @@ export function Home() {
       <ImageGallery items={MATERIALS} />
 
       {/* 06 · the Italian lines, named */}
-      <section className="ki-wrap ki-italskar" data-ki-band="dark">
+      <section className="ki-wrap ki-italskar" data-ki-band="light">
         <div className="ki-split">
           <div>
             <p className="ki-kicker">Arrital og Altamarea</p>
@@ -413,7 +419,7 @@ export function Home() {
       </section>
 
       {/* 07 · the register, every entry a link where a page exists */}
-      <section className="ki-wrap" id="skra" data-ki-band="dark">
+      <section className="ki-wrap" id="skra" data-ki-band="light">
         <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 44)' }}>
           <Headline text="Skráin öll." size={84} floor={34} />
           <p className="ki-body ki-rv">

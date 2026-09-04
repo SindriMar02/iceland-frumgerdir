@@ -212,85 +212,118 @@ export function StatementOverlay({ id, alt, words, sub }: {
 export interface HPanel {
   id: string
   title: string
-  meta: string
-  to: string
-  alt: string
-  /** a full-bleed slab: the whole viewport is the photograph, with one chip */
-  bleed?: boolean
+  meta?: string
+  /** a project panel links; a WRITTEN panel does not, and is what breaks the
+   *  strip into chapters instead of running the whole journey as one shelf of
+   *  photographs. "not enough space between pictures and some nice headline
+   *  texts" — the space and the headlines are the same fix. */
+  to?: string
+  alt?: string
+  body?: string
+  /** the wider of the two photograph sizes */
+  wide?: boolean
+  /** vertical offset within the band, as a fraction of the panel's height */
+  drop?: number
 }
 
 /**
- * The horizontal journey, on the Búðir engine.
+ * THE PASSAGE — the horizontal journey, and the inside of the rock.
  *
- * The first version of this was a row of equal cards that slid sideways, and
- * it was correctly called out: sliding a contact sheet is not a journey. The
- * three devices that make the Búðir version read as one are all here, with
- * that build's own measured values:
+ * This used to be a strip of projects on a flat charcoal section, and then a
+ * strip of projects on a stone texture that scrolled VERTICALLY behind it
+ * while the strip was pinned. That second version is the one that got called
+ * overstimulating, and correctly: the pin fixes this section for a whole
+ * viewport while its ancestor's background keeps moving with the page, so the
+ * rock slid upward behind stationary content. Two motions at right angles to
+ * each other, neither of them the one the visitor is making.
  *
- *  1. FULL-BLEED SLABS between the cards. Búðir alternates panels with
- *     100vw × 100svh photographs carrying a single corner chip (kicker +
- *     roman numeral), so the eye gets a horizon between groups instead of a
- *     uniform rhythm of thumbnails.
- *  2. THE PEEL. A panel does not fade in — it is uncovered. Búðir animates a
- *     clip-path inset and NEVER a transform, because both layers are the same
- *     photograph and a translate just slides a duplicate away. Scrubbed
- *     across the band [left − 0.88·vw, left − 0.42·vw]: the reveal happens
- *     while the panel crosses the right-hand two thirds of the screen.
+ * So the rock moves SIDEWAYS, with the journey. Two planes on the same scroll
+ * arithmetic as the track — a wall behind at 0.18 of the track's speed and a
+ * nearer mass along the bottom at 0.55 — which makes the projects travel
+ * ACROSS a rock face rather than sitting on a picture of one. Depth comes
+ * from the ratio, as it does in both gates; nothing is scaled.
+ *
+ * And this is now the only stone section on the page. The descent puts you
+ * in the rock, this is the distance you travel through it, the gate at the
+ * far end brings you out, and everything after that is in the light. The
+ * stone never has to sit still and pretend to be a background, which is the
+ * thing it was never any good at.
+ *
+ * The three devices from the Búðir version that made it read as a journey
+ * rather than a contact sheet are unchanged:
+ *
+ *  1. WRITTEN PANELS between the photographs — the chapter's own opening and
+ *     one line partway through, so the eye gets a rest and the journey has
+ *     somewhere to breathe.
+ *  2. THE PEEL. A panel does not fade in — it is uncovered, by a clip-path
+ *     inset and NEVER a transform, because both layers are the same
+ *     photograph and a translate just slides a duplicate away.
  *  3. INNER COUNTER-PARALLAX. The photograph inside each frame runs
- *     xPercent +7.5 → −7.5 at a constant scale 1.16 while the frame travels
- *     the other way, so the image looks into the frame rather than riding it.
+ *     xPercent +7.5 → −7.5 while the frame travels the other way, so the
+ *     image looks into the frame rather than riding it.
  *
- * All three are driven off the same scroll arithmetic the rest of this site
- * uses — no GSAP, no containerAnimation, no Lenis.
+ * The pin only happens on a real pointer. On touch this is a native
+ * scroll-snap strip, because a scroll-jacked pin on a phone is the exact
+ * thing that got called "jittery and doesn't work well" on Sauðárkróksbakarí
+ * — but the rock still travels there, driven off the strip's own scrollLeft.
  */
-export function HorizontalChapter({ eyebrow, panels }: {
-  eyebrow: string; panels: ReadonlyArray<HPanel>
+export function HorizontalChapter({ eyebrow, headline, body, panels, rock, near }: {
+  eyebrow: string
+  headline: string
+  body: string
+  panels: ReadonlyArray<HPanel>
+  rock: string
+  near: string
 }) {
-  let bleedNo = 0
+  const count = panels.filter((p) => p.to).length
   return (
     <section className="ki-hs" data-ki-band="dark" data-ki-hscroll>
       <div className="ki-hs-pin">
+        {/* the rock this travels along. Two planes, the same file the descent
+            resolves into and the gate begins behind, so the passage is
+            literally the same surface at the same tone. */}
+        <div className="ki-hs-rock" aria-hidden="true">
+          <span className="ki-hs-wall" data-ki-hrock="0.18"
+            style={{ backgroundImage: `url(${rock})` }} />
+          <span className="ki-hs-near" data-ki-hrock="0.55"
+            style={{ backgroundImage: `url(${near})` }} />
+        </div>
         <div className="ki-hs-track">
-          <div className="ki-hs-intro">
+          <div className="ki-hs-open" data-ki-hpanel>
             <p className="ki-kicker">{eyebrow}</p>
+            <h2 className="ki-hs-lead">{headline}</h2>
+            <p className="ki-body">{body}</p>
             <p className="ki-hs-count">
-              <span className="ki-num">{String(panels.length).padStart(2, '0')}</span> verk
+              <span className="ki-num">{String(count).padStart(2, '0')}</span> verk
             </p>
           </div>
-          {panels.map((p, i) => {
-            if (p.bleed) bleedNo++
-            return (
-              <article
-                key={p.id + i}
-                className={`ki-hs-panel ${p.bleed ? 'is-bleed' : ''}`}
-                data-ki-hpanel
-              >
-                <Link to={p.to} className="ki-hs-fig">
-                  <span className="ki-hs-img" data-ki-hpar>
-                    <Photo
-                      id={p.id}
-                      alt={p.alt}
-                      sizes={p.bleed ? '100vw' : '(max-width: 860px) 86vw, 46vw'}
-                    />
-                  </span>
-                </Link>
-                {p.bleed ? (
-                  <div className="ki-hs-chip">
-                    <p className="ki-kicker">{p.meta}</p>
-                    <h3 className="ki-hs-chip-title"><Link to={p.to}>{p.title}</Link></h3>
-                    <span className="ki-hs-chip-no" aria-hidden="true">
-                      {['I', 'II', 'III', 'IV', 'V'][bleedNo - 1] ?? bleedNo}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="ki-hs-meta">
-                    <h3 className="ki-hs-title"><Link to={p.to}>{p.title}</Link></h3>
-                    <p className="ki-hs-sub">{p.meta}</p>
-                  </div>
-                )}
-              </article>
-            )
-          })}
+          {panels.map((p, i) => p.to ? (
+            <article
+              key={p.id + i}
+              className={`ki-hs-panel${p.wide ? ' is-wide' : ''}`}
+              data-ki-hpanel
+              style={p.drop ? ({ ['--drop' as string]: p.drop }) : undefined}
+            >
+              <Link to={p.to} className="ki-hs-fig">
+                <span className="ki-hs-img" data-ki-hpar>
+                  <Photo
+                    id={p.id}
+                    alt={p.alt || p.title}
+                    sizes={p.wide ? '(max-width: 860px) 88vw, 52vw' : '(max-width: 860px) 78vw, 36vw'}
+                  />
+                </span>
+              </Link>
+              <div className="ki-hs-meta">
+                <h3 className="ki-hs-title"><Link to={p.to}>{p.title}</Link></h3>
+                {p.meta && <p className="ki-hs-sub">{p.meta}</p>}
+              </div>
+            </article>
+          ) : (
+            <div key={p.id + i} className="ki-hs-say" data-ki-hpanel>
+              <p className="ki-hs-say-line">{p.title}</p>
+              {p.body && <p className="ki-hs-say-sub">{p.body}</p>}
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -543,7 +576,12 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     let hs: Array<{
       track: HTMLElement; start: number; end: number; distance: number
       frames: Array<{ img: HTMLElement; left: number; width: number }>
+      rocks: Array<{ el: HTMLElement; k: number; near: boolean }>
     }> = []
+    const nearOut = (t: number) => Math.min(1, Math.max(0, (0.97 - t) / 0.15))
+    /* the touch build drives the rock off the strip's own scrollLeft, so those
+       listeners have to be taken off again on every re-measure and on unmount */
+    let trackScroll: Array<[HTMLElement, () => void]> = []
     const canPin = window.matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches
     const motion = !reduced()
 
@@ -616,15 +654,34 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
          the section is made exactly as tall as the track overflows wide, so
          the distance the page scrolls is the distance the track moves. */
       hs = []
+      for (const [el, fn] of trackScroll) el.removeEventListener('scroll', fn)
+      trackScroll = []
       for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
         const track = sec.querySelector<HTMLElement>('.ki-hs-track')
         if (!track) continue
+        const rocks = Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hrock]'))
+          .map((el) => ({ el, k: parseFloat(el.dataset.kiHrock || '0'),
+                          near: el.classList.contains('ki-hs-near') }))
         if (!canPin) {
           sec.style.height = ''; track.style.transform = ''
           // leave nothing clipped or offset behind on the touch build
           for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
             el.style.transform = ''
           }
+          /* the rock still travels on touch — driven off the strip's own
+             scrollLeft rather than off the page, because here the finger is
+             moving the strip and the page is standing still */
+          const onTrack = () => {
+            const d = Math.max(1, track.scrollWidth - track.clientWidth)
+            const t = Math.min(1, Math.max(0, track.scrollLeft / d))
+            for (const r of rocks) {
+              r.el.style.transform = `translate3d(${(-t * d * r.k).toFixed(2)}px, 0, 0)`
+              if (r.near) r.el.style.opacity = nearOut(t).toFixed(3)
+            }
+          }
+          track.addEventListener('scroll', onTrack, { passive: true })
+          trackScroll.push([track, onTrack])
+          onTrack()
           continue
         }
         const distance = Math.max(0, track.scrollWidth - window.innerWidth)
@@ -640,7 +697,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
           if (img) frames.push({ img, left: panel.offsetLeft, width: panel.offsetWidth })
         }
         hs.push({
-          track, start: top, end: top + distance, distance, frames,
+          track, start: top, end: top + distance, distance, frames, rocks,
         })
       }
     }
@@ -686,6 +743,23 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         const shift = -t * h.distance
         // written raw, never through a transition — see the note on the component
         h.track.style.transform = `translate3d(${shift.toFixed(2)}px, 0, 0)`
+        /* THE ROCK TRAVELS WITH THE JOURNEY, NOT WITH THE PAGE. Same scroll
+           arithmetic as the track, at a fraction of its speed: the projects
+           cross a rock face instead of sitting on a picture of one, and the
+           only motion on screen is the one the visitor is making. */
+        for (const r of h.rocks) {
+          r.el.style.transform = `translate3d(${(shift * r.k).toFixed(2)}px, 0, 0)`
+          /* THE FOREGROUND HAS TO BE GONE BEFORE THE GATE.
+             The near mass is the darkest thing in the passage — mean 14
+             against the wall's 27 — and it sits along the BOTTOM of the
+             frame, which is exactly where the passage hands over to the
+             gate's own rock. Left in, the join stepped 14.7 levels: dark
+             foreground meeting the gate's wall. It fades out over the last
+             fifth of the journey, so you come out from behind it as the way
+             out arrives, and the last frame of the passage is the same
+             surface at the same tone as the first frame of the gate. */
+          if (r.near) r.el.style.opacity = nearOut(t).toFixed(3)
+        }
         /* The track still travels under reduced motion — the chapter is
            navigation, and a strip nobody can reach is worse than a moving
            one. The peel and the counter-move are the decorative half, so
@@ -796,6 +870,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     return () => {
       window.removeEventListener('scroll', onFrame)
       window.removeEventListener('resize', onResize)
+      for (const [el, fn] of trackScroll) el.removeEventListener('scroll', fn)
       cancelAnimationFrame(rafId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

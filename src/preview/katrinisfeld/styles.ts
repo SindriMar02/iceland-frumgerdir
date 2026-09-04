@@ -74,8 +74,6 @@ export const CSS = `
 [data-ki-band] { position: relative; }
 [data-ki-band='dark'] { background: ${CHARCOAL}; color: #EDE7DE; --ki-mute: #B9B1A5; --ki-hair: rgb(237 231 222 / .16); }
 [data-ki-band='light'] { background: ${CREAM}; color: ${INK}; --ki-mute: #6E675D; --ki-hair: rgb(35 31 27 / .16); --ki-copper: #8A5A33; }
-.ki-verk-sulu { background: #241B19; }
-.ki-italskar { background: #3B2320; color: #EFE6DC; }
 
 /* ── chrome ───────────────────────────────────────────────────────────── */
 .ki-nav {
@@ -151,7 +149,7 @@ export const CSS = `
 .ki-lead { font-size: ${fluid(21, 17)}; line-height: 1.5; color: inherit; max-width: 40ch; margin: 0 0 calc(var(--u) * 30); }
 .ki-stat { font-family: ${MONO}; font-size: ${fluid(12.5, 12)}; color: var(--ki-mute, #6E675D); margin: calc(var(--u) * 30) 0 0; }
 .ki-kicker { font-family: ${MONO}; font-size: ${fluid(12.5, 12)}; letter-spacing: .14em; text-transform: uppercase; color: #8A5A33; margin: 0 0 calc(var(--u) * 16); }
-[data-ki-band='dark'] .ki-kicker, .ki-verk-sulu .ki-kicker, .ki-italskar .ki-kicker { color: #D9A87E; }
+[data-ki-band='dark'] .ki-kicker { color: #D9A87E; }
 
 /* ── reveals ──────────────────────────────────────────────────────────── */
 /* Word-by-word rise, staggered in CSS off each word's own index, so the
@@ -430,103 +428,85 @@ export const CSS = `
 }
 .ki-plx-deep-cta { margin: calc(var(--u) * 34) 0 0; }
 
-/* THE GROUND, CONTINUED.
-   This rule used to live inside the old hero's CSS block and was deleted with
-   it, so the section below the descent fell back to the site charcoal while
-   the hero resolved to its own darker brown — two different darks meeting on
-   a hard line, exactly the seam the whole descent exists to avoid. The
-   descent now resolves to CHARCOAL, the same dark every other band uses, and
-   this carries the grain across the join so both sides are one surface. */
-.ki-stone {
-  background-color: ${CHARCOAL};
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
-  background-repeat: repeat; background-size: 140px 140px;
-  color: #EFE7DC;
-}
+/* ── THE PASSAGE ──────────────────────────────────────────────────────────
+   The only stone section on the page. The descent puts you inside the rock,
+   this is the distance you travel through it, and the gate at the far end
+   brings you out — everything after that is in the light.
 
-/* ── THE BEDROCK ──────────────────────────────────────────────────────────
-   The hero descends INTO the rock and the gate at the other end climbs back
-   out of it. Everything between the two is therefore inside the material,
-   and painting that stretch flat charcoal made the descent a decoration: you
-   arrived somewhere and then the page went back to being a page.
-
-   public/katrinisfeld/bedrock.webp is cut from the SAME photograph both
-   gates are cut from, well below the crest where there is no sky in it, put
-   through the identical grade and then crushed to a texture — mean luminance
-   34 against the page's own 29, sigma 9. That is a whisper on purpose:
-   anything louder competes with her photography, which is the one thing on
-   this page that has to win. It is seamless vertically by mirror rather than
-   by a cross-fade, so the repeat has no join at all, and background-size
-   100% auto means it never repeats sideways.
-
-   It fades in from flat charcoal over the first 34vh and back to flat over
-   the last 40vh, so neither gate ever has a texture edge to cross: both of
-   them resolve to plain ${CHARCOAL}, and so does the surface they meet. */
-.ki-bedrock {
-  position: relative;
-  background-color: ${CHARCOAL};
-  background-image:
-    linear-gradient(to bottom, ${CHARCOAL}, rgb(29 27 25 / 0)),
-    linear-gradient(to top, ${CHARCOAL}, rgb(29 27 25 / 0)),
-    url("${import.meta.env.BASE_URL}katrinisfeld/bedrock.webp");
-  background-repeat: no-repeat, no-repeat, repeat-y;
-  background-position: top center, bottom center, top center;
-  background-size: 100% 34vh, 100% 40vh, 100% auto;
-}
-/* the sections inside it give up their own flat darks, or there is no point:
-   an opaque box on top of the rock is the flat page again, one layer up */
-.ki-bedrock [data-ki-band='dark'],
-.ki-bedrock .ki-hs,
-.ki-bedrock .ki-verk-sulu,
-.ki-bedrock .ki-stone {
-  background-color: transparent;
-  background-image: none;
-}
-/* the horizontal chapter's own figures keep their frames — it is only the
-   section plates that dissolve */
-.ki-bedrock .ki-hs-fig { background: rgb(0 0 0 / .22); }
-
-/* ── the horizontal chapter ───────────────────────────────────────────── */
-/* Default is the TOUCH build: a native scroll-snap strip. The pinned version
-   is layered on only where there is a real pointer, because a scroll-jacked
-   pin on a phone reads as a page that has stopped working. */
+   It used to be a strip of projects on a stone TEXTURE, and the texture
+   scrolled vertically behind it while the strip was pinned, because the pin
+   fixes this section for a whole viewport while its ancestor's background
+   keeps moving with the page. Two motions at right angles, neither of them
+   the one the visitor is making. That is what was overstimulating. So the
+   rock moves sideways now, with the journey, on the same scroll arithmetic
+   as the track: a wall at 0.18 of its speed and a nearer mass along the
+   bottom at 0.55. Depth from the ratio, as in both gates; nothing scaled. */
 .ki-hs { position: relative; background: ${CHARCOAL}; }
-.ki-hs-pin { overflow: hidden; }
+.ki-hs-pin { position: relative; overflow: hidden; }
+.ki-hs-rock { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.ki-hs-wall, .ki-hs-near {
+  position: absolute; left: 0; display: block;
+  /* five frames wide so the slowest plane still has material under it at the
+     far end of the longest journey; it is a repeating tile, so only the part
+     near the viewport is ever rasterised */
+  width: 500%;
+  background-repeat: repeat-x;
+  will-change: transform;
+}
+/* 150%, not 100%: at one tile per frame you saw eight columns across and the
+   wall read as a big striped wallpaper competing with her photographs. Zoomed
+   in you are CLOSE to a rock face, which is both what a passage is and half
+   as busy. The tile is dropped to sigma 4.6 for the same reason — it has to
+   be a surface the work sits on, not a pattern. */
+.ki-hs-wall { top: 0; bottom: 0; background-size: auto 150%; background-position: left center; }
+/* the foreground the journey passes closest to. Three times the wall's speed
+   — that ratio is the only depth cue here — and dark enough to actually read
+   as a nearer mass rather than as a vignette. */
+.ki-hs-near { bottom: 0; height: 40%; background-size: auto 100%; background-position: left bottom; }
+
 .ki-hs-track {
-  display: flex; align-items: center; gap: calc(var(--u) * 34);
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: calc(var(--u) * 96);
   padding: calc(var(--u) * 54) calc(var(--u) * 34);
   overflow-x: auto; scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 .ki-hs-track::-webkit-scrollbar { display: none; }
-.ki-hs-intro { flex: 0 0 auto; align-self: flex-start; padding-top: calc(var(--u) * 10); }
-.ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: 10px 0 0; }
-.ki-hs-panel { flex: 0 0 86vw; scroll-snap-align: center; margin: 0; position: relative; }
-.ki-hs-fig { display: block; overflow: hidden; background: rgb(0 0 0 / .2); }
-/* the parallax layer sits inside the peel: the peel clips, the layer moves */
+
+/* THE WRITTEN PANELS. "not enough space between pictures and some nice
+   headline texts" — the space and the headlines are one fix: the chapter now
+   opens by being introduced and breaks once in the middle, so the eye gets
+   somewhere to rest instead of reading a shelf of photographs end to end. */
+.ki-hs-open, .ki-hs-say { flex: 0 0 auto; margin: 0; scroll-snap-align: center; }
+.ki-hs-open { width: min(80vw, calc(var(--u) * 540)); }
+.ki-hs-say { width: min(72vw, calc(var(--u) * 460)); }
+.ki-hs-lead {
+  margin: calc(var(--u) * 20) 0 calc(var(--u) * 22);
+  font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
+  font-size: ${fluid(54, 32)}; color: #F2ECE3;
+}
+.ki-hs-open .ki-body { margin-bottom: 0; }
+.ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: calc(var(--u) * 26) 0 0; }
+.ki-hs-say-line {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 300; line-height: 1.18;
+  font-size: ${fluid(42, 27)}; color: #F2ECE3;
+}
+.ki-hs-say-sub {
+  margin: calc(var(--u) * 20) 0 0; font-family: ${MONO};
+  font-size: ${fluid(12, 11.5)}; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ki-mute);
+}
+
+.ki-hs-panel {
+  flex: 0 0 82vw; scroll-snap-align: center; margin: 0; position: relative;
+  /* deliberate vertical drops, so the journey is not a ruler-straight shelf */
+  transform: translateY(calc(var(--drop, 0) * 7vh));
+}
+.ki-hs-fig { display: block; overflow: hidden; background: rgb(0 0 0 / .22); }
 .ki-hs-img { display: block; overflow: hidden; }
 .ki-hs-fig picture, .ki-hs-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-/* a slab: the whole panel is the photograph, with one chip in its corner */
-.ki-hs-panel.is-bleed .ki-hs-fig picture, .ki-hs-panel.is-bleed .ki-hs-fig img { aspect-ratio: 3 / 4; }
-/* ONE CORNER CHIP, not a caption bar. Stretched left-to-right it became a
-   band across the bottom of the photograph, which is the thing a full-bleed
-   slab exists to avoid: the reference puts a small ink block in a single
-   corner and lets the picture hold the rest of the frame. */
-.ki-hs-chip {
-  position: absolute; left: calc(var(--u) * 30); bottom: calc(var(--u) * 30);
-  display: grid; grid-template-columns: auto auto; align-items: end;
-  gap: calc(var(--u) * 6) calc(var(--u) * 26);
-  padding: calc(var(--u) * 20) calc(var(--u) * 26);
-  max-width: min(78vw, calc(var(--u) * 520));
-  background: rgb(20 17 15 / .78); color: #F4EEE6;
-}
-.ki-hs-chip .ki-kicker { grid-column: 1; color: #C9C0B4; margin: 0; }
-.ki-hs-chip-title { grid-column: 1; margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(30, 21)}; line-height: 1.06; }
-.ki-hs-chip-title a { color: inherit; text-decoration: none; }
-.ki-hs-chip-no {
-  grid-column: 2; grid-row: 1 / 3; align-self: end;
-  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .2em; color: var(--ki-copper);
-}
+.ki-hs-panel.is-wide .ki-hs-fig picture,
+.ki-hs-panel.is-wide .ki-hs-fig img { aspect-ratio: 16 / 10; }
 .ki-hs-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 14px; }
 .ki-hs-title { margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 19)}; }
 .ki-hs-title a { color: inherit; text-decoration: none; }
@@ -537,27 +517,26 @@ export const CSS = `
      track overflows, so vertical distance buys horizontal distance 1:1 */
   .ki-hs-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; }
   .ki-hs-track {
-    overflow: visible; scroll-snap-type: none; padding: 0 calc(var(--u) * 34);
-    gap: calc(var(--u) * 40); will-change: transform;
+    overflow: visible; scroll-snap-type: none;
+    padding: 0 calc(var(--u) * 90);
+    /* four times the gap the first version had. A journey needs air between
+       its stops; 30px of it read as a contact sheet sliding past. */
+    gap: calc(var(--u) * 132);
+    will-change: transform;
   }
-  .ki-hs-panel { flex: 0 0 46vw; }
-  .ki-hs-intro { align-self: center; padding-right: calc(var(--u) * 20); }
-  /* the slab is the full viewport, edge to edge, and it cancels the track's
-     side padding so nothing shows beside it */
-  .ki-hs-panel.is-bleed { flex: 0 0 100vw; margin: 0 calc(var(--u) * -40); }
-  .ki-hs-panel.is-bleed .ki-hs-fig { height: 100svh; }
-  .ki-hs-panel.is-bleed .ki-hs-fig picture,
-  .ki-hs-panel.is-bleed .ki-hs-fig img { aspect-ratio: auto; height: 100%; }
-  .ki-hs-panel.is-bleed .ki-hs-img { height: 100%; }
+  .ki-hs-panel { flex: 0 0 36vw; }
+  .ki-hs-panel.is-wide { flex: 0 0 50vw; }
+  .ki-hs-open { width: calc(var(--u) * 560); }
+  .ki-hs-say { width: calc(var(--u) * 470); }
   /* the counter-move is written by the engine every frame, so it must never
      carry a transition — but it DOES need a starting state for the moment
-     before the first scroll frame lands. No clip starting state: the peel
-     was removed (see the note in the engine). */
+     before the first scroll frame lands. */
   .ki-js .ki-hs-img[data-ki-hpar] { transform: translate3d(7.5%, 0, 0) scale(1.16); }
 }
 /* no pin, no counter-move: reduced motion gets the plain strip */
 @media (prefers-reduced-motion: reduce) {
   .ki-js .ki-hs-img[data-ki-hpar] { transform: none !important; }
+  .ki-hs-wall, .ki-hs-near { transform: none !important; }
 }
 
 /* ── material bands: the palette, carried by the material ─────────────── */
@@ -1043,7 +1022,7 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
    at CHARCOAL under a section that is actually rgb(36,27,25) left a visible
    line. And it is a background-image, not a ::before, because a positioned
    pseudo-element paints ABOVE in-flow text and would grey the copy. */
-[data-ki-band='dark']:has(+ [data-ki-band='light']) {
+[data-ki-band='dark']:not(.ki-stmt):has(+ [data-ki-band='light']) {
   background-image: linear-gradient(
     to bottom,
     rgb(239 234 226 / 0) 0,

@@ -20,15 +20,14 @@ await new Promise(r=>setTimeout(r,900))
 
 const spots = await page.evaluate(()=>{
   const g=[...document.querySelectorAll('.parallax--sticky')]
-  const bed=document.querySelector('.ki-bedrock').getBoundingClientRect()
+  const pass=document.querySelector('.ki-hs').getBoundingClientRect()
   const dome=document.querySelector('.ki-dome').getBoundingClientRect()
   const S=window.scrollY
   const wrap=(e)=>({top:e.getBoundingClientRect().top+S, bot:e.getBoundingClientRect().bottom+S})
   return {
-    heroRelease: wrap(g[0]).bot - 400,        // the hero pin letting go into the bedrock
-    bedIntoGate: wrap(g[1]).top - 400,        // the bedrock handing to the gate
+    heroRelease: wrap(g[0]).bot - 400,        // the descent letting go into the passage
+    passIntoGate: pass.bottom + S - 400,      // the passage handing to the gate
     gateRelease: wrap(g[1]).bot - 400,        // the gate letting go into the cream
-    domeTop: dome.top + S - 400,
   }
 })
 for (const [name, y] of Object.entries(spots)) {
