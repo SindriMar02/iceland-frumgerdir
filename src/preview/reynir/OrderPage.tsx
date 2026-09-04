@@ -14,7 +14,7 @@
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Chrome from './Chrome'
-import { HOME_PATH } from './paths'
+import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO, T } from './data'
 import { ORDER_T } from './order'
@@ -66,6 +66,9 @@ const PAGE_CSS = `
 
 function ReynirOrderPageInner() {
   const [lang, setLang] = useLang()
+  /* Every internal link, in the language of the URL we are on: from /en the
+     nav must lead to /en/panta, not back into Icelandic. */
+  const P = pathsFor(lang)
   const t = T[lang]
   const ot = ORDER_T[lang]
   const { LINKS, hoursRows, mainName } = useSiteContent()
@@ -89,11 +92,11 @@ function ReynirOrderPageInner() {
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       <header className="rb-op-bar">
-        <Link to={HOME_PATH} aria-label={ot.backToSite}>
+        <Link to={P.home} aria-label={ot.backToSite}>
           <img src={LOGO} alt="Reynir bakari" width={124} height={54} decoding="async" style={{ width: 124, height: 'auto', display: 'block' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to={HOME_PATH} className="rb-op-back">
+          <Link to={P.home} className="rb-op-back">
             <svg width="13" height="11" viewBox="0 0 13 11" fill="none" aria-hidden="true">
               <path d="M5.5 1L1 5.5L5.5 10M1 5.5H12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

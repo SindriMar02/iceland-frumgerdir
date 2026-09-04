@@ -236,8 +236,13 @@ function RouteFavicon() {
 }
 
 function ScrollToTop() {
-  const { pathname, hash } = useLocation()
+  const { pathname, hash, state } = useLocation()
+  /* Opt-out for a navigation that is the same page at a different address —
+     Reynir's language toggle is the only caller. Additive: without the flag
+     every other route in the catalogue behaves exactly as before. */
+  const keepScroll = Boolean((state as { keepScroll?: boolean } | null)?.keepScroll)
   useEffect(() => {
+    if (keepScroll) return
     if (hash) {
       // honor deep links like /eldhestar#rides (lazy routes mount after the
       // browser's native anchor jump, so do it ourselves)
@@ -253,7 +258,7 @@ function ScrollToTop() {
     }
     // 'instant' so route changes don't animate through the smooth-scroll CSS
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-  }, [pathname, hash])
+  }, [pathname, hash, keepScroll])
   return null
 }
 
@@ -327,6 +332,11 @@ export default function App() {
             <Route path="/preview/reynir/panta" element={<ReynirOrderPage />} />
             <Route path="/preview/reynir/personuvernd" element={<ReynirLegalPage />} />
             <Route path="/preview/reynir/sagan" element={<ReynirStoryPage />} />
+            {/* the same four in English; the pages read their language from the URL */}
+            <Route path="/preview/reynir/en" element={<ReynirPage />} />
+            <Route path="/preview/reynir/en/panta" element={<ReynirOrderPage />} />
+            <Route path="/preview/reynir/en/personuvernd" element={<ReynirLegalPage />} />
+            <Route path="/preview/reynir/en/sagan" element={<ReynirStoryPage />} />
             <Route path="/preview/heitirpottar" element={<HeitirpottarPage />} />
             <Route path="/preview/heitirpottar/lager" element={<HeitirpottarStock />} />
             <Route path="/preview/sportsol" element={<SportsolPage />} />

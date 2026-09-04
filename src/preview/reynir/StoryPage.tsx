@@ -24,7 +24,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
-import { HOME_PATH } from './paths'
+import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { T, type GalleryPhoto, LOGO, STORY_ART } from './data'
 import { useLang } from './useLang'
@@ -107,6 +107,9 @@ const CSS = `
 
 function StoryPageInner() {
   const [lang, setLang] = useLang()
+  /* Every internal link, in the language of the URL we are on: from /en the
+     nav must lead to /en/panta, not back into Icelandic. */
+  const P = pathsFor(lang)
   const t = T[lang]
   const { GALLERY, statementQuote, statementWho, storyP1, storyP2 } = useSiteContent()
   const [lightbox, setLightbox] = useState<number | null>(null)
@@ -134,7 +137,7 @@ function StoryPageInner() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="rb-st-bar">
-        <Link to={HOME_PATH} className="rb-st-back">
+        <Link to={P.home} className="rb-st-back">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -246,7 +249,7 @@ function StoryPageInner() {
 
       <footer style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: '48px clamp(20px,4.5vw,72px)' }}>
         <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
-          <Link to={HOME_PATH} className="rb-st-back">{t.storyBack}</Link>
+          <Link to={P.home} className="rb-st-back">{t.storyBack}</Link>
           <div style={{ fontSize: 13, color: FAINT }}>Dalvegur 4, 201 Kópavogur</div>
         </div>
       </footer>

@@ -104,84 +104,155 @@ const og = (p) => `${origin}${prefix}/reynir/og/${p}`
 const OG_W = 1200
 const OG_H = 630
 
-/* ── Pages ────────────────────────────────────────────────────────────────── */
-const PAGES = [
-  {
-    dir: 'preview/reynir',
-    path: '/',
-    title: `Reynir bakarí — handverksbakarí í Kópavogi síðan 1994`,
-    desc:
-      'Handverksbakarí og kaffihús á Dalvegi 4 í Kópavogi. Súrdeigsbrauð, vínarbrauð, snúðar og tertur, allt bakað á staðnum frá grunni. Opið alla daga 07–17.',
-    descEn:
-      'A family craft bakery and café at Dalvegur 4 in Kópavogur. Sourdough, Danish pastries and cakes, all baked on-site from scratch. Open every day 07:00–17:00.',
-    image: og('heim.jpg'),
-    imageAlt: 'Bakari við steinofninn í Reyni bakara, brauð inni í ofninum',
-  },
-  {
-    dir: 'preview/reynir/panta',
-    path: '/panta',
-    crumb: 'Sérpantanir',
-    title: 'Panta tertu eða veislubakka — Reynir bakarí í Kópavogi',
-    desc:
-      'Pantaðu tertu, veislubakka eða bakkelsi hjá Reyni bakara á Dalvegi 4 í Kópavogi. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
-    descEn:
-      'Order a celebration cake, party platter or pastry tray from Reynir bakarí at Dalvegur 4 in Kópavogur. We confirm the order by phone and you pay on collection.',
-    image: og('panta.jpg'),
-    imageAlt: 'Rjómaterta frá Reyni bakara skreytt með rjómatoppum og kokteilberjum',
-  },
-  {
-    dir: 'preview/reynir/personuvernd',
-    path: '/personuvernd',
-    title: 'Persónuvernd og skilmálar — Reynir bakarí',
-    desc:
-      'Hvaða upplýsingum Reynir bakarí safnar þegar þú sendir pöntunarbeiðni, af hverju, hversu lengi þær eru geymdar og hver réttindi þín eru. Ásamt skilmálum sérpantana.',
-    descEn:
-      'What Reynir bakarí collects when you send an order request, why, how long it is kept and what your rights are. Plus the terms for custom orders.',
-    image: og('personuvernd.jpg'),
-    imageAlt: 'Myndaveggurinn í búðinni hjá Reyni bakara á Dalvegi',
-    crumb: 'Persónuvernd og skilmálar',
-    noindexAlways: true,
-  },
-  {
-    dir: 'preview/reynir/sagan',
-    path: '/sagan',
-    crumb: 'Sagan og myndasafnið',
-    title: 'Sagan af Reyni bakara — fjölskyldubakarí í Kópavogi frá 1994',
-    desc:
-      'Fjölskyldubakarí á Dalvegi í Kópavogi síðan 1994. Sagan af Reyni bakara og myndasafn úr bakaríinu sjálfu, myndað á einum vinnumorgni í ágúst.',
-    descEn:
-      'A family bakery on Dalvegur in Kópavogur since 1994. The story of Reynir bakarí and a photographic archive from inside the bakery, shot across one working morning in August.',
-    image: og('sagan.jpg'),
-    imageAlt: 'Bakari stráir hveiti yfir vinnuborðið í Reyni bakara',
-  },
-]
-
 /* ── standalone mode ──────────────────────────────────────────────────────
    REYNIR_STANDALONE=1: the dist is the client's own deployment (dist-reynir),
    where the pages live at the domain root — /, /panta, /sagan, /personuvernd —
    not under /preview/reynir. Same pages, same meta; only WHERE they live
-   changes, so only page.dir does. */
+   changes. */
 const STANDALONE_DIST = process.env.REYNIR_STANDALONE === '1'
-if (STANDALONE_DIST) {
-  for (const p of PAGES) p.dir = p.path === '/' ? '' : p.path.slice(1)
-}
+
+/* ── Pages ────────────────────────────────────────────────────────────────
+ *
+ * Every page exists twice: Icelandic at the clean path, English at the same
+ * path under /en.
+ *
+ * WHY, when the site already had a language toggle. The toggle swapped the
+ * copy at the same address, which means there was one URL per page and one
+ * language for a search engine to index. An English search for "bakery
+ * Kopavogur order cake" had nothing to match, and the page was declaring an
+ * English alternate in its Open Graph tags that did not exist anywhere.
+ * hreflang is the only way to tell Google that two URLs are the same page in
+ * two languages, and hreflang needs two URLs.
+ *
+ * Icelandic keeps the bare paths on purpose: it is the default for a Kópavogur
+ * bakery, the URLs already shared point there, and x-default names it as the
+ * page to serve when no language matches. */
+const CONTENT = [
+  {
+    key: 'home',
+    path: '/',
+    image: og('heim.jpg'),
+    is: {
+      title: `Reynir bakarí — handverksbakarí í Kópavogi síðan 1994`,
+      desc:
+        'Handverksbakarí og kaffihús á Dalvegi 4 í Kópavogi. Súrdeigsbrauð, vínarbrauð, snúðar og tertur, allt bakað á staðnum frá grunni. Opið alla daga 07–17.',
+      imageAlt: 'Bakari við steinofninn í Reyni bakara, brauð inni í ofninum',
+    },
+    en: {
+      title: 'Reynir bakarí — a craft bakery in Kópavogur since 1994',
+      desc:
+        'A family craft bakery and café at Dalvegur 4 in Kópavogur, Iceland. Sourdough, Danish pastries, buns and cakes, all baked on site from scratch. Open daily 07–17.',
+      imageAlt: 'A baker at the deck oven in Reynir bakarí, bread inside the oven',
+    },
+  },
+  {
+    key: 'order',
+    path: '/panta',
+    image: og('panta.jpg'),
+    is: {
+      crumb: 'Sérpantanir',
+      title: 'Panta tertu eða veislubakka — Reynir bakarí í Kópavogi',
+      desc:
+        'Pantaðu tertu, veislubakka eða bakkelsi hjá Reyni bakara á Dalvegi 4 í Kópavogi. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
+      imageAlt: 'Rjómaterta frá Reyni bakara skreytt með rjómatoppum og kokteilberjum',
+    },
+    en: {
+      crumb: 'Custom orders',
+      title: 'Order a cake or party platter — Reynir bakarí, Kópavogur',
+      desc:
+        'Order a celebration cake, party platter or pastry tray from Reynir bakarí at Dalvegur 4 in Kópavogur. We confirm the order by phone and you pay on collection.',
+      imageAlt: 'A Reynir cream cake finished with piped cream and cocktail cherries',
+    },
+  },
+  {
+    key: 'story',
+    path: '/sagan',
+    image: og('sagan.jpg'),
+    is: {
+      crumb: 'Sagan og myndasafnið',
+      title: 'Sagan af Reyni bakara — fjölskyldubakarí í Kópavogi frá 1994',
+      desc:
+        'Fjölskyldubakarí á Dalvegi í Kópavogi síðan 1994. Sagan af Reyni bakara og myndasafn úr bakaríinu sjálfu, myndað á einum vinnumorgni í ágúst.',
+      imageAlt: 'Bakari stráir hveiti yfir vinnuborðið í Reyni bakara',
+    },
+    en: {
+      crumb: 'The story and the archive',
+      title: 'The story of Reynir bakarí — a family bakery since 1994',
+      desc:
+        'A family bakery on Dalvegur in Kópavogur since 1994. The story of Reynir bakarí and a photographic archive from inside the bakery, shot across one working morning in August.',
+      imageAlt: 'A baker throwing flour across the bench in Reynir bakarí',
+    },
+  },
+  {
+    key: 'legal',
+    path: '/personuvernd',
+    image: og('personuvernd.jpg'),
+    noindexAlways: true,
+    is: {
+      crumb: 'Persónuvernd og skilmálar',
+      title: 'Persónuvernd og skilmálar — Reynir bakarí',
+      desc:
+        'Hvaða upplýsingum Reynir bakarí safnar þegar þú sendir pöntunarbeiðni, af hverju, hversu lengi þær eru geymdar og hver réttindi þín eru. Ásamt skilmálum sérpantana.',
+      imageAlt: 'Myndaveggurinn í búðinni hjá Reyni bakara á Dalvegi',
+    },
+    en: {
+      crumb: 'Privacy and terms',
+      title: 'Privacy and terms — Reynir bakarí',
+      desc:
+        'What Reynir bakarí collects when you send an order request, why, how long it is kept and what your rights are. Plus the terms for custom orders.',
+      imageAlt: 'The wall of framed photographs in the shop at Reynir bakarí',
+    },
+  },
+]
+
+const LANGS = ['is', 'en']
+/** English path for an Icelandic one: '/' -> '/en', '/panta' -> '/en/panta'. */
+const enPath = (path) => (path === '/' ? '/en' : `/en${path}`)
+/** Where the file for a path lives in this dist. */
+const dirFor = (path) =>
+  STANDALONE_DIST ? (path === '/' ? '' : path.slice(1)) : `preview/reynir${path === '/' ? '' : path}`
+
+/** The eight pages this script writes: four routes × two languages. */
+const PAGES = CONTENT.flatMap((c) =>
+  LANGS.map((lang) => {
+    const path = lang === 'is' ? c.path : enPath(c.path)
+    return {
+      key: c.key,
+      lang,
+      path,
+      dir: dirFor(path),
+      image: c.image,
+      noindexAlways: c.noindexAlways,
+      ...c[lang],
+    }
+  }),
+)
+
 /** URL for a page — page.dir may be '' (the root) in standalone mode. */
 const urlFor = (p) => `${origin}${prefix}/${p.dir ? p.dir + '/' : ''}`
+/** The same route in a given language: the other half of every hreflang pair. */
+const inLang = (key, lang) => PAGES.find((p) => p.key === key && p.lang === lang)
+/** The Icelandic home page — the site's root for schema and for x-default. */
+const HOME = inLang('home', 'is')
 
 /* ── schema.org ───────────────────────────────────────────────────────────── */
-const bakery = {
+/* One business, one @id, on every page — the description is the only thing
+ * that changes with the language of the page carrying it. */
+const bakeryFor = (lang) => ({
   '@context': 'https://schema.org',
   '@type': 'Bakery',
-  '@id': `${urlFor(PAGES[0])}#bakery`,
+  '@id': `${urlFor(HOME)}#bakery`,
   name: B.name,
   legalName: B.legalName,
   vatID: B.vatID,
-  url: urlFor(PAGES[0]),
+  url: urlFor(HOME),
   telephone: B.phone,
   email: B.email,
   foundingDate: B.founded,
   description:
-    'Handverksbakarí sem framleiðir ferskt bakkelsi, brauð og kökur frá grunni. Einnig veisluþjónusta með kaffihlaðborði.',
+    lang === 'en'
+      ? 'A craft bakery producing fresh pastries, bread and cakes from scratch, with catering and a coffee buffet.'
+      : 'Handverksbakarí sem framleiðir ferskt bakkelsi, brauð og kökur frá grunni. Einnig veisluþjónusta með kaffihlaðborði.',
   image: [img('gallery/gal-11.webp'), img('pistasiusnudur-bakki.jpg'), img('bud.webp')],
   logo: img('brand/logo.webp'),
   priceRange: B.priceRange,
@@ -205,51 +276,51 @@ const bakery = {
   ],
   sameAs: [B.facebook, B.instagram],
   areaServed: { '@type': 'City', name: 'Kópavogur' },
-}
+})
 
 /** Real questions a person (or an assistant answering for them) actually asks.
  *  Every answer here is a fact stated on the page — FAQ schema that answers
  *  something the page does not say is the fastest way to a manual penalty. */
-const faq = {
+const FAQ_IS = [
+  ['Hvenær er opið hjá Reyni bakara?', 'Opið er alla daga frá klukkan 07:00 til 17:00, líka um helgar.'],
+  ['Hvar er Reynir bakarí?', `Reynir bakarí er á ${addr}. Bakaríið er eitt, á Dalvegi.`],
+  [
+    'Er hægt að panta tertu hjá Reyni bakara?',
+    'Já. Hægt er að panta tertur, veislubakka og bakkelsi fyrirfram á vefnum eða í síma 564 4700. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
+  ],
+  [
+    'Býður Reynir bakarí upp á veisluþjónustu?',
+    'Já, Reynir bakarí býður veisluþjónustu með kaffihlaðborði, ásamt tertum og veislubökkum fyrir fundi og mannfagnaði.',
+  ],
+  ['Er hægt að fá brauðin send heim?', 'Já, heimsending um höfuðborgarsvæðið er í boði í gegnum aha.is.'],
+]
+
+/* The same five questions in English — asked by a visitor, or by an assistant
+ * answering on their behalf. Translated, not invented: each answer states the
+ * same fact as its Icelandic twin, and the English page says it too. */
+const FAQ_EN = [
+  ['What are the opening hours of Reynir bakarí?', 'Open every day from 07:00 to 17:00, weekends included.'],
+  ['Where is Reynir bakarí?', `Reynir bakarí is at ${addr}, Iceland. There is one bakery, on Dalvegur.`],
+  [
+    'Can I order a cake from Reynir bakarí?',
+    'Yes. Cakes, party platters and pastry trays can be ordered in advance on the website or by phone on +354 564 4700. We confirm the order by phone and you pay on collection.',
+  ],
+  [
+    'Does Reynir bakarí do catering?',
+    'Yes. Reynir bakarí caters with a coffee buffet, along with cakes and party platters for meetings and gatherings.',
+  ],
+  ['Can the bread be delivered?', 'Yes, delivery across the Reykjavík capital area is available through aha.is.'],
+]
+
+const faqFor = (lang) => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'Hvenær er opið hjá Reyni bakara?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Opið er alla daga frá klukkan 07:00 til 17:00, líka um helgar.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'Hvar er Reynir bakarí?',
-      acceptedAnswer: { '@type': 'Answer', text: `Reynir bakarí er á ${addr}. Bakaríið er eitt, á Dalvegi.` },
-    },
-    {
-      '@type': 'Question',
-      name: 'Er hægt að panta tertu hjá Reyni bakara?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Já. Hægt er að panta tertur, veislubakka og bakkelsi fyrirfram á vefnum eða í síma 564 4700. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Býður Reynir bakarí upp á veisluþjónustu?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Já, Reynir bakarí býður veisluþjónustu með kaffihlaðborði, ásamt tertum og veislubökkum fyrir fundi og mannfagnaði.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Er hægt að fá brauðin send heim?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Já, heimsending um höfuðborgarsvæðið er í boði í gegnum aha.is.',
-      },
-    },
-  ],
-}
+  mainEntity: (lang === 'en' ? FAQ_EN : FAQ_IS).map(([name, text]) => ({
+    '@type': 'Question',
+    name,
+    acceptedAnswer: { '@type': 'Answer', text },
+  })),
+})
 
 /* Each page carries its own `crumb`. This was a two-way ternary — "/panta ?
  * 'Sérpantanir' : 'Persónuvernd og skilmálar'" — written when there were
@@ -259,7 +330,7 @@ const faq = {
  * hand, so the name now comes from the page, and a new page without a crumb
  * fails the build rather than borrowing someone else's name. */
 const breadcrumb = (page) => {
-  if (page.path !== '/' && !page.crumb) {
+  if (page.key !== 'home' && !page.crumb) {
     console.error(`reynir-seo: ${page.path} has no crumb — add one to PAGES.`)
     process.exit(1)
   }
@@ -267,8 +338,8 @@ const breadcrumb = (page) => {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Reynir bakarí', item: urlFor(PAGES[0]) },
-      ...(page.path === '/'
+      { '@type': 'ListItem', position: 1, name: 'Reynir bakarí', item: urlFor(inLang('home', page.lang)) },
+      ...(page.key === 'home'
         ? []
         : [{ '@type': 'ListItem', position: 2, name: page.crumb, item: urlFor(page) }]),
     ],
@@ -284,16 +355,33 @@ function headFor(page) {
     process.exit(1)
   }
   const url = urlFor(page)
-  const ld = [bakery, breadcrumb(page)]
-  if (page.path === '/') ld.push(faq)
+  const ld = [bakeryFor(page.lang), breadcrumb(page)]
+  if (page.key === 'home') ld.push(faqFor(page.lang))
+  /* hreflang, both ways plus x-default.
+   *
+   * Google needs each URL to name every language version INCLUDING itself, and
+   * the set has to be reciprocal — an Icelandic page pointing at the English
+   * one that does not point back is ignored outright. Both sides are generated
+   * from the same list here, so they cannot drift apart. x-default names the
+   * Icelandic page: it is what a searcher in a language we do not publish
+   * should be given, and for a Kópavogur bakery that is the Icelandic site. */
+  const alternates = LANGS.map(
+    (l) => `    <link rel="alternate" hreflang="${l}" href="${urlFor(inLang(page.key, l))}" />`,
+  )
+    .concat(`    <link rel="alternate" hreflang="x-default" href="${urlFor(inLang(page.key, 'is'))}" />`)
+    .join('\n')
+  const ogLocale = page.lang === 'en' ? 'en_GB' : 'is_IS'
+  const ogAlternate = page.lang === 'en' ? 'is_IS' : 'en_GB'
   return `
     <title>${esc(page.title)}</title>
     <meta name="description" content="${esc(page.desc)}" />
     <link rel="canonical" href="${url}" />
+${alternates}
     <meta name="robots" content="${page.noindexAlways ? 'noindex, follow' : LIVE ? 'index, follow, max-image-preview:large' : 'noindex, nofollow'}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${esc(B.name)}" />
-    <meta property="og:locale" content="is_IS" />
+    <meta property="og:locale" content="${ogLocale}" />
+    <meta property="og:locale:alternate" content="${ogAlternate}" />
     <meta property="og:title" content="${esc(page.title)}" />
     <meta property="og:description" content="${esc(page.desc)}" />
     <meta property="og:url" content="${url}" />
@@ -307,15 +395,15 @@ function headFor(page) {
     <meta name="twitter:description" content="${esc(page.desc)}" />
     <meta name="twitter:image" content="${page.image}" />
 ${
-      page.path === '/'
+      page.key === 'home'
         ? `    <!-- The LCP element. It is the pistachio snúður floating in the hero,
          and without this hint the browser does not discover it until the
          React bundle has parsed and the component has mounted. fetchpriority
          is set here rather than on the <img>, because react-dom 18.3 does not
          know the property and would render it with a console warning; as a
          preload it is plain HTML that starts the fetch before any script
-         runs. Home only — on /panta and /personuvernd this image never
-         appears, and preloading it there would be 172 KB of waste. -->
+         runs. Both home pages only — on /panta and /personuvernd this image
+         never appears, and preloading it there would be 172 KB of waste. -->
     <link rel="preload" as="image" href="${prefix}/reynir/pistasiusnudur.webp" type="image/webp" fetchpriority="high" />\n`
         : ''
     }    <meta name="geo.region" content="IS" />
@@ -342,8 +430,12 @@ function inject(page) {
     process.exit(1)
   }
   let html = readFileSync(file, 'utf8')
-  // an Icelandic page must say so, for screen readers and for search
-  html = html.replace('<html lang="en">', '<html lang="is">')
+  /* The shell arrives with a lang baked in — "en" from the catalogue's
+     index.html, "is" from Reynir's own. Neither is right for all eight pages,
+     so it is set from the page itself. A page that declares the wrong language
+     is read out by screen readers in the wrong accent and indexed as the wrong
+     language, which is the whole reason /en exists. */
+  html = html.replace(/<html lang="[^"]*">/, `<html lang="${page.lang}">`)
   // drop the catalogue's own title/description/robots so ours are not duplicates
   html = html
     .replace(/<title>[^<]*<\/title>/, '')
@@ -375,6 +467,10 @@ function writeLlms() {
 
 > Handverksbakarí og kaffihús í Kópavogi, rekið af sömu fjölskyldu síðan ${B.founded}.
 > A family-run craft bakery and café in Kópavogur, Iceland, since ${B.founded}.
+
+## Pages
+- Icelandic: ${urlFor(inLang('home', 'is'))} (menu and story), ${urlFor(inLang('order', 'is'))} (ordering), ${urlFor(inLang('story', 'is'))} (history and photographs)
+- English: ${urlFor(inLang('home', 'en'))}, ${urlFor(inLang('order', 'en'))}, ${urlFor(inLang('story', 'en'))}
 
 ## Facts
 - Address: ${addr}, Iceland
@@ -409,14 +505,28 @@ function writeSitemap() {
   /* A page carrying `noindex` has no business in the sitemap: the sitemap says
    * "index this", the meta says "do not", and Search Console reports the pair
    * as an error for a page nobody wanted indexed in the first place. */
+  /* Every URL carries its own hreflang set, the same one that is in the page's
+   * head. Google accepts either place; giving it both is the cheapest way to
+   * make sure a language version is discovered even before its page is
+   * crawled. The xhtml namespace on <urlset> is what makes these legal. */
   const urls = PAGES.filter((p) => !p.noindexAlways)
-    .map(
-      (p) => `  <url><loc>${urlFor(p)}</loc><changefreq>weekly</changefreq><priority>${p.path === '/' ? '1.0' : '0.8'}</priority></url>`,
-    )
+    .map((p) => {
+      const alts = LANGS.map(
+        (l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${urlFor(inLang(p.key, l))}"/>`,
+      )
+        .concat(`    <xhtml:link rel="alternate" hreflang="x-default" href="${urlFor(inLang(p.key, 'is'))}"/>`)
+        .join('\n')
+      return (
+        `  <url>\n    <loc>${urlFor(p)}</loc>\n${alts}\n` +
+        `    <changefreq>weekly</changefreq>\n    <priority>${p.key === 'home' ? '1.0' : '0.8'}</priority>\n  </url>`
+      )
+    })
     .join('\n')
   writeFileSync(
     join(dir, 'sitemap.xml'),
-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
+      `${urls}\n</urlset>\n`,
   )
   /* The AI crawlers are named explicitly, and allowed on purpose.
    * "User-agent: *" already permits them, but several of these bots are

@@ -8,7 +8,7 @@
  */
 import { Suspense, lazy, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
-import { HOME_PATH, ORDER_PATH, STORY_PATH, LEGAL_PATH } from './preview/reynir/paths'
+import { ROUTES } from './preview/reynir/paths'
 
 const Page = lazy(() => import('./preview/reynir/Page'))
 const OrderPage = lazy(() => import('./preview/reynir/OrderPage'))
@@ -20,8 +20,11 @@ const LegalPage = lazy(() => import('./preview/reynir/LegalPage'))
  *  querySelector THROW, which once white-screened a whole preview.
  *  Effect-only, so it is inert during the server render. */
 export function ScrollToTop() {
-  const { pathname, hash } = useLocation()
+  const { pathname, hash, state } = useLocation()
+  const keepScroll = Boolean((state as { keepScroll?: boolean } | null)?.keepScroll)
   useEffect(() => {
+    /* a language switch is the same page at a different address */
+    if (keepScroll) return
     if (hash) {
       try {
         document.querySelector(hash)?.scrollIntoView()
@@ -31,7 +34,7 @@ export function ScrollToTop() {
       return
     }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-  }, [pathname, hash])
+  }, [pathname, hash, keepScroll])
   return null
 }
 
@@ -41,10 +44,17 @@ export function ReynirApp() {
       <ScrollToTop />
       <Suspense fallback={null}>
         <Routes>
-          <Route path={HOME_PATH} element={<Page />} />
-          <Route path={ORDER_PATH} element={<OrderPage />} />
-          <Route path={STORY_PATH} element={<StoryPage />} />
-          <Route path={LEGAL_PATH} element={<LegalPage />} />
+          {/* Each page twice: the Icelandic path, and the same page under /en.
+              The component does not care which — it reads its language from the
+              URL — so one element serves both. */}
+          <Route path={ROUTES.home.is} element={<Page />} />
+          <Route path={ROUTES.home.en} element={<Page />} />
+          <Route path={ROUTES.order.is} element={<OrderPage />} />
+          <Route path={ROUTES.order.en} element={<OrderPage />} />
+          <Route path={ROUTES.story.is} element={<StoryPage />} />
+          <Route path={ROUTES.story.en} element={<StoryPage />} />
+          <Route path={ROUTES.legal.is} element={<LegalPage />} />
+          <Route path={ROUTES.legal.en} element={<LegalPage />} />
           {/* anything else goes home — a bakery site has no useful 404 */}
           <Route path="*" element={<Page />} />
         </Routes>
@@ -55,4 +65,4 @@ export function ReynirApp() {
 
 /** The routes the prerender walks. Kept beside the tree that serves them so
  *  adding a route cannot silently ship an unprerendered page. */
-export const PRERENDER_ROUTES = [HOME_PATH, ORDER_PATH, STORY_PATH, LEGAL_PATH]
+export const PRERENDER_ROUTES = Object.values(ROUTES).flatMap((r) => [r.is, r.en])

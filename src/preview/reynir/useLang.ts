@@ -1,79 +1,53 @@
 /**
- * Reynir bakari — language choice, shared across the routes.
+ * Reynir bakarí — the language of the page, read from its URL.
  *
- * The order page is its own route, so a visitor reading the site in Icelandic
- * and then tapping "Panta" must not land in English. The choice is persisted so
- * it survives the navigation. Wrapped in try/catch because Safari private mode
- * throws on localStorage access rather than returning null.
+ * Icelandic is served at /, /panta, /sagan, /personuvernd; English at the same
+ * paths under /en. The toggle navigates between the two, so switching language
+ * changes the address, and the address is the only thing that decides which
+ * language renders.
  *
- * TWO things here are deliberate and easy to "fix" wrongly:
+ * WHAT THIS REPLACED, and why the old version's care is no longer needed.
  *
- * 1. THE DEFAULT IS ICELANDIC EVERYWHERE, catalogue preview included.
+ * The language used to be React state: 'is' by default, with a stored choice
+ * applied in an effect after mount. That hook carried two deliberate, fragile
+ * rules — never read localStorage during render (or the server's markup and
+ * the browser's first render disagree and hydration breaks), and never persist
+ * on the first run (or a returning visitor's choice is clobbered by the
+ * default). Both existed to keep a value that lives outside the URL in step
+ * with a page rendered before the browser ran. Reading it from the pathname
+ * removes the problem rather than managing it: Node and the browser derive the
+ * same language from the same string, every time.
  *
- *    It used to be English on the catalogue, on the reasoning that the
- *    catalogue is Sindri reading his own work. That was wrong twice over. The
- *    preview URL is the link SENT TO THE OWNER and to prospects, so the first
- *    thing an Icelandic baker saw of his own site was in English. And the
- *    shell already declares lang="is" on every route, so the page was telling
- *    Google and screen readers Icelandic while serving them English body text:
- *    a contradiction that indexes the wrong language for the whole site.
- *
- *    A first-time visitor to reynirbakari.is is overwhelmingly a Kopavogur
- *    local. English stays one tap away in the header for everyone else, and
- *    the choice is remembered.
- *
- * 2. THE FIRST RENDER NEVER READS STORAGE. It returns the same constant on the
- *    server and in the browser, so the prerendered markup and React's first
- *    client render are identical and hydration is clean. The stored preference
- *    is applied one tick later, in an effect. Reading localStorage during
- *    render is the classic way to produce a hydration mismatch.
+ * The stored preference is gone with it, on purpose. A remembered choice would
+ * have to redirect the visitor away from the URL they opened — including the
+ * URL Google indexed and the link someone was sent — and Google's own guidance
+ * is not to do that. The URL is the choice now, so it survives being shared,
+ * bookmarked and linked, which localStorage never did.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { Lang } from './data'
-
-const KEY = 'rb-lang'
-
-/** Icelandic bakery, Icelandic default, on whichever host it is served from. */
-const DEFAULT_LANG: Lang = 'is'
-
-function stored(): Lang | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const v = window.localStorage.getItem(KEY)
-    return v === 'is' || v === 'en' ? v : null
-  } catch {
-    return null
-  }
-}
+import { langFromPath, swapLang } from './paths'
 
 export function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLang] = useState<Lang>(DEFAULT_LANG)
-  const mounted = useRef(false)
+  const { pathname, search, hash } = useLocation()
+  const navigate = useNavigate()
+  const lang = langFromPath(pathname)
 
-  /* Apply the remembered choice after mount, not during render. */
-  useEffect(() => {
-    const s = stored()
-    if (s && s !== lang) setLang(s)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  /* Persist only real choices. The first run is always skipped: at that point
-     `lang` is still the default and the effect above may not have applied the
-     stored value yet, so writing here would clobber a returning visitor's
-     choice with the default. A visitor who never touches the switch therefore
-     leaves nothing in localStorage at all. */
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true
-      return
-    }
-    try {
-      window.localStorage.setItem(KEY, lang)
-    } catch {
-      /* storage unavailable; the in-memory choice still works for this visit */
-    }
-  }, [lang])
+  /* Keep the query and hash: a reader who opened /panta?vara=barnaterta and
+     then switched language should still be looking at that cake. */
+  const setLang = useCallback(
+    (l: Lang) => {
+      if (l === lang) return
+      /* keepScroll: the toggle lives in the sticky bar, so it is reachable
+         half-way down a long page. This is the same page in another language,
+         not a new page — landing back at the masthead would lose the reader's
+         place. ScrollToTop honours the flag; nothing else in the app sets it. */
+      navigate(`${swapLang(pathname, l)}${search}${hash}`, { state: { keepScroll: true } })
+    },
+    [lang, pathname, search, hash, navigate],
+  )
 
   return [lang, setLang]
 }

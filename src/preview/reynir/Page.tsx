@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
-import { ORDER_PATH, STORY_PATH, LEGAL_PATH } from './paths'
+import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { useIsomorphicLayoutEffect } from './ssr'
 import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART } from './data'
@@ -794,6 +794,9 @@ function ReynirPageInner() {
   // English on a first visit, but shared with the order route so a visitor
   // reading in Icelandic does not land back in English after ordering.
   const [lang, setLang] = useLang()
+  /* Every internal link, in the language of the URL we are on: from /en the
+     nav must lead to /en/panta, not back into Icelandic. */
+  const P = pathsFor(lang)
   const t = T[lang]
   const {
     LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
@@ -1064,7 +1067,7 @@ function ReynirPageInner() {
           <a href="#menu" className="rb-navlink">{t.navMenu}</a>
           <a href="#bread" className="rb-navlink">{t.navBread}</a>
           <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
-          <Link to={STORY_PATH} className="rb-navlink">{t.navStory}</Link>
+          <Link to={P.story} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.6vw,20px)' }}>
@@ -1079,7 +1082,7 @@ function ReynirPageInner() {
             <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
             <span className="rb-sticky-status">{status.label}</span>
           </span>
-          <Link to={ORDER_PATH} className="rb-sticky-cta">{ORDER_T[lang].navOrder}</Link>
+          <Link to={P.order} className="rb-sticky-cta">{ORDER_T[lang].navOrder}</Link>
           <button
             type="button"
             className="rb-burger rb-burger-bar"
@@ -1121,7 +1124,7 @@ function ReynirPageInner() {
             { href: '#menu', label: t.navMenu },
             { href: '#bread', label: t.navBread },
             { href: '#gallery', label: t.navGallery },
-            { to: STORY_PATH, label: t.navStory },
+            { to: P.story, label: t.navStory },
             { href: '#visit', label: t.navVisit },
           ].map((item, i) => {
             const inner = (
@@ -1166,7 +1169,7 @@ function ReynirPageInner() {
               <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')} tabIndex={menu ? 0 : -1}>ÍS</button>
             </div>
           </div>
-          <Link to={ORDER_PATH} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
+          <Link to={P.order} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
             {ORDER_T[lang].navOrder}
           </Link>
         </div>
@@ -1403,7 +1406,7 @@ function ReynirPageInner() {
             {/* the landing page tells the short version; the whole story and
                 the full archive live on their own route */}
             <div data-reveal style={{ ...revealInit(reduced, 0.1) }}>
-              <Link to={STORY_PATH} className="rb-cta rb-cta-ghost">{t.storyMore}</Link>
+              <Link to={P.story} className="rb-cta rb-cta-ghost">{t.storyMore}</Link>
             </div>
           </div>
         </div>
@@ -1495,7 +1498,7 @@ function ReynirPageInner() {
       {/* ===================== CUSTOM ORDERS (teaser) =====================
           The full configurator lives on its own route so this page keeps its
           story. See OrderPage.tsx. */}
-      <OrderTeaser lang={lang} orderPath={ORDER_PATH} />
+      <OrderTeaser lang={lang} orderPath={P.order} />
 
       {/* ===================== GALLERY (closing strip) =====================
           These seventeen frames used to sit in a tall masonry wall ABOVE the
@@ -1538,7 +1541,7 @@ function ReynirPageInner() {
         {/* The strip reads as "there are more of these", so give it somewhere
             to go: the same frames as a full wall on the archive page. */}
         <div style={{ ...wrap, padding: '0 clamp(20px,4.5vw,72px)', marginTop: 'clamp(24px,3.5vh,36px)' }}>
-          <Link to={STORY_PATH} className="rb-cta rb-cta-ghost">{t.galleryMore}</Link>
+          <Link to={P.story} className="rb-cta rb-cta-ghost">{t.galleryMore}</Link>
         </div>
       </section>
 
@@ -1652,7 +1655,7 @@ function ReynirPageInner() {
               <a href={LINKS.facebook} target="_blank" rel="noreferrer" className="rb-foot-link">Facebook</a>
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-foot-link">aha.is</a>
               <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-foot-link">Wolt</a>
-              <Link to={LEGAL_PATH} className="rb-foot-link">{t.legalLink}</Link>
+              <Link to={P.legal} className="rb-foot-link">{t.legalLink}</Link>
             </div>
             <div style={{ fontSize: 12, color: FAINT, marginTop: 10 }}>{t.legalLine}</div>
           </div>
