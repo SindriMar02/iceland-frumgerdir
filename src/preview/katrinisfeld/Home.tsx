@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
   Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay,
-  type HPanel,
+  type HPanel, type HOver,
 } from './kit'
 /* 21st.dev @osmosupply/parallax-scrolling, integrated as shipped — GSAP +
    ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
@@ -155,6 +155,31 @@ const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
    what two of the three planes exist to prevent. -0.62 spreads the crossings
    to 0.17 / 0.40 / 0.57, so there are three and then four distinct bands in
    the frame and they peel off the bottom one at a time. */
+/* THE OVERHANG — the descent's own three plates, upside down.
+   The passage used to sit on a mirror-tiled stone texture, and a mirror-tiled
+   texture is cropped and pasted stone: at any contrast where the rock is
+   legible the repeat is legible too. These are the SAME FILES the descent
+   uses, flipped in CSS so the silhouette hangs downward, so it is real
+   photographed rock with a real fractured edge and nothing is repeated.
+
+   They come from ABOVE and deepen as the journey runs — the descent's move
+   reversed, because the ground does not rise from the bottom twice. Every
+   crest starts just OFF the top of the frame, so the passage begins on the
+   same dark the descent ends on and the rock arrives as you start moving:
+   started on screen, the overhang's shadowed rock met the descent's lit floor
+   on a hard line, 13 levels apart. By the end it is a quarter of the frame.
+   They drift left with the strip at three different rates, which is the
+   depth. The panels ride low enough that the deepest plate never reaches
+   them. */
+const OVERHANG: ReadonlyArray<HOver> = [
+  { src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800, crest: 0.0488,
+    from: -0.03, to: 0.215, drift: 0.090 },
+  { src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800, crest: 0.0523,
+    from: -0.06, to: 0.240, drift: 0.120 },
+  { src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800, crest: 0.0559,
+    from: -0.09, to: 0.270, drift: 0.145 },
+]
+
 const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
   { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
     crest: 0.1438, restAt: -0.06, travel: 1.178, tail: ROCK, fill: FLOOR },
@@ -273,8 +298,7 @@ export function Home() {
           'þau voru ljósmynduð.'
         }
         panels={CHAPTER}
-        rock={ROCK}
-        near={`${ASSET}/passage-near.webp`}
+        over={OVERHANG}
       />
 
       {/* 03 · THE GATE OUT — fired the moment the passage ends.

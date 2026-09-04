@@ -441,28 +441,48 @@ export const CSS = `
    rock moves sideways now, with the journey, on the same scroll arithmetic
    as the track: a wall at 0.18 of its speed and a nearer mass along the
    bottom at 0.55. Depth from the ratio, as in both gates; nothing scaled. */
-.ki-hs { position: relative; background: ${CHARCOAL}; }
-.ki-hs-pin { position: relative; overflow: hidden; }
-.ki-hs-rock { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-.ki-hs-wall, .ki-hs-near {
-  position: absolute; left: 0; display: block;
-  /* five frames wide so the slowest plane still has material under it at the
-     far end of the longest journey; it is a repeating tile, so only the part
-     near the viewport is ever rasterised */
-  width: 500%;
-  background-repeat: repeat-x;
-  will-change: transform;
+/* the shadow under an overhang, not a background: one lighting gradient, no
+   texture and nothing tiled. The rock above it is real and photographed; this
+   is what is under it. */
+.ki-hs {
+  position: relative;
+  /* it dips and comes back: the section is 5300px tall and the sticky frame
+     travels down it, so this is the tone of the journey over time — deepest in
+     the middle of the passage, and back on the descent's own floor colour at
+     both ends, because those are the two frames that have to match the plate
+     above it and the gate below it exactly */
+  background: linear-gradient(to bottom, ${CHARCOAL} 0%, #17150F 50%, ${CHARCOAL} 100%);
 }
-/* 150%, not 100%: at one tile per frame you saw eight columns across and the
-   wall read as a big striped wallpaper competing with her photographs. Zoomed
-   in you are CLOSE to a rock face, which is both what a passage is and half
-   as busy. The tile is dropped to sigma 4.6 for the same reason — it has to
-   be a surface the work sits on, not a pattern. */
-.ki-hs-wall { top: 0; bottom: 0; background-size: auto 150%; background-position: left center; }
-/* the foreground the journey passes closest to. Three times the wall's speed
-   — that ratio is the only depth cue here — and dark enough to actually read
-   as a nearer mass rather than as a vignette. */
-.ki-hs-near { bottom: 0; height: 40%; background-size: auto 100%; background-position: left bottom; }
+/* THE BAND HAS TO BE TALLER THAN THE STRIP ON TOUCH.
+   Without this the section is exactly as tall as one row of cards — 370px on
+   a 390 phone — so there was no room above them for the rock at all, and the
+   whole passage arrived on a phone as a thin band with no stone in it. */
+.ki-hs-pin {
+  position: relative; overflow: hidden;
+  min-height: 74svh; display: flex; align-items: flex-end;
+  padding-bottom: calc(var(--u) * 40);
+}
+.ki-hs-rock { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+/* 130% wide with 15% hanging off each side, so the plate still covers the
+   frame after it has drifted with the strip */
+.ki-hs-over { position: absolute; left: -15%; width: 130%; display: block; will-change: transform; }
+.ki-hs-over-face {
+  position: absolute; inset: 0; display: block;
+  background-repeat: no-repeat; background-position: top center; background-size: 100% auto;
+  /* THE WHOLE TRICK: the descent's own plate, turned over. The silhouette
+     that rose out of the bottom of the landing page hangs down from the top
+     of this one, and it is the same file — same rock, same keyed fracture,
+     same grade — so nothing had to be invented, cropped or repeated. */
+  transform: scaleY(-1);
+  /* AN OVERHANG IS LIT FROM ABOVE, WHICH MEANS ITS UNDERSIDE IS NOT.
+     The band the plate is keyed along is its LIT one — on the landing page
+     that band is the ground at the bottom of the frame catching the sky, and
+     it is right that it is the brightest thing there. Flipped to the top of
+     this frame it became a glowing ceiling: physically backwards, and the
+     brightest object on a screen whose whole job is her photographs. Dropped
+     into shadow it is the same rock in the place the light does not reach. */
+  filter: brightness(0.4) saturate(0.92);
+}
 
 .ki-hs-track {
   position: relative; z-index: 1;
@@ -515,7 +535,9 @@ export const CSS = `
 @media (min-width: 861px) and (hover: hover) and (pointer: fine) {
   /* the section's height is written by the engine: viewport + how far the
      track overflows, so vertical distance buys horizontal distance 1:1 */
-  .ki-hs-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; }
+  /* the padding drops the strip below the deepest the overhang ever reaches,
+     so the rock frames the journey and never crosses a photograph */
+  .ki-hs-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; padding-top: 14svh; }
   .ki-hs-track {
     overflow: visible; scroll-snap-type: none;
     padding: 0 calc(var(--u) * 90);
@@ -536,7 +558,7 @@ export const CSS = `
 /* no pin, no counter-move: reduced motion gets the plain strip */
 @media (prefers-reduced-motion: reduce) {
   .ki-js .ki-hs-img[data-ki-hpar] { transform: none !important; }
-  .ki-hs-wall, .ki-hs-near { transform: none !important; }
+  .ki-hs-over { transform: none !important; }
 }
 
 /* ── material bands: the palette, carried by the material ─────────────── */
