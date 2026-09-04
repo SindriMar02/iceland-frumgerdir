@@ -148,12 +148,23 @@ const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
    band scrolls away with the pin. Start to finish the stone is now the hero
    and this, and nothing else on the page is dark until the contact block. */
 const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
-  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 1461,
-    crest: 0.1438, restAt: 1.57, travel: -1.43, fill: FLOOR, flip: true },
-  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 1461,
-    crest: 0.1406, restAt: 1.94, travel: -1.82, fill: FLOOR, flip: true },
-  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 1461,
-    crest: 0.1423, restAt: 2.35, travel: -2.25, fill: FLOOR, flip: true },
+  /* The plate is built from the full height of its source now (3211 rows;
+     the old crop kept 1461 and threw away the rest), so turned over there is
+     ~1900px of dark rock above the lit band on a 1490-wide frame instead of
+     ~550 — the rest frame is the photograph's own floor, not the fill.
+
+     Rest positions are re-derived from that lit band rather than copied from
+     the descent: it is 1050 source px above the crest, which is 0.44 of a
+     frame at 1490x1230 and 0.70 at 1280x800, and it has to be entirely below
+     the frame at rest on all of them. 1.75 clears it everywhere with margin;
+     the ratio of the three is the descent's own. The light shows once the
+     near crest clears the frame bottom, at 0.45 of the scrub. */
+  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 3211,
+    crest: 0.0654, restAt: 1.40, travel: -1.26, fill: FLOOR, flip: true },
+  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 3211,
+    crest: 0.0640, restAt: 1.55, travel: -1.43, fill: FLOOR, flip: true },
+  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 3211,
+    crest: 0.0647, restAt: 1.75, travel: -1.65, fill: FLOOR, flip: true },
 ]
 
 /* THE PASSAGE.
