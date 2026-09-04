@@ -2,7 +2,7 @@
    Reads the plates' real bounding rects out of a real Chrome at set scroll
    positions, at two viewports, and shoots frames. Nothing here is inferred
    from the CSS — every number is what the engine actually laid out. */
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, extname } from 'node:path'
 import { createServer } from 'node:http'
 import puppeteer from 'puppeteer-core'
@@ -14,6 +14,7 @@ const MIME = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', 
 const srv = createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0])
   let f = join(ROOT, p)
+  if (existsSync(f) && statSync(f).isDirectory()) f = join(f, 'index.html')
   if (!existsSync(f) || p.endsWith('/')) f = join(ROOT, 'index.html')
   try { const b = readFileSync(f)
     res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' }); res.end(b) }

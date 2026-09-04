@@ -749,6 +749,57 @@ export const CSS = `
 .ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(64, 32)}; line-height: 1; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
 @media (hover: hover) and (pointer: fine) { .ki-samband-tel:hover { color: var(--ki-copper); } }
 .ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .05em; color: #B9B1A5; margin-top: calc(var(--u) * 30); max-width: 64ch; line-height: 1.7; }
+/* ── hafa samband ─────────────────────────────────────────────────────────
+   Three blocks, one decision each. The old page opened on a five-row
+   definition list sitting beside the form with a heading over each column, so
+   the first thing on it was a data table competing with the one thing the
+   page exists to collect — and the four steps that answer "and then what?"
+   were the LAST thing on it, underneath the showroom. The steps sit beside
+   the form now; the address moved into the showroom, which is the only
+   context in which a street address means anything. */
+.ki-samb-head { padding-bottom: calc(var(--u) * 34); }
+/* the fastest door, in the head: some people will just ring, and they should
+   not have to scroll past a form to find the number */
+.ki-samb-direct {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--u) * 34);
+  margin: calc(var(--u) * 40) 0 0;
+}
+.ki-samb-tel-lg {
+  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(44, 30)};
+  line-height: 1; color: inherit; text-decoration: none;
+  border-bottom: 1px solid var(--ki-hair); padding-bottom: 6px;
+  transition: border-color .4s ${OUT};
+}
+.ki-samb-tel-lg:hover { border-bottom-color: currentColor; }
+.ki-samb-mail {
+  font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .06em;
+  color: var(--ki-mute); text-decoration: underline; text-underline-offset: 4px;
+}
+.ki-samb-body { padding-top: calc(var(--u) * 20); }
+.ki-samb-grid {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: calc(var(--u) * 90); align-items: start;
+}
+.ki-samb-grid .ki-form { max-width: none; }
+.ki-samb-next { border-top: 1px solid var(--ki-hair); padding-top: calc(var(--u) * 26); }
+.ki-samb-thanks { border-top: 1px solid var(--ki-hair); padding-top: calc(var(--u) * 26); }
+/* the steps read as a sequence here, not as a row of equal tiles */
+.ki-steps--stack { grid-template-columns: 1fr; gap: calc(var(--u) * 26); margin-top: calc(var(--u) * 22); }
+.ki-facts-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: calc(var(--u) * 30); margin: calc(var(--u) * 34) 0 0;
+}
+.ki-facts-row div { border-top: 1px solid var(--ki-hair); padding-top: calc(var(--u) * 14); }
+.ki-facts-row dt {
+  font-family: ${MONO}; font-size: ${fluid(12, 12)}; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ki-mute); margin-bottom: 8px;
+}
+.ki-facts-row dd { margin: 0; font-size: ${fluid(15.5, 15)}; line-height: 1.6; }
+.ki-facts-row a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 860px) {
+  .ki-samb-grid { grid-template-columns: 1fr; gap: calc(var(--u) * 54); }
+}
+
 .ki-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 70); align-items: start; }
 .ki-dl { margin: 0; }
 .ki-dl div { display: flex; gap: 16px; padding: 14px 0; border-top: 1px solid var(--ki-hair); }
