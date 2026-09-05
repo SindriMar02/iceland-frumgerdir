@@ -64,22 +64,34 @@ export const companyEntry: PreviewCompany = {
   },
   positioning:
     'Tryggvaskáli already has what most restaurants spend years building: the first house in Selfoss, a river and a bridge outside the window, and over a thousand reviews. The current site hides all three behind a dated layout and PDF menus. The redesign leads with the 1890 house and the Ölfusá, turns the menu into a real page, and keeps the booking and gift-certificate flows the client already trusts, just inside a site that finally matches the place.',
+  /* REWRITTEN 2026-09-05, after re-fetching tryggvaskali.com immediately
+     before drafting (rule 0 of [[outreach-email-guide]]). The previous draft
+     told the owner their menus were "einungis birtir sem PDF skjöl". They are
+     not PDFs: tryggvaskali.com/matsedill publishes the menu as PNG IMAGES
+     (is-menu-1-1-1024x724.png and two more, plus English versions) and the
+     brunch menu as a JPG. Telling an owner a checkable fact about their own
+     site and getting it wrong is the Fisk Kompaní failure. The observation
+     now states the symptom they can verify on their own phone in five
+     seconds, per rule 12.
+     Also removed: "yfir þúsund umsagnir á TripAdvisor", a count with no dated
+     proof taken today, and the closer "Endilega heyrið í mér ef þetta kveikir
+     í ykkur", which rule 6 bans outright. */
   outreach: {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Tryggvaskála',
     body: `Góðan dag,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús og ferðaþjónustu.
 
-Tryggvaskáli er einmitt svona staður sem fólk man eftir. Fyrsta húsið sem byggt var á Selfossi, beint við Ölfusárbrúna, og yfir þúsund umsagnir á TripAdvisor sem staðfesta það. Mér fannst núverandi vefsíðan samt ekki gera þessari sögu nógu hátt undir höfði. Matseðlarnir eru einungis birtir sem PDF skjöl, sem er óþægilegt í síma, og sagan af húsinu sjálfu kemst hvergi að.
+Tryggvaskáli er hús sem fólk þekkir strax, fyrsta húsið sem reist var á Selfossi og stendur enn við Ölfusá. Ég skoðaði vefinn ykkar og rak augun í eitt: matseðillinn er birtur sem myndir. Í síma þarf að þysja inn til að lesa hann, og af því að þetta eru myndir en ekki texti finnst hann ekki þegar fólk leitar að mat eða brunch á Selfossi.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Húsið og áin fá að njóta sín efst, sagan frá 1890 fær sitt eigið pláss, og matseðillinn verður alvöru síða í stað PDF skjals. Borðapöntun og gjafabréf haldast nákvæmlega eins og þau eru í dag, bara innan í síðu sem loksins lítur út eins og staðurinn sjálfur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd fyrir stað með þessa sögu, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Sagan frá 1890 fær sitt eigið pláss, matseðillinn verður lesanlegur texti í stað mynda, og borðapöntunin ykkar hjá EasyTable helst nákvæmlega eins og hún er. Ég notaði ykkar eigin myndir, líka gömlu ljósmyndina af brúnni. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur.
+Ég smíðaði líka lítið kerfi sem heitir Eldhús, fyrir innra eftirlitið sem heilbrigðiseftirlitið kallar eftir. Í stað þess að fylla út blöðin í möppunni skráir starfsfólkið hitastig, vörumóttöku og þrif í símann á nokkrum sekúndum, allt er á einum stað þegar eftirlitið kemur, og kerfið lætur vita þegar kælir er hægt og rólega að hlýna, áður en hann gefur sig um helgi. Ég set mynd af yfirlitinu með.
 
-Endilega heyrið í mér ef þetta kveikir í ykkur.
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur. Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
   },
