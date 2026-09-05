@@ -22,7 +22,7 @@
  * The motion is otherwise untouched: every layer on the SAME timeline
  * position, ease none, scrub 0.
  */
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -297,6 +297,31 @@ export function ParallaxComponent({
 }: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
+  /* THE GATE IS DECIDED HERE, NOT IN THE PAGE SHELL.
+     The held state — photographs transparent, letters under their masks — is
+     keyed on <html data-ki-intro>, and that used to be stamped only by the
+     standalone shell's inline script. Which meant that anywhere else the
+     component renders, the catalogue's own preview route included, nothing
+     was ever held: the finished page painted, and then the intro faded the
+     background in ON TOP OF ITSELF and dropped the wordmark below its masks
+     to raise it again. That is not a wrong-looking intro, it is two pages.
+     A layout effect runs before the browser paints, so setting the attribute
+     here holds the frame in time wherever the component is mounted. Where the
+     shell DID run — the prerendered site, where the finished page would
+     otherwise flash before React exists — its decision is left alone. */
+  useLayoutEffect(() => {
+    if (!intro || typeof document === 'undefined') return
+    const d = document.documentElement
+    if (d.dataset.kiShell) return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    if ((window as unknown as { __KI_PRERENDER__?: boolean }).__KI_PRERENDER__) return
+    try {
+      if (sessionStorage.getItem('ki_intro_seen')) return
+      sessionStorage.setItem('ki_intro_seen', '1')
+    } catch { /* private mode: play it, that is the safe side */ }
+    d.dataset.kiIntro = '1'
+  }, [intro])
+
   const hasDeep = !!deep
   const hasTitle = !!title
   /* the plates are the effect's whole choreography, so the timeline has to be
@@ -492,19 +517,34 @@ export function ParallaxComponent({
 
     if (useLenis) acquireLenis()
 
-    /* THE OPENING, or not. */
-    const reduced = typeof window.matchMedia === 'function'
-      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const seen = !!document.documentElement.dataset.kiSeen
-    /* never inside the prerenderer — see tools/katrin-prerender.mjs */
-    const capturing = !!(window as unknown as { __KI_PRERENDER__?: boolean }).__KI_PRERENDER__
-    const runIntro = intro && !reduced && !seen && !capturing && !!triggerElement
+    /* THE OPENING, or not — ONE SOURCE OF TRUTH. Whoever set the attribute,
+       the shell before first paint or the layout effect above, it is the
+       thing the stylesheet is keyed on, so it is also the thing that decides
+       whether there is an intro to play. Reading the conditions a second
+       time here is how the two could disagree. */
+    const runIntro = intro && document.documentElement.dataset.kiIntro === '1' && !!triggerElement
     let introTimer = 0
     let introDone = !runIntro
-    const unlock = () => {
-      document.documentElement.removeAttribute('data-ki-intro')
+    let cancelled = false
+    /* TWO DIFFERENT ENDINGS, and conflating them is what made the page show
+       itself and then fade itself in again. React runs an effect, tears it
+       down and runs it again in development, and the teardown used to remove
+       the gate attribute — which is the only thing holding the photographs
+       transparent. So the finished page appeared, the second run wrote
+       opacity 0 over it, and it faded in on top of itself.
+       A teardown only releases the scroll: the stylesheet's held state stays,
+       the reverted context puts every inline style back, and the next run
+       opens from the beginning. Only a real completion takes the gate down. */
+    const releaseScroll = () => {
       document.documentElement.style.overflow = ''
       sharedLenis?.start()
+    }
+    const finish = () => {
+      introDone = true
+      document.documentElement.removeAttribute('data-ki-intro')
+      releaseScroll()
+      build()
+      ScrollTrigger.refresh()
     }
     if (runIntro) {
       /* Scroll is held while the wordmark is alone on the ground. Both
@@ -562,16 +602,9 @@ export function ParallaxComponent({
         const cap = new Promise<void>((res) => { window.setTimeout(res, 3200) })
 
         Promise.all([hold, Promise.race([Promise.all(srcs.map(decode)), cap])]).then(() => {
-          if (introDone) return
+          if (cancelled || introDone) return
           ctx.add(() => {
-            gsap.timeline({
-              onComplete: () => {
-                introDone = true
-                unlock()
-                build()
-                ScrollTrigger.refresh()
-              },
-            })
+            gsap.timeline({ onComplete: finish })
               /* the room first and the stone after it, which is the order
                  they are stacked in and the order the eye reads them */
               .fromTo(visuals,
@@ -607,7 +640,8 @@ export function ParallaxComponent({
       window.removeEventListener('load', refresh)
       window.clearTimeout(t)
       window.clearTimeout(introTimer)
-      if (!introDone) { introDone = true; unlock() }
+      cancelled = true
+      if (!introDone) releaseScroll()
       ctx.revert()
       if (useLenis) releaseLenis()
     }

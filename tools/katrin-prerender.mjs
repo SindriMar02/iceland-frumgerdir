@@ -112,6 +112,7 @@ for (const route of ROUTES) {
        intro is meant to skip */
     document.documentElement.removeAttribute('data-ki-intro')
     document.documentElement.removeAttribute('data-ki-seen')
+    document.documentElement.removeAttribute('data-ki-shell')
     document.querySelectorAll('[style=""]').forEach((el) => el.removeAttribute('style'))
 
     // React's own separator between adjacent text nodes, so hydration finds

@@ -78,6 +78,9 @@
          wordmark forever. */
       try {
         var d = document.documentElement
+        /* tells the component this ran, so it does not decide a second time
+           and reach a different answer */
+        d.dataset.kiShell = '1'
         if (!d.dataset.kiSeen && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
           d.dataset.kiIntro = '1'
           setTimeout(function () { d.removeAttribute('data-ki-intro') }, 5000)
