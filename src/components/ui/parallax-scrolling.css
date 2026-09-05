@@ -154,7 +154,13 @@
   bottom: auto;
   background-repeat: no-repeat;
   background-position: top center;
-  background-size: 100% auto;
+  /* LAID BY HEIGHT, NOT BY WIDTH. --face is the plate's own height, and
+     sizing the image to it means the image overflows sideways on a frame too
+     narrow to hold it rather than falling short of the bottom. On every frame
+     wide enough the two are the same number and this is exactly what
+     `100% auto` was. The hem below uses the identical size, which is what
+     keeps the two rows meeting at the join the same row of pixels. */
+  background-size: auto var(--face);
 }
 .parallax__plate-tail { bottom: 0; }
 /* the last resort under the hem, for frames taller than the mirror can cover:
@@ -178,7 +184,7 @@
 .parallax__plate-hem {
   background-repeat: no-repeat;
   background-position: bottom center;
-  background-size: 100% auto;
+  background-size: auto var(--face);
 }
 
 /* the corner: above every plane, pointer-active, and gone as soon as the

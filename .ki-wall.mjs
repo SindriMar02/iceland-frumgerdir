@@ -13,7 +13,7 @@ for (const [w,h] of [[1990,1300],[1490,1230],[1990,520],[1280,800]]) {
   const page=await br.newPage(); await page.setViewport({width:w,height:h})
   await (await page.createCDPSession()).send('Emulation.setEmulatedMedia',{features:[{name:'hover',value:'none'},{name:'pointer',value:'coarse'}]})
   await page.goto(`http://localhost:${port}/`,{waitUntil:'networkidle0'})
-  await page.evaluate(()=>{document.querySelector('.ki-curtain')?.remove();document.documentElement.style.scrollBehavior='auto';const s=document.createElement('style');s.textContent='.parallax__deep,.parallax__corner{visibility:hidden!important}';document.head.appendChild(s)})
+  await page.evaluate(()=>{document.querySelector('.ki-curtain')?.remove();document.documentElement.style.scrollBehavior='auto';const s=document.createElement('style');s.textContent='.parallax__deep,.parallax__corner,.ki-nav{visibility:hidden!important}.ki-nav::before{display:none!important}';document.head.appendChild(s)})
   await new Promise(r=>setTimeout(r,900))
   const g=await page.evaluate(()=>[...document.querySelectorAll('.parallax--sticky')].map(e=>{const r=e.getBoundingClientRect();return {top:r.top+window.scrollY,span:r.height-e.querySelector('.parallax__header').clientHeight}}))
   const out=[]

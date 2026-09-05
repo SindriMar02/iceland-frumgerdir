@@ -216,24 +216,42 @@ function plateGeom(p: ParallaxPlate) {
   /* the image is laid at 100% of the box width, so its rendered height is a
      fixed number of viewport widths and the rock keeps its proportions */
   const K = (100 * p.height) / p.width
+  /* THE FACE'S HEIGHT, AND EVERY OTHER MEASUREMENT IS DERIVED FROM IT.
+     K vw is the image laid at the box's full width, which is correct on any
+     frame wider than the image is tall in proportion — every desktop shape.
+     On a PORTRAIT PHONE it is a disaster: 2400x3800 across a 390 wide frame
+     renders 617px tall against an 844px screen, so the photograph cannot
+     cover the frame and what showed under it was the flat fill — the brown
+     background, on the one page whose whole argument is that it is a single
+     photograph of rock.
+     So the face takes whichever is larger, and the image is laid at that
+     HEIGHT rather than that width: it overflows sideways and is cropped,
+     which costs nothing on a wall of columns and keeps the grain at one
+     scale across face, hem and tail. On a desktop the two are identical, so
+     nothing there changes at all.
+     165svh, not 120: the plates have to have room to RISE. The travel clamp
+     stops the mirror fold entering the frame by shortening the rise to
+     whatever the photograph can cover, and at 120svh that came out under half
+     the intended travel — the ground would barely have moved. */
+  const FACE = `max(${K.toFixed(3)}vw, 165svh)`
   /* six frames of box plus the image itself. Six covers every case: the
      furthest the box edge ever sits outside the frame is
      (1 - restAt + |travel|) frames, and that is 4.7 at the very worst. */
-  const height = `calc(600% + ${K.toFixed(3)}vw)`
+  const height = `calc(600% + ${FACE})`
   const box: CSSProperties = p.flip
     /* top:auto is not decoration: .parallax__layer-img carries the registry's
        own top:-17.5%, and when top, bottom and height are all set CSS keeps
        top and throws bottom away — the flipped plates were silently sitting
        where the un-flipped ones do and never appeared at all */
-    ? { top: 'auto', bottom: `calc(${((1 - p.restAt) * 100).toFixed(3)}% - ${(p.crest * K).toFixed(3)}vw)`, height }
-    : { top: `calc(${(p.restAt * 100).toFixed(3)}% - ${(p.crest * K).toFixed(3)}vw)`, height }
+    ? { top: 'auto', bottom: `calc(${((1 - p.restAt) * 100).toFixed(3)}% - ${p.crest.toFixed(4)} * ${FACE})`, height, ['--face' as string]: FACE }
+    : { top: `calc(${(p.restAt * 100).toFixed(3)}% - ${p.crest.toFixed(4)} * ${FACE})`, height, ['--face' as string]: FACE }
   const face: CSSProperties = p.flip
-    ? { bottom: 0, top: 'auto', height: `${K.toFixed(3)}vw`, backgroundImage: `url(${p.src})`,
+    ? { bottom: 0, top: 'auto', height: FACE, backgroundImage: `url(${p.src})`,
         transform: 'scaleY(-1)' }
-    : { height: `${K.toFixed(3)}vw`, backgroundImage: `url(${p.src})` }
+    : { height: FACE, backgroundImage: `url(${p.src})` }
   const tail: CSSProperties = p.flip
-    ? { top: 0, bottom: `${K.toFixed(3)}vw`, backgroundColor: p.fill }
-    : { top: `${K.toFixed(3)}vw`, backgroundColor: p.fill }
+    ? { top: 0, bottom: FACE, backgroundColor: p.fill }
+    : { top: FACE, backgroundColor: p.fill }
   /* THE HEM — the plate's own last rows, mirrored once, and ONLY those rows.
      `background-position: bottom` with the box shorter than the image shows
      the image's bottom quarter and nothing else, which is the part that has
@@ -252,11 +270,11 @@ function plateGeom(p: ParallaxPlate) {
      its own, so no frame is ever a painted colour. */
   const HEM = 0.36
   const hem: CSSProperties = {
-    height: `${(HEM * K).toFixed(3)}vw`,
+    height: `calc(${HEM} * ${FACE})`,
     backgroundImage: `url(${p.src})`,
     ...(p.flip
-      ? { top: 'auto', bottom: `${K.toFixed(3)}vw` }
-      : { top: `${K.toFixed(3)}vw`, bottom: 'auto', transform: 'scaleY(-1)' }),
+      ? { top: 'auto', bottom: FACE }
+      : { top: FACE, bottom: 'auto', transform: 'scaleY(-1)' }),
   }
   return { box, face, tail, hem }
 }
@@ -401,7 +419,11 @@ export function ParallaxComponent({
         if (stag.length) {
           tl.fromTo(stag,
             { autoAlpha: 0, y: 18 },
-            { autoAlpha: 1, y: 0, ease: 'power1.out', duration: 0.15, stagger: 0.05 }, deepAt + 0.16)
+            /* the last specimen has to be DOWN before the descent ends. At
+               deepAt+0.16 with a 0.05 stagger the fifth one landed at 1.01 of
+               a timeline that stops at 1.00 — on a phone, where the pin is
+               shorter, two of the five simply never appeared. */
+            { autoAlpha: 1, y: 0, ease: 'power1.out', duration: 0.12, stagger: 0.04 }, deepAt + 0.10)
         }
       }
       const cornerEl = triggerElement.querySelector('[data-parallax-corner]')

@@ -602,23 +602,41 @@ export const CSS = `
      the next one's edge already in view, which is what says "there are more";
      snap centres it, and the row scrolls under its own finger rather than
      fighting the page's. */
-  /* NOT A CAROUSEL. A horizontal snap row inside a scroll-pinned frame is a
-     nested scroller fighting the page for the same finger, and at 60vw the
-     second specimen was cut off by the screen edge with nothing to say it
-     could be dragged — it read as broken rather than as scrollable. Three
-     across, then two centred underneath, all of it inside the one frame the
-     descent gives it. Nothing is clipped and nothing scrolls twice. */
+  /* FIVE ACROSS, STILL. Two earlier attempts got this wrong in opposite
+     directions: a snap carousel, which was a nested scroller fighting the
+     page and cut the second specimen off at the screen edge; then three over
+     two, where the short bottom row had to be centred and read as a ragged
+     collage with an orphan rather than as a set. It is a set of five — a
+     materials board — and a board is one row. Narrower columns, the same
+     hand-cut tops, the same left-aligned name under each. The whole block
+     gets shorter, which is what stops it colliding with the fixed wordmark
+     at the top of the frame it lives in.
+
+     The names are what set the floor on column width: Vinrautt is the
+     longest at eight characters, and it fits a fifth of a 360px screen at
+     this size. Below that the hex drops first, because the name is the part
+     that has to survive. */
   .ki-strata {
-    grid-template-columns: repeat(6, 1fr);
-    gap: clamp(14px, 2.6svh, 26px) 14px; align-items: end;
+    /* minmax(0, 1fr), not 1fr. A bare 1fr is minmax(AUTO, 1fr), so a column
+       whose name is long refuses to shrink below it and steals width from
+       its neighbours: five columns came out 44, 53, 44, 77 and 59 wide,
+       sized by the length of the words Hor, Kopar, Eik, Vinrautt and Steinn
+       rather than by the grid. That is what made the row look hand-placed. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 16px; align-items: end;
   }
-  .ki-stratum { grid-column: span 2; }
-  .ki-stratum:nth-child(4) { grid-column: 2 / span 2; }
+  /* five into two: the last one takes the full width and reads as a wide
+     plate of stone, which is what stone is. It is the only arrangement of
+     five that leaves no orphan sitting on its own in a half-empty row. */
+  .ki-stratum:last-child { grid-column: 1 / -1; }
   .ki-stratum-fig {
-    height: calc(var(--spec, 1) * clamp(84px, 14svh, 150px));
-    margin-bottom: 10px; outline-offset: 4px;
+    height: calc(var(--spec, 1) * clamp(92px, 13svh, 150px));
+    margin-bottom: 9px; outline-offset: 4px;
+    box-shadow: 0 18px 34px -14px rgb(0 0 0 / .75), 0 4px 10px -5px rgb(0 0 0 / .5);
   }
-  .ki-stratum-name { font-size: 17px; }
+  .ki-stratum:last-child .ki-stratum-fig { --spec: .62; }
+  .ki-stratum { gap: 2px; }
+  .ki-stratum-name { font-size: 18px; line-height: 1.2; }
   .ki-stratum-hex { font-size: 9.5px; letter-spacing: .14em; }
   .ki-stratum-name { font-size: 19px; }
   .ki-plx-deep--strata { max-width: none; padding-inline: 22px; }
@@ -863,12 +881,23 @@ export const CSS = `
    order. The inline transform the desktop path left behind has to be cleared
    here too, or the whole chapter renders off-screen. */
 @media (max-width: 767px), (hover: none), (pointer: coarse) {
+  /* SPACING IN PIXELS HERE, NOT IN --u. The unit is 100vw/1440 with a .44px
+     floor, so on a 390 phone every one of it is .44 of a pixel: the 76 that
+     reads as generous on a desktop is 33px on a phone, which is why a
+     paragraph sat almost against the photograph under it and the whole
+     chapter read as though its spacing rules were missing. Fixed distances
+     between blocks are fixed distances; they do not scale with the window. */
   .ki-hs-track { flex-direction: column; height: auto; transform: none !important; }
   .ki-hs-slide {
     width: 100% !important; height: auto; margin-left: 0;
-    padding: calc(var(--u) * 76) 22px;
+    padding: 76px 22px 84px;
   }
-  .ki-hs-slide.is-bleed { height: 78svh; padding: 0; }
+  /* and where two blocks of type meet, an actual rule — the edge of a
+     photograph is its own divider, but nothing divided type from type */
+  .ki-hs-slide + .ki-hs-slide:not(.is-bleed):not(.is-close):not(.is-plate) {
+    border-top: 1px solid rgb(31 27 24 / .13);
+  }
+  .ki-hs-slide.is-bleed { height: 74svh; padding: 0; }
   .ki-hs-slide.is-plate { width: 100% !important; }
   /* THE THREAD TURNS. Seven columns on a phone is seven slivers with the
      names running into each other, and four columns is the same problem in
@@ -880,25 +909,28 @@ export const CSS = `
      vertical room at all and its first line sat under the fixed wordmark */
   .ki-hs-slide.is-plate {
     text-align: left; align-items: flex-start;
-    padding: calc(var(--u) * 104) 22px calc(var(--u) * 84);
+    padding: 96px 22px 92px;
   }
   .ki-hs-plateline, .ki-hs-platesub { text-align: left; }
-  .ki-hs-spec { position: relative; width: 100%; margin: calc(var(--u) * 44) 0 0; }
+  .ki-hs-platesub { margin-top: 26px; }
+  .ki-hs-spec { position: relative; width: 100%; margin: 42px 0 0; }
   .ki-hs-spec-rule {
-    position: absolute; left: calc(var(--u) * 7); top: 0; bottom: 0;
+    position: absolute; left: 6px; top: 4px; bottom: 4px;
     width: 1px; height: auto; transform: scaleY(0); transform-origin: top center;
   }
   .ki-js .ki-hs-spec.is-in .ki-hs-spec-rule { transform: scaleY(1); }
-  .ki-hs-spec-list { grid-template-columns: 1fr; row-gap: calc(var(--u) * 20); }
-  .ki-hs-spec-item {
-    flex-direction: row; align-items: center; gap: calc(var(--u) * 18); margin-top: 0;
-  }
-  .ki-hs-spec-name { margin-top: 0; font-size: 11px; }
-  .ki-hs-spec-hex { margin-top: 0; margin-left: auto; }
-  .ki-hs-slide.is-duo { flex-direction: column; gap: calc(var(--u) * 54); }
+  .ki-hs-spec-list { grid-template-columns: 1fr; row-gap: 17px; }
+  .ki-hs-spec-item { flex-direction: row; align-items: center; gap: 16px; margin-top: 0; }
+  .ki-hs-spec-chip { width: 13px; height: 13px; box-shadow: 0 0 0 4px ${CHARCOAL}; }
+  .ki-hs-spec-name { margin-top: 0; font-size: 11.5px; }
+  .ki-hs-spec-hex { margin-top: 0; margin-left: auto; font-size: 10px; }
+  .ki-hs-slide.is-duo { flex-direction: column; gap: 44px; }
   .ki-hs-slide.is-duo .ki-hs-fig { width: 100% !important; align-self: auto; margin-bottom: 0; }
-  .ki-hs-slide.is-split { grid-template-columns: 1fr; gap: calc(var(--u) * 40); }
+  .ki-hs-slide.is-split { grid-template-columns: 1fr; gap: 30px; }
   .ki-hs-slide.is-close { min-height: 72svh; padding: 0 22px; }
+  .ki-hs-introbox .ki-hs-count { margin-top: 30px; }
+  .ki-hs-splittitle { margin: 12px 0 14px; }
+  .ki-hs-meta { padding-top: 16px; }
   .ki-hs-chip { left: 22px; bottom: 26px; }
   .ki-hs-chip-no { position: static; display: block; margin-top: 6px; }
   .ki-root .ki-hs-img picture, .ki-root .ki-hs-img img { width: 100%; margin-left: 0; transform: none !important; }
