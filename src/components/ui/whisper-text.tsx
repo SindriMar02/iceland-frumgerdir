@@ -55,8 +55,8 @@ export function WhisperText({
   useEffect(() => {
     if (managed) return
     const ctx = gsap.context(() => {
-      const targets = gsap.utils.toArray<HTMLElement>('[data-word]')
-      gsap.set(targets, { opacity: 0, x, y })
+      const targets = gsap.utils.toArray<HTMLElement>('[data-parallax-word]')
+      gsap.set(targets, { yPercent: 100, y: 0, x })
       gsap.to(targets, {
         scrollTrigger: {
           trigger: containerRef.current,
@@ -64,7 +64,7 @@ export function WhisperText({
           toggleActions: 'play none none none',
           once: true,
         },
-        opacity: 1, x: 0, y: 0, duration, ease: 'power2.out',
+        yPercent: 0, y: 0, x: 0, duration, ease: 'power2.out',
         stagger: delay / 1000,
       })
     }, containerRef)
@@ -73,9 +73,15 @@ export function WhisperText({
 
   return (
     <Tag ref={containerRef} className={`ki-whisper ${className}`}>
+      {/* Each word is a MASK with the word inside it. The registry fades the
+          words in, and a fade is the one thing that cannot be driven by a
+          scrub here: opacity near a tween's edge flickers, and the visibility
+          that came with it flickered harder. A word that rises out of its own
+          window has no opacity at all, so there is nothing to flicker — and
+          it is the gesture the rest of this site already opens on. */}
       {text.split(' ').map((word, i) => (
-        <span key={i} data-word data-parallax-word>
-          {word}
+        <span key={i} data-word>
+          <i data-parallax-word>{word}</i>
         </span>
       ))}
     </Tag>

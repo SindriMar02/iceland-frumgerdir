@@ -102,8 +102,8 @@ for (const route of ROUTES) {
     /* and NOTHING GSAP wrote survives: the stylesheet defines every rest
        state, and an inline transform, scale, opacity or visibility beats it
        for every visitor forever. Belt and braces over the flag above. */
-    const gsapProps = ['transform', 'translate', 'rotate', 'scale', 'opacity', 'visibility', 'will-change']
-    document.querySelectorAll('[data-parallax-layer], [data-parallax-corner], [data-parallax-deep], [data-parallax-word], [data-parallax-stagger]')
+    const gsapProps = ['transform', 'translate', 'rotate', 'scale', 'opacity', 'visibility', 'will-change', 'clip-path']
+    document.querySelectorAll('[data-parallax-layer], [data-parallax-corner], [data-parallax-deep], [data-parallax-word], [data-parallax-stagger], [data-parallax-stagger] img, [data-parallax-letter]')
       .forEach((el) => { for (const prop of gsapProps) el.style.removeProperty(prop) })
     document.documentElement.style.removeProperty('overflow')
     /* the head script stamps this on every capture (each page is a fresh

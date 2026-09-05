@@ -385,58 +385,84 @@ export function ParallaxComponent({
          makes this position mean what it says on the scrub. */
       const deepEl = triggerElement.querySelector('[data-parallax-deep]')
       if (deepEl) {
-        /* OPACITY, NEVER autoAlpha. autoAlpha writes `visibility` alongside
-           opacity, and on a SCRUBBED timeline that means visibility flips
-           hidden<->inherit on every frame the scroll sits near the tween's
-           start — which on a subtree holding five large photographs is a
-           visible flash on every small scroll. The pre-hydration hidden state
-           still comes from CSS; this reveals it once, here, and then only
-           opacity moves. */
-        gsap.set(deepEl, { visibility: 'visible' })
-        /* AND THE CHROME FOLLOWS IT. On the way out the surface under the
-           fixed header stops being stone and becomes cream, inside one
-           section, while the page's scroll position never leaves it. The
-           header's own band lookup reads this attribute live, so flipping it
-           at the half-way point of the deep's arrival is what keeps the
-           wordmark readable across the handoff instead of dark on stone or
-           light on cream. */
+        /* NOTHING HERE FADES. The block used to arrive on an opacity tween
+           and its contents on autoAlpha, and both were wrong for the same
+           reason: a fade driven by a scrub is a dimmer switch under the
+           visitor's finger, and autoAlpha's visibility flipped hidden and
+           back on every frame the scroll rested near a tween's edge. It
+           read as a glitch because it was one.
+           So the container is simply MADE VISIBLE, once, outside the
+           timeline — which shows nothing, because every child of it is held
+           by a reveal of its own — and then the copy rises out of its
+           windows and the photographs are uncovered by a wipe. No opacity
+           is animated anywhere inside this block. */
+        gsap.set(deepEl, { visibility: 'visible', opacity: 1 })
+
+        /* Every reveal is timed as a FRACTION OF THE RUNWAY, not in absolute
+           units of the timeline. The descent hands its block half the pin and
+           the gate hands its block a third, so a stagger that reads as
+           unhurried in one overran the end of the other — the gate's last
+           word was landing at 1.17 of a timeline that stops at 1.0, which
+           means it never landed at all. Written this way the last thing in
+           the block always comes to rest at 0.96, whatever it is and however
+           many of them there are. */
+        const run = Math.max(0.2, 1 - deepAt)
+        const words = deepEl.querySelectorAll('[data-parallax-word]')
+        const stag = deepEl.querySelectorAll('[data-parallax-stagger]')
+
+        /* gsap.set FIRST, THEN the fromTo, and the pair is not redundant.
+           A STAGGERED fromTo only writes its from-state to the target whose
+           own sub-tween has started: measured mid-descent, the first word
+           was held and the other five had no inline style at all, which
+           means they had been sitting there fully drawn since the top of the
+           page and then POPPED out of sight the instant their turn came.
+           That is the glitch. The set holds every target from the moment the
+           timeline is built; the fromTo is kept because it survives the
+           invalidate that a refresh triggers, where a plain to() would
+           re-record whatever it happened to be showing as its start. */
+        if (words.length) {
+          const gap = words.length > 1 ? (run * 0.30) / (words.length - 1) : 0
+          gsap.set(words, { yPercent: 100, y: 0 })
+          tl.fromTo(words,
+            { yPercent: 100, y: 0 },
+            { yPercent: 0, y: 0, ease: 'power2.out', duration: run * 0.30,
+              stagger: gap }, deepAt + run * 0.10)
+        }
+        if (stag.length) {
+          /* uncovered from the bottom edge up, which is how a specimen set
+             down on a shelf comes into view, with the photograph inside
+             settling out of a small oversize as its own window opens */
+          const gap = stag.length > 1 ? (run * 0.42) / (stag.length - 1) : 0
+          gsap.set(stag, { clipPath: 'inset(100% 0% 0% 0%)' })
+          tl.fromTo(stag,
+            { clipPath: 'inset(100% 0% 0% 0%)' },
+            { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.out', duration: run * 0.28,
+              stagger: gap }, deepAt + run * 0.26)
+          const stagImgs = deepEl.querySelectorAll('[data-parallax-stagger] img')
+          if (stagImgs.length) {
+            gsap.set(stagImgs, { scale: 1.09 })
+            tl.fromTo(stagImgs,
+              { scale: 1.09 },
+              { scale: 1, ease: 'power2.out', duration: run * 0.40, stagger: gap },
+              deepAt + run * 0.26)
+          }
+        }
+
+        /* THE CHROME STILL HAS TO FOLLOW THE SURFACE. On the way out the
+           ground under the fixed header stops being stone and becomes cream
+           inside this one section, and the header's band lookup reads the
+           attribute live — so something has to write it. It used to ride on
+           the container's fade; with the fade gone it gets a driver of its
+           own, which animates nothing. */
         const rootEl = parallaxRef.current
-        /* ONLY on a gate. The descent's deep is the strata, which is stone
-           on stone — flipping there would send the header light-on-light. */
-        const onDeep = rootEl && band && gate
-          ? function (this: gsap.core.Tween) {
+        if (rootEl && band && gate) {
+          tl.to({}, {
+            duration: run * 0.5, ease: 'none',
+            onUpdate: function (this: gsap.core.Tween) {
               const want = this.progress() > 0.5 ? 'light' : band
               if (rootEl.dataset.kiBand !== want) rootEl.dataset.kiBand = want
-            }
-          : undefined
-        tl.fromTo(deepEl,
-          { opacity: 0, y: 34 },
-          { opacity: 1, y: 0, ease: 'none', duration: 0.34, onUpdate: onDeep }, deepAt)
-        /* the headline arrives a word at a time — WhisperText's own move, on
-           this scrub instead of its own trigger, because its trigger element is
-           on screen from the moment the pin engages */
-        const words = deepEl.querySelectorAll('[data-parallax-word]')
-        if (words.length) {
-          /* SLOW. At 0.08 with a 0.025 stagger the whole line was over in a
-             tenth of the pin — a snap, not an arrival. Two and a half times
-             the duration and twice the gap between words, with a gentler
-             ease, so each word drifts in under its own weight and the line
-             takes a real stretch of scroll to assemble. */
-          tl.fromTo(words,
-            { autoAlpha: 0, x: -18 },
-            { autoAlpha: 1, x: 0, ease: 'power1.out', duration: 0.20, stagger: 0.055 }, deepAt + 0.03)
-        }
-        /* and anything else marked for a stagger lands after it, one by one —
-           specimens set down on a shelf, not a list popping */
-        const stag = deepEl.querySelectorAll('[data-parallax-stagger]')
-        if (stag.length) {
-          tl.fromTo(stag,
-            { autoAlpha: 0, y: 18 },
-            /* the last specimen has to be DOWN before the descent ends. At
-               deepAt+0.16 with a 0.05 stagger the fifth one landed at 1.01 of
-               a timeline that stops at 1.00 — on a phone, where the pin is
-               shorter, two of the five simply never appeared. */
-            { autoAlpha: 1, y: 0, ease: 'power1.out', duration: 0.12, stagger: 0.04 }, deepAt + 0.10)
+            },
+          }, deepAt)
         }
       }
       const cornerEl = triggerElement.querySelector('[data-parallax-corner]')

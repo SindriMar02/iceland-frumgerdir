@@ -349,7 +349,7 @@ export function Home() {
            the samples are in the studio. */
         deep={
           <div className="ki-plx-deep ki-plx-deep--strata">
-            <p className="ki-plx-deep-kicker">Rýmið man</p>
+            <p className="ki-plx-deep-kicker" data-parallax-stagger>Rýmið man</p>
             <WhisperText as="h2" text="Efnin bera rýmið." className="ki-strata-title" managed />
             {/* SPECIMENS, NOT A TABLE. Five samples standing on a shelf: cut to
                 no two the same height, a hairline mount around each, and the
@@ -372,11 +372,11 @@ export function Home() {
                 </li>
               ))}
             </ul>
-            <p className="ki-strata-line">
+            <p className="ki-strata-line" data-parallax-stagger>
               Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist
               með húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
             </p>
-            <p className="ki-plx-deep-cta">
+            <p className="ki-plx-deep-cta" data-parallax-stagger>
               <Link className="ki-cta" to={CONTACT_PATH}>Sýnishornin eru í stúdíóinu</Link>
             </p>
           </div>
@@ -431,9 +431,9 @@ export function Home() {
         deepBehind
         deep={
           <div className="ki-gate-deep">
-            <span className="ki-gate-rule" aria-hidden="true" />
+            <span className="ki-gate-rule" aria-hidden="true" data-parallax-stagger />
             <WhisperText as="h2" text="Hvert verkefni fær sinn eigin litheim." className="ki-gate-title" managed />
-            <p className="ki-gate-body">
+            <p className="ki-gate-body" data-parallax-stagger>
               Litirnir eru ekki valdir úr litakorti heldur teknir beint úr verkefnunum
               sjálfum, eins og þau voru ljósmynduð.
             </p>

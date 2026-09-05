@@ -293,6 +293,8 @@
   .parallax__deep { display: none; }
   .parallax__corner { opacity: 1 !important; visibility: visible !important; }
   [data-parallax-word], [data-parallax-stagger] { opacity: 1 !important; visibility: visible !important; transform: none !important; }
+  [data-parallax-stagger] { clip-path: none !important; }
+  [data-parallax-stagger] img { transform: none !important; }
   .parallax--gate .parallax__layer-img { display: none; }
   /* !important because GSAP's own fromTo writes visibility:hidden and
      opacity:0 inline before the scrub ever starts, and an inline style beats

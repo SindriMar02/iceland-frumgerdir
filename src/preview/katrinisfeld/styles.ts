@@ -604,7 +604,14 @@ export const CSS = `
 }
 .ki-plx-deep--strata .ki-cta { color: #F2ECE3; }
 /* words arrive one at a time; each is its own box so it can move alone */
-.ki-whisper > span { display: inline-block; white-space: nowrap; }
+/* the window each word rises out of. Room above for the acute on rýmið and
+   below for the descender in eigin; the negative margins hand the space back
+   so the heading measures exactly what it did before it was split. */
+.ki-whisper > span {
+  display: inline-block; white-space: nowrap; overflow: hidden;
+  vertical-align: bottom; padding: .2em 0 .22em; margin: -.2em 0 -.22em;
+}
+.ki-whisper > span > i { display: inline-block; font-style: normal; }
 .ki-whisper > span + span { margin-left: .26em; }
 /* on a phone five columns are sixty pixels each: it becomes a shelf you
    swipe along instead, the same native strip the journey uses on touch */
