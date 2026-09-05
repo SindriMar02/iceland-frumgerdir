@@ -17,8 +17,7 @@ import path from 'node:path'
 import puppeteer from 'puppeteer-core'
 
 const HOME = process.env.HOME
-const REPO = path.resolve(process.cwd(), '..')
-const EXTRACT = path.join(REPO, '_scratch/hw-extract.py')
+const EXTRACT = path.resolve(process.cwd(), 'scripts/hw-extract.py')
 const SCRIPT_FONT = `${HOME}/Design fonts/Arkipelago/Arkipelago.otf`
 const DISPLAY_FONT = `${HOME}/Design fonts/Valley Sans/ttf/ValleySans-ExtraBold.ttf`
 
