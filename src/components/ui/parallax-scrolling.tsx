@@ -666,7 +666,33 @@ export function ParallaxComponent({
              frame has it, moved into view. */
           type.fromTo(letters,
             { yPercent: 130, y: 0 },
-            { yPercent: 0, y: 0, duration: 1.15, ease: 'power3.out' }, 0)
+            { yPercent: 0, y: 0, duration: 1.25, ease: 'power3.out' }, 0)
+
+          /* AND THE NAME DRAWS ITSELF IN. The rise alone is one flat move on
+             a black screen; what makes a wordmark feel made rather than
+             placed is the tracking closing. Every letter starts pushed out
+             along the line from the lockup's centre and travels back to
+             where it belongs — so the name is WIDE and whole as it clears
+             the edge, and settles into its own spacing a beat after it has
+             arrived. Nothing is ever cut: the letters are all fully visible
+             the entire time, which is the difference between this and the
+             stagger it replaces.
+             Measured, not indexed: the offset is each letter's own distance
+             from the centre, so it survives the name wrapping to two lines
+             on a narrow window and needs no counter in the markup. It also
+             animates x on a transform, so no frame of this reflows the line
+             the way animating letter-spacing would. */
+          const mid = triggerElement!.querySelector<HTMLElement>('.ki-plx-name')
+          if (mid) {
+            const c = mid.getBoundingClientRect()
+            const cx = c.left + c.width / 2
+            const spread = Math.min(0.16, 120 / Math.max(240, c.width))
+            letters.forEach((el) => {
+              const r = el.getBoundingClientRect()
+              const dx = (r.left + r.width / 2 - cx) * spread
+              type.fromTo(el, { x: dx }, { x: 0, duration: 1.7, ease: 'power3.out' }, 0)
+            })
+          }
         }
         /* The two lines under the name do the same thing the name does — rise
            out of their own masks — rather than fading up. One idea, once:
@@ -675,7 +701,7 @@ export function ParallaxComponent({
         if (rises.length) {
           type.fromTo(rises,
             { yPercent: 115, y: 0 },
-            { yPercent: 0, y: 0, duration: 1.0, ease: 'power3.out', stagger: 0.13 }, 0.3)
+            { yPercent: 0, y: 0, duration: 1.05, ease: 'power3.out', stagger: 0.16 }, 0.42)
         }
 
         /* THE PAGE, ONCE IT EXISTS. Every plate and the room behind them,
@@ -700,10 +726,16 @@ export function ParallaxComponent({
                  they are stacked in and the order the eye reads them */
               .fromTo(visuals,
                 { opacity: 0 },
-                { opacity: 1, duration: 1.4, ease: 'power2.out', stagger: 0.08 }, 0)
+                { opacity: 1, duration: 1.35, ease: 'power2.out', stagger: 0.085 }, 0)
+              /* the room does not just brighten, it settles — a fade alone
+                 is a dimmer, and the one thing that costs nothing and reads
+                 as expensive is the frame coming to rest as it lights */
+              .fromTo(visuals.length ? [visuals[0]] : [],
+                { scale: 1.045 },
+                { scale: 1, duration: 1.6, ease: 'power2.out' }, 0)
               .fromTo(cornerEl ? [cornerEl] : [],
                 { opacity: 0 },
-                { opacity: 1, duration: 0.8, ease: 'power1.out' }, 0.75)
+                { opacity: 1, duration: 0.7, ease: 'power1.out' }, 0.7)
           })
         })
       })

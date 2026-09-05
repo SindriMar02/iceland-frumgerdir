@@ -90,6 +90,15 @@ export const CSS = `
    ends reads as the top of a photograph, not as a bar: it has no edge, it
    only exists over dark bands, and it fades with the same 400ms as the type
    it is protecting. */
+/* THE CHROME IS PART OF THE OPENING. The header sitting finished over a
+   black screen while the name is still rising is what stopped the opening
+   reading as one: it announced that this was the page with its pictures
+   turned off. It is held with the photographs and arrives after them, on a
+   transition rather than a tween, because the gate attribute coming off at
+   the end of the intro is already the signal — nothing else has to know. */
+html[data-ki-intro] .ki-nav { opacity: 0; }
+.ki-nav { transition: opacity .85s ease .1s; }
+@media (prefers-reduced-motion: reduce) { .ki-nav { transition: none; } }
 .ki-nav::before {
   content: ''; position: absolute; inset: 0 0 auto 0; height: calc(var(--u) * 190);
   pointer-events: none; opacity: 0; transition: opacity .4s linear;
