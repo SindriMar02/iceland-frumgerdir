@@ -596,86 +596,139 @@ export const CSS = `
    rock moves sideways now, with the journey, on the same scroll arithmetic
    as the track: a wall at 0.18 of its speed and a nearer mass along the
    bottom at 0.55. Depth from the ratio, as in both gates; nothing scaled. */
-/* THE JOURNEY, IN THE LIGHT.
-   It was dark and sitting on stone; the stone is now the hero and the way out
-   of it, and nothing after that is dark until the contact block. A light
-   strip is also the cleaner hand-over: the pin above it finishes on cream and
-   this begins on cream, so there is no band to cross at all. */
+/* ── THE HORIZONTAL JOURNEY ───────────────────────────────────────────────
+   Built to the portable spec. The mechanism lives in the engine; what is
+   here is the composition, and in this device the composition IS the widths:
+   a run of equal panels reads as a slideshow, so 100vw spreads alternate
+   with 85.7vw full-bleeds that are narrower than a screen on purpose, and
+   the plate is sized in svh so it scales with viewport HEIGHT and holds its
+   crop on a short wide window. */
 .ki-hs { position: relative; background: ${CREAM}; }
-.ki-hs-pin {
-  position: relative; overflow: hidden;
-  min-height: 74svh; display: flex; align-items: flex-end;
-  padding-bottom: calc(var(--u) * 40);
+.ki-hs-pin { position: relative; overflow: hidden; }
+.ki-hs-track { display: flex; align-items: stretch; }
+.ki-hs-slide {
+  flex: 0 0 auto; position: relative; margin: 0;
+  /* subpixel rounding opens a hairline of the page between adjacent
+     full-height slides, which travels across the screen as a flickering
+     light line. One pixel of overlap closes it. */
+  margin-left: -1px;
 }
 
-.ki-hs-track {
-  position: relative; z-index: 1;
-  display: flex; align-items: center; gap: calc(var(--u) * 96);
-  padding: calc(var(--u) * 54) calc(var(--u) * 34);
-  overflow-x: auto; scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+/* — the intro: transparent ground, the chapter introduced — */
+.ki-hs-slide.is-intro { width: 100vw; display: grid; place-items: center; padding: 0 calc(var(--u) * 90); }
+.ki-hs-introbox { max-width: calc(var(--u) * 620); }
+.ki-hs-lead {
+  margin: calc(var(--u) * 20) 0 calc(var(--u) * 22);
+  font-family: ${DISPLAY}; font-weight: 300; line-height: 1.12;
+  font-size: ${fluid(66, 34)}; color: ${INK};
 }
-.ki-hs-track::-webkit-scrollbar { display: none; }
+.ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: calc(var(--u) * 30) 0 0; }
 
-/* THE WRITTEN PANELS. "not enough space between pictures and some nice
-   headline texts" — the space and the headlines are one fix: the chapter now
-   opens by being introduced and breaks once in the middle, so the eye gets
-   somewhere to rest instead of reading a shelf of photographs end to end. */
-.ki-hs-open, .ki-hs-say { flex: 0 0 auto; margin: 0; scroll-snap-align: center; }
-.ki-hs-open { width: min(80vw, calc(var(--u) * 540)); }
-.ki-hs-say { width: min(72vw, calc(var(--u) * 460)); }
-.ki-hs-count { font-family: ${MONO}; font-size: 13px; color: var(--ki-mute); margin: calc(var(--u) * 26) 0 0; }
-.ki-hs-say-line {
-  margin: 0; font-family: ${DISPLAY}; font-weight: 300; line-height: 1.18;
-  font-size: ${fluid(42, 27)}; color: inherit;
+/* — the full-bleed: image only, and the chapter's punctuation — */
+.ki-hs-slide.is-bleed { width: 85.7vw; }
+.ki-hs-bleedfig { position: absolute; inset: 0; display: block; overflow: hidden; background: rgb(0 0 0 / .1); }
+.ki-hs-chip {
+  position: absolute; left: calc(var(--u) * 46); bottom: calc(var(--u) * 52);
+  display: grid; gap: 6px; color: #F4EEE6; max-width: calc(var(--u) * 420);
+  text-shadow: 0 1px 26px rgb(0 0 0 / .55);
 }
-.ki-hs-say-sub {
-  margin: calc(var(--u) * 20) 0 0; font-family: ${MONO};
-  font-size: ${fluid(12, 11.5)}; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--ki-mute);
+.ki-hs-chip .ki-kicker { color: #E4C6A8; margin: 0; }
+.ki-hs-chip-title { margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(34, 22)}; line-height: 1.08; }
+.ki-hs-chip-title a { color: inherit; text-decoration: none; }
+.ki-hs-chip-no {
+  position: absolute; right: calc(var(--u) * -70); bottom: 2px;
+  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .2em; color: #D8CBBA;
 }
 
-.ki-hs-panel {
-  flex: 0 0 82vw; scroll-snap-align: center; margin: 0; position: relative;
-  /* deliberate vertical drops, so the journey is not a ruler-straight shelf */
-  transform: translateY(calc(var(--drop, 0) * 7vh));
+/* — the split: a copy column against one figure, both centred — */
+.ki-hs-slide.is-split {
+  width: 100vw; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center; gap: calc(var(--u) * 80); padding: 0 calc(var(--u) * 90);
 }
-.ki-hs-fig { display: block; overflow: hidden; background: rgb(0 0 0 / .22); }
-.ki-hs-img { display: block; overflow: hidden; }
-.ki-hs-fig picture, .ki-hs-fig img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-.ki-hs-panel.is-wide .ki-hs-fig picture,
-.ki-hs-panel.is-wide .ki-hs-fig img { aspect-ratio: 16 / 10; }
+.ki-hs-copy { max-width: calc(var(--u) * 460); }
+.ki-hs-splittitle { margin: calc(var(--u) * 14) 0 calc(var(--u) * 18); font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(44, 26)}; line-height: 1.1; }
+.ki-hs-splittitle a { color: inherit; text-decoration: none; }
+
+/* — the duo: two figures on different aspect ratios — */
+.ki-hs-slide.is-duo {
+  width: 100vw; display: flex; align-items: center; justify-content: center;
+  gap: calc(var(--u) * 70); padding: 0 calc(var(--u) * 90);
+}
+.ki-hs-slide.is-duo .ki-hs-fig:first-child { width: 34vw; }
+.ki-hs-slide.is-duo .ki-hs-fig:last-child { width: 24vw; align-self: flex-end; margin-bottom: 12svh; }
+
+/* — the plate: the turn, and the only inverted slide — */
+.ki-hs-slide.is-plate {
+  width: 151.66svh; background: ${CHARCOAL}; color: #EDE7DE;
+  display: grid; place-items: center; text-align: center; padding: 0 calc(var(--u) * 90);
+}
+.ki-hs-plateline {
+  margin: 0; max-width: 22ch;
+  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(60, 30)}; line-height: 1.16; color: #F2ECE3;
+}
+.ki-hs-platesub {
+  margin: calc(var(--u) * 30) 0 0;
+  font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .18em; text-transform: uppercase; color: #A79C8C;
+}
+
+/* — the close: full bleed under a scrim, with the closing line on it — */
+.ki-hs-slide.is-close { width: 100vw; display: grid; place-items: center; text-align: center; }
+.ki-hs-slide.is-close > .ki-hs-img { position: absolute; inset: 0; }
+.ki-hs-closescrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgb(16 13 11 / .5), rgb(16 13 11 / .66)); }
+.ki-hs-closebox { position: relative; max-width: calc(var(--u) * 760); padding: 0 calc(var(--u) * 34); }
+.ki-hs-closeline {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 300;
+  font-size: ${fluid(58, 30)}; line-height: 1.16; color: #FFF7E9;
+}
+.ki-hs-slide.is-close .ki-cta-row { margin-top: calc(var(--u) * 40); }
+.ki-hs-slide.is-close .ki-cta { color: #F4EEE6; }
+
+/* — figures, and the counter-move the spec calls for — */
+.ki-hs-fig { margin: 0; }
+.ki-hs-frame { display: block; overflow: hidden; background: rgb(0 0 0 / .08); }
+.ki-hs-img { display: block; overflow: hidden; height: 100%; }
+/* the image is wider than its frame and drifts against the track, so the
+   photograph appears to hold still in the world while its window slides over
+   it. 120% with -10% is the spec's own; the engine writes at most 8% */
+.ki-root .ki-hs-img picture, .ki-root .ki-hs-img img {
+  width: 120%; margin-left: -10%; height: 100%; object-fit: cover; display: block;
+}
 .ki-hs-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 14px; }
-.ki-hs-title { margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 19)}; }
+.ki-hs-title { margin: 0; font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(24, 18)}; }
 .ki-hs-title a { color: inherit; text-decoration: none; }
-.ki-hs-sub { margin: 0; font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .08em; text-transform: uppercase; color: var(--ki-mute); white-space: nowrap; }
+.ki-hs-sub { margin: 0; font-family: ${MONO}; font-size: ${fluid(11.5, 11)}; letter-spacing: .08em; text-transform: uppercase; color: var(--ki-mute); white-space: nowrap; }
 
-@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
-  /* the section's height is written by the engine: viewport + how far the
-     track overflows, so vertical distance buys horizontal distance 1:1 */
-  /* the padding drops the strip below the deepest the overhang ever reaches,
-     so the rock frames the journey and never crosses a photograph */
-  .ki-hs-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; padding-top: 14svh; }
-  .ki-hs-track {
-    overflow: visible; scroll-snap-type: none;
-    padding: 0 calc(var(--u) * 90);
-    /* four times the gap the first version had. A journey needs air between
-       its stops; 30px of it read as a contact sheet sliding past. */
-    gap: calc(var(--u) * 132);
-    will-change: transform;
-  }
-  .ki-hs-panel { flex: 0 0 36vw; }
-  .ki-hs-panel.is-wide { flex: 0 0 50vw; }
-  .ki-hs-open { width: calc(var(--u) * 560); }
-  .ki-hs-say { width: calc(var(--u) * 470); }
-  /* the counter-move is written by the engine every frame, so it must never
-     carry a transition — but it DOES need a starting state for the moment
-     before the first scroll frame lands. */
-  .ki-js .ki-hs-img[data-ki-hpar] { transform: translate3d(7.5%, 0, 0) scale(1.16); }
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  /* the section's height is written by the engine: one viewport plus how far
+     the track overflows, so vertical distance buys horizontal distance 1:1 */
+  .ki-hs-pin { position: sticky; top: 0; height: 100svh; }
+  .ki-hs-track { height: 100svh; will-change: transform; }
+  .ki-hs-slide { height: 100svh; }
+  .ki-js .ki-hs-img[data-ki-hpar] img { transform: translate3d(-8%, 0, 0); }
 }
-/* no pin, no counter-move: reduced motion gets the plain strip */
+
+/* MOBILE IS A DIFFERENT LAYOUT, NOT A SCALED ONE. The JS returns early and
+   this turns the row into a column; nothing survives but the content and its
+   order. The inline transform the desktop path left behind has to be cleared
+   here too, or the whole chapter renders off-screen. */
+@media (max-width: 767px), (hover: none), (pointer: coarse) {
+  .ki-hs-track { flex-direction: column; height: auto; transform: none !important; }
+  .ki-hs-slide {
+    width: 100% !important; height: auto; margin-left: 0;
+    padding: calc(var(--u) * 76) 22px;
+  }
+  .ki-hs-slide.is-bleed { height: 78svh; padding: 0; }
+  .ki-hs-slide.is-plate { width: 100% !important; }
+  .ki-hs-slide.is-duo { flex-direction: column; gap: calc(var(--u) * 54); }
+  .ki-hs-slide.is-duo .ki-hs-fig { width: 100% !important; align-self: auto; margin-bottom: 0; }
+  .ki-hs-slide.is-split { grid-template-columns: 1fr; gap: calc(var(--u) * 40); }
+  .ki-hs-slide.is-close { min-height: 72svh; padding: 0 22px; }
+  .ki-hs-chip { left: 22px; bottom: 26px; }
+  .ki-hs-chip-no { position: static; display: block; margin-top: 6px; }
+  .ki-root .ki-hs-img picture, .ki-root .ki-hs-img img { width: 100%; margin-left: 0; transform: none !important; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .ki-js .ki-hs-img[data-ki-hpar] { transform: none !important; }
+  .ki-js .ki-hs-img[data-ki-hpar] img { transform: none !important; }
 }
 
 /* ── material bands: the palette, carried by the material ─────────────── */

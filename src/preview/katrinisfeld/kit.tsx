@@ -208,106 +208,136 @@ export function StatementOverlay({ id, alt, eyebrow, text, sub }: {
  * transition on the transform: a transition on a value rewritten every
  * scroll tick chases a moving target and smears.
  */
-export interface HPanel {
-  id: string
-  title: string
-  meta?: string
-  /** a project panel links; a WRITTEN panel does not, and is what breaks the
-   *  strip into chapters instead of running the whole journey as one shelf of
-   *  photographs. "not enough space between pictures and some nice headline
-   *  texts" — the space and the headlines are the same fix. */
-  to?: string
-  alt?: string
-  body?: string
-  /** the wider of the two photograph sizes */
-  wide?: boolean
-  /** vertical offset within the band, as a fraction of the panel's height */
-  drop?: number
+/**
+ * A SLIDE in the horizontal journey. The spec this is built to is explicit
+ * that the rhythm comes from varying slide WIDTH, not from animating the
+ * slides: a run of equal panels reads as a slideshow, and mixing an 85.7vw
+ * full-bleed against a 100vw spread makes the next slide's edge visible
+ * before you reach it, which is what makes it feel like travel rather than
+ * pagination. So the width is part of the kind, not a free parameter.
+ */
+export type HSlide =
+  | { kind: 'intro'; eyebrow: string; title: string; body: string; count: number }
+  /* image only, narrower than a screen ON PURPOSE — the chapter's punctuation */
+  | { kind: 'bleed'; id: string; alt: string; title: string; meta: string; to: string; no: string }
+  | { kind: 'split'; id: string; alt: string; title: string; meta: string; to: string; body: string }
+  | { kind: 'duo'; a: HFig; b: HFig }
+  /* width in svh, not vw, so it scales with viewport HEIGHT and its crop
+     holds on a short wide window. Inverts the theme. */
+  | { kind: 'plate'; line: string; sub: string }
+  | { kind: 'close'; id: string; alt: string; line: string; to: string; cta: string }
+
+export interface HFig { id: string; alt: string; title: string; meta: string; to: string }
+
+function HFigure({ f, sizes, ratio }: { f: HFig; sizes: string; ratio: string }) {
+  return (
+    <figure className="ki-hs-fig">
+      <Link to={f.to} className="ki-hs-frame" style={{ aspectRatio: ratio }}>
+        <span className="ki-hs-img" data-ki-hpar>
+          <Photo id={f.id} alt={f.alt} sizes={sizes} />
+        </span>
+      </Link>
+      <figcaption className="ki-hs-meta">
+        <h3 className="ki-hs-title"><Link to={f.to}>{f.title}</Link></h3>
+        <p className="ki-hs-sub">{f.meta}</p>
+      </figcaption>
+    </figure>
+  )
 }
 
 /**
- * THE PASSAGE — the horizontal journey, and the inside of the rock.
+ * THE HORIZONTAL JOURNEY — vertical scroll driving a pinned horizontal track.
  *
- * This used to be a strip of projects on a flat charcoal section, and then a
- * strip of projects on a stone texture that scrolled VERTICALLY behind it
- * while the strip was pinned. That second version is the one that got called
- * overstimulating, and correctly: the pin fixes this section for a whole
- * viewport while its ancestor's background keeps moving with the page, so the
- * rock slid upward behind stationary content. Two motions at right angles to
- * each other, neither of them the one the visitor is making.
+ * Built to the portable spec lifted out of the Kerbyggð prototype. No scroll
+ * hijacking and no animation library: the track's offset is a pure function
+ * of the page's scroll position, so the browser stays in charge of scrolling
+ * and the effect cannot desynchronise from it. The section reserves vertical
+ * space equal to the horizontal distance the track must travel plus one
+ * viewport; an inner wrapper is sticky; the track is a flex row of
+ * full-height slides moved with one translate3d. All of that is in the
+ * engine's measure()/runHScroll — see there.
  *
- * So the rock moves SIDEWAYS, with the journey. Two planes on the same scroll
- * arithmetic as the track — a wall behind at 0.18 of the track's speed and a
- * nearer mass along the bottom at 0.55 — which makes the projects travel
- * ACROSS a rock face rather than sitting on a picture of one. Depth comes
- * from the ratio, as it does in both gates; nothing is scaled.
+ * What this file owns is the composition, which is the half that decides
+ * whether it reads as a journey or as a contact sheet. Ten slides, widths
+ * mixed so an edge is always visible before you arrive, one inverted plate
+ * as the turn, and a close on a full-bleed image with the closing line over
+ * a scrim.
  *
- * And this is now the only stone section on the page. The descent puts you
- * in the rock, this is the distance you travel through it, the gate at the
- * far end brings you out, and everything after that is in the light. The
- * stone never has to sit still and pretend to be a background, which is the
- * thing it was never any good at.
- *
- * The three devices from the Búðir version that made it read as a journey
- * rather than a contact sheet are unchanged:
- *
- *  1. WRITTEN PANELS between the photographs — the chapter's own opening and
- *     one line partway through, so the eye gets a rest and the journey has
- *     somewhere to breathe.
- *  2. THE PEEL. A panel does not fade in — it is uncovered, by a clip-path
- *     inset and NEVER a transform, because both layers are the same
- *     photograph and a translate just slides a duplicate away.
- *  3. INNER COUNTER-PARALLAX. The photograph inside each frame runs
- *     xPercent +7.5 → −7.5 while the frame travels the other way, so the
- *     image looks into the frame rather than riding it.
- *
- * The pin only happens on a real pointer. On touch this is a native
- * scroll-snap strip, because a scroll-jacked pin on a phone is the exact
- * thing that got called "jittery and doesn't work well" on Sauðárkróksbakarí
- * — but the rock still travels there, driven off the strip's own scrollLeft.
+ * Below 768px it linearises to a vertical stack — the JS returns early and
+ * the CSS turns the row into a column. Nothing survives except the content
+ * and its order, which is the point: a scroll-jacked pin on a phone is the
+ * exact thing that got called "jittery and doesn't work well" on
+ * Sauðárkróksbakarí.
  */
-export function HorizontalChapter({ eyebrow, panels }: {
-  eyebrow: string
-  panels: ReadonlyArray<HPanel>
-}) {
-  const count = panels.filter((p) => p.to).length
+export function HorizontalChapter({ slides }: { slides: ReadonlyArray<HSlide> }) {
   return (
     <section className="ki-hs" data-ki-band="light" data-ki-hscroll>
       <div className="ki-hs-pin">
         <div className="ki-hs-track">
-          <div className="ki-hs-open" data-ki-hpanel>
-            <p className="ki-kicker">{eyebrow}</p>
-            <p className="ki-hs-count">
-              <span className="ki-num">{String(count).padStart(2, '0')}</span> verk
-            </p>
-          </div>
-          {panels.map((p, i) => p.to ? (
-            <article
-              key={p.id + i}
-              className={`ki-hs-panel${p.wide ? ' is-wide' : ''}`}
-              data-ki-hpanel
-              style={p.drop ? ({ ['--drop' as string]: p.drop }) : undefined}
-            >
-              <Link to={p.to} className="ki-hs-fig">
-                <span className="ki-hs-img" data-ki-hpar>
-                  <Photo
-                    id={p.id}
-                    alt={p.alt || p.title}
-                    sizes={p.wide ? '(max-width: 860px) 88vw, 52vw' : '(max-width: 860px) 78vw, 36vw'}
-                  />
-                </span>
-              </Link>
-              <div className="ki-hs-meta">
-                <h3 className="ki-hs-title"><Link to={p.to}>{p.title}</Link></h3>
-                {p.meta && <p className="ki-hs-sub">{p.meta}</p>}
+          {slides.map((s, i) => {
+            const key = s.kind + i
+            if (s.kind === 'intro') return (
+              <div key={key} className="ki-hs-slide is-intro" data-ki-hpanel>
+                <div className="ki-hs-introbox">
+                  <p className="ki-kicker">{s.eyebrow}</p>
+                  <h2 className="ki-hs-lead">{s.title}</h2>
+                  <p className="ki-body">{s.body}</p>
+                  <p className="ki-hs-count">
+                    <span className="ki-num">{String(s.count).padStart(2, '0')}</span> verk
+                  </p>
+                </div>
               </div>
-            </article>
-          ) : (
-            <div key={p.id + i} className="ki-hs-say" data-ki-hpanel>
-              <p className="ki-hs-say-line">{p.title}</p>
-              {p.body && <p className="ki-hs-say-sub">{p.body}</p>}
-            </div>
-          ))}
+            )
+            if (s.kind === 'bleed') return (
+              <article key={key} className="ki-hs-slide is-bleed" data-ki-hpanel>
+                <Link to={s.to} className="ki-hs-bleedfig">
+                  <span className="ki-hs-img" data-ki-hpar>
+                    <Photo id={s.id} alt={s.alt} sizes="90vw" />
+                  </span>
+                </Link>
+                <div className="ki-hs-chip">
+                  <p className="ki-kicker">{s.meta}</p>
+                  <h3 className="ki-hs-chip-title"><Link to={s.to}>{s.title}</Link></h3>
+                  <span className="ki-hs-chip-no" aria-hidden="true">{s.no}</span>
+                </div>
+              </article>
+            )
+            if (s.kind === 'split') return (
+              <article key={key} className="ki-hs-slide is-split" data-ki-hpanel>
+                <div className="ki-hs-copy">
+                  <p className="ki-kicker">{s.meta}</p>
+                  <h3 className="ki-hs-splittitle"><Link to={s.to}>{s.title}</Link></h3>
+                  <p className="ki-body">{s.body}</p>
+                </div>
+                <HFigure f={{ id: s.id, alt: s.alt, title: s.title, meta: s.meta, to: s.to }}
+                  sizes="(max-width: 767px) 92vw, 42vw" ratio="4 / 5" />
+              </article>
+            )
+            if (s.kind === 'duo') return (
+              <div key={key} className="ki-hs-slide is-duo" data-ki-hpanel>
+                <HFigure f={s.a} sizes="(max-width: 767px) 92vw, 34vw" ratio="600 / 440" />
+                <HFigure f={s.b} sizes="(max-width: 767px) 92vw, 26vw" ratio="440 / 600" />
+              </div>
+            )
+            if (s.kind === 'plate') return (
+              <div key={key} className="ki-hs-slide is-plate" data-ki-band="dark" data-ki-hpanel>
+                <p className="ki-hs-plateline">{s.line}</p>
+                <p className="ki-hs-platesub">{s.sub}</p>
+              </div>
+            )
+            return (
+              <div key={key} className="ki-hs-slide is-close" data-ki-hpanel>
+                <span className="ki-hs-img" data-ki-hpar>
+                  <Photo id={s.id} alt={s.alt} sizes="100vw" />
+                </span>
+                <span className="ki-hs-closescrim" aria-hidden="true" />
+                <div className="ki-hs-closebox">
+                  <p className="ki-hs-closeline">{s.line}</p>
+                  <p className="ki-cta-row"><Link className="ki-cta" to={s.to}>{s.cta}</Link></p>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>
@@ -561,7 +591,13 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       track: HTMLElement; start: number; end: number; distance: number
       frames: Array<{ img: HTMLElement; left: number; width: number }>
     }> = []
-    const canPin = window.matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches
+    /* READ CONTINUOUSLY, NEVER ONCE. A flag evaluated at setup goes stale the
+       moment the window is resized across the breakpoint: a window that loads
+       narrow and is then widened keeps the mobile path forever and the
+       chapter never moves again. The query object is kept and re-read inside
+       measure(), and its own change event triggers one. */
+    const pinQ = window.matchMedia('(min-width: 768px) and (hover: hover) and (pointer: fine)')
+    let canPin = pinQ.matches
     const motion = !reduced()
 
     const measure = () => {
@@ -633,13 +669,14 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
          the section is made exactly as tall as the track overflows wide, so
          the distance the page scrolls is the distance the track moves. */
       hs = []
+      canPin = pinQ.matches && motion
       for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
         const track = sec.querySelector<HTMLElement>('.ki-hs-track')
         if (!track) continue
         if (!canPin) {
           sec.style.height = ''; track.style.transform = ''
           // leave nothing clipped or offset behind on the touch build
-          for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
+          for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar] img'))) {
             el.style.transform = ''
           }
           continue
@@ -653,8 +690,10 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
            would fold the current scroll position into the constant. */
         const frames: Array<{ img: HTMLElement; left: number; width: number }> = []
         for (const panel of Array.from(track.querySelectorAll<HTMLElement>('[data-ki-hpanel]'))) {
-          const img = panel.querySelector<HTMLElement>('[data-ki-hpar]')
-          if (img) frames.push({ img, left: panel.offsetLeft, width: panel.offsetWidth })
+          for (const par of Array.from(panel.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
+            const img = par.querySelector<HTMLElement>('img')
+            if (img) frames.push({ img, left: panel.offsetLeft + par.offsetLeft, width: par.offsetWidth })
+          }
         }
         hs.push({
           track, start: top, end: top + distance, distance, frames,
@@ -714,23 +753,18 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         if (!motion) continue
 
         for (const f of h.frames) {
-          const x = f.left + shift // the panel's left edge, in viewport coords
-
-          /* NO PEEL. Búðir's clip-wipe reveal was transplanted here and then
-             taken back out: on a track that is ALREADY moving sideways, a
-             panel that is also being uncovered left-to-right just looks like
-             a photograph that has half loaded. The wipe works there because
-             those panels arrive at rest; here the horizontal travel is the
-             reveal, and stacking a second one on top of it read as broken
-             rather than as motion.
-
-             INNER COUNTER-PARALLAX stays — xPercent +7.5 → −7.5 at a constant
-             scale 1.16 across the panel's passage through view. It never
-             exposes an edge (that is what the scale is for) so it reads as
-             depth rather than as an unfinished image. */
-          const q = (x + f.width) / (vw + f.width) // 1 entering right, 0 leaving left
-          const px = (q - 0.5) * 15
-          f.img.style.transform = `translate3d(${px.toFixed(2)}%, 0, 0) scale(1.16)`
+          /* THE COUNTER-MOVE, to the spec's own formula. The figure's screen x
+             normalised by the viewport gives -1 offscreen left through 0 at
+             the left edge to 1 offscreen right; the image, which is 120% wide
+             with a -10% margin, is offset against it by at most 8%. Small on
+             purpose: eight percent against a 120% image never exposes an edge
+             and still reads, and above about twelve it starts to feel unglued
+             from its frame. f.left is cached in measure() — reading a rect
+             per figure per frame forces layout on every frame of a scroll and
+             is the easiest way to make this chapter stutter. */
+          const x = f.left + shift
+          const k = Math.max(-1, Math.min(1, x / vw))
+          f.img.style.transform = `translate3d(${(k * -8).toFixed(2)}%, 0, 0)`
         }
       }
     }
@@ -795,6 +829,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     measure()
     onFrame()
     window.addEventListener('resize', onResize, { passive: true })
+    pinQ.addEventListener('change', onResize)
     // fonts land after first paint and reflow every headline under them
     document.fonts?.ready.then(onResize)
 
@@ -809,6 +844,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       return () => {
         window.removeEventListener('scroll', onFrameStill)
         window.removeEventListener('resize', onResize)
+        pinQ.removeEventListener('change', onResize)
       }
     }
 

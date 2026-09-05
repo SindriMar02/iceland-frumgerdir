@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
   Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay,
-  type HPanel,
+  type HSlide,
 } from './kit'
 /* 21st.dev @osmosupply/parallax-scrolling, integrated as shipped — GSAP +
    ScrollTrigger, its own yPercent 70/55/40/10 timeline. The stylesheet beside
@@ -185,34 +185,57 @@ const WORLDS = [
     alt: 'Dökkt eldhús í Skuggahverfi með steineyju og innfelldri lýsingu' },
 ]
 
-/* THE PASSAGE.
-   One room of each kind she is asked for, travelling sideways through the
-   rock — but written as a chapter rather than run out as an even row of
-   cards. Two panel sizes, deliberate vertical drops, four times the gap the
-   first version had, and two WRITTEN panels: the opening, which used to be a
-   separate section sitting on the stone doing nothing, and one line partway
-   through where the eye needs somewhere to rest. */
-const CHAPTER: ReadonlyArray<HPanel> = [
-  { id: 's-eldhus-vitt', title: 'Nýbyggt hús í Súluhöfða', meta: 'Heimili', to: projPath('nybyggt-hus-i-suluhofda'),
-    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn', wide: true },
-  { id: 'p-oldcharm-1', title: 'Old Charm Reykjavik', meta: 'Gistiheimili', to: projPath('old-charm-reykjavik-apartment'),
-    alt: 'Svefnherbergi undir upprunalegum timburbitum', drop: 0.1 },
-  { id: 'p-skuggahverfi-0', title: 'Eldhúsrými í Skuggahverfi', meta: 'Heimili', to: projPath('eldhusrymi-i-skuggahverfi'),
-    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu', drop: -0.06 },
-  { id: 't-mid', title: 'Sama höndin liggur í gegnum þau öll.',
-    body: 'Ólík hús, ólíkir litheimar — en eitt handbragð.' },
-  { id: 'p-alfheimar-0', title: 'Álfheimar', meta: 'Heimili', to: projPath('alfheimar'),
-    alt: 'Stofa með dökkum sófa og stóru listaverki á vegg', wide: true },
-  { id: 'p-svala-0', title: 'Svala Apartments', meta: 'Gistiheimili', to: projPath('svala-apartments'),
-    alt: 'Gestaherbergi með grænum vegg og listaverki af hesti', drop: 0.08 },
-  { id: 'p-tannlaeknar-0', title: 'Tannlæknastofan Garðatorgi', meta: 'Atvinnuhúsnæði', to: projPath('tannlaeknastofan-gardatorgi'),
-    alt: 'Móttaka tannlæknastofu með ljósum afgreiðsluborði', drop: -0.05 },
-  { id: 'p-badherbergi-0', title: 'Baðherbergi', meta: 'Heimili', to: projPath('badherbergi'),
-    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu', wide: true },
+/* THE JOURNEY, as slides rather than cards.
+   Ten of them, widths mixed the way the spec requires so an edge is always
+   visible before you arrive: 100vw spreads against 85.7vw full-bleeds, one
+   plate sized in svh so it scales with the viewport's HEIGHT and keeps its
+   crop on a short wide window, and a close on a full-bleed under a scrim.
+   Every project she has photographed for this page appears exactly once. */
+const JOURNEY: ReadonlyArray<HSlide> = [
+  { kind: 'intro', eyebrow: 'Þversnið', count: 7,
+    title: 'Eitt rými af hverri gerð.',
+    body: 'Heimili, gistiheimili og atvinnurými — hvert með sínum litheimi, ' +
+      'og sama höndin í gegnum þau öll. Skrunaðu áfram.' },
+
+  { kind: 'bleed', id: 's-eldhus-vitt', no: 'I',
+    title: 'Nýbyggt hús í Súluhöfða', meta: 'Heimili', to: projPath('nybyggt-hus-i-suluhofda'),
+    alt: 'Eldhús í Súluhöfða með vínrauðri eyju, koparljósum og útsýni yfir voginn' },
+
+  { kind: 'split', id: 'p-oldcharm-1',
+    title: 'Old Charm Reykjavik', meta: 'Gistiheimili', to: projPath('old-charm-reykjavik-apartment'),
+    alt: 'Svefnherbergi undir upprunalegum timburbitum',
+    body: 'Upprunalegu bitarnir fengu að standa og allt annað var teiknað í kringum þá.' },
+
+  { kind: 'bleed', id: 'p-skuggahverfi-0', no: 'II',
+    title: 'Eldhúsrými í Skuggahverfi', meta: 'Heimili', to: projPath('eldhusrymi-i-skuggahverfi'),
+    alt: 'Dökkt eldhús með eyju, viðarinnréttingum og innfelldri lýsingu' },
+
+  { kind: 'duo',
+    a: { id: 'p-alfheimar-0', title: 'Álfheimar', meta: 'Heimili', to: projPath('alfheimar'),
+         alt: 'Stofa með dökkum sófa og stóru listaverki á vegg' },
+    b: { id: 'p-svala-0', title: 'Svala Apartments', meta: 'Gistiheimili', to: projPath('svala-apartments'),
+         alt: 'Gestaherbergi með grænum vegg og listaverki af hesti' } },
+
+  /* the turn: the one inverted slide, and the only dark moment in the light
+     half of the page apart from the Italian band */
+  { kind: 'plate',
+    line: 'Sama höndin liggur í gegnum þau öll.',
+    sub: 'Ólík hús, ólíkir litheimar — eitt handbragð' },
+
+  { kind: 'bleed', id: 'p-badherbergi-0', no: 'III',
+    title: 'Baðherbergi', meta: 'Heimili', to: projPath('badherbergi'),
+    alt: 'Baðherbergi með sporöskjulaga spegli og dökkri innréttingu' },
+
+  { kind: 'split', id: 'p-tannlaeknar-0',
+    title: 'Tannlæknastofan Garðatorgi', meta: 'Atvinnuhúsnæði', to: projPath('tannlaeknastofan-gardatorgi'),
+    alt: 'Móttaka tannlæknastofu með ljósum afgreiðsluborði',
+    body: 'Atvinnurými sem á að róa fólk fær sömu efnisákvörðun og heimili.' },
+
+  { kind: 'close', id: 's-sturta', to: WORK, cta: `Öll ${PROJECTS.length} verkin`,
+    alt: 'Sturturými með dökkum steinvegg og grænni plöntu',
+    line: 'Ekkert af þessu var valið úr bæklingi.' },
 ]
-/* every category, so the grid is the ONLY listing of the work on this page —
-   the register that used to duplicate it further down is gone, and what the
-   grid cannot show as a card it names in a line underneath */
+
 const ORDER = Object.keys(CATEGORIES) as CategorySlug[]
 const SHOWN = 6
 /* She publishes no dates, so "newest" is the project she lists first — the
@@ -405,7 +428,7 @@ export function Home() {
       />
 
       {/* 03 · the journey sideways — one room of each kind she is asked for */}
-      <HorizontalChapter eyebrow="Þversnið" panels={CHAPTER} />
+      <HorizontalChapter slides={JOURNEY} />
 
       {/* 04 · her own sentence from Stúdíóið, stepped down a photograph. Not
           a new claim: this is the line that separates her from someone
