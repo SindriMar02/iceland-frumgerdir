@@ -16,11 +16,11 @@ export const companyEntry: PreviewCompany = {
     established: 'Síðan um 2011',
     currentUrl: 'https://www.facebook.com/naustid/',
     ownerEmail: 'naustidfood@gmail.com',
-    concept: 'Gula húsið við höfnina',
+    concept: 'Gula húsið',
     conceptTagline:
-      "Húsavík's number one rated seafood restaurant approached the way every guest already finds it, across the harbour toward the bright yellow house, with the signature soup on the table by the time you arrive.",
-    accent: '#E3B81F',
-    dark: true,
+      "Húsavík's top rated restaurant on a warm bone page, led by a watercolour of the actual yellow house and by their own brush script written on letter by letter. Every colour is sampled from the building: the ground is its white trim, the panels are its sage dining room, the accent is its corrugated iron.",
+    accent: '#E0B424',
+    dark: false,
     /* Every photo on the page is the restaurant's own (Visit Húsavík listing);
      * the six Unsplash atmosphere shots were dropped in the Bárujárn pass. */
     ownPhotography: true,
@@ -32,7 +32,7 @@ export const companyEntry: PreviewCompany = {
     thumb: 'https://visit-husavik.payload.is/api/media/file/Exterior%20PNG-2000x1125.png',
     audit: {
       strengths: [
-        'Ranked #1 of 13 restaurants in Húsavík on Tripadvisor with thousands of reviews, plus a 4.8 rating on Restaurant Guru',
+        'Ranked #1 of 8 restaurants in Húsavík on Tripadvisor, 4.5 out of 5 from 836 reviews, and a 2025 Travelers’ Choice award',
         'A genuinely distinctive, photogenic home: a bright yellow 1931 harbourside house called Sel, run by two sisters in law for over a decade',
         'A real signature dish, the seafood soup, repeatedly named by reviewers as the reason people stop',
       ],
@@ -55,14 +55,14 @@ export const companyEntry: PreviewCompany = {
 
 Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús.
 
-Ég kynnti mér Naustið á Húsavík og sá að þið eruð í 1. sæti af 13 veitingastöðum á staðnum með yfir 2.500 umsagnir, sem er magnaður árangur. Samt er eina „vefsíðan" ykkar samkvæmt já.is einfaldlega hlekkur á Facebook.
+Ég kynnti mér Naustið á Húsavík og sá að þið eruð í 1. sæti af 8 veitingastöðum á staðnum, með 4,5 af 5 og 836 umsagnir á Tripadvisor og Travelers’ Choice viðurkenninguna 2025. Samt er eina „vefsíðan" ykkar samkvæmt já.is einfaldlega hlekkur á Facebook.
 
 Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir ykkur. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að fólk sjái gula húsið, matseðilinn og fiskisúpuna sem allir tala um, og geti sent inn borðapöntun beint til ykkar. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
+Hugmyndin er einföld. Að fólk sjái gula húsið, matseðilinn og fiskisúpuna sem allir tala um, og geti sent inn borðapöntun beint til ykkar. Forsíðan er vatnslitamynd, máluð eftir ykkar eigin ljósmynd af húsinu, og nafnið er skrifað í sömu pensilskrift og skiltið inni hjá ykkur. Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta veiti ykkur smá innblástur.
 
 Endilega látið mig vita ef þið hafið áhuga.
 
