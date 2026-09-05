@@ -33,39 +33,32 @@ const FOOTER_WORDMARK_SVG =
 // (teardown 4.1 hero 120vh, 4.4/4.11 plates 110vh 1.333/1.455, 4.6 diptych
 // 1:1 + 4:5).
 export const IMAGES = {
-  // 4.1 hero asset: ring-road / countryside diner exterior
-  hero: u('photo-1517248135467-4c7edcad34c4', 2000),
-  // 4.4 full-bleed plate: dining room / café interior
-  interior: u('photo-1414235077428-338989a2e8c0', 1800),
-  // 4.6 gallery small (1:1): a food close-up. Ristað brauð með áleggi (toast
-  // with toppings) is a confirmed bogs.is nav category; the pizza claim this
-  // slot's alt text used before the repair pass was dropped along with the
-  // copy fix above (fix 5) — an image implying pizza would reintroduce the
-  // same unconfirmed claim visually.
-  gallerySmall: u('photo-1484723091739-30a097e8f929', 1000),
-  // 4.6 gallery large (4:5): the building / ring-road setting
-  galleryLarge: u('photo-1476610182048-b716b8518aae', 1200),
-  // 4.6 gallery accents (repair pass, image-density fix): two slots in the
-  // otherwise-empty four columns between the diptych's small and large
-  // images, closing the transplant-gate gap on <img> count (verifier found
-  // 8, band is 11-19, target 15). A coffee-and-cake close-up (Kaffitár is a
-  // confirmed bogs.is nav category) and a second breakfast-table close-up.
-  // PLACEHOLDER stand-ins, replace before sending.
-  galleryAccent: u('photo-1495474472287-4d71bcdd2085', 900),
-  galleryAccent2: u('photo-1504674900247-0877df9cc836', 900),
-  // 4.2 offering cards (4:5 crop): Maturinn (food), Hópar og rútur (coach
-  // travel), Eyvindarstofa (meeting hall). PLACEHOLDER: no B&S photography
-  // supplied for any of the three, replace before sending.
-  offerFood: u('photo-1533089860892-a7c6f0a88666', 1000),
+  /* PLACEHOLDER, ALL OF THEM. No B&S photography has been supplied, so every
+     frame below is Unsplash stock and every alt says "sýnishorn". The set was
+     re-picked on 2026-09-05 for CATEGORY TRUTH after the first pass shipped a
+     dark metropolitan fusion restaurant as the hero, a corporate glass
+     boardroom as Eyvindarstofa, an alpine rowboat in the facts band and
+     Seljalandsfoss as "the building": stock that actively misdescribed a
+     roadside family restaurant in Blönduós. These stand-ins claim nothing
+     B&S is not — a warm unpretentious dining room, breakfast, an open
+     sandwich, a coach, a laid table, coffee, farmland by the road — but they
+     are still not B&S, and they must be replaced with the client's own
+     photography before this page is sent. */
+  // 4.1 hero asset: warm, plain dining room, the register B&S actually is
+  hero: u('photo-1670819917685-f1040e76b9b7', 2000),
+  // 4.4 full-bleed plate: breakfast, the one offering B&S publishes by name
+  interior: u('photo-1533089860892-a7c6f0a88666', 1800),
+  // 4.6 gallery small (1:1): coffee. Kaffitár is a confirmed bogs.is category.
+  gallerySmall: u('photo-1495474472287-4d71bcdd2085', 1000),
+  // 4.6 gallery large (4:5): the ring-road setting. Deliberately farmland and
+  // not a landmark — a waterfall 300km away implied a place B&S is not.
+  galleryLarge: u('photo-1757977158831-98c915f2429a', 1200),
+  // 4.2 offering cards (4:5 crop): ristað brauð með áleggi (a confirmed
+  // category, shown as the open sandwich it is), a coach, and a laid table
+  // for the group/private room the brief says to describe generically.
+  offerFood: u('photo-1618569629551-ac5b990b1ef6', 1000),
   offerGroup: u('photo-1570125909232-eb263c188f7e', 1000),
-  offerHall: u('photo-1517502884422-41eaead166d4', 1000),
-  // 4.5 house facts photos (repair pass, image-density fix): the section
-  // originally ran text-only, which was part of why the page's <img> count
-  // (8) landed below the transplant-gate band (11-19, target 15). Two
-  // exterior/ring-road frames alongside the paragraph close that gap without
-  // inventing content. PLACEHOLDER stand-ins, replace before sending.
-  factsPhoto: u('photo-1476514525535-07fb3b4ae5f1', 1200),
-  factsPhoto2: u('photo-1466978913421-dad2ebd01d17', 1200),
+  offerHall: u('photo-1743793055911-52e19beba5d8', 1000),
   // 4.8 footer wordmark <img>, see FOOTER_WORDMARK_SVG above.
   footerWordmark: `data:image/svg+xml;utf8,${encodeURIComponent(FOOTER_WORDMARK_SVG)}`,
   // 4.8 footer overlay texture (teardown 4.8: img.footer__overlay-texture,
@@ -97,11 +90,12 @@ export const HERO = {
   paragraph:
     'Morgunverður, ristað brauð með áleggi og kaffi frá Kaffitár, á Norðurlandsvegi 4 við þjóðveg eitt.',
   ctaPrimary: { label: 'Hringja 453 5060', href: 'tel:+3544535060' },
-  ctaSecondary: { label: 'Sjá matseðil', href: '#offering' },
+  ctaSecondary: { label: 'Sjá framboðið', href: '#offering' },
 } as const
 
 // ─── 4.2 OUR OFFERING (3 CARDS) ──────────────────────────────────────────────
 export interface OfferCard {
+  id: string
   eyebrow: string
   title: string
   body: string
@@ -117,17 +111,19 @@ export const OFFER_CARDS: OfferCard[] = [
     // teardown section 9 are dropped, since that section is not itself a
     // VERIFIED CLIENT FACT and rule 2 forbids stating a client fact this
     // task's own facts block does not carry.
-    eyebrow: 'Matseðill',
+    id: 'maturinn',
+    eyebrow: 'Maturinn',
     title: 'Maturinn',
     body: 'Morgunverður, ristað brauð með áleggi, kaffi frá Kaffitár og meðlæti.',
-    href: '#offering',
+    href: '#maturinn',
     image: IMAGES.offerFood,
   },
   {
+    id: 'hopar',
     eyebrow: 'Hópar',
     title: 'Hópar og rútur',
     body: 'Hópamatseðill er í boði. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
-    href: '#offering',
+    href: '#hopar',
     image: IMAGES.offerGroup,
   },
   {
@@ -139,10 +135,11 @@ export const OFFER_CARDS: OfferCard[] = [
     // scrape, the authority for this build. Rolled back to the brief's own
     // generic description; the room name "Eyvindarstofa" itself is a
     // confirmed bogs.is nav item, so it stays.
+    id: 'eyvindarstofa',
     eyebrow: 'Hópa- og fundarrými',
     title: 'Eyvindarstofa',
     body: 'Eyvindarstofa er á staðnum. Nánari upplýsingar og bókanir í síma 453 5060.',
-    href: '#offering',
+    href: '#eyvindarstofa',
     image: IMAGES.offerHall,
   },
 ]
@@ -186,10 +183,6 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: 'Hvenær er opið?',
-    a: 'B&S auglýsir sjálft 09:00 til 21:00, en TripAdvisor skráir 11:00 til 21:00. Við höfum ekki fengið þetta staðfest og birtum því bæði. Best er að hringja í 453 5060 og fá úr því skorið.',
-  },
-  {
-    q: 'Hvenær er opið?',
     a: 'Opnunartímar eru staðfestir í síma 453 5060. Á vef staðarins stendur 09:00 til 21:00 og á TripAdvisor 11:00 til 21:00, svo rétt er að hringja á undan sér.',
   },
   {
@@ -230,9 +223,9 @@ export const HOURS_LINE =
 
 export const SITEMAP = [
   { label: 'Heim', href: '/preview/bogs' },
-  { label: 'Maturinn', href: '#offering' },
-  { label: 'Hópar og rútur', href: '#offering' },
-  { label: 'Eyvindarstofa', href: '#offering' },
+  { label: 'Maturinn', href: '#maturinn' },
+  { label: 'Hópar og rútur', href: '#hopar' },
+  { label: 'Eyvindarstofa', href: '#eyvindarstofa' },
   { label: 'Um B&S', href: '#about' },
   { label: 'Hafa samband', href: 'mailto:info@bogs.is' },
 ] as const

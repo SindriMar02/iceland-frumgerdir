@@ -150,7 +150,12 @@ function PageFonts() {
       .bs-p-large { font-family: ${FONT_FAMILY}; color: ${C.ink}; font-size: ${CLAMP.bodyLarge}; line-height: ${LINE_HEIGHT.paragraph}; }
       .bs-p-medium { font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodyMedium}; line-height: ${LINE_HEIGHT.paragraph}; }
       .bs-p-small { font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodySmall}; line-height: ${LINE_HEIGHT.small}; font-weight: 400; }
-      .bs-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 0.5em; overflow: hidden; font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodyMedium}; line-height: 1.2; color: ${C.ink}; text-decoration: none; padding: 1.25rem 1.5rem; border-radius: 0.25em; }
+      .bs-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 0.5em; overflow: hidden; font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodySmall}; line-height: 1.2; color: ${C.ink}; text-decoration: none; padding: 1.25rem 1.5rem; border-radius: 0.25em; }
+      /* body-small is pinned to a fixed .9rem below the reference's own 479px
+         breakpoint (teardown section 0: "body-small is pinned to a fixed .9rem
+         (14.4px) at max-width:479px"), which is what makes the reference's
+         button label measure 14.40px at 390 rather than the clamp's 12.06px. */
+      @media (max-width: 479px) { .bs-p-small, .bs-btn { font-size: .9rem; } }
       .bs-btn-primary { background: ${C.accent}; }
       .bs-btn-outline { border: 1px solid ${C.ink}; }
       /* D10 icon button (teardown 10.2 mandatory device 6 / section "D10.
@@ -330,7 +335,7 @@ function TopNav({ lenisRef }: { lenisRef: MutableRefObject<Lenis | null> }) {
               ref={(el) => { labelsRef.current[0] = el }}
               style={{ display: 'block' }}
             >
-              Matseðill
+              Valmynd
             </span>
             <span
               ref={(el) => { labelsRef.current[1] = el }}
@@ -344,9 +349,21 @@ function TopNav({ lenisRef }: { lenisRef: MutableRefObject<Lenis | null> }) {
             <line x1="1" y1="12" x2="15" y2="12" stroke="currentColor" strokeWidth="1.5" />
           </svg>
         </button>
-        {/* B&S mark: UNKNOWN, no logo file published (brief VERIFIED CLIENT FACTS). */}
-        <a href="/preview/bogs" className="bs-h6" style={{ textDecoration: 'none', color: C.ink }}>
-          B&amp;S Restaurant
+        {/* B&S mark: UNKNOWN, no logo file published (brief VERIFIED CLIENT
+            FACTS), so this is a typographic lockup, not a supplied logo. It
+            occupies the reference's crest slot at roughly its footprint
+            (crest 161x63 at max-width 5em). */}
+        <a
+          href="/preview/bogs"
+          aria-label="B&S Restaurant, heim"
+          style={{ textDecoration: 'none', color: C.ink, textAlign: 'center', lineHeight: 1 }}
+        >
+          <span style={{ display: 'block', fontFamily: FONT_FAMILY, fontSize: 'clamp(1.25rem, 1.6vw, 1.75rem)', letterSpacing: '-0.02em' }}>
+            B&amp;S
+          </span>
+          <span style={{ display: 'block', fontFamily: FONT_FAMILY, fontSize: 'clamp(.5rem, .62vw, .7rem)', letterSpacing: '.34em', textTransform: 'uppercase', marginTop: '.35em', marginRight: '-.34em' }}>
+            Restaurant
+          </span>
         </a>
         <div className="flex items-center" style={{ gap: CLAMP.gap2 }}>
           {/* The is/en pair that sat here was REMOVED 2026-09-02. It was two
@@ -532,14 +549,21 @@ function SiteFooter() {
           </div>
         </div>
         <div style={{ height: 2, background: C.divider }} />
-        {/* Footer wordmark <img> (teardown 4.8: the full company word as an
-            svg image above the bottom bar). B&S has no logo file — this is a
-            plain text-as-SVG PLACEHOLDER, see IMAGES.footerWordmark. */}
-        <Img
-          src={IMAGES.footerWordmark}
-          alt="Veitingastaður við þjóðveg, sýnishorn"
-          style={{ width: '100%', maxWidth: 640, height: 'auto', display: 'block' }}
-        />
+        {/* Footer wordmark (teardown 4.8: the full company word above the
+            bottom bar, measured 1405x157 — the width of the footer). B&S has
+            no logo file, so it is set in the page's own serif as live text
+            rather than an <img>, which also keeps it selectable and readable
+            by a screen reader as the name it is. */}
+        <div
+          aria-hidden="true"
+          style={{
+            fontFamily: FONT_FAMILY, color: C.ink, whiteSpace: 'nowrap',
+            fontSize: 'clamp(2rem, 13.2vw, 13rem)', lineHeight: 0.9,
+            letterSpacing: '-0.03em',
+          }}
+        >
+          B&amp;S Restaurant
+        </div>
         <p className="bs-p-small" style={{ color: C.ink }}>© B&amp;S Restaurant</p>
       </div>
     </footer>
@@ -859,10 +883,11 @@ function Offering() {
         >
           {OFFER_CARDS.map((card) => (
             <a
-              key={card.href}
+              key={card.id}
+              id={card.id}
               href={card.href}
               className="bs-offer-card bs-offer-card-col"
-              style={{ gridColumn: 'span 4' }}
+              style={{ gridColumn: 'span 4', scrollMarginTop: '6rem' }}
             >
               <div className="bs-offer-card-img" style={{ marginBottom: CLAMP.gap2 }}>
                 <Img
@@ -994,23 +1019,46 @@ function AboutTeaser() {
       id="about"
       ref={rootRef}
       className="relative"
-      style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.darkGrey }}
+      style={{ paddingTop: CLAMP.gap6, paddingBottom: CLAMP.gap6, background: C.darkGrey }}
     >
+      {/*
+       * REBALANCED 2026-09-05. This band reproduced the reference's geometry
+       * literally — `.text__inner{span 7}` pushed to the right edge, gap-7
+       * (224px) of padding above and below — but not its content mass. The
+       * reference fills that block with 61 words over 7 lines (measured
+       * 800x343, teardown 4.3); B&S has published only its founding year and
+       * address, so the same box holds 20 words over 3 lines. The result was
+       * a 677px dark slab with five empty columns beside a short paragraph
+       * and 224px of air above and below it: faithful to the reference's
+       * numbers, and visibly broken.
+       *
+       * The fix keeps the reference's right-weighted asymmetry but makes the
+       * empty columns do work: the eyebrow moves out of the stack into a
+       * left rail (a plain editorial label-left/text-right split), and the
+       * vertical padding drops one step to gap-6 so the block is scaled to
+       * the copy that actually exists. No copy was invented to fill it.
+       */}
       <style>{`
         .bs-btn-invert { background: ${C.eggwhite}; color: ${C.ink}; }
+        .bs-about-rail { grid-column: 1 / span 3; }
+        .bs-about-col { grid-column: 5 / span 7; }
         @media (max-width: 767px) {
+          .bs-about-rail { grid-column: 1 / span 12 !important; }
           .bs-about-col { grid-column: 1 / span 12 !important; }
         }
       `}</style>
 
-      <div style={GRID_STYLE}>
+      <div style={{ ...GRID_STYLE, alignItems: 'start' }}>
+        <p
+          className="bs-h6 bs-about-eyebrow bs-about-rail"
+          style={{ margin: 0, color: C.eggwhite, opacity: 0.7 }}
+        >
+          {ABOUT_TEASER.eyebrow}
+        </p>
         <div
           className="bs-about-col flex flex-col items-start text-left"
-          style={{ gridColumn: '6 / span 7', gap: CLAMP.gap2 }}
+          style={{ gap: CLAMP.gap2 }}
         >
-          <p className="bs-h6 bs-about-eyebrow" style={{ margin: 0, color: C.eggwhite }}>
-            {ABOUT_TEASER.eyebrow}
-          </p>
           <p className="bs-p-large bs-about-p" style={{ margin: 0, color: C.eggwhite }}>
             {ABOUT_TEASER.paragraph}
           </p>
@@ -1172,36 +1220,12 @@ function HouseFacts() {
       style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.paper }}
     >
       <style>{`
-        .bs-facts-img { position: relative; overflow: hidden; aspect-ratio: 1; }
         @media (max-width: 767px) {
-          .bs-facts-photo-1 { grid-column: 1 / span 6 !important; order: -2; margin-top: 0 !important; }
-          .bs-facts-photo-2 { grid-column: 7 / span 6 !important; order: -1; margin-top: 0 !important; }
           .bs-facts-col { grid-column: 1 / span 12 !important; }
         }
       `}</style>
 
       <div style={{ ...GRID_STYLE, placeItems: 'start end' }}>
-        {/* Repair pass, image-density fix: this section originally ran
-            text-only, one of the reasons the page's <img> count (8) landed
-            below the transplant-gate band (11-19, target 15). Two
-            exterior/ring-road frames close that gap; PLACEHOLDER stand-ins
-            (IMAGES.factsPhoto / factsPhoto2), replace before sending. */}
-        <div className="bs-facts-photo-1 bs-facts-img" style={{ gridColumn: '1 / span 2' }}>
-          <Img
-            src={IMAGES.factsPhoto}
-            alt="Þjóðvegur í íslensku landslagi, sýnishorn"
-            className="h-full w-full object-cover"
-            fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
-          />
-        </div>
-        <div className="bs-facts-photo-2 bs-facts-img" style={{ gridColumn: '3 / span 2', marginTop: CLAMP.gap4 }}>
-          <Img
-            src={IMAGES.factsPhoto2}
-            alt="Útsýni yfir sveit, sýnishorn"
-            className="h-full w-full object-cover"
-            fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
-          />
-        </div>
         <div
           className="bs-facts-col flex flex-col items-start text-left"
           style={{ gridColumn: '7 / span 5', gap: CLAMP.gap3 }}
@@ -1292,8 +1316,6 @@ function ImageGallery() {
         .bs-gallery-img { position: absolute; inset: 0; object-fit: cover; transform: scale(1.2); will-change: transform; }
         @media (max-width: 767px) {
           .bs-gallery-small { grid-column: 1 / span 3 !important; }
-          .bs-gallery-accent-1 { grid-column: 4 / span 2 !important; }
-          .bs-gallery-accent-2 { grid-column: 1 / span 2 !important; }
           .bs-gallery-large { grid-column: 1 / span 7 !important; }
         }
       `}</style>
@@ -1311,35 +1333,6 @@ function ImageGallery() {
           <Img
             src={IMAGES.gallerySmall}
             alt="Ristað brauð með áleggi, sýnishorn"
-            className="bs-gallery-img h-full w-full"
-            fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
-          />
-        </div>
-        {/* Repair pass, image-density fix: two slots in the four columns the
-            diptych leaves empty between small and large (verifier found 8
-            <img>, band is 11-19, target 15). Coffee & Cake (with Kaffitár)
-            is a confirmed bogs.is nav category. PLACEHOLDER stand-ins
-            (IMAGES.galleryAccent / galleryAccent2), replace before sending. */}
-        <div
-          data-parallax-image
-          className="bs-gallery-item bs-gallery-accent-1"
-          style={{ gridColumn: '4 / span 2', aspectRatio: '3 / 4' }}
-        >
-          <Img
-            src={IMAGES.galleryAccent}
-            alt="Kaffibolli og kaka, sýnishorn"
-            className="bs-gallery-img h-full w-full"
-            fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
-          />
-        </div>
-        <div
-          data-parallax-image
-          className="bs-gallery-item bs-gallery-accent-2"
-          style={{ gridColumn: '6 / span 2', aspectRatio: '3 / 4', marginTop: CLAMP.gap4 }}
-        >
-          <Img
-            src={IMAGES.galleryAccent2}
-            alt="Morgunverðarborð, sýnishorn"
             className="bs-gallery-img h-full w-full"
             fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
           />

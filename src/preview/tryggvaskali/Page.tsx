@@ -238,8 +238,17 @@ function PageStyles() {
            Hanken Grotesk (Google Fonts, OFL) for body, a warm humanist
            sans rather than a neutral system-UI face. Both fully Icelandic
            per ~/Design fonts/INDEX.md. */
-        --ts-font-display: 'TS Display', 'Erode', Georgia, serif;
-        --ts-font-body: 'TS Body', 'Hanken Grotesk', system-ui, sans-serif;
+        /* ONE family for both roles, which is the reference's own system:
+           studenterkilden ships a single face (GT Ultra Median, a serif/sans
+           "median" with flared wedge serifs) as BOTH
+           --font-family--body and --font-family--headlines (teardown 2.2).
+           Splitting that into a book serif + a neutral grotesk is what made
+           this page read generic. Rowan (Inga Plönnigs, OFL, full Icelandic,
+           verified genuine via the name table) is the closest free analogue:
+           low contrast, flared chunky serifs, drawn to work at text sizes,
+           with enough character to carry the wordmark at 120px. */
+        --ts-font-display: 'TS Display', 'Rowan', Georgia, serif;
+        --ts-font-body: 'TS Body', 'Rowan', Georgia, serif;
       }
       @media screen and (min-width: 36em) { .ts-root { --ts-vpad: 2.7rem; } }
       @media screen and (min-width: 48em) { .ts-root { --ts-vpad: 3.3rem; } }
@@ -247,28 +256,35 @@ function PageStyles() {
 
       @font-face {
         font-family: 'TS Display';
-        src: url('${asset('fonts/erode-medium.woff2')}') format('woff2');
+        src: url('${asset('fonts/rowan-medium.woff2')}') format('woff2');
         font-weight: 500;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: 'TS Display';
-        src: url('${asset('fonts/erode-regular.woff2')}') format('woff2');
+        src: url('${asset('fonts/rowan-regular.woff2')}') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: 'TS Body';
-        src: url('${asset('fonts/hankengrotesk-300.woff2')}') format('woff2');
-        font-weight: 300 700;
+        src: url('${asset('fonts/rowan-light.woff2')}') format('woff2');
+        font-weight: 300;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: 'TS Body';
-        src: url('${asset('fonts/hankengrotesk-300italic.woff2')}') format('woff2');
+        src: url('${asset('fonts/rowan-regular.woff2')}') format('woff2');
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'TS Body';
+        src: url('${asset('fonts/rowan-italic.woff2')}') format('woff2');
         font-weight: 300 700;
         font-style: italic;
         font-display: swap;
@@ -1040,15 +1056,35 @@ function Hero() {
       onEnter: () => header?.classList.add('ts-opaque'),
       onLeaveBack: () => header?.classList.remove('ts-opaque'),
     })
+    /*
+     * The 10px threshold is CUMULATIVE TRAVEL IN ONE DIRECTION, not a
+     * per-frame delta. It used to be per-frame (`y - lastY > 10` with lastY
+     * reassigned every tick), which meant the bar only reacted to a single
+     * animation frame that happened to jump more than 10px. Under Lenis
+     * every frame is an eased fraction of the remaining distance, so a
+     * normal trackpad scroll moves 2-8px per tick and NEVER crossed the
+     * threshold: the header hid on a hard flick and then would not come
+     * back unless you flicked equally hard upward. Accumulating instead,
+     * and resetting the accumulator when the direction flips, makes 10px of
+     * intent register however slowly it is delivered.
+     */
+    let travel = 0
     const stHide = ScrollTrigger.create({
       start: bannerH / 2, // measured 450px at 1440 / 422px at 390 (banner.height()/2)
-      onUpdate: (self) => {
+      onUpdate: () => {
         const y = window.scrollY
-        if (self.direction === 1 && y - lastY > 10) header?.classList.add('ts-header-up')
-        else if (self.direction === -1 && lastY - y > 10) header?.classList.remove('ts-header-up')
+        const delta = y - lastY
         lastY = y
+        if (delta === 0) return
+        if (delta > 0 !== travel > 0) travel = 0
+        travel += delta
+        if (travel > 10) header?.classList.add('ts-header-up')
+        else if (travel < -10) header?.classList.remove('ts-header-up')
       },
-      onLeaveBack: () => header?.classList.remove('ts-header-up'),
+      onLeaveBack: () => {
+        travel = 0
+        header?.classList.remove('ts-header-up')
+      },
     })
 
     // Device 5 (hero banner parallax): y 0 -> +20% of banner height (measured

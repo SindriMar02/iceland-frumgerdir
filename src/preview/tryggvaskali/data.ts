@@ -16,23 +16,30 @@ const u = (id: string, w = 1280) => `https://images.unsplash.com/${id}?q=80&w=${
 export const IMAGES = {
   // H1 hero: greyscale film/still of the house by the Ölfusá bridge (kept
   // greyscale per teardown 4.1 H1 / 10.2 D1 device note "greyscale is the look")
-  hero: u('photo-1476514525535-07fb3b4ae5f1', 2000), // river beneath a historic timber house, dusk
+  /* CORRECTED 2026-09-05. Every comment in this block described the picture
+     somebody WANTED rather than the picture the id actually returns, and the
+     hero was the worst of it: photo-1476514525535 is a rowboat on Lago di
+     Braies in the Dolomites — an Italian alpine lake standing in for a house
+     on the bank of the Ölfusá. Swapped for the one genuinely on-brief frame
+     in this set. Still a PLACEHOLDER: no Tryggvaskáli photography has been
+     supplied, and none of these show the house. */
+  hero: u('photo-1507807823252-1870c299a391', 2000), // low buildings in an Icelandic landscape
   // H5 wide parallax plate: landscape of house + bridge
-  riverBridge: u('photo-1500534623283-312aade485b7', 1800), // river bridge, overcast Nordic light
+  riverBridge: u('photo-1500534623283-312aade485b7', 1800), // NOT a bridge: a sunburst over mountain ridges
   // H6 two-column history: the house, the bridge
   /* REPLACED 2026-09-02: the previous id (photo-1518709268805-...) returns
      404 from Unsplash, so this frame rendered as a bare olive gradient
      fallback, not a photo. Verified 200 before swapping in. */
-  houseExterior: u('photo-1507807823252-1870c299a391', 1300), // Icelandic farm buildings under a glacier
-  bridgeDetail: u('photo-1483354483454-4cd359948304', 1300), // suspension bridge over a river
+  houseExterior: u('photo-1575660976250-f90f7e2ed9c2', 1300), // a small northern harbour town; NOT the house
+  bridgeDetail: u('photo-1483354483454-4cd359948304', 1300), // NOT a bridge: layered misty ridges
   // H8/H9 restaurant + food gallery
   diningRoom: u('photo-1414235077428-338989a2e8c0', 1300), // warm, elevated dining room interior
   plate: u('photo-1414235077428-338989a2e8c0', 900),
   brunchTable: u('photo-1533777857889-4be7c70b33f7', 900), // laid brunch table, warm light
   // H11 pinned sensory interstitial (7-image set in the reference; 3 stand-ins here)
   sensory1: u('photo-1414235077428-338989a2e8c0', 700),
-  sensory2: u('photo-1517248135467-4c7edcad34c4', 700),
-  sensory3: u('photo-1481833761820-0509d3217039', 700),
+  sensory2: u('photo-1517248135467-4c7edcad34c4', 700), // a metropolitan fusion dining room
+  sensory3: u('photo-1481833761820-0509d3217039', 700), // a bar window with a RELAX neon sign
 } as const
 
 // H2 page title (teardown 4.1 H2, 9.2 H2). "TRYGGVASKÁLI SÍÐAN 1890" is
