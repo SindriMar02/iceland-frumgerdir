@@ -32,7 +32,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { Img } from '../../components/Img'
 import { companyEntry } from './company'
-import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, MENU, GROUPS, COFFEE_CAKE, KITCHEN_PRINCIPLES, ABOUT_TEASER, FAQ } from './data'
+import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, CAKE_ALTS, MENU, GROUPS, COFFEE_CAKE, KITCHEN_PRINCIPLES, ABOUT_TEASER, FAQ } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
 
@@ -829,7 +829,7 @@ function Hero() {
             data.ts IMAGES.hero, replace before sending. */}
         <Img
           src={IMAGES.hero}
-          alt="Veitingastaður við þjóðveg, sýnishorn"
+          alt="Borðsalur B&S Restaurant: viðarbásar, hangandi lampar og gærur á stólum"
           fetchpriority="high"
           className="bs-hero-img absolute inset-0 h-full w-full object-cover"
           fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#cfcfcf] to-[#8f8f8f]"
@@ -1477,7 +1477,7 @@ function FullBleedPhoto() {
           data.ts IMAGES.interior, replace before sending. */}
       <Img
         src={IMAGES.interior}
-        alt="Borðsalur veitingastaðar, sýnishorn"
+        alt="Pizzur á B&S Restaurant, bornar fram á viðarbretti"
         className="bs-plate-img h-full w-full"
         fallbackClassName="absolute inset-0 bg-gradient-to-b from-[#cfcfcf] to-[#8f8f8f]"
       />
@@ -1525,10 +1525,18 @@ function CoffeeCake() {
       <style>{`
         .bs-cc-head { grid-column: 1 / span 6; }
         .bs-cc-intro { grid-column: 8 / span 5; }
-        .bs-cc-grid { grid-column: 1 / span 12; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: ${CLAMP.gutter}; }
-        .bs-cc-tile { position: relative; aspect-ratio: 1; overflow: hidden; }
-        .bs-cc-tile img { position: absolute; inset: 0; object-fit: cover; transform: scale(1.05); transition: transform .8s cubic-bezier(0.625,0.05,0,1); }
-        .bs-cc-tile:hover img { transform: scale(1.2); }
+        .bs-cc-grid { grid-column: 1 / span 12; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: ${CLAMP.gap3}; }
+        /* These are CUT-OUT PRODUCT SHOTS — each dessert isolated on a white
+           ground — not environmental photographs. They were being run through
+           the same object-fit:cover + scale(1.05) crop the reference uses for
+           its editorial plates, which sliced the rim off every plate. A plate
+           photographed whole has to be shown whole: contain, never cover, and
+           no parallax scale. The white in the picture is the picture's own
+           background, so the tile carries no ground of its own and the
+           desserts sit on the page as products rather than in cropped boxes. */
+        .bs-cc-tile { position: relative; aspect-ratio: 1; }
+        .bs-cc-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: transform .6s cubic-bezier(0.625,0.05,0,1); }
+        .bs-cc-tile:hover img { transform: scale(1.05); }
         @media (max-width: 767px) {
           .bs-cc-head, .bs-cc-intro { grid-column: 1 / span 12 !important; }
           .bs-cc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1549,7 +1557,7 @@ function CoffeeCake() {
             <div className="bs-cc-tile" key={src}>
               <Img
                 src={src}
-                alt={`Eftirréttur á B&S Restaurant, mynd ${i + 1}`}
+                alt={CAKE_ALTS[i] ?? `Eftirréttur á B&S Restaurant`}
                 className="h-full w-full"
                 fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
               />
@@ -1562,124 +1570,22 @@ function CoffeeCake() {
 }
 
 
-/* ── 4.6 Image gallery (diptych), `section.section-image-gallery.u-grid`
-   (teardown 4.6) ───────────────────────────────────────────────────────────
-   Purpose per the teardown: "two-photo visual break, asymmetric", no
-   heading, no CTA, no reveal group — the section is only the two images.
-   Content re-aimed per teardown section 9, row "4.6 Diptych": square = "a
-   food close-up (pizza, a burger, or coffee and cake)", portrait = "the
-   building or the ring-road setting" — both flagged UNKNOWN assets in the
-   teardown, so IMAGES.gallerySmall (pizza, a confirmed menu item) and
-   IMAGES.galleryLarge (building / ring-road) from data.ts stand in; both are
-   PLACEHOLDER Unsplash stock, replace before sending. Layout: literal from
-   the teardown at desktop — `.gallery-item__small.u-col{aspect-ratio:1;
-   grid-column-end:span 3;overflow:hidden}` (auto-starts at column 1) and
-   `.gallery-item__large.u-col{aspect-ratio:4/5;grid-column:8/span 5;
-   overflow:hidden}`, both on the same row with four empty columns between
-   (D19 "asymmetric diptych"), section padding gap-7/gutter matching the
-   other content sections, BG #fdfdfd. At the reference's 767px breakpoint
-   the pair stays side by side rather than stacking (measured: small ~128px
-   at x20, large ~202px at x168 on a 390px viewport) — the reference's own
-   breakpoint math swaps to a 5-column grid there, which does not translate
-   1:1 onto this codebase's fixed 12-column GRID_STYLE, so the mobile spans
-   below (`1 / span 4` and `6 / span 7`) are a reasonable proportional
-   adaptation that preserves the same side-by-side, asymmetric read instead
-   of falling back to this codebase's usual full-width mobile stack. Device
-   reproduced: D7 parallax on both (teardown: "`[data-parallax-image]` on
-   each `.gallery-item__*`... both `yPercent -15 -> 15` over the
-   `scale(1.2)` baseline") — each item is its own scrub trigger (`top
-   center` -> `bottom top`, `ease: none`, `scrub: true`), exactly the
-   `wrapper.querySelector('img')` pattern the teardown's D7 write-up
-   describes for `initImageParallax`, applied twice here since there are two
-   independent wrappers rather than the section as a whole. No Lenis: only
-   scrubbed, no pinning (see the lenis-mobile-damage note on Hero above). */
-function ImageGallery() {
-  const rootRef = useRef<HTMLElement | null>(null)
+/* ── 4.6 Image gallery (diptych), REMOVED 2026-09-05 ───────────────────────
+   The reference's 4.6 is a two-photo visual break, and this build reproduced
+   it. With the client's own assets in place it had nothing left to hold: the
+   only two environmental photographs B&S publishes (their dining room and
+   their pizzas) were already carrying the hero and the full-bleed plate, so
+   the diptych had been filled with two of the cut-out dessert shots — run
+   through object-fit:cover at 1:1 and 4:5 with a scale(1.2) parallax, which
+   sliced the plates apart. It also sat directly under "Kaffi og kaka",
+   making two consecutive photo-only sections of the same desserts.
 
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
+   The honest reading is that this page has more photographic slots than the
+   client has photographs. Repeating two images across four of them, or
+   cropping product shots to fill them, is worse than having one section
+   fewer. DECLARED DEVIATION from teardown 4.6. Restore it the day B&S
+   supplies a real photo set — the section is in git history at 45bf2d9. */
 
-    const mm = gsap.matchMedia()
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      const wrappers = Array.from(root.querySelectorAll<HTMLElement>('[data-parallax-image]'))
-      const tweens = wrappers.map((wrapper) => {
-        const img = wrapper.querySelector<HTMLElement>('img')
-        if (!img) return undefined
-        return gsap.fromTo(
-          img,
-          { yPercent: -15 },
-          {
-            yPercent: 15,
-            ease: 'none',
-            scrollTrigger: { trigger: wrapper, start: 'top center', end: 'bottom top', scrub: true },
-          },
-        )
-      })
-
-      return () => {
-        tweens.forEach((t) => {
-          t?.scrollTrigger?.kill()
-          t?.kill()
-        })
-      }
-    })
-
-    return () => mm.revert()
-  }, [])
-
-  return (
-    <section
-      ref={rootRef}
-      className="relative"
-      style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.paper }}
-    >
-      <style>{`
-        .bs-gallery-item { position: relative; overflow: hidden; }
-        .bs-gallery-img { position: absolute; inset: 0; object-fit: cover; transform: scale(1.2); will-change: transform; }
-        @media (max-width: 767px) {
-          .bs-gallery-small { grid-column: 1 / span 3 !important; }
-          .bs-gallery-large { grid-column: 1 / span 7 !important; }
-        }
-      `}</style>
-
-      <div style={GRID_STYLE}>
-        <div
-          data-parallax-image
-          className="bs-gallery-item bs-gallery-small"
-          style={{ gridColumn: '1 / span 3', aspectRatio: '1' }}
-        >
-          {/* PLACEHOLDER: no B&S food photography supplied yet (teardown 9,
-              row 4.6: "UNKNOWN assets"). Unsplash stand-in from data.ts
-              IMAGES.gallerySmall (ristað brauð með áleggi, a confirmed nav
-              category), replace before sending. */}
-          <Img
-            src={IMAGES.gallerySmall}
-            alt="Ristað brauð með áleggi, sýnishorn"
-            className="bs-gallery-img h-full w-full"
-            fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
-          />
-        </div>
-        <div
-          data-parallax-image
-          className="bs-gallery-item bs-gallery-large"
-          style={{ gridColumn: '8 / span 5', aspectRatio: '4 / 5' }}
-        >
-          {/* PLACEHOLDER: no B&S exterior photo supplied yet (teardown 9, row
-              4.6: "UNKNOWN assets"). Unsplash stand-in from data.ts
-              IMAGES.galleryLarge (building / ring-road setting), replace
-              before sending. */}
-          <Img
-            src={IMAGES.galleryLarge}
-            alt="Hús við þjóðveg, sýnishorn"
-            className="bs-gallery-img h-full w-full"
-            fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
-          />
-        </div>
-      </div>
-    </section>
-  )
-}
 
 /* ── 4.7 FAQ, `section.section-faq.u-grid` (teardown 4.7, D14) ────────────
    Purpose: an accordion of answerable questions, re-aimed per teardown
@@ -1967,8 +1873,6 @@ export default function Page() {
       <FullBleedPhoto />
 
       <CoffeeCake />
-
-      <ImageGallery />
 
       <AboutTeaser />
 

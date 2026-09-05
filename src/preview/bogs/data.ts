@@ -44,6 +44,19 @@ const FOOTER_WORDMARK_SVG =
 // and ten plated desserts.
 const own = (f: string) => `${import.meta.env.BASE_URL}bogs/${f}`
 
+// Alt text per dessert, in the order IMAGES.cakes lists them. Written from
+// looking at the pictures. These are the client's own photographs, so none of
+// them says "sýnishorn" — that word belongs only on stock standing in for
+// something B&S has not supplied.
+export const CAKE_ALTS = [
+  'Súkkulaðikaka með þeyttum rjóma og jarðarberjum á bleikum diski',
+  'Lagskipt ostakaka með berjasósu á gulum diski',
+  'Karamellukaka með ís og myntu á gulum diski',
+  'Bráðin súkkulaðikaka með vanilluís og jarðarberjum á dökkum diski',
+  'Eftirréttur með ís, jarðarberjum og berjasósu á gulum diski',
+  'Eftirréttapizza með jarðarberjum, banönum og súkkulaði',
+] as const
+
 export const IMAGES = {
   // The real B&S mark: a brown roundel with a crown, 1696x1696 PNG. The build
   // previously stated "B&S mark: UNKNOWN, no logo file published" and drew a
@@ -56,9 +69,6 @@ export const IMAGES = {
   hero: own('bs-interior.jpg'),
   // 4.4 full-bleed plate: their own pizzas, 1280x1077.
   interior: own('bs-pizza.jpg'),
-  // 4.6 diptych: their own plated desserts.
-  gallerySmall: own('bs-dessert-pizza.jpg'),
-  galleryLarge: own('bs-cake-2.jpg'),
   // 4.2 offering cards. Maturinn and Eyvindarstofa are the client's own
   // photographs; the coach remains an Unsplash placeholder because B&S
   // publishes no picture of one.
@@ -67,7 +77,10 @@ export const IMAGES = {
   offerHall: own('bs-interior.jpg'),
   // Kaffi og kaka: the client's Coffee & Cake page carries ten plated
   // desserts. Five are used here; the rest are in the harvest folder.
-  cakes: [own('bs-cake-1.jpg'), own('bs-cake-3.jpg'), own('bs-cake-4.jpg'), own('bs-cake-5.jpg')],
+  cakes: [
+    own('bs-cake-1.jpg'), own('bs-cake-2.jpg'), own('bs-cake-3.jpg'),
+    own('bs-cake-4.jpg'), own('bs-cake-5.jpg'), own('bs-dessert-pizza.jpg'),
+  ],
   buffet: own('bs-buffet.jpg'),
   // 4.8 footer wordmark <img>, see FOOTER_WORDMARK_SVG above.
   footerWordmark: `data:image/svg+xml;utf8,${encodeURIComponent(FOOTER_WORDMARK_SVG)}`,
