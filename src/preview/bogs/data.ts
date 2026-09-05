@@ -50,9 +50,13 @@ export const IMAGES = {
   interior: u('photo-1533089860892-a7c6f0a88666', 1800),
   // 4.6 gallery small (1:1): coffee. Kaffitár is a confirmed bogs.is category.
   gallerySmall: u('photo-1495474472287-4d71bcdd2085', 1000),
-  // 4.6 gallery large (4:5): the ring-road setting. Deliberately farmland and
-  // not a landmark — a waterfall 300km away implied a place B&S is not.
-  galleryLarge: u('photo-1757977158831-98c915f2429a', 1200),
+  // 4.6 gallery large (4:5): the setting. Deliberately quiet and not a
+  // landmark — a waterfall 300km away implied a place B&S is not, and the
+  // farmland frame that briefly replaced it cropped at 4:5 to a saturated
+  // close-up of a grazing cow, and the conifer forest after that reads
+  // Pacific Northwest on a page about treeless coastal North Iceland.
+  // Bare misty ridges: muted, no landmark, no trees, no false claim.
+  galleryLarge: u('photo-1483354483454-4cd359948304', 1200),
   // 4.2 offering cards (4:5 crop): ristað brauð með áleggi (a confirmed
   // category, shown as the open sandwich it is), a coach, and a laid table
   // for the group/private room the brief says to describe generically.
@@ -152,7 +156,9 @@ export const ABOUT_TEASER = {
   // short and states only those two facts plus the ring-road setting.
   paragraph:
     'B&S Restaurant hefur verið fjölskylduveitingastaður og kaffihús á Norðurlandsvegi 4 í Blönduósi síðan 2007, beint við þjóðveg eitt.',
-  cta: { label: 'Um B&S', href: '#about' },
+  // The band's CTA was removed 2026-09-05: it pointed at #about from inside
+  // the section whose id is #about. There is no About page to send anyone to,
+  // and the sitemap's own "Um B&S" entry already anchors here.
 } as const
 
 // ─── 4.5 HOUSE FACTS (teardown "House philosophy", `section.section-small-text`)

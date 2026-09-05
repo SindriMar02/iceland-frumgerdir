@@ -939,7 +939,8 @@ function Offering() {
    stagger amount 0.2, power3.out, once true, trigger top 80% per the D3
    general spec), D10 button hover already in `.bs-btn` (PageFonts above) —
    only the fill swaps to the teardown's named "dark-mode button variant:
-   eggwhite fill" via the local `.bs-btn-invert` class below. */
+   eggwhite fill") had no destination: it pointed at #about from inside
+   #about. Removed with the button. */
 function AboutTeaser() {
   const rootRef = useRef<HTMLElement | null>(null)
 
@@ -992,11 +993,10 @@ function AboutTeaser() {
         )
       }
 
-      tl.fromTo(q('.bs-about-cta'), { autoAlpha: 0, y: '2em' }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'osmo' }, 0.2)
 
       // Failsafe: see Hero's identical guard above.
       const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-about-eyebrow, .bs-about-p, .bs-about-cta'), { clearProps: 'opacity,visibility,transform' })
+        gsap.set(q('.bs-about-eyebrow, .bs-about-p'), { clearProps: 'opacity,visibility,transform' })
         /* ...and the SplitText-generated children, which is where the
            opacity:0 actually lives. Clearing only the parent left the
            text invisible forever whenever the split resolved after its
@@ -1039,30 +1039,33 @@ function AboutTeaser() {
        * the copy that actually exists. No copy was invented to fill it.
        */}
       <style>{`
-        .bs-btn-invert { background: ${C.eggwhite}; color: ${C.ink}; }
-        .bs-about-rail { grid-column: 1 / span 3; }
-        .bs-about-col { grid-column: 5 / span 7; }
+        .bs-about-col { grid-column: 1 / span 9; }
         @media (max-width: 767px) {
-          .bs-about-rail { grid-column: 1 / span 12 !important; }
           .bs-about-col { grid-column: 1 / span 12 !important; }
         }
       `}</style>
 
-      <div style={{ ...GRID_STYLE, alignItems: 'start' }}>
-        <p
-          className="bs-h6 bs-about-eyebrow bs-about-rail"
-          style={{ margin: 0, color: C.eggwhite, opacity: 0.7 }}
-        >
-          {ABOUT_TEASER.eyebrow}
-        </p>
-        <div
-          className="bs-about-col flex flex-col items-start text-left"
-          style={{ gap: CLAMP.gap2 }}
-        >
-          <p className="bs-p-large bs-about-p" style={{ margin: 0, color: C.eggwhite }}>
+      <div style={GRID_STYLE}>
+        <div className="bs-about-col flex flex-col items-start text-left" style={{ gap: CLAMP.gap3 }}>
+          <p
+            className="bs-h6 bs-about-eyebrow"
+            style={{ margin: 0, color: C.eggwhite, opacity: 0.65 }}
+          >
+            {ABOUT_TEASER.eyebrow}
+          </p>
+          <p
+            className="bs-about-p"
+            style={{
+              margin: 0,
+              color: C.eggwhite,
+              fontFamily: FONT_FAMILY,
+              fontSize: CLAMP.h3,
+              lineHeight: 1.12,
+              letterSpacing: LETTER_SPACING.heading,
+            }}
+          >
             {ABOUT_TEASER.paragraph}
           </p>
-          <BtnIcon href={ABOUT_TEASER.cta.href} label={ABOUT_TEASER.cta.label} variant="invert" className="bs-about-cta" />
         </div>
       </div>
     </section>
@@ -1636,13 +1639,13 @@ export default function Page() {
 
       <Offering />
 
-      <AboutTeaser />
-
       <FullBleedPhoto />
 
       <HouseFacts />
 
       <ImageGallery />
+
+      <AboutTeaser />
 
       <Faq />
 
