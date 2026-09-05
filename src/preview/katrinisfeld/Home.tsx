@@ -334,7 +334,12 @@ export function Home() {
               {MATERIALS.map((m) => (
                 <li key={m.id} className="ki-stratum" data-parallax-stagger>
                   <figure className="ki-stratum-fig">
-                    <Photo id={m.id} alt={m.alt} sizes="(max-width: 860px) 44vw, 170px" />
+                    {/* priority: these live inside the pinned hero, so they are
+                        on screen from the first frame — lazy meant five large
+                        photographs decoding mid-scroll, which is the other half
+                        of the flashing */}
+                    <Photo id={m.id} alt={m.alt} priority
+                      sizes="(max-width: 640px) 60vw, (max-width: 860px) 40vw, 190px" />
                   </figure>
                   <span className="ki-stratum-name">{m.name}</span>
                   <span className="ki-stratum-hex">{m.hex}</span>
@@ -438,7 +443,16 @@ export function Home() {
         id="f-eldhus"
         alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
         eyebrow="Aðferðin"
-        text="Rýmið er teiknað með húsinu."
+        /* SOLVED, NOT CHOSEN. Each word sits on the quietest, darkest box in
+           its own band of this photograph at this crop, found on the 98th
+           percentile so one specular highlight cannot veto a clean wall.
+           See the note on .ki-stmt — re-solve if the photograph changes. */
+        words={[
+          { t: 'Rýmið', x: 5.6, y: 9.0 },
+          { t: 'er teiknað', x: 42.3, y: 28.9 },
+          { t: 'með', x: 9.0, y: 49.0 },
+          { t: 'húsinu.', x: 40.7, y: 66.9 },
+        ]}
         sub="Ekki lagt ofan á það þegar smíðinni er lokið"
       />
 

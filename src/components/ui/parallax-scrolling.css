@@ -212,10 +212,14 @@
   align-items: center;
   justify-content: center;
   padding: 0 calc(var(--u, 1px) * 34);
-  /* GSAP sets this, but the prerendered HTML is served before GSAP parses and
-     the copy would flash on the room for a frame */
+  /* the prerendered HTML is served before GSAP parses and the copy would
+     flash on the room for a frame. GSAP clears the visibility ONCE at setup
+     and then only touches opacity — see the note in the component. */
   visibility: hidden;
   opacity: 0;
+  /* its own layer: five photographs whose opacity changes every scroll frame
+     should not be re-rasterised with the plates behind them */
+  will-change: opacity;
 }
 /* written on the sky rather than on the rock: it sits in the paint order
    between the far planes and the near one, so a ridge that has not sunk past

@@ -170,44 +170,33 @@ export interface StatementWord {
   y: number
 }
 
-export function StatementOverlay({ id, alt, eyebrow, text, sub }: {
-  id: string; alt: string; eyebrow: string; text: string; sub: string
+export interface StatementWord { t: string; x: number; y: number }
+
+export function StatementOverlay({ id, alt, eyebrow, words, sub }: {
+  id: string; alt: string; eyebrow: string; words: ReadonlyArray<StatementWord>; sub: string
 }) {
-  const words = text.split(' ')
   return (
     <section className="ki-stmt" data-ki-band="dark">
       <Photo id={id} alt={alt} sizes="100vw" />
       <div className="ki-stmt-scrim" aria-hidden="true" />
-      <div className="ki-stmt-in">
-        <p className="ki-stmt-eyebrow">{eyebrow}</p>
-        {/* .ki-rv is only the trigger — the sweep already watches for it */}
-        <p className="ki-stmt-words ki-rv" aria-label={text}>
-          {words.map((w, i) => (
-            <span key={w + i} className="ki-stmt-word" style={{ ['--s' as string]: i }} aria-hidden="true">
-              <i>{w}</i>
-            </span>
-          ))}
-        </p>
-        <p className="ki-stmt-sub">{sub}</p>
-      </div>
+      <p className="ki-stmt-eyebrow"><span>{eyebrow}</span></p>
+      {/* .ki-rv is only the trigger — the sweep already watches for it */}
+      <p className="ki-stmt-words ki-rv" aria-label={words.map((w) => w.t).join(' ')}>
+        {words.map((w, i) => (
+          <span key={w.t + i} className="ki-stmt-word"
+            style={{ left: `${w.x}%`, top: `${w.y}%`, ['--s' as string]: i }} aria-hidden="true">
+            {/* the local veil sits OUTSIDE the clip: it must not be masked by
+                the reveal, and it must not travel with the word as it rises */}
+            <span className="ki-stmt-veil" />
+            <span className="ki-stmt-clip"><i>{w.t}</i></span>
+          </span>
+        ))}
+      </p>
+      <p className="ki-stmt-sub"><span>{sub}</span></p>
     </section>
   )
 }
 
-/**
- * A horizontal chapter: the page pins and the projects travel sideways.
- *
- * The pin only happens on a real pointer. On touch this is a native
- * scroll-snap strip instead, because a scroll-jacked pin on a phone is the
- * exact thing that got called "jittery and doesn't work well" on
- * Sauðárkróksbakarí — the page holds still for a whole viewport and a
- * visitor reads that as broken. Native horizontal scrolling on touch is
- * both nicer and honest about what the finger is doing.
- *
- * The travel is written synchronously in the scroll handler with NO CSS
- * transition on the transform: a transition on a value rewritten every
- * scroll tick chases a moving target and smears.
- */
 /**
  * A SLIDE in the horizontal journey. The spec this is built to is explicit
  * that the rhythm comes from varying slide WIDTH, not from animating the

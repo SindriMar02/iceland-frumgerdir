@@ -28,10 +28,16 @@ for (const [w,h,tag] of [[1280,800,'d'],[390,844,'m']]) {
   /* and again with the type hidden: a composite cannot tell a glyph from the
      photograph behind it, and measuring the lit band with the type in it just
      measures the type */
-  await page.evaluate(()=>{document.querySelector('.ki-stmt-in').style.visibility='hidden'})
+  await page.evaluate(()=>{/* hide the GLYPHS only — the veils are part of the background the type has
+   to survive, and hiding them measures a page that does not exist */
+    document.querySelectorAll('.ki-stmt-word i').forEach(e=>e.style.visibility='hidden')
+    document.querySelector('.ki-stmt-eyebrow > span').style.visibility='hidden'
+    document.querySelector('.ki-stmt-sub > span').style.visibility='hidden'})
   await new Promise(r=>setTimeout(r,300))
   await page.screenshot({path:`/tmp/ki-gate/ST-${tag}-bg.png`})
-  await page.evaluate(()=>{document.querySelector('.ki-stmt-in').style.visibility=''})
+  await page.evaluate(()=>{document.querySelectorAll('.ki-stmt-word i').forEach(e=>e.style.visibility='')
+    document.querySelector('.ki-stmt-eyebrow > span').style.visibility=''
+    document.querySelector('.ki-stmt-sub > span').style.visibility=''})
   const boxes=await page.evaluate(()=>{
     const R=e=>{const r=e.getBoundingClientRect();return [Math.round(r.left),Math.round(r.top),Math.round(r.right),Math.round(r.bottom)]}
     return {head:[...document.querySelectorAll('.ki-stmt-word i')].map(R),

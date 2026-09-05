@@ -290,62 +290,79 @@ export const CSS = `
       of a 375px frame overlap each other — so the whole thing reverts to
       static flow with a small step. */
 /* ── THE STATEMENT ────────────────────────────────────────────────────────
-   The Daylight device, to the values measured off godaylight.com and kept in
-   memory — the one Sindri picked out himself as "very classy and should be
-   used". Three things make it work and all three are cheap:
+   Four words scattered across her photograph, and the whole question is how
+   the type survives the picture without killing it. The version before this
+   answered with a global veil heavy enough for the worst word — measured, an
+   effective 0.5 to 0.6 — which is why the photograph read as murk and the
+   words looked like they were floating on grey rather than sitting in a room.
 
-     1. media and type share ONE grid cell, so the type overlays the
-        photograph with no absolute positioning and no z-index fight;
-     2. THE RATIO IS THE DRAMA — a 12px mono uppercase eyebrow against an
-        85-unit SERIF headline. Not the photo, not the colour: the size
-        contrast between those two lines;
-     3. per-word staggered rise out of a mask.
-
-   What was here scattered four words across the frame at hand-picked
-   percentages, in wide uppercase Archia, with no eyebrow — so it had the
-   animation but none of the ratio the device is actually built on, and it
-   read as a mimic. line-height 1.16 is the reference's own and is also the
-   floor Icelandic Í and Á need; do not tighten it. */
-.ki-stmt {
-  position: relative; overflow: hidden; min-height: min(96svh, 900px);
-  display: grid; place-items: center;
-  padding: calc(var(--u) * 90) calc(var(--u) * 34);
-}
+   THE VEIL TRAVELS WITH THE WORD INSTEAD. The global wash is 0.16, which is
+   unification and nothing more, and each word carries its own soft radial.
+   Both halves are solved rather than chosen: the four positions are the
+   quietest, darkest box in each word's own band of her actual photograph at
+   this crop, picked on the 98th percentile so a single specular highlight
+   cannot veto an otherwise clean wall; and the local alpha was then computed
+   as the least each word needs to clear 4.5 on its worst pixel — 0.24, 0.48,
+   0.48, 0.50. The peak is set at .58 for margin.
+   RE-SOLVE IF THE PHOTOGRAPH, THE CROP OR THE TYPE SIZE CHANGES. */
+.ki-stmt { position: relative; overflow: hidden; min-height: min(96svh, 900px); }
 .ki-root .ki-stmt > picture, .ki-root .ki-stmt > picture > img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
-/* the type is centred now, over the middle of the photograph rather than
-   over its bright lower third, so the veil no longer has to be weighted
-   toward the bottom to survive one word. Measured on the composite: the
-   headline's worst pixel 8.1, the eyebrow 6.4, the subline 6.2 — all clear
-   of the strict 4.5 body threshold, not merely the large-text allowance.
-   RE-MEASURE IF THE PHOTOGRAPH OR THE TYPE'S POSITION CHANGES. */
 .ki-stmt-scrim {
   position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(78% 62% at 50% 50%, rgb(18 15 13 / .62) 0%, rgb(18 15 13 / .34) 62%, rgb(18 15 13 / .18) 100%),
-    linear-gradient(to bottom, rgb(18 15 13 / .34) 0%, rgb(18 15 13 / .26) 45%, rgb(18 15 13 / .46) 100%);
+  background: linear-gradient(to bottom, rgb(18 15 13 / .14) 0%, rgb(18 15 13 / .16) 62%, rgb(18 15 13 / .30) 100%);
 }
-.ki-stmt-in { position: relative; text-align: center; max-width: calc(var(--u) * 1180); }
+/* the mono/serif ratio the device is built on, kept: it sits top right,
+   clear of the first word's band on the left */
 .ki-stmt-eyebrow {
-  margin: 0 0 calc(var(--u) * 48);
-  font-family: ${MONO}; font-size: max(12px, .75rem); line-height: 1.5;
-  letter-spacing: .22em; text-transform: uppercase; color: #EFE3CE;
+  position: absolute; top: calc(var(--u) * 52); right: calc(var(--u) * 46); margin: 0;
+  font-family: ${MONO}; font-size: max(12px, .75rem); letter-spacing: .22em;
+  text-transform: uppercase; color: #EFE3CE;
 }
-/* the word gap is set in em and the words are 96px, so the em has to resolve
-   against the HEADLINE's size — inherited from the paragraph it was .26 of
-   16px, four pixels, and the sentence ran together as one word */
-.ki-stmt-words { margin: 0; display: block; font-size: ${fluid(96, 40)}; line-height: 1.16; }
-.ki-stmt-word { display: inline-block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; vertical-align: bottom; }
-.ki-stmt-word + .ki-stmt-word { margin-left: .26em; }
+/* the small type gets the same treatment: a text-shadow reads as help but
+   measures as nothing, because the pixel under the glyph is still the
+   photograph */
+.ki-stmt-eyebrow::before, .ki-stmt-sub::before {
+  content: ''; position: absolute; inset: -900% -70%; pointer-events: none;
+  background: radial-gradient(ellipse 40% 26% at 50% 50%,
+    rgb(14 11 10 / .70) 0%, rgb(14 11 10 / .62) 44%, rgb(14 11 10 / 0) 100%);
+}
+.ki-stmt-eyebrow, .ki-stmt-sub { isolation: isolate; }
+.ki-stmt-eyebrow > *, .ki-stmt-sub > * { position: relative; }
+.ki-stmt-words { position: absolute; inset: 0; margin: 0; }
+.ki-stmt-word { position: absolute; display: block; }
+/* NO z-index HERE. .ki-stmt-word creates no stacking context, so a negative
+   z-index does not sit behind its own word — it escapes to the nearest
+   context and paints behind the PHOTOGRAPH, which is to say it does nothing
+   at all. Paint order alone is enough: the veil is the first child and the
+   clip below is positioned, so the type lands on top of it. */
+/* The core has to be nearly FLAT across the word's own box and only then fall
+   away — the solver's answer was that each word needs about 0.5 alpha over
+   all of itself, and a gradient that starts falling at the centre delivers a
+   fraction of that by the time it reaches the last glyph. Measured with the
+   type hidden and the veils left in: 2.91 with a soft falloff, 5.0+ with
+   this. The outer stop is what keeps it from reading as a blob. */
+.ki-stmt-veil {
+  /* WIDE. The same core strength over a much larger box is the difference
+     between a vignette and a blob: at inset -78% the falloff had to happen in
+     a few dozen pixels and read as a soft-edged pill behind each word. Three
+     times the area, and the eye reads the photograph as simply darker there. */
+  position: absolute; inset: -190% -46%; pointer-events: none;
+  background: radial-gradient(ellipse 46% 36% at 50% 50%,
+    rgb(14 11 10 / .88) 0%, rgb(14 11 10 / .80) 44%,
+    rgb(14 11 10 / .36) 70%, rgb(14 11 10 / 0) 100%);
+}
+.ki-stmt-clip { position: relative; display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
 .ki-stmt-word i {
   display: block; font-style: normal;
-  /* serif, per the reference: it is a font-serif headline against a mono
-     eyebrow, and the earlier note here — "the reference is a clean grotesk"
-     — is what turned the device into a different, weaker thing */
   font-family: ${DISPLAY}; font-weight: 300;
-  font-size: 1em; line-height: 1.16; letter-spacing: -.02em;
+  font-size: ${fluid(96, 40)}; line-height: 1.16; letter-spacing: -.02em;
   color: #FFF7E9; white-space: nowrap;
+  /* a shadow measures as nothing — the pixel under the glyph is still the
+     photograph — but it is what stops the edge of a light stroke fizzing
+     against detail, which is the other half of legibility */
+  text-shadow: 0 2px 34px rgb(10 8 7 / .55);
   transform: translateY(0);
 }
 .ki-js .ki-stmt-words:not(.is-in) .ki-stmt-word i { transform: translateY(112%); }
@@ -355,23 +372,30 @@ export const CSS = `
 }
 .ki-static .ki-stmt-word i { transform: translateY(0); }
 .ki-stmt-sub {
-  margin: calc(var(--u) * 52) 0 0;
+  position: absolute; left: 50%; bottom: calc(var(--u) * 46); transform: translateX(-50%);
+  margin: 0; width: max-content; max-width: calc(100% - var(--u) * 60); text-align: center;
   font-family: ${MONO}; font-size: ${fluid(12.5, 11)}; letter-spacing: .2em;
   text-transform: uppercase; color: #F4EEE6;
 }
 @media (max-width: 860px) {
-  .ki-stmt { min-height: 0; padding: calc(var(--u) * 96) 22px calc(var(--u) * 84); }
-  /* the phone crops to the bright middle of the kitchen, where the headline
-     measured 4.21 — large-text AA, but this site holds itself to the strict
-     4.5 everywhere. A little more weight in the middle takes it to 5.4. */
-  .ki-stmt-scrim {
-    background:
-      radial-gradient(96% 58% at 50% 50%, rgb(18 15 13 / .74) 0%, rgb(18 15 13 / .46) 66%, rgb(18 15 13 / .28) 100%),
-      linear-gradient(to bottom, rgb(18 15 13 / .38) 0%, rgb(18 15 13 / .3) 45%, rgb(18 15 13 / .5) 100%);
+  /* the solved positions are for the desktop crop and mean nothing on a
+     phone, which shows a different slice of the photograph — it stacks */
+  .ki-stmt { min-height: 0; padding: calc(var(--u) * 100) 22px calc(var(--u) * 90); }
+  /* the phone shows a different, brighter slice of the photograph, but the
+     answer is still local: a lighter global wash and the veils kept */
+  .ki-stmt-scrim { background: linear-gradient(to bottom, rgb(18 15 13 / .24) 0%, rgb(18 15 13 / .34) 100%); }
+  .ki-stmt-eyebrow { position: relative; top: auto; right: auto; margin-bottom: calc(var(--u) * 40); }
+  .ki-stmt-words { position: relative; inset: auto; }
+  .ki-stmt-word {
+    position: relative; left: auto !important; top: auto !important;
+    margin-left: calc(var(--s, 0) * 5vw);
   }
+  .ki-stmt-veil { inset: -120% -34%; }
   .ki-stmt-word i { white-space: normal; }
-  .ki-stmt-eyebrow { margin-bottom: calc(var(--u) * 34); letter-spacing: .16em; }
-  .ki-stmt-sub { letter-spacing: .12em; }
+  .ki-stmt-sub {
+    position: relative; left: auto; bottom: auto; transform: none; text-align: left;
+    margin-top: calc(var(--u) * 40); letter-spacing: .12em; width: auto; max-width: none;
+  }
 }
 
 /* ── the descent lockup ──────────────────────────────────────────────────
@@ -510,16 +534,25 @@ export const CSS = `
    swipe along instead, the same native strip the journey uses on touch */
 @media (max-width: 860px) {
   .ki-plx-deep--strata { max-width: none; }
+  /* MOBILE: a swipeable shelf, and sized so a thumb-swipe lands on a whole
+     specimen rather than between two. 60vw shows the current one entire with
+     the next one's edge already in view, which is what says "there are more";
+     snap centres it, and the row scrolls under its own finger rather than
+     fighting the page's. */
   .ki-strata {
-    display: flex; align-items: flex-end; gap: 14px;
-    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
-    padding: 6px 4px 6px; margin-left: -4px;
+    display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    margin-inline: -22px; padding-inline: 22px;
+    scroll-padding-inline: 22px;
   }
   .ki-strata::-webkit-scrollbar { display: none; }
-  .ki-stratum { flex: 0 0 52vw; scroll-snap-align: center; }
-  .ki-stratum-fig { height: calc(var(--spec, 1) * clamp(200px, 34svh, 320px)); }
+  .ki-stratum { flex: 0 0 60vw; scroll-snap-align: center; }
+  .ki-stratum-fig { height: calc(var(--spec, 1) * clamp(210px, 36svh, 300px)); }
+  .ki-stratum-name { font-size: 19px; }
+  .ki-plx-deep--strata { max-width: none; padding-inline: 22px; }
+  .ki-strata-title { font-size: 30px; }
+  .ki-strata-line { font-size: 16px; margin-top: calc(var(--u) * 26); }
 }
-/* the reduced-motion copy, in flow, hidden everywhere else */
 .ki-strata-static { display: none; padding: calc(var(--u) * 90) calc(var(--u) * 34); text-align: center; }
 .ki-strata-static .ki-strata { max-width: calc(var(--u) * 700); margin: 0 auto; }
 .ki-strata-static .ki-strata-title { text-align: center; }

@@ -321,9 +321,17 @@ export function ParallaxComponent({
          makes this position mean what it says on the scrub. */
       const deepEl = triggerElement.querySelector('[data-parallax-deep]')
       if (deepEl) {
+        /* OPACITY, NEVER autoAlpha. autoAlpha writes `visibility` alongside
+           opacity, and on a SCRUBBED timeline that means visibility flips
+           hidden<->inherit on every frame the scroll sits near the tween's
+           start — which on a subtree holding five large photographs is a
+           visible flash on every small scroll. The pre-hydration hidden state
+           still comes from CSS; this reveals it once, here, and then only
+           opacity moves. */
+        gsap.set(deepEl, { visibility: 'visible' })
         tl.fromTo(deepEl,
-          { autoAlpha: 0, y: 34 },
-          { autoAlpha: 1, y: 0, ease: 'none', duration: 0.26 }, deepAt)
+          { opacity: 0, y: 34 },
+          { opacity: 1, y: 0, ease: 'none', duration: 0.26 }, deepAt)
         /* the headline arrives a word at a time — WhisperText's own move, on
            this scrub instead of its own trigger, because its trigger element is
            on screen from the moment the pin engages */
@@ -344,7 +352,7 @@ export function ParallaxComponent({
       }
       const cornerEl = triggerElement.querySelector('[data-parallax-corner]')
       if (cornerEl) {
-        tl.to(cornerEl, { autoAlpha: 0, y: -12, ease: 'none', duration: 0.2 }, 0)
+        tl.to(cornerEl, { opacity: 0, y: -12, ease: 'none', duration: 0.2 }, 0)
       }
     }, parallaxRef)
 
