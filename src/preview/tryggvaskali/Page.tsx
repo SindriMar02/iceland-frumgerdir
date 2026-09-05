@@ -290,6 +290,20 @@ function PageStyles() {
         font-display: swap;
       }
 
+      /* SplitText mask wrappers clip descenders.
+         A masked split wraps each line or word in an overflow:clip div sized
+         to the LINE BOX. The page title runs line-height 1.0 at 60px and the
+         h2s 1.05 at 38px, both shorter than the font's ink, so the clip box
+         took the tails off: measured 8px of overflow on the title and 4px on
+         each h2 at 1440, 5px and 3px at 390. The wrappers are inline-styled
+         by GSAP and carry no class, so they are addressed as the direct div
+         children of the split hosts (this page splits plain h1/h2). Padding
+         grows the box downward, the negative margin gives the space back. */
+      h1 > div, h2 > div {
+        padding-bottom: 0.22em;
+        margin-bottom: -0.22em;
+      }
+
       /* .container formula, teardown 3.1, four width ceilings */
       /* The four nav anchors landed with their first text inside the
          96px header band; a 10px scroll up then re-covered the heading. */

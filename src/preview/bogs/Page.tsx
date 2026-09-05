@@ -150,6 +150,27 @@ function PageFonts() {
       .bs-p-large { font-family: ${FONT_FAMILY}; color: ${C.ink}; font-size: ${CLAMP.bodyLarge}; line-height: ${LINE_HEIGHT.paragraph}; }
       .bs-p-medium { font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodyMedium}; line-height: ${LINE_HEIGHT.paragraph}; }
       .bs-p-small { font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodySmall}; line-height: ${LINE_HEIGHT.small}; font-weight: 400; }
+
+      /* SplitText mask wrappers clip descenders.
+         A masked split wraps every line or word in a div with overflow:clip
+         whose height is the LINE BOX. Headings here run at line-height 0.9
+         (LINE_HEIGHT.heading, the reference's own value), which is shorter
+         than the font's ink, so the clip box cut the tail off every
+         descender: measured 11px of overflow on the 69.24px h1 and 8px on
+         the 55.40px h2 at 1440, 6-7px and 5px at 390. In Icelandic that is
+         constant, since th, j, g and eth all descend, and "thjodveg eitt i
+         Blonduosi" was visibly sheared along its whole baseline.
+         The wrappers carry no class of their own (GSAP inline-styles them),
+         so they are addressed as the direct div children of each split host.
+         Padding grows the clip box downward; the matching negative margin
+         gives the space back, so no layout shifts. Masking still works: the
+         tween starts the text at yPercent 150, far below this. */
+      .bs-hero-h1 > div, .bs-hero-p > div, .bs-offer-h2 > div,
+      .bs-menu-h2 > div, .bs-about-p > div, .bs-facts-p > div,
+      .bs-faq-h2 > div {
+        padding-bottom: 0.22em;
+        margin-bottom: -0.22em;
+      }
       .bs-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 0.5em; overflow: hidden; font-family: ${FONT_FAMILY}; font-size: ${CLAMP.bodySmall}; line-height: 1.2; color: ${C.ink}; text-decoration: none; padding: 1.25rem 1.5rem; border-radius: 0.25em; }
       /* body-small is pinned to a fixed .9rem below the reference's own 479px
          breakpoint (teardown section 0: "body-small is pinned to a fixed .9rem
