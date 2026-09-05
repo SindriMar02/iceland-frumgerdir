@@ -450,12 +450,27 @@ function writeRedirects() {
   if (!STANDALONE) return 0
   /* Several of her paths survive the redesign unchanged (/studioid,
      /hafa-samband, /verkefni). Emitting `/studioid /studioid 301` for those is
-     not a no-op, it is a redirect loop, and the host will serve it as one. Only
-     paths that actually MOVED belong here; the trailing-slash form still does,
-     because /studioid/ and /studioid are different URLs. */
+     not a no-op, it is a redirect loop, and the host will serve it as one.
+     THE TRAILING-SLASH FORM IS THE SAME LOOP, and this file used to keep it on
+     the reasoning that /studioid/ and /studioid are different URLs. They are —
+     but which of the two is canonical is the HOST's decision, not ours, and
+     Cloudflare Pages canonicalises a directory the other way: it 308s
+     /studioid to /studioid/, our rule 301s it back, and the route is dead.
+     Measured on the first deploy: /verkefni, /studioid, /hafa-samband and
+     /italskar-innrettingar all bounced forever while every moved path was
+     fine. GitHub Pages never showed it because it serves the no-slash form
+     outright. So slash normalisation is left to the host in both directions,
+     and only paths that actually MOVED are written here. */
   const moved = REDIRECTS.filter(([from, to]) => from !== to)
   const lines = moved.map(([from, to]) => `${from} ${to} 301`)
-  const withSlash = REDIRECTS.map(([from, to]) => `${from}/ ${to} 301`)
+  const withSlash = moved.map(([from, to]) => `${from}/ ${to} 301`)
+  /* and a rule that only adds or removes a slash is that loop by another
+     name, whatever produced it */
+  const loops = [...lines, ...withSlash].filter((l) => {
+    const [from, to] = l.split(' ')
+    return from.replace(/\/$/, '') === to.replace(/\/$/, '')
+  })
+  if (loops.length) throw new Error(`katrin-seo: redirect loops:\n${loops.join('\n')}`)
   writeFileSync(
     join(dist, '_redirects'),
     `# Her old WordPress URLs, kept alive.\n${[...lines, ...withSlash].join('\n')}\n\n# SPA fallback, last.\n/* /index.html 200\n`,
