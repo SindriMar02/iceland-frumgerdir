@@ -32,6 +32,7 @@ const spots = await page.evaluate(()=>{
 })
 for (const [name, y] of Object.entries(spots)) {
   for (let k=0;k<3;k++){ await page.evaluate(y=>{window.scrollTo(0,y);window.dispatchEvent(new Event('scroll'))},y); await new Promise(r=>setTimeout(r,120)) }
+  await new Promise(r=>setTimeout(r,1500))   // let far-down images decode before shooting
   await page.screenshot({ path: `/tmp/ki-gate/seam-${name}.png` })
 }
 await browser.close(); srv.close()

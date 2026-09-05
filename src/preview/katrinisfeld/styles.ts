@@ -439,7 +439,7 @@ export const CSS = `
    one the newest-project card carries; and the name set BELOW the material
    in the display face, with the site's own colour value under it as a quiet
    specimen label. The material is only ever itself. */
-.ki-plx-deep--strata { max-width: calc(var(--u) * 1100); width: 100%; }
+.ki-plx-deep--strata { max-width: calc(var(--u) * 1340); width: 100%; }
 .ki-strata-title {
   margin: 0 0 calc(var(--u) * 44);
   font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
@@ -449,23 +449,32 @@ export const CSS = `
   list-style: none; margin: 0; padding: 0; width: 100%;
   display: grid; grid-template-columns: repeat(5, 1fr);
   /* room to breathe: these are the only photographs the page has made for
-     itself, and they were being shown at a hundred and fifty pixels */
-  gap: calc(var(--u) * 44); align-items: end;
+     itself. Sized off the FRAME's height, so on a tall pane they stand tall */
+  gap: calc(var(--u) * 40); align-items: end;
 }
 .ki-stratum { margin: 0; display: grid; gap: 4px; justify-items: start; text-align: left; }
 .ki-stratum-fig {
-  width: 100%; margin: 0 0 12px; overflow: hidden;
-  outline: 1px solid rgb(242 236 227 / .18); outline-offset: 5px;
+  width: 100%; margin: 0 0 14px; overflow: hidden;
+  /* a specimen, not a thumbnail: the height is the frame's, a hairline mount
+     stands off it, and it casts onto the rock behind — five objects resting
+     on a surface rather than five images printed on one */
+  height: calc(var(--spec, 1) * clamp(190px, 38svh, 400px));
+  outline: 1px solid rgb(242 236 227 / .2); outline-offset: 6px;
+  box-shadow: 0 34px 60px -22px rgb(0 0 0 / .75), 0 6px 14px -6px rgb(0 0 0 / .5);
 }
 /* hand-cut: the shelf is level and the tops are not */
-.ki-stratum:nth-child(1) .ki-stratum-fig { aspect-ratio: 4 / 5.3; }
-.ki-stratum:nth-child(2) .ki-stratum-fig { aspect-ratio: 4 / 4.5; }
-.ki-stratum:nth-child(3) .ki-stratum-fig { aspect-ratio: 4 / 5.0; }
-.ki-stratum:nth-child(4) .ki-stratum-fig { aspect-ratio: 4 / 4.2; }
-.ki-stratum:nth-child(5) .ki-stratum-fig { aspect-ratio: 4 / 5.6; }
-.ki-stratum-fig picture, .ki-stratum-fig img { width: 100%; height: 100%; object-fit: cover; margin: 0; }
-.ki-stratum-name { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(24, 17)}; letter-spacing: .01em; color: #F2ECE3; }
-.ki-stratum-hex { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .18em; color: #9E9385; }
+.ki-stratum:nth-child(1) .ki-stratum-fig { --spec: 1.0; }
+.ki-stratum:nth-child(2) .ki-stratum-fig { --spec: .86; }
+.ki-stratum:nth-child(3) .ki-stratum-fig { --spec: .95; }
+.ki-stratum:nth-child(4) .ki-stratum-fig { --spec: .80; }
+.ki-stratum:nth-child(5) .ki-stratum-fig { --spec: 1.06; }
+/* .ki-root picture > img sets height:auto at (0,1,2), which beat the (0,1,1)
+   rule that used to sit here — so every image kept its own 3:4 inside a
+   figure sized off the frame, and the tall ones stopped short of the mount.
+   Two classes outrank it. */
+.ki-root .ki-stratum-fig picture, .ki-root .ki-stratum-fig img { width: 100%; height: 100%; object-fit: cover; margin: 0; }
+.ki-stratum-name { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(27, 18)}; letter-spacing: .01em; color: #F2ECE3; }
+.ki-stratum-hex { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; color: #9E9385; margin-top: 2px; }
 .ki-strata-line {
   margin: calc(var(--u) * 40) auto 0; max-width: 46ch;
   font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(22, 17)}; line-height: 1.42; color: #D9D1C5;
@@ -484,7 +493,8 @@ export const CSS = `
     padding: 6px 4px 6px; margin-left: -4px;
   }
   .ki-strata::-webkit-scrollbar { display: none; }
-  .ki-stratum { flex: 0 0 44vw; scroll-snap-align: center; }
+  .ki-stratum { flex: 0 0 52vw; scroll-snap-align: center; }
+  .ki-stratum-fig { height: calc(var(--spec, 1) * clamp(200px, 34svh, 320px)); }
 }
 /* the reduced-motion copy, in flow, hidden everywhere else */
 .ki-strata-static { display: none; padding: calc(var(--u) * 90) calc(var(--u) * 34); text-align: center; }
@@ -523,7 +533,7 @@ export const CSS = `
   outline: 1px solid rgb(242 236 227 / .28); outline-offset: 3px;
   transition: outline-color .5s ${OUT};
 }
-.ki-newest-fig picture, .ki-newest-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ${OUT}; }
+.ki-root .ki-newest-fig picture, .ki-root .ki-newest-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ${OUT}; }
 .ki-newest-text { display: grid; gap: 5px; min-width: 0; }
 /* the label is a label: it never breaks */
 .ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #E6DCCD; white-space: nowrap; }
