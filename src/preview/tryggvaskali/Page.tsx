@@ -1489,7 +1489,7 @@ function AmbienceGallery() {
             >
               <Img
                 src={src}
-                alt="Veitingasalur að kvöldi, sýnishorn"
+                alt="Matur og drykkur á Tryggvaskála"
                 className="ts-ambience__img"
                 fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
               />
@@ -1536,7 +1536,7 @@ function AmbienceGallery() {
           <img
             key={lightboxIndex}
             src={AMBIENCE_GALLERY[lightboxIndex]}
-            alt="Veitingasalur að kvöldi, sýnishorn"
+            alt="Matur og drykkur á Tryggvaskála"
             className="ts-lightbox__img"
             onClick={(e) => e.stopPropagation()}
           />
@@ -1838,7 +1838,7 @@ function HouseHistory() {
           <div className="ts-house__frame ts-house__frame--main">
             <Img
               src={IMAGES.houseExterior}
-              alt="Gamalt timburhús við á, sýnishorn"
+              alt="Gamla hengibrúin yfir Ölfusá og húsin við hana, söguleg ljósmynd"
               loading="lazy"
               className="ts-house__img"
               fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
@@ -1847,7 +1847,7 @@ function HouseHistory() {
           <div className="ts-house__frame ts-house__frame--accent">
             <Img
               src={IMAGES.bridgeDetail}
-              alt="Brú yfir á, sýnishorn"
+              alt="Hengibrúin yfir Ölfusá, söguleg ljósmynd"
               loading="lazy"
               className="ts-house__img"
               fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
@@ -2215,7 +2215,7 @@ function FoodGallery() {
               >
                 <Img
                   src={src}
-                  alt="Réttur borinn fram, sýnishorn"
+                  alt="Réttur borinn fram á Tryggvaskála"
                   className="ts-ambience__img"
                   fallbackClassName="bg-gradient-to-br from-[#4a4030] via-[#2a2419] to-[#15120D]"
                 />
@@ -2262,7 +2262,7 @@ function FoodGallery() {
             <img
               key={lightboxIndex}
               src={FOOD_GALLERY[lightboxIndex]}
-              alt="Réttur borinn fram, sýnishorn"
+              alt="Réttur borinn fram á Tryggvaskála"
               className="ts-lightbox__img"
               onClick={(e) => e.stopPropagation()}
             />
@@ -2422,7 +2422,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory2}
-              alt="Veitingasalur að kvöldi, sýnishorn"
+              alt="Matur og drykkur á Tryggvaskála"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2430,7 +2430,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory3}
-              alt="Veitingasalur að kvöldi, sýnishorn"
+              alt="Matur og drykkur á Tryggvaskála"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2441,7 +2441,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__picture">
             <Img
               src={IMAGES.sensory1}
-              alt="Kvöldverður í sal, sýnishorn"
+              alt="Eftirréttur á Tryggvaskála"
               loading="lazy"
               className="ts-zoom__img"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
@@ -2455,7 +2455,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory3}
-              alt="Veitingasalur að kvöldi, sýnishorn"
+              alt="Matur og drykkur á Tryggvaskála"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />
@@ -2463,7 +2463,7 @@ function SensoryInterstitial() {
           <div className="ts-zoom__side-img">
             <Img
               src={IMAGES.sensory2}
-              alt="Veitingasalur að kvöldi, sýnishorn"
+              alt="Matur og drykkur á Tryggvaskála"
               loading="lazy"
               fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#1c1a15] to-[#0F0D09]"
             />

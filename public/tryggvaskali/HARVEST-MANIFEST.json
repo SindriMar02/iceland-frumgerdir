@@ -1,0 +1,69 @@
+{
+ "harvested": "2026-09-05",
+ "source": "tryggvaskali.com (the client’s own live site; tryggvaskali.is 301s to it)",
+ "owner": "Tryggvaskáli, Austurvegur 1, 800 Selfoss",
+ "why": "The client's own photographs, taken from the client's own site for a redesign prototype OF that site. Not stock, not licensed from anyone else, not for reuse on any other build.",
+ "caution": "ts-bru-sogulegt.jpg is a historic photograph at 1024x662 and is upscaled in the hero. It is the single most on-brief image the client publishes: the old Ölfusá bridge with the buildings beside it. Ask for a high-resolution scan before go-live.",
+ "files": [
+  {
+   "file": "ts-bru-sogulegt.jpg",
+   "was": "img03_1024x662.jpg",
+   "page": "/saga-hussins",
+   "shows": "historic B&W, the old suspension bridge over Ölfusá with buildings and people"
+  },
+  {
+   "file": "ts-bru-smatt.jpg",
+   "was": "img02_222x227.jpg",
+   "page": "/saga-hussins",
+   "shows": "historic B&W, the suspension bridge"
+  },
+  {
+   "file": "ts-rettur-1.jpg",
+   "was": "img06_1200x821.jpg",
+   "page": "/",
+   "shows": "plated main course"
+  },
+  {
+   "file": "ts-rettur-2.jpg",
+   "was": "img07_1200x821.jpg",
+   "page": "/",
+   "shows": "plated main course"
+  },
+  {
+   "file": "ts-rettur-3.jpg",
+   "was": "img09_819x1024.jpg",
+   "page": "/",
+   "shows": "plated dish with greens"
+  },
+  {
+   "file": "ts-eftirrettur.jpg",
+   "was": "img08_1200x821.jpg",
+   "page": "/",
+   "shows": "dessert with cream"
+  },
+  {
+   "file": "ts-eftirrettur-2.jpg",
+   "was": "img13_392x490.jpg",
+   "page": "/",
+   "shows": "dessert with caramel"
+  },
+  {
+   "file": "ts-brunch.jpg",
+   "was": "img12_392x490.jpg",
+   "page": "/",
+   "shows": "brunch spread"
+  },
+  {
+   "file": "ts-kokteill.jpg",
+   "was": "img14_392x490.jpg",
+   "page": "/",
+   "shows": "cocktail"
+  },
+  {
+   "file": "ts-espresso.jpg",
+   "was": "img10_274x342.jpg",
+   "page": "/",
+   "shows": "espresso martini"
+  }
+ ]
+}

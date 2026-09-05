@@ -6,40 +6,43 @@
  * with a citation in the teardown; every placeholder is marked as such.
  */
 
-const u = (id: string, w = 1280) => `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
+/* The Unsplash helper is gone with the last placeholder. The teardown marked
+   every imagery row UNKNOWN and this build filled them with stock; the client
+   publishes its own photographs, including a historic shot of the bridge, and
+   those are now used throughout. */
+// The client's own photographs, harvested from tryggvaskali.com on 2026-09-05
+// (tryggvaskali.is 301s to it). Provenance in public/tryggvaskali/
+// HARVEST-MANIFEST.json. These are Tryggvaskáli's pictures of Tryggvaskáli,
+// taken from Tryggvaskáli's own live site for a redesign OF that site — not
+// stock, and not for reuse on any other build.
+//
+// This replaces a set of Unsplash placeholders whose own comments admitted
+// they showed the wrong thing: a rowboat on Lago di Braies for a house on the
+// Ölfusá, mountain ridges labelled as bridges, a metropolitan fusion dining
+// room. The client publishes something far better than any of them: a
+// historic photograph of the old suspension bridge with the buildings beside
+// it, which is the entire premise of this restaurant.
+const own = (f: string) => `${import.meta.env.BASE_URL}tryggvaskali/${f}`
 
-// PLACEHOLDER: no client photography of the house, the river, the dining
-// room or the food is available in usable form yet (see teardown section
-// 9.2, every H imagery row is marked UNKNOWN). These are Unsplash stand-ins
-// chosen to fit an 1890 Icelandic riverside house and a warm, elevated
-// dining room — replace with the client's own photography before sending.
 export const IMAGES = {
-  // H1 hero: greyscale film/still of the house by the Ölfusá bridge (kept
-  // greyscale per teardown 4.1 H1 / 10.2 D1 device note "greyscale is the look")
-  /* CORRECTED 2026-09-05. Every comment in this block described the picture
-     somebody WANTED rather than the picture the id actually returns, and the
-     hero was the worst of it: photo-1476514525535 is a rowboat on Lago di
-     Braies in the Dolomites — an Italian alpine lake standing in for a house
-     on the bank of the Ölfusá. Swapped for the one genuinely on-brief frame
-     in this set. Still a PLACEHOLDER: no Tryggvaskáli photography has been
-     supplied, and none of these show the house. */
-  hero: u('photo-1507807823252-1870c299a391', 2000), // low buildings in an Icelandic landscape
-  // H5 wide parallax plate: landscape of house + bridge
-  riverBridge: u('photo-1500534623283-312aade485b7', 1800), // NOT a bridge: a sunburst over mountain ridges
-  // H6 two-column history: the house, the bridge
-  /* REPLACED 2026-09-02: the previous id (photo-1518709268805-...) returns
-     404 from Unsplash, so this frame rendered as a bare olive gradient
-     fallback, not a photo. Verified 200 before swapping in. */
-  houseExterior: u('photo-1575660976250-f90f7e2ed9c2', 1300), // a small northern harbour town; NOT the house
-  bridgeDetail: u('photo-1483354483454-4cd359948304', 1300), // NOT a bridge: layered misty ridges
-  // H8/H9 restaurant + food gallery
-  diningRoom: u('photo-1414235077428-338989a2e8c0', 1300), // warm, elevated dining room interior
-  plate: u('photo-1414235077428-338989a2e8c0', 900),
-  brunchTable: u('photo-1533777857889-4be7c70b33f7', 900), // laid brunch table, warm light
-  // H11 pinned sensory interstitial (7-image set in the reference; 3 stand-ins here)
-  sensory1: u('photo-1414235077428-338989a2e8c0', 700),
-  sensory2: u('photo-1517248135467-4c7edcad34c4', 700), // a metropolitan fusion dining room
-  sensory3: u('photo-1481833761820-0509d3217039', 700), // a bar window with a RELAX neon sign
+  // H1 hero, greyscale by design (teardown 4.1 H1 / D1, "greyscale is the
+  // look") — and this frame is a genuine historic black and white, so the
+  // treatment is the photograph's own rather than a filter over stock.
+  // CAUTION: native 1024x662, upscaled at full bleed. Ask for a scan.
+  hero: own('ts-bru-sogulegt.jpg'),
+  // H5 wide parallax plate
+  riverBridge: own('ts-bru-sogulegt.jpg'),
+  // H6 two-column history: the house and the bridge
+  houseExterior: own('ts-bru-smatt.jpg'),
+  bridgeDetail: own('ts-bru-smatt.jpg'),
+  // H8/H9 restaurant and food, all theirs
+  diningRoom: own('ts-rettur-1.jpg'),
+  plate: own('ts-rettur-2.jpg'),
+  brunchTable: own('ts-brunch.jpg'),
+  // H11 pinned sensory interstitial
+  sensory1: own('ts-rettur-3.jpg'),
+  sensory2: own('ts-eftirrettur.jpg'),
+  sensory3: own('ts-kokteill.jpg'),
 } as const
 
 // H2 page title (teardown 4.1 H2, 9.2 H2). "TRYGGVASKÁLI SÍÐAN 1890" is
@@ -69,14 +72,14 @@ export const PAGE_TITLE = {
    gradient. Now the distinct, verified-200 set only. A count is not worth
    showing the same room three times. */
 export const AMBIENCE_GALLERY = [
-  u('photo-1476514525535-07fb3b4ae5f1', 1000),
-  u('photo-1483354483454-4cd359948304', 1000),
-  u('photo-1500534623283-312aade485b7', 1000),
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1517248135467-4c7edcad34c4', 1000),
-  u('photo-1481833761820-0509d3217039', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1507807823252-1870c299a391', 1000),
+  own('ts-bru-sogulegt.jpg'),
+  own('ts-bru-smatt.jpg'),
+  own('ts-rettur-1.jpg'),
+  own('ts-rettur-3.jpg'),
+  own('ts-brunch.jpg'),
+  own('ts-eftirrettur.jpg'),
+  own('ts-kokteill.jpg'),
+  own('ts-espresso.jpg'),
 ] as const
 
 // H9 food gallery (teardown 4.1 H9, 9.2 H9: "Food photographs: UNKNOWN
@@ -89,10 +92,14 @@ export const AMBIENCE_GALLERY = [
    was 4 photos repeated to 18. Replace all four with the client's own food
    photography before sending. */
 export const FOOD_GALLERY = [
-  u('photo-1414235077428-338989a2e8c0', 1000),
-  u('photo-1533777857889-4be7c70b33f7', 1000),
-  u('photo-1517248135467-4c7edcad34c4', 1000),
-  u('photo-1481833761820-0509d3217039', 1000),
+  own('ts-rettur-1.jpg'),
+  own('ts-rettur-2.jpg'),
+  own('ts-rettur-3.jpg'),
+  own('ts-eftirrettur.jpg'),
+  own('ts-eftirrettur-2.jpg'),
+  own('ts-brunch.jpg'),
+  own('ts-kokteill.jpg'),
+  own('ts-espresso.jpg'),
 ] as const
 
 // H6 section heading (teardown 4.1 H6, 9.2 H6). Distinct from PAGE_TITLE
