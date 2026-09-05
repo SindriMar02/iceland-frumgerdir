@@ -136,7 +136,39 @@ export const CSS = `
   display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 30);
   padding: 96px 24px 32px;
 }
-.ki-panel[hidden] { display: none; }
+/* IT HAS TO BE ABLE TO MOVE. The hidden attribute is display:none, and nothing
+   transitions out of display:none — the panel appeared and vanished on the
+   frame the button was pressed. It stays in the layout and fades instead,
+   with its links rising in sequence; visibility is what takes it out of
+   the tab order at the end of the fade, and pointer-events at the start. */
+.ki-panel[hidden] {
+  display: flex; visibility: hidden; opacity: 0; pointer-events: none;
+  transition: opacity .3s ${OUT}, visibility 0s linear .3s;
+}
+.ki-panel {
+  /* the ground arrives faster than what stands on it: a long cross-fade on
+     a full-screen charcoal panel means half a second of the page showing
+     through it, which reads as a bug rather than as a transition */
+  opacity: 1; visibility: visible;
+  transition: opacity .26s ${OUT}, visibility 0s linear 0s;
+}
+.ki-panel nav a, .ki-panel-foot {
+  transition: opacity .5s ${OUT}, transform .5s ${OUT};
+}
+.ki-panel[hidden] nav a, .ki-panel[hidden] .ki-panel-foot {
+  opacity: 0; transform: translateY(14px); transition-duration: .2s;
+}
+.ki-panel nav a:nth-child(1) { transition-delay: .10s; }
+.ki-panel nav a:nth-child(2) { transition-delay: .16s; }
+.ki-panel nav a:nth-child(3) { transition-delay: .22s; }
+.ki-panel nav a:nth-child(4) { transition-delay: .28s; }
+.ki-panel nav a:nth-child(5) { transition-delay: .34s; }
+.ki-panel .ki-panel-foot { transition-delay: .38s; }
+.ki-panel[hidden] nav a, .ki-panel[hidden] .ki-panel-foot { transition-delay: 0s; }
+@media (prefers-reduced-motion: reduce) {
+  .ki-panel, .ki-panel[hidden], .ki-panel nav a, .ki-panel .ki-panel-foot { transition: none; }
+  .ki-panel[hidden] { visibility: hidden; }
+}
 .ki-panel nav { display: flex; flex-direction: column; }
 .ki-panel nav a {
   font-family: ${DISPLAY}; font-weight: 300; font-size: clamp(28px, 8vw, 44px);
@@ -570,15 +602,24 @@ export const CSS = `
      the next one's edge already in view, which is what says "there are more";
      snap centres it, and the row scrolls under its own finger rather than
      fighting the page's. */
+  /* NOT A CAROUSEL. A horizontal snap row inside a scroll-pinned frame is a
+     nested scroller fighting the page for the same finger, and at 60vw the
+     second specimen was cut off by the screen edge with nothing to say it
+     could be dragged — it read as broken rather than as scrollable. Three
+     across, then two centred underneath, all of it inside the one frame the
+     descent gives it. Nothing is clipped and nothing scrolls twice. */
   .ki-strata {
-    display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    margin-inline: -22px; padding-inline: 22px;
-    scroll-padding-inline: 22px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: clamp(14px, 2.6svh, 26px) 14px; align-items: end;
   }
-  .ki-strata::-webkit-scrollbar { display: none; }
-  .ki-stratum { flex: 0 0 60vw; scroll-snap-align: center; }
-  .ki-stratum-fig { height: calc(var(--spec, 1) * clamp(210px, 36svh, 300px)); }
+  .ki-stratum { grid-column: span 2; }
+  .ki-stratum:nth-child(4) { grid-column: 2 / span 2; }
+  .ki-stratum-fig {
+    height: calc(var(--spec, 1) * clamp(84px, 14svh, 150px));
+    margin-bottom: 10px; outline-offset: 4px;
+  }
+  .ki-stratum-name { font-size: 17px; }
+  .ki-stratum-hex { font-size: 9.5px; letter-spacing: .14em; }
   .ki-stratum-name { font-size: 19px; }
   .ki-plx-deep--strata { max-width: none; padding-inline: 22px; }
   .ki-strata-title { font-size: 30px; }
@@ -829,13 +870,31 @@ export const CSS = `
   }
   .ki-hs-slide.is-bleed { height: 78svh; padding: 0; }
   .ki-hs-slide.is-plate { width: 100% !important; }
-  /* on a phone seven columns is seven unreadable slivers: the spectrum
-     becomes two rows of chips, the hexes drop, the rule stays */
-  .ki-hs-spec { width: 100%; margin: calc(var(--u) * 52) 0 0; }
-  .ki-hs-spec-list { grid-template-columns: repeat(4, 1fr); row-gap: calc(var(--u) * 26); }
-  .ki-hs-spec-item:nth-child(n + 5) { margin-top: 0; }
-  .ki-hs-spec-hex { display: none; }
-  .ki-hs-spec-name { font-size: 10px; letter-spacing: .08em; }
+  /* THE THREAD TURNS. Seven columns on a phone is seven slivers with the
+     names running into each other, and four columns is the same problem in
+     two rows with the chips no longer on the rule. The rule stands up
+     instead: one line down the left with the seven colours strung along it,
+     each with its room beside it. Same idea, read top to bottom. */
+  /* the base rule sets padding on .ki-hs-slide.is-plate, which outranks the
+     column layout's own padding however late it comes — so the turn had no
+     vertical room at all and its first line sat under the fixed wordmark */
+  .ki-hs-slide.is-plate {
+    text-align: left; align-items: flex-start;
+    padding: calc(var(--u) * 104) 22px calc(var(--u) * 84);
+  }
+  .ki-hs-plateline, .ki-hs-platesub { text-align: left; }
+  .ki-hs-spec { position: relative; width: 100%; margin: calc(var(--u) * 44) 0 0; }
+  .ki-hs-spec-rule {
+    position: absolute; left: calc(var(--u) * 7); top: 0; bottom: 0;
+    width: 1px; height: auto; transform: scaleY(0); transform-origin: top center;
+  }
+  .ki-js .ki-hs-spec.is-in .ki-hs-spec-rule { transform: scaleY(1); }
+  .ki-hs-spec-list { grid-template-columns: 1fr; row-gap: calc(var(--u) * 20); }
+  .ki-hs-spec-item {
+    flex-direction: row; align-items: center; gap: calc(var(--u) * 18); margin-top: 0;
+  }
+  .ki-hs-spec-name { margin-top: 0; font-size: 11px; }
+  .ki-hs-spec-hex { margin-top: 0; margin-left: auto; }
   .ki-hs-slide.is-duo { flex-direction: column; gap: calc(var(--u) * 54); }
   .ki-hs-slide.is-duo .ki-hs-fig { width: 100% !important; align-self: auto; margin-bottom: 0; }
   .ki-hs-slide.is-split { grid-template-columns: 1fr; gap: calc(var(--u) * 40); }
