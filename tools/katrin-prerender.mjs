@@ -77,6 +77,14 @@ const captured = []
 for (const route of ROUTES) {
   const page = await browser.newPage()
   await page.setViewport({ width: 1440, height: 900 })
+  /* THE OPENING MUST NOT RUN HERE. The home page opens on the stone and
+     sinks it over two seconds; networkidle0 lands in the middle of that,
+     and the capture below baked the plates' mid-flight transforms and the
+     scroll lock into the shipped HTML — every real visitor then started
+     from a frame that was neither raised nor at rest. The app reads this
+     flag and skips the intro; the stylesheet's own raised state is what
+     ships, which is the point of having it in the stylesheet. */
+  await page.evaluateOnNewDocument(() => { window.__KI_PRERENDER__ = true })
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
   await page.goto(`http://localhost:${port}${route.clean}`, { waitUntil: 'networkidle0', timeout: 60000 })
@@ -91,6 +99,13 @@ for (const route of ROUTES) {
     document.querySelectorAll('.is-in').forEach((el) => el.classList.remove('is-in'))
     document.querySelectorAll('[data-ki-on]').forEach((el) => el.removeAttribute('data-ki-on'))
     document.querySelectorAll('[data-ki-par], [data-ki-par] > span').forEach((el) => { el.style.transform = '' })
+    /* and NOTHING GSAP wrote survives: the stylesheet defines every rest
+       state, and an inline transform, scale, opacity or visibility beats it
+       for every visitor forever. Belt and braces over the flag above. */
+    const gsapProps = ['transform', 'translate', 'rotate', 'scale', 'opacity', 'visibility', 'will-change']
+    document.querySelectorAll('[data-parallax-layer], [data-parallax-corner], [data-parallax-deep], [data-parallax-word], [data-parallax-stagger]')
+      .forEach((el) => { for (const prop of gsapProps) el.style.removeProperty(prop) })
+    document.documentElement.style.removeProperty('overflow')
     document.querySelectorAll('[style=""]').forEach((el) => el.removeAttribute('style'))
 
     // React's own separator between adjacent text nodes, so hydration finds

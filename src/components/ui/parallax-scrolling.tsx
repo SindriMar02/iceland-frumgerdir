@@ -174,6 +174,16 @@ export interface ParallaxProps {
    *  arrives — the surface under the header genuinely changes mid-scroll,
    *  and a band measured once cannot say that. */
   band?: 'dark' | 'light'
+  /** THE OPENING. The first frame is the stone itself — every plate raised
+   *  one frame height, so the wall covers the room, the title and the corner
+   *  before any script has run — and once the photographs have decoded the
+   *  plates sink to their rest positions, far first and near last, and
+   *  uncover the page. The title sits between the plate layers, so it is
+   *  physically unearthed rather than faded in. Skipped for a visitor who
+   *  has seen it this session and under reduced motion; the scrub timeline
+   *  is only built once the intro has handed over, at exactly its rest
+   *  state, so there is no fight over the plates' transform. */
+  intro?: boolean
 }
 
 /* ONE LENIS FOR THE PAGE, NOT ONE PER GATE.
@@ -282,7 +292,7 @@ function plateGeom(p: ParallaxPlate) {
 export function ParallaxComponent({
   layers = [], plates = [], title, children, smooth = false, sticky = false,
   scroll = '240svh', titleYPercent, backdrop, ground, deep, deepAt = 0.55,
-  deepBehind = false, gate = false, corner, band,
+  deepBehind = false, gate = false, corner, band, intro = false,
 }: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
@@ -305,7 +315,9 @@ export function ParallaxComponent({
        were correct for the old viewport. */
     const frame = () => header?.clientHeight || window.innerHeight
 
-    const ctx = gsap.context(() => {
+    const ctx = gsap.context(() => {}, parallaxRef)
+    /* the scrub timeline, built either at once or after the opening */
+    const build = () => ctx.add(() => {
       if (!triggerElement) return
       /* Unpinned, the registry runs the timeline across the layer box passing
          the viewport top. Pinned, the layer box no longer moves — the wrapper
@@ -430,7 +442,7 @@ export function ParallaxComponent({
       if (cornerEl) {
         tl.to(cornerEl, { opacity: 0, y: -12, ease: 'none', duration: 0.2 }, 0)
       }
-    }, parallaxRef)
+    })
 
     /* WITHOUT LENIS, NOTHING DRIVES ScrollTrigger HERE.
        The registry demo always constructs Lenis and wires
@@ -453,6 +465,70 @@ export function ParallaxComponent({
 
     if (useLenis) acquireLenis()
 
+    /* THE OPENING, or not. */
+    const reduced = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const seen = !!document.documentElement.dataset.kiSeen
+    /* never inside the prerenderer — see tools/katrin-prerender.mjs */
+    const capturing = !!(window as unknown as { __KI_PRERENDER__?: boolean }).__KI_PRERENDER__
+    const runIntro = intro && !reduced && !seen && !capturing && !!triggerElement
+    let introTimer = 0
+    let introDone = !runIntro
+    const unlock = () => {
+      document.documentElement.style.overflow = ''
+      sharedLenis?.start()
+    }
+    if (runIntro) {
+      /* Scroll is held while the stone is parting. Both surfaces: the
+         document's own overflow for touch and keyboard, Lenis for the wheel. */
+      window.scrollTo(0, 0)
+      document.documentElement.style.overflow = 'hidden'
+      sharedLenis?.stop()
+      /* every plate and the room behind them, decoded — the reveal must not
+         uncover a photograph that has not arrived. Capped, so a slow
+         connection gets the page rather than a wall; held a beat at minimum
+         so a cached visit is not a flicker. */
+      const srcs = [...plates.map((p) => p.src), ...layers.map((l) => l.src)]
+      const decode = (src: string) => new Promise<void>((res) => {
+        const im = new Image()
+        im.onload = () => res(); im.onerror = () => res()
+        im.src = src
+        if (im.complete) res()
+      })
+      const hold = new Promise<void>((res) => { introTimer = window.setTimeout(res, 450) })
+      const cap = new Promise<void>((res) => { window.setTimeout(res, 2200) })
+      Promise.all([hold, Promise.race([Promise.all(srcs.map(decode)), cap])]).then(() => {
+        if (introDone) return
+        ctx.add(() => {
+          const F = frame()
+          const els = plates.map((p) => triggerElement!.querySelector<HTMLElement>(`[data-parallax-layer="${p.layer}"]`))
+          const room = triggerElement!.querySelector<HTMLElement>('[data-parallax-layer="1"]')
+          const cornerEl = triggerElement!.querySelector<HTMLElement>('[data-parallax-corner]')
+          /* the raised state, now inline, so the stylesheet's is released */
+          els.forEach((el) => el && gsap.set(el, { y: -F }))
+          const seq = gsap.timeline({
+            onComplete: () => {
+              introDone = true
+              unlock()
+              build()
+              ScrollTrigger.refresh()
+            },
+          })
+          /* far first, near last — the layers peel down in depth order, and
+             the near plate, the one that is actually hiding her name, is the
+             last to go. Slow enough to be watched. */
+          els.forEach((el, i) => {
+            if (!el) return
+            seq.to(el, { y: 0, duration: 1.55 + i * 0.12, ease: 'power3.inOut' }, i * 0.16)
+          })
+          if (room) seq.fromTo(room, { scale: 1.06 }, { scale: 1, duration: 2.3, ease: 'power2.out' }, 0)
+          if (cornerEl) seq.to(cornerEl, { opacity: 1, duration: 0.7, ease: 'power1.out' }, '-=0.95')
+        })
+      })
+    } else {
+      build()
+    }
+
     /* This page is prerendered and hydrated, and its photographs decode after
        mount — so ScrollTrigger's first measurement is taken against a layout
        that has not settled, and the timeline ends up with a zero-length
@@ -472,10 +548,12 @@ export function ParallaxComponent({
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('load', refresh)
       window.clearTimeout(t)
+      window.clearTimeout(introTimer)
+      if (!introDone) { introDone = true; unlock() }
       ctx.revert()
       if (useLenis) releaseLenis()
     }
-  }, [smooth, sticky, titleYPercent, deepAt, hasDeep, hasTitle, plateKey, layerKey, plates, layers])
+  }, [smooth, sticky, titleYPercent, deepAt, hasDeep, hasTitle, plateKey, layerKey, plates, layers, intro])
 
   /* background-image, not <img>: an absolutely positioned <img> at
      width/height:100% inside the oversized layer box computed its height from
@@ -490,7 +568,8 @@ export function ParallaxComponent({
       <div
         key={p.layer}
         data-parallax-layer={p.layer}
-        className="parallax__layer-img"
+        data-parallax-plate
+        className="parallax__layer-img parallax__plate"
         role={p.alt ? 'img' : undefined}
         aria-label={p.alt || undefined}
         aria-hidden={p.alt ? undefined : true}
@@ -513,7 +592,7 @@ export function ParallaxComponent({
 
   return (
     <div
-      className={['parallax', sticky && 'parallax--sticky', gate && 'parallax--gate']
+      className={['parallax', sticky && 'parallax--sticky', gate && 'parallax--gate', intro && 'parallax--intro']
         .filter(Boolean).join(' ')}
       ref={parallaxRef}
       {...(band ? { 'data-ki-band': band } : null)}

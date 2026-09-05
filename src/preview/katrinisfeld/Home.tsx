@@ -267,29 +267,15 @@ export function Home() {
 
   return (
     <Shell head={head}>
-      {/* the arch aperture: CSS only, hidden on a repeat visit before paint */}
-      {/* The opening. Her name rises letter by letter out of its own mask,
-          the same gesture the footer closes on, so the page opens and ends
-          on the one move. Prerendered, so it plays before React exists. */}
-      <div className="ki-curtain" aria-hidden="true">
-        <div className="ki-curtain-arch">
-          <p className="ki-curtain-mark">
-            {'KATRÍN ÍSFELD'.split('').map((ch, i) => (
-              ch === ' '
-                ? <span key={i} className="ki-curtain-sp"> </span>
-                : <span key={i} className="ki-curtain-l"><i style={{ ['--i' as string]: i }}>{ch}</i></span>
-            ))}
-          </p>
-          <span className="ki-curtain-rule" />
-        </div>
-      </div>
-
-      {/* 01 · the descent */}
+      {/* 01 · the descent — and THE OPENING. There is no curtain: the page
+          opens on the stone itself and the stone sinks to uncover her name
+          and the room. See ParallaxProps.intro. */}
       <ParallaxComponent
         layers={HERO_ROOM}
         plates={HERO_PLATES}
         sticky
         smooth
+        intro
         /* her photograph and then a tonne of stone: the header is light over
            all of it, and this is what tells it so */
         band="dark"

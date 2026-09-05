@@ -303,3 +303,21 @@
     opacity: 1 !important;
   }
 }
+
+/* ── THE OPENING ──────────────────────────────────────────────────────────
+   No curtain. The first painted frame is the stone: every plate raised one
+   frame height, which covers the room, the title and the corner on every
+   viewport (the face is at least 1.65 frames tall by construction, so the
+   raised plate is still all photograph — no hem, no fold). This is in the
+   stylesheet so it holds from the prerendered HTML onward, before any script
+   exists; the script then writes the same state inline and animates it down.
+   A repeat visit this session (data-ki-seen, stamped before first paint) and
+   reduced motion both start at rest. */
+.parallax--intro .parallax__plate { transform: translateY(-100svh); }
+.parallax--intro .parallax__corner { opacity: 0; }
+html[data-ki-seen] .parallax--intro .parallax__plate { transform: none; }
+html[data-ki-seen] .parallax--intro .parallax__corner { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .parallax--intro .parallax__plate { transform: none; }
+  .parallax--intro .parallax__corner { opacity: 1; }
+}
