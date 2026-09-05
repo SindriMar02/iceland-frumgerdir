@@ -82,6 +82,23 @@ export const CSS = `
   padding: calc(var(--u) * 22) calc(var(--u) * 34);
   pointer-events: none;
 }
+/* THE ONLY WASH LEFT ON THIS PAGE, and it is chrome rather than content: a
+   fixed header sits on whatever the photograph happens to be doing under it,
+   and on the landing frame that is a sunlit curtain and a plant. Measured
+   there, light nav on bright glass came out at 1.00 — invisible. A gradient
+   that is strongest in the top few pixels and gone by the time the header
+   ends reads as the top of a photograph, not as a bar: it has no edge, it
+   only exists over dark bands, and it fades with the same 400ms as the type
+   it is protecting. */
+.ki-nav::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: calc(var(--u) * 190);
+  pointer-events: none; opacity: 0; transition: opacity .4s linear;
+  background: linear-gradient(to bottom,
+    rgb(14 11 10 / .80) 0%, rgb(14 11 10 / .60) 34%,
+    rgb(14 11 10 / .26) 66%, rgb(14 11 10 / 0) 100%);
+}
+.ki-nav[data-ki-tone='dark']::before { opacity: 1; }
+.ki-nav > * { position: relative; }
 .ki-nav a, .ki-nav button { pointer-events: auto; text-decoration: none; transition: color .4s linear, opacity .25s ${OUT}; }
 .ki-nav a[data-ki-on='dark'], .ki-nav button[data-ki-on='dark'] { color: #EDE7DE; }
 .ki-nav a[data-ki-on='light'], .ki-nav a:not([data-ki-on]),
@@ -311,7 +328,7 @@ export const CSS = `
 }
 .ki-stmt-scrim {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to bottom, rgb(18 15 13 / .14) 0%, rgb(18 15 13 / .16) 62%, rgb(18 15 13 / .30) 100%);
+  background: linear-gradient(to bottom, rgb(18 15 13 / .48) 0%, rgb(18 15 13 / .52) 62%, rgb(18 15 13 / .60) 100%);
 }
 /* the mono/serif ratio the device is built on, kept: it sits top right,
    clear of the first word's band on the left */
@@ -320,15 +337,7 @@ export const CSS = `
   font-family: ${MONO}; font-size: max(12px, .75rem); letter-spacing: .22em;
   text-transform: uppercase; color: #EFE3CE;
 }
-/* the small type gets the same treatment: a text-shadow reads as help but
-   measures as nothing, because the pixel under the glyph is still the
-   photograph */
-.ki-stmt-eyebrow::before, .ki-stmt-sub::before {
-  content: ''; position: absolute; inset: -900% -70%; pointer-events: none;
-  background: radial-gradient(ellipse 40% 26% at 50% 50%,
-    rgb(14 11 10 / .70) 0%, rgb(14 11 10 / .62) 44%, rgb(14 11 10 / 0) 100%);
-}
-.ki-stmt-eyebrow, .ki-stmt-sub { isolation: isolate; }
+/* no blob behind the small type either — same reason as the words */
 .ki-stmt-eyebrow > *, .ki-stmt-sub > * { position: relative; }
 .ki-stmt-words { position: absolute; inset: 0; margin: 0; }
 .ki-stmt-word { position: absolute; display: block; }
@@ -337,22 +346,6 @@ export const CSS = `
    context and paints behind the PHOTOGRAPH, which is to say it does nothing
    at all. Paint order alone is enough: the veil is the first child and the
    clip below is positioned, so the type lands on top of it. */
-/* The core has to be nearly FLAT across the word's own box and only then fall
-   away — the solver's answer was that each word needs about 0.5 alpha over
-   all of itself, and a gradient that starts falling at the centre delivers a
-   fraction of that by the time it reaches the last glyph. Measured with the
-   type hidden and the veils left in: 2.91 with a soft falloff, 5.0+ with
-   this. The outer stop is what keeps it from reading as a blob. */
-.ki-stmt-veil {
-  /* WIDE. The same core strength over a much larger box is the difference
-     between a vignette and a blob: at inset -78% the falloff had to happen in
-     a few dozen pixels and read as a soft-edged pill behind each word. Three
-     times the area, and the eye reads the photograph as simply darker there. */
-  position: absolute; inset: -190% -46%; pointer-events: none;
-  background: radial-gradient(ellipse 46% 36% at 50% 50%,
-    rgb(14 11 10 / .88) 0%, rgb(14 11 10 / .80) 44%,
-    rgb(14 11 10 / .36) 70%, rgb(14 11 10 / 0) 100%);
-}
 .ki-stmt-clip { position: relative; display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
 .ki-stmt-word i {
   display: block; font-style: normal;
@@ -383,14 +376,13 @@ export const CSS = `
   .ki-stmt { min-height: 0; padding: calc(var(--u) * 100) 22px calc(var(--u) * 90); }
   /* the phone shows a different, brighter slice of the photograph, but the
      answer is still local: a lighter global wash and the veils kept */
-  .ki-stmt-scrim { background: linear-gradient(to bottom, rgb(18 15 13 / .24) 0%, rgb(18 15 13 / .34) 100%); }
+  .ki-stmt-scrim { background: linear-gradient(to bottom, rgb(18 15 13 / .53) 0%, rgb(18 15 13 / .62) 100%); }
   .ki-stmt-eyebrow { position: relative; top: auto; right: auto; margin-bottom: calc(var(--u) * 40); }
   .ki-stmt-words { position: relative; inset: auto; }
   .ki-stmt-word {
     position: relative; left: auto !important; top: auto !important;
     margin-left: calc(var(--s, 0) * 5vw);
   }
-  .ki-stmt-veil { inset: -120% -34%; }
   .ki-stmt-word i { white-space: normal; }
   .ki-stmt-sub {
     position: relative; left: auto; bottom: auto; transform: none; text-align: left;
@@ -424,6 +416,15 @@ export const CSS = `
    earns the contrast rather than a gradient faking it. It also puts her name
    right above the stone edge, so the thing that goes under first is the
    thing the stone reaches first. */
+/* The lockup's height in the frame is set HERE and nowhere else: the layer
+   box is the top 80% of the frame, and the block hangs from its bottom edge
+   with this much clearance. Raising it is one number. It carries a third
+   line now — what she actually does — and that line is the lowest thing in
+   the block, so it is the first thing the rising stone takes. */
+.ki-plx-scene {
+  height: 100%; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 9%;
+}
 .ki-plx-lockup {
   display: flex; flex-direction: column; align-items: center; text-align: center;
   width: 100%; max-width: calc(var(--u) * 1180); color: #F6F1E9;
@@ -450,6 +451,18 @@ export const CSS = `
   letter-spacing: .36em;
   text-indent: .36em;
   color: #CFC6B9;
+}
+/* the one sentence on the landing frame. Body, not another label: a mono
+   line under a mono line reads as two eyebrows arguing. It stays narrow so
+   it breaks where it is written to break, and it is quiet enough that the
+   name is still the thing that is seen. */
+.ki-plx-tag {
+  margin: calc(var(--u) * 30) 0 0;
+  max-width: calc(var(--u) * 470);
+  font-size: ${fluid(15.5, 14)};
+  line-height: 1.62;
+  color: #DCD3C6;
+  text-shadow: 0 1px 22px rgb(10 8 7 / .6);
 }
 
 /* WHAT ARRIVES ON THE STONE.
@@ -584,24 +597,19 @@ export const CSS = `
 .ki-newest {
   position: relative;
   display: flex; align-items: center; gap: calc(var(--u) * 18);
-  color: #F2ECE3; text-decoration: none;
+  color: #F8F3EA; text-decoration: none;
+  text-shadow: 0 1px 16px rgb(10 8 7 / .78), 0 1px 3px rgb(10 8 7 / .5);
   /* 360u collapsed the text column to 126px on a 912-wide frame, so BOTH the
      kicker and the name broke over two lines each and it read as a cramped
      block rather than as a label. Sized off the frame with a real cap: the
      name gets one line where it fits and two clean ones where it does not. */
   max-width: min(calc(100vw - clamp(120px, 22vw, 260px)), calc(var(--u) * 430));
 }
-/* NOT A BOX. The same soft radial the material captions use, inset NEGATIVE so
-   it has no edge of its own — it fades out before the card's own bounds and
-   simply stops the type depending on what the photograph happens to be doing
-   underneath it. On the island it is nearly invisible; over the lit teeth of
-   the rock it is the difference between legible and not. */
-.ki-newest::before {
-  content: ''; position: absolute; inset: -22px -34px -20px -26px; z-index: -1;
-  background: radial-gradient(72% 120% at 52% 50%,
-    rgb(12 10 9 / .78) 0%, rgb(12 10 9 / .52) 48%, rgb(12 10 9 / 0) 82%);
-  pointer-events: none;
-}
+/* NO WASH BEHIND IT. The card used to sit on a soft radial of near-black,
+   which reads as a smudge floating on the photograph. It sits over the
+   island and the dark stone instead — the part of the frame that is already
+   dark — and the type carries its own shadow so a light stroke never fizzes
+   against detail. Contrast is measured, not assumed. */
 .ki-newest-fig {
   flex: 0 0 auto; width: calc(var(--u) * 96); aspect-ratio: 4 / 3; overflow: hidden;
   outline: 1px solid rgb(242 236 227 / .28); outline-offset: 3px;
@@ -610,7 +618,7 @@ export const CSS = `
 .ki-root .ki-newest-fig picture, .ki-root .ki-newest-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ${OUT}; }
 .ki-newest-text { display: grid; gap: 5px; min-width: 0; }
 /* the label is a label: it never breaks */
-.ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #E6DCCD; white-space: nowrap; }
+.ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #F0E7D9; white-space: nowrap; }
 .ki-newest-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(19, 16)}; line-height: 1.24; text-wrap: balance; }
 .ki-newest-arrow {
   flex: 0 0 auto; width: 18px; height: 18px; background: #D9A87E;
@@ -710,8 +718,14 @@ export const CSS = `
 
 /* — the plate: the turn, and the only inverted slide — */
 .ki-hs-slide.is-plate {
-  width: 151.66svh; background: ${CHARCOAL}; color: #EDE7DE;
-  display: grid; place-items: center; text-align: center; padding: 0 calc(var(--u) * 90);
+  /* never narrower than the frame. At 151.66svh it came out 80px short of a
+     1600x1000 window, which left a sliver of the next photograph beside it —
+     enough for the header's right-hand end to be sitting on cream while the
+     rest of it sat on charcoal, and the burger themed dark against the dark
+     panel. The turn should be the whole frame anyway. */
+  width: max(100vw, 151.66svh); background: ${CHARCOAL}; color: #EDE7DE;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 0 calc(var(--u) * 90);
 }
 .ki-hs-plateline {
   margin: 0; max-width: 22ch;
@@ -720,6 +734,51 @@ export const CSS = `
 .ki-hs-platesub {
   margin: calc(var(--u) * 30) 0 0;
   font-family: ${MONO}; font-size: ${fluid(12, 11)}; letter-spacing: .18em; text-transform: uppercase; color: #A79C8C;
+}
+
+/* — THE SPECTRUM. The slide says one hand runs through all of them; without
+     this it says it and shows nothing, which is why the panel read as empty.
+     A single rule, seven colours threaded on it: the rule is the hand, the
+     colours are the rooms. Every hex is measured off her own photograph. — */
+.ki-hs-spec { width: min(calc(var(--u) * 1180), 78%); margin: calc(var(--u) * 74) 0 calc(var(--u) * 8); }
+.ki-hs-spec-rule {
+  display: block; height: 1px; background: rgb(237 231 222 / .22);
+  transform: scaleX(0); transform-origin: left center;
+}
+.ki-js .ki-hs-spec.is-in .ki-hs-spec-rule {
+  transform: scaleX(1); transition: transform 1.3s ${OUT} .05s;
+}
+.ki-static .ki-hs-spec-rule, .ki-root:not(.ki-js) .ki-hs-spec-rule { transform: none; }
+.ki-hs-spec-list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(7, 1fr); align-items: start;
+}
+.ki-hs-spec-item {
+  display: flex; flex-direction: column; align-items: center;
+  /* the chip straddles the rule it is threaded on */
+  margin-top: calc(var(--u) * -7);
+}
+.ki-js .ki-hs-spec .ki-hs-spec-item { opacity: 0; transform: translateY(calc(var(--u) * 10)); }
+.ki-js .ki-hs-spec.is-in .ki-hs-spec-item {
+  opacity: 1; transform: none;
+  transition: opacity .7s ${OUT}, transform .7s ${OUT};
+  transition-delay: calc(.28s + var(--i) * .075s);
+}
+.ki-static .ki-hs-spec .ki-hs-spec-item, .ki-root:not(.ki-js) .ki-hs-spec .ki-hs-spec-item {
+  opacity: 1; transform: none;
+}
+.ki-hs-spec-chip {
+  width: calc(var(--u) * 14); height: calc(var(--u) * 14); border-radius: 1px;
+  box-shadow: 0 0 0 calc(var(--u) * 4) ${CHARCOAL};
+}
+.ki-hs-spec-name {
+  margin-top: calc(var(--u) * 18);
+  font-family: ${MONO}; font-size: max(10px, calc(var(--u) * 11)); letter-spacing: .14em;
+  text-transform: uppercase; color: #CFC5B7;
+}
+.ki-hs-spec-hex {
+  margin-top: calc(var(--u) * 6);
+  font-family: ${MONO}; font-size: max(9px, calc(var(--u) * 10)); letter-spacing: .1em; color: #7E7466;
 }
 
 /* — the close: full bleed under a scrim, with the closing line on it — */
@@ -770,6 +829,13 @@ export const CSS = `
   }
   .ki-hs-slide.is-bleed { height: 78svh; padding: 0; }
   .ki-hs-slide.is-plate { width: 100% !important; }
+  /* on a phone seven columns is seven unreadable slivers: the spectrum
+     becomes two rows of chips, the hexes drop, the rule stays */
+  .ki-hs-spec { width: 100%; margin: calc(var(--u) * 52) 0 0; }
+  .ki-hs-spec-list { grid-template-columns: repeat(4, 1fr); row-gap: calc(var(--u) * 26); }
+  .ki-hs-spec-item:nth-child(n + 5) { margin-top: 0; }
+  .ki-hs-spec-hex { display: none; }
+  .ki-hs-spec-name { font-size: 10px; letter-spacing: .08em; }
   .ki-hs-slide.is-duo { flex-direction: column; gap: calc(var(--u) * 54); }
   .ki-hs-slide.is-duo .ki-hs-fig { width: 100% !important; align-self: auto; margin-bottom: 0; }
   .ki-hs-slide.is-split { grid-template-columns: 1fr; gap: calc(var(--u) * 40); }

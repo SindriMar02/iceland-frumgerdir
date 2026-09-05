@@ -168,6 +168,12 @@ export interface ParallaxProps {
    *  is still sinking past it; wrong for the entry, where the copy is
    *  written on the near plate itself. */
   deepBehind?: boolean
+  /** the tone the fixed site chrome has to read itself against while this
+   *  section is under it. 'dark' means the chrome goes light. A gate section
+   *  passes 'dark' too and then flips itself to 'light' as its cream deep
+   *  arrives — the surface under the header genuinely changes mid-scroll,
+   *  and a band measured once cannot say that. */
+  band?: 'dark' | 'light'
 }
 
 /* ONE LENIS FOR THE PAGE, NOT ONE PER GATE.
@@ -258,7 +264,7 @@ function plateGeom(p: ParallaxPlate) {
 export function ParallaxComponent({
   layers = [], plates = [], title, children, smooth = false, sticky = false,
   scroll = '240svh', titleYPercent, backdrop, ground, deep, deepAt = 0.55,
-  deepBehind = false, gate = false, corner,
+  deepBehind = false, gate = false, corner, band,
 }: ParallaxProps) {
   const parallaxRef = useRef<HTMLDivElement>(null)
 
@@ -356,17 +362,38 @@ export function ParallaxComponent({
            still comes from CSS; this reveals it once, here, and then only
            opacity moves. */
         gsap.set(deepEl, { visibility: 'visible' })
+        /* AND THE CHROME FOLLOWS IT. On the way out the surface under the
+           fixed header stops being stone and becomes cream, inside one
+           section, while the page's scroll position never leaves it. The
+           header's own band lookup reads this attribute live, so flipping it
+           at the half-way point of the deep's arrival is what keeps the
+           wordmark readable across the handoff instead of dark on stone or
+           light on cream. */
+        const rootEl = parallaxRef.current
+        /* ONLY on a gate. The descent's deep is the strata, which is stone
+           on stone — flipping there would send the header light-on-light. */
+        const onDeep = rootEl && band && gate
+          ? function (this: gsap.core.Tween) {
+              const want = this.progress() > 0.5 ? 'light' : band
+              if (rootEl.dataset.kiBand !== want) rootEl.dataset.kiBand = want
+            }
+          : undefined
         tl.fromTo(deepEl,
           { opacity: 0, y: 34 },
-          { opacity: 1, y: 0, ease: 'none', duration: 0.26 }, deepAt)
+          { opacity: 1, y: 0, ease: 'none', duration: 0.34, onUpdate: onDeep }, deepAt)
         /* the headline arrives a word at a time — WhisperText's own move, on
            this scrub instead of its own trigger, because its trigger element is
            on screen from the moment the pin engages */
         const words = deepEl.querySelectorAll('[data-parallax-word]')
         if (words.length) {
+          /* SLOW. At 0.08 with a 0.025 stagger the whole line was over in a
+             tenth of the pin — a snap, not an arrival. Two and a half times
+             the duration and twice the gap between words, with a gentler
+             ease, so each word drifts in under its own weight and the line
+             takes a real stretch of scroll to assemble. */
           tl.fromTo(words,
-            { autoAlpha: 0, x: -14 },
-            { autoAlpha: 1, x: 0, ease: 'power2.out', duration: 0.08, stagger: 0.025 }, deepAt + 0.02)
+            { autoAlpha: 0, x: -18 },
+            { autoAlpha: 1, x: 0, ease: 'power1.out', duration: 0.20, stagger: 0.055 }, deepAt + 0.03)
         }
         /* and anything else marked for a stagger lands after it, one by one —
            specimens set down on a shelf, not a list popping */
@@ -374,7 +401,7 @@ export function ParallaxComponent({
         if (stag.length) {
           tl.fromTo(stag,
             { autoAlpha: 0, y: 18 },
-            { autoAlpha: 1, y: 0, ease: 'none', duration: 0.10, stagger: 0.04 }, deepAt + 0.12)
+            { autoAlpha: 1, y: 0, ease: 'power1.out', duration: 0.15, stagger: 0.05 }, deepAt + 0.16)
         }
       }
       const cornerEl = triggerElement.querySelector('[data-parallax-corner]')
@@ -467,6 +494,7 @@ export function ParallaxComponent({
       className={['parallax', sticky && 'parallax--sticky', gate && 'parallax--gate']
         .filter(Boolean).join(' ')}
       ref={parallaxRef}
+      {...(band ? { 'data-ki-band': band } : null)}
       style={{
         ...(sticky ? { '--parallax-scroll': scroll } : null),
         ...(ground ? { '--parallax-ground': ground } : null),

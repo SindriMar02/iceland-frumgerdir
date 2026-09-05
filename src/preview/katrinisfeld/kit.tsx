@@ -30,7 +30,7 @@
  *    nothing at all on touch, and freezes any nested scroller that forgets
  *    data-lenis-prevent.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PHOTO_DIMS } from './photo-dims'
 import { PHOTO_COLORS } from './photo-colors'
@@ -185,9 +185,9 @@ export function StatementOverlay({ id, alt, eyebrow, words, sub }: {
         {words.map((w, i) => (
           <span key={w.t + i} className="ki-stmt-word"
             style={{ left: `${w.x}%`, top: `${w.y}%`, ['--s' as string]: i }} aria-hidden="true">
-            {/* the local veil sits OUTSIDE the clip: it must not be masked by
-                the reveal, and it must not travel with the word as it rises */}
-            <span className="ki-stmt-veil" />
+            {/* NO LOCAL VEIL. A radial darkening behind each word reads as a
+                glow around the type — a lit blob on a photograph of a room —
+                however wide it is made. The whole frame is graded instead. */}
             <span className="ki-stmt-clip"><i>{w.t}</i></span>
           </span>
         ))}
@@ -213,7 +213,12 @@ export type HSlide =
   | { kind: 'duo'; a: HFig; b: HFig }
   /* width in svh, not vw, so it scales with viewport HEIGHT and its crop
      holds on a short wide window. Inverts the theme. */
-  | { kind: 'plate'; line: string; sub: string }
+  | { kind: 'plate'; line: string; sub: string
+      /* the spectrum: one photograph's own accent colour per project in this
+         chapter, threaded on a single rule. The line IS the argument the
+         slide makes — same hand, seven colour worlds — and it is drawn from
+         PHOTO_COLORS, which is measured off her real files, never invented */
+      spectrum: ReadonlyArray<{ id: string; title: string }> }
   | { kind: 'close'; id: string; alt: string; line: string; to: string; cta: string }
 
 export interface HFig { id: string; alt: string; title: string; meta: string; to: string }
@@ -311,6 +316,18 @@ export function HorizontalChapter({ slides }: { slides: ReadonlyArray<HSlide> })
             if (s.kind === 'plate') return (
               <div key={key} className="ki-hs-slide is-plate" data-ki-band="dark" data-ki-hpanel>
                 <p className="ki-hs-plateline">{s.line}</p>
+                <div className="ki-hs-spec ki-rv">
+                  <span className="ki-hs-spec-rule" aria-hidden="true" />
+                  <ul className="ki-hs-spec-list">
+                    {s.spectrum.map((c, i) => (
+                      <li key={c.id} className="ki-hs-spec-item" style={{ '--i': i } as CSSProperties}>
+                        <span className="ki-hs-spec-chip" style={{ background: PHOTO_COLORS[c.id] }} />
+                        <span className="ki-hs-spec-name">{c.title}</span>
+                        <span className="ki-hs-spec-hex">{PHOTO_COLORS[c.id]}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <p className="ki-hs-platesub">{s.sub}</p>
               </div>
             )
@@ -561,10 +578,14 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     const root = document.querySelector<HTMLElement>('.ki-root')
     if (!root) return
 
-    const chromeEls = Array.from(root.querySelectorAll<HTMLElement>('[data-ki-chrome]'))
+    /* RE-QUERIED IN measure(), not captured once. The header is part of the
+       app shell and does not necessarily exist in its final shape at the
+       moment this effect runs — capturing here left the burger out of the
+       list entirely, so it kept the stylesheet's dark-ink fallback for the
+       whole page and sat invisible on every dark band. */
+    let chromeEls: HTMLElement[] = Array.from(root.querySelectorAll<HTMLElement>('[data-ki-chrome]'))
     const navEl = root.querySelector<HTMLElement>('.ki-nav')
-    let bands: Array<{ top: number; bottom: number; dark: boolean }> = []
-    let chromeCentres: number[] = []
+    let bands: Array<{ el: HTMLElement; top: number; bottom: number; hz: boolean }> = []
     let condenseAt = Infinity
     let reveals: Array<{ el: Element; at: number }> = []
     let pars: Array<{
@@ -591,15 +612,67 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
 
     const measure = () => {
       const sy = window.scrollY
+      const vh = window.innerHeight
+      chromeEls = Array.from(root.querySelectorAll<HTMLElement>('[data-ki-chrome]'))
+      /* THE HORIZONTAL CHAPTER IS SIZED FIRST, and everything else is
+         measured after it. This block writes sec.style.height, which is
+         twelve thousand pixels of document on this page; measuring bands,
+         reveals and parallax starts before it recorded every position below
+         the chapter twelve thousand pixels too high. The header read the
+         wrong band for a third of the page because of it. */
+      /* A horizontal chapter buys its sideways travel with vertical scroll:
+         the section is made exactly as tall as the track overflows wide, so
+         the distance the page scrolls is the distance the track moves. */
+      hs = []
+      canPin = pinQ.matches && motion
+      for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
+        const track = sec.querySelector<HTMLElement>('.ki-hs-track')
+        if (!track) continue
+        if (!canPin) {
+          sec.style.height = ''; track.style.transform = ''
+          // leave nothing clipped or offset behind on the touch build
+          for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar] img'))) {
+            el.style.transform = ''
+          }
+          continue
+        }
+        const distance = Math.max(0, track.scrollWidth - window.innerWidth)
+        sec.style.height = `${vh + distance}px`
+        const top = sec.getBoundingClientRect().top + sy
+        /* Each panel's offset INSIDE the track, measured once. offsetLeft is
+           relative to the track's padding box and so is unaffected by the
+           translate that is about to be written to it — reading a rect here
+           would fold the current scroll position into the constant. */
+        const frames: Array<{ img: HTMLElement; left: number; width: number }> = []
+        for (const panel of Array.from(track.querySelectorAll<HTMLElement>('[data-ki-hpanel]'))) {
+          for (const par of Array.from(panel.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
+            const img = par.querySelector<HTMLElement>('img')
+            if (img) frames.push({ img, left: panel.offsetLeft + par.offsetLeft, width: par.offsetWidth })
+          }
+        }
+        hs.push({
+          track, start: top, end: top + distance, distance, frames,
+        })
+      }
+      /* the ELEMENT is kept, not the answer. A section whose surface changes
+         while the page sits inside it — the way out, stone to cream — has to
+         be re-read on the frame, or the header keeps whatever tone it had
+         when the page was measured. Geometry is still measured once. */
       bands = Array.from(root.querySelectorAll<HTMLElement>('[data-ki-band]')).map((s) => {
         const r = s.getBoundingClientRect()
-        return { top: r.top + sy, bottom: r.bottom + sy, dark: s.dataset.kiBand === 'dark' }
+        /* A band inside a horizontal track is NOT MEASURABLE HERE. It is a
+           sticky panel that moves sideways while the page's scroll position
+           stays inside one section, so its document-space range means nothing;
+           and the section that contains it has not been given its height yet
+           when this runs, so borrowing that range gets a window a fraction of
+           the real one — which is why the header kept the chapter's cream and
+           printed dark ink on the dark panel. Marked instead, and tested
+           against its live rect on the frame: for a panel that is pinned to
+           the viewport, "is it under the header" is a question about the
+           viewport, not about the document. */
+        const hz = !!s.closest('.ki-hs-track')
+        return { el: s, top: r.top + sy, bottom: r.bottom + sy, hz }
       })
-      chromeCentres = chromeEls.map((el) => {
-        const r = el.getBoundingClientRect()
-        return r.top + r.height / 2
-      })
-      const vh = window.innerHeight
       // condense past roughly one viewport of scroll, regardless of how tall
       // any given page's hero is — a flat threshold that works on all 26 routes
       condenseAt = vh * 0.6
@@ -654,40 +727,6 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
         }
       })
 
-      /* A horizontal chapter buys its sideways travel with vertical scroll:
-         the section is made exactly as tall as the track overflows wide, so
-         the distance the page scrolls is the distance the track moves. */
-      hs = []
-      canPin = pinQ.matches && motion
-      for (const sec of Array.from(root.querySelectorAll<HTMLElement>('[data-ki-hscroll]'))) {
-        const track = sec.querySelector<HTMLElement>('.ki-hs-track')
-        if (!track) continue
-        if (!canPin) {
-          sec.style.height = ''; track.style.transform = ''
-          // leave nothing clipped or offset behind on the touch build
-          for (const el of Array.from(sec.querySelectorAll<HTMLElement>('[data-ki-hpar] img'))) {
-            el.style.transform = ''
-          }
-          continue
-        }
-        const distance = Math.max(0, track.scrollWidth - window.innerWidth)
-        sec.style.height = `${vh + distance}px`
-        const top = sec.getBoundingClientRect().top + sy
-        /* Each panel's offset INSIDE the track, measured once. offsetLeft is
-           relative to the track's padding box and so is unaffected by the
-           translate that is about to be written to it — reading a rect here
-           would fold the current scroll position into the constant. */
-        const frames: Array<{ img: HTMLElement; left: number; width: number }> = []
-        for (const panel of Array.from(track.querySelectorAll<HTMLElement>('[data-ki-hpanel]'))) {
-          for (const par of Array.from(panel.querySelectorAll<HTMLElement>('[data-ki-hpar]'))) {
-            const img = par.querySelector<HTMLElement>('img')
-            if (img) frames.push({ img, left: panel.offsetLeft + par.offsetLeft, width: par.offsetWidth })
-          }
-        }
-        hs.push({
-          track, start: top, end: top + distance, distance, frames,
-        })
-      }
     }
 
     const runLayers = () => {
@@ -782,11 +821,37 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       if (!bands.length) return
       const sy = window.scrollY
       for (let i = 0; i < chromeEls.length; i++) {
-        const centre = sy + chromeCentres[i]
+        /* LIVE, not cached. The nav condenses: the burger does not exist at
+           the top of the page, so its cached box was zero and it themed
+           itself against a point at the very top of the document for the
+           whole scroll — dark ink on the dark panel, alone among the six.
+           Six rects a frame is nothing next to the band rects already read
+           here, and it makes the chrome's own geometry impossible to stale. */
+        const cr = chromeEls[i].getBoundingClientRect()
+        if (!cr.width && !cr.height) continue
+        const cy = cr.top + cr.height / 2
+        const cx = cr.left + cr.width / 2
+        const centre = sy + cy
         let dark = false
-        for (const b of bands) if (centre >= b.top && centre < b.bottom) { dark = b.dark; break }
+        /* LAST MATCH WINS, so iterate backwards. Bands nest: the horizontal
+           chapter is cream and holds one charcoal panel, and the panel is
+           later in the document than the chapter that contains it. Taking the
+           first match handed the header the chapter's cream and printed dark
+           ink on the dark panel. */
+        for (let j = bands.length - 1; j >= 0; j--) {
+          const b = bands[j]
+          if (b.hz) {
+            /* live, in viewport coordinates, both axes */
+            const r = b.el.getBoundingClientRect()
+            if (cy < r.top || cy >= r.bottom) continue
+            if (cx < r.left || cx >= r.right) continue
+          } else if (centre < b.top || centre >= b.bottom) continue
+          dark = b.el.dataset.kiBand === 'dark'
+          break
+        }
         const want = dark ? 'dark' : 'light'
         if (chromeEls[i].dataset.kiOn !== want) chromeEls[i].dataset.kiOn = want
+        if (i === 0 && navEl && navEl.dataset.kiTone !== want) navEl.dataset.kiTone = want
       }
     }
 
@@ -803,11 +868,22 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       if (navEl.dataset.kiCondensed !== want) navEl.dataset.kiCondensed = want
     }
 
-    const onFrame = () => { themeChrome(); sweepReveals(); runParallax(); runLayers(); runHScroll(); condenseNav() }
+    /* THE TRACK MOVES FIRST. The header themes itself against whatever band
+       is under it, and one of those bands is a panel that slides sideways —
+       so theming before the slide is written reads the PREVIOUS frame's
+       position. During a scroll that is a frame's lag and invisible; when the
+       scroll stops it is permanent, which is why the wordmark sat dark on the
+       dark panel until the visitor moved again. */
+    /* AND THE NAV CONDENSES BEFORE IT IS THEMED, for the same reason: the
+       burger does not exist until condenseNav shows it, so a theming pass
+       that runs first skips it as a zero-size box. If the scroll then stops
+       on that frame it never gets a tone at all, and it kept the
+       stylesheet's dark-ink fallback on top of the dark panel. */
+    const onFrame = () => { runHScroll(); condenseNav(); themeChrome(); sweepReveals(); runParallax(); runLayers() }
     /* reduced motion keeps the horizontal chapter too: it is navigation, not
        decoration, and the alternative is a track the visitor cannot reach.
        What it loses is the parallax, which is the part that is decoration. */
-    const onFrameStill = () => { themeChrome(); sweepReveals(); runHScroll(); condenseNav() }
+    const onFrameStill = () => { runHScroll(); condenseNav(); themeChrome(); sweepReveals() }
 
     let rafId = 0
     const onResize = () => {
@@ -818,6 +894,25 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     measure()
     onFrame()
     window.addEventListener('resize', onResize, { passive: true })
+    /* AND A RESIZE OBSERVER, because `resize` is a WINDOW event. When the
+       viewport changes width without the window changing — a pane beside the
+       page widening, a devtools dock, a desktop-app layout change — nothing
+       fires, and every constant measured here goes stale: the horizontal
+       chapter keeps the old travel distance and its last panel stops short of
+       the right edge while the pin releases early, which is exactly the
+       symptom. Observing the root catches it whatever caused it. */
+    /* Guarded, because measure() sets the horizontal chapter's height and the
+       root's own box therefore changes as a RESULT of measuring — an
+       unguarded observer would answer its own writes. Only a real viewport
+       change gets through. */
+    let lastW = window.innerWidth
+    let lastH = window.innerHeight
+    const ro = new ResizeObserver(() => {
+      if (window.innerWidth === lastW && window.innerHeight === lastH) return
+      lastW = window.innerWidth; lastH = window.innerHeight
+      onResize()
+    })
+    ro.observe(root)
     pinQ.addEventListener('change', onResize)
     // fonts land after first paint and reflow every headline under them
     document.fonts?.ready.then(onResize)
@@ -832,6 +927,7 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
       window.addEventListener('scroll', onFrameStill, { passive: true })
       return () => {
         window.removeEventListener('scroll', onFrameStill)
+        ro.disconnect()
         window.removeEventListener('resize', onResize)
         pinQ.removeEventListener('change', onResize)
       }
@@ -842,6 +938,8 @@ export function useKiMotion(ready: boolean, deps: unknown[] = []) {
     return () => {
       window.removeEventListener('scroll', onFrame)
       window.removeEventListener('resize', onResize)
+      pinQ.removeEventListener('change', onResize)
+      ro.disconnect()
       cancelAnimationFrame(rafId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

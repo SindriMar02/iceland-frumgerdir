@@ -220,7 +220,18 @@ const JOURNEY: ReadonlyArray<HSlide> = [
      half of the page apart from the Italian band */
   { kind: 'plate',
     line: 'Sama höndin liggur í gegnum þau öll.',
-    sub: 'Ólík hús, ólíkir litheimar — eitt handbragð' },
+    sub: 'Ólík hús, ólíkir litheimar — eitt handbragð',
+    /* the accent each of these rooms actually is, read off her own
+       photographs — the slide's claim, shown rather than asserted */
+    spectrum: [
+      { id: 's-eldhus-vitt', title: 'Súluhöfði' },
+      { id: 'p-oldcharm-1', title: 'Old Charm' },
+      { id: 'p-skuggahverfi-0', title: 'Skuggahverfi' },
+      { id: 'p-alfheimar-0', title: 'Álfheimar' },
+      { id: 'p-svala-0', title: 'Svala' },
+      { id: 'p-badherbergi-0', title: 'Baðherbergi' },
+      { id: 'p-tannlaeknar-0', title: 'Garðatorg' },
+    ] },
 
   { kind: 'bleed', id: 'p-badherbergi-0', no: 'III',
     title: 'Baðherbergi', meta: 'Heimili', to: projPath('badherbergi'),
@@ -279,6 +290,9 @@ export function Home() {
         plates={HERO_PLATES}
         sticky
         smooth
+        /* her photograph and then a tonne of stone: the header is light over
+           all of it, and this is what tells it so */
+        band="dark"
         /* 210, not 240: the swallow is done by 0.4 and the specimens are set
            down by 0.9, and the rest was dark with nothing in it. Travel is in
            frame heights, so a shorter pin only changes how much scroll the
@@ -293,6 +307,15 @@ export function Home() {
             <div className="ki-plx-lockup">
               <h1 className="ki-plx-name">Katrín Ísfeld</h1>
               <p className="ki-plx-role">innanhússarkitekt</p>
+              {/* The four things she actually draws, named. The first draft
+                  was a triad of room types joined by a dash to an abstraction
+                  — the shape every generated tagline has. This one lists real
+                  deliverables from her own services page and stops. It is the
+                  lowest line in the lockup, so it is the first thing the
+                  rising stone takes. */}
+              <p className="ki-plx-tag">
+                Skipulag, innréttingar, efnisval og lýsing, teiknað í einu lagi.
+              </p>
             </div>
           </div>
         }
@@ -390,6 +413,9 @@ export function Home() {
         sticky
         smooth
         gate
+        /* dark while it is stone, and it flips itself to light as the cream
+           arrives — the handoff happens inside this one section */
+        band="dark"
         /* 170: the light shows once the near plate's crest clears the frame's
            bottom, 0.6 of the way through, and at 240svh that was 670px of
            dark rock between the last line on the stone and the first light —
