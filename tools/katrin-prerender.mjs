@@ -106,6 +106,12 @@ for (const route of ROUTES) {
     document.querySelectorAll('[data-parallax-layer], [data-parallax-corner], [data-parallax-deep], [data-parallax-word], [data-parallax-stagger]')
       .forEach((el) => { for (const prop of gsapProps) el.style.removeProperty(prop) })
     document.documentElement.style.removeProperty('overflow')
+    /* the head script stamps this on every capture (each page is a fresh
+       session), and serialised into the shipped HTML it would hold the
+       photographs transparent for every visitor, including the ones the
+       intro is meant to skip */
+    document.documentElement.removeAttribute('data-ki-intro')
+    document.documentElement.removeAttribute('data-ki-seen')
     document.querySelectorAll('[style=""]').forEach((el) => el.removeAttribute('style'))
 
     // React's own separator between adjacent text nodes, so hydration finds

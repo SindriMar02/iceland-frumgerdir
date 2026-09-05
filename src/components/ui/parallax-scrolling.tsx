@@ -174,15 +174,16 @@ export interface ParallaxProps {
    *  arrives — the surface under the header genuinely changes mid-scroll,
    *  and a band measured once cannot say that. */
   band?: 'dark' | 'light'
-  /** THE OPENING. The first frame is the stone itself — every plate raised
-   *  one frame height, so the wall covers the room, the title and the corner
-   *  before any script has run — and once the photographs have decoded the
-   *  plates sink to their rest positions, far first and near last, and
-   *  uncover the page. The title sits between the plate layers, so it is
-   *  physically unearthed rather than faded in. Skipped for a visitor who
-   *  has seen it this session and under reduced motion; the scrub timeline
-   *  is only built once the intro has handed over, at exactly its rest
-   *  state, so there is no fight over the plates' transform. */
+  /** THE OPENING. The wordmark alone on the bare ground: its letters rise
+   *  out of their masks one at a time, in the position and at the size they
+   *  hold for the rest of the page — it never moves — and then the
+   *  photographs, the stone and the corner card fade in behind it. The type
+   *  starts the moment the document is ready, so something is happening
+   *  while the images are still arriving; the fade waits for them to decode
+   *  so it never uncovers a photograph that is not there.
+   *  Skipped for a visitor who has seen it this session, under reduced
+   *  motion, and inside the prerenderer. The scrub timeline is built only
+   *  once the intro has handed over, at exactly its rest state. */
   intro?: boolean
 }
 
@@ -475,54 +476,85 @@ export function ParallaxComponent({
     let introTimer = 0
     let introDone = !runIntro
     const unlock = () => {
+      document.documentElement.removeAttribute('data-ki-intro')
       document.documentElement.style.overflow = ''
       sharedLenis?.start()
     }
     if (runIntro) {
-      /* Scroll is held while the stone is parting. Both surfaces: the
-         document's own overflow for touch and keyboard, Lenis for the wheel. */
+      /* Scroll is held while the wordmark is alone on the ground. Both
+         surfaces: the document's own overflow for touch and keyboard, Lenis
+         for the wheel. */
       window.scrollTo(0, 0)
       document.documentElement.style.overflow = 'hidden'
       sharedLenis?.stop()
-      /* every plate and the room behind them, decoded — the reveal must not
-         uncover a photograph that has not arrived. Capped, so a slow
-         connection gets the page rather than a wall; held a beat at minimum
-         so a cached visit is not a flicker. */
-      const srcs = [...plates.map((p) => p.src), ...layers.map((l) => l.src)]
-      const decode = (src: string) => new Promise<void>((res) => {
-        const im = new Image()
-        im.onload = () => res(); im.onerror = () => res()
-        im.src = src
-        if (im.complete) res()
-      })
-      const hold = new Promise<void>((res) => { introTimer = window.setTimeout(res, 450) })
-      const cap = new Promise<void>((res) => { window.setTimeout(res, 2200) })
-      Promise.all([hold, Promise.race([Promise.all(srcs.map(decode)), cap])]).then(() => {
-        if (introDone) return
-        ctx.add(() => {
-          const F = frame()
-          const els = plates.map((p) => triggerElement!.querySelector<HTMLElement>(`[data-parallax-layer="${p.layer}"]`))
-          const room = triggerElement!.querySelector<HTMLElement>('[data-parallax-layer="1"]')
-          const cornerEl = triggerElement!.querySelector<HTMLElement>('[data-parallax-corner]')
-          /* the raised state, now inline, so the stylesheet's is released */
-          els.forEach((el) => el && gsap.set(el, { y: -F }))
-          const seq = gsap.timeline({
-            onComplete: () => {
-              introDone = true
-              unlock()
-              build()
-              ScrollTrigger.refresh()
-            },
+
+      ctx.add(() => {
+        const q = (sel: string) => Array.from(triggerElement!.querySelectorAll<HTMLElement>(sel))
+        const letters = q('[data-parallax-letter]')
+        const fades = q('[data-parallax-fade]')
+        const visuals = q('.parallax__layer-img, .parallax__backdrop')
+        const cornerEl = triggerElement!.querySelector<HTMLElement>('[data-parallax-corner]')
+
+        /* THE TYPE, AT ONCE. It is the only thing on the screen and it is
+           the reason the wait is bearable, so it does not queue behind a
+           network. Its own held state comes from the stylesheet; these
+           fromTos restate it inline so nothing depends on the attribute
+           still being there when they run. */
+        const type = gsap.timeline()
+        if (letters.length) {
+          /* y: 0 IN BOTH, and it is not decoration. GSAP parses the element's
+             existing computed transform on first touch and keeps the px it
+             finds in `y` — then it writes translate(x + xPercent, y +
+             yPercent), COMPOSING the two. The stylesheet's own held state is
+             translateY(130%), so the parsed y was already one mask-height
+             down and every letter finished the rise still exactly one mask
+             below its window: the wordmark animated, and stayed invisible.
+             Stating y clears the parsed offset and leaves the percentage as
+             the only thing moving. */
+          type.fromTo(letters,
+            { yPercent: 130, y: 0 },
+            { yPercent: 0, y: 0, duration: 1.05, ease: 'power3.out', stagger: 0.042 }, 0)
+        }
+        if (fades.length) {
+          type.fromTo(fades,
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.85, ease: 'power2.out', stagger: 0.14 }, 0.5)
+        }
+
+        /* THE PAGE, ONCE IT EXISTS. Every plate and the room behind them,
+           decoded — the fade must not uncover a photograph that has not
+           arrived. Capped, so a slow connection gets the page rather than a
+           held screen; floored, so the wordmark is never cut off mid-rise. */
+        const srcs = [...plates.map((p) => p.src), ...layers.map((l) => l.src)]
+        const decode = (src: string) => new Promise<void>((res) => {
+          const im = new Image()
+          im.onload = () => res(); im.onerror = () => res()
+          im.src = src
+          if (im.complete) res()
+        })
+        const hold = new Promise<void>((res) => { introTimer = window.setTimeout(res, 1250) })
+        const cap = new Promise<void>((res) => { window.setTimeout(res, 3200) })
+
+        Promise.all([hold, Promise.race([Promise.all(srcs.map(decode)), cap])]).then(() => {
+          if (introDone) return
+          ctx.add(() => {
+            gsap.timeline({
+              onComplete: () => {
+                introDone = true
+                unlock()
+                build()
+                ScrollTrigger.refresh()
+              },
+            })
+              /* the room first and the stone after it, which is the order
+                 they are stacked in and the order the eye reads them */
+              .fromTo(visuals,
+                { opacity: 0 },
+                { opacity: 1, duration: 1.25, ease: 'power2.out', stagger: 0.075 }, 0)
+              .fromTo(cornerEl ? [cornerEl] : [],
+                { opacity: 0 },
+                { opacity: 1, duration: 0.8, ease: 'power1.out' }, 0.75)
           })
-          /* far first, near last — the layers peel down in depth order, and
-             the near plate, the one that is actually hiding her name, is the
-             last to go. Slow enough to be watched. */
-          els.forEach((el, i) => {
-            if (!el) return
-            seq.to(el, { y: 0, duration: 1.55 + i * 0.12, ease: 'power3.inOut' }, i * 0.16)
-          })
-          if (room) seq.fromTo(room, { scale: 1.06 }, { scale: 1, duration: 2.3, ease: 'power2.out' }, 0)
-          if (cornerEl) seq.to(cornerEl, { opacity: 1, duration: 0.7, ease: 'power1.out' }, '-=0.95')
         })
       })
     } else {

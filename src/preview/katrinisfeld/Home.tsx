@@ -291,15 +291,32 @@ export function Home() {
             {/* her name, not a headline — a sentence has to be read, a name
                 only has to be seen, and this one is going under the stone */}
             <div className="ki-plx-lockup">
-              <h1 className="ki-plx-name">Katrín Ísfeld</h1>
-              <p className="ki-plx-role">innanhússarkitekt</p>
+              {/* Letters, because the opening rises them one at a time out of
+                  their own masks — and WORD wrappers around those letters,
+                  because a line of loose inline-blocks can break between any
+                  two of them and her name would wrap as KATRÍ / N ÍSFELD on a
+                  narrow phone. The h1 keeps its accessible name outright. */}
+              <h1 className="ki-plx-name" aria-label="Katrín Ísfeld">
+                {'Katrín Ísfeld'.split(' ').map((word, w, all) => (
+                  <span key={w} className="ki-plx-word" aria-hidden="true">
+                    {word.split('').map((ch, i) => (
+                      <span key={i} className="ki-plx-l">
+                        <i data-parallax-letter
+                          style={{ ['--i' as string]: all.slice(0, w).join(' ').length + (w ? 1 : 0) + i }}>{ch}</i>
+                      </span>
+                    ))}
+                    {w < all.length - 1 ? ' ' : null}
+                  </span>
+                ))}
+              </h1>
+              <p className="ki-plx-role" data-parallax-fade>innanhússarkitekt</p>
               {/* The four things she actually draws, named. The first draft
                   was a triad of room types joined by a dash to an abstraction
                   — the shape every generated tagline has. This one lists real
                   deliverables from her own services page and stops. It is the
                   lowest line in the lockup, so it is the first thing the
                   rising stone takes. */}
-              <p className="ki-plx-tag">
+              <p className="ki-plx-tag" data-parallax-fade>
                 Skipulag, innréttingar, efnisval og lýsing, teiknað í einu lagi.
               </p>
             </div>

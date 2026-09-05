@@ -478,6 +478,16 @@ export const CSS = `
   text-indent: .1em;
   color: #F8F4EE;
 }
+/* the mask each letter rises out of. Generous above as well as below: this
+   name carries an acute on a capital I, and a mask cut to the line box alone
+   clips the accent clean off. The negative margins give the padding back, so
+   the lockup measures exactly what it did before the letters were split. */
+.ki-plx-word { display: inline-block; white-space: nowrap; }
+.ki-plx-l {
+  display: inline-block; overflow: hidden; vertical-align: bottom;
+  padding: .22em 0 .08em; margin: -.22em 0 -.08em;
+}
+.ki-plx-l > i { display: inline-block; font-style: normal; }
 .ki-plx-role {
   margin: calc(var(--u) * 26) 0 0;
   font-family: ${MONO};

@@ -68,6 +68,21 @@
         if (sessionStorage.getItem('ki_seen')) document.documentElement.dataset.kiSeen = '1'
         else sessionStorage.setItem('ki_seen', '1')
       } catch (e) { /* private mode: show it, that is the safe side */ }
+      /* The opening holds the photographs transparent and the wordmark's
+         letters below their masks, and that held state is keyed on this
+         attribute — so it is set here, before first paint (no flash of a
+         finished page that then rewinds), and ONLY for a visitor who is
+         actually going to see the intro. The timer is the failsafe: if the
+         bundle never arrives, or errors before it can hand over, the page
+         resolves to its finished state on its own rather than sitting on a
+         wordmark forever. */
+      try {
+        var d = document.documentElement
+        if (!d.dataset.kiSeen && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          d.dataset.kiIntro = '1'
+          setTimeout(function () { d.removeAttribute('data-ki-intro') }, 5000)
+        }
+      } catch (e) { /* same side: no attribute means the finished page */ }
     </script>
   </head>
   <body>
