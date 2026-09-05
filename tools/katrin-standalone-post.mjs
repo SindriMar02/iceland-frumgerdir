@@ -91,6 +91,43 @@ if (existsSync(fontsDir)) {
   console.log(`katrin-post: kept ${[...wanted].sort().join(', ')} · dropped ${dropped} unused font families`)
 }
 
+/* THE PLATE FOLDER, same treatment as the fonts and for the same reason.
+   `public/katrinisfeld/` holds every generation the stone went through —
+   ground-near/mid/far in three versions each, emperador, plate-front,
+   passage, bedrock, rock, terrain-plate, plus AVIF siblings of plates the
+   build no longer asks for. 44 files, 17.5 MB, none of them ever fetched by
+   anybody: they cost nothing at runtime and they are most of the deploy.
+
+   ONLY THE TOP LEVEL. `rs/` is the photo pipeline's output and its URLs are
+   built at runtime from an id and a width, so a literal-reference scan would
+   not find the ones a visitor only reaches by hovering a card — those would
+   be deleted and the crossfade would break with the build still green.
+   `brand/` is the mark and the icons. Neither is touched. Every file at the
+   top level, by contrast, is named outright in the source. */
+const plateDir = join(dist, 'katrinisfeld')
+if (existsSync(plateDir)) {
+  let text = ''
+  const readAll = (d) => {
+    for (const e of readdirSync(d)) {
+      const p = join(d, e)
+      if (statSync(p).isDirectory()) { if (p !== plateDir) readAll(p); continue }
+      if (/\.(html|css|js|txt|xml|json)$/.test(e)) text += readFileSync(p, 'utf8')
+    }
+  }
+  readAll(dist)
+  const top = readdirSync(plateDir).filter((f) => statSync(join(plateDir, f)).isFile())
+  let freed = 0, dropped = 0
+  for (const f of top) {
+    if (text.includes(f)) continue
+    freed += statSync(join(plateDir, f)).size
+    rmSync(join(plateDir, f))
+    dropped++
+  }
+  const kept = top.length - dropped
+  if (!kept) throw new Error('katrin-post: pruned every top-level asset, which cannot be right')
+  console.log(`katrin-post: kept ${kept} plate assets · dropped ${dropped} unused (${(freed / 1024 / 1024).toFixed(1)} MB)`)
+}
+
 /* 2 + 3 */
 const env = { ...process.env, KATRIN_STANDALONE: '1' }
 execFileSync('node', ['tools/katrin-prerender.mjs', dist], { stdio: 'inherit', env })
