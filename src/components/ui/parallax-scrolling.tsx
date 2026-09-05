@@ -445,8 +445,22 @@ export function ParallaxComponent({
            timeline is built; the fromTo is kept because it survives the
            invalidate that a refresh triggers, where a plain to() would
            re-record whatever it happened to be showing as its start. */
+        /* THE GATE READS BOTTOM-UP, because its light does. The plates there
+           lift out of the top of the frame, so the bottom of the block is in
+           daylight first and the heading, which is the highest thing, last —
+           and a reveal in document order rose the words behind a metre of
+           rock and set the cards down after them, so the visitor watched the
+           cards arrive alone and then found a finished heading under the
+           stone. Reversed, each thing rises in the band of light the stone
+           has just handed it: the heading lands as the last of the rock
+           leaves the frame. The descent is uncovered the other way and keeps
+           its order. */
+        /* and on the gate the heading rises AS ONE PIECE — no word stagger. Six
+           words on six offsets across two lines, half of them still under
+           rock, was the wordmark's staircase again at twice the size. */
+        const wAt = gate ? 0.66 : 0.10, wDur = gate ? 0.30 : 0.30, wSpan = gate ? 0 : 0.30
         if (words.length) {
-          const gap = words.length > 1 ? (run * 0.30) / (words.length - 1) : 0
+          const gap = words.length > 1 ? (run * wSpan) / (words.length - 1) : 0
           /* 130, NOT 100. The window each word rises out of keeps .22em of
              padding under the word for its descenders, and 100% only moves
              the word by its own height — so the top fifth of every word sat
@@ -455,26 +469,29 @@ export function ParallaxComponent({
           gsap.set(words, { yPercent: 130, y: 0 })
           tl.fromTo(words,
             { yPercent: 130, y: 0 },
-            { yPercent: 0, y: 0, ease: 'power2.out', duration: run * 0.30,
-              stagger: gap }, deepAt + run * 0.10)
+            { yPercent: 0, y: 0, ease: 'power2.out', duration: run * wDur,
+              stagger: gap }, deepAt + run * wAt)
         }
+        const stagList = gate ? Array.from(stag).reverse() : Array.from(stag)
+        const sAt = gate ? 0.28 : 0.22, sSpan = gate ? 0.38 : 0.34
         if (stag.length) {
           /* uncovered from the bottom edge up, which is how a specimen set
              down on a shelf comes into view, with the photograph inside
              settling out of a small oversize as its own window opens */
-          const gap = stag.length > 1 ? (run * 0.34) / (stag.length - 1) : 0
-          gsap.set(stag, { clipPath: 'inset(100% 0% 0% 0%)' })
-          tl.fromTo(stag,
+          const gap = stag.length > 1 ? (run * sSpan) / (stag.length - 1) : 0
+          gsap.set(stagList, { clipPath: 'inset(100% 0% 0% 0%)' })
+          tl.fromTo(stagList,
             { clipPath: 'inset(100% 0% 0% 0%)' },
             { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.out', duration: run * 0.28,
-              stagger: gap }, deepAt + run * 0.22)
-          const stagImgs = deepEl.querySelectorAll('[data-parallax-stagger] img')
+              stagger: gap }, deepAt + run * sAt)
+          /* the photographs settle in the order their windows open */
+          const stagImgs = stagList.flatMap((el) => Array.from(el.querySelectorAll('img')))
           if (stagImgs.length) {
             gsap.set(stagImgs, { scale: 1.09 })
             tl.fromTo(stagImgs,
               { scale: 1.09 },
               { scale: 1, ease: 'power2.out', duration: run * 0.40, stagger: gap },
-              deepAt + run * 0.22)
+              deepAt + run * sAt)
           }
         }
 

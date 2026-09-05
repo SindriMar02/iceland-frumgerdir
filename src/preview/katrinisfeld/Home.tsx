@@ -456,15 +456,19 @@ export function Home() {
         /* dark while it is stone, and it flips itself to light as the cream
            arrives — the handoff happens inside this one section */
         band="dark"
-        /* 170: the light shows once the near plate's crest clears the frame's
-           bottom, 0.6 of the way through, and at 240svh that was 670px of
-           dark rock between the last line on the stone and the first light —
-           "the stone background lasts too long after Efnin bera rýmið". At 170
-           it is 340px, and the whole lift is over in 560. */
-        scroll="170svh"
+        /* 190, and the copy starts at half. The light shows once the near
+           plate's crest clears the frame's bottom, 0.6 of the way through; at
+           240svh that was 670px of dark rock after the last line on the stone
+           ("lasts too long"), at 170 it was 340px — but 170 left the copy 34%
+           of a 70svh pin, six words and five plates through a quarter of a
+           screen, which is why it snapped in. The block sits BEHIND the
+           plates, so starting it at 0.5 costs nothing visible: it is
+           uncovered as the stone lifts. Runway for the copy 24svh → 45svh;
+           dark after the stone 340px → 400px. */
+        scroll="190svh"
         backdrop={`linear-gradient(to bottom, ${COLOURS.CREAM} 0%, #F7F3EC 54%, ${COLOURS.CREAM} 100%)`}
         ground={COLOURS.CREAM}
-        deepAt={0.66}
+        deepAt={0.5}
         deepBehind
         deep={
           <div className="ki-gate-deep">
