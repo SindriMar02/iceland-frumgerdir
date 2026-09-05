@@ -67,6 +67,6 @@ Ef þið viljið að ég klári vefinn með réttu upplýsingunum þá geri ég 
 Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }

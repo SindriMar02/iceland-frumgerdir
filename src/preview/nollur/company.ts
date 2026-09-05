@@ -70,6 +70,6 @@ If you like it, I can finish the whole site, including request-to-book on your o
 Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }

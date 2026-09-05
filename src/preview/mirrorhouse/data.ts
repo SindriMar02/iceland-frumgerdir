@@ -76,6 +76,6 @@ Ef þér líst á, þá er þetta það sem ég geri: sjálf síðan, Google-lei
 Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }

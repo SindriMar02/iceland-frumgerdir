@@ -1764,7 +1764,7 @@ export default function VillaNorthPage() {
         </div>
         <div className="vn-foot-base">
           <p className="vn-foot-line">© 2026 Villa North</p>
-          <a className="vn-foot-a vn-foot-sndr" href="https://sndr-studio.pages.dev" target="_blank" rel="noopener">
+          <a className="vn-foot-a vn-foot-sndr" href="https://sndrstudio.is" target="_blank" rel="noopener">
             Designed by SNDR Studio
           </a>
         </div>

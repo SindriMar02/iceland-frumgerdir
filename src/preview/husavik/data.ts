@@ -270,7 +270,7 @@ Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona
 Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }
 

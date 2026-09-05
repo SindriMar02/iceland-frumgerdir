@@ -300,7 +300,7 @@ Ef ykkur líst vel á þetta getum við spjallað og fundið sanngjarnt verð. E
 Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }
 

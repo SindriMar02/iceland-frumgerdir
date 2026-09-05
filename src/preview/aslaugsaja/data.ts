@@ -73,6 +73,6 @@ Endilega láttu mig vita ef þú hefur áhuga.
 Bestu kveðjur,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }

@@ -66,6 +66,6 @@ Do let me know if you are interested.
 Best regards,
 Sindri Már
 845 1758
-sndr-studio.pages.dev`,
+sndrstudio.is`,
   },
 }

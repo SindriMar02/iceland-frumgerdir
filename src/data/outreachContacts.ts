@@ -42,7 +42,7 @@ const PREVIEW = 'https://sindrimar02.github.io/iceland-frumgerdir/preview'
 const SIGN = `Bestu kveðjur,
 Sindri Már
 845 1758
-https://sndr-studio.pages.dev`
+https://sndrstudio.is`
 
 const SIGN_SHORT = `Bestu kveðjur,
 Sindri Már`

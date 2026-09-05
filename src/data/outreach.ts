@@ -21,7 +21,7 @@ export interface OutreachEmail {
 const SIGNATURE = `Bestu kveðjur,
 Sindri Már
 845 1758
-https://sndr-studio.pages.dev`
+https://sndrstudio.is`
 
 export const outreach: Record<string, OutreachEmail> = {
   'ice-tourism': {

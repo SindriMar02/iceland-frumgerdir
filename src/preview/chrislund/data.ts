@@ -406,6 +406,6 @@ export const companyEntry: PreviewCompany = {
       'Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.\n\n' +
       'Hana má skoða hér hvenær sem er, og hún virkar vel í síma:\n[HLEKKUR Á FRUMGERÐ]\n\n' +
       'Ef þér líst á er ég til í að heyra frá þér, en ef ekki er það að sjálfsögðu allt í lagi.\n\n' +
-      'Bestu kveðjur,\nSindri Már\n845 1758\nsndr-studio.pages.dev',
+      'Bestu kveðjur,\nSindri Már\n845 1758\nsndrstudio.is',
   },
 }
