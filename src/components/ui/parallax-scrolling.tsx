@@ -447,9 +447,14 @@ export function ParallaxComponent({
            re-record whatever it happened to be showing as its start. */
         if (words.length) {
           const gap = words.length > 1 ? (run * 0.30) / (words.length - 1) : 0
-          gsap.set(words, { yPercent: 100, y: 0 })
+          /* 130, NOT 100. The window each word rises out of keeps .22em of
+             padding under the word for its descenders, and 100% only moves
+             the word by its own height — so the top fifth of every word sat
+             inside that padding, visible, from the first frame of the page:
+             the tops of "Efnin bera rýmið" floating over the kitchen. */
+          gsap.set(words, { yPercent: 130, y: 0 })
           tl.fromTo(words,
-            { yPercent: 100, y: 0 },
+            { yPercent: 130, y: 0 },
             { yPercent: 0, y: 0, ease: 'power2.out', duration: run * 0.30,
               stagger: gap }, deepAt + run * 0.10)
         }

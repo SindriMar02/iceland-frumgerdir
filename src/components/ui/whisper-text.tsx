@@ -56,7 +56,7 @@ export function WhisperText({
     if (managed) return
     const ctx = gsap.context(() => {
       const targets = gsap.utils.toArray<HTMLElement>('[data-parallax-word]')
-      gsap.set(targets, { yPercent: 100, y: 0, x })
+      gsap.set(targets, { yPercent: 130, y: 0, x })
       gsap.to(targets, {
         scrollTrigger: {
           trigger: containerRef.current,
