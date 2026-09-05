@@ -86,7 +86,11 @@ export function Photo({ id, alt, sizes, className = '', priority = false, ratio 
         loading={priority ? 'eager' : 'lazy'}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...({ fetchpriority: priority ? 'high' : undefined } as any)}
-        decoding={priority ? 'sync' : 'async'}
+        /* async even when priority. `sync` blocks the main thread on the
+           decode of a full-size photograph; what stopped the specimens
+           flashing was fetching them EAGERLY at high priority, which is the
+           line above, not decoding them on the scroll thread. */
+        decoding="async"
       />
     </picture>
   )

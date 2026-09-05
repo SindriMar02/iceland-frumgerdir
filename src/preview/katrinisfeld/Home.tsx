@@ -275,7 +275,15 @@ export function Home() {
         layers={HERO_ROOM}
         plates={HERO_PLATES}
         sticky
-        smooth
+        /* NO `smooth`. Lenis was measured at 761ms to settle ONE 300px wheel
+           tick — 128ms to reach halfway, 395ms to reach 90% — while every
+           frame in the trace was a clean 16.7ms. That is the lag: not dropped
+           frames, the page moving late. This build had already removed Lenis
+           once for exactly this reason and the parallax component brought it
+           back with the redesign. ScrollTrigger scrubs off native scroll just
+           as well, so nothing on the page moves differently relative to the
+           scroll position — only the scroll position now answers the wheel on
+           the frame it arrives. */
         intro
         /* her photograph and then a tonne of stone: the header is light over
            all of it, and this is what tells it so */
@@ -451,7 +459,6 @@ export function Home() {
       <ParallaxComponent
         plates={EXIT_PLATES}
         sticky
-        smooth
         gate
         /* dark while it is stone, and it flips itself to light as the cream
            arrives — the handoff happens inside this one section */
