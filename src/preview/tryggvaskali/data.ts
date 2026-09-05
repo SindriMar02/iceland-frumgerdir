@@ -25,12 +25,16 @@
 const own = (f: string) => `${import.meta.env.BASE_URL}tryggvaskali/${f}`
 
 export const IMAGES = {
-  // H1 hero, greyscale by design (teardown 4.1 H1 / D1, "greyscale is the
-  // look") — and this frame is a genuine historic black and white, so the
-  // treatment is the photograph's own rather than a filter over stock.
-  // CAUTION: native 1024x662, upscaled at full bleed. Ask for a scan.
-  hero: own('ts-bru-sogulegt.jpg'),
-  // H5 wide parallax plate
+  /* H1 hero. This was the historic flood photograph, and it was the wrong
+     picture for the job: dramatic, genuinely theirs, and an archive shot of a
+     disaster rather than an invitation to dinner. The client publishes NO
+     exterior photograph of the house at all (checked every page on
+     tryggvaskali.com), so the best available "come and eat here" frame is the
+     one their own homepage carousel already leads with: a plated main course.
+     Shown in colour — see the greyscale note in Page.tsx's Hero. */
+  hero: own('ts-rettur-1.jpg'),
+  // H5 wide parallax plate: the archive photograph, where it belongs. The
+  // history section is the place a flood in the Ölfusá is the point.
   riverBridge: own('ts-bru-sogulegt.jpg'),
   // H6 two-column history: the house and the bridge
   houseExterior: own('ts-bru-smatt.jpg'),

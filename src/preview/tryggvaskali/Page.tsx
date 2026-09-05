@@ -1146,8 +1146,37 @@ function Hero() {
         loading="eager"
         fetchpriority="high"
         className="ts-hero-img absolute inset-0 h-full w-full object-cover"
-        style={{ filter: 'grayscale(1)', objectPosition: 'center' }}
+        /* DECLARED DEVIATION from D1's "greyscale is the look". That device
+           suits Paszkowski's archive film still and it suited the historic
+           bridge photograph that was briefly in this slot. The hero is now a
+           plate of food, and a desaturated steak is an unappetising thing to
+           open a restaurant on. Greyscale still governs the archive imagery
+           in the history section, where it is the photograph's own. */
+        style={{ objectPosition: 'center 55%' }}
         fallbackClassName="bg-gradient-to-br from-[#3a342b] via-[#221f1a] to-[#15120D]"
+      />
+      {/* Hero scrim. With the greyscale archive photograph in this slot the
+          cream wordmark had a dark ground under it everywhere. The plate is
+          bright white through the middle of the frame, which is exactly where
+          the wordmark sits, and "SKÁLI" fell off it. This is the same fault
+          the motion audit found on 2026-09-02 when the header lifted its scrim
+          away, so it gets the same treatment: a ground the text can always be
+          read on, measured rather than eyeballed. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: [
+            /* A feathered band behind the wordmark. Measured, not guessed: the
+               plate's brightest pixels under the wordmark sat at luminance
+               .35, giving 2.17:1 against the cream — under the 3:1 WCAG floor
+               for large text. Compositing a further 32% ink there brings it to
+               .24 and clears the bar. Feathered over 30% of the height so it
+               reads as light falling off, not as a box behind the text. */
+            'linear-gradient(180deg, rgba(21,18,13,0) 26%, rgba(21,18,13,.40) 44%, rgba(21,18,13,.40) 56%, rgba(21,18,13,0) 74%)',
+            'linear-gradient(180deg, rgba(21,18,13,.55) 0%, rgba(21,18,13,.30) 34%, rgba(21,18,13,.48) 62%, rgba(21,18,13,.78) 100%)',
+          ].join(','),
+        }}
       />
       {/*
        * DECLARED DEVIATION from the reference (see file header comment
