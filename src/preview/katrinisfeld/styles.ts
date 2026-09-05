@@ -502,7 +502,17 @@ html[data-ki-intro] .ki-nav { opacity: 0; }
    descenders in "Skipulag" and the acute in "lýsing", handed straight back
    by the negative margin so the lockup measures what it always did. */
 .ki-plx-role > span, .ki-plx-tag > span { display: block; }
-.ki-plx-role, .ki-plx-tag { overflow: hidden; padding-bottom: .3em; margin-bottom: -.3em; }
+/* THE MASK ONLY EXISTS WHILE THE OPENING IS RUNNING. Left on permanently it
+   is a box that can only ever fail closed: anything that shortens it — a flex
+   parent squeezing a column, a stray line-height — stops overflowing
+   harmlessly and starts DELETING her job title and the line under it, which
+   is exactly what shipped. The gate attribute is up for the rise and gone
+   forever after, so after the opening these are ordinary paragraphs again.
+   The padding stays in both states so nothing shifts when it goes. */
+html[data-ki-intro] .ki-plx-role, html[data-ki-intro] .ki-plx-tag { overflow: hidden; }
+.ki-plx-role, .ki-plx-tag { padding-bottom: .3em; margin-bottom: -.3em; }
+/* and the lockup's own lines never shrink: they are the content, not filler */
+.ki-plx-name, .ki-plx-role, .ki-plx-tag { flex: none; }
 .ki-plx-role {
   margin: calc(var(--u) * 26) 0 -.3em;
   font-family: ${MONO};
@@ -775,6 +785,36 @@ html[data-ki-intro] .ki-nav { opacity: 0; }
 @media (max-width: 640px) {
   .ki-newest { max-width: calc(100vw - 40px); }
   .ki-newest-fig { width: 72px; }
+}
+/* ON A PHONE IT SITS ABOVE THE NAME, NOT UNDER IT. In the bottom corner it
+   was landing on the crest of the rising stone and reading as part of the
+   rock; there is also far less frame to share on a phone, so the one thing
+   here that asks to be clicked belongs where the eye starts rather than
+   where the ground is. Full width, hairline under it, and the lockup is
+   pushed down by exactly its height so the name keeps its own place in the
+   frame. */
+@media (max-width: 860px) {
+  .parallax__corner:has(.ki-newest) {
+    right: 20px; left: 20px; bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 76px);
+  }
+  /* THE WASH, not a box. Moved up the frame the card sits on her kitchen
+     rather than on the stone, and cream type over a lit stone counter
+     measured 1.00:1 — the same colour as what is behind it. The design has
+     no cards and no glass here, so this is the device the header already
+     uses: one soft fall of shade from the top of the frame, full bleed,
+     fading out below the card. Measured after: worst pixel 4.5:1 or better. */
+  .parallax__corner:has(.ki-newest)::before {
+    content: ''; position: absolute; z-index: -1;
+    left: -20px; right: -20px; top: -110px; bottom: -34px;
+    background: linear-gradient(to bottom,
+      rgb(12 10 9 / .82) 0%, rgb(12 10 9 / .78) 52%, rgb(12 10 9 / .55) 78%, rgb(12 10 9 / 0) 100%);
+    pointer-events: none;
+  }
+  .ki-newest {
+    max-width: none; width: 100%;
+    padding-bottom: 14px; border-bottom: 1px solid rgb(242 236 227 / .26);
+  }
+  .ki-newest-arrow { margin-left: auto; }
 }
 
 /* what a cluster cannot show as a card, named in a line — the register that
