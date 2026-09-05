@@ -75,7 +75,14 @@ export const companyEntry: PreviewCompany = {
      seconds, per rule 12.
      Also removed: "yfir þúsund umsagnir á TripAdvisor", a count with no dated
      proof taken today, and the closer "Endilega heyrið í mér ef þetta kveikir
-     í ykkur", which rule 6 bans outright. */
+     í ykkur", which rule 6 bans outright.
+     REVISED again on Sindri's note: the software paragraph called it "lítið
+     kerfi sem heitir Eldhús". Two faults. "Lítið kerfi" undersells the engine
+     in the sentence that is supposed to sell it, and naming the product in a
+     cold letter asks the reader to care about a brand they have never heard
+     of. It now describes what the software DOES, which is what the recipient
+     is actually weighing: it saves the time, and it holds the records that
+     have to exist. */
   outreach: {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Tryggvaskála',
     body: `Góðan dag,
@@ -89,7 +96,7 @@ Mér fannst það synd fyrir stað með þessa sögu, svo ég settist niður og 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Ég smíðaði líka lítið kerfi sem heitir Eldhús, fyrir innra eftirlitið sem heilbrigðiseftirlitið kallar eftir. Í stað þess að fylla út blöðin í möppunni skráir starfsfólkið hitastig, vörumóttöku og þrif í símann á nokkrum sekúndum, allt er á einum stað þegar eftirlitið kemur, og kerfið lætur vita þegar kælir er hægt og rólega að hlýna, áður en hann gefur sig um helgi. Ég set mynd af yfirlitinu með.
+Ég smíða líka hugbúnað fyrir eldhús. Hann heldur utan um innra eftirlitið, skráninguna sem þarf alltaf að vera til reiðu þegar heilbrigðiseftirlitið kemur. Starfsfólkið skráir hitastig, vörumóttöku og þrif í símann á nokkrum sekúndum í stað þess að fylla út blöðin í möppunni, allt safnast á einn stað og glatast ekki, og kerfið lætur vita þegar kælir er hægt og rólega að hlýna, áður en hann gefur sig aðfaranótt laugardags. Ég set mynd af yfirlitinu með.
 
 Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en annars vona ég að þetta veiti ykkur smá innblástur. Endilega látið mig vita ef þið hafið áhuga.
 
