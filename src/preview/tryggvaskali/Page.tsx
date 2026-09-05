@@ -2264,11 +2264,13 @@ function FoodGallery() {
 // (https://book.easytable.com/book/?id=89b52, BOOKING.easyTableUrl in
 // data.ts — the same URL NAV_SIDE's own "Borðapöntun" link already opens in
 // a new tab), since there is no in-house booking form to link to instead.
-// The primary CTA below is that link, external, read-more styled exactly as
-// the reference's own single link is. `tel:+3544821390` (BOOKING.tel)
-// becomes the secondary line beneath it, per the teardown's own explicit
-// instruction ("with tel:+3544821390 as the secondary line"), rather than
-// the reference's tel-only single link.
+// The CTA below is that link, external, read-more styled exactly as the
+// reference's own single link is.
+// DEVIATION from the teardown's re-aim, on Sindri's call 2026-09-05: it
+// specifies "with tel:+3544821390 as the secondary line" beneath the CTA.
+// That "Eða í síma 482 1390" line is removed — the strip is now the single
+// link the reference itself uses. The number is not lost: it is still in the
+// hero's own "Sími 482 1390" action and in the opening-hours line.
 // Device: 15 (D15) only — the teardown's own device list for this section
 // is exactly one entry, so unlike every other section in this file no
 // entrance motion (Reveal or GSAP) is reproduced here; the strip simply
@@ -2285,12 +2287,6 @@ function BookTableStrip() {
         <ReadMore href={BOOKING.easyTableUrl} external>
           Bóka borð
         </ReadMore>
-        <p style={{ ...TYPE.body, color: C.bodyGrey, margin: '.8em 0 0' }}>
-          Eða í síma{' '}
-          <a href={`tel:${BOOKING.tel}`} className="ts-link no-underline" style={{ color: C.bodyGrey }}>
-            {BOOKING.telDisplay}
-          </a>
-        </p>
       </div>
     </div>
   )
