@@ -700,33 +700,57 @@ html[data-ki-intro] .ki-plx-role, html[data-ki-intro] .ki-plx-tag { overflow: hi
   .ki-strata-core { order: 3; }
   .ki-plx-deep--strata .ki-strata-line { order: 4; margin-top: 22px; max-width: none; font-size: 16px; }
   .ki-plx-deep--strata .ki-plx-deep-cta { order: 5; margin-top: 18px; }
-  /* the datum is a device for one row of columns; with five over three rows
-     each name carries its own rule instead */
+  /* THE DRAWING TURNS NINETY DEGREES, it does not become a grid. Two over
+     two over one, each tile with its own little rule under its name, is a
+     form — five separate horizontal lines at five heights, five squat
+     landscape crops all much the same shape, and the one idea the desktop
+     composition has (five depths hanging off ONE datum) gone entirely.
+     A phone is a tall column, so the section becomes one: the datum stands
+     up and runs vertically, the names hang to its left, and the material
+     stacks against it in five contiguous bands of five different
+     thicknesses. Read top to bottom it is a core lifted out of the ground —
+     the same drawing, the same numbers, the same rhythm of depths, rotated
+     into the shape of the screen instead of chopped up to fit it. */
   .ki-strata-datum { display: none; }
-  .ki-strata-core { --head: 23px; }
-  .ki-stratum-head { border-bottom: 1px solid rgb(242 236 227 / .24); align-items: flex-end; padding-bottom: 3px; }
+  .ki-strata-core { --head: auto; }
   .ki-strata {
-    /* minmax(0, 1fr), not 1fr. A bare 1fr is minmax(AUTO, 1fr), so a column
-       whose name is long refuses to shrink below it and steals width from
-       its neighbour. */
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 16px;
+    grid-template-columns: minmax(82px, 26.5%) minmax(0, 1fr);
+    /* air on the far side of the datum, or the line is drawn underneath the
+       photographs and there is no datum to see */
+    row-gap: 0; column-gap: 15px;
   }
-  /* five into two: the last one takes the full width and reads as a wide
-     plate of stone, which is what stone is. It is the only arrangement of
-     five that leaves no orphan in a half-empty row. */
-  .ki-stratum:last-child { grid-column: 1 / -1; }
+  /* the li stops being a box so its two halves land in the two columns of
+     one row: name left of the datum, material right of it */
+  .ki-stratum { display: contents; }
+  .ki-stratum-head {
+    grid-column: 1; align-self: stretch;
+    align-items: baseline; gap: .45em;
+    padding: 3px 14px 0 0;
+    position: relative;
+    /* five borders, one line: the datum, standing up */
+    border-right: 1px solid rgb(242 236 227 / .3);
+    border-bottom: 0;
+  }
+  /* and a tick off the datum at every boundary, which is what a depth scale
+     has and what makes the line read as measured rather than decorative */
+  .ki-stratum-head::after {
+    content: ''; position: absolute; right: -1px; top: 0; width: 7px; height: 1px;
+    background: rgb(242 236 227 / .45);
+  }
   .ki-stratum-fig {
-    margin-top: 9px;
-    height: calc(var(--spec, 1) * clamp(88px, 12.5svh, 146px));
-    box-shadow: 0 18px 34px -14px rgb(0 0 0 / .75), 0 4px 10px -5px rgb(0 0 0 / .5);
+    grid-column: 2; margin: 0;
+    height: calc(var(--spec, 1) * clamp(66px, 9.8svh, 112px));
+    box-shadow: none;
   }
+  /* the seam between one stratum and the next */
+  .ki-stratum + .ki-stratum .ki-stratum-fig { border-top: 1px solid rgb(242 236 227 / .2); }
+  /* the desktop's own rhythm of depths, kept: no two neighbours alike */
   .ki-stratum:nth-child(1) .ki-stratum-fig { --spec: 1.00; }
-  .ki-stratum:nth-child(2) .ki-stratum-fig { --spec: .84; }
-  .ki-stratum:nth-child(3) .ki-stratum-fig { --spec: .84; }
-  .ki-stratum:nth-child(4) .ki-stratum-fig { --spec: 1.00; }
-  .ki-stratum:last-child .ki-stratum-fig { --spec: .60; }
-  .ki-stratum-name { font-size: 17px; }
+  .ki-stratum:nth-child(2) .ki-stratum-fig { --spec: .71; }
+  .ki-stratum:nth-child(3) .ki-stratum-fig { --spec: .90; }
+  .ki-stratum:nth-child(4) .ki-stratum-fig { --spec: .56; }
+  .ki-stratum:nth-child(5) .ki-stratum-fig { --spec: 1.13; }
+  .ki-stratum-name { font-size: 16px; line-height: 1; }
   .ki-stratum-no { font-size: 9.5px; letter-spacing: .14em; }
 }
 /* a short frame cannot carry the whole apparatus: the closing sentence is
