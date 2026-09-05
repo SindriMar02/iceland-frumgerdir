@@ -59,15 +59,36 @@ for (const f of readdirSync(photoDir)) {
 }
 console.log(`katrin-post: pruned ${jpgs} source JPEGs (${(jpgBytes / 1024 / 1024).toFixed(1)} MB)`)
 
-/* the fonts folder carries ~30 families for the catalogue; this site uses 3 */
+/* THE FONTS FOLDER CARRIES ~30 FAMILIES FOR THE CATALOGUE, AND THIS SITE USES
+   A FEW — but WHICH few is not a list anybody can be trusted to keep. It was
+   one, hard-coded, and when the wordmark moved to Melodrama nobody added it:
+   the build deleted the family, the preload and the @font-face both 404'd,
+   and every visitor to the standalone site got Katrín's name in the fallback
+   serif. It shipped that way and looked almost right, which is why it stood.
+   So the set is DERIVED from what the built files actually ask for, and a
+   reference with no family behind it stops the build. */
 const fontsDir = join(dist, 'fonts')
-const USED_FONTS = new Set(['sentient', 'archia', 'geist-mono'])
-if (existsSync(fontsDir)) {
-  let dropped = 0
-  for (const f of readdirSync(fontsDir)) {
-    if (!USED_FONTS.has(f)) { rmSync(join(fontsDir, f), { recursive: true, force: true }); dropped++ }
+const collectRefs = (d, out) => {
+  for (const e of readdirSync(d)) {
+    const p = join(d, e)
+    if (statSync(p).isDirectory()) { if (e !== 'fonts') collectRefs(p, out); continue }
+    if (!/\.(html|css|js)$/.test(e)) continue
+    for (const m of readFileSync(p, 'utf8').matchAll(/\/fonts\/([A-Za-z0-9_-]+)\//g)) out.add(m[1])
   }
-  console.log(`katrin-post: dropped ${dropped} unused font families`)
+  return out
+}
+if (existsSync(fontsDir)) {
+  const wanted = collectRefs(dist, new Set())
+  const have = new Set(readdirSync(fontsDir))
+  const missing = [...wanted].filter((f) => !have.has(f))
+  if (missing.length) {
+    throw new Error(`katrin-post: the build references font families that are not in public/fonts: ${missing.join(', ')}`)
+  }
+  let dropped = 0
+  for (const f of have) {
+    if (!wanted.has(f)) { rmSync(join(fontsDir, f), { recursive: true, force: true }); dropped++ }
+  }
+  console.log(`katrin-post: kept ${[...wanted].sort().join(', ')} · dropped ${dropped} unused font families`)
 }
 
 /* 2 + 3 */

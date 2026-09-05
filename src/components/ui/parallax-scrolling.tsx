@@ -639,12 +639,22 @@ export function ParallaxComponent({
         const visuals = q('.parallax__layer-img, .parallax__backdrop')
         const cornerEl = triggerElement!.querySelector<HTMLElement>('[data-parallax-corner]')
 
-        /* THE TYPE, AT ONCE. It is the only thing on the screen and it is
-           the reason the wait is bearable, so it does not queue behind a
-           network. Its own held state comes from the stylesheet; these
-           fromTos restate it inline so nothing depends on the attribute
-           still being there when they run. */
-        const type = gsap.timeline()
+        /* THE TYPE, AS SOON AS IT IS THE RIGHT TYPE. It does not queue behind
+           the photographs — it is the only thing on the screen and the reason
+           the wait is bearable — but it does wait for the FACE, because the
+           opening measures each letter's distance from the centre and a
+           fallback serif measures differently: the offsets would be wrong and
+           the wordmark would change shape under itself mid-rise. The
+           stylesheet keeps it held meanwhile, and the wordmark's own woff2 is
+           preloaded, so on any warm or ordinary load this is one microtask.
+           Capped, because a font that never arrives must not cost the page
+           its opening. Its held state comes from the stylesheet; the fromTos
+           restate it inline so nothing depends on the attribute still being
+           there when they run. */
+        const type = gsap.timeline({ paused: true })
+        const faceReady = typeof document !== 'undefined' && document.fonts
+          ? Promise.race([document.fonts.ready, new Promise((r) => window.setTimeout(r, 900))])
+          : Promise.resolve()
         if (letters.length) {
           /* y: 0 IN BOTH, and it is not decoration. GSAP parses the element's
              existing computed transform on first touch and keeps the px it
@@ -684,14 +694,18 @@ export function ParallaxComponent({
              the way animating letter-spacing would. */
           const mid = triggerElement!.querySelector<HTMLElement>('.ki-plx-name')
           if (mid) {
-            const c = mid.getBoundingClientRect()
-            const cx = c.left + c.width / 2
-            const spread = Math.min(0.16, 120 / Math.max(240, c.width))
-            letters.forEach((el) => {
-              const r = el.getBoundingClientRect()
-              const dx = (r.left + r.width / 2 - cx) * spread
-              type.fromTo(el, { x: dx }, { x: 0, duration: 1.7, ease: 'power3.out' }, 0)
-            })
+            /* measured inside the timeline's own first frame, so the numbers
+               are taken with the real face live rather than at build time */
+            type.call(() => {
+              const c = mid.getBoundingClientRect()
+              const cx = c.left + c.width / 2
+              const spread = Math.min(0.16, 120 / Math.max(240, c.width))
+              letters.forEach((el) => {
+                const r = el.getBoundingClientRect()
+                const dx = (r.left + r.width / 2 - cx) * spread
+                gsap.fromTo(el, { x: dx }, { x: 0, duration: 1.7, ease: 'power3.out' })
+              })
+            }, undefined, 0)
           }
         }
         /* The two lines under the name do the same thing the name does — rise
@@ -703,6 +717,8 @@ export function ParallaxComponent({
             { yPercent: 115, y: 0 },
             { yPercent: 0, y: 0, duration: 1.05, ease: 'power3.out', stagger: 0.16 }, 0.42)
         }
+
+        faceReady.then(() => { if (!cancelled && !introDone) type.play(0) })
 
         /* THE PAGE, ONCE IT EXISTS. Every plate and the room behind them,
            decoded — the fade must not uncover a photograph that has not
