@@ -405,7 +405,10 @@ export const CSS = `
 @media (max-width: 860px) {
   /* the solved positions are for the desktop crop and mean nothing on a
      phone, which shows a different slice of the photograph — it stacks */
-  .ki-stmt { min-height: 0; padding: calc(var(--u) * 100) 22px calc(var(--u) * 90); }
+  /* 100u is 44px on a phone, and the gutter was a third one again. The
+     statement keeps the page's 20 and a beat in the same family as the
+     chapter's. */
+  .ki-stmt { min-height: 0; padding: 88px 20px 80px; }
   /* the phone shows a different, brighter slice of the photograph, but the
      answer is still local: a lighter global wash and the veils kept */
   .ki-stmt-scrim { background: linear-gradient(to bottom, rgb(18 15 13 / .53) 0%, rgb(18 15 13 / .62) 100%); }
@@ -888,10 +891,26 @@ export const CSS = `
      chapter read as though its spacing rules were missing. Fixed distances
      between blocks are fixed distances; they do not scale with the window. */
   .ki-hs-track { flex-direction: column; height: auto; transform: none !important; }
-  .ki-hs-slide {
+  /* EVERY VARIANT NAMED, because each one carries its own padding at two
+     class names and a single-class rule cannot reach past that however late
+     it comes. Measured before this: intro, split, duo and close all had
+     padding-top and padding-bottom of ZERO on a phone — the type ran
+     straight into the photograph above and below it — and their left edge
+     sat at 40px against the 20px every other section on the page uses. Four
+     different gutters on one page: 20, 22, 40 and 59.
+     One gutter, 20px, the same as .ki-wrap. One vertical beat. */
+  .ki-hs-slide,
+  .ki-hs-slide.is-intro,
+  .ki-hs-slide.is-split,
+  .ki-hs-slide.is-duo {
     width: 100% !important; height: auto; margin-left: 0;
-    padding: 76px 22px 84px;
+    padding: 80px 20px 88px;
   }
+  /* the intro is a centred grid on the desktop track, which on a phone left
+     its box floating in the middle of the column with its first line 59px in
+     while everything above and below it started at 20 */
+  .ki-hs-slide.is-intro { place-items: start stretch; }
+  .ki-hs-introbox { max-width: none; }
   /* and where two blocks of type meet, an actual rule — the edge of a
      photograph is its own divider, but nothing divided type from type */
   .ki-hs-slide + .ki-hs-slide:not(.is-bleed):not(.is-close):not(.is-plate) {
@@ -909,7 +928,7 @@ export const CSS = `
      vertical room at all and its first line sat under the fixed wordmark */
   .ki-hs-slide.is-plate {
     text-align: left; align-items: flex-start;
-    padding: 96px 22px 92px;
+    padding: 96px 20px 96px;
   }
   .ki-hs-plateline, .ki-hs-platesub { text-align: left; }
   .ki-hs-platesub { margin-top: 26px; }
@@ -927,11 +946,11 @@ export const CSS = `
   .ki-hs-slide.is-duo { flex-direction: column; gap: 44px; }
   .ki-hs-slide.is-duo .ki-hs-fig { width: 100% !important; align-self: auto; margin-bottom: 0; }
   .ki-hs-slide.is-split { grid-template-columns: 1fr; gap: 30px; }
-  .ki-hs-slide.is-close { min-height: 72svh; padding: 0 22px; }
+  .ki-hs-slide.is-close { min-height: 72svh; padding: 0 20px; }
   .ki-hs-introbox .ki-hs-count { margin-top: 30px; }
   .ki-hs-splittitle { margin: 12px 0 14px; }
   .ki-hs-meta { padding-top: 16px; }
-  .ki-hs-chip { left: 22px; bottom: 26px; }
+  .ki-hs-chip { left: 20px; right: 20px; bottom: 26px; }
   .ki-hs-chip-no { position: static; display: block; margin-top: 6px; }
   .ki-root .ki-hs-img picture, .ki-root .ki-hs-img img { width: 100%; margin-left: 0; transform: none !important; }
 }
@@ -1525,7 +1544,15 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
   .ki-split-fig { justify-self: stretch; max-width: none; width: 100%; }
 }
 @media (max-width: 640px) {
-  .ki-wrap, .ki-wrap-tight { padding-left: 20px; padding-right: 20px; }
+  /* AND THE VERTICAL TOO. 130u is 150px on a 1440 desktop and 57px on a
+     phone, because the unit floors at .44px — so every section on the page
+     was two and a half times tighter than it was drawn to be, and the
+     chapter that had been given real pixels then read as a different page.
+     One beat for the whole site on a phone. */
+  .ki-wrap, .ki-wrap-tight {
+    padding-left: 20px; padding-right: 20px;
+    padding-top: 80px; padding-bottom: 80px;
+  }
   .ki-pagehead { padding: 120px 20px 40px; }
   .ki-grid { --cols: 1; }
   .ki-proj-gallery { grid-template-columns: 1fr; }
