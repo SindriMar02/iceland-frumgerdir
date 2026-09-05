@@ -170,27 +170,26 @@ export interface StatementWord {
   y: number
 }
 
-export function StatementOverlay({ id, alt, words, sub }: {
-  id: string; alt: string; words: ReadonlyArray<StatementWord>; sub: string
+export function StatementOverlay({ id, alt, eyebrow, text, sub }: {
+  id: string; alt: string; eyebrow: string; text: string; sub: string
 }) {
+  const words = text.split(' ')
   return (
     <section className="ki-stmt" data-ki-band="dark">
       <Photo id={id} alt={alt} sizes="100vw" />
       <div className="ki-stmt-scrim" aria-hidden="true" />
-      {/* .ki-rv is only the trigger — the sweep already watches for it */}
-      <p className="ki-stmt-words ki-rv" aria-label={words.map((w) => w.t).join(' ')}>
-        {words.map((w, i) => (
-          <span
-            key={w.t + i}
-            className="ki-stmt-word"
-            style={{ left: `${w.x}%`, top: `${w.y}%`, ['--s' as string]: i }}
-            aria-hidden="true"
-          >
-            <i>{w.t}</i>
-          </span>
-        ))}
-      </p>
-      <p className="ki-stmt-sub">{sub}</p>
+      <div className="ki-stmt-in">
+        <p className="ki-stmt-eyebrow">{eyebrow}</p>
+        {/* .ki-rv is only the trigger — the sweep already watches for it */}
+        <p className="ki-stmt-words ki-rv" aria-label={text}>
+          {words.map((w, i) => (
+            <span key={w + i} className="ki-stmt-word" style={{ ['--s' as string]: i }} aria-hidden="true">
+              <i>{w}</i>
+            </span>
+          ))}
+        </p>
+        <p className="ki-stmt-sub">{sub}</p>
+      </div>
     </section>
   )
 }

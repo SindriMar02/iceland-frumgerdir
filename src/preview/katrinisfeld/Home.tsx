@@ -167,6 +167,24 @@ const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
     crest: 0.0647, restAt: 1.75, travel: -1.65, fill: FLOOR, flip: true },
 ]
 
+/* THE COLOUR WORLDS, under the sentence that claims them.
+   The gate's headline says every project gets its own — and had nothing
+   beneath it but cream, which is a claim with no evidence. Three rooms, each
+   named with the two materials it is built from, drawn from the specimens the
+   descent just showed: the same five names, now in the rooms they came out
+   of. Three, not seven: the journey below is the seven. */
+const WORLDS = [
+  { id: 's-eldhus-vitt', slug: 'nybyggt-hus-i-suluhofda', title: 'Súluhöfði',
+    pair: 'Vínrautt og kopar', hexes: ['#8C3A34', '#D09957'],
+    alt: 'Vínrauð eldhúseyja undir koparljósum í Súluhöfða' },
+  { id: 'f-stofa', slug: 'sumarhus-i-fljotshlidinni', title: 'Fljótshlíðin',
+    pair: 'Eik og hör', hexes: ['#8E7054', '#E0D5CD'],
+    alt: 'Stofa sumarhússins með hörgardínum og viðarbitum' },
+  { id: 'p-skuggahverfi-0', slug: 'eldhusrymi-i-skuggahverfi', title: 'Skuggahverfi',
+    pair: 'Steinn og dagsbirta', hexes: ['#4A3527', '#C9C3B8'],
+    alt: 'Dökkt eldhús í Skuggahverfi með steineyju og innfelldri lýsingu' },
+]
+
 /* THE PASSAGE.
    One room of each kind she is asked for, travelling sideways through the
    rock — but written as a chapter rather than run out as an even row of
@@ -359,10 +377,29 @@ export function Home() {
             <span className="ki-gate-rule" aria-hidden="true" />
             <WhisperText as="h2" text="Hvert verkefni fær sinn eigin litheim." className="ki-gate-title" managed />
             <p className="ki-gate-body">
-              Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir eru ekki
-              valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og
-              þau voru ljósmynduð.
+              Litirnir eru ekki valdir úr litakorti heldur teknir beint úr verkefnunum
+              sjálfum, eins og þau voru ljósmynduð.
             </p>
+            <ul className="ki-worlds">
+              {WORLDS.map((w) => (
+                <li key={w.slug} data-parallax-stagger>
+                  <Link to={projPath(w.slug)}>
+                    <span className="ki-worlds-fig">
+                      <Photo id={w.id} alt={w.alt} sizes="(max-width: 860px) 40vw, 250px" />
+                    </span>
+                    <span className="ki-worlds-meta">
+                      <span className="ki-worlds-title">{w.title}</span>
+                      <span className="ki-worlds-pair">
+                        {w.hexes.map((h) => (
+                          <i key={h} style={{ background: h }} aria-hidden="true" />
+                        ))}
+                        {w.pair}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         }
       />
@@ -377,12 +414,8 @@ export function Home() {
       <StatementOverlay
         id="f-eldhus"
         alt="Eldhús sumarhússins í Fljótshlíðinni með viðarbitum og steinborðplötu"
-        words={[
-          { t: 'Rýmið', x: 21, y: 15 },
-          { t: 'er teiknað', x: 46, y: 28 },
-          { t: 'með', x: 19, y: 50 },
-          { t: 'húsinu.', x: 37, y: 70 },
-        ]}
+        eyebrow="Aðferðin"
+        text="Rýmið er teiknað með húsinu."
         sub="Ekki lagt ofan á það þegar smíðinni er lokið"
       />
 

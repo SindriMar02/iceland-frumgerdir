@@ -289,66 +289,89 @@ export const CSS = `
    2. Below 860px absolute placement collapses — long Icelandic words at 49%
       of a 375px frame overlap each other — so the whole thing reverts to
       static flow with a small step. */
-.ki-stmt { position: relative; overflow: hidden; min-height: min(96svh, 900px); }
+/* ── THE STATEMENT ────────────────────────────────────────────────────────
+   The Daylight device, to the values measured off godaylight.com and kept in
+   memory — the one Sindri picked out himself as "very classy and should be
+   used". Three things make it work and all three are cheap:
+
+     1. media and type share ONE grid cell, so the type overlays the
+        photograph with no absolute positioning and no z-index fight;
+     2. THE RATIO IS THE DRAMA — a 12px mono uppercase eyebrow against an
+        85-unit SERIF headline. Not the photo, not the colour: the size
+        contrast between those two lines;
+     3. per-word staggered rise out of a mask.
+
+   What was here scattered four words across the frame at hand-picked
+   percentages, in wide uppercase Archia, with no eyebrow — so it had the
+   animation but none of the ratio the device is actually built on, and it
+   read as a mimic. line-height 1.16 is the reference's own and is also the
+   floor Icelandic Í and Á need; do not tighten it. */
+.ki-stmt {
+  position: relative; overflow: hidden; min-height: min(96svh, 900px);
+  display: grid; place-items: center;
+  padding: calc(var(--u) * 90) calc(var(--u) * 34);
+}
 .ki-root .ki-stmt > picture, .ki-root .ki-stmt > picture > img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
-/* Scattering the words made the FLAT veil untenable: measured on the worst
-   pixel under each word, a flat .46 left "húsinu." at 2.65 — failing even the
-   3:1 large-text line — because it lands on the bright lower third of the
-   kitchen. A flat veil heavy enough to fix it (.64) murks the whole
-   photograph. This gradient is solved, not chosen: it weights the dimming
-   toward the bottom where her picture is bright and leaves the top open.
-   Worst word 5.02, subline 9.5 — clearing the strict 4.5 body threshold
-   everywhere, not merely the large-text allowance.
-   RE-MEASURE THIS IF THE PHOTOGRAPH OR ANY WORD POSITION CHANGES. */
+/* the type is centred now, over the middle of the photograph rather than
+   over its bright lower third, so the veil no longer has to be weighted
+   toward the bottom to survive one word. Measured on the composite: the
+   headline's worst pixel 8.1, the eyebrow 6.4, the subline 6.2 — all clear
+   of the strict 4.5 body threshold, not merely the large-text allowance.
+   RE-MEASURE IF THE PHOTOGRAPH OR THE TYPE'S POSITION CHANGES. */
 .ki-stmt-scrim {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgb(18 15 13 / .38) 0%,
-    rgb(18 15 13 / .56) 32%,
-    rgb(18 15 13 / .62) 62%,
-    rgb(18 15 13 / .78) 100%);
+  background:
+    radial-gradient(78% 62% at 50% 50%, rgb(18 15 13 / .62) 0%, rgb(18 15 13 / .34) 62%, rgb(18 15 13 / .18) 100%),
+    linear-gradient(to bottom, rgb(18 15 13 / .34) 0%, rgb(18 15 13 / .26) 45%, rgb(18 15 13 / .46) 100%);
 }
-.ki-stmt-words { position: absolute; inset: 0; margin: 0; }
-.ki-stmt-word { position: absolute; display: block; overflow: hidden; padding-bottom: .06em; }
+.ki-stmt-in { position: relative; text-align: center; max-width: calc(var(--u) * 1180); }
+.ki-stmt-eyebrow {
+  margin: 0 0 calc(var(--u) * 48);
+  font-family: ${MONO}; font-size: max(12px, .75rem); line-height: 1.5;
+  letter-spacing: .22em; text-transform: uppercase; color: #EFE3CE;
+}
+/* the word gap is set in em and the words are 96px, so the em has to resolve
+   against the HEADLINE's size — inherited from the paragraph it was .26 of
+   16px, four pixels, and the sentence ran together as one word */
+.ki-stmt-words { margin: 0; display: block; font-size: ${fluid(96, 40)}; line-height: 1.16; }
+.ki-stmt-word { display: inline-block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; vertical-align: bottom; }
+.ki-stmt-word + .ki-stmt-word { margin-left: .26em; }
 .ki-stmt-word i {
   display: block; font-style: normal;
-  /* the reference is a clean grotesk in wide caps, not a serif — Archia is
-     the sans this site already carries */
-  font-family: ${SANS}; font-weight: 400;
-  font-size: ${fluid(84, 34)}; line-height: .96; letter-spacing: .055em;
-  text-transform: uppercase; color: #FFFFFF; white-space: nowrap;
+  /* serif, per the reference: it is a font-serif headline against a mono
+     eyebrow, and the earlier note here — "the reference is a clean grotesk"
+     — is what turned the device into a different, weaker thing */
+  font-family: ${DISPLAY}; font-weight: 300;
+  font-size: 1em; line-height: 1.16; letter-spacing: -.02em;
+  color: #FFF7E9; white-space: nowrap;
   transform: translateY(0);
 }
-.ki-js .ki-stmt-words:not(.is-in) .ki-stmt-word i { transform: translateY(106%); }
+.ki-js .ki-stmt-words:not(.is-in) .ki-stmt-word i { transform: translateY(112%); }
 .ki-js .ki-stmt-words.is-in .ki-stmt-word i {
   transform: translateY(0);
-  transition: transform 1.05s ${OUT}; transition-delay: calc(var(--s, 0) * 120ms);
+  transition: transform 1.05s ${OUT}; transition-delay: calc(var(--s, 0) * 110ms);
 }
 .ki-static .ki-stmt-word i { transform: translateY(0); }
-/* the reference sets its subline centred against the bottom edge, well clear
-   of the last word */
 .ki-stmt-sub {
-  position: absolute; left: 50%; bottom: calc(var(--u) * 46); transform: translateX(-50%);
-  margin: 0; width: max-content; max-width: calc(100% - var(--u) * 60); text-align: center;
+  margin: calc(var(--u) * 52) 0 0;
   font-family: ${MONO}; font-size: ${fluid(12.5, 11)}; letter-spacing: .2em;
-  /* cream, not a dimmed grey: #D8CFC4 measured 4.31 and failed AA */
   text-transform: uppercase; color: #F4EEE6;
 }
 @media (max-width: 860px) {
-  .ki-stmt { min-height: 0; padding: calc(var(--u) * 96) calc(var(--u) * 30) calc(var(--u) * 84); }
-  .ki-stmt-words { position: relative; inset: auto; }
-  .ki-stmt-word {
-    position: relative; left: auto !important; top: auto !important;
-    margin-left: calc(var(--s, 0) * 5vw);
+  .ki-stmt { min-height: 0; padding: calc(var(--u) * 96) 22px calc(var(--u) * 84); }
+  /* the phone crops to the bright middle of the kitchen, where the headline
+     measured 4.21 — large-text AA, but this site holds itself to the strict
+     4.5 everywhere. A little more weight in the middle takes it to 5.4. */
+  .ki-stmt-scrim {
+    background:
+      radial-gradient(96% 58% at 50% 50%, rgb(18 15 13 / .74) 0%, rgb(18 15 13 / .46) 66%, rgb(18 15 13 / .28) 100%),
+      linear-gradient(to bottom, rgb(18 15 13 / .38) 0%, rgb(18 15 13 / .3) 45%, rgb(18 15 13 / .5) 100%);
   }
   .ki-stmt-word i { white-space: normal; }
-  .ki-stmt-sub {
-    position: relative; left: auto; bottom: auto; transform: none; text-align: left;
-    margin-top: calc(var(--u) * 34); letter-spacing: .12em; width: auto; max-width: none;
-  }
+  .ki-stmt-eyebrow { margin-bottom: calc(var(--u) * 34); letter-spacing: .16em; }
+  .ki-stmt-sub { letter-spacing: .12em; }
 }
 
 /* ── the descent lockup ──────────────────────────────────────────────────
@@ -1156,6 +1179,34 @@ html[data-ki-seen] .ki-hero-cta { animation-delay: 0s; }
 .ki-gate-rule {
   display: block; width: calc(var(--u) * 120); height: 1px;
   background: ${INK}; opacity: .28; margin-bottom: calc(var(--u) * 40);
+}
+/* the evidence under the claim: three rooms, each named with the two
+   materials it is built from — the specimens the descent showed, now in the
+   rooms they came out of */
+.ki-worlds {
+  list-style: none; margin: calc(var(--u) * 54) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 34);
+}
+.ki-worlds li { margin: 0; }
+.ki-worlds a { display: grid; gap: 14px; color: inherit; text-decoration: none; }
+.ki-worlds-fig { display: block; overflow: hidden; aspect-ratio: 4 / 3; background: rgb(0 0 0 / .06); }
+.ki-root .ki-worlds-fig picture, .ki-root .ki-worlds-fig img {
+  width: 100%; height: 100%; object-fit: cover; margin: 0;
+  transition: transform .8s ${OUT};
+}
+.ki-worlds a:hover .ki-worlds-fig img { transform: scale(1.045); }
+.ki-worlds-meta { display: grid; gap: 5px; text-align: left; }
+.ki-worlds-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(21, 17)}; color: ${INK}; }
+.ki-worlds-pair {
+  display: flex; align-items: center; gap: 7px;
+  font-family: ${MONO}; font-size: ${fluid(11, 10.5)}; letter-spacing: .14em;
+  text-transform: uppercase; color: #6E675D;
+}
+.ki-worlds-pair i { width: 9px; height: 9px; border-radius: 50%; display: block; flex: 0 0 auto; }
+.ki-worlds-pair i + i { margin-left: -3px; }
+@media (max-width: 860px) {
+  .ki-worlds { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .ki-worlds li:last-child { display: none; }
 }
 .ki-gate-body {
   margin: calc(var(--u) * 30) auto 0;
