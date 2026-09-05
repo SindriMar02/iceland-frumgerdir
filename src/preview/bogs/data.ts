@@ -99,7 +99,7 @@ export const HERO = {
 
 // ─── 4.2 OUR OFFERING (3 CARDS) ──────────────────────────────────────────────
 export interface OfferCard {
-  id: string
+  id?: string
   eyebrow: string
   title: string
   body: string
@@ -115,19 +115,17 @@ export const OFFER_CARDS: OfferCard[] = [
     // teardown section 9 are dropped, since that section is not itself a
     // VERIFIED CLIENT FACT and rule 2 forbids stating a client fact this
     // task's own facts block does not carry.
-    id: 'maturinn',
     eyebrow: 'Maturinn',
     title: 'Maturinn',
-    body: 'Morgunverður og kaffi frá Kaffitár.',
+    body: 'Morgunverður, ristað brauð, súpur og salatbar, pizzur og hamborgarar.',
     href: '#matsedill',
     image: IMAGES.offerFood,
   },
   {
-    id: 'hopar',
     eyebrow: 'Hópar',
     title: 'Hópar og rútur',
-    body: 'Hópamatseðill er í boði fyrir hópa og rútur.',
-    href: '#matsedill',
+    body: 'Tíu kvöldmatseðlar og sjö hádegistilboð, með afslætti frá 15 manns.',
+    href: '#hopar',
     image: IMAGES.offerGroup,
   },
   {
@@ -148,68 +146,114 @@ export const OFFER_CARDS: OfferCard[] = [
   },
 ]
 
-// ─── MENU (teardown re-aim map, row "4.1 Home hero": the hero's secondary
-// CTA is specified as "Sjá matseðil" -> `#matur`, a section the first build
-// never made, so that CTA had nowhere to go) ──────────────────────────────
+// ─── MENU + GROUPS ──────────────────────────────────────────────────────────
 //
-// STRUCTURE is the reference's own `section.section-packages.u-grid`
-// (teardown 4.19/4.26): a vertical repeating list, rows separated by a 2px
-// `.divider-line` in #16151333, "not a table, not a pricing grid". The
-// reference's rows carry a 4:5 parallax image each; these do not, because a
-// menu is a typographic object and because three more stock plates would be
-// the same image-count padding that had to be stripped out of the facts band
-// and the diptych.
+// SOURCE, read 2026-09-05 off bogs.is itself: /restaurant/menu/breakfast,
+// /restaurant/menu/toast-with-toppings, /restaurant/group-menu,
+// /restaurant/about and the home page. Everything below is the client's own
+// published content, translated from their English into Icelandic. Nothing is
+// invented.
 //
-// CONTENT is the hard part and the reason this section did not exist. B&S
-// publishes no itemised menu and no prices anywhere — not on bogs.is, not on
-// TripAdvisor. Every line below is a category the client has actually
-// published (the bogs.is nav categories plus the Kaffitár signage), worded
-// from the same VERIFIED CLIENT FACTS block the offering cards and the FAQ
-// answers already draw on. No dish, no price and no opening time is invented
-// to fill the section out. The closing line directs to the phone rather than
-// claiming what the prices are.
-export interface MenuRow {
+// This corrects an error in the other direction. The build's VERIFIED CLIENT
+// FACTS block was far narrower than what B&S actually publishes, and the
+// 2026-09-02 repair pass deleted the burger and pizza mentions as
+// "unconfirmed" when both are on the client's own site. The page was thin
+// because the brief was thin, not because the client had nothing to say: they
+// publish a priced breakfast menu, a priced toast menu, ten numbered group
+// dinner menus, seven lunch offers, a coach-operator discount ladder, a food
+// philosophy and the owner's name.
+//
+// PRICES ARE DATED. They are the client's published figures as of 2026-09-05
+// and must be re-checked before this page goes live.
+export interface MenuItem {
+  name: string
+  desc: string
+  price: string
+}
+
+export interface MenuGroup {
   title: string
-  body: string
+  note?: string
+  items: MenuItem[]
 }
 
 export const MENU = {
   eyebrow: 'Matseðill',
-  headline: 'Morgunverður, brauð og kaffi frá Kaffitár',
-  rows: [
+  headline: 'Morgunverður og ristað brauð með áleggi',
+  intro:
+    'Á matseðlinum er kjöt og fiskur, grænmetis- og pastaréttir, indverskir réttir, súpur, smáréttir og salatbar, auk pizza og hamborgara. Hér að neðan eru morgunverðurinn og ristaða brauðið eins og þau eru borin fram.',
+  groups: [
     {
       title: 'Morgunverður',
-      body: 'Morgunverður er á matseðlinum. Hafið samband til að staðfesta hvenær hann er borinn fram.',
+      items: [
+        { name: 'Spæld egg', desc: 'Spæld egg, ristað brauð, ostur, skinka, beikon, smjör, tómatar og gúrka. Val um epla- eða appelsínusafa.', price: '3.790 kr.' },
+        { name: 'Hrærð egg', desc: 'Hrærð egg, ristað brauð, ostur, skinka, beikon, smjör, tómatar og gúrka. Val um epla- eða appelsínusafa.', price: '3.790 kr.' },
+        { name: 'Shakshuka', desc: 'Steikt grænmeti, heimagerð tómatsósa með kóríander og kryddi, tvö egg og beikon.', price: '3.390 kr.' },
+        { name: 'Croissant með skinku og osti', desc: 'Croissant með smjöri, skinku, osti og grænmeti.', price: '990 kr.' },
+        { name: 'Íslenskt skyr', desc: 'Með bláberjasultu og rjóma.', price: '1.190 kr.' },
+      ],
     },
     {
       title: 'Ristað brauð með áleggi',
-      body: 'Ristað brauð með áleggi og meðlæti.',
+      note: 'Allar sortir á sama verði.',
+      items: [
+        { name: 'Reyktur lax', desc: 'Reyktur lax, ferskt avókadó og dillsósa.', price: '1.590 kr.' },
+        { name: 'Prosciutto', desc: 'Prosciutto-skinka, rifnir ferskir tómatar og klettasalat.', price: '1.590 kr.' },
+        { name: 'Reyktar ofnbakaðar paprikur', desc: 'Reyktar ofnbakaðar paprikur, mozzarella og basilíkuolía.', price: '1.590 kr.' },
+        { name: 'Reykt eggaldinmauk', desc: 'Reykt eggaldinmauk, ferskir kirsuberjatómatar og marínerað tófú.', price: '1.590 kr.' },
+        { name: 'Tómatar og mozzarella', desc: 'Tómatar, mozzarella, svartar ólífur og basilíkuolía.', price: '1.590 kr.' },
+      ],
     },
-    {
-      title: 'Kaffi frá Kaffitár',
-      body: 'Kaffi frá Kaffitár er borið fram á staðnum.',
-    },
-    {
-      title: 'Hópamatseðill',
-      body: 'Hópamatseðill er í boði fyrir hópa og rútur. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
-    },
-  ] as MenuRow[],
-  // Not a claim about what the prices are, a direction to the people who know.
-  note: 'Nánari upplýsingar um matseðil og verð eru veittar í síma 453 5060.',
+  ] as MenuGroup[],
+  note: 'Verð eru eins og þau voru birt á bogs.is 5. september 2026. Fullur matseðill, þar á meðal pizzur, hamborgarar og barnamatseðill, er á staðnum og í síma 453 5060.',
+} as const
+
+// ─── GROUPS AND COACHES ────────────────────────────────────────────────────
+// The single most commercially useful thing B&S publishes and the current
+// site buries: a stated discount ladder and free meals for the driver and
+// guide. Verbatim source (bogs.is/restaurant/group-menu): "Group is 8 or more
+// people", "15 to 50 people get 15% off", "50+ people get 20% off", "Driver
+// and guide eat for free", "All prices include tax".
+export const GROUPS = {
+  eyebrow: 'Hópar og rútur',
+  headline: 'Hópamatseðlar fyrir rútur og hópa frá átta manns',
+  intro:
+    'Tíu kvöldmatseðlar og sjö hádegistilboð eru í boði fyrir hópa, þar á meðal grænmetismatseðill. Súpa, aðalréttur og eftirréttur fylgja hverjum matseðli. Best er að hafa samband fyrirfram svo hægt sé að taka vel á móti hópnum.',
+  terms: [
+    { label: 'Hópur', value: 'Átta manns eða fleiri' },
+    { label: '15 til 50 manns', value: '15% afsláttur' },
+    { label: '50 manns og fleiri', value: '20% afsláttur' },
+    { label: 'Bílstjóri og fararstjóri', value: 'Frítt að borða' },
+    { label: 'Öll verð', value: 'Með virðisaukaskatti' },
+  ],
+  note: 'Matseðlar hópa og verð eru send eftir samtal við staðinn. Hringið í 453 5060.',
 } as const
 
 // ─── 4.3 ABOUT US TEASER (DARK BAND) ─────────────────────────────────────────
 export const ABOUT_TEASER = {
   eyebrow: 'Um okkur',
-  // PLACEHOLDER: the reference runs 61 words of inn history (teardown 4.3);
-  // B&S has published only the founding year and location, so this stays
-  // short and states only those two facts plus the ring-road setting.
+  // Verbatim source (bogs.is/restaurant/about): "B&S Restaurant is a
+  // comfortable restaurant by the ring road in Blonduos town in North-West
+  // Iceland", "The Restaurant has been in business since the year 2007", "We
+  // endeavour to take good care of you and our goal is to make your visit at
+  // the B&S Restaurant enjoyable and you feel good". Owner named on the same
+  // page as Bjorn Thor Kristjansson.
   paragraph:
-    'B&S Restaurant hefur verið fjölskylduveitingastaður og kaffihús á Norðurlandsvegi 4 í Blönduósi síðan 2007, beint við þjóðveg eitt.',
-  // The band's CTA was removed 2026-09-05: it pointed at #about from inside
-  // the section whose id is #about. There is no About page to send anyone to,
-  // and the sitemap's own "Um B&S" entry already anchors here.
+    'B&S Restaurant er notalegur veitingastaður við hringveginn í Blönduósi á Norðvesturlandi og hefur verið starfræktur frá árinu 2007. Markmiðið er einfalt: að taka vel á móti fólki og að heimsóknin sé góð.',
+  owner: 'Björn Þór Kristjánsson, eigandi og rekstraraðili',
 } as const
+
+// The kitchen's own stated principles, from bogs.is/restaurant/about:
+// "Therefore we are always working on our menu to make it more healthy",
+// "Most of our soups are made from vegetables and they are gluten-free", "We
+// only use leaven yeast and sour dough for our bread and pizzas", "We do not
+// put MSG in our food".
+export const KITCHEN_PRINCIPLES = [
+  'Matseðillinn er í stöðugri endurskoðun með hollustu að leiðarljósi.',
+  'Flestar súpur eru gerðar úr grænmeti og eru glútenlausar.',
+  'Brauð og pizzur eru bakaðar með súrdeigi og súrdeigsgeri.',
+  'MSG er ekki notað í matinn.',
+] as const
 
 // ─── 4.5 HOUSE FACTS (teardown "House philosophy", `section.section-small-text`)
 // The reference runs a 43-word "the house is always yours" philosophy that
@@ -235,27 +279,39 @@ export interface FaqItem {
 export const FAQ: FaqItem[] = [
   {
     q: 'Hvar er B&S Restaurant?',
-    a: 'Norðurlandsvegur 4, 540 Blönduós, beint við þjóðveg eitt.',
+    a: 'Norðurlandsvegur 4, 540 Blönduós, beint við þjóðveg eitt á Norðvesturlandi.',
   },
   {
+    // bogs.is states "OPEN 09:00 - 21:00" on its own front page. TripAdvisor
+    // lists 11:00 to 21:00; the client's own site is the authority for the
+    // client's own hours, so it leads, and the discrepancy is no longer
+    // presented as an unresolved conflict.
     q: 'Hvenær er opið?',
-    a: 'Opnunartímar eru staðfestir í síma 453 5060. Á vef staðarins stendur 09:00 til 21:00 og á TripAdvisor 11:00 til 21:00, svo rétt er að hringja á undan sér.',
+    a: 'Samkvæmt vef staðarins er opið frá 09:00 til 21:00. Opnunartímar geta breyst eftir árstíma, svo rétt er að hringja í 453 5060 ef ferðin er löng.',
   },
   {
     q: 'Er hægt að fá morgunverð?',
-    a: 'Já, morgunverður er á matseðlinum. Hafið samband til að staðfesta hvenær hann er borinn fram.',
+    a: 'Já. Morgunverður er á matseðlinum, allt frá croissant með skinku og osti á 990 kr. upp í spæld eða hrærð egg með ristuðu brauði, osti, skinku, beikoni og safa á 3.790 kr.',
   },
   {
-    q: 'Takið þið á móti hópum?',
-    a: 'Já, hópamatseðill er í boði. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
+    q: 'Hvað telst hópur og hvaða afsláttur er í boði?',
+    a: 'Hópur telst átta manns eða fleiri. Hópar frá 15 til 50 manns fá 15% afslátt og 50 manns og fleiri fá 20% afslátt. Bílstjóri og fararstjóri fá frítt að borða og öll verð eru með virðisaukaskatti.',
   },
   {
-    // RESOLVED on repair (was "FLAG FOR ORCHESTRATOR"): same call as
-    // OFFER_CARDS[2] above — the wifi/projector specifics came from teardown
-    // section 9, not this task's VERIFIED CLIENT FACTS block, which only
-    // authorizes a generic description. Rolled back accordingly.
+    q: 'Takið þið á móti rútum?',
+    a: 'Já. Tíu kvöldmatseðlar og sjö hádegistilboð eru í boði fyrir hópa, þar á meðal grænmetismatseðill. Best er að hafa samband fyrirfram í síma 453 5060.',
+  },
+  {
+    q: 'Er eitthvað fyrir þá sem borða ekki kjöt eða þola ekki glúten?',
+    a: 'Flestar súpur eru gerðar úr grænmeti og eru glútenlausar, og grænmetismatseðill er í boði fyrir hópa. Látið vita við pöntun svo hægt sé að taka tillit til þess.',
+  },
+  {
     q: 'Er hægt að funda í Eyvindarstofu?',
-    a: 'Eyvindarstofa er á staðnum. Hafið samband í síma 453 5060 til að fá nánari upplýsingar.',
+    a: 'Eyvindarstofa er á staðnum og hefur sinn eigin matseðil. Nánari upplýsingar og bókanir í síma 453 5060.',
+  },
+  {
+    q: 'Er gisting á staðnum?',
+    a: 'Laxás gisting er rekin samhliða veitingastaðnum. Upplýsingar og bókanir í síma 453 5060.',
   },
   {
     q: 'Hvernig næ ég sambandi við ykkur?',
@@ -279,7 +335,7 @@ export const HOURS_LINE =
 
 export const SITEMAP = [
   { label: 'Heim', href: '/preview/bogs' },
-  { label: 'Maturinn', href: '#maturinn' },
+  { label: 'Matseðill', href: '#matsedill' },
   { label: 'Hópar og rútur', href: '#hopar' },
   { label: 'Eyvindarstofa', href: '#eyvindarstofa' },
   { label: 'Um B&S', href: '#about' },

@@ -32,7 +32,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { Img } from '../../components/Img'
 import { companyEntry } from './company'
-import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, MENU, ABOUT_TEASER, HOUSE_FACTS, FAQ } from './data'
+import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, MENU, GROUPS, KITCHEN_PRINCIPLES, ABOUT_TEASER, HOUSE_FACTS, FAQ } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
 
@@ -904,7 +904,7 @@ function Offering() {
         >
           {OFFER_CARDS.map((card) => (
             <a
-              key={card.id}
+              key={card.title}
               id={card.id}
               href={card.href}
               className="bs-offer-card bs-offer-card-col"
@@ -1038,15 +1038,21 @@ function MenuSection() {
     >
       <style>{`
         .bs-menu-head { grid-column: 1 / span 7; }
+        .bs-menu-intro { grid-column: 8 / span 5; }
         .bs-menu-list { grid-column: 1 / span 12; }
-        .bs-menu-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: ${CLAMP.gutter}; align-items: baseline; }
-        .bs-menu-row__title { grid-column: 1 / span 5; }
-        .bs-menu-row__body { grid-column: 7 / span 5; }
-        .bs-menu-divider { height: 2px; background: ${C.divider}; }
-        .bs-menu-note { grid-column: 7 / span 5; }
+        .bs-menu-group + .bs-menu-group { margin-top: ${CLAMP.gap5}; }
+        .bs-menu-item { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: ${CLAMP.gutter}; align-items: baseline; }
+        .bs-menu-item__name { grid-column: 1 / span 3; }
+        .bs-menu-item__desc { grid-column: 5 / span 5; }
+        .bs-menu-item__price { grid-column: 11 / span 2; text-align: right; white-space: nowrap; }
+        .bs-menu-divider { height: 1px; background: ${C.divider}; }
+        .bs-menu-note { grid-column: 8 / span 5; }
         @media (max-width: 767px) {
-          .bs-menu-head, .bs-menu-list, .bs-menu-note { grid-column: 1 / span 12 !important; }
-          .bs-menu-row { display: flex; flex-direction: column; }
+          .bs-menu-head, .bs-menu-intro, .bs-menu-list, .bs-menu-note { grid-column: 1 / span 12 !important; }
+          .bs-menu-item { grid-template-columns: 1fr auto; }
+          .bs-menu-item__name { grid-column: 1; }
+          .bs-menu-item__price { grid-column: 2; }
+          .bs-menu-item__desc { grid-column: 1 / span 2; margin-top: .35em; }
         }
       `}</style>
 
@@ -1055,19 +1061,30 @@ function MenuSection() {
           <p className="bs-h6 bs-menu-eyebrow" style={{ margin: 0 }}>{MENU.eyebrow}</p>
           <h2 className="bs-h2 bs-menu-h2" style={{ margin: 0 }}>{MENU.headline}</h2>
         </div>
+        <p className="bs-p-medium bs-menu-intro" style={{ margin: 0, alignSelf: 'end', color: C.ink }}>
+          {MENU.intro}
+        </p>
 
-        <div className="bs-menu-list" style={{ marginTop: CLAMP.gap4 }}>
-          {MENU.rows.map((row, i) => (
-            <div key={row.title}>
-              {i === 0 && <div className="bs-menu-divider" />}
-              <div
-                className="bs-menu-row"
-                style={{ paddingTop: CLAMP.gap3, paddingBottom: CLAMP.gap3, gap: CLAMP.gap2 }}
-              >
-                <h3 className="bs-h4 bs-menu-row__title" style={{ margin: 0 }}>{row.title}</h3>
-                <p className="bs-p-medium bs-menu-row__body" style={{ margin: 0, color: C.ink }}>{row.body}</p>
+        <div className="bs-menu-list" style={{ marginTop: CLAMP.gap5 }}>
+          {MENU.groups.map((group) => (
+            <div className="bs-menu-group bs-menu-row" key={group.title}>
+              <div className="flex flex-wrap items-baseline" style={{ gap: CLAMP.gap2, marginBottom: CLAMP.gap2 }}>
+                <h3 className="bs-h4" style={{ margin: 0 }}>{group.title}</h3>
+                {group.note && (
+                  <p className="bs-p-small" style={{ margin: 0, opacity: 0.65 }}>{group.note}</p>
+                )}
               </div>
               <div className="bs-menu-divider" />
+              {group.items.map((item) => (
+                <div key={item.name}>
+                  <div className="bs-menu-item" style={{ paddingTop: CLAMP.gap2, paddingBottom: CLAMP.gap2 }}>
+                    <p className="bs-p-medium bs-menu-item__name" style={{ margin: 0 }}>{item.name}</p>
+                    <p className="bs-p-small bs-menu-item__desc" style={{ margin: 0, opacity: 0.75 }}>{item.desc}</p>
+                    <p className="bs-p-medium bs-menu-item__price" style={{ margin: 0 }}>{item.price}</p>
+                  </div>
+                  <div className="bs-menu-divider" />
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -1079,6 +1096,90 @@ function MenuSection() {
     </section>
   )
 }
+
+/* ── GROUPS AND COACHES ────────────────────────────────────────────────────
+   New section, 2026-09-05. The company brief calls the group and coach trade
+   "the business bogs.is undersells the most", and the client publishes a
+   stated discount ladder plus free meals for the driver and guide — the two
+   facts a coach operator actually decides on. None of it was anywhere on the
+   page. Row grammar is the menu's, so the two read as one system. */
+function GroupsSection() {
+  const rootRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const q = gsap.utils.selector(root)
+      const tl = gsap.timeline({ scrollTrigger: { trigger: root, start: 'top 80%', once: true } })
+      tl.fromTo(q('.bs-groups-eyebrow'), { autoAlpha: 0, y: '2em' }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'osmo' }, 0)
+        .fromTo(q('.bs-groups-h2'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.1)
+        .fromTo(q('.bs-groups-intro'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.2)
+        .fromTo(q('.bs-term'), { autoAlpha: 0, y: '1em' }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'osmo', stagger: 0.07 }, 0.3)
+        .fromTo(q('.bs-groups-note'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'osmo' }, 0.7)
+      const failsafe = window.setTimeout(() => {
+        gsap.set(q('.bs-groups-eyebrow, .bs-groups-h2, .bs-groups-intro, .bs-term, .bs-groups-note'), { clearProps: 'opacity,visibility,transform' })
+      }, 4000)
+      return () => { window.clearTimeout(failsafe); tl.kill() }
+    })
+    return () => mm.revert()
+  }, [])
+
+  return (
+    <section
+      id="hopar"
+      ref={rootRef}
+      className="relative"
+      style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.eggwhite, scrollMarginTop: '5rem' }}
+    >
+      <style>{`
+        .bs-groups-head { grid-column: 1 / span 7; }
+        .bs-groups-intro { grid-column: 8 / span 5; }
+        .bs-terms { grid-column: 1 / span 12; }
+        .bs-term { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: ${CLAMP.gutter}; align-items: baseline; }
+        .bs-term__label { grid-column: 1 / span 4; }
+        .bs-term__value { grid-column: 6 / span 6; }
+        .bs-term-divider { height: 1px; background: ${C.divider}; }
+        .bs-groups-note { grid-column: 6 / span 7; }
+        @media (max-width: 767px) {
+          .bs-groups-head, .bs-groups-intro, .bs-terms, .bs-groups-note { grid-column: 1 / span 12 !important; }
+          .bs-term { grid-template-columns: 1fr auto; }
+          .bs-term__label { grid-column: 1; }
+          .bs-term__value { grid-column: 2; text-align: right; }
+        }
+      `}</style>
+
+      <div style={GRID_STYLE}>
+        <div className="bs-groups-head flex flex-col items-start text-left" style={{ gap: CLAMP.gap1 }}>
+          <p className="bs-h6 bs-groups-eyebrow" style={{ margin: 0 }}>{GROUPS.eyebrow}</p>
+          <h2 className="bs-h2 bs-groups-h2" style={{ margin: 0 }}>{GROUPS.headline}</h2>
+        </div>
+        <p className="bs-p-medium bs-groups-intro" style={{ margin: 0, alignSelf: 'end', color: C.ink }}>
+          {GROUPS.intro}
+        </p>
+
+        <div className="bs-terms" style={{ marginTop: CLAMP.gap5 }}>
+          <div className="bs-term-divider" />
+          {GROUPS.terms.map((t) => (
+            <div key={t.label}>
+              <div className="bs-term" style={{ paddingTop: CLAMP.gap2, paddingBottom: CLAMP.gap2 }}>
+                <p className="bs-p-small bs-term__label" style={{ margin: 0, opacity: 0.7 }}>{t.label}</p>
+                <p className="bs-h4 bs-term__value" style={{ margin: 0 }}>{t.value}</p>
+              </div>
+              <div className="bs-term-divider" />
+            </div>
+          ))}
+        </div>
+
+        <p className="bs-p-small bs-groups-note" style={{ marginTop: CLAMP.gap2, color: C.ink, opacity: 0.7 }}>
+          {GROUPS.note}
+        </p>
+      </div>
+    </section>
+  )
+}
+
 
 /* ── 4.3 About us teaser (dark band), `section.section-text.u-grid` (teardown
    4.3) ─────────────────────────────────────────────────────────────────────
@@ -1195,14 +1296,18 @@ function AboutTeaser() {
        * the copy that actually exists. No copy was invented to fill it.
        */}
       <style>{`
-        .bs-about-col { grid-column: 1 / span 9; }
+        .bs-about-col { grid-column: 1 / span 7; }
+        .bs-about-side { grid-column: 9 / span 4; }
+        .bs-about-principle { display: flex; gap: .7em; }
+        .bs-about-principle + .bs-about-principle { margin-top: ${CLAMP.gap2}; }
         @media (max-width: 767px) {
-          .bs-about-col { grid-column: 1 / span 12 !important; }
+          .bs-about-col, .bs-about-side { grid-column: 1 / span 12 !important; }
+          .bs-about-side { margin-top: ${CLAMP.gap4}; }
         }
       `}</style>
 
       <div style={GRID_STYLE}>
-        <div className="bs-about-col flex flex-col items-start text-left" style={{ gap: CLAMP.gap3 }}>
+        <div className="bs-about-col flex flex-col items-start text-left" style={{ gap: CLAMP.gap2 }}>
           <p
             className="bs-h6 bs-about-eyebrow"
             style={{ margin: 0, color: C.eggwhite, opacity: 0.65 }}
@@ -1215,14 +1320,31 @@ function AboutTeaser() {
               margin: 0,
               color: C.eggwhite,
               fontFamily: FONT_FAMILY,
-              fontSize: CLAMP.h3,
-              lineHeight: 1.12,
-              letterSpacing: LETTER_SPACING.heading,
+              fontSize: CLAMP.h4,
+              lineHeight: 1.18,
+              letterSpacing: LETTER_SPACING.smallHeading,
             }}
           >
             {ABOUT_TEASER.paragraph}
           </p>
+          {/* The owner's name is published on bogs.is/restaurant/about. A real
+              person behind a roadside restaurant is the warmest fact the
+              client has, and the page did not carry it. */}
+          <p className="bs-p-small bs-about-owner" style={{ margin: 0, color: C.eggwhite, opacity: 0.7 }}>
+            {ABOUT_TEASER.owner}
+          </p>
         </div>
+
+        {/* The kitchen's own stated principles, also from that page. They are
+            the reason a ring-road stop is worth choosing over the next one. */}
+        <ul className="bs-about-side" style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+          {KITCHEN_PRINCIPLES.map((line) => (
+            <li key={line} className="bs-about-principle bs-p-small" style={{ color: C.eggwhite, opacity: 0.85 }}>
+              <span aria-hidden style={{ flex: 'none', opacity: 0.5 }}>—</span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
@@ -1796,6 +1918,8 @@ export default function Page() {
       <Offering />
 
       <MenuSection />
+
+      <GroupsSection />
 
       <FullBleedPhoto />
 

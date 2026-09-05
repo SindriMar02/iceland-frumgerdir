@@ -814,8 +814,15 @@ function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
           docked into this row's centre. This empty middle is deliberate —
           justify-between plus the spacer still balances the burger. */}
 
-      {/* Spacer to balance the burger and keep the wordmark visually centred */}
-      <span style={{ width: 48 }} aria-hidden />
+      <a
+        href={BOOKING.easyTableUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="ts-link no-underline ts-header-cta"
+        style={{ ...TYPE.button, color: C.cream }}
+      >
+        Bóka borð
+      </a>
     </header>
   )
 }
@@ -882,7 +889,7 @@ function HeroWordmark() {
         if (reduced) {
           // No splash, no scrub: land directly on the small, always-docked
           // wordmark, exactly where the plain header version used to sit.
-          gsap.set(link, { fontSize: 15, top: dockTop, letterSpacing: '.14em', opacity: 1 })
+          gsap.set(link, { fontSize: 22, top: dockTop, letterSpacing: '.12em', opacity: 1 })
           return undefined
         }
 
@@ -899,9 +906,9 @@ function HeroWordmark() {
           link,
           { fontSize: bigSize, top: startTop, letterSpacing: '.01em' },
           {
-            fontSize: 15,
+            fontSize: 22,
             top: dockTop,
-            letterSpacing: '.14em',
+            letterSpacing: '.12em',
             ease: 'none',
             scrollTrigger: {
               trigger: document.body,
