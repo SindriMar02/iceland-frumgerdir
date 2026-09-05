@@ -165,6 +165,23 @@ function PageFonts() {
          Padding grows the clip box downward; the matching negative margin
          gives the space back, so no layout shifts. Masking still works: the
          tween starts the text at yPercent 150, far below this. */
+      /* Hold every SplitText host dark until its split exists.
+         Measured 2026-09-05: at the first paint that had content (367ms),
+         .bs-hero-h1, .bs-hero-p, .bs-offer-h2, .bs-menu-h2, .bs-about-p and
+         .bs-faq-h2 all computed opacity 1, while every non-split reveal was
+         already at 0. SplitText resolves after fonts and layout, so until it
+         runs there are no word or line wrappers to carry the hidden state and
+         the raw text is painted at full strength — then the split lands, the
+         tween sets the wrappers to opacity 0, and the copy visibly flashes and
+         replays. Scrolling a below-the-fold section into view before its split
+         resolved showed the same flash on every one of them.
+         The host is revealed again inside each onSplit (gsap.set(self.elements,
+         {opacity:1})), by which point the wrappers hold the animation, and
+         every failsafe below force-sets it visible rather than clearing the
+         property, since clearProps would drop it back onto this rule. Safe in
+         an SPA: if the JavaScript never runs, there is no page to hide. */
+      .bs-split-host { opacity: 0; }
+
       .bs-hero-h1 > div, .bs-hero-p > div, .bs-offer-h2 > div,
       .bs-menu-h2 > div, .bs-about-p > div, .bs-facts-p > div,
       .bs-faq-h2 > div {
@@ -204,6 +221,48 @@ function PageFonts() {
       [data-underline-link]:hover::before { transform: scaleX(1); transform-origin: left; }
     `}</style>
   )
+}
+
+
+/* ── REVEAL FAILSAFE ───────────────────────────────────────────────────────
+   A reveal that never plays leaves its target at opacity 0 for good; that is
+   the bug that hid three paragraphs from every visitor until 2026-09-02, and
+   the blanket `setTimeout` + `clearProps` added then was the fix.
+
+   That fix caused the flash Sindri reported on 2026-09-05. Measured: 16
+   elements went from opacity 1 to ~0 WHILE ON SCREEN during a normal scroll
+   down the page. The timer fired at 2.4s and un-hid every reveal target in
+   the section, including sections the visitor had not reached; when the
+   visitor then scrolled down and the ScrollTrigger finally fired, the
+   timeline applied its own from-state and the content visibly vanished
+   before animating in.
+
+   A timer cannot tell "this reveal is stuck" from "this reveal has not been
+   reached yet". Time on screen can. This watches each target and only forces
+   it visible once it has been in the viewport for longer than any reveal
+   here takes to play (2.2s against the longest, a 1.5s split plus 0.2s
+   stagger) AND is still invisible. Below-the-fold content is never touched,
+   so its trigger fires normally and nothing flashes; genuinely stuck content
+   still gets rescued, which is the whole point of the net. */
+function armRevealFailsafe(root: HTMLElement, selectors: string) {
+  const enteredAt = new Map<Element, number>()
+  const id = window.setInterval(() => {
+    const now = performance.now()
+    root.querySelectorAll(selectors).forEach((el) => {
+      const r = el.getBoundingClientRect()
+      if (r.bottom <= 0 || r.top >= window.innerHeight) {
+        enteredAt.delete(el)
+        return
+      }
+      if (!enteredAt.has(el)) enteredAt.set(el, now)
+      const style = window.getComputedStyle(el)
+      const stuck = parseFloat(style.opacity) < 0.05 || style.visibility === 'hidden'
+      if (now - (enteredAt.get(el) as number) > 2200 && stuck) {
+        gsap.set(el, { autoAlpha: 1, clearProps: 'transform' })
+      }
+    })
+  }, 350)
+  return () => window.clearInterval(id)
 }
 
 /* D10 icon button markup (teardown 10.2 mandatory device 6): every `.bs-btn`
@@ -625,13 +684,21 @@ function Hero() {
             type: 'words',
             mask: 'words',
             autoSplit: true,
-            onSplit: (self) =>
-              tl.fromTo(
+            onSplit: (self) => {
+              /* Reveal the HOST only once the split exists. The host is held
+                 at opacity 0 by CSS from the very first paint (.bs-split-host
+                 in PageFonts), because until SplitText has run there are no
+                 line or word wrappers to hold the hidden state, and the raw
+                 text painted at full opacity: you saw the copy, then it
+                 vanished as the split landed, then it animated in. */
+              gsap.set(self.elements, { opacity: 1 })
+              return tl.fromTo(
                 self.words,
                 { yPercent: 150, opacity: 0 },
                 { yPercent: 0, opacity: 1, duration: 1.0, ease: 'power3.out', stagger: { amount: 0.2 } },
                 0.1,
-              ),
+              )
+            },
           }),
         )
       }
@@ -653,8 +720,15 @@ function Hero() {
              * subline, the About copy and this facts paragraph were never
              * seen by any visitor at any scroll depth.
              */
-            onSplit: (self) =>
-              gsap.fromTo(
+            onSplit: (self) => {
+              /* Reveal the HOST only once the split exists. The host is held
+                 at opacity 0 by CSS from the very first paint (.bs-split-host
+                 in PageFonts), because until SplitText has run there are no
+                 line or word wrappers to hold the hidden state, and the raw
+                 text painted at full opacity: you saw the copy, then it
+                 vanished as the split landed, then it animated in. */
+              gsap.set(self.elements, { opacity: 1 })
+              return gsap.fromTo(
                 self.lines,
                 { yPercent: 150, opacity: 0 },
                 {
@@ -666,7 +740,8 @@ function Hero() {
                   delay: 0.2,
                   scrollTrigger: { trigger: root, start: 'top 80%', once: true },
                 },
-              ),
+              )
+            },
           }),
         )
       }
@@ -676,14 +751,7 @@ function Hero() {
       // Failsafe: a renderer that captures before the timeline advances
       // (screenshot service, crawler, paused rAF) should not be left with a
       // hidden headline — force everything visible after a beat.
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-hero-eyebrow, .bs-hero-h1, .bs-hero-p, .bs-hero-cta'), { clearProps: 'opacity,visibility,transform' })
-        /* ...and the SplitText-generated children, which is where the
-           opacity:0 actually lives. Clearing only the parent left the
-           text invisible forever whenever the split resolved after its
-           own once:true trigger had already fired. */
-        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
-      }, 2400)
+      const failsafe = armRevealFailsafe(root, '.bs-hero-eyebrow, .bs-hero-cta, .bs-split-host, .bs-split-host div')
 
       // D7: hero image parallax, scrubbed against the section's own scroll
       // range (teardown: top center -> bottom top, yPercent -15 -> 15).
@@ -701,7 +769,7 @@ function Hero() {
         : undefined
 
       return () => {
-        window.clearTimeout(failsafe)
+        failsafe()
         splits.forEach((s) => s.revert())
         parallax?.scrollTrigger?.kill()
         parallax?.kill()
@@ -739,10 +807,10 @@ function Hero() {
           <p className="bs-h6 bs-hero-eyebrow" style={{ margin: 0 }}>
             {HERO.eyebrow}
           </p>
-          <h1 className="bs-h1 bs-hero-h1" style={{ margin: 0 }}>
+          <h1 className="bs-h1 bs-hero-h1 bs-split-host" style={{ margin: 0 }}>
             {HERO.headline}
           </h1>
-          <p className="bs-p-medium bs-hero-p" style={{ margin: 0, maxWidth: '42ch', color: C.ink }}>
+          <p className="bs-p-medium bs-hero-p bs-split-host" style={{ margin: 0, maxWidth: '42ch', color: C.ink }}>
             {HERO.paragraph}
           </p>
           <div
@@ -808,13 +876,21 @@ function Offering() {
             type: 'words',
             mask: 'words',
             autoSplit: true,
-            onSplit: (self) =>
-              tl.fromTo(
+            onSplit: (self) => {
+              /* Reveal the HOST only once the split exists. The host is held
+                 at opacity 0 by CSS from the very first paint (.bs-split-host
+                 in PageFonts), because until SplitText has run there are no
+                 line or word wrappers to hold the hidden state, and the raw
+                 text painted at full opacity: you saw the copy, then it
+                 vanished as the split landed, then it animated in. */
+              gsap.set(self.elements, { opacity: 1 })
+              return tl.fromTo(
                 self.words,
                 { yPercent: 150, opacity: 0 },
                 { yPercent: 0, opacity: 1, duration: 1.0, ease: 'power3.out', stagger: { amount: 0.2 } },
                 0.1,
-              ),
+              )
+            },
           }),
         )
       }
@@ -827,17 +903,10 @@ function Offering() {
       )
 
       // Failsafe: see Hero's identical guard above.
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-offer-eyebrow, .bs-offer-h2, .bs-offer-card'), { clearProps: 'opacity,visibility,transform' })
-        /* ...and the SplitText-generated children, which is where the
-           opacity:0 actually lives. Clearing only the parent left the
-           text invisible forever whenever the split resolved after its
-           own once:true trigger had already fired. */
-        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
-      }, 2400)
+      const failsafe = armRevealFailsafe(root, '.bs-offer-eyebrow, .bs-offer-card, .bs-split-host, .bs-split-host div')
 
       return () => {
-        window.clearTimeout(failsafe)
+        failsafe()
         splits.forEach((s) => s.revert())
         tl.kill()
       }
@@ -883,7 +952,7 @@ function Offering() {
           <p className="bs-h6 bs-offer-eyebrow" style={{ margin: 0 }}>
             Okkar framboð
           </p>
-          <h2 className="bs-h2 bs-offer-h2" style={{ margin: 0 }}>
+          <h2 className="bs-h2 bs-offer-h2 bs-split-host" style={{ margin: 0 }}>
             Matur, hópar og fundarrými á Norðurlandsvegi 4
           </h2>
         </div>
@@ -992,8 +1061,15 @@ function MenuSection() {
                resolve after a `once: true` timeline has already fired, which
                is what left three paragraphs at opacity 0 for every visitor
                before the 2026-09-02 repair. */
-            onSplit: (self) =>
-              gsap.fromTo(
+            onSplit: (self) => {
+              /* Reveal the HOST only once the split exists. The host is held
+                 at opacity 0 by CSS from the very first paint (.bs-split-host
+                 in PageFonts), because until SplitText has run there are no
+                 line or word wrappers to hold the hidden state, and the raw
+                 text painted at full opacity: you saw the copy, then it
+                 vanished as the split landed, then it animated in. */
+              gsap.set(self.elements, { opacity: 1 })
+              return gsap.fromTo(
                 self.words,
                 { yPercent: 150, opacity: 0 },
                 {
@@ -1001,7 +1077,8 @@ function MenuSection() {
                   stagger: { amount: 0.2 },
                   scrollTrigger: { trigger: root, start: 'top 80%', once: true },
                 },
-              ),
+              )
+            },
           }),
         )
       }
@@ -1010,14 +1087,10 @@ function MenuSection() {
       tl.fromTo(q('.bs-menu-row'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'osmo', stagger: 0.08 }, 0.4)
       tl.fromTo(q('.bs-menu-note'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'osmo' }, 0.8)
 
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-menu-eyebrow, .bs-menu-h2, .bs-menu-row, .bs-menu-note'), { clearProps: 'opacity,visibility,transform' })
-        gsap.set(q('.bs-menu-divider'), { clearProps: 'transform' })
-        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
-      }, 4000)
+      const failsafe = armRevealFailsafe(root, '.bs-menu-eyebrow, .bs-menu-row, .bs-menu-note, .bs-split-host, .bs-split-host div')
 
       return () => {
-        window.clearTimeout(failsafe)
+        failsafe()
         splits.forEach((sp) => sp.revert())
         tl.kill()
       }
@@ -1056,7 +1129,7 @@ function MenuSection() {
       <div style={GRID_STYLE}>
         <div className="bs-menu-head flex flex-col items-start text-left" style={{ gap: CLAMP.gap1 }}>
           <p className="bs-h6 bs-menu-eyebrow" style={{ margin: 0 }}>{MENU.eyebrow}</p>
-          <h2 className="bs-h2 bs-menu-h2" style={{ margin: 0 }}>{MENU.headline}</h2>
+          <h2 className="bs-h2 bs-menu-h2 bs-split-host" style={{ margin: 0 }}>{MENU.headline}</h2>
         </div>
         <p className="bs-p-medium bs-menu-intro" style={{ margin: 0, alignSelf: 'end', color: C.ink }}>
           {MENU.intro}
@@ -1115,10 +1188,8 @@ function GroupsSection() {
         .fromTo(q('.bs-groups-intro'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.2)
         .fromTo(q('.bs-term'), { autoAlpha: 0, y: '1em' }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'osmo', stagger: 0.07 }, 0.3)
         .fromTo(q('.bs-groups-note'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'osmo' }, 0.7)
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-groups-eyebrow, .bs-groups-h2, .bs-groups-intro, .bs-term, .bs-groups-note'), { clearProps: 'opacity,visibility,transform' })
-      }, 4000)
-      return () => { window.clearTimeout(failsafe); tl.kill() }
+      const failsafe = armRevealFailsafe(root, '.bs-groups-eyebrow, .bs-groups-h2, .bs-groups-intro, .bs-term, .bs-groups-note')
+      return () => { failsafe(); tl.kill() }
     })
     return () => mm.revert()
   }, [])
@@ -1230,8 +1301,15 @@ function AboutTeaser() {
              * cannot land in the past, and it re-arms correctly on each
              * autoSplit re-split.
              */
-            onSplit: (self) =>
-              gsap.fromTo(
+            onSplit: (self) => {
+              /* Reveal the HOST only once the split exists. The host is held
+                 at opacity 0 by CSS from the very first paint (.bs-split-host
+                 in PageFonts), because until SplitText has run there are no
+                 line or word wrappers to hold the hidden state, and the raw
+                 text painted at full opacity: you saw the copy, then it
+                 vanished as the split landed, then it animated in. */
+              gsap.set(self.elements, { opacity: 1 })
+              return gsap.fromTo(
                 self.lines,
                 { yPercent: 150, opacity: 0 },
                 {
@@ -1242,24 +1320,18 @@ function AboutTeaser() {
                   stagger: { amount: 0.2 },
                   scrollTrigger: { trigger: root, start: 'top 80%', once: true },
                 },
-              ),
+              )
+            },
           }),
         )
       }
 
 
       // Failsafe: see Hero's identical guard above.
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-about-eyebrow, .bs-about-p'), { clearProps: 'opacity,visibility,transform' })
-        /* ...and the SplitText-generated children, which is where the
-           opacity:0 actually lives. Clearing only the parent left the
-           text invisible forever whenever the split resolved after its
-           own once:true trigger had already fired. */
-        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
-      }, 2400)
+      const failsafe = armRevealFailsafe(root, '.bs-about-eyebrow, .bs-split-host, .bs-split-host div')
 
       return () => {
-        window.clearTimeout(failsafe)
+        failsafe()
         splits.forEach((s) => s.revert())
         tl.kill()
       }
@@ -1312,7 +1384,7 @@ function AboutTeaser() {
             {ABOUT_TEASER.eyebrow}
           </p>
           <p
-            className="bs-about-p"
+            className="bs-about-p bs-split-host"
             style={{
               margin: 0,
               color: C.eggwhite,
@@ -1438,10 +1510,8 @@ function CoffeeCake() {
         .fromTo(q('.bs-cc-h2'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.1)
         .fromTo(q('.bs-cc-p'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.2)
         .fromTo(q('.bs-cc-tile'), { autoAlpha: 0, y: '2em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo', stagger: 0.09 }, 0.3)
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-cc-eyebrow, .bs-cc-h2, .bs-cc-p, .bs-cc-tile'), { clearProps: 'opacity,visibility,transform' })
-      }, 4000)
-      return () => { window.clearTimeout(failsafe); tl.kill() }
+      const failsafe = armRevealFailsafe(root, '.bs-cc-eyebrow, .bs-cc-h2, .bs-cc-p, .bs-cc-tile')
+      return () => { failsafe(); tl.kill() }
     })
     return () => mm.revert()
   }, [])
@@ -1694,13 +1764,21 @@ function Faq() {
             type: 'words',
             mask: 'words',
             autoSplit: true,
-            onSplit: (self) =>
-              tl.fromTo(
+            onSplit: (self) => {
+              /* Reveal the HOST only once the split exists. The host is held
+                 at opacity 0 by CSS from the very first paint (.bs-split-host
+                 in PageFonts), because until SplitText has run there are no
+                 line or word wrappers to hold the hidden state, and the raw
+                 text painted at full opacity: you saw the copy, then it
+                 vanished as the split landed, then it animated in. */
+              gsap.set(self.elements, { opacity: 1 })
+              return tl.fromTo(
                 self.words,
                 { yPercent: 150, opacity: 0 },
                 { yPercent: 0, opacity: 1, duration: 1.0, ease: 'power3.out', stagger: { amount: 0.2 } },
                 0.1,
-              ),
+              )
+            },
           }),
         )
       }
@@ -1713,17 +1791,10 @@ function Faq() {
       )
 
       // Failsafe: see Hero's identical guard above.
-      const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-faq-eyebrow, .bs-faq-h2, .bs-faq-item'), { clearProps: 'opacity,visibility,transform' })
-        /* ...and the SplitText-generated children, which is where the
-           opacity:0 actually lives. Clearing only the parent left the
-           text invisible forever whenever the split resolved after its
-           own once:true trigger had already fired. */
-        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
-      }, 3000)
+      const failsafe = armRevealFailsafe(root, '.bs-faq-eyebrow, .bs-faq-item, .bs-split-host, .bs-split-host div')
 
       return () => {
-        window.clearTimeout(failsafe)
+        failsafe()
         splits.forEach((s) => s.revert())
         tl.kill()
       }
@@ -1775,7 +1846,7 @@ function Faq() {
           <p className="bs-h6 bs-faq-eyebrow" style={{ margin: 0 }}>
             Spurt og svarað
           </p>
-          <h2 className="bs-h3 bs-faq-h2" style={{ margin: 0, color: C.ink }}>
+          <h2 className="bs-h3 bs-faq-h2 bs-split-host" style={{ margin: 0, color: C.ink }}>
             Leitar þú frekari upplýsinga?
           </h2>
         </div>
