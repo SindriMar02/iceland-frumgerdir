@@ -1,0 +1,68 @@
+{
+ "harvested": "2026-09-05",
+ "owner": "B&S Restaurant (Björn Þór Kristjánsson), Norðurlandsvegur 4, 540 Blönduós",
+ "why": "The client's own photographs and logo, taken from the client's own live site (bogs.is, a Google Sites page) for use in a redesign prototype OF that site. Not stock, not licensed from anyone else, not to be reused on any other build.",
+ "caution": "bs-interior.jpg is only 640x336 and is upscaled where it is used full-bleed. Ask the client for the original file.",
+ "files": [
+  {
+   "file": "bs-logo.png",
+   "sourcePage": "https://bogs.is",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQVfsnZtcya-JFGdXKhogbBFLM1-otVaBO-3CJruoZY-zfe56n0B-Bz5IZx8z3P9VNzz5seD4D00JGPd4f5SYgHBKBWdZye01Byq2ugt6hQNZAATi4SdKGnWQsOvyrj-s_gtQIKetABAp2LNypjJZ7M8guBdSWJnh3STXSPk4FWbCn23K1lEM1oA5xSn3xg=w16383",
+   "nativeSize": "1696x1696"
+  },
+  {
+   "file": "bs-interior.jpg",
+   "sourcePage": "https://bogs.is",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQWlZh-yOsD28QlOcTVhaKlndIX8K1yb5IDiJzQcdTuSnomweh-7lBP6pmWIAXQPXr88cIrD8V1DuwGEHbF6EKjW6FKcQzbzjKlGdPmRWf0a2Zo1SeTTvG78GDxu5xp8joXtvTZdo9-3RHUQnVxBAERIXmCyubybkrzVFq1Lrf0O13o3d_d_zvd9djobiJWnnoguWeTn5TxfQZYdlMg5fYn_UHdlq8ytJ5yFSTfs=w1280",
+   "nativeSize": "640x336"
+  },
+  {
+   "file": "bs-buffet.jpg",
+   "sourcePage": "https://bogs.is",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQXUxLoK1vPJrw5GEjU-1kTk0UOssepLvzB7w3ZDVaHAV7mSYvxu4g78JcR8rbG8OR5qk2StyHHKXx-qwYMubB1vIscJkSGXd2g0lNfxaKpm1GGE-jpS-PGRVPKAJkxcZUf68oTqPH-DGDJw_MtUcQlsjn_zccDpp9Cd1P5OGxl7ybxI-Nytyam5OngNYVX1I-OkB4AppR8Smh92x4QzMvGjEy3rYq_fDxteWXBSW98=w1280",
+   "nativeSize": "300x189"
+  },
+  {
+   "file": "bs-pizza.jpg",
+   "sourcePage": "https://bogs.is",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQWqQe8bqZ9OvkA61PY2DnAj1PMvSYqgIyPwdj5rYEbv_Ppdxyal0u8g7xa-qhkkXjq2XvGuT2o7LvXoc9AMIuK8Oooal83qX8BzGqfAF8hPkRPlu7VPTsLHjNXQ1IEaIWvJzldfP7Dr_hS-mgXI2SGHY8h93IhfwxoiFNFEWkJXrUDfnFtqlaD5l5VYWoGrfeV5_ynFXa4D4rwurqnyjmGOfokwZZOUl3QqKA6X=w1280",
+   "nativeSize": "1280x1077"
+  },
+  {
+   "file": "bs-cake-1.jpg",
+   "sourcePage": "https://bogs.is/restaurant/coffee-cake",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQX6izegj0k9VJTQ0VfcYq4aUzMErPtPvjRKRzlNQ37-Qbj7jD7880ZnYmioWdpkM5Eq4MKEHwCkZXEYLCksPcRI2D4iTsip2G-87bmbkLHpiFkABWy21pC6wEsMbgoL_SSUgs_xfQA1S7nMR6lh215dQKHN_AGWi-e7rePVNn0N9SobOcsC47aduaBdNSVHZLM85Z7w4xZs5ppwFMHWsN-8aLB065NGbyAy9RRz=w1280",
+   "nativeSize": "1139x1029"
+  },
+  {
+   "file": "bs-cake-2.jpg",
+   "sourcePage": "https://bogs.is/restaurant/coffee-cake",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQVz0_vLlPR5IEo2V94yHpC7qR2622bT9aSljOhKWK5N8HyFN5DzvhOl1tDDp_lznu1b8EPpQAfekk_gx2ecnHJM3svkUOpjnfA3-Br4QO5Th5lJ2qq12V2-lQPDkqlIiZX6feJqNqG3h8haL9_1PXyHeeEWcS8SzMcLWW0MgJ3rLD5pC-WEsbVUScmlnkTNB6XrDxCXc0bCBx12xghg8mgTJOZzsYcMpA0gm8kpFn8=w1280",
+   "nativeSize": "1189x1080"
+  },
+  {
+   "file": "bs-cake-3.jpg",
+   "sourcePage": "https://bogs.is/restaurant/coffee-cake",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQWaG6N8oycjAH-cri5zlo1ZX3XA98LF72NAaHqIJNFezujEy7ogaRyYeaFwkleeSANohaWDtIKWXyGVnm6nIv3b6xa01JaTAIjoIRQ8pCtYE8JSV5JPzIrdNTD56EuiXS_PAIfoqwSpCLTHeZp6eelKyfc5_v-u8QJW-KTJexU0lX0hN9Ot0omQr-muZS7CbPsrphbivtwkeZNpGIa9IY03CIFOg_d1epl5EBnvKuI=w1280",
+   "nativeSize": "1215x1080"
+  },
+  {
+   "file": "bs-cake-4.jpg",
+   "sourcePage": "https://bogs.is/restaurant/coffee-cake",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQX3h8aE3ra_eoqtTJY-C4tGuNvfMpmxnCD6XHzpqmS453jwS-A3mBgKcs1zJ5jiCXP5tDEbP855JF_VAHSU7zGIooc4GKHCa-_JMISNNk-nv45hbJvVVHAZwT3hfL3BEtgT0N5SxBlR9Yt1pVIWhsboPai07rT1Nm4r31x1HAfqu-NnkRLasGCnWdhJJs556NYdsueczJVTRotIvaUatHp2Y1-Ey5IJtk9GYkIt=w1280",
+   "nativeSize": "984x878"
+  },
+  {
+   "file": "bs-cake-5.jpg",
+   "sourcePage": "https://bogs.is/restaurant/coffee-cake",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQX9vVAW6iPWcvnGZnfOn5cN6sbGdJwEmSVSAbdLe0JLXNRR40PMEklNXEmCTlXs7vQlOI2icS2-vbXskv7p8OiowD1JuUbslvlwX_eEnH-7Ot6QN99rfXuJ2-lSXTnpjrtH0qfd8p3kzZW69va8urI3b_IFjm06ueCPCDYuVxakejbbGSYtSa1tX-bOK2VyQ6dfaUaSlmDy3i5CHSUMOFT4aJpCxcac2wEWZs1Jhbs=w1280",
+   "nativeSize": "1021x939"
+  },
+  {
+   "file": "bs-dessert-pizza.jpg",
+   "sourcePage": "https://bogs.is/restaurant/coffee-cake",
+   "sourceUrl": "https://lh3.googleusercontent.com/sitesv/AG8ngQXg8HawukHUqFytGi68uGELFjw0x6Gx3oaOBjyPGDFiunWT9lHVhGZLxalsSp4-Hp3q-v9jbJxM5wFC7yX4zIABxQTSzbNz-JSPEhrfVKcKNCfA92zQk2JEvUs3qAdq04YEfAkBkcRH82pNRsGu8aI72_oYQ6YLQxYizCOMmIXMhc9nPPzzjJ8TjrHY8hPFyiWrlMDLtw6TuTrQQWo6gB2ce1lJGrOZz7FGxfOjjHg=w1280",
+   "nativeSize": "979x893"
+  }
+ ]
+}

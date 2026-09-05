@@ -32,37 +32,43 @@ const FOOTER_WORDMARK_SVG =
 // photography before sending. Aspect ratios match the reference's slots
 // (teardown 4.1 hero 120vh, 4.4/4.11 plates 110vh 1.333/1.455, 4.6 diptych
 // 1:1 + 4:5).
+// The client's own assets, harvested from bogs.is on 2026-09-05 and served
+// from public/bogs/. Provenance, source URLs and native sizes are recorded in
+// public/bogs/HARVEST-MANIFEST.json. These are B&S's photographs of B&S,
+// taken from B&S's own live site for a redesign OF that site — not stock, and
+// not for reuse on any other build.
+//
+// This replaces most of the Unsplash placeholders. The earlier note here said
+// "no B&S photography has been supplied"; that was true of the brief and
+// false of the client, who publishes a logo, their dining room, their pizzas
+// and ten plated desserts.
+const own = (f: string) => `${import.meta.env.BASE_URL}bogs/${f}`
+
 export const IMAGES = {
-  /* PLACEHOLDER, ALL OF THEM. No B&S photography has been supplied, so every
-     frame below is Unsplash stock and every alt says "sýnishorn". The set was
-     re-picked on 2026-09-05 for CATEGORY TRUTH after the first pass shipped a
-     dark metropolitan fusion restaurant as the hero, a corporate glass
-     boardroom as Eyvindarstofa, an alpine rowboat in the facts band and
-     Seljalandsfoss as "the building": stock that actively misdescribed a
-     roadside family restaurant in Blönduós. These stand-ins claim nothing
-     B&S is not — a warm unpretentious dining room, breakfast, an open
-     sandwich, a coach, a laid table, coffee, farmland by the road — but they
-     are still not B&S, and they must be replaced with the client's own
-     photography before this page is sent. */
-  // 4.1 hero asset: warm, plain dining room, the register B&S actually is
-  hero: u('photo-1670819917685-f1040e76b9b7', 2000),
-  // 4.4 full-bleed plate: breakfast, the one offering B&S publishes by name
-  interior: u('photo-1533089860892-a7c6f0a88666', 1800),
-  // 4.6 gallery small (1:1): coffee. Kaffitár is a confirmed bogs.is category.
-  gallerySmall: u('photo-1495474472287-4d71bcdd2085', 1000),
-  // 4.6 gallery large (4:5): the setting. Deliberately quiet and not a
-  // landmark — a waterfall 300km away implied a place B&S is not, and the
-  // farmland frame that briefly replaced it cropped at 4:5 to a saturated
-  // close-up of a grazing cow, and the conifer forest after that reads
-  // Pacific Northwest on a page about treeless coastal North Iceland.
-  // Bare misty ridges: muted, no landmark, no trees, no false claim.
-  galleryLarge: u('photo-1483354483454-4cd359948304', 1200),
-  // 4.2 offering cards (4:5 crop): ristað brauð með áleggi (a confirmed
-  // category, shown as the open sandwich it is), a coach, and a laid table
-  // for the group/private room the brief says to describe generically.
-  offerFood: u('photo-1618569629551-ac5b990b1ef6', 1000),
+  // The real B&S mark: a brown roundel with a crown, 1696x1696 PNG. The build
+  // previously stated "B&S mark: UNKNOWN, no logo file published" and drew a
+  // typographic substitute. The logo was on their front page all along.
+  logo: own('bs-logo.png'),
+  // 4.1 hero: the actual B&S dining room, dark timber booths under hanging
+  // lamps with sheepskins on the chairs. CAUTION: native 640x336, so it is
+  // upscaled at full-bleed. Ask the client for the original before go-live —
+  // it is still their room, which no stock photograph can be.
+  hero: own('bs-interior.jpg'),
+  // 4.4 full-bleed plate: their own pizzas, 1280x1077.
+  interior: own('bs-pizza.jpg'),
+  // 4.6 diptych: their own plated desserts.
+  gallerySmall: own('bs-dessert-pizza.jpg'),
+  galleryLarge: own('bs-cake-2.jpg'),
+  // 4.2 offering cards. Maturinn and Eyvindarstofa are the client's own
+  // photographs; the coach remains an Unsplash placeholder because B&S
+  // publishes no picture of one.
+  offerFood: own('bs-pizza.jpg'),
   offerGroup: u('photo-1570125909232-eb263c188f7e', 1000),
-  offerHall: u('photo-1743793055911-52e19beba5d8', 1000),
+  offerHall: own('bs-interior.jpg'),
+  // Kaffi og kaka: the client's Coffee & Cake page carries ten plated
+  // desserts. Five are used here; the rest are in the harvest folder.
+  cakes: [own('bs-cake-1.jpg'), own('bs-cake-3.jpg'), own('bs-cake-4.jpg'), own('bs-cake-5.jpg')],
+  buffet: own('bs-buffet.jpg'),
   // 4.8 footer wordmark <img>, see FOOTER_WORDMARK_SVG above.
   footerWordmark: `data:image/svg+xml;utf8,${encodeURIComponent(FOOTER_WORDMARK_SVG)}`,
   // 4.8 footer overlay texture (teardown 4.8: img.footer__overlay-texture,
@@ -229,6 +235,20 @@ export const GROUPS = {
   note: 'Matseðlar hópa og verð eru send eftir samtal við staðinn. Hringið í 453 5060.',
 } as const
 
+// ─── COFFEE AND CAKE ───────────────────────────────────────────────────────
+// Replaces HOUSE_FACTS, which was a 28-word paragraph in a 564px section that
+// measured 80% air and repeated what the menu intro and the groups section
+// now say properly. "Coffee & Cake" is one of the client's own published
+// restaurant categories and their page for it carries ten photographs of
+// their own plated desserts — the single richest thing on bogs.is and
+// entirely absent from this build.
+export const COFFEE_CAKE = {
+  eyebrow: 'Kaffi og kaka',
+  headline: 'Kaffi frá Kaffitár og kökurnar á staðnum',
+  paragraph:
+    'Kaffi frá Kaffitár er borið fram á staðnum, og kökur og eftirréttir eru í boði með því. Myndirnar hér að neðan eru af eftirréttum B&S.',
+} as const
+
 // ─── 4.3 ABOUT US TEASER (DARK BAND) ─────────────────────────────────────────
 export const ABOUT_TEASER = {
   eyebrow: 'Um okkur',
@@ -262,10 +282,7 @@ export const KITCHEN_PRINCIPLES = [
 // a philosophy the client has not published."). So this section keeps the
 // reference's layout and motion but swaps the content for exactly those
 // three verified facts, stated plainly, with no invented sentiment.
-export const HOUSE_FACTS = {
-  paragraph:
-    'Staðurinn stendur við þjóðveg eitt í Blönduósi, hvort sem komið er við á leiðinni eða keyrt sérstaklega. Morgunverður er á matseðlinum, og hópamatseðill er í boði fyrir hópa.',
-} as const
+/* HOUSE_FACTS retired 2026-09-05: see COFFEE_CAKE above. */
 
 // ─── 4.7 FAQ (13 questions in the reference; we answer only what is known) ───
 export interface FaqItem {

@@ -32,7 +32,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { Img } from '../../components/Img'
 import { companyEntry } from './company'
-import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, MENU, GROUPS, KITCHEN_PRINCIPLES, ABOUT_TEASER, HOUSE_FACTS, FAQ } from './data'
+import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, MENU, GROUPS, COFFEE_CAKE, KITCHEN_PRINCIPLES, ABOUT_TEASER, FAQ } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
 
@@ -370,21 +370,18 @@ function TopNav({ lenisRef }: { lenisRef: MutableRefObject<Lenis | null> }) {
             <line x1="1" y1="12" x2="15" y2="12" stroke="currentColor" strokeWidth="1.5" />
           </svg>
         </button>
-        {/* B&S mark: UNKNOWN, no logo file published (brief VERIFIED CLIENT
-            FACTS), so this is a typographic lockup, not a supplied logo. It
-            occupies the reference's crest slot at roughly its footprint
-            (crest 161x63 at max-width 5em). */}
-        <a
-          href="/preview/bogs"
-          aria-label="B&S Restaurant, heim"
-          style={{ textDecoration: 'none', color: C.ink, textAlign: 'center', lineHeight: 1 }}
-        >
-          <span style={{ display: 'block', fontFamily: FONT_FAMILY, fontSize: 'clamp(1.25rem, 1.6vw, 1.75rem)', letterSpacing: '-0.02em' }}>
-            B&amp;S
-          </span>
-          <span style={{ display: 'block', fontFamily: FONT_FAMILY, fontSize: 'clamp(.5rem, .62vw, .7rem)', letterSpacing: '.34em', textTransform: 'uppercase', marginTop: '.35em', marginRight: '-.34em' }}>
-            Restaurant
-          </span>
+        {/* The real B&S mark, harvested from bogs.is (see IMAGES.logo and
+            public/bogs/HARVEST-MANIFEST.json). This slot used to say the logo
+            was UNKNOWN and drew a typographic substitute; the client has had a
+            logo on their front page the whole time. It sits in the reference's
+            own crest slot at roughly its footprint (crest 161x63, max-width
+            5em). */}
+        <a href="/preview/bogs" aria-label="B&S Restaurant, heim" style={{ display: 'block', lineHeight: 0 }}>
+          <Img
+            src={IMAGES.logo}
+            alt="B&S Restaurant"
+            style={{ width: 'clamp(52px, 4.4vw, 72px)', height: 'auto', display: 'block' }}
+          />
         </a>
         <div className="flex items-center" style={{ gap: CLAMP.gap2 }}>
           {/* The is/en pair that sat here was REMOVED 2026-09-02. It was two
@@ -1131,7 +1128,7 @@ function GroupsSection() {
       id="hopar"
       ref={rootRef}
       className="relative"
-      style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.eggwhite, scrollMarginTop: '5rem' }}
+      style={{ paddingTop: CLAMP.gap6, paddingBottom: CLAMP.gap6, background: C.eggwhite, scrollMarginTop: '5rem' }}
     >
       <style>{`
         .bs-groups-head { grid-column: 1 / span 7; }
@@ -1416,81 +1413,36 @@ function FullBleedPhoto() {
   )
 }
 
-/* ── 4.5 House facts, `section.section-small-text.u-grid` (teardown 4.5) ──
-   Purpose in the reference: a longer "why us" paragraph ("the house is
-   always yours"). B&S has published no such philosophy, so per the re-aim
-   map (teardown 9, row 4.5) this keeps the reference's exact layout and
-   motion but carries only the three verified facts: open all year,
-   breakfast served, groups welcome (see HOUSE_FACTS in data.ts). No
-   heading, no CTA, same as the reference. Layout: `place-items:start end`
-   on the 12-col grid, a single column at `7 / span 5` (desktop), start-
-   aligned text, on the paper background (teardown: BG #fdfdfd). Device
-   reproduced: D4 reveal group with one child, D3 masked SplitText on the
-   paragraph (lines, 1.5s + stagger amount 0.2, power3.out, delay 0, trigger
-   top 80%, once — teardown: "6 lines, 1.5s, amount 0.2, delay 0"). */
-function HouseFacts() {
+/* ── KAFFI OG KAKA ──────────────────────────────────────────────────────────
+   Replaces HouseFacts, deleted 2026-09-05. That section held 28 words in a
+   564px box — measured 114px of ink against 450px of padding, 80% air — and
+   its one paragraph repeated what the menu intro and the groups section now
+   carry properly. It existed because the reference has a "house philosophy"
+   block at 4.5, not because B&S had anything left to say there.
+
+   What goes in its place is the client's own Coffee & Cake page: four of the
+   ten plated desserts they photograph themselves, in the reference's own
+   1:1 aspect-locked, overflow-hidden, scale(1.2) image treatment. Real
+   content and real pictures in the slot that was emptiest. */
+function CoffeeCake() {
   const rootRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
-
     const mm = gsap.matchMedia()
     mm.add('(prefers-reduced-motion: no-preference)', () => {
       const q = gsap.utils.selector(root)
-      const splits: SplitText[] = []
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: root, start: 'top 80%', once: true },
-      })
-
-      const p = q('.bs-facts-p')[0] as HTMLElement | undefined
-      if (p) {
-        splits.push(
-          SplitText.create(p, {
-            type: 'lines',
-            mask: 'lines',
-            autoSplit: true,
-                        /*
-             * Own ScrollTrigger, not a tween appended to `tl`. With
-             * autoSplit the split can resolve AFTER the timeline's
-             * `once: true` trigger has already fired (or after the
-             * timeline finished), so an appended tween renders in the
-             * past and the text stays at opacity 0 permanently. The
-             * motion audit on 2026-09-02 measured exactly that: the hero
-             * subline, the About copy and this facts paragraph were never
-             * seen by any visitor at any scroll depth.
-             */
-            onSplit: (self) =>
-              gsap.fromTo(
-                self.lines,
-                { yPercent: 150, opacity: 0 },
-                {
-                  yPercent: 0,
-                  opacity: 1,
-                  duration: 1.5,
-                  ease: 'power3.out',
-                  stagger: { amount: 0.2 },
-                  delay: 0,
-                  scrollTrigger: { trigger: root, start: 'top 80%', once: true },
-                },
-              ),
-          }),
-        )
-      }
-
-      // Failsafe: see Hero's identical guard above.
+      const tl = gsap.timeline({ scrollTrigger: { trigger: root, start: 'top 80%', once: true } })
+      tl.fromTo(q('.bs-cc-eyebrow'), { autoAlpha: 0, y: '2em' }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'osmo' }, 0)
+        .fromTo(q('.bs-cc-h2'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.1)
+        .fromTo(q('.bs-cc-p'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo' }, 0.2)
+        .fromTo(q('.bs-cc-tile'), { autoAlpha: 0, y: '2em' }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'osmo', stagger: 0.09 }, 0.3)
       const failsafe = window.setTimeout(() => {
-        gsap.set(q('.bs-facts-p'), { clearProps: 'opacity,transform' })
-        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
-      }, 2400)
-
-      return () => {
-        window.clearTimeout(failsafe)
-        splits.forEach((s) => s.revert())
-        tl.kill()
-      }
+        gsap.set(q('.bs-cc-eyebrow, .bs-cc-h2, .bs-cc-p, .bs-cc-tile'), { clearProps: 'opacity,visibility,transform' })
+      }, 4000)
+      return () => { window.clearTimeout(failsafe); tl.kill() }
     })
-
     return () => mm.revert()
   }, [])
 
@@ -1498,27 +1450,47 @@ function HouseFacts() {
     <section
       ref={rootRef}
       className="relative"
-      style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.paper }}
+      style={{ paddingTop: CLAMP.gap6, paddingBottom: CLAMP.gap6, background: C.paper }}
     >
       <style>{`
+        .bs-cc-head { grid-column: 1 / span 6; }
+        .bs-cc-intro { grid-column: 8 / span 5; }
+        .bs-cc-grid { grid-column: 1 / span 12; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: ${CLAMP.gutter}; }
+        .bs-cc-tile { position: relative; aspect-ratio: 1; overflow: hidden; }
+        .bs-cc-tile img { position: absolute; inset: 0; object-fit: cover; transform: scale(1.05); transition: transform .8s cubic-bezier(0.625,0.05,0,1); }
+        .bs-cc-tile:hover img { transform: scale(1.2); }
         @media (max-width: 767px) {
-          .bs-facts-col { grid-column: 1 / span 12 !important; }
+          .bs-cc-head, .bs-cc-intro { grid-column: 1 / span 12 !important; }
+          .bs-cc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
       `}</style>
 
-      <div style={{ ...GRID_STYLE, placeItems: 'start end' }}>
-        <div
-          className="bs-facts-col flex flex-col items-start text-left"
-          style={{ gridColumn: '7 / span 5', gap: CLAMP.gap3 }}
-        >
-          <p className="bs-p-medium bs-facts-p" style={{ margin: 0, color: C.ink }}>
-            {HOUSE_FACTS.paragraph}
-          </p>
+      <div style={GRID_STYLE}>
+        <div className="bs-cc-head flex flex-col items-start text-left" style={{ gap: CLAMP.gap1 }}>
+          <p className="bs-h6 bs-cc-eyebrow" style={{ margin: 0 }}>{COFFEE_CAKE.eyebrow}</p>
+          <h2 className="bs-h3 bs-cc-h2" style={{ margin: 0 }}>{COFFEE_CAKE.headline}</h2>
+        </div>
+        <p className="bs-p-medium bs-cc-p bs-cc-intro" style={{ margin: 0, alignSelf: 'end', color: C.ink }}>
+          {COFFEE_CAKE.paragraph}
+        </p>
+
+        <div className="bs-cc-grid" style={{ marginTop: CLAMP.gap4 }}>
+          {IMAGES.cakes.map((src, i) => (
+            <div className="bs-cc-tile" key={src}>
+              <Img
+                src={src}
+                alt={`Eftirréttur á B&S Restaurant, mynd ${i + 1}`}
+                className="h-full w-full"
+                fallbackClassName="absolute inset-0 bg-gradient-to-br from-[#cfcfcf] to-[#8f8f8f]"
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
   )
 }
+
 
 /* ── 4.6 Image gallery (diptych), `section.section-image-gallery.u-grid`
    (teardown 4.6) ───────────────────────────────────────────────────────────
@@ -1923,7 +1895,7 @@ export default function Page() {
 
       <FullBleedPhoto />
 
-      <HouseFacts />
+      <CoffeeCake />
 
       <ImageGallery />
 
