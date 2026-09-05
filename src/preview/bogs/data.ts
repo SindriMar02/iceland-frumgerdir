@@ -94,7 +94,7 @@ export const HERO = {
   paragraph:
     'Morgunverður, ristað brauð með áleggi og kaffi frá Kaffitár, á Norðurlandsvegi 4 við þjóðveg eitt.',
   ctaPrimary: { label: 'Hringja 453 5060', href: 'tel:+3544535060' },
-  ctaSecondary: { label: 'Sjá framboðið', href: '#offering' },
+  ctaSecondary: { label: 'Sjá matseðil', href: '#matsedill' },
 } as const
 
 // ─── 4.2 OUR OFFERING (3 CARDS) ──────────────────────────────────────────────
@@ -118,16 +118,16 @@ export const OFFER_CARDS: OfferCard[] = [
     id: 'maturinn',
     eyebrow: 'Maturinn',
     title: 'Maturinn',
-    body: 'Morgunverður, ristað brauð með áleggi, kaffi frá Kaffitár og meðlæti.',
-    href: '#maturinn',
+    body: 'Morgunverður og kaffi frá Kaffitár.',
+    href: '#matsedill',
     image: IMAGES.offerFood,
   },
   {
     id: 'hopar',
     eyebrow: 'Hópar',
     title: 'Hópar og rútur',
-    body: 'Hópamatseðill er í boði. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
-    href: '#hopar',
+    body: 'Hópamatseðill er í boði fyrir hópa og rútur.',
+    href: '#matsedill',
     image: IMAGES.offerGroup,
   },
   {
@@ -143,10 +143,60 @@ export const OFFER_CARDS: OfferCard[] = [
     eyebrow: 'Hópa- og fundarrými',
     title: 'Eyvindarstofa',
     body: 'Eyvindarstofa er á staðnum. Nánari upplýsingar og bókanir í síma 453 5060.',
-    href: '#eyvindarstofa',
+    href: 'tel:+3544535060',
     image: IMAGES.offerHall,
   },
 ]
+
+// ─── MENU (teardown re-aim map, row "4.1 Home hero": the hero's secondary
+// CTA is specified as "Sjá matseðil" -> `#matur`, a section the first build
+// never made, so that CTA had nowhere to go) ──────────────────────────────
+//
+// STRUCTURE is the reference's own `section.section-packages.u-grid`
+// (teardown 4.19/4.26): a vertical repeating list, rows separated by a 2px
+// `.divider-line` in #16151333, "not a table, not a pricing grid". The
+// reference's rows carry a 4:5 parallax image each; these do not, because a
+// menu is a typographic object and because three more stock plates would be
+// the same image-count padding that had to be stripped out of the facts band
+// and the diptych.
+//
+// CONTENT is the hard part and the reason this section did not exist. B&S
+// publishes no itemised menu and no prices anywhere — not on bogs.is, not on
+// TripAdvisor. Every line below is a category the client has actually
+// published (the bogs.is nav categories plus the Kaffitár signage), worded
+// from the same VERIFIED CLIENT FACTS block the offering cards and the FAQ
+// answers already draw on. No dish, no price and no opening time is invented
+// to fill the section out. The closing line directs to the phone rather than
+// claiming what the prices are.
+export interface MenuRow {
+  title: string
+  body: string
+}
+
+export const MENU = {
+  eyebrow: 'Matseðill',
+  headline: 'Morgunverður, brauð og kaffi frá Kaffitár',
+  rows: [
+    {
+      title: 'Morgunverður',
+      body: 'Morgunverður er á matseðlinum. Hafið samband til að staðfesta hvenær hann er borinn fram.',
+    },
+    {
+      title: 'Ristað brauð með áleggi',
+      body: 'Ristað brauð með áleggi og meðlæti.',
+    },
+    {
+      title: 'Kaffi frá Kaffitár',
+      body: 'Kaffi frá Kaffitár er borið fram á staðnum.',
+    },
+    {
+      title: 'Hópamatseðill',
+      body: 'Hópamatseðill er í boði fyrir hópa og rútur. Fjöldi, innihald og verð fara eftir samkomulagi, svo best er að hafa samband fyrirfram.',
+    },
+  ] as MenuRow[],
+  // Not a claim about what the prices are, a direction to the people who know.
+  note: 'Nánari upplýsingar um matseðil og verð eru veittar í síma 453 5060.',
+} as const
 
 // ─── 4.3 ABOUT US TEASER (DARK BAND) ─────────────────────────────────────────
 export const ABOUT_TEASER = {

@@ -32,7 +32,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { Img } from '../../components/Img'
 import { companyEntry } from './company'
-import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, ABOUT_TEASER, HOUSE_FACTS, FAQ } from './data'
+import { CONTACT, HOURS_LINE, SITEMAP, TRIPADVISOR_LINK, HERO, IMAGES, OFFER_CARDS, MENU, ABOUT_TEASER, HOUSE_FACTS, FAQ } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
 
@@ -924,6 +924,141 @@ function Offering() {
   )
 }
 
+
+/* ── MENU, `section.section-packages.u-grid` (teardown 4.19 / 4.26) ─────────
+   The teardown's re-aim map specifies the home hero's secondary CTA as "Sjá
+   matseðil" -> `#matur`; the first build never made that section, so the CTA
+   had no destination and had to be relabelled. This is it.
+
+   Row grammar is the reference's packages list, verbatim in structure: a
+   vertical repeating list under a left-started eyebrow + h2, `padding-top/
+   bottom: gap-7`, each row a `h3` title beside its body, rows separated by
+   the reference's own 2px `.divider-line` in `#16151333` (C.divider). The
+   reference calls it "not a table, not a pricing grid" and that is exactly
+   why it suits a menu with no prices to print.
+
+   Deviation, declared: the reference's rows each carry a 4:5
+   `[data-parallax-image]`. These carry none. A menu is a typographic object,
+   and four more stock plates would repeat the image-count padding that had
+   to be removed from the facts band and the diptych on 2026-09-05.
+
+   Devices: D4 reveal group (eyebrow, then the h2, then the rows one slot
+   apart) and D3 masked SplitText on the h2 — the same pair every other
+   headline block on this page uses. The row dividers take the reference's
+   own `scaleX 0 -> 1` from D15's divider tween, which is inert on the
+   reference itself (0 `.divider-line` inside its dinner sheet) but is the
+   only divider motion the bundle defines. */
+function MenuSection() {
+  const rootRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const q = gsap.utils.selector(root)
+      const splits: SplitText[] = []
+      const tl = gsap.timeline({ scrollTrigger: { trigger: root, start: 'top 80%', once: true } })
+
+      tl.fromTo(q('.bs-menu-eyebrow'), { autoAlpha: 0, y: '2em' }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'osmo' }, 0)
+
+      const h2 = q('.bs-menu-h2')[0] as HTMLElement | undefined
+      if (h2) {
+        splits.push(
+          SplitText.create(h2, {
+            type: 'words',
+            mask: 'words',
+            autoSplit: true,
+            /* Own trigger, not appended to `tl` — with autoSplit the split can
+               resolve after a `once: true` timeline has already fired, which
+               is what left three paragraphs at opacity 0 for every visitor
+               before the 2026-09-02 repair. */
+            onSplit: (self) =>
+              gsap.fromTo(
+                self.words,
+                { yPercent: 150, opacity: 0 },
+                {
+                  yPercent: 0, opacity: 1, duration: 1.0, ease: 'power3.out',
+                  stagger: { amount: 0.2 },
+                  scrollTrigger: { trigger: root, start: 'top 80%', once: true },
+                },
+              ),
+          }),
+        )
+      }
+
+      tl.fromTo(q('.bs-menu-divider'), { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: 'power3.out', stagger: 0.06, transformOrigin: 'left center' }, 0.35)
+      tl.fromTo(q('.bs-menu-row'), { autoAlpha: 0, y: '1.5em' }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'osmo', stagger: 0.08 }, 0.4)
+      tl.fromTo(q('.bs-menu-note'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'osmo' }, 0.8)
+
+      const failsafe = window.setTimeout(() => {
+        gsap.set(q('.bs-menu-eyebrow, .bs-menu-h2, .bs-menu-row, .bs-menu-note'), { clearProps: 'opacity,visibility,transform' })
+        gsap.set(q('.bs-menu-divider'), { clearProps: 'transform' })
+        splits.forEach((sp) => gsap.set([...(sp.lines ?? []), ...(sp.words ?? [])], { clearProps: 'opacity,visibility,transform' }))
+      }, 4000)
+
+      return () => {
+        window.clearTimeout(failsafe)
+        splits.forEach((sp) => sp.revert())
+        tl.kill()
+      }
+    })
+
+    return () => mm.revert()
+  }, [])
+
+  return (
+    <section
+      id="matsedill"
+      ref={rootRef}
+      className="relative"
+      style={{ paddingTop: CLAMP.gap7, paddingBottom: CLAMP.gap7, background: C.paper, scrollMarginTop: '5rem' }}
+    >
+      <style>{`
+        .bs-menu-head { grid-column: 1 / span 7; }
+        .bs-menu-list { grid-column: 1 / span 12; }
+        .bs-menu-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: ${CLAMP.gutter}; align-items: baseline; }
+        .bs-menu-row__title { grid-column: 1 / span 5; }
+        .bs-menu-row__body { grid-column: 7 / span 5; }
+        .bs-menu-divider { height: 2px; background: ${C.divider}; }
+        .bs-menu-note { grid-column: 7 / span 5; }
+        @media (max-width: 767px) {
+          .bs-menu-head, .bs-menu-list, .bs-menu-note { grid-column: 1 / span 12 !important; }
+          .bs-menu-row { display: flex; flex-direction: column; }
+        }
+      `}</style>
+
+      <div style={GRID_STYLE}>
+        <div className="bs-menu-head flex flex-col items-start text-left" style={{ gap: CLAMP.gap1 }}>
+          <p className="bs-h6 bs-menu-eyebrow" style={{ margin: 0 }}>{MENU.eyebrow}</p>
+          <h2 className="bs-h2 bs-menu-h2" style={{ margin: 0 }}>{MENU.headline}</h2>
+        </div>
+
+        <div className="bs-menu-list" style={{ marginTop: CLAMP.gap4 }}>
+          {MENU.rows.map((row, i) => (
+            <div key={row.title}>
+              {i === 0 && <div className="bs-menu-divider" />}
+              <div
+                className="bs-menu-row"
+                style={{ paddingTop: CLAMP.gap3, paddingBottom: CLAMP.gap3, gap: CLAMP.gap2 }}
+              >
+                <h3 className="bs-h4 bs-menu-row__title" style={{ margin: 0 }}>{row.title}</h3>
+                <p className="bs-p-medium bs-menu-row__body" style={{ margin: 0, color: C.ink }}>{row.body}</p>
+              </div>
+              <div className="bs-menu-divider" />
+            </div>
+          ))}
+        </div>
+
+        <p className="bs-p-small bs-menu-note" style={{ marginTop: CLAMP.gap2, color: C.ink, opacity: 0.7 }}>
+          {MENU.note}
+        </p>
+      </div>
+    </section>
+  )
+}
+
 /* ── 4.3 About us teaser (dark band), `section.section-text.u-grid` (teardown
    4.3) ─────────────────────────────────────────────────────────────────────
    The reference's one dark band on the home page: a right-aligned 7-column
@@ -1638,6 +1773,8 @@ export default function Page() {
       <Hero />
 
       <Offering />
+
+      <MenuSection />
 
       <FullBleedPhoto />
 
