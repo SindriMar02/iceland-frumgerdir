@@ -129,11 +129,11 @@ const HERO_ROOM: ReadonlyArray<ParallaxLayer> = [
 const FLOOR = '#181614'
 
 const HERO_PLATES: ReadonlyArray<ParallaxPlate> = [
-  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 2400, height: 3800,
+  { layer: '2', src: `${ASSET}/stone-far.webp`,  width: 1920, height: 3040,
     crest: 0.0488, restAt: 0.86, travel: -1.43, fill: FLOOR },
-  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 2400, height: 3800,
+  { layer: '5', src: `${ASSET}/stone-mid.webp`,  width: 1920, height: 3040,
     crest: 0.0523, restAt: 0.88, travel: -1.82, fill: FLOOR },
-  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 2400, height: 3800,
+  { layer: '4', src: `${ASSET}/stone-near.webp`, width: 1920, height: 3040,
     crest: 0.0559, restAt: 0.90, travel: -2.25, fill: FLOOR },
 ]
 
@@ -160,11 +160,11 @@ const EXIT_PLATES: ReadonlyArray<ParallaxPlate> = [
      the frame at rest on all of them. 1.75 clears it everywhere with margin;
      the ratio of the three is the descent's own. The light shows once the
      near crest clears the frame bottom, at 0.45 of the scrub. */
-  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 2400, height: 3211,
+  { layer: '2', src: `${ASSET}/gate-far.webp`,  width: 1920, height: 2569,
     crest: 0.0654, restAt: 1.40, travel: -1.26, fill: FLOOR, flip: true },
-  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 2400, height: 3211,
+  { layer: '5', src: `${ASSET}/gate-mid.webp`,  width: 1920, height: 2569,
     crest: 0.0640, restAt: 1.55, travel: -1.43, fill: FLOOR, flip: true },
-  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 2400, height: 3211,
+  { layer: '4', src: `${ASSET}/gate-near.webp`, width: 1920, height: 2569,
     crest: 0.0647, restAt: 1.75, travel: -1.65, fill: FLOOR, flip: true },
 ]
 
