@@ -320,4 +320,4 @@ html[data-ki-intro] .parallax--intro .parallax__layer-img,
 html[data-ki-intro] .parallax--intro .parallax__backdrop,
 html[data-ki-intro] .parallax--intro .parallax__corner { opacity: 0; }
 html[data-ki-intro] .parallax--intro [data-parallax-letter] { transform: translateY(130%); }
-html[data-ki-intro] .parallax--intro [data-parallax-fade] { opacity: 0; }
+html[data-ki-intro] .parallax--intro [data-parallax-rise] { transform: translateY(115%); }

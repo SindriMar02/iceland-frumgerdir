@@ -488,8 +488,14 @@ export const CSS = `
   padding: .22em 0 .08em; margin: -.22em 0 -.08em;
 }
 .ki-plx-l > i { display: inline-block; font-style: normal; }
+/* the two lines under the name are masks of their own, because they rise out
+   of the ground the way the name does instead of fading up. Padding for the
+   descenders in "Skipulag" and the acute in "lýsing", handed straight back
+   by the negative margin so the lockup measures what it always did. */
+.ki-plx-role > span, .ki-plx-tag > span { display: block; }
+.ki-plx-role, .ki-plx-tag { overflow: hidden; padding-bottom: .3em; margin-bottom: -.3em; }
 .ki-plx-role {
-  margin: calc(var(--u) * 26) 0 0;
+  margin: calc(var(--u) * 26) 0 -.3em;
   font-family: ${MONO};
   text-transform: uppercase;
   font-size: ${fluid(13.5, 11)};
@@ -502,7 +508,7 @@ export const CSS = `
    it breaks where it is written to break, and it is quiet enough that the
    name is still the thing that is seen. */
 .ki-plx-tag {
-  margin: calc(var(--u) * 30) 0 0;
+  margin: calc(var(--u) * 30) 0 -.3em;
   max-width: calc(var(--u) * 470);
   font-size: ${fluid(15.5, 14)};
   line-height: 1.62;
@@ -537,72 +543,109 @@ export const CSS = `
 }
 .ki-plx-deep-cta { margin: calc(var(--u) * 34) 0 0; }
 
-/* ── THE SPECIMENS ───────────────────────────────────────────────────────
-   Her five materials, found at the bottom of the descent — as five samples
-   standing on a shelf rather than as a table. No box. Cut to no two the same
-   height, so they read as hand-cut; a hairline mount around each, the same
-   one the newest-project card carries; and the name set BELOW the material
-   in the display face, with the site's own colour value under it as a quiet
-   specimen label. The material is only ever itself. */
+/* ── THE SECTION THROUGH HER PALETTE ─────────────────────────────────────
+   The bottom of the descent, and the one composition that could not be a
+   centred slide: a drawing with its title block beside it.
+
+   LEFT, held to a narrow measure and set flush left: what she says about
+   material. RIGHT: five columns of the real thing, NAMED ABOVE ONE DATUM and
+   hanging below it to five different depths — a section through the ground
+   she has just taken the visitor down through.
+
+   What this replaces, and why. Twice now the block has been five equal
+   things in a row with their colour printed under them: first as bands in a
+   box with the label across them, then as samples standing on a shelf. Both
+   are a swatch row, and the hex code under each name is what fixes that
+   reading — it turns her palette into a colour picker. The number does the
+   opposite: 01 to 05 under a datum is a materials schedule, which is the
+   document an architect actually issues, and the colour needs no caption
+   because it is the photograph. */
 .ki-plx-deep--strata {
-  max-width: calc(var(--u) * 1340); width: 100%;
-  /* it has to fit the frame it is pinned inside, at any shape */
-  max-height: 100%; display: flex; flex-direction: column; justify-content: center;
+  max-width: calc(var(--u) * 1360); width: 100%;
+  max-height: 100%;
+  display: grid; align-items: start; text-align: left;
+  grid-template-columns: minmax(0, 30%) minmax(0, 1fr);
+  /* ONE BAND ABOVE THE LINE, everything else below it. Row 1 is exactly the
+     head band the core measures its own names against, so the datum drawn at
+     its bottom edge is the same line the five columns hang from. */
+  --head: clamp(26px, 4svh, 46px);
+  grid-template-rows: var(--head) auto;
+  column-gap: clamp(26px, 4.2vw, 80px);
 }
-.ki-plx-deep--strata .ki-strata-title { margin-bottom: clamp(10px, 2.4svh, 30px); }
-.ki-plx-deep--strata .ki-plx-deep-kicker { margin-bottom: clamp(8px, 1.8svh, 22px); }
-.ki-strata-line { margin-top: clamp(12px, 3svh, 30px) !important; }
-.ki-plx-deep--strata .ki-plx-deep-cta { margin-top: clamp(10px, 2.6svh, 34px); }
-/* a short frame cannot carry the whole apparatus: the closing line is the
-   part the specimens already say */
-@media (max-height: 620px) and (min-width: 861px) {
-  .ki-plx-deep--strata .ki-strata-line { display: none; }
+.ki-plx-deep--strata > .ki-plx-deep-kicker {
+  grid-row: 1; grid-column: 1; align-self: end; margin: 0 0 4px;
 }
+.ki-strata-datum {
+  grid-row: 1; grid-column: 1 / -1; align-self: end;
+  height: 1px; background: rgb(242 236 227 / .42); transform-origin: 0% 50%;
+}
+.ki-strata-say {
+  grid-row: 2; grid-column: 1;
+  display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+  padding-top: clamp(14px, 2.6svh, 30px);
+}
+.ki-strata-core { grid-row: 1 / span 2; grid-column: 2; }
+.ki-plx-deep--strata .ki-strata-title { margin-bottom: 0; }
 .ki-strata-title {
-  margin: 0 0 calc(var(--u) * 44);
-  font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
-  font-size: ${fluid(58, 32)}; color: #F2ECE3;
+  margin: 0;
+  font-family: ${DISPLAY}; font-weight: 300; line-height: 1.08;
+  font-size: ${fluid(52, 30)}; color: #F2ECE3;
+  text-wrap: balance;
 }
+.ki-strata-line {
+  margin: clamp(16px, 3.4svh, 38px) 0 0; max-width: 34ch;
+  font-family: ${DISPLAY}; font-weight: 300;
+  font-size: ${fluid(19, 16)}; line-height: 1.46; color: #D9D1C5;
+}
+.ki-plx-deep--strata .ki-plx-deep-cta { margin-top: clamp(14px, 3svh, 36px); }
+.ki-plx-deep--strata .ki-cta { color: #F2ECE3; }
+
+/* THE CORE. --head is the band the names occupy above the datum, and it is a
+   fixed number rather than whatever the type measures, because the rule is
+   drawn against it and one line has to serve all five columns. */
+.ki-strata-core { position: relative; width: 100%; }
 .ki-strata {
   list-style: none; margin: 0; padding: 0; width: 100%;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  /* room to breathe: these are the only photographs the page has made for
-     itself. Sized off the FRAME's height, so on a tall pane they stand tall */
-  gap: calc(var(--u) * 40); align-items: end;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: clamp(8px, 1.5vw, 22px); align-items: start;
 }
-.ki-stratum { margin: 0; display: grid; gap: 4px; justify-items: start; text-align: left; }
+/* head band, then the material — flush to the datum, so the five columns
+   hang off one line and the only ragged edge is the bottom one */
+.ki-stratum { margin: 0; display: grid; grid-template-rows: var(--head) auto; }
+.ki-stratum-head { display: flex; align-items: baseline; gap: .5em; min-width: 0; }
+.ki-stratum-no {
+  font-family: ${MONO}; font-size: ${fluid(11, 9.5)}; letter-spacing: .18em;
+  color: #8E8375;
+}
+.ki-stratum-name {
+  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 17)};
+  letter-spacing: .01em; color: #F2ECE3; line-height: 1;
+  white-space: nowrap;
+}
 .ki-stratum-fig {
-  width: 100%; margin: 0 0 14px; overflow: hidden;
-  /* a specimen, not a thumbnail: the height is the frame's, a hairline mount
-     stands off it, and it casts onto the rock behind — five objects resting
-     on a surface rather than five images printed on one */
-  /* svh, so the shelf scales with the FRAME. On a short wide window — 1990
-     by 520 — a specimen sized off a fixed pixel floor pushed the block taller
-     than the frame it lives in, and the heading was clipped off the top while
-     the copy ran off the bottom. The floor is small enough that the whole
-     block still fits at 520. */
-  height: calc(var(--spec, 1) * clamp(96px, 30svh, 400px));
-  outline: 1px solid rgb(242 236 227 / .2); outline-offset: 6px;
+  width: 100%; margin: 0; overflow: hidden;
+  /* svh, so the section scales with the FRAME it is pinned inside. On a short
+     wide window a fixed pixel floor pushed the block taller than the frame
+     and clipped the heading off the top. */
+  /* the material hangs BELOW the datum with a band of stone between them,
+     because a rule the columns sit flush on is a rule nobody can see */
+  margin-top: 13px;
+  height: calc(var(--spec, 1) * clamp(104px, 38svh, 470px));
   box-shadow: 0 34px 60px -22px rgb(0 0 0 / .75), 0 6px 14px -6px rgb(0 0 0 / .5);
 }
-/* hand-cut: the shelf is level and the tops are not */
-.ki-stratum:nth-child(1) .ki-stratum-fig { --spec: 1.0; }
-.ki-stratum:nth-child(2) .ki-stratum-fig { --spec: .86; }
-.ki-stratum:nth-child(3) .ki-stratum-fig { --spec: .95; }
-.ki-stratum:nth-child(4) .ki-stratum-fig { --spec: .80; }
-.ki-stratum:nth-child(5) .ki-stratum-fig { --spec: 1.06; }
+/* five depths, and no two adjacent ones close: a section is read by its
+   ragged bottom edge, and an even rhythm reads as a chart */
+.ki-stratum:nth-child(1) .ki-stratum-fig { --spec: 1.00; }
+.ki-stratum:nth-child(2) .ki-stratum-fig { --spec: .71; }
+.ki-stratum:nth-child(3) .ki-stratum-fig { --spec: .90; }
+.ki-stratum:nth-child(4) .ki-stratum-fig { --spec: .56; }
+.ki-stratum:nth-child(5) .ki-stratum-fig { --spec: 1.13; }
 /* .ki-root picture > img sets height:auto at (0,1,2), which beat the (0,1,1)
    rule that used to sit here — so every image kept its own 3:4 inside a
-   figure sized off the frame, and the tall ones stopped short of the mount.
-   Two classes outrank it. */
+   figure sized off the frame, and the tall ones stopped short. Two classes
+   outrank it. */
 .ki-root .ki-stratum-fig picture, .ki-root .ki-stratum-fig img { width: 100%; height: 100%; object-fit: cover; margin: 0; }
-.ki-stratum-name { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(27, 18)}; letter-spacing: .01em; color: #F2ECE3; }
-.ki-stratum-hex { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; color: #9E9385; margin-top: 2px; }
-.ki-strata-line {
-  margin: calc(var(--u) * 40) auto 0; max-width: 46ch;
-  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(22, 17)}; line-height: 1.42; color: #D9D1C5;
-}
-.ki-plx-deep--strata .ki-cta { color: #F2ECE3; }
+
 /* words arrive one at a time; each is its own box so it can move alone */
 /* the window each word rises out of. Room above for the acute on rýmið and
    below for the descender in eigin; the negative margins hand the space back
@@ -612,60 +655,70 @@ export const CSS = `
   vertical-align: bottom; padding: .2em 0 .22em; margin: -.2em 0 -.22em;
 }
 .ki-whisper > span > i { display: inline-block; font-style: normal; }
-.ki-whisper > span + span { margin-left: .26em; }
-/* on a phone five columns are sixty pixels each: it becomes a shelf you
-   swipe along instead, the same native strip the journey uses on touch */
-@media (max-width: 860px) {
-  .ki-plx-deep--strata { max-width: none; }
-  /* MOBILE: a swipeable shelf, and sized so a thumb-swipe lands on a whole
-     specimen rather than between two. 60vw shows the current one entire with
-     the next one's edge already in view, which is what says "there are more";
-     snap centres it, and the row scrolls under its own finger rather than
-     fighting the page's. */
-  /* FIVE ACROSS, STILL. Two earlier attempts got this wrong in opposite
-     directions: a snap carousel, which was a nested scroller fighting the
-     page and cut the second specimen off at the screen edge; then three over
-     two, where the short bottom row had to be centred and read as a ragged
-     collage with an orphan rather than as a set. It is a set of five — a
-     materials board — and a board is one row. Narrower columns, the same
-     hand-cut tops, the same left-aligned name under each. The whole block
-     gets shorter, which is what stops it colliding with the fixed wordmark
-     at the top of the frame it lives in.
+/* margin on the RIGHT of every word but the last. On the left it survives a
+   line break and indents the wrapped line, which threw "rýmið." a quarter of
+   an em off the flush-left edge it shares with everything under it. */
+.ki-whisper > span:not(:last-child) { margin-right: .26em; }
 
-     The names are what set the floor on column width: Vinrautt is the
-     longest at eight characters, and it fits a fifth of a 360px screen at
-     this size. Below that the hex drops first, because the name is the part
-     that has to survive. */
+@media (max-width: 860px) {
+  /* ONE COLUMN, and the title block splits around the drawing: the sentence
+     and the invitation belong AFTER the material on a phone, where there is
+     no beside. display:contents lifts the four lines out of their plate so
+     the grid can order them around the core. */
+  .ki-plx-deep--strata {
+    max-width: none; padding-inline: 20px;
+    grid-template-columns: minmax(0, 1fr); gap: 0;
+  }
+  .ki-strata-say { display: contents; }
+  .ki-plx-deep--strata { grid-template-rows: none; }
+  .ki-plx-deep--strata > .ki-plx-deep-kicker,
+  .ki-plx-deep--strata .ki-strata-say, .ki-strata-core,
+  .ki-plx-deep--strata .ki-strata-title, .ki-plx-deep--strata .ki-strata-line,
+  .ki-plx-deep--strata .ki-plx-deep-cta { grid-row: auto; grid-column: 1; }
+  .ki-strata-say { padding-top: 0; }
+  .ki-plx-deep--strata > .ki-plx-deep-kicker { order: 1; margin: 0 0 10px; }
+  .ki-plx-deep--strata .ki-strata-title { order: 2; font-size: 30px; margin-bottom: 22px; }
+  .ki-strata-core { order: 3; }
+  .ki-plx-deep--strata .ki-strata-line { order: 4; margin-top: 22px; max-width: none; font-size: 16px; }
+  .ki-plx-deep--strata .ki-plx-deep-cta { order: 5; margin-top: 18px; }
+  /* the datum is a device for one row of columns; with five over three rows
+     each name carries its own rule instead */
+  .ki-strata-datum { display: none; }
+  .ki-strata-core { --head: 23px; }
+  .ki-stratum-head { border-bottom: 1px solid rgb(242 236 227 / .24); align-items: flex-end; padding-bottom: 3px; }
   .ki-strata {
     /* minmax(0, 1fr), not 1fr. A bare 1fr is minmax(AUTO, 1fr), so a column
        whose name is long refuses to shrink below it and steals width from
-       its neighbours: five columns came out 44, 53, 44, 77 and 59 wide,
-       sized by the length of the words Hor, Kopar, Eik, Vinrautt and Steinn
-       rather than by the grid. That is what made the row look hand-placed. */
+       its neighbour. */
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px 16px; align-items: end;
+    gap: 16px 16px;
   }
   /* five into two: the last one takes the full width and reads as a wide
      plate of stone, which is what stone is. It is the only arrangement of
-     five that leaves no orphan sitting on its own in a half-empty row. */
+     five that leaves no orphan in a half-empty row. */
   .ki-stratum:last-child { grid-column: 1 / -1; }
   .ki-stratum-fig {
-    height: calc(var(--spec, 1) * clamp(92px, 13svh, 150px));
-    margin-bottom: 9px; outline-offset: 4px;
+    margin-top: 9px;
+    height: calc(var(--spec, 1) * clamp(88px, 12.5svh, 146px));
     box-shadow: 0 18px 34px -14px rgb(0 0 0 / .75), 0 4px 10px -5px rgb(0 0 0 / .5);
   }
-  .ki-stratum:last-child .ki-stratum-fig { --spec: .62; }
-  .ki-stratum { gap: 2px; }
-  .ki-stratum-name { font-size: 18px; line-height: 1.2; }
-  .ki-stratum-hex { font-size: 9.5px; letter-spacing: .14em; }
-  .ki-stratum-name { font-size: 19px; }
-  .ki-plx-deep--strata { max-width: none; padding-inline: 22px; }
-  .ki-strata-title { font-size: 30px; }
-  .ki-strata-line { font-size: 16px; margin-top: calc(var(--u) * 26); }
+  .ki-stratum:nth-child(1) .ki-stratum-fig { --spec: 1.00; }
+  .ki-stratum:nth-child(2) .ki-stratum-fig { --spec: .84; }
+  .ki-stratum:nth-child(3) .ki-stratum-fig { --spec: .84; }
+  .ki-stratum:nth-child(4) .ki-stratum-fig { --spec: 1.00; }
+  .ki-stratum:last-child .ki-stratum-fig { --spec: .60; }
+  .ki-stratum-name { font-size: 17px; }
+  .ki-stratum-no { font-size: 9.5px; letter-spacing: .14em; }
 }
-.ki-strata-static { display: none; padding: calc(var(--u) * 90) calc(var(--u) * 34); text-align: center; }
-.ki-strata-static .ki-strata { max-width: calc(var(--u) * 700); margin: 0 auto; }
-.ki-strata-static .ki-strata-title { text-align: center; }
+/* a short frame cannot carry the whole apparatus: the closing sentence is
+   the part the section already says */
+@media (max-height: 620px) and (min-width: 861px) {
+  .ki-plx-deep--strata .ki-strata-line { display: none; }
+}
+/* the same section, in flow, for a visitor who has asked for no motion */
+.ki-strata-static { display: none; padding: calc(var(--u) * 90) calc(var(--u) * 34); text-align: left; }
+.ki-strata-static .ki-strata-core { max-width: calc(var(--u) * 900); margin: calc(var(--u) * 40) auto 0; }
+.ki-strata-static .ki-plx-deep-kicker, .ki-strata-static .ki-strata-title { text-align: center; }
 @media (prefers-reduced-motion: reduce) { .ki-strata-static { display: block; } }
 
 /* ── THE NEWEST PROJECT, in the corner of the landing frame ──────────────

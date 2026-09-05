@@ -457,20 +457,68 @@ export function ParallaxComponent({
           /* uncovered from the bottom edge up, which is how a specimen set
              down on a shelf comes into view, with the photograph inside
              settling out of a small oversize as its own window opens */
-          const gap = stag.length > 1 ? (run * 0.42) / (stag.length - 1) : 0
+          const gap = stag.length > 1 ? (run * 0.34) / (stag.length - 1) : 0
           gsap.set(stag, { clipPath: 'inset(100% 0% 0% 0%)' })
           tl.fromTo(stag,
             { clipPath: 'inset(100% 0% 0% 0%)' },
             { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.out', duration: run * 0.28,
-              stagger: gap }, deepAt + run * 0.26)
+              stagger: gap }, deepAt + run * 0.22)
           const stagImgs = deepEl.querySelectorAll('[data-parallax-stagger] img')
           if (stagImgs.length) {
             gsap.set(stagImgs, { scale: 1.09 })
             tl.fromTo(stagImgs,
               { scale: 1.09 },
               { scale: 1, ease: 'power2.out', duration: run * 0.40, stagger: gap },
-              deepAt + run * 0.26)
+              deepAt + run * 0.22)
           }
+        }
+
+        /* THE DATUM. One hairline drawn left to right, and the five columns
+           of material hang off it — so it has to exist before they do. */
+        const ruleEl = deepEl.querySelector('[data-parallax-rule]')
+        if (ruleEl) {
+          gsap.set(ruleEl, { scaleX: 0, transformOrigin: '0% 50%' })
+          tl.fromTo(ruleEl,
+            { scaleX: 0 },
+            { scaleX: 1, ease: 'power2.inOut', duration: run * 0.22 },
+            deepAt + run * 0.14)
+        }
+
+        /* AND THE MATERIAL GROWS DOWNWARD OUT OF IT. Opposite to everything
+           else in this block, and deliberately: the copy rises out of its
+           windows the way type always should, but a stratum is uncovered
+           from the top down because that is the direction the whole page is
+           travelling and the direction a core comes out of the ground. */
+        const drops = deepEl.querySelectorAll('[data-parallax-drop]')
+        if (drops.length) {
+          const gap = drops.length > 1 ? (run * 0.34) / (drops.length - 1) : 0
+          gsap.set(drops, { clipPath: 'inset(0% 0% 100% 0%)' })
+          tl.fromTo(drops,
+            { clipPath: 'inset(0% 0% 100% 0%)' },
+            { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.out', duration: run * 0.30,
+              stagger: gap }, deepAt + run * 0.30)
+          const dropImgs = deepEl.querySelectorAll('[data-parallax-drop] img')
+          if (dropImgs.length) {
+            gsap.set(dropImgs, { scale: 1.07 })
+            tl.fromTo(dropImgs,
+              { scale: 1.07 },
+              { scale: 1, ease: 'power2.out', duration: run * 0.44, stagger: gap },
+              deepAt + run * 0.30)
+          }
+        }
+
+        /* THE LAST THING SAID. It sits above the core in the document because
+           the composition puts it in the left column, and it has to arrive
+           after it — so it is its own bucket rather than the end of the
+           staggered one, which reads in document order. */
+        const tail = deepEl.querySelectorAll('[data-parallax-tail]')
+        if (tail.length) {
+          const gap = tail.length > 1 ? (run * 0.14) / (tail.length - 1) : 0
+          gsap.set(tail, { clipPath: 'inset(100% 0% 0% 0%)' })
+          tl.fromTo(tail,
+            { clipPath: 'inset(100% 0% 0% 0%)' },
+            { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.out', duration: run * 0.26,
+              stagger: gap }, deepAt + run * 0.62)
         }
 
         /* THE CHROME STILL HAS TO FOLLOW THE SURFACE. On the way out the
@@ -550,6 +598,14 @@ export function ParallaxComponent({
       /* Scroll is held while the wordmark is alone on the ground. Both
          surfaces: the document's own overflow for touch and keyboard, Lenis
          for the wheel. */
+      /* MANUAL RESTORATION, or the opening plays over a page already scrolled
+         into the descent. A reload keeps the old offset and the browser
+         re-applies it after load — after this scrollTo — so ScrollTrigger
+         initialised at, say, a third of the way down and wrote its own inline
+         opacity onto the room and the plates. Inline beats the stylesheet's
+         held state, so the photographs were up while the name was still
+         mid-rise: the page visible, the wordmark in pieces over it. */
+      try { history.scrollRestoration = 'manual' } catch { /* older Safari */ }
       window.scrollTo(0, 0)
       document.documentElement.style.overflow = 'hidden'
       sharedLenis?.stop()
@@ -557,7 +613,7 @@ export function ParallaxComponent({
       ctx.add(() => {
         const q = (sel: string) => Array.from(triggerElement!.querySelectorAll<HTMLElement>(sel))
         const letters = q('[data-parallax-letter]')
-        const fades = q('[data-parallax-fade]')
+        const rises = q('[data-parallax-rise]')
         const visuals = q('.parallax__layer-img, .parallax__backdrop')
         const cornerEl = triggerElement!.querySelector<HTMLElement>('[data-parallax-corner]')
 
@@ -577,14 +633,27 @@ export function ParallaxComponent({
              below its window: the wordmark animated, and stayed invisible.
              Stating y clears the parsed offset and leaves the percentage as
              the only thing moving. */
+          /* NO STAGGER, and that is the whole correction. A 42ms stagger
+             across twelve letters means that for the first half-second the
+             name is a staircase of half-cut capitals, each sliced by its own
+             mask at a different height — read as a broken page, not as a
+             reveal, and it is what "floating clipped top of wordmark" was.
+             Every mask sits on the same line box, so at stagger 0 the cut is
+             one straight edge across the whole line and the name rises out
+             of the ground in one piece: the wordmark exactly as the landing
+             frame has it, moved into view. */
           type.fromTo(letters,
             { yPercent: 130, y: 0 },
-            { yPercent: 0, y: 0, duration: 1.05, ease: 'power3.out', stagger: 0.042 }, 0)
+            { yPercent: 0, y: 0, duration: 1.15, ease: 'power3.out' }, 0)
         }
-        if (fades.length) {
-          type.fromTo(fades,
-            { opacity: 0, y: 10 },
-            { opacity: 1, y: 0, duration: 0.85, ease: 'power2.out', stagger: 0.14 }, 0.5)
+        /* The two lines under the name do the same thing the name does — rise
+           out of their own masks — rather than fading up. One idea, once:
+           the lockup comes up out of the ground, and the only thing on this
+           page that fades is the ground itself. */
+        if (rises.length) {
+          type.fromTo(rises,
+            { yPercent: 115, y: 0 },
+            { yPercent: 0, y: 0, duration: 1.0, ease: 'power3.out', stagger: 0.13 }, 0.3)
         }
 
         /* THE PAGE, ONCE IT EXISTS. Every plate and the room behind them,
@@ -598,7 +667,7 @@ export function ParallaxComponent({
           im.src = src
           if (im.complete) res()
         })
-        const hold = new Promise<void>((res) => { introTimer = window.setTimeout(res, 1250) })
+        const hold = new Promise<void>((res) => { introTimer = window.setTimeout(res, 1150) })
         const cap = new Promise<void>((res) => { window.setTimeout(res, 3200) })
 
         Promise.all([hold, Promise.race([Promise.all(srcs.map(decode)), cap])]).then(() => {
@@ -609,7 +678,7 @@ export function ParallaxComponent({
                  they are stacked in and the order the eye reads them */
               .fromTo(visuals,
                 { opacity: 0 },
-                { opacity: 1, duration: 1.25, ease: 'power2.out', stagger: 0.075 }, 0)
+                { opacity: 1, duration: 1.4, ease: 'power2.out', stagger: 0.08 }, 0)
               .fromTo(cornerEl ? [cornerEl] : [],
                 { opacity: 0 },
                 { opacity: 1, duration: 0.8, ease: 'power1.out' }, 0.75)

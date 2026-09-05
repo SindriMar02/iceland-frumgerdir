@@ -14,6 +14,7 @@
  * without a flash for anyone who has already seen it this session, by an
  * inline script in the shell that runs before first paint.
  */
+import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { Shell, type Head } from './Shell'
 import {
@@ -279,11 +280,14 @@ export function Home() {
         /* her photograph and then a tonne of stone: the header is light over
            all of it, and this is what tells it so */
         band="dark"
-        /* 210, not 240: the swallow is done by 0.4 and the specimens are set
-           down by 0.9, and the rest was dark with nothing in it. Travel is in
-           frame heights, so a shorter pin only changes how much scroll the
-           same move takes — the geometry is identical. */
-        scroll="210svh"
+        /* 240 again, and this time it is earned. At 210 the section drawing
+           had 55svh of scroll to draw its datum, raise six labels, uncover
+           five columns of material and land the closing line — five stages
+           through one thumb-length, which is what made it feel hurried. The
+           block now uses the whole of its half of the pin, so the half is
+           longer. Travel is in frame heights, so a longer pin only changes
+           how much scroll the same move takes — the geometry is identical. */
+        scroll="240svh"
         deepAt={0.5}
         titleYPercent={-55}
         title={
@@ -298,26 +302,34 @@ export function Home() {
                   narrow phone. The h1 keeps its accessible name outright. */}
               <h1 className="ki-plx-name" aria-label="Katrín Ísfeld">
                 {'Katrín Ísfeld'.split(' ').map((word, w, all) => (
-                  <span key={w} className="ki-plx-word" aria-hidden="true">
-                    {word.split('').map((ch, i) => (
-                      <span key={i} className="ki-plx-l">
-                        <i data-parallax-letter
-                          style={{ ['--i' as string]: all.slice(0, w).join(' ').length + (w ? 1 : 0) + i }}>{ch}</i>
-                      </span>
-                    ))}
+                  <Fragment key={w}>
+                    <span className="ki-plx-word" aria-hidden="true">
+                      {word.split('').map((ch, i) => (
+                        <span key={i} className="ki-plx-l">
+                          <i data-parallax-letter>{ch}</i>
+                        </span>
+                      ))}
+                    </span>
+                    {/* THE SPACE LIVES OUT HERE. Inside the word span it was
+                        a trailing space in a nowrap inline-block, which the
+                        browser trims — so on any window wide enough to keep
+                        the name on one line it set as KATRÍNÍSFELD. It only
+                        looked right because 1440 happened to wrap it. */}
                     {w < all.length - 1 ? ' ' : null}
-                  </span>
+                  </Fragment>
                 ))}
               </h1>
-              <p className="ki-plx-role" data-parallax-fade>innanhússarkitekt</p>
+              <p className="ki-plx-role"><span data-parallax-rise>innanhússarkitekt</span></p>
               {/* The four things she actually draws, named. The first draft
                   was a triad of room types joined by a dash to an abstraction
                   — the shape every generated tagline has. This one lists real
                   deliverables from her own services page and stops. It is the
                   lowest line in the lockup, so it is the first thing the
                   rising stone takes. */}
-              <p className="ki-plx-tag" data-parallax-fade>
-                Skipulag, innréttingar, efnisval og lýsing, teiknað í einu lagi.
+              <p className="ki-plx-tag">
+                <span data-parallax-rise>
+                  Skipulag, innréttingar, efnisval og lýsing, teiknað í einu lagi.
+                </span>
               </p>
             </div>
           </div>
@@ -349,36 +361,56 @@ export function Home() {
            the samples are in the studio. */
         deep={
           <div className="ki-plx-deep ki-plx-deep--strata">
+            {/* THE LEFT PLATE — what is said. Left-aligned and held to a
+                narrow measure, because the composition is a drawing with a
+                title block beside it rather than a centred slide. */}
+            {/* the kicker rides ABOVE the datum with the five names, and the
+                heading hangs below it with the five materials — so the one
+                hairline runs the full width of the composition and the whole
+                thing reads as a single section rather than as a caption
+                beside a picture */}
             <p className="ki-plx-deep-kicker" data-parallax-stagger>Rýmið man</p>
-            <WhisperText as="h2" text="Efnin bera rýmið." className="ki-strata-title" managed />
-            {/* SPECIMENS, NOT A TABLE. Five samples standing on a shelf: cut to
-                no two the same height, a hairline mount around each, and the
-                name set BELOW the material rather than on it, so the material
-                is only ever itself. The first version was five equal bands in
-                a box with the label printed across them — a colour picker. */}
-            <ul className="ki-strata">
-              {MATERIALS.map((m) => (
-                <li key={m.id} className="ki-stratum" data-parallax-stagger>
-                  <figure className="ki-stratum-fig">
-                    {/* priority: these live inside the pinned hero, so they are
-                        on screen from the first frame — lazy meant five large
-                        photographs decoding mid-scroll, which is the other half
-                        of the flashing */}
-                    <Photo id={m.id} alt={m.alt} priority
-                      sizes="(max-width: 640px) 60vw, (max-width: 860px) 40vw, 190px" />
-                  </figure>
-                  <span className="ki-stratum-name">{m.name}</span>
-                  <span className="ki-stratum-hex">{m.hex}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="ki-strata-line" data-parallax-stagger>
-              Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist
-              með húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
-            </p>
-            <p className="ki-plx-deep-cta" data-parallax-stagger>
-              <Link className="ki-cta" to={CONTACT_PATH}>Sýnishornin eru í stúdíóinu</Link>
-            </p>
+            <span className="ki-strata-datum" data-parallax-rule aria-hidden="true" />
+            <div className="ki-strata-say">
+              <WhisperText as="h2" text="Efnin bera rýmið." className="ki-strata-title" managed />
+              <p className="ki-strata-line" data-parallax-tail>
+                Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist
+                með húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
+              </p>
+              <p className="ki-plx-deep-cta" data-parallax-tail>
+                <Link className="ki-cta" to={CONTACT_PATH}>Sýnishornin eru í stúdíóinu</Link>
+              </p>
+            </div>
+            {/* THE RIGHT PLATE — a section through her palette. Five columns
+                of real material NAMED ABOVE A SINGLE DATUM and hanging below
+                it to five different depths, the way a core comes out of the
+                ground and the way strata are drawn. The version this replaces
+                stood them side by side on a shelf with the colour value
+                printed underneath, which is a swatch row however it is cut:
+                five equal columns, five labels, five hex codes, centred. The
+                number is what an architect issues instead — a schedule, 01
+                to 05 — and the colour needs no caption because it is the
+                photograph. */}
+            <div className="ki-strata-core">
+              <ul className="ki-strata">
+                {MATERIALS.map((m, i) => (
+                  <li key={m.id} className="ki-stratum">
+                    <span className="ki-stratum-head" data-parallax-stagger>
+                      <span className="ki-stratum-no">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="ki-stratum-name">{m.name}</span>
+                    </span>
+                    <figure className="ki-stratum-fig" data-parallax-drop>
+                      {/* priority: these live inside the pinned hero, so they
+                          are on screen from the first frame — lazy meant five
+                          large photographs decoding mid-scroll, which is the
+                          other half of the flashing */}
+                      <Photo id={m.id} alt={m.alt} priority
+                        sizes="(max-width: 860px) 44vw, 190px" />
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         }
       />
@@ -391,17 +423,22 @@ export function Home() {
       <section className="ki-strata-static" aria-hidden="true" data-ki-band="dark">
         <p className="ki-plx-deep-kicker">Rýmið man</p>
         <p className="ki-strata-title">Efnin bera rýmið.</p>
-        <ul className="ki-strata">
-          {MATERIALS.map((m) => (
-            <li key={m.id} className="ki-stratum">
-              <figure className="ki-stratum-fig">
-                <Photo id={m.id} alt="" sizes="(max-width: 860px) 44vw, 170px" />
-              </figure>
-              <span className="ki-stratum-name">{m.name}</span>
-              <span className="ki-stratum-hex">{m.hex}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="ki-strata-core">
+          <span className="ki-strata-datum" aria-hidden="true" />
+          <ul className="ki-strata">
+            {MATERIALS.map((m, i) => (
+              <li key={m.id} className="ki-stratum">
+                <span className="ki-stratum-head">
+                  <span className="ki-stratum-no">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="ki-stratum-name">{m.name}</span>
+                </span>
+                <figure className="ki-stratum-fig">
+                  <Photo id={m.id} alt="" sizes="(max-width: 860px) 44vw, 170px" />
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* 02 · THE WAY OUT — fired the moment the descent finishes.
