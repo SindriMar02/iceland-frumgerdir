@@ -486,7 +486,20 @@ export const CSS = `
    one the newest-project card carries; and the name set BELOW the material
    in the display face, with the site's own colour value under it as a quiet
    specimen label. The material is only ever itself. */
-.ki-plx-deep--strata { max-width: calc(var(--u) * 1340); width: 100%; }
+.ki-plx-deep--strata {
+  max-width: calc(var(--u) * 1340); width: 100%;
+  /* it has to fit the frame it is pinned inside, at any shape */
+  max-height: 100%; display: flex; flex-direction: column; justify-content: center;
+}
+.ki-plx-deep--strata .ki-strata-title { margin-bottom: clamp(10px, 2.4svh, 30px); }
+.ki-plx-deep--strata .ki-plx-deep-kicker { margin-bottom: clamp(8px, 1.8svh, 22px); }
+.ki-strata-line { margin-top: clamp(12px, 3svh, 30px) !important; }
+.ki-plx-deep--strata .ki-plx-deep-cta { margin-top: clamp(10px, 2.6svh, 34px); }
+/* a short frame cannot carry the whole apparatus: the closing line is the
+   part the specimens already say */
+@media (max-height: 620px) and (min-width: 861px) {
+  .ki-plx-deep--strata .ki-strata-line { display: none; }
+}
 .ki-strata-title {
   margin: 0 0 calc(var(--u) * 44);
   font-family: ${DISPLAY}; font-weight: 300; line-height: 1.1;
@@ -505,7 +518,12 @@ export const CSS = `
   /* a specimen, not a thumbnail: the height is the frame's, a hairline mount
      stands off it, and it casts onto the rock behind — five objects resting
      on a surface rather than five images printed on one */
-  height: calc(var(--spec, 1) * clamp(190px, 38svh, 400px));
+  /* svh, so the shelf scales with the FRAME. On a short wide window — 1990
+     by 520 — a specimen sized off a fixed pixel floor pushed the block taller
+     than the frame it lives in, and the heading was clipped off the top while
+     the copy ran off the bottom. The floor is small enough that the whole
+     block still fits at 520. */
+  height: calc(var(--spec, 1) * clamp(96px, 30svh, 400px));
   outline: 1px solid rgb(242 236 227 / .2); outline-offset: 6px;
   box-shadow: 0 34px 60px -22px rgb(0 0 0 / .75), 0 6px 14px -6px rgb(0 0 0 / .5);
 }

@@ -312,9 +312,36 @@ export function ParallaxComponent({
       /* px, from a function, re-read on every refresh — that is what makes
          travel mean "frame heights" instead of "percent of a box whose height
          happens to come from the viewport's width" */
+      /* THE ONE RULE THAT KEEPS THE WALL ONE PHOTOGRAPH. Below the face is a
+         hem — the plate's own last rows mirrored — and a mirror of diagonal
+         columns kinks: the lean reverses at the fold and the eye reads a line
+         across the whole frame. So the fold must never enter the frame. On a
+         tall landscape frame (1490x1230, 1990x1300) the near plate's full
+         travel carried its bottom edge a few dozen pixels above the frame's
+         bottom at the end of the descent, and that was the seam. The travel
+         is scaled — all plates by ONE factor, so the depth ordering between
+         them is untouched — so the lowest face edge stops exactly at the
+         frame's bottom. Portrait frames, where the image alone is shorter
+         than the descent, keep the full travel and the hem: scaling there
+         would stop the plates from rising at all. */
+      const plateScale = () => {
+        if (!frame()) return 1
+        let s = 1
+        for (const p of plates) {
+          if (p.flip) continue
+          const face = triggerElement.querySelector<HTMLElement>(
+            `[data-parallax-layer="${p.layer}"] .parallax__plate-face`,
+          )
+          const K = face?.offsetHeight ?? 0
+          const room = p.restAt * frame() - p.crest * K + K - frame()
+          const want = Math.abs(p.travel) * frame()
+          if (want > 0 && room < want) s = Math.min(s, room / want)
+        }
+        return s >= 0.55 ? s : 1
+      }
       for (const p of plates) {
         const t = at(`[data-parallax-layer="${p.layer}"]`)
-        if (t.length) tl.to(t, { y: () => p.travel * frame(), ease: 'none', duration: 1 }, 0)
+        if (t.length) tl.to(t, { y: () => p.travel * frame() * (p.flip ? 1 : plateScale()), ease: 'none', duration: 1 }, 0)
       }
 
       /* The layer tweens all sit at position 0 with duration 1, which is what
