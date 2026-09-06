@@ -1,0 +1,12 @@
+import puppeteer from 'puppeteer-core'
+const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', userDataDir: '/tmp/nl-qa-profile' })
+const p = await b.newPage()
+await p.setViewport({ width: 1440, height: 900 })
+await p.evaluateOnNewDocument(() => sessionStorage.setItem('nl_seen', '1'))
+await p.goto('http://localhost:5299/preview/nollur', { waitUntil: 'domcontentloaded' })
+await p.evaluate(() => document.fonts.ready)
+await new Promise(r => setTimeout(r, 2200))
+for (let i = 0; i < 4; i++) { await p.mouse.wheel({ deltaY: 120 }); await new Promise(r => setTimeout(r, 30)) }
+await new Promise(r => setTimeout(r, 500))
+await p.screenshot({ path: 'scripts/nollur-shots/behind-quarter2.png' })
+await b.close()

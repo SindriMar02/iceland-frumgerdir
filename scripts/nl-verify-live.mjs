@@ -1,0 +1,13 @@
+import puppeteer from 'puppeteer-core'
+const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', userDataDir: '/tmp/nl-verify-' + Date.now() })
+const p = await b.newPage()
+await p.setCacheEnabled(false)
+await p.setViewport({ width: 1440, height: 900 })
+await p.goto('https://sindrimar02.github.io/iceland-frumgerdir/preview/nollur/', { waitUntil: 'networkidle0', timeout: 45000 })
+await p.evaluate(() => document.fonts.ready)
+await new Promise(r => setTimeout(r, 2500))
+const src = await p.evaluate(() => document.querySelector('.nl-hero-cut img')?.currentSrc || '')
+console.log('hero img in use:', src.split('/').pop())
+await p.screenshot({ path: 'scripts/nollur-shots/live-final.png' })
+await p.screenshot({ path: 'scripts/nollur-shots/live-final-left.png', clip: { x: 180, y: 0, width: 420, height: 900 } })
+await b.close()

@@ -1,0 +1,21 @@
+import puppeteer from 'puppeteer-core'
+const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', userDataDir: '/tmp/nl-cut-live' })
+const p = await b.newPage()
+const errors = []
+p.on('pageerror', e => errors.push('page: ' + e.message))
+p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0,160)) })
+await p.setViewport({ width: 1440, height: 900 })
+await p.evaluateOnNewDocument(() => sessionStorage.setItem('nl_seen', '1'))
+await p.goto('https://sindrimar02.github.io/iceland-frumgerdir/preview/nollur/', { waitUntil: 'domcontentloaded' })
+await p.evaluate(() => document.fonts.ready)
+await new Promise(r => setTimeout(r, 2400))
+await p.screenshot({ path: 'scripts/nollur-shots/cut-rest.png' })
+for (let i=0;i<3;i++){ await p.mouse.wheel({deltaY:60}); await new Promise(r=>setTimeout(r,220)) }
+await new Promise(r => setTimeout(r, 400))
+await p.screenshot({ path: 'scripts/nollur-shots/cut-mid.png' })
+await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+await p.reload({ waitUntil: 'domcontentloaded' })
+await new Promise(r => setTimeout(r, 2400))
+await p.screenshot({ path: 'scripts/nollur-shots/cut-mobile.png' })
+console.log(JSON.stringify({errors}))
+await b.close()

@@ -58,18 +58,24 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'A destination restaurant with one signature dish and copy worth reading, currently presented at 450 pixels. The redesign turns their own material up, changes nothing about how they take bookings, and gives Google an h1 for the first time.',
   outreach: {
-    subject: 'Fjöruborðið, hugmynd að nýrri forsíðu',
+    subject: 'Hugmynd að nýrri vefsíðu fyrir Fjöruborðið',
     body: `Sæl og blessuð,
 
-Ég heiti Sindri og hanna vefsíður fyrir veitingastaði. Ég sat yfir fjorubordid.is í gær og gerði tillögu að nýrri forsíðu fyrir ykkur, með ykkar eigin myndum og texta.
+Ég heiti Sindri og hanna vefsíður fyrir íslensk veitingahús og ferðaþjónustu.
 
-Tvennt sem ég rak augun í og lagaði í tillögunni: stærsta myndin á forsíðunni er 450 punktar á breidd þó að frummyndirnar á vefþjóninum ykkar séu tíu sinnum stærri, og engin síða á vefnum er með aðalfyrirsögn, sem Google styðst við til að skilja um hvað síðan er. Setningin ykkar um frægustu humarsúpu lýðveldisins er sú besta sem ég hef séð á veitingavef á Íslandi og hún á heima efst, ekki inni á undirsíðu.
+Ég sat yfir vefnum ykkar í gær. Setningin ykkar um frægustu humarsúpu lýðveldisins er sú besta sem ég hef séð á íslenskum veitingavef, og það að humarinn sé borinn fram eftir þyngd er matseðill sem enginn annar á. Hvorugt sést þó á forsíðunni eins og hún er í dag.
 
-Tillagan er hér: https://sindrimar02.github.io/iceland-frumgerdir/preview/fjorubordid/
+Tvennt annað rak ég augun í. Myndirnar af matnum birtast í 450 punkta breidd þó að frummyndirnar á vefþjóninum ykkar séu 3.728 punktar á kant, svo maturinn kemst aldrei almennilega til skila. Og engin síða á vefnum er með aðalfyrirsögn, sem er það fyrsta sem Google les til að skilja um hvað síðan fjallar.
 
-Borðapantanir og gjafabréf halda áfram að fara í gegnum Dineout eins og núna, ég hrófla ekki við því sem virkar.
+Ég settist því niður og hannaði frumgerð að nýrri forsíðu, alfarið úr ykkar eigin myndum og ykkar eigin texta. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding. Hana má skoða hvenær sem er, og hún virkar vel í síma:
 
-Ef ykkur líst á þetta má ég hringja og fara yfir þetta með ykkur á tíu mínútum.
+[HLEKKUR Á FRUMGERÐ]
+
+Humarinn er efstur í fullri upplausn, þyngdirnar fjórar standa saman á einum stað með verðunum, og sagan af súpunni fær að rúlla á sínum hraða þegar skrunað er niður. Borðapantanir og gjafabréf fara áfram í gegnum Dineout eins og núna, ég hrófla ekki við því sem virkar hjá ykkur.
+
+Ef ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þetta gefi ykkur smá innblástur.
+
+Endilega látið mig vita ef þið hafið áhuga.
 
 ${SIGN}`,
   },

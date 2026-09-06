@@ -5,7 +5,7 @@ for (const w of [320, 355, 390, 440, 620]) {
   const p = await b.newPage()
   await p.setViewport({ width: w, height: 781, deviceScaleFactor: 2, isMobile: w < 700, hasTouch: w < 700 })
   await p.evaluateOnNewDocument(() => sessionStorage.setItem('nl_seen','1'))
-  await p.goto('http://localhost:5299/preview/nollur', { waitUntil: 'domcontentloaded' })
+  await p.goto('https://sindrimar02.github.io/iceland-frumgerdir/preview/nollur/', { waitUntil: 'domcontentloaded' })
   await new Promise(r => setTimeout(r, 3200))
   out[w] = await p.evaluate(() => {
     const row = document.querySelector('.nl-hero-hotspots')

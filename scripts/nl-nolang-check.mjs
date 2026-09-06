@@ -7,7 +7,7 @@ p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text(
 await p.setViewport({ width: 440, height: 956, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
 await p.evaluateOnNewDocument(() => sessionStorage.setItem('nl_seen','1'))
 // ?lang=de must no longer do anything
-await p.goto('http://localhost:5299/preview/nollur?lang=de', { waitUntil: 'domcontentloaded' })
+await p.goto('https://sindrimar02.github.io/iceland-frumgerdir/preview/nollur/?lang=de', { waitUntil: 'domcontentloaded' })
 await new Promise(r => setTimeout(r, 3500))
 const out = await p.evaluate(() => {
   const txt = document.body.innerText

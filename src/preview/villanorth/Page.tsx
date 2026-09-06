@@ -2629,8 +2629,12 @@ html, body { background-color: ${PAPER}; }
    part that genuinely is a placeholder. */
 .vn-tours-sheet {
   position: relative;
-  background: color-mix(in srgb, var(--vn-ink) 3.5%, var(--vn-c));
-  border: 1px solid var(--vn-hair); border-radius: 3px;
+  /* No border. A hairline rectangle reads as a box DRAWN AROUND the headline;
+     tone alone reads as a surface the section is sitting on, which is what a
+     contained-but-breathing section actually needs. The surface carries enough
+     contrast on its own that an outline would only be redundant. */
+  background: color-mix(in srgb, var(--vn-ink) 7%, var(--vn-c));
+  border: 0; border-radius: 3px;
   padding: calc(var(--u) * 64) calc(var(--u) * 56) calc(var(--u) * 56);
 }
 /* One quiet line at the top of the panel, not a bordered block hanging off the

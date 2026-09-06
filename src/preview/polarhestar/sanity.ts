@@ -171,7 +171,7 @@ const FALLBACK: SiteContent = {
 
 /* ── GROQ: everything editable, in one round trip ───────────────────────── */
 const IMG_PRJ = '{asset, hotspot, "alt": alt}'
-const QUERY = `{
+export const QUERY = `{
   "hero": *[_type=="heroSection"][0]{eyebrow, headlineLine1, headlineLine2, lede, image ${IMG_PRJ}},
   "story": *[_type=="storySection"][0]{eyebrow, heading, paragraph1, paragraph2, quote, image ${IMG_PRJ}},
   "sections": *[_type=="sectionsCopy"][0]{
@@ -230,7 +230,7 @@ const SECTION_MAP: Array<[string, keyof typeof COPY['is']]> = [
 ]
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function merge(raw: any): SiteContent {
+export function merge(raw: any): SiteContent {
   const strip = (id: string) => String(id).replace(/^(tour|season|longtour|shopitem|review)-/, '')
 
   const tours: TourX[] = Array.isArray(raw?.tours) && raw.tours.length
