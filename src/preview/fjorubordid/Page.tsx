@@ -62,8 +62,7 @@ const css = `
 .fb-link{position:relative;color:var(--cream)}
 .fb-link::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:1px;background:currentColor;transform-origin:right;transition:transform .5s cubic-bezier(.625,.05,0,1)}
 @media (hover:hover) and (pointer:fine){.fb-link:hover{color:var(--red)}
-.fb-link:hover::after{transform:scaleX(0)}
-.fb-w:hover .fb-w__sq img{transform:scale(calc(var(--z) * 1.04))}}
+.fb-link:hover::after{transform:scaleX(0)}}
 
 /* grain: their black-wood, fixed, never on a scrolling box */
 .fb-grain{position:fixed;inset:0;z-index:0;pointer-events:none;background:url(${IMG.wood}) center/720px repeat;opacity:.11;mix-blend-mode:screen}
@@ -125,18 +124,18 @@ const css = `
 .fb-secHead__r{grid-column:9/-1;justify-self:end;align-self:end}
 @media (max-width:899px){.fb-secHead__l,.fb-secHead__r{grid-column:1/-1;justify-self:start}}
 
-/* the weight grid: four squares, one pan, four framings */
+/* the weight grid: one pan, then a scale. The red rule under each figure is
+   drawn to length in proportion to the grams, so 200 g is half the line of 400 g. */
+.fb-pan{aspect-ratio:21/9;overflow:hidden;position:relative;margin-bottom:clamp(2rem,3.4vw,3.2rem)}
+.fb-pan img{width:100%;height:120%;object-fit:cover;object-position:50% 58%;position:absolute;top:-10%;left:0;will-change:transform}
 .fb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gut)}
-.fb-w{display:grid;gap:.9rem}
-.fb-w__sq{position:relative;aspect-ratio:1;overflow:hidden;background:var(--surface)}
-.fb-w__sq img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,54% 58%);transition:transform .8s cubic-bezier(.625,.05,0,1)}
-.fb-w__sq img{transform:scale(var(--z))}
-.fb-w__row{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;font-size:clamp(1.05rem,1.25vw,1.3rem)}
-.fb-w__g{font-weight:500;letter-spacing:-.01em}
-.fb-w__g small{font-size:.72em;font-weight:400;color:var(--muted);margin-left:.15em}
+.fb-w{display:grid;gap:.7rem;align-content:start}
+.fb-w__rule{height:1px;background:var(--red);transform-origin:left;transform:scaleX(var(--r,1))}
+.fb-w__g{font-weight:300;font-size:clamp(2.6rem,5vw,5.2rem);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;padding-top:.6rem}
+.fb-w__g small{font-size:.32em;font-weight:400;color:var(--muted);margin-left:.18em;letter-spacing:0}
+.fb-w__row{display:grid;gap:.3rem;font-size:clamp(1.05rem,1.25vw,1.3rem)}
 .fb-w__three{font-size:14px;color:var(--muted)}
-.fb-w__rule{height:1px;background:var(--red);transform-origin:left}
-@media (max-width:899px){.fb-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:899px){.fb-grid{grid-template-columns:repeat(2,1fr);row-gap:2.4rem}.fb-pan{aspect-ratio:4/3}}
 
 /* the soup story, pinned */
 .fb-saga{min-height:100svh;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);align-items:center;padding:var(--sec) var(--m)}
@@ -208,6 +207,7 @@ const css = `
   .fb-split-host{opacity:0}
   .fb-hero__media img{transform:scale(1.06)}
   .fb-w__rule{transform:scaleX(0)}
+  .fb-w__g{opacity:0}
   .fb-saga__line:not(.is-lead){opacity:.18}
   @media (max-width:899px){.fb-saga__line{opacity:1}}
 }
@@ -354,7 +354,7 @@ export default function FjorubordidPage() {
           const { motion, desk } = c.conditions as { motion: boolean; desk: boolean }
           if (!motion) return undefined
           gsap.defaults({ ease: 'osmo', duration: 0.8 })
-          const failsafe = armRevealFailsafe(root, '.fb-reveal, .fb-split-host, .fb-split-host div')
+          const failsafe = armRevealFailsafe(root, '.fb-reveal, .fb-split-host, .fb-split-host div, .fb-w__g, .fb-w__row')
           let cleanup: (() => void) | null = null
           let cancelled = false
           /* Split only once Switzer is really in: a swap after the split makes
@@ -412,18 +412,19 @@ export default function FjorubordidPage() {
             onEnter: (els) => gsap.fromTo(els, { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.08 }),
           })
 
-          /* The weight grid arrives as a set: card rises, photo settles, red rule draws. */
+          /* The weight grid arrives as a scale: figures rise, each red rule draws to its ratio. */
           const grid = root.querySelector('.fb-grid')
           if (grid) {
             const cards = gsap.utils.toArray<HTMLElement>('.fb-w', grid)
-            const imgs = cards.map((c2) => c2.querySelector('img'))
+            const figs = cards.map((c2) => c2.querySelector('.fb-w__g'))
+            const rows = cards.map((c2) => c2.querySelector('.fb-w__row'))
             const rules = cards.map((c2) => c2.querySelector('.fb-w__rule'))
-            gsap.set(cards, { autoAlpha: 0, y: 26 })
-            gsap.set(imgs, { scale: (i) => 1.08 * Number(cards[i].style.getPropertyValue('--z') || 1) })
-            gsap.timeline({ scrollTrigger: { trigger: grid, start: 'top 80%', once: true } })
-              .to(cards, { autoAlpha: 1, y: 0, duration: 1, stagger: 0.09 }, 0)
-              .to(imgs, { scale: (i) => Number(cards[i].style.getPropertyValue('--z') || 1), duration: 1.6, ease: 'power2.out', stagger: 0.09, onComplete: () => gsap.set(imgs, { clearProps: 'transform' }) }, 0)
-              .to(rules, { scaleX: 1, duration: 1, stagger: 0.09 }, 0.4)
+            gsap.set(figs, { autoAlpha: 0, y: 18 })
+            gsap.set(rows, { autoAlpha: 0 })
+            gsap.timeline({ scrollTrigger: { trigger: grid, start: 'top 82%', once: true } })
+              .to(rules, { scaleX: (i) => Number(cards[i].style.getPropertyValue('--r') || 1), duration: 1.2, stagger: 0.1 }, 0)
+              .to(figs, { autoAlpha: 1, y: 0, duration: 1, stagger: 0.1 }, 0.15)
+              .to(rows, { autoAlpha: 1, duration: 0.8, stagger: 0.1 }, 0.5)
           }
 
           /* The soup story: pinned on desktop, read at the speed you scroll. */
@@ -443,7 +444,7 @@ export default function FjorubordidPage() {
           }
 
           /* The room and the soup strip: depth, scrubbed. */
-          root.querySelectorAll<HTMLElement>('.fb-room__media, .fb-strip').forEach((box) => {
+          root.querySelectorAll<HTMLElement>('.fb-room__media, .fb-strip, .fb-pan').forEach((box) => {
             const im = box.querySelector('img')
             gsap.fromTo(im, { yPercent: -9 }, { yPercent: 9, ease: 'none', scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } })
           })
@@ -549,22 +550,22 @@ export default function FjorubordidPage() {
               <a className="fb-btn fb-btn--line" href="#matsedill" onClick={(e) => go(e, '#matsedill')}>{WEIGHTS_INTRO.more}</a>
             </div>
           </div>
+          <div className="fb-pan">
+            <img src={IMG.pan} alt="Leturhumar Fjöruborðsins í koparpönnu, með brauðkörfu, sítrónu og smákartöflum" width={2400} height={1603} loading="lazy" decoding="async" />
+          </div>
           <div className="fb-grid">
-            {WEIGHTS.map((w, i) => (
-              <article className="fb-w" key={w.grams} style={{ ['--z' as string]: String(1 + i * 0.24), ['--pos' as string]: `${54 - i * 2}% ${58 + i * 2}%` }}>
-                <div className="fb-w__sq">
-                  <img src={IMG.pan} alt={`Leturhumar Fjöruborðsins, ${w.grams} gramma skammtur í koparpönnu`} width={2400} height={1603} loading="lazy" decoding="async" />
-                </div>
+            {WEIGHTS.map((w) => (
+              <article className="fb-w" key={w.grams} style={{ ['--r' as string]: String(w.grams / 400) }}>
                 <div className="fb-w__rule" aria-hidden="true" />
+                <p className="fb-w__g">{w.grams}<small>gr</small></p>
                 <div className="fb-w__row">
-                  <span className="fb-w__g fb-num">{w.grams}<small>gr</small></span>
                   <span className="fb-num">{kr(w.price)}</span>
+                  {w.threeCourse ? (
+                    <span className="fb-w__three">Þriggja rétta <span className="fb-num">{kr(w.threeCourse)}</span></span>
+                  ) : (
+                    <span className="fb-w__three">Aðalréttur</span>
+                  )}
                 </div>
-                {w.threeCourse ? (
-                  <p className="fb-w__three">Þriggja rétta <span className="fb-num">{kr(w.threeCourse)}</span></p>
-                ) : (
-                  <p className="fb-w__three">Aðalréttur</p>
-                )}
               </article>
             ))}
           </div>
