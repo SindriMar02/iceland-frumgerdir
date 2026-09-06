@@ -1,0 +1,46 @@
+{
+ "harvested": "2026-09-05",
+ "owner": "Fjöruborðið, Eyrarbraut 3a, 825 Stokkseyri · kt. 6301131560 · eigandi og framkvæmdastjóri Pétur Viðar Kristjánsson · info@fjorubordid.is · 483 1550",
+ "why": "The client's own photographs, from the client's own live site, for a redesign prototype OF that site. Not stock; not for reuse on another build.",
+ "parked_here_because": "scratchpad is wiped on process restart (HARD memory). Move into iceland-redesigns/public/fjorubordid/ with this manifest when the build is approved.",
+ "the_finding": "Their ORIGINALS are enormous and their website serves thumbnails. MG_8523.jpg is 4722x3148 and A4A5682.jpg is 3728x3728 on their own server, but the largest image the homepage actually renders is 450px wide and most pages top out at 260px. They already own the photography the redesign needs; the site throws it away. Recovered by stripping the WordPress -WxH size suffix from the served URL.",
+ "already_dark": "black-wood-e1504817995775.jpg (1920x1080) is a black timber plank texture already in their own visual language, which is the bridge to the MELLOW reference's dark ground. Their accent red is real too: the napkins in slidenew4, the chair and wall in A4A5682, and the gift certificates.",
+ "files": {
+  "MG_8523.jpg": "4722x3148 langoustine tails in the pan with lemon and potatoes. THE HERO.",
+  "A4A5682.jpg": "3728x3728 laid table, soup bowl, red chair and red wall",
+  "pantabord.jpg": "960x640 copper pan of langoustine with bread basket and sides",
+  "slidenew3.jpg": "1903x599 soup bowl on a dark ground",
+  "slidenew4.jpg": "1903x599 the dining room, warm timber, red napkins",
+  "black-wood-e1504817995775.jpg": "1920x1080 black plank texture",
+  "certificateofexcellence2019.jpg": "476x414 TripAdvisor Hall of Fame badge 2015-2019",
+  "GJAFABREF.jpg": "370x318 gift certificates, red",
+  "FJORUBORDID-LOGO.png": "260x95 logo, small. Ask for the vector.",
+  "kort.jpg": "617x616 route map from Reykjavík",
+  "matsedill/okkur/samband.jpg": "1904x145 letterbox page banners"
+ },
+ "prepared_2026_09_05": {
+  "logo": {
+   "files": [
+    "fjorubordid-logo-red.svg",
+    "fjorubordid-logo-cream.svg",
+    "fjorubordid-logo-traced.svg"
+   ],
+   "how": "potrace vector trace of their 260x95 PNG, then recoloured to their own dominant logo red #ec3c20 sampled off the original, plus a cream #e8e2d6 cut for the dark ground. 24 paths, scales to any size.",
+   "why_not_ai": "An AI upscale of a transparent logo mattes the alpha edges (memory: ai-upscale-transparent-logo-matting). Tracing is free, exact and resolution-independent. Zero credits.",
+   "note": "Still ask the client for the original vector; this trace is faithful but it is a trace."
+  },
+  "upscales": {
+   "pantabord-4k.png": "960x640 -> 4096x2737 (4.3x), bytedance via Higgsfield, 2 credits. Copper pan of langoustine with bread basket.",
+   "dining-room-4k.png": "1064x599 -> 4096x2313 (3.8x), 2 credits. The ONLY usable interior frame. Cropped to 16:9 from slidenew4.jpg first, see below.",
+   "failed": "slidenew4.jpg at its native 1903x599 (3.18:1 letterbox) FAILED the 4k upscaler. Not retried as-is; cropped to 16:9 (slidenew4-16x9.jpg) and that succeeded. If another very wide letterbox needs upscaling, crop first."
+  },
+  "left_alone": {
+   "MG_8523.jpg": "4722x3148 already, no upscale needed",
+   "A4A5682.jpg": "3728x3728 already",
+   "black-wood-e1504817995775.jpg": "1920x1080 greyscale plank texture, ample for a repeating dark ground",
+   "GJAFABREF.jpg": "370x318, too small to upscale usefully and not needed; gift certificates are a content problem, not an image one",
+   "certificateofexcellence2019.jpg": "a badge, use the fact not the JPEG"
+  },
+  "credits_spent": "4 net, verified against the transaction log: -2 pantabord (23:39:14), -2 slidenew4-native which FAILED (23:39:31) and was REFUNDED +2 (23:42:25), -2 dining room (23:44:13). NOTE: other spend was happening on the same account in the same window (Kling v3.0 -10 twice, Nano Banana Pro -2 twice) which this session did NOT initiate; do not attribute it here."
+ }
+}

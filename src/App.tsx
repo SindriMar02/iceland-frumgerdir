@@ -196,6 +196,7 @@ const ElfaPage = lazy(() => import('./preview/elfa/Page'))
 const MyndoPage = lazy(() => import('./preview/myndo/Page'))
 const BogsPage = lazy(() => import('./preview/bogs/Page'))
 const TryggvaskaliPage = lazy(() => import('./preview/tryggvaskali/Page'))
+const FjorubordidPage = lazy(() => import('./preview/fjorubordid/Page'))
 
 /**
  * Every route here is served by the same index.html, so without this each client
@@ -440,6 +441,7 @@ export default function App() {
             <Route path="/preview/myndo" element={<MyndoPage />} />
             <Route path="/preview/bogs" element={<BogsPage />} />
             <Route path="/preview/tryggvaskali" element={<TryggvaskaliPage />} />
+            <Route path="/preview/fjorubordid" element={<FjorubordidPage />} />
             {/* Unknown/stale routes → neutral page. NEVER redirect to the
                 catalogue: that is exactly how owners ended up seeing it. */}
             <Route path="*" element={<NotFound />} />
