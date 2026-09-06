@@ -7,9 +7,9 @@ import { setThemeColor } from '../../lib/preview'
 import { SCRIPT, DISPLAY } from './handwriting'
 import type { ScriptLine } from './handwriting'
 import {
-  ADDRESS, BORD, CLOSE_MIN, EMAIL, FACEBOOK, FOOTER, HERO, HOURS_LABEL, HUSID, IMG,
-  INSTAGRAM, MAPS_URL, MATSEDILL, NAV, OPEN_MIN, OPID, PHONE, PHONE_HREF, PLATES,
-  PORTRAIT, REVIEWS, SAGAN, SUPAN, plateSrc, plateSrcSet,
+  ADDRESS, BORD, CLOSE_LABEL, CLOSE_MIN, EMAIL, FACEBOOK, FOOTER, HERO, HOURS_LABEL,
+  HUSID, IMG, INSTAGRAM, MAPS_URL, MATSEDILL, NAV, OPEN_LABEL, OPEN_MIN, OPID, PHONE,
+  PHONE_HREF, PLATES, PORTRAIT, REVIEWS, SUPAN, UMSAGNIR, plateSrc, plateSrcSet,
 } from './data'
 
 const company = getPreviewCompany('naustid')
@@ -380,7 +380,7 @@ export default function NaustidPage() {
      sticky awning needs a solid ground behind it. Restored on the way out so
      the rest of the app is untouched. */
   useEffect(() => {
-    document.title = 'Naustið — sjávarréttastaður á Húsavík'
+    document.title = 'Naustið, sjávarréttastaður á Húsavík'
     setThemeColor(BEIN)
     const h = document.documentElement.style
     const b = document.body.style
@@ -517,10 +517,15 @@ export default function NaustidPage() {
               <span className="nd-marksub">veitingastaður · Húsavík</span>
             </a>
             <nav className="nd-navwrap" aria-label="Aðalvalmynd">{nav}</nav>
+            <p className={`nd-barstatus ${open ? 'is-open' : ''}`}>
+              <span className="nd-dot" aria-hidden="true" />
+              {open ? `Opið til ${CLOSE_LABEL}` : `Opnum kl. ${OPEN_LABEL}`}
+              <a href={PHONE_HREF}>{PHONE}</a>
+            </p>
             <div className="nd-actions">
               <a className="nd-pill nd-pill-1" href="#bord">Panta borð</a>
-              <a className="nd-pill nd-pill-2" href={PHONE_HREF}>{PHONE}</a>
             </div>
+            <span className={`nd-dot nd-dot-m ${open ? 'is-open' : ''}`} aria-hidden="true" />
             <button
               type="button"
               className="nd-menubtn"
@@ -620,28 +625,37 @@ export default function NaustidPage() {
           </div>
 
           <div className="nd-menugrid">
-            {MATSEDILL.groups.map((g) => (
-              <div className="nd-menugroup" key={g.title}>
-                <h3 className="nd-h3">{g.title}</h3>
-                <ul>
-                  {g.items.map((it) => (
-                    <li key={it.name}>
-                      <span className="nd-dish">{it.name}</span>
-                      <span className="nd-note">{it.note}</span>
-                    </li>
+            <aside className="nd-rail">
+              <div className="nd-railcard">
+                <h3 className="nd-railh">{MATSEDILL.rail.h}</h3>
+                <dl>
+                  {MATSEDILL.rail.rows.map((r) => (
+                    <div key={r.k}><dt>{r.k}</dt><dd>{r.v}</dd></div>
                   ))}
-                </ul>
+                </dl>
+                <p className="nd-railcta">
+                  <a className="nd-btn nd-btn-1" href={PHONE_HREF}>{`Hringja · ${PHONE}`}</a>
+                </p>
               </div>
-            ))}
-            <div className="nd-menuside">
-              <Pic
-                src={PORTRAIT.supa.src}
-                set={PORTRAIT.supa.set}
-                alt="Fiskisúpa Naustsins með nýbökuðu brauði"
-                sizes="(max-width: 959px) 90vw, 30vw"
-                className="nd-figure"
-              />
-              <p className="nd-fine">{MATSEDILL.smallPrint}</p>
+            </aside>
+
+            <div className="nd-dishwrap">
+            <div className="nd-dishes">
+              {MATSEDILL.groups.map((g) => (
+                <div className="nd-menugroup" key={g.title}>
+                  <h3 className="nd-h3">{g.title}</h3>
+                  <ul>
+                    {g.items.map((it) => (
+                      <li key={it.name}>
+                        <span className="nd-dish">{it.name}</span>
+                        <span className="nd-note">{it.note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <p className="nd-fine nd-menufine">{MATSEDILL.smallPrint}</p>
             </div>
           </div>
         </section>
@@ -657,34 +671,29 @@ export default function NaustidPage() {
             <DisplayWord k="husid" />
             <Handwriting line={SCRIPT.sidan} className="nd-script-big nd-script-gult" />
           </div>
-          <div className="nd-teasertext">
-            <Reveal>
+          <div className="nd-story">
+            <Reveal className="nd-storypic">
+              <Pic
+                src={PORTRAIT.salur.src}
+                set={PORTRAIT.salur.set}
+                alt="Matsalur Naustsins: sagræn þiljuð veggklæðning, hvítur gluggapóstur og dekkað borð með hvítvíni"
+                sizes="(max-width: 959px) 92vw, 38vw"
+              />
+            </Reveal>
+            <Reveal className="nd-storytext" delay={90}>
               <h2 className="nd-h2" id="nd-hus-h">{HUSID.h}</h2>
+              <p>{HUSID.body}</p>
+              <p>{HUSID.body2}</p>
+              <ul className="nd-ledger">
+                {HUSID.facts.map((f) => (
+                  <li key={f.k}>
+                    <span className="nd-factk">{f.k}</span>
+                    <span className="nd-factv">{f.v}</span>
+                  </li>
+                ))}
+              </ul>
+              <ArrowLink href={HUSID.href}>{HUSID.link}</ArrowLink>
             </Reveal>
-            <Reveal delay={90}>
-              <div>
-                <p>{HUSID.body}</p>
-                <p>{HUSID.body2}</p>
-                <ArrowLink href={HUSID.href}>{HUSID.link}</ArrowLink>
-              </div>
-            </Reveal>
-          </div>
-          <div className="nd-facts">
-            <ul>
-              {HUSID.facts.map((f, i) => (
-                <Reveal as="li" key={f.k} delay={i * 90}>
-                  <span className="nd-factk">{f.k}</span>
-                  <span className="nd-factv">{f.v}</span>
-                </Reveal>
-              ))}
-            </ul>
-            <Pic
-              src={PORTRAIT.salur.src}
-              set={PORTRAIT.salur.set}
-              alt="Matsalur Naustsins: sagræn þiljuð veggklæðning, hvítur gluggapóstur og dekkað borð með hvítvíni"
-              sizes="(max-width: 959px) 90vw, 34vw"
-              className="nd-figure"
-            />
           </div>
         </section>
 
@@ -694,33 +703,36 @@ export default function NaustidPage() {
             <Pic
               src={IMG.sagan}
               set={IMG.saganWebp}
-              alt={SAGAN.imgAlt}
+              alt={UMSAGNIR.imgAlt}
               sizes="100vw"
               className="nd-akvarel"
             />
           </div>
           <div className="nd-aboutpanel">
             {/* The wordmark sits in the band where the panel has climbed over the
-                painting — the reference drops its logo onto the drawing there. */}
+                painting, the way the reference drops its logo onto the drawing. */}
             <Handwriting line={SCRIPT.mark} draw={false} className="nd-aboutmark" />
-            <div className="nd-aboutgrid">
-              <Reveal>
-                <h2 className="nd-h2" id="nd-sagan-h">{SAGAN.h}</h2>
-              </Reveal>
-              <Reveal delay={90}>
-                <div>
-                  <p>{SAGAN.body}</p>
-                  <ul className="nd-reviews">
-                    {REVIEWS.map((r) => (
-                      <li key={r.name}>
-                        <p>„{r.text}"</p>
-                        <cite>{r.name} · {r.source}</cite>
-                      </li>
-                    ))}
-                  </ul>
-                  <ArrowLink href={SAGAN.href} tone="bone">{SAGAN.link}</ArrowLink>
-                </div>
-              </Reveal>
+            <p className="nd-eyebrow">{UMSAGNIR.eyebrow}</p>
+            <h2 className="nd-h2 nd-umsagnirh" id="nd-sagan-h">{UMSAGNIR.h}</h2>
+            <ul className="nd-scores">
+              {UMSAGNIR.scores.map((sc, i) => (
+                <Reveal as="li" key={sc.k} delay={i * 80}>
+                  <span className="nd-scorev">{sc.v}</span>
+                  <span className="nd-scorek">{sc.k}</span>
+                </Reveal>
+              ))}
+            </ul>
+            <ul className="nd-reviews">
+              {REVIEWS.map((r, i) => (
+                <Reveal as="li" key={r.name} delay={i * 90}>
+                  <p>„{r.text}"</p>
+                  <cite>{r.name} · {r.source}</cite>
+                </Reveal>
+              ))}
+            </ul>
+            <div className="nd-umsagnirfoot">
+              <p className="nd-fine nd-fine-bone">{UMSAGNIR.note}</p>
+              <ArrowLink href={UMSAGNIR.href} tone="bone">{UMSAGNIR.link}</ArrowLink>
             </div>
           </div>
         </section>
@@ -874,7 +886,7 @@ export default function NaustidPage() {
             </div>
             <div>
               <p className="nd-foothead">{FOOTER.cols.book}</p>
-              <p>Í síma eða tölvupósti — við staðfestum um leið og við getum.</p>
+              <p>Í síma eða tölvupósti. Við staðfestum um leið og við getum.</p>
               <p className="nd-herocta">
                 <a className="nd-btn nd-btn-1" href="#bord">Panta borð</a>
                 <a className="nd-btn nd-btn-2" href={PHONE_HREF}>{PHONE}</a>
@@ -999,12 +1011,12 @@ const CSS = `
 .nd-awning{display:none}
 .nd-headwrap{min-height:120px}
 .nd-head{position:relative;z-index:120}
-.nd-headin{display:grid;grid-template-columns:auto 1fr auto;align-items:start;
-  padding:27px var(--gut) 0 var(--gut);gap:27px}
+.nd-headin{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;
+  padding:22px var(--gut) 0 var(--gut);gap:27px}
 .nd-head.is-fixed{position:fixed;inset:0 0 auto 0;z-index:140;width:100%;
   transform:translateY(-100%);transition:none;will-change:transform}
 .nd-head.is-fixed .nd-headin{padding-top:13.5px;padding-bottom:0;align-items:center}
-.nd-head.is-fixed::before{content:'';position:absolute;inset:0 0 auto 0;height:78px;
+.nd-head.is-fixed::before{content:'';position:absolute;inset:0 0 auto 0;height:72px;
   background:rgba(251,246,234,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border-bottom:1px solid rgba(30,32,22,.10);z-index:-1}
 .nd-head.is-fixed.is-visible{transition:transform .4s ${EASE};transform:translateY(0)}
@@ -1018,6 +1030,16 @@ const CSS = `
 .nd-head.is-fixed .nd-marksub{display:none}
 
 .nd-navwrap{justify-self:end;align-self:center}
+.nd-barstatus{display:flex;align-items:center;gap:9px;margin:0;font-size:14.4px;
+  white-space:nowrap;letter-spacing:.3px}
+.nd-barstatus .nd-dot{width:8px;height:8px;border-radius:50%;background:#9a5a3a;flex:none}
+.nd-barstatus.is-open .nd-dot{background:#4f7a3a}
+.nd-barstatus a{margin-left:4px;font-weight:600;text-decoration:underline;
+  text-underline-offset:3px}
+.nd-barstatus a:hover{color:var(--thang)}
+.nd-dot-m{display:none;width:8px;height:8px;border-radius:50%;background:#9a5a3a;
+  flex:none;justify-self:end}
+.nd-dot-m.is-open{background:#4f7a3a}
 .nd-nav{display:flex;gap:40.5px;list-style:none;margin:0;padding:0;justify-content:flex-end}
 .nd-nav a{display:block;text-align:center;font-size:14.4px;text-transform:uppercase;
   letter-spacing:.5px;font-weight:500}
@@ -1098,7 +1120,31 @@ const CSS = `
 
 /* the dish list — rib rows, no cards, no prices */
 .nd-menugrid{display:grid;gap:40.5px;padding:54px var(--gut) 0}
-@media (min-width:960px){ .nd-menugrid{grid-template-columns:1.1fr 1.1fr .9fr;gap:54px} }
+@media (min-width:960px){
+  .nd-menugrid{grid-template-columns:340px minmax(0,1fr);gap:54px;align-items:start}
+}
+@media (min-width:1480px){ .nd-menugrid{grid-template-columns:390px minmax(0,1fr);gap:81px} }
+/* sticky, like the reference's menu sidebar: it stays with you down the list */
+@media (min-width:960px){ .nd-rail{position:sticky;top:96px} }
+.nd-railcard{background:var(--thang);color:#fff;border-radius:5px;padding:27px}
+.nd-railcard a{color:var(--tjara)}
+.nd-railh{font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:1px;
+  margin:0 0 18px}
+.nd-railcard dl{display:grid;gap:13.5px;margin:0}
+.nd-railcard dl > div{border-top:1px solid rgba(234,227,199,.3);padding-top:13.5px}
+.nd-railcard dt{font-size:13px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;
+  color:var(--gult);margin-bottom:3px}
+.nd-railcard dd{margin:0;font-size:16px;line-height:1.45}
+.nd-railcta{margin:27px 0 0}
+@media (min-width:640px){
+  .nd-dishes{columns:2;column-gap:54px;column-fill:balance}
+  .nd-menugroup{display:inline}
+}
+@media (min-width:1480px){ .nd-dishes{column-gap:81px} }
+.nd-menugroup li{break-inside:avoid}
+.nd-menugroup .nd-h3{break-after:avoid}
+.nd-menugroup:not(:first-child) .nd-h3{margin-top:40.5px}
+.nd-menufine{margin-top:40.5px;border-top:1px solid rgba(30,32,22,.16);padding-top:18px}
 .nd-menugroup ul{list-style:none;margin:0;padding:0}
 .nd-menugroup li{display:flex;flex-direction:column;gap:2px;padding:13.5px 0 13.5px 0;
   border-top:1px solid rgba(30,32,22,.16);position:relative;
@@ -1109,8 +1155,6 @@ const CSS = `
 .nd-menugroup li:hover::before{width:100%;height:2px}
 .nd-dish{font-weight:600;font-size:19px}
 .nd-note{font-size:14.4px;opacity:.68}
-.nd-menuside .nd-figure{margin-bottom:18px}
-.nd-menuside img{border-radius:5px}
 
 /* ── the marquee ──────────────────────────────────────────────────────── */
 .nd-plates{padding:54px 0 13.5px;overflow:hidden}
@@ -1124,15 +1168,19 @@ const CSS = `
 .nd-marquee img{border-radius:5px;aspect-ratio:1/1;object-fit:cover}
 
 /* ── facts row ────────────────────────────────────────────────────────── */
-.nd-facts{display:grid;gap:40.5px;padding:54px var(--gut) 0}
-@media (min-width:960px){ .nd-facts{grid-template-columns:1.4fr 1fr;gap:54px;align-items:center} }
-.nd-facts ul{list-style:none;margin:0;padding:0}
-.nd-facts li{display:grid;grid-template-columns:120px 1fr;gap:18px;padding:18px 0;
+.nd-story{display:grid;gap:40.5px;padding:54px var(--gut) 0}
+@media (min-width:960px){
+  .nd-story{grid-template-columns:38% minmax(0,1fr);gap:54px;align-items:start}
+}
+@media (min-width:1480px){ .nd-story{gap:81px} }
+.nd-storypic img{border-radius:5px}
+.nd-storytext{max-width:660px}
+.nd-ledger{list-style:none;margin:27px 0 0;padding:0}
+.nd-ledger li{display:grid;grid-template-columns:118px 1fr;gap:18px;padding:13.5px 0;
   border-top:1px solid rgba(30,32,22,.16)}
 .nd-factk{font-weight:600;font-size:14.4px;text-transform:uppercase;letter-spacing:.6px;
   color:var(--thang)}
 .nd-factv{font-size:17px}
-.nd-facts img{border-radius:5px}
 
 /* ── the painting under the panel ─────────────────────────────────────── */
 .nd-about{padding-top:81px}
@@ -1142,16 +1190,29 @@ const CSS = `
 .nd-aboutpanel{background:var(--thang);color:#fff;border-radius:5px;
   margin:-9% var(--gut) 0;padding:40.5px 27px 54px;position:relative}
 .nd-aboutpanel a{color:#fff}
-.nd-aboutgrid{display:grid;gap:27px}
 @media (min-width:768px){
   .nd-aboutpanel{padding-left:54px;padding-right:54px}
-  .nd-aboutgrid{grid-template-columns:1fr 1fr;gap:54px;align-items:start}
   .nd-aboutmark{font-size:8.5vw}
 }
+.nd-umsagnirh{text-align:center;margin-bottom:0}
+.nd-scores{list-style:none;margin:40.5px 0 0;padding:0;display:grid;
+  grid-template-columns:1fr 1fr;gap:18px 27px}
+@media (min-width:768px){ .nd-scores{grid-template-columns:repeat(4,1fr);gap:27px} }
+.nd-scores li{border-top:2px solid var(--gult);padding-top:13.5px}
+.nd-scorev{display:block;font-size:36px;font-weight:700;font-style:italic;line-height:1;
+  color:var(--gult)}
+@media (min-width:960px){ .nd-scorev{font-size:44px} }
+.nd-scorek{display:block;font-size:14.4px;margin-top:6px;color:var(--sol);line-height:1.35}
+.nd-umsagnirfoot{display:flex;flex-wrap:wrap;justify-content:space-between;
+  align-items:baseline;gap:18px 40.5px;margin-top:40.5px;
+  border-top:1px solid rgba(234,227,199,.28);padding-top:18px}
+.nd-umsagnirfoot .nd-fine{max-width:620px;margin:0}
+.nd-umsagnirfoot .nd-link{margin-top:0}
 @media (min-width:1280px){ .nd-aboutpanel{padding-left:81px;padding-right:81px} }
-.nd-reviews{list-style:none;margin:27px 0 0;padding:0;display:grid;gap:18px}
-.nd-reviews li{border-top:1px solid rgba(234,227,199,.32);padding-top:13.5px}
-.nd-reviews p{font-style:italic;font-size:16px;margin-bottom:4px}
+.nd-reviews{list-style:none;margin:40.5px 0 0;padding:0;display:grid;gap:27px}
+@media (min-width:960px){ .nd-reviews{grid-template-columns:repeat(3,1fr);gap:40.5px} }
+.nd-reviews li{border-top:1px solid rgba(234,227,199,.32);padding-top:18px}
+.nd-reviews p{font-style:italic;font-size:17px;line-height:1.45;margin-bottom:9px}
 .nd-reviews cite{font-style:normal;font-size:13.5px;opacity:.7}
 
 /* ── visit ────────────────────────────────────────────────────────────── */
@@ -1247,7 +1308,10 @@ const CSS = `
     align-items:center}
   .nd-navwrap{display:none}
   .nd-actions{display:none}
+  .nd-barstatus{display:none}
+  .nd-dot-m{display:block}
   .nd-menubtn{display:block;justify-self:end}
+  .nd-headin{grid-template-columns:1fr auto auto;gap:9px}
   .nd-markscript{font-size:31px}
   .nd-marksub{display:none}
   .nd-hero{min-height:auto;padding-top:0}
@@ -1255,6 +1319,9 @@ const CSS = `
   .nd-akvarel img{border-radius:0}
   .nd-fishband{margin-top:-30px;margin-bottom:-14px}
   .nd-panel,.nd-book{padding-left:22px;padding-right:22px}
+  /* two-word script lines wrapped on a phone once each word's swash padding
+     and the 5% word gap were counted; 17vw keeps them on one line */
+  .nd-script-big{font-size:17vw;gap:0 3%}
   .nd-page{scroll-padding-top:78px}
   .nd-panel,.nd-teaser,.nd-visit,.nd-book{scroll-margin-top:78px}
 }

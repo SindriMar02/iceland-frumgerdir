@@ -31,6 +31,8 @@ export const PHONE = '464 1520'
 export const PHONE_HREF = 'tel:+3544641520'
 export const EMAIL = 'naustidfood@gmail.com'
 export const ADDRESS = 'Ásgarðsvegur 1, 640 Húsavík'
+export const OPEN_LABEL = '11:30'
+export const CLOSE_LABEL = '21:30'
 export const HOURS_LABEL = '11:30–21:30 alla daga'
 export const OPEN_MIN = 11 * 60 + 30
 export const CLOSE_MIN = 21 * 60 + 30
@@ -90,13 +92,13 @@ export const NAV: { id: string; label: string; sub?: string }[] = [
   { id: 'supan', label: 'Súpan' },
   { id: 'matsedill', label: 'Matseðill' },
   { id: 'husid', label: 'Húsið' },
-  { id: 'opid', label: 'Opið', sub: '11:30–21:30' },
+  { id: 'opid', label: 'Heimsókn' },
 ]
 
 export const HERO = {
   h1: 'Gula húsið við höfnina á Húsavík',
   body:
-    'Ferskur fiskur úr héraðinu, grænmeti frá ræktendum í grenndinni, brauð og kökur bakaðar á staðnum á hverjum degi — borið fram í timburhúsi frá því um 1930.',
+    'Fiskurinn kemur ferskur úr héraðinu og brauðið er bakað á staðnum á hverjum degi. Naustið er í gulu timburhúsi við Ásgarðsveg sem flutt var inn frá Noregi um 1930.',
   welcome: 'Verið velkomin í Naustið.',
   imgAlt:
     'Vatnslitamynd af Naustinu: gula bárujárnshúsið á Ásgarðsvegi 1 með hvítum gluggum, hvítum tröppum, rauðum dyrum og skilti með fiskimerkinu, tré til vinstri og borð á grasinu fyrir framan',
@@ -111,7 +113,7 @@ export const SUPAN = {
     {
       h: 'Fiskisúpan',
       body:
-        'Rjómakennd fiskisúpa með tómat, full af fiski og skelfiski, borin fram með nýbökuðu brauði. Í umsögn eftir umsögn nefna gestir sömu skálina sem ástæðuna fyrir því að þeir stoppuðu.',
+        'Rjómakennd fiskisúpa með tómat, full af fiski og skelfiski, borin fram með nýbökuðu brauði. Gestir nefna hana aftur og aftur í umsögnum og margir segja hana ástæðuna fyrir stoppinu.',
       quote: 'Such an excellent meal and cute location. Brilliant fish soup, fish of the day, mussels.',
       quoteName: 'Amanda Summons',
       quoteSource: 'Í gegnum Sluurpy',
@@ -121,7 +123,7 @@ export const SUPAN = {
     {
       h: 'Úr héraðinu',
       body:
-        'Fiskurinn kemur ferskur úr héraðinu, grænmetið frá ræktendum í grenndinni og kjötið frá bæjum í kring. Brauð og kökur eru bökuð á staðnum á hverjum degi. Það er ekkert flókið við þetta — það er bara gert almennilega.',
+        'Fiskurinn kemur ferskur úr héraðinu, grænmetið frá ræktendum í grenndinni og kjötið frá bæjum í kring. Brauð og kökur eru bökuð á staðnum á hverjum degi.',
       link: 'Sagan af húsinu',
       href: '#husid',
     },
@@ -130,13 +132,23 @@ export const SUPAN = {
 
 export const MATSEDILL = {
   script: 'alla',
-  h: 'Það sem eldhúsið gerir best',
+  h: 'Matseðillinn breytist eftir árstíð og afla dagsins',
   body:
-    'Matseðillinn breytist eftir árstíð og afla dagsins. Hér er það sem gestir og matarskrif nefna oftast; hringdu í ' +
+    'Hér eru réttirnir sem gestir og matarskrif nefna oftast. Hringdu í ' +
     PHONE +
     ' til að heyra hvað er á borðum í dag.',
   link: 'Panta borð',
   href: '#bord',
+  /* The sticky rail beside the dish list: what a guest needs before they ring. */
+  rail: {
+    h: 'Gott að vita',
+    rows: [
+      { k: 'Verð', v: 'Kvöldverður er að jafnaði 4.000 til 6.000 kr. á mann' },
+      { k: 'Úr héraðinu', v: 'Fiskur, grænmeti og kjöt úr nágrenninu' },
+      { k: 'Bakað á staðnum', v: 'Brauð og kökur á hverjum degi' },
+      { k: 'Opið', v: '11:30 til 21:30 alla daga' },
+    ],
+  },
   groups: [
     {
       title: 'Af sjónum',
@@ -162,14 +174,14 @@ export const MATSEDILL = {
     },
   ],
   smallPrint:
-    'Sýnishorn af réttum sem gestir og matarskrif hafa lýst — ekki opinber matseðill. Naustið birtir engan verðlagðan matseðil; kvöldverður er að jafnaði 4.000–6.000 kr. á mann samkvæmt opinberum skráningum, sem er viðmið en ekki staðfestur verðlisti.',
+    'Sýnishorn af réttum sem gestir og matarskrif hafa lýst, ekki opinber matseðill. Naustið birtir engan verðlagðan matseðil. Verðbilið hér að ofan er viðmið úr opinberum skráningum en ekki staðfestur verðlisti.',
 }
 
 export const HUSID = {
   script: 'sidan',
   h: 'Timburhús frá Noregi, tvær mágkonur og áratugur við höfnina',
   body:
-    'Húsið var flutt inn frá Noregi um 1930 og stóð lengi sem heimili áður en það varð Naustið. Niðri er matsalurinn með veröndinni, uppi er setustofan. Við breytingarnar var húsinu hlíft eins og hægt var, svo sál þess fengi að halda sér.',
+    'Húsið var flutt inn frá Noregi um 1930 og stóð lengi sem heimili áður en það varð Naustið. Niðri er matsalurinn með veröndinni og uppi er setustofan. Húsinu var hlíft eins og hægt var þegar því var breytt.',
   body2:
     'Hugmyndin kviknaði eftir hrunið 2008. Tvær mágkonur stóðu báðar á tímamótum, byrjuðu í litlu kaffihúsi við höfnina og fluttu svo í gula húsið. Í dag er Naustið efsti veitingastaðurinn á Húsavík á Tripadvisor.',
   link: 'Finna okkur',
@@ -182,11 +194,18 @@ export const HUSID = {
   ],
 }
 
-export const SAGAN = {
-  h: 'Bjart hús, fjölskylda á bak við það — og matur eins og heima',
-  body:
-    'Naustið er fjölskyldurekið. Visit Húsavík lýsir því að borða hér eins og að koma heim til ömmu: bjart, hlýtt og fullt af heimatilbúnu góðgæti. Þannig viljum við hafa það.',
-  link: 'Kíktu við',
+export const UMSAGNIR = {
+  eyebrow: 'Umsagnir gesta',
+  h: 'Efst á lista á Húsavík',
+  /* Every figure below is off the Tripadvisor listing, checked 2026-09-05. */
+  scores: [
+    { v: '4,5', k: 'af 5 á Tripadvisor' },
+    { v: '836', k: 'umsagnir' },
+    { v: '1.', k: 'sæti af 8 á Húsavík' },
+    { v: '2025', k: 'Travelers\u2019 Choice' },
+  ],
+  note: 'Umsagnir eru raunverulegar en sóttar í gegnum umsagnaveitur, sem safna af Google, Tripadvisor og Facebook.',
+  link: 'Panta borð',
   href: '#bord',
   imgAlt:
     'Vatnslitamynd af Naustinu í sumarbirtu: gula húsið milli trjáa, hvítar tröppur upp að rauðum dyrum og borð á grasinu',
@@ -205,7 +224,7 @@ export const OPID = {
   gardurAlt:
     'Skilti Naustsins á grasinu fyrir utan húsið, gamalt baðkar fullt af blómum og rauður sendibíll fyrir aftan',
   raunmyndAlt: 'Ljósmynd af Naustinu: gula bárujárnshúsið með hvítum tröppum og borðum á grasinu',
-  raunmyndCaption: 'Húsið sjálft — ljósmyndin sem vatnslitamyndin er unnin eftir.',
+  raunmyndCaption: 'Ljósmyndin af húsinu sem vatnslitamyndin er unnin eftir.',
 }
 
 export const BORD = {
@@ -234,7 +253,7 @@ export const REVIEWS = [
   { text: 'Best seafood restaurant in the country ❤', name: 'Guðrún Ólafía', source: 'Í gegnum Sluurpy' },
   { text: 'Really good fish dishes and amazing atmosphere.', name: 'Benóný Valur Jakobsson', source: 'Í gegnum Sluurpy' },
   {
-    text: 'Amazing dishes — the fish is very fresh and delicious. Lovely atmosphere and attentive and hospitable staff!',
+    text: 'Amazing dishes - the fish is very fresh and delicious. Lovely atmosphere and attentive and hospitable staff!',
     name: 'Lisa',
     source: 'Tripadvisor, í gegnum Restaurant Guru',
   },
