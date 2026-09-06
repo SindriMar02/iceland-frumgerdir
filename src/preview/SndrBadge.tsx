@@ -1,9 +1,12 @@
 /**
  * SNDR Studio credit mark, shown on EVERY preview prototype's footer
  * (see PreviewFooter). Reuses the real Projekt Blackbird wordmark font
- * from the live sndr-studio site so it reads as the same signature
- * everywhere, not a generic text credit.
+ * from the live SNDR Studio site so it reads as the same signature
+ * everywhere, not a generic text credit. The link goes to sndrstudio.is:
+ * the old pages.dev host now serves a "we have moved" notice.
  */
+import { STUDIO_URL } from '../lib/studio-contact'
+
 const B = import.meta.env.BASE_URL
 
 const CSS = `
@@ -23,7 +26,7 @@ export function SndrBadge({ dark = false, className = '', english = false }: { d
     <>
       <style>{CSS}</style>
       <a
-        href="https://sndr-studio.pages.dev"
+        href={STUDIO_URL}
         target="_blank"
         rel="noreferrer"
         aria-label={english ? 'Designed by SNDR Studio' : 'Hannað af SNDR Studio'}

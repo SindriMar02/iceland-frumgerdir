@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Phone, Sparkles } from 'lucide-react'
 import { Reveal } from './Reveal'
 import { fromGallery } from '../lib/preview'
+import { STUDIO_DOMAIN, STUDIO_PHONE, STUDIO_PHONE_HREF, STUDIO_URL } from '../lib/studio-contact'
 import type { Company } from '../data/companies'
 
 /**
@@ -59,11 +60,11 @@ export function WantRedesign({ company, dark = false, accentClassName }: ThemedP
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
-              href={`mailto:sindrimar02@gmail.com?subject=${encodeURIComponent(`Endurhönnun — ${company.name}`)}`}
+              href={STUDIO_PHONE_HREF}
               className={`inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 ${accentClassName}`}
             >
-              Senda Sindra línu
-              <ArrowUpRight className="h-4 w-4" />
+              <Phone className="h-4 w-4" />
+              Hringdu í Sindra · {STUDIO_PHONE}
             </a>
             <a
               href={company.currentUrl}
@@ -113,9 +114,13 @@ export function ProtoFooter({ company, dark = false }: { company: Company; dark?
         </a>
       </p>
       <p className="mt-3">
-        © 2026 · Hugmynd og hönnun:{' '}
-        <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
-          sindrimar02@gmail.com
+        © 2026 · Hugmynd og hönnun: Sindri Már ·{' '}
+        <a href={STUDIO_PHONE_HREF} className="underline underline-offset-2">
+          {STUDIO_PHONE}
+        </a>{' '}
+        ·{' '}
+        <a href={STUDIO_URL} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+          {STUDIO_DOMAIN}
         </a>
       </p>
     </footer>

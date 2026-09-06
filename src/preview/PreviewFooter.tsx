@@ -1,3 +1,4 @@
+import { STUDIO_DOMAIN, STUDIO_PHONE, STUDIO_PHONE_HREF, STUDIO_URL } from '../lib/studio-contact'
 import type { PreviewCompany } from './company-types'
 import { SndrBadge } from './SndrBadge'
 
@@ -61,9 +62,13 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
         )}
       </p>
       <p className="mt-3">
-        © 2026 · {en ? 'Concept and design' : 'Hugmynd og hönnun'}:{' '}
-        <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
-          sindrimar02@gmail.com
+        © 2026 · {en ? 'Concept and design' : 'Hugmynd og hönnun'}: Sindri Már ·{' '}
+        <a href={STUDIO_PHONE_HREF} className="underline underline-offset-2">
+          {STUDIO_PHONE}
+        </a>{' '}
+        ·{' '}
+        <a href={STUDIO_URL} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+          {STUDIO_DOMAIN}
         </a>
       </p>
       <div className={`mx-auto mt-6 flex justify-center border-t pt-6 ${dark ? 'border-white/10' : 'border-neutral-200'}`}>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowDown, ArrowUpRight, ExternalLink, Monitor, Smartphone } from 'lucide-react'
 import { Reveal } from '../components/Reveal'
 import { setThemeColor } from '../lib/preview'
+import { STUDIO_DOMAIN, STUDIO_PHONE, STUDIO_PHONE_HREF, STUDIO_URL } from '../lib/studio-contact'
 
 /**
  * /preview/comparison — a public, owner-facing "Fyrir / Eftir" showcase.
@@ -220,7 +221,7 @@ export default function Comparison() {
             Sindri Már <span className="text-slate-400">— Vefhönnun</span>
           </a>
           <a
-            href="mailto:sindrimar02@gmail.com"
+            href={STUDIO_PHONE_HREF}
             className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700"
           >
             Hafðu samband
@@ -355,7 +356,7 @@ export default function Comparison() {
             skuldbindingar. Það eina sem þarf er stutt skilaboð.
           </p>
           <a
-            href="mailto:sindrimar02@gmail.com?subject=Ný%20vefs%C3%AD%C3%B0a"
+            href={STUDIO_PHONE_HREF}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-slate-700"
           >
             Hafðu samband
@@ -367,8 +368,12 @@ export default function Comparison() {
       <footer className="px-5 py-10 text-center text-xs leading-relaxed text-slate-400 md:px-8">
         <p className="mx-auto max-w-2xl">
           Sindri Már · Vefhönnun ·{' '}
-          <a href="mailto:sindrimar02@gmail.com" className="underline underline-offset-2">
-            sindrimar02@gmail.com
+          <a href={STUDIO_PHONE_HREF} className="underline underline-offset-2">
+            {STUDIO_PHONE}
+          </a>{' '}
+          ·{' '}
+          <a href={STUDIO_URL} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+            {STUDIO_DOMAIN}
           </a>
           <br />
           Nýju hönnunirnar eru frumgerðir og hönnunarhugmyndir. Allur sýnishornatexti og myndir eru til
