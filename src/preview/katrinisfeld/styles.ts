@@ -1000,7 +1000,29 @@ html[data-ki-intro] .ki-plx-role, html[data-ki-intro] .ki-plx-tag { overflow: hi
 
 /* — figures, and the counter-move the spec calls for — */
 .ki-hs-fig { margin: 0; }
-.ki-hs-frame { display: block; overflow: hidden; background: rgb(0 0 0 / .08); }
+.ki-hs-frame { display: block; overflow: hidden; background: rgb(0 0 0 / .08); position: relative; }
+.ki-hs-bleedfig { position: relative; }
+/* the hover label. Hidden from touch entirely — a cue that needs a pointer is
+   noise on a phone, where the whole slide is already the tap target. */
+.ki-hs-cue {
+  position: absolute; left: 16px; bottom: 16px; z-index: 3;
+  display: none; align-items: center;
+  padding: 9px 16px 10px;
+  font-family: ${MONO}; font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: #17140F; background: rgb(246 241 233 / .94);
+  border-radius: 999px;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .32s ${OUT}, transform .32s ${OUT};
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ki-hs-cue { display: inline-flex; }
+  .ki-hs-frame:hover .ki-hs-cue, .ki-hs-frame:focus-visible .ki-hs-cue,
+  .ki-hs-bleedfig:hover .ki-hs-cue, .ki-hs-bleedfig:focus-visible .ki-hs-cue {
+    opacity: 1; transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) { .ki-hs-cue { transition: opacity .01s; transform: none; } }
 .ki-hs-img { display: block; overflow: hidden; height: 100%; }
 /* the image is wider than its frame and drifts against the track, so the
    photograph appears to hold still in the world while its window slides over

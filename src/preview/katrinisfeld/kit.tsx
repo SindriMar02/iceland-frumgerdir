@@ -227,6 +227,17 @@ export type HSlide =
 
 export interface HFig { id: string; alt: string; title: string; meta: string; to: string }
 
+/* THE ONE THING A POINTER GETS. The chapter is a row of photographs that are
+   all links, and nothing on them said so — the title underneath is the only
+   affordance and it is easy to read the row as a gallery rather than as a way
+   in. A small label that rises under the cursor says it once, on the frame
+   itself, and costs a touch visitor nothing because it is gated on a fine
+   pointer. Not a cursor-follower: it sits at the frame's lower left, which is
+   where the eye already is, and it cannot land on a face or a light. */
+function HCue() {
+  return <span className="ki-hs-cue" aria-hidden="true">Skoða</span>
+}
+
 function HFigure({ f, sizes, ratio }: { f: HFig; sizes: string; ratio: string }) {
   return (
     <figure className="ki-hs-fig">
@@ -234,6 +245,7 @@ function HFigure({ f, sizes, ratio }: { f: HFig; sizes: string; ratio: string })
         <span className="ki-hs-img" data-ki-hpar>
           <Photo id={f.id} alt={f.alt} sizes={sizes} />
         </span>
+        <HCue />
       </Link>
       <figcaption className="ki-hs-meta">
         <h3 className="ki-hs-title"><Link to={f.to}>{f.title}</Link></h3>
@@ -292,6 +304,7 @@ export function HorizontalChapter({ slides }: { slides: ReadonlyArray<HSlide> })
                   <span className="ki-hs-img" data-ki-hpar>
                     <Photo id={s.id} alt={s.alt} sizes="90vw" />
                   </span>
+                  <HCue />
                 </Link>
                 <div className="ki-hs-chip">
                   <p className="ki-kicker">{s.meta}</p>

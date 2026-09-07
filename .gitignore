@@ -9,3 +9,6 @@ _ki-*.mjs
 _ki-*.png
 _final-*.png
 _cl*.mjs
+
+# staged originals pulled from katrinisfeld.is before they enter the pipeline
+_harvest/
