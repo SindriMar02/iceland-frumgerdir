@@ -983,23 +983,23 @@ const CSS = `
 .nd-link.is-flip{flex-direction:row-reverse}
 .nd-link.is-flip .nd-arrow{transform:rotate(180deg)}
 .nd-link.is-flip:hover .nd-arrow{translate:-.25rem}
-.nd-link-ink{color:var(--tjara)}
-.nd-link-ink:hover{color:var(--thang)}
-.nd-link-bone{color:var(--sol)}
-.nd-link-bone:hover{color:var(--gult)}
-.nd-link-gult{color:var(--gult)}
+.nd-link.nd-link-ink{color:var(--tjara)}
+.nd-link.nd-link-ink:hover{color:var(--thang)}
+.nd-link.nd-link-bone{color:var(--sol)}
+.nd-link.nd-link-bone:hover{color:var(--gult)}
+.nd-link.nd-link-gult{color:var(--gult)}
 
 /* ── buttons ──────────────────────────────────────────────────────────── */
 .nd-btn{display:inline-block;padding:13.5px 27px;font-weight:600;font-size:14.4px;
   text-transform:uppercase;border-radius:30px;line-height:18px;letter-spacing:.5px;
   border:2px solid transparent;transition:background-color .5s ease,color .5s ease,border-color .5s ease;
   white-space:nowrap}
-.nd-btn-1{background:var(--gult);border-color:var(--gult);color:var(--tjara)}
-.nd-btn-1:hover{background:var(--bein);color:var(--thang);border-color:var(--thang)}
-.nd-btn-2{background:transparent;border-color:var(--thang);color:var(--thang)}
-.nd-btn-2:hover{background:var(--thang);color:var(--bein)}
-.nd-btn-3{background:transparent;border-color:var(--sol);color:var(--sol)}
-.nd-btn-3:hover{background:var(--sol);color:var(--thang)}
+.nd-btn.nd-btn-1{background:var(--gult);border-color:var(--gult);color:var(--tjara)}
+.nd-btn.nd-btn-1:hover{background:var(--bein);color:var(--thang);border-color:var(--thang)}
+.nd-btn.nd-btn-2{background:transparent;border-color:var(--thang);color:var(--thang)}
+.nd-btn.nd-btn-2:hover{background:var(--thang);color:var(--bein)}
+.nd-btn.nd-btn-3{background:transparent;border-color:var(--sol);color:var(--sol)}
+.nd-btn.nd-btn-3:hover{background:var(--sol);color:var(--thang)}
 .nd-herocta{display:flex;flex-wrap:wrap;gap:13.5px;margin-top:27px}
 
 /* ── the reveal ───────────────────────────────────────────────────────── */
@@ -1048,17 +1048,17 @@ const CSS = `
 .nd-nav a em{display:block;font-style:normal;font-size:12px;font-weight:300;opacity:.6;
   letter-spacing:.4px}
 
-/* the half-pills, flush to the viewport edge — the reference's signature */
-.nd-actions{display:flex;flex-direction:column;align-items:flex-end;
-  margin-right:calc(-1 * var(--gut))}
+/* the CTA pill: kept inside the same gutter as the wordmark on the left, so
+   the header balances edge-to-edge instead of the reference's one-off bleed */
+.nd-actions{display:flex;flex-direction:column;align-items:flex-end}
 .nd-pill{display:inline-block;padding:13.5px 27px;font-size:14.4px;line-height:18px;
   letter-spacing:.5px;text-transform:uppercase;font-weight:500;
-  border-radius:30px 0 0 30px;border:2px solid transparent;
+  border-radius:30px;border:2px solid transparent;
   transition:background-color .5s ease,color .5s ease,border-color .5s ease}
-.nd-pill-1{background:var(--gult);border-color:var(--gult);color:var(--tjara)}
-.nd-pill-1:hover{background:var(--bein);color:var(--thang);border-color:var(--bein)}
-.nd-pill-2{background:#fff;border-color:#fff;color:var(--thang)}
-.nd-pill-2:hover{background:var(--sol);border-color:var(--sol)}
+.nd-pill.nd-pill-1{background:var(--gult);border-color:var(--gult);color:var(--tjara)}
+.nd-pill.nd-pill-1:hover{background:var(--bein);color:var(--thang);border-color:var(--bein)}
+.nd-pill.nd-pill-2{background:#fff;border-color:#fff;color:var(--thang)}
+.nd-pill.nd-pill-2:hover{background:var(--sol);border-color:var(--sol)}
 .nd-menubtn{display:none;font:inherit;font-size:14.4px;font-weight:500;letter-spacing:.5px;
   text-transform:uppercase;background:var(--bein);border:2px solid var(--bein);color:var(--tjara);
   padding:13.5px 27px;border-radius:30px 0 0 30px;cursor:pointer;line-height:18px}

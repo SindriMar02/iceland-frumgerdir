@@ -249,11 +249,29 @@ function PageStyles() {
            with enough character to carry the wordmark at 120px. */
         --ts-font-display: 'TS Display', 'Rowan', Georgia, serif;
         --ts-font-body: 'TS Body', 'Rowan', Georgia, serif;
+        /* The WORDMARK ONLY. Sindri asked (2026-09-07) for a face that is not
+           the page's display serif: the logotype should read as the house's
+           own sign, not as a larger setting of the body type. Marcellus
+           (Brian J. Bonislawsky, OFL, full Icelandic verified on the file, and
+           the name table checked against the mislabelled-font trap in the font
+           library) is inscriptional Roman capital lettering, the register a
+           brass plate on an 1890 house is actually cut in. It is uppercase by
+           design, which is how the wordmark is already set, and it keeps its
+           stem weight at the 22px docked size where a didone would go to
+           hairline over the photograph. */
+        --ts-font-mark: 'TS Mark', 'Marcellus', 'Rowan', Georgia, serif;
       }
       @media screen and (min-width: 36em) { .ts-root { --ts-vpad: 2.7rem; } }
       @media screen and (min-width: 48em) { .ts-root { --ts-vpad: 3.3rem; } }
       @media screen and (min-width: 60em) { .ts-root { --ts-vpad: 3.6rem; } }
 
+      @font-face {
+        font-family: 'TS Mark';
+        src: url('${asset('fonts/marcellus-regular.woff2')}') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
       @font-face {
         font-family: 'TS Display';
         src: url('${asset('fonts/rowan-medium.woff2')}') format('woff2');
@@ -840,13 +858,41 @@ function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
 // header's own resting slot. The docking target is MEASURED off the real
 // header at runtime (its fixed row never moves), so it can never drift out
 // of alignment with it.
-function HeroWordmark() {
+function HeroWordmark({ menuOpen }: { menuOpen: boolean }) {
   const linkRef = useRef<HTMLAnchorElement>(null)
+  const inkRef = useRef<HTMLSpanElement>(null)
+  /* Two independent reasons to hide the wordmark (the header lifting away on
+     scroll-down, and the off-canvas menu opening) writing to ONE element is
+     how you get two tweens fighting over the same channel. They are folded
+     into a single flag here and applied from a single place. */
+  const stateRef = useRef({ up: false, menu: false })
+  const applyRef = useRef<() => void>(() => {})
+  const firstRun = useRef(true)
 
   useEffect(() => {
     const link = linkRef.current
+    const ink = inkRef.current
     const header = document.querySelector<HTMLElement>('.ts-header')
-    if (!link || !header) return
+    if (!link || !ink || !header) return
+
+    /* The docked size, in px. The wordmark is RENDERED at the big hero size
+       and scaled DOWN to this, never re-typeset. */
+    const DOCKED_PX = 22
+
+    const apply = () => {
+      const hidden = stateRef.current.up || stateRef.current.menu
+      /* On the inner span, not the anchor: the anchor's transform belongs to
+         the dock scrub alone. autoAlpha also takes visibility, so a hidden
+         wordmark stops being a tab stop behind the open menu. */
+      gsap.to(ink, {
+        autoAlpha: hidden ? 0 : 1,
+        yPercent: hidden ? -160 : 0,
+        duration: 0.35,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      })
+    }
+    applyRef.current = apply
 
     /*
      * FOLLOW THE HEADER. The wordmark is a fixed sibling of <header>, so it
@@ -859,18 +905,8 @@ function HeroWordmark() {
      * hide logic, which still lives in Hero's own ScrollTrigger.
      */
     const syncWithHeader = () => {
-      const up = header.classList.contains('ts-header-up')
-      /* Through GSAP, not element.style.transform: the dock tween and the
-         mount reveal already own this element's transform, and writing to
-         it directly would fight them. autoAlpha also takes visibility, so
-         a hidden wordmark stops being a tab stop. */
-      gsap.to(link, {
-        autoAlpha: up ? 0 : 1,
-        yPercent: up ? -160 : 0,
-        duration: 0.35,
-        ease: 'power2.out',
-        overwrite: 'auto',
-      })
+      stateRef.current.up = header.classList.contains('ts-header-up')
+      apply()
     }
     const headerWatch = new MutationObserver(syncWithHeader)
     headerWatch.observe(header, { attributes: true, attributeFilter: ['class'] })
@@ -881,40 +917,70 @@ function HeroWordmark() {
       (context) => {
         const { desktop } = context.conditions as { desktop: boolean }
         const bigSize = desktop ? 120 : 40
-        const startTop = window.innerHeight * 0.4
-        const headerRect = header.getBoundingClientRect()
-        const dockTop = headerRect.top + headerRect.height / 2
+
+        /*
+         * THE JITTER FIX (Sindri, 2026-09-07: "super jittery and not smooth").
+         * The first cut scrubbed fontSize, top and letterSpacing. All three
+         * are LAYOUT properties: every scroll frame re-typeset the word,
+         * re-measured it and re-positioned it, so the dock stepped instead of
+         * gliding and the tracking visibly snapped between subpixel values.
+         * Nothing here animates layout any more. The word is typeset ONCE at
+         * the hero size and the dock is a transform: translateY plus a
+         * uniform scale down to the header's 22px. Tracking is a single fixed
+         * value, because a uniform scale carries it along at constant optical
+         * ratio and there is nothing left to interpolate.
+         *
+         * force3D is off deliberately. A promoted layer would rasterize the
+         * glyphs once and stretch that bitmap across a 5.5x scale range,
+         * which is how a docking wordmark goes soft at one end; repainting
+         * one short text node per frame is cheaper than that looks.
+         */
+        const dockY = () => {
+          const r = header.getBoundingClientRect()
+          return r.top + r.height / 2
+        }
+        const heroY = () => window.innerHeight * 0.4
+        const docked = () => DOCKED_PX / bigSize
+
+        // xPercent/yPercent centre the element on its own anchor point, so the
+        // scale below happens about that exact point and the word can never
+        // drift sideways or off the header's centre line as it shrinks.
+        gsap.set(link, { fontSize: bigSize, letterSpacing: '.08em', xPercent: -50, yPercent: -50 })
 
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         if (reduced) {
           // No splash, no scrub: land directly on the small, always-docked
           // wordmark, exactly where the plain header version used to sit.
-          gsap.set(link, { fontSize: 22, top: dockTop, letterSpacing: '.12em', opacity: 1 })
+          gsap.set(link, { y: dockY(), scale: docked() })
+          gsap.set(ink, { autoAlpha: 1, yPercent: 0 })
           return undefined
         }
 
         // Smooth opening reveal: rises and fades in once, on mount, before
-        // any scroll has happened.
-        gsap.fromTo(link, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1.1, delay: 0.15, ease: 'power2.out' })
+        // any scroll has happened. On the inner span so it never collides
+        // with the dock's own transform on the anchor.
+        gsap.fromTo(ink, { autoAlpha: 0, yPercent: 18 }, { autoAlpha: 1, yPercent: 0, duration: 1.1, delay: 0.15, ease: 'power2.out' })
 
         // The dock itself: scrubbed to scroll position (via Lenis -> a
         // ScrollTrigger.update on 'scroll', the same driver every other
         // scrubbed device on this page already uses), not a fixed duration
         // — "slowly and seamlessly" means it tracks the scrollbar, it does
-        // not play a timed animation.
+        // not play a timed animation. The small scrub lag is what turns
+        // Lenis's own eased scroll into a glide rather than a follow.
         const tween = gsap.fromTo(
           link,
-          { fontSize: bigSize, top: startTop, letterSpacing: '.01em' },
+          { y: heroY, scale: 1 },
           {
-            fontSize: 22,
-            top: dockTop,
-            letterSpacing: '.12em',
+            y: dockY,
+            scale: docked,
             ease: 'none',
+            force3D: false,
             scrollTrigger: {
               trigger: document.body,
               start: 'top top',
               end: () => '+=' + Math.round(window.innerHeight * 0.6),
-              scrub: true,
+              scrub: 0.5,
+              invalidateOnRefresh: true,
             },
           },
         )
@@ -928,8 +994,21 @@ function HeroWordmark() {
     return () => {
       headerWatch.disconnect()
       mm.revert()
+      applyRef.current = () => {}
     }
   }, [])
+
+  // The off-canvas panel is z-101 and this wordmark is z-110, so an open menu
+  // used to have the cream logotype lying across it (Sindri, 2026-09-07).
+  // Skipped on the very first run so it cannot overwrite the mount reveal.
+  useEffect(() => {
+    stateRef.current.menu = menuOpen
+    if (firstRun.current) {
+      firstRun.current = false
+      return
+    }
+    applyRef.current()
+  }, [menuOpen])
 
   return (
     <a
@@ -939,18 +1018,19 @@ function HeroWordmark() {
       style={{
         position: 'fixed',
         left: '50%',
-        transform: 'translateX(-50%)',
+        top: 0,
         zIndex: 110,
-        opacity: 0,
-        fontFamily: 'var(--ts-font-display)',
+        fontFamily: 'var(--ts-font-mark)',
         lineHeight: 1,
-        fontWeight: 500,
+        fontWeight: 400,
         textTransform: 'uppercase',
         color: C.cream,
         whiteSpace: 'nowrap',
       }}
     >
-      Tryggvaskáli
+      <span ref={inkRef} style={{ display: 'inline-block', opacity: 0 }}>
+        Tryggvaskáli
+      </span>
     </a>
   )
 }
@@ -2724,7 +2804,7 @@ export default function Page() {
       <PreviewChrome company={company} />
 
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <HeroWordmark />
+      <HeroWordmark menuOpen={menuOpen} />
       <OffCanvasMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <main id="page-content">
