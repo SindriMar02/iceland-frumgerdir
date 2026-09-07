@@ -71,19 +71,34 @@ export function ProjectPage({ slug }: { slug: string }) {
         </div>
       </div>
 
+      {/* THE GALLERY HAS A RHYTHM NOW, because her projects have one. Every
+          photograph the same width reads as a contact sheet: eight equal
+          rectangles and no indication which of them is the room and which is
+          the door handle. The first shot after the hero runs full width, and
+          the supporting ones sit two to a row at half the size — with every
+          fourth returning to full width so the page breathes instead of
+          becoming a ladder. The order in projects.ts is the edit: lead
+          photograph first, details last. */}
       {rest.length > 0 && (
         <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
           <div className="ki-proj-gallery">
-            {rest.map((ph, i) => (
-              <Slide
-                key={ph.id}
-                id={ph.id}
-                alt={ph.alt}
-                sizes={GAL_SIZES}
-                variant={i === 0 ? 'shutter' : 'slide'}
-              />
-            ))}
+            {rest.map((ph, i) => {
+              const wide = i === 0 || (i > 1 && (i - 1) % 4 === 0)
+              return (
+                <div key={ph.id} className={wide ? 'ki-gal-wide' : 'ki-gal-half'}>
+                  <Slide
+                    id={ph.id}
+                    alt={ph.alt}
+                    sizes={wide ? GAL_SIZES : '(max-width: 860px) 92vw, 44vw'}
+                    variant={i === 0 ? 'shutter' : 'slide'}
+                  />
+                </div>
+              )
+            })}
           </div>
+          {p.credit && (
+            <p className="ki-proj-credit ki-rv">Ljósmyndari: {p.credit}</p>
+          )}
         </div>
       )}
 

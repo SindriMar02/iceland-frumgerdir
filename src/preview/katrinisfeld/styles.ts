@@ -1253,8 +1253,17 @@ html[data-ki-intro] .ki-plx-role, html[data-ki-intro] .ki-plx-tag { overflow: hi
   background: linear-gradient(180deg, rgb(16 13 11 / .58), rgb(16 13 11 / .18) 55%, transparent);
 }
 .ki-proj-body { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: calc(var(--u) * 80); align-items: start; }
-.ki-proj-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 34); }
-.ki-proj-gallery > *:nth-child(3n+1) { grid-column: 1 / -1; }
+.ki-proj-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 34);   }
+/* the two widths the gallery is built from, and the credit under it */
+.ki-gal-wide { grid-column: 1 / -1; }
+.ki-gal-half { grid-column: span 1; }
+.ki-proj-credit {
+  margin: calc(var(--u) * 30) 0 0;
+  font-family: ${MONO}; font-size: ${fluid(11.5, 10.5)}; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ki-mute);
+}
+/* the widths are decided in ProjectPage now, per photograph, not by an
+   nth-child rule that could not tell a room from a door handle */
 .ki-facts { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 54); margin: calc(var(--u) * 44) 0 0; padding-top: calc(var(--u) * 26); border-top: 1px solid var(--ki-hair); }
 .ki-facts dt { font-family: ${MONO}; font-size: ${fluid(11.5, 12)}; letter-spacing: .12em; text-transform: uppercase; color: var(--ki-mute); margin-bottom: 6px; }
 .ki-facts dd { margin: 0; font-size: ${fluid(16, 15)}; }
