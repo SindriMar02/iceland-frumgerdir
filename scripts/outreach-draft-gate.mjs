@@ -74,7 +74,10 @@ const sign = signIdx === -1 ? '' : raw.slice(signIdx)
    holds for every other line. Sindri, 2026-09-07. */
 const isStructuralLine = (l) =>
   /^https?:\/\/\S+$/.test(l) || /^[\w][\w.-]*\.(png|jpe?g|webp|gif|pdf)$/i.test(l) ||
-  (ops && /^\d+\)\s+\S/.test(l))
+  (ops && (/^\d+\)\s+\S/.test(l) || /^„/.test(l)))
+/* Also in --ops mode: a line opening with „ is a quoted block the reader is meant to forward
+   verbatim (the message to the previous domain owners, the message to the booking vendor).
+   It stands on its own line so the copy boundary is unmistakable. */
 const joinSoftWraps = (p) =>
   p.split('\n').map(l => l.trim()).filter(Boolean)
     .reduce((acc, l) => {
