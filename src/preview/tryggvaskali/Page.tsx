@@ -145,7 +145,12 @@ export const TYPE = {
   navLink: {
     fontFamily: 'var(--ts-font-display)',
     fontSize: 'clamp(35.29px, 4vw, 57.6px)',
-    lineHeight: 1.0,
+    /* Was 1.0, which is safe only while every item fits on one line. On a
+       phone the longest item wraps, and at 1.0 the acute accents on the
+       second line (Á, Ú) ran into the first line's baseline: on the iOS
+       simulator the two lines visibly touched. Icelandic caps need headroom
+       that Latin caps do not. */
+    lineHeight: 1.12,
     fontWeight: 500,
     textTransform: 'uppercase' as const,
     letterSpacing: '.04em',
@@ -218,7 +223,15 @@ export const CONTAINERS = {
 function PageStyles() {
   return (
     <style>{`
+      /* [[mobile-chrome-standard]] prerequisites. Safari tints its own chrome
+         from the body background, so the body carries the page ink permanently
+         and the strips at both edges follow it. overflow-x is CLIP, never
+         HIDDEN: hidden silently kills every sticky descendant
+         ([[overflow-hidden-breaks-sticky]]). */
+      html, body { background-color: ${C.ink}; }
+
       .ts-root {
+        overflow-x: clip;
         /* Resolution law (teardown 0.1): the root NEVER scales. Type is
            carried entirely by clamp()s above, not by html{font-size}. */
         --ts-titleSize: 3.75em;
@@ -459,6 +472,24 @@ function PageStyles() {
       }
       .ts-header.ts-opaque:before { opacity: 1; }
       .ts-header.ts-header-up { transform: translate3d(0,-100%,0); }
+
+      /* THE MOBILE BAR IS CONSTANT ([[mobile-chrome-standard]], a HARD rule
+         Sindri confirmed on-device). Hide-on-scroll-down and reveal-on-
+         scroll-up bars are both on that standard's forbidden list, and this
+         page shipped both: below the hero the phone had no brand, no menu and
+         no way to book without scrolling back up. The scrim still fades in
+         past the hero, because a COLOUR swap is explicitly not a forbidden
+         transform. The belt-and-braces rule here backs up the JS guard so the
+         bar cannot lift even if a class is left behind by a resize. */
+      @media (max-width: 767px), (hover: none) and (pointer: coarse) {
+        .ts-header { transition: none; }
+        .ts-header.ts-header-up { transform: none; }
+        /* Three items in a 390px bar collided: the docked wordmark measured
+           107-283 and the booking link 277-364. The label shortens rather
+           than the action disappearing, because booking is the page's whole
+           commercial job and it has to stay reachable from every screen. */
+        .ts-header-cta__rest { display: none; }
+      }
 
       /* H3 ambience gallery (teardown 4.1 H3, device 17): native scroll-snap
          track standing in for the reference's Splide carousel (no Splide
@@ -737,7 +768,10 @@ function PageStyles() {
         left: 50%;
         top: 50%;
         transform: translate3d(-50%,-50%,0) scale3d(1,1,1);
-        width: 100vw;
+        /* Was width:100vw with side padding on a content-box, which measured
+           468px inside a 390px viewport and clipped the line. */
+        box-sizing: border-box;
+        width: 100%;
         max-width: 56.25rem;
         padding: 0 var(--ts-vpad);
         margin: 0;
@@ -839,7 +873,7 @@ function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
         className="ts-link no-underline ts-header-cta"
         style={{ ...TYPE.button, color: C.cream }}
       >
-        Bóka borð
+        Bóka<span className="ts-header-cta__rest"> borð</span>
       </a>
     </header>
   )
@@ -1053,10 +1087,22 @@ function OffCanvasMenu({ open, onClose }: { open: boolean; onClose: () => void }
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
+    /* Fixed-body lock, not overflow:hidden. Setting overflow on the body makes
+       the body a scroll container, which kills every sticky descendant and lets
+       the page leak into the iOS status strip ([[mobile-chrome-standard]],
+       rollout trap 2). Restores the exact scroll position on close. */
+    const y = window.scrollY
+    const body = document.body
+    const prev = { position: body.style.position, top: body.style.top, width: body.style.width }
+    body.style.position = 'fixed'
+    body.style.top = `-${y}px`
+    body.style.width = '100%'
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
+      body.style.position = prev.position
+      body.style.top = prev.top
+      body.style.width = prev.width
+      window.scrollTo(0, y)
     }
   }, [open, onClose])
 
@@ -1170,12 +1216,22 @@ function Hero() {
      * intent register however slowly it is delivered.
      */
     let travel = 0
+    /* Evaluated per update rather than once, so rotating the phone or resizing
+       the window cannot leave the bar in the wrong mode. */
+    const constantBar = window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)')
     const stHide = ScrollTrigger.create({
       start: bannerH / 2, // measured 450px at 1440 / 422px at 390 (banner.height()/2)
       onUpdate: () => {
         const y = window.scrollY
         const delta = y - lastY
         lastY = y
+        /* [[mobile-chrome-standard]]: on a phone the bar is constant. It never
+           hides, so there is nothing to reveal and no state to accumulate. */
+        if (constantBar.matches) {
+          travel = 0
+          header?.classList.remove('ts-header-up')
+          return
+        }
         if (delta === 0) return
         if (delta > 0 !== travel > 0) travel = 0
         travel += delta
@@ -2784,7 +2840,10 @@ export default function Page() {
   // decorative device in this file.
   useEffect(() => {
     const mm = gsap.matchMedia()
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
+    /* Desktop only. A JS smooth-scroll layer breaks iOS chrome and momentum
+       on its own and no header architecture fixes that ([[lenis-mobile-damage]],
+       [[ios-momentum-killers]]); touch devices get native scroll. */
+    mm.add('(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)', () => {
       const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true })
       lenis.on('scroll', ScrollTrigger.update)
       const tick = (t: number) => lenis.raf(t * 1000)
