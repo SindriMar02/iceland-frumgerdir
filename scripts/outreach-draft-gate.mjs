@@ -66,8 +66,15 @@ const sign = signIdx === -1 ? '' : raw.slice(signIdx)
    STRUCTURAL - that is how the sent emails lay the preview out, and flattening them
    into the sentence above is what made drafts read as condensed. Every other hard
    wrap is still a leftover from hand-formatting and still gets joined. */
+/* In --ops mode a numbered click line, "1) Farið á isnic.is", is also structural. An
+   operational mail walks a non-technical reader through a screen, and running those clicks
+   together into one sentence is exactly what made the Bjarkalundur draft unreadable for two
+   older owners. The `1)` form cannot collide with the `1.` used for top level steps, so the
+   distinction is unambiguous and the accidental-hard-wrap rule this gate exists for still
+   holds for every other line. Sindri, 2026-09-07. */
 const isStructuralLine = (l) =>
-  /^https?:\/\/\S+$/.test(l) || /^[\w][\w.-]*\.(png|jpe?g|webp|gif|pdf)$/i.test(l)
+  /^https?:\/\/\S+$/.test(l) || /^[\w][\w.-]*\.(png|jpe?g|webp|gif|pdf)$/i.test(l) ||
+  (ops && /^\d+\)\s+\S/.test(l))
 const joinSoftWraps = (p) =>
   p.split('\n').map(l => l.trim()).filter(Boolean)
     .reduce((acc, l) => {
