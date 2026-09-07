@@ -18,9 +18,22 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const proposal = process.argv.includes('--proposal')
-const draftPath = process.argv.filter((a) => a !== '--proposal')[2]
-if (!draftPath) { console.error('usage: outreach-draft-gate.mjs <draft.md> [payload.json]'); process.exit(1) }
-const outPath = process.argv.filter((a) => a !== '--proposal')[3] || draftPath.replace(/\.md$/, '') + '.payload.json'
+/* --nolink: the no-prototype offer letters carry no URL at all. Sindri, 2026-09-07:
+   "do not have any preview links in the emails". The letter asks whether the owner wants a
+   prototype made, so there is nothing to link to yet. */
+const nolink = process.argv.includes('--nolink')
+/* --ops: an OPERATIONAL mail to a client who has already agreed. Not outreach and not a
+   proposal. It carries step by step instructions (register the domain, mail the booking
+   system, send photos, here is how to get invoiced), so it runs long and it names no price
+   because the price is already settled elsewhere. Every LAYOUT check still applies, which is
+   the whole reason the gate exists. Bjarkalundur, Sindri 2026-09-07. */
+const ops = process.argv.includes('--ops')
+const FLAGS = ['--proposal', '--nolink', '--ops']
+const positional = process.argv.filter((a) => !FLAGS.includes(a))
+const draftPath = positional[2]
+if (!draftPath) { console.error('usage: outreach-draft-gate.mjs [--proposal|--ops] [--nolink] <draft.md> [payload.json]'); process.exit(1) }
+const outPath = positional[3] || draftPath.replace(/\.md$/, '') + '.payload.json'
+if (proposal && ops) { console.error('--proposal and --ops are mutually exclusive'); process.exit(1) }
 const src = readFileSync(draftPath, 'utf8')
 
 /* [^\S\n]* not \s*: with an EMPTY To: line (a lead with no published address,
@@ -114,16 +127,18 @@ check(orphanLinks.length === 0, 'every link is introduced by a line ending in a 
    proposal after a call carries the offer plus reference links, and cannot be
    said in eight. */
 const middleProse = middle.filter((p) => !p.split('\n').every(isStructuralLine))
-const paraCap = proposal ? 11 : 8
+const paraCap = proposal || ops ? 11 : 8
 check(middleProse.length >= 2 && middleProse.length <= paraCap,
   'reads as continuous prose, not scannable cards',
   `${middleProse.length} prose paragraphs between greeting and close (want 2-${paraCap})`)
 check(fragments.length === 0, 'no one-line fragments in the body',
   fragments.length ? `${fragments.length} found` : '')
 check(dashes === 0, 'no em/en dashes', dashes ? `${dashes} found` : '')
-check(/https?:\/\//.test(body), 'the preview link is present')
-check(words >= 120 && words <= (proposal ? 600 : 300), 'length is warmth, not terseness',
-  `${words} words${proposal ? ' (proposal mode: up to 600)' : ''}`)
+if (!nolink) check(/https?:\/\//.test(body), 'the preview link is present')
+else check(!/https?:\/\//.test(body), 'no link in the body (--nolink)')
+const wordCap = proposal ? 600 : ops ? 600 : 300
+check(words >= 120 && words <= wordCap, 'length is warmth, not terseness',
+  `${words} words${proposal ? ' (proposal mode: up to 600)' : ops ? ' (ops mode: up to 600)' : ''}`)
 check(!/(gera við hana|megið eiga|ykkar eign|frítt að nota)/i.test(body),
   'no clause handing the prototype over')
 /* Cold outreach must never quote a price (outreach-email-guide rule 11).
@@ -133,6 +148,9 @@ if (proposal) {
      currency with the international code, and the check's intent is only that
      a proposal names a number at all. */
   check(/\d[\d.]*\s*(kr|ISK)\b/.test(body), 'proposal states a price', 'proposal mode')
+} else if (ops) {
+  /* The number was agreed in the proposal. Repeating it in the follow-up reopens it. */
+  check(!/\d[\d.]*\s*(kr|ISK)\b/.test(body), 'no price restated (ops mode)')
 } else {
   check(!/\d[\d.]*\s*(kr|ISK)\b|verðskrá|áskrift á|á mánuði/i.test(body),
     'no pricing in the body')
