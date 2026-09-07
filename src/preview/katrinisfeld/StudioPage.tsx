@@ -8,7 +8,7 @@
  * experience and a passion for design" gives it nothing to repeat. Every
  * claim below is on her own Stúdíóið page or in the FHI member roster.
  */
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
 import { STUDIO, CV, ADDRESS_LINE } from './facts'

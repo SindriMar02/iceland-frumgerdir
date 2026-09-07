@@ -26,6 +26,10 @@ export const REDIRECTS: Array<[string, string]> = [
   ['/italskar-innrettingar', '/italskar-innrettingar'],
   ['/italskar-innrettingar/innrettingar-eldhus', '/italskar-innrettingar#eldhus'],
   ['/italskar-innrettingar/innrettingar-bad', '/italskar-innrettingar#bad'],
+  // Fjölmiðlar was filed under Ýmislegt as if it were a project; it is press,
+  // and it now has a page of its own
+  ['/verkefni/ymislegt/fjolmidlar', '/fjolmidlar'],
+  ['/fjolmidlar', '/fjolmidlar'],
   // her /instagram/ page was a feed embed; the real profile is the useful target
   ['/instagram', '/verkefni'],
   ...PROJECTS.map((p): [string, string] =>

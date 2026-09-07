@@ -269,6 +269,24 @@ html[data-ki-intro] .ki-nav { opacity: 0; }
   .ki-hero-media img { transform: none !important; }
   .ki-word { transform: none !important; opacity: 1 !important; }
   .ki-root * { scroll-behavior: auto !important; }
+
+/* ── BETWEEN PAGES ───────────────────────────────────────────────────────
+   The browser holds a snapshot of the page being left, swaps the DOM and the
+   scroll position underneath it, and cross-fades. The reset to the top of the
+   next page happens INSIDE the fade rather than in front of it, which is the
+   whole point: what used to read as a hard cut plus a jump now reads as one
+   move.
+   The outgoing page only fades; the incoming one fades and settles up a few
+   pixels, so the direction of travel is forwards. Both are short — this is
+   punctuation between pages, not an event, and a transition a visitor has to
+   wait through is worse than none.
+   Gated on prefers-reduced-motion, which leaves the navigation instant. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: ki-vt-out .24s cubic-bezier(.4,0,1,1) both; }
+  ::view-transition-new(root) { animation: ki-vt-in .40s ${OUT} both; }
+}
+@keyframes ki-vt-out { to { opacity: 0; } }
+@keyframes ki-vt-in { from { opacity: 0; transform: translateY(12px); } }
 }
 
 /* group entrances: a 45ms wave, restarted per grid so nothing accumulates */
@@ -1256,6 +1274,33 @@ html[data-ki-intro] .ki-plx-role, html[data-ki-intro] .ki-plx-tag { overflow: hi
 .ki-proj-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 34);   }
 /* the two widths the gallery is built from, and the credit under it */
 .ki-gal-wide { grid-column: 1 / -1; }
+/* ── Í FJÖLMIÐLUM ────────────────────────────────────────────────────────
+   The headline under each clipping is the page: on her site every one of them
+   is pixels inside a JPEG, which is why the page has never ranked for a single
+   thing she has been quoted saying. */
+.ki-press {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--u) * 44) calc(var(--u) * 34);
+  counter-reset: none;
+}
+.ki-press-wide { grid-column: 1 / -1; }
+.ki-press-half { grid-column: span 1; }
+.ki-press-fig { margin: 0; }
+.ki-press-cap { padding-top: calc(var(--u) * 16); }
+.ki-press-head {
+  margin: 0; font-family: ${DISPLAY}; font-weight: 300;
+  font-size: ${fluid(27, 20)}; line-height: 1.24; color: var(--ki-ink);
+  text-wrap: balance;
+}
+.ki-press-meta {
+  margin: 6px 0 0; font-family: ${MONO}; font-size: ${fluid(11.5, 10.5)};
+  letter-spacing: .16em; text-transform: uppercase; color: var(--ki-mute);
+}
+@media (max-width: 860px) {
+  .ki-press { grid-template-columns: minmax(0, 1fr); gap: calc(var(--u) * 40); }
+  .ki-press-wide, .ki-press-half { grid-column: 1 / -1; }
+}
 .ki-gal-half { grid-column: span 1; }
 .ki-proj-credit {
   margin: calc(var(--u) * 30) 0 0;

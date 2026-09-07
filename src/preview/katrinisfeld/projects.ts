@@ -550,15 +550,6 @@ export const PROJECTS: Project[] = [
 
   /* ── Ýmislegt ────────────────────────────────────────────────────────── */
   {
-    slug: 'fjolmidlar',
-    title: 'Fjölmiðlar',
-    category: 'ymislegt',
-    oldPath: '/verkefni/ymislegt/fjolmidlar/',
-    lead: 'Umfjöllun um verkefni Katrínar.',
-    body: [],
-    photos: [],
-  },
-  {
     slug: 'stemning',
     title: 'Stemning',
     category: 'ymislegt',

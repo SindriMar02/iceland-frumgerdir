@@ -106,6 +106,14 @@ const PAGES = [
     kind: 'studio',
   },
   {
+    clean: '/fjolmidlar',
+    title: 'Í fjölmiðlum · umfjöllun um Katrínu Ísfeld',
+    desc:
+      'Viðtöl og umfjöllun um Katrínu Ísfeld innanhússarkitekt í Morgunblaðinu og Hús og hýbýli, ásamt myndum af verkefnum hennar eins og þau hafa birst á prenti.',
+    image: photo('press-0'),
+    kind: 'press',
+  },
+  {
     clean: '/hafa-samband',
     title: `Hafa samband · ${STUDIO.street}, Reykjavík`,
     desc: `Katrín Ísfeld innanhússarkitekt, ${ADDRESS_LINE}. Sími ${STUDIO.phoneDisplay}. Opnunartími ${STUDIO.opens}–${STUDIO.closes}. Sendu stutta verklýsingu og hún hefur samband.`,

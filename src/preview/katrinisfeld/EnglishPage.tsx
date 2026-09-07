@@ -8,7 +8,7 @@
  * separate project; hreflang points this page and the Icelandic home page at
  * each other so neither competes with the other.
  */
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import { Headline, Photo, CardFigure } from './kit'
 import { STUDIO, ADDRESS_LINE, APPOINTMENT_NOTE_EN } from './facts'

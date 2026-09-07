@@ -8,7 +8,7 @@
  * one of them resolved to a WordPress page whose photographs were CSS
  * background-images and therefore indexed as nothing at all.
  */
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import { Headline, Photo, Slide } from './kit'
 import { CATEGORIES, PROJECTS, hasPage, type Project } from './projects'

@@ -31,7 +31,7 @@
  *    data-lenis-prevent.
  */
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { PHOTO_DIMS } from './photo-dims'
 import { PHOTO_COLORS } from './photo-colors'
 

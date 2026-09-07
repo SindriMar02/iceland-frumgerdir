@@ -20,6 +20,7 @@ import { BrandsPage } from './BrandsPage'
 import { StudioPage } from './StudioPage'
 import { ContactPage } from './ContactPage'
 import { EnglishPage } from './EnglishPage'
+import { PressPage } from './PressPage'
 import { CATEGORIES, PROJECTS, hasPage, type CategorySlug } from './projects'
 import { WORK } from './paths'
 
@@ -41,6 +42,7 @@ export default function KatrinIsfeldSite() {
       <Route path="verkefni/:slug" element={<WorkChild />} />
       <Route path="italskar-innrettingar" element={<BrandsPage />} />
       <Route path="studioid" element={<StudioPage />} />
+      <Route path="fjolmidlar" element={<PressPage />} />
       <Route path="hafa-samband" element={<ContactPage />} />
       <Route path="en" element={<EnglishPage />} />
       {/* a portfolio site has no useful 404: send strays to the front */}

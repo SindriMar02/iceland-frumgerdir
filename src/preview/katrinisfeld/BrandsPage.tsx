@@ -8,7 +8,7 @@
  * real name never reaches her. These are searches with money behind them:
  * a person typing "Arrital eldhús" is not browsing.
  */
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
 import { BRANDS, STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM } from './facts'

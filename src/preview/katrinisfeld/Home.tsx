@@ -15,7 +15,7 @@
  * inline script in the shell that runs before first paint.
  */
 import { Fragment } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import {
   Headline, Photo, Slide, CardFigure, HorizontalChapter, StatementOverlay,

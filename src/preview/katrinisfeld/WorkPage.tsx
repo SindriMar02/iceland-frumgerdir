@@ -8,7 +8,7 @@
  * copy rather than a filtered grid with a heading, because a grid with a
  * heading is not a page a search engine has any reason to return.
  */
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import { Headline, CardFigure } from './kit'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'

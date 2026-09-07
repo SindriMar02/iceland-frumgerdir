@@ -22,12 +22,13 @@ export const category = (c: CategorySlug) => `${PREFIX}/verkefni/${c}`
 export const project = (slug: string) => `${PREFIX}/verkefni/${slug}`
 export const BRANDS_PATH = `${PREFIX}/italskar-innrettingar`
 export const STUDIO_PATH = `${PREFIX}/studioid`
+export const PRESS_PATH = `${PREFIX}/fjolmidlar`
 export const CONTACT_PATH = `${PREFIX}/hafa-samband`
 export const EN_PATH = `${PREFIX}/en`
 
 /** Every route this site has, in sitemap order. `clean` is the path on her own
  *  domain, which is what canonicals, the sitemap and the prerenderer use. */
-export interface RouteDef { clean: string; kind: 'home' | 'work' | 'category' | 'project' | 'brands' | 'studio' | 'contact' | 'en'; key?: string }
+export interface RouteDef { clean: string; kind: 'home' | 'work' | 'category' | 'project' | 'brands' | 'studio' | 'contact' | 'en' | 'press'; key?: string }
 
 export const ROUTES: RouteDef[] = [
   { clean: '/', kind: 'home' },
@@ -38,6 +39,7 @@ export const ROUTES: RouteDef[] = [
   ...PROJECTS.filter(hasPage).map((p): RouteDef => ({ clean: `/verkefni/${p.slug}`, kind: 'project', key: p.slug })),
   { clean: '/italskar-innrettingar', kind: 'brands' },
   { clean: '/studioid', kind: 'studio' },
+  { clean: '/fjolmidlar', kind: 'press' },
   { clean: '/hafa-samband', kind: 'contact' },
   { clean: '/en', kind: 'en' },
 ]

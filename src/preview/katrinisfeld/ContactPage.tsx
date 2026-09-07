@@ -29,7 +29,7 @@
  * than no form.
  */
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from './link'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
 import { STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM, HOURS_DAYS_IS, APPOINTMENT_NOTE_IS } from './facts'

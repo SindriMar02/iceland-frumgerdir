@@ -14,10 +14,11 @@
  * click in sequence and they cancel each other out.
  */
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { Link } from './link'
 import { STUDIO } from './facts'
 import { CATEGORIES } from './projects'
-import { HOME, WORK, BRANDS_PATH, STUDIO_PATH, CONTACT_PATH, EN_PATH, category } from './paths'
+import { HOME, WORK, BRANDS_PATH, STUDIO_PATH, PRESS_PATH, CONTACT_PATH, EN_PATH, category } from './paths'
 
 const NAV = [
   { to: WORK, label: 'Verkefni' },
@@ -75,6 +76,7 @@ export function Nav() {
           ))}
           <Link to={BRANDS_PATH}>Ítalskar innréttingar</Link>
           <Link to={STUDIO_PATH}>Stúdíóið</Link>
+          <Link to={PRESS_PATH}>Í fjölmiðlum</Link>
           <Link to={CONTACT_PATH}>Hafa samband</Link>
         </nav>
         <div className="ki-panel-foot">
