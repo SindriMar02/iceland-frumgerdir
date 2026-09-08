@@ -1284,6 +1284,15 @@ html[data-ki-intro] .ki-plx-role, html[data-ki-intro] .ki-plx-tag { overflow: hi
   gap: calc(var(--u) * 44) calc(var(--u) * 34);
   counter-reset: none;
 }
+/* the answer blocks — a question the size of a heading, an answer the size
+   of a snippet, and enough air that the pair reads as one unit */
+.ki-answers { margin: calc(var(--u) * 60) 0 0; }
+.ki-answer { padding: calc(var(--u) * 30) 0; border-top: 1px solid var(--ki-hair); max-width: calc(var(--u) * 820); }
+.ki-answer-q {
+  margin: 0 0 calc(var(--u) * 12); font-family: ${DISPLAY}; font-weight: 300;
+  font-size: ${fluid(30, 22)}; line-height: 1.2; color: var(--ki-ink); text-wrap: balance;
+}
+.ki-answer-a { margin: 0; font-size: ${fluid(16.5, 15.5)}; line-height: 1.65; color: var(--ki-mute); }
 .ki-press-wide { grid-column: 1 / -1; }
 .ki-press-half { grid-column: span 1; }
 .ki-press-fig { margin: 0; }

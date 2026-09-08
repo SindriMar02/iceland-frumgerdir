@@ -149,7 +149,23 @@ for (const { route, html } of captured) {
 }
 
 /* a 404 that renders the site rather than the host's default page */
-writeFileSync(join(dist, '404.html'), readFileSync(join(dist, 'index.html')))
+/* THE 404 IS NOT THE HOMEPAGE. Copying index.html gave the 404 shell the
+   homepage's title, its 225-character description and its canonical, so a
+   stray URL competed with the front page for the same query. It gets its own
+   head and is told not to be indexed. */
+{
+  const home = readFileSync(join(dist, 'index.html'), 'utf8')
+  const notFound = home
+    .replace(/<title>[\s\S]*?<\/title>/, '<title>Síðan fannst ekki | Katrín Ísfeld</title>')
+    .replace(/<meta name="description" content="[^"]*"/,
+      '<meta name="description" content="Slóðin fannst ekki. Verkefni Katrínar Ísfeld innanhússarkitekts eru undir Verkefni, og hægt er að hafa samband beint."')
+    /* the SEO injector runs AFTER this and never sees 404.html, so there is
+       no robots tag here to replace — it has to be added */
+    .replace(/<\/title>/, '</title><meta name="robots" content="noindex, follow">')
+    .replace(/<link rel="canonical"[^>]*>/, '')
+    .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '')
+  writeFileSync(join(dist, '404.html'), notFound)
+}
 
 if (failures) {
   console.error(`katrin-prerender: ${failures} route(s) rendered badly — refusing to ship a blank page`)

@@ -125,3 +125,80 @@ export const EN = {
   },
   contactTitle: 'Get in touch',
 } as const
+
+/* ── PAGE-SCOPED QUESTIONS ────────────────────────────────────────────────
+   The audit found FAQ markup on exactly one page of thirty-four and five
+   question-phrased headings across the whole site, which is why nothing here
+   was eligible for a featured snippet, a People Also Ask box or a voice
+   answer. These are the questions people actually type before they hire an
+   interior architect, and each answer is written to the length a snippet
+   takes — roughly forty to sixty words, complete on its own, with the fact
+   in the first sentence rather than the last.
+
+   THEY ARE RENDERED AS VISIBLE HEADINGS AND PARAGRAPHS, not inside a
+   <details>. A collapsed answer is still read by a crawler but it is second
+   choice for extraction, and these are the pages where extraction is the
+   whole point.
+
+   NOTHING HERE INVENTS A PRICE. She has no published rate and I will not
+   publish one for her; the cost question is answered with the process that
+   produces the number, which is true and is what a caller needs to know. */
+export const FAQ_CONTACT: Array<{ q: string; a: string }> = [
+  {
+    q: 'Hvað kostar að fá innanhússarkitekt?',
+    a:
+      'Það fer eftir umfangi verksins og er ekki fast verð. Katrín kemur á staðinn, tekur rýmið út með eigendum og gerir í framhaldi tilboð í verkið miðað við það sem raunverulega stendur til. Úttektin sjálf er fyrsta skrefið og kostar ekkert að spyrja um.',
+  },
+  {
+    q: 'Þarf ég að vita hvað ég vil áður en ég hef samband?',
+    a:
+      'Nei. Flest verkefni byrja á því að fólk veit að eitthvað virkar ekki í rýminu án þess að vita hvað. Það er einmitt vinnan: að greina hvað er að og leggja til lausn. Nokkrar línur um rýmið og hvað stendur til duga sem fyrsta erindi.',
+  },
+  {
+    q: 'Tekur hún að sér lítil verkefni?',
+    a:
+      'Já. Verkefnin spanna allt frá heilum húsum niður í eitt eldhús, eitt baðherbergi eða eitt fataherbergi. Vinnan er sú sama í öllum tilvikum, það er umfangið sem breytist. Baðherbergi og eldhús eru algengustu einstöku rýmin sem hún tekur að sér.',
+  },
+  {
+    q: 'Hvar er stúdíóið og get ég komið við?',
+    a:
+      'Stúdíóið er í Katrínartúni 4 í Reykjavík og þar er sýningarrými með ítölskum innréttingum og efnissýnishornum. Það er ekki mannað verslunarrými, svo best er að hringja eða senda tölvupóst og mæla sér mót áður en komið er.',
+  },
+]
+
+export const FAQ_BRANDS: Array<{ q: string; a: string }> = [
+  {
+    q: 'Hvar fæ ég Arrital eldhús á Íslandi?',
+    a:
+      'Hjá Katrín Ísfeld Hönnunar Studio í Katrínartúni 4 í Reykjavík, sem er með umboð fyrir Arrital á Íslandi. Innréttingarnar eru teiknaðar inn í rýmið af innanhússarkitekt og fluttar inn beint frá verksmiðjunni á Ítalíu, ekki valdar úr staðalstærðum.',
+  },
+  {
+    q: 'Hvað er Altamarea?',
+    a:
+      'Altamarea er ítalskur framleiðandi baðinnréttinga. Katrín Ísfeld Hönnunar Studio er með umboð fyrir þær á Íslandi og teiknar þær inn í baðherbergið á sama hátt og eldhúsinnréttingarnar frá Arrital.',
+  },
+  {
+    q: 'Af hverju kostar sérteiknuð innrétting meira en staðalinnrétting?',
+    a:
+      'Munurinn liggur í sentimetrunum. Þegar innréttingin er teiknuð inn í rýmið ráðast breiddirnar af veggjunum sem eru til staðar, ekki af staðalstærðum, og þess vegna verður engin fylliplata og engin sílikonrönd þar sem einingin nær ekki alveg að vegg.',
+  },
+]
+
+/** One question per flokkur, answered where the visitor is standing. */
+export const FAQ_CATEGORY: Record<string, { q: string; a: string }> = {
+  'innanhusshonnun': {
+    q: 'Hvað felst í heildarhönnun á heimili?',
+    a:
+      'Heildarhönnun þýðir að skipulag, innréttingar, efnisval, litir og lýsing eru ákveðin saman í stað þess að vera valin hvert í sínu lagi. Það á jafnt við um nýbyggingu sem teiknuð er innan frá og eldra hús sem er tekið í gegn; umfangið breytist en aðferðin er sú sama.',
+  },
+  'gistiheimili-og-hotel': {
+    q: 'Hvað er ólíkt við að hanna gistirými?',
+    a:
+      'Efnin þurfa að þola þrif og umgengni ókunnugra allt árið, herbergin þurfa að vera samræmd svo öll gistingin seljist á sama verði, og rýmin þurfa að standast samanburð á ljósmynd á Booking og Airbnb. Heimili þarf ekkert af þessu þrennu.',
+  },
+  'atvinnuhusnaedi': {
+    q: 'Af hverju skiptir hönnun máli í atvinnuhúsnæði?',
+    a:
+      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti gestinum, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins.',
+  },
+}

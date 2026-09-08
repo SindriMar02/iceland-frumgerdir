@@ -64,7 +64,7 @@ export const CATEGORIES: Record<CategorySlug, {
     nav: 'Atvinnuhúsnæði',
     lead: 'Skrifstofur og móttökurými þar sem fyrsta mínútan gestsins ræðst af hönnuninni.',
     body:
-      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti þér, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými.',
+      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti þér, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, og í báðum tilvikum er verkefnið það sama: að rýmið vinni með því sem fyrirtækið er að reyna að gera, frekar en á móti því. Rýmin eru hönnuð í anda þeirra fyrirtækja sem þar starfa; þarfirnar eru misjafnar en flest hafa haft sömu ósk, að stíllinn sé hlýlegur og skipulagið gott með góðu flæði. Þar sem grafísk hönnun þarf að fylgja — merkingar á rúðum, skilrúm, leiðbeinandi merkingar — er hún unnin samhliða rýminu en ekki límd á það eftir á.',
   },
   'ymislegt': {
     slug: 'ymislegt',
@@ -274,7 +274,9 @@ export const PROJECTS: Project[] = [
     lead: 'Stúdíóið hennar sjálfrar, þar sem efnin eru valin.',
     body: [
       'Stúdíóið er líka sýningarrými. Hér liggja sýnishorn af borðplötum, framhliðum og efnum sem viðskiptavinir handleika áður en ákvörðun er tekin, því munurinn á tveimur steintegundum sést ekki á skjá.',
-      'Dökk marmaraborðplata er miðja rýmisins og um leið dæmi um það sem verið er að selja.',
+      'Dökk marmaraborðplata er miðja rýmisins og um leið dæmi um það sem verið er að selja: heilt sýningareldhús frá Arrital, sem stúdíóið er með umboð fyrir á Íslandi, stendur á gólfinu og er hægt að opna, draga út og handleika.',
+      'Rýmið er hannað eins og verkefnin sem héðan koma. Beinni steypu er haldið sýnilegri í lofti með lögnum og öllu saman, á móti stendur plómurauður flötur og lýstur sporöskjulaga spegill, og merkingin í glugganum er hluti af hönnuninni frekar en skilti sem var hengt upp á eftir.',
+      'Hér starfa innanhússarkitektar ásamt grafískum hönnuði, Ómari Erni Sigurðssyni, sem kemur að þeim verkefnum þar sem merkingar, skilrúm eða annað prentað efni þurfa að fylgja rýminu. Stúdíóið er sýningarrými fremur en mönnuð verslun, svo tími er bókaður fyrirfram.',
     ],
     photos: [
       P('p-studio-0', 'Framhlið Hönnunar Studio með merkingu í glugga'),
@@ -510,8 +512,10 @@ export const PROJECTS: Project[] = [
     oldPath: '/verkefni/atvinnuhusnaedi/skrifstofurymi/',
     lead: 'Skrifstofa með setusvæði sem er raunverulega notað.',
     body: [
-      'Setusvæði á skrifstofu virkar aðeins ef það er nógu þægilegt til að fólk velji það fram yfir fundarherbergið. Hér er grár sófi settur upp á móti rauðum stól, sem gefur rýminu lit án þess að fara út í skrifstofuhúsgagnastaðla.',
-      'Efnisvalið er miðað við daglegt álag frekar en kynningarmyndir.',
+      'Þetta er safn skrifstofurýma úr nokkrum verkefnum. Hvert þeirra er hannað í anda þess fyrirtækis sem þar starfar, og þótt þarfirnar séu ólíkar hefur nánast hver einasti viðskiptavinur beðið um sama hlutinn: að stíllinn sé hlýlegur og skipulagið gott, með góðu flæði og hönnun sem tekið er eftir.',
+      'Setusvæði á skrifstofu virkar aðeins ef það er nógu þægilegt til að fólk velji það fram yfir fundarherbergið. Hér stendur grár sófi á móti terracotta stól, sem gefur rýminu lit án þess að fara út í skrifstofuhúsgagnastaðla, og fundarrýmin fá mettaða plómurauða fleti frekar en hlutlausa veggi.',
+      'Glerskilrúmin eru gott dæmi um það sem gerist þegar grafísk hönnun fylgir rýminu í stað þess að vera límd á það eftir á: laufamynstrið gefur næði án þess að loka á birtuna, og það er teiknað fyrir þessa veggi frekar en keypt sem filma.',
+      'Efnisvalið er miðað við daglegt álag frekar en kynningarmyndir. Teppi, áklæði og fletir eru valdir til að þola margra ára umgengni starfsfólks, því skrifstofa er rými sem sama fólkið notar hvern einasta dag.',
     ],
     photos: [
       P('p-skrifstofa-1', 'Skrifstofurými með opnu vinnusvæði, bókahillum og appelsínugulum barstólum'),

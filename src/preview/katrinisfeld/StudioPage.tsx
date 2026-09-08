@@ -39,6 +39,16 @@ export function StudioPage() {
         <p className="ki-lead ki-rv">
           Katrín Ísfeld, innanhússarkitekt og eigandi Katrín Ísfeld Hönnunar Studio.
         </p>
+        {/* THE DEFINITION, SAID PLAINLY. The whole site described what she
+            does and never once defined the word itself, so nothing here could
+            be quoted back as an answer to "hvað er innanhússarkitekt". One
+            sentence of the form "X er…", in the open, near the top. */}
+        <p className="ki-body ki-rv" style={{ maxWidth: 'calc(var(--u) * 760)' }}>
+          Innanhússarkitekt er hönnuður sem teiknar rýmið sjálft — skipulag, innréttingar,
+          efnisval, liti og lýsingu sem eina heild — en ekki aðeins það sem sett er inn í
+          það. Á Íslandi er starfsheitið bundið við nám og félagsaðild að FHI, Félagi
+          húsgagna- og innanhússarkitekta.
+        </p>
       </section>
 
       <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>

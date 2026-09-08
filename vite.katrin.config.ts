@@ -34,6 +34,18 @@ export default defineConfig({
   build: {
     outDir: 'dist-katrin',
     emptyOutDir: true,
-    rollupOptions: { input: fileURLToPath(new URL('./katrin.html', import.meta.url)) },
+    rollupOptions: {
+      input: fileURLToPath(new URL('./katrin.html', import.meta.url)),
+      /* MEASUREMENT ONLY at first: split the animation stack out so its real
+         weight is visible. GSAP, ScrollTrigger and Lenis exist for the two
+         parallax sections on the home page and nothing else, but they were
+         inside the one chunk every route downloads. */
+      output: {
+        manualChunks(id) {
+          if (/node_modules\/(gsap|lenis)/.test(id)) return 'motion'
+          if (/node_modules\/(react|react-dom|scheduler|react-router)/.test(id)) return 'react'
+        },
+      },
+    },
   },
 })

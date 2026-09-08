@@ -9,9 +9,10 @@
  */
 import { STUDIO, CV, ADDRESS_LINE, BRANDS } from './facts'
 import { CATEGORIES, PROJECTS, hasPage } from './projects'
-import { FAQ, SERVICES, PROCESS, EN } from './content'
+import { FAQ, FAQ_CONTACT, FAQ_BRANDS, FAQ_CATEGORY, SERVICES, PROCESS, EN } from './content'
 
-export { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, FAQ, SERVICES, PROCESS, EN }
+export { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, FAQ, FAQ_CONTACT, FAQ_BRANDS, FAQ_CATEGORY, SERVICES, PROCESS, EN }
+export { PRESS, PRESS_LEAD } from './press'
 export const PHOTOGRAPHED = PROJECTS.filter(hasPage)
 
 /** Old WordPress URL → new clean path. Every one of her published pages. */

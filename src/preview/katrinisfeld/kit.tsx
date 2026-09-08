@@ -537,6 +537,36 @@ export function MaterialBands({ bands }: { bands: ReadonlyArray<MaterialBand> })
  * hovers exactly the bytes it cost before: a hidden <img> still downloads,
  * an unmounted one does not. Touch never arms it at all.
  */
+/**
+ * QUESTIONS ANSWERED IN THE OPEN.
+ *
+ * A featured snippet is extracted from a visible heading followed by a short
+ * paragraph, in that order, with the fact in the first sentence. A collapsed
+ * <details> is still crawled but it is second choice, and on these pages
+ * extraction is the whole point — so this renders real h2s and real
+ * paragraphs and hides nothing.
+ *
+ * The h2 is the question verbatim, because that is the string a person types
+ * and an assistant matches against.
+ */
+export function Answers({ items, title }: {
+  items: ReadonlyArray<{ q: string; a: string }>
+  title?: string
+}) {
+  if (!items.length) return null
+  return (
+    <section className="ki-answers" aria-label={title || 'Spurt og svarað'}>
+      {title && <p className="ki-kicker ki-rv">{title}</p>}
+      {items.map((f) => (
+        <div key={f.q} className="ki-answer ki-rv">
+          <h2 className="ki-answer-q">{f.q}</h2>
+          <p className="ki-answer-a">{f.a}</p>
+        </div>
+      ))}
+    </section>
+  )
+}
+
 export function CardFigure({ photos, sizes }: {
   photos: ReadonlyArray<{ id: string; alt: string }>; sizes: string
 }) {

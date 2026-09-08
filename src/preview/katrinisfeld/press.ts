@@ -20,6 +20,8 @@ export interface Clipping {
   outlet?: string
   /** Only where the clipping itself carries it. */
   date?: string
+  /** The same date, machine-readable, for datePublished. */
+  isoDate?: string
   /** Byline, where printed. */
   byline?: string
   alt: string
@@ -39,6 +41,7 @@ export const PRESS: ReadonlyArray<Clipping> = [
     headline: 'Rómantískur rokkari',
     outlet: 'Morgunblaðið',
     date: '8. maí 2016',
+    isoDate: '2016-05-08',
     alt: 'Hönnunaropna Morgunblaðsins með fyrirsögninni „Rómantískur rokkari“ og myndum úr verkefnum Katrínar',
   },
   {

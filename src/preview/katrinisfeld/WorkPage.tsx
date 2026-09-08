@@ -10,7 +10,8 @@
  */
 import { Link } from './link'
 import { Shell, type Head } from './Shell'
-import { Headline, CardFigure } from './kit'
+import { Headline, CardFigure, Answers } from './kit'
+import { FAQ_CATEGORY } from './content'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
 
@@ -133,6 +134,10 @@ export function CategoryPage({ slug }: { slug: CategorySlug }) {
             Auk þess í skránni: {items.filter((p) => !hasPage(p)).map((p) => p.title).join(', ')}.
           </p>
         )}
+      </div>
+
+      <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
+        <Answers items={FAQ_CATEGORY[slug] ? [FAQ_CATEGORY[slug]] : []} />
       </div>
 
       <div className="ki-wrap-tight" data-ki-band="dark">

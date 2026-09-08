@@ -10,8 +10,9 @@
  */
 import { Link } from './link'
 import { Shell, type Head } from './Shell'
-import { Headline, Slide } from './kit'
+import { Headline, Slide, Answers } from './kit'
 import { BRANDS, STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM } from './facts'
+import { FAQ_BRANDS } from './content'
 import { CONTACT_PATH, WORK } from './paths'
 
 export function BrandsPage() {
@@ -79,6 +80,14 @@ export function BrandsPage() {
           <Link className="ki-cta" to={WORK}>Verkefnin</Link>
           <Link className="ki-cta" to={CONTACT_PATH}>Fá tíma í stúdíóinu</Link>
           <a className="ki-cta" href={MAP_URL} target="_blank" rel="noopener">Sjá á korti</a>
+        </p>
+        <Answers items={FAQ_BRANDS} title="Spurt um innréttingarnar" />
+        {/* OUTBOUND CITATION. The site named Arrital everywhere and linked to
+            it nowhere, which reads to an engine as an unsupported claim. The
+            manufacturer's own site is the primary source for the brand. */}
+        <p className="ki-body ki-rv" style={{ marginTop: 'calc(var(--u) * 34)' }}>
+          Arrital er ítalskur framleiðandi eldhúsinnréttinga, stofnaður 1979 í Fontanafredda.
+          Nánar á <a href="https://www.arrital.com" target="_blank" rel="noopener nofollow">arrital.com</a>.
         </p>
       </div>
     </Shell>

@@ -31,6 +31,8 @@
 import { useState } from 'react'
 import { Link } from './link'
 import { Shell, type Head } from './Shell'
+import { Answers } from './kit'
+import { FAQ_CONTACT } from './content'
 import { Headline, Slide } from './kit'
 import { STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM, HOURS_DAYS_IS, APPOINTMENT_NOTE_IS } from './facts'
 import { PROCESS } from './content'
@@ -172,6 +174,10 @@ export function ContactPage() {
           </div>
         </div>
       </section>
+
+      <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
+        <Answers items={FAQ_CONTACT} title="Spurt áður en hringt er" />
+      </div>
     </Shell>
   )
 }

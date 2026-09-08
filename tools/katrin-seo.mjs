@@ -44,7 +44,7 @@ await build({
   define: { 'import.meta.env.BASE_URL': '"/"', 'import.meta.env.VITE_KATRIN_STANDALONE': '"1"' },
 })
 const D = await import(tmp + '?t=' + process.hrtime.bigint())
-const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, SERVICES, REDIRECTS } = D
+const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_BRANDS, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS } = D
 
 /** Where a page lives, in both homes. */
 const CAT_ORDER = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
@@ -93,7 +93,7 @@ const PAGES = [
   })),
   {
     clean: '/italskar-innrettingar',
-    title: 'Ítalskar innréttingar · Arrital eldhús og Altamarea baðinnréttingar',
+    title: 'Arrital eldhús og Altamarea baðinnréttingar',
     desc: 'Arrital eldhúsinnréttingar og Altamarea baðinnréttingar fást hjá Katrín Ísfeld Hönnunar Studio í Reykjavík, teiknaðar inn í hvert rými af innanhússarkitekt.',
     image: photo('s-eyja'),
     kind: 'brands',
@@ -130,9 +130,25 @@ const PAGES = [
   },
 ]
 
-/* Titles carry the brand once, at the end, and never twice. */
+/* Titles carry the brand once, at the end, and never twice — AND THEY FIT.
+   Google truncates around 60 characters, and four of these ran to 65, 69, 75
+   and 83, so the brand was being cut off the end of exactly the pages where a
+   stranger most needs to see it. A title is built from segments now and the
+   optional middle one (the category, on a project) is dropped when the whole
+   would not fit. Nothing is truncated mid-word by us or by them. */
 const BRAND = 'Katrín Ísfeld'
-const fullTitle = (p) => (p.clean === '/' ? p.title : `${p.title} | ${BRAND}`)
+const MAX_TITLE = 60
+const fullTitle = (p) => {
+  if (p.clean === '/') return p.title
+  const withAll = `${p.title} | ${BRAND}`
+  if (withAll.length <= MAX_TITLE) return withAll
+  /* drop the middle segment — "Old Charm Reykjavik Apartment · Gistiheimili
+     og hótel" becomes "Old Charm Reykjavik Apartment" — before dropping the
+     brand, because the brand is the part that earns the click */
+  const short = p.title.includes(' · ') ? p.title.slice(0, p.title.lastIndexOf(' · ')) : p.title
+  const trimmed = `${short} | ${BRAND}`
+  return trimmed.length <= MAX_TITLE ? trimmed : short
+}
 
 /* ── schema.org: one connected graph, not a pile of loose blocks ───────── */
 const STUDIO_ID = `${urlFor('/')}#studio`
@@ -249,13 +265,43 @@ const crumbs = (page) => {
 }
 
 /** Every answer here is a sentence the page itself makes. */
-const faqNode = {
+/* ── 1. FAQ, ON EVERY PAGE THAT ANSWERS SOMETHING ────────────────────────
+   It lived on /studioid alone, which meant the pages where a buying question
+   is actually asked — contact, the brands page, each category — carried the
+   answers in prose and none of the markup. One builder now, used five times.
+   The answers here are the exact strings rendered on the page; a FAQPage
+   whose answer text is not visible on the page is a manual-action risk. */
+const faqPage = (clean, items) => ({
   '@type': 'FAQPage',
-  '@id': `${urlFor('/studioid')}#faq`,
-  mainEntity: FAQ.map((f) => ({
+  '@id': `${urlFor(clean)}#faq`,
+  mainEntity: items.map((f) => ({
     '@type': 'Question',
     name: f.q,
     acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+})
+const faqNode = faqPage('/studioid', FAQ)
+
+/* ── 5. HER PROCESS, AS A HowTo ──────────────────────────────────────────
+   The studio page already describes how a project runs, step by step, in
+   prose. Marked up it becomes eligible for the step-by-step answer an
+   assistant gives to "hvernig vinnur innanhússarkitekt". The steps are the
+   ones already published, not invented for the markup. */
+const howToNode = {
+  '@type': 'HowTo',
+  '@id': `${urlFor('/studioid')}#ferli`,
+  name: 'Hvernig verkefni hjá innanhússarkitekt gengur fyrir sig',
+  description: 'Ferlið frá fyrstu fyrirspurn að fullkláruðu rými hjá Katrín Ísfeld Hönnunar Studio.',
+  inLanguage: 'is',
+  totalTime: 'P8W',
+  supply: [],
+  tool: [],
+  step: PROCESS.map((st, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: st.title,
+    text: st.body,
+    url: `${urlFor('/studioid')}#ferli-${i + 1}`,
   })),
 }
 
@@ -273,8 +319,42 @@ const projectNode = (p) => ({
     '@type': 'ImageObject',
     contentUrl: photo(ph.id),
     caption: ph.alt,
-    creditText: STUDIO.name,
+    /* THE PHOTOGRAPHER, MACHINE-READABLE. She credits Rakel Ósk
+       Sigurðardóttir and Eggert Jóhannesson in the visible text; without
+       creator the credit is a string nothing can resolve, and an engine
+       asked who photographed a project has to guess. */
+    creditText: p.credit ? `${p.credit} fyrir ${STUDIO.name}` : STUDIO.name,
+    creator: p.credit ? { '@type': 'Person', name: p.credit } : { '@id': PERSON_ID },
+    copyrightHolder: { '@id': STUDIO_ID },
     representativeOfPage: ph === p.photos[0] || undefined,
+  })),
+})
+
+/* ── 2. THE PRESS PAGE ───────────────────────────────────────────────────
+   Twelve headlines she has been given, published as text and, until now,
+   invisible as authority: no Article markup, no publisher, nothing tying a
+   clipping to the work it discusses. This is the strongest third-party
+   signal on the site and it was the only one not expressed in the graph.
+   Outlets appear ONLY where the clipping itself carries a masthead or a
+   byline — the rest are CreativeWork with a headline and no invented
+   publisher, because a wrong attribution is worse than a missing one. */
+const pressNode = (page) => ({
+  '@type': 'CollectionPage',
+  '@id': `${urlFor('/fjolmidlar')}#press`,
+  name: 'Í fjölmiðlum',
+  about: { '@id': PERSON_ID },
+  inLanguage: 'is',
+  hasPart: PRESS.map((c) => ({
+    '@type': c.outlet ? 'NewsArticle' : 'CreativeWork',
+    headline: c.headline,
+    name: c.headline,
+    about: { '@id': PERSON_ID },
+    mentions: { '@id': STUDIO_ID },
+    inLanguage: 'is',
+    ...(c.outlet ? { publisher: { '@type': 'NewsMediaOrganization', name: c.outlet } } : {}),
+    ...(c.date ? { datePublished: c.isoDate } : {}),
+    ...(c.byline ? { author: { '@type': 'Person', name: c.byline } } : {}),
+    image: { '@type': 'ImageObject', contentUrl: photo(c.id), caption: c.alt },
   })),
 })
 
@@ -309,7 +389,11 @@ function graphFor(page) {
     breadcrumb: { '@id': `${urlFor(page.clean)}#breadcrumb` },
   }
   nodes.push(webpage)
-  if (page.kind === 'studio') nodes.push(faqNode)
+  if (page.kind === 'studio') nodes.push(faqNode, howToNode)
+  if (page.kind === 'contact') nodes.push(faqPage('/hafa-samband', FAQ_CONTACT))
+  if (page.kind === 'brands') nodes.push(faqPage('/italskar-innrettingar', FAQ_BRANDS))
+  if (page.kind === 'category' && FAQ_CATEGORY[page.cat]) nodes.push(faqPage(`/verkefni/${page.cat}`, [FAQ_CATEGORY[page.cat]]))
+  if (page.kind === 'press') nodes.push(pressNode(page))
   if (page.kind === 'project') nodes.push(projectNode(page.project))
   if (page.kind === 'work') nodes.push(collectionNode(page, PROJECTS))
   if (page.kind === 'category') nodes.push(collectionNode(page, PROJECTS.filter((p) => p.category === page.cat)))
