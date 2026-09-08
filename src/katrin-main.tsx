@@ -19,7 +19,7 @@ import './katrin-tailwind.css'
 import { StrictMode, useEffect } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter, useLocation } from 'react-router-dom'
-import Site from './preview/katrinisfeld/Page'
+import Site, { loadHome } from './preview/katrinisfeld/Page'
 
 /* NOT './index.css'. That file is the catalogue's: it pulls in Tailwind and
    declares @font-face for about forty families across a hundred prototypes,
@@ -54,5 +54,19 @@ const app = (
 )
 
 const root = document.getElementById('root')!
-if (root.firstChild) hydrateRoot(root, app)
-else createRoot(root).render(app)
+
+/* THE HOME ROUTE IS AWAITED BEFORE HYDRATION, and that is the whole reason
+   this split is safe. Its chunk carries GSAP, ScrollTrigger and Lenis — 49 KB
+   gzipped that the other thirty-two routes now never fetch — but #root already
+   holds the finished, prerendered page, and hydrating against a component that
+   is not there yet would blank it for a frame. Resolving the module first
+   means React adopts the existing DOM with nothing missing.
+   Only the page that needs it waits: on every other route this promise is
+   never created and the chunk is never requested. */
+const mount = () => {
+  if (root.firstChild) hydrateRoot(root, app)
+  else createRoot(root).render(app)
+}
+const onHome = location.pathname === '/' || location.pathname === ''
+if (onHome) loadHome().then(mount, mount)
+else mount()

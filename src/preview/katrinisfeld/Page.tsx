@@ -13,7 +13,7 @@
  * rendering an empty page.
  */
 import { Routes, Route, useParams, Navigate } from 'react-router-dom'
-import { Home } from './Home'
+import { HomeRoute, loadHome } from './home-route'
 import { WorkIndexPage, CategoryPage } from './WorkPage'
 import { ProjectPage } from './ProjectPage'
 import { BrandsPage } from './BrandsPage'
@@ -34,10 +34,12 @@ function WorkChild() {
   return <Navigate to={WORK} replace />
 }
 
+export { loadHome }
+
 export default function KatrinIsfeldSite() {
   return (
     <Routes>
-      <Route index element={<Home />} />
+      <Route index element={<HomeRoute />} />
       <Route path="verkefni" element={<WorkIndexPage />} />
       <Route path="verkefni/:slug" element={<WorkChild />} />
       <Route path="italskar-innrettingar" element={<BrandsPage />} />
@@ -46,7 +48,7 @@ export default function KatrinIsfeldSite() {
       <Route path="hafa-samband" element={<ContactPage />} />
       <Route path="en" element={<EnglishPage />} />
       {/* a portfolio site has no useful 404: send strays to the front */}
-      <Route path="*" element={<Home />} />
+      <Route path="*" element={<HomeRoute />} />
     </Routes>
   )
 }
