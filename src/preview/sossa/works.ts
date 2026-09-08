@@ -221,3 +221,18 @@ export const LEAD: Record<string, string> = {
   'malverk': 'malverk-01',
 }
 
+
+/**
+ * The average colour of each series' lead painting, sampled from the file at build
+ * time. It is the slide's ground while the painting streams in: these heroes are
+ * baseline-sized JPEGs and on a cold phone a half-arrived one used to sit on pure
+ * black, which reads as a broken page rather than a loading one.
+ */
+export const HERO_GROUND: Record<string, string> = {
+  'ny-verk': '#A5956E',
+  'danmork': '#8C5A42',
+  'jolabod': '#94524F',
+  'kaupmannahofn': '#AA2F0C',
+  'syning': '#765D54',
+  'malverk': '#B7AB8E',
+}

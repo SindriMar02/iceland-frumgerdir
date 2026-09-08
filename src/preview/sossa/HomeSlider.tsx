@@ -26,6 +26,10 @@ export interface Slide {
    *  ground instead of cover-cropped. Of 366 images harvested from sossa.is exactly
    *  one clears a viewport width, and her figures cannot survive a crop. */
   contain?: boolean
+  /** phone-sized twin of the hero, 1100px wide */
+  heroSm?: string
+  /** the painting's average colour, held under it while it streams in */
+  ground?: string
   /** alternate paintings from the same series, shown on hover zones */
   variants: string[]
   pos: string
@@ -59,8 +63,21 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
     const reduced = reduceMotion()
     let H = root.clientHeight
     const wrapH = () => n * H
-    // wrap into [-H, wrapH - H) — the reference's gsap.utils.wrap range
-    const wrap = gsap.utils.wrap(-H, wrapH() - H)
+    /* wrap into [-H, wrapH - H) — the reference's gsap.utils.wrap range.
+       It MUST be rebuilt whenever H changes. Built once, it folds offsets into the
+       old viewport's range while paint() lays them out on the new one, and the slide
+       that should cover the lower half of the screen lands somewhere else: on iOS
+       the first paint happens with the URL bar expanded, the bar then collapses, and
+       the bottom half of the opening painting is black until something else forces a
+       correct paint. That shipped. See [[mobile-audit-means-ios-simulator]]. */
+    let wrap = gsap.utils.wrap(-H, wrapH() - H)
+    const remeasure = () => {
+      const next = root.clientHeight
+      if (!next || next === H) return false
+      H = next
+      wrap = gsap.utils.wrap(-H, wrapH() - H)
+      return true
+    }
 
     /* ---- physics state (names mirror their source) ---- */
     let scrollY_norm = 0
@@ -206,9 +223,14 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
     }
 
     const onResize = () => {
-      H = root.clientHeight
+      remeasure()
       paint()
     }
+    /* iOS does not reliably fire window resize when the URL bar collapses, but the
+       fixed root's own box does change — so observe the box, not the window. */
+    const ro = new ResizeObserver(onResize)
+    ro.observe(root)
+    const vv = window.visualViewport
 
     paint()
     if (reduced) {
@@ -232,11 +254,14 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
       root.addEventListener('wheel', onWheelReduced, { passive: false })
       root.addEventListener('click', onClick)
       window.addEventListener('resize', onResize)
+      vv?.addEventListener('resize', onResize)
       return () => {
         window.removeEventListener('keydown', onKeyReduced)
         root.removeEventListener('wheel', onWheelReduced)
         root.removeEventListener('click', onClick)
         window.removeEventListener('resize', onResize)
+        vv?.removeEventListener('resize', onResize)
+        ro.disconnect()
       }
     }
 
@@ -250,6 +275,7 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
     root.addEventListener('click', onClick)
     window.addEventListener('keydown', onKey)
     window.addEventListener('resize', onResize)
+    vv?.addEventListener('resize', onResize)
     return () => {
       gsap.ticker.remove(render)
       root.removeEventListener('wheel', onWheel)
@@ -261,6 +287,8 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
       root.removeEventListener('click', onClick)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', onResize)
+      vv?.removeEventListener('resize', onResize)
+      ro.disconnect()
     }
   }, [slides])
 
@@ -311,16 +339,22 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
       aria-label={slides.map((s) => s.label).join(' · ')}
     >
       {/* the paintings, one absolutely-positioned slide each, translated by the loop */}
-      {slides.map((s) => (
+      {slides.map((s, i) => (
         <div
           key={s.id}
           data-slide=""
           className={`absolute inset-0 will-change-transform ${s.contain ? 'bg-[#FAFAFA]' : ''}`}
+          style={s.contain ? undefined : { backgroundColor: s.ground }}
         >
           <img
             src={s.hero}
+            srcSet={s.heroSm ? `${s.heroSm} 1400w, ${s.hero} 2100w` : undefined}
+            sizes="100vw"
             alt={s.label}
             decoding="async"
+            /* the opening painting is the landing screen; the other five are the
+               same slider and must not race it for bandwidth on a phone */
+            fetchPriority={i === 0 ? 'high' : 'low'}
             style={{ objectPosition: s.pos }}
             className={`absolute inset-0 h-full w-full ${s.contain ? 'object-contain p-6 md:p-16' : 'object-cover'}`}
           />

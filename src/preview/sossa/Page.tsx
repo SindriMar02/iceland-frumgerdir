@@ -43,7 +43,7 @@ import {
 } from './motion'
 import { ABOUT, CONTACT, CV, EDUCATION, STUDIOS, t } from './strings'
 import type { Lang } from './strings'
-import { ALL_WORKS, HERO_POS, LEAD, SERIES } from './works'
+import { ALL_WORKS, HERO_GROUND, HERO_POS, LEAD, SERIES } from './works'
 import type { Work } from './works'
 
 gsap.registerPlugin(ScrollToPlugin)
@@ -374,6 +374,8 @@ export default function SossaPage() {
         return {
           id: s.id,
           hero: HERO(lead.id),
+          heroSm: HERO(lead.id).replace(/\.jpg$/, '-sm.jpg'),
+          ground: HERO_GROUND[s.id],
           variants,
           pos: HERO_POS[s.id] ?? '50% 50%',
           band: 'light',
@@ -429,6 +431,15 @@ export default function SossaPage() {
       const sub = splitLineReveal([el], 0.1 * i)
       if (sub) tl.add(sub.play(), 0)
     })
+    /* rows are flex, never split: SplitText's line boxes destroy the layout */
+    const rows = [...root.querySelectorAll<HTMLElement>('[data-reveal-row]')]
+    if (rows.length)
+      tl.fromTo(
+        rows,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.03, clearProps: 'all' },
+        0,
+      )
     const img = root.querySelector('[data-reveal-image]')
     if (img)
       tl.fromTo(
@@ -488,9 +499,13 @@ export default function SossaPage() {
       <PreviewChrome company={company} />
 
       {/* ---- DEVICE 4 — tri-cluster fixed nav, 58px, fully transparent, no scrim ---- */}
+      {/* The bar is transparent ONLY over the home slider, where it is meant to sit on
+          the painting. Everywhere else the page scrolls under it, and with no ground
+          the paintings ran straight through the wordmark. Every non-home view already
+          starts at pt-[58px], so a solid bar covers nothing. */}
       <header
         className={`fixed inset-x-0 top-0 z-40 h-[58px] transition-colors duration-300 ${
-          sliderBleeds ? 'text-white' : 'text-black'
+          sliderBleeds ? 'text-white' : 'border-b border-black/8 bg-[#FAFAFA] text-black'
         }`}
       >
         <div className="mx-auto flex h-full max-w-[1440px] items-center gap-6 px-6 md:px-10">
@@ -673,7 +688,7 @@ export default function SossaPage() {
 
         {/* ---- ABOUT · CV · CONTACT ---- */}
         {(view.k === 'about' || view.k === 'cv' || view.k === 'contact') && (
-          <div ref={proseRef} className="pt-[110px]">
+          <div key={`${view.k}-${lang}`} ref={proseRef} className="pt-[110px]">
             <div className="mx-auto max-w-[1440px] px-6 md:px-10">
               <h1
                 data-reveal-text=""
@@ -715,7 +730,7 @@ export default function SossaPage() {
                     {CV.map((r, i) => (
                       <li
                         key={i}
-                        data-reveal-text=""
+                        data-reveal-row=""
                         className="flex items-baseline gap-6 border-t border-black/12 py-4"
                       >
                         <span
@@ -733,7 +748,7 @@ export default function SossaPage() {
                     {EDUCATION.map((r, i) => (
                       <li
                         key={i}
-                        data-reveal-text=""
+                        data-reveal-row=""
                         className="flex items-baseline gap-6 border-t border-black/12 py-4"
                       >
                         <span
@@ -804,34 +819,73 @@ export default function SossaPage() {
       {/* ---- the menu overlay: browse axes + the sparse grid, the reference's own home for it ---- */}
       {menu && (
         <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-[#FAFAFA]">
-          <div className="mx-auto max-w-[1440px] px-6 pb-24 pt-8 md:px-10">
-            <div className="flex items-center">
+          <div className="mx-auto max-w-[1440px] px-6 pb-24 md:px-10">
+            {/* sticky: the index below runs to 102 works, and the close control used to
+                scroll away with the first swipe, stranding the reader in the overlay */}
+            <div className="sticky top-0 z-10 flex items-center bg-[#FAFAFA] py-8">
               <span className="sossa-display text-[23px] leading-none tracking-[0.46px]">SOSSA</span>
               <button type="button" className={`${navItem} ml-auto`} onClick={() => setMenu(false)}>
                 {tr('close')}
               </button>
             </div>
 
-            <p className={`${LBL} mt-14 opacity-40`}>{tr('bySeries')}</p>
+            <p className={`${LBL} mt-6 opacity-40`}>{tr('bySeries')}</p>
             <ul className="mt-6 list-none">
               {SERIES.map((s) => (
                 <li key={s.id}>
+                  {/* Phone and desktop are two different rows, not one row reflowed.
+                      Three baseline-aligned columns need ~500px; at 402 the count ran
+                      off the right edge and KAUPMANNAHOFN pushed the title onto a
+                      second line that collided with the next row. On phones the years
+                      and the count share a top line and the name gets its own. */}
                   <button
                     type="button"
                     onClick={() => nav({ k: 'series', id: s.id })}
-                    className="group flex w-full items-baseline gap-4 border-t border-black/12 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+                    className="group flex w-full flex-col gap-2 border-t border-black/12 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black md:flex-row md:items-baseline md:gap-4"
                   >
-                    <span
-                      className={`${LBL} w-[120px] shrink-0 whitespace-nowrap tabular-nums opacity-40`}
-                    >
-                      {s.years}
+                    <span className="flex w-full items-baseline md:w-auto md:contents">
+                      <span
+                        className={`${LBL} shrink-0 whitespace-nowrap tabular-nums opacity-40 md:w-[120px]`}
+                      >
+                        {s.years}
+                      </span>
+                      <span
+                        className={`${LBL} ml-auto shrink-0 tabular-nums opacity-40 md:order-last`}
+                      >
+                        {pad2(s.works.length)} <Rule className="mx-1" /> {tr('pieces')}
+                      </span>
                     </span>
-                    <span className="sossa-display text-[23px] leading-none tracking-[0.46px] transition-opacity group-hover:opacity-40">
+                    <span className="sossa-display text-[23px] leading-none tracking-[0.46px] transition-opacity group-hover:opacity-40 md:order-2">
                       {sName(s)}
                     </span>
-                    <span className={`${LBL} ml-auto shrink-0 tabular-nums opacity-40`}>
-                      {pad2(s.works.length)} <Rule className="mx-1" /> {tr('pieces')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/* The header's five links are md:flex, so on a phone the ONLY things it
+                shows are SAFN, EN and YFIRLIT. Without this list there is no route
+                on a phone to the work index, the CV, the biography or her contact
+                details, which is where the whole letter points. */}
+            <ul className="mt-14 list-none border-t border-black/12">
+              {(
+                [
+                  ['all', () => nav({ k: 'all' })],
+                  ['cv', () => nav({ k: 'cv' })],
+                  ['about', () => nav({ k: 'about' })],
+                  ['contact', () => nav({ k: 'contact' })],
+                ] as const
+              ).map(([key, go]) => (
+                <li key={key}>
+                  <button
+                    type="button"
+                    onClick={go}
+                    className="group flex w-full items-center border-b border-black/12 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+                  >
+                    <span className="sossa-display text-[23px] leading-none tracking-[0.46px] transition-opacity group-hover:opacity-40">
+                      {tr(key)}
                     </span>
+                    <Rule className="ml-auto w-10 opacity-30" />
                   </button>
                 </li>
               ))}
