@@ -5,9 +5,10 @@ import type { PreviewCompany } from '../companies'
  *
  * SHE HAS A SITE: sossa.is, a Weebly page from the early 2010s. The gap is not
  * that she has nothing; it is that a painter with an MFA from Boston, a Beijing
- * Biennale and forty years of exhibitions has 129 words on her front page, no
- * viewport meta, no `<h1>`, and her paintings buried three clicks deep across
- * nineteen separate year pages.
+ * Biennale and forty years of exhibitions has a couple of paragraphs on her front
+ * page, no viewport meta, no `<h1>`, and her paintings split across separate pages
+ * named by year. Deliberately no word count and no page count here: both move
+ * depending on how you count, and neither belongs in a letter.
  *
  * ownerEmail is sourced, not guessed: sossa@sossa.is is printed on her own
  * contact page and repeated on her Facebook page (read 2026-09-05).
@@ -40,8 +41,8 @@ export const companyEntry: PreviewCompany = {
       'Facebook-síðan er lifandi: 3.100 fylgjendur og færsla frá því í vikunni',
     ],
     weaknesses: [
-      'Forsíðan er 129 orð, engin viewport-merking og ekkert <h1>',
-      'Verkin liggja á nítján aðskildum ártalasíðum, engin leið að sjá þau saman',
+      'Engin viewport-merking: síðan er ekki gerð fyrir síma',
+      'Verkin liggja á aðskildum síðum eftir ártali, engin leið að sjá þau saman',
       'Hvergi sést hvað verk kostar eða hvernig má spyrjast fyrir um þau',
     ],
     opportunities: [
@@ -51,23 +52,27 @@ export const companyEntry: PreviewCompany = {
     ],
   },
   positioning:
-    'Sossa hefur málað frá 1982 og sýnt í Peking, Flórens, Boston og Kaupmannahöfn. Vefsíðan hennar er Weebly-síða með 129 orðum á forsíðunni og verkin dreifð á nítján ártalasíður. Frumgerðin snýr því við: málverkið fyllir skjáinn, sýningarnar verða flokkunin og ferillinn fær loksins að sjást.',
+    'Sossa hefur málað frá 1982 og sýnt í Peking, Flórens, Boston og Kaupmannahöfn. Vefsíðan hennar er Weebly-síða án viewport-merkingar og verkin dreifð á síður eftir ártali. Frumgerðin snýr því við: málverkið fyllir skjáinn, sýningarnar verða flokkunin og ferillinn fær loksins að sjást.',
   outreach: {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Sossu',
-    body: `Góðan dag,
+    body: `Sæl Sossa,
 
 Ég heiti Sindri og hanna vefsíður fyrir íslenskt listafólk.
 
-Ég staldraði við verkin þín, sérstaklega pörin sem standa hlið við hlið á bláum grunni. Það eina sem mig vantaði að sjá var síða þar sem málverkin fá að fylla skjáinn, því eins og staðan er í dag liggja þau á nítján aðskildum ártalasíðum og hvergi er hægt að sjá þau saman.
+Ég rakst á verkin þín þegar ég var að skoða íslenska myndlist, og ég staldraði lengi við pörin sem standa hlið við hlið á bláum og grænum grunni. Það eina sem mig vantaði var síða þar sem málverkin fá að fylla skjáinn. Eins og staðan er í dag skiptast verkin á margar síður eftir ártali, hvergi er hægt að sjá þau saman, og síðan opnast ekki rétt í síma.
 
-Mér fannst það synd, svo ég settist niður og hannaði frumgerð fyrir þig. Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að nýrri forsíðu fyrir þig. Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.
 
 Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 [HLEKKUR Á FRUMGERÐ]
 
-Hugmyndin er einföld. Að verkin fái plássið sem þau eiga skilið, að sýningarnar þínar verði leiðarkerfið og að ferillinn sjáist, því hann er sterkur. Ég setti engin verð eða titla inn, enda eru þeir ekki á síðunni þinni, og ég vildi ekki finna neitt upp.
+Hún er hönnuð fyrir símann fyrst, því þar skoðar fólk vefi mest í dag, og virkar eins vel á tölvu. Málverkið fyllir skjáinn og textinn víkur til hliðar. Sýningarnar þínar verða leiðarkerfið, enda er það eina flokkunin sem er sönn, og ferillinn fær loksins að sjást. Ég setti hvorki titla né verð inn, enda eru þeir ekki á síðunni þinni í dag og ég vildi ekki finna neitt upp.
 
-Endilega láttu mig vita ef þú hefur áhuga.
+Þar er líka safn. Gestur getur valið nokkur verk sem hann hefur áhuga á og sent þér eina fyrirspurn um þau öll, í stað þess að þú svarir sama póstinum aftur og aftur um eitt verk í einu. Ég sé svo um hýsingu og viðhald á síðunum sem ég geri, ef það er eitthvað sem þú hefur áhuga á.
+
+Ef þér líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þú hafir gaman af því að skoða hugmyndina.
+
+Endilega láttu mig vita hvað þér finnst.
 
 Bestu kveðjur,
 Sindri Már
