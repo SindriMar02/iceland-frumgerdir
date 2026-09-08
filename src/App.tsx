@@ -166,6 +166,7 @@ const WestfjordsPage = lazy(() => import('./preview/westfjords/Page'))
 const ListakPage = lazy(() => import('./preview/listak/Page'))
 const MinjasafnPage = lazy(() => import('./preview/minjasafn/Page'))
 const AslaugSajaPage = lazy(() => import('./preview/aslaugsaja/Page'))
+const SossaPage = lazy(() => import('./preview/sossa/Page'))
 const SigtryggurPage = lazy(() => import('./preview/sigtryggur/Page'))
 const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
 const HuldaMargretPage = lazy(() => import('./preview/huldamargret/Page'))
@@ -410,6 +411,7 @@ export default function App() {
             <Route path="/preview/listak" element={<ListakPage />} />
             <Route path="/preview/minjasafn" element={<MinjasafnPage />} />
             <Route path="/preview/aslaugsaja" element={<AslaugSajaPage />} />
+            <Route path="/preview/sossa" element={<SossaPage />} />
             <Route path="/preview/sigtryggur" element={<SigtryggurPage />} />
             <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
             <Route path="/preview/huldamargret" element={<HuldaMargretPage />} />

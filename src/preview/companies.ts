@@ -4499,9 +4499,11 @@ import { companyEntry as MIRRORSUITE_ENTRY } from './mirrorsuite/company'
 PREVIEW_COMPANIES.push(MIRRORSUITE_ENTRY)
 
 import { companyEntry as ASLAUGSAJA_ENTRY } from './aslaugsaja/data'
+import { companyEntry as SOSSA_ENTRY } from './sossa/data'
 import { companyEntry as ELFA_ENTRY } from './elfa/company'
 import { companyEntry as MYNDO_ENTRY } from './myndo/company'
 PREVIEW_COMPANIES.push(ASLAUGSAJA_ENTRY)
+PREVIEW_COMPANIES.push(SOSSA_ENTRY)
 
 /* ── Three architecture practices on the Heklusýn machine, 2026-08-10 ──── */
 
