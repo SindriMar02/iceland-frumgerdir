@@ -422,6 +422,8 @@
   }
   burger.addEventListener('click', () => setNav(!burger.classList.contains('open')));
   mnav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setNav(false)));
+  /* a second way out: tapping the ground, not a link */
+  mnav.addEventListener('click', e => { if (e.target === mnav) setNav(false); });
   addEventListener('keydown', e => { if (e.key === 'Escape' && mnav.classList.contains('open')) { setNav(false); burger.focus(); } });
 
   /* ---------- logomottu-smiðjan ---------- */

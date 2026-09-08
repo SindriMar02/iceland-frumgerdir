@@ -152,6 +152,22 @@ p { max-width: 62ch; }
 .mnav-foot { margin-top: 34px; display: flex; flex-direction: column; gap: 6px; }
 .mnav-foot a { font-family: var(--mono); font-size: 15px; text-decoration: none; color: var(--steel); }
 body.nav-locked { overflow: hidden; }
+/* The burger sets z-index:60, but that number is scoped INSIDE .hdr, which is its own
+   stacking context at z-index:40. So the whole header — close control included — sat
+   under the .mnav overlay at 50, and once the menu was open there was no way out of it.
+   Lift the header over the overlay while it is open, and drop the scrolled chrome so it
+   does not paint a translucent band across the menu. */
+body.nav-locked .hdr {
+  z-index: 60;
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  color: var(--ink);
+}
+/* the wordmark crossfade is driven by .scrolled, so over the paper-ground menu the
+   white logo vanished into it; the menu needs the dark one whatever the scroll is */
+body.nav-locked .hdr .logo-light { opacity: 0; }
+body.nav-locked .hdr .logo-dark { opacity: 1; }
 
 /* ---------- hero: one full-bleed rotating frame with the slogan inside ---------- */
 .hero { position: relative; height: 100svh; min-height: 560px; overflow: hidden; }
