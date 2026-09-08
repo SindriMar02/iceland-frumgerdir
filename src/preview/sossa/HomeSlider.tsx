@@ -333,7 +333,10 @@ export function HomeSlider({ slides, onOpen, onIndex }: Props) {
   return (
     <div
       ref={rootRef}
-      className="fixed inset-0 cursor-pointer overflow-hidden bg-black"
+      /* z-30: the slider is fixed but was z-auto, so the in-flow page underneath it
+         painted through — the SNDR credit badge in the shared preview footer sat as
+         a small "STUDIO" over the painting. Below the header (z-40) and menu (z-50). */
+      className="fixed inset-0 z-30 cursor-pointer overflow-hidden bg-black"
       role="region"
       aria-roledescription="carousel"
       aria-label={slides.map((s) => s.label).join(' · ')}
