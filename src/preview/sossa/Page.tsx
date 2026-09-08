@@ -43,7 +43,7 @@ import {
 } from './motion'
 import { ABOUT, CONTACT, CV, EDUCATION, STUDIOS, t } from './strings'
 import type { Lang } from './strings'
-import { ALL_WORKS, BAND_INK, HERO_POS, LEAD, SERIES } from './works'
+import { ALL_WORKS, HERO_POS, LEAD, SERIES } from './works'
 import type { Work } from './works'
 
 gsap.registerPlugin(ScrollToPlugin)
@@ -120,8 +120,16 @@ function MetaBand({
     <div
       className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center ${
         contain ? 'p-6 md:p-16' : ''
-      } ${ink === 'light' ? 'text-white' : 'text-black'}`}
+      } ${ink === 'light' ? 'sossa-band-light text-white' : 'text-black'}`}
     >
+      {/* Sindri asked for the exhibition names to be white on every slide, and half
+          these paintings are pale linen and sky. So the ink no longer follows the
+          painting; a soft horizontal wash carries it instead. It is centred on the
+          band's own row rather than laid over the whole slide, so the painting above
+          and below stays untouched. */}
+      {ink === 'light' && !contain && (
+        <div className="sossa-bandwash pointer-events-none absolute inset-x-0 top-1/2 h-[168px] -translate-y-1/2" />
+      )}
       {contain ? (
         /* the same box the contained <img> resolves to, reproduced in CSS */
         <div
@@ -376,7 +384,7 @@ export default function SossaPage() {
           hero: HERO(lead.id),
           variants,
           pos: HERO_POS[s.id] ?? '50% 50%',
-          band: BAND_INK[s.id] ?? 'dark',
+          band: 'light',
           label: sName(s),
           contain: false,
           node: (
@@ -385,7 +393,7 @@ export default function SossaPage() {
               name={sName(s)}
               count={s.works.length}
               label={tr('pieces')}
-              ink={BAND_INK[s.id] ?? 'dark'}
+              ink="light"
               aspect={lead.w / lead.h}
               contain={false}
             />
@@ -477,6 +485,8 @@ export default function SossaPage() {
            inside one panel (measured on the Áslaug Saja build), so the answer is a
            fixed white nav plus this veil — one gradient, no flicker. */
         .sossa-topveil{background:linear-gradient(to bottom,rgba(0,0,0,.46),rgba(0,0,0,.20) 38%,rgba(0,0,0,0) 100%);pointer-events:none;z-index:10}
+        .sossa-bandwash{background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.54) 38%,rgba(0,0,0,.54) 62%,rgba(0,0,0,0))}
+        .sossa-band-light{text-shadow:0 1px 2px rgba(0,0,0,.45)}
         .sossa-thumb{transition:opacity .5s ease}
         .sossa-cell:hover .sossa-thumb{opacity:.55}
         @media (prefers-reduced-motion: reduce){
