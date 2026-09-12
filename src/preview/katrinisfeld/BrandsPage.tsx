@@ -9,6 +9,7 @@
  * a person typing "Arrital eldhús" is not browsing.
  */
 import { Link } from './link'
+import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide, Answers } from './kit'
 import { BRANDS, STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM } from './facts'
@@ -55,7 +56,7 @@ export function BrandsPage() {
                 innrétting eru ákveðin saman.
               </p>
               <p className="ki-cta-row ki-rv">
-                <Link className="ki-cta" to={CONTACT_PATH}>Fá tilboð</Link>
+                <Link className="ki-cta" to={CONTACT_PATH}><RollText text="Fá tilboð" /></Link>
                 <a className="ki-cta" href={b.site} target="_blank" rel="noopener">
                   {b.name} vefurinn
                 </a>
@@ -77,8 +78,8 @@ export function BrandsPage() {
           {SHOWROOM.lead} {SHOWROOM.cta} Stúdíóið er á {ADDRESS_LINE}.
         </p>
         <p className="ki-cta-row ki-rv">
-          <Link className="ki-cta" to={WORK}>Verkefnin</Link>
-          <Link className="ki-cta" to={CONTACT_PATH}>Fá tíma í stúdíóinu</Link>
+          <Link className="ki-cta" to={WORK}><RollText text="Verkefnin" /></Link>
+          <Link className="ki-cta" to={CONTACT_PATH}><RollText text="Fá tíma í stúdíóinu" /></Link>
           <a className="ki-cta" href={MAP_URL} target="_blank" rel="noopener">Sjá á korti</a>
         </p>
         <Answers items={FAQ_BRANDS} title="Spurt um innréttingarnar" />

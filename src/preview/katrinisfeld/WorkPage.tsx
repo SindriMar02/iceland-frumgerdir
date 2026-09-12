@@ -9,6 +9,7 @@
  * heading is not a page a search engine has any reason to return.
  */
 import { Link } from './link'
+import { PreviewZone, RollText } from './flair'
 import { Shell, type Head } from './Shell'
 import { Headline, CardFigure, Answers } from './kit'
 import { FAQ_CATEGORY } from './content'
@@ -22,11 +23,15 @@ function Card({ slug, title, cat }: { slug: string; title: string; cat?: string 
   const p = PROJECTS.find((x) => x.slug === slug)!
   return (
     <li className="ki-card ki-rv">
-      <CardFigure photos={p.photos} sizes={CARD_SIZES} />
-      <div className="ki-card-meta">
-        <span className="ki-card-name"><Link to={projPath(p.slug)}>{title}</Link></span>
-        {cat && <span className="ki-card-cat">{cat}</span>}
-      </div>
+      {/* the whole card is the link, so there is nowhere on it that does not
+          open the project */}
+      <Link className="ki-card-link" to={projPath(p.slug)}>
+        <CardFigure photos={p.photos} sizes={CARD_SIZES} />
+        <span className="ki-card-meta">
+          <span className="ki-card-name">{title}</span>
+          {cat && <span className="ki-card-cat">{cat}</span>}
+        </span>
+      </Link>
     </li>
   )
 }
@@ -41,6 +46,7 @@ function Register() {
         Þau sem eru ljósmynduð hafa sína eigin síðu.
       </p>
       <div style={{ marginTop: 'calc(var(--u) * 40)' }}>
+        <PreviewZone>
         {(Object.keys(CATEGORIES) as CategorySlug[]).map((c) => {
           const items = byCategory(c)
           return (
@@ -52,13 +58,14 @@ function Register() {
               <ul className="ki-skra-list">
                 {items.map((p) => (
                   <li key={p.slug} className="ki-skra-row">
-                    {hasPage(p) ? <Link to={projPath(p.slug)}>{p.title}</Link> : <span>{p.title}</span>}
+                    {hasPage(p) ? <Link to={projPath(p.slug)} data-preview={p.photos[0].id}>{p.title}</Link> : <span>{p.title}</span>}
                   </li>
                 ))}
               </ul>
             </div>
           )
         })}
+        </PreviewZone>
       </div>
     </div>
   )
@@ -145,7 +152,7 @@ export function CategoryPage({ slug }: { slug: CategorySlug }) {
         <p className="ki-body ki-rv">
           Sendu stutta verklýsingu. Katrín kemur á staðinn, tekur verkefnið út og gerir tilboð í það.
         </p>
-        <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link></p>
+        <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={CONTACT_PATH}><RollText text="Hafa samband" /></Link></p>
       </div>
     </Shell>
   )

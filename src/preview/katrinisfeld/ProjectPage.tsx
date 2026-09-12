@@ -9,13 +9,36 @@
  * background-images and therefore indexed as nothing at all.
  */
 import { Link } from './link'
+import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
 import { Headline, Photo, Slide } from './kit'
+import { PHOTO_DIMS } from './photo-dims'
 import { CATEGORIES, PROJECTS, hasPage, type Project } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
 
 const HERO_SIZES = '100vw'
 const GAL_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 90vw, 46vw'
+
+/**
+ * The gallery's rhythm: the first shot full width, then pairs, with every
+ * fourth returning to full width — and never a half-width photograph left
+ * alone at the end of the page. A lone half is promoted to full width, so the
+ * last thing on the page is a room, not a gap.
+ */
+function widths(ids: ReadonlyArray<string>): boolean[] {
+  const n = ids.length
+  /* a photograph under 1200px wide is never stretched across the page — at
+     1440 that was Hótel Hekla's 662px source upscaled twice over */
+  const big = (i: number) => (PHOTO_DIMS[ids[i]]?.w ?? 0) >= 1200
+  const w = Array.from({ length: n }, (_, i) => (i === 0 || (i > 1 && (i - 1) % 4 === 0)) && big(i))
+  let slot = 0
+  for (let i = 0; i < n; i++) {
+    if (w[i]) { slot = 0; continue }
+    if (i === n - 1 && slot === 0 && big(i)) w[i] = true
+    slot = slot ? 0 : 1
+  }
+  return w
+}
 
 /** Neighbours within the same category, so "next" stays relevant. */
 function neighbours(p: Project) {
@@ -82,8 +105,8 @@ export function ProjectPage({ slug }: { slug: string }) {
       {rest.length > 0 && (
         <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
           <div className="ki-proj-gallery">
-            {rest.map((ph, i) => {
-              const wide = i === 0 || (i > 1 && (i - 1) % 4 === 0)
+            {widths(rest.map((r) => r.id)).map((wide, i) => {
+              const ph = rest[i]
               return (
                 <div key={ph.id} className={wide ? 'ki-gal-wide' : 'ki-gal-half'}>
                   <Slide
@@ -102,14 +125,30 @@ export function ProjectPage({ slug }: { slug: string }) {
         </div>
       )}
 
-      <div className="ki-wrap-tight" data-ki-band="light" style={{ paddingTop: 0 }}>
-        <nav className="ki-nextprev" aria-label="Fleiri verkefni">
-          {prev ? (
-            <Link to={projPath(prev.slug)}><small>Fyrra verk</small>{prev.title}</Link>
-          ) : <span />}
-          {next && <Link to={projPath(next.slug)} style={{ textAlign: 'right' }}><small>Næsta verk</small>{next.title}</Link>}
-        </nav>
-      </div>
+      {/* the neighbours, as rooms rather than as two lines of type: a page
+          about one project ends by opening the door to the next */}
+      {(prev || next) && (
+        <div className="ki-wrap-tight" data-ki-band="light" style={{ paddingTop: 0 }}>
+          <nav className="ki-proj-adj" aria-label="Fleiri verkefni">
+            {[
+              prev && { p: prev, k: 'Fyrra verk', dir: 'back' as const },
+              next && { p: next, k: 'Næsta verk', dir: 'on' as const },
+            ].map((a) => a && (
+              <Link key={a.p.slug} to={projPath(a.p.slug)} className={`ki-proj-adj-link ki-proj-adj-link--${a.dir} ki-rv`}>
+                <span className="ki-proj-adj-fig">
+                  <Photo id={a.p.photos[0].id} alt="" sizes="(max-width: 860px) 40vw, 300px" />
+                </span>
+                <span className="ki-proj-adj-meta">
+                  <span className="ki-kicker">{a.k}</span>
+                  <span className="ki-proj-adj-title">{a.p.title}</span>
+                  <span className="ki-proj-adj-lead">{a.p.lead}</span>
+                </span>
+                <span className="ki-proj-adj-arrow" aria-hidden="true" />
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
 
       <div className="ki-wrap-tight" data-ki-band="dark">
         <Headline text="Segðu Katrínu frá rýminu þínu." size={58} floor={28} measure={760} />
@@ -118,8 +157,8 @@ export function ProjectPage({ slug }: { slug: string }) {
           í samráði við eigendur og gerir í framhaldi tilboð í verkið.
         </p>
         <p className="ki-cta-row ki-rv">
-          <Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link>
-          <Link className="ki-cta" to={catPath(p.category)}>Fleiri verk í þessum flokki</Link>
+          <Link className="ki-cta" to={CONTACT_PATH}><RollText text="Hafa samband" /></Link>
+          <Link className="ki-cta" to={catPath(p.category)}><RollText text="Fleiri verk í þessum flokki" /></Link>
         </p>
       </div>
     </Shell>

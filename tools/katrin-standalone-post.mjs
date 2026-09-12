@@ -124,7 +124,13 @@ if (existsSync(plateDir)) {
     dropped++
   }
   const kept = top.length - dropped
-  if (!kept) throw new Error('katrin-post: pruned every top-level asset, which cannot be right')
+  /* Nothing at the top level is referenced any more — the stone plates went
+     with the descent — so "pruned everything" is now the correct outcome.
+     The invariant worth asserting is that the two directories the site is
+     actually built from survived the pass. */
+  for (const d of ['rs', 'brand']) {
+    if (!existsSync(join(plateDir, d))) throw new Error(`katrin-post: ${d}/ is missing after the prune`)
+  }
   console.log(`katrin-post: kept ${kept} plate assets · dropped ${dropped} unused (${(freed / 1024 / 1024).toFixed(1)} MB)`)
 }
 

@@ -9,6 +9,7 @@
  * each other so neither competes with the other.
  */
 import { Link } from './link'
+import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
 import { Headline, Photo, CardFigure } from './kit'
 import { STUDIO, ADDRESS_LINE, APPOINTMENT_NOTE_EN } from './facts'
@@ -53,14 +54,16 @@ export function EnglishPage() {
           <ul className="ki-grid" style={{ marginTop: 'calc(var(--u) * 40)' }}>
             {hospitality.map((p) => (
               <li key={p.slug} className="ki-card ki-rv">
-                <CardFigure photos={p.photos} sizes={CARD_SIZES} />
-                <div className="ki-card-meta">
-                  <span className="ki-card-name"><Link to={projPath(p.slug)}>{p.title}</Link></span>
-                </div>
+                <Link className="ki-card-link" to={projPath(p.slug)}>
+                  <CardFigure photos={p.photos} sizes={CARD_SIZES} />
+                  <span className="ki-card-meta">
+                    <span className="ki-card-name">{p.title}</span>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
-          <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}>All projects</Link></p>
+          <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}><RollText text="All projects" /></Link></p>
         </div>
 
         <div className="ki-wrap" data-ki-band="light">

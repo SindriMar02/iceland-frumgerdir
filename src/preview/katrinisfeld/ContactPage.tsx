@@ -28,8 +28,9 @@
  * and says plainly that it does, because a form that silently fails is worse
  * than no form.
  */
-import { useState } from 'react'
+import { RollText } from './flair'
 import { Link } from './link'
+import { ContactForm } from './contact-form'
 import { Shell, type Head } from './Shell'
 import { Answers } from './kit'
 import { FAQ_CONTACT } from './content'
@@ -38,35 +39,7 @@ import { STUDIO, ADDRESS_LINE, MAP_URL, SHOWROOM, HOURS_DAYS_IS, APPOINTMENT_NOT
 import { PROCESS } from './content'
 import { WORK } from './paths'
 
-/** LAUNCH: swap to her own FormSubmit address and activate it once by a real
- *  send plus the confirmation click. Until activated, FormSubmit answers HTTP
- *  200 with {"success":"false"} — check the body, not res.ok. */
-const FORM_TO = 'katrin@katrinisfeld.is'
-
 export function ContactPage() {
-  const [sent, setSent] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState('')
-
-  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const form = e.currentTarget
-    setBusy(true); setErr('')
-    try {
-      const res = await fetch(`https://formsubmit.co/ajax/${FORM_TO}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(Object.fromEntries(new FormData(form) as never)),
-      })
-      const body = await res.json().catch(() => ({}))
-      // FormSubmit answers 200 with success:"false" until the address is confirmed
-      if (!res.ok || String(body.success) === 'false') throw new Error('form')
-      setSent(true); form.reset()
-    } catch {
-      setErr(`Ekki tókst að senda. Hringdu í ${STUDIO.phoneDisplay} eða sendu póst á ${STUDIO.email}.`)
-    } finally { setBusy(false) }
-  }
-
   const head: Head = {
     title: `Hafa samband · Katrín Ísfeld innanhússarkitekt, ${STUDIO.street}, Reykjavík`,
     desc:
@@ -96,37 +69,7 @@ export function ContactPage() {
         <div className="ki-samb-grid">
           <div>
             <h2 className="ki-kicker">Fyrirspurn</h2>
-            {sent ? (
-              <p className="ki-body ki-samb-thanks" role="status">
-                Takk fyrir. Fyrirspurnin er komin til skila og Katrín hefur samband.
-              </p>
-            ) : (
-              <form className="ki-form" onSubmit={submit}>
-                <label>
-                  <span>Nafn</span>
-                  <input name="nafn" type="text" required autoComplete="name" />
-                </label>
-                <label>
-                  <span>Netfang</span>
-                  <input name="netfang" type="email" required autoComplete="email" />
-                </label>
-                <label>
-                  <span>Sími (valfrjálst)</span>
-                  <input name="simi" type="tel" autoComplete="tel" />
-                </label>
-                <label>
-                  <span>Stutt verklýsing</span>
-                  <textarea name="verklysing" rows={5} required
-                    placeholder="Hvaða rými, hvað stendur til og hvenær." />
-                </label>
-                <input type="hidden" name="_subject" value="Fyrirspurn af katrinisfeld.is" />
-                <input type="text" name="_honey" tabIndex={-1} autoComplete="off" aria-hidden="true" className="ki-sr" />
-                <button className="ki-cta" type="submit" disabled={busy}>
-                  {busy ? 'Sendi…' : 'Senda fyrirspurn'}
-                </button>
-                {err && <p className="ki-body" role="alert" style={{ color: '#8C3A34' }}>{err}</p>}
-              </form>
-            )}
+            <ContactForm />
           </div>
 
           {/* the four steps used to be the last thing on the page, underneath
@@ -141,7 +84,7 @@ export function ContactPage() {
                 </li>
               ))}
             </ol>
-            <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}>Sjá verkefnin fyrst</Link></p>
+            <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={WORK}><RollText text="Sjá verkefnin fyrst" /></Link></p>
           </aside>
         </div>
       </section>

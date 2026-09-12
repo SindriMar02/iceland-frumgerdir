@@ -14,6 +14,7 @@
  * click in sequence and they cancel each other out.
  */
 import { useEffect, useState } from 'react'
+import { RollText } from './flair'
 import { useLocation } from 'react-router-dom'
 import { Link } from './link'
 import { STUDIO } from './facts'
@@ -49,11 +50,11 @@ export function Nav() {
         <nav className="ki-nav-links" aria-label="Aðalvalmynd">
           {NAV.map((n) => (
             <Link key={n.to} data-ki-chrome to={n.to} aria-current={pathname === n.to ? 'page' : undefined}>
-              {n.label}
+              <RollText text={n.label} />
             </Link>
           ))}
         </nav>
-        <Link className="ki-nav-cta" data-ki-chrome to={CONTACT_PATH}>Hafa samband</Link>
+        <Link className="ki-nav-cta" data-ki-chrome to={CONTACT_PATH}><RollText text="Hafa samband" /></Link>
         <button
           type="button"
           className="ki-burger"

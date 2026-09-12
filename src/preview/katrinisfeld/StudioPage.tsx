@@ -9,6 +9,7 @@
  * claim below is on her own Stúdíóið page or in the FHI member roster.
  */
 import { Link } from './link'
+import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
 import { STUDIO, CV, ADDRESS_LINE } from './facts'
@@ -73,8 +74,8 @@ export function StudioPage() {
               heimili og sumarhús, gistiheimili og hótel, skrifstofur og heilbrigðisrými.
             </p>
             <p className="ki-cta-row ki-rv">
-              <Link className="ki-cta" to={WORK}>Sjá verkefnin</Link>
-              <Link className="ki-cta" to={BRANDS_PATH}>Ítalskar innréttingar</Link>
+              <Link className="ki-cta" to={WORK}><RollText text="Sjá verkefnin" /></Link>
+              <Link className="ki-cta" to={BRANDS_PATH}><RollText text="Ítalskar innréttingar" /></Link>
             </p>
           </div>
         </div>
@@ -110,7 +111,7 @@ export function StudioPage() {
             </details>
           ))}
         </div>
-        <p className="ki-cta-row"><Link className="ki-cta" to={CONTACT_PATH}>Hafa samband</Link></p>
+        <p className="ki-cta-row"><Link className="ki-cta" to={CONTACT_PATH}><RollText text="Hafa samband" /></Link></p>
       </div>
     </Shell>
   )

@@ -1,0 +1,21 @@
+import puppeteer from 'puppeteer-core'
+const br = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new' })
+const page = await br.newPage(); const W=+(process.argv[4]||1440), HT=+(process.argv[5]||900), DPR=+(process.argv[6]||1)
+await page.setViewport({ width: W, height: HT, deviceScaleFactor: DPR })
+const cdp = await page.createCDPSession()
+console.log(`--- ${W}x${HT} dpr${DPR} cpu${process.argv[3]||4} ---`)
+await page.goto(process.argv[2], { waitUntil: 'networkidle0' })
+await new Promise(r => setTimeout(r, 5000))
+await cdp.send('Emulation.setCPUThrottlingRate', { rate: +(process.argv[3]||4) })
+await page.evaluate(() => { window.__s = []; let last = performance.now()
+  const t = () => { const n = performance.now(); window.__s.push([scrollY, n - last]); last = n; requestAnimationFrame(t) }; requestAnimationFrame(t) })
+const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)
+for (let y = 0; y < H; y += 150) { await cdp.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 100, y: 200, deltaX: 0, deltaY: 150, pointerType: 'mouse' }); await new Promise(r => setTimeout(r, 16)) }
+const out = await page.evaluate((H) => {
+  const B = 10, buckets = Array.from({ length: B }, () => [])
+  for (const [y, d] of window.__s) buckets[Math.min(B - 1, Math.floor(y / (H / B)))].push(d)
+  return buckets.map((f, i) => { if (!f.length) return null; const s = f.slice().sort((a,b)=>a-b)
+    return { zone: i, from: Math.round(i * H / B), n: f.length, med: +s[Math.floor(s.length/2)].toFixed(1), p95: +s[Math.floor(s.length*.95)].toFixed(1), worst: +s[s.length-1].toFixed(1), over32: f.filter(x=>x>32).length } })
+}, H)
+for (const b of out) if (b) console.log(`y${String(b.from).padStart(6)}  n${String(b.n).padStart(4)}  med ${String(b.med).padStart(5)}  p95 ${String(b.p95).padStart(6)}  worst ${String(b.worst).padStart(7)}  jank ${b.over32}`)
+await br.close()
