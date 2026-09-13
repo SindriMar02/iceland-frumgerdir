@@ -126,7 +126,11 @@ export function HeroShow({ slides, newSlug }: {
             </span>
             {isNew && <span key={cur.id} className="ki-show-new">Nýtt</span>}
           </span>
-          <Link className="ki-show-title" to={projPath(proj.slug)} aria-live="polite">{proj.title}</Link>
+          <Link className="ki-show-title" to={projPath(proj.slug)} aria-live="polite">
+            {/* keyed by slide, so each change remounts it and the name
+                arrives with its room instead of swapping in place */}
+            <span key={cur.id} className="ki-show-title-in">{proj.title}</span>
+          </Link>
           <button
             type="button"
             className="ki-show-i"
@@ -135,7 +139,8 @@ export function HeroShow({ slides, newSlug }: {
             aria-label={open ? 'Loka upplýsingum um myndina' : 'Um myndina'}
             onClick={() => setOpen((v) => !v)}
           >
-            <span aria-hidden="true">i</span>
+            <span className="ki-show-i-glyph" aria-hidden="true">i</span>
+            <span className="ki-show-i-x" aria-hidden="true" />
           </button>
         </div>
         <ol className="ki-show-dots" aria-label="Myndir">
@@ -158,7 +163,12 @@ export function HeroShow({ slides, newSlug }: {
         </div>
       </div>
 
-      <div id="ki-show-info" className="ki-show-info" hidden={!open} role="dialog" aria-label="Um myndina">
+      {/* ALWAYS MOUNTED, so it can animate out as well as in. Closed it is
+          inert and hidden from assistive tech; the reveal is a clip that
+          grows upward from the caption, then its lines follow. */}
+      <div id="ki-show-info" className="ki-show-info" role="dialog" aria-label="Um myndina"
+        aria-hidden={!open}
+        {...(open ? {} : { inert: '' })}>
         <p className="ki-show-info-kicker">{cat}{isNew ? ' · Nýjasta verkefnið' : ''}</p>
         <p className="ki-show-info-title">{proj.title}</p>
         <p className="ki-show-info-body">{proj.lead}</p>

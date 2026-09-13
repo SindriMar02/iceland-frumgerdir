@@ -846,9 +846,53 @@ export const CSS = `
 .ki-show-arrow--back { transform: scaleX(-1); }
 
 /* the answer to "what is this?", in place */
+/* THE POPOVER OPENS OUT OF THE CAPTION. A clip grows upward from its bottom
+   edge (the edge nearest the i) while the card rises the last few pixels,
+   then its lines follow one after another. Closing is the same move in
+   reverse, quicker, with the lines leaving first — and visibility is held
+   until the clip has shut, so nothing blinks out. */
 .ki-show-info { position: absolute; z-index: 7; left: calc(var(--u) * 34); bottom: calc(var(--u) * 100); width: min(calc(100% - 40px), 400px);
   padding: 22px 24px 24px; background: rgb(20 16 14 / .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  color: #F2ECE3; border: 1px solid rgb(247 242 233 / .16); animation: ki-fade-up .5s ${OUT} both; }
+  color: #F2ECE3; border: 1px solid rgb(247 242 233 / .16); border-radius: 4px;
+  transform-origin: 0 100%;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(12px);
+  clip-path: inset(100% 0 0 0 round 4px);
+  /* closing: the clip starts almost at once on an in-out curve, so the card
+     is seen retracting into the caption — an ease-in with a delay left an
+     empty full-height box on screen for a third of a second */
+  transition: clip-path .4s cubic-bezier(.65, 0, .35, 1) .04s, transform .4s cubic-bezier(.65, 0, .35, 1) .04s,
+    opacity .34s cubic-bezier(.4, 0, 1, 1) .06s, visibility 0s linear .44s; }
+.ki-show[data-open] .ki-show-info {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: none;
+  clip-path: inset(0 0 0 0 round 4px);
+  transition: clip-path .72s cubic-bezier(.76, 0, .24, 1), transform .8s cubic-bezier(.16, 1, .3, 1),
+    opacity .2s linear, visibility 0s linear 0s; }
+.ki-show-info > :not(.ki-show-info-x) { opacity: 0; transform: translateY(8px);
+  transition: opacity .12s linear, transform .2s cubic-bezier(.7, 0, .84, 0); }
+.ki-show[data-open] .ki-show-info > :not(.ki-show-info-x) { opacity: 1; transform: none;
+  transition: opacity .5s ${OUT} calc(.26s + var(--k, 0) * 55ms), transform .7s cubic-bezier(.16, 1, .3, 1) calc(.26s + var(--k, 0) * 55ms); }
+.ki-show-info > :nth-child(2) { --k: 1; }
+.ki-show-info > :nth-child(3) { --k: 2; }
+.ki-show-info > :nth-child(4) { --k: 3; }
+.ki-show-info > :nth-child(5) { --k: 4; }
+.ki-show-info > :nth-child(6) { --k: 5; }
+.ki-show-info-x { opacity: 0; transition: opacity .2s linear; }
+.ki-show[data-open] .ki-show-info-x { opacity: 1; transition: opacity .4s linear .5s; }
+/* the i turns into a close mark: the letter tips and fades as two strokes
+   draw in, so the button says what it will do next */
+.ki-show-i-glyph { display: block; transition: transform .5s cubic-bezier(.76, 0, .24, 1), opacity .3s linear; }
+.ki-show-i-x { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; }
+.ki-show-i-x::before, .ki-show-i-x::after { content: ''; position: absolute; left: 50%; top: 50%; width: 13px; height: 1.5px; margin: -.75px 0 0 -6.5px;
+  background: currentColor; border-radius: 1px; transform: rotate(45deg) scaleX(0); transition: transform .45s cubic-bezier(.76, 0, .24, 1); }
+.ki-show-i-x::after { transform: rotate(-45deg) scaleX(0); }
+.ki-show-i[aria-expanded='true'] .ki-show-i-glyph { transform: rotate(90deg) scale(.4); opacity: 0; }
+.ki-show-i[aria-expanded='true'] .ki-show-i-x::before { transform: rotate(45deg) scaleX(1); transition-delay: .08s; }
+.ki-show-i[aria-expanded='true'] .ki-show-i-x::after { transform: rotate(-45deg) scaleX(1); transition-delay: .16s; }
+@media (prefers-reduced-motion: reduce) {
+  .ki-show-info, .ki-show-info > *, .ki-show-i-glyph, .ki-show-i-x::before, .ki-show-i-x::after { transition: none !important; }
+  .ki-show-info { clip-path: none; transform: none; }
+}
 .ki-show-info-kicker { font-family: ${MONO}; font-size: ${fluid(11.5, 11)}; letter-spacing: .14em; text-transform: uppercase; color: #D9A87E; margin: 0 0 8px; }
 .ki-show-info-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 21)}; line-height: 1.2; margin: 0 28px 10px 0; }
 .ki-show-info-body { font-size: ${fluid(15.5, 14.5)}; line-height: 1.6; color: #D9CFC0; margin: 0 0 12px; }
@@ -943,6 +987,16 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
    of them on a short screen and the room itself is what is being described. */
 .ki-show-lockup { transition: opacity .45s ${OUT}, visibility 0s linear 0s; }
 .ki-show[data-open] .ki-show-lockup { opacity: 0; visibility: hidden; transition: opacity .35s ${OUT}, visibility 0s linear .35s; }
+
+/* THE ROOM'S NAME ARRIVES WITH THE ROOM. It rises out of the line it sits on
+   (the link clips it) and comes into focus, a beat after the photograph
+   starts its dissolve — the same rise the headlines use, never a snap. The
+   span carries the ellipsis now, since a transformed child cannot inherit it. */
+.ki-show-title-in { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  animation: ki-cap-in .9s cubic-bezier(.16, 1, .3, 1) .12s both; }
+@keyframes ki-cap-in { from { transform: translateY(70%); opacity: 0; filter: blur(5px); } 60% { filter: blur(0); } to { transform: none; opacity: 1; filter: none; } }
+.ki-show-n { transition: opacity .3s linear; }
+@media (prefers-reduced-motion: reduce) { .ki-show-title-in { animation: none; } }
 
 /* "NÝTT": her newest project, said inside the caption of its own slide. One
    copper tag between the counter and the name, arriving with the slide. */
