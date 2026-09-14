@@ -14,7 +14,7 @@
  * would be the single easiest way to lose her a job before the phone rings.
  */
 import { STUDIO, CV, ADDRESS_LINE, BRANDS, HOURS_DAYS_IS } from './facts'
-import { byCategory } from './projects'
+import { PROJECTS, byCategory } from './projects'
 
 export const SERVICES = [
   {
@@ -115,7 +115,7 @@ export const EN = {
   lead: 'An interior architect in Reykjavík who designs a space as a whole, from the plan to the last light fitting.',
   paras: [
     `Katrín Ísfeld holds a BSc in interior architecture from the ${CV.school} in Florida, where she graduated with honours and took second place in a national design competition. She worked as an interior architect at an architecture practice in Fort Lauderdale designing luxury villas, and at the practice of Margreed Van der Hooven in the Netherlands, before opening her own studio in Reykjavík.`,
-    'She is a member of FHI, the Icelandic association of furniture and interior architects. Her portfolio includes twenty-three projects across four categories: private homes and summer houses, guesthouses and hotels, commercial and healthcare interiors, and smaller single-room commissions.',
+    `She is a member of FHI, the Icelandic association of furniture and interior architects. Her portfolio includes ${PROJECTS.length} projects across four categories: private homes and summer houses, guesthouses and hotels, commercial and healthcare interiors, and smaller single-room commissions.`,
     'For owners of guesthouses and short-stay apartments, the work is specific: rooms that stay consistent with each other so every unit sells at the same rate, materials that survive constant turnover, and interiors that photograph well enough to compete on Booking and Airbnb.',
     'The studio is also the Icelandic stockist for Arrital, the Italian kitchen manufacturer, and Altamarea, which makes made-to-measure bathroom furniture. Both are drawn into each project rather than picked from a catalogue.',
   ],
