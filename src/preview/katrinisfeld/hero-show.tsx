@@ -139,8 +139,12 @@ export function HeroShow({ slides, newSlug }: {
       <div className="ki-show-scrim" aria-hidden="true" />
 
       <div className="ki-show-lockup">
-        <h1 className="ki-show-name">Katrín Ísfeld</h1>
-        <p className="ki-show-role">innanhússarkitekt</p>
+        {/* the role is part of the heading: "Katrín Ísfeld innanhússarkitekt"
+            is what the page is about, and the H1 is what says so */}
+        <h1 className="ki-show-heading">
+          <span className="ki-show-name">Katrín Ísfeld</span>{' '}
+          <span className="ki-show-role">innanhússarkitekt</span>
+        </h1>
         <p className="ki-show-tag">Skipulag, innréttingar, efnisval og lýsing, teiknað í einu lagi.</p>
         <p className="ki-show-cta">
           <FillButton to={WORK}>Verkefnin</FillButton>

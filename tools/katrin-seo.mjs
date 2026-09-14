@@ -24,6 +24,7 @@
  *   KATRIN_SITE_URL=https://katrinisfeld.is npm run build:katrin
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { join, dirname } from 'node:path'
 import { build } from 'esbuild'
 
@@ -461,63 +462,18 @@ function inject(page) {
   return html.length
 }
 
-/* ── llms.txt ─────────────────────────────────────────────────────────────
-   Plain facts for answer engines, in both languages, because the questions
-   arrive in both. Kept to what the site itself states. */
-function writeLlms() {
-  const dir = join(dist, dirFor('/'))
-  const cat = (c) => PROJECTS.filter((p) => p.category === c)
-  const txt = `# ${STUDIO.name}
-
-> Innanhússarkitekt í Reykjavík. Hannar innanhús frá grunni fyrir heimili,
-> gistiheimili, hótel og atvinnuhúsnæði, og selur ítalskar innréttingar.
-> An interior architect in Reykjavík, Iceland, designing homes, guesthouses,
-> hotels and commercial interiors, and the Icelandic stockist for Arrital
-> kitchens and Altamarea bathrooms.
-
-## Facts
-- Name: ${STUDIO.personName} (trades as ${STUDIO.name})
-- Title: ${STUDIO.role} / interior architect
-- Address: ${ADDRESS_LINE}, Iceland
-- Phone: ${STUDIO.phone}
-- Email: ${STUDIO.email}
-- Opening hours: ${STUDIO.openDays.join(', ')} ${STUDIO.opens}–${STUDIO.closes}. The studio is a display space, not staffed retail — clients book a time by phone or email rather than walking in.
-- Own studio since ${STUDIO.founded}
-- Member of FHI, Félag húsgagna- og innanhússarkitekta (the Icelandic association of furniture and interior architects)
-- ${CV.degree} (BSc in interior architecture), ${CV.school}, Florida. Graduated with honours; second place in a US international design competition.
-- Previously an interior architect at an architecture practice in Fort Lauderdale designing luxury villas, and at the practice of Margreed Van der Hooven in the Netherlands.
-- Website: https://katrinisfeld.is · Instagram: ${STUDIO.instagram}
-
-## Services
-${SERVICES.map((s) => `- ${s.name}: ${s.desc}`).join('\n')}
-
-## Italian cabinetry stocked
-${BRANDS.map((b) => `- ${b.name} (${b.room.toLowerCase()}) — ${b.site}`).join('\n')}
-
-## The record: ${PROJECTS.length} published projects in 4 categories
-${['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi', 'ymislegt']
-  .map((c) => `### ${CATEGORIES[c].nav} (${cat(c).length})\n${cat(c).map((p) => `- ${p.title}${p.photos.length ? ` — ${urlFor(`/verkefni/${p.slug}`)}` : ''}`).join('\n')}`)
-  .join('\n\n')}
-
-## How to engage her
-Send a short description of the space (netfang ${STUDIO.email}, or phone
-${STUDIO.phoneDisplay}). She visits the site and assesses the project together
-with the owners, then quotes for the work. No job is too large or too small.
-Prices are not published because they depend on the scope of the work.
-
-## Questions and answers
-${FAQ.map((f) => `### ${f.q}\n${f.a}`).join('\n\n')}
-`
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(join(dir, 'llms.txt'), txt)
-  return txt.length
-}
+/* llms.txt is not shipped: no major engine has confirmed reading it and
+   Google says it does not, so it was upkeep with no measured benefit. */
 
 function writeSitemap() {
   const dir = join(dist, dirFor('/'))
+  /* lastmod is the date of the last commit, i.e. when the content last changed */
+  let lastmod
+  try { lastmod = execFileSync('git', ['log', '-1', '--format=%cs']).toString().trim() } catch { lastmod = '' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(lastmod)) lastmod = new Date().toISOString().slice(0, 10)
   const prio = (p) => (p.clean === '/' ? '1.0' : p.kind === 'project' ? '0.7' : '0.8')
   const urls = PAGES.map((p) =>
-    `  <url>\n    <loc>${urlFor(p.clean)}</loc>\n    <changefreq>monthly</changefreq>\n` +
+    `  <url>\n    <loc>${urlFor(p.clean)}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n` +
     `    <priority>${prio(p)}</priority>\n` +
     `    <image:image><image:loc>${p.image}</image:loc></image:image>\n  </url>`).join('\n')
   writeFileSync(
@@ -528,7 +484,7 @@ function writeSitemap() {
   writeFileSync(
     join(dir, 'robots.txt'),
     LIVE
-      ? `User-agent: *\nAllow: /\n\n# Answer engines are welcome; the facts they need are in /llms.txt\nSitemap: ${origin}/sitemap.xml\n`
+      ? `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`
       : `# Preview host. The real robots.txt is generated with KATRIN_SITE_URL set.\nUser-agent: *\nDisallow: /\n`,
   )
   return PAGES.length
@@ -573,4 +529,4 @@ function writeRedirects() {
 let bytes = 0
 for (const p of PAGES) bytes += inject(p)
 console.log(`katrin-seo: ${PAGES.length} pages injected (${LIVE ? 'indexable → ' + origin : 'noindex — no KATRIN_SITE_URL'})`)
-console.log(`katrin-seo: llms.txt ${writeLlms()} bytes · sitemap.xml ${writeSitemap()} urls · ${writeRedirects()} redirects`)
+console.log(`katrin-seo: sitemap.xml ${writeSitemap()} urls · ${writeRedirects()} redirects`)

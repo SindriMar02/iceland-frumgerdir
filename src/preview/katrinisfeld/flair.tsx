@@ -15,12 +15,16 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from './link'
 import { Photo, reduced } from './kit'
 
+/* THE LABEL IS TEXT ONCE. The rolling rows used to hold every letter as real
+   text, so a crawler read "Hafa samband H a f a s a m b a n d H a f a s a m b a n d".
+   Each letter now lives in data-ch and is drawn by CSS (::before content), which
+   no text extractor reads; the one real copy is the screen-reader span. */
 export function RollText({ text }: { text: string }) {
   const chars = Array.from(text)
   const row = (cls: string) => (
     <span className={cls} aria-hidden="true">
       {chars.map((ch, i) => (
-        <i key={i} style={{ ['--i' as string]: i }}>{ch === ' ' ? ' ' : ch}</i>
+        <i key={i} data-ch={ch} style={{ ['--i' as string]: i }} />
       ))}
     </span>
   )
@@ -38,7 +42,8 @@ function FillInner({ children }: { children: string }) {
     <>
       <span className="ki-fill-label">{children}</span>
       <span className="ki-fill-bg" aria-hidden="true" />
-      <span className="ki-fill-ink" aria-hidden="true">{children}</span>
+      {/* the re-inked copy is drawn from the attribute, so the label is text once */}
+      <span className="ki-fill-ink" aria-hidden="true" data-label={children} />
       <span className="ki-fill-dot" aria-hidden="true">
         <i className="ki-fill-arrow" />
         <i className="ki-fill-arrow" />

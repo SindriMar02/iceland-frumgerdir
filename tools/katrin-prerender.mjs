@@ -74,7 +74,10 @@ const browser = await puppeteer.launch({
 
 let failures = 0
 const captured = []
-for (const route of ROUTES) {
+/* one made-up address, so the not-found page is captured like any route and
+   becomes 404.html; it is never written to its own folder */
+const NOT_FOUND = { clean: '/ki-sidan-fannst-ekki', notFound: true }
+for (const route of [...ROUTES, NOT_FOUND]) {
   const page = await browser.newPage()
   await page.setViewport({ width: 1440, height: 900 })
   /* THE OPENING MUST NOT RUN HERE. The home page opens on the stone and
@@ -132,7 +135,7 @@ for (const route of ROUTES) {
 
   const text = await page.evaluate(() => (document.querySelector('main')?.innerText || '').trim().length)
   captured.push({ route, html, text })
-  const bad = errors.length > 0 || text < 400
+  const bad = errors.length > 0 || (!route.notFound && text < 400)
   if (bad) failures++
   console.log(`  ${bad ? '✗' : '·'} ${route.clean.padEnd(40)} ${String(text).padStart(5)} chars of text${errors.length ? '  ' + errors.join(' | ') : ''}`)
   await page.close()
@@ -143,6 +146,7 @@ server.close()
 
 /* every route captured against the same pristine shell; now they can land */
 for (const { route, html } of captured) {
+  if (route.notFound) continue
   const out = join(dist, route.clean === '/' ? '' : route.clean.slice(1), 'index.html')
   mkdirSync(dirname(out), { recursive: true })
   writeFileSync(out, html)
@@ -154,7 +158,9 @@ for (const { route, html } of captured) {
    stray URL competed with the front page for the same query. It gets its own
    head and is told not to be indexed. */
 {
-  const home = readFileSync(join(dist, 'index.html'), 'utf8')
+  const captured404 = captured.find((c) => c.route.notFound)
+  if (!captured404) throw new Error('katrin-prerender: the not-found page was not captured')
+  const home = captured404.html
   const notFound = home
     .replace(/<title>[\s\S]*?<\/title>/, '<title>Síðan fannst ekki | Katrín Ísfeld</title>')
     .replace(/<meta name="description" content="[^"]*"/,

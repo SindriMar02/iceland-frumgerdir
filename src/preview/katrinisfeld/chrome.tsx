@@ -140,7 +140,9 @@ export function Foot() {
                   both margins. The two words carry slightly different tracking
                   as a result, which is what justification always does and what
                   makes the block read as deliberate. */}
-              {word.split('').map((ch, i) => <span key={i}>{ch}</span>)}
+              {/* letters drawn from data-ch, so crawlers do not read
+                  "K A T R Í N Í S F E L D" on every page */}
+              {word.split('').map((ch, i) => <span key={i} data-ch={ch} />)}
             </i>
           </span>
         ))}

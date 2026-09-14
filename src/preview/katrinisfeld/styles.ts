@@ -787,6 +787,9 @@ export const CSS = `
 /* the letters carry a hairline of their own shade — hugging each glyph, so it
    reads as the type being crisp, not as something behind it */
 .ki-show-name, .ki-show-role, .ki-show-tag { text-shadow: 0 0 1px rgb(10 8 7 / .45), 0 1px 3px rgb(10 8 7 / .4); }
+/* one H1 carries the name and the role; each keeps its own line and look */
+.ki-show-heading { margin: 0; font-weight: inherit; font-size: inherit; }
+.ki-show-heading .ki-show-name, .ki-show-heading .ki-show-role { display: block; }
 
 /* the lockup — the wordmark face, and nothing else on the site in it */
 .ki-show-lockup { position: relative; z-index: 5; text-align: center; padding: 0 20px; max-width: calc(var(--u) * 960); animation: ki-fade-up 1.1s ${OUT} .8s both; }
@@ -1088,6 +1091,10 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
 .ki-roll-b { position: absolute; left: 0; top: .2em; }
 .ki-roll i { display: inline-block; font-style: normal; transition: transform .52s cubic-bezier(.76,0,.24,1); transition-delay: calc(var(--i, 0) * 18ms); }
 .ki-roll-b i { transform: translateY(135%); }
+/* the letters are drawn from data-ch, so the label exists as text only once */
+.ki-roll i::before { content: attr(data-ch); white-space: pre; }
+.ki-footwm-word i > span::before { content: attr(data-ch); }
+.ki-fill-ink::before { content: attr(data-label); }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   :is(a, button):hover .ki-roll-a i, :is(a, button):focus-visible .ki-roll-a i { transform: translateY(-135%); }
   :is(a, button):hover .ki-roll-b i, :is(a, button):focus-visible .ki-roll-b i { transform: none; }
