@@ -64,9 +64,7 @@ export function StudioPage() {
             <p className="ki-body ki-rv">
               Að námi loknu starfaði hún sem innanhússarkitekt við arkitektastofu í Fort
               Lauderdale, þar sem hún hannaði glæsivillur, og síðar hjá arkitektastofu
-              Margreed Van der Hooven í Hollandi. Sú reynsla, að vinna innanhússhönnun
-              inni á arkitektastofu, er ástæðan fyrir því hvernig verkefnin eru tekin hér
-              heima: rýmið er teiknað með húsinu en ekki lagt ofan á það þegar smíðinni er lokið.
+              Margreed Van der Hooven í Hollandi. Hún er innanhússhönnuðurinn sem lætur innréttingar, húsgögn og litasamsetningar spila rétt saman, með útkomu sem tekið er eftir.
             </p>
             <p className="ki-body ki-rv">
               Hún er félagi í Félagi húsgagna- og innanhússarkitekta (FHI) og hefur rekið

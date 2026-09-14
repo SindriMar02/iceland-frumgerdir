@@ -28,7 +28,7 @@ export interface Clipping {
 }
 
 export const PRESS_LEAD =
-  'Viðtöl við Katrínu sem hafa birst á prenti, og verkefni hennar eins og þau hafa komið fyrir í Hús og hýbýli og Morgunblaðinu.'
+  'Viðtöl við Katrínu sem hafa birst á prenti, og verkefni hennar eins og þau hafa komið fyrir í Hús og híbýli og Morgunblaðinu.'
 
 export const PRESS: ReadonlyArray<Clipping> = [
   {

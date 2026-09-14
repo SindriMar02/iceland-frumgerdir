@@ -166,8 +166,8 @@ export function Home() {
           <p className="ki-kicker">Eitt verk í nærmynd</p>
           <Headline text="Nýbyggt hús í Súluhöfða." size={72} floor={32} measure={760} />
           <p className="ki-body ki-rv">
-            Eyjan er vínrauð, ljósin kopar og arinveggurinn ljós steinn með eldiviðarhólfum,
-            allt teiknað inn í húsið frá grunni.
+            Djúpur vínrauður litur á Arrital eyjunni, flísar frá Agli Árnasyni í gegnum allt húsið
+            og lýsing sem er hönnuð með rýminu.
           </p>
         </div>
         <Link className="ki-verk-grid" to={projPath('nybyggt-hus-i-suluhofda')} aria-label="Nýbyggt hús í Súluhöfða, sjá verkefnið">

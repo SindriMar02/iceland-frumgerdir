@@ -23,7 +23,7 @@ export function PressPage() {
   const head: Head = {
     title: 'Í fjölmiðlum · umfjöllun um Katrínu Ísfeld innanhússarkitekt',
     desc:
-      'Viðtöl og umfjöllun um Katrínu Ísfeld innanhússarkitekt í Morgunblaðinu og Hús og hýbýli, ásamt myndum af verkefnum hennar eins og þau hafa birst á prenti.',
+      'Viðtöl og umfjöllun um Katrínu Ísfeld innanhússarkitekt í Morgunblaðinu og Hús og híbýli, ásamt myndum af verkefnum hennar eins og þau hafa birst á prenti.',
     clean: '/fjolmidlar',
   }
 

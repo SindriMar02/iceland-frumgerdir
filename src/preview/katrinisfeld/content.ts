@@ -199,6 +199,6 @@ export const FAQ_CATEGORY: Record<string, { q: string; a: string }> = {
   'atvinnuhusnaedi': {
     q: 'Af hverju skiptir hönnun máli í atvinnuhúsnæði?',
     a:
-      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti gestinum, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, meðal annars móttöku og biðstofu Tannlæknastofunnar á Garðatorgi.',
+      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti gestinum, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, meðal annars Tannlæknastofuna á Garðatorgi og Samkennd Heilsusetur.',
   },
 }

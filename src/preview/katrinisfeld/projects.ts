@@ -8,9 +8,11 @@
  * inventing a description for a project we have never seen would be the one
  * kind of mistake that cannot be walked back.
  *
- * Every description below is written from what is actually visible in her own
- * photographs plus what the category tells us. No client names, no floor
- * areas, no budgets, no dates beyond the ones she published.
+ * Every lead, body, fact and credit below is taken from her own project pages
+ * on katrinisfeld.is (read 2026-09-14) and written in her voice. Nothing is
+ * read off a photograph: where her page says little, this says little. Client
+ * names appear only where she lists them herself; no floor areas, budgets or
+ * dates she did not publish.
  */
 
 export type CategorySlug = 'innanhusshonnun' | 'gistiheimili-og-hotel' | 'atvinnuhusnaedi' | 'ymislegt'
@@ -28,7 +30,7 @@ export interface Project {
   category: CategorySlug
   /** One line under the title, and the meta description seed. */
   lead: string
-  /** Two or three short paragraphs. Grounded in the photographs. */
+  /** Her own words from katrinisfeld.is, in her voice. Never read off a photograph. */
   body: string[]
   photos: Photo[]
   /** Short factual pairs shown as a definition list. */
@@ -84,11 +86,11 @@ export const PROJECTS: Project[] = [
     title: 'Nýbyggt hús í Súluhöfða',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/nybyggt-hus-i-suluhofda/',
-    lead: 'Nýbygging teiknuð innan frá: vínrautt eldhús, kopar og ljós steinn.',
+    lead: 'Öll innanhússhönnun í nýbyggingu, þar sem útsýnið fékk að njóta sín.',
     body: [
-      'Húsið var enn í byggingu þegar Katrín kom að því, svo innra skipulaginu var breytt áður en það var múrað fast og innréttingar og lýsing urðu hluti af húsinu í stað þess að leggjast ofan á það eftir á. Það sést best á eldhúsinu, þar sem vínrauð eyja stendur ein í ljósu rými undir koparljósum, og á arinveggnum úr ljósum steini þar sem eldiviðarhólfin eru hluti af múrverkinu.',
-      'Efnispallettan gengur í gegnum allt húsið. Sami dökki viðurinn kemur fyrir í innbyggðum glerskáp í stofunni og í fataherberginu, þar sem slárnar eru lýstar innan frá. Baðherbergin halda sama tóni með bogadregnum lýstum spegli og steinvaski.',
-      'Þetta er verkefnið sem sýnir best hvað átt er við með heildarhönnun: eitt hús, ein efnisákvörðun, tekin einu sinni og haldið út í gegn.',
+      'Húsið var í byggingu þegar ég fékk það verkefni að sjá um alla innanhússhönnunina. Það er alltaf gleðilegt að fá verkefni á þeim tíma sem enn er hægt að breyta innra skipulaginu, og það var aðeins gert hér.',
+      'Lagt var upp með að láta fallega útsýnið frá gólfsíðu gluggunum njóta sín sem best. Eldhúsrýmið er hannað með innréttingum frá Arrital, og á eyjuna varð djúpur vínrauður litur fyrir valinu, á móti mjúkum og dekkri tón í háu innréttingunum. Í baðherbergjunum er sleginn svipaður litatónn, sem tónar vel við hreinlætistækin í mjúkum sandlit.',
+      'Allar flísar koma frá Agli Árnasyni. Það kom einstaklega vel út að nota sömu flísar á gólfið í gegnum allt húsið og poppa þær upp með mynstraðri útgáfu í mjúkum lit á arninum og á veggþykkingu inni á baði. Hljóðdúkur er á móti viðarplönkum í breytilegum stærðum meðfram gluggunum í aðalrýminu, og lýsingin er hönnuð með rýminu, þar sem litlir kastarar vinna á móti stærri ljósum sem gefa mýkt og fyllingu.',
     ],
     photos: [
       P('s-eldhus-vitt', 'Eldhús í Súluhöfða með vínrauðri Arrital eyju, koparljósum og útsýni yfir voginn'),
@@ -107,10 +109,11 @@ export const PROJECTS: Project[] = [
     title: 'Sumarhús í Fljótshlíðinni',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/sumarhus-fljotshlid/',
-    lead: 'Hör, dagsbirta og timburbitar undir suðurlenskri birtu.',
+    lead: 'Heildarhönnun að innan í sumarhúsi, nýtískulegt, hlýlegt og með góðu flæði.',
     body: [
-      'Sumarhús vinnur með aðra birtu en hús í borginni. Hér er allt efnisval miðað við það: hörgardínur sem sía dagsljósið frekar en að loka fyrir það, ljós veggir sem endurkasta því lengra inn, og leðurstóll sem dekkist með árunum í stað þess að slitna.',
-      'Borðstofan situr undir berum timburbitum með einu kúpulljósi, og borðkrókurinn snýr að útsýninu með bogalampa yfir. Eldhúsið er með dökkri eyju og barstólum, mótvægi við ljósa rýmið í kring.',
+      'Húsið var í byggingu þegar ég fékk verkefnið, og því gerði ég heildarhönnun á rýminu að innan. Leitað var eftir að hafa rýmið nýtískulegt, hlýlegt og með góðu flæði.',
+      'Efnisvalið er gert út frá staðsetningunni og náttúrunni í kring. Litirnir eru mildir og náttúrulegir, viður er í loftinu að hluta á móti hljóðdúk, og fallegir koparlitaðir kastarar eru á móti meira áberandi hangandi ljósum.',
+      'Við leyfðum okkur að poppa hönnunina aðeins upp með fallegum litum í veggflísunum á baðherbergjunum. Allar innréttingar eru frá Arrital á Ítalíu.',
     ],
     photos: [
       P('f-stofa', 'Stofa sumarhússins með hörgardínum, hangandi ljósi og leðurstól'),
@@ -122,17 +125,17 @@ export const PROJECTS: Project[] = [
       P('p-fljotshlid-1', 'Svefnherbergi með dökkgrænum vegg og hengiljósi'),
       P('p-fljotshlid-2', 'Sturta með terracotta zellige-flísum á móti terrazzó'),
     ],
-    facts: [['Hlutverk', 'Öll innanhússhönnun'], ['Gerð', 'Sumarhús'], ['Staðsetning', 'Fljótshlíð'], ['Innréttingar', 'Arrital']],
+    facts: [['Hlutverk', 'Heildarhönnun innanhúss'], ['Gerð', 'Sumarhús'], ['Staðsetning', 'Fljótshlíð'], ['Innréttingar', 'Arrital']],
   },
   {
     slug: 'eldhusrymi-i-skuggahverfi',
     title: 'Eldhúsrými í Skuggahverfi',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/eldhusrymi-i-skuggahverfi/',
-    lead: 'Dökkt eldhús í nýrri íbúð í miðborginni.',
+    lead: 'Lúxus eldhúsrými sem hæfir glæsiíbúð í Skuggahverfinu.',
     body: [
-      'Íbúðir í Skuggahverfi eru með stórum gluggum og mikilli birtu, sem þolir dekkri innréttingu en flest önnur rými. Eldhúsið er því haldið dökku: viðarinnréttingar, innfelld lýsing undir efri skápum og eyja sem afmarkar eldhúsið frá stofunni án þess að loka á milli.',
-      'Lýsingin er stór hluti verkefnisins. Innfelld lýsing í vinnuhæð, punktljós yfir eyjunni og almenn lýsing í loftinu vinna saman svo rýmið virki jafnvel á dimmasta tíma ársins.',
+      'Glæsiíbúð í Skuggahverfinu fékk lúxus eldhúsrými sem hæfir íbúðinni. Falleg eik í grábrúnum og hlýjum lit fer vel á móti sandlituðum skápunum sem prýða eyjuna.',
+      'Það er keramikplatan, sem minnir á gosösku, sem rammar þetta inn. LED lýsing á bak við fallegu glerskápana flæðir birtu niður keramikplötuna á veggnum og gerir skemmtilega stemningu, og vaskurinn er sérsmíðaður úr keramik og áfastur borðplötunni.',
     ],
     photos: [
       P('p-skuggahverfi-0', 'Eldhús í Skuggahverfi með eik í grábrúnum tón, sandlitaðri eyju og keramikborðplötu'),
@@ -149,10 +152,10 @@ export const PROJECTS: Project[] = [
     title: 'Eldhúsrými í skandinavískum stíl',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/eldhusrymi-i-skandinaviskum-stil/',
-    lead: 'Ljós viður, hvítar framhliðar og eitt langt borð.',
+    lead: 'Ljós eik, sandlitaðir skápar og keramikborðplata með svörtum vaski.',
     body: [
-      'Skandinavískur stíll er oftast misskilinn sem litleysi. Hér er hann frekar spurning um efni: ljós viður sem heldur æðunum sýnilegum, hvítar mattar framhliðar án handfanga, og eitt langt viðarborð sem er raunverulega notað.',
-      'Eyjan er höfð grönn svo hún þrengi ekki að gangveginum, og hangandi ljósin yfir henni eru einu áberandi hlutirnir í rýminu.',
+      'Glæsilegt eldhúsrými í fallegum skandinavískum stíl. Ljós eikin fer vel á móti sprautulökkuðum skápunum í ljósum sandlit.',
+      'Keramikborðplatan með svarta vaskinum, sem er undirfelldur í plötuna, toppar þetta fallega eldhús. Veggir og loft eru máluð í sama lit og skáparnir.',
     ],
     photos: [
       P('p-skandinaviskt-4', 'Eldhúsrými í skandinavískum stíl með ljósri eik og sandlituðum sprautulökkuðum skápum'),
@@ -169,27 +172,28 @@ export const PROJECTS: Project[] = [
     title: 'Eldhúsrými',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/eldhusrymi/',
-    lead: 'Opið eldhús og borðstofa sem eru hönnuð sem eitt rými.',
+    lead: 'Eldhúsið, hjarta heimilisins, hannað út frá þörfum fjölskyldunnar.',
     body: [
-      'Þegar eldhús og borðstofa deila rými ræðst útkoman af því hvernig skilin á milli eru meðhöndluð. Hér er kringlótt borð látið taka við af beinu línunum í innréttingunni, sem mýkir umskiptin og gerir umferðina í kringum borðið eðlilega.',
-      'Innréttingin er höfð látlaus svo borðið og lýsingin fái að vera það sem sést.',
+      'Stundum er talað um að eldhúsið sé hjarta heimilisins, og þess vegna er oft mikið lagt í þetta rými. Hönnun og útlit hvers eldhúsrýmis endurspeglar þarfir heimilisfólksins og hvernig rýmið umvefur hverja fjölskyldu með persónulegum stíl, fegurð og skipulagi.',
+      'Þetta eldhús er í 112 Reykjavík og innréttingin er frá Arrital á Ítalíu.',
     ],
     photos: [
       P('p-eldhusrymi-0', 'Eldhúsrými með grágrænum vegg, ljósum innréttingum og pappírsljósum'),
       P('p-eldhusrymi-1', 'Eldhús með tveimur kúluljósum og barstólum við eyju'),
       P('p-eldhusrymi-2', 'Eldhús í gegnumgangandi rými með stálskáp og gluggum í enda'),
     ],
-    facts: [['Hlutverk', 'Hönnun eldhúss og borðstofu']],
+    facts: [['Hlutverk', 'Hönnun eldhúsrýmis'], ['Staðsetning', '112 Reykjavík'], ['Innréttingar', 'Arrital']],
+    credit: 'Hallur Karlsson',
   },
   {
     slug: 'alfheimar',
     title: 'Álfheimar',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/alfheimar/',
-    lead: 'Stofa í eldra fjölbýli, byggð í kringum eitt listaverk.',
+    lead: 'Hæð í húsi eftir Sigvalda Thordarson, þar sem stíllinn frá 1970 fékk að halda sér.',
     body: [
-      'Í eldri íbúðum er oft eitt atriði sem allt annað ætti að raðast í kringum. Hér er það stórt listaverk á langveggnum. Dökkur sófi er settur á móti því og restin af rýminu höfð róleg, svo verkið haldi athyglinni.',
-      'Lýsingin er lág og hlý frekar en almenn loftlýsing, sem er það sem gerir eldri stofur notalegar á kvöldin.',
+      'Hæð í Sigvalda Thordarson húsi var tekin í gegn. Stíllinn frá 1970, þegar húsið var byggt, var látinn koma í gegn með nútímalegu ívafi.',
+      'Litir á veggjum og flísar voru valin frá þessum tíma, og haldið var í fallegu tekkhurðirnar og stóra fataskápinn.',
     ],
     photos: [
       P('p-alfheimar-0', 'Stofa á hæð í Sigvalda Thordarson húsi með stóru mósaíkverki og svörtum leðursófa'),
@@ -201,7 +205,7 @@ export const PROJECTS: Project[] = [
       P('p-alfheimar-1', 'Borðkrókur með hvítu hengiljósi, tímaritahillum og viðarborði'),
       P('p-alfheimar-7', 'Kertastjakar og plöntur við dumbrauðan vegg'),
     ],
-    facts: [['Hlutverk', 'Innanhússhönnun stofu'], ['Staðsetning', 'Álfheimar, Reykjavík']],
+    facts: [['Hlutverk', 'Endurhönnun hæðar'], ['Staðsetning', 'Álfheimar, Reykjavík']],
     credit: 'Eggert Jóhannesson',
   },
   {
@@ -209,10 +213,10 @@ export const PROJECTS: Project[] = [
     title: 'Hús í Garðabæ',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/hus-i-gardabae/',
-    lead: 'Stofa með kringlóttum spegli, dökkum sófa og leðurstól.',
+    lead: 'Eldhúsið opnað og látið fljóta saman við stofuna.',
     body: [
-      'Einbýlishús í Garðabæ með rúmri lofthæð. Kringlóttur spegill er notaður til að brjóta upp langa veggi og skila birtu til baka inn í rýmið, sem er einföld leið til að gera stórt herbergi hlýlegra.',
-      'Húsgögnin eru fá og stór frekar en mörg og smá, sem er það sem heldur rýminu rólegu.',
+      'Þetta verkefni gekk út á að opna eldhúsrýmið og láta það fljóta saman við stofurýmið, og allir veggir í kringum eldhúsið voru teknir burt.',
+      'Hljóðdúkur var settur í allt loftið til að koma í veg fyrir hljóðmengun í rýminu, innréttingar og húsgögn voru endurnýjuð og gestasalernið var einnig tekið í gegn.',
     ],
     photos: [
       P('p-gardabaer-0', 'Opið eldhús- og stofurými í Garðabæ eftir að veggirnir kringum eldhúsið voru teknir'),
@@ -230,10 +234,10 @@ export const PROJECTS: Project[] = [
     title: 'Baðherbergi',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/badherbergi/',
-    lead: 'Nokkur dæmi um baðherbergi úr ólíkum verkefnum.',
+    lead: 'Sýnishorn úr nokkrum af þeim fjölmörgu baðherbergjum sem ég hef tekið í gegn.',
     body: [
-      'Baðherbergi er minnsta rýmið í húsinu og það eina þar sem hver sentimetri er sýnilegur. Þess vegna er það líka rýmið þar sem sérsmíðuð innrétting skilar mestu: vaskborð sem er nákvæmlega jafnbreitt veggnum lítur allt öðruvísi út en staðalstærð með sílikonrönd á báðum hliðum.',
-      'Dæmin hér eru úr ólíkum verkefnum og sýna sama vinnulag: sporöskjulaga eða bogadregnir speglar á móti beinum línum innréttingarinnar, og lýsing sem er sett við spegilinn frekar en fyrir aftan höfuðið á þeim sem stendur við hann.',
+      'Ég hef tekið í gegn fjölmörg baðherbergi, og hér eru sýnishorn úr nokkrum verkefnum.',
+      'Meðal þeirra eru baðherbergi á Hávallagötu í 101 Reykjavík, við Lækjarás í 110 Reykjavík, í Baldursgarði í Keflavík og í Álfheimum í 105 Reykjavík.',
     ],
     photos: [
       P('p-badherbergi-0', 'Baðherbergi á Hávallagötu með kringlóttum spegli, dökkri innréttingu og skálavaski'),
@@ -245,17 +249,17 @@ export const PROJECTS: Project[] = [
       P('p-badherbergi-2', 'Baðherbergi í Árbæ með ljósum flísum og svífandi innréttingu'),
       P('p-badherbergi-3', 'Baðherbergi með svörtum blöndunartækjum og skálavaski á dökkri plötu'),
     ],
-    facts: [['Hlutverk', 'Hönnun baðherbergja'], ['Umfang', 'Nokkur verkefni']],
+    facts: [['Hlutverk', 'Hönnun baðherbergja'], ['Staðsetning', 'Reykjavík og Keflavík']],
   },
   {
     slug: 'barnaherbergi',
     title: 'Barnaherbergi',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/barnaherbergi/',
-    lead: 'Blátt herbergi sem á að endast lengur en eitt aldursskeið.',
+    lead: 'Blágrænn litur á veggjum og lofti, og innréttingar sem heimilisfaðirinn smíðaði.',
     body: [
-      'Barnaherbergi eldast hraðar en önnur rými, þannig að hönnunin þarf að þola að barnið vaxi. Hér er liturinn látinn bera herbergið, blár veggur sem hægt er að skipta um fylgihluti við, frekar en að byggja innréttinguna í kringum eitt þema.',
-      'Röndótt teppi og einföld rúmstæði halda restinni hlutlausri.',
+      'Hér var fallegur blágrænn litur notaður bæði á veggi og loft, og það kemur svo vel út því liturinn er umvefjandi og fallegur.',
+      'Innréttingarnar eru einstaklega skemmtilegar og gerðar af heimilisföðurnum.',
     ],
     photos: [
       P('p-barnaherbergi-0', 'Barnaherbergi þar sem blágrænn litur er á bæði veggjum og lofti'),
@@ -271,12 +275,11 @@ export const PROJECTS: Project[] = [
     title: 'Hönnunar Studio',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/honnunar-studio/',
-    lead: 'Stúdíóið hennar sjálfrar, þar sem efnin eru valin.',
+    lead: 'Stúdíóið þar sem innréttingarnar, litirnir og efnin eru til sýnis.',
     body: [
-      'Stúdíóið er líka sýningarrými. Hér liggja sýnishorn af borðplötum, framhliðum og efnum sem viðskiptavinir handleika áður en ákvörðun er tekin, því munurinn á tveimur steintegundum sést ekki á skjá.',
-      'Dökk marmaraborðplata er miðja rýmisins og um leið sýnishorn af því sem stúdíóið býður: heilt sýningareldhús frá Arrital, sem stúdíóið er með umboð fyrir á Íslandi, stendur á gólfinu og er hægt að opna, draga út og handleika.',
-      'Rýmið er hannað eins og verkefnin sem héðan koma. Beinni steypu er haldið sýnilegri í lofti með lögnum og öllu saman, á móti stendur plómurauður flötur og lýstur sporöskjulaga spegill, og merkingin í glugganum er hluti af hönnuninni frekar en skilti sem var hengt upp á eftir.',
-      'Hér starfa innanhússarkitektar ásamt grafískum hönnuði, Ómari Erni Sigurðssyni, sem kemur að þeim verkefnum þar sem merkingar, skilrúm eða annað prentað efni þurfa að fylgja rýminu. Stúdíóið er sýningarrými fremur en mönnuð verslun, svo tími er bókaður fyrirfram.',
+      'Katrín Ísfeld Hönnunar Studio tekur að sér innanhússhönnun heimila, fyrirtækja og gistirýma, bæði hótela og gistiheimila. Stúdíóið flytur einnig inn hágæða ítalskar innréttingar og er með einkaleyfi á innréttingunum frá Arrital, sem fást hér bæði teiknaðar og innfluttar.',
+      'Hér starfa innanhússarkitektar og grafískur hönnuður, Ómar Örn Sigurðsson, sem kemur að þeim verkefnum þar sem aðkoma grafísks hönnuðar skiptir máli. Ómar er með yfir 20 ára reynslu í faginu og hefur komið að fjölda verkefna af öllum stærðargráðum.',
+      'Í stúdíóinu má sjá hönnun á lýsingu, litum, merkingum á rúðum, speglum, gardínum og listaverkum, og flottu ítölsku innréttingarnar sem eiga stóran sess á gólfinu. Verið velkomin.',
     ],
     photos: [
       P('p-studio-0', 'Framhlið Hönnunar Studio með merkingu í glugga'),
@@ -294,11 +297,11 @@ export const PROJECTS: Project[] = [
     title: 'Fjallalind',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/fjallalind/',
-    lead: 'Aðalhæð opnuð í eitt rými, með hljóðvistina hannaða inn í loftið.',
+    lead: 'Aðalhæðin tekin í gegn, opnuð í eitt rými og hljóðvistin leyst með hljóðdúk og trérimlum.',
     body: [
-      'Aðalhæð hússins var tekin í gegn í heild. Stór veggur var fjarlægður og eldhúsið opnað inn í stofu- og borðstofurýmið, og forstofuveggirnir fóru sömu leið svo forstofan gengur nú inn með ganginum í stað þess að enda á vegg.',
-      'Þegar rými er opnað þannig fylgir hljóðið með, og því var hljóðvistin hönnuð inn í húsið frá byrjun: hljóðdúkur í öllu loftinu og hljóðdempandi trérimlar á veggjum og í lofti þar sem rýmið er hæst. Rimlarnir eru bæði hljóðlausn og efnisval, og þeir eru það sem heldur stóra rýminu saman.',
-      'Litirnir eru fáir og mettaðir: plómurauður veggur gengur í gegnum forstofuna og eldhúsið, dökkur steinn í borðplötu og baðherbergi, og ein hlýrri okkurhæð í setustofunni. Baðherbergið fær sinn eigin tón með bogadregnum lýstum spegli og gulu baðkari.',
+      'Aðalhæðin í húsinu var öll tekin í gegn. Stór veggur var tekinn út og eldhúsrýmið opnað inn í stofu og borðstofu, og forstofuveggirnir voru líka teknir, svo forstofan gengur nú inn með ganginum og inn í aðalrýmið.',
+      'Til að ná fram góðri hljóðvist var hljóðdúkur settur í allt loftið og hljóðdempandi trérimlar notaðir, og því gátu stórar flísar farið á allt gólfið.',
+      'Eldhúsinnréttingin og baðinnréttingin eru frá Arrital, og 12 mm þykkar keramikborðplötur fá að njóta sín bæði í eldhúsi og á baði. Samspil jarðlita og áferða einkennir verkefnið og skapar þægilega og rómantíska stemningu.',
     ],
     photos: [
       P('p-fjallalind-4', 'Opið eldhús- og stofurými í Fjallalind með hljóðdempandi trérimlum og svölum'),
@@ -309,18 +312,17 @@ export const PROJECTS: Project[] = [
       P('p-fjallalind-5', 'Setuhorn með okkurlituðum vegg, hillu og leðurstól'),
       P('p-fjallalind-7', 'Baðherbergi með dökkum steini, bogadregnum lýstum spegli og gulu baðkari'),
     ],
-    facts: [['Hlutverk', 'Öll innanhússhönnun aðalhæðar'], ['Gerð', 'Endurhönnun'], ['Áhersla', 'Hljóðvist og opið flæði']],
+    facts: [['Hlutverk', 'Öll innanhússhönnun aðalhæðar'], ['Gerð', 'Endurhönnun'], ['Áhersla', 'Hljóðvist og opið flæði'], ['Innréttingar', 'Arrital']],
+    credit: 'Rakel Ósk Sigurðardóttir',
   },
   {
     slug: 'fallegt-hus-i-kopavogi',
     title: 'Fallegt hús í Kópavogi',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/hus-i-kopavogi/',
-    lead: 'Húsið var þegar stórkostlegt að utan; að innan vantaði samhljóminn.',
+    lead: 'Stórkostlega vel hannað hús að utan, tekið allt í gegn að innan.',
     body: [
-      'Húsið er einstaklega vel hannað að utan, og verkefnið var að taka það allt í gegn að innan svo samhljómur næðist milli utanhússhönnunar og innanhússins. Það þýddi að hvert rými var tekið fyrir: eldhús, stofa, gangar, baðherbergi og gestasalerni.',
-      'Efnin bera húsið. Spanskgrænn flötur, sem er endurtekinn í eldhúsi, innréttingu og baðherbergi, er þráðurinn sem gengur í gegn, og á móti honum standa dökkur viður, ljós steinn og terracotta á veggjum. Innbyggða veggeiningin í stofunni er lýst innan frá svo hún les sem hluti af húsinu frekar en húsgagn upp við vegg.',
-      'Eldhúsið er opnað að stofunni með ljósri eyju og viðarborðplötu undir svörtu rimlalofti, og kaffihornið er falið í háum skáp sem lokast þegar hann er ekki í notkun.',
+      'Húsið er stórkostlega vel hannað að utan, en kominn var tími til að taka það allt í gegn að innan, þannig að samhljómur yrði á milli utanhússhönnunarinnar og innanhússins.',
     ],
     photos: [
       P('p-kopavogur-4', 'Eldhús í Kópavogi með ljósri eyju, viðarborðplötu og svörtu rimlalofti'),
@@ -340,10 +342,10 @@ export const PROJECTS: Project[] = [
     title: 'Laugalækur, fataherbergi',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/laugalaekur/',
-    lead: 'Fataherbergi með baðkari í endanum, hugsað sem sérrými til að vera í friði.',
+    lead: 'Fataherbergi með baðkari í endanum, til að slappa af í friði og ró.',
     body: [
-      'Hér var gert fataherbergi með baðkari í endanum, sérstaklega hugsað sem rými þar sem hægt er að slappa af í friði og ró. Baðkarið stendur frítt á móti steinsteypuáferð á veggnum, með mjórri hillu fyrir kerti í brjósthæð og lýsingu sem er höfð lág.',
-      'Sérsmíðin er það sem gerir rýmið. Skáparnir og fatastangirnar eru smíðaðar á staðinn, skórnir fá sína eigin lágu skúffueiningu undir stönginni, og lýsingin er felld inn í brautir í loftinu svo ekkert ljós lendir í augunum þegar staðið er við spegilinn.',
+      'Hér var gert fataherbergi með baðkari í endanum, sérstaklega fyrir frúna á heimilinu til að fá að slappa af og vera í friði og ró.',
+      'Sérsmíðin á skápum og fatastöngum kom einstaklega vel út.',
     ],
     photos: [
       P('p-laugalaekur-1', 'Fataherbergi á Laugalæk með frístandandi baðkari í endanum og sérsmíðuðum fatastöngum'),
@@ -359,11 +361,9 @@ export const PROJECTS: Project[] = [
     title: 'Sumarhús í Ölfusi',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/sumarhus-olfusi/',
-    lead: 'Stílhrein form, flotuð gólf með hita í, hlýr viður og grófur steinn.',
+    lead: 'Stílhrein form og flotuð gólf á móti hlýlegum við og grófum steini.',
     body: [
-      'Sumarhúsið er byggt á móti þrennu sem á að vinna saman frekar en að keppa: stílhrein form, flotuð gólf með hita í, og gróft efni þar sem það sést mest. Steinklæðningin gengur upp á fullan vegg og heldur sömu áferð úti við gluggann og inni í rýminu, svo húsið les eins úr báðum áttum.',
-      'Þakið er látið standa opið með sýnilegum viðarbitum og furuklæðningu, og glergaflarnir opna stofuna út í landið á tvo vegu. Á móti steininum standa hlýr viður í hurðum og innréttingum og mjúk grá áklæði.',
-      'Smáatriðin eru þar sem húsið verður persónulegt: glerkúluljós hangandi fyrir framan steinvegginn, birkiveggfóður á móti viðnum, og eldhúsbar með glerjum í opnum hillum.',
+      'Sumarhús þar sem stíllinn er blanda af stílhreinum formum og flotuðum gólfum með hita í, á móti fallegum og hlýlegum við og grófum steini.',
     ],
     photos: [
       P('p-olfus-0', 'Stofa sumarhúss í Ölfusi með opnu viðarþaki, glergöflum og steinsúlu'),
@@ -375,7 +375,7 @@ export const PROJECTS: Project[] = [
       P('p-olfus-7', 'Eldhúsbar með glerjum í opnum hillum og dökkum viðarinnréttingum'),
       P('p-olfus-2', 'Rennihurð úr furu inn á baðherbergi með bláum vegg'),
     ],
-    facts: [['Hlutverk', 'Öll innanhússhönnun'], ['Gerð', 'Sumarhús'], ['Staðsetning', 'Ölfus']],
+    facts: [['Hlutverk', 'Innanhússhönnun'], ['Gerð', 'Sumarhús'], ['Staðsetning', 'Ölfus']],
   },
 
   /* ── Gistiheimili og hótel ───────────────────────────────────────────── */
@@ -384,10 +384,10 @@ export const PROJECTS: Project[] = [
     title: 'Freyja gistiheimili',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/freyja-gistiheimili/',
-    lead: 'Gistiheimili þar sem hvert herbergi hefur sinn lit en sama efnisval.',
+    lead: 'Virðulegt hús á Freyjugötu, þar sem eigendurnir gáfu mér frjálsar hendur.',
     body: [
-      'Gistiheimili selur herbergi, ekki hús, þannig að hvert herbergi verður að standa eitt og sér á mynd. Hér er það leyst með því að halda innréttingum, rúmum og ljósum eins í öllum herbergjum en gefa hverju herbergi sinn veggjalit, svo gestur sem sér tvö herbergi á sömu bókunarsíðu sjái tvo ólíka valkosti í sama húsi.',
-      'Ljós gluggatjöld eru notuð til að hleypa dagsbirtunni inn án þess að gefa eftir næði á jarðhæð.',
+      'Mjög virðulegt og fallegt hús á Freyjugötu sem var mjög gaman að fá að vinna með. Falleg húsgögn í bland við gömul komu skemmtilega út, og ný baðherbergi og flottir litir fengu að njóta sín.',
+      'Eigendurnir gáfu mér frjálsar hendur til að hanna, og þetta er útkoman.',
     ],
     photos: [
       P('p-freyja-0', 'Herbergi á Freyjugötu með djúpbláum vegg og ljósmynd af hestum'),
@@ -397,17 +397,16 @@ export const PROJECTS: Project[] = [
       P('p-freyja-5', 'Gangur með ljósfjólubláum vegg og svart-hvítu flísagólfi'),
       P('p-freyja-3', 'Útsýni úr garðinum að Hallgrímskirkju að kvöldi'),
     ],
-    facts: [['Hlutverk', 'Innanhússhönnun gistiheimilis'], ['Gerð', 'Gistiheimili']],
+    facts: [['Hlutverk', 'Innanhússhönnun gistiheimilis'], ['Gerð', 'Gistiheimili'], ['Staðsetning', 'Freyjugata, Reykjavík']],
   },
   {
     slug: 'freyja-luxusibud',
     title: 'Freyja lúxusíbúð',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/freyja-luxusibud/',
-    lead: 'Lúxusíbúð í sama húsi, sem sker sig úr með efnisvali frekar en stærð.',
+    lead: 'Lúxusíbúð í sérstakri einingu við Freyju gistiheimili, með sérsmíðuðum innréttingum.',
     body: [
-      'Lúxusíbúð í sama rekstri og gistiheimilið þarf að sýna gestinum strax á myndunum hvers vegna hún er þess virði. Hér er það gert með innbyggðum hillum, mýkri efnum og rólegri litum frekar en fleiri fermetrum.',
-      'Svefnherbergið er í gráum og hlutlausum tónum, svo rúmið og efnin fái að njóta sín.',
+      'Hér var gerð lúxusíbúð í sérstakri einingu við Freyju gistiheimili. Allar innréttingar eru sérsmíðaðar og mikið lagt upp úr því að gera íbúðina sem fallegasta, með tengingu við gistiheimilið.',
     ],
     photos: [
       P('p-freyjalux-0', 'Lúxusíbúðin við Freyju með sérsmíðaðri hillueiningu og tveimur rúmum'),
@@ -416,17 +415,17 @@ export const PROJECTS: Project[] = [
       P('p-freyjalux-4', 'Eldhúskrókur með vegglampa og útsýni út um gluggann'),
       P('p-freyjalux-2', 'Veggfóður og hengiljós í nærmynd'),
     ],
-    facts: [['Hlutverk', 'Innanhússhönnun íbúðar'], ['Gerð', 'Lúxusgisting']],
+    facts: [['Hlutverk', 'Innanhússhönnun íbúðar'], ['Gerð', 'Lúxusíbúð'], ['Innréttingar', 'Sérsmíðaðar']],
   },
   {
     slug: 'svala-apartments',
     title: 'Svala Apartments',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/svala-apartments/',
-    lead: 'Gistiíbúðir með grænum vegg og einu myndverki á hverju herbergi.',
+    lead: 'Nýuppgerðar gistiíbúðir á Laugaveginum.',
     body: [
-      'Í gistiíbúðum þarf hvert herbergi eitt atriði sem gestur man eftir og myndar. Hér er það sterkur grænn veggur og eitt myndverk af hesti á móti honum.',
-      'Restin er höfð einföld og endingargóð, því gistirými fá margfalt meira álag en heimili.',
+      'Nýuppgerðar gistiíbúðir á Laugaveginum, fallegar og vel útbúnar, með skemmtilegu útsýni, fallegum húsgögnum og myndum.',
+      'Spuni, frægi verðlaunahesturinn, sómir sér vel þarna.',
     ],
     photos: [
       P('p-svala-0', 'Spuni, verðlaunahesturinn, í mynd á grænum vegg í Svala Apartments'),
@@ -435,17 +434,17 @@ export const PROJECTS: Project[] = [
       P('p-svala-2', 'Borðkrókur með dökkum gardínum og hengiljósi'),
       P('p-svala-3', 'Stigi undir súð með ljósmynd af hesti'),
     ],
-    facts: [['Hlutverk', 'Innanhússhönnun gistiíbúða'], ['Gerð', 'Gistiíbúðir']],
+    facts: [['Hlutverk', 'Innanhússhönnun gistiíbúða'], ['Gerð', 'Gistiíbúðir'], ['Staðsetning', 'Laugavegur, Reykjavík']],
   },
   {
     slug: 'solvallagata',
     title: 'Sólvallagata gistiheimili',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/solvallagata/',
-    lead: 'Eldra hús í Vesturbænum, þar sem stiginn er látinn vera aðalatriðið.',
+    lead: 'Gullfallegt hús við Sólvallagötu, þar sem fallegu elementunum var haldið.',
     body: [
-      'Í eldri húsum sem breytt er í gistingu er stiginn það fyrsta sem gestur snertir. Hér er hann hafður hvítur með viðarhandriði, sem heldur upprunalega handbragðinu sýnilegu án þess að rýmið verði þungt.',
-      'Ljós litapalletta í sameigninni lætur þröng eldri rými virka bjartari og rýmri.',
+      'Gullfallegt hús við Sólvallagötu. Haldið var í fallegu elementin sem voru í húsinu og aðrir hlutir lagaðir.',
+      'Kjallari hússins var endurhannaður og eldhúsi, baðaðstöðu og herbergjum komið vel fyrir. Fallegir litir og húsgögn gerðu svo lokahnykkinn.',
     ],
     photos: [
       P('p-solvallagata-1', 'Herbergi við Sólvallagötu með mynstruðu veggfóðri og tveimur náttborðum'),
@@ -462,10 +461,10 @@ export const PROJECTS: Project[] = [
     title: 'Old Charm Reykjavik Apartment',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/old-charm-apt/',
-    lead: 'Íbúð í eldra húsi þar sem upprunalegu smíðinni er haldið.',
+    lead: 'Fjögur gömul hús og átta gistiíbúðir, eitt af mínum uppáhaldsverkefnum.',
     body: [
-      'Verkefnið snerist um að endurnýja án þess að má út það sem gerir eldra hús eftirsótt. Timburbitarnir í loftinu eru látnir standa og svefnherbergið byggt undir þeim, frekar en að klæða yfir þá.',
-      'Nýju hlutirnir eru hafðir hlutlausir svo það gamla sé það sem sést.',
+      'Þetta verkefni er eitt af mínum uppáhalds, þar sem þetta eru fjögur hús og átta gistiíbúðir.',
+      'Í gömlu húsunum lögðum við mikið í að halda og laga gömlu elementin sem voru fyrir og hanna skemmtilega í kringum þau. Litir og fallegar hugmyndir fengu að skína, og árangurinn var samkvæmt því.',
     ],
     photos: [
       P('p-oldcharm-1', 'Svefnherbergi í Old Charm með ljósbláu panelþili, furugólfi og hengiljósi'),
@@ -477,7 +476,7 @@ export const PROJECTS: Project[] = [
       P('p-oldcharm-7', 'Eldhúskrókur undir súð með rauðum gluggakarmi og viðarborðplötu'),
       P('p-oldcharm-6', 'Gangur með upprunalegum múrsteinsstromp'),
     ],
-    facts: [['Hlutverk', 'Innanhússhönnun íbúðar'], ['Gerð', 'Gistiíbúð í eldra húsi']],
+    facts: [['Hlutverk', 'Innanhússhönnun gistiíbúða'], ['Umfang', 'Fjögur hús og átta gistiíbúðir']],
     credit: 'Rakel Ósk Sigurðardóttir',
   },
   {
@@ -485,11 +484,10 @@ export const PROJECTS: Project[] = [
     title: 'Hótel Hekla',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/hotel-hekla/',
-    lead: 'Ný álma, matsalur og bar í sveitinni, með fuglana og litina að utan teknar inn.',
+    lead: 'Ný álma, matsalur, bar og eldri álma, með náttúruna fyrir utan tekna inn í rýmið.',
     body: [
-      'Verkefnið náði yfir hótelið allt: ný álma var hönnuð frá grunni þegar hún var tekin í notkun, og samhliða henni matsalurinn, barinn og eldri álman. Það þýðir að gestur gengur í gegnum eitt hús frekar en tvö, þótt byggingarnar séu frá sitthvorum tímanum.',
-      'Náttúran fyrir utan er tekin inn og notuð sem efniviður frekar en skreyting. Fuglarnir koma fyrir í púðum, á ljósaskermum og í myndefni, og litirnir eru sóttir í landið: mosagrænt í matsalnum, mýkri blátóna í herbergjunum og einn heitur appelsínugulur flötur á baðherbergi.',
-      'Herbergin sitja undir súð og eru hönnuð út frá því. Rúmgaflar eru bólstraðir svo hallandi loftið verði mjúkt frekar en þröngt, og hvert herbergi fær sitt eigið setuhorn við gluggann.',
+      'Yndislegt verkefni í sveitinni. Ég hannaði allt frá grunni í nýrri álmu við hótelið, sem tekin var í notkun, ásamt því að hanna matsalinn, barinn og eldri álmuna.',
+      'Náttúran fyrir utan skilaði sér inn í rýmið með því að nota fuglana og litina.',
     ],
     photos: [
       P('p-hekla-6', 'Matsalur Hótels Heklu með mosagrænum vegg, fléttuðum ljósum og bláum stólum'),
@@ -501,7 +499,8 @@ export const PROJECTS: Project[] = [
       P('p-hekla-7', 'Herbergi með stól, fataskáp og bakka með katli'),
       P('p-hekla-4', 'Setuhorn við glugga með gardínu og koparlituðum smáborðum'),
     ],
-    facts: [['Hlutverk', 'Ný álma, matsalur, bar og eldri álma'], ['Gerð', 'Hótel'], ['Staðsetning', 'Sveit']],
+    facts: [['Hlutverk', 'Ný álma, matsalur, bar og eldri álma'], ['Gerð', 'Hótel']],
+    credit: 'Rakel Ósk Sigurðardóttir',
   },
 
   /* ── Atvinnuhúsnæði ──────────────────────────────────────────────────── */
@@ -510,12 +509,11 @@ export const PROJECTS: Project[] = [
     title: 'Skrifstofurými',
     category: 'atvinnuhusnaedi',
     oldPath: '/verkefni/atvinnuhusnaedi/skrifstofurymi/',
-    lead: 'Skrifstofa með setusvæði sem er raunverulega notað.',
+    lead: 'Skemmtileg og fjölbreytt skrifstofurými, hönnuð í anda fyrirtækjanna sem þar starfa.',
     body: [
-      'Þetta er safn skrifstofurýma úr nokkrum verkefnum. Hvert þeirra er hannað í anda þess fyrirtækis sem þar starfar, og þótt þarfirnar séu ólíkar hefur nánast hver einasti viðskiptavinur beðið um sama hlutinn: að stíllinn sé hlýlegur og skipulagið gott, með góðu flæði og hönnun sem tekið er eftir.',
-      'Setusvæði á skrifstofu virkar aðeins ef það er nógu þægilegt til að fólk velji það fram yfir fundarherbergið. Hér stendur grár sófi á móti terracotta stól, sem gefur rýminu lit án þess að fara út í skrifstofuhúsgagnastaðla, og fundarrýmin fá mettaða plómurauða fleti frekar en hlutlausa veggi.',
-      'Glerskilrúmin eru gott dæmi um það sem gerist þegar grafísk hönnun fylgir rýminu í stað þess að vera límd á það eftir á: laufamynstrið gefur næði án þess að loka á birtuna, og það er teiknað fyrir þessa veggi frekar en keypt sem filma.',
-      'Efnisvalið er miðað við daglegt álag frekar en kynningarmyndir. Teppi, áklæði og fletir eru valdir til að þola margra ára umgengni starfsfólks, því skrifstofa er rými sem sama fólkið notar hvern einasta dag.',
+      'Hér má finna skrifstofurými sem eru skemmtileg og fjölbreytt. Það er gefandi og skemmtilegt að fá að hanna rýmin í anda þeirra fyrirtækja sem þar starfa.',
+      'Þarfirnar eru misjafnar, en flest fyrirtækin sem ég hef hannað fyrir hafa haft þá sameiginlegu ósk að stíllinn sé hlýlegur og rýmið vel skipulagt, með góðu flæði og skemmtilegri hönnun sem tekið er eftir.',
+      'Meðal verkefnanna eru skrifstofur Lánasjóðs sveitarfélaga, Samkennd Heilsusetur, Alfreð Atvinnuleit, Digido og Múr & Mál.',
     ],
     photos: [
       P('p-skrifstofa-1', 'Skrifstofurými með opnu vinnusvæði, bókahillum og appelsínugulum barstólum'),
@@ -527,17 +525,16 @@ export const PROJECTS: Project[] = [
       P('p-skrifstofa-7', 'Setustofa með fléttuljósi, sófa og gróðurmynstruðum vegg'),
       P('p-skrifstofa-2', 'Merking heilsuseturs á viðarvegg í móttöku'),
     ],
-    facts: [['Hlutverk', 'Innanhússhönnun skrifstofu'], ['Gerð', 'Atvinnuhúsnæði']],
+    facts: [['Hlutverk', 'Hönnun skrifstofurýma'], ['Gerð', 'Atvinnuhúsnæði']],
   },
   {
     slug: 'tannlaeknastofan-gardatorgi',
     title: 'Tannlæknastofan Garðatorgi',
     category: 'atvinnuhusnaedi',
     oldPath: '/verkefni/atvinnuhusnaedi/tannlaeknastofa/',
-    lead: 'Móttaka og biðstofa sem taka hlýlega á móti fólki.',
+    lead: 'Notaleg, afslappandi og falleg tannlæknastofa.',
     body: [
-      'Mörgum finnst erfitt að fara til tannlæknis, og þess vegna skipta móttakan og biðstofan meira máli en í flestum öðrum rýmum. Ljóst afgreiðsluborð, mjúk lýsing og hlýir litir gera meira fyrir upplifun sjúklinga en nokkur skilti.',
-      'Efnin eru valin til að þola sótthreinsun og þrif, sem er hörð krafa í heilbrigðisrými og útilokar stóran hluta þess sem virkar á heimili.',
+      'Tannlæknastofan á að vera notaleg, afslappandi og falleg, og veggfóðrið poppar skemmtilega upp rýmið.',
     ],
     photos: [
       P('p-tannlaeknar-0', 'Móttaka tannlæknastofunnar á Garðatorgi með bogadregnu afgreiðsluborði'),
@@ -549,7 +546,7 @@ export const PROJECTS: Project[] = [
       P('p-tannlaeknar-4', 'Gangur með glerskáp og viðarklæðningu'),
       P('p-tannlaeknar-7', 'Vinnuborð með vaski og viðarinnréttingu'),
     ],
-    facts: [['Hlutverk', 'Hönnun móttöku og biðstofu'], ['Staðsetning', 'Garðatorg, Garðabær'], ['Gerð', 'Heilbrigðisrými']],
+    facts: [['Hlutverk', 'Innanhússhönnun tannlæknastofu'], ['Staðsetning', 'Garðatorg, Garðabær'], ['Gerð', 'Heilbrigðisrými']],
   },
 
   /* ── Ýmislegt ────────────────────────────────────────────────────────── */
@@ -558,11 +555,9 @@ export const PROJECTS: Project[] = [
     title: 'Stemning',
     category: 'ymislegt',
     oldPath: '/verkefni/ymislegt/stemning/',
-    lead: 'Það verður að vera gaman: augnablikin úr verkefnunum þar sem hönnunin leyfir sér mest.',
+    lead: 'Það verður að vera gaman.',
     body: [
-      'Ekki er hver ákvörðun í verkefni jafn stór. Sum snýst um heilt hús og önnur um einn stól, einn lit eða einn spegil, og það eru oft smáatriðin sem fólk man eftir þegar það gengur út.',
-      'Hér er safn slíkra augnablika úr ólíkum verkefnum: rauður Egg-stóll á móti bláum chesterfield og sebrateppi, sexhyrndar flísar með lýstum kringlóttum spegli, spanskgrænn og korallrauður flötur hlið við hlið, og messingfuglar á hillu innan um litað gler.',
-      'Þetta er ekki flokkur út af fyrir sig heldur það sem gerist þegar rými fær að vera skemmtilegt, frumlegt og sérstætt í stað þess að vera aðeins rétt.',
+      'Hér er stemning í skemmtilegri hönnun sem gerir útkomu verkefnisins bæði skemmtilega, frumlega og sérstæða.',
     ],
     photos: [
       P('p-stemning-1', 'Stofa með steinvegg, bláum chesterfield-sófa, rauðum Egg-stól og sebrateppi'),
@@ -574,7 +569,7 @@ export const PROJECTS: Project[] = [
       P('p-stemning-2', 'Listaverkaveggur og eldhús með hangandi ljósi'),
       P('p-stemning-6', 'Tímaritahillur yfir skjalaskápum á skrifstofu'),
     ],
-    facts: [['Hlutverk', 'Smáatriði úr ólíkum verkefnum'], ['Gerð', 'Stemningsmyndir']],
+    facts: [['Hlutverk', 'Stemning úr ólíkum verkefnum'], ['Gerð', 'Stemningsmyndir']],
   },
 ]
 

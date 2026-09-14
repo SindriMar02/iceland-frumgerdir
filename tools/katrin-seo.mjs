@@ -110,7 +110,7 @@ const PAGES = [
     clean: '/fjolmidlar',
     title: 'Í fjölmiðlum · umfjöllun um Katrínu Ísfeld',
     desc:
-      'Viðtöl og umfjöllun um Katrínu Ísfeld innanhússarkitekt í Morgunblaðinu og Hús og hýbýli, ásamt myndum af verkefnum hennar eins og þau hafa birst á prenti.',
+      'Viðtöl og umfjöllun um Katrínu Ísfeld innanhússarkitekt í Morgunblaðinu og Hús og híbýli, ásamt myndum af verkefnum hennar eins og þau hafa birst á prenti.',
     image: photo('press-0'),
     kind: 'press',
   },
