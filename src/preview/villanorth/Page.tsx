@@ -11,7 +11,7 @@ import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview
 import { demo, type DemoBooking } from './demoStore'
 import { bookingReady, godoBookingUrl } from './godo'
 import {
-  AERIAL_FILM, BATH_NOTE, EXAMPLE_TOURS, FACTS, GLOW, GLOW_FILM, HOST, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, TOURS_PORTAL,
+  AERIAL_FILM, BATH_NOTE, EXAMPLE_TOURS, FACTS, GLOW, GLOW_FILM, JSON_LD, MATERIALS, PHOTO, REVIEW_QUOTES, TOURS_PORTAL,
   ROOMS, VALLEY, WELCOME_RITUAL, srcSet, type Photo, type RoomEntry,
 } from './content'
 
@@ -940,13 +940,12 @@ function BookingForm() {
     const leaves = done.endDate ?? done.date
     return (
       <div className="vn-book-done" role="status">
-        <p className="vn-book-done-title">Your request is on its way.</p>
+        <p className="vn-book-done-title">Your preview request is saved.</p>
         <p className="vn-book-done-body">
           {prettyDate(done.date)} to {prettyDate(leaves)}, {done.quote.units}{' '}
           {done.quote.units === 1 ? 'night' : 'nights'}, {done.people}{' '}
           {done.people === 1 ? 'guest' : 'guests'}.
-          The owner confirms each request personally. The price for your dates comes with the reply
-          to {done.customer.email}.
+          This preview is saved in your browser. To enquire about these dates, email villanorth@villanorth.is; nothing has been sent to the hosts.
         </p>
         <p className="vn-book-note">
           This is a prototype. The request lives only in this browser.{' '}
@@ -1002,12 +1001,12 @@ function BookingForm() {
           Continue to secure booking
         </a>
       ) : (
-        <button type="submit" className="vn-cta vn-cta-block">Enquire about your stay</button>
+        <button type="submit" className="vn-cta vn-cta-block">Preview your enquiry</button>
       )}
       <p className="vn-book-note">
         {bookingReady()
           ? 'Your dates carry over. Availability, the exact price and payment are all handled on the secure booking page.'
-          : 'No payment today. Send your preferred dates and the owner replies with availability and the nightly price. Payment is settled on arrival.'}
+          : 'Preview only: this form saves a sample request in your browser. To plan a real stay, email villanorth@villanorth.is or call 858 9500.'}
       </p>
     </form>
   )
@@ -1045,7 +1044,7 @@ export default function VillaNorthPage() {
   useEffect(
     () =>
       setMetaDescription(
-        'Villa North: an architect-designed villa above Fnjoskadalur in north Iceland. Sleeps seven across four bedrooms, with a private hot tub on the sundeck, twenty minutes from Akureyri.',
+        'Discover Lundskógar by Villa North: a private woodland retreat near Akureyri, with four bedrooms for seven, valley views and a hot tub of your own.',
       ),
     [],
   )
@@ -1225,7 +1224,7 @@ export default function VillaNorthPage() {
           <a href="#tours" onClick={anchor('tours')}>Tours</a>
           <a href="#guests" onClick={anchor('guests')}>Guests</a>
         </nav>
-        <a className="vn-nav-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+        <a className="vn-nav-cta" href="#booking" onClick={anchor('booking')}>Plan your stay</a>
 
         {/* Phone only. Two rules from the fleet: a tap fires pointer events AND
             click, so this is bound to onClick alone and never to hover; and the
@@ -1259,10 +1258,10 @@ export default function VillaNorthPage() {
           <a href="#guests" onClick={anchor('guests')}>Guests</a>
           <a href="#contact" onClick={anchor('contact')}>Finding the house</a>
         </nav>
-        <a className="vn-menu-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+        <a className="vn-menu-cta" href="#booking" onClick={anchor('booking')}>Plan your stay</a>
         <p className="vn-menu-foot">
-          <a href="tel:+3548449808">+354 844 9808</a>
-          <a href="mailto:villanorthiceland@gmail.com">villanorthiceland@gmail.com</a>
+          <a href="tel:+3548589500">858 9500</a>
+          <a href="mailto:villanorth@villanorth.is">villanorth@villanorth.is</a>
         </p>
       </div>
 
@@ -1283,10 +1282,9 @@ export default function VillaNorthPage() {
         <div className="vn-hero-block">
           <p className="vn-measure-text">Sleeps 7 · four bedrooms</p>
           <p className="vn-hero-sub">
-            Designed with precision, built for gathering. An engineer's house of glass
-            and dark timber above Fnjóskadalur, made for seven.
+            Wake to the valley. Spend the evening under open skies. A private forest retreat for seven, with a hot tub all to yourselves.
           </p>
-          <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+          <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Plan your stay</a>
         </div>
         <ToursTicker onOpen={anchor('tours')} />
       </section>
@@ -1294,11 +1292,9 @@ export default function VillaNorthPage() {
       {/* 02 · the drawing */}
       <section className="vn-drawing" id="drawing">
         <div className="vn-drawing-copy">
-          <Headline text="Every angle, decided first." size={64} floor={32} measure={600} />
+          <Headline text="A view worth staying in for." size={64} floor={32} measure={600} />
           <p className="vn-body vn-rv">
-            The owner trained as an engineer, and every line feels intentional: an
-            asymmetric roofline, long glass on one side and dark timber cladding on
-            the other, cut into a hillside above Fnjóskadalur.
+            Pour the coffee, find your favourite seat and watch the light move across the valley. Framed by glass and dark timber, Lundskógar brings the landscape into the heart of your stay.
           </p>
         </div>
         <div className="vn-drawing-inner">
@@ -1332,20 +1328,18 @@ export default function VillaNorthPage() {
               alt={PHOTO.glassGrid.alt} loading="lazy" decoding="async" />
           </div>
           <div className="vn-elev-caps">
-            <p className="vn-elev-cap vn-elev-cap-sketch vn-rv">The elevation, traced from the photograph line for line.</p>
+            <p className="vn-elev-cap vn-elev-cap-sketch vn-rv">The roofline that gives Lundskógar its character.</p>
             <p className="vn-elev-cap vn-elev-cap-photo vn-rv">Villa North, Fnjóskadalur valley.</p>
           </div>
         </div>
         <p className="vn-elev-credit vn-rv">
-          Traced to the pixel from this exact photograph, the owner's own: the roofline, both
-          posts, the window grid and the ground it stands on.
+          Set among rock and woodland, with the valley unfolding beyond the glass.
         </p>
         <div className="vn-drawing-inside">
           <div className="vn-drawing-inside-copy">
-            <p className="vn-drawing-inside-kicker vn-rv">The same roof, from inside</p>
+            <p className="vn-drawing-inside-kicker vn-rv">Room to breathe</p>
             <p className="vn-drawing-inside-line vn-rv">
-              The angle drawn above is the same angle overhead in here. The roofline
-              traced outside is the ceiling line inside.
+              Ceilings rise over five metres above a living room made for gathering. Settle in, put on your favourite music and enjoy the view.
             </p>
           </div>
           <Frame photo={PHOTO.livingTall} className="vn-drawing-inside-fig" drift={7} />
@@ -1355,7 +1349,7 @@ export default function VillaNorthPage() {
       {/* 03 · the valley */}
       <section className="vn-valley" id="valley">
         <div className="vn-valley-copy">
-          <Headline text="The valley below." size={56} floor={30} measure={520} />
+          <Headline text="A slower kind of morning." size={56} floor={30} measure={520} />
           <p className="vn-body vn-rv">{VALLEY.intro}</p>
           <dl className="vn-draws vn-rv">
             {VALLEY.draws.map((d) => (
@@ -1408,10 +1402,9 @@ export default function VillaNorthPage() {
 
       {/* 05 · rooms to measure */}
       <section className="vn-rooms" id="rooms">
-        <Headline text="Plan who sleeps where." size={64} floor={32} measure={620} />
+        <Headline text="Bring your favourite people." size={64} floor={32} measure={620} />
         <p className="vn-body vn-rv">
-          A simple guide to how the villa flows: four bedrooms, the sitting room, the
-          kitchen and the sundeck. A schematic, not to scale.
+          Four bedrooms give up to seven guests space to settle in. Share breakfast around the table, head out together and retreat to your own room at the end of the day.
         </p>
         <Frame photo={PHOTO.mezzanine} className="vn-rooms-lead" drift={11} />
 
@@ -1479,16 +1472,33 @@ export default function VillaNorthPage() {
 
         <div className="vn-rooms-bath vn-rv">
           <Frame photo={BATH_NOTE.photo} className="vn-rooms-bath-frame" drift={6} />
+          {/* The extra ground-floor WC, shown alongside the main bathroom
+              photo rather than as its own room row: BATH_NOTE already
+              covers "1.5 bathrooms" as one fact, so this is the same slot,
+              not a new one. */}
+          <Frame photo={PHOTO.wcExtra} className="vn-rooms-bath-frame" drift={6} />
           <div>
             <p className="vn-rooms-bath-fact">{BATH_NOTE.fact}</p>
             <p className="vn-rooms-bath-detail">Note: {BATH_NOTE.detail}</p>
+          </div>
+        </div>
+
+        {/* The architect's own floor plans, both floors, one-line captions. */}
+        <div className="vn-rooms-plans vn-rv">
+          <div>
+            <Frame photo={PHOTO.floorplanGround} drift={4} sizes="(max-width: 899px) 100vw, 46vw" />
+            <p className="vn-rooms-plans-cap">Ground floor.</p>
+          </div>
+          <div>
+            <Frame photo={PHOTO.floorplanUpper} drift={4} sizes="(max-width: 899px) 100vw, 46vw" />
+            <p className="vn-rooms-plans-cap">Upper floor.</p>
           </div>
         </div>
       </section>
 
       {/* 05 · materials */}
       <section className="vn-materials" id="materials">
-        <Headline text="Furnished like the real thing." size={56} floor={30} measure={560} />
+        <Headline text="Beautiful in the details." size={56} floor={30} measure={560} />
         <p className="vn-body vn-rv">{MATERIALS.intro}</p>
         <ul className="vn-materials-names vn-rv">
           {MATERIALS.names.map((n) => <li key={n}>{n}</li>)}
@@ -1604,14 +1614,13 @@ export default function VillaNorthPage() {
             inside it. The placeholder is the sheet, not the cards. */}
         <div className="vn-tours-sheet">
           <p className="vn-tours-stamp">
-            <span className="vn-tours-stamp-a">Example section</span>
-            <span className="vn-tours-stamp-b">tour booking connects here</span>
+            <span className="vn-tours-stamp-a">Explore North Iceland</span>
+            <span className="vn-tours-stamp-b">Ideas for your stay</span>
           </p>
           <div className="vn-tours-head">
-            <Headline text="Trips from the door." size={56} floor={30} measure={560} />
+            <Headline text="A new adventure each day." size={56} floor={30} measure={560} />
             <p className="vn-body vn-rv">
-              The valley is a base as much as a destination. Guests will browse
-              and book tours right here, without leaving the page.
+              Head out for a day on the water, discover the landscapes around Mývatn or enjoy a horse ride in the Akureyri area. There is plenty to explore between slow mornings at the house.
             </p>
           </div>
           {/* Each tour is one plate: the photograph IS the card and carries a
@@ -1627,21 +1636,20 @@ export default function VillaNorthPage() {
             ))}
             <div className="vn-tour-plate vn-tour-ghost">
               <span className="vn-tour-ghost-plus" aria-hidden="true">+</span>
-              <p className="vn-tour-ghost-note">The rest land here</p>
+              <p className="vn-tour-ghost-note">More to discover</p>
             </div>
           </div>
           <p className="vn-tours-foot">
-            The live tours come from TourDesk or Bókun, whichever is chosen.
-            Guests book on the spot and the house earns a commission on every seat.
+            These experiences are ideas for your visit. Contact us for help planning your stay; tour booking will be available through TourDesk once connected.
           </p>
         </div>
       </section>
 
       {/* 10 · guests */}
       <section className="vn-guests" id="guests">
-        <Headline text="What guests keep saying." size={64} floor={32} measure={620} />
+        <Headline text="Remembered long after checkout." size={64} floor={32} measure={620} />
         <p className="vn-guests-meta vn-rv">
-          {HOST.rating.toFixed(1)} of 5 across {HOST.reviewCount} reviews · {HOST.badges.join(' · ')}
+          A few words from guests who have stayed here.
         </p>
         {/* Reviews people actually wrote, with the name and the month they
             wrote them, standing still so they can be read. The counts that used
@@ -1668,20 +1676,14 @@ export default function VillaNorthPage() {
       {/* 09 · booking */}
       <section className="vn-book" id="booking">
         <div className="vn-book-intro">
-          <Headline text="Ask for your dates." size={72} floor={34} measure={560} />
+          <Headline text="Make this your next escape." size={72} floor={34} measure={560} />
           <p className="vn-body vn-rv">
-            Requests go straight to {HOST.name}, who responds to {HOST.responseRate} of
-            messages, usually {HOST.respondsWithin}.
+            A few days in the north, with room for everyone you want to bring. Email villanorth@villanorth.is or call 858 9500 to plan your stay.
           </p>
           <div className="vn-owner-note vn-rv">
-            <p className="vn-owner-note-label">The owner's dashboard</p>
+            <p className="vn-owner-note-label">Booking preview</p>
             <p className="vn-owner-note-body">
-              Every request lands in a dashboard built for this house: confirm or
-              decline in one tap, watch requests arrive.{' '}
-              <Link className="vn-a" to="/preview/villanorth/stjornbord">
-                See how direct bookings could work
-              </Link>{' '}
-              beside this tab and send yourself a request.
+              This form demonstrates the booking experience. For a real enquiry, email us directly. You can also{' '}<Link className="vn-a" to="/preview/villanorth/stjornbord">preview the booking dashboard</Link>.
             </p>
           </div>
         </div>
@@ -1702,15 +1704,15 @@ export default function VillaNorthPage() {
             </div>
             <div>
               <dt>From Akureyri</dt>
-              <dd>Fifteen to twenty minutes through Vaðlaheiðargöng</dd>
+              <dd>About 20 km through the Vaðlaheiðargöng toll tunnel</dd>
             </div>
             <div>
               <dt>Phone</dt>
-              <dd><a className="vn-a" href="tel:+3548449808">+354 844 9808</a></dd>
+              <dd><a className="vn-a" href="tel:+3548589500">858 9500</a></dd>
             </div>
             <div>
               <dt>Email</dt>
-              <dd><a className="vn-a" href="mailto:villanorthiceland@gmail.com">villanorthiceland@gmail.com</a></dd>
+              <dd><a className="vn-a" href="mailto:villanorth@villanorth.is">villanorth@villanorth.is</a></dd>
             </div>
           </dl>
         </div>
@@ -1739,14 +1741,14 @@ export default function VillaNorthPage() {
         <div className="vn-foot-top">
           <div className="vn-foot-say">
             <p className="vn-foot-eyebrow">Ready when you are</p>
-            <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Book now</a>
+            <a className="vn-cta" href="#booking" onClick={anchor('booking')}>Plan your stay</a>
           </div>
           <div className="vn-foot-grid">
           <div>
             <p className="vn-foot-label">Find us</p>
             <p className="vn-foot-line">Fnjóskadalur, Þingeyjarsveit, North Iceland</p>
-            <p className="vn-foot-line"><a className="vn-foot-a" href="tel:+3548449808">+354 844 9808</a></p>
-            <p className="vn-foot-line"><a className="vn-foot-a" href="mailto:villanorthiceland@gmail.com">villanorthiceland@gmail.com</a></p>
+            <p className="vn-foot-line"><a className="vn-foot-a" href="tel:+3548589500">858 9500</a></p>
+            <p className="vn-foot-line"><a className="vn-foot-a" href="mailto:villanorth@villanorth.is">villanorth@villanorth.is</a></p>
           </div>
           <div>
             <p className="vn-foot-label">The house</p>
@@ -2253,6 +2255,9 @@ html, body { background-color: ${PAPER}; }
 .vn-rooms-bath-frame { width: calc(var(--u) * 340); flex: none; }
 .vn-rooms-bath-fact { font-weight: 500; font-size: ${fluid(16, 15)}; margin: 0; }
 .vn-rooms-bath-detail { font-size: ${fluid(14, 13)}; color: var(--vn-mute); margin: calc(var(--u) * 8) 0 0; line-height: 1.5; max-width: 46ch; }
+/* the two floor plans, same measure as the room explorer above them */
+.vn-rooms-plans { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 20); margin-top: calc(var(--u) * 48); }
+.vn-rooms-plans-cap { font-family: ${MONO}; font-size: ${fluid(12, 12)}; color: var(--vn-mute); margin: calc(var(--u) * 10) 0 0; }
 
 /* materials */
 .vn-materials { padding: calc(var(--u) * 60) calc(var(--u) * 48) calc(var(--u) * 150); max-width: calc(var(--u) * 1240); margin: 0 auto; }

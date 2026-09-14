@@ -18,45 +18,45 @@ export const companyEntry: PreviewCompany = {
   sector: 'Gisting',
   location: 'Fnjóskadalur, Þingeyjarsveit',
   region: 'Norðurland',
-  established: 'Ofurgestgjafi í 3 ár',
+  established: 'Einkavilla í Fnjóskadal',
   currentUrl: 'https://www.airbnb.com/rooms/897747788867680607',
-  ownerEmail: '',
+  ownerEmail: 'villanorth@villanorth.is',
   concept: 'Málsett',
   conceptTagline:
-    'Verkfræðingur byggði húsið og það sést. Vefurinn er teiknaður eins og teikningarnar hans: hárlínur sem verða að alvöru húsi.',
+    'Einkavilla í Fnjóskadal með útsýni yfir dalinn og heitum potti. Vefurinn gefur gestum tilfinningu fyrir dvölinni og leiðir þá að fyrirspurn.',
   accent: '#C29049',
   dark: false,
   status: 'Concept ready',
   thumb: import.meta.env.BASE_URL + 'villanorth/glass-grid.jpg',
   ownPhotography: true,
-  noOwnSite: true,
+  noOwnSite: false,
   /* Astrid manages Villa North from Austria and its guests are the Airbnb
      audience, so the shared disclaimer speaks English here. */
   english: true,
   currentLabel: 'Airbnb listing',
   photoCredit:
-    "All photographs are real pictures from Villa North's own Airbnb listing (23 images), taken 2026-08-04.",
+    "Photography of Villa North, including originals supplied by the owners. The animated winter scene is identified separately.",
   audit: {
     strengths: [
-      '5,0 í einkunn yfir 54 umsagnir, efstu 10% skráninga. Gestir kalla húsið "the real deal"',
-      'Alvöru hönnunarhús: Minotti-húsgögn, Miele-tæki, steypa og klæðning mynduð eins og arkitektaverk',
-      'Eina húsið af þessari stærð: 7 gestir, 4 svefnherbergi. Hópar og fjölskyldur eiga fáa premium-kosti fyrir norðan',
+      '140 m² hús fyrir allt að sjö gesti, með fjórum svefnherbergjum og 110 m² verönd',
+      'Sérstæður arkitektúr, stórir gluggar og útsýni yfir Fnjóskadal',
+      'Heitur pottur, fullbúið eldhús og sameiginleg rými fyrir fjölskyldur og vinahópa',
     ],
     weaknesses: [
-      'Engin eigin vefsíða. Hús á þessu verðlagi (um 1.400 dollara nóttin) býr eingöngu á Airbnb',
-      'Airbnb-skráningin getur ekki svarað spurningunni sem hópar spyrja fyrst: hver sefur hvar',
-      'Skráningin fer rangt með staðreynd (Vaglaskógur sagður stærsti skógur landsins) sem eigin vefur myndi laga',
+      'GODO-bókunarkerfi og TourDesk bíða tengingar',
+      'Nýr vefur þarf að sýna herbergjaskipan og svara algengum spurningum fyrir bókun',
+      'Upplýsingar um næstu villu og bókunarskilmála þarf að staðfesta áður en opnað er fyrir bókanir',
     ],
     opportunities: [
-      'Herbergjaskoðari sem svarar "hver sefur hvar" beint, með heiðarlegum smáatriðum (böðin bæði niðri)',
-      'Bein fyrirspurn á eigin léni framhjá þóknun Airbnb á hæsta verðlagi þessa hóps',
+      'Herbergjaskoðari og grunnmyndir hjálpa hópum að skipuleggja dvölina',
+      'Persónuleg leið frá áhuga að fyrirspurn og beinni bókun',
       'Norðurlandsleit (Akureyri, Goðafoss, Vaglaskógur) á eigin forsendum með réttum staðreyndum',
     ],
   },
   positioning:
-    'Hús sem er hannað og byggt af verkfræðingi, með Minotti-húsgögnum og 5,0 í einkunn, á skilið meira en skráningarsíðu. Frumgerðin teiknar húsið eins og teikningar eigandans og svarar spurningunni sem hver hópur spyr: hver sefur hvar.',
+    'Einkavilla fyrir allt að sjö gesti, með fjórum svefnherbergjum og heitum potti. Vefurinn sýnir hvernig dvölin getur verið: sameiginlegar máltíðir, ferðir um Norðurland og róleg kvöld með útsýni yfir dalinn.',
   outreach: {
     subject: 'Villa North á eigin vef',
-    body: `Húsið þitt teiknað eins og teikningarnar þínar, með beinni fyrirspurn. Frumgerð: https://sindrimar02.github.io/iceland-frumgerdir/preview/villanorth`,
+    body: `Vefur sem sýnir upplifunina af dvölinni, með útsýni, herbergjum og beinni fyrirspurn. Frumgerð: https://sindrimar02.github.io/iceland-frumgerdir/preview/villanorth`,
   },
 }
