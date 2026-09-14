@@ -64,7 +64,7 @@ export const CATEGORIES: Record<CategorySlug, {
     nav: 'Atvinnuhúsnæði',
     lead: 'Skrifstofur og móttökurými þar sem fyrsta mínútan gestsins ræðst af hönnuninni.',
     body:
-      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti þér, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, og í báðum tilvikum er verkefnið það sama: að rýmið vinni með því sem fyrirtækið er að reyna að gera, frekar en á móti því. Rýmin eru hönnuð í anda þeirra fyrirtækja sem þar starfa; þarfirnar eru misjafnar en flest hafa haft sömu ósk, að stíllinn sé hlýlegur og skipulagið gott með góðu flæði. Þar sem grafísk hönnun þarf að fylgja — merkingar á rúðum, skilrúm, leiðbeinandi merkingar — er hún unnin samhliða rýminu en ekki límd á það eftir á.',
+      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti þér, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, og í báðum tilvikum er verkefnið það sama: að rýmið vinni með því sem fyrirtækið er að reyna að gera, frekar en á móti því. Rýmin eru hönnuð í anda þeirra fyrirtækja sem þar starfa; þarfirnar eru misjafnar en flest hafa haft sömu ósk, að stíllinn sé hlýlegur og skipulagið gott með góðu flæði. Þar sem grafísk hönnun þarf að fylgja, til dæmis merkingar á rúðum, skilrúm og leiðbeinandi merkingar, er hún unnin samhliða rýminu en ekki límd á það eftir á.',
   },
   'ymislegt': {
     slug: 'ymislegt',

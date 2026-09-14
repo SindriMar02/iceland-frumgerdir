@@ -45,8 +45,8 @@ export function StudioPage() {
             be quoted back as an answer to "hvað er innanhússarkitekt". One
             sentence of the form "X er…", in the open, near the top. */}
         <p className="ki-body ki-rv" style={{ maxWidth: 'calc(var(--u) * 760)' }}>
-          Innanhússarkitekt er hönnuður sem teiknar rýmið sjálft — skipulag, innréttingar,
-          efnisval, liti og lýsingu sem eina heild — en ekki aðeins það sem sett er inn í
+          Innanhússarkitekt er hönnuður sem teiknar rýmið sjálft sem eina heild: skipulag,
+          innréttingar, efnisval, liti og lýsingu, en ekki aðeins það sem sett er inn í
           það. Á Íslandi er starfsheitið bundið við nám og félagsaðild að FHI, Félagi
           húsgagna- og innanhússarkitekta.
         </p>

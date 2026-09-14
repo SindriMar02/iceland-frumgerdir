@@ -109,7 +109,7 @@ export const FAQ: Array<{ q: string; a: string }> = [
    her, in that order. A full translation of twenty-six pages would be a
    different project and is noted as such in KATRIN-SEO.md. */
 export const EN = {
-  title: 'Katrín Ísfeld — interior architect in Reykjavík, Iceland',
+  title: 'Katrín Ísfeld, interior architect in Reykjavík, Iceland',
   desc:
     'Katrín Ísfeld is an interior architect in Reykjavík designing homes, guesthouses, hotels and commercial interiors, and the Icelandic stockist for Arrital kitchens and Altamarea bathrooms.',
   lead: 'An interior architect in Reykjavík who designs a space as a whole, from the plan to the last light fitting.',

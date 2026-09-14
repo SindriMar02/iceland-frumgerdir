@@ -45,11 +45,39 @@ export function HeroShow({ slides, newSlug }: {
   const [was, setWas] = useState(-1)
   const [open, setOpen] = useState(false)
   const touch = useRef<{ x: number; y: number } | null>(null)
+  const root = useRef<HTMLElement>(null)
+  /* HOW FAR THE NAME LIFTS so the open popover never lands on it. Measured
+     with offsetTop/offsetHeight, which ignore transforms and translate, so a
+     lift already under way or the card still rising cannot skew the sum.
+     Capped so the name never climbs under the header; on a screen too short
+     for both, the card itself gets compact (see .ki-show-info, max-height). */
+  const [lift, setLift] = useState(0)
+  useEffect(() => {
+    if (!open) { setLift(0); return }
+    const measure = () => {
+      const sec = root.current
+      const lock = sec?.querySelector<HTMLElement>('.ki-show-lockup')
+      const info = sec?.querySelector<HTMLElement>('.ki-show-info')
+      if (!sec || !lock || !info) return
+      const nav = document.querySelector<HTMLElement>('.ki-nav')
+      const navBottom = nav ? nav.getBoundingClientRect().bottom - sec.getBoundingClientRect().top : 0
+      const need = lock.offsetTop + lock.offsetHeight + 24 - info.offsetTop
+      const room = lock.offsetTop - (navBottom + 20)
+      setLift(Math.max(0, Math.min(need, room)))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [open])
   const n = slides.length
 
+  /* slides that have already been shown keep their photograph mounted */
+  const [seen, setSeen] = useState<ReadonlySet<number>>(() => new Set([0]))
   const go = (to: number) => {
+    const t = ((to % n) + n) % n
     setWas(on)
-    setOn(((to % n) + n) % n)
+    setOn(t)
+    setSeen((s) => (s.has(t) ? s : new Set(s).add(t)))
   }
 
   /* the timer restarts from whatever slide is current, so a click never
@@ -76,8 +104,8 @@ export function HeroShow({ slides, newSlug }: {
   const isNew = cur.slug === newSlug
 
   return (
-    <section className="ki-show" id="top" data-ki-band="dark" data-open={open || undefined} aria-roledescription="myndasýning" aria-label="Úrval verkefna"
-      style={{ ['--tone' as string]: String(cur.tone ?? 0.46) }}
+    <section ref={root} className="ki-show" id="top" data-ki-band="dark" data-open={open || undefined} aria-roledescription="myndasýning" aria-label="Úrval verkefna"
+      style={{ ['--tone' as string]: String(cur.tone ?? 0.46), ['--lift' as string]: `${lift}px` }}
       /* a phone has no arrows in the frame: a sideways swipe is the way on */
       onTouchStart={(e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY } }}
       onTouchEnd={(e) => {
@@ -93,9 +121,17 @@ export function HeroShow({ slides, newSlug }: {
           const p = PROJECTS.find((x) => x.slug === s.slug)!
           const a = p.photos.find((x) => x.id === s.id)?.alt ?? p.title
           const state = i === on ? ' is-on' : i === was ? ' was-on' : ''
+          /* ONLY THREE PHOTOGRAPHS EXIST AT A TIME: the one showing, the one it
+             is dissolving from, and the next, so it is decoded before its turn.
+             Every slide sits in the viewport, so native lazy loading fetched
+             all seven full-frame images on arrival (about 250KB at DPR 3).
+             Once a slide has been seen it stays mounted, so going back never
+             refetches or flashes. */
+          const next = (on + 1) % n
+          const keep = i === on || i === was || i === next || seen.has(i)
           return (
             <figure key={s.id} className={`ki-show-slide${state}`} aria-hidden={i !== on}>
-              <Photo id={s.id} alt={a} sizes="100vw" priority={i === 0} />
+              {keep && <Photo id={s.id} alt={a} sizes="100vw" priority={i === 0} />}
             </figure>
           )
         })}

@@ -55,8 +55,8 @@ export function ContactPage() {
         <p className="ki-crumbs"><Link to="/">Forsíða</Link><span>·</span>Hafa samband</p>
         <Headline as="h1" text="Eigum við að vinna saman?" size={84} floor={34} />
         <p className="ki-lead ki-rv">
-          Það er ekkert verk of stórt eða lítið. Segðu mér frá rýminu í nokkrum línum —
-          eða hringdu, ef það er fljótlegra.
+          Það er ekkert verk of stórt eða lítið. Segðu mér frá rýminu í nokkrum línum,
+          eða hringdu ef það er fljótlegra.
         </p>
         <p className="ki-samb-direct ki-rv">
           <a className="ki-samb-tel-lg" href={STUDIO.phoneHref}>{STUDIO.phoneDisplay}</a>

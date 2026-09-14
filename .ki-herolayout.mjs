@@ -19,8 +19,10 @@ for (const [w, h] of SIZES) {
     const hits = []
     for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) {
       const a = bs[i], b = bs[j]
-      if (withInfo && ![a.sel, b.sel].includes('.ki-show-info')) continue
-      if (withInfo && [a.sel, b.sel].some(s => s === '.ki-show-cap' || s === '.ki-show-dots' || s === '.ki-show-nav')) continue
+      /* with the i open, everything must still clear everything: the lifted name
+         against the header, and the card against the name and the buttons.
+         Only the card resting on its own caption row is allowed. */
+      if (withInfo && [a.sel, b.sel].includes('.ki-show-info') && [a.sel, b.sel].some(s => s === '.ki-show-cap' || s === '.ki-show-dots' || s === '.ki-show-nav')) continue
       const ox = Math.min(a.r, b.r) - Math.max(a.l, b.l), oy = Math.min(a.b, b.b) - Math.max(a.t, b.t)
       if (ox > 0 && oy > 0) hits.push(`${a.sel} × ${b.sel}`)
     }

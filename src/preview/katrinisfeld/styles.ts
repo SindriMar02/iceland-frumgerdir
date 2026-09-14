@@ -982,11 +982,23 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
 @keyframes ki-live { 0% { box-shadow: 0 0 0 0 rgb(217 168 126 / .55); } 70%, 100% { box-shadow: 0 0 0 9px rgb(217 168 126 / 0); } }
 @media (prefers-reduced-motion: reduce) { .ki-newest::before { animation: none; } }
 
-/* READING ABOUT THE PHOTOGRAPH IS ITS OWN STATE. With the i open the name,
-   role and buttons step out of the frame, so the popover never lands on top
-   of them on a short screen and the room itself is what is being described. */
-.ki-show-lockup { transition: opacity .45s ${OUT}, visibility 0s linear 0s; }
-.ki-show[data-open] .ki-show-lockup { opacity: 0; visibility: hidden; transition: opacity .35s ${OUT}, visibility 0s linear .35s; }
+/* THE NAME STAYS WHEN THE i OPENS; IT MAKES ROOM. hero-show.tsx measures how
+   far the lockup must rise to clear the card (never under the header) and
+   sets --lift. It moves on the separate translate property because the
+   lockup's entrance animation fills transform and would win over it.
+   Opening lifts at once; closing waits for the card to start retracting. */
+.ki-show-lockup { translate: 0 calc(var(--lift, 0px) * -1); transition: translate .6s cubic-bezier(.65, 0, .35, 1) .1s; }
+.ki-show[data-open] .ki-show-lockup { transition: translate .75s cubic-bezier(.76, 0, .24, 1); }
+/* a screen too short for the name and the full card: the card drops the
+   photo description and tightens, the project, its line and the link stay */
+@media (max-height: 760px) {
+  .ki-show-info { padding: 16px 18px 18px; }
+  .ki-show-info-meta { display: none; }
+  .ki-show-info-title { margin-bottom: 6px; }
+  .ki-show-info-body { margin-bottom: 4px; }
+  .ki-show-info-cta { margin-top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .ki-show-lockup { transition: none; } }
 
 /* THE ROOM'S NAME ARRIVES WITH THE ROOM. It rises out of the line it sits on
    (the link clips it) and comes into focus, a beat after the photograph
@@ -1189,5 +1201,31 @@ a.ki-verk-grid .ki-slide img, .ki-fig-link .ki-slide img, .ki-fig-link .ki-shutt
   .ki-foot { padding: 40px 20px 28px; }
   .ki-foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .ki-facts { gap: 26px 40px; }
+}
+
+/* ── THE PHONE FLOOR ─────────────────────────────────────────────────────
+   Measured on all 33 routes at 390px: nothing overflowed and nothing broke,
+   but a run of links was a 25–33px target and a run of labels sat under
+   12px. Two rules for a phone, applied in one place:
+   · every tap target is 44px. Underlined links get an invisible hit area on
+     ::after so the line under the word does not move; controls and rows get
+     real height.
+   · no label is set under 12px. */
+@media (max-width: 860px), (pointer: coarse) {
+  .ki-nav-mark, .ki-crumbs a, .ki-cat-head a, .ki-facts-row a, .ki-samb-mail,
+  .ki-cluster-rest a, .ki-dl a, .ki-body a, .ki-samband-tel { position: relative; }
+  .ki-nav-mark::after, .ki-crumbs a::after, .ki-cat-head a::after, .ki-facts-row a::after, .ki-samb-mail::after,
+  .ki-cluster-rest a::after, .ki-dl a::after, .ki-samband-tel::after { content: ''; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; margin-top: -22px; }
+  .ki-cta { min-height: 44px; }
+  .ki-form input { min-height: 44px; padding: 12px 0; }
+  .ki-skra-row a { padding: 13px 0; min-height: 44px; box-sizing: border-box; }
+  /* the form's heading sat on its first field: give the section its breath */
+  .ki-samb-body .ki-kicker { margin-bottom: 22px; }
+  .ki-foot-link { padding: 13px 0; }
+
+  .ki-show-cta .ki-fill { font-size: 12px; letter-spacing: .12em; }
+  .ki-show-new { height: 24px; font-size: 12px; letter-spacing: .12em; }
+  .ki-show-n, .ki-door-no, .ki-door-count, .ki-press-meta, .ki-proj-credit { font-size: 12px; }
+  .ki-cluster-rest > span:first-child { font-size: 12px; }
 }
 `
