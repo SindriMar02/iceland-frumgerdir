@@ -2556,7 +2556,7 @@ function PolarHestarPageInner() {
       </main>
 
       <div className="pb-20 md:pb-0">
-        <PreviewFooter company={company} />
+        <PreviewFooter company={company} verifiedContent />
       </div>
 
       {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}

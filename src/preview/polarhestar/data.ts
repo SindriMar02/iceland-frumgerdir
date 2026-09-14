@@ -5,11 +5,13 @@
  * three-language crawl (short tours + long tours + good-to-know + contact +
  * shop pages). Tour names are the company's own brand names PER LANGUAGE
  * (they differ: „Fyrstu kynni" = "Grýtubakki Charm" = „Zauberhaftes
- * Grýtubakki"). Prices are their published 2026 prices. The German copy
- * follows the site's own Sie-form register.
+ * Grýtubakki"). The 2027 long-tour programme was refreshed from the owners'
+ * published pages on 2026-09-14; short-tour prices remain the prices they
+ * publish as effective from January 2026. The German copy follows the site's
+ * own Sie-form register.
  *
- * Sample data (disclaimed in the footer): the three guest reviews and the
- * booking confirmation flow are prototype-only. Everything else is theirs.
+ * The booking confirmation flow remains prototype-only. The visible business
+ * facts and review excerpts are tied to the dated sources above.
  */
 
 export type Lang = 'is' | 'en' | 'de'
@@ -30,7 +32,7 @@ export const MAPS_HREF = `https://www.google.com/maps/search/?api=1&query=${enco
   'Pólar Hestar, Grýtubakki II, 616 Grenivík',
 )}`
 
-export const STATS = { years: 40, horses: 160, rating: '4,9', reviews: 263 }
+export const STATS = { years: 40, horses: 160, rating: '4,9', reviews: 268 }
 
 /* ── Verified imagery (genuine Icelandic horses / North Iceland) ───────── */
 export const IMG = {
@@ -143,7 +145,7 @@ export const SHORT_TOURS: Tour[] = [
   },
 ]
 
-/* ── Long, multi-day tours — real 2026 programme with published EUR prices ── */
+/* ── Long, multi-day tours — current published programme and EUR prices ── */
 export interface LongTour {
   id: string
   name: L3 // EN brand name; the German market gets its own names
@@ -160,16 +162,16 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'midnightsun',
     name: { is: 'Ring around the Midnightsun', en: 'Ring around the Midnightsun', de: 'Sommersonnenwende' },
-    meta: { is: '7 dagar · 5 reiðdagar · júní · 1.950€', en: '7 days · 5 riding days · June · €1,950', de: '7 Tage · 5 Reittage · Juni · 1.950 €' },
+    meta: { is: '7 dagar · 5 reiðdagar · júní · 2.150€', en: '7 days · 5 riding days · June · €2,150', de: '7 Tage · 5 Reittage · Juni · 2.150 €' },
     requirements: {
-      is: '12 ára+ · hámark 14 knapar',
-      en: 'Age 12+ · max 14 riders',
-      de: 'Ab 12 Jahren · max. 14 Reiter',
+      is: 'Fyrir miðlungs vana og vana knapa · 12 ára+ · hámark 14 knapar · 15–30 km á dag',
+      en: 'Intermediate and experienced riders · age 12+ · max 14 riders · 15–30 km a day',
+      de: 'Für Reiter mit mittlerer bis guter Erfahrung · ab 12 Jahren · max. 14 Reiter · 15–30 km pro Tag',
     },
     departures: {
-      is: 'Brottfarir 2026: 5.–11. júní og 13.–19. júní (uppselt)',
-      en: 'Departures 2026: June 5–11 and June 13–19 (fully booked)',
-      de: 'Termine 2026: 5.–11. Juni und 13.–19. Juni (ausgebucht)',
+      is: 'Brottfarir 2027: 6.–12. júní og 14.–20. júní',
+      en: 'Departures 2027: June 6–12 and June 14–20',
+      de: 'Termine 2027: 6.–12. Juni und 14.–20. Juni',
     },
     image: 'photo-1626515406265-6d7395ece312',
     blurb: {
@@ -181,16 +183,16 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'fascinating-north',
     name: { is: 'Fascinating North Iceland', en: 'Fascinating North Iceland', de: 'Faszinierender Norden Islands' },
-    meta: { is: '8 dagar · 6 reiðdagar · júní–júlí · 2.650€', en: '8 days · 6 riding days · June–July · €2,650', de: '8 Tage · 6 Reittage · Juni–Juli · 2.650 €' },
+    meta: { is: '8 dagar · 6 reiðdagar · júní–ágúst · 2.750€', en: '8 days · 6 riding days · June–August · €2,750', de: '8 Tage · 6 Reittage · Juni–August · 2.750 €' },
     requirements: {
       is: 'Fyrir vana knapa · 12 ára+ · hámark 16 knapar · 25–40 km á dag',
       en: 'Experienced riders · age 12+ · max 16 riders · 25–40 km a day',
       de: 'Für geübte Reiter · ab 12 Jahren · max. 16 Reiter · 25–40 km pro Tag',
     },
     departures: {
-      is: 'Brottfarir 2026: 26. júní–3. júlí, 7.–14. júlí og 18.–25. júlí (uppselt)',
-      en: 'Departures 2026: June 26–July 3, July 7–14 and July 18–25 (fully booked)',
-      de: 'Termine 2026: 26. Juni – 3. Juli, 7.–14. Juli und 18.–25. Juli (ausgebucht)',
+      is: 'Brottfarir 2027: 26. júní–3. júlí, 7.–14. júlí, 18.–25. júlí (uppselt) og 29. júlí–5. ágúst (uppselt)',
+      en: 'Departures 2027: June 26–July 3, July 7–14, July 18–25 (fully booked) and July 29–August 5 (fully booked)',
+      de: 'Termine 2027: 26. Juni–3. Juli, 7.–14. Juli, 18.–25. Juli (ausgebucht) und 29. Juli–5. August (ausgebucht)',
     },
     image: 'photo-1774281616625-9bfc1c9a2380',
     blurb: {
@@ -204,14 +206,14 @@ export const LONG_TOURS: LongTour[] = [
     name: { is: 'Hidden Pearls of the North', en: 'Hidden Pearls of the North', de: 'Verborgene Schätze des Nordens' },
     meta: { is: '9 dagar · 7 reiðdagar · júlí–ágúst · 2.800€', en: '9 days · 7 riding days · July–August · €2,800', de: '9 Tage · 7 Reittage · Juli–August · 2.800 €' },
     requirements: {
-      is: 'Fyrir vana knapa · 14 ára+',
-      en: 'Experienced riders · age 14+',
-      de: 'Für geübte Reiter · ab 14 Jahren',
+      is: 'Fyrir vana knapa · 14 ára+ · hámark 12 knapar · 20–35 km á dag',
+      en: 'Experienced riders · age 14+ · max 12 riders · 20–35 km a day',
+      de: 'Für geübte Reiter · ab 14 Jahren · max. 12 Reiter · 20–35 km pro Tag',
     },
     departures: {
-      is: 'Brottfarir 2026: 29. júlí–6. ágúst og 9.–17. ágúst (uppselt)',
-      en: 'Departures 2026: July 29–August 6 and August 9–17 (fully booked)',
-      de: 'Termine 2026: 29. Juli – 6. August und 9.–17. August (ausgebucht)',
+      is: 'Brottfarir 2027: 8.–16. ágúst og 20.–28. ágúst',
+      en: 'Departures 2027: August 8–16 and August 20–28',
+      de: 'Termine 2027: 8.–16. August und 20.–28. August',
     },
     image: 'photo-1569077016386-8a8a27da502f',
     blurb: {
@@ -224,10 +226,15 @@ export const LONG_TOURS: LongTour[] = [
     id: 'autumn-northern-lights',
     name: { is: 'Autumn Colours and Northern Lights', en: 'Autumn Colours and Northern Lights', de: 'Herbstfarben & Nordlichter' },
     meta: { is: '7 dagar · 5 reiðdagar · september · 1.950€', en: '7 days · 5 riding days · September · €1,950', de: '7 Tage · 5 Reittage · September · 1.950 €' },
+    requirements: {
+      is: 'Fyrir miðlungs vana og vana knapa · 12 ára+ · hámark 14 knapar · 12–35 km á dag',
+      en: 'Intermediate and experienced riders · age 12+ · max 14 riders · 12–35 km a day',
+      de: 'Für Reiter mit mittlerer bis guter Erfahrung · ab 12 Jahren · max. 14 Reiter · 12–35 km pro Tag',
+    },
     departures: {
-      is: 'Brottfarir 2026: 7.–13. september og 15.–21. september',
-      en: 'Departures 2026: September 7–13 and September 15–21',
-      de: 'Termine 2026: 7.–13. September und 15.–21. September',
+      is: 'Brottfarir 2027: 6.–12. september og 14.–20. september',
+      en: 'Departures 2027: September 6–12 and September 14–20',
+      de: 'Termine 2027: 6.–12. September und 14.–20. September',
     },
     image: 'photo-1563224347-7232cc1a5e85',
     blurb: {
@@ -240,10 +247,15 @@ export const LONG_TOURS: LongTour[] = [
     id: 'back-to-roots',
     name: { is: 'Back to the Roots', en: 'Back to the Roots', de: 'Fjörður' },
     meta: { is: '7 dagar · 5 reiðdagar · ágúst · 2.200€', en: '7 days · 5 riding days · August · €2,200', de: '7 Tage · 5 Reittage · August · 2.200 €' },
+    requirements: {
+      is: 'Fyrir miðlungs vana og vana knapa · 12 ára+ · 20–35 km á dag',
+      en: 'Intermediate and experienced riders · age 12+ · 20–35 km a day',
+      de: 'Für Reiter mit mittlerer bis guter Erfahrung · ab 12 Jahren · 20–35 km pro Tag',
+    },
     departures: {
-      is: 'Brottför 2026: 21.–27. ágúst',
-      en: 'Departure 2026: August 21–27',
-      de: 'Termin 2026: 21.–27. August',
+      is: 'Næsta brottför hefur ekki verið birt',
+      en: 'The next departure has not been published',
+      de: 'Der nächste Termin ist noch nicht veröffentlicht',
     },
     image: 'photo-1710179337706-f5e304f7740a',
     blurb: {
@@ -307,7 +319,7 @@ export const SEASONS: Season[] = [
   },
 ]
 
-/* ── Sample guest reviews (prototype — disclaimed in footer) ────────────── */
+/* ── Short excerpts from current, named Tripadvisor reviews ─────────────── */
 export interface Review {
   quote: L3
   name: string
@@ -317,30 +329,30 @@ export interface Review {
 export const REVIEWS: Review[] = [
   {
     quote: {
-      is: 'Hápunktur ferðarinnar okkar um Ísland. Hestarnir ljúfir og fjölskyldan tók okkur eins og gömlum vinum.',
-      en: 'The highlight of our whole trip to Iceland. Gentle horses and a family who welcomed us like old friends.',
-      de: 'Der Höhepunkt unserer ganzen Islandreise. Sanfte Pferde und eine Familie, die uns wie alte Freunde empfangen hat.',
+      is: 'Landslagið var ótrúlegt, hestarnir sannkallaðir töfragripir og starfsfólkið einstaklega umhyggjusamt.',
+      en: 'The scenery was beyond belief, horses were truly magical, and staff were incredibly caring.',
+      de: 'Die Landschaft war unglaublich, die Pferde wahrhaft magisch und das Team außergewöhnlich fürsorglich.',
     },
-    name: 'Marie L.',
-    origin: { is: 'Frakkland', en: 'France', de: 'Frankreich' },
+    name: 'Teri D',
+    origin: { is: 'Tripadvisor', en: 'Tripadvisor', de: 'Tripadvisor' },
   },
   {
     quote: {
-      is: 'Aldrei setið hest áður og fannst ég samt fullkomlega örugg. Útsýnið yfir fjörðinn var ógleymanlegt.',
-      en: 'I had never ridden before and still felt completely safe. The views over the fjord were unforgettable.',
-      de: 'Ich saß zum ersten Mal auf einem Pferd und fühlte mich völlig sicher. Der Blick über den Fjord war unvergesslich.',
+      is: 'Þetta var hiklaust besta reiðferðin.',
+      en: 'This was hands down the best.',
+      de: 'Das war mit Abstand der beste Ritt.',
     },
-    name: 'Sarah K.',
-    origin: { is: 'Kanada', en: 'Canada', de: 'Kanada' },
+    name: 'Jacob T',
+    origin: { is: 'Tripadvisor', en: 'Tripadvisor', de: 'Tripadvisor' },
   },
   {
     quote: {
-      is: 'Fórum í fimm daga ferð og hún fór fram úr öllum væntingum. Þekking þeirra á landinu er einstök.',
-      en: 'We took a five-day tour and it exceeded every expectation. Their knowledge of the land is second to none.',
-      de: 'Unsere fünftägige Tour hat alle Erwartungen übertroffen. Ihre Kenntnis des Landes ist einzigartig.',
+      is: 'Ég mun varðveita þessa upplifun.',
+      en: 'I treasured this experience.',
+      de: 'Ich werde dieses Erlebnis in Erinnerung behalten.',
     },
-    name: 'Thomas B.',
-    origin: { is: 'Þýskaland', en: 'Germany', de: 'Deutschland' },
+    name: 'Elise G',
+    origin: { is: 'Tripadvisor', en: 'Tripadvisor', de: 'Tripadvisor' },
   },
 ]
 
@@ -515,9 +527,9 @@ export const COPY = {
       'Landslagið í kringum bæinn okkar Grýtubakka býður upp á ógleymanlega reynslu, bæði fyrir reyndustu knapa og algjöra byrjendur. Fjölskyldan tekur á móti hverjum gesti.',
     storyQuote: '„Þar sem hestar og álfar hittast.“',
 
-    procH2: 'Hundrað og sextíu, hvert með sinn karakter',
+    procH2: 'Um hundrað og sextíu hross á Grýtubakka',
     procBody:
-      'Íslenski hesturinn er fimur, viljugur og einstaklega traustur, með mjúka töltganginn sem þú finnur hvergi annars staðar. Hjá okkur færðu hest sem hæfir þér.',
+      'Hrossin okkar eru vel tamin, fótfim og traust. Við kynnumst reynslu og óskum hvers gests svo hægt sé að velja ferð og hest við hæfi.',
 
     toursZoneEyebrow: 'Ferðirnar okkar',
     toursZoneIntro:
@@ -536,9 +548,9 @@ export const COPY = {
     bookEyebrow: 'Bókun',
     bookH2: 'Sendu bókunarbeiðni á nokkrum sekúndum',
     bookBody:
-      'Veldu ferð, dagsetningu og fjölda knapa og sendu okkur beiðni. Við staðfestum persónulega innan sólarhrings.',
-    bookPanelLine: 'Sætin eru fá og dagarnir vinsælir. Tryggðu þér sæti.',
-    bookNoPay: 'Engin greiðsla núna. Við staðfestum persónulega innan sólarhrings.',
+      'Veldu ferð, dagsetningu og fjölda knapa og sendu okkur beiðni. Við förum persónulega yfir óskir og reynslu hópsins áður en ferðin er staðfest.',
+    bookPanelLine: 'Segðu okkur frá reynslu knapanna, aldri barna og öðru sem við þurfum að vita.',
+    bookNoPay: 'Engin greiðsla fer fram þegar beiðnin er send. Við höfum samband til að staðfesta ferðina.',
     stepTour: '1 · Veldu ferð',
     stepDate: '2 · Veldu dag',
     timeLabel: 'Brottför',
@@ -557,7 +569,7 @@ export const COPY = {
     errorText: 'Því miður tókst ekki að senda beiðnina. Reyndu aftur eða hringdu í',
     confirmedTitle: 'Takk fyrir!',
     confirmedBody:
-      'Bókunarbeiðnin er komin til okkar. Við staðfestum símleiðis eða í tölvupósti innan sólarhrings. Hlökkum til að sjá þig á Grýtubakka.',
+      'Bókunarbeiðnin er komin til okkar. Við höfum samband símleiðis eða í tölvupósti til að staðfesta ferðina.',
     bookAgain: 'Bóka aðra ferð',
     childDiscountApplied: 'Barnaafsláttur innifalinn',
 
@@ -578,13 +590,13 @@ export const COPY = {
 
     trustEyebrow: 'Umsagnir',
     trustH2: '4,9 stjörnur og Travelers’ Choice',
-    trustBody: '263 umsagnir á Tripadvisor og Travelers’ Choice-verðlaunin.',
+    trustBody: 'Sjá nýjustu umsagnirnar á Tripadvisor.',
     credLicensed: 'Löggilt ferðaskrifstofa',
     credAuthority: 'Ferðamálastofa · leyfi nr. 2006-071',
     reviewsWord: 'umsagnir',
     familyTitle: 'Fjölskyldan á Grýtubakka',
     familyBody:
-      'Stefán, Juliane og Símon reka Pólar Hesta af alúð og þekkja hverja þúfu í kring. Hjá okkur ertu gestur, ekki númer.',
+      'Stefán, Juliane og Símon taka á móti gestum á Grýtubakka, þar sem fjölskyldan hefur boðið upp á hestaferðir frá árinu 1985.',
 
     shopH2: 'Lítil minning með heim',
     shopBody: 'Handunnið og heimafengið frá bænum. Sendu okkur línu og við tökum það frá fyrir þig, póstsending í boði.',
@@ -601,7 +613,7 @@ export const COPY = {
     emailBtn: 'Senda tölvupóst',
 
     ctaH2: 'Komdu á hestbak í norðri',
-    ctaBody: 'Bókaðu reiðtúr í dag eða heyrðu í okkur. Við svörum fljótt.',
+    ctaBody: 'Sendu bókunarbeiðni eða hafðu samband svo við getum fundið ferð sem hentar þér.',
     stickyBook: 'Bóka reiðtúr',
   },
   en: {
@@ -625,9 +637,9 @@ export const COPY = {
       'The landscape around our farm Grýtubakki makes for an unforgettable experience, for the most seasoned riders and complete beginners alike. The family welcomes every guest.',
     storyQuote: '“Where horses meet the elves.”',
 
-    procH2: 'A hundred and sixty, each with its own character',
+    procH2: 'Around 160 horses at Grýtubakki',
     procBody:
-      'The Icelandic horse is sure-footed, willing and remarkably steady, with the smooth tölt gait you find nowhere else. We match you with the horse that suits you.',
+      'Our horses are well trained, sure footed and reliable. We learn about each guest’s experience and wishes so we can find a suitable ride and horse.',
 
     toursZoneEyebrow: 'Our rides',
     toursZoneIntro:
@@ -645,9 +657,9 @@ export const COPY = {
 
     bookEyebrow: 'Booking',
     bookH2: 'Send a booking request in seconds',
-    bookBody: 'Choose a tour, a date and your group, and send us your request. We confirm personally within a day.',
-    bookPanelLine: 'Places are few and the good days fill up. Secure yours.',
-    bookNoPay: 'No payment now. We confirm personally within a day.',
+    bookBody: 'Choose a tour, date and group size, then send your request. We review the group’s wishes and riding experience personally before confirming the ride.',
+    bookPanelLine: 'Tell us about the riders’ experience, the ages of any children and anything else we should know.',
+    bookNoPay: 'No payment is taken when you send the request. We will contact you to confirm the ride.',
     stepTour: '1 · Choose a tour',
     stepDate: '2 · Choose a date',
     timeLabel: 'Departure',
@@ -666,7 +678,7 @@ export const COPY = {
     errorText: 'Sorry, the request could not be sent. Please try again or call',
     confirmedTitle: 'Thank you!',
     confirmedBody:
-      'Your request is on its way to us. We will confirm by phone or email within a day. We look forward to seeing you at Grýtubakki.',
+      'Your booking request has reached us. We will contact you by phone or email to confirm the ride.',
     bookAgain: 'Book another ride',
     childDiscountApplied: 'Child discount included',
 
@@ -687,13 +699,13 @@ export const COPY = {
 
     trustEyebrow: 'Reviews',
     trustH2: '4.9 stars and Travelers’ Choice',
-    trustBody: '263 reviews on Tripadvisor and the Travelers’ Choice award.',
+    trustBody: 'Read the latest reviews on Tripadvisor.',
     credLicensed: 'Licensed travel agency',
     credAuthority: 'Icelandic Tourist Board · licence no. 2006-071',
     reviewsWord: 'reviews',
     familyTitle: 'The family at Grýtubakki',
     familyBody:
-      'Stefán, Juliane and Símon run Pólar Hestar with care and know every hill around here. With us you are a guest, not a number.',
+      'Stefán, Juliane and Símon welcome guests at Grýtubakki, where the family has offered riding tours since 1985.',
 
     shopH2: 'A small keepsake to take home',
     shopBody: 'Handmade and homegrown from the farm. Drop us a line and we will set it aside, shipping available.',
@@ -710,7 +722,7 @@ export const COPY = {
     emailBtn: 'Send an email',
 
     ctaH2: 'Come ride in the north',
-    ctaBody: 'Book a ride today or get in touch. We answer quickly.',
+    ctaBody: 'Send a booking request or get in touch so we can find the right ride for you.',
     stickyBook: 'Book a ride',
   },
   de: {
@@ -734,9 +746,9 @@ export const COPY = {
       'Die Landschaft rund um unseren Hof Grýtubakki macht jeden Ritt unvergesslich, für erfahrene Reiter wie für völlige Anfänger. Die Familie heißt jeden Gast willkommen.',
     storyQuote: '„Wo sich Pferde und Elfen treffen.“',
 
-    procH2: 'Hundertsechzig Pferde, jedes mit eigenem Charakter',
+    procH2: 'Rund 160 Pferde auf Grýtubakki',
     procBody:
-      'Das Islandpferd ist trittsicher, willig und bemerkenswert gelassen, mit dem weichen Tölt, den es sonst nirgends gibt. Bei uns bekommen Sie das Pferd, das zu Ihnen passt.',
+      'Unsere Pferde sind gut ausgebildet, trittsicher und zuverlässig. Wir fragen nach Erfahrung und Wünschen, damit Ritt und Pferd zu jedem Gast passen.',
 
     toursZoneEyebrow: 'Unsere Touren',
     toursZoneIntro:
@@ -755,9 +767,9 @@ export const COPY = {
     bookEyebrow: 'Buchung',
     bookH2: 'Buchungsanfrage in Sekunden',
     bookBody:
-      'Wählen Sie Tour, Datum und Gruppe und senden Sie uns Ihre Anfrage. Wir bestätigen persönlich innerhalb eines Tages.',
-    bookPanelLine: 'Die Plätze sind begrenzt und beliebte Termine schnell ausgebucht. Sichern Sie sich Ihren.',
-    bookNoPay: 'Sie zahlen jetzt noch nichts. Wir bestätigen persönlich innerhalb eines Tages.',
+      'Wählen Sie Tour, Datum und Gruppengröße und senden Sie Ihre Anfrage. Wir prüfen Wünsche und Reiterfahrung persönlich, bevor wir den Ritt bestätigen.',
+    bookPanelLine: 'Teilen Sie uns Reiterfahrung, das Alter der Kinder und alles Weitere mit, das wir wissen sollten.',
+    bookNoPay: 'Beim Senden der Anfrage wird nichts bezahlt. Wir melden uns, um den Ritt zu bestätigen.',
     stepTour: '1 · Tour wählen',
     stepDate: '2 · Datum wählen',
     timeLabel: 'Startzeit',
@@ -776,7 +788,7 @@ export const COPY = {
     errorText: 'Die Anfrage konnte leider nicht gesendet werden. Versuchen Sie es erneut oder rufen Sie an:',
     confirmedTitle: 'Vielen Dank!',
     confirmedBody:
-      'Ihre Anfrage ist bei uns eingegangen. Wir bestätigen innerhalb eines Tages telefonisch oder per E-Mail. Wir freuen uns auf Ihren Besuch auf Grýtubakki!',
+      'Ihre Buchungsanfrage ist bei uns eingegangen. Wir melden uns telefonisch oder per E-Mail, um den Ritt zu bestätigen.',
     bookAgain: 'Weitere Tour buchen',
     childDiscountApplied: 'Kinderermäßigung enthalten',
 
@@ -798,13 +810,13 @@ export const COPY = {
 
     trustEyebrow: 'Bewertungen',
     trustH2: '4,9 Sterne und Travelers’ Choice',
-    trustBody: '263 Bewertungen auf Tripadvisor und die Travelers’-Choice-Auszeichnung.',
+    trustBody: 'Lesen Sie die neuesten Bewertungen auf Tripadvisor.',
     credLicensed: 'Zugelassenes Reisebüro',
     credAuthority: 'Icelandic Tourist Board · Lizenz Nr. 2006-071',
     reviewsWord: 'Bewertungen',
     familyTitle: 'Die Familie auf Grýtubakki',
     familyBody:
-      'Stefán, Juliane und Símon führen Pólar Hestar mit Herz und kennen hier jeden Hügel. Bei uns sind Sie Gast, keine Nummer.',
+      'Stefán, Juliane und Símon begrüßen Gäste auf Grýtubakki, wo die Familie seit 1985 Reittouren anbietet.',
 
     shopH2: 'Eine kleine Erinnerung für zu Hause',
     shopBody:
@@ -822,7 +834,7 @@ export const COPY = {
     emailBtn: 'E-Mail senden',
 
     ctaH2: 'Steigen Sie im Norden in den Sattel',
-    ctaBody: 'Buchen Sie noch heute einen Ritt oder melden Sie sich bei uns. Wir antworten schnell.',
+    ctaBody: 'Senden Sie eine Buchungsanfrage oder melden Sie sich, damit wir den passenden Ritt für Sie finden.',
     stickyBook: 'Ritt buchen',
   },
 } satisfies Record<Lang, unknown>

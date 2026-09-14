@@ -65,6 +65,14 @@ export interface Resource {
    */
   times?: Minutes[]
   /**
+   * SLOT only. The owner agrees the exact departure time after receiving the
+   * request. This is distinct from omitting `times`, which means the normal
+   * generated slot grid applies.
+   */
+  timeOnRequest?: boolean
+  /** Calendar months (1-12) in which this resource can be requested. */
+  months?: number[]
+  /**
    * How long one booking of this resource actually lasts.
    *
    * The engine has never needed it: it sells a seat on a departure and cares

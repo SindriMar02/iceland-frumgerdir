@@ -178,7 +178,7 @@ export const QUERY = `{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
-  "tours": *[_type=="tour"]|order(order asc){_id, name, duration, level, price, months, times, blurb, image ${IMG_PRJ}},
+  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, level, price, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
   "longTours": *[_type=="longTour"]|order(order asc){_id, name, meta, requirements, departures, blurb, image ${IMG_PRJ}},
   "reviews": *[_type=="review"]|order(coalesce(order, 100) asc, name asc){_id, quote, name, origin},
@@ -235,6 +235,7 @@ export function merge(raw: any): SiteContent {
 
   const tours: TourX[] = Array.isArray(raw?.tours) && raw.tours.length
     ? raw.tours
+        .filter((d: any) => d.active !== false)
         .map((d: any): TourX => {
           const fb = SHORT_TOURS.find((t) => t.id === strip(d._id))
           return {
@@ -245,8 +246,8 @@ export function merge(raw: any): SiteContent {
             price: typeof d.price === 'number' ? d.price : (fb?.price ?? 0),
             image: fb?.image ?? IMG.procession[0],
             blurb: fb ? l3(d.blurb, fb.blurb) : l3self(d.blurb),
-            months: Array.isArray(d.months) && d.months.length ? d.months : fb?.months,
-            times: Array.isArray(d.times) && d.times.length ? d.times : fb?.times,
+            months: Array.isArray(d.months) ? (d.months.length ? d.months : undefined) : fb?.months,
+            times: Array.isArray(d.times) ? (d.times.length ? d.times : undefined) : fb?.times,
             pic: mkPic(d.image, fb?.image ?? IMG.procession[0]),
           }
         })

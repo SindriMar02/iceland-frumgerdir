@@ -67,12 +67,24 @@ export function isOpenOn(av: Availability, d: DateStr): boolean {
   return !!o && o.from !== undefined && o.to !== undefined
 }
 
+/** A resource's recurring calendar-month season, independent of opening hours. */
+export function isInResourceMonths(d: DateStr, resource?: Resource): boolean {
+  if (!resource?.months?.length) return true
+  return resource.months.includes(Number(d.slice(5, 7)))
+}
+
+/** Business opening plus a resource's recurring calendar-month season. */
+export function isResourceOpenOn(av: Availability, d: DateStr, resource?: Resource): boolean {
+  if (!isOpenOn(av, d)) return false
+  return isInResourceMonths(d, resource)
+}
+
 /**
  * Slot starts available on a date, before existing bookings are considered.
  * SLOT verticals only (clinic, tour departures).
  */
 export function slotStarts(av: Availability, d: DateStr, resource?: Resource): Minutes[] {
-  if (!isOpenOn(av, d)) return []
+  if (!isResourceOpenOn(av, d, resource) || resource?.timeOnRequest) return []
   const o = openingFor(av, d)!
   // an explicit per-resource list always wins over the generated grid
   if (resource?.times?.length) {
@@ -176,10 +188,15 @@ export function check(
 
   if (cfg.unit === 'SLOT') {
     const starts = slotStarts(av, req.date, resource)
-    if (req.startMinute === undefined || !starts.includes(req.startMinute)) {
+    const invalidTime = resource.timeOnRequest
+      ? req.startMinute !== undefined
+      : req.startMinute === undefined || !starts.includes(req.startMinute)
+    if (invalidTime) {
       reasons.push('OUTSIDE_HOURS')
     }
   }
+
+  if (!isInResourceMonths(req.date, resource)) reasons.push('OUT_OF_SEASON')
 
   // lead time and horizon, measured from the start of the requested day
   const startMs = toDate(req.date).getTime() + (req.startMinute ?? 0) * 60000
@@ -353,7 +370,7 @@ export function openDates(
     const d = addDays(from, i)
     const anyRoom = cfg.resources
       .filter((r) => r.active !== false)
-      .filter((r) => isOpenOn(resolve(cfg, r).availability, d))
+      .filter((r) => isResourceOpenOn(resolve(cfg, r).availability, d, r))
       .some((r) => occupancy(r, bookings, cfg.unit, d) + people <= r.capacity)
     if (anyRoom) out.push(d)
   }

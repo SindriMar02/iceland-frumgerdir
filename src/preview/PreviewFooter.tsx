@@ -8,7 +8,13 @@ import { SndrBadge } from './SndrBadge'
  * The SNDR Studio badge lives here so every prototype (past and future)
  * carries the same credit mark from one shared edit.
  */
-export function PreviewFooter({ company }: { company: PreviewCompany }) {
+export function PreviewFooter({
+  company,
+  verifiedContent = false,
+}: {
+  company: PreviewCompany
+  verifiedContent?: boolean
+}) {
   const dark = company.dark
   const en = company.english === true
   return (
@@ -27,9 +33,13 @@ export function PreviewFooter({ company }: { company: PreviewCompany }) {
             ? "Prototype: a design concept, not the company's real website."
             : 'Frumgerð: hönnunarhugmynd, ekki raunveruleg vefsíða fyrirtækisins.'}
         </strong>{' '}
-        {en
-          ? 'All text, prices and reviews are samples.'
-          : 'Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept).'}{' '}
+        {verifiedContent
+          ? en
+            ? "Text, prices and reviews are based on the company's published material."
+            : 'Texti, verð og umsagnir byggja á birtu efni fyrirtækisins.'
+          : en
+            ? 'All text, prices and reviews are samples.'
+            : 'Allur texti, verð og umsagnir eru sýnishorn (prototype only, redesign concept).'}{' '}
         {company.photoCredit
           ? company.photoCredit
           : company.ownPhotography
