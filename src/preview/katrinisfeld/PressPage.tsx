@@ -18,7 +18,6 @@ import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
 import { PRESS, PRESS_LEAD } from './press'
 import { CONTACT_PATH, WORK } from './paths'
-import { STUDIO } from './facts'
 
 export function PressPage() {
   const head: Head = {
@@ -37,9 +36,8 @@ export function PressPage() {
         <Headline as="h1" text="Í fjölmiðlum." size={80} floor={32} />
         <p className="ki-lead ki-rv">{PRESS_LEAD}</p>
         <p className="ki-body ki-rv">
-          {STUDIO.name} hefur verið til umfjöllunar á heimilis- og hönnunarsíðum
-          íslenskra miðla frá 2016. Fyrirsagnirnar hér að neðan eru eins og þær
-          birtust; útgáfa og dagsetning fylgja þar sem úrklippan sjálf ber þær.
+          Verk Katrínar hafa verið til umfjöllunar á heimilis- og hönnunarsíðum
+          íslenskra miðla frá árinu 2016. Hér eru nokkrar af fyrirsögnunum.
         </p>
       </section>
 
@@ -70,8 +68,8 @@ export function PressPage() {
 
       <div className="ki-wrap-tight" data-ki-band="light" style={{ paddingTop: 0 }}>
         <p className="ki-body ki-rv">
-          Verkefnin sem umfjöllunin fjallar um eru <Link to={WORK}>hér</Link>, og
-          hægt er að <Link to={CONTACT_PATH}>hafa samband</Link> um ný verkefni.
+          Verkefnin sjálf má skoða <Link to={WORK}>hér</Link>, og ef þú ert með verkefni
+          í huga geturðu <Link to={CONTACT_PATH}>haft samband</Link>.
         </p>
       </div>
     </Shell>

@@ -83,9 +83,9 @@ export function Home() {
         <span className="ki-rule ki-rv" aria-hidden="true" />
         <Headline text="Hvert verkefni fær sinn eigin litheim." size={72} floor={32} measure={780} />
         <p className="ki-body ki-rv">
-          Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Litirnir á þessari síðu
-          eru ekki valdir úr litakorti heldur teknir beint úr verkefnunum sjálfum, eins og
-          þau voru ljósmynduð.
+          Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Katrín teiknar skipulag,
+          innréttingar, efnisval og lýsingu í einu lagi, svo hvert rými verður heild sem er
+          sniðin að húsinu og fólkinu sem býr þar.
         </p>
         <ul className="ki-doors">
           {DOORS.map((d, i) => (
@@ -113,8 +113,8 @@ export function Home() {
           <p className="ki-kicker">Verkefni</p>
           <Headline text="Heimili, gistiheimili, hótel og atvinnurými." size={78} floor={32} measure={880} />
           <p className="ki-body ki-rv">
-            {PROJECTS.length} verk í skránni, í fjórum flokkum. Hér er úrval úr hverjum
-            flokki fyrir sig, hvert með sinni eigin ljósmynd.
+            {PROJECTS.length} verk í fjórum flokkum, allt frá einu baðherbergi upp í heilt
+            hótel. Hér er úrval úr hverjum flokki.
           </p>
         </div>
         {ORDER.map((c) => {
@@ -230,7 +230,7 @@ export function Home() {
         <div className="ki-measure" style={{ marginBottom: 'calc(var(--u) * 44)' }}>
           <Headline text="Skráin öll." size={84} floor={34} />
           <p className="ki-body ki-rv">
-            Verkefnaskráin í heild eins og hún er birt, {PROJECTS.length} verk í fjórum flokkum.
+            Öll verkefnin á einum stað, {PROJECTS.length} verk í fjórum flokkum.
           </p>
           <p className="ki-skra-count ki-rv">
             <span className="ki-skra-n">{PROJECTS.length}</span> verk ·{' '}

@@ -211,7 +211,7 @@ export const PROJECTS: Project[] = [
     oldPath: '/verkefni/innanhusshonnun/hus-i-gardabae/',
     lead: 'Stofa með kringlóttum spegli, dökkum sófa og leðurstól.',
     body: [
-      'Einbýlishús í Garðabæ með rúmri lofthæð. Kringlóttur spegill er notaður til að brjóta upp langa veggi og skila birtu til baka inn í rýmið, sem er einfaldasta leiðin til að láta stórt herbergi virka minna tómt.',
+      'Einbýlishús í Garðabæ með rúmri lofthæð. Kringlóttur spegill er notaður til að brjóta upp langa veggi og skila birtu til baka inn í rýmið, sem er einföld leið til að gera stórt herbergi hlýlegra.',
       'Húsgögnin eru fá og stór frekar en mörg og smá, sem er það sem heldur rýminu rólegu.',
     ],
     photos: [
@@ -274,7 +274,7 @@ export const PROJECTS: Project[] = [
     lead: 'Stúdíóið hennar sjálfrar, þar sem efnin eru valin.',
     body: [
       'Stúdíóið er líka sýningarrými. Hér liggja sýnishorn af borðplötum, framhliðum og efnum sem viðskiptavinir handleika áður en ákvörðun er tekin, því munurinn á tveimur steintegundum sést ekki á skjá.',
-      'Dökk marmaraborðplata er miðja rýmisins og um leið dæmi um það sem verið er að selja: heilt sýningareldhús frá Arrital, sem stúdíóið er með umboð fyrir á Íslandi, stendur á gólfinu og er hægt að opna, draga út og handleika.',
+      'Dökk marmaraborðplata er miðja rýmisins og um leið sýnishorn af því sem stúdíóið býður: heilt sýningareldhús frá Arrital, sem stúdíóið er með umboð fyrir á Íslandi, stendur á gólfinu og er hægt að opna, draga út og handleika.',
       'Rýmið er hannað eins og verkefnin sem héðan koma. Beinni steypu er haldið sýnilegri í lofti með lögnum og öllu saman, á móti stendur plómurauður flötur og lýstur sporöskjulaga spegill, og merkingin í glugganum er hluti af hönnuninni frekar en skilti sem var hengt upp á eftir.',
       'Hér starfa innanhússarkitektar ásamt grafískum hönnuði, Ómari Erni Sigurðssyni, sem kemur að þeim verkefnum þar sem merkingar, skilrúm eða annað prentað efni þurfa að fylgja rýminu. Stúdíóið er sýningarrými fremur en mönnuð verslun, svo tími er bókaður fyrirfram.',
     ],
@@ -404,10 +404,10 @@ export const PROJECTS: Project[] = [
     title: 'Freyja lúxusíbúð',
     category: 'gistiheimili-og-hotel',
     oldPath: '/verkefni/gistiheimili-hotel/freyja-luxusibud/',
-    lead: 'Efsta verðlagið í sama húsi, aðgreint með efnum frekar en stærð.',
+    lead: 'Lúxusíbúð í sama húsi, sem sker sig úr með efnisvali frekar en stærð.',
     body: [
-      'Lúxusíbúð í sama rekstri og gistiheimilið þarf að réttlæta hærra verð á mynd, áður en gesturinn kemur. Hér er það gert með innbyggðum hillum, mýkri efnum og rólegri litum frekar en fleiri fermetrum.',
-      'Svefnherbergið er haldið gráu og hlutlausu, sem er það sem lætur rúmið sjálft líta út fyrir að vera dýrara.',
+      'Lúxusíbúð í sama rekstri og gistiheimilið þarf að sýna gestinum strax á myndunum hvers vegna hún er þess virði. Hér er það gert með innbyggðum hillum, mýkri efnum og rólegri litum frekar en fleiri fermetrum.',
+      'Svefnherbergið er í gráum og hlutlausum tónum, svo rúmið og efnin fái að njóta sín.',
     ],
     photos: [
       P('p-freyjalux-0', 'Lúxusíbúðin við Freyju með sérsmíðaðri hillueiningu og tveimur rúmum'),
@@ -425,7 +425,7 @@ export const PROJECTS: Project[] = [
     oldPath: '/verkefni/gistiheimili-hotel/svala-apartments/',
     lead: 'Gistiíbúðir með grænum vegg og einu myndverki á hverju herbergi.',
     body: [
-      'Í gistiíbúðum þarf hvert herbergi eitt atriði sem gestur man eftir og myndar. Hér er það sterkur grænn veggur og eitt myndverk, hestur, á móti honum.',
+      'Í gistiíbúðum þarf hvert herbergi eitt atriði sem gestur man eftir og myndar. Hér er það sterkur grænn veggur og eitt myndverk af hesti á móti honum.',
       'Restin er höfð einföld og endingargóð, því gistirými fá margfalt meira álag en heimili.',
     ],
     photos: [
@@ -445,7 +445,7 @@ export const PROJECTS: Project[] = [
     lead: 'Eldra hús í Vesturbænum, þar sem stiginn er látinn vera aðalatriðið.',
     body: [
       'Í eldri húsum sem breytt er í gistingu er stiginn það fyrsta sem gestur snertir. Hér er hann hafður hvítur með viðarhandriði, sem heldur upprunalega handbragðinu sýnilegu án þess að rýmið verði þungt.',
-      'Ljós litapalletta í sameigninni gerir þröng eldri rými bjartari en þau eru.',
+      'Ljós litapalletta í sameigninni lætur þröng eldri rými virka bjartari og rýmri.',
     ],
     photos: [
       P('p-solvallagata-1', 'Herbergi við Sólvallagötu með mynstruðu veggfóðri og tveimur náttborðum'),
@@ -534,9 +534,9 @@ export const PROJECTS: Project[] = [
     title: 'Tannlæknastofan Garðatorgi',
     category: 'atvinnuhusnaedi',
     oldPath: '/verkefni/atvinnuhusnaedi/tannlaeknastofa/',
-    lead: 'Móttaka og biðstofa þar sem hönnunin vinnur á móti kvíða.',
+    lead: 'Móttaka og biðstofa sem taka hlýlega á móti fólki.',
     body: [
-      'Tannlæknastofa er rými sem hluti gesta kvíðir fyrir að koma í. Það gerir móttökuna og biðstofuna að raunverulegu hönnunarverkefni frekar en skreytingu: ljóst afgreiðsluborð, mjúk lýsing og hlýir litir gera meira fyrir upplifun sjúklings en nokkur skilti.',
+      'Mörgum finnst erfitt að fara til tannlæknis, og þess vegna skipta móttakan og biðstofan meira máli en í flestum öðrum rýmum. Ljóst afgreiðsluborð, mjúk lýsing og hlýir litir gera meira fyrir upplifun sjúklinga en nokkur skilti.',
       'Efnin eru valin til að þola sótthreinsun og þrif, sem er hörð krafa í heilbrigðisrými og útilokar stóran hluta þess sem virkar á heimili.',
     ],
     photos: [
@@ -560,7 +560,7 @@ export const PROJECTS: Project[] = [
     oldPath: '/verkefni/ymislegt/stemning/',
     lead: 'Það verður að vera gaman: augnablikin úr verkefnunum þar sem hönnunin leyfir sér mest.',
     body: [
-      'Ekki er allt í einu verkefni jafn stórt. Sum ákvörðunin er heilt hús og önnur er einn stóll, einn litur eða einn spegill, og það eru oft þau smáatriði sem fólk man eftir að hafa gengið út.',
+      'Ekki er hver ákvörðun í verkefni jafn stór. Sum snýst um heilt hús og önnur um einn stól, einn lit eða einn spegil, og það eru oft smáatriðin sem fólk man eftir þegar það gengur út.',
       'Hér er safn slíkra augnablika úr ólíkum verkefnum: rauður Egg-stóll á móti bláum chesterfield og sebrateppi, sexhyrndar flísar með lýstum kringlóttum spegli, spanskgrænn og korallrauður flötur hlið við hlið, og messingfuglar á hillu innan um litað gler.',
       'Þetta er ekki flokkur út af fyrir sig heldur það sem gerist þegar rými fær að vera skemmtilegt, frumlegt og sérstætt í stað þess að vera aðeins rétt.',
     ],

@@ -24,7 +24,7 @@ export function StudioPage() {
     title: 'Stúdíóið · Katrín Ísfeld innanhússarkitekt í Reykjavík',
     desc:
       `Katrín Ísfeld er innanhússarkitekt með ${CV.degree} frá ${CV.school} í Flórída og félagi í FHI. ` +
-      'Áður á arkitektastofum í Hollandi og Fort Lauderdale. Stúdíóið er á ' + ADDRESS_LINE + '.',
+      'Áður á arkitektastofum í Hollandi og Fort Lauderdale. Heimilisfang stúdíósins er ' + ADDRESS_LINE + '.',
     clean: '/studioid',
   }
   return (

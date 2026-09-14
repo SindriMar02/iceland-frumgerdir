@@ -47,9 +47,9 @@ export function EnglishPage() {
           <p className="ki-kicker">Guesthouses and hotels</p>
           <Headline text="Rooms that have to earn their nightly rate." size={62} floor={30} measure={820} />
           <p className="ki-body ki-rv">
-            {hospitality.length} of the {PROJECTS.length} projects in the record are
-            short-stay or hotel interiors. Captions and project pages are in Icelandic,
-            the photographs are not.
+            {hospitality.length} of her {PROJECTS.length} published projects are guesthouse,
+            apartment or hotel interiors. The project pages are in Icelandic, and the
+            photographs speak for themselves.
           </p>
           <ul className="ki-grid" style={{ marginTop: 'calc(var(--u) * 40)' }}>
             {hospitality.map((p) => (

@@ -119,8 +119,8 @@ export function Foot() {
         </div>
       </div>
       <p className="ki-foot-fine">
-        © {STUDIO.founded}–2026 {STUDIO.name}. Allar verkefnaljósmyndir eru af eigin verkefnum
-        Katrínar. Efnisreinarnar á forsíðunni eru myndgerðar efnisstúdíur í litum verkefnanna.
+        © {STUDIO.founded}–2026 {STUDIO.name}. Allar ljósmyndir á vefnum eru úr verkefnum
+        Katrínar.
       </p>
 
       {/* The name is the last thing on the page and the largest thing on it.

@@ -42,8 +42,7 @@ function Register() {
     <div className="ki-wrap" data-ki-band="dark">
       <Headline text="Skráin öll." size={72} floor={32} />
       <p className="ki-body ki-rv">
-        Verkefnaskráin í heild, {PROJECTS.length} verk í {Object.keys(CATEGORIES).length} flokkum.
-        Þau sem eru ljósmynduð hafa sína eigin síðu.
+        Öll verkefnin á einum stað, {PROJECTS.length} verk í {Object.keys(CATEGORIES).length} flokkum.
       </p>
       <div style={{ marginTop: 'calc(var(--u) * 40)' }}>
         <PreviewZone>
@@ -148,7 +147,7 @@ export function CategoryPage({ slug }: { slug: CategorySlug }) {
       </div>
 
       <div className="ki-wrap-tight" data-ki-band="dark">
-        <Headline text="Ertu með rými af þessu tagi?" size={56} floor={28} measure={720} />
+        <Headline text="Segðu Katrínu frá rýminu þínu." size={56} floor={28} measure={720} />
         <p className="ki-body ki-rv">
           Sendu stutta verklýsingu. Katrín kemur á staðinn, tekur verkefnið út og gerir tilboð í það.
         </p>

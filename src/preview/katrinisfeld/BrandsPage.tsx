@@ -75,7 +75,7 @@ export function BrandsPage() {
           Eldhús og baðherbergi úr verkefnaskránni, ljósmynduð eins og þau standa.
         </p>
         <p className="ki-body ki-rv">
-          {SHOWROOM.lead} {SHOWROOM.cta} Stúdíóið er á {ADDRESS_LINE}.
+          {SHOWROOM.lead} {SHOWROOM.cta} Heimilisfang stúdíósins er {ADDRESS_LINE}.
         </p>
         <p className="ki-cta-row ki-rv">
           <Link className="ki-cta" to={WORK}><RollText text="Verkefnin" /></Link>

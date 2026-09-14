@@ -122,7 +122,7 @@ export const SHOWROOM = {
     'Munurinn á tveimur steintegundum sést ekki á skjá, og ekki heldur hvernig matt lakk tekur við dagsbirtu. ' +
     'Í stúdíóinu liggja sýnishorn af borðplötum, framhliðum og efnum, ásamt uppsettri eldhúsinnréttingu, ' +
     'svo hægt sé að handleika það sem til stendur að velja.',
-  cta: 'Hafðu samband og við finnum tíma sem hentar.',
+  cta: 'Hafðu samband og finndu tíma sem hentar.',
 } as const
 
 /** Her CV, verbatim in substance from katrinisfeld.is/studioid. */

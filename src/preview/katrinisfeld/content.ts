@@ -47,7 +47,7 @@ export const PROCESS = [
   },
   {
     title: 'Katrín kemur á staðinn',
-    body: 'Verkefnið er tekið út á staðnum í samráði við eigendur, því ekkert af því sem skiptir máli sést á ljósmynd.',
+    body: 'Verkefnið er tekið út á staðnum í samráði við eigendur, því birtan, hlutföllin og hvernig rýmið er notað skilja sig best á staðnum.',
   },
   {
     title: 'Tilboð í verkið',
@@ -79,12 +79,12 @@ export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'Hvað kostar að fá innanhússarkitekt?',
     a:
-      'Verðið ræðst af umfangi verkefnisins og er ekki gefið upp fyrirfram. Katrín tekur verkefnið út á staðnum og gerir tilboð í það, svo verðið sé miðað við raunverulegt umfang en ekki ágiskun.',
+      'Verðið ræðst af umfangi verkefnisins. Katrín tekur verkefnið út á staðnum og gerir tilboð í framhaldinu, svo verðið miðast við raunverulegt umfang en ekki ágiskun.',
   },
   {
     q: 'Hannar hún gistiheimili og hótel?',
     a:
-      `Já. ${byCategory('gistiheimili-og-hotel').length} af verkefnunum í skránni eru gistirými, allt frá einstökum gistiíbúðum í eldri húsum upp í hótel: Freyja gistiheimili, Freyja lúxusíbúð, Svala Apartments, Sólvallagata, Old Charm Reykjavik Apartment og Hótel Hekla.`,
+      `Já. Gistirými eru ${byCategory('gistiheimili-og-hotel').length} af verkefnunum í skránni, allt frá einstökum gistiíbúðum í eldri húsum upp í heilt hótel: Freyja gistiheimili, Freyja lúxusíbúð, Svala Apartments, Sólvallagata, Old Charm Reykjavik Apartment og Hótel Hekla.`,
   },
   {
     q: 'Hvaða innréttingar er hægt að fá hjá henni?',
@@ -93,12 +93,12 @@ export const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Hvar er stúdíóið og hvenær er opið?',
-    a: `Stúdíóið er á ${ADDRESS_LINE}. Opnunartími er frá ${STUDIO.opens} til ${STUDIO.closes} ${HOURS_DAYS_IS}, og best er að hafa samband fyrirfram til að bóka tíma. Sími ${STUDIO.phoneDisplay}, netfang ${STUDIO.email}.`,
+    a: `Heimilisfang stúdíósins er ${ADDRESS_LINE}. Opnunartími er frá ${STUDIO.opens} til ${STUDIO.closes} ${HOURS_DAYS_IS}, og best er að hafa samband fyrirfram til að bóka tíma. Sími ${STUDIO.phoneDisplay}, netfang ${STUDIO.email}.`,
   },
   {
     q: 'Vinnur hún utan höfuðborgarsvæðisins?',
     a:
-      'Já. Flest verkefnin eru á höfuðborgarsvæðinu, í Reykjavík, Kópavogi og Garðabæ, en meðal þeirra er líka sumarhús í Fljótshlíðinni.',
+      'Já. Flest verkefnin eru á höfuðborgarsvæðinu, í Reykjavík, Kópavogi og Garðabæ, en meðal þeirra eru líka sumarhús í Fljótshlíðinni og í Ölfusi og Hótel Hekla úti á landi.',
   },
 ]
 
@@ -115,7 +115,7 @@ export const EN = {
   lead: 'An interior architect in Reykjavík who designs a space as a whole, from the plan to the last light fitting.',
   paras: [
     `Katrín Ísfeld holds a BSc in interior architecture from the ${CV.school} in Florida, where she graduated with honours and took second place in a national design competition. She worked as an interior architect at an architecture practice in Fort Lauderdale designing luxury villas, and at the practice of Margreed Van der Hooven in the Netherlands, before opening her own studio in Reykjavík.`,
-    'She is a member of FHI, the Icelandic association of furniture and interior architects. Her published record runs to twenty-three projects across four categories: private homes and summer houses, guesthouses and hotels, commercial and healthcare interiors, and smaller single-room commissions.',
+    'She is a member of FHI, the Icelandic association of furniture and interior architects. Her portfolio includes twenty-three projects across four categories: private homes and summer houses, guesthouses and hotels, commercial and healthcare interiors, and smaller single-room commissions.',
     'For owners of guesthouses and short-stay apartments, the work is specific: rooms that stay consistent with each other so every unit sells at the same rate, materials that survive constant turnover, and interiors that photograph well enough to compete on Booking and Airbnb.',
     'The studio is also the Icelandic stockist for Arrital, the Italian kitchen manufacturer, and Altamarea, which makes made-to-measure bathroom furniture. Both are drawn into each project rather than picked from a catalogue.',
   ],
@@ -147,7 +147,7 @@ export const FAQ_CONTACT: Array<{ q: string; a: string }> = [
   {
     q: 'Hvað kostar að fá innanhússarkitekt?',
     a:
-      'Það fer eftir umfangi verksins og er ekki fast verð. Katrín kemur á staðinn, tekur rýmið út með eigendum og gerir í framhaldi tilboð í verkið miðað við það sem raunverulega stendur til. Úttektin sjálf er fyrsta skrefið og kostar ekkert að spyrja um.',
+      'Það fer eftir umfangi verksins og því er ekki eitt fast verð. Katrín kemur á staðinn, tekur rýmið út með eigendum og gerir í framhaldi tilboð í verkið miðað við það sem raunverulega stendur til. Það kostar ekkert að senda fyrirspurn og spyrja.',
   },
   {
     q: 'Þarf ég að vita hvað ég vil áður en ég hef samband?',
@@ -162,7 +162,7 @@ export const FAQ_CONTACT: Array<{ q: string; a: string }> = [
   {
     q: 'Hvar er stúdíóið og get ég komið við?',
     a:
-      'Stúdíóið er í Katrínartúni 4 í Reykjavík og þar er sýningarrými með ítölskum innréttingum og efnissýnishornum. Það er ekki mannað verslunarrými, svo best er að hringja eða senda tölvupóst og mæla sér mót áður en komið er.',
+      `Stúdíóið er í Katrínartúni 4 í Reykjavík og þar er sýningarrými með ítölskum innréttingum og efnissýnishornum. Opið er ${STUDIO.opens}–${STUDIO.closes} ${HOURS_DAYS_IS}, en stúdíóið er ekki opin verslun, svo best er að hringja eða senda tölvupóst og bóka tíma áður en komið er.`,
   },
 ]
 
@@ -170,12 +170,12 @@ export const FAQ_BRANDS: Array<{ q: string; a: string }> = [
   {
     q: 'Hvar fæ ég Arrital eldhús á Íslandi?',
     a:
-      'Hjá Katrín Ísfeld Hönnunar Studio í Katrínartúni 4 í Reykjavík, sem er með umboð fyrir Arrital á Íslandi. Innréttingarnar eru teiknaðar inn í rýmið af innanhússarkitekt og fluttar inn beint frá verksmiðjunni á Ítalíu, ekki valdar úr staðalstærðum.',
+      'Hjá Katrín Ísfeld Hönnunar Studio í Katrínartúni 4 í Reykjavík, sem er með umboð fyrir Arrital á Íslandi. Innréttingarnar eru teiknaðar inn í rýmið af innanhússarkitekt og fluttar inn beint frá verksmiðjunni á Ítalíu, ekki valdar úr staðalstærðum. Í stúdíóinu stendur uppsett sýningareldhús frá Arrital sem hægt er að skoða og handleika.',
   },
   {
     q: 'Hvað er Altamarea?',
     a:
-      'Altamarea er ítalskur framleiðandi baðinnréttinga. Katrín Ísfeld Hönnunar Studio er með umboð fyrir þær á Íslandi og teiknar þær inn í baðherbergið á sama hátt og eldhúsinnréttingarnar frá Arrital.',
+      'Altamarea er ítalskur framleiðandi baðinnréttinga, vaska og spegla þar sem hver eining er gerð eftir máli. Katrín Ísfeld Hönnunar Studio er með umboð fyrir Altamarea á Íslandi og teiknar innréttingarnar inn í baðherbergið á sama hátt og eldhúsinnréttingarnar frá Arrital, svo breiddin ræðst af veggnum en ekki af staðalstærð.',
   },
   {
     q: 'Af hverju kostar sérteiknuð innrétting meira en staðalinnrétting?',
@@ -199,6 +199,6 @@ export const FAQ_CATEGORY: Record<string, { q: string; a: string }> = {
   'atvinnuhusnaedi': {
     q: 'Af hverju skiptir hönnun máli í atvinnuhúsnæði?',
     a:
-      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti gestinum, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins.',
+      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti gestinum, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, meðal annars móttöku og biðstofu Tannlæknastofunnar á Garðatorgi.',
   },
 }
